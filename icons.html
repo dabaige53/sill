@@ -1825,6 +1825,9 @@ class AppController{
  }
  renderCurrent(animate=false){
    this.closeMore();
+   // An anchored reflow may temporarily need extra room below the final row.
+   // Each fresh render measures its own natural height again.
+   this.grid.style.removeProperty('min-height');
    const catalog=['icons','cards','library','sources'].includes(this.mode);
    this.grid.classList.toggle('is-catalog',catalog);document.body.dataset.view=this.mode;
    if(this.mode==='icons'){this.grid.innerHTML=IconsView.render();document.getElementById('page-title').textContent='图标库';}
@@ -2041,9 +2044,19 @@ class AppController{
    const focusCard=focus?.closest('[data-card]')?.dataset.card,focusAction=focus?.dataset.action,focusExtra=focus?.dataset.extra,focusId=focus?.dataset.id;
    change();
    this.renderCurrent(false);
-   if(oldY>50){
+   if(oldY>0){
      const anchor=anchors.find(a=>this.grid.querySelector(`[data-card="${CSS.escape(a.id)}"]`));
-     if(anchor){const node=this.grid.querySelector(`[data-card="${CSS.escape(anchor.id)}"]`);window.scrollBy({top:node.getBoundingClientRect().top-anchor.top,behavior:'instant'});}
+     if(anchor){
+       const node=this.grid.querySelector(`[data-card="${CSS.escape(anchor.id)}"]`);
+       const targetY=scrollY+node.getBoundingClientRect().top-anchor.top;
+       const scroller=document.scrollingElement;
+       // Masonry can move this card further than the whole feed grows. Near
+       // the bottom, reserve the missing scroll range before restoring it;
+       // otherwise the browser clamps the scroll and shifts the reading point.
+       const missing=Math.ceil(targetY+scroller.clientHeight-scroller.scrollHeight);
+       if(missing>0)this.grid.style.minHeight=Math.ceil(this.grid.getBoundingClientRect().height+missing)+'px';
+       window.scrollTo({top:targetY,behavior:'instant'});
+     }
    }
    if(focusCard&&!this.dialog.open){
      const card=this.grid.querySelector(`[data-card="${CSS.escape(focusCard)}"]`);
