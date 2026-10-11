@@ -2,7 +2,7 @@
 window.initQuietGlassLive = () => {
   if(!window.__QG_RUNTIME__ || !window.__quietGlass)return;
   const {app,store,panels,esc}=window.__quietGlass;
-  let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null,conversations=null,preferencesAdapter=null,jobsAdapter=null;
+  let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null,conversations=null,preferencesAdapter=null,jobsAdapter=null,scriptsAdapter=null;
   const api=async(path,options={})=>{
     if(window.__QG_TRANSPORT__)return window.__QG_TRANSPORT__(path,options);
     const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
@@ -162,7 +162,7 @@ window.initQuietGlassLive = () => {
   if(!window.__QG_HOST__)app.sendAI=()=>app.toast('对话界面正在连接，请稍后重试');
   requestTimer=setInterval(async()=>{
     if(document.hidden)return;
-    refreshSettings();refreshContent();jobsAdapter?.refreshVisible();
+    refreshSettings();refreshContent();jobsAdapter?.refreshVisible();scriptsAdapter?.refreshVisible();
     conversations?.refresh();
   },2500);
   window.addEventListener('pagehide',()=>clearInterval(requestTimer),{once:true});
@@ -208,6 +208,12 @@ window.initQuietGlassLive = () => {
     if(window.initQuietGlassJobs)initialize();
     else {const script=document.createElement('script');script.src='/web/jobs.js';script.onload=initialize;script.onerror=()=>reject(new Error('后台任务界面未加载'));document.body.appendChild(script);}
   }).catch(error=>app.toast(error.message+'；内容仍可浏览，重新加载可恢复任务界面。'));
+  // Restricted Wasm controls are optional; their failure never blocks content.
+  new Promise((resolve,reject)=>{
+    const initialize=()=>{try{scriptsAdapter=window.initQuietGlassScripts({app,panels,esc,api,post,isConnected:()=>!!status});resolve();}catch(error){reject(error);}};
+    if(window.initQuietGlassScripts)initialize();
+    else {const script=document.createElement('script');script.src='/web/scripts.js';script.onload=initialize;script.onerror=()=>reject(new Error('WebAssembly 脚本界面未加载'));document.body.appendChild(script);}
+  }).catch(error=>app.toast(error.message+'；内容仍可浏览，重新加载可恢复脚本界面。'));
   const refreshContent=()=>{
     if(!status||!contentAdapter||app.refreshBusy||contentSync)return;
     contentSync=loadCards(false,true).catch(()=>{}).finally(()=>{contentSync=null;});

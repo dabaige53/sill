@@ -1,5 +1,5 @@
 import { readFileSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
@@ -67,6 +67,22 @@ export const JobsConfigSchema = z.object({
   maxInputBytes:z.number().int().min(1024).max(33554432).default(8388608),
   maxResultBytes:z.number().int().min(1024).max(65536).default(32768),
 }).strict().refine(value=>value.maxConcurrency<=value.maxRuns,'Run history must fit all concurrent runs');
+// This is operator configuration, never an ordinary workspace preference or an
+// external-principal grant. The executable path is local and never supplied by
+// an invocation; runtime dependencies must already have been installed.
+export const ScriptsConfigSchema = z.object({
+  enabled:z.boolean().default(false),
+  pythonPath:z.string().min(1).max(4096).refine(value=>isAbsolute(value)&&!value.includes('\0'),'Expected an absolute local executable path').default(resolve(ROOT,'.sandbox-venv/bin/python')),
+  maxRuns:z.number().int().min(1).max(1000).default(200),
+  maxReceipts:z.number().int().min(1).max(10000).default(2000),
+  maxConcurrency:z.number().int().min(1).max(8).default(1),
+  timeoutMs:z.number().int().min(100).max(2000).default(2000),
+  leaseMs:z.number().int().min(100).max(60000).default(10000),
+  maxInputBytes:z.number().int().min(256).max(16384).default(16384),
+  maxResultBytes:z.number().int().min(256).max(32768).default(32768),
+  fuel:z.number().int().min(1).max(1000000).default(1000000),
+  memoryBytes:z.number().int().min(65536).max(16777216).default(16777216),
+}).strict().refine(value=>value.maxConcurrency<=value.maxRuns,'Run history must fit all concurrent runs');
 const operation = z.object({
   tool: z.string().min(1), arguments: z.record(z.unknown()).default({}),
   itemsPath: z.string().default('items'),
@@ -78,6 +94,7 @@ export const ConfigSchema = z.object({
   dataDir: z.string().default('.quiet-glass'),
   ai:AiConfigSchema.default({}),
   jobs:JobsConfigSchema.default({}),
+  scripts:ScriptsConfigSchema.default({}),
   access:AccessConfigSchema.default({}),
   connectors: z.array(z.discriminatedUnion('type', [
     z.object({ ...common, type: z.literal('google-calendar'), calendarId: z.string().default('primary'), tokenEnv: envName.default('GOOGLE_ACCESS_TOKEN'), refreshTokenEnv: envName.optional(), clientIdEnv: envName.optional(), clientSecretEnv: envName.optional() }).strict(),

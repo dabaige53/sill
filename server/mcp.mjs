@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestRead, RequestList, RequestAnswer, publicError } from './schemas.mjs';
 import { JobList, JobCreate, JobUpdate, JobRun, JobGet, JobCancel } from './jobs.mjs';
+import { ScriptList, ScriptRun, ScriptRead, ScriptRuns, ScriptCancel } from './scripts.mjs';
 import { registerHostApp } from './host-app.mjs';
 
 const result = value => ({content:[{type:'text',text:JSON.stringify(value)}],structuredContent:value});
@@ -18,6 +19,11 @@ export function createMcpServer(service,options={}) {
       try{return await access.run(actor,async()=>{access.assertTool(actor,name);return result(await handler(args));},{requestBytes:Buffer.byteLength(JSON.stringify(args))});}catch(error){return {...result(publicError(error)),isError:true};}
     });
   };
+  tool('qg_list_scripts','Read the pinned registered WebAssembly v1 modules and runtime availability. Owner only. Disabled by default; reading never enables execution or starts work.',ScriptList,a=>scoped.listScripts(a),{readOnly:true});
+  tool('qg_run_script','Explicitly invoke one registered WebAssembly module by exact ID and version with bounded JSON parameters and a stable idempotencyKey. Owner only and operator-enabled only. No uploads, arbitrary paths, shell, WASI, network, filesystem or host callbacks. Reuse the identical request after an uncertain response; never blindly issue a new key.',ScriptRun,a=>scoped.runScript(a),{idempotent:true});
+  tool('qg_get_script_run','Read one persisted WebAssembly invocation and bounded output. Reading never starts or retries execution.',ScriptRead,a=>scoped.getScriptRun(a),{readOnly:true});
+  tool('qg_list_script_runs','Read bounded paginated WebAssembly invocation history. No implicit execution or retries.',ScriptRuns,a=>scoped.listScriptRuns(a),{readOnly:true});
+  tool('qg_cancel_script_run','Explicitly cancel a registered WebAssembly invocation. Stops its child process and preserves history; late results cannot replace cancellation.',ScriptCancel,a=>scoped.cancelScriptRun(a),{idempotent:true});
   tool('qg_list_jobs','Read registered local-only job definitions, worker enabled state, and a bounded page of saved jobs. Does not enable the worker or run anything.',JobList,a=>scoped.listJobs(a),{readOnly:true});
   tool('qg_create_job','Create an explicitly requested schedule for one registered read-only-local operation. Paused by default; UTC fixed intervals only. No shell, arbitrary tool, connector, AI or external write. Cannot enable the operator-controlled worker.',JobCreate,a=>scoped.createJob(a),{idempotent:true});
   tool('qg_update_job','Explicitly pause/resume or edit a saved local job with its expectedRevision. Pausing prevents future scheduled claims; cancel an active run separately. Never replay a stale change automatically.',JobUpdate,a=>scoped.updateJob(a));

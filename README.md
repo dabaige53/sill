@@ -137,3 +137,7 @@ docs/                                      # 产品需求、交互规范、对�
 ## 已注册的本地定时任务
 
 可保存推荐快照和本地数据质量摘要的任务、时间表与运行历史。后台工作器默认关闭；界面创建暂停任务，可明确手动运行、恢复、暂停或取消。任务只处理已有本地数据，不运行任意脚本或调用外部服务。合同与恢复语义见 [本地任务](docs/REGISTERED-JOBS.md)。
+
+### Registered WebAssembly scripts v1
+
+Owner-only, explicit JSON transformations using two pinned reviewed modules. Disabled by default; Linux x86_64 and the hash-pinned Wasmtime Python runtime are required. No uploads, arbitrary scripts, WASI, host callbacks or scheduler integration. See [the ABI, limits and installation guide](docs/REGISTERED-WASM.md). Missing isolation prerequisites fail closed.
