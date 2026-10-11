@@ -29,22 +29,29 @@
 - 不把卡片点击与“完整阅读”混为一谈，已读状态与阅读进度单独追踪。
 - 重要提醒自然穿插信息流，不能过度打扰，也不应在刷新时打断当前阅读。
 
+## V0.2 开发进展
+
+已恢复共享模块化源码与可复现构建，新增提醒延后/忽略/完成/恢复/撤销、提醒去重与冷却、三种信息流排序、旧版状态兼容和刷新卡片持久化。到期提醒先暂存，点击玻璃入口旁的计数后再更新信息流。
+
+```sh
+python3 scripts/build.py
+python3 tests/verify.py
+```
+
+[开发指南与后续工作](./docs/DEVELOPMENT.md)说明源码结构、运行方式与浏览器测试。本轮核心检查通过；浏览器验收状态见[验证记录](./tests/REPORT.md)。
+
 ## 文件结构
 
 ```text
-index.html
-components.html
-research.html
-docs/
-  PRODUCT-REQUIREMENTS.md
-  INTERACTION-SPEC.md
-  CONVERSATION-HISTORY.md
-  DESIGN-DECISIONS.md
-tests/
-  REPORT.md
+index.html / components.html / research.html  # 独立构建入口
+src/                                       # 共享源码、样式与页面壳
+scripts/build.py                           # 零第三方依赖构建器
+scripts/modules.json                       # 模块依赖顺序
+tests/                                     # 核心检查、浏览器回归与验收记录
+docs/                                      # 产品需求、交互规范、对话与开发指南
 ```
 
-原始模块化构建包此前已在对话中作为 `quiet-glass-source.zip` 交付；此仓库当前优先发布可独立运行的构建页与产品设计文档。不要将单文件 HTML 误认作最终组件架构。
+请修改 `src/` 后重新构建三个 HTML 入口。页面运行不需要安装第三方依赖；Playwright 仅用于浏览器回归测试。
 
 ## 后续开发原则
 

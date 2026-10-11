@@ -1,0 +1,18 @@
+[
+  "src/data/assets.js",
+  "src/data/sources.js",
+  "src/atoms/icons.js",
+  "src/atoms/primitives.js",
+  "src/data/cards.js",
+  "src/services/feed-policy.js",
+  "src/data/store.js",
+  "src/interactions/motion.js",
+  "src/cards/templates.js",
+  "src/views/library.js",
+  "src/interactions/panels.js",
+  "src/services/ai.js",
+  "src/interactions/layout.js",
+  "src/interactions/drag.js",
+  "src/views/app.js",
+  "src/index.js"
+]

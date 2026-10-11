@@ -1,0 +1,14 @@
+{
+  "name": "quiet-glass",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Offline card-first personal information space prototype",
+  "scripts": {
+    "build": "python3 scripts/build.py",
+    "test": "python3 tests/verify.py",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
