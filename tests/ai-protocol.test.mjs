@@ -31,7 +31,7 @@ test('AI MCP, HTTP and observer SSE share authenticated strict idempotent operat
   assert.equal((await http(path+'/start','POST',{requestId:request.id})).status,400);
   for(const name of ['qg_ai_status','qg_start_ai','qg_get_ai','qg_cancel_ai'])assert.equal((await call(name,{requestId:request.id,unexpected:true})).isError,true);
   const tools=(await client.listTools()).tools;
-  assert.equal(tools.length,44);assert.equal(tools.find(x=>x.name==='qg_start_ai').annotations.readOnlyHint,false);
+  assert.equal(tools.length,49);assert.equal(tools.find(x=>x.name==='qg_start_ai').annotations.readOnlyHint,false);
   assert.deepEqual((await call('qg_ai_status')).structuredContent,await(await http('/api/ai')).json());
   assert.equal((await call('qg_get_ai',{requestId:request.id})).structuredContent.status,'idle');
   const idleEvents=await(await http(path+'/events')).text();assert.match(idleEvents,/event: snapshot/);assert.match(idleEvents,/"status":"idle"/);assert.equal(calls,0,'read and SSE must never start provider');
