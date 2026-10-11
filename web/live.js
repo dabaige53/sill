@@ -7,10 +7,54 @@
   const api=async(path,options={})=>{
     const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
     const result=await response.json();
-    if(!response.ok)throw new Error(result.message||result.error||'连接未完成');
+    if(!response.ok)throw Object.assign(new Error(result.message||result.error||'连接未完成'),{code:result.code,current:result.current});
     return result;
   };
   const post=(path,data)=>api(path,{method:'POST',body:JSON.stringify(data)});
+  let settingsSnapshot=null,settingsQueue=Promise.resolve(),settingsWrites=0,settingsRead=null,settingsEpoch=0;
+  function applySettings(snapshot) {
+    // A response started before a later write must never roll preferences back.
+    if(settingsSnapshot&&snapshot.revision<=settingsSnapshot.revision)return;
+    const sortChanged=app.sort!==snapshot.values.sort;
+    settingsSnapshot=snapshot;
+    Object.assign(store.state.preferences,snapshot.values);
+    app.sort=snapshot.values.sort;app.feedNow=Date.now();store.save();
+    document.body.classList.toggle('opaque',snapshot.values.reduceTransparency);
+    document.querySelectorAll('[data-action="toggle-transparency"]').forEach(node=>node.setAttribute('aria-checked',snapshot.values.reduceTransparency));
+    if(sortChanged){
+      if(app.modalKind==='filter'&&app.dialog.open)app.repaintFilter();
+      else if(app.mode==='feed')app.withFeedAnchor(()=>{});
+    }
+  }
+  async function readSettings() {
+    if(settingsRead)return settingsRead;
+    settingsRead=api('/api/settings').then(snapshot=>{if(!settingsWrites)applySettings(snapshot);}).finally(()=>{settingsRead=null;});
+    return settingsRead;
+  }
+  const loadInitialSettings=()=>readSettings().catch(()=>app.toast('设置暂时无法读取；内容仍可浏览，连接恢复后会同步。'));
+  const originalAction=app.action.bind(app);
+  app.action=(name,id='',extra='',...rest)=>{
+    if(!['sort-feed','toggle-transparency'].includes(name))return originalAction(name,id,extra,...rest);
+    if(!status||!settingsSnapshot){app.openPanel('settings');app.toast('连接后才能保存服务设置');return;}
+    if(name==='sort-feed'&&!['priority','unread','time'].includes(extra))return;
+    settingsWrites++;
+    const epoch=settingsEpoch;
+    settingsQueue=settingsQueue.then(async()=>{
+      if(epoch!==settingsEpoch){settingsWrites--;return;}
+      const set=name==='sort-feed'?{sort:extra}:{reduceTransparency:!settingsSnapshot.values.reduceTransparency};
+      try{
+        const updated=await api('/api/settings',{method:'PATCH',body:JSON.stringify({set,expectedRevision:settingsSnapshot.revision})});
+        applySettings(updated);
+      }catch(error){
+        if(error.code==='SETTINGS_CONFLICT'&&error.current){settingsEpoch++;applySettings(error.current);}
+        app.toast(error.code==='SETTINGS_CONFLICT'?'设置已在另一处更新，已显示最新值；如需修改，请再操作一次。':`设置未保存：${error.message}`);
+      }finally{settingsWrites--;}
+    });
+    return settingsQueue;
+  };
+  const refreshSettings=()=>{if(status&&!settingsWrites)readSettings().catch(()=>{});};
+  window.addEventListener('focus',refreshSettings);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSettings();});
   const mapCard=c=>({id:c.id,type:c.kind==='event'&&!c.allDay?'event':c.kind==='task'?'note':c.allDay?'note':c.kind,form:'standard',title:c.title,summary:c.summary||(c.content||'').slice(0,240),body:(c.content||c.summary||'暂无正文').split('\n').filter(Boolean),source:status?.connectors.find(x=>x.id===c.sourceId)?.label||c.sourceId,tags:c.tags||[],url:c.url,start:c.start?Date.parse(c.start):undefined,end:c.end?Date.parse(c.end):undefined,people:[],related:c.evidenceIds||[],time:Date.parse(c.publishedAt||c.collectedAt),meta:c.allDay?`全天 · ${c.startDate} 至 ${c.endDate}（结束日不含）`:c.truncated||c.contentTruncated?'内容节选 · 可查看原文':'已采集',live:true,contentTruncated:c.contentTruncated});
   function stateFor(c){store.state.items[c.id]={...store.item(c.id),...c.state};}
   async function loadCards(initial=false) {
@@ -94,6 +138,7 @@
   };
   requestTimer=setInterval(async()=>{
     if(document.hidden)return;
+    refreshSettings();
     for(const [id,version] of pendingUpdates) {
       if((app.aiVersion||0)!==version){pendingUpdates.delete(id);continue;}
       try{const r=await api(`/api/requests/${id}`);if(r.status==='answered'){pendingUpdates.delete(id);app.messages.push({kind:'assistant',text:r.answer});app.paintAI();}}
@@ -104,8 +149,8 @@
   document.addEventListener('click',async event=>{
     if(!event.target.closest('[data-qg-action="login"]'))return;
     const field=document.getElementById('qg-token');
-    try{await post('/api/session',{token:field.value});field.value='';status=await api('/api/status');app.closeModal();await loadCards(true);}
+    try{await post('/api/session',{token:field.value});field.value='';status=await api('/api/status');await loadInitialSettings();app.closeModal();await loadCards(true);}
     catch(error){field.value='';app.toast(error.message);}
   });
-  api('/api/status').then(async value=>{status=value;await loadCards(true);}).catch(()=>app.openPanel('settings'));
+  api('/api/status').then(async value=>{status=value;await loadInitialSettings();await loadCards(true);}).catch(()=>app.openPanel('settings'));
 })();

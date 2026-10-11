@@ -13,6 +13,14 @@ export const Item = z.object({
   evidenceIds: z.array(z.string()).max(100).default([]),
   truncated: z.boolean().default(false),
 }).strict();
+// Only ordinary workspace preferences; never connector, credential or security settings.
+export const SettingsValues = z.object({
+  sort:z.enum(['priority','unread','time']), reduceTransparency:z.boolean(),
+}).strict();
+export const SettingsUpdate = z.object({
+  set:SettingsValues.partial().refine(value=>Object.keys(value).length>0,'至少修改一个设置'),
+  expectedRevision:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+}).strict();
 export const Collect = z.object({
   connectorId: z.string(), query: z.string().max(500).optional(),
   timeMin: iso.optional(), timeMax: iso.optional(), cursor: z.union([z.string().max(4000),z.number().int().min(0)]).optional(),

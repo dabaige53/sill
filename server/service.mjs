@@ -2,7 +2,7 @@ import { randomUUID, randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { Store, digest, uid } from './store.mjs';
 import { Connectors, at } from './connectors.mjs';
-import { Collect, Search, Recommend, Draft, Ingest, Workflow, operations, QGError, publicError } from './schemas.mjs';
+import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, operations, QGError, publicError } from './schemas.mjs';
 
 const excerpt = card => ({...card,content:card.content.slice(0,1200),contentTruncated:card.content.length>1200});
 const terms = query => query.toLocaleLowerCase().split(/[\s,，;；]+/).filter(Boolean);
@@ -12,6 +12,22 @@ const nowIso = () => new Date().toISOString();
 export class Service {
   constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map(); }
   status() {return {version:'0.2.0',mode:'single-user',connectors:this.connectors.status(),cards:this.store.list('card').length,workflows:this.store.list('workflow').map(w=>({id:w.id,goal:w.goal,status:w.status})),externalWrites:'prepare-and-confirm',ranking:'explainable-rules',ai:'Codex conversation orchestrates; no embedded model or borrowed connector credentials'};}
+  readSettings() {
+    return this.store.get('settings','workspace')||{values:{sort:'priority',reduceTransparency:false},revision:0};
+  }
+  updateSettings(args) {
+    const input=SettingsUpdate.parse(args);
+    return this.store.transaction(()=>{
+      const current=this.readSettings();
+      if(input.expectedRevision!==current.revision)throw new QGError('SETTINGS_CONFLICT','设置已在另一处更新；请查看最新设置后再决定。',{current});
+      const changedKeys=Object.keys(input.set).filter(key=>input.set[key]!==current.values[key]).sort();
+      if(!changedKeys.length)return current;
+      const next={values:{...current.values,...input.set},revision:current.revision+1};
+      this.store.put('settings','workspace',next);
+      this.store.audit('settings_updated',{changedKeys,fromRevision:current.revision,toRevision:next.revision});
+      return next;
+    });
+  }
   async collect(args) {
     const input=Collect.parse(args);
     const result=await this.connectors.collect(input);
