@@ -6,6 +6,7 @@ import { Connectors, at } from './connectors.mjs';
 import { AiEngine } from './ai.mjs';
 import { JobsEngine } from './jobs.mjs';
 import { ScriptsEngine } from './scripts.mjs';
+import { BackupsEngine } from './backups.mjs';
 import { AccessController } from './access.mjs';
 import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, DEFAULT_RECOMMENDATION, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestHttpCreate, RequestRead, RequestList, RequestAnswer, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
 
@@ -17,10 +18,11 @@ const changedFields = (set,current) => Object.keys(set).filter(key=>JSON.stringi
 const assertUpstreamSource = sourceId => {if(sourceId===LOCAL_NOTE_SOURCE||['host-notion','host-google-calendar','host-linear'].includes(sourceId))throw new QGError('RESERVED_SOURCE','本地笔记与宿主导入来源只能使用各自明确的创建方式');};
 
 export class Service {
-  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options);this.access=new AccessController(this,config.access,options);this.jobs=new JobsEngine(this,config.jobs,options);this.scripts=new ScriptsEngine(this,config.scripts,options);
+  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options);this.access=new AccessController(this,config.access,options);this.jobs=new JobsEngine(this,config.jobs,options);this.scripts=new ScriptsEngine(this,config.scripts,options);this.backups=new BackupsEngine(this,options);
     // Defense in depth: adapters use the restricted facade, and the real
     // service also rejects accidental broad dispatch in a principal context.
     const guarded={listScripts:'qg_list_scripts',runScript:'qg_run_script',getScriptRun:'qg_get_script_run',listScriptRuns:'qg_list_script_runs',cancelScriptRun:'qg_cancel_script_run',listJobs:'qg_list_jobs',createJob:'qg_create_job',updateJob:'qg_update_job',runJob:'qg_run_job',getJob:'qg_get_job',cancelJobRun:'qg_cancel_job_run',status:'qg_status',aiStatus:'qg_ai_status',startAi:'qg_start_ai',getAi:'qg_get_ai',cancelAi:'qg_cancel_ai',
+      exportBackup:'qg_export_content_backup',previewRestore:'qg_preview_content_restore',commitRestore:'qg_commit_content_restore',getRestore:'qg_get_content_restore',undoRestore:'qg_undo_content_restore',
       readSettings:'qg_read_settings',updateSettings:'qg_update_settings',createNote:'qg_create_note',updateNote:'qg_update_note',
       readAnnotation:'qg_read_annotation',updateAnnotation:'qg_update_annotation',collect:'qg_collect',ingest:'qg_ingest',
       search:'qg_search',getCard:'qg_get_card',recommend:'qg_recommend',feedback:'qg_feedback',
@@ -33,6 +35,11 @@ export class Service {
       this[method]=(...args)=>{this.access.assertOperation(tool);return original(...args);};
     }
   }
+  exportBackup(args={}) {return this.backups.export(args);}
+  previewRestore(args) {return this.backups.preview(args);}
+  commitRestore(args) {return this.backups.commit(args);}
+  getRestore(args) {return this.backups.get(args);}
+  undoRestore(args) {return this.backups.undo(args);}
   listScripts(args={}) {return this.scripts.list(args);}
   runScript(args) {return this.scripts.run(args);}
   getScriptRun(args) {return this.scripts.get(args);}

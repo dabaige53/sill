@@ -128,6 +128,37 @@ export class AccessController {
   #inBounds(card,policy) {
     return !!card&&policy.resources.sourceIds.includes(card.sourceId)&&(!policy.resources.cardIds||policy.resources.cardIds.includes(card.id));
   }
+  // Owner-only dry-run disclosure. Normal authentication still validates tokens;
+  // visibility computation uses only configured scopes, never credential values.
+  backupVisibility(beforeCards,afterCards,changedIds=[]) {
+    if(this.policy())throw denied();
+    if(!Array.isArray(beforeCards)||!Array.isArray(afterCards)||beforeCards.length>1100||afterCards.length>1100)throw new QGError('BACKUP_TARGET_LIMIT','目标卡片图超过备份预览上限');
+    const policies=this.#policies().map(policy=>({id:policy.id,enabled:policy.enabled,tokenEnv:policy.tokenEnv,limits:{...policy.limits},tools:[...policy.tools].sort(),resources:{sourceIds:[...policy.resources.sourceIds].sort(),...(policy.resources.cardIds?{cardIds:[...policy.resources.cardIds].sort()}:{}),ingestSourceIds:[...policy.resources.ingestSourceIds].sort()}})).sort((a,b)=>a.id.localeCompare(b.id));
+    const policyDigest=hash(JSON.stringify(policies)).toString('hex'),changed=new Set(changedIds),afterMap=new Map(afterCards.map(card=>[card.id,card]));
+    // Same transitive source/card bounds as canReadCard, evaluated in O(V+E)
+    // per policy. Cycles wholly in bounds remain readable; an invalid dependency
+    // propagates to every parent, including through cycles.
+    const readable=(cards,policy)=>{
+      const map=new Map(cards.map(card=>[card.id,card])),reverse=new Map(),invalid=new Set(),queue=[];
+      for(const card of cards){
+        if(!this.#inBounds(card,policy)){invalid.add(card.id);queue.push(card.id);}
+        for(const id of card.evidenceIds||[]){
+          if(!reverse.has(id))reverse.set(id,[]);reverse.get(id).push(card.id);
+          if(!map.has(id)&&!invalid.has(card.id)){invalid.add(card.id);queue.push(card.id);}
+        }
+      }
+      for(let n=0;n<queue.length;n++)for(const parent of reverse.get(queue[n])||[])if(!invalid.has(parent)){invalid.add(parent);queue.push(parent);}
+      return new Set(cards.filter(card=>!invalid.has(card.id)).map(card=>card.id));
+    };
+    const principals=[];
+    for(const policy of policies.filter(policy=>policy.enabled)){
+      const before=readable(beforeCards,policy),after=readable(afterCards,policy);
+      const newly=[...after].filter(id=>!before.has(id)).sort(),affected=[...after].filter(id=>changed.has(id)).sort();
+      const exposed=[...new Set([...newly,...affected])];if(!exposed.length)continue;
+      principals.push({id:policy.id,sourceIds:[...new Set(exposed.map(id=>afterMap.get(id).sourceId))].sort(),newlyVisibleCount:newly.length,affectedVisibleCount:affected.length,newlyVisibleCardIds:newly.slice(0,20),affectedVisibleCardIds:affected.slice(0,20),idsTruncated:newly.length>20||affected.length>20,annotationsVisible:policy.tools.includes('qg_read_annotation')});
+    }
+    return {policyDigest,principals,requiresAcknowledgement:principals.length>0,notice:'现有已配置身份的来源/卡片权限会立即适用于恢复后的内容；这不是凭据可用性验证。撤销不能收回其他身份已经读取的信息。'};
+  }
   canReadCard(card,policy=this.policy()) {
     if(!policy)return true;
     const pending=[card],seen=new Set();

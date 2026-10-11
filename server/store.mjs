@@ -26,8 +26,30 @@ export class Store {
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;
       CREATE TABLE IF NOT EXISTS records (kind TEXT NOT NULL, id TEXT NOT NULL, value TEXT NOT NULL, PRIMARY KEY(kind,id));
       CREATE TABLE IF NOT EXISTS audit (seq INTEGER PRIMARY KEY, time TEXT NOT NULL, event TEXT NOT NULL, detail TEXT NOT NULL);`);
+    // A separate singleton, never part of a content backup. Database triggers
+    // cover all writers, including other Store instances and direct SQL.
+    this.db.exec(`CREATE TABLE IF NOT EXISTS store_metadata (
+      singleton INTEGER PRIMARY KEY CHECK(singleton=1), store_instance_id TEXT NOT NULL,
+      mutation_epoch INTEGER NOT NULL CHECK(typeof(mutation_epoch)='integer' AND mutation_epoch BETWEEN 0 AND 9007199254740991));`);
+    this.db.prepare('INSERT OR IGNORE INTO store_metadata VALUES (1,?,0)').run(randomUUID());
+    const advance=`SELECT CASE WHEN NOT EXISTS(SELECT 1 FROM store_metadata WHERE singleton=1 AND mutation_epoch<9007199254740991) THEN RAISE(ABORT,'MUTATION_EPOCH_LIMIT') END;
+      UPDATE store_metadata SET mutation_epoch=mutation_epoch+1 WHERE singleton=1;`;
+    this.db.exec(`
+      CREATE TRIGGER IF NOT EXISTS records_epoch_insert AFTER INSERT ON records
+      WHEN NEW.kind NOT IN ('backup-plan','backup-restore','backup-key') BEGIN ${advance} END;
+      CREATE TRIGGER IF NOT EXISTS records_epoch_delete AFTER DELETE ON records
+      WHEN OLD.kind NOT IN ('backup-plan','backup-restore','backup-key') BEGIN ${advance} END;
+      CREATE TRIGGER IF NOT EXISTS records_epoch_update AFTER UPDATE ON records
+      WHEN (OLD.kind NOT IN ('backup-plan','backup-restore','backup-key') OR NEW.kind NOT IN ('backup-plan','backup-restore','backup-key'))
+        AND (OLD.kind IS NOT NEW.kind OR OLD.id IS NOT NEW.id OR OLD.value IS NOT NEW.value)
+      BEGIN ${advance} END;`);
   }
   close() { this.db.close(); }
+  mutationState() {
+    const row=this.db.prepare('SELECT store_instance_id,mutation_epoch FROM store_metadata WHERE singleton=1').get();
+    if(!row||typeof row.store_instance_id!=='string'||!Number.isSafeInteger(row.mutation_epoch)||row.mutation_epoch<0)throw new QGError('STORE_METADATA_INVALID','本地数据库版本信息无效');
+    return {storeInstanceId:row.store_instance_id,mutationEpoch:row.mutation_epoch};
+  }
   get(kind, id) { if(kind.endsWith('-key'))[kind,id]=idempotencyAddress(kind,id);return decode(this.db.prepare('SELECT value FROM records WHERE kind=? AND id=?').get(kind,id)); }
   list(kind) { return this.db.prepare('SELECT value FROM records WHERE kind=? ORDER BY id').all(kind).map(decode); }
   count(kind) { return Number(this.db.prepare('SELECT COUNT(*) AS total FROM records WHERE kind=?').get(kind).total); }
@@ -40,6 +62,31 @@ export class Store {
     if(!Number.isSafeInteger(limit)||limit<1||limit>10001)throw new QGError('STORE_BOUND','Invalid bounded size request');
     const rows=this.db.prepare('SELECT length(CAST(value AS BLOB)) AS bytes FROM records WHERE kind=? ORDER BY id LIMIT ?').all(kind,limit);
     return {count:rows.length,bytes:rows.reduce((sum,row)=>sum+Number(row.bytes),0)};
+  }
+  // Size and row limits are checked in SQLite before any value is loaded or
+  // parsed. Keep row identity separate until the typed value is validated.
+  readTypedBounded(kind,{limit,maxBytes,validate,idField='id',fixedId}={}) {
+    if(!Number.isSafeInteger(limit)||limit<1||limit>10000||!Number.isSafeInteger(maxBytes)||maxBytes<1||typeof validate!=='function')throw new QGError('STORE_BOUND','Invalid typed bounded record request');
+    const size=this.boundedSize(kind,limit+1);
+    if(size.count>limit||size.bytes>maxBytes)throw new QGError('BACKUP_CAPACITY','本地资料超出备份或恢复的安全大小限制');
+    return this.db.prepare('SELECT id,value FROM records WHERE kind=? ORDER BY id LIMIT ?').all(kind,limit).map(row=>this.decodeTypedRow(row,{validate,idField,fixedId}));
+  }
+  readTypedRecord(kind,id,{maxBytes,validate,idField='id',fixedId}={}) {
+    if(!Number.isSafeInteger(maxBytes)||maxBytes<1||typeof validate!=='function')throw new QGError('STORE_BOUND','Invalid typed record request');
+    const size=this.db.prepare('SELECT length(CAST(value AS BLOB)) AS bytes FROM records WHERE kind=? AND id=?').get(kind,id);
+    if(!size)return null;
+    if(size.bytes>maxBytes)throw new QGError('BACKUP_CAPACITY','本地记录超出恢复的安全大小限制');
+    return this.decodeTypedRow(this.db.prepare('SELECT id,value FROM records WHERE kind=? AND id=?').get(kind,id),{validate,idField,fixedId});
+  }
+  decodeTypedRow(row,{validate,idField,fixedId}) {
+    try {
+      const parsed=JSON.parse(row.value),value=validate(parsed);
+      if((fixedId!==undefined&&row.id!==fixedId)||(idField!==null&&value?.[idField]!==row.id))throw new Error('Stored identity mismatch');
+      return value;
+    } catch(error) {
+      if(error instanceof QGError&&error.code==='BACKUP_CAPACITY')throw error;
+      throw new QGError('BACKUP_RECORD_INVALID','本地记录的格式或身份无效；未导出或恢复任何内容');
+    }
   }
   delete(kind,id) { return this.db.prepare('DELETE FROM records WHERE kind=? AND id=?').run(kind,id); }
   put(kind,id,value) { if(kind.endsWith('-key'))[kind,id]=idempotencyAddress(kind,id);this.db.prepare('INSERT INTO records VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET value=excluded.value').run(kind,id,JSON.stringify(value)); return value; }

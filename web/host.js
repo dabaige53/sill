@@ -5,6 +5,7 @@ import './content.js';
 import './preferences.js';
 import './jobs.js';
 import './scripts.js';
+import './backups.js';
 import './live.js';
 
 const bridge=new App({name:'Quiet Glass',version:'0.4.0'},{});

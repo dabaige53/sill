@@ -214,6 +214,17 @@ window.initQuietGlassLive = () => {
     if(window.initQuietGlassScripts)initialize();
     else {const script=document.createElement('script');script.src='/web/scripts.js';script.onload=initialize;script.onerror=()=>reject(new Error('WebAssembly 脚本界面未加载'));document.body.appendChild(script);}
   }).catch(error=>app.toast(error.message+'；内容仍可浏览，重新加载可恢复脚本界面。'));
+  // Content backup is optional and never polls or replays stored requests.
+  new Promise((resolve,reject)=>{
+    const initialize=()=>{try{window.initQuietGlassBackups({app,panels,esc,api,post,isConnected:()=>!!status,onRestored:async()=>{
+      // Invalidate reads predating restore; only read after existing settings work.
+      // Revision guards and consume() retain other editors’ unsent drafts.
+      contentEpoch++;await settingsQueue.catch(()=>{});if(settingsRead)await settingsRead.catch(()=>{});
+      await Promise.all([readSettings(),loadCards(false,true)]);
+    }});resolve();}catch(error){reject(error);}};
+    if(window.initQuietGlassBackups)initialize();
+    else {const script=document.createElement('script');script.src='/web/backups.js';script.onload=initialize;script.onerror=()=>reject(new Error('内容备份界面未加载'));document.body.appendChild(script);}
+  }).catch(error=>app.toast(error.message+'；内容仍可浏览，重新加载可恢复备份界面。'));
   const refreshContent=()=>{
     if(!status||!contentAdapter||app.refreshBusy||contentSync)return;
     contentSync=loadCards(false,true).catch(()=>{}).finally(()=>{contentSync=null;});

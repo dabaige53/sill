@@ -141,3 +141,7 @@ docs/                                      # 产品需求、交互规范、对�
 ### Registered WebAssembly scripts v1
 
 Owner-only, explicit JSON transformations using two pinned reviewed modules. Disabled by default; Linux x86_64 and the hash-pinned Wasmtime Python runtime are required. No uploads, arbitrary scripts, WASI, host callbacks or scheduler integration. See [the ABI, limits and installation guide](docs/REGISTERED-WASM.md). Missing isolation prerequisites fail closed.
+
+### 内容与设置备份 v1
+
+仅备份卡片、来源信息、阅读状态、个人备注与普通偏好，不包含对话、请求、运行记录、连接配置或凭据。有限 JSON 文件先预览再明确恢复；默认只新增，覆盖需单独选择。即时受保护撤销只恢复被覆盖的旧值，新增卡片保留。文件未加密，正文可能含私人信息。范围、校验与恢复限制见 [内容备份说明](docs/CONTENT-BACKUPS.md)。

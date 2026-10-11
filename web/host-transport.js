@@ -30,8 +30,21 @@ export function createHostTransport(call) {
       if(method==='GET'&&Object.keys(data).length)invalid();
       if(url.pathname!=='/api/script-runs'&&Object.keys(data).length)invalid();
     }
+    const backupRoute=url.pathname.startsWith('/api/backups/');
+    if(backupRoute){
+      const invalid=()=>{throw Object.assign(new Error('备份参数不符合接口定义'),{code:'INVALID_INPUT'});};
+      if(url.searchParams.size||!data||typeof data!=='object'||Array.isArray(data))invalid();
+      if(method==='GET'&&Object.keys(data).length)invalid();
+      const allowed=url.pathname==='/api/backups/export'?[]:url.pathname==='/api/backups/preview'?['backup','mode']:url.pathname==='/api/backups/commit'?['planId','expectedPlanDigest','approvalToken','approved','acknowledgeVisibility','idempotencyKey']:/^\/api\/backups\/restores\/[^/]+\/undo$/.test(url.pathname)?['expectedEpoch','approved','idempotencyKey']:[];
+      if(Object.keys(data).some(key=>!allowed.includes(key)))invalid();
+    }
     if(url.pathname==='/api/status'){name='qg_status';args={};}
     else if(url.pathname==='/api/settings'){name=method==='PATCH'?'qg_update_settings':'qg_read_settings';args=data;}
+    else if(url.pathname==='/api/backups/export'&&method==='POST'){name='qg_export_content_backup';args=data;}
+    else if(url.pathname==='/api/backups/preview'&&method==='POST'){name='qg_preview_content_restore';args=data;}
+    else if(url.pathname==='/api/backups/commit'&&method==='POST'){name='qg_commit_content_restore';args=data;}
+    else if(/^\/api\/backups\/restores\/[^/]+$/.test(url.pathname)&&method==='GET'){name='qg_get_content_restore';args={restoreId:decodeURIComponent(url.pathname.split('/')[4])};}
+    else if(/^\/api\/backups\/restores\/[^/]+\/undo$/.test(url.pathname)&&method==='POST'){name='qg_undo_content_restore';args={...data,restoreId:decodeURIComponent(url.pathname.split('/')[4])};}
     else if(url.pathname==='/api/scripts'&&method==='GET'){name='qg_list_scripts';args={};}
     else if(url.pathname==='/api/script-runs'&&method==='GET'){name='qg_list_script_runs';args=scriptQuery;}
     else if(url.pathname==='/api/script-runs'&&method==='POST'){name='qg_run_script';args=data;}
