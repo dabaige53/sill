@@ -37,3 +37,10 @@ description: 使用 Quiet Glass 的 MCP 工具连接已配置的日历、Notion 
 - Google Calendar 支持读取和创建无参会人日程；Notion 支持采集页面正文及在指定父页面创建页面。
 - 其它来源通过配置好的 Streamable HTTP MCP、工具允许列表和字段映射接入。远程 OAuth 凭据由部署方配置；没有自动 OAuth 注册或浏览器登录向导。
 - 没有后台定时调度、无人值守 Codex 推理或语义向量索引。不要暗示具备这些能力。
+
+## 本地笔记与个人备注
+
+- 用户明确要求保存本地笔记时用 `qg_create_note`，提供稳定的 idempotencyKey；通过 `qg_get_card` 读取，再以当前 revision 调用 `qg_update_note`。来源正文不能用此工具修改。
+- 用户要求给卡片添加个人备注或标签时，先 `qg_read_annotation`，再 `qg_update_annotation`，传入非空 set 与 expectedRevision。个人标签与来源标签独立。
+- 版本冲突先核对返回的 current，保留用户意图并确认差异，不能自动覆盖。创建结果不明时用原始载荷和原键重试确认，不要换键重复创建；确认后再编辑。
+- 这些工具只写入 Quiet Glass，不代表外部服务已更新；外部写入仍遵循准备与确认流程。接口限制见 `docs/LOCAL-CONTENT.md`。
