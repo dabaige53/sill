@@ -1,5 +1,20 @@
 # Quiet Glass · 验证记录
 
+## V0.4 Storybook 组件工作台
+
+提交 `c64e926` 的 [第 10 次工作流](https://github.com/dabaige53/quiet-glass/actions/runs/38107085754) 全部通过：22 项核心与构建检查、21 组原有产品浏览器回归、10 组 Storybook 专项浏览器场景。
+
+- Storybook 10.6.1 / HTML-Vite 静态构建成功，索引包含 94 个独立 Story；无多实例 Autodocs 页面。
+- Chromium 逐个加载全部 94 个 Story，检查覆盖 38 图标、13 卡片形态、6 状态和 29 组件，没有渲染错误。
+- 实际操作 manager Controls 改变图标尺寸及卡片标题/状态，检查参数重新渲染与侧栏切换后单例、状态及弹层清理。
+- 验证键盘打开/关闭预览、焦点恢复、任务勾选、提醒完成、组件勾选和 AI 草稿带入不自动发送。
+- 产品 localStorage 预置数据保持不变；390/320px Canvas 检查无横向溢出。
+- `browser-verification` artifact 保存逐项 JSON 结果和工作台截图；`quiet-glass-storybook` artifact 保存可通过 HTTP 服务共享的完整静态目录。
+
+源码与静态构建可以在当前环境正常生成；当前受限环境的网卡信息读取不受支持，不能把本地 Storybook 开发服务启动当作已通过。工作流另设 `npm run storybook -- --ci --smoke-test` 启动检查，结果以相应工作流为准。
+
+Stories 使用共享渲染器和隔离的交互适配器；原控制器仍有单例 DOM 依赖。本次没有迁移为独立发布的 npm UI 包，没有公开部署 Storybook，也没有新增真实数据源或 AI 接入。
+
 ## V0.3 卡片体验与独立设计库
 
 本轮新增阅读卡层次、提醒卡内操作、连续预览转场、更多菜单焦点和可查看/移除的 AI 引用。独立设计库包含 38 个图标、10 类 / 13 个卡片变体、6 种静态状态、29 项组件和 28 项设计参考。所有入口复用产品源码；静态状态不写入 Store。

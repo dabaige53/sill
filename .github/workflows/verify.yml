@@ -23,6 +23,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build Storybook from shared components
         run: npm run build:storybook
+      - name: Verify local Storybook development startup
+        run: npm run storybook -- --ci --smoke-test
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser regressions
