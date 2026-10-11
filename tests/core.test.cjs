@@ -135,3 +135,18 @@ test('explicit pending confirmation respects current filters and never duplicate
  assert.equal(f.Store.state.cards.length,17);assert.equal(f.app.filtered().every(c=>c.type==='mail'),true);
  f.app.checkReminders();assert.equal(f.app.pendingReminders.length,0);
 });
+
+test('duplicate popstate/hashchange does not close a newly opened local panel',()=>{
+ const f=fixture();f.context.location={hash:'#feed'};let closes=0;
+ f.app.closeNative=()=>closes++;
+ f.app.route();assert.equal(closes,1);
+ f.app.modalKind='editor';f.app.route();assert.equal(closes,1);
+ f.app.route(true);assert.equal(closes,2);
+});
+
+test('actual touch opens tools first even when device reports hover capability',()=>{
+ const f=fixture();f.context.matchMedia=()=>({matches:false});let tools=0,ai=0;
+ f.app.openDock=()=>tools++;f.app.openAI=()=>ai++;
+ f.app.action('orb','','',null,{pointerType:'touch'});assert.equal(tools,1);assert.equal(ai,0);
+ f.app.action('orb','','',null,{pointerType:'touch'});assert.equal(ai,1);
+});

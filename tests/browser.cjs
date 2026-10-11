@@ -116,7 +116,7 @@ const results=[];
   for(const width of [390,320])await scenario(`${width}px touch layout, reminder controls and reduced motion`,async page=>{
    await page.screenshot({path:path.join(artifacts,`feed-${width}.png`),fullPage:true});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-   await page.locator('#orb').tap();await page.getByRole('button',{name:'筛选与搜索',exact:true}).tap();
+   await page.locator('#orb').tap();assert.equal(await page.locator('#ai-panel').isVisible(),false);await page.getByRole('button',{name:'筛选与搜索',exact:true}).tap();
    await page.screenshot({path:path.join(artifacts,`filter-${width}.png`)});
    await page.getByRole('button',{name:'关闭筛选',exact:true}).tap();
    await action(page,'preview','reminder-01');

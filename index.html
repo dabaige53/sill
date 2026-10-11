@@ -1414,7 +1414,7 @@ class AppController{
  click(e){
    if(Date.now()<this.drag.suppressUntil)return;
    const el=e.target.closest?.('[data-action]');
-   if(el){e.preventDefault();e.stopPropagation();this.action(el.dataset.action,el.dataset.id,el.dataset.extra,el);return;}
+   if(el){e.preventDefault();e.stopPropagation();this.action(el.dataset.action,el.dataset.id,el.dataset.extra,el,e);return;}
    const card=e.target.closest?.('[data-card]');
    if(card&&!e.target.closest('button,a,input,textarea')){this.navigate('#card/'+card.dataset.card);return;}
    if(!e.target.closest?.('#dock')&&!e.target.closest?.('.card-more-menu')){
@@ -1422,9 +1422,12 @@ class AppController{
      this.grid.querySelectorAll('.tools-open').forEach(n=>n.classList.remove('tools-open'));
    }
  }
- action(name,id='',extra='',el=null){
+ action(name,id='',extra='',el=null,event=null){
    switch(name){
-     case 'orb':if(matchMedia('(hover:none)').matches&&!this.touchDockExpanded){this.touchDockExpanded=true;this.openDock();}else this.openAI();break;
+     case 'orb':{
+       const touch=event?.pointerType==='touch'||event?.sourceCapabilities?.firesTouchEvents||matchMedia('(hover:none)').matches;
+       if(touch&&!this.touchDockExpanded){this.touchDockExpanded=true;this.openDock();}else this.openAI();break;
+     }
      case 'ai':this.openAI();break;
      case 'filter':this.openPanel('filter');break;
      case 'settings':this.openPanel('settings');break;
