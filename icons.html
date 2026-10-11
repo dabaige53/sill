@@ -1642,12 +1642,13 @@ class FeedLayout{
    if(!width)return;
    // A consistent column width lets content, rather than automatic spanning,
    // establish hierarchy. Short actions stay compact; reading cards have room.
-   const cols=width>=1000?3:width>=650?2:1,gap=cols===1?16:24,w=(width-(cols-1)*gap)/cols;
+   const cols=width>=1000?3:width>=650?2:1,gap=cols===1?16:24;
    const old=animate?new Map(items.map(n=>[n,n.getBoundingClientRect()])):null;
    el.dataset.columns=cols;
    items.forEach(n=>{
      n.classList.remove('is-featured');
-     n.style.width=w+'px';
+     // Keep horizontal geometry inside the container before resize/RAF runs.
+     n.style.width=`calc((100% - ${(cols-1)*gap}px) / ${cols})`;
    });
    const heights=Array(cols).fill(0);
    items.forEach(n=>{
@@ -1657,7 +1658,7 @@ class FeedLayout{
        const candidate=Math.max(...heights.slice(i,i+span));
        if(candidate<y){col=i;y=candidate;}
      }
-     n.style.left=(col*(w+gap))+'px';n.style.top=y+'px';
+     n.style.left=`calc((100% + ${gap}px) / ${cols} * ${col})`;n.style.top=y+'px';
      for(let i=col;i<col+span;i++)heights[i]=y+n.offsetHeight+gap;
    });
    el.style.height=(Math.max(...heights)-gap)+'px';

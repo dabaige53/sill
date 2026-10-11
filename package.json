@@ -14,20 +14,25 @@
     "start": "node --env-file-if-exists=.env server/index.mjs --http",
     "mcp": "node --env-file-if-exists=.env server/index.mjs --stdio",
     "check": "node scripts/check.mjs",
-    "plugin:build": "node scripts/build-plugin.mjs",
+    "plugin:build": "npm run build:host && node scripts/build-plugin.mjs",
     "test:core": "python3 tests/verify.py",
     "test:integration": "npm run plugin:build && node --test tests/*.test.mjs",
     "test:live-browser": "node tests/live-browser.mjs",
     "test:settings-browser": "node tests/settings-browser.mjs",
-    "test:content-browser": "node tests/content-browser.mjs"
+    "test:content-browser": "node tests/content-browser.mjs",
+    "build:host": "node scripts/build-host.mjs",
+    "test:host-browser": "npm run build:host && node tests/host-browser.mjs"
   },
   "devDependencies": {
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@openai/mcp-extensions": "0.1.0",
     "@storybook/addon-docs": "10.6.1",
     "@storybook/html-vite": "10.6.1",
+    "esbuild": "0.28.2",
+    "jsdom": "26.1.0",
     "playwright": "1.62.1",
     "storybook": "10.6.1",
-    "vite": "7.3.1",
-    "jsdom": "26.1.0"
+    "vite": "7.3.1"
   },
   "type": "module",
   "engines": {

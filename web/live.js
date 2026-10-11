@@ -1,10 +1,11 @@
 /* Same-origin live adapter. No provider credentials or model keys enter browser storage. */
-(() => {
+window.initQuietGlassLive = () => {
   if(!window.__QG_RUNTIME__ || !window.__quietGlass)return;
   const {app,store,panels,esc}=window.__quietGlass;
   let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null;
   const pendingUpdates=new Map();
   const api=async(path,options={})=>{
+    if(window.__QG_TRANSPORT__)return window.__QG_TRANSPORT__(path,options);
     const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
     const result=await response.json();
     if(!response.ok)throw Object.assign(new Error(result.message||result.error||'连接未完成'),{code:result.code,current:result.current});
@@ -77,11 +78,12 @@
       if(before!==JSON.stringify([store.state.cards,store.state.items]))app.withFeedAnchor(()=>{});
     }
     store.save();
+    if(window.__QG_HOST__)app.paintAI();
     if(offset!==null&&!quiet)app.toast('当前展示前 1000 张卡片，可在 Codex 中继续查询');
   }
   const originalSettings=panels.settings.bind(panels);
   panels.settings=()=>{
-    const summary=status?status.connectors.map(c=>`<p>${esc(c.label)} · ${c.enabled?(c.credentialConfigured?'凭据已配置，采集时验证':'待授权'):'已停用'}${c.allowWrites?' · 可准备写入草稿':''}</p>`).join('')||'<p>还没有配置数据源。请按仓库接入说明配置日历、Notion 或 MCP。</p>':'<label class="field-label" for="qg-token">服务访问密钥</label><input id="qg-token" type="password" autocomplete="off" aria-label="Quiet Glass 服务访问密钥"><button class="solid-button" type="button" data-qg-action="login">连接</button>';
+    const summary=status?status.connectors.map(c=>`<p>${esc(c.label)} · ${c.enabled?(c.credentialConfigured?'凭据已配置，采集时验证':'待授权'):'已停用'}${c.allowWrites?' · 可准备写入草稿':''}</p>`).join('')||'<p>还没有配置数据源。请按仓库接入说明配置日历、Notion 或 MCP。</p>':window.__QG_HOST__?'<p>宿主连接尚未完成，请关闭后重新打开此视图。</p>':'<label class="field-label" for="qg-token">服务访问密钥</label><input id="qg-token" type="password" autocomplete="off" aria-label="Quiet Glass 服务访问密钥"><button class="solid-button" type="button" data-qg-action="login">连接</button>';
     return originalSettings().replace(/<p class="settings-note"><strong>演示边界<\/strong>[\s\S]*?<\/p>/,`<div class="settings-note"><strong>数据源连接</strong>${summary}<p>对话推理由 Codex 完成。这里提交的问题会进入待处理队列；在 Codex 中调用 Quiet Glass 后，结果会返回此处。</p><p>已读和收藏会同步到本地服务；备注与个人标签保存在本地服务，不改写来源；阅读位置仍保存在本浏览器。</p></div>`);
   };
   document.querySelector('.ai-header small').textContent='Codex 待处理请求 · 需在 Codex 中继续';
@@ -158,13 +160,14 @@
   });
   const contentReady=new Promise((resolve,reject)=>{
     const script=document.createElement('script');script.src='/web/content.js';
-    script.onload=()=>{
+    const initialize=()=>{
       try{contentAdapter=window.initQuietGlassContent({app,store,panels,esc,api,post,isConnected:()=>!!status,onMutation:()=>contentEpoch++,onSaved:card=>{
         contentEpoch++;stateFor(card);const mapped=mapCard(card),index=store.state.cards.findIndex(item=>item.id===card.id);
         app.withFeedAnchor(()=>{if(index>=0)store.state.cards[index]=mapped;else store.state.cards.unshift(mapped);});store.save();
       }});resolve();}catch(error){reject(error);}
     };
-    script.onerror=()=>reject(new Error('本地内容界面未加载，请重新加载页面'));document.body.appendChild(script);
+    if(window.initQuietGlassContent)initialize();
+    else {script.onload=initialize;script.onerror=()=>reject(new Error('本地内容界面未加载，请重新加载页面'));document.body.appendChild(script);}
   });
   const refreshContent=()=>{
     if(!status||!contentAdapter||app.refreshBusy||contentSync)return;
@@ -173,4 +176,5 @@
   window.addEventListener('focus',refreshContent);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshContent();});
   api('/api/status').then(async value=>{status=value;await contentReady;await loadInitialSettings();await loadCards(true);}).catch(()=>app.openPanel('settings'));
-})();
+};
+if(!window.__QG_HOST__)window.initQuietGlassLive();

@@ -180,7 +180,7 @@ test('reserved note source and disjoint IDs cannot be overwritten by ingest or c
   assert.equal(s.store.list('note-key').length,1);
 });
 
-test('HTTP and MCP expose the same 23-tool content contract with auth, strict bodies and explicit conflicts',async t=>{
+test('HTTP and MCP expose the compatible content contract with auth, strict bodies and explicit conflicts',async t=>{
   const {service:s}=await fixture(t),token='content-test-only-012345678901234567890';
   const server=await startHttp(s,{port:0,token}),origin=`http://127.0.0.1:${server.address().port}`;
   const client=new Client({name:'content-test',version:'1'});
@@ -189,7 +189,7 @@ test('HTTP and MCP expose the same 23-tool content contract with auth, strict bo
   const call=(name,args={})=>client.callTool({name,arguments:args});
   const names=(await client.listTools()).tools.map(tool=>tool.name);
   const originals=['qg_status','qg_read_settings','qg_update_settings','qg_list_source_tools','qg_collect','qg_ingest','qg_search','qg_get_card','qg_recommend','qg_feedback','qg_prepare_action','qg_get_action','qg_commit_action','qg_create_workflow','qg_run_workflow','qg_get_workflow','qg_list_requests','qg_answer_request','qg_audit'];
-  assert.equal(names.length,23);
+  assert.equal(names.length,24);
   for(const name of [...originals,'qg_create_note','qg_update_note','qg_read_annotation','qg_update_annotation'])assert.ok(names.includes(name),name);
   assert.equal(names.some(name=>name.includes('delete')),false);
   const created=await call('qg_create_note',draft);assert.notEqual(created.isError,true);
