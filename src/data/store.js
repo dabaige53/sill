@@ -22,7 +22,9 @@ const Store = {
      return card;
    });
    if(valid){
-     for(const c of this.state.cards){
+     // Live cards arrive after authentication; restore their browser-local notes too.
+     const restoredCards=window.__QG_RUNTIME__?Object.keys(raw.items).map(id=>({id})):this.state.cards;
+     for(const c of restoredCards){
        const x=raw.items[c.id];if(!x||typeof x!=='object'||Array.isArray(x))continue;
        const timestamp=n=>Number.isFinite(n)&&n>0&&n<8.64e15?n:0;
        this.state.items[c.id]={

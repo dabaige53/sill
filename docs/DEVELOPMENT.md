@@ -2,7 +2,7 @@
 
 ## 当前迭代（V0.4：Storybook）
 
-本地设计库入口为 Storybook，命令 `npm run storybook`。使用 Storybook 10.6.1 / HTML-Vite 与 Vite 7.3.1，要求 Node.js 22.12+（推荐 Node.js 24 LTS）及现有 Python 3。安装使用 `npm ci`。
+本地设计库入口为 Storybook，命令 `npm run storybook`。使用 Storybook 10.6.1 / HTML-Vite 与 Vite 7.3.1，完整仓库安装要求 Node.js 24+（MCP 后端使用内置 SQLite）及现有 Python 3。安装使用 `npm ci`。
 
 `.storybook/shared-source.mjs` 按现有 modules.json 和 styles.json 直接读取共享源码，排除产品启动脚本；不复制模板，不修改产品初始化行为。`stories/runtime.js` 隔离内存 Store、内部导航与事件/定时器生命周期，单个 Canvas 运行真实组件交互。原控制器仍依赖单例 DOM，因此不启用同时挂载多个故事的 Autodocs；当前适配器不等同于已发布的无全局依赖 npm 组件包。
 

@@ -5,3 +5,10 @@ __pycache__/
 storybook-static/
 .storybook-cache/
 build-storybook.log
+.env
+.env.*
+!.env.example
+quiet-glass.config.json
+.quiet-glass/
+dist/
+*.sqlite*

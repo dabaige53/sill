@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "quiet-glass",
+  "version": "0.2.0",
+  "description": "跨来源采集内容、管理卡片、解释推荐并编排可恢复任务的个人信息空间。",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Quiet Glass",
+        "shortDescription": "内容采集、推荐与对话任务编排",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "defaultPrompt": ["汇总今天的日程与相关笔记", "采集已连接来源，推荐最值得处理的内容", "处理 Quiet Glass 中待回答的问题"]
+      }
+    }
+  }
+}

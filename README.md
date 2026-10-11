@@ -89,3 +89,15 @@ docs/                                      # 产品需求、交互规范、对�
 设计研究建议：Apple Human Interface Guidelines、Lucide、Motion、Radix、dnd-kit。当前独立 HTML 演示并不代表已实际安装这些库。
 
 版权所有：项目所有者。
+
+## MCP 与真实数据接入
+
+同一仓库同时提供 V0.5 设计原型与单用户 MCP / HTTP 后端。完整安装使用 Node.js 24+、Python 3 和 `npm ci`。`npm start` 启动连接模式，静态打开 HTML 仍为离线演示；凭据和真实来源不会自动继承。详见 [Codex 插件与连接器接入](docs/CODEX-PLUGIN.md)。
+
+- `npm test`：源码与生成页面一致性、核心测试，以及后端、MCP/HTTP 协议和页面联调。
+- `npm run test:browser`：离线产品浏览器回归。
+- `npm run test:live-browser`：隔离 MCP 来源 → HTTP 服务 → 真实浏览器的完整联调。
+- `npm run build:storybook && npm run test:storybook`：共享设计库构建与浏览器回归。
+- `npm run plugin:build`：生成本地插件包。
+
+真实模式的初始化维护在 `src/views/app.js`、`src/index.js`、`src/shell.html`，由构建生成全部五个入口；运行适配器为 `web/live.js`。请勿只修改生成后的首页。

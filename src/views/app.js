@@ -9,7 +9,10 @@ class AppController{
    this.sort='priority';this.feedNow=Date.now();this.pendingReminders=[];
  }
  init(){
-   Store.load();this.sort=Store.state.preferences.sort;document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);
+   if(window.__QG_RUNTIME__)Store.key='quiet-glass-live-v1';
+   Store.load();
+   if(window.__QG_RUNTIME__)Store.state.cards=[];
+   this.sort=Store.state.preferences.sort;document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);
    document.body.innerHTML=`<main aria-label="个人信息空间"><h1 class="sr-only" id="page-title">卡片信息流</h1><div class="feed-grid" id="feed-grid"></div></main>
    <div id="dock"><div class="dock-tools" role="group" aria-label="全局工具">
      ${button('filter','筛选与搜索','filter')}${button('refresh','刷新演示内容','refresh')}${button('up','返回顶部','top')}${button('layers','组件实验室','view-library')}${button('info','使用说明与设置','settings')}

@@ -1,0 +1,42 @@
+{
+  "dataDir": ".quiet-glass",
+  "connectors": [
+    {
+      "id": "calendar",
+      "label": "我的日历",
+      "type": "google-calendar",
+      "calendarId": "primary",
+      "tokenEnv": "GOOGLE_ACCESS_TOKEN",
+      "enabled": true,
+      "allowWrites": false
+    },
+    {
+      "id": "notion",
+      "label": "我的 Notion",
+      "type": "notion",
+      "tokenEnv": "NOTION_TOKEN",
+      "version": "2025-09-03",
+      "enabled": true,
+      "allowWrites": false
+    },
+    {
+      "id": "reading-mcp",
+      "label": "阅读内容源",
+      "type": "mcp",
+      "url": "https://your-mcp-server.example/mcp",
+      "tokenEnv": "READING_MCP_TOKEN",
+      "enabled": false,
+      "allowWrites": false,
+      "readTools": ["list_articles"],
+      "writeTools": [],
+      "collect": {
+        "tool": "list_articles",
+        "arguments": {"limit": 20},
+        "itemsPath": "items",
+        "fields": {"id": "id", "title": "title", "content": "content", "url": "url", "publishedAt": "publishedAt"},
+        "cursorArgument": "cursor",
+        "cursorPath": "nextCursor"
+      }
+    }
+  ]
+}
