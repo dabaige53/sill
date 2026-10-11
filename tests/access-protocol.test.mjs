@@ -50,7 +50,7 @@ test('restricted MCP advertises only granted tools and rejects every hidden owne
   const f = await fixture(t, { seed: seedCards }), restricted = await f.connect(), owner = await f.connect(OWNER);
   assert.deepEqual((await restricted.listTools()).tools.map(tool => tool.name).sort(), [...READ].sort());
   const ownerTools = (await owner.listTools()).tools.map(tool => tool.name);
-  assert.equal(ownerTools.length, 33); assert.ok(ownerTools.includes('qg_open_workspace'));
+  assert.equal(ownerTools.length, 39); assert.ok(ownerTools.includes('qg_open_workspace'));
   const before = f.records();
   for (const name of ownerTools.filter(name => !READ.includes(name))) {
     const response = await f.raw(name, { cardId: cardId('private', 'private'), requestId: 'request_private', workflowId: 'workflow_private', actionId: 'action_private', connectorId: 'private', approved: true });

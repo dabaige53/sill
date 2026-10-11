@@ -30,6 +30,18 @@ export class Store {
   close() { this.db.close(); }
   get(kind, id) { if(kind.endsWith('-key'))[kind,id]=idempotencyAddress(kind,id);return decode(this.db.prepare('SELECT value FROM records WHERE kind=? AND id=?').get(kind,id)); }
   list(kind) { return this.db.prepare('SELECT value FROM records WHERE kind=? ORDER BY id').all(kind).map(decode); }
+  count(kind) { return Number(this.db.prepare('SELECT COUNT(*) AS total FROM records WHERE kind=?').get(kind).total); }
+  // LIMIT is applied in SQLite, before allocating or decoding record contents.
+  listBounded(kind,{limit,offset=0}={}) {
+    if(!Number.isSafeInteger(limit)||limit<1||limit>10001||!Number.isSafeInteger(offset)||offset<0||offset>1000000)throw new QGError('STORE_BOUND','Invalid bounded record request');
+    return this.db.prepare('SELECT value FROM records WHERE kind=? ORDER BY id LIMIT ? OFFSET ?').all(kind,limit,offset).map(decode);
+  }
+  boundedSize(kind,limit) {
+    if(!Number.isSafeInteger(limit)||limit<1||limit>10001)throw new QGError('STORE_BOUND','Invalid bounded size request');
+    const rows=this.db.prepare('SELECT length(CAST(value AS BLOB)) AS bytes FROM records WHERE kind=? ORDER BY id LIMIT ?').all(kind,limit);
+    return {count:rows.length,bytes:rows.reduce((sum,row)=>sum+Number(row.bytes),0)};
+  }
+  delete(kind,id) { return this.db.prepare('DELETE FROM records WHERE kind=? AND id=?').run(kind,id); }
   put(kind,id,value) { if(kind.endsWith('-key'))[kind,id]=idempotencyAddress(kind,id);this.db.prepare('INSERT INTO records VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET value=excluded.value').run(kind,id,JSON.stringify(value)); return value; }
   transaction(fn) {
     this.db.exec('BEGIN IMMEDIATE');

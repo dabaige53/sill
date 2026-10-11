@@ -194,7 +194,7 @@ test('HTTP and MCP share strict conversation, queue, read and answer contracts b
   const http=(path,method='GET',value,extra={})=>fetch(origin+path,{method,headers:{...headers,...extra},...(value===undefined?{}:{body:JSON.stringify(value)})});
   for(const path of ['/api/conversations','/api/conversations/conversation_missing','/api/requests','/api/requests/request_missing'])assert.equal((await fetch(origin+path)).status,401);
   assert.equal((await http('/api/conversations','POST',{idempotencyKey:'origin'},{Origin:'https://evil.example'})).status,403);
-  const tools=(await client.listTools()).tools;assert.equal(tools.length,33);
+  const tools=(await client.listTools()).tools;assert.equal(tools.length,39);
   for(const name of ['qg_open_workspace','qg_create_conversation','qg_list_conversations','qg_read_conversation','qg_create_request','qg_get_request','qg_list_requests','qg_answer_request'])assert.ok(tools.some(tool=>tool.name===name));
   assert.equal(tools.some(tool=>tool.name.includes('delete')),false);
   const created=await call('qg_create_conversation',{title:'Shared contract',idempotencyKey:'shared'});assert.notEqual(created.isError,true);const conversation=created.structuredContent;

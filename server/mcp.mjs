@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestRead, RequestList, RequestAnswer, publicError } from './schemas.mjs';
+import { JobList, JobCreate, JobUpdate, JobRun, JobGet, JobCancel } from './jobs.mjs';
 import { registerHostApp } from './host-app.mjs';
 
 const result = value => ({content:[{type:'text',text:JSON.stringify(value)}],structuredContent:value});
@@ -17,6 +18,12 @@ export function createMcpServer(service,options={}) {
       try{return await access.run(actor,async()=>{access.assertTool(actor,name);return result(await handler(args));},{requestBytes:Buffer.byteLength(JSON.stringify(args))});}catch(error){return {...result(publicError(error)),isError:true};}
     });
   };
+  tool('qg_list_jobs','Read registered local-only job definitions, worker enabled state, and a bounded page of saved jobs. Does not enable the worker or run anything.',JobList,a=>scoped.listJobs(a),{readOnly:true});
+  tool('qg_create_job','Create an explicitly requested schedule for one registered read-only-local operation. Paused by default; UTC fixed intervals only. No shell, arbitrary tool, connector, AI or external write. Cannot enable the operator-controlled worker.',JobCreate,a=>scoped.createJob(a),{idempotent:true});
+  tool('qg_update_job','Explicitly pause/resume or edit a saved local job with its expectedRevision. Pausing prevents future scheduled claims; cancel an active run separately. Never replay a stale change automatically.',JobUpdate,a=>scoped.updateJob(a));
+  tool('qg_run_job','Explicitly run one registered local read-only operation once, including a paused job. Reuse the same idempotencyKey after an uncertain response; never generate a new key to retry the same request. Does not enable recurring execution or call external services.',JobRun,a=>scoped.runJob(a),{idempotent:true});
+  tool('qg_get_job','Read a saved job and bounded paginated run history with local results, status and errors. Reading never runs or retries work.',JobGet,a=>scoped.getJob(a),{readOnly:true});
+  tool('qg_cancel_job_run','Explicitly cancel a local job run. Cancellation wins over late completion; it does not delete history or pause future schedule occurrences.',JobCancel,a=>scoped.cancelJobRun(a),{idempotent:true});
   const aiRequest=z.object({requestId:z.string().min(1).max(100).regex(/^request_[a-z0-9_-]+$/i)}).strict();
   tool('qg_ai_status','Read whether the optional OpenAI provider is enabled and configured, non-secret limits and request-count budget. Does not read or expose the API key when disabled and never starts a model call.',z.object({}).strict(),()=>scoped.aiStatus(),{readOnly:true});
   tool('qg_start_ai','Explicitly start one potentially billable OpenAI API answer for an existing queued question. Transmits its bounded history and source snapshots to OpenAI. Only use when the user has explicitly requested this provider call; never start on page load or merely because a request is pending. One durable run per request; existing failed/cancelled/interrupted runs are returned without retry. No tools or external writes are executed.',aiRequest,a=>scoped.startAi(a),{external:true,idempotent:true});

@@ -25,7 +25,8 @@
     "test:conversations-browser": "node tests/conversations-browser.mjs",
     "test:ai-browser": "node tests/ai-browser.mjs",
     "test:provenance-browser": "npm run build:host && node tests/provenance-browser.mjs",
-    "test:preferences-browser": "npm run build:host && node tests/preferences-browser.mjs"
+    "test:preferences-browser": "npm run build:host && node tests/preferences-browser.mjs",
+    "test:jobs-browser": "npm run build:host && node tests/jobs-browser.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/ext-apps": "1.7.5",

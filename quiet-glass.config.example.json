@@ -82,5 +82,8 @@
         }
       }
     ]
+  },
+  "jobs": {
+    "enabled": false
   }
 }

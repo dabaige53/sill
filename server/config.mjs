@@ -52,6 +52,21 @@ export const AiConfigSchema = z.object({
   maxContextChars:z.number().int().min(1000).max(64000).default(16000),
   maxRequestsPerDay:z.number().int().min(1).max(10000).default(20),
 }).strict();
+// The worker runs only finite local readers. This operator-only configuration is
+// deliberately separate from ordinary workspace settings and external access.
+export const JobsConfigSchema = z.object({
+  enabled:z.boolean().default(false),
+  maxJobs:z.number().int().min(1).max(100).default(30),
+  maxRuns:z.number().int().min(1).max(1000).default(200),
+  maxManualReceipts:z.number().int().min(1).max(10000).default(2000),
+  maxConcurrency:z.number().int().min(1).max(8).default(2),
+  timeoutMs:z.number().int().min(100).max(120000).default(10000),
+  tickMs:z.number().int().min(50).max(60000).default(1000),
+  leaseMs:z.number().int().min(100).max(300000).default(30000),
+  maxCards:z.number().int().min(1).max(5000).default(1000),
+  maxInputBytes:z.number().int().min(1024).max(33554432).default(8388608),
+  maxResultBytes:z.number().int().min(1024).max(65536).default(32768),
+}).strict().refine(value=>value.maxConcurrency<=value.maxRuns,'Run history must fit all concurrent runs');
 const operation = z.object({
   tool: z.string().min(1), arguments: z.record(z.unknown()).default({}),
   itemsPath: z.string().default('items'),
@@ -62,6 +77,7 @@ const common = { id: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/), label: z.st
 export const ConfigSchema = z.object({
   dataDir: z.string().default('.quiet-glass'),
   ai:AiConfigSchema.default({}),
+  jobs:JobsConfigSchema.default({}),
   access:AccessConfigSchema.default({}),
   connectors: z.array(z.discriminatedUnion('type', [
     z.object({ ...common, type: z.literal('google-calendar'), calendarId: z.string().default('primary'), tokenEnv: envName.default('GOOGLE_ACCESS_TOKEN'), refreshTokenEnv: envName.optional(), clientIdEnv: envName.optional(), clientSecretEnv: envName.optional() }).strict(),
