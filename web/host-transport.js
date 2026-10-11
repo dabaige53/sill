@@ -6,6 +6,7 @@ export function createHostTransport(call) {
     let name,args;
     if(url.pathname==='/api/status'){name='qg_status';args={};}
     else if(url.pathname==='/api/settings'){name=method==='PATCH'?'qg_update_settings':'qg_read_settings';args=data;}
+    else if(url.pathname==='/api/recommend'&&method==='POST'){name='qg_recommend';args=data;}
     else if(url.pathname==='/api/feed'){name='qg_search';args={query:'',limit:100,offset:Number(url.searchParams.get('offset')||0)};}
     else if(url.pathname==='/api/feedback'){name='qg_feedback';args=data;}
     else if(url.pathname==='/api/notes'&&method==='POST'){name='qg_create_note';args=data;}

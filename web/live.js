@@ -2,7 +2,7 @@
 window.initQuietGlassLive = () => {
   if(!window.__QG_RUNTIME__ || !window.__quietGlass)return;
   const {app,store,panels,esc}=window.__quietGlass;
-  let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null,conversations=null;
+  let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null,conversations=null,preferencesAdapter=null;
   const api=async(path,options={})=>{
     if(window.__QG_TRANSPORT__)return window.__QG_TRANSPORT__(path,options);
     const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
@@ -17,6 +17,7 @@ window.initQuietGlassLive = () => {
     if(settingsSnapshot&&snapshot.revision<=settingsSnapshot.revision)return;
     const sortChanged=app.sort!==snapshot.values.sort;
     settingsSnapshot=snapshot;
+    preferencesAdapter?.consume(snapshot);
     Object.assign(store.state.preferences,snapshot.values);
     app.sort=snapshot.values.sort;app.feedNow=Date.now();store.save();
     document.body.classList.toggle('opaque',snapshot.values.reduceTransparency);
@@ -32,30 +33,40 @@ window.initQuietGlassLive = () => {
     return settingsRead;
   }
   const loadInitialSettings=()=>readSettings().catch(()=>app.toast('设置暂时无法读取；内容仍可浏览，连接恢复后会同步。'));
+  // All service settings use one queue and CAS revision, including recommendation drafts.
+  const recommendation=value=>value||{interests:[],sourcePriorities:{},excludedSourceIds:[],includeRead:false};
+  const sameRecommendation=(a,b)=>JSON.stringify([a.interests,Object.entries(a.sourcePriorities).sort(),a.excludedSourceIds,a.includeRead])===JSON.stringify([b.interests,Object.entries(b.sourcePriorities).sort(),b.excludedSourceIds,b.includeRead]);
+  function writeSettings(set,{expectedRevision,baseRecommendation}={}) {
+    settingsWrites++;
+    const epoch=settingsEpoch;
+    const operation=settingsQueue.catch(()=>{}).then(async()=>{
+      if(epoch!==settingsEpoch)throw Object.assign(new Error('设置已有更新，请检查后再次保存'),{code:'SETTINGS_CONFLICT',current:settingsSnapshot});
+      if(!status||!settingsSnapshot)throw new Error('连接后才能保存服务设置');
+      // Unrelated sort/transparency writes may advance the shared revision safely.
+      const revision=expectedRevision===undefined||(baseRecommendation&&sameRecommendation(recommendation(settingsSnapshot.values.recommendation),baseRecommendation))?settingsSnapshot.revision:expectedRevision;
+      try {
+        const snapshot=await api('/api/settings',{method:'PATCH',body:JSON.stringify({set:typeof set==='function'?set():set,expectedRevision:revision})});
+        applySettings(snapshot);return snapshot;
+      }catch(error){
+        if(error.code==='SETTINGS_CONFLICT'&&error.current){settingsEpoch++;applySettings(error.current);}
+        throw error;
+      }
+    }).finally(()=>{settingsWrites--;});
+    settingsQueue=operation.catch(()=>{});return operation;
+  }
   const originalAction=app.action.bind(app);
   app.action=(name,id='',extra='',...rest)=>{
     if(!['sort-feed','toggle-transparency'].includes(name))return originalAction(name,id,extra,...rest);
     if(!status||!settingsSnapshot){app.openPanel('settings');app.toast('连接后才能保存服务设置');return;}
     if(name==='sort-feed'&&!['priority','unread','time'].includes(extra))return;
-    settingsWrites++;
-    const epoch=settingsEpoch;
-    settingsQueue=settingsQueue.then(async()=>{
-      if(epoch!==settingsEpoch){settingsWrites--;return;}
-      const set=name==='sort-feed'?{sort:extra}:{reduceTransparency:!settingsSnapshot.values.reduceTransparency};
-      try{
-        const updated=await api('/api/settings',{method:'PATCH',body:JSON.stringify({set,expectedRevision:settingsSnapshot.revision})});
-        applySettings(updated);
-      }catch(error){
-        if(error.code==='SETTINGS_CONFLICT'&&error.current){settingsEpoch++;applySettings(error.current);}
-        app.toast(error.code==='SETTINGS_CONFLICT'?'设置已在另一处更新，已显示最新值；如需修改，请再操作一次。':`设置未保存：${error.message}`);
-      }finally{settingsWrites--;}
+    return writeSettings(()=>name==='sort-feed'?{sort:extra}:{reduceTransparency:!settingsSnapshot.values.reduceTransparency}).catch(error=>{
+      app.toast(error.code==='SETTINGS_CONFLICT'?'设置已在另一处更新，已显示最新值；如需修改，请再操作一次。':`设置未保存：${error.message}`);
     });
-    return settingsQueue;
   };
   const refreshSettings=()=>{if(status&&!settingsWrites)readSettings().catch(()=>{});};
   window.addEventListener('focus',refreshSettings);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSettings();});
-  const mapCardBase=c=>({id:c.id,type:c.kind==='event'&&!c.allDay?'event':c.kind==='task'?'note':c.allDay?'note':c.kind,form:'standard',title:c.title,summary:c.summary||(c.content||'').slice(0,240),body:(c.content||c.summary||'暂无正文').split('\n').filter(Boolean),source:c.local?'本地笔记':status?.connectors.find(x=>x.id===c.sourceId)?.label||c.sourceId,tags:c.tags||[],url:c.url,start:c.start?Date.parse(c.start):undefined,end:c.end?Date.parse(c.end):undefined,people:[],related:c.evidenceIds||[],time:Date.parse(c.publishedAt||c.collectedAt),meta:c.local?'本地保存':c.allDay?`全天 · ${c.startDate} 至 ${c.endDate}（结束日不含）`:c.truncated||c.contentTruncated?'内容节选 · 可查看原文':'已采集',live:true,local:!!c.local,revision:c.revision,contentTruncated:c.contentTruncated});
+  const mapCardBase=c=>({id:c.id,sourceId:c.sourceId,type:c.kind==='event'&&!c.allDay?'event':c.kind==='task'?'note':c.allDay?'note':c.kind,form:'standard',title:c.title,summary:c.summary||(c.content||'').slice(0,240),body:(c.content||c.summary||'暂无正文').split('\n').filter(Boolean),source:c.local?'本地笔记':status?.connectors.find(x=>x.id===c.sourceId)?.label||c.sourceId,tags:c.tags||[],url:c.url,start:c.start?Date.parse(c.start):undefined,end:c.end?Date.parse(c.end):undefined,people:[],related:c.evidenceIds||[],time:Date.parse(c.publishedAt||c.collectedAt),meta:c.local?'本地保存':c.allDay?`全天 · ${c.startDate} 至 ${c.endDate}（结束日不含）`:c.truncated||c.contentTruncated?'内容节选 · 可查看原文':'已采集',live:true,local:!!c.local,revision:c.revision,contentTruncated:c.contentTruncated});
   const hostNames={'notion':'Notion','google-calendar':'Google Calendar','linear':'Linear'};
   const mapCard=c=>{
     const card=mapCardBase(c),p=c.provenance;
@@ -158,7 +169,7 @@ window.initQuietGlassLive = () => {
   document.addEventListener('click',async event=>{
     if(!event.target.closest('[data-qg-action="login"]'))return;
     const field=document.getElementById('qg-token');
-    try{await post('/api/session',{token:field.value});field.value='';status=await api('/api/status');await contentReady;await conversationReady;await loadInitialSettings();app.closeModal();await loadCards(true);await conversations?.restore();}
+    try{await post('/api/session',{token:field.value});field.value='';status=await api('/api/status');await contentReady;await preferenceReady;await conversationReady;await loadInitialSettings();app.closeModal();await loadCards(true);await conversations?.restore();}
     catch(error){field.value='';app.toast(error.message);}
   });
   const contentReady=new Promise((resolve,reject)=>{
@@ -172,6 +183,20 @@ window.initQuietGlassLive = () => {
     if(window.initQuietGlassContent)initialize();
     else {script.onload=initialize;script.onerror=()=>reject(new Error('本地内容界面未加载，请重新加载页面'));document.body.appendChild(script);}
   });
+  const preferenceReady=new Promise((resolve,reject)=>{
+    const initialize=()=>{
+      try {
+        preferencesAdapter=window.initQuietGlassPreferences({app,store,panels,esc,post,writeSettings,isConnected:()=>!!status,getSources:()=>status?.connectors||[]});
+        if(settingsSnapshot)preferencesAdapter.consume(settingsSnapshot);
+        resolve();
+      }catch(error){reject(error);}
+    };
+    if(window.initQuietGlassPreferences)initialize();
+    else {
+      const script=document.createElement('script');script.src='/web/preferences.js';
+      script.onload=initialize;script.onerror=()=>reject(new Error('推荐偏好界面未加载，请重新加载页面'));document.body.appendChild(script);
+    }
+  }).catch(error=>{app.toast(error.message+'；内容仍可浏览，重新加载可恢复推荐设置。');});
   const conversationReady=window.__QG_HOST__?Promise.resolve():new Promise((resolve,reject)=>{
     const script=document.createElement('script');script.src='/web/conversations.js';
     script.onload=()=>{try{conversations=window.initQuietGlassConversations({app,store,esc,api,post});resolve();}catch(error){reject(error);}};
@@ -183,6 +208,6 @@ window.initQuietGlassLive = () => {
   };
   window.addEventListener('focus',refreshContent);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshContent();});
-  api('/api/status').then(async value=>{status=value;await contentReady;await conversationReady;await loadInitialSettings();await loadCards(true);await conversations?.restore();}).catch(()=>app.openPanel('settings'));
+  api('/api/status').then(async value=>{status=value;await contentReady;await preferenceReady;await conversationReady;await loadInitialSettings();await loadCards(true);await conversations?.restore();}).catch(()=>app.openPanel('settings'));
 };
 if(!window.__QG_HOST__)window.initQuietGlassLive();

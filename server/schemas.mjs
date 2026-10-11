@@ -13,12 +13,29 @@ export const Item = z.object({
   evidenceIds: z.array(z.string()).max(100).default([]),
   truncated: z.boolean().default(false),
 }).strict();
+const recommendationSourceId = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/);
+const recommendationInterests = z.array(z.string().trim().min(1).max(100)).max(20)
+  .refine(values=>new Set(values.map(value=>value.toLowerCase())).size===values.length,'关注词去除首尾空格后不能重复（不区分大小写）');
+const recommendationSourcePriorities = z.record(recommendationSourceId,z.number().finite().int().min(-30).max(30))
+  .refine(values=>Object.keys(values).length<=20,'来源权重最多包含 20 个明确来源');
+const recommendationExclusions = z.array(recommendationSourceId).max(100)
+  .refine(values=>new Set(values).size===values.length,'排除来源不能重复');
+export const DEFAULT_RECOMMENDATION = Object.freeze({
+  interests:Object.freeze([]),sourcePriorities:Object.freeze({}),excludedSourceIds:Object.freeze([]),includeRead:false,
+});
+export const RecommendationValues = z.object({
+  interests:recommendationInterests,sourcePriorities:recommendationSourcePriorities,
+  excludedSourceIds:recommendationExclusions,includeRead:z.boolean(),
+}).strict();
 // Only ordinary workspace preferences; never connector, credential or security settings.
+// The optional group preserves old settings snapshots; consumers use the
+// effective defaults above until a non-default recommendation value is saved.
 export const SettingsValues = z.object({
   sort:z.enum(['priority','unread','time']), reduceTransparency:z.boolean(),
+  recommendation:RecommendationValues.optional(),
 }).strict();
 export const SettingsUpdate = z.object({
-  set:SettingsValues.partial().refine(value=>Object.keys(value).length>0,'至少修改一个设置'),
+  set:SettingsValues.partial().refine(value=>Object.keys(value).length>0&&Object.values(value).every(v=>v!==undefined),'至少修改一个有效设置'),
   expectedRevision:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
 }).strict();
 // Locally authored content and personal annotations never change upstream records.
@@ -62,7 +79,12 @@ export const Collect = z.object({
   parameters: z.record(z.unknown()).default({}),
 }).strict().refine(v=>!v.timeMin||!v.timeMax||Date.parse(v.timeMin)<Date.parse(v.timeMax), 'timeMax must be after timeMin');
 export const Search = z.object({ query:z.string().max(500).default(''), sourceIds:z.array(z.string()).optional(), kind:Item.shape.kind.optional(), limit:z.number().int().min(1).max(100).default(20), offset:z.number().int().min(0).default(0) }).strict();
-export const Recommend = z.object({ query:z.string().max(500).default(''), interests:z.array(z.string().max(100)).max(20).default([]), limit:z.number().int().min(1).max(50).default(10), includeRead:z.boolean().default(false) }).strict();
+// Omission inherits effective preferences. Explicit empty collections / false
+// override them for this call only; schema defaults must not erase that distinction.
+export const Recommend = z.object({
+  query:z.string().max(500).default(''),limit:z.number().int().min(1).max(50).default(10),
+  ...RecommendationValues.partial().shape,
+}).strict();
 export const Draft = z.object({ connectorId:z.string(), action:z.string(), payload:z.record(z.unknown()), idempotencyKey:z.string().min(1).max(200) }).strict();
 // Host imports are caller-attributed records, not a connector credential or a
 // claim that this service has authenticated the upstream account. The explicit

@@ -72,7 +72,7 @@ function initialCard(card) {
 
 function initialWorkspace(service) {
   const current=service.readSettings();
-  const settings={values:SettingsValues.parse({sort:current.values.sort,reduceTransparency:current.values.reduceTransparency}),
+  const settings={values:SettingsValues.parse({sort:current.values.sort,reduceTransparency:current.values.reduceTransparency,...(current.values.recommendation?{recommendation:current.values.recommendation}:{})}),
     revision:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).parse(current.revision)};
   const recommended=service.recommend({limit:INITIAL_CARD_LIMIT,includeRead:true});
   const items=recommended.items.slice(0,INITIAL_CARD_LIMIT).map(item=>{

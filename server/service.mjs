@@ -1,10 +1,11 @@
 import { randomUUID, randomBytes } from 'node:crypto';
+import { isDeepStrictEqual } from 'node:util';
 import { z } from 'zod';
 import { Store, digest, uid } from './store.mjs';
 import { Connectors, at } from './connectors.mjs';
 import { AiEngine } from './ai.mjs';
 import { AccessController } from './access.mjs';
-import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestHttpCreate, RequestRead, RequestList, RequestAnswer, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
+import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, DEFAULT_RECOMMENDATION, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestHttpCreate, RequestRead, RequestList, RequestAnswer, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
 
 const excerpt = card => ({...card,content:card.content.slice(0,1200),contentTruncated:card.content.length>1200});
 const terms = query => query.toLocaleLowerCase().split(/[\s,，;；]+/).filter(Boolean);
@@ -43,9 +44,10 @@ export class Service {
     return this.store.transaction(()=>{
       const current=this.readSettings();
       if(input.expectedRevision!==current.revision)throw new QGError('SETTINGS_CONFLICT','设置已在另一处更新；请查看最新设置后再决定。',{current});
-      const changedKeys=Object.keys(input.set).filter(key=>input.set[key]!==current.values[key]).sort();
+      const changedKeys=Object.keys(input.set).filter(key=>!isDeepStrictEqual(input.set[key],key==='recommendation'?(current.values.recommendation||DEFAULT_RECOMMENDATION):current.values[key])).sort();
       if(!changedKeys.length)return current;
-      const next={values:{...current.values,...input.set},revision:current.revision+1};
+      if(current.revision===Number.MAX_SAFE_INTEGER)throw new QGError('REVISION_LIMIT','设置修订号已达到上限');
+      const next={values:{...current.values,...Object.fromEntries(changedKeys.map(key=>[key,input.set[key]]))},revision:current.revision+1};
       this.store.put('settings','workspace',next);
       this.store.audit('settings_updated',{changedKeys,fromRevision:current.revision,toRevision:next.revision});
       return next;
@@ -283,12 +285,20 @@ export class Service {
   withAnnotation(card) {return {...card,...(this.access.includeAnnotations()?{annotation:this.annotationSnapshot(card.id)}:{})};}
   getCard(id) {return this.withAnnotation(this.storedCard(id));}
   recommend(args) {
-    const input=Recommend.parse(args),now=Date.now(),words=terms([input.query,...input.interests].join(' '));
-    const ranked=this.access.visibleCards(this.store.list('card')).filter(c=>!c.state.dismissed&&(!c.state.snoozedUntil||Date.parse(c.state.snoozedUntil)<=now)&&(input.includeRead||!c.state.read)).map(c=>{
+    const provided=Recommend.parse(args);
+    // A restricted principal never loads the owner's private recommendation
+    // settings, including through guarded readSettings. Explicit per-call
+    // preferences still apply, only after the existing card scope checks.
+    const defaults=this.access.policy()?DEFAULT_RECOMMENDATION:(this.store.get('settings','workspace')?.values.recommendation||DEFAULT_RECOMMENDATION);
+    const input={...defaults,...Object.fromEntries(Object.entries(provided).filter(([,value])=>value!==undefined))};
+    const now=Date.now(),words=[...new Set(terms([input.query,...input.interests].join(' ')))],excluded=new Set(input.excludedSourceIds);
+    const ranked=this.access.visibleCards(this.store.list('card')).filter(c=>!excluded.has(c.sourceId)&&!c.state.dismissed&&(!c.state.snoozedUntil||Date.parse(c.state.snoozedUntil)<=now)&&(input.includeRead||!c.state.read)).map(c=>{
       let score=0;const reasons=[];
       const haystack=[c.title,c.summary,c.content,...c.tags].join(' ').toLocaleLowerCase();
       const matched=words.filter(w=>haystack.includes(w));
       if(matched.length){score+=Math.min(50,matched.length*15);reasons.push(`匹配关注词：${matched.join('、')}`);}
+      const hasSourcePriority=Object.hasOwn(input.sourcePriorities,c.sourceId),sourcePriority=hasSourcePriority?input.sourcePriorities[c.sourceId]:0;
+      if(hasSourcePriority){score+=sourcePriority;reasons.push(`来源偏好：${c.sourceId}（${sourcePriority>=0?'+':''}${sourcePriority}）`);}
       if(!c.state.read){score+=10;reasons.push('尚未读完');}
       if(c.state.bookmarked){score+=12;reasons.push('已收藏');}
       const hours=(now-Date.parse(c.publishedAt||c.firstCollectedAt))/3600000;
@@ -299,11 +309,21 @@ export class Service {
         else if(c.end&&Date.parse(c.start)<=now&&Date.parse(c.end)>now){score+=110;reasons.push('日程正在进行');}
         else if(c.end&&Date.parse(c.end)<=now){score-=50;reasons.push('日程已结束');}
       }
-      return {card:excerpt(this.withAnnotation(c)),score:Math.round(score*100)/100,reasons,evidence:{cardId:c.id,sourceId:c.sourceId,url:c.url}};
+      if(!reasons.length)reasons.push('符合当前筛选条件；没有额外加分');
+      return {card:excerpt(this.withAnnotation(c)),score:Math.round(score*100)/100,reasons,evidence:{cardId:c.id,sourceId:c.sourceId,url:c.url,...(hasSourcePriority?{sourcePriority}:{})}};
     }).sort((a,b)=>b.score-a.score||a.card.id.localeCompare(b.card.id));
     const selected=[],deferred=[],counts=new Map();
     for(const item of ranked){const count=counts.get(item.card.sourceId)||0;if(count>=2&&item.score<100)deferred.push(item);else{selected.push(item);counts.set(item.card.sourceId,count+1);}}
-    return {items:[...selected,...deferred].slice(0,input.limit),method:'关键词、未读、收藏、时效、日程紧迫性与来源多样性；不是语义模型推断',generatedAt:nowIso()};
+    const scoreRanks=new Map(ranked.map((item,index)=>[item.card.id,index+1]));
+    const ordered=[...selected,...deferred].map((item,index)=>{
+      const before=scoreRanks.get(item.card.id),after=index+1;
+      if(before!==after){
+        item.reasons.push(before<after?'来源多样性：同一来源已有至少两条优先候选，本条后置':'来源多样性：其他来源的后续卡片后置，本条提前');
+        item.evidence.sourceDiversity={scoreRank:before,displayRank:after};
+      }
+      return item;
+    });
+    return {items:ordered.slice(0,input.limit),method:'关键词、显式来源偏好、未读、收藏、时效、日程紧迫性与来源多样性；不是语义模型推断',generatedAt:nowIso()};
   }
   feedback(id,patch) {
     const parsed=z.object({read:z.boolean().optional(),bookmarked:z.boolean().optional(),dismissed:z.boolean().optional(),snoozedUntil:z.string().datetime({offset:true}).nullable().optional()}).strict().parse(patch);
