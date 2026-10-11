@@ -1815,6 +1815,9 @@ class AppController{
    this.layout.schedule(true);this.updateSelection();
    if(active){
      const target=focusTitle?node.querySelector('.card-title-button'):[...node.querySelectorAll('[data-action]')].find(n=>n.dataset.action===focus&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
+     // Replacing a focused card removes :focus-within. Re-establish it before
+     // focusing a contextual control whose resting state is visibility:hidden.
+     node.focus({preventScroll:true});
      (target||node.querySelector('.card-title-button')||node).focus({preventScroll:true});
    }
    const digest=this.grid.querySelector('[data-card="digest-01"]');
@@ -2005,6 +2008,7 @@ class AppController{
    if(focusCard&&!this.dialog.open){
      const card=this.grid.querySelector(`[data-card="${CSS.escape(focusCard)}"]`);
      const target=card&&[...card.querySelectorAll('[data-action]')].find(n=>n.dataset.action===focusAction&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
+     card?.focus({preventScroll:true});
      (target||card?.querySelector('.card-title-button')||card||document.getElementById('orb')).focus({preventScroll:true});
    }
    if(positions)this.grid.querySelectorAll('[data-card]').forEach(node=>{
