@@ -2,8 +2,7 @@
 window.initQuietGlassLive = () => {
   if(!window.__QG_RUNTIME__ || !window.__quietGlass)return;
   const {app,store,panels,esc}=window.__quietGlass;
-  let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null;
-  const pendingUpdates=new Map();
+  let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null,conversations=null;
   const api=async(path,options={})=>{
     if(window.__QG_TRANSPORT__)return window.__QG_TRANSPORT__(path,options);
     const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
@@ -128,34 +127,17 @@ window.initQuietGlassLive = () => {
       };setTimeout(poll,500);
     }catch(error){app.refreshBusy=false;app.toast(error.message);}
   };
-  app.sendAI=async()=>{
-    const field=document.getElementById('ai-input'),question=field.value.trim();
-    if(!question||app.aiBusy)return;
-    if(!status){app.openPanel('settings');return;}
-    const version=app.aiVersion||0;
-    app.aiBusy=true;app.messages.push({kind:'user',text:question});field.value='';app.paintAI();
-    try{
-      const request=await post('/api/requests',{question,cardIds:app.contexts.slice()});
-      if((app.aiVersion||0)!==version)return;
-      app.messages.push({kind:'assistant',text:`已保存请求 ${request.id}。\n在 Codex 中说：“用 Quiet Glass 处理待回答的问题”。Codex 回答后，结果会出现在这里。`});
-      pendingUpdates.set(request.id,version);
-    }catch(error){if((app.aiVersion||0)===version)app.messages.push({kind:'assistant',text:error.message});}
-    finally{if((app.aiVersion||0)===version){app.aiBusy=false;app.paintAI();}}
-  };
+  if(!window.__QG_HOST__)app.sendAI=()=>app.toast('对话界面正在连接，请稍后重试');
   requestTimer=setInterval(async()=>{
     if(document.hidden)return;
     refreshSettings();refreshContent();
-    for(const [id,version] of pendingUpdates) {
-      if((app.aiVersion||0)!==version){pendingUpdates.delete(id);continue;}
-      try{const r=await api(`/api/requests/${id}`);if(r.status==='answered'){pendingUpdates.delete(id);app.messages.push({kind:'assistant',text:r.answer});app.paintAI();}}
-      catch{pendingUpdates.delete(id);app.toast('连接中断；请求仍保留，可稍后在 Codex 中查看');}
-    }
+    conversations?.refresh();
   },2500);
   window.addEventListener('pagehide',()=>clearInterval(requestTimer),{once:true});
   document.addEventListener('click',async event=>{
     if(!event.target.closest('[data-qg-action="login"]'))return;
     const field=document.getElementById('qg-token');
-    try{await post('/api/session',{token:field.value});field.value='';status=await api('/api/status');await contentReady;await loadInitialSettings();app.closeModal();await loadCards(true);}
+    try{await post('/api/session',{token:field.value});field.value='';status=await api('/api/status');await contentReady;await conversationReady;await loadInitialSettings();app.closeModal();await loadCards(true);await conversations?.restore();}
     catch(error){field.value='';app.toast(error.message);}
   });
   const contentReady=new Promise((resolve,reject)=>{
@@ -169,12 +151,17 @@ window.initQuietGlassLive = () => {
     if(window.initQuietGlassContent)initialize();
     else {script.onload=initialize;script.onerror=()=>reject(new Error('本地内容界面未加载，请重新加载页面'));document.body.appendChild(script);}
   });
+  const conversationReady=window.__QG_HOST__?Promise.resolve():new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src='/web/conversations.js';
+    script.onload=()=>{try{conversations=window.initQuietGlassConversations({app,store,esc,api,post});resolve();}catch(error){reject(error);}};
+    script.onerror=()=>reject(new Error('对话界面未加载，请重新加载页面'));document.body.appendChild(script);
+  });
   const refreshContent=()=>{
     if(!status||!contentAdapter||app.refreshBusy||contentSync)return;
     contentSync=loadCards(false,true).catch(()=>{}).finally(()=>{contentSync=null;});
   };
   window.addEventListener('focus',refreshContent);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshContent();});
-  api('/api/status').then(async value=>{status=value;await contentReady;await loadInitialSettings();await loadCards(true);}).catch(()=>app.openPanel('settings'));
+  api('/api/status').then(async value=>{status=value;await contentReady;await conversationReady;await loadInitialSettings();await loadCards(true);await conversations?.restore();}).catch(()=>app.openPanel('settings'));
 };
 if(!window.__QG_HOST__)window.initQuietGlassLive();

@@ -2,7 +2,7 @@ import { randomUUID, randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { Store, digest, uid } from './store.mjs';
 import { Connectors, at } from './connectors.mjs';
-import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
+import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestHttpCreate, RequestRead, RequestList, RequestAnswer, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
 
 const excerpt = card => ({...card,content:card.content.slice(0,1200),contentTruncated:card.content.length>1200});
 const terms = query => query.toLocaleLowerCase().split(/[\s,，;；]+/).filter(Boolean);
@@ -82,6 +82,139 @@ export class Service {
       this.store.put('annotation',input.cardId,next);
       this.store.audit('annotation_updated',{cardId:input.cardId,changedKeys,fromRevision:current.revision,toRevision:next.revision});
       return next;
+    });
+  }
+  // Reference snapshots contain only source content/provenance, never connector
+  // configuration, arbitrary source-record properties, or personal annotations.
+  cardReference(cardId,capturedAt,snapshotOrigin='request-creation') {
+    const card=this.store.get('card',cardId);
+    if(!card&&snapshotOrigin!=='legacy-migration')throw new QGError('CARD_NOT_FOUND','卡片不存在');
+    const snapshot={cardId,capturedAt,snapshotOrigin,available:!!card};
+    if(card){
+      Object.assign(snapshot,{sourceId:card.sourceId,externalId:card.externalId,kind:card.kind,
+        title:String(card.title||'').slice(0,500),summary:String(card.summary||'').slice(0,500),content:String(card.content||'').slice(0,1200),
+        contentHash:card.contentHash,contentTruncated:(card.content?.length||0)>1200,summaryTruncated:(card.summary?.length||0)>500,truncated:!!card.truncated});
+      if(card.url){try{const url=new URL(card.url);if(['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&url.href.length<=2048)snapshot.url=url.href;}catch{}}
+      if(Number.isSafeInteger(card.revision))snapshot.revision=card.revision;
+    }
+    return {...snapshot,snapshotHash:digest(snapshot)};
+  }
+  conversationRecord(id) {
+    const conversation=this.store.get('conversation',id);
+    if(!conversation)throw new QGError('CONVERSATION_NOT_FOUND','对话不存在');
+    return conversation;
+  }
+  conversationMessages(id) {return this.store.list('message').filter(message=>message.conversationId===id).sort((a,b)=>a.sequence-b.sequence||a.id.localeCompare(b.id));}
+  createConversationRecord(title,createdAt=nowIso(),id=uid('conversation')) {
+    const conversation={id,title,createdAt,updatedAt:createdAt,messageCount:0,requestCount:0,pendingCount:0};
+    this.store.put('conversation',id,conversation);
+    this.store.audit('conversation_created',{id});
+    return conversation;
+  }
+  // Earlier versions kept isolated request records. Preserve their IDs, payloads,
+  // statuses and dates while assigning one deterministic application conversation.
+  // A migrated reference is explicitly captured now, not claimed as historical.
+  migrateLegacyRequests() {
+    if(!this.store.list('request').some(request=>!request.conversationId))return;
+    this.store.transaction(()=>{
+      for(const original of this.store.list('request').filter(request=>!request.conversationId)){
+        const id=`conversation_legacy_${digest(original.id).slice(0,32)}`,capturedAt=nowIso();
+        const createdAt=original.createdAt||capturedAt,answered=original.status==='answered';
+        const cardRefs=(original.cardIds||[]).map(cardId=>this.cardReference(cardId,capturedAt,'legacy-migration'));
+        const userMessageId=`message_legacy_${digest([original.id,'user']).slice(0,32)}`;
+        const answerMessageId=answered?`message_legacy_${digest([original.id,'assistant']).slice(0,32)}`:undefined;
+        const conversation={id,title:original.question.slice(0,200)||'历史对话',createdAt,updatedAt:original.answeredAt||createdAt,messageCount:answered?2:1,requestCount:1,pendingCount:answered?0:1};
+        const user={id:userMessageId,conversationId:id,requestId:original.id,sequence:1,role:'user',text:original.question,createdAt,status:original.status,cardRefs};
+        this.store.put('conversation',id,conversation);this.store.put('message',userMessageId,user);
+        if(answered)this.store.put('message',answerMessageId,{id:answerMessageId,conversationId:id,requestId:original.id,sequence:2,role:'assistant',text:original.answer,createdAt:original.answeredAt||createdAt,evidenceIds:original.evidenceIds||[]});
+        const request={...original,conversationId:id,userMessageId,userMessageSequence:1,cardRefs,...(answered?{answerMessageId,answerDigest:digest({answer:original.answer,evidenceIds:original.evidenceIds||[]})}:{}),legacy:true};
+        request.context=this.requestContext(id,1);
+        this.store.put('request',original.id,request);
+        this.store.audit('request_migrated',{requestId:original.id,conversationId:id,status:original.status,cardCount:cardRefs.length});
+      }
+    });
+  }
+  createConversation(args) {
+    const {title,idempotencyKey}=ConversationCreate.parse(args),fingerprint=digest({title});
+    return this.store.transaction(()=>{
+      const prior=this.store.get('conversation-key',idempotencyKey);
+      if(prior){if(prior.digest!==fingerprint)throw new QGError('IDEMPOTENCY_CONFLICT','相同幂等键不能对应不同对话内容');return this.conversationRecord(prior.id);}
+      const conversation=this.createConversationRecord(title);
+      this.store.put('conversation-key',idempotencyKey,{id:conversation.id,digest:fingerprint});
+      return conversation;
+    });
+  }
+  listConversations(args={}) {
+    const {limit,offset}=ConversationList.parse(args);this.migrateLegacyRequests();
+    const conversations=this.store.list('conversation').sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||a.id.localeCompare(b.id));
+    return {conversations:conversations.slice(offset,offset+limit),total:conversations.length,nextOffset:offset+limit<conversations.length?offset+limit:null};
+  }
+  readConversation(args) {
+    const {conversationId,limit,offset}=ConversationRead.parse(args);this.migrateLegacyRequests();
+    return this.store.transaction(()=>{
+      const conversation=this.conversationRecord(conversationId),messages=this.conversationMessages(conversationId);
+      return {conversation,messages:messages.slice(offset,offset+limit),total:messages.length,nextOffset:offset+limit<messages.length?offset+limit:null};
+    });
+  }
+  requestContext(conversationId,throughSequence) {
+    const eligible=this.conversationMessages(conversationId).filter(message=>message.sequence<=throughSequence);
+    const offset=Math.max(0,eligible.length-12);
+    const messages=eligible.slice(offset).map(message=>({...message,text:message.text.slice(0,2000),textTruncated:message.text.length>2000,
+      ...(message.cardRefs?{cardRefs:message.cardRefs.map(({cardId,sourceId,externalId,title,contentHash,snapshotHash,available})=>({cardId,sourceId,externalId,title,contentHash,snapshotHash,available}))}:{})}));
+    return {conversationId,messages,total:eligible.length,offset,hasEarlier:offset>0,throughSequence,limit:12};
+  }
+  createRequest(args,{allowLegacy=false}={}) {
+    const input=(allowLegacy?RequestHttpCreate:RequestCreate).parse(args);
+    // Bind to the exact submitted question, ordered card IDs and destination.
+    // Legacy generated destination IDs are not part of the caller's payload.
+    const fingerprint=digest({conversationId:input.conversationId||null,question:input.question,cardIds:input.cardIds});
+    this.migrateLegacyRequests();
+    return this.store.transaction(()=>{
+      const idempotencyKey=input.idempotencyKey||uid('request_key'),prior=this.store.get('request-key',idempotencyKey);
+      if(prior){if(prior.digest!==fingerprint)throw new QGError('IDEMPOTENCY_CONFLICT','相同幂等键不能对应不同问题、卡片引用或对话');return this.store.get('request',prior.id);}
+      const createdAt=nowIso(),cardRefs=input.cardIds.map(id=>this.cardReference(id,createdAt));
+      const conversation=input.conversationId?this.conversationRecord(input.conversationId):this.createConversationRecord(input.question.slice(0,200),createdAt);
+      if(conversation.messageCount>=Number.MAX_SAFE_INTEGER)throw new QGError('SEQUENCE_LIMIT','对话消息序号已达到上限');
+      const id=uid('request'),userMessageId=uid('message'),sequence=conversation.messageCount+1;
+      const message={id:userMessageId,conversationId:conversation.id,requestId:id,sequence,role:'user',text:input.question,createdAt,status:'pending',cardRefs};
+      this.store.put('message',userMessageId,message);
+      const request={id,conversationId:conversation.id,question:input.question,cardIds:input.cardIds,cardRefs,status:'pending',createdAt,userMessageId,userMessageSequence:sequence,context:this.requestContext(conversation.id,sequence)};
+      this.store.put('request',id,request);this.store.put('request-key',idempotencyKey,{id,digest:fingerprint});
+      this.store.put('conversation',conversation.id,{...conversation,updatedAt:createdAt,messageCount:sequence,requestCount:conversation.requestCount+1,pendingCount:conversation.pendingCount+1});
+      this.store.audit('request_created',{requestId:id,conversationId:conversation.id,messageId:userMessageId,sequence,cardCount:cardRefs.length});
+      return request;
+    });
+  }
+  getRequest(args) {
+    const {requestId}=RequestRead.parse(args);this.migrateLegacyRequests();
+    const request=this.store.get('request',requestId);if(!request)throw new QGError('REQUEST_NOT_FOUND','请求不存在');return request;
+  }
+  listRequests(args={}) {
+    const {conversationId,status,limit,offset}=RequestList.parse(args);this.migrateLegacyRequests();
+    if(conversationId)this.conversationRecord(conversationId);
+    const requests=this.store.list('request').filter(request=>(!conversationId||request.conversationId===conversationId)&&(status==='all'||request.status===status)).sort((a,b)=>a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id));
+    return {requests:requests.slice(offset,offset+limit),total:requests.length,nextOffset:offset+limit<requests.length?offset+limit:null};
+  }
+  answerRequest(args) {
+    const {requestId,answer,evidenceIds}=RequestAnswer.parse(args),fingerprint=digest({answer,evidenceIds});this.migrateLegacyRequests();
+    return this.store.transaction(()=>{
+      const request=this.store.get('request',requestId);if(!request)throw new QGError('REQUEST_NOT_FOUND','请求不存在');
+      if(request.status==='answered'){
+        if(request.answerDigest!==fingerprint)throw new QGError('ANSWER_CONFLICT','此问题已有回答；不能用不同内容或证据覆盖。',{requestId,conversationId:request.conversationId});
+        return request;
+      }
+      evidenceIds.forEach(id=>this.storedCard(id));
+      const conversation=this.conversationRecord(request.conversationId);
+      if(conversation.messageCount>=Number.MAX_SAFE_INTEGER)throw new QGError('SEQUENCE_LIMIT','对话消息序号已达到上限');
+      const answeredAt=nowIso(),answerMessageId=uid('message'),sequence=conversation.messageCount+1;
+      const updated={...request,status:'answered',answer,evidenceIds,answeredAt,answerMessageId,answerDigest:fingerprint};
+      this.store.put('message',answerMessageId,{id:answerMessageId,conversationId:conversation.id,requestId,sequence,role:'assistant',text:answer,createdAt:answeredAt,evidenceIds});
+      const user=this.store.get('message',request.userMessageId);
+      this.store.put('message',user.id,{...user,status:'answered'});
+      this.store.put('request',requestId,updated);
+      this.store.put('conversation',conversation.id,{...conversation,updatedAt:answeredAt,messageCount:sequence,pendingCount:conversation.pendingCount-1});
+      this.store.audit('request_answered',{requestId,conversationId:conversation.id,messageId:answerMessageId,sequence,evidenceCount:evidenceIds.length});
+      return updated;
     });
   }
   async collect(args) {

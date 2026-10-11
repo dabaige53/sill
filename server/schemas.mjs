@@ -36,6 +36,23 @@ export const AnnotationValues = z.object({note:z.string().max(4000),tags:localTa
 export const AnnotationRead = z.object({cardId}).strict();
 export const AnnotationPatch = z.object({set:nonEmptyPatch(AnnotationValues),expectedRevision:revision}).strict();
 export const AnnotationUpdate = AnnotationPatch.extend({cardId}).strict();
+// Application-owned conversations are separate from any host/ChatGPT thread.
+export const ConversationId = z.string().min(1).max(100).regex(/^conversation_[a-z0-9_-]+$/i);
+export const RequestId = z.string().min(1).max(100).regex(/^request_[a-z0-9_-]+$/i);
+const idempotencyKey = z.string().min(1).max(200);
+const boundedOffset = z.number().int().min(0).max(1000000);
+const uniqueCardIds = max => z.array(cardId).max(max).refine(ids=>new Set(ids).size===ids.length,'卡片引用不能重复');
+export const ConversationCreate = z.object({title:z.string().trim().min(1).max(200).default('新对话'),idempotencyKey}).strict();
+export const ConversationList = z.object({limit:z.number().int().min(1).max(100).default(20),offset:boundedOffset.default(0)}).strict();
+export const ConversationRead = z.object({conversationId:ConversationId,limit:z.number().int().min(1).max(100).default(50),offset:boundedOffset.default(0)}).strict();
+const requestFields = {question:z.string().min(1).max(4000).refine(value=>value.trim().length>0,'问题不能为空'),cardIds:uniqueCardIds(20)};
+export const RequestCreate = z.object({...requestFields,conversationId:ConversationId,idempotencyKey}).strict();
+// The old HTTP queue accepted only question/cardIds. Only HTTP allows this fallback;
+// missing values are allocated atomically by the shared service.
+export const RequestHttpCreate = z.object({...requestFields,conversationId:ConversationId.optional(),idempotencyKey:idempotencyKey.optional()}).strict();
+export const RequestRead = z.object({requestId:RequestId}).strict();
+export const RequestList = z.object({conversationId:ConversationId.optional(),status:z.enum(['pending','answered','all']).default('pending'),limit:z.number().int().min(1).max(100).default(30),offset:boundedOffset.default(0)}).strict();
+export const RequestAnswer = z.object({requestId:RequestId,answer:z.string().min(1).max(20000).refine(value=>value.trim().length>0,'回答不能为空'),evidenceIds:uniqueCardIds(50)}).strict();
 export const Collect = z.object({
   connectorId: z.string(), query: z.string().max(500).optional(),
   timeMin: iso.optional(), timeMax: iso.optional(), cursor: z.union([z.string().max(4000),z.number().int().min(0)]).optional(),
