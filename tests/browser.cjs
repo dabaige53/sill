@@ -36,7 +36,7 @@ const results=[];
     await fn(page,context);
     assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
     results.push({name,status:'PASS'});console.log('PASS',name);
-   }catch(e){await page.screenshot({path:path.join(artifacts,'failure.png')}).catch(()=>{});results.push({name,status:'FAIL',error:e.message});throw e;}
+   }catch(e){await page.screenshot({animations:'disabled',path:path.join(artifacts,'failure.png')}).catch(()=>{});results.push({name,status:'FAIL',error:e.message});throw e;}
    finally{await context.close();}
   }
   const action=(page,name,id='',extra='')=>page.evaluate(([name,id,extra])=>window.__app.action(name,id,extra),[name,id,extra]);
@@ -114,16 +114,18 @@ const results=[];
    assert.equal((await state(page,'fresh-reminder')).bookmarked,true);
   });
   for(const width of [390,320])await scenario(`${width}px touch layout, reminder controls and reduced motion`,async page=>{
-   await page.screenshot({path:path.join(artifacts,`feed-${width}.png`),fullPage:true});
+   await page.screenshot({animations:'disabled',path:path.join(artifacts,`feed-${width}.png`),fullPage:true});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    await page.locator('#orb').tap();assert.equal(await page.locator('#ai-panel').isVisible(),false);await page.getByRole('button',{name:'筛选与搜索',exact:true}).tap();
-   await page.screenshot({path:path.join(artifacts,`filter-${width}.png`)});
+   await page.screenshot({animations:'disabled',path:path.join(artifacts,`filter-${width}.png`)});
+   await page.locator('.panel-footer').scrollIntoViewIfNeeded();
+   await page.screenshot({animations:'disabled',path:path.join(artifacts,`filter-bottom-${width}.png`)});
    await page.getByRole('button',{name:'关闭筛选',exact:true}).tap();
    await action(page,'preview','reminder-01');
    const controls=page.locator('dialog .icon-button');
    const boxes=await controls.evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {width:r.width,height:r.height,right:r.right};}));
    assert.ok(boxes.every(r=>r.width>=44&&r.height>=44&&r.right<=width));
-   await page.screenshot({path:path.join(artifacts,`reminder-${width}.png`)});
+   await page.screenshot({animations:'disabled',path:path.join(artifacts,`reminder-${width}.png`)});
    await page.getByRole('button',{name:'延后提醒十分钟',exact:true}).tap();
    await filter(page,'snoozed');assert.equal(await page.locator('[data-card="reminder-01"]').count(),1);
   },{viewport:{width,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
@@ -136,7 +138,8 @@ const results=[];
    assert.deepEqual(await page.evaluate(()=>window.__app.contexts),['article-01']);
    assert.equal(await page.locator('[data-card="article-01"]').count(),1);
    assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-   await page.screenshot({path:path.join(artifacts,'desktop-ai.png')});
+   await page.locator('.drag-ghost').waitFor({state:'detached'});
+   await page.screenshot({animations:'disabled',path:path.join(artifacts,'desktop-ai.png')});
   });
   await scenario('All three entry pages run from shared source',async page=>{
    await page.goto(origin+'/components.html');await page.waitForFunction(()=>window.__app?.mode==='library');

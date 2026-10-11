@@ -38,7 +38,7 @@ python3 scripts/build.py
 python3 tests/verify.py
 ```
 
-[开发指南与后续工作](./docs/DEVELOPMENT.md)说明源码结构、运行方式与浏览器测试。本轮核心检查通过；浏览器验收状态见[验证记录](./tests/REPORT.md)。
+[开发指南与后续工作](./docs/DEVELOPMENT.md)说明源码结构、运行方式与浏览器测试。本轮 20 项核心检查与 9 组 Chromium 浏览器回归通过；详细验收见[验证记录](./tests/REPORT.md)。
 
 ## 文件结构
 
