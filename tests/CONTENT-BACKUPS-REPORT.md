@@ -29,3 +29,11 @@ Final actual own-cloud Chromium feature run passed all nine grouped journeys, wi
 Visually inspected evidence: `tests/artifacts/backups-preview-desktop.png`, `backups-result-desktop.png`, `backups-actions-mobile.png`, plus `backups-desktop.png` and `backups-mobile.png`. Structured results: `tests/artifacts/backups-browser.json`. These generated artifacts are retained by CI rather than committed. Preview shows affected identities/source bounds and explicit acknowledgement; results and mobile controls retain the new-cards-remain undo warning.
 
 All checks were run sequentially without overlapping browser and runtime-heavy backend tests. Final source/build, aggregate and browser results passed; no unresolved review finding remains. Native-host installation remains outside this verification.
+
+## PR13 delayed-return amendment
+
+CI run 38126065207 exposed a real rendering race at `tests/backups-browser.mjs:138`: after commit had reached the server, opening another panel and reopening Settings before the delayed response settled left the new backup section showing its old pending notice. The receipt was saved correctly; rendering was incorrectly tied to the original modal instance. The same settlement guard could strand undo and read-operation busy controls.
+
+The minimal fix reconciles the currently visible backup section after shared state settles. It never opens a panel or replaces draft inputs; stale preview/export/status payload acceptance guards remain unchanged. Deterministic delayed-return tests fail against the original code and pass against the fix. Independent review and the focused UI state-machine suite passed 32/32; the parent’s combined UI/protocol rerun passed 45/45, and `npm run check` passed. No browser timeout or assertion was weakened.
+
+Actual own-cloud Chromium rerun against the amended code passed all nine backup groups, including the originally failing delayed commit → other panel → reopened Settings path. Zero page errors. The host path remains protocol-simulator verification only.

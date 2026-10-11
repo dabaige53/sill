@@ -45,6 +45,8 @@ window.initQuietGlassBackups=({app,panels,esc,api,post,isConnected,onRestored})=
     return `<p class="settings-note">恢复内容会立即适用当前访问主体与来源权限；证据引用也会影响可见性。${value?.requiresAcknowledgement?'以下可见性变化需要明确确认。':'服务未报告需要额外确认的可见性变化。'}这仅描述已配置且受影响的启用权限，不验证凭据是否可用。</p>`+principals.slice(0,100).map(principal=>`<p class="settings-note" data-backup-principal>访问主体：${esc(principal.id)}<br>来源范围：${esc((principal.sourceIds||[]).join('、')||'按卡片权限')}<br>新增可见卡片 ${esc(principal.newlyVisibleCount)}；受影响的可见卡片 ${esc(principal.affectedVisibleCount)}；备注可见：${principal.annotationsVisible?'是':'否'}<br>新增可见 ID：${esc((principal.newlyVisibleCardIds||[]).slice(0,20).join('、')||'无')}<br>受影响 ID：${esc((principal.affectedVisibleCardIds||[]).slice(0,20).join('、')||'无')}${principal.idsTruncated?'（ID 列表为节选）':''}</p>`).join('');
   }
   function render(){
+    // Shared request state may settle after Settings was replaced. Reconcile
+    // only the current section; never reopen a panel or replace its draft inputs.
     const root=section();if(!root)return;
     root.querySelector('#qg-backups-status').textContent=(notice||'没有自动上传、预览或恢复。先检查文件与恢复方式，再明确预览和确认。')+(storageFailed?' 浏览器无法保留请求凭据，提交已阻止；请恢复本地存储并保留草稿。':'');
     const exporting=busy.has('export');root.querySelector('[data-action="backups-export"]').disabled=!isConnected()||exporting;
@@ -98,7 +100,7 @@ window.initQuietGlassBackups=({app,panels,esc,api,post,isConnected,onRestored})=
     const target=view();busy.add('export');render();
     try{const value=await post('/api/backups/export',{}),text=JSON.stringify(value);parse(text);if(sameView(target)){exportText=text;setNotice('导出已准备；点击下载或复制，文件未加密。');}}
     catch(error){if(sameView(target))setNotice(`导出未完成：${error.message}`);}
-    finally{busy.delete('export');if(sameView(target))render();}
+    finally{busy.delete('export');render();}
   }
   function download(){
     if(!exportText)return;
@@ -123,11 +125,11 @@ window.initQuietGlassBackups=({app,panels,esc,api,post,isConnected,onRestored})=
       if(!id(value.planId)||!id(value.restoreId)||!digest(value.planDigest)||typeof value.approvalToken!=='string'||value.approvalToken.length<16||value.approvalToken.length>200||value.mode!==submitted.mode||typeof value.visibility?.requiresAcknowledgement!=='boolean')throw new Error('服务预览不完整，不能确认恢复。');
       preview=structuredClone(value);setNotice('请检查预览、冲突与访问范围；点击确认恢复才会写入。');
     }catch(error){if(token===version&&sameView(target)){preview=null;setNotice(`预览未完成：${error.message}。草稿仍保留。`);}}
-    finally{busy.delete('preview');if(sameView(target))render();}
+    finally{busy.delete('preview');render();}
   }
   async function commit(){
     if(!isConnected()||busy.has('commit')||pendingUndo)return;
-    const target=view(),recovering=!!pending;
+    const recovering=!!pending;
     if(!pending){
       const root=section();if(!preview||!root||(preview.mode==='additive'&&preview.conflicts?.length>0))return;
       if(root.querySelector('#qg-backup-json').value!==draft.text||root.querySelector('#qg-backup-mode').value!==draft.mode){capture();return;}
@@ -146,7 +148,7 @@ window.initQuietGlassBackups=({app,panels,esc,api,post,isConnected,onRestored})=
     }catch(error){
       if((!recovering&&safeRejection.has(error.code))||(recovering&&retryRejection.has(error.code))){pending=null;invalidatePreview();setNotice(`恢复未提交：${error.message}。草稿仍保留；请重新校验预览，不会自动重试。`);}
       else setNotice(`恢复结果尚未确认：${error.message}。请查询状态或手动重试原请求；不会生成新请求键或自动重发。`);
-    }finally{busy.delete('commit');persist();if(sameView(target))render();}
+    }finally{busy.delete('commit');persist();render();}
   }
   async function readStatus(){
     const selected=pending?.restoreId||pendingUndo?.restoreId||restoreId;
@@ -159,13 +161,13 @@ window.initQuietGlassBackups=({app,panels,esc,api,post,isConnected,onRestored})=
       result=value;restoreId=value.restoreId;pending=null;if(value.status==='undone')pendingUndo=null;invalidatePreview();
       setNotice(value.status==='undone'?'已查询确认撤销覆盖；新增卡片仍保留。':'已查询确认恢复状态；查询没有再次恢复。');refreshRestored();
     }catch(error){if(token===readVersion&&sameView(target))setNotice(`状态暂未确认：${error.message}。原请求与草稿仍保留，请勿据此假定从未提交。`);}
-    finally{busy.delete('status');persist();if(sameView(target))render();}
+    finally{busy.delete('status');persist();render();}
   }
   async function undo(){
     if(!isConnected()||busy.has('undo')||pending)return;
     if(!pendingUndo){if(!result||result.status!=='committed'||result.undo?.available!==true||!Number.isSafeInteger(result.undo.expectedEpoch))return;pendingUndo={restoreId:result.restoreId,request:{expectedEpoch:result.undo.expectedEpoch,approved:true,idempotencyKey:crypto.randomUUID()}};}
     if(!persist()){render();return;}
-    const submitted=structuredClone(pendingUndo),target=view(),recovering=!!pendingUndo.attempted;
+    const submitted=structuredClone(pendingUndo),recovering=!!pendingUndo.attempted;
     pendingUndo.attempted=true;if(!persist()){render();return;}busy.add('undo');readVersion++;setNotice('正在确认立即撤销覆盖；新增卡片不会删除。');render();
     try{
       const value=await post('/api/backups/restores/'+encodeURIComponent(submitted.restoreId)+'/undo',submitted.request);
@@ -174,7 +176,7 @@ window.initQuietGlassBackups=({app,panels,esc,api,post,isConnected,onRestored})=
     }catch(error){
       if((!recovering&&['BACKUP_UNDO_CONFLICT','BACKUP_UNDO_UNAVAILABLE','BACKUP_STALE','BACKUP_POLICY_CHANGED','REVISION_LIMIT','INVALID_INPUT'].includes(error.code))||(recovering&&['BACKUP_STALE','BACKUP_POLICY_CHANGED','REVISION_LIMIT'].includes(error.code))){pendingUndo=null;if(result)result={...result,undo:{...result.undo,available:false,reason:error.message}};setNotice(`撤销被保护条件阻止：${error.message}。新增卡片保留；没有强制撤销。`);}
       else setNotice(`撤销结果尚未确认：${error.message}。请查询状态或手动重试相同请求；不会自动重发。`);
-    }finally{busy.delete('undo');persist();if(sameView(target))render();}
+    }finally{busy.delete('undo');persist();render();}
   }
   const originalSettings=panels.settings.bind(panels);panels.settings=()=>originalSettings().replace('<div class="panel-footer">',markup()+'<div class="panel-footer">');
   const originalOpen=app.openPanel.bind(app);app.openPanel=(...args)=>{invalidatePreview();readVersion++;fileVersion++;busy.delete('file');const value=originalOpen(...args);if(args[0]==='settings')render();return value;};

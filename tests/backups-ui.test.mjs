@@ -83,3 +83,77 @@ test('F11 exact-key retries release definitive no-commit/no-undo errors but reta
   const pendingUndo={restoreId:plan.restoreId,attempted:true,request:{expectedEpoch:10,approved:true,idempotencyKey:'undo-never-arrived'}};
   const undo=harness(t,{saved:JSON.stringify({draft:{text:'{}',mode:'additive'},restoreId:plan.restoreId,pendingUndo}),post:async()=>{throw Object.assign(new Error('later write'),{code:'BACKUP_STALE'});}});await undo.action('undo');assert.equal(undo.node('qg-backup-json').disabled,false);assert.equal(undo.button('undo').disabled,true);assert.deepEqual(undo.calls[0].body,pendingUndo.request);
 });
+
+test('F11 delayed commit and undo settle the current Settings view without replacing drafts or reopening panels',async t=>{
+  for(const operation of ['commit','undo'])for(const outcome of ['success','rejected','unknown'])for(const destination of ['settings','filter','closed'])await t.test(`${operation}: ${outcome} into ${destination}`,async t=>{
+    const hold=deferred(),saved=JSON.stringify({draft:{text:JSON.stringify(bundle),mode:'additive'},restoreId:plan.restoreId});
+    const h=harness(t,{saved,post:async path=>path.endsWith('/preview')?plan:hold.promise});
+    if(operation==='commit')await h.action('preview');else await h.action('status');
+    const request=h.action(operation),attempt=h.calls.at(-1),pendingName=operation==='commit'?'pending':'pendingUndo';
+    assert.deepEqual(JSON.parse(attempt.saved)[pendingName].request,attempt.body);
+    h.app.openPanel('filter');
+    if(destination!=='filter')h.open();
+    if(destination==='closed')h.app.dialog.open=false;
+    const token=h.app.modalToken,modal=h.node('modal'),currentSection=h.node('qg-backups-settings');
+    if(destination==='settings'){
+      modal.insertAdjacentHTML('beforeend','<input id="unsent-preference" value="new preference draft">');
+      assert.equal(h.node('qg-backup-json').disabled,true);
+    }
+    // Drain the details toggle event before settling the response: it must not
+    // accidentally rescue a finalizer that only renders the old Settings node.
+    await wait();
+    if(outcome==='success')hold.resolve({...receipt,status:operation==='undo'?'undone':'committed',undo:{...receipt.undo,available:operation==='commit'}});
+    else hold.reject(Object.assign(new Error('delayed result'),outcome==='rejected'?{code:operation==='undo'?'BACKUP_UNDO_CONFLICT':'BACKUP_STALE'}:{}));
+    await request;
+    assert.equal(h.app.modalToken,token);assert.equal(h.node('modal'),modal);
+    if(destination==='filter'){
+      assert.equal(h.app.modalKind,'filter');assert.equal(modal.textContent,'filter');
+      h.open();
+    }else if(destination==='closed'){
+      assert.equal(h.app.dialog.open,false);assert.equal(h.node('qg-backups-settings'),currentSection);
+      h.open();
+    }else{
+      assert.equal(h.node('qg-backups-settings'),currentSection);
+      assert.equal(h.node('unsent-preference').value,'new preference draft');
+    }
+    assert.equal(h.node('qg-backup-json').value,JSON.stringify(bundle));
+    assert.equal(h.node('qg-backup-json').disabled,outcome==='unknown');
+    assert.equal(h.button('status').disabled,false);
+    assert.match(h.node('qg-backups-status').textContent,outcome==='success'?/已确认/:outcome==='rejected'?/恢复未提交|撤销被保护条件阻止/:/尚未确认/);
+    if(outcome==='success')assert.match(h.node('qg-backup-result').textContent,operation==='undo'?/已确认撤销覆盖/:/已确认恢复/);
+    if(outcome==='unknown')assert.deepEqual(JSON.parse(h.saved())[pendingName].request,attempt.body);
+    assert.equal(h.calls.filter(call=>call.path.endsWith(operation==='commit'?'/commit':'/undo')).length,1);
+  });
+});
+
+test('F11 stale status completion releases current controls without consuming a newer draft or preview',async t=>{
+  const hold=deferred(),saved=JSON.stringify({draft:{text:JSON.stringify(bundle),mode:'additive'},restoreId:plan.restoreId});
+  const h=harness(t,{saved,api:()=>hold.promise,post:async(path,body)=>({...plan,mode:body.mode})});
+  const read=h.action('status');h.app.openPanel('filter');h.open();
+  const newer={...bundle,version:2};h.fill(newer);h.fill('overwrite','qg-backup-mode');await h.action('preview');
+  const preview=h.node('qg-backup-preview').innerHTML,notice=h.node('qg-backups-status').textContent,token=h.app.modalToken;
+  assert.equal(h.button('status').disabled,true);assert.equal(h.button('commit').disabled,false);
+  await wait();hold.resolve(receipt);await read;
+  assert.equal(h.app.modalToken,token);assert.equal(h.node('qg-backup-json').value,JSON.stringify(newer));
+  assert.equal(h.node('qg-backup-mode').value,'overwrite');assert.equal(h.node('qg-backup-preview').innerHTML,preview);
+  assert.equal(h.node('qg-backups-status').textContent,notice);assert.equal(h.button('commit').disabled,false);
+  assert.equal(h.button('status').disabled,false);assert.doesNotMatch(h.node('qg-backup-result').textContent,/已确认恢复/);
+  assert.equal(h.calls.length,2);
+});
+
+test('F11 stale preview and export completions release reopened controls without applying old payloads',async t=>{
+  for(const operation of ['preview','export'])for(const failed of [false,true])await t.test(`${operation}: ${failed?'failure':'success'}`,async t=>{
+    const hold=deferred(),h=harness(t,{post:()=>hold.promise});h.fill(bundle);
+    const request=h.action(operation);h.app.openPanel('filter');h.open();
+    const newer={...bundle,version:2};h.fill(newer);h.fill('overwrite','qg-backup-mode');
+    const notice=h.node('qg-backups-status').textContent,token=h.app.modalToken;
+    assert.equal(h.button(operation).disabled,true);await wait();
+    if(failed)hold.reject(new Error('old request failed'));else hold.resolve(operation==='preview'?plan:bundle);
+    await request;
+    assert.equal(h.app.modalToken,token);assert.equal(h.node('qg-backup-json').value,JSON.stringify(newer));
+    assert.equal(h.node('qg-backup-mode').value,'overwrite');assert.equal(h.node('qg-backups-status').textContent,notice);
+    assert.equal(h.button(operation).disabled,false);assert.equal(h.button('commit').disabled,true);
+    assert.equal(h.node('qg-backup-preview').textContent,'');assert.equal(h.node('qg-backup-export').hidden,true);
+    assert.equal(h.calls.length,1);
+  });
+});
