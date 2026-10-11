@@ -22,7 +22,8 @@
     "test:content-browser": "node tests/content-browser.mjs",
     "build:host": "node scripts/build-host.mjs",
     "test:host-browser": "npm run build:host && node tests/host-browser.mjs",
-    "test:conversations-browser": "node tests/conversations-browser.mjs"
+    "test:conversations-browser": "node tests/conversations-browser.mjs",
+    "test:ai-browser": "node tests/ai-browser.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/ext-apps": "1.7.5",

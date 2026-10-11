@@ -13,6 +13,11 @@ export function createMcpServer(service,options={}) {
       try{return result(await handler(args));}catch(error){return {...result(publicError(error)),isError:true};}
     });
   };
+  const aiRequest=z.object({requestId:z.string().min(1).max(100).regex(/^request_[a-z0-9_-]+$/i)}).strict();
+  tool('qg_ai_status','Read whether the optional OpenAI provider is enabled and configured, non-secret limits and request-count budget. Does not read or expose the API key when disabled and never starts a model call.',z.object({}).strict(),()=>service.aiStatus(),{readOnly:true});
+  tool('qg_start_ai','Explicitly start one potentially billable OpenAI API answer for an existing queued question. Transmits its bounded history and source snapshots to OpenAI. Only use when the user has explicitly requested this provider call; never start on page load or merely because a request is pending. One durable run per request; existing failed/cancelled/interrupted runs are returned without retry. No tools or external writes are executed.',aiRequest,a=>service.startAi(a),{external:true,idempotent:true});
+  tool('qg_get_ai','Read a persisted AI run or idle availability, including partial output and safe status. Reading never starts or retries a provider call.',aiRequest,a=>service.getAi(a),{readOnly:true});
+  tool('qg_cancel_ai','Stop local consumption of a running AI request and preserve partial output. Cancellation cannot guarantee provider processing or billing has stopped. Never automatically retries.',aiRequest,a=>service.cancelAi(a),{idempotent:true});
   tool('qg_status','Inspect configured connectors, credential presence (not verified authorization), stored card count and workflow status.',z.object({}).strict(),()=>service.status(),{readOnly:true});
   tool('qg_read_settings','Read server-authoritative ordinary workspace preferences (sort and reduceTransparency) and their revision. Does not expose connector or security configuration.',z.object({}).strict(),()=>service.readSettings(),{readOnly:true});
   tool('qg_update_settings','Update explicitly requested ordinary workspace preferences. Supply expectedRevision from qg_read_settings. On SETTINGS_CONFLICT show current values and ask whether the user still wants the change; never silently replay a stale patch. Does not change credentials or permissions.',SettingsUpdate,a=>service.updateSettings(a));

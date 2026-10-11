@@ -68,6 +68,30 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
           await mcp.connect(transport);await transport.handleRequest(req,res,parsed);return;
         }
         if(req.method==='GET'&&url.pathname==='/api/status'){json(res,200,service.status());return;}
+        if(req.method==='GET'&&url.pathname==='/api/ai'){z.object({}).strict().parse(queryArgs(url));json(res,200,service.aiStatus());return;}
+        const aiMatch=url.pathname.match(/^\/api\/requests\/([a-z0-9_-]+)\/ai(?:\/(start|cancel|events))?$/i);
+        if(aiMatch){
+          z.object({}).strict().parse(queryArgs(url));const requestId=aiMatch[1],operation=aiMatch[2];
+          if(req.method==='POST'&&['start','cancel'].includes(operation)){
+            z.object({}).strict().parse(await body(req));json(res,operation==='start'?202:200,operation==='start'?service.startAi({requestId}):service.cancelAi({requestId}));return;
+          }
+          if(req.method==='GET'&&!operation){json(res,200,service.getAi({requestId}));return;}
+          if(req.method==='GET'&&operation==='events'){
+            service.getAi({requestId});
+            res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-store','X-Accel-Buffering':'no'});
+            let previous='',closed=false,blocked=false,timer;
+            const close=()=>{closed=true;clearInterval(timer);};
+            res.on('close',close);res.on('drain',()=>{blocked=false;});
+            const send=()=>{
+              if(closed||blocked)return;
+              try{const snapshot=service.getAi({requestId}),serialized=JSON.stringify(snapshot);
+                if(serialized!==previous){previous=serialized;blocked=!res.write('event: snapshot\ndata: '+serialized+'\n\n');}
+                if(snapshot.status!=='running'){close();res.end();}
+              }catch{close();res.end();}
+            };
+            timer=setInterval(send,500);send();return;
+          }
+        }
         if(req.method==='GET'&&url.pathname==='/api/settings'){json(res,200,service.readSettings());return;}
         if(req.method==='PATCH'&&url.pathname==='/api/settings'){json(res,200,service.updateSettings(await body(req)));return;}
         if(req.method==='POST'&&url.pathname==='/api/notes'){json(res,201,service.createNote(await body(req)));return;}
@@ -112,12 +136,12 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
         if(req.method==='GET'&&requestMatch){z.object({}).strict().parse(queryArgs(url));json(res,200,service.getRequest({requestId:requestMatch[1]}));return;}
         json(res,404,{error:'Not found'});return;
       }
-      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/content.js':'web/content.js','/web/conversations.js':'web/conversations.js'};
+      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/content.js':'web/content.js','/web/conversations.js':'web/conversations.js','/web/ai.js':'web/ai.js'};
       if(req.method!=='GET'||!Object.hasOwn(paths,url.pathname)){json(res,404,{error:'Not found'});return;}
       let content=await readFile(resolve(ROOT,paths[url.pathname]),'utf8');
       if(paths[url.pathname]==='index.html')content=content.replace('<head>','<head><script>window.__QG_RUNTIME__=true;</script>');
       res.writeHead(200,{'Content-Type':url.pathname.endsWith('.js')?'application/javascript; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-store'}).end(content);
-    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT','ANSWER_CONFLICT'].includes(error.code)?409:error instanceof QGError&&['CONVERSATION_NOT_FOUND','REQUEST_NOT_FOUND'].includes(error.code)?404:400,publicError(error));else res.end();}
+    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT','ANSWER_CONFLICT','AI_CONCURRENCY_LIMIT','AI_DAILY_LIMIT','REQUEST_ALREADY_ANSWERED'].includes(error.code)?409:error instanceof QGError&&['CONVERSATION_NOT_FOUND','REQUEST_NOT_FOUND'].includes(error.code)?404:400,publicError(error));else res.end();}
   });
   await new Promise((accept,reject)=>{server.once('error',reject);server.listen(port,host,()=>{actualPort=server.address().port;accept();});});
   return server;

@@ -5,6 +5,18 @@ import { z } from 'zod';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const envName = z.string().regex(/^[A-Z][A-Z0-9_]*$/);
+// Provider URL and credentials are deliberately not configurable here. Operators
+// opt in and select a model; the only credential setting is an environment name.
+export const AiConfigSchema = z.object({
+  enabled:z.boolean().default(false),
+  model:z.string().trim().max(100).regex(/^[a-zA-Z0-9._:-]*$/).default(''),
+  apiKeyEnv:envName.default('OPENAI_API_KEY'),
+  maxOutputTokens:z.number().int().min(16).max(8192).default(1024),
+  timeoutMs:z.number().int().min(100).max(300000).default(60000),
+  maxConcurrency:z.number().int().min(1).max(8).default(1),
+  maxContextChars:z.number().int().min(1000).max(64000).default(16000),
+  maxRequestsPerDay:z.number().int().min(1).max(10000).default(20),
+}).strict();
 const operation = z.object({
   tool: z.string().min(1), arguments: z.record(z.unknown()).default({}),
   itemsPath: z.string().default('items'),
@@ -14,6 +26,7 @@ const operation = z.object({
 const common = { id: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/), label: z.string().max(100), enabled: z.boolean().default(true), allowWrites: z.boolean().default(false) };
 export const ConfigSchema = z.object({
   dataDir: z.string().default('.quiet-glass'),
+  ai:AiConfigSchema.default({}),
   connectors: z.array(z.discriminatedUnion('type', [
     z.object({ ...common, type: z.literal('google-calendar'), calendarId: z.string().default('primary'), tokenEnv: envName.default('GOOGLE_ACCESS_TOKEN'), refreshTokenEnv: envName.optional(), clientIdEnv: envName.optional(), clientSecretEnv: envName.optional() }).strict(),
     z.object({ ...common, type: z.literal('notion'), tokenEnv: envName.default('NOTION_TOKEN'), version: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).default('2025-09-03'), parentPageId: z.string().optional() }).strict(),

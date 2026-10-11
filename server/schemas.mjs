@@ -51,6 +51,7 @@ export const RequestCreate = z.object({...requestFields,conversationId:Conversat
 // missing values are allocated atomically by the shared service.
 export const RequestHttpCreate = z.object({...requestFields,conversationId:ConversationId.optional(),idempotencyKey:idempotencyKey.optional()}).strict();
 export const RequestRead = z.object({requestId:RequestId}).strict();
+export const AiRequest = RequestRead;
 export const RequestList = z.object({conversationId:ConversationId.optional(),status:z.enum(['pending','answered','all']).default('pending'),limit:z.number().int().min(1).max(100).default(30),offset:boundedOffset.default(0)}).strict();
 export const RequestAnswer = z.object({requestId:RequestId,answer:z.string().min(1).max(20000).refine(value=>value.trim().length>0,'回答不能为空'),evidenceIds:uniqueCardIds(50)}).strict();
 export const Collect = z.object({

@@ -27,16 +27,36 @@
       "tokenEnv": "READING_MCP_TOKEN",
       "enabled": false,
       "allowWrites": false,
-      "readTools": ["list_articles"],
+      "readTools": [
+        "list_articles"
+      ],
       "writeTools": [],
       "collect": {
         "tool": "list_articles",
-        "arguments": {"limit": 20},
+        "arguments": {
+          "limit": 20
+        },
         "itemsPath": "items",
-        "fields": {"id": "id", "title": "title", "content": "content", "url": "url", "publishedAt": "publishedAt"},
+        "fields": {
+          "id": "id",
+          "title": "title",
+          "content": "content",
+          "url": "url",
+          "publishedAt": "publishedAt"
+        },
         "cursorArgument": "cursor",
         "cursorPath": "nextCursor"
       }
     }
-  ]
+  ],
+  "ai": {
+    "enabled": false,
+    "model": "",
+    "apiKeyEnv": "OPENAI_API_KEY",
+    "maxOutputTokens": 1024,
+    "timeoutMs": 60000,
+    "maxConcurrency": 1,
+    "maxContextChars": 16000,
+    "maxRequestsPerDay": 20
+  }
 }
