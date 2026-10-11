@@ -58,7 +58,11 @@ try {
   await page.locator(`[data-card="${id}"]`).waitFor();
   assert.equal(await page.locator('.feed-card').count(),2);
   assert.equal(await page.locator(`[data-card="${suggestion.cardIds[0]}"] .linked-card`).count(),1,'evidence links use shared V0.5 cards');
-  assert.equal(await page.evaluate(id=>window.__quietGlass.store.item(id).note,id),'连接前保存的本地备注');
+  assert.equal(await page.evaluate(id=>window.__quietGlass.store.item(id).note,id),'','legacy notes are not silently uploaded');
+  await page.evaluate(id=>window.__app.openPanel('editor',id),id);
+  await page.locator('[data-action="annotation-import"]').click();
+  await page.locator('[data-action="save-note"]').click();
+  await page.waitForFunction(id=>window.__quietGlass.store.item(id).note==='连接前保存的本地备注',id);
   await page.evaluate(id=>window.__app.attach([id]),id);
   assert.equal((await call(app.client,'qg_list_requests')).requests.length,0,'attach is never send');
   await page.locator('#ai-input').fill('请结合这张卡片说明');

@@ -21,6 +21,21 @@ export const SettingsUpdate = z.object({
   set:SettingsValues.partial().refine(value=>Object.keys(value).length>0,'至少修改一个设置'),
   expectedRevision:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
 }).strict();
+// Locally authored content and personal annotations never change upstream records.
+export const LOCAL_NOTE_SOURCE = 'local-notes';
+export const LOCAL_NOTE_PREFIX = 'local_note_';
+const revision = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
+const cardId = z.string().min(1).max(100).regex(/^[a-z0-9_-]+$/i);
+const localTags = z.array(z.string().trim().min(1).max(30)).max(20).refine(tags=>new Set(tags).size===tags.length,'标签去除首尾空格后不能重复');
+const nonEmptyPatch = schema => schema.partial().refine(value=>Object.keys(value).length>0&&Object.values(value).every(v=>v!==undefined),'至少提交一个有效字段');
+export const NoteValues = z.object({title:z.string().trim().min(1).max(500),content:text,tags:localTags}).strict();
+export const NoteCreate = NoteValues.extend({content:text.default(''),tags:localTags.default([]),idempotencyKey:z.string().min(1).max(200)}).strict();
+export const NotePatch = z.object({set:nonEmptyPatch(NoteValues),expectedRevision:revision}).strict();
+export const NoteUpdate = NotePatch.extend({cardId}).strict();
+export const AnnotationValues = z.object({note:z.string().max(4000),tags:localTags}).strict();
+export const AnnotationRead = z.object({cardId}).strict();
+export const AnnotationPatch = z.object({set:nonEmptyPatch(AnnotationValues),expectedRevision:revision}).strict();
+export const AnnotationUpdate = AnnotationPatch.extend({cardId}).strict();
 export const Collect = z.object({
   connectorId: z.string(), query: z.string().max(500).optional(),
   timeMin: iso.optional(), timeMax: iso.optional(), cursor: z.union([z.string().max(4000),z.number().int().min(0)]).optional(),

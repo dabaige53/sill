@@ -2,12 +2,14 @@ import { randomUUID, randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { Store, digest, uid } from './store.mjs';
 import { Connectors, at } from './connectors.mjs';
-import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, operations, QGError, publicError } from './schemas.mjs';
+import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
 
 const excerpt = card => ({...card,content:card.content.slice(0,1200),contentTruncated:card.content.length>1200});
 const terms = query => query.toLocaleLowerCase().split(/[\s,，;；]+/).filter(Boolean);
 const brief = card => ({id:card.id,title:card.title,kind:card.kind,sourceId:card.sourceId,url:card.url,truncated:card.truncated});
 const nowIso = () => new Date().toISOString();
+const changedFields = (set,current) => Object.keys(set).filter(key=>JSON.stringify(set[key])!==JSON.stringify(current[key])).sort();
+const assertUpstreamSource = sourceId => {if(sourceId===LOCAL_NOTE_SOURCE)throw new QGError('RESERVED_SOURCE','本地笔记来源仅可通过笔记工具创建和修改');};
 
 export class Service {
   constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map(); }
@@ -28,8 +30,63 @@ export class Service {
       return next;
     });
   }
+  createNote(args) {
+    const {idempotencyKey,...values}=NoteCreate.parse(args),fingerprint=digest(values);
+    return this.store.transaction(()=>{
+      const existing=this.store.get('note-key',idempotencyKey);
+      if(existing){
+        if(existing.digest!==fingerprint)throw new QGError('IDEMPOTENCY_CONFLICT','相同幂等键不能对应不同笔记内容');
+        return this.getCard(existing.id);
+      }
+      const id=uid('local_note'),now=nowIso();
+      const card={...values,id,externalId:id,sourceId:LOCAL_NOTE_SOURCE,kind:'note',local:true,revision:1,
+        summary:values.content.slice(0,300),contentHash:fingerprint,truncated:false,evidenceIds:[],
+        publishedAt:now,collectedAt:now,firstCollectedAt:now,createdAt:now,updatedAt:now,
+        state:{read:false,bookmarked:false,dismissed:false,snoozedUntil:null}};
+      this.store.put('card',id,card);
+      this.store.put('note-key',idempotencyKey,{id,digest:fingerprint});
+      this.store.audit('note_created',{id,revision:1});
+      return this.withAnnotation(card);
+    });
+  }
+  updateNote(args) {
+    const input=NoteUpdate.parse(args);
+    return this.store.transaction(()=>{
+      const card=this.storedCard(input.cardId);
+      if(!card.local||card.sourceId!==LOCAL_NOTE_SOURCE||!card.id.startsWith(LOCAL_NOTE_PREFIX)||card.kind!=='note')throw new QGError('NOTE_NOT_LOCAL','仅可编辑本地笔记；来源内容请使用个人备注');
+      if(input.expectedRevision!==card.revision)throw new QGError('NOTE_CONFLICT','笔记已在另一处更新；请查看最新内容后再决定。',{current:this.withAnnotation(card)});
+      const changedKeys=changedFields(input.set,card);
+      if(!changedKeys.length)return this.withAnnotation(card);
+      if(card.revision===Number.MAX_SAFE_INTEGER)throw new QGError('REVISION_LIMIT','笔记修订号已达到上限');
+      const values={title:card.title,content:card.content,tags:card.tags,...input.set},now=nowIso();
+      const next={...card,...values,summary:values.content.slice(0,300),contentHash:digest(values),revision:card.revision+1,updatedAt:now,publishedAt:now};
+      this.store.put('card',card.id,next);
+      this.store.audit('note_updated',{id:card.id,changedKeys,fromRevision:card.revision,toRevision:next.revision});
+      return this.withAnnotation(next);
+    });
+  }
+  annotationSnapshot(cardId) {return this.store.get('annotation',cardId)||{cardId,values:{note:'',tags:[]},revision:0};}
+  readAnnotation(args) {
+    const {cardId}=AnnotationRead.parse(args);this.storedCard(cardId);return this.annotationSnapshot(cardId);
+  }
+  updateAnnotation(args) {
+    const input=AnnotationUpdate.parse(args);
+    return this.store.transaction(()=>{
+      this.storedCard(input.cardId);
+      const current=this.annotationSnapshot(input.cardId);
+      if(input.expectedRevision!==current.revision)throw new QGError('ANNOTATION_CONFLICT','个人备注已在另一处更新；请查看最新内容后再决定。',{current});
+      const changedKeys=changedFields(input.set,current.values);
+      if(!changedKeys.length)return current;
+      if(current.revision===Number.MAX_SAFE_INTEGER)throw new QGError('REVISION_LIMIT','个人备注修订号已达到上限');
+      const next={cardId:input.cardId,values:{...current.values,...input.set},revision:current.revision+1};
+      this.store.put('annotation',input.cardId,next);
+      this.store.audit('annotation_updated',{cardId:input.cardId,changedKeys,fromRevision:current.revision,toRevision:next.revision});
+      return next;
+    });
+  }
   async collect(args) {
     const input=Collect.parse(args);
+    assertUpstreamSource(input.connectorId);
     const result=await this.connectors.collect(input);
     const cards=this.store.ingest(input.connectorId,result.items);
     this.store.audit('collect',{sourceId:input.connectorId,count:cards.length,partial:result.partial});
@@ -37,6 +94,7 @@ export class Service {
   }
   ingest(args) {
     const input=Ingest.parse(args);
+    assertUpstreamSource(input.sourceId);
     const known=new Set(this.store.list('card').map(c=>c.id));
     for(const item of input.items)for(const id of item.evidenceIds)if(!known.has(id))throw new QGError('EVIDENCE_NOT_FOUND','引用的证据卡片不存在');
     const cards=this.store.ingest(input.sourceId,input.items);
@@ -46,9 +104,11 @@ export class Service {
   search(args) {
     const input=Search.parse(args),words=terms(input.query);
     const cards=this.store.list('card').filter(c=>(!input.sourceIds||input.sourceIds.includes(c.sourceId))&&(!input.kind||input.kind===c.kind)&&words.every(w=>[c.title,c.summary,c.content,...c.tags].join(' ').toLocaleLowerCase().includes(w))).sort((a,b)=>(b.publishedAt||b.firstCollectedAt).localeCompare(a.publishedAt||a.firstCollectedAt));
-    return {items:cards.slice(input.offset,input.offset+input.limit).map(excerpt),total:cards.length,nextOffset:input.offset+input.limit<cards.length?input.offset+input.limit:null};
+    return {items:cards.slice(input.offset,input.offset+input.limit).map(c=>excerpt(this.withAnnotation(c))),total:cards.length,nextOffset:input.offset+input.limit<cards.length?input.offset+input.limit:null};
   }
-  getCard(id) {const card=this.store.get('card',id);if(!card)throw new QGError('CARD_NOT_FOUND','卡片不存在');return card;}
+  storedCard(id) {const card=this.store.get('card',id);if(!card)throw new QGError('CARD_NOT_FOUND','卡片不存在');return card;}
+  withAnnotation(card) {return {...card,annotation:this.annotationSnapshot(card.id)};}
+  getCard(id) {return this.withAnnotation(this.storedCard(id));}
   recommend(args) {
     const input=Recommend.parse(args),now=Date.now(),words=terms([input.query,...input.interests].join(' '));
     const ranked=this.store.list('card').filter(c=>!c.state.dismissed&&(!c.state.snoozedUntil||Date.parse(c.state.snoozedUntil)<=now)&&(input.includeRead||!c.state.read)).map(c=>{
@@ -66,7 +126,7 @@ export class Service {
         else if(c.end&&Date.parse(c.start)<=now&&Date.parse(c.end)>now){score+=110;reasons.push('日程正在进行');}
         else if(c.end&&Date.parse(c.end)<=now){score-=50;reasons.push('日程已结束');}
       }
-      return {card:excerpt(c),score:Math.round(score*100)/100,reasons,evidence:{cardId:c.id,sourceId:c.sourceId,url:c.url}};
+      return {card:excerpt(this.withAnnotation(c)),score:Math.round(score*100)/100,reasons,evidence:{cardId:c.id,sourceId:c.sourceId,url:c.url}};
     }).sort((a,b)=>b.score-a.score||a.card.id.localeCompare(b.card.id));
     const selected=[],deferred=[],counts=new Map();
     for(const item of ranked){const count=counts.get(item.card.sourceId)||0;if(count>=2&&item.score<100)deferred.push(item);else{selected.push(item);counts.set(item.card.sourceId,count+1);}}
@@ -74,7 +134,7 @@ export class Service {
   }
   feedback(id,patch) {
     const parsed=z.object({read:z.boolean().optional(),bookmarked:z.boolean().optional(),dismissed:z.boolean().optional(),snoozedUntil:z.string().datetime({offset:true}).nullable().optional()}).strict().parse(patch);
-    return this.store.transaction(()=>{const card=this.getCard(id);card.state={...card.state,...parsed};this.store.put('card',id,card);return brief(card);});
+    return this.store.transaction(()=>{const card=this.storedCard(id);card.state={...card.state,...parsed};this.store.put('card',id,card);return brief(card);});
   }
   prepareAction(args) {
     const input=Draft.parse(args),payload=this.connectors.validateWrite(input.connectorId,input.action,input.payload);

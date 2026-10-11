@@ -116,7 +116,7 @@ npm start
 
 拖卡片到 AI 仍只添加引用。主动发送后，问题进入本地队列；在 Codex 中说“用 Quiet Glass 处理待回答的问题”，Codex 调用 `qg_list_requests` 阅读问题，再用 `qg_answer_request` 返回结果。**网页本身不会自主调用 Codex 或订阅模型 API。** 页面保持打开时轮询接收答案；关闭页面后请求仍在服务中。
 
-已读和收藏同步到 SQLite。备注、标签、阅读位置仍为浏览器局部状态，不会写回 Notion/Calendar。
+已读、收藏、个人备注和标签同步到 SQLite；阅读位置仍为浏览器局部状态。本地笔记支持创建和按版本编辑。上述本地内容不会写回 Notion/Calendar；旧浏览器备注不会自动上传。详见 [本地内容与备注](LOCAL-CONTENT.md)。
 
 ## 5. 对话编排示例
 

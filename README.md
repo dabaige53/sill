@@ -105,3 +105,7 @@ docs/                                      # 产品需求、交互规范、对�
 ## 普通设置跨入口同步
 
 排序和减少透明度现在可通过网页、MCP 或 HTTP 修改，并由 SQLite 持久保存。使用 `qg_read_settings` / `qg_update_settings` 读取和按版本更新；冲突不会自动覆盖。离线演示仍只保存本地设置。范围、接口及验收见 [普通设置](docs/SETTINGS.md)。
+
+## 本地内容与备注
+
+连接模式可新建、读取和编辑本地笔记，并持久保存卡片个人备注与标签。网页、MCP 和 HTTP 共用版本检查；冲突、延迟响应与刷新后保留草稿。来源正文与来源标签保持原样。接口与边界见 [本地内容](docs/LOCAL-CONTENT.md)，浏览器联调运行 `npm run test:content-browser`。
