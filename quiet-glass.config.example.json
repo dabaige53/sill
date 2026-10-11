@@ -58,5 +58,29 @@
     "maxConcurrency": 1,
     "maxContextChars": 16000,
     "maxRequestsPerDay": 20
+  },
+  "access": {
+    "principals": [
+      {
+        "id": "example-reader",
+        "enabled": false,
+        "tokenEnv": "QG_EXAMPLE_READER_TOKEN",
+        "tools": [
+          "qg_search",
+          "qg_get_card"
+        ],
+        "resources": {
+          "sourceIds": [
+            "local-notes"
+          ],
+          "ingestSourceIds": []
+        },
+        "limits": {
+          "requestsPerMinute": 60,
+          "maxRequestBytes": 65536,
+          "maxConcurrent": 2
+        }
+      }
+    ]
   }
 }

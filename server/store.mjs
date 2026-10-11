@@ -3,6 +3,7 @@ import { mkdirSync, chmodSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { hostIdentity, QGError } from './schemas.mjs';
+import { auditAttribution, idempotencyAddress } from './access.mjs';
 
 export const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export const uid = prefix => `${prefix}_${randomUUID()}`;
@@ -27,15 +28,15 @@ export class Store {
       CREATE TABLE IF NOT EXISTS audit (seq INTEGER PRIMARY KEY, time TEXT NOT NULL, event TEXT NOT NULL, detail TEXT NOT NULL);`);
   }
   close() { this.db.close(); }
-  get(kind, id) { return decode(this.db.prepare('SELECT value FROM records WHERE kind=? AND id=?').get(kind,id)); }
+  get(kind, id) { if(kind.endsWith('-key'))[kind,id]=idempotencyAddress(kind,id);return decode(this.db.prepare('SELECT value FROM records WHERE kind=? AND id=?').get(kind,id)); }
   list(kind) { return this.db.prepare('SELECT value FROM records WHERE kind=? ORDER BY id').all(kind).map(decode); }
-  put(kind,id,value) { this.db.prepare('INSERT INTO records VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET value=excluded.value').run(kind,id,JSON.stringify(value)); return value; }
+  put(kind,id,value) { if(kind.endsWith('-key'))[kind,id]=idempotencyAddress(kind,id);this.db.prepare('INSERT INTO records VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET value=excluded.value').run(kind,id,JSON.stringify(value)); return value; }
   transaction(fn) {
     this.db.exec('BEGIN IMMEDIATE');
     try { const result = fn(); this.db.exec('COMMIT'); return result; }
     catch (e) { this.db.exec('ROLLBACK'); throw e; }
   }
-  audit(event, detail) { this.db.prepare('INSERT INTO audit(time,event,detail) VALUES(?,?,?)').run(new Date().toISOString(),event,JSON.stringify(detail)); }
+  audit(event, detail) { const attribution=auditAttribution();if(attribution)detail={...detail,...attribution};this.db.prepare('INSERT INTO audit(time,event,detail) VALUES(?,?,?)').run(new Date().toISOString(),event,JSON.stringify(detail)); }
   history(limit=30) { return this.db.prepare('SELECT * FROM audit ORDER BY seq DESC LIMIT ?').all(limit).map(r=>({...r,detail:JSON.parse(r.detail)})); }
   ingest(sourceId, items) {
     return this.transaction(() => items.map(item => {

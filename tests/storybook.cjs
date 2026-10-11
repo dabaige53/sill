@@ -206,8 +206,23 @@ const storageSentinel = JSON.stringify({ version: 2, items: { 'article-01': { bo
       if (await controlsTab.count()) await controlsTab.click();
       const titleControl = page.locator('#control-title');
       await titleControl.waitFor({ state: 'visible' });
+      const acknowledgedArgs = await page.evaluateHandle(() => {
+        const observed = { args: null };
+        window.__STORYBOOK_ADDONS_MANAGER.getChannel().on('storyArgsUpdated', ({ storyId, args }) => {
+          if (storyId === 'cards--playground') observed.args = args;
+        });
+        return observed;
+      });
       for (const title of ['第一次参数修改', '第二次参数修改', '第三次参数修改']) {
-        await titleControl.fill(title); await titleControl.press('Tab');
+        // Canvas paints before Storybook acknowledges args in the manager. Blurring
+        // earlier can restore the previous controlled value and collapse the next
+        // fill's selection, appending instead of replacing text on a busy runner.
+        await titleControl.focus();
+        await titleControl.fill(title);
+        assert.equal(await titleControl.inputValue(), title, 'Controls must replace the entire title');
+        await page.waitForFunction(({ observed, title }) => observed.args?.title === title, { observed: acknowledgedArgs, title });
+        await titleControl.press('Tab');
+        assert.equal(await titleControl.inputValue(), title, 'acknowledged title must survive blur');
         await canvas.getByRole('button', { name: title, exact: true }).waitFor({ state: 'visible' });
         assert.equal(await canvas.locator('#modal').count(), 1);
         assert.equal(await canvas.locator('#ai-panel').count(), 1);

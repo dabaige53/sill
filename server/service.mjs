@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Store, digest, uid } from './store.mjs';
 import { Connectors, at } from './connectors.mjs';
 import { AiEngine } from './ai.mjs';
+import { AccessController } from './access.mjs';
 import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestHttpCreate, RequestRead, RequestList, RequestAnswer, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
 
 const excerpt = card => ({...card,content:card.content.slice(0,1200),contentTruncated:card.content.length>1200});
@@ -13,7 +14,22 @@ const changedFields = (set,current) => Object.keys(set).filter(key=>JSON.stringi
 const assertUpstreamSource = sourceId => {if(sourceId===LOCAL_NOTE_SOURCE||['host-notion','host-google-calendar','host-linear'].includes(sourceId))throw new QGError('RESERVED_SOURCE','本地笔记与宿主导入来源只能使用各自明确的创建方式');};
 
 export class Service {
-  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options); }
+  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options);this.access=new AccessController(this,config.access,options);
+    // Defense in depth: adapters use the restricted facade, and the real
+    // service also rejects accidental broad dispatch in a principal context.
+    const guarded={status:'qg_status',aiStatus:'qg_ai_status',startAi:'qg_start_ai',getAi:'qg_get_ai',cancelAi:'qg_cancel_ai',
+      readSettings:'qg_read_settings',updateSettings:'qg_update_settings',createNote:'qg_create_note',updateNote:'qg_update_note',
+      readAnnotation:'qg_read_annotation',updateAnnotation:'qg_update_annotation',collect:'qg_collect',ingest:'qg_ingest',
+      search:'qg_search',getCard:'qg_get_card',recommend:'qg_recommend',feedback:'qg_feedback',
+      prepareAction:'qg_prepare_action',getAction:'qg_get_action',commitAction:'qg_commit_action',
+      createWorkflow:'qg_create_workflow',startWorkflow:'qg_run_workflow',getWorkflow:'qg_get_workflow',
+      createConversation:'qg_create_conversation',listConversations:'qg_list_conversations',readConversation:'qg_read_conversation',
+      createRequest:'qg_create_request',getRequest:'qg_get_request',listRequests:'qg_list_requests',answerRequest:'qg_answer_request'};
+    for(const [method,tool] of Object.entries(guarded)){
+      const original=this[method].bind(this);
+      this[method]=(...args)=>{this.access.assertOperation(tool);return original(...args);};
+    }
+  }
   status() {return {version:'0.2.0',mode:'single-user',connectors:this.connectors.status(),cards:this.store.list('card').length,workflows:this.store.list('workflow').map(w=>({id:w.id,goal:w.goal,status:w.status})),externalWrites:'prepare-and-confirm',ranking:'explainable-rules',ai:this.aiStatus()};}
   aiStatus() {return this.ai.status();}
   startAi(args) {return this.ai.start(args);}
@@ -37,11 +53,12 @@ export class Service {
   }
   createNote(args) {
     const {idempotencyKey,...values}=NoteCreate.parse(args),fingerprint=digest(values);
+    this.access.assertNoteCreation();
     return this.store.transaction(()=>{
       const existing=this.store.get('note-key',idempotencyKey);
       if(existing){
         if(existing.digest!==fingerprint)throw new QGError('IDEMPOTENCY_CONFLICT','相同幂等键不能对应不同笔记内容');
-        return this.getCard(existing.id);
+        return this.withAnnotation(this.storedCard(existing.id));
       }
       const id=uid('local_note'),now=nowIso();
       const card={...values,id,externalId:id,sourceId:LOCAL_NOTE_SOURCE,kind:'note',local:true,revision:1,
@@ -245,7 +262,7 @@ export class Service {
     return {items:cards.map(brief),cardIds:cards.map(c=>c.id),count:cards.length,nextCursor:result.nextCursor,partial:result.partial};
   }
   ingest(args) {
-    const input=Ingest.parse(args);
+    const input=Ingest.parse(args);this.access.assertIngest(input);
     if(input.mode==='host-assisted'){
       const imported=this.store.ingestHost(input.sourceId,input.items),cards=imported.map(entry=>entry.card);
       return {items:imported.map(({card,replayed})=>({...brief(card),replayed})),cardIds:cards.map(card=>card.id),count:cards.length,replayed:imported.filter(entry=>entry.replayed).length};
@@ -259,15 +276,15 @@ export class Service {
   }
   search(args) {
     const input=Search.parse(args),words=terms(input.query);
-    const cards=this.store.list('card').filter(c=>(!input.sourceIds||input.sourceIds.includes(c.sourceId))&&(!input.kind||input.kind===c.kind)&&words.every(w=>[c.title,c.summary,c.content,...c.tags].join(' ').toLocaleLowerCase().includes(w))).sort((a,b)=>(b.publishedAt||b.firstCollectedAt).localeCompare(a.publishedAt||a.firstCollectedAt));
+    const cards=this.access.visibleCards(this.store.list('card')).filter(c=>(!input.sourceIds||input.sourceIds.includes(c.sourceId))&&(!input.kind||input.kind===c.kind)&&words.every(w=>[c.title,c.summary,c.content,...c.tags].join(' ').toLocaleLowerCase().includes(w))).sort((a,b)=>(b.publishedAt||b.firstCollectedAt).localeCompare(a.publishedAt||a.firstCollectedAt));
     return {items:cards.slice(input.offset,input.offset+input.limit).map(c=>excerpt(this.withAnnotation(c))),total:cards.length,nextOffset:input.offset+input.limit<cards.length?input.offset+input.limit:null};
   }
-  storedCard(id) {const card=this.store.get('card',id);if(!card)throw new QGError('CARD_NOT_FOUND','卡片不存在');return card;}
-  withAnnotation(card) {return {...card,annotation:this.annotationSnapshot(card.id)};}
+  storedCard(id) {const card=this.store.get('card',id);this.access.assertCard(card);if(!card)throw new QGError('CARD_NOT_FOUND','卡片不存在');return card;}
+  withAnnotation(card) {return {...card,...(this.access.includeAnnotations()?{annotation:this.annotationSnapshot(card.id)}:{})};}
   getCard(id) {return this.withAnnotation(this.storedCard(id));}
   recommend(args) {
     const input=Recommend.parse(args),now=Date.now(),words=terms([input.query,...input.interests].join(' '));
-    const ranked=this.store.list('card').filter(c=>!c.state.dismissed&&(!c.state.snoozedUntil||Date.parse(c.state.snoozedUntil)<=now)&&(input.includeRead||!c.state.read)).map(c=>{
+    const ranked=this.access.visibleCards(this.store.list('card')).filter(c=>!c.state.dismissed&&(!c.state.snoozedUntil||Date.parse(c.state.snoozedUntil)<=now)&&(input.includeRead||!c.state.read)).map(c=>{
       let score=0;const reasons=[];
       const haystack=[c.title,c.summary,c.content,...c.tags].join(' ').toLocaleLowerCase();
       const matched=words.filter(w=>haystack.includes(w));
@@ -290,7 +307,7 @@ export class Service {
   }
   feedback(id,patch) {
     const parsed=z.object({read:z.boolean().optional(),bookmarked:z.boolean().optional(),dismissed:z.boolean().optional(),snoozedUntil:z.string().datetime({offset:true}).nullable().optional()}).strict().parse(patch);
-    return this.store.transaction(()=>{const card=this.storedCard(id);card.state={...card.state,...parsed};this.store.put('card',id,card);return brief(card);});
+    return this.store.transaction(()=>{const card=this.storedCard(id);card.state={...card.state,...parsed};this.store.put('card',id,card);if(this.access.policy())this.store.audit('feedback_updated',{cardId:id,changedKeys:Object.keys(parsed).sort()});return brief(card);});
   }
   prepareAction(args) {
     const input=Draft.parse(args),payload=this.connectors.validateWrite(input.connectorId,input.action,input.payload);
