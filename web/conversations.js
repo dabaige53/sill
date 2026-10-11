@@ -4,7 +4,7 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
   let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};}catch{}
   const drafts=saved.drafts&&typeof saved.drafts==='object'&&!Array.isArray(saved.drafts)?saved.drafts:{};
   let activeKey=typeof saved.activeKey==='string'?saved.activeKey:'draft_'+crypto.randomUUID();
-  let active=null,epoch=0,loading=false,polling=false,firstOffset=0,messages=new Map(),listOffset=0,listSequence=0,lastPaint=null;
+  let active=null,epoch=0,loading=false,polling=false,firstOffset=0,messages=new Map(),listOffset=0,listSequence=0,lastPaint=null,aiAdapter=null;
   const inFlight=new Set();
   const draft=key=>drafts[key]&&typeof drafts[key]==='object'?drafts[key]:{question:'',cardIds:[],version:0,createKey:crypto.randomUUID()};
   const persist=()=>{try{localStorage.setItem(storageKey,JSON.stringify({activeKey,drafts}));}catch{app.toast('浏览器无法保留草稿，请在离开前复制问题');}};
@@ -38,6 +38,7 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
     document.getElementById('conversation-title').textContent=loading?'正在读取…':active?.title||'新对话草稿';
     document.querySelector('[data-action="conversation-older"]').hidden=firstOffset<=0;
     document.querySelector('[data-action="ai-send"]').disabled=app.aiBusy||loading;
+    aiAdapter?.view({viewKey:activeKey,conversationId:active?.id,messages:[...messages.values()].sort((a,b)=>a.sequence-b.sequence)});
     if(anchor){
       const view=document.getElementById('ai-messages'),index=app.messages.findIndex(message=>message.id===anchor.id),node=view.children[index];
       if(node)view.scrollTop+=node.getBoundingClientRect().top-view.getBoundingClientRect().top-anchor.offset;
@@ -144,6 +145,9 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
   const refresh=async()=>{if(polling||loading||!active||document.hidden)return;polling=true;const token=epoch;try{await readLatest(active.id,token);}catch{}finally{polling=false;}};
   window.addEventListener('focus',refresh);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+  const aiScript=document.createElement('script');aiScript.src='/web/ai.js';
+  aiScript.onload=()=>{aiAdapter=window.initQuietGlassAi({app,api,post,esc,refreshHistory:refresh});paint();};
+  aiScript.onerror=()=>app.toast('独立AI控件未加载；对话队列仍可使用');document.body.appendChild(aiScript);
   restoreDraft();paint();
   return {restore,refresh};
 };

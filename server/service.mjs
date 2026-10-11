@@ -2,6 +2,7 @@ import { randomUUID, randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { Store, digest, uid } from './store.mjs';
 import { Connectors, at } from './connectors.mjs';
+import { AiEngine } from './ai.mjs';
 import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestHttpCreate, RequestRead, RequestList, RequestAnswer, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
 
 const excerpt = card => ({...card,content:card.content.slice(0,1200),contentTruncated:card.content.length>1200});
@@ -12,8 +13,12 @@ const changedFields = (set,current) => Object.keys(set).filter(key=>JSON.stringi
 const assertUpstreamSource = sourceId => {if(sourceId===LOCAL_NOTE_SOURCE)throw new QGError('RESERVED_SOURCE','本地笔记来源仅可通过笔记工具创建和修改');};
 
 export class Service {
-  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map(); }
-  status() {return {version:'0.2.0',mode:'single-user',connectors:this.connectors.status(),cards:this.store.list('card').length,workflows:this.store.list('workflow').map(w=>({id:w.id,goal:w.goal,status:w.status})),externalWrites:'prepare-and-confirm',ranking:'explainable-rules',ai:'Codex conversation orchestrates; no embedded model or borrowed connector credentials'};}
+  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options); }
+  status() {return {version:'0.2.0',mode:'single-user',connectors:this.connectors.status(),cards:this.store.list('card').length,workflows:this.store.list('workflow').map(w=>({id:w.id,goal:w.goal,status:w.status})),externalWrites:'prepare-and-confirm',ranking:'explainable-rules',ai:this.aiStatus()};}
+  aiStatus() {return this.ai.status();}
+  startAi(args) {return this.ai.start(args);}
+  getAi(args) {return this.ai.get(args);}
+  cancelAi(args) {return this.ai.cancel(args);}
   readSettings() {
     return this.store.get('settings','workspace')||{values:{sort:'priority',reduceTransparency:false},revision:0};
   }
@@ -197,7 +202,13 @@ export class Service {
   }
   answerRequest(args) {
     const {requestId,answer,evidenceIds}=RequestAnswer.parse(args),fingerprint=digest({answer,evidenceIds});this.migrateLegacyRequests();
-    return this.store.transaction(()=>{
+    return this.store.transaction(()=>this.answerRequestRecord({requestId,answer,evidenceIds},fingerprint));
+  }
+  // Caller holds BEGIN IMMEDIATE. AI completion uses this same primitive so the
+  // ordered answer and terminal run state are committed together, or neither is.
+  answerRequestRecord(args,fingerprint) {
+      const {requestId,answer,evidenceIds}=RequestAnswer.parse(args);
+      fingerprint??=digest({answer,evidenceIds});
       const request=this.store.get('request',requestId);if(!request)throw new QGError('REQUEST_NOT_FOUND','请求不存在');
       if(request.status==='answered'){
         if(request.answerDigest!==fingerprint)throw new QGError('ANSWER_CONFLICT','此问题已有回答；不能用不同内容或证据覆盖。',{requestId,conversationId:request.conversationId});
@@ -215,7 +226,6 @@ export class Service {
       this.store.put('conversation',conversation.id,{...conversation,updatedAt:answeredAt,messageCount:sequence,pendingCount:conversation.pendingCount-1});
       this.store.audit('request_answered',{requestId,conversationId:conversation.id,messageId:answerMessageId,sequence,evidenceCount:evidenceIds.length});
       return updated;
-    });
   }
   async collect(args) {
     const input=Collect.parse(args);
@@ -361,5 +371,5 @@ export class Service {
     finally{clearInterval(heartbeat);}
   }
   getAction(id) {const action=this.store.get('action',id);if(!action)throw new QGError('ACTION_NOT_FOUND','操作草稿不存在');return action;}
-  async close() {await Promise.allSettled(this.running.values());await this.connectors.close();this.store.close();}
+  async close() {await this.ai.close();await Promise.allSettled(this.running.values());await this.connectors.close();this.store.close();}
 }

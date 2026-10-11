@@ -17,7 +17,7 @@ const originalTools=[
   'qg_read_annotation','qg_update_annotation','qg_list_source_tools','qg_collect','qg_ingest',
   'qg_search','qg_get_card','qg_recommend','qg_feedback','qg_prepare_action','qg_get_action',
   'qg_commit_action','qg_create_workflow','qg_run_workflow','qg_get_workflow',
-  'qg_list_requests','qg_answer_request','qg_audit','qg_create_conversation','qg_list_conversations','qg_read_conversation','qg_create_request','qg_get_request',
+  'qg_list_requests','qg_answer_request','qg_audit','qg_create_conversation','qg_list_conversations','qg_read_conversation','qg_create_request','qg_get_request','qg_ai_status','qg_start_ai','qg_get_ai','qg_cancel_ai',
 ];
 const token='host-test-never-return-this-credential';
 const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Host fixture</title></head><body>Quiet Glass</body></html>';
