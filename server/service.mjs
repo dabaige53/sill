@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Store, digest, uid } from './store.mjs';
 import { Connectors, at } from './connectors.mjs';
 import { AiEngine } from './ai.mjs';
+import { JobsEngine } from './jobs.mjs';
 import { AccessController } from './access.mjs';
 import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, DEFAULT_RECOMMENDATION, NoteCreate, NoteUpdate, AnnotationRead, AnnotationUpdate, ConversationCreate, ConversationList, ConversationRead, RequestCreate, RequestHttpCreate, RequestRead, RequestList, RequestAnswer, LOCAL_NOTE_SOURCE, LOCAL_NOTE_PREFIX, operations, QGError, publicError } from './schemas.mjs';
 
@@ -15,10 +16,10 @@ const changedFields = (set,current) => Object.keys(set).filter(key=>JSON.stringi
 const assertUpstreamSource = sourceId => {if(sourceId===LOCAL_NOTE_SOURCE||['host-notion','host-google-calendar','host-linear'].includes(sourceId))throw new QGError('RESERVED_SOURCE','本地笔记与宿主导入来源只能使用各自明确的创建方式');};
 
 export class Service {
-  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options);this.access=new AccessController(this,config.access,options);
+  constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options);this.access=new AccessController(this,config.access,options);this.jobs=new JobsEngine(this,config.jobs,options);
     // Defense in depth: adapters use the restricted facade, and the real
     // service also rejects accidental broad dispatch in a principal context.
-    const guarded={status:'qg_status',aiStatus:'qg_ai_status',startAi:'qg_start_ai',getAi:'qg_get_ai',cancelAi:'qg_cancel_ai',
+    const guarded={listJobs:'qg_list_jobs',createJob:'qg_create_job',updateJob:'qg_update_job',runJob:'qg_run_job',getJob:'qg_get_job',cancelJobRun:'qg_cancel_job_run',status:'qg_status',aiStatus:'qg_ai_status',startAi:'qg_start_ai',getAi:'qg_get_ai',cancelAi:'qg_cancel_ai',
       readSettings:'qg_read_settings',updateSettings:'qg_update_settings',createNote:'qg_create_note',updateNote:'qg_update_note',
       readAnnotation:'qg_read_annotation',updateAnnotation:'qg_update_annotation',collect:'qg_collect',ingest:'qg_ingest',
       search:'qg_search',getCard:'qg_get_card',recommend:'qg_recommend',feedback:'qg_feedback',
@@ -31,6 +32,12 @@ export class Service {
       this[method]=(...args)=>{this.access.assertOperation(tool);return original(...args);};
     }
   }
+  listJobs(args={}) {return this.jobs.list(args);}
+  createJob(args) {return this.jobs.create(args);}
+  updateJob(args) {return this.jobs.update(args);}
+  runJob(args) {return this.jobs.run(args);}
+  getJob(args) {return this.jobs.get(args);}
+  cancelJobRun(args) {return this.jobs.cancel(args);}
   status() {return {version:'0.2.0',mode:'single-user',connectors:this.connectors.status(),cards:this.store.list('card').length,workflows:this.store.list('workflow').map(w=>({id:w.id,goal:w.goal,status:w.status})),externalWrites:'prepare-and-confirm',ranking:'explainable-rules',ai:this.aiStatus()};}
   aiStatus() {return this.ai.status();}
   startAi(args) {return this.ai.start(args);}
@@ -421,5 +428,5 @@ export class Service {
     finally{clearInterval(heartbeat);}
   }
   getAction(id) {const action=this.store.get('action',id);if(!action)throw new QGError('ACTION_NOT_FOUND','操作草稿不存在');return action;}
-  async close() {await this.ai.close();await Promise.allSettled(this.running.values());await this.connectors.close();this.store.close();}
+  async close() {await this.jobs.close();await this.ai.close();await Promise.allSettled(this.running.values());await this.connectors.close();this.store.close();}
 }
