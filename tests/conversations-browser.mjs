@@ -421,12 +421,34 @@ try {
   const requestCountBeforeHistory = requests().length;
   await openHistory(long.id); await hasMessage('历史回答 27');
   assert.equal(await messageLocator('历史问题 1').count(), 0);
-  const beforeOlder = await page.locator('#ai-messages').evaluate(element => {
-    element.scrollTop = 60; return { top: element.scrollTop, height: element.scrollHeight };
-  });
-  await page.locator('[data-action="conversation-older"]').click(); await hasMessage('历史问题 1');
-  const afterOlder = await page.locator('#ai-messages').evaluate(element => ({ top: element.scrollTop, height: element.scrollHeight }));
-  assert.ok(Math.abs(afterOlder.top - beforeOlder.top - (afterOlder.height - beforeOlder.height)) <= 2, 'loading earlier messages preserves the previous reading anchor');
+  async function loadOlderPreservingAnchor(scrollDuringWait=false) {
+    const started=gate(),release=gate(),pattern=`${origin}/api/conversations/${long.id}*`;
+    await page.route(pattern,async route=>{
+      const url=new URL(route.request().url());
+      if(url.searchParams.get('limit')!=='4'||url.searchParams.get('offset')!=='0')return route.continue();
+      const response=await route.fetch();started.release();await release.promise;await route.fulfill({response});
+    });
+    await page.locator('#ai-messages').evaluate(element=>{element.scrollTop=60;});
+    await page.locator('[data-action="conversation-older"]').click();await waitForGate(started,'earlier messages held before render');
+    if(scrollDuringWait)await page.locator('#ai-messages').evaluate(element=>{element.scrollTop=180;});
+    // Measure the visible message after the click, while HTTP is pending. Total
+    // scrollHeight can still include an unrelated empty-to-populated padding change.
+    const anchor=await page.locator('#ai-messages').evaluate(element=>{
+      const edge=element.getBoundingClientRect().top,node=[...element.children].find(row=>row.getBoundingClientRect().bottom>edge);
+      return {text:node.textContent,offset:node.getBoundingClientRect().top-edge};
+    });
+    release.release();await hasMessage('历史问题 1');
+    const assertAnchor=async()=>{
+      const offset=await messageLocator(anchor.text).evaluate(element=>element.getBoundingClientRect().top-document.getElementById('ai-messages').getBoundingClientRect().top);
+      assert.ok(Math.abs(offset-anchor.offset)<=2,`earlier messages preserve the visible reading anchor: ${JSON.stringify({anchor,offset,scrollDuringWait})}`);
+    };
+    await assertAnchor();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await assertAnchor();
+    await page.unroute(pattern);
+  }
+  await loadOlderPreservingAnchor();
+  await openHistory(long.id);await hasMessage('历史回答 27');
+  await loadOlderPreservingAnchor(true);
+  passed('earlier-message rendering preserves the visible message, including scrolling during delayed HTTP');
   assert.equal(await page.locator('#ai-messages .message').count(), 54);
   assert.equal(await page.locator('[data-action="conversation-older"]').isVisible(), false);
   const listPage = await api('/api/conversations?limit=1&offset=0');

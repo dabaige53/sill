@@ -20,11 +20,16 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
     field().value=typeof value.question==='string'?value.question:'';
     app.contexts=Array.isArray(value.cardIds)?value.cardIds.filter(id=>typeof id==='string'):[];persist();
   }
-  function paint(){
+  function readingAnchor(){
+    const view=document.getElementById('ai-messages'),edge=view.getBoundingClientRect().top;
+    const index=[...view.children].findIndex(node=>node.getBoundingClientRect().bottom>edge);
+    return index<0?null:{id:app.messages[index]?.id,offset:view.children[index].getBoundingClientRect().top-edge};
+  }
+  function paint(anchor=null){
     app.messages=[...messages.values()].sort((a,b)=>a.sequence-b.sequence).flatMap(message=>{
       const references=message.role==='user'&&message.cardRefs?.length?'\n引用卡片：'+message.cardRefs.map(ref=>ref.title||ref.id||ref.cardId).join('、'):'';
-      const shown=[{kind:message.role==='assistant'?'assistant':'user',text:message.text+references}];
-      if(message.role==='user'&&message.status==='pending')shown.push({kind:'assistant',text:`已保存请求 ${message.requestId}。\n等待 Codex 或已连接的工作者处理；网页不会自动调用模型。`});
+      const shown=[{id:message.id,kind:message.role==='assistant'?'assistant':'user',text:message.text+references}];
+      if(message.role==='user'&&message.status==='pending')shown.push({id:message.id+':pending',kind:'assistant',text:`已保存请求 ${message.requestId}。\n等待 Codex 或已连接的工作者处理；网页不会自动调用模型。`});
       return shown;
     });
     app.aiBusy=inFlight.has(activeKey);
@@ -33,6 +38,10 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
     document.getElementById('conversation-title').textContent=loading?'正在读取…':active?.title||'新对话草稿';
     document.querySelector('[data-action="conversation-older"]').hidden=firstOffset<=0;
     document.querySelector('[data-action="ai-send"]').disabled=app.aiBusy||loading;
+    if(anchor){
+      const view=document.getElementById('ai-messages'),index=app.messages.findIndex(message=>message.id===anchor.id),node=view.children[index];
+      if(node)view.scrollTop+=node.getBoundingClientRect().top-view.getBoundingClientRect().top-anchor.offset;
+    }
   }
   async function readLatest(id,token,viewKey=activeKey){
     let page=await api('/api/conversations/'+encodeURIComponent(id)+'?limit=50&offset=0');
@@ -68,11 +77,13 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
   }
   async function older(){
     if(!active||firstOffset<=0||loading)return;
-    const token=epoch,id=active.id,viewKey=activeKey,offset=Math.max(0,firstOffset-50),view=document.getElementById('ai-messages'),oldHeight=view.scrollHeight,oldTop=view.scrollTop;loading=true;paint();
+    const token=epoch,id=active.id,viewKey=activeKey,offset=Math.max(0,firstOffset-50);let anchor=null;loading=true;paint();
     try{const page=await api('/api/conversations/'+encodeURIComponent(id)+'?limit='+Math.min(50,firstOffset)+'&offset='+offset);
-      if(token!==epoch||activeKey!==viewKey)return;page.messages.forEach(message=>messages.set(message.id,message));firstOffset=offset;
+      if(token!==epoch||activeKey!==viewKey)return;
+      // Capture what is being read now; the user may scroll while HTTP is pending.
+      anchor=readingAnchor();page.messages.forEach(message=>messages.set(message.id,message));firstOffset=offset;
     }catch(error){if(token===epoch)app.toast('更早的消息未读取：'+error.message);}
-    finally{if(token===epoch){loading=false;paint();view.scrollTop=oldTop+view.scrollHeight-oldHeight;}}
+    finally{if(token===epoch){loading=false;paint(anchor);}}
   }
   const originalOpen=app.openAI.bind(app),originalAttach=app.attach.bind(app),originalAction=app.action.bind(app);
   app.openAI=()=>{originalOpen();paint();};
