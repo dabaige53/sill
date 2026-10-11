@@ -1,6 +1,9 @@
 /* Storybook-only canvas. Product tokens and components are imported unchanged. */
 body.qg-storybook{background:#f6f7f2}
-.qg-story{--catalog-line:#dfe4d9;--catalog-muted:#747d6e;max-width:1320px;margin:0 auto;padding:48px 44px 102px;min-height:100vh}
+/* The story supplies its own full-page frame. Explicit width/min-width also
+   prevents a future centered Canvas from adopting its child's intrinsic width. */
+body.qg-storybook #storybook-root{width:100%;min-width:0}
+.qg-story{--catalog-line:#dfe4d9;--catalog-muted:#747d6e;width:100%;min-width:0;max-width:1320px;margin:0 auto;padding:48px 44px 102px;min-height:100vh}
 .qg-story-heading{max-width:840px;margin-bottom:36px}
 .qg-story-eyebrow{display:block;font-size:10px;line-height:1.6;letter-spacing:.16em;color:#75826c;font-weight:550;text-transform:uppercase}
 .qg-story-heading h1{font-size:42px;font-weight:500;line-height:1.28;letter-spacing:-.06em;margin:18px 0 14px}

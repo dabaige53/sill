@@ -5,7 +5,7 @@ export default {
   title: "04 组件库/04 反馈与操作状态",
   tags: ['!autodocs'],
   render: renderComponent,
-  parameters: { layout: 'centered', docs: { description: { component: "查看反馈、撤销、多选、拖放、空状态和动效。交互复用正式控制器；减少动态效果设置仍然生效。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
+  parameters: { layout: 'fullscreen', docs: { description: { component: "查看反馈、撤销、多选、拖放、空状态和动效。交互复用正式控制器；减少动态效果设置仍然生效。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
   args: { width: 520 },
   argTypes: {
     component: { control: false, description: '与 ComponentCatalog 中的组件 key 一致。' },

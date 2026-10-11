@@ -7,7 +7,7 @@ export default {
   tags: ['!autodocs'],
   render: renderIcon,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
     docs: { description: { component: '图标源文件：`src/atoms/icons.js` 的 Glyphs 与 icon()。名称、分组和使用说明：`src/data/icon-catalog.js`。每个图标都可独立选择；在 Controls 中调整尺寸与颜色。修改共享 SVG 后，信息流和本组件库同时采用新版本。' } }
   },
   args: { name: 'bookmark', size: 24, color: '#496656', disabled: false },

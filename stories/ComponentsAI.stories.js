@@ -5,7 +5,7 @@ export default {
   title: "04 组件库/05 AI 对话与上下文",
   tags: ['!autodocs'],
   render: renderComponent,
-  parameters: { layout: 'centered', docs: { description: { component: "引用、输入与发送分别处理。所有样例复用 AIView 和正式对话控制器；加入引用或带入草稿都不会自动发送。回复为本地演示。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
+  parameters: { layout: 'fullscreen', docs: { description: { component: "引用、输入与发送分别处理。所有样例复用 AIView 和正式对话控制器；加入引用或带入草稿都不会自动发送。回复为本地演示。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
   args: { width: 520 },
   argTypes: {
     component: { control: false, description: '与 ComponentCatalog 中的组件 key 一致。' },

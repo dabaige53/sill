@@ -5,7 +5,7 @@ export default {
   title: "04 组件库/03 操作层与面板",
   tags: ['!autodocs'],
   render: renderComponent,
-  parameters: { layout: 'centered', docs: { description: { component: "预览、阅读、筛选和编辑由正式 Panels 与 AppController 驱动。点击打开体验完整流程；关闭后回到当前样例。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
+  parameters: { layout: 'fullscreen', docs: { description: { component: "预览、阅读、筛选和编辑由正式 Panels 与 AppController 驱动。点击打开体验完整流程；关闭后回到当前样例。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
   args: { width: 520 },
   argTypes: {
     component: { control: false, description: '与 ComponentCatalog 中的组件 key 一致。' },

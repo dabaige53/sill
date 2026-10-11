@@ -5,7 +5,7 @@ export default {
   title: "04 组件库/02 输入与设置",
   tags: ['!autodocs'],
   render: renderComponent,
-  parameters: { layout: 'centered', docs: { description: { component: "输入与设置复用 src/interactions/panels.js 中的真实表单样式和操作。示例输入保持在当前演示中；完整面板演示在隔离的组件预览环境中运行。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
+  parameters: { layout: 'fullscreen', docs: { description: { component: "输入与设置复用 src/interactions/panels.js 中的真实表单样式和操作。示例输入保持在当前演示中；完整面板演示在隔离的组件预览环境中运行。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
   args: { width: 520 },
   argTypes: {
     component: { control: false, description: '与 ComponentCatalog 中的组件 key 一致。' },

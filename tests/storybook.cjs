@@ -233,9 +233,17 @@ const storageSentinel = JSON.stringify({ version: 2, items: { 'article-01': { bo
       assert.equal(await frame.evaluate(id => window.__storybookQuietGlass.Store.tasks(window.__storybookQuietGlass.Store.card('task-01')).find(item => item.id === id).done, taskId), false, 'switching stories leaked task state');
     });
     for (const width of [390, 320]) await scenario(`${width}px Canvas keeps cards and components within the viewport`, async page => {
-      for (const id of ['icons--overview', 'cards--article-image', 'cards--reminder-compact', componentId('ai-compose')]) {
+      for (const { id } of entries) {
         await gotoStory(page, id);
-        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${id} overflows at ${width}px`);
+        const dimensions = await page.evaluate(() => ({
+          scroll: document.documentElement.scrollWidth,
+          layout: innerWidth,
+          visual: visualViewport.width,
+          contentRight: Math.max(...Array.from(document.querySelectorAll('.qg-story, .qg-card-workbench, .qg-component-workbench')).map(node => node.getBoundingClientRect().right)),
+        }));
+        // Mobile browsers can expand innerWidth to fit overflowing content.
+        // Compare against the configured device width, not that expanded value.
+        assert.ok(Object.values(dimensions).every(value => value <= width + 1), `${id} overflows at ${width}px: ${JSON.stringify(dimensions)}`);
       }
       await gotoStory(page, 'cards--article-image');
       if (width === 390) await snapshot(page, 'storybook-mobile.png', { fullPage: true });

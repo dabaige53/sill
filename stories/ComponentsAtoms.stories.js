@@ -5,7 +5,7 @@ export default {
   title: "04 组件库/01 基础组件",
   tags: ['!autodocs'],
   render: renderComponent,
-  parameters: { layout: 'centered', docs: { description: { component: "按钮、进度、选择项、头像、附件、标签和元信息使用正式组件源。可在 Canvas 中直接体验交互，或通过 Controls 比较尺寸与指定状态。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
+  parameters: { layout: 'fullscreen', docs: { description: { component: "按钮、进度、选择项、头像、附件、标签和元信息使用正式组件源。可在 Canvas 中直接体验交互，或通过 Controls 比较尺寸与指定状态。 样例登记在 `src/views/library.js` 的 ComponentCatalog；Storybook 调用该登记，不另写一套组件模板。" } } },
   args: { width: 520 },
   argTypes: {
     component: { control: false, description: '与 ComponentCatalog 中的组件 key 一致。' },

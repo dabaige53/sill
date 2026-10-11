@@ -6,7 +6,7 @@ export default {
   tags: ['!autodocs'],
   render: renderCard,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
     docs: { description: { component: '状态来自 `src/data/card-catalog.js` 的 CardCatalog.states()，由 `src/cards/templates.js` 的状态参数渲染。此目录把状态与内容类型分开，方便逐个审查、修改和复用。' } }
   },
   args: { variant: 'article-standard', state: 'default', title: '', summary: '', width: 420 },

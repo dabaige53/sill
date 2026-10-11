@@ -6,7 +6,7 @@ export default {
   tags: ['!autodocs'],
   render: renderCard,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
     docs: { description: { component: '卡片实现：`src/cards/templates.js` 的 cardHTML() 与 CardTemplates；类型登记：`src/data/card-catalog.js`；视觉样式：`src/styles/cards.css`。13 个形态覆盖 10 类内容，均调用正式模板。卡片同时承载信息和操作：预览、阅读、收藏、任务勾选及加入 AI 引用。' } }
   },
   args: { variant: 'article-image', state: 'default', title: '', summary: '', width: 420 },
