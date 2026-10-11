@@ -57,7 +57,7 @@ test('MCP and HTTP use one settings contract, protect access and return conflict
   t.after(async()=>{await client.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));});
   await client.connect(new StreamableHTTPClientTransport(new URL(origin+'/mcp'),{requestInit:{headers:{Authorization:`Bearer ${token}`}}}));
   const tools=await client.listTools();
-  assert.equal(tools.tools.length,24,'preserve 19 existing tools plus four content tools');
+  assert.equal(tools.tools.length,29,'preserve 19 existing tools plus four content tools');
   assert.ok(tools.tools.some(tool=>tool.name==='qg_update_settings'&&tool.inputSchema.properties.set));
   const call=(name,args={})=>client.callTool({name,arguments:args});
   const read=await call('qg_read_settings');assert.deepEqual(read.structuredContent,defaults);

@@ -6,8 +6,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { z } from 'zod';
 import { createMcpServer } from './mcp.mjs';
 import { ROOT } from './config.mjs';
-import { NotePatch, AnnotationPatch, QGError, publicError } from './schemas.mjs';
-import { uid } from './store.mjs';
+import { NotePatch, AnnotationPatch, ConversationRead, RequestAnswer, QGError, publicError } from './schemas.mjs';
 
 const equal=(a,b)=>typeof a==='string'&&Buffer.byteLength(a)===Buffer.byteLength(b)&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
 function json(res,status,value){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}).end(JSON.stringify(value));}
@@ -16,6 +15,17 @@ async function body(req) {
   let size=0;const chunks=[];
   for await(const chunk of req){size+=chunk.length;if(size>512*1024)throw new QGError('BODY_TOO_LARGE','请求超过 512 KB');chunks.push(chunk);}
   try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new QGError('INVALID_JSON','JSON 格式无效');}
+}
+function queryArgs(url) {
+  const result=Object.create(null);
+  for(const [key,value] of url.searchParams){
+    if(Object.hasOwn(result,key))throw new QGError('INVALID_INPUT','查询参数不能重复');
+    if(['limit','offset'].includes(key)){
+      if(!/^\d+$/.test(value))throw new QGError('INVALID_INPUT','分页参数必须是非负整数');
+      result[key]=Number(value);
+    }else result[key]=value;
+  }
+  return result;
 }
 export async function startHttp(service,{host='127.0.0.1',port=4317,token=process.env.QG_AUTH_TOKEN,publicOrigin=process.env.QG_PUBLIC_ORIGIN}={}) {
   if(!token||Buffer.byteLength(token)<32)throw new QGError('AUTH_CONFIG','HTTP 服务需要至少 32 字节的 QG_AUTH_TOKEN');
@@ -84,21 +94,30 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
         }
         const workflowMatch=url.pathname.match(/^\/api\/workflows\/([a-z0-9_-]+)$/i);
         if(req.method==='GET'&&workflowMatch){json(res,200,service.getWorkflow(workflowMatch[1]));return;}
-        if(req.method==='POST'&&url.pathname==='/api/requests'){
-          const a=z.object({question:z.string().min(1).max(4000),cardIds:z.array(z.string()).max(20)}).strict().parse(await body(req));
-          a.cardIds.forEach(id=>service.getCard(id));
-          const r={...a,id:uid('request'),status:'pending',createdAt:new Date().toISOString()};service.store.put('request',r.id,r);json(res,201,r);return;
+        if(req.method==='POST'&&url.pathname==='/api/conversations'){json(res,201,service.createConversation(await body(req)));return;}
+        if(req.method==='GET'&&url.pathname==='/api/conversations'){json(res,200,service.listConversations(queryArgs(url)));return;}
+        const conversationMatch=url.pathname.match(/^\/api\/conversations\/([a-z0-9_-]+)$/i);
+        if(req.method==='GET'&&conversationMatch){
+          const input=ConversationRead.omit({conversationId:true}).parse(queryArgs(url));
+          json(res,200,service.readConversation({...input,conversationId:conversationMatch[1]}));return;
+        }
+        if(req.method==='POST'&&url.pathname==='/api/requests'){json(res,201,service.createRequest(await body(req),{allowLegacy:true}));return;}
+        if(req.method==='GET'&&url.pathname==='/api/requests'){json(res,200,service.listRequests(queryArgs(url)));return;}
+        const answerMatch=url.pathname.match(/^\/api\/requests\/([a-z0-9_-]+)\/answer$/i);
+        if(req.method==='POST'&&answerMatch){
+          const input=RequestAnswer.omit({requestId:true}).parse(await body(req));
+          json(res,200,service.answerRequest({...input,requestId:answerMatch[1]}));return;
         }
         const requestMatch=url.pathname.match(/^\/api\/requests\/([a-z0-9_-]+)$/i);
-        if(req.method==='GET'&&requestMatch){const r=service.store.get('request',requestMatch[1]);json(res,r?200:404,r||{error:'请求不存在'});return;}
+        if(req.method==='GET'&&requestMatch){z.object({}).strict().parse(queryArgs(url));json(res,200,service.getRequest({requestId:requestMatch[1]}));return;}
         json(res,404,{error:'Not found'});return;
       }
-      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/content.js':'web/content.js'};
+      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/content.js':'web/content.js','/web/conversations.js':'web/conversations.js'};
       if(req.method!=='GET'||!Object.hasOwn(paths,url.pathname)){json(res,404,{error:'Not found'});return;}
       let content=await readFile(resolve(ROOT,paths[url.pathname]),'utf8');
       if(paths[url.pathname]==='index.html')content=content.replace('<head>','<head><script>window.__QG_RUNTIME__=true;</script>');
       res.writeHead(200,{'Content-Type':url.pathname.endsWith('.js')?'application/javascript; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-store'}).end(content);
-    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT'].includes(error.code)?409:400,publicError(error));else res.end();}
+    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT','ANSWER_CONFLICT'].includes(error.code)?409:error instanceof QGError&&['CONVERSATION_NOT_FOUND','REQUEST_NOT_FOUND'].includes(error.code)?404:400,publicError(error));else res.end();}
   });
   await new Promise((accept,reject)=>{server.once('error',reject);server.listen(port,host,()=>{actualPort=server.address().port;accept();});});
   return server;
