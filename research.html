@@ -7,7 +7,8 @@
 <meta name="theme-color" content="#f5f4f0">
 <meta name="referrer" content="no-referrer">
 <title>Quiet Glass · 研究资料</title>
-<style>:root{
+<style>/* Quiet Glass · tokens · shared source */
+:root{
  --canvas:#efefec;--card:#fdfdfb;--ink:#252c29;--muted:#717771;--faint:#e4e7df;
  --line:rgba(34,45,39,.09);--accent:#496656;--alert:#a96847;
  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
@@ -18,6 +19,7 @@
  --ease:cubic-bezier(.2,.75,.25,1);--fast:140ms;--base:220ms;--layout:320ms;
 }
 
+/* Quiet Glass · base · shared source */
 *{box-sizing:border-box}
 html{background:var(--canvas);scroll-behavior:smooth;scrollbar-gutter:stable}
 body{margin:0;font-family:var(--font);color:var(--ink);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;background:radial-gradient(ellipse at 8% 0%,rgba(223,231,219,.26),transparent 45%),var(--canvas);min-height:100vh}
@@ -34,6 +36,15 @@ input::placeholder,textarea::placeholder{color:#8a8a85}
 ::selection{background:#dce5de;color:#242b27}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .icon{flex:0 0 auto;vertical-align:middle;pointer-events:none}
+main{max-width:1384px;padding:32px 36px 112px;margin:0 auto;min-height:100vh}
+.feed-grid{position:relative;width:100%;min-height:80vh}
+h2,p{margin:0}
+.empty-card{position:relative;max-width:450px;margin:15vh auto 0;padding:40px 30px;text-align:center;background:#ffffffe8;border:1px solid white;border-radius:24px;box-shadow:var(--shadow)}
+.empty-icon{display:block;color:#86977a;margin-bottom:20px}
+.empty-card h2{font-size:19px}
+.empty-card p{color:var(--muted);font-size:13px;margin:13px 0 19px;line-height:1.85}
+
+/* Quiet Glass · controls · shared source */
 .glass{position:relative;background:var(--glass);border:1px solid rgba(255,255,255,.94);box-shadow:inset 0 1px 0 rgba(255,255,255,.94),inset 0 -1px 1px rgba(60,66,80,.07),0 7px 22px rgba(37,45,55,.08);-webkit-backdrop-filter:blur(26px) saturate(1.15);backdrop-filter:blur(26px) saturate(1.15)}
 .glass:before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(140deg,rgba(255,255,255,.48),transparent 35%,transparent 70%,rgba(255,255,255,.18));box-shadow:inset 1px 0 0 rgba(255,255,255,.5)}
 .icon-button{width:44px;height:44px;min-width:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:transparent;position:relative;transition:background var(--fast),transform var(--fast),color var(--fast)}
@@ -41,8 +52,43 @@ input::placeholder,textarea::placeholder{color:#8a8a85}
 .icon-button:active{transform:scale(.93)}
 .icon-button.active{background:rgba(63,83,76,.1);color:#3b6250}
 .icon-button.active svg{fill:rgba(76,102,87,.14)}
-main{max-width:1384px;padding:32px 36px 112px;margin:0 auto;min-height:100vh}
-.feed-grid{position:relative;width:100%;min-height:80vh}
+#dock{position:fixed;right:26px;bottom:26px;z-index:45;display:flex;align-items:center;justify-content:center;width:64px;height:64px}
+#orb{width:56px;height:56px;min-width:56px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(230,237,240,.48) 43%,rgba(242,239,230,.55));color:#303c42;box-shadow:inset 0 1px 1px white,inset 0 -2px 3px rgba(104,118,132,.16),0 7px 28px rgba(36,49,59,.14),0 0 0 5px rgba(255,255,255,.14);transition:transform .24s var(--ease),box-shadow .24s}
+#orb .icon{width:23px;height:23px}
+#orb:after{content:"";position:absolute;inset:4px;border-radius:inherit;background:radial-gradient(ellipse at 22% 12%,#fffd,transparent 50%);pointer-events:none}
+#orb:hover{transform:scale(1.06)}
+#orb.drop-hot{transform:scale(1.3);box-shadow:inset 0 1px 1px white,0 0 0 13px #dfe8e456,0 7px 30px #708b7d3b}
+.dock-tools{position:absolute;bottom:72px;right:6px;display:flex;flex-direction:column;gap:8px;opacity:0;visibility:hidden;transform:translateY(14px) scale(.92);transform-origin:bottom;transition:all 230ms var(--ease);padding:8px 0}
+.dock-tools .icon-button{background:var(--glass);box-shadow:inset 0 1px 0 #fff,0 5px 17px #29343e12;border:1px solid #ffffffe6;-webkit-backdrop-filter:blur(25px);backdrop-filter:blur(25px)}
+#dock.is-open .dock-tools,#dock:focus-within .dock-tools{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+#dock.filter-active:after{content:"";position:absolute;right:10px;top:7px;width:7px;height:7px;border-radius:50%;background:#5a7869;border:2px solid white;pointer-events:none}
+#new-count{position:absolute;bottom:7px;right:75px;min-width:44px;height:44px;border-radius:22px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px}
+#new-count[hidden]{display:none}
+#selection-bar{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:43;border-radius:30px;display:flex;align-items:center;padding:4px 7px;gap:8px;max-width:calc(100vw - 110px)}
+#selection-bar[hidden]{display:none}
+#selection-bar .selection-count{font-size:12px;padding:0 8px;white-space:nowrap}
+#selection-bar .icon-button{width:44px;min-width:44px;height:44px}
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 130px);padding:10px 16px;border-radius:28px;z-index:120;display:flex;align-items:center;gap:12px;font-size:12px;box-shadow:0 8px 30px #2631361a;background:#f9faf6f0;border:1px solid white;backdrop-filter:blur(25px)}
+#toast[hidden]{display:none}
+#toast .icon-button{width:44px;height:44px;min-width:44px}
+#toast-text{white-space:normal}
+.filter-kind{display:flex;flex-direction:column;align-items:center;gap:5px;background:transparent;padding:0;min-height:68px;font-size:10px;color:#6c756c;border-radius:10px}
+.filter-kind .kind-disc{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#e9ece580;border:1px solid #dce1d84d;transition:all 180ms}
+.filter-kind.active .kind-disc{background:#343d35;color:white;border-color:#343d35}
+.filter-kind:hover .kind-disc{box-shadow:0 0 0 3px #dfe5dc8c}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.tag-chip{min-height:44px;padding:6px 12px;border-radius:20px;background:#eaede7a1;color:#677060;font-size:12px;border:1px solid transparent}
+.tag-chip.active{background:#3c473d;color:white;border-color:#3c473d}
+.text-button{background:transparent;min-height:44px;padding:6px 9px;font-size:12px;border-radius:12px;color:#62735e}
+.text-button:hover{background:#e5eae1}
+.solid-button{background:#333e34;color:#fff;border-radius:14px;padding:11px 18px;font-size:12px;min-height:44px}
+.toggle{width:48px;height:44px;border-radius:16px;background:transparent;position:relative;flex-shrink:0}
+.toggle:after{content:"";position:absolute;inset:9px 2px;border-radius:16px;background:#d9ded5;transition:background 150ms}
+.toggle:before{content:"";position:absolute;width:22px;height:22px;left:4px;top:11px;border-radius:50%;background:white;box-shadow:0 1px 3px #20282030;transition:transform 150ms;z-index:1}
+.toggle[aria-checked=true]:after{background:#687f65}
+.toggle[aria-checked=true]:before{transform:translateX(18px)}
+
+/* Quiet Glass · cards · shared source */
 .feed-card,.lab-card{position:absolute;left:0;top:0;width:300px;background:var(--card);border-radius:var(--card-radius);border:1px solid rgba(46,61,50,.08);box-shadow:var(--shadow);transition:box-shadow var(--base),background var(--base),border-color var(--base);isolation:isolate;overflow:hidden}
 .feed-card{cursor:pointer;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .feed-card:hover,.feed-card:focus-within{box-shadow:var(--shadow-hover);border-color:rgba(75,97,82,.18)}
@@ -55,7 +101,6 @@ main{max-width:1384px;padding:32px 36px 112px;margin:0 auto;min-height:100vh}
 .feed-card:hover .card-image{transform:scale(1.025)}
 .card-body{padding:26px}
 .form-image .card-body{padding-top:22px}
-h2,p{margin:0}
 .feed-card h2{font-size:19px;font-weight:600;letter-spacing:-.035em;line-height:1.5;white-space:pre-line}
 .card-title-button{display:block;width:100%;min-height:44px;padding:0;text-align:left;background:none;font:inherit;letter-spacing:inherit;white-space:inherit;line-height:inherit;border-radius:4px}
 .feed-card p{font-size:13px;line-height:1.85;color:var(--muted);margin-top:10px;white-space:pre-line;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
@@ -177,26 +222,8 @@ h2,p{margin:0}
 .stats-trio div:last-child{border:0}
 .stats-trio b{font-size:35px;font-weight:400;letter-spacing:-.06em;line-height:1.4;font-variant-numeric:tabular-nums}
 .stats-trio span{font-size:10.5px;color:var(--muted);margin-top:4px}
-#dock{position:fixed;right:26px;bottom:26px;z-index:45;display:flex;align-items:center;justify-content:center;width:64px;height:64px}
-#orb{width:56px;height:56px;min-width:56px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(230,237,240,.48) 43%,rgba(242,239,230,.55));color:#303c42;box-shadow:inset 0 1px 1px white,inset 0 -2px 3px rgba(104,118,132,.16),0 7px 28px rgba(36,49,59,.14),0 0 0 5px rgba(255,255,255,.14);transition:transform .24s var(--ease),box-shadow .24s}
-#orb .icon{width:23px;height:23px}
-#orb:after{content:"";position:absolute;inset:4px;border-radius:inherit;background:radial-gradient(ellipse at 22% 12%,#fffd,transparent 50%);pointer-events:none}
-#orb:hover{transform:scale(1.06)}
-#orb.drop-hot{transform:scale(1.3);box-shadow:inset 0 1px 1px white,0 0 0 13px #dfe8e456,0 7px 30px #708b7d3b}
-.dock-tools{position:absolute;bottom:72px;right:6px;display:flex;flex-direction:column;gap:8px;opacity:0;visibility:hidden;transform:translateY(14px) scale(.92);transform-origin:bottom;transition:all 230ms var(--ease);padding:8px 0}
-.dock-tools .icon-button{background:var(--glass);box-shadow:inset 0 1px 0 #fff,0 5px 17px #29343e12;border:1px solid #ffffffe6;-webkit-backdrop-filter:blur(25px);backdrop-filter:blur(25px)}
-#dock.is-open .dock-tools,#dock:focus-within .dock-tools{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
-#dock.filter-active:after{content:"";position:absolute;right:10px;top:7px;width:7px;height:7px;border-radius:50%;background:#5a7869;border:2px solid white;pointer-events:none}
-#new-count{position:absolute;bottom:7px;right:75px;min-width:44px;height:44px;border-radius:22px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px}
-#new-count[hidden]{display:none}
-#selection-bar{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:43;border-radius:30px;display:flex;align-items:center;padding:4px 7px;gap:8px;max-width:calc(100vw - 110px)}
-#selection-bar[hidden]{display:none}
-#selection-bar .selection-count{font-size:12px;padding:0 8px;white-space:nowrap}
-#selection-bar .icon-button{width:44px;min-width:44px;height:44px}
-#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 130px);padding:10px 16px;border-radius:28px;z-index:120;display:flex;align-items:center;gap:12px;font-size:12px;box-shadow:0 8px 30px #2631361a;background:#f9faf6f0;border:1px solid white;backdrop-filter:blur(25px)}
-#toast[hidden]{display:none}
-#toast .icon-button{width:44px;height:44px;min-width:44px}
-#toast-text{white-space:normal}
+
+/* Quiet Glass · overlays · shared source */
 dialog{color:var(--ink);padding:0;border:1px solid #ffffffeb;border-radius:var(--panel-radius);background:#fdfdf9;box-shadow:0 2px 10px #1f332211,0 35px 120px #24302b33;max-width:calc(100vw - 40px);max-height:90vh;width:620px;overflow:hidden;outline:none}
 dialog::backdrop{background:rgba(32,43,34,.16);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
 dialog[open]{animation:none}
@@ -234,29 +261,14 @@ dialog[open]{animation:none}
 .search-field input{width:100%;padding-left:41px;background:white}
 .field-label{display:block;font-size:11px;color:#7d847b;margin:21px 0 10px;letter-spacing:.06em}
 .filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:11px 3px}
-.filter-kind{display:flex;flex-direction:column;align-items:center;gap:5px;background:transparent;padding:0;min-height:68px;font-size:10px;color:#6c756c;border-radius:10px}
-.filter-kind .kind-disc{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#e9ece580;border:1px solid #dce1d84d;transition:all 180ms}
-.filter-kind.active .kind-disc{background:#343d35;color:white;border-color:#343d35}
-.filter-kind:hover .kind-disc{box-shadow:0 0 0 3px #dfe5dc8c}
-.chips{display:flex;gap:7px;flex-wrap:wrap}
-.tag-chip{min-height:44px;padding:6px 12px;border-radius:20px;background:#eaede7a1;color:#677060;font-size:12px;border:1px solid transparent}
-.tag-chip.active{background:#3c473d;color:white;border-color:#3c473d}
 .panel-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:24px;padding-top:15px;gap:12px}
 .panel-footer p{font-size:11px;color:var(--muted)}
-.text-button{background:transparent;min-height:44px;padding:6px 9px;font-size:12px;border-radius:12px;color:#62735e}
-.text-button:hover{background:#e5eae1}
-.solid-button{background:#333e34;color:#fff;border-radius:14px;padding:11px 18px;font-size:12px;min-height:44px}
 .editor-note{width:100%;height:130px;min-height:100px;font-size:14px;line-height:1.8;background:#fff;margin-top:2px}
 .tag-add{display:flex;align-items:center;gap:7px;margin-top:12px}
 .tag-add input{width:100%;min-width:0;background:white}
 .setting-row{display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--line);gap:18px}
 .setting-row span{font-size:13px}
 .setting-row small{display:block;font-size:11px;color:var(--muted);margin-top:5px}
-.toggle{width:48px;height:44px;border-radius:16px;background:transparent;position:relative;flex-shrink:0}
-.toggle:after{content:"";position:absolute;inset:9px 2px;border-radius:16px;background:#d9ded5;transition:background 150ms}
-.toggle:before{content:"";position:absolute;width:22px;height:22px;left:4px;top:11px;border-radius:50%;background:white;box-shadow:0 1px 3px #20282030;transition:transform 150ms;z-index:1}
-.toggle[aria-checked=true]:after{background:#687f65}
-.toggle[aria-checked=true]:before{transform:translateX(18px)}
 .settings-note{font-size:12px;line-height:1.9;color:#75806f;margin:17px 0 0}
 .ai-panel{position:fixed;right:28px;bottom:102px;width:404px;max-width:calc(100vw - 28px);max-height:calc(100dvh - 128px);display:flex;flex-direction:column;z-index:48;border-radius:25px;background:var(--glass-thick);border:1px solid #ffffffeb;box-shadow:0 2px 8px #2332220a,0 22px 80px #27362d2b;-webkit-backdrop-filter:blur(28px) saturate(1.12);backdrop-filter:blur(28px) saturate(1.12);overflow:hidden}
 .ai-panel[hidden]{display:none}
@@ -305,6 +317,15 @@ body.is-dragging{cursor:grabbing!important;user-select:none}
 body.is-dragging .feed-card,body.is-dragging #orb{cursor:grabbing!important}
 body.is-dragging .card-actions,body.is-dragging .dock-tools{visibility:hidden!important;opacity:0!important}
 body.is-dragging #selection-bar{visibility:hidden}
+.media-player{position:relative;background:#e5ebe2;border-radius:17px;overflow:hidden;margin-top:20px;aspect-ratio:1.55}
+.media-player img{height:100%;width:100%;object-fit:cover;opacity:.5;filter:saturate(.65)}
+.media-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;background:linear-gradient(0deg,#e8ece5d9,transparent);flex-direction:column;gap:15px}
+.media-slide b{font-size:24px;font-weight:500;letter-spacing:-.05em}
+.media-slide span{font-size:13px;color:#5a6b4e;line-height:1.8}
+.media-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px}
+.media-step{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Quiet Glass · catalog · shared source */
 .lab-card{padding:25px;cursor:default}
 .lab-card .lab-number{display:block;font-size:10px;color:#7e8876;letter-spacing:.13em;margin-bottom:16px}
 .lab-card h1{font-size:29px;font-weight:500;line-height:1.45;letter-spacing:-.055em;margin:0}
@@ -332,17 +353,164 @@ body.is-dragging #selection-bar{visibility:hidden}
 .source-card p{font-size:12px;line-height:1.9}
 .source-card .source-link{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#7d8872;margin-top:22px;gap:10px}
 .source-card .source-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.empty-card{position:relative;max-width:450px;margin:15vh auto 0;padding:40px 30px;text-align:center;background:#ffffffe8;border:1px solid white;border-radius:24px;box-shadow:var(--shadow)}
-.empty-icon{display:block;color:#86977a;margin-bottom:20px}
-.empty-card h2{font-size:19px}
-.empty-card p{color:var(--muted);font-size:13px;margin:13px 0 19px;line-height:1.85}
-.media-player{position:relative;background:#e5ebe2;border-radius:17px;overflow:hidden;margin-top:20px;aspect-ratio:1.55}
-.media-player img{height:100%;width:100%;object-fit:cover;opacity:.5;filter:saturate(.65)}
-.media-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;background:linear-gradient(0deg,#e8ece5d9,transparent);flex-direction:column;gap:15px}
-.media-slide b{font-size:24px;font-weight:500;letter-spacing:-.05em}
-.media-slide span{font-size:13px;color:#5a6b4e;line-height:1.8}
-.media-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px}
-.media-step{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Catalogue surfaces are separate from the product's quiet feed. */
+body:is([data-view="icons"],[data-view="cards"],[data-view="library"],[data-view="sources"]){background:#f7f7f3}
+body:is([data-view="icons"],[data-view="cards"],[data-view="library"],[data-view="sources"]) main{max-width:1424px;padding:58px 52px 130px}
+.feed-grid.is-catalog{display:block;min-height:80vh;height:auto!important;--catalog-line:#e0e3dc;--catalog-muted:#727a70}
+.is-catalog .catalog-header{position:relative;padding:0 0 34px;margin:0 0 48px;border-bottom:1px solid var(--catalog-line)}
+.catalog-eyebrow,.catalog-header .eyebrow,.catalog-header-eyebrow{display:block;font-size:10px;line-height:1.5;font-weight:500;letter-spacing:.16em;color:#6e7b6a;text-transform:uppercase}
+.catalog-header h1{font-size:64px;font-weight:500;line-height:1.14;letter-spacing:-.065em;margin:21px 0 17px}
+.catalog-header p{font-size:14px;line-height:1.95;color:#70776c;max-width:680px;margin:0}
+.catalog-header-main,.catalog-header-title,.catalog-heading-row{display:flex;align-items:flex-end;justify-content:space-between;gap:36px}
+.catalog-count{display:flex;align-items:baseline;gap:9px;color:#70816b;flex-shrink:0;font-size:12px;font-variant-numeric:tabular-nums}
+.catalog-count strong,.catalog-count b{font-size:61px;line-height:1;font-weight:350;letter-spacing:-.065em;color:#b4beaa}
+.catalog-nav{display:flex;gap:5px;flex-wrap:wrap;margin-top:30px}
+.catalog-nav a{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 16px;border:1px solid transparent;border-radius:24px;color:#70796c;font-size:12px;transition:color var(--fast),background var(--fast),border-color var(--fast)}
+.catalog-nav a:hover{background:#ebece6;color:#354331}
+.catalog-nav a[aria-current="page"],.catalog-nav a.is-active{background:#344432;color:#fff;border-color:#344432}
+.catalog-nav a:last-child{margin-left:auto}
+.catalog-section{margin:0 0 54px;scroll-margin-top:24px;min-width:0}
+.catalog-section-head,.catalog-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:24px}
+.catalog-section-head h2,.catalog-section-heading h2{margin:7px 0 0;font-size:24px;font-weight:500;letter-spacing:-.045em;line-height:1.4}
+.catalog-section-head>p,.catalog-section-heading>p{max-width:510px;font-size:12px;line-height:1.85;color:var(--catalog-muted);margin:0}
+.catalog-section-head>.catalog-eyebrow+h2,.catalog-section-heading>.catalog-eyebrow+h2{margin:0}
+.catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start}
+.catalog-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;line-height:1.7;letter-spacing:0;color:#7a8572;overflow-wrap:anywhere}
+.catalog-note,.catalog-caption,.specimen-caption{font-size:11px;line-height:1.85;color:var(--catalog-muted)}
+.catalog-note{margin-top:18px}
+.catalog-caption{margin-top:15px}
+.catalog-note code,.catalog-caption code{padding:2px 4px;border-radius:4px;background:#eceee7}
+
+/* Every glyph is the actual shared SVG, with a consistent optical stage. */
+.icon-catalog-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:stretch}
+.icon-tile{min-width:0;display:flex;flex-direction:column;background:#fdfefa;border:1px solid #e3e6dd;border-radius:16px;overflow:hidden;transition:border-color var(--base),box-shadow var(--base)}
+.icon-tile:hover{border-color:#b7c4ac;box-shadow:0 5px 16px #2b3c2410}
+.icon-tile-preview{display:grid;place-items:center;height:91px;background:linear-gradient(145deg,#f0f3ea,#f8f9f4);border-bottom:1px solid #e9ece4;color:#435b3b}
+.icon-tile-trigger{width:48px;height:48px;min-width:48px;border-radius:15px}
+.icon-tile-trigger>.icon{width:25px;height:25px}
+.icon-tile-meta{padding:15px 15px 10px;flex:1}
+.icon-tile-meta h3{font-size:13px;font-weight:550;line-height:1.5;margin:0 0 2px;letter-spacing:-.02em}
+.icon-tile-meta p{font-size:10px;line-height:1.7;color:#7a8373;margin:8px 0 0}
+.icon-tile-sizes{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding:13px 15px 12px;border-top:1px solid #eef0e8;color:#6b7b60}
+.icon-size-sample{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:28px}
+.icon-size-sample>span{display:grid;place-items:center;height:32px}
+.icon-size-sample small{font-size:9px;line-height:1.3;color:#9aa18f;font-variant-numeric:tabular-nums}
+.icon-state-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid #e0e4da;border-radius:18px;overflow:hidden;background:#e0e4da}
+.icon-state-sample{display:grid;grid-template-columns:70px 1fr;grid-template-rows:auto auto;column-gap:16px;align-items:center;background:#fdfefa;padding:22px 24px}
+.icon-state-preview{grid-row:1 / 3;display:grid;place-items:center;height:65px;width:65px;background:#eff3e9;border:1px solid #e2e8d9;border-radius:18px;color:#4c6541}
+.icon-state-sample strong{font-size:13px;font-weight:550;align-self:end;padding-bottom:3px}
+.icon-state-sample>span{font-size:10px;color:#7c8773;align-self:start;line-height:1.7}
+
+/* Real CardShell specimens retain the same content and controls as the feed. */
+.card-specimen{min-width:0}
+.card-specimen>header{display:flex;flex-direction:column;gap:7px;margin:0 2px 14px}
+.specimen-kicker{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#8a947f;font-size:9px;letter-spacing:.075em;line-height:1.5}
+.card-specimen>header h3{font-size:14px;line-height:1.5;font-weight:500;letter-spacing:-.02em;margin:0}
+.catalog-card-stage{position:relative;min-width:0;padding:0}
+.catalog-card-stage>.feed-card{position:relative;left:auto;top:auto;width:100%;transform:none!important;max-width:100%}
+.catalog-card-stage>.feed-card.is-featured{display:block;min-height:0}
+.catalog-card-stage .is-featured>.card-image-wrap{width:calc(100% - 12px);margin:6px 6px 0;min-height:0}
+.catalog-card-stage .is-featured .card-image{height:204px;min-height:0;position:relative}
+.catalog-card-stage .is-featured .card-body{display:block;padding:26px}
+.catalog-card-stage .is-featured h2{font-size:19px}
+.catalog-card-stage .is-featured p{font-size:13px}
+.card-specimen.is-passive .feed-card{cursor:default}
+.card-specimen.is-passive .feed-card:hover{box-shadow:var(--shadow)}
+.card-specimen.is-passive .card-more-trigger{visibility:hidden;opacity:0}
+.catalog-state-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card-specimen.is-passive .is-complete{background:#f1f4ed;border-color:#dce5d3}
+.card-specimen.is-passive .is-snoozed{background:#f1f1ed;border-color:#dfe2d9}
+.catalog-card-stage .is-bookmarked:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:#8b9f72;z-index:2;pointer-events:none}
+.catalog-caption strong{font-weight:550;color:#59664e}
+.catalog-card-stage .feed-card.tools-open{z-index:10}
+
+/* Components have a labelled specification area and a separate working stage. */
+.catalog-component-grid,.component-catalog-grid,.catalog-grid:has(>.component-specimen){grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:stretch}
+.component-specimen{min-width:0;border:1px solid #e0e4da;border-radius:20px;background:#fdfefa;overflow:hidden;display:flex;flex-direction:column}
+.component-specimen.wide,.component-specimen.is-wide{grid-column:1/-1}
+.component-specimen>header,.component-heading{padding:23px 25px 0}
+.component-title{font-size:16px;font-weight:550;line-height:1.5;letter-spacing:-.035em;margin:7px 0 0}
+.component-description{font-size:12px;line-height:1.9;color:#7c8474;margin:10px 0 0;max-width:64em}
+.component-preview{position:relative;padding:25px;display:flex;align-items:center;justify-content:center;flex:1;min-width:0;min-height:146px;overflow-wrap:anywhere}
+.component-preview>input:not([type=range]),.component-preview>textarea{max-width:100%}
+.component-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 24px;border-top:1px solid #e8ece2;background:#f8faf4}
+.component-footer .specimen-caption{flex:1;min-width:100px;font-size:10px}
+.component-footer .catalog-code{color:#87937c}
+.component-specimen>.specimen-caption{padding:0 25px 20px}
+.specimen-stack{display:flex;flex-direction:column;gap:12px;width:100%;min-width:0}
+.specimen-row{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;width:100%;min-width:0}
+.specimen-states{display:flex;align-items:stretch;justify-content:center;gap:12px;flex-wrap:wrap;width:100%}
+.specimen-state{display:flex;flex:1;min-width:70px;flex-direction:column;align-items:center;gap:12px;padding:14px 10px;border-radius:14px;background:#f1f4ec;font-size:10px;color:#7b8671}
+.specimen-state strong{font-size:11px;font-weight:500;color:#5a684f}
+.specimen-state>span,.specimen-state>small{font-size:10px;line-height:1.6}
+.specimen-window{position:relative;width:100%;background:#f7f9f3;border:1px solid #e0e6d8;border-radius:17px;padding:19px;min-width:0;overflow:hidden}
+.specimen-toolbar{display:flex;align-items:center;justify-content:center;gap:6px;padding:5px;border-radius:28px}
+.specimen-menu{max-width:260px;width:100%;padding:5px;border:1px solid #e2e7dc;border-radius:17px;background:#fffffc;box-shadow:0 12px 30px #34462810}
+.specimen-menu .card-menu-item{font-size:12px}
+.specimen-ai{width:100%;max-width:400px;padding:15px;background:#f0f4e9;border:1px solid #e1e8d8;border-radius:20px;display:flex;flex-direction:column;gap:12px}
+.specimen-ai .context-card{width:100%}
+.specimen-ai .ai-compose{padding:0}
+.specimen-ai .ai-compose>.icon-button{right:7px;bottom:8px}
+.specimen-ai .ai-compose textarea{min-height:96px}
+.specimen-toast,.specimen-selection{display:flex;align-items:center;justify-content:center;gap:10px;max-width:100%;padding:5px 10px 5px 17px;border-radius:29px;font-size:12px}
+.specimen-drop{display:flex;align-items:center;justify-content:center;gap:20px;min-height:102px;padding:18px 25px;border:1px dashed #cbd7c1;border-radius:20px;background:#edf3e7}
+.specimen-drop .drop-target{position:relative}
+.specimen-token{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 15px;border:1px solid #e2e7d9;background:#fffefa;border-radius:12px;font-size:11px;min-width:0}
+.specimen-token span{color:#7e8975}
+.specimen-token code{font-size:10px;overflow-wrap:anywhere}
+.is-catalog .lab-card{position:relative;left:auto;top:auto;width:auto;height:auto;transform:none!important}
+.is-catalog>.lab-card{margin-bottom:24px}
+.is-catalog .source-card{height:100%;display:flex;flex-direction:column;box-shadow:none;background:#fdfefa;border-color:#e0e4da}
+.is-catalog .source-card h2{font-size:17px;line-height:1.6}
+.is-catalog .source-card .source-link{margin-top:auto;padding-top:24px;min-height:44px;color:#566e48}
+.is-catalog .source-card .lab-number{font-size:9px;letter-spacing:.11em}
+.is-catalog .source-card p{margin-bottom:20px}
+.catalog-section-head .eyebrow,.catalog-section-heading .eyebrow{display:block;font-size:10px;line-height:1.5;font-weight:500;letter-spacing:.14em;color:#6e7b6a}
+.catalog-caption p+p{margin-top:5px}
+
+/* Component registry and independent reference index. */
+.component-specimen>header>.specimen-caption{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.04em;color:#8a967c}
+.component-footer>code{flex:1;min-width:130px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:9px;line-height:1.8;color:#849176;overflow-wrap:anywhere}
+.specimen-actions{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.specimen-actions .text-button{display:inline-flex;align-items:center;gap:8px;font-size:11px;padding:6px 0 6px 10px}
+.specimen-focus{outline:2px solid #587e91;outline-offset:4px}
+.specimen-window h4{font-size:19px;font-weight:500;line-height:1.6;letter-spacing:-.04em;margin:17px 0 10px;white-space:pre-line}
+.specimen-window>p{font-size:12px;line-height:1.9;color:#737f69;margin:0 0 18px}
+.specimen-reading{padding:25px 30px}
+.specimen-reading h4{font-family:"Songti SC","Noto Serif CJK SC",STSong,serif;font-size:22px;line-height:1.65;font-weight:500}
+.specimen-note{font-size:12px;line-height:1.8;margin-top:22px;padding:12px 14px;border-left:2px solid #adbca0;background:#edf2e6;color:#6d7d61}
+.specimen-media{width:100%;overflow:hidden;border-radius:17px;background:#e8eee2}
+.specimen-media .card-image-wrap{margin:0;width:100%;border-radius:17px}
+.specimen-media .card-image{height:206px}
+.specimen-selection-icons{display:flex;align-items:center;gap:17px;padding:10px;color:#607854}
+.specimen-toast{background:#f9fbf4;border:1px solid #e0e7d6;box-shadow:0 4px 16px #344b2710;min-height:52px;color:#607950}
+.component-preview .empty-card{width:100%;max-width:100%;margin:0;padding:25px 20px;border:1px solid #e0e7d8;background:#f7f9f3;box-shadow:none;border-radius:17px}
+.component-preview .empty-card h2{font-size:16px;font-weight:500}
+.component-preview .empty-card p{font-size:11px;margin:9px 0 12px}
+.component-preview .empty-icon{margin-bottom:11px}
+.component-preview .specimen-menu,.component-preview .specimen-ai{margin-inline:auto}
+.component-preview .attachment{margin-top:0;min-width:0}
+.component-preview .field-label,.component-preview .setting-row,.component-preview .checklist{margin-top:0}
+.component-preview .search-field{margin-bottom:0}
+.component-preview .setting-row{border:0;padding:10px 0}
+.component-preview .ai-compose{padding:0}
+.component-preview .ai-compose>.icon-button{right:7px;bottom:8px}
+.component-preview kbd{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:7px 9px;border:1px solid #dfe5d7;border-bottom-width:2px;border-radius:7px;background:#f8faf4;color:#6f7f61;white-space:nowrap}
+.component-specimen.is-wide .specimen-ai{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:none;padding:18px}
+.component-specimen.is-wide .specimen-ai .context-heading{grid-column:1/-1}
+.source-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+.is-catalog .source-grid .source-card{min-width:0;border:1px solid #e0e4da;border-radius:18px;padding:25px;transition:box-shadow var(--base),border-color var(--base)}
+.is-catalog .source-grid .source-card:hover{border-color:#c2cdb8;box-shadow:0 5px 18px #30422709}
+.source-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:23px}
+.source-topline>.specimen-caption{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;color:#929d87}
+.source-kind{font-size:9px;line-height:1.5;color:#79886e;padding:4px 8px;background:#eef3e7;border-radius:5px;letter-spacing:.02em}
+.source-card h3{font-size:16px;line-height:1.55;font-weight:550;letter-spacing:-.035em;margin:0 0 12px}
+.source-card h3 a{display:inline;box-decoration-break:clone}
+.source-card h3 a:hover{color:#54713e}
+.source-card .source-link{font-size:10px}
+
+/* Quiet Glass · responsive · shared source */
 body.opaque .glass,body.opaque .ai-panel,body.opaque .dock-tools .icon-button{background:#f6f8f2;backdrop-filter:none;-webkit-backdrop-filter:none}
 body.opaque #orb{background:#f2f4ed}
 @supports not (backdrop-filter:blur(1px)){.glass,.ai-panel,.dock-tools .icon-button{background:#f6f8f2}}
@@ -416,6 +584,93 @@ body.opaque #orb{background:#f2f4ed}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
  body:not(.is-dragging) .feed-card:hover{transform:translateY(-2px)}
+}
+
+/* Catalogue breakpoints. Product feed breakpoints above stay unchanged. */
+@media (max-width:1100px){
+ body:is([data-view="icons"],[data-view="cards"],[data-view="library"],[data-view="sources"]) main{padding:42px 32px 120px}
+ .icon-catalog-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .catalog-grid:not(.icon-catalog-grid){grid-template-columns:repeat(2,minmax(0,1fr))}
+ .icon-state-sample{padding:18px;column-gap:11px;grid-template-columns:54px 1fr}
+ .icon-state-preview{width:54px;height:58px;border-radius:15px}
+ .catalog-section-head>p,.catalog-section-heading>p{max-width:390px}
+}
+@media (max-width:760px){
+ body:is([data-view="icons"],[data-view="cards"],[data-view="library"],[data-view="sources"]) main{padding:30px 22px 110px}
+ .catalog-header h1{font-size:48px}
+ .catalog-header-main,.catalog-header-title,.catalog-heading-row{gap:20px}
+ .catalog-count strong,.catalog-count b{font-size:48px}
+ .catalog-section-head,.catalog-section-heading{align-items:flex-start;flex-direction:column;gap:11px}
+ .catalog-section-head>p,.catalog-section-heading>p{max-width:100%}
+ .icon-state-strip{grid-template-columns:1fr}
+ .icon-state-sample{grid-template-columns:54px 1fr;padding:15px 20px;column-gap:20px}
+ .catalog-nav a:last-child{margin-left:0}
+ .catalog-grid:not(.icon-catalog-grid){gap:18px}
+ .component-preview{padding:21px}
+ .component-specimen>header,.component-heading{padding:22px 21px 0}
+ .component-footer{padding:12px 20px}
+}
+@media (max-width:560px){
+ body:is([data-view="icons"],[data-view="cards"],[data-view="library"],[data-view="sources"]) main{padding:28px 16px 110px}
+ .is-catalog .catalog-header{padding-bottom:24px;margin-bottom:34px}
+ .catalog-header h1{font-size:42px;letter-spacing:-.055em;margin:17px 0 13px}
+ .catalog-header p{font-size:12px;line-height:1.85}
+ .catalog-header-main,.catalog-header-title,.catalog-heading-row{align-items:flex-start}
+ .catalog-count{gap:5px;padding-top:20px;font-size:10px}
+ .catalog-count strong,.catalog-count b{font-size:34px}
+ .catalog-nav{gap:3px;margin-top:22px}
+ .catalog-nav a{padding:8px 11px;font-size:11px}
+ .catalog-section{margin-bottom:36px}
+ .catalog-section-head,.catalog-section-heading{margin-bottom:17px}
+ .catalog-section-head h2,.catalog-section-heading h2{font-size:21px}
+ .catalog-section-head>p,.catalog-section-heading>p{font-size:11px;line-height:1.8}
+ .catalog-grid:not(.icon-catalog-grid){grid-template-columns:minmax(0,1fr);gap:26px}
+ .icon-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .icon-tile-preview{height:81px}
+ .icon-tile-meta{padding:13px 13px 10px}
+ .icon-tile-sizes{padding:12px 13px}
+ .icon-state-sample{padding:13px 17px}
+ .catalog-note,.catalog-caption{font-size:10px}
+ .card-specimen>header{margin-bottom:11px}
+ .component-specimen{border-radius:18px}
+ .component-preview{padding:20px 17px;min-height:130px}
+ .component-specimen>header,.component-heading{padding:20px 19px 0}
+ .component-title{font-size:16px}
+ .component-description{font-size:11px}
+ .component-footer{padding:11px 18px;gap:7px}
+ .specimen-row{gap:10px}
+ .specimen-window{padding:14px}
+ .specimen-states{gap:7px}
+ .specimen-state{padding:12px 6px;min-width:62px}
+ .specimen-toast,.specimen-selection{gap:5px;font-size:11px;padding-left:11px}
+ .specimen-ai{padding:9px;border-radius:16px}
+ .specimen-ai .context-card{gap:6px;grid-template-columns:32px minmax(0,1fr) 44px;padding-left:8px}
+ .specimen-ai .context-thumbnail{width:32px;height:41px;border-radius:7px}
+ .specimen-ai .context-title{font-size:11px}
+ .specimen-drop{gap:14px;padding:15px}
+ .is-catalog .source-card{padding:23px}
+}
+@media (max-width:1100px){.source-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+ .component-specimen.is-wide .specimen-ai{grid-template-columns:minmax(0,1fr);padding:13px}
+ .specimen-selection-icons{gap:12px;padding:7px}
+}
+@media (max-width:560px){
+ .source-grid{grid-template-columns:minmax(0,1fr);gap:16px}
+ .is-catalog .source-grid .source-card{padding:22px}
+ .source-topline{margin-bottom:19px}
+ .component-footer>code{font-size:9px;flex-basis:100%}
+ .specimen-actions .text-button{padding-left:0}
+ .specimen-reading{padding:20px}
+ .specimen-reading h4{font-size:21px}
+ .specimen-window h4{font-size:18px}
+ .specimen-selection-icons{gap:10px;padding:5px}
+ .component-preview .empty-card{padding:22px 16px}
+ .component-specimen.is-wide .specimen-ai{padding:9px}
+ .specimen-media .card-image{height:180px}
+}
+@media (max-width:560px){
+ .component-specimen[data-component="icon-button"] .specimen-states{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }</style>
 </head>
 <body>
@@ -673,6 +928,62 @@ const Glyphs={
 function icon(name,size=18){
  return `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${Glyphs[name]||Glyphs.file}</svg>`;
 }
+
+/* module: src/data/icon-catalog.js */
+/**
+ * Icon documentation only. SVGs stay in src/atoms/icons.js as the single source
+ * of truth; the library enumerates Glyphs so new glyphs never disappear here.
+ */
+const IconCatalog = {
+ groups: [
+  {key:'navigation',title:'导航与查找',description:'移动、定位和改变内容视野。'},
+  {key:'actions',title:'内容操作',description:'对当前卡片执行明确、可逆的动作。'},
+  {key:'content',title:'内容与来源',description:'辨认对象类型，让操作语言跟随内容。'},
+  {key:'states',title:'状态与反馈',description:'表达确认、提醒、进度和可用状态。'},
+  {key:'media',title:'媒体与对话',description:'控制播放、发送消息和建立上下文。'},
+  {key:'uncategorized',title:'新增图标',description:'已进入共享渲染器，等待补充用途和分组。'}
+ ],
+ icons: {
+  sparkles:{name:'关联与 AI',group:'media',purpose:'打开 AI 对话或表达内容关联。'},
+  refresh:{name:'刷新',group:'actions',purpose:'获取演示新内容，或重新执行当前动作。'},
+  filter:{name:'筛选',group:'navigation',purpose:'按需打开筛选与排序面板。'},
+  search:{name:'搜索',group:'navigation',purpose:'查找当前信息流中的内容。'},
+  bookmark:{name:'收藏',group:'actions',purpose:'切换卡片收藏状态。'},
+  tag:{name:'标签',group:'actions',purpose:'编辑或筛选内容标签。'},
+  note:{name:'笔记',group:'content',purpose:'识别笔记内容或进入备注编辑。'},
+  more:{name:'更多',group:'actions',purpose:'显示当前对象的其他操作。'},
+  check:{name:'勾选',group:'states',purpose:'表达选中、确认或单项完成。'},
+  'check-circle':{name:'完成与待办',group:'states',purpose:'识别待办内容或执行完成动作。'},
+  x:{name:'关闭',group:'actions',purpose:'关闭浮层、移除引用或取消当前选择。'},
+  plus:{name:'添加',group:'actions',purpose:'添加内容、标签或新的上下文。'},
+  arrow:{name:'前往',group:'navigation',purpose:'进入下一步或查看相关内容。'},
+  up:{name:'向上',group:'navigation',purpose:'回到顶部或表达向上提起。'},
+  back:{name:'返回',group:'navigation',purpose:'返回上一层并保留阅读位置。'},
+  expand:{name:'展开',group:'navigation',purpose:'从预览进入完整阅读。'},
+  external:{name:'外部链接',group:'navigation',purpose:'在新标签页打开来源或参考资料。'},
+  clock:{name:'时间',group:'states',purpose:'表达阅读时长、截止时间或延后。'},
+  calendar:{name:'日程',group:'content',purpose:'识别日程内容与日期相关操作。'},
+  mail:{name:'邮件',group:'content',purpose:'识别邮件卡片及邮件来源。'},
+  book:{name:'阅读',group:'content',purpose:'识别资讯与阅读内容。'},
+  layers:{name:'集合',group:'content',purpose:'表达内容回顾、组件集合或分层。'},
+  bell:{name:'提醒',group:'states',purpose:'识别提醒及其到期状态。'},
+  play:{name:'播放',group:'media',purpose:'播放媒体或启动动效演示。'},
+  pause:{name:'暂停',group:'media',purpose:'暂停正在播放的媒体。'},
+  file:{name:'文件',group:'content',purpose:'表达附件及通用文件内容。'},
+  download:{name:'下载',group:'actions',purpose:'下载当前附件或演示文件。'},
+  video:{name:'视频',group:'media',purpose:'识别视频媒体内容。'},
+  select:{name:'选择',group:'actions',purpose:'选择卡片以执行批量操作。'},
+  undo:{name:'撤销',group:'actions',purpose:'撤销最近一次可恢复操作。'},
+  info:{name:'说明',group:'states',purpose:'打开说明、设置或边界信息。'},
+  grid:{name:'信息流',group:'navigation',purpose:'返回卡片信息流或切换到集合视图。'},
+  grip:{name:'拖动',group:'actions',purpose:'提示卡片可被提起并加入上下文。'},
+  send:{name:'发送',group:'media',purpose:'明确发送用户已准备好的消息。'},
+  quote:{name:'引用',group:'content',purpose:'表达引用内容或摘录。'},
+  eye:{name:'预览',group:'navigation',purpose:'快速查看内容，不等同于完成阅读。'},
+  ring:{name:'进度',group:'states',purpose:'识别阅读反馈；实际进度由 ring() 渲染。'},
+  moon:{name:'稍后',group:'states',purpose:'表达稍后阅读或延后处理。'}
+ }
+};
 
 /* module: src/atoms/primitives.js */
 function esc(value=''){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -944,86 +1255,252 @@ const MotionEngine={
 };
 
 /* module: src/cards/templates.js */
-const CardTemplates={
- header(c){return `<div class="card-meta top-meta">${icon(CardTypes[c.type].icon,15)}<span>${esc(c.source||CardTypes[c.type].label)}</span></div>`;},
- title(c){return `<h2><button type="button" class="card-title-button" data-action="card-open" data-id="${esc(c.id)}" data-shared="title">${esc(c.title)}</button></h2>`;},
- cover(c,extra=''){return `<button type="button" class="card-image-wrap ${extra}" data-action="card-open" data-id="${esc(c.id)}" aria-label="预览：${esc(c.title.replace(/\n/g,''))}"><img class="card-image" data-shared="image" src="${Assets[c.image]}" alt="" draggable="false">${extra==='media-cover'?`<span class="play-mark">${icon('play',22)}</span><span class="media-length">4 个片段</span>`:''}</button>`;},
- footer(c){const s=Store.item(c.id);return `<div class="card-footer"><span>${esc(c.meta||c.source||'')}</span>${['article','note','media'].includes(c.type)?`<span class="reading-state">${s.read?'<span>已读</span>':''}${ring(s.progress)}</span>`:''}</div>`;},
- article(c){return `${c.image?this.cover(c):''}<div class="card-body">${this.header(c)}${this.title(c)}<p>${esc(c.summary)}</p>${this.footer(c)}</div>`;},
- mail(c){return `<div class="card-body">${this.header(c)}${this.title(c)}<p>${esc(c.summary)}</p>${c.attachment?`<div class="attachment">${icon('file',18)}<span>${esc(c.attachment)}</span>${icon('download',14)}</div>`:''}${this.footer(c)}</div>`;},
- note(c){return `<div class="card-body">${this.header(c)}${c.form==='quote'?`<div class="quote-mark" aria-hidden="true">${icon('quote',28)}</div>`:''}${this.title(c)}<p>${esc(c.summary)}</p>${this.footer(c)}</div>`;},
- task(c){
-   const tasks=Store.tasks(c),done=tasks.every(t=>t.done);
-   if(done)return `<div class="card-body completed-body"><span class="completed-symbol">${icon('check',18)}</span><div><span class="eyebrow">已完成</span>${this.title(c)}</div></div>`;
-   return `<div class="card-body">${this.header(c)}${this.title(c)}<p class="task-subtitle">${esc(c.summary)}</p><div class="checklist">${tasks.map(t=>checkItem(c,t)).join('')}</div><div class="card-footer"><span>${esc(c.meta||'正在进行')}</span><span class="task-count">${tasks.filter(t=>t.done).length}<span> / ${tasks.length}</span></span></div></div>`;
+/** One renderer for the live feed and the design catalog. Rendering never mutates Store. */
+const CardPresentation={
+ state(c,options={}){
+   const defaults={seen:false,read:false,bookmarked:false,later:false,selected:false,progress:0,snoozedUntil:0,dismissed:false,reminderDone:false};
+   return {...defaults,...(options.state!==undefined?options.state:Store.state.items[c.id]||{})};
  },
- event(c){
-   const date=new Date(c.start),day=date.toLocaleDateString('zh-CN',{month:'long',day:'numeric'}),weekday=date.toLocaleDateString('zh-CN',{weekday:'short'});
-   return `<div class="card-body"><div class="card-meta top-meta event-meta">${icon('calendar',15)}<span>${esc(eventRelative(c))}</span></div><div class="event-date">${esc(day)}<span>${esc(weekday)}</span></div>${this.title(c)}<div class="event-time">${timeString(c.start)}<span>—</span>${timeString(c.end)}</div><p>${esc(c.summary)}</p><div class="event-footer">${avatars(c.people)}<span class="tiny-muted">${esc(c.source)}</span></div></div>`;
+ tasks(c,state){return (c.tasks||[]).map(t=>({...t,done:Array.isArray(state.taskDone)?state.taskDone.includes(t.id):t.done}));},
+ action(ctx,glyph,label,action,id='',extra='',className=''){
+   return ctx.passive?`<span class="icon-button ${className}" role="img" aria-label="${esc(label)}">${icon(glyph)}</span>`:button(glyph,label,action,id,extra,className);
  },
- reminder(c){
-   const s=Store.item(c.id),settled=s.reminderDone||s.dismissed||s.snoozedUntil>0;
-   return `<div class="card-body"><div class="reminder-status"><span class="status-dot" aria-hidden="true"></span><span class="reminder-label">${esc(FeedPolicy.label(c,s,Date.now()))}</span></div><div class="reminder-row"><div class="reminder-copy">${this.title(c)}<p>${esc(c.summary)}</p></div><span class="reminder-icon" aria-hidden="true">${icon(s.reminderDone?'check':'bell',20)}</span></div><div class="reminder-footer"><span>${esc(c.source||'提醒')}</span><div class="reminder-actions" role="group" aria-label="提醒操作">${settled?button('undo','恢复提醒','restore-reminder',c.id):button('clock','延后十分钟','snooze',c.id)+button('check','完成提醒','complete-reminder',c.id,'','reminder-complete')}</div></div></div>`;
- },
- media(c){return `${this.cover(c,'media-cover')}<div class="card-body">${this.header(c)}${this.title(c)}<p>${esc(c.summary)}</p>${this.footer(c)}</div>`;},
- insight(c){return `<div class="card-body">${this.header(c)}${this.title(c)}<div class="reading-figure"><strong data-live-time>${minutes(Store.state.seconds)}</strong>${ring(Math.min(1,Store.state.seconds/1200),52)}</div><p>阅读页前台停留 · 分钟 / 秒</p><div class="quiet-bars" aria-hidden="true">${[18,30,23,45,37,54,28,42,30,50,34,24,46,30,18,38,24,30,42,26,18,28,22,16].map((h,i)=>`<i style="height:${h}px;opacity:${.17+i*.017}"></i>`).join('')}</div></div>`;},
- digest(c){const s=Store.stats();return `<div class="card-body">${this.header(c)}${this.title(c)}<p>${esc(c.summary)}</p><div class="stats-trio"><div><b>${s.read}</b><span>已读</span></div><div><b>${s.saved}</b><span>收藏</span></div><div><b>${s.done}</b><span>完成</span></div></div></div>`;},
- suggestion(c){
-   const related=(c.related||[]).map(id=>Store.card(id)).filter(Boolean);
-   return `<div class="card-body">${this.header(c)}${this.title(c)}<p>${esc(c.summary)}</p><div class="linked-cards" aria-label="关联内容">${related.map(r=>`<button type="button" class="linked-card" data-action="card-open" data-id="${esc(r.id)}"><span class="linked-card-icon">${icon(CardTypes[r.type].icon,15)}</span><span>${esc(r.title.replace(/\n/g,''))}</span>${icon('arrow',14)}</button>`).join('')}</div><div class="suggestion-footer"><span>${esc(c.meta||'继续这个想法')}</span>${button('sparkles','将关联建议加入 AI 对话','card-ai',c.id,'','suggestion-action')}</div></div>`;
+ stats(){
+   const cards=Store.state.cards,items=Store.state.items;
+   return {read:cards.filter(c=>items[c.id]?.read).length,saved:cards.filter(c=>items[c.id]?.bookmarked).length,done:cards.filter(c=>c.type==='task'&&this.tasks(c,items[c.id]||{}).every(t=>t.done)).length};
  }
 };
-function cardHTML(c){
- const s=Store.item(c.id),isDone=c.type==='task'&&Store.tasks(c).every(t=>t.done);
- return `<article class="feed-card type-${c.type} form-${c.form||'standard'} ${s.seen?'is-seen':''} ${s.read?'is-read':''} ${isDone?'is-complete':''}" tabindex="0" data-card="${esc(c.id)}" aria-label="${esc(CardTypes[c.type].label+'：'+c.title)}">
- ${CardTemplates[c.type](c)}
+const CardTemplates={
+ header(c){return `<div class="card-meta top-meta">${icon(CardTypes[c.type].icon,15)}<span>${esc(c.source||CardTypes[c.type].label)}</span></div>`;},
+ title(c,ctx){const tag=ctx.passive?'span':'button',attributes=ctx.passive?'':` type="button" data-action="card-open" data-id="${esc(c.id)}"`;return `<h2><${tag}${attributes} class="card-title-button" data-shared="title">${esc(c.title)}</${tag}></h2>`;},
+ cover(c,ctx,extra=''){const tag=ctx.passive?'div':'button',attributes=ctx.passive?'':` type="button" data-action="card-open" data-id="${esc(c.id)}" aria-label="预览：${esc(c.title.replace(/\n/g,''))}"`;return `<${tag}${attributes} class="card-image-wrap ${extra}"><img class="card-image" data-shared="image" src="${Assets[c.image]}" alt="" draggable="false">${extra==='media-cover'?`<span class="play-mark">${icon('play',22)}</span><span class="media-length">4 个片段</span>`:''}</${tag}>`;},
+ footer(c,ctx){const s=ctx.state;return `<div class="card-footer"><span>${esc(c.meta||c.source||'')}</span>${['article','note','media'].includes(c.type)?`<span class="reading-state">${s.read?'<span>已读</span>':''}${ring(s.progress)}</span>`:''}</div>`;},
+ article(c,ctx){return `${c.image?this.cover(c,ctx):''}<div class="card-body">${this.header(c)}${this.title(c,ctx)}<p>${esc(c.summary)}</p>${this.footer(c,ctx)}</div>`;},
+ mail(c,ctx){return `<div class="card-body">${this.header(c)}${this.title(c,ctx)}<p>${esc(c.summary)}</p>${c.attachment?`<div class="attachment">${icon('file',18)}<span>${esc(c.attachment)}</span>${icon('download',14)}</div>`:''}${this.footer(c,ctx)}</div>`;},
+ note(c,ctx){return `<div class="card-body">${this.header(c)}${c.form==='quote'?`<div class="quote-mark" aria-hidden="true">${icon('quote',28)}</div>`:''}${this.title(c,ctx)}<p>${esc(c.summary)}</p>${this.footer(c,ctx)}</div>`;},
+ task(c,ctx){
+   const tasks=ctx.tasks,done=tasks.every(t=>t.done);
+   if(done)return `<div class="card-body completed-body"><span class="completed-symbol">${icon('check',18)}</span><div><span class="eyebrow">已完成</span>${this.title(c,ctx)}</div></div>`;
+   const item=t=>ctx.passive?`<div class="check-item ${t.done?'is-done':''}" role="img" aria-label="${esc(t.text)}：${t.done?'已完成':'未完成'}"><span class="check-dot">${t.done?icon('check',13):''}</span><span>${esc(t.text)}</span></div>`:checkItem(c,t);
+   return `<div class="card-body">${this.header(c)}${this.title(c,ctx)}<p class="task-subtitle">${esc(c.summary)}</p><div class="checklist">${tasks.map(item).join('')}</div><div class="card-footer"><span>${esc(c.meta||'正在进行')}</span><span class="task-count">${tasks.filter(t=>t.done).length}<span> / ${tasks.length}</span></span></div></div>`;
+ },
+ event(c,ctx){
+   const date=new Date(c.start),day=date.toLocaleDateString('zh-CN',{month:'long',day:'numeric'}),weekday=date.toLocaleDateString('zh-CN',{weekday:'short'});
+   return `<div class="card-body"><div class="card-meta top-meta event-meta">${icon('calendar',15)}<span>${esc(eventRelative(c))}</span></div><div class="event-date">${esc(day)}<span>${esc(weekday)}</span></div>${this.title(c,ctx)}<div class="event-time">${timeString(c.start)}<span>—</span>${timeString(c.end)}</div><p>${esc(c.summary)}</p><div class="event-footer">${avatars(c.people)}<span class="tiny-muted">${esc(c.source)}</span></div></div>`;
+ },
+ reminder(c,ctx){
+   const s=ctx.state,settled=s.reminderDone||s.dismissed||s.snoozedUntil>0;
+   return `<div class="card-body"><div class="reminder-status"><span class="status-dot" aria-hidden="true"></span><span class="reminder-label">${esc(FeedPolicy.label(c,s,ctx.now))}</span></div><div class="reminder-row"><div class="reminder-copy">${this.title(c,ctx)}<p>${esc(c.summary)}</p></div><span class="reminder-icon" aria-hidden="true">${icon(s.reminderDone?'check':'bell',20)}</span></div><div class="reminder-footer"><span>${esc(c.source||'提醒')}</span><div class="reminder-actions" role="group" aria-label="提醒操作">${settled?CardPresentation.action(ctx,'undo','恢复提醒','restore-reminder',c.id):CardPresentation.action(ctx,'clock','延后十分钟','snooze',c.id)+CardPresentation.action(ctx,'check','完成提醒','complete-reminder',c.id,'','reminder-complete')}</div></div></div>`;
+ },
+ media(c,ctx){return `${this.cover(c,ctx,'media-cover')}<div class="card-body">${this.header(c)}${this.title(c,ctx)}<p>${esc(c.summary)}</p>${this.footer(c,ctx)}</div>`;},
+ insight(c,ctx){return `<div class="card-body">${this.header(c)}${this.title(c,ctx)}<div class="reading-figure"><strong${ctx.passive?'':' data-live-time'}>${minutes(Store.state.seconds)}</strong>${ring(Math.min(1,Store.state.seconds/1200),52)}</div><p>阅读页前台停留 · 分钟 / 秒</p><div class="quiet-bars" aria-hidden="true">${[18,30,23,45,37,54,28,42,30,50,34,24,46,30,18,38,24,30,42,26,18,28,22,16].map((h,i)=>`<i style="height:${h}px;opacity:${.17+i*.017}"></i>`).join('')}</div></div>`;},
+ digest(c,ctx){const s=CardPresentation.stats();return `<div class="card-body">${this.header(c)}${this.title(c,ctx)}<p>${esc(c.summary)}</p><div class="stats-trio"><div><b>${s.read}</b><span>已读</span></div><div><b>${s.saved}</b><span>收藏</span></div><div><b>${s.done}</b><span>完成</span></div></div>`;},
+ suggestion(c,ctx){
+   const related=(c.related||[]).map(id=>Store.card(id)).filter(Boolean),tag=ctx.passive?'span':'button';
+   return `<div class="card-body">${this.header(c)}${this.title(c,ctx)}<p>${esc(c.summary)}</p><div class="linked-cards" aria-label="关联内容">${related.map(r=>`<${tag}${ctx.passive?'':` type="button" data-action="card-open" data-id="${esc(r.id)}"`} class="linked-card"><span class="linked-card-icon">${icon(CardTypes[r.type].icon,15)}</span><span>${esc(r.title.replace(/\n/g,''))}</span>${icon('arrow',14)}</${tag}>`).join('')}</div><div class="suggestion-footer"><span>${esc(c.meta||'继续这个想法')}</span>${CardPresentation.action(ctx,'sparkles','将关联建议加入 AI 对话','card-ai',c.id,'','suggestion-action')}</div></div>`;
+ }
+};
+function cardHTML(c,options={}){
+ options=options&&typeof options==='object'?options:{};
+ const s=CardPresentation.state(c,options),tasks=CardPresentation.tasks(c,s),isDone=c.type==='task'&&tasks.every(t=>t.done),ctx={state:s,tasks,passive:!!options.passive,now:options.now??Date.now()};
+ const attributes=ctx.passive?' data-passive="true"':` tabindex="0" data-card="${esc(c.id)}"`;
+ return `<article class="feed-card type-${c.type} form-${c.form||'standard'} ${s.seen?'is-seen':''} ${s.read?'is-read':''} ${s.bookmarked?'is-bookmarked':''} ${s.selected?'is-selected':''} ${s.snoozedUntil>0?'is-snoozed':''} ${isDone?'is-complete':''}"${attributes} aria-label="${esc(CardTypes[c.type].label+'：'+c.title)}">
+ ${CardTemplates[c.type](c,ctx)}
  <div class="card-actions" role="group" aria-label="卡片操作">
- <div class="card-quick-actions glass">${button('sparkles','将卡片加入 AI 对话','card-ai',c.id)}${button('bookmark',s.bookmarked?'取消收藏':'收藏卡片','bookmark',c.id,'',s.bookmarked?'active':'')}</div>
- ${button('more','更多卡片操作','card-more',c.id,'','card-more-trigger')}
+ <div class="card-quick-actions glass">${CardPresentation.action(ctx,'sparkles','将卡片加入 AI 对话','card-ai',c.id)}${CardPresentation.action(ctx,'bookmark',s.bookmarked?'取消收藏':'收藏卡片','bookmark',c.id,'',s.bookmarked?'active':'')}</div>
+ ${CardPresentation.action(ctx,'more','更多卡片操作','card-more',c.id,'','card-more-trigger')}
  </div><span class="selected-tick" aria-hidden="true">${icon('check',13)}</span>
  </article>`;
 }
 
+/* module: src/data/card-catalog.js */
+/** Canonical card inventory. Add a card type or visual form here when the product gains one. */
+const CardCatalog={
+ variants:[
+   {key:'article-image',id:'article-01',type:'article',form:'image',title:'封面资讯',anatomy:'来源 · 封面 · 标题 · 摘要 · 阅读进度',behavior:'点击预览，继续阅读；可收藏或加入 AI 上下文。'},
+   {key:'article-standard',id:'article-04',type:'article',form:'standard',title:'文字资讯',anatomy:'来源 · 标题 · 摘要 · 阅读进度',behavior:'适合没有封面的内容；打开与读完分别记录。'},
+   {key:'mail-standard',id:'mail-01',type:'mail',form:'standard',title:'邮件',anatomy:'发件人 · 主题 · 摘要 · 附件 · 时间',behavior:'点击预览正文，在详情中下载演示附件。'},
+   {key:'note-quote',id:'note-01',type:'note',form:'quote',title:'摘录笔记',anatomy:'来源 · 引文符号 · 摘录 · 补充说明',behavior:'保留句子的节奏；通过更多操作编辑标签与备注。'},
+   {key:'note-standard',id:'note-02',type:'note',form:'standard',title:'普通笔记',anatomy:'来源 · 标题 · 内容片段 · 时间',behavior:'支持预览、阅读，以及作为 AI 上下文引用。'},
+   {key:'task-active',id:'task-01',type:'task',form:'standard',title:'待办清单',anatomy:'来源 · 标题 · 可勾选项目 · 完成数量',behavior:'直接勾选任务；全部完成后自动收拢。'},
+   {key:'task-completed',id:'task-02',type:'task',form:'standard',title:'完成待办',anatomy:'完成标识 · 状态 · 标题',behavior:'完成时收拢；打开详情可恢复项目。展示当前浏览器真实状态。'},
+   {key:'event-standard',id:'event-01',type:'event',form:'standard',title:'日程',anatomy:'相对时间 · 日期 · 标题 · 时间段 · 参与者',behavior:'快速判断时间；点击查看完整议程。'},
+   {key:'reminder-compact',id:'reminder-01',type:'reminder',form:'compact',title:'提醒',anatomy:'到期状态 · 内容 · 来源 · 两个直接动作',behavior:'卡内延后或完成，操作后可撤销；没有打断式弹窗。'},
+   {key:'media-image',id:'media-01',type:'media',form:'image',title:'媒体内容',anatomy:'封面 · 播放标识 · 来源 · 标题 · 片段数量',behavior:'打开交互演示详情；此原型不连接外部视频播放器。'},
+   {key:'insight-data',id:'insight-01',type:'insight',form:'data',title:'阅读反馈',anatomy:'来源 · 标题 · 实时分钟数 · 进度环',behavior:'根据本地阅读页前台停留时间更新。'},
+   {key:'digest-data',id:'digest-01',type:'digest',form:'data',title:'行为回顾',anatomy:'来源 · 标题 · 描述 · 三组汇总',behavior:'根据当前浏览器的已读、收藏、完成状态更新。'},
+   {key:'suggestion-standard',id:'suggestion-01',type:'suggestion',form:'standard',title:'关联建议',anatomy:'关联来源 · 说明 · 可点引用 · AI 操作',behavior:'打开关联内容或加入 AI 引用；加入引用不会自动发送。'}
+ ],
+ card(variant){return Store.card(variant.id)||Store.state.cards.find(c=>c.type===variant.type&&(c.form||'standard')===variant.form)||SeedCards.find(c=>c.id===variant.id);},
+ states(now=Date.now()){
+   return [
+     {key:'default',id:'article-04',title:'默认',caption:'标题与摘要优先，工具在意图出现时浮现。',state:{}},
+     {key:'read',id:'article-04',title:'已读',caption:'降低视觉权重，阅读环完成；不等同于打开预览。',state:{seen:true,read:true,progress:1}},
+     {key:'bookmarked',id:'article-04',title:'已收藏',caption:'收藏动作保持选中，不改变内容的业务类型。',state:{bookmarked:true}},
+     {key:'selected',id:'article-04',title:'已选中',caption:'边框与角标表达选择，用于批量操作或拖拽。',state:{selected:true}},
+     {key:'snoozed',id:'reminder-01',title:'已延后',caption:'记录下一次提醒时间，并提供恢复操作。',state:{snoozedUntil:now+600000}},
+     {key:'completed',id:'task-01',title:'已完成',caption:'完成后收拢为轻量记录，保留重新打开的能力。',state:{taskDone:(Store.card('task-01')||SeedCards.find(c=>c.id==='task-01')).tasks.map(t=>t.id)}}
+   ];
+ }
+};
+
+/* module: src/views/catalog.js */
+/** Navigation belongs to the reference libraries; the product feed stays quiet. */
+const Catalog={
+ header({eyebrow,title,description,active,count}){
+   const links=[['icons','icons.html','图标库'],['cards','cards.html','卡片库'],['library','components.html','组件库'],['sources','research.html','设计参考'],['feed','index.html','进入信息流']];
+   return `<header class="catalog-header"><span class="catalog-eyebrow">QUIET GLASS · ${esc(eyebrow)}</span><div class="catalog-header-main"><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div><div class="catalog-count" aria-label="${esc(count)} 个参考样本"><strong>${esc(String(count).padStart(2,'0'))}</strong><span>个样本</span></div></div><nav class="catalog-nav" aria-label="设计系统参考库">${links.map(([key,href,label])=>`<a href="${href}"${active===key?' aria-current="page"':''}>${esc(label)}${key==='feed'?icon('arrow',15):''}</a>`).join('')}</nav></header>`;
+ }
+};
+
+/* module: src/views/icons-library.js */
+/** Full, live catalogue of the shared Mono24 renderer. */
+const IconsView = {
+ render(){
+  const entries=Object.keys(Glyphs).map(key=>({
+   key,
+   ...(IconCatalog.icons[key]||{name:key,group:'uncategorized',purpose:'新增共享图标，待补充使用说明。'})
+  }));
+  const foundations=`<section class="catalog-section icon-foundations" data-catalog-section="icon-foundations">
+   <div class="catalog-section-head"><div><span class="catalog-eyebrow">ONE SHARED LANGUAGE</span><h2>线条统一，意图明确。</h2></div><p>点击任一图标试用。名称、用途与调用键始终与真实图形放在一起。</p></div>
+   <div class="icon-state-strip">
+    <div class="icon-state-sample"><div class="icon-state-preview">${button('bookmark','试用收藏图标','lab-icon','','bookmark')}</div><strong>可操作</strong><span>18 px 图形 · 44 px 触达</span></div>
+    <div class="icon-state-sample"><div class="icon-state-preview">${icon('bookmark',24)}</div><strong>基础网格</strong><span>24 × 24 · 1.65 px 描边</span></div>
+    <div class="icon-state-sample"><div class="icon-state-preview">${icon('bookmark',32)}</div><strong>放大预览</strong><span>同一 SVG · 不替换字形</span></div>
+   </div>
+   <p class="catalog-note">共享入口 <code class="catalog-code">icon(name, size)</code> · 图形使用 currentColor，纯图形不重复朗读；交互名称由真实按钮提供。</p>
+  </section>`;
+  const groups=IconCatalog.groups.map(group=>{
+   const items=entries.filter(entry=>entry.group===group.key);
+   if(!items.length)return '';
+   return `<section class="catalog-section" data-catalog-section="icons-${esc(group.key)}">
+    <div class="catalog-section-head"><div><span class="catalog-eyebrow">${String(items.length).padStart(2,'0')} GLYPHS</span><h2>${esc(group.title)}</h2></div><p>${esc(group.description)}</p></div>
+    <div class="catalog-grid icon-catalog-grid">${items.map(entry=>this.tile(entry)).join('')}</div>
+   </section>`;
+  }).join('');
+  return Catalog.header({eyebrow:'01 / ICON LIBRARY',title:'图标库',description:'系统全部图标的独立参考页。图形与产品共用一个渲染器，尺寸、语义和操作入口在这里统一维护。',active:'icons',count:Object.keys(Glyphs).length})+foundations+groups;
+ },
+ tile(entry){
+  return `<article class="icon-tile" data-icon-name="${esc(entry.key)}">
+   <div class="icon-tile-preview">${button(entry.key,`试用${entry.name}图标`,'lab-icon','',entry.key,'icon-tile-trigger')}</div>
+   <div class="icon-tile-meta"><h3>${esc(entry.name)}</h3><code class="catalog-code">${esc(entry.key)}</code><p>${esc(entry.purpose)}</p></div>
+   <div class="icon-tile-sizes" aria-label="${esc(entry.name)}图标的 18、24、32 像素尺寸示例">${[18,24,32].map(size=>`<span class="icon-size-sample"><span>${icon(entry.key,size)}</span><small>${size}</small></span>`).join('')}</div>
+  </article>`;
+ }
+};
+
+/* module: src/views/cards-library.js */
+/** The card catalog renders the product's actual templates, including explicit read-only states. */
+const CardsView={
+ specimen(variant,index){
+   const c=CardCatalog.card(variant);
+   return `<section class="card-specimen" data-card-type="${esc(variant.type)}" data-card-form="${esc(variant.form)}" data-card-variant="${esc(variant.key)}"><header><span class="specimen-kicker">${String(index+1).padStart(2,'0')} / ${esc(variant.type)} · ${esc(variant.form)}</span><h3>${esc(variant.title)}</h3></header><div class="catalog-card-stage">${cardHTML(c)}</div><div class="catalog-caption"><p>${esc(variant.anatomy)}</p><p>${esc(variant.behavior)}</p></div></section>`;
+ },
+ render(){
+   const now=Date.now(),states=CardCatalog.states(now);
+   return Catalog.header({eyebrow:'02 / CARD LIBRARY',title:'卡片库',description:'十种内容，共用一套交互语言。每张样卡都来自信息流的真实模板，可以预览、勾选、收藏或加入 AI。',active:'cards',count:CardCatalog.variants.length})+
+   `<section class="catalog-section"><div class="catalog-section-head"><div><span class="eyebrow">CONTENT OBJECTS</span><h2>10 种内容，13 种呈现</h2></div><p>真实样卡 · 与信息流共享当前浏览器状态</p></div><div class="catalog-grid catalog-card-grid">${CardCatalog.variants.map((v,i)=>this.specimen(v,i)).join('')}</div></section>`+
+   `<section class="catalog-section"><div class="catalog-section-head"><div><span class="eyebrow">STATE LANGUAGE</span><h2>同一张卡片，不同的状态</h2></div><p>独立静态样本 · 不影响你的阅读、收藏或任务记录</p></div><div class="catalog-grid catalog-state-grid">${states.map((sample,index)=>{const c=Store.card(sample.id)||SeedCards.find(card=>card.id===sample.id);return `<section class="card-specimen is-passive" data-card-state="${esc(sample.key)}"><header><span class="specimen-kicker">STATE ${String(index+1).padStart(2,'0')}</span><h3>${esc(sample.title)}</h3></header><div class="catalog-card-stage">${cardHTML(c,{state:sample.state,passive:true,now})}</div><div class="catalog-caption"><p>${esc(sample.caption)}</p></div></section>`;}).join('')}</div></section>`;
+ }
+};
+
 /* module: src/views/library.js */
-function labCard(id,number,title,body,preview='',className=''){
- return `<section class="lab-card ${className}" data-layout="${id}"><span class="lab-number">${number}</span><h2>${title}</h2><p>${body}</p>${preview}</section>`;
+/** Component specimens share application primitives and open singleton panels. */
+function componentAction(label,action,id=''){
+ return `<button type="button" class="text-button" data-action="${esc(action)}"${id?` data-id="${esc(id)}"`:''}>${esc(label)}${icon('arrow',15)}</button>`;
 }
+function componentSpecimen(item){
+ return `<article class="component-specimen ${item.wide?'is-wide':''}" data-component="${esc(item.key)}"><header><span class="specimen-caption">${esc(item.key)}</span><h3 class="component-title">${esc(item.title)}</h3><p class="component-description">${esc(item.description)}</p></header><div class="component-preview"><div class="specimen-stack">${item.preview}</div></div><footer class="component-footer"><code class="catalog-code">${esc(item.source)}</code>${item.actions?`<div class="specimen-actions">${item.actions}</div>`:''}</footer></article>`;
+}
+const ComponentCatalog={
+ sections(){
+  const article=Store.card('article-01'),note=Store.card('note-01'),task=Store.card('task-01'),mail=Store.card('mail-01'),media=Store.card('media-01');
+  const localChecks=[{id:'sample-incomplete',text:'保留清楚的阅读层次',done:false},{id:'sample-complete',text:'让操作出现在需要的时候',done:true}];
+  const state=(label,content)=>`<div class="specimen-state">${content}<span class="specimen-caption">${label}</span></div>`;
+  const source=(file,name)=>`src/${file} · ${name}`;
+  return [
+   {id:'atoms',number:'01',title:'基础组件',description:'从一个操作入口，到内容状态的细小线索。',items:[
+    {key:'icon-button',title:'图标按钮',description:'同一个触控范围，覆盖默认、已选择、键盘聚焦和禁用状态。',
+     preview:`<div class="specimen-states">${state('默认',button('bookmark','切换收藏按钮示例','lab-tag').replace('aria-label=','aria-pressed="false" aria-label='))}${state('已选择',button('bookmark','切换已选择按钮示例','lab-tag','','','active').replace('aria-label=','aria-pressed="true" aria-label='))}${state('键盘聚焦',button('sparkles','体验键盘聚焦按钮','ai','','','specimen-focus'))}${state('不可用',button('download','暂无可下载内容','lab-icon').replace('<button ','<button disabled '))}</div>`,source:source('atoms/primitives.js','button()')},
+    {key:'action-button',title:'主操作与次操作',description:'一个区域只强调一个决定。其余动作保持轻量，状态清楚可辨。',
+     preview:`<div class="specimen-row"><button type="button" class="solid-button" data-action="preview" data-id="${article.id}">打开预览</button><button type="button" class="text-button" data-action="edit" data-id="${note.id}">编辑备注</button><button type="button" class="solid-button" disabled>暂不可用</button></div>`,source:source('styles/controls.css','.solid-button / .text-button')},
+    {key:'progress-ring',title:'阅读进度圆环',description:'读过多少由圆环表达。打开内容与完成阅读是不同状态。拖动滑块查看变化。',
+     preview:`<div class="specimen-row" id="lab-rings">${ring(0,24)}${ring(.25,36)}${ring(.55,52)}${ring(1,22)}</div><input class="ring-range" type="range" min="0" max="100" value="55" aria-label="调整圆环演示进度" data-input="lab-ring">`,source:source('atoms/primitives.js','ring()')},
+    {key:'checkbox',title:'待办选择项',description:'点击整行切换状态；完成反馈同时使用勾选、颜色和文字划线。此处为独立样例。',
+     preview:`<div class="checklist">${localChecks.map(t=>checkItem(task,t).replace('data-action="task"','data-action="catalog-check"')).join('')}</div>`,source:source('atoms/primitives.js','checkItem()')},
+    {key:'avatars',title:'参与者头像组',description:'用紧凑的组合说明谁参与其中，保留人数的可访问名称。',
+     preview:`<div class="specimen-states">${state('1 位参与者',avatars(['林']))}${state('3 位参与者',avatars(['舟','林','陈']))}${state('5 位参与者',avatars(['舟','林','陈','许','乔']))}</div>`,source:source('atoms/primitives.js','avatars()')},
+    {key:'attachment',title:'附件入口',description:'文件名、类型和下载动作放在同一行。此示例下载一份本地生成的演示附件。',
+     preview:`<div class="attachment">${icon('file',18)}<span>${esc(mail.attachment)}</span>${button('download','下载演示附件','download-attachment',mail.id)}</div>`,source:source('cards/templates.js','CardTemplates.mail()')},
+    {key:'tag-chip',title:'标签与筛选项',description:'标签在编辑和筛选时出现。点击可以比较选中与未选中的样式。',
+     preview:`<div class="chips">${['工作','阅读','想法','设计'].map((tag,i)=>tagChip(tag,i===1,'lab-tag')).join('')}</div>`,source:source('atoms/primitives.js','tagChip()')},
+    {key:'metadata',title:'来源与状态线索',description:'来源、时间、阅读状态各有位置；状态不用醒目的装饰争夺注意力。',
+     preview:`<div class="card-meta">${icon('book',15)}<span>阅读手记</span><span>·</span><span>4 分钟阅读</span></div><div class="specimen-row"><span class="reminder-status"><span class="status-dot" aria-hidden="true"></span><span>10 分钟后提醒</span></span><span class="reading-state">已读 ${ring(1)}</span></div>`,source:source('cards/templates.js','header() / footer()')}
+   ]},
+   {id:'forms',number:'02',title:'输入与设置',description:'清楚的输入边界、焦点和选择状态。',items:[
+    {key:'search-field',title:'搜索输入',description:'输入框可直接试写。完整搜索包含内容、状态、排序和标签。',
+     preview:`<div class="search-field">${icon('search')}<input type="search" aria-label="搜索输入组件示例" placeholder="搜索内容、备注…" autocomplete="off"></div>`,actions:componentAction('打开完整搜索','filter'),source:source('interactions/panels.js','Panels.filter()')},
+    {key:'textarea',title:'长文本输入',description:'留出适当行距和书写空间。样例文字不保存，实际备注在编辑面板中保存。',
+     preview:`<label class="field-label">一条想法<textarea class="editor-note" maxlength="4000" rows="3" placeholder="记下此刻的想法…" aria-label="长文本输入组件示例"></textarea></label>`,actions:componentAction('打开备注编辑','edit',note.id),source:source('interactions/panels.js','Panels.editor()')},
+    {key:'toggle',title:'偏好开关',description:'点击立即切换减少透明度设置，并同步影响当前页面的操作层。',
+     preview:`<div class="setting-row"><div><span>减少透明度</span><small>更清晰的实体操作表面</small></div><button class="toggle" type="button" role="switch" aria-label="减少透明度" aria-checked="${Store.state.preferences.reduceTransparency}" data-action="toggle-transparency"></button></div>`,source:source('interactions/panels.js','Panels.settings()')}
+   ]},
+   {id:'overlays',number:'03',title:'操作层与面板',description:'轻量控制浮在内容之上。打开示例，体验完整交互与返回。',items:[
+    {key:'glass-dock',title:'玻璃工具组',description:'筛选、刷新与 AI 是按需出现的工具。材质属于操作层，阅读表面保持清楚。',
+     preview:`<div class="specimen-toolbar glass" role="group" aria-label="玻璃工具组示例">${button('filter','打开筛选','filter')}${button('refresh','刷新演示内容','refresh')}${button('layers','查看组件库','view-library')}${button('sparkles','打开 AI 对话','ai')}</div>`,source:source('views/app.js','AppController.init() · dock')},
+    {key:'card-menu',title:'卡片情境菜单',description:'围绕当前内容提供少量动作。此处操作示例阅读卡，反馈沿用正式流程。',
+     preview:`<div class="specimen-menu glass" role="group" aria-label="阅读卡片情境操作">${[['tag','编辑标签与备注','edit'],['clock','稍后阅读','later'],['sparkles','加入 AI 上下文','card-ai']].map(([glyph,label,action])=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${article.id}">${icon(glyph,17)}<span>${label}</span></button>`).join('')}</div>`,source:source('views/app.js','AppController.more()')},
+    {key:'dialog-preview',title:'快速预览',description:'先看摘要和关键内容，再决定阅读、标记或继续操作。关闭后回到原处。',
+     preview:`<div class="specimen-window"><div class="card-meta">${icon('book',15)}<span>${esc(article.source)}</span></div><h4>${esc(article.title)}</h4><p>${esc(article.summary)}</p><div class="specimen-row">${ring(.35)}<span class="specimen-caption">预览层 · 内容与操作分开</span></div></div>`,actions:componentAction('打开预览','preview',article.id),source:source('interactions/panels.js','Panels.preview()')},
+    {key:'reader',title:'完整阅读',description:'把正文置于连续阅读的版面。关闭后恢复内容位置，进度独立记录。',
+     preview:`<div class="specimen-window specimen-reading"><span class="eyebrow">阅读表面</span><h4>先把内容摆好，<br>再决定要做什么。</h4><p>浏览时只留下标题、摘要和必要状态；当你靠近、选择或提起一张卡片时，工具才跟随意图出现。</p><div class="specimen-row">${ring(.55,26)}<span class="specimen-caption">阅读进度 55%</span></div></div>`,actions:componentAction('进入完整阅读','reader',article.id),source:source('interactions/panels.js','Panels.preview(app, card, true)')},
+    {key:'filter-panel',title:'筛选面板',description:'内容、状态、排序和标签逐层筛选，结果数量随输入变化。',
+     preview:`<div class="specimen-window"><div class="card-meta">${icon('filter',17)}<span>找回你想看的</span></div><span class="field-label">状态示例</span><div class="chips">${[['全部',true],['未读',false],['收藏',false]].map(([tag,active])=>tagChip(tag,active,'lab-tag')).join('')}</div><span class="field-label">排序示例</span><span class="specimen-caption">重要优先 / 未读优先 / 时间排序</span></div>`,actions:componentAction('打开筛选面板','filter'),source:source('interactions/panels.js','Panels.filter()')},
+    {key:'editor-panel',title:'标签与备注编辑',description:'围绕一张卡片整理线索。标签可增减，备注在保存后保留于当前浏览器。',
+     preview:`<div class="specimen-window"><span class="field-label">标签示例</span><div class="chips">${tagChip('想法',true,'lab-tag')}${tagChip('产品',true,'lab-tag')}${tagChip('设计',false,'lab-tag')}</div><div class="specimen-note">让重要的事，在对的时候出现。</div></div>`,actions:componentAction('打开编辑面板','edit',note.id),source:source('interactions/panels.js','Panels.editor()')},
+    {key:'media-player',title:'媒体预览与片段播放',description:'封面承担内容预览；打开后可播放、暂停和切换演示片段。',
+     preview:`<div class="specimen-media">${CardTemplates.cover(media,{passive:false},'media-cover')}</div>`,actions:componentAction('打开演示播放器','preview',media.id),source:source('interactions/panels.js','Panels.preview() · media')},
+    {key:'settings-panel',title:'可访问性与使用说明',description:'查看减少动态效果、透明度偏好与键盘操作，也能确认演示功能的边界。',
+     preview:`<div class="specimen-row">${icon('moon',20)}<span>减少动态效果</span><span class="specimen-caption">${MotionEngine.reduced?'已开启':'跟随设备偏好'}</span></div><div class="specimen-row"><kbd>Esc</kbd><span class="specimen-caption">关闭浮层</span><kbd>⌘ / Ctrl K</kbd><span class="specimen-caption">搜索</span></div>`,actions:componentAction('打开设置与说明','settings'),source:source('interactions/panels.js','Panels.settings()')}
+   ]},
+   {id:'feedback',number:'04',title:'反馈与操作状态',description:'让每次选择、拖放和完成都有明确回声，也能轻松返回。',items:[
+    {key:'toast',title:'结果反馈与撤销',description:'反馈短暂出现，不遮挡阅读。可逆操作附带撤销入口。',
+     preview:`<div class="specimen-toast"><span>${icon('check',16)}</span><span>收藏已保存</span><span class="specimen-caption">可撤销</span></div>`,actions:componentAction('触发反馈示例','catalog-toast'),source:source('views/app.js','AppController.toast()')},
+    {key:'selection',title:'多选与批量操作',description:'选中内容后，批量工具才出现。可以交给 AI、收藏或取消选择。',
+     preview:`<div class="specimen-selection glass"><span>${icon('check-circle',20)}</span><span>已选择内容</span><span class="specimen-selection-icons" aria-hidden="true">${icon('sparkles')}${icon('bookmark')}${icon('x')}</span></div>`,actions:componentAction('选择示例阅读卡','select',article.id)+componentAction('取消选择','clear-selection'),source:source('views/app.js','AppController.updateSelection()')},
+    {key:'drop-targets',title:'拖拽接收区',description:'靠近目标时放大确认落点。相同动作也可点击完成，放入 AI 不自动发送。',
+     preview:`<div class="specimen-drop" role="group" aria-label="拖放操作的点击入口">${button('bookmark','收藏示例阅读卡','bookmark',article.id,'','drop-target glass')}${button('clock','稍后阅读示例卡片','later',article.id,'','drop-target glass')}${button('sparkles','将示例卡片加入 AI','card-ai',article.id,'','drop-target glass')}</div>`,actions:componentAction('去信息流体验拖拽','view-feed'),source:source('interactions/drag.js','DragManager')},
+    {key:'empty-state',title:'无结果状态',description:'说明当前为空的原因，并提供明确的下一步。清除筛选后保留当前目录。',
+     preview:emptyState('这里暂时很安静','没有符合条件的卡片。换一个标签，或清除当前筛选。'),source:source('atoms/primitives.js','emptyState()')},
+    {key:'new-content',title:'新内容提示',description:'刷新后的内容先进入等待队列。入口旁出现数字，由你决定何时查看。',
+     preview:`<div class="specimen-row"><span class="specimen-token glass" aria-label="新增数量外观示例">3</span><span class="specimen-caption">新增数量示例 · 点击刷新体验实际队列</span></div>`,actions:componentAction('刷新演示内容','refresh'),source:source('views/app.js','paintPending() / showNew()')},
+    {key:'motion',title:'进入、提起与回弹',description:'动效用于说明状态和位置变化。减少动态效果时，保留操作结果。',
+     preview:`<div class="specimen-row motion-sample"><div class="motion-cube" id="motion-cube"></div><span class="specimen-caption">点击下方播放单次动效</span></div><div class="specimen-row">${button('play','播放进入动效','lab-motion','','enter')}${button('up','播放提起动效','lab-motion','','lift')}${button('refresh','播放回弹动效','lab-motion','','spring')}</div>`,source:source('interactions/motion.js','MotionEngine')}
+   ]},
+   {id:'ai',number:'05',title:'AI 对话与上下文',description:'引用、输入和发送分开，让每次提交都由用户决定。',items:[
+    {key:'ai-context',title:'可调整的上下文引用',description:'沿用真实引用组件。点击标题打开预览；移除仅影响这里的样例。',wide:true,
+     preview:`<div class="specimen-ai">${AIView.contexts([article.id,note.id]).replaceAll('data-action="ai-remove"','data-action="catalog-context-remove"').replaceAll('data-action="context-preview"','data-action="preview"')}</div>`,actions:componentAction('将阅读卡加入真实对话','card-ai',article.id),source:source('services/ai.js','AIView.contexts()')},
+    {key:'ai-compose',title:'提问输入与发送',description:'先在此试写。点击箭头打开真实对话并带入草稿；仍需在对话中确认发送。',
+     preview:`<div class="ai-compose"><textarea rows="3" aria-label="AI 提问草稿示例" placeholder="围绕这些内容，想问什么？"></textarea>${button('up','将草稿带入 AI 对话','catalog-compose')}</div>`,actions:componentAction('直接打开 AI 对话','ai'),source:source('services/ai.js','AIView.shell() · compose')},
+    {key:'ai-messages',title:'问题与回复',description:'用户提问与回复有明确区分。示例回复标注本地演示，不代表模型分析。',
+     preview:`<div class="specimen-ai"><div class="message user">这两张卡片，有哪些共同点？</div><div class="message demo"><span class="message-label">本地演示回复 · 样式示例</span>已带入引用内容。可以继续围绕这些内容提问。</div></div>`,actions:componentAction('打开对话体验','ai'),source:source('views/app.js','AppController.paintAI()')},
+    {key:'ai-empty',title:'对话空状态',description:'开始前说明如何提供上下文，保留拖动与点击两种入口。',
+     preview:`<div class="ai-empty">${icon('sparkles',27)}<p>把想继续的内容，<br>轻轻放进来。</p><small>拖动卡片，或点击卡片上的 AI 图标</small></div>`,actions:componentAction('加入第一张卡片','card-ai',article.id),source:source('services/ai.js','AIView.shell() · empty')}
+   ]}
+  ];
+ }
+};
 const LibraryView={
  render(){
-   const intro=`<section class="lab-card lab-intro" data-layout="lab-intro"><span class="lab-number">QUIET GLASS · 组件实验室</span><h1>先有组件，<br>再有页面。</h1><p>从一个图标、一圈进度、一层玻璃开始。这里的组件与信息流共用同一份代码，而不是另一套静态样稿。</p><div class="lab-footer">${button('grid','返回信息流','view-feed')}${button('book','查看研究资料','view-sources')}${button('info','使用与设置','settings')}</div><div class="lab-caption">原型实现：独立 SVG · CSS / Web Animations API · 原生 dialog。<br>正式工程选型：Lucide · Motion · Radix。</div></section>`;
-   const atoms=[
-     labCard('icons','01 / ATOM','只有图标，没有按钮文案','图形 18 px，点击范围 44 px。每个图标仍然保留可访问名称。',
-       `<div class="lab-preview">${['refresh','filter','sparkles','bookmark','tag','up','search','note','grip'].map(i=>button(i,'试用 '+i,'lab-icon','',i)).join('')}</div><div class="lab-caption">单一线性语言 · Mono24 原型适配层</div>`),
-     labCard('glass','02 / MATERIAL','工具像玻璃，内容像纸','把透明度留给临时操作层。玻璃随背景变化，但文字始终清楚。',
-       `<div class="lab-preview material-sample"><div class="glass">${button('refresh','演示刷新反馈','lab-icon','','refresh')}${button('filter','打开筛选面板','filter')}${button('sparkles','打开 AI 对话','ai')}</div></div>`),
-     labCard('progress','03 / ATOM','把进度，放进一个圆环','不用再写一行“已读百分之多少”。黑色线段承担进度表达。',
-       `<div class="lab-preview" id="lab-rings">${ring(.25,24)}${ring(.55,36)}${ring(.75,52)}${ring(1,22)}</div><input class="ring-range" type="range" min="0" max="100" value="55" aria-label="调整圆环演示进度" data-input="lab-ring">`),
-     labCard('type','04 / FOUNDATION','字，是最安静的界面','优先系统字体，不分发 SF 字体。内容使用自然行距，中文不做过密的字距压缩。',
-       `<div class="type-sample">让重要的信息，<br>自然浮现。<small>重点标题 / 正文 / 来源<br>字号与密度随卡片角色调整</small></div>`),
-     labCard('color','05 / FOUNDATION','颜色退后，内容向前','暖白、石灰、墨色。状态色只在需要说明行为时出现。',
-       `<div class="swatches"><span class="swatch" style="background:#f5f4f0"></span><span class="swatch" style="background:#fff"></span><span class="swatch" style="background:#dfe7da"></span><span class="swatch" style="background:#777e72"></span><span class="swatch" style="background:#252627"></span></div>`),
-     labCard('motion','06 / INTERACTION','动一下，是为了说清楚','轻触下方图标。进入、提起、回落都很短，不让动画占用阅读时间。',
-       `<div class="lab-preview motion-sample"><div class="motion-cube" id="motion-cube"></div></div><div class="lab-footer">${button('play','播放进入动效','lab-motion','','enter')}${button('up','播放提起动效','lab-motion','','lift')}${button('refresh','播放回弹动效','lab-motion','','spring')}</div><div class="lab-caption">140 / 220 / 320 / 380 ms · 遵循系统减少动态设置</div>`),
-     labCard('state','07 / STATE','看过，不等于读完','打开以后变浅，真正阅读才记录进度。任务完成是另一种独立状态。',
-       `<div class="lab-state-row"><div class="lab-state">未打开<div class="mini-lines"></div>${ring(0)}</div><div class="lab-state read">已打开<div class="mini-lines"></div>${ring(.36)}</div></div>`),
-     labCard('drag','08 / INTERACTION','提起一张卡片，交给 AI','去信息流长按或拖动任意卡片。接收区域只在拖动时出现；松手后加入引用，不自动发送。',
-       `<div class="lab-preview">${button('grid','去信息流体验拖拽','view-feed')}${button('sparkles','使用点击方式加入演示上下文','card-ai','article-01')}</div><div class="lab-caption">支持鼠标拖动、触屏长按和等价点击入口。</div>`),
-     labCard('tags','09 / ATOM','标签存在，不代表必须露面','仅在编辑和筛选时出现。完成后，标签不会挤在每张卡片的标题下面。',
-       `<div class="lab-preview">${['工作','阅读','想法'].map(t=>tagChip(t,false,'lab-tag')).join('')}</div><div class="lab-footer">${button('tag','编辑演示卡片标签和备注','edit','note-01')}</div>`),
-     labCard('dialog','10 / COMPOSITION','一张卡片，有不同深度','快速看一眼，继续读全文，再回到原来的位置。阅读不会打开新的产品侧边栏。',
-       `<div class="lab-preview">${button('eye','快速预览演示文章','preview','article-01')}${button('expand','完整阅读演示文章','reader','article-01')}${button('filter','筛选内容','filter')}</div>`),
-     labCard('a11y','11 / FOUNDATION','安静，也应该容易使用','支持键盘、减少动态效果、图标名称和拖拽替代。减少透明度后，所有功能仍然保留。',
-       `<div class="lab-footer">${button('info','打开可访问性设置','settings')}</div><div class="lab-caption">Enter 打开 · Esc 返回 · Cmd/Ctrl + K 搜索</div>`),
-     labCard('templates','12 / CARD LIBRARY','十种内容，不是十套设计','以下卡片与首页使用同一个 CardShell。收藏、稍后读与标签都是状态，不再单独制造卡片类型。',
-       `<div class="lab-preview">${Object.values(CardTypes).map(t=>`<span class="icon-button" aria-label="${t.label}">${icon(t.icon)}</span>`).join('')}</div>`)
-   ].join('');
-   return intro+atoms+Store.state.cards.slice(0,12).map(cardHTML).join('');
+  const sections=ComponentCatalog.sections(),count=sections.reduce((total,section)=>total+section.items.length,0);
+  return Catalog.header({eyebrow:'03 / COMPONENT LIBRARY',title:'组件库',description:'把一个动作、一层面板和一段反馈，整理成可复用的语言。与实际界面共享组件，逐项查看、操作和优化。',active:'library',count})+
+   sections.map(section=>`<section class="catalog-section" data-component-section="${section.id}"><div class="catalog-section-heading"><div><span class="specimen-caption">${section.number} / ${section.items.length} 个组件</span><h2>${section.title}</h2></div><p>${section.description}</p></div><div class="catalog-grid">${section.items.map(componentSpecimen).join('')}</div></section>`).join('');
  }
 };
 const SourcesView={
  render(){
-   return `<section class="lab-card lab-intro" data-layout="sources-intro"><span class="lab-number">RESEARCH · 2026.10.11</span><h1>从官方规则，<br>到具体交互。</h1><p>本页保存设计资料、可体验组件及其对应的卡片行为。区分本轮实现、后续研究与付费组件参考。</p><div class="lab-footer">${button('grid','返回信息流','view-feed')}${button('layers','查看组件实验室','view-library')}${button('info','原型边界与设置','settings')}</div></section>`+
-   Sources.map((s,i)=>`<article class="lab-card source-card" data-layout="source-${i}"><span class="lab-number">${esc(s.kind)}</span><h2><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></h2><p>${esc(s.note)}</p><a class="source-link" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"><span>${esc(new URL(s.url).hostname)}</span>${icon('external',16)}</a></article>`).join('');
+  return Catalog.header({eyebrow:'04 / DESIGN REFERENCES',title:'设计参考',description:'把官方规则、可体验示例和实现文档单独保留。这里记录参考什么、如何使用，以及哪些能力仍在研究。',active:'sources',count:Sources.length})+
+   `<section class="catalog-section"><div class="catalog-section-heading"><div><span class="specimen-caption">REFERENCE INDEX</span><h2>资料与组件来源</h2></div><p>独立维护参考目录，让后续优化有迹可循。</p></div><div class="source-grid">${Sources.map((item,index)=>`<article class="source-card" data-source="${esc(item.id)}"><div class="source-topline"><span class="specimen-caption">${String(index+1).padStart(2,'0')}</span><span class="source-kind">${esc(item.kind)}</span></div><h3><a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a></h3><p>${esc(item.note)}</p><a class="source-link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer"><span>${esc(new URL(item.url).hostname)}</span>${icon('external',16)}</a></article>`).join('')}</div></section>`;
  }
 };
 
@@ -1115,6 +1592,7 @@ class FeedLayout{
  }
  layout(animate=false){
    const el=this.container,width=el.clientWidth;
+   if(el.classList.contains('is-catalog')){el.style.height='';return;}
    const items=[...el.querySelectorAll(':scope > .feed-card,:scope > .lab-card')];
    if(!items.length){el.style.height='';return;}
    if(!width)return;
@@ -1307,7 +1785,11 @@ class AppController{
  }
  renderCurrent(animate=false){
    this.closeMore();
-   if(this.mode==='library'){this.grid.innerHTML=LibraryView.render();document.getElementById('page-title').textContent='组件实验室';}
+   const catalog=['icons','cards','library','sources'].includes(this.mode);
+   this.grid.classList.toggle('is-catalog',catalog);document.body.dataset.view=this.mode;
+   if(this.mode==='icons'){this.grid.innerHTML=IconsView.render();document.getElementById('page-title').textContent='图标库';}
+   else if(this.mode==='cards'){this.grid.innerHTML=CardsView.render();document.getElementById('page-title').textContent='卡片库';}
+   else if(this.mode==='library'){this.grid.innerHTML=LibraryView.render();document.getElementById('page-title').textContent='组件库';}
    else if(this.mode==='sources'){this.grid.innerHTML=SourcesView.render();document.getElementById('page-title').textContent='研究资料';}
    else{
      const cards=this.filtered();this.grid.innerHTML=cards.length?cards.map(cardHTML).join(''):emptyState('这里暂时很安静','没有符合条件的卡片。换一个标签，或清除当前筛选。');
@@ -1347,7 +1829,7 @@ class AppController{
    bar.querySelector('.selection-count').textContent=`${this.selected.size} 张`;
  }
  navigate(hash){
-   if(this.mode==='feed'||this.mode==='library'||this.mode==='sources')this.routeScroll[this.mode]=scrollY;
+   this.routeScroll[this.mode]=scrollY;
    history.pushState({glass:true,prev:location.hash},'',hash);this.route(true);
  }
  route(force=false){
@@ -1360,7 +1842,7 @@ class AppController{
      if(!id||!Store.card(id)){history.replaceState({glass:true,prev:null},'','#feed');this.route();return;}
      this.showPreview(id,kind==='read');return;
    }
-   const mode=hash==='#library'?'library':hash==='#sources'?'sources':'feed';
+   const requested=hash.slice(1),mode=['icons','cards','library','sources'].includes(requested)?requested:'feed';
    this.closeNative();
    if(this.mode!==mode){this.mode=mode;this.baseMode=mode;this.renderCurrent(true);window.scrollTo(0,this.routeScroll[mode]||0);}
  }
@@ -1511,7 +1993,7 @@ class AppController{
    const positions=animate?new Map(nodes.map(n=>[n.dataset.card,n.getBoundingClientRect()])):null;
    const anchors=nodes.filter(n=>n.getBoundingClientRect().bottom>0).map(n=>({id:n.dataset.card,top:n.getBoundingClientRect().top}));
    const oldY=scrollY,focus=document.activeElement;
-   const focusCard=focus?.closest('[data-card]')?.dataset.card,focusAction=focus?.dataset.action;
+   const focusCard=focus?.closest('[data-card]')?.dataset.card,focusAction=focus?.dataset.action,focusExtra=focus?.dataset.extra,focusId=focus?.dataset.id;
    change();
    this.renderCurrent(false);
    if(oldY>50){
@@ -1520,7 +2002,8 @@ class AppController{
    }
    if(focusCard&&!this.dialog.open){
      const card=this.grid.querySelector(`[data-card="${CSS.escape(focusCard)}"]`);
-     (card?.querySelector(`[data-action="${CSS.escape(focusAction||'')}"]`)||card||document.getElementById('orb')).focus({preventScroll:true});
+     const target=card&&[...card.querySelectorAll('[data-action]')].find(n=>n.dataset.action===focusAction&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
+     (target||card?.querySelector('.card-title-button')||card||document.getElementById('orb')).focus({preventScroll:true});
    }
    if(positions)this.grid.querySelectorAll('[data-card]').forEach(node=>{
      const rect=positions.get(node.dataset.card);
@@ -1667,7 +2150,7 @@ class AppController{
      case 'refresh':this.refresh();break;
      case 'show-new':this.showNew();break;
      case 'top':window.scrollTo({top:0,behavior:MotionEngine.reduced?'instant':'smooth'});break;
-     case 'view-feed':case 'view-library':case 'view-sources':this.closeNative();this.navigate('#'+name.slice(5));break;
+     case 'view-feed':case 'view-icons':case 'view-cards':case 'view-library':case 'view-sources':this.closeNative();this.navigate('#'+name.slice(5));break;
      case 'card-open':case 'preview':this.navigate('#card/'+id);break;
      case 'context-preview':this.closeAI();this.navigate('#card/'+id);break;
      case 'reader':this.navigate('#read/'+id);break;
@@ -1707,14 +2190,14 @@ class AppController{
        ids.forEach((cardId,i)=>{Store.patch(cardId,{tags:[...this.editTags],tagsEdited:true,...(i===0?{note}:{})});this.refreshCard(cardId);});
        this.bulkEditIds=null;this.closeModal();this.toast(Store.state.storageAvailable?'标签与备注已保存':'本次已保存；当前环境不能持久存储');break;
      }
-     case 'toggle-transparency':Store.state.preferences.reduceTransparency=!Store.state.preferences.reduceTransparency;Store.save();document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);el.setAttribute('aria-checked',Store.state.preferences.reduceTransparency);break;
+     case 'toggle-transparency':Store.state.preferences.reduceTransparency=!Store.state.preferences.reduceTransparency;Store.save();document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);document.querySelectorAll('[data-action="toggle-transparency"]').forEach(n=>n.setAttribute('aria-checked',Store.state.preferences.reduceTransparency));break;
      case 'undo':if(this.undoAction){const fn=this.undoAction;this.undoAction=null;fn();this.toast('已撤销');}break;
      case 'ai-close':this.closeAI();break;
      case 'ai-clear':this.contexts=[];this.messages=[];this.aiVersion=(this.aiVersion||0)+1;this.aiBusy=false;this.paintAI();break;
      case 'ai-remove':{
        const index=this.contexts.indexOf(id);this.contexts=this.contexts.filter(x=>x!==id);this.paintAI();
        const next=this.contexts[Math.min(Math.max(0,index),this.contexts.length-1)];
-       const target=next?document.querySelector(`.context-card[data-context="${CSS.escape(next)}"] .context-remove`):null;
+       const target=next?document.getElementById('ai-contexts').querySelector(`.context-card[data-context="${CSS.escape(next)}"] .context-remove`):null;
        (target||document.getElementById('ai-input')).focus({preventScroll:true});break;
      }
      case 'ai-send':this.sendAI();break;
@@ -1733,6 +2216,19 @@ class AppController{
      case 'media-play':this.playMedia();break;
      case 'media-next':this.pauseMedia();this.mediaIndex=Math.min(3,this.mediaIndex+1);this.paintMedia();break;
      case 'media-prev':this.pauseMedia();this.mediaIndex=Math.max(0,this.mediaIndex-1);this.paintMedia();break;
+     case 'catalog-check':{
+       const done=el.getAttribute('aria-checked')!=='true';el.setAttribute('aria-checked',String(done));el.classList.toggle('is-done',done);el.querySelector('.check-dot').innerHTML=done?icon('check',12):'';break;
+     }
+     case 'catalog-context-remove':{
+       const stage=el.closest('.component-preview'),cards=[...stage.querySelectorAll('.context-card')],card=el.closest('.context-card'),index=cards.indexOf(card);
+       const focus=cards[index+1]?.querySelector('.context-remove')||cards[index-1]?.querySelector('.context-remove')||stage.closest('.component-specimen').querySelector('.component-footer button');card?.remove();
+       const count=stage.querySelectorAll('.context-card').length,heading=stage.querySelector('.context-heading');
+       if(heading)heading.innerHTML=count?`<span>${count} 个引用</span><small>发送前可调整</small>`:'<span>还没有引用</span><small>可从卡片加入 AI</small>';focus?.focus({preventScroll:true});break;
+     }
+     case 'catalog-compose':{
+       const value=el.closest('.ai-compose').querySelector('textarea').value;this.openAI();document.getElementById('ai-input').value=value;document.getElementById('ai-input').focus();break;
+     }
+     case 'catalog-toast':this.toast('收藏已保存',()=>this.toast('已撤销'));break;
      case 'lab-icon':MotionEngine.press(el);if(extra==='refresh')MotionEngine.animate(el.querySelector('svg'),[{transform:'rotate(0)'},{transform:'rotate(360deg)'}],{duration:550});else el.classList.toggle('active');break;
      case 'lab-tag':el.classList.toggle('active');el.setAttribute('aria-pressed',el.classList.contains('active'));break;
      case 'lab-motion':{

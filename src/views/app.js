@@ -57,7 +57,11 @@ class AppController{
  }
  renderCurrent(animate=false){
    this.closeMore();
-   if(this.mode==='library'){this.grid.innerHTML=LibraryView.render();document.getElementById('page-title').textContent='组件实验室';}
+   const catalog=['icons','cards','library','sources'].includes(this.mode);
+   this.grid.classList.toggle('is-catalog',catalog);document.body.dataset.view=this.mode;
+   if(this.mode==='icons'){this.grid.innerHTML=IconsView.render();document.getElementById('page-title').textContent='图标库';}
+   else if(this.mode==='cards'){this.grid.innerHTML=CardsView.render();document.getElementById('page-title').textContent='卡片库';}
+   else if(this.mode==='library'){this.grid.innerHTML=LibraryView.render();document.getElementById('page-title').textContent='组件库';}
    else if(this.mode==='sources'){this.grid.innerHTML=SourcesView.render();document.getElementById('page-title').textContent='研究资料';}
    else{
      const cards=this.filtered();this.grid.innerHTML=cards.length?cards.map(cardHTML).join(''):emptyState('这里暂时很安静','没有符合条件的卡片。换一个标签，或清除当前筛选。');
@@ -97,7 +101,7 @@ class AppController{
    bar.querySelector('.selection-count').textContent=`${this.selected.size} 张`;
  }
  navigate(hash){
-   if(this.mode==='feed'||this.mode==='library'||this.mode==='sources')this.routeScroll[this.mode]=scrollY;
+   this.routeScroll[this.mode]=scrollY;
    history.pushState({glass:true,prev:location.hash},'',hash);this.route(true);
  }
  route(force=false){
@@ -110,7 +114,7 @@ class AppController{
      if(!id||!Store.card(id)){history.replaceState({glass:true,prev:null},'','#feed');this.route();return;}
      this.showPreview(id,kind==='read');return;
    }
-   const mode=hash==='#library'?'library':hash==='#sources'?'sources':'feed';
+   const requested=hash.slice(1),mode=['icons','cards','library','sources'].includes(requested)?requested:'feed';
    this.closeNative();
    if(this.mode!==mode){this.mode=mode;this.baseMode=mode;this.renderCurrent(true);window.scrollTo(0,this.routeScroll[mode]||0);}
  }
@@ -261,7 +265,7 @@ class AppController{
    const positions=animate?new Map(nodes.map(n=>[n.dataset.card,n.getBoundingClientRect()])):null;
    const anchors=nodes.filter(n=>n.getBoundingClientRect().bottom>0).map(n=>({id:n.dataset.card,top:n.getBoundingClientRect().top}));
    const oldY=scrollY,focus=document.activeElement;
-   const focusCard=focus?.closest('[data-card]')?.dataset.card,focusAction=focus?.dataset.action;
+   const focusCard=focus?.closest('[data-card]')?.dataset.card,focusAction=focus?.dataset.action,focusExtra=focus?.dataset.extra,focusId=focus?.dataset.id;
    change();
    this.renderCurrent(false);
    if(oldY>50){
@@ -270,7 +274,8 @@ class AppController{
    }
    if(focusCard&&!this.dialog.open){
      const card=this.grid.querySelector(`[data-card="${CSS.escape(focusCard)}"]`);
-     (card?.querySelector(`[data-action="${CSS.escape(focusAction||'')}"]`)||card||document.getElementById('orb')).focus({preventScroll:true});
+     const target=card&&[...card.querySelectorAll('[data-action]')].find(n=>n.dataset.action===focusAction&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
+     (target||card?.querySelector('.card-title-button')||card||document.getElementById('orb')).focus({preventScroll:true});
    }
    if(positions)this.grid.querySelectorAll('[data-card]').forEach(node=>{
      const rect=positions.get(node.dataset.card);
@@ -417,7 +422,7 @@ class AppController{
      case 'refresh':this.refresh();break;
      case 'show-new':this.showNew();break;
      case 'top':window.scrollTo({top:0,behavior:MotionEngine.reduced?'instant':'smooth'});break;
-     case 'view-feed':case 'view-library':case 'view-sources':this.closeNative();this.navigate('#'+name.slice(5));break;
+     case 'view-feed':case 'view-icons':case 'view-cards':case 'view-library':case 'view-sources':this.closeNative();this.navigate('#'+name.slice(5));break;
      case 'card-open':case 'preview':this.navigate('#card/'+id);break;
      case 'context-preview':this.closeAI();this.navigate('#card/'+id);break;
      case 'reader':this.navigate('#read/'+id);break;
@@ -457,14 +462,14 @@ class AppController{
        ids.forEach((cardId,i)=>{Store.patch(cardId,{tags:[...this.editTags],tagsEdited:true,...(i===0?{note}:{})});this.refreshCard(cardId);});
        this.bulkEditIds=null;this.closeModal();this.toast(Store.state.storageAvailable?'标签与备注已保存':'本次已保存；当前环境不能持久存储');break;
      }
-     case 'toggle-transparency':Store.state.preferences.reduceTransparency=!Store.state.preferences.reduceTransparency;Store.save();document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);el.setAttribute('aria-checked',Store.state.preferences.reduceTransparency);break;
+     case 'toggle-transparency':Store.state.preferences.reduceTransparency=!Store.state.preferences.reduceTransparency;Store.save();document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);document.querySelectorAll('[data-action="toggle-transparency"]').forEach(n=>n.setAttribute('aria-checked',Store.state.preferences.reduceTransparency));break;
      case 'undo':if(this.undoAction){const fn=this.undoAction;this.undoAction=null;fn();this.toast('已撤销');}break;
      case 'ai-close':this.closeAI();break;
      case 'ai-clear':this.contexts=[];this.messages=[];this.aiVersion=(this.aiVersion||0)+1;this.aiBusy=false;this.paintAI();break;
      case 'ai-remove':{
        const index=this.contexts.indexOf(id);this.contexts=this.contexts.filter(x=>x!==id);this.paintAI();
        const next=this.contexts[Math.min(Math.max(0,index),this.contexts.length-1)];
-       const target=next?document.querySelector(`.context-card[data-context="${CSS.escape(next)}"] .context-remove`):null;
+       const target=next?document.getElementById('ai-contexts').querySelector(`.context-card[data-context="${CSS.escape(next)}"] .context-remove`):null;
        (target||document.getElementById('ai-input')).focus({preventScroll:true});break;
      }
      case 'ai-send':this.sendAI();break;
@@ -483,6 +488,19 @@ class AppController{
      case 'media-play':this.playMedia();break;
      case 'media-next':this.pauseMedia();this.mediaIndex=Math.min(3,this.mediaIndex+1);this.paintMedia();break;
      case 'media-prev':this.pauseMedia();this.mediaIndex=Math.max(0,this.mediaIndex-1);this.paintMedia();break;
+     case 'catalog-check':{
+       const done=el.getAttribute('aria-checked')!=='true';el.setAttribute('aria-checked',String(done));el.classList.toggle('is-done',done);el.querySelector('.check-dot').innerHTML=done?icon('check',12):'';break;
+     }
+     case 'catalog-context-remove':{
+       const stage=el.closest('.component-preview'),cards=[...stage.querySelectorAll('.context-card')],card=el.closest('.context-card'),index=cards.indexOf(card);
+       const focus=cards[index+1]?.querySelector('.context-remove')||cards[index-1]?.querySelector('.context-remove')||stage.closest('.component-specimen').querySelector('.component-footer button');card?.remove();
+       const count=stage.querySelectorAll('.context-card').length,heading=stage.querySelector('.context-heading');
+       if(heading)heading.innerHTML=count?`<span>${count} 个引用</span><small>发送前可调整</small>`:'<span>还没有引用</span><small>可从卡片加入 AI</small>';focus?.focus({preventScroll:true});break;
+     }
+     case 'catalog-compose':{
+       const value=el.closest('.ai-compose').querySelector('textarea').value;this.openAI();document.getElementById('ai-input').value=value;document.getElementById('ai-input').focus();break;
+     }
+     case 'catalog-toast':this.toast('收藏已保存',()=>this.toast('已撤销'));break;
      case 'lab-icon':MotionEngine.press(el);if(extra==='refresh')MotionEngine.animate(el.querySelector('svg'),[{transform:'rotate(0)'},{transform:'rotate(360deg)'}],{duration:550});else el.classList.toggle('active');break;
      case 'lab-tag':el.classList.toggle('active');el.setAttribute('aria-pressed',el.classList.contains('active'));break;
      case 'lab-motion':{

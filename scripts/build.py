@@ -7,7 +7,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = {
     "index.html": ("feed", "个人信息空间"),
-    "components.html": ("library", "组件实验室"),
+    "icons.html": ("icons", "图标库"),
+    "cards.html": ("cards", "卡片库"),
+    "components.html": ("library", "组件库"),
     "research.html": ("sources", "研究资料"),
 }
 
@@ -18,7 +20,8 @@ def build(check=False):
         f"/* module: {name} */\n{(ROOT / name).read_text().rstrip()}"
         for name in modules
     )
-    css = (ROOT / "src/styles/main.css").read_text().rstrip()
+    styles = json.loads((ROOT / "src/styles/styles.json").read_text())
+    css = "\n\n".join((ROOT / name).read_text().rstrip() for name in styles)
     if "</script" in script.lower() or "</style" in css.lower():
         raise ValueError("Source contains an unsafe inline closing tag")
     template = (ROOT / "src/shell.html").read_text()
@@ -35,7 +38,7 @@ def build(check=False):
     if stale:
         print("Stale build: " + ", ".join(stale), file=sys.stderr)
         return 1
-    print("Build verified" if check else "Built 3 standalone pages")
+    print("Build verified" if check else f"Built {len(PAGES)} standalone pages")
     return 0
 
 

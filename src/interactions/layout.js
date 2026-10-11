@@ -10,6 +10,7 @@ class FeedLayout{
  }
  layout(animate=false){
    const el=this.container,width=el.clientWidth;
+   if(el.classList.contains('is-catalog')){el.style.height='';return;}
    const items=[...el.querySelectorAll(':scope > .feed-card,:scope > .lab-card')];
    if(!items.length){el.style.height='';return;}
    if(!width)return;

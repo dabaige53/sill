@@ -2,7 +2,7 @@
 
 ## 当前迭代（V0.3）
 
-在现有原生结构中优化阅读卡、提醒行动卡和 AI 引用卡，不迁移框架。设计目标、参考来源、实现与研究边界见 [CARD-REFINEMENT.md](./CARD-REFINEMENT.md)。继续修改共享源文件后构建三个入口；验收包含卡内动作与预览的隔离、菜单与焦点、AI 引用查看/移除、移动布局与原有持久化路径。
+在现有原生结构中优化阅读卡、提醒行动卡和 AI 引用卡，不迁移框架。设计目标、参考来源、实现与研究边界见 [CARD-REFINEMENT.md](./CARD-REFINEMENT.md)。独立图标库、卡片库、组件库与研究页的维护入口见 [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md)。继续修改共享源文件后构建五个入口；验收包含卡内动作与预览的隔离、菜单与焦点、AI 引用查看/移除、移动布局与原有持久化路径。
 
 ## 本轮范围（V0.2）
 
@@ -23,7 +23,7 @@
 
 ## 架构
 
-- `src/styles/main.css`：现有设计变量、布局、玻璃与响应式样式。
+- `src/styles/styles.json`：七层 CSS 的构建顺序；变量、基础、控件、卡片、浮层、目录和响应式分别维护。
 - `src/atoms/`：图标、按钮、进度环及转义。
 - `src/data/`：演示卡片、内嵌图片、研究来源、本地状态。
 - `src/cards/templates.js`：业务卡片模板。
@@ -52,7 +52,7 @@ python3 scripts/build.py
 python3 tests/verify.py
 ```
 
-核心检查仅需要 Python 3 和 Node.js 22+，不需要 npm 安装。`--check` 会拒绝源文件与生成页面不一致；请修改 `src/`，再重新构建三个入口。
+核心检查仅需要 Python 3 和 Node.js 22+，不需要 npm 安装。`--check` 会拒绝源文件与生成页面不一致；请修改 `src/`，再重新构建五个入口。
 
 浏览器回归需要 Playwright 和 Chromium：
 

@@ -1,0 +1,12 @@
+/* Quiet Glass · tokens · shared source */
+:root{
+ --canvas:#efefec;--card:#fdfdfb;--ink:#252c29;--muted:#717771;--faint:#e4e7df;
+ --line:rgba(34,45,39,.09);--accent:#496656;--alert:#a96847;
+ --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+ --gap:20px;--card-radius:20px;--image-radius:15px;--panel-radius:26px;
+ --shadow:0 1px 2px rgba(24,38,29,.025),0 5px 16px rgba(24,38,29,.028);
+ --shadow-hover:0 3px 6px rgba(24,38,29,.035),0 18px 38px rgba(24,38,29,.075);
+ --glass:rgba(255,255,255,.72);--glass-thick:rgba(250,252,247,.94);
+ --ease:cubic-bezier(.2,.75,.25,1);--fast:140ms;--base:220ms;--layout:320ms;
+}
+
