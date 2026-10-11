@@ -18,8 +18,25 @@ export function createHostTransport(call) {
       if(/^\/api\/job-runs\/[^/]+\/cancel$/.test(url.pathname)&&Object.keys(data).length)invalid();
     }
 
+    const scriptRoute=/^\/api\/(?:scripts(?:\/|$)|script-runs(?:\/|$))/.test(url.pathname);
+    const scriptQuery={};
+    if(scriptRoute){
+      const invalid=()=>{throw Object.assign(new Error('WebAssembly 参数不符合接口定义'),{code:'INVALID_INPUT'});};
+      if(!data||typeof data!=='object'||Array.isArray(data))invalid();
+      for(const [key,value] of url.searchParams){
+        if(method!=='GET'||url.pathname!=='/api/script-runs'||!['limit','offset'].includes(key)||Object.hasOwn(scriptQuery,key)||!/^\d+$/.test(value))invalid();
+        scriptQuery[key]=Number(value);if(!Number.isSafeInteger(scriptQuery[key])||(key==='limit'&&(scriptQuery[key]<1||scriptQuery[key]>100))||(key==='offset'&&scriptQuery[key]>1000000))invalid();
+      }
+      if(method==='GET'&&Object.keys(data).length)invalid();
+      if(url.pathname!=='/api/script-runs'&&Object.keys(data).length)invalid();
+    }
     if(url.pathname==='/api/status'){name='qg_status';args={};}
     else if(url.pathname==='/api/settings'){name=method==='PATCH'?'qg_update_settings':'qg_read_settings';args=data;}
+    else if(url.pathname==='/api/scripts'&&method==='GET'){name='qg_list_scripts';args={};}
+    else if(url.pathname==='/api/script-runs'&&method==='GET'){name='qg_list_script_runs';args=scriptQuery;}
+    else if(url.pathname==='/api/script-runs'&&method==='POST'){name='qg_run_script';args=data;}
+    else if(/^\/api\/script-runs\/[^/]+$/.test(url.pathname)&&method==='GET'){name='qg_get_script_run';args={runId:decodeURIComponent(url.pathname.split('/')[3])};}
+    else if(/^\/api\/script-runs\/[^/]+\/cancel$/.test(url.pathname)&&method==='POST'){name='qg_cancel_script_run';args={runId:decodeURIComponent(url.pathname.split('/')[3])};}
     else if(url.pathname==='/api/jobs'&&method==='GET'){name='qg_list_jobs';args=jobQuery;}
     else if(url.pathname==='/api/jobs'&&method==='POST'){name='qg_create_job';args=data;}
     else if(/^\/api\/jobs\/[^/]+$/.test(url.pathname)&&['GET','PATCH'].includes(method)){name=method==='PATCH'?'qg_update_job':'qg_get_job';args={...(method==='PATCH'?data:jobQuery),jobId:decodeURIComponent(url.pathname.split('/')[3])};}

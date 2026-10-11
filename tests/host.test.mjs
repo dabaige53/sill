@@ -13,6 +13,7 @@ import { startHttp } from '../server/http.mjs';
 import { INITIAL_CARD_LIMIT,WORKSPACE_META_KEY,WORKSPACE_MIME_TYPE,WORKSPACE_URI } from '../server/host-app.mjs';
 
 const originalTools=[
+  'qg_list_scripts','qg_run_script','qg_get_script_run','qg_list_script_runs','qg_cancel_script_run',
   'qg_list_jobs','qg_create_job','qg_update_job','qg_run_job','qg_get_job','qg_cancel_job_run',
   'qg_status','qg_read_settings','qg_update_settings','qg_create_note','qg_update_note',
   'qg_read_annotation','qg_update_annotation','qg_list_source_tools','qg_collect','qg_ingest',

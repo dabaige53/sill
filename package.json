@@ -16,7 +16,7 @@
     "check": "node scripts/check.mjs",
     "plugin:build": "npm run build:host && node scripts/build-plugin.mjs",
     "test:core": "python3 tests/verify.py",
-    "test:integration": "npm run plugin:build && node --test tests/*.test.mjs",
+    "test:integration": "npm run plugin:build && node --test --test-concurrency=1 tests/*.test.mjs",
     "test:live-browser": "node tests/live-browser.mjs",
     "test:settings-browser": "node tests/settings-browser.mjs",
     "test:content-browser": "node tests/content-browser.mjs",
@@ -26,7 +26,8 @@
     "test:ai-browser": "node tests/ai-browser.mjs",
     "test:provenance-browser": "npm run build:host && node tests/provenance-browser.mjs",
     "test:preferences-browser": "npm run build:host && node tests/preferences-browser.mjs",
-    "test:jobs-browser": "npm run build:host && node tests/jobs-browser.mjs"
+    "test:jobs-browser": "npm run build:host && node tests/jobs-browser.mjs",
+    "test:scripts-browser": "npm run build:host && node tests/scripts-browser.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/ext-apps": "1.7.5",

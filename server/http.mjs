@@ -138,6 +138,15 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
         }
         const workflowMatch=url.pathname.match(/^\/api\/workflows\/([a-z0-9_-]+)$/i);
         if(req.method==='GET'&&workflowMatch){json(res,200,scoped.getWorkflow(workflowMatch[1]));return;}
+        if(req.method==='GET'&&url.pathname==='/api/scripts'){json(res,200,await scoped.listScripts(queryArgs(url)));return;}
+        if(url.pathname==='/api/script-runs'){
+          if(req.method==='GET'){json(res,200,scoped.listScriptRuns(queryArgs(url)));return;}
+          if(req.method==='POST'){z.object({}).strict().parse(queryArgs(url));json(res,202,scoped.runScript(await body(req)));return;}
+        }
+        const scriptRunMatch=url.pathname.match(/^\/api\/script-runs\/([a-z0-9_-]+)$/i);
+        if(req.method==='GET'&&scriptRunMatch){z.object({}).strict().parse(queryArgs(url));json(res,200,scoped.getScriptRun({runId:scriptRunMatch[1]}));return;}
+        const scriptCancelMatch=url.pathname.match(/^\/api\/script-runs\/([a-z0-9_-]+)\/cancel$/i);
+        if(req.method==='POST'&&scriptCancelMatch){z.object({}).strict().parse(queryArgs(url));z.object({}).strict().parse(await body(req));json(res,200,scoped.cancelScriptRun({runId:scriptCancelMatch[1]}));return;}
         if(url.pathname==='/api/jobs'){
           if(req.method==='GET'){json(res,200,scoped.listJobs(queryArgs(url)));return;}
           if(req.method==='POST'){z.object({}).strict().parse(queryArgs(url));json(res,201,scoped.createJob(await body(req)));return;}
@@ -170,12 +179,12 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
         json(res,404,{error:'Not found'});return;
         });
       }
-      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/jobs.js':'web/jobs.js','/web/preferences.js':'web/preferences.js','/web/content.js':'web/content.js','/web/conversations.js':'web/conversations.js','/web/ai.js':'web/ai.js'};
+      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/jobs.js':'web/jobs.js','/web/scripts.js':'web/scripts.js','/web/preferences.js':'web/preferences.js','/web/content.js':'web/content.js','/web/conversations.js':'web/conversations.js','/web/ai.js':'web/ai.js'};
       if(req.method!=='GET'||!Object.hasOwn(paths,url.pathname)){json(res,404,{error:'Not found'});return;}
       let content=await readFile(resolve(ROOT,paths[url.pathname]),'utf8');
       if(paths[url.pathname]==='index.html')content=content.replace('<head>','<head><script>window.__QG_RUNTIME__=true;</script>');
       res.writeHead(200,{'Content-Type':url.pathname.endsWith('.js')?'application/javascript; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-store'}).end(content);
-    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['AUTH_REQUIRED'].includes(error.code)?401:error instanceof QGError&&['ACCESS_DENIED'].includes(error.code)?403:error instanceof QGError&&['RATE_LIMITED','CONCURRENCY_LIMIT','JOB_LIMIT','JOB_CONCURRENCY_LIMIT','JOB_HISTORY_LIMIT','JOB_RECEIPT_LIMIT'].includes(error.code)?429:error instanceof QGError&&['BODY_TOO_LARGE'].includes(error.code)?413:error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT','ANSWER_CONFLICT','AI_CONCURRENCY_LIMIT','AI_DAILY_LIMIT','REQUEST_ALREADY_ANSWERED','INGEST_CONFLICT','JOB_CONFLICT','JOB_IDEMPOTENCY_CONFLICT','JOB_BUSY','JOB_RUN_PRUNED'].includes(error.code)?409:error instanceof QGError&&['CONVERSATION_NOT_FOUND','REQUEST_NOT_FOUND','JOB_NOT_FOUND','JOB_RUN_NOT_FOUND'].includes(error.code)?404:error instanceof QGError&&['JOB_UNAVAILABLE','JOB_STORAGE_LIMIT'].includes(error.code)?503:400,publicError(error));else res.end();}
+    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['AUTH_REQUIRED'].includes(error.code)?401:error instanceof QGError&&['ACCESS_DENIED'].includes(error.code)?403:error instanceof QGError&&['RATE_LIMITED','CONCURRENCY_LIMIT','JOB_LIMIT','JOB_CONCURRENCY_LIMIT','JOB_HISTORY_LIMIT','JOB_RECEIPT_LIMIT','SCRIPT_CONCURRENCY_LIMIT','SCRIPT_HISTORY_LIMIT','SCRIPT_RECEIPT_LIMIT'].includes(error.code)?429:error instanceof QGError&&['BODY_TOO_LARGE'].includes(error.code)?413:error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT','ANSWER_CONFLICT','AI_CONCURRENCY_LIMIT','AI_DAILY_LIMIT','REQUEST_ALREADY_ANSWERED','INGEST_CONFLICT','JOB_CONFLICT','JOB_IDEMPOTENCY_CONFLICT','JOB_BUSY','JOB_RUN_PRUNED','SCRIPT_IDEMPOTENCY_CONFLICT','SCRIPT_RUN_PRUNED'].includes(error.code)?409:error instanceof QGError&&['CONVERSATION_NOT_FOUND','REQUEST_NOT_FOUND','JOB_NOT_FOUND','JOB_RUN_NOT_FOUND','SCRIPT_NOT_FOUND','SCRIPT_RUN_NOT_FOUND'].includes(error.code)?404:error instanceof QGError&&['JOB_UNAVAILABLE','JOB_STORAGE_LIMIT','SCRIPT_RUNTIME_UNAVAILABLE','SCRIPT_UNAVAILABLE','SCRIPT_STORAGE_LIMIT'].includes(error.code)?503:400,publicError(error));else res.end();}
   });
   await new Promise((accept,reject)=>{server.once('error',reject);server.listen(port,host,()=>{actualPort=server.address().port;accept();});});
   return server;

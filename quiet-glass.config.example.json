@@ -3,7 +3,7 @@
   "connectors": [
     {
       "id": "calendar",
-      "label": "我的日历",
+      "label": "\u6211\u7684\u65e5\u5386",
       "type": "google-calendar",
       "calendarId": "primary",
       "tokenEnv": "GOOGLE_ACCESS_TOKEN",
@@ -12,7 +12,7 @@
     },
     {
       "id": "notion",
-      "label": "我的 Notion",
+      "label": "\u6211\u7684 Notion",
       "type": "notion",
       "tokenEnv": "NOTION_TOKEN",
       "version": "2025-09-03",
@@ -21,7 +21,7 @@
     },
     {
       "id": "reading-mcp",
-      "label": "阅读内容源",
+      "label": "\u9605\u8bfb\u5185\u5bb9\u6e90",
       "type": "mcp",
       "url": "https://your-mcp-server.example/mcp",
       "tokenEnv": "READING_MCP_TOKEN",
@@ -84,6 +84,9 @@
     ]
   },
   "jobs": {
+    "enabled": false
+  },
+  "scripts": {
     "enabled": false
   }
 }

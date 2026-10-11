@@ -12,3 +12,4 @@ quiet-glass.config.json
 .quiet-glass/
 dist/
 *.sqlite*
+.sandbox-venv/
