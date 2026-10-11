@@ -2,7 +2,18 @@
 
 一个 **Card-first / Quiet Glass** 的个人信息流原型，基于用户与 ChatGPT 在 2026-10-10 至 2026-10-11 的产品设计讨论。
 
-## 在线查看与本地运行
+## Storybook 组件工作台
+
+现在优先在 Storybook 中查看、试用和维护设计系统。图标、卡片、状态和基础组件按独立 Stories 保存，Controls 用于临时调整参数；正式修改保存在共享源码与 `.stories.js` 文件，并通过 Git 共享。
+
+```sh
+npm ci
+npm run storybook
+```
+
+打开 `http://localhost:6006`。构建可分享的静态目录：`npm run build:storybook`；本地查看构建结果：`npm run preview:storybook`。完整使用、编辑与共享流程见 [Storybook 指南](./docs/STORYBOOK.md)。
+
+## 独立 HTML 预览
 
 - [信息流](./index.html)：主体交互原型
 - [图标库](./icons.html)：38 个真实图标及尺寸、用途
@@ -32,6 +43,10 @@
 - 不把卡片点击与“完整阅读”混为一谈，已读状态与阅读进度单独追踪。
 - 重要提醒自然穿插信息流，不能过度打扰，也不应在刷新时打断当前阅读。
 
+## V0.4 Storybook 设计系统
+
+新增 Storybook HTML/Vite 工作台，94 个独立 Stories 覆盖当前完整图标、卡片、状态、组件、设计变量和参考资料。Storybook 与离线页面读取同一份 JS / CSS 构建清单，不复制组件实现。故事使用独立内存数据，预览与产品收藏、阅读及任务记录隔离。
+
 ## V0.3 卡片体验与独立设计库
 
 新增独立图标库、卡片库和组件库，研究参考另页存放；全部复用信息流的真实实现。样式拆为变量、基础、控件、卡片、浮层、目录和响应式七层，后续可先优化库，再同步产品。优化阅读、提醒行动和 AI 引用三类卡片的层次、直接操作与连续反馈。设计资料与实现范围见[卡片优化说明](./docs/CARD-REFINEMENT.md)。研究页同步收录官方视觉说明和可体验的参考组件。
@@ -55,11 +70,13 @@ components.html / research.html              # 组件库、研究参考
 src/                                       # 共享源码、样式与页面壳
 scripts/build.py                           # 零第三方依赖构建器
 scripts/modules.json                       # 模块依赖顺序
+.storybook/                                # Storybook 配置与共享源码适配
+stories/                                   # 独立 Stories、隔离交互适配与工作台样式
 tests/                                     # 核心检查、浏览器回归与验收记录
 docs/                                      # 产品需求、交互规范、对话与开发指南
 ```
 
-请修改 `src/` 后重新构建五个 HTML 入口。页面运行不需要安装第三方依赖；Playwright 仅用于浏览器回归测试。
+请修改 `src/` 后重新构建五个 HTML 入口。独立 HTML 页面运行不需要安装第三方依赖；Storybook 开发需要先安装 package-lock.json 锁定的工具依赖，Playwright 用于浏览器回归。
 
 ## 后续开发原则
 

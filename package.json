@@ -1,14 +1,22 @@
 {
   "name": "quiet-glass",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Offline card-first personal information space prototype",
   "scripts": {
     "build": "python3 scripts/build.py",
     "test": "python3 tests/verify.py",
-    "test:browser": "node tests/browser.cjs"
+    "test:browser": "node tests/browser.cjs",
+    "storybook": "storybook dev -p 6006 --host 127.0.0.1 --no-open",
+    "build:storybook": "storybook build -o storybook-static",
+    "preview:storybook": "python3 -m http.server 6006 --bind 127.0.0.1 --directory storybook-static",
+    "test:storybook": "node tests/storybook.cjs"
   },
   "devDependencies": {
-    "playwright": "1.62.1"
+    "@storybook/addon-docs": "10.6.1",
+    "@storybook/html-vite": "10.6.1",
+    "playwright": "1.62.1",
+    "storybook": "10.6.1",
+    "vite": "7.3.1"
   }
 }

@@ -1,6 +1,14 @@
 # 开发与续接
 
-## 当前迭代（V0.3）
+## 当前迭代（V0.4：Storybook）
+
+本地设计库入口为 Storybook，命令 `npm run storybook`。使用 Storybook 10.6.1 / HTML-Vite 与 Vite 7.3.1，要求 Node.js 22.12+（推荐 Node.js 24 LTS）及现有 Python 3。安装使用 `npm ci`。
+
+`.storybook/shared-source.mjs` 按现有 modules.json 和 styles.json 直接读取共享源码，排除产品启动脚本；不复制模板，不修改产品初始化行为。`stories/runtime.js` 隔离内存 Store、内部导航与事件/定时器生命周期，单个 Canvas 运行真实组件交互。原控制器仍依赖单例 DOM，因此不启用同时挂载多个故事的 Autodocs；当前适配器不等同于已发布的无全局依赖 npm 组件包。
+
+用 `npm run build:storybook` 生成静态目录，再用 `npm run preview:storybook` 启动 HTTP 预览。浏览器验收为 `npm run test:storybook`；完整说明见 [STORYBOOK.md](./STORYBOOK.md)。
+
+## 前序迭代（V0.3）
 
 在现有原生结构中优化阅读卡、提醒行动卡和 AI 引用卡，不迁移框架。设计目标、参考来源、实现与研究边界见 [CARD-REFINEMENT.md](./CARD-REFINEMENT.md)。独立图标库、卡片库、组件库与研究页的维护入口见 [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md)。继续修改共享源文件后构建五个入口；验收包含卡内动作与预览的隔离、菜单与焦点、AI 引用查看/移除、移动布局与原有持久化路径。
 
