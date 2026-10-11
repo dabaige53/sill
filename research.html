@@ -1943,9 +1943,11 @@ class AppController{
    const menu=this.grid?.querySelector('.card-more-menu');
    if(!menu)return;
    const card=menu.closest('[data-card]'),trigger=card?.querySelector('[data-action="card-more"]');
+   // Focus while the menu's open state still makes its trigger visible.
+   // Once focused, :focus-within keeps the control available after dismissal.
+   if(restoreFocus)trigger?.focus({preventScroll:true});
    menu.remove();card?.classList.remove('tools-open');
    trigger?.setAttribute('aria-expanded','false');trigger?.removeAttribute('aria-controls');
-   if(restoreFocus)trigger?.focus({preventScroll:true});
  }
  more(id){
    const c=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);if(!c)return;
