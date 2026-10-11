@@ -29,7 +29,7 @@ const CardTemplates={
  },
  event(c,ctx){
    const date=new Date(c.start),day=date.toLocaleDateString('zh-CN',{month:'long',day:'numeric'}),weekday=date.toLocaleDateString('zh-CN',{weekday:'short'});
-   return `<div class="card-body"><div class="card-meta top-meta event-meta"><span>${esc(day)} ${esc(weekday)}</span><span aria-hidden="true">·</span><span>${esc(eventRelative(c))}</span></div>${this.title(c,ctx)}<div class="event-time">${timeString(c.start)}<span>—</span>${timeString(c.end)}</div></div>`;
+   return `<div class="card-body">${c.provenance?this.header(c):''}<div class="card-meta top-meta event-meta"><span>${esc(day)} ${esc(weekday)}</span><span aria-hidden="true">·</span><span>${esc(eventRelative(c))}</span></div>${this.title(c,ctx)}<div class="event-time">${timeString(c.start)}<span>—</span>${timeString(c.end)}</div></div>`;
  },
  reminder(c,ctx){
    const s=ctx.state,settled=s.reminderDone||s.dismissed||s.snoozedUntil>0;

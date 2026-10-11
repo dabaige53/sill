@@ -37,6 +37,7 @@ export function buildAiContext(request,limit) {
   while(size()>limit&&data.question.length){data.contextTruncated=true;data.question=data.question.slice(0,Math.max(0,data.question.length-Math.max(1,size()-limit)));}
   for(const ref of request.cardRefs||[]){
     const safe={cardId:ref.cardId,title:ref.title||'',content:ref.content||'',summary:ref.summary||'',available:!!ref.available,snapshotHash:ref.snapshotHash,truncated:!!(ref.truncated||ref.contentTruncated||ref.summaryTruncated)};
+    if(ref.provenance)safe.provenance={provider:ref.provenance.provider,upstreamId:ref.provenance.upstreamId,scope:Object.fromEntries(['accountId','workspaceId','calendarId'].filter(key=>typeof ref.provenance.scope?.[key]==='string').map(key=>[key,ref.provenance.scope[key]])),retrievedAt:ref.provenance.retrievedAt,contentOrigin:ref.provenance.contentOrigin,summaryOrigin:ref.provenance.summaryOrigin,partial:ref.provenance.partial,attribution:'host-asserted'};
     if(ref.url)safe.url=ref.url;
     data.sourceExcerpts.push(safe);
     if(size()>limit){data.sourceExcerpts.pop();data.contextTruncated=true;continue;}

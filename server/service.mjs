@@ -7,10 +7,10 @@ import { Collect, Search, Recommend, Draft, Ingest, Workflow, SettingsUpdate, No
 
 const excerpt = card => ({...card,content:card.content.slice(0,1200),contentTruncated:card.content.length>1200});
 const terms = query => query.toLocaleLowerCase().split(/[\s,，;；]+/).filter(Boolean);
-const brief = card => ({id:card.id,title:card.title,kind:card.kind,sourceId:card.sourceId,url:card.url,truncated:card.truncated});
+const brief = card => ({id:card.id,title:card.title,kind:card.kind,sourceId:card.sourceId,url:card.url,truncated:card.truncated,...(card.provenance?{revision:card.revision,provenance:card.provenance}:{})});
 const nowIso = () => new Date().toISOString();
 const changedFields = (set,current) => Object.keys(set).filter(key=>JSON.stringify(set[key])!==JSON.stringify(current[key])).sort();
-const assertUpstreamSource = sourceId => {if(sourceId===LOCAL_NOTE_SOURCE)throw new QGError('RESERVED_SOURCE','本地笔记来源仅可通过笔记工具创建和修改');};
+const assertUpstreamSource = sourceId => {if(sourceId===LOCAL_NOTE_SOURCE||['host-notion','host-google-calendar','host-linear'].includes(sourceId))throw new QGError('RESERVED_SOURCE','本地笔记与宿主导入来源只能使用各自明确的创建方式');};
 
 export class Service {
   constructor(config,options={}) { this.store=new Store(config.dataDir);this.connectors=new Connectors(config,options);this.owner=randomUUID();this.running=new Map();this.ai=new AiEngine(this,config.ai,options); }
@@ -101,6 +101,15 @@ export class Service {
         contentHash:card.contentHash,contentTruncated:(card.content?.length||0)>1200,summaryTruncated:(card.summary?.length||0)>500,truncated:!!card.truncated});
       if(card.url){try{const url=new URL(card.url);if(['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&url.href.length<=2048)snapshot.url=url.href;}catch{}}
       if(Number.isSafeInteger(card.revision))snapshot.revision=card.revision;
+      if(card.provenance?.mode==='host-assisted'){
+        // Keep attribution labels with every frozen excerpt. Select each field
+        // explicitly: arbitrary record properties and annotations never leak.
+        const p=card.provenance;
+        snapshot.provenance={mode:'host-assisted',attribution:'host-asserted',provider:p.provider,
+          upstreamId:p.upstreamId,scope:{accountId:p.scope.accountId,...(p.scope.workspaceId?{workspaceId:p.scope.workspaceId}:{}),...(p.scope.calendarId?{calendarId:p.scope.calendarId}:{})},
+          retrievedAt:p.retrievedAt,...(p.upstreamUpdatedAt?{upstreamUpdatedAt:p.upstreamUpdatedAt}:{}),partial:p.partial,
+          contentOrigin:p.contentOrigin,...(p.summaryOrigin?{summaryOrigin:p.summaryOrigin}:{})};
+      }
     }
     return {...snapshot,snapshotHash:digest(snapshot)};
   }
@@ -237,6 +246,10 @@ export class Service {
   }
   ingest(args) {
     const input=Ingest.parse(args);
+    if(input.mode==='host-assisted'){
+      const imported=this.store.ingestHost(input.sourceId,input.items),cards=imported.map(entry=>entry.card);
+      return {items:imported.map(({card,replayed})=>({...brief(card),replayed})),cardIds:cards.map(card=>card.id),count:cards.length,replayed:imported.filter(entry=>entry.replayed).length};
+    }
     assertUpstreamSource(input.sourceId);
     const known=new Set(this.store.list('card').map(c=>c.id));
     for(const item of input.items)for(const id of item.evidenceIds)if(!known.has(id))throw new QGError('EVIDENCE_NOT_FOUND','引用的证据卡片不存在');
