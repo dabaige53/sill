@@ -1,0 +1,47 @@
+name: Verify Quiet Glass
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Verify source, generated pages and core behavior
+        run: python3 tests/verify.py
+      - name: Install design library and test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build Storybook from shared components
+        run: npm run build:storybook
+      - name: Verify local Storybook development startup
+        run: npm run storybook -- --ci --smoke-test
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser regressions
+        run: npm run test:browser
+      - name: Verify Storybook controls and isolated component stories
+        run: npm run test:storybook
+      - name: Retain browser results and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-verification
+          path: tests/artifacts/
+          if-no-files-found: ignore
+      - name: Retain shareable Storybook site
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiet-glass-storybook
+          path: storybook-static/
+          if-no-files-found: error
