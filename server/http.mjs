@@ -156,7 +156,7 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
         json(res,404,{error:'Not found'});return;
         });
       }
-      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/content.js':'web/content.js','/web/conversations.js':'web/conversations.js','/web/ai.js':'web/ai.js'};
+      const paths={'/':'index.html','/index.html':'index.html','/components.html':'components.html','/cards.html':'cards.html','/icons.html':'icons.html','/research.html':'research.html','/web/live.js':'web/live.js','/web/preferences.js':'web/preferences.js','/web/content.js':'web/content.js','/web/conversations.js':'web/conversations.js','/web/ai.js':'web/ai.js'};
       if(req.method!=='GET'||!Object.hasOwn(paths,url.pathname)){json(res,404,{error:'Not found'});return;}
       let content=await readFile(resolve(ROOT,paths[url.pathname]),'utf8');
       if(paths[url.pathname]==='index.html')content=content.replace('<head>','<head><script>window.__QG_RUNTIME__=true;</script>');

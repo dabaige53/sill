@@ -201,7 +201,17 @@ ${crash?'setInterval(()=>{},1000);':'setTimeout(async()=>{await service.close();
   const child=spawn(process.execPath,['--input-type=module','-e',script,directory,requestId],{env:{NODE_NO_WARNINGS:'1'},stdio:['pipe','pipe','pipe']});
   let stdout='',stderr='';child.stdout.on('data',chunk=>{stdout+=chunk;});child.stderr.on('data',chunk=>{stderr+=chunk;});
   const result=once(child,'exit').then(([code,signal])=>({code,signal,stdout,stderr}));
-  return {child,result,read:()=>stdout};
+  const waitForOutput=text=>new Promise((resolve,reject)=>{
+    const cleanup=()=>{clearTimeout(timer);child.stdout.off('data',check);child.off('exit',exited);child.off('error',failed);};
+    const check=()=>{if(stdout.includes(text)){cleanup();resolve();}};
+    const exited=()=>{cleanup();reject(new Error(`Fixture exited before ${text}: ${stderr}`));};
+    const failed=error=>{cleanup();reject(error);};
+    // Module startup is not part of provider timing. Await the explicit child
+    // handshake, report early exit, and keep a separate bounded startup guard.
+    const timer=setTimeout(()=>{cleanup();reject(new Error(`Fixture startup did not reach ${text}: ${stderr}`));},10000);
+    child.stdout.on('data',check);child.once('exit',exited);child.once('error',failed);check();
+  });
+  return {child,result,read:()=>stdout,waitForOutput};
 }
 
 test('independent processes atomically deduplicate claims and enforce shared concurrency/daily limits',async t=>{
@@ -209,7 +219,7 @@ test('independent processes atomically deduplicate claims and enforce shared con
     const {service:s,directory}=await fixture(t),one=request(s,'one'),two=request(s,'two');
     const options={barrier:true,...(scenario==='budget'?{maxConcurrency:2,maxRequestsPerDay:1}:{})};
     const a=launch(directory,one.id,options),b=launch(directory,scenario==='dedupe'?one.id:two.id,options);
-    t.after(()=>{a.child.kill();b.child.kill();});await until(()=>a.read().includes('READY')&&b.read().includes('READY'));a.child.stdin.end('go');b.child.stdin.end('go');const results=await Promise.all([a.result,b.result]);
+    t.after(()=>{a.child.kill();b.child.kill();});await Promise.all([a.waitForOutput('READY'),b.waitForOutput('READY')]);a.child.stdin.end('go');b.child.stdin.end('go');const results=await Promise.all([a.result,b.result]);
     for(const result of results){assert.equal(result.code,0,result.stderr);assert.equal(result.stderr,'');}
     const calls=(await readFile(join(directory,'calls.log'),'utf8')).trim().split('\n');assert.equal(calls.length,1,scenario);
     const outputs=results.map(r=>JSON.parse(r.stdout.trim().split('\n').at(-1)));
@@ -221,7 +231,7 @@ test('independent processes atomically deduplicate claims and enforce shared con
 
 test('abrupt owner death recovers as interrupted without another provider call or budget charge',async t=>{
   const {service:s,directory,open}=await fixture(t),r=request(s),worker=launch(directory,r.id,{crash:true});
-  t.after(()=>worker.child.kill('SIGKILL'));await until(()=>worker.read().includes('Durable partial'));
+  t.after(()=>worker.child.kill('SIGKILL'));await worker.waitForOutput('Durable partial');
   worker.child.kill('SIGKILL');await worker.result;
   const other=open(),run=other.getAi({requestId:r.id});assert.equal(run.status,'interrupted');assert.equal(run.output,'Durable partial');assert.equal(other.startAi({requestId:r.id}).status,'interrupted');assert.equal(other.aiStatus().budget.used,1);
   assert.equal((await readFile(join(directory,'calls.log'),'utf8')).trim(),'call');
