@@ -1,24 +1,38 @@
 {
   "name": "quiet-glass",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "private": true,
+  "description": "Card-first personal information space with local-first MCP integration",
+  "scripts": {
+    "build": "python3 scripts/build.py",
+    "test": "npm run test:core && npm run test:integration",
+    "test:browser": "node tests/browser.cjs",
+    "storybook": "storybook dev -p 6006 --host 127.0.0.1 --no-open",
+    "build:storybook": "storybook build -o storybook-static",
+    "preview:storybook": "python3 -m http.server 6006 --bind 127.0.0.1 --directory storybook-static",
+    "test:storybook": "node tests/storybook.cjs",
+    "start": "node --env-file-if-exists=.env server/index.mjs --http",
+    "mcp": "node --env-file-if-exists=.env server/index.mjs --stdio",
+    "check": "node scripts/check.mjs",
+    "plugin:build": "node scripts/build-plugin.mjs",
+    "test:core": "python3 tests/verify.py",
+    "test:integration": "npm run plugin:build && node --test tests/*.test.mjs",
+    "test:live-browser": "node tests/live-browser.mjs"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "10.6.1",
+    "@storybook/html-vite": "10.6.1",
+    "playwright": "1.62.1",
+    "storybook": "10.6.1",
+    "vite": "7.3.1",
+    "jsdom": "26.1.0"
+  },
   "type": "module",
   "engines": {
     "node": ">=24"
   },
-  "scripts": {
-    "start": "node --env-file-if-exists=.env server/index.mjs --http",
-    "mcp": "node --env-file-if-exists=.env server/index.mjs --stdio",
-    "pretest": "npm run plugin:build",
-    "test": "node --test tests/*.test.mjs",
-    "check": "node scripts/check.mjs",
-    "plugin:build": "node scripts/build-plugin.mjs"
-  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
     "zod": "3.25.76"
-  },
-  "devDependencies": {
-    "jsdom": "26.1.0"
   }
 }

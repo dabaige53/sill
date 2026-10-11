@@ -1,0 +1,9 @@
+[
+  "src/styles/tokens.css",
+  "src/styles/base.css",
+  "src/styles/controls.css",
+  "src/styles/cards.css",
+  "src/styles/overlays.css",
+  "src/styles/catalog.css",
+  "src/styles/responsive.css"
+]

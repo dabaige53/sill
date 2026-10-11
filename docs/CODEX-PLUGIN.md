@@ -142,7 +142,7 @@ npm run plugin:build -- --url https://your-private-host.example/mcp
 
 ## 验证与当前边界
 
-运行 `npm run check && npm test`。自动测试使用真实官方 MCP SDK 与隔离资料，覆盖协议和关键业务行为。Google/Notion 的真实授权、客户端目录安装、HTTPS 部署和不同屏幕下的视觉验收，需要在实际环境验收。
+运行 `npm run check && npm test`。自动测试使用真实官方 MCP SDK 与隔离资料，覆盖协议和关键业务行为。`npm run test:live-browser` 另外使用 Chromium 验证 MCP 采集、真实卡片、引用后发送、回答回流、收藏同步、刷新确认、本地备注恢复与预览中断；先执行 `npx playwright install chromium`，或用 `CHROMIUM_PATH` 指定已安装的浏览器。Google/Notion 的真实授权、客户端目录安装、HTTPS 部署和不同屏幕下的视觉验收，需要在实际环境验收。
 
 采集是当前可访问内容的快照，不是完整的跨服务双向镜像；源内容删除、权限撤销及本地历史保留需要部署方管理。没有邮件原生适配器、向量检索、无人值守模型循环、后台定时调度或自动 OAuth 接入界面；可通过配置好的 MCP 来源扩展服务种类。推荐规则可以解释，语义比较和综合结论由 Codex 负责。
 

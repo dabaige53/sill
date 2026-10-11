@@ -11,7 +11,7 @@
     return result;
   };
   const post=(path,data)=>api(path,{method:'POST',body:JSON.stringify(data)});
-  const mapCard=c=>({id:c.id,type:c.kind==='event'&&!c.allDay?'event':c.kind==='task'?'note':c.allDay?'note':c.kind,form:'standard',title:c.title,summary:c.summary||c.content.slice(0,240),body:(c.content||c.summary||'暂无正文').split('\n').filter(Boolean),source:status?.connectors.find(x=>x.id===c.sourceId)?.label||c.sourceId,tags:c.tags||[],url:c.url,start:c.start?Date.parse(c.start):undefined,end:c.end?Date.parse(c.end):undefined,people:[],time:Date.parse(c.publishedAt||c.collectedAt),meta:c.allDay?`全天 · ${c.startDate} 至 ${c.endDate}（结束日不含）`:c.truncated||c.contentTruncated?'内容节选 · 可查看原文':'已采集',live:true,contentTruncated:c.contentTruncated});
+  const mapCard=c=>({id:c.id,type:c.kind==='event'&&!c.allDay?'event':c.kind==='task'?'note':c.allDay?'note':c.kind,form:'standard',title:c.title,summary:c.summary||(c.content||'').slice(0,240),body:(c.content||c.summary||'暂无正文').split('\n').filter(Boolean),source:status?.connectors.find(x=>x.id===c.sourceId)?.label||c.sourceId,tags:c.tags||[],url:c.url,start:c.start?Date.parse(c.start):undefined,end:c.end?Date.parse(c.end):undefined,people:[],related:c.evidenceIds||[],time:Date.parse(c.publishedAt||c.collectedAt),meta:c.allDay?`全天 · ${c.startDate} 至 ${c.endDate}（结束日不含）`:c.truncated||c.contentTruncated?'内容节选 · 可查看原文':'已采集',live:true,contentTruncated:c.contentTruncated});
   function stateFor(c){store.state.items[c.id]={...store.item(c.id),...c.state};}
   async function loadCards(initial=false) {
     const cards=[];let offset=0;
@@ -42,10 +42,10 @@
   const originalPreview=app.showPreview.bind(app);
   let previewSequence=0;
   app.showPreview=async(id,reading=false)=>{
-    const seq=++previewSequence;
+    const seq=++previewSequence,route=location.hash,modalToken=app.modalToken;
     try{
       const c=await api(`/api/cards/${encodeURIComponent(id)}`);
-      if(seq!==previewSequence||!location.hash.includes(id))return;
+      if(seq!==previewSequence||location.hash!==route||app.modalToken!==modalToken)return;
       const index=store.state.cards.findIndex(c=>c.id===id);
       if(index>=0)store.state.cards[index]=mapCard(c);
       originalPreview(id,reading);
@@ -90,7 +90,7 @@
       app.messages.push({kind:'assistant',text:`已保存请求 ${request.id}。\n在 Codex 中说：“用 Quiet Glass 处理待回答的问题”。Codex 回答后，结果会出现在这里。`});
       pendingUpdates.set(request.id,version);
     }catch(error){if((app.aiVersion||0)===version)app.messages.push({kind:'assistant',text:error.message});}
-    finally{app.aiBusy=false;app.paintAI();}
+    finally{if((app.aiVersion||0)===version){app.aiBusy=false;app.paintAI();}}
   };
   requestTimer=setInterval(async()=>{
     if(document.hidden)return;

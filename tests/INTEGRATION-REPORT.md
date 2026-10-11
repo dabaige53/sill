@@ -22,3 +22,28 @@
 网页测试使用 jsdom 检查行为，未完成真实浏览器的视觉/触屏回归；原有设计演示页面保留。真实授权和部署后应以自己的少量只读资料验收，然后按需开启写入。
 
 另以独立的技能执行者完成一次隔离场景：读取今日上海时区日程与评审笔记，通过 13 次实际 MCP 工具调用完成工作流、全文核对、带证据推荐和 Notion 草稿；没有调用提交工具，也没有真实外部请求。该流程发现的“采集时间不能等同于来源更新时间”及草稿确认参数映射问题已修正。
+
+
+## V0.5 / MCP 源码整合验收（2026-10-11）
+
+整合输入：设计主线 `2b62cb3cfce426234cdf863950c06f1f76e87457` 与 MCP 分支 `2ef08d34df47b4ecaa9e7258acd7540dbc368b60`。
+
+- 运行入口放回 `src/views/app.js`、`src/index.js`、`src/shell.html`，重新生成五个 HTML；源码构建可复现。
+- 保留 V0.5 CSS、卡片模板、独立设计库与 94 个 Storybook 故事；保留全部 MCP 服务、SQLite、连接器、工作流、外部写入确认和网页请求队列。
+- 合并依赖与锁文件，完整安装和两个 CI 工作流统一使用 Node.js 24；CJS 核心/浏览器测试继续使用 `.cjs`，后端和插件使用 `.mjs`。
+- 真实模式独立存储恢复浏览器备注、标签和阅读进度；建议卡片连接已有证据卡片；慢速预览不会覆盖更新的设置面板。
+- HTTP 静态路径补全图标库和卡片库；设计库仍为隔离演示，不混入真实来源。
+
+本轮通过：
+
+1. `npm ci --ignore-scripts --no-audit --no-fund`：干净安装。
+2. `npm run check`：脚本语法、五个 HTML 内联脚本、配置与插件清单。
+3. `npm test`：22 项设计核心/构建测试 + 16 项后端、连接器、MCP/HTTP、stdio 插件和 DOM 联调测试。
+4. `npm run build:storybook` 与 `npm run storybook -- --ci --smoke-test`：通过。
+5. `npm run test:browser`：21 个真实 Chromium 产品场景通过。
+6. `npm run test:storybook`：94 个故事以及 11 个真实 Chromium 场景通过。
+7. `npm run test:live-browser`：新建的一条完整 Chromium 联调路径通过；使用官方 MCP SDK、隔离服务和 SQLite，覆盖采集到展示、证据引用、先引用后提交、MCP 回答回流、收藏反馈、慢预览取消、正文阅读、刷新后显式插入、重新加载与演示状态隔离。
+
+云端受限命令执行器无法直接启动 Chromium（Unix socket EPERM）或完成 Storybook 开发启动的网卡检查；浏览器套件和开发启动在同一云端电脑的终端运行，测试代码未为绕开断言而修改。结果文件与截图位于被忽略的 `tests/artifacts/`。GitHub CI 仍须在最终提交上另行确认。
+
+边界未变：没有使用真实 Google/Notion 账号、没有传输用户凭据、没有新增宿主上下文桥接或后台模型循环；网页问题仍需在 Codex 中主动处理。真实授权、客户端安装、外部部署与真实 Safari/iPhone 仍须在对应环境验收。
