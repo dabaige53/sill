@@ -1,5 +1,68 @@
 const Sources = [
   {
+    "id": "linear-hierarchy",
+    "title": "Linear · A calmer interface",
+    "url": "https://linear.app/now/behind-the-latest-design-refresh",
+    "kind": "卡片层次 · 2026",
+    "note": "辅助元素降低视觉权重，减少重复的图标、分隔和底色。本轮用于正文、标题、元信息的层次，保留卡片优先布局。"
+  },
+  {
+    "id": "craft-cards",
+    "title": "Craft · Cards",
+    "url": "https://support.craft.do/en/write-and-edit/styling/cards",
+    "kind": "内容结构",
+    "note": "卡片具有页面的内容能力，多种预览与尺寸承载不同内容。本轮拆分阅读、提醒行动和 AI 引用的内部结构，共享外部规则。"
+  },
+  {
+    "id": "raycast-actions",
+    "title": "Raycast · Contextual actions",
+    "url": "https://www.raycast.com/blog/a-fresh-look-and-feel",
+    "kind": "情境操作",
+    "note": "操作根据当前对象出现，结果与快捷键位置稳定。本轮用于当前卡片工具和更多菜单，不引入常驻操作栏。"
+  },
+  {
+    "id": "expandable-cards",
+    "title": "Aceternity · Expandable Cards",
+    "url": "https://ui.aceternity.com/components/expandable-card",
+    "kind": "交互组件参考",
+    "note": "观察列表/网格卡片展开为详情的连续关系。示例源码公开；本项目用 Web Animations API 独立实现，并未安装该 React 组件。"
+  },
+  {
+    "id": "motion-expand",
+    "title": "Motion · Expand card",
+    "url": "https://motion.dev/ui/components/expand-card",
+    "kind": "共享元素参考",
+    "note": "观察外框与标题从卡片延续到详情的转场。此高级组件源码属于 Motion+；仅作行为研究，没有复制付费源码。"
+  },
+  {
+    "id": "motion-swipe",
+    "title": "Motion · Swipe actions",
+    "url": "https://motion.dev/ui/components/swipe-actions",
+    "kind": "后续手势研究",
+    "note": "滑动揭示动作与跟手回弹的参考，源码属于 Motion+。本轮先提供可发现的提醒动作按钮，尚未实现横滑操作。"
+  },
+  {
+    "id": "motion-js-layout",
+    "title": "Motion · JavaScript layout",
+    "url": "https://motion.dev/docs/layout-animations",
+    "kind": "原生 JS 选型",
+    "note": "Motion 也提供 animateLayout 与 data-layout-id；共享元素动效不要求立即迁移 React。本轮仍采用浏览器原生动画。"
+  },
+  {
+    "id": "radix-popover",
+    "title": "Radix · Popover",
+    "url": "https://www.radix-ui.com/primitives/docs/components/popover",
+    "kind": "轻编辑参考",
+    "note": "研究触发点、面板定位、焦点恢复与碰撞处理。适合下一阶段可选时间/状态编辑；当前原生 dialog 和就地按钮保留。"
+  },
+  {
+    "id": "react-aria-sheet",
+    "title": "React Aria · Gesture Driven Sheet",
+    "url": "https://react-aria.adobe.com/examples/sheet",
+    "kind": "移动端参考",
+    "note": "官方 React Aria + Motion 手势抽屉示例。本轮完成移动详情样式与关闭操作，拖动抽屉手势尚未实现。"
+  },
+  {
     "id": "apple-materials",
     "title": "Apple · Materials",
     "url": "https://developer.apple.com/design/human-interface-guidelines/materials",

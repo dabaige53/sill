@@ -22,6 +22,10 @@ class AppController{
    document.addEventListener('click',e=>this.click(e));
    document.addEventListener('input',e=>this.input(e));
    document.addEventListener('keydown',e=>this.key(e));   ['pointerdown','keydown','wheel','touchstart'].forEach(type=>document.addEventListener(type,()=>this.lastActivity=Date.now(),{passive:true}));
+   document.addEventListener('focusin',e=>{
+     const menu=this.grid.querySelector('.card-more-menu');
+     if(menu&&!menu.contains(e.target)&&!e.target.closest?.('[data-action="card-more"]'))this.closeMore();
+   });
    this.dialog.addEventListener('cancel',e=>{e.preventDefault();this.closeModal();});
    this.dialog.addEventListener('click',e=>{
      if(e.target!==this.dialog)return;
@@ -52,6 +56,7 @@ class AppController{
    }),this.sort,Store.state.items,this.feedNow);
  }
  renderCurrent(animate=false){
+   this.closeMore();
    if(this.mode==='library'){this.grid.innerHTML=LibraryView.render();document.getElementById('page-title').textContent='组件实验室';}
    else if(this.mode==='sources'){this.grid.innerHTML=SourcesView.render();document.getElementById('page-title').textContent='研究资料';}
    else{
@@ -69,11 +74,17 @@ class AppController{
      if(before!==after){this.withFeedAnchor(()=>{});return;}
    }
    const old=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),c=Store.card(id);if(!old||!c)return;
-   const focus=old.contains(document.activeElement)?document.activeElement.dataset.action:null;
+   const active=old.contains(document.activeElement)?document.activeElement:null;
+   const focus=active?.dataset.action,focusExtra=active?.dataset.extra,focusId=active?.dataset.id;
+   const focusTitle=active?.classList.contains('card-title-button');
    const temp=document.createElement('div');temp.innerHTML=cardHTML(c);const node=temp.firstElementChild;
+   node.classList.toggle('is-featured',old.classList.contains('is-featured'));
    node.style.cssText=old.style.cssText;old.replaceWith(node);
    this.layout.schedule(true);this.updateSelection();
-   if(focus)node.querySelector(`[data-action="${focus}"]`)?.focus({preventScroll:true});
+   if(active){
+     const target=focusTitle?node.querySelector('.card-title-button'):[...node.querySelectorAll('[data-action]')].find(n=>n.dataset.action===focus&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
+     (target||node.querySelector('.card-title-button')||node).focus({preventScroll:true});
+   }
    const digest=this.grid.querySelector('[data-card="digest-01"]');
    if(id!=='digest-01'&&digest){
      const temp2=document.createElement('div');temp2.innerHTML=cardHTML(Store.card('digest-01'));temp2.firstElementChild.style.cssText=digest.style.cssText;digest.replaceWith(temp2.firstElementChild);
@@ -104,7 +115,7 @@ class AppController{
    if(this.mode!==mode){this.mode=mode;this.baseMode=mode;this.renderCurrent(true);window.scrollTo(0,this.routeScroll[mode]||0);}
  }
  openModal(html,kind,origin=null){
-   this.modalToken++;this.pauseMedia();
+   this.closeMore(true);this.modalToken++;this.pauseMedia();MotionEngine.cancelPanel(this.dialog);
    if(!this.dialog.open){this.lastFocus=document.activeElement;this.lockedScroll=scrollY;document.documentElement.style.overflow='hidden';}
    const liveToast=document.getElementById('toast');if(liveToast&&this.dialog.contains(liveToast))document.body.appendChild(liveToast);
    this.modalKind=kind;this.dialog.className=kind==='reader'?'reader':kind==='preview'?'preview':'panel';
@@ -114,13 +125,17 @@ class AppController{
    const focus=kind==='filter'?this.dialog.querySelector('input'):this.dialog.querySelector('h1');
    if(focus){if(focus.tagName==='H1')focus.tabIndex=-1;focus.focus({preventScroll:true});}
  }
- closeNative(){
+ closeNative(animate=true){
    if(!this.dialog.open)return;
    this.modalToken++;this.pauseMedia();
    const toast=document.getElementById('toast');if(this.dialog.contains(toast))document.body.appendChild(toast);
+   const source=this.grid.querySelector(`[data-card="${CSS.escape(this.currentId||'')}"]`);
+   if(animate&&['preview','reader'].includes(this.modalKind))MotionEngine.closePanel(this.dialog,MotionEngine.capture(source));
+   else MotionEngine.cancelPanel(this.dialog);
    this.dialog.close();document.documentElement.style.overflow='';this.modalKind='';this.panelReturn=null;
-   const focus=this.lastFocus?.isConnected?this.lastFocus:this.grid.querySelector(`[data-card="${CSS.escape(this.currentId||'')}"]`);
-   focus?.focus({preventScroll:true});
+   let focus=this.lastFocus?.isConnected&&this.lastFocus!==document.body?this.lastFocus:source?.querySelector('.card-title-button')||source?.querySelector('[data-action="card-open"]')||source;
+   if(focus&&(!focus.getClientRects().length||getComputedStyle(focus).visibility==='hidden'))focus=focus.closest('[data-card]')?.querySelector('.card-title-button')||document.getElementById('orb');
+   (focus||document.getElementById('orb')).focus({preventScroll:true});
  }
  closeModal(){
    if(['preview','reader'].includes(this.modalKind)){
@@ -140,9 +155,9 @@ class AppController{
  showPreview(id,reading=false){
    const c=Store.card(id);if(!c)return;
    const source=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
-   const rect=source?.getBoundingClientRect();
+   const origin=MotionEngine.capture(this.dialog.open&&this.currentId===id&&['preview','reader'].includes(this.modalKind)?this.dialog:source);
    this.currentId=id;Store.patch(id,{seen:true});this.refreshCard(id);
-   this.openModal(Panels.preview(this,c,reading),reading?'reader':'preview',rect);
+   this.openModal(Panels.preview(this,c,reading),reading?'reader':'preview',origin);
    if(reading){
      this.lastActivity=Date.now();
      const scroll=this.dialog.querySelector('#reader-scroll');
@@ -192,15 +207,27 @@ class AppController{
    }
    if(after.length===c.tasks.length)this.toast('这件事，完成了',()=>{Store.patch(id,{taskDone:before});this.refreshCard(id);});
  }
+ closeMore(restoreFocus=false){
+   const menu=this.grid?.querySelector('.card-more-menu');
+   if(!menu)return;
+   const card=menu.closest('[data-card]'),trigger=card?.querySelector('[data-action="card-more"]');
+   menu.remove();card?.classList.remove('tools-open');
+   trigger?.setAttribute('aria-expanded','false');trigger?.removeAttribute('aria-controls');
+   if(restoreFocus)trigger?.focus({preventScroll:true});
+ }
  more(id){
    const c=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);if(!c)return;
    const existing=c.querySelector('.card-more-menu');
-   if(existing){existing.remove();c.classList.remove('tools-open');return;}
-   this.grid.querySelectorAll('.card-more-menu').forEach(n=>n.remove());
+   if(existing){this.closeMore(true);return;}
+   this.closeMore();
    c.classList.add('tools-open');
    const menu=document.createElement('div');menu.className='card-more-menu glass';menu.setAttribute('role','group');menu.setAttribute('aria-label','更多卡片操作');
-   menu.innerHTML=button('tag','编辑标签与备注','edit',id)+button('clock','切换稍后阅读','later',id)+button('check','切换已读状态','toggle-read',id)+button('select','选择这张卡片','select',id);
-   c.appendChild(menu);MotionEngine.enter(menu);
+   menu.id='card-menu-'+id;
+   const s=Store.item(id),items=[['tag','编辑标签与备注','edit'],['clock',s.later?'移出稍后阅读':'稍后阅读','later'],[s.read?'undo':'check',s.read?'标记为未读':'标记为已读','toggle-read'],['select',this.selected.has(id)?'取消选择':'选择这张卡片','select']];
+   menu.innerHTML=items.map(([symbol,label,action])=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}">${icon(symbol,17)}<span>${label}</span></button>`).join('');
+   c.appendChild(menu);
+   const trigger=c.querySelector('[data-action="card-more"]');trigger?.setAttribute('aria-expanded','true');trigger?.setAttribute('aria-controls',menu.id);
+   MotionEngine.enter(menu);menu.querySelector('button')?.focus({preventScroll:true});
  }
  refresh(){
    if(this.refreshBusy)return;
@@ -229,8 +256,9 @@ class AppController{
    n.hidden=!count;n.innerHTML=icon(this.pendingReminders.length?'bell':'up',13)+count;
    n.setAttribute('aria-label',`查看 ${this.pendingCards.length} 张新卡片和 ${this.pendingReminders.length} 项到期提醒`);
  }
- withFeedAnchor(change){
+ withFeedAnchor(change,animate=false){
    const nodes=[...this.grid.querySelectorAll('[data-card]')];
+   const positions=animate?new Map(nodes.map(n=>[n.dataset.card,n.getBoundingClientRect()])):null;
    const anchors=nodes.filter(n=>n.getBoundingClientRect().bottom>0).map(n=>({id:n.dataset.card,top:n.getBoundingClientRect().top}));
    const oldY=scrollY,focus=document.activeElement;
    const focusCard=focus?.closest('[data-card]')?.dataset.card,focusAction=focus?.dataset.action;
@@ -244,6 +272,10 @@ class AppController{
      const card=this.grid.querySelector(`[data-card="${CSS.escape(focusCard)}"]`);
      (card?.querySelector(`[data-action="${CSS.escape(focusAction||'')}"]`)||card||document.getElementById('orb')).focus({preventScroll:true});
    }
+   if(positions)this.grid.querySelectorAll('[data-card]').forEach(node=>{
+     const rect=positions.get(node.dataset.card);
+     if(rect)MotionEngine.flip(node,rect);else MotionEngine.enter(node);
+   });
  }
  showNew(){
    if(this.dialog.open||this.drag.active)return;
@@ -274,11 +306,13 @@ class AppController{
      {snoozedUntil:0,dismissed:false,reminderDone:false,lastReminderKey:FeedPolicy.key(c),lastNotifiedAt:now};
    Store.patch(id,patch);this.selected.delete(id);
    // End the active preview before hiding its source card.
-   if(this.dialog.open){history.replaceState({glass:true,prev:null},'','#'+this.baseMode);this.closeNative();}
-   this.withFeedAnchor(()=>{});this.checkReminders();
+   if(this.dialog.open){history.replaceState({glass:true,prev:null},'','#'+this.baseMode);this.closeNative(false);}
+   this.withFeedAnchor(()=>{},true);this.checkReminders();
    const label={'snooze':'已延后十分钟','dismiss-reminder':'已忽略此提醒','complete-reminder':'提醒已完成','restore-reminder':'已恢复提醒'}[action];
    this.toast(label+(Store.state.storageAvailable?'':' · 本次有效，浏览器无法保存'),()=>{
-     Store.patch(id,before);this.withFeedAnchor(()=>{});this.checkReminders();
+     Store.patch(id,before);this.withFeedAnchor(()=>{},true);this.checkReminders();
+     const card=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+     (card?.querySelector('.card-title-button')||card||document.getElementById('orb')).focus({preventScroll:true});
    });
  }
  attach(ids){
@@ -347,7 +381,7 @@ class AppController{
      if(this.clockMinute!==minute){this.clockMinute=minute;
        this.grid.querySelectorAll('[data-card]').forEach(node=>{
          const c=Store.card(node.dataset.card);
-         const label=node.querySelector(c?.type==='event'?'.event-meta span':'.reminder-row .eyebrow');
+         const label=node.querySelector(c?.type==='event'?'.event-meta span':'.reminder-label');
          if(label)label.textContent=c.type==='event'?eventRelative(c):FeedPolicy.label(c,Store.item(c.id),Date.now());
        });
      }
@@ -365,13 +399,11 @@ class AppController{
  click(e){
    if(Date.now()<this.drag.suppressUntil)return;
    const el=e.target.closest?.('[data-action]');
+   if(el?.closest('.card-more-menu'))this.closeMore(true);
+   else if(!el?.matches('[data-action="card-more"]')&&!e.target.closest?.('.card-more-menu'))this.closeMore();
    if(el){e.preventDefault();e.stopPropagation();this.action(el.dataset.action,el.dataset.id,el.dataset.extra,el,e);return;}
    const card=e.target.closest?.('[data-card]');
    if(card&&!e.target.closest('button,a,input,textarea')){this.navigate('#card/'+card.dataset.card);return;}
-   if(!e.target.closest?.('#dock')&&!e.target.closest?.('.card-more-menu')){
-     this.grid.querySelectorAll('.card-more-menu').forEach(n=>n.remove());
-     this.grid.querySelectorAll('.tools-open').forEach(n=>n.classList.remove('tools-open'));
-   }
  }
  action(name,id='',extra='',el=null,event=null){
    switch(name){
@@ -386,7 +418,8 @@ class AppController{
      case 'show-new':this.showNew();break;
      case 'top':window.scrollTo({top:0,behavior:MotionEngine.reduced?'instant':'smooth'});break;
      case 'view-feed':case 'view-library':case 'view-sources':this.closeNative();this.navigate('#'+name.slice(5));break;
-     case 'preview':this.navigate('#card/'+id);break;
+     case 'card-open':case 'preview':this.navigate('#card/'+id);break;
+     case 'context-preview':this.closeAI();this.navigate('#card/'+id);break;
      case 'reader':this.navigate('#read/'+id);break;
      case 'close':this.closeModal();break;
      case 'card-ai':this.attach([id]);break;
@@ -428,7 +461,12 @@ class AppController{
      case 'undo':if(this.undoAction){const fn=this.undoAction;this.undoAction=null;fn();this.toast('已撤销');}break;
      case 'ai-close':this.closeAI();break;
      case 'ai-clear':this.contexts=[];this.messages=[];this.aiVersion=(this.aiVersion||0)+1;this.aiBusy=false;this.paintAI();break;
-     case 'ai-remove':this.contexts=this.contexts.filter(x=>x!==id);this.paintAI();break;
+     case 'ai-remove':{
+       const index=this.contexts.indexOf(id);this.contexts=this.contexts.filter(x=>x!==id);this.paintAI();
+       const next=this.contexts[Math.min(Math.max(0,index),this.contexts.length-1)];
+       const target=next?document.querySelector(`.context-card[data-context="${CSS.escape(next)}"] .context-remove`):null;
+       (target||document.getElementById('ai-input')).focus({preventScroll:true});break;
+     }
      case 'ai-send':this.sendAI();break;
      case 'external':{const url=Store.card(id)?.url;if(url&&url.startsWith('https://'))window.open(url,'_blank','noopener,noreferrer');break;}
      case 'download-calendar':{
@@ -476,6 +514,13 @@ class AppController{
    }
  }
  key(e){
+   const menu=e.target.closest?.('.card-more-menu');
+   if(menu&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
+     const items=[...menu.querySelectorAll('button')],index=items.indexOf(document.activeElement);
+     const next=e.key==='Home'?0:e.key==='End'?items.length-1:(index+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;
+     e.preventDefault();items[next]?.focus();return;
+   }
+   if(e.key==='Escape'&&this.grid.querySelector('.card-more-menu')){e.preventDefault();this.closeMore(true);return;}
    if(e.key==='Tab'&&this.dialog.open){
      const focusable=[...this.dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]')].filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden');
      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
@@ -488,7 +533,7 @@ class AppController{
    if(e.isComposing)return;
    if(e.target.id==='ai-input'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.sendAI();return;}
    if(e.target.id==='tag-new'&&e.key==='Enter'){e.preventDefault();this.action('add-tag',this.editId);return;}
-   if(e.key==='Escape'&&!this.dialog.open){document.getElementById('ai-panel').hidden=true;this.hideDock();this.grid.querySelectorAll('.card-more-menu').forEach(n=>n.remove());return;}
+   if(e.key==='Escape'&&!this.dialog.open){if(!document.getElementById('ai-panel').hidden)this.closeAI();this.hideDock();return;}
    if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-card]')){e.preventDefault();this.navigate('#card/'+e.target.dataset.card);}
  }
 }

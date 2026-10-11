@@ -12,12 +12,12 @@ function fixture(raw=null,at=1800000000000){
  const context=vm.createContext({
   Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}},
   localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},
-  window:{},document:{getElementById(id){if(!nodes.has(id))nodes.set(id,{dataset:{},setAttribute(k,v){this[k]=v;}});return nodes.get(id);}},
+  window:{},CSS:{escape:value=>String(value)},document:{getElementById(id){if(!nodes.has(id))nodes.set(id,{dataset:{},focus(){},setAttribute(k,v){this[k]=v;}});return nodes.get(id);}},
   icon:()=>'',history:{replaceState(){}},
  });
  vm.runInContext(sources.map(p=>fs.readFileSync(path.join(root,p),'utf8')).join('\n')+'\nthis.api={FeedPolicy,Store,AppController,SeedCards,FreshCards};',context);
  const api=context.api;api.Store.load();
- const app=new api.AppController();app.dialog={open:false};app.drag={active:null};
+ const app=new api.AppController();app.dialog={open:false};app.drag={active:null};app.grid={querySelector:()=>null};
  app.renders=0;app.withFeedAnchor=fn=>{fn();app.renders++;};
  app.toast=(message,undo)=>{app.lastToast=message;app.undoAction=undo;};
  return {...api,app,context,data,nodes,now:()=>now,advance:ms=>now+=ms};

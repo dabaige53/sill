@@ -12,7 +12,7 @@ const LibraryView={
      labCard('progress','03 / ATOM','把进度，放进一个圆环','不用再写一行“已读百分之多少”。黑色线段承担进度表达。',
        `<div class="lab-preview" id="lab-rings">${ring(.25,24)}${ring(.55,36)}${ring(.75,52)}${ring(1,22)}</div><input class="ring-range" type="range" min="0" max="100" value="55" aria-label="调整圆环演示进度" data-input="lab-ring">`),
      labCard('type','04 / FOUNDATION','字，是最安静的界面','优先系统字体，不分发 SF 字体。内容使用自然行距，中文不做过密的字距压缩。',
-       `<div class="type-sample">让重要的信息，<br>自然浮现。<small>17 / 600 · 标题<br>14 / 400 · 正文<br>12 / 400 · 元数据</small></div>`),
+       `<div class="type-sample">让重要的信息，<br>自然浮现。<small>重点标题 / 正文 / 来源<br>字号与密度随卡片角色调整</small></div>`),
      labCard('color','05 / FOUNDATION','颜色退后，内容向前','暖白、石灰、墨色。状态色只在需要说明行为时出现。',
        `<div class="swatches"><span class="swatch" style="background:#f5f4f0"></span><span class="swatch" style="background:#fff"></span><span class="swatch" style="background:#dfe7da"></span><span class="swatch" style="background:#777e72"></span><span class="swatch" style="background:#252627"></span></div>`),
      labCard('motion','06 / INTERACTION','动一下，是为了说清楚','轻触下方图标。进入、提起、回落都很短，不让动画占用阅读时间。',
@@ -35,7 +35,7 @@ const LibraryView={
 };
 const SourcesView={
  render(){
-   return `<section class="lab-card lab-intro" data-layout="sources-intro"><span class="lab-number">RESEARCH · 2026.10.10</span><h1>从官方规则，<br>到具体交互。</h1><p>收集、比较，再决定。本页保存资料入口与它影响的设计决策；不是把所有库都装进一个网页。</p><div class="lab-footer">${button('grid','返回信息流','view-feed')}${button('layers','查看组件实验室','view-library')}${button('info','原型边界与设置','settings')}</div></section>`+
+   return `<section class="lab-card lab-intro" data-layout="sources-intro"><span class="lab-number">RESEARCH · 2026.10.11</span><h1>从官方规则，<br>到具体交互。</h1><p>本页保存设计资料、可体验组件及其对应的卡片行为。区分本轮实现、后续研究与付费组件参考。</p><div class="lab-footer">${button('grid','返回信息流','view-feed')}${button('layers','查看组件实验室','view-library')}${button('info','原型边界与设置','settings')}</div></section>`+
    Sources.map((s,i)=>`<article class="lab-card source-card" data-layout="source-${i}"><span class="lab-number">${esc(s.kind)}</span><h2><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></h2><p>${esc(s.note)}</p><a class="source-link" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"><span>${esc(new URL(s.url).hostname)}</span>${icon('external',16)}</a></article>`).join('');
  }
 };

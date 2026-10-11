@@ -12,16 +12,30 @@ class FeedLayout{
    const el=this.container,width=el.clientWidth;
    const items=[...el.querySelectorAll(':scope > .feed-card,:scope > .lab-card')];
    if(!items.length){el.style.height='';return;}
-   const cols=width>=1200?4:width>=860?3:width>=580?2:1,gap=18,w=(width-(cols-1)*gap)/cols;
+   if(!width)return;
+   // A single editorial card gives the feed a focal point. Span placement still
+   // follows DOM order, so priorities and keyboard order retain their meaning.
+   const cols=width>=1080?3:width>=650?2:1,gap=cols===1?16:20,w=(width-(cols-1)*gap)/cols;
    const old=animate?new Map(items.map(n=>[n,n.getBoundingClientRect()])):null;
-   items.forEach(n=>{n.style.width=w+'px';});
+   const feature=cols===3?items.slice(0,3).find(n=>n.matches('.type-article.form-image')):null;
+   el.dataset.columns=cols;
+   items.forEach(n=>{
+     const featured=n===feature;
+     n.classList.toggle('is-featured',featured);
+     n.style.width=(featured?w*2+gap:w)+'px';
+   });
    const heights=Array(cols).fill(0);
    items.forEach(n=>{
-     const col=heights.indexOf(Math.min(...heights));
-     n.style.left=(col*(w+gap))+'px';n.style.top=heights[col]+'px';
-     heights[col]+=n.offsetHeight+gap;
+     const span=n===feature?2:1;
+     let col=0,y=Infinity;
+     for(let i=0;i<=cols-span;i++){
+       const candidate=Math.max(...heights.slice(i,i+span));
+       if(candidate<y){col=i;y=candidate;}
+     }
+     n.style.left=(col*(w+gap))+'px';n.style.top=y+'px';
+     for(let i=col;i<col+span;i++)heights[i]=y+n.offsetHeight+gap;
    });
-   el.style.height=Math.max(...heights)+'px';
+   el.style.height=(Math.max(...heights)-gap)+'px';
    if(old)items.forEach(n=>MotionEngine.flip(n,old.get(n)));
  }
 }

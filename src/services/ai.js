@@ -16,9 +16,11 @@ const DemoAI={
 const AIView={
  shell(){
    return `<section class="ai-panel" id="ai-panel" role="dialog" aria-modal="false" aria-labelledby="ai-title" data-drop="ai" hidden>
-   <div class="ai-header"><div><h2 id="ai-title">一起想一想</h2><small>本地演示 · 未连接模型</small></div><div>${button('undo','清空对话和引用','ai-clear')}${button('x','关闭 AI 对话','ai-close')}</div></div><div class="ai-contexts" id="ai-contexts"></div><div class="ai-empty" id="ai-empty">${icon('sparkles',27)}<p>把想继续的内容，<br>轻轻放进来。</p><small>拖动卡片，或点击卡片上的 AI 图标</small></div><div class="ai-messages" id="ai-messages" aria-live="polite" aria-relevant="additions"></div><div class="ai-compose"><textarea id="ai-input" rows="3" aria-label="向 AI 提问" placeholder="围绕这些内容，想问什么？"></textarea>${button('up','发送演示提问','ai-send')}</div></section>`;
+   <div class="ai-header"><div><h2 id="ai-title">一起想一想</h2><small>本地演示 · 未连接模型</small></div><div>${button('undo','清空对话和引用','ai-clear')}${button('x','关闭 AI 对话','ai-close')}</div></div><div class="ai-contexts" id="ai-contexts" aria-label="对话引用"></div><div class="ai-empty" id="ai-empty">${icon('sparkles',27)}<p>把想继续的内容，<br>轻轻放进来。</p><small>拖动卡片，或点击卡片上的 AI 图标</small></div><div class="ai-messages" id="ai-messages" aria-live="polite" aria-relevant="additions"></div><div class="ai-compose"><textarea id="ai-input" rows="3" aria-label="向 AI 提问" placeholder="围绕这些内容，想问什么？"></textarea>${button('up','发送演示提问','ai-send')}</div></section>`;
  },
  contexts(ids){
-   return ids.map(id=>{const c=Store.card(id);return c?`<div class="context-chip">${icon(CardTypes[c.type].icon,16)}<span>${esc(c.title.replace(/\n/g,''))}</span>${button('x','移除引用：'+c.title,'ai-remove',id)}</div>`:'';}).join('');
+   const cards=ids.map(id=>Store.card(id)).filter(Boolean);
+   if(!cards.length)return '';
+   return `<div class="context-heading"><span>${cards.length} 张卡片作为上下文</span><span>发送前可调整</span></div>`+cards.map(c=>`<section class="context-card context-chip" data-context="${esc(c.id)}" aria-label="引用：${esc(c.title)}"><div class="context-thumbnail" aria-hidden="true">${c.image?`<img src="${Assets[c.image]}" alt="" draggable="false">`:icon(CardTypes[c.type].icon,20)}</div><div class="context-copy"><div class="context-meta">${esc(CardTypes[c.type].label)} · ${esc(c.source||'我的空间')}</div><button type="button" class="context-title" data-action="context-preview" data-id="${esc(c.id)}" aria-label="查看引用：${esc(c.title)}">${esc(c.title.replace(/\n/g,''))}</button><p class="context-summary">${esc(c.summary||'打开查看内容')}</p></div>${button('x','移除引用：'+c.title,'ai-remove',c.id,'','context-remove')}</section>`).join('');
  }
 };
