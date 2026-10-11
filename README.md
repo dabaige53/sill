@@ -1,0 +1,55 @@
+# Quiet Glass
+
+一个 **Card-first / Quiet Glass** 的个人信息流原型，基于用户与 ChatGPT 在 2026-10-10 至 2026-10-11 的产品设计讨论。
+
+## 在线查看与本地运行
+
+- [信息流](./index.html)：主体交互原型
+- [组件实验室](./components.html)：原子组件、卡片与控件
+- [设计与来源](./research.html)：设计参考与组件选型
+- [完整产品需求](./docs/PRODUCT-REQUIREMENTS.md)
+- [交互设计规范](./docs/INTERACTION-SPEC.md)
+- [对话与设计决策](./docs/CONVERSATION-HISTORY.md)
+- [测试说明](./tests/REPORT.md)
+
+直接用浏览器打开三个 HTML 文件即可体验。它们是独立运行的**设计原型**，并非已经接入邮件、日程、笔记和真实 AI 的成品服务。
+
+> 仓库为 Private。私有 GitHub 仓库不能直接当作对外公开网页访问；如果需要私密的在线预览，还应单独安排受控身份验证的部署。
+
+## 产品立场
+
+> 平时只有内容，操作时才有工具。卡片既可阅读，也可交给 AI 处理。
+
+- 不要常驻导航栏、侧边栏、顶栏筛选标签、Banner 或统计面板。
+- 信息流是统一入口，邮件/资讯/笔记/待办/日程/提醒/媒体/阅读反馈等都以卡片呈现。
+- 收藏、标签、备注、稍后读、筛选等是**按需唤出的动作与状态**。
+- Apple 风格的半透明玻璃主要用于浮动控件；内容卡片仍以明确、易读的实体表面承载信息。
+- 拖动卡片至浮动 AI 接收区，即带引用打开聊天，不应自动向模型发送。
+- 电脑端支持 hover、drag，触屏支持长按及显式替代入口。
+- 不把卡片点击与“完整阅读”混为一谈，已读状态与阅读进度单独追踪。
+- 重要提醒自然穿插信息流，不能过度打扰，也不应在刷新时打断当前阅读。
+
+## 文件结构
+
+```text
+index.html
+components.html
+research.html
+docs/
+  PRODUCT-REQUIREMENTS.md
+  INTERACTION-SPEC.md
+  CONVERSATION-HISTORY.md
+  DESIGN-DECISIONS.md
+tests/
+  REPORT.md
+```
+
+原始模块化构建包此前已在对话中作为 `quiet-glass-source.zip` 交付；此仓库当前优先发布可独立运行的构建页与产品设计文档。不要将单文件 HTML 误认作最终组件架构。
+
+## 后续开发原则
+
+设计变量 → 图标/玻璃/按钮等原子组件 → 四种外观形态和业务卡片模板 → 筛选/预览/拖拽/AI 等交互状态机 → 信息流编排 → 真实数据源连接。
+
+设计研究建议：Apple Human Interface Guidelines、Lucide、Motion、Radix、dnd-kit。当前独立 HTML 演示并不代表已实际安装这些库。
+
+版权所有：项目所有者。
