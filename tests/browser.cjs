@@ -36,7 +36,7 @@ const results=[];
     await fn(page,context);
     assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
     results.push({name,status:'PASS'});console.log('PASS',name);
-   }catch(e){results.push({name,status:'FAIL',error:e.message});throw e;}
+   }catch(e){await page.screenshot({path:path.join(artifacts,'failure.png')}).catch(()=>{});results.push({name,status:'FAIL',error:e.message});throw e;}
    finally{await context.close();}
   }
   const action=(page,name,id='',extra='')=>page.evaluate(([name,id,extra])=>window.__app.action(name,id,extra),[name,id,extra]);

@@ -87,10 +87,13 @@ class AppController{
  }
  navigate(hash){
    if(this.mode==='feed'||this.mode==='library'||this.mode==='sources')this.routeScroll[this.mode]=scrollY;
-   history.pushState({glass:true,prev:location.hash},'',hash);this.route();
+   history.pushState({glass:true,prev:location.hash},'',hash);this.route(true);
  }
- route(){
+ route(force=false){
    const hash=location.hash;
+   // Back/forward emits both popstate and hashchange; handle one transition only.
+   if(!force&&this.lastRouteHash===hash)return;
+   this.lastRouteHash=hash;
    if(/^#(card|read)\//.test(hash)){
      const [,kind,id]=hash.match(/^#(card|read)\/(.+)$/)||[];
      if(!id||!Store.card(id)){history.replaceState({glass:true,prev:null},'','#feed');this.route();return;}
