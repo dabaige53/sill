@@ -136,10 +136,23 @@ try {
   await page.screenshot({path:join(artifacts,'source-safe-annotation.png'),animations:'disabled'});
   await page.evaluate(id=>window.__app.action('local-note-edit',id),local.id);await page.locator('#local-note-title').waitFor();
   await page.screenshot({path:join(artifacts,'local-note-editor.png'),animations:'disabled'});
+  // Hold the JS reflow to cover the interval before resize/RAF delivery deterministically.
+  await page.evaluate(()=>{const layout=window.__app.layout;cancelAnimationFrame(layout.frame);window.removeEventListener('resize',layout.onResize);});
+  try{
+    await page.setViewportSize({width:390,height:844});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    for(const width of [390,320]){
+      await page.setViewportSize({width,height:844});
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      assert.equal(await page.locator('#feed-grid').getAttribute('data-columns'),'3','desktop reflow remains delayed');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'feed stays contained while its desktop reflow is delayed');
+    }
+  }finally{
+    await page.evaluate(()=>{const layout=window.__app.layout;window.addEventListener('resize',layout.onResize,{passive:true});layout.layout(false);});
+  }
   await page.setViewportSize({width:390,height:844});
-  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.screenshot({path:join(artifacts,'local-note-editor-mobile.png'),animations:'disabled'});
-  await writeFile(join(artifacts,'content-browser.json'),JSON.stringify({status:'PASS',checks:['server annotations win without legacy upload','invalid create draft can be corrected','390px local note editor','CAS conflict preserves draft through reload','explicit legacy import only','source content/provenance remain unchanged','local note create with lost-response idempotency','local note edit conflict and latest reload','MCP edit reaches open feed','reload persistence','typing or reopening during save preserves newer drafts','lost-create response reconciles immutable request after edited draft reload'],pageErrors:errors},null,2));
+  await writeFile(join(artifacts,'content-browser.json'),JSON.stringify({status:'PASS',checks:['server annotations win without legacy upload','invalid create draft can be corrected','390px local note editor','390px and 320px feed stay contained before deferred reflow','CAS conflict preserves draft through reload','explicit legacy import only','source content/provenance remain unchanged','local note create with lost-response idempotency','local note edit conflict and latest reload','MCP edit reaches open feed','reload persistence','typing or reopening during save preserves newer drafts','lost-create response reconciles immutable request after edited draft reload'],pageErrors:errors},null,2));
   console.log('PASS local content browser + HTTP + MCP journey');
 }finally{
   await browser?.close();await client.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await service.close();await rm(directory,{recursive:true,force:true});
