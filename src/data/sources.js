@@ -1,5 +1,47 @@
 const Sources = [
   {
+    "id": "apple-design-system",
+    "title": "Apple · Get to know the new design system",
+    "url": "https://developer.apple.com/videos/play/wwdc2025/356/",
+    "kind": "V0.5 · 层级与几何",
+    "note": "用布局和分组建立层级；次要动作进入 More；图片与卡片圆角同心。本项目采用 20px 外圆角、8px 图像内距、12px 内圆角，尺寸是项目选择。"
+  },
+  {
+    "id": "apple-liquid-glass",
+    "title": "Apple · Meet Liquid Glass",
+    "url": "https://developer.apple.com/videos/play/wwdc2025/219/",
+    "kind": "V0.5 · 材质分层",
+    "note": "玻璃服务导航和操作层，避免内容玻璃化与玻璃叠玻璃。本轮卡片恢复中性白色实体，玻璃仅保留在浮动工具与临时操作层。"
+  },
+  {
+    "id": "things-progressive",
+    "title": "Things · Details when needed",
+    "url": "https://culturedcode.com/things/features/",
+    "kind": "V0.5 · 渐进展开",
+    "note": "官方展示任务展开后才露出详细字段。本轮删除任务说明段落，首层保留完成操作与期限；更多信息放入预览。参考长期交互原则，不把旧宣传图当成最新像素规格。"
+  },
+  {
+    "id": "reader-hierarchy",
+    "title": "Readwise Reader · Inbox",
+    "url": "https://readwise.io/read",
+    "kind": "V0.5 · 阅读层级",
+    "note": "官网界面将标题、短摘要和来源分层，当前条目才显示快捷操作。本轮规定标题与必要摘要最多两行，完整正文进入阅读层；不复制其高密度工作台。"
+  },
+  {
+    "id": "craft-gallery-density",
+    "title": "Craft · Gallery View",
+    "url": "https://www-staff.craft.do/blog/craft-update-3-3-9",
+    "kind": "V0.5 · 可见字段",
+    "note": "Gallery 支持 Small/Large 卡片和可见字段控制。本轮按用途控制信息预算与自然高度，不给所有卡片塞入所有字段，也不照搬彩色属性装饰。"
+  },
+  {
+    "id": "mymind-content",
+    "title": "mymind · Content-led cards",
+    "url": "https://mymind.com/what",
+    "kind": "V0.5 · 内容识别",
+    "note": "不同内容保留适合自己的识别方式。本轮图片负责图文识别、文字负责笔记识别；时间敏感的提醒继续保留稳定排序和直接操作，不照搬无序图片墙。"
+  },
+  {
     "id": "linear-hierarchy",
     "title": "Linear · A calmer interface",
     "url": "https://linear.app/now/behind-the-latest-design-refresh",

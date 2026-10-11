@@ -9,7 +9,7 @@ export default {
     layout: 'fullscreen',
     docs: { description: { component: '卡片实现：`src/cards/templates.js` 的 cardHTML() 与 CardTemplates；类型登记：`src/data/card-catalog.js`；视觉样式：`src/styles/cards.css`。13 个形态覆盖 10 类内容，均调用正式模板。卡片同时承载信息和操作：预览、阅读、收藏、任务勾选及加入 AI 引用。' } }
   },
-  args: { variant: 'article-image', state: 'default', title: '', summary: '', width: 420 },
+  args: { variant: 'article-image', state: 'default', title: '', summary: '', width: 360 },
   argTypes: {
     variant: { name: '卡片形态', control: 'select', options: ["article-image", "article-standard", "mail-standard", "note-quote", "note-standard", "task-active", "task-completed", "event-standard", "reminder-compact", "media-image", "insight-data", "digest-data", "suggestion-standard"], description: '与 CardCatalog.variants 的 key 一致。' },
     state: { name: '展示状态', control: 'select', options: ['default', 'read', 'bookmarked', 'selected', 'snoozed', 'completed'], description: '收藏与已读属于状态；延后适用于提醒，完成适用于待办。' },

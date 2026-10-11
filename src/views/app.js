@@ -232,7 +232,7 @@ class AppController{
    c.classList.add('tools-open');
    const menu=document.createElement('div');menu.className='card-more-menu glass';menu.setAttribute('role','group');menu.setAttribute('aria-label','更多卡片操作');
    menu.id='card-menu-'+id;
-   const s=Store.item(id),items=[['tag','编辑标签与备注','edit'],['clock',s.later?'移出稍后阅读':'稍后阅读','later'],[s.read?'undo':'check',s.read?'标记为未读':'标记为已读','toggle-read'],['select',this.selected.has(id)?'取消选择':'选择这张卡片','select']];
+   const s=Store.item(id),items=[['tag','编辑标签与备注','edit'],['clock',s.later?'移出稍后阅读':'稍后阅读','later'],[s.read?'undo':'check',s.read?'标记为未读':'标记为已读','toggle-read'],['select',this.selected.has(id)?'取消选择':'选择这张卡片','select'],['bookmark',s.bookmarked?'取消收藏':'收藏卡片','bookmark'],['sparkles','加入 AI 对话','card-ai']];
    menu.innerHTML=items.map(([symbol,label,action])=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}">${icon(symbol,17)}<span>${label}</span></button>`).join('');
    c.appendChild(menu);
    const trigger=c.querySelector('[data-action="card-more"]');trigger?.setAttribute('aria-expanded','true');trigger?.setAttribute('aria-controls',menu.id);

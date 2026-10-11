@@ -68,7 +68,7 @@ function createStory({ kind, title, description, source, content, interactive = 
   const root = element(`<section class="qg-story" data-story-kind="${esc(kind)}">
     <header class="qg-story-heading"><span class="qg-story-eyebrow">QUIET GLASS / DESIGN SYSTEM</span><h1 id="page-title">${esc(title)}</h1><p>${esc(description)}</p></header>
     <div class="feed-grid is-catalog qg-story-canvas" id="feed-grid">${typeof content === 'function' ? content() : content}</div>
-    <footer class="qg-story-note"><span>${icon('layers', 15)} 与产品共享源码</span><code>${esc(source)}</code><p>Controls 与页面操作仅改变当前预览。保存设计请修改源文件或 Story 参数，并提交 Git。</p></footer>
+    <details class="qg-story-note"><summary>规格与源码</summary><code>${esc(source)}</code><p>Controls 仅改变当前预览。永久修改请保存到组件源码或 Story 文件，并提交 Git。</p></details>
     ${shell()}</section>`);
   root.classList.toggle('qg-static-story', !interactive);
   const app = new AppController();
@@ -182,7 +182,7 @@ function createStory({ kind, title, description, source, content, interactive = 
   return root;
 }
 
-export function renderIcon({ name = 'sparkles', size = 32, color = '#496656', disabled = false } = {}) {
+export function renderIcon({ name = 'sparkles', size = 32, color = '#1d1d1f', disabled = false } = {}) {
   const key = Object.hasOwn(Glyphs, name) ? name : 'sparkles';
   const meta = IconCatalog.icons[key] || { name: key, purpose: '共享图标' };
   const root = createStory({ kind: 'icon', title: meta.name, description: meta.purpose, source: 'src/atoms/icons.js · icon(name, size)', content: `<div class="qg-icon-workbench"><div class="qg-icon-surface"><button type="button" class="qg-icon-button" data-action="lab-icon" data-extra="${esc(key)}" aria-label="${esc(meta.name)}" ${disabled ? 'disabled' : ''}>${icon(key, bounded(size, 32, 12, 96))}</button></div><div class="qg-icon-details"><code>${esc(key)}</code><p>24 × 24 viewBox · 1.65 px 描边<br>使用 currentColor，与所在控件保持一致。</p><div class="qg-icon-scale">${[18, 24, 32].map(n => `<span>${icon(key, n)}<small>${n} px</small></span>`).join('')}</div></div></div>` });
@@ -190,7 +190,7 @@ export function renderIcon({ name = 'sparkles', size = 32, color = '#496656', di
   return root;
 }
 
-export function renderIcons({ size = 28, color = '#496656' } = {}) {
+export function renderIcons({ size = 28, color = '#1d1d1f' } = {}) {
   const root = createStory({ kind: 'icons', title: '图标目录', description: `${Object.keys(Glyphs).length} 个共享 SVG 图标。每个图形来自产品的同一份路径，可在 Controls 调整尺寸与颜色。`, source: 'src/atoms/icons.js · src/data/icon-catalog.js', content: () => IconCatalog.groups.map(group => {
     const keys = Object.keys(Glyphs).filter(key => (IconCatalog.icons[key]?.group || 'uncategorized') === group.key);
     if (!keys.length) return '';
@@ -210,15 +210,15 @@ function applyCardState(card, state) {
   return values;
 }
 
-export function renderCard({ variant = 'article-image', state = 'default', title, summary, width = 440 } = {}) {
+export function renderCard({ variant = 'article-image', state = 'default', title, summary, width = 360 } = {}) {
   const sample = CardCatalog.variants.find(item => item.key === variant) || CardCatalog.variants[0];
   let selected = false;
-  const root = createStory({ kind: 'card', title: sample.title, description: `${sample.anatomy}。${sample.behavior.replace('展示当前浏览器真实状态。', '展示本次预览状态。')}`, source: 'src/cards/templates.js · cardHTML(card) · src/data/card-catalog.js', content: () => {
+  const root = createStory({ kind: 'card', title: sample.title, description: sample.anatomy, source: 'src/cards/templates.js · cardHTML(card) · src/data/card-catalog.js', content: () => {
     const card = Store.card(sample.id);
     if (typeof title === 'string' && title) card.title = title;
     if (typeof summary === 'string' && summary) card.summary = summary;
     selected = !!applyCardState(card, state).selected;
-    return `<div class="qg-card-workbench" style="width:${frameWidth(width)}px"><div class="catalog-card-stage">${cardHTML(card)}</div><p class="qg-interaction-hint">${icon('eye', 15)} 点击标题预览 · 卡内直接操作 · 更多动作按需出现</p></div>`;
+    return `<div class="qg-card-workbench" style="width:${frameWidth(width, 360)}px"><div class="catalog-card-stage">${cardHTML(card)}</div></div>`;
   } });
   root.dataset.storyVariant = sample.key;
   root.dataset.storyState = typeof state === 'string' ? state : 'custom';
@@ -231,7 +231,7 @@ export function renderCardStates() {
 }
 
 export function renderCards() {
-  return createStory({ kind: 'cards', title: '卡片目录', description: '10 种内容，13 种呈现。所有样卡共享产品模板，可以预览、勾选、收藏或加入本地 AI 对话。', source: 'src/cards/templates.js · src/data/card-catalog.js', content: () => `<div class="catalog-grid catalog-card-grid">${CardCatalog.variants.map((sample, index) => `<section class="card-specimen" data-card-type="${esc(sample.type)}" data-card-form="${esc(sample.form)}" data-card-variant="${esc(sample.key)}"><header><span class="specimen-kicker">${String(index + 1).padStart(2, '0')} / ${esc(sample.type)} · ${esc(sample.form)}</span><h3>${esc(sample.title)}</h3></header><div class="catalog-card-stage">${cardHTML(Store.card(sample.id))}</div><div class="catalog-caption"><p>${esc(sample.anatomy)}</p><p>${esc(sample.behavior.replace('展示当前浏览器真实状态。', '展示本次预览状态。'))}</p></div></section>`).join('')}</div>` });
+  return createStory({ kind: 'cards', title: '卡片目录', description: '13 种样卡，共享一套尺寸、颜色和交互规则。', source: 'src/cards/templates.js · src/data/card-catalog.js', content: () => `<div class="catalog-grid catalog-card-grid">${CardCatalog.variants.map((sample, index) => `<section class="card-specimen" data-card-type="${esc(sample.type)}" data-card-form="${esc(sample.form)}" data-card-variant="${esc(sample.key)}"><header><h3>${esc(sample.title)}</h3></header><div class="catalog-card-stage">${cardHTML(Store.card(sample.id))}</div><details class="catalog-details"><summary>结构与交互</summary><p>${esc(sample.anatomy)}</p><p>${esc(sample.behavior.replace('展示当前浏览器真实状态。', '展示本次预览状态。'))}</p></details></section>`).join('')}</div>` });
 }
 
 function tuneComponent(root, key, { label, disabled, progress }) {
@@ -255,7 +255,7 @@ function tuneComponent(root, key, { label, disabled, progress }) {
 }
 
 export function renderComponent({ component = 'icon-button', width = 720, label = '', disabled, progress = 55 } = {}) {
-  const root = createStory({ kind: 'component', title: '组件工作台', description: '体验真实控件、状态与完整面板。所有操作保留在当前 Story，切换故事或参数后恢复初始状态。', source: 'src/views/library.js · ComponentCatalog.sections() · src/atoms/primitives.js', content: () => {
+  const root = createStory({ kind: 'component', title: '组件工作台', description: '试用控件及其不同状态。切换样例后恢复初始状态。', source: 'src/views/library.js · ComponentCatalog.sections() · src/atoms/primitives.js', content: () => {
     const items = ComponentCatalog.sections().flatMap(section => section.items);
     const sample = items.find(item => item.key === component) || items[0];
     // Catalog copy describes product persistence; the sandbox uses preview-only state.
@@ -273,7 +273,7 @@ export function renderTokens() {
   const colors = [['--canvas','画布'],['--card','内容表面'],['--ink','正文'],['--muted','次级文字'],['--faint','浅色填充'],['--accent','动作与选中'],['--alert','提醒'],['--line','分割线'],['--glass','轻玻璃'],['--glass-thick','厚玻璃']];
   const metrics = [['--gap','基础间距'],['--card-radius','卡片圆角'],['--image-radius','图像圆角'],['--panel-radius','面板圆角'],['--fast','即时反馈'],['--base','基本过渡'],['--layout','位置过渡']];
   const styles = getComputedStyle(document.documentElement);
-  return createStory({ kind: 'tokens', title: '从共同的尺度开始', description: '这些值直接读取产品 CSS 变量。调整一次颜色、留白、圆角或动效节奏，即可统一所有组件。', source: 'src/styles/tokens.css · src/styles/styles.json', interactive: false, content: `<section class="catalog-section"><div class="catalog-section-head"><h2>色彩与材质</h2><p>低对比背景，清晰的内容与操作层。</p></div><div class="qg-token-grid">${colors.map(([name, label]) => `<article class="qg-token"><div class="qg-token-color" style="background:var(${name})"></div><h3>${label}</h3><code>${name}</code><small>${esc(styles.getPropertyValue(name).trim())}</small></article>`).join('')}</div></section><section class="catalog-section"><div class="catalog-section-head"><h2>间距、圆角与节奏</h2></div><div class="qg-metric-grid">${metrics.map(([name, label]) => `<article class="qg-metric"><strong>${esc(styles.getPropertyValue(name).trim())}</strong><span>${label}</span><code>${name}</code></article>`).join('')}</div></section><section class="qg-type-panel"><span class="qg-story-eyebrow">TYPOGRAPHY</span><h2>让内容呼吸，让交互清楚。</h2><p>系统字体负责界面与正文，宋体用于摘录中的节奏。标题、摘要、元信息逐层降低视觉权重。</p><blockquote>界面的安静，来自每一个恰当的决定。</blockquote><code>var(--font) · 系统中文与西文字体</code></section>` });
+  return createStory({ kind: 'tokens', title: '从共同的尺度开始', description: '这些值直接读取产品 CSS 变量。调整一次颜色、留白、圆角或动效节奏，即可统一所有组件。', source: 'src/styles/tokens.css · src/styles/styles.json', interactive: false, content: `<section class="catalog-section"><div class="catalog-section-head"><h2>色彩与材质</h2><p>低对比背景，清晰的内容与操作层。</p></div><div class="qg-token-grid">${colors.map(([name, label]) => `<article class="qg-token"><div class="qg-token-color" style="background:var(${name})"></div><h3>${label}</h3><code>${name}</code><small>${esc(styles.getPropertyValue(name).trim())}</small></article>`).join('')}</div></section><section class="catalog-section"><div class="catalog-section-head"><h2>间距、圆角与节奏</h2></div><div class="qg-metric-grid">${metrics.map(([name, label]) => `<article class="qg-metric"><strong>${esc(styles.getPropertyValue(name).trim())}</strong><span>${label}</span><code>${name}</code></article>`).join('')}</div></section><section class="qg-type-panel"><span class="qg-story-eyebrow">TYPOGRAPHY</span><h2>让内容呼吸，让交互清楚。</h2><p>全局使用系统字体。标题、摘要、元信息各司其职，颜色仅强调操作和状态。</p><blockquote>界面的安静，来自每一个恰当的决定。</blockquote><code>var(--font) · 系统中文与西文字体</code></section>` });
 }
 
 export function renderReferences() {

@@ -10,7 +10,7 @@ export default {
     layout: 'fullscreen',
     docs: { description: { component: '图标源文件：`src/atoms/icons.js` 的 Glyphs 与 icon()。名称、分组和使用说明：`src/data/icon-catalog.js`。每个图标都可独立选择；在 Controls 中调整尺寸与颜色。修改共享 SVG 后，信息流和本组件库同时采用新版本。' } }
   },
-  args: { name: 'bookmark', size: 24, color: '#496656', disabled: false },
+  args: { name: 'bookmark', size: 24, color: '#1d1d1f', disabled: false },
   argTypes: {
     name: { name: '图标名称', control: 'select', options: ["sparkles", "refresh", "filter", "search", "bookmark", "tag", "note", "more", "check", "check-circle", "x", "plus", "arrow", "up", "back", "expand", "external", "clock", "calendar", "mail", "book", "layers", "bell", "play", "pause", "file", "download", "video", "select", "undo", "info", "grid", "grip", "send", "quote", "eye", "ring", "moon"], description: '共享 Glyphs 的唯一键名。' },
     size: { name: '图形尺寸', control: { type: 'range', min: 12, max: 64, step: 2 }, description: 'SVG 尺寸，单位 px；按钮的触控范围单独保留。' },

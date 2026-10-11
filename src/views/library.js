@@ -3,7 +3,7 @@ function componentAction(label,action,id=''){
  return `<button type="button" class="text-button" data-action="${esc(action)}"${id?` data-id="${esc(id)}"`:''}>${esc(label)}${icon('arrow',15)}</button>`;
 }
 function componentSpecimen(item){
- return `<article class="component-specimen ${item.wide?'is-wide':''}" data-component="${esc(item.key)}"><header><span class="specimen-caption">${esc(item.key)}</span><h3 class="component-title">${esc(item.title)}</h3><p class="component-description">${esc(item.description)}</p></header><div class="component-preview"><div class="specimen-stack">${item.preview}</div></div><footer class="component-footer"><code class="catalog-code">${esc(item.source)}</code>${item.actions?`<div class="specimen-actions">${item.actions}</div>`:''}</footer></article>`;
+ return `<article class="component-specimen ${item.wide?'is-wide':''}" data-component="${esc(item.key)}"><header><h3 class="component-title">${esc(item.title)}</h3></header><div class="component-preview"><div class="specimen-stack">${item.preview}</div></div><details class="catalog-details component-details"><summary>使用说明与源码</summary><p class="component-description">${esc(item.description)}</p><code class="catalog-code">${esc(item.source)}</code></details>${item.actions?`<footer class="component-footer"><div class="specimen-actions">${item.actions}</div></footer>`:''}</article>`;
 }
 const ComponentCatalog={
  sections(){

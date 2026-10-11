@@ -14,20 +14,18 @@ class FeedLayout{
    const items=[...el.querySelectorAll(':scope > .feed-card,:scope > .lab-card')];
    if(!items.length){el.style.height='';return;}
    if(!width)return;
-   // A single editorial card gives the feed a focal point. Span placement still
-   // follows DOM order, so priorities and keyboard order retain their meaning.
-   const cols=width>=1080?3:width>=650?2:1,gap=cols===1?16:20,w=(width-(cols-1)*gap)/cols;
+   // A consistent column width lets content, rather than automatic spanning,
+   // establish hierarchy. Short actions stay compact; reading cards have room.
+   const cols=width>=1000?3:width>=650?2:1,gap=cols===1?16:24,w=(width-(cols-1)*gap)/cols;
    const old=animate?new Map(items.map(n=>[n,n.getBoundingClientRect()])):null;
-   const feature=cols===3?items.slice(0,3).find(n=>n.matches('.type-article.form-image')):null;
    el.dataset.columns=cols;
    items.forEach(n=>{
-     const featured=n===feature;
-     n.classList.toggle('is-featured',featured);
-     n.style.width=(featured?w*2+gap:w)+'px';
+     n.classList.remove('is-featured');
+     n.style.width=w+'px';
    });
    const heights=Array(cols).fill(0);
    items.forEach(n=>{
-     const span=n===feature?2:1;
+     const span=1;
      let col=0,y=Infinity;
      for(let i=0;i<=cols-span;i++){
        const candidate=Math.max(...heights.slice(i,i+span));

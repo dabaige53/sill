@@ -16,6 +16,11 @@ const server=http.createServer((req,res)=>{
  res.end(fs.readFileSync(path.join(root,file.slice(1))));
 });
 const results=[];
+const layoutMetrics=[];
+async function recordLayout(page,width){
+ layoutMetrics.push({viewport:width,cards:await page.locator('.feed-card').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {id:n.dataset.card,width:Math.round(r.width),height:Math.round(r.height)};}))});
+ fs.writeFileSync(path.join(artifacts,'v05-layout-metrics.json'),JSON.stringify(layoutMetrics,null,2));
+}
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const origin=`http://127.0.0.1:${server.address().port}`;
@@ -163,6 +168,7 @@ const results=[];
   });
   await scenario('Expanded cards return to the same scroll position and focus, including rapid dismissal',async page=>{
    await page.screenshot({animations:'disabled',path:path.join(artifacts,'desktop-feed.png')});
+   await recordLayout(page,1440);
    await openCard(page,'article-01');
    await page.screenshot({animations:'disabled',path:path.join(artifacts,'desktop-preview.png')});
    await page.getByRole('button',{name:'关闭预览',exact:true}).click();
@@ -207,7 +213,9 @@ const results=[];
   });
   for(const width of [390,320])await scenario(`${width}px touch layout, reminder controls and reduced motion`,async page=>{
    await page.screenshot({animations:'disabled',path:path.join(artifacts,`feed-${width}.png`),fullPage:true});
-   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   await page.screenshot({animations:'disabled',path:path.join(artifacts,`feed-viewport-${width}.png`)});
+   await recordLayout(page,width);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true);
    const reminder=card(page,'reminder-01');
    await reminder.scrollIntoViewIfNeeded();
    await touchTargets(reminder.locator('.reminder-actions button,.card-more-trigger'),width);
@@ -259,8 +267,8 @@ const results=[];
    assert.ok(await page.locator('[data-component]').count()>0);
    await page.goto(origin+'/research.html');await page.waitForFunction(()=>window.__app?.mode==='sources');
    const sources=await page.locator('[data-source]').evaluateAll(nodes=>nodes.map(n=>n.dataset.source));
-   assert.equal(sources.length,28);assert.equal(new Set(sources).size,28);
-   assert.equal(await page.locator('[data-source] h3 a[href^="https://"]').count(),28);
+   assert.equal(sources.length,34);assert.equal(new Set(sources).size,34);
+   assert.equal(await page.locator('[data-source] h3 a[href^="https://"]').count(),34);
   });
   const componentNames=['icon-button','action-button','progress-ring','checkbox','avatars','attachment','tag-chip','metadata','search-field','textarea','toggle','glass-dock','card-menu','dialog-preview','reader','filter-panel','editor-panel','media-player','settings-panel','toast','selection','drop-targets','empty-state','new-content','motion','ai-context','ai-compose','ai-messages','ai-empty'];
   const cardTypes=['article','mail','note','task','event','reminder','media','insight','digest','suggestion'];

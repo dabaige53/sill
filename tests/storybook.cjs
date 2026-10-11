@@ -160,6 +160,7 @@ const storageSentinel = JSON.stringify({ version: 2, items: { 'article-01': { bo
       const title = page.locator('.card-title-button').first();
       await title.focus(); await page.keyboard.press('Enter');
       await page.waitForFunction(() => document.querySelector('#modal').open);
+      assert.equal(await page.locator('.preview-lead').innerText(), await page.evaluate(() => window.__storybookQuietGlass.Store.card('article-01').summary), 'summary removed from the card must remain in preview');
       assert.equal(await page.evaluate(() => window.__storybookQuietGlass.Store.item('article-01').seen), true);
       assert.equal(await page.evaluate(() => window.__storybookQuietGlass.Store.item('article-01').read), false);
       await snapshot(page, 'storybook-card-preview.png');
@@ -231,6 +232,21 @@ const storageSentinel = JSON.stringify({ version: 2, items: { 'article-01': { bo
       assert.equal(await canvas.locator('#modal').count(), 1);
       assert.equal(await canvas.locator('#ai-panel').count(), 1);
       assert.equal(await frame.evaluate(id => window.__storybookQuietGlass.Store.tasks(window.__storybookQuietGlass.Store.card('task-01')).find(item => item.id === id).done, taskId), false, 'switching stories leaked task state');
+    });
+    await scenario('Compact task cards keep overflow tasks available and actionable in preview', async page => {
+      await gotoStory(page, 'cards--task-active');
+      await page.evaluate(() => {
+        const { Store, app } = window.__storybookQuietGlass;
+        Store.card('task-01').tasks.push({ id: 'extra-1', text: '确认交付时间', done: false }, { id: 'extra-2', text: '安排下一次回顾', done: false });
+        app.refreshCard('task-01');
+      });
+      assert.equal(await page.locator('.feed-card .check-item').count(), 3);
+      assert.ok(await page.locator('.task-overflow').isVisible());
+      await page.locator('.card-title-button').click();
+      await page.waitForFunction(() => document.querySelector('#modal').open);
+      assert.equal(await page.locator('#modal .detail-task-list .check-item').count(), 5);
+      await page.locator('#modal [data-action="task"][data-extra="extra-2"]').click();
+      assert.equal(await page.evaluate(() => window.__storybookQuietGlass.Store.tasks(window.__storybookQuietGlass.Store.card('task-01')).find(task => task.id === 'extra-2').done), true);
     });
     for (const width of [390, 320]) await scenario(`${width}px Canvas keeps cards and components within the viewport`, async page => {
       for (const { id } of entries) {

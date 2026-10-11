@@ -11,9 +11,9 @@ export default {
   },
   backgrounds: {
    options: {
-    paper: { name: '暖白纸面', value: '#f7f7f3' },
+    paper: { name: '中性浅灰', value: '#f5f5f7' },
     white: { name: '纯白', value: '#ffffff' },
-    dark: { name: '深色对照', value: '#252c29' }
+    dark: { name: '深色对照', value: '#1d1d1f' }
    }
   }
  },
