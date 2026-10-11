@@ -14,7 +14,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python3 -m venv .sandbox-venv && .sandbox-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r requirements-sandbox.txt
+      - run: |
+          python3 -m venv .sandbox-venv && .sandbox-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r requirements-sandbox.txt
       - run: npm ci
       - run: npm run check
       - run: npm run test:integration
