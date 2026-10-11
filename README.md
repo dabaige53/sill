@@ -1,6 +1,10 @@
 # Quiet Glass
 
-一个 **Card-first / Quiet Glass** 的个人信息流原型，基于用户与 ChatGPT 在 2026-10-10 至 2026-10-11 的产品设计讨论。
+一个 **Card-first / Quiet Glass** 的个人信息空间，基于用户与 ChatGPT 在 2026-10-10 至 2026-10-11 的产品设计讨论。
+
+V0.2 在原有设计原型上增加了可运行的 **Codex 插件 + MCP 服务 + SQLite 数据层**，支持 Google Calendar、Notion、通用 Streamable HTTP MCP 数据源，以及在 Codex 对话中采集、检索、推荐、编排任务和准备外部写入。
+
+**开始使用：[Codex 插件与连接器接入说明](./docs/CODEX-PLUGIN.md)。** 插件可在本机安装，也可连接自行部署的 HTTPS MCP 服务；仓库中的实现不代表已经安装到你的 Codex 或已经授权真实账号。
 
 ## 在线查看与本地运行
 
@@ -12,7 +16,18 @@
 - [对话与设计决策](./docs/CONVERSATION-HISTORY.md)
 - [测试说明](./tests/REPORT.md)
 
-直接用浏览器打开三个 HTML 文件即可体验。它们是独立运行的**设计原型**，并非已经接入邮件、日程、笔记和真实 AI 的成品服务。
+直接用浏览器打开三个 HTML 文件仍可体验离线设计原型。使用 Node.js 24+ 运行服务后，首页进入真实数据模式，读取服务中的卡片；`components.html` 和 `research.html` 保留设计演示。对话推理由 Codex 完成，网页问题通过本地队列交给 Codex，网页不会自行唤起模型。
+
+```bash
+npm ci
+cp quiet-glass.config.example.json quiet-glass.config.json
+cp .env.example .env
+# 按接入说明配置来源与环境凭据后：
+npm run plugin:build
+npm start
+```
+
+HTTP 模式必须配置 `QG_AUTH_TOKEN`；本地 stdio 插件可独立使用。默认所有外部写入关闭，开启后仍需准备具体草稿并确认。密钥仅保留在服务进程环境或未提交的 `.env` 中。
 
 > 仓库为 Private。私有 GitHub 仓库不能直接当作对外公开网页访问；如果需要私密的在线预览，还应单独安排受控身份验证的部署。
 
@@ -42,9 +57,25 @@ docs/
   DESIGN-DECISIONS.md
 tests/
   REPORT.md
+  *.test.mjs
+server/                 # MCP、连接器、持久化与任务编排
+web/live.js             # 原信息流的真实数据适配
+skills/quiet-glass/     # Codex 对话编排技能
+scripts/                # 插件构建与校验
+plugin.json             # 可移植插件清单
+quiet-glass.config.example.json
 ```
 
-原始模块化构建包此前已在对话中作为 `quiet-glass-source.zip` 交付；此仓库当前优先发布可独立运行的构建页与产品设计文档。不要将单文件 HTML 误认作最终组件架构。
+原始模块化构建包此前已在对话中作为 `quiet-glass-source.zip` 交付；保留的单文件 HTML 是设计基线，不代表最终组件架构。新增后端和真实数据适配使用独立模块。
+
+## 验证
+
+```bash
+npm run check
+npm test
+```
+
+测试通过官方 MCP SDK 验证 stdio / HTTP 连接、工具与资源、跨 MCP 采集、日历/Notion 协议、去重与持久化、推荐、工作流恢复、确认与幂等写入、网页请求回传。外部服务使用隔离测试数据；真实账号必须完成授权后单独验收。详见 [集成验证记录](./tests/INTEGRATION-REPORT.md)。
 
 ## 后续开发原则
 
