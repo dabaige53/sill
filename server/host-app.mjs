@@ -57,6 +57,10 @@ function initialCard(card) {
     state:{read:card.state?.read===true,bookmarked:card.state?.bookmarked===true,
       dismissed:card.state?.dismissed===true,snoozedUntil:card.state?.snoozedUntil?clipped(card.state.snoozedUntil,50):null},
   };
+  if(card.provenance?.mode==='host-assisted'){
+    const p=card.provenance;
+    snapshot.provenance={mode:'host-assisted',attribution:'host-asserted',provider:clipped(p.provider,32),upstreamId:clipped(p.upstreamId,300),scope:Object.fromEntries(['accountId','workspaceId','calendarId'].filter(key=>typeof p.scope?.[key]==='string').map(key=>[key,clipped(p.scope[key],300)])),retrievedAt:clipped(p.retrievedAt,50),partial:p.partial===true,contentOrigin:clipped(p.contentOrigin,32),...(p.summaryOrigin?{summaryOrigin:clipped(p.summaryOrigin,32)}:{}),...(p.upstreamUpdatedAt?{upstreamUpdatedAt:clipped(p.upstreamUpdatedAt,50)}:{})};
+  }
   if(Number.isSafeInteger(card.revision)&&card.revision>=0)snapshot.revision=card.revision;
   const url=safeUrl(card.url);if(url)snapshot.url=url;
   for(const key of ['publishedAt','collectedAt','firstCollectedAt','createdAt','updatedAt','start','end','startDate','endDate']) {

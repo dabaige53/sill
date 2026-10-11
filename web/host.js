@@ -44,7 +44,14 @@ async function references(ids){
     const card=await api('/api/cards/'+encodeURIComponent(id));
     const content=String(card.content??'');
     const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(content));
-    refs.push({id:card.id,title:String(card.title||'').slice(0,160),source:String(card.sourceId||'').slice(0,160),url:typeof card.url==='string'?card.url.slice(0,500):null,hash:'sha256:'+Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,'0')).join(''),excerpt:content.slice(0,400),truncated:!!card.truncated||!!card.contentTruncated||content.length>400});
+    const provenance=card.provenance?{mode:'host-assisted',provider:card.provenance.provider,upstreamId:String(card.provenance.upstreamId).slice(0,300),scope:Object.fromEntries(['accountId','workspaceId','calendarId'].filter(key=>typeof card.provenance.scope?.[key]==='string').map(key=>[key,card.provenance.scope[key].slice(0,300)])),retrievedAt:card.provenance.retrievedAt,contentOrigin:card.provenance.contentOrigin,summaryOrigin:card.provenance.summaryOrigin,partial:card.provenance.partial,attribution:'host-asserted'}:undefined;
+    const ref={...(provenance?{provenance,summary:String(card.summary||'').slice(0,400),summaryTruncated:(card.summary?.length||0)>400}:{}),id:card.id,title:String(card.title||'').slice(0,160),source:String(card.sourceId||'').slice(0,160),url:typeof card.url==='string'?card.url.slice(0,provenance?2048:500):null,hash:'sha256:'+Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,'0')).join(''),excerpt:content.slice(0,400),truncated:!!card.truncated||!!card.contentTruncated||content.length>400};
+    // Bound the serialized references, including UTF-8. Omit instead of slicing identity URLs/scopes.
+    const fits=()=>new TextEncoder().encode(JSON.stringify(ref)).length<=2800&&new TextEncoder().encode(JSON.stringify([...refs,ref])).length<=24000;
+    if(!fits()&&ref.url){ref.url=null;ref.urlOmitted=true;ref.needsFullRead=true;}
+    if(!fits()){ref.excerpt='';if(Object.hasOwn(ref,'summary'))ref.summaryOmitted=true;delete ref.summary;ref.excerptOmitted=true;ref.truncated=true;ref.needsFullRead=true;}
+    if(!fits()&&ref.provenance){delete ref.provenance;ref.provenanceOmitted=true;ref.needsFullRead=true;}
+    refs.push(ref);
   }
   return refs;
 }
@@ -85,8 +92,14 @@ function installHostUI(){
     if(app.dialog.open){app.closeNative();if(/^#(card|read)\//.test(location.hash))history.replaceState({glass:true,prev:null},'','#'+app.baseMode);}
     app.selected.clear();app.updateSelection();app.openAI();publishSelection();
   };
+  document.addEventListener('click',event=>{const link=event.target.closest?.('[data-provenance-source]');if(link){event.preventDefault();event.stopPropagation();app.action('external',link.dataset.id);}},true);
   const originalAction=app.action.bind(app);
   app.action=(name,id='',...rest)=>{
+    if(name==='external'){
+      const url=store.card(id)?.url;if(!url||!url.startsWith('https://'))return;
+      if(!bridge.getHostCapabilities()?.openLinks){app.toast('当前宿主不支持打开链接，请复制可见来源链接后手动打开。');return;}
+      return bridge.openLink({url}).then(result=>{if(result?.isError)app.toast('宿主未打开来源链接，请手动复制链接。');}).catch(()=>app.toast('来源链接未打开，请手动复制链接。'));
+    }
     if(name==='ai-clear'||name==='ai-remove'){
       app.contexts=name==='ai-clear'?[]:app.contexts.filter(value=>value!==id);app.paintAI();return publishSelection();
     }

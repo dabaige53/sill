@@ -94,6 +94,7 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
         }
         if(req.method==='GET'&&url.pathname==='/api/settings'){json(res,200,service.readSettings());return;}
         if(req.method==='PATCH'&&url.pathname==='/api/settings'){json(res,200,service.updateSettings(await body(req)));return;}
+        if(req.method==='POST'&&url.pathname==='/api/ingest'){z.object({}).strict().parse(queryArgs(url));json(res,200,service.ingest(await body(req)));return;}
         if(req.method==='POST'&&url.pathname==='/api/notes'){json(res,201,service.createNote(await body(req)));return;}
         const noteMatch=url.pathname.match(/^\/api\/notes\/([a-z0-9_-]+)$/i);
         if(req.method==='PATCH'&&noteMatch){
@@ -141,7 +142,7 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
       let content=await readFile(resolve(ROOT,paths[url.pathname]),'utf8');
       if(paths[url.pathname]==='index.html')content=content.replace('<head>','<head><script>window.__QG_RUNTIME__=true;</script>');
       res.writeHead(200,{'Content-Type':url.pathname.endsWith('.js')?'application/javascript; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-store'}).end(content);
-    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT','ANSWER_CONFLICT','AI_CONCURRENCY_LIMIT','AI_DAILY_LIMIT','REQUEST_ALREADY_ANSWERED'].includes(error.code)?409:error instanceof QGError&&['CONVERSATION_NOT_FOUND','REQUEST_NOT_FOUND'].includes(error.code)?404:400,publicError(error));else res.end();}
+    }catch(error){if(!res.headersSent)json(res,error instanceof QGError&&['SETTINGS_CONFLICT','NOTE_CONFLICT','ANNOTATION_CONFLICT','IDEMPOTENCY_CONFLICT','ANSWER_CONFLICT','AI_CONCURRENCY_LIMIT','AI_DAILY_LIMIT','REQUEST_ALREADY_ANSWERED','INGEST_CONFLICT'].includes(error.code)?409:error instanceof QGError&&['CONVERSATION_NOT_FOUND','REQUEST_NOT_FOUND'].includes(error.code)?404:400,publicError(error));else res.end();}
   });
   await new Promise((accept,reject)=>{server.once('error',reject);server.listen(port,host,()=>{actualPort=server.address().port;accept();});});
   return server;
