@@ -101,3 +101,7 @@ docs/                                      # 产品需求、交互规范、对�
 - `npm run plugin:build`：生成本地插件包。
 
 真实模式的初始化维护在 `src/views/app.js`、`src/index.js`、`src/shell.html`，由构建生成全部五个入口；运行适配器为 `web/live.js`。请勿只修改生成后的首页。
+
+## 普通设置跨入口同步
+
+排序和减少透明度现在可通过网页、MCP 或 HTTP 修改，并由 SQLite 持久保存。使用 `qg_read_settings` / `qg_update_settings` 读取和按版本更新；冲突不会自动覆盖。离线演示仍只保存本地设置。范围、接口及验收见 [普通设置](docs/SETTINGS.md)。

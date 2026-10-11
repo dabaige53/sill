@@ -15,6 +15,7 @@
 | 推荐 | 关键词、兴趣、未读、收藏、时效、日程紧迫性和来源多样性；返回理由与证据 |
 | 复杂任务 | 持久化依赖图、异步运行、步骤输出引用、状态查询、失败重试与中断恢复 |
 | 外部写入 | 准备草稿 → 用户授权 → 提交；摘要绑定、有效期、幂等控制；结果未知时不自动重试 |
+| 普通设置 | 排序与减少透明度共用 SQLite 状态；网页、MCP、HTTP 按版本更新，冲突不重放 |
 | 网页 | 保留原卡片布局；真实数据、连接状态、刷新、已读/收藏同步、Codex 请求队列 |
 
 这些能力不会自动继承 Codex 中其它插件的凭据。Notion、日历与 MCP 来源分别在此服务中配置授权；连接器凭据不经过网页或模型上下文。默认没有真实资料，也不会用演示卡片假装真实连接成功。
@@ -155,3 +156,5 @@ npm run plugin:build -- --url https://your-private-host.example/mcp
 - [Google Calendar：事件创建](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert)
 - [Notion：页面搜索](https://developers.notion.com/reference/post-search)
 - [Notion：块读取](https://developers.notion.com/reference/get-block-children)
+
+普通设置接口和冲突处理见 [普通设置](SETTINGS.md)；它们不接受或修改任何凭据、连接器或安全配置。

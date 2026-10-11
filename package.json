@@ -17,7 +17,8 @@
     "plugin:build": "node scripts/build-plugin.mjs",
     "test:core": "python3 tests/verify.py",
     "test:integration": "npm run plugin:build && node --test tests/*.test.mjs",
-    "test:live-browser": "node tests/live-browser.mjs"
+    "test:live-browser": "node tests/live-browser.mjs",
+    "test:settings-browser": "node tests/settings-browser.mjs"
   },
   "devDependencies": {
     "@storybook/addon-docs": "10.6.1",
