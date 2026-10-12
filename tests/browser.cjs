@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'..');
 const load=process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?createRequire(path.join(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES,'playwright','package.json')):require;
 const {chromium}=load('playwright');
 const artifacts=path.join(__dirname,'artifacts');fs.mkdirSync(artifacts,{recursive:true});
-const pages=new Set(['/index.html','/icons.html','/cards.html','/components.html','/research.html']);
+const pages=new Set(['/index.html']);
 const server=http.createServer((req,res)=>{
  const file=(req.url||'').split('?')[0];
  if(!pages.has(file)){res.writeHead(404);return res.end();}
@@ -68,7 +68,8 @@ async function recordLayout(page,width){
    await action(page,'filter');await page.locator(`[data-action="filter-status"][data-extra="${status}"]`).click();
    await page.locator('[data-action="apply-filter"]').click();
   };
-  await scenario('Preview, reader, bookmark undo, tags and multi-card AI remain independent',async page=>{
+  await scenario('Preview, reader, bookmark undo, tags and task controls remain independent',async page=>{
+   assert.equal(await page.locator('[data-action="applications"],[data-action="application-use"],[data-application-link]').count(),0,'application connections belong in Codex, not the card page');
    assert.equal(await page.locator('.feed-card').count(),16);
    await openCard(page,'article-01');
    assert.equal((await state(page,'article-01')).seen,true);assert.equal((await state(page,'article-01')).read,false);
@@ -83,20 +84,7 @@ async function recordLayout(page,width){
    await action(page,'edit','note-01');await page.locator('#note-editor').fill('<b>本地备注</b>');
    await page.locator('[data-action="save-note"]').click();await page.reload();
    assert.equal((await state(page,'note-01')).note,'<b>本地备注</b>');
-   await action(page,'select','note-01');await action(page,'select','article-01');await action(page,'selected-ai');
-   assert.equal(await page.evaluate(()=>window.__app.contexts.length),2);
-   assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-   assert.equal(await page.locator('.feed-card').count(),16);
-   await page.locator('.context-title[data-id="note-01"]').click();
-   await page.waitForFunction(()=>window.__app.modalKind==='preview'&&window.__app.currentId==='note-01');
-   assert.deepEqual(await page.evaluate(()=>window.__app.contexts),['note-01','article-01']);
-   assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-   await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('dialog').open);
-   await page.locator('#orb').click();await page.locator('.context-remove[data-id="note-01"]').click();
-   assert.deepEqual(await page.evaluate(()=>window.__app.contexts),['article-01']);
-   assert.equal(await page.evaluate(()=>document.activeElement.matches('.context-remove,#ai-input')),true,'removing a reference lost AI keyboard focus');
-   assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-   await page.locator('[data-action="ai-close"]').click();
+   assert.equal(await page.locator('#ai-panel,[data-action="card-ai"]').count(),0);
    const tasks=card(page,'task-01');
    await tasks.locator('[data-action="task"][data-extra="t2"]').focus();await page.keyboard.press('Space');
    assert.equal(await page.evaluate(()=>document.activeElement.dataset.extra),'t2','task update moved focus to a different checkbox');
@@ -199,18 +187,22 @@ async function recordLayout(page,width){
    await action(page,'clear-filter');await page.reload();assert.equal(await page.evaluate(()=>window.__app.sort),'time');
    assert.equal(await page.locator('.feed-card').first().getAttribute('data-card'),'event-01');
   });
-  await scenario('Refresh preserves a scrolled anchor and restores new-card state after reload',async page=>{
-   await page.evaluate(()=>scrollTo(0,500));
-   const anchor=await page.locator('.feed-card').evaluateAll(nodes=>{const n=nodes.find(n=>n.getBoundingClientRect().bottom>0);return {id:n.dataset.card,top:n.getBoundingClientRect().top};});
-   await action(page,'refresh');await page.locator('#new-count').waitFor({state:'visible'});
-   assert.equal(await page.locator('.feed-card').count(),16);await page.locator('#new-count').click();
-   assert.equal(await page.locator('.feed-card').count(),17);
-   const top=await page.locator(`[data-card="${anchor.id}"]`).evaluate(n=>n.getBoundingClientRect().top);
-   assert.ok(Math.abs(top-anchor.top)<3,`anchor moved ${top-anchor.top}px`);
-   await action(page,'bookmark','fresh-reminder');await page.reload();
-   assert.equal(await page.locator('[data-card="fresh-reminder"]').count(),1);
-   assert.equal((await state(page,'fresh-reminder')).bookmarked,true);
+  await scenario('Refresh retains local cards and bookmark state after reload',async page=>{
+   await action(page,'bookmark','note-01');await action(page,'refresh');
+   assert.equal(await page.locator('.feed-card').count(),16);
+   await page.reload();assert.equal((await state(page,'note-01')).bookmarked,true);
   });
+  for(const width of [810,1440,2048])await scenario(`${width}px desktop uses compact cards across the available screen`,async page=>{
+   const geometry=await page.locator('.feed-card').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width};}));
+   assert.ok(geometry.every(r=>r.width>=200&&r.width<=300),JSON.stringify(geometry));
+   assert.ok(geometry.every(r=>r.left>=0&&r.right<=width),'cards overflow the screen');
+   for(let i=0;i<geometry.length;i++)for(let j=i+1;j<geometry.length;j++){
+    const a=geometry[i],b=geometry[j];
+    assert.ok(a.right<=b.left+1||b.right<=a.left+1||a.bottom<=b.top+1||b.bottom<=a.top+1,'cards overlap');
+   }
+   await recordLayout(page,width);
+   await page.screenshot({animations:'disabled',path:path.join(artifacts,`feed-viewport-${width}.png`)});
+  },{viewport:{width,height:1000}});
   for(const width of [390,320])await scenario(`${width}px touch layout, reminder controls and reduced motion`,async page=>{
    await page.screenshot({animations:'disabled',path:path.join(artifacts,`feed-${width}.png`),fullPage:true});
    await page.screenshot({animations:'disabled',path:path.join(artifacts,`feed-viewport-${width}.png`)});
@@ -226,17 +218,7 @@ async function recordLayout(page,width){
    await reminder.locator('[data-action="snooze"]').tap();
    assert.equal(await reminder.count(),0);await feedUnopened(page,'reminder-01');
    await page.getByRole('button',{name:'撤销操作',exact:true}).tap();assert.equal(await reminder.count(),1);
-   await card(page,'suggestion-01').locator('.suggestion-action').tap();
-   assert.deepEqual(await page.evaluate(()=>window.__app.contexts),['suggestion-01']);
-   assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-   assert.equal(await page.locator('dialog').evaluate(n=>n.open),false);
-   await touchTargets(page.locator('.context-title,.context-remove'),width);
-   await page.screenshot({animations:'disabled',path:path.join(artifacts,`mobile-ai-${width}.png`)});
-   await page.locator('.context-remove').tap();
-   assert.equal(await page.evaluate(()=>window.__app.contexts.length),0);
-   assert.equal(await page.locator('#ai-input').evaluate(n=>document.activeElement===n),true);
-   await page.locator('[data-action="ai-close"]').tap();
-   await page.locator('#orb').tap();assert.equal(await page.locator('#ai-panel').isVisible(),false);await page.getByRole('button',{name:'筛选与搜索',exact:true}).tap();
+   await page.locator('#orb').tap();await page.getByRole('button',{name:'筛选与搜索',exact:true}).tap();
    await page.screenshot({animations:'disabled',path:path.join(artifacts,`filter-${width}.png`)});
    await page.locator('.panel-footer').scrollIntoViewIfNeeded();
    await page.screenshot({animations:'disabled',path:path.join(artifacts,`filter-bottom-${width}.png`)});
@@ -249,103 +231,14 @@ async function recordLayout(page,width){
    await page.locator('dialog').getByRole('button',{name:'延后提醒十分钟',exact:true}).tap();
    await filter(page,'snoozed');assert.equal(await page.locator('[data-card="reminder-01"]').count(),1);
   },{viewport:{width,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
-  await scenario('Desktop drag to AI and cancellation preserve source cards and read state',async page=>{
-   const source=card(page,'article-01').locator('.top-meta'),box=await source.boundingBox(),orb=await page.locator('#orb').boundingBox();
+  await scenario('Desktop drag cancellation preserves cards and read state',async page=>{
+   const box=await card(page,'article-01').locator('.top-meta').boundingBox();
    const x=box.x+box.width/2,y=box.y+box.height/2;
    await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+30,y+30,{steps:3});
    await page.keyboard.press('Escape');await page.mouse.up();
    assert.equal((await state(page,'article-01'))?.seen||false,false);
-   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(orb.x+orb.width/2,orb.y+orb.height/2,{steps:15});await page.mouse.up();
-   assert.deepEqual(await page.evaluate(()=>window.__app.contexts),['article-01']);
    assert.equal(await page.locator('[data-card="article-01"]').count(),1);
-   assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-   await page.locator('.drag-ghost').waitFor({state:'detached'});
-   await page.screenshot({animations:'disabled',path:path.join(artifacts,'desktop-ai.png')});
   });
-  await scenario('Entry pages run from shared source and retain all research references',async page=>{
-   await page.goto(origin+'/components.html');await page.waitForFunction(()=>window.__app?.mode==='library');
-   assert.ok(await page.locator('[data-component]').count()>0);
-   await page.goto(origin+'/research.html');await page.waitForFunction(()=>window.__app?.mode==='sources');
-   const sources=await page.locator('[data-source]').evaluateAll(nodes=>nodes.map(n=>n.dataset.source));
-   assert.equal(sources.length,34);assert.equal(new Set(sources).size,34);
-   assert.equal(await page.locator('[data-source] h3 a[href^="https://"]').count(),34);
-  });
-  const componentNames=['icon-button','action-button','progress-ring','checkbox','avatars','attachment','tag-chip','metadata','search-field','textarea','toggle','glass-dock','card-menu','dialog-preview','reader','filter-panel','editor-panel','media-player','settings-panel','toast','selection','drop-targets','empty-state','new-content','motion','ai-context','ai-compose','ai-messages','ai-empty'];
-  const cardTypes=['article','mail','note','task','event','reminder','media','insight','digest','suggestion'];
-  const catalogScreenshot=async(page,kind,width)=>{
-   if(width===1440){
-    await page.screenshot({animations:'disabled',path:path.join(artifacts,`${kind}-library-desktop.png`)});
-    await page.screenshot({animations:'disabled',path:path.join(artifacts,`${kind}-library-all.png`),fullPage:true});
-   }else if(width===390)await page.screenshot({animations:'disabled',path:path.join(artifacts,`${kind}-library-390.png`)});
-  };
-  const withinViewport=async(page)=>{
-   const geometry=await page.evaluate(()=>({page:document.documentElement.scrollWidth,viewport:innerWidth}));
-   assert.ok(geometry.page<=geometry.viewport,`catalogue overflows: ${geometry.page}px > ${geometry.viewport}px`);
-  };
-  for(const width of [1440,390,320]){
-   const options={viewport:{width,height:width===1440?1000:844},...(width<650?{isMobile:true,hasTouch:true,reducedMotion:'reduce'}:{})};
-   await scenario(`${width}px independent icon library covers every shared glyph`,async page=>{
-    await page.waitForFunction(()=>window.__app.mode==='icons');
-    await catalogScreenshot(page,'icons',width);await withinViewport(page);
-    const keys=await page.locator('.icon-tile[data-icon-name]').evaluateAll(nodes=>nodes.map(n=>n.dataset.iconName));
-    assert.equal(keys.length,38);assert.equal(new Set(keys).size,38);
-    assert.equal(await page.locator('.icon-tile-preview svg').count(),38);
-    if(width<650)await touchTargets(page.locator('.icon-tile-trigger'),width);
-    const bookmark=page.locator('.icon-tile[data-icon-name="bookmark"] .icon-tile-trigger');
-    await bookmark.click();assert.equal(await bookmark.evaluate(n=>n.classList.contains('active')),true);
-   },options,'/icons.html');
-   await scenario(`${width}px independent card library covers types, variants and static states`,async page=>{
-    await page.waitForFunction(()=>window.__app.mode==='cards');
-    await catalogScreenshot(page,'cards',width);await withinViewport(page);
-    const samples=page.locator('.card-specimen[data-card-variant]');
-    const variants=await samples.evaluateAll(nodes=>nodes.map(n=>({type:n.dataset.cardType,form:n.dataset.cardForm,variant:n.dataset.cardVariant})));
-    assert.equal(variants.length,13);
-    assert.deepEqual([...new Set(variants.map(n=>n.type))].sort(),cardTypes.slice().sort());
-    assert.equal(new Set(variants.map(n=>n.variant)).size,13);
-    const states=await page.locator('.card-specimen.is-passive[data-card-state]').evaluateAll(nodes=>nodes.map(n=>n.dataset.cardState));
-    assert.deepEqual(states.sort(),['default','read','bookmarked','selected','snoozed','completed'].sort());
-    assert.equal(await page.locator('.card-specimen.is-passive [data-action],.card-specimen.is-passive button').count(),0,'static states must not mutate live cards');
-    const titles=samples.locator('.card-title-button');
-    assert.equal(await titles.count(),13);
-    const first=titles.first(),id=await first.getAttribute('data-id');
-    await first.click();await page.waitForFunction(id=>window.__app.modalKind==='preview'&&window.__app.currentId===id,id);
-    await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('dialog').open);
-    assert.equal(await page.evaluate(()=>window.__app.mode),'cards');
-   },options,'/cards.html');
-   await scenario(`${width}px independent component library exposes complete, working controls`,async page=>{
-    await page.waitForFunction(()=>window.__app.mode==='library');
-    await catalogScreenshot(page,'components',width);await withinViewport(page);
-    const names=await page.locator('[data-component]').evaluateAll(nodes=>nodes.map(n=>n.dataset.component));
-    assert.deepEqual(names.slice().sort(),componentNames.slice().sort());
-    await page.locator('[data-component="filter-panel"] [data-action="filter"]').click();
-    assert.equal(await page.locator('#filter-search').isVisible(),true);
-    await page.locator('dialog').getByRole('button',{name:'关闭筛选',exact:true}).click();
-    await page.locator('[data-component="dialog-preview"] [data-action="preview"][data-id="article-01"]').click();
-    await page.waitForFunction(()=>window.__app.modalKind==='preview'&&window.__app.currentId==='article-01');
-    await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('dialog').open);
-    const draft='比较这些内容，先保留为草稿。';
-    await page.locator('[data-component="ai-compose"] textarea').fill(draft);
-    await page.locator('[data-component="ai-compose"] [data-action="catalog-compose"]').click();
-    assert.equal(await page.locator('#ai-panel').isVisible(),true);
-    assert.equal(await page.locator('#ai-input').inputValue(),draft);
-    assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-    await page.locator('#ai-panel [data-action="ai-close"]').click();
-    if(width===1440){
-     const samples=page.locator('[data-component="ai-context"] .context-card'),count=await samples.count();
-     await page.locator('[data-component="ai-context"] [data-action="card-ai"][data-id="article-01"]').click();
-     await page.locator('#ai-panel [data-action="ai-close"]').click();
-     await page.locator('[data-component="ai-context"] .context-title[data-id="note-01"]').click();
-     await page.locator('dialog [data-action="card-ai"][data-id="note-01"]').click();
-     await page.locator('#ai-contexts .context-remove[data-id="article-01"]').click();
-     assert.deepEqual(await page.evaluate(()=>window.__app.contexts),['note-01']);
-     assert.equal(await page.locator('#ai-panel').evaluate(n=>n.contains(document.activeElement)),true,'removing a live reference must not focus a catalogue specimen');
-     assert.equal(await samples.count(),count,'removing a live reference mutated the catalogue specimen');
-     assert.equal(await page.evaluate(()=>window.__app.messages.length),0);
-     await page.locator('#ai-panel [data-action="ai-close"]').click();
-    }
-    assert.equal(await page.evaluate(()=>window.__app.mode),'library');
-   },options,'/components.html');
-  }
   const failed=results.filter(result=>result.status==='FAIL');
   if(failed.length)assert.fail(`${failed.length}/${results.length} browser scenarios failed: ${failed.map(result=>result.name).join('; ')}`);
  }finally{

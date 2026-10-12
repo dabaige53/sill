@@ -2,7 +2,7 @@
  * Content stays on opaque white surfaces. Color communicates an action or state.
  * Heights follow content; the layout engine owns column widths and placement.
  */
-.feed-card,.lab-card{
+.feed-card{
  position:absolute;left:0;top:0;width:344px;background:var(--card);
  border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow);
  transition:box-shadow var(--base),border-color var(--base);isolation:isolate;overflow:hidden;

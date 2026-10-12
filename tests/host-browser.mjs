@@ -223,6 +223,10 @@ try {
             reply({});
             break;
           }
+          case 'ui/open-link': {
+            if(!host.capabilities.openLinks)throw new Error('Open links capability missing');
+            host.openedLinks=(host.openedLinks||[]).concat(request.params.url);reply({});break;
+          }
           case 'ping': reply({}); break;
           default: throw new Error(`Unexpected host request: ${request.method}`);
         }
@@ -500,6 +504,10 @@ try {
     checks.push(`${scenario.label}: unsupported operations fail closed and local-only preview is labeled honestly`);
   }
 
+  await mount({capabilities:{...fullCapabilities,openLinks:{}},platform:'desktop'});
+  assert.equal(await frame.locator('[data-action="applications"],[data-action="application-use"],[data-application-link]').count(),0,'card UI leaves application use and connection to Codex');
+  assert.equal((await snapshot()).messages.length,0);
+  checks.push('Card UI has no duplicate application connection or tool-request panel');
   assert.deepEqual(networkAttempts, [], 'the embedded page makes no direct HTTP/provider/asset request');
   assert.deepEqual(pageErrors, []);
   assert.ok(!JSON.stringify(await page.evaluate(() => ({ html: document.documentElement.outerHTML, state: window.hostSimulator }))).includes(token), 'service token never reaches page HTML or host state');

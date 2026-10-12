@@ -7,7 +7,7 @@ import { ROOT, ConfigSchema } from '../server/config.mjs';
 for(const directory of ['server','scripts','web','tests'])for(const file of await readdir(resolve(ROOT,directory)))if(/\.(mjs|js)$/.test(file)){
   const result=spawnSync(process.execPath,['--check',resolve(ROOT,directory,file)],{stdio:'inherit'});if(result.status!==0)process.exit(1);
 }
-for(const file of ['index.html','cards.html','icons.html','components.html','research.html']){
+for(const file of ['index.html']){
   const html=await readFile(resolve(ROOT,file),'utf8');
   for(const [,code] of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new Script(code,{filename:file});
 }

@@ -2,9 +2,9 @@ class AppController{
  constructor(){
    this.mode=window.__PAGE__||'feed';this.baseMode=this.mode;
    this.filter={type:'all',status:'all',tag:'',query:''};this.selected=new Set();
-   this.contexts=[];this.messages=[];this.pendingCards=[];this.refreshIndex=0;this.refreshBusy=false;
+   this.pendingCards=[];this.refreshIndex=0;this.refreshBusy=false;
    this.modalKind='';this.currentId='';this.panelReturn=null;this.lastFocus=null;
-   this.mediaIndex=0;this.mediaTimer=null;this.lastActivity=Date.now();this.aiBusy=false;
+   this.mediaIndex=0;this.mediaTimer=null;this.lastActivity=Date.now();
    this.touchDockExpanded=false;this.modalToken=0;this.routeScroll={};
    this.sort='priority';this.feedNow=Date.now();this.pendingReminders=[];
  }
@@ -15,11 +15,11 @@ class AppController{
    this.sort=Store.state.preferences.sort;document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);
    document.body.innerHTML=`<main aria-label="个人信息空间"><h1 class="sr-only" id="page-title">卡片信息流</h1><div class="feed-grid" id="feed-grid"></div></main>
    <div id="dock"><div class="dock-tools" role="group" aria-label="全局工具">
-     ${button('filter','筛选与搜索','filter')}${button('refresh','刷新演示内容','refresh')}${button('up','返回顶部','top')}${button('layers','组件实验室','view-library')}${button('info','使用说明与设置','settings')}
-   </div><button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="ai" aria-label="AI 与全局工具" aria-expanded="false">${icon('sparkles',24)}</button><button id="new-count" class="glass" data-action="show-new" hidden aria-label="查看新增卡片"></button></div>
-   <div id="selection-bar" class="glass" hidden><span class="selection-count"></span>${button('sparkles','将选中的卡片加入 AI','selected-ai')}${button('bookmark','收藏选中的卡片','selected-bookmark')}${button('x','取消选择','clear-selection')}</div>
+     ${button('filter','筛选与搜索','filter')}${button('refresh','刷新卡片','refresh')}${button('up','返回顶部','top')}${button('info','使用说明与设置','settings')}
+   </div><button type="button" class="icon-button glass" id="orb" data-action="orb" aria-label="全局工具" aria-expanded="false">${icon('layers',24)}</button><button id="new-count" class="glass" data-action="show-new" hidden aria-label="查看新增卡片"></button></div>
+   <div id="selection-bar" class="glass" hidden><span class="selection-count"></span>${button('bookmark','收藏选中的卡片','selected-bookmark')}${button('x','取消选择','clear-selection')}</div>
    <div id="drop-targets" class="drop-targets" hidden><div class="drop-target glass" data-drop="bookmark" aria-label="收藏接收区">${icon('bookmark',22)}</div><div class="drop-target glass" data-drop="later" aria-label="稍后阅读接收区">${icon('clock',22)}</div><div class="drop-target glass" data-drop="tag" aria-label="标签接收区">${icon('tag',22)}</div></div>
-   ${AIView.shell()}<dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
+   <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
    this.grid=document.getElementById('feed-grid');this.dialog=document.getElementById('modal');
    this.layout=new FeedLayout(this.grid);this.drag=new DragManager(this);
    document.addEventListener('click',e=>this.click(e));
@@ -63,16 +63,9 @@ class AppController{
    // An anchored reflow may temporarily need extra room below the final row.
    // Each fresh render measures its own natural height again.
    this.grid.style.removeProperty('min-height');
-   const catalog=['icons','cards','library','sources'].includes(this.mode);
-   this.grid.classList.toggle('is-catalog',catalog);document.body.dataset.view=this.mode;
-   if(this.mode==='icons'){this.grid.innerHTML=IconsView.render();document.getElementById('page-title').textContent='图标库';}
-   else if(this.mode==='cards'){this.grid.innerHTML=CardsView.render();document.getElementById('page-title').textContent='卡片库';}
-   else if(this.mode==='library'){this.grid.innerHTML=LibraryView.render();document.getElementById('page-title').textContent='组件库';}
-   else if(this.mode==='sources'){this.grid.innerHTML=SourcesView.render();document.getElementById('page-title').textContent='研究资料';}
-   else{
-     const cards=this.filtered();this.grid.innerHTML=cards.length?cards.map(cardHTML).join(''):emptyState('这里暂时很安静','没有符合条件的卡片。换一个标签，或清除当前筛选。');
-     document.getElementById('page-title').textContent='卡片信息流';
-   }
+   document.body.dataset.view=this.mode;
+   const cards=this.filtered();this.grid.innerHTML=cards.length?cards.map(cardHTML).join(''):emptyState('这里暂时很安静','没有符合条件的卡片。换一个标签，或清除当前筛选。');
+   document.getElementById('page-title').textContent='卡片信息流';
    this.grid.querySelectorAll('img').forEach(img=>img.addEventListener('load',()=>this.layout.schedule(false),{once:true}));
    this.layout.layout(false);this.updateSelection();this.updateFilterIndicator();
    if(animate)[...this.grid.children].slice(0,12).forEach((n,i)=>MotionEngine.enter(n,Math.min(i*22,160)));
@@ -123,7 +116,7 @@ class AppController{
      if(!id||!Store.card(id)){history.replaceState({glass:true,prev:null},'','#feed');this.route();return;}
      this.showPreview(id,kind==='read');return;
    }
-   const requested=hash.slice(1),mode=['icons','cards','library','sources'].includes(requested)?requested:'feed';
+   const mode='feed';
    this.closeNative();
    if(this.mode!==mode){this.mode=mode;this.baseMode=mode;this.renderCurrent(true);window.scrollTo(0,this.routeScroll[mode]||0);}
  }
@@ -238,25 +231,23 @@ class AppController{
    c.classList.add('tools-open');
    const menu=document.createElement('div');menu.className='card-more-menu glass';menu.setAttribute('role','group');menu.setAttribute('aria-label','更多卡片操作');
    menu.id='card-menu-'+id;
-   const s=Store.item(id),items=[['tag','编辑标签与备注','edit'],['clock',s.later?'移出稍后阅读':'稍后阅读','later'],[s.read?'undo':'check',s.read?'标记为未读':'标记为已读','toggle-read'],['select',this.selected.has(id)?'取消选择':'选择这张卡片','select'],['bookmark',s.bookmarked?'取消收藏':'收藏卡片','bookmark'],['sparkles','加入 AI 对话','card-ai']];
+   const s=Store.item(id),items=[['tag','编辑标签与备注','edit'],['clock',s.later?'移出稍后阅读':'稍后阅读','later'],[s.read?'undo':'check',s.read?'标记为未读':'标记为已读','toggle-read'],['select',this.selected.has(id)?'取消选择':'选择这张卡片','select'],['bookmark',s.bookmarked?'取消收藏':'收藏卡片','bookmark']];
    menu.innerHTML=items.map(([symbol,label,action])=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}">${icon(symbol,17)}<span>${label}</span></button>`).join('');
    c.appendChild(menu);
    const trigger=c.querySelector('[data-action="card-more"]');trigger?.setAttribute('aria-expanded','true');trigger?.setAttribute('aria-controls',menu.id);
    MotionEngine.enter(menu);menu.querySelector('button')?.focus({preventScroll:true});
  }
- refresh(){
+ async refresh(){
    if(this.refreshBusy)return;
-   this.refreshBusy=true;const btn=document.querySelector('[data-action="refresh"]');
+   this.refreshBusy=true;
+   const btn=document.querySelector('[data-action="refresh"]');
    MotionEngine.animate(btn?.querySelector('svg'),[{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:600});
-   setTimeout(()=>{
-     this.refreshBusy=false;
-     while(this.refreshIndex<FreshCards.length&&Store.card(FreshCards[this.refreshIndex].id))this.refreshIndex++;
-     if(this.refreshIndex>=FreshCards.length){this.toast('已经是最新的演示内容');return;}
-     const fresh=FreshCards[this.refreshIndex++];
-     if(!Store.card(fresh.id)&&!this.pendingCards.some(c=>c.id===fresh.id))this.pendingCards.push({...fresh,time:Date.now()});
-     this.paintPending();
-     this.announce(`有${this.pendingCards.length}张新卡片，点击入口旁的数字查看。`);
-   },650);
+   try{
+     if(window.__QG_LOCAL__)await LocalSync.refresh(true);
+     else this.renderCurrent();
+     this.toast('卡片已刷新');
+   }catch(error){this.toast('无法刷新：'+error.message);}
+   finally{this.refreshBusy=false;}
  }
  checkReminders(now=Date.now()){
    const next=Store.state.cards.filter(c=>FeedPolicy.eligible(c,Store.item(c.id),now)).map(c=>c.id);
@@ -342,40 +333,7 @@ class AppController{
      (card?.querySelector('.card-title-button')||card||document.getElementById('orb')).focus({preventScroll:true});
    });
  }
- attach(ids){
-   ids.filter(id=>Store.card(id)).forEach(id=>{if(!this.contexts.includes(id))this.contexts.push(id);});
-   if(this.dialog.open){
-     this.closeNative();
-     if(/^#(card|read)\//.test(location.hash))history.replaceState({glass:true,prev:null},'','#'+this.baseMode);
-   }
-   this.openAI();this.selected.clear();this.updateSelection();
-   this.announce(`已将${ids.length}张卡片加入 AI 上下文，尚未发送。`);
- }
- openAI(){
-   const panel=document.getElementById('ai-panel'),wasHidden=panel.hidden;panel.hidden=false;this.paintAI();
-   if(wasHidden)MotionEngine.enter(panel);
-   requestAnimationFrame(()=>document.getElementById('ai-input').focus({preventScroll:true}));
-   this.hideDock();
- }
- closeAI(){document.getElementById('ai-panel').hidden=true;document.getElementById('orb').focus({preventScroll:true});}
- paintAI(){
-   document.getElementById('ai-contexts').innerHTML=AIView.contexts(this.contexts);
-   document.getElementById('ai-empty').hidden=this.contexts.length>0||this.messages.length>0;
-   const messages=document.getElementById('ai-messages');
-   messages.innerHTML=this.messages.map(m=>`<div class="message ${m.kind}">${m.kind==='demo'?'<span class="message-label">本地演示回复</span>':''}${esc(m.text)}</div>`).join('');
-   messages.scrollTop=messages.scrollHeight;
-   document.querySelector('[data-action="ai-send"]').disabled=this.aiBusy;
- }
- async sendAI(){
-   const field=document.getElementById('ai-input'),q=field.value.trim();if(!q||this.aiBusy)return;
-   this.aiBusy=true;this.messages.push({kind:'user',text:q});field.value='';this.paintAI();
-   const version=this.aiVersion||0;
-   const response=await DemoAI.respond({question:q,cards:this.contexts.map(id=>Store.card(id)).filter(Boolean)});
-   if((this.aiVersion||0)!==version){this.aiBusy=false;return;}
-   this.messages.push({kind:'demo',text:response});this.aiBusy=false;this.paintAI();
- }
  drop(ids,target){
-   if(target==='ai'){this.attach(ids);return;}
    if(target==='tag'){
      this.bulkEditIds=ids.slice();this.openPanel('editor',ids[0]);return;
    }
@@ -434,22 +392,16 @@ class AppController{
  }
  action(name,id='',extra='',el=null,event=null){
    switch(name){
-     case 'orb':{
-       const touch=event?.pointerType==='touch'||event?.sourceCapabilities?.firesTouchEvents||matchMedia('(hover:none)').matches;
-       if(touch&&!this.touchDockExpanded){this.touchDockExpanded=true;this.openDock();}else this.openAI();break;
-     }
-     case 'ai':this.openAI();break;
+     case 'orb':this.touchDockExpanded=true;this.openDock();break;
      case 'filter':this.openPanel('filter');break;
      case 'settings':this.openPanel('settings');break;
      case 'refresh':this.refresh();break;
      case 'show-new':this.showNew();break;
      case 'top':window.scrollTo({top:0,behavior:MotionEngine.reduced?'instant':'smooth'});break;
-     case 'view-feed':case 'view-icons':case 'view-cards':case 'view-library':case 'view-sources':this.closeNative();this.navigate('#'+name.slice(5));break;
+     case 'view-feed':this.closeNative();this.navigate('#'+name.slice(5));break;
      case 'card-open':case 'preview':this.navigate('#card/'+id);break;
-     case 'context-preview':this.closeAI();this.navigate('#card/'+id);break;
      case 'reader':this.navigate('#read/'+id);break;
      case 'close':this.closeModal();break;
-     case 'card-ai':this.attach([id]);break;
      case 'bookmark':this.setFlag(id,'bookmarked',!Store.item(id).bookmarked);break;
      case 'later':this.setFlag(id,'later',!Store.item(id).later);break;
      case 'task':this.toggleTask(id,extra);break;
@@ -461,7 +413,6 @@ class AppController{
      }
      case 'select':this.selected.has(id)?this.selected.delete(id):this.selected.add(id);this.updateSelection();break;
      case 'clear-selection':this.selected.clear();this.updateSelection();break;
-     case 'selected-ai':this.attach([...this.selected]);break;
      case 'selected-bookmark':this.drop([...this.selected],'bookmark');this.selected.clear();this.updateSelection();break;
      case 'sort-feed':if(FeedPolicy.sorts.includes(extra)){this.sort=extra;this.feedNow=Date.now();Store.state.preferences.sort=extra;Store.save();this.repaintFilter();}break;
      case 'filter-type':this.filter.type=extra;this.repaintFilter();break;
@@ -486,51 +437,15 @@ class AppController{
      }
      case 'toggle-transparency':Store.state.preferences.reduceTransparency=!Store.state.preferences.reduceTransparency;Store.save();document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);document.querySelectorAll('[data-action="toggle-transparency"]').forEach(n=>n.setAttribute('aria-checked',Store.state.preferences.reduceTransparency));break;
      case 'undo':if(this.undoAction){const fn=this.undoAction;this.undoAction=null;fn();this.toast('已撤销');}break;
-     case 'ai-close':this.closeAI();break;
-     case 'ai-clear':this.contexts=[];this.messages=[];this.aiVersion=(this.aiVersion||0)+1;this.aiBusy=false;this.paintAI();break;
-     case 'ai-remove':{
-       const index=this.contexts.indexOf(id);this.contexts=this.contexts.filter(x=>x!==id);this.paintAI();
-       const next=this.contexts[Math.min(Math.max(0,index),this.contexts.length-1)];
-       const target=next?document.getElementById('ai-contexts').querySelector(`.context-card[data-context="${CSS.escape(next)}"] .context-remove`):null;
-       (target||document.getElementById('ai-input')).focus({preventScroll:true});break;
-     }
-     case 'ai-send':this.sendAI();break;
-     case 'external':{const url=Store.card(id)?.url;if(url&&url.startsWith('https://'))window.open(url,'_blank','noopener,noreferrer');break;}
+     case 'external':{const url=Store.card(id)?.url;if(url&&/^https?:\/\//.test(url))window.open(url,'_blank','noopener,noreferrer');break;}
      case 'download-calendar':{
        const c=Store.card(id),date=x=>new Date(x).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
-       this.download('quiet-glass-demo.ics',`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Quiet Glass//Demo//ZH\r\nBEGIN:VEVENT\r\nUID:${c.id}@quiet-glass.demo\r\nDTSTAMP:${date(Date.now())}\r\nDTSTART:${date(c.start)}\r\nDTEND:${date(c.end)}\r\nSUMMARY:演示-${c.title}\r\nDESCRIPTION:演示日程，不包含真实会议链接。\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n`,'text/calendar');this.toast('已生成演示日程文件');break;
-     }
-     case 'download-attachment':{
-       const c=Store.card(id);
-       if(c.attachment.endsWith('.csv'))this.download('demo-analysis.csv','\ufeff方案,演示评价\n常驻工具,干扰较多\n按需显现,保留内容重点\n仅手势,需要替代入口\n','text/csv');
-       else this.download(c.attachment,'方案对比 · 演示附件\n\n方向一：常驻导航。容易发现功能，但会占据阅读空间。\n方向二：按需显现。内容优先，操作在需要时出现。\n方向三：仅靠手势。视觉最干净，但需要提供等价的点击入口。\n\n这是本地交互演示内容，不是来自真实邮箱的文件。');
-       this.toast('已生成演示附件');break;
+       this.download('quiet-glass.ics',`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Quiet Glass//Local//ZH\r\nBEGIN:VEVENT\r\nUID:${c.id}@quiet-glass.local\r\nDTSTAMP:${date(Date.now())}\r\nDTSTART:${date(c.start)}\r\nDTEND:${date(c.end)}\r\nSUMMARY:${c.title}\r\nDESCRIPTION:本地卡片日程。\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n`,'text/calendar');this.toast('日程文件已下载');break;
      }
      case 'snooze':case 'dismiss-reminder':case 'complete-reminder':case 'restore-reminder':this.changeReminder(id,name);break;
      case 'media-play':this.playMedia();break;
      case 'media-next':this.pauseMedia();this.mediaIndex=Math.min(3,this.mediaIndex+1);this.paintMedia();break;
      case 'media-prev':this.pauseMedia();this.mediaIndex=Math.max(0,this.mediaIndex-1);this.paintMedia();break;
-     case 'catalog-check':{
-       const done=el.getAttribute('aria-checked')!=='true';el.setAttribute('aria-checked',String(done));el.classList.toggle('is-done',done);el.querySelector('.check-dot').innerHTML=done?icon('check',12):'';break;
-     }
-     case 'catalog-context-remove':{
-       const stage=el.closest('.component-preview'),cards=[...stage.querySelectorAll('.context-card')],card=el.closest('.context-card'),index=cards.indexOf(card);
-       const focus=cards[index+1]?.querySelector('.context-remove')||cards[index-1]?.querySelector('.context-remove')||stage.closest('.component-specimen').querySelector('.component-footer button');card?.remove();
-       const count=stage.querySelectorAll('.context-card').length,heading=stage.querySelector('.context-heading');
-       if(heading)heading.innerHTML=count?`<span>${count} 个引用</span><small>发送前可调整</small>`:'<span>还没有引用</span><small>可从卡片加入 AI</small>';focus?.focus({preventScroll:true});break;
-     }
-     case 'catalog-compose':{
-       const value=el.closest('.ai-compose').querySelector('textarea').value;this.openAI();document.getElementById('ai-input').value=value;document.getElementById('ai-input').focus();break;
-     }
-     case 'catalog-toast':this.toast('收藏已保存',()=>this.toast('已撤销'));break;
-     case 'lab-icon':MotionEngine.press(el);if(extra==='refresh')MotionEngine.animate(el.querySelector('svg'),[{transform:'rotate(0)'},{transform:'rotate(360deg)'}],{duration:550});else el.classList.toggle('active');break;
-     case 'lab-tag':el.classList.toggle('active');el.setAttribute('aria-pressed',el.classList.contains('active'));break;
-     case 'lab-motion':{
-       const n=document.getElementById('motion-cube');
-       if(extra==='enter')MotionEngine.enter(n);
-       else if(extra==='lift')MotionEngine.animate(n,[{transform:'translateY(0)'},{transform:'translateY(-17px) scale(1.06)',offset:.5},{transform:'translateY(0)'}],{duration:520});
-       else MotionEngine.animate(n,[{transform:'scale(1)'},{transform:'scale(.82)',offset:.25},{transform:'scale(1.06)',offset:.7},{transform:'scale(1)'}],{duration:450});break;
-     }
    }
  }
  repaintFilter(){
@@ -548,9 +463,6 @@ class AppController{
      this.filter.query=e.target.value;
      document.getElementById('filter-result').textContent=`${this.filtered().length} 张卡片`;
      clearTimeout(this.searchTimer);this.searchTimer=setTimeout(()=>{if(this.mode==='feed')this.renderCurrent(false);this.updateFilterIndicator();},140);
-   }else if(name==='lab-ring'){
-     const value=Number(e.target.value)/100;
-     document.getElementById('lab-rings').innerHTML=ring(value,24)+ring(value,36)+ring(value,52)+ring(value,22);
    }
  }
  key(e){
@@ -571,9 +483,8 @@ class AppController{
    }
    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();this.openPanel('filter');return;}
    if(e.isComposing)return;
-   if(e.target.id==='ai-input'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.sendAI();return;}
    if(e.target.id==='tag-new'&&e.key==='Enter'){e.preventDefault();this.action('add-tag',this.editId);return;}
-   if(e.key==='Escape'&&!this.dialog.open){if(!document.getElementById('ai-panel').hidden)this.closeAI();this.hideDock();return;}
+   if(e.key==='Escape'&&!this.dialog.open){this.hideDock();return;}
    if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-card]')){e.preventDefault();this.navigate('#card/'+e.target.dataset.card);}
  }
 }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp,rm,writeFile,readFile } from 'node:fs/promises';
 import { join,resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -77,8 +78,10 @@ test('Quiet Glass consumes another MCP server with discovery, field mapping and 
 test('built plugin launches via official SDK stdio using generated absolute paths',async t=>{
   const directory=await mkdtemp(join(tmpdir(),'qg-stdio-'));
   const config=join(directory,'config.json');await writeFile(config,JSON.stringify({dataDir:directory}));
-  const manifest=JSON.parse(await readFile(resolve(ROOT,'dist/quiet-glass/mcp.json'),'utf8'));
+  execFileSync(process.execPath,[resolve(ROOT,'scripts/build-plugin.mjs'),'--legacy-mcp']);
+  const manifest=JSON.parse(await readFile(resolve(ROOT,'dist/quiet-glass-legacy/mcp.json'),'utf8'));
   const server=manifest.mcpServers['quiet-glass'];assert.equal(server.type,'stdio');
+  assert.equal(server.command,'node','Codex portable loader rejects absolute executable paths');
   const client=new Client({name:'test-stdio',version:'1'});
   const transport=new StdioClientTransport({command:server.command,args:server.args,env:{...process.env,...server.env,QG_CONFIG:config},stderr:'pipe'});
   await client.connect(transport);t.after(async()=>{await client.close();await rm(directory,{recursive:true,force:true});});

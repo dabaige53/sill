@@ -1,5 +1,9 @@
 /* Quiet Glass · overlays · shared source */
 dialog{color:var(--ink);padding:0;border:1px solid var(--line);border-radius:var(--panel-radius);background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);max-width:calc(100vw - 40px);max-height:90vh;width:620px;overflow:hidden;outline:none}
+.application-entry{padding:14px 0;border-bottom:1px solid var(--line)}
+.application-entry h2{font-size:16px}
+.application-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+.application-actions>a{display:inline-flex;align-items:center;min-height:44px}
 dialog::backdrop{background:rgba(0,0,0,.2);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 dialog[open]{animation:none}
 .dialog-close{position:absolute;right:16px;top:16px;z-index:5;border-radius:50%}
@@ -37,6 +41,7 @@ dialog[open]{animation:none}
 .field-label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin:24px 0 10px}
 .filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 3px}
 .panel-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:24px;padding-top:16px;gap:12px}
+.panel-footer:empty{display:none}
 .panel-footer p{font-size:12px;color:var(--muted)}
 .editor-note{width:100%;height:130px;min-height:100px;font-size:14px;line-height:1.8;background:var(--surface);margin-top:2px}
 .tag-add{display:flex;align-items:center;gap:8px;margin-top:12px}
@@ -45,44 +50,6 @@ dialog[open]{animation:none}
 .setting-row span{font-size:14px}
 .setting-row small{display:block;font-size:12px;color:var(--muted);margin-top:5px}
 .settings-note{font-size:13px;line-height:1.8;color:var(--muted);margin:18px 0 0}
-.ai-panel{position:fixed;right:28px;bottom:102px;width:404px;max-width:calc(100vw - 28px);max-height:calc(100dvh - 128px);display:flex;flex-direction:column;z-index:48;border-radius:25px;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.04),0 22px 80px rgba(0,0,0,.16);overflow:hidden}
-.ai-panel[hidden]{display:none}
-.ai-header{display:flex;align-items:center;justify-content:space-between;padding:20px 16px 16px 22px;gap:8px;flex-shrink:0}
-.ai-header>div:last-child{display:flex;flex-shrink:0}
-.ai-header h2{font-size:18px;font-weight:600;letter-spacing:-.025em}
-.ai-header small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
-.ai-header small:before{content:"";width:5px;height:5px;display:inline-block;border-radius:50%;background:var(--secondary);margin-right:6px;vertical-align:1px}
-.ai-contexts{max-height:254px;min-height:0;overflow:auto;padding:0 16px;display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain;scrollbar-width:thin;flex-shrink:1}
-.context-heading{display:flex;justify-content:space-between;align-items:center;gap:6px;color:var(--muted);font-size:12px;padding:2px 3px 6px;flex-shrink:0}
-.context-heading>span:last-child{color:var(--muted);font-size:12px}
-.context-card{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:10px;align-items:start;padding:12px 4px 12px 12px;background:var(--surface);border-radius:14px;flex-shrink:0}
-.context-thumbnail{width:44px;height:52px;overflow:hidden;display:grid;place-items:center;border-radius:8px;background:var(--faint);color:var(--muted)}
-.context-thumbnail img{width:100%;height:100%;object-fit:cover}
-.context-copy{min-width:0}
-.context-meta{font-size:11px;line-height:1.5;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.context-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;width:100%;min-height:44px;text-align:left;padding:4px 0;background:none;border-radius:3px;font-size:13px;line-height:1.5;font-weight:500;letter-spacing:-.01em}
-.context-title:hover{color:var(--accent)}
-.context-summary{font-size:12px;line-height:1.6;color:var(--muted);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px}
-.context-remove{margin-top:-4px;color:var(--muted)}
-.ai-empty{padding:28px 24px 30px;color:var(--muted);text-align:center}
-.ai-empty .icon{margin-bottom:14px;color:var(--muted)}
-.ai-empty p{font-size:15px;line-height:1.8;letter-spacing:-.02em}
-.ai-empty small{display:block;font-size:12px;margin-top:12px;color:var(--muted)}
-.ai-messages{padding:16px 21px;max-height:230px;min-height:0;overflow:auto;overscroll-behavior:contain;flex-shrink:1;scrollbar-width:thin}
-.ai-messages:empty{padding:0}
-.message{font-size:14px;line-height:1.8;white-space:pre-wrap;margin-bottom:16px}
-.message.user{background:var(--surface);color:var(--ink);margin-left:28px;padding:12px 14px;border-radius:16px 16px 4px 16px}
-.message.demo{color:var(--ink);padding:4px 3px}
-.message.demo .message-label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-.ai-compose{padding:16px;position:relative;flex-shrink:0}
-.ai-compose textarea{width:100%;display:block;resize:none;min-height:108px;padding:13px 53px 13px 14px;background:var(--surface);line-height:1.7;font-size:14px;border:1px solid transparent;border-radius:16px}
-.ai-compose textarea:focus{border-color:var(--accent)}
-.ai-compose>.icon-button{position:absolute;right:23px;bottom:24px;background:var(--accent);color:#fff;width:44px;height:44px;min-width:44px;border-radius:12px}
-.ai-compose>.icon-button:hover{background:var(--accent);filter:brightness(1.08)}
-.drop-targets{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:90;display:flex;gap:20px;align-items:center}
-.drop-targets[hidden]{display:none}
-.drop-target{width:56px;height:56px;display:grid;place-items:center;border-radius:50%;transition:transform 180ms,box-shadow 180ms}
-.drop-target.drop-hot{transform:scale(1.15);color:var(--accent);box-shadow:0 0 0 8px rgba(0,102,204,.12),0 8px 25px rgba(0,0,0,.12)}
 .drag-ghost{position:fixed;left:0;top:0;width:244px;pointer-events:none;z-index:200;border-radius:17px;border:1px solid var(--line);background:var(--glass-thick);box-shadow:0 20px 55px rgba(0,0,0,.2);display:flex;align-items:center;padding:10px;gap:12px;-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px);transform:rotate(-3deg);will-change:left,top}
 .drag-ghost img{width:54px;height:54px;object-fit:cover;border-radius:10px;flex:0 0 auto}
 .drag-ghost .ghost-icon{width:44px;height:50px;display:grid;place-items:center;flex:0 0 auto;background:var(--surface);border-radius:10px}

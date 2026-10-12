@@ -1,4 +1,4 @@
-/** One renderer for the live feed and the design catalog. Rendering never mutates Store. */
+/** One renderer for the live feed; design-system/ documents the same structure. Rendering never mutates Store. */
 const CardPresentation={
  state(c,options={}){
    const defaults={seen:false,read:false,bookmarked:false,later:false,selected:false,progress:0,snoozedUntil:0,dismissed:false,reminderDone:false};
@@ -40,7 +40,7 @@ const CardTemplates={
  digest(c,ctx){const s=CardPresentation.stats();return `<div class="card-body">${this.title(c,ctx)}<div class="stats-trio"><div><b>${s.read}</b><span>已读</span></div><div><b>${s.saved}</b><span>收藏</span></div><div><b>${s.done}</b><span>完成</span></div></div>`;},
  suggestion(c,ctx){
    const related=(c.related||[]).map(id=>Store.card(id)).filter(Boolean).slice(0,2),tag=ctx.passive?'span':'button';
-   return `<div class="card-body">${this.title(c,ctx)}<div class="linked-cards" aria-label="关联内容">${related.map(r=>`<${tag}${ctx.passive?'':` type="button" data-action="card-open" data-id="${esc(r.id)}"`} class="linked-card"><span class="linked-card-icon">${icon(CardTypes[r.type].icon,15)}</span><span>${esc(r.title.replace(/\n/g,''))}</span>${icon('arrow',14)}</${tag}>`).join('')}</div><div class="suggestion-footer">${CardPresentation.action(ctx,'sparkles','将关联建议加入 AI 对话','card-ai',c.id,'','suggestion-action')}</div></div>`;
+   return `<div class="card-body">${this.title(c,ctx)}<div class="linked-cards" aria-label="关联内容">${related.map(r=>`<${tag}${ctx.passive?'':` type="button" data-action="card-open" data-id="${esc(r.id)}"`} class="linked-card"><span class="linked-card-icon">${icon(CardTypes[r.type].icon,15)}</span><span>${esc(r.title.replace(/\n/g,''))}</span>${icon('arrow',14)}</${tag}>`).join('')}</div></div>`;
  }
 };
 function cardHTML(c,options={}){

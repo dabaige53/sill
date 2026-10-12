@@ -1,4 +1,4 @@
-/** Browser-local demo state. v2 keeps v1 reading flags and adds reminder lifecycle. */
+/** Browser backup; local mode synchronizes it with the agent-readable repository. */
 const Store = {
  key:'quiet-glass-v1', // Keep the original key so existing users migrate in place.
  state:{cards:[],items:{},seconds:0,demoStartedAt:demoBase,freshIds:[],preferences:{reduceTransparency:false,sort:'priority'},storageAvailable:true},
@@ -7,7 +7,7 @@ const Store = {
    let raw=null;
    try{raw=JSON.parse(localStorage.getItem(this.key)||'null');}
    catch{this.state.storageAvailable=false;}
-   const valid=raw&&[1,2].includes(raw.version)&&raw.items&&typeof raw.items==='object'&&!Array.isArray(raw.items);
+   const valid=raw&&[1,2,3].includes(raw.version)&&raw.items&&typeof raw.items==='object'&&!Array.isArray(raw.items);
    if(valid){
      if(Number.isFinite(raw.demoStartedAt)&&raw.demoStartedAt>0)this.state.demoStartedAt=raw.demoStartedAt;
      this.state.freshIds=Array.isArray(raw.freshIds)?[...new Set(raw.freshIds.filter(id=>FreshCards.some(c=>c.id===id)))]:[];
@@ -21,6 +21,7 @@ const Store = {
      for(const key of ['time','start','end','due'])if(Number.isFinite(card[key]))card[key]+=offset;
      return card;
    });
+   if(valid&&raw.version===3&&Array.isArray(raw.cards))this.state.cards=raw.cards;
    if(valid){
      // Live cards arrive after authentication; restore their browser-local notes too.
      const restoredCards=window.__QG_RUNTIME__?Object.keys(raw.items).map(id=>({id})):this.state.cards;
@@ -44,7 +45,8 @@ const Store = {
    return this.state;
  },
  item(id){
-   if(!this.state.items[id])this.state.items[id]={seen:false,read:false,bookmarked:false,later:false,progress:0,note:'',tags:[],snoozedUntil:0,dismissed:false,reminderDone:false,lastReminderKey:'',lastNotifiedAt:0};
+   const defaults={seen:false,read:false,bookmarked:false,later:false,progress:0,note:'',tags:[],snoozedUntil:0,dismissed:false,reminderDone:false,lastReminderKey:'',lastNotifiedAt:0};
+   this.state.items[id]={...defaults,...this.state.items[id]};
    return this.state.items[id];
  },
  card(id){return this.state.cards.find(c=>c.id===id);},
@@ -62,8 +64,9 @@ const Store = {
    this.state.freshIds=this.state.cards.filter(c=>FreshCards.some(f=>f.id===c.id)).map(c=>c.id);
    this.save();return additions.length;
  },
+ serialized(){return {version:3,cards:this.state.cards,items:this.state.items,seconds:this.state.seconds,demoStartedAt:this.state.demoStartedAt,freshIds:this.state.freshIds,sort:this.state.preferences.sort,reduceTransparency:this.state.preferences.reduceTransparency};},
  save(){
-   try{localStorage.setItem(this.key,JSON.stringify({version:2,items:this.state.items,seconds:this.state.seconds,demoStartedAt:this.state.demoStartedAt,freshIds:this.state.freshIds,sort:this.state.preferences.sort,reduceTransparency:this.state.preferences.reduceTransparency}));}
+   try{localStorage.setItem(this.key,JSON.stringify(this.serialized()));}
    catch{this.state.storageAvailable=false;}
  },
  stats(){

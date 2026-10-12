@@ -10,13 +10,12 @@ class FeedLayout{
  }
  layout(animate=false){
    const el=this.container,width=el.clientWidth;
-   if(el.classList.contains('is-catalog')){el.style.height='';return;}
-   const items=[...el.querySelectorAll(':scope > .feed-card,:scope > .lab-card')];
+   const items=[...el.querySelectorAll(':scope > .feed-card')];
    if(!items.length){el.style.height='';return;}
    if(!width)return;
    // A consistent column width lets content, rather than automatic spanning,
    // establish hierarchy. Short actions stay compact; reading cards have room.
-   const cols=width>=1000?3:width>=650?2:1,gap=cols===1?16:24;
+   const cols=width>=480?Math.max(2,Math.floor((width+18)/258)):1,gap=cols===1?16:18;
    const old=animate?new Map(items.map(n=>[n,n.getBoundingClientRect()])):null;
    el.dataset.columns=cols;
    items.forEach(n=>{

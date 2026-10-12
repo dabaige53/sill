@@ -31,7 +31,7 @@ test('v1 state migrates without losing independent reading, tags, tasks or notes
  assert.equal(Store.item('article-01').note,'保留备注');assert.equal(Store.item('article-01').bookmarked,true);
  assert.deepEqual(Array.from(Store.tasks(Store.card('task-01')).filter(t=>t.done),t=>t.id),['t2']);
  assert.equal(Store.state.seconds,42);assert.equal(Store.state.preferences.reduceTransparency,true);
- assert.equal(JSON.parse(data.get(Store.key)).version,2);
+ assert.equal(JSON.parse(data.get(Store.key)).version,3);
 });
 test('reload preserves the original demo clock, snooze deadline and ordering preference',()=>{
  const f=fixture(),due=f.Store.card('reminder-01').due;
@@ -144,9 +144,9 @@ test('duplicate popstate/hashchange does not close a newly opened local panel',(
  f.app.route(true);assert.equal(closes,2);
 });
 
-test('actual touch opens tools first even when device reports hover capability',()=>{
+test('touch consistently opens local tools',()=>{
  const f=fixture();f.context.matchMedia=()=>({matches:false});let tools=0,ai=0;
  f.app.openDock=()=>tools++;f.app.openAI=()=>ai++;
  f.app.action('orb','','',null,{pointerType:'touch'});assert.equal(tools,1);assert.equal(ai,0);
- f.app.action('orb','','',null,{pointerType:'touch'});assert.equal(ai,1);
+ f.app.action('orb','','',null,{pointerType:'touch'});assert.equal(tools,2);assert.equal(ai,0);
 });

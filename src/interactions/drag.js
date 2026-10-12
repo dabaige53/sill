@@ -58,7 +58,7 @@ class DragManager{
    this.ghost=document.createElement('div');this.ghost.className='drag-ghost';
    this.ghost.innerHTML=`${c.image?`<img src="${Assets[c.image]}" alt="">`:`<span class="ghost-icon">${icon(CardTypes[c.type].icon,23)}</span>`}<strong>${esc(c.title)}</strong>${ids.length>1?`<span class="drag-count">${ids.length}</span>`:''}`;
    document.body.appendChild(this.ghost);this.move(p.x,p.y);MotionEngine.enter(this.ghost);
-   this.app.announce(`已提起${ids.length}张卡片。移动到 AI、收藏、稍后读或标签区域，或按 Escape 取消。`);
+   this.app.announce(`已提起${ids.length}张卡片。移动到收藏、稍后读或标签区域，或按 Escape 取消。`);
  }
  hit(x,y){
    return [...document.querySelectorAll('[data-drop]')].filter(n=>!n.hidden&&n.getClientRects().length).find(n=>{
