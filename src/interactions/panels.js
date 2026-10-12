@@ -20,7 +20,7 @@ const Panels={
    <p class="settings-note">鼠标靠近右下角，或者轻触玻璃入口，展开全局工具。卡片支持单击预览、长按 / 拖动进入 AI。预览内的 AI 图标是相同操作的替代入口。</p>
    <p class="settings-note">Enter 打开卡片。Esc 关闭浮层。Cmd/Ctrl + K 搜索。预览与完整阅读支持浏览器返回。</p>
    <p class="settings-note"><strong>演示边界</strong><br>所有内容为演示数据；AI 是本地示例回复，不会发起模型请求。未连接邮箱、日历、笔记或提醒服务。网页关闭后不运行后台提醒。</p>
-   <p class="settings-note">离线交互实现：独立 SVG 图标、Web Animations API、原生 dialog。Lucide、Motion、Radix 是正式工程选型，未伪装为本页已安装的依赖。</p></div>`;
+   <p class="settings-note">离线交互实现：独立 SVG 图标、Web Animations API、原生 dialog。Lucide、Motion、Radix 是正式工程选型，未伪装为本页已安装的依赖。</p><div class="panel-footer"></div></div>`;
  },
  reminderTools(c){
    if(!FeedPolicy.supports(c))return '';

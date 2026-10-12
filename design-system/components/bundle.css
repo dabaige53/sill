@@ -17,7 +17,7 @@ input::placeholder,textarea::placeholder{color:var(--secondary)}
 ::selection{background:var(--selection);color:var(--ink)}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .icon{flex:0 0 auto;vertical-align:middle;pointer-events:none}
-main{width:100%;padding:48px 96px 112px 32px;margin:0 auto;min-height:100vh}
+main{max-width:1184px;padding:48px 32px 112px;margin:0 auto;min-height:100vh}
 .feed-grid{position:relative;width:100%;min-height:80vh}
 h2,p{margin:0}
 .empty-card{position:relative;max-width:450px;margin:15vh auto 0;padding:40px 30px;text-align:center;background:#ffffffe8;border:1px solid white;border-radius:24px;box-shadow:var(--shadow)}
@@ -218,10 +218,6 @@ h2,p{margin:0}
 
 /* Quiet Glass · overlays · shared source */
 dialog{color:var(--ink);padding:0;border:1px solid var(--line);border-radius:var(--panel-radius);background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);max-width:calc(100vw - 40px);max-height:90vh;width:620px;overflow:hidden;outline:none}
-.application-entry{padding:14px 0;border-bottom:1px solid var(--line)}
-.application-entry h2{font-size:16px}
-.application-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
-.application-actions>a{display:inline-flex;align-items:center;min-height:44px}
 dialog::backdrop{background:rgba(0,0,0,.2);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 dialog[open]{animation:none}
 .dialog-close{position:absolute;right:16px;top:16px;z-index:5;border-radius:50%}
@@ -259,6 +255,7 @@ dialog[open]{animation:none}
 .field-label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin:24px 0 10px}
 .filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 3px}
 .panel-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:24px;padding-top:16px;gap:12px}
+.panel-footer:empty{display:none}
 .panel-footer p{font-size:12px;color:var(--muted)}
 .editor-note{width:100%;height:130px;min-height:100px;font-size:14px;line-height:1.8;background:var(--surface);margin-top:2px}
 .tag-add{display:flex;align-items:center;gap:8px;margin-top:12px}

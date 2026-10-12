@@ -274,6 +274,7 @@ dialog[open]{animation:none}
 .field-label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin:24px 0 10px}
 .filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 3px}
 .panel-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:24px;padding-top:16px;gap:12px}
+.panel-footer:empty{display:none}
 .panel-footer p{font-size:12px;color:var(--muted)}
 .editor-note{width:100%;height:130px;min-height:100px;font-size:14px;line-height:1.8;background:var(--surface);margin-top:2px}
 .tag-add{display:flex;align-items:center;gap:8px;margin-top:12px}
@@ -805,7 +806,7 @@ const Panels={
    <p class="settings-note">鼠标靠近右下角，或者轻触玻璃入口，展开全局工具。卡片支持单击预览、长按 / 拖动进入 AI。预览内的 AI 图标是相同操作的替代入口。</p>
    <p class="settings-note">Enter 打开卡片。Esc 关闭浮层。Cmd/Ctrl + K 搜索。预览与完整阅读支持浏览器返回。</p>
    <p class="settings-note"><strong>演示边界</strong><br>所有内容为演示数据；AI 是本地示例回复，不会发起模型请求。未连接邮箱、日历、笔记或提醒服务。网页关闭后不运行后台提醒。</p>
-   <p class="settings-note">离线交互实现：独立 SVG 图标、Web Animations API、原生 dialog。Lucide、Motion、Radix 是正式工程选型，未伪装为本页已安装的依赖。</p></div>`;
+   <p class="settings-note">离线交互实现：独立 SVG 图标、Web Animations API、原生 dialog。Lucide、Motion、Radix 是正式工程选型，未伪装为本页已安装的依赖。</p><div class="panel-footer"></div></div>`;
  },
  reminderTools(c){
    if(!FeedPolicy.supports(c))return '';
