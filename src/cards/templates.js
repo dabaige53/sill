@@ -1,4 +1,4 @@
-/** One renderer for the live feed and the design catalog. Rendering never mutates Store. */
+/** One renderer for the live feed; design-system/ documents the same structure. Rendering never mutates Store. */
 const CardPresentation={
  state(c,options={}){
    const defaults={seen:false,read:false,bookmarked:false,later:false,selected:false,progress:0,snoozedUntil:0,dismissed:false,reminderDone:false};

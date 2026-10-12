@@ -1,12 +1,8 @@
 # 开发与续接
 
-## 当前迭代（V0.4：Storybook）
+## 当前：设计系统迁移至 design-system/
 
-本地设计库入口为 Storybook，命令 `npm run storybook`。使用 Storybook 10.6.1 / HTML-Vite 与 Vite 7.3.1，完整仓库安装要求 Node.js 24+（MCP 后端使用内置 SQLite）及现有 Python 3。安装使用 `npm ci`。
-
-`.storybook/shared-source.mjs` 按现有 modules.json 和 styles.json 直接读取共享源码，排除产品启动脚本；不复制模板，不修改产品初始化行为。`stories/runtime.js` 隔离内存 Store、内部导航与事件/定时器生命周期，单个 Canvas 运行真实组件交互。原控制器仍依赖单例 DOM，因此不启用同时挂载多个故事的 Autodocs；当前适配器不等同于已发布的无全局依赖 npm 组件包。
-
-用 `npm run build:storybook` 生成静态目录，再用 `npm run preview:storybook` 启动 HTTP 预览。浏览器验收为 `npm run test:storybook`；完整说明见 [STORYBOOK.md](./STORYBOOK.md)。
+Storybook 及图标库、卡片库、组件库、研究页四个参考页面已下线，设计规范统一存放在 `design-system/`（品牌手册、`tokens.json`、图标 SVG、组件说明与预览），维护方式见 [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md)。构建只生成 `index.html`。完整仓库安装要求 Node.js 24+（MCP 后端使用内置 SQLite）及现有 Python 3，安装使用 `npm ci`。
 
 ## 前序迭代（V0.3）
 

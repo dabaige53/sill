@@ -1,0 +1,10 @@
+<!-- @dsCard group="Overlays" height=330 -->
+<!doctype html>
+<html><head><meta charset="utf-8"></head>
+<body class="ds-flow" style="margin:0;min-height:0;padding:24px;background:var(--canvas)">
+<div id="root"></div>
+<script>
+const Q=window.QuietGlass,I=Q.icon,root=document.getElementById('root');
+root.innerHTML=`<div class="dialog-like" style="position:relative;width:440px;border:1px solid var(--line);border-radius:var(--panel-radius);background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);overflow:hidden"><div class="dialog-close">${Q.button('x','关闭','x')}</div><div class="panel-content"><h1>筛选</h1><div class="search-field" style="margin-bottom:0">${I('search')}<input placeholder="搜索内容" aria-label="搜索"></div><span class="field-label">标签</span><div class="chips">${Q.tagChip('设计',true)}${Q.tagChip('阅读')}${Q.tagChip('工作')}</div><div class="panel-footer"><p>共 12 张卡片</p><button class="solid-button">完成</button></div></div></div>`;
+</script>
+</body></html>

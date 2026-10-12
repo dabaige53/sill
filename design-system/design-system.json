@@ -1,0 +1,301 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-12T01:15:54Z"
+ },
+ "title": "Quiet Glass",
+ "namespace": "QuietGlass",
+ "libraries": [],
+ "sections": {},
+ "groups": [
+  "Icons"
+ ],
+ "assetGroups": {
+  "Icons": {
+   "name": "Icons",
+   "tile": "xs",
+   "order": [
+    "arrow.svg",
+    "back.svg",
+    "bell.svg",
+    "book.svg",
+    "bookmark.svg",
+    "calendar.svg",
+    "check-circle.svg",
+    "check.svg",
+    "clock.svg",
+    "download.svg",
+    "expand.svg",
+    "external.svg",
+    "eye.svg",
+    "file.svg",
+    "filter.svg",
+    "grid.svg",
+    "grip.svg",
+    "info.svg",
+    "layers.svg",
+    "mail.svg",
+    "moon.svg",
+    "more.svg",
+    "note.svg",
+    "pause.svg",
+    "play.svg",
+    "plus.svg",
+    "quote.svg",
+    "refresh.svg",
+    "ring.svg",
+    "search.svg",
+    "select.svg",
+    "send.svg",
+    "sparkles.svg",
+    "tag.svg",
+    "undo.svg",
+    "up.svg",
+    "video.svg",
+    "x.svg"
+   ],
+   "files": {
+    "arrow.svg": {
+     "name": "arrow.svg",
+     "blob": "1eeeba9171d5cdd7326d4b97c943be5f",
+     "size": 224,
+     "type": "image/svg+xml"
+    },
+    "back.svg": {
+     "name": "back.svg",
+     "blob": "8c3e8ffdc30443f7d972651ff4fe0705",
+     "size": 223,
+     "type": "image/svg+xml"
+    },
+    "bell.svg": {
+     "name": "bell.svg",
+     "blob": "444415d9f537c641211c5ce1aeac687c",
+     "size": 255,
+     "type": "image/svg+xml"
+    },
+    "book.svg": {
+     "name": "book.svg",
+     "blob": "81e29a8bbd3b08251022247054069b06",
+     "size": 290,
+     "type": "image/svg+xml"
+    },
+    "bookmark.svg": {
+     "name": "bookmark.svg",
+     "blob": "44f309bbd661bd0bedfa6eaf74554a90",
+     "size": 251,
+     "type": "image/svg+xml"
+    },
+    "calendar.svg": {
+     "name": "calendar.svg",
+     "blob": "cba9e71da68e7f3fe65730bd6cb3adb3",
+     "size": 311,
+     "type": "image/svg+xml"
+    },
+    "check-circle.svg": {
+     "name": "check-circle.svg",
+     "blob": "40cb6dcc4ec0617454fbf1dc6ebd0910",
+     "size": 255,
+     "type": "image/svg+xml"
+    },
+    "check.svg": {
+     "name": "check.svg",
+     "blob": "8add74ae9f2423e9d5d22b87b5e88656",
+     "size": 217,
+     "type": "image/svg+xml"
+    },
+    "clock.svg": {
+     "name": "clock.svg",
+     "blob": "ee272726a210b64e39f0b81263b37089",
+     "size": 253,
+     "type": "image/svg+xml"
+    },
+    "download.svg": {
+     "name": "download.svg",
+     "blob": "7157f875cdec490a6fad0946977c744c",
+     "size": 237,
+     "type": "image/svg+xml"
+    },
+    "expand.svg": {
+     "name": "expand.svg",
+     "blob": "cab4f33a121f09dcb7e592e00829f662",
+     "size": 239,
+     "type": "image/svg+xml"
+    },
+    "external.svg": {
+     "name": "external.svg",
+     "blob": "61dc0db4d27f0671bc94388287e13e1b",
+     "size": 282,
+     "type": "image/svg+xml"
+    },
+    "eye.svg": {
+     "name": "eye.svg",
+     "blob": "3edb4d6693e4c414ecfd3aabc61a0ebe",
+     "size": 286,
+     "type": "image/svg+xml"
+    },
+    "file.svg": {
+     "name": "file.svg",
+     "blob": "ac7a3942d741716c06070c969613d75b",
+     "size": 302,
+     "type": "image/svg+xml"
+    },
+    "filter.svg": {
+     "name": "filter.svg",
+     "blob": "839498ce9e2eb70c890012b0dd046be7",
+     "size": 358,
+     "type": "image/svg+xml"
+    },
+    "grid.svg": {
+     "name": "grid.svg",
+     "blob": "f72a74e4fcb974aa61ff8ff809f2af63",
+     "size": 401,
+     "type": "image/svg+xml"
+    },
+    "grip.svg": {
+     "name": "grip.svg",
+     "blob": "32f4f1a87bfced1f563c267fb1547ecb",
+     "size": 414,
+     "type": "image/svg+xml"
+    },
+    "info.svg": {
+     "name": "info.svg",
+     "blob": "0dca2811d3c1867390c3d2e3235ddb49",
+     "size": 259,
+     "type": "image/svg+xml"
+    },
+    "layers.svg": {
+     "name": "layers.svg",
+     "blob": "e70a05ac99fa2a1930c0aa894a23e5c6",
+     "size": 249,
+     "type": "image/svg+xml"
+    },
+    "mail.svg": {
+     "name": "mail.svg",
+     "blob": "5b4b9f59e8bb8821f69335b50d6c7c90",
+     "size": 270,
+     "type": "image/svg+xml"
+    },
+    "moon.svg": {
+     "name": "moon.svg",
+     "blob": "1681da9a74b269bd77bd195a577b0d5b",
+     "size": 242,
+     "type": "image/svg+xml"
+    },
+    "more.svg": {
+     "name": "more.svg",
+     "blob": "3d735ff3023ea9d637b9b5e5912ccb17",
+     "size": 301,
+     "type": "image/svg+xml"
+    },
+    "note.svg": {
+     "name": "note.svg",
+     "blob": "17de9b824697775bca5cab6b3fef9ae5",
+     "size": 323,
+     "type": "image/svg+xml"
+    },
+    "pause.svg": {
+     "name": "pause.svg",
+     "blob": "43d11a12cadca8f56d162f8a24e265bb",
+     "size": 235,
+     "type": "image/svg+xml"
+    },
+    "play.svg": {
+     "name": "play.svg",
+     "blob": "1f912bc60806ef587a2248b3ce0d8357",
+     "size": 218,
+     "type": "image/svg+xml"
+    },
+    "plus.svg": {
+     "name": "plus.svg",
+     "blob": "0b9dd059e7074e00cc96007e8d0f3a04",
+     "size": 219,
+     "type": "image/svg+xml"
+    },
+    "quote.svg": {
+     "name": "quote.svg",
+     "blob": "dd745a97ef173fd96c82a5e870707a7f",
+     "size": 250,
+     "type": "image/svg+xml"
+    },
+    "refresh.svg": {
+     "name": "refresh.svg",
+     "blob": "7f4189a0b29f05697f5003f28ff2505e",
+     "size": 268,
+     "type": "image/svg+xml"
+    },
+    "ring.svg": {
+     "name": "ring.svg",
+     "blob": "55b533c45d038b6960f96f5b40beeaac",
+     "size": 278,
+     "type": "image/svg+xml"
+    },
+    "search.svg": {
+     "name": "search.svg",
+     "blob": "9a94d0ddbabd854c5277b6053c1f3c94",
+     "size": 258,
+     "type": "image/svg+xml"
+    },
+    "select.svg": {
+     "name": "select.svg",
+     "blob": "0a1f9c87d0e920429ddc86dab66aab49",
+     "size": 271,
+     "type": "image/svg+xml"
+    },
+    "send.svg": {
+     "name": "send.svg",
+     "blob": "41459d3f6c134302409558ea42687860",
+     "size": 232,
+     "type": "image/svg+xml"
+    },
+    "sparkles.svg": {
+     "name": "sparkles.svg",
+     "blob": "c9d308efb9f196323a0a59e430f543c7",
+     "size": 292,
+     "type": "image/svg+xml"
+    },
+    "tag.svg": {
+     "name": "tag.svg",
+     "blob": "63cc13b335980f4c0867ef96407adfab",
+     "size": 282,
+     "type": "image/svg+xml"
+    },
+    "undo.svg": {
+     "name": "undo.svg",
+     "blob": "5c68816cfb8ba56232efd0960fdc890b",
+     "size": 230,
+     "type": "image/svg+xml"
+    },
+    "up.svg": {
+     "name": "up.svg",
+     "blob": "c6e605f77eb8e23617fb922697962eb1",
+     "size": 224,
+     "type": "image/svg+xml"
+    },
+    "video.svg": {
+     "name": "video.svg",
+     "blob": "ef12bd95a930063b068fb0d5909ba03b",
+     "size": 276,
+     "type": "image/svg+xml"
+    },
+    "x.svg": {
+     "name": "x.svg",
+     "blob": "f7c2c1220b97335c58b2839ecc6402c5",
+     "size": 223,
+     "type": "image/svg+xml"
+    }
+   }
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "sections": []
+ },
+ "lastChange": {
+  "by": "dabaige53",
+  "at": "2026-10-12T01:41:58Z",
+  "via": "Claude Code",
+  "note": "图标目录并入 Icons 说明；旧参考库与 Storybook 下线后同步手册与样式"
+ }
+}

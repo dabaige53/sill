@@ -1,0 +1,10 @@
+<!-- @dsCard group="Forms" height=110 -->
+<!doctype html>
+<html><head><meta charset="utf-8"></head>
+<body class="ds-flow" style="margin:0;min-height:0;padding:16px;background:var(--card)">
+<div id="root"></div>
+<script>
+const Q=window.QuietGlass,I=Q.icon,root=document.getElementById('root');
+root.innerHTML=`<div style="width:360px"><div class="setting-row"><div><span>减少透明度</span><small>操作层改为实体白色表面</small></div><button class="toggle" role="switch" aria-checked="true" aria-label="减少透明度"></button></div><div class="setting-row"><div><span>减少动态效果</span><small>保留操作结果，去掉位移</small></div><button class="toggle" role="switch" aria-checked="false" aria-label="减少动态效果"></button></div></div>`;root.querySelectorAll('.toggle').forEach(b=>b.onclick=()=>b.setAttribute('aria-checked',b.getAttribute('aria-checked')!=='true'));
+</script>
+</body></html>
