@@ -7,10 +7,6 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = {
     "index.html": ("feed", "个人信息空间"),
-    "icons.html": ("icons", "图标库"),
-    "cards.html": ("cards", "卡片库"),
-    "components.html": ("library", "组件库"),
-    "research.html": ("sources", "研究资料"),
 }
 
 
@@ -38,7 +34,7 @@ def build(check=False):
     if stale:
         print("Stale build: " + ", ".join(stale), file=sys.stderr)
         return 1
-    print("Build verified" if check else f"Built {len(PAGES)} standalone pages")
+    print("Build verified" if check else f"Built {len(PAGES)} standalone page(s)")
     return 0
 
 

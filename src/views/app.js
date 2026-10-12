@@ -63,16 +63,9 @@ class AppController{
    // An anchored reflow may temporarily need extra room below the final row.
    // Each fresh render measures its own natural height again.
    this.grid.style.removeProperty('min-height');
-   const catalog=['icons','cards','library','sources'].includes(this.mode);
-   this.grid.classList.toggle('is-catalog',catalog);document.body.dataset.view=this.mode;
-   if(this.mode==='icons'){this.grid.innerHTML=IconsView.render();document.getElementById('page-title').textContent='图标库';}
-   else if(this.mode==='cards'){this.grid.innerHTML=CardsView.render();document.getElementById('page-title').textContent='卡片库';}
-   else if(this.mode==='library'){this.grid.innerHTML=LibraryView.render();document.getElementById('page-title').textContent='组件库';}
-   else if(this.mode==='sources'){this.grid.innerHTML=SourcesView.render();document.getElementById('page-title').textContent='研究资料';}
-   else{
-     const cards=this.filtered();this.grid.innerHTML=cards.length?cards.map(cardHTML).join(''):emptyState('这里暂时很安静','没有符合条件的卡片。换一个标签，或清除当前筛选。');
-     document.getElementById('page-title').textContent='卡片信息流';
-   }
+   document.body.dataset.view=this.mode;
+   const cards=this.filtered();this.grid.innerHTML=cards.length?cards.map(cardHTML).join(''):emptyState('这里暂时很安静','没有符合条件的卡片。换一个标签，或清除当前筛选。');
+   document.getElementById('page-title').textContent='卡片信息流';
    this.grid.querySelectorAll('img').forEach(img=>img.addEventListener('load',()=>this.layout.schedule(false),{once:true}));
    this.layout.layout(false);this.updateSelection();this.updateFilterIndicator();
    if(animate)[...this.grid.children].slice(0,12).forEach((n,i)=>MotionEngine.enter(n,Math.min(i*22,160)));
@@ -123,7 +116,7 @@ class AppController{
      if(!id||!Store.card(id)){history.replaceState({glass:true,prev:null},'','#feed');this.route();return;}
      this.showPreview(id,kind==='read');return;
    }
-   const requested=hash.slice(1),mode=['icons','cards','library','sources'].includes(requested)?requested:'feed';
+   const mode='feed';
    this.closeNative();
    if(this.mode!==mode){this.mode=mode;this.baseMode=mode;this.renderCurrent(true);window.scrollTo(0,this.routeScroll[mode]||0);}
  }
@@ -444,7 +437,7 @@ class AppController{
      case 'refresh':this.refresh();break;
      case 'show-new':this.showNew();break;
      case 'top':window.scrollTo({top:0,behavior:MotionEngine.reduced?'instant':'smooth'});break;
-     case 'view-feed':case 'view-icons':case 'view-cards':case 'view-library':case 'view-sources':this.closeNative();this.navigate('#'+name.slice(5));break;
+     case 'view-feed':this.closeNative();this.navigate('#'+name.slice(5));break;
      case 'card-open':case 'preview':this.navigate('#card/'+id);break;
      case 'context-preview':this.closeAI();this.navigate('#card/'+id);break;
      case 'reader':this.navigate('#read/'+id);break;
@@ -510,27 +503,6 @@ class AppController{
      case 'media-play':this.playMedia();break;
      case 'media-next':this.pauseMedia();this.mediaIndex=Math.min(3,this.mediaIndex+1);this.paintMedia();break;
      case 'media-prev':this.pauseMedia();this.mediaIndex=Math.max(0,this.mediaIndex-1);this.paintMedia();break;
-     case 'catalog-check':{
-       const done=el.getAttribute('aria-checked')!=='true';el.setAttribute('aria-checked',String(done));el.classList.toggle('is-done',done);el.querySelector('.check-dot').innerHTML=done?icon('check',12):'';break;
-     }
-     case 'catalog-context-remove':{
-       const stage=el.closest('.component-preview'),cards=[...stage.querySelectorAll('.context-card')],card=el.closest('.context-card'),index=cards.indexOf(card);
-       const focus=cards[index+1]?.querySelector('.context-remove')||cards[index-1]?.querySelector('.context-remove')||stage.closest('.component-specimen').querySelector('.component-footer button');card?.remove();
-       const count=stage.querySelectorAll('.context-card').length,heading=stage.querySelector('.context-heading');
-       if(heading)heading.innerHTML=count?`<span>${count} 个引用</span><small>发送前可调整</small>`:'<span>还没有引用</span><small>可从卡片加入 AI</small>';focus?.focus({preventScroll:true});break;
-     }
-     case 'catalog-compose':{
-       const value=el.closest('.ai-compose').querySelector('textarea').value;this.openAI();document.getElementById('ai-input').value=value;document.getElementById('ai-input').focus();break;
-     }
-     case 'catalog-toast':this.toast('收藏已保存',()=>this.toast('已撤销'));break;
-     case 'lab-icon':MotionEngine.press(el);if(extra==='refresh')MotionEngine.animate(el.querySelector('svg'),[{transform:'rotate(0)'},{transform:'rotate(360deg)'}],{duration:550});else el.classList.toggle('active');break;
-     case 'lab-tag':el.classList.toggle('active');el.setAttribute('aria-pressed',el.classList.contains('active'));break;
-     case 'lab-motion':{
-       const n=document.getElementById('motion-cube');
-       if(extra==='enter')MotionEngine.enter(n);
-       else if(extra==='lift')MotionEngine.animate(n,[{transform:'translateY(0)'},{transform:'translateY(-17px) scale(1.06)',offset:.5},{transform:'translateY(0)'}],{duration:520});
-       else MotionEngine.animate(n,[{transform:'scale(1)'},{transform:'scale(.82)',offset:.25},{transform:'scale(1.06)',offset:.7},{transform:'scale(1)'}],{duration:450});break;
-     }
    }
  }
  repaintFilter(){
@@ -548,9 +520,6 @@ class AppController{
      this.filter.query=e.target.value;
      document.getElementById('filter-result').textContent=`${this.filtered().length} 张卡片`;
      clearTimeout(this.searchTimer);this.searchTimer=setTimeout(()=>{if(this.mode==='feed')this.renderCurrent(false);this.updateFilterIndicator();},140);
-   }else if(name==='lab-ring'){
-     const value=Number(e.target.value)/100;
-     document.getElementById('lab-rings').innerHTML=ring(value,24)+ring(value,36)+ring(value,52)+ring(value,22);
    }
  }
  key(e){

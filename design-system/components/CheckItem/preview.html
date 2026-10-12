@@ -1,0 +1,10 @@
+<!-- @dsCard group="Atoms" height=150 -->
+<!doctype html>
+<html><head><meta charset="utf-8"></head>
+<body class="ds-flow" style="margin:0;min-height:0;padding:16px;background:var(--card)">
+<div id="root"></div>
+<script>
+const Q=window.QuietGlass,I=Q.icon,root=document.getElementById('root');
+const c={id:'t'};root.innerHTML=`<div style="width:300px">${Q.checkItem(c,{id:1,text:'整理评审意见',done:true})}${Q.checkItem(c,{id:2,text:'更新卡片间距规范',done:false})}${Q.checkItem(c,{id:3,text:'回复设计团队邮件',done:false})}</div>`;
+</script>
+</body></html>

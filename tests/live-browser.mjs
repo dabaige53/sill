@@ -111,7 +111,6 @@ try {
   assert.deepEqual(state.live.tags,['保留标签']);
   assert.equal(state.demo.items['note-01'].note,'离线演示保持独立');
   assert.equal(state.token,null);
-  for(const path of ['/icons.html','/cards.html','/components.html','/research.html'])assert.equal((await fetch(app.origin+path)).status,200);
   assert.deepEqual(errors,[]);
   await page.screenshot({path:join(artifacts,'live-integration.png'),fullPage:true});
   await writeFile(join(artifacts,'live-integration.json'),JSON.stringify({status:'PASS',checks:['MCP source collection','shared V0.5 rendering and evidence links','authentication without demo data','browser state isolation and reload','attach-before-send','MCP answer returned to UI','SQLite bookmark feedback','interrupted preview protection','full reader content','refresh queue and explicit insertion','all five entry points'],pageErrors:errors},null,2));

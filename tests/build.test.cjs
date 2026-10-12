@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const root=path.resolve(__dirname,'..');
-for(const [file,mode] of [['index.html','feed'],['icons.html','icons'],['cards.html','cards'],['components.html','library'],['research.html','sources']]){
+for(const [file,mode] of [['index.html','feed']]){
  test(`${file}: standalone script compiles and has no external runtime dependencies`,()=>{
   const html=fs.readFileSync(path.join(root,file),'utf8');
   const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
