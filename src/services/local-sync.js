@@ -39,6 +39,7 @@ const LocalSync={
       clearInterval(this.timer);this.timer=setInterval(()=>this.refresh().catch(()=>{}),1000);
       if(!this.focusListener){window.addEventListener('focus',()=>this.refresh().catch(()=>{}));this.focusListener=true;}
       if(this.pending.length)await this.flush();
+      else{this.failed=false;this.status('');app.setOffline(false);}
     }catch(error){this.failed=true;app.setOffline(true);this.status('未连接本地服务；请导出当前草稿或重试连接');app.toast('无法连接本地数据：'+error.message);}
   },
   capture(){

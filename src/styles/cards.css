@@ -129,7 +129,7 @@ button.ref:hover{background:var(--faint)}
 
 /* The more button: hidden at rest, a glass circle over covers. */
 .card-actions{position:absolute;right:8px;top:8px;display:flex;z-index:3}
-.card-more-trigger{width:32px;height:32px;min-width:32px;color:var(--secondary);background:transparent;opacity:0;visibility:hidden;transition:opacity var(--fast),background var(--fast),color var(--fast)}
+.card-more-trigger{width:32px;height:32px;min-width:32px;color:var(--secondary);background:transparent;opacity:1;visibility:visible;transition:opacity var(--fast),background var(--fast),color var(--fast)}
 .card-more-trigger:before{content:"";position:absolute;inset:-6px}
 .has-cover .card-actions{right:12px;top:12px}
 .has-cover .card-more-trigger{background:var(--glass);color:var(--ink);border:1px solid rgba(255,255,255,.72);box-shadow:0 2px 8px rgba(0,0,0,.08)}
