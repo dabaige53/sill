@@ -10,29 +10,22 @@ class FeedLayout{
  }
  layout(animate=false){
    const el=this.container,width=el.clientWidth;
-   const items=[...el.querySelectorAll(':scope > .feed-card')];
+   const items=[...el.querySelectorAll(':scope > .feed-item')];
    if(!items.length){el.style.height='';return;}
    if(!width)return;
-   // A consistent column width lets content, rather than automatic spanning,
-   // establish hierarchy. Short actions stay compact; reading cards have room.
-   const cols=width>=480?Math.max(2,Math.floor((width+18)/258)):1,gap=cols===1?16:18;
+   // Sill columns: never narrower than the density minimum, never wider than its maximum.
+   // A narrow screen keeps one full-width column; a wide one centres the columns it can fill.
+   const [min,max]={compact:[240,320],standard:[280,380],roomy:[340,440]}[document.body.dataset.density]||[280,380];
+   const single=width<min*2+24,gap=single?16:24,cols=single?1:Math.max(2,Math.floor((width+gap)/(min+gap)));
+   const col=single?width:Math.min(max,(width-(cols-1)*gap)/cols),inset=single?0:(width-(cols*col+(cols-1)*gap))/2;
    const old=animate?new Map(items.map(n=>[n,n.getBoundingClientRect()])):null;
    el.dataset.columns=cols;
-   items.forEach(n=>{
-     n.classList.remove('is-featured');
-     // Keep horizontal geometry inside the container before resize/RAF runs.
-     n.style.width=`calc((100% - ${(cols-1)*gap}px) / ${cols})`;
-   });
+   items.forEach(n=>{n.style.width=col+'px';});
    const heights=Array(cols).fill(0);
    items.forEach(n=>{
-     const span=1;
-     let col=0,y=Infinity;
-     for(let i=0;i<=cols-span;i++){
-       const candidate=Math.max(...heights.slice(i,i+span));
-       if(candidate<y){col=i;y=candidate;}
-     }
-     n.style.left=`calc((100% + ${gap}px) / ${cols} * ${col})`;n.style.top=y+'px';
-     for(let i=col;i<col+span;i++)heights[i]=y+n.offsetHeight+gap;
+     let c=0;for(let i=1;i<cols;i++)if(heights[i]<heights[c]-1)c=i;
+     n.style.left=(inset+c*(col+gap))+'px';n.style.top=heights[c]+'px';
+     heights[c]+=n.offsetHeight+gap+(n.classList.contains('stack-card')?10:0);
    });
    el.style.height=(Math.max(...heights)-gap)+'px';
    if(old)items.forEach(n=>MotionEngine.flip(n,old.get(n)));

@@ -1,7 +1,7 @@
 /** Page and agents share one loopback service. Browser storage remains a migration backup. */
 const LocalSync={
   revision:0,baseline:null,pending:[],busy:false,app:null,ready:false,failed:false,
-  snapshot(){return JSON.parse(JSON.stringify({cards:Store.state.cards,items:Store.state.items,seconds:Store.state.seconds,preferences:Store.state.preferences}));},
+  snapshot(){return JSON.parse(JSON.stringify({cards:Store.state.cards,items:Store.state.items,seconds:Store.state.seconds,preferences:Store.state.preferences,sources:Store.state.sources||[]}));},
   async request(path,body){
     const response=await fetch('/api/local/'+path,{signal:AbortSignal.timeout(5000),...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
     const value=await response.json();if(!response.ok)throw new Error(value.error||'本地同步失败');return value;
@@ -21,6 +21,13 @@ const LocalSync={
   capture(){
     if(!this.ready)return;
     const next=this.snapshot(),before=this.baseline,operations=[];
+    // Cards created or edited on the page (capture, import, inline notes) travel as whole cards.
+    const oldCards=new Map(before.cards.map(card=>[card.id,JSON.stringify(card)])),newIds=new Set(next.cards.map(card=>card.id));
+    for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card});
+    for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id});
+    const oldSources=new Map((before.sources||[]).map(source=>[source.id,JSON.stringify(source)])),newSources=new Set(next.sources.map(source=>source.id));
+    for(const source of next.sources)if(oldSources.get(source.id)!==JSON.stringify(source))operations.push({op:'source.upsert',source});
+    for(const id of oldSources.keys())if(!newSources.has(id))operations.push({op:'source.delete',id});
     for(const [id,item] of Object.entries(next.items)){
       if(!next.cards.some(card=>card.id===id))continue;
       const values={},previous={};
@@ -28,7 +35,7 @@ const LocalSync={
       if(Object.keys(values).length)operations.push({op:'item.patch',id,values,before:previous});
     }
     const values={},previous={};
-    for(const [key,value] of Object.entries(next.preferences))if(value!==before.preferences[key]){values[key]=value;previous[key]=before.preferences[key];}
+    for(const [key,value] of Object.entries(next.preferences))if(value!==before.preferences[key]){values[key]=value;if(before.preferences[key]!==undefined)previous[key]=before.preferences[key];}
     if(Object.keys(values).length)operations.push({op:'preferences.patch',values,before:previous});
     const seconds=next.seconds-before.seconds;if(seconds>0)operations.push({op:'reading.add',seconds});
     this.baseline=next;
@@ -42,11 +49,11 @@ const LocalSync={
         const value=await this.request('operations',this.pending[0]);this.pending.shift();this.revision=value.revision;
         if(!this.pending.length)this.adopt(value);
       }
-      this.app.grid.dataset.sync='saved';
+      this.app.grid.dataset.sync='saved';this.app.setOffline(false);
     }catch(error){
       this.failed=true;
       try{localStorage.setItem('quiet-glass-unsynced',JSON.stringify({state:this.snapshot(),pending:this.pending}));}catch{}
-      this.app.grid.dataset.sync='error';this.app.toast('修改尚未同步：'+error.message+'；本地草稿已保留');
+      this.app.grid.dataset.sync='error';this.app.setOffline(true);this.app.toast('修改尚未同步：'+error.message+'；本地草稿已保留');
     }finally{this.busy=false;}
   },
   async refresh(manual=false){
@@ -62,24 +69,22 @@ const LocalSync={
   },
   adopt(value){
     if(!value.state)return;
-    const changed=JSON.stringify([Store.state.cards,Store.state.items,Store.state.preferences])!==JSON.stringify([value.state.cards,value.state.items,value.state.preferences]);
-    this.revision=value.revision;Object.assign(Store.state,value.state);Store.state.storageAvailable=true;
+    const changed=JSON.stringify([Store.state.cards,Store.state.items,Store.state.preferences,Store.state.sources])!==JSON.stringify([value.state.cards,value.state.items,value.state.preferences,value.state.sources||[]]);
+    this.revision=value.revision;Object.assign(Store.state,value.state);Store.state.sources=value.state.sources||[];Store.state.storageAvailable=true;
     this.baseline=this.snapshot();
     // Write the browser backup without enqueueing another remote operation.
     try{localStorage.setItem(Store.key,JSON.stringify(Store.serialized()));}catch{}
     const app=this.app;app.grid.dataset.sync='saved';app.grid.dataset.revision=value.revision;
     if(!changed)return;
-    app.sort=Store.state.preferences.sort;app.feedNow=Date.now();
-    document.body.classList.toggle('opaque',Store.state.preferences.reduceTransparency);
-    app.withFeedAnchor(()=>{});
-    if(['preview','reader'].includes(app.modalKind)){
+    app.feedNow=Date.now();app.applyPreferences();
+    if(!app.editingId)app.withFeedAnchor(()=>{});
+    if(['sources','source','settings'].includes(app.modalKind))app.repaintSources();
+    if(app.modalKind==='preview'){
       const card=Store.card(app.currentId);
       if(!card){app.closeNative();history.replaceState({glass:true,prev:null},'','#feed');}
       else{
-        const reading=app.modalKind==='reader',scroll=app.dialog.querySelector('#reader-scroll')?.scrollTop||0;
         const toast=document.getElementById('toast');if(toast&&app.dialog.contains(toast))document.body.appendChild(toast);
-        app.dialog.innerHTML=Panels.preview(app,card,reading);
-        if(reading){const element=app.dialog.querySelector('#reader-scroll');element.scrollTop=scroll;element.addEventListener('scroll',()=>app.updateReading(card.id,element),{passive:true});}
+        app.dialog.innerHTML=Panels.preview(app,card);
       }
     }
     app.checkReminders();app.grid.dataset.sync='saved';app.grid.dataset.revision=value.revision;

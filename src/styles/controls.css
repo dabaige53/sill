@@ -1,48 +1,86 @@
-/* Quiet Glass · controls · shared source */
+/* Sill · controls · shared source */
 /* Translucency belongs to the floating tools, not the content surface. */
-.glass{position:relative;background:var(--glass);border:1px solid rgba(255,255,255,.72);box-shadow:0 0 0 1px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.1);-webkit-backdrop-filter:blur(24px) saturate(1.2);backdrop-filter:blur(24px) saturate(1.2)}
-.icon-button{width:44px;height:44px;min-width:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:transparent;position:relative;transition:background var(--fast),transform var(--fast),color var(--fast)}
+.glass{position:relative;background:var(--glass);border:1px solid var(--glass-edge);box-shadow:0 0 0 1px rgba(0,0,0,.03),var(--shadow-glass);-webkit-backdrop-filter:blur(24px) saturate(1.2);backdrop-filter:blur(24px) saturate(1.2)}
+.icon-button{width:44px;height:44px;min-width:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:transparent;position:relative;color:var(--ink);transition:background var(--fast),transform var(--fast),color var(--fast)}
 .icon-button:hover{background:var(--surface)}
 .icon-button:active{transform:scale(.95)}
-.icon-button.active{background:var(--accent-soft);color:var(--accent)}
-.icon-button.active svg{fill:rgba(0,102,204,.08)}
-#dock{position:fixed;right:26px;bottom:26px;z-index:45;display:flex;align-items:center;justify-content:center;width:64px;height:64px}
-#orb{width:56px;height:56px;min-width:56px;border-radius:50%;overflow:hidden;background:var(--glass);color:var(--ink);box-shadow:0 0 0 1px rgba(0,0,0,.05),0 8px 28px rgba(0,0,0,.14);transition:transform .24s var(--ease),box-shadow .24s}
-#orb .icon{width:23px;height:23px}
-#orb:hover{transform:scale(1.04);background:rgba(255,255,255,.92)}
+.icon-button.active{color:var(--accent)}
+.icon-button.active svg{fill:currentColor;fill-opacity:.9}
+
+/* The orb: one glass entrance, bottom right. Tools rise from it. */
+#dock{position:fixed;right:32px;bottom:32px;z-index:45;display:flex;align-items:center;gap:12px;transition:transform var(--layout) var(--ease),opacity var(--layout) var(--ease)}
+#dock.is-quiet{transform:scale(.86);opacity:.6}
+#dock.is-quiet:hover,#dock.is-quiet:focus-within{transform:none;opacity:1}
+.orb-wrap{position:relative;width:56px;height:56px}
+#orb{width:56px;height:56px;min-width:56px;border-radius:50%;background:var(--glass);color:var(--ink);box-shadow:0 0 0 1px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.1);transition:transform .24s var(--ease),box-shadow .24s}
+#orb .icon{width:22px;height:22px}
+#orb:hover{transform:scale(1.04)}
 #orb.drop-hot{transform:scale(1.2);color:var(--accent);box-shadow:0 0 0 8px rgba(0,102,204,.12),0 8px 28px rgba(0,0,0,.14)}
-.dock-tools{position:absolute;bottom:72px;right:6px;display:flex;flex-direction:column;gap:8px;opacity:0;visibility:hidden;transform:translateY(10px) scale(.96);transform-origin:bottom;transition:opacity 230ms var(--ease),transform 230ms var(--ease),visibility 230ms;padding:8px 0}
-.dock-tools .icon-button{background:var(--glass);box-shadow:0 0 0 1px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.08);border:1px solid rgba(255,255,255,.72);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+#dock.is-open #orb .icon{transform:rotate(45deg)}
+#orb .icon{transition:transform var(--base) var(--ease)}
+.dock-tools{position:absolute;bottom:68px;right:6px;display:flex;flex-direction:column;gap:10px;opacity:0;visibility:hidden;transform:translateY(10px) scale(.96);transform-origin:bottom;transition:opacity 230ms var(--ease),transform 230ms var(--ease),visibility 230ms}
+.dock-tools .icon-button{background:var(--glass);box-shadow:0 0 0 1px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.08);border:1px solid var(--glass-edge);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
 .dock-tools .icon-button:hover{background:var(--card)}
-#dock.is-open .dock-tools,#dock:focus-within .dock-tools{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
-#dock.filter-active:after{content:"";position:absolute;right:10px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);border:2px solid var(--card);pointer-events:none}
-#new-count{position:absolute;bottom:7px;right:75px;min-width:44px;height:44px;border-radius:22px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px}
+#dock.is-open .dock-tools{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+/* Tools rise one after another from the entrance, 40ms apart; they leave together. */
+.dock-tools .icon-button{opacity:0;translate:0 8px;transition:opacity 180ms var(--ease),translate 220ms var(--ease),background var(--fast) var(--ease)}
+#dock.is-open .dock-tools .icon-button{opacity:1;translate:0 0}
+#dock.is-open .dock-tools .icon-button:nth-last-child(2){transition-delay:40ms}
+#dock.is-open .dock-tools .icon-button:nth-last-child(3){transition-delay:80ms}
+#dock.is-open .dock-tools .icon-button:nth-last-child(4){transition-delay:120ms}
+#dock.is-open .dock-tools .icon-button:nth-last-child(5){transition-delay:160ms}
+#dock.filter-active .orb-wrap:after{content:"";position:absolute;right:4px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--card);pointer-events:none}
+#new-count{height:40px;padding:0 16px;border-radius:20px;font-size:13px;font-weight:500;color:var(--accent);display:inline-flex;align-items:center;gap:6px}
 #new-count[hidden]{display:none}
-#selection-bar{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:43;border-radius:30px;display:flex;align-items:center;padding:4px 7px;gap:8px;max-width:calc(100vw - 110px)}
+/* Busy: one quiet arc travelling around the orb. No percentages, no spinner text. */
+.orb-arc{position:absolute;inset:-4px;width:64px;height:64px;pointer-events:none;opacity:0;transition:opacity var(--base)}
+.orb-arc circle{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-dasharray:22 78;transform-origin:center}
+#dock.is-busy .orb-arc{opacity:.9}
+#dock.is-busy .orb-arc circle{animation:orb-arc 1.1s linear infinite}
+@keyframes orb-arc{to{transform:rotate(360deg)}}
+/* Offline: the orb says it quietly; a tap retries. */
+#offline{height:40px;padding:0 14px;border-radius:20px;font-size:13px;font-weight:500;color:var(--alert);display:inline-flex;align-items:center;gap:8px}
+#offline:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--alert)}
+#offline.is-retrying:before{animation:pulse 1s ease-in-out infinite}
+#offline[hidden]{display:none}
+@keyframes pulse{50%{opacity:.3}}
+
+/* Toast and selection: glass pills at the bottom centre. */
+#selection-bar{position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:43;border-radius:30px;display:flex;align-items:center;padding:6px;gap:2px;max-width:calc(100vw - 120px)}
 #selection-bar[hidden]{display:none}
-#selection-bar .selection-count{font-size:13px;padding:0 8px;white-space:nowrap}
-#selection-bar .icon-button{width:44px;min-width:44px;height:44px}
-#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 130px);padding:10px 16px;border-radius:28px;z-index:120;display:flex;align-items:center;gap:12px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.12);background:var(--glass-thick);border:1px solid rgba(255,255,255,.72);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+.selection-count{display:grid;place-items:center;min-width:28px;height:28px;margin:0 8px;padding:0 8px;border-radius:14px;background:var(--accent);color:#fff;font-size:13px;font-weight:600}
+.toolbar-sep{width:1px;height:22px;background:var(--line-hover);margin:0 6px;flex:none}
+#toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 140px);min-height:44px;padding:0 6px 0 18px;border-radius:22px;z-index:120;display:flex;align-items:center;gap:8px;font-size:13px}
 #toast[hidden]{display:none}
-#toast .icon-button{width:44px;height:44px;min-width:44px}
-#toast-text{white-space:normal}
-.filter-kind{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;padding:0;min-width:44px;min-height:68px;font-size:12px;color:var(--muted);border-radius:10px}
-.filter-kind .kind-disc{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--surface);transition:background 180ms,color 180ms}
-.filter-kind.active{color:var(--accent)}
-.filter-kind.active .kind-disc{background:var(--accent-soft);color:var(--accent)}
-.filter-kind:hover .kind-disc{background:var(--faint)}
-.filter-kind.active:hover .kind-disc{background:var(--accent-soft)}
+#toast-text{white-space:normal;padding:10px 0}
+#toast-text:only-child{padding-right:12px}
+#toast-action .text-link{padding:10px 12px}
+#toast-action:empty{display:none}
+
+/* Chips, segmented controls and switches. */
 .chips{display:flex;gap:8px;flex-wrap:wrap}
-.tag-chip{min-height:44px;padding:8px 14px;border-radius:22px;background:var(--surface);color:var(--ink);font-size:13px;border:1px solid transparent;transition:background var(--fast),color var(--fast)}
-.tag-chip:hover{background:var(--faint)}
-.tag-chip.active{background:var(--accent-soft);color:var(--accent)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:18px;background:var(--card);color:var(--ink);font-size:13px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:background var(--fast),color var(--fast)}
+.chip .icon{color:var(--secondary)}
+.chip:hover{background:var(--surface)}
+.chip.active{background:var(--accent);color:#fff}
+.chip.active .icon{color:#fff}
+.chip.soft{background:var(--surface);box-shadow:none}
+.chip.soft.active{background:var(--accent)}
+.tag-pill{display:inline-flex;align-items:center;gap:2px;height:32px;padding:0 4px 0 12px;border-radius:16px;background:var(--accent-soft);color:var(--accent-ink);font-size:13px;font-weight:500}
+.tag-pill button{width:24px;height:24px;display:grid;place-items:center;color:inherit;opacity:.6;border-radius:50%}
+.tag-pill button:hover{opacity:1}
+.segmented{display:inline-flex;padding:2px;border-radius:10px;background:var(--surface);flex:none}
+.segmented button{min-height:30px;padding:0 12px;border-radius:8px;font-size:13px;color:var(--muted);white-space:nowrap}
+.segmented button.on{background:var(--card);color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.toggle{width:51px;height:31px;border-radius:16px;background:var(--toggle-off);position:relative;flex:none;transition:background var(--base)}
+.toggle:before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.15);transition:transform var(--base) var(--ease)}
+.toggle[aria-checked=true]{background:var(--toggle-on)}
+.toggle[aria-checked=true]:before{transform:translateX(20px)}
 .text-button{background:transparent;min-height:44px;padding:8px 12px;font-size:13px;border-radius:12px;color:var(--ink);transition:background var(--fast)}
 .text-button:hover{background:var(--surface)}
-.solid-button{background:var(--accent);color:#fff;border-radius:12px;padding:11px 18px;font-size:13px;font-weight:500;min-height:44px;transition:filter var(--fast),transform var(--fast)}
+.solid-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border-radius:22px;padding:0 20px;font-size:14px;font-weight:500;min-height:44px;transition:filter var(--fast),transform var(--fast);white-space:nowrap}
 .solid-button:hover{filter:brightness(1.08)}
 .solid-button:active{transform:scale(.98)}
-.toggle{width:48px;height:44px;border-radius:16px;background:transparent;position:relative;flex-shrink:0}
-.toggle:after{content:"";position:absolute;inset:9px 2px;border-radius:16px;background:#d1d1d6;transition:background 150ms}
-.toggle:before{content:"";position:absolute;width:22px;height:22px;left:4px;top:11px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform 150ms;z-index:1}
-.toggle[aria-checked=true]:after{background:var(--accent)}
-.toggle[aria-checked=true]:before{transform:translateX(18px)}
+.solid-button small{font-size:12px;opacity:.75;font-family:var(--rounded)}
+.soft-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--surface);color:var(--ink);border-radius:22px;padding:0 20px;font-size:14px;font-weight:500;min-height:44px;transition:background var(--fast)}
+.soft-button:hover{background:var(--faint)}

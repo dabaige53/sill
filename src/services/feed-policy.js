@@ -1,6 +1,33 @@
 /** Pure feed policy. Clock and item state are supplied by the caller. */
 const FeedPolicy = {
  sorts:['priority','unread','time'],
+ // Time sinks cards. A read card leaves the desk after the archive delay; an untouched one after two weeks.
+ // Nothing is deleted: both shelves stay searchable and any card can be put back.
+ archiveDelay(pref){return pref==='3d'?3*86400000:pref==='never'?Infinity:7*86400000;},
+ shelf(c,s,now,pref='7d'){
+   if(['task','event','reminder'].includes(c.type))return 'desk';
+   if(s.restoredAt&&now-s.restoredAt<7*86400000)return 'desk';
+   if(s.bookmarked||s.later)return 'desk';
+   if(s.read)return now-(s.readAt||c.time||now)>=this.archiveDelay(pref)?'read':'desk';
+   return !s.seen&&now-(c.time||now)>=14*86400000?'stale':'desk';
+ },
+ // More than five cards from one source within an hour fold into one stack.
+ stackThreshold:5,
+ stacks(cards,items){
+   const groups=new Map();
+   for(const c of cards){
+     if(!['article','media'].includes(c.type)||!c.source||['ai','capture'].includes(c.kind))continue;
+     const key=c.kind+':'+c.source;(groups.get(key)||groups.set(key,[]).get(key)).push(c);
+   }
+   const result=new Map();
+   for(const [key,list] of groups){
+     const sorted=list.slice().sort((a,b)=>(b.time||0)-(a.time||0));
+     const recent=sorted.filter(c=>(sorted[0].time||0)-(c.time||0)<=3600000&&!items[c.id]?.read);
+     if(recent.length>this.stackThreshold)result.set(key,recent);
+   }
+   return result;
+ },
+
  cooldown:60000,
  supports(c){return ['reminder','event','task'].includes(c.type);},
  trigger(c,s={}){
@@ -30,7 +57,9 @@ const FeedPolicy = {
    if(s.dismissed||this.completed(c,s))return -1;
    const at=this.trigger(c,s);
    const urgent=Number.isFinite(at)&&at<=now&&!(c.type==='event'&&c.end<=now);
-   return (urgent?100:0)+Math.max(0,Math.min(10,Number(c.priority)||0));
+   // Things about to happen float up: a reminder within 15 minutes, a meeting within 30.
+   const start=c.type==='event'?c.start:at,soon=!urgent&&Number.isFinite(start)&&start>now&&start-now<=(c.type==='event'?30:15)*60000;
+   return (urgent?100:0)+(soon?50:0)+Math.max(0,Math.min(10,Number(c.priority)||0));
  },
  sort(cards,mode,items,now){
    const unique=[...new Map(cards.map(c=>[c.id,c])).values()];

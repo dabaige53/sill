@@ -1,6 +1,6 @@
-# Quiet Glass
+# Sill · 窗台
 
-本地卡片工作区。页面负责查看与核心交互，Codex、Hermes、Claude 通过同一套本地命令管理内容。页面和 AI 共用一份本地数据，修改后自动同步。
+本地卡片工作区（原名 Quiet Glass；包名、命令和本地数据路径暂沿用 `quiet-glass`）。页面负责查看与核心交互，Codex、Hermes、Claude 通过同一套本地命令管理内容。页面和 AI 共用一份本地数据，修改后自动同步。
 
 ## 启动
 
