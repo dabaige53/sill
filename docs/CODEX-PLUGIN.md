@@ -1,5 +1,7 @@
 # Quiet Glass：Codex 插件与连接器接入
 
+> 历史实现说明，非当前产品安装指南。当前插件只发布 local skill，不注册 App/MCP；以下直连连接器、SQLite 与旧4317入口不随 `npm start` 启用。当前方向见 [Agent 与 MCP](AGENT-MCP.md)，不得按本文恢复 legacy 直连架构。
+
 实现版本：0.2.0，2026-10-11。运行环境：Node.js 24+。数据库：本地 SQLite。
 
 ## 现在能做什么

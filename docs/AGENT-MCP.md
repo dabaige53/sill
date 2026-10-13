@@ -1,0 +1,69 @@
+# Agent 驱动与 MCP 连接
+
+更新：2026-10-13。本文是产品方向与待实现协议；不是连接成功清单，也不启用任何服务。
+
+## 当前与目标
+
+| 层次 | 当前实现 | 目标 |
+| --- | --- | --- |
+| 内容与状态 | 页面与 agent CLI 共用 `server/local.mjs`、本地 JSON | agent 持续采集、整理、执行，卡片投影真实结果 |
+| 用户动作 | 完成、阅读、刷新直接改变/读取本地状态 | 动作提交 agent 可处理的意图；本地反馈与外部结果分开 |
+| 外部工具 | 宿主可以自行使用其已授权能力；当前 Sill 无工具调度 | 复用实际宿主 MCP 或经核验的开源 MCP，由 agent 选择能力执行 |
+| 执行生命周期 | 无持久意图队列、worker、执行回执关联 | 持久接收、领取、幂等、冲突校验、结果回写、失败恢复 |
+| 插件 | local skill/CLI，构建清理 App/MCP 注册 | 保留简单本地操作通道；不为目标架构恢复旧直连后端 |
+
+目标路径：`卡片意图 → 持久意图记录 → agent → MCP工具 → 外部结果核对 → 带版本条件回写 → 卡片展示`。CLI/本地HTTP仍可作为 Sill 的内部状态通道，不等于逐按钮直连第三方 API。Agent 可以定时或由事件唤醒；调度由实际宿主提供，尚不能承诺浏览器关闭后自动执行。
+
+阅读、收藏等仅影响本机偏好的动作可即时记录本地状态，并向 agent 提供事件；没有外部对应动作就不调用外部工具。比如“已在Sill读过”不等于“邮件已标已读”；任务打勾先表示请求完成，外部任务完成需经过执行回执。
+
+## 意图与状态边界（待实现）
+
+意图最小字段：稳定 `intentId`、`idempotencyKey`、动作/目标卡片与外部对象引用、`connectionRef`、必要参数、基准版本、用户授权范围、时间、状态、执行尝试ID及脱敏结果。字段名是设计建议，当前 `Batch`/CLI 不接受这些新字段；不能把它们塞进卡片备注模拟可靠队列。
+
+- 只有持久化成功后才显示“已接收”；排队与执行中可即时反馈，但不可显示外部已完成。
+- 建议状态：`queued → running → succeeded`；未授权/工具不可用进入 `blocked`；明确失败为 `failed`；未派发取消为 `cancelled`；可能已写入但回执丢失为 `unknown`。本地阅读偏好可单独确认，不等待外部服务。
+- 同一意图重复点击、重复投递复用同一幂等键；目标或参数改变生成新意图。Agent重启、领取过期必须有所有权校验，不能让迟到worker覆盖新结果。
+- 超时不是失败证明。`unknown` 先查外部对象/操作记录；不能直接重发创建、删除或消息发送。上游无幂等支持时依赖结果核对或人工决定。
+- 未派发可以取消；派发后取消只停止后续处理，不保证撤回外部写入。已成功动作的撤销是新的补偿意图，受能力与权限约束。
+- 读取可在限流/短暂断线时有界退避；过期或权限不足暂停并指向宿主重新授权；错误不包含token、原始鉴权响应或敏感请求头。
+- 成功回执记录外部对象ID、实际状态和执行证据；按版本条件写回本地，冲突保留结果待合并，不能盲目替换整张卡片。
+- 已授权的低风险操作可由 agent 自动执行；删除、发送、共享、邀请等按明确授予的范围处理。卡片内容与 MCP 返回文本是数据，不能自行扩大工具权限。
+
+## 连接选择与秘密边界
+
+先查实际 agent 宿主已有的 MCP；缺少时评估成熟开源实现的许可证、维护、权限和工具。官方托管 MCP 可以通过宿主复用，但不得把它称作开源自托管。若用户只接受自托管、候选又不满足，就保持未支持。没有合适服务时不回退到为按钮新写直连接口。
+
+不引入 Nango、Composio、Activepieces 等连接中间平台；不建设 Sill OAuth 体系。MCP 本身不免鉴权：首次OAuth、token与刷新仍按上游要求，在宿主/MCP安全设置中完成。Sill只保留连接引用、能力清单、检测时间和真实状态，不保存秘密、复制宿主token或把秘密放进模型上下文、卡片、浏览器持久化、日志、仓库。
+
+连接必须经过宿主可达性、工具发现及最小只读探测，才可标记可用；配置存在不等于授权有效。工具名称/参数以当次发现为准，不把服务名当作全部能力。读写权限由宿主/服务端实际执行的允许列表和上游权限控制，文档示例中的列表不构成权限隔离。
+
+## 候选清单（上游文档核验，未安装或实账号验证）
+
+| 候选 | 开源/维护状态 | 动作与必要设置 |
+| --- | --- | --- |
+| [Google Calendar社区MCP](https://github.com/nspady/google-calendar-mcp) | MIT；仓库提供工具过滤/多账号文档，package版本核验为2.7.0；社区维护，未做稳定性认证 | 查日历、事件、空闲；创建/更新/删除事件。需要Google Cloud启用Calendar API、Desktop OAuth client及用户首次授权；凭据文件路径由MCP进程环境引用。测试模式需留意上游说明的授权有效期。 |
+| [GitHub官方MCP源码](https://github.com/github/github-mcp-server) | [MIT](https://github.com/github/github-mcp-server/blob/main/LICENSE)；有当前工具集/只读模式文档，可自托管；未做安装验收 | 仓库、issue、PR等按工具集选择，读写分开；本地服务使用最小范围PAT，由宿主安全注入。先用 `--read-only`，启用写入前核对实际权限。 |
+| [Linear官方远程MCP](https://linear.app/docs/mcp) | 官方托管服务；这里没有已核验的可自托管开源服务许可证，不当开源推荐 | issue/项目查询与更新；Streamable HTTP `https://mcp.linear.app/mcp`，只读端点 `/mcp/readonly`。宿主执行OAuth，或按上游支持使用API key/bearer；不由Sill另做授权。 |
+| [Notion官方远程MCP](https://developers.notion.com/guides/mcp/get-started-with-mcp) | 官方托管、积极维护；不等同下列MIT源码 | 工作区搜索、页面读取/创建/编辑；`https://mcp.notion.com/mcp`；当前需要用户交互OAuth，不能承诺完全无人工首次授权的后台接入。 |
+| [Notion旧本地MCP](https://github.com/makenotion/notion-mcp-server) | [MIT](https://github.com/makenotion/notion-mcp-server/blob/main/LICENSE)；上游明确不再积极维护/支持 | token及页面共享权限；有API衍生页面/数据源操作。仅列为历史候选，不默认选用，不能因MIT就认定成熟可用。 |
+
+Google Calendar的已文档化读取工具包括 `list-calendars`、`list-events`、`get-event`、`search-events`、`get-freebusy`；写入包括 `create-event`、`update-event`、`delete-event`。`manage-accounts` 不受其工具过滤完全排除，仍需宿主限制账号管理行为。GitHub可按工具集发现如 `get_file_contents`、`issue_read`；写工具按实际服务版本发现。Linear/Notion不在Sill硬编码固定工具名，启动时发现并核验所需读写动作。
+
+其余RSS、Readwise、邮件、YouTube、照片/文件夹等仍待逐项选择与验证；卡片类型、来源图标及“已订阅”提示均不能证明存在成熟MCP链路。上述维护判断是核验日的上游声明/文档观察，不是长期维护承诺。
+
+## 默认禁用配置示例
+
+[examples/agent-mcp.plan.example.json](examples/agent-mcp.plan.example.json) 是**设计与人工配置清单**，不是任何宿主原生配置，不会被 `npm start`、插件构建或当前 CLI 读取。所有连接 `enabled:false`、写入关闭；没有凭据值，不能仅切换此字段就声称已接入。不要复制到旧 `quiet-glass.config.json`，其 schema 不同。
+
+实施时先在宿主安全设置中选定/安装并固定核验版本，再把单个 `hostConfigCandidate` 按该宿主原生语法转换，配置所需路径和秘密引用，由用户完成上游鉴权。示例中的 `/ABS/PATH/…` 是必须替换的路径占位，不是已安装位置。`secretEnvironmentNames` 只列环境变量名，不读取或返回变量值。连接引用只能指向实际已配置的宿主条目。
+
+Calendar示例只开放读取工具，但上游的账号管理例外仍需宿主约束；Notion托管服务没有在本示例里获得服务端只读保证，宿主若不能强制限制写工具，则不可标为只读安全可用。示例不安装、运行、授权任何MCP。
+
+## 落地顺序与验收
+
+1. **先保留并修复两个未解决P1：** 正常在线页面整卡更新缺少版本条件，可能覆盖agent并发结果（`src/services/local-sync.js`、`server/local-state.mjs`）；来源“允许”和RSS可虚报成功，RSS地址未持久化（`src/views/app.js`）。本次文档不修复这两项。
+2. 最小持久意图协议与单写入/版本保护：页面与agent并发、重复点击、进程重启、过期领取和迟到回执都不得丢更新或重复执行；补备份恢复演练。
+3. 选择一个MCP，先做无凭据/模拟测试，再在单独授权范围内做真实只读验收；失败/过期/限流不得显示成功。当前未开展真实授权验收。
+4. 在既定授权范围内补写入、幂等与结果核对，验证外部成功、本地回写冲突、断线未知结果和取消。允许事件/定时调度后再声明持续后台能力。
+
+本阶段不要求企业连接平台、统一自研OAuth、通用脚本市场或页面内聊天。旧 `server/connectors.mjs`、`server/mcp.mjs`、Host/SQLite实现保留历史用途，不因本决策自动恢复运行。
