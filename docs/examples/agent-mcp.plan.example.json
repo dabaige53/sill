@@ -55,5 +55,45 @@
       "requiresHostEnforcedReadToolAllowlist": true,
       "authenticationOwner": "agent-host"
     }
-  ]
+  ],
+  "externalMcp": {
+    "enabled": false,
+    "status": "design-only-not-implemented",
+    "defaultPolicy": "deny",
+    "requireAuthenticatedCaller": true,
+    "principals": [],
+    "productTools": {
+      "enabled": false,
+      "publishedTools": []
+    },
+    "assistantDelegation": {
+      "enabled": false,
+      "operations": [
+        "submit",
+        "status",
+        "result",
+        "cancel"
+      ],
+      "inheritCallerPermissions": true
+    },
+    "upstreamToolBridge": {
+      "enabled": false,
+      "publishedTools": [],
+      "mappings": [],
+      "forwardResources": false,
+      "forwardPrompts": false,
+      "forwardSubscriptions": false,
+      "forwardReverseCalls": false
+    },
+    "credentialPolicy": "server-side-reference-only-no-secret-passthrough",
+    "invocationPolicy": {
+      "namespaceAndOriginRequired": true,
+      "auditCallChain": true,
+      "idempotencyRequiredForWrites": true,
+      "timeoutSeconds": 60,
+      "maxCallDepth": 3,
+      "rejectCycles": true,
+      "retryUnknownWrites": false
+    }
+  }
 }
