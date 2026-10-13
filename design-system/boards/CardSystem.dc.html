@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>卡片体系</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.old{display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,.08);font-size:14px}
+.old small{margin-left:auto;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#86868b}
+.old.out{background:transparent;border-style:dashed;color:#86868b}
+.old svg{color:#86868b;flex:none}
+.new{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px 16px;display:grid;grid-template-columns:28px 120px minmax(0,1fr);gap:4px 14px;align-items:start}
+.new svg{color:#0066cc;margin-top:2px}
+.new b{font-size:15px;font-weight:600;line-height:1.4}
+.new b small{display:block;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:400;color:#86868b}
+.new p{margin:0;font-size:13px;line-height:1.6;color:#1d1d1f}
+.new p span{color:#636366}
+.fm{display:inline-flex;margin:0 4px 0 0;padding:1px 8px;border-radius:9px;background:#edf4ff;color:#0057ad;font-size:12px}
+.src{display:inline-flex;padding:1px 8px;border-radius:9px;background:#f0f0f2;color:#636366;font-size:12px}
+.why{display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.6}
+.why b{font-size:14px}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1120px; box-sizing: border-box; padding: 56px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 12px; color: #6e6e73">08 · 卡片体系</span>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">10 类收成 7 类：按「内容是什么」分，不按「谁算出来的」分</h1>
+    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6e6e73; max-width: 900px">现在 AI 是主要的内容生产者，页面只负责看和处理。页面自己算出来的统计卡退场；AI 的整理结果合成一类；提醒并入待办，作为带时间的单项形态。</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 260px 48px minmax(0, 1fr); gap: 0 16px; align-items: start">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; color: #6e6e73; padding-bottom: 4px">现在 · 10 类</span>
+      <div class="old">资讯<small>article</small></div>
+      <div class="old">邮件<small>mail</small></div>
+      <div class="old">笔记<small>note</small></div>
+      <div class="old">媒体<small>media</small></div>
+      <div class="old">待办<small>task</small></div>
+      <div class="old">提醒<small>reminder</small></div>
+      <div class="old">日程<small>event</small></div>
+      <div class="old">关联建议<small>suggestion</small></div>
+      <div class="old">回顾<small>digest</small></div>
+      <div class="old out">阅读反馈<small>insight</small></div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; padding-top: 180px; color: #c7c7cc">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 12px; color: #0057ad; font-weight: 500; padding-bottom: 2px">建议 · 7 类</span>
+      <div class="new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"></path><path d="M12 5v15"></path></svg><b>资讯<small>article</small></b><p><span class="fm">有封面</span><span class="fm">纯文字</span>外部长文、网页。主角是标题，读完有进度。<span>不变</span></p></div>
+      <div class="new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m3 7 9 6 9-6"></path></svg><b>消息<small>mail · 键名不变</small></b><p><span class="fm">邮件</span><span class="fm">其他来信</span>别人发给你的东西，主角是发件人。<span>邮件扩成消息，AI 转来的 IM、评论也能放</span></p></div>
+      <div class="new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9M8 8h5M8 12h3"></path><path d="m14 12 6-6 2-2-2-2-2 2-6 6-1 4Z"></path></svg><b>笔记<small>note</small></b><p><span class="fm">标准</span><span class="fm">摘录</span><span class="fm">无标题</span>你自己写下的。<span>新增无标题形态，AI 记的速记不必硬凑标题</span></p></div>
+      <div class="new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"></rect><path d="m16 10 5-3v10l-5-3"></path></svg><b>媒体<small>media</small></b><p><span class="fm">视频</span><span class="fm">音频</span><span class="fm">图集</span>要看、要听的。<span>片段数、时长从数据读，不写死</span></p></div>
+      <div class="new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 3 3 5-6"></path></svg><b>待办<small>task ← reminder</small></b><p><span class="fm">清单</span><span class="fm">单项提醒</span>要你去做的。带 due 时间的单项就是提醒，照旧插入信息流、可延后。<span>和「提醒事项」一样，提醒只是待办的一种</span></p></div>
+      <div class="new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M7 3v4m10-4v4M3 10h18"></path></svg><b>日程<small>event</small></b><p><span class="fm">单场</span><span class="fm">全天</span>有开始和结束的时间段。<span>时间置顶，显示参与者</span></p></div>
+      <div class="new"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"></path></svg><b>整理<small>brief ← suggestion · digest</small></b><p><span class="fm">关联</span><span class="fm">回顾</span><span class="fm">摘要</span>AI 把几张卡读完后写的结论，必须带引用卡。<span>回顾的数字由 AI 写入，不再由页面实时统计</span></p></div>
+    </div>
+  </div>
+
+  <section style="margin-top: auto; background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 20px; padding: 24px 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px">
+    <div class="why"><b>为什么去掉阅读反馈</b><span>它是演示用的前台计时器，本地运行时种子卡会被清空，真实数据里不会出现；而且只统计当前浏览器会话，数字没有长期意义。</span></div>
+    <div class="why"><b>为什么合并关联和回顾</b><span>两者都是「AI 读了几张卡后给出的结论」，区别只在范围。合成一类后，AI 只需要学一种写法：结论 + 引用卡。</span></div>
+    <div class="why"><b>迁移成本</b><span>旧键名照旧可读：reminder 读作 task + 提醒形态，suggestion / digest 读作 brief。qg.mjs 的 capabilities 同步更新，AI 写入不中断。</span></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

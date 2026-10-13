@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>站内详情</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+
+body{margin:0}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums}
+.cap{font-size:13px;color:#86868b}
+.h2{margin:0;font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.02em}
+.win{position:relative;height:300px;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06)}
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden}
+.card.read{background:#fafafb;border-color:rgba(0,0,0,.04);box-shadow:none}
+.mc{position:absolute;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 3px 10px rgba(0,0,0,.04)}
+.mc i{position:absolute;left:10px;height:6px;border-radius:3px;background:#e8e8ed}
+.mc i.t{height:7px;background:#1d1d1f}
+.glass{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 18px;border-radius:18px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.p{background:#0066cc;color:#fff}
+.btn.s{background:#e8e8ed;color:#1d1d1f}
+.btn.g{color:#0066cc;padding:0 8px}
+.hd{display:flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:#636366}
+.hd svg{flex:none;color:#86868b}
+.t{font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
+.s{font-size:15px;line-height:1.5;color:#636366}
+.bd{display:flex;flex-direction:column;gap:8px;padding:18px}
+.fl{display:flex;flex-direction:column;gap:10px;min-width:0}
+
+.win{position:relative;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.07),0 16px 48px rgba(0,0,0,.07)}
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.18)}
+.sheet{position:absolute;left:50%;transform:translateX(-50%);background:#fff;border-radius:22px 22px 0 0;box-shadow:0 2px 8px rgba(0,0,0,.04),0 24px 80px rgba(0,0,0,.2);overflow:hidden}
+.sh{display:flex;flex-direction:column;gap:12px;padding:26px 32px}
+.meta{font-size:12px;color:#86868b}
+.h{margin:0;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.03em}
+.p{margin:0;font-size:14px;line-height:1.75;color:#1d1d1f}
+.capb{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;display:flex;align-items:center;gap:2px;padding:5px;border-radius:24px}
+.ib{width:36px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#1d1d1f}
+.av{width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex:none}
+.li{display:flex;align-items:center;gap:12px;min-height:46px;border-top:1px solid rgba(0,0,0,.06);font-size:14px}
+.li:first-child{border-top:0}
+.li .ico{width:30px;height:30px;border-radius:8px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;color:#636366;flex:none}
+.li small{font-size:12px;color:#86868b}
+.li .r{margin-left:auto;font-size:12px;color:#86868b;display:flex;align-items:center;gap:10px}
+.tog{width:36px;height:22px;border-radius:11px;background:#34c759;position:relative;flex:none}
+.tog::after{content:"";position:absolute;right:2px;top:2px;width:18px;height:18px;border-radius:9px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.off{background:#e5e5ea}
+.tog.off::after{right:auto;left:2px}
+.seg{display:inline-flex;padding:2px;border-radius:9px;background:#ececf0;font-size:12px}
+.seg span{padding:4px 10px;border-radius:7px;color:#636366}
+.seg span.on{background:#fff;color:#1d1d1f;box-shadow:0 1px 3px rgba(0,0,0,.1);font-weight:500}
+.lab{display:flex;align-items:baseline;gap:10px}
+.lab b{font-size:15px}
+.lab i{font-style:normal;font-size:13px;font-weight:600;color:#0066cc}
+.chipx{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:14px;background:#f0f0f2;font-size:12px}
+.hl{background:#fff1a8;border-radius:3px;padding:0 1px}
+.grp{font-size:12px;color:#86868b;padding:14px 0 4px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);font-size:12px}
+.tile span.ico{width:40px;height:40px;border-radius:11px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;color:#1d1d1f}
+.tile.on{box-shadow:inset 0 0 0 2px #0066cc}
+.side{display:flex;flex-direction:column;gap:2px;padding:20px 10px;width:170px;box-sizing:border-box;background:rgba(255,255,255,.6);border-right:1px solid rgba(0,0,0,.06)}
+.side span{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;font-size:13px;color:#1d1d1f}
+.side span svg{color:#636366}
+.side span.on{background:#0066cc;color:#fff}
+.side span.on svg{color:#fff}
+.set{flex:1;padding:28px 36px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.box{background:#fff;border-radius:14px;padding:0 16px;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
+.mapcol{display:flex;flex-direction:column;gap:6px}
+.mapcol > b{font-size:17px;font-weight:600;padding-bottom:6px}
+.pg{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border-radius:10px;background:#f5f5f7;font-size:13px}
+.pg .st{margin-left:auto;font-size:11px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.st.has{background:#e8e8ed;color:#636366}
+.st.des{background:#edf4ff;color:#0066cc}
+.st.new{background:#e8f4ec;color:#248a3d}
+
+</style>
+</helmet>
+<div style="width: 1440px; height: 1720px; box-sizing: border-box; padding: 64px 72px; background: #fff; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 56px">
+<div style="display: flex; align-items: baseline; gap: 16px"><h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">点开之后，各有各的样子</h1><span class="cap">29 · 站内详情</span></div><section style="display: grid; grid-template-columns: repeat(2, 620px); justify-content: space-between; gap: 48px 0"><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 620px; height: 440px; background: #f5f5f7"><span class="mc" style="left: 40px; top: 20px; width: 190px; height: 96px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 40px; top: 126px; width: 190px; height: 64px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 40px; top: 200px; width: 190px; height: 110px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 20px; width: 190px; height: 70px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 100px; width: 190px; height: 120px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 230px; width: 190px; height: 60px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 20px; width: 190px; height: 110px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 140px; width: 190px; height: 70px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 220px; width: 190px; height: 90px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="dim"></span><div class="sheet" style="top: 24px; bottom: 0; width: 520px"><div class="sh">
+      <div style="display: flex; align-items: center; gap: 12px"><span class="av" style="background: #5e7a99">林</span><div style="display: flex; flex-direction: column"><b style="font-size: 15px">林舟</b><span class="meta">发给你 · 今天 14:32</span></div></div>
+      <h2 class="h">这周的方案，只差最后一个决定</h2>
+      <p class="p">三种方向已经整理好了。比起增加功能，我们更想先确认什么应该留下。附件里是三版对比，第二版我比较倾向，但想听听你的判断。</p>
+      <p class="p" style="color: #636366">周四之前给我回个话就行。</p>
+      <span class="chipx" style="align-self: flex-start"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9ZM14 3v6h6"/></svg>方案对比.txt</span>
+    </div></div><div class="glass capb" style="bottom: 16px"><span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z"/></svg></span><span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M12 7v5l3 2"/></svg></span><span class="btn p" style="height: 36px">回复<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: .8"><path d="M7 17 17 7M9 7h8v8"/></svg></span></div></div><div class="lab"><i class="num">1</i><b>邮件</b><span class="cap">读全文；回复跳去邮件</span></div></div><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 620px; height: 440px; background: #f5f5f7"><span class="mc" style="left: 40px; top: 20px; width: 190px; height: 96px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 40px; top: 126px; width: 190px; height: 64px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 40px; top: 200px; width: 190px; height: 110px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 20px; width: 190px; height: 70px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 100px; width: 190px; height: 120px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 230px; width: 190px; height: 60px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 20px; width: 190px; height: 110px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 140px; width: 190px; height: 70px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 220px; width: 190px; height: 90px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="dim"></span><div class="sheet" style="top: 24px; bottom: 0; width: 520px"><div class="sh" style="gap: 14px">
+      <span class="meta">10月12日 周一 · <span style="color: #0066cc; font-weight: 500">8 分钟后</span></span>
+      <div style="display: flex; align-items: flex-end; gap: 16px"><span class="num" style="font-size: 44px; line-height: 1; font-weight: 600; letter-spacing: -0.03em">14:30</span><span style="font-size: 15px; color: #636366; padding-bottom: 4px">至 15:15 · 45 分钟</span></div>
+      <h2 class="h" style="font-weight: 500">产品讨论会</h2>
+      <div style="display: flex; flex-direction: column">
+        <div class="li"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3M5 7h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/></svg></span>腾讯会议<span class="r">483 221 907</span></div>
+        <div class="li"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21ZM9.5 9.5a2.5 2.5 0 1 0 5.0 0a2.5 2.5 0 1 0 -5.0 0"/></svg></span>3 楼 · 小会议室</div>
+        <div class="li"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm0 0v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-4 7.5"/></svg></span>舟、林、陈<span class="r">3 人已接受</span></div>
+      </div>
+    </div></div><div class="glass capb" style="bottom: 16px"><span class="btn p" style="height: 36px">加入<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: .8"><path d="M7 17 17 7M9 7h8v8"/></svg></span></div></div><div class="lab"><i class="num">2</i><b>日程</b><span class="cap">时间最大；到点才有「加入」</span></div></div><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 620px; height: 440px; background: #f5f5f7"><span class="dim" style="background: rgba(0,0,0,.08)"></span><div class="sheet" style="top: 24px; bottom: 0; width: 520px; background: linear-gradient(180deg, #f3ece3 0%, #fff 60%)"><div class="sh" style="align-items: center; text-align: center; gap: 14px; padding-top: 34px">
+      <span style="width: 150px; height: 150px; border-radius: 18px; background: linear-gradient(140deg, #c9b8a6, #e8ddd0 55%, #d6c6b4); box-shadow: 0 16px 40px rgba(120,90,60,.25)"></span>
+      <div style="display: flex; flex-direction: column; gap: 4px"><b style="font-size: 19px; letter-spacing: -0.02em">慢下来，才能看清楚</b><span class="meta">设计之外 · 第 42 期</span></div>
+      <div style="width: 360px; display: flex; flex-direction: column; gap: 6px"><span style="height: 4px; border-radius: 2px; background: #e5e1db; position: relative; overflow: hidden"><i style="position: absolute; left: 0; top: 0; bottom: 0; width: 25%; background: #1d1d1f"></i></span><span style="display: flex; justify-content: space-between" class="meta num"><span>12:04</span><span>-35:56</span></span></div>
+      <div style="display: flex; align-items: center; gap: 28px; color: #1d1d1f"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 7 6 12l5 5M18 7l-5 5 5 5"/></svg><span style="width: 56px; height: 56px; border-radius: 28px; background: #1d1d1f; color: #fff; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span><span style="transform: scaleX(-1); display: flex"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 7 6 12l5 5M18 7l-5 5 5 5"/></svg></span></div>
+    </div></div></div><div class="lab"><i class="num">3</i><b>播客</b><span class="cap">站内播放；进度同步回播客</span></div></div><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 620px; height: 440px; background: #0b0b0c"><div style="position: absolute; inset: 0; background: #0b0b0c"></div>
+      <div style="position: absolute; left: 50%; top: 36px; transform: translateX(-50%); width: 420px; height: 300px; border-radius: 6px; background: linear-gradient(150deg, #b7c4ab 0%, #dde3d3 60%, #c7d0bd 100%)"></div>
+      <div style="position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; gap: 6px; align-items: center">
+        <span style="width: 44px; height: 44px; border-radius: 6px; background: linear-gradient(170deg, #8fa3b3, #c3cdd4); opacity: .5"></span>
+        <span style="width: 52px; height: 52px; border-radius: 7px; background: linear-gradient(150deg, #b7c4ab, #dde3d3); box-shadow: 0 0 0 2px #fff"></span>
+        <span style="width: 44px; height: 44px; border-radius: 6px; background: linear-gradient(140deg, #d6c9b8, #ece4da); opacity: .5"></span>
+      </div>
+      <span style="position: absolute; left: 24px; top: 20px; font-size: 12px; color: rgba(255,255,255,.6)">杭州 · 2025年10月12日</span></div><div class="lab"><i class="num">4</i><b>照片</b><span class="cap">黑底大图，左右滑，Esc 退出</span></div></div><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 620px; height: 440px; background: #f5f5f7"><span class="mc" style="left: 40px; top: 20px; width: 190px; height: 96px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 40px; top: 126px; width: 190px; height: 64px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 40px; top: 200px; width: 190px; height: 110px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 20px; width: 190px; height: 70px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 100px; width: 190px; height: 120px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 250px; top: 230px; width: 190px; height: 60px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 20px; width: 190px; height: 110px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 140px; width: 190px; height: 70px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="mc" style="left: 460px; top: 220px; width: 190px; height: 90px; "><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span><span class="dim"></span><div class="sheet" style="top: 24px; bottom: 0; width: 520px"><div class="sh">
+      <span class="meta">文件 · 设计稿</span><h2 class="h">卡片积木 v3</h2>
+      <div style="display: flex; flex-direction: column"><div class="li"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9ZM14 3v6h6"/></svg></span><span style="display: flex; flex-direction: column">CardBlocks.fig<small>设计稿 · 12.4 MB</small></span><span class="r num">10 分钟前</span></div><div class="li"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9ZM14 3v6h6"/></svg></span><span style="display: flex; flex-direction: column">预设卡片.pdf<small>24 页 · 3.1 MB</small></span><span class="r num">1 小时前</span></div><div class="li"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm-2 12 5-5 11 9M13.5 9a1.5 1.5 0 1 0 3.0 0a1.5 1.5 0 1 0 -3.0 0"/></svg></span><span style="display: flex; flex-direction: column">封面.png<small>2400 × 1350</small></span><span class="r num">昨天</span></div></div>
+      <span class="meta" style="padding-top: 4px">点文件，用默认应用打开</span>
+    </div></div></div><div class="lab"><i class="num">5</i><b>文件夹</b><span class="cap">列表；单个文件交给系统</span></div></div><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 620px; height: 440px; background: #f5f5f7"><span class="mc" style="left: 40px; top: 24px; width: 190px; height: 110px"><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span>
+      <span class="mc" style="left: 40px; top: 146px; width: 190px; height: 160px"><i style="top: 12px; width: 40%"></i><i class="t" style="top: 26px; width: 70%"></i></span>
+      <span class="mc" style="left: 460px; top: 24px; width: 120px; height: 190px"></span>
+      <div style="position: absolute; left: 250px; top: 24px; width: 196px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 2px #0066cc, 0 14px 40px rgba(0,0,0,.12); padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 8px">
+        <span class="meta" style="font-size: 11px">速记 · 刚刚</span>
+        <b style="font-size: 14px; line-height: 1.35">关于「少做一步」的三个观察</b>
+        <span style="font-size: 12px; line-height: 1.6; color: #1d1d1f">工具应该顺着意图出现。<br>状态不必都写成标签。<br>退出不应该需要寻找<span style="display: inline-block; width: 1.5px; height: 13px; background: #0066cc; vertical-align: -2px; margin-left: 1px"></span></span>
+        <span class="meta" style="font-size: 11px; text-align: right">自动保存</span>
+      </div></div><div class="lab"><i class="num">6</i><b>笔记</b><span class="cap">原地变成编辑框，不弹窗</span></div></div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

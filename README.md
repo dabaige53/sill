@@ -54,4 +54,4 @@ Codex 插件使用 [本地技能](skills/quiet-glass/SKILL.md)。Hermes、Claude
 - `npm run test:local-browser`：真实浏览器验证 AI 写入、页面写回、多页面同步和重启保留。
 - `npm run plugin:build`：构建无应用依赖、无 MCP 注册的本地技能插件，身份仍为 `quiet-glass@quiet-glass-local`。
 
-设计规范保留在 [design-system](design-system/README.md)。历史产品文档保留在 `docs/`；当前范围以本文件和 [本地操作说明](docs/LOCAL-OPERATIONS.md) 为准。
+设计规范保留在 [design-system](design-system/README.md)，设计画板本地副本用 `npm run boards` 打开。产品需求、交互规范和设计决策在 `docs/`；当前范围以本文件和 [本地操作说明](docs/LOCAL-OPERATIONS.md) 为准。

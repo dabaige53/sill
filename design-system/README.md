@@ -124,4 +124,4 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 
 ---
 
-**还没覆盖的**：深色主题、增强对比度下的已读描边、大字号下的截断规则还没有定义；代码（main@fc9f267）仍是 Quiet Glass 的旧样式，需要按本手册更新。设计全稿见 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)。
+**还没覆盖的**：增强对比度下的已读描边、大字号下的截断规则还没有定义。设计全稿见 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，本地副本在 `boards/`，运行 `npm run boards` 后打开 http://127.0.0.1:4310/ 查看。

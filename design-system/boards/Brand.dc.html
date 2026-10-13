@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>品牌</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+
+body{margin:0}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums}
+.cap{font-size:13px;color:#86868b}
+.h2{margin:0;font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.02em}
+.win{position:relative;height:300px;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06)}
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden}
+.card.read{background:#fafafb;border-color:rgba(0,0,0,.04);box-shadow:none}
+.mc{position:absolute;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 3px 10px rgba(0,0,0,.04)}
+.mc i{position:absolute;left:10px;height:6px;border-radius:3px;background:#e8e8ed}
+.mc i.t{height:7px;background:#1d1d1f}
+.glass{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 18px;border-radius:18px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.p{background:#0066cc;color:#fff}
+.btn.s{background:#e8e8ed;color:#1d1d1f}
+.btn.g{color:#0066cc;padding:0 8px}
+.hd{display:flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:#636366}
+.hd svg{flex:none;color:#86868b}
+.t{font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
+.s{font-size:15px;line-height:1.5;color:#636366}
+.bd{display:flex;flex-direction:column;gap:8px;padding:18px}
+.fl{display:flex;flex-direction:column;gap:10px;min-width:0}
+
+.cand{display:flex;flex-direction:column;gap:20px;padding:32px;border-radius:28px;background:#f5f5f7;position:relative}
+.cand.pick{background:#fff;box-shadow:0 0 0 2px #0066cc}
+.icon{width:160px;height:160px;border-radius:36px;position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 16px 40px rgba(0,0,0,.12)}
+.icon.sm{width:48px;height:48px;border-radius:11px;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 4px 10px rgba(0,0,0,.1)}
+.nm{display:flex;align-items:baseline;gap:12px}
+.nm b{font-size:34px;font-weight:600;letter-spacing:-.03em}
+.nm span{font-size:21px;font-weight:500;color:#636366;letter-spacing:-.01em}
+.mean{font-size:15px;line-height:1.6;color:#1d1d1f}
+.why{font-size:13px;line-height:1.6;color:#636366}
+.tag{position:absolute;top:24px;right:24px;height:26px;padding:0 12px;border-radius:13px;background:#0066cc;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center}
+
+</style>
+</helmet>
+<div style="width: 1440px; height: 1240px; box-sizing: border-box; padding: 64px 72px; background: #fff; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 56px">
+<div style="display: flex; align-items: baseline; gap: 16px"><h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">Sill · 窗台</h1><span class="cap">27 · 品牌</span></div><section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px"><div class="cand">
+          
+          <div style="display: flex; align-items: flex-end; gap: 20px"><span class="icon"><svg width="160" height="160" viewBox="0 0 160 160" aria-hidden="true"><rect width="160" height="160" fill="url(#mg)"/><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfaf7"/><stop offset="1" stop-color="#e9e7e1"/></linearGradient></defs>
+              <g transform="rotate(-9 80 86)"><rect x="38" y="52" width="84" height="60" rx="12" fill="#fff" opacity=".7"/></g>
+              <g transform="rotate(5 80 86)"><rect x="40" y="56" width="84" height="60" rx="12" fill="#fff" opacity=".9" filter="url(#sh)"/></g>
+              <rect x="38" y="62" width="84" height="62" rx="12" fill="#fff" filter="url(#sh)"/>
+              <rect x="50" y="76" width="34" height="6" rx="3" fill="#0066cc"/><rect x="50" y="90" width="56" height="6" rx="3" fill="#d9d9de"/><rect x="50" y="102" width="42" height="6" rx="3" fill="#e8e8ed"/>
+              <defs><filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity=".14"/></filter></defs></svg></span><span class="icon sm"><svg width="48" height="48" viewBox="0 0 160 160" aria-hidden="true"><rect width="160" height="160" fill="url(#mg)"/><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfaf7"/><stop offset="1" stop-color="#e9e7e1"/></linearGradient></defs>
+              <g transform="rotate(-9 80 86)"><rect x="38" y="52" width="84" height="60" rx="12" fill="#fff" opacity=".7"/></g>
+              <g transform="rotate(5 80 86)"><rect x="40" y="56" width="84" height="60" rx="12" fill="#fff" opacity=".9" filter="url(#sh)"/></g>
+              <rect x="38" y="62" width="84" height="62" rx="12" fill="#fff" filter="url(#sh)"/>
+              <rect x="50" y="76" width="34" height="6" rx="3" fill="#0066cc"/><rect x="50" y="90" width="56" height="6" rx="3" fill="#d9d9de"/><rect x="50" y="102" width="42" height="6" rx="3" fill="#e8e8ed"/>
+              <defs><filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity=".14"/></filter></defs></svg></span></div>
+          <div class="nm"><b>Mise</b><span>案头</span></div>
+          <div class="mean">先把东西摆好，再动手。</div>
+          <div class="why">取自厨房里的 mise en place：开工前把每样材料放到手边。</div>
+        </div><div class="cand pick">
+          <span class="tag">已选</span>
+          <div style="display: flex; align-items: flex-end; gap: 20px"><span class="icon"><svg width="160" height="160" viewBox="0 0 160 160" aria-hidden="true"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd5ef"/><stop offset=".62" stop-color="#eef4fa"/><stop offset=".62" stop-color="#f7f5f0"/><stop offset="1" stop-color="#ebe7df"/></linearGradient><filter id="sh2" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity=".16"/></filter></defs>
+              <rect width="160" height="160" fill="url(#sg)"/><rect x="0" y="97" width="160" height="5" fill="#fff" opacity=".9"/>
+              <rect x="44" y="58" width="34" height="42" rx="7" fill="#fff" filter="url(#sh2)"/><rect x="84" y="68" width="32" height="32" rx="7" fill="#fff" filter="url(#sh2)"/>
+              <rect x="50" y="66" width="16" height="4" rx="2" fill="#0066cc"/></svg></span><span class="icon sm"><svg width="48" height="48" viewBox="0 0 160 160" aria-hidden="true"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd5ef"/><stop offset=".62" stop-color="#eef4fa"/><stop offset=".62" stop-color="#f7f5f0"/><stop offset="1" stop-color="#ebe7df"/></linearGradient><filter id="sh2" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity=".16"/></filter></defs>
+              <rect width="160" height="160" fill="url(#sg)"/><rect x="0" y="97" width="160" height="5" fill="#fff" opacity=".9"/>
+              <rect x="44" y="58" width="34" height="42" rx="7" fill="#fff" filter="url(#sh2)"/><rect x="84" y="68" width="32" height="32" rx="7" fill="#fff" filter="url(#sh2)"/>
+              <rect x="50" y="66" width="16" height="4" rx="2" fill="#0066cc"/></svg></span></div>
+          <div class="nm"><b>Sill</b><span>窗台</span></div>
+          <div class="mean">东西在光里，安放一会儿。</div>
+          <div class="why">延续「玻璃」的意象：窗台是光进来的地方，也是随手放东西的地方。内容先在这里晒一会儿，需要时再拿起。</div>
+        </div><div class="cand">
+          
+          <div style="display: flex; align-items: flex-end; gap: 20px"><span class="icon"><svg width="160" height="160" viewBox="0 0 160 160" aria-hidden="true"><defs><filter id="sh3" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity=".14"/></filter></defs>
+              <rect width="160" height="160" fill="#fff"/>
+              <rect x="34" y="78" width="62" height="46" rx="10" fill="#fff" stroke="#e5e5ea" filter="url(#sh3)"/>
+              <rect x="44" y="90" width="26" height="5" rx="2.5" fill="#0066cc"/><rect x="44" y="102" width="40" height="5" rx="2.5" fill="#e5e5ea"/></svg></span><span class="icon sm"><svg width="48" height="48" viewBox="0 0 160 160" aria-hidden="true"><defs><filter id="sh3" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity=".14"/></filter></defs>
+              <rect width="160" height="160" fill="#fff"/>
+              <rect x="34" y="78" width="62" height="46" rx="10" fill="#fff" stroke="#e5e5ea" filter="url(#sh3)"/>
+              <rect x="44" y="90" width="26" height="5" rx="2.5" fill="#0066cc"/><rect x="44" y="102" width="40" height="5" rx="2.5" fill="#e5e5ea"/></svg></span></div>
+          <div class="nm"><b>Margin</b><span>留白</span></div>
+          <div class="mean">注意力也需要留白。</div>
+          <div class="why">直接说出产品主张，安静、克制。缺点是更像一种态度，不像一个工具。</div>
+        </div><div class="cand">
+          
+          <div style="display: flex; align-items: flex-end; gap: 20px"><span class="icon"><svg width="160" height="160" viewBox="0 0 160 160" aria-hidden="true"><defs><linearGradient id="ng" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c2c2e"/><stop offset="1" stop-color="#1d1d1f"/></linearGradient></defs>
+              <rect width="160" height="160" fill="url(#ng)"/><path d="M40 40h80a0 0 0 0 1 0 0v0H64a24 24 0 0 0-24 24v56Z" fill="none"/>
+              <path d="M44 120V68a24 24 0 0 1 24-24h52" fill="none" stroke="#3a3a3c" stroke-width="10" stroke-linecap="round"/>
+              <rect x="62" y="62" width="46" height="34" rx="8" fill="#f5f5f7"/><rect x="70" y="72" width="18" height="4" rx="2" fill="#4da3ff"/></svg></span><span class="icon sm"><svg width="48" height="48" viewBox="0 0 160 160" aria-hidden="true"><defs><linearGradient id="ng" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c2c2e"/><stop offset="1" stop-color="#1d1d1f"/></linearGradient></defs>
+              <rect width="160" height="160" fill="url(#ng)"/><path d="M40 40h80a0 0 0 0 1 0 0v0H64a24 24 0 0 0-24 24v56Z" fill="none"/>
+              <path d="M44 120V68a24 24 0 0 1 24-24h52" fill="none" stroke="#3a3a3c" stroke-width="10" stroke-linecap="round"/>
+              <rect x="62" y="62" width="46" height="34" rx="8" fill="#f5f5f7"/><rect x="70" y="72" width="18" height="4" rx="2" fill="#4da3ff"/></svg></span></div>
+          <div class="nm"><b>Nook</b><span>一隅</span></div>
+          <div class="mean">一个只属于你的角落。</div>
+          <div class="why">强调本地、私密、只给自己用。深色图标在主屏上辨识度高，但离「卡片」远了一点。</div>
+        </div></section><p style="margin: 0; font-size: 13px; color: #86868b">下一步：商标与应用商店查重，字标、启动画面和小尺寸图标的细化。</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

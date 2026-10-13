@@ -1,0 +1,376 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AppleCompare.dc.html": {
+      "h": 1240,
+      "title": "05 Apple 风格对照",
+      "w": 1440,
+      "x": 0,
+      "y": 19510
+    },
+    "CardBlocks.dc.html": {
+      "h": 2140,
+      "is_interactive": true,
+      "title": "21 卡片积木（可拼）",
+      "w": 1440,
+      "x": 0,
+      "y": 12940
+    },
+    "CardForms.dc.html": {
+      "h": 1240,
+      "title": "09 七类卡片表达",
+      "w": 1440,
+      "x": 1520,
+      "y": 21350
+    },
+    "CardRecipes.dc.html": {
+      "h": 3770,
+      "title": "22 预设卡片 · 32 种 · 站内与跳转",
+      "w": 1440,
+      "x": 1520,
+      "y": 12940
+    },
+    "CardSizing.dc.html": {
+      "h": 1380,
+      "title": "10 尺寸与内容规范",
+      "w": 1440,
+      "x": 3040,
+      "y": 21350
+    },
+    "CardSystem.dc.html": {
+      "h": 1120,
+      "title": "08 卡片体系 · 10 → 7",
+      "w": 1440,
+      "x": 0,
+      "y": 21350
+    },
+    "Cards.dc.html": {
+      "h": 1180,
+      "title": "02 卡片类型",
+      "w": 1440,
+      "x": 1520,
+      "y": 17730
+    },
+    "CardsNext.dc.html": {
+      "h": 1240,
+      "title": "06 卡片 · 优化前后",
+      "w": 1440,
+      "x": 1520,
+      "y": 19510
+    },
+    "ExitRules.dc.html": {
+      "h": 1220,
+      "title": "17 定稿 · 退出交互",
+      "w": 1440,
+      "x": 4560,
+      "y": 7060
+    },
+    "FinalFeed.dc.html": {
+      "h": 1560,
+      "title": "11 定稿 · 桌面信息流 1440",
+      "w": 1440,
+      "x": 0,
+      "y": 4220
+    },
+    "FinalIcons.dc.html": {
+      "h": 1000,
+      "title": "13 定稿 · 图标 36 + 4",
+      "w": 1440,
+      "x": 4560,
+      "y": 12940
+    },
+    "FinalMobile.dc.html": {
+      "h": 1560,
+      "title": "12 定稿 · 手机 390",
+      "w": 390,
+      "x": 1520,
+      "y": 4220
+    },
+    "FinalOverlays.dc.html": {
+      "h": 3260,
+      "title": "15 定稿 · 弹层 v2",
+      "w": 1440,
+      "x": 0,
+      "y": 7060
+    },
+    "FinalSpec.dc.html": {
+      "h": 1180,
+      "title": "14 定稿 · 规范总表",
+      "w": 1440,
+      "x": 6080,
+      "y": 12940
+    },
+    "Foundations.dc.html": {
+      "h": 1120,
+      "title": "04 视觉基础",
+      "w": 1440,
+      "x": 4560,
+      "y": 17730
+    },
+    "Icons.dc.html": {
+      "h": 1120,
+      "title": "03 图标盘点",
+      "w": 1440,
+      "x": 3040,
+      "y": 17730
+    },
+    "IconsNext.dc.html": {
+      "h": 1240,
+      "title": "07 图标 · 语义重排",
+      "w": 1440,
+      "x": 3040,
+      "y": 19510
+    },
+    "Main.dc.html": {
+      "h": 1180,
+      "title": "01 功能分布",
+      "w": 1440,
+      "x": 0,
+      "y": 17730
+    },
+    "MobileProto.dc.html": {
+      "h": 940,
+      "is_interactive": true,
+      "title": "19 定稿 · 手机交互（可滑动）",
+      "w": 860,
+      "x": 3510,
+      "y": 4220
+    },
+    "MotionProto.dc.html": {
+      "h": 960,
+      "is_interactive": true,
+      "title": "16 定稿 · 弹出动效（可点击）",
+      "w": 1440,
+      "x": 1520,
+      "y": 7060
+    },
+    "ScrollWait.dc.html": {
+      "h": 2240,
+      "title": "18 定稿 · 下滑与等待 v2",
+      "w": 1440,
+      "x": 4450,
+      "y": 4220
+    },
+    "TextLimits.dc.html": {
+      "h": 1508,
+      "title": "23 文字长度",
+      "w": 1440,
+      "x": 3040,
+      "y": 12940
+    },
+    "WebProto.dc.html": {
+      "h": 960,
+      "is_interactive": true,
+      "title": "20 定稿 · 桌面交互（可滚动）",
+      "w": 1440,
+      "x": 1990,
+      "y": 4220
+    },
+    "Onboarding.dc.html": {
+      "h": 1500,
+      "title": "24 首次打开与导入",
+      "w": 1440,
+      "x": 0,
+      "y": 2120
+    },
+    "Volume.dc.html": {
+      "h": 1700,
+      "title": "25 量大与去重",
+      "w": 1440,
+      "x": 5970,
+      "y": 4220
+    },
+    "Trust.dc.html": {
+      "h": 1060,
+      "title": "26 来源与信任",
+      "w": 1440,
+      "x": 1520,
+      "y": 10920
+    },
+    "Brand.dc.html": {
+      "h": 1240,
+      "title": "27 品牌 · Sill 窗台",
+      "w": 1440,
+      "x": 0,
+      "y": 280
+    },
+    "Sitemap.dc.html": {
+      "h": 1000,
+      "title": "28 页面地图",
+      "w": 1440,
+      "x": 1520,
+      "y": 280
+    },
+    "Details.dc.html": {
+      "h": 1720,
+      "title": "29 站内详情",
+      "w": 1440,
+      "x": 3040,
+      "y": 7060
+    },
+    "SearchArchive.dc.html": {
+      "h": 1400,
+      "title": "30 搜索与归档",
+      "w": 1440,
+      "x": 0,
+      "y": 10920
+    },
+    "SourcesImport.dc.html": {
+      "h": 1360,
+      "title": "31 来源与导入",
+      "w": 1440,
+      "x": 1520,
+      "y": 2120
+    },
+    "Settings.dc.html": {
+      "h": 1420,
+      "title": "32 设置",
+      "w": 1440,
+      "x": 3040,
+      "y": 10920
+    },
+    "Capture.dc.html": {
+      "h": 1340,
+      "title": "33 收集入口",
+      "w": 1440,
+      "x": 3040,
+      "y": 2120
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-12T10:00:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb",
+      "copiedAt": "2026-10-13T12:00:00Z",
+      "namespace": "quiet-glass",
+      "title": "Sill",
+      "version": "1791860640-0f87"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "row0": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "① 品牌与全貌 · Sill 是什么、有哪些页面",
+      "w": 240,
+      "x": 0,
+      "y": 0
+    },
+    "row1": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "② 进来 · 首次打开、接入来源、随手收集",
+      "w": 240,
+      "x": 0,
+      "y": 1840
+    },
+    "row2": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "③ 桌面 · 信息流、下滑与等待、量大与去重",
+      "w": 240,
+      "x": 0,
+      "y": 3940
+    },
+    "row3": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "④ 打开 · 预览、动效、站内详情、退出",
+      "w": 240,
+      "x": 0,
+      "y": 6780
+    },
+    "row4": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "⑤ 找与管 · 搜索归档、来源信任、设置",
+      "w": 240,
+      "x": 0,
+      "y": 10640
+    },
+    "row5": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "⑥ 底层 · 卡片积木、预设、文字、图标与规范",
+      "w": 240,
+      "x": 0,
+      "y": 12660
+    },
+    "story": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "产品如何形成 · 下面是一路走来的过程稿",
+      "w": 240,
+      "x": 0,
+      "y": 17030
+    },
+    "row6": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "过程 1 · 现状盘点 main@fc9f267",
+      "w": 240,
+      "x": 0,
+      "y": 17450
+    },
+    "row7": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "过程 2 · 优化方向，向 Apple 的细节靠拢",
+      "w": 240,
+      "x": 0,
+      "y": 19230
+    },
+    "row8": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "过程 3 · 卡片重构：类型、表达与尺寸",
+      "w": 240,
+      "x": 0,
+      "y": 21070
+    }
+  },
+  "order": [
+    "Brand.dc.html",
+    "Sitemap.dc.html",
+    "Onboarding.dc.html",
+    "SourcesImport.dc.html",
+    "Capture.dc.html",
+    "FinalFeed.dc.html",
+    "FinalMobile.dc.html",
+    "WebProto.dc.html",
+    "MobileProto.dc.html",
+    "ScrollWait.dc.html",
+    "Volume.dc.html",
+    "FinalOverlays.dc.html",
+    "MotionProto.dc.html",
+    "Details.dc.html",
+    "ExitRules.dc.html",
+    "SearchArchive.dc.html",
+    "Trust.dc.html",
+    "Settings.dc.html",
+    "CardBlocks.dc.html",
+    "CardRecipes.dc.html",
+    "TextLimits.dc.html",
+    "FinalIcons.dc.html",
+    "FinalSpec.dc.html",
+    "Main.dc.html",
+    "Cards.dc.html",
+    "Icons.dc.html",
+    "Foundations.dc.html",
+    "AppleCompare.dc.html",
+    "CardsNext.dc.html",
+    "IconsNext.dc.html",
+    "CardSystem.dc.html",
+    "CardForms.dc.html",
+    "CardSizing.dc.html"
+  ],
+  "pages": [],
+  "title": "Sill · 设计"
+}

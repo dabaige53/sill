@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>弹出动效原型</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@keyframes qgFade{from{opacity:0}to{opacity:1}}
+@keyframes qgFadeOut{from{opacity:1}to{opacity:0}}
+@keyframes qgFromCard{from{opacity:.3;transform:translate(-346px,-262px) scale(.57);border-radius:22px}to{opacity:1;transform:none;border-radius:24px}}
+@keyframes qgToCard{from{opacity:1;transform:none}to{opacity:0;transform:translate(-346px,-262px) scale(.57)}}
+@keyframes qgMenu{from{opacity:0;transform:translateY(-4px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes qgMenuOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(.96)}}
+@keyframes qgRise{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes qgSpin{from{transform:rotate(-90deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes qgPanel{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes qgPanelOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(.98)}}
+@keyframes qgCap{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes qgCapOut{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,8px)}}
+@keyframes qgDrop{from{opacity:0;transform:translate(-50%,-12px) scale(.98)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes qgDropOut{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-8px)}}
+@keyframes qgToast{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes qgToastOut{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,8px)}}
+.ease{--ease:cubic-bezier(.2,.75,.25,1)}
+.backdrop{position:absolute;inset:0;border:0;padding:0;background:rgba(0,0,0,.2);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:qgFade calc(220ms * var(--k)) linear both;cursor:default}
+.backdrop.out{animation:qgFadeOut calc(180ms * var(--k)) linear both}
+.dlg{position:absolute;left:250px;top:96px;width:560px;background:#fff;border-radius:28px;box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);overflow:hidden;animation:qgFromCard calc(320ms * var(--k)) var(--ease) both}
+.dlg.out{animation:qgToCard calc(230ms * var(--k)) var(--ease) both}
+.panel{position:absolute;left:310px;top:150px;width:440px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:24px;box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);animation:qgPanel calc(260ms * var(--k)) var(--ease) both}
+.panel.out{animation:qgPanelOut calc(180ms * var(--k)) var(--ease) both}
+.pcap{position:absolute;left:50%;top:600px;display:flex;align-items:center;gap:2px;padding:6px;border-radius:30px;background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.72);box-shadow:0 10px 30px rgba(0,0,0,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);animation:qgCap calc(260ms * var(--k)) var(--ease) calc(120ms * var(--k)) both}
+.pcap.out{animation:qgCapOut calc(140ms * var(--k)) linear both}
+.spot{position:absolute;left:50%;top:56px;width:620px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:qgDrop calc(260ms * var(--k)) var(--ease) both}
+.spot.out{animation:qgDropOut calc(160ms * var(--k)) linear both}
+.frost{position:absolute;inset:0;border:0;padding:0;background:rgba(245,245,247,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:qgFade calc(220ms * var(--k)) linear both;cursor:default}
+.frost.out{animation:qgFadeOut calc(160ms * var(--k)) linear both}
+.fc{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:18px;background:#fff;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.fc.on{background:#0066cc;color:#fff}
+.catch{position:absolute;inset:0;border:0;padding:0;background:transparent;cursor:default}
+.fpill{position:absolute;left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 16px;border-radius:20px;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12);font-size:13px;white-space:nowrap;animation:qgCap calc(220ms * var(--k)) var(--ease) both}
+.menu{position:absolute;left:470px;top:72px;width:220px;border-radius:16px;padding:6px;display:flex;flex-direction:column;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 28px rgba(0,0,0,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);transform-origin:top right;animation:qgMenu calc(180ms * var(--k)) var(--ease) both}
+.menu.out{animation:qgMenuOut calc(120ms * var(--k)) linear both}
+.dk{animation:qgRise calc(220ms * var(--k)) var(--ease) both}
+.spin{animation:qgSpin calc(220ms * var(--k)) var(--ease) both}
+.toast{position:absolute;left:50%;bottom:28px;display:flex;align-items:center;gap:12px;min-height:48px;padding:0 8px 0 18px;border-radius:24px;font-size:14px;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 28px rgba(0,0,0,.14);animation:qgToast calc(220ms * var(--k)) var(--ease) both}
+.toast.out{animation:qgToastOut calc(180ms * var(--k)) linear both}
+.rm .anim{animation:qgFade 70ms linear both !important}
+.rm .anim.out{animation:qgFadeOut 70ms linear both !important}
+.rm .toast.anim,.rm .pcap.anim,.rm .spot.anim{transform:translate(-50%,0)}
+.card{display:flex;flex-direction:column;width:100%;text-align:left;font-family:inherit;color:#1d1d1f;padding:0;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:22px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden;transition:transform 140ms,box-shadow 140ms}
+.card:hover{transform:translateY(-2px);box-shadow:0 2px 5px rgba(0,0,0,.04),0 10px 24px rgba(0,0,0,.07)}
+.card.read{background:#fafafb;border-color:rgba(0,0,0,.04);box-shadow:none}
+.card.read .t{color:#636366}
+.cbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px}
+.hd{display:flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:#636366}
+.hd svg{flex:none;color:#86868b}
+.t{font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
+.s{font-size:15px;line-height:1.5;color:#636366}
+.ib{width:44px;height:44px;border-radius:22px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;color:#1d1d1f;padding:0;flex:none;cursor:pointer}
+.ib.on{background:#edf4ff;color:#0066cc}
+.gl{background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.mi{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:0 14px;border:0;background:transparent;font-family:inherit;font-size:14px;color:#1d1d1f;text-align:left;border-radius:10px;cursor:pointer}
+.mi:hover{background:rgba(0,0,0,.05)}
+.mi svg{flex:none;color:#636366}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 18px;border-radius:12px;border:0;font-family:inherit;font-size:14px;font-weight:500;white-space:nowrap;cursor:pointer}
+.chip{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:18px;background:#f0f0f2;font-size:13px}
+.chip.on{background:#edf4ff;color:#0057ad;font-weight:500}
+.sr{display:grid;grid-template-columns:78px 62px minmax(0,1fr);gap:8px;padding:9px 0;border-top:1px solid rgba(0,0,0,.06);font-size:12px;line-height:1.5}
+.sr b{font-size:13px;font-weight:600}
+.sr code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#0057ad}
+.sr span{color:#636366}
+</style>
+</helmet>
+<div class="ease {{rmCls}}" onKeyDown="{{onKey}}" style="width: 1440px; height: 960px; box-sizing: border-box; padding: 32px; background: #e8e8ed; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; gap: 16px; --k: {{k}}">
+  <div style="position: relative; width: 1060px; flex: none; height: 896px; border-radius: 20px; background: #f5f5f7; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.06)">
+    <main style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding: 24px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <button type="button" class="card" onClick="{{openPreview}}" aria-label="预览：让 AI 成为工作流的一部分">
+          <span style="display: block; margin: 8px 8px 0; aspect-ratio: 16 / 9; border-radius: 14px; background: linear-gradient(160deg, #b9c6d3 0%, #dfe5ea 55%, #c9d2d9 100%); width: calc(100% - 16px)"></span>
+          <span class="cbody"><span class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"></path><path d="M12 5v15"></path></svg>工作方式研究 · 6 分钟</span><span class="t">让 AI 成为工作流的一部分</span><span class="s">不是多一个工具，而是让想法、判断和行动顺畅地连接起来。</span></span>
+        </button>
+        <div class="card read" style="pointer-events: none"><span class="cbody"><span class="hd">速记 · 昨天</span><span style="font-size: 15px; line-height: 1.55">工具应该顺着意图出现。状态不必都写成标签。</span></span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <div class="card" style="position: relative"><span class="cbody" style="padding-right: 52px"><span class="hd">林舟 · 邮件 · 14:32</span><span class="t">这周的方案，只差最后一个决定</span><span class="s">三种方向已经整理好了，先确认什么应该留下。</span></span><button type="button" class="ib gl" aria-label="更多卡片操作" aria-expanded="{{menuOpen}}" onClick="{{toggleMenu}}" style="position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 18px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></button></div>
+        <div class="card" style="pointer-events: none"><span class="cbody"><span class="hd">10月12日 周一<span style="flex: 1"></span><span style="color: #0066cc; font-weight: 500">25 分钟后</span></span><span style="display: flex; align-items: flex-end; justify-content: space-between"><span style="font-family: ui-rounded, -apple-system, sans-serif; font-size: 34px; line-height: 1.1; font-weight: 600">14:30</span><span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 13px; color: #636366"><b style="font-size: 15px; color: #1d1d1f; font-weight: 500">至 15:15</b>共 45 分钟</span></span><span class="t" style="font-weight: 500">产品讨论会</span></span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <div class="card" style="pointer-events: none"><span class="cbody"><span class="hd">今天 18:00 前<span style="flex: 1"></span><b style="color: #1d1d1f">1/3</b></span><span class="t">把想法做成可以触摸的东西</span><span class="s">确认玻璃与内容的层次 · 在手机上读一遍 · 整理下一轮反馈</span></span></div>
+        <div class="card read" style="pointer-events: none"><span class="cbody" style="padding: 18px 18px 22px"><span class="hd">产品随记 · 刚刚</span><span style="font-size: 21px; line-height: 1.55; font-weight: 500">不是收集更多，是让重要的事在对的时候出现。</span></span></div>
+      </div>
+    </main>
+
+    <sc-if value="{{catchShown}}" hint-placeholder-val="{{ false }}">
+      <button type="button" class="catch" tabindex="-1" aria-label="收起" onClick="{{closeFloating}}"></button>
+    </sc-if>
+
+    <sc-if value="{{filterApplied}}" hint-placeholder-val="{{ false }}">
+      <div class="fpill anim"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h11m4 0h1"></path><circle cx="13" cy="6" r="2"></circle><circle cx="8" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>收藏 · 2 张<button type="button" aria-label="清除筛选" onClick="{{clearFilter}}" style="width: 28px; height: 28px; border: 0; border-radius: 14px; background: #f0f0f2; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></div>
+    </sc-if>
+
+    <sc-if value="{{menuShown}}" hint-placeholder-val="{{ false }}">
+      <div class="menu anim {{menuCls}}" role="menu" aria-label="更多卡片操作">
+        <button type="button" class="mi" role="menuitem" onClick="{{toggleMenu}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v7l10 10 8-8L11 3H4a1 1 0 0 0-1 1Z"></path><circle cx="7.5" cy="7.5" r="1"></circle></svg>标签与备注</button>
+        <button type="button" class="mi" role="menuitem" onClick="{{toggleMenu}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6.5" cy="14.5" r="3.5"></circle><circle cx="17.5" cy="14.5" r="3.5"></circle><path d="M10 14c1.2-1 2.8-1 4 0M3 14l1.5-6.5L7 7M21 14l-1.5-6.5L17 7"></path></svg>稍后读</button>
+        <button type="button" class="mi" role="menuitem" onClick="{{toggleMenu}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.8"></circle></svg>标为已读</button>
+        <span style="height: 1px; background: rgba(0,0,0,.08); margin: 4px 10px"></span>
+        <button type="button" class="mi" role="menuitem" onClick="{{favFromMenu}}" style="color: #0066cc"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z"></path></svg>收藏</button>
+      </div>
+    </sc-if>
+
+    <div onMouseEnter="{{dockEnter}}" onMouseLeave="{{dockLeave}}" style="position: absolute; right: 24px; bottom: 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px">
+      <sc-if value="{{dock}}" hint-placeholder-val="{{ false }}">
+        <button type="button" class="ib gl dk anim" aria-label="筛选与搜索" onClick="{{openPanel}}" style="animation-delay: calc(120ms * var(--k))"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h11m4 0h1"></path><circle cx="13" cy="6" r="2"></circle><circle cx="8" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg></button>
+        <button type="button" class="ib gl dk anim" aria-label="刷新" onClick="{{closeDock}}" style="animation-delay: calc(80ms * var(--k))"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5"></path></svg></button>
+        <button type="button" class="ib gl dk anim" aria-label="回到顶部" onClick="{{closeDock}}" style="animation-delay: calc(40ms * var(--k))"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4m-6 6 6-6 6 6"></path></svg></button>
+        <button type="button" class="ib gl dk anim" aria-label="设置" onClick="{{closeDock}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.19 5.24L10.50 2.52L13.50 2.52L13.81 5.24L15.50 5.94L17.64 4.23L19.77 6.36L18.06 8.50L18.76 10.19L21.48 10.50L21.48 13.50L18.76 13.81L18.06 15.50L19.77 17.64L17.64 19.77L15.50 18.06L13.81 18.76L13.50 21.48L10.50 21.48L10.19 18.76L8.50 18.06L6.36 19.77L4.23 17.64L5.94 15.50L5.24 13.81L2.52 13.50L2.52 10.50L5.24 10.19L5.94 8.50L4.23 6.36L6.36 4.23L8.50 5.94Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+      </sc-if>
+      <button type="button" class="gl" aria-label="全局工具" aria-expanded="{{dock}}" onClick="{{toggleDock}}" style="width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; color: #1d1d1f; padding: 0; cursor: pointer">
+        <sc-if value="{{dock}}" hint-placeholder-val="{{ false }}"><svg class="spin anim" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></sc-if>
+        <sc-if value="{{dockClosed}}" hint-placeholder-val="{{ true }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg></sc-if>
+      </button>
+    </div>
+
+    <sc-if value="{{previewShown}}" hint-placeholder-val="{{ false }}">
+      <button type="button" class="backdrop anim {{previewCls}}" aria-label="关闭预览" onClick="{{closePreview}}"></button>
+      <section class="dlg anim {{previewCls}}" role="dialog" aria-label="让 AI 成为工作流的一部分">
+        <div style="margin: 8px 8px 0; aspect-ratio: 16 / 7; border-radius: 20px; background: linear-gradient(160deg, #b9c6d3 0%, #dfe5ea 55%, #c9d2d9 100%)"></div>
+        <div style="padding: 22px 32px 32px; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 13px; color: #86868b">工作方式研究 · 6 分钟</span>
+          <h2 style="margin: 0; font-size: 28px; line-height: 1.3; font-weight: 600; letter-spacing: -0.035em">让 AI 成为工作流的一部分</h2>
+          <p style="margin: 2px 0 0; font-size: 17px; line-height: 1.65">不是多一个工具，而是让想法、判断和行动顺畅地连接起来。</p>
+          <p style="margin: 0; font-size: 15px; line-height: 1.85; color: #636366; max-height: 56px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 30%, transparent); mask-image: linear-gradient(#000 30%, transparent)">我们每天读到的内容越来越多，但真正需要做出的判断，并没有因此变得更简单。切换页面容易，重新建立上下文却很费力。</p>
+        </div>
+      </section>
+      <div class="pcap anim {{previewCls}}" role="toolbar" aria-label="预览操作">
+        <button type="button" class="ib {{favCls}}" aria-label="收藏" aria-pressed="{{fav}}" onClick="{{toggleFav}}" style="background: transparent">
+          <sc-if value="{{fav}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg></sc-if>
+          <sc-if value="{{notFav}}" hint-placeholder-val="{{ true }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z"></path></svg></sc-if>
+        </button>
+        <button type="button" class="ib" aria-label="稍后读"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6.5" cy="14.5" r="3.5"></circle><circle cx="17.5" cy="14.5" r="3.5"></circle><path d="M10 14c1.2-1 2.8-1 4 0M3 14l1.5-6.5L7 7M21 14l-1.5-6.5L17 7"></path></svg></button>
+        <button type="button" class="ib" aria-label="标签与备注"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v7l10 10 8-8L11 3H4a1 1 0 0 0-1 1Z"></path><circle cx="7.5" cy="7.5" r="1"></circle></svg></button>
+        <span style="width: 1px; height: 22px; background: rgba(0,0,0,.1); margin: 0 6px"></span>
+        <button type="button" class="btn" style="border-radius: 22px; padding: 0 20px; background: #0066cc; color: #fff">继续阅读<span style="font-size: 12px; opacity: .75">40%</span></button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{panelShown}}" hint-placeholder-val="{{ false }}">
+      <button type="button" class="frost anim {{panelCls}}" aria-label="关闭筛选" onClick="{{closePanel}}"></button>
+      <div class="spot anim {{panelCls}}" role="dialog" aria-label="筛选与搜索">
+        <div style="width: 100%; height: 60px; box-sizing: border-box; border-radius: 30px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.05), 0 20px 60px rgba(0,0,0,.12); display: flex; align-items: center; gap: 14px; padding: 0 22px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#86868b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
+          <input type="search" aria-label="搜索卡片" placeholder="搜索，回车确认" onKeyDown="{{filterKey}}" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 20px; color: #1d1d1f">
+        </div>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px"><span class="fc">全部</span><span class="fc">资讯</span><span class="fc">消息</span><span class="fc">笔记</span><span class="fc">待办</span><span class="fc">日程</span><span class="fc">未读</span><span class="fc on">收藏</span><span class="fc">稍后读</span></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{toastShown}}" hint-placeholder-val="{{ false }}">
+      <div class="toast anim {{toastCls}}" role="status"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="color: #0066cc"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z" fill="currentColor"></path></svg>已收藏<button type="button" class="btn" style="min-height: 36px; padding: 0 10px; background: transparent; color: #0066cc" onClick="{{undoFav}}">撤销</button></div>
+    </sc-if>
+  </div>
+
+  <aside style="flex: 1; min-width: 0; background: #fff; border-radius: 20px; padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 0 0 1px rgba(0,0,0,.06); overflow: hidden">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 12px; color: #6e6e73">16 · 弹出动效</span>
+      <h1 style="margin: 0; font-size: 20px; line-height: 1.35; font-weight: 600; letter-spacing: -0.02em">点左边试一试</h1>
+      <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">点资讯卡 → 预览；点消息卡「更多」→ 菜单；点右下入口 → 工具栏，再点筛选 → 搜索；预览或菜单里点收藏 → Toast。任何弹层都可以点外面或按 Esc 关闭；工具栏鼠标移开会自动收起；筛选按回车关闭并留下顶部标记。Tweaks 里可放慢 3 倍或模拟「减少动态效果」。</p>
+    </div>
+    <div>
+      <div class="sr"><b>预览打开</b><code>320ms</code><span>从卡片原位展开到居中，圆角 22→24</span></div>
+      <div class="sr"><b>预览关闭</b><code>230ms</code><span>缩回原卡片位置，焦点回到卡片</span></div>
+      <div class="sr"><b>遮罩</b><code>220 / 180</code><span>0→20% 黑 + 4px 模糊，线性</span></div>
+      <div class="sr"><b>更多菜单</b><code>180 / 120</code><span>锚点右上，缩放 .92→1，下移 4px</span></div>
+      <div class="sr"><b>全局工具</b><code>220ms</code><span>自下而上依次浮出，间隔 40ms；入口转成关闭</span></div>
+      <div class="sr"><b>操作胶囊</b><code>260ms</code><span>晚 120ms 从下方浮起，跟在预览之后</span></div>
+      <div class="sr"><b>筛选</b><code>260 / 160</code><span>搜索框自上落下，背景磨砂而非压暗</span></div>
+      <div class="sr"><b>手机抽屉</b><code>360ms</code><span>自底部滑入，曲线 (.32,.72,0,1)；下拉关闭</span></div>
+      <div class="sr"><b>Toast</b><code>220 / 180</code><span>上浮 12px；3 秒后下沉消失</span></div>
+      <div class="sr"><b>减少动效</b><code>70ms</code><span>全部改为淡入淡出，不位移不缩放</span></div>
+    </div>
+    <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">曲线统一 <code style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px">cubic-bezier(.2,.75,.25,1)</code>；出场比进场快约 30%，让关闭显得干脆。</p>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"slow":{"editor":"boolean","default":false},"reduceMotion":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { preview: 'closed', menu: 'closed', panel: 'closed', dock: false, toast: 'off', fav: false, filterApplied: false };
+    this.timers = {};
+  }
+  componentWillUnmount() { Object.values(this.timers).forEach(clearTimeout); }
+  k() { return this.props.slow ? 3 : 1; }
+  later(name, ms, fn) { clearTimeout(this.timers[name]); this.timers[name] = setTimeout(fn, ms * this.k()); }
+  showToast() {
+    this.setState({ toast: 'on' });
+    this.later('toastOut', 2400, () => this.setState({ toast: 'out' }));
+    this.later('toastOff', 2580, () => this.setState({ toast: 'off' }));
+  }
+  closePreview() { this.setState({ preview: 'closing' }); this.later('preview', 230, () => this.setState({ preview: 'closed' })); }
+  closePanel() { this.setState({ panel: 'closing' }); this.later('panel', 160, () => this.setState({ panel: 'closed' })); }
+  closeFloating() {
+    if (this.state.menu === 'open') { this.setState({ menu: 'closing' }); this.later('menu', 120, () => this.setState({ menu: 'closed' })); }
+    if (this.state.dock) this.setState({ dock: false });
+  }
+  renderVals() {
+    const s = this.state;
+    return {
+      k: this.k(),
+      rmCls: this.props.reduceMotion ? 'rm' : '',
+      previewShown: s.preview !== 'closed',
+      previewCls: s.preview === 'closing' ? 'out' : '',
+      menuShown: s.menu !== 'closed',
+      menuOpen: s.menu === 'open',
+      menuCls: s.menu === 'closing' ? 'out' : '',
+      panelShown: s.panel !== 'closed',
+      panelCls: s.panel === 'closing' ? 'out' : '',
+      dock: s.dock,
+      dockClosed: !s.dock,
+      catchShown: s.menu === 'open' || s.dock,
+      filterApplied: s.filterApplied,
+      closeFloating: () => this.closeFloating(),
+      closeDock: () => this.setState({ dock: false }),
+      dockEnter: () => clearTimeout(this.timers.dock),
+      dockLeave: () => { if (this.state.dock) this.later('dock', 420, () => this.setState({ dock: false })); },
+      clearFilter: () => this.setState({ filterApplied: false }),
+      filterKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.setState({ filterApplied: true, panel: 'closing' }); this.later('panel', 160, () => this.setState({ panel: 'closed' })); } },
+      onKey: (e) => {
+        if (e.key !== 'Escape') return;
+        const st = this.state;
+        if (st.preview === 'open') { e.preventDefault(); this.closePreview(); }
+        else if (st.panel === 'open') { e.preventDefault(); this.closePanel(); }
+        else if (st.menu === 'open' || st.dock) { e.preventDefault(); this.closeFloating(); }
+      },
+      toastShown: s.toast !== 'off',
+      toastCls: s.toast === 'out' ? 'out' : '',
+      fav: s.fav,
+      notFav: !s.fav,
+      favCls: s.fav ? 'on' : '',
+      openPreview: () => this.setState({ preview: 'open', menu: 'closed', dock: false }),
+      closePreview: () => this.closePreview(),
+      toggleMenu: () => {
+        if (this.state.menu === 'open') { this.setState({ menu: 'closing' }); this.later('menu', 120, () => this.setState({ menu: 'closed' })); }
+        else this.setState({ menu: 'open', dock: false });
+      },
+      favFromMenu: () => { this.setState({ menu: 'closing', fav: true }); this.later('menu', 120, () => this.setState({ menu: 'closed' })); this.showToast(); },
+      toggleFav: () => { const next = !this.state.fav; this.setState({ fav: next }); if (next) this.showToast(); },
+      undoFav: () => { this.setState({ fav: false, toast: 'out' }); this.later('toastOff', 180, () => this.setState({ toast: 'off' })); },
+      toggleDock: () => this.setState({ dock: !this.state.dock, menu: 'closed' }),
+      openPanel: () => this.setState({ panel: 'open', dock: false }),
+      closePanel: () => this.closePanel()
+    };
+  }
+}
+</script>
+</body>
+</html>

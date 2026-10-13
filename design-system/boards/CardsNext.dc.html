@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>卡片优化前后</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.pair{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.pair h2{margin:0;font-size:16px;line-height:1.4;font-weight:600}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.lbl{font-size:12px;color:#6e6e73;margin-bottom:8px;display:block}
+.lbl.new{color:#0057ad;font-weight:500}
+.stage{background:#f5f5f7;border-radius:16px;padding:20px}
+.card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);padding:16px;display:flex;flex-direction:column;gap:8px}
+.card.next{border-radius:22px;padding:18px;gap:6px}
+.meta{font-size:12px;line-height:1.5;color:#6e6e73;display:flex;align-items:center;gap:4px}
+.hd{display:flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:#636366;min-height:20px}
+.hd svg{flex:none;color:#86868b}
+.hd .sp{flex:1}
+.udot{width:8px;height:8px;border-radius:4px;background:#0066cc;flex:none}
+.t-old{margin:0;font-size:16px;line-height:1.4;font-weight:600;letter-spacing:-.025em}
+.t-new{margin:2px 0 0;font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
+.s-old{margin:0;font-size:13px;line-height:1.55;color:#6e6e73}
+.s-new{margin:0;font-size:15px;line-height:1.5;color:#636366}
+.chg{margin:0;padding:0 0 0 18px;font-size:13px;line-height:1.7;color:#1d1d1f}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-variant-numeric:tabular-nums}
+.cap{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 14px;border-radius:18px;font-size:13px;font-weight:500;border:0;font-family:inherit;white-space:nowrap}
+.chk{display:flex;align-items:center;gap:10px;font-size:14px;line-height:1.5;min-height:32px}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1240px; box-sizing: border-box; padding: 56px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 12px; color: #6e6e73">06 · 卡片优化前后</span>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">一样的白卡，更整齐的骨架</h1>
+    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6e6e73; max-width: 900px">不换风格，只收结构：每张卡都有同一行头部；标题、正文、脚注各一个字号；有歧义的动作写成文字；大数字改圆体。</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+    <section class="pair">
+      <h2>资讯 · 头部统一与未读</h2>
+      <div class="cols">
+        <div><span class="lbl">现在</span><div class="stage"><div class="card"><div class="meta"><span>交互小记</span><span>·</span><span>2 分钟阅读</span></div><h3 class="t-old">打开，不等于读完</h3><p class="s-old">预览、阅读、收藏、完成，是四件不同的事。好的系统，应该替你记得这个区别。</p><div class="meta" style="gap: 8px; padding-top: 4px"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#1d1d1f" stroke-opacity=".12" stroke-width="2"></circle><circle cx="10" cy="10" r="8" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-dasharray="50.265" stroke-dashoffset="30" transform="rotate(-90 10 10)"></circle></svg>继续阅读</div></div></div></div>
+        <div><span class="lbl new">建议</span><div class="stage"><div class="card next"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"></path><path d="M12 5v15"></path></svg><span>交互小记 · 2 分钟</span><span class="sp"></span><span class="udot" aria-label="未读"></span></div><h3 class="t-new">打开，不等于读完</h3><p class="s-new">预览、阅读、收藏、完成，是四件不同的事。好的系统，应该替你记得这个区别。</p><div class="hd" style="padding-top: 6px; color: #0066cc"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#0066cc" stroke-opacity=".16" stroke-width="2.4"></circle><circle cx="10" cy="10" r="8" fill="none" stroke="#0066cc" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="50.265" stroke-dashoffset="30" transform="rotate(-90 10 10)"></circle></svg>读到 40%</div></div></div></div>
+      </div>
+      <ol class="chg"><li>头部固定为「类型符号 · 来源 · 时长」，10 类卡片都有</li><li>未读用右上蓝点，已读仍变淡，两者不冲突</li><li>「继续阅读」改成具体进度，进度环用动作蓝</li></ol>
+    </section>
+
+    <section class="pair">
+      <h2>提醒 · 动作写成文字</h2>
+      <div class="cols">
+        <div><span class="lbl">现在</span><div class="stage"><div class="card"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #b45309"><span style="width: 6px; height: 6px; border-radius: 3px; background: #b45309"></span>10 分钟后到期</div><h3 class="t-old">给自己留一个小空档</h3><div style="display: flex; gap: 8px; justify-content: flex-end"><span style="width: 36px; height: 36px; border-radius: 18px; background: #f0f0f2; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><span style="width: 36px; height: 36px; border-radius: 18px; background: #0066cc; color: #fff; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg></span></div></div></div></div>
+        <div><span class="lbl new">建议</span><div class="stage"><div class="card next"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9a7 7 0 0 1 14 0c0 8 2 8 2 9H3c0-1 2-1 2-9M9 21h6"></path></svg><span>演示提醒</span><span class="sp"></span><span style="color: #b45309; font-weight: 500">10 分钟后</span></div><h3 class="t-new">给自己留一个小空档</h3><p class="s-new">起身，看看窗外。</p><div style="display: flex; gap: 8px; padding-top: 8px"><button type="button" class="cap" style="flex: 1 1 auto; background: #f0f0f2; color: #1d1d1f">稍后 10 分钟</button><button type="button" class="cap" style="flex: 0 0 auto; min-width: 72px; background: #0066cc; color: #fff">完成</button></div></div></div></div>
+      </div>
+      <ol class="chg"><li>两个圆形图标按钮改为文字胶囊，按文字自然宽度排，不折行</li><li>到期时间放进头部右侧，只让文字变色，不加色块</li><li>补上摘要，卡片不再只有一句标题</li></ol>
+    </section>
+
+    <section class="pair">
+      <h2>待办 · 勾选态与计数</h2>
+      <div class="cols">
+        <div><span class="lbl">现在</span><div class="stage"><div class="card"><h3 class="t-old">把想法做成可以触摸的东西</h3><div style="display: flex; flex-direction: column"><div class="chk" style="font-size: 13px"><span style="width: 18px; height: 18px; border-radius: 9px; background: #0066cc; color: #fff; display: flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg></span><span style="color: #86868b; text-decoration: line-through">确认玻璃与内容的层次</span></div><div class="chk" style="font-size: 13px"><span style="width: 18px; height: 18px; border-radius: 9px; border: 1.2px solid #b8b8bd; box-sizing: border-box"></span>试一试拖拽进入 AI</div><div class="chk" style="font-size: 13px"><span style="width: 18px; height: 18px; border-radius: 9px; border: 1.2px solid #b8b8bd; box-sizing: border-box"></span>在手机上读一遍</div></div><div class="meta" style="justify-content: space-between"><span>今天 18:00 前</span><span style="color: #1d1d1f">1 / 3</span></div></div></div></div>
+        <div><span class="lbl new">建议</span><div class="stage"><div class="card next"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 3 3 5-6"></path></svg><span>演示待办 · 今天 18:00 前</span><span class="sp"></span><span class="num" style="color: #1d1d1f; font-weight: 600">1/3</span></div><h3 class="t-new">把想法做成可以触摸的东西</h3><div style="display: flex; flex-direction: column"><div class="chk"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#0066cc"></circle><path d="m7.5 12.2 3 3 6-6.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="color: #86868b">确认玻璃与内容的层次</span></div><div class="chk"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#b8b8bd" stroke-width="1.6"></circle></svg>在手机上读一遍</div><div class="chk"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="none" stroke="#b8b8bd" stroke-width="1.6"></circle></svg>整理下一轮反馈</div></div></div></div></div>
+      </div>
+      <ol class="chg"><li>勾选圈放大到 22，正文 14，和提醒事项一致</li><li>已完成只变灰、去掉删除线，减少视觉噪音</li><li>计数移进头部，底部不再多一行</li></ol>
+    </section>
+
+    <section class="pair">
+      <h2>日程 · 数字用圆体</h2>
+      <div class="cols">
+        <div><span class="lbl">现在</span><div class="stage"><div class="card"><div class="meta"><span>10月12日 周一</span><span>·</span><span>25 分钟后</span></div><h3 class="t-old">产品讨论会</h3><div style="font-size: 26px; line-height: 1.25; font-weight: 500; letter-spacing: -0.045em; font-variant-numeric: tabular-nums">14:30<span style="color: #86868b; padding: 0 6px">—</span>15:15</div></div></div></div>
+        <div><span class="lbl new">建议</span><div class="stage"><div class="card next"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M7 3v4m10-4v4M3 10h18"></path></svg><span>10月12日 周一</span><span class="sp"></span><span style="color: #0066cc; font-weight: 500">25 分钟后</span></div><div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-top: 4px"><span class="num" style="font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em">14:30</span><span style="display: flex; flex-direction: column; align-items: flex-end; padding-bottom: 3px"><span class="num" style="font-size: 15px; line-height: 1.35; font-weight: 500; color: #1d1d1f">至 15:15</span><span style="font-size: 13px; line-height: 1.35; color: #636366">共 45 分钟</span></span></div><h3 class="t-new" style="font-weight: 500">产品讨论会</h3></div></div></div>
+      </div>
+      <ol class="chg"><li>时间是日程卡的主角，放到标题上方，圆体 34</li><li>开始时间做主角，结束时间和时长靠右，撑满一整行</li><li>大数字全站只留 34 和 28 两档</li></ol>
+    </section>
+  </div>
+
+  <section style="background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 20px; padding: 22px 28px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; font-size: 13px; line-height: 1.6">
+    <div style="display: flex; flex-direction: column; gap: 4px"><b>字号</b><span class="mute" style="color: #636366">标题 17 · 正文 15 · 次要 14 · 脚注 13 · 说明 12，不再按宽度切换</span></div>
+    <div style="display: flex; flex-direction: column; gap: 4px"><b>次要文字</b><span style="color: #636366">卡片和输入框上的次要文字改 #636366，在 surface 上 5.26:1</span></div>
+    <div style="display: flex; flex-direction: column; gap: 4px"><b>圆角</b><span style="color: #636366">卡片 22；支持的浏览器启用 corner-shape: squircle，其余回退普通圆角</span></div>
+    <div style="display: flex; flex-direction: column; gap: 4px"><b>附件</b><span style="color: #636366">邮件附件条现在像按钮却不能点，改为可点下载或去掉底色</span></div>
+    <div style="display: flex; flex-direction: column; gap: 4px"><b>媒体</b><span style="color: #636366">「4 个片段」写死在模板里，改为读数据；播放标记用实心三角</span></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

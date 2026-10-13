@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>来源与信任</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+
+body{margin:0}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums}
+.cap{font-size:13px;color:#86868b}
+.h2{margin:0;font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.02em}
+.win{position:relative;height:300px;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06)}
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden}
+.card.read{background:#fafafb;border-color:rgba(0,0,0,.04);box-shadow:none}
+.mc{position:absolute;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 3px 10px rgba(0,0,0,.04)}
+.mc i{position:absolute;left:10px;height:6px;border-radius:3px;background:#e8e8ed}
+.mc i.t{height:7px;background:#1d1d1f}
+.glass{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 18px;border-radius:18px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.p{background:#0066cc;color:#fff}
+.btn.s{background:#e8e8ed;color:#1d1d1f}
+.btn.g{color:#0066cc;padding:0 8px}
+.hd{display:flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:#636366}
+.hd svg{flex:none;color:#86868b}
+.t{font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
+.s{font-size:15px;line-height:1.5;color:#636366}
+.bd{display:flex;flex-direction:column;gap:8px;padding:18px}
+.fl{display:flex;flex-direction:column;gap:10px;min-width:0}
+
+.panel{border-radius:24px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 24px 70px rgba(0,0,0,.12);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 20px;border-top:1px solid rgba(0,0,0,.06);font-size:15px}
+.row:first-child{border-top:0}
+.row .ico{width:32px;height:32px;border-radius:9px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;color:#1d1d1f;flex:none}
+.row .nm{display:flex;flex-direction:column;min-width:0}
+.row .nm small{font-size:12px;color:#86868b}
+.row .r{margin-left:auto;display:flex;align-items:center;gap:12px}
+.dot{width:7px;height:7px;border-radius:4px;background:#248a3d;flex:none}
+.tog{width:40px;height:24px;border-radius:12px;background:#34c759;position:relative;flex:none}
+.tog::after{content:"";position:absolute;right:2px;top:2px;width:20px;height:20px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.off{background:#e5e5ea}
+.tog.off::after{right:auto;left:2px}
+.pop{border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;width:300px;box-sizing:border-box}
+.why{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5}
+.why svg{color:#86868b;flex:none;margin-top:1px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:14px;background:#f5f5f7;font-size:12px}
+.mi{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:10px;font-size:14px}
+.mi svg{color:#636366}
+.rule{display:flex;flex-direction:column;gap:4px}
+.rule b{font-size:15px;font-weight:600}
+.rule span{font-size:13px;line-height:1.6;color:#636366}
+
+</style>
+</helmet>
+<div style="width: 1440px; height: 1060px; box-sizing: border-box; padding: 64px 72px; background: #fff; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 56px">
+<div style="display: flex; align-items: baseline; gap: 16px"><h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">数据在哪、AI 为什么，都看得见</h1><span class="cap">26 · 来源与信任</span></div><section style="display: grid; grid-template-columns: 460px minmax(0, 1fr); gap: 72px; align-items: start">
+      <div class="panel" style="width: 460px">
+      <div style="padding: 22px 20px 12px; display: flex; align-items: baseline; justify-content: space-between"><b style="font-size: 21px; letter-spacing: -0.02em">来源</b><span style="font-size: 14px; color: #0066cc">添加</span></div>
+      <div>
+        <div class="row"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a14 14 0 0 1 14 14M5 11a8 8 0 0 1 8 8M6 18h.01"/></svg></span><span class="nm">RSS<small>42 个订阅 · 2 分钟前</small></span><span class="r"><span class="dot"></span><span class="tog"></span></span></div>
+        <div class="row"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"/></svg></span><span class="nm">Readwise<small>1,204 条 · 刚刚</small></span><span class="r"><span class="dot"></span><span class="tog"></span></span></div>
+        <div class="row"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Zm-3 2 9 6 9-6"/></svg></span><span class="nm">邮件<small>需要重新登录</small></span><span class="r"><span class="dot" style="background: #b45309"></span><span class="btn s" style="height: 30px; padding: 0 12px; font-size: 13px">重新登录</span></span></div>
+        <div class="row"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5h12a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3ZM7 3v4m10-4v4M3 10h18"/></svg></span><span class="nm">日历<small>3 个日历 · 刚刚</small></span><span class="r"><span class="dot"></span><span class="tog"></span></span></div>
+        <div class="row"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M10.5 12a1.5 1.5 0 1 0 3.0 0a1.5 1.5 0 1 0 -3.0 0"/></svg></span><span class="nm">Linear<small>已暂停</small></span><span class="r"><span class="dot" style="background: #d1d1d6"></span><span class="tog off"></span></span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px; background: #f5f5f7; font-size: 13px; color: #636366"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/></svg>全部存在这台设备 · <span class="num">2.3 GB</span><span style="flex: 1"></span><span style="color: #0066cc">导出</span></div>
+    </div>
+      <div style="display: flex; flex-direction: column; gap: 28px; padding-top: 12px">
+        <h2 class="h2">来源一屏管完</h2>
+        <div class="rule"><b>一个点说状态</b><span>绿色正常，琥珀需要处理，灰色已暂停；出问题时只有那一行出现按钮</span></div>
+        <div class="rule"><b>暂停不是断开</b><span>暂停只停同步，卡片保留；断开时再问要不要一并移除</span></div>
+        <div class="rule"><b>本机是默认</b><span>底部一行写清数据在哪、占多大，随时导出</span></div>
+      </div>
+    </section><section style="display: flex; flex-direction: column; gap: 24px">
+      <h2 class="h2">AI 做了什么，都说得清、退得回</h2>
+      <div style="display: flex; gap: 32px; align-items: flex-start">
+        <div class="fl"><article class="card" style="width: 320px; position: relative"><div class="bd"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg>AI 整理 · 来自 2 张卡</div><div class="t">上次那个想法，有了新的连接</div><div class="s">「按需显现」与「卡片即上下文」在回答同一个问题。</div></div>
+      <span class="glass" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg></span></article><span class="cap">卡片 · 更多</span></div>
+        <div class="fl" style="padding-top: 40px"><div class="glass pop" style="width: 220px; padding: 6px; gap: 0; border-radius: 16px">
+      <div class="mi" style="background: rgba(0,0,0,.05)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M12 11v5M12 8h.01"/></svg>为什么看到</div>
+      <div class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9M8 8h5M8 12h3m3 0 6-6 2-2-2-2-2 2-6 6-1 4Z"/></svg>标签与备注</div>
+      <div class="mi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M12 7v5l3 2"/></svg>稍后读</div>
+    </div><span class="cap">第一项：为什么看到</span></div>
+        <div class="fl" style="padding-top: 20px"><div class="pop" style="background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 20px 60px rgba(0,0,0,.14)">
+      <b style="font-size: 15px">为什么看到</b>
+      <div class="why"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>AI 发现你收藏的两张卡在讨论同一件事</span></div>
+      <div class="why"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M12 7v5l3 2"/></svg><span>10月3日 和 10月9日 收藏</span></div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px"><span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9M8 8h5M8 12h3m3 0 6-6 2-2-2-2-2 2-6 6-1 4Z"/></svg>少做一步</span><span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"/></svg>让 AI 成为工作流…</span></div>
+      <div style="display: flex; gap: 16px; padding-top: 4px; font-size: 13px"><span style="color: #0066cc">少看这类</span><span style="color: #0066cc">不再提示</span></div>
+    </div><span class="cap">理由 + 依据 + 两个调节</span></div>
+        <div class="fl" style="padding-top: 120px"><div class="glass" style="display: inline-flex; align-items: center; gap: 12px; height: 48px; padding: 0 8px 0 18px; border-radius: 24px; font-size: 14px; white-space: nowrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg>AI 整理了 <b class="num">6</b> 张卡<span class="btn g">撤销</span></div><span class="cap">批量动作一律可撤销</span></div>
+      </div>
+    </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
