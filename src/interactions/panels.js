@@ -25,7 +25,7 @@ const Panels={
  preview(app,c){
    const s=Store.item(c.id),note=s.note?`<div class="preview-note">${esc(s.note)}</div>`:'';
    const tags=Store.tags(c).length?`<div class="preview-tags">${Store.tags(c).map(t=>`<span class="chip soft">#${esc(t)}</span>`).join('')}</div>`:'';
-   const sheet=(inner,cover='')=>`<div class="sheet preview-sheet"><div class="grabber" aria-hidden="true"></div><div class="sheet-scroll">${cover}<div class="preview-body">${inner}${note}${tags}</div></div></div>`;
+   const sheet=(inner,cover='')=>`<div class="sheet preview-sheet"><div class="grabber" aria-hidden="true"></div><div class="sheet-scroll" tabindex="0" role="region" aria-label="卡片内容">${cover}<div class="preview-body">${inner}${note}${tags}</div></div></div>`;
    const close=this.sep+button('x','关闭预览','close');
    const h1=`<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>`;
    if(c.type==='mail'){
@@ -112,7 +112,7 @@ const Panels={
    const f=app.filter,tags=[...new Set(Store.state.cards.flatMap(c=>Store.tags(c)))].slice(0,8);
    const types=[['all','全部',''],['article','资讯','book'],['mail','消息','mail'],['note','笔记','note'],['task','待办','check-circle'],['event','日程','calendar'],['media','媒体','video']];
    const status=[['unread','未读'],['saved','收藏'],['later','稍后读']];
-   return `<div class="search-pill">${icon('search',18)}<input type="search" id="filter-search" aria-label="搜索标题、摘要和备注" placeholder="搜索卡片、备注、来源" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num" id="filter-result">${app.filtered().length} 张</span>${f.query?button('x','清空搜索','clear-query'):''}</div>
+   return `<h1 id="modal-title" class="sr-only">搜索与筛选</h1><div class="search-pill">${icon('search',18)}<input type="search" id="filter-search" aria-label="搜索标题、摘要和备注" placeholder="搜索卡片、备注、来源" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.filtered().length} 张</span>${f.query?button('x','清空搜索','clear-query'):''}</div>
    <div class="search-chips" role="group" aria-label="筛选">${types.map(([k,v,ic])=>`<button type="button" class="chip ${f.type===k?'active':''}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type===k}">${v}</button>`).join('')}${status.map(([k,v])=>`<button type="button" class="chip ${f.status===k?'active':''}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status===k}">${v}</button>`).join('')}${tags.map(t=>`<button type="button" class="chip ${f.tag===t?'active':''}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag===t}">#${esc(t)}</button>`).join('')}</div>
    <div class="search-results" id="search-results">${this.searchResults(app)}</div>`;
  },
@@ -142,7 +142,7 @@ const Panels={
      desk:()=>`<h1 id="modal-title">桌面</h1><div class="settings-card">${row('同一来源刷屏时叠起来',`<span>超过 5 张</span>${toggle('stack',p('stack'),'同一来源刷屏时叠起来')}`)}${row('读过的卡片慢慢变淡',toggle('fadeRead',p('fadeRead'),'读过的卡片慢慢变淡'))}${row('收进「读过的」',segmented('archiveAfter',[['3d','3 天'],['7d','一周'],['never','不收']],p('archiveAfter'),'收进读过的'))}${row('会议和提醒到点浮上来',toggle('floatTimely',p('floatTimely'),'会议和提醒到点浮上来'))}</div>
        <div class="settings-card">${row('读完上推收起',toggle('collapseOnFinish',p('collapseOnFinish'),'读完上推收起'))}${row('新内容提示',segmented('newHint',[['away','离开顶部时'],['off','不提示']],p('newHint'),'新内容提示'))}</div>`,
      look:()=>`<h1 id="modal-title">外观</h1><div class="settings-card">${row('主题',segmented('theme',[['system','跟随系统'],['light','浅色'],['dark','深色']],p('theme'),'主题'))}${row('卡片宽度',segmented('density',[['compact','紧凑'],['standard','标准'],['roomy','宽松']],p('density'),'卡片宽度'))}${row('减少动态效果',toggle('reduceMotion',p('reduceMotion'),'减少动态效果'))}${row('减少透明度',toggle('reduceTransparency',p('reduceTransparency'),'减少透明度'))}</div>`,
-     keys:()=>`<h1 id="modal-title">快捷键</h1><div class="settings-card">${[['搜索','⌘ K'],['记一笔','N'],['打开卡片','Enter'],['关闭浮层','Esc'],['刷新','R'],['回到顶部','T']].map(([a,k])=>row(a,k.split(' ').map(x=>`<kbd>${x}</kbd>`).join(''))).join('')}</div>`,
+     keys:()=>`<h1 id="modal-title">快捷键</h1><div class="settings-card">${row('单键快捷键 N / R / T',toggle('singleKeyShortcuts',p('singleKeyShortcuts'),'单键快捷键 N / R / T'))}${[['搜索','⌘ K'],['记一笔','N'],['打开卡片','Enter'],['关闭浮层','Esc'],['刷新','R'],['回到顶部','T']].map(([a,k])=>row(a,k.split(' ').map(x=>`<kbd>${x}</kbd>`).join(''))).join('')}</div>`,
      data:()=>`<h1 id="modal-title">数据与隐私</h1><div class="settings-card">${row('存放位置',`<span>${window.__QG_LOCAL__?'本机数据目录':'这个浏览器'}</span>`)}${row('占用',`<span class="num">${formatBytes(Store.bytes())}</span>`)}${row('AI 只在本机处理',toggle('aiLocal',p('aiLocal'),'AI 只在本机处理'))}</div>
        <div class="settings-card">${row('<button type="button" class="text-link" data-action="export-all">导出全部卡片…</button>','')}${row('<button type="button" class="text-link warn" data-action="clear-all">清除全部数据…</button>','')}</div>`
    };
@@ -182,8 +182,8 @@ const Panels={
    const p=app.importing,picked=app.importPicked,kind=Importers.labels[p.kind]||'项';
    const total=p.entries.length,recent=p.entries.filter(e=>!e.time||Date.now()-e.time<30*86400000).length;
    return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close('取消导入')}<div class="panel-content"><div class="panel-sub">${esc(p.name)}</div><div class="panel-head"><h1 id="modal-title"><span class="num">${total}</span> ${p.kind==='opml'?'个 ':''}${esc(kind)}</h1><button type="button" class="text-link" data-action="import-toggle-all">${picked.size===total?'全不选':'全选'}</button></div>
-   <div class="row-list import-list">${p.entries.slice(0,6).map((e,i)=>`<button type="button" class="list-row" data-action="import-toggle" data-extra="${i}" role="checkbox" aria-checked="${picked.has(i)}"><span class="check-box ${picked.has(i)?'on':''}">${picked.has(i)?icon('check',12):''}</span><span class="row-main"><b>${esc(e.label)}</b></span><span class="row-side">${esc(e.detail||'')}</span></button>`).join('')}</div>
-   ${total>6?`<p class="muted" style="margin-top:10px">另 <span class="num">${total-6}</span> 个</p>`:''}
+   <div class="row-list import-list">${p.entries.map((e,i)=>`<button type="button" class="list-row" data-action="import-toggle" data-extra="${i}" role="checkbox" aria-checked="${picked.has(i)}"><span class="check-box ${picked.has(i)?'on':''}">${picked.has(i)?icon('check',12):''}</span><span class="row-main"><b>${esc(e.label)}</b></span><span class="row-side">${esc(e.detail||'')}</span></button>`).join('')}</div>
+   ${p.notice?`<p role="status">${esc(p.notice)}</p>`:''}
    <div class="panel-footer">${p.kind==='opml'?'<span></span>':segmented('importRange',[['30d','最近 30 天'],['all','全部']],app.importRange,'导入范围').replace(/data-action="pref"/g,'data-action="import-range"')}<button type="button" class="solid-button" data-action="import-run" ${picked.size?'':'disabled'}>导入${p.kind!=='opml'&&app.importRange==='30d'&&recent<total?` <small>${recent}</small>`:''}</button></div></div></div>`;
  },
  sourceDetail(id){

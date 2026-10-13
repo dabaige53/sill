@@ -29,7 +29,7 @@
 #dock.is-open .dock-tools .icon-button:nth-last-child(3){transition-delay:80ms}
 #dock.is-open .dock-tools .icon-button:nth-last-child(4){transition-delay:120ms}
 #dock.is-open .dock-tools .icon-button:nth-last-child(5){transition-delay:160ms}
-#dock.filter-active .orb-wrap:after{content:"";position:absolute;right:4px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--card);pointer-events:none}
+#dock.filter-active .orb-wrap:after{content:"";position:absolute;right:4px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--accent-fill);border:2px solid var(--card);pointer-events:none}
 #new-count{height:40px;padding:0 16px;border-radius:20px;font-size:13px;font-weight:500;color:var(--accent);display:inline-flex;align-items:center;gap:6px}
 #new-count[hidden]{display:none}
 /* Busy: one quiet arc travelling around the orb. No percentages, no spinner text. */
@@ -48,7 +48,7 @@
 /* Toast and selection: glass pills at the bottom centre. */
 #selection-bar{position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:43;border-radius:30px;display:flex;align-items:center;padding:6px;gap:2px;max-width:calc(100vw - 120px)}
 #selection-bar[hidden]{display:none}
-.selection-count{display:grid;place-items:center;min-width:28px;height:28px;margin:0 8px;padding:0 8px;border-radius:14px;background:var(--accent);color:#fff;font-size:13px;font-weight:600}
+.selection-count{display:grid;place-items:center;min-width:28px;height:28px;margin:0 8px;padding:0 8px;border-radius:14px;background:var(--accent-fill);color:#fff;font-size:13px;font-weight:600}
 .toolbar-sep{width:1px;height:22px;background:var(--line-hover);margin:0 6px;flex:none}
 #toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 140px);min-height:44px;padding:0 6px 0 18px;border-radius:22px;z-index:120;display:flex;align-items:center;gap:8px;font-size:13px}
 #toast[hidden]{display:none}
@@ -62,10 +62,10 @@
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:18px;background:var(--card);color:var(--ink);font-size:13px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:background var(--fast),color var(--fast)}
 .chip .icon{color:var(--secondary)}
 .chip:hover{background:var(--surface)}
-.chip.active{background:var(--accent);color:#fff}
+.chip.active{background:var(--accent-fill);color:#fff}
 .chip.active .icon{color:#fff}
 .chip.soft{background:var(--surface);box-shadow:none}
-.chip.soft.active{background:var(--accent)}
+.chip.soft.active{background:var(--accent-fill)}
 .tag-pill{display:inline-flex;align-items:center;gap:2px;height:32px;padding:0 4px 0 12px;border-radius:16px;background:var(--accent-soft);color:var(--accent-ink);font-size:13px;font-weight:500}
 .tag-pill button{width:24px;height:24px;display:grid;place-items:center;color:inherit;opacity:.6;border-radius:50%}
 .tag-pill button:hover{opacity:1}
@@ -78,9 +78,9 @@
 .toggle[aria-checked=true]:before{transform:translateX(20px)}
 .text-button{background:transparent;min-height:44px;padding:8px 12px;font-size:13px;border-radius:12px;color:var(--ink);transition:background var(--fast)}
 .text-button:hover{background:var(--surface)}
-.solid-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:#fff;border-radius:22px;padding:0 20px;font-size:14px;font-weight:500;min-height:44px;transition:filter var(--fast),transform var(--fast);white-space:nowrap}
+.solid-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--accent-fill);color:#fff;border-radius:22px;padding:0 20px;font-size:14px;font-weight:500;min-height:44px;transition:filter var(--fast),transform var(--fast);white-space:nowrap}
 .solid-button:hover{filter:brightness(1.08)}
 .solid-button:active{transform:scale(.98)}
-.solid-button small{font-size:12px;opacity:.75;font-family:var(--rounded)}
+.solid-button small{font-size:12px;opacity:1;font-family:var(--rounded)}
 .soft-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--surface);color:var(--ink);border-radius:22px;padding:0 20px;font-size:14px;font-weight:500;min-height:44px;transition:background var(--fast)}
 .soft-button:hover{background:var(--faint)}

@@ -1,6 +1,6 @@
 /** Browser backup; local mode synchronizes it with the agent-readable repository. */
 const DefaultPreferences = {
- reduceTransparency:false,sort:'priority',stack:true,fadeRead:true,archiveAfter:'7d',floatTimely:true,
+ singleKeyShortcuts:true,reduceTransparency:false,sort:'priority',stack:true,fadeRead:true,archiveAfter:'7d',floatTimely:true,
  collapseOnFinish:true,newHint:'away',theme:'system',density:'standard',reduceMotion:false,aiLocal:true,onboarded:true
 };
 const DemoSources = [

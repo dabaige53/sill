@@ -207,10 +207,11 @@ async function recordLayout(page,width){
    await page.reload();assert.equal((await state(page,'note-01')).bookmarked,true);
    assert.equal(await page.locator('[data-card="fresh-reminder"]').count(),1);
   });
-  await scenario('Read state is card color, stacks open in place and time moves cards to the shelves',async page=>{
+  await scenario('Read state has text and color, stacks open in place and time moves cards to the shelves',async page=>{
    assert.equal(await card(page,'article-04').evaluate(n=>n.classList.contains('is-read')),true);
    assert.equal(await card(page,'article-01').evaluate(n=>n.classList.contains('is-read')),false);
-   assert.equal(await page.locator('.feed-card').evaluateAll(nodes=>nodes.filter(n=>!n.classList.contains('type-digest')).some(n=>/已读|继续阅读/.test(n.textContent))),false,'read state must not be written as words');
+   assert.ok(await page.locator('.is-read .read-state').count(),'read state has a non-color indicator');
+   assert.match(await page.locator('.is-read').first().getAttribute('aria-label'),/已读/);
    assert.equal(await page.locator('[data-card^="sspai-"]').count(),0,'a burst from one source should be stacked');
    await page.locator('[data-stack] .card-title-button').click();
    assert.equal(await page.locator('[data-stack-open] [data-card^="sspai-"]').count(),6);
@@ -244,10 +245,11 @@ async function recordLayout(page,width){
    await page.locator('#file-input').setInputFiles([{name:'cal.ics',mimeType:'text/calendar',buffer:Buffer.from(ics)}]);
    await page.waitForFunction(()=>window.__app.modalKind==='import');await page.locator('[data-action="import-run"]').click();
    await page.locator('.feed-card',{hasText:'导入的评审会'}).waitFor();
-   const csv='title,url,highlight\n注意力，也需要一点留白,https://example.com/x,重复的一篇\n新的一篇,https://example.com/new,一段高亮';
+   const duplicateUrl=await page.evaluate(()=>__store.state.cards.find(c=>c.url).url);
+   const csv=`title,url,highlight\n同一链接,${duplicateUrl},重复的一篇\n新的一篇,https://example.com/new,一段高亮`;
    await page.locator('#file-input').setInputFiles([{name:'readwise.csv',mimeType:'text/csv',buffer:Buffer.from(csv)}]);
    await page.waitForFunction(()=>window.__app.modalKind==='import');await page.locator('[data-action="import-range"][data-extra="all"]').click();await page.locator('[data-action="import-run"]').click();
-   await page.getByText('合并了 1 张重复',{exact:false}).waitFor();
+   await page.getByText('跳过 1 张重复',{exact:false}).waitFor();
    await page.reload();assert.equal(await page.locator('.feed-card',{hasText:'新的一篇'}).count(),1);
   });
   await scenario('Settings, sources and first run work end to end',async page=>{
@@ -300,6 +302,7 @@ async function recordLayout(page,width){
    await touchTargets(reminder.locator('.reminder-actions button,.card-more-trigger'),width);
    await reminder.locator('[data-action="card-more"]').tap();
    await touchTargets(page.locator('.card-more-menu button'),width);
+   await page.waitForTimeout(240);await touchTargets(page.locator('.card-more-menu button'),width);
    await page.screenshot({animations:'disabled',path:path.join(artifacts,`mobile-card-actions-${width}.png`)});
    await page.touchscreen.tap(3,3);assert.equal(await page.locator('.card-more-menu').count(),0);
    await reminder.locator('[data-action="snooze"]').tap();

@@ -73,3 +73,5 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after{anim
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
  body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item:hover{transform:translateY(-2px)}
 }
+
+body.reduce-motion,body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}

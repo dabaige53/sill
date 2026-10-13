@@ -15,7 +15,7 @@ function checkItem(c,t){return `<button class="check-item ${t.done?'is-done':''}
 const AvatarTones=['#5e7a99','#7d6b8f','#6b8a7a','#9a7b5f','#5f8a99','#8a6b6b'];
 function avatarTone(name=''){let n=0;for(const ch of String(name))n+=ch.codePointAt(0);return AvatarTones[n%AvatarTones.length];}
 function avatar(name='',size=28){return `<span class="avatar" style="width:${size}px;height:${size}px;background:${avatarTone(name)}" aria-hidden="true">${esc(String(name).slice(0,1))}</span>`;}
-function avatars(names=[]){return `<span class="avatars" aria-label="${names.length} 位参与者">${names.map(n=>avatar(n,24)).join('')}</span>`;}
+function avatars(names=[]){return `<span class="avatars" role="img" aria-label="${names.length} 位参与者">${names.map(n=>avatar(n,24)).join('')}</span>`;}
 function timeString(ts){return new Date(ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});}
 function dateLabel(ts){const d=new Date(ts);return `${d.getMonth()+1}月${d.getDate()}日 ${d.toLocaleDateString('zh-CN',{weekday:'short'})}`;}
 function relativeDay(ts,now=Date.now()){
@@ -35,7 +35,7 @@ function duration(seconds=0){const s=Math.max(0,Math.round(seconds)),h=Math.floo
 function minutes(seconds){return `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}
 function tagChip(label,active=false,action='filter-tag'){return `<button type="button" class="chip ${active?'active':''}" data-action="${action}" data-extra="${esc(label)}" aria-pressed="${active}">${esc(label)}</button>`;}
 function segmented(name,options,value,label){
- return `<span class="segmented" role="radiogroup" aria-label="${esc(label)}">${options.map(([v,t])=>`<button type="button" role="radio" aria-checked="${v===value}" class="${v===value?'on':''}" data-action="pref" data-id="${esc(name)}" data-extra="${esc(v)}">${esc(t)}</button>`).join('')}</span>`;
+ return `<span class="segmented" role="radiogroup" aria-label="${esc(label)}">${options.map(([v,t])=>`<button type="button" role="radio" tabindex="${v===value?0:-1}" aria-checked="${v===value}" class="${v===value?'on':''}" data-action="pref" data-id="${esc(name)}" data-extra="${esc(v)}">${esc(t)}</button>`).join('')}</span>`;
 }
 function toggle(name,on,label,action='pref-toggle'){return `<button class="toggle" type="button" role="switch" aria-label="${esc(label)}" aria-checked="${!!on}" data-action="${action}" data-id="${esc(name)}"></button>`;}
 function highlight(text,query){

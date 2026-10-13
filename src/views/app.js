@@ -103,7 +103,7 @@ class AppController{
  deskHTML(){
    if(!Store.state.cards.length&&!window.__QG_RUNTIME__)return welcomeHTML();
    const cards=this.filtered();
-   if(!cards.length)return this.filtering()?emptyState(this.filter.query?`没有找到「${this.filter.query}」`:'没有符合条件的卡片','',`<button type="button" class="text-link" data-action="clear-filter">清除筛选</button>`):emptyState('桌面上都处理完了');
+   if(!cards.length)return this.filtering()?emptyState(this.filter.query?`没有找到「${this.filter.query}」`:'没有符合条件的卡片','',`<button type="button" class="text-link" data-action="clear-filter">清除筛选</button>`):emptyState('桌面上都处理完了')+shelfHTML(this.shelved('read').length,this.shelved('stale').length);
    const stacks=Store.pref('stack')&&!this.filtering()?FeedPolicy.stacks(cards.filter(c=>Store.source(`src-${c.kind}`)?.stack!==false),Store.state.items):new Map();
    const inStack=new Map();for(const [key,list] of stacks)for(const c of list)inStack.set(c.id,key);
    const html=[],done=new Set();
@@ -334,7 +334,8 @@ class AppController{
    const after=before.includes(taskId)?before.filter(t=>t!==taskId):[...before,taskId];
    Store.patch(id,{taskDone:after});this.refreshCard(id);
    if(this.dialog.open&&this.currentId===id&&this.modalKind==='preview'){
-     const holder=this.dialog.querySelector('.detail-task-list');if(holder)holder.innerHTML=Store.tasks(c).map(t=>checkItem(c,t)).join('');
+     const holder=this.dialog.querySelector('.detail-task-list');
+     if(holder)for(const t of Store.tasks(c)){const node=[...holder.querySelectorAll('[data-extra]')].find(n=>n.dataset.extra===t.id);if(node){node.classList.toggle('is-done',t.done);node.setAttribute('aria-checked',String(t.done));node.querySelector('.check-dot').outerHTML=checkMark(t.done);}}
    }
    if(after.length===c.tasks.length)this.toast('这件事，完成了',()=>{Store.patch(id,{taskDone:before});this.refreshCard(id);});
  }
@@ -345,7 +346,7 @@ class AppController{
    if(restoreFocus)trigger?.focus({preventScroll:true});
    // The menu leaves faster than it came, toward its anchor.
    menu.classList.replace('card-more-menu','card-more-leaving');menu.removeAttribute('id');menu.inert=true;
-   const out=MotionEngine.animate(menu,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-4px) scale(.92)'}],{duration:120,easing:'ease-in'});
+   const out=MotionEngine.animate(menu,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-4px)'}],{duration:120,easing:'ease-in'});
    if(out)out.finished.then(()=>menu.remove(),()=>menu.remove());else menu.remove();
    card?.classList.remove('tools-open');
    trigger?.setAttribute('aria-expanded','false');trigger?.removeAttribute('aria-controls');
@@ -365,7 +366,7 @@ class AppController{
    menu.innerHTML=items.map(([symbol,label,action])=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span></button>`).join('');
    c.appendChild(menu);
    const trigger=c.querySelector('[data-action="card-more"]');trigger?.setAttribute('aria-expanded','true');trigger?.setAttribute('aria-controls',menu.id);
-   MotionEngine.animate(menu,[{opacity:0,transform:'translateY(-4px) scale(.92)'},{opacity:1,transform:'none'}],{duration:180});menu.querySelector('button')?.focus({preventScroll:true});
+   MotionEngine.animate(menu,[{opacity:0,transform:'translateY(-4px)'},{opacity:1,transform:'none'}],{duration:180});menu.querySelector('button')?.focus({preventScroll:true});
  }
  /* ——— Refresh, new content, reminders ——— */
  async refresh(){
@@ -530,7 +531,7 @@ class AppController{
    const title=document.getElementById('inline-title')?.value.trim()||c.title,text=document.getElementById('inline-body')?.value||'';
    const body=text.split('\n').map(s=>s.trim()).filter(Boolean);
    Object.assign(c,{title:title.slice(0,200),body:body.length?body:[title],summary:body.join('').slice(0,300),meta:'刚刚'});Store.save();
-   const state=document.getElementById('inline-state');if(state)state.textContent='已保存';
+   const state=document.getElementById('inline-state');if(state)state.textContent=window.__QG_LOCAL__?'已保存在本机；同步状态见桌面':'已保存';
  }
  finishInlineEdit(){
    if(!this.editingId)return;
@@ -571,7 +572,8 @@ class AppController{
    if(!parsed.length){if(files.length)this.toast('没有找到可以导入的内容');return;}
    // Several files of one kind preview together.
    const first=parsed[0],same=parsed.filter(p=>p.kind===first.kind);
-   this.importing={kind:first.kind,name:same.length>1?`${same.length} 个文件`:first.name,entries:same.flatMap(p=>p.entries)};
+   const skipped=parsed.filter(p=>p.kind!==first.kind);
+   this.importing={kind:first.kind,name:same.length>1?`${same.length} 个文件`:first.name,entries:same.flatMap(p=>p.entries),notice:skipped.length?`本次仅导入${first.name}同类文件。未纳入：${skipped.map(p=>p.name).join('、')}；请分次导入这些文件。`:''};
    this.importPicked=new Set(this.importing.entries.map((_,i)=>i));this.importRange='30d';
    this.swapPanel(Panels.importPreview(this),'import','panel');
  }
@@ -592,7 +594,7 @@ class AppController{
    this.closeNative();this.importing=null;
    this.startImportRings([kind||'local'],()=>{
      this.withFeedAnchor(()=>{Store.insert(fresh);},true);
-     if(merged.length)this.toast(`导入 ${fresh.length} 张，合并了 ${merged.length} 张重复`);
+     if(merged.length)this.toast(`导入 ${fresh.length} 张，跳过 ${merged.length} 张重复（保留已有内容）`);
      else this.toast(`导入 ${fresh.length} 张`,()=>{Store.remove(fresh.map(c=>c.id));this.withFeedAnchor(()=>{});});
    });
  }
@@ -641,16 +643,29 @@ class AppController{
    if(this.modalKind==='settings')this.repaintSettings();
    return before;
  }
+ replacePanelContent(html){
+   const active=document.activeElement;
+   const key=n=>[n.id,n.dataset.action,n.dataset.id,n.dataset.extra].join('|');
+   const focused=this.dialog.contains(active)?key(active):null;
+   const selectors=['.sheet-scroll','.settings-main','.settings-nav','.sheet','.import-list'];
+   const positions=selectors.map(selector=>{const node=this.dialog.querySelector(selector);return {selector,x:node?.scrollLeft||0,y:node?.scrollTop||0};});
+   const full=this.dialog.querySelector('.preview-sheet')?.classList.contains('is-full');
+   const toast=document.getElementById('toast');if(toast&&this.dialog.contains(toast))document.body.appendChild(toast);
+   this.dialog.innerHTML=html;
+   if(full)this.dialog.querySelector('.preview-sheet')?.classList.add('is-full');
+   if(focused){const target=[...this.dialog.querySelectorAll('button,input,textarea,a,[tabindex]')].find(n=>key(n)===focused);const focus=target||this.dialog.querySelector('#modal-title');if(focus){if(!focus.matches('button,input,textarea,a,[tabindex]'))focus.tabIndex=-1;focus.focus({preventScroll:true});}}
+   for(const {selector,x,y} of positions){const node=this.dialog.querySelector(selector);if(node){node.scrollLeft=x;node.scrollTop=y;}}
+ }
  repaintSettings(){
    const main=this.dialog.querySelector('.settings-main'),y=main?.scrollTop||0,active=document.activeElement,key=[active?.dataset.action,active?.dataset.id,active?.dataset.extra].join('|');
-   this.dialog.innerHTML=Panels.settings(this,this.settingsGroup);
+   this.replacePanelContent(Panels.settings(this,this.settingsGroup));
    const next=this.dialog.querySelector('.settings-main');if(next)next.scrollTop=y;
    [...this.dialog.querySelectorAll('[data-action]')].find(n=>[n.dataset.action,n.dataset.id,n.dataset.extra].join('|')===key)?.focus({preventScroll:true});
  }
  repaintSources(){
    if(this.modalKind==='settings'){this.repaintSettings();return;}
-   if(this.modalKind==='sources')this.dialog.innerHTML=Panels.sources();
-   if(this.modalKind==='source')this.dialog.innerHTML=Panels.sourceDetail(this.sourceId);
+   if(this.modalKind==='sources')this.replacePanelContent(Panels.sources());
+   if(this.modalKind==='source')this.replacePanelContent(Panels.sourceDetail(this.sourceId));
  }
  sourceReturn(){return this.modalKind==='settings'?()=>{this.swapPanel(Panels.settings(this,'sources'),'settings','panel wide');}:()=>{this.swapPanel(Panels.sources(),'sources');};}
  exportAll(){
@@ -765,7 +780,7 @@ class AppController{
    const key=deck.closest('[data-stack]').dataset.stack;
    cards.forEach((c,k)=>{
      c.classList.toggle('is-top',k===i);c.classList.toggle('is-next',k===i+1);c.classList.remove('is-prev');
-     c.style.transform='';c.style.visibility='';c.toggleAttribute('aria-hidden',k!==i);
+     c.style.transform='';c.style.visibility='';c.setAttribute('aria-hidden',String(k!==i));
    });
    // The one button that spreads the pile out always sits on the card you can see.
    const button=deck.querySelector('.card-title-button'),h=cards[i].querySelector('.card-title');
@@ -797,7 +812,7 @@ class AppController{
      case 'orb':this.openDock();break;
      case 'filter':case 'search':this.openPanel('search');break;
      case 'settings':this.settingsGroup='desk';this.openPanel('settings');break;
-     case 'settings-group':this.settingsGroup=extra;this.repaintSettings();this.dialog.querySelector(`[data-action="settings-group"][data-extra="${extra}"]`)?.focus({preventScroll:true});break;
+     case 'settings-group':this.settingsGroup=extra;this.repaintSettings();this.dialog.querySelector(`[data-action="settings-group"][data-extra="${extra}"]`)?.scrollIntoView({block:'nearest',inline:'nearest'});break;
      case 'capture':this.openPanel('capture');break;
      case 'capture-save':{const text=document.getElementById('capture-text')?.value;if(!text?.trim())return;this.closeNative();this.capture(text);break;}
      case 'refresh':this.refresh();break;
@@ -853,7 +868,7 @@ class AppController{
        const note=document.getElementById('note-editor').value.slice(0,4000);
        const ids=this.bulkEditIds||[id];
        ids.forEach((cardId,i)=>{Store.patch(cardId,{tags:[...this.editTags],tagsEdited:true,...(i===0?{note}:{})});this.refreshCard(cardId);});
-       this.bulkEditIds=null;this.closeModal();this.toast(Store.state.storageAvailable?'已保存':'本次已保存；当前环境不能持久存储');break;
+       this.bulkEditIds=null;this.closeModal();this.toast(Store.state.storageAvailable?(window.__QG_LOCAL__?'已保存在本机；同步状态见桌面':'已保存'):'本次已保存；当前环境不能持久存储');break;
      }
      case 'pref':{const before=this.setPref(id,extra);if(before!==extra&&['archiveAfter','theme','density'].includes(id))this.announce('已更新');break;}
      case 'pref-toggle':this.setPref(id,!Store.pref(id));break;
@@ -874,7 +889,7 @@ class AppController{
        if(site)window.open(site,'_blank','noopener,noreferrer');
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.toast(`${SourceKinds[k].label} 等待授权`);break;
      }
-     case 'connect-range':this.connectRange=extra;el.parentElement.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b===el);b.setAttribute('aria-checked',String(b===el));});break;
+     case 'connect-range':this.connectRange=extra;el.parentElement.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b===el);b.setAttribute('aria-checked',String(b===el));b.tabIndex=b===el?0:-1;});break;
      case 'permission-allow':case 'permission-later':{
        const k=extra;
        if(name==='permission-allow')Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:'只在本机读取',enabled:true,status:'ok',count:0,syncedAt:Date.now(),stack:k!=='calendar',open:'inside',range:'30d'});
@@ -883,9 +898,9 @@ class AppController{
      }
      case 'source-open':this.sourceId=id;this.panelReturn=this.sourceReturn();this.swapPanel(Panels.sourceDetail(id),'source');break;
      case 'source-toggle':{const s=Store.source(id);if(!s)break;const on=!(s.enabled&&s.status!=='paused');Store.upsertSource({...s,enabled:on,status:on?'ok':'paused'});this.repaintSources();break;}
-     case 'source-flag':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:!s[key]});this.dialog.innerHTML=Panels.sourceDetail(sid);this.withFeedAnchor(()=>{});break;}
-     case 'source-set':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:extra});this.dialog.innerHTML=Panels.sourceDetail(sid);break;}
-     case 'source-pause':{const s=Store.source(id);Store.upsertSource({...s,status:s.status==='paused'?'ok':'paused',enabled:s.status==='paused'});this.dialog.innerHTML=Panels.sourceDetail(id);break;}
+     case 'source-flag':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:!s[key]});this.replacePanelContent(Panels.sourceDetail(sid));this.withFeedAnchor(()=>{});break;}
+     case 'source-set':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:extra});this.replacePanelContent(Panels.sourceDetail(sid));break;}
+     case 'source-pause':{const s=Store.source(id);Store.upsertSource({...s,status:s.status==='paused'?'ok':'paused',enabled:s.status==='paused'});this.replacePanelContent(Panels.sourceDetail(id));break;}
      case 'source-remove':{
        const s=Store.source(id),count=Store.state.cards.filter(c=>`src-${c.kind}`===id).length;
        this.panelReturn=()=>this.swapPanel(Panels.sourceDetail(id),'source');
@@ -902,9 +917,9 @@ class AppController{
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.toast(`已订阅 ${new URL(url).hostname}`);break;
      }
      case 'import-pick':document.getElementById('file-input').click();break;
-     case 'import-toggle':{const i=Number(extra);this.importPicked.has(i)?this.importPicked.delete(i):this.importPicked.add(i);this.dialog.innerHTML=Panels.importPreview(this);this.dialog.querySelector(`[data-action="import-toggle"][data-extra="${i}"]`)?.focus();break;}
-     case 'import-toggle-all':this.importPicked=this.importPicked.size===this.importing.entries.length?new Set():new Set(this.importing.entries.map((_,i)=>i));this.dialog.innerHTML=Panels.importPreview(this);break;
-     case 'import-range':this.importRange=extra;this.dialog.innerHTML=Panels.importPreview(this);break;
+     case 'import-toggle':{const i=Number(extra);this.importPicked.has(i)?this.importPicked.delete(i):this.importPicked.add(i);this.replacePanelContent(Panels.importPreview(this));this.dialog.querySelector(`[data-action="import-toggle"][data-extra="${i}"]`)?.focus();break;}
+     case 'import-toggle-all':this.importPicked=this.importPicked.size===this.importing.entries.length?new Set():new Set(this.importing.entries.map((_,i)=>i));this.replacePanelContent(Panels.importPreview(this));break;
+     case 'import-range':this.importRange=extra;this.replacePanelContent(Panels.importPreview(this));break;
      case 'import-run':this.runImport();break;
      case 'welcome-start':this.welcomePicked=new Set(['rss','readwise','web','mail','calendar']);this.openPanel('welcome');break;
      case 'welcome-pick':this.welcomePicked.has(extra)?this.welcomePicked.delete(extra):this.welcomePicked.add(extra);this.dialog.innerHTML=Panels.welcomePick(this);this.dialog.querySelector(`[data-action="welcome-pick"][data-extra="${extra}"]`)?.focus();break;
@@ -916,6 +931,10 @@ class AppController{
        this.photoIndex=name==='photo-go'?Number(extra):(this.photoIndex+Number(extra)+n)%n;
        this.dialog.innerHTML=Panels.lightbox(c,this.photoIndex);break;
      }
+     case 'sync-retry':this.refresh();break;
+     case 'sync-export':this.exportAll();break;
+     case 'sync-discard':this.openModal(Panels.confirm('使用服务端版本？','本机未同步修改将被放弃，请先导出草稿。','<button type="button" class="soft-button" data-action="close">取消</button><button type="button" class="solid-button" data-action="sync-discard-confirm">放弃本机修改</button>'),'confirm',null,'panel narrow');break;
+     case 'sync-discard-confirm':LocalSync.discard().then(()=>this.closeNative()).catch(error=>this.toast(error.message));break;
      case 'undo':if(this.undoAction){const fn=this.undoAction;this.undoAction=null;document.getElementById('toast').hidden=true;fn();}break;
      case 'external':this.openExternal(Store.card(id));if(Store.card(id)&&!Store.item(id).read&&['mail'].includes(Store.card(id).type)){Store.patch(id,{read:true});this.refreshCard(id);}break;
      case 'download-calendar':{
@@ -961,6 +980,13 @@ class AppController{
    e.preventDefault();this.capture(text);
  }
  key(e){
+   if(e.key==='Escape'&&this.modalKind==='search'){e.preventDefault();this.closeModal();return;}
+   const radio=e.target.closest?.('[role="radio"]'),group=radio?.closest('[role="radiogroup"]');
+   if(group&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)){
+     const radios=[...group.querySelectorAll('[role="radio"]')],i=radios.indexOf(radio);
+     const index=e.key==='Home'?0:e.key==='End'?radios.length-1:(i+(['ArrowLeft','ArrowUp'].includes(e.key)?-1:1)+radios.length)%radios.length;
+     e.preventDefault();radios[index].focus();radios[index].click();return;
+   }
    const menu=e.target.closest?.('.card-more-menu');
    if(menu&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
      const items=[...menu.querySelectorAll('button')],index=items.indexOf(document.activeElement);
@@ -986,7 +1012,7 @@ class AppController{
    if(e.target.id==='feed-url'&&e.key==='Enter'){e.preventDefault();this.action('feed-add');return;}
    if(e.key==='Escape'&&!this.dialog.open){this.hideDock();return;}
    const typing=e.target.closest?.('input,textarea,[contenteditable]');
-   if(!this.dialog.open&&!typing&&!e.metaKey&&!e.ctrlKey&&!e.altKey){
+   if(Store.pref('singleKeyShortcuts')&&!this.dialog.open&&!typing&&!e.metaKey&&!e.ctrlKey&&!e.altKey){
      if(e.key==='n'||e.key==='N'){e.preventDefault();this.openPanel('capture');return;}
      if(e.key==='r'||e.key==='R'){if(!e.target.matches('[data-card]')||true){e.preventDefault();this.refresh();return;}}
      if(e.key==='t'||e.key==='T'){e.preventDefault();this.action('top');return;}

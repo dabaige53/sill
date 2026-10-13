@@ -91,13 +91,13 @@ const Importers={
    const lines=value.split('\n'),title=this.clip(lines[0],60);
    return {id:this.id('note',value+Date.now()),type:'note',kind:'capture',title,summary:this.clip(value,300),source:'速记',meta:'刚刚',tags:[],body:value.split(/\n{2,}/).map(p=>p.slice(0,50000)).slice(0,100),time:Date.now()};
  },
- /** Same link or same title already on the desk: merge, keep both origins. */
+ /** Skip an existing URL or identical local note; never claim to merge content. */
  dedupe(cards){
    const byUrl=new Map(),byTitle=new Map();
    for(const c of Store.state.cards){if(c.url)byUrl.set(c.url,c);byTitle.set(c.title,c);}
    const fresh=[],merged=[];
    for(const c of cards){
-     const twin=(c.url&&byUrl.get(c.url))||byTitle.get(c.title);
+     const twin=c.url?byUrl.get(c.url):[...byTitle.values()].find(old=>!old.url&&old.title===c.title&&JSON.stringify(old.body||[])===JSON.stringify(c.body||[]));
      if(twin){merged.push([twin,c]);continue;}
      fresh.push(c);if(c.url)byUrl.set(c.url,c);byTitle.set(c.title,c);
    }

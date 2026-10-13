@@ -32,3 +32,7 @@ html{overscroll-behavior-y:contain}
 /* The end of the desk is a short line, not a sentence. */
 .feed-end{width:28px;height:3px;border-radius:2px;background:var(--line);margin:40px auto 0}
 body.feed-more .feed-end,main:has(.welcome,.empty-card) .feed-end{display:none}
+/* Recovery remains available until the user resolves it; it never relies on a toast timeout. */
+#sync-status{max-width:760px;margin:0 auto 24px;padding:16px;border:1px solid var(--line-hover);border-radius:16px;background:var(--card);overflow-wrap:anywhere}
+#sync-status[hidden]{display:none}
+#sync-status>span{display:block}

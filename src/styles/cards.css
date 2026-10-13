@@ -101,7 +101,7 @@ button.ref:hover{background:var(--faint)}
 .check-dot{display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border:1.5px solid #c7c7cc;border-radius:50%;color:#fff;transition:background var(--base),border-color var(--base)}
 .check-item:hover .check-dot{border-color:var(--accent)}
 .check-item.is-done>span:last-child{color:var(--muted)}
-.check-item.is-done .check-dot{background:var(--accent);border-color:var(--accent)}
+.check-item.is-done .check-dot{background:var(--accent-fill);border-color:var(--accent)}
 .more-items{padding-left:30px;font-size:13px;color:var(--muted)}
 .done-row{flex-direction:row;align-items:center;gap:12px;padding:16px var(--card-padding)}
 .done-mark{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--success);color:#fff;flex:none}
@@ -123,7 +123,7 @@ button.ref:hover{background:var(--faint)}
 .pill:active{transform:scale(.97)}
 .pill.grow{flex:1 1 auto}
 .pill.soft:hover{background:var(--faint)}
-.pill.primary{background:var(--accent);color:#fff;min-width:72px}
+.pill.primary{background:var(--accent-fill);color:#fff;min-width:72px}
 .pill.primary:hover{filter:brightness(1.08)}
 .pill.primary .icon{opacity:.85}
 
@@ -136,7 +136,7 @@ button.ref:hover{background:var(--faint)}
 .feed-card:hover .card-more-trigger,.feed-card:focus-within .card-more-trigger,.feed-card.tools-open .card-more-trigger{opacity:1;visibility:visible}
 .card-more-trigger:hover,.feed-card.tools-open .card-more-trigger{color:var(--ink);background:var(--surface)}
 .feed-card.tools-open{overflow:visible;z-index:6}
-.selected-tick{position:absolute;left:12px;top:12px;display:none;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.94);z-index:4}
+.selected-tick{position:absolute;left:12px;top:12px;display:none;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent-fill);color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.94);z-index:4}
 .feed-card.is-selected:after{border-color:var(--accent)}
 .feed-card.is-selected .selected-tick{display:grid}
 .feed-card.is-selected:not(.has-cover) .card-body{padding-left:44px}
@@ -183,4 +183,9 @@ button.ref:hover{background:var(--faint)}
 .shelf-row span{color:var(--muted);font-size:13px}
 .shelf-row .num{margin-left:auto;color:var(--muted)}
 /* Pressing a card gives a little, like the prototype: it is something you can pick up. */
-.feed-card:not(.stack-card):active{transform:scale(.97);transition-duration:120ms}
+.feed-card:not(.stack-card):active:not(:has(button:active)){transform:scale(.97);transition-duration:120ms}
+
+.read-state{font-size:12px;color:var(--muted)}
+.card-read-mark{display:block;margin:-6px 18px 14px;pointer-events:none}
+/* A menu's hit targets keep their size even while the touched parent settles. */
+.feed-card.tools-open{transform:none!important;transition-property:box-shadow,border-color}

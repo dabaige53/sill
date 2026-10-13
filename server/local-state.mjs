@@ -45,7 +45,7 @@ export const Item=z.object({
   readAt:time.optional(),restoredAt:time.optional()
 }).strict();
 const Preferences=z.object({
-  sort:z.enum(['priority','unread','time']).optional(),reduceTransparency:z.boolean().optional(),
+  singleKeyShortcuts:z.boolean().optional(),sort:z.enum(['priority','unread','time']).optional(),reduceTransparency:z.boolean().optional(),
   stack:z.boolean().optional(),fadeRead:z.boolean().optional(),archiveAfter:z.enum(['3d','7d','never']).optional(),
   floatTimely:z.boolean().optional(),collapseOnFinish:z.boolean().optional(),newHint:z.enum(['away','off']).optional(),
   theme:z.enum(['system','light','dark']).optional(),density:z.enum(['compact','standard','roomy']).optional(),

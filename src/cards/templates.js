@@ -114,9 +114,9 @@ function cardHTML(c,options={}){
  const read=CardTypes[c.type].readable&&s.read&&Store.pref('fadeRead');
  const attributes=ctx.passive?' data-passive="true"':` tabindex="0" data-card="${esc(c.id)}"`;
  const covered=(c.image&&['article','media'].includes(c.type))||c.type==='photo';
- return `<article class="feed-card ${options.compact?'':'feed-item'} type-${c.type} ${covered?'has-cover':''} ${options.compact?'is-compact':''} ${read?'is-read':''} ${s.bookmarked?'is-bookmarked':''} ${s.selected?'is-selected':''} ${s.snoozedUntil>0?'is-snoozed':''} ${isDone?'is-complete':''}"${attributes} aria-label="${esc(CardTypes[c.type].label+'：'+c.title)}">
+ return `<article class="feed-card ${options.compact?'':'feed-item'} type-${c.type} ${covered?'has-cover':''} ${options.compact?'is-compact':''} ${read?'is-read':''} ${s.bookmarked?'is-bookmarked':''} ${s.selected?'is-selected':''} ${s.snoozedUntil>0?'is-snoozed':''} ${isDone?'is-complete':''}"${attributes} aria-label="${esc(CardTypes[c.type].label+'：'+c.title+(s.read?'，已读':''))}">
  ${CardTemplates[c.type]?.(c,ctx)||CardTemplates.article(c,ctx)}
- <div class="card-actions" role="group" aria-label="卡片操作">${CardPresentation.action(ctx,'more','更多卡片操作','card-more',c.id,'','card-more-trigger')}</div><span class="selected-tick" aria-hidden="true">${icon('check',13)}</span>
+ ${s.read&&CardTypes[c.type].readable?'<span class="read-state card-read-mark" aria-hidden="true">✓ 已读</span>':''}<div class="card-actions" role="group" aria-label="卡片操作">${CardPresentation.action(ctx,'more','更多卡片操作','card-more',c.id,'','card-more-trigger')}</div><span class="selected-tick" aria-hidden="true">${icon('check',13)}</span>
  </article>`;
 }
 /** A burst from one source, folded. Opening it expands in place; nothing navigates. */
