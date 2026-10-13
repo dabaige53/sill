@@ -71,7 +71,6 @@
       "operations": [
         "submit",
         "status",
-        "result",
         "cancel"
       ],
       "inheritCallerPermissions": true
