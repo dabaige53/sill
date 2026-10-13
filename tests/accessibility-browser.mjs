@@ -38,6 +38,36 @@ try{
   assert.ok(await page.locator('#sync-status').isVisible());
   const download=page.waitForEvent('download');await page.locator('[data-action=sync-export]').click();assert.match((await download).suggestedFilename(),/sill.*json/);
  });
+ await scenario('GET outage after reload journals new edits before reconnecting',async page=>{
+  const offline=r=>r.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture read outage"}'});
+  await page.route('**/api/local/state',offline);await page.reload();await page.locator('[data-action=sync-retry]').waitFor();
+  await page.keyboard.press('n');await page.locator('#capture-text').fill('读取离线期间的新草稿');await page.locator('[data-action=capture-save]').click();
+  await page.waitForFunction(()=>localStorage.getItem('quiet-glass-unsynced')?.includes('读取离线期间的新草稿'));
+  await page.unroute('**/api/local/state');await page.locator('[data-action=sync-retry]').click();
+  await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='saved'&&!localStorage.getItem('quiet-glass-unsynced'));
+  await page.reload();await page.getByRole('button',{name:'读取离线期间的新草稿',exact:true}).waitFor();
+ });
+ await scenario('Same-session failed write retry cannot overwrite another client card',async(page,apply,origin)=>{
+  await apply([{op:'card.upsert',card:{id:'offline-note',type:'note',kind:'capture',title:'合成原稿',body:['原文']}}]);
+  await page.locator('[data-card=offline-note] .card-title-button').click();
+  await page.route('**/api/local/operations',r=>r.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture write outage"}'}));
+  await page.locator('#inline-title').fill('本机离线修改');await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='error');await page.keyboard.press('Escape');
+  await apply([{op:'card.upsert',card:{id:'offline-note',type:'note',kind:'capture',title:'另一会话的新稿',body:['不能被旧稿覆盖']}}]);
+  await page.unroute('**/api/local/operations');await page.locator('[data-action=sync-retry]').click();
+  await page.waitForFunction(()=>!__app.refreshBusy&&document.querySelector('#feed-grid').dataset.sync==='error');
+  assert.equal((await fetch(origin+'/api/local/state').then(r=>r.json())).state.cards.find(c=>c.id==='offline-note').title,'另一会话的新稿');
+  assert.equal(await page.evaluate(()=>__store.card('offline-note').title),'本机离线修改');
+  assert.ok(await page.locator('[data-action=sync-export]').isVisible());
+ });
+ await scenario('Update arriving during phone dismissal cannot revive the sheet',async(page,apply)=>{
+  await open(page,'article-01');await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='saved');
+  await apply([{op:'item.patch',id:'article-01',values:{note:'关闭过程中的合成更新'}}]);
+  let release,arrived;const gate=new Promise(r=>release=r),ready=new Promise(r=>arrived=r);
+  await page.route('**/api/local/state',async route=>{const response=await route.fetch();arrived();await gate;await route.fulfill({response});});
+  await ready;await page.getByRole('button',{name:'关闭预览',exact:true}).click();release();
+  await page.waitForFunction(()=>!document.querySelector('dialog').open&&__store.item('article-01').note==='关闭过程中的合成更新');
+  assert.equal(await page.evaluate(()=>document.documentElement.style.overflow),'');assert.equal(await page.evaluate(()=>location.hash),'#feed');
+ },{viewport:{width:390,height:844}});
  await scenario('Remote updates preserve preview scroll, focus, full sheet and renewed scroll behavior',async(page,apply)=>{
   await open(page,'article-01');await page.evaluate(()=>{window.originalScroll=document.querySelector('.sheet-scroll');originalScroll.scrollTop=160;document.querySelector('[data-action=bookmark]').focus();});
   await apply([{op:'item.patch',id:'note-01',values:{note:'无关更新'}}]);await page.waitForFunction(()=>__store.item('note-01').note==='无关更新');
