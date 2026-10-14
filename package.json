@@ -30,9 +30,11 @@
     "mcp:legacy": "node --env-file-if-exists=.env server/index.mjs --stdio",
     "test:legacy": "npm run plugin:build && node --test --test-concurrency=1 tests/*.test.mjs",
     "boards": "node -e \"console.log('Sill 设计画板：http://127.0.0.1:4310/')\" && python3 -m http.server 4310 --bind 127.0.0.1 --directory design-system/boards",
-    "test:accessibility": "node tests/accessibility-browser.mjs"
+    "test:accessibility": "node tests/accessibility-browser.mjs",
+    "test:supabase": "node --test tests/supabase-preparation.test.mjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.9",
     "@modelcontextprotocol/ext-apps": "1.7.5",
     "@openai/mcp-extensions": "0.1.0",
     "axe-core": "4.14.0",
@@ -46,6 +48,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
+    "@supabase/supabase-js": "2.117.3",
     "zod": "3.25.76"
   }
 }

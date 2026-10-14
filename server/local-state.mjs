@@ -57,7 +57,7 @@ export const Source=z.object({
   syncedAt:time.optional(),count:z.number().int().min(0).max(1e7).default(0),
   stack:z.boolean().default(true),open:z.enum(['inside','web']).default('inside'),range:z.enum(['30d','all']).default('30d')
 }).strict();
-const State=z.object({cards:z.array(Card).max(5000),items:z.record(id,Item),seconds:z.number().min(0).max(1e7),preferences:Preferences,sources:z.array(Source).max(200).optional()}).strict();
+export const State=z.object({cards:z.array(Card).max(5000),items:z.record(id,Item),seconds:z.number().min(0).max(1e7),preferences:Preferences,sources:z.array(Source).max(200).optional()}).strict();
 const Operation=z.discriminatedUnion('op',[
   z.object({op:z.literal('card.upsert'),card:Card}).strict(),
   z.object({op:z.literal('card.delete'),id}).strict(),
