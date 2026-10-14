@@ -21,9 +21,12 @@ jobs:
       - run: npm run build:cloud
       - run: npx playwright install --with-deps chromium
       - run: npm run test:cloud-browser
+      - run: npm run test:cloud-welcome
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: authenticated-data-evidence
-          path: tests/artifacts/cloud-*.png
+          path: |
+            tests/artifacts/cloud-*.png
+            tests/artifacts/cloud-recovery/
           if-no-files-found: ignore

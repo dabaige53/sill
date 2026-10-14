@@ -34,7 +34,8 @@
     "test:supabase": "node --test tests/supabase-preparation.test.mjs tests/supabase-rpc.test.mjs tests/supabase-boundary.test.mjs tests/supabase-jwt.test.mjs tests/supabase-http.test.mjs tests/supabase-snapshots.test.mjs tests/supabase-mcp.test.mjs",
     "test:supabase:postgres": "node --test tests/supabase-postgres.mjs",
     "build:cloud": "python3 scripts/build-cloud.py && node scripts/build-cloud-worker.mjs",
-    "test:cloud-browser": "node tests/cloud-browser.mjs"
+    "test:cloud-browser": "node tests/cloud-browser.mjs",
+    "test:cloud-welcome": "node tests/cloud-welcome-browser.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.9",

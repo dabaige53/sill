@@ -211,8 +211,8 @@ const Panels={
    <div class="panel-footer"><button type="button" class="text-link" data-action="import-pick">从文件导入</button><button type="button" class="solid-button" data-action="welcome-continue" ${app.welcomePicked.size?'':'disabled'}>继续 <small>${app.welcomePicked.size}</small></button></div></div></div>`;
  }
 };
-function welcomeHTML(){
- return `<section class="welcome" aria-labelledby="welcome-title">${sillIcon(72)}<h1 id="welcome-title">Sill</h1><p>把要看的、要做的，放在窗台上</p><div class="welcome-actions"><button type="button" class="solid-button" data-action="welcome-start">接入来源</button><button type="button" class="text-link" data-action="welcome-demo">先看示例</button></div></section>`;
+function welcomeHTML({actions=null,detail=""}={}){
+ return `<section class="welcome" aria-labelledby="welcome-title">${sillIcon(72)}<h1 id="welcome-title">Sill</h1><p>把要看的、要做的，放在窗台上</p>${detail}<div class="welcome-actions">${actions===null?'<button type="button" class="solid-button" data-action="welcome-start">接入来源</button><button type="button" class="text-link" data-action="welcome-demo">先看示例</button>':actions}</div></section>`;
 }
 function relativeTime(ts,now=Date.now()){
  const min=Math.round((now-ts)/60000);

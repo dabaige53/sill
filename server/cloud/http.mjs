@@ -117,6 +117,11 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
    if(request.method==='GET'&&path==='/')return new Response(html,{headers:{...headers,'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"}});
    throw serviceError('not_found');
   }catch(error){
+   // Browser recovery does not clear an existing session or accept a failed code.
+   const failedUrl=new URL(request.url);
+   if(failedUrl.origin===config.appOrigin&&failedUrl.pathname==='/auth/callback'&&request.method==='GET'&&request.headers.get('accept')?.includes('text/html')){
+    return new Response(null,{status:303,headers:{...headers,Location:config.appOrigin+'/?login_error=1'}});
+   }
    const alias={idempotency_expired:'idempotency_conflict',event_terminal_conflict:'revision_conflict'};
    const known=new Set(['invalid_request','unauthenticated','forbidden','not_found','revision_conflict','idempotency_conflict','cursor_expired','rate_limited','unavailable']);
    const raw=error instanceof z.ZodError?'invalid_request':alias[error.code]||error.code;

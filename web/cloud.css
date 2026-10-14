@@ -1,0 +1,17 @@
+/* Cloud-specific controls use the original Sill welcome, tokens and glass shell. */
+#cloud-account[hidden]{display:none}
+#cloud-account{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:1640px;margin:24px 40px 0;padding:12px 18px;border:1px solid var(--glass-edge);border-radius:var(--card-radius);background:var(--glass);box-shadow:var(--shadow);backdrop-filter:blur(24px)}
+.cloud-brand,.cloud-account-actions{display:flex;align-items:center;gap:12px}.cloud-brand span{font-weight:600}.cloud-brand small{font-weight:400;color:var(--muted);margin-left:8px;font-size:12px}
+.cloud-signed-in main{padding-top:24px}
+#cloud-login{display:flex;flex-direction:column;gap:14px;text-align:left;width:min(320px,calc(100vw - 64px));padding-top:4px}
+#cloud-login label{font-size:13px;color:var(--muted)}
+#cloud-login input{width:100%;min-height:48px;font-size:16px;background:var(--card)}
+#cloud-login button{min-height:44px;justify-content:center}
+#cloud-login-status{font-size:12px;line-height:1.7;text-align:center;min-height:42px;max-width:320px}
+#cloud-editor label{display:block;margin:16px 0;font-size:14px}
+#cloud-editor input:not([type=checkbox]),#cloud-editor textarea{display:block;width:100%;margin-top:8px;font-size:16px}
+#cloud-editor textarea{resize:vertical;min-height:120px}
+#cloud-editor .solid-button,#cloud-editor .soft-button{margin:4px 4px 4px 0;min-height:44px}
+#cloud-save-status{color:var(--secondary);line-height:1.6}
+[data-action=bookmark],[data-action=later],[data-action=task],[data-action=sources-add],[data-action=selected-bookmark],[data-action=selected-later],[data-action=selected-tag]{display:none!important}
+@media(max-width:600px){#cloud-account{margin:16px 16px 0;padding:12px;gap:8px}.cloud-brand small{display:none}.cloud-account-actions{gap:10px}#cloud-account button{font-size:12px;min-height:40px}.cloud-signed-in main{padding-top:16px}.welcome{min-height:calc(100dvh - 150px)}#cloud-editor textarea{max-height:35dvh}}

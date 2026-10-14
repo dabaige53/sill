@@ -19,6 +19,9 @@ test('SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
   assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:''})).status,401);
   assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:'__Host-sill-pkce=wrong-verifier'})).status,401);
   const bad=new URL(url);bad.searchParams.set('code','wrong-code');assert.equal((await call(bad.pathname+bad.search)).status,401);
+  const recovery=await call('/auth/callback?code=wrong-code','GET',null,{Accept:'text/html'});
+  assert.equal(recovery.status,303);assert.equal(recovery.headers.get('location'),origin+'/?login_error=1');
+  assert.equal(recovery.headers.get('set-cookie'),null,'failed callback preserves existing cookies');
   const callback=await call(url.pathname+url.search);assert.equal(callback.status,303);assert.equal(callback.headers.get('location'),origin+'/');
   const access=callback.headers.getSetCookie().find(c=>c.startsWith('__Host-sill-access='));assert.ok(access.includes('HttpOnly'));assert.ok(!access.includes('synthetic-unused-refresh'));
   cookies=access.split(';')[0];

@@ -8,17 +8,21 @@ Store.save=function(){};
 // Automatic reading observations remain transient; explicit cloud edits own persisted state.
 const transientPatch=Store.patch;
 Store.patch=function(id,values){const safe={};for(const key of ['seen','progress'])if(key in values)safe[key]=values[key];transientPatch.call(this,id,safe);};
-const Cloud={user:null,records:new Map(),edit:null,pending:null,busy:false};
+const Cloud={user:null,records:new Map(),edit:null,pending:null,busy:false,epoch:0,loading:false,loginUntil:0};
+const callbackFailed=new URL(location.href).searchParams.has('login_error');
+if(callbackFailed)history.replaceState(null,'',location.pathname+location.hash);
+function cloudWelcome(){
+ return welcomeHTML({actions:Cloud.user?'<button type="button" class="solid-button" data-action="capture">记下第一条内容</button>':`<form id="cloud-login"><label for="cloud-email">用已有账号登录</label><input id="cloud-email" name="email" type="email" autocomplete="email" required placeholder="你的邮箱" aria-describedby="cloud-login-status"><button class="solid-button" type="submit">发送登录链接</button><p id="cloud-login-status" role="status">${callbackFailed?'登录链接未能完成验证。请在发送链接的浏览器打开最新邮件，或重新发送。':'登录后，你的内容会出现在这里。'}</p></form>`,detail:Cloud.user?'<p class="cloud-detail">窗台还是空的，从一条笔记开始。</p>':''});
+}
 const app=new AppController();
 const originalDeskHTML=app.deskHTML.bind(app);
 app.deskHTML=function(){
- if(!Cloud.user)return emptyState('登录后查看你的云端内容','请在上方输入已有账号的邮箱。');
- if(!Store.state.cards.length)return emptyState('还没有云端内容','点击上方「新建笔记」开始。');
+ if(!Cloud.user||!Store.state.cards.length)return cloudWelcome();
  return originalDeskHTML();
 };
 app.init();
-const account=document.createElement('section');account.id='cloud-account';document.body.prepend(account);
-const messages={unauthenticated:'登录已过期，请重新登录。',forbidden:'该账号或客户端没有此操作权限。',revision_conflict:'内容已在另一处修改。草稿仍保留，请刷新并核对后再保存。',idempotency_conflict:'原请求已被处理或需要核对，未覆盖数据。',not_found:'内容已不存在。',unavailable:'连接暂时不可用；写入结果可能尚未确认。'};
+const account=document.createElement('section');account.id='cloud-account';account.setAttribute('aria-label','云端账号');document.body.prepend(account);
+const messages={rate_limited:'请求较频繁，请稍等一分钟再发送。',unauthenticated:'登录已过期，请重新登录。',forbidden:'该账号或客户端没有此操作权限。',revision_conflict:'内容已在另一处修改。草稿仍保留，请刷新并核对后再保存。',idempotency_conflict:'原请求已被处理或需要核对，未覆盖数据。',not_found:'内容已不存在。',unavailable:'连接暂时不可用；写入结果可能尚未确认。'};
 async function cloudApi(path,options={}){
  const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
  const data=await response.json();
@@ -26,21 +30,27 @@ async function cloudApi(path,options={}){
  return data;
 }
 function accountView(){
- account.innerHTML=Cloud.user?'<span>云端工作台 · 内容修改提交后才保存；收藏、外部来源与 MCP 尚未接通</span><button class="soft-button" id="cloud-new">新建笔记</button><button class="soft-button" id="cloud-refresh">刷新</button><button class="soft-button" id="cloud-logout">退出登录</button>':'<form id="cloud-login"><label>登录 Sill <input name="email" type="email" autocomplete="email" required placeholder="已有账号的邮箱"></label><button class="solid-button">发送登录链接</button></form><p id="cloud-login-status" role="status">内容仅在登录并获得授权后显示。</p>';
+ account.hidden=!Cloud.user;
+ document.body.classList.toggle('cloud-signed-in',!!Cloud.user);
+ account.innerHTML=Cloud.user?`<div class="cloud-brand">${sillIcon(28)}<span>Sill <small>云端工作台</small></span></div><div class="cloud-account-actions"><button class="soft-button" id="cloud-new">新建笔记</button><button class="soft-button" id="cloud-refresh" aria-label="刷新云端内容">${icon('refresh',16)}</button><button class="text-link" id="cloud-logout">退出登录</button></div>`:'';
 }
-function clearCloud(){Cloud.user=null;Cloud.pending=null;Cloud.edit=null;Cloud.records.clear();Store.load();app.closeNative();app.renderCurrent(true);accountView();}
+
+function clearCloud(){Cloud.epoch++;Cloud.user=null;Cloud.pending=null;Cloud.edit=null;Cloud.records.clear();Store.load();app.closeNative();app.renderCurrent(true);accountView();}
 function paintRecords(){
  Store.state.cards=[...Cloud.records.values()].filter(c=>!c.deleted&&!c.state.archived).map(c=>({id:c.id,type:c.type,kind:'web',title:c.title,body:c.body,summary:c.body?.[0]||'',url:c.url,source:'Sill 云端',time:Date.parse(c.updated_at),meta:'已保存',revision:c.revision}));
  Store.state.items=Object.fromEntries([...Cloud.records.values()].map(c=>[c.id,{read:!!c.state.read}]));app.withFeedAnchor(()=>{},true);
 }
 async function loadCloud({initial=false}={}){
- let checkingSession=true;
+ if(Cloud.loading||Cloud.busy||Cloud.pending)return;
+ Cloud.loading=true;const epoch=Cloud.epoch;let checkingSession=true;
  try{
-  const session=await cloudApi('/auth/session');checkingSession=false;Cloud.user=session.userId;
+  const session=await cloudApi('/auth/session');checkingSession=false;
   const records=new Map();let cursor=null;
   do{const query=cursor?'?cursor='+encodeURIComponent(cursor):'';const page=await cloudApi('/api/v1/contents'+query);for(const c of page.items)records.set(c.id,c);cursor=page.next_cursor;}while(cursor);
-  Cloud.records=records;paintRecords();accountView();
- }catch(error){if(error.status===401||error.status===403)clearCloud();if(!(initial&&checkingSession&&error.status===401))app.toast(error.message);}
+  if(epoch!==Cloud.epoch)return;
+  Cloud.user=session.userId;Cloud.records=records;paintRecords();accountView();
+ }catch(error){if(epoch!==Cloud.epoch)return;if(error.status===401||error.status===403)clearCloud();if(!(initial&&checkingSession&&error.status===401))app.toast(error.message);}
+ finally{Cloud.loading=false;}
 }
 function editCloud(id){
  if(!Cloud.user){app.toast('请先登录');return;}
@@ -69,33 +79,51 @@ async function saveCloud(deleting=false){
   if(error.status&&error.status<500){Cloud.pending=null;document.querySelectorAll('#cloud-editor input,#cloud-editor textarea').forEach(e=>e.disabled=false);}
  }finally{Cloud.busy=false;}
 }
+const originalOpen=app.openModal.bind(app);
+app.openModal=function(...args){if(Cloud.pending){app.toast('先核对本次保存结果。');return;}return originalOpen(...args);};
 const originalClose=app.closeNative.bind(app);
 app.closeNative=function(...args){if(Cloud.pending){app.toast('先核对本次保存结果，再关闭草稿。');return;}return originalClose(...args);};
 const originalAction=app.action.bind(app);
 app.action=function(name,id,...args){
  if(Cloud.pending){app.toast('先核对本次保存结果。');return;}
  if(name==='capture'){editCloud();return;}
- if(name==='edit'||name==='card-more'){editCloud(id);return;}
+ if(name==='edit'||name==='card-more'||name==='toggle-read'){editCloud(id);return;}
  if(name==='refresh'){loadCloud();return;}
  if(Cloud.pending&&['close','back'].includes(name)){app.toast('先核对本次保存结果，再关闭草稿。');return;}
- const unsupported=['bookmark','later','save-note','task','source-connect','source-authorize','permission-allow','feed-add','source-toggle','source-pause','import-pick','demo','welcome-start','welcome-pick','welcome-continue','welcome-demo','clear-confirm','selected-bookmark','selected-later','selected-tag'];
+ const unsupported=['archive-all','restore-card','less-like','never-show','snooze','dismiss-reminder','complete-reminder','restore-reminder','clear-all','sources-add','source-flag','source-set','source-remove','source-drop','permission-later','import-run','bookmark','later','save-note','task','source-connect','source-authorize','permission-allow','feed-add','source-toggle','source-pause','import-pick','demo','welcome-start','welcome-pick','welcome-continue','welcome-demo','clear-confirm','selected-bookmark','selected-later','selected-tag'];
  if(unsupported.includes(name)){app.toast('此操作尚未接入云端');return;}
  return originalAction(name,id,...args);
 };
+// Every editing entrance, including the keyboard shortcut and note body, uses the same cloud editor.
+app.startInlineEdit=editCloud;
+const localOpenPanel=app.openPanel.bind(app);
+app.openPanel=function(kind,...args){if(kind==='capture'){editCloud();return;}return localOpenPanel(kind,...args);};
+const localSettings=Panels.settings.bind(Panels);
+Panels.sourceRows=()=>'<p class="panel-sub">尚未连接外部来源。云端内容只来自你明确保存的记录。</p>';
+Panels.settings=function(app,group){
+ const html=localSettings(app,group),doc=document.createElement('template');doc.innerHTML=html;
+ if(group==='data')doc.content.querySelector('.settings-main').innerHTML='<h1 id="modal-title">数据与隐私</h1><p class="panel-sub">内容保存在你的云端工作区。此浏览器不将账号令牌或卡片写入 localStorage。</p><p class="panel-sub">外部来源和远程 MCP 尚未连接。外观与桌面偏好只在本次页面访问中生效。</p>';
+ return doc.innerHTML;
+};
 app.refresh=loadCloud;app.capture=()=>{editCloud();return null;};app.importFiles=async()=>app.toast('文件导入尚未接入云端');app.drop=()=>app.toast('拖拽操作尚未接入云端');
 account.addEventListener('click',async e=>{
- if(e.target.id==='cloud-new')editCloud();
- if(e.target.id==='cloud-refresh')loadCloud();
- if(e.target.id==='cloud-logout'){
+ const target=e.target.closest('button');if(!target)return;
+ if(target.id==='cloud-new')editCloud();
+ if(target.id==='cloud-refresh')loadCloud();
+ if(target.id==='cloud-logout'){
   try{const result=await cloudApi('/auth/logout',{method:'POST'});clearCloud();app.toast(result.revoked?'已退出登录':'已退出当前浏览器；上游撤销尚未确认');}catch(error){app.toast(error.message);}
  }
 });
 document.addEventListener('submit',async e=>{
  if(e.target.id==='cloud-editor'){e.preventDefault();await saveCloud();}
  if(e.target.id==='cloud-login'){
-  e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;
-  try{const result=await cloudApi('/auth/login',{method:'POST',body:JSON.stringify({email:new FormData(e.target).get('email')})});document.getElementById('cloud-login-status').textContent=result.message;}
-  catch(error){document.getElementById('cloud-login-status').textContent=error.message;}finally{button.disabled=false;}
+  e.preventDefault();const button=e.target.querySelector('button'),status=document.getElementById('cloud-login-status');
+  if(Date.now()<Cloud.loginUntil)return;
+  button.disabled=true;Cloud.loginUntil=Date.now()+60000;
+  const timer=setInterval(()=>{if(!button.isConnected){clearInterval(timer);return;}const left=Math.ceil((Cloud.loginUntil-Date.now())/1000);button.disabled=left>0;button.textContent=left>0?`${left} 秒后可重发`:'发送登录链接';if(left<=0)clearInterval(timer);},250);
+  try{const result=await cloudApi('/auth/login',{method:'POST',body:JSON.stringify({email:new FormData(e.target).get('email')})});status.textContent=result.message+' 请在当前浏览器打开最新链接。';}
+  catch(error){status.textContent=error.message;}
+
  }
 });
 document.addEventListener('click',e=>{if(e.target.id==='cloud-delete'&&confirm('确认删除这条内容？'))saveCloud(true);});

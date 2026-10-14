@@ -40,6 +40,7 @@ try{
  dropResponse=true;await page.locator('#cloud-editor [type=submit]').click();
  await page.waitForFunction(()=>document.querySelector('#cloud-save-status')?.textContent.includes('同一请求'));
  await page.keyboard.press('Escape');assert.equal(await page.locator('#cloud-editor').count(),1,'uncertain request retains editor');
+ await page.keyboard.press('Control+k');assert.equal(await page.locator('#cloud-editor').count(),1,'search shortcut cannot replace uncertain draft');
  await page.locator('#cloud-editor [type=submit]').click();await page.waitForFunction(()=>!document.querySelector('#modal').open);
  await page.reload();await page.locator('#cloud-new').waitFor();
  const records=await page.evaluate(()=>window.__store.state.cards);assert.equal(records.length,1,'same idempotency key creates once');assert.equal(records[0].title,'Browser persisted note');const id=records[0].id;
