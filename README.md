@@ -65,4 +65,4 @@ codex plugin add quiet-glass@quiet-glass-local
 
 marketplace 使用已提交的 `plugins/quiet-glass`，不需要先构建。技能自带可移植 CLI；需要 Node.js 24+。开发时运行 `npm run plugin:build` 后提交生成目录。
 
-插件只操作本机 loopback 服务。先在自己选定的仓库运行 `npm start`；不要在插件缓存中启动服务或存数据。安装成功不表示云端 Sill 登录、远程 MCP 或来源已连接。本包不包含 MCP 注册、OAuth 或云端凭据。
+插件只操作本机 loopback 服务。先在自己选定的仓库运行 `npm ci`，再运行 `npm start`；不要在插件缓存中启动服务或存数据。安装成功不表示云端 Sill 登录、远程 MCP 或来源已连接。本包不包含 MCP 注册、OAuth 或云端凭据。
