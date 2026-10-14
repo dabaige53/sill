@@ -1,0 +1,42 @@
+[
+  {
+    "width": 1440,
+    "status": "PASS",
+    "checks": [
+      "banner",
+      "cards",
+      "preview",
+      "reader",
+      "task",
+      "bookmark",
+      "persistence",
+      "search",
+      "connection-block",
+      "responsive"
+    ],
+    "requests": [
+      "http://127.0.0.1:34513/",
+      "http://127.0.0.1:34513/"
+    ]
+  },
+  {
+    "width": 390,
+    "status": "PASS",
+    "checks": [
+      "banner",
+      "cards",
+      "preview",
+      "reader",
+      "task",
+      "bookmark",
+      "persistence",
+      "search",
+      "connection-block",
+      "responsive"
+    ],
+    "requests": [
+      "http://127.0.0.1:34513/",
+      "http://127.0.0.1:34513/"
+    ]
+  }
+]

@@ -15,7 +15,7 @@ class AppController{
    Store.load();
    if(window.__QG_RUNTIME__)Store.state.cards=[];
    this.sort=Store.pref('sort');
-   document.body.innerHTML=`<main aria-label="Sill 桌面"><h1 class="sr-only" id="page-title">桌面</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
+   document.body.innerHTML=`<aside id="demo-notice" role="note">Sill 静态演示 · 全部为合成数据 · 登录、后端与 MCP 尚未接通。操作仅保存在本浏览器，请勿输入私人信息。</aside><main aria-label="Sill 桌面"><h1 class="sr-only" id="page-title">桌面</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>未连接</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="查看新内容"></button>
    <div class="orb-wrap"><div class="dock-tools" role="group" aria-label="全局工具">${button('filter','筛选与搜索','filter')}${button('plus','记一笔','capture')}${button('refresh','刷新卡片','refresh')}${button('up','返回顶部','top')}${button('gear','设置','settings')}</div>
    <button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="bookmark" aria-label="全局工具" aria-expanded="false">${icon('grid',22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg></div></div>
@@ -808,6 +808,7 @@ class AppController{
    if(card&&!e.target.closest('button,a,input,textarea')){this.navigate('#card/'+card.dataset.card);return;}
  }
  action(name,id='',extra='',el=null,event=null){
+   if(['source-connect','source-authorize','permission-allow','feed-add','source-toggle','source-pause','refresh','import-pick'].includes(name)){this.toast('静态演示：后端尚未接通，未连接外部来源');return;}
    switch(name){
      case 'orb':this.openDock();break;
      case 'filter':case 'search':this.openPanel('search');break;

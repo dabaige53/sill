@@ -1,0 +1,50 @@
+[
+  {
+    "path": "/",
+    "method": "GET",
+    "status": 200,
+    "body": "demo"
+  },
+  {
+    "path": "/index.html",
+    "method": "HEAD",
+    "status": 200,
+    "body": ""
+  },
+  {
+    "path": "/api",
+    "method": "GET",
+    "status": 503,
+    "body": "{\"error\":\"NOT_CONNECTED\",\"message\":\"Static demo: backend and MCP are not connected.\"}"
+  },
+  {
+    "path": "/api/local/operations",
+    "method": "POST",
+    "status": 503,
+    "body": "{\"error\":\"NOT_CONNECTED\",\"message\":\"Static demo: backend and MCP are not connected.\"}"
+  },
+  {
+    "path": "/mcp",
+    "method": "GET",
+    "status": 503,
+    "body": "{\"error\":\"NOT_CONNECTED\",\"message\":\"Static demo: backend and MCP are not connected.\"}"
+  },
+  {
+    "path": "/mcp",
+    "method": "POST",
+    "status": 503,
+    "body": "{\"error\":\"NOT_CONNECTED\",\"message\":\"Static demo: backend and MCP are not connected.\"}"
+  },
+  {
+    "path": "/missing.js",
+    "method": "GET",
+    "status": 404,
+    "body": "Not found"
+  },
+  {
+    "path": "/",
+    "method": "POST",
+    "status": 405,
+    "body": "Method not allowed"
+  }
+]
