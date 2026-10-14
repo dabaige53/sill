@@ -16,7 +16,7 @@ export async function identity(db,c=claims()){
  await db.exec('reset role');await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify(c)]);await db.exec('set role authenticated');
 }
 export const rpc=async(db,name,args=[])=>{
- const functions={sill_session_info:'',sill_write_v1:'$1,$2,$3::jsonb,$4',sill_get_content:'$1',sill_get_event:'$1',sill_list_contents:'$1,$2,$3'};
+ const functions={sill_oauth_flow:'$1,$2::jsonb',sill_session_info:'',sill_write_v1:'$1,$2,$3::jsonb,$4',sill_get_content:'$1',sill_get_event:'$1',sill_list_contents:'$1,$2,$3'};
  if(!Object.hasOwn(functions,name))throw Error('Unsupported fixture RPC');
  return (await db.query(`select public.${name}(${functions[name]}) as value`,args)).rows[0].value;
 };

@@ -31,8 +31,8 @@ export function reviewConsent({details,principal,policy,grant}){
  return Object.freeze({...review,identityScopes:Object.freeze(review.identityScopes),contentScopes:Object.freeze(review.contentScopes),resources:Object.freeze(review.resources)});
 }
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-/** Safe review fragment for a future authenticated/CSRF-protected consent route. No active form. */
+/** Escaped review fragment. The authenticated controller owns the active form. */
 export function consentSummary(review){
  const range=review.resources[0]==='*'?'整个个人工作区（含以后新增的内容）':review.resources.map(escape).join('、');
- return `<section aria-labelledby="consent-title"><h1 id="consent-title">允许 ${escape(review.clientName)} 访问 Sill？</h1><dl><dt>客户端 ID</dt><dd>${escape(review.clientId)}</dd><dt>回调地址</dt><dd>${escape(review.redirectUri)}</dd><dt>身份信息</dt><dd>${review.identityScopes.map(escape).join('、')}</dd><dt>Sill 内容权限</dt><dd>${review.contentScopes.map(s=>s==='content:read'?'读取':'创建与修改').join('、')}</dd><dt>内容范围</dt><dd>${range}</dd></dl><p>不授予删除、事件提交或结果回写权限。</p>${review.canList?'':'<p>仅可按已知 ID 访问所选卡片，不能列出整个工作区或创建卡片。</p>'}</section>`;
+ return `<section aria-labelledby="consent-title"><h1 id="consent-title">允许 ${escape(review.clientName)} 访问 Sill？</h1><dl><dt>客户端 ID</dt><dd>${escape(review.clientId)}</dd><dt>回调地址</dt><dd>${escape(review.redirectUri)}</dd><dt>服务地址</dt><dd>${escape(review.audience)}</dd><dt>身份信息</dt><dd>${review.identityScopes.map(escape).join('、')}</dd><dt>Sill 内容权限</dt><dd>${review.contentScopes.map(s=>s==='content:read'?'读取':'创建与修改').join('、')}</dd><dt>内容范围</dt><dd>${range}</dd></dl><p>不授予删除、事件提交或结果回写权限。</p>${review.canList?'':'<p>仅可按已知 ID 访问所选卡片，不能列出整个工作区或创建卡片。</p>'}</section>`;
 }

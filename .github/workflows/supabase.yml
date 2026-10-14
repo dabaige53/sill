@@ -17,11 +17,13 @@ jobs:
       - run: npm ci
       - run: python -m pip install jsonschema==4.26.0
       - run: npm run test:supabase
+      - run: npm run test:oauth
       - run: npm run test:supabase:postgres
       - run: npm run build:cloud
       - run: npx playwright install --with-deps chromium
       - run: npm run test:cloud-browser
       - run: npm run test:cloud-welcome
+      - run: npm run test:oauth-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -29,4 +31,5 @@ jobs:
           path: |
             tests/artifacts/cloud-*.png
             tests/artifacts/cloud-recovery/
+            tests/artifacts/oauth-*.png
           if-no-files-found: ignore

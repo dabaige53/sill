@@ -5,6 +5,7 @@ import {SupabaseRepository,serviceError} from '../supabase-repository.mjs';
 
 import {create,update,event,revision} from './schemas.mjs';
 import {createMcpHandler} from './mcp.mjs';
+import {createOAuthController} from './oauth-controller.mjs';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'};
 const cookieName='__Host-sill-access', verifierName='__Host-sill-pkce';
 const cookie=(name,value,maxAge)=>`${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax${maxAge===undefined?'':`; Max-Age=${maxAge}`}`;
@@ -24,7 +25,7 @@ async function body(request){
 function sameOrigin(request,origin){
  if(request.headers.get('origin')!==origin||request.headers.get('sec-fetch-site')==='cross-site')throw serviceError('forbidden');
 }
-export function createSillRuntime(config,{clientFactory=createClient,html='',repositoryFactory=client=>new SupabaseRepository(client)}={}){
+export function createSillRuntime(config,{clientFactory=createClient,html='',repositoryFactory=client=>new SupabaseRepository(client),oauthProviderFactory}={}){
  const origin=new URL(config.appOrigin);
  if(origin.origin!==config.appOrigin||origin.username||origin.password||origin.protocol!=='https:'&&!(origin.protocol==='http:'&&['127.0.0.1','localhost'].includes(origin.hostname)))throw new Error('Invalid application origin');
  const authUrl=new URL(config.url);
@@ -42,12 +43,19 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
   const token=readCookie(request,cookieName);
   return authenticateSupabase(token?`Bearer ${token}`:null,{...config,kind:'web',audience:'authenticated'},clientFactory);
  }
+ const oauth=createOAuthController(config,{providerFactory:oauthProviderFactory,authenticate:async request=>{
+  if(request.headers.has('authorization'))throw serviceError('forbidden');
+  const token=readCookie(request,cookieName),identity=await authenticateSupabase(token?`Bearer ${token}`:null,{...config,kind:'web',audience:'authenticated'},clientFactory);
+  const access=await repositoryFactory(identity.client).session();if(!access.workspaceRead)throw serviceError('forbidden');
+  return {...identity,token};
+ }});
  const mcp=createMcpHandler(config,{clientFactory});
  return async request=>{
   try{
    const url=new URL(request.url),path=url.pathname;
    if(url.origin!==config.appOrigin)throw serviceError('forbidden');
    if(request.headers.get('origin')&&request.headers.get('origin')!==config.appOrigin)throw serviceError('forbidden');
+   if(path.startsWith('/oauth/'))return oauth.handle(request);
    if(path==='/mcp'||path.startsWith('/mcp/')||path==='/.well-known/oauth-protected-resource/mcp')return mcp(request);
    if(path==='/api/v1/health'&&request.method==='GET')return json(200,{status:'ready',contract:'sill-v1-draft1'});
    if(path==='/auth/login'&&request.method==='POST'){
@@ -74,7 +82,8 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
     // Login alone does not grant app access. An operator must provision a workspace/grant first.
     const access=await repositoryFactory(identity.client).session();
     if(!access.workspaceRead)throw serviceError('forbidden');
-    const response=new Response(null,{status:303,headers:{...headers,Location:config.appOrigin+'/'}});
+    const response=new Response(null,{status:303,headers:{...headers,Location:oauth.resumeLocation(request)||config.appOrigin+'/'}});
+    if(config.oauthConsentEnabled)response.headers.append('Set-Cookie',oauth.clearReturn());
     response.headers.append('Set-Cookie',cookie(cookieName,token));
     response.headers.append('Set-Cookie',cookie(verifierName,'',0));return response;
    }
