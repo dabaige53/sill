@@ -83,8 +83,16 @@ try{
   await page.evaluate(()=>__app.action('settings'));await page.locator('[data-action=settings-group][data-extra=look]').click();const radios=page.getByRole('radiogroup',{name:'主题'});await radios.locator('[tabindex="0"]').focus();await page.keyboard.press('ArrowRight');assert.equal(await page.evaluate(()=>__store.pref('theme')),'light');assert.equal(await radios.locator('[tabindex="0"]').count(),1);
   await page.getByRole('switch',{name:'减少动态效果',exact:true}).click();
   await page.waitForFunction(()=>document.body.classList.contains('reduce-motion')&&__store.pref('reduceMotion'));
-  const durations=await page.locator('.feed-card').first().evaluate(n=>getComputedStyle(n).transitionDuration.split(',').map(t=>parseFloat(t)*(t.trim().endsWith('ms')?1:1000)));
-  assert.ok(durations.every(ms=>ms<=1),`reduced-motion transition durations in ms: ${durations}`);
+  // Live updates can replace a locator's element between resolution and evaluate.
+  // Resolve and read the current connected node atomically, without waiting for
+  // the duration assertion to become true or accepting an empty computed style.
+  const measured=await page.waitForFunction(()=>{
+   const card=document.querySelector('.feed-card');if(!card?.isConnected)return false;
+   const raw=getComputedStyle(card).transitionDuration;if(!raw)return false;
+   return raw.split(',').map(t=>parseFloat(t)*(t.trim().endsWith('ms')?1:1000));
+  },null,{timeout:5000});
+  const durations=await measured.jsonValue();await measured.dispose();
+  assert.ok(durations.length>0&&durations.every(ms=>Number.isFinite(ms)&&ms<=1),`reduced-motion transition durations in ms: ${durations}`);
   await page.locator('[data-action=settings-group][data-extra=keys]').click();await page.getByRole('switch',{name:'单键快捷键 N / R / T'}).click();await close(page);await page.keyboard.press('n');assert.equal(await page.locator('dialog').evaluate(n=>n.open),false);await page.keyboard.press('Control+k');assert.equal(await page.getByRole('dialog',{name:'搜索与筛选'}).count(),1);
  });
  await scenario('All import entries are reviewable; mixed input is explicitly accounted for',async page=>{
