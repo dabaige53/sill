@@ -1,0 +1,20 @@
+{
+  "worker": "sill-web-preview",
+  "file": "worker.mjs",
+  "sha256": "f0f10b007acdbd0c7f8f3e1242c9f55f8daf660400d6aa56035f4075d562d2c9",
+  "bytes": 891247,
+  "build": "npm ci && npm run build:release",
+  "rollback_version": "ef98596d-d18e-4622-9ff7-1aec7e41cade",
+  "compatibility_date": "2026-10-14",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "inherit_bindings": [
+    "APP_ORIGIN",
+    "MCP_ENABLE",
+    "SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_URL"
+  ],
+  "mcp_enabled": false,
+  "database_changes": false
+}

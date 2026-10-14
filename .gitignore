@@ -10,3 +10,6 @@ quiet-glass.config.json
 dist/
 *.sqlite*
 .sandbox-venv/
+
+.wrangler/
+worker-configuration.d.ts

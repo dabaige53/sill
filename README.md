@@ -1,5 +1,8 @@
 # Sill · 窗台
 
+> 当前发布入口：[`sill-web-preview`](https://sill-web-preview.scs1213-temp-email.workers.dev/)。云端版本支持已有账号 PKCE 登录及内容读写，工作台没有顶部整排工具栏。远程 MCP / OAuth 授权代码默认关闭，未完成真实客户端授权。下列旧规划段落保留历史语境；当前发布状态与回滚步骤以 [发布说明](docs/RELEASE-20261014.md) 为准。
+
+
 Sill 是 agent 驱动的个人工作台（原名 Quiet Glass；包名、命令和本地数据路径暂沿用 `quiet-glass`）。Agent 持续负责内容采集、理解、执行与回写；卡片展示真实状态，也让用户表达完成、阅读、同步等意图。外部动作由 agent 通过宿主已有 MCP 或经核验的开源 MCP 执行，不为每个按钮增加外部应用直连接口。
 
 **V1 方向已收敛为外部助手驱动：** Sill 将 UI 动作/事件发送到配置好的 OpenClaw 或 Hermes Webhook，由外部助手调用 Sill MCP 读取和写回结果。V1 不做内置 LLM、聊天引擎或 agent runtime；供应商官方能力已核验，用户实例适配、框架与部署仍待确认，内置助手与上游 tools 桥接保留为远期可选。

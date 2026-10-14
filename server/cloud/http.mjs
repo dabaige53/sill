@@ -7,7 +7,8 @@ import {create,update,event,revision} from './schemas.mjs';
 import {createMcpHandler} from './mcp.mjs';
 import {createOAuthController} from './oauth-controller.mjs';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'};
-const cookieName='__Host-sill-access', verifierName='__Host-sill-pkce';
+const cookieName='__Host-sill-access', verifierName='__Host-sill-pkce', cooldownName='__Host-sill-login-until';
+const resendSeconds=60;
 const cookie=(name,value,maxAge)=>`${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax${maxAge===undefined?'':`; Max-Age=${maxAge}`}`;
 const json=(status,data,extra={})=>new Response(JSON.stringify(data),{status,headers:{...headers,'Content-Type':'application/json; charset=utf-8',...extra}});
 function readCookie(request,name){
@@ -25,7 +26,7 @@ async function body(request){
 function sameOrigin(request,origin){
  if(request.headers.get('origin')!==origin||request.headers.get('sec-fetch-site')==='cross-site')throw serviceError('forbidden');
 }
-export function createSillRuntime(config,{clientFactory=createClient,html='',repositoryFactory=client=>new SupabaseRepository(client),oauthProviderFactory}={}){
+export function createSillRuntime(config,{clientFactory=createClient,html='',repositoryFactory=client=>new SupabaseRepository(client),oauthProviderFactory,now=Date.now}={}){
  const origin=new URL(config.appOrigin);
  if(origin.origin!==config.appOrigin||origin.username||origin.password||origin.protocol!=='https:'&&!(origin.protocol==='http:'&&['127.0.0.1','localhost'].includes(origin.hostname)))throw new Error('Invalid application origin');
  const authUrl=new URL(config.url);
@@ -61,13 +62,18 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
    if(path==='/auth/login'&&request.method==='POST'){
     sameOrigin(request,config.appOrigin);
     const {email}=z.object({email:z.string().email().max(254)}).strict().parse(await body(request));
+    // Preserve the production browser cooldown; provider rate limits remain authoritative.
+    const retryAfter=Math.ceil((Number(readCookie(request,cooldownName))-now())/1000);
+    if(retryAfter>0&&retryAfter<=resendSeconds)return json(429,{error:{code:'rate_limited',message:'rate_limited',request_id:crypto.randomUUID()},retryAfter},{'Retry-After':String(retryAfter)});
     const storage=new Map(),client=authClient(storage);
     const result=await client.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:`${config.appOrigin}/auth/callback`}});
-    if(result.error)throw serviceError(result.error.status===429?'rate_limited':'unavailable',result.error.status===429?429:503);
+    if(result.error?.status===429)return json(429,{error:{code:'rate_limited',message:'rate_limited',request_id:crypto.randomUUID()},retryAfter:resendSeconds},{'Retry-After':String(resendSeconds)});
+    if(result.error)throw serviceError('unavailable',503);
     const verifier=storage.get('sill-web-code-verifier');
     if(!verifier||verifier.length>512)throw serviceError('unavailable');
-    const response=json(202,{message:'如果该账号可登录，登录链接将发送到邮箱。'});
-    response.headers.append('Set-Cookie',cookie(verifierName,verifier,600));return response;
+    const response=json(202,{message:'如果该账号可登录，登录链接将发送到邮箱。',retryAfter:resendSeconds});
+    response.headers.append('Set-Cookie',cookie(verifierName,verifier,600));
+    response.headers.append('Set-Cookie',cookie(cooldownName,String(now()+resendSeconds*1000),resendSeconds));return response;
    }
    if(path==='/auth/callback'&&request.method==='GET'){
     // Supabase PKCE binds the single-use code to this browser's HttpOnly verifier.
@@ -85,7 +91,8 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
     const response=new Response(null,{status:303,headers:{...headers,Location:oauth.resumeLocation(request)||config.appOrigin+'/'}});
     if(config.oauthConsentEnabled)response.headers.append('Set-Cookie',oauth.clearReturn());
     response.headers.append('Set-Cookie',cookie(cookieName,token));
-    response.headers.append('Set-Cookie',cookie(verifierName,'',0));return response;
+    response.headers.append('Set-Cookie',cookie(verifierName,'',0));
+    response.headers.append('Set-Cookie',cookie(cooldownName,'',0));return response;
    }
    if(path==='/auth/logout'&&request.method==='POST'){
     sameOrigin(request,config.appOrigin);

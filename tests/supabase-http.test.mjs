@@ -15,6 +15,10 @@ test('SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
   const pending=login.headers.getSetCookie();assert.ok(pending.every(c=>c.includes('HttpOnly; Secure; SameSite=Lax')));
   cookies=pending.map(c=>c.split(';')[0]).join('; ');
   assert.equal(f.redirect,origin+'/auth/callback');
+  const otpCalls=f.calls.filter(c=>c.path==='/auth/v1/otp').length;
+  const repeat=await call('/auth/login','POST',{email:'synthetic@example.com'});assert.equal(repeat.status,429);assert.ok(Number(repeat.headers.get('retry-after'))>0);
+  assert.equal(repeat.headers.get('set-cookie'),null,'resend does not replace pending PKCE verifier');
+  assert.equal(f.calls.filter(c=>c.path==='/auth/v1/otp').length,otpCalls,'cooldown makes no second provider call');
   const url=new URL(f.redirect);url.searchParams.set('code','synthetic-code');
   assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:''})).status,401);
   assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:'__Host-sill-pkce=wrong-verifier'})).status,401);

@@ -37,7 +37,8 @@
     "test:cloud-browser": "node tests/cloud-browser.mjs",
     "test:cloud-welcome": "node tests/cloud-welcome-browser.mjs",
     "test:oauth": "node --test tests/consent-policy.test.mjs tests/oauth-consent.test.mjs",
-    "test:oauth-browser": "node tests/oauth-browser.mjs"
+    "test:oauth-browser": "node tests/oauth-browser.mjs",
+    "build:release": "python3 scripts/build-cloud.py && node scripts/build-cloud-worker.mjs --minify"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.9",
@@ -46,7 +47,8 @@
     "axe-core": "4.14.0",
     "esbuild": "0.28.2",
     "jsdom": "26.1.0",
-    "playwright": "1.62.1"
+    "playwright": "1.62.1",
+    "wrangler": "4.151.0"
   },
   "type": "module",
   "engines": {

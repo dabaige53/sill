@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "sill-web-preview",
+  "account_id": "8dfc5765c957955fbcca0c22071c824d",
+  "main": "../../dist/cloud/worker.mjs",
+  "compatibility_date": "2026-10-14",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "keep_vars": true,
+  "workers_dev": true,
+  "no_bundle": true
+}
