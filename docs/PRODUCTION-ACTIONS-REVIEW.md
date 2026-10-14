@@ -40,14 +40,14 @@
 - 候选应用 consent URL：`https://sill-web-preview.scs1213-temp-email.workers.dev/oauth/consent`。这不是网页 magic-link callback，也不是 Codex OAuth callback；当前尚无可上线的 consent 实现。
 - **Codex redirect URI 不能猜**：从实际 Codex 客户端 OAuth 启动/注册信息取得完整 URI（协议/域名/路径/端口），逐字登记；若客户端发送 Origin，也需核验并单独批准精确 Origin，不能开放通配 CORS。未取得之前不能批准具体客户端注册。默认不启用 Dynamic Client Registration，不创建 confidential client secret；优先检查客户端是否支持预注册 public client + PKCE。
 - 启用 Supabase OAuth server、设置 consent path、注册唯一客户端、明确 client_id、授最小 content:read/content:write 与经过用户确认的资源范围，均为后续具体安全配置变更。删除/event:* 默认不给。整体列表与创建需要当前契约的 workspace '*'，资源受限 grant 不能被自动扩大；需要用户明确选择可写整个个人 workspace 还是先限定既有卡片。
-- **阻断条件**：当前官方 Supabase MCP 指南未提供本项目实际 resource-bound aud 的证明。PR20 拒绝泛用 aud=authenticated 的 agent token。必须用真实授权请求验证 resource 参数、access-token audience、PostgREST是否接受该 token、client_id；若平台不能满足，停止，不放宽 audience 校验或替换成 owner token。
+- **阻断条件**：官方 Token Security 文档的 OAuth 示例 aud=authenticated，同时明确支持 Custom Access Token Hook 按精确 client_id 设置专用 aud。PR20 仍拒绝泛用 aud 的 agent token；在实际 client_id 确定后，需另外审查/批准受限 token hook（仅该 client→上述 MCP resource，普通网页登录仍 authenticated），并验证真实授权请求的 resource 参数、access-token audience、PostgREST是否接受该 token及 client_id。当前没有编写/启用生产 hook，更没有把支持文档当作本项目已验证。若不能满足，停止，不放宽 audience 或替换成 owner token。
 - 本地可以新增官方 SDK Streamable HTTP 运输、RFC9728 protected-resource metadata、401 challenge、七工具按授权发现、复用现有 RPC；不能把这些本地准备说成 Codex OAuth 已连通。
 
 ## 回退与已知限制
 
 本次尚无入口切换。上线失败恢复保存的静态版本；数据库有新用户数据后不能 DROP 回退或用旧 JSON 覆盖，先停写并保全变更。当前 access cookie 到期需重新登录；未知写请求只在页面内存中保留。快照现有容量/有效期限制已实现；空闲库的定期物理清理需另批准现有调度接入，未启用新定时服务。内容删除后的回执保留与隐私擦除策略仍需用户确认。
 
-参考：[Supabase PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow)、[Supabase MCP Auth](https://supabase.com/docs/guides/auth/oauth-server/mcp-authentication)、[MCP 授权规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)。
+参考：[Supabase PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow)、[Supabase MCP Auth](https://supabase.com/docs/guides/auth/oauth-server/mcp-authentication)、[Supabase Token Security / audience hook](https://supabase.com/docs/guides/auth/oauth-server/token-security)、[MCP 授权规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)。
 
 ## 后续本地 MCP 验证（仍非 Codex 线上验收）
 
