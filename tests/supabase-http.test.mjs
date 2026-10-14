@@ -14,12 +14,16 @@ test('SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
   const login=await call('/auth/login','POST',{email:'synthetic@example.com'});assert.equal(login.status,202);
   const pending=login.headers.getSetCookie();assert.ok(pending.every(c=>c.includes('HttpOnly; Secure; SameSite=Lax')));
   cookies=pending.map(c=>c.split(';')[0]).join('; ');
+  assert.equal(f.redirect,origin+'/auth/callback');
   const url=new URL(f.redirect);url.searchParams.set('code','synthetic-code');
-  const bad=new URL(url);bad.searchParams.set('state','wrong');assert.equal((await call(bad.pathname+bad.search)).status,401);
+  assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:''})).status,401);
+  assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:'__Host-sill-pkce=wrong-verifier'})).status,401);
+  const bad=new URL(url);bad.searchParams.set('code','wrong-code');assert.equal((await call(bad.pathname+bad.search)).status,401);
   const callback=await call(url.pathname+url.search);assert.equal(callback.status,303);assert.equal(callback.headers.get('location'),origin+'/');
   const access=callback.headers.getSetCookie().find(c=>c.startsWith('__Host-sill-access='));assert.ok(access.includes('HttpOnly'));assert.ok(!access.includes('synthetic-unused-refresh'));
   cookies=access.split(';')[0];
   const session=await call('/auth/session');assert.equal(session.status,200);assert.deepEqual(await session.json(),{userId:A});
+  await f.db.exec('reset role');assert.equal((await f.db.query('select count(*)::int n from sill_private.sync_snapshots')).rows[0].n,0,'login and session do not materialize a list');
   const created=await call('/api/v1/contents','POST',{type:'note',title:'Saved',body:['Cloud content']},{'Idempotency-Key':'create_001'});assert.equal(created.status,201);const one=await created.json();
   const replay=await call('/api/v1/contents','POST',{type:'note',title:'Saved',body:['Cloud content']},{'Idempotency-Key':'create_001'});assert.equal((await replay.json()).id,one.id);
   const updated=await call('/api/v1/contents/'+one.id,'PATCH',{expectedRevision:1,changes:{title:'Changed'}},{'Idempotency-Key':'update_001'});assert.equal(updated.status,200);

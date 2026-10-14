@@ -23,7 +23,7 @@ export async function cloudFixture(){
    const jwt=(headers.get('authorization')||'').replace(/^Bearer /i,'');
    const verified=await verifyClientFactory(config.url,config.publishableKey,{auth:{persistSession:false}}).auth.getClaims(jwt);
    if(verified.error||!verified.data?.claims)return Response.json({message:'unauthenticated'},{status:401});
-   const name=url.pathname.split('/').at(-1),args=JSON.parse(init.body),order={sill_write_v1:['op','resource_id','payload','idem'],sill_get_content:['resource_id'],sill_get_event:['event_id'],sill_list_contents:['cursor_token','since_token','requested_limit']};
+   const name=url.pathname.split('/').at(-1),args=JSON.parse(init.body),order={sill_session_info:[],sill_write_v1:['op','resource_id','payload','idem'],sill_get_content:['resource_id'],sill_get_event:['event_id'],sill_list_contents:['cursor_token','since_token','requested_limit']};
    if(!order[name])return Response.json({message:'not_found'},{status:404});
    // PGlite has one session; serialize fixture role changes. Production RPCs are independent transactions.
    const operation=tail.catch(()=>{}).then(async()=>{

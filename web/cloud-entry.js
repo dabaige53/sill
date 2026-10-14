@@ -1,4 +1,6 @@
 /* Authenticated cloud build only. No credentials or private cards in browser storage. */
+// Invitation/legacy implicit fragments are never accepted as app sessions.
+if(/(?:access_token|refresh_token|error_description)=/.test(location.hash))history.replaceState(null,'',location.pathname);
 window.__QG_LOCAL__=false;
 window.__QG_RUNTIME__=false;
 Store.load=function(){this.state=this.fresh();this.state.preferences.onboarded=true;return this.state;};

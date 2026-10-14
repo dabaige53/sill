@@ -3,15 +3,10 @@ import {z} from 'zod';
 import {authenticateSupabase} from '../supabase-auth.mjs';
 import {SupabaseRepository,serviceError} from '../supabase-repository.mjs';
 
-const id=z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/);
-const revision=z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
-const state=z.object({read:z.boolean().optional(),done:z.boolean().optional(),archived:z.boolean().optional()}).strict();
-const changes=z.object({title:z.string().min(1).max(1000).optional(),type:z.enum(['article','mail','note','task','event','reminder','media','insight','digest','suggestion','photo','file']).optional(),body:z.array(z.string().max(50000)).max(100).optional(),url:z.string().url().refine(s=>/^https?:\/\//.test(s)).optional(),state:state.optional()}).strict();
-const create=changes.required({title:true,type:true});
-const update=z.object({expectedRevision:revision,changes:changes.optional(),metadata:z.object({event_id:id,outcome:z.enum(['succeeded','failed','unknown']),summary:z.string().max(2000)}).strict().optional()}).strict();
-const event=z.object({event_id:id,card_id:id,card_version:revision,action:z.enum(['summarize','complete']),destination_ref:id}).strict();
+import {create,update,event,revision} from './schemas.mjs';
+import {createMcpHandler} from './mcp.mjs';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'};
-const cookieName='__Host-sill-access', verifierName='__Host-sill-pkce',stateName='__Host-sill-login-state';
+const cookieName='__Host-sill-access', verifierName='__Host-sill-pkce';
 const cookie=(name,value,maxAge)=>`${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax${maxAge===undefined?'':`; Max-Age=${maxAge}`}`;
 const json=(status,data,extra={})=>new Response(JSON.stringify(data),{status,headers:{...headers,'Content-Type':'application/json; charset=utf-8',...extra}});
 function readCookie(request,name){
@@ -47,37 +42,41 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
   const token=readCookie(request,cookieName);
   return authenticateSupabase(token?`Bearer ${token}`:null,{...config,kind:'web',audience:'authenticated'},clientFactory);
  }
+ const mcp=createMcpHandler(config,{clientFactory});
  return async request=>{
   try{
    const url=new URL(request.url),path=url.pathname;
    if(url.origin!==config.appOrigin)throw serviceError('forbidden');
    if(request.headers.get('origin')&&request.headers.get('origin')!==config.appOrigin)throw serviceError('forbidden');
-   if(path==='/mcp'||path.startsWith('/mcp/'))return json(503,{error:{code:'unavailable',message:'Remote MCP transport is not connected.',request_id:crypto.randomUUID()}});
+   if(path==='/mcp'||path.startsWith('/mcp/')||path==='/.well-known/oauth-protected-resource/mcp')return mcp(request);
    if(path==='/api/v1/health'&&request.method==='GET')return json(200,{status:'ready',contract:'sill-v1-draft1'});
    if(path==='/auth/login'&&request.method==='POST'){
     sameOrigin(request,config.appOrigin);
     const {email}=z.object({email:z.string().email().max(254)}).strict().parse(await body(request));
-    const storage=new Map(),client=authClient(storage),nonce=crypto.randomUUID();
-    const result=await client.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:`${config.appOrigin}/auth/callback?state=${nonce}`}});
+    const storage=new Map(),client=authClient(storage);
+    const result=await client.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:`${config.appOrigin}/auth/callback`}});
     if(result.error)throw serviceError(result.error.status===429?'rate_limited':'unavailable',result.error.status===429?429:503);
     const verifier=storage.get('sill-web-code-verifier');
     if(!verifier||verifier.length>512)throw serviceError('unavailable');
     const response=json(202,{message:'如果该账号可登录，登录链接将发送到邮箱。'});
-    response.headers.append('Set-Cookie',cookie(verifierName,verifier,600));response.headers.append('Set-Cookie',cookie(stateName,nonce,600));return response;
+    response.headers.append('Set-Cookie',cookie(verifierName,verifier,600));return response;
    }
    if(path==='/auth/callback'&&request.method==='GET'){
-    const code=url.searchParams.get('code'),nonce=url.searchParams.get('state'),expected=readCookie(request,stateName),verifier=readCookie(request,verifierName);
-    if(!code||code.length>4096||!expected||nonce!==expected||!verifier||verifier.length>512)throw serviceError('unauthenticated');
+    // Supabase PKCE binds the single-use code to this browser's HttpOnly verifier.
+    // Fixed redirect URL needs no wildcard query allowlist or separate echoed state.
+    const code=url.searchParams.get('code'),verifier=readCookie(request,verifierName);
+    if(!code||code.length>4096||!verifier||verifier.length>512)throw serviceError('unauthenticated');
     const client=authClient(new Map([['sill-web-code-verifier',verifier]]));
     const {data,error}=await client.auth.exchangeCodeForSession(code);
     if(error||!data?.session?.access_token)throw serviceError('unauthenticated');
     const token=data.session.access_token;
     const identity=await authenticateSupabase(`Bearer ${token}`,{...config,kind:'web'},clientFactory);
     // Login alone does not grant app access. An operator must provision a workspace/grant first.
-    await repositoryFactory(identity.client).list({limit:1});
+    const access=await repositoryFactory(identity.client).session();
+    if(!access.workspaceRead)throw serviceError('forbidden');
     const response=new Response(null,{status:303,headers:{...headers,Location:config.appOrigin+'/'}});
     response.headers.append('Set-Cookie',cookie(cookieName,token));
-    response.headers.append('Set-Cookie',cookie(verifierName,'',0));response.headers.append('Set-Cookie',cookie(stateName,'',0));return response;
+    response.headers.append('Set-Cookie',cookie(verifierName,'',0));return response;
    }
    if(path==='/auth/logout'&&request.method==='POST'){
     sameOrigin(request,config.appOrigin);
@@ -88,7 +87,8 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
     const response=json(200,{signedOut:true,revoked});response.headers.append('Set-Cookie',cookie(cookieName,'',0));return response;
    }
    if(path==='/auth/session'&&request.method==='GET'){
-    const identity=await authenticate(request);await repositoryFactory(identity.client).list({limit:1});
+    const identity=await authenticate(request);const access=await repositoryFactory(identity.client).session();
+    if(!access.workspaceRead)throw serviceError('forbidden');
     return json(200,{userId:identity.principal.userId});
    }
    if(path.startsWith('/api/v1/')){

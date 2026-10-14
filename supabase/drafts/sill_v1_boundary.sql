@@ -3,6 +3,9 @@
 -- It owns no tables. authenticated receives NO direct table privileges.
 begin;
 create role sill_rpc_executor nologin nosuperuser nocreatedb nocreaterole noinherit nobypassrls;
+-- PG17 CREATEROLE does not imply SET ROLE (createrole_self_grant may be empty).
+-- Only the installing role temporarily receives SET; never authenticated/anon.
+grant sill_rpc_executor to current_user with inherit false, set true;
 alter table sill_private.caller_grants add column audience text;
 -- Existing grants deliberately stop working until their intended audience is reviewed.
 create or replace function sill_private.authorize(required_scope text, resource text default '*') returns void
@@ -81,8 +84,11 @@ alter function sill_private.api_get_event(text) owner to sill_rpc_executor;
 alter function sill_private.api_list_contents(text,text,integer) owner to sill_rpc_executor;
 revoke create on schema sill_private from sill_rpc_executor;
 grant usage on schema sill_private to authenticated;
+set local role sill_rpc_executor;
 grant execute on function sill_private.api_write(text,text,jsonb,text),sill_private.api_get_content(text),
  sill_private.api_get_event(text),sill_private.api_list_contents(text,text,integer) to authenticated;
+reset role;
+revoke set option for sill_rpc_executor from current_user;
 grant execute on function public.sill_write_v1(text,text,jsonb,text),public.sill_get_content(text),
  public.sill_get_event(text),public.sill_list_contents(text,text,integer) to authenticated;
 commit;

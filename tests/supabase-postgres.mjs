@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
-const image='postgres:17.6@sha256:00bc86618629af00d2937fdc5a5d63db3ff8450acf52f0636ec813c7f4902929';
+const image='postgres:17.11@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3';
 const owner='11111111-1111-4111-8111-111111111111';
 const other='22222222-2222-4222-8222-222222222222';
 const container=`sill-pg-test-${process.pid}`;
@@ -16,6 +16,7 @@ function command(args,input=''){
  });
 }
 const sql=s=>command(['exec','-i',container,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres'],s);
+const install=async name=>sql("set session authorization sill_installer;set createrole_self_grant='';"+await readFile(new URL('../supabase/drafts/'+name,import.meta.url),'utf8'));
 const asUser=(sub=owner,client)=>`set request.jwt.claims=${quote(JSON.stringify({sub,role:'authenticated',aud:client?'https://sill.example/mcp':'authenticated',exp:Math.floor(Date.now()/1000)+3600,...(client?{client_id:client}:{})}))};set role authenticated;`;
 const write=(op,id,payload,key)=>`select sill_private.write_v1(${quote(op)},${id===null?'null':quote(id)},${quote(JSON.stringify(payload))}::jsonb,${quote(key)});`;
 const parse=out=>JSON.parse(out.split('\n').filter(Boolean)[0]);
@@ -46,7 +47,11 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
     create function auth.jwt() returns jsonb language sql stable as $$select current_setting('request.jwt.claims',true)::jsonb$$;
     grant usage on schema auth to authenticated;
     insert into auth.users values('${owner}'),('${other}');`);
-  for(const file of ['sill_v1_storage.sql','sill_v1_rpc.sql'])await sql(await readFile(new URL('../supabase/drafts/'+file,import.meta.url),'utf8'));
+  await sql(`create role sill_installer nologin nosuperuser nocreatedb createrole noinherit nobypassrls;
+    grant create on database postgres to sill_installer;grant create on schema public to sill_installer;
+    grant usage on schema auth to sill_installer with grant option;grant execute on function auth.uid(),auth.jwt() to sill_installer with grant option;grant references,select on auth.users to sill_installer;`);
+  assert.equal(await sql("set session authorization sill_installer;set createrole_self_grant='';select current_setting('is_superuser')||':'||current_setting('createrole_self_grant');"),'off:');
+  for(const file of ['sill_v1_storage.sql','sill_v1_rpc.sql'])await install(file);
   await t.test('draft installs without any authenticated or anon execution privilege',async()=>{
    await assert.rejects(sql(asUser()+"select sill_private.get_content('x');"),/permission denied/);
    await assert.rejects(sql("set role anon;select sill_private.get_content('x');"),/permission denied/);
@@ -102,7 +107,10 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
    await assert.rejects(sql(asUser(other)+`insert into sill_private.contents(owner_id,id,change_version,card) values('${owner}','forged',1,'{}');`),/row-level security/);
   });
   await t.test('final boundary: public RPC works but direct tables, raw private RPC and same-owner ungranted client fail',async()=>{
-   await sql(await readFile(new URL('../supabase/drafts/sill_v1_boundary.sql',import.meta.url),'utf8'));
+   await install('sill_v1_boundary.sql');await install('sill_v1_sessions_snapshots.sql');
+   assert.equal(await sql("select count(*) from pg_auth_members m join pg_roles a on a.oid=m.member join pg_roles r on r.oid=m.roleid where r.rolname='sill_rpc_executor' and (m.set_option or m.inherit_option);"),'0');
+   await assert.rejects(sql("set session authorization sill_installer;set role sill_rpc_executor;"),/permission denied/);
+   assert.equal(await sql("select count(*) from pg_tables where schemaname='sill_private' and tableowner='sill_rpc_executor';"),'0');
    await sql("update sill_private.caller_grants set audience='authenticated' where caller_id like 'user:%';");
    const current=JSON.parse(await sql(asUser()+"select public.sill_list_contents(null,null,100);"));
    assert.ok(current.items.length>0);

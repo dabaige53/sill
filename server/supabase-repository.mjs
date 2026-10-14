@@ -1,7 +1,7 @@
 const errors = {
  unauthenticated:401,forbidden:403,not_found:404,invalid_request:400,
  revision_conflict:409,idempotency_conflict:409,idempotency_expired:409,
- event_terminal_conflict:409,cursor_expired:410,
+ event_terminal_conflict:409,cursor_expired:410,rate_limited:429,
 };
 export function serviceError(code,status=errors[code]??503) {
  return Object.assign(new Error(code),{code,status});
@@ -18,6 +18,7 @@ export class SupabaseRepository {
   }
   return result.data;
  }
+ session(){return this.rpc('sill_session_info',{});}
  list({cursor=null,since=null,limit=null}={}){
   return this.rpc('sill_list_contents',{cursor_token:cursor,since_token:since,requested_limit:limit});
  }
