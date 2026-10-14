@@ -50,7 +50,7 @@ bootstrap 应由操作者核实已有 Auth 用户 UUID 后，创建对应 worksp
 
 1. 在独立 Supabase 环境验证真实 Auth 邮件回调白名单、PKCE、token claims、四个 RPC 与 REST/GraphQL 拒绝矩阵。数据库操作者权限必须足以创建专用角色并转移函数所有权；本地 superuser 安装通过不代表托管 postgres 权限必然足够。
 2. 用户审阅三份 SQL 和此权限差异，确认已有用户、最终 HTTPS 域名、数据导入范围、保留/清理策略后，才考虑生产应用。没有本次授权的生产 SQL 或 Auth 配置操作。
-3. 当前只保留 HttpOnly access cookie，refresh token 不持久化；到期重新登录。登出清理 cookie，并请求撤销上游会话；已签发 access JWT 仍可能有效直到到期，不能声称即时撤销。浏览器 JS/XSS 仍能发同源请求，HttpOnly 不等于消除 XSS 风险。
+3. 当前只保留 HttpOnly access cookie，refresh token 不持久化；到期重新登录。草稿与未知结果的原请求仅存当前页面内存，离开页面会提示但没有持久恢复队列；重新登录/刷新后必须先读取核对，不能把旧意图当作新建再次提交。登出清理 cookie，并请求撤销上游会话；已签发 access JWT 仍可能有效直到到期，不能声称即时撤销。浏览器 JS/XSS 仍能发同源请求，HttpOnly 不等于消除 XSS 风险。
 4. 快照按页复制 JSON 的存储上限、过期回执/快照/tombstone 清理、特殊卡片与旧 item/state 的完整适配尚待完成。当前网页以笔记/通用内容字段为最小范围；不支持的来源、收藏、导入等明确提示未接通。
 5. `/mcp` 明确返回 503。另一任务的七工具 stdio MCP 文件未推送、此分支不可见，未集成也未验收；更早提到的 27 个 MCP 文件同样未包含。远程 MCP transport/discovery、真实 OAuth resource audience 支持、同意/撤销与客户端联调仍需后续实现，不能把 HTTP bearer 接口称作已上线 MCP。
 6. Supabase changelog/markdown 文档在该环境被访问策略阻止；已通过连接器检索官方 PKCE/Auth/RLS 文档，但未声称完成 changelog 全量复核。

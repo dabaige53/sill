@@ -42,9 +42,9 @@ try{
  await page.locator('#cloud-editor [type=submit]').click();await page.waitForFunction(()=>document.querySelector('#cloud-save-status')?.textContent.includes('另一处修改'));assert.equal(await page.locator('#cloud-title').inputValue(),'My retained draft');
  await page.locator('#cloud-editor [data-action=close]').click();await page.locator('#cloud-refresh').click();await page.waitForFunction(()=>window.__store.state.cards[0]?.title==='Other editor');
  await page.evaluate(id=>window.__app.action('edit',id),id);await page.locator('#cloud-title').fill('Confirmed update');await page.locator('#cloud-editor [type=submit]').click();await page.waitForFunction(()=>!document.querySelector('#modal').open);
- await mkdir('tests/artifacts',{recursive:true});await page.screenshot({path:'tests/artifacts/cloud-desktop.png'});
+ await mkdir('tests/artifacts',{recursive:true});await page.screenshot({path:'tests/artifacts/cloud-desktop.png',animations:'disabled'});
  await page.setViewportSize({width:390,height:844});await page.locator('#cloud-new').click();await page.locator('#cloud-title').fill('Mobile draft');
- assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile does not overflow');await page.screenshot({path:'tests/artifacts/cloud-mobile.png'});await page.locator('#cloud-editor [data-action=close]').click();
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile does not overflow');await page.screenshot({path:'tests/artifacts/cloud-mobile.png',animations:'disabled'});await page.locator('#cloud-editor [data-action=close]').click();
  assert.equal(await page.evaluate(()=>localStorage.length),0,'no token or private data persisted');
  assert.ok((await context.cookies()).filter(c=>c.name==='__Host-sill-access').every(c=>c.httpOnly&&c.secure));
  await page.locator('#cloud-logout').click();await page.locator('#cloud-login').waitFor();assert.equal(await page.locator('[data-card]').count(),0);
