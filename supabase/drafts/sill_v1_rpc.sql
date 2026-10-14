@@ -25,29 +25,51 @@ alter table sill_private.sync_snapshots add column kind text not null default 'p
 alter table sill_private.caller_grants enable row level security;
 alter table sill_private.destinations enable row level security;
 
+-- Only PostgREST's verified, transaction-local JWT claims are accepted. These helpers
+-- do not verify signatures and accept no identity arguments or legacy per-claim GUCs.
+-- No generic SQL/set_config RPC or authenticated database login may be exposed.
+create function sill_private.request_claims() returns jsonb
+language plpgsql stable security invoker set search_path='' as $$
+declare raw text:=pg_catalog.current_setting('request.jwt.claims',true); claims jsonb;
+begin
+ if raw is null or raw='' then return '{}'::jsonb;end if;
+ if octet_length(raw)>32768 then raise exception 'unauthenticated';end if;
+ begin claims:=raw::jsonb;exception when invalid_text_representation then raise exception 'unauthenticated';end;
+ if jsonb_typeof(claims)<>'object' then raise exception 'unauthenticated';end if;
+ return claims;
+end $$;
+create function sill_private.request_uid() returns uuid
+language plpgsql stable security invoker set search_path='' as $$
+declare claims jsonb:=sill_private.request_claims();
+begin
+ if jsonb_typeof(claims->'sub') is distinct from 'string'
+   or (claims->>'sub') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then return null;end if;
+ return (claims->>'sub')::uuid;
+end $$;
+
 create function sill_private.caller() returns text language sql stable security invoker set search_path='' as $$
- select case when auth.jwt()->>'client_id' is null then 'user:'||auth.uid()::text
- else 'oauth:'||(auth.jwt()->>'client_id') end
+ select case when sill_private.request_claims()->>'client_id' is null then 'user:'||sill_private.request_uid()::text
+ else 'oauth:'||(sill_private.request_claims()->>'client_id') end
 $$;
 create function sill_private.authorize(required_scope text, resource text default '*') returns void
 language plpgsql stable security invoker set search_path='' as $$
 begin
- if auth.uid() is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then
+ if sill_private.request_uid() is null or coalesce((sill_private.request_claims()->>'is_anonymous')::boolean,false) then
   raise exception 'unauthenticated';
  end if;
- if not exists(select 1 from sill_private.caller_grants g where g.owner_id=auth.uid()
+ if not exists(select 1 from sill_private.caller_grants g where g.owner_id=sill_private.request_uid()
    and g.caller_id=sill_private.caller() and required_scope=any(g.scopes)
    and (resource=any(g.resources) or '*'=any(g.resources))) then raise exception 'forbidden'; end if;
 end $$;
 
 -- Defense in depth; schema remains outside the Data API. No direct table grants.
-create policy own_workspace on sill_private.workspaces using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
-create policy own_content on sill_private.contents using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
-create policy own_event on sill_private.events using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
-create policy own_receipt on sill_private.receipts using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
-create policy own_snapshot on sill_private.sync_snapshots using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
-create policy own_grants on sill_private.caller_grants for select using(owner_id=(select auth.uid()) and caller_id=sill_private.caller());
-create policy own_destinations on sill_private.destinations for select using(owner_id=(select auth.uid()));
+create policy own_workspace on sill_private.workspaces using(owner_id=(select sill_private.request_uid())) with check(owner_id=(select sill_private.request_uid()));
+create policy own_content on sill_private.contents using(owner_id=(select sill_private.request_uid())) with check(owner_id=(select sill_private.request_uid()));
+create policy own_event on sill_private.events using(owner_id=(select sill_private.request_uid())) with check(owner_id=(select sill_private.request_uid()));
+create policy own_receipt on sill_private.receipts using(owner_id=(select sill_private.request_uid())) with check(owner_id=(select sill_private.request_uid()));
+create policy own_snapshot on sill_private.sync_snapshots using(owner_id=(select sill_private.request_uid())) with check(owner_id=(select sill_private.request_uid()));
+create policy own_grants on sill_private.caller_grants for select using(owner_id=(select sill_private.request_uid()) and caller_id=sill_private.caller());
+create policy own_destinations on sill_private.destinations for select using(owner_id=(select sill_private.request_uid()));
 
 create function sill_private.content_json(c sill_private.contents) returns jsonb
 language sql stable security invoker set search_path='' as $$
@@ -90,7 +112,7 @@ end $$;
 create function sill_private.write_v1(op text, resource_id text, payload jsonb, idem text) returns jsonb
 language plpgsql security invoker set search_path='' as $$
 declare
- uid uuid:=auth.uid(); actor text:=sill_private.caller(); scope text; digest text; receipt sill_private.receipts;
+ uid uuid:=sill_private.request_uid(); actor text:=sill_private.caller(); scope text; digest text; receipt sill_private.receipts;
  c sill_private.contents; e sill_private.events; d sill_private.destinations;
  ch jsonb; meta jsonb; next_card jsonb; next_state jsonb; result jsonb; status integer:=200; changed boolean:=false;
  seq bigint; expected bigint; event_target text;
@@ -194,14 +216,14 @@ create function sill_private.get_content(resource_id text) returns jsonb languag
 declare c sill_private.contents;
 begin
  perform sill_private.authorize('content:read',resource_id);
- select * into c from sill_private.contents where owner_id=auth.uid() and id=resource_id and not deleted;
+ select * into c from sill_private.contents where owner_id=sill_private.request_uid() and id=resource_id and not deleted;
  if not found then raise exception 'not_found'; end if;
  return sill_private.content_json(c);
 end $$;
 create function sill_private.get_event(event_id text) returns jsonb language plpgsql security invoker set search_path='' as $$
 declare e sill_private.events;
 begin
- select * into e from sill_private.events where owner_id=auth.uid() and events.event_id=get_event.event_id;
+ select * into e from sill_private.events where owner_id=sill_private.request_uid() and events.event_id=get_event.event_id;
  if not found then raise exception 'not_found'; end if;
  perform sill_private.authorize('event:read',e.card_id);
  if e.submitted_by<>sill_private.caller() and e.assigned_caller<>sill_private.caller() then raise exception 'forbidden'; end if;
@@ -210,7 +232,7 @@ end $$;
 
 create function sill_private.list_contents(cursor_token text default null, since_token text default null, requested_limit integer default null) returns jsonb
 language plpgsql security invoker set search_path='' as $$
-declare uid uuid:=auth.uid(); actor text:=sill_private.caller(); s sill_private.sync_snapshots; prev sill_private.sync_snapshots;
+declare uid uuid:=sill_private.request_uid(); actor text:=sill_private.caller(); s sill_private.sync_snapshots; prev sill_private.sync_snapshots;
  items jsonb; page jsonb; watermark bigint; since_version bigint:=0; page_size integer:=coalesce(requested_limit,50);
  next_token text; sync_token text; offset_value integer:=0; query_hash text;
 begin

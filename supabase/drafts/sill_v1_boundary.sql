@@ -10,9 +10,9 @@ alter table sill_private.caller_grants add column audience text;
 -- Existing grants deliberately stop working until their intended audience is reviewed.
 create or replace function sill_private.authorize(required_scope text, resource text default '*') returns void
 language plpgsql stable security invoker set search_path='' as $$
-declare claims jsonb:=auth.jwt();
+declare claims jsonb:=sill_private.request_claims();
 begin
- if auth.uid() is null or claims->>'role' is distinct from 'authenticated'
+ if sill_private.request_uid() is null or claims->>'role' is distinct from 'authenticated'
     or coalesce((claims->>'is_anonymous')::boolean,false)
     or jsonb_typeof(claims->'exp') is distinct from 'number'
     or (claims->>'exp')::numeric<=extract(epoch from statement_timestamp())
@@ -23,7 +23,7 @@ begin
   raise exception 'unauthenticated';
  end if;
  if not exists(select 1 from sill_private.caller_grants g
-   where g.owner_id=auth.uid() and g.caller_id=sill_private.caller()
+   where g.owner_id=sill_private.request_uid() and g.caller_id=sill_private.caller()
    and required_scope=any(g.scopes) and (resource=any(g.resources) or '*'=any(g.resources))
    and g.audience is not null
    and (claims->>'aud'=g.audience or claims->'aud' @> jsonb_build_array(g.audience))
@@ -66,8 +66,8 @@ revoke all on all tables in schema sill_private from public,anon,authenticated;
 revoke all on all functions in schema sill_private from public,anon,authenticated;
 revoke all on function public.sill_write_v1(text,text,jsonb,text), public.sill_get_content(text),
  public.sill_get_event(text), public.sill_list_contents(text,text,integer) from public,anon,authenticated;
-grant usage on schema auth,sill_private to sill_rpc_executor;
-grant execute on function auth.uid(),auth.jwt() to sill_rpc_executor;
+grant usage on schema sill_private to sill_rpc_executor;
+grant execute on function sill_private.request_uid(),sill_private.request_claims() to sill_rpc_executor;
 grant select,update on sill_private.workspaces to sill_rpc_executor;
 grant select,insert,update on sill_private.contents,sill_private.events to sill_rpc_executor;
 grant select,insert on sill_private.receipts,sill_private.sync_snapshots to sill_rpc_executor;

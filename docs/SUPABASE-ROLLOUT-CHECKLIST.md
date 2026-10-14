@@ -46,14 +46,14 @@ bootstrap 应由操作者核实已有 Auth 用户 UUID 后，创建对应 worksp
 ## 验证证据与边界
 
 - `npm run test:supabase`：旧准备测试、实际 PGlite SQL、权限旁路测试；新增使用内存临时 ES256 密钥签发合成 JWT，由真实官方 SDK 验签，覆盖篡改、过期、错误 issuer/audience、未来 nbf、client 混用。测试密钥不写入文件。
-- `npm run test:supabase:postgres`：固定 PostgreSQL 17.11 Docker 镜像，network none、无端口、tmpfs、合成 auth.uid/auth.jwt。实际多连接 CAS、幂等、快照水位、tombstone、回滚、RLS，以及最终授权边界。不是线上 Supabase 数据库。
+- `npm run test:supabase:postgres`：固定 PostgreSQL 17.11 Docker 镜像，network none、无端口、tmpfs、合成 PostgREST transaction claims（executor 不能调用 auth.uid/auth.jwt）。实际多连接 CAS、幂等、快照水位、tombstone、回滚、RLS，以及最终授权边界。不是线上 Supabase 数据库。
 - `npm run build:cloud` 后 `npm run test:cloud-browser`：真实 Chromium 1440/390px，登录/回调/创建/刷新后读取/修改冲突保留草稿/更新/登出；模拟写成功但响应丢失后核对原请求，只有一行。没有 localStorage 卡片或 token。截图写在 tests/artifacts/cloud-*.png，CI 保存 artifact。
 - HTTP/浏览器测试走真实官方 SDK 和实际 SQL；GoTrue/JWKS/PostgREST 的网络由本地合成 transport 提供。它不是 Supabase Auth 邮件、真实用户、真实 OAuth 或真实 PostgREST/GraphQL 验收。
 - `CHROMIUM_PATH=/usr/bin/chromium` 可使用本机浏览器；CI 使用 Playwright Chromium。原产品回归另跑 `npm test` 与 `npm run test:core`。
 
 ## 上线前剩余项
 
-1. 在独立 Supabase 环境验证真实 Auth 邮件回调白名单、PKCE、token claims、五个 RPC 与 REST/GraphQL 拒绝矩阵。数据库操作者权限必须足以创建专用角色并转移函数所有权；已在 PostgreSQL 17.11 非超级用户安装角色下验证；托管项目的 auth schema/函数 GRANT OPTION 等前提仍需核验。
+1. 在独立 Supabase 环境验证真实 Auth 邮件回调白名单、PKCE、token claims、五个 RPC 与 REST/GraphQL 拒绝矩阵。数据库操作者权限必须足以创建专用角色并转移函数所有权；已在 PostgreSQL 17.11 非超级用户安装角色下验证；执行角色已移除 auth schema 依赖，安装回归无 auth GRANT OPTION；安装者仅需既有 auth.users 外键和 bootstrap 的普通权限。
 2. 用户审阅四份 SQL 和此权限差异，确认已有用户、最终 HTTPS 域名、数据导入范围、保留/清理策略后，才考虑生产应用。没有本次授权的生产 SQL 或 Auth 配置操作。
 3. 当前只保留 HttpOnly access cookie，refresh token 不持久化；到期重新登录。草稿与未知结果的原请求仅存当前页面内存，离开页面会提示但没有持久恢复队列；重新登录/刷新后必须先读取核对，不能把旧意图当作新建再次提交。登出清理 cookie，并请求撤销上游会话；已签发 access JWT 仍可能有效直到到期，不能声称即时撤销。浏览器 JS/XSS 仍能发同源请求，HttpOnly 不等于消除 XSS 风险。
 4. 共享快照数量/字节/有效期限制及按请求过期清理已补齐；空闲时管理员定期清理、过期回执/tombstone 隐私清理、特殊卡片与旧 item/state 的完整适配尚待完成。当前网页以笔记/通用内容字段为最小范围；不支持的来源、收藏、导入等明确提示未接通。
@@ -61,3 +61,5 @@ bootstrap 应由操作者核实已有 Auth 用户 UUID 后，创建对应 worksp
 6. Supabase changelog/markdown 文档在该环境被访问策略阻止；已通过连接器检索官方 PKCE/Auth/RLS 文档，但未声称完成 changelog 全量复核。
 
 本次最终生产动作、首次邀请唯一邮箱账号、精确回调 URL 与安装者权限前提请以 [生产动作审查](PRODUCTION-ACTIONS-REVIEW.md) 为准。
+
+执行角色的身份读取统一使用私有 request_claims/request_uid，无参数、仅可信 PostgREST request.jwt.claims，缺失/损坏时失败关闭。原 owner RLS 与 caller/scope/resource/audience 检查不变。authenticated 无裸 helper 执行权限、无底层表 ACL，也没有给 executor 授 authenticated 角色。

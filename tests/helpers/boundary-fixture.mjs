@@ -3,9 +3,7 @@ export const A='11111111-1111-4111-8111-111111111111', B='22222222-2222-4222-822
 export const resource='https://sill.example/mcp';
 export async function setupBoundary(db){
  await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);
- create function auth.uid() returns uuid language sql stable as $$select (current_setting('request.jwt.claims',true)::jsonb->>'sub')::uuid$$;
- create function auth.jwt() returns jsonb language sql stable as $$select current_setting('request.jwt.claims',true)::jsonb$$;
- grant usage on schema auth to authenticated;
+
  insert into auth.users values('${A}'),('${B}');`);
  for(const name of ['sill_v1_storage.sql','sill_v1_rpc.sql','sill_v1_boundary.sql','sill_v1_sessions_snapshots.sql'])await db.exec(await readFile(new URL('../../supabase/drafts/'+name,import.meta.url),'utf8'));
  await db.exec(`insert into sill_private.workspaces(owner_id) values('${A}'),('${B}');

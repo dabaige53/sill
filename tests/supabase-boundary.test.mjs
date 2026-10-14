@@ -29,6 +29,16 @@ test('public RPC boundary denies direct access and enforces per-client authoriza
    await assert.rejects(write('create',null,{type:'note',title:'Owner record'},'create_one'),/forbidden/);
    await identity(db,claims(A,{client_id:'unknown',aud:resource,user_metadata:{scopes:['*']}}));await assert.rejects(rpc(db,'sill_get_content',[one.id]),/forbidden/);
   });
+  await t.test('private claim helpers fail closed without trusted claims and cannot be invoked directly',async()=>{
+   await identity(db);await assert.rejects(db.exec('select sill_private.request_claims()'),/permission denied/);
+   await assert.rejects(db.exec('select sill_private.request_uid()'),/permission denied/);
+   for(const raw of ['', '{}','[]','not-json',JSON.stringify(claims(A,{sub:'invalid'}))]){
+    await db.exec('reset role');await db.query("select set_config('request.jwt.claims',$1,false)",[raw]);
+    await db.query("select set_config('request.jwt.claim.sub',$1,false)",[A]);
+    await db.exec('set role authenticated');await assert.rejects(rpc(db,'sill_get_content',[one.id]),/unauthenticated/);
+   }
+   await identity(db);
+  });
   await t.test('database boundary independently rejects wrong resource, expired and anonymous claims',async()=>{
    for(const extra of [{client_id:'reader',aud:'authenticated'},{client_id:'reader',aud:'https://wrong.example/mcp'},{exp:0},{is_anonymous:true},{role:'anon'}]){
     await identity(db,claims(A,extra));await assert.rejects(rpc(db,'sill_get_content',[one.id]),/forbidden|unauthenticated/);

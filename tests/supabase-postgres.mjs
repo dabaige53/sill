@@ -45,12 +45,14 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
   await sql(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);
     create function auth.uid() returns uuid language sql stable as $$select (current_setting('request.jwt.claims',true)::jsonb->>'sub')::uuid$$;
     create function auth.jwt() returns jsonb language sql stable as $$select current_setting('request.jwt.claims',true)::jsonb$$;
-    grant usage on schema auth to authenticated;
+    revoke all on function auth.uid(),auth.jwt() from public;grant execute on function auth.uid(),auth.jwt() to authenticated;grant usage on schema auth to authenticated;
     insert into auth.users values('${owner}'),('${other}');`);
   await sql(`create role sill_installer nologin nosuperuser nocreatedb createrole noinherit nobypassrls;
     grant create on database postgres to sill_installer;grant create on schema public to sill_installer;
-    grant usage on schema auth to sill_installer with grant option;grant execute on function auth.uid(),auth.jwt() to sill_installer with grant option;grant references,select on auth.users to sill_installer;`);
+    grant usage on schema auth to sill_installer;grant references,select on auth.users to sill_installer;`);
   assert.equal(await sql("set session authorization sill_installer;set createrole_self_grant='';select current_setting('is_superuser')||':'||current_setting('createrole_self_grant');"),'off:');
+  assert.equal(await sql("select has_schema_privilege('sill_installer','auth','USAGE WITH GRANT OPTION');"),'f');
+  assert.equal(await sql("select has_function_privilege('sill_installer','auth.uid()','EXECUTE WITH GRANT OPTION') or has_function_privilege('sill_installer','auth.jwt()','EXECUTE WITH GRANT OPTION');"),'f');
   for(const file of ['sill_v1_storage.sql','sill_v1_rpc.sql'])await install(file);
   await t.test('draft installs without any authenticated or anon execution privilege',async()=>{
    await assert.rejects(sql(asUser()+"select sill_private.get_content('x');"),/permission denied/);
@@ -112,6 +114,16 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
    await assert.rejects(sql("set session authorization sill_installer;set role sill_rpc_executor;"),/permission denied/);
    assert.equal(await sql("select count(*) from pg_tables where schemaname='sill_private' and tableowner='sill_rpc_executor';"),'0');
    await sql("update sill_private.caller_grants set audience='authenticated' where caller_id like 'user:%';");
+   assert.equal(await sql("select has_schema_privilege('sill_rpc_executor','auth','USAGE');"),'f');
+   assert.equal(await sql("select pg_has_role('sill_rpc_executor','authenticated','MEMBER');"),'f');
+   for(const fn of ['uid','jwt'])await assert.rejects(sql(`set role sill_rpc_executor;select auth.${fn}();`),/permission denied/);
+   // All CRUD below uses public RPCs through the executor, with auth schema inaccessible.
+   const made=parse(await sql(asUser()+"select public.sill_write_v1('create',null,'{\"type\":\"note\",\"title\":\"No auth schema\"}','public_create1');"));
+   const publicId=made.body.id;
+   assert.equal(JSON.parse(await sql(asUser()+`select public.sill_get_content(${quote(publicId)});`)).title,'No auth schema');
+   assert.equal(parse(await sql(asUser()+`select public.sill_write_v1('update',${quote(publicId)},'{"expectedRevision":1,"changes":{"title":"Updated"}}','public_update1');`)).body.revision,2);
+   assert.equal(parse(await sql(asUser()+`select public.sill_write_v1('delete',${quote(publicId)},'{"expectedRevision":2}','public_delete1');`)).body.deleted,true);
+   await assert.rejects(sql(asUser()+`select public.sill_get_content(${quote(publicId)});`),/not_found/);
    const current=JSON.parse(await sql(asUser()+"select public.sill_list_contents(null,null,100);"));
    assert.ok(current.items.length>0);
    for(const statement of ['select * from sill_private.contents;',"update sill_private.contents set card='{}';",'select * from sill_private.caller_grants;',"select sill_private.get_content('x');"]){

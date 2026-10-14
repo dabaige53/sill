@@ -8,7 +8,7 @@ create table sill_private.list_snapshots (
  primary key(owner_id,id), check(expires_at>created_at and expires_at<=created_at+interval '15 minutes')
 );
 alter table sill_private.list_snapshots enable row level security;
-create policy owner_rows on sill_private.list_snapshots for all using(owner_id=auth.uid()) with check(owner_id=auth.uid());
+create policy owner_rows on sill_private.list_snapshots for all using(owner_id=sill_private.request_uid()) with check(owner_id=sill_private.request_uid());
 alter table sill_private.sync_snapshots add column snapshot_id uuid;
 alter table sill_private.sync_snapshots add foreign key(owner_id,snapshot_id) references sill_private.list_snapshots(owner_id,id) on delete cascade;
 -- Prior prototype cursors are incompatible and contain duplicated projections.
@@ -22,7 +22,7 @@ grant delete on sill_private.sync_snapshots to sill_rpc_executor;
 
 create function sill_private.session_info() returns jsonb
 language plpgsql security invoker set search_path='' as $$
-declare uid uuid:=auth.uid(); g sill_private.caller_grants;
+declare uid uuid:=sill_private.request_uid(); g sill_private.caller_grants;
 begin
  select * into g from sill_private.caller_grants where owner_id=uid and caller_id=sill_private.caller();
  if not found or cardinality(g.scopes)=0 or cardinality(g.resources)=0 then raise exception 'forbidden'; end if;
@@ -52,7 +52,7 @@ grant execute on function public.sill_session_info() to authenticated;
 -- Existing list_contents is owned by the installer and remains SECURITY INVOKER.
 create or replace function sill_private.list_contents(cursor_token text default null,since_token text default null,requested_limit integer default null) returns jsonb
 language plpgsql security invoker set search_path='' as $$
-declare uid uuid:=auth.uid();actor text:=sill_private.caller();s sill_private.sync_snapshots;prev sill_private.sync_snapshots;
+declare uid uuid:=sill_private.request_uid();actor text:=sill_private.caller();s sill_private.sync_snapshots;prev sill_private.sync_snapshots;
  items jsonb;page jsonb;watermark bigint;since_version bigint:=0;page_size integer:=coalesce(requested_limit,50);
  next_token text;sync_token text;offset_value integer:=0;query_hash text;sid uuid;expiry timestamptz;row_count bigint;byte_count bigint;
 begin

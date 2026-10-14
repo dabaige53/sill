@@ -27,7 +27,7 @@
 
 - [`sill_v1_storage.sql`](../supabase/drafts/sill_v1_storage.sql)：五张私有表、索引/约束/RLS。
 - [`sill_v1_rpc.sql`](../supabase/drafts/sill_v1_rpc.sql)：caller_grants/destinations、事务/幂等/CAS/事件/快照业务函数、owner RLS。
-- [`sill_v1_boundary.sql`](../supabase/drafts/sill_v1_boundary.sql)：撤销 authenticated 直接表/原私有函数权限；四个 public invoker 包装→四个 private definer 网关；专用 sill_rpc_executor NOLOGIN/NOBYPASSRLS、不拥有表；固定 search_path 与 row_security=on。新增 grants.audience，旧 NULL 行不再生效。安装者仅临时获得 executor SET 权限，以 executor 身份授网关 EXECUTE 后撤回 SET；不授 INHERIT。PG17.11 回归用 NOSUPERUSER/CREATEROLE、createrole_self_grant=空的角色安装，确认执行角色无表所有权/BYPASSRLS。实际安装者仍须有 auth schema USAGE 与 auth.uid/auth.jwt EXECUTE 的 grant option，生产前核验，不默默升级角色。
+- [`sill_v1_boundary.sql`](../supabase/drafts/sill_v1_boundary.sql)：撤销 authenticated 直接表/原私有函数权限；四个 public invoker 包装→四个 private definer 网关；专用 sill_rpc_executor NOLOGIN/NOBYPASSRLS、不拥有表；固定 search_path 与 row_security=on。新增 grants.audience，旧 NULL 行不再生效。安装者仅临时获得 executor SET 权限，以 executor 身份授网关 EXECUTE 后撤回 SET；不授 INHERIT。PG17.11 回归用 NOSUPERUSER/CREATEROLE、createrole_self_grant=空的角色安装，确认执行角色无表所有权/BYPASSRLS。执行角色不再依赖 auth schema，也不需要安装者转授 auth 权限。私有 request_claims/request_uid 仅读取可信 PostgREST 事务设置 request.jwt.claims；所有 RLS/授权/业务函数使用这两个 helper，最终权限仍由 owner/client/scope/resource/audience/expiry 决定。安装者仅为 auth.users 外键/owner bootstrap 保留既有 USAGE、REFERENCES/SELECT 前提，不要求 GRANT OPTION；不授 executor 整个 authenticated 角色。
 - [`sill_v1_sessions_snapshots.sql`](../supabase/drafts/sill_v1_sessions_snapshots.sql)：独立 session_info RPC、每 owner 最多8份共享快照/每份2MiB/15分钟/最多128游标；单次物化最多1000条投影（超限返回429，不截断丢数据）；分页只存引用。迁移明确清空旧临时游标投影，旧游标返回410；不删除内容或幂等回执。成功会话/列表请求清理过期快照，另提供 [管理员清理 SQL](../supabase/drafts/sill_v1_expired_snapshot_cleanup.sql)，可经批准接现有调度；没有宣称空闲时自动定期物理清理已配置。
 - [`sill_v1_owner_bootstrap.sql`](../supabase/drafts/sill_v1_owner_bootstrap.sql)：仅经核验 owner 的最小网页授权，零真实身份写入仓库。
 
@@ -54,3 +54,5 @@
 `server/cloud/mcp.mjs` 新增 request-scoped/stateless 官方 Streamable HTTP：initialize、按数据库当前 scopes/resources 筛选 tools/list、七个契约工具、RFC9728 metadata/401 challenge；每请求验签并重新读取授权，资源级权限继续在同一 RPC 内判断。MCP_ENABLE 默认关闭，只有 AGENT_AUDIENCE 等于 APP_ORIGIN + /mcp 才可启用。不是继承旧27文件。
 
 真实官方 MCP Client 已在本地通过 HTTP 调用业务函数，合成 OAuth JWT + 实际 SQL；浏览器读取同一数据库的新内容。真实 Codex、真实 Supabase OAuth/邮件、resource audience、consent/客户端注册和生产 PostgREST仍未验收。因此只可以说本地运输与共同数据层连通，不能说 Codex 已接入。
+
+最新兼容回归：PG17.11 安装角色没有 auth schema/function GRANT OPTION；executor 没有 auth USAGE，直接调用 auth.uid/jwt 失败，但 public RPC 的创建→读取→修改→删除成功，跨 owner/同 owner 受限 client 仍拒绝。helper 无身份参数、无旧单项 GUC 回退、不接受客户端提供的 owner；缺失/损坏 claims 拒绝。此方案依赖 PostgREST验证 JWT 后设置事务 claims，不能暴露任意 SQL/set_config RPC 或 authenticated SQL 登录。不是在数据库里重新验签。
