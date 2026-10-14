@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>图标盘点</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.tile{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0;color:#1d1d1f}
+.tile.dim{background:transparent;border-style:dashed;border-color:rgba(0,0,0,.18);color:#86868b}
+.glyph{height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nm{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;line-height:1.5;font-weight:600}
+.us{font-size:12px;line-height:1.5;color:#6e6e73}
+.b{align-self:flex-start;font-size:11px;line-height:1;padding:4px 7px;border-radius:9px;white-space:nowrap}
+.b.m{background:#fdf3e7;color:#8a4207}
+.b.u{background:#f0f0f2;color:#6e6e73}
+.b.s{background:#edf4ff;color:#0057ad}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat b{font-size:34px;line-height:1.15;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:#6e6e73}
+.obs{font-size:13px;line-height:1.6;display:flex;flex-direction:column;gap:4px}
+.obs h3{margin:0;font-size:13px;font-weight:600}
+.obs p{margin:0;color:#1d1d1f}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1120px; box-sizing: border-box; padding: 56px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; color: #6e6e73">03 · 图标盘点</span>
+      <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">Mono24 · 38 个自绘线性图标</h1>
+      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6e6e73; max-width: 720px">src/atoms/icons.js 单一来源：24 网格、stroke 1.65、圆角端点、currentColor。按源码引用逐个核对用途。</p>
+    </div>
+    <div style="display: flex; gap: 36px">
+      <div class="stat"><b>32</b><span>在用</span></div>
+      <div class="stat"><b style="color: #6e6e73">6</b><span>未使用</span></div>
+      <div class="stat"><b style="color: #b45309">7</b><span>一形多义</span></div>
+      <div class="stat"><b>10</b><span>渲染尺寸</span></div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px">
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"></path><path d="M20 2v4m-2-2h4"></path></svg></div><span class="nm">sparkles</span><span class="us">关联建议 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5"></path></svg></div><span class="nm">refresh</span><span class="us">Dock · 刷新</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h11m4 0h1"></path><circle cx="13" cy="6" r="2"></circle><circle cx="8" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg></div><span class="nm">filter</span><span class="us">Dock · 筛选与搜索</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg></div><span class="nm">search</span><span class="us">空状态 · 26px</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z"></path></svg></div><span class="nm">bookmark</span><span class="us">收藏 · 4 处入口</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v7l10 10 8-8L11 3H4a1 1 0 0 0-1 1Z"></path><circle cx="7.5" cy="7.5" r="1"></circle></svg><span class="b s">兼管备注</span></div><span class="nm">tag</span><span class="us">标签与备注 · 3 处</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9M8 8h5M8 12h3"></path><path d="m14 12 6-6 2-2-2-2-2 2-6 6-1 4Z"></path></svg></div><span class="nm">note</span><span class="us">笔记 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></div><span class="nm">more</span><span class="us">卡片更多</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg><span class="b m">多义</span></div><span class="nm">check</span><span class="us">完成提醒 · 已读 · 勾选 · 选中 · 设置</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 3 3 5-6"></path></svg></div><span class="nm">check-circle</span><span class="us">待办 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg><span class="b m">多义</span></div><span class="nm">x</span><span class="us">关闭 · 忽略提醒 · 取消选择</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></div><span class="nm">plus</span><span class="us">添加标签</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"></path></svg><span class="b m">多义</span></div><span class="nm">arrow</span><span class="us">下一个片段 · 关联跳转</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4m-6 6 6-6 6 6"></path></svg></div><span class="nm">up</span><span class="us">返回顶部</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4m6-6-6 6 6 6"></path></svg></div><span class="nm">back</span><span class="us">上一个片段</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"></path></svg></div><span class="nm">expand</span><span class="us">进入完整阅读</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7M21 3l-10 10M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"></path></svg></div><span class="nm">external</span><span class="us">打开来源</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><span class="b m">多义</span></div><span class="nm">clock</span><span class="us">稍后阅读 · 延后提醒</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M7 3v4m10-4v4M3 10h18M7 14h2m3 0h2m3 0h0M7 17h2m3 0h2"></path></svg></div><span class="nm">calendar</span><span class="us">日程 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m3 7 9 6 9-6"></path></svg></div><span class="nm">mail</span><span class="us">邮件 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"></path><path d="M12 5v15"></path></svg></div><span class="nm">book</span><span class="us">资讯 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 10 5-10 5L2 8Zm-9 9 9 5 9-5M3 17l9 5 9-5"></path></svg><span class="b m">多义</span></div><span class="nm">layers</span><span class="us">Orb · 回顾类型 · 筛选「全部」</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9a7 7 0 0 1 14 0c0 8 2 8 2 9H3c0-1 2-1 2-9M9 21h6"></path></svg></div><span class="nm">bell</span><span class="us">提醒 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 11 7-11 7Z"></path></svg><span class="b m">多义</span></div><span class="nm">play</span><span class="us">媒体类型 · 播放</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke-width="3"></path></svg><span class="b s">线宽 3</span></div><span class="nm">pause</span><span class="us">暂停播放</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"></path><path d="M14 3v6h6M8 14h8M8 17h5"></path></svg></div><span class="nm">file</span><span class="us">邮件附件</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"></path></svg></div><span class="nm">download</span><span class="us">下载日程</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="m8 12 3 3 5-6"></path></svg></div><span class="nm">select</span><span class="us">选择卡片</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5v6h6M3 11a9 9 0 1 1 2 8"></path></svg><span class="b m">多义</span></div><span class="nm">undo</span><span class="us">撤销 · 恢复提醒 · 标为未读</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7h.01"></path></svg><span class="b s">形义不符</span></div><span class="nm">info</span><span class="us">使用说明与设置</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 9 9" stroke-width="3"></path></svg><span class="b s">线宽 3</span></div><span class="nm">ring</span><span class="us">阅读反馈 · 类型</span></div>
+    <div class="tile"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 13a9 9 0 1 1-10-10 7 7 0 0 0 10 10Z"></path></svg></div><span class="nm">moon</span><span class="us">设置 · 减少动态效果</span></div>
+    <div class="tile dim"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"></rect><path d="m16 10 5-3v10l-5-3"></path></svg><span class="b u">未使用</span></div><span class="nm">video</span><span class="us">无引用</span></div>
+    <div class="tile dim"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg><span class="b u">未使用</span></div><span class="nm">grid</span><span class="us">无引用</span></div>
+    <div class="tile dim"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg><span class="b u">未使用</span></div><span class="nm">grip</span><span class="us">无引用（拖拽无把手）</span></div>
+    <div class="tile dim"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7 18-4-7-7-4Zm0 0L10 14"></path></svg><span class="b u">未使用</span></div><span class="nm">send</span><span class="us">AI 对话退场后遗留</span></div>
+    <div class="tile dim"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H4v7h5c0 4-2 6-5 7M21 5h-6v7h5c0 4-2 6-5 7"></path></svg><span class="b u">未使用</span></div><span class="nm">quote</span><span class="us">摘录卡未用</span></div>
+    <div class="tile dim"><div class="glyph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg><span class="b u">未使用</span></div><span class="nm">eye</span><span class="us">无引用</span></div>
+  </div>
+
+  <section style="margin-top: auto; background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 20px; padding: 24px 28px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px">
+    <div class="obs"><h3>一形多义</h3><p>layers 同时是全局入口、回顾卡、筛选「全部」；clock 同时代表「稍后读」和「延后提醒」两件不同的事；check 承担 5 种含义。</p></div>
+    <div class="obs"><h3>形义不符</h3><p>设置入口用 info；「标签与备注」只画了 tag；空状态用 search 而不是与筛选一致的 filter。</p></div>
+    <div class="obs"><h3>尺寸零散</h3><p>实际渲染出现 13 · 14 · 15 · 16 · 17 · 18 · 19 · 22 · 24 · 26 共 10 档；pause、ring 局部把线宽改成 3。</p></div>
+    <div class="obs"><h3>资产不同步</h3><p>design-system/assets/Icons 导出的 SVG 墨色固定为 #1d1d1f，不跟随 currentColor；6 个未用图标仍在导出列表里。</p></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ function fixture(raw=null,at=1800000000000){
  const context=vm.createContext({
   Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}},
   localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},
-  window:{},CSS:{escape:value=>String(value)},document:{getElementById(id){if(!nodes.has(id))nodes.set(id,{dataset:{},focus(){},setAttribute(k,v){this[k]=v;}});return nodes.get(id);}},
+  window:{scrollTo(){}},CSS:{escape:value=>String(value)},document:{getElementById(id){if(!nodes.has(id))nodes.set(id,{dataset:{},focus(){},setAttribute(k,v){this[k]=v;}});return nodes.get(id);}},
   icon:()=>'',history:{replaceState(){}},
  });
  vm.runInContext(sources.map(p=>fs.readFileSync(path.join(root,p),'utf8')).join('\n')+'\nthis.api={FeedPolicy,Store,AppController,SeedCards,FreshCards};',context);
@@ -31,7 +31,7 @@ test('v1 state migrates without losing independent reading, tags, tasks or notes
  assert.equal(Store.item('article-01').note,'保留备注');assert.equal(Store.item('article-01').bookmarked,true);
  assert.deepEqual(Array.from(Store.tasks(Store.card('task-01')).filter(t=>t.done),t=>t.id),['t2']);
  assert.equal(Store.state.seconds,42);assert.equal(Store.state.preferences.reduceTransparency,true);
- assert.equal(JSON.parse(data.get(Store.key)).version,3);
+ assert.equal(JSON.parse(data.get(Store.key)).version,4);
 });
 test('reload preserves the original demo clock, snooze deadline and ordering preference',()=>{
  const f=fixture(),due=f.Store.card('reminder-01').due;
@@ -42,16 +42,16 @@ test('reload preserves the original demo clock, snooze deadline and ordering pre
  assert.equal(g.Store.state.preferences.sort,'time');
 });
 test('storage corruption and unavailable storage leave the demo usable',()=>{
- const f=fixture('{');assert.equal(f.Store.state.cards.length,16);
+ const f=fixture('{');assert.equal(f.Store.state.cards.length,f.SeedCards.length);
  f.context.localStorage.setItem=()=>{throw Error('denied');};
  f.Store.patch('article-01',{bookmarked:true});assert.equal(f.Store.state.storageAvailable,false);
  assert.equal(f.Store.item('article-01').bookmarked,true);
 });
 test('malformed persisted fields are bounded and unknown card IDs are discarded',()=>{
- const {Store}=fixture({version:2,items:{'reminder-01':{snoozedUntil:'tomorrow',lastNotifiedAt:Infinity,note:1,tags:[1,'safe'],progress:-3},unknown:{read:true}},sort:'invalid',freshIds:['missing','fresh-note','fresh-note']});
+ const f=fixture({version:2,items:{'reminder-01':{snoozedUntil:'tomorrow',lastNotifiedAt:Infinity,note:1,tags:[1,'safe'],progress:-3},unknown:{read:true}},sort:'invalid',freshIds:['missing','fresh-note','fresh-note']}),{Store}=f;
  const s=Store.item('reminder-01');assert.equal(s.snoozedUntil,0);assert.equal(s.progress,0);assert.equal(s.note,'');
  assert.deepEqual(Array.from(s.tags),['safe']);assert.equal(Store.state.items.unknown,undefined);
- assert.equal(Store.state.preferences.sort,'priority');assert.equal(Store.state.cards.length,17);
+ assert.equal(Store.state.preferences.sort,'priority');assert.equal(Store.state.cards.length,f.SeedCards.length+1);
 });
 test('repeated load resets removed flags rather than retaining stale in-memory state',()=>{
  const {Store,data}=fixture();Store.patch('article-01',{bookmarked:true});data.clear();Store.load();
@@ -62,7 +62,7 @@ test('refresh insertion deduplicates IDs and restores new-card flags and timesta
  assert.equal(f.Store.insert([card,card]),1);assert.equal(f.Store.insert([card]),0);
  f.Store.patch(card.id,{bookmarked:true});
  const g=fixture(f.data.get(f.Store.key),f.now()+600000);
- assert.equal(g.Store.state.cards.length,17);assert.equal(g.Store.card(card.id).time,card.time);
+ assert.equal(g.Store.state.cards.length,g.SeedCards.length+1);assert.equal(g.Store.card(card.id).time,card.time);
  assert.equal(g.Store.item(card.id).bookmarked,true);
 });
 test('priority, unread and time sorts are stable, immutable and deduplicated',()=>{
@@ -132,16 +132,17 @@ test('snoozed and dismissed views compose with type, tag and search filters',()=
 test('explicit pending confirmation respects current filters and never duplicates cards',()=>{
  const f=fixture();f.advance(600001);f.app.checkReminders();
  f.app.pendingCards=[f.FreshCards[0],f.FreshCards[0]];f.app.filter.type='mail';f.app.showNew();
- assert.equal(f.Store.state.cards.length,17);assert.equal(f.app.filtered().every(c=>c.type==='mail'),true);
+ assert.equal(f.Store.state.cards.length,f.SeedCards.length+1);assert.equal(f.app.filtered().every(c=>c.type==='mail'),true);
  f.app.checkReminders();assert.equal(f.app.pendingReminders.length,0);
 });
 
 test('duplicate popstate/hashchange does not close a newly opened local panel',()=>{
  const f=fixture();f.context.location={hash:'#feed'};let closes=0;
- f.app.closeNative=()=>closes++;
+ f.app.closeNative=()=>closes++;f.app.modalKind='preview';
  f.app.route();assert.equal(closes,1);
- f.app.modalKind='editor';f.app.route();assert.equal(closes,1);
+ f.app.route();assert.equal(closes,1);
  f.app.route(true);assert.equal(closes,2);
+ f.app.modalKind='editor';f.app.route(true);assert.equal(closes,2);
 });
 
 test('touch consistently opens local tools',()=>{

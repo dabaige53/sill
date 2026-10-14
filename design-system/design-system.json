@@ -5,7 +5,7 @@
   "v": 1,
   "at": "2026-10-12T01:15:54Z"
  },
- "title": "Quiet Glass",
+ "title": "Sill",
  "namespace": "QuietGlass",
  "libraries": [],
  "sections": {},
@@ -294,8 +294,8 @@
  },
  "lastChange": {
   "by": "dabaige53",
-  "at": "2026-10-12T01:41:58Z",
+  "at": "2026-10-13T12:00:00Z",
   "via": "Claude Code",
-  "note": "图标目录并入 Icons 说明；旧参考库与 Storybook 下线后同步手册与样式"
+  "note": "更名 Sill；按设计画布定稿更新令牌、手册、封面；新增积木、叠卡、要点、读完圆环、来源行；InsightCard、ReminderCard 退役"
  }
 }

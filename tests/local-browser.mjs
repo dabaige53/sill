@@ -41,8 +41,8 @@ try{
   value=await fetch(origin+'/api/local/state').then(r=>r.json());assert.equal(value.state.items['agent-test'].note,'页面写回给 AI');
   await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('dialog').open);
   await page.locator('#orb').click();await page.getByRole('button',{name:'刷新卡片',exact:true}).click();
-  await page.getByText('卡片已刷新',{exact:true}).waitFor();assert.equal(value.state.cards.length,17);
-  const box=await page.locator('[data-card="agent-test"]').boundingBox();assert.ok(box.width<300);
+  await page.waitForFunction(()=>document.querySelector('#announcer').textContent==='卡片已刷新');assert.equal(value.state.cards.length,31);
+  const box=await page.locator('[data-card="agent-test"]').boundingBox();assert.ok(box.width>=280&&box.width<=380);
   await page.screenshot({path:join(artifacts,'local-cards.png'),animations:'disabled'});
   // A second page sees the same data; a restart reloads the persisted repository.
   const second=await browser.newPage();await second.goto(origin);await second.waitForFunction(()=>document.querySelector('#feed-grid')?.dataset.sync==='saved');
@@ -52,7 +52,15 @@ try{
   assert.equal(await page.locator('[data-card="agent-test"]').count(),0);
   await new Promise(resolve=>server.close(resolve));server=await startLocal({port,file});
   await page.reload();await page.waitForFunction(()=>document.querySelector('#feed-grid')?.dataset.sync==='saved');
-  value=await fetch(origin+'/api/local/state').then(r=>r.json());assert.equal(value.state.cards.length,16);assert.equal(value.state.items['note-01'].note,'旧备注');
+  value=await fetch(origin+'/api/local/state').then(r=>r.json());assert.equal(value.state.cards.length,30);assert.equal(value.state.items['note-01'].note,'旧备注');
+  // Cards made on the page (capture, import) and source changes reach the shared repository too.
+  await page.evaluate(()=>window.__app.capture('https://example.com/sync 页面收集的链接'));
+  await page.evaluate(()=>window.__app.action('permission-allow','','photos'));
+  await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='saved');
+  value=await fetch(origin+'/api/local/state').then(r=>r.json());
+  assert.ok(value.state.cards.some(c=>c.url==='https://example.com/sync'&&c.title==='页面收集的链接'));
+  assert.equal(value.state.sources.find(s=>s.id==='src-photos')?.status,'ok');
+  assert.ok(value.state.sources.length>=5);
   assert.deepEqual(errors,[]);
   await writeFile(join(artifacts,'local-browser.json'),JSON.stringify({status:'passed',checks:['旧数据迁移','AI 写入自动显示','页面操作写回','打开预览同步','设置同步','刷新无假数据','双页面同步','删除与重启持久化'],errors},null,2));
   console.log('PASS local card UI and agent operations share persistent state');

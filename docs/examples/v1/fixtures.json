@@ -1,0 +1,320 @@
+{
+  "status": "synthetic-independent-examples-not-a-live-sequence",
+  "cases": [
+    {
+      "name": "create",
+      "operationId": "createContent",
+      "arguments": {
+        "idempotency_key": "create_demo",
+        "body": {
+          "title": "合成笔记",
+          "type": "note",
+          "body": [
+            "仅用于契约示例"
+          ]
+        }
+      },
+      "status": 201,
+      "response": {
+        "id": "card_demo",
+        "title": "合成笔记",
+        "type": "note",
+        "body": [
+          "仅用于契约示例"
+        ],
+        "state": {
+          "read": false,
+          "done": false,
+          "archived": false
+        },
+        "revision": 1,
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:00Z",
+        "deleted": false
+      }
+    },
+    {
+      "name": "list",
+      "operationId": "listContents",
+      "arguments": {
+        "limit": 50
+      },
+      "status": 200,
+      "response": {
+        "items": [
+          {
+            "id": "card_demo",
+            "title": "合成笔记",
+            "type": "note",
+            "body": [
+              "仅用于契约示例"
+            ],
+            "state": {
+              "read": false,
+              "done": false,
+              "archived": false
+            },
+            "revision": 1,
+            "created_at": "2026-10-13T10:00:00Z",
+            "updated_at": "2026-10-13T10:00:00Z",
+            "deleted": false
+          }
+        ],
+        "next_cursor": null,
+        "sync_cursor": "opaque_demo"
+      }
+    },
+    {
+      "name": "get",
+      "operationId": "getContent",
+      "arguments": {
+        "id": "card_demo"
+      },
+      "status": 200,
+      "response": {
+        "id": "card_demo",
+        "title": "合成笔记",
+        "type": "note",
+        "body": [
+          "仅用于契约示例"
+        ],
+        "state": {
+          "read": false,
+          "done": false,
+          "archived": false
+        },
+        "revision": 1,
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:00Z",
+        "deleted": false
+      }
+    },
+    {
+      "name": "update",
+      "operationId": "updateContent",
+      "arguments": {
+        "id": "card_demo",
+        "idempotency_key": "update_demo",
+        "body": {
+          "expectedRevision": 1,
+          "changes": {
+            "state": {
+              "read": true
+            }
+          }
+        }
+      },
+      "status": 200,
+      "response": {
+        "id": "card_demo",
+        "title": "合成笔记",
+        "type": "note",
+        "body": [
+          "仅用于契约示例"
+        ],
+        "state": {
+          "read": true,
+          "done": false,
+          "archived": false
+        },
+        "revision": 2,
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:01Z",
+        "deleted": false
+      }
+    },
+    {
+      "name": "delete",
+      "operationId": "deleteContent",
+      "arguments": {
+        "id": "card_demo",
+        "idempotency_key": "delete_demo",
+        "body": {
+          "expectedRevision": 1
+        }
+      },
+      "status": 200,
+      "response": {
+        "id": "card_demo",
+        "title": "已删除",
+        "type": "note",
+        "body": [],
+        "state": {
+          "read": false,
+          "done": false,
+          "archived": false
+        },
+        "revision": 2,
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:01Z",
+        "deleted": true
+      }
+    },
+    {
+      "name": "submit",
+      "operationId": "submitEvent",
+      "arguments": {
+        "idempotency_key": "event_demo",
+        "body": {
+          "event_id": "event_demo",
+          "card_id": "card_demo",
+          "card_version": 1,
+          "action": "summarize",
+          "destination_ref": "agent_demo"
+        }
+      },
+      "status": 202,
+      "response": {
+        "event_id": "event_demo",
+        "card_id": "card_demo",
+        "card_version": 1,
+        "action": "summarize",
+        "destination_ref": "agent_demo",
+        "delivery": "queued",
+        "outcome": "pending",
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:00Z",
+        "result_revision": null,
+        "summary": ""
+      }
+    },
+    {
+      "name": "accepted",
+      "operationId": "getEvent",
+      "arguments": {
+        "id": "event_demo"
+      },
+      "status": 200,
+      "response": {
+        "event_id": "event_demo",
+        "card_id": "card_demo",
+        "card_version": 1,
+        "action": "summarize",
+        "destination_ref": "agent_demo",
+        "delivery": "accepted",
+        "outcome": "pending",
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:00Z",
+        "result_revision": null,
+        "summary": ""
+      }
+    },
+    {
+      "name": "result",
+      "operationId": "updateContent",
+      "arguments": {
+        "id": "card_demo",
+        "idempotency_key": "result_demo",
+        "body": {
+          "expectedRevision": 1,
+          "changes": {
+            "body": [
+              "合成摘要"
+            ]
+          },
+          "metadata": {
+            "event_id": "event_demo",
+            "outcome": "succeeded",
+            "summary": "已生成摘要"
+          }
+        }
+      },
+      "status": 200,
+      "response": {
+        "id": "card_demo",
+        "title": "合成笔记",
+        "type": "note",
+        "body": [
+          "合成摘要"
+        ],
+        "state": {
+          "read": false,
+          "done": false,
+          "archived": false
+        },
+        "revision": 2,
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:01Z",
+        "deleted": false
+      }
+    },
+    {
+      "name": "completed",
+      "operationId": "getEvent",
+      "arguments": {
+        "id": "event_demo"
+      },
+      "status": 200,
+      "response": {
+        "event_id": "event_demo",
+        "card_id": "card_demo",
+        "card_version": 1,
+        "action": "summarize",
+        "destination_ref": "agent_demo",
+        "delivery": "accepted",
+        "outcome": "succeeded",
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:01Z",
+        "result_revision": 2,
+        "summary": "已生成摘要"
+      }
+    },
+    {
+      "name": "conflict",
+      "operationId": "updateContent",
+      "arguments": {
+        "id": "card_demo",
+        "idempotency_key": "conflict_demo",
+        "body": {
+          "expectedRevision": 1,
+          "changes": {
+            "title": "旧编辑"
+          }
+        }
+      },
+      "status": 409,
+      "response": {
+        "error": {
+          "code": "revision_conflict",
+          "message": "读取最新内容并合并；不自动覆盖",
+          "request_id": "req_demo",
+          "current_revision": 2
+        }
+      }
+    },
+    {
+      "name": "unknown-result",
+      "operationId": "updateContent",
+      "arguments": {
+        "id": "card_demo",
+        "idempotency_key": "unknown_demo",
+        "body": {
+          "expectedRevision": 1,
+          "metadata": {
+            "event_id": "event_demo",
+            "outcome": "unknown",
+            "summary": "外部结果待核对"
+          }
+        }
+      },
+      "status": 200,
+      "response": {
+        "id": "card_demo",
+        "title": "合成笔记",
+        "type": "note",
+        "body": [
+          "仅用于契约示例"
+        ],
+        "state": {
+          "read": false,
+          "done": false,
+          "archived": false
+        },
+        "revision": 1,
+        "created_at": "2026-10-13T10:00:00Z",
+        "updated_at": "2026-10-13T10:00:00Z",
+        "deleted": false
+      }
+    }
+  ]
+}

@@ -1,35 +1,63 @@
-# Quiet Glass 设计系统
+# Sill 设计系统
 
-设计规范统一存放在仓库根目录的 `design-system/`，线上版本为 [Quiet Glass Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)。原先的 Storybook 工作台和 `icons.html` / `cards.html` / `components.html` / `research.html` 四个参考页面已下线。
+Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`。线上版本是 [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)，全部定稿画板在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，本地副本见下文「画板」。
+
+原名 Quiet Glass。组件脚本的全局名仍是 `QuietGlass`，为了兼容暂不改。
 
 ## 目录
 
 | 路径 | 内容 |
 | --- | --- |
-| `design-system/README.md` | 品牌手册：产品立场、文案、颜色、玻璃材质、字体、间距、状态、图标、使用方式 |
-| `design-system/tokens.json` | 设计变量：20 色、12 个字体样式、间距、圆角、阴影，每项附用途 |
-| `design-system/assets/Icons/` | 38 个 Mono24 图标 SVG（墨色固定为 `ink`）及图标目录说明 |
-| `design-system/components/<Comp>/` | 24 个组件的使用说明（README.md）与静态预览（preview.html） |
-| `design-system/components/bundle.js` / `bundle.css` | 预览用的渲染函数与样式，生成自 `src/` |
-| `design-system/components/Cover/` | 设计系统封面 |
-| `design-system/design-system.json` | 线上版本的索引（含图标素材 id） |
+| `design-system/README.md` | **设计手册，规则以它为准**：产品立场、文案、颜色、玻璃、字体、卡片积木、文字长度、间距、动效、量大与时间、图标（含「文字和图标只用一种」） |
+| `design-system/boards/` | 设计画布 33 块画板的本地副本和目录页，`npm run boards` 打开 |
+| `design-system/tokens.json` | 设计变量：颜色（含深色）、字号、间距、圆角、阴影、动效时长与曲线，每项附用途 |
+| `design-system/components/<组件>/` | 30 个组件的说明（README.md）和静态示例（preview.html） |
+| `design-system/components/bundle.js` / `bundle.css` | 示例用的渲染函数与样式，从 `src/` 生成 |
+| `design-system/assets/Icons/` | 图标 SVG |
+| `design-system/design-system.json` | 线上版本的索引 |
 | `design-system/scripts/` | 从 `src/` 重新生成上述文件的脚本 |
+
+其中 CardBlocks、StackCard、KeyPoints、ReadEndRing、SourceRow 五个组件是这一版新增的静态示例，直接用设计变量写成，还没有进 bundle。
+
+## 画板
+
+`design-system/boards/` 保存了设计画布上的全部画板，按画布的分区排好：
+
+1. 品牌与全貌：品牌、页面地图
+2. 进来：首次打开与导入、来源与导入、收集入口
+3. 桌面：桌面信息流 1440、手机 390、桌面交互原型、手机交互原型、下滑与等待、量大与去重
+4. 打开：弹层、弹出动效原型、站内详情、退出交互
+5. 找与管：搜索与归档、来源与信任、设置
+6. 底层：卡片积木、预设卡片、文字长度、图标、规范总表
+7. 过程稿：现状盘点、Apple 风格对照、卡片体系与尺寸等
+
+打开方式：
+
+```sh
+npm run boards
+```
+
+然后在浏览器打开 `http://127.0.0.1:4310/`。标「可交互」的四块原型（卡片积木、桌面交互、手机交互、弹出动效）可以直接点、滑。不能直接双击打开 HTML 文件：原型的运行脚本 `support.js` 要读取画板文件本身，浏览器不允许本地文件这样读。
+
+画布更新后，画板需要重新下载覆盖这个目录。
 
 ## 单一来源
 
-产品实现仍以 `src/` 为准，`design-system/` 记录规范并引用同一份实现：
+产品实现以 `src/` 为准，`design-system/` 记录规范，并引用同一份实现：
 
-| 想修改什么 | 实现位置 | 规范位置 |
+| 想改什么 | 实现位置 | 规范位置 |
 | --- | --- | --- |
-| 颜色、圆角、阴影、动效变量 | `src/styles/tokens.css` | `design-system/tokens.json` |
-| 图标线条 | `src/atoms/icons.js` 的 `Glyphs` / `icon(name, size)` | `design-system/assets/Icons/` |
-| 按钮、进度环、任务项、头像、标签 | `src/atoms/primitives.js` | 对应组件 README |
-| 卡片结构及状态 | `src/cards/templates.js` 的 `cardHTML(card, options)` | `FeedCard` / `TaskCard` / `ReminderCard` 等 |
-| 预览、筛选、编辑和设置面板 | `src/interactions/panels.js` | `Dialog` |
-| AI 引用、会话和输入 | `src/services/ai.js` | `AIContext` / `AICompose` / `AIMessages` |
-| 动效 | `src/interactions/motion.js` | 品牌手册「状态与交互」 |
+| 颜色、圆角、阴影、动效变量 | `src/styles/tokens.css` | `design-system/tokens.json`、手册「颜色」「动效」 |
+| 图标 | `src/atoms/icons.js` 的 `icon(name, size)` | 手册「图标」、画板 13 |
+| 按钮、进度环、勾选项、头像、标签 | `src/atoms/primitives.js` | 对应组件 README |
+| 卡片结构、叠卡、架子 | `src/cards/templates.js` | `FeedCard`、`StackCard`、`CardBlocks` 等，画板 21、22 |
+| 预览、阅读、搜索、设置、来源、导入等弹层 | `src/interactions/panels.js` | `Dialog`，画板 15、29、30–32 |
+| 展开与收回、落下、淡入 | `src/interactions/motion.js` | 手册「动效」，画板 16 |
+| 手势：下拉刷新、下拉关闭、读完上推、拖把手、右滑返回 | `src/interactions/gestures.js` | 手册「动效」，画板 17–19 |
+| 信息流排序、叠卡、收起 | `src/services/feed-policy.js` | 手册「量大与时间」，画板 25 |
+| 文件导入与去重 | `src/services/importers.js` | 画板 24、31 |
 
-修改 `src/` 中的变量、图标或组件样式后，同步更新 `design-system/` 中对应的 token 或说明，并重新生成图标与 bundle：
+改了 `src/` 里的变量、图标或组件样式，要同步更新 `design-system/` 里对应的变量或说明，并重新生成图标和 bundle：
 
 ```sh
 node design-system/scripts/gen.cjs design-system .
@@ -37,21 +65,21 @@ node design-system/scripts/gen.cjs design-system .
 
 ## 样式分层
 
-`src/styles/styles.json` 明确构建顺序：
+`src/styles/styles.json` 规定构建顺序：
 
-1. `tokens.css`：颜色、间距、圆角、阴影与动效变量。
-2. `base.css`：页面、文字和基础布局。
-3. `controls.css`：按钮、玻璃工具、选择条和反馈。
-4. `cards.css`：业务卡片外观与状态。
-5. `overlays.css`：预览、阅读、表单和 AI 浮层。
-6. `responsive.css`：窄屏、触屏、减少动效与减少透明度适配。
+1. `tokens.css`：颜色、间距、圆角、阴影、动效变量，深色主题。
+2. `base.css`：页面、文字、基础布局，信息流底部短线。
+3. `controls.css`：按钮、右下角入口和工具、提示条、选择条。
+4. `cards.css`：各类卡片、已读色、叠卡（牌堆）、按压反馈。
+5. `overlays.css`：预览、阅读、面板、读完圆环、下拉刷新圆环、手势过渡。
+6. `responsive.css`：窄屏、触屏、手机抽屉、减少动效、减少透明度。
 
 ## 验收
 
 ```sh
-python3 scripts/build.py
-python3 tests/verify.py
-npm run test:browser
+npm test
+node tests/local-browser.mjs
+node tests/browser.cjs
 ```
 
-HTML 是构建产物，不直接手工维护。本项目使用原生 HTML/CSS/SVG/WAAPI；外部参考中的 React、Motion+ 等组件不代表已经安装或获得商业授权。
+`index.html` 是构建产物，由 `npm run build` 生成，不手工修改。项目只用原生 HTML、CSS、SVG 和 Web Animations；没有引入 React 或第三方动效库。

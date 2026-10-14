@@ -1,0 +1,98 @@
+{
+  "format": "sill-agent-mcp-plan/v1",
+  "status": "design-only-not-loaded-by-runtime",
+  "enabled": false,
+  "connections": [
+    {
+      "id": "google-calendar",
+      "connectionRef": "agent-host/google-calendar",
+      "enabled": false,
+      "allowWrites": false,
+      "distribution": "community-open-source",
+      "upstream": "https://github.com/nspady/google-calendar-mcp",
+      "reviewedPackageVersion": "2.7.0",
+      "hostConfigCandidate": {
+        "command": "node",
+        "args": ["/ABS/PATH/google-calendar-mcp/build/index.js"],
+        "env": {
+          "GOOGLE_OAUTH_CREDENTIALS": "/ABS/PATH/private/google-oauth-client.json",
+          "ENABLED_TOOLS": "list-calendars,list-events,get-event,search-events,get-freebusy"
+        }
+      },
+      "authenticationOwner": "upstream-mcp",
+      "hostMustRestrictAccountManagement": true
+    },
+    {
+      "id": "github",
+      "connectionRef": "agent-host/github",
+      "enabled": false,
+      "allowWrites": false,
+      "distribution": "official-open-source",
+      "upstream": "https://github.com/github/github-mcp-server",
+      "hostConfigCandidate": {
+        "command": "/ABS/PATH/github-mcp-server",
+        "args": ["stdio", "--read-only", "--toolsets", "repos,issues,pull_requests"]
+      },
+      "secretEnvironmentNames": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+      "authenticationOwner": "agent-host"
+    },
+    {
+      "id": "linear",
+      "connectionRef": "agent-host/linear",
+      "enabled": false,
+      "allowWrites": false,
+      "distribution": "official-hosted-not-self-hosted-open-source",
+      "hostConfigCandidate": {"url": "https://mcp.linear.app/mcp/readonly"},
+      "authenticationOwner": "agent-host"
+    },
+    {
+      "id": "notion",
+      "connectionRef": "agent-host/notion",
+      "enabled": false,
+      "allowWrites": false,
+      "distribution": "official-hosted-not-self-hosted-open-source",
+      "hostConfigCandidate": {"url": "https://mcp.notion.com/mcp"},
+      "requiresHostEnforcedReadToolAllowlist": true,
+      "authenticationOwner": "agent-host"
+    }
+  ],
+  "externalMcp": {
+    "enabled": false,
+    "status": "design-only-not-implemented",
+    "defaultPolicy": "deny",
+    "requireAuthenticatedCaller": true,
+    "principals": [],
+    "productTools": {
+      "enabled": false,
+      "publishedTools": []
+    },
+    "assistantDelegation": {
+      "enabled": false,
+      "operations": [
+        "submit",
+        "status",
+        "cancel"
+      ],
+      "inheritCallerPermissions": true
+    },
+    "upstreamToolBridge": {
+      "enabled": false,
+      "publishedTools": [],
+      "mappings": [],
+      "forwardResources": false,
+      "forwardPrompts": false,
+      "forwardSubscriptions": false,
+      "forwardReverseCalls": false
+    },
+    "credentialPolicy": "server-side-reference-only-no-secret-passthrough",
+    "invocationPolicy": {
+      "namespaceAndOriginRequired": true,
+      "auditCallChain": true,
+      "idempotencyRequiredForWrites": true,
+      "timeoutSeconds": 60,
+      "maxCallDepth": 3,
+      "rejectCycles": true,
+      "retryUnknownWrites": false
+    }
+  }
+}

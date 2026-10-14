@@ -11,32 +11,62 @@ const articleBody = [
  '视觉上的安静，来自内容层和操作层之间的分工。阅读表面需要稳定、清晰、足够对比；工具可以轻盈、透明、暂时浮现。玻璃不是每一个矩形都应该拥有的装饰，它更像一句提示：这里是可以操作的地方。',
  '当我们把这些细节放在一起，信息流就不再只是向下滚动的列表。它开始帮助我们分配注意力、建立联系、做出判断。最后决定要读什么、相信什么、下一步投入多少的人，仍然是正在使用它的你。'
 ];
+const HOUR = 3600000, MIN = 60000;
+/** Ten content types. `readable` types carry read state as card color. */
 const CardTypes = {
- article:{label:'资讯',icon:'book'},mail:{label:'邮件',icon:'mail'},note:{label:'笔记',icon:'note'},
+ article:{label:'资讯',icon:'book',readable:true},mail:{label:'邮件',icon:'mail',readable:true},note:{label:'笔记',icon:'note',readable:true},
  task:{label:'待办',icon:'check-circle'},event:{label:'日程',icon:'calendar'},reminder:{label:'提醒',icon:'bell'},
- media:{label:'媒体',icon:'play'},insight:{label:'阅读反馈',icon:'ring'},digest:{label:'回顾',icon:'layers'},
- suggestion:{label:'关联建议',icon:'sparkles'}
+ media:{label:'媒体',icon:'video',readable:true},digest:{label:'AI 整理',icon:'chart'},suggestion:{label:'AI 整理',icon:'sparkles',readable:true},
+ insight:{label:'数据',icon:'chart'},photo:{label:'照片',icon:'image',readable:true},file:{label:'文件',icon:'folder'}
 };
+/** Where content comes from. Icons repeat in the source row, the source list and import. */
+const SourceKinds = {
+ rss:{label:'RSS',icon:'rss',group:'读'},readwise:{label:'Readwise',icon:'book',group:'读'},web:{label:'网页收集',icon:'globe',group:'读'},
+ youtube:{label:'YouTube',icon:'video',group:'读'},twitter:{label:'推特',icon:'chat',group:'读'},podcast:{label:'播客',icon:'mic',group:'读'},
+ mail:{label:'邮件',icon:'mail',group:'回'},reminders:{label:'提醒事项',icon:'check-circle',group:'做 · 跟进'},linear:{label:'Linear',icon:'target',group:'做 · 跟进'},
+ github:{label:'GitHub',icon:'pull',group:'做 · 跟进'},calendar:{label:'日历',icon:'calendar',group:'排时间 · 存档'},photos:{label:'照片',icon:'image',group:'排时间 · 存档'},
+ folder:{label:'文件夹',icon:'folder',group:'排时间 · 存档'},capture:{label:'速记',icon:'note',group:''},markdown:{label:'Markdown',icon:'note',group:''},
+ local:{label:'本地',icon:'note',group:''},ai:{label:'AI 整理',icon:'sparkles',group:''}
+};
+/** Dominant cover colors: the placeholder a cover fades in from. */
+const AssetTones = {architecture:'#c3d3e4',coast:'#5fb3b3',botanical:'#d6cdbf',mountain:'#8e93ab'};
 const SeedCards = [
- {id:'article-01',type:'article',form:'image',image:'architecture',title:'让 AI 成为工作流的一部分',summary:'不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。',source:'工作方式研究',meta:'6 分钟阅读',tags:['AI','工作流'],body:articleBody,url:'https://developer.apple.com/design/human-interface-guidelines/',time:demoBase-1800000},
- {id:'event-01',type:'event',form:'standard',title:'产品讨论会',summary:'把零散的想法，整理成下一个可验证的方向。',source:'演示日程',start:demoBase+25*60000,end:demoBase+70*60000,people:['舟','林','陈'],tags:['工作'],body:['议题一：确认信息流的默认阅读状态。','议题二：验证拖拽卡片进入 AI 的完整路径。','议题三：选出下一轮值得投入的交互细节。'],time:demoBase},
- {id:'mail-01',type:'mail',form:'standard',title:'这周的方案，只差最后一个决定',summary:'三种方向已经整理好了。比起增加功能，我们更想先确认：什么应该留下，什么应该隐藏。',source:'林舟',meta:'14:32',attachment:'方案对比.txt',tags:['工作','设计'],body:['这是一封演示邮件。','我们把方案整理成了三个方向：始终可见的导航、按需浮现的操作层，以及完全依赖手势的界面。','建议先验证第二个方向：保留内容的纯净，同时不牺牲功能的可发现性。请在方便时补充你的判断。','附件会生成这三种交互方向的示例文本，没有接入真实邮箱或业务文件。'],time:demoBase-3600000},
- {id:'note-01',type:'note',form:'quote',title:'不是收集更多，\n是让重要的事\n在对的时候出现。',summary:'少一点入口，多一点自然。',source:'产品随记',meta:'刚刚写下',tags:['想法','产品'],body:['这是这个信息空间的起点。我们并不是在设计一个更复杂的收件箱，而是在减少每次打开页面时，重新判断优先级的成本。','好的提醒，不一定是一个弹窗。它也可以是一张恰好出现在阅读路径上的卡片。'],time:demoBase-600000},
- {id:'task-01',type:'task',form:'standard',title:'把想法做成可以触摸的东西',summary:'今天，先做好这三件事。',source:'演示待办',meta:'今天 18:00 前',tasks:[{id:'t1',text:'确认玻璃与内容的层次',done:true},{id:'t2',text:'试一试拖拽进入 AI',done:false},{id:'t3',text:'在手机上读一遍',done:false}],tags:['工作','设计'],body:['验证一个想法，最直接的方式是让它可以被操作。','在本页勾选任务会保存在当前浏览器。所有项目均为演示，不会修改任何外部任务系统。'],time:demoBase-1200000},
- {id:'article-02',type:'article',form:'image',image:'coast',title:'注意力，也需要一点留白',summary:'把一部分时间还给不被打断的阅读，让信息慢一点，让理解深一点。',source:'阅读手记',meta:'4 分钟阅读',tags:['阅读','生活'],body:articleBody.slice().reverse(),time:demoBase-7200000},
- {id:'insight-01',type:'insight',form:'data',title:'在这里，读了一会儿',summary:'只计算阅读页在前台的停留时间。',source:'本次会话',tags:['阅读'],body:['这个数字来自本次浏览器会话中，阅读页处于前台的累计时长。','后台标签页、信息流滚动和弹窗编辑不计入阅读时间；连续 60 秒没有交互后也暂停计时。','这是一个轻量的行为反馈，不是注意力得分，更不是准确衡量理解程度的指标。'],time:demoBase-200000},
- {id:'suggestion-01',type:'suggestion',form:'standard',title:'上次那个想法，\n有了新的连接',summary:'「按需显现」与「卡片即上下文」，其实在回答同一个问题：怎样少做一步？',source:'演示关联',meta:'来自 2 张卡片',tags:['AI','想法'],related:['note-01','article-01'],body:['本卡片是预置的演示关联，不是模型推断结果。','你可以把相关的两张卡片一起加入 AI 上下文，尝试比较它们各自强调的用户意图。'],time:demoBase-900000},
- {id:'media-01',type:'media',form:'image',image:'mountain',title:'一个动作，比一排按钮更直接',summary:'四个片段，看卡片如何变成对话。',source:'交互演示',meta:'4 个片段',tags:['设计','AI'],body:['浏览：默认只看见信息。','提起：卡片变成可以交给 AI 的对象。','靠近：接收区域放大，给出清晰反馈。','松手：保留原卡片，将引用加入对话。'],time:demoBase-5400000},
- {id:'reminder-01',type:'reminder',form:'compact',title:'给自己留一个小空档',summary:'起身，看看窗外。',source:'演示提醒',meta:'10 分钟后',due:demoBase+600000,tags:['生活'],body:['这是演示提醒，不会请求系统通知权限。','延后十分钟会保存在当前浏览器。到期后，点击玻璃入口旁的数字让提醒重新进入信息流；网页关闭后不在后台运行。'],time:demoBase-300000},
- {id:'mail-02',type:'mail',form:'standard',title:'这份分析，值得一起看一下',summary:'我把结论放在了前面，数据和假设在后面。先判断方向，再决定需要深入到哪一步。',source:'陈屿',meta:'11:06',attachment:'分析摘录.csv',tags:['工作'],body:['这是一封演示邮件。','示例数据包含三个版本的交互结果，用于展示附件下载和内容预览。','下载图标会生成一个小型示例 CSV，而不是访问真实业务文件。'],time:demoBase-14400000},
- {id:'digest-01',type:'digest',form:'data',title:'让看过的，留下线索',summary:'阅读、收藏和完成，都在这里留下一个轻巧的记录。',source:'当前浏览器',tags:['回顾'],body:['这里汇总的是本演示中你的已读、收藏与已完成项目。','不会追踪其他网站，也不会上传到服务器。'],time:demoBase-9000000},
- {id:'note-02',type:'note',form:'standard',title:'关于「少做一步」的三个观察',summary:'工具应该顺着意图出现。\n状态不必都写成标签。\n真正重要的是，操作之后还能回到原地。',source:'我的演示笔记',meta:'昨天',tags:['设计','想法'],body:['第一，工具不需要提前挤进每张卡片。','第二，已读可以变淡，进度可以是圆环，选中可以是一条细边。','第三，保持阅读位置，比多一个酷炫的过渡更重要。'],time:demoBase-DAY},
- {id:'article-03',type:'article',form:'image',image:'botanical',title:'让日常的碎片，自然生长',summary:'笔记不只有归档，也可以在合适的时候，重新回到眼前。',source:'知识与日常',meta:'3 分钟阅读',tags:['阅读','生活'],body:articleBody,time:demoBase-DAY-600000},
- {id:'task-02',type:'task',form:'standard',title:'让界面安静下来',summary:'一次小小的减法。',source:'演示待办',tasks:[{id:'t4',text:'移除常驻筛选栏',done:true},{id:'t5',text:'把文字按钮改成图标',done:true},{id:'t6',text:'隐藏默认标签和工具',done:true}],tags:['设计'],body:['全部完成时，任务卡片会收拢。你仍然可以打开预览，查看和恢复每一个项目。'],time:demoBase-DAY},
- {id:'article-04',type:'article',form:'standard',title:'打开，不等于读完',summary:'预览、阅读、收藏、完成，是四件不同的事。好的系统，应该替你记得这个区别。',source:'交互小记',meta:'2 分钟阅读',tags:['设计','阅读'],body:articleBody.slice(2),time:demoBase-2*DAY}
+ {id:'article-01',type:'article',kind:'rss',form:'image',image:'architecture',title:'让 AI 成为工作流的一部分',summary:'不是多一个工具，而是让想法、判断和行动顺畅地连接起来。',source:'工作方式研究',meta:'6 分钟',tags:['AI','工作流'],body:articleBody,url:'https://developer.apple.com/design/human-interface-guidelines/',time:demoBase-30*MIN},
+ {id:'event-01',type:'event',kind:'calendar',title:'产品讨论会',summary:'把零散的想法，整理成下一个可验证的方向。',source:'日历',start:demoBase+25*MIN,end:demoBase+70*MIN,people:['舟','林','陈'],location:'3 楼 · 小会议室',meeting:{name:'腾讯会议',url:'https://meeting.tencent.com/',code:'483 221 907'},tags:['工作'],body:['议题一：确认信息流的默认阅读状态。','议题二：验证拖拽卡片进入 AI 的完整路径。','议题三：选出下一轮值得投入的交互细节。'],time:demoBase},
+ {id:'mail-01',type:'mail',kind:'mail',title:'这周的方案，只差最后一个决定',summary:'三种方向已经整理好了。比起增加功能，我们更想先确认什么应该留下。',source:'林舟',sender:'林舟',meta:'14:32',attachment:'方案对比.txt',tags:['工作','设计'],url:'https://mail.google.com/',body:['三种方向已经整理好了。比起增加功能，我们更想先确认什么应该留下。','附件里是三版对比，第二版我比较倾向，但想听听你的判断。','周四之前给我回个话就行。'],time:demoBase-40*MIN},
+ {id:'note-01',type:'note',kind:'capture',form:'quote',title:'不是收集更多，是让重要的事在对的时候出现。',summary:'',source:'产品随记',meta:'刚刚',tags:['想法','产品'],body:['这是这个信息空间的起点。我们并不是在设计一个更复杂的收件箱，而是在减少每次打开页面时，重新判断优先级的成本。','好的提醒，不一定是一个弹窗。它也可以是一张恰好出现在阅读路径上的卡片。'],time:demoBase-10*MIN},
+ {id:'task-01',type:'task',kind:'reminders',title:'把想法做成可以触摸的东西',summary:'今天，先做好这几件事。',source:'提醒事项',meta:'今天 18:00 前',due:demoBase+6*HOUR,tasks:[{id:'t1',text:'确认玻璃与内容的层次',done:true},{id:'t2',text:'在手机上读一遍',done:false},{id:'t3',text:'整理下一轮反馈',done:false},{id:'t7',text:'约设计评审',done:false}],tags:['工作','设计'],body:['验证一个想法，最直接的方式是让它可以被操作。'],time:demoBase-20*MIN},
+ {id:'article-02',type:'article',kind:'rss',form:'image',image:'coast',title:'注意力，也需要一点留白',summary:'我们总想读得更多，却忘了留出消化的时间。',source:'阅读手记',meta:'4 分钟',sources:[{name:'阅读手记',kind:'rss'},{name:'Readwise',kind:'readwise'}],tags:['阅读','生活'],body:articleBody.slice().reverse(),time:demoBase-2*HOUR},
+ {id:'suggestion-01',type:'suggestion',kind:'ai',title:'上次那个想法，有了新的连接',summary:'「按需显现」与「卡片即上下文」在回答同一个问题：怎样少做一步。',source:'AI 整理',meta:'来自 2 张卡',tags:['AI','想法'],related:['note-01','article-01'],why:{reason:'AI 发现你收藏的两张卡在讨论同一件事',basis:['10月3日 和 10月9日 收藏']},body:['两张卡片都在讨论同一件事：怎样让工具顺着意图出现，而不是常驻在界面上。','你可以把它们放在一起读，比较各自强调的用户意图。'],time:demoBase-15*MIN},
+ {id:'media-01',type:'media',kind:'youtube',media:'video',form:'image',image:'mountain',duration:760,title:'一个动作，比一排按钮更直接',summary:'四个片段，看卡片如何变成对话。',source:'交互演示',meta:'4 个片段',tags:['设计','AI'],url:'https://www.youtube.com/',body:['浏览：默认只看见信息。','提起：卡片变成可以交给 AI 的对象。','靠近：接收区域放大，给出清晰反馈。','松手：保留原卡片，将引用加入对话。'],time:demoBase-90*MIN},
+ {id:'reminder-01',type:'reminder',kind:'reminders',form:'compact',title:'给自己留一个小空档',summary:'起身，看看窗外。',source:'提醒',meta:'10 分钟后',due:demoBase+10*MIN,tags:['生活'],body:['延后十分钟会保存在本机。到期后，点玻璃入口旁的数字让提醒重新回到桌面。'],time:demoBase-5*MIN},
+ {id:'mail-02',type:'mail',kind:'mail',title:'这份分析，值得一起看一下',summary:'我把结论放在了前面，数据和假设在后面。先判断方向，再决定深入到哪一步。',source:'陈屿',sender:'陈屿',meta:'11:06',attachment:'分析摘录.csv',tags:['工作'],url:'https://mail.google.com/',body:['我把结论放在了前面，数据和假设在后面。','示例数据包含三个版本的交互结果。'],time:demoBase-4*HOUR},
+ {id:'digest-01',type:'digest',kind:'ai',form:'data',title:'读得多，做得少了一点',summary:'',source:'AI 整理',meta:'本周回顾',tags:['回顾'],why:{reason:'每周一早上，把上周的阅读与待办放在一起看',basis:['只统计这台设备上的记录']},body:['这里汇总的是本周你的已读、收藏与已完成项目。','不会追踪其他网站，也不会上传到服务器。'],time:demoBase-3*HOUR},
+ {id:'note-02',type:'note',kind:'capture',title:'关于「少做一步」的三个观察',summary:'工具应该顺着意图出现。状态不必都写成标签。真正重要的是，操作之后还能回到原地。',source:'速记',meta:'昨天',tags:['设计','想法'],body:['工具应该顺着意图出现。','状态不必都写成标签。','真正重要的是，操作之后还能回到原地。'],time:demoBase-26*HOUR},
+ {id:'article-03',type:'article',kind:'readwise',form:'image',image:'botanical',title:'让日常的碎片，自然生长',summary:'笔记不只有归档，也可以在合适的时候，重新回到眼前。',source:'知识与日常',meta:'3 分钟',tags:['阅读','生活'],body:articleBody,time:demoBase-25*HOUR},
+ {id:'task-02',type:'task',kind:'reminders',title:'让界面安静下来',summary:'一次小小的减法。',source:'提醒事项',tasks:[{id:'t4',text:'移除常驻筛选栏',done:true},{id:'t5',text:'把文字按钮改成图标',done:true},{id:'t6',text:'隐藏默认标签和工具',done:true}],tags:['设计'],body:['全部完成时，待办会收拢成一行。打开仍可查看和恢复每一项。'],time:demoBase-28*HOUR},
+ {id:'article-04',type:'article',kind:'rss',title:'打开，不等于读完',summary:'预览、阅读、收藏、完成，是四件不同的事。好的系统，应该替你记得这个区别。',source:'交互小记',meta:'2 分钟',tags:['设计','阅读'],body:articleBody.slice(2),time:demoBase-2*86400000},
+ {id:'podcast-01',type:'media',kind:'podcast',media:'podcast',duration:2880,title:'慢下来，才能看清楚',summary:'设计之外 · 第 42 期。聊信息过载，和怎样给判断留出时间。',source:'设计之外',meta:'第 42 期',tags:['设计'],url:'https://podcasts.apple.com/',body:['这一期聊信息过载，和怎样给判断留出时间。'],time:demoBase-5*HOUR},
+ {id:'photo-01',type:'photo',kind:'photos',photos:['botanical','coast','mountain'],title:'杭州 · 周末',summary:'3 张照片',source:'照片',meta:'10月12日',location:'杭州',tags:['生活'],body:[],time:demoBase-30*HOUR},
+ {id:'file-01',type:'file',kind:'folder',title:'卡片积木 v3',summary:'设计稿文件夹里有 3 个新文件。',source:'设计稿',meta:'10 分钟前',files:[{name:'CardBlocks.fig',meta:'设计稿 · 12.4 MB',time:demoBase-10*MIN},{name:'预设卡片.pdf',meta:'24 页 · 3.1 MB',time:demoBase-HOUR},{name:'封面.png',meta:'2400 × 1350',time:demoBase-26*HOUR}],tags:['设计'],body:[],time:demoBase-10*MIN},
+ {id:'pr-01',type:'article',kind:'github',title:'PR #214 · 读完圆环收起',summary:'等你 review，改了 3 个文件。',source:'GitHub',meta:'quiet-glass',url:'https://github.com/',tags:['工作'],body:['读到正文底部时，圆环满一圈后收起卡片。','改动：templates.js、cards.css、app.js。'],time:demoBase-50*MIN},
+ {id:'linear-01',type:'article',kind:'linear',title:'QG-142 叠卡阈值可以按来源关闭',summary:'指派给你 · 本周期。',source:'Linear',meta:'QG-142',url:'https://linear.app/',tags:['工作'],body:['同一来源一小时超过 5 张时叠起来；在单个来源设置里可以关掉。'],time:demoBase-70*MIN},
+ // A burst from one source: more than five within an hour stacks into one card.
+ ...[['iPhone 18 Pro 上手','一周用下来，变化最大的不是相机，是续航。'],['本周值得读的 5 篇','从注意力到工作台，五篇关于慢下来的文章。'],['一个效率工具的十年','它活下来，是因为一直在删功能。'],['播客推荐：设计之外','三期节目，聊设计师怎么做取舍。'],['我的桌面整理方法','桌面上只留今天要碰的东西。'],['一个人的工作台','独立开发者的一天，从关掉通知开始。']].map(([title,summary],i)=>({id:'sspai-0'+(i+1),type:'article',kind:'rss',title,summary:summary||'少数派 · 一小时内更新',source:'少数派',meta:'RSS',url:'https://sspai.com/',tags:['阅读'],body:articleBody.slice(i%3,i%3+3),time:demoBase-(35+i*6)*MIN})),
+ // Time sinks cards: read a week ago goes to “读过的”; untouched for two weeks goes to “放了很久”.
+ {id:'old-01',type:'article',kind:'rss',title:'安静的界面，也需要节奏',summary:'节奏来自重复与留白。',source:'阅读手记',meta:'5 分钟',tags:['设计'],body:articleBody.slice(1,4),time:demoBase-9*86400000},
+ {id:'old-02',type:'media',kind:'youtube',media:'video',image:'mountain',title:'一段关于专注的短片',summary:'十分钟，讲清一个工作日的节奏。',source:'YouTube',meta:'10 分钟',tags:['生活'],body:['片段一','片段二','片段三','片段四'],url:'https://www.youtube.com/',time:demoBase-15*86400000},
+ {id:'old-03',type:'article',kind:'readwise',title:'工具观察：从收藏到行动',summary:'收藏之后的那一步，才是工具真正该帮忙的地方。',source:'工具观察',meta:'7 分钟',tags:['阅读'],body:articleBody.slice(3,6),time:demoBase-16*86400000},
+ {id:'old-04',type:'article',kind:'rss',title:'设计之外：慢一点的信息流',summary:'不是每一条都值得立刻看。',source:'设计之外',meta:'4 分钟',tags:['阅读'],body:articleBody.slice(0,2),time:demoBase-20*86400000}
 ];
+/** First-run demo state: a few cards already read or half read, so color and progress are visible. */
+const SeedItems = {
+ 'article-04':{read:true,seen:true,progress:1,readAt:demoBase-86400000},'mail-02':{read:true,seen:true,progress:1,readAt:demoBase-HOUR},
+ 'article-03':{seen:true,progress:.4},'old-01':{read:true,seen:true,progress:1,readAt:demoBase-8*86400000},
+ 'old-02':{read:true,seen:true,progress:1,readAt:demoBase-10*86400000},'podcast-01':{seen:true,progress:.25}
+};
 const FreshCards = [
- {id:'fresh-reminder',type:'reminder',form:'compact',title:'下一件事，已经在这里',summary:'刷新只带来新内容，不打乱你刚才读到的位置。',source:'刷新演示',meta:'刚刚',tags:['工作'],body:['这是点击刷新后新增的演示提醒。'],time:demoBase+1},
- {id:'fresh-note',type:'note',form:'standard',title:'把一个好想法，放在手边',summary:'试着提起这张卡片，交给右下角的 AI。松手后，原卡片会留在这里。',source:'新的演示笔记',meta:'刚刚',tags:['想法','AI'],body:['这是第二次点击刷新后出现的演示笔记。'],time:demoBase+2},
- {id:'fresh-article',type:'article',form:'standard',title:'从收藏到行动，中间还有一步',summary:'把最想继续的两张卡片，一起放进对话。',source:'刷新演示',meta:'刚刚',tags:['AI','阅读'],body:articleBody.slice(0,3),time:demoBase+3}
+ {id:'fresh-reminder',type:'reminder',kind:'reminders',form:'compact',title:'下一件事，已经在这里',summary:'新内容不插队，正在读的位置不动。',source:'提醒',meta:'刚刚',tags:['工作'],body:['这是刷新后新增的提醒。'],time:demoBase+1},
+ {id:'fresh-note',type:'note',kind:'capture',title:'把一个好想法，放在手边',summary:'试着提起这张卡片。松手后，原卡片会留在这里。',source:'速记',meta:'刚刚',tags:['想法','AI'],body:['这是刷新后出现的速记。'],time:demoBase+2},
+ {id:'fresh-article',type:'article',kind:'rss',title:'从收藏到行动，中间还有一步',summary:'把最想继续的两张卡片，一起放进对话。',source:'少数派',meta:'3 分钟',tags:['AI','阅读'],body:articleBody.slice(0,3),time:demoBase+3}
 ];

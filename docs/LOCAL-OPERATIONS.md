@@ -1,11 +1,13 @@
 # 本地操作
 
-页面和 AI 共用 `server/local.mjs` 与 `.quiet-glass/local/cards.json`。外部应用由宿主 AI 使用；Quiet Glass 只接收卡片及状态，不代理其他应用。
+当前页面和 AI 共用 `server/local.mjs` 与 `.quiet-glass/local/cards.json`。当前外部应用由宿主 AI 使用，默认运行路径不提供桥接；目标中的内置助手、对外MCP及选择性tools桥接见 [Agent与MCP](AGENT-MCP.md)，尚未实现。
+
+下表是当前本地状态操作，不是外部 MCP 执行回执；`taskDone` / `read` 的本地更新不证明外部任务或邮件状态已经改变。目标意图协议尚未实现，见 [Agent 与 MCP](AGENT-MCP.md)。
 
 | 产品能力 | AI 操作 |
 | --- | --- |
 | 展示、搜索、查看正文与来源 | `list [关键词]`、`get <id>`、`open <id>`；返回链接后由宿主打开 |
-| 创建、修改卡片，关联卡片，待办与日程内容 | `card.upsert`；支持所有 10 种卡片类型 |
+| 创建、修改卡片，关联卡片，待办与日程内容 | `card.upsert`；支持 `capabilities.types` 列出的卡片类型 |
 | 删除卡片 | `card.delete` |
 | 已读、收藏、稍后读 | `item.patch` 的 `read / seen / bookmarked / later / progress` |
 | 标签与备注 | `item.patch` 的 `tags / tagsEdited / note` |
@@ -19,7 +21,7 @@
 
 HTTP 同源入口：`GET /api/local/state`、`GET /api/local/capabilities`、`GET /api/local/open?id=...`、`POST /api/local/operations`。写入格式：`{operations:[...],expectedRevision?:number}`。CLI 默认使用 4318；隔离测试可用 `QG_LOCAL_PORT` 指定本机端口。
 
-同批操作先校验全部内容，成功后原子写入文件。版本或同一字段冲突返回 409，不能当作保存成功。页面按变化字段写回，避免覆盖 AI 对其他字段的修改。失败的页面修改会提示，并把草稿留在浏览器 `quiet-glass-unsynced` 中；重新读取最新版本后由 AI 协助合并。
+同批操作先校验全部内容，成功后原子写入文件。提供 `expectedRevision` 或受支持字段的 `before` 才有相应冲突保护，冲突返回409。**当前P1未修：** 页面正常整卡保存未统一携带版本条件，仍可能覆盖 agent 的并发修改；不能概括为所有页面写入都不会覆盖。失败的页面修改会提示，并把草稿留在浏览器 `quiet-glass-unsynced` 中；重新读取最新版本后由 AI 协助合并。
 
 页面的筛选条件、选中状态、播放位置和滚动位置只影响当前视图。AI 可以从完整卡片状态完成相同的查询、选择与阅读，使用返回链接在自己的宿主打开。当前没有为 Hermes 或 Claude 增加宿主专用按钮，也未声明它们已经完成宿主实测。
 
