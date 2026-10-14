@@ -95,3 +95,28 @@ iOS/macOS 使用官方客户端/标准 PKCE，Keychain 保管刷新凭据、系�
 - [MCP Auth](https://supabase.com/docs/guides/auth/oauth-server/mcp-authentication)
 - [OAuth 2.1 setup / beta 状态](https://supabase.com/docs/guides/auth/oauth-server/getting-started)
 - [邮件无密码登录](https://supabase.com/docs/guides/auth/auth-email-passwordless)
+
+## 后续本地事务补充（2026-10-14）
+
+`supabase/drafts/sill_v1_rpc.sql` 在基础草案之后执行，新增 caller_grants、destinations（只有引用/权限，无秘密），以及私有 SECURITY INVOKER 函数：
+
+- `write_v1(op, resource_id, payload, idem)`：create/update/delete/submit_event，owner 行锁、规范化 JSONB SHA-256、授权先于幂等、幂等先于版本校验；内容/事件/回执同一数据库函数事务。返回 `{status_code,body}`，未接 HTTP/MCP。
+- `get_content`、`get_event`：资源权限/分派检查；不返回数据库内部字段。
+- `list_contents`：固定内容投影快照、不透明随机游标、caller/查询绑定、过期拒绝、最后一页增量水位、tombstone；写入统一锁 workspace，避免序列先分配后提交造成水位遗漏。
+- `authorize`、`caller` 与投影/字段校验辅助函数。用户主体与 OAuth client 分开；授权表只读政策防止自授 scope。普通内容表增加 owner RLS，但仍零生产 schema/table/function grants、无 public wrappers。
+
+导入准备现在额外携带 `content_type`，确保擦除 tombstone 正文后仍保留响应需要的内容类型。原标题/body/url及专属字段的保存/清理规则不变。
+
+测试：`npm run test:supabase` **13/13**，新增测试文件 `tests/supabase-rpc.test.mjs` 使用本地 PGlite 与合成 auth claims；测试权限仅在测试数据库授予。覆盖请求字段顺序不影响幂等、同键异请求冲突、CAS失败不留回执、no-op不增版本、旧专属字段不丢、跨用户/未注册agent拒绝、授权先于重放、分页中修改/删除进入下一轮、游标跨身份/改查询/过期失败、删除幂等重放、结果错误分派整批回滚、metadata-only不增内容版本、终态冲突。返回的 Content/Event/ContentPage 逐项用 checked-in OpenAPI JSON Schema 校验。V1契约检查再次通过。
+
+**仍非生产适配完成：**
+
+- 没有真实 JWT/PostgREST 集成、公开 RPC 授权、HTTP 错误映射或既有 MCP 七工具接入；不能给当前静态预览加上这些接口就称全栈上线。
+- 私有函数抛领域异常，未来边界必须映射成契约 Error 与 HTTP 状态；`idempotency_expired` 应作为409需核对提示，`event_terminal_conflict` 作为409，而非新增未经契约批准的公开 error code。
+- 范围受限 caller 暂无列表投影，`list_contents` 需要显式 workspace 全范围 content:read；否则拒绝，不能自动扩大资源权限。实际 agent 如只分派一张卡，使用 get_content。最终是否支持限定集合列表需单独实现。
+- 原事件版本变化时保守返回冲突，尚无人工核对后的继续流程；没有后台领取、投递重试、SSRF URL 验证或 receipt清理。queued/ack不被虚构成业务完成。
+- 1天游标、7天普通幂等仅为本地原型参数，未经用户确认；快照按页复制 JSON，正式使用前应改为共享不可变快照+轻量分页引用并设存储上限/清理，避免免费额度浪费。
+- 旧卡片/本地 item 与 V1 state 的双向编辑适配尚未接 UI；task/event 等最小创建 schema 与现有专属渲染字段的差距仍在。没有改动原本两个P1，也没有引入微服务/内部AI。
+- PGlite只有本地单连接执行证据，未验证真实PostgreSQL多连接锁等待/死锁/并发竞争、Supabase advisors、备份恢复和生产性能。这些必须在隔离集成环境完成。
+
+另一后续任务要求公开静态预览；本环境已从远程基线另建 `deploy/sill-web-preview-20261014`，完成合成演示及1440/390px本地测试。Cloudflare插件发布被自动审批拒绝（原任务“不发布Cloudflare”限制与后续委派授权冲突），未换通道/重试；随后只读复核同名Worker仍不存在。因此无真实URL或线上HTTP测试结果。详见另一worktree `docs/STATIC-PREVIEW-STATUS.md`。

@@ -18,7 +18,7 @@ export function prepareSupabaseImport(snapshot) {
     ids.add(card.id);
     const item = state.items[card.id] ?? {};
     Item.parse(item);
-    return {id:card.id, revision:1, card:structuredClone(card), item:structuredClone(item),
+    return {id:card.id, revision:1, content_type:card.type, card:structuredClone(card), item:structuredClone(item),
       state: typeof item.read === 'boolean' ? {read:item.read} : {}};
   });
   for (const id of Object.keys(state.items)) if (!ids.has(id)) throw new Error('Orphan item requires review');
