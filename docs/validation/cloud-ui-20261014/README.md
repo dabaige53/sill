@@ -1,5 +1,7 @@
 # Sill cloud UI acceptance — 2026-10-14
 
+**Superseded:** the user subsequently removed the top workspace row. Use the [latest no-header screenshots and complete recordings](../cloud-ui-no-header-20261014/README.md).
+
 Freshly cloned repository baseline: main `fc9f267947f7b220d34f4fac13c1eef727b6d179`.
 Independently checked current PR heads: #18 `7453cb86`, #20 `664b5b80`, #21 `a1ded283`, #22 `77b1d46a` before this change. #22 remains stacked on #20; it contains the verified #18 UI fixes without importing #21's different local transport. This work continues #22 rather than opening a duplicate UI PR. #23 independently fixes the local plugin on main.
 

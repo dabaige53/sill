@@ -1,3 +1,4 @@
+import {waitCloud,cloudTool,cloudLogout} from './helpers/cloud-ui.mjs';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
@@ -23,7 +24,7 @@ try{
   await page.route('**/api/v1/contents**',route=>{if(holdListing){heldRoute=route;return;}return route.fulfill({json:{items:cards,next_cursor:null}});});
   await page.goto(base);assert.deepEqual(await page.evaluate(()=>[innerWidth,innerHeight]),mobile?[390,844]:[1440,1000]);await page.locator('#cloud-login').waitFor();await page.waitForTimeout(150);
   assert.equal(await page.locator('.welcome #welcome-title').textContent(),'Sill');
-  assert.equal(await page.locator('#cloud-account').isVisible(),false);
+  assert.equal(await page.locator('#cloud-account').count(),0);
   assert.equal(await page.locator('[data-card]').count(),0);assert.equal(await page.locator('#toast').isVisible(),false);
   await page.waitForTimeout(400);await page.screenshot({animations:'disabled',scale:'css',path:`tests/artifacts/cloud-recovery/${mobile?'mobile':'desktop'}-welcome.png`});
   await page.locator('#cloud-email').fill('synthetic@example.com');await page.locator('#cloud-login button').click();
@@ -31,7 +32,7 @@ try{
   assert.equal(await page.locator('#cloud-login button').isDisabled(),true);
   await page.locator('#cloud-login').evaluate(f=>f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));assert.equal(loginRequests,1);
   await page.goto(base+'/?login_error=1');await page.waitForFunction(()=>document.querySelector('#cloud-login-status')?.textContent.includes('未能完成验证'));assert.ok(!page.url().includes('login_error'));
-  signedIn=true;await page.reload();await page.locator('#cloud-new').waitFor();
+  signedIn=true;await page.reload();await waitCloud(page);
   await page.locator('.welcome [data-action=capture]').click();await page.locator('#cloud-editor').waitFor();
   await page.keyboard.press('Tab');assert.ok(await page.evaluate(()=>document.querySelector('#modal').contains(document.activeElement)));
   await page.locator('#cloud-title').fill('验收测试笔记（合成数据）');await page.locator('#cloud-body').fill('这是隔离测试内容，不是真实云端数据。\n'.repeat(30));
@@ -39,16 +40,16 @@ try{
   await page.waitForTimeout(400);await page.screenshot({animations:'disabled',scale:'css',path:`tests/artifacts/cloud-recovery/${mobile?'mobile':'desktop'}-editor.png`});
   await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#modal').open);
   assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'capture');
-  cards=Array.from({length:12},(_,i)=>({id:'test-'+i,type:'note',title:'测试笔记 '+(i+1),body:['隔离验收数据，不是真实账号内容。'],state:{read:false},revision:1,updated_at:new Date().toISOString()}));
-  await page.locator('#cloud-refresh').click();await page.waitForFunction(()=>window.__store.state.cards.length===12);
+  cards=Array.from({length:24},(_,i)=>({id:'test-'+i,type:'note',title:'测试笔记 '+(i+1),body:['隔离验收数据，不是真实账号内容。'],state:{read:false},revision:1,updated_at:new Date().toISOString()}));
+  await cloudTool(page,'refresh');await page.waitForFunction(()=>window.__store.state.cards.length===24);
   await page.evaluate(()=>window.__store.setPref('stack',false));await page.evaluate(()=>window.__app.renderCurrent(true));
-  await page.waitForTimeout(400);await page.screenshot({animations:'disabled',scale:'css',path:`tests/artifacts/cloud-recovery/${mobile?'mobile':'desktop'}-cards.png`});
+  await page.locator('main').click({position:{x:5,y:5}});await page.mouse.move(0,0);await page.waitForTimeout(600);await page.screenshot({animations:'disabled',scale:'css',path:`tests/artifacts/cloud-recovery/${mobile?'mobile':'desktop'}-cards.png`});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));assert.ok(await page.evaluate(()=>scrollY>0));await page.evaluate(()=>window.scrollTo(0,0));
   await page.locator('.card-title-button').first().click();await page.waitForFunction(()=>document.querySelector('#modal').open);await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#modal').open);
   await page.locator('#orb').click();await page.locator('[data-action=settings]').click();await page.locator('[data-action=settings-group][data-extra=data]').click();assert.match(await page.locator('.settings-main').textContent(),/云端工作区/);
   await page.locator('[data-action=settings-group][data-extra=sources]').click();assert.match(await page.locator('.settings-main').textContent(),/尚未连接/);
-  await page.keyboard.press('Escape');holdListing=true;await page.locator('#cloud-refresh').click();while(!heldRoute)await page.waitForTimeout(10);await page.locator('#cloud-logout').click();await page.locator('#cloud-login').waitFor();assert.equal(await page.locator('[data-card]').count(),0);await heldRoute.fulfill({json:{items:cards,next_cursor:null}});await page.waitForTimeout(150);assert.equal(await page.locator('[data-card]').count(),0,'late refresh cannot revive signed-out content');
+  await page.keyboard.press('Escape');holdListing=true;await cloudTool(page,'refresh');while(!heldRoute)await page.waitForTimeout(10);await cloudLogout(page);await page.locator('#cloud-login').waitFor();assert.equal(await page.locator('[data-card]').count(),0);await heldRoute.fulfill({json:{items:cards,next_cursor:null}});await page.waitForTimeout(150);assert.equal(await page.locator('[data-card]').count(),0,'late refresh cannot revive signed-out content');
   assert.equal(await page.evaluate(()=>localStorage.length),0);
   for(const code of [403,503]){sessionStatus=code;await page.reload();await page.locator('#toast').waitFor({state:'visible'});assert.equal(await page.locator('[data-card]').count(),0);assert.match(await page.locator('#toast').textContent(),code===403?/权限/:/连接暂时/);}
   assert.deepEqual(errors,[]);

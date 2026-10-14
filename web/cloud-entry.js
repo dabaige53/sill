@@ -21,7 +21,6 @@ app.deskHTML=function(){
  return originalDeskHTML();
 };
 app.init();
-const account=document.createElement('section');account.id='cloud-account';account.setAttribute('aria-label','云端账号');document.body.prepend(account);
 const messages={rate_limited:'请求较频繁，请稍等一分钟再发送。',unauthenticated:'登录已过期，请重新登录。',forbidden:'该账号或客户端没有此操作权限。',revision_conflict:'内容已在另一处修改。草稿仍保留，请刷新并核对后再保存。',idempotency_conflict:'原请求已被处理或需要核对，未覆盖数据。',not_found:'内容已不存在。',unavailable:'连接暂时不可用；写入结果可能尚未确认。'};
 async function cloudApi(path,options={}){
  const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
@@ -29,11 +28,7 @@ async function cloudApi(path,options={}){
  if(!response.ok)throw Object.assign(new Error(messages[data.error?.code]||'请求未完成'),{status:response.status,code:data.error?.code});
  return data;
 }
-function accountView(){
- account.hidden=!Cloud.user;
- document.body.classList.toggle('cloud-signed-in',!!Cloud.user);
- account.innerHTML=Cloud.user?`<div class="cloud-brand">${sillIcon(28)}<span>Sill <small>云端工作台</small></span></div><div class="cloud-account-actions"><button class="soft-button" id="cloud-new">新建笔记</button><button class="soft-button" id="cloud-refresh" aria-label="刷新云端内容">${icon('refresh',16)}</button><button class="text-link" id="cloud-logout">退出登录</button></div>`:'';
-}
+function accountView(){document.body.classList.toggle('cloud-signed-in',!!Cloud.user);}
 
 function clearCloud(){Cloud.epoch++;Cloud.user=null;Cloud.pending=null;Cloud.edit=null;Cloud.records.clear();Store.load();app.closeNative();app.renderCurrent(true);accountView();}
 function paintRecords(){
@@ -102,14 +97,12 @@ const localSettings=Panels.settings.bind(Panels);
 Panels.sourceRows=()=>'<p class="panel-sub">尚未连接外部来源。云端内容只来自你明确保存的记录。</p>';
 Panels.settings=function(app,group){
  const html=localSettings(app,group),doc=document.createElement('template');doc.innerHTML=html;
- if(group==='data')doc.content.querySelector('.settings-main').innerHTML='<h1 id="modal-title">数据与隐私</h1><p class="panel-sub">内容保存在你的云端工作区。此浏览器不将账号令牌或卡片写入 localStorage。</p><p class="panel-sub">外部来源和远程 MCP 尚未连接。外观与桌面偏好只在本次页面访问中生效。</p>';
+ if(group==='data')doc.content.querySelector('.settings-main').innerHTML='<h1 id="modal-title">数据与隐私</h1><p class="panel-sub">内容保存在你的云端工作区。此浏览器不将账号令牌或卡片写入 localStorage。</p><p class="panel-sub">外部来源和远程 MCP 尚未连接。外观与桌面偏好只在本次页面访问中生效。</p>'+ (Cloud.user?'<div class="settings-card"><div class="setting-row"><span>Sill 账号</span><button type="button" class="text-link" id="cloud-logout">退出登录</button></div></div>':'');
  return doc.innerHTML;
 };
 app.refresh=loadCloud;app.capture=()=>{editCloud();return null;};app.importFiles=async()=>app.toast('文件导入尚未接入云端');app.drop=()=>app.toast('拖拽操作尚未接入云端');
-account.addEventListener('click',async e=>{
+document.addEventListener('click',async e=>{
  const target=e.target.closest('button');if(!target)return;
- if(target.id==='cloud-new')editCloud();
- if(target.id==='cloud-refresh')loadCloud();
  if(target.id==='cloud-logout'){
   try{const result=await cloudApi('/auth/logout',{method:'POST'});clearCloud();app.toast(result.revoked?'已退出登录':'已退出当前浏览器；上游撤销尚未确认');}catch(error){app.toast(error.message);}
  }
