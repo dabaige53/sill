@@ -17,7 +17,7 @@ const Store = {
  sanitizeItem(x){
    const timestamp=n=>Number.isFinite(n)&&n>0&&n<8.64e15?n:0;
    return {
-     seen:!!x.seen,read:!!x.read,bookmarked:!!x.bookmarked,later:!!x.later,tagsEdited:!!x.tagsEdited,
+     archived:!!x.archived,done:!!x.done,seen:!!x.seen,read:!!x.read,bookmarked:!!x.bookmarked,later:!!x.later,tagsEdited:!!x.tagsEdited,
      progress:Math.max(0,Math.min(1,Number(x.progress)||0)),
      note:typeof x.note==='string'?x.note.slice(0,4000):'',
      tags:Array.isArray(x.tags)?x.tags.filter(s=>typeof s==='string').map(s=>s.slice(0,30)).slice(0,20):[],

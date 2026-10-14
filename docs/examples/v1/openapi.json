@@ -869,7 +869,8 @@
                   "idempotency_conflict",
                   "cursor_expired",
                   "rate_limited",
-                  "unavailable"
+                  "unavailable",
+                  "not_supported"
                 ]
               },
               "message": {

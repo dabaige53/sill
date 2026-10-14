@@ -11,7 +11,7 @@ let server=await startLocal({port:0,file}),browser;
 const errors=[];
 try{
   const port=server.address().port,origin='http://127.0.0.1:'+port;
-  browser=await chromium.launch({headless:true});
+  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
   const page=await browser.newPage({viewport:{width:1440,height:1000}});page.setDefaultTimeout(8000);
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
@@ -23,7 +23,7 @@ try{
   assert.deepEqual(value.state.items['task-01'].taskDone,['t1','t2']);assert.equal(value.state.seconds,37);
   assert.equal(await page.locator('#ai-panel,[data-action="applications"],[data-action="card-ai"]').count(),0);
   const apply=async operations=>{
-    const response=await fetch(origin+'/api/local/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operations})});
+    const response=await fetch(origin+'/api/local/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operations,expectedRevision:(await fetch(origin+'/api/local/state').then(r=>r.json())).revision})});
     const value=await response.json();assert.equal(response.status,200,JSON.stringify(value));return value;
   };
   await apply([{op:'card.upsert',card:{id:'agent-test',type:'note',title:'AI 同步验收',body:['AI 写入本地'],url:'https://example.com'}},{op:'item.patch',id:'agent-test',values:{note:'AI 备注',bookmarked:true}}]);

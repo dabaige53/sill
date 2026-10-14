@@ -1,5 +1,7 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, openSync, closeSync, fsyncSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { createHash } from 'node:crypto';
+import { reconcileContents } from './v1-state.mjs';
 import { z } from 'zod';
 
 const id=z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/).refine(value=>!['__proto__','constructor','prototype'].includes(value));
@@ -37,6 +39,7 @@ export const Card=z.object({
   if(card.type==='file'&&!card.files?.length)ctx.addIssue({code:'custom',message:'文件卡片需要 files'});
 });
 export const Item=z.object({
+  archived:z.boolean().optional(),done:z.boolean().optional(),
   seen:z.boolean().optional(),read:z.boolean().optional(),bookmarked:z.boolean().optional(),later:z.boolean().optional(),
   tagsEdited:z.boolean().optional(),progress:z.number().min(0).max(1).optional(),note:z.string().max(4000).optional(),
   tags:z.array(z.string().max(30)).max(20).optional(),taskDone:z.array(id).max(100).optional(),
@@ -59,15 +62,15 @@ export const Source=z.object({
 }).strict();
 const State=z.object({cards:z.array(Card).max(5000),items:z.record(id,Item),seconds:z.number().min(0).max(1e7),preferences:Preferences,sources:z.array(Source).max(200).optional()}).strict();
 const Operation=z.discriminatedUnion('op',[
-  z.object({op:z.literal('card.upsert'),card:Card}).strict(),
-  z.object({op:z.literal('card.delete'),id}).strict(),
+  z.object({op:z.literal('card.upsert'),card:Card,before:Card.nullable().optional()}).strict(),
+  z.object({op:z.literal('card.delete'),id,before:Card.optional()}).strict(),
   z.object({op:z.literal('item.patch'),id,values:Item,before:Item.optional()}).strict(),
   z.object({op:z.literal('preferences.patch'),values:Preferences,before:Preferences.optional()}).strict(),
   z.object({op:z.literal('reading.add'),seconds:z.number().int().min(0).max(86400)}).strict(),
   z.object({op:z.literal('source.upsert'),source:Source}).strict(),
   z.object({op:z.literal('source.delete'),id}).strict()
 ]);
-export const Batch=z.object({operations:z.array(Operation).min(1).max(500),expectedRevision:z.number().int().nonnegative().optional()}).strict();
+export const Batch=z.object({operations:z.array(Operation).min(1).max(500),expectedRevision:z.number().int().nonnegative().optional(),idempotencyKey:z.string().min(8).max(128).regex(/^[a-zA-Z0-9_-]+$/).optional()}).strict();
 export const capabilities={
   operations:['card.upsert','card.delete','item.patch','preferences.patch','reading.add','source.upsert','source.delete'],
   cardFields:Object.keys(Card._def.schema.shape),
@@ -85,7 +88,7 @@ function compare(target,values,before){
 export class LocalRepository{
   constructor(file){
     this.file=file;this.value=existsSync(file)?JSON.parse(readFileSync(file,'utf8')):null;
-    if(this.value){State.parse(this.value.state);z.number().int().nonnegative().parse(this.value.revision);}
+    if(this.value){State.parse(this.value.state);z.number().int().nonnegative().safe().parse(this.value.revision);if(!this.value.v1){this.value.v1=reconcileContents(null,this.value.state);this.commitValue(this.value);}}
   }
   initialize(state){
     if(this.value)return this.snapshot();
@@ -94,19 +97,49 @@ export class LocalRepository{
     for(const key of Object.keys(parsed.items))if(!parsed.cards.some(card=>card.id===key))delete parsed.items[key];
     this.commit(parsed);return this.snapshot();
   }
-  snapshot(){return this.value?structuredClone(this.value):{revision:0,state:null};}
-  commit(state){
-    const value={revision:(this.value?.revision||0)+1,state};
+  snapshot(){return this.value?structuredClone({revision:this.value.revision,state:this.value.state}):{revision:0,state:null};}
+  preview(state,v1=this.value?.v1){
+    State.parse(state);
+    if(!Number.isSafeInteger((this.value?.revision||0)+1))throw Object.assign(new Error('Revision limit reached'),{status:503});
+    return {revision:(this.value?.revision||0)+1,state,v1:reconcileContents(this.value,state,v1)};
+  }
+  commit(state,v1){return this.commitValue(this.preview(state,v1));}
+  commitValue(value){
     mkdirSync(dirname(this.file),{recursive:true,mode:0o700});
-    writeFileSync(this.file+'.tmp',JSON.stringify(value,null,2)+'\n',{mode:0o600});
+    const fd=openSync(this.file+'.tmp','w',0o600);
+    try{writeFileSync(fd,JSON.stringify(value,null,2)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
     renameSync(this.file+'.tmp',this.file);this.value=value;
+    const directory=openSync(dirname(this.file),'r');try{fsyncSync(directory);}finally{closeSync(directory);}
   }
   apply(input){
+    Batch.parse(input);
+    const key=input.idempotencyKey?'local:'+input.idempotencyKey:null;
+    const digest=createHash('sha256').update(JSON.stringify(input)).digest('hex');
+    const receipt=key&&this.value?.v1?.receipts[key];
+    if(receipt){if(receipt.digest!==digest)conflict('幂等键已用于不同请求');return this.snapshot();}
+    const state=this.prepare(input);
+    if(key){
+      const value=this.preview(state);
+      if(Object.keys(value.v1.receipts).length>=10000)throw Object.assign(new Error('幂等记录容量已满'),{status:503});
+      value.v1.receipts[key]={digest};this.commitValue(value);return this.snapshot();
+    }
+    if(JSON.stringify(state)!==JSON.stringify(this.value?.state))this.commit(state);
+    return this.snapshot();
+  }
+  prepare(input){
+
     const {operations,expectedRevision}=Batch.parse(input);
     if(expectedRevision!==undefined&&expectedRevision!==(this.value?.revision||0))conflict('版本已变化，请重新读取');
     const state=this.value?structuredClone(this.value.state):{cards:[],items:{},seconds:0,preferences:{sort:'priority',reduceTransparency:false}};
     for(const operation of operations){
       const index=state.cards.findIndex(card=>card.id===operation.id||card.id===operation.card?.id);
+      if(['card.upsert','card.delete'].includes(operation.op)){
+        const current=index<0?null:state.cards[index];
+        if(operation.op==='card.delete'&&expectedRevision===undefined)conflict('删除需要 expectedRevision，防止丢失并发备注或状态');
+        if(expectedRevision===undefined&&current&&operation.before===undefined)conflict('整卡写入需要 expectedRevision 或读取起点 before');
+        if(operation.before!==undefined&&JSON.stringify(current)!==JSON.stringify(operation.before))conflict('卡片已变化，请合并原稿');
+        if(!current&&operation.op==='card.upsert'&&this.value?.v1?.contents?.[operation.card.id]?.deleted)conflict('已删除的 ID 不可复用');
+      }
       if(operation.op==='card.upsert'){
         if(index<0)state.cards.unshift(operation.card);else state.cards[index]=operation.card;
       }else if(operation.op==='card.delete'){
@@ -115,6 +148,7 @@ export class LocalRepository{
       }else if(operation.op==='item.patch'){
         if(index<0)throw new Error('卡片不存在：'+operation.id);
         if(operation.values.taskDone?.some(key=>!state.cards[index].tasks?.some(task=>task.id===key)))throw new Error('任务 ID 不存在');
+        if(this.value?.state.cards.some(c=>c.id===operation.id)&&expectedRevision===undefined&&operation.before===undefined)conflict('写入需要 expectedRevision 或读取起点 before');
         const item=state.items[operation.id]||{};compare(item,operation.values,operation.before);
         state.items[operation.id]={...item,...operation.values};
       }else if(operation.op==='preferences.patch'){
@@ -127,7 +161,6 @@ export class LocalRepository{
       }else state.seconds=Math.min(1e7,state.seconds+operation.seconds);
     }
     State.parse(state);
-    if(JSON.stringify(state)!==JSON.stringify(this.value?.state))this.commit(state);
-    return this.snapshot();
+    return state;
   }
 }

@@ -14,7 +14,7 @@ async function scenario(name,run,options={}){
  const context=await browser.newContext({viewport:{width:1440,height:1000},...options}),page=await context.newPage();page.setDefaultTimeout(6000);
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.abort());
- const apply=async operations=>{const response=await fetch(origin+'/api/local/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operations})});assert.equal(response.status,200);return response.json();};
+ const apply=async operations=>{const response=await fetch(origin+'/api/local/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operations,expectedRevision:(await fetch(origin+'/api/local/state').then(r=>r.json())).revision})});assert.equal(response.status,200);return response.json();};
  try{await page.goto(origin);await page.waitForFunction(()=>document.querySelector('#feed-grid')?.dataset.sync==='saved');await run(page,apply,origin);assert.deepEqual(errors,[]);console.log('PASS '+name);}
  catch(error){failed++;console.error('FAIL '+name+'\n'+error.stack);}
  finally{await context.close();await new Promise(r=>server.close(r));await rm(dir,{recursive:true,force:true});}

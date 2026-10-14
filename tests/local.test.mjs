@@ -26,7 +26,7 @@ test('local operations persist all card states and reject conflicts atomically',
     assert.throws(()=>repo.apply({operations:[{op:'item.patch',id:card.id,values:{taskDone:['missing']}}]}),/任务 ID/);
     repo.apply({operations:[{op:'card.upsert',card:{id:'task',type:'task',title:'任务',tasks:[{id:'t1',text:'检查'}]}},{op:'item.patch',id:'task',values:{taskDone:['t1']}}]});
     assert.deepEqual(repo.snapshot().state.items.task.taskDone,['t1']);
-    repo.apply({operations:[{op:'card.delete',id:card.id}]});
+    repo.apply({expectedRevision:repo.snapshot().revision,operations:[{op:'card.delete',id:card.id}]});
     assert.equal(repo.snapshot().state.cards.some(c=>c.id===card.id),false);
   }finally{await rm(dir,{recursive:true,force:true});}
 });

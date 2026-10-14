@@ -4,7 +4,7 @@ Sill 是 agent 驱动的个人工作台（原名 Quiet Glass；包名、命令�
 
 **V1 方向已收敛为外部助手驱动：** Sill 将 UI 动作/事件发送到配置好的 OpenClaw 或 Hermes Webhook，由外部助手调用 Sill MCP 读取和写回结果。V1 不做内置 LLM、聊天引擎或 agent runtime；供应商官方能力已核验，用户实例适配、框架与部署仍待确认，内置助手与上游 tools 桥接保留为远期可选。
 
-**当前尚未实现上述链路：** 现有页面和 agent 通过 local skill/CLI 共用本地数据，没有外部 Webhook、当前产品的对外 MCP 或可靠执行队列。遵循“先排查、确认后实施”；本轮只维护方案，不修改代码或部署。已确认原则、候选 API、模块边界和实施顺序统一见 [Agent 与 MCP](docs/AGENT-MCP.md)。
+**当前已实现本地受限 MCP（stdio）：** 7 个 V1 工具通过官方 SDK 2.3.1 接入共用本地能力层；内容版本、幂等和事件结果回写已落地。Webhook、远程鉴权和真实外部助手连接仍未实现。启动、权限与限制见 [本地 MCP](docs/LOCAL-MCP.md)。
 
 ## 启动
 
@@ -45,9 +45,9 @@ Codex 插件使用 [本地技能](skills/quiet-glass/SKILL.md)。Hermes、Claude
 
 ## 当前生产缺口
 
-- **P1，未修：** 正常在线页面整卡保存缺少版本保护，可能覆盖 agent 对同一卡片的新修改；离线恢复的版本校验不能替代此修复。
+- **本地并发已修：** 整卡起点和版本检查阻止网页/MCP覆盖，冲突保留草稿；需要人工合并，无自动合并界面。
 - **P1，未修：** 日历允许/RSS添加可写入成功状态，却没有真实读取链路；RSS地址未持久化。不可作为连接成功的依据。
-- 意图调度、跨进程单写入保护、自动备份与恢复演练尚待落地。详见 [落地顺序与验收](docs/AGENT-MCP.md#落地顺序与验收)。
+- 意图调度、自动备份与恢复演练尚待落地；单数据文件服务写入锁已实现。详见 [落地顺序与验收](docs/AGENT-MCP.md#落地顺序与验收)。
 
 ## 本地数据
 
@@ -57,7 +57,7 @@ Codex 插件使用 [本地技能](skills/quiet-glass/SKILL.md)。Hermes、Claude
 
 ## V1 三端交接准备
 
-[接口、架构、原生调用示例与检查脚本](docs/V1-HANDOFF.md) 集中索引 OpenAPI、MCP schemas、合成请求/响应及 Swift 示例。均为未实现契约，不是已上线接口；只准备内容，代码实施和部署仍需确认。
+[接口、架构、原生调用示例与检查脚本](docs/V1-HANDOFF.md) 集中索引 OpenAPI、MCP schemas、合成请求/响应及 Swift 示例。完整三端与 Webhook 是目标设计；已实现的本地子集与契约修正见 [本地 MCP](docs/LOCAL-MCP.md)，没有部署。
 
 ## 开发与验证
 

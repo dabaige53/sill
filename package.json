@@ -29,8 +29,10 @@
     "start:legacy": "node --env-file-if-exists=.env server/index.mjs --http",
     "mcp:legacy": "node --env-file-if-exists=.env server/index.mjs --stdio",
     "test:legacy": "npm run plugin:build && node --test --test-concurrency=1 tests/*.test.mjs",
-    "boards": "node -e \"console.log('Sill 设计画板：http://127.0.0.1:4310/')\" && python3 -m http.server 4310 --bind 127.0.0.1 --directory design-system/boards",
-    "test:accessibility": "node tests/accessibility-browser.mjs"
+    "boards": "node -e \"console.log('Sill \u8bbe\u8ba1\u753b\u677f\uff1ahttp://127.0.0.1:4310/')\" && python3 -m http.server 4310 --bind 127.0.0.1 --directory design-system/boards",
+    "test:accessibility": "node tests/accessibility-browser.mjs",
+    "mcp": "node server/local-mcp.mjs",
+    "test:mcp": "node --test tests/v1-mcp.test.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/ext-apps": "1.7.5",
@@ -45,7 +47,11 @@
     "node": ">=24"
   },
   "dependencies": {
+    "@modelcontextprotocol/client": "2.3.1",
     "@modelcontextprotocol/sdk": "1.32.1",
+    "@modelcontextprotocol/server": "2.3.1",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
     "zod": "3.25.76"
   }
 }

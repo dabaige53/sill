@@ -10,8 +10,8 @@ try{
   if(!response.ok)throw new Error('HTTP '+response.status);
   const value=await response.json();
   if(v1){
-    if(value.status!=='ready'||value.contract!=='sill-v1-draft1')throw new Error('V1 contract not reported ready');
-    console.log('V1 health responds; CRUD, permissions, Webhook and native clients NOT verified.');
+    if(value.ok!==true||value.mode!=='local-v1'||value.mcp!=='stdio'||value.webhook!==false)throw new Error('Local V1 subset not reported ready');
+    console.log('Local V1 subset responds (stdio only, Webhook disabled); this probe does not verify CRUD, permissions or native clients.');
   }else{
     if(value.ok!==true||value.mode!=='local')throw new Error('Not the current Sill local health response');
     console.log('Current local health responds. V1 APIs are NOT verified or implied implemented.');

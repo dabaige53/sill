@@ -6,10 +6,14 @@ const port=Number(process.env.QG_LOCAL_PORT||4318);
 if(!Number.isInteger(port)||port<1||port>65535)throw new Error('QG_LOCAL_PORT 无效');
 const origin='http://127.0.0.1:'+port;
 if(command==='help'){
-  console.log('Quiet Glass 本地操作\n  node scripts/qg.mjs capabilities\n  node scripts/qg.mjs list [关键词]\n  node scripts/qg.mjs get <卡片ID>\n  node scripts/qg.mjs open <卡片ID>\n  node scripts/qg.mjs state\n  node scripts/qg.mjs apply [--file JSON文件]\napply 输入：{operations:[...],expectedRevision?:number}；无 --file 时从 stdin 读取 JSON。');
+  console.log('Quiet Glass 本地操作\n  node scripts/qg.mjs capabilities\n  node scripts/qg.mjs list [关键词]\n  node scripts/qg.mjs get <卡片ID>\n  node scripts/qg.mjs open <卡片ID>\n  node scripts/qg.mjs state\n  node scripts/qg.mjs v1 <tool> [--file JSON文件]\n  node scripts/qg.mjs apply [--file JSON文件]\napply 输入：{operations:[...],expectedRevision?:number}；无 --file 时从 stdin 读取 JSON。');
 }else try{
   let path='/api/local/state',options;
-  if(command==='capabilities')path='/api/local/capabilities';
+  if(command==='v1'){
+    const tool=args[0];if(!/^sill_[A-Za-z]+$/.test(tool||'')||!process.env.SILL_MCP_TOKEN)throw new Error('v1 需要工具名称与 SILL_MCP_TOKEN');
+    let source;if(args[1]==='--file'&&args[2])source=await readFile(args[2],'utf8');else{const chunks=[];for await(const chunk of process.stdin)chunks.push(chunk);source=Buffer.concat(chunks).toString('utf8');}
+    path='/api/v1/tools/'+tool;options={method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+process.env.SILL_MCP_TOKEN},body:JSON.stringify(JSON.parse(source||'{}'))};
+  }else if(command==='capabilities')path='/api/local/capabilities';
   else if(command==='open')path='/api/local/open?id='+encodeURIComponent(args[0]||'');
   else if(command==='apply'){
     let source;
@@ -18,7 +22,7 @@ if(command==='help'){
     options={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.parse(source))};path='/api/local/operations';
   }else if(!['state','list','get'].includes(command))throw new Error('未知命令，运行 help 查看用法');
   const response=await fetch(origin+path,{...options,signal:AbortSignal.timeout(5000)}),value=await response.json();
-  if(!response.ok)throw new Error(value.error||'操作失败');
+  if(!response.ok)throw new Error(typeof value.error==='object'?value.error.message:value.error||'操作失败');
   let result=value;
   if(command==='list'){
     const query=args.join(' ').toLowerCase();result={revision:value.revision,cards:(value.state?.cards||[]).filter(card=>!query||[card.title,card.summary,card.source,...card.tags].join(' ').toLowerCase().includes(query)).map(card=>({id:card.id,type:card.type,title:card.title,url:card.url,state:value.state.items[card.id]||{}}))};

@@ -5,6 +5,7 @@ const FeedPolicy = {
  // Nothing is deleted: both shelves stay searchable and any card can be put back.
  archiveDelay(pref){return pref==='3d'?3*86400000:pref==='never'?Infinity:7*86400000;},
  shelf(c,s,now,pref='7d'){
+   if(s.archived)return 'read';
    if(['task','event','reminder'].includes(c.type))return 'desk';
    if(s.restoredAt&&now-s.restoredAt<7*86400000)return 'desk';
    if(s.bookmarked||s.later)return 'desk';

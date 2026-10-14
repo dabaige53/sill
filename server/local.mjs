@@ -1,12 +1,19 @@
 import { createServer } from 'node:http';
+import { openSync,closeSync,unlinkSync,mkdirSync } from 'node:fs';
+import { createV1HTTP } from './v1-http.mjs';
 import { readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LocalRepository, capabilities } from './local-state.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-export async function startLocal({port=4318,file=resolve(root,'.quiet-glass/local/cards.json')}={}){
-  const repository=new LocalRepository(file);
+export async function startLocal({port=4318,file=resolve(root,'.quiet-glass/local/cards.json'),principals=[],destinations={}}={}){
+  if(!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid local port');
+  mkdirSync(dirname(file),{recursive:true,mode:0o700});
+  const lock=file+'.lock';let lockFd;
+  try{lockFd=openSync(lock,'wx',0o600);}catch{throw new Error('Data file is locked by another service; after a crash verify no writer remains before removing its .lock file');}
+  let repository,v1;
+  try{repository=new LocalRepository(file);v1=createV1HTTP(repository,{principals,destinations});}catch(error){closeSync(lockFd);unlinkSync(lock);throw error;}
   let actualPort=port;
   const server=createServer(async(req,res)=>{
     const json=(status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
@@ -16,6 +23,7 @@ export async function startLocal({port=4318,file=resolve(root,'.quiet-glass/loca
       if(!origins.some(origin=>new URL(origin).host===req.headers.host)||req.headers.origin&&!origins.includes(req.headers.origin)||req.headers['sec-fetch-site']==='cross-site'){json(403,{error:'仅接受本地同源访问'});return;}
       const url=new URL(req.url,origins[0]);
       if(req.method==='GET'&&url.pathname==='/health'){json(200,{ok:true,mode:'local'});return;}
+      if(await v1(req,res,url,json))return;
       if(url.pathname.startsWith('/api/local/')){
         if(req.method==='GET'&&url.pathname==='/api/local/state'){json(200,repository.snapshot());return;}
         if(req.method==='GET'&&url.pathname==='/api/local/capabilities'){json(200,capabilities);return;}
@@ -41,9 +49,13 @@ export async function startLocal({port=4318,file=resolve(root,'.quiet-glass/loca
       json(404,{error:'Not found'});
     }catch(error){json(error.status||400,{error:error.message});}
   });
-  await new Promise((accept,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',()=>{actualPort=server.address().port;accept();});});
+  const unlock=()=>{if(lockFd!==undefined){closeSync(lockFd);lockFd=undefined;unlinkSync(lock);}};
+  server.once('close',unlock);server.once('error',unlock);
+  try{await new Promise((accept,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',()=>{actualPort=server.address().port;accept();});});}catch(error){unlock();throw error;}
   return server;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  const server=await startLocal();console.log('Quiet Glass 本地卡片：http://127.0.0.1:'+server.address().port+'/#feed');
+  const config=process.env.SILL_MCP_CONFIG?JSON.parse(process.env.SILL_MCP_CONFIG):{};
+  const server=await startLocal({port:Number(process.env.QG_LOCAL_PORT||4318),principals:config.principals||[],destinations:config.destinations||{}});
+  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>server.close(()=>process.exit(0)));console.log('Quiet Glass 本地卡片：http://127.0.0.1:'+server.address().port+'/#feed');
 }

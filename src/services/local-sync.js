@@ -17,9 +17,14 @@ const LocalSync={
     if(message)bar.innerHTML=`<span role="status">${esc(message)}</span> <button type="button" class="text-link" data-action="sync-retry">重试同步</button> <button type="button" class="text-link" data-action="sync-export">导出草稿</button> <button type="button" class="text-link" data-action="sync-discard">使用服务端版本…</button>`;
   },
   async discard(){
-    const value=await this.request('state');
-    this.pending=[];this.failed=false;this.unversioned=false;this.recovering=false;
-    localStorage.removeItem('quiet-glass-unsynced');this.adopt(value);this.status('');this.app.setOffline(false);
+    if(this.busy||this.discarding)throw new Error('正在核对同步结果，请稍后再确认放弃草稿');
+    const journal=JSON.stringify([this.pending,this.snapshot()]);this.discarding=true;
+    try{
+      const value=await this.request('state');
+      if(journal!==JSON.stringify([this.pending,this.snapshot()]))throw new Error('读取期间有新修改，请重新确认是否放弃草稿');
+      this.pending=[];this.failed=false;this.unversioned=false;this.recovering=false;
+      localStorage.removeItem('quiet-glass-unsynced');this.adopt(value);this.status('');this.app.setOffline(false);
+    }finally{this.discarding=false;}
   },
   connect(app){
     if(this.connection)return this.connection;
@@ -58,8 +63,8 @@ const LocalSync={
     const next=this.snapshot(),before=this.baseline,operations=[];
     // Cards created or edited on the page (capture, import, inline notes) travel as whole cards.
     const oldCards=new Map(before.cards.map(card=>[card.id,JSON.stringify(card)])),newIds=new Set(next.cards.map(card=>card.id));
-    for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card});
-    for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id});
+    for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card,before:before.cards.find(old=>old.id===card.id)||null});
+    for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id,before:before.cards.find(old=>old.id===id)});
     const oldSources=new Map((before.sources||[]).map(source=>[source.id,JSON.stringify(source)])),newSources=new Set(next.sources.map(source=>source.id));
     for(const source of next.sources)if(oldSources.get(source.id)!==JSON.stringify(source))operations.push({op:'source.upsert',source});
     for(const id of oldSources.keys())if(!newSources.has(id))operations.push({op:'source.delete',id});
@@ -74,17 +79,21 @@ const LocalSync={
     if(Object.keys(values).length)operations.push({op:'preferences.patch',values,before:previous});
     const seconds=next.seconds-before.seconds;if(seconds>0)operations.push({op:'reading.add',seconds});
     this.baseline=next;
-    if(operations.length){this.app.grid.dataset.sync='pending';this.pending.push({operations});if(!this.ready)this.recovering=true;this.persist();if(this.failed||!this.ready)this.status(this.durable?'已保存在本机，尚未同步':'草稿仅在本次页面，请立即导出');else this.flush();}
+    if(operations.length){this.app.grid.dataset.sync='pending';this.pending.push({operations,idempotencyKey:crypto.randomUUID()});if(!this.ready)this.recovering=true;this.persist();if(this.failed||!this.ready)this.status(this.durable?'已保存在本机，尚未同步':'草稿仅在本次页面，请立即导出');else this.flush();}
   },
   async flush(){
-    if(this.busy||!this.pending.length)return;
+    if(this.busy||this.discarding||!this.pending.length)return;
     this.busy=true;
     try{
       while(this.pending.length){
         if(this.unversioned)throw new Error('旧草稿缺少版本信息，请先导出并与服务端版本比较');
-        const batch={...this.pending[0],...(this.recovering?{expectedRevision:this.revision}:{})};this.persist();
+        const entry=this.pending[0];
+        // Freeze exactly one wire request. Online before guards allow unrelated edits;
+        // recovery and deletion additionally require the original global revision.
+        entry.request??={operations:entry.operations,...(entry.idempotencyKey?{idempotencyKey:entry.idempotencyKey}:{}),...((this.recovering||entry.operations.some(op=>op.op==='card.delete'))?{expectedRevision:entry.expectedRevision??this.revision}:{})};
+        const batch=entry.request;this.persist();
         const value=await this.request('operations',batch);this.pending.shift();this.revision=value.revision;this.persist();
-        if(!this.pending.length)this.adopt(value);
+        if(!this.pending.length){if(!this.app.editingId&&this.app.modalKind!=='editor')this.adopt(value);else this.needsAdopt=true;}
       }
       localStorage.removeItem('quiet-glass-unsynced');this.status('');this.failed=false;this.recovering=false;
       this.app.grid.dataset.sync='saved';this.app.setOffline(false);
@@ -97,21 +106,21 @@ const LocalSync={
   },
   async refresh(manual=false){
     if(!this.ready){if(manual)return this.connect(this.app);throw new Error('本地数据尚未连接');}
-    if(this.busy)return;
+    if(this.busy||this.discarding)return;
     if(this.failed&&!manual)return;
     if(manual)this.failed=false;
     if(this.pending.length){await this.flush();if(this.pending.length)throw new Error('仍有未同步修改');return;}
     // Keep an editor's original values until its save can be checked for conflicts.
-    if(this.app.modalKind==='editor')return;
+    if(this.app.modalKind==='editor'||this.app.editingId)return;
     const value=await this.request('state');
-    if(!this.busy&&!this.pending.length&&this.app.modalKind!=='editor'&&value.revision!==this.revision)this.adopt(value);
+    if(!this.busy&&!this.discarding&&!this.pending.length&&this.app.modalKind!=='editor'&&!this.app.editingId&&(value.revision>this.revision||this.needsAdopt&&value.revision===this.revision))this.adopt(value);
   },
   adopt(value,{draft=false}={}){
     if(!value.state)return;
     const app=this.app;
     const previewBefore=JSON.stringify([Store.card(app.currentId),Store.state.items[app.currentId]]);
     const changed=JSON.stringify([Store.state.cards,Store.state.items,Store.state.preferences,Store.state.sources])!==JSON.stringify([value.state.cards,value.state.items,value.state.preferences,value.state.sources||[]]);
-    this.revision=value.revision;
+    this.revision=value.revision;this.needsAdopt=false;
     if(!draft)try{localStorage.setItem('quiet-glass-sync-revision',JSON.stringify(value.revision));}catch{}
     Object.assign(Store.state,value.state);Store.state.sources=value.state.sources||[];Store.state.storageAvailable=true;
     this.baseline=this.snapshot();
