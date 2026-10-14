@@ -11,7 +11,7 @@ const DemoSources = [
  {id:'src-linear',kind:'linear',name:'Linear',detail:'指派给我',enabled:false,status:'paused',count:0,stack:true,open:'web',range:'30d'}
 ];
 const Store = {
- key:'sill-public-demo-v1', // Keep the original key so existing users migrate in place.
+ key:'quiet-glass-v1', // Keep the original key so existing users migrate in place.
  state:{},
  fresh(){return {cards:[],items:{},seconds:0,demoStartedAt:demoBase,freshIds:[],preferences:{...DefaultPreferences},sources:[],storageAvailable:true};},
  sanitizeItem(x){
@@ -45,7 +45,7 @@ const Store = {
    const shift=card=>{for(const key of ['time','start','end','due'])if(Number.isFinite(card[key]))card[key]+=offset;return card;};
    this.state.cards=[...this.state.freshIds.map(id=>FreshCards.find(c=>c.id===id)),...SeedCards].map(c=>shift({...c,tasks:c.tasks?.map(t=>({...t})),files:c.files?.map(f=>({...f,time:f.time?f.time+offset:undefined}))}));
    if(valid&&raw.version>=3&&Array.isArray(raw.cards))this.state.cards=raw.cards;
-   this.state.sources=valid&&Array.isArray(raw.sources)?raw.sources:DemoSources.map(s=>({...s,status:'attention',detail:'演示来源 · 尚未连接',count:0,syncedAt:0}));
+   this.state.sources=valid&&Array.isArray(raw.sources)?raw.sources:DemoSources.map(s=>({...s,syncedAt:this.state.demoStartedAt-2*MIN}));
    const items=valid?raw.items:Object.fromEntries(Object.entries(SeedItems).map(([id,x])=>[id,{...x,readAt:x.readAt?x.readAt+offset:0}]));
    // Live cards arrive after authentication; restore their browser-local notes too.
    const restored=window.__QG_RUNTIME__?Object.keys(items).map(id=>({id})):this.state.cards;

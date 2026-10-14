@@ -25,6 +25,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run browser regressions
         run: npm run test:browser
+      - name: Verify stack gestures and reading widths
+        run: node tests/stack-browser.cjs
+      - name: Build and verify isolated public preview
+        run: |
+          bash deploy/preview/rebuild.sh
+          node deploy/preview/verify.cjs
+          SILL_TEST_HTML=deploy/preview/index.html node tests/stack-browser.cjs
       - name: Retain browser results and screenshots
         if: always()
         uses: actions/upload-artifact@v4

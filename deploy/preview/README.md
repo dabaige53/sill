@@ -18,15 +18,25 @@ This is a module Worker serving a bundled HTML text module (`has_assets:false`),
 - `/api`, `/api/*`, `/mcp`, `/mcp/*` return HTTP 503 JSON `NOT_CONNECTED` for all methods. Unknown assets return 404. Non-GET/HEAD page requests return 405. No SPA fallback.
 - Supabase and security/database settings were not changed.
 
+## Isolated preview build
+
+The regular `index.html` is built without preview settings. `python3 scripts/build.py --preview` adds `deploy/preview/profile.js` immediately before application startup and writes only `deploy/preview/index.html`. The regular product keeps `quiet-glass-v1`, migration, refresh, sources and imports. The preview uses its own storage key, sanitizes demo links and source status, inserts its banner and guards connection/import/refresh actions (including direct pull-to-refresh and file drop).
+
 ## Reproduce
 
-Run `bash deploy/preview/rebuild.sh` from the repository checkout. It rebuilds the standalone HTML and generates `upload-code.json` containing the connected Cloudflare execute tool arguments. Before executing that file, inspect existing Worker ownership and review the prepared diff. Call Cloudflare execute with that JSON; then POST `/accounts/8dfc5765c957955fbcca0c22071c824d/workers/scripts/sill-web-preview/subdomain` with `{ "enabled": true, "previews_enabled": false }` if public routing needs enabling. Neither file contains credentials.
+Run `bash deploy/preview/rebuild.sh`. It builds both profiles, checks generated files and produces `upload-code.json` for the connected Cloudflare execute tool. Inspect the existing Worker ownership and execute those arguments to update the same `sill-web-preview`. No credentials are stored in this repository.
 
-`node deploy/preview/verify.cjs` runs local browser checks against the same Worker handler and CSP at 1440 and 390 pixels. It uses `/usr/bin/chromium` and the environment's Playwright installation (`CODEX_PRIMARY_RUNTIME_NODE_MODULES`). Passing the public URL runs the same checks against production.
+Run `CHROMIUM_PATH=/usr/bin/chromium node deploy/preview/verify.cjs` for local preview tests, or append the production URL for public browser validation. `CHROMIUM_PATH` is optional when Playwright's browser is installed. Run `CHROMIUM_PATH=/usr/bin/chromium node tests/stack-browser.cjs` for gesture/width regressions, and set `SILL_TEST_HTML=deploy/preview/index.html` to run against the preview build. Both are included in CI.
+
+## Gesture and reading changes
+
+The old deck dropped pointerdown while a 260ms settling animation was busy, swallowed opposite-direction wheel input in its 160ms momentum guard, and blocked fresh clicks for 350ms after a drag. The regression script reproduces all three failures before the fix. New gestures finish the previous transition exactly once, clear pending wheel state, and accept reversals. Pointer cancellation/lost capture/blur clean up without selecting another card; capture-transfer events from child elements are not mistaken for loss of the deck's capture. Horizontal movement prevents text selection while vertical touch panning remains native.
+
+Desktop preview width increased from 560px to 800px (viewport-clamped); full-reading column max width increased from 680px to 860px. Existing 390px full-width sheet behavior remains. Screenshots include the third card of the six-card 少数派 stack and wider reading views.
 
 ## Verification and remaining blocker
 
-Build consistency and JS/inline script checks pass. Local browser results/screenshots and route tests are saved alongside this file. The upload and public routing are confirmed by Cloudflare API.
+Build consistency and JS/inline script checks pass. Original core persistence/migration tests are restored without changing their assertions. Local product browser regression and isolated preview checks are recorded separately. The six new gesture/width scenarios run against both builds. CI status and current deployment version are recorded in PR #18 and deployment-result.json. Local browser results/screenshots and route tests are saved alongside this file.
 
 **Live HTTP and live browser validation remain blocked**, not passed. Workspace Chromium reports `ERR_TUNNEL_CONNECTION_FAILED`; Python reports proxy CONNECT 403; an escalated read-only browser request has the same network failure. A direct DNS check cannot resolve the hostname in this execution environment. The Cloudflare tool's outbound fetch returns `403 Forbidden: requests to sill-web-preview.scs1213-temp-email.workers.dev are not allowed`. Web retrieval likewise reports inaccessible. These observations do not establish an application-side 403 or prove public reachability. No deployment retry or alternate publishing path was used.
 

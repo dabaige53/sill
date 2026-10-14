@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Trackpad reversal during the coasting guard changes direction",
+    "status": "PASS"
+  },
+  {
+    "name": "A second mouse swipe can start during the settling animation",
+    "status": "PASS"
+  },
+  {
+    "name": "Cancelled pointer restores deck; a fresh tap still opens the stack",
+    "status": "PASS"
+  },
+  {
+    "name": "Touch swipe, reverse, vertical scroll and title tap remain independent",
+    "status": "PASS"
+  },
+  {
+    "name": "Reading panel uses available width at 1440px",
+    "status": "PASS"
+  },
+  {
+    "name": "Reading panel uses available width at 390px",
+    "status": "PASS"
+  }
+]

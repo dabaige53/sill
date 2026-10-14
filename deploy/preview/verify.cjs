@@ -1,15 +1,16 @@
 const {createRequire}=require('node:module');
-const load=createRequire(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright/package.json');
+const load=process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?createRequire(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright/package.json'):require;
 const {chromium}=load('playwright');
 const http=require('node:http'),fs=require('node:fs'),assert=require('node:assert/strict');
 (async()=>{
  const originArg=process.argv[2];let server;
  if(!originArg){const code=fs.readFileSync(__dirname+'/worker.mjs','utf8').replace("import html from './index.html';",()=> 'const html='+JSON.stringify(fs.readFileSync(__dirname+'/index.html','utf8'))+';');const worker=(await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'))).default;server=http.createServer(async(req,res)=>{const response=await worker.fetch(new Request('http://localhost'+req.url,{method:req.method}));res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));});await new Promise(r=>server.listen(0,'127.0.0.1',r));}
  const origin=originArg||`http://127.0.0.1:${server.address().port}`;
- const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const results=[];
+ const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox']});const results=[];
  try{for(const width of [1440,390]){
  const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();const errors=[],requests=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
+ await context.addInitScript(()=>{localStorage.setItem('quiet-glass-v1',JSON.stringify({version:4,cards:[],items:{},sources:[],preferences:{}}));});
  const response=await page.goto(origin);assert.equal(response.status(),200);await page.waitForFunction(()=>window.__app);
  assert.ok(await page.locator('#demo-notice').isVisible());assert.ok(await page.locator('.feed-card').count()>5);
  await page.locator('[data-card="article-01"] .card-title-button').click();await page.locator('dialog [data-action="bookmark"]').click();
