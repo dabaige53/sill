@@ -1,0 +1,38 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createSillRuntime} from '../server/cloud/http.mjs';
+import {cloudFixture} from './helpers/cloud-fixture.mjs';
+import {token} from './helpers/signed-auth.mjs';
+import {A,resource} from './helpers/boundary-fixture.mjs';
+
+test('SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC SQL',async()=>{
+ const f=await cloudFixture();try{
+  const runtime=createSillRuntime(f.config,{clientFactory:f.factory,html:'test'}),origin=f.config.appOrigin;
+  let cookies='';
+  const call=(path,method='GET',value,extra={})=>runtime(new Request(origin+path,{method,headers:{Origin:origin,...(cookies?{Cookie:cookies}:{}),'Content-Type':'application/json',...extra},...(value?{body:JSON.stringify(value)}:{})}));
+  assert.equal((await call('/api/v1/contents')).status,401);
+  const login=await call('/auth/login','POST',{email:'synthetic@example.com'});assert.equal(login.status,202);
+  const pending=login.headers.getSetCookie();assert.ok(pending.every(c=>c.includes('HttpOnly; Secure; SameSite=Lax')));
+  cookies=pending.map(c=>c.split(';')[0]).join('; ');
+  const url=new URL(f.redirect);url.searchParams.set('code','synthetic-code');
+  const bad=new URL(url);bad.searchParams.set('state','wrong');assert.equal((await call(bad.pathname+bad.search)).status,401);
+  const callback=await call(url.pathname+url.search);assert.equal(callback.status,303);assert.equal(callback.headers.get('location'),origin+'/');
+  const access=callback.headers.getSetCookie().find(c=>c.startsWith('__Host-sill-access='));assert.ok(access.includes('HttpOnly'));assert.ok(!access.includes('synthetic-unused-refresh'));
+  cookies=access.split(';')[0];
+  const session=await call('/auth/session');assert.equal(session.status,200);assert.deepEqual(await session.json(),{userId:A});
+  const created=await call('/api/v1/contents','POST',{type:'note',title:'Saved',body:['Cloud content']},{'Idempotency-Key':'create_001'});assert.equal(created.status,201);const one=await created.json();
+  const replay=await call('/api/v1/contents','POST',{type:'note',title:'Saved',body:['Cloud content']},{'Idempotency-Key':'create_001'});assert.equal((await replay.json()).id,one.id);
+  const updated=await call('/api/v1/contents/'+one.id,'PATCH',{expectedRevision:1,changes:{title:'Changed'}},{'Idempotency-Key':'update_001'});assert.equal(updated.status,200);
+  const conflict=await call('/api/v1/contents/'+one.id,'PATCH',{expectedRevision:1,changes:{title:'Stale'}},{'Idempotency-Key':'update_002'});assert.equal(conflict.status,409);assert.equal((await conflict.json()).error.code,'revision_conflict');
+  const listed=await (await call('/api/v1/contents')).json();assert.equal(listed.items[0].title,'Changed');
+  const crossSite=await call('/api/v1/contents','POST',{type:'note',title:'Forged'},{Origin:'https://evil.example','Idempotency-Key':'csrf_0001'});assert.equal(crossSite.status,403);
+  assert.equal((await call('/api/v1/contents','POST',{type:'note',title:'No key'})).status,400);
+  assert.equal((await call('/api/v1/contents','GET',null,{Authorization:'Bearer '+token({client_id:'unregistered',aud:resource})})).status,403);
+  assert.equal((await call('/api/v1/contents','GET',null,{Authorization:'Bearer '+token({client_id:'unregistered',aud:'https://other.example/mcp'})})).status,401);
+  assert.equal((await call('/mcp','POST',{})).status,503);
+  assert.equal((await call('/api/v1/contents/'+one.id,'DELETE',{expectedRevision:2},{'Idempotency-Key':'delete_001'})).status,200);
+  assert.equal((await call('/api/v1/contents/'+one.id)).status,404);
+  const logout=await call('/auth/logout','POST',{});assert.equal(logout.status,200);assert.match(logout.headers.get('set-cookie'),/Max-Age=0/);
+  assert.equal((await call(url.pathname+url.search)).status,401,'callback cannot be replayed after verifier removal');
+ }finally{await f.close();}
+});

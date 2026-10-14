@@ -4,7 +4,7 @@ function reject(status, code) {
   throw Object.assign(new Error(code), {status, code});
 }
 
-// Request-scoped client. Not wired into local HTTP/MCP. Never persist server sessions.
+// Request-scoped cloud client. Local app/MCP remain separate. Never persist server sessions.
 // This authenticates a principal; the capability layer still authorizes each operation.
 export async function authenticateSupabase(authorization, config, factory = createClient) {
   const url = new URL(config.url);
@@ -38,5 +38,7 @@ export async function authenticateSupabase(authorization, config, factory = crea
   // Do not translate user_metadata or OAuth identity scopes into product permissions.
   const clientId = c.client_id;
   if (clientId !== undefined && (typeof clientId !== 'string' || !clientId)) reject(401, 'unauthenticated');
+  if (config.kind === 'web' && clientId !== undefined) reject(403, 'forbidden');
+  if (config.kind === 'mcp' && (!clientId || !config.audience || config.audience === 'authenticated')) reject(403, 'forbidden');
   return {client, principal: Object.freeze({userId: c.sub, clientId: clientId ?? null})};
 }

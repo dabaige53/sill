@@ -16,7 +16,7 @@ function command(args,input=''){
  });
 }
 const sql=s=>command(['exec','-i',container,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres'],s);
-const asUser=(sub=owner,client)=>`set request.jwt.claims=${quote(JSON.stringify({sub,role:'authenticated',...(client?{client_id:client}:{})}))};set role authenticated;`;
+const asUser=(sub=owner,client)=>`set request.jwt.claims=${quote(JSON.stringify({sub,role:'authenticated',aud:client?'https://sill.example/mcp':'authenticated',exp:Math.floor(Date.now()/1000)+3600,...(client?{client_id:client}:{})}))};set role authenticated;`;
 const write=(op,id,payload,key)=>`select sill_private.write_v1(${quote(op)},${id===null?'null':quote(id)},${quote(JSON.stringify(payload))}::jsonb,${quote(key)});`;
 const parse=out=>JSON.parse(out.split('\n').filter(Boolean)[0]);
 async function holding(name){
@@ -100,6 +100,23 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
    await assert.rejects(sql(asUser()+"update sill_private.caller_grants set scopes=array['*'];"),/permission denied/);
    await assert.rejects(sql(asUser(owner,'unregistered')+write('create',null,{title:'No',type:'note'},'denied002')),/forbidden/);
    await assert.rejects(sql(asUser(other)+`insert into sill_private.contents(owner_id,id,change_version,card) values('${owner}','forged',1,'{}');`),/row-level security/);
+  });
+  await t.test('final boundary: public RPC works but direct tables, raw private RPC and same-owner ungranted client fail',async()=>{
+   await sql(await readFile(new URL('../supabase/drafts/sill_v1_boundary.sql',import.meta.url),'utf8'));
+   await sql("update sill_private.caller_grants set audience='authenticated' where caller_id like 'user:%';");
+   const current=JSON.parse(await sql(asUser()+"select public.sill_list_contents(null,null,100);"));
+   assert.ok(current.items.length>0);
+   for(const statement of ['select * from sill_private.contents;',"update sill_private.contents set card='{}';",'select * from sill_private.caller_grants;',"select sill_private.get_content('x');"]){
+    await assert.rejects(sql(asUser()+statement),/permission denied/);
+   }
+   assert.equal(await sql("select pg_has_role('authenticated','sill_rpc_executor','MEMBER');"),'f');
+   assert.equal(await sql("select rolbypassrls or rolsuper or rolcanlogin from pg_roles where rolname='sill_rpc_executor';"),'f');
+   await assert.rejects(sql(asUser(owner,'unregistered')+"select public.sill_list_contents(null,null,100);"),/forbidden/);
+   const target=current.items[0].id;
+   await sql(`insert into sill_private.caller_grants(owner_id,caller_id,scopes,resources,audience) values('${owner}','oauth:reader',array['content:read'],array[${quote(target)}],'https://sill.example/mcp');`);
+   assert.equal(JSON.parse(await sql(asUser(owner,'reader')+`select public.sill_get_content(${quote(target)});`)).id,target);
+   await assert.rejects(sql(asUser(owner,'reader')+`select public.sill_write_v1('delete',${quote(target)},'{"expectedRevision":1}','denied001');`),/forbidden/);
+   await assert.rejects(sql(asUser(other)+`select public.sill_get_content(${quote(target)});`),/not_found/);
   });
   console.log('ENGINE '+await sql('select version();'));
  }finally{if(started)await command(['rm','-f',container]);}

@@ -1,6 +1,6 @@
 # Supabase V1 准备与审查结果
 
-后续更新：已补充真正 PostgreSQL 17.6 多会话验证；最新生产迁移/权限清单及四层完成度见 [应用清单](SUPABASE-ROLLOUT-CHECKLIST.md)。下文未做多连接验证等记录描述此前阶段，不代表最新测试状态。
+阶段记录：下文描述 PR #19 的准备阶段。后续已增加网页登录/回调、受控 RPC 边界、真实签名 JWT、本地 HTTP/浏览器与 PostgreSQL 多会话验证；最新实现范围和权限差异见 [应用清单](SUPABASE-ROLLOUT-CHECKLIST.md)。旧文的“尚未接路由”“仅 mock”“所有函数 invoker”等不代表后续实现，仍没有任何生产应用。
 
 核查基线：远程 `docs/sill-agent-first-mcp` = `428c04bcccdc9b25ddfe22969111408b8ddcc7dd`。
 隔离分支：`prep/sill-supabase-v1-review-20261014`。独立 clone，仅读取远程已提交内容。

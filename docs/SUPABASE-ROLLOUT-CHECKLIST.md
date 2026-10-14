@@ -1,73 +1,56 @@
-# sill 项目应用清单：尚不可执行生产切换
+# Sill 登录与数据边界：本地可验证，生产未应用
 
-目标仅为项目 `moeabktxrgidrdkplvac`（API `https://moeabktxrgidrdkplvac.supabase.co`）。本 PR 未连接真实数据库、未应用 migration、未创建/保存凭据、未改 Auth 或安全设置。Cloudflare 网页由其他任务发布，本 PR 不包含网页发布，也不包含另一任务的七工具 MCP 改动。
+目标项目仍为 `moeabktxrgidrdkplvac`。本分支基于 PR #19 的 `8555ad928fcd0a431e88f12ac7c7374ba6e3d94e`，与静态预览 PR #18 分离。没有应用生产 SQL、修改 Auth/GraphQL/权限配置、创建凭据、发送登录邮件或部署后端。线上预览仍是合成数据，API/MCP 未接通。
 
-## 四个完成度必须分开
+## 已实现
 
-| 层面 | 已完成证据 | 尚未完成 |
+- `server/cloud/http.mjs`：已有用户邮箱 magic link 的官方 SDK PKCE 流程、校验 state 的固定域名回调、HttpOnly/Secure/SameSite=Lax 会话 cookie、同源写请求检查、登出、HTTP 内容 CRUD/事件接口。
+- `server/supabase-auth.mjs`：官方 SDK 验签，额外核验 issuer、audience、expiry、nbf、role、非匿名用户；网页登录拒绝 OAuth client token，agent bearer 必须有独立资源 audience 和 client_id。授权不读取 user_metadata。
+- `server/supabase-repository.mjs`：仅四个固定业务 RPC，携带当前请求的用户 JWT；不使用 service_role，不访问裸表。
+- `web/cloud-entry.js`：单独构建的登录工作台；列表、新建笔记、编辑标题/正文/已读、删除、刷新/退出。CAS 冲突保留草稿；结果未知时复用原幂等键与原请求核对；没有 token 或卡片的 localStorage 持久化。原本地网页构建不变。
+- `server/cloud/worker.mjs` 与 `deploy/cloud/wrangler.jsonc`：请求级 Cloudflare 适配。`npm run build:cloud` 只在本地打包，配置中没有生产环境值或部署命令。
+- 新增 CI `Sill authenticated data` 真正运行 SDK/JWT/SQL/HTTP、Docker PostgreSQL 并发测试和桌面/手机浏览器流程。
+
+## 三份 SQL 的准确顺序与权限差异
+
+这些仍是 `supabase/drafts/` 下的待审 SQL，不是已部署迁移。正式执行前应通过 CLI `supabase migration new` 生成文件并在独立 Supabase 环境验证，不手造 migration 时间戳。
+
+1. `sill_v1_storage.sql`：private schema、workspaces/contents/events/receipts/sync_snapshots、约束、索引、RLS，撤销默认权限。
+2. `sill_v1_rpc.sql`：caller_grants/destinations、业务函数、owner RLS；默认仍无调用权限。
+3. `sill_v1_boundary.sql`：新增 grants.audience；现有授权行 audience=NULL，刻意拒绝调用直到逐行审阅补齐。建立四个 public invoker 包装与四个 private definer 网关；网关归专用非表所有者 `sill_rpc_executor` 所有。
+
+**废止 PR #19 先前提出的 authenticated 直接表授权清单。** 仅 owner RLS 不能阻止同 owner 的不同客户端跳过业务权限检查。最终候选权限如下：
+
+| 对象 | authenticated | sill_rpc_executor |
 | --- | --- | --- |
-| 数据库连通/DDL | 两份SQL草案在本地PGlite和真正PostgreSQL 17.6成功执行 | 真实项目连通没有本轮证据；交接的ACTIVE_HEALTHY不代表应用能读写；正式迁移尚未生成/应用 |
-| 网页登录 | 请求级用户JWT适配，固定版本官方SDK getClaims，额外issuer/audience/expiry/role检查 | JWT测试是SDK mock；没有真实Supabase签发/刷新/登出集成，没有网页登录UI、回调或cookie会话；静态网页可打开不代表已登录 |
-| RPC数据隔离 | 本地PostgreSQL多会话CAS/幂等/水位/回滚、真实RLS检查通过；PGlite覆盖事件分派和响应schema | 私有函数零生产执行权限，无公开RPC包装、错误映射、生产RLS/真实token/PostgREST验收；范围受限列表仍明确拒绝 |
-| MCP鉴权 | 领域层区分用户和OAuth client；本地测试不允许未知client借owner权限 | 没有远程MCP握手、资源audience/discovery、OAuth同意/撤销、scope适配或OpenClaw/Hermes真实联调；未验收另一任务七工具 |
+| private schema | USAGE | USAGE；转移函数所有权时临时 CREATE 后撤销 |
+| workspaces | 无 | SELECT、UPDATE |
+| contents、events | 无 | SELECT、INSERT、UPDATE |
+| receipts、sync_snapshots | 无 | SELECT、INSERT |
+| caller_grants、destinations | 无 | SELECT |
+| 四个 public 业务包装 | 明确签名 EXECUTE | 不需要 |
+| 四个 private 网关 | 明确签名 EXECUTE | 函数所有者 |
+| 原 private 内部业务函数 | 无 | 明确签名 EXECUTE |
 
-现有13项测试的准确含义：6项准备测试 + RPC父测试及其6个子测试（Node计数13）。其中Auth是mock，PGlite是实际Postgres内核WASM执行，并非SQL字符串匹配；但PGlite单连接不证明多会话并发。新增 `npm run test:supabase:postgres` 使用独立Docker PostgreSQL 17.6，6个子场景加父测试，计数7。测试明确使用合成auth.uid()/auth.jwt()函数与用户ID，仍不代表真实Supabase Auth验证。
+专用角色 NOLOGIN/NOSUPERUSER/NOBYPASSRLS/NOINHERIT、不拥有任何表、不授给 authenticated；网关固定空 search_path、row_security=on，不接受身份/SQL/表名/授权参数。内部函数继续执行 owner RLS 和 caller/scope/resource/audience 校验。anon/PUBLIC 对 Sill 对象无权限。不得把此角色改成表所有者或授予 bypassrls。授权表修改与 workspace 创建仅供管理员 bootstrap。
 
-## 已执行的真实 PostgreSQL 测试
+private schema 必须继续不列入 Data API exposed schemas。即使误暴露，authenticated 没有裸表 ACL；可执行网关仍校验业务权限。真实项目仍需检查既有 views、GraphQL、generic RPC 与角色继承，确保不存在其他间接旁路。本地 ACL 测试不能替代对真实 PostgREST/GraphQL 的网络验收。
 
-镜像固定为 `postgres:17.6@sha256:00bc86618629af00d2937fdc5a5d63db3ff8450acf52f0636ec813c7f4902929`。
+bootstrap 应由操作者核实已有 Auth 用户 UUID 后，创建对应 workspace 及 `user:<uuid>` 行，scopes 最小为 content:read/content:write/content:delete，resources=['*']、audience='authenticated'。事件按需单独增加。禁止客户端自行注册 workspace 或授予权限。OAuth grant 另需已批准 client_id、独立资源 audience、精确 scopes/resources；不能为获得列表而擅自扩大为 '*': 当前资源受限 client 的整库列表明确拒绝。
 
-运行：`npm run test:supabase:postgres`。需要Docker和本地镜像（缺少时需拉取）；脚本创建专用容器，`--network none`，不映射端口，数据在tmpfs，没有密码/云凭据，finally删除容器。local trust只限该无网络隔离容器，不能复制到真实项目。
+## 验证证据与边界
 
-- 两份DDL真实安装成功；anon/authenticated默认不能执行私有RPC，无SECURITY DEFINER。
-- 两个psql独立会话竞争同一个expectedRevision：第一事务持锁，第二阻塞后返回revision_conflict；只有一次变更，无失败回执。
-- 同一幂等键并发创建：第二请求等提交后取得同一个原回执，仅一行内容。
-- 列表在未提交写事务之后取得workspace锁，水位与内容一致；之后删除在下一轮增量中返回tombstone。
-- 写成功后事务内触发异常：内容、workspace水位、回执全部回滚。
-- 真正RLS拒绝跨owner数据插入/读取；未知OAuth client无权限；调用方不能修改授权表给自己提权。
+- `npm run test:supabase`：旧准备测试、实际 PGlite SQL、权限旁路测试；新增使用内存临时 ES256 密钥签发合成 JWT，由真实官方 SDK 验签，覆盖篡改、过期、错误 issuer/audience、未来 nbf、client 混用。测试密钥不写入文件。
+- `npm run test:supabase:postgres`：固定 PostgreSQL 17.6 Docker 镜像，network none、无端口、tmpfs、合成 auth.uid/auth.jwt。实际多连接 CAS、幂等、快照水位、tombstone、回滚、RLS，以及最终授权边界。不是线上 Supabase 数据库。
+- `npm run build:cloud` 后 `npm run test:cloud-browser`：真实 Chromium 1440/390px，登录/回调/创建/刷新后读取/修改冲突保留草稿/更新/登出；模拟写成功但响应丢失后核对原请求，只有一行。没有 localStorage 卡片或 token。截图写在 tests/artifacts/cloud-*.png，CI 保存 artifact。
+- HTTP/浏览器测试走真实官方 SDK 和实际 SQL；GoTrue/JWKS/PostgREST 的网络由本地合成 transport 提供。它不是 Supabase Auth 邮件、真实用户、真实 OAuth 或真实 PostgREST/GraphQL 验收。
+- `CHROMIUM_PATH=/usr/bin/chromium` 可使用本机浏览器；CI 使用 Playwright Chromium。原产品回归另跑 `npm test` 与 `npm run test:core`。
 
-## 准确迁移顺序
+## 上线前剩余项
 
-以下是计划，不是可直接对生产运行的命令包。**目前没有任何生产apply获准或已执行。** CLI可用时通过 `supabase migration new <name>` 生成正式文件名，不手造时间戳。所有文件都要先在独立Supabase集成环境验证。
-
-| 顺序 / 建议migration名 | 输入或待完成内容 | 生产状态 |
-| --- | --- | --- |
-| 1 `sill_v1_storage_foundation` | `supabase/drafts/sill_v1_storage.sql`：sill_private；workspaces、contents、events、receipts、sync_snapshots；约束/索引/RLS；撤销anon/authenticated/PUBLIC权限 | SQL已本地执行；正式文件未生成，生产未应用 |
-| 2 `sill_v1_private_rpc` | `supabase/drafts/sill_v1_rpc.sql`：caller_grants、destinations；content_type、submitted_by/request_body、分页列；caller/authorize、投影/校验、write_v1/get_content/get_event/list_contents；owner RLS；零执行权限 | SQL已本地执行；正式文件未生成，生产未应用 |
-| 3 `sill_v1_public_rpc_boundary` | 尚未编写：四个薄public SECURITY INVOKER包装（sill_write_v1/sill_get_content/sill_get_event/sill_list_contents）、统一契约错误映射、参数限制；只暴露这些业务RPC，沿用7工具到共同能力映射 | 不可跳过；不得直接公开sill_private表或把任意SQL当RPC |
-| 4 `sill_v1_runtime_permissions` | 逐对象授予下面最小权限；复核Data API/GraphQL可见性；用真实用户及client token跑allow/deny测试 | 未授权、未应用 |
-| 5 `sill_v1_owner_bootstrap` | 用户确认的已存在Auth user UUID：workspace；`user:<uuid>`授权行。既有数据导入另作单事务空库校验；本次不创建账户/凭据 | UUID与导入范围待确认 |
-| 6 可选 `sill_v1_agent_grants` | 经批准client_id的最小scopes/resources，destination_ref→assigned_caller/actions；只引用秘密，不存秘密 | 外部助手接通前另行审查；无需为个人网页登录先开放 |
-
-上线前必须解决：共享不可变快照+轻量分页引用与存储上限（当前每页复制JSON是测试原型）；游标/回执/tombstone统一过期清理和隐私删除；特殊卡片创建和旧item↔V1 state适配；字段错误和领域异常的HTTP映射。不要把这份清单当作已经补齐这些能力。
-
-## 最小权限清单（runtime migration候选）
-
-所有RPC一律SECURITY INVOKER，固定search_path；函数默认PUBLIC EXECUTE必须逐一撤销。sill_private不加入Data API exposed schemas，不通过views、GraphQL配置或其他RPC间接公开。grant存在不等于允许任意表API访问；上线测试必须证明无法绕过函数的scope/版本/幂等规则。
-
-| 对象 | authenticated候选权限 | 不允许 |
-| --- | --- | --- |
-| sill_private schema | USAGE，仅供经过审查的函数内部访问 | Data API直接暴露 |
-| workspaces | SELECT、UPDATE | INSERT/DELETE/TRUNCATE；由bootstrap创建owner行 |
-| contents | SELECT、INSERT、UPDATE | DELETE/TRUNCATE；删除走tombstone |
-| events | SELECT、INSERT、UPDATE | DELETE/TRUNCATE；调用方任意指派身份 |
-| receipts | SELECT、INSERT | UPDATE/DELETE/TRUNCATE |
-| sync_snapshots | SELECT、INSERT | UPDATE/DELETE/TRUNCATE |
-| caller_grants、destinations | SELECT，并受owner/caller政策约束 | INSERT/UPDATE/DELETE/TRUNCATE、自授scope或新增目标 |
-| 四个public包装 | 明确签名的EXECUTE | ALL FUNCTIONS、任意动态RPC发布 |
-| 私有函数 | 包装所需明确签名EXECUTE：caller()、authorize(text,text)、content_json(sill_private.contents)、event_json(sill_private.events)、validate_changes(jsonb,boolean)、write_v1(text,text,jsonb,text)、get_content(text)、get_event(text)、list_contents(text,text,integer) | 用SECURITY DEFINER或service_role绕过RLS |
-| anon / PUBLIC | 无任何Sill表/schema/函数权限 | 匿名读写；默认继承EXECUTE |
-
-不需要sequence grant（使用核心gen_random_uuid和显式bigint水位）。不申请service_role密钥。日常调用使用publishable key + 当前用户JWT；不要把用户refresh token放仓库、日志或服务器持久配置。迁移/初始授权是管理员变更，不能让用户JWT自行创建schema或给自己授权。
-
-注意：私有表RLS主要是owner边界，业务scope/版本规则在函数内。因此schema必须保持非公开、应用不能持有authenticated的直连SQL登录；如果将来必须暴露表或引入可执行任意SQL的RPC，需要重新设计更细RLS，而不是照搬本权限表。
-
-建议个人owner scopes：content:read、content:write、content:delete、event:submit、event:read，resources=['*']。不默认授event:result（结果由分派的外部助手写回）。MCP agent默认只给content:read/content:write/event:read/event:result及明确卡片集合，不给content:delete/event:submit；需要列表时应完成范围过滤，不能仅为列表把资源扩大为'*'。
-
-## 最小用户确认事项
-
-1. **个人账号与登录入口**：要使用的现有Supabase用户（UUID由受控读取核实，不要提供密码/token）、是否保持仅此账号/关闭公开注册、邮箱OTP或magic link、最终Web回调域名。先实现个人网页登录即可，OAuth/MCP不作为前置条件。
-2. **数据与保留**：空库开始还是导入明确选定的本地导出；是否接受候选7天普通回执/1天游标，以及删除后残留回执/快照的清理规则。具体期限确认后写进正式迁移/清理策略。
-3. **应用授权**：审阅最终迁移与上述权限差异后，明确允许对 `moeabktxrgidrdkplvac` 应用。当前PR仅准备，不默认获得真实安全配置更改许可。
-
-外部MCP以后另确认OAuth beta启用、client_id/精确回调、资源audience、最小工具/卡片权限与外部Webhook目标；不创建内置AI。后台无人值守投递的身份仍未实现，不能声称用户JWT方案已经覆盖整个长期后台流程。
+1. 在独立 Supabase 环境验证真实 Auth 邮件回调白名单、PKCE、token claims、四个 RPC 与 REST/GraphQL 拒绝矩阵。数据库操作者权限必须足以创建专用角色并转移函数所有权；本地 superuser 安装通过不代表托管 postgres 权限必然足够。
+2. 用户审阅三份 SQL 和此权限差异，确认已有用户、最终 HTTPS 域名、数据导入范围、保留/清理策略后，才考虑生产应用。没有本次授权的生产 SQL 或 Auth 配置操作。
+3. 当前只保留 HttpOnly access cookie，refresh token 不持久化；到期重新登录。登出清理 cookie，并请求撤销上游会话；已签发 access JWT 仍可能有效直到到期，不能声称即时撤销。浏览器 JS/XSS 仍能发同源请求，HttpOnly 不等于消除 XSS 风险。
+4. 快照按页复制 JSON 的存储上限、过期回执/快照/tombstone 清理、特殊卡片与旧 item/state 的完整适配尚待完成。当前网页以笔记/通用内容字段为最小范围；不支持的来源、收藏、导入等明确提示未接通。
+5. `/mcp` 明确返回 503。另一任务的七工具 stdio MCP 文件未推送、此分支不可见，未集成也未验收；更早提到的 27 个 MCP 文件同样未包含。远程 MCP transport/discovery、真实 OAuth resource audience 支持、同意/撤销与客户端联调仍需后续实现，不能把 HTTP bearer 接口称作已上线 MCP。
+6. Supabase changelog/markdown 文档在该环境被访问策略阻止；已通过连接器检索官方 PKCE/Auth/RLS 文档，但未声称完成 changelog 全量复核。
