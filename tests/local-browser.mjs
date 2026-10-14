@@ -11,7 +11,7 @@ let server=await startLocal({port:0,file}),browser;
 const errors=[];
 try{
   const port=server.address().port,origin='http://127.0.0.1:'+port;
-  browser=await chromium.launch({headless:true});
+  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
   const page=await browser.newPage({viewport:{width:1440,height:1000}});page.setDefaultTimeout(8000);
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{

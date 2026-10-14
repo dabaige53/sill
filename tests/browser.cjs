@@ -192,7 +192,7 @@ async function recordLayout(page,width){
    assert.equal(await page.locator('.feed-card').count(),16);
    await page.reload();assert.equal((await state(page,'note-01')).bookmarked,true);
   });
-  for(const width of [810,1440,2048])await scenario(`${width}px desktop uses compact cards across the available screen`,async page=>{
+  for(const width of [680,700,810,1440,2048])await scenario(`${width}px desktop uses compact cards across the available screen`,async page=>{
    const geometry=await page.locator('.feed-card').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width};}));
    assert.ok(geometry.every(r=>r.width>=200&&r.width<=300),JSON.stringify(geometry));
    assert.ok(geometry.every(r=>r.left>=0&&r.right<=width),'cards overflow the screen');

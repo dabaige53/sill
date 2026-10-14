@@ -4,7 +4,7 @@
   "plugins": [
     {
       "name": "quiet-glass",
-      "source": {"source": "local", "path": "./dist/quiet-glass"},
+      "source": {"source": "local", "path": "./plugins/quiet-glass"},
       "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
       "category": "Productivity"
     }

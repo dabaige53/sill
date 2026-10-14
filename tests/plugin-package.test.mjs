@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 
 const root=resolve(import.meta.dirname,'..');
 test('local package keeps identity and removes App and MCP registrations',async()=>{
-  const dir=resolve(root,'dist/quiet-glass');
+  const dir=resolve(root,'plugins/quiet-glass');
   execFileSync(process.execPath,[resolve(root,'scripts/build-plugin.mjs')]);
   for(const path of ['.app.json','mcp.json','.mcp.json'])await writeFile(resolve(dir,path),'{}');
   execFileSync(process.execPath,[resolve(root,'scripts/build-plugin.mjs')]);
@@ -16,4 +16,9 @@ test('local package keeps identity and removes App and MCP registrations',async(
   const skill=await readFile(resolve(dir,'skills/quiet-glass/SKILL.md'),'utf8');
   assert.ok(skill.includes('http://127.0.0.1:4318/#feed'));assert.ok(skill.includes('scripts/qg.mjs'));
   assert.ok(!skill.includes('qg_open_workspace'));
+  assert.ok(!skill.includes('/Users/'));
+  await access(resolve(dir,'skills/quiet-glass/scripts/qg.mjs'));
+  const marketplace=JSON.parse(await readFile(resolve(root,'.agents/plugins/marketplace.json'),'utf8'));
+  assert.equal(resolve(root,marketplace.plugins[0].source.path),dir);
+  assert.match(execFileSync(process.execPath,[resolve(dir,'skills/quiet-glass/scripts/qg.mjs'),'help'],{cwd:'/tmp',encoding:'utf8'}),/Quiet Glass/);
 });

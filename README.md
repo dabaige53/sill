@@ -55,3 +55,14 @@ Codex 插件使用 [本地技能](skills/quiet-glass/SKILL.md)。Hermes、Claude
 - `npm run plugin:build`：构建无应用依赖、无 MCP 注册的本地技能插件，身份仍为 `quiet-glass@quiet-glass-local`。
 
 设计规范保留在 [design-system](design-system/README.md)。历史产品文档保留在 `docs/`；当前范围以本文件和 [本地操作说明](docs/LOCAL-OPERATIONS.md) 为准。
+
+### 从干净仓库安装 Codex 本地插件
+
+```sh
+codex plugin marketplace add dabaige53/quiet-glass
+codex plugin add quiet-glass@quiet-glass-local
+```
+
+marketplace 使用已提交的 `plugins/quiet-glass`，不需要先构建。技能自带可移植 CLI；需要 Node.js 24+。开发时运行 `npm run plugin:build` 后提交生成目录。
+
+插件只操作本机 loopback 服务。先在自己选定的仓库运行 `npm ci`，再运行 `npm start`；不要在插件缓存中启动服务或存数据。安装成功不表示云端 Sill 登录、远程 MCP 或来源已连接。本包不包含 MCP 注册、OAuth 或云端凭据。

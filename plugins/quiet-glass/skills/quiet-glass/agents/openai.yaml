@@ -1,0 +1,4 @@
+interface:
+  display_name: "Quiet Glass"
+  short_description: "本地卡片展示与 AI 操作同步"
+  default_prompt: "查看并操作本地 Quiet Glass 卡片，保存后核对页面同步。"

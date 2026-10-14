@@ -5,9 +5,11 @@ description: 查看、创建、更新或整理本地 Quiet Glass 卡片，并确
 
 # Quiet Glass
 
-项目目录：`/Users/w/code/quiet-glass`。页面：`http://127.0.0.1:4318/#feed`。
+这是本地技能插件，不是云端 Sill 连接，也不注册 MCP。页面：`http://127.0.0.1:4318/#feed`。
 
-1. 在项目目录运行 `node scripts/qg.mjs list`，按需使用关键词缩小结果。连接失败时运行 `npm start`，保留服务进程。
+命令随技能一起安装在本 SKILL.md 所在目录的 `scripts/qg.mjs`。以下命令均从该目录执行；不要假定当前工作目录是仓库。需要 Node.js 24 或更新版本。
+
+1. 运行 `node scripts/qg.mjs list`，按需使用关键词缩小结果。连接失败时报告本地服务未连接。仅在用户指定的 Quiet Glass 仓库中核查 `package.json` 和 `server/local.mjs` 后运行 `npm start`，保留服务进程；不知道仓库位置时询问用户。不要从插件缓存启动服务器或创建替代数据。
 2. 修改前运行 `node scripts/qg.mjs capabilities` 查看当前操作及字段。用 `get <id>` 读取目标卡片及版本。
 3. 将 JSON 操作写入临时文件，运行 `node scripts/qg.mjs apply --file <path>`。同批操作原子提交；修改已有内容时使用读取到的 `expectedRevision`。版本冲突后重新读取并合并用户要求，保留其他修改。
 4. 用 `get <id>` 确认保存结果。打开页面使用宿主浏览器入口；`open <id>` 返回卡片预览、正文及来源链接。页面每秒同步，无需重新采集。
