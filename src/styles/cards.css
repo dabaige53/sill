@@ -154,7 +154,7 @@ button.ref:hover{background:var(--faint)}
 .deck-edge{position:absolute;left:10px;right:10px;bottom:-6px;height:24px;border-radius:0 0 18px 18px;background:var(--card);border:1px solid var(--line-card);border-top:0;box-shadow:var(--shadow);z-index:0}
 .deck-edge.deep{left:20px;right:20px;bottom:-11px;opacity:.7;z-index:-1}
 /* The deck: every piece is a whole card in the same place. The top one moves with the hand; the next waits just beneath. */
-.deck{position:relative;z-index:1;display:grid;touch-action:pan-y}
+.deck{position:relative;z-index:1;display:grid;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .deck-card{grid-area:1/1;display:flex;flex-direction:column;min-width:0;background:var(--card);border:1px solid var(--line-card);border-radius:var(--card-radius);box-shadow:var(--shadow);transform-origin:50% 100%;visibility:hidden;will-change:transform}
 .deck-card.is-top{visibility:visible;z-index:3}
 .stack-card:hover .deck-card.is-top,.stack-card:focus-within .deck-card.is-top{border-color:var(--line-hover);box-shadow:var(--shadow-hover)}
