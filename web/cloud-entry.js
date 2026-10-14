@@ -8,10 +8,16 @@ Store.save=function(){};
 // Automatic reading observations remain transient; explicit cloud edits own persisted state.
 const transientPatch=Store.patch;
 Store.patch=function(id,values){const safe={};for(const key of ['seen','progress'])if(key in values)safe[key]=values[key];transientPatch.call(this,id,safe);};
+const Cloud={user:null,records:new Map(),edit:null,pending:null,busy:false};
 const app=new AppController();
+const originalDeskHTML=app.deskHTML.bind(app);
+app.deskHTML=function(){
+ if(!Cloud.user)return emptyState('登录后查看你的云端内容','请在上方输入已有账号的邮箱。');
+ if(!Store.state.cards.length)return emptyState('还没有云端内容','点击上方「新建笔记」开始。');
+ return originalDeskHTML();
+};
 app.init();
 const account=document.createElement('section');account.id='cloud-account';document.body.prepend(account);
-const Cloud={user:null,records:new Map(),edit:null,pending:null,busy:false};
 const messages={unauthenticated:'登录已过期，请重新登录。',forbidden:'该账号或客户端没有此操作权限。',revision_conflict:'内容已在另一处修改。草稿仍保留，请刷新并核对后再保存。',idempotency_conflict:'原请求已被处理或需要核对，未覆盖数据。',not_found:'内容已不存在。',unavailable:'连接暂时不可用；写入结果可能尚未确认。'};
 async function cloudApi(path,options={}){
  const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
@@ -27,13 +33,14 @@ function paintRecords(){
  Store.state.cards=[...Cloud.records.values()].filter(c=>!c.deleted&&!c.state.archived).map(c=>({id:c.id,type:c.type,kind:'web',title:c.title,body:c.body,summary:c.body?.[0]||'',url:c.url,source:'Sill 云端',time:Date.parse(c.updated_at),meta:'已保存',revision:c.revision}));
  Store.state.items=Object.fromEntries([...Cloud.records.values()].map(c=>[c.id,{read:!!c.state.read}]));app.withFeedAnchor(()=>{},true);
 }
-async function loadCloud(){
+async function loadCloud({initial=false}={}){
+ let checkingSession=true;
  try{
-  const session=await cloudApi('/auth/session');Cloud.user=session.userId;
+  const session=await cloudApi('/auth/session');checkingSession=false;Cloud.user=session.userId;
   const records=new Map();let cursor=null;
   do{const query=cursor?'?cursor='+encodeURIComponent(cursor):'';const page=await cloudApi('/api/v1/contents'+query);for(const c of page.items)records.set(c.id,c);cursor=page.next_cursor;}while(cursor);
   Cloud.records=records;paintRecords();accountView();
- }catch(error){if(error.status===401||error.status===403)clearCloud();app.toast(error.message);}
+ }catch(error){if(error.status===401||error.status===403)clearCloud();if(!(initial&&checkingSession&&error.status===401))app.toast(error.message);}
 }
 function editCloud(id){
  if(!Cloud.user){app.toast('请先登录');return;}
@@ -71,7 +78,7 @@ app.action=function(name,id,...args){
  if(name==='edit'||name==='card-more'){editCloud(id);return;}
  if(name==='refresh'){loadCloud();return;}
  if(Cloud.pending&&['close','back'].includes(name)){app.toast('先核对本次保存结果，再关闭草稿。');return;}
- const unsupported=['bookmark','later','save-note','task','source-connect','source-authorize','permission-allow','feed-add','source-toggle','source-pause','import-pick','demo','clear-confirm','selected-bookmark','selected-later','selected-tag'];
+ const unsupported=['bookmark','later','save-note','task','source-connect','source-authorize','permission-allow','feed-add','source-toggle','source-pause','import-pick','demo','welcome-start','welcome-pick','welcome-continue','welcome-demo','clear-confirm','selected-bookmark','selected-later','selected-tag'];
  if(unsupported.includes(name)){app.toast('此操作尚未接入云端');return;}
  return originalAction(name,id,...args);
 };
@@ -93,4 +100,4 @@ document.addEventListener('submit',async e=>{
 });
 document.addEventListener('click',e=>{if(e.target.id==='cloud-delete'&&confirm('确认删除这条内容？'))saveCloud(true);});
 window.addEventListener('beforeunload',e=>{if(Cloud.pending){e.preventDefault();e.returnValue='';}});
-accountView();loadCloud();
+accountView();loadCloud({initial:true});
