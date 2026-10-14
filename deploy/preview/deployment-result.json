@@ -1,1 +1,18 @@
-{"success":true,"status":200,"worker":"sill-web-preview","url":"https://sill-web-preview.scs1213-temp-email.workers.dev/","deployment_id":"ea827784bdf8407595d3402695933b7b","etag":"dd8db8e7ed0e01f3313f0ba744ecad00c0714c814d8ec7771eab08479d4d78f5","workers_dev_enabled":true,"has_assets":false,"live_verification":"blocked by network proxy / outbound host restriction; not passed"}
+{
+  "success": true,
+  "status": 200,
+  "worker": "sill-web-preview",
+  "url": "https://sill-web-preview.scs1213-temp-email.workers.dev/",
+  "deployment_id": "b30a69713280449481cfd866e7e4dc88",
+  "etag": "f4581cbc2907f365d545b38cd1bfc473dc0f798a08a7f7b1dbbad7f713e890b6",
+  "workers_dev_enabled": true,
+  "has_assets": false,
+  "live_verification": "blocked by network proxy / outbound host restriction; not passed",
+  "source_commit": "96aca3f30e5498037c7be0f3959370819494c99c",
+  "previous_deployment_id": "ea827784bdf8407595d3402695933b7b",
+  "ci": {
+    "verify": "https://github.com/dabaige53/quiet-glass/actions/runs/38502987414",
+    "integration": "https://github.com/dabaige53/quiet-glass/actions/runs/38502987423",
+    "conclusion": "success"
+  }
+}

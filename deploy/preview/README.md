@@ -4,7 +4,7 @@ Rebuilt from remote `docs/sill-agent-first-mcp` commit `428c04bcccdc9b25ddfe2296
 
 Public address: https://sill-web-preview.scs1213-temp-email.workers.dev/
 
-Cloudflare upload returned HTTP 200, success true. Worker `sill-web-preview`, deployment ID `ea827784bdf8407595d3402695933b7b`, ETag `dd8db8e7ed0e01f3313f0ba744ecad00c0714c814d8ec7771eab08479d4d78f5`. workers.dev was enabled and then read back as enabled. Existing Worker list was checked first; this name did not exist.
+Cloudflare upload returned HTTP 200, success true. Worker `sill-web-preview`, deployment ID `b30a69713280449481cfd866e7e4dc88`, ETag `f4581cbc2907f365d545b38cd1bfc473dc0f798a08a7f7b1dbbad7f713e890b6`. workers.dev was enabled and then read back as enabled. Existing Worker list was checked first; this name did not exist at initial creation; before the update its Sill tags and previous ETag were matched. The fixed source commit is `96aca3f30e5498037c7be0f3959370819494c99c`, with both Verify and Integration CI successful before upload.
 
 This is a module Worker serving a bundled HTML text module (`has_assets:false`), not a Workers Static Assets upload. This avoids extracting or configuring upload credentials: the connected Cloudflare tool uploads both modules in one multipart request. CSS, JavaScript and SVG images are inline. There are no database, AI, storage, or secret bindings and no plan upgrades or paid services were enabled. Worker requests remain subject to the account's existing allowance; no unlimited-free claim is made.
 
