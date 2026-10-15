@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp,rm,writeFile,readFile } from 'node:fs/promises';
+import { mkdtemp,rm,writeFile } from 'node:fs/promises';
 import { join,resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { execFileSync } from 'node:child_process';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -36,9 +35,9 @@ test('official SDK performs HTTP initialization, tools, content, resources, prom
   const card=await call(client,'qg_get_card',{cardId:ingested.cardIds[0]});assert.equal(card.content,'MCP end-to-end');
   const found=await call(client,'qg_search',{query:'MCP'});assert.equal(found.total,1);
   const ranked=await call(client,'qg_recommend',{});assert.equal(ranked.items[0].evidence.cardId,card.id);
-  const resources=await client.listResources();assert.ok(resources.resources.some(r=>r.uri==='quiet-glass://feed'));
-  assert.ok((await client.readResource({uri:'quiet-glass://feed'})).contents[0].text.includes(card.id));
-  assert.ok((await client.getPrompt({name:'quiet-glass-briefing',arguments:{goal:'daily briefing'}})).messages[0].content.text.includes('daily briefing'));
+  const resources=await client.listResources();assert.ok(resources.resources.some(r=>r.uri==='sill://feed'));
+  assert.ok((await client.readResource({uri:'sill://feed'})).contents[0].text.includes(card.id));
+  assert.ok((await client.getPrompt({name:'sill-briefing',arguments:{goal:'daily briefing'}})).messages[0].content.text.includes('daily briefing'));
   const workflow=await call(client,'qg_create_workflow',{goal:'search and recommend',steps:[{id:'search',operation:'search',input:{query:'MCP'}},{id:'recommend',operation:'recommend',dependsOn:['search'],input:{}}]});
   await call(client,'qg_run_workflow',{workflowId:workflow.id});await f.service.running.get(workflow.id);
   assert.equal((await call(client,'qg_get_workflow',{workflowId:workflow.id})).status,'completed');
@@ -63,7 +62,7 @@ test('HTTP protects private routes, origins, static paths and browser session; r
   const answer=await (await fetch(f.origin+'/api/requests/'+request.id,{headers:{Cookie:cookie}})).json();assert.equal(answer.answer,'Evidence-based response');
 });
 
-test('Quiet Glass consumes another MCP server with discovery, field mapping and continuation',async t=>{
+test('Sill consumes another MCP server with discovery, field mapping and continuation',async t=>{
   const upstream=await fixture(t);
   upstream.service.ingest({sourceId:'notes',items:[{externalId:'1',title:'第一篇',content:'hello'},{externalId:'2',title:'第二篇',content:'world'}]});
   const downstream=await fixture(t,[{id:'upstream',label:'MCP source',type:'mcp',url:upstream.origin+'/mcp',tokenEnv:'TEST_MCP_TOKEN',readTools:['qg_search','qg_prepare_action'],collect:{tool:'qg_search',arguments:{limit:1},itemsPath:'items',fields:{id:'id',title:'title',content:'content'},cursorArgument:'offset',cursorPath:'nextOffset'}}]);
@@ -75,15 +74,11 @@ test('Quiet Glass consumes another MCP server with discovery, field mapping and 
   await assert.rejects(()=>downstream.service.connectors.call(downstream.service.connectors.get('upstream'),'qg_commit_action',{},false),/允许列表/);
 });
 
-test('built plugin launches via official SDK stdio using generated absolute paths',async t=>{
+test('legacy service remains readable through SDK stdio without generating a plugin',async t=>{
   const directory=await mkdtemp(join(tmpdir(),'qg-stdio-'));
   const config=join(directory,'config.json');await writeFile(config,JSON.stringify({dataDir:directory}));
-  execFileSync(process.execPath,[resolve(ROOT,'scripts/build-plugin.mjs'),'--legacy-mcp']);
-  const manifest=JSON.parse(await readFile(resolve(ROOT,'dist/quiet-glass-legacy/mcp.json'),'utf8'));
-  const server=manifest.mcpServers['quiet-glass'];assert.equal(server.type,'stdio');
-  assert.equal(server.command,'node','Codex portable loader rejects absolute executable paths');
   const client=new Client({name:'test-stdio',version:'1'});
-  const transport=new StdioClientTransport({command:server.command,args:server.args,env:{...process.env,...server.env,QG_CONFIG:config},stderr:'pipe'});
+  const transport=new StdioClientTransport({command:process.execPath,args:[resolve(ROOT,'server/index.mjs'),'--stdio'],env:{...process.env,QG_CONFIG:config},stderr:'pipe'});
   await client.connect(transport);t.after(async()=>{await client.close();await rm(directory,{recursive:true,force:true});});
   const status=await call(client,'qg_status');assert.equal(status.version,'0.2.0');
   assert.equal((await client.listTools()).tools.some(t=>t.name==='qg_create_workflow'),true);

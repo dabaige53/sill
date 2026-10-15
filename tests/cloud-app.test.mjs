@@ -39,6 +39,7 @@ test('sidebar and thread entries use scoped cloud resources and disappear on rev
   await client.connect(new StreamableHTTPClientTransport(new URL(resource),{requestInit:{headers:{Authorization:'Bearer '+token({client_id:'codex-test',aud:resource})}},fetch:(url,init)=>runtime(new Request(url,init))}));
   const tools=(await client.listTools()).tools;
   assert.equal(tools.length,9);
+  for(const tool of tools.slice(0,2)){assert.deepEqual(tool.icons.map(i=>i.theme),['light','dark']);assert.ok(tool.icons.every(i=>i.mimeType==='image/svg+xml'&&i.src.includes('/assets/sill-line')));}
   assert.deepEqual(tools[0]._meta['openai/ui'].entrypoints,[{type:'global'}]);
   assert.deepEqual(tools[1]._meta['openai/ui'].entrypoints,[{type:'thread'}]);
   const opened=await client.callTool({name:'sill_open_workspace',arguments:{}});

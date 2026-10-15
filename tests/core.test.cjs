@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..');
 const sources=['src/data/cards.js','src/services/feed-policy.js','src/data/store.js','src/views/app.js'];
 function fixture(raw=null,at=1800000000000){
  let now=at;
- const data=new Map(raw===null?[]:[['quiet-glass-v1',typeof raw==='string'?raw:JSON.stringify(raw)]]);
+ const data=new Map(raw===null?[]:[['sill-v1',typeof raw==='string'?raw:JSON.stringify(raw)]]);
  const nodes=new Map();
  const context=vm.createContext({
   Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}},
@@ -150,4 +150,15 @@ test('touch consistently opens local tools',()=>{
  f.app.openDock=()=>tools++;f.app.openAI=()=>ai++;
  f.app.action('orb','','',null,{pointerType:'touch'});assert.equal(tools,1);assert.equal(ai,0);
  f.app.action('orb','','',null,{pointerType:'touch'});assert.equal(tools,2);assert.equal(ai,0);
+});
+
+test('Sill rename copies old cards and drafts once without replacing newer data',()=>{
+ const f=fixture();f.data.clear();
+ const raw=JSON.stringify({version:4,cards:[],items:{},seconds:37,preferences:{}});
+ f.data.set('quiet-glass-v1',raw);f.data.set('quiet-glass-unsynced','saved-draft');
+ f.Store.load();assert.equal(f.Store.state.seconds,37);
+ assert.equal(f.data.get('sill-unsynced'),'saved-draft');assert.equal(f.data.get('quiet-glass-v1'),raw);
+ f.data.delete('sill-unsynced');f.Store.load();assert.equal(f.data.has('sill-unsynced'),false);
+ f.data.delete('sill-storage-migrated');f.data.set('sill-unsynced','new-draft');
+ f.Store.load();assert.equal(f.data.get('sill-unsynced'),'new-draft');
 });

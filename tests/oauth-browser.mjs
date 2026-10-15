@@ -16,10 +16,18 @@ try{
   try{
    f.policy.redirectUris[0]=callbackOrigin+'/callback';f.details.redirect_uri=f.policy.redirectUris[0];
    await f.sql('update sill_private.oauth_clients set policy=$1 where owner_id=$2',[JSON.stringify(f.policy),A]);
-   await context.addCookies([{name:'__Host-sill-access',value:token(),url:f.config.appOrigin,secure:true,httpOnly:true,sameSite:'Lax'}]);
+
    await context.route(f.config.appOrigin+'/**',async route=>{const req=route.request();const response=await f.runtime(new Request(req.url(),{method:req.method(),headers:await req.allHeaders(),...(req.postData()?{body:req.postData()}:{})}));const headers=Object.fromEntries(response.headers);if(response.headers.getSetCookie().length)headers['set-cookie']=response.headers.getSetCookie().join('\n');await route.fulfill({status:response.status,headers,body:Buffer.from(await response.arrayBuffer())});});
    const page=await context.newPage(),errors=[];page.setDefaultNavigationTimeout(15000);page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
    await page.goto(f.config.appOrigin+'/oauth/consent?authorization_id='+AUTH);
+   await page.getByRole('link',{name:'前往登录',exact:true}).click();
+   await page.getByLabel('邮箱',{exact:true}).first().fill('synthetic@example.com');
+   await page.getByLabel('密码',{exact:true}).fill('synthetic-password');
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+   await page.screenshot({path:`tests/artifacts/password-${name}.png`,fullPage:true});
+   await page.getByRole('button',{name:'登录并继续'}).click();
+   await page.getByRole('button',{name:'允许上述访问'}).waitFor();
+   assert.equal(await f.grant(),undefined);
    assert.match(await page.locator('main').innerText(),/读取卡片、创建与修改卡片/);assert.match(await page.locator('main').innerText(),/openid/);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await page.getByRole('button',{name:'允许上述访问'}).focus();assert.equal(await page.evaluate(()=>document.activeElement.value),'approve');

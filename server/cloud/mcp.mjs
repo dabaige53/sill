@@ -29,6 +29,7 @@ const workspaceTools=[['sill_open_workspace','Sill · 窗台','global'],['sill_o
 export function createMcpHandler(config,{clientFactory,appHtml=''}={}){
  const resource=config.appOrigin+'/mcp',metadata=config.appOrigin+'/.well-known/oauth-protected-resource/mcp';
  const icons=[{src:config.appOrigin+'/assets/sill-icon.png',mimeType:'image/png',sizes:['256x256']}];
+ const entrypointIcons=[{src:config.appOrigin+'/assets/sill-line.svg',mimeType:'image/svg+xml',sizes:['any'],theme:'light'},{src:config.appOrigin+'/assets/sill-line-dark.svg',mimeType:'image/svg+xml',sizes:['any'],theme:'dark'}];
  const response=(status,value,extra={})=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...extra}});
  return async request=>{
   const url=new URL(request.url);
@@ -50,7 +51,7 @@ export function createMcpHandler(config,{clientFactory,appHtml=''}={}){
     if(!canOpen()||request.params.uri!==workspaceUri)throw new Error('Resource unavailable');
     return {contents:[{uri:workspaceUri,mimeType:workspaceMime,text:appHtml,_meta:workspaceMeta}]};
    });
-   server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[...(canOpen()?workspaceTools.map(t=>({...t,icons})):[]),...contract.tools.filter(t=>allowed(t.name)).map(t=>({...t,description:t.name+' through the same authorized Sill data layer used by the webpage.',annotations:{readOnlyHint:['sill_listContents','sill_getContent','sill_getEvent'].includes(t.name),destructiveHint:!['sill_listContents','sill_getContent','sill_getEvent'].includes(t.name),idempotentHint:true,openWorldHint:false}}))]}));
+   server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[...(canOpen()?workspaceTools.map(t=>({...t,icons:entrypointIcons})):[]),...contract.tools.filter(t=>allowed(t.name)).map(t=>({...t,description:t.name+' through the same authorized Sill data layer used by the webpage.',annotations:{readOnlyHint:['sill_listContents','sill_getContent','sill_getEvent'].includes(t.name),destructiveHint:!['sill_listContents','sill_getContent','sill_getEvent'].includes(t.name),idempotentHint:true,openWorldHint:false}}))]}));
    server.setRequestHandler(CallToolRequestSchema,async request=>{
     try{
      const name=request.params.name;

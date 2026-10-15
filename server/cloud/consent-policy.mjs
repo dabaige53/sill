@@ -21,7 +21,7 @@ export function reviewConsent({details,principal,policy,grant}){
  if(origin.protocol!=='https:'||origin.origin!==policy.appOrigin||policy.audience!==policy.appOrigin+'/mcp')fail();
  // OIDC identity scopes are NOT Sill content scopes. No email/profile default is silently accepted.
  const identityScopes=typeof details.scope==='string'?details.scope.trim().split(/\s+/).filter(Boolean):[];
- if(!exactSet(policy.identityScopes,['openid','email','profile','phone'])||!exactSet(identityScopes,policy.identityScopes))fail();
+ if(!exactSet(policy.identityScopes,['openid','email','profile','phone','offline_access'])||!exactSet(identityScopes,policy.identityScopes))fail();
  if(grant.ownerId!==principal.userId||grant.clientId!==policy.clientId||grant.audience!==policy.audience)fail();
  if(!exactSet(policy.contentScopes,['content:read','content:write','content:delete','event:submit','event:read'])||!exactSet(grant.scopes,policy.contentScopes)||!grant.scopes.includes('content:read'))fail();
  if(!Array.isArray(policy.resources)||!Array.isArray(grant.resources)||!grant.resources.length||new Set(grant.resources).size!==grant.resources.length)fail();

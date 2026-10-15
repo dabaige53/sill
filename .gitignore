@@ -5,8 +5,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
-quiet-glass.config.json
-.quiet-glass/
+sill.config.json
+.sill/
 dist/
 *.sqlite*
 .sandbox-venv/

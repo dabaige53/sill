@@ -68,7 +68,7 @@ test('strict JSON and fixture inputs reject unsupported/large/deep values', () =
 });
 
 test('missing runtime fails closed without alternate host execution', async () => {
-  const result = await probeWasmRuntime({pythonPath: '/nonexistent/quiet-glass-python'});
+  const result = await probeWasmRuntime({pythonPath: '/nonexistent/sill-python'});
   assert.equal(result.available, false);
   assert.equal(result.reason, 'RUNTIME_UNAVAILABLE');
 });

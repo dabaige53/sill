@@ -1,11 +1,11 @@
 /* Owner-only, registered WebAssembly routines. Opening or refreshing never runs code. */
-window.initQuietGlassScripts=({app,panels,esc,api,post,isConnected})=>{
+window.initSillScripts=({app,panels,esc,api,post,isConnected})=>{
   const definitions=Object.freeze({
     'integer-stats':{title:'整数统计',example:'{"values":[1,2,3]}',help:'仅接受 values：最多 1000 个整数，每个在 -1000000 到 1000000 之间。'},
     'bounded-echo':{title:'有限文本回显',example:'{"text":"你好"}',help:'仅接受 text：最多 1024 个 UTF-16 单元（部分表情计为 2 个）。文本只作为数据传入，不作为代码执行。'},
   });
   const labels={running:'运行中',completed:'已完成',failed:'失败',cancelled:'已取消',timed_out:'已超时',interrupted:'已中断'};
-  const storageKey='quiet-glass-scripts-draft-v1:'+(window.__QG_HOST__?'host':'web');
+  const storageKey='sill-scripts-draft-v1:'+(window.__QG_HOST__?'host':'web');
   const pageSize=10,inputCharacters=12000,inputBytes=16000;
   const validId=value=>typeof value==='string'&&/^[a-zA-Z0-9_-]{1,100}$/.test(value);
   const validVersion=value=>typeof value==='string'&&/^[a-zA-Z0-9_.-]{1,80}$/.test(value);

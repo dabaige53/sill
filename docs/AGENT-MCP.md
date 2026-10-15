@@ -143,7 +143,7 @@ Google Calendar的已文档化读取工具包括 `list-calendars`、`list-events
 
 ## 默认禁用配置示例
 
-[examples/agent-mcp.plan.example.json](examples/agent-mcp.plan.example.json) 是**设计与人工配置清单**，不是任何宿主原生配置，不会被 `npm start`、插件构建或当前 CLI 读取。所有连接 `enabled:false`、写入关闭；没有凭据值，不能仅切换此字段就声称已接入。不要复制到旧 `quiet-glass.config.json`，其 schema 不同。
+[examples/agent-mcp.plan.example.json](examples/agent-mcp.plan.example.json) 是**设计与人工配置清单**，不是任何宿主原生配置，不会被 `npm start`、插件构建或当前 CLI 读取。所有连接 `enabled:false`、写入关闭；没有凭据值，不能仅切换此字段就声称已接入。不要复制到旧 `sill.config.json`，其 schema 不同。
 
 实施时先在宿主安全设置中选定/安装并固定核验版本，再把单个 `hostConfigCandidate` 按该宿主原生语法转换，配置所需路径和秘密引用，由用户完成上游鉴权。示例中的 `/ABS/PATH/…` 是必须替换的路径占位，不是已安装位置。`secretEnvironmentNames` 只列环境变量名，不读取或返回变量值。连接引用只能指向实际已配置的宿主条目。
 

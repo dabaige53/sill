@@ -11,6 +11,6 @@ for(const file of ['index.html']){
   const html=await readFile(resolve(ROOT,file),'utf8');
   for(const [,code] of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new Script(code,{filename:file});
 }
-ConfigSchema.parse(JSON.parse(await readFile(resolve(ROOT,'quiet-glass.config.example.json'),'utf8')));
+ConfigSchema.parse(JSON.parse(await readFile(resolve(ROOT,'sill.config.example.json'),'utf8')));
 JSON.parse(await readFile(resolve(ROOT,'plugin.json'),'utf8'));
 console.log('JavaScript, inline scripts, plugin manifest and connector configuration checked.');

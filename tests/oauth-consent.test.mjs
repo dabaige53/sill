@@ -196,3 +196,44 @@ test('provider automatic consent resumes only one existing exact Sill grant with
   await f.sql('delete from sill_private.caller_grants where caller_id=$1',['oauth:'+C]);assert.equal((await f.call('/oauth/consent?authorization_id='+AUTH)).status,403);
  }finally{await f.close();}
 });
+
+test('full login handoff reaches review, while another browser and expired return cannot resume',async()=>{
+ const f=await oauthFixture();try{
+  const jar=new Map();
+  await f.call('/oauth/consent?authorization_id='+AUTH,{cookieJar:jar});
+  await f.call('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'synthetic@example.com'}),cookieJar:jar});
+  const other=await f.call('/auth/callback?code=synthetic-code',{cookieJar:new Map(),headers:{Accept:'text/html'}});
+  assert.equal(other.status,303);assert.equal(other.headers.get('location'),f.config.appOrigin+'/?login_error=1');
+  const callback=await f.call('/auth/callback?code=synthetic-code',{cookieJar:jar});
+  const review=await f.call(new URL(callback.headers.get('location')).pathname+new URL(callback.headers.get('location')).search,{cookieJar:jar});
+  assert.equal(review.status,200);assert.match(await review.text(),/允许上述访问/);
+  assert.equal(await f.grant(),undefined,'login does not approve access');
+  const expired=new Map([['__Host-sill-oauth-return',AUTH+'.'+(Date.now()-1000)]]);
+  await f.call('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'synthetic@example.com'}),cookieJar:expired});
+  const resumed=await f.call('/auth/callback?code=synthetic-code',{cookieJar:expired});
+  assert.equal(resumed.headers.get('location'),f.config.appOrigin+'/oauth/expired');
+ }finally{await f.close();}
+});
+
+test('actual host default five scopes fail against the current openid-only policy',async()=>{
+ const f=await oauthFixture();try{
+  f.state.details={...f.details,scope:'openid profile email phone offline_access'};
+  const response=await f.call('/oauth/consent?authorization_id='+AUTH);
+  assert.equal(response.status,403);assert.equal(response.headers.get('X-Sill-Consent-Stage'),'review');
+  assert.equal(await f.grant(),undefined);
+  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);
+ }finally{await f.close();}
+});
+
+test('observed ChatGPT openid email offline_access reaches explicit review under matching client policy',async()=>{
+ const f=await oauthFixture();try{
+  const scopes=['openid','email','offline_access'];
+  f.state.details={...f.details,scope:scopes.join(' ')};
+  f.policy.identityScopes=scopes;
+  await f.sql("update sill_private.oauth_clients set policy=jsonb_set(policy,'{identityScopes}',$1::jsonb)",[JSON.stringify(scopes)]);
+  const response=await f.call('/oauth/consent?authorization_id='+AUTH);
+  assert.equal(response.status,200,await response.clone().text());
+  assert.equal(await f.grant(),undefined);
+  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);
+ }finally{await f.close();}
+});

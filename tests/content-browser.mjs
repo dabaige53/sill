@@ -27,12 +27,12 @@ try {
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(source=>{
     if(!localStorage.getItem('content-test-seeded')){
-      localStorage.setItem('quiet-glass-live-v1',JSON.stringify({version:2,items:{[source]:{note:'旧版浏览器的备注',tags:['旧标签'],tagsEdited:true}}}));
+      localStorage.setItem('sill-live-v1',JSON.stringify({version:2,items:{[source]:{note:'旧版浏览器的备注',tags:['旧标签'],tagsEdited:true}}}));
       localStorage.setItem('content-test-seeded','1');
     }
   },source);
   await page.goto(origin);await page.locator('#qg-token').fill(token);await page.locator('[data-qg-action="login"]').click();await page.locator('.feed-card').waitFor();
-  assert.equal(await page.evaluate(id=>window.__quietGlass.store.item(id).note,source),'服务中已有的备注');
+  assert.equal(await page.evaluate(id=>window.__sill.store.item(id).note,source),'服务中已有的备注');
   assert.equal((await call('qg_read_annotation',{cardId:source})).revision,1,'legacy browser state is never uploaded automatically');
   await page.evaluate(id=>window.__app.openPanel('editor',id),source);
   await page.locator('#note-editor').fill('保留的网页草稿');
@@ -42,13 +42,13 @@ try {
   await page.reload();await page.locator('.feed-card').waitFor();await page.evaluate(id=>window.__app.openPanel('editor',id),source);
   await page.locator('#note-editor').waitFor();assert.equal(await page.locator('#note-editor').inputValue(),'保留的网页草稿','conflicting draft survives reload');
   await page.locator('[data-action="save-note"]').click();await page.locator('[data-action="annotation-retry"]').click();
-  await page.waitForFunction(id=>window.__quietGlass.store.item(id).note==='保留的网页草稿',source);
+  await page.waitForFunction(id=>window.__sill.store.item(id).note==='保留的网页草稿',source);
   assert.equal((await call('qg_read_annotation',{cardId:source})).values.note,'保留的网页草稿');
   await page.evaluate(id=>window.__app.openPanel('editor',id),source);await page.locator('[data-action="annotation-import"]').click();
   assert.equal(await page.locator('#note-editor').inputValue(),'旧版浏览器的备注');
   assert.equal((await call('qg_read_annotation',{cardId:source})).values.note,'保留的网页草稿','import only changes the local draft');
   await page.locator('[data-action="save-note"]').click();
-  await page.waitForFunction(id=>window.__quietGlass.store.item(id).note==='旧版浏览器的备注',source);
+  await page.waitForFunction(id=>window.__sill.store.item(id).note==='旧版浏览器的备注',source);
   const original=await call('qg_get_card',{cardId:source});
   assert.equal(original.content,'上游原始正文不得被本地编辑覆盖');assert.deepEqual(original.tags,['来源标签']);assert.equal(original.url,'https://example.com/original');
   assert.deepEqual(original.annotation.values.tags,['旧标签']);
@@ -66,7 +66,7 @@ try {
   assert.equal((await call('qg_read_annotation',{cardId:source})).values.note,'注释提交版本 A');
   await page.unroute(`**/api/cards/${source}/annotation`);
   await page.locator('[data-action="save-note"]').click();
-  await page.waitForFunction(id=>window.__quietGlass.store.item(id).note==='提交后继续输入的注释 B',source);
+  await page.waitForFunction(id=>window.__sill.store.item(id).note==='提交后继续输入的注释 B',source);
   await page.evaluate(()=>window.__app.openPanel('settings'));await page.locator('[data-action="local-note-new"]').click();
   await page.locator('[data-action="local-note-save"]').click();
   await page.waitForFunction(()=>document.getElementById('toast-text').textContent.includes('笔记未保存'));

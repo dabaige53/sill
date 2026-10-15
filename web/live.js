@@ -1,7 +1,7 @@
 /* Same-origin live adapter. No provider credentials or model keys enter browser storage. */
-window.initQuietGlassLive = () => {
-  if(!window.__QG_RUNTIME__ || !window.__quietGlass)return;
-  const {app,store,panels,esc}=window.__quietGlass;
+window.initSillLive = () => {
+  if(!window.__QG_RUNTIME__ || !window.__sill)return;
+  const {app,store,panels,esc}=window.__sill;
   let status=null,requestTimer=null,contentAdapter=null,contentEpoch=0,contentSync=null,conversations=null,preferencesAdapter=null,jobsAdapter=null,scriptsAdapter=null;
   const api=async(path,options={})=>{
     if(window.__QG_TRANSPORT__)return window.__QG_TRANSPORT__(path,options);
@@ -85,7 +85,7 @@ window.initQuietGlassLive = () => {
     const field=(name,label,value)=>`<p class="settings-note" data-provenance-field="${name}">${label}：${esc(value)}</p>`;
     const scope=Object.entries(p.scope||{}).map(([key,value])=>key+'='+value).join(' · ');
     const evidence=(card.related||[]).slice(0,20).map(id=>`<button type="button" class="text-button" data-action="card-open" data-id="${esc(id)}">${esc(store.state.cards.find(c=>c.id===id)?.title||id)}</button>`).join(' · ');
-    const detail=`<section data-provenance style="padding:12px 0;overflow-wrap:anywhere">${field('provider','宿主提供方',hostNames[p.provider]||p.provider)}${field('scope','来源范围',scope)}${field('upstreamId','上游 ID',p.upstreamId)}${field('retrievedAt','导入方读取时间',p.retrievedAt)}${field('contentOrigin','正文类型',p.contentOrigin==='model-summary'?'未导入原文，仅有模型摘要':'上游原始内容')}${p.summaryOrigin?field('summaryOrigin','摘要类型',p.summaryOrigin==='model-summary'?'模型生成，需核对来源':'上游原始摘要'):''}${field('truncated','正文覆盖',card.truncated?'内容已截断，仅含节选':'导入方未标记截断')}${field('partial','采集覆盖',p.partial?'采集未完整，仍有未覆盖内容':'仅此条记录；不表示完整来源')}${card.url?`<p><a class="text-button" data-provenance-source data-id="${esc(card.id)}" href="${esc(card.url)}" target="_blank" rel="noopener noreferrer">打开上游来源</a></p>`:''}${evidence?`<p class="settings-note" data-provenance-evidence>引用证据：${evidence}</p>`:''}${reading&&card.sourceSummary?`<p class="preview-lead" data-provenance-summary>${esc(p.summaryOrigin==='model-summary'?'模型摘要：':'来源摘要：')}${esc(card.sourceSummary)}</p>`:''}<p class="settings-note">导入方提供的来源信息，未验证宿主授权；不代表 Quiet Glass 已连接该应用。</p></section>`;
+    const detail=`<section data-provenance style="padding:12px 0;overflow-wrap:anywhere">${field('provider','宿主提供方',hostNames[p.provider]||p.provider)}${field('scope','来源范围',scope)}${field('upstreamId','上游 ID',p.upstreamId)}${field('retrievedAt','导入方读取时间',p.retrievedAt)}${field('contentOrigin','正文类型',p.contentOrigin==='model-summary'?'未导入原文，仅有模型摘要':'上游原始内容')}${p.summaryOrigin?field('summaryOrigin','摘要类型',p.summaryOrigin==='model-summary'?'模型生成，需核对来源':'上游原始摘要'):''}${field('truncated','正文覆盖',card.truncated?'内容已截断，仅含节选':'导入方未标记截断')}${field('partial','采集覆盖',p.partial?'采集未完整，仍有未覆盖内容':'仅此条记录；不表示完整来源')}${card.url?`<p><a class="text-button" data-provenance-source data-id="${esc(card.id)}" href="${esc(card.url)}" target="_blank" rel="noopener noreferrer">打开上游来源</a></p>`:''}${evidence?`<p class="settings-note" data-provenance-evidence>引用证据：${evidence}</p>`:''}${reading&&card.sourceSummary?`<p class="preview-lead" data-provenance-summary>${esc(p.summaryOrigin==='model-summary'?'模型摘要：':'来源摘要：')}${esc(card.sourceSummary)}</p>`:''}<p class="settings-note">导入方提供的来源信息，未验证宿主授权；不代表 Sill 已连接该应用。</p></section>`;
     return html.replace('</h1>','</h1>'+detail);
   };
   function stateFor(c){store.state.items[c.id]={...store.item(c.id),...c.state};contentAdapter?.consumeCard(c);}
@@ -114,8 +114,8 @@ window.initQuietGlassLive = () => {
   }
   const originalSettings=panels.settings.bind(panels);
   panels.settings=()=>{
-    const summary=status?status.connectors.map(c=>`<p>${esc(c.label)} · ${c.enabled?(c.credentialConfigured?'凭据已配置，采集时验证':'待授权'):'已停用'}${c.allowWrites?' · 可准备写入草稿':''}</p>`).join('')||'<p>还没有配置数据源。请按仓库接入说明配置日历、Notion 或 MCP。</p>':window.__QG_HOST__?'<p>宿主连接尚未完成，请关闭后重新打开此视图。</p>':'<label class="field-label" for="qg-token">服务访问密钥</label><input id="qg-token" type="password" autocomplete="off" aria-label="Quiet Glass 服务访问密钥"><button class="solid-button" type="button" data-qg-action="login">连接</button>';
-    return originalSettings().replace(/<p class="settings-note"><strong>演示边界<\/strong>[\s\S]*?<\/p>/,`<div class="settings-note"><strong>数据源连接</strong>${summary}<p>宿主协助导入与服务器连接器分开：只可使用宿主当前可用且已授权的应用工具；这里不会读取其凭据。刷新按钮仅采集服务器已配置来源。</p><p>对话推理由 Codex 完成。这里提交的问题会进入待处理队列；在 Codex 中调用 Quiet Glass 后，结果会返回此处。</p><p>已读和收藏会同步到本地服务；备注与个人标签保存在本地服务，不改写来源；阅读位置仍保存在本浏览器。</p></div>`);
+    const summary=status?status.connectors.map(c=>`<p>${esc(c.label)} · ${c.enabled?(c.credentialConfigured?'凭据已配置，采集时验证':'待授权'):'已停用'}${c.allowWrites?' · 可准备写入草稿':''}</p>`).join('')||'<p>还没有配置数据源。请按仓库接入说明配置日历、Notion 或 MCP。</p>':window.__QG_HOST__?'<p>宿主连接尚未完成，请关闭后重新打开此视图。</p>':'<label class="field-label" for="qg-token">服务访问密钥</label><input id="qg-token" type="password" autocomplete="off" aria-label="Sill 服务访问密钥"><button class="solid-button" type="button" data-qg-action="login">连接</button>';
+    return originalSettings().replace(/<p class="settings-note"><strong>演示边界<\/strong>[\s\S]*?<\/p>/,`<div class="settings-note"><strong>数据源连接</strong>${summary}<p>宿主协助导入与服务器连接器分开：只可使用宿主当前可用且已授权的应用工具；这里不会读取其凭据。刷新按钮仅采集服务器已配置来源。</p><p>对话推理由 Codex 完成。这里提交的问题会进入待处理队列；在 Codex 中调用 Sill 后，结果会返回此处。</p><p>已读和收藏会同步到本地服务；备注与个人标签保存在本地服务，不改写来源；阅读位置仍保存在本浏览器。</p></div>`);
   };
   document.querySelector('.ai-header small').textContent='Codex 待处理请求 · 需在 Codex 中继续';
   document.querySelector('[data-action="ai-send"]').setAttribute('aria-label','将问题保存到 Codex 待处理队列');
@@ -175,23 +175,23 @@ window.initQuietGlassLive = () => {
   const contentReady=new Promise((resolve,reject)=>{
     const script=document.createElement('script');script.src='/web/content.js';
     const initialize=()=>{
-      try{contentAdapter=window.initQuietGlassContent({app,store,panels,esc,api,post,isConnected:()=>!!status,onMutation:()=>contentEpoch++,onSaved:card=>{
+      try{contentAdapter=window.initSillContent({app,store,panels,esc,api,post,isConnected:()=>!!status,onMutation:()=>contentEpoch++,onSaved:card=>{
         contentEpoch++;stateFor(card);const mapped=mapCard(card),index=store.state.cards.findIndex(item=>item.id===card.id);
         app.withFeedAnchor(()=>{if(index>=0)store.state.cards[index]=mapped;else store.state.cards.unshift(mapped);});store.save();
       }});resolve();}catch(error){reject(error);}
     };
-    if(window.initQuietGlassContent)initialize();
+    if(window.initSillContent)initialize();
     else {script.onload=initialize;script.onerror=()=>reject(new Error('本地内容界面未加载，请重新加载页面'));document.body.appendChild(script);}
   });
   const preferenceReady=new Promise((resolve,reject)=>{
     const initialize=()=>{
       try {
-        preferencesAdapter=window.initQuietGlassPreferences({app,store,panels,esc,post,writeSettings,isConnected:()=>!!status,getSources:()=>status?.connectors||[]});
+        preferencesAdapter=window.initSillPreferences({app,store,panels,esc,post,writeSettings,isConnected:()=>!!status,getSources:()=>status?.connectors||[]});
         if(settingsSnapshot)preferencesAdapter.consume(settingsSnapshot);
         resolve();
       }catch(error){reject(error);}
     };
-    if(window.initQuietGlassPreferences)initialize();
+    if(window.initSillPreferences)initialize();
     else {
       const script=document.createElement('script');script.src='/web/preferences.js';
       script.onload=initialize;script.onerror=()=>reject(new Error('推荐偏好界面未加载，请重新加载页面'));document.body.appendChild(script);
@@ -199,30 +199,30 @@ window.initQuietGlassLive = () => {
   }).catch(error=>{app.toast(error.message+'；内容仍可浏览，重新加载可恢复推荐设置。');});
   const conversationReady=window.__QG_HOST__?Promise.resolve():new Promise((resolve,reject)=>{
     const script=document.createElement('script');script.src='/web/conversations.js';
-    script.onload=()=>{try{conversations=window.initQuietGlassConversations({app,store,esc,api,post});resolve();}catch(error){reject(error);}};
+    script.onload=()=>{try{conversations=window.initSillConversations({app,store,esc,api,post});resolve();}catch(error){reject(error);}};
     script.onerror=()=>reject(new Error('对话界面未加载，请重新加载页面'));document.body.appendChild(script);
   });
   // Jobs are optional. Loading failure must never block the feed or sign-in.
   new Promise((resolve,reject)=>{
-    const initialize=()=>{try{jobsAdapter=window.initQuietGlassJobs({app,panels,esc,api,post,isConnected:()=>!!status});resolve();}catch(error){reject(error);}};
-    if(window.initQuietGlassJobs)initialize();
+    const initialize=()=>{try{jobsAdapter=window.initSillJobs({app,panels,esc,api,post,isConnected:()=>!!status});resolve();}catch(error){reject(error);}};
+    if(window.initSillJobs)initialize();
     else {const script=document.createElement('script');script.src='/web/jobs.js';script.onload=initialize;script.onerror=()=>reject(new Error('后台任务界面未加载'));document.body.appendChild(script);}
   }).catch(error=>app.toast(error.message+'；内容仍可浏览，重新加载可恢复任务界面。'));
   // Restricted Wasm controls are optional; their failure never blocks content.
   new Promise((resolve,reject)=>{
-    const initialize=()=>{try{scriptsAdapter=window.initQuietGlassScripts({app,panels,esc,api,post,isConnected:()=>!!status});resolve();}catch(error){reject(error);}};
-    if(window.initQuietGlassScripts)initialize();
+    const initialize=()=>{try{scriptsAdapter=window.initSillScripts({app,panels,esc,api,post,isConnected:()=>!!status});resolve();}catch(error){reject(error);}};
+    if(window.initSillScripts)initialize();
     else {const script=document.createElement('script');script.src='/web/scripts.js';script.onload=initialize;script.onerror=()=>reject(new Error('WebAssembly 脚本界面未加载'));document.body.appendChild(script);}
   }).catch(error=>app.toast(error.message+'；内容仍可浏览，重新加载可恢复脚本界面。'));
   // Content backup is optional and never polls or replays stored requests.
   new Promise((resolve,reject)=>{
-    const initialize=()=>{try{window.initQuietGlassBackups({app,panels,esc,api,post,isConnected:()=>!!status,onRestored:async()=>{
+    const initialize=()=>{try{window.initSillBackups({app,panels,esc,api,post,isConnected:()=>!!status,onRestored:async()=>{
       // Invalidate reads predating restore; only read after existing settings work.
       // Revision guards and consume() retain other editors’ unsent drafts.
       contentEpoch++;await settingsQueue.catch(()=>{});if(settingsRead)await settingsRead.catch(()=>{});
       await Promise.all([readSettings(),loadCards(false,true)]);
     }});resolve();}catch(error){reject(error);}};
-    if(window.initQuietGlassBackups)initialize();
+    if(window.initSillBackups)initialize();
     else {const script=document.createElement('script');script.src='/web/backups.js';script.onload=initialize;script.onerror=()=>reject(new Error('内容备份界面未加载'));document.body.appendChild(script);}
   }).catch(error=>app.toast(error.message+'；内容仍可浏览，重新加载可恢复备份界面。'));
   const refreshContent=()=>{
@@ -233,4 +233,4 @@ window.initQuietGlassLive = () => {
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshContent();});
   api('/api/status').then(async value=>{status=value;await contentReady;await preferenceReady;await conversationReady;await loadInitialSettings();await loadCards(true);await conversations?.restore();}).catch(()=>app.openPanel('settings'));
 };
-if(!window.__QG_HOST__)window.initQuietGlassLive();
+if(!window.__QG_HOST__)window.initSillLive();

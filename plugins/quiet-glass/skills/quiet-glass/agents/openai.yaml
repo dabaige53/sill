@@ -1,4 +1,0 @@
-interface:
-  display_name: "Sill · 窗台"
-  short_description: "Sill 云端卡片与侧边栏"
-  default_prompt: "打开 Sill 云端窗台，查看并整理卡片，保存后确认云端结果。"

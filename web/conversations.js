@@ -1,6 +1,6 @@
 /* Standalone, application-owned history. Never a host thread or automatic AI call. */
-window.initQuietGlassConversations=({app,store,esc,api,post})=>{
-  const storageKey='quiet-glass-conversations-v1';
+window.initSillConversations=({app,store,esc,api,post})=>{
+  const storageKey='sill-conversations-v1';
   let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};}catch{}
   const drafts=saved.drafts&&typeof saved.drafts==='object'&&!Array.isArray(saved.drafts)?saved.drafts:{};
   let activeKey=typeof saved.activeKey==='string'?saved.activeKey:'draft_'+crypto.randomUUID();
@@ -73,7 +73,7 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
       const localDrafts=Object.entries(drafts).filter(([id,value])=>id.startsWith('draft_')&&(value.question||value.attempt||value.cardIds?.length));
       const rows=result.conversations.map(c=>`<button class="text-button" style="max-width:100%;white-space:normal;overflow-wrap:anywhere" data-action="conversation-open" data-id="${esc(c.id)}">${esc(c.title)} · ${c.messageCount} 条${c.pendingCount?' · 待处理 '+c.pendingCount:''}</button>`).join('<br>');
       const unsent=localDrafts.map(([id,value])=>`<button class="text-button" style="max-width:100%;white-space:normal;overflow-wrap:anywhere" data-action="conversation-open" data-id="${esc(id)}">未提交草稿：${esc(String(value.question||(value.attempt?'待确认的请求':'已选'+(value.cardIds?.length||0)+'张卡片')).slice(0,80))}</button>`).join('<br>');
-      app.openModal(`<div class="dialog-close"><button class="icon-button" data-action="close" aria-label="关闭对话列表">×</button></div><div class="panel-content"><h1 id="modal-title">Quiet Glass 对话</h1><p class="settings-note">应用自己的历史，不是宿主聊天记录。待处理请求不会自动调用模型。</p>${rows||'<p>还没有已保存的对话</p>'}${unsent?'<h2>本浏览器草稿</h2>'+unsent:''}<div class="panel-footer">${offset?'<button class="text-button" data-action="conversation-prev">上一页</button>':''}${result.nextOffset!==null?`<button class="text-button" data-action="conversation-next" data-id="${result.nextOffset}">下一页</button>`:''}</div></div>`,'conversations');
+      app.openModal(`<div class="dialog-close"><button class="icon-button" data-action="close" aria-label="关闭对话列表">×</button></div><div class="panel-content"><h1 id="modal-title">Sill 对话</h1><p class="settings-note">应用自己的历史，不是宿主聊天记录。待处理请求不会自动调用模型。</p>${rows||'<p>还没有已保存的对话</p>'}${unsent?'<h2>本浏览器草稿</h2>'+unsent:''}<div class="panel-footer">${offset?'<button class="text-button" data-action="conversation-prev">上一页</button>':''}${result.nextOffset!==null?`<button class="text-button" data-action="conversation-next" data-id="${result.nextOffset}">下一页</button>`:''}</div></div>`,'conversations');
     }catch(error){if(token===epoch)app.toast('对话列表未读取：'+error.message);}
   }
   async function older(){
@@ -146,7 +146,7 @@ window.initQuietGlassConversations=({app,store,esc,api,post})=>{
   window.addEventListener('focus',refresh);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
   const aiScript=document.createElement('script');aiScript.src='/web/ai.js';
-  aiScript.onload=()=>{aiAdapter=window.initQuietGlassAi({app,api,post,esc,refreshHistory:refresh});paint();};
+  aiScript.onload=()=>{aiAdapter=window.initSillAi({app,api,post,esc,refreshHistory:refresh});paint();};
   aiScript.onerror=()=>app.toast('独立AI控件未加载；对话队列仍可使用');document.body.appendChild(aiScript);
   restoreDraft();paint();
   return {restore,refresh};

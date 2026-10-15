@@ -6,7 +6,7 @@ def comp(name,group,h,readme,js,bg='canvas',pad=16):
 
 comp('IconButton','Atoms',100,"""图标按钮：44×44 圆形触控区，只放一个 Mono24 图标，覆盖默认、已选择、聚焦、禁用四态。
 
-- 用 `QuietGlass.button(glyph, label, action, id?, extra?, className?)` 生成；`label` 必填，写入 `aria-label`。
+- 用 `Sill.button(glyph, label, action, id?, extra?, className?)` 生成；`label` 必填，写入 `aria-label`。
 - 默认透明，hover 填 `surface`；已选择加 `.active`：`accent-soft` 底 + `accent` 图标。
 - 焦点环统一为 2px `accent` outline、4px offset。
 - 不要给图标按钮加文字或描边；一组工具之间间距 4–8px。""",
@@ -21,21 +21,21 @@ comp('ActionButton','Atoms',100,"""主操作与次操作：一个区域只强调
 
 comp('ProgressRing','Atoms',90,"""阅读进度圆环：读过多少由圆环表达；打开内容与读完是两种状态。
 
-- `QuietGlass.ring(progress 0–1, size=22)`，`role="progressbar"`，aria-valuenow 自动写入。
+- `Sill.ring(progress 0–1, size=22)`，`role="progressbar"`，aria-valuenow 自动写入。
 - 颜色继承 `currentColor`，默认 `accent`；底圈 12% 不透明度。
 - 卡片底部与文字「继续阅读 / 已读」成对出现（`.reading-state`）。""",
 """root.innerHTML=`<div style="display:flex;gap:24px;align-items:center">${[0,.25,.6,1].map(p=>Q.ring(p)).join('')}${Q.ring(.6,36)}<span class="reading-state">${Q.ring(.4)}<span>继续阅读</span></span></div>`;""",'card')
 
 comp('CheckItem','Atoms',150,"""待办选择项：点击整行切换状态，完成同时用勾选、颜色和删除线表达。
 
-- `QuietGlass.checkItem(card, {id,text,done})` 生成 `role="checkbox"` 的整行按钮，min-height 44px。
+- `Sill.checkItem(card, {id,text,done})` 生成 `role="checkbox"` 的整行按钮，min-height 44px。
 - 未完成：20px 圆点，1.2px `check-border` 描边；hover 描边变 `accent`。
 - 已完成：圆点填 `accent` + 白勾，文字 `secondary` + `done-strike` 删除线。""",
 """const c={id:'t'};root.innerHTML=`<div style="width:300px">${Q.checkItem(c,{id:1,text:'整理评审意见',done:true})}${Q.checkItem(c,{id:2,text:'更新卡片间距规范',done:false})}${Q.checkItem(c,{id:3,text:'回复设计团队邮件',done:false})}</div>`;""",'card')
 
 comp('Avatars','Atoms',80,"""参与者头像组：28px 圆形，-5px 重叠，2px `card` 描边，用于日程卡。
 
-- `QuietGlass.avatars(['王','李','陈'])`，组上带「N 位参与者」可访问名称。
+- `Sill.avatars(['王','李','陈'])`，组上带「N 位参与者」可访问名称。
 - 底色 `surface`、字 `muted` 10px；不放照片。""",
 """root.innerHTML=Q.avatars(['王','李','陈','周']);""",'card')
 
@@ -47,7 +47,7 @@ comp('Attachment','Atoms',80,"""附件入口：文件图标、文件名、下载
 
 comp('TagChip','Atoms',90,"""标签与筛选项：只在编辑与筛选时出现的胶囊按钮。
 
-- `QuietGlass.tagChip(tag, active)`，`aria-pressed` 表达选中。
+- `Sill.tagChip(tag, active)`，`aria-pressed` 表达选中。
 - 默认 `surface` 底 `ink` 字，hover `faint`；选中 `accent-soft` 底 `accent` 字。
 - 22px 圆角胶囊，min-height 44px，13px；容器 `.chips` gap 8px 换行。""",
 """root.innerHTML=`<div class="chips">${Q.tagChip('设计',true)}${Q.tagChip('阅读')}${Q.tagChip('工作')}${Q.tagChip('稍后')}</div>`;""",'card')
@@ -144,7 +144,7 @@ comp('SelectionBar','Feedback',100,"""多选与批量操作：选中卡片后才
 
 comp('EmptyState','Feedback',300,"""无结果状态：说明为什么为空，并给一个明确的下一步。
 
-- `QuietGlass.emptyState(title, description)`：居中、450px 宽、24px 圆角、`shadow`，搜索图标 `muted`。
+- `Sill.emptyState(title, description)`：居中、450px 宽、24px 圆角、`shadow`，搜索图标 `muted`。
 - 标题 19px，说明 13px/1.85 `muted`，动作用 `.text-button`「清除筛选」。""",
 """root.innerHTML=Q.emptyState('没有符合条件的卡片','试试减少标签，或清除筛选回到全部内容。');root.firstChild.style.marginTop='0';""")
 
@@ -175,7 +175,7 @@ for name,group,h,readme,js,bg,pad in C:
 <body class="ds-flow" style="margin:0;min-height:0;padding:{pad}px;background:var(--{bg})">
 <div id="root"></div>
 <script>
-const Q=window.QuietGlass,I=Q.icon,root=document.getElementById('root');
+const Q=window.Sill,I=Q.icon,root=document.getElementById('root');
 {js}
 </script>
 </body></html>
@@ -183,8 +183,8 @@ const Q=window.QuietGlass,I=Q.icon,root=document.getElementById('root');
     assert '</script' not in js
     open(f'{d}/preview.html','w').write(html)
 print(len(C))
-dts='''/** Quiet Glass — 原生 HTML 字符串渲染函数（src/atoms）。所有函数返回 HTML 字符串，由调用方写入 innerHTML。 */
-declare namespace QuietGlass {
+dts='''/** Sill — 原生 HTML 字符串渲染函数（src/atoms）。所有函数返回 HTML 字符串，由调用方写入 innerHTML。 */
+declare namespace Sill {
   /** Mono24 图标路径注册表：名称 → SVG 内部路径。 */
   const Glyphs: Record<string, string>;
   /** 24×24 viewBox、stroke 1.65、currentColor 的 SVG。未知名称回退到 file。 */

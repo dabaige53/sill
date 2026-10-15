@@ -1,6 +1,6 @@
 # F04：独立网页对话历史与恢复
 
-这些是 Quiet Glass 自己拥有的 conversation ID，不是 ChatGPT/Codex 的线程 ID。SQLite 保存有序消息、卡片引用快照和问题状态。网页仍只提交待处理请求，不自动运行模型，不调用付费 AI API。
+这些是 Sill 自己拥有的 conversation ID，不是 ChatGPT/Codex 的线程 ID。SQLite 保存有序消息、卡片引用快照和问题状态。网页仍只提交待处理请求，不自动运行模型，不调用付费 AI API。
 
 ## 使用
 

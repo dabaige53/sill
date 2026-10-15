@@ -41,7 +41,7 @@ try{
  await page.waitForFunction(()=>__app.grid.dataset.sync==='error');
  const remote=await request('state');assert.equal(remote.state.cards.find(c=>c.id==='note-polish').title,'另一处的新标题');
  assert.equal(await page.locator('#inline-title').inputValue(),'我的未提交草稿');
- assert.ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('quiet-glass-unsynced')).pending.length>0),'conflict preserves a durable local draft');
+ assert.ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('sill-unsynced')).pending.length>0),'conflict preserves a durable local draft');
  await page.reload();await page.waitForFunction(()=>__app.grid.dataset.sync==='error');
  assert.equal(await page.evaluate(()=>__store.card('note-polish').title),'我的未提交草稿','draft survives reload without overwriting remote data');
  await page.evaluate(()=>__app.action('sync-discard-confirm'));await page.waitForFunction(()=>__app.grid.dataset.sync==='saved');

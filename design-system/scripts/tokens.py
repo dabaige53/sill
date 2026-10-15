@@ -23,8 +23,8 @@ c("toggle-off","#d1d1d6","偏好开关关闭时的轨道色（controls.css 中�
 c("check-border","#b8b8bd","待办选择项未完成圆点的 1.2px 描边（cards.css 中的字面值）。"),
 c("done-strike","#c7c7cc","已完成待办文字的删除线颜色（cards.css 中的字面值）。"),
 ]
-t={"name":"Quiet Glass","version":1,
-"meta":{"source":"github","repo":"dabaige53/quiet-glass","ref":"main@"+SHA,"paths":{"tokens":["src/styles/tokens.css"],"assets":["src/atoms/icons.js","src/data/icon-catalog.js"],"docs":["README.md","docs/DESIGN-SYSTEM.md"]},"components":{"*":"src/atoms/primitives.js, src/cards/templates.js, src/styles/*.css"},"synced":"2026-10-12"},
+t={"name":"Sill","version":1,
+"meta":{"source":"github","repo":"dabaige53/sill","ref":"main@"+SHA,"paths":{"tokens":["src/styles/tokens.css"],"assets":["src/atoms/icons.js","src/data/icon-catalog.js"],"docs":["README.md","docs/DESIGN-SYSTEM.md"]},"components":{"*":"src/atoms/primitives.js, src/cards/templates.js, src/styles/*.css"},"synced":"2026-10-12"},
 "color":{"themes":[{"id":"light","name":"Light"}],"tokens":colors},
 "type":{"fonts":[],
  "families":{"sans":"-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", sans-serif"},

@@ -1,15 +1,17 @@
 # F03：宿主卡片上下文
 
-Quiet Glass 新增 `qg_open_workspace({})`，注册全局入口和线程入口，打开 `ui://quiet-glass/workspace`。既有 23 个业务工具保留，总计 24 个。工具只读取数据；不会采集外部来源、修改设置或创建对话消息。
+本文是旧宿主实现的维护记录，不是当前云端插件的安装说明。当前状态见 [Sill 现状](SILL-STATUS-20261015.md)。
+
+Sill 新增 `qg_open_workspace({})`，注册全局入口和线程入口，打开 `ui://sill/workspace`。既有 23 个业务工具保留，总计 24 个。工具只读取数据；不会采集外部来源、修改设置或创建对话消息。
 
 ## 构建与使用
 
 ```sh
 npm ci
-npm run plugin:build
+npm run build && npm run build:host
 ```
 
-插件构建同时生成 `dist/host-app.html`。资源由同一个 MCP 服务读取，无需部署新网页。保留仓库与构建产物；未构建时返回明确的 `HOST_APP_UNAVAILABLE`，其他工具仍可使用。单独重建可运行 `npm run build:host`。
+旧宿主构建生成 `dist/host-app.html`。资源由同一个 MCP 服务读取，无需部署新网页。保留仓库与构建产物；未构建时返回明确的 `HOST_APP_UNAVAILABLE`，其他工具仍可使用。单独重建可运行 `npm run build:host`。
 
 HTML 使用 MCP App MIME，声明空网络连接、外部资源、子框架及 base URI 域列表，不请求额外权限。业务调用经过宿主的同服务器 MCP bridge；不嵌入服务密钥，不登录网页，不继承或导出其他插件凭据。静态资源不包含数据库内容。入口返回的模型可见结果仅为模式、资源 URI 和计数，初始化卡片节选放入应用专用 `_meta`。
 

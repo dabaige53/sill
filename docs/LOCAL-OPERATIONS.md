@@ -1,6 +1,6 @@
 # 本地操作
 
-当前页面和 AI 共用 `server/local.mjs` 与 `.quiet-glass/local/cards.json`。当前外部应用由宿主 AI 使用，默认运行路径不提供桥接；目标中的内置助手、对外MCP及选择性tools桥接见 [Agent与MCP](AGENT-MCP.md)，尚未实现。
+当前页面和 AI 共用 `server/local.mjs` 与 `.sill/local/cards.json`。当前外部应用由宿主 AI 使用，默认运行路径不提供桥接；目标中的内置助手、对外MCP及选择性tools桥接见 [Agent与MCP](AGENT-MCP.md)，尚未实现。
 
 下表是当前本地状态操作，不是外部 MCP 执行回执；`taskDone` / `read` 的本地更新不证明外部任务或邮件状态已经改变。目标意图协议尚未实现，见 [Agent 与 MCP](AGENT-MCP.md)。
 
@@ -21,7 +21,7 @@
 
 HTTP 同源入口：`GET /api/local/state`、`GET /api/local/capabilities`、`GET /api/local/open?id=...`、`POST /api/local/operations`。写入格式：`{operations:[...],expectedRevision?:number}`。CLI 默认使用 4318；隔离测试可用 `QG_LOCAL_PORT` 指定本机端口。
 
-同批操作先校验全部内容，成功后原子写入文件。提供 `expectedRevision` 或受支持字段的 `before` 才有相应冲突保护，冲突返回409。页面整卡保存和删除现在携带原卡片 `before`，新建携带 `before:null`；服务端比较当前卡片，不匹配则拒绝整批操作。行内编辑期间不吸收轮询的新卡片作为编辑基准；其他卡片的阅读状态可以独立合并。CLI 旧调用保持兼容，未提供条件的调用仍没有并发保护。失败的页面修改会提示，并把草稿留在浏览器 `quiet-glass-unsynced` 中；重新读取最新版本后由 AI 协助合并。
+同批操作先校验全部内容，成功后原子写入文件。提供 `expectedRevision` 或受支持字段的 `before` 才有相应冲突保护，冲突返回409。页面整卡保存和删除现在携带原卡片 `before`，新建携带 `before:null`；服务端比较当前卡片，不匹配则拒绝整批操作。行内编辑期间不吸收轮询的新卡片作为编辑基准；其他卡片的阅读状态可以独立合并。CLI 旧调用保持兼容，未提供条件的调用仍没有并发保护。失败的页面修改会提示，并把草稿留在浏览器 `sill-unsynced` 中；重新读取最新版本后由 AI 协助合并。
 
 来源页面的系统授权入口只记录“尚未连接”，不会伪造同步时间。RSS URL 订阅尚未实现，提交时明确告知地址未保存，不创建成功记录；文件导入仍可使用。
 

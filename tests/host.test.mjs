@@ -23,7 +23,7 @@ const originalTools=[
   'qg_list_requests','qg_answer_request','qg_audit','qg_create_conversation','qg_list_conversations','qg_read_conversation','qg_create_request','qg_get_request','qg_ai_status','qg_start_ai','qg_get_ai','qg_cancel_ai',
 ];
 const token='host-test-never-return-this-credential';
-const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Host fixture</title></head><body>Quiet Glass</body></html>';
+const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Host fixture</title></head><body>Sill</body></html>';
 const defaultSettings={values:{sort:'priority',reduceTransparency:false},revision:0};
 const expectedPolicy={ui:{csp:{connectDomains:[],resourceDomains:[],frameDomains:[],baseUriDomains:[]},permissions:{},prefersBorder:false}};
 
@@ -37,7 +37,7 @@ async function fixture(t,{bundle='fixture'}={}) {
   else if(bundle==='invalid')await writeFile(hostAppPath,'not an HTML bundle');
   const options=bundle==='default'?{}:{hostAppPath:bundle==='directory'?directory:hostAppPath};
   const server=createMcpServer(service,options);
-  const client=new Client({name:'quiet-glass-host-protocol-test',version:'1'});
+  const client=new Client({name:'sill-host-protocol-test',version:'1'});
   const [clientTransport,serverTransport]=InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);await client.connect(clientTransport);
   t.after(async()=>{await client.close();await server.close();await service.close();await rm(directory,{recursive:true,force:true});});
@@ -50,7 +50,7 @@ test('SDK discovery keeps all business tools and adds strict read-only global/th
   const listed=await client.listTools();
   assert.deepEqual(listed.tools.map(tool=>tool.name).sort(),[...originalTools,'qg_open_workspace'].sort());
   const tool=listed.tools.find(tool=>tool.name==='qg_open_workspace');
-  assert.equal(tool.title,'Quiet Glass');
+  assert.equal(tool.title,'Sill');
   assert.equal(tool.inputSchema.type,'object');
   assert.deepEqual(tool.inputSchema.properties,{});
   assert.equal(tool.inputSchema.additionalProperties,false);
@@ -130,7 +130,7 @@ test('SDK resource discovery and reads return only bundled HTML with the strict 
   const {service,client}=await fixture(t,{bundle:'default'});
   service.createNote({title:'PRIVATE_NEVER_IN_HTML',content:'PRIVATE_BODY_NEVER_IN_HTML',idempotencyKey:'html-is-static'});
   const listing=await client.listResources();
-  assert.ok(listing.resources.some(resource=>resource.uri==='quiet-glass://feed'),'preserve existing JSON feed resource');
+  assert.ok(listing.resources.some(resource=>resource.uri==='sill://feed'),'preserve existing JSON feed resource');
   const resource=listing.resources.find(resource=>resource.uri===WORKSPACE_URI);
   assert.ok(resource);assert.equal(resource.mimeType,WORKSPACE_MIME_TYPE);assert.deepEqual(resource._meta,expectedPolicy);
   const read=await client.readResource({uri:WORKSPACE_URI});
@@ -147,7 +147,7 @@ test('authenticated HTTP MCP carries workspace metadata and HTML without exposin
   const {service}=await fixture(t);
   const bearer='http-host-secret-012345678901234567890';
   const http=await startHttp(service,{port:0,token:bearer}),origin=`http://127.0.0.1:${http.address().port}`;
-  const client=new Client({name:'quiet-glass-host-http-test',version:'1'});
+  const client=new Client({name:'sill-host-http-test',version:'1'});
   t.after(async()=>{await client.close();http.closeAllConnections();await new Promise(resolve=>http.close(resolve));});
   assert.equal((await fetch(origin+'/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,401);
   await client.connect(new StreamableHTTPClientTransport(new URL(origin+'/mcp'),{requestInit:{headers:{Authorization:`Bearer ${bearer}`}}}));

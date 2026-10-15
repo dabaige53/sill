@@ -3,9 +3,11 @@
   "redirect_uri": "https://chatgpt.com/connector/oauth/ufi0fWkbCET5",
   "token_endpoint_auth_method": "none",
   "scopes": [
-    "openid"
+    "openid",
+    "email",
+    "offline_access"
   ],
-  "connection_status": "connected_verified",
+  "connection_status": "client_exists_app_deleted_new_callback_pending",
   "app_id": "asdk_app_6ad03f09b6048191a8826a236ac9097d",
   "plugin_id": "plugin_asdk_app_6ad03f09b6048191a8826a236ac9097d",
   "plugin_version": "1.0.1"

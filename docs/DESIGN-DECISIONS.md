@@ -1,6 +1,6 @@
 # 设计决策记录（ADR）
 
-ADR-01 至 ADR-08 是 Quiet Glass 阶段的决策，保留原文；已被后续决策取代的会注明。ADR-09 起是 Sill 阶段的决策。
+ADR-01 至 ADR-08 是 Sill 阶段的决策，保留原文；已被后续决策取代的会注明。ADR-09 起是 Sill 阶段的决策。
 
 ## ADR-01：取消侧栏与顶部信息区
 
@@ -40,7 +40,7 @@ ADR-01 至 ADR-08 是 Quiet Glass 阶段的决策，保留原文；已被后续�
 
 ## ADR-09：改名 Sill，以设计画布为准
 
-原因：Quiet Glass 的玻璃感压过了内容，用户要的是安静、可读的窗台，而不是一块玻璃。结果：品牌、颜色、卡片积木和全部页面重新定稿在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，本地副本在 `design-system/boards/`。代码、命令和数据路径暂沿用 `quiet-glass`。
+原因：Sill 的玻璃感压过了内容，用户要的是安静、可读的窗台，而不是一块玻璃。结果：品牌、颜色、卡片积木和全部页面重新定稿在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，本地副本在 `design-system/boards/`。代码、命令和数据路径暂沿用 `sill`。
 
 ## ADR-10：点卡片直接看全文
 

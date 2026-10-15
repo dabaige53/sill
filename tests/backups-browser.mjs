@@ -16,7 +16,7 @@ const directory=await mkdtemp(join(tmpdir(),'qg-backups-browser-')),artifacts=jo
 await mkdir(artifacts,{recursive:true});
 const token='backups-browser-synthetic-only-012345678901234567890';
 const fixtures=[],checks=[],errors=[],mutations=[],routeErrors=[],gates=new Set();
-const storageKey='quiet-glass-backup-draft-v1:web';
+const storageKey='sill-backup-draft-v1:web';
 let browser,page,closing=false;
 async function fixture(name,{source=false}={}){
   const access={principals:[{id:'backup-reader',enabled:true,tokenEnv:'QG_BACKUP_FIXTURE_UNUSED',tools:['qg_search','qg_get_card','qg_read_annotation'],resources:{sourceIds:['backup-source','local-notes']}}]};
@@ -55,9 +55,9 @@ try{
   assert.match(await page.locator('#qg-backups-settings').innerText(),/未加密|用户正文可能包含/);
   assert.match(await page.locator('#qg-backup-undo-caveat').innerText(),/新增卡片仍会保留/);
   await action(page,'export').click();await notice('导出已准备');const exported=JSON.parse(await page.locator('#qg-backup-export-text').inputValue());
-  assert.equal(exported.format,'quiet-glass-content-backup');assert.equal(JSON.stringify(exported).includes(token),false);
+  assert.equal(exported.format,'sill-content-backup');assert.equal(JSON.stringify(exported).includes(token),false);
   const downloadEvent=page.waitForEvent('download');await action(page,'download').click();const download=await downloadEvent;
-  assert.equal(download.suggestedFilename(),'quiet-glass-content-backup.json');assert.deepEqual(JSON.parse(await readFile(await download.path(),'utf8')),exported);
+  assert.equal(download.suggestedFilename(),'sill-content-backup.json');assert.deepEqual(JSON.parse(await readFile(await download.path(),'utf8')),exported);
   checks.push('explicit bounded export and actual Chromium JSON download; private plaintext scope/exclusions and manual host fallback explained');
 
   const beforeFile=mutations.length;
@@ -130,7 +130,7 @@ try{
 
   // Stale plan cannot silently refresh/reapply; preserve draft for a new decision.
   await preview();await acknowledge();await destination.call('qg_create_note',{title:'预览后的另一写入',content:'旧计划必须失效',idempotencyKey:'stale-plan-note'});
-  await action(page,'commit').click();await notice('恢复未提交');assert.equal(await action(page,'commit').isDisabled(),true);assert.ok((await page.locator('#qg-backup-json').inputValue()).includes('quiet-glass-content-backup'));
+  await action(page,'commit').click();await notice('恢复未提交');assert.equal(await action(page,'commit').isDisabled(),true);assert.ok((await page.locator('#qg-backup-json').inputValue()).includes('sill-content-backup'));
   await page.route('**/api/backups/preview',route=>route.abort('internetdisconnected'));await action(page,'preview').click();await notice('预览未完成');await page.unroute('**/api/backups/preview');
   const beforeReconnect=mutations.length;await page.reload();await page.locator('.feed-card').first().waitFor();await open();assert.equal(mutations.length,beforeReconnect);
   await preview();await acknowledge();gate=await hold('/api/backups/commit',{after:true});await action(page,'commit').click();await gate.started;
@@ -161,7 +161,7 @@ try{
   },await readFile(join(ROOT,'dist/host-app.html'),'utf8'));
   const frame=await (await hostPage.locator('#backup-host').elementHandle()).contentFrame();await frame.locator('.feed-card').first().waitFor();await open(frame);
   const callsBefore=hostCalls.filter(name=>name.includes('backup')||name.includes('restore')).length;await fill(backup,frame);assert.equal(hostCalls.filter(name=>name.includes('backup')||name.includes('restore')).length,callsBefore);
-  await action(frame,'export').click();await notice('导出已准备',frame);assert.equal(JSON.parse(await frame.locator('#qg-backup-export-text').inputValue()).format,'quiet-glass-content-backup');
+  await action(frame,'export').click();await notice('导出已准备',frame);assert.equal(JSON.parse(await frame.locator('#qg-backup-export-text').inputValue()).format,'sill-content-backup');
   assert.match(await frame.locator('#qg-backup-export').innerText(),/原生宿主文件能力尚未验证/);
   await frame.locator('#qg-backup-mode').selectOption('overwrite');await preview(frame);await acknowledge(frame);await action(frame,'commit').click();await notice('已确认恢复',frame);
   assert.equal(hostFixture.service.storedCard(hostFixture.cardId).title,'备份中的标题');await action(frame,'status').click();await notice('已查询确认恢复状态',frame);

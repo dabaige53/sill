@@ -38,7 +38,15 @@ try{
  await page.locator('[name=email]').fill('synthetic@example.com');await page.locator('#cloud-login button').click();
  await page.waitForFunction(()=>document.querySelector('#cloud-login-status').textContent.includes('发送到邮箱'));
  const callback=new URL(fixture.redirect);callback.searchParams.set('code','synthetic-code');await page.goto(callback.href);
- await waitCloud(page);await cloudTool(page,'capture');
+ await waitCloud(page);
+ const signedInCookies=await context.cookies();
+ assert.ok(signedInCookies.some(c=>c.name==='__Host-sill-refresh'&&c.httpOnly&&c.secure&&c.expires>Date.now()/1000),'login persists a protected refresh cookie');
+ await context.addCookies([{...signedInCookies.find(c=>c.name==='__Host-sill-access'),value:token({exp:Math.floor(Date.now()/1000)-60})}]);
+ await page.reload();await waitCloud(page);
+ assert.ok(fixture.sessionState.refreshCalls>0,'expired login refreshes without email or user action');
+ assert.ok((await context.cookies()).some(c=>c.name==='__Host-sill-refresh'&&c.value==='synthetic-rotated-refresh'));
+ assert.equal(await page.locator('#cloud-login').count(),0);
+ await cloudTool(page,'capture');
  assert.equal(await page.locator('#cloud-title').evaluate(e=>e===document.activeElement),true,'editor opens with title focus');
  await page.locator('#cloud-title').fill('Draft before closing');await page.locator('#cloud-body').fill('Keep this text');
  await page.keyboard.press('Escape');await cloudTool(page,'capture');

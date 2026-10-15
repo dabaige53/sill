@@ -1,28 +1,23 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "quiet-glass",
-  "version": "0.5.3",
-  "description": "连接 Sill 云端账号，在 Codex 侧边栏查看和管理卡片。",
+  "name": "dev-6ad03f09b6048191a8826a236ac9097d",
+  "version": "1.0.2",
+  "description": "连接 Sill 云端窗台，在 ChatGPT 中查看和管理卡片。",
+  "author": {
+    "name": "App developer"
+  },
   "extensions": {
     "com.openai": {
       "interface": {
+        "capabilities": [],
+        "category": "Other",
+        "defaultPrompt": null,
+        "developerName": "App developer",
         "displayName": "Sill · 窗台",
-        "shortDescription": "Sill 云端卡片与侧边栏",
-        "category": "Productivity",
-        "websiteURL": "https://sill-web-preview.scs1213-temp-email.workers.dev/",
-        "capabilities": [
-          "Read",
-          "Write",
-          "Interactive"
-        ],
-        "defaultPrompt": [
-          "打开 Sill 云端窗台",
-          "查看并整理我的 Sill 云端卡片",
-          "将结果保存到 Sill 云端并确认保存成功"
-        ],
-        "logo": "./assets/sill-icon.png",
-        "composerIcon": "./assets/sill-icon.png"
-      }
+        "longDescription": "连接 Sill 云端窗台，在 ChatGPT 中查看和管理卡片。",
+        "shortDescription": "连接 Sill 云端窗台，在 ChatGPT 中查看和管理卡片。"
+      },
+      "apps": "./.app.json"
     }
   }
 }

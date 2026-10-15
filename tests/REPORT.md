@@ -1,4 +1,4 @@
-# Quiet Glass · 验证记录
+# Sill · 验证记录
 
 ## V0.4 Storybook 组件工作台
 
@@ -9,7 +9,7 @@
 - 实际操作 manager Controls 改变图标尺寸及卡片标题/状态，检查参数重新渲染与侧栏切换后单例、状态及弹层清理。
 - 验证键盘打开/关闭预览、焦点恢复、任务勾选、提醒完成、组件勾选和 AI 草稿带入不自动发送。
 - 产品 localStorage 预置数据保持不变。最初的窄屏断言虽通过，截图复核发现卡片 Story 横向撑开，见下方修正记录。
-- `browser-verification` artifact 保存逐项 JSON 结果和工作台截图；`quiet-glass-storybook` artifact 保存可通过 HTTP 服务共享的完整静态目录。
+- `browser-verification` artifact 保存逐项 JSON 结果和工作台截图；`sill-storybook` artifact 保存可通过 HTTP 服务共享的完整静态目录。
 
 提交 `6e39ef6` 的 [第 11 次工作流](https://github.com/dabaige53/quiet-glass/actions/runs/38107378508) 另行验证 `npm run storybook -- --ci --smoke-test` 开发服务启动成功，其他构建和浏览器检查也全部通过。当前受限执行环境不支持读取网卡信息，启动结果来自 CI 的标准 Ubuntu / Node.js 环境。
 

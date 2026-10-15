@@ -1,6 +1,6 @@
 # Sill · 窗台 — 产品需求文档
 
-状态：V1 产品目标，2026-10-13 更新 agent 驱动原则；不是全部已实现的功能清单。页面以 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) 为准（本地副本 `design-system/boards/`），交互细节见 [交互规范](INTERACTION-SPEC.md)，取舍原因见 [设计决策](DESIGN-DECISIONS.md)。前一版 Quiet Glass 的需求已被本文取代。
+状态：V1 产品目标，2026-10-13 更新 agent 驱动原则；不是全部已实现的功能清单。页面以 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) 为准（本地副本 `design-system/boards/`），交互细节见 [交互规范](INTERACTION-SPEC.md)，取舍原因见 [设计决策](DESIGN-DECISIONS.md)。前一版 Sill 的需求已被本文取代。
 
 ## 1. 产品是什么
 

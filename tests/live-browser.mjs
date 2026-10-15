@@ -45,8 +45,8 @@ try {
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(({id})=>{
     if(!localStorage.getItem('qg-test-seeded')) {
-      localStorage.setItem('quiet-glass-v1',JSON.stringify({version:2,items:{'note-01':{note:'离线演示保持独立'}}}));
-      localStorage.setItem('quiet-glass-live-v1',JSON.stringify({version:2,items:{[id]:{note:'连接前保存的本地备注',tags:['保留标签'],tagsEdited:true,progress:.3}}}));
+      localStorage.setItem('sill-v1',JSON.stringify({version:2,items:{'note-01':{note:'离线演示保持独立'}}}));
+      localStorage.setItem('sill-live-v1',JSON.stringify({version:2,items:{[id]:{note:'连接前保存的本地备注',tags:['保留标签'],tagsEdited:true,progress:.3}}}));
       localStorage.setItem('qg-test-seeded','1');
     }
   },{id});
@@ -58,11 +58,11 @@ try {
   await page.locator(`[data-card="${id}"]`).waitFor();
   assert.equal(await page.locator('.feed-card').count(),2);
   assert.equal(await page.locator(`[data-card="${suggestion.cardIds[0]}"] .linked-card`).count(),1,'evidence links use shared V0.5 cards');
-  assert.equal(await page.evaluate(id=>window.__quietGlass.store.item(id).note,id),'','legacy notes are not silently uploaded');
+  assert.equal(await page.evaluate(id=>window.__sill.store.item(id).note,id),'','legacy notes are not silently uploaded');
   await page.evaluate(id=>window.__app.openPanel('editor',id),id);
   await page.locator('[data-action="annotation-import"]').click();
   await page.locator('[data-action="save-note"]').click();
-  await page.waitForFunction(id=>window.__quietGlass.store.item(id).note==='连接前保存的本地备注',id);
+  await page.waitForFunction(id=>window.__sill.store.item(id).note==='连接前保存的本地备注',id);
   await page.evaluate(id=>window.__app.attach([id]),id);
   assert.equal((await call(app.client,'qg_list_requests')).requests.length,0,'attach is never send');
   await page.locator('#ai-input').fill('请结合这张卡片说明');
@@ -74,7 +74,7 @@ try {
   await page.getByText('MCP 返回的证据回答',{exact:true}).waitFor({timeout:10000});
   await page.evaluate(()=>window.__app.closeAI());
   await page.evaluate(id=>window.__app.action('bookmark',id),id);
-  await page.waitForFunction(id=>window.__quietGlass.store.item(id).bookmarked,id);
+  await page.waitForFunction(id=>window.__sill.store.item(id).bookmarked,id);
   await assertEventually(async()=>assert.equal((await call(app.client,'qg_get_card',{cardId:id})).state.bookmarked,true));
   // A slow preview must never replace a newer settings panel.
   let releasePreview,previewStarted;
@@ -105,7 +105,7 @@ try {
   await page.waitForFunction(()=>document.querySelectorAll('.feed-card').length===3);
   await page.reload();
   await page.locator(`[data-card="${id}"]`).waitFor();
-  const state=await page.evaluate(id=>({live:window.__quietGlass.store.item(id),demo:JSON.parse(localStorage.getItem('quiet-glass-v1')),token:localStorage.getItem('QG_AUTH_TOKEN')}),id);
+  const state=await page.evaluate(id=>({live:window.__sill.store.item(id),demo:JSON.parse(localStorage.getItem('sill-v1')),token:localStorage.getItem('QG_AUTH_TOKEN')}),id);
   assert.equal(state.live.note,'连接前保存的本地备注');
   assert.equal(state.live.bookmarked,true);
   assert.deepEqual(state.live.tags,['保留标签']);

@@ -66,7 +66,7 @@ export async function startHttp(service,{host='127.0.0.1',port=4317,token=proces
           const bearer=typeof req.headers.authorization==='string'?/^Bearer (.+)$/.exec(req.headers.authorization)?.[1]:undefined;
           actor=service.access.authenticate(bearer,{ownerToken:token,transport:transportName});
         }else if(url.pathname!=='/mcp'&&cookie&&sessions.get(cookie)>Date.now())actor=service.access.owner({transport:transportName});
-        else throw new QGError('AUTH_REQUIRED','请先连接 Quiet Glass');
+        else throw new QGError('AUTH_REQUIRED','请先连接 Sill');
         return await service.access.run(actor,async()=>{
         const scoped=service.access.facade(actor);
         if(actor.kind==='principal'&&url.pathname!=='/mcp'){

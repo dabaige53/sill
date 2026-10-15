@@ -5,10 +5,10 @@ import {JSDOM} from 'jsdom';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 const source=await readFile(new URL('../web/backups.js',import.meta.url),'utf8');
-const key='quiet-glass-backup-draft-v1:web';
+const key='sill-backup-draft-v1:web';
 const plan={planId:'plan_test',planDigest:'a'.repeat(64),approvalToken:'b'.repeat(64),restoreId:'restore_test',mode:'additive',expiresAt:'2030-01-01T00:00:00.000Z',counts:{cardsAdded:1},conflicts:[],visibility:{requiresAcknowledgement:false,principals:[]}};
 const receipt={restoreId:plan.restoreId,planId:plan.planId,status:'committed',counts:plan.counts,undo:{available:true,expectedEpoch:10}};
-const bundle={format:'quiet-glass-content-backup',version:1,payload:{cards:[],annotations:[],settings:null}};
+const bundle={format:'sill-content-backup',version:1,payload:{cards:[],annotations:[],settings:null}};
 const wait=()=>new Promise(resolve=>setImmediate(resolve));
 function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
 function harness(t,{saved,post=async()=>structuredClone(plan),api=async()=>structuredClone(receipt),storageFailure=false}={}){
@@ -19,7 +19,7 @@ function harness(t,{saved,post=async()=>structuredClone(plan),api=async()=>struc
   const app={dialog:{open:false},modalKind:null,modalToken:0,toast(){},action(){},openPanel(kind){this.modalKind=kind;this.modalToken++;this.dialog.open=true;w.document.getElementById('modal').innerHTML=kind==='settings'?panels.settings():'filter';}};
   const calls=[];if(saved)w.localStorage.setItem(key,saved);
   if(storageFailure)w.Storage.prototype.setItem=()=>{throw new Error('quota');};
-  w.eval(source);w.initQuietGlassBackups({app,panels,esc,isConnected:()=>true,post:async(path,body)=>{calls.push({path,body:structuredClone(body),saved:w.localStorage.getItem(key)});return post(path,body);},api:async path=>{calls.push({path});return api(path);}});
+  w.eval(source);w.initSillBackups({app,panels,esc,isConnected:()=>true,post:async(path,body)=>{calls.push({path,body:structuredClone(body),saved:w.localStorage.getItem(key)});return post(path,body);},api:async path=>{calls.push({path});return api(path);}});
   const open=()=>{app.openPanel('settings');w.document.querySelector('#qg-backups-settings').open=true;};open();
   const node=id=>w.document.getElementById(id),action=name=>app.action('backups-'+name);
   const fill=(value,id='qg-backup-json')=>{node(id).value=typeof value==='string'?value:JSON.stringify(value);node(id).dispatchEvent(new w.Event(id==='qg-backup-mode'?'change':'input',{bubbles:true}));};

@@ -87,7 +87,7 @@ async function invoke(operation, payload, options = {}) {
   if (process.platform !== 'linux' || process.arch !== 'x64') fail('RUNTIME_UNAVAILABLE', 'Wasm runtime requires Linux x86_64 hard resource limits');
   const python = options.pythonPath ?? join(ROOT, '.sandbox-venv', 'bin', 'python');
   if (typeof python !== 'string' || !isAbsolute(python)) fail('RUNTIME_UNAVAILABLE', 'A trusted absolute Python interpreter path is required');
-  const cwd = await mkdtemp(join(tmpdir(), 'quiet-glass-wasm-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'sill-wasm-'));
   try {
     return await new Promise((resolve, reject) => {
       let child, timer, terminalError, outputSize = 0;

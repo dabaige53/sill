@@ -15,7 +15,7 @@ try{
   const page=await browser.newPage({viewport:{width:1440,height:1000}});page.setDefaultTimeout(8000);
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
-    if(!localStorage.getItem('quiet-glass-v1'))localStorage.setItem('quiet-glass-v1',JSON.stringify({version:2,items:{'note-01':{note:'旧备注',bookmarked:true},'task-01':{taskDone:['t1','t2']}},seconds:37,sort:'time'}));
+    if(!localStorage.getItem('sill-v1'))localStorage.setItem('sill-v1',JSON.stringify({version:2,items:{'note-01':{note:'旧备注',bookmarked:true},'task-01':{taskDone:['t1','t2']}},seconds:37,sort:'time'}));
   });
   await page.goto(origin);await page.waitForFunction(()=>document.querySelector('#feed-grid')?.dataset.sync==='saved');
   let value=await fetch(origin+'/api/local/state').then(r=>r.json());

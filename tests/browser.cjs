@@ -49,7 +49,7 @@ async function recordLayout(page,width){
    finally{await context.close();}
   }
   const action=(page,name,id='',extra='')=>page.evaluate(([name,id,extra])=>window.__app.action(name,id,extra),[name,id,extra]);
-  const state=(page,id)=>page.evaluate(id=>JSON.parse(localStorage.getItem('quiet-glass-v1')).items[id],id);
+  const state=(page,id)=>page.evaluate(id=>JSON.parse(localStorage.getItem('sill-v1')).items[id],id);
   const card=(page,id)=>page.locator(`[data-card="${id}"]`);
   const openCard=(page,id)=>card(page,id).locator('.card-title-button').click();
   const feedUnopened=async(page,id)=>{

@@ -28,7 +28,8 @@ test('SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
   assert.equal(recovery.headers.get('set-cookie'),null,'failed callback preserves existing cookies');
   const callback=await call(url.pathname+url.search);assert.equal(callback.status,303);assert.equal(callback.headers.get('location'),origin+'/');
   const access=callback.headers.getSetCookie().find(c=>c.startsWith('__Host-sill-access='));assert.ok(access.includes('HttpOnly'));assert.ok(!access.includes('synthetic-unused-refresh'));
-  cookies=access.split(';')[0];
+  assert.ok(callback.headers.getSetCookie().some(c=>c.startsWith('__Host-sill-refresh=synthetic-unused-refresh;')&&c.includes('Max-Age=2592000')));
+  cookies=callback.headers.getSetCookie().filter(c=>!c.includes('Max-Age=0')).map(c=>c.split(';')[0]).join('; ');
   const session=await call('/auth/session');assert.equal(session.status,200);assert.deepEqual(await session.json(),{userId:A});
   await f.db.exec('reset role');assert.equal((await f.db.query('select count(*)::int n from sill_private.sync_snapshots')).rows[0].n,0,'login and session do not materialize a list');
   const created=await call('/api/v1/contents','POST',{type:'note',title:'Saved',body:['Cloud content']},{'Idempotency-Key':'create_001'});assert.equal(created.status,201);const one=await created.json();

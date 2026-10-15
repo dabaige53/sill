@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Item, HostItem, HostProvenance, NoteValues, AnnotationValues, SettingsValues,
   hostIdentity, hostSourceId, LOCAL_NOTE_SOURCE, QGError, iso } from './schemas.mjs';
 
-export const BACKUP_FORMAT = 'quiet-glass-content-backup';
+export const BACKUP_FORMAT = 'sill-content-backup';
 export const BACKUP_VERSION = 1;
 export const BACKUP_SCOPE = 'cards-annotations-settings';
 export const BACKUP_LIMITS = Object.freeze({bytes:256 * 1024,cards:100,annotations:100,elements:8000,depth:32});
@@ -118,7 +118,7 @@ const HostCard=z.object({...itemFields,...storedFields,revision:positiveRevision
 const Annotation=z.object({cardId,values:AnnotationValues,revision}).strict();
 const Settings=z.object({values:SettingsValues,revision}).strict().nullable();
 const Payload=z.object({cards:z.array(z.unknown()).max(BACKUP_LIMITS.cards),annotations:z.array(z.unknown()).max(BACKUP_LIMITS.annotations),settings:z.unknown()}).strict();
-const Envelope=z.object({format:z.literal(BACKUP_FORMAT),version:z.literal(BACKUP_VERSION),scope:z.literal(BACKUP_SCOPE),
+const Envelope=z.object({format:z.enum([BACKUP_FORMAT,'quiet-glass-content-backup']),version:z.literal(BACKUP_VERSION),scope:z.literal(BACKUP_SCOPE),
   exportedAt:timestamp,payload:Payload,checksum:z.object({algorithm:z.literal('sha256'),value:contentHash}).strict(),
 }).strict();
 const parseExact=(schema,value)=>{

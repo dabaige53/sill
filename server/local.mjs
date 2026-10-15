@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { LocalRepository, capabilities } from './local-state.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-export async function startLocal({port=4318,file=resolve(root,'.quiet-glass/local/cards.json')}={}){
+export async function startLocal({port=4318,file=resolve(root,'.sill/local/cards.json')}={}){
   const repository=new LocalRepository(file);
   let actualPort=port;
   const server=createServer(async(req,res)=>{
@@ -45,5 +45,5 @@ export async function startLocal({port=4318,file=resolve(root,'.quiet-glass/loca
   return server;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  const server=await startLocal();console.log('Quiet Glass 本地卡片：http://127.0.0.1:'+server.address().port+'/#feed');
+  const server=await startLocal();console.log('Sill 本地卡片：http://127.0.0.1:'+server.address().port+'/#feed');
 }

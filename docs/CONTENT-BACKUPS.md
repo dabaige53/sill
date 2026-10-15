@@ -1,6 +1,6 @@
 # Content and settings backups v1
 
-This feature exports and restores a finite **content/settings subset**, not a whole workspace or disaster-recovery image. A backup contains cards (including source content, attribution, reading state and source tags), their personal annotations, and an optional ordinary-settings snapshot. It does not contain Quiet Glass conversations, queued questions, AI attempts/budgets, audit history, external-action approvals, workflows, job/script runs, operation replay receipts, browser drafts, configuration, connector credentials, tokens, grants, executable modules or schedules.
+This feature exports and restores a finite **content/settings subset**, not a whole workspace or disaster-recovery image. A backup contains cards (including source content, attribution, reading state and source tags), their personal annotations, and an optional ordinary-settings snapshot. It does not contain Sill conversations, queued questions, AI attempts/budgets, audit history, external-action approvals, workflows, job/script runs, operation replay receipts, browser drafts, configuration, connector credentials, tokens, grants, executable modules or schedules.
 
 ## Privacy and integrity
 
@@ -10,7 +10,7 @@ Only the existing owner can export, preview, commit, inspect or undo a restore. 
 
 ## Finite portable format
 
-The envelope has `format: "quiet-glass-content-backup"`, `version: 1`, `scope: "cards-annotations-settings"`, `exportedAt`, `payload: {cards, annotations, settings}`, and `checksum: {algorithm: "sha256", value}`. A null settings snapshot means no stored settings row; restoring null does not erase target preferences.
+The envelope has `format: "sill-content-backup"`, `version: 1`, `scope: "cards-annotations-settings"`, `exportedAt`, `payload: {cards, annotations, settings}`, and `checksum: {algorithm: "sha256", value}`. A null settings snapshot means no stored settings row; restoring null does not erase target preferences.
 
 Limits are 100 cards, 100 annotations, 256 KiB canonical envelope, 8,000 recursive JSON elements and depth 32. Export fails explicitly when the complete stored content subset exceeds these limits or has broken references; it does not silently truncate. The envelope is passed as a JSON object, leaving room inside the existing 512 KiB HTTP/MCP request ceiling. Arbitrary paths, compressed archives, binary files, SQL, source code and arbitrary record kinds are not accepted.
 

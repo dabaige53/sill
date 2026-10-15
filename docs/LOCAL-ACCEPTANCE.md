@@ -1,10 +1,10 @@
-# Quiet Glass 本地版本
+# Sill 本地版本
 
 2026-10-12，版本 0.4.1。当前范围为本地卡片展示、核心操作和 AI 操作同步。云端未发布。
 
-本地插件身份仍为 `quiet-glass@quiet-glass-local`，已重新安装 0.4.1。安装包包含本地技能，没有应用依赖和 MCP 注册。旧应用声明、应用技能和模拟 AI 对话代码已删除。
+本地插件身份仍为 `sill@sill-local`，已重新安装 0.4.1。安装包包含本地技能，没有应用依赖和 MCP 注册。旧应用声明、应用技能和模拟 AI 对话代码已删除。
 
-默认启动命令为 `npm start`，页面为 `http://127.0.0.1:4318/#feed`。卡片保存在 `.quiet-glass/local/cards.json`；浏览器旧记录已迁移，旧数据库、配置和云端数据保持原样。
+默认启动命令为 `npm start`，页面为 `http://127.0.0.1:4318/#feed`。卡片保存在 `.sill/local/cards.json`；浏览器旧记录已迁移，旧数据库、配置和云端数据保持原样。
 
 AI 通过 `scripts/qg.mjs` 读取、创建、更新和删除卡片，管理阅读、收藏、任务、提醒、备注、标签和普通设置。页面每秒同步本地数据。操作说明见 [LOCAL-OPERATIONS.md](LOCAL-OPERATIONS.md)。
 

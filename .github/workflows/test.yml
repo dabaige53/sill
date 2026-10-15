@@ -1,4 +1,4 @@
-name: Quiet Glass integration
+name: Sill integration
 on: [push, pull_request]
 permissions:
   contents: read

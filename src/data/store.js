@@ -11,7 +11,7 @@ const DemoSources = [
  {id:'src-linear',kind:'linear',name:'Linear',detail:'指派给我',enabled:false,status:'paused',count:0,stack:true,open:'web',range:'30d'}
 ];
 const Store = {
- key:'quiet-glass-v1', // Keep the original key so existing users migrate in place.
+ key:'sill-v1',
  state:{},
  fresh(){return {cards:[],items:{},seconds:0,demoStartedAt:demoBase,freshIds:[],preferences:{...DefaultPreferences},sources:[],storageAvailable:true};},
  sanitizeItem(x){
@@ -30,8 +30,20 @@ const Store = {
  load(){
    this.state=this.fresh();
    let raw=null;
-   try{raw=JSON.parse(localStorage.getItem(this.key)||'null');}
-   catch{this.state.storageAvailable=false;}
+   try{
+     // Copy once; preserve old backups and never replace newer Sill data.
+     if(!localStorage.getItem('sill-storage-migrated')){
+       for(const suffix of ['v1','live-v1','unsynced','sync-revision']){
+         const value=localStorage.getItem('quiet-glass-'+suffix);
+         if(value!==null&&localStorage.getItem('sill-'+suffix)===null)localStorage.setItem('sill-'+suffix,value);
+       }
+       localStorage.setItem('sill-storage-migrated','1');
+     }
+     raw=JSON.parse(localStorage.getItem(this.key)||'null');
+   }catch{
+     this.state.storageAvailable=false;
+     try{raw=JSON.parse(localStorage.getItem(this.key)||localStorage.getItem(this.key.replace(/^sill-/,'quiet-glass-'))||'null');}catch{}
+   }
    const valid=raw&&[1,2,3,4].includes(raw.version)&&raw.items&&typeof raw.items==='object'&&!Array.isArray(raw.items);
    if(valid){
      if(Number.isFinite(raw.demoStartedAt)&&raw.demoStartedAt>0)this.state.demoStartedAt=raw.demoStartedAt;

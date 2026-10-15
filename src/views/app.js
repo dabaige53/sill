@@ -11,7 +11,7 @@ class AppController{
    this.settingsGroup='desk';this.editingId='';this.loadedImages=new Set();
  }
  init(){
-   if(window.__QG_RUNTIME__)Store.key='quiet-glass-live-v1';
+   if(window.__QG_RUNTIME__)Store.key='sill-live-v1';
    Store.load();
    if(window.__QG_RUNTIME__)Store.state.cards=[];
    this.sort=Store.pref('sort');

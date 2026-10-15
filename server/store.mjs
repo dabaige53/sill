@@ -21,8 +21,8 @@ const sourceEnrichment = (previous,item) => item.provenance.contentOrigin==='ups
 export class Store {
   constructor(directory) {
     mkdirSync(directory, { recursive: true, mode: 0o700 });
-    this.db = new DatabaseSync(join(directory, 'quiet-glass.sqlite'));
-    chmodSync(join(directory, 'quiet-glass.sqlite'), 0o600);
+    this.db = new DatabaseSync(join(directory, 'sill.sqlite'));
+    chmodSync(join(directory, 'sill.sqlite'), 0o600);
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;
       CREATE TABLE IF NOT EXISTS records (kind TEXT NOT NULL, id TEXT NOT NULL, value TEXT NOT NULL, PRIMARY KEY(kind,id));
       CREATE TABLE IF NOT EXISTS audit (seq INTEGER PRIMARY KEY, time TEXT NOT NULL, event TEXT NOT NULL, detail TEXT NOT NULL);`);

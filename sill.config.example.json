@@ -1,5 +1,5 @@
 {
-  "dataDir": ".quiet-glass",
+  "dataDir": ".sill",
   "connectors": [
     {
       "id": "calendar",

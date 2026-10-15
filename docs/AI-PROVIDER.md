@@ -4,7 +4,7 @@
 
 ## 配置与数据
 
-`quiet-glass.config.json` 的 `ai` 严格字段如下；普通设置接口不能修改这些配置。
+`sill.config.json` 的 `ai` 严格字段如下；普通设置接口不能修改这些配置。
 
 ```json
 {"enabled":false,"model":"","apiKeyEnv":"OPENAI_API_KEY","maxOutputTokens":1024,"timeoutMs":60000,"maxConcurrency":1,"maxContextChars":16000,"maxRequestsPerDay":20}

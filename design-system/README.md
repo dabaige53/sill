@@ -2,7 +2,7 @@
 
 Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔记、媒体、待办、日程、工单、项目、指标和 AI 整理，都以卡片的形式放在同一张桌面上。内容在不透明的白色表面上，半透明玻璃只属于按需出现的工具。中性白灰、石墨文字，只有一种蓝色动作色。
 
-原名 Quiet Glass。组件脚本的全局名仍是 `QuietGlass`，为了兼容暂不改。
+原名 Sill。组件脚本的全局名仍是 `Sill`，为了兼容暂不改。
 
 ## 产品立场
 
@@ -120,7 +120,7 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 
 ## 使用组件
 
-- 组件是原生 HTML 字符串函数（`window.QuietGlass`）。先加载 tokens.css，再加载 `components/bundle.css`。
+- 组件是原生 HTML 字符串函数（`window.Sill`）。先加载 tokens.css，再加载 `components/bundle.css`。
 - 新增的 CardBlocks、StackCard、KeyPoints、ReadEndRing、SourceRow 目前是静态示例，直接用令牌变量写成，还没有进 bundle。
 
 ---

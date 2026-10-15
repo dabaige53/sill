@@ -2,7 +2,7 @@
 
 Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`。线上版本是 [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)，全部定稿画板在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，本地副本见下文「画板」。
 
-原名 Quiet Glass。组件脚本的全局名仍是 `QuietGlass`，为了兼容暂不改。
+原名 Sill。组件脚本的全局名仍是 `Sill`，为了兼容暂不改。
 
 ## 目录
 

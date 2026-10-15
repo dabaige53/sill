@@ -52,7 +52,7 @@ test('round trips actual legacy and all provider records, local notes, annotatio
   store.put('card',local().id,local());
   const original=payload(store.list('card'),[annotation(first.id)],settings()),saved=backup(original),restored=parseBackup(saved);
   assert.deepEqual(restored.payload,validateBackupPayload(original));
-  assert.equal(saved.format,'quiet-glass-content-backup');assert.equal(saved.scope,'cards-annotations-settings');assert.equal(saved.version,1);
+  assert.equal(saved.format,'sill-content-backup');assert.equal(saved.scope,'cards-annotations-settings');assert.equal(saved.version,1);
   assert.equal(saved.checksum.algorithm,'sha256');assert.match(saved.checksum.value,/^[a-f0-9]{64}$/);
   assert.equal(parseBackup(backup(payload())).payload.settings,null);assert.equal(saved.payload.cards.length,5);
   for(const card of saved.payload.cards)assert.equal(card.contentHash,original.cards.find(item=>item.id===card.id).contentHash);

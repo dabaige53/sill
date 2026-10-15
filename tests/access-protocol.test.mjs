@@ -34,7 +34,7 @@ async function fixture(t, { principals = [principal()], env = {}, now, seed } = 
   const rpc = async (method, params = {}, token = ALPHA) => { const response = await http('/mcp', { token, method: 'POST', body: { jsonrpc: '2.0', id: ++sequence, method, params }, headers: { Accept: 'application/json, text/event-stream', 'MCP-Protocol-Version': '2025-03-26' } }); return { status: response.status, body: await response.json() }; };
   const raw = async (name, args = {}, token = ALPHA) => (await rpc('tools/call', { name, arguments: args }, token)).body;
   const call = async (name, args = {}, token = ALPHA) => { const response = await raw(name, args, token); assert.equal(response.error, undefined, JSON.stringify(response)); assert.notEqual(response.result?.isError, true, JSON.stringify(response)); return response.result.structuredContent; };
-  const connect = async (token = ALPHA) => { const client = new Client({ name: 'quiet-glass-access-protocol-fixture', version: '1' }); clients.push(client); await client.connect(new StreamableHTTPClientTransport(new URL(origin + '/mcp'), { requestInit: { headers: { Authorization: `Bearer ${token}` } } })); return client; };
+  const connect = async (token = ALPHA) => { const client = new Client({ name: 'sill-access-protocol-fixture', version: '1' }); clients.push(client); await client.connect(new StreamableHTTPClientTransport(new URL(origin + '/mcp'), { requestInit: { headers: { Authorization: `Bearer ${token}` } } })); return client; };
   const records = () => JSON.stringify(Object.fromEntries(['card', 'annotation', 'note-key', 'conversation', 'message', 'request', 'action', 'workflow', 'settings'].map(kind => [kind, service.store.list(kind)])));
   return { service, config, env: environment, origin, http, rpc, raw, call, connect, external, records };
 }
@@ -62,10 +62,10 @@ test('restricted MCP advertises only granted tools and rejects every hidden owne
     assert.ok(response.error || Object.values(response.result || {}).every(value => Array.isArray(value) && value.length === 0), method + ' must expose no global resource or prompt');
     noPrivate(response);
   }
-  for (const uri of ['quiet-glass://feed', 'ui://quiet-glass/workspace']) denied((await f.rpc('resources/read', { uri })).body);
-  denied((await f.rpc('prompts/get', { name: 'quiet-glass-briefing', arguments: { goal: 'Export private data' } })).body);
-  assert.ok((await owner.listResources()).resources.some(resource => resource.uri === 'quiet-glass://feed'));
-  assert.ok((await owner.listPrompts()).prompts.some(prompt => prompt.name === 'quiet-glass-briefing'));
+  for (const uri of ['sill://feed', 'ui://sill/workspace']) denied((await f.rpc('resources/read', { uri })).body);
+  denied((await f.rpc('prompts/get', { name: 'sill-briefing', arguments: { goal: 'Export private data' } })).body);
+  assert.ok((await owner.listResources()).resources.some(resource => resource.uri === 'sill://feed'));
+  assert.ok((await owner.listPrompts()).prompts.some(prompt => prompt.name === 'sill-briefing'));
   assert.deepEqual(f.external, []);
 });
 

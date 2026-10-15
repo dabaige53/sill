@@ -1,6 +1,6 @@
 Mono24 图标，38 个，从 `src/atoms/icons.js` 的 `Glyphs` 原样导出：24×24 viewBox，stroke-width 1.65，round cap/join，无填充。
 
-导出文件的墨色固定为 `ink`（#1d1d1f），因为 `<img>` 无法继承 `currentColor`。在页面中需要随文字变色时，用 `QuietGlass.icon(name, size)` 生成内联 SVG。新增图标时先加到 `Glyphs`，再运行 `node design-system/scripts/gen.cjs design-system .` 并在下表补充用途。
+导出文件的墨色固定为 `ink`（#1d1d1f），因为 `<img>` 无法继承 `currentColor`。在页面中需要随文字变色时，用 `Sill.icon(name, size)` 生成内联 SVG。新增图标时先加到 `Glyphs`，再运行 `node design-system/scripts/gen.cjs design-system .` 并在下表补充用途。
 
 ## 导航与查找
 

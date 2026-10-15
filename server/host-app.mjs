@@ -5,9 +5,9 @@ import { z } from 'zod';
 import { ROOT } from './config.mjs';
 import { QGError, SettingsValues, publicError } from './schemas.mjs';
 
-export const WORKSPACE_URI = 'ui://quiet-glass/workspace';
+export const WORKSPACE_URI = 'ui://sill/workspace';
 export const WORKSPACE_MIME_TYPE = 'text/html;profile=mcp-app';
-export const WORKSPACE_META_KEY = 'quiet-glass/workspace';
+export const WORKSPACE_META_KEY = 'sill/workspace';
 export const INITIAL_CARD_LIMIT = 20;
 const DEFAULT_APP_PATH = resolve(ROOT, 'dist/host-app.html');
 const EMPTY_ARGUMENTS = z.object({}).strict();
@@ -29,7 +29,7 @@ async function readBundledApp(appPath) {
   } catch {
     // Do not reveal local paths, render private data into HTML, fetch a remote
     // replacement, or silently substitute the standalone authenticated web UI.
-    throw new QGError('HOST_APP_UNAVAILABLE','Quiet Glass host UI is unavailable. Build the local host-app bundle with npm run build:host, then retry.');
+    throw new QGError('HOST_APP_UNAVAILABLE','Sill host UI is unavailable. Build the local host-app bundle with npm run build:host, then retry.');
   }
 }
 
@@ -87,8 +87,8 @@ function initialWorkspace(service) {
 // target SDK v2; these metadata fields are the published wire contract instead.
 export function registerHostApp(server,service,{hostAppPath=DEFAULT_APP_PATH}={}) {
   server.registerTool('qg_open_workspace',{
-    title:'Quiet Glass',
-    description:'Open the Quiet Glass content workspace in the host. Reads ordinary settings and up to 20 recommended card excerpts. Does not collect sources, write content, change settings, or expose credentials. Hosts without MCP Apps can use the existing Quiet Glass tools.',
+    title:'Sill',
+    description:'Open the Sill content workspace in the host. Reads ordinary settings and up to 20 recommended card excerpts. Does not collect sources, write content, change settings, or expose credentials. Hosts without MCP Apps can use the existing Sill tools.',
     inputSchema:EMPTY_ARGUMENTS,
     annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false,idempotentHint:true},
     _meta:{ui:{resourceUri:WORKSPACE_URI,visibility:['model','app']},'openai/ui':{entrypoints:[{type:'global'},{type:'thread'}]}},
@@ -103,8 +103,8 @@ export function registerHostApp(server,service,{hostAppPath=DEFAULT_APP_PATH}={}
       return {...result(summary),_meta:{[WORKSPACE_META_KEY]:workspace}};
     } catch(error) {return {...result(publicError(error)),isError:true};}
   });
-  server.registerResource('quiet-glass-workspace',WORKSPACE_URI,{
-    title:'Quiet Glass workspace',description:'Bundled Quiet Glass MCP App; no external network access.',
+  server.registerResource('sill-workspace',WORKSPACE_URI,{
+    title:'Sill workspace',description:'Bundled Sill MCP App; no external network access.',
     mimeType:WORKSPACE_MIME_TYPE,_meta:resourceMetadata(),
   },async uri=>{
     try {

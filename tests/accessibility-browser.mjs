@@ -27,7 +27,7 @@ try{
   await page.route('**/api/local/operations',r=>r.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
   await page.keyboard.press('n');await page.locator('#capture-text').fill('恢复验收笔记');await page.locator('[data-action=capture-save]').click();
   await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='error');
-  await page.unroute('**/api/local/operations');await page.reload();await page.waitForFunction(()=>document.querySelector('#feed-grid')?.dataset.sync==='saved'&&!localStorage.getItem('quiet-glass-unsynced'));
+  await page.unroute('**/api/local/operations');await page.reload();await page.waitForFunction(()=>document.querySelector('#feed-grid')?.dataset.sync==='saved'&&!localStorage.getItem('sill-unsynced'));
   assert.ok(await page.getByRole('button',{name:'恢复验收笔记',exact:true}).count());
   await page.route('**/api/local/operations',r=>r.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
   await page.evaluate(()=>__store.patch('article-01',{note:'未同步的本机备注'}));await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='error');
@@ -42,9 +42,9 @@ try{
   const offline=r=>r.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture read outage"}'});
   await page.route('**/api/local/state',offline);await page.reload();await page.locator('[data-action=sync-retry]').waitFor();
   await page.keyboard.press('n');await page.locator('#capture-text').fill('读取离线期间的新草稿');await page.locator('[data-action=capture-save]').click();
-  await page.waitForFunction(()=>localStorage.getItem('quiet-glass-unsynced')?.includes('读取离线期间的新草稿'));
+  await page.waitForFunction(()=>localStorage.getItem('sill-unsynced')?.includes('读取离线期间的新草稿'));
   await page.unroute('**/api/local/state');await page.locator('[data-action=sync-retry]').click();
-  await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='saved'&&!localStorage.getItem('quiet-glass-unsynced'));
+  await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='saved'&&!localStorage.getItem('sill-unsynced'));
   await page.reload();await page.getByRole('button',{name:'读取离线期间的新草稿',exact:true}).waitFor();
  });
  await scenario('Same-session failed write retry cannot overwrite another client card',async(page,apply,origin)=>{

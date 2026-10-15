@@ -91,7 +91,7 @@ const operation = z.object({
 }).strict();
 const common = { id: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/), label: z.string().max(100), enabled: z.boolean().default(true), allowWrites: z.boolean().default(false) };
 export const ConfigSchema = z.object({
-  dataDir: z.string().default('.quiet-glass'),
+  dataDir: z.string().default('.sill'),
   ai:AiConfigSchema.default({}),
   jobs:JobsConfigSchema.default({}),
   scripts:ScriptsConfigSchema.default({}),
@@ -116,7 +116,7 @@ export const ConfigSchema = z.object({
 });
 
 export function loadConfig(env = process.env) {
-  const path = resolve(env.QG_CONFIG || resolve(ROOT, 'quiet-glass.config.json'));
+  const path = resolve(env.QG_CONFIG || resolve(ROOT, 'sill.config.json'));
   const config = ConfigSchema.parse(existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : {});
   config.dataDir = resolve(env.QG_DATA_DIR || resolve(dirname(path), config.dataDir));
   return config;

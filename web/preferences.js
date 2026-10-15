@@ -1,6 +1,6 @@
 /* Owner recommendation preferences. Browser storage contains drafts, never an automatic write. */
-window.initQuietGlassPreferences=({app,store,panels,esc,post,writeSettings,isConnected,getSources})=>{
-  const key='quiet-glass-recommendation-draft-v1:'+(window.__QG_HOST__?'host':'web');
+window.initSillPreferences=({app,store,panels,esc,post,writeSettings,isConnected,getSources})=>{
+  const key='sill-recommendation-draft-v1:'+(window.__QG_HOST__?'host':'web');
   const defaults=()=>({interests:[],sourcePriorities:{},excludedSourceIds:[],includeRead:false});
   const effective=snapshot=>snapshot?.values.recommendation||defaults();
   const same=(a,b)=>JSON.stringify([a.interests,Object.entries(a.sourcePriorities).sort(),a.excludedSourceIds,a.includeRead])===JSON.stringify([b.interests,Object.entries(b.sourcePriorities).sort(),b.excludedSourceIds,b.includeRead]);

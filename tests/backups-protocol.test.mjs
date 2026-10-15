@@ -56,7 +56,7 @@ async function fixture(t, { principals = [], options = {}, seed } = {}) {
   const rpc = async (method, params = {}, token = OWNER) => { const response = await http('/mcp', { token, method: 'POST', body: { jsonrpc: '2.0', id: ++sequence, method, params }, headers: { Accept: 'application/json, text/event-stream', 'MCP-Protocol-Version': '2025-03-26' } }); assert.equal(response.status, 200, await response.clone().text()); return response.json(); };
   const raw = (name, args = {}, token = OWNER) => rpc('tools/call', { name, arguments: args }, token);
   const call = async (name, args = {}, token = OWNER) => { const response = await raw(name, args, token); assert.equal(response.error, undefined, JSON.stringify(response)); assert.notEqual(response.result?.isError, true, JSON.stringify(response)); return response.result.structuredContent; };
-  const connect = async (token = OWNER) => { const client = new Client({ name: 'quiet-glass-backups-protocol-fixture', version: '1' }); clients.push(client); await client.connect(new StreamableHTTPClientTransport(new URL(origin + '/mcp'), { requestInit: { headers: { Authorization: `Bearer ${token}` } } })); return client; };
+  const connect = async (token = OWNER) => { const client = new Client({ name: 'sill-backups-protocol-fixture', version: '1' }); clients.push(client); await client.connect(new StreamableHTTPClientTransport(new URL(origin + '/mcp'), { requestInit: { headers: { Authorization: `Bearer ${token}` } } })); return client; };
   const records = () => JSON.stringify(service.store.db.prepare('SELECT kind,id,value FROM records ORDER BY kind,id').all());
   const ordinary = () => JSON.stringify(Object.fromEntries(['card', 'annotation', 'settings', 'action', 'workflow', 'conversation', 'message', 'request', 'ai-run', 'job', 'job-run', 'script-run'].map(kind => [kind, service.store.list(kind)])));
   return { get service() { return service; }, config, env, external, http, json, raw, call, connect, records, ordinary, restart: async () => { await stop(); await start(); } };
@@ -135,7 +135,7 @@ test('export preserves only owner content, provenance, state and nullable ordina
   const second = await f.call(TOOLS[0]);
   assert.deepEqual(Object.keys(first).sort(), ['checksum', 'exportedAt', 'format', 'payload', 'scope', 'version']);
   assert.deepEqual(Object.keys(first.payload).sort(), ['annotations', 'cards', 'settings']);
-  assert.equal(first.format, 'quiet-glass-content-backup'); assert.equal(first.version, 1); assert.equal(first.scope, 'cards-annotations-settings');
+  assert.equal(first.format, 'sill-content-backup'); assert.equal(first.version, 1); assert.equal(first.scope, 'cards-annotations-settings');
   assert.equal(first.payload.settings, null, 'An absent ordinary setting record stays absent in the exported format');
   assert.deepEqual(first.payload, second.payload);
   assert.deepEqual(first.payload.cards.map(card => card.id).sort(), [note.id, host.cardIds[0]].sort());

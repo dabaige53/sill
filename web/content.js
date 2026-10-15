@@ -1,6 +1,6 @@
 /* Browser adapter for local content. All durable rules live in the shared service. */
-window.initQuietGlassContent=({app,store,panels,esc,api,post,onSaved,onMutation,isConnected})=>{
-  const snapshots=new Map(),draftKey='quiet-glass-content-drafts-v1',legacyKey='quiet-glass-legacy-annotations-v1';
+window.initSillContent=({app,store,panels,esc,api,post,onSaved,onMutation,isConnected})=>{
+  const snapshots=new Map(),draftKey='sill-content-drafts-v1',legacyKey='sill-legacy-annotations-v1';
   const read=key=>{try{const value=JSON.parse(localStorage.getItem(key)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{};}catch{return {};}};
   const drafts=read(draftKey),legacy=read(legacyKey);
   const persist=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));}catch{app.toast('当前浏览器不能保留草稿，请在离开前复制内容。');}};
@@ -31,7 +31,7 @@ window.initQuietGlassContent=({app,store,panels,esc,api,post,onSaved,onMutation,
     if(draft)editor.revisions.set(id,draft.expectedRevision);
     const options=[...new Set([...values.tags,'工作','阅读','想法','设计','AI','生活'])];
     const prior=legacy[id],hasLegacy=prior&&(prior.note||prior.tags.length);
-    return `<div class="dialog-close"><button class="icon-button" data-action="close" aria-label="关闭标签与备注">×</button></div><div class="panel-content"><h1 id="modal-title">留下一点线索</h1><p class="settings-note">${esc(card.title)}<br>备注与个人标签保存在 Quiet Glass，不会修改来源正文或来源标签。</p>${card.tags.length?`<p class="settings-note">来源标签：${card.tags.map(esc).join('、')}</p>`:''}<span class="field-label">个人标签</span><div class="chips" id="editor-tags">${options.map(tag=>chip(tag,controller.editTags.has(tag))).join('')}</div><div class="tag-add"><input id="tag-new" aria-label="新的标签" placeholder="添加个人标签" maxlength="30"><button type="button" class="icon-button" data-action="add-tag" aria-label="添加个人标签">+</button></div><label class="field-label" for="note-editor">备注</label><textarea class="editor-note" id="note-editor" maxlength="4000">${esc(values.note)}</textarea>${hasLegacy?'<p class="settings-note">检测到旧版浏览器备注，尚未上传。<button type="button" class="text-button" data-action="annotation-import">将旧备注载入草稿</button></p>':''}<div id="content-conflict" role="status"></div><div class="panel-footer"><p>${draft?'已恢复未提交草稿':'仅保存到本地服务'}</p><button type="button" class="solid-button" data-action="save-note" data-id="${esc(id)}">保存</button></div></div>`;
+    return `<div class="dialog-close"><button class="icon-button" data-action="close" aria-label="关闭标签与备注">×</button></div><div class="panel-content"><h1 id="modal-title">留下一点线索</h1><p class="settings-note">${esc(card.title)}<br>备注与个人标签保存在 Sill，不会修改来源正文或来源标签。</p>${card.tags.length?`<p class="settings-note">来源标签：${card.tags.map(esc).join('、')}</p>`:''}<span class="field-label">个人标签</span><div class="chips" id="editor-tags">${options.map(tag=>chip(tag,controller.editTags.has(tag))).join('')}</div><div class="tag-add"><input id="tag-new" aria-label="新的标签" placeholder="添加个人标签" maxlength="30"><button type="button" class="icon-button" data-action="add-tag" aria-label="添加个人标签">+</button></div><label class="field-label" for="note-editor">备注</label><textarea class="editor-note" id="note-editor" maxlength="4000">${esc(values.note)}</textarea>${hasLegacy?'<p class="settings-note">检测到旧版浏览器备注，尚未上传。<button type="button" class="text-button" data-action="annotation-import">将旧备注载入草稿</button></p>':''}<div id="content-conflict" role="status"></div><div class="panel-footer"><p>${draft?'已恢复未提交草稿':'仅保存到本地服务'}</p><button type="button" class="solid-button" data-action="save-note" data-id="${esc(id)}">保存</button></div></div>`;
   };
   const originalOpenPanel=app.openPanel.bind(app);
   app.openPanel=async(kind,id='')=>{
@@ -68,7 +68,7 @@ window.initQuietGlassContent=({app,store,panels,esc,api,post,onSaved,onMutation,
       store.save();if(!newerDraft)delete drafts[key];persist(draftKey,drafts);
       active.ids.forEach(id=>app.refreshCard(id));
       if(!newerDraft&&editor===active&&app.modalToken===token){app.bulkEditIds=null;app.closeModal();}
-      app.toast(newerDraft?'提交时的备注已保存；之后的编辑仍在草稿中，请再次保存。':'备注与个人标签已保存到 Quiet Glass');
+      app.toast(newerDraft?'提交时的备注已保存；之后的编辑仍在草稿中，请再次保存。':'备注与个人标签已保存到 Sill');
     }catch(error){
       if(editor===active&&app.modalToken===token&&error.code==='ANNOTATION_CONFLICT'&&error.current)annotationConflict(error.current,count);
       app.toast(error.code==='ANNOTATION_CONFLICT'?'备注有更新；草稿已保留，请选择如何继续。':`未全部保存${count?`（已保存 ${count} 张）`:''}：${error.message}`);
@@ -90,7 +90,7 @@ window.initQuietGlassContent=({app,store,panels,esc,api,post,onSaved,onMutation,
       if(card&&!card.local){app.toast('来源正文不可直接修改，可添加独立备注');return;}
       const key='note:'+(id||'new'),draft=drafts[key];
       noteEditor={title:card?.title||'',content:card?.content||'',tagsText:tagsInput(card?.tags||[]),expectedRevision:card?.revision,idempotencyKey:crypto.randomUUID(),...draft,id,draftKey:key,busy:false,current:null};
-      app.openModal(`<div class="dialog-close"><button class="icon-button" data-action="close" aria-label="关闭本地笔记">×</button></div><div class="panel-content"><h1 id="modal-title">${id?'编辑本地笔记':'新建本地笔记'}</h1><p class="settings-note">只保存在 Quiet Glass，不会写入 Notion、日历或其他来源。${draft?'已恢复未提交草稿。':''}</p><label class="field-label" for="local-note-title">标题</label><div class="tag-add"><input id="local-note-title" maxlength="500" value="${esc(noteEditor.title)}"></div><label class="field-label" for="local-note-content">正文</label><textarea class="editor-note" id="local-note-content" maxlength="50000">${esc(noteEditor.content)}</textarea><label class="field-label" for="local-note-tags">标签（用逗号分隔）</label><div class="tag-add"><input id="local-note-tags" value="${esc(noteEditor.tagsText)}"></div><div id="content-conflict" role="status"></div><div class="panel-footer"><p>草稿保留在本浏览器</p><button type="button" class="solid-button" data-action="local-note-save">保存笔记</button></div></div>`,'local-note');
+      app.openModal(`<div class="dialog-close"><button class="icon-button" data-action="close" aria-label="关闭本地笔记">×</button></div><div class="panel-content"><h1 id="modal-title">${id?'编辑本地笔记':'新建本地笔记'}</h1><p class="settings-note">只保存在 Sill，不会写入 Notion、日历或其他来源。${draft?'已恢复未提交草稿。':''}</p><label class="field-label" for="local-note-title">标题</label><div class="tag-add"><input id="local-note-title" maxlength="500" value="${esc(noteEditor.title)}"></div><label class="field-label" for="local-note-content">正文</label><textarea class="editor-note" id="local-note-content" maxlength="50000">${esc(noteEditor.content)}</textarea><label class="field-label" for="local-note-tags">标签（用逗号分隔）</label><div class="tag-add"><input id="local-note-tags" value="${esc(noteEditor.tagsText)}"></div><div id="content-conflict" role="status"></div><div class="panel-footer"><p>草稿保留在本浏览器</p><button type="button" class="solid-button" data-action="local-note-save">保存笔记</button></div></div>`,'local-note');
       saveNoteDraft();
     }catch(error){app.toast(error.message);}
   }

@@ -1,6 +1,6 @@
 # Registered WebAssembly scripts v1
 
-Quiet Glass can explicitly run two reviewed, pinned WebAssembly modules: `integer-stats@1.0.0` and `bounded-echo@1.0.0`. This is a small JSON transformation ABI, not general JavaScript, Python, shell, connector automation, or a code-upload service. It is owner-only and disabled by default. F09 schedules cannot invoke these modules.
+Sill can explicitly run two reviewed, pinned WebAssembly modules: `integer-stats@1.0.0` and `bounded-echo@1.0.0`. This is a small JSON transformation ABI, not general JavaScript, Python, shell, connector automation, or a code-upload service. It is owner-only and disabled by default. F09 schedules cannot invoke these modules.
 
 ## Installation and operator control
 

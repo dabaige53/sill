@@ -1,7 +1,7 @@
 /* Same-server MCP adapter; no fetch, credentials, or external connector tokens. */
 export function createHostTransport(call) {
   return async(path,options={})=>{
-    const url=new URL(path,'https://quiet-glass.invalid'),method=options.method||'GET';
+    const url=new URL(path,'https://sill.invalid'),method=options.method||'GET';
     const data=options.body?JSON.parse(options.body):{};
     let name,args;
     const jobRoute=/^\/api\/(?:jobs(?:\/|$)|job-runs(?:\/|$))/.test(url.pathname);

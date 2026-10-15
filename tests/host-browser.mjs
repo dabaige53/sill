@@ -1,6 +1,6 @@
 /**
  * F03 protocol-host SIMULATOR in real Chromium, using the built MCP App iframe
- * and a real Quiet Glass Service -> authenticated HTTP -> MCP SDK tool path.
+ * and a real Sill Service -> authenticated HTTP -> MCP SDK tool path.
  * This is not a ChatGPT/Codex installation or native-host certification.
  *
  * Protocol references:
@@ -40,7 +40,7 @@ const [source, second, emptyBody] = ids;
 const token = 'host-simulator-node-only-012345678901234567890';
 const server = await startHttp(service, { port: 0, token });
 const origin = `http://127.0.0.1:${server.address().port}`;
-const client = new Client({ name: 'quiet-glass-host-browser-simulator', version: '1' });
+const client = new Client({ name: 'sill-host-browser-simulator', version: '1' });
 let browser, page, frame, cardReadGate;
 let outcome = 'FAIL';
 let failure;
@@ -108,7 +108,7 @@ async function mount({ capabilities = fullCapabilities, platform = 'web', modelC
     host.mount++;
     const iframe = document.createElement('iframe');
     iframe.id = 'app-frame';
-    iframe.title = 'Quiet Glass MCP App under protocol-host simulator';
+    iframe.title = 'Sill MCP App under protocol-host simulator';
     // Same-origin enables the original page's local draft store. No credential
     // is passed into this iframe, and browser network is denied below.
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
@@ -119,7 +119,7 @@ async function mount({ capabilities = fullCapabilities, platform = 'web', modelC
   await waitForHost(host => host.initialized >= host.mount, 'SDK initialize/initialized handshake');
   frame = await (await page.locator('#app-frame').elementHandle()).contentFrame();
   await frame.locator(`[data-card="${source}"]`).waitFor({ timeout: 15000 });
-  await frame.waitForFunction(() => !!window.__app && !!window.__quietGlass);
+  await frame.waitForFunction(() => !!window.__app && !!window.__sill);
   await settle();
 }
 async function attachOne(id) {
@@ -145,7 +145,7 @@ try {
   page = await context.newPage();
   page.setDefaultTimeout(12000);
   page.on('pageerror', error => pageErrors.push(error.message));
-  await page.exposeBinding('proxyQuietGlassTool', async ({ frame: caller }, params) => {
+  await page.exposeBinding('proxySillTool', async ({ frame: caller }, params) => {
     assert.equal(caller, page.mainFrame(), 'only the simulator parent proxies MCP calls');
     toolCalls.push({ name: params.name, arguments: params.arguments || {} });
     const gate = params.name === 'qg_get_card' ? cardReadGate : undefined;
@@ -158,7 +158,7 @@ try {
     networkAttempts.push({ url: route.request().url(), method: route.request().method() });
     return route.abort('blockedbyclient');
   });
-  await page.setContent('<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>Quiet Glass protocol-host simulator</title><style>body{margin:0;background:#eef0f4;font:14px sans-serif}header{padding:12px 18px}textarea#host-draft{box-sizing:border-box;width:100%;height:65px}</style></head><body><header>真实 Chromium · MCP 协议宿主模拟器（非实际 ChatGPT/Codex 安装）</header><textarea id="host-draft" aria-label="模拟宿主现有草稿" readonly></textarea></body></html>');
+  await page.setContent('<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>Sill protocol-host simulator</title><style>body{margin:0;background:#eef0f4;font:14px sans-serif}header{padding:12px 18px}textarea#host-draft{box-sizing:border-box;width:100%;height:65px}</style></head><body><header>真实 Chromium · MCP 协议宿主模拟器（非实际 ChatGPT/Codex 安装）</header><textarea id="host-draft" aria-label="模拟宿主现有草稿" readonly></textarea></body></html>');
   await page.evaluate(() => {
     window.sendHostNotification = params => {
       document.querySelector('#app-frame')?.contentWindow.postMessage({ jsonrpc: '2.0', method: 'ui/notifications/host-context-changed', params }, '*');
@@ -179,11 +179,11 @@ try {
         switch (request.method) {
           case 'ui/initialize':
             document.querySelector('#host-draft').value = host.draft;
-            reply({ protocolVersion: request.params.protocolVersion, hostInfo: { name: 'quiet-glass-protocol-host-simulator', version: '1' }, hostCapabilities: host.capabilities, hostContext: { theme: 'light', ...(host.platform ? { platform: host.platform } : {}), displayMode: 'inline', availableDisplayModes: ['inline'], locale: 'zh-CN', 'openai/modelContext': host.modelContext } });
+            reply({ protocolVersion: request.params.protocolVersion, hostInfo: { name: 'sill-protocol-host-simulator', version: '1' }, hostCapabilities: host.capabilities, hostContext: { theme: 'light', ...(host.platform ? { platform: host.platform } : {}), displayMode: 'inline', availableDisplayModes: ['inline'], locale: 'zh-CN', 'openai/modelContext': host.modelContext } });
             break;
           case 'tools/call':
             if (!host.capabilities.serverTools) throw new Error('Tool proxy was not advertised');
-            reply(await window.proxyQuietGlassTool(request.params));
+            reply(await window.proxySillTool(request.params));
             break;
           case 'ui/update-model-context': {
             host.updates.push(structuredClone(request.params));

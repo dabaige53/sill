@@ -7,7 +7,7 @@ const LocalSync={
     const value=await response.json();if(!response.ok)throw new Error(value.error||'本地同步失败');return value;
   },
   persist(){
-    try{localStorage.setItem('quiet-glass-unsynced',JSON.stringify({state:this.snapshot(),pending:this.pending,revision:this.unversioned?null:this.revision}));this.durable=true;return true;}
+    try{localStorage.setItem('sill-unsynced',JSON.stringify({state:this.snapshot(),pending:this.pending,revision:this.unversioned?null:this.revision}));this.durable=true;return true;}
     catch{this.durable=false;this.app.toast('无法持久保存草稿，请导出备份后再关闭页面');return false;}
   },
   status(message){
@@ -19,7 +19,7 @@ const LocalSync={
   async discard(){
     const value=await this.request('state');
     this.pending=[];this.failed=false;this.unversioned=false;this.recovering=false;
-    localStorage.removeItem('quiet-glass-unsynced');this.adopt(value);this.status('');this.app.setOffline(false);
+    localStorage.removeItem('sill-unsynced');this.adopt(value);this.status('');this.app.setOffline(false);
   },
   connect(app){
     if(this.connection)return this.connection;
@@ -30,7 +30,7 @@ const LocalSync={
     // Restore and journal before any request: a read outage must not disable saving.
     if(!this.saveWrapped){
       let draft,revision=null;
-      try{draft=JSON.parse(localStorage.getItem('quiet-glass-unsynced')||'null');revision=JSON.parse(localStorage.getItem('quiet-glass-sync-revision')||'null');}catch{}
+      try{draft=JSON.parse(localStorage.getItem('sill-unsynced')||'null');revision=JSON.parse(localStorage.getItem('sill-sync-revision')||'null');}catch{}
       if(draft?.state&&Array.isArray(draft.pending)&&draft.pending.length){
         this.pending=draft.pending;this.recovering=true;this.unversioned=!Number.isInteger(draft.revision);
         this.adopt({state:draft.state,revision:draft.revision},{draft:true});
@@ -88,7 +88,7 @@ const LocalSync={
         const value=await this.request('operations',batch);this.pending.shift();this.revision=value.revision;this.persist();
         if(!this.pending.length)this.adopt(value);
       }
-      localStorage.removeItem('quiet-glass-unsynced');this.status('');this.failed=false;this.recovering=false;
+      localStorage.removeItem('sill-unsynced');this.status('');this.failed=false;this.recovering=false;
       this.app.grid.dataset.sync='saved';this.app.setOffline(false);
       const inline=document.getElementById('inline-state');if(inline)inline.textContent='已同步到本地服务';
     }catch(error){
@@ -114,7 +114,7 @@ const LocalSync={
     const previewBefore=JSON.stringify([Store.card(app.currentId),Store.state.items[app.currentId]]);
     const changed=JSON.stringify([Store.state.cards,Store.state.items,Store.state.preferences,Store.state.sources])!==JSON.stringify([value.state.cards,value.state.items,value.state.preferences,value.state.sources||[]]);
     this.revision=value.revision;
-    if(!draft)try{localStorage.setItem('quiet-glass-sync-revision',JSON.stringify(value.revision));}catch{}
+    if(!draft)try{localStorage.setItem('sill-sync-revision',JSON.stringify(value.revision));}catch{}
     const editingCard=app.editingId?Store.card(app.editingId):null;
     Object.assign(Store.state,value.state);Store.state.sources=value.state.sources||[];Store.state.storageAvailable=true;
     // A response to an unrelated reading observation may include external edits.

@@ -30,7 +30,7 @@ async function fixture(t) {
   const service = new Service(ConfigSchema.parse({ dataDir: directory }), { env: {}, fetchImpl: async (...args) => { external.push(args); throw new Error('No provider request is authorized in this fixture'); } });
   for (const method of ['collect', 'tools', 'write']) service.connectors[method] = async (...args) => { external.push({ method, args }); throw new Error('Host import must not call a configured connector'); };
   const server = await startHttp(service, { port: 0, token }), origin = `http://127.0.0.1:${server.address().port}`;
-  const client = new Client({ name: 'quiet-glass-provenance-protocol-fixture', version: '1' });
+  const client = new Client({ name: 'sill-provenance-protocol-fixture', version: '1' });
   t.after(async () => { await client.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await service.close(); await rm(directory, { recursive: true, force: true }); });
   await client.connect(new StreamableHTTPClientTransport(new URL(origin + '/mcp'), { requestInit: { headers: { Authorization: `Bearer ${token}` } } }));
   const raw = (name, args = {}) => client.callTool({ name, arguments: args });
@@ -64,7 +64,7 @@ test('host-provided Notion, Calendar and Linear provenance survives MCP, HTTP an
   assert.equal(ingest.inputSchema.additionalProperties, false); assert.equal(ingest.annotations.openWorldHint, false);
   const workspace = await f.call('qg_status'); assert.deepEqual(workspace.connectors, []);
   const opened = await f.raw('qg_open_workspace'); assert.notEqual(opened.isError, true);
-  const bootstrap = opened._meta['quiet-glass/workspace'].recommendations.items;
+  const bootstrap = opened._meta['sill/workspace'].recommendations.items;
   for (const id of ids) {
     const card = bootstrap.find(item => item.card.id === id)?.card;
     assert.ok(card, 'each host source is available in bounded app bootstrap');

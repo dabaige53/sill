@@ -4,7 +4,7 @@
 <body class="ds-flow" style="margin:0;min-height:0;padding:16px;background:var(--card)">
 <div id="root"></div>
 <script>
-const Q=window.QuietGlass,I=Q.icon,root=document.getElementById('root');
+const Q=window.Sill,I=Q.icon,root=document.getElementById('root');
 const cc=(g,m,t,s)=>`<div class="context-card"><div class="context-thumbnail">${I(g)}</div><div class="context-copy"><div class="context-meta">${m}</div><button class="context-title">${t}</button><div class="context-summary">${s}</div></div><button class="icon-button context-remove" aria-label="移除">${I('x',16)}</button></div>`;root.innerHTML=`<div style="width:372px;display:flex;flex-direction:column;gap:8px">${cc('mail','邮件 · 陈一','评审材料已上传','附件包含 V0.5 视觉修订和间距预算。')}${cc('book','设计周刊 · 8 分钟','安静的界面：让工具在需要时出现','平时只有内容，操作时才有工具。')}</div>`;
 </script>
 </body></html>

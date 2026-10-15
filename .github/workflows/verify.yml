@@ -1,4 +1,4 @@
-name: Verify Quiet Glass
+name: Verify Sill
 on:
   push:
     branches: [main]

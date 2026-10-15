@@ -1,5 +1,5 @@
-/** Quiet Glass — 原生 HTML 字符串渲染函数（src/atoms）。所有函数返回 HTML 字符串，由调用方写入 innerHTML。 */
-declare namespace QuietGlass {
+/** Sill — 原生 HTML 字符串渲染函数（src/atoms）。所有函数返回 HTML 字符串，由调用方写入 innerHTML。 */
+declare namespace Sill {
   /** Mono24 图标路径注册表：名称 → SVG 内部路径。 */
   const Glyphs: Record<string, string>;
   /** 24×24 viewBox、stroke 1.65、currentColor 的 SVG。未知名称回退到 file。 */

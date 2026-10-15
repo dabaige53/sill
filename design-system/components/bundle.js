@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"QuietGlass","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"Attachment"},{"name":"TagChip"},{"name":"CardMeta"},{"name":"SearchField"},{"name":"Toggle"},{"name":"GlassDock"},{"name":"CardMenu"},{"name":"FeedCard"},{"name":"ReminderCard"},{"name":"TaskCard"},{"name":"QuoteCard"},{"name":"InsightCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"SelectionBar"},{"name":"EmptyState"},{"name":"AIContext"},{"name":"AICompose"},{"name":"AIMessages"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Sill","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"Attachment"},{"name":"TagChip"},{"name":"CardMeta"},{"name":"SearchField"},{"name":"Toggle"},{"name":"GlassDock"},{"name":"CardMenu"},{"name":"FeedCard"},{"name":"ReminderCard"},{"name":"TaskCard"},{"name":"QuoteCard"},{"name":"InsightCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"SelectionBar"},{"name":"EmptyState"},{"name":"AIContext"},{"name":"AICompose"},{"name":"AIMessages"}]} */
 (function(){
 /**
  * Mono24: locally authored SVG primitives behind one renderer.
@@ -67,5 +67,5 @@ function minutes(seconds){return `${String(Math.floor(seconds/60)).padStart(2,'0
 function tagChip(tag,active=false,action='filter-tag'){return `<button class="tag-chip ${active?'active':''}" type="button" aria-pressed="${active}" data-action="${action}" data-extra="${esc(tag)}">${esc(tag)}</button>`;}
 function emptyState(title,description){return `<section class="empty-card"><span class="empty-icon">${icon('search',26)}</span><h2>${esc(title)}</h2><p>${esc(description)}</p><button class="text-button" data-action="clear-filter">清除筛选</button></section>`;}
 
-window.QuietGlass={Glyphs:Glyphs,icon:icon,esc:esc,button:button,ring:ring,checkItem:checkItem,avatars:avatars,tagChip:tagChip,emptyState:emptyState,timeString:timeString,minutes:minutes};
+window.Sill={Glyphs:Glyphs,icon:icon,esc:esc,button:button,ring:ring,checkItem:checkItem,avatars:avatars,tagChip:tagChip,emptyState:emptyState,timeString:timeString,minutes:minutes};
 })();

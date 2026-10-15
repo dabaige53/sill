@@ -1,0 +1,26 @@
+{
+  "plugin_id": "Plugin_4d11050446608191815ac3be9ec53209",
+  "plugin_url": "https://chatgpt.com/plugins/Plugin_4d11050446608191815ac3be9ec53209",
+  "version": "1.1.1",
+  "release_id": "pluginrel_6ad0cf1607808191a344ad7deb492fdd",
+  "scope": "WORKSPACE",
+  "visibility": "PRIVATE",
+  "status": "created_connection_pending",
+  "archive": "dist/sill-new-cloud.zip",
+  "identity_scopes": [
+    "openid",
+    "email",
+    "offline_access"
+  ],
+  "old_plugin_action": "user_will_delete",
+  "verification": {
+    "cloud_files": true,
+    "skills": true,
+    "icons": true,
+    "oauth_config": true,
+    "host_app_registration": false,
+    "real_login": false,
+    "sidebar_display": false
+  },
+  "blocker": "Browser automation runtime failed to start: No such file or directory. No app ID returned by package creation. Host connection and callback must be verified before claiming complete."
+}

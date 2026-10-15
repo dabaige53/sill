@@ -31,8 +31,8 @@ try {
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
     if(!localStorage.getItem('settings-test-seeded')) {
-      localStorage.setItem('quiet-glass-live-v1',JSON.stringify({version:2,items:{},sort:'time',reduceTransparency:false}));
-      localStorage.setItem('quiet-glass-v1',JSON.stringify({version:2,items:{},sort:'priority',reduceTransparency:false}));
+      localStorage.setItem('sill-live-v1',JSON.stringify({version:2,items:{},sort:'time',reduceTransparency:false}));
+      localStorage.setItem('sill-v1',JSON.stringify({version:2,items:{},sort:'priority',reduceTransparency:false}));
       localStorage.setItem('settings-test-seeded','1');
     }
   });

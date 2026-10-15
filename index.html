@@ -930,7 +930,7 @@ const SeedCards = [
  {id:'podcast-01',type:'media',kind:'podcast',media:'podcast',duration:2880,title:'慢下来，才能看清楚',summary:'设计之外 · 第 42 期。聊信息过载，和怎样给判断留出时间。',source:'设计之外',meta:'第 42 期',tags:['设计'],url:'https://podcasts.apple.com/',body:['这一期聊信息过载，和怎样给判断留出时间。'],time:demoBase-5*HOUR},
  {id:'photo-01',type:'photo',kind:'photos',photos:['botanical','coast','mountain'],title:'杭州 · 周末',summary:'3 张照片',source:'照片',meta:'10月12日',location:'杭州',tags:['生活'],body:[],time:demoBase-30*HOUR},
  {id:'file-01',type:'file',kind:'folder',title:'卡片积木 v3',summary:'设计稿文件夹里有 3 个新文件。',source:'设计稿',meta:'10 分钟前',files:[{name:'CardBlocks.fig',meta:'设计稿 · 12.4 MB',time:demoBase-10*MIN},{name:'预设卡片.pdf',meta:'24 页 · 3.1 MB',time:demoBase-HOUR},{name:'封面.png',meta:'2400 × 1350',time:demoBase-26*HOUR}],tags:['设计'],body:[],time:demoBase-10*MIN},
- {id:'pr-01',type:'article',kind:'github',title:'PR #214 · 读完圆环收起',summary:'等你 review，改了 3 个文件。',source:'GitHub',meta:'quiet-glass',url:'https://github.com/',tags:['工作'],body:['读到正文底部时，圆环满一圈后收起卡片。','改动：templates.js、cards.css、app.js。'],time:demoBase-50*MIN},
+ {id:'pr-01',type:'article',kind:'github',title:'PR #214 · 读完圆环收起',summary:'等你 review，改了 3 个文件。',source:'GitHub',meta:'sill',url:'https://github.com/',tags:['工作'],body:['读到正文底部时，圆环满一圈后收起卡片。','改动：templates.js、cards.css、app.js。'],time:demoBase-50*MIN},
  {id:'linear-01',type:'article',kind:'linear',title:'QG-142 叠卡阈值可以按来源关闭',summary:'指派给你 · 本周期。',source:'Linear',meta:'QG-142',url:'https://linear.app/',tags:['工作'],body:['同一来源一小时超过 5 张时叠起来；在单个来源设置里可以关掉。'],time:demoBase-70*MIN},
  // A burst from one source: more than five within an hour stacks into one card.
  ...[['iPhone 18 Pro 上手','一周用下来，变化最大的不是相机，是续航。'],['本周值得读的 5 篇','从注意力到工作台，五篇关于慢下来的文章。'],['一个效率工具的十年','它活下来，是因为一直在删功能。'],['播客推荐：设计之外','三期节目，聊设计师怎么做取舍。'],['我的桌面整理方法','桌面上只留今天要碰的东西。'],['一个人的工作台','独立开发者的一天，从关掉通知开始。']].map(([title,summary],i)=>({id:'sspai-0'+(i+1),type:'article',kind:'rss',title,summary:summary||'少数派 · 一小时内更新',source:'少数派',meta:'RSS',url:'https://sspai.com/',tags:['阅读'],body:articleBody.slice(i%3,i%3+3),time:demoBase-(35+i*6)*MIN})),
@@ -1157,7 +1157,7 @@ const DemoSources = [
  {id:'src-linear',kind:'linear',name:'Linear',detail:'指派给我',enabled:false,status:'paused',count:0,stack:true,open:'web',range:'30d'}
 ];
 const Store = {
- key:'quiet-glass-v1', // Keep the original key so existing users migrate in place.
+ key:'sill-v1',
  state:{},
  fresh(){return {cards:[],items:{},seconds:0,demoStartedAt:demoBase,freshIds:[],preferences:{...DefaultPreferences},sources:[],storageAvailable:true};},
  sanitizeItem(x){
@@ -1176,8 +1176,20 @@ const Store = {
  load(){
    this.state=this.fresh();
    let raw=null;
-   try{raw=JSON.parse(localStorage.getItem(this.key)||'null');}
-   catch{this.state.storageAvailable=false;}
+   try{
+     // Copy once; preserve old backups and never replace newer Sill data.
+     if(!localStorage.getItem('sill-storage-migrated')){
+       for(const suffix of ['v1','live-v1','unsynced','sync-revision']){
+         const value=localStorage.getItem('quiet-glass-'+suffix);
+         if(value!==null&&localStorage.getItem('sill-'+suffix)===null)localStorage.setItem('sill-'+suffix,value);
+       }
+       localStorage.setItem('sill-storage-migrated','1');
+     }
+     raw=JSON.parse(localStorage.getItem(this.key)||'null');
+   }catch{
+     this.state.storageAvailable=false;
+     try{raw=JSON.parse(localStorage.getItem(this.key)||localStorage.getItem(this.key.replace(/^sill-/,'quiet-glass-'))||'null');}catch{}
+   }
    const valid=raw&&[1,2,3,4].includes(raw.version)&&raw.items&&typeof raw.items==='object'&&!Array.isArray(raw.items);
    if(valid){
      if(Number.isFinite(raw.demoStartedAt)&&raw.demoStartedAt>0)this.state.demoStartedAt=raw.demoStartedAt;
@@ -2115,7 +2127,7 @@ class AppController{
    this.settingsGroup='desk';this.editingId='';this.loadedImages=new Set();
  }
  init(){
-   if(window.__QG_RUNTIME__)Store.key='quiet-glass-live-v1';
+   if(window.__QG_RUNTIME__)Store.key='sill-live-v1';
    Store.load();
    if(window.__QG_RUNTIME__)Store.state.cards=[];
    this.sort=Store.pref('sort');
@@ -3168,7 +3180,7 @@ const LocalSync={
     const value=await response.json();if(!response.ok)throw new Error(value.error||'本地同步失败');return value;
   },
   persist(){
-    try{localStorage.setItem('quiet-glass-unsynced',JSON.stringify({state:this.snapshot(),pending:this.pending,revision:this.unversioned?null:this.revision}));this.durable=true;return true;}
+    try{localStorage.setItem('sill-unsynced',JSON.stringify({state:this.snapshot(),pending:this.pending,revision:this.unversioned?null:this.revision}));this.durable=true;return true;}
     catch{this.durable=false;this.app.toast('无法持久保存草稿，请导出备份后再关闭页面');return false;}
   },
   status(message){
@@ -3180,7 +3192,7 @@ const LocalSync={
   async discard(){
     const value=await this.request('state');
     this.pending=[];this.failed=false;this.unversioned=false;this.recovering=false;
-    localStorage.removeItem('quiet-glass-unsynced');this.adopt(value);this.status('');this.app.setOffline(false);
+    localStorage.removeItem('sill-unsynced');this.adopt(value);this.status('');this.app.setOffline(false);
   },
   connect(app){
     if(this.connection)return this.connection;
@@ -3191,7 +3203,7 @@ const LocalSync={
     // Restore and journal before any request: a read outage must not disable saving.
     if(!this.saveWrapped){
       let draft,revision=null;
-      try{draft=JSON.parse(localStorage.getItem('quiet-glass-unsynced')||'null');revision=JSON.parse(localStorage.getItem('quiet-glass-sync-revision')||'null');}catch{}
+      try{draft=JSON.parse(localStorage.getItem('sill-unsynced')||'null');revision=JSON.parse(localStorage.getItem('sill-sync-revision')||'null');}catch{}
       if(draft?.state&&Array.isArray(draft.pending)&&draft.pending.length){
         this.pending=draft.pending;this.recovering=true;this.unversioned=!Number.isInteger(draft.revision);
         this.adopt({state:draft.state,revision:draft.revision},{draft:true});
@@ -3249,7 +3261,7 @@ const LocalSync={
         const value=await this.request('operations',batch);this.pending.shift();this.revision=value.revision;this.persist();
         if(!this.pending.length)this.adopt(value);
       }
-      localStorage.removeItem('quiet-glass-unsynced');this.status('');this.failed=false;this.recovering=false;
+      localStorage.removeItem('sill-unsynced');this.status('');this.failed=false;this.recovering=false;
       this.app.grid.dataset.sync='saved';this.app.setOffline(false);
       const inline=document.getElementById('inline-state');if(inline)inline.textContent='已同步到本地服务';
     }catch(error){
@@ -3275,7 +3287,7 @@ const LocalSync={
     const previewBefore=JSON.stringify([Store.card(app.currentId),Store.state.items[app.currentId]]);
     const changed=JSON.stringify([Store.state.cards,Store.state.items,Store.state.preferences,Store.state.sources])!==JSON.stringify([value.state.cards,value.state.items,value.state.preferences,value.state.sources||[]]);
     this.revision=value.revision;
-    if(!draft)try{localStorage.setItem('quiet-glass-sync-revision',JSON.stringify(value.revision));}catch{}
+    if(!draft)try{localStorage.setItem('sill-sync-revision',JSON.stringify(value.revision));}catch{}
     const editingCard=app.editingId?Store.card(app.editingId):null;
     Object.assign(Store.state,value.state);Store.state.sources=value.state.sources||[];Store.state.storageAvailable=true;
     // A response to an unrelated reading observation may include external edits.
@@ -3304,7 +3316,7 @@ const LocalSync={
 const app = new AppController();
 app.init();
 if(window.__QG_LOCAL__)LocalSync.connect(app);
-if(window.__QG_RUNTIME__)window.__quietGlass={app,store:Store,panels:Panels,esc};
+if(window.__QG_RUNTIME__)window.__sill={app,store:Store,panels:Panels,esc};
 })();
 if(window.__QG_RUNTIME__){const script=document.createElement('script');script.src='/web/live.js';document.body.appendChild(script);}</script>
 </body>

@@ -46,7 +46,7 @@ async function fixture(t, { principals = [], connectors = [], legacy, seed } = {
   t.after(async () => { await stop(); await rm(directory, { recursive: true, force: true }); });
   const connect = async (token = OWNER) => {
     if (!clients.has(token)) {
-      const client = new Client({ name: 'quiet-glass-preferences-protocol-fixture', version: '1' });
+      const client = new Client({ name: 'sill-preferences-protocol-fixture', version: '1' });
       clients.set(token, client);
       await client.connect(new StreamableHTTPClientTransport(new URL(origin + '/mcp'), { requestInit: { headers: { Authorization: `Bearer ${token}` } } }));
     }
@@ -335,7 +335,7 @@ test('host preview adapter forwards exact temporary options to the real MCP serv
   assert.deepEqual(await api('/api/settings'), current);
   const opened = await f.raw('qg_open_workspace');
   assert.notEqual(opened.isError, true);
-  assert.deepEqual(opened._meta['quiet-glass/workspace'].settings, current, 'bounded host bootstrap preserves explicitly saved ordinary recommendation settings');
+  assert.deepEqual(opened._meta['sill/workspace'].settings, current, 'bounded host bootstrap preserves explicitly saved ordinary recommendation settings');
   const before = f.state(), temporary = { ...preference({ interests: ['beta'], sourcePriorities: { 'source-b': 20 } }), limit: 3 };
   const preview = await api('/api/recommend', { method: 'POST', body: JSON.stringify(temporary) });
   assert.deepEqual(calls.at(-1), { name: 'qg_recommend', arguments: temporary });

@@ -73,7 +73,7 @@ export class Connectors {
     // Cache the connection promise too, so simultaneous readers cannot race initialization.
     if(!this.clients.has(c.id))this.clients.set(c.id,(async()=>{
       const token=await this.token(c);
-      const client=new Client({name:'quiet-glass-collector',version:'0.2.0'});
+      const client=new Client({name:'sill-collector',version:'0.2.0'});
       const transport=new StreamableHTTPClientTransport(new URL(c.url),{requestInit:{headers:token?{Authorization:`Bearer ${token}`}:{},redirect:'error'},fetch:(url,init)=>this.fetch(url,{...init,redirect:'error',signal:AbortSignal.any([...(init?.signal?[init.signal]:[]),AbortSignal.timeout(TIMEOUT)])})});
       try {await client.connect(transport,{timeout:TIMEOUT});return client;}
       catch {await client.close().catch(()=>{});this.clients.delete(c.id);throw new QGError('MCP_CONNECTION_FAILED','MCP 服务连接失败；检查地址与授权');}

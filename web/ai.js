@@ -1,5 +1,5 @@
 /* Optional standalone provider controls. No key or direct provider connection in this file. */
-window.initQuietGlassAi=({app,api,post,esc,refreshHistory})=>{
+window.initSillAi=({app,api,post,esc,refreshHistory})=>{
   let current=null,generation=0,config=null,reading=null,lastRead=0,stopped=false,readError=false;
   const runs=new Map(),streams=new Map(),writes=new Set();
   const labels={idle:'尚未调用',running:'正在生成',completed:'已完成',failed:'失败',cancelled:'本地已取消',interrupted:'结果未确认',superseded:'已有其他回答',refused:'模型拒绝',incomplete:'未完整完成'};

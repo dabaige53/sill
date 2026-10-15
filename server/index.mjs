@@ -11,7 +11,7 @@ try {
   service=new Service(loadConfig());
   if(process.argv.includes('--http')){
     http=await startHttp(service,{host:process.env.QG_HOST||'127.0.0.1',port:Number(process.env.QG_PORT||4317)});
-    console.error(`Quiet Glass listening on ${process.env.QG_HOST||'127.0.0.1'}:${http.address().port}`);
+    console.error(`Sill listening on ${process.env.QG_HOST||'127.0.0.1'}:${http.address().port}`);
   } else if(process.argv.includes('--stdio')) {mcp=createMcpServer(service);await mcp.connect(new StdioServerTransport());}
   else throw new Error('Use --stdio or --http');
 } catch(error) {console.error(JSON.stringify(publicError(error)));if(service)await service.close();process.exitCode=1;}

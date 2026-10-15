@@ -26,7 +26,7 @@ const rows=s=>s.store.db.prepare('SELECT * FROM records ORDER BY kind,id').all()
 test('store identity is durable; mutation epochs include every real records mutation across connections and rollback',async t=>{
   const {s,open,dir}=await fixture(t),other=open(),initial=s.store.mutationState();
   assert.deepEqual(other.store.mutationState(),initial);
-  const raw=new DatabaseSync(join(dir,'quiet-glass.sqlite'));t.after(()=>raw.close());
+  const raw=new DatabaseSync(join(dir,'sill.sqlite'));t.after(()=>raw.close());
   const insert=raw.prepare('INSERT INTO records VALUES (?,?,?)'),update=raw.prepare('UPDATE records SET value=? WHERE kind=? AND id=?'),del=raw.prepare('DELETE FROM records WHERE kind=? AND id=?');
   for(const kind of ['card','settings','annotation','note-key','job','jobrun','script-run','request','conversation','message','host-import-receipt','backup-key:principal','backup-plan-other']){
     const before=epoch(s);insert.run(kind,'synthetic','{}');assert.equal(epoch(other),before+1,kind);

@@ -51,7 +51,7 @@ try {
   browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
   const context=await browser.newContext({viewport:{width:1280,height:940},reducedMotion:'reduce'});
   page=await context.newPage();page.setDefaultTimeout(12000);page.on('pageerror',error=>errors.push(error.message));
-  await page.addInitScript(()=>{if(!localStorage.getItem('qg-preferences-seeded')){localStorage.setItem('quiet-glass-live-v1',JSON.stringify({version:2,items:{},recommendation:{interests:['stale-browser-only']}}));localStorage.setItem('qg-preferences-seeded','1');}});
+  await page.addInitScript(()=>{if(!localStorage.getItem('qg-preferences-seeded')){localStorage.setItem('sill-live-v1',JSON.stringify({version:2,items:{},recommendation:{interests:['stale-browser-only']}}));localStorage.setItem('qg-preferences-seeded','1');}});
   await page.goto(origin);await page.locator('#qg-token').fill(token);await page.locator('[data-qg-action="login"]').click();await page.locator('.feed-card').first().waitFor();
   await open();assert.equal(await page.locator('#qg-recommendation-interests').inputValue(),'设计');
   assert.match(await page.locator('#qg-recommendation-saved').innerText(),/design-source/);

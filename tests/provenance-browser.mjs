@@ -40,7 +40,7 @@ const payloads = Object.fromEntries(Object.entries(hostResults).map(([provider, 
 const service = new Service(ConfigSchema.parse({ dataDir: directory }), { env: {}, fetchImpl: async (...args) => { externalCalls.push(args); throw new Error('External provider calls are forbidden in this synthetic fixture'); } });
 for (const method of ['collect', 'tools', 'write']) service.connectors[method] = async (...args) => { externalCalls.push({ method, args }); throw new Error('Host ingestion may not invoke configured connectors'); };
 const token = 'provenance-browser-node-only-012345678901234567890', server = await startHttp(service, { port: 0, token });
-const origin = `http://127.0.0.1:${server.address().port}`, client = new Client({ name: 'quiet-glass-provenance-host-simulator', version: '1' });
+const origin = `http://127.0.0.1:${server.address().port}`, client = new Client({ name: 'sill-provenance-host-simulator', version: '1' });
 let browser, page, frame, failure;
 const mobileMeasurements = [];
 const ids = {};
@@ -64,14 +64,14 @@ async function mount({ openLinks = true } = {}) {
   const html = await readFile(join(ROOT, 'dist/host-app.html'), 'utf8');
   await page.evaluate(({ html, openLinks }) => {
     document.querySelector('#app-frame')?.remove(); window.hostState.initialized = false; window.hostState.openLinks = openLinks;
-    const iframe = document.createElement('iframe'); iframe.id = 'app-frame'; iframe.title = 'Quiet Glass under synthetic host';
+    const iframe = document.createElement('iframe'); iframe.id = 'app-frame'; iframe.title = 'Sill under synthetic host';
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin'); iframe.style.cssText = 'display:block;width:100%;height:900px;border:0';
     document.body.appendChild(iframe); iframe.srcdoc = html;
   }, { html, openLinks });
   await page.waitForFunction(() => window.hostState.initialized);
   frame = await (await page.locator('#app-frame').elementHandle()).contentFrame();
   await frame.locator(`[data-card="${ids.notion}"]`).waitFor();
-  await frame.waitForFunction(() => !!window.__app && !!window.__quietGlass);
+  await frame.waitForFunction(() => !!window.__app && !!window.__sill);
 }
 async function assertProvenance(provider) {
   const payload = payloads[provider].items[0], block = frame.locator('[data-provenance]');
@@ -100,12 +100,12 @@ try {
   await page.exposeBinding('runSyntheticHostReadAndImport', async ({ frame: caller }, provider) => {
     assert.equal(caller, page.mainFrame()); assert.ok(Object.hasOwn(hostResults, provider));
     const fixture = structuredClone(hostResults[provider]); hostReads.push({ provider, tool: fixture.tool, synthetic: true });
-    // This is the boundary an already-authorized host owns. The Quiet Glass app
+    // This is the boundary an already-authorized host owns. The Sill app
     // never receives provider credentials or attempts cross-server discovery.
     const payload = normalizeHostResult(provider, fixture), result = (await call('qg_ingest', payload)).structuredContent;
     imported.push({ provider, result }); ids[provider] = result.cardIds[0]; return { provider, cardId: result.cardIds[0] };
   });
-  await page.exposeBinding('proxyQuietGlassTool', async ({ frame: caller }, request) => {
+  await page.exposeBinding('proxySillTool', async ({ frame: caller }, request) => {
     assert.equal(caller, page.mainFrame(), 'only host parent may proxy authenticated MCP calls');
     assert.ok(['qg_status', 'qg_read_settings', 'qg_search', 'qg_get_card', 'qg_read_annotation', 'qg_feedback'].includes(request.name), `unexpected app operation: ${request.name}`);
     return call(request.name, request.arguments || {});
@@ -128,7 +128,7 @@ try {
       try {
         switch (request.method) {
           case 'ui/initialize': reply({ protocolVersion: request.params.protocolVersion, hostInfo: { name: 'synthetic-authorized-host-workflow', version: '1' }, hostCapabilities: { serverTools: {}, ...(window.hostState.openLinks ? { openLinks: {} } : {}), updateModelContext: { text: {}, structuredContent: {} }, message: { text: {} }, experimental: { 'openai/modelContext': {}, 'openai/message': {} } }, hostContext: { theme: 'light', platform: 'web', displayMode: 'inline', availableDisplayModes: ['inline'], locale: 'zh-CN', 'openai/modelContext': window.hostState.modelContext } }); break;
-          case 'tools/call': window.hostState.calls.push(request.params.name); reply(await window.proxyQuietGlassTool(request.params)); break;
+          case 'tools/call': window.hostState.calls.push(request.params.name); reply(await window.proxySillTool(request.params)); break;
           case 'ui/update-model-context': window.hostState.modelContext = structuredClone(request.params); reply({ _meta: { 'openai/modelContext': { updateId: 'provenance-fixture-context' } } }); break;
           case 'ui/message': window.hostState.messages.push(request.params); throw new Error('This test does not authorize sending a host message');
           case 'ui/open-link': if (!window.hostState.openLinks) throw new Error('Opening links was not advertised'); window.hostState.links.push(request.params); reply({}); break;
