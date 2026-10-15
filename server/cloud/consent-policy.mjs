@@ -1,3 +1,4 @@
+import {isAuthorizationId} from './oauth-identifiers.mjs';
 /** Offline consent policy. Not imported by the Worker and never writes grants or calls OAuth. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fail=()=>{throw new Error('consent_not_allowed');};
@@ -12,7 +13,7 @@ function callback(value){
 /** All inputs except details come from server-verified identity/configuration, not the form. */
 export function reviewConsent({details,principal,policy,grant}){
  if(!details||!principal||!policy||!grant||!UUID.test(principal.userId||'')||principal.clientId!==null)fail();
- if(!UUID.test(details.authorization_id||'')||details.user?.id!==principal.userId||!UUID.test(policy.clientId||'')||details.client?.id!==policy.clientId)fail();
+ if(!isAuthorizationId(details.authorization_id)||details.user?.id!==principal.userId||!UUID.test(policy.clientId||'')||details.client?.id!==policy.clientId)fail();
  // A provider auto-redirect is not proof that Sill-specific access was reviewed.
  if(details.redirect_url||!Array.isArray(policy.redirectUris)||!policy.redirectUris.includes(details.redirect_uri))fail();
  const redirectUri=callback(details.redirect_uri);

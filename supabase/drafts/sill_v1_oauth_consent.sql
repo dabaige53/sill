@@ -36,7 +36,7 @@ create table sill_private.oauth_clients(
  generation bigint not null default 0, primary key(owner_id,client_id)
 );
 create table sill_private.oauth_flows(
- owner_id uuid not null, id uuid not null, client_id uuid not null, authorization_id uuid,
+ owner_id uuid not null, id uuid not null, client_id uuid not null, authorization_id text,
  kind text not null check(kind in ('consent','revoke')), browser_hash text not null, csrf_hash text not null,
  review jsonb, policy_snapshot jsonb not null, prior_grant jsonb, generation bigint not null,
  state text not null default 'ready' check(state in ('ready','processing','done','denied','failed')),
@@ -89,7 +89,7 @@ begin
  if op='begin' then
   if coalesce(p->>'kind','') not in ('consent','revoke') or coalesce(p->>'browserHash','')!~'^[0-9a-f]{64}$' or coalesce(p->>'csrfHash','')!~'^[0-9a-f]{64}$' then raise exception 'invalid_request';end if;
   if p->>'kind'='consent' then
-   if not c.enabled or (p->'review'->>'userId') is distinct from uid::text or (p->'review'->>'clientId') is distinct from c.client_id::text
+   if coalesce(p->'review'->>'authorizationId','')!~'^[A-Za-z0-9_-]{16,128}$' or not c.enabled or (p->'review'->>'userId') is distinct from uid::text or (p->'review'->>'clientId') is distinct from c.client_id::text
     or (p->'review'->>'audience') is distinct from c.policy->>'audience'
     or not coalesce(c.policy->'redirectUris' ? (p->'review'->>'redirectUri'),false)
     or not coalesce(c.policy->'identityScopes' @> (p->'review'->'identityScopes'),false) then raise exception 'forbidden';end if;
@@ -104,7 +104,7 @@ begin
   delete from sill_private.oauth_flows where owner_id=uid and expires_at<statement_timestamp();
   if (select count(*) from sill_private.oauth_flows where owner_id=uid)>=32 then raise exception 'rate_limited';end if;
   insert into sill_private.oauth_flows(owner_id,id,client_id,authorization_id,kind,browser_hash,csrf_hash,review,policy_snapshot,prior_grant,generation)
-   values(uid,(p->>'flowId')::uuid,c.client_id,(p->'review'->>'authorizationId')::uuid,p->>'kind',p->>'browserHash',p->>'csrfHash',p->'review',c.policy,current_grant,c.generation);
+   values(uid,(p->>'flowId')::uuid,c.client_id,p->'review'->>'authorizationId',p->>'kind',p->>'browserHash',p->>'csrfHash',p->'review',c.policy,current_grant,c.generation);
   return jsonb_build_object('ok',true);
  end if;
  select * into f from sill_private.oauth_flows where owner_id=uid and id=(p->>'flowId')::uuid for update;

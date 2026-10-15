@@ -1,3 +1,4 @@
+import {isAuthorizationId} from './oauth-identifiers.mjs';
 import {reviewConsent,consentSummary} from './consent-policy.mjs';
 import {oauthProvider,checkedRedirect} from './oauth-provider.mjs';
 import {SupabaseRepository,serviceError} from '../supabase-repository.mjs';
@@ -22,35 +23,36 @@ async function form(request){
 export function createOAuthController(config,{authenticate,providerFactory=oauthProvider,clock=()=>Date.now()}={}){
  const enabled=config.oauthConsentEnabled===true&&config.agentAudience===config.appOrigin+'/mcp'&&Array.isArray(config.oauthClientIds)&&config.oauthClientIds.length>0&&config.oauthClientIds.length<=16&&config.oauthClientIds.every(id=>UUID.test(id));
  const allowed=id=>enabled&&config.oauthClientIds.includes(id);
- function resumeLocation(request){if(!enabled)return null;const value=readCookie(request,returnCookie)||'',parts=value.split('.'),expiry=Number(parts[1]);return parts.length===2&&UUID.test(parts[0])&&expiry>clock()&&expiry<=clock()+600000?config.appOrigin+'/oauth/consent?authorization_id='+parts[0]:null;}
+ function resumeLocation(request){if(!enabled)return null;const value=readCookie(request,returnCookie)||'',parts=value.split('.'),expiry=Number(parts[1]);return parts.length===2&&isAuthorizationId(parts[0])&&expiry>clock()&&expiry<=clock()+600000?config.appOrigin+'/oauth/consent?authorization_id='+parts[0]:null;}
  const clearReturn=()=>cookie(returnCookie,'',0);
  async function handle(request){
   const url=new URL(request.url),path=url.pathname;
   if(!enabled)return page('<h1>远程授权尚未启用</h1>',503);
+  let stage='request';
   try{
    if(url.origin!==config.appOrigin||request.headers.has('authorization'))throw serviceError('forbidden');
    if(!['GET','POST'].includes(request.method))throw serviceError('invalid_request',405);
    if(request.method==='POST'&&(request.headers.get('origin')!==config.appOrigin||request.headers.get('sec-fetch-site')==='cross-site'))throw serviceError('forbidden');
-   let actor;
+   let actor;stage='session';
    try{actor=await authenticate(request);}catch(error){
-    if(error.status===401&&request.method==='GET'&&path==='/oauth/consent'&&UUID.test(url.searchParams.get('authorization_id')||'')&&[...url.searchParams.keys()].length===1){
+    if(error.status===401&&request.method==='GET'&&path==='/oauth/consent'&&isAuthorizationId(url.searchParams.get('authorization_id'))&&[...url.searchParams.keys()].length===1){
      const r=page('<h1>登录后继续授权</h1><p>请在此浏览器登录已有 Sill 账号。完成登录后，会返回本次授权请求；登录本身不会批准访问。</p><a href="/">前往登录</a>',401);
      r.headers.append('Set-Cookie',cookie(returnCookie,url.searchParams.get('authorization_id')+'.'+(clock()+600000)));return r;
     }throw error;
    }
    if(actor.principal.clientId!==null)throw serviceError('forbidden');
-   const repo=new SupabaseRepository(actor.client),provider=providerFactory(config,actor.token),rpc=(op,p={})=>repo.rpc('sill_oauth_flow',{op,p});
+   stage='provider-init';const repo=new SupabaseRepository(actor.client),provider=providerFactory(config,actor.token),rpc=(op,p={})=>repo.rpc('sill_oauth_flow',{op,p});
    let browser=readCookie(request,browserCookie);if(!/^[0-9a-f]{64}$/.test(browser||''))browser=null;
    if(request.method==='GET'){
     browser??=random();const browserHash=await hash(browser);
     async function newFlow(kind,clientId,review){const flowId=crypto.randomUUID(),csrf=random();await rpc('begin',{kind,clientId,review,flowId,browserHash,csrfHash:await hash(csrf)});return `<input type="hidden" name="flowId" value="${flowId}"><input type="hidden" name="csrf" value="${csrf}">`;}
     let html,reviewedCallback;
     if(path==='/oauth/consent'){
-     const id=url.searchParams.get('authorization_id');if(!UUID.test(id||'')||[...url.searchParams.keys()].length!==1)throw serviceError('invalid_request');
-     const details=await provider.details(id);if(details.authorization_id!==id||!allowed(details.client?.id))throw serviceError('forbidden');
-     const policy=await rpc('policy',{clientId:details.client.id});if(policy.appOrigin!==config.appOrigin||policy.audience!==config.agentAudience)throw serviceError('forbidden');
-     const review=reviewConsent({details,principal:actor.principal,policy,grant:{ownerId:actor.principal.userId,clientId:policy.clientId,audience:policy.audience,scopes:policy.contentScopes,resources:policy.resources}});
-     reviewedCallback=review.redirectUri;
+     const id=url.searchParams.get('authorization_id');if(!isAuthorizationId(id)||[...url.searchParams.keys()].length!==1)throw serviceError('invalid_request');
+     stage='provider-details';const details=await provider.details(id);stage='provider-client';if(details.authorization_id!==id||!allowed(details.client?.id))throw serviceError('forbidden');
+     stage='client-policy';const policy=await rpc('policy',{clientId:details.client.id});if(policy.appOrigin!==config.appOrigin||policy.audience!==config.agentAudience)throw serviceError('forbidden');
+     stage='review';const review=reviewConsent({details,principal:actor.principal,policy,grant:{ownerId:actor.principal.userId,clientId:policy.clientId,audience:policy.audience,scopes:policy.contentScopes,resources:policy.resources}});
+     reviewedCallback=review.redirectUri;stage='flow-store';
      html=consentSummary(review)+`<form method="post" action="/oauth/decision">${await newFlow('consent',review.clientId,review)}<button name="decision" value="approve">允许上述访问</button><button name="decision" value="deny">拒绝</button></form><p>授权持续到你撤销。可在“已授权客户端”中撤销 Sill 访问。</p><a href="/oauth/grants">已授权客户端</a>`;
     }else if(path==='/oauth/grants'&&!url.search){
      html='<h1>已授权客户端</h1><p>撤销仅针对选中的客户端，不退出此浏览器或其他应用。</p>';
@@ -82,7 +84,7 @@ export function createOAuthController(config,{authenticate,providerFactory=oauth
    // Grant only after confirmed provider success and exact callback validation. No redirect/code is persisted.
    await rpc('finish',{...proof,result:submitted.decision==='approve'?'approved':'denied'});
    return new Response(null,{status:303,headers:{...headers,Location:redirect}});
-  }catch(error){const status=[400,401,403,404,405,409,413,415,429].includes(error.status)?error.status:error.message==='consent_not_allowed'?403:503;const message=status===409?'授权请求已变化、已处理或已过期。请重新发起授权。':status===401?'登录已过期，请重新登录。':'本次授权未完成。未新增 Sill 访问权限，请返回工作台或重新发起授权。';return page(`<h1>无法完成授权</h1><p>${message}</p>`,status);}
+  }catch(error){if(stage==='provider-details'&&['transport','timeout','invocation','empty-body','json'].includes(error.providerFailure))stage+='-'+error.providerFailure;if(stage==='provider-details'&&Number.isInteger(error.providerStatus)&&error.providerStatus>=400&&error.providerStatus<=599)stage+='-'+error.providerStatus;const status=[400,401,403,404,405,409,413,415,429].includes(error.status)?error.status:error.message==='consent_not_allowed'?403:503;const message=status===409?'授权请求已变化、已处理或已过期。请重新发起授权。':status===401?'登录已过期，请重新登录。':'本次授权未完成。未新增 Sill 访问权限，请返回工作台或重新发起授权。';const response=page(`<meta name="sill-consent-stage" content="${stage}"><h1>无法完成授权</h1><p>${message}</p>`,status);response.headers.set('X-Sill-Consent-Stage',stage);return response;}
  }
  return {handle,resumeLocation,clearReturn};
 }

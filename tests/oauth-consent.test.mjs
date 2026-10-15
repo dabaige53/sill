@@ -104,7 +104,8 @@ test('provider adapter uses supported access-token endpoints, disallows redirect
  const config={url:'https://project.supabase.co',publishableKey:'sb_publishable_test'},calls=[];
  const p=oauthProvider(config,'synthetic-verified-access',{fetchImpl:async(url,init)=>{calls.push({url,init});return Response.json({authorization_id:AUTH});}});
  await p.details(AUTH);await p.decide(AUTH,'deny');await p.revoke(C);
- assert.equal(calls[0].url,config.url+'/auth/v1/oauth/authorizations/'+AUTH);assert.equal(calls[0].init.headers.Authorization,'Bearer synthetic-verified-access');assert.equal(calls[0].init.redirect,'error');assert.ok(!JSON.stringify(calls).includes('refresh_token'));
+ assert.equal(calls[0].url,config.url+'/auth/v1/oauth/authorizations/'+AUTH);assert.equal(calls[0].init.headers.Authorization,'Bearer synthetic-verified-access');assert.equal(calls[0].init.redirect,'manual');assert.ok(!JSON.stringify(calls).includes('refresh_token'));
+ const redirected=oauthProvider(config,'x',{fetchImpl:async()=>new Response(null,{status:302,headers:{Location:'https://elsewhere.example'}})});await assert.rejects(redirected.details(AUTH),/unavailable/);
  const big=oauthProvider(config,'x',{fetchImpl:async()=>new Response('x'.repeat(65537))});await assert.rejects(big.details(AUTH),/unavailable/);
  for(const url of ['https://evil.example/?code=x&state=y','http://127.0.0.1:5876/callback?code=x&state=y&state=z','http://127.0.0.1:5876/callback?code=x','http://127.0.0.1:5876/callback/other?code=x&state=y'])assert.throws(()=>checkedRedirect(url,{redirectUri:'http://127.0.0.1:5876/callback'},'approve'));
 });
@@ -156,5 +157,28 @@ test('owner-reviewed full Sill policy persists all five scopes without widening 
   await f.sql('update sill_private.oauth_clients set policy=$1',[JSON.stringify(f.policy)]);
   const form=await f.form();assert.equal((await f.decide(form)).status,303);
   assert.deepEqual((await f.grant()).scopes,f.policy.contentScopes);
+ }finally{await f.close();}
+});
+
+test('opaque provider authorization IDs survive review, login return and SQL without UUID coercion',async()=>{
+ const opaque='synthetic_authorization_handle_01',f=await oauthFixture({authorizationId:opaque});try{
+  const form=await f.form();assert.equal((await f.decide(form)).status,303);
+  assert.equal((await f.sql('select authorization_id from sill_private.oauth_flows')).rows[0].authorization_id,opaque);
+  const jar=new Map();assert.equal((await f.call('/oauth/consent?authorization_id='+opaque,{cookieJar:jar})).status,401);
+  assert.ok(decodeURIComponent(jar.get('__Host-sill-oauth-return')).startsWith(opaque+'.'));
+  for(const id of ['../outside','short','a'.repeat(129)])assert.throws(()=>f.providerFactory(f.config,'synthetic').details(id),/invalid_request/);
+ }finally{await f.close();}
+});
+
+test('production upgrade preserves existing UUID flow handles as text',async()=>{
+ const {cloudFixture}=await import('./helpers/cloud-fixture.mjs');const f=await cloudFixture();try{
+  await f.db.exec('create role supabase_auth_admin nologin');
+  await f.db.exec(await readFile(new URL('../supabase/migrations/20261015010603_sill_codex_oauth_consent.sql',import.meta.url),'utf8'));
+  await f.db.exec(`insert into sill_private.oauth_clients(owner_id,client_id,policy) values('${A}','${C}','{}');
+   insert into sill_private.oauth_flows(owner_id,id,client_id,authorization_id,kind,browser_hash,csrf_hash,policy_snapshot,generation) values('${A}','${AUTH}','${C}','${AUTH}','consent','a','b','{}',0);`);
+  await f.db.exec(await readFile(new URL('../supabase/migrations/20261015012954_sill_opaque_oauth_authorization_ids.sql',import.meta.url),'utf8'));
+  assert.equal((await f.db.query('select authorization_id from sill_private.oauth_flows')).rows[0].authorization_id,AUTH);
+  await f.db.query('update sill_private.oauth_flows set authorization_id=$1',['opaque_authorization_handle_002']);
+  assert.equal((await f.db.query('select authorization_id from sill_private.oauth_flows')).rows[0].authorization_id,'opaque_authorization_handle_002');
  }finally{await f.close();}
 });
