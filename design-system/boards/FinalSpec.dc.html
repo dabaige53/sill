@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>规范总表</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.panel{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h2{margin:0;font-size:16px;line-height:1.4;font-weight:600}
+.kv{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px;padding:7px 0;border-top:1px solid rgba(0,0,0,.06);font-size:13px;line-height:1.5;align-items:baseline}
+.kv:first-of-type{border-top:none}
+.kv code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#1d1d1f}
+.kv span{color:#636366}
+.kv s{color:#86868b}
+.kv b{color:#0057ad;font-weight:600}
+.ty{display:flex;align-items:baseline;gap:12px;padding:6px 0;border-top:1px solid rgba(0,0,0,.06)}
+.ty:first-of-type{border-top:none}
+.ty code{flex:none;width:92px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6e6e73}
+.ty small{margin-left:auto;flex:none;font-size:11px;color:#86868b}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-variant-numeric:tabular-nums}
+.tt{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,1.3fr);gap:12px;padding:8px 0;border-top:1px solid rgba(0,0,0,.06);font-size:13px;line-height:1.5}
+.tt.h{border-top:none;font-size:12px;color:#6e6e73;padding-top:0}
+.tt code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px}
+.tt span{color:#636366}
+.st{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:7px 0;border-top:1px solid rgba(0,0,0,.06);font-size:13px;line-height:1.5}
+.st:first-of-type{border-top:none}
+.st span{color:#636366}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1180px; box-sizing: border-box; padding: 56px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 12px; color: #6e6e73">14 · 规范总表</span>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">定稿 v1 · 交付开发</h1>
+    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6e6e73; max-width: 900px">所有数值写进 tokens.css，样式里不再出现字面量。旧值划线，新值蓝色。</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start">
+    <section class="panel">
+      <h2>Token 变更</h2>
+      <div>
+        <div class="kv"><code>--muted</code><span><s>#6e6e73</s> → <b>#636366</b> · 白 5.99 / surface 5.26</span></div>
+        <div class="kv"><code>--card-radius</code><span><s>20</s> → <b>22</b></span></div>
+        <div class="kv"><code>--image-radius</code><span><s>12</s> → <b>14</b> · = 22 − 内缩 8</span></div>
+        <div class="kv"><code>--panel-radius</code><span>24，抽屉顶角同为 24（<s>25</s>）</span></div>
+        <div class="kv"><code>--card-padding</code><span><s>20 / 16</s> → <b>18</b> 所有宽度</span></div>
+        <div class="kv"><code>--gap</code><span><b>16 / 20 / 24</b> 手机 / 平板 / 桌面</span></div>
+        <div class="kv"><code>--page-margin</code><span><s>32 · 96</s> → <b>16 / 24 / 40</b> 左右对称</span></div>
+        <div class="kv"><code>--col-*</code><span>min <b>280</b> · target <b>340</b> · max <b>380</b> · 最多 <b>5</b> 列</span></div>
+        <div class="kv"><code>--icon-s/m/l</code><span><b>16 / 20 / 24</b> · 线宽 2.0 / 1.8 / 1.65</span></div>
+        <div class="kv"><code>--font-rounded</code><span><b>ui-rounded</b>, SF Pro Rounded, 系统字体</span></div>
+        <div class="kv"><code>收编字面量</code><span>accent-pressed #0057ad · accent-soft-hover #dceaff · selection #d8e9ff · toggle-off #d1d1d6 · check-border #b8b8bd · done #c7c7cc</span></div>
+        <div class="kv"><code>theme-color</code><span><s>#f5f4f0</s> → <b>#f5f5f7</b> 与画布一致</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>字号 · 卡片内 8 档</h2>
+      <div>
+        <div class="ty"><code>figure-l</code><span class="num" style="font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em">14:30</span><small>34 / 600 圆体</small></div>
+        <div class="ty"><code>figure-m</code><span class="num" style="font-size: 28px; line-height: 1.2; font-weight: 600">18</span><small>28 / 600 圆体</small></div>
+        <div class="ty"><code>quote</code><span style="font-size: 21px; line-height: 1.55; font-weight: 500">摘录</span><small>21 / 1.55 / 500</small></div>
+        <div class="ty"><code>title</code><span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.02em">卡片标题</span><small>17 / 1.35 / 600</small></div>
+        <div class="ty"><code>body</code><span style="font-size: 15px; line-height: 1.5; color: #636366">卡片摘要</span><small>15 / 1.5</small></div>
+        <div class="ty"><code>secondary</code><span style="font-size: 14px; line-height: 1.5">清单项 · 发件人</span><small>14 / 1.5</small></div>
+        <div class="ty"><code>footnote</code><span style="font-size: 13px; color: #636366">头部 · 按钮</span><small>13 / 1.4</small></div>
+        <div class="ty"><code>caption</code><span style="font-size: 12px; color: #636366">数字说明 · 时长</span><small>12 / 1.5</small></div>
+      </div>
+      <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">面板标题 22、预览标题 28、阅读页 30 / 16 保持不变；卡片标题不再随宽度在 18 与 16 之间切换。</p>
+    </section>
+
+    <section class="panel">
+      <h2>状态表达</h2>
+      <div>
+        <div class="st"><b>未读</b><span>白卡 #fff + 阴影，在信息流里浮起来</span></div>
+        <div class="st"><b>阅读中</b><span>头部右侧进度环 + 百分比，accent</span></div>
+        <div class="st"><b>已读</b><span>卡片退成 #fafafb、去阴影，标题 #636366，封面降饱和 0.6；不写字、不加点，过渡 500ms</span></div>
+        <div class="st"><b>适用</b><span>资讯、消息、笔记、媒体、整理分已读未读；待办、日程不分，始终白卡</span></div>
+        <div class="st"><b>收藏</b><span>bookmark.fill，只在菜单与预览中出现，卡面不加标记</span></div>
+        <div class="st"><b>勾选</b><span>check-circle.fill，accent；未勾为 1.6px 灰圈</span></div>
+        <div class="st"><b>全部完成</b><span>收拢为一行，success 绿色实心勾</span></div>
+        <div class="st"><b>到期</b><span>头部右侧时间变 alert 色，卡面不加色块</span></div>
+        <div class="st"><b>选中</b><span>2px accent 内框 + 左上实心勾</span></div>
+        <div class="st"><b>悬停</b><span>上移 2，shadow-hover，右上浮出玻璃「更多」</span></div>
+        <div class="st"><b>触屏</b><span>「更多」常显在右下 44×44，不压封面</span></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>卡片类型与数据字段</h2>
+    <div>
+      <div class="tt h"><span>类型 · 键</span><span>形态 form</span><span>页面需要的字段</span></div>
+      <div class="tt"><b>资讯 <code>article</code></b><span>image · standard</span><span>source, meta(时长), image, summary, progress</span></div>
+      <div class="tt"><b>消息 <code>mail</code></b><span>mail · message</span><span>sender, channel, time, summary, attachment{name, url}</span></div>
+      <div class="tt"><b>笔记 <code>note</code></b><span>standard · quote · untitled</span><span>source, time, title?(untitled 时省略), summary</span></div>
+      <div class="tt"><b>媒体 <code>media</code></b><span>video · audio · gallery</span><span>image, duration, segments — 取代模板里写死的「4 个片段」</span></div>
+      <div class="tt"><b>待办 <code>task</code></b><span>checklist · reminder</span><span>tasks[], due；reminder 读旧键 reminder，保留延后 / 完成 / 忽略</span></div>
+      <div class="tt"><b>日程 <code>event</code></b><span>single · allday</span><span>start, end, people[]（模板补渲染）</span></div>
+      <div class="tt"><b>整理 <code>brief</code></b><span>relation · review · summary</span><span>related[1–3], stats?（AI 写入）；读旧键 suggestion、digest；insight 下线</span></div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

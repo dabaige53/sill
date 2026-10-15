@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>功能分布</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lane{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.lane h2{margin:0;font-size:18px;line-height:1.4;font-weight:600;letter-spacing:-.025em}
+.eyebrow{font-size:12px;line-height:1.5;color:#6e6e73;letter-spacing:.02em}
+.grp{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid rgba(0,0,0,.08)}
+.grp h3{margin:0;font-size:13px;line-height:1.5;font-weight:600}
+.row{display:flex;align-items:center;gap:10px;font-size:13px;line-height:1.5;color:#1d1d1f}
+.row svg{flex:none;color:#6e6e73}
+.row small{margin-left:auto;font-size:12px;color:#6e6e73}
+.chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:12px;background:#f0f0f2;font-size:12px;color:#1d1d1f}
+.chip.blue{background:#edf4ff;color:#0057ad}
+.obs{display:flex;gap:12px;font-size:13px;line-height:1.6;color:#1d1d1f}
+.obs b{flex:none;width:24px;height:24px;border-radius:12px;background:#1d1d1f;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1180px; box-sizing: border-box; padding: 56px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 32px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span class="eyebrow">01 · 功能分布</span>
+      <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">一个页面，四层功能</h1>
+      <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6e6e73; max-width: 720px">全系统只有一个路由 #feed。内容常驻，操作全部按需出现：玻璃工具层、弹层，以及页面外的 AI 本地命令。</p>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end">
+      <span class="chip">src/ 1,504 行</span><span class="chip">10 类卡片</span><span class="chip">6 种弹层</span><span class="chip">38 个图标</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; flex: 1; min-height: 0">
+    <section class="lane">
+      <div style="display: flex; flex-direction: column; gap: 4px"><span class="eyebrow">常驻 · 不透明白卡</span><h2>内容层 · 信息流</h2></div>
+      <div class="grp">
+        <h3>瀑布流</h3>
+        <div class="row">卡片固定 344px，高度随内容<small>layout.js</small></div>
+        <div class="row">新内容排队，点数字再插入<small>feed-policy</small></div>
+        <div class="row">无导航栏 / 侧栏 / 顶栏筛选</div>
+      </div>
+      <div class="grp">
+        <h3>10 类卡片</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px"><span class="chip">资讯</span><span class="chip">邮件</span><span class="chip">笔记</span><span class="chip">待办</span><span class="chip">日程</span><span class="chip">提醒</span><span class="chip">媒体</span><span class="chip">阅读反馈</span><span class="chip">回顾</span><span class="chip">关联建议</span></div>
+      </div>
+      <div class="grp">
+        <h3>卡片上直接可做</h3>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"></path></svg>点标题 / 封面 → 快速预览</div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>待办逐项勾选（最多显示 3 项）</div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>提醒：延后十分钟 / 完成 / 恢复</div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M12 3v18" opacity="0"></path><path d="m3 9 3-3 3 3M6 6v12m9-3 3 3 3-3M18 18V6"></path></svg>拖起卡片 → 接收区</div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg>更多 → 卡片菜单（hover 出现，触屏常显）</div>
+      </div>
+      <div class="grp">
+        <h3>卡片状态</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px"><span class="chip">已看过</span><span class="chip">阅读中·进度环</span><span class="chip">已读·变淡</span><span class="chip">收藏</span><span class="chip">选中</span><span class="chip">已延后</span><span class="chip">已完成·收拢</span></div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div style="display: flex; flex-direction: column; gap: 4px"><span class="eyebrow">按需出现 · 玻璃材质</span><h2>浮动工具层</h2></div>
+      <div class="grp">
+        <h3>右下 Orb → Dock</h3>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h11m4 0h1"></path><circle cx="13" cy="6" r="2"></circle><circle cx="8" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>筛选与搜索</div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5"></path></svg>刷新卡片</div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4m-6 6 6-6 6 6"></path></svg>返回顶部</div>
+        <div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7h.01"></path></svg>使用说明与设置</div>
+        <div class="row"><span class="chip blue">3</span>新增卡片计数</div>
+      </div>
+      <div class="grp">
+        <h3>卡片更多菜单 · 5 项</h3>
+        <div class="row">编辑标签与备注</div>
+        <div class="row">稍后阅读 / 移出稍后阅读</div>
+        <div class="row">标记为已读 / 未读</div>
+        <div class="row">选择这张卡片</div>
+        <div class="row">收藏卡片 / 取消收藏</div>
+      </div>
+      <div class="grp">
+        <h3>拖拽接收区 · 3 个</h3>
+        <div style="display: flex; gap: 6px"><span class="chip">收藏</span><span class="chip">稍后阅读</span><span class="chip">标签</span></div>
+      </div>
+      <div class="grp">
+        <h3>选择条 · Toast</h3>
+        <div class="row">已选 N 张 · 收藏选中 · 取消选择</div>
+        <div class="row">操作反馈 + 撤销</div>
+      </div>
+    </section>
+
+    <section class="lane">
+      <div style="display: flex; flex-direction: column; gap: 4px"><span class="eyebrow">Dialog · ≤650px 变底部抽屉</span><h2>弹层 · 6 种</h2></div>
+      <div class="grp">
+        <h3>阅读</h3>
+        <div class="row">快速预览<small>收藏 · 标签 · 进度 · 完整阅读 · 外链</small></div>
+        <div class="row">完整阅读<small>阅读进度 %</small></div>
+        <div class="row">媒体播放<small>上一个 · 播放 · 下一个</small></div>
+      </div>
+      <div class="grp">
+        <h3>预览工具栏随类型变化</h3>
+        <div class="row">日程<small>下载日程 .ics</small></div>
+        <div class="row">提醒<small>延后 · 完成 · 忽略 · 恢复</small></div>
+      </div>
+      <div class="grp">
+        <h3>整理</h3>
+        <div class="row">筛选与搜索<small>「找回你想看的」</small></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; padding-left: 0"><span class="chip">搜索框</span><span class="chip">类型 11</span><span class="chip">状态 8</span><span class="chip">标签</span></div>
+        <div class="row">标签与备注<small>「留下一点线索」</small></div>
+      </div>
+      <div class="grp">
+        <h3>设置</h3>
+        <div class="row">使用说明与设置<small>「这个安静的空间」</small></div>
+        <div class="row">减少透明度<small>开关</small></div>
+        <div class="row">减少动态效果<small>只读，跟随系统</small></div>
+      </div>
+    </section>
+
+    <section class="lane" style="background: #1d1d1f; color: #f5f5f7; border-color: #1d1d1f">
+      <div style="display: flex; flex-direction: column; gap: 4px"><span class="eyebrow" style="color: #a1a1a6">页面之外 · 终端</span><h2>AI 侧 · 本地命令</h2></div>
+      <div class="grp" style="border-top-color: rgba(255,255,255,.14)">
+        <h3>scripts/qg.mjs</h3>
+        <div style="display: flex; flex-direction: column; gap: 6px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; line-height: 1.6; color: #e8e8ed">
+          <span>list</span><span>get &lt;卡片ID&gt;</span><span>capabilities</span><span>apply --file ops.json</span><span>open &lt;卡片ID&gt;</span>
+        </div>
+      </div>
+      <div class="grp" style="border-top-color: rgba(255,255,255,.14)">
+        <h3>写入操作</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px"><span class="chip" style="background: #2c2c2e; color: #f5f5f7">card.upsert</span><span class="chip" style="background: #2c2c2e; color: #f5f5f7">item.patch</span></div>
+        <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #a1a1a6">同批全部成功才保存，用 expectedRevision 防并发覆盖。</p>
+      </div>
+      <div class="grp" style="border-top-color: rgba(255,255,255,.14)">
+        <h3>同步</h3>
+        <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #a1a1a6">页面与 Codex / Hermes / Claude 共用 .quiet-glass/local/cards.json，页面每秒同步。</p>
+      </div>
+      <div class="grp" style="border-top-color: rgba(255,255,255,.14)">
+        <h3>页面里不做的</h3>
+        <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #a1a1a6">采集、整理、生成、批量操作、聊天、应用连接。</p>
+      </div>
+    </section>
+  </div>
+
+  <section style="background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 20px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px">
+    <h2 style="margin: 0; font-size: 16px; line-height: 1.4; font-weight: 600">盘点观察</h2>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 40px">
+      <div class="obs"><b>1</b><span>全局工具全部收在右下 Orb 后面：筛选、刷新、设置都要两步；触屏必须先点 Orb。</span></div>
+      <div class="obs"><b>2</b><span>同一动作入口分散：收藏 4 处（卡片菜单、预览工具栏、选择条、接收区），标签 3 处，稍后读 2 处。</span></div>
+      <div class="obs"><b>3</b><span>演示文案仍写「交给右下角的 AI」「拖拽进入 AI」，但接收区已是收藏 / 稍后读 / 标签，页面内没有 AI 入口。</span></div>
+      <div class="obs"><b>4</b><span>设置只有 2 项，其中「减少动态效果」只能看不能改；说明与设置共用 info 图标。</span></div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

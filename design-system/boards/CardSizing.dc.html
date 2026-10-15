@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>尺寸与内容规范</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.panel{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel h2{margin:0;font-size:16px;line-height:1.4;font-weight:600}
+.bp{display:flex;flex-direction:column;gap:8px;min-width:0}
+.frame{height:84px;border-radius:10px;background:#f5f5f7;border:1px solid rgba(0,0,0,.08);display:flex;gap:4px;padding:8px;box-sizing:border-box;justify-content:center}
+.frame i{display:block;border-radius:4px;background:#d6e6fa}
+.bp b{font-size:13px;font-weight:600}
+.bp span{font-size:12px;line-height:1.5;color:#636366}
+.bp .was{color:#b45309}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums}
+.tr{display:grid;grid-template-columns:96px 56px 56px 96px minmax(0,1fr);gap:12px;padding:9px 0;border-top:1px solid rgba(0,0,0,.06);font-size:13px;line-height:1.5;align-items:baseline}
+.tr.h{border-top:none;font-size:12px;color:#6e6e73;padding-top:0}
+.tr .d{color:#0057ad;font-weight:600}
+.tr .m{color:#636366}
+.dim{display:flex;align-items:center;gap:8px;font-size:12px;color:#636366;line-height:1.4}
+.dim b{min-width:30px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#0057ad;font-weight:600}
+.band{display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.5;color:#636366}
+.band b{font-size:14px;color:#1d1d1f}
+.bar{height:8px;border-radius:4px;background:#f0f0f2;position:relative}
+.bar i{position:absolute;top:0;bottom:0;border-radius:4px;background:#0066cc}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1380px; box-sizing: border-box; padding: 56px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 12px; color: #6e6e73">10 · 尺寸与内容规范</span>
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">宽度定列，内容定高</h1>
+    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6e6e73; max-width: 960px">现在的瀑布流按最窄约 240px 切列，列数不封顶，1440 宽时每张卡只有 248px，标题一行 12 个字左右就折行。建议：取最接近 340px 的列数，卡宽限制在 280–380，最多 5 列，超出部分居中。</p>
+  </div>
+
+  <section class="panel">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px">
+      <h2>列宽 · 默认 340，最小 280，最大 380</h2>
+      <span class="num" style="font-size: 13px; color: #636366">列数 = round((可用宽 + 间距) ÷ (340 + 间距))，限制 1–5</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 16px">
+      <div class="bp"><div class="frame" style="padding: 8px 18px"><i style="width: 100%"></i></div><b>手机 390</b><span>1 列 · 358 · 边距 16</span><span class="was">现在 1 列</span></div>
+      <div class="bp"><div class="frame"><i style="flex: 1"></i><i style="flex: 1"></i></div><b>平板 768</b><span>2 列 · 350 · 间距 20</span><span class="was">现在约 2 列</span></div>
+      <div class="bp"><div class="frame"><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i></div><b>1024</b><span>3 列 · 298 · 边距 40</span><span class="was">现在 3 列 · 287</span></div>
+      <div class="bp"><div class="frame"><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i></div><b>1280</b><span>3 列 · 380 · 间距 24</span><span class="was">现在 4 列 · 275</span></div>
+      <div class="bp"><div class="frame"><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i></div><b>1440</b><span>4 列 · 322</span><span class="was">现在 5 列 · 248</span></div>
+      <div class="bp"><div class="frame"><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i></div><b>1920</b><span>5 列 · 349</span><span class="was">现在 7 列 · 240</span></div>
+      <div class="bp"><div class="frame" style="padding: 8px 26px"><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i><i style="flex: 1"></i></div><b>2560</b><span>5 列 · 380 · 居中</span><span class="was">现在 9 列 · 254</span></div>
+    </div>
+    <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">左右边距改为对称（16 / 24 / 40），现在是左 32、右 96。Dock 悬浮在右下，底部保留 112 避免遮挡最后一行。不做跨列大卡。</p>
+  </section>
+
+  <div style="display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px">
+    <section class="panel">
+      <h2>单卡骨架 · 340 宽</h2>
+      <div style="display: flex; gap: 14px; align-items: flex-start">
+        <div style="width: 200px; flex: none; background: #fff; border: 1px solid rgba(0,0,0,.12); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.05)">
+          <div style="margin: 6px 6px 0; aspect-ratio: 16 / 9; border-radius: 12px; background: #e6eaef; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #86868b">封面</div>
+          <div style="padding: 11px; display: flex; flex-direction: column; gap: 4px; outline: 1px dashed rgba(0,102,204,.35); outline-offset: -5px">
+            <div style="height: 10px; width: 70%; border-radius: 5px; background: #e8e8ed"></div>
+            <div style="height: 12px; width: 95%; border-radius: 6px; background: #1d1d1f; margin-top: 4px"></div>
+            <div style="height: 12px; width: 60%; border-radius: 6px; background: #1d1d1f"></div>
+            <div style="height: 9px; width: 92%; border-radius: 5px; background: #c7c7cc; margin-top: 4px"></div>
+            <div style="height: 9px; width: 75%; border-radius: 5px; background: #c7c7cc"></div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 9px; padding-top: 4px">
+          <div class="dim"><b>22</b>卡片圆角</div>
+          <div class="dim"><b>8</b>封面内缩</div>
+          <div class="dim"><b>14</b>封面圆角 = 22 − 8</div>
+          <div class="dim"><b>18</b>内边距，所有宽度一致</div>
+          <div class="dim"><b>20</b>头部行高</div>
+          <div class="dim"><b>6</b>头部 → 标题 → 摘要</div>
+          <div class="dim"><b>12</b>区块之间</div>
+          <div class="dim"><b>44</b>可点区域最小</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>内容上下限</h2>
+      <div>
+        <div class="tr h"><span>元素</span><span>最少</span><span>默认</span><span>最多</span><span>超出时</span></div>
+        <div class="tr"><span>头部</span><span>1 行</span><span class="d">1 行</span><span>1 行</span><span class="m">来源截断，时间和状态始终保留</span></div>
+        <div class="tr"><span>标题 17</span><span>1 行</span><span class="d">2 行</span><span>3 行 · 摘录 4</span><span class="m">省略号；无标题笔记直接从正文开始</span></div>
+        <div class="tr"><span>摘要 15</span><span>0</span><span class="d">2 行</span><span>有封面 2 · 无封面 4</span><span class="m">省略号，完整内容在预览里</span></div>
+        <div class="tr"><span>封面</span><span>—</span><span class="d">16:9</span><span>1:1</span><span class="m">竖图按 1:1 居中裁切，视频固定 16:9</span></div>
+        <div class="tr"><span>清单项</span><span>1</span><span class="d">3</span><span>3</span><span class="m">「另有 N 项」</span></div>
+        <div class="tr"><span>引用卡</span><span>1</span><span class="d">2</span><span>3</span><span class="m">头部写「来自 N 张卡」</span></div>
+        <div class="tr"><span>参与者</span><span>0</span><span class="d">3</span><span>5 个头像</span><span class="m">「+N」</span></div>
+        <div class="tr"><span>动作按钮</span><span>0</span><span class="d">0</span><span>2</span><span class="m">只有提醒显示；其他动作收在「更多」</span></div>
+        <div class="tr"><span>页脚</span><span>0</span><span class="d">0</span><span>1 行</span><span class="m">只放阅读进度或完成状态</span></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px">
+      <h2>高度 · 不固定，但落在三档里</h2>
+      <span style="font-size: 13px; color: #636366">按上表默认值在 340 宽下估算；最高不超过最矮的 2.5 倍，瀑布流参差但不失控</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px">
+      <div class="band"><b>紧凑 · 约 140–170</b><div class="bar"><i style="left: 0; width: 34%"></i></div><span>单项提醒、日程、全部完成的待办。只有一个主角，一眼看完。</span></div>
+      <div class="band"><b>标准 · 约 200–250</b><div class="bar"><i style="left: 40%; width: 22%"></i></div><span>消息、笔记、清单、AI 整理。标题 2 行 + 一块正文。</span></div>
+      <div class="band"><b>展开 · 约 300–360</b><div class="bar"><i style="left: 62%; width: 38%"></i></div><span>带封面的资讯、媒体。封面撑高度，正文最多 2 行。</span></div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1380}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

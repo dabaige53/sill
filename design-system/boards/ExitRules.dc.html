@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>退出交互</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.tb{display:grid;grid-template-columns:150px repeat(5,minmax(0,1fr));align-items:center;min-height:56px;border-top:1px solid rgba(0,0,0,.06);font-size:13px;line-height:1.4}
+.tb.h{border-top:none;min-height:40px;font-size:12px;color:#86868b}
+.tb b{font-size:15px;font-weight:600}
+.y{display:flex;align-items:center;gap:8px;color:#1d1d1f}
+.y::before{content:"";width:8px;height:8px;border-radius:4px;background:#0066cc;flex:none}
+.n{color:#d1d1d6}
+.stage{position:relative;height:340px;border-radius:24px;background:#f5f5f7;overflow:hidden}
+.lbl{font-size:13px;color:#86868b}
+.cap{font-size:15px;font-weight:600}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1220px; box-sizing: border-box; padding: 56px 64px; background: #fff; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 32px">
+  <div style="display: flex; align-items: baseline; gap: 16px">
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">退出，不用找 X</h1>
+    <span class="lbl">17 · 退出交互</span>
+  </div>
+
+  <section>
+    <div class="tb h"><span></span><span>点外面</span><span>Esc · 返回</span><span>再点触发处</span><span>手势</span><span>自动</span></div>
+    <div class="tb"><b>预览</b><span class="y">点遮罩</span><span class="y">回到信息流</span><span class="n">—</span><span class="y">手机下拉</span><span class="n">—</span></div>
+    <div class="tb"><b>完整阅读</b><span class="n">—</span><span class="y">直接回信息流</span><span class="n">—</span><span class="y">右滑 · 读完上拉</span><span class="y">读到底标为已读</span></div>
+    <div class="tb"><b>更多菜单</b><span class="y">任意位置</span><span class="y">焦点回「更多」</span><span class="y">再点「更多」</span><span class="y">滚动信息流</span><span class="y">选完即关</span></div>
+    <div class="tb"><b>全局工具</b><span class="y">任意位置</span><span class="y">收起</span><span class="y">再点入口</span><span class="y">滚动信息流</span><span class="y">移开 0.4 秒 · 选完即关</span></div>
+    <div class="tb"><b>筛选与搜索</b><span class="y">保留筛选</span><span class="y">先清空，再关闭</span><span class="y">再点筛选</span><span class="n">—</span><span class="y">回车即关，保留筛选</span></div>
+    <div class="tb"><b>标签与备注</b><span class="y">保存并关闭</span><span class="y">保存并关闭</span><span class="n">—</span><span class="y">手机下拉</span><span class="y">自动保存</span></div>
+    <div class="tb"><b>设置</b><span class="y">任意位置</span><span class="y">收起</span><span class="y">再点齿轮</span><span class="n">—</span><span class="n">—</span></div>
+    <div class="tb"><b>Toast</b><span class="n">—</span><span class="n">—</span><span class="n">—</span><span class="y">向下轻扫</span><span class="y">3 秒</span></div>
+    <div class="tb"><b>多选</b><span class="y">点空白处取消</span><span class="y">取消选择</span><span class="n">—</span><span class="n">—</span><span class="y">操作完即退出</span></div>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">下拉关闭</span>
+      <div class="stage">
+        <span style="position: absolute; inset: 0; background: rgba(0,0,0,.14)"></span>
+        <div style="position: absolute; left: 32px; right: 32px; top: 120px; bottom: -40px; background: #fff; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.12)">
+          <span style="display: block; width: 36px; height: 5px; border-radius: 3px; background: #d1d1d6; margin: 8px auto"></span>
+          <div style="margin: 8px 12px; height: 110px; border-radius: 18px; background: #e6eaef"></div>
+          <div style="margin: 0 20px; height: 14px; width: 60%; border-radius: 7px; background: #1d1d1f"></div>
+        </div>
+        <span style="position: absolute; left: 0; right: 0; top: 190px; border-top: 1.5px dashed #0066cc"></span>
+        <span style="position: absolute; right: 16px; top: 168px; font-size: 12px; color: #0066cc">25%</span>
+        <svg width="28" height="56" viewBox="0 0 28 56" aria-hidden="true" style="position: absolute; left: 50%; top: 40px; transform: translateX(-50%)"><path d="M14 4v44m-9-9 9 9 9-9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </div>
+      <span class="lbl">拖过 25% 或快速下滑即关闭，否则回弹</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">筛选留痕</span>
+      <div class="stage">
+        <div style="position: absolute; left: 50%; top: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 16px; border-radius: 20px; background: rgba(255,255,255,.86); border: 1px solid rgba(255,255,255,.72); box-shadow: 0 8px 24px rgba(0,0,0,.1); font-size: 13px; white-space: nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h11m4 0h1"></path><circle cx="13" cy="6" r="2"></circle><circle cx="8" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>收藏 · 评审
+          <button type="button" aria-label="清除筛选" style="width: 28px; height: 28px; border: 0; border-radius: 14px; background: #f0f0f2; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></button>
+        </div>
+        <span style="position: absolute; left: 32px; top: 88px; width: 120px; height: 140px; background: #fff; border-radius: 18px"></span>
+        <span style="position: absolute; left: 168px; top: 88px; width: 120px; height: 100px; background: #fff; border-radius: 18px"></span>
+        <span style="position: absolute; left: 304px; top: 88px; width: 90px; height: 170px; background: #fff; border-radius: 18px"></span>
+      </div>
+      <span class="lbl">关掉搜索框，条件留在顶部，一点清除</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="cap">回到原处</span>
+      <div class="stage">
+        <span style="position: absolute; left: 40px; top: 48px; width: 160px; height: 200px; background: #fff; border-radius: 22px"></span>
+        <span style="position: absolute; left: 224px; top: 48px; width: 160px; height: 130px; background: #fff; border-radius: 22px; outline: 2px solid #0066cc; outline-offset: 4px"></span>
+        <span style="position: absolute; left: 224px; top: 202px; width: 160px; height: 90px; background: #fff; border-radius: 22px"></span>
+      </div>
+      <span class="lbl">关闭后滚动位置不变，焦点回到打开它的卡片</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1220}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

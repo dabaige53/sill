@@ -1,8 +1,8 @@
 # FeedCard
 
-内容卡片：信息流的唯一载体，邮件、资讯、笔记、日程、媒体都在白色实体表面上呈现。
+内容卡片：信息流里唯一的载体，由积木按配方拼成，详见 CardBlocks。
 
-- 344px 宽（布局引擎决定列宽），`card` 底、1px `line` 边框、`card-radius`、`shadow`；hover/focus-within 换 `shadow-hover`、边框加深、上移 2px。
-- 结构：可选 16:9 封面（`image-radius`，8px 内缩）→ `.card-body`（`card-padding`）→ `top-meta` → `card-title`（2 行）→ 摘要 14px `muted`（2 行）→ 可选 `.card-footer`。
-- 右上角「更多」按钮 hover/focus 才出现；触屏常显。
-- 已读：标题变 `muted`；选中：2px `accent` 内框 + 左上角勾。
+- 列宽 `col-min`–`col-max`，底色 `card`，1px `line` 边框，圆角 `card-radius`，阴影 `shadow`；悬停时换 `shadow-hover` 并上移 2px，按下缩到 .97。
+- 未读：白卡带阴影。已读：底色 `card-read`、边框 `line-read`、去掉阴影，标题换 `muted`，封面降饱和到 0.6，过渡 `dur-read`。不加蓝点，不写「已读」。已读卡悬停时亮回白色。
+- 右上角「更多」只在悬停或聚焦时出现，触屏上常显；菜单第一项是「为什么看到」。
+- 点卡片：能在站内看完的，就在站内打开；要在原处操作的（工单、项目、指标），直接跳到原应用。

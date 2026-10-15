@@ -1,0 +1,42 @@
+[
+  {
+    "filename": "sill-desktop-welcome.png",
+    "bytes": 28974,
+    "sha256": "42a6bbb1333eb5bf42093e364a5a209d85e83464e3f4d514aaed24c5a9445d43"
+  },
+  {
+    "filename": "sill-mobile-welcome.png",
+    "bytes": 23931,
+    "sha256": "4a9ef31567876305ae146c6437c72f13141b011d571f1e2673ddcc1f59bb50a5"
+  },
+  {
+    "filename": "sill-desktop-editor.png",
+    "bytes": 110721,
+    "sha256": "8ed7fac0921535048941f35756ea85a60b45a496156e4fac882bccc7696c098f"
+  },
+  {
+    "filename": "sill-mobile-editor.png",
+    "bytes": 37545,
+    "sha256": "6f6970d66b3eeb29d431c98fe9442de919cb0ddc7658f70ed452ed268dede5b5"
+  },
+  {
+    "filename": "sill-desktop-cards.png",
+    "bytes": 120241,
+    "sha256": "7f1416e05a9787b0806a25d17ec910d0e523b1d1d2d754fac8dadf15e69ec7d4"
+  },
+  {
+    "filename": "sill-mobile-cards.png",
+    "bytes": 73315,
+    "sha256": "bf92c5d2d554dbb631a86952dd21329210b8c92000e01e601b70304e85bc67ac"
+  },
+  {
+    "filename": "sill-desktop-walkthrough.webm",
+    "bytes": 590477,
+    "sha256": "92e11c87f6d0bc7dd62719937e72dd7e7b4ffe6a200c68c42c1d871ab2931227"
+  },
+  {
+    "filename": "sill-mobile-walkthrough.webm",
+    "bytes": 558862,
+    "sha256": "1ff28a259b58346cd858331092e36bb86f2612a8c2409d9bb478abf8c1d2682e"
+  }
+]

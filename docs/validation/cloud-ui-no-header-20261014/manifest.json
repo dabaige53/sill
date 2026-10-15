@@ -1,0 +1,52 @@
+[
+  {
+    "file": "README.md",
+    "bytes": 3506,
+    "sha256": "d6dec5a61c5207d27009f0c3b19fa94d1a935bc5f0e3f0892359f5920dff18d4"
+  },
+  {
+    "file": "desktop-cards.png",
+    "bytes": 210305,
+    "sha256": "f5c6a2721da510d0f5e860935538c5374b9fea5dec64897edaa4b12734d5d670"
+  },
+  {
+    "file": "desktop-editor.png",
+    "bytes": 98126,
+    "sha256": "ce2c4dd0622b24cfa96e709eaacebc194ca4eb6626a2515df32e9dc51f978955"
+  },
+  {
+    "file": "desktop-full.mp4",
+    "bytes": 808952,
+    "sha256": "bc002dcbdec1b0f963e941a7f33cf7a0cb43062afe9885e01552db3362253efa"
+  },
+  {
+    "file": "desktop-welcome.png",
+    "bytes": 28974,
+    "sha256": "42a6bbb1333eb5bf42093e364a5a209d85e83464e3f4d514aaed24c5a9445d43"
+  },
+  {
+    "file": "mobile-cards.png",
+    "bytes": 71053,
+    "sha256": "5fa3f475201e3dad377482ed0b66d7618fa1f912e85252bd116fb819b1ed25c6"
+  },
+  {
+    "file": "mobile-editor.png",
+    "bytes": 31464,
+    "sha256": "446a262d78888b033cac1222fc3312dc112053ea9ab27f7f7e7da4aa79b65a56"
+  },
+  {
+    "file": "mobile-full.mp4",
+    "bytes": 635946,
+    "sha256": "f1e99ba7a5a1f035132a7bb10269980a6c16e07cd9301801559c02c3de37b292"
+  },
+  {
+    "file": "mobile-welcome.png",
+    "bytes": 23926,
+    "sha256": "461a5ce144b098eb450d032f431e35321b02d8c8abf701287ae85b68bd6f99f9"
+  },
+  {
+    "file": "steps.json",
+    "bytes": 1981,
+    "sha256": "e8030e44a204bfd8a13a3d98c664c156727e98c6ec072b445917367cbac6a0ce"
+  }
+]

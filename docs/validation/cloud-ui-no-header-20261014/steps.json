@@ -1,0 +1,57 @@
+[
+  {
+    "name": "desktop",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "steps": [
+      "1 / 12 原始欢迎页与登录",
+      "2 / 12 邮箱格式检查",
+      "3 / 12 模拟发送成功 · 60 秒重发保护",
+      "4 / 12 回调失败提示与恢复",
+      "5 / 12 模拟 PKCE 登录 · 空工作区",
+      "6 / 12 新建笔记 · 焦点与输入",
+      "7 / 12 保存成功 · 卡片呈现",
+      "8 / 12 打开阅读 · Escape 返回",
+      "9 / 12 修改内容并保存",
+      "10 / 12 刷新与重载 · 保存结果保留",
+      "11 / 12 弹窗键盘焦点 · 关闭未保存草稿",
+      "12 / 12 退出 · 清除卡片并返回欢迎页"
+    ],
+    "passed": true,
+    "limitations": [
+      "Synthetic provider; no real email or cloud account",
+      "Chromium iPhone12 emulation, not physical iOS Safari",
+      "Mobile keyboard space simulated by viewport reduction; no native keyboard recording"
+    ]
+  },
+  {
+    "name": "mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "steps": [
+      "1 / 12 原始欢迎页与登录",
+      "2 / 12 邮箱格式检查",
+      "3 / 12 模拟发送成功 · 60 秒重发保护",
+      "4 / 12 回调失败提示与恢复",
+      "5 / 12 模拟 PKCE 登录 · 空工作区",
+      "6 / 12 新建笔记 · 焦点与输入",
+      "键盘占位模拟：缩小视口仍可滚动保存",
+      "7 / 12 保存成功 · 卡片呈现",
+      "8 / 12 打开阅读 · Escape 返回",
+      "9 / 12 修改内容并保存",
+      "10 / 12 刷新与重载 · 保存结果保留",
+      "11 / 12 弹窗键盘焦点 · 关闭未保存草稿",
+      "12 / 12 退出 · 清除卡片并返回欢迎页"
+    ],
+    "passed": true,
+    "limitations": [
+      "Synthetic provider; no real email or cloud account",
+      "Chromium iPhone12 emulation, not physical iOS Safari",
+      "Mobile keyboard space simulated by viewport reduction; no native keyboard recording"
+    ]
+  }
+]

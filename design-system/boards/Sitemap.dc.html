@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>页面地图</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+
+body{margin:0}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums}
+.cap{font-size:13px;color:#86868b}
+.h2{margin:0;font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.02em}
+.win{position:relative;height:300px;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06)}
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden}
+.card.read{background:#fafafb;border-color:rgba(0,0,0,.04);box-shadow:none}
+.mc{position:absolute;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 3px 10px rgba(0,0,0,.04)}
+.mc i{position:absolute;left:10px;height:6px;border-radius:3px;background:#e8e8ed}
+.mc i.t{height:7px;background:#1d1d1f}
+.glass{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 18px;border-radius:18px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.p{background:#0066cc;color:#fff}
+.btn.s{background:#e8e8ed;color:#1d1d1f}
+.btn.g{color:#0066cc;padding:0 8px}
+.hd{display:flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:#636366}
+.hd svg{flex:none;color:#86868b}
+.t{font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.02em}
+.s{font-size:15px;line-height:1.5;color:#636366}
+.bd{display:flex;flex-direction:column;gap:8px;padding:18px}
+.fl{display:flex;flex-direction:column;gap:10px;min-width:0}
+
+.win{position:relative;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.07),0 16px 48px rgba(0,0,0,.07)}
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.18)}
+.sheet{position:absolute;left:50%;transform:translateX(-50%);background:#fff;border-radius:22px 22px 0 0;box-shadow:0 2px 8px rgba(0,0,0,.04),0 24px 80px rgba(0,0,0,.2);overflow:hidden}
+.sh{display:flex;flex-direction:column;gap:12px;padding:26px 32px}
+.meta{font-size:12px;color:#86868b}
+.h{margin:0;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.03em}
+.p{margin:0;font-size:14px;line-height:1.75;color:#1d1d1f}
+.capb{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;display:flex;align-items:center;gap:2px;padding:5px;border-radius:24px}
+.ib{width:36px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#1d1d1f}
+.av{width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex:none}
+.li{display:flex;align-items:center;gap:12px;min-height:46px;border-top:1px solid rgba(0,0,0,.06);font-size:14px}
+.li:first-child{border-top:0}
+.li .ico{width:30px;height:30px;border-radius:8px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;color:#636366;flex:none}
+.li small{font-size:12px;color:#86868b}
+.li .r{margin-left:auto;font-size:12px;color:#86868b;display:flex;align-items:center;gap:10px}
+.tog{width:36px;height:22px;border-radius:11px;background:#34c759;position:relative;flex:none}
+.tog::after{content:"";position:absolute;right:2px;top:2px;width:18px;height:18px;border-radius:9px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.off{background:#e5e5ea}
+.tog.off::after{right:auto;left:2px}
+.seg{display:inline-flex;padding:2px;border-radius:9px;background:#ececf0;font-size:12px}
+.seg span{padding:4px 10px;border-radius:7px;color:#636366}
+.seg span.on{background:#fff;color:#1d1d1f;box-shadow:0 1px 3px rgba(0,0,0,.1);font-weight:500}
+.lab{display:flex;align-items:baseline;gap:10px}
+.lab b{font-size:15px}
+.lab i{font-style:normal;font-size:13px;font-weight:600;color:#0066cc}
+.chipx{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:14px;background:#f0f0f2;font-size:12px}
+.hl{background:#fff1a8;border-radius:3px;padding:0 1px}
+.grp{font-size:12px;color:#86868b;padding:14px 0 4px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);font-size:12px}
+.tile span.ico{width:40px;height:40px;border-radius:11px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;color:#1d1d1f}
+.tile.on{box-shadow:inset 0 0 0 2px #0066cc}
+.side{display:flex;flex-direction:column;gap:2px;padding:20px 10px;width:170px;box-sizing:border-box;background:rgba(255,255,255,.6);border-right:1px solid rgba(0,0,0,.06)}
+.side span{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;font-size:13px;color:#1d1d1f}
+.side span svg{color:#636366}
+.side span.on{background:#0066cc;color:#fff}
+.side span.on svg{color:#fff}
+.set{flex:1;padding:28px 36px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.box{background:#fff;border-radius:14px;padding:0 16px;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
+.mapcol{display:flex;flex-direction:column;gap:6px}
+.mapcol > b{font-size:17px;font-weight:600;padding-bottom:6px}
+.pg{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border-radius:10px;background:#f5f5f7;font-size:13px}
+.pg .st{margin-left:auto;font-size:11px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.st.has{background:#e8e8ed;color:#636366}
+.st.des{background:#edf4ff;color:#0066cc}
+.st.new{background:#e8f4ec;color:#248a3d}
+
+</style>
+</helmet>
+<div style="width: 1440px; height: 1000px; box-sizing: border-box; padding: 64px 72px; background: #fff; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 56px">
+<div style="display: flex; align-items: baseline; gap: 16px"><h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">Sill 一共 37 个页面</h1><span class="cap">28 · 页面地图</span></div><div style="display: flex; gap: 32px; align-items: baseline"><span style="display: flex; align-items: baseline; gap: 10px"><b class="num" style="font-size: 44px; font-weight: 600; letter-spacing: -0.03em">8</b><span class="st has" style="font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 9px">代码已有</span></span><span style="display: flex; align-items: baseline; gap: 10px"><b class="num" style="font-size: 44px; font-weight: 600; letter-spacing: -0.03em">10</b><span class="st des" style="font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 9px">已设计</span></span><span style="display: flex; align-items: baseline; gap: 10px"><b class="num" style="font-size: 44px; font-weight: 600; letter-spacing: -0.03em">19</b><span class="st new" style="font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 9px">本次新增</span></span><span class="cap">页面旁的数字是对应画板编号</span></div><section style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 24px; align-items: start"><div class="mapcol"><b>桌面</b><div class="pg">信息流<span class="cap num" style="font-size: 11px">11 · 20</span><span class="st has">代码已有</span></div><div class="pg">叠卡展开<span class="cap num" style="font-size: 11px">25</span><span class="st des">已设计</span></div><div class="pg">读过的 / 放了很久<span class="cap num" style="font-size: 11px">30</span><span class="st new">本次新增</span></div><div class="pg">多选<span class="cap num" style="font-size: 11px">15</span><span class="st has">代码已有</span></div></div><div class="mapcol"><b>打开</b><div class="pg">预览<span class="cap num" style="font-size: 11px">15</span><span class="st has">代码已有</span></div><div class="pg">阅读<span class="cap num" style="font-size: 11px">19 · 20</span><span class="st des">已设计</span></div><div class="pg">邮件<span class="cap num" style="font-size: 11px">29</span><span class="st new">本次新增</span></div><div class="pg">日程<span class="cap num" style="font-size: 11px">29</span><span class="st new">本次新增</span></div><div class="pg">播客与视频<span class="cap num" style="font-size: 11px">29</span><span class="st new">本次新增</span></div><div class="pg">照片大图<span class="cap num" style="font-size: 11px">29</span><span class="st new">本次新增</span></div><div class="pg">文件夹<span class="cap num" style="font-size: 11px">29</span><span class="st new">本次新增</span></div><div class="pg">笔记原地编辑<span class="cap num" style="font-size: 11px">29</span><span class="st new">本次新增</span></div><div class="pg">为什么看到<span class="cap num" style="font-size: 11px">26</span><span class="st des">已设计</span></div></div><div class="mapcol"><b>找</b><div class="pg">筛选<span class="cap num" style="font-size: 11px">15</span><span class="st has">代码已有</span></div><div class="pg">搜索结果<span class="cap num" style="font-size: 11px">30</span><span class="st new">本次新增</span></div><div class="pg">无结果<span class="cap num" style="font-size: 11px">30</span><span class="st new">本次新增</span></div><div class="pg">标签与备注<span class="cap num" style="font-size: 11px">15</span><span class="st has">代码已有</span></div></div><div class="mapcol"><b>管</b><div class="pg">来源列表<span class="cap num" style="font-size: 11px">26</span><span class="st des">已设计</span></div><div class="pg">添加来源<span class="cap num" style="font-size: 11px">31</span><span class="st new">本次新增</span></div><div class="pg">连接账号<span class="cap num" style="font-size: 11px">31</span><span class="st new">本次新增</span></div><div class="pg">导入文件<span class="cap num" style="font-size: 11px">31</span><span class="st new">本次新增</span></div><div class="pg">单个来源<span class="cap num" style="font-size: 11px">31</span><span class="st new">本次新增</span></div><div class="pg">设置 · 桌面<span class="cap num" style="font-size: 11px">32</span><span class="st new">本次新增</span></div><div class="pg">设置 · 外观<span class="cap num" style="font-size: 11px">32</span><span class="st new">本次新增</span></div><div class="pg">数据与隐私<span class="cap num" style="font-size: 11px">32</span><span class="st new">本次新增</span></div></div><div class="mapcol"><b>进来</b><div class="pg">首次打开<span class="cap num" style="font-size: 11px">24</span><span class="st des">已设计</span></div><div class="pg">权限说明<span class="cap num" style="font-size: 11px">24</span><span class="st des">已设计</span></div><div class="pg">导入中<span class="cap num" style="font-size: 11px">24</span><span class="st des">已设计</span></div><div class="pg">拖进窗口<span class="cap num" style="font-size: 11px">24</span><span class="st has">代码已有</span></div><div class="pg">浏览器扩展<span class="cap num" style="font-size: 11px">33</span><span class="st new">本次新增</span></div><div class="pg">手机分享<span class="cap num" style="font-size: 11px">33</span><span class="st new">本次新增</span></div><div class="pg">Mac 菜单栏<span class="cap num" style="font-size: 11px">33</span><span class="st new">本次新增</span></div></div><div class="mapcol"><b>状态</b><div class="pg">加载与骨架<span class="cap num" style="font-size: 11px">18</span><span class="st des">已设计</span></div><div class="pg">新内容<span class="cap num" style="font-size: 11px">18</span><span class="st has">代码已有</span></div><div class="pg">离线<span class="cap num" style="font-size: 11px">18</span><span class="st des">已设计</span></div><div class="pg">Toast 与撤销<span class="cap num" style="font-size: 11px">26</span><span class="st has">代码已有</span></div><div class="pg">读完收起<span class="cap num" style="font-size: 11px">19</span><span class="st des">已设计</span></div></div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

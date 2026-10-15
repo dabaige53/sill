@@ -5,14 +5,26 @@ import { z } from 'zod';
 const id=z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/).refine(value=>!['__proto__','constructor','prototype'].includes(value));
 const time=z.number().finite().min(0).max(8.64e15);
 const strings=z.array(z.string().max(100)).max(100);
+const types=['article','mail','note','task','event','reminder','media','insight','digest','suggestion','photo','file'];
+const sourceKinds=['rss','readwise','youtube','twitter','podcast','web','mail','calendar','reminders','photos','folder','linear','github','capture','markdown','local','ai'];
+const http=z.string().url().refine(value=>['http:','https:'].includes(new URL(value).protocol));
 export const Card=z.object({
-  id,type:z.enum(['article','mail','note','task','event','reminder','media','insight','digest','suggestion']),
+  id,type:z.enum(types),kind:z.enum(sourceKinds).optional(),
   title:z.string().min(1).max(1000),summary:z.string().max(10000).default(''),
   source:z.string().max(300).default('本地'),meta:z.string().max(300).optional(),
   form:z.enum(['standard','image','quote','compact','data']).default('standard'),
   image:z.enum(['architecture','coast','mountain','botanical']).optional(),
   tags:strings.default([]),body:z.array(z.string().max(50000)).max(100).default([]),
-  url:z.string().url().refine(value=>['http:','https:'].includes(new URL(value).protocol)).optional(),
+  url:http.optional(),
+  // Sill: dedupe keeps every origin; AI cards explain themselves; long summaries keep a conclusion and three points.
+  sources:z.array(z.object({name:z.string().min(1).max(100),kind:z.enum(sourceKinds)}).strict()).max(10).optional(),
+  points:z.array(z.string().min(1).max(200)).max(3).optional(),
+  why:z.object({reason:z.string().min(1).max(300),basis:z.array(z.string().max(200)).max(5).default([])}).strict().optional(),
+  sender:z.string().max(100).optional(),location:z.string().max(300).optional(),
+  meeting:z.object({name:z.string().min(1).max(100),url:http,code:z.string().max(100).optional()}).strict().optional(),
+  media:z.enum(['video','podcast']).optional(),duration:z.number().int().min(0).max(86400).optional(),
+  files:z.array(z.object({name:z.string().min(1).max(300),meta:z.string().max(200).default(''),time:time.optional()}).strict()).max(200).optional(),
+  photos:z.array(z.enum(['architecture','coast','mountain','botanical'])).max(50).optional(),
   attachment:z.string().max(300).optional(),
   tasks:z.array(z.object({id,text:z.string().min(1).max(2000),done:z.boolean().default(false)}).strict()).max(100).optional(),
   start:time.optional(),end:time.optional(),due:time.optional(),time:time.default(()=>Date.now()),
@@ -20,30 +32,47 @@ export const Card=z.object({
 }).strict().superRefine((card,ctx)=>{
   if(card.type==='event'&&(!(card.start>0)||!(card.end>card.start)))ctx.addIssue({code:'custom',message:'日程需要有效的 start / end'});
   if(card.type==='task'&&(!card.tasks?.length||new Set(card.tasks.map(task=>task.id)).size!==card.tasks.length))ctx.addIssue({code:'custom',message:'待办需要不重复的任务 ID'});
-  if(card.type==='media'&&(!card.image||card.body.length!==4))ctx.addIssue({code:'custom',message:'媒体卡片需要 image 和 4 个片段'});
+  if(card.type==='media'&&!card.image&&card.media!=='podcast')ctx.addIssue({code:'custom',message:'视频卡片需要 image'});
+  if(card.type==='photo'&&!card.photos?.length&&!card.image)ctx.addIssue({code:'custom',message:'照片卡片需要 photos'});
+  if(card.type==='file'&&!card.files?.length)ctx.addIssue({code:'custom',message:'文件卡片需要 files'});
 });
 export const Item=z.object({
   seen:z.boolean().optional(),read:z.boolean().optional(),bookmarked:z.boolean().optional(),later:z.boolean().optional(),
   tagsEdited:z.boolean().optional(),progress:z.number().min(0).max(1).optional(),note:z.string().max(4000).optional(),
   tags:z.array(z.string().max(30)).max(20).optional(),taskDone:z.array(id).max(100).optional(),
   addedAt:time.optional(),snoozedUntil:time.optional(),dismissed:z.boolean().optional(),reminderDone:z.boolean().optional(),
-  lastReminderKey:z.string().max(200).optional(),lastNotifiedAt:time.optional()
+  lastReminderKey:z.string().max(200).optional(),lastNotifiedAt:time.optional(),
+  readAt:time.optional(),restoredAt:time.optional()
 }).strict();
-const Preferences=z.object({sort:z.enum(['priority','unread','time']).optional(),reduceTransparency:z.boolean().optional()}).strict();
-const State=z.object({cards:z.array(Card).max(5000),items:z.record(id,Item),seconds:z.number().min(0).max(1e7),preferences:Preferences}).strict();
+const Preferences=z.object({
+  singleKeyShortcuts:z.boolean().optional(),sort:z.enum(['priority','unread','time']).optional(),reduceTransparency:z.boolean().optional(),
+  stack:z.boolean().optional(),fadeRead:z.boolean().optional(),archiveAfter:z.enum(['3d','7d','never']).optional(),
+  floatTimely:z.boolean().optional(),collapseOnFinish:z.boolean().optional(),newHint:z.enum(['away','off']).optional(),
+  theme:z.enum(['system','light','dark']).optional(),density:z.enum(['compact','standard','roomy']).optional(),
+  reduceMotion:z.boolean().optional(),aiLocal:z.boolean().optional(),onboarded:z.boolean().optional()
+}).strict();
+export const Source=z.object({
+  id,kind:z.enum(sourceKinds),name:z.string().min(1).max(100),detail:z.string().max(200).default(''),
+  enabled:z.boolean().default(true),status:z.enum(['ok','attention','paused']).default('ok'),
+  syncedAt:time.optional(),count:z.number().int().min(0).max(1e7).default(0),
+  stack:z.boolean().default(true),open:z.enum(['inside','web']).default('inside'),range:z.enum(['30d','all']).default('30d')
+}).strict();
+export const State=z.object({cards:z.array(Card).max(5000),items:z.record(id,Item),seconds:z.number().min(0).max(1e7),preferences:Preferences,sources:z.array(Source).max(200).optional()}).strict();
 const Operation=z.discriminatedUnion('op',[
   z.object({op:z.literal('card.upsert'),card:Card}).strict(),
   z.object({op:z.literal('card.delete'),id}).strict(),
   z.object({op:z.literal('item.patch'),id,values:Item,before:Item.optional()}).strict(),
   z.object({op:z.literal('preferences.patch'),values:Preferences,before:Preferences.optional()}).strict(),
-  z.object({op:z.literal('reading.add'),seconds:z.number().int().min(0).max(86400)}).strict()
+  z.object({op:z.literal('reading.add'),seconds:z.number().int().min(0).max(86400)}).strict(),
+  z.object({op:z.literal('source.upsert'),source:Source}).strict(),
+  z.object({op:z.literal('source.delete'),id}).strict()
 ]);
 export const Batch=z.object({operations:z.array(Operation).min(1).max(500),expectedRevision:z.number().int().nonnegative().optional()}).strict();
 export const capabilities={
-  operations:['card.upsert','card.delete','item.patch','preferences.patch','reading.add'],
+  operations:['card.upsert','card.delete','item.patch','preferences.patch','reading.add','source.upsert','source.delete'],
   cardFields:Object.keys(Card._def.schema.shape),
-  itemFields:Object.keys(Item.shape),preferences:['sort','reduceTransparency'],
-  types:['article','mail','note','task','event','reminder','media','insight','digest','suggestion'],
+  itemFields:Object.keys(Item.shape),preferences:Object.keys(Preferences.shape),
+  types,sourceKinds,
   navigation:'GET /api/local/open?id=<card-id>&reading=true 返回预览、正文、来源链接；由宿主打开。',
   synchronization:'页面每秒读取本地状态；修改按字段合并，同一字段冲突返回 409。',
   examples:[{op:'card.upsert',card:{id:'my-note',type:'note',title:'我的笔记',body:['正文'],url:'https://example.com'}},{op:'item.patch',id:'my-note',values:{bookmarked:true,note:'备注',tags:['工作'],tagsEdited:true}},{op:'preferences.patch',values:{sort:'time'}}]
@@ -90,6 +119,11 @@ export class LocalRepository{
         state.items[operation.id]={...item,...operation.values};
       }else if(operation.op==='preferences.patch'){
         compare(state.preferences,operation.values,operation.before);Object.assign(state.preferences,operation.values);
+      }else if(operation.op==='source.upsert'){
+        state.sources??=[];const at=state.sources.findIndex(source=>source.id===operation.source.id);
+        if(at<0)state.sources.push(operation.source);else state.sources[at]=operation.source;
+      }else if(operation.op==='source.delete'){
+        state.sources=(state.sources||[]).filter(source=>source.id!==operation.id);
       }else state.seconds=Math.min(1e7,state.seconds+operation.seconds);
     }
     State.parse(state);

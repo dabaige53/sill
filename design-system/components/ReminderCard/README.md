@@ -1,7 +1,6 @@
 # ReminderCard
 
-提醒卡：紧凑的行动卡片，不使用警示色面板。
+已并入待办：提醒是带到期时间的单项待办。
 
-- 顶部 `.reminder-status`：5px `accent` 圆点 + 12px `muted` 状态文字。
-- 右下 `.reminder-actions`：延后（`clock` 图标按钮，`accent`）+ 完成（`accent` 实心圆，白勾，hover `accent-pressed`）。
-- 已处理后只剩「恢复」（`undo`）。
+- 改用 CardBlocks 里的「待办·提醒」预设：来源头部（提示位写到期时间，`alert` 色）+ 标题 + 摘要 + 双按钮「稍后」「完成」。
+- 和清单共用同一个勾选圈，一眼就能认出是待办。

@@ -28,14 +28,27 @@
     "test:local-browser": "node tests/local-browser.mjs",
     "start:legacy": "node --env-file-if-exists=.env server/index.mjs --http",
     "mcp:legacy": "node --env-file-if-exists=.env server/index.mjs --stdio",
-    "test:legacy": "npm run plugin:build && node --test --test-concurrency=1 tests/*.test.mjs"
+    "test:legacy": "npm run plugin:build && node --test --test-concurrency=1 tests/*.test.mjs",
+    "boards": "node -e \"console.log('Sill \u8bbe\u8ba1\u753b\u677f\uff1ahttp://127.0.0.1:4310/')\" && python3 -m http.server 4310 --bind 127.0.0.1 --directory design-system/boards",
+    "test:accessibility": "node tests/accessibility-browser.mjs",
+    "test:supabase": "node --test tests/supabase-preparation.test.mjs tests/supabase-rpc.test.mjs tests/supabase-boundary.test.mjs tests/supabase-jwt.test.mjs tests/supabase-http.test.mjs tests/supabase-snapshots.test.mjs tests/supabase-mcp.test.mjs",
+    "test:supabase:postgres": "node --test tests/supabase-postgres.mjs",
+    "build:cloud": "python3 scripts/build-cloud.py && node scripts/build-cloud-worker.mjs",
+    "test:cloud-browser": "node tests/cloud-browser.mjs",
+    "test:cloud-welcome": "node tests/cloud-welcome-browser.mjs",
+    "test:oauth": "node --test tests/consent-policy.test.mjs tests/oauth-consent.test.mjs",
+    "test:oauth-browser": "node tests/oauth-browser.mjs",
+    "build:release": "python3 scripts/build-cloud.py && node scripts/build-cloud-worker.mjs --minify"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.9",
     "@modelcontextprotocol/ext-apps": "1.7.5",
     "@openai/mcp-extensions": "0.1.0",
+    "axe-core": "4.14.0",
     "esbuild": "0.28.2",
     "jsdom": "26.1.0",
-    "playwright": "1.62.1"
+    "playwright": "1.62.1",
+    "wrangler": "4.151.0"
   },
   "type": "module",
   "engines": {
@@ -43,6 +56,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
+    "@supabase/supabase-js": "2.117.3",
     "zod": "3.25.76"
   }
 }

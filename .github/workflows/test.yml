@@ -14,24 +14,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: |
-          python3 -m venv .sandbox-venv && .sandbox-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r requirements-sandbox.txt
       - run: npm ci
-      - run: npm run check
-      - run: npm run test:integration
+      - run: npm test
       - run: npm run plugin:build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:live-browser
-      - run: npm run test:settings-browser
-      - run: npm run test:content-browser
-      - run: npm run test:host-browser
-      - run: npm run test:conversations-browser
-      - run: npm run test:ai-browser
-      - run: npm run test:provenance-browser
-      - run: npm run test:preferences-browser
-      - run: npm run test:jobs-browser
-      - run: npm run test:scripts-browser
-      - run: npm run test:backups-browser
+      - run: npm run test:local-browser
+      - run: npm run test:accessibility
       - name: Retain live integration evidence
         if: always()
         uses: actions/upload-artifact@v4
