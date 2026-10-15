@@ -1,0 +1,11 @@
+{
+  "client_id": "5caffdc3-f450-4664-bd81-a65a16eace73",
+  "redirect_uri": "https://chatgpt.com/connector/oauth/ufi0fWkbCET5",
+  "token_endpoint_auth_method": "none",
+  "scopes": [
+    "openid"
+  ],
+  "connection_status": "awaiting_owner_sign_in",
+  "app_id": "asdk_app_6ad03f09b6048191a8826a236ac9097d",
+  "plugin_id": "plugin_asdk_app_6ad03f09b6048191a8826a236ac9097d"
+}

@@ -12,6 +12,7 @@ for(const path of ['.app.json','codex-mcp.toml'])await rm(resolve(directory,path
 // Preserve the existing Codex package format: preregistered OAuth settings use its compatibility manifest.
 await rm(resolve(directory,'plugin.json'),{force:true});
 await cp(resolve(root,'mcp.json'),resolve(directory,'mcp.json'));
+await cp(resolve(root,'assets'),resolve(directory,'assets'),{recursive:true});
 const portable=JSON.parse(await readFile(resolve(root,'mcp.json'),'utf8'));
 const client=JSON.parse(await readFile(resolve(root,'deploy/cloud/codex-client.json'),'utf8'));
 const {scopes,...oauth}=client;
