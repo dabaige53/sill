@@ -1,24 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFile, writeFile, access } from 'node:fs/promises';
-import { resolve } from 'node:path';
-
+import {execFileSync} from 'node:child_process';
+import {readFile,access} from 'node:fs/promises';
+import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'..');
-test('local package keeps identity and removes App and MCP registrations',async()=>{
-  const dir=resolve(root,'plugins/quiet-glass');
-  execFileSync(process.execPath,[resolve(root,'scripts/build-plugin.mjs')]);
-  for(const path of ['.app.json','mcp.json','.mcp.json'])await writeFile(resolve(dir,path),'{}');
-  execFileSync(process.execPath,[resolve(root,'scripts/build-plugin.mjs')]);
-  for(const path of ['plugin.json','.app.json','mcp.json','.mcp.json','codex-mcp.toml'])await assert.rejects(access(resolve(dir,path)),{code:'ENOENT'});
-  const overlay=JSON.parse(await readFile(resolve(dir,'.codex-plugin/plugin.json'),'utf8'));
-  assert.equal(overlay.name,'quiet-glass');assert.equal(overlay.version,'0.4.2');assert.equal(overlay.apps,undefined);assert.equal(overlay.mcpServers,undefined);
-  const skill=await readFile(resolve(dir,'skills/quiet-glass/SKILL.md'),'utf8');
-  assert.ok(skill.includes('http://127.0.0.1:4318/#feed'));assert.ok(skill.includes('scripts/qg.mjs'));
-  assert.ok(!skill.includes('qg_open_workspace'));
-  assert.ok(!skill.includes('/Users/'));
-  await access(resolve(dir,'skills/quiet-glass/scripts/qg.mjs'));
-  const marketplace=JSON.parse(await readFile(resolve(root,'.agents/plugins/marketplace.json'),'utf8'));
-  assert.equal(resolve(root,marketplace.plugins[0].source.path),dir);
-  assert.match(execFileSync(process.execPath,[resolve(dir,'skills/quiet-glass/scripts/qg.mjs'),'help'],{cwd:'/tmp',encoding:'utf8'}),/Sill/);
+test('Sill cloud plugin keeps installed identity and uses the production MCP and sidebar skill',async()=>{
+ execFileSync(process.execPath,[resolve(root,'scripts/build-plugin.mjs')]);
+ const dir=resolve(root,'plugins/quiet-glass'),read=async path=>JSON.parse(await readFile(resolve(dir,path),'utf8'));
+ const manifest=JSON.parse(await readFile(resolve(root,'plugin.json'),'utf8')),overlay=await read('.codex-plugin/plugin.json');
+ assert.equal(manifest.name,'quiet-glass');assert.equal(overlay.name,manifest.name);
+ assert.equal(overlay.version,manifest.version);assert.equal(overlay.interface.displayName,'Sill · 窗台');
+ assert.equal(overlay.mcpServers,'./.mcp.json');assert.equal(overlay.apps,undefined);
+ const portable=await read('mcp.json'),compat=await read('.mcp.json');
+ assert.equal(portable.mcpServers.sill.url,'https://sill-web-preview.scs1213-temp-email.workers.dev/mcp');
+ assert.equal(compat.mcpServers.sill.url,portable.mcpServers.sill.url);
+ assert.equal(compat.mcpServers.sill.oauth_resource,portable.mcpServers.sill.url);
+ assert.deepEqual(compat.mcpServers.sill.scopes,['openid']);assert.equal(compat.mcpServers.sill.oauth.callback_port,4319);assert.ok(!compat.mcpServers.sill.oauth.client_secret);
+ await assert.rejects(access(resolve(dir,'plugin.json')),{code:'ENOENT'});
+ const skill=await readFile(resolve(dir,'skills/quiet-glass/SKILL.md'),'utf8');
+ assert.match(skill,/sill_open_workspace/);assert.match(skill,/sill_open_cards/);
+ assert.ok(!skill.includes('127.0.0.1'));assert.ok(!skill.includes('/Users/'));
+ await assert.rejects(access(resolve(dir,'skills/quiet-glass/scripts/qg.mjs')),{code:'ENOENT'});
+ await assert.rejects(access(resolve(dir,'.app.json')),{code:'ENOENT'});
 });

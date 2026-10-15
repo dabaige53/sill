@@ -95,7 +95,7 @@ begin
     or not coalesce(c.policy->'identityScopes' @> (p->'review'->'identityScopes'),false) then raise exception 'forbidden';end if;
    scopes:=array(select jsonb_array_elements_text(p->'review'->'contentScopes'));
    resources:=array(select jsonb_array_elements_text(p->'review'->'resources'));
-   if cardinality(scopes)=0 or not ('content:read'=any(scopes)) or not scopes<@array['content:read','content:write']
+   if cardinality(scopes)=0 or not ('content:read'=any(scopes)) or not scopes<@array['content:read','content:write','content:delete','event:submit','event:read']
     or not coalesce(c.policy->'contentScopes' @> to_jsonb(scopes),false) or cardinality(resources)=0 or cardinality(resources)>100
     or not coalesce(c.policy->'resources' @> to_jsonb(resources),false) or ('*'=any(resources) and cardinality(resources)<>1)
     or c.policy->>'audience' is distinct from (c.policy->>'appOrigin')||'/mcp'

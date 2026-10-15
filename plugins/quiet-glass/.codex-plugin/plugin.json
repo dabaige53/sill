@@ -1,22 +1,23 @@
 {
   "name": "quiet-glass",
-  "version": "0.4.2",
-  "description": "Sill 本地卡片工作区；由 Codex 查看、创建和整理卡片，并确认保存结果。",
+  "version": "0.5.0",
+  "description": "连接 Sill 云端账号，在 Codex 侧边栏查看和管理卡片。",
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Sill · 窗台",
-    "shortDescription": "Sill 本地卡片与 AI 操作",
+    "shortDescription": "Sill 云端卡片与侧边栏",
     "category": "Productivity",
-    "websiteURL": "http://127.0.0.1:4318/#feed",
+    "websiteURL": "https://sill-web-preview.scs1213-temp-email.workers.dev/",
     "capabilities": [
       "Read",
       "Write",
       "Interactive"
     ],
     "defaultPrompt": [
-      "打开本地 Sill 窗台页面",
-      "查看并整理本地卡片",
-      "将结果保存为卡片并确认页面同步"
+      "打开 Sill 云端窗台",
+      "查看并整理我的 Sill 云端卡片",
+      "将结果保存到 Sill 云端并确认保存成功"
     ]
   }
 }

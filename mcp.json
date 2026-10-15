@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "sill": {
+      "type": "streamable-http",
+      "url": "https://sill-web-preview.scs1213-temp-email.workers.dev/mcp"
+    }
+  }
+}

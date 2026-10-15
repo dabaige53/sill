@@ -1,7 +1,7 @@
 {
   "name": "quiet-glass-local",
   "interface": {
-    "displayName": "Sill · 窗台本地插件"
+    "displayName": "Sill · 窗台插件"
   },
   "plugins": [
     {

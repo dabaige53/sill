@@ -1,4 +1,4 @@
 interface:
   display_name: "Sill · 窗台"
-  short_description: "本地卡片展示与 AI 操作同步"
-  default_prompt: "查看并操作本地 Sill 卡片，保存后核对页面同步。"
+  short_description: "Sill 云端卡片与侧边栏"
+  default_prompt: "打开 Sill 云端窗台，查看并整理卡片，保存后确认云端结果。"

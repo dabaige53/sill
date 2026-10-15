@@ -1,6 +1,6 @@
 # Sill · 窗台
 
-> 当前发布入口：[`sill-web-preview`](https://sill-web-preview.scs1213-temp-email.workers.dev/)。云端版本支持已有账号 PKCE 登录及内容读写，工作台没有顶部整排工具栏。远程 MCP / OAuth 授权代码默认关闭，未完成真实客户端授权。下列旧规划段落保留历史语境；当前发布状态与回滚步骤以 [发布说明](docs/RELEASE-20261014.md) 为准。
+> 当前发布入口：[`sill-web-preview`](https://sill-web-preview.scs1213-temp-email.workers.dev/)。云端版本支持已有账号 PKCE 登录及内容读写，工作台没有顶部整排工具栏。Codex 云端插件接入变更见 [2026-10-15 发布说明](docs/RELEASE-20261015.md)；实际账号授权完成情况以该次部署验收为准。下列旧规划段落保留历史语境；当前发布状态与回滚步骤以 [发布说明](docs/RELEASE-20261014.md) 为准。
 
 
 Sill 是 agent 驱动的个人工作台（原名 Quiet Glass；包名、命令和本地数据路径暂沿用 `quiet-glass`）。Agent 持续负责内容采集、理解、执行与回写；卡片展示真实状态，也让用户表达完成、阅读、同步等意图。外部动作由 agent 通过宿主已有 MCP 或经核验的开源 MCP 执行，不为每个按钮增加外部应用直连接口。
@@ -73,13 +73,13 @@ Codex 插件使用 [本地技能](skills/quiet-glass/SKILL.md)。Hermes、Claude
 
 设计规范保留在 [design-system](design-system/README.md)。历史产品文档保留在 `docs/`；当前范围以本文件和 [本地操作说明](docs/LOCAL-OPERATIONS.md) 为准。
 
-### 从干净仓库安装 Codex 本地插件
+### 安装 Codex 云端插件
 
 ```sh
 codex plugin marketplace add dabaige53/quiet-glass
 codex plugin add quiet-glass@quiet-glass-local
 ```
 
-marketplace 使用已提交的 `plugins/quiet-glass`，不需要先构建。技能自带可移植 CLI；需要 Node.js 24+。开发时运行 `npm run plugin:build` 后提交生成目录。
+marketplace 使用已提交的 `plugins/quiet-glass`，无需先构建。插件显示为 Sill · 窗台；安装 ID 保留 `quiet-glass@quiet-glass-local`。当前版本连接云端 Sill，并提供全局侧边栏与聊天侧栏入口。安装后需要完成账号授权；本机旧卡片不会自动上传。
 
-插件只操作本机 loopback 服务。先在自己选定的仓库运行 `npm ci`，再运行 `npm start`；不要在插件缓存中启动服务或存数据。安装成功不表示云端 Sill 登录、远程 MCP 或来源已连接。本包不包含 MCP 注册、OAuth 或云端凭据。
+本地 CLI 仍可按上文本地操作说明单独使用。云端插件不需要启动本机服务。版本与验收限制见 [云端插件接入说明](docs/RELEASE-20261015.md)。

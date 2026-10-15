@@ -26,7 +26,7 @@ async function body(request){
 function sameOrigin(request,origin){
  if(request.headers.get('origin')!==origin||request.headers.get('sec-fetch-site')==='cross-site')throw serviceError('forbidden');
 }
-export function createSillRuntime(config,{clientFactory=createClient,html='',repositoryFactory=client=>new SupabaseRepository(client),oauthProviderFactory,now=Date.now}={}){
+export function createSillRuntime(config,{clientFactory=createClient,html='',appHtml='',repositoryFactory=client=>new SupabaseRepository(client),oauthProviderFactory,now=Date.now}={}){
  const origin=new URL(config.appOrigin);
  if(origin.origin!==config.appOrigin||origin.username||origin.password||origin.protocol!=='https:'&&!(origin.protocol==='http:'&&['127.0.0.1','localhost'].includes(origin.hostname)))throw new Error('Invalid application origin');
  const authUrl=new URL(config.url);
@@ -50,7 +50,7 @@ export function createSillRuntime(config,{clientFactory=createClient,html='',rep
   const access=await repositoryFactory(identity.client).session();if(!access.workspaceRead)throw serviceError('forbidden');
   return {...identity,token};
  }});
- const mcp=createMcpHandler(config,{clientFactory});
+ const mcp=createMcpHandler(config,{clientFactory,appHtml});
  return async request=>{
   try{
    const url=new URL(request.url),path=url.pathname;

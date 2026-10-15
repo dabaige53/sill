@@ -26,3 +26,5 @@ for(const [name,change] of Object.entries({
  'grant audience mismatch':a=>a.grant.audience='https://elsewhere.example/mcp'
 }))test('rejects '+name,()=>{const a=input();change(a);assert.throws(()=>reviewConsent(a),/consent_not_allowed/);});
 test('client-controlled presentation is escaped, with no remote logo or active form',()=>{const a=input();a.details.client.name='<img src=x onerror=alert(1)>';a.details.client.logo_uri='https://evil.example/track';const html=consentSummary(reviewConsent(a));assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('<img'));assert.ok(!html.includes('evil.example'));assert.ok(!html.includes('<form'));});
+
+test("full Sill access requires explicit matching policy and names every permission",()=>{const a=input();a.policy.contentScopes=["content:read","content:write","content:delete","event:read","event:submit"];a.grant.scopes=[...a.policy.contentScopes];a.policy.resources=["*"];a.grant.resources=["*"];const r=reviewConsent(a);assert.match(consentSummary(r),/删除卡片/);assert.match(consentSummary(r),/提交事件/);assert.match(consentSummary(r),/读取事件/);});

@@ -149,3 +149,12 @@ test('draft issuer binds versions to immutable OAuth sessions; old access/refres
   assert.deepEqual(await hook(web),web.claims);
  }finally{await f.close();}
 });
+
+test('owner-reviewed full Sill policy persists all five scopes without widening another client',async()=>{
+ const f=await oauthFixture();try{
+  f.policy.contentScopes=['content:read','content:write','content:delete','event:submit','event:read'];
+  await f.sql('update sill_private.oauth_clients set policy=$1',[JSON.stringify(f.policy)]);
+  const form=await f.form();assert.equal((await f.decide(form)).status,303);
+  assert.deepEqual((await f.grant()).scopes,f.policy.contentScopes);
+ }finally{await f.close();}
+});

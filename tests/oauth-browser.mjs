@@ -20,7 +20,7 @@ try{
    await context.route(f.config.appOrigin+'/**',async route=>{const req=route.request();const response=await f.runtime(new Request(req.url(),{method:req.method(),headers:await req.allHeaders(),...(req.postData()?{body:req.postData()}:{})}));const headers=Object.fromEntries(response.headers);if(response.headers.getSetCookie().length)headers['set-cookie']=response.headers.getSetCookie().join('\n');await route.fulfill({status:response.status,headers,body:Buffer.from(await response.arrayBuffer())});});
    const page=await context.newPage(),errors=[];page.setDefaultNavigationTimeout(15000);page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
    await page.goto(f.config.appOrigin+'/oauth/consent?authorization_id='+AUTH);
-   assert.match(await page.locator('main').innerText(),/读取、创建与修改/);assert.match(await page.locator('main').innerText(),/openid/);
+   assert.match(await page.locator('main').innerText(),/读取卡片、创建与修改卡片/);assert.match(await page.locator('main').innerText(),/openid/);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await page.getByRole('button',{name:'允许上述访问'}).focus();assert.equal(await page.evaluate(()=>document.activeElement.value),'approve');
    await page.screenshot({path:`tests/artifacts/oauth-${name}-review.png`,fullPage:true});
