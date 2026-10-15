@@ -1,8 +1,8 @@
 {
   "worker": "sill-web-preview",
   "file": "worker.mjs",
-  "sha256": "246417f679596dc4698dde58cdce8038d729c7ca713e565bae10db20bde03321",
-  "bytes": 1536655,
+  "sha256": "9bf1d7cd5bad0bdb53914680a7b921c3a976e6a06b38c130cbe4b126b800db8a",
+  "bytes": 1537646,
   "build": "npm ci && npm run build:release",
   "rollback_version": "dff1cfd4-a249-489f-8d9e-bf48bff53948",
   "compatibility_date": "2026-10-14",
@@ -21,6 +21,6 @@
     "sill_codex_oauth_consent",
     "sill_opaque_oauth_authorization_ids"
   ],
-  "deployed_version": "bb9d6988-a904-4caf-93a5-a7ddd2dba85f",
-  "deployment_id": "467027bf-5ec9-4903-985d-25509167ca26"
+  "deployed_version": "ea29671f-cb73-44f7-993c-962b90db3fc8",
+  "deployment_id": "e560bc3e-2ff9-4679-804e-ad671434aca1"
 }

@@ -49,7 +49,24 @@ export function createOAuthController(config,{authenticate,providerFactory=oauth
     let html,reviewedCallback;
     if(path==='/oauth/consent'){
      const id=url.searchParams.get('authorization_id');if(!isAuthorizationId(id)||[...url.searchParams.keys()].length!==1)throw serviceError('invalid_request');
-     stage='provider-details';const details=await provider.details(id);stage='provider-client';if(details.authorization_id!==id||!allowed(details.client?.id))throw serviceError('forbidden');
+     stage='provider-details';const details=await provider.details(id);
+     // Supabase may reuse its existing consent and return only a callback. This
+     // resumes an existing Sill grant; it must never install or widen one.
+     if(details.redirect_url){
+      stage='existing-consent';const matches=[];
+      for(const row of await rpc('list')){
+       const g=row.grant,p=row.policy;
+       if(!row.enabled||!allowed(row.clientId)||!g||!Number.isSafeInteger(g.consent_version)||g.consent_version<1||g.owner_id!==actor.principal.userId||g.caller_id!=='oauth:'+row.clientId||p.clientId!==row.clientId||p.appOrigin!==config.appOrigin||p.audience!==config.agentAudience)continue;
+       for(const redirectUri of p.redirectUris||[])try{
+        const review=reviewConsent({details:{authorization_id:id,user:{id:actor.principal.userId},client:{id:row.clientId},redirect_uri:redirectUri,scope:p.identityScopes.join(' ')},principal:actor.principal,policy:p,grant:{ownerId:g.owner_id,clientId:row.clientId,audience:g.audience,scopes:g.scopes,resources:g.resources}});
+        if(canonical([...g.scopes].sort())!==canonical([...p.contentScopes].sort())||canonical([...g.resources].sort())!==canonical([...p.resources].sort()))continue;
+        matches.push(checkedRedirect(details.redirect_url,review,'approve'));
+       }catch{}
+      }
+      if(matches.length!==1)throw serviceError('forbidden');
+      return new Response(null,{status:303,headers:{...headers,Location:matches[0]}});
+     }
+     stage='provider-client';if(details.authorization_id!==id||!allowed(details.client?.id))throw serviceError('forbidden');
      stage='client-policy';const policy=await rpc('policy',{clientId:details.client.id});if(policy.appOrigin!==config.appOrigin||policy.audience!==config.agentAudience)throw serviceError('forbidden');
      stage='review';const review=reviewConsent({details,principal:actor.principal,policy,grant:{ownerId:actor.principal.userId,clientId:policy.clientId,audience:policy.audience,scopes:policy.contentScopes,resources:policy.resources}});
      reviewedCallback=review.redirectUri;stage='flow-store';

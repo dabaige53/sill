@@ -182,3 +182,17 @@ test('production upgrade preserves existing UUID flow handles as text',async()=>
   assert.equal((await f.db.query('select authorization_id from sill_private.oauth_flows')).rows[0].authorization_id,'opaque_authorization_handle_002');
  }finally{await f.close();}
 });
+
+test('provider automatic consent resumes only one existing exact Sill grant without writes',async()=>{
+ const f=await oauthFixture();try{
+  await f.decide(await f.form());const before=await f.grant();
+  const flows=(await f.sql('select count(*) as n from sill_private.oauth_flows')).rows[0].n;
+  f.state.details={redirect_url:f.policy.redirectUris[0]+'?code=synthetic-resumed-code&state=bound'};
+  const resumed=await f.call('/oauth/consent?authorization_id='+AUTH);assert.equal(resumed.status,303);assert.equal(resumed.headers.get('location'),f.state.details.redirect_url);assert.deepEqual(await f.grant(),before);
+  assert.equal((await f.sql('select count(*) as n from sill_private.oauth_flows')).rows[0].n,flows);
+  f.state.details.redirect_url='https://evil.example/?code=synthetic&state=bound';assert.equal((await f.call('/oauth/consent?authorization_id='+AUTH)).status,403);
+  f.state.details.redirect_url=f.policy.redirectUris[0]+'?code=synthetic-resumed-code&state=bound';
+  await f.sql("update sill_private.caller_grants set scopes=array['content:read'] where caller_id=$1",['oauth:'+C]);assert.equal((await f.call('/oauth/consent?authorization_id='+AUTH)).status,403);
+  await f.sql('delete from sill_private.caller_grants where caller_id=$1',['oauth:'+C]);assert.equal((await f.call('/oauth/consent?authorization_id='+AUTH)).status,403);
+ }finally{await f.close();}
+});
