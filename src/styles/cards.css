@@ -18,8 +18,7 @@
 
 /* head: source icon · source · meta, with one timely value on the right. */
 .card-head{display:flex;align-items:center;gap:6px;min-height:20px;padding-right:30px;font-size:13px;line-height:20px;color:var(--muted)}
-/* A timely value sits flush right; on hover it yields its place to the more button. */
-.card-head:has(.card-head-right){padding-right:0}
+/* Reserve the more button slot even when reading progress is present. */
 .card-head-right{transition:opacity var(--fast)}
 .feed-card:hover .card-head-right,.feed-card:focus-within .card-head-right,.feed-card.tools-open .card-head-right{opacity:0}
 .has-cover .card-head-right{opacity:1!important}

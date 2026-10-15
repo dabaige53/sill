@@ -66,7 +66,7 @@ const Panels={
        +this.bar(this.bookmark(c,s),c.why?button('info','为什么看到','why',c.id):'',close);
    }
    // Articles, notes, suggestions: the lifted card shows everything.
-   const lead=c.summary&&c.form!=='quote'?`<p class="preview-lead">${esc(c.summary)}</p>`:'';
+   const lead=c.summary&&c.form!=='quote'&&c.summary!==c.body?.[0]?`<p class="preview-lead">${esc(c.summary)}</p>`:'';
    const points=c.points?.length?`<ol class="key-points">${c.points.map((p,i)=>`<li><i class="num">${i+1}</i><span>${esc(p)}</span></li>`).join('')}</ol>`:'';
    const related=c.type==='suggestion'?`<div class="refs">${(c.related||[]).map(id=>Store.card(id)).filter(Boolean).map(r=>`<button type="button" class="ref" data-action="card-open" data-id="${esc(r.id)}">${icon(CardTypes[r.type].icon,15)}<span>${esc(r.title)}</span>${icon('chevron',14)}</button>`).join('')}</div>`:'';
    // The whole piece opens right here; full screen is only a wider page for the same text.

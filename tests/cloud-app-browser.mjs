@@ -44,6 +44,15 @@ try{
  await frame.locator('#cloud-title').fill('Cloud plugin fixture');await frame.locator('#cloud-body').fill('Stored through the real MCP and SQL boundary');
  await frame.locator('#cloud-save').click();await frame.locator('[data-card]').waitFor({timeout:10000}).catch(async error=>{console.log(JSON.stringify({toolResults,errors,body:await frame.locator('body').innerText(),title:await frame.locator('#cloud-title').inputValue(),status:await frame.locator('#cloud-save-status').innerText()}));throw error;});
  const created=(await client.callTool({name:'sill_listContents',arguments:{}})).structuredContent.items[0];assert.equal(created.title,'Cloud plugin fixture');
+ // A short saved note must open as one readable layer, with no duplicated lead.
+ await frame.locator('[data-card] .card-title-button').click();
+ await frame.locator('#modal[open] .preview-full').waitFor();
+ assert.equal(await frame.locator('#modal .preview-lead').count(),0);
+ assert.equal(await frame.locator('#modal .preview-full').innerText(),'Stored through the real MCP and SQL boundary');
+ const detail=await frame.locator('.preview-full').boundingBox(),sheet=await frame.locator('.preview-sheet').boundingBox();
+ assert.ok(detail.y>=sheet.y&&detail.y+detail.height<=sheet.y+sheet.height,'short note body stays inside its sheet');
+ await frame.getByRole('button',{name:'关闭预览',exact:true}).click();
+ await frame.locator('#modal[open]').waitFor({state:'hidden'});
  await mkdir('tests/artifacts',{recursive:true});await page.screenshot({path:'tests/artifacts/cloud-app-desktop.png',animations:'disabled'});
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'tests/artifacts/cloud-app-mobile.png',animations:'disabled'});
  assert.ok(await frame.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
