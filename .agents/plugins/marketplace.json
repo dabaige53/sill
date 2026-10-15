@@ -1,11 +1,19 @@
 {
   "name": "quiet-glass-local",
-  "interface": {"displayName": "Quiet Glass 本地插件"},
+  "interface": {
+    "displayName": "Sill · 窗台本地插件"
+  },
   "plugins": [
     {
       "name": "quiet-glass",
-      "source": {"source": "local", "path": "./plugins/quiet-glass"},
-      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "source": {
+        "source": "local",
+        "path": "./plugins/quiet-glass"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
       "category": "Productivity"
     }
   ]

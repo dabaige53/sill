@@ -6,7 +6,7 @@ const port=Number(process.env.QG_LOCAL_PORT||4318);
 if(!Number.isInteger(port)||port<1||port>65535)throw new Error('QG_LOCAL_PORT 无效');
 const origin='http://127.0.0.1:'+port;
 if(command==='help'){
-  console.log('Quiet Glass 本地操作\n  node scripts/qg.mjs capabilities\n  node scripts/qg.mjs list [关键词]\n  node scripts/qg.mjs get <卡片ID>\n  node scripts/qg.mjs open <卡片ID>\n  node scripts/qg.mjs state\n  node scripts/qg.mjs apply [--file JSON文件]\napply 输入：{operations:[...],expectedRevision?:number}；无 --file 时从 stdin 读取 JSON。');
+  console.log('Sill · 窗台本地操作\n  node scripts/qg.mjs capabilities\n  node scripts/qg.mjs list [关键词]\n  node scripts/qg.mjs get <卡片ID>\n  node scripts/qg.mjs open <卡片ID>\n  node scripts/qg.mjs state\n  node scripts/qg.mjs apply [--file JSON文件]\napply 输入：{operations:[...],expectedRevision?:number}；无 --file 时从 stdin 读取 JSON。');
 }else try{
   let path='/api/local/state',options;
   if(command==='capabilities')path='/api/local/capabilities';
