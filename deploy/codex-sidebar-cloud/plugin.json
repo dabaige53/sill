@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "sill-codex-sidebar",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Codex 专用的 Sill 云端侧边栏入口，与原有产品插件并存。",
   "extensions": {
     "com.openai": {
@@ -20,8 +20,8 @@
           "查看我的 Sill 云端卡片"
         ],
         "logo": "./assets/sill-icon.png",
-        "composerIcon": "./assets/sidebar.svg",
-        "composerIconDark": "./assets/sidebar.svg"
+        "composerIcon": "./assets/sidebar-color.png",
+        "composerIconDark": "./assets/sidebar-color.png"
       },
       "apps": "./.app.json"
     }

@@ -1,8 +1,8 @@
 {
   "plugin_id": "Plugin_301de19f75548191bd869f43e4739e99",
   "plugin_url": "https://chatgpt.com/plugins/Plugin_301de19f75548191bd869f43e4739e99",
-  "release_id": "pluginrel_6ad09442ae908191aa854a14b3accfe3",
-  "version": "0.1.0",
+  "release_id": "pluginrel_6ad09607f6c881919d9daf1ca29c8273",
+  "version": "0.1.1",
   "scope": "WORKSPACE",
   "discoverability": "PRIVATE",
   "app_id": "asdk_app_6ad03f09b6048191a8826a236ac9097d",
