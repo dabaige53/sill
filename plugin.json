@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "quiet-glass",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "连接 Sill 云端账号，在 Codex 侧边栏查看和管理卡片。",
   "extensions": {
     "com.openai": {

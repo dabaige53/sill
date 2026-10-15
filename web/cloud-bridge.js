@@ -1,5 +1,14 @@
 import {App,applyDocumentTheme,applyHostStyleVariables} from '@modelcontextprotocol/ext-apps';
 
+// A host can finish mounting the view before its tool dispatcher is ready.
+// Retry only the first reads, never a write or an authentication denial.
+export async function readWhenReady(call,args,{sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
+ for(let attempt=0;;attempt++)try{return await call(args);}catch(error){
+  if(attempt===2||!['sill_open_workspace','sill_listContents'].includes(args.name)||error.status===401||error.status===403||error.status&&error.status<500)throw error;
+  await sleep([300,900][attempt]);
+ }
+}
+
 // Only the host owns authentication. The view has no tokens, direct fetch or iframe.
 export function createCloudTransport(call){
  return async function request(path,options={}){
@@ -23,18 +32,28 @@ export function createCloudTransport(call){
 
 export function startCloudBridge(){
  const bridge=new App({name:'Sill · 窗台',version:'0.5.0'},{},{autoResize:false});
+ let opening=true,initialAccess;
+ bridge.addEventListener('toolresult',result=>{
+  if(result.structuredContent?.connected===true)initialAccess=result.structuredContent;
+ });
  const style=()=>{const context=bridge.getHostContext();if(context?.theme)applyDocumentTheme(context.theme);if(context?.styles?.variables)applyHostStyleVariables(context.styles.variables);};
  bridge.addEventListener('hostcontextchanged',style);
  const ready=bridge.connect().then(style);
  // Retain a rejected connection for callers without an unhandled rejection.
  ready.catch(()=>{});
  const statuses={unauthenticated:401,forbidden:403,not_found:404,revision_conflict:409,idempotency_conflict:409,rate_limited:429};
- window.__SILL_HOST__={request:createCloudTransport(async args=>{
+ const call=async args=>{
   await ready;const result=await bridge.callServerTool(args);
   if(result.isError){let value;try{value=JSON.parse(result.content?.find(c=>c.type==='text')?.text);}catch{}
    const code=value?.error?.code||'unavailable';throw Object.assign(new Error('云端操作未完成'),{code,status:statuses[code]||503});
   }
   if(!result.structuredContent)throw Object.assign(new Error('云端返回内容无效'),{status:503});
   return result.structuredContent;
+ };
+ window.__SILL_HOST__={request:createCloudTransport(async args=>{
+  if(opening&&args.name==='sill_open_workspace'&&initialAccess){const value=initialAccess;initialAccess=null;return value;}
+  const value=await (opening?readWhenReady(call,args):call(args));
+  if(args.name==='sill_listContents')opening=false;
+  return value;
  }),manageAccess:()=>bridge.openLink({url:'https://sill-web-preview.scs1213-temp-email.workers.dev/oauth/grants'})};
 }

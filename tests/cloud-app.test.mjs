@@ -4,10 +4,19 @@ import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {createSillRuntime} from '../server/cloud/http.mjs';
 import {workspaceUri} from '../server/cloud/mcp.mjs';
-import {createCloudTransport} from '../web/cloud-bridge.js';
+import {createCloudTransport,readWhenReady} from '../web/cloud-bridge.js';
 import {cloudFixture} from './helpers/cloud-fixture.mjs';
 import {A,resource} from './helpers/boundary-fixture.mjs';
 import {token} from './helpers/signed-auth.mjs';
+
+test('initial host reads recover automatically, while denied reads and writes are not retried',async()=>{
+ let calls=0;const delays=[];
+ assert.equal(await readWhenReady(async()=>{if(++calls<3)throw Object.assign(new Error('Host starting'),{status:503});return 'ready';},{name:'sill_open_workspace'},{sleep:async ms=>delays.push(ms)}),'ready');
+ assert.equal(calls,3);assert.deepEqual(delays,[300,900]);
+ for(const [name,status] of [['sill_open_workspace',401],['sill_listContents',403],['sill_createContent',503]]){
+  calls=0;await assert.rejects(readWhenReady(async()=>{calls++;throw Object.assign(new Error('Denied'),{status});},{name},{sleep:async()=>{}}));assert.equal(calls,1);
+ }
+});
 
 test('cloud view preserves edit revision and idempotency when using host tools',async()=>{
  const calls=[],request=createCloudTransport(async args=>{calls.push(args);return {connected:true};});

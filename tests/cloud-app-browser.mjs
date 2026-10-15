@@ -20,10 +20,10 @@ try{
  await client.connect(new StreamableHTTPClientTransport(new URL(resource),{requestInit:{headers:{Authorization:'Bearer '+token({client_id:'app-browser',aud:resource})}},fetch:(url,init)=>runtime(new Request(url,init))}));
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
- const toolResults=[];
+ const toolResults=[];let startupReads=0;
  const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[],network=[];
  page.on('pageerror',e=>errors.push(e.message));
- await page.exposeBinding('sillTool',async({frame},params)=>{assert.equal(frame,page.mainFrame());const result=await client.callTool(params);toolResults.push({name:params.name,result});return result;});
+ await page.exposeBinding('sillTool',async({frame},params)=>{assert.equal(frame,page.mainFrame());if(params.name==='sill_open_workspace'&&++startupReads<3)throw new Error('Synthetic host dispatcher starting');const result=await client.callTool(params);toolResults.push({name:params.name,result});return result;});
  await page.goto('http://127.0.0.1:'+server.address().port);
  await page.route('**/*',route=>{network.push(route.request().url());return route.abort();});
  await page.evaluate(html=>{
@@ -39,7 +39,7 @@ try{
   });document.body.appendChild(iframe);iframe.srcdoc=html;
  },html);
  const frame=await (await page.locator('#sill').elementHandle()).contentFrame();
- await frame.locator('body.cloud-signed-in').waitFor();
+ await frame.locator('body.cloud-signed-in').waitFor();assert.equal(startupReads,3);assert.equal(await frame.getByRole('button',{name:'重新连接云端'}).count(),0);
  await frame.getByRole('button',{name:'记下第一条内容'}).click();
  await frame.locator('#cloud-title').fill('Cloud plugin fixture');await frame.locator('#cloud-body').fill('Stored through the real MCP and SQL boundary');
  await frame.locator('#cloud-save').click();await frame.locator('[data-card]').waitFor({timeout:10000}).catch(async error=>{console.log(JSON.stringify({toolResults,errors,body:await frame.locator('body').innerText(),title:await frame.locator('#cloud-title').inputValue(),status:await frame.locator('#cloud-save-status').innerText()}));throw error;});
