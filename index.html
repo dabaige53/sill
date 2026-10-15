@@ -179,11 +179,11 @@ body.feed-more .feed-end,main:has(.welcome,.empty-card) .feed-end{display:none}
 .feed-card:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .feed-card:after{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid transparent;pointer-events:none;transition:border-color var(--base)}
 .card-body{display:flex;flex-direction:column;gap:6px;padding:16px var(--card-padding) var(--card-padding);min-width:0}
+.card-title,.card-summary,.preview-full{overflow-wrap:anywhere}
 
 /* head: source icon · source · meta, with one timely value on the right. */
 .card-head{display:flex;align-items:center;gap:6px;min-height:20px;padding-right:30px;font-size:13px;line-height:20px;color:var(--muted)}
-/* A timely value sits flush right; on hover it yields its place to the more button. */
-.card-head:has(.card-head-right){padding-right:0}
+/* Reserve the more button slot even when reading progress is present. */
 .card-head-right{transition:opacity var(--fast)}
 .feed-card:hover .card-head-right,.feed-card:focus-within .card-head-right,.feed-card.tools-open .card-head-right{opacity:0}
 .has-cover .card-head-right{opacity:1!important}
@@ -377,7 +377,7 @@ dialog::backdrop{background:var(--dim);-webkit-backdrop-filter:blur(6px);backdro
 .preview-sheet .sheet-scroll{max-height:min(80vh,820px)}
 .preview-cover{margin:8px 8px 0;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:var(--surface)}
 .preview-cover img{width:100%;height:100%;object-fit:cover}
-.preview-body{display:flex;flex-direction:column;gap:12px;padding:22px 24px 26px}
+.preview-body{display:flex;flex-direction:column;gap:14px;padding:26px 30px 30px;overflow-wrap:anywhere}
 .preview-meta{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--secondary)}
 .preview-meta .icon{color:var(--secondary)}
 .preview-body h1{font-size:24px;font-weight:600;letter-spacing:-.03em;line-height:1.35;white-space:pre-line}
@@ -385,8 +385,8 @@ dialog::backdrop{background:var(--dim);-webkit-backdrop-filter:blur(6px);backdro
 .preview-excerpt{position:relative;max-height:150px;overflow:hidden;font-size:15px;line-height:1.75;color:var(--muted)}
 .preview-excerpt:after{content:"";position:absolute;inset:auto 0 0;height:64px;background:linear-gradient(transparent,var(--card))}
 .preview-excerpt p+p{margin-top:12px}
-.preview-full p{font-size:15px;line-height:1.75;color:var(--ink)}
-.preview-full p+p{margin-top:12px}
+.preview-full p{font-size:16px;line-height:1.85;color:var(--ink);white-space:pre-wrap}
+.preview-full p+p{margin-top:16px}
 .preview-note{border-left:2px solid var(--line-hover);padding:2px 0 2px 14px;font-size:14px;line-height:1.75;color:var(--muted);white-space:pre-wrap}
 .preview-sender{display:flex;align-items:center;gap:10px}
 .preview-sender>span:last-child{display:flex;flex-direction:column}
@@ -1259,7 +1259,6 @@ const MotionEngine={
  query:matchMedia('(prefers-reduced-motion: reduce)'),
  panelAnimations:new WeakMap(),
  layoutAnimations:new WeakMap(),
- returnLayers:new Set(),
  get reduced(){return this.query.matches||!!document.body?.classList.contains('reduce-motion');},
  animate(el,keyframes,options={}){
    if(!el||!el.animate)return null;
@@ -1269,7 +1268,7 @@ const MotionEngine={
    }
    return el.animate(keyframes,{duration:260,easing:'cubic-bezier(.2,.75,.25,1)',...options});
  },
- enter(el,delay=0){return this.animate(el,[{opacity:0,transform:'translateY(10px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:320,delay});},
+ enter(el,delay=0){return this.animate(el,[{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:280,delay,fill:'backwards'});},
  // New cards drop in from above: the one motion for arrivals.
  drop(el,delay=0){return this.animate(el,[{opacity:0,transform:'translateY(-14px)'},{opacity:1,transform:'translateY(0)'}],{duration:360,delay});},
  press(el){return this.animate(el,[{transform:'scale(1)'},{transform:'scale(.93)',offset:.35},{transform:'scale(1)'}],{duration:240});},
@@ -1289,35 +1288,13 @@ const MotionEngine={
  },
  phoneSheet(el){return el.classList.contains('preview')&&matchMedia('(max-width:650px)').matches&&!!el.querySelector('.preview-sheet');},
  surface(dialog){return dialog.classList.contains('reader')?dialog:dialog.querySelector('.preview-sheet')||dialog;},
- // A copy of the card laid over the top of the morphing surface: under the surface's start transform it sits exactly on the card.
- ghost(origin,host,s){
-   if(!origin?.el?.matches?.('[data-card]'))return null;
-   const ghost=document.createElement('div'),copy=origin.el.cloneNode(true),r=origin.rect;
-   ghost.className='motion-ghost';ghost.setAttribute('aria-hidden','true');ghost.inert=true;
-   copy.classList.remove('feed-item');
-   [copy,...copy.querySelectorAll('*')].forEach(n=>['id','data-card','data-action','data-id','tabindex','aria-label'].forEach(k=>n.removeAttribute(k)));
-   Object.assign(copy.style,{position:'relative',left:'0',top:'0',width:'100%',height:'100%',margin:'0',transform:'none',animation:'none'});
-   if(getComputedStyle(host).position==='static')host.style.position='relative';
-   Object.assign(ghost.style,{position:'absolute',left:'0',top:'0',width:r.width+'px',height:r.height+'px',margin:'0',zIndex:'60',pointerEvents:'none',transformOrigin:'0 0',transform:`scale(${1/s})`});
-   ghost.appendChild(copy);host.appendChild(ghost);return ghost;
- },
- // Transform that puts a surface of rect `r` exactly over `from`: scaled by width, the rest cropped.
- morph(r,from,radius){
-   const s=from.width/r.width,crop=Math.max(0,r.height-from.height/s);
-   return {s,transform:`translate(${from.left-r.left}px,${from.top-r.top}px) scale(${s})`,clipPath:`inset(0 0 ${crop}px 0 round ${parseFloat(radius||22)/s}px)`};
- },
  cancelPanel(el){
    (this.panelAnimations.get(el)||[]).forEach(animation=>animation?.cancel());
    this.panelAnimations.delete(el);
-   el?.querySelectorAll?.('.motion-ghost').forEach(n=>n.remove());
- },
- clearReturns(){
-   this.returnLayers.forEach(layer=>{layer.getAnimations().forEach(a=>a.cancel());layer.remove();});
-   this.returnLayers.clear();
  },
  openPanel(el,origin){
-   this.cancelPanel(el);this.clearReturns();
-   const from=origin?.rect,sheet=this.surface(el),bar=el.querySelector(':scope > .float-bar, .reader .float-bar');
+   this.cancelPanel(el);
+   const sheet=this.surface(el),bar=el.querySelector(':scope > .float-bar, .reader .float-bar');
    // Phone: the preview is a sheet rising from the bottom edge; its position is a CSS transition, the dim fades in with it.
    if(this.phoneSheet(el)){
      if(this.reduced){this.panelAnimations.set(el,[this.enter(el)]);return;}
@@ -1327,59 +1304,20 @@ const MotionEngine={
      this.panelAnimations.set(el,[...sheet.querySelectorAll(':is(.preview-body,.reader-body)>:not(h1,.preview-meta,.preview-sender)')].map(n=>n.animate([{opacity:0},{opacity:1}],{duration:280,delay:200,easing:'linear',fill:'backwards'})));
      return;
    }
-   if(!from||this.reduced){this.panelAnimations.set(el,[this.enter(el)]);return;}
-   if(origin.id)this.lift(origin.id);
-   const r=sheet.getBoundingClientRect(),m=this.morph(r,from,origin.radius),end=getComputedStyle(sheet).borderTopLeftRadius||'28px';
-   const timing={duration:460,easing:'cubic-bezier(.22,.9,.24,1)'};
-   const animations=[
-     sheet.animate([{transform:m.transform,clipPath:m.clipPath,transformOrigin:'0 0'},{transform:'none',clipPath:`inset(0 0 0 0 round ${end})`,transformOrigin:'0 0'}],timing),
-     el.animate([{opacity:0},{opacity:1}],{duration:300,easing:'ease-out',pseudoElement:'::backdrop'})
-   ];
-   // The card itself rides along and dissolves into the sheet.
-   const ghost=this.ghost(origin,sheet,m.s);
-   if(ghost){
-     const g=ghost.animate([{opacity:1},{opacity:0,offset:.5},{opacity:0}],timing);
-     const drop=()=>{ghost.remove();if(sheet.style.position==='relative')sheet.style.position='';};
-     g.finished.then(drop,drop);animations.push(g);
-   }
-   // The title arrives with the card; the text settles in just after.
-   sheet.querySelectorAll(':is(.preview-body,.reader-body)>:not(h1,.preview-meta,.preview-sender),.player>:not(h1,.player-art)').forEach(n=>animations.push(n.animate([{opacity:0,translate:'0 6px'},{opacity:1,translate:'0 0'}],{duration:260,delay:180,easing:'ease-out',fill:'backwards'})));
-   if(bar&&bar!==sheet)animations.push(bar.animate([{opacity:0,translate:'0 14px'},{opacity:1,translate:'0 0'}],{duration:280,delay:220,easing:'cubic-bezier(.2,.75,.25,1)',fill:'backwards'}));
+   // Keep text at its final size. Scaling a cloned card over the detail sheet
+   // creates two text layers and clips short notes during the transition.
+   const animations=[this.enter(sheet)];
+   if(bar&&bar!==sheet)animations.push(this.enter(bar));
    this.panelAnimations.set(el,animations);
  },
- // Called before dialog.close(): a copy of the sheet shrinks back into the card on the desk.
  closePanel(el,origin,done=()=>{}){
-   const sheet=this.surface(el),r=sheet.getBoundingClientRect(),style=getComputedStyle(sheet);
-   this.cancelPanel(el);this.clearReturns();
-   if(this.reduced||!origin?.rect||!el.animate){done();return;}
-   const layer=document.createElement('div');layer.className='motion-return';layer.setAttribute('aria-hidden','true');layer.inert=true;
-   Object.assign(layer.style,{position:'fixed',inset:'0',zIndex:'60',pointerEvents:'none'});
-   const dim=document.createElement('div');Object.assign(dim.style,{position:'absolute',inset:'0',background:getComputedStyle(el,'::backdrop').backgroundColor||'var(--dim)'});
-   // A closed dialog is not rendered, so the page is copied into a plain surface.
-   let copy;
-   if(sheet===el){copy=document.createElement('div');copy.className=el.className;copy.append(...[...el.children].map(n=>n.cloneNode(true)));}
-   else copy=sheet.cloneNode(true);
-   copy.removeAttribute('id');copy.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
-   copy.querySelectorAll('.float-bar').forEach(n=>n.remove());
-   Object.assign(copy.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',margin:'0',transformOrigin:'0 0',background:style.backgroundColor,borderRadius:style.borderTopLeftRadius,overflow:'hidden',boxShadow:style.boxShadow});
-   layer.append(dim,copy);document.body.appendChild(layer);this.returnLayers.add(layer);
-   // Keep the reading position on the shrinking copy.
-   const live=sheet.querySelectorAll('.sheet-scroll,.reader-scroll'),copied=copy.querySelectorAll('.sheet-scroll,.reader-scroll');
-   live.forEach((n,i)=>{if(copied[i])copied[i].scrollTop=n.scrollTop;});
-   const to=origin.rect,m=this.morph(r,to,origin.radius),timing={duration:380,easing:'cubic-bezier(.3,.7,.2,1)'};
-   const animations=[
-     copy.animate([{transform:'none',clipPath:`inset(0 0 0 0 round ${style.borderTopLeftRadius})`},{transform:m.transform,clipPath:m.clipPath}],timing),
-     dim.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out',fill:'forwards'})
-   ];
-   const ghost=this.ghost(origin,copy,m.s);
-   if(ghost)animations.push(ghost.animate([{opacity:0},{opacity:0,offset:.3},{opacity:1}],timing));
-   const clean=()=>{if(!layer.isConnected)return;layer.remove();this.returnLayers.delete(layer);done();};
-   Promise.all(animations.map(a=>a.finished)).then(clean,clean);
+   this.cancelPanel(el);
+   done();
  },
- flip(el,oldRect){
+ flip(el,oldRect,newRect){
    this.layoutAnimations.get(el)?.cancel();
    this.layoutAnimations.delete(el);
-   const now=el.getBoundingClientRect(),x=oldRect.left-now.left,y=oldRect.top-now.top;
+   const now=newRect||el.getBoundingClientRect(),x=oldRect.left-now.left,y=oldRect.top-now.top;
    if(Math.abs(x)+Math.abs(y)>1)this.layoutAnimations.set(el,this.animate(el,[{transform:`translate(${x}px,${y}px)`},{transform:'translate(0,0)'}],{duration:320}));
  },
  pulse(el){return this.animate(el,[{transform:'scale(1)'},{transform:'scale(1.08)',offset:.5},{transform:'scale(1)'}],{duration:350});}
@@ -1593,7 +1531,7 @@ const Panels={
        +this.bar(this.bookmark(c,s),c.why?button('info','为什么看到','why',c.id):'',close);
    }
    // Articles, notes, suggestions: the lifted card shows everything.
-   const lead=c.summary&&c.form!=='quote'?`<p class="preview-lead">${esc(c.summary)}</p>`:'';
+   const lead=c.summary&&c.form!=='quote'&&c.summary!==c.body?.[0]?`<p class="preview-lead">${esc(c.summary)}</p>`:'';
    const points=c.points?.length?`<ol class="key-points">${c.points.map((p,i)=>`<li><i class="num">${i+1}</i><span>${esc(p)}</span></li>`).join('')}</ol>`:'';
    const related=c.type==='suggestion'?`<div class="refs">${(c.related||[]).map(id=>Store.card(id)).filter(Boolean).map(r=>`<button type="button" class="ref" data-action="card-open" data-id="${esc(r.id)}">${icon(CardTypes[r.type].icon,15)}<span>${esc(r.title)}</span>${icon('chevron',14)}</button>`).join('')}</div>`:'';
    // The whole piece opens right here; full screen is only a wider page for the same text.
@@ -1752,13 +1690,22 @@ function formatBytes(n){return n<1024?`${n} B`:n<1048576?`${(n/1024).toFixed(1)}
 /* module: src/interactions/layout.js */
 class FeedLayout{
  constructor(container){
-   this.container=container;this.frame=0;
+   this.container=container;this.frame=0;this.animateNext=false;
    this.onResize=()=>this.schedule(false);
    window.addEventListener('resize',this.onResize,{passive:true});
+   // Embedded workspaces can resize without a window resize event.
+   this.observedWidth=container.clientWidth;
+   this.observer=new ResizeObserver(entries=>{
+     const width=entries[0].contentRect.width;
+     if(Math.abs(width-this.observedWidth)<1)return;
+     this.observedWidth=width;this.schedule(false);
+   });
+   this.observer.observe(container);
  }
  schedule(animate=false){
-   cancelAnimationFrame(this.frame);
-   this.frame=requestAnimationFrame(()=>this.layout(animate));
+   this.animateNext=this.animateNext||animate;
+   if(this.frame)return;
+   this.frame=requestAnimationFrame(()=>{const next=this.animateNext;this.frame=0;this.animateNext=false;this.layout(next);});
  }
  layout(animate=false){
    const el=this.container,width=el.clientWidth;
@@ -1773,14 +1720,16 @@ class FeedLayout{
    const old=animate?new Map(items.map(n=>[n,n.getBoundingClientRect()])):null;
    el.dataset.columns=cols;
    items.forEach(n=>{n.style.width=col+'px';});
-   const heights=Array(cols).fill(0);
-   items.forEach(n=>{
+   // Measure once after setting every width, then write positions together.
+   // Interleaving offsetHeight and top/left forces a layout for each card.
+   const sizes=items.map(n=>n.offsetHeight),heights=Array(cols).fill(0);
+   items.forEach((n,index)=>{
      let c=0;for(let i=1;i<cols;i++)if(heights[i]<heights[c]-1)c=i;
      n.style.left=(inset+c*(col+gap))+'px';n.style.top=heights[c]+'px';
-     heights[c]+=n.offsetHeight+gap+(n.classList.contains('stack-card')?10:0);
+     heights[c]+=sizes[index]+gap+(n.classList.contains('stack-card')?10:0);
    });
    el.style.height=(Math.max(...heights)-gap)+'px';
-   if(old)items.forEach(n=>MotionEngine.flip(n,old.get(n)));
+   if(old){const next=items.map(n=>n.getBoundingClientRect());items.forEach((n,i)=>MotionEngine.flip(n,old.get(n),next[i]));}
  }
 }
 
@@ -2180,6 +2129,7 @@ class AppController{
    <input type="file" id="file-input" hidden multiple accept=".opml,.xml,.csv,.html,.htm,.md,.markdown,.txt,.ics">
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
    this.grid=document.getElementById('feed-grid');this.dialog=document.getElementById('modal');
+   this.themeQuery=matchMedia('(prefers-color-scheme: dark)');
    this.applyPreferences();
    this.layout=new FeedLayout(this.grid);this.pageLimit=40;this.drag=new DragManager(this);this.gestures=new Gestures(this);
    document.addEventListener('click',e=>this.click(e));this.bindStacks();
@@ -2219,7 +2169,7 @@ class AppController{
    },{passive:true});
    this.bindFileDrop();
    document.getElementById('file-input').addEventListener('change',e=>{const files=[...e.target.files];e.target.value='';this.importFiles(files);});
-   this.themeQuery=matchMedia('(prefers-color-scheme: dark)');this.themeQuery.addEventListener?.('change',()=>this.applyPreferences());
+   this.themeQuery.addEventListener?.('change',()=>this.applyPreferences());
    this.readTicker=setInterval(()=>this.tick(),1000);
    if(!location.hash)history.replaceState({glass:true,prev:null},'','#'+this.mode);
    this.renderCurrent(true);this.route();this.checkReminders();
@@ -2368,6 +2318,17 @@ class AppController{
      this.sheetLeaving=true;sheet.classList.remove('is-drag');sheet.classList.add('is-off');sheet.style.translate='';
      this.dialog.querySelector(':scope > .float-bar')?.classList.add('is-hidden');this.dialog.style.setProperty('--backdrop','0');
      setTimeout(()=>{this.sheetLeaving=false;if(this.modalToken===token&&this.dialog.open){this.skipReturnMotion=true;this.closeNative();}},300);
+     return;
+   }
+   if(animate&&this.modalKind==='preview'&&!MotionEngine.reduced){
+     const token=this.modalToken,sheet=MotionEngine.surface(this.dialog),opacity=getComputedStyle(sheet).opacity;
+     MotionEngine.cancelPanel(this.dialog);this.sheetLeaving=true;this.dialog.style.setProperty('--backdrop','0');
+     const animation=MotionEngine.animate(sheet,[{opacity,transform:'translateY(0)'},{opacity:0,transform:'translateY(4px)'}],{duration:140,fill:'forwards'});
+     const bar=this.dialog.querySelector(':scope > .float-bar');
+     const barAnimation=bar?MotionEngine.animate(bar,[{opacity:1},{opacity:0}],{duration:100,fill:'forwards'}):null;
+     MotionEngine.panelAnimations.set(this.dialog,[animation,barAnimation]);
+     const finish=()=>{if(this.modalToken===token&&this.sheetLeaving){this.sheetLeaving=false;this.closeNative(false);}};
+     if(animation)animation.finished.then(finish,()=>{});else finish();
      return;
    }
    this.modalToken++;this.pauseMedia();
@@ -3062,15 +3023,18 @@ class AppController{
      case 'connect-range':this.connectRange=extra;el.parentElement.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b===el);b.setAttribute('aria-checked',String(b===el));b.tabIndex=b===el?0:-1;});break;
      case 'permission-allow':case 'permission-later':{
        const k=extra;
-       if(name==='permission-allow')Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:'只在本机读取',enabled:true,status:'ok',count:0,syncedAt:Date.now(),stack:k!=='calendar',open:'inside',range:'30d'});
+       if(name==='permission-allow'){
+         Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:'外部来源尚未连接',enabled:false,status:'attention',count:0,stack:k!=='calendar',open:'inside',range:'30d'});
+         this.toast('尚未接入系统授权，未读取任何外部内容');
+       }
        if(this.permissionQueue){this.nextPermission();break;}
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');break;
      }
      case 'source-open':this.sourceId=id;this.panelReturn=this.sourceReturn();this.swapPanel(Panels.sourceDetail(id),'source');break;
-     case 'source-toggle':{const s=Store.source(id);if(!s)break;const on=!(s.enabled&&s.status!=='paused');Store.upsertSource({...s,enabled:on,status:on?'ok':'paused'});this.repaintSources();break;}
+     case 'source-toggle':{const s=Store.source(id);if(!s)break;const on=!(s.enabled&&s.status!=='paused');Store.upsertSource({...s,enabled:on,status:on?'attention':'paused'});this.repaintSources();break;}
      case 'source-flag':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:!s[key]});this.replacePanelContent(Panels.sourceDetail(sid));this.withFeedAnchor(()=>{});break;}
      case 'source-set':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:extra});this.replacePanelContent(Panels.sourceDetail(sid));break;}
-     case 'source-pause':{const s=Store.source(id);Store.upsertSource({...s,status:s.status==='paused'?'ok':'paused',enabled:s.status==='paused'});this.replacePanelContent(Panels.sourceDetail(id));break;}
+     case 'source-pause':{const s=Store.source(id);Store.upsertSource({...s,status:s.status==='paused'?'attention':'paused',enabled:s.status==='paused'});this.replacePanelContent(Panels.sourceDetail(id));break;}
      case 'source-remove':{
        const s=Store.source(id),count=Store.state.cards.filter(c=>`src-${c.kind}`===id).length;
        this.panelReturn=()=>this.swapPanel(Panels.sourceDetail(id),'source');
@@ -3082,9 +3046,7 @@ class AppController{
      }
      case 'feed-add':{
        const url=Importers.url(document.getElementById('feed-url')?.value||'');if(!url){this.toast('请粘贴一个 http 或 https 的订阅地址');return;}
-       const s=Store.source('src-rss'),count=(s?.count||0)+1;
-       Store.upsertSource({id:'src-rss',kind:'rss',name:'RSS',detail:`${count} 个订阅`,enabled:true,status:'ok',count,syncedAt:Date.now(),stack:s?.stack??true,open:s?.open||'inside',range:s?.range||'30d'});
-       this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.toast(`已订阅 ${new URL(url).hostname}`);break;
+       this.toast('RSS 订阅尚未启用，地址尚未保存；可以导入 OPML 文件');break;
      }
      case 'import-pick':document.getElementById('file-input').click();break;
      case 'import-toggle':{const i=Number(extra);this.importPicked.has(i)?this.importPicked.delete(i):this.importPicked.add(i);this.replacePanelContent(Panels.importPreview(this));this.dialog.querySelector(`[data-action="import-toggle"][data-extra="${i}"]`)?.focus();break;}
@@ -3150,6 +3112,7 @@ class AppController{
    e.preventDefault();this.capture(text);
  }
  key(e){
+   if(e.isComposing)return;
    if(e.key==='Escape'&&this.modalKind==='search'){e.preventDefault();this.closeModal();return;}
    const radio=e.target.closest?.('[role="radio"]'),group=radio?.closest('[role="radiogroup"]');
    if(group&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)){
@@ -3175,7 +3138,6 @@ class AppController{
      }
    }
    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(this.modalKind!=='search')this.openPanel('search');return;}
-   if(e.isComposing)return;
    if(e.target.id==='tag-new'&&e.key==='Enter'){e.preventDefault();this.action('add-tag',this.editId);return;}
    if(e.target.id==='filter-search'&&e.key==='Enter'){e.preventDefault();const first=this.dialog.querySelector('#search-results [data-action="card-open"]');if(first&&this.filter.query.trim())first.click();else this.action('apply-filter');return;}
    if(e.target.id==='capture-text'&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();this.action('capture-save');return;}
@@ -3257,8 +3219,8 @@ const LocalSync={
     const next=this.snapshot(),before=this.baseline,operations=[];
     // Cards created or edited on the page (capture, import, inline notes) travel as whole cards.
     const oldCards=new Map(before.cards.map(card=>[card.id,JSON.stringify(card)])),newIds=new Set(next.cards.map(card=>card.id));
-    for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card});
-    for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id});
+    for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card,before:oldCards.has(card.id)?JSON.parse(oldCards.get(card.id)):null});
+    for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id,before:JSON.parse(oldCards.get(id))});
     const oldSources=new Map((before.sources||[]).map(source=>[source.id,JSON.stringify(source)])),newSources=new Set(next.sources.map(source=>source.id));
     for(const source of next.sources)if(oldSources.get(source.id)!==JSON.stringify(source))operations.push({op:'source.upsert',source});
     for(const id of oldSources.keys())if(!newSources.has(id))operations.push({op:'source.delete',id});
@@ -3281,6 +3243,8 @@ const LocalSync={
     try{
       while(this.pending.length){
         if(this.unversioned)throw new Error('旧草稿缺少版本信息，请先导出并与服务端版本比较');
+        // Whole-card writes carry their original card. Independent reading
+        // observations can still merge without invalidating unrelated edits.
         const batch={...this.pending[0],...(this.recovering?{expectedRevision:this.revision}:{})};this.persist();
         const value=await this.request('operations',batch);this.pending.shift();this.revision=value.revision;this.persist();
         if(!this.pending.length)this.adopt(value);
@@ -3301,9 +3265,9 @@ const LocalSync={
     if(manual)this.failed=false;
     if(this.pending.length){await this.flush();if(this.pending.length)throw new Error('仍有未同步修改');return;}
     // Keep an editor's original values until its save can be checked for conflicts.
-    if(this.app.modalKind==='editor')return;
+    if(this.app.modalKind==='editor'||this.app.editingId)return;
     const value=await this.request('state');
-    if(!this.busy&&!this.pending.length&&this.app.modalKind!=='editor'&&value.revision!==this.revision)this.adopt(value);
+    if(!this.busy&&!this.pending.length&&this.app.modalKind!=='editor'&&!this.app.editingId&&value.revision!==this.revision)this.adopt(value);
   },
   adopt(value,{draft=false}={}){
     if(!value.state)return;
@@ -3312,7 +3276,11 @@ const LocalSync={
     const changed=JSON.stringify([Store.state.cards,Store.state.items,Store.state.preferences,Store.state.sources])!==JSON.stringify([value.state.cards,value.state.items,value.state.preferences,value.state.sources||[]]);
     this.revision=value.revision;
     if(!draft)try{localStorage.setItem('quiet-glass-sync-revision',JSON.stringify(value.revision));}catch{}
+    const editingCard=app.editingId?Store.card(app.editingId):null;
     Object.assign(Store.state,value.state);Store.state.sources=value.state.sources||[];Store.state.storageAvailable=true;
+    // A response to an unrelated reading observation may include external edits.
+    // Keep the inline editor's original card until its conditional save finishes.
+    if(editingCard){const index=Store.state.cards.findIndex(c=>c.id===editingCard.id);if(index>=0)Store.state.cards[index]=editingCard;else Store.state.cards.push(editingCard);}
     this.baseline=this.snapshot();
     // Write the browser backup without enqueueing another remote operation.
     try{localStorage.setItem(Store.key,JSON.stringify(Store.serialized()));}catch{}

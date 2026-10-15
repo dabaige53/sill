@@ -25,6 +25,7 @@ class AppController{
    <input type="file" id="file-input" hidden multiple accept=".opml,.xml,.csv,.html,.htm,.md,.markdown,.txt,.ics">
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
    this.grid=document.getElementById('feed-grid');this.dialog=document.getElementById('modal');
+   this.themeQuery=matchMedia('(prefers-color-scheme: dark)');
    this.applyPreferences();
    this.layout=new FeedLayout(this.grid);this.pageLimit=40;this.drag=new DragManager(this);this.gestures=new Gestures(this);
    document.addEventListener('click',e=>this.click(e));this.bindStacks();
@@ -64,7 +65,7 @@ class AppController{
    },{passive:true});
    this.bindFileDrop();
    document.getElementById('file-input').addEventListener('change',e=>{const files=[...e.target.files];e.target.value='';this.importFiles(files);});
-   this.themeQuery=matchMedia('(prefers-color-scheme: dark)');this.themeQuery.addEventListener?.('change',()=>this.applyPreferences());
+   this.themeQuery.addEventListener?.('change',()=>this.applyPreferences());
    this.readTicker=setInterval(()=>this.tick(),1000);
    if(!location.hash)history.replaceState({glass:true,prev:null},'','#'+this.mode);
    this.renderCurrent(true);this.route();this.checkReminders();
@@ -213,6 +214,17 @@ class AppController{
      this.sheetLeaving=true;sheet.classList.remove('is-drag');sheet.classList.add('is-off');sheet.style.translate='';
      this.dialog.querySelector(':scope > .float-bar')?.classList.add('is-hidden');this.dialog.style.setProperty('--backdrop','0');
      setTimeout(()=>{this.sheetLeaving=false;if(this.modalToken===token&&this.dialog.open){this.skipReturnMotion=true;this.closeNative();}},300);
+     return;
+   }
+   if(animate&&this.modalKind==='preview'&&!MotionEngine.reduced){
+     const token=this.modalToken,sheet=MotionEngine.surface(this.dialog),opacity=getComputedStyle(sheet).opacity;
+     MotionEngine.cancelPanel(this.dialog);this.sheetLeaving=true;this.dialog.style.setProperty('--backdrop','0');
+     const animation=MotionEngine.animate(sheet,[{opacity,transform:'translateY(0)'},{opacity:0,transform:'translateY(4px)'}],{duration:140,fill:'forwards'});
+     const bar=this.dialog.querySelector(':scope > .float-bar');
+     const barAnimation=bar?MotionEngine.animate(bar,[{opacity:1},{opacity:0}],{duration:100,fill:'forwards'}):null;
+     MotionEngine.panelAnimations.set(this.dialog,[animation,barAnimation]);
+     const finish=()=>{if(this.modalToken===token&&this.sheetLeaving){this.sheetLeaving=false;this.closeNative(false);}};
+     if(animation)animation.finished.then(finish,()=>{});else finish();
      return;
    }
    this.modalToken++;this.pauseMedia();
@@ -907,15 +919,18 @@ class AppController{
      case 'connect-range':this.connectRange=extra;el.parentElement.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b===el);b.setAttribute('aria-checked',String(b===el));b.tabIndex=b===el?0:-1;});break;
      case 'permission-allow':case 'permission-later':{
        const k=extra;
-       if(name==='permission-allow')Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:'只在本机读取',enabled:true,status:'ok',count:0,syncedAt:Date.now(),stack:k!=='calendar',open:'inside',range:'30d'});
+       if(name==='permission-allow'){
+         Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:'外部来源尚未连接',enabled:false,status:'attention',count:0,stack:k!=='calendar',open:'inside',range:'30d'});
+         this.toast('尚未接入系统授权，未读取任何外部内容');
+       }
        if(this.permissionQueue){this.nextPermission();break;}
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');break;
      }
      case 'source-open':this.sourceId=id;this.panelReturn=this.sourceReturn();this.swapPanel(Panels.sourceDetail(id),'source');break;
-     case 'source-toggle':{const s=Store.source(id);if(!s)break;const on=!(s.enabled&&s.status!=='paused');Store.upsertSource({...s,enabled:on,status:on?'ok':'paused'});this.repaintSources();break;}
+     case 'source-toggle':{const s=Store.source(id);if(!s)break;const on=!(s.enabled&&s.status!=='paused');Store.upsertSource({...s,enabled:on,status:on?'attention':'paused'});this.repaintSources();break;}
      case 'source-flag':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:!s[key]});this.replacePanelContent(Panels.sourceDetail(sid));this.withFeedAnchor(()=>{});break;}
      case 'source-set':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:extra});this.replacePanelContent(Panels.sourceDetail(sid));break;}
-     case 'source-pause':{const s=Store.source(id);Store.upsertSource({...s,status:s.status==='paused'?'ok':'paused',enabled:s.status==='paused'});this.replacePanelContent(Panels.sourceDetail(id));break;}
+     case 'source-pause':{const s=Store.source(id);Store.upsertSource({...s,status:s.status==='paused'?'attention':'paused',enabled:s.status==='paused'});this.replacePanelContent(Panels.sourceDetail(id));break;}
      case 'source-remove':{
        const s=Store.source(id),count=Store.state.cards.filter(c=>`src-${c.kind}`===id).length;
        this.panelReturn=()=>this.swapPanel(Panels.sourceDetail(id),'source');
@@ -927,9 +942,7 @@ class AppController{
      }
      case 'feed-add':{
        const url=Importers.url(document.getElementById('feed-url')?.value||'');if(!url){this.toast('请粘贴一个 http 或 https 的订阅地址');return;}
-       const s=Store.source('src-rss'),count=(s?.count||0)+1;
-       Store.upsertSource({id:'src-rss',kind:'rss',name:'RSS',detail:`${count} 个订阅`,enabled:true,status:'ok',count,syncedAt:Date.now(),stack:s?.stack??true,open:s?.open||'inside',range:s?.range||'30d'});
-       this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.toast(`已订阅 ${new URL(url).hostname}`);break;
+       this.toast('RSS 订阅尚未启用，地址尚未保存；可以导入 OPML 文件');break;
      }
      case 'import-pick':document.getElementById('file-input').click();break;
      case 'import-toggle':{const i=Number(extra);this.importPicked.has(i)?this.importPicked.delete(i):this.importPicked.add(i);this.replacePanelContent(Panels.importPreview(this));this.dialog.querySelector(`[data-action="import-toggle"][data-extra="${i}"]`)?.focus();break;}
@@ -995,6 +1008,7 @@ class AppController{
    e.preventDefault();this.capture(text);
  }
  key(e){
+   if(e.isComposing)return;
    if(e.key==='Escape'&&this.modalKind==='search'){e.preventDefault();this.closeModal();return;}
    const radio=e.target.closest?.('[role="radio"]'),group=radio?.closest('[role="radiogroup"]');
    if(group&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)){
@@ -1020,7 +1034,6 @@ class AppController{
      }
    }
    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(this.modalKind!=='search')this.openPanel('search');return;}
-   if(e.isComposing)return;
    if(e.target.id==='tag-new'&&e.key==='Enter'){e.preventDefault();this.action('add-tag',this.editId);return;}
    if(e.target.id==='filter-search'&&e.key==='Enter'){e.preventDefault();const first=this.dialog.querySelector('#search-results [data-action="card-open"]');if(first&&this.filter.query.trim())first.click();else this.action('apply-filter');return;}
    if(e.target.id==='capture-text'&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();this.action('capture-save');return;}

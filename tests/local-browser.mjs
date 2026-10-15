@@ -59,7 +59,8 @@ try{
   await page.waitForFunction(()=>document.querySelector('#feed-grid').dataset.sync==='saved');
   value=await fetch(origin+'/api/local/state').then(r=>r.json());
   assert.ok(value.state.cards.some(c=>c.url==='https://example.com/sync'&&c.title==='页面收集的链接'));
-  assert.equal(value.state.sources.find(s=>s.id==='src-photos')?.status,'ok');
+  assert.equal(value.state.sources.find(s=>s.id==='src-photos')?.status,'attention');
+  assert.equal(value.state.sources.find(s=>s.id==='src-photos')?.syncedAt,undefined,'unimplemented authorization never invents a sync time');
   assert.ok(value.state.sources.length>=5);
   assert.deepEqual(errors,[]);
   await writeFile(join(artifacts,'local-browser.json'),JSON.stringify({status:'passed',checks:['旧数据迁移','AI 写入自动显示','页面操作写回','打开预览同步','设置同步','刷新无假数据','双页面同步','删除与重启持久化'],errors},null,2));

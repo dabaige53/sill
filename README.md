@@ -1,5 +1,7 @@
 # Sill · 窗台
 
+本地开发新增 **SwiftUI macOS 原生应用**，以及 Web 编辑草稿保护、卡片并发保存检查与布局优化。Mac 构建和数据位置见 [原生应用说明](native/macos/README.md)，本轮变更与发布边界见 [本地交付说明](docs/LOCAL-RELEASE-20261015.md)。这些变更尚未发布到下述云端入口。
+
 > 当前发布入口：[`sill-web-preview`](https://sill-web-preview.scs1213-temp-email.workers.dev/)。云端版本支持已有账号 PKCE 登录及内容读写，工作台没有顶部整排工具栏。Codex 云端插件接入变更见 [2026-10-15 发布说明](docs/RELEASE-20261015.md)；实际账号授权完成情况以该次部署验收为准。下列旧规划段落保留历史语境；当前发布状态与回滚步骤以 [最新发布说明](docs/RELEASE-20261015.md) 为准。
 
 

@@ -2,6 +2,7 @@ import {waitCloud,cloudTool,cloudLogout} from './helpers/cloud-ui.mjs';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
+import {createRequire} from 'node:module';
 import {chromium} from 'playwright';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -9,6 +10,7 @@ import {token} from './helpers/signed-auth.mjs';
 import {A} from './helpers/boundary-fixture.mjs';
 import {createSillRuntime} from '../server/cloud/http.mjs';
 import {cloudFixture} from './helpers/cloud-fixture.mjs';
+const require=createRequire(import.meta.url);
 
 // Real browser -> HTTP runtime -> official SDK -> synthetic auth transport -> actual SQL.
 // No email, production credentials, cloud database, or deployment is involved.
@@ -37,6 +39,11 @@ try{
  await page.waitForFunction(()=>document.querySelector('#cloud-login-status').textContent.includes('发送到邮箱'));
  const callback=new URL(fixture.redirect);callback.searchParams.set('code','synthetic-code');await page.goto(callback.href);
  await waitCloud(page);await cloudTool(page,'capture');
+ assert.equal(await page.locator('#cloud-title').evaluate(e=>e===document.activeElement),true,'editor opens with title focus');
+ await page.locator('#cloud-title').fill('Draft before closing');await page.locator('#cloud-body').fill('Keep this text');
+ await page.keyboard.press('Escape');await cloudTool(page,'capture');
+ assert.equal(await page.locator('#cloud-title').inputValue(),'Draft before closing');assert.equal(await page.locator('#cloud-body').inputValue(),'Keep this text');
+ assert.equal(await page.evaluate(()=>localStorage.length),0,'retained cloud drafts stay in memory');
  await page.locator('#cloud-title').fill('Browser persisted note');await page.locator('#cloud-body').fill('Synthetic browser data');
  dropResponse=true;await page.locator('#cloud-editor [type=submit]').click();
  await page.waitForFunction(()=>document.querySelector('#cloud-save-status')?.textContent.includes('同一请求'));
@@ -48,8 +55,11 @@ try{
  await page.evaluate(id=>window.__app.action('edit',id),id);await page.locator('#cloud-title').fill('My retained draft');
  const external=await page.evaluate(async id=>{const r=await fetch('/api/v1/contents/'+id,{method:'PATCH',headers:{'Content-Type':'application/json','Idempotency-Key':'external_editor1'},body:JSON.stringify({expectedRevision:1,changes:{title:'Other editor'}})});return r.status;},id);assert.equal(external,200);
  await page.locator('#cloud-editor [type=submit]').click();await page.waitForFunction(()=>document.querySelector('#cloud-save-status')?.textContent.includes('另一处修改'));assert.equal(await page.locator('#cloud-title').inputValue(),'My retained draft');
- await page.locator('#cloud-editor [data-action=close]').click();await cloudTool(page,'refresh');await page.waitForFunction(()=>window.__store.state.cards[0]?.title==='Other editor');
- await page.evaluate(id=>window.__app.action('edit',id),id);await page.locator('#cloud-title').fill('Confirmed update');await page.locator('#cloud-editor [type=submit]').click();await page.waitForFunction(()=>!document.querySelector('#modal').open);
+ await page.locator('#cloud-editor [data-action=close]').click();
+ await page.evaluate(id=>window.__app.action('edit',id),id);assert.equal(await page.locator('#cloud-title').inputValue(),'My retained draft','closing an editor retains its draft and original revision');
+ await page.locator('#cloud-discard').click();await page.locator('#cloud-confirm').click();
+ await cloudTool(page,'refresh');await page.waitForFunction(()=>window.__store.state.cards[0]?.title==='Other editor');
+ await page.evaluate(id=>window.__app.action('edit',id),id);await page.locator('#cloud-title').fill('Confirmed update');await page.keyboard.press('Control+Enter');await page.waitForFunction(()=>!document.querySelector('#modal').open);
  mcpClient=new Client({name:'synthetic-agent',version:'1.0.0'});
  await mcpClient.connect(new StreamableHTTPClientTransport(new URL(fixture.config.agentAudience),{requestInit:{headers:{Authorization:'Bearer '+token({client_id:'browser-agent',aud:fixture.config.agentAudience})}}}));
  const mcpCreated=await mcpClient.callTool({name:'sill_createContent',arguments:{idempotency_key:'browser_mcp_1',body:{type:'note',title:'Agent wrote this',body:['Visible in the same web workspace']}}});assert.ok(!mcpCreated.isError);
@@ -59,8 +69,20 @@ try{
  await mkdir('tests/artifacts',{recursive:true});await page.screenshot({path:'tests/artifacts/cloud-desktop.png',animations:'disabled'});
  await page.setViewportSize({width:390,height:844});await cloudTool(page,'capture');await page.locator('#cloud-title').fill('Mobile draft');
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile does not overflow');await page.screenshot({path:'tests/artifacts/cloud-mobile.png',animations:'disabled'});await page.locator('#cloud-editor [data-action=close]').click();
+ await cloudTool(page,'capture');await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
+ for(const theme of ['light','dark'])for(const viewport of [{width:1440,height:1000},{width:390,height:844},{width:320,height:225}]){
+  await page.setViewportSize(viewport);await page.evaluate(theme=>{__store.setPref('theme',theme);__app.applyPreferences();},theme);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.evaluate(()=>Promise.allSettled(document.getAnimations().filter(a=>Number.isFinite(a.effect?.getTiming().iterations)).map(a=>a.finished)));
+  const violations=await page.evaluate(async()=>{const result=await axe.run({runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa','wcag22aa']}});return result.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}));});
+  assert.deepEqual(violations,[],`${theme} cloud editor ${viewport.width}x${viewport.height}`);
+  const overflow=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,nodes:[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.right>innerWidth+1}).map(e=>({tag:e.tagName,class:e.className,id:e.id,right:e.getBoundingClientRect().right})).slice(0,12)}));
+  assert.ok(overflow.scrollWidth<=viewport.width,`editor does not overflow ${theme} ${JSON.stringify(viewport)} ${JSON.stringify(overflow)}`);
+  const save=await page.locator('#cloud-save').boundingBox();assert.ok(save.y>=0&&save.y+save.height<=viewport.height,'save remains visible in a short window');
+ }
+ await page.locator('#cloud-editor [data-action=close]').click();await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>localStorage.length),0,'no token or private data persisted');
  assert.ok((await context.cookies()).filter(c=>c.name==='__Host-sill-access').every(c=>c.httpOnly&&c.secure));
- await cloudLogout(page);await page.locator('#cloud-login').waitFor();assert.equal(await page.locator('[data-card]').count(),0);
+ await cloudLogout(page);await page.locator('#cloud-confirm').click();await page.locator('#cloud-login').waitFor();assert.equal(await page.locator('[data-card]').count(),0);
  assert.deepEqual(errors,[]);console.log('PASS cloud browser: PKCE, CRUD, lost-response replay, CAS draft, MCP write visible in web, logout, 1440/390, no localStorage');
 }finally{await mcpClient?.close();await browser?.close();await new Promise(resolve=>server.close(resolve));await fixture.close();}

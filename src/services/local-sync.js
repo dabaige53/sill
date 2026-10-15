@@ -58,8 +58,8 @@ const LocalSync={
     const next=this.snapshot(),before=this.baseline,operations=[];
     // Cards created or edited on the page (capture, import, inline notes) travel as whole cards.
     const oldCards=new Map(before.cards.map(card=>[card.id,JSON.stringify(card)])),newIds=new Set(next.cards.map(card=>card.id));
-    for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card});
-    for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id});
+    for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card,before:oldCards.has(card.id)?JSON.parse(oldCards.get(card.id)):null});
+    for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id,before:JSON.parse(oldCards.get(id))});
     const oldSources=new Map((before.sources||[]).map(source=>[source.id,JSON.stringify(source)])),newSources=new Set(next.sources.map(source=>source.id));
     for(const source of next.sources)if(oldSources.get(source.id)!==JSON.stringify(source))operations.push({op:'source.upsert',source});
     for(const id of oldSources.keys())if(!newSources.has(id))operations.push({op:'source.delete',id});
@@ -82,6 +82,8 @@ const LocalSync={
     try{
       while(this.pending.length){
         if(this.unversioned)throw new Error('旧草稿缺少版本信息，请先导出并与服务端版本比较');
+        // Whole-card writes carry their original card. Independent reading
+        // observations can still merge without invalidating unrelated edits.
         const batch={...this.pending[0],...(this.recovering?{expectedRevision:this.revision}:{})};this.persist();
         const value=await this.request('operations',batch);this.pending.shift();this.revision=value.revision;this.persist();
         if(!this.pending.length)this.adopt(value);
@@ -102,9 +104,9 @@ const LocalSync={
     if(manual)this.failed=false;
     if(this.pending.length){await this.flush();if(this.pending.length)throw new Error('仍有未同步修改');return;}
     // Keep an editor's original values until its save can be checked for conflicts.
-    if(this.app.modalKind==='editor')return;
+    if(this.app.modalKind==='editor'||this.app.editingId)return;
     const value=await this.request('state');
-    if(!this.busy&&!this.pending.length&&this.app.modalKind!=='editor'&&value.revision!==this.revision)this.adopt(value);
+    if(!this.busy&&!this.pending.length&&this.app.modalKind!=='editor'&&!this.app.editingId&&value.revision!==this.revision)this.adopt(value);
   },
   adopt(value,{draft=false}={}){
     if(!value.state)return;
@@ -113,7 +115,11 @@ const LocalSync={
     const changed=JSON.stringify([Store.state.cards,Store.state.items,Store.state.preferences,Store.state.sources])!==JSON.stringify([value.state.cards,value.state.items,value.state.preferences,value.state.sources||[]]);
     this.revision=value.revision;
     if(!draft)try{localStorage.setItem('quiet-glass-sync-revision',JSON.stringify(value.revision));}catch{}
+    const editingCard=app.editingId?Store.card(app.editingId):null;
     Object.assign(Store.state,value.state);Store.state.sources=value.state.sources||[];Store.state.storageAvailable=true;
+    // A response to an unrelated reading observation may include external edits.
+    // Keep the inline editor's original card until its conditional save finishes.
+    if(editingCard){const index=Store.state.cards.findIndex(c=>c.id===editingCard.id);if(index>=0)Store.state.cards[index]=editingCard;else Store.state.cards.push(editingCard);}
     this.baseline=this.snapshot();
     // Write the browser backup without enqueueing another remote operation.
     try{localStorage.setItem(Store.key,JSON.stringify(Store.serialized()));}catch{}

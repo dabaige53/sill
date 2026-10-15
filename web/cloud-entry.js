@@ -8,13 +8,14 @@ Store.save=function(){};
 // Automatic reading observations remain transient; explicit cloud edits own persisted state.
 const transientPatch=Store.patch;
 Store.patch=function(id,values){const safe={};for(const key of ['seen','progress'])if(key in values)safe[key]=values[key];transientPatch.call(this,id,safe);};
-const Cloud={user:null,records:new Map(),edit:null,pending:null,busy:false,epoch:0,loading:false,connectionError:false,loginUntil:0};
+const Cloud={user:null,records:new Map(),drafts:new Map(),edit:null,editOwner:null,editLocked:false,pending:null,busy:false,epoch:0,writeVersion:0,loading:false,connectionError:false,loginUntil:0};
 const callbackFailed=new URL(location.href).searchParams.has('login_error');
 if(callbackFailed)history.replaceState(null,'',location.pathname+location.hash);
 function cloudWelcome(){
- if(window.__SILL_HOST__&&!Cloud.user&&!Cloud.connectionError)return welcomeHTML({actions:'',detail:'<p class="cloud-detail" role="status">正在连接云端工作区…</p>'});
- if(window.__SILL_HOST__&&!Cloud.user)return welcomeHTML({actions:'<button type="button" class="solid-button" data-action="refresh">重新连接云端</button>',detail:'<p class="cloud-detail">请通过当前应用的授权入口连接 Sill 云端账号。</p>'});
- return welcomeHTML({actions:Cloud.user?'<button type="button" class="solid-button" data-action="capture">记下第一条内容</button>':`<form id="cloud-login"><label for="cloud-email">用已有账号登录</label><input id="cloud-email" name="email" type="email" autocomplete="email" required placeholder="你的邮箱" aria-describedby="cloud-login-status"><button class="solid-button" type="submit">发送登录链接</button><p id="cloud-login-status" role="status">${callbackFailed?'登录链接未能完成验证。请在发送链接的浏览器打开最新邮件，或重新发送。':'登录后，你的内容会出现在这里。'}</p></form>`,detail:Cloud.user?'<p class="cloud-detail">窗台还是空的，从一条笔记开始。</p>':''});
+ const recovery=[...Cloud.drafts].filter(([,draft])=>draft.locked).map(([key,draft])=>`<button type="button" class="soft-button" data-action="resume-draft" data-id="${esc(key)}">继续查看草稿：${esc(draft.values.title||'未命名笔记')}</button>`).join('');
+ if(window.__SILL_HOST__&&!Cloud.user&&!Cloud.connectionError)return welcomeHTML({actions:recovery,detail:'<p class="cloud-detail" role="status">正在连接云端工作区…</p>'});
+ if(window.__SILL_HOST__&&!Cloud.user)return welcomeHTML({actions:'<button type="button" class="solid-button" data-action="refresh">重新连接云端</button>'+recovery,detail:'<p class="cloud-detail">请通过当前应用的授权入口连接 Sill 云端账号。未保存的草稿仍留在本次窗口。</p>'});
+ return welcomeHTML({actions:(Cloud.user?'<button type="button" class="solid-button" data-action="capture">记下第一条内容</button>':`<form id="cloud-login"><label for="cloud-email">用已有账号登录</label><input id="cloud-email" name="email" type="email" autocomplete="email" required placeholder="你的邮箱" aria-describedby="cloud-login-status"><button class="solid-button" type="submit">发送登录链接</button><p id="cloud-login-status" role="status">${callbackFailed?'登录链接未能完成验证。请在发送链接的浏览器打开最新邮件，或重新发送。':'登录后，你的内容会出现在这里。'}</p></form>`)+recovery,detail:recovery?'<p class="cloud-detail">草稿仍在本次窗口。重新登录前请先复制保留文字。</p>':Cloud.user?'<p class="cloud-detail">窗台还是空的，从一条笔记开始。</p>':''});
 }
 const app=new AppController();
 const originalDeskHTML=app.deskHTML.bind(app);
@@ -25,67 +26,126 @@ app.deskHTML=function(){
 app.init();
 const messages={rate_limited:'请求较频繁，请稍等一分钟再发送。',unauthenticated:'登录已过期，请重新登录。',forbidden:'该账号或客户端没有此操作权限。',revision_conflict:'内容已在另一处修改。草稿仍保留，请刷新并核对后再保存。',idempotency_conflict:'原请求已被处理或需要核对，未覆盖数据。',not_found:'内容已不存在。',unavailable:'连接暂时不可用；写入结果可能尚未确认。'};
 async function cloudApi(path,options={}){
- if(window.__SILL_HOST__) {try{return await window.__SILL_HOST__.request(path,options);}catch(error){error.message=messages[error.code]||error.message;throw error;}}
- const response=await fetch(path,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...options.headers}});
- const data=await response.json();
- if(!response.ok)throw Object.assign(new Error(messages[data.error?.code]||'请求未完成'),{status:response.status,code:data.error?.code});
- return data;
+ const controller=new AbortController();let timer;
+ const request=async()=>{
+  if(window.__SILL_HOST__)return window.__SILL_HOST__.request(path,options);
+  const response=await fetch(path,{credentials:'same-origin',...options,signal:controller.signal,headers:{'Content-Type':'application/json',...options.headers}});
+  const data=await response.json();
+  if(!response.ok)throw Object.assign(new Error(messages[data.error?.code]||'请求未完成'),{status:response.status,code:data.error?.code});
+  return data;
+ };
+ try{
+  return await Promise.race([request(),new Promise((_,reject)=>{timer=setTimeout(()=>{
+   reject(Object.assign(new Error('连接等待超时；保存结果尚未确认，请核对原请求。'),{code:'request_timeout'}));controller.abort();
+  },20000);})]);
+ }catch(error){error.message=messages[error.code]||(error.code==='request_timeout'?error.message:error.status?error.message:'连接中断；保存结果尚未确认，请核对原请求。');throw error;}
+ finally{clearTimeout(timer);}
 }
 function accountView(){document.body.classList.toggle('cloud-signed-in',!!Cloud.user);}
 
-function clearCloud(){Cloud.epoch++;Cloud.user=null;Cloud.pending=null;Cloud.edit=null;Cloud.records.clear();Store.load();app.closeNative();app.renderCurrent(true);accountView();}
+function clearCloud({retainDrafts=false}={}){
+ if(retainDrafts)stashCloudDraft();
+ const keepEditor=retainDrafts&&app.modalKind==='cloud-editor'&&Cloud.drafts.has(Cloud.edit?.id||'new');
+ Cloud.epoch++;Cloud.user=null;Cloud.pending=null;Cloud.connectionError=retainDrafts;Cloud.records.clear();Store.load();
+ if(retainDrafts){for(const draft of Cloud.drafts.values())draft.locked=true;Cloud.editLocked=true;}
+ else{Cloud.edit=null;Cloud.editOwner=null;Cloud.editLocked=false;Cloud.drafts.clear();}
+ if(!keepEditor){Cloud.edit=null;app.closeNative();}
+ app.renderCurrent(true);accountView();
+ if(keepEditor){
+  document.querySelectorAll('#cloud-editor input,#cloud-editor textarea').forEach(e=>e.disabled=false);
+  document.getElementById('cloud-save-status').textContent='账号连接已失效，草稿没有丢失。请先复制标题和正文；重新连接后再继续保存。';
+  paintCloudDraft();
+ }
+}
+function cloudConnection(){
+ const refresh=document.querySelector('.dock-tools [data-action=refresh]');
+ refresh?.setAttribute('aria-busy',String(Cloud.loading));
+ const offline=document.getElementById('offline');offline.dataset.action='refresh';offline.hidden=!Cloud.connectionError||!Cloud.user;offline.textContent='连接中断 · 重试';
+}
 function paintRecords(){
  Store.state.cards=[...Cloud.records.values()].filter(c=>!c.deleted&&!c.state.archived).map(c=>({id:c.id,type:c.type,kind:'web',title:c.title,body:c.body,summary:c.body?.[0]||'',url:c.url,source:'Sill 云端',time:Date.parse(c.updated_at),meta:'已保存',revision:c.revision}));
  Store.state.items=Object.fromEntries([...Cloud.records.values()].map(c=>[c.id,{read:!!c.state.read}]));app.withFeedAnchor(()=>{},true);
 }
 async function loadCloud({initial=false}={}){
  if(Cloud.loading||Cloud.busy||Cloud.pending)return;
- Cloud.loading=true;const epoch=Cloud.epoch;let checkingSession=true;
+ Cloud.loading=true;cloudConnection();const epoch=Cloud.epoch,writeVersion=Cloud.writeVersion;let checkingSession=true;
  try{
   const session=await cloudApi('/auth/session');checkingSession=false;
   const records=new Map();let cursor=null;
   do{const query=cursor?'?cursor='+encodeURIComponent(cursor):'';const page=await cloudApi('/api/v1/contents'+query);for(const c of page.items)records.set(c.id,c);cursor=page.next_cursor;}while(cursor);
-  if(epoch!==Cloud.epoch)return;
-  Cloud.connectionError=false;Cloud.scopes=session.scopes||null;Cloud.user=session.userId;Cloud.records=records;paintRecords();accountView();
- }catch(error){if(epoch!==Cloud.epoch)return;Cloud.connectionError=true;if(!Cloud.user)app.renderCurrent(false);if(error.status===401||error.status===403)clearCloud();if(!(initial&&checkingSession&&error.status===401))app.toast(error.message);}
- finally{Cloud.loading=false;}
+  if(epoch!==Cloud.epoch||writeVersion!==Cloud.writeVersion)return;
+  const changed=Cloud.user!==session.userId||JSON.stringify([...records])!==JSON.stringify([...Cloud.records]);
+  Cloud.connectionError=false;Cloud.scopes=session.scopes||null;Cloud.user=session.userId;Cloud.records=records;if(changed)paintRecords();accountView();
+ }catch(error){if(epoch!==Cloud.epoch||writeVersion!==Cloud.writeVersion)return;Cloud.connectionError=true;if(!Cloud.user)app.renderCurrent(false);if(error.status===401||error.status===403)clearCloud({retainDrafts:true});if(!(initial&&checkingSession&&error.status===401))app.toast(error.message);}
+ finally{Cloud.loading=false;cloudConnection();}
+}
+function cloudDraftValues(){
+ const title=document.getElementById('cloud-title'),body=document.getElementById('cloud-body'),read=document.getElementById('cloud-read');
+ if(!title||!body||!read)return null;
+ return {title:title.value,body:body.value,read:read.checked};
+}
+function stashCloudDraft(){
+ if(!Cloud.edit||app.modalKind!=='cloud-editor')return false;
+ const values=cloudDraftValues();if(!values)return false;
+ const key=Cloud.edit.id||'new',dirty=values.title!==Cloud.edit.title||values.body!==Cloud.edit.body.join('\n')||values.read!==!!Cloud.edit.state.read;
+ if(dirty)Cloud.drafts.set(key,{record:structuredClone(Cloud.edit),values,owner:Cloud.editOwner,locked:Cloud.editLocked});else Cloud.drafts.delete(key);
+ return dirty;
+}
+function paintCloudDraft(){
+ const dirty=stashCloudDraft(),count=document.getElementById('cloud-word-count'),label=document.getElementById('cloud-draft-state');
+ if(count)count.textContent=Array.from(document.getElementById('cloud-body').value).length.toLocaleString()+' 字';
+ if(label)label.textContent=Cloud.editLocked?'账号未连接 · 草稿仍保留':dirty?'未保存 · 草稿留在本次窗口':'关闭后可随时继续';
+ const discard=document.getElementById('cloud-discard');if(discard)discard.hidden=!dirty;
+ const save=document.getElementById('cloud-save');if(save)save.disabled=Cloud.busy||Cloud.editLocked;
 }
 function editCloud(id){
- if(!Cloud.user){app.toast('请先登录');return;}
- if(Cloud.scopes&&!Cloud.scopes.includes('content:write')){app.toast('当前授权仅允许读取，请在当前应用重新授权后编辑');return;}
  if(Cloud.pending){app.toast('上次保存结果未确认，请先重试核对原请求。');return;}
- const record=id?Cloud.records.get(id):null;if(id&&!record)return;
- Cloud.edit=record?structuredClone(record):{id:null,revision:null,title:'',body:[],state:{read:false}};
- app.openModal(`<div class="sheet"><div class="panel-content"><h1 id="modal-title">${id?'修改内容':'新建笔记'}</h1><form id="cloud-editor"><label>标题<input id="cloud-title" required maxlength="1000" value="${esc(Cloud.edit.title)}"></label><label>正文<textarea id="cloud-body" rows="10">${esc(Cloud.edit.body.join('\n'))}</textarea></label><label><input id="cloud-read" type="checkbox" ${Cloud.edit.state.read?'checked':''}> 标记已读</label><p id="cloud-save-status" role="status"></p><button class="solid-button" type="${window.__SILL_HOST__?'button':'submit'}" id="cloud-save">保存到云端</button>${id&&(!Cloud.scopes||Cloud.scopes.includes('content:delete'))?'<button class="soft-button" type="button" id="cloud-delete">删除内容</button>':''}<button type="button" class="soft-button" data-action="close">关闭</button></form></div></div>`,'cloud-editor',null,'panel wide');
+ stashCloudDraft();
+ const saved=Cloud.drafts.get(id||'new');
+ if(!Cloud.user&&!saved){app.toast('请先登录');return;}
+ if(!saved&&Cloud.scopes&&!Cloud.scopes.includes('content:write')){app.toast('当前授权仅允许读取，请在当前应用重新授权后编辑');return;}
+ const record=id?Cloud.records.get(id):null;if(id&&!record&&!saved)return;
+ Cloud.edit=saved?.record||(record?structuredClone(record):{id:null,revision:null,title:'',body:[],state:{read:false}});
+ Cloud.editOwner=saved?.owner||Cloud.user;
+ // A different account must never receive the previous account's recovered draft.
+ // The MCP host exposes no stable user ID, so its expired drafts stay copy-only.
+ Cloud.editLocked=!Cloud.user||!!(saved&&(saved.owner!==Cloud.user||saved.locked&&window.__SILL_HOST__))||!!(Cloud.scopes&&!Cloud.scopes.includes('content:write'));
+ const values=saved?.values||{title:Cloud.edit.title,body:Cloud.edit.body.join('\n'),read:!!Cloud.edit.state.read};
+ originalOpen(`<div class="sheet cloud-compose"><header class="cloud-compose-head"><h1 id="modal-title">${id?'修改内容':'新建笔记'}</h1><span id="cloud-draft-state" role="status"></span>${button('x','收起编辑器，保留草稿','close')}</header><form id="cloud-editor"><div class="cloud-compose-body"><label class="sr-only" for="cloud-title">标题</label><input id="cloud-title" required maxlength="1000" placeholder="给想法一个标题" value="${esc(values.title)}"><label class="sr-only" for="cloud-body">正文</label><textarea id="cloud-body" rows="10" placeholder="从这里开始写…">${esc(values.body)}</textarea><div class="cloud-compose-meta"><label><input id="cloud-read" type="checkbox" ${values.read?'checked':''}> 标记已读</label><span id="cloud-word-count" class="num"></span></div><p id="cloud-save-status" role="status"></p></div><footer class="cloud-compose-actions"><button class="solid-button" type="${window.__SILL_HOST__?'button':'submit'}" id="cloud-save">保存到云端</button><button type="button" class="soft-button" data-action="close">关闭</button><button type="button" class="text-link" id="cloud-discard" hidden>放弃草稿</button>${id&&(!Cloud.scopes||Cloud.scopes.includes('content:delete'))?'<button class="text-link cloud-delete" type="button" id="cloud-delete">删除内容</button>':''}<span class="cloud-save-hint">⌘ / Ctrl + Enter</span></footer></form></div>`,'cloud-editor',null,'panel wide');
+ paintCloudDraft();if(Cloud.editLocked)document.getElementById('cloud-save-status').textContent='这份草稿仍可复制和编辑。为避免写入错误的账号，恢复原账号连接前不会提交。';document.getElementById('cloud-title').focus({preventScroll:true});
 }
 async function saveCloud(deleting=false){
- if(Cloud.busy||!Cloud.edit)return;const draft=Cloud.edit;
+ if(Cloud.busy||!Cloud.edit||Cloud.editLocked||!Cloud.user)return;const draft=Cloud.edit;
  if(!Cloud.pending){
-  const changes={title:document.getElementById('cloud-title').value.trim(),body:document.getElementById('cloud-body').value.split('\n'),state:{read:document.getElementById('cloud-read').checked}};
+  const values=cloudDraftValues();
+  const changes={title:values.title.trim(),body:values.body===draft.body.join('\n')?draft.body:values.body?values.body.split('\n'):[],state:{read:values.read}};
   if(!changes.title&&!deleting)return;
   const payload=deleting?{expectedRevision:draft.revision}:draft.id?{expectedRevision:draft.revision,changes}:{type:'note',...changes};
   Cloud.pending={path:'/api/v1/contents'+(draft.id?'/'+draft.id:''),method:deleting?'DELETE':draft.id?'PATCH':'POST',body:JSON.stringify(payload),key:crypto.randomUUID()};
  }
- Cloud.busy=true;const status=document.getElementById('cloud-save-status');status.textContent='正在保存…';
+ stashCloudDraft();Cloud.busy=true;Cloud.writeVersion++;const status=document.getElementById('cloud-save-status');status.textContent=deleting?'正在删除…':'正在保存…';
+ const save=document.getElementById('cloud-save');save.disabled=true;save.setAttribute('aria-busy','true');
+ document.querySelectorAll('#cloud-delete,#cloud-discard').forEach(e=>e.disabled=true);
  document.querySelectorAll('#cloud-editor input,#cloud-editor textarea').forEach(e=>e.disabled=true);
  try{
   const pending=Cloud.pending;
   const record=await cloudApi(pending.path,{method:pending.method,body:pending.body,headers:{'Idempotency-Key':pending.key}});
-  Cloud.pending=null;Cloud.records.set(record.id,record);paintRecords();app.closeNative();app.toast('已保存到云端');
+  Cloud.pending=null;Cloud.drafts.delete(draft.id||'new');Cloud.edit=null;Cloud.records.set(record.id,record);paintRecords();app.closeNative();app.toast(record.deleted?'已删除内容':'已保存到云端');
  }catch(error){
   status.textContent=error.message+(error.status>=500||!error.status?' 点击保存将用同一请求核对，不会重复创建。':'');
-  if(error.status===401||error.status===403){clearCloud();app.toast(error.message);return;}
+  if(error.status===401||error.status===403){clearCloud({retainDrafts:true});app.toast(error.message);return;}
   if(error.status&&error.status<500){Cloud.pending=null;document.querySelectorAll('#cloud-editor input,#cloud-editor textarea').forEach(e=>e.disabled=false);}
- }finally{Cloud.busy=false;}
+ }finally{Cloud.busy=false;if(save.isConnected){save.disabled=Cloud.editLocked;save.setAttribute('aria-busy','false');save.textContent=Cloud.pending?'核对上次保存':'保存到云端';document.querySelectorAll('#cloud-delete,#cloud-discard').forEach(e=>e.disabled=!!Cloud.pending||e.id==='cloud-delete'&&Cloud.editLocked);}}
 }
 const originalOpen=app.openModal.bind(app);
-app.openModal=function(...args){if(Cloud.pending){app.toast('先核对本次保存结果。');return;}return originalOpen(...args);};
+app.openModal=function(...args){if(Cloud.pending){app.toast('先核对本次保存结果。');return;}stashCloudDraft();return originalOpen(...args);};
 const originalClose=app.closeNative.bind(app);
-app.closeNative=function(...args){if(Cloud.pending){app.toast('先核对本次保存结果，再关闭草稿。');return;}return originalClose(...args);};
+app.closeNative=function(...args){if(Cloud.pending){app.toast('先核对本次保存结果，再关闭草稿。');return;}const dirty=stashCloudDraft();const result=originalClose(...args);if(dirty)app.toast('草稿已保留在本次窗口，重新编辑可继续');return result;};
 const originalAction=app.action.bind(app);
 app.action=function(name,id,...args){
  if(Cloud.pending){app.toast('先核对本次保存结果。');return;}
  if(name==='capture'){editCloud();return;}
+ if(name==='resume-draft'){editCloud(id==='new'?null:id);return;}
  if(name==='edit'||name==='card-more'||name==='toggle-read'){editCloud(id);return;}
  if(name==='refresh'){loadCloud();return;}
  if(Cloud.pending&&['close','back'].includes(name)){app.toast('先核对本次保存结果，再关闭草稿。');return;}
@@ -105,12 +165,36 @@ Panels.settings=function(app,group){
  return doc.innerHTML;
 };
 app.refresh=loadCloud;app.capture=()=>{editCloud();return null;};app.importFiles=async()=>app.toast('文件导入尚未接入云端');app.drop=()=>app.toast('拖拽操作尚未接入云端');
+// The host sandbox may disallow window.confirm. Reuse Sill's existing accessible
+// confirmation panel, with an explicit return path to the untouched editor.
+function confirmCloud(title,detail,label,action,back){
+ if(Cloud.pending||Cloud.busy)return;
+ stashCloudDraft();Cloud.confirmAction=action;
+ app.panelReturn=()=>{Cloud.confirmAction=null;back();};
+ app.swapPanel(Panels.confirm(title,detail,`<button type="button" class="soft-button" data-action="close">取消</button><button type="button" class="solid-button" id="cloud-confirm">${esc(label)}</button>`),'confirm','panel narrow');
+}
+async function logoutCloud(){
+ try{const result=await cloudApi('/auth/logout',{method:'POST'});clearCloud();app.toast(result.revoked?'已退出登录':'已退出当前浏览器；上游撤销尚未确认');}catch(error){app.openPanel('settings');app.toast(error.message);}
+}
 document.addEventListener('click',async e=>{
  const target=e.target.closest('button');if(!target)return;
+ if(target.id==='cloud-confirm'){
+  const action=Cloud.confirmAction;Cloud.confirmAction=null;app.panelReturn=null;target.disabled=true;if(action)await action();return;
+ }
+ if(target.id==='cloud-discard'){
+  if(Cloud.pending||Cloud.busy)return;
+  const id=Cloud.edit.id;
+  confirmCloud('放弃未保存的草稿？','已保存的云端内容不会改变。','放弃草稿',()=>{Cloud.drafts.delete(id||'new');Cloud.edit=null;app.closeNative();app.renderCurrent(false);},()=>editCloud(id));return;
+ }
+ if(target.id==='cloud-delete'){
+  const id=Cloud.edit?.id;if(!id||Cloud.editLocked)return;
+  confirmCloud('删除这条内容？','云端删除后无法撤销。尚未保存的修改也会一并放弃。','删除内容',async()=>{editCloud(id);await saveCloud(true);},()=>editCloud(id));return;
+ }
  if(window.__SILL_HOST__&&target.id==='cloud-save'){if(target.form.reportValidity())await saveCloud();return;}
  if(target.id==='cloud-logout'){
   if(window.__SILL_HOST__){await window.__SILL_HOST__.manageAccess();return;}
-  try{const result=await cloudApi('/auth/logout',{method:'POST'});clearCloud();app.toast(result.revoked?'已退出登录':'已退出当前浏览器；上游撤销尚未确认');}catch(error){app.toast(error.message);}
+  if(Cloud.drafts.size){confirmCloud('退出并放弃未保存的草稿？','本次窗口中的草稿将被清除，云端已保存的内容不变。','退出登录',logoutCloud,()=>app.openPanel('settings'));return;}
+  await logoutCloud();
  }
 });
 document.addEventListener('submit',async e=>{
@@ -125,8 +209,15 @@ document.addEventListener('submit',async e=>{
 
  }
 });
-document.addEventListener('click',e=>{if(e.target.id==='cloud-delete'&&confirm('确认删除这条内容？'))saveCloud(true);});
-window.addEventListener('beforeunload',e=>{if(Cloud.pending){e.preventDefault();e.returnValue='';}});
+document.addEventListener('input',e=>{if(e.target.closest('#cloud-editor'))paintCloudDraft();});
+document.addEventListener('keydown',e=>{
+ if(app.modalKind==='cloud-editor'&&!e.isComposing&&(e.metaKey||e.ctrlKey)&&['Enter','s'].includes(e.key)){
+  e.preventDefault();if(document.getElementById('cloud-editor').reportValidity())saveCloud();
+ }
+});
+window.addEventListener('beforeunload',e=>{stashCloudDraft();if(Cloud.pending||Cloud.drafts.size){e.preventDefault();e.returnValue='';}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Cloud.user)loadCloud();});
+window.addEventListener('online',()=>loadCloud());
 accountView();loadCloud({initial:true});
 
 // MCP App sandboxes can block native form submission; keep saves inside the bridge.

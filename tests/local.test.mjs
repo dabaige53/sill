@@ -11,6 +11,23 @@ import { LocalRepository } from '../server/local-state.mjs';
 const run=promisify(execFile);
 const card={id:'test-note',type:'note',title:'本地卡片',body:['正文'],url:'https://example.com'};
 
+test('conditional whole-card writes reject stale edits, deletes and duplicate creates without blocking independent reading',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'sill-cas-'));
+  try{
+    const repo=new LocalRepository(join(dir,'cards.json'));
+    const before=repo.apply({operations:[{op:'card.upsert',card,before:null}]}).state.cards[0];
+    repo.apply({operations:[{op:'item.patch',id:card.id,values:{read:true}}]});
+    const latest=repo.apply({operations:[{op:'card.upsert',card:{...before,title:'新标题'},before}]}).state.cards[0];
+    const saved=repo.snapshot();
+    for(const op of [{op:'card.upsert',card:{...before,title:'旧页面'},before},{op:'card.delete',id:card.id,before},{op:'card.upsert',card,before:null}]){
+      assert.throws(()=>repo.apply({operations:[{op:'reading.add',seconds:1},op]}),e=>e.status===409);
+      assert.deepEqual(repo.snapshot(),saved);
+    }
+    repo.apply({operations:[{op:'card.delete',id:card.id,before:latest}]});
+    assert.throws(()=>repo.apply({operations:[{op:'card.upsert',card:before,before}]}),e=>e.status===409,'deleted cards cannot be resurrected by stale editing');
+  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
 test('local operations persist all card states and reject conflicts atomically',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'qg-local-')),file=join(dir,'cards.json');
   try{

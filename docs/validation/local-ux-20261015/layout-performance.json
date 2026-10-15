@@ -1,0 +1,63 @@
+{
+  "fixture": {
+    "cards": 120,
+    "layouts": 12,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "baselineCommit": "af1188dbfce0f3bd2d3f971aa4dd2b8121ea1bac",
+  "measurements": {
+    "baseline": {
+      "geometry": {
+        "grid": 1360,
+        "layout": 1360,
+        "connected": true,
+        "same": true,
+        "first": 322
+      },
+      "widths": [
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200
+      ],
+      "layoutCount": 1116,
+      "layoutMilliseconds": 59.621
+    },
+    "current": {
+      "geometry": {
+        "grid": 1360,
+        "layout": 1360,
+        "connected": true,
+        "same": true,
+        "first": 322
+      },
+      "widths": [
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200,
+        1280,
+        1200
+      ],
+      "layoutCount": 48,
+      "layoutMilliseconds": 18.664
+    }
+  }
+}

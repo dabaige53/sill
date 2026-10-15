@@ -59,8 +59,8 @@ export const Source=z.object({
 }).strict();
 export const State=z.object({cards:z.array(Card).max(5000),items:z.record(id,Item),seconds:z.number().min(0).max(1e7),preferences:Preferences,sources:z.array(Source).max(200).optional()}).strict();
 const Operation=z.discriminatedUnion('op',[
-  z.object({op:z.literal('card.upsert'),card:Card}).strict(),
-  z.object({op:z.literal('card.delete'),id}).strict(),
+  z.object({op:z.literal('card.upsert'),card:Card,before:Card.nullable().optional()}).strict(),
+  z.object({op:z.literal('card.delete'),id,before:Card.optional()}).strict(),
   z.object({op:z.literal('item.patch'),id,values:Item,before:Item.optional()}).strict(),
   z.object({op:z.literal('preferences.patch'),values:Preferences,before:Preferences.optional()}).strict(),
   z.object({op:z.literal('reading.add'),seconds:z.number().int().min(0).max(86400)}).strict(),
@@ -107,6 +107,7 @@ export class LocalRepository{
     const state=this.value?structuredClone(this.value.state):{cards:[],items:{},seconds:0,preferences:{sort:'priority',reduceTransparency:false}};
     for(const operation of operations){
       const index=state.cards.findIndex(card=>card.id===operation.id||card.id===operation.card?.id);
+      if(['card.upsert','card.delete'].includes(operation.op)&&operation.before!==undefined&&JSON.stringify(state.cards[index]??null)!==JSON.stringify(operation.before))conflict('这张卡片已被修改，请读取最新内容再保存');
       if(operation.op==='card.upsert'){
         if(index<0)state.cards.unshift(operation.card);else state.cards[index]=operation.card;
       }else if(operation.op==='card.delete'){

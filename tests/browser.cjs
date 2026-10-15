@@ -276,7 +276,7 @@ async function recordLayout(page,width){
    await page.locator('[data-action="permission-allow"]').click();
    await page.locator('[data-action="permission-allow"]').click();
    await page.waitForFunction(()=>!document.querySelector('dialog').open);
-   assert.equal(await page.evaluate(()=>__store.source('src-photos')?.status),'ok');
+   assert.equal(await page.evaluate(()=>__store.source('src-photos')?.status),'attention');
    await page.locator('[data-action="welcome-demo"]').click();
    await page.locator('[data-card="article-01"]').waitFor();
   });

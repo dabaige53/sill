@@ -11,7 +11,7 @@ const MotionEngine={
    }
    return el.animate(keyframes,{duration:260,easing:'cubic-bezier(.2,.75,.25,1)',...options});
  },
- enter(el,delay=0){return this.animate(el,[{opacity:0,transform:'translateY(10px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:320,delay});},
+ enter(el,delay=0){return this.animate(el,[{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:280,delay,fill:'backwards'});},
  // New cards drop in from above: the one motion for arrivals.
  drop(el,delay=0){return this.animate(el,[{opacity:0,transform:'translateY(-14px)'},{opacity:1,transform:'translateY(0)'}],{duration:360,delay});},
  press(el){return this.animate(el,[{transform:'scale(1)'},{transform:'scale(.93)',offset:.35},{transform:'scale(1)'}],{duration:240});},
@@ -57,10 +57,10 @@ const MotionEngine={
    this.cancelPanel(el);
    done();
  },
- flip(el,oldRect){
+ flip(el,oldRect,newRect){
    this.layoutAnimations.get(el)?.cancel();
    this.layoutAnimations.delete(el);
-   const now=el.getBoundingClientRect(),x=oldRect.left-now.left,y=oldRect.top-now.top;
+   const now=newRect||el.getBoundingClientRect(),x=oldRect.left-now.left,y=oldRect.top-now.top;
    if(Math.abs(x)+Math.abs(y)>1)this.layoutAnimations.set(el,this.animate(el,[{transform:`translate(${x}px,${y}px)`},{transform:'translate(0,0)'}],{duration:320}));
  },
  pulse(el){return this.animate(el,[{transform:'scale(1)'},{transform:'scale(1.08)',offset:.5},{transform:'scale(1)'}],{duration:350});}

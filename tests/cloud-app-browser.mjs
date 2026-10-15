@@ -60,6 +60,17 @@ try{
  await frame.locator('#cloud-title').fill('Updated in plugin');await frame.locator('#cloud-save').click();
  await frame.waitForFunction(()=>!document.querySelector('#modal').open);
  assert.equal((await client.callTool({name:'sill_getContent',arguments:{id:created.id}})).structuredContent.title,'Updated in plugin');
+ // Host sandbox intentionally has no allow-modals or allow-forms. Confirmation
+ // must use the existing Sill panel, and cancellation must retain the draft.
+ await frame.locator('[data-card] .card-more-trigger').click();await frame.locator('#cloud-title').fill('Keep this host draft');
+ await frame.locator('#cloud-discard').click();await frame.locator('#cloud-confirm').waitFor();
+ await frame.locator('[data-action=close]').click();assert.equal(await frame.locator('#cloud-title').inputValue(),'Keep this host draft');
+ await frame.locator('#cloud-discard').click();await frame.locator('#cloud-confirm').click();
+ await frame.locator('[data-card] .card-more-trigger').click();assert.equal(await frame.locator('#cloud-title').inputValue(),'Updated in plugin');
+ await frame.locator('#cloud-delete').click();await frame.locator('#cloud-confirm').waitFor();
+ await frame.locator('[data-action=close]').click();assert.equal((await client.callTool({name:'sill_getContent',arguments:{id:created.id}})).structuredContent.title,'Updated in plugin');
+ await frame.locator('#cloud-delete').click();await frame.locator('#cloud-confirm').click();await frame.waitForFunction(()=>!document.querySelector('#modal').open);
+ assert.equal((await client.callTool({name:'sill_listContents',arguments:{}})).structuredContent.items.length,0);
  await cloudTool(frame,'settings');await frame.locator('[data-action=settings-group][data-extra=data]').click();assert.equal(await frame.locator('#cloud-logout').innerText(),'管理插件授权');
  assert.equal(await frame.evaluate(()=>localStorage.length),0);assert.deepEqual(network,[]);assert.deepEqual(errors,[]);
  console.log('PASS cloud MCP App: real bridge handshake, create/edit, 1280/390, no direct network or browser storage (synthetic identity)');
