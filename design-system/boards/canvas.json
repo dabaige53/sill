@@ -9,6 +9,20 @@
       "x": 0,
       "y": 19510
     },
+    "Brand.dc.html": {
+      "h": 1240,
+      "title": "27 品牌 · Sill 窗台",
+      "w": 1440,
+      "x": 0,
+      "y": 280
+    },
+    "Capture.dc.html": {
+      "h": 1340,
+      "title": "33 收集入口",
+      "w": 1440,
+      "x": 3040,
+      "y": 2120
+    },
     "CardBlocks.dc.html": {
       "h": 2140,
       "is_interactive": true,
@@ -58,6 +72,13 @@
       "w": 1440,
       "x": 1520,
       "y": 19510
+    },
+    "Details.dc.html": {
+      "h": 1720,
+      "title": "29 站内详情",
+      "w": 1440,
+      "x": 3040,
+      "y": 7060
     },
     "ExitRules.dc.html": {
       "h": 1220,
@@ -145,6 +166,13 @@
       "x": 1520,
       "y": 7060
     },
+    "Onboarding.dc.html": {
+      "h": 1500,
+      "title": "24 首次打开与导入",
+      "w": 1440,
+      "x": 0,
+      "y": 2120
+    },
     "ScrollWait.dc.html": {
       "h": 2240,
       "title": "18 定稿 · 下滑与等待 v2",
@@ -152,12 +180,54 @@
       "x": 4450,
       "y": 4220
     },
+    "SearchArchive.dc.html": {
+      "h": 1400,
+      "title": "30 搜索与归档",
+      "w": 1440,
+      "x": 0,
+      "y": 10920
+    },
+    "Settings.dc.html": {
+      "h": 1420,
+      "title": "32 设置",
+      "w": 1440,
+      "x": 3040,
+      "y": 10920
+    },
+    "Sitemap.dc.html": {
+      "h": 1000,
+      "title": "28 页面地图",
+      "w": 1440,
+      "x": 1520,
+      "y": 280
+    },
+    "SourcesImport.dc.html": {
+      "h": 1360,
+      "title": "31 来源与导入",
+      "w": 1440,
+      "x": 1520,
+      "y": 2120
+    },
     "TextLimits.dc.html": {
       "h": 1508,
       "title": "23 文字长度",
       "w": 1440,
       "x": 3040,
       "y": 12940
+    },
+    "Trust.dc.html": {
+      "h": 1060,
+      "title": "26 来源与信任",
+      "w": 1440,
+      "x": 1520,
+      "y": 10920
+    },
+    "Volume.dc.html": {
+      "h": 1700,
+      "title": "25 量大与去重",
+      "w": 1440,
+      "x": 5970,
+      "y": 4220
     },
     "WebProto.dc.html": {
       "h": 960,
@@ -167,75 +237,12 @@
       "x": 1990,
       "y": 4220
     },
-    "Onboarding.dc.html": {
-      "h": 1500,
-      "title": "24 首次打开与导入",
+    "GlassRail.dc.html": {
+      "h": 2380,
+      "title": "34 定稿 v3 · 玻璃底栏与工具条",
       "w": 1440,
-      "x": 0,
-      "y": 2120
-    },
-    "Volume.dc.html": {
-      "h": 1700,
-      "title": "25 量大与去重",
-      "w": 1440,
-      "x": 5970,
+      "x": 7490,
       "y": 4220
-    },
-    "Trust.dc.html": {
-      "h": 1060,
-      "title": "26 来源与信任",
-      "w": 1440,
-      "x": 1520,
-      "y": 10920
-    },
-    "Brand.dc.html": {
-      "h": 1240,
-      "title": "27 品牌 · Sill 窗台",
-      "w": 1440,
-      "x": 0,
-      "y": 280
-    },
-    "Sitemap.dc.html": {
-      "h": 1000,
-      "title": "28 页面地图",
-      "w": 1440,
-      "x": 1520,
-      "y": 280
-    },
-    "Details.dc.html": {
-      "h": 1720,
-      "title": "29 站内详情",
-      "w": 1440,
-      "x": 3040,
-      "y": 7060
-    },
-    "SearchArchive.dc.html": {
-      "h": 1400,
-      "title": "30 搜索与归档",
-      "w": 1440,
-      "x": 0,
-      "y": 10920
-    },
-    "SourcesImport.dc.html": {
-      "h": 1360,
-      "title": "31 来源与导入",
-      "w": 1440,
-      "x": 1520,
-      "y": 2120
-    },
-    "Settings.dc.html": {
-      "h": 1420,
-      "title": "32 设置",
-      "w": 1440,
-      "x": 3040,
-      "y": 10920
-    },
-    "Capture.dc.html": {
-      "h": 1340,
-      "title": "33 收集入口",
-      "w": 1440,
-      "x": 3040,
-      "y": 2120
     }
   },
   "createdOnFiles": {
@@ -245,10 +252,10 @@
   "designSystems": [
     {
       "artifact": "https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb",
-      "copiedAt": "2026-10-13T12:00:00Z",
+      "copiedAt": "2026-10-16T06:59:00Z",
       "namespace": "sill",
       "title": "Sill",
-      "version": "1791860640-0f87"
+      "version": "1792133654-8a24"
     }
   ],
   "launch": {
@@ -303,14 +310,6 @@
       "x": 0,
       "y": 12660
     },
-    "story": {
-      "kind": "title1",
-      "maxW": 6000,
-      "text": "产品如何形成 · 下面是一路走来的过程稿",
-      "w": 240,
-      "x": 0,
-      "y": 17030
-    },
     "row6": {
       "kind": "title1",
       "maxW": 8000,
@@ -334,6 +333,14 @@
       "w": 240,
       "x": 0,
       "y": 21070
+    },
+    "story": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "产品如何形成 · 下面是一路走来的过程稿",
+      "w": 240,
+      "x": 0,
+      "y": 17030
     }
   },
   "order": [
@@ -348,6 +355,7 @@
     "MobileProto.dc.html",
     "ScrollWait.dc.html",
     "Volume.dc.html",
+    "GlassRail.dc.html",
     "FinalOverlays.dc.html",
     "MotionProto.dc.html",
     "Details.dc.html",
@@ -371,6 +379,11 @@
     "CardForms.dc.html",
     "CardSizing.dc.html"
   ],
-  "pages": [],
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Page 1"
+    }
+  ],
   "title": "Sill · 设计"
 }

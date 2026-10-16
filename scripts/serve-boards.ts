@@ -10,6 +10,7 @@ const types = {
 	".js": "text/javascript",
 	".json": "application/json",
 	".png": "image/png",
+	".jpg": "image/jpeg",
 	".svg": "image/svg+xml",
 };
 createServer(async (request, response) => {
