@@ -479,7 +479,7 @@ var Sill = (() => {
     "web.cards.6bc9228c53b6": "\u7B49\u4F60 review\uFF0C\u6539\u4E86 3 \u4E2A\u6587\u4EF6\u3002",
     "web.cards.4daf57a75878": "\u8BFB\u5230\u6B63\u6587\u5E95\u90E8\u65F6\uFF0C\u5706\u73AF\u6EE1\u4E00\u5708\u540E\u6536\u8D77\u5361\u7247\u3002",
     "web.cards.f321fc83af79": "\u6539\u52A8\uFF1Atemplates.js\u3001cards.css\u3001app.js\u3002",
-    "web.cards.558100f28aba": "QG-142 \u53E0\u5361\u9608\u503C\u53EF\u4EE5\u6309\u6765\u6E90\u5173\u95ED",
+    "web.cards.558100f28aba": "SILL-142 \u53E0\u5361\u9608\u503C\u53EF\u4EE5\u6309\u6765\u6E90\u5173\u95ED",
     "web.cards.5a495040dcdc": "\u6307\u6D3E\u7ED9\u4F60 \xB7 \u672C\u5468\u671F\u3002",
     "web.cards.06fb60a720cf": "\u540C\u4E00\u6765\u6E90\u4E00\u5C0F\u65F6\u8D85\u8FC7 5 \u5F20\u65F6\u53E0\u8D77\u6765\uFF1B\u5728\u5355\u4E2A\u6765\u6E90\u8BBE\u7F6E\u91CC\u53EF\u4EE5\u5173\u6389\u3002",
     "web.cards.fb1d8fb5931d": "iPhone 18 Pro \u4E0A\u624B",

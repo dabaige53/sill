@@ -396,7 +396,7 @@ const SeedCards: Card[] = [
 		title: copy("web.cards.558100f28aba"),
 		summary: copy("web.cards.5a495040dcdc"),
 		sources: [{ name: "Linear", kind: "linear" }],
-		meta: "QG-142",
+		meta: "SILL-142",
 		url: "https://linear.app/",
 		tags: [copy("web.cards.bc62d1b6b936")],
 		body: [copy("web.cards.06fb60a720cf")],
