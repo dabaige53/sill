@@ -1,11 +1,11 @@
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {oauthFixture,C,AUTH} from './helpers/oauth-fixture.mjs';
-import {A,B,claims,identity} from './helpers/boundary-fixture.mjs';
-import {token} from './helpers/signed-auth.mjs';
-import {createSillRuntime} from '../server/cloud/http.mjs';
-import {oauthProvider,checkedRedirect} from '../server/cloud/oauth-provider.mjs';
+import {oauthFixture,C,AUTH} from './helpers/oauth-fixture.ts';
+import {A,B,claims,identity} from './helpers/boundary-fixture.ts';
+import {token} from './helpers/signed-auth.ts';
+import {createSillRuntime} from '../../server/cloud/http.ts';
+import {oauthProvider,checkedRedirect} from '../../server/cloud/oauth-provider.ts';
 
 test('actual SQL flow: review, approve, replay rejection, local/provider revoke, web session preserved',async()=>{
  const f=await oauthFixture();try{
@@ -13,7 +13,7 @@ test('actual SQL flow: review, approve, replay rejection, local/provider revoke,
   const flow=(await f.sql('select * from sill_private.oauth_flows')).rows[0];assert.notEqual(flow.csrf_hash,form.csrf);assert.equal(flow.owner_id,A);
   const r=await f.decide(form);assert.equal(r.status,303,await r.clone().text());assert.match(r.headers.get('location'),/^http:\/\/127.0.0.1:5876\/callback\?code=/);
   assert.deepEqual((await f.grant()).scopes,['content:read','content:write']);assert.equal((await f.decide(form)).status,409);
-  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,1);
+  assert.equal(f.providerCalls.filter((c?: any)=>c.path.endsWith('/consent')).length,1);
   assert.equal(f.cookies.get('__Host-sill-access'),initial);assert.equal((await f.call('/auth/session')).status,200);
   const revoke=await f.form('/oauth/grants');const revoked=await f.decide(revoke,'revoke');assert.equal(revoked.status,200);assert.match(await revoked.text(),/身份提供方授权也已撤销/);assert.equal(await f.grant(),undefined);
   assert.equal(f.cookies.get('__Host-sill-access'),initial);assert.equal(f.providerCalls.at(-1).method,'DELETE');assert.equal(f.providerCalls.at(-1).search,'?client_id='+C);
@@ -34,12 +34,12 @@ test('failure/deny do not replace existing grants and uncertain calls are not re
 test('CSRF, origin, bearer-owner, body and browser binding reject before provider mutation',async()=>{
  const f=await oauthFixture();try{
   const form=await f.form();
-  for(const options of [{headers:{Origin:'https://evil.example'}},{headers:{'sec-fetch-site':'cross-site'}},{headers:{Authorization:'Bearer '+token()}},{cookieJar:new Map([['__Host-sill-access',token()]])},{headers:{'Content-Type':'application/json'}}])assert.ok((await f.decide(form,'approve',options)).status>=400);
+  for(const options of [{headers:{Origin:'https://evil.example'}},{headers:{'sec-fetch-site':'cross-site'}},{headers:{Authorization:'Bearer '+token()}},{cookieJar:new Map<any, any>([['__Host-sill-access',token()]])},{headers:{'Content-Type':'application/json'}}])assert.ok((await f.decide(form,'approve',options)).status>=400);
   assert.equal((await f.decide({...form,csrf:'a'.repeat(64)})).status,403);
   assert.equal((await f.call('/oauth/decision',{method:'POST',body:new URLSearchParams({...form,decision:'approve',ownerId:B})})).status,400);
   assert.equal((await f.call('/oauth/decision',{method:'POST',body:'x'.repeat(5000)})).status,413);
   assert.equal((await f.call('/oauth/decision?decision=approve')).status,404);
-  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);assert.equal(await f.grant(),undefined);
+  assert.equal(f.providerCalls.filter((c?: any)=>c.path.endsWith('/consent')).length,0);assert.equal(await f.grant(),undefined);
  }finally{await f.close();}
 });
 
@@ -50,15 +50,15 @@ test('provider details, policy, expiry, unknown client and cross-owner changes f
   form=await f.form();await f.sql("update sill_private.oauth_clients set policy=jsonb_set(policy,'{resources}','[\"limited\"]')");assert.equal((await f.decide(form)).status,409);
   f.state.details={...f.details,client:{id:B}};assert.equal((await f.call('/oauth/consent?authorization_id='+AUTH)).status,403);
   f.state.details={redirect_url:'https://evil.example/auto'};assert.equal((await f.call('/oauth/consent?authorization_id='+AUTH)).status,403);
-  assert.equal((await f.decide(form,'approve',{cookieJar:new Map([['__Host-sill-access',token({sub:B})],['__Host-sill-consent-browser',f.cookies.get('__Host-sill-consent-browser')]])})).status,404);
+  assert.equal((await f.decide(form,'approve',{cookieJar:new Map<any, any>([['__Host-sill-access',token({sub:B})],['__Host-sill-consent-browser',f.cookies.get('__Host-sill-consent-browser')]])})).status,404);
   assert.equal(await f.grant(),undefined);
  }finally{await f.close();}
 });
 
 test('revocation wins over an in-flight provider approval across independent requests',async()=>{
  const f=await oauthFixture();try{
-  const form=await f.form();let release;f.state.hold=new Promise(r=>release=r);const approving=f.decide(form);
-  while(!f.providerCalls.some(c=>c.path.endsWith('/consent')))await new Promise(r=>setTimeout(r,5));
+  const form=await f.form();let release;f.state.hold=new Promise((r?: any)=>release=r);const approving=f.decide(form);
+  while(!f.providerCalls.some((c?: any)=>c.path.endsWith('/consent')))await new Promise((r?: any)=>setTimeout(r,5));
   assert.equal((await f.decide(form)).status,409);
   const revoke=await f.form('/oauth/grants');assert.equal((await f.decide(revoke,'revoke')).status,200);
   release();assert.equal((await approving).status,409);assert.equal(await f.grant(),undefined);
@@ -81,11 +81,11 @@ test('SQL API independently rejects agent tokens, cross-owner data and grant wid
 
 test('login return is an exact bounded self path; successful SDK PKCE resumes without approving',async()=>{
  const f=await oauthFixture();try{
-  const jar=new Map();const first=await f.call('/oauth/consent?authorization_id='+AUTH,{cookieJar:jar});assert.equal(first.status,401);assert.equal(f.providerCalls.length,0);
+  const jar=new Map<any, any>();const first=await f.call('/oauth/consent?authorization_id='+AUTH,{cookieJar:jar});assert.equal(first.status,401);assert.equal(f.providerCalls.length,0);
   const login=await f.call('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'synthetic@example.com'}),cookieJar:jar});assert.equal(login.status,202);
   const callback=await f.call('/auth/callback?code=synthetic-code',{cookieJar:jar});assert.equal(callback.status,303);assert.equal(callback.headers.get('location'),f.config.appOrigin+'/oauth/consent?authorization_id='+AUTH);
   assert.equal(await f.grant(),undefined);assert.equal(jar.get('__Host-sill-oauth-return'),'');
-  const invalid=new Map([['__Host-sill-oauth-return','https://evil.example']]);
+  const invalid=new Map<any, any>([['__Host-sill-oauth-return','https://evil.example']]);
   assert.equal((await f.call('/oauth/consent?authorization_id=bad',{cookieJar:invalid})).status,401);
  }finally{await f.close();}
 });
@@ -101,8 +101,8 @@ test('disabled or incomplete configuration never calls provider; ordinary sessio
 });
 
 test('provider adapter uses supported access-token endpoints, disallows redirects and bounds responses',async()=>{
- const config={url:'https://project.supabase.co',publishableKey:'sb_publishable_test'},calls=[];
- const p=oauthProvider(config,'synthetic-verified-access',{fetchImpl:async(url,init)=>{calls.push({url,init});return Response.json({authorization_id:AUTH});}});
+ const config: Record<string, any>={url:'https://project.supabase.co',publishableKey:'sb_publishable_test'},calls=[];
+ const p=oauthProvider(config,'synthetic-verified-access',{fetchImpl:async(url?: any,init?: any)=>{calls.push({url,init});return Response.json({authorization_id:AUTH});}});
  await p.details(AUTH);await p.decide(AUTH,'deny');await p.revoke(C);
  assert.equal(calls[0].url,config.url+'/auth/v1/oauth/authorizations/'+AUTH);assert.equal(calls[0].init.headers.Authorization,'Bearer synthetic-verified-access');assert.equal(calls[0].init.redirect,'manual');assert.ok(!JSON.stringify(calls).includes('refresh_token'));
  const redirected=oauthProvider(config,'x',{fetchImpl:async()=>new Response(null,{status:302,headers:{Location:'https://elsewhere.example'}})});await assert.rejects(redirected.details(AUTH),/unavailable/);
@@ -111,7 +111,7 @@ test('provider adapter uses supported access-token endpoints, disallows redirect
 });
 
 test('lost provider decision response consumes the flow without installing a grant',async()=>{
- const f=await oauthFixture();try{const form=await f.form();f.state.failDecision=true;assert.equal((await f.decide(form)).status,503);assert.equal(await f.grant(),undefined);assert.equal((await f.decide(form)).status,409);assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,1);}finally{await f.close();}
+ const f=await oauthFixture();try{const form=await f.form();f.state.failDecision=true;assert.equal((await f.decide(form)).status,503);assert.equal(await f.grant(),undefined);assert.equal((await f.decide(form)).status,409);assert.equal(f.providerCalls.filter((c?: any)=>c.path.endsWith('/consent')).length,1);}finally{await f.close();}
 });
 test('bounded flows, inactive client and changed prior grant prevent widening',async()=>{
  const f=await oauthFixture();try{
@@ -126,15 +126,15 @@ test('bounded flows, inactive client and changed prior grant prevent widening',a
 test('draft issuer binds versions to immutable OAuth sessions; old access/refresh cannot revive after reconsent',async()=>{
  const f=await oauthFixture();try{
   await f.sql('create role supabase_auth_admin nologin');
-  await f.db.exec(await readFile(new URL('../supabase/drafts/sill_v1_oauth_token_hook.sql',import.meta.url),'utf8'));
-  const hook=async(event)=>{await f.sql('set role supabase_auth_admin');return (await f.db.query('select sill_private.oauth_access_token_hook($1) as result',[JSON.stringify(event)])).rows[0].result.claims;};
+  await f.db.exec(await readFile(new URL('../../supabase/drafts/sill_v1_oauth_token_hook.sql',import.meta.url),'utf8'));
+  const hook=async(event?: any)=>{await f.sql('set role supabase_auth_admin');return (await f.db.query('select sill_private.oauth_access_token_hook($1) as result',[JSON.stringify(event)])).rows[0].result.claims;};
   const session='77777777-7777-4777-8777-777777777777';
-  const event={user_id:A,authentication_method:'oauth_provider/authorization_code',claims:claims(A,{client_id:C,session_id:session})};
-  const web={user_id:A,authentication_method:'magiclink',claims:claims()};assert.deepEqual(await hook(web),web.claims);
-  const unknown={...event,claims:{...event.claims,client_id:B}};assert.deepEqual(await hook(unknown),unknown.claims);
+  const event: Record<string, any>={user_id:A,authentication_method:'oauth_provider/authorization_code',claims:claims(A,{client_id:C,session_id:session})};
+  const web: Record<string, any>={user_id:A,authentication_method:'magiclink',claims:claims()};assert.deepEqual(await hook(web),web.claims);
+  const unknown: Record<string, any>={...event,claims:{...event.claims,client_id:B}};assert.deepEqual(await hook(unknown),unknown.claims);
   assert.equal((await hook(event)).sill_consent_version,undefined);
   await f.decide(await f.form());const issued=await hook(event);assert.equal(issued.aud,f.policy.audience);assert.equal(issued.sill_consent_version,1);
-  const authorized=async(c)=>{await identity(f.db,c);return f.db.query('select public.sill_session_info()');};
+  const authorized=async(c?: any)=>{await identity(f.db,c);return f.db.query('select public.sill_session_info()');};
   await authorized(issued);await assert.rejects(authorized({...issued,sill_consent_version:undefined}),/forbidden/);
   assert.equal((await hook({...event,authentication_method:'token_refresh'})).sill_consent_version,1);
   await f.decide(await f.form('/oauth/grants'),'revoke');await assert.rejects(authorized(issued),/forbidden/);
@@ -142,7 +142,7 @@ test('draft issuer binds versions to immutable OAuth sessions; old access/refres
   await assert.rejects(authorized(issued),/forbidden/);
   const oldRefresh=await hook({...event,authentication_method:'token_refresh'});assert.equal(oldRefresh.sill_consent_version,undefined);await assert.rejects(authorized(oldRefresh),/forbidden/);
   const reusedSession=await hook(event);assert.equal(reusedSession.sill_consent_version,undefined);
-  const newEvent={...event,claims:{...event.claims,session_id:'88888888-8888-4888-8888-888888888888',sill_consent_version:999}};
+  const newEvent: Record<string, any>={...event,claims:{...event.claims,session_id:'88888888-8888-4888-8888-888888888888',sill_consent_version:999}};
   const preexistingRefresh=await hook({...newEvent,authentication_method:'token_refresh'});assert.equal(preexistingRefresh.sill_consent_version,undefined);
   const fresh=await hook(newEvent);assert.equal(fresh.sill_consent_version,3);await authorized(fresh);
   await identity(f.db);await assert.rejects(f.db.query('select sill_private.oauth_access_token_hook($1)',[JSON.stringify(newEvent)]),/permission denied/);
@@ -164,19 +164,19 @@ test('opaque provider authorization IDs survive review, login return and SQL wit
  const opaque='synthetic_authorization_handle_01',f=await oauthFixture({authorizationId:opaque});try{
   const form=await f.form();assert.equal((await f.decide(form)).status,303);
   assert.equal((await f.sql('select authorization_id from sill_private.oauth_flows')).rows[0].authorization_id,opaque);
-  const jar=new Map();assert.equal((await f.call('/oauth/consent?authorization_id='+opaque,{cookieJar:jar})).status,401);
+  const jar=new Map<any, any>();assert.equal((await f.call('/oauth/consent?authorization_id='+opaque,{cookieJar:jar})).status,401);
   assert.ok(decodeURIComponent(jar.get('__Host-sill-oauth-return')).startsWith(opaque+'.'));
   for(const id of ['../outside','short','a'.repeat(129)])assert.throws(()=>f.providerFactory(f.config,'synthetic').details(id),/invalid_request/);
  }finally{await f.close();}
 });
 
 test('production upgrade preserves existing UUID flow handles as text',async()=>{
- const {cloudFixture}=await import('./helpers/cloud-fixture.mjs');const f=await cloudFixture();try{
+ const {cloudFixture}=await import('./helpers/cloud-fixture.ts');const f=await cloudFixture();try{
   await f.db.exec('create role supabase_auth_admin nologin');
-  await f.db.exec(await readFile(new URL('../supabase/migrations/20261015010603_sill_codex_oauth_consent.sql',import.meta.url),'utf8'));
+  await f.db.exec(await readFile(new URL('../../supabase/migrations/20261015010603_sill_codex_oauth_consent.sql',import.meta.url),'utf8'));
   await f.db.exec(`insert into sill_private.oauth_clients(owner_id,client_id,policy) values('${A}','${C}','{}');
    insert into sill_private.oauth_flows(owner_id,id,client_id,authorization_id,kind,browser_hash,csrf_hash,policy_snapshot,generation) values('${A}','${AUTH}','${C}','${AUTH}','consent','a','b','{}',0);`);
-  await f.db.exec(await readFile(new URL('../supabase/migrations/20261015012954_sill_opaque_oauth_authorization_ids.sql',import.meta.url),'utf8'));
+  await f.db.exec(await readFile(new URL('../../supabase/migrations/20261015012954_sill_opaque_oauth_authorization_ids.sql',import.meta.url),'utf8'));
   assert.equal((await f.db.query('select authorization_id from sill_private.oauth_flows')).rows[0].authorization_id,AUTH);
   await f.db.query('update sill_private.oauth_flows set authorization_id=$1',['opaque_authorization_handle_002']);
   assert.equal((await f.db.query('select authorization_id from sill_private.oauth_flows')).rows[0].authorization_id,'opaque_authorization_handle_002');
@@ -199,16 +199,16 @@ test('provider automatic consent resumes only one existing exact Sill grant with
 
 test('full login handoff reaches review, while another browser and expired return cannot resume',async()=>{
  const f=await oauthFixture();try{
-  const jar=new Map();
+  const jar=new Map<any, any>();
   await f.call('/oauth/consent?authorization_id='+AUTH,{cookieJar:jar});
   await f.call('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'synthetic@example.com'}),cookieJar:jar});
-  const other=await f.call('/auth/callback?code=synthetic-code',{cookieJar:new Map(),headers:{Accept:'text/html'}});
+  const other=await f.call('/auth/callback?code=synthetic-code',{cookieJar:new Map<any, any>(),headers:{Accept:'text/html'}});
   assert.equal(other.status,303);assert.equal(other.headers.get('location'),f.config.appOrigin+'/?login_error=1');
   const callback=await f.call('/auth/callback?code=synthetic-code',{cookieJar:jar});
   const review=await f.call(new URL(callback.headers.get('location')).pathname+new URL(callback.headers.get('location')).search,{cookieJar:jar});
   assert.equal(review.status,200);assert.match(await review.text(),/允许上述访问/);
   assert.equal(await f.grant(),undefined,'login does not approve access');
-  const expired=new Map([['__Host-sill-oauth-return',AUTH+'.'+(Date.now()-1000)]]);
+  const expired=new Map<any, any>([['__Host-sill-oauth-return',AUTH+'.'+(Date.now()-1000)]]);
   await f.call('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'synthetic@example.com'}),cookieJar:expired});
   const resumed=await f.call('/auth/callback?code=synthetic-code',{cookieJar:expired});
   assert.equal(resumed.headers.get('location'),f.config.appOrigin+'/oauth/expired');
@@ -221,7 +221,7 @@ test('actual host default five scopes fail against the current openid-only polic
   const response=await f.call('/oauth/consent?authorization_id='+AUTH);
   assert.equal(response.status,403);assert.equal(response.headers.get('X-Sill-Consent-Stage'),'review');
   assert.equal(await f.grant(),undefined);
-  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);
+  assert.equal(f.providerCalls.filter((c?: any)=>c.path.endsWith('/consent')).length,0);
  }finally{await f.close();}
 });
 
@@ -234,7 +234,7 @@ test('observed ChatGPT openid email offline_access reaches explicit review under
   const response=await f.call('/oauth/consent?authorization_id='+AUTH);
   assert.equal(response.status,200,await response.clone().text());
   assert.equal(await f.grant(),undefined);
-  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);
+  assert.equal(f.providerCalls.filter((c?: any)=>c.path.endsWith('/consent')).length,0);
  }finally{await f.close();}
 });
 
@@ -248,6 +248,6 @@ test('ChatGPT five identity scopes reach review only when explicitly allowed for
   const html=await response.text();
   assert.match(html,/openid、email、offline_access、profile、phone/);
   assert.equal(await f.grant(),undefined,'supporting identity scopes does not grant card access');
-  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);
+  assert.equal(f.providerCalls.filter((c?: any)=>c.path.endsWith('/consent')).length,0);
  }finally{await f.close();}
 });

@@ -2,7 +2,7 @@
 
 更新：2026-10-16。
 
-当前页面和 AI 共用 `server/local.mjs` 与 `.sill/local/cards.json`。当前外部应用由宿主 AI 使用，默认运行路径不提供桥接；目标中的内置助手、对外MCP及选择性tools桥接见 [Agent与MCP](../product/agent-mcp.md)，尚未实现。
+当前页面和 AI 共用 `server/local/index.ts` 与 `.sill/local/cards.json`。当前外部应用由宿主 AI 使用，默认运行路径不提供桥接；目标中的内置助手、对外MCP及选择性tools桥接见 [Agent与MCP](../product/agent-mcp.md)，尚未实现。
 
 下表是当前本地状态操作，不是外部 MCP 执行回执；`taskDone` / `read` 的本地更新不证明外部任务或邮件状态已经改变。目标意图协议尚未实现，见 [Agent 与 MCP](../product/agent-mcp.md)。
 

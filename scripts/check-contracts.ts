@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import Ajv2020 from 'ajv/dist/2020.js';
-import addFormats from 'ajv-formats';
+import { Ajv2020 } from 'ajv/dist/2020.js';
+import formats from 'ajv-formats';
 
 const read = (name: string) => JSON.parse(readFileSync(new URL('../contracts/design/' + name, import.meta.url), 'utf8'));
 const spec = read('openapi.json');
 const catalog = read('mcp-tools.json');
 const fixtures = read('fixtures.json');
 const validator = new Ajv2020({ strict: false });
-addFormats(validator);
-export const normalizeRefs = (value: unknown): any => Array.isArray(value) ? value.map(normalizeRefs) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, key === '$ref' ? String(entry).replace('#/components/schemas/', '#/$defs/') : normalizeRefs(entry)])) : value;
+(formats as unknown as (validator: Ajv2020) => void)(validator);
+export const normalizeRefs = (value: unknown): any => Array.isArray(value) ? value.map(normalizeRefs) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, entry]: any) => [key, key === '$ref' ? String(entry).replace('#/components/schemas/', '#/$defs/') : normalizeRefs(entry)])) : value;
 export function validateDesign(schemaName: string, value: unknown) {
   const schema = { $ref: '#/$defs/' + schemaName, $defs: normalizeRefs(spec.components.schemas) };
   const check = validator.compile(schema);

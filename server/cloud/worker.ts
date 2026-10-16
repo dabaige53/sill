@@ -1,4 +1,4 @@
-import {createSillRuntime} from './http.mjs';
+import {createSillRuntime} from './http.ts';
 import html from '../../dist/cloud/index.html';
 import appHtml from '../../dist/cloud/app.html';
 import brandIcon from '../../assets/sill-icon.png';
@@ -6,9 +6,9 @@ import lineIcon from '../../assets/sill-line.svg';
 import lineIconDark from '../../assets/sill-line-dark.svg';
 // One runtime per current configuration shares only in-flight refresh work.
 // Auth clients and response cookies remain request scoped; no completed session cache.
-export function createWorker({runtimeFactory=createSillRuntime}={}){
+export function createWorker({runtimeFactory=createSillRuntime}: any={}){
  let activeKey,activeRuntime;
- return {fetch(request,env){
+ return {fetch(request?: any,env?: any){
  if(request.method==='GET'&&new URL(request.url).pathname==='/assets/sill-icon.png')return new Response(brandIcon,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=3600','X-Content-Type-Options':'nosniff'}});
  const iconPath=new URL(request.url).pathname;
  if(request.method==='GET'&&['/assets/sill-line.svg','/assets/sill-line-dark.svg'].includes(iconPath))return new Response(iconPath.endsWith('-dark.svg')?lineIconDark:lineIcon,{headers:{'Content-Type':'image/svg+xml','Cache-Control':'public, max-age=3600','X-Content-Type-Options':'nosniff'}});

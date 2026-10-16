@@ -7,27 +7,27 @@ const image='postgres:17.11@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431
 const owner='11111111-1111-4111-8111-111111111111';
 const other='22222222-2222-4222-8222-222222222222';
 const container=`sill-pg-test-${process.pid}`;
-const quote=x=>"'"+String(x).replaceAll("'","''")+"'";
-function command(args,input=''){
- return new Promise((resolve,reject)=>{
+const quote=(x?: any)=>"'"+String(x).replaceAll("'","''")+"'";
+function command(args?: any,input: any=''){
+ return new Promise<string>((resolve,reject)=>{
   const p=spawn('docker',args,{stdio:['pipe','pipe','pipe']});let out='',err='';
-  p.stdout.on('data',d=>out+=d);p.stderr.on('data',d=>err+=d);p.on('error',reject);
-  p.on('close',code=>code?reject(Object.assign(new Error(err||out),{code})):resolve(out.trim()));p.stdin.end(input);
+  p.stdout.on('data',(d?: any)=>out+=d);p.stderr.on('data',(d?: any)=>err+=d);p.on('error',reject);
+  p.on('close',(code?: any)=>code?reject(Object.assign(new Error(err||out),{code})):resolve(out.trim()));p.stdin.end(input);
  });
 }
-const sql=s=>command(['exec','-i',container,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres'],s);
-const install=async name=>sql("set session authorization sill_installer;set createrole_self_grant='';"+await readFile(new URL('../supabase/drafts/'+name,import.meta.url),'utf8'));
-const asUser=(sub=owner,client)=>`set request.jwt.claims=${quote(JSON.stringify({sub,role:'authenticated',aud:client?'https://sill.example/mcp':'authenticated',exp:Math.floor(Date.now()/1000)+3600,...(client?{client_id:client}:{})}))};set role authenticated;`;
-const write=(op,id,payload,key)=>`select sill_private.write_v1(${quote(op)},${id===null?'null':quote(id)},${quote(JSON.stringify(payload))}::jsonb,${quote(key)});`;
-const parse=out=>JSON.parse(out.split('\n').filter(Boolean)[0]);
-async function holding(name){
+const sql=(s?: any)=>command(['exec','-i',container,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres'],s);
+const install=async (name?: any)=>sql("set session authorization sill_installer;set createrole_self_grant='';"+await readFile(new URL('../../supabase/drafts/'+name,import.meta.url),'utf8'));
+const asUser=(sub: any=owner,client?: any)=>`set request.jwt.claims=${quote(JSON.stringify({sub,role:'authenticated',aud:client?'https://sill.example/mcp':'authenticated',exp:Math.floor(Date.now()/1000)+3600,...(client?{client_id:client}:{})}))};set role authenticated;`;
+const write=(op?: any,id?: any,payload?: any,key?: any)=>`select sill_private.write_v1(${quote(op)},${id===null?'null':quote(id)},${quote(JSON.stringify(payload))}::jsonb,${quote(key)});`;
+const parse=(out?: any)=>JSON.parse(out.split('\n').filter(Boolean)[0]);
+async function holding(name?: any){
  for(let n=0;n<100;n++){
   if(await sql(`select count(*) from pg_stat_activity where application_name=${quote(name)} and wait_event='PgSleep';`)==='1') return;
-  await new Promise(r=>setTimeout(r,30));
+  await new Promise((r?: any)=>setTimeout(r,30));
  }
  throw new Error('Writer never acquired lock');
 }
-test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout:90000},async t=>{
+test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout:90000},async (t?: any)=>{
  let started=false;
  try{
   await command(['run','--rm','-d','--name',container,'--network','none','--tmpfs','/var/lib/postgresql/data:rw','-e','POSTGRES_HOST_AUTH_METHOD=trust',image]);started=true;
@@ -39,7 +39,7 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
      await command(['exec',container,'pg_isready','-U','postgres']);ready=true;break;
     }
    }catch{}
-   await new Promise(r=>setTimeout(r,100));
+   await new Promise((r?: any)=>setTimeout(r,100));
   }
   assert.ok(ready,'Postgres became ready');
   await sql(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);
@@ -89,7 +89,7 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
    await holding('sill-lock-c');
    const reader=sql(asUser()+"select sill_private.list_contents(null,null,100);");
    const [,page]=await Promise.all([first,reader]);const snap=JSON.parse(page);
-   assert.equal(snap.items.find(c=>c.id===id).title,'Committed');assert.ok(snap.sync_cursor);
+   assert.equal(snap.items.find((c?: any)=>c.id===id).title,'Committed');assert.ok(snap.sync_cursor);
    await sql(asUser()+write('delete',id,{expectedRevision:3},'delete001'));
    const delta=JSON.parse(await sql(asUser()+`select sill_private.list_contents(null,${quote(snap.sync_cursor)},100);`));
    assert.equal(delta.items.length,1);assert.equal(delta.items[0].deleted,true);assert.equal(delta.items[0].revision,4);
@@ -141,17 +141,17 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
   await t.test('consent gateway installs as NOSUPERUSER; concurrent claim, revoke and stale finalization are safe',async()=>{
    await install('sill_v1_oauth_consent.sql');
    const client='33333333-3333-4333-8333-333333333333',auth='44444444-4444-4444-8444-444444444444';
-   const policy={clientId:client,appOrigin:'https://sill.example',audience:'https://sill.example/mcp',redirectUris:['http://127.0.0.1:5876/callback'],identityScopes:['openid'],contentScopes:['content:read'],resources:['*']};
+   const policy: Record<string, any>={clientId:client,appOrigin:'https://sill.example',audience:'https://sill.example/mcp',redirectUris:['http://127.0.0.1:5876/callback'],identityScopes:['openid'],contentScopes:['content:read'],resources:['*']};
    await sql(`insert into sill_private.oauth_clients(owner_id,client_id,policy,enabled) values('${owner}','${client}',${quote(JSON.stringify(policy))},true);`);
-   const review={authorizationId:auth,userId:owner,clientId:client,audience:policy.audience,redirectUri:policy.redirectUris[0],identityScopes:['openid'],contentScopes:['content:read'],resources:['*']};
-   const flow='55555555-5555-4555-8555-555555555555',proof={flowId:flow,browserHash:'a'.repeat(64),csrfHash:'b'.repeat(64)};
-   const rpc=(op,p,who=owner)=>sql(asUser(who)+`select public.sill_oauth_flow(${quote(op)},${quote(JSON.stringify(p))}::jsonb);`);
+   const review: Record<string, any>={authorizationId:auth,userId:owner,clientId:client,audience:policy.audience,redirectUri:policy.redirectUris[0],identityScopes:['openid'],contentScopes:['content:read'],resources:['*']};
+   const flow='55555555-5555-4555-8555-555555555555',proof: Record<string, any>={flowId:flow,browserHash:'a'.repeat(64),csrfHash:'b'.repeat(64)};
+   const rpc=(op?: any,p?: any,who: any=owner)=>sql(asUser(who)+`select public.sill_oauth_flow(${quote(op)},${quote(JSON.stringify(p))}::jsonb);`);
    await rpc('begin',{...proof,kind:'consent',clientId:client,review});
    const claims=await Promise.allSettled([rpc('claim',{...proof,decision:'approve'}),rpc('claim',{...proof,decision:'approve'})]);
-   assert.equal(claims.filter(x=>x.status==='fulfilled').length,1);assert.match(claims.find(x=>x.status==='rejected').reason.message,/revision_conflict/);
+   assert.equal(claims.filter((x?: any)=>x.status==='fulfilled').length,1);assert.match(claims.find((result): result is PromiseRejectedResult=>result.status==='rejected').reason.message,/revision_conflict/);
    await assert.rejects(rpc('inspect',proof,other),/not_found/);
    await assert.rejects(sql(asUser(owner,client)+"select public.sill_oauth_flow('list','{}');"),/forbidden/);
-   const revoke={...proof,flowId:'66666666-6666-4666-8666-666666666666'};
+   const revoke: Record<string, any>={...proof,flowId:'66666666-6666-4666-8666-666666666666'};
    await rpc('begin',{...revoke,kind:'revoke',clientId:client});await rpc('claim',{...revoke,decision:'revoke'});
    await assert.rejects(rpc('finish',{...proof,result:'approved'}),/revision_conflict/);
    assert.equal(await sql(`select count(*) from sill_private.caller_grants where caller_id='oauth:${client}';`),'0');
@@ -170,7 +170,7 @@ test('PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback', {timeout
    await assert.rejects(sql("set session authorization sill_installer;set role sill_oauth_issuer;"),/permission denied/);
    await assert.rejects(sql(asUser()+"select sill_private.oauth_access_token_hook('{}');"),/permission denied/);
    await assert.rejects(sql(asUser()+"select * from sill_private.oauth_token_sessions;"),/permission denied/);
-   const event={user_id:owner,authentication_method:'magiclink',claims:{sub:owner,aud:'authenticated'}};
+   const event: Record<string, any>={user_id:owner,authentication_method:'magiclink',claims:{sub:owner,aud:'authenticated'}};
    assert.deepEqual(JSON.parse(await sql("set role supabase_auth_admin;select sill_private.oauth_access_token_hook("+quote(JSON.stringify(event))+"::jsonb);")),{claims:event.claims});
   });
   console.log('ENGINE '+await sql('select version();'));

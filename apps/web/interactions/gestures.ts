@@ -1,36 +1,42 @@
+import { MotionEngine } from "./motion.ts";
+import { Store } from "../data/store.ts";
 /** Gestures. One rule, taken from the MobileProto board: a gesture only ever sets where something should be;
  *  CSS transitions (sheet curve, 360ms) carry it there. Wheel steps glide, a change of direction picks up from wherever it is,
  *  and a finger on the glass (`is-drag`) switches the transition off so the surface sits exactly under it. */
 class Gestures{
- constructor(app){
+declare app: any;
+declare phone: any;
+declare pullWheel: any;
+
+ constructor(app?: any){
    this.app=app;
    this.phone=matchMedia('(max-width:650px)');
    this.bindPull();this.bindSheetDrag();this.bindReaderSwipe();this.bindToastSwipe();
  }
- point(e){const t=e.touches?.[0]||e.changedTouches?.[0];return {x:t.clientX,y:t.clientY};}
- spring(el,keyframes,duration=260){return MotionEngine.animate(el,keyframes,{duration,easing:'cubic-bezier(.32,.72,0,1)'});}
- dim(v){const d=this.app.dialog;if(v==null)d.style.removeProperty('--backdrop');else d.style.setProperty('--backdrop',String(v));}
+ point(e?: any){const t=e.touches?.[0]||e.changedTouches?.[0];return {x:t.clientX,y:t.clientY};}
+ spring(el?: any,keyframes?: any,duration: any=260){return MotionEngine.animate(el,keyframes,{duration,easing:'cubic-bezier(.32,.72,0,1)'});}
+ dim(v?: any){const d=this.app.dialog;if(v==null)d.style.removeProperty('--backdrop');else d.style.setProperty('--backdrop',String(v));}
  // Momentum guard: a wheel stream that is still coasting into an edge is not a new gesture.
  // It counts after a pause, or once the deltas hold steady or grow again (momentum only ever weakens).
  intent(){
    let armed=false,last=0,prev=0,steady=0;
    return {
-     feed(d){const now=Date.now(),gap=now-last;last=now;if(!armed){steady=d>=prev&&d>=3?steady+1:0;if(gap>140||steady>=4)armed=true;}prev=d;return armed;},
+     feed(d?: any){const now=Date.now(),gap=now-last;last=now;if(!armed){steady=d>=prev&&d>=3?steady+1:0;if(gap>140||steady>=4)armed=true;}prev=d;return armed;},
      // Every wheel event counts as activity, even the ones that do not qualify, so a coasting tail never looks like a pause.
-     reset(seen=true){armed=false;steady=0;if(seen)last=Date.now();},
+     reset(seen: any=true){armed=false;steady=0;if(seen)last=Date.now();},
      get armed(){return armed;}
    };
  }
  // A surface sent off screen stays there; the dialog closes once it is out of sight, with no return motion.
- dismiss(close,delay=300){
+ dismiss(close?: any,delay: any=300){
    this.dim(0);
-   setTimeout(()=>{this.app.skipReturnMotion=true;close();},MotionEngine.reduced?0:delay);
+   window.setTimeout(()=>{this.app.skipReturnMotion=true;close();},MotionEngine.reduced?0:delay);
  }
  // After a pull or push closes something, the trackpad keeps coasting. Those leftover wheel events must not scroll the desk:
  // they are held until the hand has really stopped (no wheel for 200ms, at most 2.5s).
  swallowMomentum(){
    let last=Date.now();const started=last;
-   const hold=e=>{const now=Date.now();if(now-last>200||now-started>2500){window.removeEventListener('wheel',hold,{capture:true});return;}last=now;e.preventDefault();};
+   const hold=(e?: any)=>{const now=Date.now();if(now-last>200||now-started>2500){window.removeEventListener('wheel',hold,{capture:true});return;}last=now;e.preventDefault();};
    window.addEventListener('wheel',hold,{capture:true,passive:false});
  }
  /* Pull to refresh, by finger or by trackpad at the top of the desk: the desk gives a little, a ring fills;
@@ -50,16 +56,16 @@ class Gestures{
    const refresh=async()=>{
      busy=true;pull=need;paint();ring.classList.add('is-spinning');document.body.classList.remove('is-pulling');
      const started=Date.now();
-     await Promise.race([this.app.refresh(),new Promise(r=>setTimeout(r,1000))]);
-     await new Promise(r=>setTimeout(r,Math.max(0,420-(Date.now()-started))));
+     await Promise.race([this.app.refresh(),new Promise((r?: any)=>window.setTimeout(r,1000))]);
+     await new Promise((r?: any)=>window.setTimeout(r,Math.max(0,420-(Date.now()-started))));
      ring.classList.remove('is-spinning');pull=0;paint();busy=false;
    };
-   document.addEventListener('touchstart',e=>{
+   document.addEventListener('touchstart',(e?: any)=>{
      start=null;
      if(busy||scrollY>0||this.app.dialog.open||e.touches.length>1||e.target.closest?.('#dock,#toast,.card-more-menu,.deck'))return;
      start={...this.point(e),at:Date.now()};
    },{passive:true});
-   document.addEventListener('touchmove',e=>{
+   document.addEventListener('touchmove',(e?: any)=>{
      if(!start||this.app.drag?.active)return;
      const p=this.point(e),dy=p.y-start.y,dx=Math.abs(p.x-start.x);
      if(dy<=0||dx>dy){if(pull){pull=0;paint();}if(dy<-4||dx>12)start=null;return;}
@@ -70,20 +76,20 @@ class Gestures{
      if(!start)return;start=null;document.body.classList.remove('is-pulling');
      if(pull>=need)refresh();else if(pull){pull=0;paint();}
    });
-   window.addEventListener('wheel',e=>{
+   window.addEventListener('wheel',(e?: any)=>{
      if(busy||this.app.dialog.open||scrollY>0||e.deltaY>=0||Math.abs(e.deltaX)>Math.abs(e.deltaY)){wheel.reset();return;}
      if(!wheel.feed(-e.deltaY))return;
      pull=Math.min(need,pull+-e.deltaY*.4);paint();clearTimeout(timer);
      if(pull>=need){wheel.reset();this.swallowMomentum();refresh();return;}
-     timer=setTimeout(()=>{pull=0;paint();wheel.reset(false);},180);
+     timer=window.setTimeout(()=>{pull=0;paint();wheel.reset(false);},180);
    },{passive:true});
  }
  /* Sheets by finger: drag down from the grabber, or from content already at its top. Past 190px or a flick it leaves;
     otherwise it glides back. A full screen phone sheet pulled a little steps back to half height. */
  bindSheetDrag(){
    const dialog=this.app.dialog;let drag=null;
-   const sheetOf=t=>dialog.classList.contains('preview')||dialog.classList.contains('panel')?t.closest?.('.sheet'):null;
-   dialog.addEventListener('touchstart',e=>{
+   const sheetOf=(t?: any)=>dialog.classList.contains('preview')||dialog.classList.contains('panel')?t.closest?.('.sheet'):null;
+   dialog.addEventListener('touchstart',(e?: any)=>{
      drag=null;
      if(e.touches.length>1)return;
      const sheet=sheetOf(e.target);if(!sheet)return;
@@ -92,7 +98,7 @@ class Gestures{
      if(e.target.closest('input,textarea,[contenteditable="true"],.player-bar,.media-player'))return;
      drag={sheet,...this.point(e),at:Date.now(),dy:0,live:false,bar:dialog.querySelector(':scope > .float-bar')};
    },{passive:true});
-   dialog.addEventListener('touchmove',e=>{
+   dialog.addEventListener('touchmove',(e?: any)=>{
      if(!drag)return;
      const p=this.point(e),dy=p.y-drag.y,dx=Math.abs(p.x-drag.x);
      if(!drag.live){if(dy<6&&dx<6)return;if(dy<=0||dx>dy){drag=null;return;}drag.live=true;drag.sheet.classList.add('is-drag');dialog.classList.add('is-drag');}
@@ -117,12 +123,12 @@ class Gestures{
  /* Full screen reading: swipe right to go straight back to the desk. */
  bindReaderSwipe(){
    const dialog=this.app.dialog;let swipe=null;
-   dialog.addEventListener('touchstart',e=>{
+   dialog.addEventListener('touchstart',(e?: any)=>{
      swipe=null;
      if(!dialog.classList.contains('reader')||e.touches.length>1||e.target.closest('.float-bar'))return;
      swipe={...this.point(e),at:Date.now(),dx:0,live:false};
    },{passive:true});
-   dialog.addEventListener('touchmove',e=>{
+   dialog.addEventListener('touchmove',(e?: any)=>{
      if(!swipe)return;
      const p=this.point(e),dx=p.x-swipe.x,dy=Math.abs(p.y-swipe.y);
      if(!swipe.live){if(dx<8&&dy<8)return;if(dx<=0||dy*1.2>dx){swipe=null;return;}swipe.live=true;dialog.classList.add('is-drag');}
@@ -139,14 +145,14 @@ class Gestures{
  /* The toast can be flicked away downward. */
  bindToastSwipe(){
    const toast=document.getElementById('toast');let start=null;
-   toast.addEventListener('touchstart',e=>{start=e.target.closest('button')?null:this.point(e);},{passive:true});
-   toast.addEventListener('touchmove',e=>{
+   toast.addEventListener('touchstart',(e?: any)=>{start=e.target.closest('button')?null:this.point(e);},{passive:true});
+   toast.addEventListener('touchmove',(e?: any)=>{
      if(!start)return;const dy=this.point(e).y-start.y;
      if(dy>0){if(e.cancelable)e.preventDefault();toast.style.translate=`0 ${dy}px`;toast.style.opacity=String(1-Math.min(1,dy/80));}
    },{passive:false});
-   toast.addEventListener('touchend',e=>{
+   toast.addEventListener('touchend',(e?: any)=>{
      if(!start)return;const dy=this.point(e).y-start.y;start=null;
-     const from={translate:toast.style.translate||'0 0',opacity:toast.style.opacity||'1'};
+     const from: Record<string, any>={translate:toast.style.translate||'0 0',opacity:toast.style.opacity||'1'};
      toast.style.translate='';toast.style.opacity='';
      if(dy>24){const a=this.spring(toast,[from,{translate:'0 60px',opacity:0}],180);const hide=()=>{toast.hidden=true;clearTimeout(this.app.toastTimer);};a?a.finished.then(hide,hide):hide();}
      else if(dy>0)this.spring(toast,[from,{translate:'0 0',opacity:1}]);
@@ -187,7 +193,7 @@ class Gestures{
    scroll.addEventListener('scroll',()=>{if(!atTop()&&pull){pull=0;paint();}},{passive:true});
    // Listen on the whole dialog: as the sheet slides down it leaves the pointer behind, and the pull must keep going.
    if(this.pullWheel)dialog.removeEventListener('wheel',this.pullWheel);
-   this.pullWheel=e=>{
+   this.pullWheel=(e?: any)=>{
      if(done||app.modalToken!==token||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
      const now=Date.now(),d=-e.deltaY*(e.deltaMode===1?16:1),gap=now-last;last=now;
      if(d<=0||!atTop()){wheel.reset();if(pull&&d<0){pull=0;paint();}return;}
@@ -198,14 +204,14 @@ class Gestures{
      pull=Math.min(need()*1.2,pull+Math.min(40,d)*(phone?1:1-pull/(need()*2.5)));paint();
      clearTimeout(timer);
      if(pull>=need()){close();return;}
-     timer=setTimeout(()=>{pull=0;paint();wheel.reset(false);},phone?180:260);
+     timer=window.setTimeout(()=>{pull=0;paint();wheel.reset(false);},phone?180:260);
    };
    dialog.addEventListener('wheel',this.pullWheel,{passive:true});
    if(!reader)return;
    // Full screen reading by finger: pull down from the top, past a fifth or with a flick, and it slides away.
    let touch=null;
-   scroll.addEventListener('touchstart',e=>{touch=atTop()&&!done?{...this.point(e),at:Date.now(),live:false}:null;},{passive:true});
-   scroll.addEventListener('touchmove',e=>{
+   scroll.addEventListener('touchstart',(e?: any)=>{touch=atTop()&&!done?{...this.point(e),at:Date.now(),live:false}:null;},{passive:true});
+   scroll.addEventListener('touchmove',(e?: any)=>{
      if(!touch)return;const p=this.point(e),dy=p.y-touch.y,dx=Math.abs(p.x-touch.x);
      if(!touch.live){if(dy<6&&dx<6)return;if(dy<=0||dx>dy){touch=null;return;}touch.live=true;dialog.classList.add('is-drag');}
      if(e.cancelable)e.preventDefault();
@@ -219,7 +225,7 @@ class Gestures{
  }
  /* Reaching the end and pushing on (ReadEndRing): a small ring rises and fills with the push, the text lifts with resistance,
     the capsule steps aside. Full, it turns into a check, pops, and the piece folds away. Let go early and everything glides back. */
- bindPush(id,scroll){
+ bindPush(id?: any,scroll?: any){
    const app=this.app,dialog=app.dialog;
    if(!dialog.querySelector('#reader-end')||!Store.pref('collapseOnFinish'))return;
    const host=dialog.classList.contains('reader')?dialog:dialog.querySelector('.preview-sheet');if(!host)return;
@@ -240,20 +246,20 @@ class Gestures{
      if(done||app.modalToken!==token)return;done=true;clearTimeout(timer);
      pull=need;paint();chip.classList.add('is-done');chip.style.transform='scale(1)';
      Store.patch(id,{read:true,progress:1});app.refreshCard(id);this.swallowMomentum();
-     setTimeout(()=>{if(app.modalToken===token)app.closeToDesk(true);},460);
+     window.setTimeout(()=>{if(app.modalToken===token)app.closeToDesk(true);},460);
    };
-   const set=v=>{if(done)return;pull=Math.max(0,Math.min(need,v));paint();if(pull>=need)finish();};
+   const set=(v?: any)=>{if(done)return;pull=Math.max(0,Math.min(need,v));paint();if(pull>=need)finish();};
    scroll.addEventListener('scroll',()=>{if(!atEnd()&&pull&&!done){pull=0;paint();}},{passive:true});
-   scroll.addEventListener('wheel',e=>{
+   scroll.addEventListener('wheel',(e?: any)=>{
      if(done)return;
      const d=e.deltaY*(e.deltaMode===1?16:1);
      if(d<=0||!atEnd()){wheel.reset();if(pull){pull=0;paint();}return;}
      if(!wheel.feed(d))return;
      set(pull+Math.min(40,d)*.5);clearTimeout(timer);
-     timer=setTimeout(()=>{if(!done){pull=0;paint();wheel.reset(false);}},180);
+     timer=window.setTimeout(()=>{if(!done){pull=0;paint();wheel.reset(false);}},180);
    },{passive:true});
-   scroll.addEventListener('touchstart',e=>{touch=atEnd()&&!done?{y:this.point(e).y}:null;},{passive:true});
-   scroll.addEventListener('touchmove',e=>{
+   scroll.addEventListener('touchstart',(e?: any)=>{touch=atEnd()&&!done?{y:this.point(e).y}:null;},{passive:true});
+   scroll.addEventListener('touchmove',(e?: any)=>{
      if(!touch)return;const dy=touch.y-this.point(e).y;
      host.classList.add('is-drag');
      if(dy<=0){if(pull){pull=0;paint();}return;}
@@ -262,3 +268,5 @@ class Gestures{
    scroll.addEventListener('touchend',()=>{if(!touch)return;touch=null;host.classList.remove('is-drag');if(!done){pull=0;paint();}});
  }
 }
+
+export { Gestures };

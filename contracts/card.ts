@@ -1,3 +1,4 @@
+import { cardIssues } from './card-rules.ts';
 import { z } from 'zod/v4';
 
 export const contractVersion = '2.0.0';
@@ -35,27 +36,9 @@ export const Card = z.object({
   start: timestamp.optional(), end: timestamp.optional(), due: timestamp.optional(), time: timestamp.optional(),
   people: strings.optional(), related: z.array(id).max(100).optional(), priority: z.number().min(0).max(10).optional(),
 }).passthrough().superRefine((card, context) => {
-  if (card.type === 'event' && (!(card.start > 0) || !(card.end > card.start))) context.addIssue({ code: 'custom', message: 'invalid_event_range' });
-  if (card.type === 'task' && (!card.tasks?.length || new Set(card.tasks.map(task => task.id)).size !== card.tasks.length)) context.addIssue({ code: 'custom', message: 'invalid_task_ids' });
-  if (card.type === 'media' && !card.image && card.media !== 'podcast') context.addIssue({ code: 'custom', message: 'missing_video_image' });
-  if (card.type === 'photo' && !card.photos?.length && !card.image) context.addIssue({ code: 'custom', message: 'missing_photos' });
-  if (card.type === 'file' && !card.files?.length) context.addIssue({ code: 'custom', message: 'missing_files' });
+  for (const message of cardIssues(card)) context.addIssue({ code: 'custom', message });
 });
 export type Card = z.infer<typeof Card>;
 export type SourceReference = z.infer<typeof SourceReference>;
 
-export function normalizeCard(input: Card): Card {
-  const card = structuredClone(input);
-  const sources = (card.sources ?? []).map(source => ({ ...source, kind: source.kind === 'ai' ? 'agent' : source.kind }));
-  if (typeof card.source === 'string' && card.source && card.type !== 'mail') {
-    const kind = card.kind === 'ai' ? 'agent' : typeof card.kind === 'string' ? card.kind : 'local';
-    if (!sources.some(source => source.name === card.source && source.kind === kind)) sources.push({ name: card.source, kind });
-  } else if (card.type === 'mail' && !card.sender && typeof card.source === 'string') {
-    card.sender = card.source;
-  }
-  if (!sources.length && typeof card.kind === 'string') sources.push({ name: card.kind === 'ai' ? '助手' : card.type === 'mail' ? '邮件' : card.kind, kind: card.kind === 'ai' ? 'agent' : card.kind });
-  if (sources.length || card.sources) card.sources = sources;
-  delete card.source;
-  delete card.kind;
-  return card;
-}
+export { normalizeCard } from './card-migration.ts';

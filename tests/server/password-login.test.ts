@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {oauthFixture,AUTH} from './helpers/oauth-fixture.mjs';
+import {oauthFixture,AUTH} from './helpers/oauth-fixture.ts';
 test('password login resumes consent without approval, rejects wrong credentials and cross-origin',async()=>{
  const f=await oauthFixture();try{
-  const jar=new Map();const page=await f.call('/auth/login',{cookieJar:jar});assert.equal(page.status,200);assert.match(await page.text(),/current-password/);
+  const jar=new Map<any, any>();const page=await f.call('/auth/login',{cookieJar:jar});assert.equal(page.status,200);assert.match(await page.text(),/current-password/);
   const start=await f.call('/oauth/consent?authorization_id='+AUTH,{cookieJar:jar});assert.match(await start.text(),/href="\/auth\/login"/);
-  const post=(password,headers={})=>f.call('/auth/password',{cookieJar:jar,method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify({email:'synthetic@example.com',password})});
+  const post=(password?: any,headers: any={})=>f.call('/auth/password',{cookieJar:jar,method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify({email:'synthetic@example.com',password})});
   assert.equal((await post('wrong')).status,401);assert.ok(!jar.get('__Host-sill-access'));
   assert.equal((await post('synthetic-password',{Origin:'https://evil.example'})).status,403);
   const login=await post('synthetic-password');assert.equal(login.status,200);assert.equal((await login.json()).location,f.config.appOrigin+'/oauth/consent?authorization_id='+AUTH);
@@ -15,7 +15,7 @@ test('password login resumes consent without approval, rejects wrong credentials
 });
 test('email verification can set a password and preserve the pending authorization',async()=>{
  const f=await oauthFixture();try{
-  const jar=new Map();const post=(path,value)=>f.call(path,{cookieJar:jar,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)});
+  const jar=new Map<any, any>();const post=(path?: any,value?: any)=>f.call(path,{cookieJar:jar,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(value)});
   assert.equal((await post('/auth/password/update',{password:'synthetic-password'})).status,401);
   await f.call('/oauth/consent?authorization_id='+AUTH,{cookieJar:jar});
   assert.equal((await post('/auth/login',{email:'synthetic@example.com',setupPassword:true})).status,202);

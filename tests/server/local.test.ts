@@ -6,10 +6,10 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
 import { request } from 'node:http';
-import { startLocal } from '../server/local.mjs';
-import { LocalRepository } from '../server/local-state.mjs';
+import { startLocal } from '../../server/local/index.ts';
+import { LocalRepository } from '../../server/local/repository.ts';
 const run=promisify(execFile);
-const card={id:'test-note',type:'note',title:'本地卡片',body:['正文'],url:'https://example.com'};
+const card: Record<string, any>={id:'test-note',type:'note',title:'本地卡片',body:['正文'],url:'https://example.com'};
 
 test('conditional whole-card writes reject stale edits, deletes and duplicate creates without blocking independent reading',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'sill-cas-'));
@@ -20,11 +20,11 @@ test('conditional whole-card writes reject stale edits, deletes and duplicate cr
     const latest=repo.apply({operations:[{op:'card.upsert',card:{...before,title:'新标题'},before}]}).state.cards[0];
     const saved=repo.snapshot();
     for(const op of [{op:'card.upsert',card:{...before,title:'旧页面'},before},{op:'card.delete',id:card.id,before},{op:'card.upsert',card,before:null}]){
-      assert.throws(()=>repo.apply({operations:[{op:'reading.add',seconds:1},op]}),e=>e.status===409);
+      assert.throws(()=>repo.apply({operations:[{op:'reading.add',seconds:1},op]}),(e?: any)=>e.status===409);
       assert.deepEqual(repo.snapshot(),saved);
     }
     repo.apply({operations:[{op:'card.delete',id:card.id,before:latest}]});
-    assert.throws(()=>repo.apply({operations:[{op:'card.upsert',card:before,before}]}),e=>e.status===409,'deleted cards cannot be resurrected by stale editing');
+    assert.throws(()=>repo.apply({operations:[{op:'card.upsert',card:before,before}]}),(e?: any)=>e.status===409,'deleted cards cannot be resurrected by stale editing');
   }finally{await rm(dir,{recursive:true,force:true});}
 });
 
@@ -44,18 +44,18 @@ test('local operations persist all card states and reject conflicts atomically',
     repo.apply({operations:[{op:'card.upsert',card:{id:'task',type:'task',title:'任务',tasks:[{id:'t1',text:'检查'}]}},{op:'item.patch',id:'task',values:{taskDone:['t1']}}]});
     assert.deepEqual(repo.snapshot().state.items.task.taskDone,['t1']);
     repo.apply({operations:[{op:'card.delete',id:card.id}]});
-    assert.equal(repo.snapshot().state.cards.some(c=>c.id===card.id),false);
+    assert.equal(repo.snapshot().state.cards.some((c?: any)=>c.id===card.id),false);
   }finally{await rm(dir,{recursive:true,force:true});}
 });
 
 test('loopback HTTP and actual agent CLI share the same data without App/MCP login',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'qg-http-')),file=join(dir,'cards.json');
-  const server=await startLocal({port:0,file}),port=server.address().port,origin='http://127.0.0.1:'+port;
-  const cli=async(...args)=>JSON.parse((await run(process.execPath,['scripts/qg.mjs',...args],{cwd:join(import.meta.dirname,'..'),env:{...process.env,QG_LOCAL_PORT:String(port)}})).stdout);
+  const server=await startLocal({port:0,file}),port=(server.address() as import('node:net').AddressInfo).port,origin='http://127.0.0.1:'+port;
+  const cli=async(...args: any[])=>JSON.parse((await run(process.execPath,['scripts/sill.ts',...args],{cwd:join(import.meta.dirname,'../..'),env:{...process.env,QG_LOCAL_PORT:String(port)}})).stdout);
   try{
-    assert.equal((await fetch(origin+'/health').then(r=>r.json())).mode,'local');
+    assert.equal((await fetch(origin+'/health').then((r?: any)=>r.json())).mode,'local');
     assert.equal((await fetch(origin+'/api/local/state',{headers:{Origin:'https://example.com'}})).status,403);
-    const status=await new Promise(resolve=>{const req=request(origin+'/api/local/state',{headers:{Host:'example.com'}},res=>{res.resume();resolve(res.statusCode);});req.end();});
+    const status=await new Promise((resolve?: any)=>{const req=request(origin+'/api/local/state',{headers:{Host:'example.com'}},(res?: any)=>{res.resume();resolve(res.statusCode);});req.end();});
     assert.equal(status,403);
     assert.equal((await fetch(origin+'/api/local/operations',{method:'POST',body:'{}'})).status,415);
     assert.equal((await fetch(origin+'/.env')).status,404);
@@ -66,7 +66,7 @@ test('loopback HTTP and actual agent CLI share the same data without App/MCP log
     assert.equal((await cli('list','本地')).cards.length,1);
     assert.equal((await cli('open',card.id)).source,card.url);
     assert.equal((await fetch(origin+'/mcp')).status,404);
-    const again=await fetch(origin+'/api/local/initialize',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.json());
+    const again=await fetch(origin+'/api/local/initialize',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then((r?: any)=>r.json());
     assert.equal(again.state.cards.length,1,'migration cannot replace saved data');
-  }finally{await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
+  }finally{await new Promise((resolve?: any)=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
 });

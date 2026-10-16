@@ -103,8 +103,8 @@
 
 ```sh
 npm test
-node tests/local-browser.mjs
-node tests/browser.cjs
+node tests/e2e/local-browser.ts
+node tests/e2e/browser.ts
 ```
 
 浏览器回归覆盖：卡片打开与关闭、全屏、下拉关闭、读完上推、叠卡切换与展开、拖动接收区、手机布局、键盘操作和减少动态效果。

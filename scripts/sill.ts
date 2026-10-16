@@ -6,7 +6,7 @@ const port=Number(process.env.QG_LOCAL_PORT||4318);
 if(!Number.isInteger(port)||port<1||port>65535)throw new Error('QG_LOCAL_PORT 无效');
 const origin='http://127.0.0.1:'+port;
 if(command==='help'){
-  console.log('Sill · 窗台本地操作\n  node scripts/qg.mjs capabilities\n  node scripts/qg.mjs list [关键词]\n  node scripts/qg.mjs get <卡片ID>\n  node scripts/qg.mjs open <卡片ID>\n  node scripts/qg.mjs state\n  node scripts/qg.mjs apply [--file JSON文件]\napply 输入：{operations:[...],expectedRevision?:number}；无 --file 时从 stdin 读取 JSON。');
+  console.log('Sill · 窗台本地操作\n  node scripts/sill.ts capabilities\n  node scripts/sill.ts list [关键词]\n  node scripts/sill.ts get <卡片ID>\n  node scripts/sill.ts open <卡片ID>\n  node scripts/sill.ts state\n  node scripts/sill.ts apply [--file JSON文件]\napply 输入：{operations:[...],expectedRevision?:number}；无 --file 时从 stdin 读取 JSON。');
 }else try{
   let path='/api/local/state',options;
   if(command==='capabilities')path='/api/local/capabilities';
@@ -21,9 +21,9 @@ if(command==='help'){
   if(!response.ok)throw new Error(value.error||'操作失败');
   let result=value;
   if(command==='list'){
-    const query=args.join(' ').toLowerCase();result={revision:value.revision,cards:(value.state?.cards||[]).filter(card=>!query||[card.title,card.summary,...(card.sources||[]).map(source=>source.name),...(card.tags||[])].join(' ').toLowerCase().includes(query)).map(card=>({id:card.id,type:card.type,title:card.title,url:card.url,state:value.state.items[card.id]||{}}))};
+    const query=args.join(' ').toLowerCase();result={revision:value.revision,cards:(value.state?.cards||[]).filter((card?: any)=>!query||[card.title,card.summary,...(card.sources||[]).map((source?: any)=>source.name),...(card.tags||[])].join(' ').toLowerCase().includes(query)).map((card?: any)=>({id:card.id,type:card.type,title:card.title,url:card.url,state:value.state.items[card.id]||{}}))};
   }else if(command==='get'){
-    const card=value.state?.cards.find(card=>card.id===args[0]);if(!card)throw new Error('卡片不存在');result={revision:value.revision,card,state:value.state.items[card.id]||{}};
+    const card=value.state?.cards.find((card?: any)=>card.id===args[0]);if(!card)throw new Error('卡片不存在');result={revision:value.revision,card,state:value.state.items[card.id]||{}};
   }else if(command==='apply')result={ok:true,revision:value.revision,count:value.state.cards.length};
   console.log(JSON.stringify(result,null,2));
 }catch(error){console.error(JSON.stringify({error:error.message,cause:error.cause?.code,suggestion:error.cause?'请先在项目目录运行 npm start':undefined}));process.exitCode=1;}

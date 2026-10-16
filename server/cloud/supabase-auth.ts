@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-function reject(status, code) {
+function reject(status?: any, code?: any) {
   throw Object.assign(new Error(code), {status, code});
 }
 
 // Request-scoped cloud client. Local app/MCP remain separate. Never persist server sessions.
 // This authenticates a principal; the capability layer still authorizes each operation.
-export async function authenticateSupabase(authorization, config, factory = createClient) {
+export async function authenticateSupabase(authorization?: any, config?: any, factory: any = createClient) {
   const url = new URL(config.url);
   if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') {
     throw new Error('Invalid Supabase origin');

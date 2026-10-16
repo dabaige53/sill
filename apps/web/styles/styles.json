@@ -1,8 +1,8 @@
 [
-  "src/styles/tokens.css",
-  "src/styles/base.css",
-  "src/styles/controls.css",
-  "src/styles/cards.css",
-  "src/styles/overlays.css",
-  "src/styles/responsive.css"
+  "apps/web/styles/tokens.css",
+  "apps/web/styles/base.css",
+  "apps/web/styles/controls.css",
+  "apps/web/styles/cards.css",
+  "apps/web/styles/overlays.css",
+  "apps/web/styles/responsive.css"
 ]

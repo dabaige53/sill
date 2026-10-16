@@ -49,25 +49,25 @@ npm run boards
 
 | 想改什么 | 实现位置 | 规范位置 |
 | --- | --- | --- |
-| 颜色、圆角、阴影、动效变量 | `src/styles/tokens.css` | `design-system/tokens.json`、手册「颜色」「动效」 |
-| 图标 | `src/atoms/icons.js` 的 `icon(name, size)` | 手册「图标」、画板 13 |
-| 按钮、进度环、勾选项、头像、标签 | `src/atoms/primitives.js` | 对应组件 README |
-| 卡片结构、叠卡、架子 | `src/cards/templates.js` | `FeedCard`、`StackCard`、`CardBlocks` 等，画板 21、22 |
-| 预览、阅读、搜索、设置、来源、导入等弹层 | `src/interactions/panels.js` | `Dialog`，画板 15、29、30–32 |
-| 展开与收回、落下、淡入 | `src/interactions/motion.js` | 手册「动效」，画板 16 |
-| 手势：下拉刷新、下拉关闭、读完上推、拖把手、右滑返回 | `src/interactions/gestures.js` | 手册「动效」，画板 17–19 |
-| 信息流排序、叠卡、收起 | `src/services/feed-policy.js` | 手册「量大与时间」，画板 25 |
-| 文件导入与去重 | `src/services/importers.js` | 画板 24、31 |
+| 颜色、圆角、阴影、动效变量 | `apps/web/styles/tokens.css` | `design-system/tokens.json`、手册「颜色」「动效」 |
+| 图标 | `apps/web/atoms/icons.ts` 的 `icon(name, size)` | 手册「图标」、画板 13 |
+| 按钮、进度环、勾选项、头像、标签 | `apps/web/atoms/primitives.ts` | 对应组件 README |
+| 卡片结构、叠卡、架子 | `apps/web/cards/templates.ts` | `FeedCard`、`StackCard`、`CardBlocks` 等，画板 21、22 |
+| 预览、阅读、搜索、设置、来源、导入等弹层 | `apps/web/interactions/panels.ts` | `Dialog`，画板 15、29、30–32 |
+| 展开与收回、落下、淡入 | `apps/web/interactions/motion.ts` | 手册「动效」，画板 16 |
+| 手势：下拉刷新、下拉关闭、读完上推、拖把手、右滑返回 | `apps/web/interactions/gestures.ts` | 手册「动效」，画板 17–19 |
+| 信息流排序、叠卡、收起 | `apps/web/services/feed-policy.ts` | 手册「量大与时间」，画板 25 |
+| 文件导入与去重 | `apps/web/services/importers.ts` | 画板 24、31 |
 
 改了 `src/` 里的变量、图标或组件样式，要同步更新 `design-system/` 里对应的变量或说明，并重新生成图标和 bundle：
 
 ```sh
-node design-system/scripts/gen.cjs design-system .
+node design-system/scripts/generate.ts design-system .
 ```
 
 ## 样式分层
 
-`src/styles/styles.json` 规定构建顺序：
+`apps/web/styles/styles.json` 规定构建顺序：
 
 1. `tokens.css`：颜色、间距、圆角、阴影、动效变量，深色主题。
 2. `base.css`：页面、文字、基础布局，信息流底部短线。
@@ -80,8 +80,8 @@ node design-system/scripts/gen.cjs design-system .
 
 ```sh
 npm test
-node tests/local-browser.mjs
-node tests/browser.cjs
+node tests/e2e/local-browser.ts
+node tests/e2e/browser.ts
 ```
 
 `index.html` 是构建产物，由 `npm run build` 生成，不手工修改。项目只用原生 HTML、CSS、SVG 和 Web Animations；没有引入 React 或第三方动效库。

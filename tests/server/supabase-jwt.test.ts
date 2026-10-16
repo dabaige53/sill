@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {authenticateSupabase} from '../server/supabase-auth.mjs';
-import {token,config,clientFactory} from './helpers/signed-auth.mjs';
-import {A,resource} from './helpers/boundary-fixture.mjs';
+import {authenticateSupabase} from '../../server/cloud/supabase-auth.ts';
+import {token,config,clientFactory} from './helpers/signed-auth.ts';
+import {A,resource} from './helpers/boundary-fixture.ts';
 test('official SDK verifies real ES256 signatures and rejects tampering/expiry/resource substitution',async()=>{
  const good=token();assert.equal((await authenticateSupabase('Bearer '+good,config,clientFactory)).principal.userId,A);
  const parts=good.split('.');parts[1]=Buffer.from(JSON.stringify({sub:A,exp:Date.now()/1000+600})).toString('base64url');

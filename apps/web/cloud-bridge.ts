@@ -2,7 +2,7 @@ import {App,applyDocumentTheme,applyHostStyleVariables} from '@modelcontextproto
 
 // A host can finish mounting the view before its tool dispatcher is ready.
 // Retry only the first reads, never a write or an authentication denial.
-export async function readWhenReady(call,args,{sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
+export async function readWhenReady(call?: any,args?: any,{sleep=(ms?: any)=>new Promise((resolve?: any)=>window.setTimeout(resolve,ms))}: any={}){
  for(let attempt=0;;attempt++)try{return await call(args);}catch(error){
   if(attempt===2||!['sill_open_workspace','sill_listContents'].includes(args.name)||error.status===401||error.status===403||error.status&&error.status<500)throw error;
   await sleep([300,900][attempt]);
@@ -10,8 +10,8 @@ export async function readWhenReady(call,args,{sleep=ms=>new Promise(resolve=>se
 }
 
 // Only the host owns authentication. The view has no tokens, direct fetch or iframe.
-export function createCloudTransport(call){
- return async function request(path,options={}){
+export function createCloudTransport(call?: any){
+ return async function request(path?: any,options: any={}){
   if(path==='/auth/session'){
    const access=await call({name:'sill_open_workspace',arguments:{}});
    return {...access,userId:access.connected?'connected':null};
@@ -33,7 +33,7 @@ export function createCloudTransport(call){
 export function startCloudBridge(){
  const bridge=new App({name:'Sill · 窗台',version:'0.5.0'},{},{autoResize:false});
  let opening=true,initialAccess;
- bridge.addEventListener('toolresult',result=>{
+ bridge.addEventListener('toolresult',(result?: any)=>{
   if(result.structuredContent?.connected===true)initialAccess=result.structuredContent;
  });
  const style=()=>{const context=bridge.getHostContext();if(context?.theme)applyDocumentTheme(context.theme);if(context?.styles?.variables)applyHostStyleVariables(context.styles.variables);};
@@ -42,15 +42,15 @@ export function startCloudBridge(){
  // Retain a rejected connection for callers without an unhandled rejection.
  ready.catch(()=>{});
  const statuses={unauthenticated:401,forbidden:403,not_found:404,revision_conflict:409,idempotency_conflict:409,rate_limited:429};
- const call=async args=>{
+ const call=async (args?: any)=>{
   await ready;const result=await bridge.callServerTool(args);
-  if(result.isError){let value;try{value=JSON.parse(result.content?.find(c=>c.type==='text')?.text);}catch{}
+  if(result.isError){let value;try{const block=result.content?.find(c=>c.type==='text');if(block?.type==='text')value=JSON.parse(block.text);}catch{}
    const code=value?.error?.code||'unavailable';throw Object.assign(new Error('云端操作未完成'),{code,status:statuses[code]||503});
   }
   if(!result.structuredContent)throw Object.assign(new Error('云端返回内容无效'),{status:503});
   return result.structuredContent;
  };
- window.__SILL_HOST__={request:createCloudTransport(async args=>{
+ window.__SILL_HOST__={request:createCloudTransport(async (args?: any)=>{
   if(opening&&args.name==='sill_open_workspace'&&initialAccess){const value=initialAccess;initialAccess=null;return value;}
   const value=await (opening?readWhenReady(call,args):call(args));
   if(args.name==='sill_listContents')opening=false;

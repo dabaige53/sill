@@ -1,8 +1,11 @@
+import { Store } from "../data/store.ts";
+import { esc } from "../atoms/primitives.ts";
+import { Panels } from "../interactions/panels.ts";
 /** Page and agents share one loopback service. Browser storage remains a migration backup. */
-const LocalSync={
+const LocalSync: Record<string, any>={
   revision:0,baseline:null,pending:[],busy:false,app:null,ready:false,failed:false,
   snapshot(){return JSON.parse(JSON.stringify({cards:Store.state.cards,items:Store.state.items,seconds:Store.state.seconds,preferences:Store.state.preferences,sources:Store.state.sources||[]}));},
-  async request(path,body){
+  async request(path?: any,body?: any){
     const response=await fetch('/api/local/'+path,{signal:AbortSignal.timeout(5000),...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
     const value=await response.json();if(!response.ok)throw new Error(value.error||'本地同步失败');return value;
   },
@@ -10,7 +13,7 @@ const LocalSync={
     try{localStorage.setItem('sill-unsynced',JSON.stringify({state:this.snapshot(),pending:this.pending,revision:this.unversioned?null:this.revision}));this.durable=true;return true;}
     catch{this.durable=false;this.app.toast('无法持久保存草稿，请导出备份后再关闭页面');return false;}
   },
-  status(message){
+  status(message?: any){
     let bar=document.getElementById('sync-status');
     if(!bar){bar=document.createElement('section');bar.id='sync-status';bar.setAttribute('aria-label','本地同步');document.querySelector('main').prepend(bar);}
     bar.hidden=!message;
@@ -21,11 +24,11 @@ const LocalSync={
     this.pending=[];this.failed=false;this.unversioned=false;this.recovering=false;
     localStorage.removeItem('sill-unsynced');this.adopt(value);this.status('');this.app.setOffline(false);
   },
-  connect(app){
+  connect(app?: any){
     if(this.connection)return this.connection;
     this.connection=this.connectOnce(app).finally(()=>{this.connection=null;});return this.connection;
   },
-  async connectOnce(app){
+  async connectOnce(app?: any){
     this.app=app;
     // Restore and journal before any request: a read outage must not disable saving.
     if(!this.saveWrapped){
@@ -57,19 +60,19 @@ const LocalSync={
     if(!this.baseline)return;
     const next=this.snapshot(),before=this.baseline,operations=[];
     // Cards created or edited on the page (capture, import, inline notes) travel as whole cards.
-    const oldCards=new Map(before.cards.map(card=>[card.id,JSON.stringify(card)])),newIds=new Set(next.cards.map(card=>card.id));
+    const oldCards=new Map<any, any>(before.cards.map((card?: any)=>[card.id,JSON.stringify(card)])),newIds=new Set<any>(next.cards.map((card?: any)=>card.id));
     for(const card of next.cards.slice().reverse())if(oldCards.get(card.id)!==JSON.stringify(card))operations.push({op:'card.upsert',card,before:oldCards.has(card.id)?JSON.parse(oldCards.get(card.id)):null});
     for(const id of oldCards.keys())if(!newIds.has(id))operations.push({op:'card.delete',id,before:JSON.parse(oldCards.get(id))});
-    const oldSources=new Map((before.sources||[]).map(source=>[source.id,JSON.stringify(source)])),newSources=new Set(next.sources.map(source=>source.id));
+    const oldSources=new Map<any, any>((before.sources||[]).map((source?: any)=>[source.id,JSON.stringify(source)])),newSources=new Set<any>(next.sources.map((source?: any)=>source.id));
     for(const source of next.sources)if(oldSources.get(source.id)!==JSON.stringify(source))operations.push({op:'source.upsert',source});
     for(const id of oldSources.keys())if(!newSources.has(id))operations.push({op:'source.delete',id});
     for(const [id,item] of Object.entries(next.items)){
-      if(!next.cards.some(card=>card.id===id))continue;
-      const values={},previous={};
+      if(!next.cards.some((card?: any)=>card.id===id))continue;
+      const values: Record<string, any>={},previous: Record<string, any>={};
       for(const [key,value] of Object.entries(item))if(JSON.stringify(value)!==JSON.stringify(before.items[id]?.[key])){values[key]=value;previous[key]=before.items[id]?.[key];}
       if(Object.keys(values).length)operations.push({op:'item.patch',id,values,before:previous});
     }
-    const values={},previous={};
+    const values: Record<string, any>={},previous: Record<string, any>={};
     for(const [key,value] of Object.entries(next.preferences))if(value!==before.preferences[key]){values[key]=value;if(before.preferences[key]!==undefined)previous[key]=before.preferences[key];}
     if(Object.keys(values).length)operations.push({op:'preferences.patch',values,before:previous});
     const seconds=next.seconds-before.seconds;if(seconds>0)operations.push({op:'reading.add',seconds});
@@ -84,7 +87,7 @@ const LocalSync={
         if(this.unversioned)throw new Error('旧草稿缺少版本信息，请先导出并与服务端版本比较');
         // Whole-card writes carry their original card. Independent reading
         // observations can still merge without invalidating unrelated edits.
-        const batch={...this.pending[0],...(this.recovering?{expectedRevision:this.revision}:{})};this.persist();
+        const batch: Record<string, any>={...this.pending[0],...(this.recovering?{expectedRevision:this.revision}:{})};this.persist();
         const value=await this.request('operations',batch);this.pending.shift();this.revision=value.revision;this.persist();
         if(!this.pending.length)this.adopt(value);
       }
@@ -97,7 +100,7 @@ const LocalSync={
       this.app.grid.dataset.sync='error';this.app.setOffline(true);this.app.toast('修改尚未同步：'+error.message+(this.durable?'；本地草稿已保留':'；请立即导出草稿'));
     }finally{this.busy=false;}
   },
-  async refresh(manual=false){
+  async refresh(manual: any=false){
     if(!this.ready){if(manual)return this.connect(this.app);throw new Error('本地数据尚未连接');}
     if(this.busy)return;
     if(this.failed&&!manual)return;
@@ -108,7 +111,7 @@ const LocalSync={
     const value=await this.request('state');
     if(!this.busy&&!this.pending.length&&this.app.modalKind!=='editor'&&!this.app.editingId&&value.revision!==this.revision)this.adopt(value);
   },
-  adopt(value,{draft=false}={}){
+  adopt(value?: any,{draft=false}: any={}){
     if(!value.state)return;
     const app=this.app;
     const previewBefore=JSON.stringify([Store.card(app.currentId),Store.state.items[app.currentId]]);
@@ -119,7 +122,7 @@ const LocalSync={
     Object.assign(Store.state,value.state);Store.state.sources=value.state.sources||[];Store.state.storageAvailable=true;
     // A response to an unrelated reading observation may include external edits.
     // Keep the inline editor's original card until its conditional save finishes.
-    if(editingCard){const index=Store.state.cards.findIndex(c=>c.id===editingCard.id);if(index>=0)Store.state.cards[index]=editingCard;else Store.state.cards.push(editingCard);}
+    if(editingCard){const index=Store.state.cards.findIndex((c?: any)=>c.id===editingCard.id);if(index>=0)Store.state.cards[index]=editingCard;else Store.state.cards.push(editingCard);}
     this.baseline=this.snapshot();
     // Write the browser backup without enqueueing another remote operation.
     try{localStorage.setItem(Store.key,JSON.stringify(Store.serialized()));}catch{}
@@ -138,3 +141,5 @@ const LocalSync={
     app.checkReminders();app.grid.dataset.sync='saved';app.grid.dataset.revision=value.revision;
   }
 };
+
+export { LocalSync };

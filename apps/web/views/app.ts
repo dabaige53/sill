@@ -1,14 +1,85 @@
+import { cardSource, cardSourceKind } from "../data/card-source.ts";
+import { Store, DemoSources } from "../data/store.ts";
+import { button, emptyState, esc, checkMark, duration, ring, eventRelative, eventTimely, minutes } from "../atoms/primitives.ts";
+import { icon } from "../atoms/icons.ts";
+import { FeedLayout } from "../interactions/layout.ts";
+import { DragManager } from "../interactions/drag.ts";
+import { Gestures } from "../interactions/gestures.ts";
+import { FeedPolicy } from "../services/feed-policy.ts";
+import { welcomeHTML, Panels } from "../interactions/panels.ts";
+import { shelfHTML, cardHTML, stackOpenHTML, stackHTML } from "../cards/templates.ts";
+import { MotionEngine } from "../interactions/motion.ts";
+import { CardTypes, FreshCards, SourceKinds, SeedCards, demoBase, SeedItems } from "../data/cards.ts";
+import { LocalSync } from "../services/local-sync.ts";
+import { Importers } from "../services/importers.ts";
 class AppController{
+declare mode: any;
+declare baseMode: any;
+declare filter: any;
+declare selected: any;
+declare pendingCards: any;
+declare refreshBusy: any;
+declare openStacks: any;
+declare modalKind: any;
+declare currentId: any;
+declare panelReturn: any;
+declare lastFocus: any;
+declare mediaIndex: any;
+declare mediaTimer: any;
+declare podcastTimer: any;
+declare lastActivity: any;
+declare modalToken: any;
+declare routeScroll: any;
+declare photoIndex: any;
+declare sort: any;
+declare feedNow: any;
+declare pendingReminders: any;
+declare welcomePicked: any;
+declare importing: any;
+declare importPicked: any;
+declare importRange: any;
+declare settingsGroup: any;
+declare editingId: any;
+declare loadedImages: any;
+declare grid: any;
+declare dialog: any;
+declare themeQuery: any;
+declare layout: any;
+declare pageLimit: any;
+declare drag: any;
+declare gestures: any;
+declare quietTimer: any;
+declare hasMore: any;
+declare readTicker: any;
+declare dockTimer: any;
+declare lastRouteHash: any;
+declare skipReturnMotion: any;
+declare sheetLeaving: any;
+declare lockedScroll: any;
+declare editId: any;
+declare editTags: any;
+declare toastTimer: any;
+declare undoAction: any;
+declare bulkEditIds: any;
+declare permissionQueue: any;
+declare sourceId: any;
+declare clockMinute: any;
+declare stackIndex: any;
+declare stackDragUntil: any;
+declare connectRange: any;
+declare searchTimer: any;
+declare inlineTimer: any;
+
  constructor(){
    this.mode=window.__PAGE__||'feed';this.baseMode=this.mode;
-   this.filter={type:'all',status:'all',tag:'',query:''};this.selected=new Set();
-   this.pendingCards=[];this.refreshBusy=false;this.openStacks=new Set();
+   this.filter={type:'all',status:'all',tag:'',query:''};this.selected=new Set<any>();
+   this.pendingCards=[];this.refreshBusy=false;this.openStacks=new Set<any>();
    this.modalKind='';this.currentId='';this.panelReturn=null;this.lastFocus=null;
    this.mediaIndex=0;this.mediaTimer=null;this.podcastTimer=null;this.lastActivity=Date.now();
    this.modalToken=0;this.routeScroll={};this.photoIndex=0;
    this.sort='priority';this.feedNow=Date.now();this.pendingReminders=[];
-   this.welcomePicked=new Set();this.importing=null;this.importPicked=new Set();this.importRange='30d';
-   this.settingsGroup='desk';this.editingId='';this.loadedImages=new Set();
+   this.welcomePicked=new Set<any>();this.importing=null;this.importPicked=new Set<any>();this.importRange='30d';
+   this.settingsGroup='desk';this.editingId='';this.loadedImages=new Set<any>();
  }
  init(){
    if(window.__QG_RUNTIME__)Store.key='sill-live-v1';
@@ -28,29 +99,29 @@ class AppController{
    this.themeQuery=matchMedia('(prefers-color-scheme: dark)');
    this.applyPreferences();
    this.layout=new FeedLayout(this.grid);this.pageLimit=40;this.drag=new DragManager(this);this.gestures=new Gestures(this);
-   document.addEventListener('click',e=>this.click(e));this.bindStacks();
-   document.addEventListener('input',e=>this.input(e));
-   document.addEventListener('keydown',e=>this.key(e));
-   document.addEventListener('paste',e=>this.paste(e));
-   ['pointerdown','keydown','wheel','touchstart'].forEach(type=>document.addEventListener(type,()=>this.lastActivity=Date.now(),{passive:true}));
-   document.addEventListener('focusin',e=>{
+   document.addEventListener('click',(e?: any)=>this.click(e));this.bindStacks();
+   document.addEventListener('input',(e?: any)=>this.input(e));
+   document.addEventListener('keydown',(e?: any)=>this.key(e));
+   document.addEventListener('paste',(e?: any)=>this.paste(e));
+   ['pointerdown','keydown','wheel','touchstart'].forEach((type?: any)=>document.addEventListener(type,()=>this.lastActivity=Date.now(),{passive:true}));
+   document.addEventListener('focusin',(e?: any)=>{
      const menu=this.grid.querySelector('.card-more-menu');
      if(menu&&!menu.contains(e.target)&&!e.target.closest?.('[data-action="card-more"]'))this.closeMore();
      if(this.editingId&&!e.target.closest?.('.is-editing'))this.finishInlineEdit();
    });
-   this.dialog.addEventListener('cancel',e=>{e.preventDefault();this.closeModal();});
-   this.dialog.addEventListener('click',e=>{
+   this.dialog.addEventListener('cancel',(e?: any)=>{e.preventDefault();this.closeModal();});
+   this.dialog.addEventListener('click',(e?: any)=>{
      if(e.target!==this.dialog)return;
      if(this.modalKind==='lightbox')return;
      // A click on the dim area, outside the sheet and its toolbar, closes the overlay.
-     const inside=[...this.dialog.children].some(n=>{const r=n.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;});
+     const inside=[...this.dialog.children].some((n?: any)=>{const r=n.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;});
      if(!inside)this.closeModal();
    });
    const dock=document.getElementById('dock');
-   dock.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')this.openDock();});
-   dock.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')this.hideDock();});
-   dock.addEventListener('focusin',e=>{if(e.target.closest('.orb-wrap'))this.openDock();});
-   dock.addEventListener('focusout',()=>setTimeout(()=>{if(!dock.contains(document.activeElement))this.hideDock();},0));
+   dock.addEventListener('pointerenter',(e?: any)=>{if(e.pointerType!=='touch')this.openDock();});
+   dock.addEventListener('pointerleave',(e?: any)=>{if(e.pointerType!=='touch')this.hideDock();});
+   dock.addEventListener('focusin',(e?: any)=>{if(e.target.closest('.orb-wrap'))this.openDock();});
+   dock.addEventListener('focusout',()=>window.setTimeout(()=>{if(!dock.contains(document.activeElement))this.hideDock();},0));
    window.addEventListener('popstate',()=>this.route());
    window.addEventListener('hashchange',()=>this.route());
    document.addEventListener('visibilitychange',()=>{if(document.hidden){Store.save();this.pauseMedia();}else this.checkReminders();});
@@ -59,12 +130,12 @@ class AppController{
    window.addEventListener('scroll',()=>{
      // Scrolling down, the entrance steps back; it returns when you stop or scroll up.
      const down=scrollY>lastY+2;lastY=scrollY;dock.classList.toggle('is-quiet',down&&scrollY>120&&!dock.classList.contains('is-open'));
-     clearTimeout(this.quietTimer);this.quietTimer=setTimeout(()=>dock.classList.remove('is-quiet'),900);
+     clearTimeout(this.quietTimer);this.quietTimer=window.setTimeout(()=>dock.classList.remove('is-quiet'),900);
      this.paintPending();
      if(this.hasMore&&!this.dialog.open&&scrollY+innerHeight*2>document.documentElement.scrollHeight){this.pageLimit+=40;this.renderCurrent(false);}
    },{passive:true});
    this.bindFileDrop();
-   document.getElementById('file-input').addEventListener('change',e=>{const files=[...e.target.files];e.target.value='';this.importFiles(files);});
+   document.getElementById('file-input').addEventListener('change',(e?: any)=>{const files=[...e.target.files];e.target.value='';this.importFiles(files);});
    this.themeQuery.addEventListener?.('change',()=>this.applyPreferences());
    this.readTicker=setInterval(()=>this.tick(),1000);
    if(!location.hash)history.replaceState({glass:true,prev:null},'','#'+this.mode);
@@ -79,22 +150,22 @@ class AppController{
    document.body.dataset.density=Store.pref('density');
    this.sort=Store.pref('floatTimely')?Store.pref('sort'):'time';
  }
- announce(text){document.getElementById('announcer').textContent=text;}
+ announce(text?: any){document.getElementById('announcer').textContent=text;}
  openDock(){clearTimeout(this.dockTimer);document.getElementById('dock').classList.add('is-open');document.getElementById('orb').setAttribute('aria-expanded','true');}
- hideDock(){clearTimeout(this.dockTimer);this.dockTimer=setTimeout(()=>{document.getElementById('dock').classList.remove('is-open');document.getElementById('orb').setAttribute('aria-expanded','false');},420);}
+ hideDock(){clearTimeout(this.dockTimer);this.dockTimer=window.setTimeout(()=>{document.getElementById('dock').classList.remove('is-open');document.getElementById('orb').setAttribute('aria-expanded','false');},420);}
  /* ——— What is on the desk ——— */
- shelfOf(c){return FeedPolicy.shelf(c,Store.item(c.id),this.feedNow,Store.pref('archiveAfter'));}
- shelved(which){return Store.state.cards.filter(c=>this.shelfOf(c)===which&&FeedPolicy.visible(c,Store.item(c.id)));}
- matches(c,q){const s=Store.item(c.id);return [c.title,c.summary,c.source,s.note,...(c.body||[]),...Store.tags(c)].join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase());}
- searchAll(q){
-   const all=Store.state.cards.filter(c=>this.matches(c,q)&&!Store.item(c.id).dismissed);
-   return {desk:all.filter(c=>this.shelfOf(c)==='desk'),shelved:all.filter(c=>this.shelfOf(c)!=='desk')};
+ shelfOf(c?: any){return FeedPolicy.shelf(c,Store.item(c.id),this.feedNow,Store.pref('archiveAfter'));}
+ shelved(which?: any){return Store.state.cards.filter((c?: any)=>this.shelfOf(c)===which&&FeedPolicy.visible(c,Store.item(c.id)));}
+ matches(c?: any,q?: any){const s=Store.item(c.id);return [c.title,c.summary,cardSource(c),s.note,...(c.body||[]),...Store.tags(c)].join(' ').toLocaleLowerCase().includes(q.toLocaleLowerCase());}
+ searchAll(q?: any){
+   const all=Store.state.cards.filter((c?: any)=>this.matches(c,q)&&!Store.item(c.id).dismissed);
+   return {desk:all.filter((c?: any)=>this.shelfOf(c)==='desk'),shelved:all.filter((c?: any)=>this.shelfOf(c)!=='desk')};
  }
  filtering(){const f=this.filter;return f.type!=='all'||f.status!=='all'||!!f.tag||!!f.query;}
  filtered(){
    const f=this.filter,q=f.query.trim();
    const statusOnly=['snoozed','dismissed','done'].includes(f.status);
-   return FeedPolicy.sort(Store.state.cards.filter(c=>{
+   return FeedPolicy.sort(Store.state.cards.filter((c?: any)=>{
      const s=Store.item(c.id);
      // Searching reaches every shelf; browsing shows only the desk.
      if(!q&&!statusOnly&&this.shelfOf(c)!=='desk')return false;
@@ -105,9 +176,9 @@ class AppController{
    if(!Store.state.cards.length&&!window.__QG_RUNTIME__)return welcomeHTML();
    const cards=this.filtered();
    if(!cards.length)return this.filtering()?emptyState(this.filter.query?`没有找到「${this.filter.query}」`:'没有符合条件的卡片','',`<button type="button" class="text-link" data-action="clear-filter">清除筛选</button>`):emptyState('桌面上都处理完了')+shelfHTML(this.shelved('read').length,this.shelved('stale').length);
-   const stacks=Store.pref('stack')&&!this.filtering()?FeedPolicy.stacks(cards.filter(c=>Store.source(`src-${c.kind}`)?.stack!==false),Store.state.items):new Map();
-   const inStack=new Map();for(const [key,list] of stacks)for(const c of list)inStack.set(c.id,key);
-   const html=[],done=new Set();
+   const stacks=Store.pref('stack')&&!this.filtering()?FeedPolicy.stacks(cards.filter((c?: any)=>Store.source(`src-${cardSourceKind(c)}`)?.stack!==false),Store.state.items):new Map<any, any>();
+   const inStack=new Map<any, any>();for(const [key,list] of stacks)for(const c of list)inStack.set(c.id,key);
+   const html=[],done=new Set<any>();
    for(const c of cards){
      const key=inStack.get(c.id);
      if(!key){html.push(cardHTML(c,{now:this.feedNow}));continue;}
@@ -121,7 +192,7 @@ class AppController{
    document.body.classList.toggle('feed-more',this.hasMore);
    return html.join('');
  }
- renderCurrent(animate=false){
+ renderCurrent(animate: any=false){
    this.closeMore();
    // An anchored reflow may temporarily need extra room below the final row.
    this.grid.style.removeProperty('min-height');
@@ -130,53 +201,53 @@ class AppController{
    this.revealImages(this.grid);
    this.layout.layout(false);this.restoreStacks();this.updateSelection();this.updateFilterIndicator();
    // Only the first screen enters; cards below the fold are simply there when scrolled to.
-   if(animate)[...this.grid.children].filter(n=>n.getBoundingClientRect().top<innerHeight).forEach((n,i)=>MotionEngine.enter(n,Math.min(i*60,240)));
+   if(animate)[...this.grid.children].filter((n?: any)=>n.getBoundingClientRect().top<innerHeight).forEach((n?: any,i?: any)=>MotionEngine.enter(n,Math.min(i*60,240)));
  }
  // Covers sharpen once decoded; a cover seen before appears at once, without replaying the blur.
- revealImages(root){
-   root.querySelectorAll('img.card-image').forEach(img=>{
+ revealImages(root?: any){
+   root.querySelectorAll('img.card-image').forEach((img?: any)=>{
      if(this.loadedImages.has(img.src)){img.classList.add('is-loaded');return;}
      const done=()=>{this.loadedImages.add(img.src);img.classList.add('is-loaded');this.layout.schedule(false);};
      if(img.complete&&img.naturalWidth)requestAnimationFrame(done);else img.addEventListener('load',done,{once:true});
    });
  }
- refreshCard(id){
+ refreshCard(id?: any){
    if(this.mode==='feed'){
-     const before=[...this.grid.querySelectorAll('[data-card],[data-stack]')].map(n=>n.dataset.card||n.dataset.stack).join(',');
+     const before=[...this.grid.querySelectorAll('[data-card],[data-stack]')].map((n?: any)=>n.dataset.card||n.dataset.stack).join(',');
      const probe=document.createElement('div');probe.innerHTML=this.deskHTML();
-     const after=[...probe.querySelectorAll('[data-card],[data-stack]')].map(n=>n.dataset.card||n.dataset.stack).join(',');
+     const after=[...probe.querySelectorAll('[data-card],[data-stack]')].map((n?: any)=>n.dataset.card||n.dataset.stack).join(',');
      if(before!==after){this.withFeedAnchor(()=>{});return;}
    }
    const old=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),c=Store.card(id);if(!old||!c)return;
    const active=old.contains(document.activeElement)?document.activeElement:null;
-   const focus=active?.dataset.action,focusExtra=active?.dataset.extra,focusId=active?.dataset.id;
+   const focus=(active as HTMLElement)?.dataset.action,focusExtra=(active as HTMLElement)?.dataset.extra,focusId=(active as HTMLElement)?.dataset.id;
    const focusTitle=active?.classList.contains('card-title-button');
    const temp=document.createElement('div');temp.innerHTML=cardHTML(c,{compact:old.classList.contains('is-compact'),now:this.feedNow});const node=temp.firstElementChild;
    // Start from the old classes so a read/unread change settles as a color transition.
    const nextClass=node.className;node.className=old.className;
-   node.style.cssText=old.style.cssText;old.replaceWith(node);this.revealImages(node);
-   void node.offsetWidth;node.className=nextClass;
+   (node as HTMLElement).style.cssText=old.style.cssText;old.replaceWith(node);this.revealImages(node);
+   void (node as HTMLElement).offsetWidth;node.className=nextClass;
    this.layout.schedule(true);this.updateSelection();
    if(active){
-     const target=focusTitle?node.querySelector('.card-title-button'):[...node.querySelectorAll('[data-action]')].find(n=>n.dataset.action===focus&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
-     node.focus({preventScroll:true});
-     (target||node.querySelector('.card-title-button')||node).focus({preventScroll:true});
+     const target=focusTitle?node.querySelector('.card-title-button'):[...node.querySelectorAll('[data-action]')].find((n?: any)=>n.dataset.action===focus&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
+     (node as HTMLElement).focus({preventScroll:true});
+     ((target||node.querySelector('.card-title-button')||node) as HTMLElement).focus({preventScroll:true});
    }
    const digest=this.grid.querySelector('.type-digest[data-card]');
-   if(digest&&digest.dataset.card!==id){const d=Store.card(digest.dataset.card);if(d){const t=document.createElement('div');t.innerHTML=cardHTML(d,{now:this.feedNow});t.firstElementChild.style.cssText=digest.style.cssText;digest.replaceWith(t.firstElementChild);}}
+   if(digest&&digest.dataset.card!==id){const d=Store.card(digest.dataset.card);if(d){const t=document.createElement('div');t.innerHTML=cardHTML(d,{now:this.feedNow});(t.firstElementChild as HTMLElement).style.cssText=digest.style.cssText;digest.replaceWith(t.firstElementChild);}}
  }
  updateFilterIndicator(){document.getElementById('dock').classList.toggle('filter-active',this.filtering());}
  updateSelection(){
-   this.grid.querySelectorAll('[data-card]').forEach(n=>n.classList.toggle('is-selected',this.selected.has(n.dataset.card)));
+   this.grid.querySelectorAll('[data-card]').forEach((n?: any)=>n.classList.toggle('is-selected',this.selected.has(n.dataset.card)));
    const bar=document.getElementById('selection-bar');bar.hidden=this.selected.size===0;
    bar.querySelector('.selection-count').textContent=String(this.selected.size);
  }
  /* ——— Routes: #feed · #card/<id> · #read/<id> ——— */
- navigate(hash){
+ navigate(hash?: any){
    this.routeScroll[this.mode]=scrollY;
    history.pushState({glass:true,prev:location.hash},'',hash);this.route(true);
  }
- route(force=false){
+ route(force: any=false){
    const hash=location.hash;
    // Back/forward emits both popstate and hashchange; handle one transition only.
    if(!force&&this.lastRouteHash===hash)return;
@@ -190,7 +261,7 @@ class AppController{
    if(this.mode!=='feed'){this.mode='feed';this.baseMode='feed';this.renderCurrent(true);window.scrollTo(0,this.routeScroll.feed||0);}
  }
  /* ——— Overlays ——— */
- openModal(html,kind,origin=null,shape=''){
+ openModal(html?: any,kind?: any,origin: any=null,shape: any=''){
    this.closeMore(true);this.modalToken++;this.pauseMedia();MotionEngine.cancelPanel(this.dialog);this.skipReturnMotion=false;
    this.sheetLeaving=false;this.dialog.style.removeProperty('--backdrop');this.dialog.style.translate='';
    if(!this.dialog.open){this.lastFocus=document.activeElement;this.lockedScroll=scrollY;document.documentElement.style.overflow='hidden';}
@@ -203,7 +274,7 @@ class AppController{
    const focus=this.dialog.querySelector(kind==='search'?'#filter-search':kind==='capture'?'#capture-text':kind==='editor'?'#tag-new':'#modal-title');
    if(focus){if(!/INPUT|TEXTAREA|BUTTON/.test(focus.tagName))focus.tabIndex=-1;focus.focus({preventScroll:true});}
  }
- closeNative(animate=true){
+ closeNative(animate: any=true){
    if(!this.dialog.open)return;
    // A sheet already dragged off screen closes as it is: no return motion.
    if(this.skipReturnMotion){animate=false;this.skipReturnMotion=false;}
@@ -213,7 +284,7 @@ class AppController{
      const sheet=this.dialog.querySelector('.preview-sheet'),token=this.modalToken;
      this.sheetLeaving=true;sheet.classList.remove('is-drag');sheet.classList.add('is-off');sheet.style.translate='';
      this.dialog.querySelector(':scope > .float-bar')?.classList.add('is-hidden');this.dialog.style.setProperty('--backdrop','0');
-     setTimeout(()=>{this.sheetLeaving=false;if(this.modalToken===token&&this.dialog.open){this.skipReturnMotion=true;this.closeNative();}},300);
+     window.setTimeout(()=>{this.sheetLeaving=false;if(this.modalToken===token&&this.dialog.open){this.skipReturnMotion=true;this.closeNative();}},300);
      return;
    }
    if(animate&&this.modalKind==='preview'&&!MotionEngine.reduced){
@@ -235,13 +306,13 @@ class AppController{
    this.dialog.close();document.documentElement.style.overflow='';this.modalKind='';this.panelReturn=null;
    // Leftovers of a drag or swipe are cleared only now that nothing is on screen.
    this.dialog.style.removeProperty('--backdrop');this.dialog.style.transform='';this.dialog.style.translate='';this.dialog.classList.remove('is-drag');
-   this.dialog.getAnimations({subtree:true}).forEach(a=>{if(a.effect?.pseudoElement==='::backdrop')a.cancel();});
+   this.dialog.getAnimations({subtree:true}).forEach((a?: any)=>{if(a.effect?.pseudoElement==='::backdrop')a.cancel();});
    let focus=this.lastFocus?.isConnected&&this.lastFocus!==document.body?this.lastFocus:source?.querySelector('.card-title-button')||source;
    if(focus&&(!focus.getClientRects().length||getComputedStyle(focus).visibility==='hidden'))focus=focus.closest('[data-card]')?.querySelector('.card-title-button')||document.getElementById('orb');
    (focus||document.getElementById('orb')).focus({preventScroll:true});
  }
  // Leave a card for the desk directly, wherever it was opened from.
- closeToDesk(animate=true){
+ closeToDesk(animate: any=true){
    history.replaceState({glass:true,prev:null},'','#'+this.baseMode);this.lastRouteHash='#'+this.baseMode;this.closeNative(animate);
  }
  closeModal(){
@@ -252,15 +323,15 @@ class AppController{
      const back=this.panelReturn;this.panelReturn=null;back();
    }else this.closeNative();
  }
- openPanel(kind,id=''){
+ openPanel(kind?: any,id: any=''){
    if(['preview','reader'].includes(this.modalKind)){const cardId=this.currentId,reading=this.modalKind==='reader';this.panelReturn=()=>this.openCard(cardId,reading);}
    this.editId=id;
-   if(kind==='editor')this.editTags=new Set(Store.tags(Store.card(id)));
+   if(kind==='editor')this.editTags=new Set<any>(Store.tags(Store.card(id)));
    const narrow=['editor','why','capture','confirm','permission'].includes(kind),wide=kind==='settings';
    const html=kind==='search'?Panels.search(this):kind==='editor'?Panels.editor(this,id):kind==='why'?Panels.why(this,Store.card(id)):kind==='settings'?Panels.settings(this,this.settingsGroup):kind==='capture'?Panels.capture(this):kind==='sources'?Panels.sources():kind==='sources-add'?Panels.sourcesAdd():kind==='archive'?Panels.archive(this,id):kind==='welcome'?Panels.welcomePick(this):'';
    this.openModal(html,kind,null,kind==='search'?'search':`panel${narrow?' narrow':wide?' wide':''}`);
  }
- swapPanel(html,kind,shape='panel'){
+ swapPanel(html?: any,kind?: any,shape: any='panel'){
    // Move inside the same sheet without re-animating from a card.
    const toast=document.getElementById('toast');if(this.dialog.contains(toast))document.body.appendChild(toast);
    this.modalKind=kind;this.dialog.className=shape;this.dialog.innerHTML=html;
@@ -268,14 +339,14 @@ class AppController{
    MotionEngine.enter(this.dialog.firstElementChild);
    const focus=this.dialog.querySelector('#modal-title');if(focus){focus.tabIndex=-1;focus.focus({preventScroll:true});}
  }
- openCard(id,reading=false){
+ openCard(id?: any,reading: any=false){
    const c=Store.card(id);if(!c)return;
    const source=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
    // A quick note opens where it is: the card becomes its own editor.
-   if(!reading&&c.type==='note'&&c.kind==='capture'&&c.form!=='quote'&&source&&!this.dialog.open){
+   if(!reading&&c.type==='note'&&cardSourceKind(c)==='capture'&&c.form!=='quote'&&source&&!this.dialog.open){
      history.replaceState({glass:true,prev:null},'','#feed');this.lastRouteHash='#feed';this.startInlineEdit(id);return;
    }
-   const sourceKind=Store.source(`src-${c.kind}`);
+   const sourceKind=Store.source(`src-${cardSourceKind(c)}`);
    if(!reading&&sourceKind?.open==='web'&&c.url){history.replaceState({glass:true,prev:null},'','#feed');this.lastRouteHash='#feed';this.openExternal(c);Store.patch(id,{seen:true,read:true});this.refreshCard(id);return;}
    const origin=MotionEngine.capture(this.dialog.open&&this.currentId===id&&['preview','reader'].includes(this.modalKind)?MotionEngine.surface(this.dialog):source);
    this.currentId=id;Store.patch(id,{seen:true});this.refreshCard(id);
@@ -291,17 +362,17 @@ class AppController{
    if(['mail','note'].includes(c.type)&&!Store.item(id).read&&!(c.body?.length>2&&c.type==='note')){Store.patch(id,{read:true,progress:1});this.refreshCard(id);}
  }
  // The preview holds the full text, so reading it there counts the same as in full screen.
- bindPreview(id){
+ bindPreview(id?: any){
    const scroll=this.dialog.querySelector('.preview-sheet .sheet-scroll');
    if(!scroll||!this.dialog.querySelector('#reader-end'))return;
    requestAnimationFrame(()=>{
      // Short pieces fit on one screen: staying a moment is reading them.
      this.gestures.bindPush(id,scroll);
-     if(scroll.scrollHeight-scroll.clientHeight<=2){const token=this.modalToken;setTimeout(()=>{if(this.modalToken===token&&this.modalKind==='preview')this.updateReading(id,scroll);},3000);return;}
+     if(scroll.scrollHeight-scroll.clientHeight<=2){const token=this.modalToken;window.setTimeout(()=>{if(this.modalToken===token&&this.modalKind==='preview')this.updateReading(id,scroll);},3000);return;}
      scroll.addEventListener('scroll',()=>{this.lastActivity=Date.now();this.updateReading(id,scroll);},{passive:true});
    });
  }
- bindReader(id){
+ bindReader(id?: any){
    this.lastActivity=Date.now();
    const scroll=this.dialog.querySelector('#reader-scroll');if(!scroll)return;
    requestAnimationFrame(()=>{
@@ -311,47 +382,47 @@ class AppController{
      scroll.addEventListener('scroll',()=>{this.lastActivity=Date.now();this.updateReading(id,scroll);},{passive:true});
    });
  }
- updateReading(id,scroll){
+ updateReading(id?: any,scroll?: any){
    const available=scroll.scrollHeight-scroll.clientHeight;
    const actual=available>2?Math.min(1,scroll.scrollTop/available):1;
    const p=Math.max(Store.item(id).progress,actual);
    Store.patch(id,{progress:p,read:p>=.985||Store.item(id).read});
    const bar=document.getElementById('reader-progress');if(bar)bar.style.width=Math.round(actual*100)+'%';
    document.getElementById('reader-end')?.classList.toggle('is-done',Store.item(id).read);
-   this.dialog.querySelectorAll('.progress-ring').forEach(n=>{n.setAttribute('aria-valuenow',String(Math.round(p*100)));n.querySelector('circle:last-child').setAttribute('stroke-dashoffset',String(50.265*(1-p)));});
+   this.dialog.querySelectorAll('.progress-ring').forEach((n?: any)=>{n.setAttribute('aria-valuenow',String(Math.round(p*100)));n.querySelector('circle:last-child').setAttribute('stroke-dashoffset',String(50.265*(1-p)));});
    this.refreshCard(id);
  }
- openExternal(c){if(c?.url&&/^https?:\/\//.test(c.url))window.open(c.url,'_blank','noopener,noreferrer');}
- toast(text,undo=null,actionLabel='撤销'){
+ openExternal(c?: any){if(c?.url&&/^https?:\/\//.test(c.url))window.open(c.url,'_blank','noopener,noreferrer');}
+ toast(text?: any,undo: any=null,actionLabel: any='撤销'){
    clearTimeout(this.toastTimer);this.undoAction=undo;
    const toast=document.getElementById('toast');
    (this.dialog.open?this.dialog:document.body).appendChild(toast);
    document.getElementById('toast-text').textContent=text;
    document.getElementById('toast-action').innerHTML=undo?`<button type="button" class="text-link" data-action="undo" aria-label="${actionLabel==='撤销'?'撤销操作':esc(actionLabel)}">${esc(actionLabel)}</button>`:'';
    toast.hidden=false;MotionEngine.enter(toast);
-   this.toastTimer=setTimeout(()=>{toast.hidden=true;},undo?5500:3200);
+   this.toastTimer=window.setTimeout(()=>{toast.hidden=true;},undo?5500:3200);
  }
- setFlag(id,key,value){
+ setFlag(id?: any,key?: any,value?: any){
    const before=Store.item(id)[key];Store.patch(id,{[key]:value});this.refreshCard(id);
    this.toast(key==='bookmarked'?(value?'已收藏':'已取消收藏'):(value?'已放进稍后读':'已移出稍后读'),()=>{Store.patch(id,{[key]:before});this.refreshCard(id);this.syncPreviewButtons(id);});
    this.syncPreviewButtons(id);
  }
- syncPreviewButtons(id){
+ syncPreviewButtons(id?: any){
    const s=Store.item(id);
-   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="bookmark"]`).forEach(n=>{n.classList.toggle('active',s.bookmarked);n.setAttribute('aria-label',s.bookmarked?'取消收藏':'收藏');});
-   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="later"]`).forEach(n=>{n.classList.toggle('active',s.later);n.setAttribute('aria-label',s.later?'取消稍后读':'稍后读');});
+   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="bookmark"]`).forEach((n?: any)=>{n.classList.toggle('active',s.bookmarked);n.setAttribute('aria-label',s.bookmarked?'取消收藏':'收藏');});
+   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="later"]`).forEach((n?: any)=>{n.classList.toggle('active',s.later);n.setAttribute('aria-label',s.later?'取消稍后读':'稍后读');});
  }
- toggleTask(id,taskId){
-   const c=Store.card(id),before=Store.tasks(c).filter(t=>t.done).map(t=>t.id);
-   const after=before.includes(taskId)?before.filter(t=>t!==taskId):[...before,taskId];
+ toggleTask(id?: any,taskId?: any){
+   const c=Store.card(id),before=Store.tasks(c).filter((t?: any)=>t.done).map((t?: any)=>t.id);
+   const after=before.includes(taskId)?before.filter((t?: any)=>t!==taskId):[...before,taskId];
    Store.patch(id,{taskDone:after});this.refreshCard(id);
    if(this.dialog.open&&this.currentId===id&&this.modalKind==='preview'){
      const holder=this.dialog.querySelector('.detail-task-list');
-     if(holder)for(const t of Store.tasks(c)){const node=[...holder.querySelectorAll('[data-extra]')].find(n=>n.dataset.extra===t.id);if(node){node.classList.toggle('is-done',t.done);node.setAttribute('aria-checked',String(t.done));node.querySelector('.check-dot').outerHTML=checkMark(t.done);}}
+     if(holder)for(const t of Store.tasks(c)){const node=[...holder.querySelectorAll('[data-extra]')].find((n?: any)=>n.dataset.extra===t.id);if(node){node.classList.toggle('is-done',t.done);node.setAttribute('aria-checked',String(t.done));node.querySelector('.check-dot').outerHTML=checkMark(t.done);}}
    }
    if(after.length===c.tasks.length)this.toast('这件事，完成了',()=>{Store.patch(id,{taskDone:before});this.refreshCard(id);});
  }
- closeMore(restoreFocus=false){
+ closeMore(restoreFocus: any=false){
    const menu=this.grid?.querySelector('.card-more-menu');
    if(!menu)return;
    const card=menu.closest('[data-card]'),trigger=card?.querySelector('[data-action="card-more"]');
@@ -363,7 +434,7 @@ class AppController{
    card?.classList.remove('tools-open');
    trigger?.setAttribute('aria-expanded','false');trigger?.removeAttribute('aria-controls');
  }
- more(id){
+ more(id?: any){
    const c=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),card=Store.card(id);if(!c||!card)return;
    if(c.querySelector('.card-more-menu')){this.closeMore(true);return;}
    this.closeMore();
@@ -375,7 +446,7 @@ class AppController{
      ['bookmark',s.bookmarked?'取消收藏':'收藏','bookmark'],['glasses',s.later?'移出稍后读':'稍后读','later'],['tag','标签与备注','edit'],
      ...(CardTypes[card.type].readable?[[s.read?'undo':'circle',s.read?'标为未读':'标为已读','toggle-read']]:[]),
      ['check-circle',this.selected.has(id)?'取消选择':'选择','select']];
-   menu.innerHTML=items.map(([symbol,label,action])=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span></button>`).join('');
+   menu.innerHTML=items.map(([symbol,label,action]: any)=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span></button>`).join('');
    c.appendChild(menu);
    const trigger=c.querySelector('[data-action="card-more"]');trigger?.setAttribute('aria-expanded','true');trigger?.setAttribute('aria-controls',menu.id);
    MotionEngine.animate(menu,[{opacity:0,transform:'translateY(-4px)'},{opacity:1,transform:'none'}],{duration:180});menu.querySelector('button')?.focus({preventScroll:true});
@@ -391,7 +462,7 @@ class AppController{
      if(window.__QG_LOCAL__)await LocalSync.refresh(true);
      else{
        // Demo: the next unseen sample arrives as new content; nothing jumps into the desk.
-       const next=FreshCards.find(f=>!Store.card(f.id)&&!this.pendingCards.some(p=>p.id===f.id));
+       const next=FreshCards.find((f?: any)=>!Store.card(f.id)&&!this.pendingCards.some((p?: any)=>p.id===f.id));
        if(next)this.pendingCards.push({...next,time:Date.now()});
        this.feedNow=Date.now();this.withFeedAnchor(()=>{});
        if(scrollY<40&&Store.pref('newHint')!=='off'&&!this.dialog.open&&this.pendingCards.length&&!this.pendingReminders.length)this.showNew(true);
@@ -400,13 +471,13 @@ class AppController{
    }catch(error){this.setOffline(true);this.toast('无法刷新：'+error.message);}
    finally{
      this.refreshBusy=false;
-     setTimeout(()=>dock.classList.remove('is-busy'),Math.max(0,600-(Date.now()-started)));
+     window.setTimeout(()=>dock.classList.remove('is-busy'),Math.max(0,600-(Date.now()-started)));
    }
  }
- setOffline(on){const n=document.getElementById('offline');n.hidden=!on;n.classList.remove('is-retrying');}
- checkReminders(now=Date.now()){
-   const next=Store.state.cards.filter(c=>FeedPolicy.eligible(c,Store.item(c.id),now)).map(c=>c.id);
-   const added=next.some(id=>!this.pendingReminders.includes(id));
+ setOffline(on?: any){const n=document.getElementById('offline');n.hidden=!on;n.classList.remove('is-retrying');}
+ checkReminders(now: any=Date.now()){
+   const next=Store.state.cards.filter((c?: any)=>FeedPolicy.eligible(c,Store.item(c.id),now)).map((c?: any)=>c.id);
+   const added=next.some((id?: any)=>!this.pendingReminders.includes(id));
    this.pendingReminders=next;this.paintPending();
    if(added)this.announce(`有 ${next.length} 项提醒到期，点玻璃入口旁的提示查看。`);
  }
@@ -418,16 +489,16 @@ class AppController{
    n.hidden=hide;n.innerHTML=this.pendingReminders.length?`${icon('bell',14)}<span class="num">${count}</span> 项到点`:`${icon('up',14)}<span class="num">${count}</span> 条新内容`;
    n.setAttribute('aria-label',`查看 ${this.pendingCards.length} 条新内容和 ${this.pendingReminders.length} 项到期提醒`);
  }
- withFeedAnchor(change,animate=false){
+ withFeedAnchor(change?: any,animate: any=false){
    const nodes=[...this.grid.querySelectorAll('[data-card]')];
-   const positions=animate?new Map(nodes.map(n=>[n.dataset.card,n.getBoundingClientRect()])):null;
-   const anchors=nodes.filter(n=>n.getBoundingClientRect().bottom>0).map(n=>({id:n.dataset.card,top:n.getBoundingClientRect().top}));
+   const positions=animate?new Map<any, any>(nodes.map((n?: any)=>[n.dataset.card,n.getBoundingClientRect()])):null;
+   const anchors=nodes.filter((n?: any)=>n.getBoundingClientRect().bottom>0).map((n?: any)=>({id:n.dataset.card,top:n.getBoundingClientRect().top}));
    const oldY=scrollY,focus=document.activeElement;
-   const focusCard=focus?.closest('[data-card]')?.dataset.card,focusAction=focus?.dataset.action,focusExtra=focus?.dataset.extra,focusId=focus?.dataset.id;
+   const focusCard=(focus?.closest('[data-card]') as HTMLElement)?.dataset.card,focusAction=(focus as HTMLElement)?.dataset.action,focusExtra=(focus as HTMLElement)?.dataset.extra,focusId=(focus as HTMLElement)?.dataset.id;
    change();
    this.renderCurrent(false);
    if(oldY>0){
-     const anchor=anchors.find(a=>this.grid.querySelector(`[data-card="${CSS.escape(a.id)}"]`));
+     const anchor=anchors.find((a?: any)=>this.grid.querySelector(`[data-card="${CSS.escape(a.id)}"]`));
      if(anchor){
        const node=this.grid.querySelector(`[data-card="${CSS.escape(anchor.id)}"]`);
        const targetY=scrollY+node.getBoundingClientRect().top-anchor.top;
@@ -441,16 +512,16 @@ class AppController{
    }
    if(focusCard&&!this.dialog.open){
      const card=this.grid.querySelector(`[data-card="${CSS.escape(focusCard)}"]`);
-     const target=card&&[...card.querySelectorAll('[data-action]')].find(n=>n.dataset.action===focusAction&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
+     const target=card&&[...card.querySelectorAll('[data-action]')].find((n?: any)=>n.dataset.action===focusAction&&n.dataset.extra===focusExtra&&n.dataset.id===focusId);
      card?.focus({preventScroll:true});
      (target||card?.querySelector('.card-title-button')||card||document.getElementById('orb')).focus({preventScroll:true});
    }
-   if(positions)this.grid.querySelectorAll('[data-card]').forEach(node=>{
+   if(positions)this.grid.querySelectorAll('[data-card]').forEach((node?: any)=>{
      const rect=positions.get(node.dataset.card);
      if(rect)MotionEngine.flip(node,rect);else MotionEngine.drop(node);
    });
  }
- showNew(quiet=false){
+ showNew(quiet: any=false){
    if(this.dialog.open||this.drag.active)return;
    this.checkReminders();
    if(!this.pendingCards.length&&!this.pendingReminders.length)return;
@@ -465,10 +536,10 @@ class AppController{
    this.paintPending();
    if(!quiet)this.announce(`加入 ${count} 张新卡片，${reminderCount} 项提醒回到桌面`);
  }
- changeReminder(id,action){
+ changeReminder(id?: any,action?: any){
    const c=Store.card(id);if(!c||!FeedPolicy.supports(c))return;
    const item=Store.item(id),keys=['snoozedUntil','dismissed','reminderDone','lastReminderKey','lastNotifiedAt'];
-   const before=Object.fromEntries(keys.map(k=>[k,item[k]]));
+   const before=Object.fromEntries(keys.map((k?: any)=>[k,item[k]]));
    const now=Date.now();
    const patch=action==='snooze'?{snoozedUntil:now+600000,dismissed:false,reminderDone:false}:
      action==='dismiss-reminder'?{dismissed:true,snoozedUntil:0}:
@@ -487,11 +558,11 @@ class AppController{
      (back?.querySelector('.card-title-button')||back||document.getElementById('orb')).focus({preventScroll:true});
    });
  }
- drop(ids,target){
+ drop(ids?: any,target?: any){
    if(target==='tag'){this.bulkEditIds=ids;this.openPanel('editor',ids[0]);return;}
-   const key=target==='bookmark'?'bookmarked':'later',old=ids.map(id=>[id,Store.item(id)[key]]);
-   ids.forEach(id=>{Store.patch(id,{[key]:true});this.refreshCard(id);});
-   this.toast(target==='bookmark'?`已收藏 ${ids.length} 张`:`${ids.length} 张放进稍后读`,()=>old.forEach(([id,v])=>{Store.patch(id,{[key]:v});this.refreshCard(id);}));
+   const key=target==='bookmark'?'bookmarked':'later',old=ids.map((id?: any)=>[id,Store.item(id)[key]]);
+   ids.forEach((id?: any)=>{Store.patch(id,{[key]:true});this.refreshCard(id);});
+   this.toast(target==='bookmark'?`已收藏 ${ids.length} 张`:`${ids.length} 张放进稍后读`,()=>old.forEach(([id,v]: any)=>{Store.patch(id,{[key]:v});this.refreshCard(id);}));
  }
  /* ——— Media ——— */
  paintMedia(){
@@ -517,7 +588,7 @@ class AppController{
      else this.pauseMedia();
    },2500);
  }
- podcast(id,seek=0){
+ podcast(id?: any,seek: any=0){
    const c=Store.card(id);if(!c)return;
    const total=c.duration||1,paint=()=>{const p=Store.item(id).progress,bar=document.getElementById('podcast-bar'),t=document.getElementById('podcast-played');if(bar)bar.style.width=Math.round(p*100)+'%';if(t)t.textContent=duration(p*total);};
    if(seek){Store.patch(id,{progress:Math.max(0,Math.min(1,Store.item(id).progress+seek/total))});paint();this.refreshCard(id);return;}
@@ -529,7 +600,7 @@ class AppController{
    },1000);
  }
  /* ——— Inline note editing ——— */
- startInlineEdit(id){
+ startInlineEdit(id?: any){
    this.finishInlineEdit();
    const node=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),c=Store.card(id);if(!node||!c)return;
    this.editingId=id;Store.patch(id,{seen:true,read:true});
@@ -540,8 +611,8 @@ class AppController{
  }
  saveInlineEdit(){
    const id=this.editingId,c=Store.card(id);if(!c)return;
-   const title=document.getElementById('inline-title')?.value.trim()||c.title,text=document.getElementById('inline-body')?.value||'';
-   const body=text.split('\n').map(s=>s.trim()).filter(Boolean);
+   const title=(document.getElementById('inline-title') as HTMLInputElement)?.value.trim()||c.title,text=(document.getElementById('inline-body') as HTMLInputElement)?.value||'';
+   const body=text.split('\n').map((s?: any)=>s.trim()).filter(Boolean);
    Object.assign(c,{title:title.slice(0,200),body:body.length?body:[title],summary:body.join('').slice(0,300),meta:'刚刚'});Store.save();
    const state=document.getElementById('inline-state');if(state)state.textContent=window.__QG_LOCAL__?'已保存在本机；同步状态见桌面':'已保存';
  }
@@ -552,7 +623,7 @@ class AppController{
    this.refreshCard(id);this.layout.schedule(false);
  }
  /* ——— Capture and import ——— */
- capture(text,toast=true){
+ capture(text?: any,toast: any=true){
    const card=Importers.capture(text);if(!card)return null;
    const {fresh}=Importers.dedupe([card]);
    if(!fresh.length){this.toast('桌面上已经有这条了');return null;}
@@ -562,18 +633,18 @@ class AppController{
  }
  bindFileDrop(){
    let depth=0;const hint=document.getElementById('drop-hint');
-   const isFiles=e=>[...(e.dataTransfer?.types||[])].some(t=>t==='Files'||t==='text/uri-list'||t==='text/plain');
-   document.addEventListener('dragenter',e=>{if(!isFiles(e)||this.drag.active)return;depth++;document.body.classList.add('is-dropping');hint.hidden=false;});
+   const isFiles=(e?: any)=>[...(e.dataTransfer?.types||[])].some((t?: any)=>t==='Files'||t==='text/uri-list'||t==='text/plain');
+   document.addEventListener('dragenter',(e?: any)=>{if(!isFiles(e)||this.drag.active)return;depth++;document.body.classList.add('is-dropping');hint.hidden=false;});
    document.addEventListener('dragleave',()=>{depth=Math.max(0,depth-1);if(!depth){document.body.classList.remove('is-dropping');hint.hidden=true;}});
-   document.addEventListener('dragover',e=>{if(isFiles(e))e.preventDefault();});
-   document.addEventListener('drop',e=>{
+   document.addEventListener('dragover',(e?: any)=>{if(isFiles(e))e.preventDefault();});
+   document.addEventListener('drop',(e?: any)=>{
      if(!isFiles(e))return;e.preventDefault();depth=0;document.body.classList.remove('is-dropping');hint.hidden=true;
      const files=[...(e.dataTransfer.files||[])];
      if(files.length)this.importFiles(files);
      else{const text=e.dataTransfer.getData('text/uri-list')||e.dataTransfer.getData('text/plain');if(text)this.capture(text);}
    });
  }
- async importFiles(files){
+ async importFiles(files?: any){
    const parsed=[];
    for(const file of files.slice(0,20)){
      if(file.size>20*1048576){this.toast(`${file.name} 太大了`);continue;}
@@ -583,59 +654,59 @@ class AppController{
    }
    if(!parsed.length){if(files.length)this.toast('没有找到可以导入的内容');return;}
    // Several files of one kind preview together.
-   const first=parsed[0],same=parsed.filter(p=>p.kind===first.kind);
-   const skipped=parsed.filter(p=>p.kind!==first.kind);
-   this.importing={kind:first.kind,name:same.length>1?`${same.length} 个文件`:first.name,entries:same.flatMap(p=>p.entries),notice:skipped.length?`本次仅导入${first.name}同类文件。未纳入：${skipped.map(p=>p.name).join('、')}；请分次导入这些文件。`:''};
-   this.importPicked=new Set(this.importing.entries.map((_,i)=>i));this.importRange='30d';
+   const first=parsed[0],same=parsed.filter((p?: any)=>p.kind===first.kind);
+   const skipped=parsed.filter((p?: any)=>p.kind!==first.kind);
+   this.importing={kind:first.kind,name:same.length>1?`${same.length} 个文件`:first.name,entries:same.flatMap((p?: any)=>p.entries),notice:skipped.length?`本次仅导入${first.name}同类文件。未纳入：${skipped.map((p?: any)=>p.name).join('、')}；请分次导入这些文件。`:''};
+   this.importPicked=new Set<any>(this.importing.entries.map((_?: any,i?: any)=>i));this.importRange='30d';
    this.swapPanel(Panels.importPreview(this),'import','panel');
  }
  runImport(){
    const p=this.importing;if(!p)return;
-   const picked=p.entries.filter((e,i)=>this.importPicked.has(i));
+   const picked=p.entries.filter((e?: any,i?: any)=>this.importPicked.has(i));
    if(p.kind==='opml'){
      const existing=Store.source('src-rss'),count=(existing?.count||0)+picked.length;
      Store.upsertSource({id:'src-rss',kind:'rss',name:'RSS',detail:`${count} 个订阅`,enabled:true,status:'ok',count,syncedAt:Date.now(),stack:existing?.stack??true,open:existing?.open||'inside',range:existing?.range||'30d'});
      this.closeNative();this.importing=null;
      this.toast(`已订阅 ${picked.length} 个 RSS`);this.startImportRings(['rss']);return;
    }
-   const within=e=>this.importRange==='all'||!e.time||Date.now()-e.time<30*86400000||p.kind==='ics'&&e.time>Date.now();
-   const cards=picked.filter(within).map(e=>e.card).filter(Boolean);
+   const within=(e?: any)=>this.importRange==='all'||!e.time||Date.now()-e.time<30*86400000||p.kind==='ics'&&e.time>Date.now();
+   const cards=picked.filter(within).map((e?: any)=>e.card).filter(Boolean);
    const {fresh,merged}=Importers.dedupe(cards);
-   const kind={csv:cards[0]?.kind||'web',html:'web',markdown:'markdown',ics:'calendar'}[p.kind];
+   const kind={csv:cardSourceKind(cards[0])||'web',html:'web',markdown:'markdown',ics:'calendar'}[p.kind];
    if(kind&&!['markdown','web'].includes(kind)&&!Store.source('src-'+kind))Store.upsertSource({id:'src-'+kind,kind,name:SourceKinds[kind].label,detail:'文件导入',enabled:true,status:'ok',count:fresh.length,syncedAt:Date.now(),stack:true,open:'inside',range:'all'});
    this.closeNative();this.importing=null;
    this.startImportRings([kind||'local'],()=>{
      this.withFeedAnchor(()=>{Store.insert(fresh);},true);
      if(merged.length)this.toast(`导入 ${fresh.length} 张，跳过 ${merged.length} 张重复（保留已有内容）`);
-     else this.toast(`导入 ${fresh.length} 张`,()=>{Store.remove(fresh.map(c=>c.id));this.withFeedAnchor(()=>{});});
+     else this.toast(`导入 ${fresh.length} 张`,()=>{Store.remove(fresh.map((c?: any)=>c.id));this.withFeedAnchor(()=>{});});
    });
  }
  /** Import is never blocking: one ring per source fills at the bottom, cards fall in as they arrive. */
- startImportRings(kinds,done){
+ startImportRings(kinds?: any,done?: any){
    const host=document.getElementById('import-rings');
-   host.innerHTML=kinds.map(k=>`<span class="import-ring" data-kind="${esc(k)}">${ring(0,36)}${icon(SourceKinds[k]?.icon||'file',15)}</span>`).join('');
+   host.innerHTML=kinds.map((k?: any)=>`<span class="import-ring" data-kind="${esc(k)}">${ring(0,36)}${icon(SourceKinds[k]?.icon||'file',15)}</span>`).join('');
    host.hidden=false;let p=0;
    const step=()=>{
      p=Math.min(1,p+(MotionEngine.reduced?1:.25));
-     host.querySelectorAll('.progress-ring circle:last-child').forEach(n=>n.setAttribute('stroke-dashoffset',String(50.265*(1-p))));
-     if(p<1){setTimeout(step,160);return;}
-     host.querySelectorAll('.import-ring').forEach(n=>n.classList.add('done'));
-     done?.();setTimeout(()=>{host.hidden=true;},900);
+     host.querySelectorAll('.progress-ring circle:last-child').forEach((n?: any)=>n.setAttribute('stroke-dashoffset',String(50.265*(1-p))));
+     if(p<1){window.setTimeout(step,160);return;}
+     host.querySelectorAll('.import-ring').forEach((n?: any)=>n.classList.add('done'));
+     done?.();window.setTimeout(()=>{host.hidden=true;},900);
    };
-   setTimeout(step,120);
+   window.setTimeout(step,120);
  }
  /* ——— First run ——— */
  loadDemo(){
    const before=Store.state.cards.length;
    Store.state.preferences.onboarded=true;
-   const demo=SeedCards.map(c=>({...c,tasks:c.tasks?.map(t=>({...t})),time:c.time,...(c.start?{start:Date.now()+(c.start-demoBase),end:Date.now()+(c.end-demoBase)}:{}),...(c.due?{due:Date.now()+(c.due-demoBase)}:{})}));
+   const demo=SeedCards.map((c?: any)=>({...c,tasks:c.tasks?.map((t?: any)=>({...t})),time:c.time,...(c.start?{start:Date.now()+(c.start-demoBase),end:Date.now()+(c.end-demoBase)}:{}),...(c.due?{due:Date.now()+(c.due-demoBase)}:{})}));
    this.closeNative();
    this.startImportRings(['rss','readwise','mail','calendar'],()=>{this.withFeedAnchor(()=>{Store.insert(demo);for(const [id,x] of Object.entries(SeedItems))Store.patch(id,x);},true);
-     if(!before)this.toast('示例卡片已经放好',()=>{Store.remove(demo.map(c=>c.id));this.withFeedAnchor(()=>{});},'拿走');});
-   if(!Store.state.sources.length)DemoSources.forEach(s=>Store.upsertSource({...s,syncedAt:Date.now()}));
+     if(!before)this.toast('示例卡片已经放好',()=>{Store.remove(demo.map((c?: any)=>c.id));this.withFeedAnchor(()=>{});},'拿走');});
+   if(!Store.state.sources.length)DemoSources.forEach((s?: any)=>Store.upsertSource({...s,syncedAt:Date.now()}));
  }
  welcomeContinue(){
-   const kinds=[...this.welcomePicked],system=kinds.filter(k=>Panels.systemKinds[k]),accounts=kinds.filter(k=>!Panels.systemKinds[k]);
+   const kinds=[...this.welcomePicked],system=kinds.filter((k?: any)=>Panels.systemKinds[k]),accounts=kinds.filter((k?: any)=>!Panels.systemKinds[k]);
    for(const k of accounts)if(!Store.source('src-'+k))Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:k==='rss'?'等待导入订阅':'等待授权',enabled:true,status:'attention',count:0,stack:true,open:['linear','github'].includes(k)?'web':'inside',range:'30d'});
    Store.state.preferences.onboarded=true;Store.save();
    this.permissionQueue=system;this.nextPermission();
@@ -644,35 +715,35 @@ class AppController{
    const kind=this.permissionQueue?.shift();
    if(kind){this.swapPanel(Panels.permission(kind),'permission','panel narrow');return;}
    this.closeNative();this.welcomePicked.clear();
-   const waiting=Store.state.sources.filter(s=>s.status==='attention').length;
+   const waiting=Store.state.sources.filter((s?: any)=>s.status==='attention').length;
    this.renderCurrent(false);
    if(waiting)this.toast(`${waiting} 个来源等待授权`,()=>this.openPanel('sources'),'查看');
  }
  /* ——— Settings and sources ——— */
- setPref(key,value){
+ setPref(key?: any,value?: any){
    const before=Store.pref(key);Store.setPref(key,value);this.applyPreferences();
    if(['stack','fadeRead','archiveAfter','floatTimely','density'].includes(key))this.withFeedAnchor(()=>{});
    if(this.modalKind==='settings')this.repaintSettings();
    return before;
  }
- replacePanelContent(html){
+ replacePanelContent(html?: any){
    const active=document.activeElement;
-   const key=n=>[n.id,n.dataset.action,n.dataset.id,n.dataset.extra].join('|');
+   const key=(n?: any)=>[n.id,n.dataset.action,n.dataset.id,n.dataset.extra].join('|');
    const focused=this.dialog.contains(active)?key(active):null;
    const selectors=['.sheet-scroll','.settings-main','.settings-nav','.sheet','.import-list'];
-   const positions=selectors.map(selector=>{const node=this.dialog.querySelector(selector);return {selector,x:node?.scrollLeft||0,y:node?.scrollTop||0};});
+   const positions=selectors.map((selector?: any)=>{const node=this.dialog.querySelector(selector);return {selector,x:node?.scrollLeft||0,y:node?.scrollTop||0};});
    const full=this.dialog.querySelector('.preview-sheet')?.classList.contains('is-full');
    const toast=document.getElementById('toast');if(toast&&this.dialog.contains(toast))document.body.appendChild(toast);
    this.dialog.innerHTML=html;
    if(full)this.dialog.querySelector('.preview-sheet')?.classList.add('is-full');
-   if(focused){const target=[...this.dialog.querySelectorAll('button,input,textarea,a,[tabindex]')].find(n=>key(n)===focused);const focus=target||this.dialog.querySelector('#modal-title');if(focus){if(!focus.matches('button,input,textarea,a,[tabindex]'))focus.tabIndex=-1;focus.focus({preventScroll:true});}}
+   if(focused){const target=[...this.dialog.querySelectorAll('button,input,textarea,a,[tabindex]')].find((n?: any)=>key(n)===focused);const focus=target||this.dialog.querySelector('#modal-title');if(focus){if(!focus.matches('button,input,textarea,a,[tabindex]'))focus.tabIndex=-1;focus.focus({preventScroll:true});}}
    for(const {selector,x,y} of positions){const node=this.dialog.querySelector(selector);if(node){node.scrollLeft=x;node.scrollTop=y;}}
  }
  repaintSettings(){
-   const main=this.dialog.querySelector('.settings-main'),y=main?.scrollTop||0,active=document.activeElement,key=[active?.dataset.action,active?.dataset.id,active?.dataset.extra].join('|');
+   const main=this.dialog.querySelector('.settings-main'),y=main?.scrollTop||0,active=document.activeElement,key=[(active as HTMLElement)?.dataset.action,(active as HTMLElement)?.dataset.id,(active as HTMLElement)?.dataset.extra].join('|');
    this.replacePanelContent(Panels.settings(this,this.settingsGroup));
    const next=this.dialog.querySelector('.settings-main');if(next)next.scrollTop=y;
-   [...this.dialog.querySelectorAll('[data-action]')].find(n=>[n.dataset.action,n.dataset.id,n.dataset.extra].join('|')===key)?.focus({preventScroll:true});
+   [...this.dialog.querySelectorAll('[data-action]')].find((n?: any)=>[n.dataset.action,n.dataset.id,n.dataset.extra].join('|')===key)?.focus({preventScroll:true});
  }
  repaintSources(){
    if(this.modalKind==='settings'){this.repaintSettings();return;}
@@ -681,12 +752,12 @@ class AppController{
  }
  sourceReturn(){return this.modalKind==='settings'?()=>{this.swapPanel(Panels.settings(this,'sources'),'settings','panel wide');}:()=>{this.swapPanel(Panels.sources(),'sources');};}
  exportAll(){
-   const data={app:'Sill',exportedAt:new Date().toISOString(),...Store.serialized()};
+   const data: Record<string, any>={app:'Sill',exportedAt:new Date().toISOString(),...Store.serialized()};
    this.download(`sill-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data,null,2),'application/json');
  }
- download(name,text,type='text/plain'){
+ download(name?: any,text?: any,type: any='text/plain'){
    const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');
-   a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+   a.href=url;a.download=name;a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
  /* ——— Clock ——— */
  tick(){
@@ -694,7 +765,7 @@ class AppController{
      this.checkReminders();
      const minute=Math.floor(Date.now()/60000);
      if(this.clockMinute!==minute){this.clockMinute=minute;
-       this.grid.querySelectorAll('[data-card]').forEach(node=>{
+       this.grid.querySelectorAll('[data-card]').forEach((node?: any)=>{
          const c=Store.card(node.dataset.card);if(!c)return;
          if(c.type==='event'){
            const label=node.querySelector('.event-relative');if(label)label.textContent=eventRelative(c);
@@ -706,7 +777,7 @@ class AppController{
    }
    if(this.modalKind==='reader'&&this.dialog.open&&!document.hidden&&Date.now()-this.lastActivity<60000){
      Store.state.seconds++;
-     document.querySelectorAll('[data-live-time]').forEach(n=>n.textContent=minutes(Store.state.seconds));
+     document.querySelectorAll('[data-live-time]').forEach((n?: any)=>n.textContent=minutes(Store.state.seconds));
      if(Store.state.seconds%5===0)Store.save();
    }
  }
@@ -714,9 +785,9 @@ class AppController{
  /* Stacks are decks: the top card moves with the hand (finger, mouse or a sideways trackpad swipe) and leaves whole;
     the next card rises from beneath. Swiping right brings the previous card back over the top. */
  bindStacks(){
-   this.stackIndex=new Map();
+   this.stackIndex=new Map<any, any>();
    let g=null;
-   this.grid.addEventListener('pointerdown',e=>{
+   this.grid.addEventListener('pointerdown',(e?: any)=>{
      const deck=e.target.closest?.('.deck');
      if(!deck||e.button!==0||e.isPrimary===false)return;
      // A new hand gesture owns the deck, including while the previous card settles.
@@ -724,7 +795,7 @@ class AppController{
      this.stackDragUntil=0;
      g={deck,id:e.pointerId,x:e.clientX,y:e.clientY,at:Date.now(),live:false,dx:0};
    });
-   document.addEventListener('pointermove',e=>{
+   document.addEventListener('pointermove',(e?: any)=>{
      if(!g||e.pointerId!==g.id)return;
      const dx=e.clientX-g.x,dy=e.clientY-g.y;
      if(!g.live){
@@ -736,19 +807,19 @@ class AppController{
      if(e.cancelable)e.preventDefault();
      g.dx=dx;this.deckFollow(g.deck,dx);
    });
-   const release=(e,cancelled)=>{
+   const release=(e?: any,cancelled?: any)=>{
      if(!g||e.pointerId!==g.id)return;const d=g;g=null;if(!d.live)return;
      d.deck.classList.remove('is-dragging');this.stackDragUntil=Date.now()+350;
      const w=d.deck.offsetWidth,v=d.dx/Math.max(1,Date.now()-d.at);
      const go=!cancelled&&(Math.abs(d.dx)>w*.3||Math.abs(v)>.45&&Math.abs(d.dx)>30);
      this.deckSettle(d.deck,go?(d.dx<0?1:-1):0);
    };
-   document.addEventListener('pointerup',e=>release(e,false));
-   document.addEventListener('pointercancel',e=>release(e,true));
-   this.grid.addEventListener('lostpointercapture',e=>{if(g&&e.target===g.deck)release(e,true);});
+   document.addEventListener('pointerup',(e?: any)=>release(e,false));
+   document.addEventListener('pointercancel',(e?: any)=>release(e,true));
+   this.grid.addEventListener('lostpointercapture',(e?: any)=>{if(g&&e.target===g.deck)release(e,true);});
    window.addEventListener('blur',()=>{if(g)release({pointerId:g.id},true);});
    // Trackpad: a sideways swipe drags the top card too. Its coasting momentum is ignored until the hand stops.
-   this.grid.addEventListener('wheel',e=>{
+   this.grid.addEventListener('wheel',(e?: any)=>{
      const deck=e.target.closest?.('.deck');
      if(!deck||Math.abs(e.deltaX)<=Math.abs(e.deltaY))return;
      e.preventDefault();
@@ -760,11 +831,11 @@ class AppController{
      const s=deck._wheel||(deck._wheel={dx:0}),w=deck.offsetWidth;clearTimeout(s.t);
      s.dx=Math.max(-w,Math.min(w,s.dx-e.deltaX*(e.deltaMode===1?16:e.deltaMode===2?w:1)));this.deckFollow(deck,s.dx);
      if(Math.abs(s.dx)>w*.35){deck._wheel=null;deck._hold=now;this.deckSettle(deck,s.dx<0?1:-1);return;}
-     s.t=setTimeout(()=>{deck._wheel=null;this.deckSettle(deck,0);},140);
+     s.t=window.setTimeout(()=>{deck._wheel=null;this.deckSettle(deck,0);},140);
    },{passive:false});
  }
- deckParts(deck){const cards=[...deck.children],i=Number(deck.dataset.cur||0);return {cards,i,top:cards[i],next:cards[i+1],prev:cards[i-1],w:deck.offsetWidth||1};}
- deckFollow(deck,dx){
+ deckParts(deck?: any){const cards=[...deck.children],i=Number(deck.dataset.cur||0);return {cards,i,top:cards[i],next:cards[i+1],prev:cards[i-1],w:deck.offsetWidth||1};}
+ deckFollow(deck?: any,dx?: any){
    const {top,next,prev,w}=this.deckParts(deck);
    if(dx<=0||!prev){
      // Toward the next card; with nothing beyond, the top card only gives a little.
@@ -779,13 +850,13 @@ class AppController{
      const x=-w-24+dx;prev.style.transform=`translateX(${x}px) rotate(${x/w*6}deg)`;
    }
  }
- deckSettle(deck,dir){
+ deckSettle(deck?: any,dir?: any){
    deck._finish?.();
    const {cards,i,top,next,prev,w}=this.deckParts(deck);
    if(!top)return;
    if(dir===1&&!next||dir===-1&&!prev)dir=0;
-   const t={duration:MotionEngine.reduced?1:260,easing:'cubic-bezier(.2,.75,.25,1)'},anims=[];
-   const run=(el,to)=>{if(!el)return;const from=el.style.transform||'none';anims.push(el.animate([{transform:from},{transform:to}],t));el.style.transform=to;};
+   const t: Record<string, any>={duration:MotionEngine.reduced?1:260,easing:'cubic-bezier(.2,.75,.25,1)'},anims=[];
+   const run=(el?: any,to?: any)=>{if(!el)return;const from=el.style.transform||'none';anims.push(el.animate([{transform:from},{transform:to}],t));el.style.transform=to;};
    if(dir===1){
      run(top,`translateX(${-w*1.15}px) rotate(-8deg)`);run(next,'none');
    }else if(dir===-1){
@@ -797,15 +868,15 @@ class AppController{
    }
    deck.dataset.busy='1';
    let finished=false;
-   const done=()=>{if(finished)return;finished=true;anims.forEach(a=>a.cancel());delete deck.dataset.busy;deck._finish=null;this.deckShow(deck,i+dir);};
+   const done=()=>{if(finished)return;finished=true;anims.forEach((a?: any)=>a.cancel());delete deck.dataset.busy;deck._finish=null;this.deckShow(deck,i+dir);};
    deck._finish=done;
-   Promise.all(anims.map(a=>a.finished)).then(done,done);
+   Promise.all(anims.map((a?: any)=>a.finished)).then(done,done);
  }
- deckShow(deck,i){
+ deckShow(deck?: any,i?: any){
    const cards=[...deck.children];i=Math.max(0,Math.min(cards.length-1,i));
    const stack=deck.closest('[data-stack]');if(!stack)return;
    const key=stack.dataset.stack;
-   cards.forEach((c,k)=>{
+   cards.forEach((c?: any,k?: any)=>{
      c.classList.toggle('is-top',k===i);c.classList.toggle('is-next',k===i+1);c.classList.remove('is-prev');
      c.style.transform='';c.style.visibility='';c.setAttribute('aria-hidden',String(k!==i));
    });
@@ -815,11 +886,11 @@ class AppController{
    deck.dataset.cur=i;this.stackIndex.set(key,i);
  }
  restoreStacks(){
-   this.grid.querySelectorAll('[data-stack] .deck').forEach(deck=>{
+   this.grid.querySelectorAll('[data-stack] .deck').forEach((deck?: any)=>{
      const i=this.stackIndex.get(deck.closest('[data-stack]').dataset.stack)||0;if(i)this.deckShow(deck,i);
    });
  }
- click(e){
+ click(e?: any){
    // The end of a sideways drag through a stack is not a tap.
    if(this.stackDragUntil>Date.now()&&e.target.closest?.('[data-stack]')){e.preventDefault();e.stopPropagation();return;}
    if(Date.now()<this.drag.suppressUntil)return;
@@ -834,14 +905,14 @@ class AppController{
    const card=e.target.closest?.('[data-card]');
    if(card&&!e.target.closest('button,a,input,textarea')){this.navigate('#card/'+card.dataset.card);return;}
  }
- action(name,id='',extra='',el=null,event=null){
+ action(name?: any,id: any='',extra: any='',el: any=null,event: any=null){
    switch(name){
      case 'orb':this.openDock();break;
      case 'filter':case 'search':this.openPanel('search');break;
      case 'settings':this.settingsGroup='desk';this.openPanel('settings');break;
      case 'settings-group':this.settingsGroup=extra;this.repaintSettings();this.dialog.querySelector(`[data-action="settings-group"][data-extra="${extra}"]`)?.scrollIntoView({block:'nearest',inline:'nearest'});break;
      case 'capture':this.openPanel('capture');break;
-     case 'capture-save':{const text=document.getElementById('capture-text')?.value;if(!text?.trim())return;this.closeNative();this.capture(text);break;}
+     case 'capture-save':{const text=(document.getElementById('capture-text') as HTMLInputElement)?.value;if(!text?.trim())return;this.closeNative();this.capture(text);break;}
      case 'refresh':this.refresh();break;
      case 'retry':document.getElementById('offline').classList.add('is-retrying');this.refresh().then(()=>this.setOffline(false));break;
      case 'show-new':this.showNew();break;
@@ -856,10 +927,10 @@ class AppController{
      case 'edit':this.bulkEditIds=null;this.openPanel('editor',id);break;
      case 'why':this.openPanel('why',id);break;
      case 'less-like':this.closeNative();this.toast('以后这类会少一些');break;
-     case 'never-show':{const before={...Store.item(id)};this.closeNative();Store.patch(id,{dismissed:true});this.withFeedAnchor(()=>{},true);this.toast('不再提示这张',()=>{Store.patch(id,before);this.withFeedAnchor(()=>{},true);});break;}
+     case 'never-show':{const before: Record<string, any>={...Store.item(id)};this.closeNative();Store.patch(id,{dismissed:true});this.withFeedAnchor(()=>{},true);this.toast('不再提示这张',()=>{Store.patch(id,before);this.withFeedAnchor(()=>{},true);});break;}
      case 'card-more':this.more(id);break;
      case 'toggle-read':{
-       const before={...Store.item(id)},read=!before.read;Store.patch(id,{read,seen:read,progress:read?1:0,readAt:read?Date.now():0});this.refreshCard(id);
+       const before: Record<string, any>={...Store.item(id)},read=!before.read;Store.patch(id,{read,seen:read,progress:read?1:0,readAt:read?Date.now():0});this.refreshCard(id);
        this.toast(read?'已标为已读':'已标为未读',()=>{Store.patch(id,before);this.refreshCard(id);});break;
      }
      case 'select':this.selected.has(id)?this.selected.delete(id):this.selected.add(id);this.updateSelection();break;
@@ -870,8 +941,8 @@ class AppController{
      case 'stack-open':this.openStacks.add(extra);this.withFeedAnchor(()=>{},true);this.grid.querySelector(`[data-stack-open="${CSS.escape(extra)}"] .card-title-button`)?.focus({preventScroll:true});break;
      case 'stack-close':this.openStacks.delete(extra);this.withFeedAnchor(()=>{},true);this.grid.querySelector(`[data-stack="${CSS.escape(extra)}"]`)?.focus({preventScroll:true});break;
      case 'archive':this.openPanel('archive',extra);break;
-     case 'restore-card':{const before={...Store.item(id)};Store.patch(id,{restoredAt:Date.now(),read:false,seen:false,progress:0});this.dialog.innerHTML=Panels.archive(this,this.editId);this.withFeedAnchor(()=>{});this.toast('放回桌面了',()=>{Store.patch(id,before);this.withFeedAnchor(()=>{});if(this.modalKind==='archive')this.dialog.innerHTML=Panels.archive(this,this.editId);});break;}
-     case 'archive-all':{const ids=this.shelved('stale').map(c=>c.id),before=ids.map(i=>[i,{...Store.item(i)}]);ids.forEach(i=>Store.patch(i,{read:true,seen:true,readAt:Date.now()-8*86400000}));this.closeNative();this.withFeedAnchor(()=>{});this.toast(`归档了 ${ids.length} 张`,()=>{before.forEach(([i,v])=>Store.patch(i,v));this.withFeedAnchor(()=>{});});break;}
+     case 'restore-card':{const before: Record<string, any>={...Store.item(id)};Store.patch(id,{restoredAt:Date.now(),read:false,seen:false,progress:0});this.dialog.innerHTML=Panels.archive(this,this.editId);this.withFeedAnchor(()=>{});this.toast('放回桌面了',()=>{Store.patch(id,before);this.withFeedAnchor(()=>{});if(this.modalKind==='archive')this.dialog.innerHTML=Panels.archive(this,this.editId);});break;}
+     case 'archive-all':{const ids=this.shelved('stale').map((c?: any)=>c.id),before=ids.map((i?: any)=>[i,{...Store.item(i)}]);ids.forEach((i?: any)=>Store.patch(i,{read:true,seen:true,readAt:Date.now()-8*86400000}));this.closeNative();this.withFeedAnchor(()=>{});this.toast(`归档了 ${ids.length} 张`,()=>{before.forEach(([i,v]: any)=>Store.patch(i,v));this.withFeedAnchor(()=>{});});break;}
      case 'filter-type':this.filter.type=extra;this.repaintSearch();break;
      case 'filter-status':this.filter.status=this.filter.status===extra?'all':extra;this.repaintSearch();break;
      case 'filter-tag':this.filter.tag=this.filter.tag===extra?'':extra;this.repaintSearch();break;
@@ -881,20 +952,20 @@ class AppController{
      case 'sort-feed':if(FeedPolicy.sorts.includes(extra)){Store.setPref('sort',extra);this.applyPreferences();this.feedNow=Date.now();this.renderCurrent(false);}break;
      case 'editor-tag':{
        this.editTags.has(extra)?this.editTags.delete(extra):this.editTags.add(extra);
-       const note=document.getElementById('note-editor')?.value;this.dialog.innerHTML=Panels.editor(this,this.editId);
-       if(note!==undefined)document.getElementById('note-editor').value=note;document.getElementById('tag-new')?.focus();break;
+       const note=(document.getElementById('note-editor') as HTMLInputElement)?.value;this.dialog.innerHTML=Panels.editor(this,this.editId);
+       if(note!==undefined)(document.getElementById('note-editor') as HTMLInputElement).value=note;document.getElementById('tag-new')?.focus();break;
      }
      case 'add-tag':{
-       const field=document.getElementById('tag-new'),value=field.value.trim().replace(/^#/,'').slice(0,30);if(!value)return;
+       const field=document.getElementById('tag-new'),value=(field as HTMLInputElement).value.trim().replace(/^#/,'').slice(0,30);if(!value)return;
        if(this.editTags.size>=20){this.toast('最多保留 20 个标签');return;}
-       this.editTags.add(value);const note=document.getElementById('note-editor')?.value;
-       this.dialog.innerHTML=Panels.editor(this,this.editId);document.getElementById('note-editor').value=note||'';document.getElementById('tag-new').focus();break;
+       this.editTags.add(value);const note=(document.getElementById('note-editor') as HTMLInputElement)?.value;
+       this.dialog.innerHTML=Panels.editor(this,this.editId);(document.getElementById('note-editor') as HTMLInputElement).value=note||'';document.getElementById('tag-new').focus();break;
      }
      case 'save-note':{
-       const pending=document.getElementById('tag-new')?.value.trim();if(pending)this.editTags.add(pending.replace(/^#/,'').slice(0,30));
-       const note=document.getElementById('note-editor').value.slice(0,4000);
+       const pending=(document.getElementById('tag-new') as HTMLInputElement)?.value.trim();if(pending)this.editTags.add(pending.replace(/^#/,'').slice(0,30));
+       const note=(document.getElementById('note-editor') as HTMLInputElement).value.slice(0,4000);
        const ids=this.bulkEditIds||[id];
-       ids.forEach((cardId,i)=>{Store.patch(cardId,{tags:[...this.editTags],tagsEdited:true,...(i===0?{note}:{})});this.refreshCard(cardId);});
+       ids.forEach((cardId?: any,i?: any)=>{Store.patch(cardId,{tags:[...this.editTags],tagsEdited:true,...(i===0?{note}:{})});this.refreshCard(cardId);});
        this.bulkEditIds=null;this.closeModal();this.toast(Store.state.storageAvailable?(window.__QG_LOCAL__?'已保存在本机；同步状态见桌面':'已保存'):'本次已保存；当前环境不能持久存储');break;
      }
      case 'pref':{const before=this.setPref(id,extra);if(before!==extra&&['archiveAfter','theme','density'].includes(id))this.announce('已更新');break;}
@@ -916,7 +987,7 @@ class AppController{
        if(site)window.open(site,'_blank','noopener,noreferrer');
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.toast(`${SourceKinds[k].label} 等待授权`);break;
      }
-     case 'connect-range':this.connectRange=extra;el.parentElement.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b===el);b.setAttribute('aria-checked',String(b===el));b.tabIndex=b===el?0:-1;});break;
+     case 'connect-range':this.connectRange=extra;el.parentElement.querySelectorAll('button').forEach((b?: any)=>{b.classList.toggle('on',b===el);b.setAttribute('aria-checked',String(b===el));b.tabIndex=b===el?0:-1;});break;
      case 'permission-allow':case 'permission-later':{
        const k=extra;
        if(name==='permission-allow'){
@@ -932,24 +1003,24 @@ class AppController{
      case 'source-set':{const [sid,key]=id.split(':'),s=Store.source(sid);if(!s)break;Store.upsertSource({...s,[key]:extra});this.replacePanelContent(Panels.sourceDetail(sid));break;}
      case 'source-pause':{const s=Store.source(id);Store.upsertSource({...s,status:s.status==='paused'?'attention':'paused',enabled:s.status==='paused'});this.replacePanelContent(Panels.sourceDetail(id));break;}
      case 'source-remove':{
-       const s=Store.source(id),count=Store.state.cards.filter(c=>`src-${c.kind}`===id).length;
+       const s=Store.source(id),count=Store.state.cards.filter((c?: any)=>`src-${cardSourceKind(c)}`===id).length;
        this.panelReturn=()=>this.swapPanel(Panels.sourceDetail(id),'source');
        this.swapPanel(Panels.confirm(`断开 ${s.name}？`,count?`它带来的 ${count} 张卡片要一起移除吗？`:'之后可以随时重新连接。',`${count?`<button type="button" class="soft-button" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">保留卡片</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="remove">一并移除</button>`:`<button type="button" class="soft-button" data-action="close">取消</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">断开</button>`}`),'confirm','panel narrow');break;
      }
      case 'source-drop':{
-       Store.removeSource(id);if(extra==='remove')Store.remove(Store.state.cards.filter(c=>`src-${c.kind}`===id).map(c=>c.id));
+       Store.removeSource(id);if(extra==='remove')Store.remove(Store.state.cards.filter((c?: any)=>`src-${cardSourceKind(c)}`===id).map((c?: any)=>c.id));
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.withFeedAnchor(()=>{});break;
      }
      case 'feed-add':{
-       const url=Importers.url(document.getElementById('feed-url')?.value||'');if(!url){this.toast('请粘贴一个 http 或 https 的订阅地址');return;}
+       const url=Importers.url((document.getElementById('feed-url') as HTMLInputElement)?.value||'');if(!url){this.toast('请粘贴一个 http 或 https 的订阅地址');return;}
        this.toast('RSS 订阅尚未启用，地址尚未保存；可以导入 OPML 文件');break;
      }
      case 'import-pick':document.getElementById('file-input').click();break;
      case 'import-toggle':{const i=Number(extra);this.importPicked.has(i)?this.importPicked.delete(i):this.importPicked.add(i);this.replacePanelContent(Panels.importPreview(this));this.dialog.querySelector(`[data-action="import-toggle"][data-extra="${i}"]`)?.focus();break;}
-     case 'import-toggle-all':this.importPicked=this.importPicked.size===this.importing.entries.length?new Set():new Set(this.importing.entries.map((_,i)=>i));this.replacePanelContent(Panels.importPreview(this));break;
+     case 'import-toggle-all':this.importPicked=this.importPicked.size===this.importing.entries.length?new Set<any>():new Set<any>(this.importing.entries.map((_?: any,i?: any)=>i));this.replacePanelContent(Panels.importPreview(this));break;
      case 'import-range':this.importRange=extra;this.replacePanelContent(Panels.importPreview(this));break;
      case 'import-run':this.runImport();break;
-     case 'welcome-start':this.welcomePicked=new Set(['rss','readwise','web','mail','calendar']);this.openPanel('welcome');break;
+     case 'welcome-start':this.welcomePicked=new Set<any>(['rss','readwise','web','mail','calendar']);this.openPanel('welcome');break;
      case 'welcome-pick':this.welcomePicked.has(extra)?this.welcomePicked.delete(extra):this.welcomePicked.add(extra);this.dialog.innerHTML=Panels.welcomePick(this);this.dialog.querySelector(`[data-action="welcome-pick"][data-extra="${extra}"]`)?.focus();break;
      case 'welcome-continue':this.welcomeContinue();break;
      case 'welcome-demo':this.loadDemo();break;
@@ -962,11 +1033,11 @@ class AppController{
      case 'sync-retry':this.refresh();break;
      case 'sync-export':this.exportAll();break;
      case 'sync-discard':this.openModal(Panels.confirm('使用服务端版本？','本机未同步修改将被放弃，请先导出草稿。','<button type="button" class="soft-button" data-action="close">取消</button><button type="button" class="solid-button" data-action="sync-discard-confirm">放弃本机修改</button>'),'confirm',null,'panel narrow');break;
-     case 'sync-discard-confirm':LocalSync.discard().then(()=>this.closeNative()).catch(error=>this.toast(error.message));break;
+     case 'sync-discard-confirm':LocalSync.discard().then(()=>this.closeNative()).catch((error?: any)=>this.toast(error.message));break;
      case 'undo':if(this.undoAction){const fn=this.undoAction;this.undoAction=null;document.getElementById('toast').hidden=true;fn();}break;
      case 'external':this.openExternal(Store.card(id));if(Store.card(id)&&!Store.item(id).read&&['mail'].includes(Store.card(id).type)){Store.patch(id,{read:true});this.refreshCard(id);}break;
      case 'download-calendar':{
-       const c=Store.card(id),date=x=>new Date(x).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+       const c=Store.card(id),date=(x?: any)=>new Date(x).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
        this.download('sill.ics',`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Sill//Local//ZH\r\nBEGIN:VEVENT\r\nUID:${c.id}@sill.local\r\nDTSTAMP:${date(Date.now())}\r\nDTSTART:${date(c.start)}\r\nDTEND:${date(c.end)}\r\nSUMMARY:${c.title}\r\n${c.location?`LOCATION:${c.location}\r\n`:''}END:VEVENT\r\nEND:VCALENDAR\r\n`,'text/calendar');break;
      }
      case 'snooze':case 'dismiss-reminder':case 'complete-reminder':case 'restore-reminder':this.changeReminder(id,name);break;
@@ -979,35 +1050,35 @@ class AppController{
  }
  repaintSearch(){
    if(this.modalKind!=='search'){this.renderCurrent(false);this.updateFilterIndicator();return;}
-   const active=document.activeElement,searchFocused=active?.id==='filter-search',pos=active?.selectionStart;
-   const action=active?.dataset.action,extra=active?.dataset.extra;
+   const active=document.activeElement,searchFocused=active?.id==='filter-search',pos=(active as HTMLInputElement)?.selectionStart;
+   const action=(active as HTMLElement)?.dataset.action,extra=(active as HTMLElement)?.dataset.extra;
    const liveToast=document.getElementById('toast');if(liveToast&&this.dialog.contains(liveToast))document.body.appendChild(liveToast);
    this.dialog.innerHTML=Panels.search(this);
-   if(searchFocused){const n=document.getElementById('filter-search');n.focus();try{n.setSelectionRange(pos,pos);}catch{}}
-   else if(action)[...this.dialog.querySelectorAll('[data-action]')].find(n=>n.dataset.action===action&&n.dataset.extra===extra)?.focus({preventScroll:true});
+   if(searchFocused){const n=document.getElementById('filter-search');n.focus();try{(n as HTMLInputElement).setSelectionRange(pos,pos);}catch{}}
+   else if(action)[...this.dialog.querySelectorAll('[data-action]')].find((n?: any)=>n.dataset.action===action&&n.dataset.extra===extra)?.focus({preventScroll:true});
    this.renderCurrent(false);this.updateFilterIndicator();
  }
- input(e){
+ input(e?: any){
    if(e.target.dataset.input==='search'){
      this.filter.query=e.target.value;
      document.getElementById('filter-result').textContent=`${this.filtered().length} 张`;
-     clearTimeout(this.searchTimer);this.searchTimer=setTimeout(()=>{
+     clearTimeout(this.searchTimer);this.searchTimer=window.setTimeout(()=>{
        const results=document.getElementById('search-results');if(results)results.innerHTML=Panels.searchResults(this);
        if(this.mode==='feed')this.renderCurrent(false);this.updateFilterIndicator();
      },140);
    }
    if(this.editingId&&e.target.closest?.('.inline-editor')){
      const state=document.getElementById('inline-state');if(state)state.textContent='正在保存…';
-     clearTimeout(this.inlineTimer);this.inlineTimer=setTimeout(()=>this.saveInlineEdit(),500);
+     clearTimeout(this.inlineTimer);this.inlineTimer=window.setTimeout(()=>this.saveInlineEdit(),500);
    }
  }
- paste(e){
+ paste(e?: any){
    // Paste a link or a line anywhere on the desk to keep it.
    if(this.dialog.open||e.target.closest?.('input,textarea,[contenteditable]'))return;
    const text=e.clipboardData?.getData('text/plain');if(!text?.trim())return;
    e.preventDefault();this.capture(text);
  }
- key(e){
+ key(e?: any){
    if(e.isComposing)return;
    if(e.key==='Escape'&&this.modalKind==='search'){e.preventDefault();this.closeModal();return;}
    const radio=e.target.closest?.('[role="radio"]'),group=radio?.closest('[role="radiogroup"]');
@@ -1026,7 +1097,7 @@ class AppController{
    if(e.key==='Escape'&&this.editingId){e.preventDefault();const id=this.editingId;this.finishInlineEdit();this.grid.querySelector(`[data-card="${CSS.escape(id)}"] .card-title-button`)?.focus();return;}
    if(this.modalKind==='lightbox'&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();this.action('photo-step',this.currentId,e.key==='ArrowLeft'?'-1':'1');return;}
    if(e.key==='Tab'&&this.dialog.open){
-     const focusable=[...this.dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]')].filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden');
+     const focusable=[...this.dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]')].filter((n?: any)=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden');
      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
      if(first&&last){
        if(e.shiftKey&&(active===first||!focusable.includes(active))){e.preventDefault();last.focus();return;}
@@ -1053,3 +1124,5 @@ class AppController{
    }
  }
 }
+
+export { AppController };

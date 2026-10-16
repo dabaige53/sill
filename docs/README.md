@@ -1,5 +1,7 @@
 # 文档目录
 
+- [TypeScript 构建与检查配置](adr/0029-typescript-build-artifacts.md)
+
 - [旧入口清理记录](records/2026-10-16-legacy-removal/README.md)
 
 - [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
@@ -107,6 +109,6 @@
 - [设计系统](../design-system/README.md)
 - [脚本目录](../scripts/README.md)
 - [测试目录](../tests/README.md)
-- [Mac 原生说明](../native/macos/README.md)
+- [Mac 原生说明](../apps/apple/README.md)
 - [PR 模板](../.github/pull_request_template.md)与[本次正文](../pr.md)
 - [接口准备示例](../contracts/design/)：迁移批次 2 前暂留原路径，不表示新增 API 已实现。

@@ -41,7 +41,7 @@
 ## 调试经过
 
 1. **检查现有包。** 用户反馈没有侧边栏、没有工具。关联聊天中较早的1.1.2只有 MCP 与 Skill，缺少 App 绑定；本次平台读取确认已经更新为1.1.3，含 `.app.json`。以当前读取结果为准，不能继续沿用旧判断。
-2. **确认服务端页面与入口。** `server/cloud/mcp.mjs` 提供 `ui://sill/cloud-workspace-v3.html`，MIME 为 `text/html;profile=mcp-app`。`sill_open_workspace` 声明 `global`，`sill_open_cards` 声明 `thread`。工具通过 `_meta.ui.resourceUri` 关联页面，通过 `_meta['openai/ui'].entrypoints` 声明入口。
+2. **确认服务端页面与入口。** `server/cloud/mcp.ts` 提供 `ui://sill/cloud-workspace-v3.html`，MIME 为 `text/html;profile=mcp-app`。`sill_open_workspace` 声明 `global`，`sill_open_cards` 声明 `thread`。工具通过 `_meta.ui.resourceUri` 关联页面，通过 `_meta['openai/ui'].entrypoints` 声明入口。
 3. **先注册自定义 App，再绑定插件。** 按本次实验已完成的操作，通过 MCP 地址和 OAuth 创建 App，取得平台实际 App ID。原插件引用这个 App，保留 Skill 和图标，移除重复 MCP 连接配置；平台读取确认1.1.3。
 4. **真实宿主复现。** 组合插件 App 弹窗显示“此应用暂无可用工具”；已安装 App 显示“继续连接应用”。这证明包内引用存在，但不能证明账号连接和工具发现完成。
 5. **定位 OAuth 拒绝。** 点击继续连接后，Sill 显示权限或回调不一致。只查询授权元数据，确认账号匹配、回调匹配、客户端启用；实际请求为 `openid email offline_access profile phone`，允许列表只有 `openid email offline_access`。多出的 `profile`、`phone` 导致拒绝。
@@ -121,6 +121,6 @@ assets/sill-line-dark.svg
 
 本轮平台文件快照只作证据，不是新的可发布包，也未下载二进制图标。历史文档中“没有工具”“仍待授权”“原 App 已删除”等描述保留原时间语境，以本文当前身份和结果为准。
 
-**本地构建配置尚未与当前成功对象同步。** 根目录 `.app.json`、`plugin.json`、`deploy/sill/release.json` 及 `scripts/build-plugin.mjs` 仍引用旧 App `asdk_app_6ad03f09b6048191a8826a236ac9097d`。不能直接运行旧流程后发布覆盖当前1.1.3。下次准备发布前，先基于平台当前文件同步构建源与身份校验，再检查产物；保留 Skill 和图标，不恢复已删除的重复连接。
+**本地构建配置尚未与当前成功对象同步。** 根目录 `.app.json`、`plugin.json`、`deploy/sill/release.json` 及 `scripts/build-plugin.ts` 仍引用旧 App `asdk_app_6ad03f09b6048191a8826a236ac9097d`。不能直接运行旧流程后发布覆盖当前1.1.3。下次准备发布前，先基于平台当前文件同步构建源与身份校验，再检查产物；保留 Skill 和图标，不恢复已删除的重复连接。
 
 权限允许列表在服务端数据库；插件清单、Worker 和数据库策略是不同发布层。本次数据库策略修复不需要虚增插件版本。后续回滚权限策略前需确认影响，不能把曾存在的三项允许列表当成当前有效配置。任何凭据管理工具依赖只留在本机环境，不能写入产品运行要求。

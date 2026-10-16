@@ -1,35 +1,36 @@
-const {test}=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const vm=require('node:vm');
-const root=path.resolve(__dirname,'..');
-const sources=['src/data/cards.js','src/services/feed-policy.js','src/data/store.js','src/views/app.js'];
-function fixture(raw=null,at=1800000000000){
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import { buildSync } from 'esbuild';
+const root=path.resolve(import.meta.dirname,'../..');
+const bundle=buildSync({stdin:{contents:"export {FeedPolicy} from './apps/web/services/feed-policy.ts'; export {Store} from './apps/web/data/store.ts'; export {AppController} from './apps/web/views/app.ts'; export {SeedCards,FreshCards} from './apps/web/data/cards.ts';",resolveDir:root,loader:'ts'},bundle:true,write:false,format:'iife',platform:'browser',globalName:'SillCore'}).outputFiles[0].text;
+function fixture(raw: any=null,at: any=1800000000000){
  let now=at;
- const data=new Map(raw===null?[]:[['sill-v1',typeof raw==='string'?raw:JSON.stringify(raw)]]);
- const nodes=new Map();
+ const data=new Map<any, any>(raw===null?[]:[['sill-v1',typeof raw==='string'?raw:JSON.stringify(raw)]]);
+ const nodes=new Map<any, any>();
  const context=vm.createContext({
-  Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}},
-  localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},
-  window:{scrollTo(){}},CSS:{escape:value=>String(value)},document:{getElementById(id){if(!nodes.has(id))nodes.set(id,{dataset:{},focus(){},setAttribute(k,v){this[k]=v;}});return nodes.get(id);}},
+  Date:class extends Date{constructor(...args: any[]){super(...(args.length?args:[now]) as [any]);}static now(){return now;}},
+  localStorage:{getItem:(k?: any)=>data.get(k)||null,setItem:(k?: any,v?: any)=>data.set(k,v)},
+  structuredClone,matchMedia:()=>({matches:false}),window:{scrollTo(){}},CSS:{escape:(value?: any)=>String(value)},document:{getElementById(id?: any){if(!nodes.has(id))nodes.set(id,{dataset:{},focus(){},setAttribute(k?: any,v?: any){this[k]=v;}});return nodes.get(id);}},
   icon:()=>'',history:{replaceState(){}},
  });
- vm.runInContext(sources.map(p=>fs.readFileSync(path.join(root,p),'utf8')).join('\n')+'\nthis.api={FeedPolicy,Store,AppController,SeedCards,FreshCards};',context);
+ vm.runInContext(bundle+'\nthis.api=SillCore;',context);
  const api=context.api;api.Store.load();
  const app=new api.AppController();app.dialog={open:false};app.drag={active:null};app.grid={querySelector:()=>null};
- app.renders=0;app.withFeedAnchor=fn=>{fn();app.renders++;};
- app.toast=(message,undo)=>{app.lastToast=message;app.undoAction=undo;};
- return {...api,app,context,data,nodes,now:()=>now,advance:ms=>now+=ms};
+ app.renders=0;app.withFeedAnchor=(fn?: any)=>{fn();app.renders++;};
+ app.toast=(message?: any,undo?: any)=>{app.lastToast=message;app.undoAction=undo;};
+ return {...api,app,context,data,nodes,now:()=>now,advance:(ms?: any)=>now+=ms};
 }
-const ids=cards=>Array.from(cards,c=>c.id);
+const ids=(cards?: any)=>Array.from(cards,(c?: any)=>c.id);
 
 test('v1 state migrates without losing independent reading, tags, tasks or notes',()=>{
  const {Store,data}=fixture({version:1,items:{'article-01':{seen:true,read:false,progress:.4,bookmarked:true,tagsEdited:true,tags:['自定义'],note:'保留备注'},'task-01':{taskDone:['t2']}},seconds:42,reduceTransparency:true});
  assert.equal(Store.item('article-01').progress,.4);assert.equal(Store.item('article-01').read,false);
  assert.deepEqual(Array.from(Store.tags(Store.card('article-01'))),['自定义']);
  assert.equal(Store.item('article-01').note,'保留备注');assert.equal(Store.item('article-01').bookmarked,true);
- assert.deepEqual(Array.from(Store.tasks(Store.card('task-01')).filter(t=>t.done),t=>t.id),['t2']);
+ assert.deepEqual(Array.from(Store.tasks(Store.card('task-01')).filter((t?: any)=>t.done),(t?: any)=>t.id),['t2']);
  assert.equal(Store.state.seconds,42);assert.equal(Store.state.preferences.reduceTransparency,true);
  assert.equal(JSON.parse(data.get(Store.key)).version,4);
 });
@@ -58,7 +59,7 @@ test('repeated load resets removed flags rather than retaining stale in-memory s
  assert.equal(Store.item('article-01').bookmarked,false);
 });
 test('refresh insertion deduplicates IDs and restores new-card flags and timestamps',()=>{
- const f=fixture(),card={...f.FreshCards[0],time:f.now()+120000};
+ const f=fixture(),card: Record<string, any>={...f.FreshCards[0],time:f.now()+120000};
  assert.equal(f.Store.insert([card,card]),1);assert.equal(f.Store.insert([card]),0);
  f.Store.patch(card.id,{bookmarked:true});
  const g=fixture(f.data.get(f.Store.key),f.now()+600000);
@@ -75,28 +76,28 @@ test('priority, unread and time sorts are stable, immutable and deduplicated',()
 });
 test('event and task notification thresholds exclude ended and completed work',()=>{
  const {FeedPolicy:p,now}=fixture(),n=now();
- const event={id:'e',type:'event',start:n+15*60000,end:n+30*60000};
+ const event: Record<string, any>={id:'e',type:'event',start:n+15*60000,end:n+30*60000};
  assert.equal(p.eligible(event,{},n),true);assert.equal(p.eligible(event,{},n-1),false);
  assert.equal(p.eligible(event,{},event.end),false);
- const task={id:'t',type:'task',due:n+30*60000,tasks:[{id:'1',done:false}]};
+ const task: Record<string, any>={id:'t',type:'task',due:n+30*60000,tasks:[{id:'1',done:false}]};
  assert.equal(p.eligible(task,{},n),true);assert.equal(p.eligible(task,{taskDone:['1']},n),false);
  assert.equal(p.eligible({...task,due:undefined},{},n),false);
 });
 test('one occurrence is not delivered twice; cooldown gates a changed occurrence',()=>{
- const {FeedPolicy:p,now}=fixture(),c={id:'r',type:'reminder',due:now()-100};
+ const {FeedPolicy:p,now}=fixture(),c: Record<string, any>={id:'r',type:'reminder',due:now()-100};
  assert.equal(p.eligible(c,{lastReminderKey:p.key(c)},now()),false);
  assert.equal(p.eligible(c,{lastReminderKey:'old',lastNotifiedAt:now()-59999},now()),false);
  assert.equal(p.eligible(c,{lastReminderKey:'old',lastNotifiedAt:now()-60000},now()),true);
 });
 test('snooze remains hidden until explicit confirmation, including across reload',()=>{
  const f=fixture();f.app.changeReminder('reminder-01','snooze');
- assert.equal(f.app.filtered().some(c=>c.id==='reminder-01'),false);
+ assert.equal(f.app.filtered().some((c?: any)=>c.id==='reminder-01'),false);
  f.advance(600001);f.app.checkReminders();f.app.checkReminders();
- assert.equal(f.app.pendingReminders.filter(id=>id==='reminder-01').length,1);
- assert.equal(f.app.filtered().some(c=>c.id==='reminder-01'),false);
+ assert.equal(f.app.pendingReminders.filter((id?: any)=>id==='reminder-01').length,1);
+ assert.equal(f.app.filtered().some((c?: any)=>c.id==='reminder-01'),false);
  const g=fixture(f.data.get(f.Store.key),f.now());g.app.checkReminders();
  assert.equal(g.app.pendingReminders.includes('reminder-01'),true);
- g.app.showNew();assert.equal(g.app.filtered().some(c=>c.id==='reminder-01'),true);
+ g.app.showNew();assert.equal(g.app.filtered().some((c?: any)=>c.id==='reminder-01'),true);
  g.app.checkReminders();assert.equal(g.app.pendingReminders.includes('reminder-01'),false);
  const h=fixture(g.data.get(g.Store.key),g.now()+60000);h.app.checkReminders();
  assert.equal(h.app.pendingReminders.includes('reminder-01'),false);
@@ -114,13 +115,13 @@ test('reading or dragging prevents pending content insertion',()=>{
 test('dismiss, complete, restore and undo preserve unrelated content state',()=>{
  const f=fixture(),id='reminder-01';f.Store.patch(id,{bookmarked:true,note:'保留'});
  for(const action of ['dismiss-reminder','complete-reminder']){
-  f.app.changeReminder(id,action);assert.equal(f.app.filtered().some(c=>c.id===id),false);
+  f.app.changeReminder(id,action);assert.equal(f.app.filtered().some((c?: any)=>c.id===id),false);
   f.app.filter.status=action==='dismiss-reminder'?'dismissed':'done';
-  assert.equal(f.app.filtered().some(c=>c.id===id),true);
-  f.app.filter.status='all';f.app.undoAction();assert.equal(f.app.filtered().some(c=>c.id===id),true);
+  assert.equal(f.app.filtered().some((c?: any)=>c.id===id),true);
+  f.app.filter.status='all';f.app.undoAction();assert.equal(f.app.filtered().some((c?: any)=>c.id===id),true);
  }
  f.app.changeReminder(id,'snooze');f.app.changeReminder(id,'restore-reminder');
- assert.equal(f.app.filtered().some(c=>c.id===id),true);
+ assert.equal(f.app.filtered().some((c?: any)=>c.id===id),true);
  assert.equal(f.Store.item(id).bookmarked,true);assert.equal(f.Store.item(id).note,'保留');assert.equal(f.Store.item(id).read,false);
 });
 test('snoozed and dismissed views compose with type, tag and search filters',()=>{
@@ -132,7 +133,7 @@ test('snoozed and dismissed views compose with type, tag and search filters',()=
 test('explicit pending confirmation respects current filters and never duplicates cards',()=>{
  const f=fixture();f.advance(600001);f.app.checkReminders();
  f.app.pendingCards=[f.FreshCards[0],f.FreshCards[0]];f.app.filter.type='mail';f.app.showNew();
- assert.equal(f.Store.state.cards.length,f.SeedCards.length+1);assert.equal(f.app.filtered().every(c=>c.type==='mail'),true);
+ assert.equal(f.Store.state.cards.length,f.SeedCards.length+1);assert.equal(f.app.filtered().every((c?: any)=>c.type==='mail'),true);
  f.app.checkReminders();assert.equal(f.app.pendingReminders.length,0);
 });
 

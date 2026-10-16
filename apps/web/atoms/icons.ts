@@ -22,7 +22,7 @@ const Glyphs={
  chevron:'<path d="m9 6 6 6-6 6"/>',
  monitor:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8m-4-4v4"/>',
  keyboard:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
- 'check-circle':'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+
  circle:'<circle cx="12" cy="12" r="9"/>',
  trash:'<path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"/>',
  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
@@ -69,10 +69,12 @@ const Glyphs={
  ring:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9" stroke-width="3"/>',
  moon:'<path d="M21 13a9 9 0 1 1-10-10 7 7 0 0 0 10 10Z"/>'
 };
-function icon(name,size=18){
+function icon(name?: any,size: any=18){
  return `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${Glyphs[name]||Glyphs.file}</svg>`;
 }
 /** The Sill mark: sky above, a ledge, two cards resting on it. */
-function sillIcon(size=64){
+function sillIcon(size: any=64){
  return `<svg class="sill-icon" width="${size}" height="${size}" viewBox="0 0 160 160" aria-hidden="true" style="border-radius:${Math.round(size*.225)}px;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 6px 16px rgba(0,0,0,.1);flex:none"><defs><linearGradient id="sill-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd5ef"/><stop offset=".62" stop-color="#eef4fa"/><stop offset=".62" stop-color="#f7f5f0"/><stop offset="1" stop-color="#ebe7df"/></linearGradient></defs><rect width="160" height="160" rx="36" fill="url(#sill-g)"/><rect x="0" y="97" width="160" height="5" fill="#fff" opacity=".9"/><rect x="44" y="58" width="34" height="42" rx="7" fill="#fff" stroke="rgba(0,0,0,.06)"/><rect x="84" y="68" width="32" height="32" rx="7" fill="#fff" stroke="rgba(0,0,0,.06)"/><rect x="50" y="66" width="16" height="4" rx="2" fill="#0066cc"/></svg>`;
 }
+
+export { Glyphs, icon, sillIcon };

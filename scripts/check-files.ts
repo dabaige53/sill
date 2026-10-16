@@ -4,40 +4,39 @@ import { dirname, resolve, relative, isAbsolute } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const errors = [];
-const roots = new Set([
-  '.git', '.github', '.claude', '.agents', '.gitignore', '.env.example', '.app.json',
+const roots = new Set<any>([
+  '.git', '.github', '.claude', '.agents', '.gitignore', '.env.example', '.app.json', '.ruff_cache',
   'AGENTS.md', 'README.md', 'GLOSSARY.md', 'pr.md', 'package.json', 'package-lock.json',
   'plugin.json', 'biome.json', 'tsconfig.json', '.swift-format', '.git-blame-ignore-revs',
   'apps', 'server', 'contracts', 'design-system', 'docs', 'scripts', 'tests',
   'deploy', 'supabase', 'skills', 'assets', 'node_modules', 'dist', '.sill',
   '.wrangler', '.sandbox-venv', '__pycache__', '.DS_Store',
 ]);
-const migrationRoots = new Set([
-  'sill.config.example.json', 'requirements-sandbox.txt', 'index.html',
-  'src', 'web', 'native', 'worker-configuration.d.ts', 'sill.config.json',
-]);
-const isPrivateOrGenerated = name =>
+const privateRoots = new Set(['worker-configuration.d.ts', 'sill.config.json']);
+const isPrivateOrGenerated = (name?: any) =>
   /^(?:node_modules|dist|\.sill|\.wrangler|\.sandbox-venv|tests\/artifacts|supabase\/\.temp)(?:\/|$)/.test(name) ||
+  /^(?:apps\/apple\/(?:\.build|\.swiftpm)|\.ruff_cache)(?:\/|$)/.test(name) ||
   /(?:^|\/)__pycache__(?:\/|$)/.test(name) ||
   /(?:^|\/)(?:\.env(?:\..+)?|sill\.config\.json|\.DS_Store)$/.test(name) && !name.endsWith('/.env.example') && name !== '.env.example' ||
   /\.sqlite[^/]*(?:\/|$)/.test(name) || name === 'worker-configuration.d.ts';
-const walk = async directory => {
+const walk = async (directory?: any) => {
   const files = [];
   for (const entry of await readdir(resolve(root, directory), { withFileTypes: true })) {
     const name = `${directory}/${entry.name}`;
+    if (isPrivateOrGenerated(name)) continue;
     files.push(...(entry.isDirectory() ? await walk(name) : [name]));
   }
   return files;
 };
 
 for (const name of await readdir(root)) {
-  if (!roots.has(name) && !migrationRoots.has(name) && !/^\.env(?:\..+)?$/.test(name) && !/\.sqlite/.test(name)) {
+  if (!roots.has(name) && !privateRoots.has(name) && !/^\.env(?:\..+)?$/.test(name) && !/\.sqlite/.test(name)) {
     errors.push(`根目录文件缺少归属：${name}；请同步文件管理规范与允许列表。`);
   }
 }
 const navigation = await readFile(resolve(root, 'docs/README.md'), 'utf8');
 const documentFiles = await walk('docs');
-const currentFiles = documentFiles.filter(name => /^docs\/(?:product|design|guides|agents)\/.*\.md$/.test(name));
+const currentFiles = documentFiles.filter((name?: any) => /^docs\/(?:product|design|guides|agents)\/.*\.md$/.test(name));
 for (const name of documentFiles) {
   const metadata = await stat(resolve(root, name));
   if (/\.(?:zip|tar|tgz|gz|7z)$/i.test(name)) errors.push(`文档目录不保留打包文件：${name}`);
@@ -61,7 +60,7 @@ for (const entry of await readdir(resolve(root, 'docs/records'), { withFileTypes
   catch { errors.push(`记录缺少 README.md：${name}`); }
   if (!navigation.includes(`(records/${entry.name}/README.md)`)) errors.push(`记录未列入导航：${name}`);
 }
-const guides = new Set([
+const guides = new Set<any>([
   'AGENTS.md', '.github/pull_request_template.md', 'pr.md', 'README.md',
   'docs/README.md', 'scripts/README.md', 'tests/README.md', ...currentFiles,
 ]);
@@ -113,12 +112,12 @@ const ignored = spawnSync('git', ['check-ignore', '--no-index', '--stdin'], {
 if (ignored.error || ![0, 1].includes(ignored.status)) {
   errors.push('无法检查 Git 忽略规则。');
 } else {
-  const matches = new Set(ignored.stdout.trim().split('\n'));
+  const matches = new Set<any>(ignored.stdout.trim().split('\n'));
   for (const name of ignoredPaths) if (!matches.has(name)) errors.push(`缺少本地文件忽略规则：${name}`);
 }
 if (errors.length) {
   console.error(errors.join('\n'));
   process.exitCode = 1;
 } else {
-  console.log('文件管理检查通过：目录归属、文档有效性、导航、链接、证据、依赖方向与本地文件隔离。代码目录暂按迁移批次兼容。');
+  console.log('文件管理检查通过：目录归属、文档有效性、导航、链接、证据、依赖方向与本地文件隔离。');
 }

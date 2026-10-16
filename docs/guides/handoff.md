@@ -14,14 +14,14 @@
 | [mcp-tools.json](../../contracts/design/mcp-tools.json) | 7 个精选工具的独立 input/output JSON Schema、operationId 与权限映射；未注册 |
 | [fixtures.json](../../contracts/design/fixtures.json) | 11 个合成、相互独立的请求/响应：CRUD、投递、ack、结果、冲突；不是实时执行记录 |
 | [SillClient.swift](../../contracts/design/SillClient.swift) | Foundation/Codable/async-await 的小型原生调用示例，不是完整 App |
-| [check-v1-contracts.py](../../scripts/check-v1-contracts.py) | 离线检查 schema、映射、样例及反例，或只打印样例；不联网、不安装 |
-| [smoke-v1-health.mjs](../../scripts/smoke-v1-health.mjs) | 只读 GET，限制字面 loopback IP、拒绝重定向、无凭据；不启动服务 |
+| [check-v1-contracts.py](../../scripts/check-contracts.ts) | 离线检查 schema、映射、样例及反例，或只打印样例；不联网、不安装 |
+| [smoke-v1-health.mjs](../../scripts/smoke-health.ts) | 只读 GET，限制字面 loopback IP、拒绝重定向、无凭据；不启动服务 |
 
 ```sh
-python3 scripts/check-v1-contracts.py
-python3 scripts/check-v1-contracts.py sample result
-node scripts/smoke-v1-health.mjs
-node scripts/smoke-v1-health.mjs http://127.0.0.1:4318 --v1
+node scripts/check-contracts.ts
+node scripts/check-contracts.ts sample result
+node scripts/smoke-health.ts
+node scripts/smoke-health.ts http://127.0.0.1:4318 --v1
 ```
 
 检查器使用本环境已有 Python `jsonschema`，未增加项目依赖；缺少时明确退出失败，不自动安装。样例打印仅用标准库。现有 Node 24 可运行 health 脚本；服务未启动或 V1 未实现时退出非零。默认检查旧 `/health`，通过也不能说明 V1 可用；`--v1` 检查设计中的 `/api/v1/health`，即使通过仍不是业务验收。没有外部写入、真实 Webhook 或部署脚本。

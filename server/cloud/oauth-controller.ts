@@ -1,31 +1,31 @@
-import {isAuthorizationId} from './oauth-identifiers.mjs';
-import {reviewConsent,consentSummary} from './consent-policy.mjs';
-import {oauthProvider,checkedRedirect} from './oauth-provider.mjs';
-import {SupabaseRepository,serviceError} from '../supabase-repository.mjs';
+import {isAuthorizationId} from './oauth-identifiers.ts';
+import {reviewConsent,consentSummary} from './consent-policy.ts';
+import {oauthProvider,checkedRedirect} from './oauth-provider.ts';
+import {SupabaseRepository,serviceError} from './supabase-repository.ts';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const browserCookie='__Host-sill-consent-browser',returnCookie='__Host-sill-oauth-return';
 const headers={'Cache-Control':'no-store','Referrer-Policy':'same-origin','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const cookie=(name,value,age=600)=>`${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${age}`;
-function readCookie(request,name){const matches=(request.headers.get('cookie')||'').split(';').map(x=>x.trim()).filter(x=>x.startsWith(name+'='));if(matches.length!==1)return null;try{return decodeURIComponent(matches[0].slice(name.length+1));}catch{return null;}}
-const canonical=value=>JSON.stringify(value,(_key,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
-const random=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),x=>x.toString(16).padStart(2,'0')).join('');
-const hash=async s=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),x=>x.toString(16).padStart(2,'0')).join('');
-const page=(html,status=200)=>new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sill · 授权</title><style>body{margin:0;background:#f5f5f7;color:#1d1d1f;font:16px/1.65 system-ui}main{max-width:620px;margin:40px auto;padding:28px;background:white;border-radius:24px}h1{font-size:23px}dt{color:#636366;margin-top:14px}dd{margin:0;overflow-wrap:anywhere}button,a{min-height:44px}button{padding:12px 20px;margin:12px 8px 0 0;border:0;border-radius:22px;cursor:pointer}button[value=approve]{background:#0066cc;color:white}a{color:#0066cc}button:focus-visible,a:focus-visible{outline:3px solid #0066cc;outline-offset:3px}@media(max-width:680px){main{margin:16px;padding:20px}}</style><main><a href="/">Sill · 返回工作台</a>${html}</main></html>`,{status,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}});
-async function form(request){
+const esc=(s?: any)=>String(s).replace(/[&<>"']/g,(c?: any)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cookie=(name?: any,value?: any,age: any=600)=>`${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${age}`;
+function readCookie(request?: any,name?: any){const matches=(request.headers.get('cookie')||'').split(';').map((x?: any)=>x.trim()).filter((x?: any)=>x.startsWith(name+'='));if(matches.length!==1)return null;try{return decodeURIComponent(matches[0].slice(name.length+1));}catch{return null;}}
+const canonical=(value?: any)=>JSON.stringify(value,(_key?: any,v?: any)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a]: any,[b]: any)=>a.localeCompare(b))):v);
+const random=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),(x?: any)=>x.toString(16).padStart(2,'0')).join('');
+const hash=async (s?: any)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),(x?: any)=>x.toString(16).padStart(2,'0')).join('');
+const page=(html?: any,status: any=200)=>new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sill · 授权</title><style>body{margin:0;background:#f5f5f7;color:#1d1d1f;font:16px/1.65 system-ui}main{max-width:620px;margin:40px auto;padding:28px;background:white;border-radius:24px}h1{font-size:23px}dt{color:#636366;margin-top:14px}dd{margin:0;overflow-wrap:anywhere}button,a{min-height:44px}button{padding:12px 20px;margin:12px 8px 0 0;border:0;border-radius:22px;cursor:pointer}button[value=approve]{background:#0066cc;color:white}a{color:#0066cc}button:focus-visible,a:focus-visible{outline:3px solid #0066cc;outline-offset:3px}@media(max-width:680px){main{margin:16px;padding:20px}}</style><main><a href="/">Sill · 返回工作台</a>${html}</main></html>`,{status,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}});
+async function form(request?: any){
  if(request.headers.get('content-type')?.split(';')[0]!=='application/x-www-form-urlencoded')throw serviceError('invalid_request',415);
  const reader=request.body?.getReader();if(!reader)throw serviceError('invalid_request');let text='',size=0;const decoder=new TextDecoder();
  for(;;){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>4096){await reader.cancel();throw serviceError('invalid_request',413);}text+=decoder.decode(value,{stream:true});}text+=decoder.decode();
  const params=new URLSearchParams(text),keys=[...params.keys()];
- if(new Set(keys).size!==keys.length||keys.some(k=>!['flowId','csrf','decision'].includes(k)))throw serviceError('invalid_request');
+ if(new Set<any>(keys).size!==keys.length||keys.some((k?: any)=>!['flowId','csrf','decision'].includes(k)))throw serviceError('invalid_request');
  const p=Object.fromEntries(params);if(!UUID.test(p.flowId||'')||!/^[0-9a-f]{64}$/.test(p.csrf||'')||!['approve','deny','revoke'].includes(p.decision))throw serviceError('invalid_request');return p;
 }
-export function createOAuthController(config,{authenticate,providerFactory=oauthProvider,clock=()=>Date.now()}={}){
- const enabled=config.oauthConsentEnabled===true&&config.agentAudience===config.appOrigin+'/mcp'&&Array.isArray(config.oauthClientIds)&&config.oauthClientIds.length>0&&config.oauthClientIds.length<=16&&config.oauthClientIds.every(id=>UUID.test(id));
- const allowed=id=>enabled&&config.oauthClientIds.includes(id);
- function resumeLocation(request){if(!enabled)return null;const value=readCookie(request,returnCookie)||'',parts=value.split('.'),expiry=Number(parts[1]);return parts.length===2&&isAuthorizationId(parts[0])&&expiry>clock()&&expiry<=clock()+600000?config.appOrigin+'/oauth/consent?authorization_id='+parts[0]:value?config.appOrigin+'/oauth/expired':null;}
+export function createOAuthController(config?: any,{authenticate,providerFactory=oauthProvider,clock=()=>Date.now()}: any={}){
+ const enabled=config.oauthConsentEnabled===true&&config.agentAudience===config.appOrigin+'/mcp'&&Array.isArray(config.oauthClientIds)&&config.oauthClientIds.length>0&&config.oauthClientIds.length<=16&&config.oauthClientIds.every((id?: any)=>UUID.test(id));
+ const allowed=(id?: any)=>enabled&&config.oauthClientIds.includes(id);
+ function resumeLocation(request?: any){if(!enabled)return null;const value=readCookie(request,returnCookie)||'',parts=value.split('.'),expiry=Number(parts[1]);return parts.length===2&&isAuthorizationId(parts[0])&&expiry>clock()&&expiry<=clock()+600000?config.appOrigin+'/oauth/consent?authorization_id='+parts[0]:value?config.appOrigin+'/oauth/expired':null;}
  const clearReturn=()=>cookie(returnCookie,'',0);
- async function handle(request){
+ async function handle(request?: any){
   const url=new URL(request.url),path=url.pathname;
   if(!enabled)return page('<h1>远程授权尚未启用</h1>',503);
   let stage='request';
@@ -42,11 +42,11 @@ export function createOAuthController(config,{authenticate,providerFactory=oauth
     }throw error;
    }
    if(actor.principal.clientId!==null)throw serviceError('forbidden');
-   stage='provider-init';const repo=new SupabaseRepository(actor.client),provider=providerFactory(config,actor.token),rpc=(op,p={})=>repo.rpc('sill_oauth_flow',{op,p});
+   stage='provider-init';const repo=new SupabaseRepository(actor.client),provider=providerFactory(config,actor.token),rpc=(op?: any,p: any={})=>repo.rpc('sill_oauth_flow',{op,p});
    let browser=readCookie(request,browserCookie);if(!/^[0-9a-f]{64}$/.test(browser||''))browser=null;
    if(request.method==='GET'){
     browser??=random();const browserHash=await hash(browser);
-    async function newFlow(kind,clientId,review){const flowId=crypto.randomUUID(),csrf=random();await rpc('begin',{kind,clientId,review,flowId,browserHash,csrfHash:await hash(csrf)});return `<input type="hidden" name="flowId" value="${flowId}"><input type="hidden" name="csrf" value="${csrf}">`;}
+    async function newFlow(kind?: any,clientId?: any,review?: any){const flowId=crypto.randomUUID(),csrf=random();await rpc('begin',{kind,clientId,review,flowId,browserHash,csrfHash:await hash(csrf)});return `<input type="hidden" name="flowId" value="${flowId}"><input type="hidden" name="csrf" value="${csrf}">`;}
     let html,reviewedCallback;
     if(path==='/oauth/consent'){
      const id=url.searchParams.get('authorization_id');if(!isAuthorizationId(id)||[...url.searchParams.keys()].length!==1)throw serviceError('invalid_request');

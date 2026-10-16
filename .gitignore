@@ -8,6 +8,7 @@ __pycache__/
 sill.config.json
 .sill/
 dist/
+/index.html
 *.sqlite*
 .sandbox-venv/
 
@@ -15,5 +16,6 @@ dist/
 worker-configuration.d.ts
 apps/apple/.build/
 apps/apple/.swiftpm/
+.ruff_cache/
 
 supabase/.temp/

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Card, normalizeCard } from '../../contracts/card.ts';
-import { LocalRepository } from '../../server/local-state.mjs';
+import { LocalRepository } from '../../server/local/repository.ts';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
