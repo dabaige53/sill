@@ -488,7 +488,7 @@ const Panels: Record<string, any> = {
 	},
 	/* AI: a place kept for the assistant. It says plainly that nothing works here yet. */
 	ai() {
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content ai-soon">${icon("sparkles", 28)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span><p class="muted">${copy("web.ai.body")}</p></div></div>`;
+		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content ai-soon">${icon("chat", 28)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span><p class="muted">${copy("web.ai.body")}</p></div></div>`;
 	},
 	/* Capture: one field. A link becomes an article, a line becomes a note. */
 	capture(app?: any) {

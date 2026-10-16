@@ -115,14 +115,19 @@ body.opaque .scroll-edge {
 		--rail-edge: 16px;
 		--rail-bottom: max(16px, env(safe-area-inset-bottom));
 	}
-	/* Phone rail: the capsule fills the row, tabs share it equally, as an iPhone tab bar does. */
-	#dock .nav-capsule {
-		flex: 1;
-		max-width: 420px;
+	/* Phone rail: a compact capsule in the middle, icons only; the names stay for screen readers. */
+	:root {
+		--nav-tab: 60px;
 	}
-	#dock .nav-tab {
-		flex: 1;
-		width: auto;
+	.nav-label {
+		display: none;
+	}
+	.nav-icon {
+		height: 30px;
+	}
+	.nav-icon > .icon {
+		width: 24px;
+		height: 24px;
 	}
 	#dock:has(#selection-bar:not([hidden])) #selection-bar {
 		flex: 1;
@@ -342,6 +347,50 @@ body.opaque .scroll-edge {
 	body.keyboard-open .scroll-edge {
 		opacity: 0;
 		visibility: hidden;
+	}
+	/* Phone places are pages: they fill the screen under the capsule, which stays.
+	   No grabber, no close button, no dim; the capsule is how you leave. */
+	#modal.page,
+	#modal.page.panel,
+	#modal.page.panel.wide,
+	#modal.page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	#modal.page :is(.grabber, .sheet-close) {
+		display: none;
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		padding: calc(12px + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+		animation: none;
+	}
+	/* AI has one short note: it sits in the middle of the page. */
+	#modal.page.panel .sheet:has(.ai-soon) {
+		display: grid;
+		place-items: center;
+	}
+	#modal.page.search {
+		inset: 0;
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge)
+			calc(var(--rail-bottom) + var(--rail-row) + 16px);
+	}
+	body.keyboard-open #modal.page.search {
+		padding-bottom: calc(var(--kb, 0px) + var(--rail-bottom));
 	}
 	.search-chips {
 		justify-content: flex-start;

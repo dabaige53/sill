@@ -28,6 +28,9 @@ import { LocalSync } from "../services/local-sync.ts";
 
 /** The lens leads; the place it names opens just after, so the move is seen before the sheet covers it. */
 const NAV_LEAD_MS = 160;
+const PAGE_FADE_MS = 180;
+/** On a phone these places are pages under the capsule, not sheets. */
+const PAGE_KINDS = ["search", "ai", "settings"];
 
 class AppController {
 	declare mode: any;
@@ -158,7 +161,7 @@ class AppController {
 		});
 		this.dialog.addEventListener("click", (e?: any) => {
 			if (e.target !== this.dialog) return;
-			if (this.modalKind === "lightbox") return;
+			if (this.modalKind === "lightbox" || this.dialog.classList.contains("page")) return;
 			// A click on the dim area, outside the sheet and its toolbar, closes the overlay.
 			const inside = [...this.dialog.children].some((n?: any) => {
 				const r = n.getBoundingClientRect();
@@ -255,7 +258,7 @@ class AppController {
 	navHTML() {
 		const tab = (key: string, face: string, label: string, aria = label, id = "") =>
 			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span><span class="nav-label" aria-hidden="true">${label}</span></button>`;
-		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("search", icon("search", 22), copy("web.nav.search"))}${tab("ai", icon("sparkles", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("settings", `<span class="account-wrap">${this.accountRing()}</span>`, copy("web.nav.settings"), copy("web.nav.settings"), "account")}</nav>`;
+		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("search", icon("search", 22), copy("web.nav.search"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("settings", `<span class="account-wrap">${this.accountRing()}</span>`, copy("web.nav.settings"), copy("web.nav.settings"), "account")}</nav>`;
 	}
 	/** Moves the lens. The lens travels on a spring and stretches a little on the way, like a drop. */
 	setNav(key: string) {
@@ -278,7 +281,13 @@ class AppController {
 		clearTimeout(this.navTimer);
 		this.navTimer = window.setTimeout(() => nav.classList.remove("is-moving"), 420);
 	}
-	/** A tab opens its place after the lens has started to move, so the switch is seen. */
+	isPage(kind: string) {
+		return PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches;
+	}
+	/**
+	 * A tab opens its place. On a phone the place is a page and the capsule stays, so the lens
+	 * slides while the page changes. On a desktop the place is a panel; the lens moves first.
+	 */
 	goTo(key: string) {
 		if (key === "home") {
 			this.setNav("home");
@@ -286,12 +295,13 @@ class AppController {
 			else window.scrollTo({ top: 0, behavior: MotionEngine.reduced ? "auto" : "smooth" });
 			return;
 		}
+		if (this.navKey === key && this.dialog.open) return;
 		this.setNav(key);
 		const open = () => {
 			if (key === "settings") this.settingsGroup = "desk";
 			this.openPanel(key);
 		};
-		if (MotionEngine.reduced) open();
+		if (MotionEngine.reduced || this.isPage(key)) open();
 		else window.setTimeout(open, NAV_LEAD_MS);
 	}
 	/* ——— What is on the desk ——— */
@@ -562,6 +572,9 @@ class AppController {
 		this.sheetLeaving = false;
 		this.dialog.style.removeProperty("--backdrop");
 		this.dialog.style.translate = "";
+		// A phone page is not a modal: switching between a page and a sheet reopens the dialog in the other mode.
+		const page = this.isPage(kind);
+		if (this.dialog.open && this.dialog.classList.contains("page") !== page) this.dialog.close();
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement;
 			this.lockedScroll = scrollY;
@@ -572,9 +585,19 @@ class AppController {
 		this.modalKind = kind;
 		this.dialog.className =
 			shape || (["reader", "preview", "lightbox", "search"].includes(kind) ? kind : "panel");
+		if (page) this.dialog.classList.add("page");
 		this.dialog.innerHTML = html;
-		if (!this.dialog.open) this.dialog.showModal();
-		if (kind === "search") MotionEngine.enter(this.dialog);
+		if (!this.dialog.open) {
+			if (page) this.dialog.show();
+			else this.dialog.showModal();
+		}
+		// Pages change in place under the capsule: a short cross-fade, never a rising sheet.
+		if (page)
+			this.dialog.animate([{ opacity: 0 }, { opacity: 1 }], {
+				duration: MotionEngine.reduced ? 0 : PAGE_FADE_MS,
+				easing: "ease-out",
+			});
+		else if (kind === "search") MotionEngine.enter(this.dialog);
 		else MotionEngine.openPanel(this.dialog, origin);
 		const focus = this.dialog.querySelector(
 			kind === "search"
@@ -2450,6 +2473,12 @@ END:VCALENDAR
 	}
 	key(e?: any) {
 		if (e.isComposing) return;
+		// A page is not modal, so Escape is handled here: it returns home.
+		if (e.key === "Escape" && this.dialog.open && this.dialog.classList.contains("page")) {
+			e.preventDefault();
+			this.goTo("home");
+			return;
+		}
 		if (e.key === "Escape" && this.modalKind === "search") {
 			e.preventDefault();
 			this.closeModal();

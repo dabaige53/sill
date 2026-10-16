@@ -192,6 +192,14 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		ai.innerHTML = Panels.ai();
 		assert.match(ai.textContent, /即将推出/);
 		assert.equal(ai.querySelectorAll(".solid-button").length, 0, "nothing pretends to work");
+		assert.ok(ai.querySelector(".icon"), "AI uses the chat glyph");
+		w.matchMedia = (q: string) => ({ matches: q.includes("max-width"), addEventListener() {} });
+		assert.equal(app.isPage("search"), true, "on a phone, search is a page");
+		assert.equal(app.isPage("settings"), true);
+		assert.equal(app.isPage("ai"), true);
+		assert.equal(app.isPage("capture"), false, "capture stays a sheet");
+		w.matchMedia = () => ({ matches: false, addEventListener() {} });
+		assert.equal(app.isPage("search"), false, "on a desktop, search is a panel");
 	} finally {
 		dom.window.close();
 	}
