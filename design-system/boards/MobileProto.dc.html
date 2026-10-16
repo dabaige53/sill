@@ -16,7 +16,7 @@ body{margin:0}
 @keyframes mPulse{0%,100%{opacity:1}50%{opacity:.55}}
 @keyframes mPop{0%{transform:scale(1)}45%{transform:scale(1.2)}100%{transform:scale(1)}}
 @keyframes mSpin{to{transform:rotate(360deg)}}
-@keyframes mPill{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes mPill{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .feed{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:56px 16px 120px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;scrollbar-width:none}
 .feed::-webkit-scrollbar{display:none}
 .card{position:relative;display:flex;flex-direction:column;width:100%;flex:none;text-align:left;font-family:inherit;color:#1d1d1f;padding:0;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:22px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden;cursor:pointer;transition:transform 120ms cubic-bezier(.2,.75,.25,1),opacity 280ms,background-color 500ms,box-shadow 500ms,border-color 500ms;-webkit-tap-highlight-color:transparent}
@@ -36,7 +36,7 @@ body{margin:0}
 .sm{font-size:15px;line-height:1.5;color:#636366}
 .sk{flex:none;border-radius:22px;background:#fff;position:relative;overflow:hidden;animation:mPulse 1.6s ease-in-out infinite}
 .sk span{position:absolute;left:18px;height:10px;border-radius:5px;background:#f0f0f2}
-.pill{position:absolute;left:50%;top:12px;z-index:3;display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:16px;border:1px solid rgba(255,255,255,.72);background:rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-family:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;animation:mPill 260ms cubic-bezier(.2,.75,.25,1) both;transform:translateX(-50%)}
+.pill{position:absolute;right:84px;bottom:36px;z-index:3;display:flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.72);background:rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-family:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;animation:mPill 260ms cubic-bezier(.2,.75,.25,1) both}
 .amber{width:6px;height:6px;border-radius:3px;background:#b45309}
 .amber.busy{animation:mPulse .8s ease-in-out infinite}
 .ptr{position:absolute;left:50%;z-index:3;width:32px;height:32px;margin-left:-16px;border-radius:16px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;transition:opacity 200ms,transform 220ms cubic-bezier(.2,.75,.25,1)}
@@ -167,7 +167,7 @@ body{margin:0}
     <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 1.6; color: #636366">
       <span><b style="color: #1d1d1f">滑</b>　入口随下滑收小，回滑复原。顶部继续下拉即刷新。</span>
       <span><b style="color: #1d1d1f">等</b>　封面先是主色块，进入视野才清晰淡入；接近底部提前取下一批。</span>
-      <span><b style="color: #1d1d1f">新</b>　AI 写入时入口转一圈细弧；在顶部直接落下，不在顶部才出现「↑ 3」。</span>
+      <span><b style="color: #1d1d1f">新</b>　AI 写入时入口转一圈细弧；在顶部直接落下，不在顶部才在入口球左边出现「↑ 3」。</span>
       <span><b style="color: #1d1d1f">读</b>　标题立刻到，正文随后淡入。读到底继续上推，圆环满即收起，卡片退成浅灰。</span>
       <span><b style="color: #1d1d1f">退</b>　下拉、拖把手、点上方露出的信息流或 Esc。</span>
     </div>
@@ -193,7 +193,7 @@ class Component extends DCLogic {
       { id: 'o3', meta: '许然 · 上周', title: '下周评审的材料，我先放这里', sum: '只有两页，第二页是我们还没想清楚的地方。' }
     ];
     this.fresh = [
-      { id: 'f1', meta: 'AI 整理 · 来自 2 张卡', title: '上次那个想法，有了新的连接', sum: '「按需显现」与「卡片即上下文」在回答同一个问题。', unread: true },
+      { id: 'f1', meta: 'AI 整理 · 今天', title: '上次那个想法，有了新的连接', sum: '「按需显现」与「卡片即上下文」在回答同一个问题。', unread: true },
       { id: 'f2', meta: 'AI 整理 · 刚刚', title: '从收藏到行动，中间还有一步', sum: '把最想继续的两张卡片，放在一起看。', unread: true },
       { id: 'f3', meta: '新的笔记 · 刚刚', title: '把一个好想法，放在手边', sum: '', cover: 'linear-gradient(140deg, #c9c3d6 0%, #e6e3ec 60%, #d4cfe0 100%)', ph: '#d9d4e3', unread: true }
     ];

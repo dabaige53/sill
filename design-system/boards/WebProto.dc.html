@@ -17,7 +17,8 @@ body{margin:0}
 @keyframes wPulse{0%,100%{opacity:1}50%{opacity:.55}}
 @keyframes wSpin{to{transform:rotate(360deg)}}
 @keyframes wPop{0%{transform:scale(1)}45%{transform:scale(1.2)}100%{transform:scale(1)}}
-@keyframes wPill{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes wPill{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes wDone{0%{opacity:0;transform:scale(.6)}30%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0}}
 @keyframes wOpen{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes wClose{from{opacity:1;transform:none}to{opacity:0;transform:translateY(16px) scale(.98)}}
 .feed{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:24px 24px 120px;box-sizing:border-box;scrollbar-width:thin}
@@ -42,7 +43,7 @@ body{margin:0}
 .sm{font-size:15px;line-height:1.5;color:#636366}
 .sk{border-radius:22px;background:#fff;position:relative;overflow:hidden;animation:wPulse 1.6s ease-in-out infinite}
 .sk span{position:absolute;left:18px;height:10px;border-radius:5px;background:#f0f0f2}
-.pill{position:absolute;left:50%;top:16px;z-index:3;display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:17px;border:1px solid rgba(255,255,255,.72);background:rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-family:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;animation:wPill 260ms cubic-bezier(.2,.75,.25,1) both;transform:translateX(-50%)}
+.pill{position:absolute;right:92px;bottom:32px;z-index:3;display:flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:20px;border:1px solid rgba(255,255,255,.72);background:rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-family:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;animation:wPill 260ms cubic-bezier(.2,.75,.25,1) both}
 .pill:hover{background:#fff}
 .amber{width:6px;height:6px;border-radius:3px;background:#b45309}
 .amber.busy{animation:wPulse .8s ease-in-out infinite}
@@ -50,6 +51,8 @@ body{margin:0}
 .orb.quiet{opacity:.72;transform:scale(.86)}
 .orb:hover{opacity:1;transform:none}
 .arc{position:absolute;inset:-4px;animation:wSpin 1.6s linear infinite;pointer-events:none}
+.arc.full{animation:none}
+.done{position:absolute;inset:0;border-radius:28px;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center;animation:wDone 900ms cubic-bezier(.2,.75,.25,1) both;pointer-events:none}
 .dim{position:absolute;inset:0;z-index:4;border:0;padding:0;background:rgba(0,0,0,.2);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:wFade 220ms linear both;cursor:default}
 .dim.out{animation:wFadeOut 180ms linear both}
 .reader{position:absolute;left:50%;top:28px;bottom:0;z-index:5;width:680px;margin-left:-340px;background:#fff;border-radius:28px 28px 0 0;box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);display:flex;flex-direction:column;overflow:hidden;animation:wOpen 320ms cubic-bezier(.2,.75,.25,1) both}
@@ -111,7 +114,7 @@ body{margin:0}
       <button type="button" class="pill" role="status" aria-label="未连接，点击重试" onClick="{{retry}}" style="color: #1d1d1f"><span class="amber {{amberCls}}"></span>未连接</button>
     </sc-if>
 
-    <button type="button" class="orb {{orbCls}}" aria-label="全局工具"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg><sc-if value="{{busy}}" hint-placeholder-val="{{ false }}"><svg class="arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-dasharray="40 149"></circle></svg></sc-if></button>
+    <button type="button" class="orb {{orbCls}}" aria-label="全局工具"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg><sc-if value="{{busy}}" hint-placeholder-val="{{ false }}"><svg class="arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-dasharray="40 149"></circle></svg></sc-if><sc-if value="{{done}}" hint-placeholder-val="{{ false }}"><svg class="arc full" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="none" stroke="#0066cc" stroke-width="2"></circle></svg><span class="done"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg></span></sc-if></button>
 
     <sc-if value="{{readerShown}}" hint-placeholder-val="{{ false }}">
       <button type="button" class="dim {{outCls}}" aria-label="收起" onClick="{{closeReader}}"></button>
@@ -164,7 +167,7 @@ body{margin:0}
     <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 1.6; color: #636366">
       <span><b style="color: #1d1d1f">滑</b>　下滑时入口收小变淡，悬停即复原。</span>
       <span><b style="color: #1d1d1f">等</b>　封面先是主色块，进入视野才淡入；接近底部，每列末尾露出一张骨架。</span>
-      <span><b style="color: #1d1d1f">新</b>　后台忙时入口转细弧。在顶部直接落下；不在顶部出现「↑ 3」。刷新无新内容，细弧停下，不提示。</span>
+      <span><b style="color: #1d1d1f">新</b>　后台忙时入口转细弧。在顶部直接落下；不在顶部时「↑ 3」出现在入口球左边。刷新完成，细弧闭合，球上短暂出现勾，不写「已是最新」。</span>
       <span><b style="color: #1d1d1f">读</b>　白卡未读，浅灰已读，悬停时浅灰卡亮回白色。读到底继续滚，圆环满即收起。</span>
       <span><b style="color: #1d1d1f">退</b>　点两侧空白或按 Esc。</span>
     </div>
@@ -199,7 +202,7 @@ class Component extends DCLogic {
       { id: 'o6', meta: '速记 · 三周前', title: '颜色只留给需要注意的东西', sum: '' }
     ];
     this.fresh = [
-      { id: 'f1', meta: 'AI 整理 · 来自 2 张卡', title: '上次那个想法，有了新的连接', sum: '「按需显现」与「卡片即上下文」在回答同一个问题。', unread: true },
+      { id: 'f1', meta: 'AI 整理 · 今天', title: '上次那个想法，有了新的连接', sum: '「按需显现」与「卡片即上下文」在回答同一个问题。', unread: true },
       { id: 'f2', meta: 'AI 整理 · 刚刚', title: '从收藏到行动，中间还有一步', sum: '把最想继续的两张卡片，放在一起看。', unread: true },
       { id: 'f3', meta: '新的笔记 · 刚刚', title: '把一个好想法，放在手边', sum: '', cover: g(140, '#c9c3d6', '#e6e3ec', '#d4cfe0'), ph: '#d9d4e3', unread: true }
     ];
@@ -255,7 +258,7 @@ class Component extends DCLogic {
     });
     return {
       cols, loading: s.loading, notLoading: !s.loading, paging: s.paging, atEnd: s.paged,
-      busy: s.phase === 'writing' || s.phase === 'refreshing', showPill: s.phase === 'ready',
+      busy: s.phase === 'writing' || s.phase === 'refreshing', done: s.phase === 'done', showPill: s.phase === 'ready',
       offline: s.offline, amberCls: s.retrying ? 'busy' : '', orbCls: s.quiet ? 'quiet' : '',
       readerShown: s.reader !== 'closed', outCls: s.reader === 'closing' ? 'out' : '',
       capCls: (s.capHidden || s.endPull > 0) ? 'hide' : '', progress: s.progress,
@@ -314,7 +317,7 @@ class Component extends DCLogic {
       simRefresh: () => {
         if (this.state.phase !== 'idle') return;
         this.setState({ phase: 'refreshing' });
-        this.later('refresh', 900, () => this.setState({ phase: 'idle' }));
+        this.later('refresh', 900, () => { this.setState({ phase: 'done' }); this.later('refreshDone', 900, () => this.setState({ phase: 'idle' })); });
       },
       simLoad: () => {
         this.closeReader();
