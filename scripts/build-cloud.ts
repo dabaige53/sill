@@ -1,2 +1,3 @@
-import { buildPage } from './build.ts';
+import { buildPage } from "./build.ts";
+
 await buildPage({ cloud: true });

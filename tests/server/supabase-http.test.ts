@@ -1,50 +1,187 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {createSillRuntime} from '../../server/cloud/http.ts';
-import {cloudFixture} from './helpers/cloud-fixture.ts';
-import {token} from './helpers/signed-auth.ts';
-import {A,resource} from './helpers/boundary-fixture.ts';
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createSillRuntime } from "../../server/cloud/http.ts";
+import { A, resource } from "./helpers/boundary-fixture.ts";
+import { cloudFixture } from "./helpers/cloud-fixture.ts";
+import { token } from "./helpers/signed-auth.ts";
 
-test('SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC SQL',async()=>{
- const f=await cloudFixture();try{
-  const runtime=createSillRuntime(f.config,{clientFactory:f.factory,html:'test'}),origin=f.config.appOrigin;
-  let cookies='';
-  const call=(path?: any,method: any='GET',value?: any,extra: any={})=>runtime(new Request(origin+path,{method,headers:{Origin:origin,...(cookies?{Cookie:cookies}:{}),'Content-Type':'application/json',...extra},...(value?{body:JSON.stringify(value)}:{})}));
-  assert.equal((await call('/api/v1/contents')).status,401);
-  const login=await call('/auth/login','POST',{email:'synthetic@example.com'});assert.equal(login.status,202);
-  const pending=login.headers.getSetCookie();assert.ok(pending.every((c?: any)=>c.includes('HttpOnly; Secure; SameSite=Lax')));
-  cookies=pending.map((c?: any)=>c.split(';')[0]).join('; ');
-  assert.equal(f.redirect,origin+'/auth/callback');
-  const otpCalls=f.calls.filter((c?: any)=>c.path==='/auth/v1/otp').length;
-  const repeat=await call('/auth/login','POST',{email:'synthetic@example.com'});assert.equal(repeat.status,429);assert.ok(Number(repeat.headers.get('retry-after'))>0);
-  assert.equal(repeat.headers.get('set-cookie'),null,'resend does not replace pending PKCE verifier');
-  assert.equal(f.calls.filter((c?: any)=>c.path==='/auth/v1/otp').length,otpCalls,'cooldown makes no second provider call');
-  const url=new URL(f.redirect);url.searchParams.set('code','synthetic-code');
-  assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:''})).status,401);
-  assert.equal((await call(url.pathname+url.search,'GET',null,{Cookie:'__Host-sill-pkce=wrong-verifier'})).status,401);
-  const bad=new URL(url);bad.searchParams.set('code','wrong-code');assert.equal((await call(bad.pathname+bad.search)).status,401);
-  const recovery=await call('/auth/callback?code=wrong-code','GET',null,{Accept:'text/html'});
-  assert.equal(recovery.status,303);assert.equal(recovery.headers.get('location'),origin+'/?login_error=1');
-  assert.equal(recovery.headers.get('set-cookie'),null,'failed callback preserves existing cookies');
-  const callback=await call(url.pathname+url.search);assert.equal(callback.status,303);assert.equal(callback.headers.get('location'),origin+'/');
-  const access=callback.headers.getSetCookie().find((c?: any)=>c.startsWith('__Host-sill-access='));assert.ok(access.includes('HttpOnly'));assert.ok(!access.includes('synthetic-unused-refresh'));
-  assert.ok(callback.headers.getSetCookie().some((c?: any)=>c.startsWith('__Host-sill-refresh=synthetic-unused-refresh;')&&c.includes('Max-Age=2592000')));
-  cookies=callback.headers.getSetCookie().filter((c?: any)=>!c.includes('Max-Age=0')).map((c?: any)=>c.split(';')[0]).join('; ');
-  const session=await call('/auth/session');assert.equal(session.status,200);assert.deepEqual(await session.json(),{userId:A});
-  await f.db.exec('reset role');assert.equal((await f.db.query('select count(*)::int n from sill_private.sync_snapshots')).rows[0].n,0,'login and session do not materialize a list');
-  const created=await call('/api/v1/contents','POST',{type:'note',title:'Saved',body:['Cloud content']},{'Idempotency-Key':'create_001'});assert.equal(created.status,201);const one=await created.json();
-  const replay=await call('/api/v1/contents','POST',{type:'note',title:'Saved',body:['Cloud content']},{'Idempotency-Key':'create_001'});assert.equal((await replay.json()).id,one.id);
-  const updated=await call('/api/v1/contents/'+one.id,'PATCH',{expectedRevision:1,changes:{title:'Changed'}},{'Idempotency-Key':'update_001'});assert.equal(updated.status,200);
-  const conflict=await call('/api/v1/contents/'+one.id,'PATCH',{expectedRevision:1,changes:{title:'Stale'}},{'Idempotency-Key':'update_002'});assert.equal(conflict.status,409);assert.equal((await conflict.json()).error.code,'revision_conflict');
-  const listed=await (await call('/api/v1/contents')).json();assert.equal(listed.items[0].title,'Changed');
-  const crossSite=await call('/api/v1/contents','POST',{type:'note',title:'Forged'},{Origin:'https://evil.example','Idempotency-Key':'csrf_0001'});assert.equal(crossSite.status,403);
-  assert.equal((await call('/api/v1/contents','POST',{type:'note',title:'No key'})).status,400);
-  assert.equal((await call('/api/v1/contents','GET',null,{Authorization:'Bearer '+token({client_id:'unregistered',aud:resource})})).status,403);
-  assert.equal((await call('/api/v1/contents','GET',null,{Authorization:'Bearer '+token({client_id:'unregistered',aud:'https://other.example/mcp'})})).status,401);
-  assert.equal((await call('/mcp','POST',{})).status,503);
-  assert.equal((await call('/api/v1/contents/'+one.id,'DELETE',{expectedRevision:2},{'Idempotency-Key':'delete_001'})).status,200);
-  assert.equal((await call('/api/v1/contents/'+one.id)).status,404);
-  const logout=await call('/auth/logout','POST',{});assert.equal(logout.status,200);assert.match(logout.headers.get('set-cookie'),/Max-Age=0/);
-  assert.equal((await call(url.pathname+url.search)).status,401,'callback cannot be replayed after verifier removal');
- }finally{await f.close();}
+test("SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC SQL", async () => {
+	const f = await cloudFixture();
+	try {
+		const runtime = createSillRuntime(f.config, { clientFactory: f.factory, html: "test" }),
+			origin = f.config.appOrigin;
+		let cookies = "";
+		const call = (path?: any, method: any = "GET", value?: any, extra: any = {}) =>
+			runtime(
+				new Request(origin + path, {
+					method,
+					headers: {
+						Origin: origin,
+						...(cookies ? { Cookie: cookies } : {}),
+						"Content-Type": "application/json",
+						...extra,
+					},
+					...(value ? { body: JSON.stringify(value) } : {}),
+				}),
+			);
+		assert.equal((await call("/api/v1/contents")).status, 401);
+		const login = await call("/auth/login", "POST", { email: "synthetic@example.com" });
+		assert.equal(login.status, 202);
+		const pending = login.headers.getSetCookie();
+		assert.ok(pending.every((c?: any) => c.includes("HttpOnly; Secure; SameSite=Lax")));
+		cookies = pending.map((c?: any) => c.split(";")[0]).join("; ");
+		assert.equal(f.redirect, origin + "/auth/callback");
+		const otpCalls = f.calls.filter((c?: any) => c.path === "/auth/v1/otp").length;
+		const repeat = await call("/auth/login", "POST", { email: "synthetic@example.com" });
+		assert.equal(repeat.status, 429);
+		assert.ok(Number(repeat.headers.get("retry-after")) > 0);
+		assert.equal(
+			repeat.headers.get("set-cookie"),
+			null,
+			"resend does not replace pending PKCE verifier",
+		);
+		assert.equal(
+			f.calls.filter((c?: any) => c.path === "/auth/v1/otp").length,
+			otpCalls,
+			"cooldown makes no second provider call",
+		);
+		const url = new URL(f.redirect);
+		url.searchParams.set("code", "synthetic-code");
+		assert.equal((await call(url.pathname + url.search, "GET", null, { Cookie: "" })).status, 401);
+		assert.equal(
+			(
+				await call(url.pathname + url.search, "GET", null, {
+					Cookie: "__Host-sill-pkce=wrong-verifier",
+				})
+			).status,
+			401,
+		);
+		const bad = new URL(url);
+		bad.searchParams.set("code", "wrong-code");
+		assert.equal((await call(bad.pathname + bad.search)).status, 401);
+		const recovery = await call("/auth/callback?code=wrong-code", "GET", null, {
+			Accept: "text/html",
+		});
+		assert.equal(recovery.status, 303);
+		assert.equal(recovery.headers.get("location"), origin + "/?login_error=1");
+		assert.equal(
+			recovery.headers.get("set-cookie"),
+			null,
+			"failed callback preserves existing cookies",
+		);
+		const callback = await call(url.pathname + url.search);
+		assert.equal(callback.status, 303);
+		assert.equal(callback.headers.get("location"), origin + "/");
+		const access = callback.headers
+			.getSetCookie()
+			.find((c?: any) => c.startsWith("__Host-sill-access="));
+		assert.ok(access.includes("HttpOnly"));
+		assert.ok(!access.includes("synthetic-unused-refresh"));
+		assert.ok(
+			callback.headers
+				.getSetCookie()
+				.some(
+					(c?: any) =>
+						c.startsWith("__Host-sill-refresh=synthetic-unused-refresh;") &&
+						c.includes("Max-Age=2592000"),
+				),
+		);
+		cookies = callback.headers
+			.getSetCookie()
+			.filter((c?: any) => !c.includes("Max-Age=0"))
+			.map((c?: any) => c.split(";")[0])
+			.join("; ");
+		const session = await call("/auth/session");
+		assert.equal(session.status, 200);
+		assert.deepEqual(await session.json(), { userId: A });
+		await f.db.exec("reset role");
+		assert.equal(
+			(await f.db.query("select count(*)::int n from sill_private.sync_snapshots")).rows[0].n,
+			0,
+			"login and session do not materialize a list",
+		);
+		const created = await call(
+			"/api/v1/contents",
+			"POST",
+			{ type: "note", title: "Saved", body: ["Cloud content"] },
+			{ "Idempotency-Key": "create_001" },
+		);
+		assert.equal(created.status, 201);
+		const one = await created.json();
+		const replay = await call(
+			"/api/v1/contents",
+			"POST",
+			{ type: "note", title: "Saved", body: ["Cloud content"] },
+			{ "Idempotency-Key": "create_001" },
+		);
+		assert.equal((await replay.json()).id, one.id);
+		const updated = await call(
+			"/api/v1/contents/" + one.id,
+			"PATCH",
+			{ expectedRevision: 1, changes: { title: "Changed" } },
+			{ "Idempotency-Key": "update_001" },
+		);
+		assert.equal(updated.status, 200);
+		const conflict = await call(
+			"/api/v1/contents/" + one.id,
+			"PATCH",
+			{ expectedRevision: 1, changes: { title: "Stale" } },
+			{ "Idempotency-Key": "update_002" },
+		);
+		assert.equal(conflict.status, 409);
+		assert.equal((await conflict.json()).error.code, "revision_conflict");
+		const listed = await (await call("/api/v1/contents")).json();
+		assert.equal(listed.items[0].title, "Changed");
+		const crossSite = await call(
+			"/api/v1/contents",
+			"POST",
+			{ type: "note", title: "Forged" },
+			{ Origin: "https://evil.example", "Idempotency-Key": "csrf_0001" },
+		);
+		assert.equal(crossSite.status, 403);
+		assert.equal(
+			(await call("/api/v1/contents", "POST", { type: "note", title: "No key" })).status,
+			400,
+		);
+		assert.equal(
+			(
+				await call("/api/v1/contents", "GET", null, {
+					Authorization: "Bearer " + token({ client_id: "unregistered", aud: resource }),
+				})
+			).status,
+			403,
+		);
+		assert.equal(
+			(
+				await call("/api/v1/contents", "GET", null, {
+					Authorization:
+						"Bearer " + token({ client_id: "unregistered", aud: "https://other.example/mcp" }),
+				})
+			).status,
+			401,
+		);
+		assert.equal((await call("/mcp", "POST", {})).status, 503);
+		assert.equal(
+			(
+				await call(
+					"/api/v1/contents/" + one.id,
+					"DELETE",
+					{ expectedRevision: 2 },
+					{ "Idempotency-Key": "delete_001" },
+				)
+			).status,
+			200,
+		);
+		assert.equal((await call("/api/v1/contents/" + one.id)).status, 404);
+		const logout = await call("/auth/logout", "POST", {});
+		assert.equal(logout.status, 200);
+		assert.match(logout.headers.get("set-cookie"), /Max-Age=0/);
+		assert.equal(
+			(await call(url.pathname + url.search)).status,
+			401,
+			"callback cannot be replayed after verifier removal",
+		);
+	} finally {
+		await f.close();
+	}
 });

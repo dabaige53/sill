@@ -1,35 +1,236 @@
 /* Cloud-specific controls use the original Sill welcome, tokens and glass shell. */
-#cloud-login{display:flex;flex-direction:column;gap:14px;text-align:left;width:min(320px,calc(100vw - 64px));padding-top:4px}
-#cloud-login label{font-size:13px;color:var(--muted)}
-#cloud-login input{width:100%;min-height:48px;font-size:16px;background:var(--card)}
-#cloud-login button{min-height:44px;justify-content:center}
-#cloud-login-status{font-size:12px;line-height:1.7;text-align:center;min-height:42px;max-width:320px}
-.cloud-compose{display:flex;flex-direction:column;max-height:calc(100dvh - 64px)}
-.cloud-compose-head{display:flex;align-items:center;gap:16px;flex:none;padding:18px 24px;border-bottom:1px solid var(--line)}
-.cloud-compose-head h1{font-size:14px;font-weight:600;white-space:nowrap}
-.cloud-compose-head>.icon-button{margin-left:auto;flex:none}
-#cloud-draft-state{font-size:12px;color:var(--muted)}
-#cloud-editor{display:flex;flex-direction:column;overflow:hidden;min-height:0}
-.cloud-compose-body{padding:24px 32px 12px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
-#cloud-editor #cloud-title{display:block;width:100%;border:0;background:transparent;padding:4px 0 16px;border-radius:0;font-size:26px;font-weight:600;line-height:1.4;letter-spacing:-.025em}
-#cloud-editor #cloud-body{display:block;width:100%;border:0;background:transparent;padding:8px 0;border-radius:0;font-size:16px;line-height:1.85;resize:vertical;min-height:200px;max-height:45dvh}
-#cloud-editor #cloud-title:focus-visible,#cloud-editor #cloud-body:focus-visible{outline-offset:6px;outline:2px solid var(--accent);border-radius:4px}
-.cloud-compose-meta{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:12px;color:var(--muted);font-size:12px}
-.cloud-compose-meta label{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;font-size:13px}
-#cloud-read{width:16px;height:16px;accent-color:var(--accent)}
-#cloud-save-status{color:var(--muted);font-size:13px;line-height:1.7;overflow-wrap:anywhere}
-#cloud-save-status:not(:empty){padding:12px 14px;background:var(--surface);border-radius:12px;margin:8px 0}
-.cloud-compose-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:16px 24px;border-top:1px solid var(--line);background:var(--card);flex:none}
-.cloud-compose-actions button{min-height:44px}
-.cloud-compose-actions .cloud-delete{margin-left:auto;color:var(--alert)}
-.cloud-save-hint{color:var(--muted);font-size:11px;margin-left:auto;white-space:nowrap}
-.cloud-compose-actions:has(.cloud-delete) .cloud-save-hint{display:none}
-#cloud-discard[hidden]{display:none}
-.dock-tools [aria-busy=true] .icon{animation:cloud-refresh 1s linear infinite}
-@keyframes cloud-refresh{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.dock-tools [aria-busy=true] .icon{animation:none}}
-body.reduce-motion .dock-tools [aria-busy=true] .icon{animation:none}
-[data-action=bookmark],[data-action=later],[data-action=task],[data-action=sources-add],[data-action=selected-bookmark],[data-action=selected-later],[data-action=selected-tag]{display:none!important}
-@media(max-width:600px){.cloud-compose{max-height:calc(100dvh - 24px)}.cloud-compose-head{padding:12px 16px;gap:10px}.cloud-compose-body{padding:18px 22px 8px}#cloud-editor #cloud-title{font-size:23px}#cloud-editor #cloud-body{min-height:160px;max-height:38dvh}.cloud-compose-actions{padding:12px 16px}.cloud-save-hint{display:none}#cloud-draft-state{max-width:150px}}
-@media(max-height:480px){.cloud-compose{max-height:calc(100dvh - 16px)}.cloud-compose-head{padding:4px 16px}.cloud-compose-actions{padding:6px 16px}.cloud-compose-body{padding:12px 20px}#cloud-editor #cloud-body{min-height:100px}}
-#cloud-logout{min-height:44px;padding:8px}
+#cloud-login {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	text-align: left;
+	width: min(320px, calc(100vw - 64px));
+	padding-top: 4px;
+}
+#cloud-login label {
+	font-size: 13px;
+	color: var(--muted);
+}
+#cloud-login input {
+	width: 100%;
+	min-height: 48px;
+	font-size: 16px;
+	background: var(--card);
+}
+#cloud-login button {
+	min-height: 44px;
+	justify-content: center;
+}
+#cloud-login-status {
+	font-size: 12px;
+	line-height: 1.7;
+	text-align: center;
+	min-height: 42px;
+	max-width: 320px;
+}
+.cloud-compose {
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100dvh - 64px);
+}
+.cloud-compose-head {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex: none;
+	padding: 18px 24px;
+	border-bottom: 1px solid var(--line);
+}
+.cloud-compose-head h1 {
+	font-size: 14px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.cloud-compose-head > .icon-button {
+	margin-left: auto;
+	flex: none;
+}
+#cloud-draft-state {
+	font-size: 12px;
+	color: var(--muted);
+}
+#cloud-editor {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	min-height: 0;
+}
+.cloud-compose-body {
+	padding: 24px 32px 12px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
+}
+#cloud-editor #cloud-title {
+	display: block;
+	width: 100%;
+	border: 0;
+	background: transparent;
+	padding: 4px 0 16px;
+	border-radius: 0;
+	font-size: 26px;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: -0.025em;
+}
+#cloud-editor #cloud-body {
+	display: block;
+	width: 100%;
+	border: 0;
+	background: transparent;
+	padding: 8px 0;
+	border-radius: 0;
+	font-size: 16px;
+	line-height: 1.85;
+	resize: vertical;
+	min-height: 200px;
+	max-height: 45dvh;
+}
+#cloud-editor #cloud-title:focus-visible,
+#cloud-editor #cloud-body:focus-visible {
+	outline-offset: 6px;
+	outline: 2px solid var(--accent);
+	border-radius: 4px;
+}
+.cloud-compose-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding-top: 12px;
+	color: var(--muted);
+	font-size: 12px;
+}
+.cloud-compose-meta label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 44px;
+	cursor: pointer;
+	font-size: 13px;
+}
+#cloud-read {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--accent);
+}
+#cloud-save-status {
+	color: var(--muted);
+	font-size: 13px;
+	line-height: 1.7;
+	overflow-wrap: anywhere;
+}
+#cloud-save-status:not(:empty) {
+	padding: 12px 14px;
+	background: var(--surface);
+	border-radius: 12px;
+	margin: 8px 0;
+}
+.cloud-compose-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 16px 24px;
+	border-top: 1px solid var(--line);
+	background: var(--card);
+	flex: none;
+}
+.cloud-compose-actions button {
+	min-height: 44px;
+}
+.cloud-compose-actions .cloud-delete {
+	margin-left: auto;
+	color: var(--alert);
+}
+.cloud-save-hint {
+	color: var(--muted);
+	font-size: 11px;
+	margin-left: auto;
+	white-space: nowrap;
+}
+.cloud-compose-actions:has(.cloud-delete) .cloud-save-hint {
+	display: none;
+}
+#cloud-discard[hidden] {
+	display: none;
+}
+.dock-tools [aria-busy="true"] .icon {
+	animation: cloud-refresh 1s linear infinite;
+}
+@keyframes cloud-refresh {
+	to {
+		transform: rotate(360deg);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.dock-tools [aria-busy="true"] .icon {
+		animation: none;
+	}
+}
+body.reduce-motion .dock-tools [aria-busy="true"] .icon {
+	animation: none;
+}
+[data-action="bookmark"],
+[data-action="later"],
+[data-action="task"],
+[data-action="sources-add"],
+[data-action="selected-bookmark"],
+[data-action="selected-later"],
+[data-action="selected-tag"] {
+	display: none !important;
+}
+@media (max-width: 600px) {
+	.cloud-compose {
+		max-height: calc(100dvh - 24px);
+	}
+	.cloud-compose-head {
+		padding: 12px 16px;
+		gap: 10px;
+	}
+	.cloud-compose-body {
+		padding: 18px 22px 8px;
+	}
+	#cloud-editor #cloud-title {
+		font-size: 23px;
+	}
+	#cloud-editor #cloud-body {
+		min-height: 160px;
+		max-height: 38dvh;
+	}
+	.cloud-compose-actions {
+		padding: 12px 16px;
+	}
+	.cloud-save-hint {
+		display: none;
+	}
+	#cloud-draft-state {
+		max-width: 150px;
+	}
+}
+@media (max-height: 480px) {
+	.cloud-compose {
+		max-height: calc(100dvh - 16px);
+	}
+	.cloud-compose-head {
+		padding: 4px 16px;
+	}
+	.cloud-compose-actions {
+		padding: 6px 16px;
+	}
+	.cloud-compose-body {
+		padding: 12px 20px;
+	}
+	#cloud-editor #cloud-body {
+		min-height: 100px;
+	}
+}
+#cloud-logout {
+	min-height: 44px;
+	padding: 8px;
+}

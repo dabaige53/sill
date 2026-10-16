@@ -1,332 +1,319 @@
 {
-  "valid": [
-    {
-      "name": "article",
-      "card": {
-        "id": "valid-article",
-        "type": "article",
-        "title": "Synthetic article",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ]
-      }
-    },
-    {
-      "name": "mail",
-      "card": {
-        "id": "valid-mail",
-        "type": "mail",
-        "title": "Synthetic mail",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "sender": "Sender"
-      }
-    },
-    {
-      "name": "note",
-      "card": {
-        "id": "valid-note",
-        "type": "note",
-        "title": "Synthetic note",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "extra": {
-          "future": true
-        }
-      }
-    },
-    {
-      "name": "task",
-      "card": {
-        "id": "valid-task",
-        "type": "task",
-        "title": "Synthetic task",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "tasks": [
-          {
-            "id": "task-1",
-            "text": "Check",
-            "done": false,
-            "extra": 1
-          }
-        ]
-      }
-    },
-    {
-      "name": "event",
-      "card": {
-        "id": "valid-event",
-        "type": "event",
-        "title": "Synthetic event",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "start": 1000,
-        "end": 2000
-      }
-    },
-    {
-      "name": "reminder",
-      "card": {
-        "id": "valid-reminder",
-        "type": "reminder",
-        "title": "Synthetic reminder",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "due": 2000
-      }
-    },
-    {
-      "name": "media",
-      "card": {
-        "id": "valid-media",
-        "type": "media",
-        "title": "Synthetic media",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "media": "video",
-        "image": "coast"
-      }
-    },
-    {
-      "name": "digest",
-      "card": {
-        "id": "valid-digest",
-        "type": "digest",
-        "title": "Synthetic digest",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "points": [
-          "A"
-        ]
-      }
-    },
-    {
-      "name": "suggestion",
-      "card": {
-        "id": "valid-suggestion",
-        "type": "suggestion",
-        "title": "Synthetic suggestion",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "why": {
-          "reason": "Reason",
-          "basis": [
-            "A"
-          ]
-        }
-      }
-    },
-    {
-      "name": "photo",
-      "card": {
-        "id": "valid-photo",
-        "type": "photo",
-        "title": "Synthetic photo",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "photos": [
-          "coast"
-        ]
-      }
-    },
-    {
-      "name": "file",
-      "card": {
-        "id": "valid-file",
-        "type": "file",
-        "title": "Synthetic file",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "files": [
-          {
-            "name": "sample.txt"
-          }
-        ]
-      }
-    },
-    {
-      "name": "future-card",
-      "card": {
-        "id": "valid-future-card",
-        "type": "future-card",
-        "title": "Synthetic future-card",
-        "sources": [
-          {
-            "name": "Synthetic",
-            "kind": "local"
-          }
-        ],
-        "custom": {
-          "nested": [
-            "preserve"
-          ]
-        }
-      }
-    }
-  ],
-  "invalid": [
-    {
-      "name": "empty-title",
-      "card": {
-        "id": "invalid",
-        "type": "note",
-        "title": ""
-      }
-    },
-    {
-      "name": "unsafe-url",
-      "card": {
-        "id": "invalid",
-        "type": "note",
-        "title": "Synthetic",
-        "url": "javascript:alert(1)"
-      }
-    },
-    {
-      "name": "unsafe-id",
-      "card": {
-        "id": "__proto__",
-        "type": "note",
-        "title": "Synthetic"
-      }
-    },
-    {
-      "name": "event-missing-end",
-      "card": {
-        "id": "invalid",
-        "type": "event",
-        "title": "Synthetic",
-        "start": 1000
-      }
-    },
-    {
-      "name": "event-reversed",
-      "card": {
-        "id": "invalid",
-        "type": "event",
-        "title": "Synthetic",
-        "start": 2000,
-        "end": 1000
-      }
-    },
-    {
-      "name": "task-empty",
-      "card": {
-        "id": "invalid",
-        "type": "task",
-        "title": "Synthetic",
-        "tasks": []
-      }
-    },
-    {
-      "name": "task-duplicate",
-      "card": {
-        "id": "invalid",
-        "type": "task",
-        "title": "Synthetic",
-        "tasks": [
-          {
-            "id": "same",
-            "text": "A"
-          },
-          {
-            "id": "same",
-            "text": "B"
-          }
-        ]
-      }
-    },
-    {
-      "name": "video-missing-image",
-      "card": {
-        "id": "invalid",
-        "type": "media",
-        "title": "Synthetic",
-        "media": "video"
-      }
-    },
-    {
-      "name": "photo-empty",
-      "card": {
-        "id": "invalid",
-        "type": "photo",
-        "title": "Synthetic"
-      }
-    },
-    {
-      "name": "file-empty",
-      "card": {
-        "id": "invalid",
-        "type": "file",
-        "title": "Synthetic"
-      }
-    },
-    {
-      "name": "negative-time",
-      "card": {
-        "id": "invalid",
-        "type": "note",
-        "title": "Synthetic",
-        "time": -1
-      }
-    },
-    {
-      "name": "too-many-points",
-      "card": {
-        "id": "invalid",
-        "type": "note",
-        "title": "Synthetic",
-        "points": [
-          "A",
-          "B",
-          "C",
-          "D"
-        ]
-      }
-    }
-  ]
+	"valid": [
+		{
+			"name": "article",
+			"card": {
+				"id": "valid-article",
+				"type": "article",
+				"title": "Synthetic article",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				]
+			}
+		},
+		{
+			"name": "mail",
+			"card": {
+				"id": "valid-mail",
+				"type": "mail",
+				"title": "Synthetic mail",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"sender": "Sender"
+			}
+		},
+		{
+			"name": "note",
+			"card": {
+				"id": "valid-note",
+				"type": "note",
+				"title": "Synthetic note",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"extra": {
+					"future": true
+				}
+			}
+		},
+		{
+			"name": "task",
+			"card": {
+				"id": "valid-task",
+				"type": "task",
+				"title": "Synthetic task",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"tasks": [
+					{
+						"id": "task-1",
+						"text": "Check",
+						"done": false,
+						"extra": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "event",
+			"card": {
+				"id": "valid-event",
+				"type": "event",
+				"title": "Synthetic event",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"start": 1000,
+				"end": 2000
+			}
+		},
+		{
+			"name": "reminder",
+			"card": {
+				"id": "valid-reminder",
+				"type": "reminder",
+				"title": "Synthetic reminder",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"due": 2000
+			}
+		},
+		{
+			"name": "media",
+			"card": {
+				"id": "valid-media",
+				"type": "media",
+				"title": "Synthetic media",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"media": "video",
+				"image": "coast"
+			}
+		},
+		{
+			"name": "digest",
+			"card": {
+				"id": "valid-digest",
+				"type": "digest",
+				"title": "Synthetic digest",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"points": ["A"]
+			}
+		},
+		{
+			"name": "suggestion",
+			"card": {
+				"id": "valid-suggestion",
+				"type": "suggestion",
+				"title": "Synthetic suggestion",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"why": {
+					"reason": "Reason",
+					"basis": ["A"]
+				}
+			}
+		},
+		{
+			"name": "photo",
+			"card": {
+				"id": "valid-photo",
+				"type": "photo",
+				"title": "Synthetic photo",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"photos": ["coast"]
+			}
+		},
+		{
+			"name": "file",
+			"card": {
+				"id": "valid-file",
+				"type": "file",
+				"title": "Synthetic file",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"files": [
+					{
+						"name": "sample.txt"
+					}
+				]
+			}
+		},
+		{
+			"name": "future-card",
+			"card": {
+				"id": "valid-future-card",
+				"type": "future-card",
+				"title": "Synthetic future-card",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"custom": {
+					"nested": ["preserve"]
+				}
+			}
+		}
+	],
+	"invalid": [
+		{
+			"name": "empty-title",
+			"card": {
+				"id": "invalid",
+				"type": "note",
+				"title": ""
+			}
+		},
+		{
+			"name": "unsafe-url",
+			"card": {
+				"id": "invalid",
+				"type": "note",
+				"title": "Synthetic",
+				"url": "javascript:alert(1)"
+			}
+		},
+		{
+			"name": "unsafe-id",
+			"card": {
+				"id": "__proto__",
+				"type": "note",
+				"title": "Synthetic"
+			}
+		},
+		{
+			"name": "event-missing-end",
+			"card": {
+				"id": "invalid",
+				"type": "event",
+				"title": "Synthetic",
+				"start": 1000
+			}
+		},
+		{
+			"name": "event-reversed",
+			"card": {
+				"id": "invalid",
+				"type": "event",
+				"title": "Synthetic",
+				"start": 2000,
+				"end": 1000
+			}
+		},
+		{
+			"name": "task-empty",
+			"card": {
+				"id": "invalid",
+				"type": "task",
+				"title": "Synthetic",
+				"tasks": []
+			}
+		},
+		{
+			"name": "task-duplicate",
+			"card": {
+				"id": "invalid",
+				"type": "task",
+				"title": "Synthetic",
+				"tasks": [
+					{
+						"id": "same",
+						"text": "A"
+					},
+					{
+						"id": "same",
+						"text": "B"
+					}
+				]
+			}
+		},
+		{
+			"name": "video-missing-image",
+			"card": {
+				"id": "invalid",
+				"type": "media",
+				"title": "Synthetic",
+				"media": "video"
+			}
+		},
+		{
+			"name": "photo-empty",
+			"card": {
+				"id": "invalid",
+				"type": "photo",
+				"title": "Synthetic"
+			}
+		},
+		{
+			"name": "file-empty",
+			"card": {
+				"id": "invalid",
+				"type": "file",
+				"title": "Synthetic"
+			}
+		},
+		{
+			"name": "negative-time",
+			"card": {
+				"id": "invalid",
+				"type": "note",
+				"title": "Synthetic",
+				"time": -1
+			}
+		},
+		{
+			"name": "too-many-points",
+			"card": {
+				"id": "invalid",
+				"type": "note",
+				"title": "Synthetic",
+				"points": ["A", "B", "C", "D"]
+			}
+		}
+	]
 }
