@@ -115,6 +115,26 @@ body.opaque .scroll-edge {
 		--rail-edge: 16px;
 		--rail-bottom: max(16px, env(safe-area-inset-bottom));
 	}
+	/* Phone rail: the capsule fills the row beside the face, like a composer above the keyboard. */
+	#dock {
+		left: var(--rail-edge);
+	}
+	.rail-tools {
+		flex: 1;
+		width: auto;
+		min-width: 0;
+	}
+	.rail-kbd {
+		display: none;
+	}
+	#dock :is(#new-count, #offline) {
+		position: absolute;
+		right: 0;
+		bottom: calc(100% + 10px);
+	}
+	#dock:has(#selection-bar:not([hidden])) #selection-bar {
+		flex: 1;
+	}
 	/* Too narrow for both: while selecting, the bar takes the whole row. */
 	#dock:has(#selection-bar:not([hidden])) :is(.account-wrap, .rail-tools) {
 		display: none;
@@ -284,8 +304,47 @@ body.opaque .scroll-edge {
 		border-top: 0.5px solid var(--line-card);
 	}
 
+	/* Phone search sits at the bottom, in thumb reach, and rides on top of the keyboard.
+	   Results grow upward from the field; filters sit just above it. */
 	#modal.search {
-		margin: 12px auto auto;
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+		margin: 0;
+		padding: 16px var(--rail-edge) calc(var(--kb, 0px) + var(--rail-bottom));
+		justify-content: flex-end;
+		gap: 10px;
+	}
+	#modal.search .search-results {
+		order: 0;
+		flex: 0 1 auto;
+		min-height: 0;
+		max-height: none;
+	}
+	#modal.search .search-chips {
+		order: 1;
+		flex: none;
+	}
+	#modal.search .search-pill {
+		order: 2;
+		flex: none;
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	#modal.panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	body.keyboard-open #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
 	}
 	.search-chips {
 		justify-content: flex-start;

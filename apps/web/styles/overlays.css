@@ -38,7 +38,10 @@ dialog::backdrop {
 	width: 36px;
 	height: 36px;
 	min-width: 36px;
-	background: var(--surface);
+	background: var(--card);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-float);
 }
 .grabber {
 	display: none;
@@ -93,12 +96,16 @@ dialog::backdrop {
 	display: flex;
 	gap: 8px;
 }
+/* Floating round buttons: a white disc lifted by a soft shadow, never a grey blot. */
 .sheet-head .icon-button {
 	width: 36px;
 	height: 36px;
 	min-width: 36px;
-	background: var(--surface);
-	color: var(--muted);
+	background: var(--card);
+	color: var(--ink);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-float);
 }
 /* The visible circle is 36; the hit area reaches the 44 minimum. */
 .sheet-head .icon-button:before {
@@ -107,8 +114,7 @@ dialog::backdrop {
 	inset: -4px;
 }
 .sheet-head .icon-button:hover {
-	background: var(--faint);
-	color: var(--ink);
+	background: var(--surface);
 }
 .sheet-head .icon .icon,
 .sheet-head .icon-button .icon {
@@ -976,7 +982,9 @@ kbd {
 	padding: 0 10px 0 18px;
 	border-radius: var(--pill-radius);
 	background: var(--card);
-	box-shadow: var(--shadow-glass);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-glass);
 }
 .search-pill > .icon {
 	color: var(--muted);

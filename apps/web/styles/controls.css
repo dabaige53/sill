@@ -85,6 +85,7 @@ body:has(#modal[open]) .scroll-edge {
 	opacity: 0;
 	visibility: hidden;
 }
+/* One soft capsule, like a composer: the search field and the add button share it. */
 .rail-tools {
 	display: flex;
 	align-items: center;
@@ -92,6 +93,52 @@ body:has(#modal[open]) .scroll-edge {
 	height: var(--rail-row);
 	padding: 4px;
 	border-radius: var(--pill-radius);
+	width: 340px;
+}
+.rail-search {
+	flex: 1;
+	min-width: 0;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 12px 0 14px;
+	border-radius: var(--pill-radius);
+	color: var(--muted);
+	font-size: var(--text-control);
+	text-align: left;
+	transition: background var(--fast);
+	position: relative;
+}
+.rail-search .icon {
+	flex: none;
+	color: var(--secondary);
+}
+.rail-search-text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.rail-search-text.has-value {
+	color: var(--ink);
+	font-weight: 500;
+}
+.rail-kbd {
+	flex: none;
+	font: 500 var(--text-caption) / 1 var(--rounded);
+	color: var(--secondary);
+	padding: 4px 6px;
+	border-radius: 6px;
+	background: var(--glass-press);
+}
+.rail-search:hover,
+.rail-search:active {
+	background: var(--glass-press);
+}
+.rail-tools > .icon-button {
+	flex: none;
 }
 .rail-tools .icon-button,
 .float-bar .icon-button,
@@ -149,11 +196,15 @@ body:has(#modal[open]) .scroll-edge {
 	stroke: none;
 	margin-bottom: -4px;
 }
-#dock.filter-active .rail-tools [data-action="filter"]:after {
+/* A filter in effect: the field holds a quiet grey pill, as an active tab would. */
+#dock.filter-active .rail-search {
+	background: var(--glass-press);
+}
+#dock.filter-active .rail-search:after {
 	content: "";
 	position: absolute;
-	right: 8px;
-	top: 8px;
+	left: 26px;
+	top: 9px;
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
