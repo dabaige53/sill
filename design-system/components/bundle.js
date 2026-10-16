@@ -93,6 +93,7 @@ var Sill = (() => {
     select: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8 12 3 3 5-6"/>',
     undo: '<path d="M3 5v6h6M3 11a9 9 0 1 1 2 8"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+    home: '<path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.5h-6v5.5H5.5A1.5 1.5 0 0 1 4 19Z"/>',
     person: '<circle cx="12" cy="8.5" r="3.75"/><path d="M4.75 20a7.25 7.25 0 0 1 14.5 0"/>',
     grid: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
     grip: '<circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>',
@@ -866,7 +867,20 @@ var Sill = (() => {
     "web.selection.later": "\u7A0D\u540E\u8BFB",
     "web.selection.organize": "\u6574\u7406",
     "web.selection.tag": "\u6807\u7B7E",
-    "web.selection.cancel": "\u53D6\u6D88"
+    "web.selection.cancel": "\u53D6\u6D88",
+    "web.readerTools": "\u9605\u8BFB\u5DE5\u5177",
+    "web.search.deskGroup": "\u684C\u9762",
+    "web.search.shelvedGroup": "\u5DF2\u6536\u8D77",
+    "web.nav.label": "\u4E3B\u5BFC\u822A",
+    "web.nav.home": "\u4E3B\u9875",
+    "web.nav.search": "\u641C\u7D22",
+    "web.nav.ai": "AI",
+    "web.nav.aiLabel": "AI\uFF0C\u5373\u5C06\u63A8\u51FA",
+    "web.nav.settings": "\u8BBE\u7F6E",
+    "web.ai.title": "AI",
+    "web.ai.soon": "\u5373\u5C06\u63A8\u51FA",
+    "web.ai.body": "\u4EE5\u540E\u53EF\u4EE5\u5728\u8FD9\u91CC\u8BA9 AI \u67E5\u627E\u3001\u6574\u7406\u548C\u5904\u7406\u5361\u7247\u3002\u73B0\u5728\u8FD8\u4E0D\u80FD\u4F7F\u7528\u3002",
+    "web.settings.add": "\u6DFB\u52A0"
   };
 
   // design-system/copy.ts

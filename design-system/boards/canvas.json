@@ -243,6 +243,13 @@
       "w": 1440,
       "x": 7490,
       "y": 4220
+    },
+    "NavCapsule.dc.html": {
+      "h": 3130,
+      "title": "35 定稿 v4 · 底部导航胶囊",
+      "w": 1440,
+      "x": 9010,
+      "y": 4220
     }
   },
   "createdOnFiles": {
@@ -356,6 +363,7 @@
     "ScrollWait.dc.html",
     "Volume.dc.html",
     "GlassRail.dc.html",
+    "NavCapsule.dc.html",
     "FinalOverlays.dc.html",
     "MotionProto.dc.html",
     "Details.dc.html",

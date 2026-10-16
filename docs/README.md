@@ -44,6 +44,7 @@
 - [设计改动先改线上，再同步线下](adr/0032-design-online-first.md)
 - [不接入外部来源，内容由助手写入，连接器只用 Composio](adr/0033-ai-writes-composio-only.md)
 - [玻璃底栏取代入口球，工具条滚动时收起](adr/0034-glass-rail-and-tucking-bars.md)
+- [底部导航胶囊取代右下玻璃按钮组](adr/0035-bottom-navigation-capsule.md)
 
 ## 记录
 

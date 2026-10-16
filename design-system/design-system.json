@@ -392,6 +392,12 @@
           "name": "person.svg",
           "size": 277,
           "type": "image/svg+xml"
+        },
+        "home.svg": {
+          "blob": "f139370679c3b326af56726a82f46df4",
+          "name": "home.svg",
+          "size": 285,
+          "type": "image/svg+xml"
         }
       },
       "name": "Icons",
@@ -426,6 +432,7 @@
         "globe.svg",
         "grid.svg",
         "grip.svg",
+        "home.svg",
         "image.svg",
         "info.svg",
         "keyboard.svg",
@@ -478,10 +485,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-16T22:07:37Z",
+    "at": "2026-10-16T23:55:00Z",
     "by": "dabaige53",
     "via": "Claude Code",
-    "note": "玻璃底栏取代入口球：头像即设置，桌面工具一个胶囊；工具条向下滚动收起、停下回来；详情顶部浮动圆片与最多三图标工具条；多选三张真实卡片叠放、菜单上下翻转；搜索不显示数量、输入法拼写中不筛选；遮罩只压暗；开关改蓝；新增 person 图标与玻璃令牌"
+    "note": "底部导航胶囊取代右下玻璃按钮组：主页、搜索、AI（即将推出）、设置四格，透明镜片用弹簧滑动并拉伸；添加（记一笔）移到设置第一组；新增 home 图标与 nav-tab、ease-spring、dur-lens 令牌，rail-row 改为 60"
   },
   "layout": "files",
   "libraries": [],
