@@ -13,5 +13,7 @@ dist/
 
 .wrangler/
 worker-configuration.d.ts
+apps/apple/.build/
+apps/apple/.swiftpm/
 
 supabase/.temp/

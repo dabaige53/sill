@@ -1,5 +1,7 @@
 # 文档目录
 
+- [旧入口清理记录](records/2026-10-16-legacy-removal/README.md)
+
 - [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
 
 更新：2026-10-16。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。

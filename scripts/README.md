@@ -8,7 +8,6 @@
 | 本地页面 | `npm run build` | `src/`、`modules.json`、`src/styles/styles.json` → `index.html` |
 | 云端页面与 Worker | `npm run build:cloud` | 共享 `src/`、`web/cloud-*`、`server/cloud/` → `dist/cloud/` |
 | 发布候选构建 | `npm run build:release` | 同上，压缩 Worker → `dist/cloud/`；不执行部署 |
-| 宿主页面 | `npm run build:host` | 当前 `index.html`、`web/host.js` → `dist/host-app.html`；共享源码变动后先构建本地页面 |
 | 云端 App 页面 | `node scripts/build-cloud-app.mjs` | `dist/cloud/index.html` 等 → `dist/cloud/app.html`；先完成云端页面构建 |
 | 插件候选包 | `npm run plugin:build` | `plugin.json`、`.app.json`、`deploy/sill/release.json`、`skills/sill/` → `dist/plugin/sill/` |
 | Mac 原生包 | `npm run build:macos` | Swift 源码、本地服务、依赖 → `dist/macos/Sill.app`；限制见 [原生说明](../native/macos/README.md) |
@@ -16,6 +15,5 @@
 | 语法与配置检查 | `npm run check` | JS、HTML 脚本及公开配置示例 → 终端结果 |
 | V1 设计约定检查 | `scripts/check-v1-contracts.py` | `contracts/design/` → 准备材料一致性；不证明 API 已实现 |
 | V1 健康检查 | `scripts/smoke-v1-health.mjs` | 显式指定目标；使用前阅读 [V1 交接包](../docs/guides/handoff.md) 的参数与边界 |
-| WASM 样例 | [wasm/README.md](wasm/README.md) | `.wat` → 固定样例 `.wasm.b64`；不接收任意脚本 |
 
 `build-cloud-worker.mjs` 由云端构建调用。Python 沿用项目已有环境与全局执行约定，不为目录整理另建环境。`build-plugin.mjs` 会替换该候选产物目录，不要在产物目录保存唯一副本。
