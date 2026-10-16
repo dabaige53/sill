@@ -712,28 +712,41 @@ button.ref:hover {
 	overflow: visible;
 	z-index: 6;
 }
+/* Selecting: the more button on every card turns into a selection circle in the same
+   place. Nothing inside the card moves. */
 .selected-tick {
 	position: absolute;
-	left: 12px;
+	right: 12px;
 	top: 12px;
 	display: none;
 	place-items: center;
-	width: 22px;
-	height: 22px;
+	width: 24px;
+	height: 24px;
 	border-radius: 50%;
-	background: var(--accent-fill);
-	color: #fff;
-	box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.94);
+	background: var(--card);
+	color: transparent;
+	box-shadow:
+		inset 0 0 0 1.5px var(--line-hover),
+		0 0 0 2px var(--card);
 	z-index: 4;
+	transition:
+		background var(--fast) var(--ease),
+		color var(--fast) var(--ease);
 }
-.feed-card.is-selected:after {
-	border-color: var(--accent);
+body.is-selecting .feed-card .card-actions {
+	visibility: hidden;
 }
+body.is-selecting .feed-card .selected-tick,
 .feed-card.is-selected .selected-tick {
 	display: grid;
 }
-.feed-card.is-selected:not(.has-cover) .card-body {
-	padding-left: 44px;
+.feed-card.is-selected .selected-tick {
+	background: var(--accent-fill);
+	color: #fff;
+	box-shadow: 0 0 0 2px var(--card);
+}
+.feed-card.is-selected:after {
+	border-color: var(--accent);
 }
 .feed-card.is-drag-source {
 	opacity: 0.32;

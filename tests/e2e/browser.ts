@@ -159,7 +159,12 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal((await state(page, "article-01")).read, false);
 				await page.locator('dialog [data-action="bookmark"]').click();
 				assert.equal((await state(page, "article-01")).bookmarked, true);
-				await page.getByRole("button", { name: "撤销操作", exact: true }).click();
+				assert.equal(
+					await page.locator("#toast").isVisible(),
+					false,
+					"a single flag needs no toast",
+				);
+				await page.locator('dialog [data-action="bookmark"]').click();
 				assert.equal((await state(page, "article-01")).bookmarked, false);
 				await page.locator('dialog [data-action="reader"]').click();
 				await page.evaluate(
@@ -219,7 +224,7 @@ async function recordLayout(page?: any, width?: any) {
 				await action(page, "preview", "reminder-01");
 				await page
 					.locator("dialog")
-					.getByRole("button", { name: "延后提醒十分钟", exact: true })
+					.getByRole("button", { name: "延后十分钟", exact: true })
 					.click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 0);
 				const deadline = (await state(page, "reminder-01")).snoozedUntil;
@@ -507,6 +512,101 @@ async function recordLayout(page?: any, width?: any) {
 				);
 			},
 		);
+		const rect = (page?: any, selector?: any) =>
+			page.locator(selector).evaluate((n?: any) => n.getBoundingClientRect().toJSON());
+		await scenario(
+			"Bottom rail, selection, drop targets, refresh and stacked previews share one rule",
+			async (page?: any) => {
+				const ids = await page.evaluate(() =>
+					[...document.querySelectorAll("#feed-grid [data-card]")].map((n?: any) => n.dataset.card),
+				);
+				const mod = process.platform === "darwin" ? "Meta" : "Control";
+				const inside = () =>
+					card(page, ids[0]).evaluate((n?: any) => {
+						const a = n.querySelector(".card-title").getBoundingClientRect(),
+							b = n.getBoundingClientRect();
+						return [Math.round(a.left - b.left), Math.round(a.top - b.top)];
+					});
+				const before = await inside();
+				await card(page, ids[0]).click({ modifiers: [mod] });
+				await card(page, ids[1]).click({ modifiers: ["Shift"] });
+				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), false);
+				assert.equal(await page.evaluate(() => window.__app.selected.size), 2);
+				assert.deepEqual(await inside(), before, "selecting moved the card's content");
+				const bar = await rect(page, "#selection-bar"),
+					orb = await rect(page, "#orb");
+				assert.ok(bar.right <= orb.left, "selection bar overlaps the orb");
+				assert.equal(Math.round(bar.bottom), Math.round(orb.bottom), "rail rows differ");
+				assert.equal(Math.round(bar.height), Math.round(orb.height), "rail rows differ");
+				await page.evaluate(() => window.__app.toast("撤销测试", () => {}));
+				const toast = await rect(page, "#toast");
+				assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");
+				await card(page, ids[2]).click();
+				assert.equal(await page.evaluate(() => window.__app.selected.size), 3);
+				await page.locator('[data-action="select-all"]').click();
+				assert.equal(await page.evaluate(() => window.__app.selected.size), ids.length);
+				await page.keyboard.press("Escape");
+				assert.equal(await page.evaluate(() => window.__app.selected.size), 0);
+				assert.equal(await page.locator("#selection-bar").isVisible(), false);
+				const start = await card(page, ids[0]).boundingBox(),
+					x = start.x + 60,
+					y = start.y + start.height - 30;
+				await page.mouse.move(x, y);
+				await page.mouse.down();
+				await page.mouse.move(x + 20, y + 10, { steps: 4 });
+				const targets = await rect(page, "#drop-targets");
+				assert.ok(
+					Math.hypot(
+						targets.left + targets.width / 2 - (x + 20),
+						targets.top + targets.height / 2 - (y + 10),
+					) < 160,
+					"drop targets are far from the pointer",
+				);
+				await page.keyboard.press("Escape");
+				await page.mouse.up();
+				await action(page, "refresh");
+				await page.waitForFunction(() =>
+					document.getElementById("dock").classList.contains("is-done"),
+				);
+				const relation = await page.evaluate(
+					() => (document.querySelector(".type-suggestion") as HTMLElement)?.dataset.card,
+				);
+				assert.doesNotMatch(await card(page, relation).locator(".card-head").innerText(), /张卡/);
+				await openCard(page, relation);
+				await page.locator('dialog .refs [data-action="card-open"]').first().click();
+				await page.waitForFunction((id?: any) => window.__app.currentId !== id, relation);
+				assert.equal(await page.locator("dialog .sheet-peek").count(), 1);
+				await page.locator('dialog .float-bar [data-action="close"]').click();
+				await page.waitForFunction((id?: any) => window.__app.currentId === id, relation);
+				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), true);
+				assert.equal(await page.locator("dialog .sheet-peek").count(), 0);
+				await page.locator('dialog .refs [data-action="card-open"]').first().click();
+				await page.waitForFunction(() => !!document.querySelector("dialog .sheet-peek"));
+				await page.mouse.click(8, 8);
+				await page.waitForFunction(() => !document.querySelector("dialog").open);
+				assert.equal(await page.evaluate(() => location.hash), "#feed");
+			},
+		);
+		await scenario(
+			"Phone selection takes the whole rail and the toast rises above it",
+			async (page?: any) => {
+				const id = await page.evaluate(
+					() => (document.querySelector("#feed-grid [data-card]") as HTMLElement).dataset.card,
+				);
+				await action(page, "select", id);
+				const bar = await rect(page, "#selection-bar");
+				assert.ok(bar.left >= 0 && bar.right <= 390, "selection bar leaves the screen");
+				assert.equal(await page.locator(".orb-wrap").isVisible(), false);
+				await page.evaluate(() => window.__app.alert("无法导入"));
+				const toast = await rect(page, "#toast");
+				assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");
+				await page.waitForTimeout(3600);
+				assert.equal(await page.locator("#toast").isVisible(), true, "an alert closed by itself");
+				await page.locator('#toast [data-action="toast-close"]').click();
+				await page.waitForFunction(() => document.getElementById("toast").hidden);
+			},
+			{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
+		);
 		await scenario(
 			"Capture, paste and file import add cards on this device with dedupe and undo",
 			async (page?: any) => {
@@ -712,7 +812,7 @@ async function recordLayout(page?: any, width?: any) {
 					});
 					await page
 						.locator("dialog")
-						.getByRole("button", { name: "延后提醒十分钟", exact: true })
+						.getByRole("button", { name: "延后十分钟", exact: true })
 						.tap();
 					await filter(page, "snoozed");
 					assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);

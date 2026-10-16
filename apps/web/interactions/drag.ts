@@ -103,7 +103,10 @@ class DragManager {
 			"touchend",
 			(e?: any) => {
 				clearTimeout(this.timer);
-				if (this.active) {
+				if (this.active && !this.active.moved) {
+					e.preventDefault();
+					this.release();
+				} else if (this.active) {
 					e.preventDefault();
 					const t = e.changedTouches[0];
 					this.finish(t.clientX, t.clientY);
@@ -153,7 +156,7 @@ class DragManager {
 		document.querySelectorAll("[data-card]").forEach((n?: any) => {
 			if (ids.includes(n.dataset.card)) n.classList.add("is-drag-source");
 		});
-		document.getElementById("drop-targets").hidden = false;
+		this.placeTargets(p.x, p.y);
 		this.ghost = document.createElement("div");
 		this.ghost.className = "drag-ghost";
 		this.ghost.innerHTML = `${c.image ? `<img src="${Assets[c.image]}" alt="">` : `<span class="ghost-icon">${icon(CardTypes[c.type].icon, 23)}</span>`}<strong>${esc(c.title)}</strong>${ids.length > 1 ? `<span class="drag-count">${ids.length}</span>` : ""}`;
@@ -164,19 +167,39 @@ class DragManager {
 			`${copy("web.drag.6b72fb801b9d")}${ids.length}${copy("web.drag.4808181ef801")}`,
 		);
 	}
+	/** One short reach: the targets sit just above the lifted card, or below it near the top edge. */
+	placeTargets(x?: any, y?: any) {
+		const box = document.getElementById("drop-targets");
+		box.hidden = false;
+		const w = box.offsetWidth,
+			h = box.offsetHeight,
+			clear = 61; // half the ghost plus a gap, so the card never covers a target
+		let top = y - clear - h;
+		if (top < 16) top = Math.min(innerHeight - h - 16, y + clear);
+		box.style.left = `${Math.max(16, Math.min(innerWidth - 16 - w, x - w / 2))}px`;
+		box.style.top = `${top}px`;
+		MotionEngine.enter(box);
+	}
+	/** The nearest target within reach wins; a near miss still lands. */
 	hit(x?: any, y?: any) {
-		return (
-			[...document.querySelectorAll("[data-drop]")]
-				.filter((n?: any) => !n.hidden && n.getClientRects().length)
-				.find((n?: any) => {
-					const r = n.getBoundingClientRect(),
-						pad = n.id === "orb" ? 20 : 10;
-					return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
-				}) || null
-		);
+		let best: any = null,
+			bestDistance = Infinity;
+		for (const n of document.querySelectorAll("[data-drop]") as any) {
+			if (n.hidden || !n.getClientRects().length) continue;
+			const r = n.getBoundingClientRect(),
+				dx = Math.max(r.left - x, 0, x - r.right),
+				dy = Math.max(r.top - y, 0, y - r.bottom),
+				distance = Math.hypot(dx, dy);
+			if (distance <= (n.id === "orb" ? 20 : 28) && distance < bestDistance) {
+				best = n;
+				bestDistance = distance;
+			}
+		}
+		return best;
 	}
 	move(x?: any, y?: any) {
 		if (!this.active || !this.ghost) return;
+		if (Math.hypot(x - this.active.x, y - this.active.y) > 8) this.active.moved = true;
 		this.ghost.style.left = Math.max(8, Math.min(innerWidth - 252, x - 120)) + "px";
 		this.ghost.style.top = Math.max(8, y - 45) + "px";
 		const hot = this.hit(x, y);
@@ -190,10 +213,11 @@ class DragManager {
 		if (!this.active) return;
 		const active = this.active,
 			target = this.hit(x, y),
+			targetRect = target?.getBoundingClientRect(),
 			ghost = this.ghost;
 		this.cleanup();
 		if (target) {
-			const rect = target.getBoundingClientRect(),
+			const rect = targetRect,
 				r = ghost.getBoundingClientRect();
 			MotionEngine.animate(
 				ghost,
@@ -228,6 +252,14 @@ class DragManager {
 	}
 	cancel() {
 		if (this.active) this.finish(-1000, -1000);
+	}
+	/** Long press and let go without moving: put the card down and select it. */
+	release() {
+		const { id } = this.active,
+			ghost = this.ghost;
+		this.cleanup();
+		ghost?.remove();
+		this.app.select(id, { add: true });
 	}
 	cleanup() {
 		this.active?.hot?.classList.remove("drop-hot");

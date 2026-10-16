@@ -115,7 +115,8 @@ const FeedPolicy: Record<string, any> = {
 		if (s.dismissed) return copy("web.feedpolicy.f641f7ed9f5d");
 		if (s.reminderDone) return copy("web.feedpolicy.0eb5f2f421ed");
 		const at = s.snoozedUntil || c.due;
-		if (!Number.isFinite(at)) return c.meta || copy("web.reminder");
+		// No time, no label: the head already says it is a reminder; meta is not a status line.
+		if (!Number.isFinite(at)) return "";
 		const minutes = Math.ceil((at - now) / 60000);
 		return minutes > 0
 			? `${minutes}${copy("web.primitives.a63a9dc60e00")}${s.snoozedUntil ? copy("web.feedpolicy.ab068f148b03") : ""}`

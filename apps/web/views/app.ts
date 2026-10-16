@@ -79,6 +79,10 @@ class AppController {
 	declare editId: any;
 	declare editTags: any;
 	declare toastTimer: any;
+	declare toastSeq: any;
+	declare selectAnchor: any;
+	declare previewTrail: any;
+	declare closingAll: any;
 	declare undoAction: any;
 	declare bulkEditIds: any;
 	declare permissionQueue: any;
@@ -127,9 +131,9 @@ class AppController {
 		this.sort = Store.pref("sort");
 		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
+   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span><button type="button" class="text-button" data-action="select-all" aria-label="${copy("web.selectAllLabel")}">${copy("web.selectAll")}</button>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
    <div class="orb-wrap"><div class="dock-tools" role="group" aria-label="${copy("web.app.25ce5c2fbf41")}">${button("filter", copy("web.app.1fd57350e5f1"), "filter")}${button("plus", copy("web.panels.5a15649c2481"), "capture")}${button("refresh", copy("web.app.26b4905705d6"), "refresh")}${button("up", copy("web.app.071b374af1b8"), "top")}${button("gear", copy("web.app.df3d58c7d84b"), "settings")}</div>
-   <button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="bookmark" aria-label="${copy("web.app.25ce5c2fbf41")}" aria-expanded="false">${icon("grid", 22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg></div></div>
-   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
+   <button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="bookmark" aria-label="${copy("web.app.25ce5c2fbf41")}" aria-expanded="false">${icon("grid", 22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div>
    <div id="drop-targets" class="drop-targets" hidden><div class="drop-target glass" data-drop="bookmark" aria-label="${copy("web.app.0dd4fd4ac051")}">${icon("bookmark", 22)}</div><div class="drop-target glass" data-drop="later" aria-label="${copy("web.app.5248d828ba43")}">${icon("glasses", 22)}</div><div class="drop-target glass" data-drop="tag" aria-label="${copy("web.app.2c19361cc109")}">${icon("tag", 22)}</div></div>
    <div id="import-rings" class="import-rings glass" hidden aria-hidden="true"></div><div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <input type="file" id="file-input" hidden multiple accept=".opml,.xml,.csv,.html,.htm,.md,.markdown,.txt,.ics">
@@ -170,7 +174,7 @@ class AppController {
 					e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
 				);
 			});
-			if (!inside) this.closeModal();
+			if (!inside) this.previewTrail?.length ? this.closeAll() : this.closeModal();
 		});
 		const dock = document.getElementById("dock");
 		dock.addEventListener("pointerenter", (e?: any) => {
@@ -465,12 +469,26 @@ class AppController {
 	updateFilterIndicator() {
 		document.getElementById("dock").classList.toggle("filter-active", this.filtering());
 	}
+	/** Toggle one card, add it, or (Shift) fill the range from the last picked card. */
+	select(id?: any, options: any = {}) {
+		const order = [...this.grid.querySelectorAll("[data-card]")].map((n?: any) => n.dataset.card),
+			from = order.indexOf(this.selectAnchor),
+			to = order.indexOf(id);
+		if (options.range && from >= 0 && to >= 0) {
+			for (const card of order.slice(Math.min(from, to), Math.max(from, to) + 1))
+				this.selected.add(card);
+		} else if (options.add || !this.selected.has(id)) this.selected.add(id);
+		else this.selected.delete(id);
+		this.selectAnchor = id;
+		this.updateSelection();
+	}
 	updateSelection() {
 		this.grid.querySelectorAll("[data-card]").forEach((n?: any) => {
 			n.classList.toggle("is-selected", this.selected.has(n.dataset.card));
 		});
 		const bar = document.getElementById("selection-bar");
 		bar.hidden = this.selected.size === 0;
+		document.body.classList.toggle("is-selecting", this.selected.size > 0);
 		bar.querySelector(".selection-count").textContent = String(this.selected.size);
 	}
 	/* ——— Routes: #feed · #card/<id> · #read/<id> ——— */
@@ -489,6 +507,11 @@ class AppController {
 			if (!id || !Store.card(id)) {
 				history.replaceState({ glass: true, prev: null }, "", "#feed");
 				this.route();
+				return;
+			}
+			if (this.closingAll) {
+				this.closingAll = false;
+				this.closeModal();
 				return;
 			}
 			this.openCard(id, kind === "read");
@@ -644,6 +667,15 @@ class AppController {
 		(focus || document.getElementById("orb")).focus({ preventScroll: true });
 	}
 	// Leave a card for the desk directly, wherever it was opened from.
+	/** Close every stacked preview: unwind the cards opened from inside, then close the first. */
+	closeAll() {
+		const depth = this.previewTrail?.length || 0;
+		this.previewTrail = [];
+		if (depth && history.state?.prev !== undefined && /^#card\//.test(location.hash)) {
+			this.closingAll = true;
+			history.go(-depth);
+		} else this.closeToDesk();
+	}
 	closeToDesk(animate: any = true) {
 		history.replaceState({ glass: true, prev: null }, "", "#" + this.baseMode);
 		this.lastRouteHash = "#" + this.baseMode;
@@ -751,6 +783,12 @@ class AppController {
 				? MotionEngine.surface(this.dialog)
 				: source,
 		);
+		if (!this.dialog.open || this.modalKind !== "preview") this.previewTrail = [];
+		else if (!reading && this.currentId && this.currentId !== id) {
+			const back = this.previewTrail.lastIndexOf(id);
+			if (back >= 0) this.previewTrail = this.previewTrail.slice(0, back);
+			else this.previewTrail.push(this.currentId);
+		}
 		this.currentId = id;
 		Store.patch(id, { seen: true });
 		this.refreshCard(id);
@@ -769,6 +807,13 @@ class AppController {
 			return;
 		}
 		this.openModal(Panels.preview(this, c), "preview", origin);
+		// The card below shows as an edge behind this one; tapping it goes back one card.
+		const below = Store.card(this.previewTrail.at(-1));
+		if (below)
+			this.dialog.insertAdjacentHTML(
+				"afterbegin",
+				`<button type="button" class="sheet-peek" data-action="close" aria-label="${esc(copy("web.peekBack") + below.title)}"></button>`,
+			);
 		this.bindPreview(id);
 		this.gestures.bindPullDown();
 		if (c.type === "media" && c.media !== "podcast") {
@@ -851,42 +896,55 @@ class AppController {
 	openExternal(c?: any) {
 		if (c?.url && /^https?:\/\//.test(c.url)) window.open(c.url, "_blank", "noopener,noreferrer");
 	}
+	/** Toast is for undo and short facts; it sits on the bottom rail beside the orb. */
 	toast(text?: any, undo: any = null, actionLabel: any = copy("web.app.926a50b98ece")) {
+		this.showToast(text, undo, actionLabel, false);
+	}
+	/** A failure or a step the person must take stays until it is closed. */
+	alert(text?: any) {
+		this.showToast(text, null, "", true);
+	}
+	showToast(text?: any, undo?: any, actionLabel?: any, persistent?: any) {
 		clearTimeout(this.toastTimer);
+		this.toastSeq = (this.toastSeq || 0) + 1;
 		this.undoAction = undo;
 		const toast = document.getElementById("toast");
 		(this.dialog.open ? this.dialog : document.body).appendChild(toast);
 		document.getElementById("toast-text").textContent = text;
 		document.getElementById("toast-action").innerHTML = undo
 			? `<button type="button" class="text-link" data-action="undo" aria-label="${actionLabel === copy("web.app.926a50b98ece") ? copy("web.app.493c9056731b") : esc(actionLabel)}">${esc(actionLabel)}</button>`
-			: "";
+			: persistent
+				? button("x", copy("web.close"), "toast-close")
+				: "";
+		toast.classList.toggle("is-alert", !!persistent);
+		toast.setAttribute("role", persistent ? "alert" : "status");
 		toast.hidden = false;
 		MotionEngine.enter(toast);
-		this.toastTimer = window.setTimeout(
-			() => {
-				toast.hidden = true;
-			},
-			undo ? 5500 : 3200,
-		);
+		if (!persistent)
+			this.toastTimer = window.setTimeout(() => this.hideToast(), undo ? 5500 : 3200);
 	}
+	hideToast() {
+		clearTimeout(this.toastTimer);
+		const toast = document.getElementById("toast"),
+			seq = this.toastSeq;
+		if (!toast || toast.hidden) return;
+		const done = () => {
+			if (seq === this.toastSeq) toast.hidden = true;
+		};
+		const leave = MotionEngine.animate(
+			toast,
+			[
+				{ opacity: 1, transform: "none" },
+				{ opacity: 0, transform: "translateY(4px)" },
+			],
+			{ duration: 140 },
+		);
+		leave ? leave.finished.then(done, done) : done();
+	}
+	/** A single flag shows its result on the card and in the preview; no toast. */
 	setFlag(id?: any, key?: any, value?: any) {
-		const before = Store.item(id)[key];
 		Store.patch(id, { [key]: value });
 		this.refreshCard(id);
-		this.toast(
-			key === "bookmarked"
-				? value
-					? copy("web.app.471dd4d7f869")
-					: copy("web.app.7fa7b63b0ee1")
-				: value
-					? copy("web.app.8ed682d9621a")
-					: copy("web.app.6bcacb7bb31c"),
-			() => {
-				Store.patch(id, { [key]: before });
-				this.refreshCard(id);
-				this.syncPreviewButtons(id);
-			},
-		);
 		this.syncPreviewButtons(id);
 	}
 	syncPreviewButtons(id?: any) {
@@ -976,7 +1034,7 @@ class AppController {
 		this.closeMore();
 		c.classList.add("tools-open");
 		const menu = document.createElement("div");
-		menu.className = "card-more-menu glass";
+		menu.className = "card-more-menu";
 		menu.setAttribute("role", "group");
 		menu.setAttribute("aria-label", copy("web.templates.ee9430845e26"));
 		menu.id = "card-menu-" + id;
@@ -1032,6 +1090,7 @@ class AppController {
 		// Background work shows as a thin arc on the orb; success needs no sentence.
 		const dock = document.getElementById("dock"),
 			started = Date.now();
+		let finished = false;
 		dock.classList.add("is-busy");
 		try {
 			if (window.__QG_LOCAL__) await LocalSync.refresh(true);
@@ -1054,13 +1113,20 @@ class AppController {
 			}
 			this.paintPending();
 			this.announce(copy("web.app.2a004d94219c"));
+			finished = true;
 		} catch (error) {
 			this.setOffline(true);
-			this.toast(copy("web.app.281583251761") + error.message);
+			this.alert(copy("web.app.281583251761") + error.message);
 		} finally {
 			this.refreshBusy = false;
+			// The arc closes into a check for a moment: the refresh ran, with no sentence.
 			window.setTimeout(
-				() => dock.classList.remove("is-busy"),
+				() => {
+					dock.classList.remove("is-busy");
+					if (!finished) return;
+					dock.classList.add("is-done");
+					window.setTimeout(() => dock.classList.remove("is-done"), 900);
+				},
 				Math.max(0, 600 - (Date.now() - started)),
 			);
 		}
@@ -1462,19 +1528,19 @@ class AppController {
 		const parsed = [];
 		for (const file of files.slice(0, 20)) {
 			if (file.size > 20 * 1048576) {
-				this.toast(`${file.name}${copy("web.app.cdfe77b2534c")}`);
+				this.alert(`${file.name}${copy("web.app.cdfe77b2534c")}`);
 				continue;
 			}
 			const text = await file.text(),
 				result = Importers.parse(file.name, text);
 			if (!result.kind) {
-				this.toast(`${copy("web.app.868a47950311")}${file.name}`);
+				this.alert(`${copy("web.app.868a47950311")}${file.name}`);
 				continue;
 			}
 			if (result.entries.length) parsed.push(result);
 		}
 		if (!parsed.length) {
-			if (files.length) this.toast(copy("web.app.73eb407df991"));
+			if (files.length) this.alert(copy("web.app.73eb407df991"));
 			return;
 		}
 		// Several files of one kind preview together.
@@ -2028,6 +2094,18 @@ class AppController {
 			return;
 		}
 		if (Date.now() < this.drag.suppressUntil) return;
+		const picked = e.target.closest?.("#feed-grid [data-card]");
+		if (
+			picked &&
+			!e.target.closest(".card-actions, .card-more-menu, .is-editing") &&
+			(e.metaKey || e.ctrlKey || e.shiftKey || this.selected.size)
+		) {
+			e.preventDefault();
+			e.stopPropagation();
+			this.closeMore();
+			this.select(picked.dataset.card, { range: e.shiftKey });
+			return;
+		}
 		const el = e.target.closest?.("[data-action]");
 		if (el?.closest(".card-more-menu")) this.closeMore(true);
 		else if (!el?.matches('[data-action="card-more"]') && !e.target.closest?.(".card-more-menu"))
@@ -2152,14 +2230,15 @@ class AppController {
 					readAt: read ? Date.now() : 0,
 				});
 				this.refreshCard(id);
-				this.toast(read ? copy("web.app.3816daaa651c") : copy("web.app.10d6a211240d"), () => {
-					Store.patch(id, before);
-					this.refreshCard(id);
-				});
 				break;
 			}
 			case "select":
-				this.selected.has(id) ? this.selected.delete(id) : this.selected.add(id);
+				this.select(id);
+				break;
+			case "select-all":
+				this.grid.querySelectorAll("[data-card]").forEach((n?: any) => {
+					this.selected.add(n.dataset.card);
+				});
 				this.updateSelection();
 				break;
 			case "clear-selection":
@@ -2280,7 +2359,7 @@ class AppController {
 					value = (field as HTMLInputElement).value.trim().replace(/^#/, "").slice(0, 30);
 				if (!value) return;
 				if (this.editTags.size >= 20) {
-					this.toast(copy("web.app.1859bc867672"));
+					this.alert(copy("web.app.1859bc867672"));
 					return;
 				}
 				this.editTags.add(value);
@@ -2437,7 +2516,7 @@ class AppController {
 						open: "inside",
 						range: "30d",
 					});
-					this.toast(copy("web.app.58a34977e6ee"));
+					this.alert(copy("web.app.58a34977e6ee"));
 				}
 				if (this.permissionQueue) {
 					this.nextPermission();
@@ -2522,10 +2601,10 @@ class AppController {
 					(document.getElementById("feed-url") as HTMLInputElement)?.value || "",
 				);
 				if (!url) {
-					this.toast(copy("web.app.96e1376c8dee"));
+					this.alert(copy("web.app.96e1376c8dee"));
 					return;
 				}
-				this.toast(copy("web.app.42f3ce27d2cb"));
+				this.alert(copy("web.app.42f3ce27d2cb"));
 				break;
 			}
 			case "import-pick":
@@ -2604,13 +2683,16 @@ class AppController {
 			case "sync-discard-confirm":
 				LocalSync.discard()
 					.then(() => this.closeNative())
-					.catch((error?: any) => this.toast(error.message));
+					.catch((error?: any) => this.alert(error.message));
+				break;
+			case "toast-close":
+				this.hideToast();
 				break;
 			case "undo":
 				if (this.undoAction) {
 					const fn = this.undoAction;
 					this.undoAction = null;
-					document.getElementById("toast").hidden = true;
+					this.hideToast();
 					fn();
 				}
 				break;
@@ -2845,6 +2927,10 @@ END:VCALENDAR
 			return;
 		}
 		if (e.key === "Escape" && !this.dialog.open) {
+			if (this.selected.size) {
+				this.selected.clear();
+				this.updateSelection();
+			}
 			this.hideDock();
 			return;
 		}

@@ -96,7 +96,8 @@ const CardTemplates: Record<string, any> = {
 			c.sources?.length > 1
 				? c.sources.map((s?: any) => s.name).join(" · ")
 				: cardSource(c) || (CardTypes[c.type] || CardTypes.note).label,
-			c.meta,
+			// A relation lists its cards below; a count in the head would say it twice.
+			c.type === "suggestion" && c.related?.length ? "" : c.meta,
 		]
 			.filter(Boolean)
 			.join(" · ");

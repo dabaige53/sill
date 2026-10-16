@@ -423,7 +423,6 @@
 	"web.panels.dca60869e7d2": "取消收藏",
 	"web.panels.c4d2d1edba13": "取消稍后读",
 	"web.panels.c8bf87742cc0": "卡片工具",
-	"web.panels.1e3cf66770a4": "延后提醒十分钟",
 	"web.panels.311b1a019362": "忽略此提醒",
 	"web.panels.99ae21ea6c39": "去",
 	"web.panels.354b28c85333": "原文",
@@ -845,5 +844,8 @@
 	"server.checkfiles.a2d8a8e43223": "文件管理检查通过：目录归属、文档有效性、导航、链接、证据、依赖方向与本地文件隔离。",
 	"server.serveboards.18880b358e65": "Sill 设计画板：http://127.0.0.1:4310/",
 	"server.sill.529e004a8653": "Sill · 窗台本地操作\n  node scripts/sill.ts capabilities\n  node scripts/sill.ts list [关键词]\n  node scripts/sill.ts get <卡片ID>\n  node scripts/sill.ts open <卡片ID>\n  node scripts/sill.ts state\n  node scripts/sill.ts apply [--file JSON文件]\napply 输入：{operations:[...],expectedRevision?:number}；无 --file 时从 stdin 读取 JSON。",
-	"server.sill.6eef1dd64f92": "请先在项目目录运行 npm start"
+	"server.sill.6eef1dd64f92": "请先在项目目录运行 npm start",
+	"web.selectAll": "全选",
+	"web.selectAllLabel": "选中桌面上的全部卡片",
+	"web.peekBack": "回到上一张："
 }

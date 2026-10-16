@@ -23,7 +23,7 @@
 | `assets/` | 品牌图标 |
 | `.github/` | CI 与 PR 模板 |
 
-根目录只放约定俗成的入口和配置：`README.md`、`AGENTS.md`、`GLOSSARY.md`、`pr.md`、`package.json`、`package-lock.json`、`tsconfig.json`、`biome.json`、`.swift-format`、`.git-blame-ignore-revs`、`.gitignore`、`.env.example`、`plugin.json`、`.app.json`。环境类型声明放在 `contracts/`，不新增根目录声明文件。新增顶层目录或根文件时，先写 ADR，再更新本表和 `files:check` 的允许列表。
+根目录只放约定俗成的入口和配置：`README.md`、`AGENTS.md`、`DESIGN.md`、`GLOSSARY.md`、`pr.md`、`package.json`、`package-lock.json`、`tsconfig.json`、`biome.json`、`.swift-format`、`.git-blame-ignore-revs`、`.gitignore`、`.env.example`、`plugin.json`、`.app.json`。环境类型声明放在 `contracts/`，不新增根目录声明文件。新增顶层目录或根文件时，先写 ADR，再更新本表和 `files:check` 的允许列表。
 
 依赖方向：`apps/*` 和 `server/*` 只引用 `contracts/` 与 `design-system/`；各端之间互不引用。
 
@@ -50,7 +50,7 @@
 ## 3. 命名
 
 - 新路径一律使用小写 kebab-case，例如 `docs/guides/plugin-runbook.md`。目录名已表达类别时，文件名不重复前缀。
-- 例外：`README.md`、`AGENTS.md`、`GLOSSARY.md`、`SKILL.md` 等约定文件名；归档文档保留原文件名。
+- 例外：`README.md`、`AGENTS.md`、`DESIGN.md`、`GLOSSARY.md`、`SKILL.md` 等约定文件名；归档文档保留原文件名。
 - 记录：`docs/records/YYYY-MM-DD-topic/README.md`，一件事一个目录；同一天的多件事各用一个目录。
 - ADR：`docs/adr/NNNN-topic.md`，编号从 0022 起递增；分配前检查 `docs/adr/` 中的最大编号。
 - 发布快照：`deploy/releases/YYYY-MM-DD-<端>/`，清单中写明产品版本；已有快照保持原样。

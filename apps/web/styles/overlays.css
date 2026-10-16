@@ -58,7 +58,8 @@ dialog::backdrop {
 .float-bar .icon-button:hover {
 	background: rgba(0, 0, 0, 0.05);
 }
-.float-bar .solid-button {
+.float-bar .solid-button,
+.float-bar .pill {
 	margin-left: 6px;
 }
 
@@ -74,7 +75,22 @@ dialog::backdrop {
 	gap: 16px;
 }
 .preview-sheet {
+	position: relative;
+	z-index: 1;
 	width: 100%;
+}
+/* Stacked previews: the card below shows as an edge above this one. */
+.sheet-peek {
+	flex: none;
+	width: 94%;
+	height: 44px;
+	margin-bottom: -46px;
+	border: 1px solid var(--line-card);
+	border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+	background: var(--card-read);
+	box-shadow: var(--shadow-sheet);
+	cursor: pointer;
+	transition: opacity var(--base) var(--ease);
 }
 .preview-sheet .sheet-scroll {
 	max-height: min(80vh, 820px);
@@ -921,6 +937,10 @@ kbd {
 	padding: 6px;
 	border-radius: 16px;
 	z-index: 5;
+	/* The menu sits over the card's own text, so it is solid, not glass. */
+	background: var(--card);
+	border: 1px solid var(--line);
+	box-shadow: var(--shadow-glass);
 }
 .card-menu-item {
 	display: flex;
@@ -1363,11 +1383,9 @@ body.is-dragging .dock-tools {
 body.is-dragging #selection-bar {
 	visibility: hidden;
 }
+/* Drop targets appear beside the pointer where the card was lifted, not at a screen edge. */
 .drop-targets {
 	position: fixed;
-	left: 50%;
-	bottom: 32px;
-	transform: translateX(-50%);
 	display: flex;
 	gap: 16px;
 	z-index: 46;

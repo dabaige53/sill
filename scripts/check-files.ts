@@ -15,6 +15,7 @@ const roots = new Set<any>([
 	".app.json",
 	".ruff_cache",
 	"AGENTS.md",
+	"DESIGN.md",
 	"README.md",
 	"GLOSSARY.md",
 	"pr.md",
@@ -118,6 +119,7 @@ for (const entry of await readdir(resolve(root, "docs/records"), { withFileTypes
 }
 const guides = new Set<any>([
 	"AGENTS.md",
+	"DESIGN.md",
 	".github/pull_request_template.md",
 	"pr.md",
 	"README.md",

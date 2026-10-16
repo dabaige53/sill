@@ -6,3 +6,5 @@
 - 打开：`#dock.is-open` 或 focus-within，工具 230ms `ease` 上浮淡入。
 - 有筛选时 `#dock.filter-active` 右上角 7px `accent` 圆点。
 - 减少透明度时改用 `card` 实体底。
+- 入口球是底部轨道的锚点：多选条、「↑ 3」「未连接」排在它左边同一行，Toast 也以它为准对齐。
+- 刷新时外圈细弧转动，完成后闭合并短暂显示勾。

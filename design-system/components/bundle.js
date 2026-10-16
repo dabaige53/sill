@@ -531,7 +531,6 @@ var Sill = (() => {
     "web.panels.dca60869e7d2": "\u53D6\u6D88\u6536\u85CF",
     "web.panels.c4d2d1edba13": "\u53D6\u6D88\u7A0D\u540E\u8BFB",
     "web.panels.c8bf87742cc0": "\u5361\u7247\u5DE5\u5177",
-    "web.panels.1e3cf66770a4": "\u5EF6\u540E\u63D0\u9192\u5341\u5206\u949F",
     "web.panels.311b1a019362": "\u5FFD\u7565\u6B64\u63D0\u9192",
     "web.panels.99ae21ea6c39": "\u53BB",
     "web.panels.354b28c85333": "\u539F\u6587",
@@ -953,7 +952,10 @@ var Sill = (() => {
     "server.checkfiles.a2d8a8e43223": "\u6587\u4EF6\u7BA1\u7406\u68C0\u67E5\u901A\u8FC7\uFF1A\u76EE\u5F55\u5F52\u5C5E\u3001\u6587\u6863\u6709\u6548\u6027\u3001\u5BFC\u822A\u3001\u94FE\u63A5\u3001\u8BC1\u636E\u3001\u4F9D\u8D56\u65B9\u5411\u4E0E\u672C\u5730\u6587\u4EF6\u9694\u79BB\u3002",
     "server.serveboards.18880b358e65": "Sill \u8BBE\u8BA1\u753B\u677F\uFF1Ahttp://127.0.0.1:4310/",
     "server.sill.529e004a8653": "Sill \xB7 \u7A97\u53F0\u672C\u5730\u64CD\u4F5C\n  node scripts/sill.ts capabilities\n  node scripts/sill.ts list [\u5173\u952E\u8BCD]\n  node scripts/sill.ts get <\u5361\u7247ID>\n  node scripts/sill.ts open <\u5361\u7247ID>\n  node scripts/sill.ts state\n  node scripts/sill.ts apply [--file JSON\u6587\u4EF6]\napply \u8F93\u5165\uFF1A{operations:[...],expectedRevision?:number}\uFF1B\u65E0 --file \u65F6\u4ECE stdin \u8BFB\u53D6 JSON\u3002",
-    "server.sill.6eef1dd64f92": "\u8BF7\u5148\u5728\u9879\u76EE\u76EE\u5F55\u8FD0\u884C npm start"
+    "server.sill.6eef1dd64f92": "\u8BF7\u5148\u5728\u9879\u76EE\u76EE\u5F55\u8FD0\u884C npm start",
+    "web.selectAll": "\u5168\u9009",
+    "web.selectAllLabel": "\u9009\u4E2D\u684C\u9762\u4E0A\u7684\u5168\u90E8\u5361\u7247",
+    "web.peekBack": "\u56DE\u5230\u4E0A\u4E00\u5F20\uFF1A"
   };
 
   // design-system/copy.ts

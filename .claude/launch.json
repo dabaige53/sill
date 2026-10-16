@@ -9,6 +9,15 @@
         "start"
       ],
       "port": 4318
+    },
+    {
+      "name": "boards",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "boards"
+      ],
+      "port": 4310
     }
   ]
 }

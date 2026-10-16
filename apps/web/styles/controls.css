@@ -41,11 +41,20 @@
 	fill-opacity: 0.9;
 }
 
+/* The bottom rail: the orb is the anchor. Everything that floats at the bottom
+   lines up with it: same bottom edge, 56px row, glass. One thing at a time sits
+   in the row beside the orb; the toast rises above the row when it is taken. */
+:root {
+	--rail-edge: 32px;
+	--rail-bottom: 32px;
+	--rail-row: 56px;
+	--rail-gap: 12px;
+}
 /* The orb: one glass entrance, bottom right. Tools rise from it. */
 #dock {
 	position: fixed;
-	right: 32px;
-	bottom: 32px;
+	right: var(--rail-edge);
+	bottom: var(--rail-bottom);
 	z-index: 45;
 	display: flex;
 	align-items: center;
@@ -59,7 +68,8 @@
 	opacity: 0.6;
 }
 #dock.is-quiet:hover,
-#dock.is-quiet:focus-within {
+#dock.is-quiet:focus-within,
+#dock.is-quiet:has(#selection-bar:not([hidden])) {
 	transform: none;
 	opacity: 1;
 }
@@ -210,6 +220,32 @@
 #dock.is-busy .orb-arc circle {
 	animation: orb-arc 1.1s linear infinite;
 }
+/* Done: the arc closes and a check shows over the orb, then both fade. */
+.orb-done {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	border-radius: 50%;
+	background: var(--glass-thick);
+	color: var(--accent);
+	opacity: 0;
+	scale: 0.8;
+	pointer-events: none;
+	transition:
+		opacity var(--base) var(--ease),
+		scale var(--base) var(--ease);
+}
+#dock.is-done .orb-done {
+	opacity: 1;
+	scale: 1;
+}
+#dock.is-done .orb-arc {
+	opacity: 0.9;
+}
+#dock.is-done .orb-arc circle {
+	stroke-dasharray: 100 0;
+}
 @keyframes orb-arc {
 	to {
 		transform: rotate(360deg);
@@ -246,19 +282,20 @@
 	}
 }
 
-/* Toast and selection: glass pills at the bottom centre. */
+/* Selection takes the row beside the orb; new-content and offline pills step aside. */
 #selection-bar {
-	position: fixed;
-	left: 50%;
-	bottom: 32px;
-	transform: translateX(-50%);
-	z-index: 43;
-	border-radius: 30px;
+	height: var(--rail-row);
+	border-radius: var(--pill-radius);
 	display: flex;
 	align-items: center;
 	padding: 6px;
 	gap: 2px;
-	max-width: calc(100vw - 120px);
+	max-width: calc(100vw - 2 * var(--rail-edge) - var(--rail-row) - var(--rail-gap));
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+#dock:has(#selection-bar:not([hidden])) :is(#new-count, #offline) {
+	display: none;
 }
 #selection-bar[hidden] {
 	display: none;
@@ -285,18 +322,34 @@
 }
 #toast {
 	position: fixed;
-	bottom: 32px;
-	left: 50%;
-	transform: translateX(-50%);
-	max-width: calc(100vw - 140px);
+	right: calc(var(--rail-edge) + var(--rail-row) + var(--rail-gap));
+	bottom: calc(var(--rail-bottom) + 6px);
+	max-width: min(420px, calc(100vw - 2 * var(--rail-edge) - var(--rail-row) - var(--rail-gap)));
 	min-height: 44px;
 	padding: 0 6px 0 18px;
-	border-radius: 22px;
+	border-radius: var(--pill-radius);
 	z-index: 120;
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	font-size: var(--text-meta);
+	transition: bottom var(--base) var(--ease);
+}
+/* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
+body:has(#dock > :is(#selection-bar, #new-count, #offline):not([hidden])) #toast,
+#modal #toast {
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--rail-gap));
+}
+#toast.is-alert {
+	color: var(--ink);
+}
+#toast.is-alert .icon-button {
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+}
+body.is-dragging #toast {
+	visibility: hidden;
 }
 #toast[hidden] {
 	display: none;

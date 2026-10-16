@@ -9,6 +9,7 @@ import {
 	eventRelative,
 	eventTimely,
 	highlight,
+	pill,
 	relativeDay,
 	segmented,
 	timeString,
@@ -55,18 +56,39 @@ const Panels: Record<string, any> = {
 		return `<div class="float-bar glass" role="toolbar" aria-label="${copy("web.panels.c8bf87742cc0")}">${parts.filter(Boolean).join("")}</div>`;
 	},
 	sep: '<span class="toolbar-sep" aria-hidden="true"></span>',
+	/** The toolbar keeps the generic verb as an icon: stop reminding. */
 	reminderTools(c?: any) {
 		if (!FeedPolicy.supports(c)) return "";
 		const s = Store.item(c.id);
-		if (s.dismissed || s.reminderDone || s.snoozedUntil)
-			return button("undo", copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id);
-		return (
-			button("clock", copy("web.panels.1e3cf66770a4"), "snooze", c.id) +
-			button("bell-off", copy("web.panels.311b1a019362"), "dismiss-reminder", c.id) +
-			(c.type === "reminder"
-				? button("check", copy("web.templates.56c2b97093d8"), "complete-reminder", c.id)
-				: "")
-		);
+		if (s.dismissed || s.reminderDone || s.snoozedUntil) return "";
+		return button("bell-off", copy("web.panels.311b1a019362"), "dismiss-reminder", c.id);
+	},
+	/** The same action row as on the card, with the same words, under the content. */
+	reminderRow(c?: any) {
+		if (!FeedPolicy.supports(c)) return "";
+		const s = Store.item(c.id);
+		const acts =
+			s.dismissed || s.reminderDone || s.snoozedUntil
+				? pill(copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "soft")
+				: pill(
+						copy("web.templates.2d89d6318b38"),
+						"snooze",
+						c.id,
+						"soft grow",
+						"",
+						copy("web.templates.5273ca462f40"),
+					) +
+					(c.type === "reminder"
+						? pill(
+								copy("web.done"),
+								"complete-reminder",
+								c.id,
+								"primary",
+								"",
+								copy("web.templates.56c2b97093d8"),
+							)
+						: "");
+		return `<div class="reminder-actions" role="group" aria-label="${copy("web.templates.9d9382cf8476")}">${acts}</div>`;
 	},
 	external(c?: any, label?: any) {
 		if (!c.url) return "";
@@ -121,7 +143,7 @@ const Panels: Record<string, any> = {
 			].join("");
 			return (
 				sheet(
-					`<div class="preview-meta">${esc(dateLabel(c.start))} · <span style="color:var(--accent);font-weight:500">${esc(eventRelative(c))}</span></div><div class="event-hero"><span class="num">${timeString(c.start)}</span><small class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)} · ${span}${copy("web.templates.40de54344d22")}</small></div>${h1}${rows ? `<div class="detail-rows">${rows}</div>` : ""}${c.body?.length ? `<div class="preview-full">${c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}`,
+					`<div class="preview-meta">${esc(dateLabel(c.start))}${eventRelative(c) ? ` · <span style="color:var(--accent);font-weight:500">${esc(eventRelative(c))}</span>` : ""}</div><div class="event-hero"><span class="num">${timeString(c.start)}</span><small class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)} · ${span}${copy("web.templates.40de54344d22")}</small></div>${h1}${rows ? `<div class="detail-rows">${rows}</div>` : ""}${c.body?.length ? `<div class="preview-full">${c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}${this.reminderRow(c)}`,
 				) +
 				this.bar(
 					button("download", copy("web.panels.5510cee6e987"), "download-calendar", c.id),
@@ -180,10 +202,13 @@ const Panels: Record<string, any> = {
 							.map((t?: any) => checkItem(c, t))
 							.join("")}</div>`
 					: "";
-			const label = c.type === "reminder" ? FeedPolicy.label(c, s, Date.now()) : c.meta || "";
+			const label =
+				c.type === "reminder"
+					? [copy("web.reminder"), FeedPolicy.label(c, s, Date.now())].filter(Boolean).join(" · ")
+					: c.meta || "";
 			return (
 				sheet(
-					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}`,
+					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}${this.reminderRow(c)}`,
 				) +
 				this.bar(
 					this.bookmark(c, s),

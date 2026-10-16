@@ -12,6 +12,7 @@ import { copy, errorMessage } from "../../apps/web/copy.ts";
 import { CardTypes, SourceKinds } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
+import { FeedPolicy } from "../../apps/web/services/feed-policy.ts";
 import { cardTypes, sourceKinds } from "../../contracts/card.ts";
 import messages from "../../design-system/copy/zh-Hans.json" with { type: "json" };
 
@@ -152,4 +153,11 @@ test("ended events and read cards fade without a status label", () => {
 		cardHTML({ id: "done", type: "article", title: "读过" }, { state: { read: true } }),
 	).window.document;
 	assert.doesNotMatch(read.body.textContent || "", /已读/);
+});
+
+test("a reminder without a time has no status label and no meta fallback", () => {
+	const reminder = { id: "r", type: "reminder", title: "调价", meta: "已保存" };
+	assert.equal(FeedPolicy.label(reminder, {}, Date.now()), "");
+	Store.state = Store.fresh();
+	assert.doesNotMatch(cardHTML(reminder), /已保存/);
 });
