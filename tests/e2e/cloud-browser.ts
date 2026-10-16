@@ -154,37 +154,25 @@ try {
 	assert.equal(records.length, 1, "same idempotency key creates once");
 	assert.equal(records[0].title, "Browser persisted note");
 	const id = records[0].id;
-	await page.evaluate((id?: any) => window.__app.action("edit", id), id);
-	await page.locator("#cloud-title").fill("My retained draft");
-	const external = await page.evaluate(async (id?: any) => {
+	await page.evaluate((id: any) => window.__app.action("edit-content", id), id);
+	assert.equal(
+		await page.locator("#cloud-editor").count(),
+		0,
+		"existing content has no human editor",
+	);
+	const external = await page.evaluate(async (id: any) => {
+		const current = await (await fetch("/api/v1/contents/" + id)).json();
 		const r = await fetch("/api/v1/contents/" + id, {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json", "Idempotency-Key": "external_editor1" },
-			body: JSON.stringify({ expectedRevision: 1, changes: { title: "Other editor" } }),
+			body: JSON.stringify({
+				expectedRevision: current.revision,
+				changes: { title: "Agent updated note" },
+			}),
 		});
 		return r.status;
 	}, id);
 	assert.equal(external, 200);
-	await page.locator("#cloud-editor [type=submit]").click();
-	await page.waitForFunction(() =>
-		document.querySelector("#cloud-save-status")?.textContent.includes("另一处修改"),
-	);
-	assert.equal(await page.locator("#cloud-title").inputValue(), "My retained draft");
-	await page.locator("#cloud-editor [data-action=close]").click();
-	await page.evaluate((id?: any) => window.__app.action("edit", id), id);
-	assert.equal(
-		await page.locator("#cloud-title").inputValue(),
-		"My retained draft",
-		"closing an editor retains its draft and original revision",
-	);
-	await page.locator("#cloud-discard").click();
-	await page.locator("#cloud-confirm").click();
-	await cloudTool(page, "refresh");
-	await page.waitForFunction(() => window.__store.state.cards[0]?.title === "Other editor");
-	await page.evaluate((id?: any) => window.__app.action("edit", id), id);
-	await page.locator("#cloud-title").fill("Confirmed update");
-	await page.keyboard.press("Control+Enter");
-	await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
 	mcpClient = new Client({ name: "synthetic-agent", version: "1.0.0" });
 	await mcpClient.connect(
 		new StreamableHTTPClientTransport(new URL(fixture.config.agentAudience), {

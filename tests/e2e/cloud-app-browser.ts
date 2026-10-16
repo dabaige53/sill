@@ -144,17 +144,9 @@ try {
 	await page.screenshot({ path: "tests/artifacts/cloud-app-mobile.png", animations: "disabled" });
 	assert.ok(await frame.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
 	await frame.locator("[data-card] .card-more-trigger").click();
-	await frame.locator("#cloud-title").fill("Updated in plugin");
-	await frame.locator("#cloud-save").click();
-	await frame.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
-	assert.equal(
-		(await client.callTool({ name: "sill_getContent", arguments: { id: created.id } }))
-			.structuredContent.title,
-		"Updated in plugin",
-	);
-	// Host sandbox intentionally has no allow-modals or allow-forms. Confirmation
-	// must use the existing Sill panel, and cancellation must retain the draft.
-	await frame.locator("[data-card] .card-more-trigger").click();
+	assert.equal(await frame.locator("[data-action=edit-content]").count(), 0);
+	await frame.locator("main").click({ position: { x: 2, y: 2 } });
+	await cloudTool(frame, "capture");
 	await frame.locator("#cloud-title").fill("Keep this host draft");
 	await frame.locator("#cloud-discard").click();
 	await frame.locator("#cloud-confirm").waitFor();
@@ -162,24 +154,31 @@ try {
 	assert.equal(await frame.locator("#cloud-title").inputValue(), "Keep this host draft");
 	await frame.locator("#cloud-discard").click();
 	await frame.locator("#cloud-confirm").click();
-	await frame.locator("[data-card] .card-more-trigger").click();
-	assert.equal(await frame.locator("#cloud-title").inputValue(), "Updated in plugin");
-	await frame.locator("#cloud-delete").click();
-	await frame.locator("#cloud-confirm").waitFor();
-	await frame.locator("[data-action=close]").click();
-	assert.equal(
-		(await client.callTool({ name: "sill_getContent", arguments: { id: created.id } }))
-			.structuredContent.title,
-		"Updated in plugin",
-	);
-	await frame.locator("#cloud-delete").click();
-	await frame.locator("#cloud-confirm").click();
-	await frame.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
-	assert.equal(
-		(await client.callTool({ name: "sill_listContents", arguments: {} })).structuredContent.items
-			.length,
-		0,
-	);
+	const current = (
+		await client.callTool({ name: "sill_getContent", arguments: { id: created.id } })
+	).structuredContent;
+	const updated = await client.callTool({
+		name: "sill_updateContent",
+		arguments: {
+			id: created.id,
+			idempotency_key: "host_ai_update_01",
+			body: { expectedRevision: current.revision, changes: { title: "AI updated in plugin" } },
+		},
+	});
+	assert.ok(!updated.isError);
+	await cloudTool(frame, "refresh");
+	await frame.waitForFunction(() => __store.state.cards[0]?.title === "AI updated in plugin");
+	const deleted = await client.callTool({
+		name: "sill_deleteContent",
+		arguments: {
+			id: created.id,
+			idempotency_key: "host_ai_delete_01",
+			body: { expectedRevision: updated.structuredContent.revision },
+		},
+	});
+	assert.ok(!deleted.isError);
+	await cloudTool(frame, "refresh");
+	await frame.waitForFunction(() => __store.state.cards.length === 0);
 	await cloudTool(frame, "settings");
 	await frame.locator("[data-action=settings-group][data-extra=data]").click();
 	assert.equal(await frame.locator("#cloud-logout").innerText(), "管理插件授权");

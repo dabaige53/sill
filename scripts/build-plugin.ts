@@ -9,11 +9,11 @@ const release = JSON.parse(await readFile(resolve(root, "deploy/sill/release.jso
 const binding: { apps: Record<string, { id: string }> } = JSON.parse(
 	await readFile(resolve(root, ".app.json"), "utf8"),
 );
-const appId = "asdk_app_6ad03f09b6048191a8826a236ac9097d";
+const appId = "asdk_app_6ad0d805d3e88191a1c8902cf66af046";
 if (
 	release.plugin_id !== "plugin_" + appId ||
 	release.app_id !== appId ||
-	manifest.name !== "dev-6ad03f09b6048191a8826a236ac9097d" ||
+	manifest.name !== "dev-6ad0d805d3e88191a1c8902cf66af046" ||
 	Object.values(binding.apps).length !== 1 ||
 	Object.values(binding.apps)[0].id !== appId
 )

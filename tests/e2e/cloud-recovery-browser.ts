@@ -48,6 +48,18 @@ async function scenario(name?: any, run?: any) {
 			);
 			return;
 		}
+		if (req.url === "/api/v1/workspace") {
+			reply(200, {
+				revision: fixture.records.size,
+				state: {
+					cards: [...fixture.records.values()],
+					items: Object.fromEntries([...fixture.records.values()].map((c) => [c.id, c.state])),
+					preferences: {},
+					seconds: 0,
+				},
+			});
+			return;
+		}
 		if (req.method === "GET") {
 			reply(200, { items: [...fixture.records.values()], next_cursor: null });
 			return;
@@ -109,19 +121,14 @@ async function scenario(name?: any, run?: any) {
 		await new Promise((resolve?: any) => server.close(resolve));
 	}
 }
-const edit = (page?: any, id: any = seed.id) =>
-	page.evaluate((id?: any) => __app.action(id ? "edit" : "capture", id), id);
+const edit = (page?: any, id: any = null) =>
+	page.evaluate((id?: any) => __app.action(id ? "edit-content" : "capture", id), id);
 try {
-	await scenario(
-		"title-only edit preserves paragraph boundaries and blank paragraphs",
-		async (page?: any, fixture?: any) => {
-			await edit(page);
-			await page.locator("#cloud-title").fill("只改标题");
-			await page.keyboard.press("Control+Enter");
-			await page.waitForFunction(() => !document.querySelector("dialog").open);
-			assert.deepEqual(fixture.records.get(seed.id).body, seed.body);
-		},
-	);
+	await scenario("existing card content has no manual editor", async (page: any, fixture: any) => {
+		await page.evaluate((id) => __app.action("edit-content", id), seed.id);
+		assert.equal(await page.locator("#cloud-editor").count(), 0);
+		assert.deepEqual(fixture.records.get(seed.id).body, seed.body);
+	});
 	await scenario(
 		"stalled save times out, ignores late response, and replays the same request once",
 		async (page?: any, fixture?: any) => {
@@ -198,7 +205,7 @@ try {
 				);
 				await page.keyboard.press("Control+Enter");
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
-				assert.equal(fixture.records.get(seed.id).title, "登录中断前的草稿");
+				assert.ok([...fixture.records.values()].some((c) => c.title === "登录中断前的草稿"));
 			},
 		);
 } finally {

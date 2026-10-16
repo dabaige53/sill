@@ -238,9 +238,7 @@ body.opaque #orb {
 		max-height: 70dvh;
 		border-top: 1px solid var(--line);
 	}
-	.source-grid {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
+
 	#modal.search {
 		margin: 12px auto auto;
 	}

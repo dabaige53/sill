@@ -1,17 +1,84 @@
 import { z } from "zod/v4";
 import { Card, cardTypes, id } from "./card.ts";
+import { CardState, Preferences } from "./local.ts";
 
 export { id };
 export const revision = z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
-export const cloudState = z
+export const cloudState = CardState.extend({
+	done: z.boolean().optional(),
+	archived: z.boolean().optional(),
+	lessLike: z.boolean().optional(),
+}).strict();
+export const cloudPreferences = Preferences.strict();
+const rawCard = Card.refine(
+	(value) =>
+		![
+			"state",
+			"revision",
+			"created_at",
+			"updated_at",
+			"deleted",
+			"owner_id",
+			"change_version",
+		].some((key) => Object.hasOwn(value, key)),
+	"server_metadata_forbidden",
+);
+export const workspaceBatch = z
 	.object({
-		read: z.boolean().optional(),
-		done: z.boolean().optional(),
-		archived: z.boolean().optional(),
+		operations: z
+			.array(
+				z.discriminatedUnion("op", [
+					z
+						.object({
+							op: z.literal("card.upsert"),
+							card: rawCard,
+							before: Card.nullable().optional(),
+						})
+						.strict(),
+					z.object({ op: z.literal("card.delete"), id, before: Card.optional() }).strict(),
+					z
+						.object({
+							op: z.literal("item.patch"),
+							id,
+							values: cloudState,
+							before: cloudState.optional(),
+						})
+						.strict(),
+					z
+						.object({
+							op: z.literal("preferences.patch"),
+							values: cloudPreferences,
+							before: cloudPreferences.optional(),
+						})
+						.strict(),
+					z
+						.object({ op: z.literal("reading.add"), seconds: z.number().int().min(0).max(86400) })
+						.strict(),
+				]),
+			)
+			.min(1)
+			.max(5000),
+		expectedRevision: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
 	})
 	.strict();
-export const changes = z
+export const workspaceSnapshot = z
 	.object({
+		revision: z.number().int().nonnegative(),
+		state: z
+			.object({
+				cards: z.array(Card),
+				items: z.record(id, cloudState),
+				preferences: cloudPreferences,
+				seconds: z.number().min(0).max(1e7),
+			})
+			.strict(),
+	})
+	.strict();
+const { id: cardId, ...cardFields } = Card.shape;
+export const changes = z
+	.object(cardFields)
+	.partial()
+	.extend({
 		title: Card.shape.title.optional(),
 		type: z.enum(cardTypes).optional(),
 		body: Card.shape.body,
@@ -43,27 +110,40 @@ export const event = z
 		destination_ref: id,
 	})
 	.strict();
+const expected_owner = z.string().min(1).max(100).optional();
 const key = z.string().regex(/^[\w-]{8,128}$/);
 export const toolInputs = {
+	sill_getWorkspace: z.object({ expected_owner }).strict(),
+	sill_applyOperations: z
+		.object({ expected_owner, idempotency_key: key, body: workspaceBatch })
+		.strict(),
 	sill_listContents: z
 		.object({
+			expected_owner,
 			cursor: z.string().min(1).max(2048).optional(),
 			since: z.string().min(1).max(2048).optional(),
 			limit: z.number().int().min(1).max(100).optional(),
 		})
 		.strict(),
-	sill_getContent: z.object({ id }).strict(),
-	sill_getEvent: z.object({ id }).strict(),
-	sill_createContent: z.object({ idempotency_key: key, body: create }).strict(),
-	sill_updateContent: z.object({ id, idempotency_key: key, body: update }).strict(),
+	sill_getContent: z.object({ id, expected_owner }).strict(),
+	sill_getEvent: z.object({ id, expected_owner }).strict(),
+	sill_createContent: z.object({ expected_owner, idempotency_key: key, body: create }).strict(),
+	sill_updateContent: z.object({ expected_owner, id, idempotency_key: key, body: update }).strict(),
 	sill_deleteContent: z
-		.object({ id, idempotency_key: key, body: z.object({ expectedRevision: revision }).strict() })
+		.object({
+			expected_owner,
+			id,
+			idempotency_key: key,
+			body: z.object({ expectedRevision: revision }).strict(),
+		})
 		.strict(),
-	sill_submitEvent: z.object({ idempotency_key: key, body: event }).strict(),
+	sill_submitEvent: z.object({ expected_owner, idempotency_key: key, body: event }).strict(),
 };
 const dateTime = z.string().datetime({ offset: true });
 export const cloudCard = z
-	.object({
+	.object(cardFields)
+	.partial()
+	.extend({
 		id,
 		title: Card.shape.title,
 		type: z.string().min(1).max(100),
@@ -77,6 +157,8 @@ export const cloudCard = z
 	})
 	.passthrough();
 export const cloudSchemas = {
+	Workspace: workspaceSnapshot,
+	WorkspaceBatch: workspaceBatch,
 	ID: id,
 	Revision: revision,
 	CreateCard: create,

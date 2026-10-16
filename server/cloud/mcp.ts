@@ -15,6 +15,8 @@ import { authenticateSupabase } from "./supabase-auth.ts";
 import { SupabaseRepository } from "./supabase-repository.ts";
 
 const scopes = {
+	sill_getWorkspace: "content:read",
+	sill_applyOperations: "content:read",
 	sill_listContents: "content:read",
 	sill_getContent: "content:read",
 	sill_createContent: "content:write",
@@ -49,7 +51,7 @@ const result = (value?: any) => ({
 	content: [{ type: "text", text: JSON.stringify(value) }],
 	structuredContent: value,
 });
-export const workspaceUri = "ui://sill/cloud-workspace-v3.html";
+export const workspaceUri = `ui://sill/cloud-workspace-${product.version}.html`;
 const workspaceMime = "text/html;profile=mcp-app";
 const workspaceMeta = {
 	ui: {
@@ -131,8 +133,10 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 				access = await repo.session();
 			const allowed = (name?: any) =>
 				access.scopes.includes(scopes[name]) &&
-				(name !== "sill_listContents" || access.workspaceRead) &&
-				(name !== "sill_createContent" || access.workspaceWrite);
+				(!["sill_listContents", "sill_getWorkspace", "sill_applyOperations"].includes(name) ||
+					access.workspaceRead) &&
+				(name !== "sill_createContent" || access.workspaceWrite) &&
+				(name !== "sill_applyOperations" || access.scopes.includes("content:write"));
 			// Stateless request-scoped transport: every request revalidates identity and current grants.
 			server = new Server(
 				{ name: "sill", version: product.version, icons },
@@ -162,7 +166,10 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 					: [],
 			}));
 			server.setRequestHandler(ReadResourceRequestSchema, async (request?: any) => {
-				if (!canOpen() || request.params.uri !== workspaceUri)
+				if (
+					!canOpen() ||
+					![workspaceUri, "ui://sill/cloud-workspace-v3.html"].includes(request.params.uri)
+				)
 					throw new Error("Resource unavailable");
 				return {
 					contents: [
@@ -180,10 +187,14 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 							description:
 								t.name + " through the same authorized Sill data layer used by the webpage.",
 							annotations: {
-								readOnlyHint: ["sill_listContents", "sill_getContent", "sill_getEvent"].includes(
-									t.name,
-								),
+								readOnlyHint: [
+									"sill_getWorkspace",
+									"sill_listContents",
+									"sill_getContent",
+									"sill_getEvent",
+								].includes(t.name),
 								destructiveHint: ![
+									"sill_getWorkspace",
 									"sill_listContents",
 									"sill_getContent",
 									"sill_getEvent",
@@ -204,6 +215,7 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 							.parse(request.params.arguments || {});
 						return result({
 							connected: true,
+							userId: access.userId,
 							scopes: access.scopes,
 							workspaceRead: access.workspaceRead,
 							workspaceWrite: access.workspaceWrite,
@@ -212,8 +224,13 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 					if (!Object.hasOwn(inputs, name) || !allowed(name))
 						throw Object.assign(new Error("forbidden"), { code: "forbidden" });
 					const a = inputs[name].parse(request.params.arguments || {});
+					if (a.expected_owner !== undefined && a.expected_owner !== access.userId)
+						throw Object.assign(new Error("forbidden"), { code: "forbidden" });
 					let value: any;
-					if (name === "sill_listContents") value = await repo.list(a);
+					if (name === "sill_getWorkspace") value = await repo.workspace();
+					else if (name === "sill_applyOperations")
+						value = await repo.applyOperations(a.body, a.idempotency_key);
+					else if (name === "sill_listContents") value = await repo.list(a);
 					else if (name === "sill_getContent") value = await repo.get(a.id);
 					else if (name === "sill_getEvent") value = await repo.getEvent(a.id);
 					else

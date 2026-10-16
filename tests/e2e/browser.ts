@@ -624,107 +624,82 @@ async function recordLayout(page?: any, width?: any) {
 			},
 			{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
 		);
+		await scenario("Capture and dropped text add cards; files are ignored", async (page?: any) => {
+			await page.keyboard.press("n");
+			await page.waitForFunction(() => window.__app.modalKind === "capture");
+			await page.locator("#capture-text").fill("明天把叠卡阈值再看一遍");
+			await page.locator('[data-action="capture-save"]').click();
+			await page.getByText("明天把叠卡阈值再看一遍").first().waitFor();
+			await page.evaluate(() => window.__app.capture("https://example.com/post 一篇想读的文章"));
+			assert.equal(await page.locator(".feed-card", { hasText: "一篇想读的文章" }).count(), 1);
+			await page.evaluate(() => window.__app.capture("https://example.com/post 一篇想读的文章"));
+			assert.equal(
+				await page.locator(".feed-card", { hasText: "一篇想读的文章" }).count(),
+				1,
+				"the same link must merge",
+			);
+			assert.equal(await page.locator('input[type="file"],#import-rings').count(), 0);
+			await page.evaluate(() => {
+				const dataTransfer = new DataTransfer();
+				dataTransfer.setData("text/uri-list", "https://example.com/drop");
+				document.dispatchEvent(new DragEvent("dragenter", { bubbles: true, dataTransfer }));
+			});
+			assert.equal(await page.locator("#drop-hint").isVisible(), true);
+			await page.evaluate(() => {
+				const dataTransfer = new DataTransfer();
+				dataTransfer.setData("text/uri-list", "https://example.com/drop");
+				document.dispatchEvent(new DragEvent("drop", { bubbles: true, dataTransfer }));
+			});
+			assert.equal(await page.locator(".feed-card", { hasText: "example.com/drop" }).count(), 1);
+			const count = await page.locator(".feed-card").count();
+			await page.evaluate(() => {
+				const dataTransfer = new DataTransfer();
+				dataTransfer.items.add(new File(["# Do not import"], "note.md", { type: "text/markdown" }));
+				dataTransfer.setData("text/plain", "Do not capture a file label");
+				document.dispatchEvent(new DragEvent("dragenter", { bubbles: true, dataTransfer }));
+				document.dispatchEvent(new DragEvent("drop", { bubbles: true, dataTransfer }));
+			});
+			assert.equal(await page.locator("#drop-hint").isVisible(), false);
+			assert.equal(await page.locator(".feed-card").count(), count);
+			await page.reload();
+			assert.equal(await page.locator(".feed-card", { hasText: "example.com/drop" }).count(), 1);
+		});
 		await scenario(
-			"Capture, paste and file import add cards on this device with dedupe and undo",
+			"Settings and first run expose capture without source connections",
 			async (page?: any) => {
-				await page.keyboard.press("n");
-				await page.waitForFunction(() => window.__app.modalKind === "capture");
-				await page.locator("#capture-text").fill("明天把叠卡阈值再看一遍");
-				await page.locator('[data-action="capture-save"]').click();
-				await page.getByText("明天把叠卡阈值再看一遍").first().waitFor();
-				await page.evaluate(() => window.__app.capture("https://example.com/post 一篇想读的文章"));
-				assert.equal(await page.locator(".feed-card", { hasText: "一篇想读的文章" }).count(), 1);
-				await page.evaluate(() => window.__app.capture("https://example.com/post 一篇想读的文章"));
+				await action(page, "settings");
+				await page.locator('[data-action="pref-toggle"][data-id="stack"]').click();
+				assert.ok(
+					(await page.locator('[data-card^="sspai-"]').count()) > 0,
+					"turning stacking off should unfold the burst",
+				);
+				await page.locator('[data-action="settings-group"][data-extra="look"]').click();
+				await page.locator('[data-action="pref"][data-id="theme"][data-extra="dark"]').click();
+				assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
 				assert.equal(
-					await page.locator(".feed-card", { hasText: "一篇想读的文章" }).count(),
-					1,
-					"the same link must merge",
+					await page.locator('[data-action="settings-group"][data-extra="sources"]').count(),
+					0,
 				);
-				const opml =
-					'<?xml version="1.0"?><opml version="1.0"><body><outline text="少数派" xmlUrl="https://sspai.com/feed"/><outline text="阅读手记" xmlUrl="https://example.com/rss"/></body></opml>';
-				await page
-					.locator("#file-input")
-					.setInputFiles([{ name: "feeds.opml", mimeType: "text/xml", buffer: Buffer.from(opml) }]);
-				await page.waitForFunction(() => window.__app.modalKind === "import");
-				assert.match(await page.locator("dialog").textContent(), /2.*RSS 订阅/);
-				await page.locator('[data-action="import-run"]').click();
+				await page.keyboard.press("Escape");
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
-				assert.equal(await page.evaluate(() => __store.source("src-rss").count), 44);
-				const notes = "# 窗台随记\n\n第一段。\n\n第二段。";
-				const ics =
-					"BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:a1\r\nDTSTART:20991012T063000Z\r\nDTEND:20991012T071500Z\r\nSUMMARY:导入的评审会\r\nLOCATION:3 楼\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
-				await page
-					.locator("#file-input")
-					.setInputFiles([
-						{ name: "note.md", mimeType: "text/markdown", buffer: Buffer.from(notes) },
-					]);
-				await page.waitForFunction(() => window.__app.modalKind === "import");
-				await page.locator('[data-action="import-run"]').click();
-				await page.locator(".feed-card", { hasText: "窗台随记" }).waitFor();
-				await page
-					.locator("#file-input")
-					.setInputFiles([
-						{ name: "cal.ics", mimeType: "text/calendar", buffer: Buffer.from(ics) },
-					]);
-				await page.waitForFunction(() => window.__app.modalKind === "import");
-				await page.locator('[data-action="import-run"]').click();
-				await page.locator(".feed-card", { hasText: "导入的评审会" }).waitFor();
-				const duplicateUrl = await page.evaluate(
-					() => __store.state.cards.find((c?: any) => c.url).url,
-				);
-				const csv = `title,url,highlight\n同一链接,${duplicateUrl},重复的一篇\n新的一篇,https://example.com/new,一段高亮`;
-				await page
-					.locator("#file-input")
-					.setInputFiles([
-						{ name: "readwise.csv", mimeType: "text/csv", buffer: Buffer.from(csv) },
-					]);
-				await page.waitForFunction(() => window.__app.modalKind === "import");
-				await page.locator('[data-action="import-range"][data-extra="all"]').click();
-				await page.locator('[data-action="import-run"]').click();
-				await page.getByText("跳过 1 张重复", { exact: false }).waitFor();
 				await page.reload();
-				assert.equal(await page.locator(".feed-card", { hasText: "新的一篇" }).count(), 1);
+				assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
+				await action(page, "clear-all");
+				await page.locator('[data-action="clear-confirm"]').click();
+				await page.locator(".welcome").waitFor();
+				assert.equal(await page.locator(".feed-card").count(), 0);
+				assert.deepEqual(await page.locator(".welcome-actions button").allTextContents(), [
+					"记一笔",
+					"先看示例",
+				]);
+				await page.locator('.welcome [data-action="capture"]').click();
+				await page.locator("#capture-text").waitFor();
+				await page.keyboard.press("Escape");
+				await page.waitForFunction(() => !document.querySelector("dialog").open);
+				await page.locator('[data-action="welcome-demo"]').click();
+				await page.locator('[data-card="article-01"]').waitFor();
 			},
 		);
-		await scenario("Settings, sources and first run work end to end", async (page?: any) => {
-			await action(page, "settings");
-			await page.locator('[data-action="pref-toggle"][data-id="stack"]').click();
-			assert.ok(
-				(await page.locator('[data-card^="sspai-"]').count()) > 0,
-				"turning stacking off should unfold the burst",
-			);
-			await page.locator('[data-action="settings-group"][data-extra="look"]').click();
-			await page.locator('[data-action="pref"][data-id="theme"][data-extra="dark"]').click();
-			assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
-			await page.locator('[data-action="settings-group"][data-extra="sources"]').click();
-			await page.locator('[data-action="source-toggle"][data-id="src-rss"]').click();
-			assert.equal(await page.evaluate(() => __store.source("src-rss").status), "paused");
-			await page.locator('[data-action="source-open"][data-id="src-readwise"]').click();
-			await page
-				.locator('[data-action="source-set"][data-id="src-readwise:open"][data-extra="web"]')
-				.click();
-			assert.equal(await page.evaluate(() => __store.source("src-readwise").open), "web");
-			await page.keyboard.press("Escape");
-			await page.waitForFunction(() => window.__app.modalKind === "settings");
-			await page.keyboard.press("Escape");
-			await page.waitForFunction(() => !document.querySelector("dialog").open);
-			await page.reload();
-			assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
-			await action(page, "clear-all");
-			await page.locator('[data-action="clear-confirm"]').click();
-			await page.locator(".welcome").waitFor();
-			assert.equal(await page.locator(".feed-card").count(), 0);
-			await page.locator('[data-action="welcome-start"]').click();
-			await page.locator('[data-action="welcome-pick"][data-extra="photos"]').click();
-			await page.locator('[data-action="welcome-continue"]').click();
-			await page.waitForFunction(() => window.__app.modalKind === "permission");
-			await page.locator('[data-action="permission-allow"]').click();
-			await page.locator('[data-action="permission-allow"]').click();
-			await page.waitForFunction(() => !document.querySelector("dialog").open);
-			assert.equal(await page.evaluate(() => __store.source("src-photos")?.status), "attention");
-			await page.locator('[data-action="welcome-demo"]').click();
-			await page.locator('[data-card="article-01"]').waitFor();
-		});
 		for (const width of [680, 700, 810, 1440, 2048])
 			await scenario(
 				`${width}px desktop uses compact cards across the available screen`,

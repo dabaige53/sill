@@ -6,6 +6,16 @@ import { config, jwk, token, clientFactory as verifyClientFactory } from "./sign
 export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 	const db = new PGlite();
 	await setupBoundary(db);
+	for (const file of [
+		"20261016052843_sill_rich_cards.sql",
+		"20261016092653_sill_workspace_operations.sql",
+	])
+		await db.exec(
+			await (await import("node:fs/promises")).readFile(
+				new URL("../../../supabase/migrations/" + file, import.meta.url),
+				"utf8",
+			),
+		);
 	if (oauth)
 		await db.exec(
 			await (await import("node:fs/promises")).readFile(
@@ -108,6 +118,8 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 				order: Record<string, any> = {
 					sill_oauth_flow: ["op", "p"],
 					sill_session_info: [],
+					sill_get_workspace: [],
+					sill_apply_operations: ["payload", "idem"],
 					sill_write_v1: ["op", "resource_id", "payload", "idem"],
 					sill_get_content: ["resource_id"],
 					sill_get_event: ["event_id"],

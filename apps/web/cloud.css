@@ -176,15 +176,6 @@
 body.reduce-motion .dock-tools [aria-busy="true"] .icon {
 	animation: none;
 }
-[data-action="bookmark"],
-[data-action="later"],
-[data-action="task"],
-[data-action="sources-add"],
-[data-action="selected-bookmark"],
-[data-action="selected-later"],
-[data-action="selected-tag"] {
-	display: none !important;
-}
 @media (max-width: 600px) {
 	.cloud-compose {
 		max-height: calc(100dvh - 24px);
@@ -233,4 +224,26 @@ body.reduce-motion .dock-tools [aria-busy="true"] .icon {
 #cloud-logout {
 	min-height: 44px;
 	padding: 8px;
+}
+
+.cloud-recovery {
+	position: fixed;
+	z-index: 1000;
+	bottom: calc(var(--margin-sm) + 72px);
+	right: var(--margin-sm);
+	left: var(--margin-sm);
+	max-width: 620px;
+	margin-left: auto;
+	padding: 16px;
+	border-radius: var(--panel-radius);
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	font-size: var(--text-meta);
+}
+.cloud-recovery[hidden] {
+	display: none;
+}
+.cloud-recovery button {
+	min-height: var(--hit-target);
 }

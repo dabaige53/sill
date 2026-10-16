@@ -10,6 +10,7 @@ const FeedPolicy: Record<string, any> = {
 		return pref === "3d" ? 3 * 86400000 : pref === "never" ? Infinity : 7 * 86400000;
 	},
 	shelf(c?: any, s?: any, now?: any, pref: any = "7d") {
+		if (s.archived) return "read";
 		if (["task", "event", "reminder"].includes(c.type)) return "desk";
 		if (s.restoredAt && now - s.restoredAt < 7 * 86400000) return "desk";
 		if (s.bookmarked || s.later) return "desk";
@@ -105,6 +106,7 @@ const FeedPolicy: Record<string, any> = {
 			.sort((a?: any, b?: any) => {
 				const x = items[a.c.id] || {},
 					y = items[b.c.id] || {};
+				if (!!x.lessLike !== !!y.lessLike) return Number(!!x.lessLike) - Number(!!y.lessLike);
 				if (mode === "time") return (b.c.time || 0) - (a.c.time || 0) || a.index - b.index;
 				if (mode === "unread") return Number(!!x.read) - Number(!!y.read) || a.index - b.index;
 				return this.score(b.c, y, now) - this.score(a.c, x, now) || a.index - b.index;

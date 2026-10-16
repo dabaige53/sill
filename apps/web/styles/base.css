@@ -142,7 +142,7 @@ p {
 	top: auto !important;
 	width: auto !important;
 }
-/* Drag files or links anywhere on the window to import them. */
+/* Drop links or text anywhere on the window to capture them. */
 body.is-dropping:after {
 	content: "";
 	position: fixed;

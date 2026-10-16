@@ -1,7 +1,7 @@
 {
 	"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-	"name": "dev-6ad03f09b6048191a8826a236ac9097d",
-	"description": "连接 Sill 云端窗台，在 ChatGPT 中查看和管理卡片。",
+	"name": "dev-6ad0d805d3e88191a1c8902cf66af046",
+	"description": "sill",
 	"author": {
 		"name": "App developer"
 	},
@@ -12,9 +12,9 @@
 				"category": "Other",
 				"defaultPrompt": null,
 				"developerName": "App developer",
-				"displayName": "Sill · 窗台",
-				"longDescription": "连接 Sill 云端窗台，在 ChatGPT 中查看和管理卡片。",
-				"shortDescription": "连接 Sill 云端窗台，在 ChatGPT 中查看和管理卡片。"
+				"displayName": "sill",
+				"longDescription": "sill",
+				"shortDescription": "sill"
 			},
 			"apps": "./.app.json"
 		}

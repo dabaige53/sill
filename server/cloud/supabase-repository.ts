@@ -33,6 +33,12 @@ export class SupabaseRepository {
 		}
 		return result.data;
 	}
+	workspace() {
+		return this.rpc("sill_get_workspace", {});
+	}
+	applyOperations(payload: any, idem: string) {
+		return this.rpc("sill_apply_operations", { payload, idem });
+	}
 	session() {
 		return this.rpc("sill_session_info", {});
 	}

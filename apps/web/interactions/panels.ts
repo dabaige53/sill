@@ -22,7 +22,6 @@ import { cardSource, cardSourceKind } from "../data/card-source.ts";
 import { CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
-import { Importers } from "../services/importers.ts";
 
 /** Every overlay is built here. Panels return HTML; AppController owns state and focus. */
 const Panels: Record<string, any> = {
@@ -406,7 +405,6 @@ const Panels: Record<string, any> = {
 	},
 	/* Settings: five groups, one screen each. */
 	settingsGroups: [
-		["sources", copy("web.panels.a488e93d69cc"), "rss"],
 		["desk", copy("web.panels.f48d334495f6"), "monitor"],
 		["look", copy("web.panels.86a63f23a076"), "eye"],
 		["keys", copy("web.panels.ee2638183d3e"), "keyboard"],
@@ -417,8 +415,6 @@ const Panels: Record<string, any> = {
 			row = (label?: any, side?: any) =>
 				`<div class="setting-row"><span>${label}</span><span class="setting-side">${side}</span></div>`;
 		const pages: Record<string, any> = {
-			sources: () =>
-				`<div class="panel-head" style="margin:0 0 14px"><h1 id="modal-title" style="margin:0">${copy("web.panels.a488e93d69cc")}</h1><button type="button" class="text-link" data-action="sources-add">${copy("web.add")}</button></div>${this.sourceRows()}`,
 			desk: () => `<h1 id="modal-title">${copy("web.panels.f48d334495f6")}</h1><div class="settings-card">${row(copy("web.panels.5142e436b1f9"), `<span>${copy("web.panels.840f6c8f8823")}</span>${toggle("stack", p("stack"), copy("web.panels.5142e436b1f9"))}`)}${row(copy("web.panels.a11a80a0843c"), toggle("fadeRead", p("fadeRead"), copy("web.panels.a11a80a0843c")))}${row(
 				copy("web.panels.1495127fad02"),
 				segmented(
@@ -495,188 +491,23 @@ const Panels: Record<string, any> = {
 		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.panels.77b17fc4a52a"))}<div class="settings-layout"><nav class="settings-nav" aria-label="${copy("web.panels.4a48d745e350")}">${this.settingsGroups.map(([k, v, ic]: any) => `<button type="button" class="${k === group ? "on" : ""}" data-action="settings-group" data-extra="${k}" aria-current="${k === group}">${v}</button>`).join("")}</nav><div class="settings-main">${pages[group]()}</div></div></div>`;
 	},
 	/* Sources: one dot says the state; only a broken source shows a button. */
-	sourceRows() {
-		const rows = Store.state.sources
-			.map((s?: any) => {
-				const k = SourceKinds[s.kind] || SourceKinds.local,
-					detail = [
-						s.status === "paused" ? copy("web.panels.eb0c326b60ae") : s.detail,
-						s.status === "ok" && s.syncedAt ? relativeTime(s.syncedAt) : "",
-					]
-						.filter(Boolean)
-						.join(" · ");
-				const side =
-					s.status === "attention"
-						? `<span class="status-dot attention" aria-hidden="true"></span><button type="button" class="pill soft" data-action="source-connect" data-extra="${esc(s.kind)}">${copy("web.panels.957244cdb9f2")}</button>`
-						: `<span class="status-dot ${s.status}" aria-hidden="true"></span>${toggle(s.id, s.enabled && s.status !== "paused", copy("web.panels.99d63ea41429") + s.name, "source-toggle")}`;
-				return `<div class="list-row hoverable"><span class="row-icon">${icon(k.icon, 16)}</span><button type="button" class="row-main" data-action="source-open" data-id="${esc(s.id)}" style="text-align:left"><b>${esc(s.name)}</b><small>${esc(detail)}</small></button><span class="row-side">${side}</span></div>`;
-			})
-			.join("");
-		return `<div class="row-list">${rows || `<p class="muted" style="padding:12px 0">${copy("web.panels.a0d4dfd3e767")}</p>`}</div><div class="panel-foot-row">${icon("lock", 14)}<span>${copy("web.panels.f71e4be931ea")}<span class="num">${formatBytes(Store.bytes())}</span></span><button type="button" class="text-link" data-action="export-all">${copy("web.panels.76420433f22d")}</button></div>`;
-	},
-	sources() {
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.panels.fb6589e04a26"))}<div class="panel-content"><div class="panel-head"><h1 id="modal-title">${copy("web.panels.a488e93d69cc")}</h1><button type="button" class="text-link" data-action="sources-add">${copy("web.add")}</button></div>${this.sourceRows()}</div></div>`;
-	},
-	addKinds: [
-		"readwise",
-		"rss",
-		"youtube",
-		"twitter",
-		"podcast",
-		"mail",
-		"calendar",
-		"reminders",
-		"photos",
-		"folder",
-		"linear",
-		"github",
-		"web",
-		"file",
-		"more",
-	],
-	sourcesAdd() {
-		const tile = (k?: any) => {
-			const v =
-				k === "file"
-					? { label: copy("web.panels.fa3ecfb7977f"), icon: "file" }
-					: k === "more"
-						? { label: copy("web.panels.38844b135cf7"), icon: "plus" }
-						: k === "web"
-							? { label: copy("web.panels.e19c3b9e266c"), icon: "globe" }
-							: SourceKinds[k];
-			return `<button type="button" class="source-tile" data-action="${k === "file" ? "import-pick" : k === "more" ? "capture" : "source-connect"}" data-extra="${k}"><span class="row-icon">${icon(v.icon, 18)}</span>${esc(v.label)}</button>`;
-		};
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content"><div class="panel-head"><h1 id="modal-title">${copy("web.panels.1b93e0c54996")}</h1><span class="muted">${copy("web.panels.49d87de15991")}</span></div><div class="source-grid">${this.addKinds.map(tile).join("")}</div></div></div>`;
-	},
-	connectCopy: {
-		readwise: copy("web.panels.7e6154b512d7"),
-		youtube: copy("web.panels.424b5e69c052"),
-		twitter: copy("web.panels.6007858f4616"),
-		mail: copy("web.panels.be32ee330512"),
-		linear: copy("web.panels.dd0bb1957ace"),
-		github: copy("web.panels.53f9fdad7ff6"),
-		podcast: copy("web.panels.81abf5f11b3a"),
-	},
-	systemKinds: {
-		calendar: copy("web.cards.a00f295cfbb0"),
-		reminders: copy("web.cards.af5522c16b7e"),
-		photos: copy("web.photo"),
-		folder: copy("web.panels.7c7802d8adae"),
-	},
-	connect(kind?: any) {
-		const k = SourceKinds[kind];
-		if (this.systemKinds[kind]) return this.permission(kind);
-		if (kind === "rss")
-			return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="connect"><div class="connect-icons">${sillIcon(56)}<span>···</span><span class="app">${icon("rss", 24)}</span></div><h1 id="modal-title">${copy("web.panels.3e9bbb838ec8")}</h1><p class="muted">${copy("web.panels.2452a90a916f")}</p><input id="feed-url" type="url" placeholder="https://example.com/feed.xml" aria-label="${copy("web.panels.efde7b187139")}" style="width:100%;max-width:360px"><div class="welcome-actions" style="margin-top:4px"><button type="button" class="soft-button" data-action="import-pick">${copy("web.panels.20face877385")}</button><button type="button" class="solid-button" data-action="feed-add">${copy("web.panels.cf8efc450f71")}</button></div></div></div>`;
-		if (kind === "web") return this.capture({}, true);
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="connect"><div class="connect-icons">${sillIcon(56)}<span>···</span><span class="app">${icon(k.icon, 24)}</span></div><h1 id="modal-title">${copy("web.panels.1d54bfbae5f8")}${esc(k.label)}</h1><p class="muted">${esc(this.connectCopy[kind] || copy("web.panels.2e86fbdc2cea"))}${copy("web.panels.12ba5665f1f0")}</p>${segmented(
-			"connectRange",
-			[
-				["30d", copy("web.panels.c5f1c28c0d5f")],
-				["all", copy("web.all")],
-			],
-			"30d",
-			copy("web.panels.0138daf75360"),
-		).replace(
-			/data-action="pref"/g,
-			'data-action="connect-range"',
-		)}<button type="button" class="solid-button" data-action="source-authorize" data-extra="${esc(kind)}" style="margin-top:6px">${copy("web.panels.003d1bd15f51")}</button></div></div>`;
-	},
-	permission(kind?: any) {
-		const label = this.systemKinds[kind];
-		return `<div class="sheet"><div class="permission"><span class="row-icon">${icon(SourceKinds[kind].icon, 24)}</span><h1 id="modal-title">${copy("web.panels.534cb3fa8fbf")}${esc(label)}</h1><p class="muted">${icon("lock", 13)}${copy("web.panels.fb94675558a4")}</p><div class="permission-actions"><button type="button" class="soft-button" data-action="permission-later" data-extra="${esc(kind)}">${copy("web.panels.e6ad7a1dbc1e")}</button><button type="button" class="solid-button" data-action="permission-allow" data-extra="${esc(kind)}">${copy("web.panels.ce7ef28b670a")}</button></div></div></div>`;
-	},
-	importPreview(app?: any) {
-		const p = app.importing,
-			picked = app.importPicked,
-			kind = Importers.labels[p.kind] || copy("web.panels.49ccde43a154");
-		const total = p.entries.length,
-			recent = p.entries.filter((e?: any) => !e.time || Date.now() - e.time < 30 * 86400000).length;
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.panels.26bff7125c63"))}<div class="panel-content"><div class="panel-sub">${esc(p.name)}</div><div class="panel-head"><h1 id="modal-title"><span class="num">${total}</span> ${p.kind === "opml" ? copy("web.panels.5a0d0d01822f") : ""}${esc(kind)}</h1><button type="button" class="text-link" data-action="import-toggle-all">${picked.size === total ? copy("web.panels.ab9084a640fb") : copy("web.panels.3a5040b68abf")}</button></div>
-   <div class="row-list import-list">${p.entries.map((e?: any, i?: any) => `<button type="button" class="list-row" data-action="import-toggle" data-extra="${i}" role="checkbox" aria-checked="${picked.has(i)}"><span class="check-box ${picked.has(i) ? "on" : ""}">${picked.has(i) ? icon("check", 12) : ""}</span><span class="row-main"><b>${esc(e.label)}</b></span><span class="row-side">${esc(e.detail || "")}</span></button>`).join("")}</div>
-   ${p.notice ? `<p role="status">${esc(p.notice)}</p>` : ""}
-   <div class="panel-footer">${
-			p.kind === "opml"
-				? "<span></span>"
-				: segmented(
-						"importRange",
-						[
-							["30d", copy("web.panels.c5f1c28c0d5f")],
-							["all", copy("web.all")],
-						],
-						app.importRange,
-						copy("web.panels.8c99578d0d05"),
-					).replace(/data-action="pref"/g, 'data-action="import-range"')
-		}<button type="button" class="solid-button" data-action="import-run" ${picked.size ? "" : "disabled"}>${copy("web.panels.576d81bb0631")}${p.kind !== "opml" && app.importRange === "30d" && recent < total ? ` <small>${recent}</small>` : ""}</button></div></div></div>`;
-	},
-	sourceDetail(id?: any) {
-		const s = Store.source(id);
-		if (!s) return this.sources();
-		const k = SourceKinds[s.kind] || SourceKinds.local;
-		const set = (name?: any, options?: any, value?: any, label?: any) =>
-			segmented(name, options, value, label)
-				.replace(/data-action="pref"/g, `data-action="source-set"`)
-				.replace(/data-id="([^"]+)"/g, `data-id="${esc(id)}:$1"`);
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content"><div style="display:flex;align-items:center;gap:12px;margin-bottom:18px"><span class="row-icon" style="width:40px;height:40px">${icon(k.icon, 20)}</span><div><h1 id="modal-title" style="margin:0">${esc(s.name)}</h1><div class="muted" style="display:flex;align-items:center;gap:6px"><span class="status-dot ${s.status}"></span>${s.status === "paused" ? copy("web.panels.eb0c326b60ae") : s.status === "attention" ? esc(s.detail) : s.syncedAt ? relativeTime(s.syncedAt) + copy("web.panels.dcfe516d1114") : copy("web.panels.5be0323e8adc")}</div></div></div>
-   <div class="settings-card"><div class="setting-row"><span>${copy("web.panels.f3444c6117a1")}</span><span class="setting-side"><span>${copy("web.panels.840f6c8f8823")}</span>${toggle(id + ":stack", s.stack, copy("web.panels.f3444c6117a1"), "source-flag")}</span></div><div class="setting-row"><span>${copy("web.panels.058d09bf2846")}</span>${set(
-			"open",
-			[
-				["inside", copy("web.panels.526eaedf5be0")],
-				["web", copy("web.panels.51ced94d071c")],
-			],
-			s.open,
-			copy("web.panels.058d09bf2846"),
-		)}</div><div class="setting-row"><span>${copy("web.panels.78a6a1994fc8")}</span>${set(
-			"range",
-			[
-				["30d", copy("web.panels.84ad2952a308")],
-				["all", copy("web.all")],
-			],
-			s.range,
-			copy("web.panels.78a6a1994fc8"),
-		)}</div></div>
-   <div class="why-actions" style="margin-top:14px"><button type="button" class="text-link" data-action="source-pause" data-id="${esc(id)}">${s.status === "paused" ? copy("web.panels.e0534b8a4e46") : copy("web.panels.8d12fc0d4eb2")}</button><button type="button" class="text-link warn" data-action="source-remove" data-id="${esc(id)}">${copy("web.panels.3ac653c16952")}</button></div></div></div>`;
-	},
 	confirm(title?: any, detail?: any, actions?: any) {
 		return `<div class="sheet"><div class="permission"><h1 id="modal-title">${esc(title)}</h1><p class="muted">${esc(detail)}</p><div class="permission-actions">${actions}</div></div></div>`;
 	},
 	/* Capture: one field. A link becomes an article, a line becomes a note. */
-	capture(app?: any, fromSources: any = false) {
+	capture(app?: any) {
 		const next = Store.state.cards
 			.filter(
 				(c?: any) => c.type === "event" && c.end > Date.now() && c.start - Date.now() < 3 * 3600000,
 			)
 			.sort((a?: any, b?: any) => a.start - b.start)[0];
 		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content"><h1 id="modal-title" class="sr-only">${copy("web.panels.5a15649c2481")}</h1><div class="capture-field">${icon("plus", 18)}<textarea id="capture-text" aria-label="${copy("web.panels.fd06b053572e")}" placeholder="${copy("web.panels.fd06b053572e")}" maxlength="4000"></textarea></div>
-   ${next && !fromSources ? `<div class="next-event"><span class="num">${timeString(next.start)}</span><span>${esc(next.title)}<small>${esc(eventRelative(next))}</small></span>${eventTimely(next) && next.meeting ? `<button type="button" class="solid-button" data-action="join" data-id="${esc(next.id)}">${copy("web.templates.451755e3831f")}</button>` : ""}</div>` : ""}
-   <div class="panel-footer"><span class="muted">${fromSources ? copy("web.panels.4776a7db7c15") : `<kbd>N</kbd>${copy("web.panels.9be4933b25fb")}`}</span><button type="button" class="solid-button" data-action="capture-save">${copy("web.panels.a0fb6bc1d3c5")}</button></div></div></div>`;
-	},
-	/* First run. */
-	welcomePick(app?: any) {
-		const groups = [
-			copy("web.cards.7c7a3cda2cb6"),
-			copy("web.cards.6da3e5c03ac7"),
-			copy("web.cards.0ec008d459cd"),
-			copy("web.cards.79c72a9a1dec"),
-		];
-		const kinds = Object.entries(SourceKinds).filter(([, v]: any) => v.group);
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content"><h1 id="modal-title">${copy("web.panels.8bb7cc7347bd")}</h1><p class="panel-sub">${copy("web.panels.5322acb68aca")}</p><div class="source-chips">${groups
-			.map(
-				(g?: any) =>
-					`<div class="group-label">${g}</div><div class="chips">${kinds
-						.filter(([, v]: any) => v.group === g)
-						.map(
-							([k, v]: any) =>
-								`<button type="button" class="chip pick ${app.welcomePicked.has(k) ? "active" : ""}" data-action="welcome-pick" data-extra="${k}" aria-pressed="${app.welcomePicked.has(k)}">${esc(v.label)}</button>`,
-						)
-						.join("")}</div>`,
-			)
-			.join("")}</div>
-   <div class="panel-footer"><button type="button" class="text-link" data-action="import-pick">${copy("web.panels.3cee1d8c9c03")}</button><button type="button" class="solid-button" data-action="welcome-continue" ${app.welcomePicked.size ? "" : "disabled"}>${copy("web.panels.37209cec0d7e")}<small>${app.welcomePicked.size}</small></button></div></div></div>`;
+   ${next ? `<div class="next-event"><span class="num">${timeString(next.start)}</span><span>${esc(next.title)}<small>${esc(eventRelative(next))}</small></span>${eventTimely(next) && next.meeting ? `<button type="button" class="solid-button" data-action="join" data-id="${esc(next.id)}">${copy("web.templates.451755e3831f")}</button>` : ""}</div>` : ""}
+   <div class="panel-footer"><span class="muted"><kbd>N</kbd>${copy("web.panels.9be4933b25fb")}</span><button type="button" class="solid-button" data-action="capture-save">${copy("web.panels.a0fb6bc1d3c5")}</button></div></div></div>`;
 	},
 };
 function welcomeHTML({ actions = null, detail = "" }: any = {}) {
-	return `<section class="welcome" aria-labelledby="welcome-title">${sillIcon(72)}<h1 id="welcome-title">Sill</h1><p>${copy("web.panels.3d7d3ac3581f")}</p>${detail}<div class="welcome-actions">${actions === null ? `<button type="button" class="solid-button" data-action="welcome-start">${copy("web.panels.cca3acf8d0c8")}</button><button type="button" class="text-link" data-action="welcome-demo">${copy("web.panels.0245f51ac89a")}</button>` : actions}</div></section>`;
+	return `<section class="welcome" aria-labelledby="welcome-title">${sillIcon(72)}<h1 id="welcome-title">Sill</h1><p>${copy("web.panels.3d7d3ac3581f")}</p>${detail}<div class="welcome-actions">${actions === null ? `<button type="button" class="solid-button" data-action="capture">${copy("web.panels.5a15649c2481")}</button><button type="button" class="text-link" data-action="welcome-demo">${copy("web.panels.0245f51ac89a")}</button>` : actions}</div></section>`;
 }
 function relativeTime(ts?: any, now: any = Date.now()) {
 	const min = Math.round((now - ts) / 60000);

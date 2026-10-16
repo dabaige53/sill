@@ -93,7 +93,12 @@ test("SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
 			.join("; ");
 		const session = await call("/auth/session");
 		assert.equal(session.status, 200);
-		assert.deepEqual(await session.json(), { userId: A });
+		assert.deepEqual(await session.json(), {
+			userId: A,
+			scopes: ["content:read", "content:write", "content:delete", "event:submit", "event:read"],
+			workspaceRead: true,
+			workspaceWrite: true,
+		});
 		await f.db.exec("reset role");
 		assert.equal(
 			(await f.db.query("select count(*)::int n from sill_private.sync_snapshots")).rows[0].n,

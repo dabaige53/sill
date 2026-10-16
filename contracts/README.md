@@ -4,7 +4,7 @@
 
 - `card.ts`：已实现的本地卡片结构和旧来源字段的纯内存转换；保留未知字段、未知卡片类型，不修改原输入。
 - `local.ts`：已实现的本地状态和批量操作。
-- `cloud.ts`：已实现的云端写入与 MCP 输入；外部 `/contents` 路径、工具名与权限名保持兼容，不因内部改名破坏宿主。
+- `cloud.ts`：已实现的云端写入与 MCP 输入，从 `Card.shape` 复用任务、时间、来源及展示字段；外部 `/contents` 路径、工具名与权限名保持兼容。云端局部更新保留未修改字段，`state` 合并子字段，数组和嵌套对象整体替换。云端旧版最小卡片仍可编辑；新提交的结构字段按类型检查。数据库校验与返回规则见 `supabase/migrations/20261016052843_sill_rich_cards.sql`。
 - `schema.json`：从 zod 导出的本地卡片 JSON Schema，提交到 Git；`npm run contracts:check` 检查是否过期。
 - `migration-fixtures.json`：两端共用的旧来源迁移边界；保留 300 字发件人、10+1 个来源、显式空发件人与未知字段。
 - `fixtures.json`：合法与非法合成样例；每个写入端都必须执行同一批样例。

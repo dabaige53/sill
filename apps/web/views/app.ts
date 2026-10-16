@@ -9,27 +9,19 @@ import {
 	eventRelative,
 	eventTimely,
 	minutes,
-	ring,
 } from "../atoms/primitives.ts";
 import { cardHTML, shelfHTML, stackHTML, stackOpenHTML } from "../cards/templates.ts";
 import { copy } from "../copy.ts";
 import { cardSource, cardSourceKind } from "../data/card-source.ts";
-import {
-	CardTypes,
-	demoBase,
-	FreshCards,
-	SeedCards,
-	SeedItems,
-	SourceKinds,
-} from "../data/cards.ts";
-import { DemoSources, Store } from "../data/store.ts";
+import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
+import { Store } from "../data/store.ts";
 import { DragManager } from "../interactions/drag.ts";
 import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { Panels, welcomeHTML } from "../interactions/panels.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
-import { Importers } from "../services/importers.ts";
+import { Capture } from "../services/capture.ts";
 import { LocalSync } from "../services/local-sync.ts";
 
 class AppController {
@@ -54,10 +46,6 @@ class AppController {
 	declare sort: any;
 	declare feedNow: any;
 	declare pendingReminders: any;
-	declare welcomePicked: any;
-	declare importing: any;
-	declare importPicked: any;
-	declare importRange: any;
 	declare settingsGroup: any;
 	declare editingId: any;
 	declare loadedImages: any;
@@ -85,12 +73,9 @@ class AppController {
 	declare closingAll: any;
 	declare undoAction: any;
 	declare bulkEditIds: any;
-	declare permissionQueue: any;
-	declare sourceId: any;
 	declare clockMinute: any;
 	declare stackIndex: any;
 	declare stackDragUntil: any;
-	declare connectRange: any;
 	declare searchTimer: any;
 	declare inlineTimer: any;
 
@@ -116,10 +101,6 @@ class AppController {
 		this.sort = "priority";
 		this.feedNow = Date.now();
 		this.pendingReminders = [];
-		this.welcomePicked = new Set<any>();
-		this.importing = null;
-		this.importPicked = new Set<any>();
-		this.importRange = "30d";
 		this.settingsGroup = "desk";
 		this.editingId = "";
 		this.loadedImages = new Set<any>();
@@ -135,8 +116,7 @@ class AppController {
    <div class="orb-wrap"><div class="dock-tools" role="group" aria-label="${copy("web.app.25ce5c2fbf41")}">${button("filter", copy("web.app.1fd57350e5f1"), "filter")}${button("plus", copy("web.panels.5a15649c2481"), "capture")}${button("refresh", copy("web.app.26b4905705d6"), "refresh")}${button("up", copy("web.app.071b374af1b8"), "top")}${button("gear", copy("web.app.df3d58c7d84b"), "settings")}</div>
    <button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="bookmark" aria-label="${copy("web.app.25ce5c2fbf41")}" aria-expanded="false">${icon("grid", 22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div>
    <div id="drop-targets" class="drop-targets" hidden><div class="drop-target glass" data-drop="bookmark" aria-label="${copy("web.app.0dd4fd4ac051")}">${icon("bookmark", 22)}</div><div class="drop-target glass" data-drop="later" aria-label="${copy("web.app.5248d828ba43")}">${icon("glasses", 22)}</div><div class="drop-target glass" data-drop="tag" aria-label="${copy("web.app.2c19361cc109")}">${icon("tag", 22)}</div></div>
-   <div id="import-rings" class="import-rings glass" hidden aria-hidden="true"></div><div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
-   <input type="file" id="file-input" hidden multiple accept=".opml,.xml,.csv,.html,.htm,.md,.markdown,.txt,.ics">
+   <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
 		this.grid = document.getElementById("feed-grid");
 		this.dialog = document.getElementById("modal");
@@ -225,12 +205,7 @@ class AppController {
 			},
 			{ passive: true },
 		);
-		this.bindFileDrop();
-		document.getElementById("file-input").addEventListener("change", (e?: any) => {
-			const files = [...e.target.files];
-			e.target.value = "";
-			this.importFiles(files);
-		});
+		this.bindCaptureDrop();
 		this.themeQuery.addEventListener?.("change", () => this.applyPreferences());
 		this.readTicker = setInterval(() => this.tick(), 1000);
 		if (!location.hash) history.replaceState({ glass: true, prev: null }, "", "#" + this.mode);
@@ -336,10 +311,7 @@ class AppController {
 						shelfHTML(this.shelved("read").length, this.shelved("stale").length);
 		const stacks =
 			Store.pref("stack") && !this.filtering()
-				? FeedPolicy.stacks(
-						cards.filter((c?: any) => Store.source(`src-${cardSourceKind(c)}`)?.stack !== false),
-						Store.state.items,
-					)
+				? FeedPolicy.stacks(cards, Store.state.items)
 				: new Map<any, any>();
 		const inStack = new Map<any, any>();
 		for (const [key, list] of stacks) for (const c of list) inStack.set(c.id, key);
@@ -703,7 +675,7 @@ class AppController {
 		}
 		this.editId = id;
 		if (kind === "editor") this.editTags = new Set<any>(Store.tags(Store.card(id)));
-		const narrow = ["editor", "why", "capture", "confirm", "permission"].includes(kind),
+		const narrow = ["editor", "why", "capture", "confirm"].includes(kind),
 			wide = kind === "settings";
 		const html =
 			kind === "search"
@@ -716,15 +688,9 @@ class AppController {
 							? Panels.settings(this, this.settingsGroup)
 							: kind === "capture"
 								? Panels.capture(this)
-								: kind === "sources"
-									? Panels.sources()
-									: kind === "sources-add"
-										? Panels.sourcesAdd()
-										: kind === "archive"
-											? Panels.archive(this, id)
-											: kind === "welcome"
-												? Panels.welcomePick(this)
-												: "";
+								: kind === "archive"
+									? Panels.archive(this, id)
+									: "";
 		this.openModal(
 			html,
 			kind,
@@ -767,15 +733,6 @@ class AppController {
 			history.replaceState({ glass: true, prev: null }, "", "#feed");
 			this.lastRouteHash = "#feed";
 			this.startInlineEdit(id);
-			return;
-		}
-		const sourceKind = Store.source(`src-${cardSourceKind(c)}`);
-		if (!reading && sourceKind?.open === "web" && c.url) {
-			history.replaceState({ glass: true, prev: null }, "", "#feed");
-			this.lastRouteHash = "#feed";
-			this.openExternal(c);
-			Store.patch(id, { seen: true, read: true });
-			this.refreshCard(id);
 			return;
 		}
 		const origin = MotionEngine.capture(
@@ -1467,11 +1424,11 @@ class AppController {
 		this.refreshCard(id);
 		this.layout.schedule(false);
 	}
-	/* ——— Capture and import ——— */
+	/* ——— Capture ——— */
 	capture(text?: any, toast: any = true) {
-		const card = Importers.capture(text);
+		const card = Capture.capture(text);
 		if (!card) return null;
-		const { fresh } = Importers.dedupe([card]);
+		const { fresh } = Capture.dedupe([card]);
 		if (!fresh.length) {
 			this.toast(copy("web.app.17ebeb500554"));
 			return null;
@@ -1486,15 +1443,16 @@ class AppController {
 			});
 		return card;
 	}
-	bindFileDrop() {
+	bindCaptureDrop() {
 		let depth = 0;
 		const hint = document.getElementById("drop-hint");
-		const isFiles = (e?: any) =>
+		const isCapture = (e?: any) =>
+			!e.dataTransfer?.types?.includes("Files") &&
 			[...(e.dataTransfer?.types || [])].some(
-				(t?: any) => t === "Files" || t === "text/uri-list" || t === "text/plain",
+				(t?: any) => t === "text/uri-list" || t === "text/plain",
 			);
 		document.addEventListener("dragenter", (e?: any) => {
-			if (!isFiles(e) || this.drag.active) return;
+			if (!isCapture(e) || this.drag.active) return;
 			depth++;
 			document.body.classList.add("is-dropping");
 			hint.hidden = false;
@@ -1507,164 +1465,19 @@ class AppController {
 			}
 		});
 		document.addEventListener("dragover", (e?: any) => {
-			if (isFiles(e)) e.preventDefault();
+			if (isCapture(e)) e.preventDefault();
 		});
 		document.addEventListener("drop", (e?: any) => {
-			if (!isFiles(e)) return;
+			if (!isCapture(e)) return;
 			e.preventDefault();
 			depth = 0;
 			document.body.classList.remove("is-dropping");
 			hint.hidden = true;
-			const files = [...(e.dataTransfer.files || [])];
-			if (files.length) this.importFiles(files);
-			else {
-				const text =
-					e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
-				if (text) this.capture(text);
-			}
+			const text = e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
+			if (text) this.capture(text);
 		});
 	}
-	async importFiles(files?: any) {
-		const parsed = [];
-		for (const file of files.slice(0, 20)) {
-			if (file.size > 20 * 1048576) {
-				this.alert(`${file.name}${copy("web.app.cdfe77b2534c")}`);
-				continue;
-			}
-			const text = await file.text(),
-				result = Importers.parse(file.name, text);
-			if (!result.kind) {
-				this.alert(`${copy("web.app.868a47950311")}${file.name}`);
-				continue;
-			}
-			if (result.entries.length) parsed.push(result);
-		}
-		if (!parsed.length) {
-			if (files.length) this.alert(copy("web.app.73eb407df991"));
-			return;
-		}
-		// Several files of one kind preview together.
-		const first = parsed[0],
-			same = parsed.filter((p?: any) => p.kind === first.kind);
-		const skipped = parsed.filter((p?: any) => p.kind !== first.kind);
-		this.importing = {
-			kind: first.kind,
-			name: same.length > 1 ? `${same.length}${copy("web.app.ff7a7e19a5bf")}` : first.name,
-			entries: same.flatMap((p?: any) => p.entries),
-			notice: skipped.length
-				? `${copy("web.app.1041b41645cf")}${first.name}${copy("web.app.f9e14fa2f34a")}${skipped.map((p?: any) => p.name).join("、")}${copy("web.app.42d3dc2bd131")}`
-				: "",
-		};
-		this.importPicked = new Set<any>(this.importing.entries.map((_?: any, i?: any) => i));
-		this.importRange = "30d";
-		this.swapPanel(Panels.importPreview(this), "import", "panel");
-	}
-	runImport() {
-		const p = this.importing;
-		if (!p) return;
-		const picked = p.entries.filter((e?: any, i?: any) => this.importPicked.has(i));
-		if (p.kind === "opml") {
-			const existing = Store.source("src-rss"),
-				count = (existing?.count || 0) + picked.length;
-			Store.upsertSource({
-				id: "src-rss",
-				kind: "rss",
-				name: "RSS",
-				detail: `${count}${copy("web.app.c9197ab700ab")}`,
-				enabled: true,
-				status: "ok",
-				count,
-				syncedAt: Date.now(),
-				stack: existing?.stack ?? true,
-				open: existing?.open || "inside",
-				range: existing?.range || "30d",
-			});
-			this.closeNative();
-			this.importing = null;
-			this.toast(`${copy("web.app.a6d36d06231c")}${picked.length}${copy("web.app.929f4aa28cd1")}`);
-			this.startImportRings(["rss"]);
-			return;
-		}
-		const within = (e?: any) =>
-			this.importRange === "all" ||
-			!e.time ||
-			Date.now() - e.time < 30 * 86400000 ||
-			(p.kind === "ics" && e.time > Date.now());
-		const cards = picked
-			.filter(within)
-			.map((e?: any) => e.card)
-			.filter(Boolean);
-		const { fresh, merged } = Importers.dedupe(cards);
-		const kind = {
-			csv: cardSourceKind(cards[0]) || "web",
-			html: "web",
-			markdown: "markdown",
-			ics: "calendar",
-		}[p.kind];
-		if (kind && !["markdown", "web"].includes(kind) && !Store.source("src-" + kind))
-			Store.upsertSource({
-				id: "src-" + kind,
-				kind,
-				name: SourceKinds[kind].label,
-				detail: copy("web.app.69f3d0fb204d"),
-				enabled: true,
-				status: "ok",
-				count: fresh.length,
-				syncedAt: Date.now(),
-				stack: true,
-				open: "inside",
-				range: "all",
-			});
-		this.closeNative();
-		this.importing = null;
-		this.startImportRings([kind || "local"], () => {
-			this.withFeedAnchor(() => {
-				Store.insert(fresh);
-			}, true);
-			if (merged.length)
-				this.toast(
-					`${copy("web.app.ec603f7ca4ee")}${fresh.length}${copy("web.app.83a4f2fae945")}${merged.length}${copy("web.app.bfa2bd2f1dc4")}`,
-				);
-			else
-				this.toast(
-					`${copy("web.app.ec603f7ca4ee")}${fresh.length}${copy("web.panels.e9e0fdc242b4")}`,
-					() => {
-						Store.remove(fresh.map((c?: any) => c.id));
-						this.withFeedAnchor(() => {});
-					},
-				);
-		});
-	}
-	/** Import is never blocking: one ring per source fills at the bottom, cards fall in as they arrive. */
-	startImportRings(kinds?: any, done?: any) {
-		const host = document.getElementById("import-rings");
-		host.innerHTML = kinds
-			.map(
-				(k?: any) =>
-					`<span class="import-ring" data-kind="${esc(k)}">${ring(0, 36)}${icon(SourceKinds[k]?.icon || "file", 15)}</span>`,
-			)
-			.join("");
-		host.hidden = false;
-		let p = 0;
-		const step = () => {
-			p = Math.min(1, p + (MotionEngine.reduced ? 1 : 0.25));
-			host.querySelectorAll(".progress-ring circle:last-child").forEach((n?: any) => {
-				n.setAttribute("stroke-dashoffset", String(50.265 * (1 - p)));
-			});
-			if (p < 1) {
-				window.setTimeout(step, 160);
-				return;
-			}
-			host.querySelectorAll(".import-ring").forEach((n?: any) => {
-				n.classList.add("done");
-			});
-			done?.();
-			window.setTimeout(() => {
-				host.hidden = true;
-			}, 900);
-		};
-		window.setTimeout(step, 120);
-	}
+
 	/* ——— First run ——— */
 	loadDemo() {
 		const before = Store.state.cards.length;
@@ -1679,67 +1492,21 @@ class AppController {
 			...(c.due ? { due: Date.now() + (c.due - demoBase) } : {}),
 		}));
 		this.closeNative();
-		this.startImportRings(["rss", "readwise", "mail", "calendar"], () => {
-			this.withFeedAnchor(() => {
-				Store.insert(demo);
-				for (const [id, x] of Object.entries(SeedItems)) Store.patch(id, x);
-			}, true);
-			if (!before)
-				this.toast(
-					copy("web.app.7c8adb347efd"),
-					() => {
-						Store.remove(demo.map((c?: any) => c.id));
-						this.withFeedAnchor(() => {});
-					},
-					copy("web.app.309edeceecd6"),
-				);
-		});
-		if (!Store.state.sources.length)
-			DemoSources.forEach((s?: any) => {
-				Store.upsertSource({ ...s, syncedAt: Date.now() });
-			});
-	}
-	welcomeContinue() {
-		const kinds = [...this.welcomePicked],
-			system = kinds.filter((k?: any) => Panels.systemKinds[k]),
-			accounts = kinds.filter((k?: any) => !Panels.systemKinds[k]);
-		for (const k of accounts)
-			if (!Store.source("src-" + k))
-				Store.upsertSource({
-					id: "src-" + k,
-					kind: k,
-					name: SourceKinds[k].label,
-					detail: k === "rss" ? copy("web.app.7eeeb5ce655e") : copy("web.app.79209170acff"),
-					enabled: true,
-					status: "attention",
-					count: 0,
-					stack: true,
-					open: ["linear", "github"].includes(k) ? "web" : "inside",
-					range: "30d",
-				});
-		Store.state.preferences.onboarded = true;
-		Store.save();
-		this.permissionQueue = system;
-		this.nextPermission();
-	}
-	nextPermission() {
-		const kind = this.permissionQueue?.shift();
-		if (kind) {
-			this.swapPanel(Panels.permission(kind), "permission", "panel narrow");
-			return;
-		}
-		this.closeNative();
-		this.welcomePicked.clear();
-		const waiting = Store.state.sources.filter((s?: any) => s.status === "attention").length;
-		this.renderCurrent(false);
-		if (waiting)
+		this.withFeedAnchor(() => {
+			Store.insert(demo);
+			for (const [id, x] of Object.entries(SeedItems)) Store.patch(id, x);
+		}, true);
+		if (!before)
 			this.toast(
-				`${waiting}${copy("web.app.54256fc5225b")}`,
-				() => this.openPanel("sources"),
-				copy("web.app.db8db0530432"),
+				copy("web.app.7c8adb347efd"),
+				() => {
+					Store.remove(demo.map((c?: any) => c.id));
+					this.withFeedAnchor(() => {});
+				},
+				copy("web.app.309edeceecd6"),
 			);
 	}
-	/* ——— Settings and sources ——— */
+	/* ——— Settings ——— */
 	setPref(key?: any, value?: any) {
 		const before = Store.pref(key);
 		Store.setPref(key, value);
@@ -1753,13 +1520,7 @@ class AppController {
 		const active = document.activeElement;
 		const key = (n?: any) => [n.id, n.dataset.action, n.dataset.id, n.dataset.extra].join("|");
 		const focused = this.dialog.contains(active) ? key(active) : null;
-		const selectors = [
-			".sheet-scroll",
-			".settings-main",
-			".settings-nav",
-			".sheet",
-			".import-list",
-		];
+		const selectors = [".sheet-scroll", ".settings-main", ".settings-nav", ".sheet"];
 		const positions = selectors.map((selector?: any) => {
 			const node = this.dialog.querySelector(selector);
 			return { selector, x: node?.scrollLeft || 0, y: node?.scrollTop || 0 };
@@ -1802,23 +1563,6 @@ class AppController {
 		[...this.dialog.querySelectorAll("[data-action]")]
 			.find((n?: any) => [n.dataset.action, n.dataset.id, n.dataset.extra].join("|") === key)
 			?.focus({ preventScroll: true });
-	}
-	repaintSources() {
-		if (this.modalKind === "settings") {
-			this.repaintSettings();
-			return;
-		}
-		if (this.modalKind === "sources") this.replacePanelContent(Panels.sources());
-		if (this.modalKind === "source") this.replacePanelContent(Panels.sourceDetail(this.sourceId));
-	}
-	sourceReturn() {
-		return this.modalKind === "settings"
-			? () => {
-					this.swapPanel(Panels.settings(this, "sources"), "settings", "panel wide");
-				}
-			: () => {
-					this.swapPanel(Panels.sources(), "sources");
-				};
 	}
 	exportAll() {
 		const data: Record<string, any> = {
@@ -2431,7 +2175,6 @@ class AppController {
 			case "clear-confirm":
 				Store.state.cards = [];
 				Store.state.items = {};
-				Store.state.sources = [];
 				Store.state.freshIds = [];
 				Store.state.preferences.onboarded = false;
 				Store.save();
@@ -2439,211 +2182,6 @@ class AppController {
 				this.closeNative();
 				this.pendingCards = [];
 				this.renderCurrent(true);
-				break;
-			case "sources":
-				this.openPanel("sources");
-				break;
-			case "sources-add":
-				this.panelReturn = this.sourceReturn();
-				this.swapPanel(Panels.sourcesAdd(), "sources-add");
-				break;
-			case "source-connect": {
-				const back =
-					this.modalKind === "sources-add"
-						? () => this.swapPanel(Panels.sourcesAdd(), "sources-add")
-						: this.dialog.open
-							? this.sourceReturn()
-							: null;
-				this.panelReturn = back;
-				this.swapPanel(
-					Panels.connect(extra),
-					Panels.systemKinds[extra] ? "permission" : "connect",
-					Panels.systemKinds[extra] ? "panel narrow" : "panel",
-				);
-				break;
-			}
-			case "source-authorize": {
-				const k = extra,
-					existing = Store.source("src-" + k);
-				Store.upsertSource({
-					id: "src-" + k,
-					kind: k,
-					name: SourceKinds[k].label,
-					detail: copy("web.app.79209170acff"),
-					enabled: true,
-					status: "attention",
-					count: existing?.count || 0,
-					stack: existing?.stack ?? true,
-					open: existing?.open || (["linear", "github"].includes(k) ? "web" : "inside"),
-					range: this.connectRange || "30d",
-				});
-				const site = {
-					readwise: "https://readwise.io/access_token",
-					youtube: "https://www.youtube.com/",
-					twitter: "https://x.com/i/bookmarks",
-					mail: "https://mail.google.com/",
-					linear: "https://linear.app/settings/api",
-					github: "https://github.com/settings/tokens",
-					podcast: "https://podcasts.apple.com/",
-				}[k];
-				if (site) window.open(site, "_blank", "noopener,noreferrer");
-				this.panelReturn = null;
-				this.swapPanel(Panels.sources(), "sources");
-				this.toast(`${SourceKinds[k].label}${copy("web.app.01e30f06aad3")}`);
-				break;
-			}
-			case "connect-range":
-				this.connectRange = extra;
-				el.parentElement.querySelectorAll("button").forEach((b?: any) => {
-					b.classList.toggle("on", b === el);
-					b.setAttribute("aria-checked", String(b === el));
-					b.tabIndex = b === el ? 0 : -1;
-				});
-				break;
-			case "permission-allow":
-			case "permission-later": {
-				const k = extra;
-				if (name === "permission-allow") {
-					Store.upsertSource({
-						id: "src-" + k,
-						kind: k,
-						name: SourceKinds[k].label,
-						detail: copy("web.app.8c457c570b6d"),
-						enabled: false,
-						status: "attention",
-						count: 0,
-						stack: k !== "calendar",
-						open: "inside",
-						range: "30d",
-					});
-					this.alert(copy("web.app.58a34977e6ee"));
-				}
-				if (this.permissionQueue) {
-					this.nextPermission();
-					break;
-				}
-				this.panelReturn = null;
-				this.swapPanel(Panels.sources(), "sources");
-				break;
-			}
-			case "source-open":
-				this.sourceId = id;
-				this.panelReturn = this.sourceReturn();
-				this.swapPanel(Panels.sourceDetail(id), "source");
-				break;
-			case "source-toggle": {
-				const s = Store.source(id);
-				if (!s) break;
-				const on = !(s.enabled && s.status !== "paused");
-				Store.upsertSource({ ...s, enabled: on, status: on ? "attention" : "paused" });
-				this.repaintSources();
-				break;
-			}
-			case "source-flag": {
-				const [sid, key] = id.split(":"),
-					s = Store.source(sid);
-				if (!s) break;
-				Store.upsertSource({ ...s, [key]: !s[key] });
-				this.replacePanelContent(Panels.sourceDetail(sid));
-				this.withFeedAnchor(() => {});
-				break;
-			}
-			case "source-set": {
-				const [sid, key] = id.split(":"),
-					s = Store.source(sid);
-				if (!s) break;
-				Store.upsertSource({ ...s, [key]: extra });
-				this.replacePanelContent(Panels.sourceDetail(sid));
-				break;
-			}
-			case "source-pause": {
-				const s = Store.source(id);
-				Store.upsertSource({
-					...s,
-					status: s.status === "paused" ? "attention" : "paused",
-					enabled: s.status === "paused",
-				});
-				this.replacePanelContent(Panels.sourceDetail(id));
-				break;
-			}
-			case "source-remove": {
-				const s = Store.source(id),
-					count = Store.state.cards.filter((c?: any) => `src-${cardSourceKind(c)}` === id).length;
-				this.panelReturn = () => this.swapPanel(Panels.sourceDetail(id), "source");
-				this.swapPanel(
-					Panels.confirm(
-						`${copy("web.app.9864b708e4d6")}${s.name}？`,
-						count
-							? `${copy("web.app.61d3fcef8e71")}${count}${copy("web.app.1fff7997b41a")}`
-							: copy("web.app.11c6950978d5"),
-						`${count ? `<button type="button" class="soft-button" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">${copy("web.app.1e9761abce36")}</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="remove">${copy("web.app.754739094747")}</button>` : `<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">${copy("web.app.f33ac04eece6")}</button>`}`,
-					),
-					"confirm",
-					"panel narrow",
-				);
-				break;
-			}
-			case "source-drop": {
-				Store.removeSource(id);
-				if (extra === "remove")
-					Store.remove(
-						Store.state.cards
-							.filter((c?: any) => `src-${cardSourceKind(c)}` === id)
-							.map((c?: any) => c.id),
-					);
-				this.panelReturn = null;
-				this.swapPanel(Panels.sources(), "sources");
-				this.withFeedAnchor(() => {});
-				break;
-			}
-			case "feed-add": {
-				const url = Importers.url(
-					(document.getElementById("feed-url") as HTMLInputElement)?.value || "",
-				);
-				if (!url) {
-					this.alert(copy("web.app.96e1376c8dee"));
-					return;
-				}
-				this.alert(copy("web.app.42f3ce27d2cb"));
-				break;
-			}
-			case "import-pick":
-				document.getElementById("file-input").click();
-				break;
-			case "import-toggle": {
-				const i = Number(extra);
-				this.importPicked.has(i) ? this.importPicked.delete(i) : this.importPicked.add(i);
-				this.replacePanelContent(Panels.importPreview(this));
-				this.dialog.querySelector(`[data-action="import-toggle"][data-extra="${i}"]`)?.focus();
-				break;
-			}
-			case "import-toggle-all":
-				this.importPicked =
-					this.importPicked.size === this.importing.entries.length
-						? new Set<any>()
-						: new Set<any>(this.importing.entries.map((_?: any, i?: any) => i));
-				this.replacePanelContent(Panels.importPreview(this));
-				break;
-			case "import-range":
-				this.importRange = extra;
-				this.replacePanelContent(Panels.importPreview(this));
-				break;
-			case "import-run":
-				this.runImport();
-				break;
-			case "welcome-start":
-				this.welcomePicked = new Set<any>(["rss", "readwise", "web", "mail", "calendar"]);
-				this.openPanel("welcome");
-				break;
-			case "welcome-pick":
-				this.welcomePicked.has(extra)
-					? this.welcomePicked.delete(extra)
-					: this.welcomePicked.add(extra);
-				this.dialog.innerHTML = Panels.welcomePick(this);
-				this.dialog.querySelector(`[data-action="welcome-pick"][data-extra="${extra}"]`)?.focus();
-				break;
-			case "welcome-continue":
-				this.welcomeContinue();
 				break;
 			case "welcome-demo":
 				this.loadDemo();
@@ -2919,11 +2457,6 @@ END:VCALENDAR
 		if (e.target.id === "capture-text" && e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			this.action("capture-save");
-			return;
-		}
-		if (e.target.id === "feed-url" && e.key === "Enter") {
-			e.preventDefault();
-			this.action("feed-add");
 			return;
 		}
 		if (e.key === "Escape" && !this.dialog.open) {

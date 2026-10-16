@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { request } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -131,6 +131,45 @@ test("local operations persist all card states and reject conflicts atomically",
 	}
 });
 
+test("legacy sources remain opaque state and source operations are unsupported", async () => {
+	const dir = await mkdtemp(join(tmpdir(), "qg-legacy-sources-")),
+		file = join(dir, "cards.json");
+	const sources = [
+		{ id: "old-source", kind: "ai", name: "旧来源", enabled: false, extra: { keep: true } },
+	];
+	try {
+		await writeFile(
+			file,
+			JSON.stringify({
+				revision: 5,
+				state: {
+					cards: [card],
+					items: {},
+					seconds: 0,
+					preferences: { sort: "priority" },
+					sources,
+				},
+			}),
+		);
+		const repo = new LocalRepository(file);
+		assert.deepEqual(repo.snapshot().state.sources, sources, "reading does not migrate old sources");
+		repo.apply({ operations: [{ op: "preferences.patch", values: { sort: "time" } }] });
+		assert.deepEqual(
+			new LocalRepository(file).snapshot().state.sources,
+			sources,
+			"other writes preserve old sources exactly",
+		);
+		for (const operation of [
+			{ op: "source.upsert", source: { id: "new-source", kind: "rss", name: "RSS" } },
+			{ op: "source.delete", id: "old-source" },
+		]) {
+			assert.throws(() => repo.apply({ operations: [operation] }));
+		}
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+});
+
 test("loopback HTTP and actual agent CLI share the same data without App/MCP login", async () => {
 	const dir = await mkdtemp(join(tmpdir(), "qg-http-")),
 		file = join(dir, "cards.json");
@@ -189,7 +228,10 @@ test("loopback HTTP and actual agent CLI share the same data without App/MCP log
 			body: JSON.stringify({ operations: [{ op: "card.upsert", card }] }),
 		});
 		assert.equal(response.status, 200);
-		assert.ok((await cli("capabilities")).itemFields.includes("taskDone"));
+		const available = await cli("capabilities");
+		assert.ok(available.itemFields.includes("taskDone"));
+		assert.ok(!available.operations.includes("source.upsert"));
+		assert.ok(!available.operations.includes("source.delete"));
 		assert.equal((await cli("get", card.id)).card.title, card.title);
 		assert.equal((await cli("list", "本地")).cards.length, 1);
 		assert.equal((await cli("open", card.id)).source, card.url);

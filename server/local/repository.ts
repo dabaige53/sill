@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { z } from "zod/v4";
 import { Card, normalizeCard, sourceKinds, cardTypes as types } from "../../contracts/card.ts";
-import { Batch, CardState, Preferences, Source, State } from "../../contracts/local.ts";
+import { Batch, CardState, Preferences, State } from "../../contracts/local.ts";
 import { copy } from "../../design-system/copy.ts";
 export const capabilities = {
 	operations: [
@@ -12,8 +12,6 @@ export const capabilities = {
 		"item.patch",
 		"preferences.patch",
 		"reading.add",
-		"source.upsert",
-		"source.delete",
 	],
 	cardFields: Object.keys(Card.shape),
 	itemFields: Object.keys(CardState.shape),
@@ -63,11 +61,6 @@ export class LocalRepository {
 		this.value = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null;
 		if (this.value?.state?.cards)
 			this.value.state.cards = this.value.state.cards.map(normalizeCard);
-		if (this.value?.state?.sources)
-			this.value.state.sources = this.value.state.sources.map((source?: any) => ({
-				...source,
-				kind: source.kind === "ai" ? "agent" : source.kind,
-			}));
 		if (this.value) {
 			State.parse(this.value.state);
 			z.number().int().nonnegative().parse(this.value.revision);
@@ -145,13 +138,6 @@ export class LocalRepository {
 			} else if (operation.op === "preferences.patch") {
 				compare(state.preferences, operation.values, operation.before);
 				Object.assign(state.preferences, operation.values);
-			} else if (operation.op === "source.upsert") {
-				state.sources ??= [];
-				const at = state.sources.findIndex((source?: any) => source.id === operation.source.id);
-				if (at < 0) state.sources.push(operation.source);
-				else state.sources[at] = operation.source;
-			} else if (operation.op === "source.delete") {
-				state.sources = (state.sources || []).filter((source?: any) => source.id !== operation.id);
 			} else state.seconds = Math.min(1e7, state.seconds + operation.seconds);
 		}
 		State.parse(state);

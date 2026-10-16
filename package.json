@@ -1,6 +1,6 @@
 {
 	"name": "sill",
-	"version": "1.2.0",
+	"version": "1.2.2",
 	"private": true,
 	"description": "Local card workspace with shared UI and agent operations",
 	"scripts": {
@@ -40,7 +40,8 @@
 		"format": "node scripts/format.ts",
 		"lint": "node scripts/format.ts --check",
 		"lint:web": "node scripts/format.ts --check --web",
-		"lint:apple": "node scripts/format.ts --check --apple"
+		"lint:apple": "node scripts/format.ts --check --apple",
+		"test:cloud-operations": "node tests/e2e/cloud-operations-browser.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",

@@ -3,11 +3,11 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createSillRuntime } from "../../server/cloud/http.ts";
-import { A, resource } from "./helpers/boundary-fixture.ts";
+import { A, B, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
-test("official MCP client discovers/calls seven contracts over authenticated stateless HTTP", async () => {
+test("official MCP client discovers/calls nine contracts over authenticated stateless HTTP", async () => {
 	const f = await cloudFixture();
 	let client: any;
 	try {
@@ -52,14 +52,24 @@ test("official MCP client discovers/calls seven contracts over authenticated sta
 		client = new Client({ name: "synthetic-codex-test", version: "1.0.0" });
 		await client.connect(transport);
 		const list = await client.listTools();
-		assert.equal(list.tools.length, 7);
+		assert.equal(list.tools.length, 9);
 		const args: Record<string, any> = {
 			idempotency_key: "mcp_create1",
-			body: { type: "note", title: "MCP same database", body: ["Synthetic MCP content"] },
+			body: {
+				type: "note",
+				title: "MCP same database",
+				body: ["Synthetic MCP content"],
+				summary: "Rich preview",
+				form: "compact",
+				sources: [{ name: "Test agent", kind: "agent" }],
+			},
 		};
 		const created = await client.callTool({ name: "sill_createContent", arguments: args });
 		assert.ok(!created.isError, JSON.stringify(created));
 		const one = created.structuredContent;
+		assert.equal(one.summary, "Rich preview");
+		assert.equal(one.form, "compact");
+		assert.deepEqual(one.sources, args.body.sources);
 		assert.equal(
 			(await client.callTool({ name: "sill_createContent", arguments: args })).structuredContent.id,
 			one.id,
@@ -72,6 +82,97 @@ test("official MCP client discovers/calls seven contracts over authenticated sta
 		assert.equal(
 			(await client.callTool({ name: "sill_listContents", arguments: {} })).structuredContent
 				.items[0].id,
+			one.id,
+		);
+		const snapshot = await client.callTool({ name: "sill_getWorkspace", arguments: {} });
+		assert.equal(snapshot.structuredContent.state.cards[0].id, one.id);
+		const applied = await client.callTool({
+			name: "sill_applyOperations",
+			arguments: {
+				idempotency_key: "mcp-workspace-apply",
+				body: {
+					operations: [{ op: "preferences.patch", values: { theme: "dark" } }],
+					expectedRevision: snapshot.structuredContent.revision,
+				},
+			},
+		});
+		assert.equal(applied.structuredContent.state.preferences.theme, "dark");
+		const httpSnapshot = await runtime(
+			new Request(f.config.appOrigin + "/api/v1/workspace", {
+				headers: { Cookie: "__Host-sill-access=" + token() },
+			}),
+		);
+		assert.deepEqual(await httpSnapshot.json(), applied.structuredContent);
+		const beforeOwnerCheck = (await client.callTool({ name: "sill_getWorkspace", arguments: {} }))
+			.structuredContent;
+		for (const [name, args] of [
+			["sill_getWorkspace", {}],
+			["sill_listContents", {}],
+			["sill_getContent", { id: one.id }],
+			["sill_getEvent", { id: "not-created" }],
+		] as Array<[string, Record<string, any>]>) {
+			const readDenied = await client.callTool({ name, arguments: { ...args, expected_owner: B } });
+			assert.equal(readDenied.isError, true);
+			assert.equal(JSON.parse(readDenied.content[0].text).error.code, "forbidden");
+		}
+		const wrongOwnerCalls: Array<[string, Record<string, any>]> = [
+			["sill_createContent", args],
+			[
+				"sill_updateContent",
+				{
+					id: one.id,
+					idempotency_key: "owner-update-key",
+					body: { expectedRevision: one.revision, changes: { title: "Wrong account" } },
+				},
+			],
+			[
+				"sill_deleteContent",
+				{
+					id: one.id,
+					idempotency_key: "owner-delete-key",
+					body: { expectedRevision: one.revision },
+				},
+			],
+			[
+				"sill_applyOperations",
+				{
+					idempotency_key: "owner-apply-key",
+					body: { operations: [{ op: "reading.add", seconds: 10 }] },
+				},
+			],
+			[
+				"sill_submitEvent",
+				{
+					idempotency_key: "owner-event-key",
+					body: {
+						event_id: "wrong-owner-event",
+						card_id: one.id,
+						card_version: one.revision,
+						action: "summarize",
+						destination_ref: "agent",
+					},
+				},
+			],
+		];
+		for (const [name, argumentsValue] of wrongOwnerCalls) {
+			const denied = await client.callTool({
+				name,
+				arguments: { ...argumentsValue, expected_owner: B },
+			});
+			assert.equal(denied.isError, true);
+			assert.equal(JSON.parse(denied.content[0].text).error.code, "forbidden");
+		}
+		assert.deepEqual(
+			(await client.callTool({ name: "sill_getWorkspace", arguments: {} })).structuredContent,
+			beforeOwnerCheck,
+		);
+		assert.equal(
+			(
+				await client.callTool({
+					name: "sill_createContent",
+					arguments: { ...args, expected_owner: A },
+				})
+			).structuredContent.id,
 			one.id,
 		);
 		const ev = await client.callTool({

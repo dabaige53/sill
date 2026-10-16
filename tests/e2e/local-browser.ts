@@ -32,6 +32,7 @@ try {
 						"note-01": { note: "旧备注", bookmarked: true },
 						"task-01": { taskDone: ["t1", "t2"] },
 					},
+					sources: [{ id: "legacy-source", status: "ok", syncedAt: 123 }],
 					seconds: 37,
 					sort: "time",
 				}),
@@ -98,6 +99,50 @@ try {
 	);
 	value = await fetch(origin + "/api/local/state").then((r?: any) => r.json());
 	assert.equal(value.state.items["agent-test"].note, "页面写回给 AI");
+	// A response started before opening the editor must not replace its baseline.
+	let releaseSave: () => void;
+	const saveGate = new Promise<void>((resolve) => {
+		releaseSave = resolve;
+	});
+	let notifySave: () => void;
+	const saveStarted = new Promise<void>((resolve) => {
+		notifySave = resolve;
+	});
+	await page.route(
+		"**/api/local/operations",
+		async (route) => {
+			notifySave();
+			await saveGate;
+			await route.continue();
+		},
+		{ times: 1 },
+	);
+	await page.evaluate(() => window.__app.setPref("reduceTransparency", false));
+	await saveStarted;
+	await page.evaluate(() => window.__app.openPanel("editor", "agent-test"));
+	await apply([{ op: "item.patch", id: "agent-test", values: { note: "并发 AI 备注" } }]);
+	releaseSave();
+	await page.waitForFunction(
+		() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved",
+	);
+	await page.locator("#note-editor").fill("保留的冲突草稿");
+	await page.locator('[data-action="save-note"]').click();
+	await page.waitForFunction(
+		() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "error",
+	);
+	value = await fetch(origin + "/api/local/state").then((r) => r.json());
+	assert.equal(value.state.items["agent-test"].note, "并发 AI 备注");
+	assert.equal(
+		await page.evaluate(
+			() => JSON.parse(localStorage.getItem("sill-unsynced")).state.items["agent-test"].note,
+		),
+		"保留的冲突草稿",
+	);
+	await page.evaluate(() => window.__app.action("sync-discard"));
+	await page.locator('[data-action="sync-discard-confirm"]').click();
+	await page.waitForFunction(
+		() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved",
+	);
 	await page.keyboard.press("Escape");
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
 	await page.locator("#orb").click();
@@ -133,9 +178,8 @@ try {
 	value = await fetch(origin + "/api/local/state").then((r?: any) => r.json());
 	assert.equal(value.state.cards.length, 30);
 	assert.equal(value.state.items["note-01"].note, "旧备注");
-	// Cards made on the page (capture, import) and source changes reach the shared repository too.
+	// Captured links reach the shared repository while retired source metadata stays unchanged.
 	await page.evaluate(() => window.__app.capture("https://example.com/sync 页面收集的链接"));
-	await page.evaluate(() => window.__app.action("permission-allow", "", "photos"));
 	await page.waitForFunction(
 		() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved",
 	);
@@ -145,13 +189,8 @@ try {
 			(c?: any) => c.url === "https://example.com/sync" && c.title === "页面收集的链接",
 		),
 	);
-	assert.equal(value.state.sources.find((s?: any) => s.id === "src-photos")?.status, "attention");
-	assert.equal(
-		value.state.sources.find((s?: any) => s.id === "src-photos")?.syncedAt,
-		undefined,
-		"unimplemented authorization never invents a sync time",
-	);
-	assert.ok(value.state.sources.length >= 5);
+	assert.deepEqual(value.state.sources, [{ id: "legacy-source", status: "ok", syncedAt: 123 }]);
+	assert.equal(await page.locator('input[type="file"],#import-rings').count(), 0);
 	assert.deepEqual(errors, []);
 	await writeFile(
 		join(artifacts, "local-browser.json"),
@@ -162,6 +201,7 @@ try {
 					"旧数据迁移",
 					"AI 写入自动显示",
 					"页面操作写回",
+					"编辑期间回包不覆盖基准，冲突保留草稿",
 					"打开预览同步",
 					"设置同步",
 					"刷新无假数据",

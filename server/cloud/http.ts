@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod/v4";
-import { create, event, revision, update } from "../../contracts/cloud.ts";
+import { create, event, revision, update, workspaceBatch } from "../../contracts/cloud.ts";
 import { copy } from "../../design-system/copy.ts";
 import { accessName as cookieName, createBrowserSessions, readCookie } from "./browser-session.ts";
 import { loginPage } from "./login-page.ts";
@@ -148,8 +148,14 @@ export function createSillRuntime(
 				path === "/.well-known/oauth-protected-resource/mcp"
 			)
 				return mcp(request);
-			if (path === "/api/v1/health" && request.method === "GET")
+			if (path === "/api/v1/health" && request.method === "GET") {
+				if (
+					request.headers.has("X-Sill-Owner") &&
+					request.headers.get("X-Sill-Owner") !== (await authenticate(request)).principal.userId
+				)
+					throw serviceError("forbidden");
 				return json(200, { status: "ready", contract: "sill-v1-draft1" });
+			}
 			if (request.method === "GET" && (path === "/auth/login" || path === "/auth/password/new")) {
 				if (path === "/auth/password/new") await authenticate(request);
 				else {
@@ -372,18 +378,27 @@ export function createSillRuntime(
 				const identity = await authenticate(request);
 				const access = await repositoryFactory(identity.client).session();
 				if (!access.workspaceRead) throw serviceError("forbidden");
-				return json(200, { userId: identity.principal.userId });
+				return json(200, { ...access, userId: identity.principal.userId });
 			}
 			if (path.startsWith("/api/v1/")) {
 				if (!["GET", "POST", "PATCH", "DELETE"].includes(request.method))
 					throw serviceError("invalid_request", 405);
 				if (request.method !== "GET" && !request.headers.has("authorization"))
 					sameOrigin(request, config.appOrigin);
-				const { client } = await authenticate(request),
+				const { client, principal } = await authenticate(request),
 					repository = repositoryFactory(client);
+				if (
+					request.headers.has("X-Sill-Owner") &&
+					request.headers.get("X-Sill-Owner") !== principal.userId
+				)
+					throw serviceError("forbidden");
 				const content = /^\/api\/v1\/contents\/([\w-]{1,100})$/.exec(path),
 					eventPath = /^\/api\/v1\/events\/([\w-]{1,100})$/.exec(path);
 				if (request.method === "GET") {
+					if (path === "/api/v1/workspace") {
+						if (url.search) throw serviceError("invalid_request");
+						return json(200, await repository.workspace());
+					}
 					if (path === "/api/v1/contents") {
 						const query = z
 							.object({
@@ -404,6 +419,14 @@ export function createSillRuntime(
 					if (eventPath) return json(200, await repository.getEvent(eventPath[1]));
 				}
 				const key = request.headers.get("idempotency-key");
+				if (path === "/api/v1/workspace/operations" && request.method === "POST") {
+					if (url.search || !/^[\w-]{8,128}$/.test(key || ""))
+						throw serviceError("invalid_request");
+					return json(
+						200,
+						await repository.applyOperations(workspaceBatch.parse(await body(request)), key),
+					);
+				}
 				let op: any,
 					payload: any,
 					resource = null;

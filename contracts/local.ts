@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { Card, id, sourceKinds, timestamp } from "./card.ts";
+import { Card, id, timestamp } from "./card.ts";
 
 export const CardState = z
 	.object({
@@ -40,28 +40,12 @@ export const Preferences = z
 		onboarded: z.boolean().optional(),
 	})
 	.passthrough();
-export const Source = z
-	.object({
-		id,
-		kind: z.enum(sourceKinds),
-		name: z.string().min(1).max(100),
-		detail: z.string().max(200).default(""),
-		enabled: z.boolean().default(true),
-		status: z.enum(["ok", "attention", "paused"]).default("ok"),
-		syncedAt: timestamp.optional(),
-		count: z.number().int().min(0).max(1e7).default(0),
-		stack: z.boolean().default(true),
-		open: z.enum(["inside", "web"]).default("inside"),
-		range: z.enum(["30d", "all"]).default("30d"),
-	})
-	.passthrough();
 export const State = z
 	.object({
 		cards: z.array(Card).max(5000),
 		items: z.record(id, CardState),
 		seconds: z.number().min(0).max(1e7),
 		preferences: Preferences,
-		sources: z.array(Source).max(200).optional(),
 	})
 	.passthrough();
 export const Operation = z.discriminatedUnion("op", [
@@ -80,8 +64,6 @@ export const Operation = z.discriminatedUnion("op", [
 		})
 		.strict(),
 	z.object({ op: z.literal("reading.add"), seconds: z.number().int().min(0).max(86400) }).strict(),
-	z.object({ op: z.literal("source.upsert"), source: Source }).strict(),
-	z.object({ op: z.literal("source.delete"), id }).strict(),
 ]);
 export const Batch = z
 	.object({

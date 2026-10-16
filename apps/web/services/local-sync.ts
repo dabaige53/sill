@@ -19,7 +19,7 @@ const LocalSync: Record<string, any> = {
 				items: Store.state.items,
 				seconds: Store.state.seconds,
 				preferences: Store.state.preferences,
-				sources: Store.state.sources || [],
+				...Store.legacyFields,
 			}),
 		);
 	},
@@ -151,7 +151,7 @@ const LocalSync: Record<string, any> = {
 		const next = this.snapshot(),
 			before = this.baseline,
 			operations = [];
-		// Cards created or edited on the page (capture, import, inline notes) travel as whole cards.
+		// Cards created or edited on the page (capture, inline notes) travel as whole cards.
 		const oldCards = new Map<any, any>(
 				before.cards.map((card?: any) => [card.id, JSON.stringify(card)]),
 			),
@@ -166,15 +166,6 @@ const LocalSync: Record<string, any> = {
 		for (const id of oldCards.keys())
 			if (!newIds.has(id))
 				operations.push({ op: "card.delete", id, before: JSON.parse(oldCards.get(id)) });
-		const oldSources = new Map<any, any>(
-				(before.sources || []).map((source?: any) => [source.id, JSON.stringify(source)]),
-			),
-			newSources = new Set<any>(next.sources.map((source?: any) => source.id));
-		for (const source of next.sources)
-			if (oldSources.get(source.id) !== JSON.stringify(source))
-				operations.push({ op: "source.upsert", source });
-		for (const id of oldSources.keys())
-			if (!newSources.has(id)) operations.push({ op: "source.delete", id });
 		for (const [id, item] of Object.entries(next.items)) {
 			if (!next.cards.some((card?: any) => card.id === id)) continue;
 			const values: Record<string, any> = {},
@@ -291,26 +282,23 @@ const LocalSync: Record<string, any> = {
 			Store.state.items[app.currentId],
 		]);
 		const changed =
-			JSON.stringify([
-				Store.state.cards,
-				Store.state.items,
-				Store.state.preferences,
-				Store.state.sources,
-			]) !==
-			JSON.stringify([
-				value.state.cards,
-				value.state.items,
-				value.state.preferences,
-				value.state.sources || [],
-			]);
+			JSON.stringify([Store.state.cards, Store.state.items, Store.state.preferences]) !==
+			JSON.stringify([value.state.cards, value.state.items, value.state.preferences]);
 		this.revision = value.revision;
 		if (!draft)
 			try {
 				localStorage.setItem("sill-sync-revision", JSON.stringify(value.revision));
 			} catch {}
 		const editingCard = app.editingId ? Store.card(app.editingId) : null;
-		Object.assign(Store.state, value.state);
-		Store.state.sources = value.state.sources || [];
+		const editingItems = new Map<string, Record<string, any>>(
+			(app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : []).map((id: string) => [
+				id,
+				{ ...Store.state.items[id] },
+			]),
+		);
+		const { sources, ...state } = value.state;
+		Object.assign(Store.state, state);
+		Store.legacyFields = Object.hasOwn(value.state, "sources") ? { sources } : {};
 		Store.state.storageAvailable = true;
 		// A response to an unrelated reading observation may include external edits.
 		// Keep the inline editor's original card until its conditional save finishes.
@@ -318,6 +306,16 @@ const LocalSync: Record<string, any> = {
 			const index = Store.state.cards.findIndex((c?: any) => c.id === editingCard.id);
 			if (index >= 0) Store.state.cards[index] = editingCard;
 			else Store.state.cards.push(editingCard);
+		}
+		// Keep the note/tag editor's original fields, including absent values.
+		// Unrelated save responses must not turn stale input into a valid overwrite.
+		for (const [id, original] of editingItems) {
+			const item = { ...Store.state.items[id] };
+			for (const key of ["note", "tags", "tagsEdited"]) {
+				if (Object.hasOwn(original, key)) item[key] = original[key];
+				else delete item[key];
+			}
+			Store.state.items[id] = item;
 		}
 		this.baseline = this.snapshot();
 		// Write the browser backup without enqueueing another remote operation.
@@ -330,7 +328,7 @@ const LocalSync: Record<string, any> = {
 		app.feedNow = Date.now();
 		app.applyPreferences();
 		if (!app.editingId) app.withFeedAnchor(() => {});
-		if (["sources", "source", "settings"].includes(app.modalKind)) app.repaintSources();
+		if (app.modalKind === "settings") app.repaintSettings();
 		if (app.modalKind === "preview" && !app.sheetLeaving) {
 			const card = Store.card(app.currentId);
 			if (!card) {

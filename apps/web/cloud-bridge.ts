@@ -16,7 +16,7 @@ export async function readWhenReady(
 		} catch (error) {
 			if (
 				attempt === 2 ||
-				!["sill_open_workspace", "sill_listContents"].includes(args.name) ||
+				!["sill_open_workspace", "sill_listContents", "sill_getWorkspace"].includes(args.name) ||
 				error.status === 401 ||
 				error.status === 403 ||
 				(error.status && error.status < 500)
@@ -31,8 +31,28 @@ export function createCloudTransport(call?: any) {
 	return async function request(path?: any, options: any = {}) {
 		if (path === "/auth/session") {
 			const access = await call({ name: "sill_open_workspace", arguments: {} });
-			return { ...access, userId: access.connected ? "connected" : null };
+			return { ...access, userId: access.connected ? access.userId : null };
 		}
+		if (path === "/api/v1/workspace" && (!options.method || options.method === "GET"))
+			return call({
+				name: "sill_getWorkspace",
+				arguments: {
+					...(new Headers(options.headers).get("X-Sill-Owner")
+						? { expected_owner: new Headers(options.headers).get("X-Sill-Owner") }
+						: {}),
+				},
+			});
+		if (path === "/api/v1/workspace/operations" && options.method === "POST")
+			return call({
+				name: "sill_applyOperations",
+				arguments: {
+					idempotency_key: new Headers(options.headers).get("Idempotency-Key"),
+					...(new Headers(options.headers).get("X-Sill-Owner")
+						? { expected_owner: new Headers(options.headers).get("X-Sill-Owner") }
+						: {}),
+					body: JSON.parse(options.body),
+				},
+			});
 		const url = new URL(path, "https://sill.invalid"),
 			match = url.pathname.match(/^\/api\/v1\/contents(?:\/([\w-]+))?$/);
 		if (!match)
@@ -57,10 +77,21 @@ export function createCloudTransport(call?: any) {
 			args = {
 				...(id ? { id } : {}),
 				idempotency_key: new Headers(options.headers).get("Idempotency-Key"),
+				...(new Headers(options.headers).get("X-Sill-Owner")
+					? { expected_owner: new Headers(options.headers).get("X-Sill-Owner") }
+					: {}),
 				body: JSON.parse(options.body),
 			};
 		}
-		return call({ name, arguments: args });
+		return call({
+			name,
+			arguments: {
+				...args,
+				...(new Headers(options.headers).get("X-Sill-Owner")
+					? { expected_owner: new Headers(options.headers).get("X-Sill-Owner") }
+					: {}),
+			},
+		});
 	};
 }
 
@@ -119,7 +150,7 @@ export function startCloudBridge() {
 				return value;
 			}
 			const value = await (opening ? readWhenReady(call, args) : call(args));
-			if (args.name === "sill_listContents") opening = false;
+			if (["sill_listContents", "sill_getWorkspace"].includes(args.name)) opening = false;
 			return value;
 		}),
 		manageAccess: () =>

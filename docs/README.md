@@ -42,6 +42,7 @@
 - [已读只靠卡片颜色](adr/0030-read-state-color-only.md)
 - [根目录 DESIGN.md 作为设计入口](adr/0031-design-md-entry.md)
 - [设计改动先改线上，再同步线下](adr/0032-design-online-first.md)
+- [不接入外部来源，内容由助手写入，连接器只用 Composio](adr/0033-ai-writes-composio-only.md)
 
 ## 记录
 
@@ -70,6 +71,10 @@
 - [2026-10-16-document-migration：文档分类迁移](records/2026-10-16-document-migration/README.md)
 - [2026-10-16-legacy-removal：旧入口清理](records/2026-10-16-legacy-removal/README.md)
 - [2026-10-16-plugin：App 插件构建证据](records/2026-10-16-plugin/README.md)
+- [2026-10-16-rich-cards：结构化云端卡片与技能发布](records/2026-10-16-rich-cards/README.md)
+
+- [2026-10-16-remove-sources-import：删除来源连接与文件导入](records/2026-10-16-remove-sources-import/README.md)
+- [2026-10-16-cloud-operations：云端工作区操作与 Agent 优先](records/2026-10-16-cloud-operations/README.md)
 
 ## 归档
 
@@ -111,5 +116,5 @@
 - [脚本目录](../scripts/README.md)
 - [测试目录](../tests/README.md)
 - [Mac 原生说明](../apps/apple/README.md)
-- [PR 模板](../.github/pull_request_template.md)与[本次正文](../pr.md)
+- [PR 编写指南](../pr.md)与[PR 模板](../.github/pull_request_template.md)
 - [接口准备示例](../contracts/design/)：保留准备材料，不表示新增 API 已实现。

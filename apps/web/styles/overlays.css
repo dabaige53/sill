@@ -713,19 +713,7 @@ button.list-row:hover,
 .list-row:focus-within .row-date {
 	opacity: 0;
 }
-.status-dot {
-	width: 7px;
-	height: 7px;
-	border-radius: 50%;
-	background: var(--success);
-	flex: none;
-}
-.status-dot.attention {
-	background: var(--alert);
-}
-.status-dot.paused {
-	background: #c7c7cc;
-}
+
 .panel-foot-row {
 	display: flex;
 	align-items: center;
@@ -1005,102 +993,6 @@ kbd {
 	margin-top: 8px;
 }
 
-/* Sources and import. */
-.source-grid {
-	display: grid;
-	grid-template-columns: repeat(5, minmax(0, 1fr));
-	gap: 10px;
-}
-.source-tile {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	aspect-ratio: 1;
-	border: 1px solid var(--line-card);
-	border-radius: 16px;
-	font-size: var(--text-meta);
-	transition:
-		border-color var(--fast),
-		background var(--fast);
-}
-.source-tile:hover {
-	border-color: var(--accent);
-	background: var(--canvas);
-}
-.source-tile .row-icon {
-	display: grid;
-	place-items: center;
-	width: 40px;
-	height: 40px;
-	border-radius: 12px;
-	background: var(--surface);
-	color: var(--ink);
-}
-.source-tile.on {
-	border: 2px solid var(--accent);
-}
-.connect {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	text-align: center;
-	gap: 14px;
-	padding: 40px 28px 36px;
-}
-.connect-icons {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	color: var(--secondary);
-}
-.connect-icons .app {
-	display: grid;
-	place-items: center;
-	width: 56px;
-	height: 56px;
-	border-radius: 16px;
-	background: var(--surface);
-	color: var(--ink);
-}
-.connect h1 {
-	margin: 0;
-	font-size: var(--text-panel-title);
-}
-.import-list .list-row {
-	min-height: 44px;
-}
-.check-box {
-	display: grid;
-	place-items: center;
-	width: 22px;
-	height: 22px;
-	border-radius: 50%;
-	border: 1.5px solid #c7c7cc;
-	color: #fff;
-	flex: none;
-}
-.check-box.on {
-	background: var(--accent-fill);
-	border-color: var(--accent);
-}
-.import-file {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 8px;
-	padding: 28px;
-	border: 2px dashed var(--line-hover);
-	border-radius: 18px;
-	text-align: center;
-	font-size: var(--text-control);
-	color: var(--muted);
-}
-.import-file.hot {
-	border-color: var(--accent);
-	background: var(--accent-soft);
-}
 .app-badge {
 	display: grid;
 	place-items: center;
@@ -1134,15 +1026,7 @@ kbd {
 	margin-top: 18px;
 	align-items: center;
 }
-.source-chips {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	text-align: left;
-}
-.source-chips .chips {
-	margin-bottom: 6px;
-}
+
 .chip.pick {
 	min-height: 40px;
 	padding: 0 16px;
@@ -1182,39 +1066,6 @@ kbd {
 }
 .permission-actions > * {
 	flex: 1;
-}
-.import-rings {
-	position: fixed;
-	left: 50%;
-	bottom: 32px;
-	transform: translateX(-50%);
-	z-index: 44;
-	display: flex;
-	gap: 8px;
-	padding: 8px;
-	border-radius: 30px;
-}
-.import-rings[hidden] {
-	display: none;
-}
-.import-ring {
-	position: relative;
-	display: grid;
-	place-items: center;
-	width: 36px;
-	height: 36px;
-	color: var(--muted);
-}
-.import-ring .progress-ring {
-	position: absolute;
-	inset: 0;
-	color: var(--accent);
-}
-.import-ring.done {
-	color: var(--success);
-}
-.import-ring.done .progress-ring {
-	color: var(--success);
 }
 
 /* Capture: write one line, or paste a link. */
@@ -1584,10 +1435,7 @@ dialog > .float-bar {
 	overflow-y: auto;
 	overscroll-behavior: contain;
 }
-.import-list {
-	max-height: 45dvh;
-	overflow-y: auto;
-}
+
 .search-pill:focus-within {
 	outline: 2px solid var(--accent);
 	outline-offset: 4px;

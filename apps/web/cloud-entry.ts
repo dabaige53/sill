@@ -1,5 +1,8 @@
 import { button, esc } from "./atoms/primitives.ts";
 import { copy } from "./copy.ts";
+import { cloudCard, cloudCardChanges } from "./data/cloud-card.ts";
+import { demoBase, SeedCards, SeedItems } from "./data/cards.ts";
+import { CloudSync, clone } from "./services/cloud-sync.ts";
 import { Store } from "./data/store.ts";
 import { Panels, welcomeHTML } from "./interactions/panels.ts";
 import { AppController } from "./views/app.ts";
@@ -16,13 +19,6 @@ Store.load = function () {
 	return this.state;
 };
 Store.save = function () {};
-// Automatic reading observations remain transient; explicit cloud edits own persisted state.
-const transientPatch = Store.patch;
-Store.patch = function (id?: any, values?: any) {
-	const safe: Record<string, any> = {};
-	for (const key of ["seen", "progress"]) if (key in values) safe[key] = values[key];
-	transientPatch.call(this, id, safe);
-};
 const Cloud: Record<string, any> = {
 	user: null,
 	records: new Map<any, any>(),
@@ -63,7 +59,7 @@ function cloudWelcome() {
 	return welcomeHTML({
 		actions:
 			(Cloud.user
-				? `<button type="button" class="solid-button" data-action="capture">${copy("web.cloudentry.21dfdf7a86e7")}</button>`
+				? `<button type="button" class="solid-button" data-action="capture">${copy("web.cloudentry.21dfdf7a86e7")}</button><button type="button" class="text-link" data-action="welcome-demo">${copy("web.panels.0245f51ac89a")}</button>`
 				: `<a class="solid-button" href="/auth/login">${copy("web.cloudentry.be4ece4b22aa")}</a><form id="cloud-login"><label for="cloud-email">${copy("web.cloudentry.d261be8e9b91")}</label><input id="cloud-email" name="email" type="email" autocomplete="email" required placeholder="${copy("web.cloudentry.27558ddc9803")}" aria-describedby="cloud-login-status"><button class="solid-button" type="submit">${copy("web.cloudentry.92b193fad920")}</button><p id="cloud-login-status" role="status">${callbackFailed ? copy("web.cloudentry.83bf2b73aee3") : copy("web.cloudentry.5eef9638100a")}</p></form>`) +
 			recovery,
 		detail: recovery
@@ -80,6 +76,52 @@ app.deskHTML = function () {
 	return originalDeskHTML();
 };
 app.init();
+const sync = new CloudSync({
+	snapshot: workspaceState,
+	adopt: adoptWorkspace,
+	owner: () => Cloud.user,
+	request: (body, key, owner) => {
+		Cloud.writeVersion++;
+		return cloudApi("/api/v1/workspace/operations", {
+			method: "POST",
+			headers: { "Idempotency-Key": key, "X-Sill-Owner": owner },
+			body: JSON.stringify(body),
+		});
+	},
+	canSave: () =>
+		!!Cloud.user &&
+		!Cloud.busy &&
+		!Cloud.pending &&
+		!Cloud.discarding &&
+		(!Cloud.scopes || Cloud.scopes.includes("content:write")),
+	status: syncStatus,
+	failure: (error) => {
+		if (error.status === 401 || error.status === 403) {
+			sync.suspended = true;
+			clearCloud({ retainDrafts: true });
+		}
+		app.toast(error.message);
+	},
+});
+Store.save = () => {
+	if (
+		Cloud.user &&
+		!Cloud.discarding &&
+		!sync.suspended &&
+		(!Cloud.scopes || Cloud.scopes.includes("content:write"))
+	)
+		sync.capture();
+};
+const persistentPatch = Store.patch.bind(Store);
+Store.patch = (id: any, values: any) => {
+	if (
+		Cloud.user &&
+		!Cloud.discarding &&
+		!sync.suspended &&
+		(!Cloud.scopes || Cloud.scopes.includes("content:write"))
+	)
+		persistentPatch(id, values);
+};
 const messages: Record<string, any> = {
 	rate_limited: copy("web.cloudentry.040740f33308"),
 	unauthenticated: copy("web.cloudentry.18b4f39557c3"),
@@ -90,6 +132,8 @@ const messages: Record<string, any> = {
 	unavailable: copy("web.cloudentry.e88edcc61c1f"),
 };
 async function cloudApi(path?: any, options: any = {}) {
+	if (path.startsWith("/api/v1/") && Cloud.user)
+		options = { ...options, headers: { "X-Sill-Owner": Cloud.user, ...options.headers } };
 	const controller = new AbortController();
 	let timer: any;
 	const request = async () => {
@@ -143,11 +187,14 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 	if (retainDrafts) stashCloudDraft();
 	const keepEditor =
 		retainDrafts && app.modalKind === "cloud-editor" && Cloud.drafts.has(Cloud.edit?.id || "new");
+	Cloud.lastOwner = Cloud.user || Cloud.lastOwner;
 	Cloud.epoch++;
 	Cloud.user = null;
 	Cloud.pending = null;
 	Cloud.connectionError = retainDrafts;
 	Cloud.records.clear();
+	if (retainDrafts && sync.pending.length) sync.suspended = true;
+	else sync.reset();
 	Store.load();
 	if (retainDrafts) {
 		for (const draft of Cloud.drafts.values()) draft.locked = true;
@@ -180,28 +227,96 @@ function cloudConnection() {
 	offline.hidden = !Cloud.connectionError || !Cloud.user;
 	offline.textContent = copy("web.cloudentry.4e0831bcbc99");
 }
+function workspaceState() {
+	const cards = Store.state.cards.map((card: any) => {
+		const raw = Cloud.records.get(card.id);
+		if (!raw) return card;
+		const projected = cloudCard(raw, {
+			source: copy("web.cloudentry.e70adb19c721"),
+			meta: copy("web.cloudentry.1bd91a7d0c53"),
+		});
+		const value = { ...card };
+		for (const key of Object.keys(projected))
+			if (!(key in raw) && JSON.stringify(value[key]) === JSON.stringify(projected[key]))
+				delete value[key];
+		return value;
+	});
+	return {
+		cards,
+		items: Store.state.items,
+		preferences: Store.state.preferences,
+		seconds: Store.state.seconds,
+	};
+}
+function syncStatus() {
+	app.grid.dataset.sync = sync.failed ? "error" : sync.pending.length ? "pending" : "saved";
+	let bar = document.getElementById("cloud-sync-status");
+	if (!bar) {
+		bar = document.createElement("section");
+		bar.id = "cloud-sync-status";
+		bar.className = "cloud-recovery glass";
+		document.body.append(bar);
+	}
+	bar.hidden = !sync.failed;
+	if (sync.failed)
+		bar.innerHTML = `<span role="status">${esc(sync.failed.message)}</span><button class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button><button class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button><button class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
+}
 function paintRecords() {
 	Store.state.cards = [...Cloud.records.values()]
-		.filter((c?: any) => !c.deleted && !c.state.archived)
-		.map((c?: any) => ({
-			id: c.id,
-			type: c.type,
-			title: c.title,
-			body: c.body,
-			summary: c.body?.[0] || "",
-			url: c.url,
-			sources: [{ name: copy("web.cloudentry.e70adb19c721"), kind: "web" }],
-			time: Date.parse(c.updated_at),
-			meta: copy("web.cloudentry.1bd91a7d0c53"),
-			revision: c.revision,
-		}));
-	Store.state.items = Object.fromEntries(
-		[...Cloud.records.values()].map((c?: any) => [c.id, { read: !!c.state.read }]),
-	);
+		.filter((c: any) => !c.deleted)
+		.map((c: any) =>
+			cloudCard(c, {
+				source: copy("web.cloudentry.e70adb19c721"),
+				meta: copy("web.cloudentry.1bd91a7d0c53"),
+			}),
+		);
 	app.withFeedAnchor(() => {}, true);
 }
+function adoptWorkspace(value: any) {
+	const editingItems = new Map<string, any>(
+		(app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : []).map((id: string) => [
+			id,
+			clone(Store.state.items[id] || {}),
+		]),
+	);
+	Cloud.records = new Map(value.state.cards.map((c: any) => [c.id, c]));
+	Store.state.items = clone(value.state.items);
+	Store.state.preferences = { ...Store.fresh().preferences, ...value.state.preferences };
+	Store.state.seconds = value.state.seconds;
+	Store.state.storageAvailable = true;
+	for (const [id, original] of editingItems) {
+		const item = Store.state.items[id] || {};
+		for (const key of ["note", "tags", "tagsEdited"]) {
+			if (key in original) item[key] = original[key];
+			else delete item[key];
+		}
+		Store.state.items[id] = item;
+	}
+	paintRecords();
+	sync.rebase(workspaceState(), value.revision, Cloud.user);
+	app.applyPreferences();
+	app.grid.dataset.revision = value.revision;
+	if (app.modalKind === "settings") app.repaintSettings();
+	if (app.modalKind === "preview" && !app.sheetLeaving) {
+		const card = Store.card(app.currentId);
+		if (!card) app.closeNative();
+		else {
+			app.replacePanelContent(Panels.preview(app, card));
+			app.bindPreview(card.id);
+			app.gestures.bindPullDown();
+		}
+	}
+}
 async function loadCloud({ initial = false }: any = {}) {
-	if (Cloud.loading || Cloud.busy || Cloud.pending) return;
+	if (
+		Cloud.loading ||
+		Cloud.busy ||
+		Cloud.pending ||
+		sync.busy ||
+		(sync.pending.length && !sync.suspended) ||
+		app.modalKind === "editor"
+	)
+		return;
 	Cloud.loading = true;
 	cloudConnection();
 	const epoch = Cloud.epoch,
@@ -210,23 +325,24 @@ async function loadCloud({ initial = false }: any = {}) {
 	try {
 		const session = await cloudApi("/auth/session");
 		checkingSession = false;
-		const records = new Map<any, any>();
-		let cursor = null;
-		do {
-			const query = cursor ? "?cursor=" + encodeURIComponent(cursor) : "";
-			const page = await cloudApi("/api/v1/contents" + query);
-			for (const c of page.items) records.set(c.id, c);
-			cursor = page.next_cursor;
-		} while (cursor);
+		const value = await cloudApi("/api/v1/workspace", {
+			headers: { "X-Sill-Owner": session.userId },
+		});
 		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return;
-		const changed =
-			Cloud.user !== session.userId ||
-			JSON.stringify([...records]) !== JSON.stringify([...Cloud.records]);
 		Cloud.connectionError = false;
 		Cloud.scopes = session.scopes || null;
 		Cloud.user = session.userId;
-		Cloud.records = records;
-		if (changed) paintRecords();
+		if (sync.suspended && sync.owner === Cloud.user) {
+			// Authentication cleared the view, not the user's optimistic edits.
+			const optimistic = sync.resume(Cloud.user);
+			if (optimistic) adoptWorkspace({ state: optimistic, revision: sync.revision });
+		}
+		if (
+			!sync.pending.length &&
+			!sync.busy &&
+			(!sync.baseline || sync.owner !== Cloud.user || sync.revision !== value.revision)
+		)
+			adoptWorkspace(value);
 		accountView();
 	} catch (error) {
 		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return;
@@ -290,6 +406,7 @@ function paintCloudDraft() {
 	if (save) (save as HTMLInputElement).disabled = Cloud.busy || Cloud.editLocked;
 }
 function editCloud(id?: any) {
+	if (id) return; // Existing content is edited by agents, never through a full-card form.
 	if (Cloud.pending) {
 		app.toast(copy("web.cloudentry.521779325b76"));
 		return;
@@ -313,10 +430,11 @@ function editCloud(id?: any) {
 			: { id: null, revision: null, title: "", body: [], state: { read: false } });
 	Cloud.editOwner = saved?.owner || Cloud.user;
 	// A different account must never receive the previous account's recovered draft.
-	// The MCP host exposes no stable user ID, so its expired drafts stay copy-only.
+	// The host and web session both expose a stable owner; another account cannot save this draft.
 	Cloud.editLocked =
 		!Cloud.user ||
-		!!(saved && (saved.owner !== Cloud.user || (saved.locked && window.__SILL_HOST__))) ||
+		sync.suspended ||
+		!!(saved && saved.owner !== Cloud.user) ||
 		!!(Cloud.scopes && !Cloud.scopes.includes("content:write"));
 	const values = saved?.values || {
 		title: Cloud.edit.title,
@@ -336,20 +454,19 @@ function editCloud(id?: any) {
 }
 async function saveCloud(deleting: any = false) {
 	if (Cloud.busy || !Cloud.edit || Cloud.editLocked || !Cloud.user) return;
+	await sync.flush();
+	if (sync.pending.length || sync.suspended) return;
 	const draft = Cloud.edit;
 	if (!Cloud.pending) {
 		const values = cloudDraftValues();
-		const changes: Record<string, any> = {
-			title: values.title.trim(),
-			body:
-				values.body === draft.body.join("\n")
-					? draft.body
-					: values.body
-						? values.body.split("\n")
-						: [],
-			state: { read: values.read },
-		};
-		if (!changes.title && !deleting) return;
+		const changes = cloudCardChanges(draft, values);
+		if (!values.title.trim() && !deleting) return;
+		if (!deleting && draft.id && !Object.keys(changes).length) {
+			Cloud.drafts.delete(draft.id);
+			Cloud.edit = null;
+			app.closeNative();
+			return;
+		}
 		const payload = deleting
 			? { expectedRevision: draft.revision }
 			: draft.id
@@ -360,6 +477,7 @@ async function saveCloud(deleting: any = false) {
 			method: deleting ? "DELETE" : draft.id ? "PATCH" : "POST",
 			body: JSON.stringify(payload),
 			key: crypto.randomUUID(),
+			owner: Cloud.editOwner,
 		};
 	}
 	stashCloudDraft();
@@ -389,7 +507,14 @@ async function saveCloud(deleting: any = false) {
 		Cloud.drafts.delete(draft.id || "new");
 		Cloud.edit = null;
 		Cloud.records.set(record.id, record);
-		paintRecords();
+		try {
+			const workspace = await cloudApi("/api/v1/workspace");
+			adoptWorkspace(workspace);
+		} catch (error) {
+			paintRecords();
+			Cloud.connectionError = true;
+			app.toast(error.message);
+		}
 		app.closeNative();
 		app.toast(
 			record.deleted ? copy("web.cloudentry.6afb6449dd82") : copy("web.cloudentry.f5811c2edf6e"),
@@ -457,64 +582,124 @@ app.action = function (name?: any, id?: any, ...args: any[]) {
 		editCloud(id === "new" ? null : id);
 		return;
 	}
-	if (name === "edit" || name === "card-more" || name === "toggle-read") {
+	if (name === "edit-content") {
 		editCloud(id);
 		return;
 	}
-	if (name === "refresh") {
-		loadCloud();
+	if (name === "refresh" || name === "sync-retry") {
+		refreshWorkspace();
 		return;
 	}
 	if (Cloud.pending && ["close", "back"].includes(name)) {
 		app.toast(copy("web.cloudentry.af697013918b"));
 		return;
 	}
-	const unsupported = [
-		"archive-all",
-		"restore-card",
+	const writes = [
 		"less-like",
-		"never-show",
+		"bookmark",
+		"later",
+		"task",
+		"save-note",
 		"snooze",
 		"dismiss-reminder",
 		"complete-reminder",
 		"restore-reminder",
-		"clear-all",
-		"sources-add",
-		"source-flag",
-		"source-set",
-		"source-remove",
-		"source-drop",
-		"permission-later",
-		"import-run",
-		"bookmark",
-		"later",
-		"save-note",
-		"task",
-		"source-connect",
-		"source-authorize",
-		"permission-allow",
-		"feed-add",
-		"source-toggle",
-		"source-pause",
-		"import-pick",
-		"demo",
-		"welcome-start",
-		"welcome-pick",
-		"welcome-continue",
-		"welcome-demo",
 		"clear-confirm",
 		"selected-bookmark",
 		"selected-later",
 		"selected-tag",
+		"archive-all",
+		"restore-card",
+		"never-show",
+		"toggle-read",
+		"pref",
+		"pref-toggle",
+		"demo",
+		"welcome-demo",
+		"capture-save",
 	];
-	if (unsupported.includes(name)) {
-		app.toast(copy("web.cloudentry.554a83b3c5de"));
+	if (
+		writes.includes(name) &&
+		(!Cloud.user ||
+			sync.suspended ||
+			Cloud.discarding ||
+			(Cloud.scopes &&
+				!Cloud.scopes.includes(name === "clear-confirm" ? "content:delete" : "content:write")))
+	) {
+		app.toast(messages.forbidden);
+		return;
+	}
+	if (name === "sync-export") {
+		app.download(
+			"sill-draft.json",
+			JSON.stringify({ state: sync.baseline, pending: sync.pending }, null, 2),
+			"application/json",
+		);
+		return;
+	}
+	if (name === "clear-all") {
+		confirmCloud(
+			copy("web.cloud.clear"),
+			copy("web.cloud.clearDetail"),
+			copy("web.cloud.clear"),
+			() => app.action("clear-confirm"),
+			() => app.openPanel("settings"),
+		);
+		return;
+	}
+	if (name === "sync-discard-confirm") {
+		discardWorkspace();
+		app.closeNative();
+		return;
+	}
+	if (name === "less-like") {
+		const before = !!Store.item(id).lessLike;
+		Store.patch(id, { lessLike: !before });
+		app.closeNative();
+		app.withFeedAnchor(() => {}, true);
+		app.toast(copy("web.app.0ec82d74e53c"), () => {
+			Store.patch(id, { lessLike: before });
+			app.withFeedAnchor(() => {}, true);
+		});
+		return;
+	}
+	if (name === "restore-card") Store.patch(id, { archived: false });
+	if (name === "save-note") {
+		originalAction(name, id, ...args);
+		app.toast(copy("web.app.5fa0ce52b47e"));
 		return;
 	}
 	return originalAction(name, id, ...args);
 };
-// Every editing entrance, including the keyboard shortcut and note body, uses the same cloud editor.
-app.startInlineEdit = editCloud;
+// Keep the original menus and light actions. A note opens for reading, not content editing.
+app.startInlineEdit = (id: any) => app.openCard(id, true);
+app.loadDemo = function () {
+	const before = Store.state.cards.length;
+	const ids = new Map(SeedCards.map((card) => [card.id, crypto.randomUUID()]));
+	const offset = Date.now() - demoBase;
+	const demo = SeedCards.map((card) => ({
+		...clone(card),
+		id: ids.get(card.id),
+		...(card.related ? { related: card.related.map((id) => ids.get(id) || id) } : {}),
+		...(card.start ? { start: card.start + offset, end: card.end + offset } : {}),
+		...(card.due ? { due: card.due + offset } : {}),
+	}));
+	Store.state.preferences.onboarded = true;
+	this.closeNative();
+	this.withFeedAnchor(() => {
+		Store.insert(demo);
+		for (const [id, state] of Object.entries(SeedItems)) Store.patch(ids.get(id), clone(state));
+	}, true);
+	if (!before)
+		this.toast(
+			copy("web.app.7c8adb347efd"),
+			() => {
+				Store.remove(demo.map((card) => card.id));
+				this.withFeedAnchor(() => {});
+			},
+			copy("web.app.309edeceecd6"),
+		);
+};
 const localOpenPanel = app.openPanel.bind(app);
 app.openPanel = function (kind?: any, ...args: any[]) {
 	if (kind === "capture") {
@@ -523,8 +708,15 @@ app.openPanel = function (kind?: any, ...args: any[]) {
 	}
 	return localOpenPanel(kind, ...args);
 };
+const localEditor = Panels.editor.bind(Panels);
+Panels.editor = function (...args: any[]) {
+	const doc = document.createElement("template");
+	doc.innerHTML = localEditor(...args);
+	const hint = doc.content.querySelector(".panel-footer .muted");
+	if (hint) hint.textContent = copy("web.cloud.savedAccount");
+	return doc.innerHTML;
+};
 const localSettings = Panels.settings.bind(Panels);
-Panels.sourceRows = () => `<p class="panel-sub">${copy("web.cloudentry.dfb8149722b2")}</p>`;
 Panels.settings = function (app?: any, group?: any) {
 	const html = localSettings(app, group),
 		doc = document.createElement("template");
@@ -535,7 +727,7 @@ Panels.settings = function (app?: any, group?: any) {
 			(window.__SILL_HOST__
 				? copy("web.cloudentry.c360ffadc6df")
 				: copy("web.cloudentry.adf4e8d0d4f0")) +
-			`${copy("web.cloudentry.627f80e390d1")}</p>` +
+			`${copy("web.cloudentry.627f80e390d1")}</p><div class="settings-card"><div class="setting-row"><span>${copy("web.cloud.export")}</span><button type="button" class="text-link" data-action="export-all">${copy("web.cloud.export")}</button></div><div class="setting-row"><span>${copy("web.cloud.clear")}</span><button type="button" class="text-link" data-action="clear-all">${copy("web.cloud.clear")}</button></div></div>` +
 			(Cloud.user
 				? `<div class="settings-card"><div class="setting-row"><span>${copy("web.cloudentry.4cc5be794516")}</span><button type="button" class="text-link" id="cloud-logout">` +
 					(window.__SILL_HOST__
@@ -545,13 +737,40 @@ Panels.settings = function (app?: any, group?: any) {
 				: "");
 	return doc.innerHTML;
 };
-app.refresh = loadCloud;
-app.capture = () => {
-	editCloud();
-	return null;
-};
-app.importFiles = async () => app.toast(copy("web.cloudentry.f4dc7ae9809b"));
-app.drop = () => app.toast(copy("web.cloudentry.fcc93a3720ea"));
+async function refreshWorkspace() {
+	if (sync.suspended) await loadCloud();
+	if (sync.pending.length) {
+		await sync.flush();
+		if (sync.pending.length) return;
+	}
+	await loadCloud();
+}
+async function discardWorkspace() {
+	if (sync.busy || Cloud.busy || Cloud.discarding) return;
+	const epoch = Cloud.epoch,
+		version = Cloud.writeVersion;
+	Cloud.discarding = true;
+	try {
+		const session = await cloudApi("/auth/session");
+		const value = await cloudApi("/api/v1/workspace", {
+			headers: { "X-Sill-Owner": session.userId },
+		});
+		if (epoch !== Cloud.epoch || version !== Cloud.writeVersion || sync.busy) return;
+		sync.reset();
+		Cloud.user = session.userId;
+		Cloud.scopes = session.scopes;
+		adoptWorkspace(value);
+		syncStatus();
+		accountView();
+	} catch (error) {
+		app.toast(error.message);
+	} finally {
+		Cloud.discarding = false;
+	}
+}
+
+app.refresh = refreshWorkspace;
+
 // The host sandbox may disallow window.confirm. Reuse Sill's existing accessible
 // confirmation panel, with an explicit return path to the untouched editor.
 function confirmCloud(title?: any, detail?: any, label?: any, action?: any, back?: any) {
@@ -636,7 +855,7 @@ document.addEventListener("click", async (e?: any) => {
 			await window.__SILL_HOST__.manageAccess();
 			return;
 		}
-		if (Cloud.drafts.size) {
+		if (Cloud.drafts.size || sync.pending.length) {
 			confirmCloud(
 				copy("web.cloudentry.2c31c713d7a9"),
 				copy("web.cloudentry.c255fa10f746"),
@@ -701,7 +920,7 @@ document.addEventListener("keydown", (e?: any) => {
 });
 window.addEventListener("beforeunload", (e?: any) => {
 	stashCloudDraft();
-	if (Cloud.pending || Cloud.drafts.size) {
+	if (Cloud.pending || Cloud.drafts.size || sync.pending.length) {
 		e.preventDefault();
 		e.returnValue = "";
 	}
@@ -712,6 +931,9 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("online", () => loadCloud());
 accountView();
 loadCloud({ initial: true });
+setInterval(() => {
+	if (!document.hidden && Cloud.user && !sync.failed) void loadCloud();
+}, 5000);
 
 // MCP App sandboxes can block native form submission; keep saves inside the bridge.
 if (window.__SILL_HOST__)
@@ -747,5 +969,5 @@ export {
 	paintRecords,
 	saveCloud,
 	stashCloudDraft,
-	transientPatch,
+	sync,
 };

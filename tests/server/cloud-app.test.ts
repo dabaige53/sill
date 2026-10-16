@@ -49,9 +49,9 @@ test("cloud view preserves edit revision and idempotency when using host tools",
 	const calls = [],
 		request = createCloudTransport(async (args?: any) => {
 			calls.push(args);
-			return { connected: true };
+			return { connected: true, userId: A };
 		});
-	assert.equal((await request("/auth/session")).userId, "connected");
+	assert.equal((await request("/auth/session")).userId, A);
 	await request("/api/v1/contents?cursor=snapshot");
 	const body: Record<string, any> = { expectedRevision: 4, changes: { title: "Updated" } };
 	await request("/api/v1/contents/card-1", {
@@ -89,7 +89,9 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 			}),
 		);
 		const tools = (await client.listTools()).tools;
-		assert.equal(tools.length, 9);
+		const identityOpened = await client.callTool({ name: "sill_open_workspace", arguments: {} });
+		assert.equal(identityOpened.structuredContent.userId, A);
+		assert.equal(tools.length, 11);
 		for (const tool of tools.slice(0, 2)) {
 			assert.deepEqual(
 				tool.icons.map((i?: any) => i.theme),

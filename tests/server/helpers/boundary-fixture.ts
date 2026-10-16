@@ -36,6 +36,8 @@ export const rpc = async (db?: any, name?: any, args: any = []) => {
 	const functions: Record<string, any> = {
 		sill_oauth_flow: "$1,$2::jsonb",
 		sill_session_info: "",
+		sill_get_workspace: "",
+		sill_apply_operations: "$1::jsonb,$2",
 		sill_write_v1: "$1,$2,$3::jsonb,$4",
 		sill_get_content: "$1",
 		sill_get_event: "$1",

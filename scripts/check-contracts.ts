@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import formats from "ajv-formats";
+import { toolInputs } from "../contracts/cloud.ts";
 
 const read = (name: string) =>
 	JSON.parse(readFileSync(new URL("../contracts/design/" + name, import.meta.url), "utf8"));
@@ -54,7 +55,10 @@ if (process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).
 						),
 					);
 			}
-		assert.equal(catalog.tools.length, 7);
+		assert.deepEqual(
+			catalog.tools.map((tool: any) => tool.name).sort(),
+			Object.keys(toolInputs).sort(),
+		);
 		for (const tool of catalog.tools) {
 			const route = operations.get(tool["x-operationId"]);
 			assert.ok(route);
@@ -76,7 +80,7 @@ if (process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).
 			assert.ok(responseCheck(sample.response), JSON.stringify(responseCheck.errors));
 		}
 		console.log(
-			`PASS: ${operations.size} HTTP designs, 7 MCP mappings, ${fixtures.cases.length} synthetic responses`,
+			`PASS: ${operations.size} HTTP designs, ${catalog.tools.length} MCP mappings, ${fixtures.cases.length} synthetic responses`,
 		);
 	}
 }

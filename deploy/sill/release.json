@@ -1,6 +1,4 @@
 {
-  "plugin_id": "plugin_asdk_app_6ad03f09b6048191a8826a236ac9097d",
-  "app_id": "asdk_app_6ad03f09b6048191a8826a236ac9097d",
-  "status": "blocked_original_plugin_not_found",
-  "verification_note": "Original App-backed plugin also returns NOT_FOUND; Sill search empty. Do not publish against stale release identity until ownership/existence is verified."
+  "plugin_id": "plugin_asdk_app_6ad0d805d3e88191a1c8902cf66af046",
+  "app_id": "asdk_app_6ad0d805d3e88191a1c8902cf66af046"
 }

@@ -1,8 +1,7 @@
 import { normalizeCard } from "../../../contracts/card-migration.ts";
-import { copy } from "../copy.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { parseCard } from "./card-validation.ts";
-import { demoBase, FreshCards, MIN, SeedCards, SeedItems } from "./cards.ts";
+import { demoBase, FreshCards, SeedCards, SeedItems } from "./cards.ts";
 
 /** Browser backup; local mode synchronizes it with the agent-readable repository. */
 const DefaultPreferences: Record<string, any> = {
@@ -21,71 +20,10 @@ const DefaultPreferences: Record<string, any> = {
 	aiLocal: true,
 	onboarded: true,
 };
-const DemoSources = [
-	{
-		id: "src-rss",
-		kind: "rss",
-		name: "RSS",
-		detail: copy("web.store.8598b18bc27e"),
-		enabled: true,
-		status: "ok",
-		count: 42,
-		stack: true,
-		open: "inside",
-		range: "30d",
-	},
-	{
-		id: "src-readwise",
-		kind: "readwise",
-		name: "Readwise",
-		detail: copy("web.store.857b57e427b7"),
-		enabled: true,
-		status: "ok",
-		count: 1204,
-		stack: true,
-		open: "inside",
-		range: "30d",
-	},
-	{
-		id: "src-mail",
-		kind: "mail",
-		name: copy("web.mail"),
-		detail: copy("web.store.3499131624f8"),
-		enabled: true,
-		status: "attention",
-		count: 0,
-		stack: true,
-		open: "inside",
-		range: "30d",
-	},
-	{
-		id: "src-calendar",
-		kind: "calendar",
-		name: copy("web.cards.a00f295cfbb0"),
-		detail: copy("web.store.315384d82a44"),
-		enabled: true,
-		status: "ok",
-		count: 3,
-		stack: false,
-		open: "inside",
-		range: "30d",
-	},
-	{
-		id: "src-linear",
-		kind: "linear",
-		name: "Linear",
-		detail: copy("web.store.c4b693544d15"),
-		enabled: false,
-		status: "paused",
-		count: 0,
-		stack: true,
-		open: "web",
-		range: "30d",
-	},
-];
 const Store: Record<string, any> = {
 	key: "sill-v1",
 	state: {},
+	legacyFields: {},
 	fresh() {
 		return {
 			cards: [],
@@ -94,7 +32,6 @@ const Store: Record<string, any> = {
 			demoStartedAt: demoBase,
 			freshIds: [],
 			preferences: { ...DefaultPreferences },
-			sources: [],
 			storageAvailable: true,
 		};
 	},
@@ -157,6 +94,8 @@ const Store: Record<string, any> = {
 			raw.items &&
 			typeof raw.items === "object" &&
 			!Array.isArray(raw.items);
+		// Keep retired connection metadata in backups without using it as product state.
+		this.legacyFields = valid && Object.hasOwn(raw, "sources") ? { sources: raw.sources } : {};
 		if (valid) {
 			if (Number.isFinite(raw.demoStartedAt) && raw.demoStartedAt > 0)
 				this.state.demoStartedAt = raw.demoStartedAt;
@@ -196,10 +135,6 @@ const Store: Record<string, any> = {
 		);
 		if (valid && raw.version >= 3 && Array.isArray(raw.cards)) this.state.cards = raw.cards;
 		this.state.cards = this.state.cards.map(normalizeCard);
-		this.state.sources =
-			valid && Array.isArray(raw.sources)
-				? raw.sources
-				: DemoSources.map((s?: any) => ({ ...s, syncedAt: this.state.demoStartedAt - 2 * MIN }));
 		const items = valid
 			? raw.items
 			: Object.fromEntries(
@@ -288,19 +223,6 @@ const Store: Record<string, any> = {
 		for (const id of set) delete this.state.items[id];
 		this.save();
 	},
-	source(id?: any) {
-		return this.state.sources.find((s?: any) => s.id === id);
-	},
-	upsertSource(source?: any) {
-		const at = this.state.sources.findIndex((s?: any) => s.id === source.id);
-		if (at < 0) this.state.sources.push(source);
-		else this.state.sources[at] = source;
-		this.save();
-	},
-	removeSource(id?: any) {
-		this.state.sources = this.state.sources.filter((s?: any) => s.id !== id);
-		this.save();
-	},
 	serialized() {
 		return {
 			version: 4,
@@ -310,7 +232,7 @@ const Store: Record<string, any> = {
 			demoStartedAt: this.state.demoStartedAt,
 			freshIds: this.state.freshIds,
 			preferences: this.state.preferences,
-			sources: this.state.sources,
+			...this.legacyFields,
 		};
 	},
 	bytes() {
@@ -348,4 +270,4 @@ const Store: Record<string, any> = {
 	},
 };
 
-export { DefaultPreferences, DemoSources, Store };
+export { DefaultPreferences, Store };
