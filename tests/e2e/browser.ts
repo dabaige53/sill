@@ -562,6 +562,7 @@ async function recordLayout(page?: any, width?: any) {
 					) < 160,
 					"drop targets are far from the pointer",
 				);
+				assert.ok(targets.top > y + 10, "drop targets open below the pointer");
 				await page.keyboard.press("Escape");
 				await page.mouse.up();
 				await action(page, "refresh");

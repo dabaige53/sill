@@ -167,15 +167,15 @@ class DragManager {
 			`${copy("web.drag.6b72fb801b9d")}${ids.length}${copy("web.drag.4808181ef801")}`,
 		);
 	}
-	/** One short reach: the targets sit just above the lifted card, or below it near the top edge. */
+	/** One short reach: the targets sit just below the lifted card, or above it near the bottom edge, so what you are reading stays visible. */
 	placeTargets(x?: any, y?: any) {
 		const box = document.getElementById("drop-targets");
 		box.hidden = false;
 		const w = box.offsetWidth,
 			h = box.offsetHeight,
 			clear = 61; // half the ghost plus a gap, so the card never covers a target
-		let top = y - clear - h;
-		if (top < 16) top = Math.min(innerHeight - h - 16, y + clear);
+		let top = y + clear;
+		if (top + h > innerHeight - 16) top = Math.max(16, y - clear - h);
 		box.style.left = `${Math.max(16, Math.min(innerWidth - 16 - w, x - w / 2))}px`;
 		box.style.top = `${top}px`;
 		MotionEngine.enter(box);
