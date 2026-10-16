@@ -11,10 +11,9 @@ dialog {
 	overflow: visible;
 	outline: none;
 }
+/* Scrim: a clean dim, no fog. The page steps back in light, not in blur. */
 dialog::backdrop {
 	background: var(--dim);
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
 }
 .sheet {
 	position: relative;
@@ -880,9 +879,14 @@ button.list-row:hover,
 .settings-nav button:hover {
 	background: var(--faint);
 }
+/* Selected is a quiet, raised row in the same ink; blue stays for the one action that commits. */
 .settings-nav button.on {
-	background: var(--accent-fill);
-	color: #fff;
+	background: var(--card);
+	color: var(--ink);
+	font-weight: 600;
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		0 1px 3px rgba(0, 0, 0, 0.06);
 }
 .settings-main {
 	padding: 28px 32px;
@@ -896,8 +900,9 @@ button.list-row:hover,
 }
 .settings-card {
 	background: var(--card);
-	border: 1px solid var(--line);
-	border-radius: 16px;
+	border: 0;
+	box-shadow: 0 0 0 0.5px var(--line-card);
+	border-radius: 14px;
 	padding: 0 16px;
 }
 .settings-card + .settings-card {
@@ -960,8 +965,8 @@ kbd {
 }
 #modal.search::backdrop {
 	background: var(--frost);
-	-webkit-backdrop-filter: blur(10px);
-	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(28px) saturate(1.6);
+	backdrop-filter: blur(28px) saturate(1.6);
 }
 .search-pill {
 	display: flex;
@@ -1223,7 +1228,7 @@ kbd {
 	gap: 12px;
 	padding: 12px 14px;
 	border-radius: 14px;
-	background: var(--accent-soft);
+	background: var(--surface);
 	margin-top: 8px;
 }
 .next-event .num {
@@ -1378,8 +1383,8 @@ body.selection-menu-open {
 }
 #selection-menu::backdrop {
 	background: var(--frost);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(28px) saturate(1.6);
+	-webkit-backdrop-filter: blur(28px) saturate(1.6);
 }
 .selection-context {
 	position: absolute;
@@ -1636,9 +1641,12 @@ body.is-pulling .pull-ring {
 	overscroll-behavior: contain;
 }
 
+/* Focus stays visible but sits close to the field, in a soft ring instead of a second outline. */
 .search-pill:focus-within {
-	outline: 2px solid var(--accent);
-	outline-offset: 4px;
+	outline: none;
+	box-shadow:
+		0 0 0 3px color-mix(in srgb, var(--accent) 32%, transparent),
+		var(--shadow-glass);
 }
 #modal.panel .settings-layout {
 	min-height: 0;

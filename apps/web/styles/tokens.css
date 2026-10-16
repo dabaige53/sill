@@ -22,10 +22,10 @@
 	--alert-soft: #fdf3e7;
 	--success-soft: #eaf5ec;
 	--highlight: #fff3c4;
-	--toggle-on: #34c759;
+	--toggle-on: #0066cc;
 	--toggle-off: #e5e5ea;
-	--dim: rgba(0, 0, 0, 0.18);
-	--frost: rgba(245, 245, 247, 0.72);
+	--dim: rgba(18, 20, 26, 0.26);
+	--frost: rgba(245, 245, 247, 0.56);
 	--sky: #dfe9f3;
 	--sky-soft: #eef3f8;
 	--ledge: #e9e4dc;
@@ -103,8 +103,8 @@
 	--success-soft: #163021;
 	--highlight: #5a4a12;
 	--toggle-off: #3a3a3f;
-	--dim: rgba(0, 0, 0, 0.5);
-	--frost: rgba(17, 17, 19, 0.72);
+	--dim: rgba(0, 0, 0, 0.52);
+	--frost: rgba(17, 17, 19, 0.6);
 	--shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 	--shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.45);
 	--shadow-glass: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.32);

@@ -13,6 +13,7 @@ class Gestures {
 		this.app = app;
 		this.phone = matchMedia("(max-width:650px)");
 		this.bindSheetDrag();
+		this.bindPull();
 		this.bindReaderSwipe();
 		this.bindToastSwipe();
 	}

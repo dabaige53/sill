@@ -395,18 +395,18 @@ body.is-dragging #toast {
 	background: var(--surface);
 }
 .chip.active {
-	background: var(--accent-fill);
-	color: #fff;
+	background: var(--ink);
+	color: var(--card);
 }
 .chip.active .icon {
-	color: #fff;
+	color: var(--card);
 }
 .chip.soft {
 	background: var(--surface);
 	box-shadow: none;
 }
 .chip.soft.active {
-	background: var(--accent-fill);
+	background: var(--ink);
 }
 .tag-pill {
 	display: inline-flex;
@@ -415,8 +415,8 @@ body.is-dragging #toast {
 	height: 32px;
 	padding: 0 4px 0 12px;
 	border-radius: var(--pill-radius);
-	background: var(--accent-soft);
-	color: var(--accent-ink);
+	background: var(--surface);
+	color: var(--ink);
 	font-size: var(--text-meta);
 	font-weight: 500;
 }
