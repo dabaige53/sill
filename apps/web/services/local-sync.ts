@@ -1,3 +1,4 @@
+import { copy, errorMessage } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { esc } from "../atoms/primitives.ts";
 import { Panels } from "../interactions/panels.ts";
@@ -7,17 +8,17 @@ const LocalSync: Record<string, any>={
   snapshot(){return JSON.parse(JSON.stringify({cards:Store.state.cards,items:Store.state.items,seconds:Store.state.seconds,preferences:Store.state.preferences,sources:Store.state.sources||[]}));},
   async request(path?: any,body?: any){
     const response=await fetch('/api/local/'+path,{signal:AbortSignal.timeout(5000),...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
-    const value=await response.json();if(!response.ok)throw new Error(value.error||'本地同步失败');return value;
+    const value=await response.json();if(!response.ok)throw new Error(errorMessage(value.error));return value;
   },
   persist(){
     try{localStorage.setItem('sill-unsynced',JSON.stringify({state:this.snapshot(),pending:this.pending,revision:this.unversioned?null:this.revision}));this.durable=true;return true;}
-    catch{this.durable=false;this.app.toast('无法持久保存草稿，请导出备份后再关闭页面');return false;}
+    catch{this.durable=false;this.app.toast(copy("web.localsync.a71ccc92334c"));return false;}
   },
   status(message?: any){
     let bar=document.getElementById('sync-status');
-    if(!bar){bar=document.createElement('section');bar.id='sync-status';bar.setAttribute('aria-label','本地同步');document.querySelector('main').prepend(bar);}
+    if(!bar){bar=document.createElement('section');bar.id='sync-status';bar.setAttribute('aria-label',copy("web.localsync.850476dde139"));document.querySelector('main').prepend(bar);}
     bar.hidden=!message;
-    if(message)bar.innerHTML=`<span role="status">${esc(message)}</span> <button type="button" class="text-link" data-action="sync-retry">重试同步</button> <button type="button" class="text-link" data-action="sync-export">导出草稿</button> <button type="button" class="text-link" data-action="sync-discard">使用服务端版本…</button>`;
+    if(message)bar.innerHTML=`<span role="status">${esc(message)}</span> <button type="button" class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button> <button type="button" class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button> <button type="button" class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
   },
   async discard(){
     const value=await this.request('state');
@@ -32,19 +33,19 @@ const LocalSync: Record<string, any>={
     this.app=app;
     // Restore and journal before any request: a read outage must not disable saving.
     if(!this.saveWrapped){
-      let draft,revision=null;
+      let draft: any,revision=null;
       try{draft=JSON.parse(localStorage.getItem('sill-unsynced')||'null');revision=JSON.parse(localStorage.getItem('sill-sync-revision')||'null');}catch{}
       if(draft?.state&&Array.isArray(draft.pending)&&draft.pending.length){
         this.pending=draft.pending;this.recovering=true;this.unversioned=!Number.isInteger(draft.revision);
         this.adopt({state:draft.state,revision:draft.revision},{draft:true});
       }else{this.baseline=this.snapshot();this.revision=revision;this.unversioned=!Number.isInteger(revision);}
       const save=Store.save.bind(Store);Store.save=()=>{save();this.capture();};this.saveWrapped=true;
-      if(this.pending.length)this.status('已恢复本机草稿，等待连接');
+      if(this.pending.length)this.status(copy("web.localsync.75cb8d103bf3"));
     }
     try{
       let value=await this.request('state');
       if(!value.state){
-        if(this.pending.length)throw new Error('服务尚无数据，草稿仍保留，请先导出');
+        if(this.pending.length)throw new Error(copy("web.localsync.dad2dac11daa"));
         value=await this.request('initialize',this.snapshot());
       }
       // In-memory edits made during this request are newer than the initial journal.
@@ -54,7 +55,7 @@ const LocalSync: Record<string, any>={
       if(!this.focusListener){window.addEventListener('focus',()=>this.refresh().catch(()=>{}));this.focusListener=true;}
       if(this.pending.length)await this.flush();
       else{this.failed=false;this.status('');app.setOffline(false);}
-    }catch(error){this.failed=true;app.grid.dataset.sync='error';app.setOffline(true);this.status('未连接本地服务；本次修改会保留为草稿，可导出或重试连接');app.toast('无法连接本地数据：'+error.message);}
+    }catch(error){this.failed=true;app.grid.dataset.sync='error';app.setOffline(true);this.status(copy("web.localsync.915294ca4e9a"));app.toast(copy("web.localsync.d32966c7535e")+error.message);}
   },
   capture(){
     if(!this.baseline)return;
@@ -77,14 +78,14 @@ const LocalSync: Record<string, any>={
     if(Object.keys(values).length)operations.push({op:'preferences.patch',values,before:previous});
     const seconds=next.seconds-before.seconds;if(seconds>0)operations.push({op:'reading.add',seconds});
     this.baseline=next;
-    if(operations.length){this.app.grid.dataset.sync='pending';this.pending.push({operations});if(!this.ready)this.recovering=true;this.persist();if(this.failed||!this.ready)this.status(this.durable?'已保存在本机，尚未同步':'草稿仅在本次页面，请立即导出');else this.flush();}
+    if(operations.length){this.app.grid.dataset.sync='pending';this.pending.push({operations});if(!this.ready)this.recovering=true;this.persist();if(this.failed||!this.ready)this.status(this.durable?copy("web.localsync.d533dff610de"):copy("web.localsync.99c07641f231"));else this.flush();}
   },
   async flush(){
     if(this.busy||!this.pending.length)return;
     this.busy=true;
     try{
       while(this.pending.length){
-        if(this.unversioned)throw new Error('旧草稿缺少版本信息，请先导出并与服务端版本比较');
+        if(this.unversioned)throw new Error(copy("web.localsync.2cc04acca32d"));
         // Whole-card writes carry their original card. Independent reading
         // observations can still merge without invalidating unrelated edits.
         const batch: Record<string, any>={...this.pending[0],...(this.recovering?{expectedRevision:this.revision}:{})};this.persist();
@@ -93,19 +94,19 @@ const LocalSync: Record<string, any>={
       }
       localStorage.removeItem('sill-unsynced');this.status('');this.failed=false;this.recovering=false;
       this.app.grid.dataset.sync='saved';this.app.setOffline(false);
-      const inline=document.getElementById('inline-state');if(inline)inline.textContent='已同步到本地服务';
+      const inline=document.getElementById('inline-state');if(inline)inline.textContent=copy("web.localsync.7eebbcad84fe");
     }catch(error){
       this.failed=true;this.recovering=true;
-      this.persist();this.status('修改尚未同步：'+error.message+(this.durable?'。本机草稿仍保留，可导出或重试。':'。草稿仅在本次页面，请立即导出，关闭页面可能丢失。'));
-      this.app.grid.dataset.sync='error';this.app.setOffline(true);this.app.toast('修改尚未同步：'+error.message+(this.durable?'；本地草稿已保留':'；请立即导出草稿'));
+      this.persist();this.status(copy("web.localsync.1f2cebc0e229")+error.message+(this.durable?copy("web.localsync.70a127f4ad3b"):copy("web.localsync.a6df691251ec")));
+      this.app.grid.dataset.sync='error';this.app.setOffline(true);this.app.toast(copy("web.localsync.1f2cebc0e229")+error.message+(this.durable?copy("web.localsync.6977ea101328"):copy("web.localsync.6851027b3171")));
     }finally{this.busy=false;}
   },
   async refresh(manual: any=false){
-    if(!this.ready){if(manual)return this.connect(this.app);throw new Error('本地数据尚未连接');}
+    if(!this.ready){if(manual)return this.connect(this.app);throw new Error(copy("web.localsync.e43a56d649b4"));}
     if(this.busy)return;
     if(this.failed&&!manual)return;
     if(manual)this.failed=false;
-    if(this.pending.length){await this.flush();if(this.pending.length)throw new Error('仍有未同步修改');return;}
+    if(this.pending.length){await this.flush();if(this.pending.length)throw new Error(copy("web.localsync.01a354fa55b5"));return;}
     // Keep an editor's original values until its save can be checked for conflicts.
     if(this.app.modalKind==='editor'||this.app.editingId)return;
     const value=await this.request('state');

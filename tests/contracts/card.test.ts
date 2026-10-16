@@ -8,6 +8,37 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const fixtures = JSON.parse(readFileSync(new URL('../../contracts/fixtures.json', import.meta.url), 'utf8'));
+const migrationFixtures = JSON.parse(readFileSync(new URL('../../contracts/migration-fixtures.json', import.meta.url), 'utf8')) as {
+  cases: { name: string; input: Record<string, any>; expected: Record<string, any> }[];
+};
+for (const sample of migrationFixtures.cases) {
+  test(`migration accepts and preserves ${sample.name}`, () => {
+    const original = structuredClone(sample.input);
+    const normalized = normalizeCard(sample.input as Parameters<typeof normalizeCard>[0]);
+    assert.deepEqual(normalized, sample.expected);
+    assert.deepEqual(Card.parse(normalized), sample.expected);
+    assert.deepEqual(sample.input, original);
+  });
+  test(`legacy file reads without rewriting and saves ${sample.name}`, () => {
+    const directory = mkdtempSync(join(tmpdir(), 'sill-migration-'));
+    const file = join(directory, 'cards.json');
+    const original = JSON.stringify({
+      revision: 3,
+      state: { cards: [sample.input], items: {}, seconds: 0, preferences: {} },
+    }, null, 2) + '\n';
+    writeFileSync(file, original);
+    try {
+      const repository = new LocalRepository(file);
+      assert.equal(readFileSync(file, 'utf8'), original);
+      const card = repository.snapshot().state.cards[0];
+      assert.deepEqual(card, sample.expected);
+      const edited = { ...card, title: card.title + ' edited' };
+      repository.apply({ expectedRevision: 3, operations: [{ op: 'card.upsert', card: edited, before: card }] });
+      const restarted = new LocalRepository(file);
+      assert.deepEqual(restarted.snapshot().state.cards[0], { ...sample.expected, title: edited.title });
+    } finally { rmSync(directory, { recursive: true, force: true }); }
+  });
+}
 for (const sample of fixtures.valid) test(`accept and preserve ${sample.name}`, () => assert.deepEqual(Card.parse(sample.card), sample.card));
 for (const sample of fixtures.invalid) test(`reject ${sample.name}`, () => assert.equal(Card.safeParse(sample.card).success, false));
 test('source migration preserves sender, unknown fields and the original input', () => {

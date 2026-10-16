@@ -17,7 +17,7 @@ jobs:
       - name: Install test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify source, generated pages and core behavior
-        run: npm test && node scripts/verify.ts
+        run: npm run lint:web && npm test && node scripts/verify.ts
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser regressions
@@ -29,3 +29,14 @@ jobs:
           name: browser-verification
           path: tests/artifacts/
           if-no-files-found: ignore
+  apple:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run lint:apple
+      - run: npm run build:macos && npm run test:macos

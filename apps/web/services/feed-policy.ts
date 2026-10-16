@@ -1,3 +1,4 @@
+import { copy } from "../copy.ts";
 import { cardSource, cardSourceKind } from "../data/card-source.ts";
 /** Pure feed policy. Clock and item state are supplied by the caller. */
 const FeedPolicy: Record<string, any> = {
@@ -72,12 +73,12 @@ const FeedPolicy: Record<string, any> = {
    }).map((x?: any)=>x.c);
  },
  label(c?: any,s?: any,now?: any){
-   if(s.dismissed)return '已忽略提醒';
-   if(s.reminderDone)return '提醒已完成';
+   if(s.dismissed)return copy("web.feedpolicy.f641f7ed9f5d");
+   if(s.reminderDone)return copy("web.feedpolicy.0eb5f2f421ed");
    const at=s.snoozedUntil||c.due;
-   if(!Number.isFinite(at))return c.meta||'提醒';
+   if(!Number.isFinite(at))return c.meta||copy("web.reminder");
    const minutes=Math.ceil((at-now)/60000);
-   return minutes>0?`${minutes} 分钟后${s.snoozedUntil?' · 已延后':''}`:s.snoozedUntil?'已到期 · 等待查看':'现在可以处理';
+   return minutes>0?`${minutes}${copy("web.primitives.a63a9dc60e00")}${s.snoozedUntil?copy("web.feedpolicy.ab068f148b03"):''}`:s.snoozedUntil?copy("web.feedpolicy.098d14f95600"):copy("web.feedpolicy.56c92f48088a");
  }
 };
 

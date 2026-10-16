@@ -8,7 +8,7 @@ Sill 是 agent 驱动的个人卡片工作台。卡片展示内容与真实状�
 
 ## 启动
 
-需要 Node.js 24+ 和 Python 3。
+需要 Node.js 24+。Mac 构建另需支持 Swift 6 的 Xcode 工具链；不需要 Python。
 
 ```sh
 npm ci

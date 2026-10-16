@@ -12,7 +12,7 @@ declare client: any;
 
  constructor(client?: any){this.client=client;}
  async rpc(name?: any,args?: any){
-  let result;
+  let result: any;
   try {result=await this.client.rpc(name,args);} catch {throw serviceError('unavailable');}
   if(result.error){
    const code=result.error.message;

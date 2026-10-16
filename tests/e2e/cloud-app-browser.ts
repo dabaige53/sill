@@ -10,7 +10,7 @@ import {cloudFixture} from '../server/helpers/cloud-fixture.ts';
 import {A,resource} from '../server/helpers/boundary-fixture.ts';
 import {token} from '../server/helpers/signed-auth.ts';
 import {cloudTool} from '../server/helpers/cloud-ui.ts';
-const f=await cloudFixture();let client,browser;
+const f=await cloudFixture();let client: any,browser: any;
 const server=createServer((_req?: any,res?: any)=>{res.writeHead(200,{'Content-Type':'text/html'});res.end('<!doctype html><title>Sill protocol-host simulator</title><body style="margin:0"></body>');});
 try{
  const html=await readFile('dist/cloud/app.html','utf8');

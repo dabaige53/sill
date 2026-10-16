@@ -30,7 +30,7 @@ test('cloud view preserves edit revision and idempotency when using host tools',
 });
 
 test('sidebar and thread entries use scoped cloud resources and disappear on revocation',async()=>{
- const f=await cloudFixture();let client;
+ const f=await cloudFixture();let client: any;
  try{
   await f.db.exec(`insert into sill_private.caller_grants values('${A}','oauth:codex-test',array['content:read','content:write','content:delete','event:read','event:submit'],array['*'],'${resource}');`);
   const html='<!doctype html><html><title>Sill cloud app</title></html>';

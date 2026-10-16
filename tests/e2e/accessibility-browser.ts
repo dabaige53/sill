@@ -62,7 +62,7 @@ try{
  await scenario('Update arriving during phone dismissal cannot revive the sheet',async(page?: any,apply?: any)=>{
   await open(page,'article-01');await page.waitForFunction(()=>(document.querySelector('#feed-grid') as HTMLElement).dataset.sync==='saved');
   await apply([{op:'item.patch',id:'article-01',values:{note:'关闭过程中的合成更新'}}]);
-  let release,arrived;const gate=new Promise((r?: any)=>release=r),ready=new Promise((r?: any)=>arrived=r);
+  let release: any,arrived: any;const gate=new Promise((r?: any)=>release=r),ready=new Promise((r?: any)=>arrived=r);
   await page.route('**/api/local/state',async (route?: any)=>{const response=await route.fetch();arrived();await gate;await route.fulfill({response});});
   await ready;await page.getByRole('button',{name:'关闭预览',exact:true}).click();release();
   await page.waitForFunction(()=>!document.querySelector('dialog').open&&__store.item('article-01').note==='关闭过程中的合成更新');

@@ -2,6 +2,9 @@ import { build } from 'esbuild';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import copy from '../design-system/copy/zh-Hans.json' with { type: 'json' };
+
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
 export const root = resolve(import.meta.dirname, '..');
 export async function buildPage({ cloud = false, check = false }: any = {}) {
@@ -13,7 +16,11 @@ export async function buildPage({ cloud = false, check = false }: any = {}) {
   const css = styles.join('\n\n');
   if (/<\/script/i.test(script) || /<\/style/i.test(css)) throw new Error('unsafe_inline_tag');
   const template = await readFile(resolve(root, 'apps/web/shell.html'), 'utf8');
-  const html = template.replaceAll('{{PAGE}}', 'feed').replaceAll('{{TITLE}}', cloud ? '云端工作台' : '个人信息空间').replace('{{STYLES}}', css).replace('{{SCRIPT}}', script);
+  const localized = template.replace(/\{\{COPY:([^}]+)\}\}/g, (_match, key: string) => {
+    if (!Object.hasOwn(copy, key)) throw new Error(`missing_copy:${key}`);
+    return escapeHtml(copy[key]);
+  });
+  const html = localized.replaceAll('{{PAGE}}', 'feed').replaceAll('{{TITLE}}', escapeHtml(copy[cloud ? 'web.pageTitle.cloud' : 'web.pageTitle.local'])).replace('{{STYLES}}', css).replace('{{SCRIPT}}', script);
   const directory = resolve(root, cloud ? 'dist/cloud' : 'dist/web');
   const target = resolve(directory, 'index.html');
   if (check) {

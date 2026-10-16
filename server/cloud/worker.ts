@@ -7,7 +7,7 @@ import lineIconDark from '../../assets/sill-line-dark.svg';
 // One runtime per current configuration shares only in-flight refresh work.
 // Auth clients and response cookies remain request scoped; no completed session cache.
 export function createWorker({runtimeFactory=createSillRuntime}: any={}){
- let activeKey,activeRuntime;
+ let activeKey: any,activeRuntime: any;
  return {fetch(request?: any,env?: any){
  if(request.method==='GET'&&new URL(request.url).pathname==='/assets/sill-icon.png')return new Response(brandIcon,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=3600','X-Content-Type-Options':'nosniff'}});
  const iconPath=new URL(request.url).pathname;

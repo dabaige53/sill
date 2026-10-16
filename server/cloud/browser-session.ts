@@ -22,7 +22,7 @@ export function createBrowserSessions(config: any,{authClient,clientFactory}: an
   // Other instances and late requests rely on Supabase's refresh reuse interval/parent rule.
   if(pending.size>=128)throw serviceError('unavailable',503);
   const operation=(async()=>{
-   let result;
+   let result: any;
    try{result=await authClient().auth.refreshSession({refresh_token:token});}catch{throw serviceError('unavailable',503);}
    if(result.error){
     const invalid=new Set<any>(['refresh_token_not_found','refresh_token_already_used','session_not_found','session_expired','user_not_found','user_banned','bad_jwt']);

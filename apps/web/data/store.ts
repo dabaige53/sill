@@ -1,3 +1,4 @@
+import { copy } from "../copy.ts";
 import { demoBase, FreshCards, SeedCards, MIN, SeedItems } from "./cards.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { normalizeCard } from '../../../contracts/card-migration.ts';
@@ -8,11 +9,11 @@ const DefaultPreferences: Record<string, any> = {
  collapseOnFinish:true,newHint:'away',theme:'system',density:'standard',reduceMotion:false,aiLocal:true,onboarded:true
 };
 const DemoSources = [
- {id:'src-rss',kind:'rss',name:'RSS',detail:'42 个订阅',enabled:true,status:'ok',count:42,stack:true,open:'inside',range:'30d'},
- {id:'src-readwise',kind:'readwise',name:'Readwise',detail:'1,204 条',enabled:true,status:'ok',count:1204,stack:true,open:'inside',range:'30d'},
- {id:'src-mail',kind:'mail',name:'邮件',detail:'需要重新登录',enabled:true,status:'attention',count:0,stack:true,open:'inside',range:'30d'},
- {id:'src-calendar',kind:'calendar',name:'日历',detail:'3 个日历',enabled:true,status:'ok',count:3,stack:false,open:'inside',range:'30d'},
- {id:'src-linear',kind:'linear',name:'Linear',detail:'指派给我',enabled:false,status:'paused',count:0,stack:true,open:'web',range:'30d'}
+ {id:'src-rss',kind:'rss',name:'RSS',detail:copy("web.store.8598b18bc27e"),enabled:true,status:'ok',count:42,stack:true,open:'inside',range:'30d'},
+ {id:'src-readwise',kind:'readwise',name:'Readwise',detail:copy("web.store.857b57e427b7"),enabled:true,status:'ok',count:1204,stack:true,open:'inside',range:'30d'},
+ {id:'src-mail',kind:'mail',name:copy("web.mail"),detail:copy("web.store.3499131624f8"),enabled:true,status:'attention',count:0,stack:true,open:'inside',range:'30d'},
+ {id:'src-calendar',kind:'calendar',name:copy("web.cards.a00f295cfbb0"),detail:copy("web.store.315384d82a44"),enabled:true,status:'ok',count:3,stack:false,open:'inside',range:'30d'},
+ {id:'src-linear',kind:'linear',name:'Linear',detail:copy("web.store.c4b693544d15"),enabled:false,status:'paused',count:0,stack:true,open:'web',range:'30d'}
 ];
 const Store: Record<string, any> = {
  key:'sill-v1',

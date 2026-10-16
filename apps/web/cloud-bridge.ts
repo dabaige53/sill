@@ -1,3 +1,4 @@
+import { copy } from "./copy.ts";
 import {App,applyDocumentTheme,applyHostStyleVariables} from '@modelcontextprotocol/ext-apps';
 
 // A host can finish mounting the view before its tool dispatcher is ready.
@@ -17,13 +18,13 @@ export function createCloudTransport(call?: any){
    return {...access,userId:access.connected?'connected':null};
   }
   const url=new URL(path,'https://sill.invalid'),match=url.pathname.match(/^\/api\/v1\/contents(?:\/([\w-]+))?$/);
-  if(!match)throw Object.assign(new Error('此操作请在云端账号设置中完成'),{code:'forbidden',status:403});
-  const id=match[1],method=options.method||'GET';let name,args;
+  if(!match)throw Object.assign(new Error(copy("web.cloudbridge.99e278e752d7")),{code:'forbidden',status:403});
+  const id=match[1],method=options.method||'GET';let name: any,args: any;
   if(method==='GET'){
    name=id?'sill_getContent':'sill_listContents';args=id?{id}:Object.fromEntries(url.searchParams);
   }else{
    name={POST:'sill_createContent',PATCH:'sill_updateContent',DELETE:'sill_deleteContent'}[method];
-   if(!name||method==='POST'&&id||method!=='POST'&&!id)throw new Error('无效操作');
+   if(!name||method==='POST'&&id||method!=='POST'&&!id)throw new Error(copy("web.cloudbridge.c082680b1e42"));
    args={...(id?{id}:{}),idempotency_key:new Headers(options.headers).get('Idempotency-Key'),body:JSON.parse(options.body)};
   }
   return call({name,arguments:args});
@@ -31,8 +32,8 @@ export function createCloudTransport(call?: any){
 }
 
 export function startCloudBridge(){
- const bridge=new App({name:'Sill · 窗台',version:'0.5.0'},{},{autoResize:false});
- let opening=true,initialAccess;
+ const bridge=new App({name:copy("web.cloudbridge.d4fc4b75f2fe"),version:'0.5.0'},{},{autoResize:false});
+ let opening=true,initialAccess: any;
  bridge.addEventListener('toolresult',(result?: any)=>{
   if(result.structuredContent?.connected===true)initialAccess=result.structuredContent;
  });
@@ -44,10 +45,10 @@ export function startCloudBridge(){
  const statuses={unauthenticated:401,forbidden:403,not_found:404,revision_conflict:409,idempotency_conflict:409,rate_limited:429};
  const call=async (args?: any)=>{
   await ready;const result=await bridge.callServerTool(args);
-  if(result.isError){let value;try{const block=result.content?.find(c=>c.type==='text');if(block?.type==='text')value=JSON.parse(block.text);}catch{}
-   const code=value?.error?.code||'unavailable';throw Object.assign(new Error('云端操作未完成'),{code,status:statuses[code]||503});
+  if(result.isError){let value: any;try{const block=result.content?.find(c=>c.type==='text');if(block?.type==='text')value=JSON.parse(block.text);}catch{}
+   const code=value?.error?.code||'unavailable';throw Object.assign(new Error(copy("web.cloudbridge.c38fb6f884b3")),{code,status:statuses[code]||503});
   }
-  if(!result.structuredContent)throw Object.assign(new Error('云端返回内容无效'),{status:503});
+  if(!result.structuredContent)throw Object.assign(new Error(copy("web.cloudbridge.477c2c36672e")),{status:503});
   return result.structuredContent;
  };
  window.__SILL_HOST__={request:createCloudTransport(async (args?: any)=>{

@@ -18,5 +18,6 @@ test('Sill builds only the original App with one skill and both sidebar tools',a
  const skill=await readFile(resolve(dir,'skills/sill/SKILL.md'),'utf8');
  for(const tool of ['sill_open_workspace','sill_open_cards','sill_updateContent'])assert.ok(skill.includes(tool));
  const server=await readFile(resolve(root,'server/cloud/mcp.ts'),'utf8');
- assert.ok(server.includes("'global'"));assert.ok(server.includes("'thread'"));
+ assert.match(server, /["']global["']/);assert.match(server, /["']thread["']/);
+ assert.equal(manifest.version,JSON.parse(await readFile(resolve(root,'package.json'),'utf8')).version);
 });

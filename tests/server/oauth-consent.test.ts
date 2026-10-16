@@ -57,7 +57,7 @@ test('provider details, policy, expiry, unknown client and cross-owner changes f
 
 test('revocation wins over an in-flight provider approval across independent requests',async()=>{
  const f=await oauthFixture();try{
-  const form=await f.form();let release;f.state.hold=new Promise((r?: any)=>release=r);const approving=f.decide(form);
+  const form=await f.form();let release: any;f.state.hold=new Promise((r?: any)=>release=r);const approving=f.decide(form);
   while(!f.providerCalls.some((c?: any)=>c.path.endsWith('/consent')))await new Promise((r?: any)=>setTimeout(r,5));
   assert.equal((await f.decide(form)).status,409);
   const revoke=await f.form('/oauth/grants');assert.equal((await f.decide(revoke,'revoke')).status,200);

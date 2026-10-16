@@ -10,7 +10,7 @@ const config: Record<string, any>={url:'https://example.supabase.co', publishabl
 const claims: Record<string, any>={sub:owner,iss:config.url+'/auth/v1',aud:'authenticated',role:'authenticated',exp:Date.now()/1000+600};
 const factory=(c?: any)=>()=>({auth:{getClaims:async()=>({data:{claims:c},error:null})}});
 test('auth verifies with SDK, forwards user JWT, never persists a server session',async()=>{
-  let args;
+  let args: any;
   const result=await authenticateSupabase('Bearer a.b.c',config,(...a: any[])=>{args=a;return factory(claims)();});
   assert.deepEqual(result.principal,{userId:owner,clientId:null});
   assert.equal(args[2].global.headers.Authorization,'Bearer a.b.c');

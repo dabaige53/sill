@@ -35,12 +35,12 @@ test('local operations persist all card states and reject conflicts atomically',
     repo.apply({operations:[{op:'card.upsert',card}]});
     const saved=repo.apply({expectedRevision:1,operations:[{op:'item.patch',id:card.id,values:{read:true,bookmarked:true,later:true,note:'备注',tags:['工作'],tagsEdited:true,progress:.8,snoozedUntil:123,dismissed:true,reminderDone:true}},{op:'preferences.patch',values:{sort:'time',reduceTransparency:true}},{op:'reading.add',seconds:12}]});
     assert.deepEqual(new LocalRepository(file).snapshot(),saved);
-    assert.throws(()=>repo.apply({expectedRevision:1,operations:[{op:'card.delete',id:card.id}]}),/版本已变化/);
-    assert.throws(()=>repo.apply({operations:[{op:'preferences.patch',values:{sort:'unread'}},{op:'item.patch',id:card.id,values:{note:'覆盖'},before:{note:'旧备注'}}]}),/同一字段/);
+    assert.throws(()=>repo.apply({expectedRevision:1,operations:[{op:'card.delete',id:card.id}]}),/revision_conflict/);
+    assert.throws(()=>repo.apply({operations:[{op:'preferences.patch',values:{sort:'unread'}},{op:'item.patch',id:card.id,values:{note:'覆盖'},before:{note:'旧备注'}}]}),/field_conflict/);
     assert.deepEqual(repo.snapshot(),saved,'failed batch must not partially commit');
     assert.throws(()=>repo.apply({operations:[{op:'card.upsert',card:{...card,url:'javascript:alert(1)'}}]}));
     assert.throws(()=>repo.apply({operations:[{op:'card.upsert',card:{...card,id:'__proto__'}}]}));
-    assert.throws(()=>repo.apply({operations:[{op:'item.patch',id:card.id,values:{taskDone:['missing']}}]}),/任务 ID/);
+    assert.throws(()=>repo.apply({operations:[{op:'item.patch',id:card.id,values:{taskDone:['missing']}}]}),/task_not_found/);
     repo.apply({operations:[{op:'card.upsert',card:{id:'task',type:'task',title:'任务',tasks:[{id:'t1',text:'检查'}]}},{op:'item.patch',id:'task',values:{taskDone:['t1']}}]});
     assert.deepEqual(repo.snapshot().state.items.task.taskDone,['t1']);
     repo.apply({operations:[{op:'card.delete',id:card.id}]});
@@ -58,6 +58,11 @@ test('loopback HTTP and actual agent CLI share the same data without App/MCP log
     const status=await new Promise((resolve?: any)=>{const req=request(origin+'/api/local/state',{headers:{Host:'example.com'}},(res?: any)=>{res.resume();resolve(res.statusCode);});req.end();});
     assert.equal(status,403);
     assert.equal((await fetch(origin+'/api/local/operations',{method:'POST',body:'{}'})).status,415);
+    const invalid=await fetch(origin+'/api/local/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    assert.equal(invalid.status,400);
+    assert.deepEqual(await invalid.json(),{error:'invalid_request'});
+    const malformed=await fetch(origin+'/api/local/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:'{'});
+    assert.deepEqual(await malformed.json(),{error:'invalid_json'});
     assert.equal((await fetch(origin+'/.env')).status,404);
     const response=await fetch(origin+'/api/local/operations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operations:[{op:'card.upsert',card}]})});
     assert.equal(response.status,200);

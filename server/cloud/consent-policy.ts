@@ -1,3 +1,4 @@
+import { copy } from "../../design-system/copy.ts";
 import {isAuthorizationId} from './oauth-identifiers.ts';
 /** Offline consent policy. Not imported by the Worker and never writes grants or calls OAuth. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -5,7 +6,7 @@ const fail=()=>{throw new Error('consent_not_allowed');};
 const exactSet=(values?: any,allowed?: any)=>Array.isArray(values)&&values.length>0&&new Set<any>(values).size===values.length&&values.every((v?: any)=>typeof v==='string'&&allowed.includes(v));
 function callback(value?: any){
  if(typeof value!=='string'||value.length>2048)fail();
- let u;try{u=new URL(value);}catch{fail();}
+ let u: any;try{u=new URL(value);}catch{fail();}
  // Real callbacks must be explicitly recorded after discovery, never inferred from a display name.
  if(u.username||u.password||u.hash||u.search||u.href!==value||!(u.protocol==='https:'||u.protocol==='http:'&&['127.0.0.1','[::1]'].includes(u.hostname)))fail();
  return u.href;
@@ -17,7 +18,7 @@ export function reviewConsent({details,principal,policy,grant}: any){
  // A provider auto-redirect is not proof that Sill-specific access was reviewed.
  if(details.redirect_url||!Array.isArray(policy.redirectUris)||!policy.redirectUris.includes(details.redirect_uri))fail();
  const redirectUri=callback(details.redirect_uri);
- let origin;try{origin=new URL(policy.appOrigin);}catch{fail();}
+ let origin: any;try{origin=new URL(policy.appOrigin);}catch{fail();}
  if(origin.protocol!=='https:'||origin.origin!==policy.appOrigin||policy.audience!==policy.appOrigin+'/mcp')fail();
  // OIDC identity scopes are NOT Sill content scopes. No email/profile default is silently accepted.
  const identityScopes=typeof details.scope==='string'?details.scope.trim().split(/\s+/).filter(Boolean):[];
@@ -31,9 +32,9 @@ export function reviewConsent({details,principal,policy,grant}: any){
  const review={authorizationId:details.authorization_id,userId:principal.userId,clientId:policy.clientId,clientName:typeof details.client.name==='string'?details.client.name.slice(0,200):policy.clientId,redirectUri,audience:policy.audience,identityScopes:[...identityScopes],contentScopes:[...grant.scopes],resources:[...grant.resources],canList:grant.resources[0]==='*',canCreate:grant.resources[0]==='*'&&grant.scopes.includes('content:write')};
  return Object.freeze({...review,identityScopes:Object.freeze(review.identityScopes),contentScopes:Object.freeze(review.contentScopes),resources:Object.freeze(review.resources)});
 }
-const escape=(value?: any)=>String(value).replace(/[&<>"']/g,(c?: any)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const escapeHtml=(value?: any)=>String(value).replace(/[&<>"']/g,(c?: any)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /** Escaped review fragment. The authenticated controller owns the active form. */
 export function consentSummary(review?: any){
- const range=review.resources[0]==='*'?'整个个人工作区（含以后新增的内容）':review.resources.map(escape).join('、');
- return `<section aria-labelledby="consent-title"><h1 id="consent-title">允许 ${escape(review.clientName)} 访问 Sill？</h1><dl><dt>客户端 ID</dt><dd>${escape(review.clientId)}</dd><dt>回调地址</dt><dd>${escape(review.redirectUri)}</dd><dt>服务地址</dt><dd>${escape(review.audience)}</dd><dt>身份信息</dt><dd>${review.identityScopes.map(escape).join('、')}</dd><dt>Sill 内容权限</dt><dd>${review.contentScopes.map((s?: any)=>({'content:read':'读取卡片','content:write':'创建与修改卡片','content:delete':'删除卡片','event:submit':'提交事件','event:read':'读取事件'})[s]).join('、')}</dd><dt>内容范围</dt><dd>${range}</dd></dl><p>仅授予上面列出的权限。提交事件表示排队，不代表外部动作已完成。</p>${review.canList?'':'<p>仅可按已知 ID 访问所选卡片，不能列出整个工作区或创建卡片。</p>'}</section>`;
+ const range=review.resources[0]==='*'?copy("server.consentpolicy.2d55a9134f5d"):review.resources.map(escapeHtml).join('、');
+ return `<section aria-labelledby="consent-title"><h1 id="consent-title">${copy("server.consentpolicy.65051d44e433")}${escapeHtml(review.clientName)}${copy("server.consentpolicy.070dee491968")}</h1><dl><dt>${copy("server.consentpolicy.92ceb36a3d2c")}</dt><dd>${escapeHtml(review.clientId)}</dd><dt>${copy("server.consentpolicy.9ca160d65985")}</dt><dd>${escapeHtml(review.redirectUri)}</dd><dt>${copy("server.consentpolicy.02739d1bae8b")}</dt><dd>${escapeHtml(review.audience)}</dd><dt>${copy("server.consentpolicy.b10ce5499816")}</dt><dd>${review.identityScopes.map(escapeHtml).join('、')}</dd><dt>${copy("server.consentpolicy.be74f928b8be")}</dt><dd>${review.contentScopes.map((s?: any)=>({'content:read':copy("server.consentpolicy.bf6dfdcb4066"),'content:write':copy("server.consentpolicy.97b7145eb4ee"),'content:delete':copy("server.consentpolicy.7ca7b60a347c"),'event:submit':copy("server.consentpolicy.08e1bf580476"),'event:read':copy("server.consentpolicy.6ccfdd828764")})[s]).join('、')}</dd><dt>${copy("server.consentpolicy.ffd105fcc26e")}</dt><dd>${range}</dd></dl><p>${copy("server.consentpolicy.8c743ee83f59")}</p>${review.canList?'':`<p>${copy("server.consentpolicy.30d1f064d9d7")}</p>`}</section>`;
 }

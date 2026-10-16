@@ -7,7 +7,7 @@ import { startLocal } from '../../server/local/index.ts';
 
 const dir=await mkdtemp(join(tmpdir(),'qg-browser-')),file=join(dir,'cards.json');
 const artifacts=join(import.meta.dirname,'../artifacts');await mkdir(artifacts,{recursive:true});
-let server=await startLocal({port:0,file}),browser;
+let server=await startLocal({port:0,file}),browser: any;
 const errors=[];
 try{
   const port=(server.address() as import('node:net').AddressInfo).port,origin='http://127.0.0.1:'+port;

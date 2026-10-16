@@ -14,7 +14,7 @@ const require=createRequire(import.meta.url);
 
 // Real browser -> HTTP runtime -> official SDK -> synthetic auth transport -> actual SQL.
 // No email, production credentials, cloud database, or deployment is involved.
-const fixture=await cloudFixture();let runtime,browser,mcpClient,dropResponse=false;
+const fixture=await cloudFixture();let runtime: any,browser: any,mcpClient: any,dropResponse=false;
 const server=createServer(async(req?: any,res?: any)=>{
  try{
   const chunks=[];for await(const c of req)chunks.push(c);

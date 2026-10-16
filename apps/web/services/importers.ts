@@ -1,3 +1,4 @@
+import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 /** File import. Everything is parsed on this device; nothing is uploaded.
  * OPML → subscriptions; CSV (Readwise, Pocket) and HTML bookmarks → articles; Markdown → notes; .ics → events.
@@ -15,7 +16,7 @@ const Importers: Record<string, any>={
    if(/\.(md|markdown|txt)$/.test(lower))return 'markdown';
    return '';
  },
- labels:{opml:'RSS 订阅',csv:'条收藏',html:'个书签',markdown:'篇笔记',ics:'个日程'},
+ labels:{opml:copy("web.importers.26ef7656f45c"),csv:copy("web.importers.26688145efd6"),html:copy("web.importers.d85aebef03b7"),markdown:copy("web.importers.cccc42be5956"),ics:copy("web.importers.4cb55a86b4a1")},
  /** Returns {kind, title, entries:[{key,label,detail,card?,feed?,time}]} */
  parse(name?: any,text?: any){
    const kind=this.kindOf(name,text);
@@ -51,7 +52,7 @@ const Importers: Record<string, any>={
      const raw=d>=0?r[d]:'',time=/^\d{9,10}$/.test(raw)?Number(raw)*1000:Date.parse(raw)||Date.now();
      const highlight=h>=0?this.clip(r[h],2000):'';
      return {key:url||title,label:title,detail:[a>=0?r[a]:'',url?new URL(url).hostname:''].filter(Boolean).join(' · '),time,
-       card:{id:this.id('imp',url||title+highlight),type:'article',title,summary:this.clip(highlight,300),sources: [{name: kind==='readwise'?'Readwise':(url?new URL(url).hostname:'导入'), kind: kind}],meta:highlight?'高亮':'',...(url?{url}:{}),tags:[],body:highlight?[highlight]:[],time}};
+       card:{id:this.id('imp',url||title+highlight),type:'article',title,summary:this.clip(highlight,300),sources: [{name: kind==='readwise'?'Readwise':(url?new URL(url).hostname:copy("web.panels.576d81bb0631")), kind: kind}],meta:highlight?copy("web.importers.05f954565f29"):'',...(url?{url}:{}),tags:[],body:highlight?[highlight]:[],time}};
    }).filter(Boolean);
  },
  bookmarks(text?: any){
@@ -60,15 +61,15 @@ const Importers: Record<string, any>={
      const url=this.url(n.getAttribute('href'));if(!url)return null;
      const title=this.clip(n.textContent||url,200),added=Number(n.getAttribute('add_date'))*1000||Date.now();
      return {key:url,label:title,detail:new URL(url).hostname,time:added,
-       card:{id:this.id('imp',url),type:'article',title,summary:'',sources: [{name: new URL(url).hostname, kind: 'web'}],meta:'书签',url,tags:[],body:[],time:added}};
+       card:{id:this.id('imp',url),type:'article',title,summary:'',sources: [{name: new URL(url).hostname, kind: 'web'}],meta:copy("web.importers.94b8975ca710"),url,tags:[],body:[],time:added}};
    }).filter(Boolean);
  },
  markdown(name?: any,text?: any){
    const lines=text.replace(/\r/g,'').split('\n');
    const heading=lines.find((l?: any)=>/^#\s+/.test(l));
-   const title=this.clip(heading?heading.replace(/^#\s+/,''):name.replace(/\.(md|markdown|txt)$/i,''),200)||'未命名笔记';
+   const title=this.clip(heading?heading.replace(/^#\s+/,''):name.replace(/\.(md|markdown|txt)$/i,''),200)||copy("web.unnamedNote");
    const body=text.replace(/\r/g,'').split(/\n{2,}/).map((p?: any)=>p.replace(/^#+\s+/gm,'').trim()).filter((p?: any)=>p&&p!==title).slice(0,100).map((p?: any)=>p.slice(0,50000));
-   return [{key:name+title,label:title,detail:`${body.length} 段`,time:Date.now(),
+   return [{key:name+title,label:title,detail:`${body.length}${copy("web.importers.03b7163f76aa")}`,time:Date.now(),
      card:{id:this.id('md',name+title),type:'note',title,summary:this.clip(body[0]||'',300),sources: [{name: 'Markdown', kind: 'markdown'}],meta:name.slice(0,100),tags:[],body,time:Date.now()}}];
  },
  ics(text?: any){
@@ -80,7 +81,7 @@ const Importers: Record<string, any>={
      if(!title||!Number.isFinite(start)||!(end>start))return null;
      const url=this.url(get('URL')),location=this.clip(get('LOCATION').replace(/\\,/g,','),300);
      return {key:get('UID')||title+start,label:title,detail:new Date(start).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),time:start,
-       card:{id:this.id('ics',(get('UID')||'')+title+start),type:'event',title,summary:this.clip(get('DESCRIPTION').replace(/\\n/g,' '),300),sources: [{name: '日历', kind: 'calendar'}],start,end,...(location?{location}:{}),...(url?{url}:{}),tags:[],body:[],time:start}};
+       card:{id:this.id('ics',(get('UID')||'')+title+start),type:'event',title,summary:this.clip(get('DESCRIPTION').replace(/\\n/g,' '),300),sources: [{name: copy("web.cards.a00f295cfbb0"), kind: 'calendar'}],start,end,...(location?{location}:{}),...(url?{url}:{}),tags:[],body:[],time:start}};
    }).filter(Boolean);
  },
  /** A link or a line of text, from capture, paste or drop. */
@@ -88,9 +89,9 @@ const Importers: Record<string, any>={
    const value=String(text||'').trim();if(!value)return null;
    const url=this.url(value.split(/\s+/)[0]);
    if(url){const host=new URL(url).hostname.replace(/^www\./,'');const rest=value.slice(value.split(/\s+/)[0].length).trim();
-     return {id:this.id('web',url+Date.now()),type:'article',title:this.clip(rest||host+new URL(url).pathname.replace(/\/$/,''),200),summary:'',sources: [{name: host, kind: 'web'}],meta:'刚刚收集',url,tags:[],body:rest?[rest]:[],time:Date.now()};}
+     return {id:this.id('web',url+Date.now()),type:'article',title:this.clip(rest||host+new URL(url).pathname.replace(/\/$/,''),200),summary:'',sources: [{name: host, kind: 'web'}],meta:copy("web.importers.1e579068c564"),url,tags:[],body:rest?[rest]:[],time:Date.now()};}
    const lines=value.split('\n'),title=this.clip(lines[0],60);
-   return {id:this.id('note',value+Date.now()),type:'note',title,summary:this.clip(value,300),sources: [{name: '速记', kind: 'capture'}],meta:'刚刚',tags:[],body:value.split(/\n{2,}/).map((p?: any)=>p.slice(0,50000)).slice(0,100),time:Date.now()};
+   return {id:this.id('note',value+Date.now()),type:'note',title,summary:this.clip(value,300),sources: [{name: copy("web.cards.e727b8cc2df0"), kind: 'capture'}],meta:copy("web.cards.de6785d99e02"),tags:[],body:value.split(/\n{2,}/).map((p?: any)=>p.slice(0,50000)).slice(0,100),time:Date.now()};
  },
  /** Skip an existing URL or identical local note; never claim to merge content. */
  dedupe(cards?: any){

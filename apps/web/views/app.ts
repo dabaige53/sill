@@ -1,3 +1,4 @@
+import { copy } from "../copy.ts";
 import { cardSource, cardSourceKind } from "../data/card-source.ts";
 import { Store, DemoSources } from "../data/store.ts";
 import { button, emptyState, esc, checkMark, duration, ring, eventRelative, eventTimely, minutes } from "../atoms/primitives.ts";
@@ -86,13 +87,13 @@ declare inlineTimer: any;
    Store.load();
    if(window.__QG_RUNTIME__)Store.state.cards=[];
    this.sort=Store.pref('sort');
-   document.body.innerHTML=`<main aria-label="Sill 桌面"><h1 class="sr-only" id="page-title">桌面</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
-   <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>未连接</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="查看新内容"></button>
-   <div class="orb-wrap"><div class="dock-tools" role="group" aria-label="全局工具">${button('filter','筛选与搜索','filter')}${button('plus','记一笔','capture')}${button('refresh','刷新卡片','refresh')}${button('up','返回顶部','top')}${button('gear','设置','settings')}</div>
-   <button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="bookmark" aria-label="全局工具" aria-expanded="false">${icon('grid',22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg></div></div>
-   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="多选"><span class="selection-count num"></span>${button('bookmark','收藏选中的卡片','selected-bookmark')}${button('glasses','稍后读选中的卡片','selected-later')}${button('tag','给选中的卡片加标签','selected-tag')}<span class="toolbar-sep" aria-hidden="true"></span>${button('x','取消选择','clear-selection')}</div>
-   <div id="drop-targets" class="drop-targets" hidden><div class="drop-target glass" data-drop="bookmark" aria-label="收藏接收区">${icon('bookmark',22)}</div><div class="drop-target glass" data-drop="later" aria-label="稍后阅读接收区">${icon('glasses',22)}</div><div class="drop-target glass" data-drop="tag" aria-label="标签接收区">${icon('tag',22)}</div></div>
-   <div id="import-rings" class="import-rings glass" hidden aria-hidden="true"></div><div class="drop-hint" id="drop-hint" hidden><span>放下即导入</span><small>RSS、书签、Markdown、日历、链接</small></div>
+   document.body.innerHTML=`<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
+   <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
+   <div class="orb-wrap"><div class="dock-tools" role="group" aria-label="${copy("web.app.25ce5c2fbf41")}">${button('filter',copy("web.app.1fd57350e5f1"),'filter')}${button('plus',copy("web.panels.5a15649c2481"),'capture')}${button('refresh',copy("web.app.26b4905705d6"),'refresh')}${button('up',copy("web.app.071b374af1b8"),'top')}${button('gear',copy("web.app.df3d58c7d84b"),'settings')}</div>
+   <button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="bookmark" aria-label="${copy("web.app.25ce5c2fbf41")}" aria-expanded="false">${icon('grid',22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg></div></div>
+   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button('bookmark',copy("web.app.87aeb7040c82"),'selected-bookmark')}${button('glasses',copy("web.app.d108c0a7e2c3"),'selected-later')}${button('tag',copy("web.app.b5816e5fd0be"),'selected-tag')}<span class="toolbar-sep" aria-hidden="true"></span>${button('x',copy("web.app.74966e20df2e"),'clear-selection')}</div>
+   <div id="drop-targets" class="drop-targets" hidden><div class="drop-target glass" data-drop="bookmark" aria-label="${copy("web.app.0dd4fd4ac051")}">${icon('bookmark',22)}</div><div class="drop-target glass" data-drop="later" aria-label="${copy("web.app.5248d828ba43")}">${icon('glasses',22)}</div><div class="drop-target glass" data-drop="tag" aria-label="${copy("web.app.2c19361cc109")}">${icon('tag',22)}</div></div>
+   <div id="import-rings" class="import-rings glass" hidden aria-hidden="true"></div><div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <input type="file" id="file-input" hidden multiple accept=".opml,.xml,.csv,.html,.htm,.md,.markdown,.txt,.ics">
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
    this.grid=document.getElementById('feed-grid');this.dialog=document.getElementById('modal');
@@ -103,7 +104,7 @@ declare inlineTimer: any;
    document.addEventListener('input',(e?: any)=>this.input(e));
    document.addEventListener('keydown',(e?: any)=>this.key(e));
    document.addEventListener('paste',(e?: any)=>this.paste(e));
-   ['pointerdown','keydown','wheel','touchstart'].forEach((type?: any)=>document.addEventListener(type,()=>this.lastActivity=Date.now(),{passive:true}));
+   ['pointerdown','keydown','wheel','touchstart'].forEach((type?: any)=>{ document.addEventListener(type,()=>this.lastActivity=Date.now(),{passive:true}); });
    document.addEventListener('focusin',(e?: any)=>{
      const menu=this.grid.querySelector('.card-more-menu');
      if(menu&&!menu.contains(e.target)&&!e.target.closest?.('[data-action="card-more"]'))this.closeMore();
@@ -175,7 +176,7 @@ declare inlineTimer: any;
  deskHTML(){
    if(!Store.state.cards.length&&!window.__QG_RUNTIME__)return welcomeHTML();
    const cards=this.filtered();
-   if(!cards.length)return this.filtering()?emptyState(this.filter.query?`没有找到「${this.filter.query}」`:'没有符合条件的卡片','',`<button type="button" class="text-link" data-action="clear-filter">清除筛选</button>`):emptyState('桌面上都处理完了')+shelfHTML(this.shelved('read').length,this.shelved('stale').length);
+   if(!cards.length)return this.filtering()?emptyState(this.filter.query?`${copy("web.panels.11a8f9879575")}${this.filter.query}」`:copy("web.app.4a684ec67af5"),'',`<button type="button" class="text-link" data-action="clear-filter">${copy("web.app.657d9cbf45ec")}</button>`):emptyState(copy("web.app.a510cac879f0"))+shelfHTML(this.shelved('read').length,this.shelved('stale').length);
    const stacks=Store.pref('stack')&&!this.filtering()?FeedPolicy.stacks(cards.filter((c?: any)=>Store.source(`src-${cardSourceKind(c)}`)?.stack!==false),Store.state.items):new Map<any, any>();
    const inStack=new Map<any, any>();for(const [key,list] of stacks)for(const c of list)inStack.set(c.id,key);
    const html=[],done=new Set<any>();
@@ -201,7 +202,7 @@ declare inlineTimer: any;
    this.revealImages(this.grid);
    this.layout.layout(false);this.restoreStacks();this.updateSelection();this.updateFilterIndicator();
    // Only the first screen enters; cards below the fold are simply there when scrolled to.
-   if(animate)[...this.grid.children].filter((n?: any)=>n.getBoundingClientRect().top<innerHeight).forEach((n?: any,i?: any)=>MotionEngine.enter(n,Math.min(i*60,240)));
+   if(animate)[...this.grid.children].filter((n?: any)=>n.getBoundingClientRect().top<innerHeight).forEach((n?: any,i?: any)=>{ MotionEngine.enter(n,Math.min(i*60,240)); });
  }
  // Covers sharpen once decoded; a cover seen before appears at once, without replaying the blur.
  revealImages(root?: any){
@@ -238,7 +239,7 @@ declare inlineTimer: any;
  }
  updateFilterIndicator(){document.getElementById('dock').classList.toggle('filter-active',this.filtering());}
  updateSelection(){
-   this.grid.querySelectorAll('[data-card]').forEach((n?: any)=>n.classList.toggle('is-selected',this.selected.has(n.dataset.card)));
+   this.grid.querySelectorAll('[data-card]').forEach((n?: any)=>{ n.classList.toggle('is-selected',this.selected.has(n.dataset.card)); });
    const bar=document.getElementById('selection-bar');bar.hidden=this.selected.size===0;
    bar.querySelector('.selection-count').textContent=String(this.selected.size);
  }
@@ -393,24 +394,24 @@ declare inlineTimer: any;
    this.refreshCard(id);
  }
  openExternal(c?: any){if(c?.url&&/^https?:\/\//.test(c.url))window.open(c.url,'_blank','noopener,noreferrer');}
- toast(text?: any,undo: any=null,actionLabel: any='撤销'){
+ toast(text?: any,undo: any=null,actionLabel: any=copy("web.app.926a50b98ece")){
    clearTimeout(this.toastTimer);this.undoAction=undo;
    const toast=document.getElementById('toast');
    (this.dialog.open?this.dialog:document.body).appendChild(toast);
    document.getElementById('toast-text').textContent=text;
-   document.getElementById('toast-action').innerHTML=undo?`<button type="button" class="text-link" data-action="undo" aria-label="${actionLabel==='撤销'?'撤销操作':esc(actionLabel)}">${esc(actionLabel)}</button>`:'';
+   document.getElementById('toast-action').innerHTML=undo?`<button type="button" class="text-link" data-action="undo" aria-label="${actionLabel===copy("web.app.926a50b98ece")?copy("web.app.493c9056731b"):esc(actionLabel)}">${esc(actionLabel)}</button>`:'';
    toast.hidden=false;MotionEngine.enter(toast);
    this.toastTimer=window.setTimeout(()=>{toast.hidden=true;},undo?5500:3200);
  }
  setFlag(id?: any,key?: any,value?: any){
    const before=Store.item(id)[key];Store.patch(id,{[key]:value});this.refreshCard(id);
-   this.toast(key==='bookmarked'?(value?'已收藏':'已取消收藏'):(value?'已放进稍后读':'已移出稍后读'),()=>{Store.patch(id,{[key]:before});this.refreshCard(id);this.syncPreviewButtons(id);});
+   this.toast(key==='bookmarked'?(value?copy("web.app.471dd4d7f869"):copy("web.app.7fa7b63b0ee1")):(value?copy("web.app.8ed682d9621a"):copy("web.app.6bcacb7bb31c")),()=>{Store.patch(id,{[key]:before});this.refreshCard(id);this.syncPreviewButtons(id);});
    this.syncPreviewButtons(id);
  }
  syncPreviewButtons(id?: any){
    const s=Store.item(id);
-   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="bookmark"]`).forEach((n?: any)=>{n.classList.toggle('active',s.bookmarked);n.setAttribute('aria-label',s.bookmarked?'取消收藏':'收藏');});
-   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="later"]`).forEach((n?: any)=>{n.classList.toggle('active',s.later);n.setAttribute('aria-label',s.later?'取消稍后读':'稍后读');});
+   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="bookmark"]`).forEach((n?: any)=>{n.classList.toggle('active',s.bookmarked);n.setAttribute('aria-label',s.bookmarked?copy("web.panels.dca60869e7d2"):copy("web.bookmark"));});
+   this.dialog.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="later"]`).forEach((n?: any)=>{n.classList.toggle('active',s.later);n.setAttribute('aria-label',s.later?copy("web.panels.c4d2d1edba13"):copy("web.later"));});
  }
  toggleTask(id?: any,taskId?: any){
    const c=Store.card(id),before=Store.tasks(c).filter((t?: any)=>t.done).map((t?: any)=>t.id);
@@ -420,7 +421,7 @@ declare inlineTimer: any;
      const holder=this.dialog.querySelector('.detail-task-list');
      if(holder)for(const t of Store.tasks(c)){const node=[...holder.querySelectorAll('[data-extra]')].find((n?: any)=>n.dataset.extra===t.id);if(node){node.classList.toggle('is-done',t.done);node.setAttribute('aria-checked',String(t.done));node.querySelector('.check-dot').outerHTML=checkMark(t.done);}}
    }
-   if(after.length===c.tasks.length)this.toast('这件事，完成了',()=>{Store.patch(id,{taskDone:before});this.refreshCard(id);});
+   if(after.length===c.tasks.length)this.toast(copy("web.app.58d2aeefaa41"),()=>{Store.patch(id,{taskDone:before});this.refreshCard(id);});
  }
  closeMore(restoreFocus: any=false){
    const menu=this.grid?.querySelector('.card-more-menu');
@@ -439,13 +440,13 @@ declare inlineTimer: any;
    if(c.querySelector('.card-more-menu')){this.closeMore(true);return;}
    this.closeMore();
    c.classList.add('tools-open');
-   const menu=document.createElement('div');menu.className='card-more-menu glass';menu.setAttribute('role','group');menu.setAttribute('aria-label','更多卡片操作');
+   const menu=document.createElement('div');menu.className='card-more-menu glass';menu.setAttribute('role','group');menu.setAttribute('aria-label',copy("web.templates.ee9430845e26"));
    menu.id='card-menu-'+id;
    const s=Store.item(id),items=[
-     ...(card.why?[['info','为什么看到','why']]:[]),
-     ['bookmark',s.bookmarked?'取消收藏':'收藏','bookmark'],['glasses',s.later?'移出稍后读':'稍后读','later'],['tag','标签与备注','edit'],
-     ...(CardTypes[card.type].readable?[[s.read?'undo':'circle',s.read?'标为未读':'标为已读','toggle-read']]:[]),
-     ['check-circle',this.selected.has(id)?'取消选择':'选择','select']];
+     ...(card.why?[['info',copy("web.panels.fdc032965548"),'why']]:[]),
+     ['bookmark',s.bookmarked?copy("web.panels.dca60869e7d2"):copy("web.bookmark"),'bookmark'],['glasses',s.later?copy("web.app.1056291ba162"):copy("web.later"),'later'],['tag',copy("web.app.09fe39e89e28"),'edit'],
+     ...(CardTypes[card.type].readable?[[s.read?'undo':'circle',s.read?copy("web.app.fe32886b3172"):copy("web.app.82f35d89b827"),'toggle-read']]:[]),
+     ['check-circle',this.selected.has(id)?copy("web.app.74966e20df2e"):copy("web.app.c11330b85234"),'select']];
    menu.innerHTML=items.map(([symbol,label,action]: any)=>`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span></button>`).join('');
    c.appendChild(menu);
    const trigger=c.querySelector('[data-action="card-more"]');trigger?.setAttribute('aria-expanded','true');trigger?.setAttribute('aria-controls',menu.id);
@@ -467,8 +468,8 @@ declare inlineTimer: any;
        this.feedNow=Date.now();this.withFeedAnchor(()=>{});
        if(scrollY<40&&Store.pref('newHint')!=='off'&&!this.dialog.open&&this.pendingCards.length&&!this.pendingReminders.length)this.showNew(true);
      }
-     this.paintPending();this.announce('卡片已刷新');
-   }catch(error){this.setOffline(true);this.toast('无法刷新：'+error.message);}
+     this.paintPending();this.announce(copy("web.app.2a004d94219c"));
+   }catch(error){this.setOffline(true);this.toast(copy("web.app.281583251761")+error.message);}
    finally{
      this.refreshBusy=false;
      window.setTimeout(()=>dock.classList.remove('is-busy'),Math.max(0,600-(Date.now()-started)));
@@ -479,15 +480,15 @@ declare inlineTimer: any;
    const next=Store.state.cards.filter((c?: any)=>FeedPolicy.eligible(c,Store.item(c.id),now)).map((c?: any)=>c.id);
    const added=next.some((id?: any)=>!this.pendingReminders.includes(id));
    this.pendingReminders=next;this.paintPending();
-   if(added)this.announce(`有 ${next.length} 项提醒到期，点玻璃入口旁的提示查看。`);
+   if(added)this.announce(`${copy("web.app.a6815db95ff5")}${next.length}${copy("web.app.46f0aa3f3a96")}`);
  }
  paintPending(){
    const count=this.pendingCards.length+this.pendingReminders.length,n=document.getElementById('new-count');
    const hide=!count||(Store.pref('newHint')==='off'&&!this.pendingReminders.length);
    const signature=`${count}|${this.pendingReminders.length}|${hide}`;
    if(n.dataset.pending===signature)return;n.dataset.pending=signature;
-   n.hidden=hide;n.innerHTML=this.pendingReminders.length?`${icon('bell',14)}<span class="num">${count}</span> 项到点`:`${icon('up',14)}<span class="num">${count}</span> 条新内容`;
-   n.setAttribute('aria-label',`查看 ${this.pendingCards.length} 条新内容和 ${this.pendingReminders.length} 项到期提醒`);
+   n.hidden=hide;n.innerHTML=this.pendingReminders.length?`${icon('bell',14)}<span class="num">${count}</span>${copy("web.app.e57ff9e28a4b")}`:`${icon('up',14)}<span class="num">${count}</span>${copy("web.app.b50caa663fcf")}`;
+   n.setAttribute('aria-label',`${copy("web.app.9ae8f7e3040d")}${this.pendingCards.length}${copy("web.app.5b2f6ba24e42")}${this.pendingReminders.length}${copy("web.app.099a1047b74a")}`);
  }
  withFeedAnchor(change?: any,animate: any=false){
    const nodes=[...this.grid.querySelectorAll('[data-card]')];
@@ -534,7 +535,7 @@ declare inlineTimer: any;
      this.mode='feed';this.baseMode='feed';history.replaceState({glass:true,prev:null},'','#feed');
    },true);
    this.paintPending();
-   if(!quiet)this.announce(`加入 ${count} 张新卡片，${reminderCount} 项提醒回到桌面`);
+   if(!quiet)this.announce(`${copy("web.app.fa2c54768fda")}${count}${copy("web.app.f9c6ab19b7d4")}${reminderCount}${copy("web.app.904aa82438d8")}`);
  }
  changeReminder(id?: any,action?: any){
    const c=Store.card(id);if(!c||!FeedPolicy.supports(c))return;
@@ -551,7 +552,7 @@ declare inlineTimer: any;
    this.withFeedAnchor(()=>{},true);this.checkReminders();
    const card=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
    (card?.querySelector('.card-title-button')||this.grid.querySelector('.card-title-button')||document.getElementById('orb')).focus({preventScroll:true});
-   const text=action==='snooze'?'10 分钟后再提醒':action==='dismiss-reminder'?'已忽略':action==='complete-reminder'?'完成了':'提醒已恢复';
+   const text=action==='snooze'?copy("web.app.8b61908123ce"):action==='dismiss-reminder'?copy("web.app.c9bb70bcaaa3"):action==='complete-reminder'?copy("web.app.4203e358dee2"):copy("web.app.480719186cc8");
    this.toast(text,()=>{
      Store.patch(id,before);this.withFeedAnchor(()=>{},true);this.checkReminders();
      const back=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
@@ -562,26 +563,26 @@ declare inlineTimer: any;
    if(target==='tag'){this.bulkEditIds=ids;this.openPanel('editor',ids[0]);return;}
    const key=target==='bookmark'?'bookmarked':'later',old=ids.map((id?: any)=>[id,Store.item(id)[key]]);
    ids.forEach((id?: any)=>{Store.patch(id,{[key]:true});this.refreshCard(id);});
-   this.toast(target==='bookmark'?`已收藏 ${ids.length} 张`:`${ids.length} 张放进稍后读`,()=>old.forEach(([id,v]: any)=>{Store.patch(id,{[key]:v});this.refreshCard(id);}));
+   this.toast(target==='bookmark'?`${copy("web.app.96e7ee93f3ba")}${ids.length}${copy("web.panels.e9e0fdc242b4")}`:`${ids.length}${copy("web.app.34d0636b70c8")}`,()=>old.forEach(([id,v]: any)=>{Store.patch(id,{[key]:v});this.refreshCard(id);}));
  }
  /* ——— Media ——— */
  paintMedia(){
    const c=Store.card(this.currentId),el=document.getElementById('media-slide');if(!el||!c)return;
-   const labels=['浏览','提起','靠近','松手'],total=c.body.length||1;
-   el.innerHTML=`<b>${labels[this.mediaIndex]||'片段 '+(this.mediaIndex+1)}</b><span>${esc(c.body[this.mediaIndex]||'')}</span>`;
+   const labels=[copy("web.app.a8c81f93f2e0"),copy("web.app.18b083a026ba"),copy("web.app.8d017e1c9a30"),copy("web.app.3a71561035b2")],total=c.body.length||1;
+   el.innerHTML=`<b>${labels[this.mediaIndex]||copy("web.app.c8e19ce87856")+(this.mediaIndex+1)}</b><span>${esc(c.body[this.mediaIndex]||'')}</span>`;
    document.getElementById('media-step').textContent=`${this.mediaIndex+1} / ${total}`;
    MotionEngine.enter(el);
  }
  pauseMedia(){
    clearInterval(this.mediaTimer);this.mediaTimer=null;clearInterval(this.podcastTimer);this.podcastTimer=null;
-   const b=this.dialog?.querySelector('[data-action="media-play"]');if(b){b.innerHTML=icon('play');b.setAttribute('aria-label','播放演示片段');}
-   const p=this.dialog?.querySelector('[data-action="podcast-play"]');if(p){p.innerHTML=icon('play',22);p.setAttribute('aria-label','播放');}
+   const b=this.dialog?.querySelector('[data-action="media-play"]');if(b){b.innerHTML=icon('play');b.setAttribute('aria-label',copy("web.panels.105587569775"));}
+   const p=this.dialog?.querySelector('[data-action="podcast-play"]');if(p){p.innerHTML=icon('play',22);p.setAttribute('aria-label',copy("web.panels.c3396195e91c"));}
  }
  playMedia(){
    if(this.mediaTimer){this.pauseMedia();return;}
    const c=Store.card(this.currentId),last=(c.body.length||1)-1;
    if(this.mediaIndex===last)this.mediaIndex=0;
-   this.paintMedia();const b=this.dialog.querySelector('[data-action="media-play"]');b.innerHTML=icon('pause');b.setAttribute('aria-label','暂停演示片段');
+   this.paintMedia();const b=this.dialog.querySelector('[data-action="media-play"]');b.innerHTML=icon('pause');b.setAttribute('aria-label',copy("web.app.8c3c5d2fa170"));
    this.mediaTimer=setInterval(()=>{
      if(document.hidden)return;
      if(this.mediaIndex<last){this.mediaIndex++;this.paintMedia();Store.patch(this.currentId,{progress:(this.mediaIndex+1)/(last+1),read:this.mediaIndex===last});this.refreshCard(this.currentId);}
@@ -593,7 +594,7 @@ declare inlineTimer: any;
    const total=c.duration||1,paint=()=>{const p=Store.item(id).progress,bar=document.getElementById('podcast-bar'),t=document.getElementById('podcast-played');if(bar)bar.style.width=Math.round(p*100)+'%';if(t)t.textContent=duration(p*total);};
    if(seek){Store.patch(id,{progress:Math.max(0,Math.min(1,Store.item(id).progress+seek/total))});paint();this.refreshCard(id);return;}
    if(this.podcastTimer){this.pauseMedia();return;}
-   const b=this.dialog.querySelector('[data-action="podcast-play"]');b.innerHTML=icon('pause',22);b.setAttribute('aria-label','暂停');
+   const b=this.dialog.querySelector('[data-action="podcast-play"]');b.innerHTML=icon('pause',22);b.setAttribute('aria-label',copy("web.panels.8d12fc0d4eb2"));
    this.podcastTimer=setInterval(()=>{
      const p=Math.min(1,Store.item(id).progress+1/total);Store.patch(id,{progress:p,read:p>=.985||Store.item(id).read});paint();
      if(p>=1)this.pauseMedia();
@@ -605,7 +606,7 @@ declare inlineTimer: any;
    const node=this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),c=Store.card(id);if(!node||!c)return;
    this.editingId=id;Store.patch(id,{seen:true,read:true});
    node.classList.add('is-editing');
-   node.querySelector('.card-body').outerHTML=`<div class="inline-editor"><span class="card-head">${icon('note',16)}<span class="card-src">速记 · ${esc(c.meta||'刚刚')}</span></span><input id="inline-title" aria-label="标题" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="内容" maxlength="4000">${esc((c.body?.length?c.body.join('\n'):c.summary)||'')}</textarea><small id="inline-state">自动保存</small></div>`;
+   node.querySelector('.card-body').outerHTML=`<div class="inline-editor"><span class="card-head">${icon('note',16)}<span class="card-src">${copy("web.app.5d7845b38bf2")}${esc(c.meta||copy("web.cards.de6785d99e02"))}</span></span><input id="inline-title" aria-label="${copy("web.title")}" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="${copy("web.app.7a688306423b")}" maxlength="4000">${esc((c.body?.length?c.body.join('\n'):c.summary)||'')}</textarea><small id="inline-state">${copy("web.app.f2db3712a685")}</small></div>`;
    this.layout.schedule(false);
    const area=node.querySelector('#inline-body');area.focus();area.setSelectionRange(area.value.length,area.value.length);
  }
@@ -613,8 +614,8 @@ declare inlineTimer: any;
    const id=this.editingId,c=Store.card(id);if(!c)return;
    const title=(document.getElementById('inline-title') as HTMLInputElement)?.value.trim()||c.title,text=(document.getElementById('inline-body') as HTMLInputElement)?.value||'';
    const body=text.split('\n').map((s?: any)=>s.trim()).filter(Boolean);
-   Object.assign(c,{title:title.slice(0,200),body:body.length?body:[title],summary:body.join('').slice(0,300),meta:'刚刚'});Store.save();
-   const state=document.getElementById('inline-state');if(state)state.textContent=window.__QG_LOCAL__?'已保存在本机；同步状态见桌面':'已保存';
+   Object.assign(c,{title:title.slice(0,200),body:body.length?body:[title],summary:body.join('').slice(0,300),meta:copy("web.cards.de6785d99e02")});Store.save();
+   const state=document.getElementById('inline-state');if(state)state.textContent=window.__QG_LOCAL__?copy("web.app.5fa0ce52b47e"):copy("web.cloudentry.1bd91a7d0c53");
  }
  finishInlineEdit(){
    if(!this.editingId)return;
@@ -626,9 +627,9 @@ declare inlineTimer: any;
  capture(text?: any,toast: any=true){
    const card=Importers.capture(text);if(!card)return null;
    const {fresh}=Importers.dedupe([card]);
-   if(!fresh.length){this.toast('桌面上已经有这条了');return null;}
+   if(!fresh.length){this.toast(copy("web.app.17ebeb500554"));return null;}
    this.withFeedAnchor(()=>{Store.insert(fresh);});
-   if(toast)this.toast('已存到 Sill',()=>{Store.remove([card.id]);this.withFeedAnchor(()=>{});});
+   if(toast)this.toast(copy("web.app.4f060a8371c3"),()=>{Store.remove([card.id]);this.withFeedAnchor(()=>{});});
    return card;
  }
  bindFileDrop(){
@@ -647,16 +648,16 @@ declare inlineTimer: any;
  async importFiles(files?: any){
    const parsed=[];
    for(const file of files.slice(0,20)){
-     if(file.size>20*1048576){this.toast(`${file.name} 太大了`);continue;}
+     if(file.size>20*1048576){this.toast(`${file.name}${copy("web.app.cdfe77b2534c")}`);continue;}
      const text=await file.text(),result=Importers.parse(file.name,text);
-     if(!result.kind){this.toast(`还不能导入 ${file.name}`);continue;}
+     if(!result.kind){this.toast(`${copy("web.app.868a47950311")}${file.name}`);continue;}
      if(result.entries.length)parsed.push(result);
    }
-   if(!parsed.length){if(files.length)this.toast('没有找到可以导入的内容');return;}
+   if(!parsed.length){if(files.length)this.toast(copy("web.app.73eb407df991"));return;}
    // Several files of one kind preview together.
    const first=parsed[0],same=parsed.filter((p?: any)=>p.kind===first.kind);
    const skipped=parsed.filter((p?: any)=>p.kind!==first.kind);
-   this.importing={kind:first.kind,name:same.length>1?`${same.length} 个文件`:first.name,entries:same.flatMap((p?: any)=>p.entries),notice:skipped.length?`本次仅导入${first.name}同类文件。未纳入：${skipped.map((p?: any)=>p.name).join('、')}；请分次导入这些文件。`:''};
+   this.importing={kind:first.kind,name:same.length>1?`${same.length}${copy("web.app.ff7a7e19a5bf")}`:first.name,entries:same.flatMap((p?: any)=>p.entries),notice:skipped.length?`${copy("web.app.1041b41645cf")}${first.name}${copy("web.app.f9e14fa2f34a")}${skipped.map((p?: any)=>p.name).join('、')}${copy("web.app.42d3dc2bd131")}`:''};
    this.importPicked=new Set<any>(this.importing.entries.map((_?: any,i?: any)=>i));this.importRange='30d';
    this.swapPanel(Panels.importPreview(this),'import','panel');
  }
@@ -665,20 +666,20 @@ declare inlineTimer: any;
    const picked=p.entries.filter((e?: any,i?: any)=>this.importPicked.has(i));
    if(p.kind==='opml'){
      const existing=Store.source('src-rss'),count=(existing?.count||0)+picked.length;
-     Store.upsertSource({id:'src-rss',kind:'rss',name:'RSS',detail:`${count} 个订阅`,enabled:true,status:'ok',count,syncedAt:Date.now(),stack:existing?.stack??true,open:existing?.open||'inside',range:existing?.range||'30d'});
+     Store.upsertSource({id:'src-rss',kind:'rss',name:'RSS',detail:`${count}${copy("web.app.c9197ab700ab")}`,enabled:true,status:'ok',count,syncedAt:Date.now(),stack:existing?.stack??true,open:existing?.open||'inside',range:existing?.range||'30d'});
      this.closeNative();this.importing=null;
-     this.toast(`已订阅 ${picked.length} 个 RSS`);this.startImportRings(['rss']);return;
+     this.toast(`${copy("web.app.a6d36d06231c")}${picked.length}${copy("web.app.929f4aa28cd1")}`);this.startImportRings(['rss']);return;
    }
    const within=(e?: any)=>this.importRange==='all'||!e.time||Date.now()-e.time<30*86400000||p.kind==='ics'&&e.time>Date.now();
    const cards=picked.filter(within).map((e?: any)=>e.card).filter(Boolean);
    const {fresh,merged}=Importers.dedupe(cards);
    const kind={csv:cardSourceKind(cards[0])||'web',html:'web',markdown:'markdown',ics:'calendar'}[p.kind];
-   if(kind&&!['markdown','web'].includes(kind)&&!Store.source('src-'+kind))Store.upsertSource({id:'src-'+kind,kind,name:SourceKinds[kind].label,detail:'文件导入',enabled:true,status:'ok',count:fresh.length,syncedAt:Date.now(),stack:true,open:'inside',range:'all'});
+   if(kind&&!['markdown','web'].includes(kind)&&!Store.source('src-'+kind))Store.upsertSource({id:'src-'+kind,kind,name:SourceKinds[kind].label,detail:copy("web.app.69f3d0fb204d"),enabled:true,status:'ok',count:fresh.length,syncedAt:Date.now(),stack:true,open:'inside',range:'all'});
    this.closeNative();this.importing=null;
    this.startImportRings([kind||'local'],()=>{
      this.withFeedAnchor(()=>{Store.insert(fresh);},true);
-     if(merged.length)this.toast(`导入 ${fresh.length} 张，跳过 ${merged.length} 张重复（保留已有内容）`);
-     else this.toast(`导入 ${fresh.length} 张`,()=>{Store.remove(fresh.map((c?: any)=>c.id));this.withFeedAnchor(()=>{});});
+     if(merged.length)this.toast(`${copy("web.app.ec603f7ca4ee")}${fresh.length}${copy("web.app.83a4f2fae945")}${merged.length}${copy("web.app.bfa2bd2f1dc4")}`);
+     else this.toast(`${copy("web.app.ec603f7ca4ee")}${fresh.length}${copy("web.panels.e9e0fdc242b4")}`,()=>{Store.remove(fresh.map((c?: any)=>c.id));this.withFeedAnchor(()=>{});});
    });
  }
  /** Import is never blocking: one ring per source fills at the bottom, cards fall in as they arrive. */
@@ -688,9 +689,9 @@ declare inlineTimer: any;
    host.hidden=false;let p=0;
    const step=()=>{
      p=Math.min(1,p+(MotionEngine.reduced?1:.25));
-     host.querySelectorAll('.progress-ring circle:last-child').forEach((n?: any)=>n.setAttribute('stroke-dashoffset',String(50.265*(1-p))));
+     host.querySelectorAll('.progress-ring circle:last-child').forEach((n?: any)=>{ n.setAttribute('stroke-dashoffset',String(50.265*(1-p))); });
      if(p<1){window.setTimeout(step,160);return;}
-     host.querySelectorAll('.import-ring').forEach((n?: any)=>n.classList.add('done'));
+     host.querySelectorAll('.import-ring').forEach((n?: any)=>{ n.classList.add('done'); });
      done?.();window.setTimeout(()=>{host.hidden=true;},900);
    };
    window.setTimeout(step,120);
@@ -702,12 +703,12 @@ declare inlineTimer: any;
    const demo=SeedCards.map((c?: any)=>({...c,tasks:c.tasks?.map((t?: any)=>({...t})),time:c.time,...(c.start?{start:Date.now()+(c.start-demoBase),end:Date.now()+(c.end-demoBase)}:{}),...(c.due?{due:Date.now()+(c.due-demoBase)}:{})}));
    this.closeNative();
    this.startImportRings(['rss','readwise','mail','calendar'],()=>{this.withFeedAnchor(()=>{Store.insert(demo);for(const [id,x] of Object.entries(SeedItems))Store.patch(id,x);},true);
-     if(!before)this.toast('示例卡片已经放好',()=>{Store.remove(demo.map((c?: any)=>c.id));this.withFeedAnchor(()=>{});},'拿走');});
-   if(!Store.state.sources.length)DemoSources.forEach((s?: any)=>Store.upsertSource({...s,syncedAt:Date.now()}));
+     if(!before)this.toast(copy("web.app.7c8adb347efd"),()=>{Store.remove(demo.map((c?: any)=>c.id));this.withFeedAnchor(()=>{});},copy("web.app.309edeceecd6"));});
+   if(!Store.state.sources.length)DemoSources.forEach((s?: any)=>{ Store.upsertSource({...s,syncedAt:Date.now()}); });
  }
  welcomeContinue(){
    const kinds=[...this.welcomePicked],system=kinds.filter((k?: any)=>Panels.systemKinds[k]),accounts=kinds.filter((k?: any)=>!Panels.systemKinds[k]);
-   for(const k of accounts)if(!Store.source('src-'+k))Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:k==='rss'?'等待导入订阅':'等待授权',enabled:true,status:'attention',count:0,stack:true,open:['linear','github'].includes(k)?'web':'inside',range:'30d'});
+   for(const k of accounts)if(!Store.source('src-'+k))Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:k==='rss'?copy("web.app.7eeeb5ce655e"):copy("web.app.79209170acff"),enabled:true,status:'attention',count:0,stack:true,open:['linear','github'].includes(k)?'web':'inside',range:'30d'});
    Store.state.preferences.onboarded=true;Store.save();
    this.permissionQueue=system;this.nextPermission();
  }
@@ -717,7 +718,7 @@ declare inlineTimer: any;
    this.closeNative();this.welcomePicked.clear();
    const waiting=Store.state.sources.filter((s?: any)=>s.status==='attention').length;
    this.renderCurrent(false);
-   if(waiting)this.toast(`${waiting} 个来源等待授权`,()=>this.openPanel('sources'),'查看');
+   if(waiting)this.toast(`${waiting}${copy("web.app.54256fc5225b")}`,()=>this.openPanel('sources'),copy("web.app.db8db0530432"));
  }
  /* ——— Settings and sources ——— */
  setPref(key?: any,value?: any){
@@ -777,7 +778,7 @@ declare inlineTimer: any;
    }
    if(this.modalKind==='reader'&&this.dialog.open&&!document.hidden&&Date.now()-this.lastActivity<60000){
      Store.state.seconds++;
-     document.querySelectorAll('[data-live-time]').forEach((n?: any)=>n.textContent=minutes(Store.state.seconds));
+     document.querySelectorAll('[data-live-time]').forEach((n?: any)=>{ n.textContent=minutes(Store.state.seconds); });
      if(Store.state.seconds%5===0)Store.save();
    }
  }
@@ -828,7 +829,8 @@ declare inlineTimer: any;
      if(deck._hold&&direction===deck._wheelDirection&&now-deck._hold<160){deck._hold=now;return;}
      deck._hold=0;deck._wheelDirection=direction;
      deck._finish?.();
-     const s=deck._wheel||(deck._wheel={dx:0}),w=deck.offsetWidth;clearTimeout(s.t);
+     deck._wheel ||= {dx:0};
+     const s=deck._wheel,w=deck.offsetWidth;clearTimeout(s.t);
      s.dx=Math.max(-w,Math.min(w,s.dx-e.deltaX*(e.deltaMode===1?16:e.deltaMode===2?w:1)));this.deckFollow(deck,s.dx);
      if(Math.abs(s.dx)>w*.35){deck._wheel=null;deck._hold=now;this.deckSettle(deck,s.dx<0?1:-1);return;}
      s.t=window.setTimeout(()=>{deck._wheel=null;this.deckSettle(deck,0);},140);
@@ -868,7 +870,7 @@ declare inlineTimer: any;
    }
    deck.dataset.busy='1';
    let finished=false;
-   const done=()=>{if(finished)return;finished=true;anims.forEach((a?: any)=>a.cancel());delete deck.dataset.busy;deck._finish=null;this.deckShow(deck,i+dir);};
+   const done=()=>{if(finished)return;finished=true;anims.forEach((a?: any)=>{ a.cancel(); });delete deck.dataset.busy;deck._finish=null;this.deckShow(deck,i+dir);};
    deck._finish=done;
    Promise.all(anims.map((a?: any)=>a.finished)).then(done,done);
  }
@@ -926,12 +928,12 @@ declare inlineTimer: any;
      case 'task':this.toggleTask(id,extra);break;
      case 'edit':this.bulkEditIds=null;this.openPanel('editor',id);break;
      case 'why':this.openPanel('why',id);break;
-     case 'less-like':this.closeNative();this.toast('以后这类会少一些');break;
-     case 'never-show':{const before: Record<string, any>={...Store.item(id)};this.closeNative();Store.patch(id,{dismissed:true});this.withFeedAnchor(()=>{},true);this.toast('不再提示这张',()=>{Store.patch(id,before);this.withFeedAnchor(()=>{},true);});break;}
+     case 'less-like':this.closeNative();this.toast(copy("web.app.0ec82d74e53c"));break;
+     case 'never-show':{const before: Record<string, any>={...Store.item(id)};this.closeNative();Store.patch(id,{dismissed:true});this.withFeedAnchor(()=>{},true);this.toast(copy("web.app.c7fec996c47f"),()=>{Store.patch(id,before);this.withFeedAnchor(()=>{},true);});break;}
      case 'card-more':this.more(id);break;
      case 'toggle-read':{
        const before: Record<string, any>={...Store.item(id)},read=!before.read;Store.patch(id,{read,seen:read,progress:read?1:0,readAt:read?Date.now():0});this.refreshCard(id);
-       this.toast(read?'已标为已读':'已标为未读',()=>{Store.patch(id,before);this.refreshCard(id);});break;
+       this.toast(read?copy("web.app.3816daaa651c"):copy("web.app.10d6a211240d"),()=>{Store.patch(id,before);this.refreshCard(id);});break;
      }
      case 'select':this.selected.has(id)?this.selected.delete(id):this.selected.add(id);this.updateSelection();break;
      case 'clear-selection':this.selected.clear();this.updateSelection();break;
@@ -941,8 +943,8 @@ declare inlineTimer: any;
      case 'stack-open':this.openStacks.add(extra);this.withFeedAnchor(()=>{},true);this.grid.querySelector(`[data-stack-open="${CSS.escape(extra)}"] .card-title-button`)?.focus({preventScroll:true});break;
      case 'stack-close':this.openStacks.delete(extra);this.withFeedAnchor(()=>{},true);this.grid.querySelector(`[data-stack="${CSS.escape(extra)}"]`)?.focus({preventScroll:true});break;
      case 'archive':this.openPanel('archive',extra);break;
-     case 'restore-card':{const before: Record<string, any>={...Store.item(id)};Store.patch(id,{restoredAt:Date.now(),read:false,seen:false,progress:0});this.dialog.innerHTML=Panels.archive(this,this.editId);this.withFeedAnchor(()=>{});this.toast('放回桌面了',()=>{Store.patch(id,before);this.withFeedAnchor(()=>{});if(this.modalKind==='archive')this.dialog.innerHTML=Panels.archive(this,this.editId);});break;}
-     case 'archive-all':{const ids=this.shelved('stale').map((c?: any)=>c.id),before=ids.map((i?: any)=>[i,{...Store.item(i)}]);ids.forEach((i?: any)=>Store.patch(i,{read:true,seen:true,readAt:Date.now()-8*86400000}));this.closeNative();this.withFeedAnchor(()=>{});this.toast(`归档了 ${ids.length} 张`,()=>{before.forEach(([i,v]: any)=>Store.patch(i,v));this.withFeedAnchor(()=>{});});break;}
+     case 'restore-card':{const before: Record<string, any>={...Store.item(id)};Store.patch(id,{restoredAt:Date.now(),read:false,seen:false,progress:0});this.dialog.innerHTML=Panels.archive(this,this.editId);this.withFeedAnchor(()=>{});this.toast(copy("web.app.fff336942d9b"),()=>{Store.patch(id,before);this.withFeedAnchor(()=>{});if(this.modalKind==='archive')this.dialog.innerHTML=Panels.archive(this,this.editId);});break;}
+     case 'archive-all':{const ids=this.shelved('stale').map((c?: any)=>c.id),before=ids.map((i?: any)=>[i,{...Store.item(i)}]);ids.forEach((i?: any)=>{ Store.patch(i,{read:true,seen:true,readAt:Date.now()-8*86400000}); });this.closeNative();this.withFeedAnchor(()=>{});this.toast(`${copy("web.app.d22d0186c603")}${ids.length}${copy("web.panels.e9e0fdc242b4")}`,()=>{before.forEach(([i,v]: any)=>{ Store.patch(i,v); });this.withFeedAnchor(()=>{});});break;}
      case 'filter-type':this.filter.type=extra;this.repaintSearch();break;
      case 'filter-status':this.filter.status=this.filter.status===extra?'all':extra;this.repaintSearch();break;
      case 'filter-tag':this.filter.tag=this.filter.tag===extra?'':extra;this.repaintSearch();break;
@@ -957,7 +959,7 @@ declare inlineTimer: any;
      }
      case 'add-tag':{
        const field=document.getElementById('tag-new'),value=(field as HTMLInputElement).value.trim().replace(/^#/,'').slice(0,30);if(!value)return;
-       if(this.editTags.size>=20){this.toast('最多保留 20 个标签');return;}
+       if(this.editTags.size>=20){this.toast(copy("web.app.1859bc867672"));return;}
        this.editTags.add(value);const note=(document.getElementById('note-editor') as HTMLInputElement)?.value;
        this.dialog.innerHTML=Panels.editor(this,this.editId);(document.getElementById('note-editor') as HTMLInputElement).value=note||'';document.getElementById('tag-new').focus();break;
      }
@@ -966,15 +968,15 @@ declare inlineTimer: any;
        const note=(document.getElementById('note-editor') as HTMLInputElement).value.slice(0,4000);
        const ids=this.bulkEditIds||[id];
        ids.forEach((cardId?: any,i?: any)=>{Store.patch(cardId,{tags:[...this.editTags],tagsEdited:true,...(i===0?{note}:{})});this.refreshCard(cardId);});
-       this.bulkEditIds=null;this.closeModal();this.toast(Store.state.storageAvailable?(window.__QG_LOCAL__?'已保存在本机；同步状态见桌面':'已保存'):'本次已保存；当前环境不能持久存储');break;
+       this.bulkEditIds=null;this.closeModal();this.toast(Store.state.storageAvailable?(window.__QG_LOCAL__?copy("web.app.5fa0ce52b47e"):copy("web.cloudentry.1bd91a7d0c53")):copy("web.app.ea63f4be5073"));break;
      }
-     case 'pref':{const before=this.setPref(id,extra);if(before!==extra&&['archiveAfter','theme','density'].includes(id))this.announce('已更新');break;}
+     case 'pref':{const before=this.setPref(id,extra);if(before!==extra&&['archiveAfter','theme','density'].includes(id))this.announce(copy("web.app.434203a723b4"));break;}
      case 'pref-toggle':this.setPref(id,!Store.pref(id));break;
      case 'toggle-transparency':this.setPref('reduceTransparency',!Store.pref('reduceTransparency'));break;
      case 'export-all':this.exportAll();break;
      case 'clear-all':{
        const back=this.modalKind==='settings'?()=>this.swapPanel(Panels.settings(this,'data'),'settings','panel wide'):null;this.panelReturn=back;
-       this.swapPanel(Panels.confirm('清除全部数据？','卡片、备注、来源都会从这台设备删除，不能撤销。建议先导出。',`<button type="button" class="soft-button" data-action="close">取消</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="clear-confirm">清除</button>`),'confirm','panel narrow');break;
+       this.swapPanel(Panels.confirm(copy("web.app.7f1a78cdb3f2"),copy("web.app.d008fc7f75ba"),`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="clear-confirm">${copy("web.app.bce2377283c2")}</button>`),'confirm','panel narrow');break;
      }
      case 'clear-confirm':Store.state.cards=[];Store.state.items={};Store.state.sources=[];Store.state.freshIds=[];Store.state.preferences.onboarded=false;Store.save();this.panelReturn=null;this.closeNative();this.pendingCards=[];this.renderCurrent(true);break;
      case 'sources':this.openPanel('sources');break;
@@ -982,17 +984,17 @@ declare inlineTimer: any;
      case 'source-connect':{const back=this.modalKind==='sources-add'?()=>this.swapPanel(Panels.sourcesAdd(),'sources-add'):this.dialog.open?this.sourceReturn():null;this.panelReturn=back;this.swapPanel(Panels.connect(extra),Panels.systemKinds[extra]?'permission':'connect',Panels.systemKinds[extra]?'panel narrow':'panel');break;}
      case 'source-authorize':{
        const k=extra,existing=Store.source('src-'+k);
-       Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:'等待授权',enabled:true,status:'attention',count:existing?.count||0,stack:existing?.stack??true,open:existing?.open||(['linear','github'].includes(k)?'web':'inside'),range:this.connectRange||'30d'});
+       Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:copy("web.app.79209170acff"),enabled:true,status:'attention',count:existing?.count||0,stack:existing?.stack??true,open:existing?.open||(['linear','github'].includes(k)?'web':'inside'),range:this.connectRange||'30d'});
        const site={readwise:'https://readwise.io/access_token',youtube:'https://www.youtube.com/',twitter:'https://x.com/i/bookmarks',mail:'https://mail.google.com/',linear:'https://linear.app/settings/api',github:'https://github.com/settings/tokens',podcast:'https://podcasts.apple.com/'}[k];
        if(site)window.open(site,'_blank','noopener,noreferrer');
-       this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.toast(`${SourceKinds[k].label} 等待授权`);break;
+       this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.toast(`${SourceKinds[k].label}${copy("web.app.01e30f06aad3")}`);break;
      }
      case 'connect-range':this.connectRange=extra;el.parentElement.querySelectorAll('button').forEach((b?: any)=>{b.classList.toggle('on',b===el);b.setAttribute('aria-checked',String(b===el));b.tabIndex=b===el?0:-1;});break;
      case 'permission-allow':case 'permission-later':{
        const k=extra;
        if(name==='permission-allow'){
-         Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:'外部来源尚未连接',enabled:false,status:'attention',count:0,stack:k!=='calendar',open:'inside',range:'30d'});
-         this.toast('尚未接入系统授权，未读取任何外部内容');
+         Store.upsertSource({id:'src-'+k,kind:k,name:SourceKinds[k].label,detail:copy("web.app.8c457c570b6d"),enabled:false,status:'attention',count:0,stack:k!=='calendar',open:'inside',range:'30d'});
+         this.toast(copy("web.app.58a34977e6ee"));
        }
        if(this.permissionQueue){this.nextPermission();break;}
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');break;
@@ -1005,15 +1007,15 @@ declare inlineTimer: any;
      case 'source-remove':{
        const s=Store.source(id),count=Store.state.cards.filter((c?: any)=>`src-${cardSourceKind(c)}`===id).length;
        this.panelReturn=()=>this.swapPanel(Panels.sourceDetail(id),'source');
-       this.swapPanel(Panels.confirm(`断开 ${s.name}？`,count?`它带来的 ${count} 张卡片要一起移除吗？`:'之后可以随时重新连接。',`${count?`<button type="button" class="soft-button" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">保留卡片</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="remove">一并移除</button>`:`<button type="button" class="soft-button" data-action="close">取消</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">断开</button>`}`),'confirm','panel narrow');break;
+       this.swapPanel(Panels.confirm(`${copy("web.app.9864b708e4d6")}${s.name}？`,count?`${copy("web.app.61d3fcef8e71")}${count}${copy("web.app.1fff7997b41a")}`:copy("web.app.11c6950978d5"),`${count?`<button type="button" class="soft-button" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">${copy("web.app.1e9761abce36")}</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="remove">${copy("web.app.754739094747")}</button>`:`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="source-drop" data-id="${esc(id)}" data-extra="keep">${copy("web.app.f33ac04eece6")}</button>`}`),'confirm','panel narrow');break;
      }
      case 'source-drop':{
        Store.removeSource(id);if(extra==='remove')Store.remove(Store.state.cards.filter((c?: any)=>`src-${cardSourceKind(c)}`===id).map((c?: any)=>c.id));
        this.panelReturn=null;this.swapPanel(Panels.sources(),'sources');this.withFeedAnchor(()=>{});break;
      }
      case 'feed-add':{
-       const url=Importers.url((document.getElementById('feed-url') as HTMLInputElement)?.value||'');if(!url){this.toast('请粘贴一个 http 或 https 的订阅地址');return;}
-       this.toast('RSS 订阅尚未启用，地址尚未保存；可以导入 OPML 文件');break;
+       const url=Importers.url((document.getElementById('feed-url') as HTMLInputElement)?.value||'');if(!url){this.toast(copy("web.app.96e1376c8dee"));return;}
+       this.toast(copy("web.app.42f3ce27d2cb"));break;
      }
      case 'import-pick':document.getElementById('file-input').click();break;
      case 'import-toggle':{const i=Number(extra);this.importPicked.has(i)?this.importPicked.delete(i):this.importPicked.add(i);this.replacePanelContent(Panels.importPreview(this));this.dialog.querySelector(`[data-action="import-toggle"][data-extra="${i}"]`)?.focus();break;}
@@ -1032,13 +1034,25 @@ declare inlineTimer: any;
      }
      case 'sync-retry':this.refresh();break;
      case 'sync-export':this.exportAll();break;
-     case 'sync-discard':this.openModal(Panels.confirm('使用服务端版本？','本机未同步修改将被放弃，请先导出草稿。','<button type="button" class="soft-button" data-action="close">取消</button><button type="button" class="solid-button" data-action="sync-discard-confirm">放弃本机修改</button>'),'confirm',null,'panel narrow');break;
+     case 'sync-discard':this.openModal(Panels.confirm(copy("web.app.ecb323046b6a"),copy("web.app.cd47b1d68c71"),`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" data-action="sync-discard-confirm">${copy("web.app.c3520240ae08")}</button>`),'confirm',null,'panel narrow');break;
      case 'sync-discard-confirm':LocalSync.discard().then(()=>this.closeNative()).catch((error?: any)=>this.toast(error.message));break;
      case 'undo':if(this.undoAction){const fn=this.undoAction;this.undoAction=null;document.getElementById('toast').hidden=true;fn();}break;
      case 'external':this.openExternal(Store.card(id));if(Store.card(id)&&!Store.item(id).read&&['mail'].includes(Store.card(id).type)){Store.patch(id,{read:true});this.refreshCard(id);}break;
      case 'download-calendar':{
        const c=Store.card(id),date=(x?: any)=>new Date(x).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
-       this.download('sill.ics',`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Sill//Local//ZH\r\nBEGIN:VEVENT\r\nUID:${c.id}@sill.local\r\nDTSTAMP:${date(Date.now())}\r\nDTSTART:${date(c.start)}\r\nDTEND:${date(c.end)}\r\nSUMMARY:${c.title}\r\n${c.location?`LOCATION:${c.location}\r\n`:''}END:VEVENT\r\nEND:VCALENDAR\r\n`,'text/calendar');break;
+       this.download('sill.ics',`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sill//Local//ZH
+BEGIN:VEVENT
+UID:${c.id}@sill.local
+DTSTAMP:${date(Date.now())}
+DTSTART:${date(c.start)}
+DTEND:${date(c.end)}
+SUMMARY:${c.title}
+${c.location?`LOCATION:${c.location}
+`:''}END:VEVENT
+END:VCALENDAR
+`,'text/calendar');break;
      }
      case 'snooze':case 'dismiss-reminder':case 'complete-reminder':case 'restore-reminder':this.changeReminder(id,name);break;
      case 'media-play':this.playMedia();break;
@@ -1061,14 +1075,14 @@ declare inlineTimer: any;
  input(e?: any){
    if(e.target.dataset.input==='search'){
      this.filter.query=e.target.value;
-     document.getElementById('filter-result').textContent=`${this.filtered().length} 张`;
+     document.getElementById('filter-result').textContent=`${this.filtered().length}${copy("web.panels.e9e0fdc242b4")}`;
      clearTimeout(this.searchTimer);this.searchTimer=window.setTimeout(()=>{
        const results=document.getElementById('search-results');if(results)results.innerHTML=Panels.searchResults(this);
        if(this.mode==='feed')this.renderCurrent(false);this.updateFilterIndicator();
      },140);
    }
    if(this.editingId&&e.target.closest?.('.inline-editor')){
-     const state=document.getElementById('inline-state');if(state)state.textContent='正在保存…';
+     const state=document.getElementById('inline-state');if(state)state.textContent=copy("web.cloudentry.6bdb4435095e");
      clearTimeout(this.inlineTimer);this.inlineTimer=window.setTimeout(()=>this.saveInlineEdit(),500);
    }
  }
@@ -1113,7 +1127,7 @@ declare inlineTimer: any;
    const typing=e.target.closest?.('input,textarea,[contenteditable]');
    if(Store.pref('singleKeyShortcuts')&&!this.dialog.open&&!typing&&!e.metaKey&&!e.ctrlKey&&!e.altKey){
      if(e.key==='n'||e.key==='N'){e.preventDefault();this.openPanel('capture');return;}
-     if(e.key==='r'||e.key==='R'){if(!e.target.matches('[data-card]')||true){e.preventDefault();this.refresh();return;}}
+     if(e.key==='r'||e.key==='R'){e.preventDefault();this.refresh();return;}
      if(e.key==='t'||e.key==='T'){e.preventDefault();this.action('top');return;}
    }
    if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-card]')){e.preventDefault();this.navigate('#card/'+e.target.dataset.card);}

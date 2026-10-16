@@ -1,11 +1,5 @@
 # 文档目录
 
-- [TypeScript 构建与检查配置](adr/0029-typescript-build-artifacts.md)
-
-- [旧入口清理记录](records/2026-10-16-legacy-removal/README.md)
-
-- [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
-
 更新：2026-10-16。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
@@ -37,6 +31,9 @@
 
 ## 架构决策
 
+- [TypeScript 构建与检查配置](adr/0029-typescript-build-artifacts.md)
+- [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
+
 - [文档位置表示是否有效](adr/0022-docs-location-shows-validity.md)
 - [三端代码的顶层结构](adr/0023-three-clients-repo-layout.md)
 - [contracts 中的 zod 定义是契约唯一来源](adr/0024-contracts-zod-as-source.md)
@@ -45,6 +42,9 @@
 - [Mac 与 iOS 完全原生实现](adr/0027-native-apple-data-layer.md)
 
 ## 记录
+
+- [2026-10-16-code-cleanup：代码清理与跨端迁移验收](records/2026-10-16-code-cleanup/README.md)
+- [2026-10-16-legacy-removal：旧入口清理](records/2026-10-16-legacy-removal/README.md)
 
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
 
@@ -111,4 +111,4 @@
 - [测试目录](../tests/README.md)
 - [Mac 原生说明](../apps/apple/README.md)
 - [PR 模板](../.github/pull_request_template.md)与[本次正文](../pr.md)
-- [接口准备示例](../contracts/design/)：迁移批次 2 前暂留原路径，不表示新增 API 已实现。
+- [接口准备示例](../contracts/design/)：保留准备材料，不表示新增 API 已实现。

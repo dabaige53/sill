@@ -1,3 +1,4 @@
+import { copy } from "../../design-system/copy.ts";
 import {createClient} from '@supabase/supabase-js';
 import {z} from 'zod/v4';
 import {loginPage} from './login-page.ts';
@@ -107,7 +108,7 @@ export function createSillRuntime(config?: any,{clientFactory=createClient,html=
     if(result.error)throw serviceError('unavailable',503);
     const verifier=storage.get('sill-web-code-verifier');
     if(!verifier||verifier.length>512)throw serviceError('unavailable');
-    const response=json(202,{message:'如果该账号可登录，登录链接将发送到邮箱。',retryAfter:resendSeconds});
+    const response=json(202,{message:copy("server.http.f868232da331"),retryAfter:resendSeconds});
     response.headers.append('Set-Cookie',cookie(setupName,setupPassword?'1':'',setupPassword?3600:0));
     response.headers.append('Set-Cookie',cookie(verifierName,verifier,600));
     response.headers.append('Set-Cookie',cookie(cooldownName,String(now()+resendSeconds*1000),resendSeconds));return response;
@@ -162,7 +163,7 @@ export function createSillRuntime(config?: any,{clientFactory=createClient,html=
      if(eventPath)return json(200,await repository.getEvent(eventPath[1]));
     }
     const key=request.headers.get('idempotency-key');
-    let op,payload,resource=null;
+    let op: any,payload: any,resource=null;
     if(request.method==='POST'&&path==='/api/v1/contents'){op='create';payload=create.parse(await body(request));}
     else if(request.method==='PATCH'&&content){op='update';resource=content[1];payload=update.parse(await body(request));}
     else if(request.method==='DELETE'&&content){op='delete';resource=content[1];payload=z.object({expectedRevision:revision}).strict().parse(await body(request));}

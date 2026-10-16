@@ -7,7 +7,7 @@ import {cloudFixture} from './helpers/cloud-fixture.ts';
 import {A,resource} from './helpers/boundary-fixture.ts';
 import {token} from './helpers/signed-auth.ts';
 test('official MCP client discovers/calls seven contracts over authenticated stateless HTTP',async()=>{
- const f=await cloudFixture();let client;try{
+ const f=await cloudFixture();let client: any;try{
   await f.db.exec(`insert into sill_private.caller_grants values('${A}','oauth:codex-test',array['content:read','content:write','content:delete','event:read','event:submit'],array['*'],'${resource}');`);
   await f.db.exec(`insert into sill_private.destinations values('${A}','agent','oauth:codex-test',array['summarize'],true);`);
   const runtime=createSillRuntime({...f.config,mcpEnabled:true},{clientFactory:f.factory});

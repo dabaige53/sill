@@ -32,7 +32,7 @@ const MotionEngine: Record<string, any>={
  phoneSheet(el?: any){return el.classList.contains('preview')&&matchMedia('(max-width:650px)').matches&&!!el.querySelector('.preview-sheet');},
  surface(dialog?: any){return dialog.classList.contains('reader')?dialog:dialog.querySelector('.preview-sheet')||dialog;},
  cancelPanel(el?: any){
-   (this.panelAnimations.get(el)||[]).forEach((animation?: any)=>animation?.cancel());
+   (this.panelAnimations.get(el)||[]).forEach((animation?: any)=>{ animation?.cancel(); });
    this.panelAnimations.delete(el);
  },
  openPanel(el?: any,origin?: any){

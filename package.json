@@ -1,6 +1,6 @@
 {
   "name": "sill",
-  "version": "0.4.1",
+  "version": "1.2.0",
   "private": true,
   "description": "Local card workspace with shared UI and agent operations",
   "scripts": {
@@ -36,7 +36,11 @@
     "files:check": "node scripts/check-files.ts",
     "typecheck": "tsc --noEmit",
     "test:server": "node --test tests/server/*.test.ts",
-    "local:cli": "node scripts/sill.ts"
+    "local:cli": "node scripts/sill.ts",
+    "format": "node scripts/format.ts",
+    "lint": "node scripts/format.ts --check",
+    "lint:web": "node scripts/format.ts --check --web",
+    "lint:apple": "node scripts/format.ts --check --apple"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

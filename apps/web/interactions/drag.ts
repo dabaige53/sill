@@ -1,3 +1,4 @@
+import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { Assets } from "../data/assets.ts";
 import { icon } from "../atoms/icons.ts";
@@ -71,7 +72,7 @@ declare ghost: any;
    this.ghost=document.createElement('div');this.ghost.className='drag-ghost';
    this.ghost.innerHTML=`${c.image?`<img src="${Assets[c.image]}" alt="">`:`<span class="ghost-icon">${icon(CardTypes[c.type].icon,23)}</span>`}<strong>${esc(c.title)}</strong>${ids.length>1?`<span class="drag-count">${ids.length}</span>`:''}`;
    document.body.appendChild(this.ghost);this.move(p.x,p.y);MotionEngine.enter(this.ghost);
-   this.app.announce(`已提起${ids.length}张卡片。移动到收藏、稍后读或标签区域，或按 Escape 取消。`);
+   this.app.announce(`${copy("web.drag.6b72fb801b9d")}${ids.length}${copy("web.drag.4808181ef801")}`);
  }
  hit(x?: any,y?: any){
    return [...document.querySelectorAll('[data-drop]')].filter((n?: any)=>!n.hidden&&n.getClientRects().length).find((n?: any)=>{
@@ -100,13 +101,13 @@ declare ghost: any;
    }else{
      const rect=active.element.getBoundingClientRect(),r=ghost.getBoundingClientRect();
      MotionEngine.animate(ghost,[{opacity:1,transform:'rotate(-3deg)'},{opacity:0,transform:`translate(${rect.left+rect.width/2-r.left-r.width/2}px,${rect.top+rect.height/2-r.top-r.height/2}px) scale(.8)`}],{duration:220});
-     window.setTimeout(()=>ghost.remove(),230);this.app.announce('拖拽已取消，卡片没有变化。');
+     window.setTimeout(()=>ghost.remove(),230);this.app.announce(copy("web.drag.9688bf41283d"));
    }
  }
  cancel(){if(this.active)this.finish(-1000,-1000);}
  cleanup(){
    this.active?.hot?.classList.remove('drop-hot');document.body.classList.remove('is-dragging');
-   document.querySelectorAll('.is-drag-source').forEach((n?: any)=>n.classList.remove('is-drag-source'));
+   document.querySelectorAll('.is-drag-source').forEach((n?: any)=>{ n.classList.remove('is-drag-source'); });
    document.getElementById('drop-targets').hidden=true;
    this.active=null;this.pending=null;this.ghost=null;this.suppressUntil=Date.now()+400;
  }

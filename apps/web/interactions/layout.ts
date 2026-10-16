@@ -47,7 +47,7 @@ declare observer: any;
      heights[c]+=sizes[index]+gap+(n.classList.contains('stack-card')?10:0);
    });
    el.style.height=(Math.max(...heights)-gap)+'px';
-   if(old){const next=items.map((n?: any)=>n.getBoundingClientRect());items.forEach((n?: any,i?: any)=>MotionEngine.flip(n,old.get(n),next[i]));}
+   if(old){const next=items.map((n?: any)=>n.getBoundingClientRect());items.forEach((n?: any,i?: any)=>{ MotionEngine.flip(n,old.get(n),next[i]); });}
  }
 }
 

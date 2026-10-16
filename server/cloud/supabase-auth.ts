@@ -21,7 +21,7 @@ export async function authenticateSupabase(authorization?: any, config?: any, fa
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     global: {headers: {Authorization: `Bearer ${token}`}},
   });
-  let result;
+  let result: any;
   try { result = await client.auth.getClaims(token); }
   catch { reject(503, 'unavailable'); }
   if (result.error) {

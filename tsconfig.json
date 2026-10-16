@@ -12,5 +12,5 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node"]
   },
-  "include": ["apps/web/**/*.ts", "server/**/*.ts", "contracts/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts", "design-system/scripts/**/*.ts"]
+  "include": ["apps/web/**/*.ts", "server/**/*.ts", "contracts/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts", "design-system/scripts/**/*.ts", "design-system/copy.ts"]
 }

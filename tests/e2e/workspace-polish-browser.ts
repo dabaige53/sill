@@ -8,7 +8,7 @@ import {startLocal} from '../../server/local/index.ts';
 const directory=await mkdtemp(join(tmpdir(),'sill-polish-'));
 const server=await startLocal({port:0,file:join(directory,'cards.json')});
 const origin=`http://127.0.0.1:${(server.address() as import('node:net').AddressInfo).port}`;
-let browser;
+let browser: any;
 const request=async(path?: any,body?: any)=>{
  const response=await fetch(origin+'/api/local/'+path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
  assert.equal(response.status,200);return response.json();

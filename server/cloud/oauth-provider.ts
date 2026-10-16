@@ -6,7 +6,7 @@ export function oauthProvider(config?: any,accessToken?: any,{fetchImpl=(input: 
  const origin=new URL(config.url);
  if(origin.protocol!=='https:'||origin.origin!==config.url||!/^sb_publishable_[\w-]+$/.test(config.publishableKey||'')||typeof accessToken!=='string'||accessToken.length>16384)throw serviceError('forbidden');
  async function call(path?: any,method: any='GET',payload?: any){
-  let r;
+  let r: any;
   try{r=await fetchImpl(origin.origin+'/auth/v1/'+path,{method,redirect:'manual',signal:AbortSignal.timeout(8000),headers:{apikey:config.publishableKey,Authorization:'Bearer '+accessToken,'Content-Type':'application/json','X-Supabase-Api-Version':'2024-01-01'},...(payload?{body:JSON.stringify(payload)}:{})});}catch(error){const reason=error?.name==='TimeoutError'?'timeout':/Illegal invocation/i.test(error?.message||'')?'invocation':'transport';throw Object.assign(serviceError('unavailable'),{providerFailure:reason});}
   if(!r.ok)throw Object.assign(serviceError(r.status===401?'unauthenticated':r.status===403?'forbidden':'unavailable'),{providerStatus:r.status});
   if(method==='DELETE')return {};
@@ -20,7 +20,7 @@ export function oauthProvider(config?: any,accessToken?: any,{fetchImpl=(input: 
  return {details:(id?: any)=>call('oauth/authorizations/'+authorization(id)),decide:(id?: any,action?: any)=>{if(!['approve','deny'].includes(action))throw serviceError('invalid_request');return call('oauth/authorizations/'+authorization(id)+'/consent','POST',{action});},revoke:(clientId?: any)=>call('user/oauth/grants?client_id='+checked(clientId),'DELETE')};
 }
 export function checkedRedirect(value?: any,review?: any,action?: any){
- let url,base;try{url=new URL(value);base=new URL(review.redirectUri);}catch{throw serviceError('forbidden');}
+ let url: any,base: any;try{url=new URL(value);base=new URL(review.redirectUri);}catch{throw serviceError('forbidden');}
  if(url.origin!==base.origin||url.pathname!==base.pathname||url.username||url.password||url.hash||!url.searchParams.get('state'))throw serviceError('forbidden');
  const keys=[...url.searchParams.keys()];
  if(new Set<any>(keys).size!==keys.length||keys.some((k?: any)=>!['code','state','error','error_description'].includes(k))||value.length>8192)throw serviceError('forbidden');

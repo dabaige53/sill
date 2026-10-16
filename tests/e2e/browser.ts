@@ -26,7 +26,7 @@ async function recordLayout(page?: any,width?: any){
 (async()=>{
  await new Promise((resolve?: any)=>server.listen(0,'127.0.0.1',resolve));
  const origin=`http://127.0.0.1:${(server.address() as import('node:net').AddressInfo).port}`;
- let browser;
+ let browser: any;
  try{
   browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
   async function scenario(name?: any,fn?: any,options: any={},entry: any='/index.html'){

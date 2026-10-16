@@ -1,6 +1,6 @@
 # 文件管理规范
 
-更新：2026-10-16。文档已按本规范迁移；代码按第 9 节分批迁移。旧目录只在对应批次完成前保留，不能作为新增文件的位置依据。
+更新：2026-10-16。文档与代码目录已按第 9 节迁移。当前路径为新增文件的位置依据；旧实现可从 Git 标签 `legacy-final` 查阅。
 
 本规范管理仓库中的文档、目录、命名、证据和产物。代码写法见 [代码规范](code-standards.md)。决策依据见 ADR [0022](../adr/0022-docs-location-shows-validity.md)、[0023](../adr/0023-three-clients-repo-layout.md)、[0025](../adr/0025-single-product-version.md)。
 
@@ -107,12 +107,12 @@
 | 3 | 删除旧代码与旧测试，打 tag `legacy-final`，写删除记录；同时删除 `sill.config.example.json`、`requirements-sandbox.txt` 及 `.env.example` 中旧连接器的变量 | 已完成，2026-10-16；完整本地、约定、云端授权测试通过；保留现行 cloud bridge 依赖 |
 | 4 | Web 与服务端迁入 `apps/web/`、`server/local/`、`server/cloud/`，改为 TypeScript | 已完成，2026-10-16；26 项约定、45 项 Web、78 项服务端检查及云端构建通过 |
 | 5 | Apple 端迁入 `apps/apple/`，Swift 原生数据层，Mac 不再打包 Node | 已完成，2026-10-16；16 项 Swift 测试、原生包构建与严格验签通过；视觉和 iOS 设备未验收 |
-| 6 | 统一版本号为 1.2.0；文案集中；整体格式化 | 未开始 |
+| 6 | 统一版本号为 1.2.0；文案集中；整体格式化 | 收尾中；最终证据见清理记录 |
 
-## 10. 待定事项
+## 10. 已确定的边界
 
-- 根目录 `index.html` 是否继续纳入 Git，或改为只在 `dist/` 中生成。
-- `supabase/drafts/` 中的 SQL 草案文件名含 `v1`，且草案与「草案只在分支中」的规则冲突；需要决定是重命名后保留，还是移入记录。
+- 根目录不再提交 `index.html`；本地页面只生成到 `dist/web/`。
+- `supabase/drafts/` 是未应用的 SQL 准备脚本，不是现行规则文档。文件名中的 `v1` 表示数据库准备批次，不是产品版本；为保留测试和既有执行引用，本次不改文件名、SQL 对象或迁移顺序。
 - 品牌与插件验收证据已归入 `docs/records/2026-10-15-brand-session/`；本地验收正文仅记录 2026-10-12 一次事件，整体归入该日期的记录，不拆分。
-- `deploy/sill/new-cloud-release.json` 的去向。
-- Apple 端数据与云端如何同步。
+- 旧发布状态转入 `docs/records/2026-10-16-code-cleanup/`；现行配置不再保存发布版本或候选版本。
+- Apple 端与云端仍独立，不新增同步协议或自动上传。

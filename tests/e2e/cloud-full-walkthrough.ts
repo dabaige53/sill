@@ -11,7 +11,7 @@ const out='tests/artifacts/cloud-full';await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
 const reports=[];
 try{for(const mobile of [false,true]){
- const fixture=await cloudFixture(),name=mobile?'mobile':'desktop';let runtime;
+ const fixture=await cloudFixture(),name=mobile?'mobile':'desktop';let runtime: any;
  const server=createServer(async(req?: any,res?: any)=>{try{const chunks=[];for await(const c of req)chunks.push(c);const body=Buffer.concat(chunks);const r=await runtime(new Request(fixture.config.appOrigin+req.url,{method:req.method,headers:req.headers,...(body.length?{body}:{})}));res.writeHead(r.status,{...Object.fromEntries(r.headers),'set-cookie':r.headers.getSetCookie()});res.end(Buffer.from(await r.arrayBuffer()));}catch(e){res.writeHead(500);res.end('Isolated fixture error');console.error(e);}});
  await new Promise((r?: any)=>server.listen(0,'127.0.0.1',r));fixture.config.appOrigin=`http://127.0.0.1:${(server.address() as import('node:net').AddressInfo).port}`;
  runtime=createSillRuntime(fixture.config,{clientFactory:fixture.factory,html:await readFile('dist/cloud/index.html','utf8')});

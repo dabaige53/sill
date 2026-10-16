@@ -1,3 +1,4 @@
+import { copy } from "../../design-system/copy.ts";
 import {isAuthorizationId} from './oauth-identifiers.ts';
 import {reviewConsent,consentSummary} from './consent-policy.ts';
 import {oauthProvider,checkedRedirect} from './oauth-provider.ts';
@@ -11,7 +12,7 @@ function readCookie(request?: any,name?: any){const matches=(request.headers.get
 const canonical=(value?: any)=>JSON.stringify(value,(_key?: any,v?: any)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a]: any,[b]: any)=>a.localeCompare(b))):v);
 const random=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),(x?: any)=>x.toString(16).padStart(2,'0')).join('');
 const hash=async (s?: any)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),(x?: any)=>x.toString(16).padStart(2,'0')).join('');
-const page=(html?: any,status: any=200)=>new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sill · 授权</title><style>body{margin:0;background:#f5f5f7;color:#1d1d1f;font:16px/1.65 system-ui}main{max-width:620px;margin:40px auto;padding:28px;background:white;border-radius:24px}h1{font-size:23px}dt{color:#636366;margin-top:14px}dd{margin:0;overflow-wrap:anywhere}button,a{min-height:44px}button{padding:12px 20px;margin:12px 8px 0 0;border:0;border-radius:22px;cursor:pointer}button[value=approve]{background:#0066cc;color:white}a{color:#0066cc}button:focus-visible,a:focus-visible{outline:3px solid #0066cc;outline-offset:3px}@media(max-width:680px){main{margin:16px;padding:20px}}</style><main><a href="/">Sill · 返回工作台</a>${html}</main></html>`,{status,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}});
+const page=(html?: any,status: any=200)=>new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${copy("server.oauthcontroller.1e12aceb3b8c")}</title><style>body{margin:0;background:#f5f5f7;color:#1d1d1f;font:16px/1.65 system-ui}main{max-width:620px;margin:40px auto;padding:28px;background:white;border-radius:24px}h1{font-size:23px}dt{color:#636366;margin-top:14px}dd{margin:0;overflow-wrap:anywhere}button,a{min-height:44px}button{padding:12px 20px;margin:12px 8px 0 0;border:0;border-radius:22px;cursor:pointer}button[value=approve]{background:#0066cc;color:white}a{color:#0066cc}button:focus-visible,a:focus-visible{outline:3px solid #0066cc;outline-offset:3px}@media(max-width:680px){main{margin:16px;padding:20px}}</style><main><a href="/">${copy("server.oauthcontroller.6f07cd6b8efc")}</a>${html}</main></html>`,{status,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}});
 async function form(request?: any){
  if(request.headers.get('content-type')?.split(';')[0]!=='application/x-www-form-urlencoded')throw serviceError('invalid_request',415);
  const reader=request.body?.getReader();if(!reader)throw serviceError('invalid_request');let text='',size=0;const decoder=new TextDecoder();
@@ -27,17 +28,17 @@ export function createOAuthController(config?: any,{authenticate,providerFactory
  const clearReturn=()=>cookie(returnCookie,'',0);
  async function handle(request?: any){
   const url=new URL(request.url),path=url.pathname;
-  if(!enabled)return page('<h1>远程授权尚未启用</h1>',503);
+  if(!enabled)return page(`<h1>${copy("server.oauthcontroller.d355d43547c2")}</h1>`,503);
   let stage='request';
   try{
    if(url.origin!==config.appOrigin||request.headers.has('authorization'))throw serviceError('forbidden');
    if(!['GET','POST'].includes(request.method))throw serviceError('invalid_request',405);
    if(request.method==='POST'&&(request.headers.get('origin')!==config.appOrigin||request.headers.get('sec-fetch-site')==='cross-site'))throw serviceError('forbidden');
-   if(path==='/oauth/expired'&&request.method==='GET')return page('<h1>授权请求已过期</h1><p>你已完成登录。请返回 ChatGPT 的插件设置，重新发起连接。</p>',409);
-   let actor;stage='session';
+   if(path==='/oauth/expired'&&request.method==='GET')return page(`<h1>${copy("server.oauthcontroller.af6d76533c4c")}</h1><p>${copy("server.oauthcontroller.27d241989838")}</p>`,409);
+   let actor: any;stage='session';
    try{actor=await authenticate(request);}catch(error){
     if(error.status===401&&request.method==='GET'&&path==='/oauth/consent'&&isAuthorizationId(url.searchParams.get('authorization_id'))&&[...url.searchParams.keys()].length===1){
-     const r=page('<h1>登录后继续授权</h1><p>请在此浏览器登录已有 Sill 账号。完成登录后，会返回本次授权请求；登录本身不会批准访问。</p><a href="/auth/login">前往登录</a>',401);
+     const r=page(`<h1>${copy("server.oauthcontroller.9b353d7d5e98")}</h1><p>${copy("server.oauthcontroller.57b675855947")}</p><a href="/auth/login">${copy("server.oauthcontroller.99232cddba71")}</a>`,401);
      r.headers.append('Set-Cookie',cookie(returnCookie,url.searchParams.get('authorization_id')+'.'+(clock()+600000),3600));return r;
     }throw error;
    }
@@ -47,7 +48,7 @@ export function createOAuthController(config?: any,{authenticate,providerFactory
    if(request.method==='GET'){
     browser??=random();const browserHash=await hash(browser);
     async function newFlow(kind?: any,clientId?: any,review?: any){const flowId=crypto.randomUUID(),csrf=random();await rpc('begin',{kind,clientId,review,flowId,browserHash,csrfHash:await hash(csrf)});return `<input type="hidden" name="flowId" value="${flowId}"><input type="hidden" name="csrf" value="${csrf}">`;}
-    let html,reviewedCallback;
+    let html: any,reviewedCallback: any;
     if(path==='/oauth/consent'){
      const id=url.searchParams.get('authorization_id');if(!isAuthorizationId(id)||[...url.searchParams.keys()].length!==1)throw serviceError('invalid_request');
      stage='provider-details';const details=await provider.details(id);
@@ -71,10 +72,10 @@ export function createOAuthController(config?: any,{authenticate,providerFactory
      stage='client-policy';const policy=await rpc('policy',{clientId:details.client.id});if(policy.appOrigin!==config.appOrigin||policy.audience!==config.agentAudience)throw serviceError('forbidden');
      stage='review';const review=reviewConsent({details,principal:actor.principal,policy,grant:{ownerId:actor.principal.userId,clientId:policy.clientId,audience:policy.audience,scopes:policy.contentScopes,resources:policy.resources}});
      reviewedCallback=review.redirectUri;stage='flow-store';
-     html=consentSummary(review)+`<form method="post" action="/oauth/decision">${await newFlow('consent',review.clientId,review)}<button name="decision" value="approve">允许上述访问</button><button name="decision" value="deny">拒绝</button></form><p>授权持续到你撤销。可在“已授权客户端”中撤销 Sill 访问。</p><a href="/oauth/grants">已授权客户端</a>`;
+     html=consentSummary(review)+`<form method="post" action="/oauth/decision">${await newFlow('consent',review.clientId,review)}<button name="decision" value="approve">${copy("server.oauthcontroller.78153f238e89")}</button><button name="decision" value="deny">${copy("server.oauthcontroller.136de7a8c46f")}</button></form><p>${copy("server.oauthcontroller.48d7f4b56329")}</p><a href="/oauth/grants">${copy("server.oauthcontroller.8782b690d2e7")}</a>`;
     }else if(path==='/oauth/grants'&&!url.search){
-     html='<h1>已授权客户端</h1><p>撤销仅针对选中的客户端，不退出此浏览器或其他应用。</p>';
-     for(const row of await rpc('list'))if(allowed(row.clientId))html+=`<section><h2>${esc(row.clientId)}</h2><p>${row.grant?'Sill 权限：'+esc(row.grant.scopes.join('、'))+'；范围：'+esc(row.grant.resources.join('、')):'Sill 未授予内容权限。仍可撤销此客户端在身份提供方的授权。'}</p><form method="post" action="/oauth/revoke">${await newFlow('revoke',row.clientId,null)}<button name="decision" value="revoke">撤销此客户端</button></form></section>`;
+     html=`<h1>${copy("server.oauthcontroller.8782b690d2e7")}</h1><p>${copy("server.oauthcontroller.2b3045f9e2af")}</p>`;
+     for(const row of await rpc('list'))if(allowed(row.clientId))html+=`<section><h2>${esc(row.clientId)}</h2><p>${row.grant?copy("server.oauthcontroller.b13cb614f05b")+esc(row.grant.scopes.join('、'))+copy("server.oauthcontroller.389ae3297b0f")+esc(row.grant.resources.join('、')):copy("server.oauthcontroller.9a3166f75c45")}</p><form method="post" action="/oauth/revoke">${await newFlow('revoke',row.clientId,null)}<button name="decision" value="revoke">${copy("server.oauthcontroller.b379985b08ae")}</button></form></section>`;
     }else throw serviceError('not_found');
     const r=page(html);
     // Chromium applies form-action to the provider's 303 callback as well. Permit
@@ -89,20 +90,20 @@ export function createOAuthController(config?: any,{authenticate,providerFactory
    const flow=await rpc('inspect',proof);if(!allowed(flow.clientId))throw serviceError('forbidden');
    if(submitted.decision==='revoke'){
     await rpc('claim',{...proof,decision:'revoke'});let revoked=true;try{await provider.revoke(flow.clientId);}catch{revoked=false;}
-    return page(`<h1>Sill 访问已撤销</h1><p>${revoked?'此客户端的身份提供方授权也已撤销。':'身份提供方撤销未确认；Sill 内容访问已阻断。请返回客户端列表重新撤销身份提供方授权。'}</p><a href="/oauth/grants">返回已授权客户端</a>`);
+    return page(`<h1>${copy("server.oauthcontroller.b93e7ef1aec7")}</h1><p>${revoked?copy("server.oauthcontroller.df4d88f62fe1"):copy("server.oauthcontroller.7b4560f5faa9")}</p><a href="/oauth/grants">${copy("server.oauthcontroller.fcab05957d9c")}</a>`);
    }
    // Re-read provider facts and DB policy before consuming the one-time flow.
    const details=await provider.details(flow.review.authorizationId);
    const fresh=reviewConsent({details,principal:actor.principal,policy:flow.policy,grant:{ownerId:actor.principal.userId,clientId:flow.clientId,audience:flow.review.audience,scopes:flow.review.contentScopes,resources:flow.review.resources}});
    if(canonical(fresh)!==canonical(flow.review))throw serviceError('revision_conflict');
    await rpc('claim',{...proof,decision:submitted.decision});
-   let redirect;
+   let redirect: any;
    try{const result=await provider.decide(fresh.authorizationId,submitted.decision);redirect=checkedRedirect(result.redirect_url,fresh,submitted.decision);}
    catch(error){try{await rpc('finish',{...proof,result:'failed'});}catch{}throw error;}
    // Grant only after confirmed provider success and exact callback validation. No redirect/code is persisted.
    await rpc('finish',{...proof,result:submitted.decision==='approve'?'approved':'denied'});
    return new Response(null,{status:303,headers:{...headers,Location:redirect}});
-  }catch(error){if(stage==='provider-details'&&['transport','timeout','invocation','empty-body','json'].includes(error.providerFailure))stage+='-'+error.providerFailure;if(stage==='provider-details'&&Number.isInteger(error.providerStatus)&&error.providerStatus>=400&&error.providerStatus<=599)stage+='-'+error.providerStatus;const status=[400,401,403,404,405,409,413,415,429].includes(error.status)?error.status:error.message==='consent_not_allowed'?403:503;const message=status===409?'授权请求已变化、已处理或已过期。请重新发起授权。':status===401?'登录已过期，请重新登录。':status===403&&stage==='review'?'授权请求与 Sill 允许的权限或回调配置不一致。请检查插件 OAuth 设置；此客户端支持 openid、email 和 offline_access。未新增访问权限。':'本次授权未完成。未新增 Sill 访问权限，请返回工作台或重新发起授权。';const response=page(`<meta name="sill-consent-stage" content="${stage}"><h1>无法完成授权</h1><p>${message}</p>`,status);response.headers.set('X-Sill-Consent-Stage',stage);return response;}
+  }catch(error){if(stage==='provider-details'&&['transport','timeout','invocation','empty-body','json'].includes(error.providerFailure))stage+='-'+error.providerFailure;if(stage==='provider-details'&&Number.isInteger(error.providerStatus)&&error.providerStatus>=400&&error.providerStatus<=599)stage+='-'+error.providerStatus;const status=[400,401,403,404,405,409,413,415,429].includes(error.status)?error.status:error.message==='consent_not_allowed'?403:503;const message=status===409?copy("server.oauthcontroller.d107826b5e9a"):status===401?copy("server.oauthcontroller.18b4f39557c3"):status===403&&stage==='review'?copy("server.oauthcontroller.d3c647a333aa"):copy("server.oauthcontroller.38d6d057302b");const response=page(`<meta name="sill-consent-stage" content="${stage}"><h1>${copy("server.oauthcontroller.616a620e602d")}</h1><p>${message}</p>`,status);response.headers.set('X-Sill-Consent-Stage',stage);return response;}
  }
  return {handle,resumeLocation,clearReturn};
 }

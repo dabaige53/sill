@@ -35,7 +35,7 @@ test('private V1 RPC local transactional preparation',async (t?: any)=>{
  const write=async(op?: any,id?: any,payload?: any,key?: any)=> {const r=(await db.query<Record<string, any>>('select sill_private.write_v1($1,$2,$3::jsonb,$4) as value',[op,id,JSON.stringify(payload),key])).rows[0].value;outputs.push({schema:op==='submit_event'?'Event':'Content',value:r.body});return r;};
  const get=async (id?: any)=>(await db.query<Record<string, any>>('select sill_private.get_content($1) as value',[id])).rows[0].value;
  const list=async(cursor: any=null,since: any=null,limit: any=null)=>{const r=(await db.query<Record<string, any>>('select sill_private.list_contents($1,$2,$3) as value',[cursor,since,limit])).rows[0].value;outputs.push({schema:'ContentPage',value:r});return r;};
- let id,second,firstPage,fullWatermark;
+ let id: any,second: any,firstPage: any,fullWatermark: any;
  await t.test('create replay, request conflict, CAS rollback and no-op',async()=>{
   const original=await write('create',null,{title:'One',type:'note',body:['old'],state:{read:false}},'create_0001');
   id=original.body.id;assert.equal(original.status_code,201);assert.equal(original.body.revision,1);

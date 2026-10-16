@@ -1,6 +1,6 @@
 # 代码规范
 
-更新：2026-10-16。规则已确认，代码尚未按本规范迁移；迁移批次见 [文件管理规范](file-management.md#9-迁移进度)。迁移完成前，未迁移的代码保持现状，新增代码按本规范编写。
+更新：2026-10-16。目录与语言迁移已完成，批次与验收边界见 [文件管理规范](file-management.md#9-迁移进度)。动态界面仍有显式 `any`，类型检查尚未使用 strict；Biome 默认规则保留警告，不把零错误说成零警告。
 
 本规范适用于 Web、Mac、iOS、服务端和 `contracts/`。各端 README（`apps/web/`、`apps/apple/`、`server/`、`contracts/`）只写本端的补充规则，不重复本文。决策依据见 ADR [0023](../adr/0023-three-clients-repo-layout.md) 至 [0027](../adr/0027-native-apple-data-layer.md)。
 
@@ -35,7 +35,7 @@
 
 ## 4. 数据契约
 
-- 卡片结构、接口和 MCP tools 只在 `contracts/` 中用 zod 定义一次。服务端与 Web 端直接引用；Web 端只引用类型。
+- 卡片结构、接口和 MCP tools 只在 `contracts/` 中用 zod 定义一次。服务端直接引用；Web 端引用类型、导出的 JSON Schema 和不含 zod 的纯规则，不打包 zod。
 - 脚本把 zod 定义导出为 JSON Schema 并提交。CI 检查导出结果与定义一致。Apple 端在构建时用 swift-openapi-generator 生成类型，生成代码不提交。
 - 每个契约标明「已实现」或「设计中」。客户端只依赖已实现的契约。
 - `contracts/` 提供合法样例和非法样例。每一端的契约测试必须接受全部合法样例、拒绝全部非法样例，并在解析后写回时保持合法样例不变。
@@ -61,7 +61,7 @@
 ## 7. 平台差异
 
 - 交互可以按平台不同；同一张卡片的数据含义、状态和写入规则在三端相同。
-- 功能矩阵 `docs/product/feature-matrix.md`（迁移批次 1 建立）记录每项能力在 Web、Mac、iOS、云端的状态：已实现、设计中、不支持。改变能力状态的 PR 同时更新矩阵，并在 PR 的 Evidence 中写明改了哪一格。
+- 功能矩阵 `docs/product/feature-matrix.md`记录每项能力在 Web、Mac、iOS、云端的状态：已实现、设计中、不支持。改变能力状态的 PR 同时更新矩阵，并在 PR 的 Evidence 中写明改了哪一格。
 - 功能矩阵只写当前状态，不写计划版本。
 
 ## 8. 秘密与配置
