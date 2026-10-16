@@ -1,14 +1,40 @@
 /* Sill · responsive · shared source */
+/* Reduce transparency (system or in-app) and browsers without blur: the same shapes on a solid card. */
 body.opaque .glass,
-body.opaque .dock-tools .icon-button,
-body.opaque #orb {
+body.opaque .scroll-edge {
 	background: var(--card);
 	backdrop-filter: none;
 	-webkit-backdrop-filter: none;
+	box-shadow:
+		0 0 0 1px var(--line-hover),
+		var(--shadow-glass);
+}
+body.opaque .scroll-edge {
+	display: none;
+}
+@media (prefers-reduced-transparency: reduce) {
+	.glass {
+		background: var(--card);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.scroll-edge {
+		display: none;
+	}
+}
+@media (prefers-contrast: more) {
+	.glass {
+		background: var(--glass-thick);
+		box-shadow:
+			0 0 0 1px var(--ink),
+			var(--shadow-glass);
+	}
 }
 @supports not (backdrop-filter: blur(1px)) {
-	.glass,
-	.dock-tools .icon-button {
+	.glass {
 		background: var(--card);
 	}
 }
@@ -57,6 +83,12 @@ body.opaque #orb {
 	.feed-card .card-body > :last-child {
 		padding-right: 32px;
 	}
+	/* The selection circle takes the place of the phone's ••• at the bottom right, clear of the head. */
+	.selected-tick {
+		top: auto;
+		right: 14px;
+		bottom: 14px;
+	}
 	.card-more-menu,
 	.card-more-leaving {
 		top: auto;
@@ -84,7 +116,7 @@ body.opaque #orb {
 		--rail-bottom: max(16px, env(safe-area-inset-bottom));
 	}
 	/* Too narrow for both: while selecting, the bar takes the whole row. */
-	#dock:has(#selection-bar:not([hidden])) .orb-wrap {
+	#dock:has(#selection-bar:not([hidden])) :is(.account-wrap, .rail-tools) {
 		display: none;
 	}
 	#dock #selection-bar {
@@ -148,17 +180,20 @@ body.opaque #orb {
 	#modal.preview .preview-sheet .sheet-scroll {
 		flex: 1;
 		max-height: none;
-		padding-bottom: 110px;
+		padding-bottom: calc(var(--rail-row) + 48px + env(safe-area-inset-bottom));
 	}
-	#modal.preview .float-bar {
-		transition:
-			transform 240ms var(--ease),
-			opacity 240ms,
-			translate 360ms var(--ease-sheet);
+	#modal.preview .preview-sheet {
+		max-height: none;
 	}
-	#modal.preview .float-bar.is-hidden {
-		transform: translateY(120%);
-		opacity: 0;
+	.sheet-head {
+		height: 52px;
+		padding: 0 8px;
+	}
+	.sheet-head .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 -18px;
 	}
 	#modal.preview[open] {
 		gap: 0;
@@ -179,14 +214,24 @@ body.opaque #orb {
 		background: var(--faint);
 		margin: 8px auto 0;
 	}
-	#modal.preview .float-bar {
+	#modal.preview > .float-bar {
 		position: fixed;
-		left: 16px;
-		right: 16px;
-		bottom: max(16px, env(safe-area-inset-bottom));
-		width: auto;
-		justify-content: space-between;
+		left: 0;
+		right: 0;
+		bottom: var(--rail-bottom);
+		margin-inline: auto;
 		z-index: 3;
+	}
+	.preview-sheet:after {
+		height: calc(var(--rail-row) + 56px + env(safe-area-inset-bottom));
+	}
+	/* At half height the sheet hangs 64px below the screen; its scroll edge stays at the screen's foot. */
+	#modal.preview .preview-sheet:not(.is-full):after {
+		bottom: 64px;
+	}
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
 	}
 	#modal.preview .push-ring {
 		bottom: 150px;
@@ -320,4 +365,32 @@ body.reduce-motion *:after {
 	animation-duration: 0.01ms !important;
 	animation-iteration-count: 1 !important;
 	transition-duration: 0.01ms !important;
+}
+
+/* Reduced motion: bars fade in place instead of sliding. */
+@media (prefers-reduced-motion: reduce) {
+	#dock.is-tucked,
+	dialog > .float-bar.is-tucked,
+	.reader-head.is-tucked {
+		transform: none;
+	}
+	#dock,
+	dialog > .float-bar,
+	.reader-head {
+		transition:
+			opacity 120ms linear,
+			visibility 0s 120ms !important;
+	}
+}
+body.reduce-motion #dock.is-tucked,
+body.reduce-motion dialog > .float-bar.is-tucked,
+body.reduce-motion .reader-head.is-tucked {
+	transform: none;
+}
+body.reduce-motion #dock,
+body.reduce-motion dialog > .float-bar,
+body.reduce-motion .reader-head {
+	transition:
+		opacity 120ms linear,
+		visibility 0s 120ms !important;
 }

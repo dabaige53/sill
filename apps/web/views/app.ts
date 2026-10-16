@@ -4,6 +4,7 @@ import {
 	checkMark,
 	duration,
 	emptyState,
+	avatarTone,
 	esc,
 	eventEnded,
 	eventRelative,
@@ -15,6 +16,7 @@ import { copy } from "../copy.ts";
 import { cardSource, cardSourceKind } from "../data/card-source.ts";
 import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
+import { ChromeAutoHide } from "../interactions/chrome.ts";
 import { DragManager } from "../interactions/drag.ts";
 import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
@@ -60,6 +62,8 @@ class AppController {
 	declare hasMore: any;
 	declare readTicker: any;
 	declare dockTimer: any;
+	declare railHide: any;
+	declare sheetHide: any;
 	declare lastRouteHash: any;
 	declare skipReturnMotion: any;
 	declare sheetLeaving: any;
@@ -113,8 +117,8 @@ class AppController {
 		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
    <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span><button type="button" class="text-button" data-action="select-all" aria-label="${copy("web.selectAllLabel")}">${copy("web.selectAll")}</button><button type="button" class="text-button" data-action="selection-menu" aria-haspopup="dialog">${copy("web.selection.actions")}</button><span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
-   <div class="orb-wrap"><div class="dock-tools" role="group" aria-label="${copy("web.app.25ce5c2fbf41")}">${button("filter", copy("web.app.1fd57350e5f1"), "filter")}${button("plus", copy("web.panels.5a15649c2481"), "capture")}${button("refresh", copy("web.app.26b4905705d6"), "refresh")}${button("up", copy("web.app.071b374af1b8"), "top")}${button("gear", copy("web.app.df3d58c7d84b"), "settings")}</div>
-   <button type="button" class="icon-button glass" id="orb" data-action="orb" aria-label="${copy("web.app.25ce5c2fbf41")}" aria-expanded="false">${icon("grid", 22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div>
+   <div class="rail-tools glass" role="toolbar" aria-label="${copy("web.app.25ce5c2fbf41")}">${button("search", copy("web.app.1fd57350e5f1"), "filter")}${button("plus", copy("web.panels.5a15649c2481"), "capture")}</div>
+   <div class="account-wrap"><button type="button" class="account-button glass" id="account" data-action="settings" aria-label="${copy("web.app.df3d58c7d84b")}">${this.accountFace()}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
 		this.grid = document.getElementById("feed-grid");
@@ -156,19 +160,11 @@ class AppController {
 			if (!inside) this.previewTrail?.length ? this.closeAll() : this.closeModal();
 		});
 		const dock = document.getElementById("dock");
-		dock.addEventListener("pointerenter", (e?: any) => {
-			if (e.pointerType !== "touch") this.openDock();
-		});
-		dock.addEventListener("pointerleave", (e?: any) => {
-			if (e.pointerType !== "touch") this.hideDock();
-		});
-		dock.addEventListener("focusin", (e?: any) => {
-			if (e.target.closest(".orb-wrap")) this.openDock();
-		});
-		dock.addEventListener("focusout", () =>
-			window.setTimeout(() => {
-				if (!dock.contains(document.activeElement)) this.hideDock();
-			}, 0),
+		// The rail tucks away while reading on and returns on a pause or a turn back.
+		this.railHide = new ChromeAutoHide(
+			window,
+			() => [dock, document.getElementById("scroll-edge")],
+			() => this.drag?.active || this.drag?.menu?.open,
 		);
 		window.addEventListener("popstate", () => this.route());
 		window.addEventListener("hashchange", () => this.route());
@@ -179,19 +175,9 @@ class AppController {
 			} else this.checkReminders();
 		});
 		window.addEventListener("pagehide", () => Store.save());
-		let lastY = scrollY;
 		window.addEventListener(
 			"scroll",
 			() => {
-				// Scrolling down, the entrance steps back; it returns when you stop or scroll up.
-				const down = scrollY > lastY + 2;
-				lastY = scrollY;
-				dock.classList.toggle(
-					"is-quiet",
-					down && scrollY > 120 && !dock.classList.contains("is-open"),
-				);
-				clearTimeout(this.quietTimer);
-				this.quietTimer = window.setTimeout(() => dock.classList.remove("is-quiet"), 900);
 				this.paintPending();
 				if (
 					this.hasMore &&
@@ -226,17 +212,16 @@ class AppController {
 	announce(text?: any) {
 		document.getElementById("announcer").textContent = text;
 	}
-	openDock() {
-		clearTimeout(this.dockTimer);
-		document.getElementById("dock").classList.add("is-open");
-		document.getElementById("orb").setAttribute("aria-expanded", "true");
+	/** The account face: the person's initial when known, otherwise a neutral person. */
+	accountFace() {
+		const name = String(window.__SILL_ACCOUNT__ || Store.pref("profileName") || "").trim();
+		return name
+			? `<span class="account-face" style="background:${avatarTone(name)}">${esc(name.slice(0, 1).toUpperCase())}</span>`
+			: `<span class="account-face is-blank">${icon("person", 20)}</span>`;
 	}
-	hideDock() {
-		clearTimeout(this.dockTimer);
-		this.dockTimer = window.setTimeout(() => {
-			document.getElementById("dock").classList.remove("is-open");
-			document.getElementById("orb").setAttribute("aria-expanded", "false");
-		}, 420);
+	paintAccount() {
+		const face = document.getElementById("account");
+		if (face) face.innerHTML = this.accountFace();
 	}
 	/* ——— What is on the desk ——— */
 	shelfOf(c?: any) {
@@ -612,6 +597,8 @@ class AppController {
 			MotionEngine.cancelPanel(this.dialog);
 			MotionEngine.lift(null);
 		}
+		this.sheetHide?.destroy();
+		this.sheetHide = null;
 		this.dialog.close();
 		document.documentElement.style.overflow = "";
 		this.modalKind = "";
@@ -634,8 +621,8 @@ class AppController {
 		)
 			focus =
 				focus.closest("[data-card]")?.querySelector(".card-title-button") ||
-				document.getElementById("orb");
-		(focus || document.getElementById("orb")).focus({ preventScroll: true });
+				document.getElementById("account");
+		(focus || document.getElementById("account")).focus({ preventScroll: true });
 	}
 	// Leave a card for the desk directly, wherever it was opened from.
 	/** Close every stacked preview: unwind the cards opened from inside, then close the first. */
@@ -760,6 +747,7 @@ class AppController {
 			this.openModal(Panels.reader(this, c, false), "reader", origin);
 			this.bindReader(id);
 			this.gestures.bindPullDown();
+			this.bindSheetChrome();
 			return;
 		}
 		this.openModal(Panels.preview(this, c), "preview", origin);
@@ -772,6 +760,7 @@ class AppController {
 			);
 		this.bindPreview(id);
 		this.gestures.bindPullDown();
+		this.bindSheetChrome();
 		if (c.type === "media" && c.media !== "podcast") {
 			this.mediaIndex = Math.min(
 				(c.body.length || 1) - 1,
@@ -813,6 +802,15 @@ class AppController {
 				{ passive: true },
 			);
 		});
+	}
+	/** The preview and reader toolbars follow the same tuck-and-return rule as the desk rail. */
+	bindSheetChrome() {
+		this.sheetHide?.destroy();
+		const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
+		if (!scroll) return;
+		this.sheetHide = new ChromeAutoHide(scroll, () => [
+			...this.dialog.querySelectorAll(":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge"),
+		]);
 	}
 	bindReader(id?: any) {
 		this.lastActivity = Date.now();
@@ -1166,7 +1164,7 @@ class AppController {
 				target ||
 				card?.querySelector(".card-title-button") ||
 				card ||
-				document.getElementById("orb")
+				document.getElementById("account")
 			).focus({ preventScroll: true });
 		}
 		if (positions)
@@ -1240,7 +1238,7 @@ class AppController {
 		(
 			card?.querySelector(".card-title-button") ||
 			this.grid.querySelector(".card-title-button") ||
-			document.getElementById("orb")
+			document.getElementById("account")
 		).focus({ preventScroll: true });
 		const text =
 			action === "snooze"
@@ -1255,7 +1253,7 @@ class AppController {
 			this.withFeedAnchor(() => {}, true);
 			this.checkReminders();
 			const back = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
-			(back?.querySelector(".card-title-button") || back || document.getElementById("orb")).focus({
+			(back?.querySelector(".card-title-button") || back || document.getElementById("account")).focus({
 				preventScroll: true,
 			});
 		});
@@ -1876,9 +1874,6 @@ class AppController {
 	}
 	action(name?: any, id: any = "", extra: any = "", el: any = null, event: any = null) {
 		switch (name) {
-			case "orb":
-				this.openDock();
-				break;
 			case "filter":
 			case "search":
 				this.openPanel("search");
@@ -2467,7 +2462,6 @@ END:VCALENDAR
 				this.selected.clear();
 				this.updateSelection();
 			}
-			this.hideDock();
 			return;
 		}
 		const typing = e.target.closest?.("input,textarea,[contenteditable]");

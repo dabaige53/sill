@@ -55,6 +55,20 @@ const Panels: Record<string, any> = {
 		return `<div class="float-bar glass" role="toolbar" aria-label="${copy("web.panels.c8bf87742cc0")}">${parts.filter(Boolean).join("")}</div>`;
 	},
 	sep: '<span class="toolbar-sep" aria-hidden="true"></span>',
+	/** The sheet head holds the way out (and full screen) in its own row, never over the text. */
+	head(...tools: any[]) {
+		return `<div class="sheet-head"><div class="grabber" aria-hidden="true"></div><div class="sheet-head-tools">${tools.filter(Boolean).join("")}</div></div>`;
+	},
+	/** Specific actions in words, after the content: they never compete with the toolbar icons. */
+	foot(...actions: any[]) {
+		const list = actions.filter(Boolean);
+		return list.length ? `<div class="preview-foot">${list.join("")}</div>` : "";
+	},
+	whyLink(c?: any) {
+		return c.why
+			? `<button type="button" class="text-button" data-action="why" data-id="${esc(c.id)}">${copy("web.panels.fdc032965548")}</button>`
+			: "";
+	},
 	/** The toolbar keeps the generic verb as an icon: stop reminding. */
 	reminderTools(c?: any) {
 		if (!FeedPolicy.supports(c)) return "";
@@ -107,23 +121,22 @@ const Panels: Record<string, any> = {
 					.map((t?: any) => `<span class="chip soft">#${esc(t)}</span>`)
 					.join("")}</div>`
 			: "";
-		const sheet = (inner?: any, cover: any = "") =>
-			`<div class="sheet preview-sheet"><div class="grabber" aria-hidden="true"></div><div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}</div></div></div>`;
-		const close = this.sep + button("x", copy("web.panels.1eb05d311508"), "close");
+		const closeButton = button("x", copy("web.panels.1eb05d311508"), "close");
+		const expand = c.body?.length && !["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
+			? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id)
+			: "";
+		const sheet = (inner?: any, cover: any = "", foot: any = "") =>
+			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}${foot}</div></div></div>`;
+				const editTags = button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id);
 		const h1 = `<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>`;
 		if (c.type === "mail") {
 			const sender = c.sender || cardSource(c);
 			return (
 				sheet(
 					`<div class="preview-sender">${avatar(sender, 36)}<span><b>${esc(sender)}</b><small>${copy("web.panels.711078d887e0")}${esc(c.meta || "")}</small></span></div>${h1}<div class="preview-full">${(c.body || [c.summary]).map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>${c.attachment ? `<span class="ref attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					this.later(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					this.external(c, copy("web.panels.cf945e21ddef")),
-					close,
-				)
+					"",
+					this.foot(this.external(c, copy("web.panels.cf945e21ddef"))),
+				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
 		if (c.type === "event") {
@@ -143,14 +156,17 @@ const Panels: Record<string, any> = {
 			return (
 				sheet(
 					`<div class="preview-meta">${esc(dateLabel(c.start))}${eventRelative(c) ? ` · <span style="color:var(--accent);font-weight:500">${esc(eventRelative(c))}</span>` : ""}</div><div class="event-hero"><span class="num">${timeString(c.start)}</span><small class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)} · ${span}${copy("web.templates.40de54344d22")}</small></div>${h1}${rows ? `<div class="detail-rows">${rows}</div>` : ""}${c.body?.length ? `<div class="preview-full">${c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}${this.reminderRow(c)}`,
+					"",
+					this.foot(
+						timely && c.meeting
+							? `<button type="button" class="solid-button" data-action="join" data-id="${esc(c.id)}">${copy("web.templates.451755e3831f")}</button>`
+							: "",
+					),
 				) +
 				this.bar(
 					button("download", copy("web.panels.5510cee6e987"), "download-calendar", c.id),
+					editTags,
 					this.reminderTools(c),
-					timely && c.meeting
-						? `<button type="button" class="solid-button" data-action="join" data-id="${esc(c.id)}">${copy("web.templates.451755e3831f")}</button>`
-						: "",
-					close,
 				)
 			);
 		}
@@ -158,28 +174,17 @@ const Panels: Record<string, any> = {
 			const total = c.duration || 0,
 				played = Math.round(total * (s.progress || 0));
 			return (
-				`<div class="sheet preview-sheet"><div class="grabber" aria-hidden="true"></div><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div></div></div>` +
-				this.bar(
-					this.bookmark(c, s),
-					this.later(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					c.url ? button("external", copy("web.panels.c7f9a9b3d472"), "external", c.id) : "",
-					close,
-				)
+				`<div class="sheet preview-sheet">${this.head(closeButton)}<div class="sheet-scroll" tabindex="0"><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div>${this.foot(this.external(c, copy("web.panels.c7f9a9b3d472")))}</div></div></div>` +
+				this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
 		if (c.type === "media") {
 			return (
 				sheet(
 					`${this.meta(c)}${h1}<div class="media-player"><img src="${Assets[c.image]}" alt=""><div class="media-slide" id="media-slide"></div></div><div class="media-controls">${button("back", copy("web.panels.b445bfa61071"), "media-prev", c.id)}${button("play", copy("web.panels.105587569775"), "media-play", c.id)}<span class="media-step" id="media-step">1 / ${c.body.length || 1}</span>${button("arrow", copy("web.panels.abd1f787accc"), "media-next", c.id)}</div>`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					this.later(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					this.external(c),
-					close,
-				)
+					"",
+					this.foot(this.external(c)),
+				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
 		if (c.type === "file") {
@@ -187,11 +192,7 @@ const Panels: Record<string, any> = {
 				sheet(
 					`<div class="preview-meta">${icon("folder", 15)}<span>${copy("web.panels.e93cb3b4dd1f")}${esc(cardSource(c) || "")}</span></div>${h1}<div class="detail-rows">${(c.files || []).map((f?: any) => `<div class="detail-row"><span class="row-icon">${icon(/\.(png|jpe?g|gif|webp)$/i.test(f.name) ? "image" : "file", 16)}</span><span><b>${esc(f.name)}</b><em>${esc(f.meta || "")}</em></span><small>${f.time ? esc(relativeTime(f.time)) : ""}</small></div>`).join("")}</div>`,
 				) +
-				this.bar(
-					this.bookmark(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					close,
-				)
+				this.bar(this.bookmark(c, s), editTags)
 			);
 		}
 		if (c.type === "task" || c.type === "reminder") {
@@ -209,12 +210,7 @@ const Panels: Record<string, any> = {
 				sheet(
 					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}${this.reminderRow(c)}`,
 				) +
-				this.bar(
-					this.bookmark(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					this.reminderTools(c),
-					close,
-				)
+				this.bar(this.bookmark(c, s), editTags, this.reminderTools(c))
 			);
 		}
 		if (c.type === "digest") {
@@ -222,12 +218,9 @@ const Panels: Record<string, any> = {
 			return (
 				sheet(
 					`${this.meta(c)}${h1}<div class="stats-trio"><div><b class="num">${st.read}</b><span>${copy("web.read")}</span></div><div><b class="num">${st.saved}</b><span>${copy("web.bookmark")}</span></div><div><b class="num">${st.done}</b><span>${copy("web.done")}</span></div></div><p class="preview-lead">${esc(st.line)}</p>${(c.body || []).map((p?: any) => `<p class="muted">${esc(p)}</p>`).join("")}`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					c.why ? button("info", copy("web.panels.fdc032965548"), "why", c.id) : "",
-					close,
-				)
+					"",
+					this.foot(this.whyLink(c)),
+				) + this.bar(this.bookmark(c, s), editTags)
 			);
 		}
 		// Articles, notes, suggestions: the lifted card shows everything.
@@ -257,16 +250,11 @@ const Panels: Record<string, any> = {
 			? `<div class="preview-cover"><img data-shared="image" src="${Assets[c.image]}" alt="" draggable="false"></div>`
 			: "";
 		return (
-			sheet(`${this.meta(c)}${h1}${lead}${points}${related}${full}`, cover) +
-			this.bar(
-				this.bookmark(c, s),
-				this.later(c, s),
-				button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-				c.url ? button("external", copy("web.panels.363753bbbfaa"), "external", c.id) : "",
-				c.why ? button("info", copy("web.panels.fdc032965548"), "why", c.id) : "",
-				c.body?.length ? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id) : "",
-				close,
-			)
+			sheet(
+				`${this.meta(c)}${h1}${lead}${points}${related}${full}`,
+				cover,
+				this.foot(this.external(c), this.whyLink(c)),
+			) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 		);
 	},
 	/* Reader: a page with a thin progress line. Reaching the end closes the ring. */
@@ -276,13 +264,13 @@ const Panels: Record<string, any> = {
 			? `<div class="skeleton-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div>`
 			: c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("");
 		return (
-			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
+			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
+			`<div class="reader-edge is-top" aria-hidden="true"></div><div class="reader-edge is-bottom" aria-hidden="true"></div>` +
+			`<div class="reader-head glass" role="toolbar" aria-label="${copy("web.panels.0f1505b6ad3f")}">${button("collapse", copy("web.panels.0f1505b6ad3f"), "close")}${button("x", copy("web.panels.f2a5f3f7db0f"), "close-all")}</div>` +
 			this.bar(
-				button("collapse", copy("web.panels.0f1505b6ad3f"), "close"),
 				this.bookmark(c, s),
 				button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-				this.sep,
-				button("x", copy("web.panels.f2a5f3f7db0f"), "close-all"),
+				this.later(c, s),
 			)
 		);
 	},

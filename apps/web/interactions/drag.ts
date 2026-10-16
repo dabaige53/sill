@@ -185,54 +185,73 @@ class DragManager {
 			`${copy("web.selection.countPrefix")}${ids.length}${copy("web.selection.countSuffix")}`,
 		);
 	}
-	createStack(ids: string[]) {
-		const stack = document.createElement("div");
-		stack.className = "selection-stack";
-		stack.setAttribute("aria-hidden", "true");
-		stack.inert = true;
+	/** A real, inert copy of a card, scaled to thumbnail width. */
+	thumbnail(id: string, width: number) {
 		const face = document.createElement("div");
 		face.className = "selection-stack-face";
 		const source = [
 			...(this.app.grid as HTMLElement).querySelectorAll<HTMLElement>("[data-card]"),
-		].find((node) => node.dataset.card === ids[0]);
-		if (source) {
-			const clone = source.cloneNode(true) as HTMLElement;
-			clone.classList.remove("selected", "is-selected", "is-drag-source");
-			clone
-				.querySelectorAll(
-					"script,iframe,object,embed,audio,video,.card-actions,.card-more-menu,.selection-circle,.selected-tick",
-				)
-				.forEach((node) => {
-					node.remove();
-				});
-			for (const node of [clone, ...clone.querySelectorAll<HTMLElement>("*")]) {
-				for (const attr of [...node.attributes]) {
-					if (
-						/^(id|tabindex|href|for|autofocus|contenteditable|draggable|role)$/.test(attr.name) ||
-						/^(aria-|data-|on)/.test(attr.name)
-					)
-						node.removeAttribute(attr.name);
-				}
-				if (node.matches("button,a,input,textarea,select")) {
-					const visual = document.createElement("span");
-					visual.className = node.className;
-					visual.append(...node.childNodes);
-					node.replaceWith(visual);
-				}
-			}
-			const bounds = source.getBoundingClientRect();
-			const width = bounds.width || 320;
-			stack.style.height = `${Math.max(88, Math.min(180, ((bounds.height || 280) * 184) / width))}px`;
-			clone.style.cssText = `position:relative;left:0;top:0;width:${width}px;margin:0;transform:scale(${184 / width});transform-origin:top left;pointer-events:none;`;
-			face.appendChild(clone);
-		} else {
-			const card = Store.card(ids[0]);
-			face.innerHTML = `<div class="selection-thumbnail-fallback"><strong>${esc(card?.title || "")}</strong><p>${esc(card?.excerpt || card?.content || "")}</p></div>`;
+		].find((node) => node.dataset.card === id);
+		if (!source) {
+			const card = Store.card(id);
+			face.innerHTML = `<div class="selection-thumbnail-fallback"><strong>${esc(card?.title || "")}</strong><p>${esc(card?.summary || card?.excerpt || "")}</p></div>`;
+			return { face, height: 120 };
 		}
+		const clone = source.cloneNode(true) as HTMLElement;
+		clone.classList.remove("selected", "is-selected", "is-drag-source");
+		clone
+			.querySelectorAll(
+				"script,iframe,object,embed,audio,video,.card-actions,.card-more-menu,.selection-circle,.selected-tick",
+			)
+			.forEach((node) => {
+				node.remove();
+			});
+		for (const node of [clone, ...clone.querySelectorAll<HTMLElement>("*")]) {
+			for (const attr of [...node.attributes]) {
+				if (
+					/^(id|tabindex|href|for|autofocus|contenteditable|draggable|role)$/.test(attr.name) ||
+					/^(aria-|data-|on)/.test(attr.name)
+				)
+					node.removeAttribute(attr.name);
+			}
+			if (node.matches("button,a,input,textarea,select")) {
+				const visual = document.createElement("span");
+				visual.className = node.className;
+				visual.append(...node.childNodes);
+				node.replaceWith(visual);
+			}
+		}
+		const bounds = source.getBoundingClientRect();
+		const full = bounds.width || 320;
+		const scale = width / full;
+		clone.style.cssText = `position:absolute;left:0;top:0;width:${full}px;margin:0;transform:scale(${scale});transform-origin:top left;pointer-events:none;`;
+		face.appendChild(clone);
+		return { face, height: Math.max(96, Math.min(196, (bounds.height || 280) * scale)) };
+	}
+	/** Like Photos: the real cards, up to three, fanned into one pile with the count on top. */
+	createStack(ids: string[]) {
+		const stack = document.createElement("div");
+		stack.className = "selection-stack";
+		stack.dataset.depth = String(Math.min(3, ids.length));
+		stack.setAttribute("aria-hidden", "true");
+		stack.inert = true;
+		const width = 176;
+		const faces = ids.slice(0, 3).map((id) => this.thumbnail(id, width));
+		const height = faces[0]?.height || 120;
+		stack.style.setProperty("--stack-h", `${height}px`);
+		// The first chosen card lies on top; the others peek out behind it.
+		faces
+			.slice()
+			.reverse()
+			.forEach(({ face }, i, list) => {
+				face.dataset.layer = String(list.length - 1 - i);
+				face.style.height = `${height}px`;
+				stack.appendChild(face);
+			});
 		const count = document.createElement("span");
 		count.className = "selection-stack-count num";
 		count.textContent = String(ids.length);
-		stack.append(face, count);
+		stack.appendChild(count);
 		return stack;
 	}
 	track(x: number, y: number) {
@@ -284,15 +303,21 @@ class DragManager {
 		const context = this.menu.querySelector<HTMLElement>(".selection-context")!;
 		const options = this.menu.querySelector<HTMLElement>(".selection-options")!;
 		const stack = this.menu.querySelector<HTMLElement>(".selection-stack")!;
-		const gap = 24;
-		const above = point.y >= options.offsetHeight + gap + 16;
-		context.dataset.placement = above ? "above" : "below";
-		stack.style.order = above ? "1" : "-1";
+		const gap = 12,
+			edge = 16;
+		const stackH = stack.offsetHeight,
+			optionsH = options.offsetHeight;
+		// The pile stays where it was let go; the menu opens below it, or above when the space below is short.
+		const below = point.y + stackH / 2 + gap + optionsH + edge <= innerHeight;
+		context.dataset.placement = below ? "below" : "above";
+		stack.style.order = below ? "-1" : "1";
 		const height = context.offsetHeight;
-		const top = above ? point.y - options.offsetHeight - gap : point.y;
-		context.style.left = `${Math.max(16, Math.min(innerWidth - context.offsetWidth - 16, point.x - context.offsetWidth / 2))}px`;
-		context.style.top = `${Math.max(16, Math.min(innerHeight - height - 16, top))}px`;
+		const top = below ? point.y - stackH / 2 : point.y + stackH / 2 - height;
+		const left = point.x - context.offsetWidth / 2;
+		context.style.left = `${Math.max(edge, Math.min(innerWidth - context.offsetWidth - edge, left))}px`;
+		context.style.top = `${Math.max(edge, Math.min(innerHeight - height - edge, top))}px`;
 	}
+
 	closeMenu() {
 		if (!this.menu.open) return;
 		this.menu.close();

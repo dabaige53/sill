@@ -1,14 +1,19 @@
 /* Sill · controls · shared source */
-/* Translucency belongs to the floating tools, not the content surface. */
+/* Glass is the functional layer only: bars and menus that float over the content.
+   It has no colour of its own: a thin translucent fill, a strong blur with lifted saturation so
+   the content below still reads as colour, a specular inner edge and a hairline rim.
+   The shadow is short and soft; thickness comes from the material, not from a dark halo. */
 .glass {
 	position: relative;
 	background: var(--glass);
-	border: 1px solid var(--glass-edge);
+	border: 0;
 	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.03),
+		inset 0 0 0 0.5px var(--glass-edge),
+		inset 0 1px 0 var(--glass-edge),
+		0 0 0 0.5px var(--glass-rim),
 		var(--shadow-glass);
-	-webkit-backdrop-filter: blur(24px) saturate(1.2);
-	backdrop-filter: blur(24px) saturate(1.2);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
 }
 .icon-button {
 	width: 44px;
@@ -41,16 +46,16 @@
 	fill-opacity: 0.9;
 }
 
-/* The bottom rail: the orb is the anchor. Everything that floats at the bottom
-   lines up with it: same bottom edge, 56px row, glass. One thing at a time sits
-   in the row beside the orb; the toast rises above the row when it is taken. */
+/* The bottom rail. The person's face sits at the far right and opens settings; the two
+   desk tools share one glass capsule beside it. Anything else that floats at the bottom
+   (selection, new content, offline) takes the space to their left, on the same baseline. */
 :root {
-	--rail-edge: 32px;
-	--rail-bottom: 32px;
-	--rail-row: 56px;
-	--rail-gap: 12px;
+	--rail-edge: 28px;
+	--rail-bottom: 28px;
+	--rail-row: 52px;
+	--rail-gap: 8px;
+	--rail-tuck: 300ms;
 }
-/* The orb: one glass entrance, bottom right. Tools rise from it. */
 #dock {
 	position: fixed;
 	right: var(--rail-edge);
@@ -58,129 +63,123 @@
 	z-index: 45;
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: var(--rail-gap);
 	transition:
-		transform var(--layout) var(--ease),
-		opacity var(--layout) var(--ease);
+		transform 380ms var(--ease-sheet),
+		opacity 240ms var(--ease),
+		visibility 0s;
 }
-#dock.is-quiet {
-	transform: scale(0.86);
-	opacity: 0.6;
-}
-#dock.is-quiet:hover,
-#dock.is-quiet:focus-within,
-#dock.is-quiet:has(#selection-bar:not([hidden])) {
-	transform: none;
-	opacity: 1;
-}
-.orb-wrap {
-	position: relative;
-	width: 56px;
-	height: 56px;
-}
-#orb {
-	width: 56px;
-	height: 56px;
-	min-width: 56px;
-	border-radius: 50%;
-	background: var(--glass);
-	color: var(--ink);
-	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.04),
-		0 6px 20px rgba(0, 0, 0, 0.1);
-	transition:
-		transform 0.24s var(--ease),
-		box-shadow 0.24s;
-}
-#orb .icon {
-	width: 22px;
-	height: 22px;
-}
-#orb:hover {
-	transform: scale(1.04);
-}
-#orb.drop-hot {
-	transform: scale(1.2);
-	color: var(--accent);
-	box-shadow:
-		0 0 0 8px rgba(0, 102, 204, 0.12),
-		0 8px 28px rgba(0, 0, 0, 0.14);
-}
-#dock.is-open #orb .icon {
-	transform: rotate(45deg);
-}
-#orb .icon {
-	transition: transform var(--base) var(--ease);
-}
-.dock-tools {
-	position: absolute;
-	bottom: 68px;
-	right: 6px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
+/* Reading on: the whole rail leaves. No dot, pill or handle stays behind. */
+#dock.is-tucked {
+	transform: translateY(calc(100% + var(--rail-bottom) + 12px));
 	opacity: 0;
 	visibility: hidden;
-	transform: translateY(10px) scale(0.96);
-	transform-origin: bottom;
+	pointer-events: none;
 	transition:
-		opacity 230ms var(--ease),
-		transform 230ms var(--ease),
-		visibility 230ms;
-}
-.dock-tools .icon-button {
-	background: var(--glass);
-	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.04),
-		0 4px 16px rgba(0, 0, 0, 0.08);
-	border: 1px solid var(--glass-edge);
-	-webkit-backdrop-filter: blur(24px);
-	backdrop-filter: blur(24px);
-}
-.dock-tools .icon-button:hover {
-	background: var(--card);
-}
-#dock.is-open .dock-tools {
-	opacity: 1;
-	visibility: visible;
-	transform: translateY(0) scale(1);
-}
-/* Tools rise one after another from the entrance, 40ms apart; they leave together. */
-.dock-tools .icon-button {
-	opacity: 0;
-	translate: 0 8px;
-	transition:
+		transform var(--rail-tuck) var(--ease),
 		opacity 180ms var(--ease),
-		translate 220ms var(--ease),
-		background var(--fast) var(--ease);
+		visibility 0s var(--rail-tuck);
 }
-#dock.is-open .dock-tools .icon-button {
-	opacity: 1;
-	translate: 0 0;
+body:has(#modal[open]) #dock,
+body:has(#modal[open]) .scroll-edge {
+	opacity: 0;
+	visibility: hidden;
 }
-#dock.is-open .dock-tools .icon-button:nth-last-child(2) {
-	transition-delay: 40ms;
+.rail-tools {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	height: var(--rail-row);
+	padding: 4px;
+	border-radius: var(--pill-radius);
 }
-#dock.is-open .dock-tools .icon-button:nth-last-child(3) {
-	transition-delay: 80ms;
+.rail-tools .icon-button,
+.float-bar .icon-button,
+.reader-head .icon-button,
+#selection-bar .icon-button {
+	color: var(--ink);
 }
-#dock.is-open .dock-tools .icon-button:nth-last-child(4) {
-	transition-delay: 120ms;
+.rail-tools .icon-button:hover,
+.float-bar .icon-button:hover,
+.reader-head .icon-button:hover,
+#selection-bar .icon-button:hover {
+	background: var(--glass-press);
 }
-#dock.is-open .dock-tools .icon-button:nth-last-child(5) {
-	transition-delay: 160ms;
+.account-wrap {
+	position: relative;
+	width: var(--rail-row);
+	height: var(--rail-row);
 }
-#dock.filter-active .orb-wrap:after {
+.account-button {
+	width: var(--rail-row);
+	height: var(--rail-row);
+	padding: 0;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	color: var(--ink);
+	transition: transform var(--fast) var(--ease);
+}
+.account-button:active {
+	transform: scale(0.95);
+}
+.account-face {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	color: #fff;
+	font-family: var(--rounded);
+	font-size: var(--text-body);
+	font-weight: 600;
+	box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
+/* No photo yet: the familiar filled silhouette on a quiet grey, never a gear. */
+.account-face.is-blank {
+	background: color-mix(in srgb, var(--muted) 52%, var(--card));
+	color: var(--card);
+	overflow: hidden;
+	align-items: end;
+}
+.account-face.is-blank .icon {
+	width: 34px;
+	height: 34px;
+	fill: currentColor;
+	stroke: none;
+	margin-bottom: -4px;
+}
+#dock.filter-active .rail-tools [data-action="filter"]:after {
 	content: "";
 	position: absolute;
-	right: 4px;
-	top: 4px;
-	width: 9px;
-	height: 9px;
+	right: 8px;
+	top: 8px;
+	width: 8px;
+	height: 8px;
 	border-radius: 50%;
 	background: var(--accent-fill);
-	border: 2px solid var(--card);
+	box-shadow: 0 0 0 2px var(--card);
 	pointer-events: none;
+}
+/* Scroll edge: where the feed meets the rail it softens and blurs a little, so the glass reads
+   against calm content. It belongs to the rail and leaves with it. */
+.scroll-edge {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: calc(var(--rail-bottom) + var(--rail-row) + 20px);
+	z-index: 44;
+	pointer-events: none;
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--canvas) 70%, transparent),
+		color-mix(in srgb, var(--canvas) 0%, transparent)
+	);
+	transition: opacity 260ms var(--ease);
+}
+.scroll-edge.is-tucked {
+	opacity: 0;
 }
 #new-count {
 	height: 40px;
@@ -288,9 +287,9 @@
 	border-radius: var(--pill-radius);
 	display: flex;
 	align-items: center;
-	padding: 6px;
+	padding: 4px;
 	gap: 2px;
-	max-width: calc(100vw - 2 * var(--rail-edge) - var(--rail-row) - var(--rail-gap));
+	max-width: calc(100vw - 2 * var(--rail-edge) - 3 * var(--rail-row) - 2 * var(--rail-gap));
 	overflow-x: auto;
 	scrollbar-width: none;
 }
@@ -322,9 +321,9 @@
 }
 #toast {
 	position: fixed;
-	right: calc(var(--rail-edge) + var(--rail-row) + var(--rail-gap));
-	bottom: calc(var(--rail-bottom) + 6px);
-	max-width: min(420px, calc(100vw - 2 * var(--rail-edge) - var(--rail-row) - var(--rail-gap)));
+	right: var(--rail-edge);
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
+	max-width: min(420px, calc(100vw - 2 * var(--rail-edge)));
 	min-height: 44px;
 	padding: 0 6px 0 18px;
 	border-radius: var(--pill-radius);
@@ -336,9 +335,8 @@
 	transition: bottom var(--base) var(--ease);
 }
 /* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
-body:has(#dock > :is(#selection-bar, #new-count, #offline):not([hidden])) #toast,
 #modal #toast {
-	bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--rail-gap));
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
 }
 #toast.is-alert {
 	color: var(--ink);

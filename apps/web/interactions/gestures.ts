@@ -12,7 +12,6 @@ class Gestures {
 	constructor(app?: any) {
 		this.app = app;
 		this.phone = matchMedia("(max-width:650px)");
-		this.bindPull();
 		this.bindSheetDrag();
 		this.bindReaderSwipe();
 		this.bindToastSwipe();
@@ -451,10 +450,6 @@ class Gestures {
 					const y = scroll.scrollTop,
 						max = scroll.scrollHeight - scroll.clientHeight;
 					if (y > 4) surface.classList.add("is-full");
-					if (bar) {
-						if (y > lastY + 2 && y > 60) bar.classList.add("is-hidden");
-						else if (y < lastY - 2 || y >= max - 8) bar.classList.remove("is-hidden");
-					}
 					lastY = y;
 				},
 				{ passive: true },
