@@ -31,24 +31,19 @@
 
 ## 架构决策
 
-- [TypeScript 构建与检查配置](adr/0029-typescript-build-artifacts.md)
-- [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
-
 - [文档位置表示是否有效](adr/0022-docs-location-shows-validity.md)
 - [三端代码的顶层结构](adr/0023-three-clients-repo-layout.md)
 - [contracts 中的 zod 定义是契约唯一来源](adr/0024-contracts-zod-as-source.md)
 - [全仓库只有一个产品版本号](adr/0025-single-product-version.md)
 - [仓库只用 TypeScript、Swift、SQL](adr/0026-three-languages.md)
 - [Mac 与 iOS 完全原生实现](adr/0027-native-apple-data-layer.md)
+- [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
+- [TypeScript 构建与检查配置](adr/0029-typescript-build-artifacts.md)
 
 ## 记录
 
-- [2026-10-16-code-cleanup：代码清理与跨端迁移验收](records/2026-10-16-code-cleanup/README.md)
-- [2026-10-16-legacy-removal：旧入口清理](records/2026-10-16-legacy-removal/README.md)
-
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
 
-- [2026-10-16-document-migration：文档分类迁移](records/2026-10-16-document-migration/README.md)
 - [2026-10-11-product-conversation：Sill — 产品对话与需求演进记录](records/2026-10-11-product-conversation/README.md)
 - [2026-10-12-local-acceptance：Sill 本地版本](records/2026-10-12-local-acceptance/README.md)
 - [2026-10-13-accessibility-validation：Sill 交互与无障碍修复验收](records/2026-10-13-accessibility-validation/README.md)
@@ -68,6 +63,9 @@
 - [2026-10-15-plugin：插件构建来源记录](records/2026-10-15-plugin/README.md)
 - [2026-10-15-status：Sill 现状与发布障碍](records/2026-10-15-status/README.md)
 - [2026-10-16-app-skill：原 Sill App 插件添加 Skill：发布与验证记录](records/2026-10-16-app-skill/README.md)
+- [2026-10-16-code-cleanup：代码清理与跨端迁移验收](records/2026-10-16-code-cleanup/README.md)
+- [2026-10-16-document-migration：文档分类迁移](records/2026-10-16-document-migration/README.md)
+- [2026-10-16-legacy-removal：旧入口清理](records/2026-10-16-legacy-removal/README.md)
 - [2026-10-16-plugin：App 插件构建证据](records/2026-10-16-plugin/README.md)
 
 ## 归档
