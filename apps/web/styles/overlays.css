@@ -1500,6 +1500,7 @@ dialog > .float-bar {
 
 /* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
 #modal.panel .sheet {
+	max-height: 100dvh;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 }
