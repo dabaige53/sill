@@ -1,0 +1,62 @@
+import Foundation
+
+public struct Card: Codable, Identifiable, Sendable {
+  public let value: Components.Schemas.Card
+  public var id: String { value.id }
+  public var title: String { value.title }
+  public var type: String { value._type }
+  public var body: String { (value.body ?? []).joined(separator: "\n\n") }
+  public var summary: String { value.summary ?? "" }
+  public var source: String {
+    let names = value.sources?.map(\.name).joined(separator: " · ") ?? ""
+    return names.isEmpty ? Copy.appleLocalSource : names
+  }
+  public var raw: JSONValue { get throws { try JSONValue.decode(JSONEncoder().encode(value)) } }
+
+  public init(json: JSONValue, normalize: Bool = false) throws {
+    let normalized = normalize ? Self.normalize(json) : json
+    try CardValidator.validate(normalized)
+    value = try JSONDecoder().decode(Components.Schemas.Card.self, from: normalized.encoded())
+  }
+
+  public init(from decoder: any Decoder) throws {
+    let json = try JSONValue(from: decoder)
+    try self.init(json: json)
+  }
+
+  public func encode(to encoder: any Encoder) throws { try value.encode(to: encoder) }
+
+  public static func normalize(_ input: JSONValue) -> JSONValue {
+    if input["sources"] != nil, input["sources"]?.array == nil { return input }
+    var card = input
+    var sources = (card["sources"]?.array ?? []).map { source in
+      var result = source
+      if source["kind"]?.string == "ai" { result["kind"] = .string("agent") }
+      return result
+    }
+    let type = card["type"]?.string
+    let kind = card["kind"]?.string
+    let normalizedKind = kind == "ai" ? "agent" : kind ?? "local"
+    if let source = card["source"]?.string, !source.isEmpty, type != "mail" {
+      if !sources.contains(where: {
+        $0["name"]?.string == source && $0["kind"]?.string == normalizedKind
+      }) {
+        sources.append(.object(["name": .string(source), "kind": .string(normalizedKind)]))
+      }
+    } else if type == "mail", card["sender"] == nil, let source = card["source"]?.string {
+      card["sender"] = .string(source)
+    }
+    if sources.isEmpty, let kind {
+      sources.append(
+        .object([
+          "name": .string(
+            kind == "ai" ? Copy.appleAgentSource : type == "mail" ? Copy.appleMailSource : kind),
+          "kind": .string(normalizedKind),
+        ]))
+    }
+    if !sources.isEmpty || card["sources"] != nil { card["sources"] = .array(sources) }
+    card["source"] = nil
+    card["kind"] = nil
+    return card
+  }
+}
