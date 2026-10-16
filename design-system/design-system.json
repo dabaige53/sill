@@ -485,10 +485,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-16T23:55:00Z",
+    "at": "2026-10-17T00:30:00Z",
     "by": "dabaige53",
     "via": "Claude Code",
-    "note": "底部导航胶囊取代右下玻璃按钮组：主页、搜索、AI（即将推出）、设置四格，透明镜片用弹簧滑动并拉伸；添加（记一笔）移到设置第一组；新增 home 图标与 nav-tab、ease-spring、dur-lens 令牌，rail-row 改为 60"
+    "note": "手机导航胶囊：不占满一行、只有图标、每格切换页面而不是弹窗；AI 改用对话气泡图标"
   },
   "layout": "files",
   "libraries": [],

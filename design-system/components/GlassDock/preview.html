@@ -6,7 +6,7 @@
 <script>
 const Q=window.Sill,I=Q.icon,root=document.getElementById('root');
 const tab=(k,face,label,aria)=>`<button type="button" class="nav-tab" data-extra="${k}" aria-label="${aria||label}"${k==='home'?' aria-current="page"':''}><span class="nav-icon">${face}</span><span class="nav-label" aria-hidden="true">${label}</span></button>`;
-root.innerHTML=`<nav class="nav-capsule glass" aria-label="主导航" style="width:max-content;--lens-x:4px;--lens-w:76px"><span class="nav-lens" aria-hidden="true"></span>${tab('home',I('home',22),'主页')}${tab('search',I('search',22),'搜索')}${tab('ai',I('sparkles',22),'AI','AI，即将推出')}${tab('settings',`<span class="account-wrap"><span class="account-face is-blank">${I('person',20)}</span></span>`,'设置')}</nav>`;
+root.innerHTML=`<nav class="nav-capsule glass" aria-label="主导航" style="width:max-content;--lens-x:4px;--lens-w:76px"><span class="nav-lens" aria-hidden="true"></span>${tab('home',I('home',22),'主页')}${tab('search',I('search',22),'搜索')}${tab('ai',I('chat',22),'AI','AI，即将推出')}${tab('settings',`<span class="account-wrap"><span class="account-face is-blank">${I('person',20)}</span></span>`,'设置')}</nav>`;
 const nav=root.firstElementChild;
 nav.addEventListener('click',e=>{const t=e.target.closest('.nav-tab');if(!t)return;nav.querySelectorAll('.nav-tab').forEach(n=>n.toggleAttribute('aria-current',n===t));nav.style.setProperty('--lens-x',t.offsetLeft+'px');nav.classList.remove('is-moving');void nav.offsetWidth;nav.classList.add('is-moving');});
 </script>

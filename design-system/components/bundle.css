@@ -328,8 +328,8 @@ main:has(.welcome, .empty-card) .feed-end {
 		opacity 180ms var(--ease),
 		visibility 0s var(--rail-tuck);
 }
-body:has(#modal[open]) #dock,
-body:has(#modal[open]) .scroll-edge {
+body:has(#modal[open]:not(.page)) #dock,
+body:has(#modal[open]:not(.page)) .scroll-edge {
 	opacity: 0;
 	visibility: hidden;
 	/* The lens finishes its move while the rail fades under the sheet. */
