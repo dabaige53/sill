@@ -63,8 +63,10 @@ export function matchesSchema(schema: JsonSchema, value: unknown): boolean {
 	} else if (schema.type === "object") {
 		if (!value || typeof value !== "object" || Array.isArray(value)) return false;
 		const object = value as Record<string, unknown>;
-		if (schema.required?.some((key) => !Object.hasOwn(object, key))) return false;
+		// JSON has no undefined: a key holding undefined is dropped on save, so treat it as absent.
+		if (schema.required?.some((key) => object[key] === undefined)) return false;
 		for (const [key, entry] of Object.entries(object)) {
+			if (entry === undefined) continue;
 			const child = schema.properties?.[key];
 			if (child && !matchesSchema(child, entry)) return false;
 			if (!child && schema.additionalProperties === false) return false;

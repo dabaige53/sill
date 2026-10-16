@@ -22,6 +22,11 @@ test("demo cards use the shared schema and unknown card types render generically
 	assert.match(cardHTML(card), /Synthetic future-card/);
 	assert.deepEqual(parseCard(card).custom, { nested: ["preserve"] });
 });
+test("keys holding undefined count as absent, as they do once saved as JSON", () => {
+	for (const card of SeedCards) parseCard({ ...card, tasks: card.tasks?.map((t) => ({ ...t })) });
+	assert.doesNotThrow(() => parseCard({ id: "a", type: "article", title: "A", image: undefined }));
+	assert.throws(() => parseCard({ id: "a", type: "article", title: undefined }));
+});
 test("unknown card types cannot inject attributes or call renderer helper methods", () => {
 	Store.state = Store.fresh();
 	for (const type of ["__proto__", "constructor", "head", 'future\" onpointerenter=\"alert(1)']) {
