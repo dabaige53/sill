@@ -8,6 +8,7 @@ import {
 	dateLabel,
 	duration,
 	esc,
+	eventEnded,
 	eventRelative,
 	eventTimely,
 	minutes,
@@ -159,8 +160,9 @@ const CardTemplates: Record<string, any> = {
 	},
 	event(c?: any, ctx?: any) {
 		const span = Math.round((c.end - c.start) / 60000),
-			timely = eventTimely(c, ctx.now) && c.meeting;
-		return `<div class="card-body">${this.head(c, ctx, dateLabel(c.start), `<span class="event-relative">${esc(eventRelative(c, ctx.now))}</span>`)}
+			timely = eventTimely(c, ctx.now) && c.meeting,
+			relative = eventRelative(c, ctx.now);
+		return `<div class="card-body">${this.head(c, ctx, dateLabel(c.start), relative ? `<span class="event-relative">${esc(relative)}</span>` : "")}
    <div class="event-time"><span class="num event-start">${timeString(c.start)}</span><span class="event-end"><span class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)}</span><small>${copy("web.templates.2428420e407f")}${span}${copy("web.templates.40de54344d22")}</small></span></div>
    ${this.title(c, ctx)}${c.people?.length ? `<div class="people">${avatars(c.people)}<span>${esc(c.people.join("、"))}</span></div>` : ""}
    ${timely && !ctx.passive ? `<div class="card-actions-row">${pill(copy("web.templates.451755e3831f"), "join", c.id, "primary", "", `${copy("web.templates.451755e3831f")}${c.meeting.name}`)}</div>` : ""}</div>`;
@@ -239,13 +241,14 @@ function cardHTML(c?: any, options: any = {}) {
 		now: options.now ?? Date.now(),
 	};
 	const read = (CardTypes[c.type] || CardTypes.note).readable && s.read && Store.pref("fadeRead");
+	const ended = c.type === "event" && eventEnded(c, ctx.now);
 	const attributes = ctx.passive
 		? ' data-passive="true"'
 		: ` tabindex="0" data-card="${esc(c.id)}"`;
 	const covered = (c.image && ["article", "media"].includes(c.type)) || c.type === "photo";
-	return `<article class="feed-card ${options.compact ? "" : "feed-item"} type-${esc(c.type)} ${covered ? "has-cover" : ""} ${options.compact ? "is-compact" : ""} ${read ? "is-read" : ""} ${s.bookmarked ? "is-bookmarked" : ""} ${s.selected ? "is-selected" : ""} ${s.snoozedUntil > 0 ? "is-snoozed" : ""} ${isDone ? "is-complete" : ""}"${attributes} aria-label="${esc((CardTypes[c.type] || CardTypes.note).label + "：" + c.title + (s.read ? copy("web.templates.732aa8f1efe5") : ""))}">
+	return `<article class="feed-card ${options.compact ? "" : "feed-item"} type-${esc(c.type)} ${covered ? "has-cover" : ""} ${options.compact ? "is-compact" : ""} ${read ? "is-read" : ""} ${ended ? "is-ended" : ""} ${s.bookmarked ? "is-bookmarked" : ""} ${s.selected ? "is-selected" : ""} ${s.snoozedUntil > 0 ? "is-snoozed" : ""} ${isDone ? "is-complete" : ""}"${attributes} aria-label="${esc((CardTypes[c.type] || CardTypes.note).label + "：" + c.title + (s.read ? copy("web.templates.732aa8f1efe5") : ""))}">
  ${Object.hasOwn(CardTypes, c.type) && Object.hasOwn(CardTemplates, c.type) ? CardTemplates[c.type](c, ctx) : CardTemplates.article(c, ctx)}
- ${s.read && (CardTypes[c.type] || CardTypes.note).readable ? `<span class="read-state card-read-mark" aria-hidden="true">${copy("web.templates.260c92601f8e")}</span>` : ""}<div class="card-actions" role="group" aria-label="${copy("web.templates.68215e53c76c")}">${CardPresentation.action(ctx, "more", copy("web.templates.ee9430845e26"), "card-more", c.id, "", "card-more-trigger")}</div><span class="selected-tick" aria-hidden="true">${icon("check", 13)}</span>
+ <div class="card-actions" role="group" aria-label="${copy("web.templates.68215e53c76c")}">${CardPresentation.action(ctx, "more", copy("web.templates.ee9430845e26"), "card-more", c.id, "", "card-more-trigger")}</div><span class="selected-tick" aria-hidden="true">${icon("check", 13)}</span>
  </article>`;
 }
 /** A burst from one source, folded. Opening it expands in place; nothing navigates. */

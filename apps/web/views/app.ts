@@ -5,6 +5,7 @@ import {
 	duration,
 	emptyState,
 	esc,
+	eventEnded,
 	eventRelative,
 	eventTimely,
 	minutes,
@@ -1787,8 +1788,11 @@ class AppController {
 					if (c.type === "event") {
 						const label = node.querySelector(".event-relative");
 						if (label) label.textContent = eventRelative(c);
-						// The join button appears only once the meeting is near.
-						if (!!node.querySelector('[data-action="join"]') !== (eventTimely(c) && !!c.meeting))
+						// The join button appears only once the meeting is near; an ended meeting fades.
+						if (
+							!!node.querySelector('[data-action="join"]') !== (eventTimely(c) && !!c.meeting) ||
+							node.classList.contains("is-ended") !== eventEnded(c)
+						)
 							this.refreshCard(c.id);
 					} else if (c.type === "reminder") {
 						const label = node.querySelector(".reminder-label");

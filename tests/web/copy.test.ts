@@ -138,3 +138,18 @@ test("translated HTML keeps dynamic values, escaping and nested expressions", ()
 	assert.equal(duration(61), "1:01");
 	assert.match(dateLabel(new Date(2026, 9, 16).getTime()), /10月16日/);
 });
+
+test("ended events and read cards fade without a status label", () => {
+	Store.state = Store.fresh();
+	const event = { id: "ended", type: "event", title: "回顾", start: 1000, end: 2000 };
+	const ended = new JSDOM(cardHTML(event, { now: 2000 })).window.document;
+	assert.ok(ended.querySelector(".feed-card")?.classList.contains("is-ended"));
+	assert.equal(ended.querySelector(".event-relative"), null);
+	const live = new JSDOM(cardHTML(event, { now: 1500 })).window.document;
+	assert.equal(live.querySelector(".feed-card")?.classList.contains("is-ended"), false);
+	assert.ok(live.querySelector(".event-relative")?.textContent);
+	const read = new JSDOM(
+		cardHTML({ id: "done", type: "article", title: "读过" }, { state: { read: true } }),
+	).window.document;
+	assert.doesNotMatch(read.body.textContent || "", /已读/);
+});

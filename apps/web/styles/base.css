@@ -11,7 +11,7 @@ body {
 	margin: 0;
 	font-family: var(--font);
 	color: var(--ink);
-	font-size: 14px;
+	font-size: var(--text-control);
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
@@ -128,12 +128,12 @@ p {
 	color: var(--muted);
 }
 .empty-card h2 {
-	font-size: 15px;
+	font-size: var(--text-body);
 	font-weight: 400;
 	color: var(--muted);
 }
 .empty-card p {
-	font-size: 13px;
+	font-size: var(--text-meta);
 	margin-top: 8px;
 }
 .feed-grid > .empty-card {
@@ -164,11 +164,11 @@ body.is-dropping:after {
 	align-items: center;
 	gap: 6px;
 	pointer-events: none;
-	font-size: 17px;
+	font-size: var(--text-card-title);
 	font-weight: 600;
 }
 .drop-hint small {
-	font-size: 13px;
+	font-size: var(--text-meta);
 	font-weight: 500;
 	color: var(--accent);
 }

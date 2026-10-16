@@ -77,11 +77,12 @@ function relativeDay(ts?: any, now: any = Date.now()) {
 function eventRelative(c?: any, now: any = Date.now()) {
 	const min = Math.ceil((c.start - now) / 60000);
 	if (min > 90) return `${Math.round(min / 60)}${copy("web.primitives.ec13a671ba0c")}`;
-	return min > 0
-		? `${min}${copy("web.primitives.a63a9dc60e00")}`
-		: now < c.end
-			? copy("web.primitives.055da4d50c7e")
-			: copy("web.primitives.19d65a3644ed");
+	if (min > 0) return `${min}${copy("web.primitives.a63a9dc60e00")}`;
+	// An ended event says nothing; the card fades instead.
+	return eventEnded(c, now) ? "" : copy("web.primitives.055da4d50c7e");
+}
+function eventEnded(c?: any, now: any = Date.now()) {
+	return now >= c.end;
 }
 function eventTimely(c?: any, now: any = Date.now()) {
 	return c.start - now <= 15 * 60000 && now < c.end;
@@ -132,6 +133,7 @@ export {
 	duration,
 	emptyState,
 	esc,
+	eventEnded,
 	eventRelative,
 	eventTimely,
 	highlight,

@@ -39,6 +39,7 @@
 - [Mac 与 iOS 完全原生实现](adr/0027-native-apple-data-layer.md)
 - [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
 - [TypeScript 构建与检查配置](adr/0029-typescript-build-artifacts.md)
+- [已读只靠卡片颜色](adr/0030-read-state-color-only.md)
 
 ## 记录
 

@@ -1,6 +1,6 @@
-Mono24 图标，38 个，从 `src/atoms/icons.js` 的 `Glyphs` 原样导出：24×24 viewBox，stroke-width 1.65，round cap/join，无填充。
+Mono24 图标，64 个，从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出：24×24 viewBox，stroke-width 1.65，round cap/join，无填充。
 
-导出文件的墨色固定为 `ink`（#1d1d1f），因为 `<img>` 无法继承 `currentColor`。在页面中需要随文字变色时，用 `Sill.icon(name, size)` 生成内联 SVG。新增图标时先加到 `Glyphs`，再运行 `node design-system/scripts/gen.cjs design-system .` 并在下表补充用途。
+导出文件的墨色固定为 `ink`（#1d1d1f），因为 `<img>` 无法继承 `currentColor`。在页面中需要随文字变色时，用 `Sill.icon(name, size)` 生成内联 SVG。新增图标时先加到 `Glyphs`，再运行 `node design-system/scripts/generate.ts design-system .` 并在下表补充用途。
 
 ## 导航与查找
 
@@ -74,3 +74,9 @@ Mono24 图标，38 个，从 `src/atoms/icons.js` 的 `Glyphs` 原样导出：24
 | `pause.svg` | 暂停 | 暂停正在播放的媒体。 |
 | `video.svg` | 视频 | 识别视频媒体内容。 |
 | `send.svg` | 发送 | 明确发送用户已准备好的消息。 |
+
+## 尚未写明用途
+
+以下图标已在代码中，用途说明待补。设计手册已规定的含义写在括号里。
+
+`at`、`bell-off`（免打扰）、`chart`、`chat`、`chevron`（导航）、`circle`、`collapse`、`ffwd`、`folder`、`forward`、`gear`（设置）、`glasses`（稍后读）、`globe`、`image`、`keyboard`、`link`、`lock`、`mic`、`monitor`、`pin`、`pull`、`rewind`、`rss`、`target`、`trash`、`upload`。

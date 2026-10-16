@@ -468,7 +468,7 @@ async function recordLayout(page?: any, width?: any) {
 			},
 		);
 		await scenario(
-			"Read state has text and color, stacks open in place and time moves cards to the shelves",
+			"Read state is color only, stacks open in place and time moves cards to the shelves",
 			async (page?: any) => {
 				assert.equal(
 					await card(page, "article-04").evaluate((n?: any) => n.classList.contains("is-read")),
@@ -478,9 +478,10 @@ async function recordLayout(page?: any, width?: any) {
 					await card(page, "article-01").evaluate((n?: any) => n.classList.contains("is-read")),
 					false,
 				);
-				assert.ok(
-					await page.locator(".is-read .read-state").count(),
-					"read state has a non-color indicator",
+				assert.doesNotMatch(
+					await page.locator(".is-read").first().innerText(),
+					/已读/,
+					"read state is the card's color, not a label",
 				);
 				assert.match(await page.locator(".is-read").first().getAttribute("aria-label"), /已读/);
 				assert.equal(

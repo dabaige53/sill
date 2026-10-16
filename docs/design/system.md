@@ -14,10 +14,10 @@ Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`�
 | `design-system/boards/` | 设计画布 33 块画板的本地副本和目录页，`npm run boards` 打开 |
 | `design-system/tokens.json` | 设计变量：颜色（含深色）、字号、间距、圆角、阴影、动效时长与曲线，每项附用途 |
 | `design-system/components/<组件>/` | 30 个组件的说明（README.md）和静态示例（preview.html） |
-| `design-system/components/bundle.js` / `bundle.css` | 示例用的渲染函数与样式，从 `src/` 生成 |
+| `design-system/components/bundle.js` / `bundle.css` | 示例用的渲染函数与样式，从 `apps/web/` 生成 |
 | `design-system/assets/Icons/` | 图标 SVG |
 | `design-system/design-system.json` | 线上版本的索引 |
-| `design-system/scripts/` | 从 `src/` 重新生成上述文件的脚本 |
+| `design-system/scripts/` | 从 `apps/web/` 重新生成上述文件的脚本 |
 
 其中 CardBlocks、StackCard、KeyPoints、ReadEndRing、SourceRow 五个组件是这一版新增的静态示例，直接用设计变量写成，还没有进 bundle。
 
@@ -45,11 +45,11 @@ npm run boards
 
 ## 单一来源
 
-产品实现以 `src/` 为准，`design-system/` 记录规范，并引用同一份实现：
+产品实现以 `apps/web/` 为准，`design-system/` 记录规范，并引用同一份实现：
 
 | 想改什么 | 实现位置 | 规范位置 |
 | --- | --- | --- |
-| 颜色、圆角、阴影、动效变量 | `apps/web/styles/tokens.css` | `design-system/tokens.json`、手册「颜色」「动效」 |
+| 颜色、圆角、字号、阴影、动效变量 | `apps/web/styles/tokens.css` | `design-system/tokens.json`、手册「颜色」「动效」 |
 | 图标 | `apps/web/atoms/icons.ts` 的 `icon(name, size)` | 手册「图标」、画板 13 |
 | 按钮、进度环、勾选项、头像、标签 | `apps/web/atoms/primitives.ts` | 对应组件 README |
 | 卡片结构、叠卡、架子 | `apps/web/cards/templates.ts` | `FeedCard`、`StackCard`、`CardBlocks` 等，画板 21、22 |
@@ -59,7 +59,7 @@ npm run boards
 | 信息流排序、叠卡、收起 | `apps/web/services/feed-policy.ts` | 手册「量大与时间」，画板 25 |
 | 文件导入与去重 | `apps/web/services/importers.ts` | 画板 24、31 |
 
-改了 `src/` 里的变量、图标或组件样式，要同步更新 `design-system/` 里对应的变量或说明，并重新生成图标和 bundle：
+改了 `apps/web/` 里的变量、图标或组件样式，要同步更新 `design-system/` 里对应的变量或说明，并重新生成图标和 bundle：
 
 ```sh
 node design-system/scripts/generate.ts design-system .
@@ -69,7 +69,7 @@ node design-system/scripts/generate.ts design-system .
 
 `apps/web/styles/styles.json` 规定构建顺序：
 
-1. `tokens.css`：颜色、间距、圆角、阴影、动效变量，深色主题。
+1. `tokens.css`：颜色、间距、圆角、字号、阴影、动效变量，深色主题。
 2. `base.css`：页面、文字、基础布局，信息流底部短线。
 3. `controls.css`：按钮、右下角入口和工具、提示条、选择条。
 4. `cards.css`：各类卡片、已读色、叠卡（牌堆）、按压反馈。

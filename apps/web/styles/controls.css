@@ -175,8 +175,8 @@
 #new-count {
 	height: 40px;
 	padding: 0 16px;
-	border-radius: 20px;
-	font-size: 13px;
+	border-radius: var(--pill-radius);
+	font-size: var(--text-meta);
 	font-weight: 500;
 	color: var(--accent);
 	display: inline-flex;
@@ -219,8 +219,8 @@
 #offline {
 	height: 40px;
 	padding: 0 14px;
-	border-radius: 20px;
-	font-size: 13px;
+	border-radius: var(--pill-radius);
+	font-size: var(--text-meta);
 	font-weight: 500;
 	color: var(--alert);
 	display: inline-flex;
@@ -270,10 +270,10 @@
 	height: 28px;
 	margin: 0 8px;
 	padding: 0 8px;
-	border-radius: 14px;
+	border-radius: var(--pill-radius);
 	background: var(--accent-fill);
 	color: #fff;
-	font-size: 13px;
+	font-size: var(--text-meta);
 	font-weight: 600;
 }
 .toolbar-sep {
@@ -296,7 +296,7 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	font-size: 13px;
+	font-size: var(--text-meta);
 }
 #toast[hidden] {
 	display: none;
@@ -327,10 +327,10 @@
 	gap: 6px;
 	min-height: 36px;
 	padding: 0 14px;
-	border-radius: 18px;
+	border-radius: var(--pill-radius);
 	background: var(--card);
 	color: var(--ink);
-	font-size: 13px;
+	font-size: var(--text-meta);
 	white-space: nowrap;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 	transition:
@@ -363,10 +363,10 @@
 	gap: 2px;
 	height: 32px;
 	padding: 0 4px 0 12px;
-	border-radius: 16px;
+	border-radius: var(--pill-radius);
 	background: var(--accent-soft);
 	color: var(--accent-ink);
-	font-size: 13px;
+	font-size: var(--text-meta);
 	font-weight: 500;
 }
 .tag-pill button {
@@ -392,7 +392,7 @@
 	min-height: 30px;
 	padding: 0 12px;
 	border-radius: 8px;
-	font-size: 13px;
+	font-size: var(--text-meta);
 	color: var(--muted);
 	white-space: nowrap;
 }
@@ -405,7 +405,7 @@
 .toggle {
 	width: 51px;
 	height: 31px;
-	border-radius: 16px;
+	border-radius: var(--pill-radius);
 	background: var(--toggle-off);
 	position: relative;
 	flex: none;
@@ -433,8 +433,8 @@
 	background: transparent;
 	min-height: 44px;
 	padding: 8px 12px;
-	font-size: 13px;
-	border-radius: 12px;
+	font-size: var(--text-meta);
+	border-radius: var(--control-radius);
 	color: var(--ink);
 	transition: background var(--fast);
 }
@@ -448,9 +448,9 @@
 	gap: 6px;
 	background: var(--accent-fill);
 	color: #fff;
-	border-radius: 22px;
+	border-radius: var(--pill-radius);
 	padding: 0 20px;
-	font-size: 14px;
+	font-size: var(--text-control);
 	font-weight: 500;
 	min-height: 44px;
 	transition:
@@ -465,7 +465,7 @@
 	transform: scale(0.98);
 }
 .solid-button small {
-	font-size: 12px;
+	font-size: var(--text-caption);
 	opacity: 1;
 	font-family: var(--rounded);
 }
@@ -476,9 +476,9 @@
 	gap: 6px;
 	background: var(--surface);
 	color: var(--ink);
-	border-radius: 22px;
+	border-radius: var(--pill-radius);
 	padding: 0 20px;
-	font-size: 14px;
+	font-size: var(--text-control);
 	font-weight: 500;
 	min-height: 44px;
 	transition: background var(--fast);
