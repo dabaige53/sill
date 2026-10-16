@@ -9,7 +9,7 @@
 | 登录 | 官方 SDK PKCE challenge/verifier，真实 ES256 签名验签、HttpOnly verifier 绑定的固定回调，Chromium 登录交互 | 真实邮箱收信、真实 Supabase 用户/GoTrue、线上回调 |
 | 内容 | 浏览器→HTTP→官方 SDK→测试 transport→实际 PGlite SQL；独立 Docker PostgreSQL 多会话 CAS/幂等/RLS；创建/读取/编辑/删除 HTTP 测试 | 真实 PostgREST/GraphQL、真实 Supabase 库写入、公开后端部署 |
 | 权限 | 非匿名、issuer/audience/expiry、跨 owner、同 owner 不同 client/scope/resource、裸表 ACL、未知客户端拒绝 | 已有生产角色/函数旁路审计、真实 OAuth client/同意/撤销 |
-| MCP | 仓库只有 legacy `server/mcp.mjs` 的 qg_* 工具，V1 七工具是 `docs/examples/v1/mcp-tools.json` 设计契约；基线 /mcp=503；后续新增官方 SDK 运输层，默认仍关闭 | 未读取旧27文件，未整合另一任务未推送七工具，未做 Codex 真实调用 |
+| MCP | 仓库只有 legacy `server/mcp.mjs` 的 qg_* 工具，V1 七工具是 `contracts/design/mcp-tools.json` 设计契约；基线 /mcp=503；后续新增官方 SDK 运输层，默认仍关闭 | 未读取旧27文件，未整合另一任务未推送七工具，未做 Codex 真实调用 |
 
 上述本地 HTTP/浏览器测试属于集成测试，不是线上 Supabase 端到端。最终验收必须是：用户真实登录 → Codex 用自己的已授权 MCP OAuth 身份创建一条内容 → 网页刷新看到同一 ID/正文/版本 → Codex 修改后网页看到新版本；再验证无权客户端被拒绝。
 

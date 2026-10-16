@@ -5,7 +5,10 @@
   "description": "Local card workspace with shared UI and agent operations",
   "scripts": {
     "build": "python3 scripts/build.py",
-    "test": "npm run files:check && npm run build && npm run check && npm run test:local",
+    "test": "npm run files:check && npm run build && npm run check && npm run test:local && npm run test:contracts",
+    "contracts:generate": "node scripts/export-contracts.ts && node scripts/export-design.ts",
+    "contracts:check": "node scripts/export-contracts.ts --check && node scripts/export-design.ts --check && node scripts/check-contracts.ts",
+    "test:contracts": "npm run contracts:check && node --test tests/contracts/*.test.ts",
     "test:browser": "node tests/browser.cjs",
     "start": "node server/local.mjs",
     "check": "node scripts/check.mjs",
@@ -49,13 +52,18 @@
     "files:check": "node scripts/check-files.mjs"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@electric-sql/pglite": "0.5.9",
     "@modelcontextprotocol/ext-apps": "1.7.5",
     "@openai/mcp-extensions": "0.1.0",
+    "@types/node": "26.6.5",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "axe-core": "4.14.0",
     "esbuild": "0.28.2",
     "jsdom": "26.1.0",
     "playwright": "1.62.1",
+    "typescript": "7.0.2",
     "wrangler": "4.151.0"
   },
   "type": "module",

@@ -1,5 +1,5 @@
 import {createClient} from '@supabase/supabase-js';
-import {z} from 'zod';
+import {z} from 'zod/v4';
 import {loginPage} from './login-page.mjs';
 import {createBrowserSessions,readCookie,accessName as cookieName} from './browser-session.mjs';
 import {authenticateSupabase} from '../supabase-auth.mjs';

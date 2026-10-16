@@ -21,7 +21,7 @@ if(command==='help'){
   if(!response.ok)throw new Error(value.error||'操作失败');
   let result=value;
   if(command==='list'){
-    const query=args.join(' ').toLowerCase();result={revision:value.revision,cards:(value.state?.cards||[]).filter(card=>!query||[card.title,card.summary,card.source,...card.tags].join(' ').toLowerCase().includes(query)).map(card=>({id:card.id,type:card.type,title:card.title,url:card.url,state:value.state.items[card.id]||{}}))};
+    const query=args.join(' ').toLowerCase();result={revision:value.revision,cards:(value.state?.cards||[]).filter(card=>!query||[card.title,card.summary,...(card.sources||[]).map(source=>source.name),...(card.tags||[])].join(' ').toLowerCase().includes(query)).map(card=>({id:card.id,type:card.type,title:card.title,url:card.url,state:value.state.items[card.id]||{}}))};
   }else if(command==='get'){
     const card=value.state?.cards.find(card=>card.id===args[0]);if(!card)throw new Error('卡片不存在');result={revision:value.revision,card,state:value.state.items[card.id]||{}};
   }else if(command==='apply')result={ok:true,revision:value.revision,count:value.state.cards.length};

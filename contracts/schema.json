@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 10000
+    },
+    "meta": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "form": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "image",
+        "quote",
+        "compact",
+        "data"
+      ]
+    },
+    "image": {
+      "type": "string",
+      "enum": [
+        "architecture",
+        "coast",
+        "mountain",
+        "botanical"
+      ]
+    },
+    "tags": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 100
+      }
+    },
+    "body": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 50000
+      }
+    },
+    "url": {
+      "type": "string",
+      "pattern": "^https?:\\/\\/"
+    },
+    "sources": {
+      "maxItems": 10,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "points": {
+      "maxItems": 3,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "why": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "basis": {
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "additionalProperties": {}
+    },
+    "sender": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "location": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "meeting": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?:\\/\\/"
+        },
+        "code": {
+          "type": "string",
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "name",
+        "url"
+      ],
+      "additionalProperties": {}
+    },
+    "media": {
+      "type": "string",
+      "enum": [
+        "video",
+        "podcast"
+      ]
+    },
+    "duration": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 86400
+    },
+    "files": {
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "meta": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "time": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8640000000000000
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "photos": {
+      "maxItems": 50,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "architecture",
+          "coast",
+          "mountain",
+          "botanical"
+        ]
+      }
+    },
+    "attachment": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "tasks": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "done": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "start": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8640000000000000
+    },
+    "end": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8640000000000000
+    },
+    "due": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8640000000000000
+    },
+    "time": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8640000000000000
+    },
+    "people": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 100
+      }
+    },
+    "related": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+      }
+    },
+    "priority": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title"
+  ],
+  "additionalProperties": {},
+  "title": "Card",
+  "x-contract-version": "2.0.0",
+  "x-status": "implemented"
+}

@@ -10,10 +10,10 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| [openapi.json](../examples/v1/openapi.json) | OpenAPI 3.1：8 个 HTTP 操作，含无敏感数据 health；请求、响应及统一错误 schemas |
-| [mcp-tools.json](../examples/v1/mcp-tools.json) | 7 个精选工具的独立 input/output JSON Schema、operationId 与权限映射；未注册 |
-| [fixtures.json](../examples/v1/fixtures.json) | 11 个合成、相互独立的请求/响应：CRUD、投递、ack、结果、冲突；不是实时执行记录 |
-| [SillClient.swift](../examples/v1/SillClient.swift) | Foundation/Codable/async-await 的小型原生调用示例，不是完整 App |
+| [openapi.json](../../contracts/design/openapi.json) | OpenAPI 3.1：8 个 HTTP 操作，含无敏感数据 health；请求、响应及统一错误 schemas |
+| [mcp-tools.json](../../contracts/design/mcp-tools.json) | 7 个精选工具的独立 input/output JSON Schema、operationId 与权限映射；未注册 |
+| [fixtures.json](../../contracts/design/fixtures.json) | 11 个合成、相互独立的请求/响应：CRUD、投递、ack、结果、冲突；不是实时执行记录 |
+| [SillClient.swift](../../contracts/design/SillClient.swift) | Foundation/Codable/async-await 的小型原生调用示例，不是完整 App |
 | [check-v1-contracts.py](../../scripts/check-v1-contracts.py) | 离线检查 schema、映射、样例及反例，或只打印样例；不联网、不安装 |
 | [smoke-v1-health.mjs](../../scripts/smoke-v1-health.mjs) | 只读 GET，限制字面 loopback IP、拒绝重定向、无凭据；不启动服务 |
 

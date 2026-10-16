@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {spawnSync} from 'node:child_process';
+import {validateDesign} from '../scripts/check-contracts.ts';
 import {PGlite} from '@electric-sql/pglite';
 const A='11111111-1111-4111-8111-111111111111', B='22222222-2222-4222-8222-222222222222';
 test('private V1 RPC local transactional preparation',async t=>{
@@ -106,13 +106,8 @@ test('private V1 RPC local transactional preparation',async t=>{
   assert.equal((await db.query("select count(*)::int n from pg_tables where schemaname='public'")).rows[0].n,0);
  });
  await t.test('RPC success projections validate against checked-in V1 schemas',async()=>{
-  const root=JSON.parse(await readFile(new URL('../docs/examples/v1/openapi.json',import.meta.url),'utf8'));
-  const r=spawnSync('python3',['-c',`import json,sys,jsonschema
-x=json.load(sys.stdin)
-for item in x['outputs']:
- jsonschema.Draft202012Validator({'$ref':'#/components/schemas/'+item['schema'],'components':x['root']['components']},format_checker=jsonschema.FormatChecker()).validate(item['value'])
-print(len(x['outputs']))`],{input:JSON.stringify({root,outputs}),encoding:'utf8'});
-  assert.equal(r.status,0,r.stderr);assert.ok(Number(r.stdout)>10);
+  for(const output of outputs)validateDesign(output.schema.replace('ContentPage','CardPage').replace('Content','Card'),output.value);
+  assert.ok(outputs.length>10);
  });
  } finally {await db.close();}
 });

@@ -1,20 +1,11 @@
 import {Server} from '@modelcontextprotocol/sdk/server/index.js';
 import {WebStandardStreamableHTTPServerTransport} from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import {CallToolRequestSchema,ListToolsRequestSchema,ListResourcesRequestSchema,ReadResourceRequestSchema} from '@modelcontextprotocol/sdk/types.js';
-import {z} from 'zod';
-import contract from '../../docs/examples/v1/mcp-tools.json' with {type:'json'};
+import {z} from 'zod/v4';
+import contract from '../../contracts/design/mcp-tools.json' with {type:'json'};
 import {authenticateSupabase} from '../supabase-auth.mjs';
 import {SupabaseRepository} from '../supabase-repository.mjs';
-import {id,revision,create,update,event} from './schemas.mjs';
-const key=z.string().regex(/^[\w-]{8,128}$/);
-const inputs={
- sill_listContents:z.object({cursor:z.string().min(1).max(2048).optional(),since:z.string().min(1).max(2048).optional(),limit:z.number().int().min(1).max(100).optional()}).strict(),
- sill_getContent:z.object({id}).strict(),sill_getEvent:z.object({id}).strict(),
- sill_createContent:z.object({idempotency_key:key,body:create}).strict(),
- sill_updateContent:z.object({id,idempotency_key:key,body:update}).strict(),
- sill_deleteContent:z.object({id,idempotency_key:key,body:z.object({expectedRevision:revision}).strict()}).strict(),
- sill_submitEvent:z.object({idempotency_key:key,body:event}).strict(),
-};
+import {toolInputs as inputs} from '../../contracts/cloud.ts';
 const scopes={sill_listContents:'content:read',sill_getContent:'content:read',sill_createContent:'content:write',sill_updateContent:'content:write',sill_deleteContent:'content:delete',sill_submitEvent:'event:submit',sill_getEvent:'event:read'};
 const safeError=error=>{
  const raw=error instanceof z.ZodError?'invalid_request':({event_terminal_conflict:'revision_conflict',idempotency_expired:'idempotency_conflict'}[error.code]||error.code);

@@ -14,7 +14,7 @@
 | Mac 原生包 | `npm run build:macos` | Swift 源码、本地服务、依赖 → `dist/macos/Sill.app`；限制见 [原生说明](../native/macos/README.md) |
 | 本地卡片 CLI | `node scripts/qg.mjs capabilities` | 本地服务协议 → 能力说明；写入用法见 [本地操作](../docs/guides/local-operations.md) |
 | 语法与配置检查 | `npm run check` | JS、HTML 脚本及公开配置示例 → 终端结果 |
-| V1 设计约定检查 | `scripts/check-v1-contracts.py` | `docs/examples/v1/` → 准备材料一致性；不证明 API 已实现 |
+| V1 设计约定检查 | `scripts/check-v1-contracts.py` | `contracts/design/` → 准备材料一致性；不证明 API 已实现 |
 | V1 健康检查 | `scripts/smoke-v1-health.mjs` | 显式指定目标；使用前阅读 [V1 交接包](../docs/guides/handoff.md) 的参数与边界 |
 | WASM 样例 | [wasm/README.md](wasm/README.md) | `.wat` → 固定样例 `.wasm.b64`；不接收任意脚本 |
 

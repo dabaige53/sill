@@ -3,7 +3,7 @@
   "info": {
     "title": "Sill V1 contract draft — NOT IMPLEMENTED",
     "version": "sill-v1-draft1",
-    "description": "Design only. Current /api/local API is unchanged. See ../../V1-HANDOFF.md. No server exists at the reserved example URL."
+    "description": "Design only. Current /api/local API is unchanged. See ../../docs/guides/handoff.md. No server exists at the reserved example URL."
   },
   "servers": [
     {
@@ -54,7 +54,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentPage"
+                  "$ref": "#/components/schemas/CardPage"
                 }
               }
             }
@@ -111,7 +111,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Content"
+                  "$ref": "#/components/schemas/Card"
                 }
               }
             }
@@ -146,7 +146,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateContent"
+                "$ref": "#/components/schemas/CreateCard"
               }
             }
           }
@@ -174,7 +174,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Content"
+                  "$ref": "#/components/schemas/Card"
                 }
               }
             }
@@ -200,7 +200,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Content"
+                  "$ref": "#/components/schemas/Card"
                 }
               }
             }
@@ -235,7 +235,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateContent"
+                "$ref": "#/components/schemas/UpdateCard"
               }
             }
           }
@@ -251,7 +251,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Content"
+                  "$ref": "#/components/schemas/Card"
                 }
               }
             }
@@ -286,7 +286,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DeleteContent"
+                "$ref": "#/components/schemas/DeleteCard"
               }
             }
           }
@@ -400,24 +400,16 @@
       },
       "Revision": {
         "type": "integer",
-        "minimum": 0,
+        "minimum": 1,
         "maximum": 9007199254740991
       },
-      "CreateContent": {
+      "CreateCard": {
         "type": "object",
         "properties": {
           "title": {
             "type": "string",
             "minLength": 1,
             "maxLength": 1000
-          },
-          "body": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "maxLength": 50000
-            },
-            "maxItems": 100
           },
           "type": {
             "type": "string",
@@ -429,17 +421,23 @@
               "event",
               "reminder",
               "media",
-              "insight",
               "digest",
               "suggestion",
               "photo",
               "file"
             ]
           },
+          "body": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50000
+            }
+          },
           "url": {
             "type": "string",
-            "format": "uri",
-            "pattern": "^https?://"
+            "pattern": "^https?:\\/\\/"
           },
           "state": {
             "type": "object",
@@ -454,7 +452,6 @@
                 "type": "boolean"
               }
             },
-            "required": [],
             "additionalProperties": false
           }
         },
@@ -472,14 +469,6 @@
             "minLength": 1,
             "maxLength": 1000
           },
-          "body": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "maxLength": 50000
-            },
-            "maxItems": 100
-          },
           "type": {
             "type": "string",
             "enum": [
@@ -490,17 +479,23 @@
               "event",
               "reminder",
               "media",
-              "insight",
               "digest",
               "suggestion",
               "photo",
               "file"
             ]
           },
+          "body": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50000
+            }
+          },
           "url": {
             "type": "string",
-            "format": "uri",
-            "pattern": "^https?://"
+            "pattern": "^https?:\\/\\/"
           },
           "state": {
             "type": "object",
@@ -515,13 +510,10 @@
                 "type": "boolean"
               }
             },
-            "required": [],
             "additionalProperties": false
           }
         },
-        "required": [],
-        "additionalProperties": false,
-        "minProperties": 1
+        "additionalProperties": false
       },
       "ResultMetadata": {
         "type": "object",
@@ -550,44 +542,107 @@
         ],
         "additionalProperties": false
       },
-      "UpdateContent": {
+      "UpdateCard": {
         "type": "object",
         "properties": {
           "expectedRevision": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "maximum": 9007199254740991
           },
           "changes": {
-            "$ref": "#/components/schemas/Changes"
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "article",
+                  "mail",
+                  "note",
+                  "task",
+                  "event",
+                  "reminder",
+                  "media",
+                  "digest",
+                  "suggestion",
+                  "photo",
+                  "file"
+                ]
+              },
+              "body": {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 50000
+                }
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              },
+              "state": {
+                "type": "object",
+                "properties": {
+                  "read": {
+                    "type": "boolean"
+                  },
+                  "done": {
+                    "type": "boolean"
+                  },
+                  "archived": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
           },
           "metadata": {
-            "$ref": "#/components/schemas/ResultMetadata"
+            "type": "object",
+            "properties": {
+              "event_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "succeeded",
+                  "failed",
+                  "unknown"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "event_id",
+              "outcome",
+              "summary"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
           "expectedRevision"
         ],
-        "additionalProperties": false,
-        "anyOf": [
-          {
-            "required": [
-              "changes"
-            ]
-          },
-          {
-            "required": [
-              "metadata"
-            ]
-          }
-        ]
+        "additionalProperties": false
       },
-      "DeleteContent": {
+      "DeleteCard": {
         "type": "object",
         "properties": {
           "expectedRevision": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "maximum": 9007199254740991
           }
         },
@@ -596,7 +651,7 @@
         ],
         "additionalProperties": false
       },
-      "Content": {
+      "Card": {
         "type": "object",
         "properties": {
           "id": {
@@ -608,35 +663,22 @@
             "minLength": 1,
             "maxLength": 1000
           },
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
           "body": {
+            "maxItems": 100,
             "type": "array",
             "items": {
               "type": "string",
               "maxLength": 50000
-            },
-            "maxItems": 100
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "article",
-              "mail",
-              "note",
-              "task",
-              "event",
-              "reminder",
-              "media",
-              "insight",
-              "digest",
-              "suggestion",
-              "photo",
-              "file"
-            ]
+            }
           },
           "url": {
             "type": "string",
-            "format": "uri",
-            "pattern": "^https?://"
+            "pattern": "^https?:\\/\\/"
           },
           "state": {
             "type": "object",
@@ -651,21 +693,22 @@
                 "type": "boolean"
               }
             },
-            "required": [],
             "additionalProperties": false
           },
           "revision": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "maximum": 9007199254740991
           },
           "created_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-]\\d{2}:\\d{2})))$"
           },
           "updated_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-]\\d{2}:\\d{2})))$"
           },
           "deleted": {
             "type": "boolean"
@@ -682,27 +725,108 @@
           "updated_at",
           "deleted"
         ],
-        "additionalProperties": false
+        "additionalProperties": {}
       },
-      "ContentPage": {
+      "CardPage": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Content"
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "type": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "body": {
+                  "maxItems": 100,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 50000
+                  }
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
+                },
+                "state": {
+                  "type": "object",
+                  "properties": {
+                    "read": {
+                      "type": "boolean"
+                    },
+                    "done": {
+                      "type": "boolean"
+                    },
+                    "archived": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-]\\d{2}:\\d{2})))$"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-]\\d{2}:\\d{2})))$"
+                },
+                "deleted": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "type",
+                "body",
+                "state",
+                "revision",
+                "created_at",
+                "updated_at",
+                "deleted"
+              ],
+              "additionalProperties": {}
             }
           },
           "next_cursor": {
-            "type": [
-              "string",
-              "null"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "sync_cursor": {
-            "type": [
-              "string",
-              "null"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ]
           }
         },
@@ -713,25 +837,25 @@
         ],
         "additionalProperties": false
       },
-      "ListContents": {
+      "ListCards": {
         "type": "object",
         "properties": {
           "cursor": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 2048
           },
           "since": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 2048
           },
           "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 100,
-            "default": 50
+            "maximum": 100
           }
         },
-        "required": [],
         "additionalProperties": false
       },
       "SubmitEvent": {
@@ -747,7 +871,7 @@
           },
           "card_version": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "maximum": 9007199254740991
           },
           "action": {
@@ -784,7 +908,7 @@
           },
           "card_version": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 1,
             "maximum": 9007199254740991
           },
           "action": {
@@ -818,19 +942,25 @@
           },
           "created_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-]\\d{2}:\\d{2})))$"
           },
           "updated_at": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-]\\d{2}:\\d{2})))$"
           },
           "result_revision": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 0,
-            "maximum": 9007199254740991
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "summary": {
             "type": "string",
@@ -881,12 +1011,13 @@
               },
               "current_revision": {
                 "type": "integer",
-                "minimum": 0,
+                "minimum": 1,
                 "maximum": 9007199254740991
               },
               "retry_after_seconds": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "maximum": 9007199254740991
               }
             },
             "required": [
@@ -907,15 +1038,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "ready"
-            ]
+            "const": "ready"
           },
           "contract": {
             "type": "string",
-            "enum": [
-              "sill-v1-draft1"
-            ]
+            "const": "sill-v1-draft1"
           }
         },
         "required": [

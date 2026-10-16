@@ -1,5 +1,7 @@
 # 文档目录
 
+- [卡片来源字段使用第二版数据约定](adr/0028-card-contract-source-migration.md)
+
 更新：2026-10-16。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
@@ -105,4 +107,4 @@
 - [测试目录](../tests/README.md)
 - [Mac 原生说明](../native/macos/README.md)
 - [PR 模板](../.github/pull_request_template.md)与[本次正文](../pr.md)
-- [接口准备示例](examples/v1/)：迁移批次 2 前暂留原路径，不表示新增 API 已实现。
+- [接口准备示例](../contracts/design/)：迁移批次 2 前暂留原路径，不表示新增 API 已实现。

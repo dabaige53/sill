@@ -7,7 +7,7 @@ struct ReadingState: Codable, Sendable {
     var done: Bool?
     var archived: Bool?
 }
-struct Content: Codable, Sendable {
+struct Card: Codable, Sendable {
     let id: String
     let title: String
     let type: String
@@ -19,12 +19,12 @@ struct Content: Codable, Sendable {
     let deleted: Bool
     let url: String?
 }
-struct ContentPage: Codable, Sendable {
-    let items: [Content]
+struct CardPage: Codable, Sendable {
+    let items: [Card]
     let next_cursor: String?
     let sync_cursor: String?
 }
-struct CreateContent: Encodable, Sendable {
+struct CreateCard: Encodable, Sendable {
     let title: String
     let type: String
     let body: [String]
@@ -39,12 +39,12 @@ struct ResultMetadata: Encodable, Sendable {
     let outcome: String
     let summary: String
 }
-struct UpdateContent: Encodable, Sendable {
+struct UpdateCard: Encodable, Sendable {
     let expectedRevision: Int64
     var changes: Changes? = nil
     var metadata: ResultMetadata? = nil
 }
-struct DeleteContent: Encodable { let expectedRevision: Int64 }
+struct DeleteCard: Encodable { let expectedRevision: Int64 }
 struct SubmitEvent: Encodable, Sendable {
     let event_id: String
     let card_id: String
@@ -130,21 +130,21 @@ actor SillClient {
         }
         return try JSONDecoder().decode(T.self, from: data)
     }
-    func list(cursor: String? = nil, since: String? = nil) async throws -> ContentPage {
+    func list(cursor: String? = nil, since: String? = nil) async throws -> CardPage {
         var query = [URLQueryItem(name: "limit", value: "50")]
         if let cursor { query.append(URLQueryItem(name: "cursor", value: cursor)) }
         if let since { query.append(URLQueryItem(name: "since", value: since)) }
         return try await request("contents", query: query)
     }
     func get(id: String) async throws -> Content { try await request(idPath("contents", id)) }
-    func create(_ body: CreateContent, key: String) async throws -> Content {
+    func create(_ body: CreateCard, key: String) async throws -> Content {
         try await request("contents", method: "POST", body: JSONEncoder().encode(body), key: key)
     }
-    func update(id: String, body: UpdateContent, key: String) async throws -> Content {
+    func update(id: String, body: UpdateCard, key: String) async throws -> Content {
         try await request(idPath("contents", id), method: "PATCH", body: JSONEncoder().encode(body), key: key)
     }
     func delete(id: String, revision: Int64, key: String) async throws -> Content {
-        try await request(idPath("contents", id), method: "DELETE", body: JSONEncoder().encode(DeleteContent(expectedRevision: revision)), key: key)
+        try await request(idPath("contents", id), method: "DELETE", body: JSONEncoder().encode(DeleteCard(expectedRevision: revision)), key: key)
     }
     func submit(_ body: SubmitEvent, key: String) async throws -> DeliveryEvent {
         try await request("events", method: "POST", body: JSONEncoder().encode(body), key: key)
@@ -154,7 +154,7 @@ actor SillClient {
 // UI usage (not executed):
 // let baseline = try await client.get(id: selectedID)
 // let saved = try await client.update(id: baseline.id,
-//     body: UpdateContent(expectedRevision: baseline.revision, changes: Changes(title: draftTitle)),
+//     body: UpdateCard(expectedRevision: baseline.revision, changes: Changes(title: draftTitle)),
 //     key: persistedUserActionKey)
 // Keep baseline + draft + key until acknowledged. On 409: fetch, compare and let user merge.
 // A cancelled Task/network timeout does not prove a write was rolled back; never auto-retry a new key.
