@@ -1,6 +1,6 @@
 # 根目录 DESIGN.md 作为设计入口
 
-2026-10-16，用户已确认，已实施。
+2026-10-16，用户已确认，已实施。改动顺序已由 [ADR 0032](0032-design-online-first.md) 调整为先改线上。
 
 根目录新增 `DESIGN.md`，与 `AGENTS.md` 并列。它说明设计依据的位置、改动顺序、禁止事项，以及 Web 与 macOS 保持一致的规则。规则正文仍在 `design-system/README.md`，`DESIGN.md` 不复制手册内容。
 

@@ -41,6 +41,7 @@
 - [TypeScript 构建与检查配置](adr/0029-typescript-build-artifacts.md)
 - [已读只靠卡片颜色](adr/0030-read-state-color-only.md)
 - [根目录 DESIGN.md 作为设计入口](adr/0031-design-md-entry.md)
+- [设计改动先改线上，再同步线下](adr/0032-design-online-first.md)
 
 ## 记录
 

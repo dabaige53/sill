@@ -43,7 +43,7 @@ npm run boards
 
 然后在浏览器打开 `http://127.0.0.1:4310/`。标「可交互」的四块原型（卡片积木、桌面交互、手机交互、弹出动效）可以直接点、滑。不能直接双击打开 HTML 文件：原型的运行脚本 `support.js` 要读取画板文件本身，浏览器不允许本地文件这样读。
 
-这个目录是画板的来源。视觉定稿或交互规则变了，先改这里的画板，再发布到线上设计画布，顺序见 [设计约束](../../DESIGN.md)。不要在线上直接改画板。
+这个目录是线上设计画布的副本。视觉定稿或交互规则变了，先在线上设计画布改画板，再把变化的画板同步到这里，顺序见 [设计约束](../../DESIGN.md)。
 
 ## 单一来源
 
@@ -61,7 +61,7 @@ npm run boards
 | 信息流排序、叠卡、收起 | `apps/web/services/feed-policy.ts` | 手册「量大与时间」，画板 25 |
 | 文件导入与去重 | `apps/web/services/importers.ts` | 画板 24、31 |
 
-改了 `apps/web/` 里的变量、图标或组件样式，要同步更新 `design-system/` 里对应的变量或说明，并重新生成图标和 bundle：
+改了 `apps/web/` 里的变量、图标或组件样式：变量和说明先在线上 Design System 改，再同步回 `design-system/`；然后重新生成图标和 bundle，并发布到线上：
 
 ```sh
 node design-system/scripts/generate.ts design-system .

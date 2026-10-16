@@ -14,18 +14,19 @@
 | 定稿画板 | `design-system/boards/`，运行 `npm run boards` 后打开 http://127.0.0.1:4310/ |
 | 线上版本 | [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)、[Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) |
 
-- 仓库是唯一来源。线上版本只从仓库同步过去，不在线上直接改规则。
+- 线上先改，线下后同步。设计规则、组件说明、变量和画板先在线上 Design System 和设计画布里改，再同步回仓库的 `design-system/`。线上和仓库不一致时，以线上为准。
+- 组件包（`bundle.css`、`bundle.js`）和图标由仓库代码生成，生成后再发布到线上。
 - 手册和代码不一致时，先对照画板和实际页面，再在同一个 PR 里改掉错的一方。用户确认的新决定写入手册，必要时补 ADR。
 
 ## 改动顺序
 
-1. 读手册对应的一节和相关画板。交互改动先看可交互原型（桌面交互、手机交互、弹出动效、卡片积木）。
-2. 改代码。数值有对应变量时用变量：颜色、圆角、字号（`--text-<样式名>`）、阴影、动效时长。没有对应变量的新数值，先判断它是不是一级新规则；是就加进 `tokens.json` 和 `tokens.css`，不是就改用已有的一级。
-3. 改手册。规则、数值或交互变了，同一个 PR 里更新手册和相关组件说明。
-4. 重新生成组件包和图标：`node design-system/scripts/generate.ts design-system .`。
-5. 检查：`npm test`、`node tests/e2e/browser.ts`；在浏览器里看浅色、深色、手机宽度和减少动态效果。
-6. 改画板：视觉定稿或交互规则变了，同一个 PR 里更新 `design-system/boards/` 中受影响的画板，包括可交互原型和退出交互表。交互规则包括浮层位置、反馈时长、选择、拖动、刷新、打开和关闭。只改代码实现、规则不变时不改画板。
-7. 同步线上：合并后把变化的手册、变量、组件说明、组件包和图标发布到线上 Design System，把变化的画板发布到线上设计画布。没有同步时，在 PR 的 Merge Danger 里写明。
+1. 读线上手册对应的一节和相关画板。交互改动先看可交互原型（桌面交互、手机交互、弹出动效、卡片积木）。
+2. 先改线上：规则、数值或交互要变时，先在线上 Design System 改手册和组件说明，在线上设计画布改受影响的画板，包括可交互原型和退出交互表。交互规则包括浮层位置、反馈时长、选择、拖动、刷新、打开和关闭。只改代码实现、规则不变时跳过这一步。
+3. 同步线下：读取线上变化的文件，覆盖到仓库对应路径：Design System 的 `project/<路径>` 对应 `design-system/<路径>`，设计画布的 `project/<画板>` 对应 `design-system/boards/<画板>`。画板尺寸变了，同时更新 `design-system/boards/canvas.json` 和 `index.html`。
+4. 改代码。数值有对应变量时用变量：颜色、圆角、字号（`--text-<样式名>`）、阴影、动效时长。没有对应变量的新数值，先判断它是不是一级新规则；是就回到第 2 步，在线上加进变量，再同步到 `tokens.json` 和 `tokens.css`；不是就改用已有的一级。
+5. 重新生成组件包和图标：`node design-system/scripts/generate.ts design-system .`，再把变化的组件包和图标发布到线上 Design System。
+6. 检查：`npm test`、`node tests/e2e/browser.ts`；在浏览器里看浅色、深色、手机宽度和减少动态效果。
+7. 实现中发现规则要调整时，回到第 2 步先改线上，不只改仓库。仓库里有线上没有的设计改动时，在 PR 的 Merge Danger 里写明。
 
 ## 不能做的事
 
