@@ -14,11 +14,19 @@
 | 找测试命令与历史报告 | [测试目录](../tests/README.md) |
 | 构建或检查 Mac 原生应用 | [原生说明](../native/macos/README.md) |
 
+## 已确认、待迁移的新规范
+
+- [文件管理规范（新）](guides/file-management.md)：目录、文档有效性、命名、证据、产物与迁移批次
+- [代码规范](guides/code-standards.md)：Web、Mac、iOS、服务端与契约的通用代码规则
+- [术语表](../GLOSSARY.md)：卡片、卡片类型、摘要、建议、助手、来源、来源类型
+
+迁移完成前，现有文件位置仍以 [文件管理规范](FILE-MANAGEMENT.md) 为准。
+
 ## 工程技能配置
 
 - [事项管理](agents/issue-tracker.md)：GitHub Issues，目标仓库 `dabaige53/sill`
 - [事项分类标签](agents/triage-labels.md)：五个默认分类角色及其仓库标签
-- [领域文档](agents/domain.md)：术语表和架构决策的读取规则
+- [领域文档](agents/domain.md)：术语表和架构决策的读取规则；术语表见 [GLOSSARY](../GLOSSARY.md)
 - [PR 模板](../.github/pull_request_template.md)：后续 PR 的固定正文结构
 - [本次 PR 正文](../pr.md)：文件体系与工程技能配置的变更说明
 
@@ -30,7 +38,7 @@
 
 - [产品需求](PRODUCT-REQUIREMENTS.md)
 - [交互规范](INTERACTION-SPEC.md)
-- [设计决策](DESIGN-DECISIONS.md)
+- [设计决策](DESIGN-DECISIONS.md)；ADR-22 起的新决策单独存放，如 [0022 文档位置表示是否有效](adr/0022-docs-location-shows-validity.md)、[0023 三端代码的顶层结构](adr/0023-three-clients-repo-layout.md)、[0024 contracts 中的 zod 定义是契约唯一来源](adr/0024-contracts-zod-as-source.md)、[0025 全仓库只有一个产品版本号](adr/0025-single-product-version.md)、[0026 只用 TypeScript、Swift、SQL](adr/0026-three-languages.md)、[0027 Mac 与 iOS 完全原生实现](adr/0027-native-apple-data-layer.md)
 - [设计系统映射](DESIGN-SYSTEM.md)；具体组件和画板见 [设计系统](../design-system/README.md)
 - [卡片体验优化 V0.3](CARD-REFINEMENT.md)
 - [V0.5 设计修订](DESIGN-REVIEW-V05.md)
