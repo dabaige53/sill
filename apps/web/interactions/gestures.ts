@@ -136,6 +136,8 @@ class Gestures {
 				start = null;
 				if (
 					busy ||
+					this.app.selected.size > 0 ||
+					this.app.drag?.menu?.open ||
 					scrollY > 0 ||
 					this.app.dialog.open ||
 					e.touches.length > 1 ||
@@ -183,6 +185,8 @@ class Gestures {
 			(e?: any) => {
 				if (
 					busy ||
+					this.app.selected.size > 0 ||
+					this.app.drag?.menu?.open ||
 					this.app.dialog.open ||
 					scrollY > 0 ||
 					e.deltaY >= 0 ||

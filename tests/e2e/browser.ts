@@ -106,7 +106,7 @@ async function recordLayout(page?: any, width?: any) {
 		const openCard = (page?: any, id?: any) => card(page, id).locator(".card-title-button").click();
 		const feedUnopened = async (page?: any, id?: any) => {
 			assert.equal(
-				await page.locator("dialog").evaluate((n?: any) => n.open),
+				await page.locator("#modal").evaluate((n?: any) => n.open),
 				false,
 				"inline action opened a dialog",
 			);
@@ -157,16 +157,16 @@ async function recordLayout(page?: any, width?: any) {
 				await openCard(page, "article-01");
 				assert.equal((await state(page, "article-01")).seen, true);
 				assert.equal((await state(page, "article-01")).read, false);
-				await page.locator('dialog [data-action="bookmark"]').click();
+				await page.locator('#modal [data-action="bookmark"]').click();
 				assert.equal((await state(page, "article-01")).bookmarked, true);
 				assert.equal(
 					await page.locator("#toast").isVisible(),
 					false,
 					"a single flag needs no toast",
 				);
-				await page.locator('dialog [data-action="bookmark"]').click();
+				await page.locator('#modal [data-action="bookmark"]').click();
 				assert.equal((await state(page, "article-01")).bookmarked, false);
-				await page.locator('dialog [data-action="reader"]').click();
+				await page.locator('#modal [data-action="reader"]').click();
 				await page.evaluate(
 					() =>
 						new Promise((resolve?: any) =>
@@ -223,7 +223,7 @@ async function recordLayout(page?: any, width?: any) {
 				await page.clock.install();
 				await action(page, "preview", "reminder-01");
 				await page
-					.locator("dialog")
+					.locator("#modal")
 					.getByRole("button", { name: "延后十分钟", exact: true })
 					.click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 0);
@@ -259,18 +259,18 @@ async function recordLayout(page?: any, width?: any) {
 			async (page?: any) => {
 				await action(page, "preview", "reminder-01");
 				await page
-					.locator("dialog")
+					.locator("#modal")
 					.getByRole("button", { name: "忽略此提醒", exact: true })
 					.click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 0);
 				await page.getByRole("button", { name: "撤销操作", exact: true }).click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				await action(page, "preview", "reminder-01");
-				await page.locator("dialog").getByRole("button", { name: "完成提醒", exact: true }).click();
+				await page.locator("#modal").getByRole("button", { name: "完成提醒", exact: true }).click();
 				await filter(page, "done");
 				assert.equal(await page.locator(".feed-card").count(), 1);
 				await openCard(page, "reminder-01");
-				await page.locator("dialog").getByRole("button", { name: "恢复提醒", exact: true }).click();
+				await page.locator("#modal").getByRole("button", { name: "恢复提醒", exact: true }).click();
 				await action(page, "clear-filter");
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 			},
@@ -517,8 +517,8 @@ async function recordLayout(page?: any, width?: any) {
 				for (const id of ["old-01", "old-03"])
 					assert.equal(await card(page, id).count(), 0, id + " should have left the desk");
 				await page.locator('[data-action="archive"][data-extra="read"]').click();
-				await page.locator("dialog .list-row", { hasText: "安静的界面" }).hover();
-				await page.locator('dialog [data-action="restore-card"][data-id="old-01"]').click();
+				await page.locator("#modal .list-row", { hasText: "安静的界面" }).hover();
+				await page.locator('#modal [data-action="restore-card"][data-id="old-01"]').click();
 				await page.keyboard.press("Escape");
 				await card(page, "old-01").waitFor();
 				await action(page, "toggle-read", "article-01");
@@ -531,7 +531,7 @@ async function recordLayout(page?: any, width?: any) {
 		const rect = (page?: any, selector?: any) =>
 			page.locator(selector).evaluate((n?: any) => n.getBoundingClientRect().toJSON());
 		await scenario(
-			"Bottom rail, selection, drop targets, refresh and stacked previews share one rule",
+			"Bottom rail, selection menu, refresh and stacked previews share one rule",
 			async (page?: any) => {
 				const ids = await page.evaluate(() =>
 					[...document.querySelectorAll("#feed-grid [data-card]")].map((n?: any) => n.dataset.card),
@@ -546,7 +546,7 @@ async function recordLayout(page?: any, width?: any) {
 				const before = await inside();
 				await card(page, ids[0]).click({ modifiers: [mod] });
 				await card(page, ids[1]).click({ modifiers: ["Shift"] });
-				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), false);
+				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), false);
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 2);
 				assert.deepEqual(await inside(), before, "selecting moved the card's content");
 				const bar = await rect(page, "#selection-bar"),
@@ -564,23 +564,21 @@ async function recordLayout(page?: any, width?: any) {
 				await page.keyboard.press("Escape");
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 0);
 				assert.equal(await page.locator("#selection-bar").isVisible(), false);
-				const start = await card(page, ids[0]).boundingBox(),
-					x = start.x + 60,
-					y = start.y + start.height - 30;
+				const start = await card(page, ids[0]).locator(".card-head").boundingBox(),
+					x = start.x + start.width / 2,
+					y = start.y + start.height / 2;
 				await page.mouse.move(x, y);
 				await page.mouse.down();
+				await page.waitForTimeout(440);
 				await page.mouse.move(x + 20, y + 10, { steps: 4 });
-				const targets = await rect(page, "#drop-targets");
-				assert.ok(
-					Math.hypot(
-						targets.left + targets.width / 2 - (x + 20),
-						targets.top + targets.height / 2 - (y + 10),
-					) < 160,
-					"drop targets are far from the pointer",
-				);
-				assert.ok(targets.top > y + 10, "drop targets open below the pointer");
-				await page.keyboard.press("Escape");
+				assert.equal(await page.locator(".selection-lift .selection-stack").isVisible(), true);
+				assert.equal(await page.locator("#drop-targets,[data-drop]").count(), 0);
 				await page.mouse.up();
+				assert.equal(await page.locator("#selection-menu").isVisible(), true);
+				await page.keyboard.press("Escape");
+				assert.equal(await page.locator("#selection-menu").isVisible(), false);
+				assert.equal(await page.evaluate(() => window.__app.selected.size), 1);
+				await page.keyboard.press("Escape");
 				await action(page, "refresh");
 				await page.waitForFunction(() =>
 					document.getElementById("dock").classList.contains("is-done"),
@@ -590,14 +588,14 @@ async function recordLayout(page?: any, width?: any) {
 				);
 				assert.doesNotMatch(await card(page, relation).locator(".card-head").innerText(), /张卡/);
 				await openCard(page, relation);
-				await page.locator('dialog .refs [data-action="card-open"]').first().click();
+				await page.locator('#modal .refs [data-action="card-open"]').first().click();
 				await page.waitForFunction((id?: any) => window.__app.currentId !== id, relation);
-				assert.equal(await page.locator("dialog .sheet-peek").count(), 1);
-				await page.locator('dialog .float-bar [data-action="close"]').click();
+				assert.equal(await page.locator("#modal .sheet-peek").count(), 1);
+				await page.locator('#modal .float-bar [data-action="close"]').click();
 				await page.waitForFunction((id?: any) => window.__app.currentId === id, relation);
-				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), true);
-				assert.equal(await page.locator("dialog .sheet-peek").count(), 0);
-				await page.locator('dialog .refs [data-action="card-open"]').first().click();
+				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
+				assert.equal(await page.locator("#modal .sheet-peek").count(), 0);
+				await page.locator('#modal .refs [data-action="card-open"]').first().click();
 				await page.waitForFunction(() => !!document.querySelector("dialog .sheet-peek"));
 				await page.mouse.click(8, 8);
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
@@ -790,7 +788,7 @@ async function recordLayout(page?: any, width?: any) {
 					await page.keyboard.press("Escape");
 					await page.waitForFunction(() => !document.querySelector("dialog").open);
 					await action(page, "preview", "reminder-01");
-					const controls = page.locator("dialog .icon-button");
+					const controls = page.locator("#modal .icon-button");
 					const boxes = await controls.evaluateAll((nodes?: any) =>
 						nodes.map((n?: any) => {
 							const r = n.getBoundingClientRect();
@@ -803,7 +801,7 @@ async function recordLayout(page?: any, width?: any) {
 						path: path.join(artifacts, `reminder-${width}.png`),
 					});
 					await page
-						.locator("dialog")
+						.locator("#modal")
 						.getByRole("button", { name: "延后十分钟", exact: true })
 						.tap();
 					await filter(page, "snoozed");
@@ -814,7 +812,7 @@ async function recordLayout(page?: any, width?: any) {
 						animations: "disabled",
 						path: path.join(artifacts, `preview-${width}.png`),
 					});
-					const bar = await page.locator("dialog .float-bar").boundingBox();
+					const bar = await page.locator("#modal .float-bar").boundingBox();
 					assert.ok(bar.x >= 0 && bar.x + bar.width <= width, "toolbar overflows the phone");
 				},
 				{
@@ -832,7 +830,9 @@ async function recordLayout(page?: any, width?: any) {
 					y = box.y + box.height / 2;
 				await page.mouse.move(x, y);
 				await page.mouse.down();
+				await page.waitForTimeout(440);
 				await page.mouse.move(x + 30, y + 30, { steps: 3 });
+				assert.equal(await page.locator(".selection-lift .selection-stack").isVisible(), true);
 				await page.keyboard.press("Escape");
 				await page.mouse.up();
 				assert.equal((await state(page, "article-01"))?.seen || false, false);

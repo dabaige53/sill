@@ -410,7 +410,7 @@
 	"web.cards.98ba1f022f73": "从收藏到行动，中间还有一步",
 	"web.cards.691489bf374e": "把最想继续的两张卡片，一起放进对话。",
 	"web.drag.6b72fb801b9d": "已提起",
-	"web.drag.4808181ef801": "张卡片。移动到收藏、稍后读或标签区域，或按 Escape 取消。",
+	"web.drag.4808181ef801": "张卡片。移动后松手选择操作，或按 Escape 取消。",
 	"web.drag.9688bf41283d": "拖拽已取消，卡片没有变化。",
 	"web.panels.dca60869e7d2": "取消收藏",
 	"web.panels.c4d2d1edba13": "取消稍后读",
@@ -746,5 +746,13 @@
 	"web.cloud.export": "导出全部数据",
 	"web.cloud.clear": "清空卡片",
 	"web.cloud.clearDetail": "清空当前账号的全部卡片？请先导出需要保留的内容。此操作无法撤销。",
-	"web.cloud.savedAccount": "保存到当前账号"
+	"web.cloud.savedAccount": "保存到当前账号",
+	"web.selection.actions": "操作",
+	"web.selection.countPrefix": "已选择 ",
+	"web.selection.countSuffix": " 张卡片",
+	"web.selection.bookmark": "收藏",
+	"web.selection.later": "稍后读",
+	"web.selection.organize": "整理",
+	"web.selection.tag": "标签",
+	"web.selection.cancel": "取消"
 }

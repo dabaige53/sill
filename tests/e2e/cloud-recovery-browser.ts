@@ -144,7 +144,7 @@ try {
 			await page.locator("#cloud-save").filter({ hasText: "核对上次保存" }).waitFor();
 			assert.ok(await page.locator("#cloud-body").isDisabled());
 			await page.keyboard.press("Escape");
-			assert.ok(await page.locator("dialog").evaluate((e?: any) => e.open));
+			assert.ok(await page.locator("#modal").evaluate((e?: any) => e.open));
 			fixture.release();
 			await page.locator("#cloud-save").click();
 			await page.waitForFunction(() => !document.querySelector("dialog").open);

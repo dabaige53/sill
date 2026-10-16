@@ -41,7 +41,10 @@ try {
 		clientFactory: fixture.factory,
 		html: await readFile("dist/cloud/index.html", "utf8"),
 	});
-	browser = await chromium.launch({ headless: true });
+	browser = await chromium.launch({
+		headless: true,
+		...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
+	});
 	const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 	const errors: string[] = [];
 	page.on("pageerror", (e) => errors.push(e.message));
@@ -105,13 +108,28 @@ try {
 		);
 	const action = async (name: string, id?: string, extra?: string) =>
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
-	await page.evaluate(
-		({ a, b }) => {
-			__app.action("bookmark", a);
-			__app.action("bookmark", b);
-		},
-		{ a: note.id, b: task.id },
+	const selectionMenu = async () => {
+		await page.evaluate(
+			(ids) => ids.forEach((id) => __app.select(id, { add: true })),
+			[note.id, task.id],
+		);
+		await page.locator('[data-action="selection-menu"]').click();
+		await page.locator("#selection-menu").waitFor();
+	};
+	const requestsBeforeMenu = batchRequests.length;
+	await selectionMenu();
+	await page.waitForTimeout(300);
+	assert.equal(batchRequests.length, requestsBeforeMenu, "opening a selection menu must not write");
+	await page.locator('[data-selection-action="cancel"]').click();
+	await page.waitForTimeout(300);
+	assert.equal(
+		batchRequests.length,
+		requestsBeforeMenu,
+		"cancelling a selection menu must not write",
 	);
+	assert.equal(await page.evaluate(() => __app.selected.size), 2);
+	await selectionMenu();
+	await page.locator('[data-selection-action="bookmark"]').click();
 	await saved();
 	let state = await api("/api/v1/workspace");
 	assert.equal(state.state.items[note.id].bookmarked, true);
@@ -129,9 +147,22 @@ try {
 		"unchanged polling keeps the menu open",
 	);
 	await page.evaluate(() => __app.closeMore());
-	await action("later", note.id);
+	await selectionMenu();
+	await page.locator('[data-selection-action="later"]').click();
 	await saved();
-	await action("edit", note.id);
+	state = await api("/api/v1/workspace");
+	assert.equal(state.state.items[note.id].later, true);
+	assert.equal(state.state.items[task.id].later, true);
+	assert.equal(JSON.parse(batchRequests.at(-1).body).operations.length, 2);
+	await selectionMenu();
+	const requestsBeforeTags = batchRequests.length;
+	await page.locator('[data-selection-action="tag"]').click();
+	await page.locator("#tag-new").waitFor();
+	assert.equal(
+		batchRequests.length,
+		requestsBeforeTags,
+		"opening the bulk tag editor must not write",
+	);
 	await page.locator("#note-editor").fill("Cloud note");
 	await page.locator("#tag-new").fill("标签");
 	await action("save-note", note.id);
@@ -139,6 +170,8 @@ try {
 	state = await api("/api/v1/workspace");
 	assert.equal(state.state.items[note.id].note, "Cloud note");
 	assert.deepEqual(state.state.items[note.id].tags, ["标签"]);
+	assert.deepEqual(state.state.items[task.id].tags, ["标签"]);
+	assert.equal(JSON.parse(batchRequests.at(-1).body).operations.length, 2);
 	await action("task", task.id, "step1");
 	await saved();
 	assert.deepEqual((await api("/api/v1/workspace")).state.items[task.id].taskDone, ["step1"]);
@@ -295,10 +328,36 @@ try {
 	const repeatedDemo = (await api("/api/v1/workspace")).state.cards;
 	assert.equal(repeatedDemo.length, demo.length);
 	assert.ok(repeatedDemo.every((card) => !demo.some((previous) => previous.id === card.id)));
+	// Session expiry must dismiss the lifted/menu copy along with the signed-in feed.
+	await page.evaluate(() => {
+		for (const card of __store.state.cards.slice(0, 2)) __app.select(card.id, { add: true });
+	});
+	await page.locator('[data-action="selection-menu"]').click();
+	assert.equal(await page.locator("#selection-menu").isVisible(), true);
+	const requestsBeforeExpiry = batchRequests.length;
+	await page.route("**/auth/session", (route) =>
+		route.fulfill({
+			status: 401,
+			contentType: "application/json",
+			body: JSON.stringify({ error: { code: "unauthenticated" } }),
+		}),
+	);
+	await page.waitForFunction(() => !document.body.classList.contains("cloud-signed-in"), null, {
+		timeout: 8000,
+	});
+	assert.equal(await page.locator("#selection-menu").isVisible(), false);
+	assert.equal(await page.locator(".selection-lift,.is-drag-source,body.is-dragging").count(), 0);
+	assert.equal(await page.evaluate(() => __app.selected.size), 0);
+	assert.equal(await page.locator("#feed-grid [data-card]").count(), 0);
+	assert.equal(
+		batchRequests.length,
+		requestsBeforeExpiry,
+		"session expiry must not dispatch an action",
+	);
 	assert.equal(await page.evaluate(() => localStorage.length), 0);
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS cloud operations: atomic bulk, bookmarks/later/tags/notes, tasks/reminders, durable preferences, AI structured edits, no manual content editor, AI archive/restore, preference feedback, link drop/file ignore, unknown replay, conflict draft, export/clear, desktop/mobile, no browser persistence",
+		"PASS cloud operations: atomic menu actions and cancellation, bookmarks/later/tags/notes, tasks/reminders, durable preferences, AI structured edits, no manual content editor, AI archive/restore, preference feedback, link drop/file ignore, unknown replay, conflict draft, export/clear, desktop/mobile, session-expiry menu dismissal, no browser persistence",
 	);
 } finally {
 	await browser?.close();

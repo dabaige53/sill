@@ -41,7 +41,8 @@
 		"lint": "node scripts/format.ts --check",
 		"lint:web": "node scripts/format.ts --check --web",
 		"lint:apple": "node scripts/format.ts --check --apple",
-		"test:cloud-operations": "node tests/e2e/cloud-operations-browser.ts"
+		"test:cloud-operations": "node tests/e2e/cloud-operations-browser.ts",
+		"test:selection-browser": "node tests/e2e/selection-browser.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",
