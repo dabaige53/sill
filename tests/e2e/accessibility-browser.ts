@@ -341,7 +341,7 @@ try {
 			await page.getByRole("switch", { name: "单键快捷键 N / R / T" }).click();
 			await close(page);
 			await page.keyboard.press("n");
-			assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), false);
+			assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), false);
 			await page.keyboard.press("Control+k");
 			assert.equal(await page.getByRole("dialog", { name: "搜索与筛选" }).count(), 1);
 		},
@@ -455,7 +455,7 @@ try {
 				await page.emulateMedia({ reducedMotion: "reduce" });
 				await page.keyboard.press("n");
 				await page.waitForTimeout(150);
-				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), true);
+				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
 				await close(page);
 			},
 			{ viewport: { width, height: 900 } },

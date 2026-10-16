@@ -20,8 +20,8 @@ import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { Panels, welcomeHTML } from "../interactions/panels.ts";
-import { FeedPolicy } from "../services/feed-policy.ts";
 import { Capture } from "../services/capture.ts";
+import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
 
 class AppController {
@@ -112,10 +112,9 @@ class AppController {
 		this.sort = Store.pref("sort");
 		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
-   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span><button type="button" class="text-button" data-action="select-all" aria-label="${copy("web.selectAllLabel")}">${copy("web.selectAll")}</button>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
+   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span><button type="button" class="text-button" data-action="select-all" aria-label="${copy("web.selectAllLabel")}">${copy("web.selectAll")}</button><button type="button" class="text-button" data-action="selection-menu" aria-haspopup="dialog">${copy("web.selection.actions")}</button><span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
    <div class="orb-wrap"><div class="dock-tools" role="group" aria-label="${copy("web.app.25ce5c2fbf41")}">${button("filter", copy("web.app.1fd57350e5f1"), "filter")}${button("plus", copy("web.panels.5a15649c2481"), "capture")}${button("refresh", copy("web.app.26b4905705d6"), "refresh")}${button("up", copy("web.app.071b374af1b8"), "top")}${button("gear", copy("web.app.df3d58c7d84b"), "settings")}</div>
-   <button type="button" class="icon-button glass" id="orb" data-action="orb" data-drop="bookmark" aria-label="${copy("web.app.25ce5c2fbf41")}" aria-expanded="false">${icon("grid", 22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div>
-   <div id="drop-targets" class="drop-targets" hidden><div class="drop-target glass" data-drop="bookmark" aria-label="${copy("web.app.0dd4fd4ac051")}">${icon("bookmark", 22)}</div><div class="drop-target glass" data-drop="later" aria-label="${copy("web.app.5248d828ba43")}">${icon("glasses", 22)}</div><div class="drop-target glass" data-drop="tag" aria-label="${copy("web.app.2c19361cc109")}">${icon("tag", 22)}</div></div>
+   <button type="button" class="icon-button glass" id="orb" data-action="orb" aria-label="${copy("web.app.25ce5c2fbf41")}" aria-expanded="false">${icon("grid", 22)}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
 		this.grid = document.getElementById("feed-grid");
@@ -1261,7 +1260,8 @@ class AppController {
 			});
 		});
 	}
-	drop(ids?: any, target?: any) {
+	applySelectionAction(ids?: any, target?: any) {
+		if (!ids?.length || !["tag", "bookmark", "later"].includes(target)) return;
 		if (target === "tag") {
 			this.bulkEditIds = ids;
 			this.openPanel("editor", ids[0]);
@@ -1989,13 +1989,16 @@ class AppController {
 				this.selected.clear();
 				this.updateSelection();
 				break;
+			case "selection-menu":
+				this.drag.openMenu([...this.selected], el);
+				break;
 			case "selected-bookmark":
-				this.drop([...this.selected], "bookmark");
+				this.applySelectionAction([...this.selected], "bookmark");
 				this.selected.clear();
 				this.updateSelection();
 				break;
 			case "selected-later":
-				this.drop([...this.selected], "later");
+				this.applySelectionAction([...this.selected], "later");
 				this.selected.clear();
 				this.updateSelection();
 				break;
@@ -2003,7 +2006,7 @@ class AppController {
 				const ids = [...this.selected];
 				this.selected.clear();
 				this.updateSelection();
-				this.drop(ids, "tag");
+				this.applySelectionAction(ids, "tag");
 				break;
 			}
 			case "stack-open":

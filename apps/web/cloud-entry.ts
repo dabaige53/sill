@@ -184,6 +184,9 @@ function accountView() {
 }
 
 function clearCloud({ retainDrafts = false }: any = {}) {
+	app.drag?.cancel();
+	app.selected.clear();
+	app.updateSelection();
 	if (retainDrafts) stashCloudDraft();
 	const keepEditor =
 		retainDrafts && app.modalKind === "cloud-editor" && Cloud.drafts.has(Cloud.edit?.id || "new");
