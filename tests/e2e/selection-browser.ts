@@ -390,6 +390,29 @@ try {
 			);
 		}
 	}
+	await scenario(
+		"Short phone viewport keeps the menu scrollable and its actions reachable",
+		async (page) => {
+			await selectTwo(page);
+			const before = await snapshot(page);
+			await openFromButton(page);
+			const context = page.locator("#selection-menu .selection-context");
+			const box = await context.boundingBox();
+			assert.ok(box.y >= 15 && box.y + box.height <= 345, JSON.stringify(box));
+			assert.equal(
+				await context.evaluate((node: HTMLElement) => node.scrollHeight > node.clientHeight),
+				true,
+			);
+			const cancel = page.locator('[data-selection-action="cancel"]');
+			await cancel.scrollIntoViewIfNeeded();
+			const action = await cancel.boundingBox();
+			assert.ok(action.y >= 0 && action.y + action.height <= 360);
+			await cancel.click();
+			await waitClosed(page);
+			await unchanged(page, before);
+		},
+		{ ...phone, viewport: { width: 390, height: 360 } },
+	);
 	await scenario("Keyboard menu traps focus and returns to its trigger", async (page) => {
 		await selectTwo(page);
 		const before = await snapshot(page);
@@ -436,7 +459,7 @@ try {
 			true,
 		);
 	});
-	for (const dismissal of ["cancel", "backdrop", "touchcancel", "blur"]) {
+	for (const dismissal of ["cancel", "backdrop", "touchcancel", "blur", "resize"]) {
 		await scenario(
 			`Menu ${dismissal} preserves selection and card data`,
 			async (page) => {
@@ -449,15 +472,15 @@ try {
 					await page.evaluate(() =>
 						document.dispatchEvent(new TouchEvent("touchcancel", { bubbles: true })),
 					);
-				if (dismissal === "blur")
-					await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+				if (["blur", "resize"].includes(dismissal))
+					await page.evaluate((type: string) => window.dispatchEvent(new Event(type)), dismissal);
 				await waitClosed(page);
 				await unchanged(page, before);
 			},
 			phone,
 		);
 	}
-	for (const dismissal of ["Escape", "touchcancel", "blur"]) {
+	for (const dismissal of ["Escape", "touchcancel", "blur", "resize"]) {
 		await scenario(
 			`Active phone lift ${dismissal} leaves no menu or stuck visual`,
 			async (page) => {
@@ -465,8 +488,8 @@ try {
 				const before = await snapshot(page);
 				const gesture = await beginLift(page, true);
 				if (dismissal === "Escape") await page.keyboard.press("Escape");
-				if (dismissal === "blur")
-					await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+				if (["blur", "resize"].includes(dismissal))
+					await page.evaluate((type: string) => window.dispatchEvent(new Event(type)), dismissal);
 				await gesture.cancel();
 				assert.equal(await isMenuOpen(page), false);
 				assert.equal(

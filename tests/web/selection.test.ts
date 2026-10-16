@@ -245,6 +245,7 @@ test("selection: thumbnail clones real card content without IDs, handlers, or in
 				);
 			}
 			assert.equal(clone.matches(".is-selected,.is-drag-source"), false);
+			assert.equal((clone as HTMLElement).style.position, "relative");
 		};
 		check(f.document.querySelector(".selection-lift .selection-stack"));
 		f.release();
@@ -365,7 +366,7 @@ test("selection: keyboard opening anchors to the trigger and keeps only four foc
 });
 
 test("selection: every menu dismissal preserves cards, selection, and trigger focus", () => {
-	for (const method of ["cancel", "backdrop", "Escape", "touchcancel", "blur"]) {
+	for (const method of ["cancel", "backdrop", "Escape", "touchcancel", "blur", "resize"]) {
 		const f = fixture();
 		try {
 			const before = f.state();
@@ -374,7 +375,7 @@ test("selection: every menu dismissal preserves cards, selection, and trigger fo
 			if (method === "backdrop") f.app.drag.menu.click();
 			if (method === "Escape") f.key("Escape");
 			if (method === "touchcancel") f.fire("touchcancel");
-			if (method === "blur") f.fire("blur", f.w);
+			if (["blur", "resize"].includes(method)) f.fire(method, f.w);
 			assert.equal(f.app.drag.menu.open, false, method);
 			assert.deepEqual(f.selected(), ["one", "two"], method);
 			assert.equal(f.state(), before, method);
@@ -387,7 +388,7 @@ test("selection: every menu dismissal preserves cards, selection, and trigger fo
 
 test("selection: interrupted press or lift cleans up without clearing selection", () => {
 	for (const held of [false, true])
-		for (const method of ["Escape", "touchcancel", "pointercancel", "blur"]) {
+		for (const method of ["Escape", "touchcancel", "pointercancel", "blur", "resize"]) {
 			const f = fixture();
 			try {
 				f.selectTwo();
@@ -398,7 +399,7 @@ test("selection: interrupted press or lift cleans up without clearing selection"
 					f.move();
 				}
 				if (method === "Escape") f.key("Escape");
-				else f.fire(method, method === "blur" ? f.w : f.document);
+				else f.fire(method, ["blur", "resize"].includes(method) ? f.w : f.document);
 				f.hold();
 				f.release();
 				assert.equal(f.app.drag.active, null, method);
