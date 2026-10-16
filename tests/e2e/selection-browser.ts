@@ -108,8 +108,14 @@ async function openFromButton(page: any) {
 	);
 }
 async function checkThumbnail(page: any, container: string) {
-	const clone = page.locator(`${container} .selection-stack-face > .feed-card`);
-	assert.equal(await clone.count(), 1, "the thumbnail must be a real card DOM clone");
+	// Like Photos: each chosen card (up to three) is a real clone in the pile; the first one chosen lies on top.
+	assert.equal(
+		await page.locator(`${container} .selection-stack-face > .feed-card`).count(),
+		2,
+		"every chosen card must be a real card DOM clone",
+	);
+	const clone = page.locator(`${container} .selection-stack-face[data-layer="0"] > .feed-card`);
+	assert.equal(await clone.count(), 1, "the top of the pile must be a real card DOM clone");
 	assert.equal(
 		await clone.locator(".card-summary").textContent(),
 		await page.locator('[data-card="selection-01"] .card-summary').textContent(),
@@ -397,6 +403,10 @@ try {
 			const before = await snapshot(page);
 			await openFromButton(page);
 			const context = page.locator("#selection-menu .selection-context");
+			// Measure the settled menu, not a frame of its entrance.
+			await context.evaluate((node: HTMLElement) =>
+				Promise.all(node.getAnimations().map((animation) => animation.finished)),
+			);
 			const box = await context.boundingBox();
 			assert.ok(box.y >= 15 && box.y + box.height <= 345, JSON.stringify(box));
 			assert.equal(

@@ -224,7 +224,7 @@ class DragManager {
 		const bounds = source.getBoundingClientRect();
 		const full = bounds.width || 320;
 		const scale = width / full;
-		clone.style.cssText = `position:absolute;left:0;top:0;width:${full}px;margin:0;transform:scale(${scale});transform-origin:top left;pointer-events:none;`;
+		clone.style.cssText = `position:relative;left:0;top:0;width:${full}px;margin:0;transform:scale(${scale});transform-origin:top left;pointer-events:none;`;
 		face.appendChild(clone);
 		return { face, height: Math.max(96, Math.min(196, (bounds.height || 280) * scale)) };
 	}

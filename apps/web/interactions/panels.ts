@@ -122,12 +122,14 @@ const Panels: Record<string, any> = {
 					.join("")}</div>`
 			: "";
 		const closeButton = button("x", copy("web.panels.1eb05d311508"), "close");
-		const expand = c.body?.length && !["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
-			? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id)
-			: "";
+		const expand =
+			c.body?.length &&
+			!["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
+				? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id)
+				: "";
 		const sheet = (inner?: any, cover: any = "", foot: any = "") =>
 			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}${foot}</div></div></div>`;
-				const editTags = button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id);
+		const editTags = button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id);
 		const h1 = `<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>`;
 		if (c.type === "mail") {
 			const sender = c.sender || cardSource(c);
@@ -191,8 +193,7 @@ const Panels: Record<string, any> = {
 			return (
 				sheet(
 					`<div class="preview-meta">${icon("folder", 15)}<span>${copy("web.panels.e93cb3b4dd1f")}${esc(cardSource(c) || "")}</span></div>${h1}<div class="detail-rows">${(c.files || []).map((f?: any) => `<div class="detail-row"><span class="row-icon">${icon(/\.(png|jpe?g|gif|webp)$/i.test(f.name) ? "image" : "file", 16)}</span><span><b>${esc(f.name)}</b><em>${esc(f.meta || "")}</em></span><small>${f.time ? esc(relativeTime(f.time)) : ""}</small></div>`).join("")}</div>`,
-				) +
-				this.bar(this.bookmark(c, s), editTags)
+				) + this.bar(this.bookmark(c, s), editTags)
 			);
 		}
 		if (c.type === "task" || c.type === "reminder") {
@@ -209,8 +210,7 @@ const Panels: Record<string, any> = {
 			return (
 				sheet(
 					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}${this.reminderRow(c)}`,
-				) +
-				this.bar(this.bookmark(c, s), editTags, this.reminderTools(c))
+				) + this.bar(this.bookmark(c, s), editTags, this.reminderTools(c))
 			);
 		}
 		if (c.type === "digest") {
@@ -266,7 +266,7 @@ const Panels: Record<string, any> = {
 		return (
 			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
 			`<div class="reader-edge is-top" aria-hidden="true"></div><div class="reader-edge is-bottom" aria-hidden="true"></div>` +
-			`<div class="reader-head glass" role="toolbar" aria-label="${copy("web.panels.0f1505b6ad3f")}">${button("collapse", copy("web.panels.0f1505b6ad3f"), "close")}${button("x", copy("web.panels.f2a5f3f7db0f"), "close-all")}</div>` +
+			`<div class="reader-head glass" role="toolbar" aria-label="${copy("web.readerTools")}">${button("collapse", copy("web.panels.0f1505b6ad3f"), "close")}${button("x", copy("web.panels.f2a5f3f7db0f"), "close-all")}</div>` +
 			this.bar(
 				this.bookmark(c, s),
 				button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
@@ -366,7 +366,7 @@ const Panels: Record<string, any> = {
 				snippet = i > 18 ? "…" + text.slice(i - 14) : text;
 			return `<button type="button" class="list-row" data-action="card-open" data-id="${esc(c.id)}"><span class="row-icon">${icon((CardTypes[c.type] || CardTypes.note).icon, 16)}</span><span class="row-main"><b>${highlight(c.title, q)}</b><small>${highlight(snippet.slice(0, 60), q)}</small></span><span class="row-side">${esc(relativeDay(c.time || now, now))}</span></button>`;
 		};
-		return `${hits.desk.length ? `<div class="group-label">${copy("web.panels.51984343bcac").replace(/ · $/, "")}</div><div class="row-list">${hits.desk.slice(0, 8).map(row).join("")}</div>` : ""}${hits.shelved.length ? `<div class="group-label">${copy("web.panels.342927bba059").replace(/ · $/, "")}</div><div class="row-list">${hits.shelved.slice(0, 8).map(row).join("")}</div>` : ""}`;
+		return `${hits.desk.length ? `<div class="group-label">${copy("web.search.deskGroup")}</div><div class="row-list">${hits.desk.slice(0, 8).map(row).join("")}</div>` : ""}${hits.shelved.length ? `<div class="group-label">${copy("web.search.shelvedGroup")}</div><div class="row-list">${hits.shelved.slice(0, 8).map(row).join("")}</div>` : ""}`;
 	},
 	/* Archives: grouped by week, one row per card; “放回桌面” appears on hover. */
 	archive(app?: any, which?: any) {

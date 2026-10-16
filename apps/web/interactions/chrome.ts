@@ -40,13 +40,19 @@ class ChromeAutoHide {
 		source.addEventListener("scroll", this.onScroll, { passive: true });
 		document.addEventListener("focusin", this.onFocus);
 	}
+	isWindow() {
+		return typeof (this.source as Window).scrollY === "number";
+	}
 	position() {
-		return this.source instanceof Window ? scrollY : this.source.scrollTop;
+		return this.isWindow()
+			? (this.source as Window).scrollY
+			: (this.source as HTMLElement).scrollTop;
 	}
 	limit() {
-		if (this.source instanceof Window)
-			return document.documentElement.scrollHeight - innerHeight;
-		return this.source.scrollHeight - this.source.clientHeight;
+		if (this.isWindow())
+			return document.documentElement.scrollHeight - (this.source as Window).innerHeight;
+		const el = this.source as HTMLElement;
+		return el.scrollHeight - el.clientHeight;
 	}
 	scrolled() {
 		const y = this.position(),

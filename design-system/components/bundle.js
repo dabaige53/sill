@@ -93,6 +93,7 @@ var Sill = (() => {
     select: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8 12 3 3 5-6"/>',
     undo: '<path d="M3 5v6h6M3 11a9 9 0 1 1 2 8"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+    person: '<circle cx="12" cy="8.5" r="3.75"/><path d="M4.75 20a7.25 7.25 0 0 1 14.5 0"/>',
     grid: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
     grip: '<circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>',
     send: '<path d="m21 3-7 18-4-7-7-4Zm0 0L10 14"/>',
@@ -521,7 +522,7 @@ var Sill = (() => {
     "web.cards.98ba1f022f73": "\u4ECE\u6536\u85CF\u5230\u884C\u52A8\uFF0C\u4E2D\u95F4\u8FD8\u6709\u4E00\u6B65",
     "web.cards.691489bf374e": "\u628A\u6700\u60F3\u7EE7\u7EED\u7684\u4E24\u5F20\u5361\u7247\uFF0C\u4E00\u8D77\u653E\u8FDB\u5BF9\u8BDD\u3002",
     "web.drag.6b72fb801b9d": "\u5DF2\u63D0\u8D77",
-    "web.drag.4808181ef801": "\u5F20\u5361\u7247\u3002\u79FB\u52A8\u5230\u6536\u85CF\u3001\u7A0D\u540E\u8BFB\u6216\u6807\u7B7E\u533A\u57DF\uFF0C\u6216\u6309 Escape \u53D6\u6D88\u3002",
+    "web.drag.4808181ef801": "\u5F20\u5361\u7247\u3002\u79FB\u52A8\u540E\u677E\u624B\u9009\u62E9\u64CD\u4F5C\uFF0C\u6216\u6309 Escape \u53D6\u6D88\u3002",
     "web.drag.9688bf41283d": "\u62D6\u62FD\u5DF2\u53D6\u6D88\uFF0C\u5361\u7247\u6CA1\u6709\u53D8\u5316\u3002",
     "web.panels.dca60869e7d2": "\u53D6\u6D88\u6536\u85CF",
     "web.panels.c4d2d1edba13": "\u53D6\u6D88\u7A0D\u540E\u8BFB",
@@ -857,7 +858,15 @@ var Sill = (() => {
     "web.cloud.export": "\u5BFC\u51FA\u5168\u90E8\u6570\u636E",
     "web.cloud.clear": "\u6E05\u7A7A\u5361\u7247",
     "web.cloud.clearDetail": "\u6E05\u7A7A\u5F53\u524D\u8D26\u53F7\u7684\u5168\u90E8\u5361\u7247\uFF1F\u8BF7\u5148\u5BFC\u51FA\u9700\u8981\u4FDD\u7559\u7684\u5185\u5BB9\u3002\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
-    "web.cloud.savedAccount": "\u4FDD\u5B58\u5230\u5F53\u524D\u8D26\u53F7"
+    "web.cloud.savedAccount": "\u4FDD\u5B58\u5230\u5F53\u524D\u8D26\u53F7",
+    "web.selection.actions": "\u64CD\u4F5C",
+    "web.selection.countPrefix": "\u5DF2\u9009\u62E9 ",
+    "web.selection.countSuffix": " \u5F20\u5361\u7247",
+    "web.selection.bookmark": "\u6536\u85CF",
+    "web.selection.later": "\u7A0D\u540E\u8BFB",
+    "web.selection.organize": "\u6574\u7406",
+    "web.selection.tag": "\u6807\u7B7E",
+    "web.selection.cancel": "\u53D6\u6D88"
   };
 
   // design-system/copy.ts

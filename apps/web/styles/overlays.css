@@ -1703,10 +1703,8 @@ body.is-pulling .pull-ring {
 
 /* Focus stays visible but sits close to the field, in a soft ring instead of a second outline. */
 .search-pill:focus-within {
-	outline: none;
-	box-shadow:
-		0 0 0 3px color-mix(in srgb, var(--accent) 32%, transparent),
-		var(--shadow-glass);
+	outline: 3px solid color-mix(in srgb, var(--accent) 36%, transparent);
+	outline-offset: 0;
 }
 #modal.panel .settings-layout {
 	min-height: 0;

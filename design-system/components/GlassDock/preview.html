@@ -1,10 +1,10 @@
-<!-- @dsCard group="Overlays" height=260 -->
+<!-- @dsCard group="Overlays" height=120 -->
 <!doctype html>
 <html><head><meta charset="utf-8"></head>
-<body class="ds-flow" style="margin:0;min-height:0;padding:16px;background:var(--canvas)">
+<body class="ds-flow" style="margin:0;min-height:0;padding:16px;background:linear-gradient(135deg,#dfe9f3,#f5f5f7 55%,#e9e4dc)">
 <div id="root"></div>
 <script>
 const Q=window.Sill,I=Q.icon,root=document.getElementById('root');
-root.innerHTML=`<div style="position:relative;height:228px;width:120px"><div id="dock" class="is-open filter-active" style="position:absolute;right:0;bottom:0"><div class="dock-tools">${Q.button('filter','筛选','x')}${Q.button('refresh','刷新','x')}${Q.button('info','说明','x')}</div><button id="orb" aria-label="AI">${I('sparkles',23)}</button></div></div>`;
+root.innerHTML=`<div id="dock" style="display:flex;gap:8px;align-items:center"><div class="rail-tools glass" role="toolbar" aria-label="全局工具">${Q.button('search','筛选与搜索','filter')}${Q.button('plus','记一笔','capture')}</div><div class="account-wrap"><button type="button" class="account-button glass" aria-label="设置"><span class="account-face is-blank">${I('person',20)}</span></button></div></div>`;
 </script>
 </body></html>

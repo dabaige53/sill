@@ -222,8 +222,11 @@ test("selection: thumbnail clones real card content without IDs, handlers, or in
 		const check = (stack: HTMLElement) => {
 			assert.equal((stack as any).inert, true);
 			assert.equal(stack.getAttribute("aria-hidden"), "true");
-			const clone = stack.querySelector(".selection-stack-face > .feed-card");
+			// Like Photos: every chosen card (up to three) is a real clone; the first one chosen lies on top.
+			assert.equal(stack.querySelectorAll(".selection-stack-face > .feed-card").length, 2);
+			const clone = stack.querySelector('.selection-stack-face[data-layer="0"] > .feed-card');
 			assert.ok(clone, "the preview must contain a cloned real card");
+			assert.equal(stack.lastElementChild.classList.contains("selection-stack-count"), true);
 			assert.equal(clone.querySelector(".card-summary").textContent, "one summary stays visible");
 			assert.ok(clone.textContent.includes("Structured content"));
 			assert.ok(clone.textContent.includes("Original link label"));
@@ -306,7 +309,7 @@ test("selection: mouse and touch menus use the final release point after trackin
 	}
 });
 
-test("selection: menu placement flips near the top and clamps at viewport edges", () => {
+test("selection: menu opens below when there is room, flips above near the bottom, and clamps at viewport edges", () => {
 	const f = fixture();
 	try {
 		Object.defineProperty(f.w, "innerWidth", { value: 390, configurable: true });
@@ -316,22 +319,26 @@ test("selection: menu placement flips near the top and clamps at viewport edges"
 			options = f.document.querySelector(".selection-options"),
 			stack = f.document.querySelector("#selection-menu .selection-stack");
 		Object.defineProperty(options, "offsetHeight", { get: () => 234 });
+		Object.defineProperty(stack, "offsetHeight", { get: () => 140 });
 		Object.defineProperty(context, "offsetWidth", { get: () => 264 });
 		Object.defineProperty(context, "offsetHeight", { get: () => 470 });
+		// Room below: the pile stays centred on the release point and the menu opens downward.
 		f.app.drag.positionMenu({ x: 195, y: 400 });
-		assert.equal(context.dataset.placement, "above");
+		assert.equal(context.dataset.placement, "below");
 		assert.equal(context.style.left, "63px");
-		assert.equal(context.style.top, "142px");
-		assert.equal(stack.style.order, "1");
+		assert.equal(context.style.top, "330px");
+		assert.equal(stack.style.order, "-1");
 		f.app.drag.positionMenu({ x: 2, y: 30 });
 		assert.equal(context.dataset.placement, "below");
 		assert.equal(context.style.left, "16px");
-		assert.equal(context.style.top, "30px");
+		assert.equal(context.style.top, "16px");
 		assert.equal(stack.style.order, "-1");
+		// No room below: the menu opens upward and the whole group stays inside the viewport.
 		f.app.drag.positionMenu({ x: 388, y: 830 });
 		assert.equal(context.dataset.placement, "above");
 		assert.equal(context.style.left, "110px");
 		assert.equal(context.style.top, "358px");
+		assert.equal(stack.style.order, "1");
 		assert.ok(parseFloat(context.style.top) + context.offsetHeight <= f.w.innerHeight - 16);
 	} finally {
 		f.dom.window.close();

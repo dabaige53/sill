@@ -1,10 +1,10 @@
 import { button, esc } from "./atoms/primitives.ts";
 import { copy } from "./copy.ts";
-import { cloudCard, cloudCardChanges } from "./data/cloud-card.ts";
 import { demoBase, SeedCards, SeedItems } from "./data/cards.ts";
-import { CloudSync, clone } from "./services/cloud-sync.ts";
+import { cloudCard, cloudCardChanges } from "./data/cloud-card.ts";
 import { Store } from "./data/store.ts";
 import { Panels, welcomeHTML } from "./interactions/panels.ts";
+import { CloudSync, clone } from "./services/cloud-sync.ts";
 import { AppController } from "./views/app.ts";
 
 /* Authenticated cloud build only. No credentials or private cards in browser storage. */
@@ -181,6 +181,9 @@ async function cloudApi(path?: any, options: any = {}) {
 }
 function accountView() {
 	document.body.classList.toggle("cloud-signed-in", !!Cloud.user);
+	// The rail face shows the signed-in person's initial when the session names them; otherwise a neutral person.
+	window.__SILL_ACCOUNT__ = Cloud.user ? Cloud.displayName || "" : "";
+	app.paintAccount?.();
 }
 
 function clearCloud({ retainDrafts = false }: any = {}) {
@@ -193,6 +196,7 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 	Cloud.lastOwner = Cloud.user || Cloud.lastOwner;
 	Cloud.epoch++;
 	Cloud.user = null;
+	Cloud.displayName = "";
 	Cloud.pending = null;
 	Cloud.connectionError = retainDrafts;
 	Cloud.records.clear();
@@ -223,8 +227,8 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 	}
 }
 function cloudConnection() {
-	const refresh = document.querySelector(".dock-tools [data-action=refresh]");
-	refresh?.setAttribute("aria-busy", String(Cloud.loading));
+	// Loading shows as the thin arc around the face; there is no refresh button.
+	document.getElementById("dock")?.classList.toggle("is-busy", !!Cloud.loading);
 	const offline = document.getElementById("offline");
 	offline.dataset.action = "refresh";
 	offline.hidden = !Cloud.connectionError || !Cloud.user;
@@ -335,6 +339,7 @@ async function loadCloud({ initial = false }: any = {}) {
 		Cloud.connectionError = false;
 		Cloud.scopes = session.scopes || null;
 		Cloud.user = session.userId;
+		Cloud.displayName = session.name || session.email || "";
 		if (sync.suspended && sync.owner === Cloud.user) {
 			// Authentication cleared the view, not the user's optimistic edits.
 			const optimistic = sync.resume(Cloud.user);
@@ -761,6 +766,7 @@ async function discardWorkspace() {
 		if (epoch !== Cloud.epoch || version !== Cloud.writeVersion || sync.busy) return;
 		sync.reset();
 		Cloud.user = session.userId;
+		Cloud.displayName = session.name || session.email || "";
 		Cloud.scopes = session.scopes;
 		adoptWorkspace(value);
 		syncStatus();

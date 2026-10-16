@@ -210,16 +210,33 @@ main:has(.welcome, .empty-card) .feed-end {
 }
 
 /* Sill · controls · shared source */
-/* Translucency belongs to the floating tools, not the content surface. */
+/* Liquid glass, for the functional layer only (bars, round buttons, menus floating over content).
+   A clear, lightly tinted lens: little fill, a short blur with lifted saturation so the content
+   beneath still shows its colour, a bright specular rim on the top-left, a softer one bottom-right,
+   and a hairline that separates it from white cards. The lens light is a highlight, not decoration. */
 .glass {
 	position: relative;
+	isolation: isolate;
 	background: var(--glass);
-	border: 1px solid var(--glass-edge);
+	border: 0;
 	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.03),
+		inset 0 1px 0.5px var(--glass-edge),
+		inset 1px 0 0.5px var(--glass-shade),
+		inset 0 -1px 1px var(--glass-shade),
+		inset 0 0 0 0.5px var(--glass-shade),
+		0 0 0 0.5px var(--glass-rim),
 		var(--shadow-glass);
-	-webkit-backdrop-filter: blur(24px) saturate(1.2);
-	backdrop-filter: blur(24px) saturate(1.2);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+}
+.glass::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	pointer-events: none;
+	background: radial-gradient(120% 90% at 20% 0%, var(--glass-shade), transparent 60%);
 }
 .icon-button {
 	width: 44px;
@@ -252,16 +269,16 @@ main:has(.welcome, .empty-card) .feed-end {
 	fill-opacity: 0.9;
 }
 
-/* The bottom rail: the orb is the anchor. Everything that floats at the bottom
-   lines up with it: same bottom edge, 56px row, glass. One thing at a time sits
-   in the row beside the orb; the toast rises above the row when it is taken. */
+/* The bottom rail. The person's face sits at the far right and opens settings; the two
+   desk tools share one glass capsule beside it. Anything else that floats at the bottom
+   (selection, new content, offline) takes the space to their left, on the same baseline. */
 :root {
-	--rail-edge: 32px;
-	--rail-bottom: 32px;
-	--rail-row: 56px;
-	--rail-gap: 12px;
+	--rail-edge: 28px;
+	--rail-bottom: 28px;
+	--rail-row: 52px;
+	--rail-gap: 8px;
+	--rail-tuck: 300ms;
 }
-/* The orb: one glass entrance, bottom right. Tools rise from it. */
 #dock {
 	position: fixed;
 	right: var(--rail-edge);
@@ -269,129 +286,104 @@ main:has(.welcome, .empty-card) .feed-end {
 	z-index: 45;
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: var(--rail-gap);
 	transition:
-		transform var(--layout) var(--ease),
-		opacity var(--layout) var(--ease);
+		transform 380ms var(--ease-sheet),
+		opacity 240ms var(--ease),
+		visibility 0s;
 }
-#dock.is-quiet {
-	transform: scale(0.86);
-	opacity: 0.6;
-}
-#dock.is-quiet:hover,
-#dock.is-quiet:focus-within,
-#dock.is-quiet:has(#selection-bar:not([hidden])) {
-	transform: none;
-	opacity: 1;
-}
-.orb-wrap {
-	position: relative;
-	width: 56px;
-	height: 56px;
-}
-#orb {
-	width: 56px;
-	height: 56px;
-	min-width: 56px;
-	border-radius: 50%;
-	background: var(--glass);
-	color: var(--ink);
-	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.04),
-		0 6px 20px rgba(0, 0, 0, 0.1);
-	transition:
-		transform 0.24s var(--ease),
-		box-shadow 0.24s;
-}
-#orb .icon {
-	width: 22px;
-	height: 22px;
-}
-#orb:hover {
-	transform: scale(1.04);
-}
-#orb.drop-hot {
-	transform: scale(1.2);
-	color: var(--accent);
-	box-shadow:
-		0 0 0 8px rgba(0, 102, 204, 0.12),
-		0 8px 28px rgba(0, 0, 0, 0.14);
-}
-#dock.is-open #orb .icon {
-	transform: rotate(45deg);
-}
-#orb .icon {
-	transition: transform var(--base) var(--ease);
-}
-.dock-tools {
-	position: absolute;
-	bottom: 68px;
-	right: 6px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
+/* Reading on: the whole rail leaves. No dot, pill or handle stays behind. */
+#dock.is-tucked {
+	transform: translateY(calc(100% + var(--rail-bottom) + 12px));
 	opacity: 0;
 	visibility: hidden;
-	transform: translateY(10px) scale(0.96);
-	transform-origin: bottom;
-	transition:
-		opacity 230ms var(--ease),
-		transform 230ms var(--ease),
-		visibility 230ms;
-}
-.dock-tools .icon-button {
-	background: var(--glass);
-	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.04),
-		0 4px 16px rgba(0, 0, 0, 0.08);
-	border: 1px solid var(--glass-edge);
-	-webkit-backdrop-filter: blur(24px);
-	backdrop-filter: blur(24px);
-}
-.dock-tools .icon-button:hover {
-	background: var(--card);
-}
-#dock.is-open .dock-tools {
-	opacity: 1;
-	visibility: visible;
-	transform: translateY(0) scale(1);
-}
-/* Tools rise one after another from the entrance, 40ms apart; they leave together. */
-.dock-tools .icon-button {
-	opacity: 0;
-	translate: 0 8px;
-	transition:
-		opacity 180ms var(--ease),
-		translate 220ms var(--ease),
-		background var(--fast) var(--ease);
-}
-#dock.is-open .dock-tools .icon-button {
-	opacity: 1;
-	translate: 0 0;
-}
-#dock.is-open .dock-tools .icon-button:nth-last-child(2) {
-	transition-delay: 40ms;
-}
-#dock.is-open .dock-tools .icon-button:nth-last-child(3) {
-	transition-delay: 80ms;
-}
-#dock.is-open .dock-tools .icon-button:nth-last-child(4) {
-	transition-delay: 120ms;
-}
-#dock.is-open .dock-tools .icon-button:nth-last-child(5) {
-	transition-delay: 160ms;
-}
-#dock.filter-active .orb-wrap:after {
-	content: "";
-	position: absolute;
-	right: 4px;
-	top: 4px;
-	width: 9px;
-	height: 9px;
-	border-radius: 50%;
-	background: var(--accent-fill);
-	border: 2px solid var(--card);
 	pointer-events: none;
+	transition:
+		transform var(--rail-tuck) var(--ease),
+		opacity 180ms var(--ease),
+		visibility 0s var(--rail-tuck);
+}
+body:has(#modal[open]) #dock,
+body:has(#modal[open]) .scroll-edge {
+	opacity: 0;
+	visibility: hidden;
+}
+/* Desk tools share one glass capsule. Other groups (a future assistant) get their own glass, beside it. */
+.rail-tools {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: var(--rail-row);
+	padding: 4px;
+	border-radius: var(--pill-radius);
+}
+.account-wrap {
+	position: relative;
+	width: var(--rail-row);
+	height: var(--rail-row);
+}
+.account-button {
+	width: var(--rail-row);
+	height: var(--rail-row);
+	padding: 0;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	color: var(--ink);
+	transition: transform var(--fast) var(--ease);
+}
+.account-button:active {
+	transform: scale(0.95);
+}
+.account-face {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	color: #fff;
+	font-family: var(--rounded);
+	font-size: var(--text-body);
+	font-weight: 600;
+	box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
+/* No photo yet: the familiar filled silhouette on a quiet grey, never a gear. */
+.account-face.is-blank {
+	background: color-mix(in srgb, var(--muted) 52%, var(--card));
+	color: var(--card);
+	overflow: hidden;
+	align-items: end;
+}
+.account-face.is-blank .icon {
+	width: 34px;
+	height: 34px;
+	fill: currentColor;
+	stroke: none;
+	margin-bottom: -4px;
+}
+/* A filter in effect: the search button holds a quiet pill, as a selected tab does. */
+#dock.filter-active .rail-tools [data-action="filter"] {
+	background: var(--glass-press);
+}
+/* Scroll edge: where the feed meets the rail it softens and blurs a little, so the glass reads
+   against calm content. It belongs to the rail and leaves with it. */
+.scroll-edge {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: calc(var(--rail-bottom) + var(--rail-row) + 20px);
+	z-index: 44;
+	pointer-events: none;
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--canvas) 70%, transparent),
+		color-mix(in srgb, var(--canvas) 0%, transparent)
+	);
+	transition: opacity 260ms var(--ease);
+}
+.scroll-edge.is-tucked {
+	opacity: 0;
 }
 #new-count {
 	height: 40px;
@@ -499,9 +491,9 @@ main:has(.welcome, .empty-card) .feed-end {
 	border-radius: var(--pill-radius);
 	display: flex;
 	align-items: center;
-	padding: 6px;
+	padding: 4px;
 	gap: 2px;
-	max-width: calc(100vw - 2 * var(--rail-edge) - var(--rail-row) - var(--rail-gap));
+	max-width: calc(100vw - 2 * var(--rail-edge) - 3 * var(--rail-row) - 2 * var(--rail-gap));
 	overflow-x: auto;
 	scrollbar-width: none;
 }
@@ -533,9 +525,9 @@ main:has(.welcome, .empty-card) .feed-end {
 }
 #toast {
 	position: fixed;
-	right: calc(var(--rail-edge) + var(--rail-row) + var(--rail-gap));
-	bottom: calc(var(--rail-bottom) + 6px);
-	max-width: min(420px, calc(100vw - 2 * var(--rail-edge) - var(--rail-row) - var(--rail-gap)));
+	right: var(--rail-edge);
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
+	max-width: min(420px, calc(100vw - 2 * var(--rail-edge)));
 	min-height: 44px;
 	padding: 0 6px 0 18px;
 	border-radius: var(--pill-radius);
@@ -547,9 +539,8 @@ main:has(.welcome, .empty-card) .feed-end {
 	transition: bottom var(--base) var(--ease);
 }
 /* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
-body:has(#dock > :is(#selection-bar, #new-count, #offline):not([hidden])) #toast,
 #modal #toast {
-	bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--rail-gap));
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
 }
 #toast.is-alert {
 	color: var(--ink);
@@ -608,18 +599,18 @@ body.is-dragging #toast {
 	background: var(--surface);
 }
 .chip.active {
-	background: var(--accent-fill);
-	color: #fff;
+	background: var(--ink);
+	color: var(--card);
 }
 .chip.active .icon {
-	color: #fff;
+	color: var(--card);
 }
 .chip.soft {
 	background: var(--surface);
 	box-shadow: none;
 }
 .chip.soft.active {
-	background: var(--accent-fill);
+	background: var(--ink);
 }
 .tag-pill {
 	display: inline-flex;
@@ -628,8 +619,8 @@ body.is-dragging #toast {
 	height: 32px;
 	padding: 0 4px 0 12px;
 	border-radius: var(--pill-radius);
-	background: var(--accent-soft);
-	color: var(--accent-ink);
+	background: var(--surface);
+	color: var(--ink);
 	font-size: var(--text-meta);
 	font-weight: 500;
 }
@@ -1719,10 +1710,9 @@ dialog {
 	overflow: visible;
 	outline: none;
 }
+/* Scrim: a clean dim, no fog. The page steps back in light, not in blur. */
 dialog::backdrop {
 	background: var(--dim);
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
 }
 .sheet {
 	position: relative;
@@ -1747,45 +1737,177 @@ dialog::backdrop {
 	width: 36px;
 	height: 36px;
 	min-width: 36px;
-	background: var(--surface);
+	background: var(--card);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-float);
 }
 .grabber {
 	display: none;
 }
 
-/* The floating toolbar: verbs as icons, one primary action in words. */
+/* The card toolbar: two to three verbs as icons in one glass capsule. Words live in the content. */
 .float-bar {
 	display: flex;
 	align-items: center;
-	gap: 2px;
-	padding: 6px;
-	border-radius: 30px;
+	gap: 4px;
+	padding: 4px;
+	height: var(--rail-row);
+	border-radius: var(--pill-radius);
 	width: max-content;
 	max-width: calc(100vw - 32px);
-}
-.float-bar .icon-button:hover {
-	background: rgba(0, 0, 0, 0.05);
 }
 .float-bar .solid-button,
 .float-bar .pill {
 	margin-left: 6px;
 }
 
-/* Preview: the card lifts and grows; the toolbar floats below it. */
+/* Preview: the card lifts and grows. Its head row holds the way out; the toolbar floats inside the
+   card's own bottom edge, over a scroll edge, and the text ends above it. Nothing hangs off the card. */
 #modal.preview {
-	width: min(800px, calc(100vw - 48px));
+	width: min(760px, calc(100vw - 48px));
 	margin: auto;
 }
 #modal.preview[open] {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 16px;
+	gap: 0;
 }
 .preview-sheet {
 	position: relative;
 	z-index: 1;
 	width: 100%;
+	display: flex;
+	flex-direction: column;
+	max-height: min(88vh, 900px);
+}
+/* The head floats over the content: no band of white above the text. Its round buttons tuck away with
+   the toolbar while reading on, and come back on a pause over a soft edge. */
+.sheet-head {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index: 4;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	height: 60px;
+	padding: 0 16px;
+	pointer-events: none;
+}
+.sheet-head-tools {
+	display: flex;
+	gap: 8px;
+	pointer-events: auto;
+	transition:
+		transform 380ms var(--ease-sheet),
+		opacity 240ms var(--ease),
+		visibility 0s;
+}
+.sheet-head-tools.is-tucked {
+	transform: translateY(-12px);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		transform var(--rail-tuck) var(--ease),
+		opacity 180ms var(--ease),
+		visibility 0s var(--rail-tuck);
+}
+.preview-sheet:before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 76px;
+	z-index: 3;
+	pointer-events: none;
+	opacity: 0;
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, var(--card) 92%, transparent) 30%,
+		color-mix(in srgb, var(--card) 0%, transparent)
+	);
+	transition: opacity 260ms var(--ease);
+}
+.preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
+	opacity: 1;
+}
+/* Text first cards leave room for the head; covers run up under it, with the buttons on the picture. */
+.preview-sheet .sheet-scroll > .preview-body:first-child,
+.preview-sheet .sheet-scroll > .player:first-child {
+	padding-top: 64px;
+}
+/* Floating round buttons: a white disc lifted by a soft shadow, never a grey blot. */
+.sheet-head .icon-button {
+	width: 36px;
+	height: 36px;
+	min-width: 36px;
+	background: var(--card);
+	color: var(--ink);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-float);
+}
+/* The visible circle is 36; the hit area reaches the 44 minimum. */
+.sheet-head .icon-button:before {
+	content: "";
+	position: absolute;
+	inset: -4px;
+}
+.sheet-head .icon-button:hover {
+	background: var(--surface);
+}
+.sheet-head .icon .icon,
+.sheet-head .icon-button .icon {
+	width: 18px;
+	height: 18px;
+}
+#modal.preview > .float-bar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 18px;
+	margin-inline: auto;
+	z-index: 3;
+}
+/* Scroll edge at the foot of the card: text fades and softens where the toolbar floats. */
+.preview-sheet:after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: calc(var(--rail-row) + 18px + 44px);
+	pointer-events: none;
+	z-index: 2;
+	/* Under the capsule the text is only a faint texture; above it, it fades in over 44px. */
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--card) 94%, transparent) 0%,
+		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 18px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+	transition: opacity 260ms var(--ease);
+}
+#modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
+	opacity: 0;
+}
+.preview-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding-top: 10px;
+}
+.preview-foot .text-button {
+	color: var(--accent-ink);
+	font-size: var(--text-control);
+	padding-inline: 10px;
+	margin-left: -10px;
 }
 /* Stacked previews: the card below shows as an edge above this one. */
 .sheet-peek {
@@ -1801,7 +1923,11 @@ dialog::backdrop {
 	transition: opacity var(--base) var(--ease);
 }
 .preview-sheet .sheet-scroll {
-	max-height: min(80vh, 820px);
+	flex: 1;
+	min-height: 0;
+	max-height: none;
+	padding-bottom: calc(var(--rail-row) + 40px);
+	scroll-padding-bottom: calc(var(--rail-row) + 40px);
 }
 .preview-cover {
 	margin: 8px 8px 0;
@@ -2230,11 +2356,51 @@ button.detail-row:hover {
 }
 .reader .float-bar {
 	position: fixed;
-	left: 50%;
-	bottom: 28px;
-	transform: translateX(-50%);
+	left: 0;
+	right: 0;
+	bottom: max(24px, env(safe-area-inset-bottom));
+	margin-inline: auto;
 	z-index: 5;
-	background: var(--glass-thick);
+}
+.reader-head {
+	position: fixed;
+	top: max(14px, env(safe-area-inset-top));
+	right: max(16px, env(safe-area-inset-right));
+	z-index: 5;
+	display: flex;
+	gap: 2px;
+	padding: 4px;
+	border-radius: var(--pill-radius);
+}
+/* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
+dialog > .float-bar,
+.reader-head {
+	transition:
+		transform 380ms var(--ease-sheet),
+		opacity 240ms var(--ease),
+		translate 360ms var(--ease-sheet),
+		visibility 0s;
+}
+dialog > .float-bar.is-tucked,
+dialog > .float-bar.is-hidden {
+	transform: translateY(calc(100% + 40px));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		transform var(--rail-tuck) var(--ease),
+		opacity 180ms var(--ease),
+		visibility 0s var(--rail-tuck);
+}
+.reader-head.is-tucked {
+	transform: translateY(calc(-100% - 24px));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		transform var(--rail-tuck) var(--ease),
+		opacity 180ms var(--ease),
+		visibility 0s var(--rail-tuck);
 }
 /* The read-end ring closes into a check when the last paragraph is reached. */
 .skeleton-lines {
@@ -2464,9 +2630,14 @@ button.list-row:hover,
 .settings-nav button:hover {
 	background: var(--faint);
 }
+/* Selected is a quiet, raised row in the same ink; blue stays for the one action that commits. */
 .settings-nav button.on {
-	background: var(--accent-fill);
-	color: #fff;
+	background: var(--card);
+	color: var(--ink);
+	font-weight: 600;
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		0 1px 3px rgba(0, 0, 0, 0.06);
 }
 .settings-main {
 	padding: 28px 32px;
@@ -2480,8 +2651,9 @@ button.list-row:hover,
 }
 .settings-card {
 	background: var(--card);
-	border: 1px solid var(--line);
-	border-radius: 16px;
+	border: 0;
+	box-shadow: 0 0 0 0.5px var(--line-card);
+	border-radius: 14px;
 	padding: 0 16px;
 }
 .settings-card + .settings-card {
@@ -2544,8 +2716,8 @@ kbd {
 }
 #modal.search::backdrop {
 	background: var(--frost);
-	-webkit-backdrop-filter: blur(10px);
-	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(28px) saturate(1.6);
+	backdrop-filter: blur(28px) saturate(1.6);
 }
 .search-pill {
 	display: flex;
@@ -2555,7 +2727,9 @@ kbd {
 	padding: 0 10px 0 18px;
 	border-radius: var(--pill-radius);
 	background: var(--card);
-	box-shadow: var(--shadow-glass);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-glass);
 }
 .search-pill > .icon {
 	color: var(--muted);
@@ -2807,7 +2981,7 @@ kbd {
 	gap: 12px;
 	padding: 12px 14px;
 	border-radius: 14px;
-	background: var(--accent-soft);
+	background: var(--surface);
 	margin-top: 8px;
 }
 .next-event .num {
@@ -2867,102 +3041,183 @@ kbd {
 	color: var(--secondary);
 }
 
-/* Drag to collect. */
-.drag-ghost {
+/* Lifting never drops into an action. The separate dialog requires a button press. */
+.selection-lift {
 	position: fixed;
-	left: 0;
-	top: 0;
-	width: 244px;
-	pointer-events: none;
 	z-index: 200;
-	border-radius: 17px;
-	border: 1px solid var(--line);
-	background: var(--glass-thick);
-	box-shadow: 0 20px 55px rgba(0, 0, 0, 0.2);
-	display: flex;
-	align-items: center;
-	padding: 10px;
-	gap: 12px;
-	-webkit-backdrop-filter: blur(15px);
-	backdrop-filter: blur(15px);
-	transform: rotate(-3deg);
-	will-change: left, top;
+	pointer-events: none;
 }
-.drag-ghost img {
-	width: 54px;
-	height: 54px;
-	object-fit: cover;
-	border-radius: 10px;
-	flex: 0 0 auto;
+.selection-stack {
+	position: relative;
+	width: 176px;
+	height: var(--stack-h, 140px);
+	isolation: isolate;
+	flex: none;
 }
-.drag-ghost .ghost-icon {
-	width: 44px;
-	height: 50px;
-	display: grid;
-	place-items: center;
-	flex: 0 0 auto;
-	background: var(--surface);
-	border-radius: 10px;
-}
-.drag-ghost strong {
-	font-weight: 550;
-	font-size: var(--text-meta);
-	line-height: 1.6;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-}
-.drag-ghost .drag-count {
+/* Real cards, fanned like a pile of photos: the first one chosen on top. */
+.selection-stack-face {
 	position: absolute;
-	right: -7px;
-	top: -7px;
-	border-radius: 50%;
+	inset: 0;
+	background: var(--card);
+	color: var(--ink);
+	border-radius: 16px;
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		0 1px 2px rgba(0, 0, 0, 0.06),
+		0 10px 28px rgba(0, 0, 0, 0.14);
+	overflow: hidden;
+	transition: transform var(--base) var(--ease);
+}
+.selection-stack-face[data-layer="1"] {
+	transform: translate(14px, -6px) rotate(6deg) scale(0.95);
+}
+.selection-stack-face[data-layer="2"] {
+	transform: translate(-14px, -2px) rotate(-6deg) scale(0.92);
+}
+.selection-stack-face > .feed-card {
+	opacity: 1;
+	border: 0;
+	box-shadow: none;
+	animation: none;
+}
+.selection-thumbnail-fallback {
+	padding: 14px;
+	font-size: var(--text-meta);
+}
+.selection-stack-count {
+	position: absolute;
+	top: -10px;
+	right: -10px;
+	z-index: 4;
+	min-width: 28px;
+	height: 28px;
+	padding-inline: 8px;
+	border-radius: var(--pill-radius);
 	background: var(--accent-fill);
 	color: #fff;
-	width: 23px;
-	height: 23px;
 	display: grid;
 	place-items: center;
-	font-size: 11px;
+	font-size: var(--text-control);
+	font-weight: 600;
+	box-shadow:
+		0 0 0 2px var(--card),
+		0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.selection-lift .selection-stack {
+	transform: scale(1.03) rotate(-1deg);
 }
 body.is-dragging {
 	cursor: grabbing !important;
 	user-select: none;
-}
-body.is-dragging .feed-card,
-body.is-dragging #orb {
-	cursor: grabbing !important;
+	-webkit-user-select: none;
 }
 body.is-dragging .card-actions,
-body.is-dragging .dock-tools {
-	visibility: hidden !important;
-	opacity: 0 !important;
-}
-body.is-dragging #selection-bar {
+body.is-dragging #dock,
+body.is-dragging .scroll-edge {
 	visibility: hidden;
 }
-/* Drop targets appear beside the pointer where the card was lifted, not at a screen edge. */
-.drop-targets {
+body.selection-menu-open {
+	overflow: hidden;
+}
+#selection-menu {
 	position: fixed;
+	inset: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--ink);
+	overflow: auto;
+	width: 100%;
+	height: 100%;
+	max-width: 100vw;
+	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+	box-shadow: none;
+}
+#selection-menu::backdrop {
+	background: var(--frost);
+	backdrop-filter: blur(28px) saturate(1.6);
+	-webkit-backdrop-filter: blur(28px) saturate(1.6);
+}
+.selection-context {
+	position: absolute;
+	width: 260px;
+	max-height: calc(100dvh - 32px);
+	overflow-y: auto;
+	padding: 20px 10px 12px;
+	box-sizing: border-box;
 	display: flex;
-	gap: 16px;
-	z-index: 46;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
 }
-.drop-targets[hidden] {
-	display: none;
+/* A compact menu: words first, a matching icon at the end, as in a system context menu. */
+.selection-options {
+	flex-shrink: 0;
+	width: 240px;
+	background: var(--glass-thick);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow:
+		inset 0 0 0 0.5px var(--glass-edge),
+		0 0 0 0.5px var(--glass-rim),
+		0 12px 36px rgba(0, 0, 0, 0.16);
 }
-.drop-target {
-	display: grid;
-	place-items: center;
-	width: 56px;
-	height: 56px;
-	border-radius: 50%;
-	transition: transform var(--base) var(--ease);
+.selection-options [role="group"] + [role="group"] {
+	border-top: 6px solid var(--glass-press);
 }
-.drop-target.drop-hot {
-	transform: scale(1.18);
-	color: var(--accent);
+.selection-options button {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	min-height: 44px;
+	padding: 11px 16px;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: var(--ink);
+	font: inherit;
+	font-size: var(--text-body);
+	text-align: start;
+}
+.selection-options button .icon {
+	color: var(--ink);
+	flex: none;
+}
+.selection-options button + button {
+	border-top: 0.5px solid var(--line-hover);
+}
+body.opaque .selection-options {
+	background: var(--card);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+.selection-options button:hover,
+.selection-options button:focus-visible {
+	background: var(--glass-press);
+}
+.selection-options button:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: -4px;
+}
+.selection-context > .selection-stack {
+	flex-shrink: 0;
+}
+.reduce-transparency #selection-menu::backdrop {
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+	.selection-lift .selection-stack {
+		transform: none;
+	}
+}
+body.reduce-motion .selection-lift .selection-stack {
+	transform: none;
 }
 
 [tabindex="-1"]:focus {
@@ -3003,6 +3258,11 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 main {
 	transition: translate 260ms var(--ease);
+}
+/* Under a finger the desk follows exactly; the glide is only for letting go. */
+body.is-pulling main {
+	transition: none;
+	will-change: translate;
 }
 body.is-pulling main,
 body.is-pulling .pull-ring {
@@ -3084,9 +3344,10 @@ body.is-pulling .pull-ring {
 .push-ring.is-done .tick {
 	opacity: 1;
 }
+/* The read-end ring rises at the very foot of the page, where the toolbar was. */
 #modal.reader .push-ring {
 	position: fixed;
-	bottom: 100px;
+	bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 }
 /* The sheet's own pull and push replace the browser's elastic bounce; two springs at once read as a stutter. */
 .sheet-scroll,
@@ -3098,11 +3359,6 @@ body.is-pulling .pull-ring {
 .preview-sheet,
 #modal.reader {
 	transition: translate 360ms var(--ease-sheet);
-}
-dialog > .float-bar {
-	transition:
-		translate 360ms var(--ease-sheet),
-		opacity 240ms;
 }
 .is-drag,
 .is-drag .sheet-scroll,
@@ -3144,12 +3400,56 @@ dialog > .float-bar {
 	overscroll-behavior: contain;
 }
 
+/* Focus stays visible but sits close to the field, in a soft ring instead of a second outline. */
 .search-pill:focus-within {
-	outline: 2px solid var(--accent);
-	outline-offset: 4px;
+	outline: none;
+	box-shadow:
+		0 0 0 3px color-mix(in srgb, var(--accent) 32%, transparent),
+		var(--shadow-glass);
 }
 #modal.panel .settings-layout {
 	min-height: 0;
+}
+/* Settings is one grouped page: the same grey ground from the head to the last row, white groups on it. */
+#modal.panel.wide .sheet {
+	background: var(--canvas);
+}
+#modal.panel.wide .settings-nav,
+#modal.panel.wide .settings-main {
+	background: transparent;
+}
+
+/* Reader: the same scroll edges at the top and the bottom, under the floating bars. */
+.reader-edge {
+	position: fixed;
+	left: 0;
+	right: 0;
+	z-index: 4;
+	pointer-events: none;
+	transition: opacity 260ms var(--ease);
+}
+.reader-edge.is-bottom {
+	bottom: 0;
+	height: calc(var(--rail-row) + 24px + 48px + env(safe-area-inset-bottom));
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--card) 94%, transparent) 0%,
+		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 24px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+}
+.reader-edge.is-top {
+	top: 0;
+	height: calc(var(--rail-row) + 14px + 28px + env(safe-area-inset-top));
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, var(--card) 92%, transparent) 0%,
+		color-mix(in srgb, var(--card) 80%, transparent) calc(var(--rail-row) + 14px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+}
+.reader-edge.is-tucked {
+	opacity: 0;
 }
 
 /* Preview frame: cards and fixed layers render in flow. */

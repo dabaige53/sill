@@ -188,7 +188,7 @@ body:has(#modal[open]) .scroll-edge {
 #new-count[hidden] {
 	display: none;
 }
-/* Busy: one quiet arc travelling around the orb. No percentages, no spinner text. */
+/* Busy: one quiet arc travelling around the face. No percentages, no spinner text. */
 .orb-arc {
 	position: absolute;
 	inset: -4px;
@@ -212,7 +212,7 @@ body:has(#modal[open]) .scroll-edge {
 #dock.is-busy .orb-arc circle {
 	animation: orb-arc 1.1s linear infinite;
 }
-/* Done: the arc closes and a check shows over the orb, then both fade. */
+/* Done: the arc closes and a check shows over the face, then both fade. */
 .orb-done {
 	position: absolute;
 	inset: 0;
@@ -243,7 +243,7 @@ body:has(#modal[open]) .scroll-edge {
 		transform: rotate(360deg);
 	}
 }
-/* Offline: the orb says it quietly; a tap retries. */
+/* Offline: a quiet pill above the rail; a tap retries. */
 #offline {
 	height: 40px;
 	padding: 0 14px;
@@ -274,7 +274,7 @@ body:has(#modal[open]) .scroll-edge {
 	}
 }
 
-/* Selection takes the row beside the orb; new-content and offline pills step aside. */
+/* Selection takes the rail row; new-content and offline pills step aside. */
 #selection-bar {
 	height: var(--rail-row);
 	border-radius: var(--pill-radius);

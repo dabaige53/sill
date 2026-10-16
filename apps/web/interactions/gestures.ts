@@ -445,20 +445,15 @@ class Gestures {
 				else app.closeModal();
 			});
 		};
-		// Phone: reading on makes the sheet full screen; the capsule steps aside while reading down and returns going up or at the end.
-		if (phone) {
-			let lastY = 0;
+		// Phone: reading on makes the sheet full screen. The bars follow the shared tuck rule (ChromeAutoHide).
+		if (phone)
 			scroll.addEventListener(
 				"scroll",
 				() => {
-					const y = scroll.scrollTop,
-						max = scroll.scrollHeight - scroll.clientHeight;
-					if (y > 4) surface.classList.add("is-full");
-					lastY = y;
+					if (scroll.scrollTop > 4) surface.classList.add("is-full");
 				},
 				{ passive: true },
 			);
-		}
 		scroll.addEventListener(
 			"scroll",
 			() => {

@@ -11,9 +11,21 @@ export async function waitCloud(page?: any) {
 		"content starts at viewport top",
 	);
 }
+/** The rail has no entrance orb: the face opens settings, refresh is the R key (or a pull at the top). */
 export async function cloudTool(page?: any, action?: any) {
-	await page.locator("#orb").click();
-	await page.locator(".dock-tools [data-action=" + action + "]").click();
+	if (action === "settings") {
+		await page.locator("#account").click();
+		return;
+	}
+	if (action === "refresh") {
+		// Works for a page and for a frame (an embedded host has no keyboard of its own).
+		await page.evaluate(() => {
+			(document.activeElement as HTMLElement)?.blur?.();
+			document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "r", bubbles: true }));
+		});
+		return;
+	}
+	await page.locator("#dock [data-action=" + action + "]").click();
 }
 export async function cloudLogout(page?: any) {
 	await cloudTool(page, "settings");

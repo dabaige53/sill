@@ -349,19 +349,17 @@ test("duplicate popstate/hashchange does not close a newly opened local panel", 
 	assert.equal(closes, 2);
 });
 
-test("touch consistently opens local tools", () => {
+test("the account face opens settings directly; there is no expanding entrance", () => {
 	const f = fixture();
 	f.context.matchMedia = () => ({ matches: false });
-	let tools = 0,
-		ai = 0;
-	f.app.openDock = () => tools++;
-	f.app.openAI = () => ai++;
+	const opened: string[] = [];
+	f.app.openPanel = (kind: string) => opened.push(kind);
+	f.app.action("settings", "", "", null, { pointerType: "touch" });
+	f.app.action("settings", "", "", null, { pointerType: "mouse" });
+	assert.deepEqual(opened, ["settings", "settings"]);
+	assert.equal(typeof f.app.openDock, "undefined");
 	f.app.action("orb", "", "", null, { pointerType: "touch" });
-	assert.equal(tools, 1);
-	assert.equal(ai, 0);
-	f.app.action("orb", "", "", null, { pointerType: "touch" });
-	assert.equal(tools, 2);
-	assert.equal(ai, 0);
+	assert.deepEqual(opened, ["settings", "settings"]);
 });
 
 test("Sill rename copies old cards and drafts once without replacing newer data", () => {

@@ -1,10 +1,10 @@
 import { icon } from "../atoms/icons.ts";
 import {
+	avatarTone,
 	button,
 	checkMark,
 	duration,
 	emptyState,
-	avatarTone,
 	esc,
 	eventEnded,
 	eventRelative,
@@ -58,10 +58,8 @@ class AppController {
 	declare pageLimit: any;
 	declare drag: any;
 	declare gestures: any;
-	declare quietTimer: any;
 	declare hasMore: any;
 	declare readTicker: any;
-	declare dockTimer: any;
 	declare railHide: any;
 	declare sheetHide: any;
 	declare lastRouteHash: any;
@@ -876,7 +874,7 @@ class AppController {
 	openExternal(c?: any) {
 		if (c?.url && /^https?:\/\//.test(c.url)) window.open(c.url, "_blank", "noopener,noreferrer");
 	}
-	/** Toast is for undo and short facts; it sits on the bottom rail beside the orb. */
+	/** Toast is for undo and short facts; it sits one row above the bottom rail. */
 	toast(text?: any, undo: any = null, actionLabel: any = copy("web.app.926a50b98ece")) {
 		this.showToast(text, undo, actionLabel, false);
 	}
@@ -1067,7 +1065,7 @@ class AppController {
 	async refresh() {
 		if (this.refreshBusy) return;
 		this.refreshBusy = true;
-		// Background work shows as a thin arc on the orb; success needs no sentence.
+		// Background work shows as a thin arc around the face; success needs no sentence.
 		const dock = document.getElementById("dock"),
 			started = Date.now();
 		let finished = false;
@@ -1279,7 +1277,11 @@ class AppController {
 			this.withFeedAnchor(() => {}, true);
 			this.checkReminders();
 			const back = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
-			(back?.querySelector(".card-title-button") || back || document.getElementById("account")).focus({
+			(
+				back?.querySelector(".card-title-button") ||
+				back ||
+				document.getElementById("account")
+			).focus({
 				preventScroll: true,
 			});
 		});

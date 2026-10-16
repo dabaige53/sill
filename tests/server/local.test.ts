@@ -152,7 +152,11 @@ test("legacy sources remain opaque state and source operations are unsupported",
 			}),
 		);
 		const repo = new LocalRepository(file);
-		assert.deepEqual(repo.snapshot().state.sources, sources, "reading does not migrate old sources");
+		assert.deepEqual(
+			repo.snapshot().state.sources,
+			sources,
+			"reading does not migrate old sources",
+		);
 		repo.apply({ operations: [{ op: "preferences.patch", values: { sort: "time" } }] });
 		assert.deepEqual(
 			new LocalRepository(file).snapshot().state.sources,

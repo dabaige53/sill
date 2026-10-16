@@ -165,8 +165,7 @@ try {
 		await page.waitForFunction(() => (document.querySelector("#modal") as HTMLDialogElement).open);
 		await page.keyboard.press("Escape");
 		await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
-		await page.locator("#orb").click();
-		await page.locator("[data-action=settings]").click();
+		await page.locator("#account").click();
 		await page.locator("[data-action=settings-group][data-extra=data]").click();
 		assert.match(await page.locator(".settings-main").textContent(), /云端工作区/);
 		await page.locator("[data-action=settings-group][data-extra=sources]").click();

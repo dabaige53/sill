@@ -754,5 +754,8 @@
 	"web.selection.later": "稍后读",
 	"web.selection.organize": "整理",
 	"web.selection.tag": "标签",
-	"web.selection.cancel": "取消"
+	"web.selection.cancel": "取消",
+	"web.readerTools": "阅读工具",
+	"web.search.deskGroup": "桌面",
+	"web.search.shelvedGroup": "已收起"
 }

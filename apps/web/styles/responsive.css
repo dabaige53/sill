@@ -202,8 +202,14 @@ body.opaque .scroll-edge {
 		max-height: none;
 	}
 	.sheet-head {
-		height: 56px;
-		padding: 0 14px;
+		height: 60px;
+		padding: 0 12px;
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
 	}
 	.sheet-head .grabber {
 		position: absolute;
@@ -395,8 +401,7 @@ body.reduce-motion *:after {
 	transition-duration: 0.01ms !important;
 }
 @media (prefers-reduced-transparency: reduce) {
-	.glass,
-	.dock-tools .icon-button {
+	.glass {
 		background: var(--card);
 		backdrop-filter: none;
 		-webkit-backdrop-filter: none;
