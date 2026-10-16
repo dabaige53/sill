@@ -26,6 +26,9 @@ import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
 
+/** The lens leads; the place it names opens just after, so the move is seen before the sheet covers it. */
+const NAV_LEAD_MS = 160;
+
 class AppController {
 	declare mode: any;
 	declare baseMode: any;
@@ -49,6 +52,8 @@ class AppController {
 	declare feedNow: any;
 	declare pendingReminders: any;
 	declare settingsGroup: any;
+	declare navKey: string;
+	declare navTimer: number;
 	declare editingId: any;
 	declare loadedImages: any;
 	declare grid: any;
@@ -104,6 +109,8 @@ class AppController {
 		this.feedNow = Date.now();
 		this.pendingReminders = [];
 		this.settingsGroup = "desk";
+		this.navKey = "home";
+		this.navTimer = 0;
 		this.editingId = "";
 		this.loadedImages = new Set<any>();
 	}
@@ -115,13 +122,14 @@ class AppController {
 		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
    <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span><button type="button" class="text-button" data-action="select-all" aria-label="${copy("web.selectAllLabel")}">${copy("web.selectAll")}</button><button type="button" class="text-button" data-action="selection-menu" aria-haspopup="dialog">${copy("web.selection.actions")}</button><span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
-   <div class="rail-tools glass" role="toolbar" aria-label="${copy("web.app.25ce5c2fbf41")}">${button("search", copy("web.app.1fd57350e5f1"), "filter")}${button("plus", copy("web.panels.5a15649c2481"), "capture")}</div>
-   <!-- Rail groups: desk tools in one capsule; a future assistant gets its own glass circle here, never inside the desk tools; the face stays last. -->
-   <div class="account-wrap"><button type="button" class="account-button glass" id="account" data-action="settings" aria-label="${copy("web.app.df3d58c7d84b")}">${this.accountFace()}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
+   ${this.navHTML()}</div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
 		this.grid = document.getElementById("feed-grid");
 		this.dialog = document.getElementById("modal");
+		this.setNav("home");
+		if (typeof ResizeObserver === "function")
+			new ResizeObserver(() => this.setNav(this.navKey)).observe(document.getElementById("nav"));
 		this.themeQuery = matchMedia("(prefers-color-scheme: dark)");
 		this.applyPreferences();
 		this.layout = new FeedLayout(this.grid);
@@ -234,8 +242,57 @@ class AppController {
 			: `<span class="account-face is-blank">${icon("person", 20)}</span>`;
 	}
 	paintAccount() {
-		const face = document.getElementById("account");
-		if (face) face.innerHTML = this.accountFace();
+		const face = document.querySelector("#account .account-wrap");
+		if (face) face.innerHTML = this.accountRing();
+	}
+	accountRing() {
+		return `${this.accountFace()}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
+	}
+	/**
+	 * The navigation capsule: four places, one glass lens that slides to the current one.
+	 * Card actions never live here; they stay with the card (preview toolbar, selection menu).
+	 */
+	navHTML() {
+		const tab = (key: string, face: string, label: string, aria = label, id = "") =>
+			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span><span class="nav-label" aria-hidden="true">${label}</span></button>`;
+		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("search", icon("search", 22), copy("web.nav.search"))}${tab("ai", icon("sparkles", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("settings", `<span class="account-wrap">${this.accountRing()}</span>`, copy("web.nav.settings"), copy("web.nav.settings"), "account")}</nav>`;
+	}
+	/** Moves the lens. The lens travels on a spring and stretches a little on the way, like a drop. */
+	setNav(key: string) {
+		const nav = document.getElementById("nav");
+		if (!nav) return;
+		const tab = nav.querySelector<HTMLElement>(`[data-extra="${key}"]`);
+		if (!tab) return;
+		const moved = this.navKey !== key;
+		this.navKey = key;
+		nav.querySelectorAll(".nav-tab").forEach((n) => {
+			if (n === tab) n.setAttribute("aria-current", "page");
+			else n.removeAttribute("aria-current");
+		});
+		nav.style.setProperty("--lens-x", `${tab.offsetLeft}px`);
+		nav.style.setProperty("--lens-w", `${tab.offsetWidth}px`);
+		if (!moved || MotionEngine.reduced) return;
+		nav.classList.remove("is-moving");
+		void nav.offsetWidth;
+		nav.classList.add("is-moving");
+		clearTimeout(this.navTimer);
+		this.navTimer = window.setTimeout(() => nav.classList.remove("is-moving"), 420);
+	}
+	/** A tab opens its place after the lens has started to move, so the switch is seen. */
+	goTo(key: string) {
+		if (key === "home") {
+			this.setNav("home");
+			if (this.dialog.open) this.closeNative();
+			else window.scrollTo({ top: 0, behavior: MotionEngine.reduced ? "auto" : "smooth" });
+			return;
+		}
+		this.setNav(key);
+		const open = () => {
+			if (key === "settings") this.settingsGroup = "desk";
+			this.openPanel(key);
+		};
+		if (MotionEngine.reduced) open();
+		else window.setTimeout(open, NAV_LEAD_MS);
 	}
 	/* ——— What is on the desk ——— */
 	shelfOf(c?: any) {
@@ -617,6 +674,8 @@ class AppController {
 		document.documentElement.style.overflow = "";
 		this.modalKind = "";
 		this.panelReturn = null;
+		// The rail is back: the lens slides home from the place that was open.
+		if (this.navKey !== "home") requestAnimationFrame(() => this.setNav("home"));
 		// Leftovers of a drag or swipe are cleared only now that nothing is on screen.
 		this.dialog.style.removeProperty("--backdrop");
 		this.dialog.style.transform = "";
@@ -674,8 +733,9 @@ class AppController {
 			this.panelReturn = () => this.openCard(cardId, reading);
 		}
 		this.editId = id;
+		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);
 		if (kind === "editor") this.editTags = new Set<any>(Store.tags(Store.card(id)));
-		const narrow = ["editor", "why", "capture", "confirm"].includes(kind),
+		const narrow = ["editor", "why", "capture", "confirm", "ai"].includes(kind),
 			wide = kind === "settings";
 		const html =
 			kind === "search"
@@ -688,9 +748,11 @@ class AppController {
 							? Panels.settings(this, this.settingsGroup)
 							: kind === "capture"
 								? Panels.capture(this)
-								: kind === "archive"
-									? Panels.archive(this, id)
-									: "";
+								: kind === "ai"
+									? Panels.ai()
+									: kind === "archive"
+										? Panels.archive(this, id)
+										: "";
 		this.openModal(
 			html,
 			kind,
@@ -1909,6 +1971,9 @@ class AppController {
 			case "settings":
 				this.settingsGroup = "desk";
 				this.openPanel("settings");
+				break;
+			case "nav":
+				this.goTo(extra);
 				break;
 			case "settings-group":
 				this.settingsGroup = extra;

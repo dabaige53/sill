@@ -1750,3 +1750,37 @@ body.is-pulling .pull-ring {
 .reader-edge.is-tucked {
 	opacity: 0;
 }
+/* AI, coming soon: one calm card, no buttons that pretend to work. */
+.ai-soon {
+	display: grid;
+	justify-items: center;
+	gap: 10px;
+	padding: 28px 12px 20px;
+	text-align: center;
+}
+.ai-soon > .icon {
+	color: var(--ink);
+}
+.ai-soon h1 {
+	margin: 0;
+	font-size: var(--text-title, 20px);
+}
+.ai-soon p {
+	max-width: 30ch;
+	margin: 0;
+}
+.soon-badge {
+	padding: 3px 10px;
+	border-radius: var(--pill-radius);
+	background: var(--glass-press);
+	color: var(--secondary);
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+/* Settings › Add: the capture field inside a settings card. */
+.settings-add {
+	padding: 4px 16px 12px;
+}
+.settings-add .panel-footer {
+	margin-top: 4px;
+}

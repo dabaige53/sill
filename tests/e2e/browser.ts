@@ -549,15 +549,18 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), false);
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 2);
 				assert.deepEqual(await inside(), before, "selecting moved the card's content");
-				// No entrance orb: the rail is the tools capsule and the face, and selection shares their row.
-				assert.equal(await page.locator("#orb,.dock-tools").count(), 0);
+				// No entrance orb: the rail is the navigation capsule, and selection shares its row.
+				assert.equal(await page.locator("#orb,.dock-tools,.rail-tools").count(), 0);
 				const bar = await rect(page, "#selection-bar"),
-					tools = await rect(page, "#dock .rail-tools"),
+					nav = await rect(page, "#nav"),
 					face = await rect(page, "#account");
-				assert.ok(bar.right <= tools.left, "selection bar overlaps the rail tools");
-				assert.ok(tools.right <= face.left, "the face is the last item on the rail");
-				assert.equal(Math.round(bar.bottom), Math.round(tools.bottom), "rail rows differ");
-				assert.equal(Math.round(bar.height), Math.round(tools.height), "rail rows differ");
+				assert.ok(bar.right <= nav.left, "selection bar overlaps the navigation capsule");
+				assert.ok(
+					face.right <= nav.right && face.left > nav.left,
+					"settings sits inside the capsule",
+				);
+				assert.equal(Math.round(bar.bottom), Math.round(nav.bottom), "rail rows differ");
+				assert.equal(Math.round(bar.height), Math.round(nav.height), "rail rows differ");
 				await page.evaluate(() => window.__app.toast("撤销测试", () => {}));
 				const toast = await rect(page, "#toast");
 				assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");
@@ -615,8 +618,7 @@ async function recordLayout(page?: any, width?: any) {
 				await action(page, "select", id);
 				const bar = await rect(page, "#selection-bar");
 				assert.ok(bar.left >= 0 && bar.right <= 390, "selection bar leaves the screen");
-				assert.equal(await page.locator("#dock .account-wrap").isVisible(), false);
-				assert.equal(await page.locator("#dock .rail-tools").isVisible(), false);
+				assert.equal(await page.locator("#dock .nav-capsule").isVisible(), false);
 				await page.evaluate(() => window.__app.alert("无法导入"));
 				const toast = await rect(page, "#toast");
 				assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");
@@ -783,7 +785,7 @@ async function recordLayout(page?: any, width?: any) {
 					await feedUnopened(page, "reminder-01");
 					await page.getByRole("button", { name: "撤销操作", exact: true }).tap();
 					assert.equal(await reminder.count(), 1);
-					await page.getByRole("button", { name: "筛选与搜索", exact: true }).tap();
+					await page.getByRole("button", { name: "搜索", exact: true }).tap();
 					await page.waitForFunction(() => window.__app.modalKind === "search");
 					await page.screenshot({
 						animations: "disabled",

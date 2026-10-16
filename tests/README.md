@@ -10,7 +10,7 @@
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |
 | 浏览器交互与布局 | `npm run test:browser`、`npm run test:local-browser`、`npm run test:accessibility` | 按改动选择；输出放被忽略的 `artifacts/` |
 | 多选、提起与批量菜单 | `npm run build && npm run test:selection-browser` | 隔离合成卡片；桌面、390×844 触屏、减少动态效果、最多三张真实卡片叠放、指针定位与上下翻转、焦点、取消、滚动与写入边界 |
-| 工具条收起、输入法与搜索 | `npm run test:core`（`web/chrome.test.ts`） | JSDOM：向下滚动收起、抖动不触发、到顶到底与停下回来、键盘焦点回来；拼写中不筛选；搜索不显示数量 |
+| 工具条收起、输入法、搜索与导航胶囊 | `npm run test:core`（`web/chrome.test.ts`） | JSDOM：向下滚动收起、抖动不触发、到顶到底与停下回来、键盘焦点回来；拼写中不筛选；搜索不显示数量；导航胶囊四格、镜片跟随、设置「添加」组、AI 面板没有可点动作 |
 | 云端服务 | `npm run test:supabase`、`npm run test:cloud-app` | 本地检查不代替生产数据和账号验收 |
 | OAuth | `npm run test:oauth` | 真实授权另行验收 |
 | 云端页面 | `npm run test:cloud-browser`、`npm run test:cloud-app-browser`、`npm run test:cloud-operations` | 不默认访问生产 |

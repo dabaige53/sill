@@ -757,5 +757,15 @@
 	"web.selection.cancel": "取消",
 	"web.readerTools": "阅读工具",
 	"web.search.deskGroup": "桌面",
-	"web.search.shelvedGroup": "已收起"
+	"web.search.shelvedGroup": "已收起",
+	"web.nav.label": "主导航",
+	"web.nav.home": "主页",
+	"web.nav.search": "搜索",
+	"web.nav.ai": "AI",
+	"web.nav.aiLabel": "AI，即将推出",
+	"web.nav.settings": "设置",
+	"web.ai.title": "AI",
+	"web.ai.soon": "即将推出",
+	"web.ai.body": "以后可以在这里让 AI 查找、整理和处理卡片。现在还不能使用。",
+	"web.settings.add": "添加"
 }

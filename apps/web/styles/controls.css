@@ -58,30 +58,55 @@
 	fill-opacity: 0.9;
 }
 
-/* The bottom rail. The person's face sits at the far right and opens settings; the two
-   desk tools share one glass capsule beside it. Anything else that floats at the bottom
-   (selection, new content, offline) takes the space to their left, on the same baseline. */
+/* The bottom rail: one navigation capsule, centred. Home, search, AI and settings; a glass lens
+   marks where you are and slides between places. Anything else that floats at the bottom
+   (selection, new content, offline) sits beside it on the same baseline. */
 :root {
 	--rail-edge: 28px;
 	--rail-bottom: 28px;
-	--rail-row: 52px;
+	--rail-row: 60px;
 	--rail-gap: 8px;
 	--rail-tuck: 300ms;
+	--nav-tab: 76px;
+	/* A soft spring: overshoots about 6% and settles. */
+	--ease-spring: linear(
+		0,
+		0.03 2%,
+		0.11 4.4%,
+		0.24 7%,
+		0.51 12%,
+		0.75 17%,
+		0.91 22%,
+		1.01 27.4%,
+		1.05 31%,
+		1.065 35.5%,
+		1.06 40%,
+		1.03 49%,
+		1.007 59%,
+		0.997 70%,
+		1
+	);
+	--dur-lens: 520ms;
 }
 #dock {
 	position: fixed;
+	left: var(--rail-edge);
 	right: var(--rail-edge);
 	bottom: var(--rail-bottom);
 	z-index: 45;
 	display: flex;
+	justify-content: center;
 	align-items: center;
 	gap: var(--rail-gap);
+	pointer-events: none;
 	transition:
 		transform 380ms var(--ease-sheet),
 		opacity 240ms var(--ease),
 		visibility 0s;
 }
-/* Reading on: the whole rail leaves. No dot, pill or handle stays behind. */
+#dock > * {
+	pointer-events: auto;
+}
 #dock.is-tucked {
 	transform: translateY(calc(100% + var(--rail-bottom) + 12px));
 	opacity: 0;
@@ -96,43 +121,120 @@ body:has(#modal[open]) #dock,
 body:has(#modal[open]) .scroll-edge {
 	opacity: 0;
 	visibility: hidden;
+	/* The lens finishes its move while the rail fades under the sheet. */
+	transition:
+		opacity 220ms var(--ease),
+		visibility 0s 220ms;
 }
-/* Desk tools share one glass capsule. Other groups (a future assistant) get their own glass, beside it. */
-.rail-tools {
+.nav-capsule {
+	position: relative;
 	display: flex;
 	align-items: center;
-	gap: 4px;
 	height: var(--rail-row);
 	padding: 4px;
 	border-radius: var(--pill-radius);
 }
-.account-wrap {
+.nav-tab {
 	position: relative;
-	width: var(--rail-row);
-	height: var(--rail-row);
-}
-.account-button {
-	width: var(--rail-row);
-	height: var(--rail-row);
+	z-index: 1;
+	width: var(--nav-tab);
+	height: 100%;
 	padding: 0;
-	border-radius: 50%;
+	border: 0;
+	border-radius: var(--pill-radius);
+	background: none;
+	color: color-mix(in srgb, var(--ink) 62%, transparent);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	font: inherit;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition: color var(--base) var(--ease);
+}
+.nav-tab[aria-current="page"] {
+	color: var(--ink);
+}
+.nav-icon {
 	display: grid;
 	place-items: center;
-	color: var(--ink);
-	transition: transform var(--fast) var(--ease);
+	height: 28px;
+	transition: scale var(--fast) var(--ease);
 }
-.account-button:active {
-	transform: scale(0.95);
+.nav-tab:active .nav-icon {
+	scale: 0.88;
+}
+.nav-label {
+	font-size: 10.5px;
+	line-height: 1;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+/* The lens: a clear drop of glass over the current place. It moves on a spring and, while
+   moving, stretches along the way and flattens a little, then settles round again. */
+.nav-lens {
+	position: absolute;
+	top: 4px;
+	bottom: 4px;
+	left: 0;
+	width: var(--lens-w, var(--nav-tab));
+	translate: var(--lens-x, 4px) 0;
+	border-radius: var(--pill-radius);
+	background: var(--glass-press);
+	box-shadow:
+		inset 0 1px 0.5px var(--glass-edge),
+		inset 0 -0.5px 0.5px var(--glass-shade);
+	transition:
+		translate var(--dur-lens) var(--ease-spring),
+		width var(--dur-lens) var(--ease-spring);
+}
+.nav-capsule.is-moving .nav-lens {
+	animation: lens-drop var(--dur-lens) var(--ease) both;
+}
+@keyframes lens-drop {
+	0% {
+		scale: 1;
+	}
+	35% {
+		scale: 1.16 0.9;
+		background: color-mix(in srgb, var(--glass-edge) 40%, var(--glass-press));
+	}
+	100% {
+		scale: 1;
+	}
+}
+/* A filter in effect: a small dot under the search icon, never a count. */
+#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after {
+	content: "";
+	position: absolute;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--ink);
+	translate: 11px -9px;
+}
+.nav-tab .nav-icon {
+	position: relative;
+}
+/* Settings wears the face: the initial when known, otherwise a neutral person. */
+.account-wrap {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
 }
 .account-face {
-	width: 40px;
-	height: 40px;
+	width: 26px;
+	height: 26px;
 	border-radius: 50%;
 	display: grid;
 	place-items: center;
 	color: #fff;
 	font-family: var(--rounded);
-	font-size: var(--text-body);
+	font-size: 13px;
 	font-weight: 600;
 	box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
 }
@@ -144,15 +246,11 @@ body:has(#modal[open]) .scroll-edge {
 	align-items: end;
 }
 .account-face.is-blank .icon {
-	width: 34px;
-	height: 34px;
+	width: 22px;
+	height: 22px;
 	fill: currentColor;
 	stroke: none;
-	margin-bottom: -4px;
-}
-/* A filter in effect: the search button holds a quiet pill, as a selected tab does. */
-#dock.filter-active .rail-tools [data-action="filter"] {
-	background: var(--glass-press);
+	margin-bottom: -3px;
 }
 /* Scroll edge: where the feed meets the rail it softens and blurs a little, so the glass reads
    against calm content. It belongs to the rail and leaves with it. */
@@ -174,6 +272,13 @@ body:has(#modal[open]) .scroll-edge {
 .scroll-edge.is-tucked {
 	opacity: 0;
 }
+/* New content and offline float just above the capsule, centred, so the capsule never shifts. */
+#dock :is(#new-count, #offline) {
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% + 10px);
+	translate: -50% 0;
+}
 #new-count {
 	height: 40px;
 	padding: 0 16px;
@@ -191,9 +296,9 @@ body:has(#modal[open]) .scroll-edge {
 /* Busy: one quiet arc travelling around the face. No percentages, no spinner text. */
 .orb-arc {
 	position: absolute;
-	inset: -4px;
-	width: 64px;
-	height: 64px;
+	inset: -3px;
+	width: 34px;
+	height: 34px;
 	pointer-events: none;
 	opacity: 0;
 	transition: opacity var(--base);
@@ -282,7 +387,7 @@ body:has(#modal[open]) .scroll-edge {
 	align-items: center;
 	padding: 4px;
 	gap: 2px;
-	max-width: calc(100vw - 2 * var(--rail-edge) - 3 * var(--rail-row) - 2 * var(--rail-gap));
+	max-width: calc(100vw - 2 * var(--rail-edge) - 4 * var(--nav-tab) - 8px - var(--rail-gap));
 	overflow-x: auto;
 	scrollbar-width: none;
 }

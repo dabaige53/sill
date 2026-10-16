@@ -115,24 +115,20 @@ body.opaque .scroll-edge {
 		--rail-edge: 16px;
 		--rail-bottom: max(16px, env(safe-area-inset-bottom));
 	}
-	/* Phone rail: the capsule fills the row beside the face, like a composer above the keyboard. */
-	#dock {
-		left: var(--rail-edge);
+	/* Phone rail: the capsule fills the row, tabs share it equally, as an iPhone tab bar does. */
+	#dock .nav-capsule {
+		flex: 1;
+		max-width: 420px;
 	}
-	/* Phone: desk tools at the leading edge, the face at the trailing edge, open space between. */
-	#dock {
-		justify-content: space-between;
-	}
-	#dock :is(#new-count, #offline) {
-		position: absolute;
-		right: 0;
-		bottom: calc(100% + 10px);
+	#dock .nav-tab {
+		flex: 1;
+		width: auto;
 	}
 	#dock:has(#selection-bar:not([hidden])) #selection-bar {
 		flex: 1;
 	}
 	/* Too narrow for both: while selecting, the bar takes the whole row. */
-	#dock:has(#selection-bar:not([hidden])) :is(.account-wrap, .rail-tools) {
+	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
 		display: none;
 	}
 	#dock #selection-bar {

@@ -151,3 +151,48 @@ test("search shows no counts: the total is for screen readers only and groups ca
 		f.dom.window.close();
 	}
 });
+
+test("the navigation capsule holds home, search, AI and settings; the lens follows the open place", () => {
+	const dom = new JSDOM(`<!doctype html><body></body>`, {
+		url: "http://chrome.test/",
+		runScripts: "outside-only",
+		pretendToBeVisual: true,
+	});
+	const w = dom.window as any;
+	try {
+		w.matchMedia = () => ({ matches: false, addEventListener() {} });
+		w.structuredClone = structuredClone;
+		w.eval(bundle);
+		const { AppController, Panels, Store } = w.ChromeTest;
+		Store.load();
+		const app = Object.create(AppController.prototype);
+		app.navKey = "home";
+		w.document.body.innerHTML = `<div id="dock">${app.navHTML()}</div>`;
+		const tabs = [...w.document.querySelectorAll("#nav .nav-tab")].map((n: any) => n.dataset.extra);
+		assert.deepEqual(tabs, ["home", "search", "ai", "settings"]);
+		assert.equal(
+			w.document.querySelectorAll("#nav [data-action=capture]").length,
+			0,
+			"adding moved to settings",
+		);
+		assert.equal(w.document.getElementById("account").dataset.extra, "settings");
+		assert.match(
+			w.document.querySelector('[data-extra="ai"]').getAttribute("aria-label"),
+			/即将推出/,
+		);
+		app.setNav("search");
+		assert.equal(w.document.querySelector("#nav [aria-current=page]").dataset.extra, "search");
+		assert.equal(w.document.querySelectorAll("#nav [aria-current]").length, 1);
+		assert.equal(Panels.settingsGroups[0][0], "add");
+		const page = w.document.createElement("div");
+		page.innerHTML = Panels.settings(app, "add");
+		assert.ok(page.querySelector("#capture-text"));
+		assert.ok(page.querySelector('[data-action="capture-save"]'));
+		const ai = w.document.createElement("div");
+		ai.innerHTML = Panels.ai();
+		assert.match(ai.textContent, /即将推出/);
+		assert.equal(ai.querySelectorAll(".solid-button").length, 0, "nothing pretends to work");
+	} finally {
+		dom.window.close();
+	}
+});

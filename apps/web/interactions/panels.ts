@@ -393,6 +393,7 @@ const Panels: Record<string, any> = {
 	},
 	/* Settings: five groups, one screen each. */
 	settingsGroups: [
+		["add", copy("web.settings.add"), "plus"],
 		["desk", copy("web.panels.f48d334495f6"), "monitor"],
 		["look", copy("web.panels.86a63f23a076"), "eye"],
 		["keys", copy("web.panels.ee2638183d3e"), "keyboard"],
@@ -403,6 +404,9 @@ const Panels: Record<string, any> = {
 			row = (label?: any, side?: any) =>
 				`<div class="setting-row"><span>${label}</span><span class="setting-side">${side}</span></div>`;
 		const pages: Record<string, any> = {
+			// Adding lives here now: the same one field as the capture sheet. N still opens the sheet directly.
+			add: () =>
+				`<h1 id="modal-title">${copy("web.settings.add")}</h1><div class="settings-card settings-add"><div class="capture-field">${icon("plus", 18)}<textarea id="capture-text" aria-label="${copy("web.panels.fd06b053572e")}" placeholder="${copy("web.panels.fd06b053572e")}" maxlength="4000"></textarea></div><div class="panel-footer"><span class="muted"><kbd>N</kbd>${copy("web.panels.9be4933b25fb")}</span><button type="button" class="solid-button" data-action="capture-save">${copy("web.panels.a0fb6bc1d3c5")}</button></div></div>`,
 			desk: () => `<h1 id="modal-title">${copy("web.panels.f48d334495f6")}</h1><div class="settings-card">${row(copy("web.panels.5142e436b1f9"), `<span>${copy("web.panels.840f6c8f8823")}</span>${toggle("stack", p("stack"), copy("web.panels.5142e436b1f9"))}`)}${row(copy("web.panels.a11a80a0843c"), toggle("fadeRead", p("fadeRead"), copy("web.panels.a11a80a0843c")))}${row(
 				copy("web.panels.1495127fad02"),
 				segmented(
@@ -481,6 +485,10 @@ const Panels: Record<string, any> = {
 	/* Sources: one dot says the state; only a broken source shows a button. */
 	confirm(title?: any, detail?: any, actions?: any) {
 		return `<div class="sheet"><div class="permission"><h1 id="modal-title">${esc(title)}</h1><p class="muted">${esc(detail)}</p><div class="permission-actions">${actions}</div></div></div>`;
+	},
+	/* AI: a place kept for the assistant. It says plainly that nothing works here yet. */
+	ai() {
+		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content ai-soon">${icon("sparkles", 28)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span><p class="muted">${copy("web.ai.body")}</p></div></div>`;
 	},
 	/* Capture: one field. A link becomes an article, a line becomes a note. */
 	capture(app?: any) {
