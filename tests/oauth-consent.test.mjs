@@ -237,3 +237,17 @@ test('observed ChatGPT openid email offline_access reaches explicit review under
   assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);
  }finally{await f.close();}
 });
+
+test('ChatGPT five identity scopes reach review only when explicitly allowed for this client',async()=>{
+ const f=await oauthFixture();try{
+  const scopes=['openid','email','offline_access','profile','phone'];
+  f.state.details={...f.details,scope:scopes.join(' ')};
+  await f.sql("update sill_private.oauth_clients set policy=jsonb_set(policy,'{identityScopes}',$1::jsonb)",[JSON.stringify(scopes)]);
+  const response=await f.call('/oauth/consent?authorization_id='+AUTH);
+  assert.equal(response.status,200,await response.clone().text());
+  const html=await response.text();
+  assert.match(html,/openid、email、offline_access、profile、phone/);
+  assert.equal(await f.grant(),undefined,'supporting identity scopes does not grant card access');
+  assert.equal(f.providerCalls.filter(c=>c.path.endsWith('/consent')).length,0);
+ }finally{await f.close();}
+});

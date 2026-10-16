@@ -1,5 +1,7 @@
 # Sill 授权测试结果
 
+最新结果：自定义 App 的五项身份权限兼容已生效；用户明确批准后，真实 OAuth 返回 ChatGPT，刷新后发现7个工具，真实卡片读取成功。页面曾加载失败，随后用户确认成功。当前身份、调试经过和使用规范统一见 [插件操作手册](../../SILL-PLUGIN-RUNBOOK.md)。以下各节保留对应阶段的结果，不将早期“未授权”“仅前三项”等描述视为当前状态。
+
 2026-10-15。测试代码位于 tests/oauth-consent.test.mjs、tests/consent-policy.test.mjs、tests/supabase-http-session.test.mjs、tests/supabase-http-worker.test.mjs 和 tests/oauth-browser.mjs。合成身份提供方与隔离数据库，不代替生产真实账号验收。
 
 ## 结果
@@ -44,3 +46,15 @@ User explicitly approved adding email and offline_access and deploying. Updated 
 Worker version `56001e2c-4bc7-4a7c-b2b0-b093261a476c`, deployment `509f67ec-4162-4bf1-89f8-5af4a256d19a`, 100% confirmed by readback. SHA256 `fe4708049044d0f43261b0d0ffb3f97356b8ff61c6add5223dd7e39637fe60e0`. Rollback Worker version `a4f54b35-5dd8-44fa-8b13-630b0d2bc82a`; rollback would also require restoring identityScopes to openid.
 
 Updated same new plugin `Plugin_4d11050446608191815ac3be9ec53209` to1.1.1, release `pluginrel_6ad0cf1607808191a344ad7deb492fdd`. Cloud readback confirms base/default/OIDC scopes contain openid,email,offline_access. Old plugin objects not modified or removed. Earlier instructions saying only openid are superseded. Final real-account approval/token exchange and host App/sidebar visibility are not yet verified.
+
+## 自定义 App 五项权限兼容修复
+
+2026-10-15：平台当前插件为 `Plugin_e3a0fc80b8a48191855711e727b2b8e1`，版本1.1.3，绑定 `asdk_app_6ad0d805d3e88191a1c8902cf66af046`。重新读取确认 `.app.json`、Skill 和图标存在，重复 MCP 配置已移除；宿主应用弹窗仍显示暂无可用工具。
+
+真实连接请求的身份权限为 `openid email offline_access profile phone`。数据库检查确认账号和回调匹配，拒绝原因是该客户端只允许前三项。按用户“让 Sill 支持”的要求，仅将客户端 `5caffdc3-f450-4664-bd81-a65a16eace73` 的 `identityScopes` 更新为这五项。重新读取确认生效；卡片权限仍为 `content:read`、`content:write`、`content:delete`，回调地址保持不变。未修改 OpenAI 设置、自动批准访问或发布插件新版本。
+
+42项授权测试通过，新增用例覆盖五项身份权限进入确认页且不自动创建卡片授权。真实浏览器已从授权拒绝页进入确认页，页面列出五项身份权限及整个个人工作区的卡片权限。
+
+用户随后明确批准上述访问。点击允许后返回 ChatGPT，刷新后按钮变为“打开插件”；App 弹窗列出3个写工具和4个读工具。数据库确认现有客户端卡片授权的 consent_version=2，权限仍为读取、创建修改、删除，资源范围为整个个人工作区。真实只读查询返回已有卡片，宿主助手报告已调用对话侧栏工具；未对用户卡片执行写入或删除。
+
+全局入口实际进入 sill_open_workspace 路由，页面曾显示“未能显示 sill”。网络诊断受浏览器工具限制，未确定原因，也未再部署页面修复；随后用户明确确认成功。页面最终可用记录为用户验收，长期续期、重启、其他宿主和生产写入删除未在本轮验收。

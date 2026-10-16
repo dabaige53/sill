@@ -10,3 +10,27 @@
 - 正常在线整卡并发覆盖、虚假连接成功两个P1尚未修复；文档变更或其他测试通过不等于它们已解决。
 
 - V1 最新范围以 docs/AGENT-MCP.md 和 docs/V1-HANDOFF.md 为准：外部助手 Webhook → Sill MCP 回写；不做内置助手。旧双形态目标中的内置委托/上游桥接为远期可选。交接包是设计与准备脚本，不代表 API 已实现；未经确认不继续业务实施或部署。
+
+## 沟通与文件管理
+
+- 项目日常说明与文档采用“80% ASD-STE100”的风格：使用常用词、短句和具体动词；同一概念保持同一称呼；说清条件、动作与结果。以清晰、自然的简体中文为准，宽松借鉴其原则，不按受控英语规则机械翻译。文章、PRD、报告按读者、用途和既定文风酌情采用。
+- 新增、修改、移动或归档文件前，查阅 [文件管理规范](docs/FILE-MANAGEMENT.md)。文档入口为 [文档目录](docs/README.md)，脚本和测试分别见相邻 README。
+- 保留已有内容与路径；迁移时更新引用并检查，不自动删除用户数据、历史证据或发布快照。交付前运行 `npm run files:check`。
+- 编写 PR 正文时使用 [PR 模板](.github/pull_request_template.md)，当前正文保存为 [pr.md](pr.md)。按 Summary、Evidence、Merge Danger 说明变更、证据和合并风险；不把待完成检查写为通过。
+
+## Agent skills
+
+### Issue tracker
+
+事项与规格使用 GitHub Issues，仓库为 `dabaige53/sill`。
+操作规则见 [事项管理](docs/agents/issue-tracker.md)。
+
+### Triage labels
+
+使用五个默认分类标签。
+映射见 [事项分类标签](docs/agents/triage-labels.md)。
+
+### Domain docs
+
+采用 single-context：根目录术语表与统一架构决策目录。
+读取规则见 [领域文档](docs/agents/domain.md)。
