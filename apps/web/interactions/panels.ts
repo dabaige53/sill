@@ -343,7 +343,7 @@ const Panels: Record<string, any> = {
 			["saved", copy("web.bookmark")],
 			["later", copy("web.later")],
 		];
-		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.filtered().length}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>
+		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.filtered().length}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>
    <div class="search-chips" role="group" aria-label="${copy("web.panels.b5f15473fdc0")}">${types.map(([k, v, ic]: any) => `<button type="button" class="chip ${f.type === k ? "active" : ""}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type === k}">${v}</button>`).join("")}${status.map(([k, v]: any) => `<button type="button" class="chip ${f.status === k ? "active" : ""}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status === k}">${v}</button>`).join("")}${tags.map((t?: any) => `<button type="button" class="chip ${f.tag === t ? "active" : ""}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag === t}">#${esc(t)}</button>`).join("")}</div>
    <div class="search-results" id="search-results">${this.searchResults(app)}</div>`;
 	},
@@ -366,7 +366,7 @@ const Panels: Record<string, any> = {
 				snippet = i > 18 ? "…" + text.slice(i - 14) : text;
 			return `<button type="button" class="list-row" data-action="card-open" data-id="${esc(c.id)}"><span class="row-icon">${icon((CardTypes[c.type] || CardTypes.note).icon, 16)}</span><span class="row-main"><b>${highlight(c.title, q)}</b><small>${highlight(snippet.slice(0, 60), q)}</small></span><span class="row-side">${esc(relativeDay(c.time || now, now))}</span></button>`;
 		};
-		return `${hits.desk.length ? `<div class="group-label">${copy("web.panels.51984343bcac")}<span class="num">${hits.desk.length}</span></div><div class="row-list">${hits.desk.slice(0, 8).map(row).join("")}</div>` : ""}${hits.shelved.length ? `<div class="group-label">${copy("web.panels.342927bba059")}<span class="num">${hits.shelved.length}</span></div><div class="row-list">${hits.shelved.slice(0, 8).map(row).join("")}</div>` : ""}`;
+		return `${hits.desk.length ? `<div class="group-label">${copy("web.panels.51984343bcac").replace(/ · $/, "")}</div><div class="row-list">${hits.desk.slice(0, 8).map(row).join("")}</div>` : ""}${hits.shelved.length ? `<div class="group-label">${copy("web.panels.342927bba059").replace(/ · $/, "")}</div><div class="row-list">${hits.shelved.slice(0, 8).map(row).join("")}</div>` : ""}`;
 	},
 	/* Archives: grouped by week, one row per card; “放回桌面” appears on hover. */
 	archive(app?: any, which?: any) {

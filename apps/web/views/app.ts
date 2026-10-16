@@ -117,12 +117,11 @@ class AppController {
 		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
    <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span><button type="button" class="text-button" data-action="select-all" aria-label="${copy("web.selectAllLabel")}">${copy("web.selectAll")}</button><button type="button" class="text-button" data-action="selection-menu" aria-haspopup="dialog">${copy("web.selection.actions")}</button><span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
-   <div class="rail-tools glass" role="toolbar" aria-label="${copy("web.app.25ce5c2fbf41")}"><button type="button" class="rail-search" data-action="filter" aria-label="${copy("web.app.1fd57350e5f1")}">${icon("search", 18)}<span class="rail-search-text" id="rail-search-text">${copy("web.panels.a76ee88e6c2e")}</span><kbd class="rail-kbd" aria-hidden="true">⌘K</kbd></button>${button("plus", copy("web.panels.5a15649c2481"), "capture")}</div>
+   <div class="rail-tools glass" role="toolbar" aria-label="${copy("web.app.25ce5c2fbf41")}">${button("search", copy("web.app.1fd57350e5f1"), "filter")}${button("plus", copy("web.panels.5a15649c2481"), "capture")}</div>
+   <!-- Rail groups: desk tools in one capsule; a future assistant gets its own glass circle here, never inside the desk tools; the face stays last. -->
    <div class="account-wrap"><button type="button" class="account-button glass" id="account" data-action="settings" aria-label="${copy("web.app.df3d58c7d84b")}">${this.accountFace()}</button><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 22)}</span></div></div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
-		if (!/Mac|iPhone|iPad/.test(navigator.platform))
-			document.querySelector(".rail-kbd").textContent = "Ctrl K";
 		this.grid = document.getElementById("feed-grid");
 		this.dialog = document.getElementById("modal");
 		this.themeQuery = matchMedia("(prefers-color-scheme: dark)");
@@ -441,13 +440,6 @@ class AppController {
 	}
 	updateFilterIndicator() {
 		document.getElementById("dock").classList.toggle("filter-active", this.filtering());
-		// The rail field shows what is being looked for, or its placeholder.
-		const text = document.getElementById("rail-search-text"),
-			q = (this.filter?.query || "").trim();
-		if (text) {
-			text.textContent = q || copy("web.panels.a76ee88e6c2e");
-			text.classList.toggle("has-value", !!q);
-		}
 	}
 	/** Toggle one card, add it, or (Shift) fill the range from the last picked card. */
 	select(id?: any, options: any = {}) {
@@ -833,8 +825,18 @@ class AppController {
 		const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
 		if (!scroll) return;
 		this.sheetHide = new ChromeAutoHide(scroll, () => [
-			...this.dialog.querySelectorAll(":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge"),
+			...this.dialog.querySelectorAll(
+				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
+			),
 		]);
+		// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
+		const sheet = this.dialog.querySelector(".preview-sheet");
+		if (sheet)
+			scroll.addEventListener(
+				"scroll",
+				() => sheet.classList.toggle("is-scrolled", scroll.scrollTop > 8),
+				{ passive: true },
+			);
 	}
 	bindReader(id?: any) {
 		this.lastActivity = Date.now();

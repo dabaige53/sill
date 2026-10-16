@@ -119,13 +119,9 @@ body.opaque .scroll-edge {
 	#dock {
 		left: var(--rail-edge);
 	}
-	.rail-tools {
-		flex: 1;
-		width: auto;
-		min-width: 0;
-	}
-	.rail-kbd {
-		display: none;
+	/* Phone: desk tools at the leading edge, the face at the trailing edge, open space between. */
+	#dock {
+		justify-content: space-between;
 	}
 	#dock :is(#new-count, #offline) {
 		position: absolute;
@@ -206,8 +202,8 @@ body.opaque .scroll-edge {
 		max-height: none;
 	}
 	.sheet-head {
-		height: 52px;
-		padding: 0 8px;
+		height: 56px;
+		padding: 0 14px;
 	}
 	.sheet-head .grabber {
 		position: absolute;
@@ -254,7 +250,7 @@ body.opaque .scroll-edge {
 		right: 12px;
 	}
 	#modal.preview .push-ring {
-		bottom: 150px;
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 	}
 	.preview-body {
 		padding: 18px 20px 22px;
@@ -301,7 +297,6 @@ body.opaque .scroll-edge {
 	.settings-main {
 		padding: 20px 16px;
 		max-height: 70dvh;
-		border-top: 0.5px solid var(--line-card);
 	}
 
 	/* Phone search sits at the bottom, in thumb reach, and rides on top of the keyboard.

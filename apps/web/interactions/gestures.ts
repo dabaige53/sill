@@ -104,10 +104,13 @@ class Gestures {
 			busy = false,
 			timer = 0;
 		const wheel = this.intent();
+		// The desk moves down and the ring sits centred in the gap it opens, never on a card.
+		const padTop = () => parseFloat(getComputedStyle(main).paddingTop) || 16;
 		const paint = () => {
-			const p = Math.min(need, pull);
-			main.style.translate = pull ? `0 ${Math.round(p * 0.5)}px` : "";
-			ring.style.translate = `0 ${Math.round(-48 + p * 1.1)}px`;
+			const p = Math.min(need, pull),
+				shift = Math.round(p * 0.9);
+			main.style.translate = pull ? `0 ${shift}px` : "";
+			ring.style.translate = `0 ${pull ? Math.round((padTop() + shift) / 2 - 20) : -48}px`;
 			ring.style.opacity = String(Math.min(1, pull / 24));
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
 		};

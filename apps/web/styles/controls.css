@@ -1,19 +1,31 @@
 /* Sill · controls · shared source */
-/* Glass is the functional layer only: bars and menus that float over the content.
-   It has no colour of its own: a thin translucent fill, a strong blur with lifted saturation so
-   the content below still reads as colour, a specular inner edge and a hairline rim.
-   The shadow is short and soft; thickness comes from the material, not from a dark halo. */
+/* Liquid glass, for the functional layer only (bars, round buttons, menus floating over content).
+   A clear, lightly tinted lens: little fill, a short blur with lifted saturation so the content
+   beneath still shows its colour, a bright specular rim on the top-left, a softer one bottom-right,
+   and a hairline that separates it from white cards. The lens light is a highlight, not decoration. */
 .glass {
 	position: relative;
+	isolation: isolate;
 	background: var(--glass);
 	border: 0;
 	box-shadow:
-		inset 0 0 0 0.5px var(--glass-edge),
-		inset 0 1px 0 var(--glass-edge),
+		inset 0 1px 0.5px var(--glass-edge),
+		inset 1px 0 0.5px var(--glass-shade),
+		inset 0 -1px 1px var(--glass-shade),
+		inset 0 0 0 0.5px var(--glass-shade),
 		0 0 0 0.5px var(--glass-rim),
 		var(--shadow-glass);
 	-webkit-backdrop-filter: var(--glass-filter);
 	backdrop-filter: var(--glass-filter);
+}
+.glass::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	pointer-events: none;
+	background: radial-gradient(120% 90% at 20% 0%, var(--glass-shade), transparent 60%);
 }
 .icon-button {
 	width: 44px;
@@ -85,72 +97,14 @@ body:has(#modal[open]) .scroll-edge {
 	opacity: 0;
 	visibility: hidden;
 }
-/* One soft capsule, like a composer: the search field and the add button share it. */
+/* Desk tools share one glass capsule. Other groups (a future assistant) get their own glass, beside it. */
 .rail-tools {
 	display: flex;
 	align-items: center;
-	gap: 2px;
+	gap: 4px;
 	height: var(--rail-row);
 	padding: 4px;
 	border-radius: var(--pill-radius);
-	width: 340px;
-}
-.rail-search {
-	flex: 1;
-	min-width: 0;
-	height: 44px;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 0 12px 0 14px;
-	border-radius: var(--pill-radius);
-	color: var(--muted);
-	font-size: var(--text-control);
-	text-align: left;
-	transition: background var(--fast);
-	position: relative;
-}
-.rail-search .icon {
-	flex: none;
-	color: var(--secondary);
-}
-.rail-search-text {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.rail-search-text.has-value {
-	color: var(--ink);
-	font-weight: 500;
-}
-.rail-kbd {
-	flex: none;
-	font: 500 var(--text-caption) / 1 var(--rounded);
-	color: var(--secondary);
-	padding: 4px 6px;
-	border-radius: 6px;
-	background: var(--glass-press);
-}
-.rail-search:hover,
-.rail-search:active {
-	background: var(--glass-press);
-}
-.rail-tools > .icon-button {
-	flex: none;
-}
-.rail-tools .icon-button,
-.float-bar .icon-button,
-.reader-head .icon-button,
-#selection-bar .icon-button {
-	color: var(--ink);
-}
-.rail-tools .icon-button:hover,
-.float-bar .icon-button:hover,
-.reader-head .icon-button:hover,
-#selection-bar .icon-button:hover {
-	background: var(--glass-press);
 }
 .account-wrap {
 	position: relative;
@@ -196,21 +150,9 @@ body:has(#modal[open]) .scroll-edge {
 	stroke: none;
 	margin-bottom: -4px;
 }
-/* A filter in effect: the field holds a quiet grey pill, as an active tab would. */
-#dock.filter-active .rail-search {
+/* A filter in effect: the search button holds a quiet pill, as a selected tab does. */
+#dock.filter-active .rail-tools [data-action="filter"] {
 	background: var(--glass-press);
-}
-#dock.filter-active .rail-search:after {
-	content: "";
-	position: absolute;
-	left: 26px;
-	top: 9px;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: var(--accent-fill);
-	box-shadow: 0 0 0 2px var(--card);
-	pointer-events: none;
 }
 /* Scroll edge: where the feed meets the rail it softens and blurs a little, so the glass reads
    against calm content. It belongs to the rail and leaves with it. */
