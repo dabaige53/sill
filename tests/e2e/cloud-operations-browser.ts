@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { chromium } from "playwright";
 import { createSillRuntime } from "../../server/cloud/http.ts";
@@ -110,7 +110,9 @@ try {
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
 	const selectionMenu = async () => {
 		await page.evaluate(
-			(ids) => ids.forEach((id) => __app.select(id, { add: true })),
+			(ids) => {
+				for (const id of ids) __app.select(id, { add: true });
+			},
 			[note.id, task.id],
 		);
 		await page.locator('[data-action="selection-menu"]').click();
