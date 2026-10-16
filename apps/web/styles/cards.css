@@ -661,11 +661,12 @@ button.ref:hover {
 	opacity: 0.85;
 }
 
-/* The more button: hidden at rest, a glass circle over covers. */
+/* The more button: hidden at rest, a glass circle with bold dots on hover or focus.
+   It stays focusable; touch screens keep it visible (responsive.css). */
 .card-actions {
 	position: absolute;
-	right: 8px;
-	top: 8px;
+	right: 12px;
+	top: 12px;
 	display: flex;
 	z-index: 3;
 }
@@ -673,40 +674,35 @@ button.ref:hover {
 	width: 32px;
 	height: 32px;
 	min-width: 32px;
-	color: var(--secondary);
-	background: transparent;
-	opacity: 1;
-	visibility: visible;
+	color: var(--ink);
+	background: var(--glass);
+	border: 1px solid rgba(255, 255, 255, 0.72);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	opacity: 0;
+	pointer-events: none;
 	transition:
 		opacity var(--fast),
-		background var(--fast),
-		color var(--fast);
+		background var(--fast);
+}
+.card-more-trigger .icon {
+	width: 16px;
+	height: 16px;
+	stroke-width: 2.4;
 }
 .card-more-trigger:before {
 	content: "";
 	position: absolute;
 	inset: -6px;
 }
-.has-cover .card-actions {
-	right: 12px;
-	top: 12px;
-}
-.has-cover .card-more-trigger {
-	background: var(--glass);
-	color: var(--ink);
-	border: 1px solid rgba(255, 255, 255, 0.72);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
 .feed-card:hover .card-more-trigger,
 .feed-card:focus-within .card-more-trigger,
 .feed-card.tools-open .card-more-trigger {
 	opacity: 1;
-	visibility: visible;
+	pointer-events: auto;
 }
 .card-more-trigger:hover,
 .feed-card.tools-open .card-more-trigger {
-	color: var(--ink);
-	background: var(--surface);
+	background: var(--card);
 }
 .feed-card.tools-open {
 	overflow: visible;

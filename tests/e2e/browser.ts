@@ -314,6 +314,22 @@ async function recordLayout(page?: any, width?: any) {
 			async (page?: any) => {
 				const note = card(page, "note-01"),
 					more = note.locator('[data-action="card-more"]');
+				await page.mouse.move(3, 3);
+				assert.equal(
+					await more.evaluate((n?: any) => getComputedStyle(n).opacity),
+					"0",
+					"the more button shows only on hover or focus",
+				);
+				await note.hover();
+				await more.evaluate(
+					(n?: any) =>
+						new Promise((done) => {
+							const check = () =>
+								getComputedStyle(n).opacity === "1" ? done(true) : requestAnimationFrame(check);
+							check();
+						}),
+				);
+				await page.mouse.move(3, 3);
 				await note.focus();
 				await more.focus();
 				await page.keyboard.press("Enter");

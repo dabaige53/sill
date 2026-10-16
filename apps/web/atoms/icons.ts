@@ -78,8 +78,12 @@ const Glyphs = {
 	ring: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9" stroke-width="3"/>',
 	moon: '<path d="M21 13a9 9 0 1 1-10-10 7 7 0 0 0 10 10Z"/>',
 };
+/** Stroke follows the size tier in the design manual: S16 2.0, M20 1.8, L24 1.65. */
+function iconStroke(size: number) {
+	return size <= 17 ? 2 : size <= 21 ? 1.8 : 1.65;
+}
 function icon(name?: any, size: any = 18) {
-	return `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${Glyphs[name] || Glyphs.file}</svg>`;
+	return `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${iconStroke(Number(size))}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${Glyphs[name] || Glyphs.file}</svg>`;
 }
 /** The Sill mark: sky above, a ledge, two cards resting on it. */
 function sillIcon(size: any = 64) {
