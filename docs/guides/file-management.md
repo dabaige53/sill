@@ -1,6 +1,6 @@
 # 文件管理规范
 
-更新：2026-10-16。规则已确认，仓库尚未按本规范迁移；迁移完成前，现有文件位置仍以 [旧文件管理规范](../FILE-MANAGEMENT.md) 为准。迁移进度见文末。
+更新：2026-10-16。文档已按本规范迁移；代码按第 9 节分批迁移。旧目录只在对应批次完成前保留，不能作为新增文件的位置依据。
 
 本规范管理仓库中的文档、目录、命名、证据和产物。代码写法见 [代码规范](code-standards.md)。决策依据见 ADR [0022](../adr/0022-docs-location-shows-validity.md)、[0023](../adr/0023-three-clients-repo-layout.md)、[0025](../adr/0025-single-product-version.md)。
 
@@ -23,7 +23,7 @@
 | `assets/` | 品牌图标 |
 | `.github/` | CI 与 PR 模板 |
 
-根目录只放约定俗成的入口和配置：`README.md`、`AGENTS.md`、`GLOSSARY.md`、`pr.md`、`package.json`、`package-lock.json`、`biome.json`、`.swift-format`、`.git-blame-ignore-revs`、`.gitignore`、`.env.example`、`plugin.json`、`.app.json`。新增顶层目录或根文件时，先写 ADR，再更新本表和 `files:check` 的允许列表。
+根目录只放约定俗成的入口和配置：`README.md`、`AGENTS.md`、`GLOSSARY.md`、`pr.md`、`package.json`、`package-lock.json`、`tsconfig.json`、`biome.json`、`.swift-format`、`.git-blame-ignore-revs`、`.gitignore`、`.env.example`、`plugin.json`、`.app.json`。环境类型声明放在 `contracts/`，不新增根目录声明文件。新增顶层目录或根文件时，先写 ADR，再更新本表和 `files:check` 的允许列表。
 
 依赖方向：`apps/*` 和 `server/*` 只引用 `contracts/` 与 `design-system/`；各端之间互不引用。
 
@@ -86,7 +86,7 @@
 
 ## 8. 自动检查
 
-`npm run files:check` 只读取文件名、文档开头、导航正文和 Git 索引，不读取私有配置或卡片内容，不联网、不写入。检查项目：
+`npm run files:check` 只读取仓库文件名、文档正文、代码中的导入路径和 Git 索引，不读取私有配置或卡片内容，不联网、不写入。检查项目：
 
 - 根目录只包含第 1 节列出的目录和文件。
 - `docs/product/`、`docs/design/`、`docs/guides/` 中的文档开头有更新日期；`docs/archive/` 中的文档开头有替代说明。
@@ -102,7 +102,7 @@
 
 | 批次 | 内容 | 状态 |
 | --- | --- | --- |
-| 1 | 文档迁入 `product/`、`design/`、`guides/`、`records/`、`archive/`；证据并入记录；删除两个重复 ZIP；更新 `files:check` | 未开始 |
+| 1 | 文档迁入 `product/`、`design/`、`guides/`、`records/`、`archive/`；证据并入记录；展开 ZIP 独有报告后删除两个重复 ZIP；更新 `files:check` | 已完成 |
 | 2 | 建立 `contracts/`；合并本地与云端 zod 定义；导出 JSON Schema | 未开始 |
 | 3 | 删除旧代码与旧测试，打 tag `legacy-final`，写删除记录；同时删除 `sill.config.example.json`、`requirements-sandbox.txt` 及 `.env.example` 中旧连接器的变量 | 未开始 |
 | 4 | Web 与服务端迁入 `apps/web/`、`server/local/`、`server/cloud/`，改为 TypeScript | 未开始 |
@@ -113,6 +113,6 @@
 
 - 根目录 `index.html` 是否继续纳入 Git，或改为只在 `dist/` 中生成。
 - `supabase/drafts/` 中的 SQL 草案文件名含 `v1`，且草案与「草案只在分支中」的规则冲突；需要决定是重命名后保留，还是移入记录。
-- `docs/validation/brand-session-20261015/` 属于哪个事件；`LOCAL-ACCEPTANCE` 是否拆成多次验收。
+- 品牌与插件验收证据已归入 `docs/records/2026-10-15-brand-session/`；本地验收正文仅记录 2026-10-12 一次事件，整体归入该日期的记录，不拆分。
 - `deploy/sill/new-cloud-release.json` 的去向。
 - Apple 端数据与云端如何同步。

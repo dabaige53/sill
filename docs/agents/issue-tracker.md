@@ -1,5 +1,7 @@
 # 事项管理：GitHub
 
+更新：2026-10-16。
+
 状态：现行规则。更新：2026-10-16。
 
 事项与规格保存在 [dabaige53/sill 的 GitHub Issues](https://github.com/dabaige53/sill/issues)。使用 `gh` CLI，并显式指定 `--repo dabaige53/sill`。

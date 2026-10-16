@@ -11,4 +11,4 @@
 
 - 迁移需要更新所有 Markdown 互链，以及 `scripts/check-files.mjs`、`design-system/scripts/`、`docs/examples/v1/openapi.json` 中的路径。
 - `docs/validation/` 的证据并入对应日期的记录目录；`tests/*-REPORT.md` 移入归档，`tests/` 只保留可运行的检查。
-- 本记录的编号接在 [已有设计决策](../DESIGN-DECISIONS.md) ADR-21 之后。已有决策保留原文和编号，不迁入本目录。
+- 本记录的编号接在 [已有设计决策](../design/decisions.md) ADR-21 之后。已有决策保留原文和编号，不迁入本目录。
