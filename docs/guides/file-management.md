@@ -107,7 +107,7 @@
 | 3 | 删除旧代码与旧测试，打 tag `legacy-final`，写删除记录；同时删除 `sill.config.example.json`、`requirements-sandbox.txt` 及 `.env.example` 中旧连接器的变量 | 已完成，2026-10-16；完整本地、约定、云端授权测试通过；保留现行 cloud bridge 依赖 |
 | 4 | Web 与服务端迁入 `apps/web/`、`server/local/`、`server/cloud/`，改为 TypeScript | 已完成，2026-10-16；26 项约定、45 项 Web、78 项服务端检查及云端构建通过 |
 | 5 | Apple 端迁入 `apps/apple/`，Swift 原生数据层，Mac 不再打包 Node | 已完成，2026-10-16；16 项 Swift 测试、原生包构建与严格验签通过；视觉和 iOS 设备未验收 |
-| 6 | 统一版本号为 1.2.0；文案集中；整体格式化 | 收尾中；最终证据见清理记录 |
+| 6 | 统一版本号为 1.2.0；文案集中；整体格式化 | 已完成，2026-10-16；166 项 Node、18 项 Swift、格式/类型检查与 Web、云端、Mac 候选构建通过；未执行 GUI 或发布 |
 
 ## 10. 已确定的边界
 

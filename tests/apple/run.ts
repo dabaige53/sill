@@ -6,6 +6,16 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const apple = resolve(root, "apps/apple");
 const cache = resolve(apple, ".build");
 execFileSync(
+	"swiftc",
+	[
+		"-typecheck",
+		"-module-cache-path",
+		resolve(cache, "module-cache"),
+		resolve(root, "contracts/design/SillClient.swift"),
+	],
+	{ cwd: root, stdio: "inherit" },
+);
+execFileSync(
 	"swift",
 	[
 		"test",

@@ -8,6 +8,12 @@ const read = (name: string) =>
 const spec = read("openapi.json");
 const catalog = read("mcp-tools.json");
 const fixtures = read("fixtures.json");
+const swiftClient = readFileSync(
+	new URL("../contracts/design/SillClient.swift", import.meta.url),
+	"utf8",
+);
+assert.match(swiftClient, /forHTTPHeaderField: "Content-Type"/);
+assert.doesNotMatch(swiftClient, /\bCard-Type\b|-> Content\b/);
 const validator = new Ajv2020({ strict: false });
 (formats as unknown as (validator: Ajv2020) => void)(validator);
 export const normalizeRefs = (value: unknown): any =>

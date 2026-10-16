@@ -9,7 +9,7 @@
 | 云端页面与 Worker | `npm run build:cloud` | `apps/web/`、`server/cloud/`、`contracts/` → `dist/cloud/` |
 | 发布候选构建 | `npm run build:release` | 同上，压缩 Worker → `dist/cloud/`；不执行部署 |
 | 云端 App 页面 | `node scripts/build-cloud-app.ts` | `dist/cloud/index.html` 等 → `dist/cloud/app.html`；先完成云端页面构建 |
-| 插件候选包 | `npm run plugin:build` | 根产品版本、`plugin.json`、`.app.json`、身份检查与 `skills/sill/` → `dist/plugin/sill/` |
+| 插件候选包 | `npm run plugin:build` | 根产品版本、无独立版本的 `plugin.json` 元数据模板、`.app.json`、身份检查与 `skills/sill/` → `dist/plugin/sill/` |
 | Mac 原生包 | `npm run build:macos` | Swift 源码、Schema、tokens、文案 → `dist/macos/Sill.app`；不含 Node，见 [原生说明](../apps/apple/README.md) |
 | 本地卡片 CLI | `node scripts/sill.ts capabilities` | 本地服务协议 → 能力说明；写入用法见 [本地操作](../docs/guides/local-operations.md) |
 | 语法与配置检查 | `npm run check` | 构建后 HTML 脚本和插件模板 → 终端结果 |

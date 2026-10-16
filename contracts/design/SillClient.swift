@@ -14,15 +14,34 @@ struct Card: Codable, Sendable {
   let body: [String]
   let state: ReadingState
   let revision: Int64
-  let created_at: String  // RFC 3339 UTC wire value; format for display in the UI.
-  let updated_at: String
+  let createdAt: String  // RFC 3339 UTC wire value; format for display in the UI.
+  let updatedAt: String
   let deleted: Bool
   let url: String?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case title
+    case type
+    case body
+    case state
+    case revision
+    case createdAt = "created_at"
+    case updatedAt = "updated_at"
+    case deleted
+    case url
+  }
 }
 struct CardPage: Codable, Sendable {
   let items: [Card]
-  let next_cursor: String?
-  let sync_cursor: String?
+  let nextCursor: String?
+  let syncCursor: String?
+
+  enum CodingKeys: String, CodingKey {
+    case items
+    case nextCursor = "next_cursor"
+    case syncCursor = "sync_cursor"
+  }
 }
 struct CreateCard: Encodable, Sendable {
   let title: String
@@ -35,9 +54,15 @@ struct Changes: Encodable, Sendable {
   var state: ReadingState? = nil
 }
 struct ResultMetadata: Encodable, Sendable {
-  let event_id: String
+  let eventId: String
   let outcome: String
   let summary: String
+
+  enum CodingKeys: String, CodingKey {
+    case eventId = "event_id"
+    case outcome
+    case summary
+  }
 }
 struct UpdateCard: Encodable, Sendable {
   let expectedRevision: Int64
@@ -46,32 +71,62 @@ struct UpdateCard: Encodable, Sendable {
 }
 struct DeleteCard: Encodable { let expectedRevision: Int64 }
 struct SubmitEvent: Encodable, Sendable {
-  let event_id: String
-  let card_id: String
-  let card_version: Int64
+  let eventId: String
+  let cardId: String
+  let cardVersion: Int64
   let action: String
-  let destination_ref: String
+  let destinationRef: String
+
+  enum CodingKeys: String, CodingKey {
+    case eventId = "event_id"
+    case cardId = "card_id"
+    case cardVersion = "card_version"
+    case action
+    case destinationRef = "destination_ref"
+  }
 }
 struct DeliveryEvent: Codable, Sendable {
-  let event_id: String
-  let card_id: String
-  let card_version: Int64
+  let eventId: String
+  let cardId: String
+  let cardVersion: Int64
   let action: String
-  let destination_ref: String
+  let destinationRef: String
   let delivery: String
   let outcome: String
-  let created_at: String
-  let updated_at: String
-  let result_revision: Int64?
+  let createdAt: String
+  let updatedAt: String
+  let resultRevision: Int64?
   let summary: String
+
+  enum CodingKeys: String, CodingKey {
+    case eventId = "event_id"
+    case cardId = "card_id"
+    case cardVersion = "card_version"
+    case action
+    case destinationRef = "destination_ref"
+    case delivery
+    case outcome
+    case createdAt = "created_at"
+    case updatedAt = "updated_at"
+    case resultRevision = "result_revision"
+    case summary
+  }
 }
 struct ErrorEnvelope: Decodable {
   struct Detail: Decodable {
     let code: String
     let message: String
-    let request_id: String
-    let current_revision: Int64?
-    let retry_after_seconds: Int?
+    let requestId: String
+    let currentRevision: Int64?
+    let retryAfterSeconds: Int?
+
+    enum CodingKeys: String, CodingKey {
+      case code
+      case message
+      case requestId = "request_id"
+      case currentRevision = "current_revision"
+      case retryAfterSeconds = "retry_after_seconds"
+    }
   }
   let error: Detail
 }
@@ -144,15 +199,15 @@ actor SillClient {
     if let since { query.append(URLQueryItem(name: "since", value: since)) }
     return try await request("contents", query: query)
   }
-  func get(id: String) async throws -> Content { try await request(idPath("contents", id)) }
-  func create(_ body: CreateCard, key: String) async throws -> Content {
+  func get(id: String) async throws -> Card { try await request(idPath("contents", id)) }
+  func create(_ body: CreateCard, key: String) async throws -> Card {
     try await request("contents", method: "POST", body: JSONEncoder().encode(body), key: key)
   }
-  func update(id: String, body: UpdateCard, key: String) async throws -> Content {
+  func update(id: String, body: UpdateCard, key: String) async throws -> Card {
     try await request(
       idPath("contents", id), method: "PATCH", body: JSONEncoder().encode(body), key: key)
   }
-  func delete(id: String, revision: Int64, key: String) async throws -> Content {
+  func delete(id: String, revision: Int64, key: String) async throws -> Card {
     try await request(
       idPath("contents", id), method: "DELETE",
       body: JSONEncoder().encode(DeleteCard(expectedRevision: revision)), key: key)

@@ -13,6 +13,7 @@
 ## 实现
 
 - Web 和服务端使用 TypeScript ES modules；构建产物统一在 `dist/`，不再提交根页面或依赖文件顺序拼接。
+- 设计画板的第三方 `support.js`、生成的 `components/bundle.js` 和已发布 Worker 快照保留，不把它们当作活跃手写源码迁移或格式化。
 - `contracts/` 统一卡片和接口定义，导出 JSON Schema；Web 不打包 zod，Apple 通过固定版本生成器生成类型。
 - 11 种卡片、17 种来源使用共同标签。旧 `source`、`kind` 在内存中迁入 `sources`；邮件保留 `sender`。未知类型与字段不丢弃。
 - 独立检查发现旧来源边界会拒绝加载整份工作区。已放宽到旧版可产生的 300 字发件人与 11 个来源，并统一显式空发件人行为；两端共用 5 组迁移样例。
@@ -22,7 +23,17 @@
 
 ## 验证
 
-收尾检查进行中，最终结果在本地提交前补齐。已取得：115 项 Web 卡片与面板输出在文案提取前后逐字节一致；共享迁移边界的 Node 36 项、Swift CardTests 6 项通过；独立只读授权与渲染检查 39 项通过。
+本机环境：Node 26.11.1、Apple Swift 6.4、arm64 macOS。CI 使用 Node 24 的配置已更新，远程尚未执行。
+
+- `npm test`：36 项共享约定、52 项 Web、78 项服务端，共 166 项通过；没有跳过项。
+- `npm run lint`：Biome 默认规则无错误，仍有 1812 条警告（主要是动态类型）和 271 条建议；Swift 严格格式检查通过。
+- `npm run typecheck`、`contracts:check`、`files:check` 和 `git diff --check` 通过。
+- `build:cloud`、`build:release`、`plugin:build` 通过；候选插件和 MCP 服务版本取根产品版本。
+- `build:macos`、`test:macos` 通过：18 项 Swift 测试与严格验签；Info.plist 为 1.2.0，包占用 3724 KiB，只含原生可执行文件、图标、文案、配置与签名。系统图标工具需在受限沙箱外调用；没有启动应用。
+- 115 项 Web 卡片与面板输出在文案提取前后逐字节一致。独立检查确认新增来源兼容 P2 已关闭，两端加载、保存和重启后字段完整。
+- 设计用 Swift 客户端补齐 Card 返回类型与显式 CodingKeys；内部属性改用 lowerCamelCase，外部 JSON 字段不变，并加入每次 Apple 检查的编译验证。
+
+行为提交为 `70479b9`；整体格式提交为 `9e4430f`，提交号已写入 `.git-blame-ignore-revs`。后续收尾提交记录验证结果与设计示例的编译修正。
 
 未运行桌面/浏览器 GUI、iOS 设备和生产平台验收。当前环境没有可用 Docker 命令，未运行容器 Postgres 专项；PGlite 边界检查不能替代它。
 
