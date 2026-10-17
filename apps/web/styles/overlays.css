@@ -1577,7 +1577,7 @@ input[type="search"]::-webkit-search-cancel-button {
 .pull-ring {
 	position: fixed;
 	left: 50%;
-	top: 0;
+	top: env(safe-area-inset-top, 0px);
 	z-index: 50;
 	width: 36px;
 	height: 36px;

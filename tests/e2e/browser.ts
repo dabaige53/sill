@@ -647,8 +647,8 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 1);
 				await page.keyboard.press("Escape");
 				await action(page, "refresh");
-				await page.waitForFunction(() =>
-					document.getElementById("dock").classList.contains("is-done"),
+				await page.waitForFunction(
+					() => document.getElementById("pull-ring").dataset.state === "success",
 				);
 				const relation = await page.evaluate(
 					() => (document.querySelector(".type-suggestion") as HTMLElement)?.dataset.card,

@@ -147,9 +147,7 @@ try {
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
 	// Refresh has no button on the rail: the R key (or a pull at the top) runs it.
 	await page.keyboard.press("r");
-	await page.waitForFunction(
-		() => document.querySelector("#announcer").textContent === "卡片已刷新",
-	);
+	await page.waitForFunction(() => document.querySelector("#announcer").textContent === "刷新完成");
 	assert.equal(value.state.cards.length, 31);
 	const box = await page.locator('[data-card="agent-test"]').boundingBox();
 	assert.ok(box.width >= 280 && box.width <= 380);
