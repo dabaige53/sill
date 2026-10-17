@@ -21,7 +21,10 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser regressions
-        run: npm run test:browser
+        run: |
+          npm run test:material-density
+          npm run test:motion-material
+          npm run test:browser
       - name: Retain browser results and screenshots
         if: always()
         uses: actions/upload-artifact@v4

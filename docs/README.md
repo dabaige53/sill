@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-16。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
+更新：2026-10-17。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
 
@@ -49,6 +49,8 @@
 ## 记录
 
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
+
+- [2026-10-17-product-review：内容密度、动效材质与 Agent 交接审查](records/2026-10-17-product-review/README.md)
 
 - [2026-10-11-product-conversation：Sill — 产品对话与需求演进记录](records/2026-10-11-product-conversation/README.md)
 - [2026-10-12-local-acceptance：Sill 本地版本](records/2026-10-12-local-acceptance/README.md)

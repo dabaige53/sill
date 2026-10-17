@@ -66,7 +66,7 @@
 	--rail-bottom: 28px;
 	--rail-row: 60px;
 	--rail-gap: 8px;
-	--rail-tuck: 300ms;
+	--rail-tuck: var(--dur-tuck);
 	--nav-tab: 76px;
 	/* A soft spring: overshoots about 6% and settles. */
 	--ease-spring: linear(
@@ -199,7 +199,10 @@ body:has(#modal[open]:not(.page)) .scroll-edge {
 	}
 	35% {
 		scale: 1.16 0.9;
-		background: color-mix(in srgb, var(--glass-edge) 40%, var(--glass-press));
+		background: var(
+			--lens-highlight,
+			color-mix(in srgb, var(--glass-edge) 40%, var(--glass-press))
+		);
 	}
 	100% {
 		scale: 1;

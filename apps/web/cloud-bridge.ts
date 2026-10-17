@@ -1,5 +1,96 @@
 import { App, applyDocumentTheme, applyHostStyleVariables } from "@modelcontextprotocol/ext-apps";
 import { copy } from "./copy.ts";
+import { type AgentPayload, agentFailure } from "./services/agent-handoff.ts";
+
+const statuses = {
+	invalid_request: 400,
+	unauthenticated: 401,
+	forbidden: 403,
+	not_found: 404,
+	revision_conflict: 409,
+	idempotency_conflict: 409,
+	cursor_expired: 410,
+	rate_limited: 429,
+};
+
+/** Preserve definite server rejections, so invalid input never becomes an unknown write. */
+export function readCloudResult(result: any) {
+	if (result.isError) {
+		let value = result.structuredContent;
+		if (!value?.error?.code)
+			try {
+				const block = result.content?.find((c) => c.type === "text");
+				if (block?.type === "text") value = JSON.parse(block.text);
+			} catch {}
+		const raw = value?.error?.code;
+		const code = Object.hasOwn(statuses, raw) ? raw : "unavailable";
+		throw Object.assign(new Error(copy("web.cloudbridge.c38fb6f884b3")), {
+			code,
+			status: statuses[code] || 503,
+		});
+	}
+	if (!result.structuredContent)
+		throw Object.assign(new Error(copy("web.cloudbridge.477c2c36672e")), { status: 503 });
+	return result.structuredContent;
+}
+
+type HostBridge = Pick<
+	App,
+	"getHostCapabilities" | "sendMessage" | "updateModelContext" | "openLink"
+>;
+
+/** Use negotiated MCP App capabilities; this does not install an assistant or execute a card. */
+export function createHostActions(bridge: HostBridge, ready: Promise<unknown>) {
+	const canDiscuss = () => !!bridge.getHostCapabilities()?.message?.text;
+	return {
+		canDiscuss,
+		async discuss(payload: AgentPayload, current: () => boolean) {
+			try {
+				await ready;
+			} catch {
+				throw agentFailure("host_unavailable", copy("web.agent.unavailable"));
+			}
+			if (!canDiscuss()) throw agentFailure("host_unavailable", copy("web.agent.unavailable"));
+			if (!current()) throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+			if (bridge.getHostCapabilities()?.updateModelContext?.text)
+				try {
+					await bridge.updateModelContext(
+						{ content: [{ type: "text", text: JSON.stringify(payload.reference) }] },
+						{ timeout: 10000 },
+					);
+				} catch {
+					// Context is optional; the explicit message below contains the same bounded reference.
+				}
+			if (!current()) throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+			let result: Awaited<ReturnType<App["sendMessage"]>>;
+			try {
+				result = await bridge.sendMessage(
+					{ role: "user", content: [{ type: "text", text: payload.text }] },
+					{ timeout: 20000 },
+				);
+			} catch {
+				throw agentFailure("message_unknown", copy("web.agent.unknown"));
+			}
+			if (result.isError) throw agentFailure("message_rejected", copy("web.agent.rejected"));
+		},
+		async openLink(url: string) {
+			try {
+				await ready;
+			} catch {
+				throw agentFailure("link_unavailable", copy("web.agent.linkUnavailable"));
+			}
+			if (!bridge.getHostCapabilities()?.openLinks)
+				throw agentFailure("link_unavailable", copy("web.agent.linkUnavailable"));
+			let result: Awaited<ReturnType<App["openLink"]>>;
+			try {
+				result = await bridge.openLink({ url }, { timeout: 20000 });
+			} catch {
+				throw agentFailure("link_unknown", copy("web.agent.linkUnknown"));
+			}
+			if (result.isError) throw agentFailure("link_rejected", copy("web.agent.linkRejected"));
+		},
+	};
+}
 
 // A host can finish mounting the view before its tool dispatcher is ready.
 // Retry only the first reads, never a write or an authentication denial.
@@ -115,34 +206,13 @@ export function startCloudBridge() {
 	const ready = bridge.connect().then(style);
 	// Retain a rejected connection for callers without an unhandled rejection.
 	ready.catch(() => {});
-	const statuses = {
-		unauthenticated: 401,
-		forbidden: 403,
-		not_found: 404,
-		revision_conflict: 409,
-		idempotency_conflict: 409,
-		rate_limited: 429,
-	};
 	const call = async (args?: any) => {
 		await ready;
-		const result = await bridge.callServerTool(args);
-		if (result.isError) {
-			let value: any;
-			try {
-				const block = result.content?.find((c) => c.type === "text");
-				if (block?.type === "text") value = JSON.parse(block.text);
-			} catch {}
-			const code = value?.error?.code || "unavailable";
-			throw Object.assign(new Error(copy("web.cloudbridge.c38fb6f884b3")), {
-				code,
-				status: statuses[code] || 503,
-			});
-		}
-		if (!result.structuredContent)
-			throw Object.assign(new Error(copy("web.cloudbridge.477c2c36672e")), { status: 503 });
-		return result.structuredContent;
+		return readCloudResult(await bridge.callServerTool(args));
 	};
+	const actions = createHostActions(bridge, ready);
 	window.__SILL_HOST__ = {
+		...actions,
 		request: createCloudTransport(async (args?: any) => {
 			if (opening && args.name === "sill_open_workspace" && initialAccess) {
 				const value = initialAccess;
@@ -154,8 +224,6 @@ export function startCloudBridge() {
 			return value;
 		}),
 		manageAccess: () =>
-			bridge.openLink({
-				url: "https://sill-web-preview.scs1213-temp-email.workers.dev/oauth/grants",
-			}),
+			actions.openLink("https://sill-web-preview.scs1213-temp-email.workers.dev/oauth/grants"),
 	};
 }

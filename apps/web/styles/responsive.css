@@ -1,7 +1,12 @@
 /* Sill · responsive · shared source */
-/* Reduce transparency (system or in-app) and browsers without blur: the same shapes on a solid card. */
-body.opaque .glass,
-body.opaque .scroll-edge {
+/* Every functional glass surface, including the separate selection menu, shares the fallback. */
+@media (prefers-contrast: more) {
+	.glass,
+	.selection-options {
+		background: var(--glass-thick);
+	}
+}
+body.opaque :is(.glass, .selection-options) {
 	background: var(--card);
 	backdrop-filter: none;
 	-webkit-backdrop-filter: none;
@@ -9,11 +14,22 @@ body.opaque .scroll-edge {
 		0 0 0 1px var(--line-hover),
 		var(--shadow-glass);
 }
+body.opaque .nav-lens {
+	--lens-highlight: var(--surface);
+	background: var(--surface);
+	box-shadow: inset 0 0 0 1px var(--line-hover);
+}
 body.opaque .scroll-edge {
 	display: none;
 }
+body.opaque :is(#modal.search, #selection-menu)::backdrop {
+	background: var(--canvas);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
 @media (prefers-reduced-transparency: reduce) {
-	.glass {
+	.glass,
+	.selection-options {
 		background: var(--card);
 		backdrop-filter: none;
 		-webkit-backdrop-filter: none;
@@ -21,21 +37,56 @@ body.opaque .scroll-edge {
 			0 0 0 1px var(--line-hover),
 			var(--shadow-glass);
 	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
 	.scroll-edge {
 		display: none;
 	}
+	#modal.search::backdrop,
+	#selection-menu::backdrop {
+		background: var(--canvas);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.glass,
+	.selection-options {
+		background: var(--card);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
+	#modal.search::backdrop,
+	#selection-menu::backdrop {
+		background: var(--canvas);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
 }
 @media (prefers-contrast: more) {
-	.glass {
-		background: var(--glass-thick);
+	.glass,
+	.selection-options,
+	body.opaque :is(.glass, .selection-options) {
 		box-shadow:
 			0 0 0 1px var(--ink),
 			var(--shadow-glass);
 	}
-}
-@supports not (backdrop-filter: blur(1px)) {
-	.glass {
-		background: var(--card);
+	.nav-lens,
+	body.opaque .nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--ink);
 	}
 }
 @media (max-width: 1000px) {
@@ -197,7 +248,15 @@ body.opaque .scroll-edge {
 	#modal.preview .preview-sheet .sheet-scroll {
 		flex: 1;
 		max-height: none;
+	}
+	/* The half-height sheet extends 64px below the viewport even when it has no toolbar. */
+	#modal.preview .preview-sheet:not(.is-full) .sheet-scroll {
+		padding-bottom: 64px;
+		scroll-padding-bottom: calc(64px + var(--gap));
+	}
+	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
 		padding-bottom: calc(var(--rail-row) + 48px + env(safe-area-inset-bottom));
+		scroll-padding-bottom: calc(var(--rail-row) + 48px + env(safe-area-inset-bottom));
 	}
 	#modal.preview .preview-sheet {
 		max-height: none;
@@ -245,11 +304,11 @@ body.opaque .scroll-edge {
 		margin-inline: auto;
 		z-index: 3;
 	}
-	.preview-sheet:after {
+	#modal.preview:has(> .float-bar) > .preview-sheet:after {
 		height: calc(var(--rail-row) + 56px + env(safe-area-inset-bottom));
 	}
 	/* At half height the sheet hangs 64px below the screen; its scroll edge stays at the screen's foot. */
-	#modal.preview .preview-sheet:not(.is-full):after {
+	#modal.preview:has(> .float-bar) > .preview-sheet:not(.is-full):after {
 		bottom: 64px;
 	}
 	.reader-head {
@@ -424,37 +483,30 @@ body.opaque .scroll-edge {
 	html {
 		scroll-behavior: auto;
 	}
-}
-body.reduce-motion,
-body.reduce-motion * {
-	scroll-behavior: auto !important;
-}
-@media (prefers-reduced-motion: reduce) {
 	*,
 	*:before,
-	*:after {
+	*:after,
+	*::backdrop {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
+		transition-property: opacity, background-color, color, border-color, box-shadow !important;
+		transition-duration: var(--dur-reduced) !important;
+		transition-timing-function: linear !important;
+		transition-delay: 0s !important;
 	}
 }
+body.reduce-motion,
 body.reduce-motion *,
 body.reduce-motion *:before,
-body.reduce-motion *:after {
+body.reduce-motion *:after,
+body.reduce-motion *::backdrop {
+	scroll-behavior: auto !important;
 	animation-duration: 0.01ms !important;
 	animation-iteration-count: 1 !important;
-	transition-duration: 0.01ms !important;
-}
-@media (prefers-reduced-transparency: reduce) {
-	.glass {
-		background: var(--card);
-		backdrop-filter: none;
-		-webkit-backdrop-filter: none;
-	}
-	dialog::backdrop {
-		backdrop-filter: none;
-		-webkit-backdrop-filter: none;
-	}
+	transition-property: opacity, background-color, color, border-color, box-shadow !important;
+	transition-duration: var(--dur-reduced) !important;
+	transition-timing-function: linear !important;
+	transition-delay: 0s !important;
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
 	body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item:hover {
@@ -462,39 +514,62 @@ body.reduce-motion *:after {
 	}
 }
 
-body.reduce-motion,
-body.reduce-motion *,
-body.reduce-motion *:before,
-body.reduce-motion *:after {
-	animation-duration: 0.01ms !important;
-	animation-iteration-count: 1 !important;
-	transition-duration: 0.01ms !important;
-}
-
-/* Reduced motion: bars fade in place instead of sliding. */
+/* Fades preserve the layout and control state. Show visibility immediately so Tab can enter. */
 @media (prefers-reduced-motion: reduce) {
-	#dock.is-tucked,
-	dialog > .float-bar.is-tucked,
-	.reader-head.is-tucked {
-		transform: none;
-	}
 	#dock,
 	dialog > .float-bar,
-	.reader-head {
+	.reader-head,
+	.sheet-head-tools {
+		transform: none !important;
 		transition:
-			opacity 120ms linear,
-			visibility 0s 120ms !important;
+			opacity var(--dur-reduced) linear,
+			visibility 0s !important;
 	}
-}
-body.reduce-motion #dock.is-tucked,
-body.reduce-motion dialog > .float-bar.is-tucked,
-body.reduce-motion .reader-head.is-tucked {
-	transform: none;
+	#dock.is-tucked,
+	dialog > .float-bar:is(.is-tucked, .is-hidden),
+	.reader-head.is-tucked,
+	.sheet-head-tools.is-tucked {
+		transition-delay: 0s, var(--dur-reduced) !important;
+	}
+	.icon-button:active,
+	.account-button:active,
+	.solid-button:active,
+	.feed-card:not(.stack-card):active:not(:has(button:active)) {
+		transform: none;
+	}
+	.nav-lens {
+		animation: none !important;
+		scale: none;
+	}
+	.nav-tab:active .nav-icon {
+		scale: none;
+	}
 }
 body.reduce-motion #dock,
 body.reduce-motion dialog > .float-bar,
-body.reduce-motion .reader-head {
+body.reduce-motion .reader-head,
+body.reduce-motion .sheet-head-tools {
+	transform: none !important;
 	transition:
-		opacity 120ms linear,
-		visibility 0s 120ms !important;
+		opacity var(--dur-reduced) linear,
+		visibility 0s !important;
+}
+body.reduce-motion #dock.is-tucked,
+body.reduce-motion dialog > .float-bar:is(.is-tucked, .is-hidden),
+body.reduce-motion .reader-head.is-tucked,
+body.reduce-motion .sheet-head-tools.is-tucked {
+	transition-delay: 0s, var(--dur-reduced) !important;
+}
+body.reduce-motion .icon-button:active,
+body.reduce-motion .account-button:active,
+body.reduce-motion .solid-button:active,
+body.reduce-motion .feed-card:not(.stack-card):active:not(:has(button:active)) {
+	transform: none;
+}
+body.reduce-motion .nav-lens {
+	animation: none !important;
+	scale: none;
+}
+body.reduce-motion .nav-tab:active .nav-icon {
+	scale: none;
 }

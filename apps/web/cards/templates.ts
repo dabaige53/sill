@@ -78,14 +78,6 @@ const CardPresentation: Record<string, any> = {
 			size,
 		);
 	},
-	weekStats() {
-		const since = Date.now() - 7 * 86400000,
-			s = Store.stats(since);
-		const late = s.overdue.length
-			? `${s.overdue.length}${copy("web.templates.c1d5bb25b221")}${s.overdue[0].title}」。`
-			: copy("web.templates.f8e9283dc3fc");
-		return { ...s, line: late };
-	},
 };
 const CardTemplates: Record<string, any> = {
 	head(c?: any, ctx?: any, text?: any, right: any = "") {
@@ -150,14 +142,19 @@ const CardTemplates: Record<string, any> = {
 	},
 	task(c?: any, ctx?: any) {
 		const tasks = ctx.tasks,
-			done = tasks.filter((t?: any) => t.done).length;
-		if (done === tasks.length)
+			done = tasks.filter((t?: any) => t.done).length,
+			byId = new Map(tasks.map((t?: any) => [t.id, t])),
+			held = [...new Set(ctx.taskPreviewOrder)].map((id) => byId.get(id)).filter(Boolean);
+		if (tasks.length > 0 && done === tasks.length && !held.length)
 			return `<div class="card-body done-row"><span class="done-mark">${icon("check", 14)}</span><span class="done-copy"><small>${copy("web.templates.f838d1ef1773")}${tasks.length}${copy("web.templates.f9d529eacdf3")}</small>${this.title(c, ctx)}</span></div>`;
 		const item = (t?: any) =>
 			ctx.passive
 				? `<div class="check-item ${t.done ? "is-done" : ""}" role="img" aria-label="${esc(t.text)}：${t.done ? copy("web.templates.f28461bb49c8") : copy("web.templates.6707de42c29d")}">${checkMark(t.done)}<span>${esc(t.text)}</span></div>`
 				: checkItem(c, t);
-		return `<div class="card-body">${this.head(c, ctx, c.meta || copy("web.task"), `<span class="num task-count">${done}/${tasks.length}</span>`)}${this.title(c, ctx)}<div class="checklist">${tasks.slice(0, 3).map(item).join("")}</div>${tasks.length > 3 ? `<span class="more-items">${copy("web.templates.dff74742a6f0")}${tasks.length - 3}${copy("web.templates.f9d529eacdf3")}</span>` : ""}</div>`;
+		// Preserve the current keyboard preview until focus leaves the card; Store keeps its order.
+		const ordered = [...tasks.filter((t?: any) => !t.done), ...tasks.filter((t?: any) => t.done)];
+		const visible = [...held, ...ordered.filter((t?: any) => !held.includes(t))].slice(0, 3);
+		return `<div class="card-body">${this.head(c, ctx, c.meta || copy("web.task"), tasks.length ? `<span class="num task-count">${done}/${tasks.length}</span>` : "")}${this.title(c, ctx)}${tasks.length ? `<div class="checklist">${visible.map(item).join("")}</div>` : this.summary(c)}${tasks.length > 3 ? `<span class="more-items">${copy("web.templates.dff74742a6f0")}${tasks.length - 3}${copy("web.templates.f9d529eacdf3")}</span>` : ""}</div>`;
 	},
 	event(c?: any, ctx?: any) {
 		const span = Math.round((c.end - c.start) / 60000),
@@ -194,8 +191,11 @@ const CardTemplates: Record<string, any> = {
 		return `${c.image ? this.cover(c, ctx, inner) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}</div>`;
 	},
 	digest(c?: any, ctx?: any) {
-		const s = CardPresentation.weekStats();
-		return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c))}${this.title(c, ctx)}<div class="stats-trio"><div><b class="num">${s.read}</b><span>${copy("web.read")}</span></div><div><b class="num">${s.saved}</b><span>${copy("web.bookmark")}</span></div><div><b class="num">${s.done}</b><span>${copy("web.done")}</span></div></div><p class="card-summary">${esc(s.line)}</p></div>`;
+		const preview = {
+			...c,
+			summary: c.summary || (c.points?.length ? "" : c.body?.[0] || ""),
+		};
+		return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c))}${this.title(c, ctx)}${this.summary(preview)}</div>`;
 	},
 	suggestion(c?: any, ctx?: any) {
 		const related = (c.related || [])
@@ -238,6 +238,8 @@ function cardHTML(c?: any, options: any = {}) {
 	const ctx: Record<string, any> = {
 		state: s,
 		tasks,
+		taskPreviewOrder:
+			!options.passive && Array.isArray(options.taskPreviewOrder) ? options.taskPreviewOrder : [],
 		passive: !!options.passive,
 		now: options.now ?? Date.now(),
 	};

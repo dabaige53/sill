@@ -1,5 +1,19 @@
 import { MotionEngine } from "./motion.ts";
 
+export function columnGeometry(
+	width: number,
+	{ min = 280, ideal = 340, max = 380, gap = 24, limit = 5 } = {},
+) {
+	const fits = Math.max(1, Math.floor((width + gap) / (min + gap)));
+	const columns = Math.max(1, Math.min(limit, fits, Math.round((width + gap) / (ideal + gap))));
+	const columnWidth = fits === 1 ? width : Math.min(max, (width - (columns - 1) * gap) / columns);
+	return {
+		columns,
+		columnWidth,
+		inset: (width - (columns * columnWidth + (columns - 1) * gap)) / 2,
+	};
+}
+
 class FeedLayout {
 	declare container: any;
 	declare frame: any;
@@ -43,16 +57,26 @@ class FeedLayout {
 			return;
 		}
 		if (!width) return;
-		// Sill columns: never narrower than the density minimum, never wider than its maximum.
-		// A narrow screen keeps one full-width column; a wide one centres the columns it can fill.
-		const [min, max] = { compact: [240, 320], standard: [280, 380], roomy: [340, 440] }[
-			document.body.dataset.density
-		] || [280, 380];
-		const single = width < min * 2 + 24,
-			gap = single ? 16 : 24,
-			cols = single ? 1 : Math.max(2, Math.floor((width + gap) / (min + gap)));
-		const col = single ? width : Math.min(max, (width - (cols - 1) * gap) / cols),
-			inset = single ? 0 : (width - (cols * col + (cols - 1) * gap)) / 2;
+		// Density changes readability and grouping, not just how many minimum-width cards fit.
+		const style = getComputedStyle(el);
+		const value = (name: string, fallback: number) =>
+			Number.parseFloat(style.getPropertyValue(name)) || fallback;
+		const min = value("--col-min", 280),
+			ideal = value("--col-ideal", 340),
+			max = value("--col-max", 380),
+			limit = value("--col-limit", 5);
+		const gap = value(width < min * 2 + 24 ? "--gap-sm" : width < 1000 ? "--gap-md" : "--gap", 24);
+		const {
+			columns: cols,
+			columnWidth: col,
+			inset,
+		} = columnGeometry(width, {
+			min,
+			ideal,
+			max,
+			gap,
+			limit,
+		});
 		const old = animate
 			? new Map<any, any>(items.map((n?: any) => [n, n.getBoundingClientRect()]))
 			: null;

@@ -22,6 +22,15 @@ import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { Panels, welcomeHTML } from "../interactions/panels.ts";
+import {
+	type AgentCard,
+	AgentHandoff,
+	type AgentScope,
+	agentFailure,
+	agentKey,
+	agentPayload,
+	openCardLink,
+} from "../services/agent-handoff.ts";
 import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
@@ -33,6 +42,7 @@ const PAGE_FADE_MS = 180;
 const PAGE_KINDS = ["search", "ai", "settings"];
 
 class AppController {
+	agentHandoff = new AgentHandoff();
 	declare mode: any;
 	declare baseMode: any;
 	declare filter: any;
@@ -57,6 +67,7 @@ class AppController {
 	declare settingsGroup: any;
 	declare navKey: string;
 	declare navTimer: number;
+	declare navOpenTimer: number;
 	declare editingId: any;
 	declare loadedImages: any;
 	declare grid: any;
@@ -289,20 +300,27 @@ class AppController {
 	 * slides while the page changes. On a desktop the place is a panel; the lens moves first.
 	 */
 	goTo(key: string) {
+		clearTimeout(this.navOpenTimer);
+		this.navOpenTimer = 0;
 		if (key === "home") {
 			this.setNav("home");
 			if (this.dialog.open) this.closeNative();
 			else window.scrollTo({ top: 0, behavior: MotionEngine.reduced ? "auto" : "smooth" });
 			return;
 		}
-		if (this.navKey === key && this.dialog.open) return;
+		if (this.modalKind === key && this.dialog.open) {
+			this.setNav(key);
+			return;
+		}
 		this.setNav(key);
 		const open = () => {
+			this.navOpenTimer = 0;
+			if (this.navKey !== key) return;
 			if (key === "settings") this.settingsGroup = "desk";
 			this.openPanel(key);
 		};
 		if (MotionEngine.reduced || this.isPage(key)) open();
-		else window.setTimeout(open, NAV_LEAD_MS);
+		else this.navOpenTimer = window.setTimeout(open, NAV_LEAD_MS);
 	}
 	/* ——— What is on the desk ——— */
 	shelfOf(c?: any) {
@@ -405,16 +423,60 @@ class AppController {
 		return html.join("");
 	}
 	renderCurrent(animate: any = false) {
+		const focused = this.grid.contains(document.activeElement)
+			? (document.activeElement as HTMLElement)
+			: null;
+		const previousCard = focused?.closest<HTMLElement>("[data-card]"),
+			focusedCardId = previousCard?.dataset.card;
+		const taskPreviewOrder = previousCard?.dataset.taskPreviewLocked
+			? [...previousCard.querySelectorAll<HTMLElement>('.checklist [data-action="task"]')].map(
+					(node) => node.dataset.extra,
+				)
+			: [];
 		this.closeMore();
 		// An anchored reflow may temporarily need extra room below the final row.
 		this.grid.style.removeProperty("min-height");
 		document.body.dataset.view = this.mode;
 		this.grid.innerHTML = this.deskHTML();
+		let focusedCard = focusedCardId
+			? this.grid.querySelector(`[data-card="${CSS.escape(focusedCardId)}"]`)
+			: null;
+		if (focusedCard && taskPreviewOrder.length) {
+			const temp = document.createElement("div");
+			temp.innerHTML = cardHTML(Store.card(focusedCardId), {
+				compact: focusedCard.classList.contains("is-compact"),
+				now: this.feedNow,
+				taskPreviewOrder,
+			});
+			const held = temp.firstElementChild as HTMLElement;
+			held.dataset.taskPreviewLocked = "true";
+			held.addEventListener("focusout", () => {
+				window.setTimeout(() => {
+					if (held.isConnected && !held.contains(document.activeElement))
+						this.refreshCard(focusedCardId);
+				}, 0);
+			});
+			focusedCard.replaceWith(held);
+			focusedCard = held;
+		}
 		this.revealImages(this.grid);
 		this.layout.layout(false);
 		this.restoreStacks();
 		this.updateSelection();
 		this.updateFilterIndicator();
+		if (focusedCard) {
+			// Loading the next page must keep the same control, even when it is offscreen.
+			const target =
+				focused === previousCard
+					? focusedCard
+					: [...focusedCard.querySelectorAll("[data-action]")].find(
+							(node?: any) =>
+								node.dataset.action === focused.dataset.action &&
+								node.dataset.id === focused.dataset.id &&
+								node.dataset.extra === focused.dataset.extra,
+						);
+			target?.focus({ preventScroll: true });
+		}
 		// Only the first screen enters; cards below the fold are simply there when scrolled to.
 		if (animate)
 			[...this.grid.children]
@@ -440,6 +502,21 @@ class AppController {
 		});
 	}
 	refreshCard(id?: any) {
+		let old = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+		const c = Store.card(id),
+			active = old?.contains(document.activeElement) ? document.activeElement : null;
+		const focus = (active as HTMLElement)?.dataset.action,
+			focusExtra = (active as HTMLElement)?.dataset.extra,
+			focusId = (active as HTMLElement)?.dataset.id;
+		const focusTitle = active?.classList.contains("card-title-button");
+		const taskPreviewOrder =
+			c?.type === "task" &&
+			active &&
+			(old.dataset.taskPreviewLocked || (focus === "task" && active.matches(":focus-visible")))
+				? [...old.querySelectorAll('.checklist [data-action="task"]')].map(
+						(n?: any) => n.dataset.extra,
+					)
+				: [];
 		if (this.mode === "feed") {
 			const before = [...this.grid.querySelectorAll("[data-card],[data-stack]")]
 				.map((n?: any) => n.dataset.card || n.dataset.stack)
@@ -451,23 +528,27 @@ class AppController {
 				.join(",");
 			if (before !== after) {
 				this.withFeedAnchor(() => {});
-				return;
+				if (!taskPreviewOrder.length) return;
+				old = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
 			}
 		}
-		const old = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),
-			c = Store.card(id);
 		if (!old || !c) return;
-		const active = old.contains(document.activeElement) ? document.activeElement : null;
-		const focus = (active as HTMLElement)?.dataset.action,
-			focusExtra = (active as HTMLElement)?.dataset.extra,
-			focusId = (active as HTMLElement)?.dataset.id;
-		const focusTitle = active?.classList.contains("card-title-button");
 		const temp = document.createElement("div");
 		temp.innerHTML = cardHTML(c, {
 			compact: old.classList.contains("is-compact"),
 			now: this.feedNow,
+			taskPreviewOrder,
 		});
 		const node = temp.firstElementChild;
+		if (taskPreviewOrder.length) {
+			(node as HTMLElement).dataset.taskPreviewLocked = "true";
+			node.addEventListener("focusout", () => {
+				window.setTimeout(() => {
+					// Let the browser finish moving focus before settling the live card.
+					if (node.isConnected && !node.contains(document.activeElement)) this.refreshCard(id);
+				}, 0);
+			});
+		}
 		// Start from the old classes so a read/unread change settles as a color transition.
 		const nextClass = node.className;
 		node.className = old.className;
@@ -491,16 +572,6 @@ class AppController {
 			((target || node.querySelector(".card-title-button") || node) as HTMLElement).focus({
 				preventScroll: true,
 			});
-		}
-		const digest = this.grid.querySelector(".type-digest[data-card]");
-		if (digest && digest.dataset.card !== id) {
-			const d = Store.card(digest.dataset.card);
-			if (d) {
-				const t = document.createElement("div");
-				t.innerHTML = cardHTML(d, { now: this.feedNow });
-				(t.firstElementChild as HTMLElement).style.cssText = digest.style.cssText;
-				digest.replaceWith(t.firstElementChild);
-			}
 		}
 	}
 	updateFilterIndicator() {
@@ -630,6 +701,7 @@ class AppController {
 		) {
 			const sheet = this.dialog.querySelector(".preview-sheet"),
 				token = this.modalToken;
+			MotionEngine.cancelPanel(this.dialog);
 			this.sheetLeaving = true;
 			sheet.classList.remove("is-drag");
 			sheet.classList.add("is-off");
@@ -820,6 +892,10 @@ class AppController {
 			this.startInlineEdit(id);
 			return;
 		}
+		if (!this.dialog.open || this.currentId !== id)
+			try {
+				this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));
+			} catch {}
 		const origin = MotionEngine.capture(
 			this.dialog.open && this.currentId === id && ["preview", "reader"].includes(this.modalKind)
 				? MotionEngine.surface(this.dialog)
@@ -836,7 +912,7 @@ class AppController {
 		this.refreshCard(id);
 		if (c.type === "photo" && !reading) {
 			this.photoIndex = 0;
-			this.openModal(Panels.lightbox(c, 0), "lightbox", null, "lightbox");
+			this.openModal(Panels.lightbox(c, 0, this), "lightbox", null, "lightbox");
 			Store.patch(id, { read: true, progress: 1 });
 			this.refreshCard(id);
 			return;
@@ -956,8 +1032,142 @@ class AppController {
 		});
 		this.refreshCard(id);
 	}
-	openExternal(c?: any) {
-		if (c?.url && /^https?:\/\//.test(c.url)) window.open(c.url, "_blank", "noopener,noreferrer");
+	agentScope(): AgentScope {
+		return { kind: "local" };
+	}
+	async readAgentCard(id: string, _scope: AgentScope): Promise<AgentCard> {
+		const card = Store.card(id);
+		if (!card) throw agentFailure("card_unavailable", copy("web.agent.noCard"));
+		return card;
+	}
+	agentAction(card: AgentCard) {
+		let scope: AgentScope;
+		try {
+			scope = this.agentScope();
+		} catch {
+			return "";
+		}
+		const state = this.agentHandoff.state(agentKey(card.id, scope), window.__SILL_HOST__);
+		const labels = {
+			discuss: copy("web.agent.discuss"),
+			copy: copy("web.agent.copy"),
+			sending: copy("web.agent.sending"),
+			copying: copy("web.agent.copying"),
+			sent: copy("web.agent.sentLabel"),
+			copied: copy("web.agent.copiedLabel"),
+		};
+		const busy = state === "sending" || state === "copying";
+		return `<button type="button" class="text-button" data-action="agent-handoff" data-id="${esc(card.id)}"${busy || state === "sent" ? " disabled" : ""} aria-busy="${busy}">${labels[state]}</button>`;
+	}
+	paintAgentActions() {
+		this.dialog.querySelectorAll('[data-action="agent-handoff"]').forEach((button: HTMLElement) => {
+			const card = Store.card(button.dataset.id);
+			if (!card) return;
+			const template = document.createElement("template");
+			template.innerHTML = this.agentAction(card);
+			const next = template.content.querySelector("button");
+			if (!next) return;
+			button.textContent = next.textContent;
+			(button as HTMLButtonElement).disabled = next.disabled;
+			button.setAttribute("aria-busy", next.getAttribute("aria-busy"));
+		});
+	}
+	async copyAgentText(text: string, id: string, current: () => boolean) {
+		try {
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(text);
+				return;
+			}
+		} catch {
+			// Some hosts deny the async clipboard API but still allow copying a user selection.
+		}
+		const field = document.createElement("textarea");
+		const focused = document.activeElement as HTMLElement;
+		field.className = "sr-only";
+		field.readOnly = true;
+		field.value = text;
+		(this.dialog.open ? this.dialog : document.body).append(field);
+		let copied = false;
+		try {
+			field.select();
+			copied = !!document.execCommand?.("copy");
+		} catch {
+			// Keep a selectable reference in the original detail when both clipboard paths are denied.
+		} finally {
+			field.remove();
+			if (focused?.isConnected) focused.focus({ preventScroll: true });
+		}
+		if (copied) return;
+		if (current() && this.dialog.open && this.currentId === id) this.showAgentReference(text, id);
+		throw agentFailure("clipboard_unavailable", copy("web.agent.copyFailed"));
+	}
+	showAgentReference(text: string, id: string) {
+		const footer = this.dialog
+			.querySelector(`[data-action="agent-handoff"][data-id="${CSS.escape(id)}"]`)
+			?.closest(".preview-foot");
+		if (!footer) return;
+		this.dialog.querySelector(".agent-reference")?.remove();
+		const panel = document.createElement("div");
+		panel.className = "agent-reference";
+		const field = document.createElement("textarea");
+		field.className = "agent-reference-field";
+		field.readOnly = true;
+		field.rows = 6;
+		field.value = text;
+		field.setAttribute("aria-label", copy("web.agent.reference"));
+		const close = document.createElement("button");
+		close.type = "button";
+		close.className = "text-button";
+		close.dataset.action = "agent-reference-close";
+		close.dataset.id = id;
+		close.textContent = copy("web.agent.closeReference");
+		panel.append(field, close);
+		footer.after(panel);
+		field.focus({ preventScroll: true });
+		field.select();
+		field.scrollIntoView({ block: "nearest" });
+	}
+	async handoffCard(id: string) {
+		try {
+			const scope = this.agentScope();
+			const key = agentKey(id, scope);
+			const current = () => {
+				try {
+					return key === agentKey(id, this.agentScope());
+				} catch {
+					return false;
+				}
+			};
+			const handoff = this.agentHandoff.run(
+				key,
+				async () => agentPayload(await this.readAgentCard(id, scope), scope),
+				window.__SILL_HOST__,
+				(text) => this.copyAgentText(text, id, current),
+				current,
+			);
+			this.paintAgentActions();
+			const result = await handoff;
+			if (result && current()) {
+				this.dialog.querySelector(".agent-reference")?.remove();
+				document.getElementById("announcer").textContent = copy(
+					result === "sent" ? "web.agent.sent" : "web.agent.copied",
+				);
+			}
+		} catch (error) {
+			this.alert(error.message || copy("web.agent.unavailable"));
+		} finally {
+			this.paintAgentActions();
+		}
+	}
+	async openExternal(c?: any, url: string = c?.url) {
+		try {
+			return await openCardLink(url, window.__SILL_HOST__, (value) =>
+				window.open(value, "_blank", "noopener,noreferrer"),
+			);
+		} catch (error) {
+			this.alert(error.message || copy("web.agent.linkUnknown"));
+			return false;
+		}
 	}
 	/** Toast is for undo and short facts; it sits one row above the bottom rail. */
 	toast(text?: any, undo: any = null, actionLabel: any = copy("web.app.926a50b98ece")) {
@@ -1987,6 +2197,15 @@ class AppController {
 	}
 	action(name?: any, id: any = "", extra: any = "", el: any = null, event: any = null) {
 		switch (name) {
+			case "agent-handoff":
+				void this.handoffCard(id);
+				break;
+			case "agent-reference-close":
+				this.dialog.querySelector(".agent-reference")?.remove();
+				this.dialog
+					.querySelector(`[data-action="agent-handoff"][data-id="${CSS.escape(id)}"]`)
+					?.focus({ preventScroll: true });
+				break;
 			case "filter":
 			case "search":
 				this.openPanel("search");
@@ -2302,7 +2521,7 @@ class AppController {
 				break;
 			case "join": {
 				const c = Store.card(id);
-				if (c?.meeting?.url) window.open(c.meeting.url, "_blank", "noopener,noreferrer");
+				if (c?.meeting?.url) void this.openExternal(c, c.meeting.url);
 				break;
 			}
 			case "photo-step":
@@ -2311,7 +2530,11 @@ class AppController {
 					n = (c.photos || [c.image]).length;
 				this.photoIndex =
 					name === "photo-go" ? Number(extra) : (this.photoIndex + Number(extra) + n) % n;
-				this.dialog.innerHTML = Panels.lightbox(c, this.photoIndex);
+				// Photo navigation replaces the content; retain the shared recovery notice and its state.
+				const toast = this.dialog.querySelector("#toast");
+				if (toast) document.body.appendChild(toast);
+				this.dialog.innerHTML = Panels.lightbox(c, this.photoIndex, this);
+				if (toast) this.dialog.appendChild(toast);
 				break;
 			}
 			case "sync-retry":
@@ -2348,13 +2571,27 @@ class AppController {
 					fn();
 				}
 				break;
-			case "external":
-				this.openExternal(Store.card(id));
-				if (Store.card(id) && !Store.item(id).read && ["mail"].includes(Store.card(id).type)) {
-					Store.patch(id, { read: true });
-					this.refreshCard(id);
+			case "external": {
+				const card = Store.card(id);
+				let scope: string;
+				try {
+					scope = agentKey(id, this.agentScope());
+				} catch {
+					this.alert(copy("web.agent.disconnected"));
+					break;
 				}
+				void this.openExternal(card).then((opened) => {
+					let current = false;
+					try {
+						current = scope === agentKey(id, this.agentScope());
+					} catch {}
+					if (opened && current && Store.card(id)?.type === "mail" && !Store.item(id).read) {
+						Store.patch(id, { read: true });
+						this.refreshCard(id);
+					}
+				});
 				break;
+			}
 			case "download-calendar": {
 				const c = Store.card(id),
 					date = (x?: any) =>

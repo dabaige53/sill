@@ -551,9 +551,23 @@ async function recordLayout(page?: any, width?: any) {
 				assert.deepEqual(await inside(), before, "selecting moved the card's content");
 				// No entrance orb: the rail is the navigation capsule, and selection shares its row.
 				assert.equal(await page.locator("#orb,.dock-tools,.rail-tools").count(), 0);
-				const bar = await rect(page, "#selection-bar"),
-					nav = await rect(page, "#nav"),
-					face = await rect(page, "#account");
+				// Selection can scroll a card into view and tuck the rail. Compare its resting layout,
+				// after both the rail and selection bar have entered, in one browser frame.
+				await page.waitForFunction(
+					() => !document.getElementById("dock").classList.contains("is-tucked"),
+				);
+				await page.locator("#dock").evaluate(async (node: HTMLElement) => {
+					await Promise.all(
+						node
+							.getAnimations({ subtree: true })
+							.filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+							.map((animation) => animation.finished.catch(() => {})),
+					);
+				});
+				const { bar, nav, face } = await page.evaluate(() => {
+					const box = (id: string) => document.getElementById(id).getBoundingClientRect().toJSON();
+					return { bar: box("selection-bar"), nav: box("nav"), face: box("account") };
+				});
 				assert.ok(bar.right <= nav.left, "selection bar overlaps the navigation capsule");
 				assert.ok(
 					face.right <= nav.right && face.left > nav.left,

@@ -36,6 +36,14 @@
 	--rounded:
 		ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
 	--gap: 24px;
+	--gap-sm: 16px;
+	--gap-md: 20px;
+	--col-min: 280px;
+	--col-ideal: 340px;
+	--col-max: 380px;
+	--col-limit: 5;
+	--hit-target: 44px;
+	--summary-lines: 3;
 	--block-gap: 8px;
 	--card-padding: 18px;
 	--cover-inset: 8px;
@@ -78,7 +86,21 @@
 	--base: 220ms;
 	--layout: 320ms;
 	--settle: 500ms;
+	--dur-reduced: 70ms;
+	--dur-tuck: 300ms;
+	--rest-show: 650ms;
 	color-scheme: light;
+}
+body[data-density="compact"] {
+	--col-min: 240px;
+	--col-ideal: 280px;
+	--col-max: 320px;
+	--summary-lines: 2;
+}
+body[data-density="roomy"] {
+	--col-min: 340px;
+	--col-ideal: 400px;
+	--col-max: 440px;
 }
 /* Dark: same hierarchy, lower light. Cards stay one step above the canvas. */
 :root[data-theme="dark"] {

@@ -127,8 +127,8 @@ const Panels: Record<string, any> = {
 			!["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
 				? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id)
 				: "";
-		const sheet = (inner?: any, cover: any = "", foot: any = "") =>
-			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}${foot}</div></div></div>`;
+		const sheet = (inner?: any, cover: any = "", action: any = "") =>
+			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}${this.foot(action, app?.agentAction?.(c))}</div></div></div>`;
 		const editTags = button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id);
 		const h1 = `<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>`;
 		if (c.type === "mail") {
@@ -137,7 +137,7 @@ const Panels: Record<string, any> = {
 				sheet(
 					`<div class="preview-sender">${avatar(sender, 36)}<span><b>${esc(sender)}</b><small>${copy("web.panels.711078d887e0")}${esc(c.meta || "")}</small></span></div>${h1}<div class="preview-full">${(c.body || [c.summary]).map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>${c.attachment ? `<span class="ref attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}`,
 					"",
-					this.foot(this.external(c, copy("web.panels.cf945e21ddef"))),
+					this.external(c, copy("web.panels.cf945e21ddef")),
 				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
@@ -159,11 +159,9 @@ const Panels: Record<string, any> = {
 				sheet(
 					`<div class="preview-meta">${esc(dateLabel(c.start))}${eventRelative(c) ? ` · <span style="color:var(--accent);font-weight:500">${esc(eventRelative(c))}</span>` : ""}</div><div class="event-hero"><span class="num">${timeString(c.start)}</span><small class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)} · ${span}${copy("web.templates.40de54344d22")}</small></div>${h1}${rows ? `<div class="detail-rows">${rows}</div>` : ""}${c.body?.length ? `<div class="preview-full">${c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}${this.reminderRow(c)}`,
 					"",
-					this.foot(
-						timely && c.meeting
-							? `<button type="button" class="solid-button" data-action="join" data-id="${esc(c.id)}">${copy("web.templates.451755e3831f")}</button>`
-							: "",
-					),
+					timely && c.meeting
+						? `<button type="button" class="solid-button" data-action="join" data-id="${esc(c.id)}">${copy("web.templates.451755e3831f")}</button>`
+						: "",
 				) +
 				this.bar(
 					button("download", copy("web.panels.5510cee6e987"), "download-calendar", c.id),
@@ -176,7 +174,7 @@ const Panels: Record<string, any> = {
 			const total = c.duration || 0,
 				played = Math.round(total * (s.progress || 0));
 			return (
-				`<div class="sheet preview-sheet">${this.head(closeButton)}<div class="sheet-scroll" tabindex="0"><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div>${this.foot(this.external(c, copy("web.panels.c7f9a9b3d472")))}</div></div></div>` +
+				`<div class="sheet preview-sheet">${this.head(closeButton)}<div class="sheet-scroll" tabindex="0"><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div>${this.foot(this.external(c, copy("web.panels.c7f9a9b3d472")), app.agentAction?.(c))}</div></div></div>` +
 				this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
@@ -185,7 +183,7 @@ const Panels: Record<string, any> = {
 				sheet(
 					`${this.meta(c)}${h1}<div class="media-player"><img src="${Assets[c.image]}" alt=""><div class="media-slide" id="media-slide"></div></div><div class="media-controls">${button("back", copy("web.panels.b445bfa61071"), "media-prev", c.id)}${button("play", copy("web.panels.105587569775"), "media-play", c.id)}<span class="media-step" id="media-step">1 / ${c.body.length || 1}</span>${button("arrow", copy("web.panels.abd1f787accc"), "media-next", c.id)}</div>`,
 					"",
-					this.foot(this.external(c)),
+					this.external(c),
 				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
@@ -213,17 +211,7 @@ const Panels: Record<string, any> = {
 				) + this.bar(this.bookmark(c, s), editTags, this.reminderTools(c))
 			);
 		}
-		if (c.type === "digest") {
-			const st = CardPresentation.weekStats();
-			return (
-				sheet(
-					`${this.meta(c)}${h1}<div class="stats-trio"><div><b class="num">${st.read}</b><span>${copy("web.read")}</span></div><div><b class="num">${st.saved}</b><span>${copy("web.bookmark")}</span></div><div><b class="num">${st.done}</b><span>${copy("web.done")}</span></div></div><p class="preview-lead">${esc(st.line)}</p>${(c.body || []).map((p?: any) => `<p class="muted">${esc(p)}</p>`).join("")}`,
-					"",
-					this.foot(this.whyLink(c)),
-				) + this.bar(this.bookmark(c, s), editTags)
-			);
-		}
-		// Articles, notes, suggestions: the lifted card shows everything.
+		// Articles, notes, digests and suggestions show the content the agent actually wrote.
 		const lead =
 			c.summary && c.form !== "quote" && c.summary !== c.body?.[0]
 				? `<p class="preview-lead">${esc(c.summary)}</p>`
@@ -253,7 +241,7 @@ const Panels: Record<string, any> = {
 			sheet(
 				`${this.meta(c)}${h1}${lead}${points}${related}${full}`,
 				cover,
-				this.foot(this.external(c), this.whyLink(c)),
+				this.external(c) + this.whyLink(c),
 			) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 		);
 	},
@@ -264,7 +252,7 @@ const Panels: Record<string, any> = {
 			? `<div class="skeleton-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div>`
 			: c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("");
 		return (
-			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
+			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c), app.agentAction?.(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
 			`<div class="reader-edge is-top" aria-hidden="true"></div><div class="reader-edge is-bottom" aria-hidden="true"></div>` +
 			`<div class="reader-head glass" role="toolbar" aria-label="${copy("web.readerTools")}">${button("collapse", copy("web.panels.0f1505b6ad3f"), "close")}${button("x", copy("web.panels.f2a5f3f7db0f"), "close-all")}</div>` +
 			this.bar(
@@ -274,12 +262,12 @@ const Panels: Record<string, any> = {
 			)
 		);
 	},
-	lightbox(c?: any, index: any = 0) {
+	lightbox(c?: any, index: any = 0, app?: any) {
 		const photos = c.photos?.length ? c.photos : [c.image];
 		const i = Math.max(0, Math.min(photos.length - 1, index));
 		return `<div class="lightbox-top"><span>${esc([c.location, dateLabel(c.time)].filter(Boolean).join(" · "))}</span><span id="modal-title" class="sr-only">${esc(c.title)}</span>${button("x", copy("web.panels.28d70fb85c88"), "close")}</div>
    <div class="lightbox-stage">${photos.length > 1 ? button("back", copy("web.panels.bcf200709dbc"), "photo-step", c.id, "-1") : ""}<img src="${Assets[photos[i]]}" alt="${esc(c.title)}${copy("web.panels.fab2a038b6d0")}${i + 1}${copy("web.panels.e9e0fdc242b4")}">${photos.length > 1 ? button("arrow", copy("web.panels.dcd4eb027369"), "photo-step", c.id, "1") : ""}</div>
-   <div class="lightbox-thumbs">${photos.map((p?: any, n?: any) => `<button type="button" class="${n === i ? "on" : ""}" data-action="photo-go" data-id="${esc(c.id)}" data-extra="${n}" aria-label="${copy("web.panels.9552fe3bd366")}${n + 1}${copy("web.panels.e9e0fdc242b4")}"><img src="${Assets[p]}" alt=""></button>`).join("")}</div>`;
+   <div class="lightbox-thumbs">${photos.map((p?: any, n?: any) => `<button type="button" class="${n === i ? "on" : ""}" data-action="photo-go" data-id="${esc(c.id)}" data-extra="${n}" aria-label="${copy("web.panels.9552fe3bd366")}${n + 1}${copy("web.panels.e9e0fdc242b4")}"><img src="${Assets[p]}" alt=""></button>`).join("")}</div>${this.foot(app?.agentAction?.(c))}`;
 	},
 	/* Tags and notes: chips you can remove, a field to add, a note below. */
 	editor(app?: any, id?: any) {

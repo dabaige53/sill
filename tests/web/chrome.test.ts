@@ -104,6 +104,37 @@ test("keyboard focus inside a tucked bar brings it back, and a focused bar never
 	}
 });
 
+test("Tab reveals hidden bars before the dialog focus trap chooses its next target", () => {
+	const f = fixture();
+	try {
+		for (const shiftKey of [false, true]) {
+			f.to(400);
+			f.to(500);
+			assert.equal(f.tucked(), true);
+			let hiddenAtFocusSelection = true;
+			f.w.document.addEventListener(
+				"keydown",
+				() => {
+					hiddenAtFocusSelection = f.tucked();
+				},
+				{ once: true },
+			);
+			const event = new f.w.KeyboardEvent("keydown", {
+				key: "Tab",
+				shiftKey,
+				bubbles: true,
+				cancelable: true,
+			});
+			f.w.document.body.dispatchEvent(event);
+			assert.equal(hiddenAtFocusSelection, false);
+			assert.equal(event.defaultPrevented, false, "Tab must retain its normal navigation");
+		}
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
 test("search waits while an input method is composing, then filters on the final text", () => {
 	const f = fixture();
 	try {

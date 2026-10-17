@@ -22,6 +22,7 @@ class ChromeAutoHide {
 	declare paused: () => boolean;
 	declare onScroll: () => void;
 	declare onFocus: (e: FocusEvent) => void;
+	declare onKeyDown: (e: KeyboardEvent) => void;
 
 	constructor(source: Source, targets: () => Element[], paused: () => boolean = () => false) {
 		this.source = source;
@@ -33,11 +34,16 @@ class ChromeAutoHide {
 		this.timer = 0;
 		this.hidden = false;
 		this.onScroll = () => this.scrolled();
-		// A keyboard user tabbing into a tucked bar gets it back at once.
+		// Hidden controls are absent from the tab order. Reveal them before the browser
+		// chooses the next focus target, including the app's dialog focus trap.
+		this.onKeyDown = (e) => {
+			if (e.key === "Tab" && !e.isComposing) this.show();
+		};
 		this.onFocus = (e) => {
 			if (this.targets().some((t) => t.contains(e.target as Node))) this.show();
 		};
 		source.addEventListener("scroll", this.onScroll, { passive: true });
+		document.addEventListener("keydown", this.onKeyDown, true);
 		document.addEventListener("focusin", this.onFocus);
 	}
 	isWindow() {
@@ -85,6 +91,8 @@ class ChromeAutoHide {
 		for (const t of this.targets()) t.classList.add("is-tucked");
 	}
 	show() {
+		clearTimeout(this.timer);
+		this.timer = 0;
 		this.down = this.up = 0;
 		if (!this.hidden) return;
 		this.hidden = false;
@@ -93,6 +101,7 @@ class ChromeAutoHide {
 	destroy() {
 		clearTimeout(this.timer);
 		this.source.removeEventListener("scroll", this.onScroll);
+		document.removeEventListener("keydown", this.onKeyDown, true);
 		document.removeEventListener("focusin", this.onFocus);
 		this.show();
 	}
