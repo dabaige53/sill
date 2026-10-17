@@ -144,12 +144,18 @@ try {
 	await scenario(
 		"rail notices fade and survive interrupted dismissal",
 		async (page) => {
-			await page.evaluate(() => window.__app.setOffline(true));
-			await page.waitForTimeout(60);
-			const opacity = await page
-				.locator("#offline")
-				.evaluate((n: HTMLElement) => Number(getComputedStyle(n).opacity));
-			assert.ok(opacity > 0 && opacity < 1);
+			// Sample the real animation at its midpoint, independently of CI scheduling.
+			const entering = await page.evaluate(() => {
+				window.__app.setOffline(true);
+				const notice = document.getElementById("offline");
+				const animation = notice.getAnimations()[0];
+				if (!animation) return { active: false, opacity: Number(getComputedStyle(notice).opacity) };
+				animation.pause();
+				animation.currentTime = Number(animation.effect.getTiming().duration) / 2;
+				return { active: true, opacity: Number(getComputedStyle(notice).opacity) };
+			});
+			assert.equal(entering.active, true, "notice has a real entrance animation");
+			assert.ok(entering.opacity > 0 && entering.opacity < 1, JSON.stringify(entering));
 			await page.evaluate(() => window.__app.setOffline(false));
 			assert.equal(await page.locator("#offline").evaluate((n: HTMLElement) => n.inert), true);
 			await page.evaluate(() => window.__app.setOffline(true));

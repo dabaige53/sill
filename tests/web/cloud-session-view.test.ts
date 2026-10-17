@@ -34,6 +34,22 @@ const reset = buildSync({
 	format: "iife",
 	platform: "browser",
 }).outputFiles[0].text;
+const modalGuardStart = source.indexOf("const originalOpen = app.openModal.bind(app);");
+const modalGuardEnd = source.indexOf("const originalClose =", modalGuardStart);
+const panelGuardStart = source.indexOf("const localOpenPanel = app.openPanel.bind(app);");
+const panelGuardEnd = source.indexOf("const localEditor =", panelGuardStart);
+assert.ok(modalGuardStart >= 0 && modalGuardEnd > modalGuardStart);
+assert.ok(panelGuardStart >= 0 && panelGuardEnd > panelGuardStart);
+const navigationGuards = buildSync({
+	stdin: {
+		contents:
+			source.slice(modalGuardStart, modalGuardEnd) + source.slice(panelGuardStart, panelGuardEnd),
+		loader: "ts",
+	},
+	write: false,
+	format: "iife",
+	platform: "browser",
+}).outputFiles[0].text;
 
 function fixture() {
 	const dom = new JSDOM(
@@ -167,6 +183,50 @@ test("session expiry keeps an explicit locked editor draft but removes its previ
 		assert.equal(f.app.panelReturn, null);
 		assert.equal(f.app.searchSelected.size, 0);
 		assert.equal(f.w.document.querySelectorAll("[data-card]").length, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("uncertain cloud save blocks search before it can change the route or replace the draft", () => {
+	const f = fixture();
+	try {
+		f.w.history.replaceState({ glass: true, prev: null }, "", "#feed");
+		f.app.lastRouteHash = "#feed";
+		f.app.modalKind = "cloud-editor";
+		f.app.dialog.innerHTML = '<input id="cloud-title" value="Uncertain draft">';
+		f.app.dialog.querySelector("input").focus();
+		f.app.toast = () => {};
+		f.w.Cloud.pending = { key: "synthetic-write" };
+		f.w.eval(navigationGuards);
+		const historyLength = f.w.history.length;
+		assert.doesNotThrow(() =>
+			f.app.key({
+				key: "k",
+				ctrlKey: true,
+				target: f.w.document.activeElement,
+				preventDefault() {},
+			}),
+		);
+		assert.equal(f.w.location.hash, "#feed");
+		assert.equal(f.w.history.length, historyLength);
+		assert.equal(f.app.lastRouteHash, "#feed");
+		assert.equal(f.app.modalKind, "cloud-editor");
+		assert.equal(f.app.dialog.querySelector("#cloud-title").value, "Uncertain draft");
+		assert.equal(f.w.document.activeElement.id, "cloud-title");
+		assert.equal(f.app.searchBackground, undefined);
+
+		// Resolving the write allows the same shortcut to open search normally.
+		f.w.Cloud.pending = null;
+		f.app.openModal = (html: string, kind: string) => {
+			f.app.dialog.innerHTML = html;
+			f.app.modalKind = kind;
+		};
+		f.app.revealImages = () => {};
+		f.app.openPanel("search");
+		assert.equal(f.w.location.hash, "#search");
+		assert.equal(f.app.modalKind, "search");
+		assert.ok(f.app.dialog.querySelector("#search-results"));
 	} finally {
 		f.dom.window.close();
 	}

@@ -19,7 +19,7 @@ Store.load = function () {
 	this.state.preferences.onboarded = true;
 	return this.state;
 };
-Store.save = function () {};
+Store.save = () => {};
 const Cloud: Record<string, any> = {
 	user: null,
 	records: new Map<any, any>(),
@@ -86,7 +86,7 @@ app.readAgentCard = async (id, scope) => {
 	return card;
 };
 const originalDeskHTML = app.deskHTML.bind(app);
-app.deskHTML = function () {
+app.deskHTML = () => {
 	if (!Cloud.user || !Store.state.cards.length) return cloudWelcome();
 	return originalDeskHTML();
 };
@@ -616,7 +616,7 @@ async function saveCloud(deleting: any = false) {
 	}
 }
 const originalOpen = app.openModal.bind(app);
-app.openModal = function (...args: any[]) {
+app.openModal = (...args: any[]) => {
 	if (Cloud.pending) {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
@@ -625,7 +625,7 @@ app.openModal = function (...args: any[]) {
 	return originalOpen(...args);
 };
 const originalClose = app.closeNative.bind(app);
-app.closeNative = function (...args: any[]) {
+app.closeNative = (...args: any[]) => {
 	if (Cloud.pending) {
 		app.toast(copy("web.cloudentry.af697013918b"));
 		return;
@@ -636,7 +636,7 @@ app.closeNative = function (...args: any[]) {
 	return result;
 };
 const originalAction = app.action.bind(app);
-app.action = function (name?: any, id?: any, ...args: any[]) {
+app.action = (name?: any, id?: any, ...args: any[]) => {
 	if (Cloud.pending) {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
@@ -771,7 +771,12 @@ app.loadDemo = function () {
 		);
 };
 const localOpenPanel = app.openPanel.bind(app);
-app.openPanel = function (kind?: any, ...args: any[]) {
+app.openPanel = (kind?: any, ...args: any[]) => {
+	// Reject navigation before search can change history or bind a blocked panel.
+	if (Cloud.pending) {
+		app.toast(copy("web.cloudentry.30298242da3c"));
+		return;
+	}
 	if (kind === "capture") {
 		editCloud();
 		return;
@@ -779,7 +784,7 @@ app.openPanel = function (kind?: any, ...args: any[]) {
 	return localOpenPanel(kind, ...args);
 };
 const localEditor = Panels.editor.bind(Panels);
-Panels.editor = function (...args: any[]) {
+Panels.editor = (...args: any[]) => {
 	const doc = document.createElement("template");
 	doc.innerHTML = localEditor(...args);
 	const hint = doc.content.querySelector(".panel-footer .muted");
@@ -787,7 +792,7 @@ Panels.editor = function (...args: any[]) {
 	return doc.innerHTML;
 };
 const localSettings = Panels.settings.bind(Panels);
-Panels.settings = function (app?: any, group?: any) {
+Panels.settings = (app?: any, group?: any) => {
 	const html = localSettings(app, group),
 		doc = document.createElement("template");
 	doc.innerHTML = html;
