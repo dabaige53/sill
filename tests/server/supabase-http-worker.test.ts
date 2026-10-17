@@ -83,3 +83,39 @@ test("Worker fetch calls share only active refresh work, without sharing user cl
 		await f.close();
 	}
 });
+
+test("Home Screen assets are public metadata with correct MIME and no session work", async () => {
+	const worker = createWorker({
+		runtimeFactory: () => {
+			throw new Error("static assets must not initialize auth");
+		},
+	});
+	const response = await worker.fetch(new Request("https://sill.test/manifest.webmanifest"), {});
+	assert.equal(response.status, 200);
+	assert.equal(response.headers.get("Content-Type"), "application/manifest+json; charset=utf-8");
+	assert.equal(response.headers.get("X-Content-Type-Options"), "nosniff");
+	assert.deepEqual(response.headers.getSetCookie(), []);
+	const manifest = await response.json();
+	assert.equal(manifest.display, "standalone");
+	assert.equal(manifest.id, "/");
+	assert.equal(manifest.start_url, "/");
+	assert.equal(manifest.scope, "/");
+	assert.equal(manifest.short_name, "Sill");
+	assert.deepEqual(manifest.icons, [
+		{
+			src: "/assets/sill-icon.png",
+			sizes: "256x256",
+			type: "image/png",
+			purpose: "any",
+		},
+	]);
+	const icon = await worker.fetch(new Request("https://sill.test" + manifest.icons[0].src), {});
+	assert.equal(icon.status, 200);
+	assert.equal(icon.headers.get("Content-Type"), "image/png");
+	const head = await worker.fetch(
+		new Request("https://sill.test/manifest.webmanifest", { method: "HEAD" }),
+		{},
+	);
+	assert.equal(head.status, 200);
+	assert.equal(await head.text(), "");
+});

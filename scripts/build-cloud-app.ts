@@ -15,6 +15,8 @@ const bundle = await build({
 	minify: true,
 });
 let html = await readFile("dist/cloud/index.html", "utf8");
+// Embedded MCP pages must not resolve install assets against the host origin.
+html = html.replace(/<!-- home-screen:start -->[\s\S]*?<!-- home-screen:end -->\n?/, "");
 const prelude = `if(location.protocol==='about:'){for(const method of ['pushState','replaceState']){const original=history[method].bind(history);history[method]=(state,title,url)=>original(state,title,typeof url==='string'&&url.startsWith('#')?location.href.split('#')[0]+url:url);}}`;
 html = html.replace(
 	"<script>",

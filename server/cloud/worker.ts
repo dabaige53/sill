@@ -1,6 +1,7 @@
 import brandIcon from "../../assets/sill-icon.png";
 import lineIcon from "../../assets/sill-line.svg";
 import lineIconDark from "../../assets/sill-line-dark.svg";
+import webManifest from "../../deploy/web-manifest.json" with { type: "json" };
 import appHtml from "../../dist/cloud/app.html";
 import html from "../../dist/cloud/index.html";
 import { createSillRuntime } from "./http.ts";
@@ -10,6 +11,15 @@ export function createWorker({ runtimeFactory = createSillRuntime }: any = {}) {
 	let activeKey: any, activeRuntime: any;
 	return {
 		fetch(request?: any, env?: any) {
+			const url = new URL(request.url);
+			if (["GET", "HEAD"].includes(request.method) && url.pathname === "/manifest.webmanifest")
+				return new Response(request.method === "HEAD" ? null : JSON.stringify(webManifest), {
+					headers: {
+						"Content-Type": "application/manifest+json; charset=utf-8",
+						"Cache-Control": "public, max-age=3600",
+						"X-Content-Type-Options": "nosniff",
+					},
+				});
 			if (request.method === "GET" && new URL(request.url).pathname === "/assets/sill-icon.png")
 				return new Response(brandIcon, {
 					headers: {
