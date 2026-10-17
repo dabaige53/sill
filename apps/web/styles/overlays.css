@@ -1092,6 +1092,19 @@ kbd {
 	-webkit-backdrop-filter: blur(28px) saturate(1.6);
 	backdrop-filter: blur(28px) saturate(1.6);
 }
+.search-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: none;
+}
+.search-header .search-pill {
+	flex: 1;
+	min-width: 0;
+}
+.search-header > .icon-button {
+	flex: none;
+}
 .search-pill {
 	display: flex;
 	align-items: center;

@@ -169,6 +169,14 @@ test("search shows no counts: the total is for screen readers only and groups ca
 		};
 		const field = f.w.document.createElement("div");
 		field.innerHTML = Panels.search(app);
+		assert.ok(
+			field.querySelector('.search-header [data-action="close"]'),
+			"search has an exit when the capsule is hidden",
+		);
+		assert.ok(
+			field.querySelector('.search-pill [data-action="clear-query"]'),
+			"clearing the query remains a separate action",
+		);
 		const count = field.querySelector("#filter-result");
 		assert.ok(count.classList.contains("sr-only"));
 		assert.equal(count.getAttribute("role"), "status");

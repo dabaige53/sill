@@ -365,8 +365,7 @@ body.opaque :is(#modal.search, #selection-menu)::backdrop {
 		max-height: 70dvh;
 	}
 
-	/* Phone search sits at the bottom, in thumb reach, and rides on top of the keyboard.
-	   Results grow upward from the field; filters sit just above it. */
+	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
 	#modal.search {
 		position: fixed;
 		inset: 0;
@@ -375,22 +374,16 @@ body.opaque :is(#modal.search, #selection-menu)::backdrop {
 		height: 100%;
 		max-height: 100%;
 		margin: 0;
-		padding: 16px var(--rail-edge) calc(var(--kb, 0px) + var(--rail-bottom));
-		justify-content: flex-end;
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		justify-content: flex-start;
 		gap: 10px;
 	}
 	#modal.search .search-results {
-		order: 0;
 		flex: 0 1 auto;
 		min-height: 0;
 		max-height: none;
 	}
 	#modal.search .search-chips {
-		order: 1;
-		flex: none;
-	}
-	#modal.search .search-pill {
-		order: 2;
 		flex: none;
 	}
 	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
@@ -407,8 +400,7 @@ body.opaque :is(#modal.search, #selection-menu)::backdrop {
 		opacity: 0;
 		visibility: hidden;
 	}
-	/* Phone places are pages: they fill the screen under the capsule, which stays.
-	   No grabber, no close button, no dim; the capsule is how you leave. */
+	/* Phone places are pages. AI/settings retain capsule navigation; search has its own exit. */
 	#modal.page,
 	#modal.page.panel,
 	#modal.page.panel.wide,
@@ -444,12 +436,8 @@ body.opaque :is(#modal.search, #selection-menu)::backdrop {
 		place-items: center;
 	}
 	#modal.page.search {
-		inset: 0;
-		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge)
-			calc(var(--rail-bottom) + var(--rail-row) + 16px);
-	}
-	body.keyboard-open #modal.page.search {
-		padding-bottom: calc(var(--kb, 0px) + var(--rail-bottom));
+		inset: 0 0 var(--kb, 0px);
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
 	}
 	.search-chips {
 		justify-content: flex-start;
