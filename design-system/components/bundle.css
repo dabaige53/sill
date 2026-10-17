@@ -2353,6 +2353,13 @@ button.detail-row:hover {
 	display: flex;
 	flex-direction: column;
 }
+/* Recovery stays in the photo layout so it cannot cover thumbnails or discussion controls. */
+#modal.lightbox #toast {
+	position: static;
+	flex: none;
+	align-self: center;
+	margin: 0 var(--rail-edge) max(12px, env(safe-area-inset-bottom));
+}
 #modal.lightbox::backdrop {
 	background: #0b0b0c;
 }
