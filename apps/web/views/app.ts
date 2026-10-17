@@ -1055,6 +1055,7 @@ class AppController {
 		return card;
 	}
 	agentAction(card: AgentCard) {
+		if (!window.__SILL_HOST__?.canDiscuss?.()) return "";
 		let scope: AgentScope;
 		try {
 			scope = this.agentScope();
@@ -1062,16 +1063,15 @@ class AppController {
 			return "";
 		}
 		const state = this.agentHandoff.state(agentKey(card.id, scope), window.__SILL_HOST__);
+		if (state === "unavailable") return "";
 		const labels = {
+			unknown: copy("web.agent.unknownLabel"),
 			discuss: copy("web.agent.discuss"),
-			copy: copy("web.agent.copy"),
 			sending: copy("web.agent.sending"),
-			copying: copy("web.agent.copying"),
 			sent: copy("web.agent.sentLabel"),
-			copied: copy("web.agent.copiedLabel"),
 		};
-		const busy = state === "sending" || state === "copying";
-		return `<button type="button" class="text-button" data-action="agent-handoff" data-id="${esc(card.id)}"${busy || state === "sent" ? " disabled" : ""} aria-busy="${busy}">${labels[state]}</button>`;
+		const busy = state === "sending";
+		return `<button type="button" class="text-button" data-action="agent-handoff" data-id="${esc(card.id)}"${busy || state === "sent" || state === "unknown" ? " disabled" : ""} aria-busy="${busy}">${labels[state]}</button>`;
 	}
 	paintAgentActions() {
 		this.dialog.querySelectorAll('[data-action="agent-handoff"]').forEach((button: HTMLElement) => {
@@ -1080,66 +1080,14 @@ class AppController {
 			const template = document.createElement("template");
 			template.innerHTML = this.agentAction(card);
 			const next = template.content.querySelector("button");
-			if (!next) return;
+			if (!next) {
+				button.remove();
+				return;
+			}
 			button.textContent = next.textContent;
 			(button as HTMLButtonElement).disabled = next.disabled;
 			button.setAttribute("aria-busy", next.getAttribute("aria-busy"));
 		});
-	}
-	async copyAgentText(text: string, id: string, current: () => boolean) {
-		try {
-			if (navigator.clipboard?.writeText) {
-				await navigator.clipboard.writeText(text);
-				return;
-			}
-		} catch {
-			// Some hosts deny the async clipboard API but still allow copying a user selection.
-		}
-		const field = document.createElement("textarea");
-		const focused = document.activeElement as HTMLElement;
-		field.className = "sr-only";
-		field.readOnly = true;
-		field.value = text;
-		(this.dialog.open ? this.dialog : document.body).append(field);
-		let copied = false;
-		try {
-			field.select();
-			copied = !!document.execCommand?.("copy");
-		} catch {
-			// Keep a selectable reference in the original detail when both clipboard paths are denied.
-		} finally {
-			field.remove();
-			if (focused?.isConnected) focused.focus({ preventScroll: true });
-		}
-		if (copied) return;
-		if (current() && this.dialog.open && this.currentId === id) this.showAgentReference(text, id);
-		throw agentFailure("clipboard_unavailable", copy("web.agent.copyFailed"));
-	}
-	showAgentReference(text: string, id: string) {
-		const footer = this.dialog
-			.querySelector(`[data-action="agent-handoff"][data-id="${CSS.escape(id)}"]`)
-			?.closest(".preview-foot");
-		if (!footer) return;
-		this.dialog.querySelector(".agent-reference")?.remove();
-		const panel = document.createElement("div");
-		panel.className = "agent-reference";
-		const field = document.createElement("textarea");
-		field.className = "agent-reference-field";
-		field.readOnly = true;
-		field.rows = 6;
-		field.value = text;
-		field.setAttribute("aria-label", copy("web.agent.reference"));
-		const close = document.createElement("button");
-		close.type = "button";
-		close.className = "text-button";
-		close.dataset.action = "agent-reference-close";
-		close.dataset.id = id;
-		close.textContent = copy("web.agent.closeReference");
-		panel.append(field, close);
-		footer.after(panel);
-		field.focus({ preventScroll: true });
-		field.select();
-		field.scrollIntoView({ block: "nearest" });
 	}
 	async handoffCard(id: string) {
 		try {
@@ -1156,16 +1104,12 @@ class AppController {
 				key,
 				async () => agentPayload(await this.readAgentCard(id, scope), scope),
 				window.__SILL_HOST__,
-				(text) => this.copyAgentText(text, id, current),
 				current,
 			);
 			this.paintAgentActions();
 			const result = await handoff;
 			if (result && current()) {
-				this.dialog.querySelector(".agent-reference")?.remove();
-				document.getElementById("announcer").textContent = copy(
-					result === "sent" ? "web.agent.sent" : "web.agent.copied",
-				);
+				document.getElementById("announcer").textContent = copy("web.agent.sent");
 			}
 		} catch (error) {
 			this.alert(error.message || copy("web.agent.unavailable"));
@@ -2213,12 +2157,6 @@ class AppController {
 		switch (name) {
 			case "agent-handoff":
 				void this.handoffCard(id);
-				break;
-			case "agent-reference-close":
-				this.dialog.querySelector(".agent-reference")?.remove();
-				this.dialog
-					.querySelector(`[data-action="agent-handoff"][data-id="${CSS.escape(id)}"]`)
-					?.focus({ preventScroll: true });
 				break;
 			case "filter":
 			case "search":

@@ -43,8 +43,8 @@ cards.push(
 	{
 		id: "motion-photo",
 		type: "photo",
-		title: "照片详情的交接与引用",
-		summary: "无法自动复制时，完整引用保留在此详情中，仍可选中和滚动。",
+		title: "照片详情",
+		summary: "独立网页只展示照片，不提供复制给助手功能。",
 		image: "architecture",
 		photos: ["architecture", "architecture"],
 		time: Date.now() - 10800000,
@@ -81,19 +81,6 @@ async function touch(session: any, type: string, x = 200, y = 300) {
 	await session.send("Input.dispatchTouchEvent", {
 		type,
 		touchPoints: type === "touchCancel" || type === "touchEnd" ? [] : [{ x, y, id: 1 }],
-	});
-}
-async function denyClipboard(page: any) {
-	await page.evaluate(() => {
-		Object.defineProperty(navigator, "clipboard", {
-			configurable: true,
-			value: {
-				writeText: async () => {
-					throw new DOMException("Denied for test", "NotAllowedError");
-				},
-			},
-		});
-		document.execCommand = () => false;
 	});
 }
 
@@ -355,6 +342,7 @@ try {
 		"A toolbar-free preview fixture keeps its final action visible",
 		async (page) => {
 			await page.evaluate(() => {
+				window.__SILL_HOST__ = { canDiscuss: () => true };
 				window.__app.openCard("motion-digest");
 				// Current card types share a toolbar. Exercise the supported no-toolbar layout explicitly.
 				window.__app.dialog.querySelector(":scope > .float-bar").remove();
@@ -394,84 +382,23 @@ try {
 	);
 
 	await scenario(
-		"Photo handoff and a denied clipboard leave a readable reference below the thumbnails",
+		"Standalone previews, readers and photo pages have no copy-to-assistant action",
 		async (page) => {
-			await denyClipboard(page);
-			await page.evaluate(() => window.__app.openCard("motion-photo"));
-			await page
-				.locator("#modal")
-				.evaluate((node: Element) =>
-					Promise.all(
-						node
-							.getAnimations({ subtree: true })
-							.map((animation) => animation.finished.catch(() => {})),
-					),
+			for (const [id, reader] of [
+				["motion-digest", false],
+				["motion-0", true],
+				["motion-photo", false],
+			]) {
+				await page.evaluate(({ id, reader }) => window.__app.openCard(id, reader), { id, reader });
+				assert.equal(await page.locator('#modal [data-action="agent-handoff"]').count(), 0);
+				assert.equal(await page.locator(".agent-reference").count(), 0);
+				await page.keyboard.press("Escape");
+				await page.waitForFunction(
+					() => !(document.querySelector("#modal") as HTMLDialogElement).open,
 				);
-			const action = page.locator('#modal [data-action="agent-handoff"]');
-			const before = await action.boundingBox(),
-				thumbs = await page.locator(".lightbox-thumbs").boundingBox();
-			assert.ok(before.height >= 44 && before.y >= thumbs.y + thumbs.height - 1);
-			assert.ok(before.y + before.height <= 844 - 12 + 1);
-			assert.equal(
-				await action.evaluate((node: Element) => getComputedStyle(node).color),
-				"rgb(255, 255, 255)",
-			);
-			await action.click();
-			const field = page.locator(".agent-reference-field");
-			await field.waitFor();
-			const reference = await field.evaluate((node: HTMLTextAreaElement) => ({
-				value: node.value,
-				selected: node.selectionStart === 0 && node.selectionEnd === node.value.length,
-				readonly: node.readOnly,
-				scrollable: node.scrollHeight > node.clientHeight,
-				color: getComputedStyle(node).color,
-				selectable: getComputedStyle(node).userSelect,
-			}));
-			assert.match(reference.value, /motion-photo/);
-			assert.equal(reference.selected, true);
-			assert.equal(reference.readonly, true);
-			assert.equal(reference.scrollable, true);
-			assert.equal(reference.selectable, "text");
-			assert.equal(reference.color, "rgb(255, 255, 255)");
-			const stage = await page.locator(".lightbox-stage").boundingBox(),
-				footer = await page.locator(".preview-foot").boundingBox(),
-				panel = await page.locator(".agent-reference").boundingBox(),
-				close = page.locator('[data-action="agent-reference-close"]'),
-				closeBox = await close.boundingBox();
-			assert.ok(stage.height > 100 && panel.y >= footer.y + footer.height - 1);
-			assert.ok(panel.y + panel.height <= 844 && closeBox.height >= 44);
-			await close.click();
-			assert.equal(await field.count(), 0);
-			assert.equal(await action.evaluate((node: Element) => document.activeElement === node), true);
+			}
 		},
 		phone,
-	);
-
-	await scenario(
-		"Scrolling a retained reference never pushes the reader to completion",
-		async (page) => {
-			await denyClipboard(page);
-			await page.evaluate(() => window.__app.openCard("motion-0", true));
-			await page.locator('#modal [data-action="agent-handoff"]').click();
-			const field = page.locator(".agent-reference-field");
-			await field.waitFor();
-			await page.locator(".reader-scroll").evaluate((node: HTMLElement) => {
-				node.scrollTop = node.scrollHeight;
-			});
-			await field.evaluate((node: HTMLTextAreaElement) => {
-				node.scrollTop = 0;
-			});
-			const box = await field.boundingBox();
-			await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-			for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 80);
-			await page.waitForTimeout(500);
-			assert.equal(
-				await page.locator("#modal").evaluate((node: HTMLDialogElement) => node.open),
-				true,
-			);
-			assert.equal(await page.locator(".push-ring.is-done").count(), 0);
-			assert.ok(await field.evaluate((node: HTMLTextAreaElement) => node.scrollTop > 0));
-		},
 	);
 
 	await scenario(

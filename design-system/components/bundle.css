@@ -595,6 +595,7 @@ body:has(#modal[open]:not(.page)) .scroll-edge {
 
 /* Selection takes the rail row; new-content and offline pills step aside. */
 #selection-bar {
+	justify-content: safe center;
 	height: var(--rail-row);
 	border-radius: var(--pill-radius);
 	display: flex;
@@ -2018,33 +2019,6 @@ dialog::backdrop {
 	padding-inline: 10px;
 	margin-left: -10px;
 }
-/* If copying is unavailable, the complete reference stays selectable in the original detail. */
-.agent-reference {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	width: 100%;
-	min-width: 0;
-}
-.agent-reference-field {
-	display: block;
-	width: 100%;
-	min-height: 88px;
-	max-height: 40dvh;
-	overflow: auto;
-	overscroll-behavior: contain;
-	font-size: 16px;
-	line-height: 1.5;
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
-	user-select: text;
-	-webkit-user-select: text;
-}
-.agent-reference .text-button {
-	align-self: flex-start;
-	min-height: var(--hit-target);
-	color: var(--accent-ink);
-}
 /* Stacked previews: the card below shows as an edge above this one. */
 .sheet-peek {
 	flex: none;
@@ -2448,35 +2422,15 @@ button.detail-row:hover {
 	justify-content: center;
 	padding: 0 20px max(12px, env(safe-area-inset-bottom));
 }
-.lightbox .preview-foot:has(+ .agent-reference) {
-	padding-bottom: 8px;
-}
-.lightbox .preview-foot .text-button,
-.lightbox .agent-reference .text-button {
+.lightbox .preview-foot .text-button {
 	min-height: var(--hit-target);
 	margin-left: 0;
 	color: #fff;
 }
-.lightbox .preview-foot .text-button:hover,
-.lightbox .agent-reference .text-button:hover {
+.lightbox .preview-foot .text-button:hover {
 	background: rgba(255, 255, 255, 0.12);
 }
-.lightbox .agent-reference {
-	flex: none;
-	align-self: center;
-	width: min(720px, calc(100% - 40px));
-	padding-bottom: max(12px, env(safe-area-inset-bottom));
-}
-.lightbox .agent-reference-field {
-	height: min(180px, 25dvh);
-	max-height: 30dvh;
-	resize: none;
-	background: rgba(255, 255, 255, 0.08);
-	border-color: rgba(255, 255, 255, 0.5);
-	color: #fff;
-}
-.lightbox .preview-foot :focus-visible,
-.lightbox .agent-reference :focus-visible {
+.lightbox .preview-foot :focus-visible {
 	outline-color: #fff;
 }
 

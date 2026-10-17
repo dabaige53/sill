@@ -53,48 +53,38 @@ export function agentPayload(card: AgentCard, scope: AgentScope) {
 
 /** One explicit click can send once. A lost message receipt never becomes an automatic retry. */
 export class AgentHandoff {
-	private pending = new Map<string, "discuss" | "copy">();
+	private pending = new Set<string>();
 	private sent = new Set<string>();
 	private unknown = new Set<string>();
-	private copied = new Set<string>();
 
-	/** Reopening a detail allows a fresh explicit discussion; uncertain deliveries stay copy-only. */
+	/** Reopening a detail allows a fresh explicit discussion; uncertain deliveries stay disabled. */
 	beginDetail(key: string) {
 		this.sent.delete(key);
 	}
 
 	state(key: string, host?: AgentHost) {
-		if (this.pending.has(key)) return this.pending.get(key) === "discuss" ? "sending" : "copying";
+		if (this.pending.has(key)) return "sending";
 		if (this.sent.has(key)) return "sent";
-		const mode = host?.canDiscuss?.() && !this.unknown.has(key) ? "discuss" : "copy";
-		return mode === "copy" && this.copied.has(key) ? "copied" : mode;
+		if (this.unknown.has(key)) return "unknown";
+		return host?.canDiscuss?.() ? "discuss" : "unavailable";
 	}
 
 	async run(
 		key: string,
 		prepare: () => Promise<AgentPayload>,
 		host: AgentHost | undefined,
-		writeClipboard: (text: string) => Promise<void>,
 		current: () => boolean,
 	) {
 		if (this.pending.has(key) || this.sent.has(key)) return;
-		const mode = host?.canDiscuss?.() && !this.unknown.has(key) ? "discuss" : "copy";
-		this.pending.set(key, mode);
+		if (this.unknown.has(key)) return;
+		if (!host?.canDiscuss?.()) return;
+		this.pending.add(key);
 		try {
 			const payload = await prepare();
 			if (!current()) throw agentFailure("account_changed", copy("web.agent.accountChanged"));
-			if (mode === "discuss") {
-				await host.discuss(payload, current);
-				this.sent.add(key);
-				return "sent";
-			}
-			try {
-				await writeClipboard(payload.text);
-			} catch {
-				throw agentFailure("clipboard_unavailable", copy("web.agent.copyFailed"));
-			}
-			this.copied.add(key);
-			return "copied";
+			await host.discuss(payload, current);
+			this.sent.add(key);
+			return "sent";
 		} catch (error) {
 			if (error.code === "message_unknown") this.unknown.add(key);
 			throw error;

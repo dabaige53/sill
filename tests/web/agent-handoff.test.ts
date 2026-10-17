@@ -97,7 +97,6 @@ test("only an explicit handoff sends once, with context followed by a self-conta
 	const ready = new Promise<void>((resolve) => {
 		release = resolve;
 	});
-	let copies = 0;
 	const run = () =>
 		handoff.run(
 			key,
@@ -106,9 +105,6 @@ test("only an explicit handoff sends once, with context followed by a self-conta
 				return payload;
 			},
 			f.actions,
-			async () => {
-				copies++;
-			},
 			() => true,
 		);
 	assert.equal(handoff.state(key, f.actions), "discuss");
@@ -126,7 +122,6 @@ test("only an explicit handoff sends once, with context followed by a self-conta
 	assert.equal(handoff.state(key, f.actions), "sent");
 	await run();
 	assert.equal(f.messages.length, 1);
-	assert.equal(copies, 0);
 	handoff.beginDetail(key);
 	assert.equal(handoff.state(key, f.actions), "discuss");
 	assert.equal(f.messages.length, 1, "reopening a card never sends by itself");
@@ -138,58 +133,47 @@ test("only an explicit handoff sends once, with context followed by a self-conta
 	);
 });
 
-test("a lost message receipt is not resent; the next explicit action can only copy the reference", async () => {
+test("a lost message receipt is not resent; later actions stay disabled", async () => {
 	const f = fixture();
 	f.flags.loseReceipt = true;
 	const handoff = new AgentHandoff();
-	const copied: string[] = [];
 	const run = () =>
 		handoff.run(
 			key,
 			async () => payload,
 			f.actions,
-			async (text) => {
-				copied.push(text);
-			},
 			() => true,
 		);
 	await assert.rejects(run(), { code: "message_unknown" });
 	assert.equal(f.messages.length, 1);
-	assert.equal(handoff.state(key, f.actions), "copy");
-	assert.equal(copied.length, 0, "failure does not silently copy or send anything else");
+	assert.equal(handoff.state(key, f.actions), "unknown");
 	handoff.beginDetail(key);
 	assert.equal(
 		handoff.state(key, f.actions),
-		"copy",
+		"unknown",
 		"reopening never retries an uncertain delivery",
 	);
-	assert.equal(await run(), "copied");
+	assert.equal(await run(), undefined);
 	assert.equal(f.messages.length, 1);
-	assert.deepEqual(copied, [payload.text]);
 });
 
-test("a definite host rejection stays recoverable and an unsupported host only offers copying", async () => {
+test("a definite host rejection stays recoverable and an unsupported host offers no handoff", async () => {
 	const f = fixture();
 	f.flags.reject = true;
 	const handoff = new AgentHandoff();
-	let copies = 0;
 	const run = () =>
 		handoff.run(
 			key,
 			async () => payload,
 			f.actions,
-			async () => {
-				copies++;
-			},
 			() => true,
 		);
 	await assert.rejects(run(), { code: "message_rejected" });
 	assert.equal(f.messages.length, 1);
 	assert.equal(handoff.state(key, f.actions), "discuss");
 	f.flags.message = false;
-	assert.equal(handoff.state(key, f.actions), "copy");
-	assert.equal(await run(), "copied");
-	assert.equal(copies, 1);
+	assert.equal(handoff.state(key, f.actions), "unavailable");
+	assert.equal(await run(), undefined);
 	assert.equal(f.messages.length, 1);
 });
 
@@ -205,7 +189,6 @@ test("changing accounts during preparation or context update prevents message de
 				return payload;
 			},
 			f.actions,
-			async () => assert.fail("must not copy another account"),
 			() => current,
 		),
 		{ code: "account_changed" },
@@ -224,35 +207,24 @@ test("changing accounts during preparation or context update prevents message de
 	assert.equal(f.messages.length, 0);
 });
 
-test("optional model context is not required for a complete message, while failed copying can be retried", async () => {
+test("optional model context is not required; standalone pages never prepare or send a handoff", async () => {
 	const f = fixture();
 	f.flags.context = false;
 	await f.actions.discuss(payload, () => true);
 	assert.equal(f.contexts.length, 0);
 	assert.equal(f.messages[0].content[0].text, payload.text);
 	const handoff = new AgentHandoff();
-	await assert.rejects(
-		handoff.run(
-			key,
-			async () => payload,
-			undefined,
-			async () => {
-				throw new Error("Clipboard denied");
-			},
-			() => true,
-		),
-		{ code: "clipboard_unavailable" },
-	);
-	assert.equal(handoff.state(key), "copy");
+	assert.equal(handoff.state(key), "unavailable");
 	assert.equal(
 		await handoff.run(
 			key,
-			async () => payload,
+			async () => {
+				assert.fail("must not read a card without a host");
+			},
 			undefined,
-			async () => {},
 			() => true,
 		),
-		"copied",
+		undefined,
 	);
 });
 

@@ -222,55 +222,16 @@ try {
 	assert.equal(hostMessages.length, 1, "reopening a detail only enables a fresh explicit handoff");
 	hostResult.message = "unknown";
 	await frame.getByRole("button", { name: "与助手讨论", exact: true }).click();
-	await frame.getByRole("button", { name: "复制给助手", exact: true }).waitFor();
-	assert.equal(hostMessages.length, 2);
-	assert.match(await frame.locator("#toast").innerText(), /发送结果尚未确认/);
-	// Clipboard denial preserves a selectable, readonly reference beside the original card.
-	await frame.evaluate(() => {
-		Object.defineProperty(navigator, "clipboard", {
-			configurable: true,
-			value: {
-				writeText: async () => {
-					throw new Error("Synthetic clipboard denial");
-				},
-			},
-		});
-		document.execCommand = () => false;
-	});
-	await frame.getByRole("button", { name: "复制给助手", exact: true }).click();
-	await frame.locator(".agent-reference-field").waitFor();
+	await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).waitFor();
 	assert.equal(
-		await frame
-			.locator(".agent-reference-field")
-			.evaluate((field: HTMLTextAreaElement) => field.readOnly),
+		await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).isDisabled(),
 		true,
 	);
-	assert.match(await frame.locator(".agent-reference-field").inputValue(), new RegExp(created.id));
-	assert.equal(
-		await frame.locator("#modal .preview-full").innerText(),
-		"Stored through the real MCP and SQL boundary",
-	);
-	assert.equal(await frame.locator("#cloud-editor").count(), 0);
-	assert.equal(hostMessages.length, 2, "an uncertain message never resends while copying");
-	await mkdir("tests/artifacts", { recursive: true });
-	await page.screenshot({
-		path: "tests/artifacts/cloud-agent-reference-desktop.png",
-		animations: "disabled",
-	});
-	await page.setViewportSize({ width: 390, height: 844 });
-	await frame.locator(".agent-reference-field").scrollIntoViewIfNeeded();
-	const referenceWidth = await frame.locator(".agent-reference-field").boundingBox();
-	assert.ok(
-		referenceWidth.x >= 0 && referenceWidth.x + referenceWidth.width <= 391,
-		"manual copy fits a phone detail",
-	);
-	await page.screenshot({
-		path: "tests/artifacts/cloud-agent-reference-mobile.png",
-		animations: "disabled",
-	});
-	await page.setViewportSize({ width: 1280, height: 900 });
-	await frame.getByRole("button", { name: "关闭引用", exact: true }).click();
+	assert.equal(hostMessages.length, 2);
+	assert.match(await frame.locator("#toast").innerText(), /发送结果尚未确认/);
 	assert.equal(await frame.locator(".agent-reference-field").count(), 0);
+	assert.equal(await frame.getByRole("button", { name: "复制给助手", exact: true }).count(), 0);
+	await mkdir("tests/artifacts", { recursive: true });
 	await frame.getByRole("button", { name: "关闭预览", exact: true }).click();
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
 	await page.screenshot({ path: "tests/artifacts/cloud-app-desktop.png", animations: "disabled" });
@@ -381,9 +342,7 @@ try {
 	const messagesBeforePhoto = hostMessages.length;
 	hostResult.message = "unknown";
 	await frame.getByRole("button", { name: "与助手讨论", exact: true }).click();
-	await frame.getByRole("button", { name: "复制给助手", exact: true }).waitFor();
-	await frame.getByRole("button", { name: "复制给助手", exact: true }).click();
-	await frame.locator(".agent-reference-field").waitFor();
+	await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).waitFor();
 	await frame.evaluate(() => {
 		(window as any).__photoRecoveryToast = document.getElementById("toast");
 	});
@@ -399,29 +358,22 @@ try {
 		true,
 		"photo navigation keeps the same live recovery notice",
 	);
-	await frame.getByRole("button", { name: "复制给助手", exact: true }).click();
-	await frame.locator(".agent-reference-field").waitFor();
-	assert.equal(await frame.locator(".agent-reference-field").isVisible(), true);
 	assert.equal(
-		await frame
-			.locator(".agent-reference-field")
-			.evaluate((field: HTMLTextAreaElement) => field.readOnly),
+		await frame.getByRole("button", { name: "请先核对当前对话", exact: true }).isDisabled(),
 		true,
 	);
-	const photoReference = await frame.locator(".agent-reference-field").inputValue();
-	assert.ok(photoReference.includes(photo.id) && photoReference.includes(A));
-	assert.equal(photoReference.includes(mail.id) || photoReference.includes(created.id), false);
+	assert.equal(await frame.locator(".agent-reference-field").count(), 0);
 	assert.equal(await frame.locator("#modal-title").innerText(), photo.title);
 	assert.equal(await frame.evaluate((id?: any) => __store.card(id)?.title, photo.id), photo.title);
 	assert.equal(await frame.locator("#toast").count(), 1);
-	assert.match(await frame.locator("#toast").innerText(), /暂时无法自动复制/);
+	assert.match(await frame.locator("#toast").innerText(), /发送结果尚未确认/);
 	assert.equal(
 		hostMessages.length,
 		messagesBeforePhoto + 1,
 		"photo recovery never resends an uncertain discussion",
 	);
 	await page.screenshot({
-		path: "tests/artifacts/cloud-photo-copy-recovery.png",
+		path: "tests/artifacts/cloud-photo-message-recovery.png",
 		animations: "disabled",
 	});
 	await frame.locator('.lightbox-top [data-action="close"]').click();

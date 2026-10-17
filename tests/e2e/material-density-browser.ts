@@ -387,11 +387,7 @@ try {
 					JSON.stringify(points),
 				);
 				assert.match(await page.locator("#modal").innerText(), /摘要范围仅限本次产品评审/);
-				assert.equal(await page.locator('#modal [data-action="agent-handoff"]').count(), 1);
-				assert.match(
-					await page.locator('#modal [data-action="agent-handoff"]').innerText(),
-					/复制给助手/,
-				);
+				assert.equal(await page.locator('#modal [data-action="agent-handoff"]').count(), 0);
 				assert.ok(
 					await page
 						.locator("#modal .sheet-scroll")
@@ -404,20 +400,6 @@ try {
 				await page.waitForFunction(() => {
 					const node = document.querySelector<HTMLElement>("#modal .sheet-scroll");
 					return node && node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
-				});
-				await page.waitForFunction(() => {
-					const button = document.querySelector<HTMLElement>(
-						'#modal [data-action="agent-handoff"]',
-					);
-					const bar = document.querySelector<HTMLElement>("#modal > .float-bar");
-					if (!button || !bar) return false;
-					const bounds = button.getBoundingClientRect();
-					return (
-						bounds.bottom <= bar.getBoundingClientRect().top - 8 &&
-						document
-							.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
-							?.closest('[data-action="agent-handoff"]') === button
-					);
 				});
 				if (width === 390) await shot(page, "phone-detail-end");
 				await page.keyboard.press("Escape");

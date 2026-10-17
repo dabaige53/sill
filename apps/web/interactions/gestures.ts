@@ -22,7 +22,7 @@ class Gestures {
 		return { x: t.clientX, y: t.clientY };
 	}
 	fromField(e?: any) {
-		return !!e.target.closest?.('input,textarea,[contenteditable="true"],.agent-reference');
+		return !!e.target.closest?.('input,textarea,[contenteditable="true"]');
 	}
 	spring(el?: any, keyframes?: any, duration: any = 260) {
 		return MotionEngine.animate(el, keyframes, { duration, easing: "cubic-bezier(.32,.72,0,1)" });
