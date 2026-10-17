@@ -72,6 +72,29 @@ struct CardStoreTests {
     #expect(deleted.cards.isEmpty)
   }
 
+  @Test func bulkDeleteRejectsStaleOrMissingCardsWithoutPartialChanges() async throws {
+    let directory = try temporary()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try CardStore(directory: directory)
+    _ = try await store.upsert(card(), expectedRevision: 0)
+    _ = try await store.toggle(id: "note", key: "bookmarked", expectedRevision: 1)
+    do {
+      _ = try await store.deleteMany(ids: ["note"], expectedRevision: 1)
+      Issue.record("Expected stale revision conflict")
+    } catch { #expect(error as? StoreError == .conflict) }
+    do {
+      _ = try await store.deleteMany(ids: ["note", "missing"], expectedRevision: 2)
+      Issue.record("Expected missing-card rejection")
+    } catch { #expect(error as? StoreError == .invalidSnapshot) }
+    let unchanged = try await store.read()
+    #expect(unchanged.cards.count == 1)
+    #expect(unchanged.items["note"]?["bookmarked"] == .bool(true))
+    let deleted = try await store.deleteMany(ids: ["note"], expectedRevision: 2)
+    #expect(deleted.revision == 3)
+    #expect(deleted.cards.isEmpty)
+    #expect(deleted.items["note"] == nil)
+  }
+
   @Test func concurrentInstancesOnlyOneExpectedRevisionWins() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -199,5 +222,129 @@ struct CardStoreTests {
     await #expect(throws: StoreError.conflict) { try await store.save(draft) }
     #expect(try store.drafts.restore()?.title == draft.title)
     #expect(try await store.read().cards.first?.title == original.title)
+  }
+  @Test func patchesAreAtomicAndPreserveUnrelatedFields() async throws {
+    let directory = try temporary()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try CardStore(directory: directory)
+    _ = try await store.upsert(card(), expectedRevision: 0)
+    let changed = try await store.patchItems(
+      [
+        "note": .object([
+          "archived": .bool(true), "note": .string("Retained"),
+          "future": .object(["enabled": .bool(true)]),
+        ])
+      ], expectedRevision: 1)
+    #expect(changed.items["note"]?["archived"] == .bool(true))
+    await #expect(throws: StoreError.invalidSnapshot) {
+      try await store.patchItems(
+        [
+          "note": .object(["note": .string("Must roll back")]),
+          "missing": .object(["read": .bool(true)]),
+        ], expectedRevision: 2)
+    }
+    await #expect(throws: StoreError.conflict) {
+      try await store.patchItems(["note": .object(["read": .bool(true)])], expectedRevision: 1)
+    }
+    let unchanged = try await store.read()
+    #expect(unchanged.revision == 2)
+    #expect(unchanged.items["note"]?["note"] == .string("Retained"))
+    #expect(unchanged.items["note"]?["future"] == .object(["enabled": .bool(true)]))
+  }
+
+  @Test func preferencesReadingAndValidation() async throws {
+    let directory = try temporary()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try CardStore(directory: directory)
+    let preferences = try await store.patchPreferences(
+      .object(["sort": .string("time"), "theme": .string("dark")]), expectedRevision: 0)
+    #expect(preferences.json["state"]?["preferences"]?["sort"] == .string("time"))
+    await #expect(throws: StoreError.invalidSnapshot) {
+      try await store.patchPreferences(
+        .object(["density": .string("invalid")]), expectedRevision: 1)
+    }
+    let reading = try await store.addReading(seconds: 60, expectedRevision: 1)
+    #expect(reading.json["state"]?["seconds"] == .number(60))
+    await #expect(throws: StoreError.conflict) {
+      try await store.addReading(seconds: 60, expectedRevision: 1)
+    }
+    await #expect(throws: StoreError.invalidSnapshot) {
+      try await store.addReading(seconds: 86401, expectedRevision: 2)
+    }
+  }
+
+  @Test func unknownWriteIsReconciledBeforeReturningAndReadingIsNotRepeated() async throws {
+    let directory = try temporary()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try CardStore(directory: directory) { phase, _ in
+      if phase == .afterRename { throw StoreError.unavailable(EIO) }
+    }
+    let result = try await store.addReading(seconds: 40, expectedRevision: 0)
+    #expect(result.revision == 1)
+    #expect(result.json["state"]?["seconds"] == .number(40))
+    #expect(try await store.read().json == result.json)
+  }
+
+  @Test func taskPatchRejectsUnknownTasksAndInvalidValues() async throws {
+    let directory = try temporary()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try CardStore(directory: directory)
+    _ = try await store.upsert(card(), expectedRevision: 0)
+    let invalidValues: [JSONValue] = [
+      .object(["taskDone": .array([.string("missing")])]),
+      .object(["archived": .string("true")]),
+      .object(["snoozedUntil": .number(-1)]),
+      .object(["tags": .array([.number(1)])]),
+    ]
+    for values in invalidValues {
+      await #expect(throws: StoreError.invalidSnapshot) {
+        try await store.patchItems(["note": values], expectedRevision: 1)
+      }
+    }
+    #expect(try await store.read().revision == 1)
+  }
+  @Test func unknownWriteRemainsUnknownWhenReadbackFails() async throws {
+    let directory = try temporary()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try CardStore(directory: directory) { phase, url in
+      if phase == .afterRename
+        || (phase == .beforeRead && FileManager.default.fileExists(atPath: url.path))
+      {
+        throw StoreError.unavailable(EIO)
+      }
+    }
+    await #expect(throws: StoreError.unknownWrite) {
+      try await store.addReading(seconds: 40, expectedRevision: 0)
+    }
+    let recovered = try CardStore(directory: directory)
+    let snapshot = try await recovered.read()
+    #expect(snapshot.revision == 1)
+    #expect(snapshot.json["state"]?["seconds"] == .number(40))
+  }
+  @Test func taskCompletionAndReminderStatesUseWebFields() async throws {
+    let directory = try temporary()
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let store = try CardStore(directory: directory)
+    let task = try Card(
+      json: .object([
+        "id": .string("tasks"), "type": .string("task"), "title": .string("Tasks"),
+        "tasks": .array([
+          .object([
+            "id": .string("step"), "text": .string("Synthetic task"), "done": .bool(false),
+          ])
+        ]),
+      ]))
+    _ = try await store.upsert(task, expectedRevision: 0)
+    let saved = try await store.patchItems(
+      [
+        "tasks": .object([
+          "taskDone": .array([.string("step")]), "reminderDone": .bool(true),
+          "dismissed": .bool(false), "snoozedUntil": .number(0),
+          "bookmarked": .bool(true), "later": .bool(true), "read": .bool(true),
+          "tags": .array([.string("Synthetic")]), "tagsEdited": .bool(true),
+        ])
+      ], expectedRevision: 1)
+    #expect(saved.items["tasks"]?["taskDone"] == .array([.string("step")]))
+    #expect(try saved.cards.first?.raw["tasks"]?.array?.first?["done"] == .bool(false))
   }
 }

@@ -36,7 +36,7 @@ import { LocalSync } from "../services/local-sync.ts";
 
 /** The lens leads; the place it names opens just after, so the move is seen before the sheet covers it. */
 const NAV_LEAD_MS = 160;
-const PAGE_FADE_MS = 180;
+
 /** On a phone these places are pages under the capsule, not sheets. */
 const PAGE_KINDS = ["search", "ai", "settings"];
 
@@ -45,12 +45,14 @@ class AppController {
 	declare mode: any;
 	declare baseMode: any;
 	declare filter: any;
+	searchActivated = false;
 	searchFilter = { type: "all", status: "all", tag: "", query: "" };
 	searchScroll = 0;
 	searchLimit = 40;
 	searchBackground?: HTMLDialogElement;
 	searchFocus?: HTMLElement;
 	aiSelectionIds: string[] = [];
+	aiDraft = "";
 	homeSelected = new Set<string>();
 	searchSelected = new Set<string>();
 	searchSelectAnchor = "";
@@ -312,7 +314,7 @@ class AppController {
 	 */
 	navHTML() {
 		const tab = (key: string, face: string, label: string, aria = label, id = "") =>
-			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span>${key === "settings" ? "" : `<span class="nav-label" aria-hidden="true">${label}</span>`}</button>`;
+			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span></button>`;
 		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("search", icon("search", 22), copy("web.nav.search"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("settings", `<span class="account-wrap">${this.accountRing()}</span>`, copy("web.nav.settings"), copy("web.nav.settings"), "account")}</nav>`;
 	}
 	/** Moves the lens. The lens travels on a spring and stretches a little on the way, like a drop. */
@@ -338,7 +340,8 @@ class AppController {
 	}
 	isPage(kind: string) {
 		return (
-			kind === "search" || (PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches)
+			["search", "ai"].includes(kind) ||
+			(PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches)
 		);
 	}
 	/**
@@ -349,7 +352,7 @@ class AppController {
 		clearTimeout(this.navOpenTimer);
 		this.navOpenTimer = 0;
 		if (key === "home") {
-			if (this.searchBackground || this.modalKind === "search") {
+			if (this.searchBackground || ["search", "ai"].includes(this.modalKind)) {
 				history.replaceState({ glass: true, prev: null }, "", "#feed");
 				this.lastRouteHash = "#feed";
 			}
@@ -360,6 +363,10 @@ class AppController {
 			return;
 		}
 		if (key === "search" && this.searchBackground) {
+			if (location.hash !== "#search") {
+				this.navigate("#search");
+				return;
+			}
 			this.closeNative();
 			return;
 		}
@@ -582,7 +589,7 @@ class AppController {
 							(n: HTMLElement) => n.dataset.extra,
 						)
 					: [];
-			temp.innerHTML = cardHTML(sharedCard, { now: this.feedNow, taskPreviewOrder });
+			temp.innerHTML = Panels.searchCard(sharedCard, this);
 			const replacement = temp.firstElementChild;
 			this.markSelectionCard(replacement as HTMLElement, this.searchSelected);
 			if (searchCard.contains(this.searchFocus))
@@ -676,7 +683,7 @@ class AppController {
 		document.getElementById("dock").classList.toggle("filter-active", this.filtering());
 	}
 	selectionAIHTML() {
-		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-wave" aria-hidden="true"><i></i><i></i><i></i></span><span data-ai-label>${copy("web.selection.aiDrop")}</span></button>`;
+		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-symbol" aria-hidden="true">${icon("chat", 24)}<span class="selection-ai-wave"><i></i><i></i><i></i></span></span></button>`;
 	}
 	openSelectionAI(ids: string[]) {
 		this.aiSelectionIds = [...new Set(ids)].filter((id) => Store.card(id));
@@ -821,6 +828,10 @@ class AppController {
 		// Back/forward emits both popstate and hashchange; handle one transition only.
 		if (!force && this.lastRouteHash === hash) return;
 		this.lastRouteHash = hash;
+		if (hash === "#ai") {
+			if (this.modalKind !== "ai") this.openPanel("ai");
+			return;
+		}
 		if (hash === "#search") {
 			if (this.searchBackground) this.closeNative();
 			else if (this.modalKind !== "search") this.openPanel("search");
@@ -843,7 +854,7 @@ class AppController {
 		}
 		const leavingSearch = !!this.searchBackground;
 		this.discardSearchBackground();
-		if (leavingSearch || ["preview", "reader", "lightbox", "search"].includes(this.modalKind))
+		if (leavingSearch || ["preview", "reader", "lightbox", "search", "ai"].includes(this.modalKind))
 			this.closeNative();
 		if (this.mode !== "feed") {
 			this.mode = "feed";
@@ -855,6 +866,7 @@ class AppController {
 	lockPageScroll() {
 		if (this.pageScrollLocked) return;
 		this.pageScrollLocked = true;
+		document.querySelector("main")?.setAttribute("inert", "");
 		this.lockedScroll = scrollY;
 		this.pageOverflow = document.documentElement.style.overflow;
 		document.documentElement.style.overflow = "hidden";
@@ -864,6 +876,7 @@ class AppController {
 	unlockPageScroll() {
 		if (!this.pageScrollLocked) return;
 		this.pageScrollLocked = false;
+		document.querySelector("main")?.removeAttribute("inert");
 		document.body.classList.remove("modal-scroll-locked");
 		document.body.style.removeProperty("--locked-scroll");
 		document.documentElement.style.overflow = this.pageOverflow;
@@ -893,23 +906,28 @@ class AppController {
 		this.modalKind = kind;
 		this.dialog.className =
 			shape || (["reader", "preview", "lightbox", "search"].includes(kind) ? kind : "panel");
-		if (page) this.dialog.classList.add("page");
+		if (page) {
+			this.dialog.classList.add("page");
+			this.railHide?.show();
+		}
 		this.dialog.innerHTML = html;
+		if (this.searchBackground) this.searchBackground.style.display = page ? "none" : "";
+		if (kind === "search") {
+			const title = this.dialog.querySelector("#modal-title");
+			if (title) { title.tabIndex = -1; title.setAttribute("autofocus", ""); }
+		}
 		if (!this.dialog.open) {
-			if (page && kind !== "search") this.dialog.show();
+			if (page) this.dialog.show();
 			else this.dialog.showModal();
 		}
-		// Pages change in place under the capsule: a short cross-fade, never a rising sheet.
-		if (page)
-			this.dialog.animate([{ opacity: 0 }, { opacity: 1 }], {
-				duration: MotionEngine.reduced ? 0 : PAGE_FADE_MS,
-				easing: "ease-out",
-			});
-		else if (kind === "search") MotionEngine.enter(this.dialog);
-		else MotionEngine.openPanel(this.dialog, origin);
+		// Keep page backgrounds opaque while the persistent navigation changes tabs.
+		if (!page) {
+			if (kind === "search") MotionEngine.enter(this.dialog);
+			else MotionEngine.openPanel(this.dialog, origin);
+		}
 		const focus = this.dialog.querySelector(
 			kind === "search"
-				? "#filter-search"
+				? "#modal-title"
 				: kind === "capture"
 					? "#capture-text"
 					: kind === "editor"
@@ -1075,8 +1093,8 @@ class AppController {
 		} else this.closeNative();
 	}
 	openPanel(kind?: any, id: any = "") {
-		if (kind === "search" && location.hash !== "#search") {
-			this.navigate("#search");
+		if (["search", "ai"].includes(kind) && location.hash !== `#${kind}`) {
+			this.navigate(`#${kind}`);
 			return;
 		}
 		if (kind === "search") this.panelReturn = null;
@@ -1139,7 +1157,14 @@ class AppController {
 		);
 	}
 	suspendSearch() {
-		clearTimeout(this.searchTimer);
+		if (this.searchTimer) {
+			clearTimeout(this.searchTimer);
+			this.searchTimer = 0;
+			const results = this.dialog.querySelector("#search-results");
+			results.innerHTML = Panels.searchResults(this);
+			this.revealImages(results);
+			this.updateSelection();
+		}
 		this.searchScroll = this.dialog.querySelector("#search-results")?.scrollTop || 0;
 		this.searchFocus = document.activeElement as HTMLElement;
 		const background = document.createElement("dialog");
@@ -1152,6 +1177,7 @@ class AppController {
 		document.body.append(background);
 		this.dialog.close();
 		background.show();
+		background.inert = true;
 		background.querySelector("#search-results").scrollTop = this.searchScroll;
 		this.searchBackground = background;
 	}
@@ -1165,12 +1191,16 @@ class AppController {
 		background.remove();
 		this.searchBackground = undefined;
 		this.modalKind = "search";
+		if (location.hash !== "#search") {
+			history.replaceState({ glass: true, prev: null }, "", "#search");
+			this.lastRouteHash = "#search";
+		}
 		this.panelReturn = null;
 		this.currentId = "";
 		this.dialog.style.removeProperty("--backdrop");
 		this.dialog.style.translate = "";
 		this.dialog.style.transform = "";
-		this.dialog.showModal();
+		this.dialog.show();
 		this.dialog.querySelector("#search-results").scrollTop = this.searchScroll;
 		this.setNav("search");
 		this.updateSelection();
@@ -1307,16 +1337,7 @@ class AppController {
 			if (!current()) return;
 			this.gestures.bindPush(id, scroll);
 		});
-		// Opening is not completion. A short piece needs an uninterrupted visible dwell.
-		let interrupted = false;
-		const hidden = () => {
-			if (document.hidden) interrupted = true;
-		};
-		document.addEventListener("visibilitychange", hidden);
-		window.setTimeout(() => {
-			document.removeEventListener("visibilitychange", hidden);
-			if (!interrupted && scroll.scrollHeight - scroll.clientHeight <= 2) update();
-		}, 1200);
+		// Short cards stay unread until an explicit read action; elapsed time is not intent.
 	}
 
 	/** The preview and reader toolbars follow the same tuck-and-return rule as the desk rail. */
@@ -2488,7 +2509,6 @@ class AppController {
 			e.stopPropagation();
 			return;
 		}
-		if (Date.now() < this.drag.suppressUntil) return;
 		const picked = e.target.closest?.("#feed-grid [data-card], #search-results [data-card]");
 		if (
 			picked &&
@@ -2718,14 +2738,17 @@ class AppController {
 				break;
 			}
 			case "filter-type":
+				this.searchActivated = true;
 				this.searchFilter.type = extra;
 				this.repaintSearch();
 				break;
 			case "filter-status":
+				this.searchActivated = true;
 				this.searchFilter.status = this.searchFilter.status === extra ? "all" : extra;
 				this.repaintSearch();
 				break;
 			case "filter-tag":
+				this.searchActivated = true;
 				this.searchFilter.tag = this.searchFilter.tag === extra ? "" : extra;
 				this.repaintSearch();
 				break;
@@ -2736,6 +2759,7 @@ class AppController {
 				break;
 			case "clear-filter":
 				if (this.modalKind === "search") {
+					this.searchActivated = false;
 					this.searchFilter = { type: "all", status: "all", tag: "", query: "" };
 					this.repaintSearch();
 				} else {
@@ -3013,6 +3037,10 @@ END:VCALENDAR
 		this.revealImages(this.dialog);
 	}
 	input(e?: any) {
+		if (e.target.id === "ai-local-draft") {
+			this.aiDraft = e.target.value;
+			return;
+		}
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "search") {
@@ -3020,9 +3048,10 @@ END:VCALENDAR
 			this.searchScroll = 0;
 			this.searchLimit = 40;
 			document.getElementById("filter-result").textContent =
-				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.panels.e9e0fdc242b4")}`;
+				`${this.searchActivated || this.searchFilter.query.trim() || this.searchFilter.type !== "all" || this.searchFilter.status !== "all" || this.searchFilter.tag ? Object.values(this.searchAll(this.searchFilter.query)).flat().length : 0}${copy("web.panels.e9e0fdc242b4")}`;
 			clearTimeout(this.searchTimer);
 			this.searchTimer = window.setTimeout(() => {
+				this.searchTimer = 0;
 				const results = document.getElementById("search-results");
 				if (results) {
 					results.innerHTML = Panels.searchResults(this);
@@ -3143,7 +3172,7 @@ END:VCALENDAR
 			this.action("photo-step", this.currentId, e.key === "ArrowLeft" ? "-1" : "1");
 			return;
 		}
-		if (e.key === "Tab" && this.dialog.open) {
+		if (e.key === "Tab" && this.dialog.open && !this.dialog.classList.contains("page")) {
 			const focusable = [
 				...this.dialog.querySelectorAll(
 					'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]',

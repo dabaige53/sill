@@ -25,8 +25,26 @@ import PackagePlugin
         return
           "    public static var \(name): String { String(localized: \(String(reflecting: key)), defaultValue: \(String(reflecting: value))) }"
       }.joined(separator: "\n")
-    try "import Foundation\n\npublic enum Copy {\n\(declarations)\n}\n".write(
+    let allCopy = copy.sorted(by: { $0.key < $1.key }).map { key, value in
+      "\(String(reflecting: key)): \(String(reflecting: value))"
+    }.joined(separator: ",\n")
+    let sharedCopy = """
+        private static let values: [String: String] = [\(allCopy)]
+        public static func text(_ key: String) -> String { values[key] ?? key }
+      """
+    try "import Foundation\n\npublic enum Copy {\n\(declarations)\n\(sharedCopy)\n}\n".write(
       to: copyOutput, atomically: true, encoding: .utf8)
+    let iconDirectory = root.appending(path: "design-system/assets/Icons")
+    let iconFiles = try FileManager.default.contentsOfDirectory(
+      at: iconDirectory, includingPropertiesForKeys: nil
+    )
+    .filter { $0.pathExtension == "svg" }.sorted { $0.path < $1.path }
+    let iconValues = try iconFiles.map { file in
+      "\(String(reflecting: file.deletingPathExtension().lastPathComponent)): \(String(reflecting: try String(contentsOf: file, encoding: .utf8)))"
+    }.joined(separator: ",\n")
+    let iconOutput = output.appending(path: "IconSVG.swift")
+    try "public enum IconSVG { public static let values: [String: String] = [\(iconValues)] }"
+      .write(to: iconOutput, atomically: true, encoding: .utf8)
     let tokensURL = root.appending(path: "design-system/tokens.json")
     let tokens = try JSONDecoder().decode(DesignTokens.self, from: Data(contentsOf: tokensURL))
     let metricsOutput = output.appending(path: "AppleMetrics.swift")
@@ -44,11 +62,32 @@ import PackagePlugin
       "orange": "Color.orange", "red": "Color.red", "black": "Color.black",
     ]
     let colors = try tokens.appleColors.sorted(by: { $0.key < $1.key }).map { key, role in
+      if role.hasPrefix("#") {
+        let pair = role.split(separator: "/").map { String($0.dropFirst()) }
+        guard pair.count == 2, let light = UInt32(pair[0], radix: 16),
+          let dark = UInt32(pair[1], radix: 16)
+        else { throw CocoaError(.coderInvalidValue) }
+        return
+          "  public static var \(key): Color { adaptive(\(light), \(dark), alpha: \(pair[0].count == 8)) }"
+      }
       guard let expression = roles[role] else { throw CocoaError(.coderInvalidValue) }
       return "  public static var \(key): Color { \(expression) }"
     }.joined(separator: "\n")
-    try "#if os(macOS)\nimport SwiftUI\n\npublic enum AppleColors {\n\(colors)\n}\n#endif\n".write(
-      to: colorsOutput, atomically: true, encoding: .utf8)
+    let adaptive = """
+        private static func adaptive(_ light: UInt32, _ dark: UInt32, alpha: Bool) -> Color {
+          Color(nsColor: NSColor(name: nil) { appearance in
+            let value = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+            let hex = alpha ? value >> 8 : value
+            return NSColor(srgbRed: Double((hex >> 16) & 255) / 255,
+              green: Double((hex >> 8) & 255) / 255, blue: Double(hex & 255) / 255,
+              alpha: alpha ? Double(value & 255) / 255 : 1)
+          })
+        }
+      """
+    try
+      "#if os(macOS)\nimport SwiftUI\n\npublic enum AppleColors {\n\(colors)\n\(adaptive)\n}\n#endif\n"
+      .write(
+        to: colorsOutput, atomically: true, encoding: .utf8)
     return [
       .buildCommand(
         displayName: "Generate Card Codable from contracts",
@@ -56,9 +95,10 @@ import PackagePlugin
         arguments: [
           "generate", input.path, "--config", config.path, "--output-directory", output.path,
         ],
-        inputFiles: [input, config, schema, copyURL, tokensURL],
+        inputFiles: [input, config, schema, copyURL, tokensURL] + iconFiles,
         outputFiles: [
           output.appending(path: "Types.swift"), embedded, copyOutput, metricsOutput, colorsOutput,
+          iconOutput,
         ])
     ]
   }

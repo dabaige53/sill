@@ -150,6 +150,7 @@ class Gestures {
 					: `0 ${pull ? Math.round((inset + shift) / 2 - 18) : -48}px`;
 			ring.style.opacity = String(feedback ? 1 : Math.min(1, pull / 18));
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
+			ring.style.setProperty("--pull-turn", `${Math.min(1.5, pull / need) * 270 - 90}deg`);
 			ring.toggleAttribute("data-ready", pull >= need);
 		};
 		const schedulePaint = () => {
@@ -177,8 +178,10 @@ class Gestures {
 			status("loading");
 			paint();
 			try {
+				const visibleLoading = MotionEngine.reduced ? Promise.resolve() : new Promise<void>((resolve) => window.setTimeout(resolve, 480));
 				const result = await this.app.refresh({ feedback: "pull" });
 				if (result === false) throw new Error("Refresh did not complete");
+				await visibleLoading;
 				status("success");
 				timer = window.setTimeout(
 					() => {
@@ -275,7 +278,7 @@ class Gestures {
 					e.deltaY >= 0 ||
 					Math.abs(e.deltaX) > Math.abs(e.deltaY)
 				) {
-					wheel.reset();
+					cancel();
 					return;
 				}
 				if (!e.cancelable) return cancel();
@@ -286,13 +289,13 @@ class Gestures {
 				pull = Math.min(need, pull + -e.deltaY * 0.5);
 				schedulePaint();
 				clearTimeout(timer);
-				if (pull >= need) {
-					wheel.reset();
-					this.swallowMomentum();
-					refresh();
-					return;
-				}
+				// Wheel input has no release event; wait for the stream to end.
 				timer = window.setTimeout(() => {
+					if (pull >= need) {
+						this.swallowMomentum();
+						refresh();
+						return;
+					}
 					pull = 0;
 					status("idle");
 					paint();
@@ -332,8 +335,8 @@ class Gestures {
 				const sheet = sheetOf(e.target);
 				if (!sheet) return;
 				const scroll = sheet.querySelector(".sheet-scroll");
-				// Content edges resist gently; dismissal belongs to the visible handle/header.
-				if (dialog.classList.contains("preview")) return;
+				// The handle has its own resize gesture; content at the top keeps pull-to-dismiss.
+				if (e.target.closest(".sheet-handle")) return;
 				if (!e.target.closest(".grabber") && scroll && scroll.scrollTop > 0) return;
 				if (this.fromField(e) || e.target.closest(".player-bar,.media-player")) return;
 				drag = {
@@ -386,6 +389,13 @@ class Gestures {
 			sheet.classList.remove("is-drag");
 			dialog.classList.remove("is-drag");
 			if (bar) bar.style.opacity = "";
+			if (MotionEngine.phoneSheet(dialog) && sheet.classList.contains("is-full") && dy > 60) {
+				sheet.classList.remove("is-full");
+				sheet.querySelector(".sheet-handle")?.setAttribute("aria-expanded", "false");
+				sheet.style.translate = "";
+				this.dim(null);
+				return;
+			}
 			if (dy > 190 || (v > 0.5 && dy > 40)) {
 				if (MotionEngine.phoneSheet(dialog)) this.app.closeModal();
 				else {
@@ -547,7 +557,6 @@ class Gestures {
 		const surface = reader ? dialog : dialog.querySelector(".preview-sheet");
 		if (!surface) return;
 		if (!reader) {
-			this.bindPreviewResistance(surface);
 			this.bindPreviewHandle(surface);
 		}
 		const scroll = reader
@@ -615,7 +624,6 @@ class Gestures {
 		// Listen on the whole dialog: as the sheet slides down it leaves the pointer behind, and the pull must keep going.
 		if (this.pullWheel) dialog.removeEventListener("wheel", this.pullWheel);
 		this.pullWheel = (e?: any) => {
-			if (!reader && e.target.closest?.(".sheet-scroll")) return;
 			if (done || app.modalToken !== token || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
 			if (this.fromField(e)) {
 				clearTimeout(timer);
@@ -629,6 +637,7 @@ class Gestures {
 				gap = now - last;
 			last = now;
 			if (d <= 0 || !atTop()) {
+				clearTimeout(timer);
 				wheel.reset();
 				if (pull && d < 0) {
 					pull = 0;
@@ -641,13 +650,6 @@ class Gestures {
 				if (gap < 160) return;
 				hold = 0;
 			}
-			if (phone && surface.classList.contains("is-full")) {
-				surface.classList.remove("is-full");
-				hold = 1;
-				pull = 0;
-				paint();
-				return;
-			}
 			if (!wheel.feed(d)) return;
 			pull = Math.min(
 				need() * 1.2,
@@ -655,13 +657,17 @@ class Gestures {
 			);
 			paint();
 			clearTimeout(timer);
-			if (pull >= need()) {
-				close();
-				return;
-			}
 			timer = window.setTimeout(
 				() => {
 					if (app.modalToken !== token) return;
+					if (phone && surface.classList.contains("is-full") && pull > 60) {
+						surface.classList.remove("is-full");
+						surface.querySelector(".sheet-handle")?.setAttribute("aria-expanded", "false");
+						hold = 1;
+					} else if (pull >= need()) {
+						close();
+						return;
+					}
 					pull = 0;
 					paint();
 					wheel.reset(false);
@@ -851,77 +857,7 @@ class Gestures {
 			snap(!surface.classList.contains("is-full"), surface.offsetHeight);
 		});
 	}
-	/** A bounded edge response never scrolls the desk, completes reading, or dismisses a preview. */
-	bindPreviewResistance(surface: HTMLElement) {
-		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
-		if (!scroll) return;
-		const token = this.app.modalToken;
-		let touch: { x: number; y: number } | null = null;
-		let distance = 0,
-			timer = 0;
-		const current = () => token === this.app.modalToken && surface.isConnected;
-		const edge = (delta: number) =>
-			delta > 0
-				? scroll.scrollTop <= 0
-				: scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
-		const paint = (delta: number) => {
-			if (!current()) return;
-			const offset = Math.sign(delta) * 14 * (1 - Math.exp(-Math.abs(delta) / 100));
-			scroll.style.translate = MotionEngine.reduced ? "" : `0 ${offset.toFixed(2)}px`;
-		};
-		const reset = () => {
-			clearTimeout(timer);
-			touch = null;
-			distance = 0;
-			scroll.classList.remove("is-drag");
-			if (current()) scroll.style.translate = "";
-		};
-		scroll.addEventListener(
-			"wheel",
-			(event: WheelEvent) => {
-				if (!current() || this.fromField(event) || Math.abs(event.deltaX) > Math.abs(event.deltaY))
-					return;
-				const delta = -event.deltaY * (event.deltaMode === 1 ? 16 : 1);
-				if (!delta || !edge(delta)) return reset();
-				if (event.cancelable) event.preventDefault();
-				distance = Math.sign(distance) === Math.sign(delta) ? distance + delta : delta;
-				paint(distance);
-				clearTimeout(timer);
-				timer = window.setTimeout(reset, 120);
-			},
-			{ passive: false },
-		);
-		scroll.addEventListener(
-			"touchstart",
-			(event: TouchEvent) => {
-				reset();
-				if (event.touches.length === 1 && !this.fromField(event)) touch = this.point(event);
-			},
-			{ passive: true },
-		);
-		scroll.addEventListener(
-			"touchmove",
-			(event: TouchEvent) => {
-				if (!touch || !current()) return;
-				if (event.touches.length !== 1) return reset();
-				const point = this.point(event),
-					delta = point.y - touch.y;
-				if (Math.abs(point.x - touch.x) > Math.abs(delta)) return reset();
-				if (!edge(delta)) {
-					touch = point;
-					return;
-				}
-				if (event.cancelable) event.preventDefault();
-				scroll.classList.add("is-drag");
-				paint(delta);
-			},
-			{ passive: false },
-		);
-		scroll.addEventListener("touchend", reset, { passive: true });
-		scroll.addEventListener("touchcancel", reset, { passive: true });
-	}
 	bindPush(id?: any, scroll?: any) {
-		if (this.app.modalKind === "preview") return;
 		const app = this.app,
 			dialog = app.dialog;
 		if (!dialog.querySelector("#reader-end") || !Store.pref("collapseOnFinish")) return;

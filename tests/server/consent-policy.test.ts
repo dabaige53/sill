@@ -114,3 +114,14 @@ test("full Sill access requires explicit matching policy and names every permiss
 	assert.match(consentSummary(r), /提交事件/);
 	assert.match(consentSummary(r), /读取事件/);
 });
+
+test("scoped write review cannot imply creation or unrequested identity access", () => {
+	const a = input();
+	a.policy.contentScopes.push("content:write");
+	a.grant.scopes.push("content:write");
+	const html = consentSummary(reviewConsent(a));
+	assert.match(html, /修改所选卡片/);
+	assert.doesNotMatch(html, /创建与修改卡片|读取邮箱|删除卡片/);
+	assert.match(html, /<details><summary>查看详情/);
+	assert.ok(html.indexOf("访问权限") < html.indexOf("客户端 ID"));
+});

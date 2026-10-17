@@ -164,9 +164,6 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	:root {
 		--nav-tab: 60px;
 	}
-	.nav-label {
-		display: none;
-	}
 	.nav-icon {
 		height: 30px;
 	}
@@ -259,8 +256,8 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	#modal.preview #modal-title {
 		padding-right: 52px;
 	}
-	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title {
-		padding-right: 104px;
+	#modal.preview .sheet-head [data-action="reader"] {
+		display: none;
 	}
 	.sheet-head {
 		height: 60px;
@@ -451,8 +448,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		width: 100%;
 	}
 	#modal.page.panel .ai-conversation {
-		padding: calc(16px + env(safe-area-inset-top)) 16px
-			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+		padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
 	}
 	:is(#modal, #search-background).page.search {
 		height: auto;
@@ -462,8 +458,8 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	}
 	.search-chips {
 		justify-content: flex-start;
-		flex-wrap: nowrap;
-		overflow-x: auto;
+		flex-wrap: wrap;
+		overflow-x: hidden;
 		padding-bottom: 4px;
 	}
 	.lightbox-stage > .icon-button {
@@ -583,7 +579,40 @@ body.reduce-motion .nav-tab:active .nav-icon {
 	scale: none;
 }
 
-/* The local AI window can return to the search that supplied its context. */
-#modal.page .ai-conversation .sheet-close {
-	display: block;
+/* Navigation destinations fill the viewport beneath the persistent capsule. */
+#modal.page.panel:has(.ai-conversation) {
+	position: fixed;
+	inset: 0 0 var(--kb, 0px);
+	z-index: 40;
+	width: 100%;
+	max-width: none;
+	height: auto;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	background: var(--canvas);
+}
+#modal.page.panel .ai-conversation {
+	height: 100%;
+	max-height: none;
+	border-radius: 0;
+	box-shadow: none;
+	background: var(--canvas);
+	padding: calc(16px + env(safe-area-inset-top)) max(var(--rail-edge), calc((100vw - 680px) / 2))
+		calc(var(--rail-bottom) + var(--rail-row) + 24px);
+}
+#modal.page .ai-conversation :is(.grabber, .sheet-close),
+#modal.page.search .search-header > .icon-button {
+	display: none;
+}
+:is(#modal, #search-background).page.search {
+	padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + 24px);
+}
+body.keyboard-open #modal.page.panel .ai-conversation,
+body.keyboard-open :is(#modal, #search-background).page.search {
+	padding-bottom: 16px;
+}
+
+body:has(#modal[open].page) #dock .nav-capsule {
+	display: flex;
 }

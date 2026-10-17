@@ -670,7 +670,7 @@ async function recordLayout(page?: any, width?: any) {
 				await page.mouse.down();
 				await page.waitForTimeout(440);
 				await page.mouse.move(x + 20, y + 10, { steps: 4 });
-				assert.equal(await page.locator(".selection-lift .selection-stack").isVisible(), false);
+				assert.equal(await page.locator(".selection-lift .selection-stack").isVisible(), true);
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 1);
 				assert.equal(await page.locator("#drop-targets,[data-drop]").count(), 0);
 				await page.mouse.up();
@@ -690,10 +690,7 @@ async function recordLayout(page?: any, width?: any) {
 				);
 				assert.doesNotMatch(await card(page, relation).locator(".card-head").innerText(), /张卡/);
 				await page.waitForFunction(
-					() =>
-						Date.now() >= window.__app.drag.suppressUntil &&
-						window.__app.selected.size === 0 &&
-						!window.__app.drag.active,
+					() => window.__app.selected.size === 0 && !window.__app.drag.active,
 				);
 				await openCard(page, relation);
 				await page.waitForFunction(
@@ -953,10 +950,13 @@ async function recordLayout(page?: any, width?: any) {
 				await page.mouse.down();
 				await page.waitForFunction(() => !!window.__app.drag.active);
 				await page.mouse.move(x + 30, y + 30, { steps: 3 });
-				assert.equal(await page.locator(".selection-drag-count").isVisible(), true);
+				assert.equal(
+					await page.locator(".selection-lift .selection-stack-face > .feed-card").isVisible(),
+					true,
+				);
 				await page.keyboard.press("Escape");
 				await page.mouse.up();
-				assert.equal(await page.locator(".selection-drag-count").count(), 0);
+				assert.equal(await page.locator(".selection-lift").count(), 0);
 				assert.equal((await state(page, "article-01"))?.seen || false, false);
 				assert.equal(await page.locator('[data-card="article-01"]').count(), 1);
 			},

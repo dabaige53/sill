@@ -1185,6 +1185,16 @@ kbd {
 	justify-content: center;
 	gap: 8px;
 }
+.search-filter-group {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ width: 100%;
+}
+.search-chips {
+ max-height: 45dvh;
+ overflow-y: auto;
+}
 .search-chips .divider {
 	width: 1px;
 	height: 20px;
@@ -1695,6 +1705,9 @@ body.is-pulling .pull-ring {
 	stroke-dasharray: 100;
 	stroke-dashoffset: 100;
 }
+.pull-ring[data-state="pulling"] .pull-progress {
+	transform: rotate(var(--pull-turn, -90deg));
+}
 .pull-ring.is-spinning .pull-progress {
 	animation: orb-arc 0.8s linear infinite;
 }
@@ -1924,9 +1937,6 @@ body.is-pulling .pull-ring {
 	margin: 0;
 	font-size: var(--text-title, 20px);
 }
-.ai-conversation > p {
-	margin: 0;
-}
 .ai-context {
 	flex: 1;
 	min-height: 0;
@@ -1953,9 +1963,6 @@ body.is-pulling .pull-ring {
 	color: var(--muted);
 	overflow-wrap: anywhere;
 }
-.ai-context-empty {
-	margin: auto 0;
-}
 .ai-composer {
 	display: flex;
 	align-items: flex-end;
@@ -1975,18 +1982,16 @@ body.is-pulling .pull-ring {
 	color: var(--ink);
 	font: inherit;
 }
-.soon-badge {
-	padding: 3px 10px;
-	border-radius: var(--pill-radius);
-	background: var(--glass-press);
-	color: var(--secondary);
-	font-size: var(--text-meta);
-	font-weight: 600;
-}
 /* Settings › Add: the capture field inside a settings card. */
 .settings-add {
 	padding: 4px 16px 12px;
 }
 .settings-add .panel-footer {
 	margin-top: 4px;
+}
+
+.search-match {
+	margin: 12px 0 0;
+	font-size: var(--text-body);
+	color: var(--muted);
 }

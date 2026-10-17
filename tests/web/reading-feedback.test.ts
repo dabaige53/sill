@@ -104,7 +104,7 @@ test("initially short preview still tracks scrolling after content grows", () =>
 		f.dom.window.close();
 	}
 });
-test("short content needs dwell, and closing or switching cancels completion", async () => {
+test("short content stays unread after dwell, closing and reopening", async () => {
 	const f = fixture();
 	try {
 		f.height(600);
@@ -115,12 +115,12 @@ test("short content needs dwell, and closing or switching cancels completion", a
 		assert.equal(f.Store.item("read-test").read, false);
 		f.app.bindPreview("read-test");
 		await new Promise((r) => setTimeout(r, 1300));
-		assert.equal(f.Store.item("read-test").read, true);
+		assert.equal(f.Store.item("read-test").read, false);
 	} finally {
 		f.dom.window.close();
 	}
 });
-test("hidden short content does not count as visible dwell", async () => {
+test("hidden short content stays unread when the page becomes visible", async () => {
 	const f = fixture();
 	try {
 		f.height(600);

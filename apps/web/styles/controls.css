@@ -117,8 +117,6 @@
 		opacity var(--rail-tuck) var(--ease),
 		visibility 0s var(--rail-tuck);
 }
-body:has(#modal[open].search) #dock,
-body:has(#modal[open].search) .scroll-edge,
 body:has(#modal[open]:not(.page)) #dock,
 body:has(#modal[open]:not(.page)) .scroll-edge {
 	opacity: 0;
@@ -130,7 +128,6 @@ body:has(#modal[open]:not(.page)) .scroll-edge {
 }
 /* Descendants opt into hit testing normally, so suppress them throughout the fade. */
 #dock.is-tucked *,
-body:has(#modal[open].search) #dock *,
 body:has(#modal[open]:not(.page)) #dock * {
 	pointer-events: none;
 }
@@ -174,12 +171,6 @@ body:has(#modal[open]:not(.page)) #dock * {
 .nav-tab:active .nav-icon {
 	scale: 0.88;
 }
-.nav-label {
-	font-size: 10.5px;
-	line-height: 1;
-	font-weight: 600;
-	letter-spacing: 0.01em;
-}
 /* The lens: a clear drop of glass over the current place. It moves on a spring and, while
    moving, stretches along the way and flattens a little, then settles round again. */
 .nav-lens {
@@ -207,10 +198,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	}
 	35% {
 		scale: 1.16 0.9;
-		background: var(
-			--lens-highlight,
-			color-mix(in srgb, var(--glass-edge) 40%, var(--glass-press))
-		);
+
 	}
 	100% {
 		scale: 1;
@@ -630,32 +618,56 @@ body.is-dragging #toast {
 	margin: 0 auto max(var(--rail-edge), env(safe-area-inset-bottom));
 }
 
-/* Local AI receiver shares the active selection rail, never a side drop palette. */
+/* Dragging morphs the existing rail into a wordless AI receiver. */
 .selection-ai-target {
 	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: calc(100% + var(--rail-gap));
-	min-height: 48px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	padding: 10px 14px;
-	border: 1px solid var(--line-hover);
+	inset: 0;
+	display: grid;
+	place-items: center;
+	border: 1px solid transparent;
 	border-radius: var(--pill-radius);
 	color: var(--ink);
-	font-size: var(--text-meta);
-	white-space: nowrap;
+	background: var(--card);
+	opacity: 0;
+	pointer-events: none;
+	transform: scale(0.94);
 	transition:
-		border-color var(--fast) var(--ease),
+		opacity var(--fast) var(--ease),
+		transform var(--base) var(--ease),
 		background-color var(--fast) var(--ease),
+		color var(--fast) var(--ease),
 		box-shadow var(--fast) var(--ease);
 }
+:is(#selection-bar, #search-selection-bar) > :not(.selection-ai-target) {
+	transition: opacity var(--fast) var(--ease);
+}
+:is(#selection-bar, #search-selection-bar):is(
+		.is-ai-drop,
+		:has(> .selection-ai-target:focus-visible)
+	)
+	> :not(.selection-ai-target) {
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+.is-ai-drop > .selection-ai-target,
+.selection-ai-target:focus-visible {
+	opacity: 1;
+	transform: scale(1);
+	pointer-events: auto;
+}
 .selection-ai-target.is-ready {
-	border-color: var(--accent);
-	box-shadow: 0 0 0 2px var(--accent);
-	background: var(--card);
+	color: var(--accent);
+	box-shadow: inset 0 0 0 2px var(--accent);
+}
+.selection-ai-symbol {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	transition: transform var(--fast) var(--ease);
+}
+.selection-ai-target.is-ready .selection-ai-symbol {
+	transform: scale(1.12);
 }
 .selection-ai-wave {
 	display: flex;
@@ -667,25 +679,47 @@ body.is-dragging #toast {
 	width: 3px;
 	height: 10px;
 	background: currentColor;
-	border-radius: 3px;
+	border-radius: var(--pill-radius);
 }
 .selection-ai-wave i:nth-child(2) {
 	height: 18px;
 }
-.selection-drag-count {
-	position: fixed;
-	left: 0;
-	top: 0;
-	z-index: 100;
-	min-width: 36px;
-	height: 36px;
-	display: grid;
-	place-items: center;
-	border-radius: var(--pill-radius);
-	pointer-events: none;
-	font-variant-numeric: tabular-nums;
-	will-change: transform;
+.is-ai-drop .selection-ai-wave i {
+	animation: ai-receive var(--base) var(--ease) both;
 }
-#search-selection-bar {
-	margin-top: 60px;
+.is-ai-drop .selection-ai-wave i:nth-child(2) {
+	animation-delay: 45ms;
+}
+.is-ai-drop .selection-ai-wave i:nth-child(3) {
+	animation-delay: 90ms;
+}
+@keyframes ai-receive {
+	from {
+		transform: scaleY(0.3);
+		opacity: 0.3;
+	}
+	to {
+		transform: scaleY(1);
+		opacity: 1;
+	}
+}
+body.reduce-motion .selection-ai-target,
+body.reduce-motion .selection-ai-symbol {
+	transform: none;
+}
+body.reduce-motion .selection-ai-wave i {
+	animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+	.selection-ai-target,
+	.selection-ai-symbol {
+		transform: none !important;
+	}
+	.selection-ai-wave i {
+		animation: none !important;
+	}
+}
+
+body:has(#modal[open].page) #selection-bar {
+	display: none;
 }

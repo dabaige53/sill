@@ -223,6 +223,43 @@ test("selection: quick touch movement stays a scroll; stationary hold only selec
 	}
 });
 
+test("selection: hold suppresses only its compatibility click; the next press can select immediately", () => {
+	const f = fixture();
+	try {
+		f.document.addEventListener("click", (event) => f.app.click(event));
+		const before = f.state();
+		f.start();
+		f.hold();
+		f.fire("touchend", f.source(), {
+			touches: [],
+			changedTouches: [{ clientX: 120, clientY: 200 }],
+		});
+		assert.equal(f.fire("click", f.source()).defaultPrevented, true);
+		assert.deepEqual(f.selected(), ["one"]);
+		const second = f.app.grid.querySelector('[data-card="two"] p');
+		f.fire("touchstart", second, { touches: [{ clientX: 120, clientY: 300 }] });
+		f.fire("touchend", second, {
+			touches: [],
+			changedTouches: [{ clientX: 120, clientY: 300 }],
+		});
+		assert.equal(f.fire("click", second).defaultPrevented, true);
+		assert.deepEqual(f.selected(), ["one", "two"]);
+		// A deliberate second press on the original card may also toggle it immediately.
+		f.fire("pointerdown", f.source(), {
+			pointerType: "mouse",
+			button: 0,
+			clientX: 120,
+			clientY: 200,
+		});
+		f.fire("pointerup", f.source(), { pointerType: "mouse", clientX: 120, clientY: 200 });
+		f.fire("click", f.source());
+		assert.deepEqual(f.selected(), ["two"]);
+		assert.equal(f.state(), before);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("selection: moving or repeating a hold preserves selection without opening a menu", () => {
 	const f = fixture();
 	try {
@@ -577,7 +614,6 @@ test("selection: search reuses gestures and toolbar with its own selected set", 
 			f.document.getElementById("selection-bar").querySelector(".selection-count").textContent,
 			"1",
 		);
-		f.app.drag.suppressUntil = 0;
 		const third = results.querySelector('[data-card="three"] p');
 		f.app.click({ target: third, preventDefault() {}, stopPropagation() {} });
 		assert.deepEqual(Array.from(f.app.searchSelected), ["two", "three"]);
@@ -632,12 +668,16 @@ test("selection: dragging into AI receiver opens a local context window without 
 			f.hold();
 			f.fire("touchmove", source, { touches: [{ clientX: 180, clientY: 720 }] });
 			assert.equal(receiver.classList.contains("is-ready"), true);
-			assert.equal(f.document.querySelector(".selection-drag-count").textContent, "2");
+			assert.equal(
+				f.document.querySelector(".selection-lift .selection-stack-count").textContent,
+				"2",
+			);
+			assert.equal(f.document.querySelectorAll(".selection-lift .feed-card").length, 2);
 			f.fire("touchend", source, { touches: [], changedTouches: [{ clientX: 180, clientY: 720 }] });
 			assert.deepEqual(Array.from(f.app.aiSelectionIds), ["one", "two"]);
 			assert.equal(f.app.openedPanel.kind, "ai");
 			assert.equal(receiver.classList.contains("is-ready"), false);
-			assert.equal(f.document.querySelector(".selection-drag-count"), null);
+			assert.equal(f.document.querySelector(".selection-lift"), null);
 			assert.equal(f.state(), before);
 			if (search) assert.deepEqual(Array.from(f.app.homeSelected), ["three"]);
 		} finally {
@@ -660,7 +700,7 @@ test("selection: outside release and touch cancellation never open AI; keyboard 
 			if (cancel) f.fire("touchcancel");
 			else f.release();
 			assert.equal(f.app.openedPanel, undefined);
-			assert.equal(f.document.querySelector(".selection-drag-count"), null);
+			assert.equal(f.document.querySelector(".selection-lift"), null);
 			assert.equal(f.state(), before);
 			f.app.action("selected-ai");
 			assert.equal(f.app.openedPanel.kind, "ai");

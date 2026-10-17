@@ -65,7 +65,7 @@ test("preview and reader keep tags under title and labelled dates outside the so
 		assert.equal(doc.querySelector(".preview-meta")?.textContent, "Readwise");
 		assert.equal(doc.querySelector("h1")?.nextElementSibling?.className, "preview-tags");
 		assert.equal(doc.querySelectorAll(".preview-tags").length, 1);
-		assert.match(doc.querySelector(".preview-details")!.textContent!, /发布时间未提供/);
+		assert.doesNotMatch(doc.querySelector(".preview-details")!.textContent!, /发布时间|未提供/);
 		assert.match(doc.querySelector(".preview-details")!.textContent!, /写入 Sill/);
 		assert.match(doc.querySelector(".preview-source-note")!.textContent!, /2026-10-13 保存/);
 		assert.equal(doc.querySelectorAll("time").length, 1);

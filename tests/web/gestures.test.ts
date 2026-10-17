@@ -66,6 +66,7 @@ function fixture({ kind = "preview", reduced = false, phone = false, end = false
 	});
 	const app = {
 		dialog,
+		modalKind: kind,
 		modalToken: 1,
 		toastSeq: 1,
 		toastTimer: 0,
@@ -374,6 +375,9 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 		f.document.querySelector("#pull-ring").click();
 		await settle();
 		assert.equal(f.app.refreshes, 2);
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "loading");
+		f.flush();
+		await settle();
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
 		f.flush();
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
@@ -425,4 +429,53 @@ test("short pull cancels, light threshold commits once on release, and long trav
 	} finally {
 		f.dom.window.close();
 	}
+});
+
+test("preview body wheel gestures retain pull-dismiss and push-finish", () => {
+	for (const end of [false, true]) {
+		const f = fixture({ kind: "preview", end });
+		try {
+			f.gestures.bindPullDown();
+			for (let i = 0; i < 16; i++) {
+				f.scroll.dispatchEvent(
+					new f.w.WheelEvent("wheel", { bubbles: true, deltaY: end ? 40 : -40 }),
+				);
+			}
+			if (!end) assert.equal(f.app.closed, 0, "pulling must not close before release");
+			f.flush();
+			f.flush();
+			assert.equal(f.app.closed, 1);
+			assert.equal(f.Store.item("article").read, end);
+			assert.ok(f.Store.card("article"));
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("wheel refresh waits for release and reversing cancels an armed pull", () => {
+ const f = fixture({ kind: "desk" });
+ try {
+ const wheel = (dy: number) => f.w.dispatchEvent(new f.w.WheelEvent("wheel", {deltaY:dy,cancelable:true}));
+ for(let i=0;i<8;i++) wheel(-40);
+ assert.equal(f.app.refreshes,0);
+ wheel(20); f.flush();
+ assert.equal(f.app.refreshes,0);
+ for(let i=0;i<8;i++) wheel(-40);
+ assert.equal(f.app.refreshes,0);
+ f.flush();
+ assert.equal(f.app.refreshes,1);
+ } finally {f.dom.window.close();}
+});
+
+test("reversing a wheel pull cancels closing after reaching threshold", () => {
+ const f = fixture({kind:"preview"});
+ try {
+ f.gestures.bindPullDown();
+ for(let i=0;i<16;i++) f.scroll.dispatchEvent(new f.w.WheelEvent("wheel",{bubbles:true,deltaY:-40}));
+ assert.equal(f.app.closed,0);
+ f.scroll.dispatchEvent(new f.w.WheelEvent("wheel",{bubbles:true,deltaY:20}));
+ f.flush(); f.flush();
+ assert.equal(f.app.closed,0);
+ } finally {f.dom.window.close();}
 });

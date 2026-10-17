@@ -18,7 +18,7 @@ const bundle = buildSync({
 	platform: "browser",
 	globalName: "SearchTest",
 }).outputFiles[0].text;
-function fixture() {
+function fixture(activated = true) {
 	const dom = new JSDOM('<!doctype html><div id="feed-grid"></div><dialog id="modal"></dialog>', {
 		url: "https://search.test/#search",
 		runScripts: "outside-only",
@@ -54,6 +54,7 @@ function fixture() {
 	};
 	Store.save = () => {};
 	const app = new AppController();
+	app.searchActivated = activated;
 	app.grid = w.document.getElementById("feed-grid");
 	app.dialog = w.document.getElementById("modal");
 	app.dialog.className = "search page";
@@ -274,4 +275,78 @@ test("shared card refresh keeps each surface's independent selection decoration"
 	} finally {
 		f.dom.window.close();
 	}
+});
+
+test("AI draft survives page recreation without becoming sent content", () => {
+	const f = fixture();
+	try {
+		f.app.input({ target: { id: "ai-local-draft", value: "<unfinished>" } });
+		const page = f.w.document.createElement("div");
+		page.innerHTML = f.Panels.ai(f.app);
+		assert.equal(page.querySelector("textarea").value, "<unfinished>");
+		assert.equal(page.querySelector(".ai-composer button").disabled, true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+test("switching away flushes pending search before retaining results", () => {
+	const f = fixture();
+	try {
+		f.app.searchFilter.query = "Alpha";
+		f.app.searchTimer = f.w.setTimeout(() => {}, 1000);
+		f.app.suspendSearch();
+		assert.equal(f.app.searchBackground.querySelectorAll("[data-card]").length, 2);
+		assert.equal(f.app.searchTimer, 0);
+		f.app.restoreSearch();
+		assert.equal(f.app.dialog.querySelectorAll("[data-card]").length, 2);
+	} finally {
+		f.dom.window.close();
+	}
+});
+test("search preserves escaped title highlights and matching body context", () => {
+	const f = fixture();
+	try {
+		f.app.searchFilter.query = "needle";
+		const c = {
+			id: "match",
+			type: "article",
+			title: "needle <script>",
+			body: ["x".repeat(200) + "needle body"],
+			time: Date.now(),
+		};
+		const node = f.w.document.createElement("div");
+		node.innerHTML = f.Panels.searchCard(c, f.app);
+		assert.equal(node.querySelector("script"), null);
+		assert.equal(node.querySelector(".card-title-button mark").textContent, "needle");
+		assert.equal(node.querySelector(".search-match mark").textContent, "needle");
+	} finally {
+		f.dom.window.close();
+	}
+});
+test("AI route opens its page directly", () => {
+	const f = fixture();
+	try {
+		f.w.history.replaceState({}, "", "#ai");
+		let opened = "";
+		f.app.openPanel = (kind) => {
+			opened = kind;
+		};
+		f.app.route(true);
+		assert.equal(opened, "ai");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("initial search shows filters without cards until a query or filter is chosen", () => {
+ const f = fixture(false);
+ try {
+ assert.equal(f.app.dialog.querySelectorAll("#search-results [data-card]").length,0);
+ assert.equal(f.app.dialog.querySelectorAll(".search-filter-group").length,3);
+ f.app.searchFilter.type = "task";
+ assert.match(f.Panels.searchResults(f.app), /data-card="b"/);
+ f.app.searchFilter.type = "all";
+ f.app.searchActivated = true;
+ assert.match(f.Panels.searchResults(f.app), /data-card="a"/);
+ } finally {f.dom.window.close();}
 });

@@ -8,6 +8,7 @@ import {
 	esc,
 	eventRelative,
 	eventTimely,
+	highlight,
 	pill,
 	relativeDay,
 	segmented,
@@ -39,14 +40,14 @@ const Panels: Record<string, any> = {
 	},
 	details(c?: any) {
 		const dates = cardDates(c);
-		const row = (label: string, date: ReturnType<typeof cardDates>["created"], required = false) =>
-			date || required
-				? `<div class="preview-detail-row"><dt>${esc(label)}</dt><dd>${date ? `<time datetime="${esc(date.datetime)}">${esc(date.text)}</time>` : esc(copy("web.metadata.unknown"))}</dd></div>`
+		const row = (label: string, date: ReturnType<typeof cardDates>["created"]) =>
+			date
+				? `<div class="preview-detail-row"><dt>${esc(label)}</dt><dd><time datetime="${esc(date.datetime)}">${esc(date.text)}</time></dd></div>`
 				: "";
 		const rows = [
-			row(copy("web.metadata.published"), dates.published, c.type === "article"),
+			row(copy("web.metadata.published"), dates.published),
 			row(copy("web.metadata.saved"), dates.saved),
-			row(copy("web.metadata.created"), dates.created, c.type === "article"),
+			row(copy("web.metadata.created"), dates.created),
 			row(
 				copy("web.metadata.updated"),
 				dates.updated && dates.updated.datetime !== dates.created?.datetime ? dates.updated : null,
@@ -356,11 +357,13 @@ const Panels: Record<string, any> = {
 			["saved", copy("web.bookmark")],
 			["later", copy("web.later")],
 		];
-		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-header"><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${Object.values(app.searchAll(f.query)).flat().length}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>${button("x", copy("web.close"), "close")}</div>
-   <div class="search-chips" role="group" aria-label="${copy("web.panels.b5f15473fdc0")}">${types.map(([k, v, ic]: any) => `<button type="button" class="chip ${f.type === k ? "active" : ""}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type === k}">${v}</button>`).join("")}${status.map(([k, v]: any) => `<button type="button" class="chip ${f.status === k ? "active" : ""}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status === k}">${v}</button>`).join("")}${tags.map((t?: any) => `<button type="button" class="chip ${f.tag === t ? "active" : ""}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag === t}">#${esc(t)}</button>`).join("")}</div>
+		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-header"><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.searchActivated || f.query.trim() || f.type !== "all" || f.status !== "all" || f.tag ? Object.values(app.searchAll(f.query)).flat().length : 0}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>${button("x", copy("web.close"), "close")}</div>
+   <div class="search-chips" role="group" aria-label="${copy("web.panels.b5f15473fdc0")}"><div class="search-filter-group">${types.map(([k, v, ic]: any) => `<button type="button" class="chip ${f.type === k ? "active" : ""}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type === k}">${v}</button>`).join("")}</div><div class="search-filter-group">${status.map(([k, v]: any) => `<button type="button" class="chip ${f.status === k ? "active" : ""}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status === k}">${v}</button>`).join("")}</div><div class="search-filter-group">${tags.map((t?: any) => `<button type="button" class="chip ${f.tag === t ? "active" : ""}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag === t}">#${esc(t)}</button>`).join("")}</div></div>
    <div class="search-results" id="search-results">${this.searchResults(app)}</div>`;
 	},
 	searchResults(app?: any) {
+		const f = app.searchFilter;
+		if (!app.searchActivated && !f.query.trim() && f.type === "all" && f.status === "all" && !f.tag) return "";
 		const q = app.searchFilter.query.trim(),
 			hits = app.searchAll(q);
 		if (!hits.desk.length && !hits.shelved.length)
@@ -368,8 +371,32 @@ const Panels: Record<string, any> = {
 		const desk = hits.desk.slice(0, app.searchLimit || 40),
 			shelved = hits.shelved.slice(0, Math.max(0, (app.searchLimit || 40) - desk.length));
 		const cards = (list: any[]) =>
-			`<div class="search-card-grid">${list.map((c) => cardHTML(c, { now: app.feedNow })).join("")}</div>`;
+			`<div class="search-card-grid">${list.map((c) => this.searchCard(c, app)).join("")}</div>`;
 		return `${desk.length ? cards(desk) : ""}${shelved.length ? `<div class="group-label">${copy("web.search.shelvedGroup")}</div>${cards(shelved)}` : ""}`;
+	},
+	searchCard(c: any, app: any) {
+		const html = cardHTML(c, { now: app.feedNow });
+		const q = app.searchFilter.query.trim();
+		if (!q) return html;
+		const template = document.createElement("template");
+		template.innerHTML = html;
+		const title = template.content.querySelector(".card-title-button");
+		if (title) title.innerHTML = highlight(c.title, q);
+		const text = [c.summary, Store.item(c.id).note, ...(c.body || [])].find(
+			(t) => t && t.toLocaleLowerCase().includes(q.toLocaleLowerCase()),
+		);
+		if (text) {
+			const at = text.toLocaleLowerCase().indexOf(q.toLocaleLowerCase());
+			const start = Math.max(0, at - 24);
+			const snippet = document.createElement("p");
+			snippet.className = "search-match";
+			snippet.innerHTML = highlight(
+				(start ? "…" : "") + text.slice(start, Math.max(start + 100, at + q.length)),
+				q,
+			);
+			template.content.querySelector("article")?.append(snippet);
+		}
+		return template.innerHTML;
 	},
 	/* Archives: grouped by week, one row per card; “放回桌面” appears on hover. */
 	archive(app?: any, which?: any) {
@@ -488,7 +515,7 @@ const Panels: Record<string, any> = {
 				return `<article class="ai-context-card" data-ai-context="${esc(card.id)}"><h3>${esc(card.title)}</h3>${excerpt ? `<p>${esc(excerpt)}</p>` : ""}</article>`;
 			})
 			.join("");
-		return `<div class="sheet ai-conversation"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<header class="ai-conversation-head">${icon("chat", 24)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span></header><p id="ai-availability" class="muted">${copy("web.ai.localOnly")}</p><section class="ai-context" aria-label="${copy("web.ai.context")}">${context || `<p class="muted ai-context-empty">${copy("web.ai.emptyContext")}</p>`}</section><div class="ai-composer"><textarea id="ai-local-draft" aria-label="${copy("web.ai.composer")}" aria-describedby="ai-availability" placeholder="${copy("web.ai.placeholder")}" maxlength="4000" rows="3"></textarea><button type="button" class="icon-button" disabled aria-label="${copy("web.ai.sendUnavailable")}">${icon("send", 20)}</button></div></div>`;
+		return `<div class="sheet ai-conversation"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<header class="ai-conversation-head"><h1 id="modal-title">${copy("web.ai.title")}</h1></header><section class="ai-context" aria-label="${copy("web.ai.context")}">${context}</section><div class="ai-composer"><textarea id="ai-local-draft" aria-label="${copy("web.ai.composer")}" placeholder="${copy("web.ai.placeholder")}" maxlength="4000" rows="3">${esc(app?.aiDraft || "")}</textarea><button type="button" class="icon-button" disabled aria-label="${copy("web.ai.sendUnavailable")}">${icon("send", 20)}</button></div></div>`;
 	},
 	/* Capture: one field. A link becomes an article, a line becomes a note. */
 	capture(app?: any) {

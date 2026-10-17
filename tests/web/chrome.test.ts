@@ -212,6 +212,7 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		w.document.body.innerHTML = `<div id="dock">${app.navHTML()}</div>`;
 		const tabs = [...w.document.querySelectorAll("#nav .nav-tab")].map((n: any) => n.dataset.extra);
 		assert.deepEqual(tabs, ["home", "search", "ai", "settings"]);
+		assert.equal(w.document.querySelectorAll("#nav .nav-label").length, 0);
 		assert.equal(
 			w.document.querySelectorAll("#nav [data-action=capture]").length,
 			0,
@@ -230,10 +231,7 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 			settings.querySelector(".account-wrap > .icon").getAttribute("aria-hidden"),
 			"true",
 		);
-		assert.match(
-			settings.querySelector(".account-wrap > .icon path").getAttribute("d"),
-			/M4 18V10/,
-		);
+		assert.match(settings.querySelector(".account-wrap > .icon path").getAttribute("d"), /M4 19V7/);
 		const settingsIcon = settings.innerHTML;
 		w.__SILL_ACCOUNT__ = "Synthetic Account";
 		Store.state.preferences.profileName = "Profile Initial";
@@ -257,9 +255,9 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		assert.ok(page.querySelector('[data-action="capture-save"]'));
 		const ai = w.document.createElement("div");
 		ai.innerHTML = Panels.ai();
-		assert.match(ai.textContent, /即将推出/);
+		assert.doesNotMatch(ai.textContent, /即将推出/);
 		assert.equal(ai.querySelectorAll(".solid-button").length, 0, "nothing pretends to work");
-		assert.ok(ai.querySelector(".icon"), "AI uses the chat glyph");
+		assert.equal(ai.querySelector("textarea").getAttribute("placeholder"), "暂不能发送");
 		w.matchMedia = (q: string) => ({ matches: q.includes("max-width"), addEventListener() {} });
 		assert.equal(app.isPage("search"), true, "on a phone, search is a page");
 		assert.equal(app.isPage("settings"), true);
@@ -267,6 +265,7 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		assert.equal(app.isPage("capture"), false, "capture stays a sheet");
 		w.matchMedia = () => ({ matches: false, addEventListener() {} });
 		assert.equal(app.isPage("search"), true, "search owns its page on desktop too");
+		assert.equal(app.isPage("ai"), true, "AI owns its page on desktop too");
 	} finally {
 		dom.window.close();
 	}
@@ -291,9 +290,8 @@ test("AI placeholder shows only selected local context and cannot send or change
 		panel.innerHTML = Panels.ai({ aiSelectionIds: ["local-one", "local-one", "missing"] });
 		assert.equal(panel.querySelectorAll("[data-ai-context]").length, 1);
 		assert.equal(panel.querySelector("script, img, form"), null);
-		assert.match(panel.textContent, /尚未连接 AI/);
-		assert.match(panel.textContent, /内容不会发送/);
-		assert.match(panel.textContent, /输入不会保存/);
+		assert.doesNotMatch(panel.textContent, /即将推出|尚未连接 AI|输入不会保存/);
+		assert.equal(panel.querySelector("textarea").getAttribute("placeholder"), "暂不能发送");
 		assert.doesNotMatch(panel.textContent, /Should not appear/);
 		assert.equal(panel.querySelector(".ai-composer button").disabled, true);
 		assert.equal(panel.querySelector(".ai-composer [data-action]"), null);

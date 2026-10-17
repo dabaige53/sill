@@ -94,6 +94,9 @@ try {
 	) {
 		const context = await browser.newContext({
 			viewport: { width: 1280, height: 900 },
+			...(process.env.SILL_RECORD_VIDEO
+				? { recordVideo: { dir: path.join(artifacts, "drawer-video") } }
+				: {}),
 			...options,
 		});
 		const page = await context.newPage(),
@@ -257,10 +260,11 @@ try {
 				const size = await settings.boundingBox();
 				assert.ok(size.width >= 44 && size.height >= 44);
 				assert.equal(
-					await settings
-						.locator(".account-wrap > .icon")
-						.evaluate((n: SVGElement) => getComputedStyle(n).stroke),
-					await settings.evaluate((n: HTMLElement) => getComputedStyle(n).color),
+					await settings.evaluate((n: HTMLElement) => {
+						const glyph = n.querySelector(".account-wrap > .icon")!;
+						return getComputedStyle(glyph).stroke === getComputedStyle(n).color;
+					}),
+					true,
 				);
 				await settings.focus();
 				await page.keyboard.press("Enter");
@@ -317,7 +321,7 @@ try {
 		phone,
 	);
 	await scenario(
-		"Preview edge resistance stays bounded and restores the locked background",
+		"Preview content pull follows the finger and cancellation restores the locked background",
 		async (page, context) => {
 			await page.evaluate(() => {
 				window.scrollTo({ top: 500, behavior: "instant" });
@@ -334,9 +338,9 @@ try {
 			await touch(session, "touchMove", 180, y + 55);
 			await page.waitForTimeout(40);
 			const offset = await page
-				.locator(".sheet-scroll")
+				.locator(".preview-sheet")
 				.evaluate((node) => parseFloat(node.style.translate.split(" ")[1]) || 0);
-			assert.ok(offset > 0 && offset <= 14, String(offset));
+			assert.ok(offset > 0 && offset <= 55, String(offset));
 			await touch(session, "touchCancel");
 			await page.waitForTimeout(260);
 			assert.equal(
@@ -348,6 +352,44 @@ try {
 			await page.waitForTimeout(450);
 			assert.equal(await page.locator("body.modal-scroll-locked").count(), 0);
 			assert.equal(await page.evaluate(() => scrollY), before);
+		},
+		phone,
+	);
+	await scenario(
+		"Preview content gestures dismiss downward and finish upward without deleting cards",
+		async (page, context) => {
+			const session = await context.newCDPSession(page);
+			await page.evaluate(() => window.__app.openCard("motion-0"));
+			await page.locator(".preview-sheet").waitFor();
+			await page.locator("#modal").evaluate(async (n: HTMLElement) => {
+				await Promise.all(
+					n.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
+				);
+			});
+			await touch(session, "touchStart", 180, 300);
+			await touch(session, "touchMove", 180, 540);
+			await touch(session, "touchEnd");
+			await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal")!.open);
+			assert.equal(await page.evaluate(() => !!window.__store.card("motion-0")), true);
+			await page.evaluate(() => window.__app.openCard("motion-0"));
+			await page.locator(".preview-sheet").waitFor();
+			await page.locator("#modal").evaluate(async (n: HTMLElement) => {
+				await Promise.all(
+					n.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
+				);
+			});
+			await page.locator(".sheet-scroll").evaluate((n: HTMLElement) => {
+				n.scrollTop = n.scrollHeight;
+			});
+			await page.waitForFunction(() =>
+				document.querySelector(".preview-sheet")!.classList.contains("is-full"),
+			);
+			await touch(session, "touchStart", 180, 550);
+			await touch(session, "touchMove", 180, 330);
+			await touch(session, "touchEnd");
+			await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal")!.open);
+			assert.equal(await page.evaluate(() => window.__store.item("motion-0").read), true);
+			assert.equal(await page.locator('#feed-grid [data-card="motion-0"]').count(), 1);
 		},
 		phone,
 	);

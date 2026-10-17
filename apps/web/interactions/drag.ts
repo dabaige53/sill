@@ -10,7 +10,7 @@ class DragManager {
 	declare pending: any;
 	declare active: any;
 	declare timer: any;
-	declare suppressUntil: number;
+	declare suppressedClick: { element: HTMLElement; until: number } | null;
 	declare ghost: HTMLElement | null;
 	declare menu: HTMLDialogElement;
 	declare returnFocus: HTMLElement | null;
@@ -21,7 +21,7 @@ class DragManager {
 		this.pending = null;
 		this.active = null;
 		this.timer = 0;
-		this.suppressUntil = 0;
+		this.suppressedClick = null;
 		this.ghost = null;
 		this.menuIds = [];
 		this.menu = document.createElement("dialog");
@@ -45,6 +45,24 @@ class DragManager {
 				}
 			} else if (e.target === this.menu) this.closeMenu();
 		});
+		document.addEventListener(
+			"click",
+			(e) => {
+				const suppressed = this.suppressedClick;
+				if (
+					this.active ||
+					(suppressed &&
+						Date.now() < suppressed.until &&
+						e.target instanceof Node &&
+						suppressed.element.contains(e.target))
+				) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+				}
+				this.suppressedClick = null;
+			},
+			true,
+		);
 		document.addEventListener("pointerdown", (e) => {
 			if (e.pointerType !== "touch" && e.button === 0) this.prepare(e.target, e.clientX, e.clientY);
 		});
@@ -142,6 +160,8 @@ class DragManager {
 	}
 	prepare(target: EventTarget | null, x: number, y: number) {
 		this.clearPending();
+		// A new press is a new gesture, even within the compatibility-click window.
+		this.suppressedClick = null;
 		if (
 			(this.app.dialog.open && this.app.modalKind !== "search") ||
 			this.menu.open ||
@@ -181,7 +201,6 @@ class DragManager {
 		};
 		this.app.railHide?.show();
 		this.clearPending();
-		this.suppressUntil = Date.now() + 1000;
 		this.app.announce(
 			`${copy("web.selection.countPrefix")}${ids.length}${copy("web.selection.countSuffix")}`,
 		);
@@ -268,6 +287,7 @@ class DragManager {
 	move(x: number, y: number) {
 		if (!this.active?.moved) return;
 		const target = this.active.target as HTMLElement | null;
+		target?.parentElement?.classList.add("is-ai-drop");
 		const rect = target?.getBoundingClientRect();
 		const ready =
 			!!rect &&
@@ -279,18 +299,22 @@ class DragManager {
 		if (this.active.ready !== ready) {
 			this.active.ready = ready;
 			target?.classList.toggle("is-ready", ready);
-			const label = target?.querySelector("[data-ai-label]");
-			if (label) label.textContent = copy(ready ? "web.selection.aiReady" : "web.selection.aiDrop");
 		}
 		if (!this.ghost) {
 			this.ghost = document.createElement("div");
-			this.ghost.className = "selection-drag-count glass";
+			this.ghost.className = "selection-lift";
+			this.ghost.style.left = "0";
+			this.ghost.style.top = "0";
 			this.ghost.setAttribute("aria-hidden", "true");
-			this.ghost.textContent = String(this.active.ids.length);
+			this.ghost.appendChild(this.createStack(this.active.ids));
 			(this.app.modalKind === "search" ? this.app.dialog : document.body).append(this.ghost);
+			this.active.previewSize = { width: this.ghost.offsetWidth, height: this.ghost.offsetHeight };
 		}
 		// Direct compositor movement: no queued animation can trail the finger.
-		this.ghost.style.transform = `translate3d(${x + 12}px, ${y - 24}px, 0)`;
+		const { width, height } = this.active.previewSize;
+		const left = Math.max(16, Math.min(innerWidth - width - 16, x + 12));
+		const top = Math.max(16, Math.min(innerHeight - height - 16, y - height - 24));
+		this.ghost.style.transform = `translate3d(${left}px, ${top}px, 0)`;
 	}
 	finish(releasePoint?: { x: number; y: number }) {
 		this.clearPending();
@@ -358,9 +382,11 @@ class DragManager {
 		this.closeMenu();
 	}
 	cleanup() {
+		if (this.active) {
+			this.suppressedClick = { element: this.active.element, until: Date.now() + 400 };
+		}
 		this.active?.target?.classList.remove("is-ready");
-		const label = this.active?.target?.querySelector("[data-ai-label]");
-		if (label) label.textContent = copy("web.selection.aiDrop");
+		this.active?.target?.parentElement?.classList.remove("is-ai-drop");
 		document.body.classList.remove("is-dragging");
 		document.querySelectorAll(".is-drag-source").forEach((n) => {
 			n.classList.remove("is-drag-source");
@@ -369,7 +395,6 @@ class DragManager {
 		this.ghost = null;
 		this.active = null;
 		this.clearPending();
-		this.suppressUntil = Date.now() + 400;
 	}
 }
 

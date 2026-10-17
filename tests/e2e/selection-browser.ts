@@ -197,7 +197,12 @@ try {
 		...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 	});
 	async function scenario(name: string, fn: (page: any) => Promise<void>, options: any = desktop) {
-		const context = await browser.newContext(options);
+		const context = await browser.newContext({
+			...options,
+			...(process.env.SILL_RECORD_VIDEO
+				? { recordVideo: { dir: path.join(artifacts, "video") } }
+				: {}),
+		});
 		const page = await context.newPage();
 		page.setDefaultTimeout(6000);
 		const errors: string[] = [],
@@ -369,7 +374,6 @@ try {
 			assert.deepEqual(await selection(page), [firstIds[0]]);
 			assert.equal(await isMenuOpen(page), false);
 			assert.equal(await page.locator(".selection-lift").count(), 0);
-			await page.waitForTimeout(420);
 			await page.locator('[data-card="selection-02"] .card-summary').tap();
 			await unchanged(page, before);
 			assert.equal(
@@ -386,19 +390,16 @@ try {
 				async (page) => {
 					const before = await snapshot(page);
 					const gesture = await beginLift(page, mobile);
-					assert.equal(
-						await page.locator(".is-drag-source,.selection-lift,.selected-tick").count(),
-						0,
-					);
+					assert.equal(await page.locator(".is-drag-source,.selected-tick").count(), 0);
 					assert.equal(
 						await page
 							.locator('[data-card="selection-01"]')
 							.evaluate((n) => n.classList.contains("is-selected")),
 						true,
 					);
+					assert.equal(await page.locator(".selection-lift .feed-card").count(), 1);
 					await gesture.release();
 					assert.equal(await isMenuOpen(page), false);
-					await page.waitForTimeout(420);
 					const second = page.locator('[data-card="selection-02"] .card-summary');
 					if (mobile) await second.tap();
 					else await second.click();
@@ -629,6 +630,16 @@ try {
 				const gesture = await beginLift(page, mobile);
 				const receiver = await page.locator("#selection-bar .selection-ai-target").boundingBox();
 				assert.ok(receiver);
+				const rail = await page.locator("#selection-bar").boundingBox();
+				assert.ok(Math.abs(receiver.y - rail.y) < 2, "AI receiver replaces the existing row");
+				assert.equal(
+					(await page.locator("#selection-bar .selection-ai-target").innerText()).trim(),
+					"",
+				);
+				assert.equal(
+					await page.locator("#selection-bar [data-action=selected-tag]").isVisible(),
+					false,
+				);
 				await gesture.moveTo({
 					x: receiver.x + receiver.width / 2,
 					y: receiver.y + receiver.height / 2,
@@ -639,12 +650,43 @@ try {
 						.evaluate((n) => n.classList.contains("is-ready")),
 					true,
 				);
+				await checkThumbnail(page, ".selection-lift");
+				const preview = await page.locator(".selection-lift").boundingBox();
+				const viewport = page.viewportSize();
+				assert.ok(preview.x >= 0 && preview.y >= 0);
+				assert.ok(preview.x + preview.width <= viewport.width);
+				assert.ok(preview.y + preview.height <= viewport.height);
+				await page.screenshot({
+					path: path.join(artifacts, `issue-selection-drag-${mobile ? "phone" : "desktop"}.png`),
+				});
+				assert.equal(await page.locator(".selection-drag-count").count(), 0);
 				await gesture.release();
 				await page.locator(".ai-conversation").waitFor();
 				assert.equal(await page.locator("[data-ai-context]").count(), 2);
 				assert.equal(await page.locator(".selection-drag-count").count(), 0);
 				await page.locator("#ai-local-draft").fill("只在本地输入，不发送");
+				await page.locator("#modal").evaluate(async (node: HTMLElement) => {
+					await Promise.all(
+						node
+							.getAnimations({ subtree: true })
+							.filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+							.map((a) => a.finished.catch(() => {})),
+					);
+				});
+				await page.screenshot({
+					path: path.join(artifacts, `issue-ai-${mobile ? "phone" : "desktop"}.png`),
+				});
 				assert.equal(await page.locator(".ai-conversation button[disabled]").count(), 1);
+				await page.waitForFunction(
+					() => getComputedStyle(document.getElementById("dock")!).visibility === "hidden",
+				);
+				assert.equal(await page.locator("#dock").isVisible(), false);
+				assert.equal(
+					await page
+						.locator("#selection-bar .selection-ai-target")
+						.evaluate((n: HTMLElement) => getComputedStyle(n).pointerEvents),
+					"none",
+				);
 				await unchanged(page, before);
 				await page.locator('#modal [data-action="close"]').click();
 				await page.waitForTimeout(250);
