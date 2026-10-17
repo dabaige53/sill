@@ -177,9 +177,6 @@ body.is-dropping:after {
 .drop-hint[hidden] {
 	display: none;
 }
-html {
-	overscroll-behavior-y: contain;
-}
 /* The end of the desk is a short line, not a sentence. */
 .feed-end {
 	width: 28px;
