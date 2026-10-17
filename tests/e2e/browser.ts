@@ -313,59 +313,37 @@ async function recordLayout(page?: any, width?: any) {
 			"Card menus close on Escape and outside click, and keep actions separate from preview",
 			async (page?: any) => {
 				const note = card(page, "note-01"),
-					more = note.locator('[data-action="card-more"]');
-				await page.mouse.move(3, 3);
-				assert.equal(
-					await more.evaluate((n?: any) => getComputedStyle(n).opacity),
-					"0",
-					"the more button shows only on hover or focus",
-				);
-				await note.hover();
-				await more.evaluate(
-					(n?: any) =>
-						new Promise((done) => {
-							const check = () =>
-								getComputedStyle(n).opacity === "1" ? done(true) : requestAnimationFrame(check);
-							check();
-						}),
-				);
-				await page.mouse.move(3, 3);
-				await note.focus();
-				await more.focus();
-				await page.keyboard.press("Enter");
+					title = note.locator(".card-title-button");
+				assert.equal(await page.locator('[data-action="card-more"],.card-more-trigger').count(), 0);
+				await title.press("Shift+F10");
 				assert.equal(await page.locator(".card-more-menu").count(), 1);
-				assert.equal(await more.getAttribute("aria-expanded"), "true");
+				assert.equal(await title.getAttribute("aria-expanded"), "true");
 				await page.keyboard.press("Escape");
 				assert.equal(await page.locator(".card-more-menu").count(), 0);
 				assert.equal(
-					await more.evaluate((n?: any) => document.activeElement === n),
+					await title.evaluate((n?: any) => document.activeElement === n),
 					true,
-					"Escape should return to the card menu trigger",
+					"Escape should return to the card title",
 				);
-				assert.equal(await more.getAttribute("aria-expanded"), "false");
+				assert.equal(await title.getAttribute("aria-expanded"), "false");
 				await feedUnopened(page, "note-01");
-				await more.click();
-				await card(page, "article-01").hover();
-				await card(page, "article-01").locator('[data-action="card-more"]').click();
+				await note.click({ button: "right" });
+				await card(page, "article-01").click({ button: "right" });
 				assert.equal(await page.locator(".card-more-menu").count(), 1);
 				assert.equal(await note.locator(".card-more-menu").count(), 0);
 				await page.mouse.click(3, 3);
 				assert.equal(await page.locator(".card-more-menu").count(), 0);
-				await note.hover();
-				await more.click();
+				await title.press("ContextMenu");
 				await note.locator('.card-more-menu [data-action="later"]').click();
 				assert.equal((await state(page, "note-01")).later, true);
 				assert.equal(await page.locator(".card-more-menu").count(), 0);
 				await feedUnopened(page, "note-01");
 				assert.equal(
-					await more.evaluate((n?: any) => document.activeElement === n),
+					await title.evaluate((n?: any) => document.activeElement === n),
 					true,
 					"a menu action should preserve a usable focus target",
 				);
-				await page.mouse.move(3, 3);
-				await note.focus();
-				await more.focus();
-				await page.keyboard.press("Enter");
+				await title.press("Shift+F10");
 				await page.keyboard.press("ArrowDown");
 				await page.keyboard.press("ArrowDown");
 				assert.equal(
@@ -580,7 +558,11 @@ async function recordLayout(page?: any, width?: any) {
 				assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");
 				await card(page, ids[2]).click();
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 3);
-				await page.locator('[data-action="select-all"]').click();
+				assert.equal(
+					await page.locator('[data-action="select-all"],[data-action="selection-menu"]').count(),
+					0,
+				);
+				await action(page, "select-all");
 				assert.equal(await page.evaluate(() => window.__app.selected.size), ids.length);
 				await page.keyboard.press("Escape");
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 0);
@@ -780,11 +762,8 @@ async function recordLayout(page?: any, width?: any) {
 					);
 					const reminder = card(page, "reminder-01");
 					await reminder.scrollIntoViewIfNeeded();
-					await touchTargets(
-						reminder.locator(".reminder-actions button,.card-more-trigger"),
-						width,
-					);
-					await reminder.locator('[data-action="card-more"]').tap();
+					await touchTargets(reminder.locator(".reminder-actions button"), width);
+					await reminder.locator(".card-title-button").press("Shift+F10");
 					await touchTargets(page.locator(".card-more-menu button"), width);
 					await page.waitForTimeout(240);
 					await touchTargets(page.locator(".card-more-menu button"), width);

@@ -22,6 +22,23 @@ test("demo cards use the shared schema and unknown card types render generically
 	assert.match(cardHTML(card), /Synthetic future-card/);
 	assert.deepEqual(parseCard(card).custom, { nested: ["preserve"] });
 });
+test("feed cards keep a keyboard title without a visible ellipsis control", () => {
+	Store.state = Store.fresh();
+	for (const card of [...SeedCards, ...FreshCards]) {
+		const dom = new JSDOM(cardHTML(card));
+		try {
+			const document = dom.window.document;
+			assert.equal(
+				document.querySelector('[data-action="card-more"],.card-more-trigger'),
+				null,
+				card.id,
+			);
+			assert.ok(document.querySelector('.card-title-button[data-action="card-open"]'), card.id);
+		} finally {
+			dom.window.close();
+		}
+	}
+});
 test("keys holding undefined count as absent, as they do once saved as JSON", () => {
 	for (const card of SeedCards) parseCard({ ...card, tasks: card.tasks?.map((t) => ({ ...t })) });
 	assert.doesNotThrow(() => parseCard({ id: "a", type: "article", title: "A", image: undefined }));

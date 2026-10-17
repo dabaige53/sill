@@ -21,7 +21,7 @@ const bundle = buildSync({
 
 function fixture() {
 	const dom = new JSDOM(
-		`<!doctype html><main><div id="feed-grid">${["one", "two", "three"].map((id) => `<article class="feed-card" data-card="${id}" tabindex="0"><div class="card-body"><p class="card-summary">${id} summary stays visible</p><h2 class="card-title"><button id="title-${id}" class="card-title-button" data-action="card-open" data-id="${id}" aria-describedby="summary-${id}">${id}</button></h2><span id="summary-${id}">Structured content</span></div></article>`).join("")}</div></main><div id="selection-bar"><span class="selection-count"></span><button data-action="selection-menu">操作</button></div><dialog id="modal"></dialog><div id="toast"></div>`,
+		`<!doctype html><main><div id="feed-grid">${["one", "two", "three"].map((id) => `<article class="feed-card" data-card="${id}" tabindex="0"><div class="card-body"><p class="card-summary">${id} summary stays visible</p><h2 class="card-title"><button id="title-${id}" class="card-title-button" data-action="card-open" data-id="${id}" aria-describedby="summary-${id}">${id}</button></h2><span id="summary-${id}">Structured content</span></div></article>`).join("")}</div></main><div id="selection-bar"><span class="selection-count"></span><button data-action="selected-bookmark">收藏</button><button data-action="selected-later">稍后看</button><button data-action="selected-tag">标签</button><button data-action="clear-selection">取消选择</button></div><dialog id="modal"></dialog><div id="toast"></div>`,
 		{
 			url: "http://selection.test/",
 			runScripts: "outside-only",
@@ -107,7 +107,7 @@ function fixture() {
 		fire("touchend", source(), { touches: [], changedTouches: [{ clientX: 150, clientY: 270 }] });
 	const open = () => {
 		selectTwo();
-		app.drag.openMenu(["one", "two"], document.querySelector('[data-action="selection-menu"]'));
+		app.drag.openMenu(["one", "two"], document.querySelector('[data-action="selected-bookmark"]'));
 	};
 	const key = (value: string, shiftKey = false) =>
 		document.activeElement.dispatchEvent(
@@ -133,6 +133,72 @@ function fixture() {
 		key,
 	};
 }
+
+test("selection: both context keys open the bulk menu from the visible bar without writing", () => {
+	for (const shortcut of [{ key: "F10", shiftKey: true }, { key: "ContextMenu" }]) {
+		const f = fixture();
+		try {
+			f.selectTwo();
+			const before = f.state();
+			const trigger = f.document.querySelector('[data-action="selected-bookmark"]');
+			trigger.focus();
+			f.document.addEventListener("keydown", (event) => f.app.key(event));
+			const event = new f.w.KeyboardEvent("keydown", {
+				...shortcut,
+				bubbles: true,
+				cancelable: true,
+			});
+			trigger.dispatchEvent(event);
+			assert.equal(event.defaultPrevented, true);
+			assert.equal(f.app.drag.menu.open, true);
+			assert.equal(f.document.activeElement.dataset.selectionAction, "bookmark");
+			f.key("Escape");
+			assert.equal(f.document.activeElement, trigger);
+			assert.deepEqual(f.selected(), ["one", "two"]);
+			assert.equal(f.state(), before);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("selection: context shortcuts preserve native editing, composing, and modal input", () => {
+	const f = fixture();
+	try {
+		let opened = 0;
+		f.app.more = () => opened++;
+		f.document.addEventListener("keydown", (event) => f.app.key(event));
+		const card = f.source().closest("article");
+		card.insertAdjacentHTML(
+			"beforeend",
+			'<input><textarea></textarea><span contenteditable="true">Editable</span>',
+		);
+		for (const target of card.querySelectorAll("input,textarea,[contenteditable]")) {
+			const event = new f.w.KeyboardEvent("keydown", {
+				key: "F10",
+				shiftKey: true,
+				bubbles: true,
+				cancelable: true,
+			});
+			target.dispatchEvent(event);
+			assert.equal(event.defaultPrevented, false);
+		}
+		card.dispatchEvent(
+			new f.w.KeyboardEvent("keydown", {
+				key: "F10",
+				shiftKey: true,
+				isComposing: true,
+				bubbles: true,
+			}),
+		);
+		f.app.dialog.showModal();
+		card.dispatchEvent(new f.w.KeyboardEvent("keydown", { key: "ContextMenu", bubbles: true }));
+		assert.equal(opened, 0);
+		assert.equal(f.app.drag.menu.open, false);
+	} finally {
+		f.dom.window.close();
+	}
+});
 
 test("selection: quick touch movement stays a scroll; stationary hold only selects", () => {
 	const f = fixture();
@@ -349,7 +415,7 @@ test("selection: keyboard opening anchors to the trigger and keeps only four foc
 	const f = fixture();
 	try {
 		f.selectTwo();
-		const trigger = f.document.querySelector('[data-action="selection-menu"]');
+		const trigger = f.document.querySelector('[data-action="selected-bookmark"]');
 		trigger.getBoundingClientRect = () => ({ left: 120, top: 760, width: 80, height: 56 });
 		let anchor: any;
 		const position = f.app.drag.positionMenu.bind(f.app.drag);
@@ -386,7 +452,7 @@ test("selection: every menu dismissal preserves cards, selection, and trigger fo
 			assert.equal(f.app.drag.menu.open, false, method);
 			assert.deepEqual(f.selected(), ["one", "two"], method);
 			assert.equal(f.state(), before, method);
-			assert.equal(f.document.activeElement.dataset.action, "selection-menu", method);
+			assert.equal(f.document.activeElement.dataset.action, "selected-bookmark", method);
 		} finally {
 			f.dom.window.close();
 		}

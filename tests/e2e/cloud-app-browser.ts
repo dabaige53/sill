@@ -277,7 +277,8 @@ try {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.screenshot({ path: "tests/artifacts/cloud-app-mobile.png", animations: "disabled" });
 	assert.ok(await frame.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-	await frame.locator("[data-card] .card-more-trigger").click();
+	await frame.locator("[data-card] .card-title-button").press("Shift+F10");
+	assert.equal(await frame.locator(".card-more-menu").isVisible(), true);
 	assert.equal(await frame.locator("[data-action=edit-content]").count(), 0);
 	await frame.locator("main").click({ position: { x: 2, y: 2 } });
 	await cloudTool(frame, "capture");

@@ -135,7 +135,7 @@ class AppController {
 		this.sort = Store.pref("sort");
 		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
-   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span><button type="button" class="text-button" data-action="select-all" aria-label="${copy("web.selectAllLabel")}">${copy("web.selectAll")}</button><button type="button" class="text-button" data-action="selection-menu" aria-haspopup="dialog">${copy("web.selection.actions")}</button><span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
+   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
    ${this.navHTML()}</div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
@@ -151,6 +151,20 @@ class AppController {
 		this.drag = new DragManager(this);
 		this.gestures = new Gestures(this);
 		document.addEventListener("click", (e?: any) => this.click(e));
+		this.grid.addEventListener("contextmenu", (e: MouseEvent) => {
+			const card = (e.target as Element).closest<HTMLElement>("[data-card]");
+			if (!card || this.drag.active || this.drag.pending) return;
+			e.preventDefault();
+			this.more(card.dataset.card);
+		});
+		document.getElementById("selection-bar").addEventListener("contextmenu", (e: MouseEvent) => {
+			if (!this.selected.size || this.drag.active || this.drag.pending) return;
+			e.preventDefault();
+			const trigger =
+				(e.target as Element).closest<HTMLElement>("button") ||
+				document.querySelector<HTMLElement>('[data-action="selected-bookmark"]');
+			this.drag.openMenu([...this.selected], trigger, { x: e.clientX, y: e.clientY });
+		});
 		this.bindStacks();
 		document.addEventListener("input", (e?: any) => this.input(e));
 		document.addEventListener("compositionend", (e?: any) => this.input(e));
@@ -1272,7 +1286,7 @@ class AppController {
 		const menu = this.grid?.querySelector(".card-more-menu");
 		if (!menu) return;
 		const card = menu.closest("[data-card]"),
-			trigger = card?.querySelector('[data-action="card-more"]');
+			trigger = card?.querySelector(".card-title-button");
 		if (restoreFocus) trigger?.focus({ preventScroll: true });
 		// The menu leaves faster than it came, toward its anchor.
 		menu.classList.replace("card-more-menu", "card-more-leaving");
@@ -1343,7 +1357,7 @@ class AppController {
 			)
 			.join("");
 		c.appendChild(menu);
-		const trigger = c.querySelector('[data-action="card-more"]');
+		const trigger = c.querySelector(".card-title-button");
 		trigger?.setAttribute("aria-expanded", "true");
 		trigger?.setAttribute("aria-controls", menu.id);
 		MotionEngine.animate(
@@ -2710,6 +2724,23 @@ END:VCALENDAR
 	}
 	key(e?: any) {
 		if (e.isComposing) return;
+		if (
+			!this.dialog.open &&
+			!e.target.closest?.("input,textarea,[contenteditable]") &&
+			(e.key === "ContextMenu" || (e.shiftKey && e.key === "F10"))
+		) {
+			if (e.target.closest?.("#selection-bar") && this.selected.size) {
+				e.preventDefault();
+				this.drag.openMenu([...this.selected], e.target);
+				return;
+			}
+			const card = e.target.closest?.("[data-card]");
+			if (card) {
+				e.preventDefault();
+				this.more(card.dataset.card);
+				return;
+			}
+		}
 		// A page is not modal, so Escape is handled here: it returns home.
 		if (e.key === "Escape" && this.dialog.open && this.dialog.classList.contains("page")) {
 			e.preventDefault();

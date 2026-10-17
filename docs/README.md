@@ -11,6 +11,8 @@
 
 ## 设计规则
 
+- [卡片内容设计规范](design/card-content.md)：标题、摘要、来源与阅读时长、结构化内容和发布检查。
+
 - [设计决策记录（ADR）](design/decisions.md)
 - [Sill 设计系统](design/system.md)
 

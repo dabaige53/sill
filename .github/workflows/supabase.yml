@@ -20,6 +20,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:cloud-browser
       - run: npm run test:cloud-app-browser
+      - run: npm run test:cloud-operations
       - run: npm run test:cloud-welcome
       - run: npm run test:oauth-browser
       - uses: actions/upload-artifact@v4

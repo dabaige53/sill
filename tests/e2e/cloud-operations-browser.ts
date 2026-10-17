@@ -115,7 +115,7 @@ try {
 			},
 			[note.id, task.id],
 		);
-		await page.locator('[data-action="selection-menu"]').click();
+		await page.locator('[data-action="selected-bookmark"]').press("Shift+F10");
 		await page.locator("#selection-menu").waitFor();
 	};
 	const requestsBeforeMenu = batchRequests.length;
@@ -141,7 +141,7 @@ try {
 		2,
 		"bulk gesture is one atomic batch",
 	);
-	await action("card-more", note.id);
+	await page.locator(`[data-card="${note.id}"] .card-title-button`).press("Shift+F10");
 	await page.waitForTimeout(5500);
 	assert.equal(
 		await page.locator(`#card-menu-${note.id}`).count(),
@@ -334,7 +334,7 @@ try {
 	await page.evaluate(() => {
 		for (const card of __store.state.cards.slice(0, 2)) __app.select(card.id, { add: true });
 	});
-	await page.locator('[data-action="selection-menu"]').click();
+	await page.locator('[data-action="selected-bookmark"]').press("Shift+F10");
 	assert.equal(await page.locator("#selection-menu").isVisible(), true);
 	const requestsBeforeExpiry = batchRequests.length;
 	await page.route("**/auth/session", (route) =>

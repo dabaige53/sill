@@ -384,6 +384,7 @@ body:has(#modal[open]:not(.page)) .scroll-edge {
 
 /* Selection takes the rail row; new-content and offline pills step aside. */
 #selection-bar {
+	justify-content: safe center;
 	height: var(--rail-row);
 	border-radius: var(--pill-radius);
 	display: flex;
