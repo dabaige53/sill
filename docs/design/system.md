@@ -73,7 +73,7 @@ node design-system/scripts/generate.ts design-system .
 
 1. `tokens.css`：颜色、间距、圆角、字号、阴影、动效变量，深色主题。
 2. `base.css`：页面、文字、基础布局，信息流底部短线。
-3. `controls.css`：按钮、右下角入口和工具、提示条、选择条。
+3. `controls.css`：按钮、底部导航胶囊与镜片、提示条、选择条。
 4. `cards.css`：各类卡片、已读色、叠卡（牌堆）、按压反馈。
 5. `overlays.css`：预览、阅读、面板、读完圆环、下拉刷新圆环、手势过渡。
 6. `responsive.css`：窄屏、触屏、手机抽屉、减少动效、减少透明度。
