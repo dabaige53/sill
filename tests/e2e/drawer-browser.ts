@@ -135,7 +135,7 @@ try {
 			await page.screenshot({
 				path: path.join(artifacts, `drawer-failure-${results.length}.png`),
 			});
-			console.error("FAIL", name, error.message);
+			console.error("FAIL", name, error.stack || error.message);
 		} finally {
 			await context.close();
 		}
@@ -157,13 +157,23 @@ try {
 			assert.equal(entering.active, true, "notice has a real entrance animation");
 			assert.ok(entering.opacity > 0 && entering.opacity < 1, JSON.stringify(entering));
 			await page.evaluate(() => window.__app.setOffline(false));
-			assert.equal(await page.locator("#offline").evaluate((n: HTMLElement) => n.inert), true);
+			assert.equal(
+				await page.locator("#offline").evaluate((n: HTMLElement) => n.inert),
+				true,
+				"offline disables input immediately",
+			);
 			await page.evaluate(() => window.__app.setOffline(true));
 			await page.waitForTimeout(300);
 			assert.equal(await page.locator("#offline").evaluate((n: HTMLElement) => n.hidden), false);
 			await page.evaluate(() => window.__app.setOffline(false));
-			await page.waitForTimeout(220);
-			assert.equal(await page.locator("#offline").evaluate((n: HTMLElement) => n.hidden), true);
+			await page.waitForFunction(() => document.getElementById("offline").hidden, null, {
+				timeout: 3000,
+			});
+			assert.equal(
+				await page.locator("#offline").evaluate((n: HTMLElement) => n.hidden),
+				true,
+				"offline hides after exit completes",
+			);
 			await page.evaluate(() => {
 				window.__app.pendingCards = [{ id: "synthetic-pending" }];
 				window.__app.paintPending();
@@ -174,9 +184,19 @@ try {
 				window.__app.pendingCards = [];
 				window.__app.paintPending();
 			});
-			assert.equal(await page.locator("#new-count").evaluate((n: HTMLElement) => n.inert), true);
-			await page.waitForTimeout(220);
-			assert.equal(await page.locator("#new-count").evaluate((n: HTMLElement) => n.hidden), true);
+			assert.equal(
+				await page.locator("#new-count").evaluate((n: HTMLElement) => n.inert),
+				true,
+				"pending notice disables input immediately",
+			);
+			await page.waitForFunction(() => document.getElementById("new-count").hidden, null, {
+				timeout: 3000,
+			});
+			assert.equal(
+				await page.locator("#new-count").evaluate((n: HTMLElement) => n.hidden),
+				true,
+				"pending notice hides after exit completes",
+			);
 		},
 		phone,
 	);

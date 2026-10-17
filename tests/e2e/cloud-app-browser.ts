@@ -126,22 +126,38 @@ try {
 	await frame.locator("body.cloud-signed-in").waitFor();
 	assert.equal(startupReads, 3);
 	assert.equal(await frame.getByRole("button", { name: "重新连接云端" }).count(), 0);
-	// Two actual clicks within the navigation lead must keep the latest destination.
-	await frame.locator('#nav [data-extra="search"]').click({ trial: true });
-	const search = await frame.locator('#nav [data-extra="search"]').boundingBox();
+	// Desktop panels keep the navigation lead; two actual clicks keep the latest destination.
+	await frame.locator('#nav [data-extra="settings"]').click({ trial: true });
+	const settings = await frame.locator('#nav [data-extra="settings"]').boundingBox();
 	const home = await frame.locator('#nav [data-extra="home"]').boundingBox();
-	await page.mouse.click(search.x + search.width / 2, search.y + search.height / 2);
+	await page.mouse.click(settings.x + settings.width / 2, settings.y + settings.height / 2);
 	await page.mouse.click(home.x + home.width / 2, home.y + home.height / 2);
 	await page.waitForTimeout(220);
 	assert.equal(
 		await frame.locator("#modal[open]").count(),
 		0,
-		"a superseded search must not reopen after Home",
+		"a superseded settings panel must not reopen after Home",
 	);
 	assert.equal(
 		await frame.locator('#nav [aria-current="page"]').getAttribute("data-extra"),
 		"home",
 	);
+	// Search now opens its own page immediately and returns through its top Close control.
+	await frame.locator('#nav [data-extra="search"]').click();
+	assert.equal(await frame.locator("#modal[open].search.page").count(), 1);
+	assert.equal(
+		await frame
+			.locator('#nav [data-extra="home"]')
+			.evaluate((node: HTMLElement) => getComputedStyle(node).pointerEvents),
+		"none",
+		"search immediately removes the capsule from hit testing",
+	);
+	await frame.locator("#dock").waitFor({ state: "hidden" });
+	await frame.locator('.search-header [data-action="close"]').click();
+	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
+	await frame.locator("#dock").waitFor({ state: "visible" });
+	await frame.locator('#nav [data-extra="home"][aria-current="page"]').waitFor();
+	assert.equal(await frame.evaluate(() => location.hash), "#feed");
 	await frame.getByRole("button", { name: "记下第一条内容" }).click();
 	await frame.locator("#cloud-title").fill("Cloud plugin fixture");
 	// A definite validation failure leaves the same draft editable, with no uncertain-write lock.
