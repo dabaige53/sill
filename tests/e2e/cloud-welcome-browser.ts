@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
-import { chromium, devices } from "playwright";
+import { chromium, devices, type Route } from "playwright";
+import { workspaceBatch, workspaceSnapshot } from "../../contracts/cloud.ts";
 import { cloudLogout, cloudTool, waitCloud } from "../server/helpers/cloud-ui.ts";
 
 const html = await readFile("dist/cloud/index.html", "utf8");
 const server = createServer((req?: any, res?: any) => {
+	if (new URL(req.url, "http://localhost").pathname !== "/") {
+		res.writeHead(404, { "Content-Type": "application/json" });
+		res.end(JSON.stringify({ error: { code: "unmocked_route" } }));
+		return;
+	}
 	res.setHeader("Content-Type", "text/html");
 	res.end(html);
 });
@@ -34,9 +40,14 @@ try {
 		let signedIn = false,
 			sessionStatus = 401,
 			loginRequests = 0;
-		let cards = [],
-			holdListing = false,
-			heldRoute = null;
+		const workspace = workspaceSnapshot.parse({
+			revision: 0,
+			state: { cards: [], items: {}, preferences: {}, seconds: 0 },
+		});
+		let holdWorkspace = false;
+		let holdRequest: (route: Route) => void;
+		const heldWorkspace = new Promise<Route>((resolve) => (holdRequest = resolve));
+		const receipts = new Map<string, ReturnType<typeof workspaceSnapshot.parse>>();
 		await page.route("**/auth/**", (route?: any) => {
 			const path = new URL(route.request().url()).pathname;
 			if (path === "/auth/login") {
@@ -50,6 +61,11 @@ try {
 				signedIn = false;
 				return route.fulfill({ json: { revoked: true } });
 			}
+			assert.equal(
+				path,
+				"/auth/session",
+				"welcome fixture must handle every auth route explicitly",
+			);
 			return route.fulfill({
 				status: signedIn ? 200 : sessionStatus,
 				json: signedIn
@@ -66,12 +82,40 @@ try {
 						},
 			});
 		});
-		await page.route("**/api/v1/contents**", (route?: any) => {
-			if (holdListing) {
-				heldRoute = route;
-				return;
+		await page.route("**/api/v1/**", (route: Route) => {
+			const request = route.request(),
+				path = new URL(request.url()).pathname;
+			assert.equal(request.headers()["x-sill-owner"], "synthetic-owner");
+			if (path === "/api/v1/workspace" && request.method() === "GET") {
+				if (holdWorkspace) {
+					holdRequest(route);
+					return;
+				}
+				return route.fulfill({ json: workspaceSnapshot.parse(workspace) });
 			}
-			return route.fulfill({ json: { items: cards, next_cursor: null } });
+			assert.equal(path, "/api/v1/workspace/operations", "unexpected API in welcome fixture");
+			assert.equal(request.method(), "POST");
+			const key = request.headers()["idempotency-key"];
+			assert.ok(key, "workspace writes carry an idempotency key");
+			if (receipts.has(key)) return route.fulfill({ json: receipts.get(key) });
+			// Only the reading state and preference operations exercised by this UI scenario.
+			// Real atomic writes, conflicts and ownership are covered by cloud-operations-browser.
+			for (const operation of workspaceBatch.parse(request.postDataJSON()).operations) {
+				if (operation.op === "preferences.patch")
+					Object.assign(workspace.state.preferences, operation.values);
+				else if (operation.op === "item.patch") {
+					assert.ok(workspace.state.cards.some((card) => card.id === operation.id));
+					workspace.state.items[operation.id] = {
+						...workspace.state.items[operation.id],
+						...operation.values,
+					};
+				} else if (operation.op === "reading.add") workspace.state.seconds += operation.seconds;
+				else assert.fail(`unexpected content mutation in welcome fixture: ${operation.op}`);
+			}
+			workspace.revision++;
+			const response = workspaceSnapshot.parse(workspace);
+			receipts.set(key, response);
+			return route.fulfill({ json: response });
 		});
 		await page.goto(base);
 		assert.deepEqual(
@@ -84,6 +128,27 @@ try {
 		assert.equal(await page.locator("#cloud-account").count(), 0);
 		assert.equal(await page.locator("[data-card]").count(), 0);
 		assert.equal(await page.locator("#toast").isVisible(), false);
+		if (mobile) {
+			await page.setViewportSize({ width: 320, height: 844 });
+			assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [320, 844]);
+			assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+			for (const selector of [
+				".welcome-actions > a",
+				"#cloud-login",
+				"#cloud-email",
+				"#cloud-login button",
+			]) {
+				const bounds = await page.locator(selector).boundingBox();
+				assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 320, `${selector} fits 320px`);
+			}
+			await page.screenshot({
+				animations: "disabled",
+				scale: "css",
+				path: "tests/artifacts/cloud-recovery/mobile-320-welcome.png",
+			});
+			await page.setViewportSize({ width: 390, height: 844 });
+			assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [390, 844]);
+		}
 		await page.waitForTimeout(400);
 		await page.screenshot({
 			animations: "disabled",
@@ -136,7 +201,7 @@ try {
 			await page.evaluate(() => (document.activeElement as HTMLElement).dataset.action),
 			"capture",
 		);
-		cards = Array.from({ length: 24 }, (_?: any, i?: any) => ({
+		workspace.state.cards = Array.from({ length: 24 }, (_?: any, i?: any) => ({
 			id: "test-" + i,
 			type: "note",
 			title: "测试笔记 " + (i + 1),
@@ -145,10 +210,18 @@ try {
 			revision: 1,
 			updated_at: new Date().toISOString(),
 		}));
+		workspace.state.items = Object.fromEntries(
+			workspace.state.cards.map((card) => [card.id, { read: false }]),
+		);
+		workspace.revision++;
 		await cloudTool(page, "refresh");
 		await page.waitForFunction(() => window.__store.state.cards.length === 24);
 		await page.evaluate(() => window.__store.setPref("stack", false));
 		await page.evaluate(() => window.__app.renderCurrent(true));
+		await page.waitForFunction(
+			() => document.querySelector("#feed-grid").getAttribute("data-sync") === "saved",
+		);
+		assert.equal(workspace.state.preferences.stack, false);
 		await page.locator("main").click({ position: { x: 5, y: 5 } });
 		await page.mouse.move(0, 0);
 		await page.waitForTimeout(600);
@@ -165,25 +238,61 @@ try {
 		await page.waitForFunction(() => (document.querySelector("#modal") as HTMLDialogElement).open);
 		await page.keyboard.press("Escape");
 		await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
-		await page.locator("#account").click();
+		await page.locator("#nav [data-action=nav][data-extra=settings]").click();
+		await page.locator(".settings-nav").waitFor();
+		assert.equal(
+			await page.locator("[data-action=settings-group][data-extra=sources]").count(),
+			0,
+			"ADR 0033 removes source connections from settings",
+		);
+		await page.locator("[data-action=settings-group][data-extra=add]").click();
+		await page.locator(".settings-main #capture-text").waitFor();
+		assert.equal(await page.locator("#nav [data-action=capture]").count(), 0);
+		assert.equal(
+			await page.locator("#modal").evaluate((e) => e.classList.contains("page")),
+			mobile,
+		);
 		await page.locator("[data-action=settings-group][data-extra=data]").click();
 		assert.match(await page.locator(".settings-main").textContent(), /云端工作区/);
-		await page.locator("[data-action=settings-group][data-extra=sources]").click();
-		assert.match(await page.locator(".settings-main").textContent(), /尚未连接/);
 		await page.keyboard.press("Escape");
-		holdListing = true;
+		await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
+		await page.waitForFunction(
+			() => document.querySelector("#feed-grid").getAttribute("data-sync") === "saved",
+		);
+		holdWorkspace = true;
 		await cloudTool(page, "refresh");
-		while (!heldRoute) await page.waitForTimeout(10);
+		let holdTimer: ReturnType<typeof setTimeout>;
+		const heldRoute = await Promise.race([
+			heldWorkspace,
+			new Promise<never>((_, reject) => {
+				holdTimer = setTimeout(
+					() => reject(new Error("refresh did not request the workspace")),
+					5000,
+				);
+			}),
+		]).finally(() => clearTimeout(holdTimer));
 		await cloudLogout(page);
+		await page.locator("#cloud-confirm").waitFor();
+		assert.match(await page.locator("#modal").textContent(), /放弃未保存的草稿/);
+		await page.locator("#cloud-confirm").click();
 		await page.locator("#cloud-login").waitFor();
 		assert.equal(await page.locator("[data-card]").count(), 0);
-		await heldRoute.fulfill({ json: { items: cards, next_cursor: null } });
-		await page.waitForTimeout(150);
+		assert.ok(
+			await page.locator("#dock").evaluate((dock) => dock.classList.contains("is-busy")),
+			"logout retains the pending refresh indicator until its response is consumed",
+		);
+		holdWorkspace = false;
+		await heldRoute.fulfill({ json: workspaceSnapshot.parse(workspace) });
+		await page.waitForFunction(
+			() => !document.querySelector("#dock").classList.contains("is-busy"),
+		);
 		assert.equal(
 			await page.locator("[data-card]").count(),
 			0,
 			"late refresh cannot revive signed-out content",
 		);
+		assert.equal(await page.locator("body.cloud-signed-in").count(), 0);
+		assert.equal(await page.evaluate(() => window.__store.state.cards.length), 0);
 		assert.equal(await page.evaluate(() => localStorage.length), 0);
 		for (const code of [403, 503]) {
 			sessionStatus = code;
@@ -192,13 +301,18 @@ try {
 			assert.equal(await page.locator("[data-card]").count(), 0);
 			assert.match(await page.locator("#toast").textContent(), code === 403 ? /权限/ : /连接暂时/);
 		}
+		signedIn = true;
+		await cloudTool(page, "refresh");
+		await waitCloud(page);
+		await page.waitForFunction(() => window.__store.state.cards.length === 24);
+		assert.equal(await page.evaluate(() => localStorage.length), 0);
 		assert.deepEqual(errors, []);
 		await context.close();
 		await page
 			.video()
 			.saveAs(`tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-walkthrough.webm`);
 		console.log(
-			`PASS welcome/editor/keyboard/focus/scroll/privacy/cooldown ${mobile ? "iPhone12 390x844" : "desktop 1440x1000"}`,
+			`PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry ${mobile ? "iPhone12 390x844" : "desktop 1440x1000"}`,
 		);
 	}
 } finally {

@@ -161,6 +161,9 @@
 	display: none;
 }
 @media (max-width: 600px) {
+	.welcome-actions:has(#cloud-login) {
+		flex-direction: column;
+	}
 	.cloud-compose {
 		max-height: calc(100dvh - 24px);
 	}

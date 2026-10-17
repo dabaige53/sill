@@ -489,7 +489,27 @@ try {
 					.evaluate((node: Element) => node.classList.contains("is-drag")),
 				true,
 			);
+			// CDP can acknowledge cancellation before DOM delivery. Observe the trusted event
+			// at window, after the sheet's dialog listeners, without polling for cleanup.
+			await page.evaluate(() => {
+				const sheet = document.querySelector(".preview-sheet") as HTMLElement;
+				window.addEventListener(
+					"touchcancel",
+					(event) => {
+						if (sheet.contains(event.target as Node))
+							sheet.dataset.touchCancelDelivered = String(event.isTrusted);
+					},
+					{ once: true },
+				);
+			});
 			await touch(session, "touchCancel");
+			await page.waitForFunction(
+				() =>
+					document.querySelector<HTMLElement>(".preview-sheet")?.dataset.touchCancelDelivered ===
+					"true",
+				null,
+				{ timeout: 5000 },
+			);
 			const state = await page.evaluate(() => ({
 				open: (document.getElementById("modal") as HTMLDialogElement).open,
 				drag: !!document.querySelector(".is-drag"),
