@@ -48,7 +48,6 @@
 
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
 
-- [2026-10-11-product-conversation：Sill — 产品对话与需求演进记录](records/2026-10-11-product-conversation/README.md)
 - [2026-10-12-local-acceptance：Sill 本地版本](records/2026-10-12-local-acceptance/README.md)
 - [2026-10-13-accessibility-validation：Sill 交互与无障碍修复验收](records/2026-10-13-accessibility-validation/README.md)
 - [2026-10-14-cloud-release：Sill release — 2026-10-14](records/2026-10-14-cloud-release/README.md)

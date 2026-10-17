@@ -19,3 +19,8 @@ apps/apple/.swiftpm/
 .ruff_cache/
 
 supabase/.temp/
+
+# Private conversation records and real-account screenshots
+/docs/records/2026-10-11-product-conversation/
+/docs/records/2026-10-16-cloud-operations/host-settings.jpg
+/docs/CONVERSATION-HISTORY.md
