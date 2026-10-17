@@ -72,7 +72,7 @@ export function materialDensityCards(now = reviewTime) {
 			id: "review-reminder",
 			type: "reminder",
 			title: "给助手一个明确的交接点",
-			summary: "打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页提供复制给助手。",
+			summary: "打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页不显示交接入口。",
 			due: now + 7200000,
 			tags: ["下一步"],
 		},
