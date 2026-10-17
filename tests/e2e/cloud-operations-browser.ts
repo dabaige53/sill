@@ -330,6 +330,60 @@ try {
 	const repeatedDemo = (await api("/api/v1/workspace")).state.cards;
 	assert.equal(repeatedDemo.length, demo.length);
 	assert.ok(repeatedDemo.every((card) => !demo.some((previous) => previous.id === card.id)));
+	// A foreground pull joins an already-running read; no early success or duplicate request.
+	let releaseRead: () => void;
+	const readGate = new Promise<void>((resolve) => {
+		releaseRead = resolve;
+	});
+	let sharedReads = 0;
+	await page.route("**/api/v1/workspace", async (route) => {
+		sharedReads++;
+		await readGate;
+		await route.continue();
+	});
+	await page.evaluate(() => {
+		window.__refreshSettled = 0;
+		window.__sharedRefresh = [__app.refresh(), __app.refresh({ feedback: "pull" })].map((work) =>
+			work.then((result) => {
+				window.__refreshSettled++;
+				return result;
+			}),
+		);
+	});
+	await page.waitForTimeout(100);
+	assert.equal(await page.evaluate(() => window.__refreshSettled), 0);
+	releaseRead!();
+	assert.deepEqual(await page.evaluate(() => Promise.all(window.__sharedRefresh)), [true, true]);
+	assert.equal(sharedReads, 1);
+	await page.unroute("**/api/v1/workspace");
+	// Pull refresh owns its icon feedback, including real request failures.
+	await page.evaluate(() => {
+		window.__refreshAlerts = 0;
+		window.__originalAlert = __app.alert;
+		__app.alert = () => {
+			window.__refreshAlerts++;
+		};
+	});
+	await page.route("**/api/v1/workspace", (route) =>
+		route.fulfill({
+			status: 503,
+			contentType: "application/json",
+			body: JSON.stringify({ error: { code: "unavailable" } }),
+		}),
+	);
+	assert.equal(await page.evaluate(() => __app.refresh({ feedback: "pull" })), false);
+	assert.equal(
+		await page.evaluate(() => window.__refreshAlerts),
+		0,
+		"no text alert for pull failure",
+	);
+	assert.equal(await page.locator("#offline").isVisible(), false, "no second text feedback");
+	assert.equal(await page.locator("#dock.is-busy").count(), 0, "no second loading spinner");
+	await page.unroute("**/api/v1/workspace");
+	assert.equal(await page.evaluate(() => __app.refresh({ feedback: "pull" })), true);
+	await page.evaluate(() => {
+		__app.alert = window.__originalAlert;
+	});
 	// Session expiry must dismiss the lifted/menu copy along with the signed-in feed.
 	await page.evaluate(() => {
 		for (const card of __store.state.cards.slice(0, 2)) __app.select(card.id, { add: true });

@@ -115,7 +115,7 @@ const sync = new CloudSync({
 			sync.suspended = true;
 			clearCloud({ retainDrafts: true });
 		}
-		app.alert(error.message);
+		if (!Cloud.refreshFeedback) app.alert(error.message);
 	},
 });
 Store.save = () => {
@@ -245,10 +245,12 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 }
 function cloudConnection() {
 	// Loading shows as the thin arc around the face; there is no refresh button.
-	document.getElementById("dock")?.classList.toggle("is-busy", !!Cloud.loading);
+	document
+		.getElementById("dock")
+		?.classList.toggle("is-busy", !!Cloud.loading && !Cloud.refreshFeedback);
 	const offline = document.getElementById("offline");
 	offline.dataset.action = "refresh";
-	offline.hidden = !Cloud.connectionError || !Cloud.user;
+	offline.hidden = !!Cloud.refreshFeedback || !Cloud.connectionError || !Cloud.user;
 	offline.textContent = copy("web.cloudentry.4e0831bcbc99");
 }
 function workspaceState() {
@@ -281,7 +283,7 @@ function syncStatus() {
 		bar.className = "cloud-recovery glass";
 		document.body.append(bar);
 	}
-	bar.hidden = !sync.failed;
+	bar.hidden = !!Cloud.refreshFeedback || !sync.failed;
 	if (sync.failed)
 		bar.innerHTML = `<span role="status">${esc(sync.failed.message)}</span><button class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button><button class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button><button class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
 }
@@ -331,7 +333,18 @@ function adoptWorkspace(value: any) {
 		}
 	}
 }
-async function loadCloud({ initial = false }: any = {}) {
+async function loadCloud(options: any = {}) {
+	// A foreground pull joins an in-flight read instead of reporting false success/failure.
+	if (Cloud.loadPromise) return Cloud.loadPromise;
+	const pending = loadCloudOnce(options);
+	Cloud.loadPromise = pending;
+	try {
+		return await pending;
+	} finally {
+		if (Cloud.loadPromise === pending) Cloud.loadPromise = null;
+	}
+}
+async function loadCloudOnce({ initial = false, quiet = false }: any = {}) {
 	if (
 		Cloud.loading ||
 		Cloud.busy ||
@@ -340,7 +353,7 @@ async function loadCloud({ initial = false }: any = {}) {
 		(sync.pending.length && !sync.suspended) ||
 		app.modalKind === "editor"
 	)
-		return;
+		return false;
 	Cloud.loading = true;
 	cloudConnection();
 	const epoch = Cloud.epoch,
@@ -352,7 +365,7 @@ async function loadCloud({ initial = false }: any = {}) {
 		const value = await cloudApi("/api/v1/workspace", {
 			headers: { "X-Sill-Owner": session.userId },
 		});
-		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return;
+		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return false;
 		Cloud.connectionError = false;
 		Cloud.scopes = session.scopes || null;
 		Cloud.user = session.userId;
@@ -369,12 +382,15 @@ async function loadCloud({ initial = false }: any = {}) {
 		)
 			adoptWorkspace(value);
 		accountView();
+		return true;
 	} catch (error) {
-		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return;
+		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return false;
 		Cloud.connectionError = true;
 		if (!Cloud.user) app.renderCurrent(false);
 		if (error.status === 401 || error.status === 403) clearCloud({ retainDrafts: true });
-		if (!(initial && checkingSession && error.status === 401)) app.alert(error.message);
+		if (!quiet && !Cloud.refreshFeedback && !(initial && checkingSession && error.status === 401))
+			app.alert(error.message);
+		return false;
 	} finally {
 		Cloud.loading = false;
 		cloudConnection();
@@ -612,7 +628,7 @@ app.action = function (name?: any, id?: any, ...args: any[]) {
 		return;
 	}
 	if (name === "refresh" || name === "sync-retry") {
-		refreshWorkspace();
+		app.gestures.refresh();
 		return;
 	}
 	if (Cloud.pending && ["close", "back"].includes(name)) {
@@ -762,13 +778,21 @@ Panels.settings = function (app?: any, group?: any) {
 				: "");
 	return doc.innerHTML;
 };
-async function refreshWorkspace() {
-	if (sync.suspended) await loadCloud();
-	if (sync.pending.length) {
-		await sync.flush();
-		if (sync.pending.length) return;
+async function refreshWorkspace({ feedback = "default" } = {}) {
+	const quiet = feedback === "pull";
+	if (Cloud.refreshFeedback) return false;
+	Cloud.refreshFeedback = quiet;
+	if (quiet) cloudConnection();
+	try {
+		if (sync.suspended && !(await loadCloud({ quiet }))) return false;
+		if (sync.pending.length) {
+			await sync.flush();
+			if (sync.pending.length) return false;
+		}
+		return await loadCloud({ quiet });
+	} finally {
+		Cloud.refreshFeedback = false;
 	}
-	await loadCloud();
 }
 async function discardWorkspace() {
 	if (sync.busy || Cloud.busy || Cloud.discarding) return;

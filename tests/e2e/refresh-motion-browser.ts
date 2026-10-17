@@ -14,6 +14,7 @@ const browser = await chromium.launch({
 	...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
 });
 try {
+	fs.mkdirSync("tests/artifacts", { recursive: true });
 	for (const reducedMotion of ["no-preference", "reduce"] as const) {
 		const context = await browser.newContext({
 			viewport: { width: 390, height: 844 },
@@ -102,14 +103,44 @@ try {
 		await pull();
 		await page.waitForTimeout(1150);
 		assert.equal(await page.evaluate(() => window.__pullCalls), 1);
-		assert.equal(await page.locator(".pull-ring.is-spinning").count(), 0);
+		assert.equal(await page.locator(".pull-ring.is-spinning").count(), 1);
+		await page.screenshot({ path: `tests/artifacts/refresh-loading-${reducedMotion}.png` });
+		assert.equal(
+			await page.locator("main").evaluate((node) => (node as HTMLElement).style.translate),
+			"",
+			"cards return while the real request is pending",
+		);
+		assert.equal(await page.locator("#pull-ring").getAttribute("aria-busy"), "true");
+		assert.equal(
+			(await page.locator("#pull-ring").textContent()).trim(),
+			"",
+			"feedback is icon-only",
+		);
 		// Another actual touch stream while the first request is pending must not refresh.
 		await touch("touchStart");
 		await touch("touchMove", 360);
 		await touch("touchEnd");
 		assert.equal(await page.evaluate(() => window.__pullCalls), 1);
 		await page.evaluate(() => window.__finishPull());
-		await page.waitForTimeout(100);
+		await page.waitForTimeout(30);
+		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "success");
+		await page.waitForTimeout(550);
+		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "idle");
+		await page.evaluate(() => {
+			window.__app.refresh = async () => false;
+		});
+		await pull();
+		await page.waitForTimeout(30);
+		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "error");
+		await page.screenshot({ path: `tests/artifacts/refresh-retry-${reducedMotion}.png` });
+		assert.equal(await page.locator("#pull-ring").getAttribute("aria-label"), "刷新失败，重试");
+		await page.evaluate(() => {
+			window.__app.refresh = async () => true;
+		});
+		await page.locator("#pull-ring").press("Enter");
+		await page.waitForTimeout(30);
+		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "success");
+		await page.waitForTimeout(550);
 		await page.mouse.wheel(0, 400);
 		await page.waitForTimeout(300);
 		assert.ok((await page.evaluate(() => scrollY)) > 0, "ordinary scrolling remains available");

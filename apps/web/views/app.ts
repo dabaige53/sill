@@ -48,6 +48,7 @@ class AppController {
 	declare filter: any;
 	declare selected: any;
 	declare pendingCards: any;
+	declare pullRefreshFeedback: boolean;
 	declare refreshBusy: any;
 	declare openStacks: any;
 	declare modalKind: any;
@@ -1315,17 +1316,28 @@ class AppController {
 		menu.querySelector("button")?.focus({ preventScroll: true });
 	}
 	/* ——— Refresh, new content, reminders ——— */
-	async refresh() {
-		if (this.refreshBusy) return;
+	async refresh({ feedback = "default" } = {}) {
+		const quiet = feedback === "pull";
+		if (this.refreshBusy) return false;
 		this.refreshBusy = true;
+		this.pullRefreshFeedback = quiet;
 		// Background work shows as a thin arc around the face; success needs no sentence.
 		const dock = document.getElementById("dock"),
 			started = Date.now();
 		let finished = false;
-		dock.classList.add("is-busy");
+		if (!quiet) dock.classList.add("is-busy");
+		else {
+			dock.classList.remove("is-busy", "is-done");
+			for (const id of ["offline", "sync-status"]) {
+				const notice = document.getElementById(id);
+				if (notice) notice.hidden = true;
+			}
+		}
 		try {
-			if (window.__QG_LOCAL__) await LocalSync.refresh(true);
-			else {
+			if (window.__QG_LOCAL__) {
+				const result = await LocalSync.refresh(true);
+				if (result === false) return false;
+			} else {
 				// Demo: the next unseen sample arrives as new content; nothing jumps into the desk.
 				const next = FreshCards.find(
 					(f?: any) => !Store.card(f.id) && !this.pendingCards.some((p?: any) => p.id === f.id),
@@ -1343,23 +1355,29 @@ class AppController {
 					this.showNew(true);
 			}
 			this.paintPending();
-			this.announce(copy("web.app.2a004d94219c"));
+			if (!quiet) this.announce(copy("web.app.2a004d94219c"));
 			finished = true;
+			return true;
 		} catch (error) {
-			this.setOffline(true);
-			this.alert(copy("web.app.281583251761") + error.message);
+			if (!quiet) {
+				this.setOffline(true);
+				this.alert(copy("web.app.281583251761") + error.message);
+			}
+			return false;
 		} finally {
 			this.refreshBusy = false;
+			this.pullRefreshFeedback = false;
 			// The arc closes into a check for a moment: the refresh ran, with no sentence.
-			window.setTimeout(
-				() => {
-					dock.classList.remove("is-busy");
-					if (!finished) return;
-					dock.classList.add("is-done");
-					window.setTimeout(() => dock.classList.remove("is-done"), 900);
-				},
-				Math.max(0, 600 - (Date.now() - started)),
-			);
+			if (!quiet)
+				window.setTimeout(
+					() => {
+						dock.classList.remove("is-busy");
+						if (!finished) return;
+						dock.classList.add("is-done");
+						window.setTimeout(() => dock.classList.remove("is-done"), 900);
+					},
+					Math.max(0, 600 - (Date.now() - started)),
+				);
 		}
 	}
 	setOffline(on?: any) {
@@ -2187,11 +2205,10 @@ class AppController {
 				break;
 			}
 			case "refresh":
-				this.refresh();
+				this.gestures.refresh();
 				break;
 			case "retry":
-				document.getElementById("offline").classList.add("is-retrying");
-				this.refresh().then(() => this.setOffline(false));
+				this.gestures.refresh();
 				break;
 			case "show-new":
 				this.showNew();
@@ -2490,7 +2507,7 @@ class AppController {
 				break;
 			}
 			case "sync-retry":
-				this.refresh();
+				this.gestures.refresh();
 				break;
 			case "sync-export":
 				this.exportAll();
@@ -2810,7 +2827,7 @@ END:VCALENDAR
 			}
 			if (e.key === "r" || e.key === "R") {
 				e.preventDefault();
-				this.refresh();
+				this.gestures.refresh();
 				return;
 			}
 			if (e.key === "t" || e.key === "T") {

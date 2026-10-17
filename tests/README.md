@@ -13,7 +13,7 @@
 | 工具条收起、输入法、搜索与导航胶囊 | `npm run test:core`（`web/chrome.test.ts`） | JSDOM：向下滚动收起、抖动不触发、到顶到底与停下回来、键盘焦点回来；拼写中不筛选；搜索不显示数量；导航胶囊四格、镜片跟随、设置「添加」组、AI 面板没有可点动作 |
 | 内容保真与阅读密度 | `npm run build && npm run test:material-density` | 合成卡片：中等桌面列宽、紧凑五列上限、任务焦点、摘要原文、长要点与任务换行；1320px、390px、320px，截图在 `artifacts/material-density/` |
 | 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 真实 Tab、CDP touchCancel、迟到关闭、减少动态/透明度、增强对比、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
-| 下拉刷新所有权与请求锁 | `npm run build && node tests/e2e/refresh-motion-browser.ts` | 合成卡片、Chromium 触屏事件、普通及减少动态效果、取消、慢请求防重复、正常滚动；不代替 Safari/iPhone 实测 |
+| 下拉刷新图标反馈与请求锁 | `npm run build && node tests/e2e/refresh-motion-browser.ts` | 合成卡片、Chromium 触屏事件、普通及减少动态效果、轻阈值与取消、真实等待、成功勾与失败重试、慢请求防重复、正常滚动；云端错误不弹文字反馈；不代替 Safari/iPhone 实测 |
 | 单卡交给宿主助手 | `npm run test:core`、`npm run build:cloud && npm run test:cloud-app-browser` | 真实 SDK 协议的 sandbox 宿主模拟：能力协商、账号条件、单次发送、回执未知、手动复制回退、外链确认与明确拒绝的草稿恢复；不发送真实对话 |
 | 云端服务 | `npm run test:supabase`、`npm run test:cloud-app` | 本地检查不代替生产数据和账号验收 |
 | OAuth | `npm run test:oauth` | 真实授权另行验收 |

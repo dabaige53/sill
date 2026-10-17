@@ -64,7 +64,7 @@ const LocalSync: Record<string, any> = {
 			bar.setAttribute("aria-label", copy("web.localsync.850476dde139"));
 			document.querySelector("main").prepend(bar);
 		}
-		bar.hidden = !message;
+		bar.hidden = !!this.app?.pullRefreshFeedback || !message;
 		if (message)
 			bar.innerHTML = `<span role="status">${esc(message)}</span> <button type="button" class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button> <button type="button" class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button> <button type="button" class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
 	},
@@ -141,9 +141,9 @@ const LocalSync: Record<string, any> = {
 		} catch (error) {
 			this.failed = true;
 			app.grid.dataset.sync = "error";
-			app.setOffline(true);
+			if (!app.pullRefreshFeedback) app.setOffline(true);
 			this.status(copy("web.localsync.915294ca4e9a"));
-			app.toast(copy("web.localsync.d32966c7535e") + error.message);
+			if (!app.pullRefreshFeedback) app.toast(copy("web.localsync.d32966c7535e") + error.message);
 		}
 	},
 	capture() {
@@ -239,22 +239,28 @@ const LocalSync: Record<string, any> = {
 					(this.durable ? copy("web.localsync.70a127f4ad3b") : copy("web.localsync.a6df691251ec")),
 			);
 			this.app.grid.dataset.sync = "error";
-			this.app.setOffline(true);
-			this.app.toast(
-				copy("web.localsync.1f2cebc0e229") +
-					error.message +
-					(this.durable ? copy("web.localsync.6977ea101328") : copy("web.localsync.6851027b3171")),
-			);
+			if (!this.app.pullRefreshFeedback) this.app.setOffline(true);
+			if (!this.app.pullRefreshFeedback)
+				this.app.toast(
+					copy("web.localsync.1f2cebc0e229") +
+						error.message +
+						(this.durable
+							? copy("web.localsync.6977ea101328")
+							: copy("web.localsync.6851027b3171")),
+				);
 		} finally {
 			this.busy = false;
 		}
 	},
 	async refresh(manual: any = false) {
 		if (!this.ready) {
-			if (manual) return this.connect(this.app);
+			if (manual) {
+				await this.connect(this.app);
+				return !!this.ready && !this.failed;
+			}
 			throw new Error(copy("web.localsync.e43a56d649b4"));
 		}
-		if (this.busy) return;
+		if (this.busy) return false;
 		if (this.failed && !manual) return;
 		if (manual) this.failed = false;
 		if (this.pending.length) {
@@ -263,7 +269,7 @@ const LocalSync: Record<string, any> = {
 			return;
 		}
 		// Keep an editor's original values until its save can be checked for conflicts.
-		if (this.app.modalKind === "editor" || this.app.editingId) return;
+		if (this.app.modalKind === "editor" || this.app.editingId) return false;
 		const value = await this.request("state");
 		if (
 			!this.busy &&

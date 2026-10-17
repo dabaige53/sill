@@ -1579,9 +1579,9 @@ input[type="search"]::-webkit-search-cancel-button {
 	left: 50%;
 	top: 0;
 	z-index: 50;
-	width: 40px;
-	height: 40px;
-	margin-left: -20px;
+	width: 36px;
+	height: 36px;
+	margin-left: -18px;
 	border-radius: 50%;
 	display: grid;
 	place-items: center;
@@ -1591,10 +1591,10 @@ input[type="search"]::-webkit-search-cancel-button {
 	color: var(--accent);
 	transition:
 		opacity 200ms,
-		translate 220ms var(--ease);
+		translate 180ms var(--ease);
 }
 main {
-	transition: translate 260ms var(--ease);
+	transition: translate 180ms var(--ease);
 }
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {
@@ -1621,11 +1621,44 @@ body.is-pulling .pull-ring {
 	stroke-dasharray: 100;
 	stroke-dashoffset: 100;
 }
-.pull-ring.is-spinning svg {
+.pull-ring.is-spinning .pull-progress {
 	animation: orb-arc 0.8s linear infinite;
 }
 .pull-ring.is-spinning circle {
 	stroke-dashoffset: 30 !important;
+}
+/* One icon owns each phase. Text remains in accessible labels only. */
+.pull-ring:disabled {
+	opacity: 1;
+	cursor: default;
+}
+.pull-ring > svg {
+	grid-area: 1 / 1;
+}
+.pull-ring .pull-check,
+.pull-ring .pull-retry {
+	display: none;
+	transform: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.pull-ring[data-state="success"] .pull-progress,
+.pull-ring[data-state="error"] .pull-progress {
+	display: none;
+}
+.pull-ring[data-state="success"] .pull-check,
+.pull-ring[data-state="error"] .pull-retry {
+	display: block;
+}
+.pull-ring[data-state="error"] {
+	pointer-events: auto;
+}
+.pull-ring:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 4px;
 }
 /* Read end: nothing at the end itself. Pushing on raises a small ring that fills with the push; full, it turns into a check. */
 .reader-end {
