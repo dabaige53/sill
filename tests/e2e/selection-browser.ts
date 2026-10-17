@@ -259,7 +259,7 @@ try {
 				.screenshot({ path: path.join(artifacts, screenshot), animations: "disabled" })
 				.catch(() => {});
 			results.push({ name, status: "FAIL", error: error.message, screenshot, errors, external });
-			console.error("FAIL", name, error.message);
+			console.error("FAIL", name, error.stack || error.message);
 		} finally {
 			await context.close();
 		}
@@ -684,8 +684,16 @@ try {
 				"selection-02",
 			]);
 			await page.keyboard.press("Escape");
-			assert.equal(await page.locator("#filter-search").isVisible(), true);
+			assert.equal(
+				await page.locator("#filter-search").isVisible(),
+				true,
+				"first Escape clears search selection without leaving search",
+			);
 			assert.deepEqual(await page.evaluate(() => [...window.__app.searchSelected]), []);
+			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);
+			await page.keyboard.press("Escape");
+			assert.equal(await page.locator("#modal[open]").count(), 0);
+			assert.deepEqual(await selection(page), ["selection-03"]);
 		},
 		desktop,
 	);

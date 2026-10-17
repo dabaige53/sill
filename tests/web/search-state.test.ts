@@ -87,6 +87,36 @@ test("search filters all shelves independently of the home projection", () => {
 	}
 });
 
+test("Escape clears only search selection before a second Escape leaves the search page", () => {
+	const f = fixture();
+	try {
+		f.app.homeSelected.add("b");
+		f.app.searchSelected.add("a");
+		f.app.closeNative = () => {
+			f.app.dialog.close();
+			f.app.modalKind = "";
+		};
+		const pressEscape = () =>
+			f.app.key({
+				key: "Escape",
+				target: f.app.dialog.querySelector("#filter-search"),
+				preventDefault() {},
+			});
+		pressEscape();
+		assert.equal(f.app.dialog.open, true, "first Escape keeps the search page open");
+		assert.equal(f.app.modalKind, "search");
+		assert.equal(f.w.location.hash, "#search");
+		assert.deepEqual([...f.app.searchSelected], []);
+		assert.deepEqual([...f.app.homeSelected], ["b"]);
+		pressEscape();
+		assert.equal(f.app.dialog.open, false);
+		assert.equal(f.w.location.hash, "#feed");
+		assert.deepEqual([...f.app.homeSelected], ["b"]);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("a card drawer retains the exact search nodes, query, scroll and focus", () => {
 	const f = fixture();
 	try {
@@ -114,6 +144,40 @@ test("a card drawer retains the exact search nodes, query, scroll and focus", ()
 		f.dom.window.close();
 	}
 });
+
+for (const action of ["snooze", "dismiss-reminder", "complete-reminder", "restore-reminder"])
+	test(`${action} from a search detail restores the search route and retained results`, () => {
+		const f = fixture();
+		try {
+			f.app.searchFilter.query = "Beta";
+			f.app.dialog.innerHTML = f.Panels.search(f.app);
+			const results = f.app.dialog.querySelector("#search-results");
+			results.scrollTop = 120;
+			f.app.suspendSearch();
+			f.app.dialog.innerHTML = '<h1 id="modal-title">Task detail</h1>';
+			f.app.modalKind = "preview";
+			f.app.currentId = "b";
+			f.app.dialog.show();
+			f.w.history.replaceState({ glass: true, prev: "#search" }, "", "#card/b");
+			f.app.lastRouteHash = "#card/b";
+			f.w.HTMLElement.prototype.getAnimations = () => [];
+			f.app.pauseMedia = () => {};
+			f.app.withFeedAnchor = () => {};
+			f.app.checkReminders = () => {};
+			f.app.toast = () => {};
+			f.app.changeReminder("b", action);
+			assert.equal(f.w.location.hash, "#search");
+			assert.equal(f.app.lastRouteHash, "#search");
+			assert.equal(f.app.modalKind, "search");
+			assert.equal(f.app.dialog.open, true);
+			assert.equal(f.app.dialog.querySelector("#search-results"), results);
+			assert.equal(results.scrollTop, 120);
+			assert.equal(f.app.dialog.querySelector("#filter-search").value, "Beta");
+			assert.equal(f.app.searchBackground, undefined);
+		} finally {
+			f.dom.window.close();
+		}
+	});
 
 test("home and search render the same shared completion and reading state", () => {
 	const f = fixture();

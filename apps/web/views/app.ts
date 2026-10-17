@@ -1880,10 +1880,7 @@ class AppController {
 		Store.patch(id, patch);
 		this.selected.delete(id);
 		// End the active preview before refreshing its source card state.
-		if (this.dialog.open) {
-			history.replaceState({ glass: true, prev: null }, "", "#" + this.baseMode);
-			this.closeNative(false);
-		}
+		if (this.dialog.open) this.closeToDesk(false);
 		this.withFeedAnchor(() => {}, true);
 		this.checkReminders();
 		const card = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
@@ -3078,16 +3075,16 @@ END:VCALENDAR
 			this.closeMore(true);
 			return;
 		}
-		// A page is not modal, so Escape is handled here: it returns home.
+		if (e.key === "Escape" && this.modalKind === "search" && this.selected.size) {
+			e.preventDefault();
+			this.action("clear-selection");
+			return;
+		}
+		// Search selection gets the first Escape; only then does a page return home.
 		if (e.key === "Escape" && this.dialog.open && this.dialog.classList.contains("page")) {
 			e.preventDefault();
 			if (this.searchBackground) this.closeNative();
 			else this.goTo("home");
-			return;
-		}
-		if (e.key === "Escape" && this.modalKind === "search" && this.selected.size) {
-			e.preventDefault();
-			this.action("clear-selection");
 			return;
 		}
 		if (e.key === "Escape" && this.modalKind === "search") {

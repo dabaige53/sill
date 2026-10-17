@@ -135,7 +135,7 @@ try {
 			await page.screenshot({
 				path: path.join(artifacts, `drawer-failure-${results.length}.png`),
 			});
-			console.error("FAIL", name, error.message);
+			console.error("FAIL", name, error.stack || error.message);
 		} finally {
 			await context.close();
 		}
@@ -155,7 +155,13 @@ try {
 				}));
 				await page.keyboard.press("Control+k");
 				await page.locator("#filter-search").fill("阅读");
-				await page.waitForTimeout(200);
+				await page.waitForFunction(
+					() =>
+						window.__app.searchFilter.query === "阅读" &&
+						document.querySelectorAll("#search-results .feed-card").length === 38,
+					undefined,
+					{ timeout: 3000 },
+				);
 				assert.equal(await page.locator("#search-results .feed-card").count(), 38);
 				assert.deepEqual(
 					await page.evaluate(() =>
