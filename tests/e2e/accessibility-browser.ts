@@ -275,7 +275,7 @@ try {
 		{ viewport: { width: 390, height: 844 } },
 	);
 	await scenario(
-		"Keyboard task and source changes retain focus; radio arrows and shortcut opt-out work",
+		"Keyboard task and preference changes retain focus; radio arrows and shortcut opt-out work",
 		async (page?: any) => {
 			await open(page, "task-01");
 			const task = page.locator("#modal [data-action=task][data-extra=t2]");
@@ -293,19 +293,28 @@ try {
 				"t3",
 			);
 			await close(page);
-			await page.evaluate(() => __app.openPanel("sources"));
-			await settle(page);
-			const source = page.locator("[data-action=source-toggle]").first();
-			await source.focus();
-			const id = await source.getAttribute("data-id");
+			const settings = page
+				.getByRole("navigation", { name: "主导航" })
+				.getByRole("button", { name: "设置", exact: true });
+			await settings.waitFor({ state: "visible" });
+			await settings.focus();
+			await page.keyboard.press("Enter");
+			const preference = page.getByRole("switch", { name: "读过的卡片慢慢变淡", exact: true });
+			await preference.waitFor();
+			await preference.focus();
+			const previous = await preference.getAttribute("aria-checked");
 			await page.keyboard.press("Space");
+			assert.notEqual(await preference.getAttribute("aria-checked"), previous);
 			assert.equal(
 				await page.evaluate(() => (document.activeElement as HTMLElement).dataset.id),
-				id,
+				"fadeRead",
 			);
-			await close(page);
-			await page.evaluate(() => __app.action("settings"));
-			await page.locator("[data-action=settings-group][data-extra=look]").click();
+			assert.equal(
+				await page.evaluate(() => __store.pref("fadeRead")),
+				(await preference.getAttribute("aria-checked")) === "true",
+			);
+			await page.locator("[data-action=settings-group][data-extra=look]").focus();
+			await page.keyboard.press("Enter");
 			const radios = page.getByRole("radiogroup", { name: "主题" });
 			await radios.locator('[tabindex="0"]').focus();
 			await page.keyboard.press("ArrowRight");
@@ -324,60 +333,104 @@ try {
 					if (!card?.isConnected) return false;
 					const raw = getComputedStyle(card).transitionDuration;
 					if (!raw) return false;
-					return raw
-						.split(",")
-						.map((t?: any) => parseFloat(t) * (t.trim().endsWith("ms") ? 1 : 1000));
+					return {
+						durations: raw
+							.split(",")
+							.map((t?: any) => parseFloat(t) * (t.trim().endsWith("ms") ? 1 : 1000)),
+						properties: getComputedStyle(card)
+							.transitionProperty.split(",")
+							.map((value) => value.trim()),
+					};
 				},
 				null,
 				{ timeout: 5000 },
 			);
-			const durations = await measured.jsonValue();
+			const { durations, properties } = await measured.jsonValue();
 			await measured.dispose();
 			assert.ok(
-				durations.length > 0 && durations.every((ms?: any) => Number.isFinite(ms) && ms <= 1),
+				durations.length > 0 &&
+					durations.every((ms?: any) => Number.isFinite(ms) && Math.abs(ms - 70) < 0.1),
 				`reduced-motion transition durations in ms: ${durations}`,
+			);
+			assert.ok(
+				properties.every((property: string) =>
+					["opacity", "background-color", "color", "border-color", "box-shadow"].includes(property),
+				),
+				`reduced-motion must not transition geometry: ${properties}`,
 			);
 			await page.locator("[data-action=settings-group][data-extra=keys]").click();
 			await page.getByRole("switch", { name: "单键快捷键 N / R / T" }).click();
 			await close(page);
 			await page.keyboard.press("n");
-			assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), false);
+			assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), false);
 			await page.keyboard.press("Control+k");
 			assert.equal(await page.getByRole("dialog", { name: "搜索与筛选" }).count(), 1);
 		},
 	);
 	await scenario(
-		"All import entries are reviewable; mixed input is explicitly accounted for",
+		"Keyboard navigation reaches settings Add, persists a note, and exposes no removed source or import entries",
 		async (page?: any) => {
-			const csv =
-				"title,url\n" +
-				Array.from({ length: 8 }, (_?: any, i?: any) => `同名验收,https://example.com/${i}`).join(
-					"\n",
+			// ADR 0033 removes sources and imports; ADR 0035 keeps four places and moves Add into settings.
+			const removed = page.locator(
+				'#file-input,[data-action="sources"],[data-action="source-toggle"],[data-action="import"],[data-action="import-run"],[data-action="import-toggle"],[data-action="settings-group"][data-extra="sources"]',
+			);
+			assert.equal(await removed.count(), 0);
+			const nav = page.getByRole("navigation", { name: "主导航" });
+			assert.deepEqual(
+				await nav
+					.locator(".nav-tab")
+					.evaluateAll((nodes: HTMLElement[]) => nodes.map((node) => node.dataset.extra)),
+				["home", "search", "ai", "settings"],
+			);
+			assert.equal(await nav.locator('[data-action="capture"]').count(), 0);
+			await nav.getByRole("button", { name: "主页", exact: true }).focus();
+			for (const key of ["search", "ai", "settings"]) {
+				await page.keyboard.press("Tab");
+				assert.equal(
+					await page.evaluate(() => (document.activeElement as HTMLElement).dataset.extra),
+					key,
 				);
-			await page.locator("#file-input").setInputFiles([
-				{ name: "audit.csv", mimeType: "text/csv", buffer: Buffer.from(csv) },
-				{ name: "audit.md", mimeType: "text/markdown", buffer: Buffer.from("# 单独导入\n正文") },
-			]);
-			await page.locator("#modal [role=checkbox]").nth(7).waitFor();
-			assert.equal(await page.locator("#modal [role=checkbox]").count(), 8);
-			assert.match(await page.locator("#modal").innerText(), /未纳入：audit.md/);
-			await page.locator('[data-action=import-toggle][data-extra="7"]').click();
+			}
+			await page.keyboard.press("Enter");
+			const groups = page.getByRole("navigation", { name: "设置分组" });
+			await groups.waitFor();
+			assert.equal(await groups.getByRole("button").first().getAttribute("data-extra"), "add");
+			await groups.locator('[data-extra="data"]').focus();
+			await page.keyboard.press("Enter");
+			await page.locator('[data-action="export-all"]').waitFor();
+			assert.equal(await removed.count(), 0, "data settings must not reintroduce file import");
+			await groups.getByRole("button", { name: "添加", exact: true }).focus();
+			await page.keyboard.press("Enter");
+			assert.equal(await removed.count(), 0);
+			for (const key of ["desk", "look", "keys", "data"]) {
+				await page.keyboard.press("Tab");
+				assert.equal(
+					await page.evaluate(() => (document.activeElement as HTMLElement).dataset.extra),
+					key,
+				);
+			}
+			await page.keyboard.press("Tab");
+			assert.equal(await page.evaluate(() => document.activeElement.id), "capture-text");
 			assert.equal(
-				await page
-					.locator('[data-action=import-toggle][data-extra="7"]')
-					.getAttribute("aria-checked"),
-				"false",
+				await page.getByRole("textbox", { name: "记一笔，或粘贴链接", exact: true }).count(),
+				1,
 			);
-			await page.locator("[data-action=import-run]").click();
-			await page.getByText("导入 7 张", { exact: true }).waitFor();
+			await page.keyboard.insertText("键盘添加验收笔记");
+			await page.keyboard.press("Tab");
 			assert.equal(
-				await page.evaluate(
-					() =>
-						__store.state.cards.filter((c?: any) => c.url?.startsWith("https://example.com/"))
-							.length,
-				),
-				7,
+				await page.evaluate(() => (document.activeElement as HTMLElement).dataset.action),
+				"capture-save",
 			);
+			await page.keyboard.press("Enter");
+			await page.waitForFunction(
+				() =>
+					!document.querySelector("dialog").open &&
+					(document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved",
+			);
+			await page.getByRole("button", { name: "键盘添加验收笔记", exact: true }).waitFor();
+			await page.reload();
+			await page.getByRole("button", { name: "键盘添加验收笔记", exact: true }).waitFor();
+			assert.equal(await removed.count(), 0);
 		},
 	);
 	await scenario(
@@ -455,7 +508,7 @@ try {
 				await page.emulateMedia({ reducedMotion: "reduce" });
 				await page.keyboard.press("n");
 				await page.waitForTimeout(150);
-				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), true);
+				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
 				await close(page);
 			},
 			{ viewport: { width, height: 900 } },

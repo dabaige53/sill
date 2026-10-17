@@ -1,10 +1,11 @@
 import { button, esc } from "./atoms/primitives.ts";
 import { copy } from "./copy.ts";
-import { cloudCard, cloudCardChanges } from "./data/cloud-card.ts";
 import { demoBase, SeedCards, SeedItems } from "./data/cards.ts";
-import { CloudSync, clone } from "./services/cloud-sync.ts";
+import { cloudCard, cloudCardChanges } from "./data/cloud-card.ts";
 import { Store } from "./data/store.ts";
 import { Panels, welcomeHTML } from "./interactions/panels.ts";
+import { agentFailure } from "./services/agent-handoff.ts";
+import { CloudSync, clone } from "./services/cloud-sync.ts";
 import { AppController } from "./views/app.ts";
 
 /* Authenticated cloud build only. No credentials or private cards in browser storage. */
@@ -70,6 +71,20 @@ function cloudWelcome() {
 	});
 }
 const app = new AppController();
+app.agentScope = () => {
+	if (!Cloud.user) throw agentFailure("account_unavailable", copy("web.agent.disconnected"));
+	return { kind: "cloud", owner: Cloud.user };
+};
+app.readAgentCard = async (id, scope) => {
+	if (scope.kind !== "cloud" || scope.owner !== Cloud.user)
+		throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+	const card = await cloudApi("/api/v1/contents/" + encodeURIComponent(id), {
+		headers: { "X-Sill-Owner": scope.owner },
+	});
+	if (scope.owner !== Cloud.user || (card.owner_id && card.owner_id !== scope.owner))
+		throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+	return card;
+};
 const originalDeskHTML = app.deskHTML.bind(app);
 app.deskHTML = function () {
 	if (!Cloud.user || !Store.state.cards.length) return cloudWelcome();
@@ -100,7 +115,7 @@ const sync = new CloudSync({
 			sync.suspended = true;
 			clearCloud({ retainDrafts: true });
 		}
-		app.toast(error.message);
+		app.alert(error.message);
 	},
 });
 Store.save = () => {
@@ -123,6 +138,8 @@ Store.patch = (id: any, values: any) => {
 		persistentPatch(id, values);
 };
 const messages: Record<string, any> = {
+	invalid_request: copy("web.agent.invalidRequest"),
+	cursor_expired: copy("web.agent.cursorExpired"),
 	rate_limited: copy("web.cloudentry.040740f33308"),
 	unauthenticated: copy("web.cloudentry.18b4f39557c3"),
 	forbidden: copy("web.cloudentry.09bd4dab7584"),
@@ -181,15 +198,22 @@ async function cloudApi(path?: any, options: any = {}) {
 }
 function accountView() {
 	document.body.classList.toggle("cloud-signed-in", !!Cloud.user);
+	// The rail face shows the signed-in person's initial when the session names them; otherwise a neutral person.
+	window.__SILL_ACCOUNT__ = Cloud.user ? Cloud.displayName || "" : "";
+	app.paintAccount?.();
 }
 
 function clearCloud({ retainDrafts = false }: any = {}) {
+	app.drag?.cancel();
+	app.selected.clear();
+	app.updateSelection();
 	if (retainDrafts) stashCloudDraft();
 	const keepEditor =
 		retainDrafts && app.modalKind === "cloud-editor" && Cloud.drafts.has(Cloud.edit?.id || "new");
 	Cloud.lastOwner = Cloud.user || Cloud.lastOwner;
 	Cloud.epoch++;
 	Cloud.user = null;
+	Cloud.displayName = "";
 	Cloud.pending = null;
 	Cloud.connectionError = retainDrafts;
 	Cloud.records.clear();
@@ -220,8 +244,8 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 	}
 }
 function cloudConnection() {
-	const refresh = document.querySelector(".dock-tools [data-action=refresh]");
-	refresh?.setAttribute("aria-busy", String(Cloud.loading));
+	// Loading shows as the thin arc around the face; there is no refresh button.
+	document.getElementById("dock")?.classList.toggle("is-busy", !!Cloud.loading);
 	const offline = document.getElementById("offline");
 	offline.dataset.action = "refresh";
 	offline.hidden = !Cloud.connectionError || !Cloud.user;
@@ -332,6 +356,7 @@ async function loadCloud({ initial = false }: any = {}) {
 		Cloud.connectionError = false;
 		Cloud.scopes = session.scopes || null;
 		Cloud.user = session.userId;
+		Cloud.displayName = session.name || session.email || "";
 		if (sync.suspended && sync.owner === Cloud.user) {
 			// Authentication cleared the view, not the user's optimistic edits.
 			const optimistic = sync.resume(Cloud.user);
@@ -349,7 +374,7 @@ async function loadCloud({ initial = false }: any = {}) {
 		Cloud.connectionError = true;
 		if (!Cloud.user) app.renderCurrent(false);
 		if (error.status === 401 || error.status === 403) clearCloud({ retainDrafts: true });
-		if (!(initial && checkingSession && error.status === 401)) app.toast(error.message);
+		if (!(initial && checkingSession && error.status === 401)) app.alert(error.message);
 	} finally {
 		Cloud.loading = false;
 		cloudConnection();
@@ -626,7 +651,7 @@ app.action = function (name?: any, id?: any, ...args: any[]) {
 			(Cloud.scopes &&
 				!Cloud.scopes.includes(name === "clear-confirm" ? "content:delete" : "content:write")))
 	) {
-		app.toast(messages.forbidden);
+		app.alert(messages.forbidden);
 		return;
 	}
 	if (name === "sync-export") {
@@ -758,6 +783,7 @@ async function discardWorkspace() {
 		if (epoch !== Cloud.epoch || version !== Cloud.writeVersion || sync.busy) return;
 		sync.reset();
 		Cloud.user = session.userId;
+		Cloud.displayName = session.name || session.email || "";
 		Cloud.scopes = session.scopes;
 		adoptWorkspace(value);
 		syncStatus();
@@ -852,7 +878,11 @@ document.addEventListener("click", async (e?: any) => {
 	}
 	if (target.id === "cloud-logout") {
 		if (window.__SILL_HOST__) {
-			await window.__SILL_HOST__.manageAccess();
+			try {
+				await window.__SILL_HOST__.manageAccess();
+			} catch (error) {
+				app.alert(error.message || copy("web.agent.linkUnknown"));
+			}
 			return;
 		}
 		if (Cloud.drafts.size || sync.pending.length) {

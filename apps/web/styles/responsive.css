@@ -1,15 +1,92 @@
 /* Sill · responsive · shared source */
-body.opaque .glass,
-body.opaque .dock-tools .icon-button,
-body.opaque #orb {
+/* Every functional glass surface, including the separate selection menu, shares the fallback. */
+@media (prefers-contrast: more) {
+	.glass,
+	.selection-options {
+		background: var(--glass-thick);
+	}
+}
+body.opaque :is(.glass, .selection-options) {
 	background: var(--card);
 	backdrop-filter: none;
 	-webkit-backdrop-filter: none;
+	box-shadow:
+		0 0 0 1px var(--line-hover),
+		var(--shadow-glass);
 }
-@supports not (backdrop-filter: blur(1px)) {
+body.opaque .nav-lens {
+	--lens-highlight: var(--surface);
+	background: var(--surface);
+	box-shadow: inset 0 0 0 1px var(--line-hover);
+}
+body.opaque .scroll-edge {
+	display: none;
+}
+body.opaque :is(#modal.search, #selection-menu)::backdrop {
+	background: var(--canvas);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+@media (prefers-reduced-transparency: reduce) {
 	.glass,
-	.dock-tools .icon-button {
+	.selection-options {
 		background: var(--card);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
+	.scroll-edge {
+		display: none;
+	}
+	#modal.search::backdrop,
+	#selection-menu::backdrop {
+		background: var(--canvas);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.glass,
+	.selection-options {
+		background: var(--card);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
+	#modal.search::backdrop,
+	#selection-menu::backdrop {
+		background: var(--canvas);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+@media (prefers-contrast: more) {
+	.glass,
+	.selection-options,
+	body.opaque :is(.glass, .selection-options) {
+		box-shadow:
+			0 0 0 1px var(--ink),
+			var(--shadow-glass);
+	}
+	.nav-lens,
+	body.opaque .nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--ink);
 	}
 }
 @media (max-width: 1000px) {
@@ -57,6 +134,12 @@ body.opaque #orb {
 	.feed-card .card-body > :last-child {
 		padding-right: 32px;
 	}
+	/* The selection circle takes the place of the phone's ••• at the bottom right, clear of the head. */
+	.selected-tick {
+		top: auto;
+		right: 14px;
+		bottom: 14px;
+	}
 	.card-more-menu,
 	.card-more-leaving {
 		top: auto;
@@ -83,8 +166,25 @@ body.opaque #orb {
 		--rail-edge: 16px;
 		--rail-bottom: max(16px, env(safe-area-inset-bottom));
 	}
+	/* Phone rail: a compact capsule in the middle, icons only; the names stay for screen readers. */
+	:root {
+		--nav-tab: 60px;
+	}
+	.nav-label {
+		display: none;
+	}
+	.nav-icon {
+		height: 30px;
+	}
+	.nav-icon > .icon {
+		width: 24px;
+		height: 24px;
+	}
+	#dock:has(#selection-bar:not([hidden])) #selection-bar {
+		flex: 1;
+	}
 	/* Too narrow for both: while selecting, the bar takes the whole row. */
-	#dock:has(#selection-bar:not([hidden])) .orb-wrap {
+	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
 		display: none;
 	}
 	#dock #selection-bar {
@@ -148,17 +248,34 @@ body.opaque #orb {
 	#modal.preview .preview-sheet .sheet-scroll {
 		flex: 1;
 		max-height: none;
-		padding-bottom: 110px;
 	}
-	#modal.preview .float-bar {
-		transition:
-			transform 240ms var(--ease),
-			opacity 240ms,
-			translate 360ms var(--ease-sheet);
+	/* The half-height sheet extends 64px below the viewport even when it has no toolbar. */
+	#modal.preview .preview-sheet:not(.is-full) .sheet-scroll {
+		padding-bottom: 64px;
+		scroll-padding-bottom: calc(64px + var(--gap));
 	}
-	#modal.preview .float-bar.is-hidden {
-		transform: translateY(120%);
-		opacity: 0;
+	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(var(--rail-row) + 48px + env(safe-area-inset-bottom));
+		scroll-padding-bottom: calc(var(--rail-row) + 48px + env(safe-area-inset-bottom));
+	}
+	#modal.preview .preview-sheet {
+		max-height: none;
+	}
+	.sheet-head {
+		height: 60px;
+		padding: 0 12px;
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+	}
+	.sheet-head .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 -18px;
 	}
 	#modal.preview[open] {
 		gap: 0;
@@ -179,17 +296,27 @@ body.opaque #orb {
 		background: var(--faint);
 		margin: 8px auto 0;
 	}
-	#modal.preview .float-bar {
+	#modal.preview > .float-bar {
 		position: fixed;
-		left: 16px;
-		right: 16px;
-		bottom: max(16px, env(safe-area-inset-bottom));
-		width: auto;
-		justify-content: space-between;
+		left: 0;
+		right: 0;
+		bottom: var(--rail-bottom);
+		margin-inline: auto;
 		z-index: 3;
 	}
+	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+		height: calc(var(--rail-row) + 56px + env(safe-area-inset-bottom));
+	}
+	/* At half height the sheet hangs 64px below the screen; its scroll edge stays at the screen's foot. */
+	#modal.preview:has(> .float-bar) > .preview-sheet:not(.is-full):after {
+		bottom: 64px;
+	}
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
+	}
 	#modal.preview .push-ring {
-		bottom: 150px;
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 	}
 	.preview-body {
 		padding: 18px 20px 22px;
@@ -236,11 +363,93 @@ body.opaque #orb {
 	.settings-main {
 		padding: 20px 16px;
 		max-height: 70dvh;
-		border-top: 1px solid var(--line);
 	}
 
+	/* Phone search sits at the bottom, in thumb reach, and rides on top of the keyboard.
+	   Results grow upward from the field; filters sit just above it. */
 	#modal.search {
-		margin: 12px auto auto;
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+		margin: 0;
+		padding: 16px var(--rail-edge) calc(var(--kb, 0px) + var(--rail-bottom));
+		justify-content: flex-end;
+		gap: 10px;
+	}
+	#modal.search .search-results {
+		order: 0;
+		flex: 0 1 auto;
+		min-height: 0;
+		max-height: none;
+	}
+	#modal.search .search-chips {
+		order: 1;
+		flex: none;
+	}
+	#modal.search .search-pill {
+		order: 2;
+		flex: none;
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	#modal.panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	body.keyboard-open #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
+	}
+	/* Phone places are pages: they fill the screen under the capsule, which stays.
+	   No grabber, no close button, no dim; the capsule is how you leave. */
+	#modal.page,
+	#modal.page.panel,
+	#modal.page.panel.wide,
+	#modal.page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	#modal.page :is(.grabber, .sheet-close) {
+		display: none;
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		padding: calc(12px + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+		animation: none;
+	}
+	/* AI has one short note: it sits in the middle of the page. */
+	#modal.page.panel .sheet:has(.ai-soon) {
+		display: grid;
+		place-items: center;
+	}
+	#modal.page.search {
+		inset: 0;
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge)
+			calc(var(--rail-bottom) + var(--rail-row) + 16px);
+	}
+	body.keyboard-open #modal.page.search {
+		padding-bottom: calc(var(--kb, 0px) + var(--rail-bottom));
 	}
 	.search-chips {
 		justify-content: flex-start;
@@ -274,38 +483,30 @@ body.opaque #orb {
 	html {
 		scroll-behavior: auto;
 	}
-}
-body.reduce-motion,
-body.reduce-motion * {
-	scroll-behavior: auto !important;
-}
-@media (prefers-reduced-motion: reduce) {
 	*,
 	*:before,
-	*:after {
+	*:after,
+	*::backdrop {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
+		transition-property: opacity, background-color, color, border-color, box-shadow !important;
+		transition-duration: var(--dur-reduced) !important;
+		transition-timing-function: linear !important;
+		transition-delay: 0s !important;
 	}
 }
+body.reduce-motion,
 body.reduce-motion *,
 body.reduce-motion *:before,
-body.reduce-motion *:after {
+body.reduce-motion *:after,
+body.reduce-motion *::backdrop {
+	scroll-behavior: auto !important;
 	animation-duration: 0.01ms !important;
 	animation-iteration-count: 1 !important;
-	transition-duration: 0.01ms !important;
-}
-@media (prefers-reduced-transparency: reduce) {
-	.glass,
-	.dock-tools .icon-button {
-		background: var(--card);
-		backdrop-filter: none;
-		-webkit-backdrop-filter: none;
-	}
-	dialog::backdrop {
-		backdrop-filter: none;
-		-webkit-backdrop-filter: none;
-	}
+	transition-property: opacity, background-color, color, border-color, box-shadow !important;
+	transition-duration: var(--dur-reduced) !important;
+	transition-timing-function: linear !important;
+	transition-delay: 0s !important;
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
 	body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item:hover {
@@ -313,11 +514,62 @@ body.reduce-motion *:after {
 	}
 }
 
-body.reduce-motion,
-body.reduce-motion *,
-body.reduce-motion *:before,
-body.reduce-motion *:after {
-	animation-duration: 0.01ms !important;
-	animation-iteration-count: 1 !important;
-	transition-duration: 0.01ms !important;
+/* Fades preserve the layout and control state. Show visibility immediately so Tab can enter. */
+@media (prefers-reduced-motion: reduce) {
+	#dock,
+	dialog > .float-bar,
+	.reader-head,
+	.sheet-head-tools {
+		transform: none !important;
+		transition:
+			opacity var(--dur-reduced) linear,
+			visibility 0s !important;
+	}
+	#dock.is-tucked,
+	dialog > .float-bar:is(.is-tucked, .is-hidden),
+	.reader-head.is-tucked,
+	.sheet-head-tools.is-tucked {
+		transition-delay: 0s, var(--dur-reduced) !important;
+	}
+	.icon-button:active,
+	.account-button:active,
+	.solid-button:active,
+	.feed-card:not(.stack-card):active:not(:has(button:active)) {
+		transform: none;
+	}
+	.nav-lens {
+		animation: none !important;
+		scale: none;
+	}
+	.nav-tab:active .nav-icon {
+		scale: none;
+	}
+}
+body.reduce-motion #dock,
+body.reduce-motion dialog > .float-bar,
+body.reduce-motion .reader-head,
+body.reduce-motion .sheet-head-tools {
+	transform: none !important;
+	transition:
+		opacity var(--dur-reduced) linear,
+		visibility 0s !important;
+}
+body.reduce-motion #dock.is-tucked,
+body.reduce-motion dialog > .float-bar:is(.is-tucked, .is-hidden),
+body.reduce-motion .reader-head.is-tucked,
+body.reduce-motion .sheet-head-tools.is-tucked {
+	transition-delay: 0s, var(--dur-reduced) !important;
+}
+body.reduce-motion .icon-button:active,
+body.reduce-motion .account-button:active,
+body.reduce-motion .solid-button:active,
+body.reduce-motion .feed-card:not(.stack-card):active:not(:has(button:active)) {
+	transform: none;
+}
+body.reduce-motion .nav-lens {
+	animation: none !important;
+	scale: none;
+}
+body.reduce-motion .nav-tab:active .nav-icon {
+	scale: none;
 }

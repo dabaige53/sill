@@ -87,7 +87,7 @@ try {
 		),
 	);
 	assert.equal(
-		await page.locator("dialog").evaluate((e?: any) => e.open),
+		await page.locator("#modal").evaluate((e?: any) => e.open),
 		false,
 		"IME composition does not trigger a shortcut",
 	);

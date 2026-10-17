@@ -6,13 +6,7 @@ import { Card, normalizeCard, sourceKinds, cardTypes as types } from "../../cont
 import { Batch, CardState, Preferences, State } from "../../contracts/local.ts";
 import { copy } from "../../design-system/copy.ts";
 export const capabilities = {
-	operations: [
-		"card.upsert",
-		"card.delete",
-		"item.patch",
-		"preferences.patch",
-		"reading.add",
-	],
+	operations: ["card.upsert", "card.delete", "item.patch", "preferences.patch", "reading.add"],
 	cardFields: Object.keys(Card.shape),
 	itemFields: Object.keys(CardState.shape),
 	preferences: Object.keys(Preferences.shape),

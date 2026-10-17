@@ -12,14 +12,17 @@ class Gestures {
 	constructor(app?: any) {
 		this.app = app;
 		this.phone = matchMedia("(max-width:650px)");
-		this.bindPull();
 		this.bindSheetDrag();
+		this.bindPull();
 		this.bindReaderSwipe();
 		this.bindToastSwipe();
 	}
 	point(e?: any) {
 		const t = e.touches?.[0] || e.changedTouches?.[0];
 		return { x: t.clientX, y: t.clientY };
+	}
+	fromField(e?: any) {
+		return !!e.target.closest?.('input,textarea,[contenteditable="true"],.agent-reference');
 	}
 	spring(el?: any, keyframes?: any, duration: any = 260) {
 		return MotionEngine.animate(el, keyframes, { duration, easing: "cubic-bezier(.32,.72,0,1)" });
@@ -61,9 +64,11 @@ class Gestures {
 	}
 	// A surface sent off screen stays there; the dialog closes once it is out of sight, with no return motion.
 	dismiss(close?: any, delay: any = 300) {
+		const token = this.app.modalToken;
 		this.dim(0);
 		window.setTimeout(
 			() => {
+				if (this.app.modalToken !== token || !this.app.dialog.open) return;
 				this.app.skipReturnMotion = true;
 				close();
 			},
@@ -104,12 +109,27 @@ class Gestures {
 			busy = false,
 			timer = 0;
 		const wheel = this.intent();
+		// The desk moves down and the ring sits centred in the gap it opens, never on a card.
+		const padTop = () => parseFloat(getComputedStyle(main).paddingTop) || 16;
 		const paint = () => {
-			const p = Math.min(need, pull);
-			main.style.translate = pull ? `0 ${Math.round(p * 0.5)}px` : "";
-			ring.style.translate = `0 ${Math.round(-48 + p * 1.1)}px`;
+			const p = Math.min(need, pull),
+				shift = Math.round(p * 0.9);
+			main.style.translate = pull && !MotionEngine.reduced ? `0 ${shift}px` : "";
+			ring.style.translate = MotionEngine.reduced
+				? "0 0"
+				: `0 ${pull ? Math.round((padTop() + shift) / 2 - 20) : -48}px`;
 			ring.style.opacity = String(Math.min(1, pull / 24));
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
+		};
+		const cancel = () => {
+			start = null;
+			clearTimeout(timer);
+			wheel.reset();
+			document.body.classList.remove("is-pulling");
+			if (!busy) {
+				pull = 0;
+				paint();
+			}
 		};
 		const refresh = async () => {
 			busy = true;
@@ -133,9 +153,11 @@ class Gestures {
 		document.addEventListener(
 			"touchstart",
 			(e?: any) => {
-				start = null;
+				cancel();
 				if (
 					busy ||
+					this.app.selected.size > 0 ||
+					this.app.drag?.menu?.open ||
 					scrollY > 0 ||
 					this.app.dialog.open ||
 					e.touches.length > 1 ||
@@ -150,6 +172,7 @@ class Gestures {
 			"touchmove",
 			(e?: any) => {
 				if (!start || this.app.drag?.active) return;
+				if (e.touches.length !== 1 || this.app.dialog.open) return cancel();
 				const p = this.point(e),
 					dy = p.y - start.y,
 					dx = Math.abs(p.x - start.x);
@@ -158,7 +181,7 @@ class Gestures {
 						pull = 0;
 						paint();
 					}
-					if (dy < -4 || dx > 12) start = null;
+					if (dy < -4 || dx > 12) cancel();
 					return;
 				}
 				if (e.cancelable) e.preventDefault();
@@ -178,11 +201,14 @@ class Gestures {
 				paint();
 			}
 		});
+		document.addEventListener("touchcancel", cancel, { passive: true });
 		window.addEventListener(
 			"wheel",
 			(e?: any) => {
 				if (
 					busy ||
+					this.app.selected.size > 0 ||
+					this.app.drag?.menu?.open ||
 					this.app.dialog.open ||
 					scrollY > 0 ||
 					e.deltaY >= 0 ||
@@ -216,22 +242,35 @@ class Gestures {
 		const dialog = this.app.dialog;
 		let drag = null;
 		const sheetOf = (t?: any) =>
-			dialog.classList.contains("preview") || dialog.classList.contains("panel")
+			!dialog.classList.contains("page") &&
+			(dialog.classList.contains("preview") || dialog.classList.contains("panel"))
 				? t.closest?.(".sheet")
 				: null;
+		const cancel = () => {
+			if (!drag) return;
+			const { sheet, bar, token } = drag;
+			drag = null;
+			sheet.classList.remove("is-drag");
+			sheet.style.translate = "";
+			if (bar) bar.style.opacity = "";
+			if (this.app.modalToken === token) {
+				dialog.classList.remove("is-drag");
+				this.dim(null);
+			}
+		};
 		dialog.addEventListener(
 			"touchstart",
 			(e?: any) => {
-				drag = null;
+				cancel();
 				if (e.touches.length > 1) return;
 				const sheet = sheetOf(e.target);
 				if (!sheet) return;
 				const scroll = sheet.querySelector(".sheet-scroll");
 				if (!e.target.closest(".grabber") && scroll && scroll.scrollTop > 0) return;
-				if (e.target.closest('input,textarea,[contenteditable="true"],.player-bar,.media-player'))
-					return;
+				if (this.fromField(e) || e.target.closest(".player-bar,.media-player")) return;
 				drag = {
 					sheet,
+					token: this.app.modalToken,
 					...this.point(e),
 					at: Date.now(),
 					dy: 0,
@@ -245,6 +284,7 @@ class Gestures {
 			"touchmove",
 			(e?: any) => {
 				if (!drag) return;
+				if (e.touches.length !== 1 || drag.token !== this.app.modalToken) return cancel();
 				const p = this.point(e),
 					dy = p.y - drag.y,
 					dx = Math.abs(p.x - drag.x);
@@ -260,13 +300,14 @@ class Gestures {
 				}
 				if (e.cancelable) e.preventDefault();
 				drag.dy = Math.max(0, dy);
-				drag.sheet.style.translate = `0 ${drag.dy}px`;
+				drag.sheet.style.translate = MotionEngine.reduced ? "" : `0 ${drag.dy}px`;
 				this.dim(1 - Math.min(1, drag.dy / (drag.sheet.offsetHeight || 1)) * 0.7);
 				if (drag.bar) drag.bar.style.opacity = String(Math.max(0, 1 - drag.dy / 120));
 			},
 			{ passive: false },
 		);
 		dialog.addEventListener("touchend", () => {
+			if (drag && drag.token !== this.app.modalToken) return cancel();
 			if (!drag?.live) {
 				drag = null;
 				return;
@@ -280,7 +321,7 @@ class Gestures {
 			if (dy > 190 || (v > 0.5 && dy > 40)) {
 				if (MotionEngine.phoneSheet(dialog)) this.app.closeModal();
 				else {
-					sheet.style.translate = `0 ${sheet.offsetHeight + 80}px`;
+					sheet.style.translate = MotionEngine.reduced ? "" : `0 ${sheet.offsetHeight + 80}px`;
 					bar?.classList.add("is-hidden");
 					this.dismiss(() => this.app.closeModal());
 				}
@@ -290,22 +331,40 @@ class Gestures {
 			this.dim(null);
 			if (dy > 60 && sheet.classList.contains("is-full")) sheet.classList.remove("is-full");
 		});
+		dialog.addEventListener("touchcancel", cancel, { passive: true });
 	}
 	/* Full screen reading: swipe right to go straight back to the desk. */
 	bindReaderSwipe() {
 		const dialog = this.app.dialog;
 		let swipe = null;
+		const cancel = () => {
+			if (!swipe) return;
+			const { token } = swipe;
+			swipe = null;
+			if (this.app.modalToken === token) {
+				dialog.classList.remove("is-drag");
+				dialog.style.translate = "";
+				this.dim(null);
+			}
+		};
 		dialog.addEventListener(
 			"touchstart",
 			(e?: any) => {
-				swipe = null;
+				cancel();
 				if (
 					!dialog.classList.contains("reader") ||
 					e.touches.length > 1 ||
+					this.fromField(e) ||
 					e.target.closest(".float-bar")
 				)
 					return;
-				swipe = { ...this.point(e), at: Date.now(), dx: 0, live: false };
+				swipe = {
+					...this.point(e),
+					token: this.app.modalToken,
+					at: Date.now(),
+					dx: 0,
+					live: false,
+				};
 			},
 			{ passive: true },
 		);
@@ -313,6 +372,7 @@ class Gestures {
 			"touchmove",
 			(e?: any) => {
 				if (!swipe) return;
+				if (e.touches.length !== 1 || swipe.token !== this.app.modalToken) return cancel();
 				const p = this.point(e),
 					dx = p.x - swipe.x,
 					dy = Math.abs(p.y - swipe.y);
@@ -327,12 +387,13 @@ class Gestures {
 				}
 				if (e.cancelable) e.preventDefault();
 				swipe.dx = Math.max(0, dx);
-				dialog.style.translate = `${swipe.dx}px 0`;
+				dialog.style.translate = MotionEngine.reduced ? "" : `${swipe.dx}px 0`;
 				this.dim(1 - Math.min(1, swipe.dx / innerWidth));
 			},
 			{ passive: false },
 		);
 		dialog.addEventListener("touchend", () => {
+			if (swipe && swipe.token !== this.app.modalToken) return cancel();
 			if (!swipe?.live) {
 				swipe = null;
 				return;
@@ -342,22 +403,30 @@ class Gestures {
 			swipe = null;
 			dialog.classList.remove("is-drag");
 			if (dx > innerWidth * 0.3 || (v > 0.5 && dx > 40)) {
-				dialog.style.translate = `${innerWidth}px 0`;
+				dialog.style.translate = MotionEngine.reduced ? "" : `${innerWidth}px 0`;
 				this.dismiss(() => this.app.closeToDesk(false));
 			} else {
 				dialog.style.translate = "";
 				this.dim(null);
 			}
 		});
+		dialog.addEventListener("touchcancel", cancel, { passive: true });
 	}
 	/* The toast can be flicked away downward. */
 	bindToastSwipe() {
 		const toast = document.getElementById("toast");
 		let start = null;
+		const cancel = () => {
+			start = null;
+			toast.style.translate = "";
+			toast.style.opacity = "";
+		};
 		toast.addEventListener(
 			"touchstart",
 			(e?: any) => {
-				start = e.target.closest("button") ? null : this.point(e);
+				cancel();
+				if (e.touches.length === 1 && !e.target.closest("button"))
+					start = { ...this.point(e), seq: this.app.toastSeq };
 			},
 			{ passive: true },
 		);
@@ -365,10 +434,11 @@ class Gestures {
 			"touchmove",
 			(e?: any) => {
 				if (!start) return;
+				if (e.touches.length !== 1 || start.seq !== this.app.toastSeq) return cancel();
 				const dy = this.point(e).y - start.y;
 				if (dy > 0) {
 					if (e.cancelable) e.preventDefault();
-					toast.style.translate = `0 ${dy}px`;
+					toast.style.translate = MotionEngine.reduced ? "" : `0 ${dy}px`;
 					toast.style.opacity = String(1 - Math.min(1, dy / 80));
 				}
 			},
@@ -376,7 +446,9 @@ class Gestures {
 		);
 		toast.addEventListener("touchend", (e?: any) => {
 			if (!start) return;
+			if (start.seq !== this.app.toastSeq) return cancel();
 			const dy = this.point(e).y - start.y;
+			const seq = start.seq;
 			start = null;
 			const from: Record<string, any> = {
 				translate: toast.style.translate || "0 0",
@@ -387,12 +459,14 @@ class Gestures {
 			if (dy > 24) {
 				const a = this.spring(toast, [from, { translate: "0 60px", opacity: 0 }], 180);
 				const hide = () => {
+					if (seq !== this.app.toastSeq) return;
 					toast.hidden = true;
 					clearTimeout(this.app.toastTimer);
 				};
 				a ? a.finished.then(hide, hide) : hide();
 			} else if (dy > 0) this.spring(toast, [from, { translate: "0 0", opacity: 1 }]);
 		});
+		toast.addEventListener("touchcancel", cancel, { passive: true });
 	}
 	/* At the top, pulling on down (wheel and trackpad; fingers use the sheet drag above).
     Phone sheet, as in MobileProto: full screen steps back to half first; from half, a further pull past 110px closes it.
@@ -418,7 +492,9 @@ class Gestures {
 			last = 0;
 		const atTop = () => scroll.scrollTop <= 0;
 		const paint = () => {
-			surface.style.translate = pull ? `0 ${Math.round(pull * (phone ? 0.6 : 1))}px` : "";
+			if (app.modalToken !== token) return;
+			surface.style.translate =
+				pull && !MotionEngine.reduced ? `0 ${Math.round(pull * (phone ? 0.6 : 1))}px` : "";
 			this.dim(pull ? 1 - Math.min(1, pull / need()) * 0.7 : null);
 			if (bar) bar.style.opacity = pull ? String(Math.max(0, 1 - (pull / need()) * 1.6)) : "";
 		};
@@ -431,31 +507,26 @@ class Gestures {
 				app.closeModal();
 				return;
 			}
-			surface.style.translate = reader ? `0 ${innerHeight}px` : `0 ${surface.offsetHeight + 80}px`;
+			surface.style.translate = MotionEngine.reduced
+				? ""
+				: reader
+					? `0 ${innerHeight}px`
+					: `0 ${surface.offsetHeight + 80}px`;
 			if (bar) bar.style.opacity = "0";
 			this.dismiss(() => {
 				if (reader) app.closeToDesk(false);
 				else app.closeModal();
 			});
 		};
-		// Phone: reading on makes the sheet full screen; the capsule steps aside while reading down and returns going up or at the end.
-		if (phone) {
-			let lastY = 0;
+		// Phone: reading on makes the sheet full screen. The bars follow the shared tuck rule (ChromeAutoHide).
+		if (phone)
 			scroll.addEventListener(
 				"scroll",
 				() => {
-					const y = scroll.scrollTop,
-						max = scroll.scrollHeight - scroll.clientHeight;
-					if (y > 4) surface.classList.add("is-full");
-					if (bar) {
-						if (y > lastY + 2 && y > 60) bar.classList.add("is-hidden");
-						else if (y < lastY - 2 || y >= max - 8) bar.classList.remove("is-hidden");
-					}
-					lastY = y;
+					if (scroll.scrollTop > 4) surface.classList.add("is-full");
 				},
 				{ passive: true },
 			);
-		}
 		scroll.addEventListener(
 			"scroll",
 			() => {
@@ -470,6 +541,13 @@ class Gestures {
 		if (this.pullWheel) dialog.removeEventListener("wheel", this.pullWheel);
 		this.pullWheel = (e?: any) => {
 			if (done || app.modalToken !== token || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+			if (this.fromField(e)) {
+				clearTimeout(timer);
+				wheel.reset();
+				pull = 0;
+				paint();
+				return;
+			}
 			const now = Date.now(),
 				d = -e.deltaY * (e.deltaMode === 1 ? 16 : 1),
 				gap = now - last;
@@ -507,6 +585,7 @@ class Gestures {
 			}
 			timer = window.setTimeout(
 				() => {
+					if (app.modalToken !== token) return;
 					pull = 0;
 					paint();
 					wheel.reset(false);
@@ -518,10 +597,27 @@ class Gestures {
 		if (!reader) return;
 		// Full screen reading by finger: pull down from the top, past a fifth or with a flick, and it slides away.
 		let touch = null;
+		const cancel = () => {
+			touch = null;
+			if (done || app.modalToken !== token) return;
+			clearTimeout(timer);
+			wheel.reset();
+			pull = 0;
+			dialog.classList.remove("is-drag");
+			paint();
+		};
 		scroll.addEventListener(
 			"touchstart",
 			(e?: any) => {
-				touch = atTop() && !done ? { ...this.point(e), at: Date.now(), live: false } : null;
+				cancel();
+				if (
+					e.touches.length === 1 &&
+					!this.fromField(e) &&
+					atTop() &&
+					!done &&
+					app.modalToken === token
+				)
+					touch = { ...this.point(e), at: Date.now(), live: false };
 			},
 			{ passive: true },
 		);
@@ -529,6 +625,7 @@ class Gestures {
 			"touchmove",
 			(e?: any) => {
 				if (!touch) return;
+				if (e.touches.length !== 1 || app.modalToken !== token) return cancel();
 				const p = this.point(e),
 					dy = p.y - touch.y,
 					dx = Math.abs(p.x - touch.x);
@@ -548,6 +645,7 @@ class Gestures {
 			{ passive: false },
 		);
 		scroll.addEventListener("touchend", () => {
+			if (app.modalToken !== token) return cancel();
 			if (!touch?.live) {
 				touch = null;
 				return;
@@ -561,6 +659,7 @@ class Gestures {
 				paint();
 			}
 		});
+		scroll.addEventListener("touchcancel", cancel, { passive: true });
 	}
 	/* Reaching the end and pushing on (ReadEndRing): a small ring rises and fills with the push, the text lifts with resistance,
     the capsule steps aside. Full, it turns into a check, pops, and the piece folds away. Let go early and everything glides back. */
@@ -589,13 +688,17 @@ class Gestures {
 			done = false;
 		const atEnd = () => scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
 		const paint = () => {
+			if (app.modalToken !== token) return;
 			chip.style.opacity = String(Math.min(1, pull / 30));
-			chip.style.transform = `scale(${(0.6 + 0.4 * Math.min(1, pull / 60)).toFixed(3)})`;
+			chip.style.transform = MotionEngine.reduced
+				? "none"
+				: `scale(${(0.6 + 0.4 * Math.min(1, pull / 60)).toFixed(3)})`;
 			arc.setAttribute("stroke-dashoffset", String(50.27 * (1 - Math.min(1, pull / need))));
-			scroll.style.translate = pull ? `0 ${-Math.round(pull * 0.35)}px` : "";
+			scroll.style.translate =
+				pull && !MotionEngine.reduced ? `0 ${-Math.round(pull * 0.35)}px` : "";
 			if (bar) {
 				bar.style.opacity = pull ? "0" : "";
-				bar.style.translate = pull ? "0 16px" : "";
+				bar.style.translate = pull && !MotionEngine.reduced ? "0 16px" : "";
 			}
 		};
 		const finish = () => {
@@ -614,10 +717,19 @@ class Gestures {
 			}, 460);
 		};
 		const set = (v?: any) => {
-			if (done) return;
+			if (done || app.modalToken !== token) return;
 			pull = Math.max(0, Math.min(need, v));
 			paint();
 			if (pull >= need) finish();
+		};
+		const cancel = () => {
+			touch = null;
+			if (done || app.modalToken !== token) return;
+			clearTimeout(timer);
+			wheel.reset();
+			pull = 0;
+			host.classList.remove("is-drag");
+			paint();
 		};
 		scroll.addEventListener(
 			"scroll",
@@ -632,7 +744,8 @@ class Gestures {
 		scroll.addEventListener(
 			"wheel",
 			(e?: any) => {
-				if (done) return;
+				if (done || app.modalToken !== token) return;
+				if (this.fromField(e)) return cancel();
 				const d = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
 				if (d <= 0 || !atEnd()) {
 					wheel.reset();
@@ -646,7 +759,7 @@ class Gestures {
 				set(pull + Math.min(40, d) * 0.5);
 				clearTimeout(timer);
 				timer = window.setTimeout(() => {
-					if (!done) {
+					if (!done && app.modalToken === token) {
 						pull = 0;
 						paint();
 						wheel.reset(false);
@@ -658,7 +771,15 @@ class Gestures {
 		scroll.addEventListener(
 			"touchstart",
 			(e?: any) => {
-				touch = atEnd() && !done ? { y: this.point(e).y } : null;
+				cancel();
+				if (
+					e.touches.length === 1 &&
+					!this.fromField(e) &&
+					atEnd() &&
+					!done &&
+					app.modalToken === token
+				)
+					touch = { ...this.point(e) };
 			},
 			{ passive: true },
 		);
@@ -666,7 +787,10 @@ class Gestures {
 			"touchmove",
 			(e?: any) => {
 				if (!touch) return;
-				const dy = touch.y - this.point(e).y;
+				if (e.touches.length !== 1 || app.modalToken !== token) return cancel();
+				const point = this.point(e),
+					dy = touch.y - point.y;
+				if (Math.abs(point.x - touch.x) > Math.abs(dy)) return cancel();
 				host.classList.add("is-drag");
 				if (dy <= 0) {
 					if (pull) {
@@ -680,14 +804,10 @@ class Gestures {
 			{ passive: true },
 		);
 		scroll.addEventListener("touchend", () => {
-			if (!touch) return;
-			touch = null;
-			host.classList.remove("is-drag");
-			if (!done) {
-				pull = 0;
-				paint();
-			}
+			if (touch) host.classList.remove("is-drag");
+			cancel();
 		});
+		scroll.addEventListener("touchcancel", cancel, { passive: true });
 	}
 }
 

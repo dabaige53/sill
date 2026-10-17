@@ -160,23 +160,10 @@
 #cloud-discard[hidden] {
 	display: none;
 }
-.dock-tools [aria-busy="true"] .icon {
-	animation: cloud-refresh 1s linear infinite;
-}
-@keyframes cloud-refresh {
-	to {
-		transform: rotate(360deg);
-	}
-}
-@media (prefers-reduced-motion: reduce) {
-	.dock-tools [aria-busy="true"] .icon {
-		animation: none;
-	}
-}
-body.reduce-motion .dock-tools [aria-busy="true"] .icon {
-	animation: none;
-}
 @media (max-width: 600px) {
+	.welcome-actions:has(#cloud-login) {
+		flex-direction: column;
+	}
 	.cloud-compose {
 		max-height: calc(100dvh - 24px);
 	}

@@ -1,15 +1,26 @@
 const MotionEngine: Record<string, any> = {
 	query: matchMedia("(prefers-reduced-motion: reduce)"),
 	panelAnimations: new WeakMap(),
+	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),
 	get reduced() {
 		return this.query.matches || !!document.body?.classList.contains("reduce-motion");
+	},
+	get reducedDuration() {
+		return (
+			parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-reduced")) || 70
+		);
 	},
 	animate(el?: any, keyframes?: any, options: any = {}) {
 		if (!el || !el.animate) return null;
 		if (this.reduced) {
 			const opacity = keyframes.map((k?: any) => ({ opacity: k.opacity ?? 1 }));
-			return el.animate(opacity, { easing: "linear", ...options, delay: 0, duration: 70 });
+			return el.animate(opacity, {
+				...options,
+				easing: "linear",
+				delay: 0,
+				duration: this.reducedDuration,
+			});
 		}
 		return el.animate(keyframes, {
 			duration: 260,
@@ -90,6 +101,12 @@ const MotionEngine: Record<string, any> = {
 			: dialog.querySelector(".preview-sheet") || dialog;
 	},
 	cancelPanel(el?: any) {
+		const tasks = this.panelTasks.get(el);
+		if (tasks) {
+			cancelAnimationFrame(tasks.frame);
+			clearTimeout(tasks.timer);
+			this.panelTasks.delete(el);
+		}
 		(this.panelAnimations.get(el) || []).forEach((animation?: any) => {
 			animation?.cancel();
 		});
@@ -109,10 +126,19 @@ const MotionEngine: Record<string, any> = {
 			el.style.setProperty("--backdrop", "0");
 			bar?.classList.add("is-hidden");
 			void sheet.offsetHeight;
-			requestAnimationFrame(() => {
+			const tasks = { frame: 0, timer: 0 };
+			this.panelTasks.set(el, tasks);
+			tasks.frame = requestAnimationFrame(() => {
+				tasks.frame = 0;
+				if (this.panelTasks.get(el) !== tasks || !el.open || !sheet.isConnected) return;
 				sheet.classList.remove("is-drag", "is-off");
 				el.style.removeProperty("--backdrop");
-				window.setTimeout(() => bar?.classList.remove("is-hidden"), 140);
+				tasks.timer = window.setTimeout(() => {
+					if (this.panelTasks.get(el) !== tasks) return;
+					this.panelTasks.delete(el);
+					if (el.open && sheet.isConnected && !sheet.classList.contains("is-off"))
+						bar?.classList.remove("is-hidden");
+				}, 140);
 			});
 			this.panelAnimations.set(
 				el,

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>玻璃底栏与工具条 · 定稿 v3</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1440px; box-sizing: border-box; padding: 56px 52px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 8px; max-width: 900px">
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.2; font-weight: 600; letter-spacing: -.03em">玻璃底栏、工具条收起与多选</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #636366">2026-10-16 定稿，取代 12、15、19、20 号画板里的入口球、展开菜单和挂在卡片外的工具条。截图来自实际页面：手机 390×844，桌面 1440×900。</p>
+  </header>
+  <div style="display: flex; gap: 24px; flex-wrap: wrap"><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-rest.jpg" alt="停下：桌面工具胶囊在左，头像在右" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">停下：桌面工具胶囊在左，头像在右</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-scrolling.jpg" alt="向下滚动 28px：底栏完全收起" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">向下滚动 28px：底栏完全收起</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-pull.jpg" alt="下拉刷新：圆环在页面让出的空隙正中" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">下拉刷新：圆环在页面让出的空隙正中</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-detail.jpg" alt="详情：关闭、全屏是浮在封面上的白色圆片" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">详情：关闭、全屏是浮在封面上的白色圆片</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-detail-end.jpg" alt="读到底：备注、标签、去原文在工具条上方" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">读到底：备注、标签、去原文在工具条上方</figcaption>
+    </figure></div>
+  <div style="display: flex; gap: 24px; flex-wrap: wrap"><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-reader-scrolling.jpg" alt="阅读向下读：上下按钮都收起" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">阅读向下读：上下按钮都收起</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-read-ring.jpg" alt="读完圆环在页面最底部" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">读完圆环在页面最底部</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-lift.jpg" alt="多选拖动：三张真实卡片叠成一摞" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">多选拖动：三张真实卡片叠成一摞</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-menu.jpg" alt="松开：菜单下方不够时向上" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">松开：菜单下方不够时向上</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 248px">
+      <img src="glass-rail/phone-search-keyboard.jpg" alt="手机搜索在底部，跟着键盘升起" style="display: block; width: 248px; height: 537px; object-fit: cover; object-position: top; border-radius: 28px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">手机搜索在底部，跟着键盘升起</figcaption>
+    </figure></div>
+  <div style="display: flex; gap: 24px; flex-wrap: wrap"><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 656px">
+      <img src="glass-rail/desktop-rest.jpg" alt="桌面：同一组按钮在右下角" style="display: block; width: 656px; height: 410px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">桌面：同一组按钮在右下角</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 656px">
+      <img src="glass-rail/desktop-detail-end.jpg" alt="桌面详情：工具条在卡片内部底边，下面有滚动边缘" style="display: block; width: 656px; height: 410px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">桌面详情：工具条在卡片内部底边，下面有滚动边缘</figcaption>
+    </figure></div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px"><section style="background: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 4px 16px rgba(0,0,0,.035)">
+      <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -.02em">底栏</h2>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.55; color: #1d1d1f"><li style="margin: 0">没有入口球和展开菜单；最右侧头像，点一下打开设置。</li><li style="margin: 0">桌面工具一个玻璃胶囊：搜索与筛选、记一笔。以后的功能组各自单独一颗玻璃按钮，放在胶囊和头像之间。</li><li style="margin: 0">刷新靠下拉，键盘 R；回到顶部用 T。</li><li style="margin: 0">行高 52，按钮 44×44，离边 28（手机 16）。</li></ul>
+    </section><section style="background: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 4px 16px rgba(0,0,0,.035)">
+      <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -.02em">工具条收起</h2>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.55; color: #1d1d1f"><li style="margin: 0">底栏、详情和阅读页工具条、顶部圆片同一条规则，手机和桌面一样。</li><li style="margin: 0">向下连续 28px 完全收起，不留占位；向上 14px、停下 0.65 秒、到顶或到底时回来。</li><li style="margin: 0">键盘焦点进入时立即回来；减少动态效果时只淡入淡出。</li></ul>
+    </section><section style="background: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 4px 16px rgba(0,0,0,.035)">
+      <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -.02em">材质与配色</h2>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.55; color: #1d1d1f"><li style="margin: 0">玻璃只在功能层：38% 白、blur 12 · saturate 1.9，左上亮边、右下弱边、0.5px 外圈，宽而淡的阴影。</li><li style="margin: 0">遮罩只压暗不模糊；搜索和多选菜单用磨砂。</li><li style="margin: 0">蓝色只给提交动作和开关；选中用墨色和浮起白行；标签用浅灰。</li></ul>
+    </section><section style="background: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 4px 16px rgba(0,0,0,.035)">
+      <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -.02em">详情与阅读</h2>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.55; color: #1d1d1f"><li style="margin: 0">底部最多三个图标：收藏、备注与标签，第三个按类型。</li><li style="margin: 0">去原文、回复、加入、为什么看到放在内容末尾。</li><li style="margin: 0">详情和阅读页里没有头像、设置或底栏。</li></ul>
+    </section><section style="background: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 4px 16px rgba(0,0,0,.035)">
+      <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -.02em">多选</h2>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.55; color: #1d1d1f"><li style="margin: 0">最多三张真实卡片叠放，第一张选中的在上，角标显示总数。</li><li style="margin: 0">松手后 240 宽菜单，下方放得下向下，否则向上；点了才执行。</li><li style="margin: 0">不能拖进 AI 对话或其他页面；没有下滑打标签。</li></ul>
+    </section><section style="background: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.025), 0 4px 16px rgba(0,0,0,.035)">
+      <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -.02em">搜索与键盘</h2>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.55; color: #1d1d1f"><li style="margin: 0">不显示数量，数量只给读屏软件。</li><li style="margin: 0">输入法拼写中不筛选，选字后再筛选。</li><li style="margin: 0">键盘弹出时要打字的弹层停在键盘上方，底栏让开。</li></ul>
+    </section></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2380}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Sill 设计系统
 
-更新：2026-10-16。
+更新：2026-10-17。
 
 改界面前先读根目录的 [设计约束](../../DESIGN.md)，其中写明改动顺序和线上同步要求。
 
@@ -13,7 +13,7 @@ Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`�
 | 路径 | 内容 |
 | --- | --- |
 | `design-system/README.md` | **设计手册，规则以它为准**：产品立场、文案、颜色、玻璃、字体、卡片积木、文字长度、间距、动效、量大与时间、图标（含「文字和图标只用一种」） |
-| `design-system/boards/` | 设计画布 33 块画板的本地副本和目录页，`npm run boards` 打开 |
+| `design-system/boards/` | 设计画布的本地副本和目录页，包含导航胶囊画板 35，`npm run boards` 打开 |
 | `design-system/tokens.json` | 设计变量：颜色（含深色）、字号、间距、圆角、阴影、动效时长与曲线，每项附用途 |
 | `design-system/components/<组件>/` | 30 个组件的说明（README.md）和静态示例（preview.html） |
 | `design-system/components/bundle.js` / `bundle.css` | 示例用的渲染函数与样式，从 `apps/web/` 生成 |
@@ -58,6 +58,7 @@ npm run boards
 | 预览、阅读、搜索、设置、来源、导入等弹层 | `apps/web/interactions/panels.ts` | `Dialog`，画板 15、29、30–32 |
 | 展开与收回、落下、淡入 | `apps/web/interactions/motion.ts` | 手册「动效」，画板 16 |
 | 手势：下拉刷新、下拉关闭、读完上推、拖把手、右滑返回 | `apps/web/interactions/gestures.ts` | 手册「动效」，画板 17–19 |
+| 卡片交接、宿主消息与外链 | `apps/web/services/agent-handoff.ts`、`apps/web/cloud-bridge.ts` | 手册「立场」、产品「当前卡片交给助手」；按宿主能力提供，AI 导航页仍为内置助手说明 |
 | 信息流排序、叠卡、收起 | `apps/web/services/feed-policy.ts` | 手册「量大与时间」，画板 25 |
 | 文件导入与去重 | `apps/web/services/importers.ts` | 画板 24、31 |
 
@@ -73,7 +74,7 @@ node design-system/scripts/generate.ts design-system .
 
 1. `tokens.css`：颜色、间距、圆角、字号、阴影、动效变量，深色主题。
 2. `base.css`：页面、文字、基础布局，信息流底部短线。
-3. `controls.css`：按钮、右下角入口和工具、提示条、选择条。
+3. `controls.css`：按钮、底部导航胶囊与镜片、提示条、选择条。
 4. `cards.css`：各类卡片、已读色、叠卡（牌堆）、按压反馈。
 5. `overlays.css`：预览、阅读、面板、读完圆环、下拉刷新圆环、手势过渡。
 6. `responsive.css`：窄屏、触屏、手机抽屉、减少动效、减少透明度。

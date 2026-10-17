@@ -55,6 +55,20 @@ const Panels: Record<string, any> = {
 		return `<div class="float-bar glass" role="toolbar" aria-label="${copy("web.panels.c8bf87742cc0")}">${parts.filter(Boolean).join("")}</div>`;
 	},
 	sep: '<span class="toolbar-sep" aria-hidden="true"></span>',
+	/** The sheet head holds the way out (and full screen) in its own row, never over the text. */
+	head(...tools: any[]) {
+		return `<div class="sheet-head"><div class="grabber" aria-hidden="true"></div><div class="sheet-head-tools">${tools.filter(Boolean).join("")}</div></div>`;
+	},
+	/** Specific actions in words, after the content: they never compete with the toolbar icons. */
+	foot(...actions: any[]) {
+		const list = actions.filter(Boolean);
+		return list.length ? `<div class="preview-foot">${list.join("")}</div>` : "";
+	},
+	whyLink(c?: any) {
+		return c.why
+			? `<button type="button" class="text-button" data-action="why" data-id="${esc(c.id)}">${copy("web.panels.fdc032965548")}</button>`
+			: "";
+	},
 	/** The toolbar keeps the generic verb as an icon: stop reminding. */
 	reminderTools(c?: any) {
 		if (!FeedPolicy.supports(c)) return "";
@@ -107,23 +121,24 @@ const Panels: Record<string, any> = {
 					.map((t?: any) => `<span class="chip soft">#${esc(t)}</span>`)
 					.join("")}</div>`
 			: "";
-		const sheet = (inner?: any, cover: any = "") =>
-			`<div class="sheet preview-sheet"><div class="grabber" aria-hidden="true"></div><div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}</div></div></div>`;
-		const close = this.sep + button("x", copy("web.panels.1eb05d311508"), "close");
+		const closeButton = button("x", copy("web.panels.1eb05d311508"), "close");
+		const expand =
+			c.body?.length &&
+			!["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
+				? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id)
+				: "";
+		const sheet = (inner?: any, cover: any = "", action: any = "") =>
+			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}${this.foot(action, app?.agentAction?.(c))}</div></div></div>`;
+		const editTags = button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id);
 		const h1 = `<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>`;
 		if (c.type === "mail") {
 			const sender = c.sender || cardSource(c);
 			return (
 				sheet(
 					`<div class="preview-sender">${avatar(sender, 36)}<span><b>${esc(sender)}</b><small>${copy("web.panels.711078d887e0")}${esc(c.meta || "")}</small></span></div>${h1}<div class="preview-full">${(c.body || [c.summary]).map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>${c.attachment ? `<span class="ref attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					this.later(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
+					"",
 					this.external(c, copy("web.panels.cf945e21ddef")),
-					close,
-				)
+				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
 		if (c.type === "event") {
@@ -143,14 +158,15 @@ const Panels: Record<string, any> = {
 			return (
 				sheet(
 					`<div class="preview-meta">${esc(dateLabel(c.start))}${eventRelative(c) ? ` · <span style="color:var(--accent);font-weight:500">${esc(eventRelative(c))}</span>` : ""}</div><div class="event-hero"><span class="num">${timeString(c.start)}</span><small class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)} · ${span}${copy("web.templates.40de54344d22")}</small></div>${h1}${rows ? `<div class="detail-rows">${rows}</div>` : ""}${c.body?.length ? `<div class="preview-full">${c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}${this.reminderRow(c)}`,
-				) +
-				this.bar(
-					button("download", copy("web.panels.5510cee6e987"), "download-calendar", c.id),
-					this.reminderTools(c),
+					"",
 					timely && c.meeting
 						? `<button type="button" class="solid-button" data-action="join" data-id="${esc(c.id)}">${copy("web.templates.451755e3831f")}</button>`
 						: "",
-					close,
+				) +
+				this.bar(
+					button("download", copy("web.panels.5510cee6e987"), "download-calendar", c.id),
+					editTags,
+					this.reminderTools(c),
 				)
 			);
 		}
@@ -158,40 +174,24 @@ const Panels: Record<string, any> = {
 			const total = c.duration || 0,
 				played = Math.round(total * (s.progress || 0));
 			return (
-				`<div class="sheet preview-sheet"><div class="grabber" aria-hidden="true"></div><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div></div></div>` +
-				this.bar(
-					this.bookmark(c, s),
-					this.later(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					c.url ? button("external", copy("web.panels.c7f9a9b3d472"), "external", c.id) : "",
-					close,
-				)
+				`<div class="sheet preview-sheet">${this.head(closeButton)}<div class="sheet-scroll" tabindex="0"><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div>${this.foot(this.external(c, copy("web.panels.c7f9a9b3d472")), app.agentAction?.(c))}</div></div></div>` +
+				this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
 		if (c.type === "media") {
 			return (
 				sheet(
 					`${this.meta(c)}${h1}<div class="media-player"><img src="${Assets[c.image]}" alt=""><div class="media-slide" id="media-slide"></div></div><div class="media-controls">${button("back", copy("web.panels.b445bfa61071"), "media-prev", c.id)}${button("play", copy("web.panels.105587569775"), "media-play", c.id)}<span class="media-step" id="media-step">1 / ${c.body.length || 1}</span>${button("arrow", copy("web.panels.abd1f787accc"), "media-next", c.id)}</div>`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					this.later(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
+					"",
 					this.external(c),
-					close,
-				)
+				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 			);
 		}
 		if (c.type === "file") {
 			return (
 				sheet(
 					`<div class="preview-meta">${icon("folder", 15)}<span>${copy("web.panels.e93cb3b4dd1f")}${esc(cardSource(c) || "")}</span></div>${h1}<div class="detail-rows">${(c.files || []).map((f?: any) => `<div class="detail-row"><span class="row-icon">${icon(/\.(png|jpe?g|gif|webp)$/i.test(f.name) ? "image" : "file", 16)}</span><span><b>${esc(f.name)}</b><em>${esc(f.meta || "")}</em></span><small>${f.time ? esc(relativeTime(f.time)) : ""}</small></div>`).join("")}</div>`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					close,
-				)
+				) + this.bar(this.bookmark(c, s), editTags)
 			);
 		}
 		if (c.type === "task" || c.type === "reminder") {
@@ -208,29 +208,10 @@ const Panels: Record<string, any> = {
 			return (
 				sheet(
 					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}${this.reminderRow(c)}`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-					this.reminderTools(c),
-					close,
-				)
+				) + this.bar(this.bookmark(c, s), editTags, this.reminderTools(c))
 			);
 		}
-		if (c.type === "digest") {
-			const st = CardPresentation.weekStats();
-			return (
-				sheet(
-					`${this.meta(c)}${h1}<div class="stats-trio"><div><b class="num">${st.read}</b><span>${copy("web.read")}</span></div><div><b class="num">${st.saved}</b><span>${copy("web.bookmark")}</span></div><div><b class="num">${st.done}</b><span>${copy("web.done")}</span></div></div><p class="preview-lead">${esc(st.line)}</p>${(c.body || []).map((p?: any) => `<p class="muted">${esc(p)}</p>`).join("")}`,
-				) +
-				this.bar(
-					this.bookmark(c, s),
-					c.why ? button("info", copy("web.panels.fdc032965548"), "why", c.id) : "",
-					close,
-				)
-			);
-		}
-		// Articles, notes, suggestions: the lifted card shows everything.
+		// Articles, notes, digests and suggestions show the content the agent actually wrote.
 		const lead =
 			c.summary && c.form !== "quote" && c.summary !== c.body?.[0]
 				? `<p class="preview-lead">${esc(c.summary)}</p>`
@@ -257,16 +238,11 @@ const Panels: Record<string, any> = {
 			? `<div class="preview-cover"><img data-shared="image" src="${Assets[c.image]}" alt="" draggable="false"></div>`
 			: "";
 		return (
-			sheet(`${this.meta(c)}${h1}${lead}${points}${related}${full}`, cover) +
-			this.bar(
-				this.bookmark(c, s),
-				this.later(c, s),
-				button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-				c.url ? button("external", copy("web.panels.363753bbbfaa"), "external", c.id) : "",
-				c.why ? button("info", copy("web.panels.fdc032965548"), "why", c.id) : "",
-				c.body?.length ? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id) : "",
-				close,
-			)
+			sheet(
+				`${this.meta(c)}${h1}${lead}${points}${related}${full}`,
+				cover,
+				this.external(c) + this.whyLink(c),
+			) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
 		);
 	},
 	/* Reader: a page with a thin progress line. Reaching the end closes the ring. */
@@ -276,22 +252,22 @@ const Panels: Record<string, any> = {
 			? `<div class="skeleton-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div>`
 			: c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("");
 		return (
-			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
+			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c), app.agentAction?.(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
+			`<div class="reader-edge is-top" aria-hidden="true"></div><div class="reader-edge is-bottom" aria-hidden="true"></div>` +
+			`<div class="reader-head glass" role="toolbar" aria-label="${copy("web.readerTools")}">${button("collapse", copy("web.panels.0f1505b6ad3f"), "close")}${button("x", copy("web.panels.f2a5f3f7db0f"), "close-all")}</div>` +
 			this.bar(
-				button("collapse", copy("web.panels.0f1505b6ad3f"), "close"),
 				this.bookmark(c, s),
 				button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-				this.sep,
-				button("x", copy("web.panels.f2a5f3f7db0f"), "close-all"),
+				this.later(c, s),
 			)
 		);
 	},
-	lightbox(c?: any, index: any = 0) {
+	lightbox(c?: any, index: any = 0, app?: any) {
 		const photos = c.photos?.length ? c.photos : [c.image];
 		const i = Math.max(0, Math.min(photos.length - 1, index));
 		return `<div class="lightbox-top"><span>${esc([c.location, dateLabel(c.time)].filter(Boolean).join(" · "))}</span><span id="modal-title" class="sr-only">${esc(c.title)}</span>${button("x", copy("web.panels.28d70fb85c88"), "close")}</div>
    <div class="lightbox-stage">${photos.length > 1 ? button("back", copy("web.panels.bcf200709dbc"), "photo-step", c.id, "-1") : ""}<img src="${Assets[photos[i]]}" alt="${esc(c.title)}${copy("web.panels.fab2a038b6d0")}${i + 1}${copy("web.panels.e9e0fdc242b4")}">${photos.length > 1 ? button("arrow", copy("web.panels.dcd4eb027369"), "photo-step", c.id, "1") : ""}</div>
-   <div class="lightbox-thumbs">${photos.map((p?: any, n?: any) => `<button type="button" class="${n === i ? "on" : ""}" data-action="photo-go" data-id="${esc(c.id)}" data-extra="${n}" aria-label="${copy("web.panels.9552fe3bd366")}${n + 1}${copy("web.panels.e9e0fdc242b4")}"><img src="${Assets[p]}" alt=""></button>`).join("")}</div>`;
+   <div class="lightbox-thumbs">${photos.map((p?: any, n?: any) => `<button type="button" class="${n === i ? "on" : ""}" data-action="photo-go" data-id="${esc(c.id)}" data-extra="${n}" aria-label="${copy("web.panels.9552fe3bd366")}${n + 1}${copy("web.panels.e9e0fdc242b4")}"><img src="${Assets[p]}" alt=""></button>`).join("")}</div>${this.foot(app?.agentAction?.(c))}`;
 	},
 	/* Tags and notes: chips you can remove, a field to add, a note below. */
 	editor(app?: any, id?: any) {
@@ -355,7 +331,7 @@ const Panels: Record<string, any> = {
 			["saved", copy("web.bookmark")],
 			["later", copy("web.later")],
 		];
-		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.filtered().length}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>
+		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.filtered().length}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>
    <div class="search-chips" role="group" aria-label="${copy("web.panels.b5f15473fdc0")}">${types.map(([k, v, ic]: any) => `<button type="button" class="chip ${f.type === k ? "active" : ""}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type === k}">${v}</button>`).join("")}${status.map(([k, v]: any) => `<button type="button" class="chip ${f.status === k ? "active" : ""}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status === k}">${v}</button>`).join("")}${tags.map((t?: any) => `<button type="button" class="chip ${f.tag === t ? "active" : ""}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag === t}">#${esc(t)}</button>`).join("")}</div>
    <div class="search-results" id="search-results">${this.searchResults(app)}</div>`;
 	},
@@ -378,7 +354,7 @@ const Panels: Record<string, any> = {
 				snippet = i > 18 ? "…" + text.slice(i - 14) : text;
 			return `<button type="button" class="list-row" data-action="card-open" data-id="${esc(c.id)}"><span class="row-icon">${icon((CardTypes[c.type] || CardTypes.note).icon, 16)}</span><span class="row-main"><b>${highlight(c.title, q)}</b><small>${highlight(snippet.slice(0, 60), q)}</small></span><span class="row-side">${esc(relativeDay(c.time || now, now))}</span></button>`;
 		};
-		return `${hits.desk.length ? `<div class="group-label">${copy("web.panels.51984343bcac")}<span class="num">${hits.desk.length}</span></div><div class="row-list">${hits.desk.slice(0, 8).map(row).join("")}</div>` : ""}${hits.shelved.length ? `<div class="group-label">${copy("web.panels.342927bba059")}<span class="num">${hits.shelved.length}</span></div><div class="row-list">${hits.shelved.slice(0, 8).map(row).join("")}</div>` : ""}`;
+		return `${hits.desk.length ? `<div class="group-label">${copy("web.search.deskGroup")}</div><div class="row-list">${hits.desk.slice(0, 8).map(row).join("")}</div>` : ""}${hits.shelved.length ? `<div class="group-label">${copy("web.search.shelvedGroup")}</div><div class="row-list">${hits.shelved.slice(0, 8).map(row).join("")}</div>` : ""}`;
 	},
 	/* Archives: grouped by week, one row per card; “放回桌面” appears on hover. */
 	archive(app?: any, which?: any) {
@@ -405,6 +381,7 @@ const Panels: Record<string, any> = {
 	},
 	/* Settings: five groups, one screen each. */
 	settingsGroups: [
+		["add", copy("web.settings.add"), "plus"],
 		["desk", copy("web.panels.f48d334495f6"), "monitor"],
 		["look", copy("web.panels.86a63f23a076"), "eye"],
 		["keys", copy("web.panels.ee2638183d3e"), "keyboard"],
@@ -415,6 +392,9 @@ const Panels: Record<string, any> = {
 			row = (label?: any, side?: any) =>
 				`<div class="setting-row"><span>${label}</span><span class="setting-side">${side}</span></div>`;
 		const pages: Record<string, any> = {
+			// Adding lives here now: the same one field as the capture sheet. N still opens the sheet directly.
+			add: () =>
+				`<h1 id="modal-title">${copy("web.settings.add")}</h1><div class="settings-card settings-add"><div class="capture-field">${icon("plus", 18)}<textarea id="capture-text" aria-label="${copy("web.panels.fd06b053572e")}" placeholder="${copy("web.panels.fd06b053572e")}" maxlength="4000"></textarea></div><div class="panel-footer"><span class="muted"><kbd>N</kbd>${copy("web.panels.9be4933b25fb")}</span><button type="button" class="solid-button" data-action="capture-save">${copy("web.panels.a0fb6bc1d3c5")}</button></div></div>`,
 			desk: () => `<h1 id="modal-title">${copy("web.panels.f48d334495f6")}</h1><div class="settings-card">${row(copy("web.panels.5142e436b1f9"), `<span>${copy("web.panels.840f6c8f8823")}</span>${toggle("stack", p("stack"), copy("web.panels.5142e436b1f9"))}`)}${row(copy("web.panels.a11a80a0843c"), toggle("fadeRead", p("fadeRead"), copy("web.panels.a11a80a0843c")))}${row(
 				copy("web.panels.1495127fad02"),
 				segmented(
@@ -493,6 +473,10 @@ const Panels: Record<string, any> = {
 	/* Sources: one dot says the state; only a broken source shows a button. */
 	confirm(title?: any, detail?: any, actions?: any) {
 		return `<div class="sheet"><div class="permission"><h1 id="modal-title">${esc(title)}</h1><p class="muted">${esc(detail)}</p><div class="permission-actions">${actions}</div></div></div>`;
+	},
+	/* AI: a place kept for the assistant. It says plainly that nothing works here yet. */
+	ai() {
+		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content ai-soon">${icon("chat", 28)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span><p class="muted">${copy("web.ai.body")}</p></div></div>`;
 	},
 	/* Capture: one field. A link becomes an article, a line becomes a note. */
 	capture(app?: any) {

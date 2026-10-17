@@ -81,7 +81,7 @@ import { chromium } from "playwright";
 			await settled(page);
 			assert.equal(await current(page), "2");
 			await snapshot(page, "stack-third-1440");
-			assert.equal(await page.locator("dialog").evaluate((e?: any) => e.open), false);
+			assert.equal(await page.locator("#modal").evaluate((e?: any) => e.open), false);
 		},
 	);
 	await scenario(

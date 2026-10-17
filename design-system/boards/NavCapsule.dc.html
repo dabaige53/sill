@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>底部导航胶囊 · 定稿 v4</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1440px; box-sizing: border-box; padding: 56px 52px 64px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; flex-direction: column; gap: 8px; max-width: 960px">
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.2; font-weight: 600; letter-spacing: -.03em">底部导航胶囊</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #636366">2026-10-17 定稿，取代 34 号画板里右下角的「桌面工具胶囊 + 头像」。34 号里的工具条收起、详情工具条、多选叠放仍然有效。截图来自实际页面：手机 390×844，桌面 1440×900。</p>
+  </header>
+  <section style="display: flex; flex-direction: column; gap: 18px">
+    <h2 style="margin: 0; font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -.02em">规则</h2>
+    <ul style="margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; line-height: 1.6; max-width: 1100px"><li>四格：主页、搜索、AI、设置。当前一格 ink，其余 62% ink，不用颜色区分。AI 用对话气泡图标。</li><li>手机：胶囊不占满一行，按内容宽度居中（每格 60，共 248）；只有图标，不写文字，名字只给读屏。</li><li>手机：每一格都是切换页面，不是弹窗。页面铺满胶囊后面的屏幕，没有把手、关闭按钮和遮罩；胶囊一直在，镜片和页面同时换，页面 180ms 淡入。Esc 回主页。</li><li>桌面：图标在上、文字在下；搜索、AI、设置以面板打开，镜片先动，面板晚 160ms 打开。</li><li>镜片：glass-press 底加上沿高光。换格用 ease-spring 520ms 滑过去，途中横向拉长 16%、纵向压扁 10%，到位回圆。减少动态效果时直接到位。</li><li>胶囊只管「去哪里」。收藏、备注与标签留在详情工具条，批量动作留在多选菜单。</li><li>AI：内置助手还没有。页面只写「即将推出」和一句说明，不放输入框或可点的动作。</li><li>添加（记一笔）在设置第一组「添加」；键盘 N 和首次打开页的「记一笔」照旧直接打开。</li></ul>
+  </section>
+  <section style="display: flex; flex-direction: column; gap: 18px">
+    <h2 style="margin: 0; font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -.02em">镜片换格（手机，原尺寸 2 倍）</h2>
+    <div style="display: flex; gap: 24px; flex-wrap: wrap"><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 296px">
+      <img src="nav-capsule/capsule-home.jpg" alt="停在主页" style="display: block; width: 296px; height: 100px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">停在主页</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 296px">
+      <img src="nav-capsule/capsule-moving.jpg" alt="滑向 AI 的途中：拉长、压扁" style="display: block; width: 296px; height: 100px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">滑向 AI 的途中：拉长、压扁</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 296px">
+      <img src="nav-capsule/capsule-ai.jpg" alt="到位后回圆" style="display: block; width: 296px; height: 100px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">到位后回圆</figcaption>
+    </figure></div>
+  </section>
+  <section style="display: flex; flex-direction: column; gap: 18px">
+    <h2 style="margin: 0; font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -.02em">手机 390 · 每一格是一个页面</h2>
+    <div style="display: flex; gap: 24px; flex-wrap: wrap"><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 200px">
+      <img src="nav-capsule/phone-feed.jpg" alt="主页" style="display: block; width: 200px; height: 433px; object-fit: cover; object-position: top; border-radius: 24px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">主页</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 200px">
+      <img src="nav-capsule/phone-search.jpg" alt="搜索页：筛选和输入框在胶囊上方" style="display: block; width: 200px; height: 433px; object-fit: cover; object-position: top; border-radius: 24px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">搜索页：筛选和输入框在胶囊上方</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 200px">
+      <img src="nav-capsule/phone-ai.jpg" alt="AI 页：只写即将推出" style="display: block; width: 200px; height: 433px; object-fit: cover; object-position: top; border-radius: 24px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">AI 页：只写即将推出</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 200px">
+      <img src="nav-capsule/phone-settings.jpg" alt="设置页" style="display: block; width: 200px; height: 433px; object-fit: cover; object-position: top; border-radius: 24px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">设置页</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 200px">
+      <img src="nav-capsule/phone-settings-add.jpg" alt="设置 › 添加" style="display: block; width: 200px; height: 433px; object-fit: cover; object-position: top; border-radius: 24px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">设置 › 添加</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 200px">
+      <img src="nav-capsule/phone-dark.jpg" alt="深色" style="display: block; width: 200px; height: 433px; object-fit: cover; object-position: top; border-radius: 24px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">深色</figcaption>
+    </figure></div>
+  </section>
+  <section style="display: flex; flex-direction: column; gap: 18px">
+    <h2 style="margin: 0; font-size: 22px; line-height: 1.3; font-weight: 600; letter-spacing: -.02em">桌面 1440 · 面板</h2>
+    <div style="display: flex; gap: 24px; flex-wrap: wrap"><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 648px">
+      <img src="nav-capsule/desktop-feed.jpg" alt="工作台：胶囊居中，图标加文字" style="display: block; width: 648px; height: 405px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">工作台：胶囊居中，图标加文字</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 648px">
+      <img src="nav-capsule/desktop-ai.jpg" alt="AI 面板" style="display: block; width: 648px; height: 405px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">AI 面板</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 648px">
+      <img src="nav-capsule/desktop-settings-add.jpg" alt="设置 › 添加" style="display: block; width: 648px; height: 405px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">设置 › 添加</figcaption>
+    </figure><figure style="margin: 0; display: flex; flex-direction: column; gap: 10px; width: 648px">
+      <img src="nav-capsule/desktop-dark.jpg" alt="深色" style="display: block; width: 648px; height: 405px; object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid rgba(0,0,0,.08); background: #fff">
+      <figcaption style="font-size: 13px; line-height: 1.45; color: #636366">深色</figcaption>
+    </figure></div>
+  </section>
+</div>
+</x-dc>
+</body>
+</html>

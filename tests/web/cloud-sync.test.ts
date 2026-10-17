@@ -6,6 +6,7 @@ import {
 	itemDefaults,
 	workspaceDiff,
 } from "../../apps/web/services/cloud-sync.ts";
+
 const initial = () => ({
 	cards: [
 		{ id: "a", type: "note", title: "A", revision: 1, state: { read: false } },

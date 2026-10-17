@@ -56,8 +56,8 @@
 .card-body {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
-	padding: 16px var(--card-padding) var(--card-padding);
+	gap: var(--block-gap);
+	padding: var(--card-padding);
 	min-width: 0;
 }
 .card-title,
@@ -77,14 +77,9 @@
 	line-height: 20px;
 	color: var(--muted);
 }
-/* Reserve the more button slot even when reading progress is present. */
+/* The reserved action slot keeps counts and timely information readable while hovering. */
 .card-head-right {
 	transition: opacity var(--fast);
-}
-.feed-card:hover .card-head-right,
-.feed-card:focus-within .card-head-right,
-.feed-card.tools-open .card-head-right {
-	opacity: 0;
 }
 .has-cover .card-head-right {
 	opacity: 1 !important;
@@ -180,7 +175,7 @@
 .card-summary {
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 3;
+	-webkit-line-clamp: var(--summary-lines);
 	overflow: hidden;
 	margin: 0;
 	font-size: var(--text-summary);
@@ -233,6 +228,9 @@
 }
 .key-points li span {
 	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.feed-card .key-points li span {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -517,6 +515,9 @@ button.ref:hover {
 }
 .check-item > span:last-child {
 	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.feed-card .check-item > span:last-child {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;

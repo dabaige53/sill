@@ -11,9 +11,25 @@ export async function waitCloud(page?: any) {
 		"content starts at viewport top",
 	);
 }
+/**
+ * The rail is the navigation capsule: the face opens settings, refresh is the R key (or a pull at the top),
+ * and adding lives in settings; the N key still opens the capture editor directly.
+ */
 export async function cloudTool(page?: any, action?: any) {
-	await page.locator("#orb").click();
-	await page.locator(".dock-tools [data-action=" + action + "]").click();
+	if (action === "settings") {
+		await page.locator("#account").click();
+		return;
+	}
+	const key = { refresh: "r", capture: "n" }[action as string];
+	if (key) {
+		// Works for a page and for a frame (an embedded host has no keyboard of its own).
+		await page.evaluate((k: string) => {
+			(document.activeElement as HTMLElement)?.blur?.();
+			document.body.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true }));
+		}, key);
+		return;
+	}
+	await page.locator("#dock [data-action=" + action + "]").click();
 }
 export async function cloudLogout(page?: any) {
 	await cloudTool(page, "settings");
