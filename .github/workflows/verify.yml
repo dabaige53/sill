@@ -24,6 +24,7 @@ jobs:
         run: |
           npm run test:material-density
           npm run test:motion-material
+          node tests/e2e/refresh-motion-browser.ts
           npm run test:browser
           npm run test:selection-browser
       - name: Retain browser results and screenshots

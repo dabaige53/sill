@@ -6,6 +6,8 @@ html {
 	background: var(--canvas);
 	scroll-behavior: smooth;
 	scrollbar-gutter: stable;
+	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
+	overscroll-behavior-y: none;
 }
 body {
 	margin: 0;

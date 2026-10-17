@@ -107,19 +107,28 @@ class Gestures {
 		let start = null,
 			pull = 0,
 			busy = false,
-			timer = 0;
+			timer = 0,
+			frame = 0,
+			inset = 16;
 		const wheel = this.intent();
 		// The desk moves down and the ring sits centred in the gap it opens, never on a card.
-		const padTop = () => parseFloat(getComputedStyle(main).paddingTop) || 16;
+		const measure = () => {
+			inset = parseFloat(getComputedStyle(main).paddingTop) || 16;
+		};
 		const paint = () => {
+			cancelAnimationFrame(frame);
+			frame = 0;
 			const p = Math.min(need, pull),
 				shift = Math.round(p * 0.9);
 			main.style.translate = pull && !MotionEngine.reduced ? `0 ${shift}px` : "";
 			ring.style.translate = MotionEngine.reduced
 				? "0 0"
-				: `0 ${pull ? Math.round((padTop() + shift) / 2 - 20) : -48}px`;
+				: `0 ${pull ? Math.round((inset + shift) / 2 - 20) : -48}px`;
 			ring.style.opacity = String(Math.min(1, pull / 24));
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
+		};
+		const schedulePaint = () => {
+			if (!frame) frame = requestAnimationFrame(paint);
 		};
 		const cancel = () => {
 			start = null;
@@ -132,23 +141,33 @@ class Gestures {
 			}
 		};
 		const refresh = async () => {
+			if (busy) return;
 			busy = true;
 			pull = need;
 			paint();
 			ring.classList.add("is-spinning");
 			document.body.classList.remove("is-pulling");
 			const started = Date.now();
-			await Promise.race([
-				this.app.refresh(),
-				new Promise((r?: any) => window.setTimeout(r, 1000)),
-			]);
-			await new Promise((r?: any) =>
-				window.setTimeout(r, Math.max(0, 420 - (Date.now() - started))),
-			);
-			ring.classList.remove("is-spinning");
-			pull = 0;
-			paint();
-			busy = false;
+			// Bound the visual feedback, not the request lock. A slow request must
+			// not let a second gesture start another refresh after one second.
+			const work = Promise.resolve().then(() => this.app.refresh());
+			try {
+				await Promise.race([work, new Promise((r) => window.setTimeout(r, 1000))]);
+				await new Promise((r) => window.setTimeout(r, Math.max(0, 420 - (Date.now() - started))));
+			} catch {
+				// Refresh owns its error feedback; always restore the gesture surface.
+			} finally {
+				ring.classList.remove("is-spinning");
+				pull = 0;
+				paint();
+				try {
+					await work;
+				} catch {
+					// Already reported by the refresh implementation.
+				} finally {
+					busy = false;
+				}
+			}
 		};
 		document.addEventListener(
 			"touchstart",
@@ -164,6 +183,7 @@ class Gestures {
 					e.target.closest?.("#dock,#toast,.card-more-menu,.deck")
 				)
 					return;
+				measure();
 				start = { ...this.point(e), at: Date.now() };
 			},
 			{ passive: true },
@@ -171,7 +191,8 @@ class Gestures {
 		document.addEventListener(
 			"touchmove",
 			(e?: any) => {
-				if (!start || this.app.drag?.active) return;
+				if (!start) return;
+				if (this.app.drag?.active) return cancel();
 				if (e.touches.length !== 1 || this.app.dialog.open) return cancel();
 				const p = this.point(e),
 					dy = p.y - start.y,
@@ -184,10 +205,12 @@ class Gestures {
 					if (dy < -4 || dx > 12) cancel();
 					return;
 				}
-				if (e.cancelable) e.preventDefault();
+				// If the browser already owns the gesture, do not show a second pull.
+				if (!e.cancelable) return cancel();
+				e.preventDefault();
 				document.body.classList.add("is-pulling");
 				pull = Math.min(110, dy * 0.5);
-				paint();
+				schedulePaint();
 			},
 			{ passive: false },
 		);
@@ -217,9 +240,12 @@ class Gestures {
 					wheel.reset();
 					return;
 				}
+				if (!e.cancelable) return cancel();
+				e.preventDefault();
 				if (!wheel.feed(-e.deltaY)) return;
+				if (!pull) measure();
 				pull = Math.min(need, pull + -e.deltaY * 0.4);
-				paint();
+				schedulePaint();
 				clearTimeout(timer);
 				if (pull >= need) {
 					wheel.reset();
@@ -233,7 +259,7 @@ class Gestures {
 					wheel.reset(false);
 				}, 180);
 			},
-			{ passive: true },
+			{ passive: false },
 		);
 	}
 	/* Sheets by finger: drag down from the grabber, or from content already at its top. Past 190px or a flick it leaves;

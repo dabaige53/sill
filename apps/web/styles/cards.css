@@ -249,7 +249,7 @@
 	font-variant-numeric: tabular-nums;
 }
 
-/* media: covers arrive from their dominant color, blurred first, sharp once decoded. */
+/* media: covers arrive from their dominant color, fading in once decoded; do not animate a blur over each large image. */
 .card-cover {
 	position: relative;
 	flex: none;
@@ -265,11 +265,9 @@
 	height: 100%;
 	object-fit: cover;
 	opacity: 0;
-	filter: blur(12px);
 	transform: scale(1.04);
 	transition:
 		opacity var(--settle) var(--ease),
-		filter var(--settle) var(--ease),
 		transform var(--settle) var(--ease);
 }
 .card-image.is-loaded {
