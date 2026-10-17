@@ -182,7 +182,7 @@ export function createSillRuntime(
 							...headers,
 							"Content-Type": "text/html; charset=utf-8",
 							"Content-Security-Policy":
-								"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+								"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; manifest-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
 						},
 					},
 				);
@@ -461,7 +461,7 @@ export function createSillRuntime(
 						...headers,
 						"Content-Type": "text/html; charset=utf-8",
 						"Content-Security-Policy":
-							"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+							"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 					},
 				});
 			throw serviceError("not_found");
