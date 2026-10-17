@@ -213,7 +213,7 @@ test("selection: quick touch movement stays a scroll; stationary hold only selec
 		f.start();
 		f.hold();
 		assert.deepEqual(f.selected(), ["one"]);
-		assert.equal(f.document.querySelector(".selection-stack-count").textContent, "1");
+		assert.equal(f.document.querySelector(".selection-lift,.selected-tick"), null);
 		f.release();
 		assert.equal(f.app.drag.menu.open, false);
 		assert.equal(f.document.querySelector(".selection-lift"), null);
@@ -223,48 +223,20 @@ test("selection: quick touch movement stays a scroll; stationary hold only selec
 	}
 });
 
-test("selection: moving the held cards opens a grouped menu without dropping an action", () => {
+test("selection: moving or repeating a hold preserves selection without opening a menu", () => {
 	const f = fixture();
 	try {
 		f.selectTwo();
 		const before = f.state();
-		f.start();
-		f.hold();
-		assert.equal(
-			f.document.querySelector(".selection-lift .selection-stack-count").textContent,
-			"2",
-		);
-		assert.equal(f.move().defaultPrevented, true);
-		f.release();
-		assert.equal(f.app.drag.menu.open, true);
-		assert.equal(f.document.querySelector(".selection-lift"), null);
-		assert.equal(f.document.querySelectorAll("#selection-menu [role=group]").length, 3);
-		assert.deepEqual(
-			Array.from(
-				f.document.querySelectorAll("[data-selection-action]"),
-				(n: any) => n.dataset.selectionAction,
-			),
-			["bookmark", "later", "tag", "cancel"],
-		);
-		assert.equal(f.document.activeElement.dataset.selectionAction, "bookmark");
-		assert.deepEqual(f.selected(), ["one", "two"]);
-		assert.equal(f.state(), before);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("selection: stationary hold of selected cards opens the menu on release", () => {
-	const f = fixture();
-	try {
-		f.selectTwo();
-		const before = f.state();
-		f.start();
-		f.hold();
-		assert.equal(f.app.drag.menu.open, false);
-		f.release();
-		assert.equal(f.app.drag.menu.open, true);
-		assert.deepEqual(f.selected(), ["one", "two"]);
+		for (const move of [false, true]) {
+			f.start();
+			f.hold();
+			assert.equal(f.document.querySelector(".selection-lift,.is-drag-source"), null);
+			if (move) f.move();
+			f.release();
+			assert.equal(f.app.drag.menu.open, false);
+			assert.deepEqual(f.selected(), ["one", "two"]);
+		}
 		assert.equal(f.state(), before);
 	} finally {
 		f.dom.window.close();
@@ -282,9 +254,7 @@ test("selection: thumbnail clones real card content without IDs, handlers, or in
 		);
 		const original = source.innerHTML;
 		const before = f.state();
-		f.start();
-		f.hold();
-		f.move();
+		f.open();
 		const check = (stack: HTMLElement) => {
 			assert.equal((stack as any).inert, true);
 			assert.equal(stack.getAttribute("aria-hidden"), "true");
@@ -316,8 +286,6 @@ test("selection: thumbnail clones real card content without IDs, handlers, or in
 			assert.equal(clone.matches(".is-selected,.is-drag-source"), false);
 			assert.equal((clone as HTMLElement).style.position, "relative");
 		};
-		check(f.document.querySelector(".selection-lift .selection-stack"));
-		f.release();
 		check(f.document.querySelector("#selection-menu .selection-stack"));
 		assert.equal(source.innerHTML, original, "sanitizing the clone changed the live card");
 		assert.equal(f.document.querySelectorAll("#title-one").length, 1);
@@ -325,53 +293,6 @@ test("selection: thumbnail clones real card content without IDs, handlers, or in
 		assert.equal(f.state(), before);
 	} finally {
 		f.dom.window.close();
-	}
-});
-
-test("selection: mouse and touch menus use the final release point after tracking", () => {
-	for (const pointer of ["mouse", "touch"]) {
-		const f = fixture();
-		try {
-			f.selectTwo();
-			let anchor: any;
-			const position = f.app.drag.positionMenu.bind(f.app.drag);
-			f.app.drag.positionMenu = (point: any) => {
-				anchor = { ...point };
-				position(point);
-			};
-			if (pointer === "touch") f.start();
-			else
-				f.fire("pointerdown", f.source(), {
-					pointerType: "mouse",
-					button: 0,
-					clientX: 120,
-					clientY: 200,
-				});
-			f.hold();
-			for (const point of [
-				{ x: 220, y: 320 },
-				{ x: 290, y: 710 },
-			]) {
-				if (pointer === "touch")
-					f.fire("touchmove", f.source(), { touches: [{ clientX: point.x, clientY: point.y }] });
-				else
-					f.fire("pointermove", f.source(), {
-						pointerType: "mouse",
-						clientX: point.x,
-						clientY: point.y,
-					});
-			}
-			if (pointer === "touch")
-				f.fire("touchend", f.source(), {
-					touches: [],
-					changedTouches: [{ clientX: 310, clientY: 735 }],
-				});
-			else f.fire("pointerup", f.source(), { pointerType: "mouse", clientX: 310, clientY: 735 });
-			assert.deepEqual(anchor, { x: 310, y: 735 }, pointer);
-			assert.equal(f.app.drag.menu.open, true);
-		} finally {
-			f.dom.window.close();
-		}
 	}
 });
 
@@ -577,5 +498,176 @@ test("selection: touch and wheel pull-refresh are inactive while cards are selec
 		assert.equal(f.state(), before);
 	} finally {
 		f.dom.window.close();
+	}
+});
+
+test("selection: toolbar exit disables hit and focus immediately and stale exit cannot hide re-entry", async () => {
+	const f = fixture();
+	try {
+		const animations: any[] = [];
+		f.w.HTMLElement.prototype.animate = function (frames: any, options: any) {
+			let finish: () => void;
+			const animation = {
+				frames,
+				options,
+				finished: new Promise<void>((resolve) => {
+					finish = resolve;
+				}),
+				cancel() {},
+				finish: () => finish(),
+			};
+			animations.push(animation);
+			return animation;
+		};
+		const bar = f.document.getElementById("selection-bar");
+		f.app.select("one");
+		assert.equal(bar.hidden, false);
+		assert.equal(bar.inert, false);
+		assert.equal(f.document.getElementById("title-one").getAttribute("aria-pressed"), "true");
+		assert.equal(f.document.getElementById("title-two").getAttribute("aria-pressed"), "false");
+		animations[0].finish();
+		await Promise.resolve();
+		bar.querySelector("button").focus();
+		f.app.action("clear-selection");
+		assert.equal(bar.inert, true);
+		assert.equal(bar.style.pointerEvents, "none");
+		assert.equal(bar.getAttribute("aria-hidden"), "true");
+		assert.equal(bar.contains(f.document.activeElement), false);
+		assert.equal(bar.hidden, false);
+		f.app.select("two");
+		animations[1].finish();
+		await Promise.resolve();
+		assert.equal(bar.hidden, false);
+		assert.equal(bar.inert, false);
+		animations[2].finish();
+		await Promise.resolve();
+		f.app.action("clear-selection");
+		animations[3].finish();
+		await Promise.resolve();
+		assert.equal(bar.hidden, true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("selection: search reuses gestures and toolbar with its own selected set", () => {
+	const f = fixture();
+	try {
+		f.app.select("one");
+		const before = f.state();
+		f.app.dialog.innerHTML = `<div id="search-results">${f.app.grid.innerHTML}</div>`;
+		f.app.modalKind = "search";
+		f.app.dialog.showModal();
+		f.app.bindSearchSelection();
+		const results = f.document.getElementById("search-results");
+		assert.equal(results.querySelector(".is-selected"), null);
+		const second = results.querySelector('[data-card="two"] p');
+		f.fire("touchstart", second, { touches: [{ clientX: 120, clientY: 200 }] });
+		f.hold();
+		f.fire("touchend", second, { touches: [], changedTouches: [{ clientX: 120, clientY: 200 }] });
+		assert.deepEqual(Array.from(f.app.searchSelected), ["two"]);
+		assert.deepEqual(Array.from(f.app.homeSelected), ["one"]);
+		assert.equal(f.app.drag.menu.open, false);
+		assert.equal(
+			results.querySelector('[data-card="two"]').classList.contains("is-selected"),
+			true,
+		);
+		assert.equal(f.document.getElementById("search-selection-bar").hidden, false);
+		assert.equal(
+			f.document.getElementById("selection-bar").querySelector(".selection-count").textContent,
+			"1",
+		);
+		f.app.drag.suppressUntil = 0;
+		const third = results.querySelector('[data-card="three"] p');
+		f.app.click({ target: third, preventDefault() {}, stopPropagation() {} });
+		assert.deepEqual(Array.from(f.app.searchSelected), ["two", "three"]);
+		assert.deepEqual(Array.from(f.app.homeSelected), ["one"]);
+		f.app.action("clear-selection");
+		assert.equal(f.app.searchSelected.size, 0);
+		assert.equal(f.app.homeSelected.size, 1);
+		assert.equal(f.state(), before);
+		f.app.select("two");
+		f.app.action("selected-bookmark");
+		assert.equal(f.Store.item("two").bookmarked, true);
+		assert.equal(f.Store.item("one").bookmarked, false);
+		assert.equal(f.app.homeSelected.size, 1);
+		f.app.modalKind = "";
+		f.app.dialog.close();
+		f.app.updateSelection();
+		assert.deepEqual(f.selected(), ["one"]);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("selection: dragging into AI receiver opens a local context window without changing cards", () => {
+	for (const search of [false, true]) {
+		const f = fixture();
+		try {
+			f.document
+				.getElementById("selection-bar")
+				.insertAdjacentHTML("beforeend", f.app.selectionAIHTML());
+			if (search) {
+				f.app.select("three");
+				f.app.dialog.innerHTML = `<div id="search-results">${f.app.grid.innerHTML}</div>`;
+				f.app.modalKind = "search";
+				f.app.dialog.showModal();
+				f.app.bindSearchSelection();
+			}
+			f.app.select("one", { add: true });
+			f.app.select("two", { add: true });
+			const before = f.state();
+			const context = f.app.selectionContext();
+			const receiver = context.bar.querySelector(".selection-ai-target");
+			receiver.getBoundingClientRect = () => ({
+				left: 100,
+				right: 300,
+				top: 700,
+				bottom: 748,
+				width: 200,
+				height: 48,
+			});
+			const source = context.grid.querySelector('[data-card="one"] p');
+			f.fire("touchstart", source, { touches: [{ clientX: 120, clientY: 200 }] });
+			f.hold();
+			f.fire("touchmove", source, { touches: [{ clientX: 180, clientY: 720 }] });
+			assert.equal(receiver.classList.contains("is-ready"), true);
+			assert.equal(f.document.querySelector(".selection-drag-count").textContent, "2");
+			f.fire("touchend", source, { touches: [], changedTouches: [{ clientX: 180, clientY: 720 }] });
+			assert.deepEqual(Array.from(f.app.aiSelectionIds), ["one", "two"]);
+			assert.equal(f.app.openedPanel.kind, "ai");
+			assert.equal(receiver.classList.contains("is-ready"), false);
+			assert.equal(f.document.querySelector(".selection-drag-count"), null);
+			assert.equal(f.state(), before);
+			if (search) assert.deepEqual(Array.from(f.app.homeSelected), ["three"]);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("selection: outside release and touch cancellation never open AI; keyboard alternative does", () => {
+	for (const cancel of [false, true]) {
+		const f = fixture();
+		try {
+			f.document
+				.getElementById("selection-bar")
+				.insertAdjacentHTML("beforeend", f.app.selectionAIHTML());
+			const before = f.state();
+			f.start();
+			f.hold();
+			f.move();
+			if (cancel) f.fire("touchcancel");
+			else f.release();
+			assert.equal(f.app.openedPanel, undefined);
+			assert.equal(f.document.querySelector(".selection-drag-count"), null);
+			assert.equal(f.state(), before);
+			f.app.action("selected-ai");
+			assert.equal(f.app.openedPanel.kind, "ai");
+			assert.deepEqual(Array.from(f.app.aiSelectionIds), ["one"]);
+			assert.equal(f.state(), before);
+		} finally {
+			f.dom.window.close();
+		}
 	}
 });

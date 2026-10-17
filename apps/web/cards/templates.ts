@@ -234,7 +234,9 @@ function cardHTML(c?: any, options: any = {}) {
 	options = options && typeof options === "object" ? options : {};
 	const s = CardPresentation.state(c, options),
 		tasks = CardPresentation.tasks(c, s),
-		isDone = c.type === "task" && tasks.length && tasks.every((t?: any) => t.done);
+		isDone =
+			(c.type === "task" && tasks.length && tasks.every((t?: any) => t.done)) ||
+			(c.type === "reminder" && s.reminderDone);
 	const ctx: Record<string, any> = {
 		state: s,
 		tasks,
@@ -251,7 +253,6 @@ function cardHTML(c?: any, options: any = {}) {
 	const covered = (c.image && ["article", "media"].includes(c.type)) || c.type === "photo";
 	return `<article class="feed-card ${options.compact ? "" : "feed-item"} type-${esc(c.type)} ${covered ? "has-cover" : ""} ${options.compact ? "is-compact" : ""} ${read ? "is-read" : ""} ${ended ? "is-ended" : ""} ${s.bookmarked ? "is-bookmarked" : ""} ${s.selected ? "is-selected" : ""} ${s.snoozedUntil > 0 ? "is-snoozed" : ""} ${isDone ? "is-complete" : ""}"${attributes} aria-label="${esc((CardTypes[c.type] || CardTypes.note).label + "：" + c.title + (s.read ? copy("web.templates.732aa8f1efe5") : ""))}">
  ${Object.hasOwn(CardTypes, c.type) && Object.hasOwn(CardTemplates, c.type) ? CardTemplates[c.type](c, ctx) : CardTemplates.article(c, ctx)}
- <span class="selected-tick" aria-hidden="true">${icon("check", 13)}</span>
  </article>`;
 }
 /** A burst from one source, folded. Opening it expands in place; nothing navigates. */

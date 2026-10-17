@@ -330,6 +330,60 @@ try {
 	const repeatedDemo = (await api("/api/v1/workspace")).state.cards;
 	assert.equal(repeatedDemo.length, demo.length);
 	assert.ok(repeatedDemo.every((card) => !demo.some((previous) => previous.id === card.id)));
+	// A foreground pull joins an already-running read; no early success or duplicate request.
+	let releaseRead: () => void;
+	const readGate = new Promise<void>((resolve) => {
+		releaseRead = resolve;
+	});
+	let sharedReads = 0;
+	await page.route("**/api/v1/workspace", async (route) => {
+		sharedReads++;
+		await readGate;
+		await route.continue();
+	});
+	await page.evaluate(() => {
+		window.__refreshSettled = 0;
+		window.__sharedRefresh = [__app.refresh(), __app.refresh({ feedback: "pull" })].map((work) =>
+			work.then((result) => {
+				window.__refreshSettled++;
+				return result;
+			}),
+		);
+	});
+	await page.waitForTimeout(100);
+	assert.equal(await page.evaluate(() => window.__refreshSettled), 0);
+	releaseRead!();
+	assert.deepEqual(await page.evaluate(() => Promise.all(window.__sharedRefresh)), [true, true]);
+	assert.equal(sharedReads, 1);
+	await page.unroute("**/api/v1/workspace");
+	// Pull refresh owns its icon feedback, including real request failures.
+	await page.evaluate(() => {
+		window.__refreshAlerts = 0;
+		window.__originalAlert = __app.alert;
+		__app.alert = () => {
+			window.__refreshAlerts++;
+		};
+	});
+	await page.route("**/api/v1/workspace", (route) =>
+		route.fulfill({
+			status: 503,
+			contentType: "application/json",
+			body: JSON.stringify({ error: { code: "unavailable" } }),
+		}),
+	);
+	assert.equal(await page.evaluate(() => __app.refresh({ feedback: "pull" })), false);
+	assert.equal(
+		await page.evaluate(() => window.__refreshAlerts),
+		0,
+		"no text alert for pull failure",
+	);
+	assert.equal(await page.locator("#offline").isVisible(), false, "no second text feedback");
+	assert.equal(await page.locator("#dock.is-busy").count(), 0, "no second loading spinner");
+	await page.unroute("**/api/v1/workspace");
+	assert.equal(await page.evaluate(() => __app.refresh({ feedback: "pull" })), true);
+	await page.evaluate(() => {
+		__app.alert = window.__originalAlert;
+	});
 	// Session expiry must dismiss the lifted/menu copy along with the signed-in feed.
 	await page.evaluate(() => {
 		for (const card of __store.state.cards.slice(0, 2)) __app.select(card.id, { add: true });
@@ -357,9 +411,74 @@ try {
 		"session expiry must not dispatch an action",
 	);
 	assert.equal(await page.evaluate(() => localStorage.length), 0);
+	// Retained search snapshots and local AI drafts are account-bound, including hidden menu clones.
+	for (const view of ["preview", "ai"]) {
+		await page.unroute("**/auth/session");
+		await page.reload();
+		await page.locator("body.cloud-signed-in").waitFor();
+		const ids = await page.evaluate(() => __store.state.cards.slice(0, 2).map((card) => card.id));
+		assert.equal(ids.length, 2);
+		await page.evaluate((id) => __app.select(id, { add: true }), ids[0]);
+		await page.evaluate(() => __app.openPanel("search"));
+		await page.waitForFunction(() => __app.modalKind === "search");
+		await page.evaluate((id) => __app.select(id, { add: true }), ids[1]);
+		await page
+			.locator('#search-selection-bar [data-action="selected-bookmark"]')
+			.press("Shift+F10");
+		await page.keyboard.press("Escape");
+		assert.ok((await page.locator("#selection-menu [data-card]").count()) === 0);
+		assert.ok((await page.locator("#selection-menu .selection-stack").count()) > 0);
+		if (view === "ai") {
+			await page.locator('#search-selection-bar [data-action="selected-ai"]').click();
+			await page.locator("#ai-local-draft").fill("Synthetic temporary account draft");
+			assert.equal(await page.locator("[data-ai-context]").count(), 1);
+		} else {
+			await page.evaluate((id) => __app.openCard(id), ids[1]);
+			await saved();
+		}
+		await page.waitForFunction((kind) => __app.modalKind === kind, view);
+		assert.equal(await page.locator("#search-background").count(), 1);
+		assert.ok((await page.locator("#search-background [data-card]").count()) > 0);
+		const before = batchRequests.length;
+		await page.route("**/auth/session", (route) =>
+			route.fulfill({
+				status: 401,
+				contentType: "application/json",
+				body: JSON.stringify({ error: { code: "unauthenticated" } }),
+			}),
+		);
+		assert.equal(await page.evaluate(() => __app.refresh({ feedback: "pull" })), false);
+		await page.waitForFunction(() => !document.body.classList.contains("cloud-signed-in"));
+		assert.equal(
+			await page.locator("#modal").evaluate((node: HTMLDialogElement) => node.open),
+			false,
+		);
+		assert.equal(
+			await page
+				.locator(
+					"#modal > *,#search-background,[data-card],[data-ai-context],#ai-local-draft,#selection-menu > *",
+				)
+				.count(),
+			0,
+			`${view}: no retained account DOM`,
+		);
+		assert.deepEqual(
+			await page.evaluate(() => ({
+				home: __app.homeSelected.size,
+				search: __app.searchSelected.size,
+				ai: __app.aiSelectionIds.length,
+				query: __app.searchFilter.query,
+				scroll: __app.searchScroll,
+				cards: __store.state.cards.length,
+			})),
+			{ home: 0, search: 0, ai: 0, query: "", scroll: 0, cards: 0 },
+		);
+		assert.equal(batchRequests.length, before, `${view}: expiry must not write`);
+		assert.equal(await page.evaluate(() => localStorage.length), 0);
+	}
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS cloud operations: atomic menu actions and cancellation, bookmarks/later/tags/notes, tasks/reminders, durable preferences, AI structured edits, no manual content editor, AI archive/restore, preference feedback, link drop/file ignore, unknown replay, conflict draft, export/clear, desktop/mobile, session-expiry menu dismissal, no browser persistence",
+		"PASS cloud operations: atomic menu actions and cancellation, bookmarks/later/tags/notes, tasks/reminders, durable preferences, AI structured edits, no manual content editor, AI archive/restore, preference feedback, link drop/file ignore, unknown replay, conflict draft, export/clear, desktop/mobile, session-expiry menu/search/detail/AI cleanup, no browser persistence",
 	);
 } finally {
 	await browser?.close();

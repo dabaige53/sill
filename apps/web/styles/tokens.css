@@ -17,7 +17,7 @@
 	--accent-ink: #0057ad;
 	--success: #248a3d;
 	--alert: #b45309;
-	--card-read: #fafafb;
+	--card-read: #e9e9ee;
 	--line-read: rgba(0, 0, 0, 0.04);
 	--alert-soft: #fdf3e7;
 	--success-soft: #eaf5ec;
@@ -121,7 +121,7 @@ body[data-density="roomy"] {
 	--accent-ink: #8fc0ff;
 	--success: #3fb25e;
 	--alert: #f0a04b;
-	--card-read: #17171a;
+	--card-read: #121215;
 	--line-read: rgba(255, 255, 255, 0.04);
 	--alert-soft: #3a2a17;
 	--success-soft: #163021;

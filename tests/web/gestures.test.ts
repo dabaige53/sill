@@ -305,7 +305,7 @@ test("desk pull coalesces moves into one frame and measures only at gesture star
 		assert.equal(f.frames.size, 1);
 		assert.equal(f.document.querySelector("main").style.translate, "");
 		f.flush(f.frames);
-		assert.equal(f.document.querySelector("main").style.translate, "0 27px");
+		assert.equal(f.document.querySelector("main").style.translate, "0 29px");
 		assert.equal(reads, 1, "paint must not read layout after writing translate");
 		f.fire(target, "touchcancel");
 		assert.equal(f.frames.size, 0);
@@ -333,7 +333,7 @@ test("wheel pull claims only a vertical top-edge gesture", () => {
 	}
 });
 
-test("a slow refresh keeps its request lock after the visual timeout and recovers on rejection", async () => {
+test("a slow refresh keeps feedback and its lock until completion, then offers retry on rejection", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
 		let reject: (reason?: any) => void;
@@ -358,19 +358,25 @@ test("a slow refresh keeps its request lock after the visual timeout and recover
 		await settle();
 		f.flush();
 		await settle();
-		assert.equal(f.document.querySelector(".is-spinning"), null);
+		assert.ok(f.document.querySelector(".is-spinning"));
+		assert.equal(f.document.querySelector("main").style.translate, "");
 		pull();
 		await settle();
 		assert.equal(f.app.refreshes, 1);
 		reject!(new Error("synthetic refresh failure"));
 		await settle();
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "error");
+		assert.equal(f.document.querySelector("#pull-ring").disabled, false);
 		f.app.refresh = () => {
 			f.app.refreshes++;
 			return Promise.resolve();
 		};
-		pull();
+		f.document.querySelector("#pull-ring").click();
 		await settle();
 		assert.equal(f.app.refreshes, 2);
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
+		f.flush();
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
 	} finally {
 		f.dom.window.close();
 	}
@@ -389,6 +395,33 @@ test("browser-owned noncancelable touch does not start a second refresh animatio
 		assert.equal(f.app.refreshes, 0);
 		assert.equal(f.document.querySelector("main").style.translate, "");
 		assert.equal(f.document.querySelector(".is-pulling"), null);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("short pull cancels, light threshold commits once on release, and long travel is bounded", async () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		const target = f.document.querySelector("main p");
+		f.fire(target, "touchstart");
+		f.fire(target, "touchmove", 120, 250);
+		f.fire(target, "touchend", 120, 250);
+		assert.equal(f.app.refreshes, 0);
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
+		f.fire(target, "touchstart");
+		f.fire(target, "touchmove", 120, 274);
+		f.flush(f.frames);
+		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
+		assert.equal(f.app.refreshes, 0, "crossing threshold is not itself a refresh");
+		f.fire(target, "touchmove", 120, 900);
+		f.flush(f.frames);
+		assert.equal(f.document.querySelector("main").style.translate, "0 54px");
+		f.fire(target, "touchend", 120, 900);
+		assert.equal(f.app.refreshes, 1);
+		assert.equal(f.document.querySelector("main").style.translate, "");
+		assert.equal(f.document.querySelector("#pull-ring").textContent, "");
+		await Promise.resolve();
 	} finally {
 		f.dom.window.close();
 	}

@@ -253,7 +253,19 @@ try {
 			mobile,
 		);
 		await page.locator("[data-action=settings-group][data-extra=data]").click();
-		assert.match(await page.locator(".settings-main").textContent(), /云端工作区/);
+		assert.match(
+			await page.locator(".settings-main").textContent(),
+			/卡片、阅读状态和偏好保存在云端账号/,
+		);
+		assert.match(await page.locator(".settings-main").textContent(), /登录状态由安全 Cookie 保存/);
+		assert.doesNotMatch(await page.locator(".settings-main").textContent(), /不持久保存账号令牌/);
+		assert.equal(
+			await page.locator(".settings-main [data-action=export-all]").textContent(),
+			"导出",
+		);
+		assert.ok(
+			await page.locator(".settings-main").evaluate((el) => el.scrollWidth <= el.clientWidth),
+		);
 		await page.keyboard.press("Escape");
 		await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
 		await page.waitForFunction(
@@ -278,13 +290,13 @@ try {
 		await page.locator("#cloud-login").waitFor();
 		assert.equal(await page.locator("[data-card]").count(), 0);
 		assert.ok(
-			await page.locator("#dock").evaluate((dock) => dock.classList.contains("is-busy")),
+			await page.locator("#pull-ring").evaluate((ring) => ring.dataset.state === "loading"),
 			"logout retains the pending refresh indicator until its response is consumed",
 		);
 		holdWorkspace = false;
 		await heldRoute.fulfill({ json: workspaceSnapshot.parse(workspace) });
 		await page.waitForFunction(
-			() => !document.querySelector("#dock").classList.contains("is-busy"),
+			() => document.querySelector<HTMLElement>("#pull-ring").dataset.state !== "loading",
 		);
 		assert.equal(
 			await page.locator("[data-card]").count(),

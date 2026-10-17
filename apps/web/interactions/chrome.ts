@@ -88,7 +88,10 @@ class ChromeAutoHide {
 		const focused = this.targets().some((t) => t.contains(document.activeElement));
 		if (focused) return;
 		this.hidden = true;
-		for (const t of this.targets()) t.classList.add("is-tucked");
+		for (const t of this.targets()) {
+			(t as HTMLElement).inert = true;
+			t.classList.add("is-tucked");
+		}
 	}
 	show() {
 		clearTimeout(this.timer);
@@ -96,7 +99,10 @@ class ChromeAutoHide {
 		this.down = this.up = 0;
 		if (!this.hidden) return;
 		this.hidden = false;
-		for (const t of this.targets()) t.classList.remove("is-tucked");
+		for (const t of this.targets()) {
+			(t as HTMLElement).inert = false;
+			t.classList.remove("is-tucked");
+		}
 	}
 	destroy() {
 		clearTimeout(this.timer);

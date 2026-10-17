@@ -1,6 +1,5 @@
 import { icon } from "../atoms/icons.ts";
 import {
-	avatarTone,
 	button,
 	checkMark,
 	duration,
@@ -46,8 +45,25 @@ class AppController {
 	declare mode: any;
 	declare baseMode: any;
 	declare filter: any;
-	declare selected: any;
+	searchFilter = { type: "all", status: "all", tag: "", query: "" };
+	searchScroll = 0;
+	searchLimit = 40;
+	searchBackground?: HTMLDialogElement;
+	searchFocus?: HTMLElement;
+	aiSelectionIds: string[] = [];
+	homeSelected = new Set<string>();
+	searchSelected = new Set<string>();
+	searchSelectAnchor = "";
+	selectionBars = new WeakMap<HTMLElement, { visible: boolean; animation: Animation | null }>();
+	get selected() {
+		return this.modalKind === "search" ? this.searchSelected : this.homeSelected;
+	}
+	set selected(value: Set<string>) {
+		if (this.modalKind === "search") this.searchSelected = value;
+		else this.homeSelected = value;
+	}
 	declare pendingCards: any;
+	declare pullRefreshFeedback: boolean;
 	declare refreshBusy: any;
 	declare openStacks: any;
 	declare modalKind: any;
@@ -85,6 +101,9 @@ class AppController {
 	declare skipReturnMotion: any;
 	declare sheetLeaving: any;
 	declare lockedScroll: any;
+	pageScrollLocked = false;
+	pageOverflow = "";
+	previewSizeObserver?: ResizeObserver;
 	declare editId: any;
 	declare editTags: any;
 	declare toastTimer: any;
@@ -129,13 +148,30 @@ class AppController {
 		this.loadedImages = new Set<any>();
 	}
 	init() {
+		// Track the input that opened the card; restoring focus must not draw a touch selection box.
+		document.addEventListener(
+			"pointerdown",
+			() => {
+				document.documentElement.dataset.inputModality = "pointer";
+			},
+			{ capture: true },
+		);
+		document.addEventListener(
+			"keydown",
+			(event) => {
+				if (!event.metaKey && !event.ctrlKey && !event.altKey)
+					document.documentElement.dataset.inputModality = "keyboard";
+			},
+			{ capture: true },
+		);
+
 		if (window.__QG_RUNTIME__) Store.key = "sill-live-v1";
 		Store.load();
 		if (window.__QG_RUNTIME__) Store.state.cards = [];
 		this.sort = Store.pref("sort");
 		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
-   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}</div>
+   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}${this.selectionAIHTML()}</div>
    ${this.navHTML()}</div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
@@ -175,14 +211,15 @@ class AppController {
 			document.addEventListener(type, () => (this.lastActivity = Date.now()), { passive: true });
 		});
 		document.addEventListener("focusin", (e?: any) => {
-			const menu = this.grid.querySelector(".card-more-menu");
+			const menu = document.querySelector<HTMLElement>(".card-more-menu");
 			if (menu && !menu.contains(e.target) && !e.target.closest?.('[data-action="card-more"]'))
 				this.closeMore();
 			if (this.editingId && !e.target.closest?.(".is-editing")) this.finishInlineEdit();
 		});
 		this.dialog.addEventListener("cancel", (e?: any) => {
 			e.preventDefault();
-			this.closeModal();
+			if (this.modalKind === "search" && this.selected.size) this.action("clear-selection");
+			else this.closeModal();
 		});
 		this.dialog.addEventListener("click", (e?: any) => {
 			if (e.target !== this.dialog) return;
@@ -262,19 +299,12 @@ class AppController {
 		vv.addEventListener("scroll", sync);
 		sync();
 	}
-	/** The account face: the person's initial when known, otherwise a neutral person. */
-	accountFace() {
-		const name = String(window.__SILL_ACCOUNT__ || Store.pref("profileName") || "").trim();
-		return name
-			? `<span class="account-face" style="background:${avatarTone(name)}">${esc(name.slice(0, 1).toUpperCase())}</span>`
-			: `<span class="account-face is-blank">${icon("person", 20)}</span>`;
-	}
 	paintAccount() {
 		const face = document.querySelector("#account .account-wrap");
 		if (face) face.innerHTML = this.accountRing();
 	}
 	accountRing() {
-		return `${this.accountFace()}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
+		return `${icon("sill", 22)}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
 	}
 	/**
 	 * The navigation capsule: four places, one glass lens that slides to the current one.
@@ -282,7 +312,7 @@ class AppController {
 	 */
 	navHTML() {
 		const tab = (key: string, face: string, label: string, aria = label, id = "") =>
-			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span><span class="nav-label" aria-hidden="true">${label}</span></button>`;
+			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span>${key === "settings" ? "" : `<span class="nav-label" aria-hidden="true">${label}</span>`}</button>`;
 		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("search", icon("search", 22), copy("web.nav.search"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("settings", `<span class="account-wrap">${this.accountRing()}</span>`, copy("web.nav.settings"), copy("web.nav.settings"), "account")}</nav>`;
 	}
 	/** Moves the lens. The lens travels on a spring and stretches a little on the way, like a drop. */
@@ -307,7 +337,9 @@ class AppController {
 		this.navTimer = window.setTimeout(() => nav.classList.remove("is-moving"), 420);
 	}
 	isPage(kind: string) {
-		return PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches;
+		return (
+			kind === "search" || (PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches)
+		);
 	}
 	/**
 	 * A tab opens its place. On a phone the place is a page and the capsule stays, so the lens
@@ -317,9 +349,18 @@ class AppController {
 		clearTimeout(this.navOpenTimer);
 		this.navOpenTimer = 0;
 		if (key === "home") {
+			if (this.searchBackground || this.modalKind === "search") {
+				history.replaceState({ glass: true, prev: null }, "", "#feed");
+				this.lastRouteHash = "#feed";
+			}
+			this.discardSearchBackground();
 			this.setNav("home");
 			if (this.dialog.open) this.closeNative();
 			else window.scrollTo({ top: 0, behavior: MotionEngine.reduced ? "auto" : "smooth" });
+			return;
+		}
+		if (key === "search" && this.searchBackground) {
+			this.closeNative();
 			return;
 		}
 		if (this.modalKind === key && this.dialog.open) {
@@ -353,9 +394,19 @@ class AppController {
 			.includes(q.toLocaleLowerCase());
 	}
 	searchAll(q?: any) {
-		const all = Store.state.cards.filter(
-			(c?: any) => this.matches(c, q) && !Store.item(c.id).dismissed,
-		);
+		const f = this.searchFilter;
+		const all = Store.state.cards.filter((c?: any) => {
+			const state = Store.item(c.id);
+			return (
+				(!q || this.matches(c, q)) &&
+				(f.type === "all" || c.type === f.type) &&
+				(!f.tag || Store.tags(c).includes(f.tag)) &&
+				(f.status === "all" ||
+					(f.status === "unread" && !state.read) ||
+					(f.status === "saved" && state.bookmarked) ||
+					(f.status === "later" && state.later))
+			);
+		});
 		return {
 			desk: all.filter((c?: any) => this.shelfOf(c) === "desk"),
 			shelved: all.filter((c?: any) => this.shelfOf(c) !== "desk"),
@@ -516,6 +567,38 @@ class AppController {
 		});
 	}
 	refreshCard(id?: any) {
+		const searchCard = (
+			this.searchBackground || (this.modalKind === "search" ? this.dialog : null)
+		)?.querySelector(`[data-card="${CSS.escape(id)}"]`);
+		const sharedCard = Store.card(id);
+		if (searchCard && sharedCard) {
+			const temp = document.createElement("div");
+			const active = searchCard.contains(document.activeElement)
+				? (document.activeElement as HTMLElement)
+				: null;
+			const taskPreviewOrder =
+				sharedCard.type === "task" && active?.dataset.action === "task"
+					? [...searchCard.querySelectorAll('[data-action="task"]')].map(
+							(n: HTMLElement) => n.dataset.extra,
+						)
+					: [];
+			temp.innerHTML = cardHTML(sharedCard, { now: this.feedNow, taskPreviewOrder });
+			const replacement = temp.firstElementChild;
+			this.markSelectionCard(replacement as HTMLElement, this.searchSelected);
+			if (searchCard.contains(this.searchFocus))
+				this.searchFocus = replacement.querySelector(".card-title-button") as HTMLElement;
+			searchCard.replaceWith(replacement);
+			if (active)
+				[...replacement.querySelectorAll<HTMLElement>("[data-action]")]
+					.find(
+						(n: HTMLElement) =>
+							n.dataset.action === active.dataset.action &&
+							n.dataset.extra === active.dataset.extra &&
+							n.dataset.id === active.dataset.id,
+					)
+					?.focus({ preventScroll: true });
+			this.revealImages(replacement);
+		}
 		let old = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
 		const c = Store.card(id),
 			active = old?.contains(document.activeElement) ? document.activeElement : null;
@@ -571,6 +654,7 @@ class AppController {
 		this.revealImages(node);
 		void (node as HTMLElement).offsetWidth;
 		node.className = nextClass;
+		this.markSelectionCard(node as HTMLElement, this.homeSelected);
 		this.layout.schedule(true);
 		this.updateSelection();
 		if (active) {
@@ -591,31 +675,144 @@ class AppController {
 	updateFilterIndicator() {
 		document.getElementById("dock").classList.toggle("filter-active", this.filtering());
 	}
+	selectionAIHTML() {
+		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-wave" aria-hidden="true"><i></i><i></i><i></i></span><span data-ai-label>${copy("web.selection.aiDrop")}</span></button>`;
+	}
+	openSelectionAI(ids: string[]) {
+		this.aiSelectionIds = [...new Set(ids)].filter((id) => Store.card(id));
+		if (!this.aiSelectionIds.length) return;
+		this.openPanel("ai");
+	}
+	markSelectionCard(node: HTMLElement, selection: Set<string>) {
+		const selected = selection.has(node.dataset.card);
+		node.classList.toggle("is-selected", selected);
+		const title = node.querySelector(".card-title-button");
+		if (selection.size) title?.setAttribute("aria-pressed", String(selected));
+		else title?.removeAttribute("aria-pressed");
+	}
+	selectionContext() {
+		const search = this.modalKind === "search";
+		return {
+			grid: search ? this.dialog.querySelector("#search-results") : this.grid,
+			selected: search ? this.searchSelected : this.homeSelected,
+			bar: document.getElementById(search ? "search-selection-bar" : "selection-bar"),
+			search,
+		};
+	}
+	bindSearchSelection() {
+		if (!this.dialog.querySelector("#search-selection-bar")) {
+			const original = document.getElementById("selection-bar");
+			if (original) {
+				const bar = original.cloneNode(true) as HTMLElement;
+				bar.id = "search-selection-bar";
+				bar.hidden = true;
+				this.dialog.append(bar);
+				bar.addEventListener("contextmenu", (e: MouseEvent) => {
+					if (!this.searchSelected.size) return;
+					e.preventDefault();
+					this.drag.openMenu([...this.searchSelected], e.target as HTMLElement, {
+						x: e.clientX,
+						y: e.clientY,
+					});
+				});
+			}
+		}
+		this.updateSelection();
+	}
 	/** Toggle one card, add it, or (Shift) fill the range from the last picked card. */
 	select(id?: any, options: any = {}) {
-		const order = [...this.grid.querySelectorAll("[data-card]")].map((n?: any) => n.dataset.card),
-			from = order.indexOf(this.selectAnchor),
+		const context = this.selectionContext();
+		const order = [...context.grid.querySelectorAll("[data-card]")].map(
+				(n?: any) => n.dataset.card,
+			),
+			from = order.indexOf(context.search ? this.searchSelectAnchor : this.selectAnchor),
 			to = order.indexOf(id);
 		if (options.range && from >= 0 && to >= 0) {
 			for (const card of order.slice(Math.min(from, to), Math.max(from, to) + 1))
 				this.selected.add(card);
 		} else if (options.add || !this.selected.has(id)) this.selected.add(id);
 		else this.selected.delete(id);
-		this.selectAnchor = id;
+		if (context.search) this.searchSelectAnchor = id;
+		else this.selectAnchor = id;
 		this.updateSelection();
 	}
 	updateSelection() {
-		this.grid.querySelectorAll("[data-card]").forEach((n?: any) => {
-			n.classList.toggle("is-selected", this.selected.has(n.dataset.card));
+		const { grid, bar, selected: selection, search } = this.selectionContext();
+		if (!grid) return;
+		const selecting = selection.size > 0;
+		const entering = selecting && !grid.classList.contains("is-selecting");
+		grid.querySelectorAll("[data-card]").forEach((n: HTMLElement) => {
+			const selected = selection.has(n.dataset.card);
+			this.markSelectionCard(n, selection);
+			if (entering && !selected && !MotionEngine.reduced) {
+				const bounds = n.getBoundingClientRect();
+				if (bounds.bottom > 0 && bounds.top < innerHeight)
+					MotionEngine.animate(
+						n,
+						[{ opacity: 1 }, { opacity: 0.88, offset: 0.4 }, { opacity: 1 }],
+						{ duration: 240 },
+					);
+			}
 		});
-		const bar = document.getElementById("selection-bar");
-		bar.hidden = this.selected.size === 0;
-		document.body.classList.toggle("is-selecting", this.selected.size > 0);
+		grid.classList.add("selection-surface");
+		grid.classList.toggle("is-selecting", selecting);
+		if (!search) document.body.classList.toggle("is-selecting", selecting);
+		if (!bar) return;
+		const state = this.selectionBars.get(bar) || { visible: false, animation: null };
+		this.selectionBars.set(bar, state);
+		bar.inert = !selecting;
+		bar.setAttribute("aria-hidden", String(!selecting));
+		bar.style.pointerEvents = selecting ? "" : "none";
+		if (!selecting && bar.contains(document.activeElement))
+			grid.querySelector(".card-title-button")?.focus({ preventScroll: true });
 		bar.querySelector(".selection-count").textContent = String(this.selected.size);
+		if (state.visible === selecting) return;
+		state.visible = selecting;
+		if (selecting) {
+			this.railHide?.show();
+			if (!MotionEngine.reduced)
+				bar.querySelectorAll(".selection-ai-wave i").forEach((wave, index) => {
+					MotionEngine.animate(
+						wave,
+						[
+							{ transform: "scaleY(0.4)", opacity: 0.4 },
+							{ transform: "scaleY(1)", opacity: 1 },
+						],
+						{ duration: 260, delay: index * 45 },
+					);
+				});
+		}
+		// Resume from the currently drawn frame when selection reverses mid-transition.
+		const drawn = state.animation ? getComputedStyle(bar) : null;
+		const from = drawn
+			? { opacity: drawn.opacity || "1", transform: drawn.transform || "none" }
+			: selecting
+				? { opacity: 0, transform: "translateY(8px)" }
+				: { opacity: 1, transform: "none" };
+		state.animation?.cancel();
+		bar.hidden = false;
+		const animation = MotionEngine.animate(
+			bar,
+			[
+				from,
+				selecting
+					? { opacity: 1, transform: "none" }
+					: { opacity: 0, transform: "translateY(8px)" },
+			],
+			{ duration: 180 },
+		);
+		state.animation = animation;
+		const finish = () => {
+			if (state.animation !== animation || state.visible !== selecting) return;
+			bar.hidden = !selecting;
+			state.animation = null;
+		};
+		if (animation) animation.finished.then(finish, () => {});
+		else finish();
 	}
 	/* ——— Routes: #feed · #card/<id> · #read/<id> ——— */
 	navigate(hash?: any) {
-		this.routeScroll[this.mode] = scrollY;
+		if (!this.pageScrollLocked) this.routeScroll[this.mode] = scrollY;
 		history.pushState({ glass: true, prev: location.hash }, "", hash);
 		this.route(true);
 	}
@@ -624,6 +821,11 @@ class AppController {
 		// Back/forward emits both popstate and hashchange; handle one transition only.
 		if (!force && this.lastRouteHash === hash) return;
 		this.lastRouteHash = hash;
+		if (hash === "#search") {
+			if (this.searchBackground) this.closeNative();
+			else if (this.modalKind !== "search") this.openPanel("search");
+			return;
+		}
 		if (/^#(card|read)\//.test(hash)) {
 			const [, kind, id] = hash.match(/^#(card|read)\/(.+)$/) || [];
 			if (!id || !Store.card(id)) {
@@ -639,7 +841,10 @@ class AppController {
 			this.openCard(id, kind === "read");
 			return;
 		}
-		if (["preview", "reader", "lightbox"].includes(this.modalKind)) this.closeNative();
+		const leavingSearch = !!this.searchBackground;
+		this.discardSearchBackground();
+		if (leavingSearch || ["preview", "reader", "lightbox", "search"].includes(this.modalKind))
+			this.closeNative();
 		if (this.mode !== "feed") {
 			this.mode = "feed";
 			this.baseMode = "feed";
@@ -647,9 +852,28 @@ class AppController {
 			window.scrollTo(0, this.routeScroll.feed || 0);
 		}
 	}
+	lockPageScroll() {
+		if (this.pageScrollLocked) return;
+		this.pageScrollLocked = true;
+		this.lockedScroll = scrollY;
+		this.pageOverflow = document.documentElement.style.overflow;
+		document.documentElement.style.overflow = "hidden";
+		document.body.style.setProperty("--locked-scroll", `${-this.lockedScroll}px`);
+		document.body.classList.add("modal-scroll-locked");
+	}
+	unlockPageScroll() {
+		if (!this.pageScrollLocked) return;
+		this.pageScrollLocked = false;
+		document.body.classList.remove("modal-scroll-locked");
+		document.body.style.removeProperty("--locked-scroll");
+		document.documentElement.style.overflow = this.pageOverflow;
+		window.scrollTo({ top: this.lockedScroll, behavior: "instant" });
+	}
 	/* ——— Overlays ——— */
 	openModal(html?: any, kind?: any, origin: any = null, shape: any = "") {
 		this.closeMore(true);
+		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
+			this.suspendSearch();
 		this.modalToken++;
 		this.pauseMedia();
 		MotionEngine.cancelPanel(this.dialog);
@@ -662,8 +886,7 @@ class AppController {
 		if (this.dialog.open && this.dialog.classList.contains("page") !== page) this.dialog.close();
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement;
-			this.lockedScroll = scrollY;
-			document.documentElement.style.overflow = "hidden";
+			this.lockPageScroll();
 		}
 		const liveToast = document.getElementById("toast");
 		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
@@ -673,7 +896,7 @@ class AppController {
 		if (page) this.dialog.classList.add("page");
 		this.dialog.innerHTML = html;
 		if (!this.dialog.open) {
-			if (page) this.dialog.show();
+			if (page && kind !== "search") this.dialog.show();
 			else this.dialog.showModal();
 		}
 		// Pages change in place under the capsule: a short cross-fade, never a rising sheet.
@@ -723,15 +946,15 @@ class AppController {
 			this.dialog.querySelector(":scope > .float-bar")?.classList.add("is-hidden");
 			this.dialog.style.setProperty("--backdrop", "0");
 			window.setTimeout(() => {
-				this.sheetLeaving = false;
 				if (this.modalToken === token && this.dialog.open) {
+					this.sheetLeaving = false;
 					this.skipReturnMotion = true;
 					this.closeNative();
 				}
-			}, 300);
+			}, 360);
 			return;
 		}
-		if (animate && this.modalKind === "preview" && !MotionEngine.reduced) {
+		if (animate && this.modalKind === "preview") {
 			const token = this.modalToken,
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;
@@ -779,10 +1002,25 @@ class AppController {
 		}
 		this.sheetHide?.destroy();
 		this.sheetHide = null;
+		this.previewSizeObserver?.disconnect();
+		if (this.modalKind === "search")
+			this.searchScroll = this.dialog.querySelector("#search-results")?.scrollTop || 0;
 		this.dialog.close();
-		document.documentElement.style.overflow = "";
+		if (this.searchBackground) {
+			this.restoreSearch();
+			return;
+		}
+		if (this.modalKind === "search") {
+			clearTimeout(this.searchTimer);
+			if (location.hash === "#search") {
+				history.replaceState({ glass: true, prev: null }, "", "#feed");
+				this.lastRouteHash = "#feed";
+			}
+		}
+		this.unlockPageScroll();
 		this.modalKind = "";
 		this.panelReturn = null;
+		this.updateSelection();
 		// The rail is back: the lens slides home from the place that was open.
 		if (this.navKey !== "home") requestAnimationFrame(() => this.setNav("home"));
 		// Leftovers of a drag or swipe are cleared only now that nothing is on screen.
@@ -817,8 +1055,9 @@ class AppController {
 		} else this.closeToDesk();
 	}
 	closeToDesk(animate: any = true) {
-		history.replaceState({ glass: true, prev: null }, "", "#" + this.baseMode);
-		this.lastRouteHash = "#" + this.baseMode;
+		const destination = this.searchBackground ? "search" : this.baseMode;
+		history.replaceState({ glass: true, prev: null }, "", "#" + destination);
+		this.lastRouteHash = "#" + destination;
 		this.closeNative(animate);
 	}
 	closeModal() {
@@ -836,7 +1075,12 @@ class AppController {
 		} else this.closeNative();
 	}
 	openPanel(kind?: any, id: any = "") {
-		if (["preview", "reader"].includes(this.modalKind)) {
+		if (kind === "search" && location.hash !== "#search") {
+			this.navigate("#search");
+			return;
+		}
+		if (kind === "search") this.panelReturn = null;
+		else if (["preview", "reader"].includes(this.modalKind)) {
 			const cardId = this.currentId,
 				reading = this.modalKind === "reader";
 			this.panelReturn = () => this.openCard(cardId, reading);
@@ -858,7 +1102,7 @@ class AppController {
 							: kind === "capture"
 								? Panels.capture(this)
 								: kind === "ai"
-									? Panels.ai()
+									? Panels.ai(this)
 									: kind === "archive"
 										? Panels.archive(this, id)
 										: "";
@@ -868,6 +1112,77 @@ class AppController {
 			null,
 			kind === "search" ? "search" : `panel${narrow ? " narrow" : wide ? " wide" : ""}`,
 		);
+		if (kind === "search") {
+			this.dialog.querySelector("#search-results").scrollTop = this.searchScroll;
+			this.bindSearchResults();
+			this.revealImages(this.dialog);
+		}
+	}
+	bindSearchResults() {
+		this.bindSearchSelection();
+		const results = this.dialog.querySelector("#search-results");
+		results?.addEventListener(
+			"scroll",
+			() => {
+				if (this.modalKind !== "search" || this.searchBackground) return;
+				this.searchScroll = results.scrollTop;
+				if (results.scrollTop + results.clientHeight * 2 < results.scrollHeight) return;
+				const hits = this.searchAll(this.searchFilter.query.trim());
+				if (this.searchLimit >= hits.desk.length + hits.shelved.length) return;
+				this.searchLimit += 40;
+				results.innerHTML = Panels.searchResults(this);
+				results.scrollTop = this.searchScroll;
+				this.revealImages(results);
+				this.updateSelection();
+			},
+			{ passive: true },
+		);
+	}
+	suspendSearch() {
+		clearTimeout(this.searchTimer);
+		this.searchScroll = this.dialog.querySelector("#search-results")?.scrollTop || 0;
+		this.searchFocus = document.activeElement as HTMLElement;
+		const background = document.createElement("dialog");
+		background.id = "search-background";
+		background.className = this.dialog.className;
+		background.setAttribute("aria-label", copy("web.search"));
+		background.append(...this.dialog.childNodes);
+		// A second title must not compete with the active card dialog's label.
+		background.querySelector("#modal-title")?.removeAttribute("id");
+		document.body.append(background);
+		this.dialog.close();
+		background.show();
+		background.querySelector("#search-results").scrollTop = this.searchScroll;
+		this.searchBackground = background;
+	}
+	restoreSearch() {
+		const background = this.searchBackground;
+		if (!background) return;
+		this.dialog.className = background.className;
+		this.dialog.replaceChildren(...background.childNodes);
+		this.dialog.querySelector("h1").id = "modal-title";
+		background.close();
+		background.remove();
+		this.searchBackground = undefined;
+		this.modalKind = "search";
+		this.panelReturn = null;
+		this.currentId = "";
+		this.dialog.style.removeProperty("--backdrop");
+		this.dialog.style.translate = "";
+		this.dialog.style.transform = "";
+		this.dialog.showModal();
+		this.dialog.querySelector("#search-results").scrollTop = this.searchScroll;
+		this.setNav("search");
+		this.updateSelection();
+		(this.searchFocus?.isConnected
+			? this.searchFocus
+			: this.dialog.querySelector("#filter-search")
+		)?.focus({ preventScroll: true });
+	}
+	discardSearchBackground() {
+		this.searchBackground?.close();
+		this.searchBackground?.remove();
+		this.searchBackground = undefined;
 	}
 	swapPanel(html?: any, kind?: any, shape: any = "panel") {
 		// Move inside the same sheet without re-animating from a card.
@@ -878,7 +1193,7 @@ class AppController {
 		this.dialog.innerHTML = html;
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement;
-			document.documentElement.style.overflow = "hidden";
+			this.lockPageScroll();
 			this.dialog.showModal();
 		}
 		MotionEngine.enter(this.dialog.firstElementChild);
@@ -891,7 +1206,9 @@ class AppController {
 	openCard(id?: any, reading: any = false) {
 		const c = Store.card(id);
 		if (!c) return;
-		const source = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+		const source = (
+			this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
+		).querySelector(`[data-card="${CSS.escape(id)}"]`);
 		// A quick note opens where it is: the card becomes its own editor.
 		if (
 			!reading &&
@@ -921,6 +1238,7 @@ class AppController {
 			if (back >= 0) this.previewTrail = this.previewTrail.slice(0, back);
 			else this.previewTrail.push(this.currentId);
 		}
+		if (this.modalKind === "search") this.suspendSearch();
 		this.currentId = id;
 		Store.patch(id, { seen: true });
 		this.refreshCard(id);
@@ -957,44 +1275,54 @@ class AppController {
 			);
 			this.paintMedia();
 		}
-		// Short content is read in the preview itself.
-		if (
-			["mail", "note"].includes(c.type) &&
-			!Store.item(id).read &&
-			!(c.body?.length > 2 && c.type === "note")
-		) {
-			Store.patch(id, { read: true, progress: 1 });
-			this.refreshCard(id);
-		}
 	}
-	// The preview holds the full text, so reading it there counts the same as in full screen.
+	// Always listen, including when a short sheet later expands or images load.
 	bindPreview(id?: any) {
 		const scroll = this.dialog.querySelector(".preview-sheet .sheet-scroll");
-		if (!scroll || !this.dialog.querySelector("#reader-end")) return;
-		requestAnimationFrame(() => {
-			// Short pieces fit on one screen: staying a moment is reading them.
-			this.gestures.bindPush(id, scroll);
-			if (scroll.scrollHeight - scroll.clientHeight <= 2) {
-				const token = this.modalToken;
-				window.setTimeout(() => {
-					if (this.modalToken === token && this.modalKind === "preview")
-						this.updateReading(id, scroll);
-				}, 3000);
-				return;
-			}
-			scroll.addEventListener(
-				"scroll",
-				() => {
-					this.lastActivity = Date.now();
-					this.updateReading(id, scroll);
-				},
-				{ passive: true },
-			);
-		});
+		if (!scroll || !CardTypes[Store.card(id)?.type]?.readable) return;
+		this.bindReading(id, scroll);
 	}
+	bindReading(id: string, scroll: HTMLElement) {
+		const token = this.modalToken;
+		const current = () =>
+			this.modalToken === token &&
+			this.currentId === id &&
+			scroll.isConnected &&
+			this.dialog.open &&
+			!document.hidden;
+		const update = () => {
+			if (!current()) return;
+			this.lastActivity = Date.now();
+			this.updateReading(id, scroll);
+		};
+		// Scroll events are evaluated immediately: completion never waits for the push animation.
+		scroll.addEventListener(
+			"scroll",
+			() => {
+				if (scroll.scrollHeight - scroll.clientHeight > 2) update();
+			},
+			{ passive: true },
+		);
+		requestAnimationFrame(() => {
+			if (!current()) return;
+			this.gestures.bindPush(id, scroll);
+		});
+		// Opening is not completion. A short piece needs an uninterrupted visible dwell.
+		let interrupted = false;
+		const hidden = () => {
+			if (document.hidden) interrupted = true;
+		};
+		document.addEventListener("visibilitychange", hidden);
+		window.setTimeout(() => {
+			document.removeEventListener("visibilitychange", hidden);
+			if (!interrupted && scroll.scrollHeight - scroll.clientHeight <= 2) update();
+		}, 1200);
+	}
+
 	/** The preview and reader toolbars follow the same tuck-and-return rule as the desk rail. */
 	bindSheetChrome() {
 		this.sheetHide?.destroy();
+		this.previewSizeObserver?.disconnect();
 		const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
 		if (!scroll) return;
 		this.sheetHide = new ChromeAutoHide(scroll, () => [
@@ -1004,36 +1332,62 @@ class AppController {
 		]);
 		// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 		const sheet = this.dialog.querySelector(".preview-sheet");
-		if (sheet)
+		if (sheet) {
+			const placeHead = () => {
+				this.dialog.style.setProperty("--preview-height", `${sheet.offsetHeight}px`);
+				const title = sheet.querySelector("#modal-title");
+				if (title) {
+					const top =
+						title.getBoundingClientRect().top -
+						sheet.getBoundingClientRect().top +
+						scroll.scrollTop;
+					// Align the disc's centre with the first title line.
+					const line = parseFloat(getComputedStyle(title).lineHeight) || 28;
+					sheet.style.setProperty("--preview-title-top", `${Math.max(12, top + line / 2 - 22)}px`);
+				}
+			};
+			this.previewSizeObserver = new ResizeObserver(placeHead);
+			this.previewSizeObserver.observe(sheet);
+			const body = sheet.querySelector(".preview-body, .player");
+			if (body) this.previewSizeObserver.observe(body);
+			placeHead();
 			scroll.addEventListener(
 				"scroll",
 				() => sheet.classList.toggle("is-scrolled", scroll.scrollTop > 8),
 				{ passive: true },
 			);
+		}
 	}
 	bindReader(id?: any) {
 		this.lastActivity = Date.now();
 		const scroll = this.dialog.querySelector("#reader-scroll");
 		if (!scroll) return;
+		const token = this.modalToken;
 		requestAnimationFrame(() => {
+			if (this.modalToken !== token || !scroll.isConnected) return;
 			const saved = Store.item(id).progress;
 			scroll.scrollTop = (scroll.scrollHeight - scroll.clientHeight) * (saved >= 0.98 ? 0 : saved);
-			this.gestures.bindPush(id, scroll);
-			scroll.addEventListener(
-				"scroll",
-				() => {
-					this.lastActivity = Date.now();
-					this.updateReading(id, scroll);
-				},
-				{ passive: true },
-			);
+			this.bindReading(id, scroll);
 		});
 	}
 	updateReading(id?: any, scroll?: any) {
 		const available = scroll.scrollHeight - scroll.clientHeight;
-		const actual = available > 2 ? Math.min(1, scroll.scrollTop / available) : 1;
-		const p = Math.max(Store.item(id).progress, actual);
-		Store.patch(id, { progress: p, read: p >= 0.985 || Store.item(id).read });
+		const end = scroll.querySelector("#reader-end");
+		const viewport = scroll.getBoundingClientRect();
+		const endBox = end?.getBoundingClientRect();
+		// The content end precedes trailing actions/padding. Seeing it counts as reaching the end.
+		const reachedEnd =
+			available <= 2 ||
+			available - scroll.scrollTop <= 8 ||
+			(viewport.height > 0 &&
+				endBox &&
+				endBox.top >= viewport.top &&
+				endBox.bottom <= viewport.bottom + 2);
+		const actual = reachedEnd ? 1 : Math.max(0, Math.min(1, scroll.scrollTop / available));
+		const before = Store.item(id);
+		const p = Math.max(before.progress, actual);
+		const read = before.read || reachedEnd;
+		if (p !== before.progress || read !== before.read) Store.patch(id, { progress: p, read });
 		const bar = document.getElementById("reader-progress");
 		if (bar) bar.style.width = Math.round(actual * 100) + "%";
 		document.getElementById("reader-end")?.classList.toggle("is-done", Store.item(id).read);
@@ -1044,8 +1398,10 @@ class AppController {
 				String(50.265 * (1 - p)),
 			);
 		});
-		this.refreshCard(id);
+		// Do not replace the feed card and disturb focus/layout for every fractional progress update.
+		if (Store.item(id).read !== before.read) this.refreshCard(id);
 	}
+
 	agentScope(): AgentScope {
 		return { kind: "local" };
 	}
@@ -1227,10 +1583,10 @@ class AppController {
 			});
 	}
 	closeMore(restoreFocus: any = false) {
-		const menu = this.grid?.querySelector(".card-more-menu");
+		const menu = document.querySelector<HTMLElement>(".card-more-menu");
 		if (!menu) return;
 		const card = menu.closest("[data-card]"),
-			trigger = card?.querySelector(".card-title-button");
+			trigger = card?.querySelector<HTMLElement>(".card-title-button");
 		if (restoreFocus) trigger?.focus({ preventScroll: true });
 		// The menu leaves faster than it came, toward its anchor.
 		menu.classList.replace("card-more-menu", "card-more-leaving");
@@ -1255,7 +1611,9 @@ class AppController {
 		trigger?.removeAttribute("aria-controls");
 	}
 	more(id?: any) {
-		const c = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),
+		const c = (this.modalKind === "search" ? this.dialog : this.grid).querySelector(
+				`[data-card="${CSS.escape(id)}"]`,
+			),
 			card = Store.card(id);
 		if (!c || !card) return;
 		if (c.querySelector(".card-more-menu")) {
@@ -1315,17 +1673,28 @@ class AppController {
 		menu.querySelector("button")?.focus({ preventScroll: true });
 	}
 	/* ——— Refresh, new content, reminders ——— */
-	async refresh() {
-		if (this.refreshBusy) return;
+	async refresh({ feedback = "default" } = {}) {
+		const quiet = feedback === "pull";
+		if (this.refreshBusy) return false;
 		this.refreshBusy = true;
+		this.pullRefreshFeedback = quiet;
 		// Background work shows as a thin arc around the face; success needs no sentence.
 		const dock = document.getElementById("dock"),
 			started = Date.now();
 		let finished = false;
-		dock.classList.add("is-busy");
+		if (!quiet) dock.classList.add("is-busy");
+		else {
+			dock.classList.remove("is-busy", "is-done");
+			for (const id of ["offline"]) {
+				const notice = document.getElementById(id);
+				if (notice) notice.hidden = true;
+			}
+		}
 		try {
-			if (window.__QG_LOCAL__) await LocalSync.refresh(true);
-			else {
+			if (window.__QG_LOCAL__) {
+				const result = await LocalSync.refresh(true);
+				if (result === false) return false;
+			} else {
 				// Demo: the next unseen sample arrives as new content; nothing jumps into the desk.
 				const next = FreshCards.find(
 					(f?: any) => !Store.card(f.id) && !this.pendingCards.some((p?: any) => p.id === f.id),
@@ -1343,28 +1712,34 @@ class AppController {
 					this.showNew(true);
 			}
 			this.paintPending();
-			this.announce(copy("web.app.2a004d94219c"));
+			if (!quiet) this.announce(copy("web.app.2a004d94219c"));
 			finished = true;
+			return true;
 		} catch (error) {
-			this.setOffline(true);
-			this.alert(copy("web.app.281583251761") + error.message);
+			if (!quiet) {
+				this.setOffline(true);
+				this.alert(copy("web.app.281583251761") + error.message);
+			}
+			return false;
 		} finally {
 			this.refreshBusy = false;
+			this.pullRefreshFeedback = false;
 			// The arc closes into a check for a moment: the refresh ran, with no sentence.
-			window.setTimeout(
-				() => {
-					dock.classList.remove("is-busy");
-					if (!finished) return;
-					dock.classList.add("is-done");
-					window.setTimeout(() => dock.classList.remove("is-done"), 900);
-				},
-				Math.max(0, 600 - (Date.now() - started)),
-			);
+			if (!quiet)
+				window.setTimeout(
+					() => {
+						dock.classList.remove("is-busy");
+						if (!finished) return;
+						dock.classList.add("is-done");
+						window.setTimeout(() => dock.classList.remove("is-done"), 900);
+					},
+					Math.max(0, 600 - (Date.now() - started)),
+				);
 		}
 	}
 	setOffline(on?: any) {
 		const n = document.getElementById("offline");
-		n.hidden = !on;
+		MotionEngine.visibility(n, !!on);
 		n.classList.remove("is-retrying");
 	}
 	checkReminders(now: any = Date.now()) {
@@ -1384,7 +1759,7 @@ class AppController {
 		const signature = `${count}|${this.pendingReminders.length}|${hide}`;
 		if (n.dataset.pending === signature) return;
 		n.dataset.pending = signature;
-		n.hidden = hide;
+		MotionEngine.visibility(n, !hide);
 		n.innerHTML = this.pendingReminders.length
 			? `${icon("bell", 14)}<span class="num">${count}</span>${copy("web.app.e57ff9e28a4b")}`
 			: `${icon("up", 14)}<span class="num">${count}</span>${copy("web.app.b50caa663fcf")}`;
@@ -1504,7 +1879,7 @@ class AppController {
 							};
 		Store.patch(id, patch);
 		this.selected.delete(id);
-		// End the active preview before hiding its source card.
+		// End the active preview before refreshing its source card state.
 		if (this.dialog.open) {
 			history.replaceState({ glass: true, prev: null }, "", "#" + this.baseMode);
 			this.closeNative(false);
@@ -2117,9 +2492,10 @@ class AppController {
 			return;
 		}
 		if (Date.now() < this.drag.suppressUntil) return;
-		const picked = e.target.closest?.("#feed-grid [data-card]");
+		const picked = e.target.closest?.("#feed-grid [data-card], #search-results [data-card]");
 		if (
 			picked &&
+			this.selectionContext().grid?.contains(picked) &&
 			!e.target.closest(".card-actions, .card-more-menu, .is-editing") &&
 			(e.metaKey || e.ctrlKey || e.shiftKey || this.selected.size)
 		) {
@@ -2187,11 +2563,10 @@ class AppController {
 				break;
 			}
 			case "refresh":
-				this.refresh();
+				this.gestures.refresh();
 				break;
 			case "retry":
-				document.getElementById("offline").classList.add("is-retrying");
-				this.refresh().then(() => this.setOffline(false));
+				this.gestures.refresh();
 				break;
 			case "show-new":
 				this.showNew();
@@ -2262,9 +2637,11 @@ class AppController {
 				this.select(id);
 				break;
 			case "select-all":
-				this.grid.querySelectorAll("[data-card]").forEach((n?: any) => {
-					this.selected.add(n.dataset.card);
-				});
+				this.selectionContext()
+					.grid.querySelectorAll("[data-card]")
+					.forEach((n?: any) => {
+						this.selected.add(n.dataset.card);
+					});
 				this.updateSelection();
 				break;
 			case "clear-selection":
@@ -2273,6 +2650,9 @@ class AppController {
 				break;
 			case "selection-menu":
 				this.drag.openMenu([...this.selected], el);
+				break;
+			case "selected-ai":
+				this.openSelectionAI([...this.selected]);
 				break;
 			case "selected-bookmark":
 				this.applySelectionAction([...this.selected], "bookmark");
@@ -2310,7 +2690,7 @@ class AppController {
 				break;
 			case "restore-card": {
 				const before: Record<string, any> = { ...Store.item(id) };
-				Store.patch(id, { restoredAt: Date.now(), read: false, seen: false, progress: 0 });
+				Store.patch(id, { archived: false, restoredAt: Date.now() });
 				this.dialog.innerHTML = Panels.archive(this, this.editId);
 				this.withFeedAnchor(() => {});
 				this.toast(copy("web.app.fff336942d9b"), () => {
@@ -2325,7 +2705,7 @@ class AppController {
 				const ids = this.shelved("stale").map((c?: any) => c.id),
 					before = ids.map((i?: any) => [i, { ...Store.item(i) }]);
 				ids.forEach((i?: any) => {
-					Store.patch(i, { read: true, seen: true, readAt: Date.now() - 8 * 86400000 });
+					Store.patch(i, { archived: true });
 				});
 				this.closeNative();
 				this.withFeedAnchor(() => {});
@@ -2341,26 +2721,30 @@ class AppController {
 				break;
 			}
 			case "filter-type":
-				this.filter.type = extra;
+				this.searchFilter.type = extra;
 				this.repaintSearch();
 				break;
 			case "filter-status":
-				this.filter.status = this.filter.status === extra ? "all" : extra;
+				this.searchFilter.status = this.searchFilter.status === extra ? "all" : extra;
 				this.repaintSearch();
 				break;
 			case "filter-tag":
-				this.filter.tag = this.filter.tag === extra ? "" : extra;
+				this.searchFilter.tag = this.searchFilter.tag === extra ? "" : extra;
 				this.repaintSearch();
 				break;
 			case "clear-query":
-				this.filter.query = "";
+				this.searchFilter.query = "";
 				this.repaintSearch();
 				document.getElementById("filter-search")?.focus();
 				break;
 			case "clear-filter":
-				this.filter = { type: "all", status: "all", tag: "", query: "" };
-				if (this.modalKind === "search") this.repaintSearch();
-				else this.renderCurrent(true);
+				if (this.modalKind === "search") {
+					this.searchFilter = { type: "all", status: "all", tag: "", query: "" };
+					this.repaintSearch();
+				} else {
+					this.filter = { type: "all", status: "all", tag: "", query: "" };
+					this.renderCurrent(true);
+				}
 				break;
 			case "apply-filter":
 				this.closeNative();
@@ -2604,9 +2988,10 @@ END:VCALENDAR
 		}
 	}
 	repaintSearch() {
+		clearTimeout(this.searchTimer);
+		this.searchScroll = 0;
+		this.searchLimit = 40;
 		if (this.modalKind !== "search") {
-			this.renderCurrent(false);
-			this.updateFilterIndicator();
 			return;
 		}
 		const active = document.activeElement,
@@ -2617,6 +3002,7 @@ END:VCALENDAR
 		const liveToast = document.getElementById("toast");
 		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
 		this.dialog.innerHTML = Panels.search(this);
+		this.bindSearchResults();
 		if (searchFocused) {
 			const n = document.getElementById("filter-search");
 			n.focus();
@@ -2627,22 +3013,26 @@ END:VCALENDAR
 			[...this.dialog.querySelectorAll("[data-action]")]
 				.find((n?: any) => n.dataset.action === action && n.dataset.extra === extra)
 				?.focus({ preventScroll: true });
-		this.renderCurrent(false);
-		this.updateFilterIndicator();
+		this.revealImages(this.dialog);
 	}
 	input(e?: any) {
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "search") {
-			this.filter.query = e.target.value;
+			this.searchFilter.query = e.target.value;
+			this.searchScroll = 0;
+			this.searchLimit = 40;
 			document.getElementById("filter-result").textContent =
-				`${this.filtered().length}${copy("web.panels.e9e0fdc242b4")}`;
+				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.panels.e9e0fdc242b4")}`;
 			clearTimeout(this.searchTimer);
 			this.searchTimer = window.setTimeout(() => {
 				const results = document.getElementById("search-results");
-				if (results) results.innerHTML = Panels.searchResults(this);
-				if (this.mode === "feed") this.renderCurrent(false);
-				this.updateFilterIndicator();
+				if (results) {
+					results.innerHTML = Panels.searchResults(this);
+					results.scrollTop = 0;
+					this.revealImages(results);
+					this.updateSelection();
+				}
 			}, 140);
 		}
 		if (this.editingId && e.target.closest?.(".inline-editor")) {
@@ -2663,11 +3053,11 @@ END:VCALENDAR
 	key(e?: any) {
 		if (e.isComposing) return;
 		if (
-			!this.dialog.open &&
+			(!this.dialog.open || this.modalKind === "search") &&
 			!e.target.closest?.("input,textarea,[contenteditable]") &&
 			(e.key === "ContextMenu" || (e.shiftKey && e.key === "F10"))
 		) {
-			if (e.target.closest?.("#selection-bar") && this.selected.size) {
+			if (e.target.closest?.("#selection-bar, #search-selection-bar") && this.selected.size) {
 				e.preventDefault();
 				this.drag.openMenu([...this.selected], e.target);
 				return;
@@ -2679,10 +3069,25 @@ END:VCALENDAR
 				return;
 			}
 		}
+		if (
+			e.key === "Escape" &&
+			this.modalKind === "search" &&
+			this.dialog.querySelector(".card-more-menu")
+		) {
+			e.preventDefault();
+			this.closeMore(true);
+			return;
+		}
 		// A page is not modal, so Escape is handled here: it returns home.
 		if (e.key === "Escape" && this.dialog.open && this.dialog.classList.contains("page")) {
 			e.preventDefault();
-			this.goTo("home");
+			if (this.searchBackground) this.closeNative();
+			else this.goTo("home");
+			return;
+		}
+		if (e.key === "Escape" && this.modalKind === "search" && this.selected.size) {
+			e.preventDefault();
+			this.action("clear-selection");
 			return;
 		}
 		if (e.key === "Escape" && this.modalKind === "search") {
@@ -2777,9 +3182,10 @@ END:VCALENDAR
 		}
 		if (e.target.id === "filter-search" && e.key === "Enter") {
 			e.preventDefault();
-			const first = this.dialog.querySelector('#search-results [data-action="card-open"]');
-			if (first && this.filter.query.trim()) first.click();
-			else this.action("apply-filter");
+			const first = this.dialog.querySelector(
+				'#search-results .card-title-button[data-action="card-open"]',
+			);
+			if (first) first.click();
 			return;
 		}
 		if (e.target.id === "capture-text" && e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -2810,7 +3216,7 @@ END:VCALENDAR
 			}
 			if (e.key === "r" || e.key === "R") {
 				e.preventDefault();
-				this.refresh();
+				this.gestures.refresh();
 				return;
 			}
 			if (e.key === "t" || e.key === "T") {

@@ -44,6 +44,11 @@
 	outline: 2px solid var(--accent);
 	outline-offset: 4px;
 }
+/* Restored pointer focus must not masquerade as keyboard selection. */
+:root[data-input-modality="pointer"] .feed-card:focus-visible,
+:root[data-input-modality="pointer"] .feed-card .card-title-button:focus-visible {
+	outline: none;
+}
 .feed-card:after {
 	content: "";
 	position: absolute;
@@ -707,38 +712,12 @@ button.ref:hover {
 	overflow: visible;
 	z-index: 6;
 }
-/* Selecting: the more button on every card turns into a selection circle in the same
-   place. Nothing inside the card moves. */
-.selected-tick {
-	position: absolute;
-	right: 12px;
-	top: 12px;
-	display: none;
-	place-items: center;
-	width: 24px;
-	height: 24px;
-	border-radius: 50%;
-	background: var(--card);
-	color: transparent;
-	box-shadow:
-		inset 0 0 0 1.5px var(--line-hover),
-		0 0 0 2px var(--card);
-	z-index: 4;
-	transition:
-		background var(--fast) var(--ease),
-		color var(--fast) var(--ease);
-}
-body.is-selecting .feed-card .card-actions {
+/* Selection stays on the original card. No corner checkmark or lifted copy. */
+.selection-surface.is-selecting .feed-card .card-actions {
 	visibility: hidden;
 }
-body.is-selecting .feed-card .selected-tick,
-.feed-card.is-selected .selected-tick {
-	display: grid;
-}
-.feed-card.is-selected .selected-tick {
-	background: var(--accent-fill);
-	color: #fff;
-	box-shadow: 0 0 0 2px var(--card);
+.selection-surface.is-selecting .feed-card:not(.is-selected):after {
+	border-color: var(--line-hover);
 }
 .feed-card.is-selected:after {
 	border-color: var(--accent);
@@ -748,15 +727,17 @@ body.is-selecting .feed-card .selected-tick,
 	box-shadow: none;
 }
 
-/* Read and ended are the card's color, never a label or a dot. */
+/* Read, ended and completed keep their color even after pointer or keyboard focus. */
 .feed-card.is-read,
-.feed-card.is-ended {
+.feed-card.is-ended,
+.feed-card.is-complete {
 	background: var(--card-read);
 	border-color: var(--line-read);
 	box-shadow: none;
 }
 .feed-card.is-read .card-title,
 .feed-card.is-ended .card-title,
+.feed-card.is-complete .card-title,
 .feed-card.is-ended .event-start {
 	color: var(--muted);
 }
@@ -766,15 +747,10 @@ body.is-selecting .feed-card .selected-tick,
 .feed-card.is-read:hover,
 .feed-card.is-read:focus-within,
 .feed-card.is-ended:hover,
-.feed-card.is-ended:focus-within {
-	background: var(--card);
+.feed-card.is-ended:focus-within,
+.feed-card.is-complete:hover,
+.feed-card.is-complete:focus-within {
 	border-color: var(--line-hover);
-	box-shadow: var(--shadow-hover);
-}
-.feed-card.is-read:hover .card-title,
-.feed-card.is-ended:hover .card-title,
-.feed-card.is-ended:hover .event-start {
-	color: var(--ink);
 }
 
 /* Stacks: one place on the desk, layered edges, opened in place. */

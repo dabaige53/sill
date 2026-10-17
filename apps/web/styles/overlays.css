@@ -1,6 +1,13 @@
 /* Sill · overlays · shared source
  * One dialog, several shapes: a lifted card (preview), a page (reader), a sheet (panels), a lightbox (photos).
  */
+body.modal-scroll-locked {
+	position: fixed;
+	top: var(--locked-scroll);
+	left: 0;
+	right: 0;
+	overscroll-behavior: none;
+}
 dialog {
 	color: var(--ink);
 	padding: 0;
@@ -26,7 +33,7 @@ dialog::backdrop {
 	max-height: min(78vh, 760px);
 	overflow-y: auto;
 	overscroll-behavior: contain;
-	scrollbar-width: thin;
+	scrollbar-width: none;
 }
 .sheet-close {
 	position: absolute;
@@ -81,10 +88,15 @@ dialog::backdrop {
 	width: 100%;
 	display: flex;
 	flex-direction: column;
-	max-height: min(88vh, 900px);
+	max-height: min(88dvh, 900px);
+	transition: max-height 360ms var(--ease-sheet);
 }
 /* The head floats over the content: no band of white above the text. Its round buttons tuck away with
    the toolbar while reading on, and come back on a pause over a soft edge. */
+.preview-sheet.is-full {
+	height: 100dvh;
+	max-height: 100dvh;
+}
 .sheet-head {
 	position: absolute;
 	left: 0;
@@ -137,10 +149,22 @@ dialog::backdrop {
 .preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
 	opacity: 1;
 }
-/* Text first cards leave room for the head; covers run up under it, with the buttons on the picture. */
-.preview-sheet .sheet-scroll > .preview-body:first-child,
-.preview-sheet .sheet-scroll > .player:first-child {
-	padding-top: 64px;
+/* The close disc aligns with the title rather than reserving a blank header row. */
+.preview-sheet .sheet-head {
+	top: var(--preview-title-top, 32px);
+	height: 44px;
+}
+.preview-sheet #modal-title {
+	padding-right: 48px;
+}
+.preview-sheet:has(.sheet-head [data-action="reader"]) #modal-title {
+	padding-right: 92px;
+}
+.preview-sheet.is-scrolled .sheet-head {
+	top: 0;
+}
+.sheet-handle {
+	display: none;
 }
 /* Floating round buttons: a white disc lifted by a soft shadow, never a grey blot. */
 .sheet-head .icon-button {
@@ -224,7 +248,7 @@ dialog::backdrop {
 	transition: opacity var(--base) var(--ease);
 }
 .preview-sheet .sheet-scroll {
-	flex: 1;
+	flex: 0 1 auto;
 	min-height: 0;
 	max-height: none;
 	padding-bottom: 0;
@@ -254,13 +278,21 @@ dialog::backdrop {
 	overflow-wrap: anywhere;
 }
 .preview-meta {
+	min-width: 0;
 	display: flex;
 	align-items: center;
 	gap: 6px;
 	font-size: var(--text-meta);
 	color: var(--secondary);
 }
+.preview-meta > span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 .preview-meta .icon {
+	flex: none;
 	color: var(--secondary);
 }
 .preview-body h1 {
@@ -414,6 +446,35 @@ button.detail-row:hover {
 	display: flex;
 	gap: 6px;
 	flex-wrap: wrap;
+}
+
+.preview-tags .chip {
+	font-size: var(--text-caption);
+	min-height: 0;
+	padding: 3px 8px;
+	line-height: 1.5;
+	max-width: 100%;
+	overflow-wrap: anywhere;
+}
+.preview-details {
+	margin: 0;
+	display: grid;
+	gap: 4px;
+	font-size: var(--text-caption);
+	line-height: 1.5;
+	color: var(--secondary);
+}
+.preview-detail-row {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: 8px;
+}
+.preview-detail-row dt,
+.preview-detail-row dd {
+	margin: 0;
+}
+.preview-detail-row dd {
+	overflow-wrap: anywhere;
 }
 
 /* Podcast: playing happens here; progress syncs back to the show. */
@@ -1036,21 +1097,35 @@ kbd {
 	color: var(--ink);
 }
 
-/* Search: a field at the top; the desk filters live underneath. */
-#modal.search {
-	width: min(560px, calc(100vw - 32px));
-	margin: 56px auto auto;
+/* Search owns its page; the home feed keeps its own state underneath. */
+:is(#modal, #search-background).search {
+	position: fixed;
+	inset: 0 0 var(--kb, 0px);
+	width: 100%;
+	max-width: none;
+	height: auto;
+	max-height: none;
+	margin: 0;
+	padding: calc(16px + env(safe-area-inset-top)) var(--margin-lg) var(--rail-bottom);
+	background: var(--canvas);
+	z-index: 40;
 	display: none;
 }
-#modal.search[open] {
+:is(#modal, #search-background).search[open] {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
 }
-#modal.search::backdrop {
-	background: var(--frost);
-	-webkit-backdrop-filter: blur(28px) saturate(1.6);
-	backdrop-filter: blur(28px) saturate(1.6);
+.search-card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--col-ideal)), 1fr));
+	align-items: start;
+	gap: var(--gap);
+}
+.search-card-grid .feed-card {
+	position: relative;
+	width: auto;
+	transform: none;
 }
 .search-header {
 	display: flex;
@@ -1118,12 +1193,11 @@ kbd {
 	margin: 0 4px;
 }
 .search-results {
-	background: var(--card);
-	border-radius: 22px;
-	box-shadow: var(--shadow-sheet);
-	padding: 14px 18px;
-	max-height: 56vh;
+	flex: 1;
+	min-height: 0;
 	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 2px 2px 24px;
 }
 .search-results:empty {
 	display: none;
@@ -1577,11 +1651,11 @@ input[type="search"]::-webkit-search-cancel-button {
 .pull-ring {
 	position: fixed;
 	left: 50%;
-	top: 0;
+	top: env(safe-area-inset-top, 0px);
 	z-index: 50;
-	width: 40px;
-	height: 40px;
-	margin-left: -20px;
+	width: 36px;
+	height: 36px;
+	margin-left: -18px;
 	border-radius: 50%;
 	display: grid;
 	place-items: center;
@@ -1591,10 +1665,10 @@ input[type="search"]::-webkit-search-cancel-button {
 	color: var(--accent);
 	transition:
 		opacity 200ms,
-		translate 220ms var(--ease);
+		translate 180ms var(--ease);
 }
 main {
-	transition: translate 260ms var(--ease);
+	transition: translate 180ms var(--ease);
 }
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {
@@ -1621,11 +1695,44 @@ body.is-pulling .pull-ring {
 	stroke-dasharray: 100;
 	stroke-dashoffset: 100;
 }
-.pull-ring.is-spinning svg {
+.pull-ring.is-spinning .pull-progress {
 	animation: orb-arc 0.8s linear infinite;
 }
 .pull-ring.is-spinning circle {
 	stroke-dashoffset: 30 !important;
+}
+/* One icon owns each phase. Text remains in accessible labels only. */
+.pull-ring:disabled {
+	opacity: 1;
+	cursor: default;
+}
+.pull-ring > svg {
+	grid-area: 1 / 1;
+}
+.pull-ring .pull-check,
+.pull-ring .pull-retry {
+	display: none;
+	transform: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.pull-ring[data-state="success"] .pull-progress,
+.pull-ring[data-state="error"] .pull-progress {
+	display: none;
+}
+.pull-ring[data-state="success"] .pull-check,
+.pull-ring[data-state="error"] .pull-retry {
+	display: block;
+}
+.pull-ring[data-state="error"] {
+	pointer-events: auto;
+}
+.pull-ring:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 4px;
 }
 /* Read end: nothing at the end itself. Pushing on raises a small ring that fills with the push; full, it turns into a check. */
 .reader-end {
@@ -1691,11 +1798,22 @@ body.is-pulling .pull-ring {
 .reader-scroll {
 	overscroll-behavior-y: none;
 }
+.sheet-scroll::-webkit-scrollbar,
+.reader-scroll::-webkit-scrollbar {
+	display: none;
+}
+.sheet-scroll,
+.reader-scroll {
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+}
 /* Gesture offsets live in `translate`, separate from the sheet's own position in `transform`. Every move only sets a target;
    the transition carries it there, so wheel steps glide and a change of direction never jumps. A finger on the glass turns it off. */
 .preview-sheet,
 #modal.reader {
-	transition: translate 360ms var(--ease-sheet);
+	transition:
+		translate 360ms var(--ease-sheet),
+		max-height 360ms var(--ease-sheet);
 }
 .is-drag,
 .is-drag .sheet-scroll,
@@ -1786,24 +1904,76 @@ body.is-pulling .pull-ring {
 .reader-edge.is-tucked {
 	opacity: 0;
 }
-/* AI, coming soon: one calm card, no buttons that pretend to work. */
-.ai-soon {
-	display: grid;
-	justify-items: center;
-	gap: 10px;
-	padding: 28px 12px 20px;
-	text-align: center;
+/* Local AI conversation preview: no messages or connected send action. */
+#modal.panel.narrow:has(.ai-conversation) {
+	width: min(680px, calc(100vw - 32px));
 }
-.ai-soon > .icon {
-	color: var(--ink);
+.ai-conversation {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	max-height: calc(100dvh - 32px);
 }
-.ai-soon h1 {
+.ai-conversation-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding-right: 44px;
+}
+.ai-conversation h1 {
 	margin: 0;
 	font-size: var(--text-title, 20px);
 }
-.ai-soon p {
-	max-width: 30ch;
+.ai-conversation > p {
 	margin: 0;
+}
+.ai-context {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.ai-context-card {
+	padding: var(--card-padding);
+	border: 1px solid var(--line-card);
+	border-radius: var(--card-radius);
+	background: var(--card);
+}
+.ai-context-card h3 {
+	margin: 0;
+	font-size: var(--text-card-title);
+	overflow-wrap: anywhere;
+}
+.ai-context-card p {
+	margin: 8px 0 0;
+	font-size: var(--text-body);
+	color: var(--muted);
+	overflow-wrap: anywhere;
+}
+.ai-context-empty {
+	margin: auto 0;
+}
+.ai-composer {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+	border: 1px solid var(--line-card);
+	border-radius: var(--control-radius);
+	padding: 12px;
+	background: var(--surface);
+}
+.ai-composer textarea {
+	flex: 1;
+	min-width: 0;
+	resize: vertical;
+	max-height: 160px;
+	border: 0;
+	background: transparent;
+	color: var(--ink);
+	font: inherit;
 }
 .soon-badge {
 	padding: 3px 10px;

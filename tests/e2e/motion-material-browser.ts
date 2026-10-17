@@ -408,8 +408,9 @@ try {
 			await page.waitForTimeout(420);
 			const before = await page.evaluate(() => localStorage.getItem("sill-v1"));
 			const session = await context.newCDPSession(page);
-			await touch(session, "touchStart");
-			await touch(session, "touchMove", 200, 390);
+			const handle = await page.locator(".sheet-handle").boundingBox();
+			await touch(session, "touchStart", 195, handle.y + 10);
+			await touch(session, "touchMove", 195, handle.y + 100);
 			assert.equal(
 				await page
 					.locator(".preview-sheet")

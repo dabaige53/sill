@@ -500,7 +500,7 @@ try {
 						if (panel !== "feed") await close(page);
 						if (panel === "search")
 							await page.evaluate(() => {
-								__app.filter.query = "";
+								__app.searchFilter.query = "";
 								__app.renderCurrent(false);
 							});
 					}
