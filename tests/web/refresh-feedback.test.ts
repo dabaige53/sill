@@ -19,11 +19,14 @@ const bundle = buildSync({
 	globalName: "RefreshTest",
 }).outputFiles[0].text;
 test("local pull failure returns false without text or a second dock spinner", async () => {
-	const dom = new JSDOM('<main></main><div id="dock"></div>', {
-		url: "http://refresh.test/",
-		runScripts: "outside-only",
-		pretendToBeVisual: true,
-	});
+	const dom = new JSDOM(
+		'<main></main><div id="dock"></div><div id="sync-status">Recovery controls</div>',
+		{
+			url: "http://refresh.test/",
+			runScripts: "outside-only",
+			pretendToBeVisual: true,
+		},
+	);
 	const w = dom.window as any;
 	w.matchMedia = () => ({ matches: false, addEventListener() {} });
 	w.structuredClone = structuredClone;
@@ -51,6 +54,7 @@ test("local pull failure returns false without text or a second dock spinner", a
 			throw new Error("synthetic read failure");
 		};
 		assert.equal(await AppController.prototype.refresh.call(app, { feedback: "pull" }), false);
+		assert.equal(w.document.querySelector("#sync-status").hidden, false);
 		assert.equal(alerts, 0);
 		assert.equal(offline, 0);
 		assert.equal(app.refreshBusy, false);

@@ -278,13 +278,13 @@ try {
 		await page.locator("#cloud-login").waitFor();
 		assert.equal(await page.locator("[data-card]").count(), 0);
 		assert.ok(
-			await page.locator("#dock").evaluate((dock) => dock.classList.contains("is-busy")),
+			await page.locator("#pull-ring").evaluate((ring) => ring.dataset.state === "loading"),
 			"logout retains the pending refresh indicator until its response is consumed",
 		);
 		holdWorkspace = false;
 		await heldRoute.fulfill({ json: workspaceSnapshot.parse(workspace) });
 		await page.waitForFunction(
-			() => !document.querySelector("#dock").classList.contains("is-busy"),
+			() => document.querySelector<HTMLElement>("#pull-ring").dataset.state !== "loading",
 		);
 		assert.equal(
 			await page.locator("[data-card]").count(),

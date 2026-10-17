@@ -283,7 +283,7 @@ function syncStatus() {
 		bar.className = "cloud-recovery glass";
 		document.body.append(bar);
 	}
-	bar.hidden = !!Cloud.refreshFeedback || !sync.failed;
+	bar.hidden = !sync.failed;
 	if (sync.failed)
 		bar.innerHTML = `<span role="status">${esc(sync.failed.message)}</span><button class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button><button class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button><button class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
 }
@@ -627,7 +627,11 @@ app.action = function (name?: any, id?: any, ...args: any[]) {
 		editCloud(id);
 		return;
 	}
-	if (name === "refresh" || name === "sync-retry") {
+	if (name === "sync-retry") {
+		refreshWorkspace();
+		return;
+	}
+	if (name === "refresh") {
 		app.gestures.refresh();
 		return;
 	}

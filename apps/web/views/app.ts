@@ -1328,7 +1328,7 @@ class AppController {
 		if (!quiet) dock.classList.add("is-busy");
 		else {
 			dock.classList.remove("is-busy", "is-done");
-			for (const id of ["offline", "sync-status"]) {
+			for (const id of ["offline"]) {
 				const notice = document.getElementById(id);
 				if (notice) notice.hidden = true;
 			}
@@ -2507,7 +2507,7 @@ class AppController {
 				break;
 			}
 			case "sync-retry":
-				this.gestures.refresh();
+				this.refresh();
 				break;
 			case "sync-export":
 				this.exportAll();

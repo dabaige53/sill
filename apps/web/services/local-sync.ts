@@ -64,7 +64,7 @@ const LocalSync: Record<string, any> = {
 			bar.setAttribute("aria-label", copy("web.localsync.850476dde139"));
 			document.querySelector("main").prepend(bar);
 		}
-		bar.hidden = !!this.app?.pullRefreshFeedback || !message;
+		bar.hidden = !message;
 		if (message)
 			bar.innerHTML = `<span role="status">${esc(message)}</span> <button type="button" class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button> <button type="button" class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button> <button type="button" class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
 	},
