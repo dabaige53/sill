@@ -37,6 +37,7 @@ const Glyphs = {
 	sparkles:
 		'<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/><path d="M20 2v4m-2-2h4"/>',
 	refresh: '<path d="M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5"/>',
+	sill: '<path d="M4 18V10a2 2 0 0 1 2-2h3.5a2 2 0 0 1 2 2v8M14 18v-6a2 2 0 0 1 2-2h2.5a2 2 0 0 1 2 2v6M2.5 18h19M6.75 11.5h1.5"/>',
 	filter:
 		'<path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h11m4 0h1"/><circle cx="13" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
 	search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',

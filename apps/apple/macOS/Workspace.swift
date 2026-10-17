@@ -30,6 +30,7 @@ import SwiftUI
         || [card.title, card.body, card.summary, card.source]
           .joined(separator: " ").localizedCaseInsensitiveContains(query)
       return matches
+        && (!query.isEmpty || item?["archived"]?.bool != true)
         && (filter == Copy.appleAll
           || filter == Copy.appleBookmarks && item?["bookmarked"]?.bool == true
           || filter == Copy.appleLater && item?["later"]?.bool == true)

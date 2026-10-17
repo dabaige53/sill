@@ -4,7 +4,7 @@ import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "./motion.ts";
 
-/** Lifting cards is visual only. A separate button press chooses an action. */
+/** A stationary hold selects in place; only an explicit toolbar action changes data. */
 class DragManager {
 	declare app: any;
 	declare pending: any;
@@ -142,16 +142,23 @@ class DragManager {
 	}
 	prepare(target: EventTarget | null, x: number, y: number) {
 		this.clearPending();
-		if (this.app.dialog.open || this.menu.open || this.active || !(target instanceof Element))
+		if (
+			(this.app.dialog.open && this.app.modalKind !== "search") ||
+			this.menu.open ||
+			this.active ||
+			!(target instanceof Element)
+		)
 			return;
 		if (
 			target.closest(
-				"input,textarea,a,dialog,.card-actions,.card-more-menu,.deck,button:not(.card-title-button)",
+				"input,textarea,a,.card-actions,.card-more-menu,.deck,button:not(.card-title-button)",
 			)
 		)
 			return;
-		const element = target.closest<HTMLElement>("#feed-grid [data-card]");
-		if (!element) return;
+		const element = target.closest<HTMLElement>(
+			"#feed-grid [data-card], #search-results [data-card]",
+		);
+		if (!element || !this.app.selectionContext().grid?.contains(element)) return;
 		this.pending = { id: element.dataset.card, x, y, element };
 		this.timer = window.setTimeout(() => {
 			if (this.pending) this.start(this.pending);
@@ -164,23 +171,17 @@ class DragManager {
 	start(p: any) {
 		if (this.active || !p.element.isConnected || !Store.card(p.id)) return;
 		this.app.closeMore();
-		const alreadySelected = this.app.selected.has(p.id);
 		this.app.select(p.id, { add: true });
 		const ids = [...this.app.selected].filter((id) => Store.card(id));
-		this.active = { ...p, ids, moved: false, alreadySelected };
+		this.active = {
+			...p,
+			ids,
+			moved: false,
+			target: this.app.selectionContext().bar?.querySelector(".selection-ai-target"),
+		};
+		this.app.railHide?.show();
 		this.clearPending();
 		this.suppressUntil = Date.now() + 1000;
-		document.body.classList.add("is-dragging");
-		this.app.grid.querySelectorAll("[data-card]").forEach((n: HTMLElement) => {
-			if (ids.includes(n.dataset.card)) n.classList.add("is-drag-source");
-		});
-		this.ghost = document.createElement("div");
-		this.ghost.className = "selection-lift";
-		this.ghost.setAttribute("aria-hidden", "true");
-		this.ghost.appendChild(this.createStack(ids));
-		document.body.appendChild(this.ghost);
-		this.move(p.x, p.y);
-		MotionEngine.enter(this.ghost);
 		this.app.announce(
 			`${copy("web.selection.countPrefix")}${ids.length}${copy("web.selection.countSuffix")}`,
 		);
@@ -190,7 +191,9 @@ class DragManager {
 		const face = document.createElement("div");
 		face.className = "selection-stack-face";
 		const source = [
-			...(this.app.grid as HTMLElement).querySelectorAll<HTMLElement>("[data-card]"),
+			...(this.app.selectionContext().grid as HTMLElement).querySelectorAll<HTMLElement>(
+				"[data-card]",
+			),
 		].find((node) => node.dataset.card === id);
 		if (!source) {
 			const card = Store.card(id);
@@ -263,25 +266,45 @@ class DragManager {
 		}
 	}
 	move(x: number, y: number) {
-		if (!this.ghost) return;
-		this.ghost.style.left = `${Math.max(24, Math.min(innerWidth - 208, x - 92))}px`;
-		this.ghost.style.top = `${Math.max(24, Math.min(innerHeight - 208, y - 92))}px`;
+		if (!this.active?.moved) return;
+		const target = this.active.target as HTMLElement | null;
+		const rect = target?.getBoundingClientRect();
+		const ready =
+			!!rect &&
+			rect.width > 0 &&
+			x >= rect.left &&
+			x <= rect.right &&
+			y >= rect.top &&
+			y <= rect.bottom;
+		if (this.active.ready !== ready) {
+			this.active.ready = ready;
+			target?.classList.toggle("is-ready", ready);
+			const label = target?.querySelector("[data-ai-label]");
+			if (label) label.textContent = copy(ready ? "web.selection.aiReady" : "web.selection.aiDrop");
+		}
+		if (!this.ghost) {
+			this.ghost = document.createElement("div");
+			this.ghost.className = "selection-drag-count glass";
+			this.ghost.setAttribute("aria-hidden", "true");
+			this.ghost.textContent = String(this.active.ids.length);
+			(this.app.modalKind === "search" ? this.app.dialog : document.body).append(this.ghost);
+		}
+		// Direct compositor movement: no queued animation can trail the finger.
+		this.ghost.style.transform = `translate3d(${x + 12}px, ${y - 24}px, 0)`;
 	}
 	finish(releasePoint?: { x: number; y: number }) {
 		this.clearPending();
 		if (!this.active) return;
-		const { ids, element, moved, alreadySelected, point, x, y } = this.active;
+		if (releasePoint) this.move(releasePoint.x, releasePoint.y);
+		const { ids, moved, ready } = this.active;
 		this.cleanup();
-		if (moved || alreadySelected)
-			this.openMenu(
-				ids,
-				element.querySelector(".card-title-button") || element,
-				releasePoint || point || { x, y },
-			);
+		// A local preview only; no model call, transmission or card mutation.
+		if (moved && ready) this.app.openSelectionAI(ids);
 	}
 	openMenu(ids: string[], trigger?: HTMLElement, point?: { x: number; y: number }) {
 		ids = ids.filter((id) => Store.card(id));
-		if (!ids.length || this.app.dialog.open || this.menu.open) return;
+		if (!ids.length || (this.app.dialog.open && this.app.modalKind !== "search") || this.menu.open)
+			return;
 		this.returnFocus = trigger || (document.activeElement as HTMLElement);
 		this.menuIds = ids;
 		this.app.closeMore();
@@ -335,6 +358,9 @@ class DragManager {
 		this.closeMenu();
 	}
 	cleanup() {
+		this.active?.target?.classList.remove("is-ready");
+		const label = this.active?.target?.querySelector("[data-ai-label]");
+		if (label) label.textContent = copy("web.selection.aiDrop");
 		document.body.classList.remove("is-dragging");
 		document.querySelectorAll(".is-drag-source").forEach((n) => {
 			n.classList.remove("is-drag-source");

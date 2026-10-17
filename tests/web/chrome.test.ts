@@ -53,6 +53,7 @@ test("bars tuck away completely after steady downward reading, not on a jitter",
 		assert.equal(f.tucked(), false, "a 20px move is not yet a decision to read on");
 		f.to(60);
 		assert.equal(f.tucked(), true);
+		assert.equal(f.bar.inert, true, "fading controls stop receiving interaction immediately");
 		f.to(55);
 		assert.equal(f.tucked(), true, "a 5px jitter back up does not bring the bars back");
 		f.to(40);
@@ -139,17 +140,19 @@ test("search waits while an input method is composing, then filters on the final
 	const f = fixture();
 	try {
 		const app = Object.create(f.w.ChromeTest.AppController.prototype);
-		app.filter = { query: "" };
-		app.filtered = () => [];
+		app.filter = { query: "home" };
+		app.searchFilter = { query: "" };
+		app.searchAll = () => ({ desk: [], shelved: [] });
 		app.mode = "feed";
 		app.renderCurrent = () => {};
 		app.updateFilterIndicator = () => {};
 		const target = { value: "gong", dataset: { input: "search" }, closest: () => null };
 		app.input({ isComposing: true, target });
-		assert.equal(app.filter.query, "", "half-typed pinyin is not a query");
+		assert.equal(app.searchFilter.query, "", "half-typed pinyin is not a query");
 		target.value = "工作";
 		app.input({ isComposing: false, target });
-		assert.equal(app.filter.query, "工作");
+		assert.equal(app.searchFilter.query, "工作");
+		assert.equal(app.filter.query, "home");
 	} finally {
 		f.hide.destroy();
 		f.dom.window.close();
@@ -163,7 +166,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 		Store.load();
 		const card = { id: "a", type: "note", title: "工作笔记", summary: "工作" };
 		const app = {
-			filter: { query: "工作", type: "all", status: "", tag: "" },
+			searchFilter: { query: "工作", type: "all", status: "", tag: "" },
 			filtered: () => [card],
 			searchAll: () => ({ desk: [card], shelved: [card] }),
 		};
@@ -183,7 +186,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 		const results = f.w.document.createElement("div");
 		results.innerHTML = Panels.searchResults(app);
 		const labels = [...results.querySelectorAll(".group-label")].map((n: any) => n.textContent);
-		assert.deepEqual(labels, ["桌面", "已收起"]);
+		assert.deepEqual(labels, ["已收起"]);
 		assert.equal(results.querySelectorAll(".group-label .num").length, 0);
 	} finally {
 		f.hide.destroy();
@@ -215,6 +218,31 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 			"adding moved to settings",
 		);
 		assert.equal(w.document.getElementById("account").dataset.extra, "settings");
+		const settings = w.document.getElementById("account");
+		assert.equal(settings.getAttribute("aria-label"), "设置");
+		assert.equal(settings.querySelectorAll(".account-face,.nav-label,img").length, 0);
+		assert.equal(settings.querySelectorAll(".account-wrap > .icon path").length, 1);
+		assert.equal(
+			settings.querySelector(".account-wrap > .icon").getAttribute("stroke-width"),
+			"1.65",
+		);
+		assert.equal(
+			settings.querySelector(".account-wrap > .icon").getAttribute("aria-hidden"),
+			"true",
+		);
+		assert.match(
+			settings.querySelector(".account-wrap > .icon path").getAttribute("d"),
+			/M4 18V10/,
+		);
+		const settingsIcon = settings.innerHTML;
+		w.__SILL_ACCOUNT__ = "Synthetic Account";
+		Store.state.preferences.profileName = "Profile Initial";
+		app.paintAccount();
+		assert.equal(
+			settings.innerHTML,
+			settingsIcon,
+			"account updates never restore a face or initial",
+		);
 		assert.match(
 			w.document.querySelector('[data-extra="ai"]').getAttribute("aria-label"),
 			/即将推出/,
@@ -238,8 +266,44 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		assert.equal(app.isPage("ai"), true);
 		assert.equal(app.isPage("capture"), false, "capture stays a sheet");
 		w.matchMedia = () => ({ matches: false, addEventListener() {} });
-		assert.equal(app.isPage("search"), false, "on a desktop, search is a panel");
+		assert.equal(app.isPage("search"), true, "search owns its page on desktop too");
 	} finally {
 		dom.window.close();
+	}
+});
+
+test("AI placeholder shows only selected local context and cannot send or change cards", () => {
+	const f = fixture();
+	try {
+		const { Panels, Store } = f.w.ChromeTest;
+		Store.load();
+		Store.state.cards = [
+			{
+				id: "local-one",
+				type: "note",
+				title: "<script>bad</script>",
+				summary: "<img src=x onerror=bad()>",
+			},
+			{ id: "unselected", type: "note", title: "Should not appear", summary: "Private fixture" },
+		];
+		const before = JSON.stringify(Store.state);
+		const panel = f.w.document.createElement("div");
+		panel.innerHTML = Panels.ai({ aiSelectionIds: ["local-one", "local-one", "missing"] });
+		assert.equal(panel.querySelectorAll("[data-ai-context]").length, 1);
+		assert.equal(panel.querySelector("script, img, form"), null);
+		assert.match(panel.textContent, /尚未连接 AI/);
+		assert.match(panel.textContent, /内容不会发送/);
+		assert.match(panel.textContent, /输入不会保存/);
+		assert.doesNotMatch(panel.textContent, /Should not appear/);
+		assert.equal(panel.querySelector(".ai-composer button").disabled, true);
+		assert.equal(panel.querySelector(".ai-composer [data-action]"), null);
+		const draft = panel.querySelector("textarea");
+		draft.value = "A temporary local draft";
+		draft.dispatchEvent(new f.w.Event("input", { bubbles: true }));
+		assert.equal(JSON.stringify(Store.state), before);
+		assert.equal(Panels.ai({ aiSelectionIds: [] }).includes("data-ai-context="), false);
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
 	}
 });

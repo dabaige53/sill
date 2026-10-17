@@ -447,6 +447,9 @@ try {
 					values: { read: true, readAt: Date.now() - 10 * 86400000 },
 				},
 			]);
+			// Reading and age do not archive a card; only the explicit action empties the desk.
+			await page.locator("[data-card=article-01]").waitFor();
+			await apply([{ op: "item.patch", id: "article-01", values: { archived: true } }]);
 			await page.getByText("桌面上都处理完了", { exact: true }).waitFor();
 			await page.locator("[data-action=archive]").click();
 			await page.locator("[data-action=restore-card]").click();
@@ -500,7 +503,7 @@ try {
 						if (panel !== "feed") await close(page);
 						if (panel === "search")
 							await page.evaluate(() => {
-								__app.filter.query = "";
+								__app.searchFilter.query = "";
 								__app.renderCurrent(false);
 							});
 					}

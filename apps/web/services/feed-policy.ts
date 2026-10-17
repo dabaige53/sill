@@ -4,19 +4,10 @@ import { cardSource, cardSourceKind } from "../data/card-source.ts";
 /** Pure feed policy. Clock and item state are supplied by the caller. */
 const FeedPolicy: Record<string, any> = {
 	sorts: ["priority", "unread", "time"],
-	// Time sinks cards. A read card leaves the desk after the archive delay; an untouched one after two weeks.
-	// Nothing is deleted: both shelves stay searchable and any card can be put back.
-	archiveDelay(pref?: any) {
-		return pref === "3d" ? 3 * 86400000 : pref === "never" ? Infinity : 7 * 86400000;
-	},
-	shelf(c?: any, s?: any, now?: any, pref: any = "7d") {
-		if (s.archived) return "read";
-		if (["task", "event", "reminder"].includes(c.type)) return "desk";
-		if (s.restoredAt && now - s.restoredAt < 7 * 86400000) return "desk";
-		if (s.bookmarked || s.later) return "desk";
-		if (s.read)
-			return now - (s.readAt || c.time || now) >= this.archiveDelay(pref) ? "read" : "desk";
-		return !s.seen && now - (c.time || now) >= 14 * 86400000 ? "stale" : "desk";
+	// Home keeps every card until an explicit archive action. Legacy age preferences
+	// remain readable in stored data, but reading, completion and age never move cards.
+	shelf(_c?: any, s: any = {}, _now?: any, _pref?: any) {
+		return s.archived ? "read" : "desk";
 	},
 	// More than five cards from one source within an hour fold into one stack.
 	stackThreshold: 5,
@@ -72,6 +63,7 @@ const FeedPolicy: Record<string, any> = {
 			at > 0 &&
 			at <= now &&
 			!s.dismissed &&
+			!s.archived &&
 			!this.completed(c, s) &&
 			!(c.type === "event" && c.end <= now) &&
 			s.lastReminderKey !== this.key(c, s) &&
@@ -81,8 +73,9 @@ const FeedPolicy: Record<string, any> = {
 	visible(c?: any, s?: any, status: any = "all") {
 		if (status === "snoozed") return s.snoozedUntil > 0 && !s.dismissed && !s.reminderDone;
 		if (status === "dismissed") return !!s.dismissed;
-		if (status === "done") return !!s.reminderDone;
-		return !s.snoozedUntil && !s.dismissed && !s.reminderDone;
+		if (status === "done") return this.completed(c, s);
+		// Snooze and dismissal control notifications, not home membership.
+		return true;
 	},
 	score(c?: any, s?: any, now?: any) {
 		if (s.dismissed || this.completed(c, s)) return -1;

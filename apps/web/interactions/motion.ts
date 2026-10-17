@@ -3,6 +3,7 @@ const MotionEngine: Record<string, any> = {
 	panelAnimations: new WeakMap(),
 	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),
+	visibilityAnimations: new WeakMap(),
 	get reduced() {
 		return this.query.matches || !!document.body?.classList.contains("reduce-motion");
 	},
@@ -27,6 +28,35 @@ const MotionEngine: Record<string, any> = {
 			easing: "cubic-bezier(.2,.75,.25,1)",
 			...options,
 		});
+	},
+	/** Absolute rail notices fade without moving the navigation or leaving clickable ghosts. */
+	visibility(el: HTMLElement, visible: boolean) {
+		if (!el) return;
+		const previous = this.visibilityAnimations.get(el);
+		if (previous?.visible === visible || (!previous && el.hidden === !visible)) return;
+		const style = el.animate ? getComputedStyle(el) : null;
+		const opacity = el.hidden ? 0 : Number.parseFloat(style?.opacity || "1");
+		const transform = el.hidden ? "translateY(4px)" : style?.transform || "none";
+		previous?.animation?.cancel();
+		el.inert = !visible;
+		el.hidden = false;
+		const state = { visible, animation: null as Animation | null };
+		this.visibilityAnimations.set(el, state);
+		const finish = () => {
+			if (this.visibilityAnimations.get(el) !== state) return;
+			el.hidden = !visible;
+			state.animation = null;
+		};
+		state.animation = this.animate(
+			el,
+			[
+				{ opacity, transform },
+				{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(4px)" },
+			],
+			{ duration: visible ? 220 : 180 },
+		);
+		if (state.animation) state.animation.finished.then(finish, finish);
+		else finish();
 	},
 	enter(el?: any, delay: any = 0) {
 		return this.animate(

@@ -8,7 +8,7 @@ import { agentFailure } from "./services/agent-handoff.ts";
 import { CloudSync, clone } from "./services/cloud-sync.ts";
 import { AppController } from "./views/app.ts";
 
-/* Authenticated cloud build only. No credentials or private cards in browser storage. */
+/* Cloud build: cards stay in memory; browser login uses server-set HttpOnly cookies. */
 // Invitation/legacy implicit fragments are never accepted as app sessions.
 if (/(?:access_token|refresh_token|error_description)=/.test(location.hash))
 	history.replaceState(null, "", location.pathname);
@@ -19,7 +19,7 @@ Store.load = function () {
 	this.state.preferences.onboarded = true;
 	return this.state;
 };
-Store.save = function () {};
+Store.save = () => {};
 const Cloud: Record<string, any> = {
 	user: null,
 	records: new Map<any, any>(),
@@ -86,7 +86,7 @@ app.readAgentCard = async (id, scope) => {
 	return card;
 };
 const originalDeskHTML = app.deskHTML.bind(app);
-app.deskHTML = function () {
+app.deskHTML = () => {
 	if (!Cloud.user || !Store.state.cards.length) return cloudWelcome();
 	return originalDeskHTML();
 };
@@ -115,7 +115,7 @@ const sync = new CloudSync({
 			sync.suspended = true;
 			clearCloud({ retainDrafts: true });
 		}
-		app.alert(error.message);
+		if (!Cloud.refreshFeedback) app.alert(error.message);
 	},
 });
 Store.save = () => {
@@ -205,7 +205,24 @@ function accountView() {
 
 function clearCloud({ retainDrafts = false }: any = {}) {
 	app.drag?.cancel();
-	app.selected.clear();
+	app.drag?.menu.replaceChildren();
+	app.modalToken++;
+	app.panelReturn = null;
+	app.lastFocus = null;
+	clearTimeout(app.searchTimer);
+	clearTimeout(app.navTimer);
+	clearTimeout(app.navOpenTimer);
+	app.homeSelected.clear();
+	app.searchSelected.clear();
+	app.aiSelectionIds = [];
+	app.selectAnchor = "";
+	app.searchSelectAnchor = "";
+	app.searchFilter = { type: "all", status: "all", tag: "", query: "" };
+	app.searchScroll = 0;
+	app.searchLimit = 40;
+	app.searchFocus = undefined;
+	// Account-bound snapshots must never be restored when the foreground view closes.
+	app.discardSearchBackground();
 	app.updateSelection();
 	if (retainDrafts) stashCloudDraft();
 	const keepEditor =
@@ -231,8 +248,17 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 	}
 	if (!keepEditor) {
 		Cloud.edit = null;
-		app.closeNative();
+		// Finish immediately, even if a drawer dismissal was already animating.
+		app.sheetLeaving = false;
+		app.closeNative(false);
+		app.dialog.replaceChildren();
+		app.currentId = "";
+		app.previewTrail = [];
+		app.lastFocus = null;
+		history.replaceState({ glass: true, prev: null }, "", "#feed");
+		app.lastRouteHash = "#feed";
 	}
+	app.searchScroll = 0;
 	app.renderCurrent(true);
 	accountView();
 	if (keepEditor) {
@@ -245,10 +271,12 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 }
 function cloudConnection() {
 	// Loading shows as the thin arc around the face; there is no refresh button.
-	document.getElementById("dock")?.classList.toggle("is-busy", !!Cloud.loading);
+	document
+		.getElementById("dock")
+		?.classList.toggle("is-busy", !!Cloud.loading && !Cloud.refreshFeedback);
 	const offline = document.getElementById("offline");
 	offline.dataset.action = "refresh";
-	offline.hidden = !Cloud.connectionError || !Cloud.user;
+	offline.hidden = !!Cloud.refreshFeedback || !Cloud.connectionError || !Cloud.user;
 	offline.textContent = copy("web.cloudentry.4e0831bcbc99");
 }
 function workspaceState() {
@@ -331,7 +359,18 @@ function adoptWorkspace(value: any) {
 		}
 	}
 }
-async function loadCloud({ initial = false }: any = {}) {
+async function loadCloud(options: any = {}) {
+	// A foreground pull joins an in-flight read instead of reporting false success/failure.
+	if (Cloud.loadPromise) return Cloud.loadPromise;
+	const pending = loadCloudOnce(options);
+	Cloud.loadPromise = pending;
+	try {
+		return await pending;
+	} finally {
+		if (Cloud.loadPromise === pending) Cloud.loadPromise = null;
+	}
+}
+async function loadCloudOnce({ initial = false, quiet = false }: any = {}) {
 	if (
 		Cloud.loading ||
 		Cloud.busy ||
@@ -340,7 +379,7 @@ async function loadCloud({ initial = false }: any = {}) {
 		(sync.pending.length && !sync.suspended) ||
 		app.modalKind === "editor"
 	)
-		return;
+		return false;
 	Cloud.loading = true;
 	cloudConnection();
 	const epoch = Cloud.epoch,
@@ -352,7 +391,7 @@ async function loadCloud({ initial = false }: any = {}) {
 		const value = await cloudApi("/api/v1/workspace", {
 			headers: { "X-Sill-Owner": session.userId },
 		});
-		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return;
+		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return false;
 		Cloud.connectionError = false;
 		Cloud.scopes = session.scopes || null;
 		Cloud.user = session.userId;
@@ -369,12 +408,15 @@ async function loadCloud({ initial = false }: any = {}) {
 		)
 			adoptWorkspace(value);
 		accountView();
+		return true;
 	} catch (error) {
-		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return;
+		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return false;
 		Cloud.connectionError = true;
 		if (!Cloud.user) app.renderCurrent(false);
 		if (error.status === 401 || error.status === 403) clearCloud({ retainDrafts: true });
-		if (!(initial && checkingSession && error.status === 401)) app.alert(error.message);
+		if (!quiet && !Cloud.refreshFeedback && !(initial && checkingSession && error.status === 401))
+			app.alert(error.message);
+		return false;
 	} finally {
 		Cloud.loading = false;
 		cloudConnection();
@@ -574,7 +616,7 @@ async function saveCloud(deleting: any = false) {
 	}
 }
 const originalOpen = app.openModal.bind(app);
-app.openModal = function (...args: any[]) {
+app.openModal = (...args: any[]) => {
 	if (Cloud.pending) {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
@@ -583,7 +625,7 @@ app.openModal = function (...args: any[]) {
 	return originalOpen(...args);
 };
 const originalClose = app.closeNative.bind(app);
-app.closeNative = function (...args: any[]) {
+app.closeNative = (...args: any[]) => {
 	if (Cloud.pending) {
 		app.toast(copy("web.cloudentry.af697013918b"));
 		return;
@@ -594,7 +636,7 @@ app.closeNative = function (...args: any[]) {
 	return result;
 };
 const originalAction = app.action.bind(app);
-app.action = function (name?: any, id?: any, ...args: any[]) {
+app.action = (name?: any, id?: any, ...args: any[]) => {
 	if (Cloud.pending) {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
@@ -611,8 +653,12 @@ app.action = function (name?: any, id?: any, ...args: any[]) {
 		editCloud(id);
 		return;
 	}
-	if (name === "refresh" || name === "sync-retry") {
+	if (name === "sync-retry") {
 		refreshWorkspace();
+		return;
+	}
+	if (name === "refresh") {
+		app.gestures.refresh();
 		return;
 	}
 	if (Cloud.pending && ["close", "back"].includes(name)) {
@@ -688,7 +734,6 @@ app.action = function (name?: any, id?: any, ...args: any[]) {
 		});
 		return;
 	}
-	if (name === "restore-card") Store.patch(id, { archived: false });
 	if (name === "save-note") {
 		originalAction(name, id, ...args);
 		app.toast(copy("web.app.5fa0ce52b47e"));
@@ -726,7 +771,12 @@ app.loadDemo = function () {
 		);
 };
 const localOpenPanel = app.openPanel.bind(app);
-app.openPanel = function (kind?: any, ...args: any[]) {
+app.openPanel = (kind?: any, ...args: any[]) => {
+	// Reject navigation before search can change history or bind a blocked panel.
+	if (Cloud.pending) {
+		app.toast(copy("web.cloudentry.30298242da3c"));
+		return;
+	}
 	if (kind === "capture") {
 		editCloud();
 		return;
@@ -734,7 +784,7 @@ app.openPanel = function (kind?: any, ...args: any[]) {
 	return localOpenPanel(kind, ...args);
 };
 const localEditor = Panels.editor.bind(Panels);
-Panels.editor = function (...args: any[]) {
+Panels.editor = (...args: any[]) => {
 	const doc = document.createElement("template");
 	doc.innerHTML = localEditor(...args);
 	const hint = doc.content.querySelector(".panel-footer .muted");
@@ -742,7 +792,7 @@ Panels.editor = function (...args: any[]) {
 	return doc.innerHTML;
 };
 const localSettings = Panels.settings.bind(Panels);
-Panels.settings = function (app?: any, group?: any) {
+Panels.settings = (app?: any, group?: any) => {
 	const html = localSettings(app, group),
 		doc = document.createElement("template");
 	doc.innerHTML = html;
@@ -752,7 +802,7 @@ Panels.settings = function (app?: any, group?: any) {
 			(window.__SILL_HOST__
 				? copy("web.cloudentry.c360ffadc6df")
 				: copy("web.cloudentry.adf4e8d0d4f0")) +
-			`${copy("web.cloudentry.627f80e390d1")}</p><div class="settings-card"><div class="setting-row"><span>${copy("web.cloud.export")}</span><button type="button" class="text-link" data-action="export-all">${copy("web.cloud.export")}</button></div><div class="setting-row"><span>${copy("web.cloud.clear")}</span><button type="button" class="text-link" data-action="clear-all">${copy("web.cloud.clear")}</button></div></div>` +
+			`</p><div class="settings-card"><div class="setting-row"><button type="button" class="text-link" data-action="export-all">${copy("web.cloud.export")}</button></div><div class="setting-row"><span>${copy("web.cloud.clear")}</span><button type="button" class="text-link" data-action="clear-all">${copy("web.cloud.clear")}</button></div></div>` +
 			(Cloud.user
 				? `<div class="settings-card"><div class="setting-row"><span>${copy("web.cloudentry.4cc5be794516")}</span><button type="button" class="text-link" id="cloud-logout">` +
 					(window.__SILL_HOST__
@@ -762,13 +812,21 @@ Panels.settings = function (app?: any, group?: any) {
 				: "");
 	return doc.innerHTML;
 };
-async function refreshWorkspace() {
-	if (sync.suspended) await loadCloud();
-	if (sync.pending.length) {
-		await sync.flush();
-		if (sync.pending.length) return;
+async function refreshWorkspace({ feedback = "default" } = {}) {
+	const quiet = feedback === "pull";
+	if (Cloud.refreshFeedback) return false;
+	Cloud.refreshFeedback = quiet;
+	if (quiet) cloudConnection();
+	try {
+		if (sync.suspended && !(await loadCloud({ quiet }))) return false;
+		if (sync.pending.length) {
+			await sync.flush();
+			if (sync.pending.length) return false;
+		}
+		return await loadCloud({ quiet });
+	} finally {
+		Cloud.refreshFeedback = false;
 	}
-	await loadCloud();
 }
 async function discardWorkspace() {
 	if (sync.busy || Cloud.busy || Cloud.discarding) return;

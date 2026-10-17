@@ -78,7 +78,7 @@ async function beginLift(page: any, mobile: boolean) {
 		await page.mouse.down();
 	}
 	await page.waitForTimeout(440);
-	assert.equal(await page.locator(".selection-lift .selection-stack").isVisible(), true);
+	assert.equal(await page.locator(".selection-lift,.selected-tick").count(), 0);
 	const moved = { x: p.x + 30, y: p.y + 65 };
 	if (mobile) await touch(session, "touchMove", moved);
 	else await page.mouse.move(moved.x, moved.y, { steps: 3 });
@@ -259,7 +259,7 @@ try {
 				.screenshot({ path: path.join(artifacts, screenshot), animations: "disabled" })
 				.catch(() => {});
 			results.push({ name, status: "FAIL", error: error.message, screenshot, errors, external });
-			console.error("FAIL", name, error.message);
+			console.error("FAIL", name, error.stack || error.message);
 		} finally {
 			await context.close();
 		}
@@ -284,7 +284,7 @@ try {
 						.evaluateAll((buttons: HTMLElement[]) =>
 							buttons.map((button) => button.dataset.action),
 						),
-					["selected-bookmark", "selected-later", "selected-tag", "clear-selection"],
+					["selected-bookmark", "selected-later", "selected-tag", "clear-selection", "selected-ai"],
 				);
 				for (const [action, glyph] of [
 					["bookmark", "bookmark"],
@@ -379,144 +379,47 @@ try {
 		},
 		phone,
 	);
-	await scenario(
-		"Phone stationary long press of selected cards opens the menu on release",
-		async (page) => {
-			await selectTwo(page);
-			const before = await snapshot(page),
-				p = await point(page);
-			const session = await page.context().newCDPSession(page);
-			await touch(session, "touchStart", p);
-			await page.waitForTimeout(440);
-			assert.equal(await isMenuOpen(page), false);
-			await touch(session, "touchEnd");
-			await page.waitForTimeout(500);
-			await checkMenu(page, phone.viewport.width, phone.viewport.height);
-			await unchanged(page, before);
-		},
-		phone,
-	);
 	for (const mobile of [false, true]) {
 		for (const reduced of [false, true]) {
-			const options = {
-				...(mobile ? phone : desktop),
-				reducedMotion: reduced ? "reduce" : "no-preference",
-			};
-			const label = `${mobile ? "Phone 390×844" : "Desktop"}${reduced ? " reduced motion" : ""}`;
 			await scenario(
-				`${label}: a lifted stack becomes a persistent menu without writing`,
+				`${mobile ? "Phone" : "Desktop"}: held selection stays in place${reduced ? " with reduced motion" : ""}`,
 				async (page) => {
-					await selectTwo(page);
 					const before = await snapshot(page);
 					const gesture = await beginLift(page, mobile);
 					assert.equal(
-						await page.locator(".selection-lift .selection-stack-count").textContent(),
-						"2",
+						await page.locator(".is-drag-source,.selection-lift,.selected-tick").count(),
+						0,
 					);
-					await checkThumbnail(page, ".selection-lift");
-					await unchanged(page, before);
-					await page.screenshot({
-						path: path.join(
-							artifacts,
-							`selection-lift-${mobile ? "phone" : "desktop"}${reduced ? "-reduced" : ""}.png`,
-						),
-						animations: "disabled",
-					});
-					await gesture.release();
-					await page.waitForTimeout(500);
-					assert.equal(await page.locator(".selection-lift").count(), 0);
-					await checkMenu(page, options.viewport.width, options.viewport.height);
-					await unchanged(page, before);
-					await page.screenshot({
-						path: path.join(
-							artifacts,
-							`selection-menu-${mobile ? "phone" : "desktop"}${reduced ? "-reduced" : ""}.png`,
-						),
-						animations: "disabled",
-					});
-					await page.keyboard.press("Escape");
-					await waitClosed(page);
-					await unchanged(page, before);
 					assert.equal(
 						await page
-							.locator('[data-card="selection-01"] .card-title-button')
-							.evaluate((node: HTMLElement) => node === document.activeElement),
+							.locator('[data-card="selection-01"]')
+							.evaluate((n) => n.classList.contains("is-selected")),
 						true,
 					);
-				},
-				options,
-			);
-		}
-	}
-	for (const mobile of [false, true]) {
-		for (const edge of ["top", "bottom"]) {
-			const options = mobile ? phone : desktop;
-			await scenario(
-				`${mobile ? "Phone" : "Desktop"}: release at ${edge} anchors and clamps the menu`,
-				async (page) => {
-					await selectTwo(page);
-					const before = await snapshot(page);
-					const gesture = await beginLift(page, mobile);
-					const at =
-						edge === "top"
-							? { x: 20, y: 48 }
-							: { x: options.viewport.width - 20, y: options.viewport.height - 40 };
-					await gesture.moveTo(at);
-					const tracked = await page.evaluate(() => ({ ...window.__app.drag.active.point }));
-					assert.deepEqual(tracked, at);
 					await gesture.release();
-					await page.waitForTimeout(350);
-					await checkMenu(page, options.viewport.width, options.viewport.height);
-					const context = page.locator("#selection-menu .selection-context");
-					assert.equal(
-						await context.getAttribute("data-placement"),
-						edge === "top" ? "below" : "above",
-					);
-					const box = await context.boundingBox();
-					assert.ok(
-						box.x >= 15 &&
-							box.y >= 15 &&
-							box.x + box.width <= options.viewport.width - 15 &&
-							box.y + box.height <= options.viewport.height - 15,
-						JSON.stringify(box),
-					);
-					assert.ok(
-						edge === "top" ? box.x < 32 : box.x + box.width > options.viewport.width - 32,
-						"menu ignored the latest horizontal release position",
-					);
+					assert.equal(await isMenuOpen(page), false);
+					await page.waitForTimeout(420);
+					const second = page.locator('[data-card="selection-02"] .card-summary');
+					if (mobile) await second.tap();
+					else await second.click();
+					assert.deepEqual(await selection(page), firstIds);
+					const repeated = await beginLift(page, mobile);
+					await repeated.release();
+					assert.equal(await isMenuOpen(page), false);
 					await unchanged(page, before);
+					await page.waitForTimeout(420);
+					await page.locator('[data-action="clear-selection"]').click();
+					assert.equal(
+						await page.locator("#selection-bar").evaluate((n: HTMLElement) => n.inert),
+						true,
+					);
+					await page.waitForTimeout(220);
+					assert.equal(await page.locator("#selection-bar").isVisible(), false);
 				},
-				options,
+				{ ...(mobile ? phone : desktop), reducedMotion: reduced ? "reduce" : "no-preference" },
 			);
 		}
 	}
-	await scenario(
-		"Short phone viewport keeps the menu scrollable and its actions reachable",
-		async (page) => {
-			await selectTwo(page);
-			const before = await snapshot(page);
-			await openFromKeyboard(page);
-			const context = page.locator("#selection-menu .selection-context");
-			// Measure the settled menu, not a frame of its entrance.
-			await context.evaluate((node: HTMLElement) =>
-				Promise.all(node.getAnimations().map((animation) => animation.finished)),
-			);
-			const box = await context.boundingBox();
-			assert.ok(box.y >= 15 && box.y + box.height <= 345, JSON.stringify(box));
-			assert.equal(
-				await context.evaluate((node: HTMLElement) => node.scrollHeight > node.clientHeight),
-				true,
-			);
-			const cancel = page.locator('[data-selection-action="cancel"]');
-			await cancel.scrollIntoViewIfNeeded();
-			const action = await cancel.boundingBox();
-			assert.ok(action.y >= 0 && action.y + action.height <= 360);
-			await cancel.click();
-			await waitClosed(page);
-			await unchanged(page, before);
-		},
-		{ ...phone, viewport: { width: 390, height: 360 } },
-	);
 	await scenario("Keyboard menu traps focus and returns to its trigger", async (page) => {
 		await selectTwo(page);
 		const before = await snapshot(page);
@@ -716,6 +619,83 @@ try {
 			assert.deepEqual(native, { prevented: true, types: [], text: "" });
 			await unchanged(page, before);
 		},
+	);
+	for (const mobile of [false, true]) {
+		await scenario(
+			`${mobile ? "Phone" : "Desktop"}: AI drop opens a local-only context window`,
+			async (page) => {
+				await selectTwo(page);
+				const before = await snapshot(page);
+				const gesture = await beginLift(page, mobile);
+				const receiver = await page.locator("#selection-bar .selection-ai-target").boundingBox();
+				assert.ok(receiver);
+				await gesture.moveTo({
+					x: receiver.x + receiver.width / 2,
+					y: receiver.y + receiver.height / 2,
+				});
+				assert.equal(
+					await page
+						.locator("#selection-bar .selection-ai-target")
+						.evaluate((n) => n.classList.contains("is-ready")),
+					true,
+				);
+				await gesture.release();
+				await page.locator(".ai-conversation").waitFor();
+				assert.equal(await page.locator("[data-ai-context]").count(), 2);
+				assert.equal(await page.locator(".selection-drag-count").count(), 0);
+				await page.locator("#ai-local-draft").fill("只在本地输入，不发送");
+				assert.equal(await page.locator(".ai-conversation button[disabled]").count(), 1);
+				await unchanged(page, before);
+				await page.locator('#modal [data-action="close"]').click();
+				await page.waitForTimeout(250);
+				assert.deepEqual(await selection(page), firstIds);
+			},
+			mobile ? phone : desktop,
+		);
+	}
+	await scenario(
+		"Search selection and AI preview preserve the independent home selection",
+		async (page) => {
+			await page.evaluate(() => window.__app.select("selection-03", { add: true }));
+			await page.evaluate(() => window.__app.goTo("search"));
+			await page.locator("#filter-search").fill("选择测试");
+			await page.waitForTimeout(180);
+			const second = page.locator('#search-results [data-card="selection-02"] .card-summary');
+			const box = await second.boundingBox();
+			assert.ok(box);
+			await page.mouse.move(box.x + 20, box.y + 10);
+			await page.mouse.down();
+			await page.waitForTimeout(440);
+			await page.mouse.up();
+			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);
+			assert.deepEqual(await page.evaluate(() => [...window.__app.searchSelected]), [
+				"selection-02",
+			]);
+			await page.waitForTimeout(420);
+			await page.locator('#search-selection-bar [data-action="selected-ai"]').focus();
+			await page.keyboard.press("Enter");
+			await page.locator(".ai-conversation").waitFor();
+			assert.equal(await page.locator("[data-ai-context]").count(), 1);
+			await page.locator('#modal [data-action="close"]').click();
+			await page.locator("#filter-search").waitFor();
+			assert.equal(await page.locator("#filter-search").inputValue(), "选择测试");
+			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);
+			assert.deepEqual(await page.evaluate(() => [...window.__app.searchSelected]), [
+				"selection-02",
+			]);
+			await page.keyboard.press("Escape");
+			assert.equal(
+				await page.locator("#filter-search").isVisible(),
+				true,
+				"first Escape clears search selection without leaving search",
+			);
+			assert.deepEqual(await page.evaluate(() => [...window.__app.searchSelected]), []);
+			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);
+			await page.keyboard.press("Escape");
+			assert.equal(await page.locator("#modal[open]").count(), 0);
+			assert.deepEqual(await selection(page), ["selection-03"]);
+		},
+		desktop,
 	);
 	const failed = results.filter((result) => result.status === "FAIL");
 	assert.equal(

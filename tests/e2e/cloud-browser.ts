@@ -140,16 +140,27 @@ try {
 	);
 	await page.keyboard.press("Escape");
 	assert.equal(await page.locator("#cloud-editor").count(), 1, "uncertain request retains editor");
+	const routeBeforeSearch = await page.evaluate(() => ({
+		hash: location.hash,
+		historyLength: history.length,
+	}));
 	await page.keyboard.press("Control+k");
 	assert.equal(
 		await page.locator("#cloud-editor").count(),
 		1,
 		"search shortcut cannot replace uncertain draft",
 	);
+	assert.deepEqual(
+		await page.evaluate(() => ({ hash: location.hash, historyLength: history.length })),
+		routeBeforeSearch,
+		"blocked search cannot leave a route that reopens after save or reload",
+	);
+	assert.deepEqual(errors, [], "blocked search does not bind a missing search panel");
 	await page.locator("#cloud-editor [type=submit]").click();
 	await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
 	await page.reload();
 	await waitCloud(page);
+	assert.equal(await page.locator("#modal[open]").count(), 0, "retry returns to the desk");
 	const records = await page.evaluate(() => window.__store.state.cards);
 	assert.equal(records.length, 1, "same idempotency key creates once");
 	assert.equal(records[0].title, "Browser persisted note");

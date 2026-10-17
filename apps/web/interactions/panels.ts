@@ -8,17 +8,16 @@ import {
 	esc,
 	eventRelative,
 	eventTimely,
-	highlight,
 	pill,
 	relativeDay,
 	segmented,
 	timeString,
 	toggle,
 } from "../atoms/primitives.ts";
-import { CardPresentation, CardTemplates } from "../cards/templates.ts";
+import { CardPresentation, cardHTML } from "../cards/templates.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardSource, cardSourceKind } from "../data/card-source.ts";
+import { cardDates, cardSource, cardSourceKind, detailSource } from "../data/card-source.ts";
 import { CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -29,7 +28,36 @@ const Panels: Record<string, any> = {
 		return `<div class="sheet-close">${button("x", label, "close")}</div>`;
 	},
 	meta(c?: any) {
-		return `<div class="preview-meta">${CardPresentation.sourceIcon(c, 15)}<span>${esc(CardTemplates.sourceLine(c))}</span></div>`;
+		return `<div class="preview-meta">${CardPresentation.sourceIcon(c, 15)}<span>${esc(detailSource(c) || (CardTypes[c.type] || CardTypes.note).label)}</span></div>`;
+	},
+	tags(c?: any) {
+		return Store.tags(c).length
+			? `<div class="preview-tags">${Store.tags(c)
+					.map((t?: any) => `<span class="chip soft">#${esc(t)}</span>`)
+					.join("")}</div>`
+			: "";
+	},
+	details(c?: any) {
+		const dates = cardDates(c);
+		const row = (label: string, date: ReturnType<typeof cardDates>["created"], required = false) =>
+			date || required
+				? `<div class="preview-detail-row"><dt>${esc(label)}</dt><dd>${date ? `<time datetime="${esc(date.datetime)}">${esc(date.text)}</time>` : esc(copy("web.metadata.unknown"))}</dd></div>`
+				: "";
+		const rows = [
+			row(copy("web.metadata.published"), dates.published, c.type === "article"),
+			row(copy("web.metadata.saved"), dates.saved),
+			row(copy("web.metadata.created"), dates.created, c.type === "article"),
+			row(
+				copy("web.metadata.updated"),
+				dates.updated && dates.updated.datetime !== dates.created?.datetime ? dates.updated : null,
+			),
+			c.meta && !["task", "reminder", "event", "mail", "file"].includes(c.type)
+				? `<div class="preview-detail-row preview-source-note"><dt>${copy("web.metadata.note")}</dt><dd>${esc(c.meta)}</dd></div>`
+				: "",
+		].join("");
+		return rows
+			? `<dl class="preview-details" aria-label="${copy("web.metadata.label")}">${rows}</dl>`
+			: "";
 	},
 	bookmark(c?: any, s?: any) {
 		return button(
@@ -57,7 +85,7 @@ const Panels: Record<string, any> = {
 	sep: '<span class="toolbar-sep" aria-hidden="true"></span>',
 	/** The sheet head holds the way out (and full screen) in its own row, never over the text. */
 	head(...tools: any[]) {
-		return `<div class="sheet-head"><div class="grabber" aria-hidden="true"></div><div class="sheet-head-tools">${tools.filter(Boolean).join("")}</div></div>`;
+		return `<button type="button" class="sheet-handle" aria-label="${copy("web.panels.resizeSheet")}" aria-expanded="false"><span class="grabber" aria-hidden="true"></span></button><div class="sheet-head"><div class="sheet-head-tools">${tools.filter(Boolean).join("")}</div></div>`;
 	},
 	/** Specific actions in words, after the content: they never compete with the toolbar icons. */
 	foot(...actions: any[]) {
@@ -116,21 +144,18 @@ const Panels: Record<string, any> = {
 	preview(app?: any, c?: any) {
 		const s = Store.item(c.id),
 			note = s.note ? `<div class="preview-note">${esc(s.note)}</div>` : "";
-		const tags = Store.tags(c).length
-			? `<div class="preview-tags">${Store.tags(c)
-					.map((t?: any) => `<span class="chip soft">#${esc(t)}</span>`)
-					.join("")}</div>`
-			: "";
+		const tags = this.tags(c);
 		const closeButton = button("x", copy("web.panels.1eb05d311508"), "close");
 		const expand =
 			c.body?.length &&
+			!standaloneDisplay() &&
 			!["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
 				? button("expand", copy("web.panels.22ea3f47fee8"), "reader", c.id)
 				: "";
 		const sheet = (inner?: any, cover: any = "", action: any = "") =>
-			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${tags}${this.foot(action, app?.agentAction?.(c))}</div></div></div>`;
+			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${this.foot(action, app?.agentAction?.(c))}</div></div></div>`;
 		const editTags = button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id);
-		const h1 = `<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>`;
+		const h1 = `<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${tags}${this.details(c)}`;
 		if (c.type === "mail") {
 			const sender = c.sender || cardSource(c);
 			return (
@@ -252,7 +277,7 @@ const Panels: Record<string, any> = {
 			? `<div class="skeleton-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div>`
 			: c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("");
 		return (
-			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c), app.agentAction?.(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
+			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${this.tags(c)}${this.details(c)}${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c), app.agentAction?.(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
 			`<div class="reader-edge is-top" aria-hidden="true"></div><div class="reader-edge is-bottom" aria-hidden="true"></div>` +
 			`<div class="reader-head glass" role="toolbar" aria-label="${copy("web.readerTools")}">${button("collapse", copy("web.panels.0f1505b6ad3f"), "close")}${button("x", copy("web.panels.f2a5f3f7db0f"), "close-all")}</div>` +
 			this.bar(
@@ -315,7 +340,7 @@ const Panels: Record<string, any> = {
 	},
 	/* Search: field, chips, and grouped results. Archived matches come last. */
 	search(app?: any) {
-		const f = app.filter,
+		const f = app.searchFilter,
 			tags = [...new Set<any>(Store.state.cards.flatMap((c?: any) => Store.tags(c)))].slice(0, 8);
 		const types = [
 			["all", copy("web.all"), ""],
@@ -331,30 +356,20 @@ const Panels: Record<string, any> = {
 			["saved", copy("web.bookmark")],
 			["later", copy("web.later")],
 		];
-		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-header"><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.filtered().length}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>${button("x", copy("web.close"), "close")}</div>
+		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-header"><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${Object.values(app.searchAll(f.query)).flat().length}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>${button("x", copy("web.close"), "close")}</div>
    <div class="search-chips" role="group" aria-label="${copy("web.panels.b5f15473fdc0")}">${types.map(([k, v, ic]: any) => `<button type="button" class="chip ${f.type === k ? "active" : ""}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type === k}">${v}</button>`).join("")}${status.map(([k, v]: any) => `<button type="button" class="chip ${f.status === k ? "active" : ""}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status === k}">${v}</button>`).join("")}${tags.map((t?: any) => `<button type="button" class="chip ${f.tag === t ? "active" : ""}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag === t}">#${esc(t)}</button>`).join("")}</div>
    <div class="search-results" id="search-results">${this.searchResults(app)}</div>`;
 	},
 	searchResults(app?: any) {
-		const q = app.filter.query.trim();
-		if (!q) return "";
-		const now = Date.now(),
+		const q = app.searchFilter.query.trim(),
 			hits = app.searchAll(q);
 		if (!hits.desk.length && !hits.shelved.length)
 			return `<p class="search-empty">${copy("web.panels.11a8f9879575")}${esc(q)}」</p>`;
-		const row = (c?: any) => {
-			const s = Store.item(c.id),
-				text =
-					[c.summary, s.note, ...(c.body || [])].find(
-						(t?: any) => t && t.toLocaleLowerCase().includes(q.toLocaleLowerCase()),
-					) ||
-					c.summary ||
-					"";
-			const i = text.toLocaleLowerCase().indexOf(q.toLocaleLowerCase()),
-				snippet = i > 18 ? "…" + text.slice(i - 14) : text;
-			return `<button type="button" class="list-row" data-action="card-open" data-id="${esc(c.id)}"><span class="row-icon">${icon((CardTypes[c.type] || CardTypes.note).icon, 16)}</span><span class="row-main"><b>${highlight(c.title, q)}</b><small>${highlight(snippet.slice(0, 60), q)}</small></span><span class="row-side">${esc(relativeDay(c.time || now, now))}</span></button>`;
-		};
-		return `${hits.desk.length ? `<div class="group-label">${copy("web.search.deskGroup")}</div><div class="row-list">${hits.desk.slice(0, 8).map(row).join("")}</div>` : ""}${hits.shelved.length ? `<div class="group-label">${copy("web.search.shelvedGroup")}</div><div class="row-list">${hits.shelved.slice(0, 8).map(row).join("")}</div>` : ""}`;
+		const desk = hits.desk.slice(0, app.searchLimit || 40),
+			shelved = hits.shelved.slice(0, Math.max(0, (app.searchLimit || 40) - desk.length));
+		const cards = (list: any[]) =>
+			`<div class="search-card-grid">${list.map((c) => cardHTML(c, { now: app.feedNow })).join("")}</div>`;
+		return `${desk.length ? cards(desk) : ""}${shelved.length ? `<div class="group-label">${copy("web.search.shelvedGroup")}</div>${cards(shelved)}` : ""}`;
 	},
 	/* Archives: grouped by week, one row per card; “放回桌面” appears on hover. */
 	archive(app?: any, which?: any) {
@@ -395,19 +410,7 @@ const Panels: Record<string, any> = {
 			// Adding lives here now: the same one field as the capture sheet. N still opens the sheet directly.
 			add: () =>
 				`<h1 id="modal-title">${copy("web.settings.add")}</h1><div class="settings-card settings-add"><div class="capture-field">${icon("plus", 18)}<textarea id="capture-text" aria-label="${copy("web.panels.fd06b053572e")}" placeholder="${copy("web.panels.fd06b053572e")}" maxlength="4000"></textarea></div><div class="panel-footer"><span class="muted"><kbd>N</kbd>${copy("web.panels.9be4933b25fb")}</span><button type="button" class="solid-button" data-action="capture-save">${copy("web.panels.a0fb6bc1d3c5")}</button></div></div>`,
-			desk: () => `<h1 id="modal-title">${copy("web.panels.f48d334495f6")}</h1><div class="settings-card">${row(copy("web.panels.5142e436b1f9"), `<span>${copy("web.panels.840f6c8f8823")}</span>${toggle("stack", p("stack"), copy("web.panels.5142e436b1f9"))}`)}${row(copy("web.panels.a11a80a0843c"), toggle("fadeRead", p("fadeRead"), copy("web.panels.a11a80a0843c")))}${row(
-				copy("web.panels.1495127fad02"),
-				segmented(
-					"archiveAfter",
-					[
-						["3d", copy("web.panels.0c3f03b97727")],
-						["7d", copy("web.panels.d94daba31605")],
-						["never", copy("web.panels.3e8a08c97402")],
-					],
-					p("archiveAfter"),
-					copy("web.panels.f28b5313cf29"),
-				),
-			)}${row(copy("web.panels.0f01370710b6"), toggle("floatTimely", p("floatTimely"), copy("web.panels.0f01370710b6")))}</div>
+			desk: () => `<h1 id="modal-title">${copy("web.panels.f48d334495f6")}</h1><div class="settings-card">${row(copy("web.panels.5142e436b1f9"), `<span>${copy("web.panels.840f6c8f8823")}</span>${toggle("stack", p("stack"), copy("web.panels.5142e436b1f9"))}`)}${row(copy("web.panels.a11a80a0843c"), toggle("fadeRead", p("fadeRead"), copy("web.panels.a11a80a0843c")))}${row(copy("web.panels.0f01370710b6"), toggle("floatTimely", p("floatTimely"), copy("web.panels.0f01370710b6")))}</div>
        <div class="settings-card">${row(copy("web.panels.ba8a435e2ff0"), toggle("collapseOnFinish", p("collapseOnFinish"), copy("web.panels.ba8a435e2ff0")))}${row(
 					copy("web.panels.87852ffbea52"),
 					segmented(
@@ -475,8 +478,17 @@ const Panels: Record<string, any> = {
 		return `<div class="sheet"><div class="permission"><h1 id="modal-title">${esc(title)}</h1><p class="muted">${esc(detail)}</p><div class="permission-actions">${actions}</div></div></div>`;
 	},
 	/* AI: a place kept for the assistant. It says plainly that nothing works here yet. */
-	ai() {
-		return `<div class="sheet"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<div class="panel-content ai-soon">${icon("chat", 28)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span><p class="muted">${copy("web.ai.body")}</p></div></div>`;
+	ai(app?: any) {
+		const cards = [...new Set<string>(app?.aiSelectionIds || [])]
+			.map((id) => Store.card(id))
+			.filter(Boolean);
+		const context = cards
+			.map((card) => {
+				const excerpt = (card.summary || (card.body || []).join(" ") || "").slice(0, 180);
+				return `<article class="ai-context-card" data-ai-context="${esc(card.id)}"><h3>${esc(card.title)}</h3>${excerpt ? `<p>${esc(excerpt)}</p>` : ""}</article>`;
+			})
+			.join("");
+		return `<div class="sheet ai-conversation"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<header class="ai-conversation-head">${icon("chat", 24)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span></header><p id="ai-availability" class="muted">${copy("web.ai.localOnly")}</p><section class="ai-context" aria-label="${copy("web.ai.context")}">${context || `<p class="muted ai-context-empty">${copy("web.ai.emptyContext")}</p>`}</section><div class="ai-composer"><textarea id="ai-local-draft" aria-label="${copy("web.ai.composer")}" aria-describedby="ai-availability" placeholder="${copy("web.ai.placeholder")}" maxlength="4000" rows="3"></textarea><button type="button" class="icon-button" disabled aria-label="${copy("web.ai.sendUnavailable")}">${icon("send", 20)}</button></div></div>`;
 	},
 	/* Capture: one field. A link becomes an article, a line becomes a note. */
 	capture(app?: any) {
@@ -490,6 +502,13 @@ const Panels: Record<string, any> = {
    <div class="panel-footer"><span class="muted"><kbd>N</kbd>${copy("web.panels.9be4933b25fb")}</span><button type="button" class="solid-button" data-action="capture-save">${copy("web.panels.a0fb6bc1d3c5")}</button></div></div></div>`;
 	},
 };
+function standaloneDisplay() {
+	return (
+		typeof window !== "undefined" &&
+		(window.matchMedia?.("(display-mode: standalone)").matches ||
+			(window.navigator as Navigator & { standalone?: boolean }).standalone === true)
+	);
+}
 function welcomeHTML({ actions = null, detail = "" }: any = {}) {
 	return `<section class="welcome" aria-labelledby="welcome-title">${sillIcon(72)}<h1 id="welcome-title">Sill</h1><p>${copy("web.panels.3d7d3ac3581f")}</p>${detail}<div class="welcome-actions">${actions === null ? `<button type="button" class="solid-button" data-action="capture">${copy("web.panels.5a15649c2481")}</button><button type="button" class="text-link" data-action="welcome-demo">${copy("web.panels.0245f51ac89a")}</button>` : actions}</div></section>`;
 }

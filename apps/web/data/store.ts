@@ -40,6 +40,7 @@ const Store: Record<string, any> = {
 		return {
 			seen: !!x.seen,
 			read: !!x.read,
+			archived: !!x.archived,
 			bookmarked: !!x.bookmarked,
 			later: !!x.later,
 			tagsEdited: !!x.tagsEdited,

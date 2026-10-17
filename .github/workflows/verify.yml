@@ -22,11 +22,15 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run browser regressions
         run: |
-          npm run test:material-density
-          npm run test:motion-material
-          node tests/e2e/refresh-motion-browser.ts
-          npm run test:browser
-          npm run test:selection-browser
+          status=0
+          npm run test:material-density || status=1
+          npm run test:motion-material || status=1
+          node tests/e2e/drawer-browser.ts || status=1
+          node tests/e2e/search-browser.ts || status=1
+          node tests/e2e/refresh-motion-browser.ts || status=1
+          npm run test:browser || status=1
+          npm run test:selection-browser || status=1
+          exit "$status"
       - name: Retain browser results and screenshots
         if: always()
         uses: actions/upload-artifact@v4
