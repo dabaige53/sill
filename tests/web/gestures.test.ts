@@ -288,3 +288,108 @@ test("a toast swipe completion cannot hide a newer result", async () => {
 		f.dom.window.close();
 	}
 });
+
+test("desk pull coalesces moves into one frame and measures only at gesture start", () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		let reads = 0;
+		const original = f.w.getComputedStyle;
+		f.w.getComputedStyle = (...args: any[]) => {
+			reads++;
+			return original(...args);
+		};
+		const target = f.document.querySelector("main p");
+		f.fire(target, "touchstart");
+		for (let i = 1; i <= 20; i++) f.fire(target, "touchmove", 120, 200 + i * 3);
+		assert.equal(reads, 1);
+		assert.equal(f.frames.size, 1);
+		assert.equal(f.document.querySelector("main").style.translate, "");
+		f.flush(f.frames);
+		assert.equal(f.document.querySelector("main").style.translate, "0 27px");
+		assert.equal(reads, 1, "paint must not read layout after writing translate");
+		f.fire(target, "touchcancel");
+		assert.equal(f.frames.size, 0);
+		assert.equal(f.document.querySelector("main").style.translate, "");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("wheel pull claims only a vertical top-edge gesture", () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		const wheel = (deltaY: number, deltaX = 0) => {
+			const event = new f.w.WheelEvent("wheel", { deltaY, deltaX, cancelable: true });
+			f.w.dispatchEvent(event);
+			return event.defaultPrevented;
+		};
+		assert.equal(wheel(30), false);
+		assert.equal(wheel(-30, 50), false);
+		assert.equal(wheel(-30), true);
+		f.dialog.open = true;
+		assert.equal(wheel(-30), false);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("a slow refresh keeps its request lock after the visual timeout and recovers on rejection", async () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		let reject: (reason?: any) => void;
+		f.app.refresh = () => {
+			f.app.refreshes++;
+			return new Promise((_resolve, no) => {
+				reject = no;
+			});
+		};
+		const target = f.document.querySelector("main p");
+		const pull = () => {
+			f.fire(target, "touchstart");
+			f.fire(target, "touchmove", 120, 360);
+			f.fire(target, "touchend", 120, 360);
+		};
+		const settle = async () => {
+			for (let i = 0; i < 8; i++) await Promise.resolve();
+		};
+		pull();
+		await settle();
+		f.flush();
+		await settle();
+		f.flush();
+		await settle();
+		assert.equal(f.document.querySelector(".is-spinning"), null);
+		pull();
+		await settle();
+		assert.equal(f.app.refreshes, 1);
+		reject!(new Error("synthetic refresh failure"));
+		await settle();
+		f.app.refresh = () => {
+			f.app.refreshes++;
+			return Promise.resolve();
+		};
+		pull();
+		await settle();
+		assert.equal(f.app.refreshes, 2);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("browser-owned noncancelable touch does not start a second refresh animation", () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		const target = f.document.querySelector("main p");
+		f.fire(target, "touchstart");
+		const event = new f.w.Event("touchmove", { bubbles: true, cancelable: false });
+		Object.assign(event, { touches: [{ clientX: 120, clientY: 360 }] });
+		target.dispatchEvent(event);
+		f.fire(target, "touchend", 120, 360);
+		f.flush(f.frames);
+		assert.equal(f.app.refreshes, 0);
+		assert.equal(f.document.querySelector("main").style.translate, "");
+		assert.equal(f.document.querySelector(".is-pulling"), null);
+	} finally {
+		f.dom.window.close();
+	}
+});

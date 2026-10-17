@@ -6,6 +6,8 @@ html {
 	background: var(--canvas);
 	scroll-behavior: smooth;
 	scrollbar-gutter: stable;
+	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
+	overscroll-behavior-y: none;
 }
 body {
 	margin: 0;
@@ -174,9 +176,6 @@ body.is-dropping:after {
 }
 .drop-hint[hidden] {
 	display: none;
-}
-html {
-	overscroll-behavior-y: contain;
 }
 /* The end of the desk is a short line, not a sentence. */
 .feed-end {
