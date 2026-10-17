@@ -328,6 +328,8 @@ main:has(.welcome, .empty-card) .feed-end {
 		opacity 180ms var(--ease),
 		visibility 0s var(--rail-tuck);
 }
+body:has(#modal[open].search) #dock,
+body:has(#modal[open].search) .scroll-edge,
 body:has(#modal[open]:not(.page)) #dock,
 body:has(#modal[open]:not(.page)) .scroll-edge {
 	opacity: 0;
@@ -2860,6 +2862,19 @@ kbd {
 	background: var(--frost);
 	-webkit-backdrop-filter: blur(28px) saturate(1.6);
 	backdrop-filter: blur(28px) saturate(1.6);
+}
+.search-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: none;
+}
+.search-header .search-pill {
+	flex: 1;
+	min-width: 0;
+}
+.search-header > .icon-button {
+	flex: none;
 }
 .search-pill {
 	display: flex;

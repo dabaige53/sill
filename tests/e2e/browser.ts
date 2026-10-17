@@ -409,6 +409,70 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal(await title.evaluate((n?: any) => document.activeElement === n), true);
 			},
 		);
+		for (const width of [390, 1440]) {
+			await scenario(
+				`Search starts at the top and restores navigation on exit (${width})`,
+				async (page?: any) => {
+					const trigger = page.locator('#nav [data-extra="search"]');
+					for (const exit of ["close", "Escape"]) {
+						await trigger.click();
+						await page.locator("#filter-search").waitFor();
+						await page.waitForFunction(
+							() => getComputedStyle(document.getElementById("dock")).visibility === "hidden",
+						);
+						assert.equal(
+							await page
+								.locator("#filter-search")
+								.evaluate((n?: any) => n === document.activeElement),
+							true,
+						);
+						const field = await page.locator(".search-header").boundingBox();
+						const chips = await page.locator(".search-chips").boundingBox();
+						assert.ok(
+							field.y < 100 && chips.y >= field.y + field.height,
+							"field precedes filters at the top",
+						);
+						await page.locator("#filter-search").fill("留白");
+						await page.locator('#search-results [data-action="card-open"]').first().waitFor();
+						if (width < 720) {
+							await page.evaluate(() => {
+								document.documentElement.style.setProperty("--kb", "300px");
+								document.body.classList.add("keyboard-open");
+							});
+							const keyboardField = await page.locator(".search-header").boundingBox();
+							const results = await page.locator(".search-results").boundingBox();
+							assert.ok(
+								Math.abs(keyboardField.y - field.y) < 1,
+								"keyboard does not lift the field",
+							);
+							assert.ok(results.y + results.height <= 800 - 300, "results stay above the keyboard");
+							await page.evaluate(() => {
+								document.documentElement.style.removeProperty("--kb");
+								document.body.classList.remove("keyboard-open");
+							});
+						}
+						assert.equal(
+							await page.locator("#dock").evaluate((n?: any) => getComputedStyle(n).visibility),
+							"hidden",
+							"capsule stays hidden without keyboard",
+						);
+						await page.screenshot({
+							animations: "disabled",
+							path: path.join(artifacts, `search-top-${width}.png`),
+						});
+						if (exit === "close")
+							await page.locator('.search-header [data-action="close"]').click();
+						else await page.keyboard.press("Escape");
+						await page.waitForFunction(
+							() =>
+								!document.querySelector("dialog").open &&
+								getComputedStyle(document.getElementById("dock")).visibility === "visible",
+						);
+					}
+				},
+				{ viewport: { width, height: 800 }, reducedMotion: "reduce" },
+			);
+		}
 		await scenario(
 			"Search filters the desk live, reaches archived cards and clears in one step",
 			async (page?: any) => {

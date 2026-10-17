@@ -117,6 +117,8 @@
 		opacity 180ms var(--ease),
 		visibility 0s var(--rail-tuck);
 }
+body:has(#modal[open].search) #dock,
+body:has(#modal[open].search) .scroll-edge,
 body:has(#modal[open]:not(.page)) #dock,
 body:has(#modal[open]:not(.page)) .scroll-edge {
 	opacity: 0;
