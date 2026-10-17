@@ -288,7 +288,7 @@ async function recordLayout(page?: any, width?: any) {
 				await action(page, "clear-filter");
 				await page.keyboard.press("Escape");
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
-				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
+				assert.equal(await page.locator('#feed-grid [data-card="reminder-01"]').count(), 1);
 			},
 		);
 		await scenario(
@@ -492,13 +492,14 @@ async function recordLayout(page?: any, width?: any) {
 		await scenario(
 			"Search keeps home unchanged and reaches archived cards with shared card components",
 			async (page?: any) => {
-				await page.evaluate(() => {
+				await page.addInitScript(() => {
 					const state = JSON.parse(localStorage.getItem("sill-v1"));
 					state.items["old-01"].archived = true;
 					localStorage.setItem("sill-v1", JSON.stringify(state));
 				});
 				await page.reload();
 				await page.waitForFunction(() => window.__app);
+				assert.equal((await state(page, "old-01")).archived, true);
 				const homeCount = await page.locator("#feed-grid .feed-card").count();
 				await page.keyboard.press("Control+k");
 				await page.waitForFunction(() => window.__app.modalKind === "search");
@@ -580,13 +581,14 @@ async function recordLayout(page?: any, width?: any) {
 						1,
 						id + " remains on the desk despite reading or age",
 					);
-				await page.evaluate(() => {
+				await page.addInitScript(() => {
 					const state = JSON.parse(localStorage.getItem("sill-v1"));
 					state.items["old-01"].archived = true;
 					localStorage.setItem("sill-v1", JSON.stringify(state));
 				});
 				await page.reload();
 				await page.waitForFunction(() => window.__app);
+				assert.equal((await state(page, "old-01")).archived, true);
 				await page.locator('[data-action="archive"][data-extra="read"]').click();
 				await page.locator("#modal .list-row", { hasText: "安静的界面" }).hover();
 				await page.locator('#modal [data-action="restore-card"][data-id="old-01"]').click();
