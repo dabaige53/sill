@@ -20,6 +20,6 @@
 
 - macOS 人机界面指南建议不把控件放在窗口底部。桌面 Web 为了与手机保持同一位置和同一套收起规则，仍放在右下角；原生 Mac 应用继续使用系统窗口工具栏，不受本决定影响，只统一用词。
 - 刷新没有可见按钮，只能下拉或按 `R`；云端同步仍会自动进行。
-- 设计画布中 16、19、20 号可交互原型仍演示入口球，尚未重画，以 34 号画板和手册为准。
+- 设计画布中 16、19、20 号可交互原型和 32 号设置画板已于 2026-10-17 按 ADR 0035 重画为导航胶囊。
 
 实现位置：`apps/web/views/app.ts`、`apps/web/interactions/chrome.ts`、`apps/web/interactions/panels.ts`、`apps/web/interactions/drag.ts`、`apps/web/styles/`。规则写在 [设计手册](../../design-system/README.md)「玻璃」「底部轨道与反馈」「搜索与键盘」「预览与叠放」各节，交互数值见 [交互规范](../product/interaction-spec.md)。

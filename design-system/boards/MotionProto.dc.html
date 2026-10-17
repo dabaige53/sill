@@ -9,6 +9,14 @@
 <x-dc>
 <helmet>
 <style>
+.nav{position:absolute;left:50%;bottom:24px;z-index:4;display:flex;padding:4px;height:60px;box-sizing:border-box;border-radius:30px;background:rgba(255,255,255,.38);backdrop-filter:blur(12px) saturate(1.9) brightness(1.06);-webkit-backdrop-filter:blur(12px) saturate(1.9) brightness(1.06);box-shadow:inset 0 1px .5px rgba(255,255,255,.9),0 0 0 .5px rgba(0,0,0,.07),0 2px 6px rgba(16,24,40,.05),0 12px 32px rgba(16,24,40,.09);transform:translateX(-50%);transition:opacity 220ms}
+.nav.away{opacity:0;pointer-events:none}
+.nav button{position:relative;z-index:1;width:76px;height:52px;border:0;padding:0;background:none;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:rgba(29,29,31,.62);font:600 10.5px/1 inherit;cursor:pointer}
+.nav button.on{color:#1d1d1f}
+.lens{position:absolute;top:4px;left:4px;width:76px;height:52px;border-radius:26px;background:rgba(0,0,0,.06);box-shadow:inset 0 1px .5px rgba(255,255,255,.9);transition:transform calc(520ms * var(--k, 1)) linear(0,.03 2%,.11 4.4%,.24 7%,.51 12%,.75 17%,.91 22%,1.01 27.4%,1.05 31%,1.065 35.5%,1.06 40%,1.03 49%,1.007 59%,.997 70%,1)}
+.lens.moving{animation:lensDrop calc(520ms * var(--k, 1)) cubic-bezier(.2,.75,.25,1)}
+@keyframes lensDrop{35%{scale:1.16 .9}}
+.face{width:26px;height:26px;border-radius:13px;background:#b4b4b9;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
 body{margin:0}
 @keyframes qgFade{from{opacity:0}to{opacity:1}}
 @keyframes qgFadeOut{from{opacity:1}to{opacity:0}}
@@ -40,16 +48,16 @@ body{margin:0}
 .frost{position:absolute;inset:0;border:0;padding:0;background:rgba(245,245,247,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:qgFade calc(220ms * var(--k)) linear both;cursor:default}
 .frost.out{animation:qgFadeOut calc(160ms * var(--k)) linear both}
 .fc{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:18px;background:#fff;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.fc.on{background:#0066cc;color:#fff}
+.fc.on{background:#1d1d1f;color:#fff}
 .catch{position:absolute;inset:0;border:0;padding:0;background:transparent;cursor:default}
 .fpill{position:absolute;left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 16px;border-radius:20px;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12);font-size:13px;white-space:nowrap;animation:qgCap calc(220ms * var(--k)) var(--ease) both}
 .menu{position:absolute;left:470px;top:72px;width:220px;border-radius:16px;padding:6px;display:flex;flex-direction:column;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 10px 30px rgba(0,0,0,.14);transform-origin:top right;animation:qgMenu calc(180ms * var(--k)) var(--ease) both}
 .menu.out{animation:qgMenuOut calc(120ms * var(--k)) linear both}
 .dk{animation:qgRise calc(220ms * var(--k)) var(--ease) both}
 .spin{animation:qgSpin calc(220ms * var(--k)) var(--ease) both}
-.toast{position:absolute;right:92px;bottom:28px;transition:bottom 220ms var(--ease);display:flex;align-items:center;gap:12px;min-height:48px;padding:0 8px 0 18px;border-radius:24px;font-size:14px;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 28px rgba(0,0,0,.14);animation:qgToast calc(220ms * var(--k)) var(--ease) both}
+.toast{position:absolute;right:24px;bottom:96px;transition:bottom 220ms var(--ease);display:flex;align-items:center;gap:12px;min-height:48px;padding:0 8px 0 18px;border-radius:24px;font-size:14px;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 28px rgba(0,0,0,.14);animation:qgToast calc(220ms * var(--k)) var(--ease) both}
 .toast.out{animation:qgToastOut calc(140ms * var(--k)) linear both}
-.toast.up{bottom:96px}
+.toast.up{bottom:164px}
 .rm .anim{animation:qgFade 70ms linear both !important}
 .rm .anim.out{animation:qgFadeOut 70ms linear both !important}
 .rm .toast.anim{transform:none}
@@ -119,18 +127,7 @@ body{margin:0}
       </div>
     </sc-if>
 
-    <div onMouseEnter="{{dockEnter}}" onMouseLeave="{{dockLeave}}" style="position: absolute; right: 24px; bottom: 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px">
-      <sc-if value="{{dock}}" hint-placeholder-val="{{ false }}">
-        <button type="button" class="ib gl dk anim" aria-label="筛选与搜索" onClick="{{openPanel}}" style="animation-delay: calc(120ms * var(--k))"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h11m4 0h1"></path><circle cx="13" cy="6" r="2"></circle><circle cx="8" cy="12" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg></button>
-        <button type="button" class="ib gl dk anim" aria-label="刷新" onClick="{{closeDock}}" style="animation-delay: calc(80ms * var(--k))"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5"></path></svg></button>
-        <button type="button" class="ib gl dk anim" aria-label="回到顶部" onClick="{{closeDock}}" style="animation-delay: calc(40ms * var(--k))"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4m-6 6 6-6 6 6"></path></svg></button>
-        <button type="button" class="ib gl dk anim" aria-label="设置" onClick="{{closeDock}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.19 5.24L10.50 2.52L13.50 2.52L13.81 5.24L15.50 5.94L17.64 4.23L19.77 6.36L18.06 8.50L18.76 10.19L21.48 10.50L21.48 13.50L18.76 13.81L18.06 15.50L19.77 17.64L17.64 19.77L15.50 18.06L13.81 18.76L13.50 21.48L10.50 21.48L10.19 18.76L8.50 18.06L6.36 19.77L4.23 17.64L5.94 15.50L5.24 13.81L2.52 13.50L2.52 10.50L5.24 10.19L5.94 8.50L4.23 6.36L6.36 4.23L8.50 5.94Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-      </sc-if>
-      <button type="button" class="gl" aria-label="全局工具" aria-expanded="{{dock}}" onClick="{{toggleDock}}" style="width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; color: #1d1d1f; padding: 0; cursor: pointer">
-        <sc-if value="{{dock}}" hint-placeholder-val="{{ false }}"><svg class="spin anim" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></sc-if>
-        <sc-if value="{{dockClosed}}" hint-placeholder-val="{{ true }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg></sc-if>
-      </button>
-    </div>
+    <nav class="nav {{navCls}}" aria-label="主导航"><span class="lens {{lensCls}}" style="transform: translateX({{lensX}}px)"></span><button type="button" class="{{homeOn}}" onClick="{{goHome}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.5h-6v5.5H5.5A1.5 1.5 0 0 1 4 19Z"></path></svg><span>主页</span></button><button type="button" class="{{searchOn}}" onClick="{{goSearch}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13ZM20 20l-4.6-4.6"></path></svg><span>搜索</span></button><button type="button" class="{{aiOn}}" aria-label="AI，即将推出" onClick="{{goAi}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12Z"></path></svg><span>AI</span></button><button type="button" class="{{setOn}}" onClick="{{goSettings}}"><span class="face"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><circle cx="12" cy="9" r="4.2"></circle><path d="M3.5 24a8.5 8.5 0 0 1 17 0Z"></path></svg></span><span>设置</span></button></nav>
 
     <sc-if value="{{previewShown}}" hint-placeholder-val="{{ false }}">
       <button type="button" class="backdrop anim {{previewCls}}" aria-label="关闭预览" onClick="{{closePreview}}"></button>
@@ -175,18 +172,18 @@ body{margin:0}
     <div style="display: flex; flex-direction: column; gap: 6px">
       <span style="font-size: 12px; color: #6e6e73">16 · 弹出动效</span>
       <h1 style="margin: 0; font-size: 20px; line-height: 1.35; font-weight: 600; letter-spacing: -0.02em">点左边试一试</h1>
-      <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">点资讯卡 → 预览；点消息卡「更多」→ 菜单；点右下入口 → 工具栏，再点筛选 → 搜索；消息卡「更多」→「不再提示」→ 卡片收起，入口球左边出现可撤销的 Toast；预览打开时 Toast 升高一行。单张卡收藏只改按钮和卡片状态，不弹 Toast。任何弹层都可以点外面或按 Esc 关闭；工具栏鼠标移开会自动收起；筛选按回车关闭并留下顶部标记。Tweaks 里可放慢 3 倍或模拟「减少动态效果」。</p>
+      <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">点资讯卡 → 预览；点消息卡「更多」→ 菜单；点底部导航胶囊的「搜索」→ 镜片滑过去，160ms 后搜索落下；点其他格看镜片的弹性滑动；消息卡「更多」→「不再提示」→ 卡片收起，胶囊上方出现可撤销的 Toast；预览打开时 Toast 升高一行。单张卡收藏只改按钮和卡片状态，不弹 Toast。任何弹层都可以点外面或按 Esc 关闭；筛选按回车关闭并留下顶部标记。Tweaks 里可放慢 3 倍或模拟「减少动态效果」。</p>
     </div>
     <div>
       <div class="sr"><b>预览打开</b><code>320ms</code><span>从卡片原位展开到居中，圆角 22→24</span></div>
       <div class="sr"><b>预览关闭</b><code>230ms</code><span>缩回原卡片位置，焦点回到卡片</span></div>
       <div class="sr"><b>遮罩</b><code>220 / 180</code><span>0→20% 黑 + 4px 模糊，线性</span></div>
       <div class="sr"><b>更多菜单</b><code>180 / 120</code><span>锚点右上，缩放 .92→1，下移 4px；白色实底，不用玻璃</span></div>
-      <div class="sr"><b>全局工具</b><code>220ms</code><span>自下而上依次浮出，间隔 40ms；入口转成关闭</span></div>
+      <div class="sr"><b>导航镜片</b><code>520ms</code><span>弹簧曲线滑到新的一格，途中拉长 16%、压扁 10%；面板晚 160ms 打开</span></div>
       <div class="sr"><b>操作胶囊</b><code>260ms</code><span>晚 120ms 从下方浮起，跟在预览之后</span></div>
       <div class="sr"><b>筛选</b><code>260 / 160</code><span>搜索框自上落下，背景磨砂而非压暗</span></div>
       <div class="sr"><b>手机抽屉</b><code>360ms</code><span>自底部滑入，曲线 (.32,.72,0,1)；下拉关闭</span></div>
-      <div class="sr"><b>Toast</b><code>220 / 140</code><span>入口球左边上浮 12px；可撤销 5.5 秒、普通 3.2 秒后淡出，失败一直留着</span></div>
+      <div class="sr"><b>Toast</b><code>220 / 140</code><span>胶囊上方一行上浮 12px；可撤销 5.5 秒、普通 3.2 秒后淡出，失败一直留着</span></div>
       <div class="sr"><b>减少动效</b><code>70ms</code><span>全部改为淡入淡出，不位移不缩放</span></div>
     </div>
     <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">曲线统一 <code style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px">cubic-bezier(.2,.75,.25,1)</code>；出场比进场快约 30%，让关闭显得干脆。</p>
@@ -197,7 +194,7 @@ body{margin:0}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { preview: 'closed', menu: 'closed', panel: 'closed', dock: false, toast: 'off', fav: false, mailHidden: false, filterApplied: false };
+    this.state = { preview: 'closed', menu: 'closed', panel: 'closed', dock: false, tab: 'home', lensMoving: false, toast: 'off', fav: false, mailHidden: false, filterApplied: false };
     this.timers = {};
   }
   componentWillUnmount() { Object.values(this.timers).forEach(clearTimeout); }
@@ -209,7 +206,12 @@ class Component extends DCLogic {
     this.later('toastOff', 5640, () => this.setState({ toast: 'off' }));
   }
   closePreview() { this.setState({ preview: 'closing' }); this.later('preview', 230, () => this.setState({ preview: 'closed' })); }
-  closePanel() { this.setState({ panel: 'closing' }); this.later('panel', 160, () => this.setState({ panel: 'closed' })); }
+  closePanel() { this.setState({ panel: 'closing' }); this.later('panel', 160, () => { this.setState({ panel: 'closed' }); this.goTab('home'); }); }
+  goTab(tab) {
+    if (tab === this.state.tab) return;
+    this.setState({ tab, lensMoving: true, menu: 'closed' });
+    this.later('lens', 520, () => this.setState({ lensMoving: false }));
+  }
   closeFloating() {
     if (this.state.menu === 'open') { this.setState({ menu: 'closing' }); this.later('menu', 120, () => this.setState({ menu: 'closed' })); }
     if (this.state.dock) this.setState({ dock: false });
@@ -227,6 +229,10 @@ class Component extends DCLogic {
       panelShown: s.panel !== 'closed',
       panelCls: s.panel === 'closing' ? 'out' : '',
       dock: s.dock,
+      navCls: s.preview !== 'closed' || s.panel !== 'closed' ? 'away' : '',
+      lensX: ['home', 'search', 'ai', 'settings'].indexOf(s.tab) * 76, lensCls: s.lensMoving ? 'moving' : '',
+      homeOn: s.tab === 'home' ? 'on' : '', searchOn: s.tab === 'search' ? 'on' : '', aiOn: s.tab === 'ai' ? 'on' : '', setOn: s.tab === 'settings' ? 'on' : '',
+      goHome: () => this.goTab('home'), goSearch: () => { this.goTab('search'); this.later('openSearch', 160, () => this.setState({ panel: 'open' })); }, goAi: () => this.goTab('ai'), goSettings: () => this.goTab('settings'),
       dockClosed: !s.dock,
       catchShown: s.menu === 'open' || s.dock,
       filterApplied: s.filterApplied,
