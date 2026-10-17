@@ -689,7 +689,20 @@ async function recordLayout(page?: any, width?: any) {
 					() => (document.querySelector(".type-suggestion") as HTMLElement)?.dataset.card,
 				);
 				assert.doesNotMatch(await card(page, relation).locator(".card-head").innerText(), /张卡/);
+				await page.waitForFunction(
+					() =>
+						Date.now() >= window.__app.drag.suppressUntil &&
+						window.__app.selected.size === 0 &&
+						!window.__app.drag.active,
+				);
 				await openCard(page, relation);
+				await page.waitForFunction(
+					(id: string) =>
+						window.__app.modalKind === "preview" &&
+						window.__app.currentId === id &&
+						document.querySelector("dialog").open,
+					relation,
+				);
 				await page.locator('#modal .refs [data-action="card-open"]').first().click();
 				await page.waitForFunction((id?: any) => window.__app.currentId !== id, relation);
 				assert.equal(await page.locator("#modal .sheet-peek").count(), 1);
