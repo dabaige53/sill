@@ -521,9 +521,26 @@ async function recordLayout(page?: any, width?: any) {
 			"Refresh keeps the reading position, new content waits off the top and state survives reload",
 			async (page?: any) => {
 				await action(page, "bookmark", "note-01");
-				await page.evaluate(() => window.scrollTo(0, 600));
-				await page.waitForTimeout(50);
+				// Start reading after the first-screen entrance, not while card transforms are moving.
+				await page.locator("#feed-grid").evaluate(async (node: HTMLElement) => {
+					await Promise.all(
+						node
+							.getAnimations({ subtree: true })
+							.map((animation) => animation.finished.catch(() => {})),
+					);
+				});
+				await page.waitForFunction(() => window.__app.layout.frame === 0);
+				const target = await page.evaluate(() => {
+					const top = Math.min(
+						600,
+						Math.floor((document.documentElement.scrollHeight - innerHeight) / 2),
+					);
+					window.scrollTo({ top, behavior: "instant" });
+					return top;
+				});
+				await page.waitForFunction((top) => scrollY === top, target);
 				const before = await page.evaluate(() => scrollY);
+				assert.ok(before > 40, "refresh starts below the immediate-insertion threshold");
 				await action(page, "refresh");
 				await page.locator("#new-count").waitFor();
 				assert.ok(

@@ -1,0 +1,76 @@
+C1 浏览器检查输出（合成数据）
+
+基础提交 8b875a7ffd6abfb4454b880ff80dc9ba9fdd638b / Playwright Chromium
+FAIL Real Tab reaches a completely hidden rail from the feed page.waitForFunction: Timeout 30000ms exceeded.
+PASS App transparency preference covers menu and search backdrops
+PASS System transparency and increased contrast keep dark menus solid and outlined
+PASS Forced no-blur fallback uses solid surfaces and a one-pixel outline
+PASS Reduced motion includes head tools and preserves immediate keyboard visibility
+PASS Reduced phone navigation keeps its lens and does not become a draggable sheet
+PASS A toolbar-free preview fixture keeps its final action visible
+PASS Standalone previews, readers and photo pages have no copy-to-assistant action
+PASS Real touchCancel restores the phone sheet without closing or writing
+PASS Closing during phone entry does not revive the sheet
+PASS A delayed gesture dismissal leaves a newly opened search usable
+
+基础提交 / workspace-polish
+TypeError: Cannot read properties of undefined (reading 'status')
+
+改后 / drawer
+PASS rail notices fade and survive interrupted dismissal
+PASS capsule fades during scrolling, pause and interruption
+PASS Sill settings icon: light
+PASS Sill settings icon: dark
+PASS Layout stays inside 320px with long titles, tags and dates
+PASS Layout stays inside 390px with long titles, tags and dates
+PASS Layout stays inside 1280px with long titles, tags and dates
+PASS Phone short drawers fit content; long articles cap and expand while reading
+PASS Preview edge resistance stays bounded and restores the locked background
+PASS Handle drags up to expand, down to collapse, and cancels without changing state
+PASS PWA has no maximize button; reduced motion opens and closes without travel
+
+改后 / browser
+PASS Preview, reader, bookmark undo, tags and task controls remain independent
+PASS Snooze stays on home, survives reload and queues one notification
+PASS Dismiss, completion, status recovery and undo use accessible actions
+PASS Inline reminder actions work by keyboard without opening or reading the card
+PASS Card menus close on Escape and outside click, and keep actions separate from preview
+PASS Expanded cards return to the same scroll position and focus, including rapid dismissal
+PASS Search starts at the top and restores navigation on exit (390)
+PASS Search starts at the top and restores navigation on exit (1440)
+PASS Search keeps home unchanged and reaches archived cards with shared card components
+PASS Refresh keeps the reading position, new content waits off the top and state survives reload
+PASS Read state is color only, stacks open in place and only explicit archive moves cards
+PASS Bottom rail, selection menu, refresh and stacked previews share one rule
+PASS Phone selection takes the whole rail and the toast rises above it
+PASS Capture and dropped text add cards; files are ignored
+PASS Settings and first run expose capture without source connections
+PASS 680px desktop uses compact cards across the available screen
+PASS 700px desktop uses compact cards across the available screen
+PASS 810px desktop uses compact cards across the available screen
+PASS 1440px desktop uses compact cards across the available screen
+PASS 2048px desktop uses compact cards across the available screen
+PASS 390px touch layout, reminder controls and reduced motion
+PASS 320px touch layout, reminder controls and reduced motion
+PASS Desktop drag cancellation preserves cards and read state
+
+改后 / motion
+PASS Real Tab reaches a completely hidden rail from the feed
+PASS App transparency preference covers menu and search backdrops
+PASS System transparency and increased contrast keep dark menus solid and outlined
+PASS Forced no-blur fallback uses solid surfaces and a one-pixel outline
+PASS Reduced motion includes head tools and preserves immediate keyboard visibility
+PASS Reduced phone navigation keeps its lens and does not become a draggable sheet
+PASS A toolbar-free preview fixture keeps its final action visible
+PASS Standalone previews, readers and photo pages have no copy-to-assistant action
+PASS Real touchCancel restores the phone sheet without closing or writing
+PASS Closing during phone entry does not revive the sheet
+PASS A delayed gesture dismissal leaves a newly opened search usable
+
+改后 / workspace
+PASS workspace polish: embedded resize, system theme, IME, live conflict, durable draft, no source connections or writes, reduced motion
+
+改后 / cloud welcome
+PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry desktop 1440x1000
+PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry iPhone12 390x844
+

@@ -91,7 +91,11 @@ try {
 	browser = await chromium.launch({
 		headless: true,
 		...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
-		args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+		// Linux CI needs software rendering; forcing SwiftShader on macOS can stall animations.
+		args:
+			process.platform === "linux"
+				? ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
+				: [],
 	});
 	async function scenario(
 		name: string,
@@ -148,14 +152,22 @@ try {
 	}
 
 	await scenario("Real Tab reaches a completely hidden rail from the feed", async (page) => {
-		await page.evaluate(() => {
+		const middle = await page.evaluate(() => {
 			const buttons = document
 				.querySelector(".feed-grid > .feed-item:last-child")
 				.querySelectorAll("button");
 			(buttons[buttons.length - 1] as HTMLElement).focus({ preventScroll: true });
-			window.scrollTo({ top: 600, behavior: "instant" });
+			const top = Math.floor((document.documentElement.scrollHeight - innerHeight) / 2);
+			window.scrollTo({ top, behavior: "instant" });
+			return top;
 		});
-		await page.waitForFunction(() => scrollY === 600);
+		await page.waitForFunction((top) => scrollY === top, middle);
+		assert.ok(
+			await page.evaluate(
+				() => scrollY > 24 && scrollY < document.documentElement.scrollHeight - innerHeight - 24,
+			),
+			"the keyboard scenario starts away from both edges",
+		);
 		await page.evaluate(() => window.__app.railHide.hide());
 		await page.waitForFunction(
 			() => getComputedStyle(document.getElementById("dock")).visibility === "hidden",

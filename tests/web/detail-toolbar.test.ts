@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
-import { CardActions } from "../../contracts/card-actions.ts";
-import { Preferences } from "../../contracts/local.ts";
 import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
+import { CardActions } from "../../contracts/card-actions.ts";
+import { Preferences } from "../../contracts/local.ts";
 
 const toolbar = (card: any) => {
 	const dom = new JSDOM(Panels.preview({}, card));

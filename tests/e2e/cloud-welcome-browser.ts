@@ -239,9 +239,14 @@ try {
 			path: `tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-cards.png`,
 		});
 		assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-		await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+		await page.waitForFunction(
+			() => window.__app.layout.frame === 0 && document.documentElement.scrollHeight > innerHeight,
+		);
+		await page.evaluate(() =>
+			window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
+		);
 		assert.ok(await page.evaluate(() => scrollY > 0));
-		await page.evaluate(() => window.scrollTo(0, 0));
+		await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 		await page.locator(".card-title-button").first().click();
 		await page.waitForFunction(() => (document.querySelector("#modal") as HTMLDialogElement).open);
 		await page.keyboard.press("Escape");
