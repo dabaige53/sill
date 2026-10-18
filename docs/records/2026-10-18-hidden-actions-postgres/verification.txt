@@ -19,4 +19,10 @@ npm run files:check
 PASS
 
 本机 Postgres：未执行；command -v docker 返回 1。
-CI Postgres：待运行。
+CI Postgres：通过。
+Run: https://github.com/dabaige53/sill/actions/runs/39117720532/job/117646795896
+Source commit: 609744f
+ENGINE PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2), x86_64-pc-linux-gnu
+PASS hiddenActions migration preserves preferences and rejects invalid batches through public RPC
+pass 11 / fail 0 / skipped 0（含主测试及 10 个子用例）
+完整 CI：源码提交的 7 项检查通过；追加证据文档后的结果以 PR 为准。

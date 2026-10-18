@@ -2,7 +2,7 @@
 
 日期：2026-10-18。
 
-现有 Postgres 测试只加载基础数据、授权和会话 SQL，没有加载卡片操作隐藏偏好的迁移。本次补齐实际迁移顺序，并通过公开 RPC 验证偏好保存。迁移 SQL、产品代码和界面均未修改，Mac 未改。
+现有 Postgres 测试只加载基础数据、授权和会话 SQL，没有加载卡片操作隐藏偏好的迁移。本次补齐实际迁移顺序，并通过公开 RPC 验证偏好保存。已提交 [PR #50](https://github.com/dabaige53/sill/pull/50) 审阅。迁移 SQL、产品代码和界面均未修改，Mac 未改。
 
 ## 覆盖范围
 
@@ -25,8 +25,10 @@
 | `npm run test:cloud-operations` | 1/1 通过 | 预装 Chromium；桌面及手机模拟 |
 | `npm run files:check` | 通过 | 文件归属与引用检查 |
 | 本机 `npm run test:supabase:postgres` | 未执行 | 本机没有 Docker |
-| CI `npm run test:supabase:postgres` | 待 CI | 固定 Postgres 17.11 镜像 |
+| CI `npm run test:supabase:postgres` | 11/11 通过（含主测试及 10 个子用例）；失败与跳过均为 0 | 固定 Postgres 17.11 镜像 |
 | 真机、生产数据库与迁移部署 | 未执行 | 本次仅验证隔离数据库 |
+
+实际 Postgres 证据：[CI run 39117720532](https://github.com/dabaige53/sill/actions/runs/39117720532/job/117646795896)，源码提交 `609744f`；`hiddenActions` 子用例通过，日志记录引擎为 PostgreSQL 17.11。此提交的 7 个 CI 检查全绿；追加证据文档后的最新 CI 以 PR 为准。
 
 审阅后的命令摘要见 [verification.txt](verification.txt)。界面没有改动，因此没有新增前后截图。Web lint、文案键和图标沿用 U1：0 错误、902 警告；826 个文案键（601 个哈希键，其中 panels 110 个），69 个图标。
 
