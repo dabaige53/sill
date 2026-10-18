@@ -61,8 +61,11 @@ interface CardStore {
 	item(id?: string): CardItem;
 	card(id?: string): Card;
 	patch(id?: string, values?: CardState): void;
-	pref<K extends keyof Preferences>(key?: K): Preferences[K];
-	setPref<K extends keyof Preferences>(key?: K, value?: Preferences[K]): void;
+	pref<K extends string>(key?: K): State["preferences"][K];
+	setPref<K extends keyof Preferences, V extends Preferences[K] | string>(
+		key?: K,
+		value?: V & (V extends Preferences[K] ? unknown : string extends V ? unknown : never),
+	): void;
 	tags(card?: Card): string[];
 	tasks(card?: Card): NonNullable<Card["tasks"]>;
 	insert(cards?: unknown[]): number;
@@ -255,11 +258,18 @@ const Store: CardStore = {
 		Object.assign(item, values);
 		this.save();
 	},
-	pref<K extends keyof Preferences>(this: CardStore, key?: K): Preferences[K] {
-		return this.state.preferences?.[key] ?? DefaultPreferences[key];
+	pref<K extends string>(this: CardStore, key?: K): State["preferences"][K] {
+		return (
+			(this.state.preferences as State["preferences"])?.[key] ??
+			(DefaultPreferences as State["preferences"])[key]
+		);
 	},
-	setPref<K extends keyof Preferences>(this: CardStore, key?: K, value?: Preferences[K]) {
-		this.state.preferences[key] = value;
+	setPref<K extends keyof Preferences, V extends Preferences[K] | string>(
+		this: CardStore,
+		key?: K,
+		value?: V & (V extends Preferences[K] ? unknown : string extends V ? unknown : never),
+	) {
+		this.state.preferences[key] = value as Preferences[K];
 		this.save();
 	},
 	tags(this: CardStore, c?: Card): string[] {
