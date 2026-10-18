@@ -264,8 +264,9 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		assert.equal(app.isPage("ai"), true);
 		assert.equal(app.isPage("capture"), false, "capture stays a sheet");
 		w.matchMedia = () => ({ matches: false, addEventListener() {} });
-		assert.equal(app.isPage("search"), true, "search owns its page on desktop too");
-		assert.equal(app.isPage("ai"), true, "AI owns its page on desktop too");
+		assert.equal(app.isPage("search"), false, "desktop search is a floating panel");
+		assert.equal(app.isPage("ai"), false, "desktop AI is a floating panel");
+		assert.equal(app.isPage("settings"), false, "desktop settings is a floating panel");
 	} finally {
 		dom.window.close();
 	}

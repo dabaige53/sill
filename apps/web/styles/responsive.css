@@ -134,12 +134,6 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.feed-card .card-body > :last-child {
 		padding-right: 32px;
 	}
-	.card-more-menu,
-	.card-more-leaving {
-		top: auto;
-		bottom: 48px;
-		transform-origin: bottom right;
-	}
 	.card-head,
 	.sender,
 	.card-head:has(.card-head-right),
@@ -172,9 +166,10 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		height: 24px;
 	}
 	#dock:has(#selection-bar:not([hidden])) #selection-bar {
-		flex: 1;
+		flex: 0 0 auto;
+		width: max-content;
 	}
-	/* Too narrow for both: while selecting, the bar takes the whole row. */
+	/* Keep a compact selection capsule centered in place of navigation. */
 	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
 		display: none;
 	}
@@ -251,9 +246,9 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		padding-top: calc(18px + env(safe-area-inset-top));
 	}
 	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
-		top: env(safe-area-inset-top);
+		top: max(12px, env(safe-area-inset-top));
 	}
-	#modal.preview #modal-title {
+	#modal.preview .preview-sheet:not(:has(.preview-cover)) .preview-body > :first-child {
 		padding-right: 52px;
 	}
 	#modal.preview .sheet-head [data-action="reader"] {
@@ -380,6 +375,9 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 
 	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
 	:is(#modal, #search-background).search {
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
 		position: fixed;
 		inset: 0;
 		width: 100%;

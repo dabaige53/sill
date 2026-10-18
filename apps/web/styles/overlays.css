@@ -149,19 +149,19 @@ dialog::backdrop {
 .preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
 	opacity: 1;
 }
-/* The close disc aligns with the title rather than reserving a blank header row. */
+/* Close stays anchored to the sheet corner, independent of title position. */
 .preview-sheet .sheet-head {
-	top: var(--preview-title-top, 32px);
+	top: 12px;
 	height: 44px;
 }
-.preview-sheet #modal-title {
+.preview-sheet:not(:has(.preview-cover)) .preview-body > :first-child {
 	padding-right: 48px;
 }
-.preview-sheet:has(.sheet-head [data-action="reader"]) #modal-title {
+.preview-sheet:not(:has(.preview-cover)):has(.sheet-head [data-action="reader"]) .preview-body > :first-child {
 	padding-right: 92px;
 }
 .preview-sheet.is-scrolled .sheet-head {
-	top: 0;
+	top: 12px;
 }
 .sheet-handle {
 	display: none;
@@ -257,6 +257,15 @@ dialog::backdrop {
 #modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
 	padding-bottom: calc(var(--rail-row) + 40px);
 	scroll-padding-bottom: calc(var(--rail-row) + 40px);
+}
+/* Media controls need their own unobscured viewport above the card toolbar. */
+#modal.preview:has(> .float-bar) .preview-sheet:has(.media-controls, .player-controls) .sheet-scroll {
+ margin-bottom: calc(var(--rail-row) + max(18px, var(--rail-bottom)) + 12px);
+ padding-bottom: 0;
+ scroll-padding-bottom: 16px;
+}
+#modal.preview:has(> .float-bar) > .preview-sheet:has(.media-controls, .player-controls):after {
+ content: none;
 }
 .preview-cover {
 	margin: 8px 8px 0;
@@ -1097,17 +1106,19 @@ kbd {
 	color: var(--ink);
 }
 
-/* Search owns its page; the home feed keeps its own state underneath. */
+/* Desktop search is a floating panel; phone overrides make it a page. */
 :is(#modal, #search-background).search {
 	position: fixed;
-	inset: 0 0 var(--kb, 0px);
-	width: 100%;
-	max-width: none;
-	height: auto;
-	max-height: none;
-	margin: 0;
-	padding: calc(16px + env(safe-area-inset-top)) var(--margin-lg) var(--rail-bottom);
-	background: var(--canvas);
+	inset: 0;
+	width: min(960px, calc(100vw - 64px));
+	max-width: calc(100vw - 64px);
+	height: fit-content;
+	max-height: min(84dvh, 900px);
+	margin: auto;
+	padding: 24px;
+	border-radius: var(--sheet-radius);
+	box-shadow: var(--shadow-sheet);
+	background: var(--card);
 	z-index: 40;
 	display: none;
 }
@@ -1254,6 +1265,8 @@ kbd {
 	font-size: var(--text-control);
 	color: var(--ink);
 }
+.card-menu-item > span { flex: 1; }
+.card-menu-item > .icon { flex: none; color: var(--muted); }
 .card-menu-item:hover,
 .card-menu-item:focus-visible {
 	background: rgba(0, 0, 0, 0.05);
@@ -1995,3 +2008,11 @@ body.is-pulling .pull-ring {
 	font-size: var(--text-body);
 	color: var(--muted);
 }
+
+.search-chips[hidden] { display: none; }
+.search-pill:has(.search-query) { height: auto; min-height: 52px; padding-block: 4px; }
+.search-query { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.search-query input { flex: 1 1 100px; width: 100px; height: 36px; }
+.search-condition { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; max-width: 100%; padding: 4px 10px; border-radius: var(--pill-radius); background: var(--surface); color: var(--ink); font-size: var(--text-meta); }
+.search-condition span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-condition > .icon { flex: none; }

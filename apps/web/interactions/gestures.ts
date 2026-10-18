@@ -389,13 +389,6 @@ class Gestures {
 			sheet.classList.remove("is-drag");
 			dialog.classList.remove("is-drag");
 			if (bar) bar.style.opacity = "";
-			if (MotionEngine.phoneSheet(dialog) && sheet.classList.contains("is-full") && dy > 60) {
-				sheet.classList.remove("is-full");
-				sheet.querySelector(".sheet-handle")?.setAttribute("aria-expanded", "false");
-				sheet.style.translate = "";
-				this.dim(null);
-				return;
-			}
 			if (dy > 190 || (v > 0.5 && dy > 40)) {
 				if (MotionEngine.phoneSheet(dialog)) this.app.closeModal();
 				else {
@@ -403,6 +396,13 @@ class Gestures {
 					bar?.classList.add("is-hidden");
 					this.dismiss(() => this.app.closeModal());
 				}
+				return;
+			}
+			if (MotionEngine.phoneSheet(dialog) && sheet.classList.contains("is-full") && dy > 60) {
+				sheet.classList.remove("is-full");
+				sheet.querySelector(".sheet-handle")?.setAttribute("aria-expanded", "false");
+				sheet.style.translate = "";
+				this.dim(null);
 				return;
 			}
 			sheet.style.translate = "";
@@ -660,13 +660,14 @@ class Gestures {
 			timer = window.setTimeout(
 				() => {
 					if (app.modalToken !== token) return;
+					if (pull >= need()) {
+						close();
+						return;
+					}
 					if (phone && surface.classList.contains("is-full") && pull > 60) {
 						surface.classList.remove("is-full");
 						surface.querySelector(".sheet-handle")?.setAttribute("aria-expanded", "false");
 						hold = 1;
-					} else if (pull >= need()) {
-						close();
-						return;
 					}
 					pull = 0;
 					paint();
@@ -843,7 +844,7 @@ class Gestures {
 			window.setTimeout(() => {
 				delete handle.dataset.dragged;
 			}, 0);
-			if (!previous.full && dy > 160) {
+			if (dy > 160) {
 				surface.classList.remove("is-drag");
 				this.app.closeModal();
 				return;

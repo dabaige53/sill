@@ -10,7 +10,7 @@ import {
 	eventTimely,
 	minutes,
 } from "../atoms/primitives.ts";
-import { cardHTML, shelfHTML, stackHTML, stackOpenHTML } from "../cards/templates.ts";
+import { CardPresentation, cardHTML, shelfHTML, stackHTML, stackOpenHTML } from "../cards/templates.ts";
 import { copy } from "../copy.ts";
 import { cardSource, cardSourceKind } from "../data/card-source.ts";
 import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
@@ -46,6 +46,7 @@ class AppController {
 	declare baseMode: any;
 	declare filter: any;
 	searchActivated = false;
+	searchFiltersExpanded = true;
 	searchFilter = { type: "all", status: "all", tag: "", query: "" };
 	searchScroll = 0;
 	searchLimit = 40;
@@ -112,6 +113,8 @@ class AppController {
 	declare toastSeq: any;
 	declare selectAnchor: any;
 	declare previewTrail: any;
+	closingCardRoute = "";
+	previewPositions = new Map<string, {height: number; scroll: number}>();
 	declare closingAll: any;
 	declare undoAction: any;
 	declare bulkEditIds: any;
@@ -193,7 +196,7 @@ class AppController {
 			const card = (e.target as Element).closest<HTMLElement>("[data-card]");
 			if (!card || this.drag.active || this.drag.pending) return;
 			e.preventDefault();
-			this.more(card.dataset.card);
+			this.more(card.dataset.card, { x: e.clientX, y: e.clientY });
 		});
 		document.getElementById("selection-bar").addEventListener("contextmenu", (e: MouseEvent) => {
 			if (!this.selected.size || this.drag.active || this.drag.pending) return;
@@ -233,7 +236,7 @@ class AppController {
 					e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
 				);
 			});
-			if (!inside) this.previewTrail?.length ? this.closeAll() : this.closeModal();
+			if (!inside) this.closeModal();
 		});
 		const dock = document.getElementById("dock");
 		// The rail tucks away while reading on and returns on a pause or a turn back.
@@ -339,10 +342,7 @@ class AppController {
 		this.navTimer = window.setTimeout(() => nav.classList.remove("is-moving"), 420);
 	}
 	isPage(kind: string) {
-		return (
-			["search", "ai"].includes(kind) ||
-			(PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches)
-		);
+		return PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches;
 	}
 	/**
 	 * A tab opens its place. On a phone the place is a page and the capsule stays, so the lens
@@ -1080,7 +1080,13 @@ class AppController {
 	}
 	closeModal() {
 		if (["preview", "reader", "lightbox"].includes(this.modalKind)) {
-			if (history.state?.prev !== undefined && /^#(card|read)\//.test(location.hash))
+			if (this.closingCardRoute === location.hash || this.sheetLeaving) return;
+			this.closingCardRoute = location.hash;
+			const below = this.previewTrail?.at(-1);
+			if (below && history.state?.prev !== `#card/${below}`) {
+				history.replaceState({ glass: true, prev: null }, "", `#card/${below}`);
+				this.route(true);
+			} else if (history.state?.prev !== undefined && /^#(card|read)\//.test(location.hash))
 				history.back();
 			else {
 				history.replaceState({ glass: true, prev: null }, "", "#" + this.baseMode);
@@ -1236,6 +1242,11 @@ class AppController {
 	openCard(id?: any, reading: any = false) {
 		const c = Store.card(id);
 		if (!c) return;
+		this.closingCardRoute = "";
+		const previousSheet = this.dialog.querySelector(".preview-sheet");
+		if (this.modalKind === "preview" && this.currentId && previousSheet) {
+			this.previewPositions.set(this.currentId, {height: previousSheet.offsetHeight, scroll: previousSheet.querySelector(".sheet-scroll")?.scrollTop || 0});
+		}
 		const source = (
 			this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
 		).querySelector(`[data-card="${CSS.escape(id)}"]`);
@@ -1262,7 +1273,10 @@ class AppController {
 				? MotionEngine.surface(this.dialog)
 				: source,
 		);
-		if (!this.dialog.open || this.modalKind !== "preview") this.previewTrail = [];
+		if (!this.dialog.open || this.modalKind !== "preview") {
+			this.previewTrail = [];
+			this.previewPositions.clear();
+		}
 		else if (!reading && this.currentId && this.currentId !== id) {
 			const back = this.previewTrail.lastIndexOf(id);
 			if (back >= 0) this.previewTrail = this.previewTrail.slice(0, back);
@@ -1288,6 +1302,12 @@ class AppController {
 			return;
 		}
 		this.openModal(Panels.preview(this, c), "preview", origin);
+		const savedPosition = this.previewPositions.get(id);
+		const parentPosition = this.previewPositions.get(this.previewTrail.at(-1));
+		const sheet = this.dialog.querySelector(".preview-sheet");
+		const height = savedPosition?.height || (parentPosition ? Math.max(180, parentPosition.height - 16) : 0);
+		if (height) sheet.style.height = `${height}px`;
+		if (savedPosition) sheet.querySelector(".sheet-scroll").scrollTop = savedPosition.scroll;
 		// The card below shows as an edge behind this one; tapping it goes back one card.
 		const below = Store.card(this.previewTrail.at(-1));
 		if (below)
@@ -1356,16 +1376,6 @@ class AppController {
 		if (sheet) {
 			const placeHead = () => {
 				this.dialog.style.setProperty("--preview-height", `${sheet.offsetHeight}px`);
-				const title = sheet.querySelector("#modal-title");
-				if (title) {
-					const top =
-						title.getBoundingClientRect().top -
-						sheet.getBoundingClientRect().top +
-						scroll.scrollTop;
-					// Align the disc's centre with the first title line.
-					const line = parseFloat(getComputedStyle(title).lineHeight) || 28;
-					sheet.style.setProperty("--preview-title-top", `${Math.max(12, top + line / 2 - 22)}px`);
-				}
 			};
 			this.previewSizeObserver = new ResizeObserver(placeHead);
 			this.previewSizeObserver.observe(sheet);
@@ -1617,7 +1627,7 @@ class AppController {
 			menu,
 			[
 				{ opacity: 1, transform: "none" },
-				{ opacity: 0, transform: "translateY(-4px)" },
+				{ opacity: 0, transform: "none" },
 			],
 			{ duration: 120, easing: "ease-in" },
 		);
@@ -1631,13 +1641,13 @@ class AppController {
 		trigger?.setAttribute("aria-expanded", "false");
 		trigger?.removeAttribute("aria-controls");
 	}
-	more(id?: any) {
+	more(id?: any, point?: { x: number; y: number }) {
 		const c = (this.modalKind === "search" ? this.dialog : this.grid).querySelector(
 				`[data-card="${CSS.escape(id)}"]`,
 			),
 			card = Store.card(id);
 		if (!c || !card) return;
-		if (c.querySelector(".card-more-menu")) {
+		if (!point && c.querySelector(".card-more-menu")) {
 			this.closeMore(true);
 			return;
 		}
@@ -1676,17 +1686,29 @@ class AppController {
 		menu.innerHTML = items
 			.map(
 				([symbol, label, action]: any) =>
-					`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span></button>`,
+					`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span>${icon(symbol, 18)}</button>`,
 			)
 			.join("");
 		c.appendChild(menu);
 		const trigger = c.querySelector(".card-title-button");
+		const cardRect = c.getBoundingClientRect(),
+			anchor = trigger?.getBoundingClientRect() || cardRect,
+			x = point?.x ?? anchor.left,
+			y = point?.y ?? anchor.bottom,
+			width = menu.offsetWidth,
+			height = menu.offsetHeight,
+			left = Math.max(12, Math.min(x + width > innerWidth - 12 ? x - width : x, innerWidth - width - 12)),
+			top = Math.max(12, Math.min(y + height > innerHeight - 12 ? y - height : y, innerHeight - height - 12));
+		menu.style.left = `${left - cardRect.left}px`;
+		menu.style.top = `${top - cardRect.top}px`;
+		menu.style.right = "auto";
+		menu.style.bottom = "auto";
 		trigger?.setAttribute("aria-expanded", "true");
 		trigger?.setAttribute("aria-controls", menu.id);
 		MotionEngine.animate(
 			menu,
 			[
-				{ opacity: 0, transform: "translateY(-4px)" },
+				{ opacity: 0, transform: "none" },
 				{ opacity: 1, transform: "none" },
 			],
 			{ duration: 180 },
@@ -2278,7 +2300,7 @@ class AppController {
 							this.refreshCard(c.id);
 					} else if (c.type === "reminder") {
 						const label = node.querySelector(".reminder-label");
-						if (label) label.textContent = FeedPolicy.label(c, Store.item(c.id), Date.now());
+						if (label) label.outerHTML = CardPresentation.reminderStatus(c, Store.item(c.id));
 					}
 				});
 			}
@@ -2738,18 +2760,34 @@ class AppController {
 				break;
 			}
 			case "filter-type":
+				this.searchFiltersExpanded = false;
 				this.searchActivated = true;
 				this.searchFilter.type = extra;
 				this.repaintSearch();
 				break;
 			case "filter-status":
+				this.searchFiltersExpanded = false;
 				this.searchActivated = true;
 				this.searchFilter.status = this.searchFilter.status === extra ? "all" : extra;
 				this.repaintSearch();
 				break;
 			case "filter-tag":
+				this.searchFiltersExpanded = false;
 				this.searchActivated = true;
 				this.searchFilter.tag = this.searchFilter.tag === extra ? "" : extra;
+				this.repaintSearch();
+				break;
+			case "toggle-search-filters":
+				this.searchFiltersExpanded = !this.searchFiltersExpanded;
+				this.repaintSearch();
+				break;
+			case "remove-search-condition":
+				if (!["type", "status", "tag"].includes(extra)) break;
+				this.searchFilter[extra] = extra === "tag" ? "" : "all";
+				if (this.searchFilter.type === "all" && this.searchFilter.status === "all" && !this.searchFilter.tag) {
+					this.searchActivated = false;
+					this.searchFiltersExpanded = true;
+				}
 				this.repaintSearch();
 				break;
 			case "clear-query":
@@ -2760,6 +2798,7 @@ class AppController {
 			case "clear-filter":
 				if (this.modalKind === "search") {
 					this.searchActivated = false;
+					this.searchFiltersExpanded = true;
 					this.searchFilter = { type: "all", status: "all", tag: "", query: "" };
 					this.repaintSearch();
 				} else {
@@ -3034,6 +3073,8 @@ END:VCALENDAR
 			[...this.dialog.querySelectorAll("[data-action]")]
 				.find((n?: any) => n.dataset.action === action && n.dataset.extra === extra)
 				?.focus({ preventScroll: true });
+		if (action?.startsWith("filter-") || action === "remove-search-condition")
+			this.dialog.querySelector('[data-action="toggle-search-filters"]')?.focus({ preventScroll: true });
 		this.revealImages(this.dialog);
 	}
 	input(e?: any) {

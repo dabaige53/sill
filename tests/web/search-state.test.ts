@@ -350,3 +350,58 @@ test("initial search shows filters without cards until a query or filter is chos
  assert.match(f.Panels.searchResults(f.app), /data-card="a"/);
  } finally {f.dom.window.close();}
 });
+
+test("repeated close requests on a stacked card only move back one history entry", () => {
+ const f = fixture();
+ try {
+ f.app.modalKind = "preview";
+ f.app.previewTrail = ["a"];
+ f.w.history.replaceState({prev:"#card/a"}, "", "#card/b");
+ let backs = 0;
+ f.w.history.back = () => { backs++; };
+ f.app.closeModal(); f.app.closeModal();
+ assert.equal(backs,1);
+ assert.equal(f.app.dialog.open,true);
+ assert.equal(f.app.previewTrail.length,1);
+ } finally { f.dom.window.close(); }
+});
+
+test("viewed digest uses the settled color without marking ordinary reading cards as read", () => {
+ const f=fixture();
+ try {
+ const c={id:"digest-test",type:"digest",title:"Summary",body:[]};
+ f.Store.state.cards.push(c);
+ f.Store.patch(c.id,{seen:true});
+ const html=f.w.SearchTest.cardHTML(c);
+ assert.match(html,/is-seen/);
+ assert.equal(f.Store.item(c.id).read,false);
+ f.Store.patch("a",{seen:true,read:false});
+ assert.doesNotMatch(f.w.SearchTest.cardHTML(f.Store.card("a")),/is-seen|is-read/);
+ } finally {f.dom.window.close();}
+});
+
+test("selected filters become removable search tokens and collapse the options", () => {
+	const f = fixture(false);
+	try {
+		f.app.searchFilter.query = "Alpha";
+		f.app.action("filter-type", "", "article");
+		assert.equal(f.app.dialog.querySelector("#search-filters").hidden, true);
+		assert.equal(f.app.dialog.querySelector(".search-query .search-condition").textContent.trim(), "资讯");
+		assert.equal(f.app.dialog.querySelector("#filter-search").value, "Alpha");
+		assert.equal(f.app.searchAll("Alpha").desk.length, 1);
+		f.app.action("toggle-search-filters");
+		assert.equal(f.app.dialog.querySelector("#search-filters").hidden, false);
+		f.app.action("filter-status", "", "unread");
+		assert.equal(f.app.dialog.querySelectorAll(".search-condition").length, 2);
+		assert.equal(f.app.dialog.querySelector("#search-filters").hidden, true);
+		f.app.action("remove-search-condition", "", "status");
+		assert.equal(f.app.searchFilter.type, "article");
+		assert.equal(f.app.dialog.querySelectorAll(".search-condition").length, 1);
+		f.app.action("remove-search-condition", "", "type");
+		assert.equal(f.app.dialog.querySelector("#search-filters").hidden, false);
+		assert.equal(f.app.dialog.querySelectorAll(".search-condition").length, 0);
+		assert.equal(f.app.dialog.querySelector("#filter-search").value, "Alpha");
+	} finally {
+		f.dom.window.close();
+	}
+});

@@ -140,8 +140,7 @@
 .reminder-label {
 	color: var(--muted);
 }
-.reminder-label.is-due,
-.type-reminder .reminder-label {
+.reminder-label.is-due {
 	color: var(--alert);
 	font-weight: 500;
 }
@@ -729,6 +728,7 @@ button.ref:hover {
 
 /* Read, ended and completed keep their color even after pointer or keyboard focus. */
 .feed-card.is-read,
+.feed-card.is-seen,
 .feed-card.is-ended,
 .feed-card.is-complete {
 	background: var(--card-read);
@@ -736,6 +736,7 @@ button.ref:hover {
 	box-shadow: none;
 }
 .feed-card.is-read .card-title,
+.feed-card.is-seen .card-title,
 .feed-card.is-ended .card-title,
 .feed-card.is-complete .card-title,
 .feed-card.is-ended .event-start {
@@ -745,7 +746,9 @@ button.ref:hover {
 	filter: saturate(0.6);
 }
 .feed-card.is-read:hover,
+.feed-card.is-seen:hover,
 .feed-card.is-read:focus-within,
+.feed-card.is-seen:focus-within,
 .feed-card.is-ended:hover,
 .feed-card.is-ended:focus-within,
 .feed-card.is-complete:hover,
@@ -927,3 +930,16 @@ button.ref:hover {
 	transform: none !important;
 	transition-property: box-shadow, border-color;
 }
+
+.state-icon {
+ display: inline-grid;
+ place-items: center;
+ width: 28px;
+ height: 28px;
+ flex: none;
+ border-radius: 50%;
+ background: var(--surface);
+ color: var(--muted);
+}
+.reminder-label.state-icon.is-due { color: var(--alert); }
+.reminder-restore { background: var(--surface); min-width: 44px; min-height: 44px; }

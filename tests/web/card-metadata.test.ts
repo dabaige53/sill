@@ -100,3 +100,18 @@ test("instant formatting follows the device zone without shifting date-only valu
 		else process.env.TZ = original;
 	}
 });
+
+test("reminder state icons retain accessible meaning without visible status text", async () => {
+ const { CardPresentation } = await import("../../apps/web/cards/templates.ts");
+ const now = Date.now();
+ for (const state of [{reminderDone:true}, {dismissed:true}, {snoozedUntil:now+60000}, {}]) {
+  const dom = new JSDOM(CardPresentation.reminderStatus({due:now-1000},state,now));
+  const badge = dom.window.document.querySelector('.state-icon');
+  assert.ok(badge);
+  assert.equal(badge.textContent,'');
+  assert.ok(badge.getAttribute('aria-label'));
+  assert.ok(badge.querySelector('svg'));
+  if ('reminderDone' in state || 'dismissed' in state) assert.equal(badge.classList.contains('is-due'),false);
+  dom.window.close();
+ }
+});

@@ -111,7 +111,7 @@ const Panels: Record<string, any> = {
 		const s = Store.item(c.id);
 		const acts =
 			s.dismissed || s.reminderDone || s.snoozedUntil
-				? pill(copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "soft")
+				? button("undo", copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "", "reminder-restore")
 				: pill(
 						copy("web.templates.2d89d6318b38"),
 						"snooze",
@@ -229,11 +229,11 @@ const Panels: Record<string, any> = {
 					: "";
 			const label =
 				c.type === "reminder"
-					? [copy("web.reminder"), FeedPolicy.label(c, s, Date.now())].filter(Boolean).join(" · ")
+					? copy("web.reminder")
 					: c.meta || "";
 			return (
 				sheet(
-					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}${this.reminderRow(c)}`,
+					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span>${c.type === "reminder" ? CardPresentation.reminderStatus(c, s) : ""}</div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}${this.reminderRow(c)}`,
 				) + this.bar(this.bookmark(c, s), editTags, this.reminderTools(c))
 			);
 		}
@@ -357,8 +357,16 @@ const Panels: Record<string, any> = {
 			["saved", copy("web.bookmark")],
 			["later", copy("web.later")],
 		];
-		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-header"><div class="search-pill">${icon("search", 18)}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.searchActivated || f.query.trim() || f.type !== "all" || f.status !== "all" || f.tag ? Object.values(app.searchAll(f.query)).flat().length : 0}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>${button("x", copy("web.close"), "close")}</div>
-   <div class="search-chips" role="group" aria-label="${copy("web.panels.b5f15473fdc0")}"><div class="search-filter-group">${types.map(([k, v, ic]: any) => `<button type="button" class="chip ${f.type === k ? "active" : ""}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type === k}">${v}</button>`).join("")}</div><div class="search-filter-group">${status.map(([k, v]: any) => `<button type="button" class="chip ${f.status === k ? "active" : ""}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status === k}">${v}</button>`).join("")}</div><div class="search-filter-group">${tags.map((t?: any) => `<button type="button" class="chip ${f.tag === t ? "active" : ""}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag === t}">#${esc(t)}</button>`).join("")}</div></div>
+        const expanded = app.searchFiltersExpanded !== false;
+        const conditions = [
+          ...(f.type !== "all" ? [["type", types.find(([k]) => k === f.type)?.[1] || f.type]] : []),
+          ...(f.status !== "all" ? [["status", status.find(([k]) => k === f.status)?.[1] || f.status]] : []),
+          ...(f.tag ? [["tag", "#" + f.tag]] : []),
+        ];
+        const tokens = conditions.map(([key, label]) => `<button type="button" class="search-condition" data-action="remove-search-condition" data-extra="${key}" aria-label="${esc(copy("web.search.removeCondition") + "：" + label)}" title="${esc(copy("web.search.removeCondition"))}"><span>${esc(label)}</span>${icon("x", 12)}</button>`).join("");
+
+		return `<h1 id="modal-title" class="sr-only">${copy("web.panels.f6d4e9026e14")}</h1><div class="search-header"><div class="search-pill">${icon("search", 18)}<div class="search-query">${tokens}<input type="search" id="filter-search" aria-label="${copy("web.panels.1589e32bc6d5")}" placeholder="${copy("web.panels.a76ee88e6c2e")}" value="${esc(f.query)}" data-input="search" autocomplete="off"></div><button type="button" class="icon-button" data-action="toggle-search-filters" aria-label="${copy("web.panels.b5f15473fdc0")}" aria-expanded="${expanded}" aria-controls="search-filters">${icon("filter", 18)}</button><span class="search-count num sr-only" id="filter-result" role="status" aria-live="polite" aria-atomic="true">${app.searchActivated || f.query.trim() || f.type !== "all" || f.status !== "all" || f.tag ? Object.values(app.searchAll(f.query)).flat().length : 0}${copy("web.panels.e9e0fdc242b4")}</span>${f.query ? button("x", copy("web.panels.b6f00afa6537"), "clear-query") : ""}</div>${button("x", copy("web.close"), "close")}</div>
+   <div id="search-filters" class="search-chips" ${expanded ? "" : "hidden"} role="group" aria-label="${copy("web.panels.b5f15473fdc0")}"><div class="search-filter-group">${types.map(([k, v, ic]: any) => `<button type="button" class="chip ${f.type === k ? "active" : ""}" data-action="filter-type" data-extra="${k}" aria-pressed="${f.type === k}">${v}</button>`).join("")}</div><div class="search-filter-group">${status.map(([k, v]: any) => `<button type="button" class="chip ${f.status === k ? "active" : ""}" data-action="filter-status" data-extra="${k}" aria-pressed="${f.status === k}">${v}</button>`).join("")}</div><div class="search-filter-group">${tags.map((t?: any) => `<button type="button" class="chip ${f.tag === t ? "active" : ""}" data-action="filter-tag" data-extra="${esc(t)}" aria-pressed="${f.tag === t}">#${esc(t)}</button>`).join("")}</div></div>
    <div class="search-results" id="search-results">${this.searchResults(app)}</div>`;
 	},
 	searchResults(app?: any) {

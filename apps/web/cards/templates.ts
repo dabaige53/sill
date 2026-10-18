@@ -27,6 +27,13 @@ import { FeedPolicy } from "../services/feed-policy.ts";
  * A card is a stack of blocks: head · media · text · data · list · act. Content is read here; actions go back to the source.
  */
 const CardPresentation: Record<string, any> = {
+ reminderStatus(c: any, s: any, now = Date.now()) {
+  const label = FeedPolicy.label(c, s, now);
+  if (!label) return "";
+  const due = !s.dismissed && !s.reminderDone && (s.snoozedUntil || c.due) <= now;
+  const glyph = s.dismissed ? "bell-off" : s.reminderDone ? "check-circle" : due ? "bell" : "clock";
+  return `<span class="reminder-label state-icon ${due ? "is-due" : ""}" role="img" aria-label="${esc(label)}" title="${esc(label)}">${icon(glyph, 18)}</span>`;
+ },
 	state(c?: any, options: any = {}) {
 		const defaults: Record<string, any> = {
 			seen: false,
@@ -167,16 +174,14 @@ const CardTemplates: Record<string, any> = {
 	},
 	reminder(c?: any, ctx?: any) {
 		const s = ctx.state,
-			settled = s.reminderDone || s.dismissed || s.snoozedUntil > 0,
-			label = FeedPolicy.label(c, s, ctx.now);
-		const due = !settled && /现在|到期/.test(label);
+			settled = s.reminderDone || s.dismissed || s.snoozedUntil > 0;
 		const acts = ctx.passive
 			? ""
 			: settled
-				? pill(copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "soft")
+				? button("undo", copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "", "reminder-restore")
 				: `${pill(copy("web.templates.2d89d6318b38"), "snooze", c.id, "soft grow", "", copy("web.templates.5273ca462f40"))}${pill(copy("web.done"), "complete-reminder", c.id, "primary", "", copy("web.templates.56c2b97093d8"))}`;
-		return `<div class="card-body">${this.head(c, ctx, copy("web.reminder"), `<span class="reminder-label ${due ? "is-due" : ""}">${esc(label)}</span>`)}
-   <div class="reminder-row"><span class="check-dot" aria-hidden="true"></span>${this.title(c, ctx)}</div>${c.summary ? `<p class="card-summary indent">${esc(c.summary)}</p>` : ""}
+		return `<div class="card-body">${this.head(c, ctx, copy("web.reminder"), CardPresentation.reminderStatus(c, s, ctx.now))}
+   <div class="reminder-row">${this.title(c, ctx)}</div>${c.summary ? `<p class="card-summary">${esc(c.summary)}</p>` : ""}
    <div class="reminder-actions" role="group" aria-label="${copy("web.templates.9d9382cf8476")}">${acts}</div></div>`;
 	},
 	media(c?: any, ctx?: any) {
@@ -246,12 +251,13 @@ function cardHTML(c?: any, options: any = {}) {
 		now: options.now ?? Date.now(),
 	};
 	const read = (CardTypes[c.type] || CardTypes.note).readable && s.read && Store.pref("fadeRead");
+	const seen = c.type === "digest" && s.seen && Store.pref("fadeRead");
 	const ended = c.type === "event" && eventEnded(c, ctx.now);
 	const attributes = ctx.passive
 		? ' data-passive="true"'
 		: ` tabindex="0" data-card="${esc(c.id)}"`;
 	const covered = (c.image && ["article", "media"].includes(c.type)) || c.type === "photo";
-	return `<article class="feed-card ${options.compact ? "" : "feed-item"} type-${esc(c.type)} ${covered ? "has-cover" : ""} ${options.compact ? "is-compact" : ""} ${read ? "is-read" : ""} ${ended ? "is-ended" : ""} ${s.bookmarked ? "is-bookmarked" : ""} ${s.selected ? "is-selected" : ""} ${s.snoozedUntil > 0 ? "is-snoozed" : ""} ${isDone ? "is-complete" : ""}"${attributes} aria-label="${esc((CardTypes[c.type] || CardTypes.note).label + "：" + c.title + (s.read ? copy("web.templates.732aa8f1efe5") : ""))}">
+	return `<article class="feed-card ${options.compact ? "" : "feed-item"} type-${esc(c.type)} ${covered ? "has-cover" : ""} ${options.compact ? "is-compact" : ""} ${read ? "is-read" : ""} ${seen ? "is-seen" : ""} ${ended ? "is-ended" : ""} ${s.bookmarked ? "is-bookmarked" : ""} ${s.selected ? "is-selected" : ""} ${s.snoozedUntil > 0 ? "is-snoozed" : ""} ${isDone ? "is-complete" : ""}"${attributes} aria-label="${esc((CardTypes[c.type] || CardTypes.note).label + "：" + c.title + (s.read ? copy("web.templates.732aa8f1efe5") : ""))}">
  ${Object.hasOwn(CardTypes, c.type) && Object.hasOwn(CardTemplates, c.type) ? CardTemplates[c.type](c, ctx) : CardTemplates.article(c, ctx)}
  </article>`;
 }

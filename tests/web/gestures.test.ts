@@ -479,3 +479,27 @@ test("reversing a wheel pull cancels closing after reaching threshold", () => {
  assert.equal(f.app.closed,0);
  } finally {f.dom.window.close();}
 });
+
+test("full phone detail closes on the first released downward pull without collapsing first", () => {
+ for (const input of ["touch", "wheel"]) {
+ const f = fixture({phone:true});
+ try {
+ const sheet = f.dialog.querySelector(".preview-sheet");
+ sheet.classList.add("is-full");
+ f.gestures.bindPullDown();
+ if(input === "touch") {
+ const target=f.scroll.querySelector("p");
+ f.fire(target,"touchstart",120,200);
+ f.fire(target,"touchmove",120,430);
+ assert.equal(f.app.closed,0);
+ f.fire(target,"touchend",120,430);
+ } else {
+ for(let i=0;i<16;i++) f.scroll.dispatchEvent(new f.w.WheelEvent("wheel",{bubbles:true,deltaY:-40}));
+ assert.equal(f.app.closed,0);
+ f.flush();
+ }
+ assert.equal(f.app.closed,1);
+ assert.equal(sheet.classList.contains("is-full"),true,"must retain height until closing");
+ } finally {f.dom.window.close();}
+ }
+});

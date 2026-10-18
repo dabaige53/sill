@@ -17,6 +17,7 @@ struct CardTile: View {
   private var complete: Bool { !tasks.isEmpty && tasks.allSatisfy { model.taskDone(card, $0) } }
   private var settled: Bool {
     (card.readable && state["read"]?.bool == true && model.preferences["fadeRead"]?.bool != false)
+      || (card.type == "digest" && state["seen"]?.bool == true && model.preferences["fadeRead"]?.bool != false)
       || (card.type == "task" && complete)
       || (card.type == "reminder" && state["reminderDone"]?.bool == true)
       || (card.type == "event" && (card.date("end") ?? .distantFuture) < .now)
@@ -49,15 +50,7 @@ struct CardTile: View {
         } else {
           if card.type == "mail" { sender } else { head }
           if card.type == "event", let start = card.date("start") { eventTime(start) }
-          if card.type == "reminder" {
-            HStack(alignment: .top, spacing: AppleMetrics.space12) {
-              Circle().strokeBorder(AppleColors.secondary, lineWidth: 1.5).frame(
-                width: AppleMetrics.space22, height: AppleMetrics.space22)
-              title
-            }
-          } else {
-            title
-          }
+          title
           if showSummary { summary }
           if card.type == "task" { checklist }
           if card.type == "event", let people = fields["people"]?.strings, !people.isEmpty {
@@ -213,7 +206,7 @@ struct CardTile: View {
         Text("\(Int((progress * 100).rounded()))%").foregroundStyle(AppleColors.accent)
       }
       if card.type == "reminder" {
-        Text(reminderLabel(card, state)).foregroundStyle(AppleColors.warning)
+        ReminderStatusIcon(card: card, state: state)
       }
       if card.type == "event" {
         Text(cardEventRelative(card)).foregroundStyle(AppleColors.accent).fontWeight(.medium)
@@ -448,6 +441,24 @@ func reminderLabel(_ card: Card, _ state: JSONValue) -> String {
     : Copy.text(snoozed > 0 ? "web.feedpolicy.098d14f95600" : "web.feedpolicy.56c92f48088a")
 }
 
+struct ReminderStatusIcon: View {
+  let card: Card
+  let state: JSONValue
+  var body: some View {
+    let dismissed = state["dismissed"]?.bool == true
+    let done = state["reminderDone"]?.bool == true
+    let snoozed = state["snoozedUntil"]?.number ?? 0
+    let due = (snoozed > 0 ? snoozed : card.fields["due"]?.number ?? .infinity) <= Date.now.timeIntervalSince1970 * 1000
+    let label = reminderLabel(card, state)
+    if !label.isEmpty {
+      NativeIcon(name: dismissed ? "bell-off" : done ? "check-circle" : due ? "bell" : "clock", size: 18)
+        .foregroundStyle(!dismissed && !done && due ? AppleColors.warning : AppleColors.secondary)
+        .frame(width: 28, height: 28).background(AppleColors.surface, in: Circle())
+        .accessibilityElement(children: .ignore).accessibilityLabel(label).help(label)
+    }
+  }
+}
+
 struct ReminderActions: View {
   @EnvironmentObject var model: Workspace
   let card: Card
@@ -458,13 +469,17 @@ struct ReminderActions: View {
       || (state?["snoozedUntil"]?.number ?? 0) > 0
     HStack {
       if settled {
-        Button(Copy.text("web.templates.4b03be14c1f4")) {
+        Button {
           model.patch(
             [card.id],
             values: [
               "reminderDone": .bool(false), "dismissed": .bool(false), "snoozedUntil": .number(0),
             ])
-        }.buttonStyle(CardPillStyle())
+        } label: {
+          NativeIcon(name: "undo", size: 20).frame(width: 44, height: 44)
+        }.buttonStyle(.plain).background(AppleColors.surface, in: Circle())
+          .accessibilityLabel(Copy.text("web.templates.4b03be14c1f4"))
+          .help(Copy.text("web.templates.4b03be14c1f4"))
       } else {
         Button(Copy.text("web.templates.2d89d6318b38")) {
           model.patch(

@@ -1,4 +1,5 @@
 {
+	"web.search.removeCondition": "移除筛选条件",
 	"apple.workspaceInUse": "此本地桌面已在另一个 Sill 窗口中打开。请先退出另一个应用，再重试。",
 	"apple.retry": "重试",
 	"apple.search": "搜索卡片",
