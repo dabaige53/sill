@@ -25,6 +25,14 @@ const browser = await chromium.launch({
 });
 const results: { name: string; status: string; error?: string }[] = [];
 
+async function settleTooltip(button: Locator) {
+	await button.evaluate(async (node) => {
+		await Promise.all(
+			node.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => {})),
+		);
+	});
+}
+
 async function tooltip(button: Locator) {
 	return button.evaluate((node: HTMLElement) => {
 		const style = getComputedStyle(node, "::after");
@@ -127,7 +135,7 @@ try {
 						});
 						await button.waitFor({ state: "visible" });
 						await page.waitForFunction(() => !!document.querySelector(".float-bar .is-tipping"));
-						await page.waitForTimeout(160);
+						await settleTooltip(button);
 						tips.push(await tooltip(button));
 						await screenshot(`tip-${edge}`);
 						await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
@@ -135,7 +143,7 @@ try {
 					await page.waitForFunction(() => !document.querySelector(".float-bar .is-tipping"));
 					await buttons.first().focus();
 					await page.keyboard.press("Tab");
-					await page.waitForTimeout(160);
+					await settleTooltip(buttons.nth(1));
 					const keyboard = await tooltip(buttons.nth(1));
 					await screenshot("keyboard");
 					fs.writeFileSync(
