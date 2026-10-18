@@ -39,6 +39,7 @@ import {
 import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
+import { repaintSettings, setPref } from "./settings-controller.ts";
 
 /** The lens leads; the place it names opens just after, so the move is seen before the sheet covers it. */
 const NAV_LEAD_MS = 160;
@@ -2214,13 +2215,7 @@ class AppController {
 	}
 	/* ——— Settings ——— */
 	setPref(key?: any, value?: any) {
-		const before = Store.pref(key);
-		Store.setPref(key, value);
-		this.applyPreferences();
-		if (["stack", "fadeRead", "archiveAfter", "floatTimely", "density"].includes(key))
-			this.withFeedAnchor(() => {});
-		if (this.modalKind === "settings") this.repaintSettings();
-		return before;
+		return setPref.call(this, key, value);
 	}
 	replacePanelContent(html?: any) {
 		const active = document.activeElement;
@@ -2255,20 +2250,7 @@ class AppController {
 		}
 	}
 	repaintSettings() {
-		const main = this.dialog.querySelector(".settings-main"),
-			y = main?.scrollTop || 0,
-			active = document.activeElement,
-			key = [
-				(active as HTMLElement)?.dataset.action,
-				(active as HTMLElement)?.dataset.id,
-				(active as HTMLElement)?.dataset.extra,
-			].join("|");
-		this.replacePanelContent(Panels.settings(this, this.settingsGroup));
-		const next = this.dialog.querySelector(".settings-main");
-		if (next) next.scrollTop = y;
-		[...this.dialog.querySelectorAll("[data-action]")]
-			.find((n?: any) => [n.dataset.action, n.dataset.id, n.dataset.extra].join("|") === key)
-			?.focus({ preventScroll: true });
+		return repaintSettings.call(this);
 	}
 	exportAll() {
 		const data: Record<string, any> = {
