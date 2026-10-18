@@ -257,7 +257,16 @@ try {
 	await frame.locator("[data-card] .card-title-button").press("Shift+F10");
 	assert.equal(await frame.locator(".card-more-menu").isVisible(), true);
 	assert.equal(await frame.locator("[data-action=edit-content]").count(), 0);
-	await frame.locator("main").click({ position: { x: 2, y: 2 } });
+	// The phone header covers main's top edge; dismiss through the exposed page margin.
+	const belowHeader = await frame.evaluate(() => {
+		const header = document.getElementById("home-top");
+		const mainTop = document.querySelector("main").getBoundingClientRect().top;
+		return getComputedStyle(header).display === "none"
+			? 0
+			: Math.max(0, header.getBoundingClientRect().bottom - mainTop);
+	});
+	await frame.locator("main").click({ position: { x: 2, y: belowHeader + 2 } });
+	assert.equal(await frame.locator(".card-more-menu").count(), 0);
 	await cloudTool(frame, "capture");
 	await frame.locator("#cloud-title").fill("Keep this host draft");
 	await frame.locator("#cloud-discard").click();

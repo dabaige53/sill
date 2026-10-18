@@ -17,6 +17,8 @@
 
 macOS 强制 SwiftShader 时，诊断读到隐藏过渡在 400ms 后仍为 `currentTime: 0`，650ms 自动恢复先发生。移除该平台的强制参数后，真实 Tab 用例通过。抽屉套件中的提示动画与把手拖动也出现同类偶发失败；采用相同平台条件后 11/11 通过。Linux 的渲染参数不变。
 
+基础分支 CI（run `39113409545`）和本机均复现 `cloud-app-browser.ts:260` 点击被手机顶栏拦截。改为点击顶栏下面真实露出的页边距，新增菜单关闭断言；完整模拟宿主流程通过，不使用强制点击。
+
 另修复基础分支已有的 `detail-toolbar.test.ts` import 排序错误，它会阻止 CI 的 `lint:web`；没有改测试行为。
 
 ## 验证
@@ -32,6 +34,7 @@ macOS 强制 SwiftShader 时，诊断读到隐藏过渡在 400ms 后仍为 `curr
 | `node tests/e2e/motion-material-browser.ts` | 11/11 通过 |
 | `node tests/e2e/workspace-polish-browser.ts` | 1/1 通过 |
 | `node tests/e2e/cloud-welcome-browser.ts` | 桌面 1440×1000、手机 390×844，2/2 通过 |
+| `node tests/e2e/cloud-app-browser.ts` | 完整模拟宿主流程 1/1 通过 |
 | `npx biome lint apps/web --reporter=json` | 0 错误、902 警告、30 条提示；不是零警告 |
 
 文案键共 826 个，其中 601 个为哈希键，`web.panels` 下为 110 个；图标 69 个。C1 不修改这些数字。CI 结果以本工作 PR 的最新检查为准。

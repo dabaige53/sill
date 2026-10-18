@@ -74,3 +74,8 @@ PASS workspace polish: embedded resize, system theme, IME, live conflict, durabl
 PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry desktop 1440x1000
 PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry iPhone12 390x844
 
+基础提交 / cloud MCP App
+FAIL cloud-app-browser.ts:260: locator.click timeout; home-top intercepts pointer events
+
+改后 / cloud MCP App
+PASS cloud MCP App: bridge handshake, cancelled late navigation, editable validation rejection, bounded explicit handoff and copy recovery across photo pages, host-only links, 1280/390, no direct network or storage (synthetic identity)
