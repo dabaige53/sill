@@ -44,7 +44,8 @@
 		"test:cloud-operations": "node tests/e2e/cloud-operations-browser.ts",
 		"test:selection-browser": "node tests/e2e/selection-browser.ts",
 		"test:material-density": "node tests/e2e/material-density-browser.ts",
-		"test:motion-material": "node tests/e2e/motion-material-browser.ts"
+		"test:motion-material": "node tests/e2e/motion-material-browser.ts",
+		"test:pwa-touch": "node tests/e2e/pwa-touch-browser.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",

@@ -451,13 +451,20 @@ body:has(#selection-bar:not([hidden])) #new-count {
 .float-bar .icon-button.is-own {
 	color: var(--accent);
 }
-/* The toolbar's names: shown above an icon on a long press, or on hover with a pointer. */
+.float-bar .icon-button,
+:where(#dock) button {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+/* One name for touch, pointer and keyboard; edge controls open their names inward. */
 .float-bar .icon-button::after {
+	--tip-x: -50%;
 	content: attr(aria-label);
 	position: absolute;
 	bottom: calc(100% + 10px);
 	left: 50%;
-	translate: -50% 4px;
+	translate: var(--tip-x) 4px;
 	padding: 6px 10px;
 	border-radius: 10px;
 	background: var(--ink);
@@ -472,16 +479,35 @@ body:has(#selection-bar:not([hidden])) #new-count {
 		opacity var(--fast),
 		translate var(--fast);
 }
-.float-bar .icon-button.is-tipping::after {
+.float-bar .icon-button:is(:first-child, :last-child)::after {
+	--tip-x: 0px;
+}
+.float-bar .icon-button:last-child::after {
+	left: auto;
+	right: 50%;
+}
+.float-bar .icon-button.is-tipping::after,
+.float-bar .icon-button:focus-visible::after {
 	opacity: 1;
-	translate: -50% 0;
+	translate: var(--tip-x) 0;
 }
 @media (hover: hover) and (pointer: fine) {
 	.float-bar .icon-button:hover::after {
 		opacity: 1;
-		translate: -50% 0;
+		translate: var(--tip-x) 0;
 		transition-delay: 500ms;
 	}
+}
+.float-bar .icon-button:focus-visible::after {
+	transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+	.float-bar .icon-button::after {
+		translate: var(--tip-x) 0;
+	}
+}
+body.reduce-motion .float-bar .icon-button::after {
+	translate: var(--tip-x) 0;
 }
 #toast {
 	position: fixed;

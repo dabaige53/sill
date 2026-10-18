@@ -82,6 +82,8 @@
 
 ### U1 PWA 触控与外壳（不需要新的设计决定）
 
+2026-10-18 执行状态：U1.1–U1.4 实施与本地检查完成，见 [检查记录与前后截图](../records/2026-10-18-pwa-touch/README.md)。专项浏览器 10/10、无障碍 13/13、抽屉 11/11；Node 三组 36 / 169 / 91，失败 0。Web lint 0 错误、902 警告；文案键 826 个（哈希键 601 个，其中 panels 110 个），图标 69 个。线上手册已先更新并同步；37 号画板尚未补本次提示截图，须在 PR 的 Merge Danger 说明。U1.5 已核对原资产并保留：本机 Chromium 无 manifest 解析或安装错误，品牌绘法是否统一留到 U2，不擅自补安装图标。U1.6 真机未检查。
+
 | 编号 | 问题 | 做法 | 验收 |
 | --- | --- | --- | --- |
 | U1.1 | 详情胶囊的图标按钮没有禁止 iOS 长按菜单和放大镜。`-webkit-touch-callout: none` 只加在卡片上（`cards.css`）。长按名称在 iOS Safari 上可能被系统菜单或文字选择打断。 | 给 `.float-bar .icon-button`（以及 `#dock` 按钮，如果也缺）加 `-webkit-touch-callout: none; user-select: none; -webkit-user-select: none`。 | 真实 iPhone：长按胶囊图标只显示名称，不出系统菜单，松手不执行。 |

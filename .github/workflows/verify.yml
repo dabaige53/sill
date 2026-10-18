@@ -25,6 +25,7 @@ jobs:
           status=0
           npm run test:material-density || status=1
           npm run test:motion-material || status=1
+          npm run test:pwa-touch || status=1
           node tests/e2e/drawer-browser.ts || status=1
           node tests/e2e/search-browser.ts || status=1
           node tests/e2e/refresh-motion-browser.ts || status=1
