@@ -1,10 +1,53 @@
+import type { Card } from "../../../contracts/card.ts";
 import { normalizeCard } from "../../../contracts/card-migration.ts";
+import type { CardState, State } from "../../../contracts/local.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { parseCard } from "./card-validation.ts";
 import { demoBase, FreshCards, SeedCards, SeedItems } from "./cards.ts";
 
+/** Reuse contract fields while excluding its unknown extension-key signature. */
+export type Preferences = Required<{
+	[K in keyof State["preferences"] as string extends K ? never : K]: State["preferences"][K];
+}>;
+export type CardItem = CardState &
+	Required<
+		Pick<
+			CardState,
+			| "seen"
+			| "read"
+			| "bookmarked"
+			| "later"
+			| "progress"
+			| "note"
+			| "tags"
+			| "snoozedUntil"
+			| "dismissed"
+			| "reminderDone"
+			| "lastReminderKey"
+			| "lastNotifiedAt"
+			| "readAt"
+			| "restoredAt"
+		>
+	>;
+export type StoreState = {
+	cards: Card[];
+	items: Record<string, CardState>;
+	seconds: number;
+	demoStartedAt: number;
+	freshIds: string[];
+	preferences: Preferences;
+	storageAvailable: boolean;
+};
+/** Existing load guards decide what legacy JSON can restore; this type adds no validation. */
+type Backup = Partial<StoreState> & {
+	version?: number;
+	sources?: unknown;
+	reduceTransparency?: boolean;
+	sort?: Preferences["sort"];
+};
+
 /** Browser backup; local mode synchronizes it with the agent-readable repository. */
-const DefaultPreferences: Record<string, any> = {
+const DefaultPreferences: Preferences = {
 	singleKeyShortcuts: true,
 	reduceTransparency: false,
 	sort: "priority",
@@ -21,11 +64,11 @@ const DefaultPreferences: Record<string, any> = {
 	onboarded: true,
 	hiddenActions: [],
 };
-const Store: Record<string, any> = {
+const Store = {
 	key: "sill-v1",
-	state: {},
-	legacyFields: {},
-	fresh() {
+	state: {} as StoreState,
+	legacyFields: {} as Record<string, unknown>,
+	fresh(): StoreState {
 		return {
 			cards: [],
 			items: {},
@@ -36,8 +79,9 @@ const Store: Record<string, any> = {
 			storageAvailable: true,
 		};
 	},
-	sanitizeItem(x?: any) {
-		const timestamp = (n?: any) => (Number.isFinite(n) && n > 0 && n < 8.64e15 ? n : 0);
+	sanitizeItem(x?: Record<string, unknown>): CardItem {
+		const timestamp = (n?: unknown) =>
+			Number.isFinite(n) && (n as number) > 0 && (n as number) < 8.64e15 ? (n as number) : 0;
 		return {
 			seen: !!x.seen,
 			read: !!x.read,
@@ -49,12 +93,12 @@ const Store: Record<string, any> = {
 			note: typeof x.note === "string" ? x.note.slice(0, 4000) : "",
 			tags: Array.isArray(x.tags)
 				? x.tags
-						.filter((s?: any) => typeof s === "string")
-						.map((s?: any) => s.slice(0, 30))
+						.filter((s: unknown) => typeof s === "string")
+						.map((s: string) => s.slice(0, 30))
 						.slice(0, 20)
 				: [],
 			taskDone: Array.isArray(x.taskDone)
-				? x.taskDone.filter((s?: any) => typeof s === "string")
+				? x.taskDone.filter((s: unknown) => typeof s === "string")
 				: undefined,
 			addedAt: timestamp(x.addedAt),
 			snoozedUntil: timestamp(x.snoozedUntil),
@@ -68,7 +112,7 @@ const Store: Record<string, any> = {
 	},
 	load() {
 		this.state = this.fresh();
-		let raw = null;
+		let raw: Backup = null;
 		try {
 			// Copy once; preserve old backups and never replace newer Sill data.
 			if (!localStorage.getItem("sill-storage-migrated")) {
@@ -102,37 +146,33 @@ const Store: Record<string, any> = {
 			if (Number.isFinite(raw.demoStartedAt) && raw.demoStartedAt > 0)
 				this.state.demoStartedAt = raw.demoStartedAt;
 			this.state.freshIds = Array.isArray(raw.freshIds)
-				? [
-						...new Set<any>(
-							raw.freshIds.filter((id?: any) => FreshCards.some((c?: any) => c.id === id)),
-						),
-					]
+				? [...new Set<string>(raw.freshIds.filter((id) => FreshCards.some((c) => c.id === id)))]
 				: [];
 			this.state.seconds = Math.max(0, Math.min(1e7, Number(raw.seconds) || 0));
 			const prefs =
 				raw.preferences && typeof raw.preferences === "object"
 					? raw.preferences
 					: { reduceTransparency: raw.reduceTransparency, sort: raw.sort };
-			for (const key of Object.keys(DefaultPreferences))
+			for (const key of Object.keys(DefaultPreferences) as (keyof Preferences)[])
 				if (prefs[key] !== undefined && typeof prefs[key] === typeof DefaultPreferences[key])
-					this.state.preferences[key] = prefs[key];
+					(this.state.preferences as Record<string, unknown>)[key] = prefs[key];
 			if (!FeedPolicy.sorts.includes(this.state.preferences.sort))
 				this.state.preferences.sort = "priority";
 		}
 		const offset = this.state.demoStartedAt - demoBase;
-		const shift = (card?: any) => {
-			for (const key of ["time", "start", "end", "due"])
+		const shift = (card?: Card) => {
+			for (const key of ["time", "start", "end", "due"] as const)
 				if (Number.isFinite(card[key])) card[key] += offset;
 			return card;
 		};
 		this.state.cards = [
-			...this.state.freshIds.map((id?: any) => FreshCards.find((c?: any) => c.id === id)),
+			...this.state.freshIds.map((id) => FreshCards.find((c) => c.id === id)),
 			...SeedCards,
-		].map((c?: any) =>
+		].map((c) =>
 			shift({
 				...c,
-				tasks: c.tasks?.map((t?: any) => ({ ...t })),
-				files: c.files?.map((f?: any) => ({ ...f, time: f.time ? f.time + offset : undefined })),
+				tasks: c.tasks?.map((t) => ({ ...t })),
+				files: c.files?.map((f) => ({ ...f, time: f.time ? f.time + offset : undefined })),
 			}),
 		);
 		if (valid && raw.version >= 3 && Array.isArray(raw.cards)) this.state.cards = raw.cards;
@@ -140,14 +180,14 @@ const Store: Record<string, any> = {
 		const items = valid
 			? raw.items
 			: Object.fromEntries(
-					Object.entries(SeedItems).map(([id, x]: any) => [
+					Object.entries(SeedItems).map(([id, x]) => [
 						id,
 						{ ...x, readAt: x.readAt ? x.readAt + offset : 0 },
 					]),
 				);
 		// Live cards arrive after authentication; restore their browser-local notes too.
-		const restored = window.__QG_RUNTIME__
-			? Object.keys(items).map((id?: any) => ({ id }))
+		const restored: { id: string; time?: number }[] = window.__QG_RUNTIME__
+			? Object.keys(items).map((id) => ({ id }))
 			: this.state.cards;
 		for (const c of restored) {
 			const x = items[c.id];
@@ -159,8 +199,8 @@ const Store: Record<string, any> = {
 		this.save(); // Persist the demo clock even when there has been no interaction yet.
 		return this.state;
 	},
-	item(id?: any) {
-		const defaults: Record<string, any> = {
+	item(id?: string): CardItem {
+		const defaults: CardItem = {
 			seen: false,
 			read: false,
 			bookmarked: false,
@@ -177,36 +217,36 @@ const Store: Record<string, any> = {
 			restoredAt: 0,
 		};
 		this.state.items[id] = { ...defaults, ...this.state.items[id] };
-		return this.state.items[id];
+		return this.state.items[id] as CardItem;
 	},
-	card(id?: any) {
-		return this.state.cards.find((c?: any) => c.id === id);
+	card(id?: string): Card {
+		return this.state.cards.find((c) => c.id === id);
 	},
-	patch(id?: any, values?: any) {
+	patch(id?: string, values?: CardState) {
 		const item = this.item(id);
 		if (values.read && !item.read && !values.readAt) values = { ...values, readAt: Date.now() };
 		Object.assign(item, values);
 		this.save();
 	},
-	pref(key?: any) {
+	pref<K extends keyof Preferences>(key?: K): Preferences[K] {
 		return this.state.preferences?.[key] ?? DefaultPreferences[key];
 	},
-	setPref(key?: any, value?: any) {
+	setPref<K extends keyof Preferences>(key?: K, value?: Preferences[K]) {
 		this.state.preferences[key] = value;
 		this.save();
 	},
-	tags(c?: any) {
+	tags(c?: Card): string[] {
 		const s = this.item(c.id);
-		return s.tagsEdited ? [...s.tags] : [...new Set<any>([...(c.tags || []), ...s.tags])];
+		return s.tagsEdited ? [...s.tags] : [...new Set<string>([...(c.tags || []), ...s.tags])];
 	},
-	tasks(c?: any) {
+	tasks(c?: Card): NonNullable<Card["tasks"]> {
 		const done = this.item(c.id).taskDone;
-		return (c.tasks || []).map((t?: any) => ({ ...t, done: done ? done.includes(t.id) : t.done }));
+		return (c.tasks || []).map((t) => ({ ...t, done: done ? done.includes(t.id) : t.done }));
 	},
-	insert(cards?: any) {
-		cards = cards.map((card: any) => parseCard(normalizeCard(card)));
-		const known = new Set<any>(this.state.cards.map((c?: any) => c.id));
-		const additions = cards.filter((c?: any) => {
+	insert(cards?: unknown[]) {
+		cards = cards.map((card) => parseCard(normalizeCard(card as Card)));
+		const known = new Set<string>(this.state.cards.map((c) => c.id));
+		const additions = (cards as Card[]).filter((c) => {
 			if (known.has(c.id)) return false;
 			known.add(c.id);
 			return true;
@@ -214,14 +254,14 @@ const Store: Record<string, any> = {
 		this.state.cards = [...additions, ...this.state.cards];
 		for (const c of additions) this.item(c.id).addedAt = c.time;
 		this.state.freshIds = this.state.cards
-			.filter((c?: any) => FreshCards.some((f?: any) => f.id === c.id))
-			.map((c?: any) => c.id);
+			.filter((c) => FreshCards.some((f) => f.id === c.id))
+			.map((c) => c.id);
 		this.save();
 		return additions.length;
 	},
-	remove(ids?: any) {
-		const set = new Set<any>(ids);
-		this.state.cards = this.state.cards.filter((c?: any) => !set.has(c.id));
+	remove(ids?: Iterable<string>) {
+		const set = new Set<string>(ids);
+		this.state.cards = this.state.cards.filter((c) => !set.has(c.id));
 		for (const id of set) delete this.state.items[id];
 		this.save();
 	},
@@ -251,22 +291,17 @@ const Store: Record<string, any> = {
 			this.state.storageAvailable = false;
 		}
 	},
-	stats(since: any = 0) {
+	stats(since = 0) {
 		const items = this.state.items,
 			cards = this.state.cards;
 		return {
-			read: cards.filter(
-				(c?: any) => items[c.id]?.read && (items[c.id].readAt || Date.now()) >= since,
-			).length,
-			saved: cards.filter((c?: any) => items[c.id]?.bookmarked).length,
-			done: cards.filter((c?: any) => c.type === "task" && this.tasks(c).every((t?: any) => t.done))
+			read: cards.filter((c) => items[c.id]?.read && (items[c.id].readAt || Date.now()) >= since)
 				.length,
+			saved: cards.filter((c) => items[c.id]?.bookmarked).length,
+			done: cards.filter((c) => c.type === "task" && this.tasks(c).every((t) => t.done)).length,
 			overdue: cards.filter(
-				(c?: any) =>
-					c.type === "task" &&
-					c.due &&
-					c.due < Date.now() &&
-					!this.tasks(c).every((t?: any) => t.done),
+				(c) =>
+					c.type === "task" && c.due && c.due < Date.now() && !this.tasks(c).every((t) => t.done),
 			),
 		};
 	},
