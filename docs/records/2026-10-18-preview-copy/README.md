@@ -48,7 +48,11 @@ Node 数字依次为共享约定、Web、服务端；失败与跳过均为 0。�
 
 欢迎页首次检查在启动浏览器前失败：测试默认的 `/usr/bin/chromium` 在本机不存在。切到基础提交 `2589bd9` 后，同一命令返回相同错误。指定本机已安装的 Chromium 后，桌面与手机两项均通过；没有改断言，没有安装浏览器。
 
-`npm run files:check`、`npm run lint:web` 通过。单独的 Web lint 为 0 错误、903 警告、30 条提示；图标仍为 69 个。命令摘要见 [verification.txt](verification.txt)。真机未检查，生产未部署；C6 的本机会话过期偶发超时记录继续保留，本次相关检查通过。
+`npm run files:check`、`npm run lint:web` 通过。单独的 Web lint 为 0 错误、903 警告、30 条提示；图标仍为 69 个。命令摘要见 [verification.txt](verification.txt)。真机未检查，生产未部署。
+
+证据提交 `ab6dade` 后，Node 三组仍为 36 / 192 / 92，基础 23、抽屉 11、无障碍 13、欢迎页 2、云端宿主 1 项通过；云端工作台在会话过期流程的 `cloud-operations-browser.ts:437` 等待保存状态超时。随后先切到基础提交 `2589bd9`，同一命令通过，再切回 `ab6dade` 复跑通过。没有修改断言。C6 曾在更早基础提交的同一等待位置超时，现有证据只能确认偶发，不能确定同一根因，也不能证明由 C3 引入。保留本次失败，复跑通过不覆盖它。
+
+`ab6dade` 的 7 项 CI 全部通过：[完整检查与浏览器](https://github.com/dabaige53/sill/actions/runs/39122368741/job/117660386457)、[云端边界](https://github.com/dabaige53/sill/actions/runs/39122368763/job/117660386699)、[实际 Postgres](https://github.com/dabaige53/sill/actions/runs/39122368703/job/117660386281)，另含两项 push 检查与两项授权策略。追加本段记录后的检查以 PR 最新状态为准。
 
 本次没有改设计规则或可见文案。生成的组件 JS 已在仓库重建，尚未由本次工作发布到线上 Design System；线上文件未重新核对。U1 的组件 CSS 和 37 号画板截图同步也仍待完成。三项都须写入 PR 的 Merge Danger，不能把代码检查通过说成线上已同步。
 

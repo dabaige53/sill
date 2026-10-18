@@ -30,5 +30,11 @@ npm run lint:web PASS
 npx biome lint apps/web: 0 errors / 903 warnings / 30 infos
 copy keys 826 / hash keys 491 / panels hash keys 0 / icons 69
 
-最终证据提交后的检查和 CI 以 PR #52 为准。
+ab6dade 证据提交后：npm test 36 / 192 / 92。
+基础 23 / 抽屉 11 / 无障碍 13 / 欢迎页 2 / 云端宿主 1 通过。
+云端工作台首次在 :437 等待保存状态超时 30000ms。
+先切基础 2589bd9 复跑：通过；再切回 ab6dade 复跑：通过。
+未改断言；偶发根因未定位；本次基础复跑未复现失败。
+7 项 CI 通过：verify 39122368741 / boundary 39122368763 / integration 39122368703，含另外两项 push 与两项授权策略。
+追加偶发记录后的最终检查和 CI 以 PR #52 为准。
 真机未检查；生产未部署；组件 JS 线上发布未执行。
