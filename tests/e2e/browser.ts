@@ -232,7 +232,7 @@ async function recordLayout(page?: any, width?: any) {
 				await action(page, "preview", "reminder-01");
 				await page
 					.locator("#modal")
-					.getByRole("button", { name: "延后十分钟", exact: true })
+					.getByRole("button", { name: "10 分钟后在 Sill 内再提醒，不改来源里的时间", exact: true })
 					.click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				const deadline = (await state(page, "reminder-01")).snoozedUntil;
@@ -313,16 +313,8 @@ async function recordLayout(page?: any, width?: any) {
 					true,
 					"undo lost keyboard focus",
 				);
-				await reminder.locator('[data-action="snooze"]').focus();
-				await page.keyboard.press("Space");
-				assert.ok(
-					(await state(page, "reminder-01")).snoozedUntil > (await page.evaluate(() => Date.now())),
-				);
-				assert.equal(await reminder.count(), 1);
-				await feedUnopened(page, "reminder-01");
-				await page.getByRole("button", { name: "撤销操作", exact: true }).click();
-				assert.equal((await state(page, "reminder-01")).snoozedUntil, 0);
-				assert.equal(await reminder.count(), 1);
+				// The card only marks Sill's own state; snoozing lives in the detail (ADR 0036).
+				assert.equal(await reminder.locator('[data-action="snooze"]').count(), 0);
 			},
 		);
 		await scenario(
@@ -874,7 +866,7 @@ async function recordLayout(page?: any, width?: any) {
 					);
 					const reminder = card(page, "reminder-01");
 					await reminder.scrollIntoViewIfNeeded();
-					await touchTargets(reminder.locator(".reminder-actions button"), width);
+					await touchTargets(reminder.locator(".reminder-check"), width);
 					await reminder.locator(".card-title-button").press("Shift+F10");
 					await touchTargets(page.locator(".card-more-menu button"), width);
 					await page.waitForTimeout(240);
@@ -885,7 +877,8 @@ async function recordLayout(page?: any, width?: any) {
 					});
 					await page.touchscreen.tap(3, 3);
 					assert.equal(await page.locator(".card-more-menu").count(), 0);
-					await reminder.locator('[data-action="snooze"]').tap();
+					await reminder.locator('[data-action="complete-reminder"]').tap();
+					assert.equal((await state(page, "reminder-01")).reminderDone, true);
 					assert.equal(await reminder.count(), 1);
 					await feedUnopened(page, "reminder-01");
 					await page.getByRole("button", { name: "撤销操作", exact: true }).tap();
@@ -913,7 +906,10 @@ async function recordLayout(page?: any, width?: any) {
 					});
 					await page
 						.locator("#modal")
-						.getByRole("button", { name: "延后十分钟", exact: true })
+						.getByRole("button", {
+							name: "10 分钟后在 Sill 内再提醒，不改来源里的时间",
+							exact: true,
+						})
 						.tap();
 					assert.ok(
 						(await state(page, "reminder-01")).snoozedUntil >

@@ -100,7 +100,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		scrollbar-gutter: auto;
 	}
 	main {
-		padding: 16px 16px 130px;
+		padding: 8px var(--margin-sm) 130px;
 	}
 	.card-more-trigger {
 		opacity: 1;
@@ -130,9 +130,6 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	}
 	.card-more-trigger:before {
 		inset: 0;
-	}
-	.feed-card .card-body > :last-child {
-		padding-right: 32px;
 	}
 	.card-more-menu,
 	.card-more-leaving {
@@ -586,4 +583,251 @@ body.reduce-motion .nav-tab:active .nav-icon {
 /* The local AI window can return to the search that supplied its context. */
 #modal.page .ai-conversation .sheet-close {
 	display: block;
+}
+
+/* Phone home (ADR 0036): X-like density, still cards. Desktop keeps its own spacing. */
+@media (max-width: 650px) {
+	:root {
+		--home-top-h: 88px;
+	}
+	main {
+		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
+	}
+	.home-top {
+		position: fixed;
+		z-index: 44;
+		top: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		padding-top: env(safe-area-inset-top);
+		background: var(--frost);
+		-webkit-backdrop-filter: blur(28px) saturate(1.6);
+		backdrop-filter: blur(28px) saturate(1.6);
+		border-bottom: 0.5px solid var(--line);
+		transition:
+			transform 380ms var(--ease-sheet),
+			opacity 240ms var(--ease),
+			visibility 0s;
+	}
+	.home-top.is-tucked {
+		transform: translateY(calc(-100% + env(safe-area-inset-top)));
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition:
+			transform var(--dur-tuck) var(--ease),
+			opacity var(--dur-tuck) var(--ease),
+			visibility 0s var(--dur-tuck);
+	}
+	body:has(#modal[open]) .home-top {
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	.home-mark {
+		align-self: center;
+		display: grid;
+		place-items: center;
+		width: var(--hit-target);
+		height: var(--hit-target);
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		color: var(--ink);
+	}
+	.home-tabs {
+		display: flex;
+		height: var(--hit-target);
+		padding: 0 4px;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.home-tab {
+		position: relative;
+		flex: 1 0 auto;
+		padding: 0 12px;
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: var(--text-body);
+		color: var(--muted);
+		white-space: nowrap;
+	}
+	.home-tab[aria-pressed="true"] {
+		color: var(--ink);
+		font-weight: 700;
+	}
+	.home-tab[aria-pressed="true"]::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		width: 28px;
+		height: 3px;
+		translate: -50% 0;
+		border-radius: 2px;
+		background: var(--ink);
+	}
+	/* New content waits at the top: under the tabs, or under the status bar once they tuck away. */
+	#new-count {
+		top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
+		bottom: auto;
+	}
+	body:has(.home-top.is-tucked) #new-count {
+		top: calc(env(safe-area-inset-top) + 8px);
+	}
+	body:has(#dock.is-tucked) #new-count {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+
+	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
+	.feed-item.feed-card {
+		border-radius: var(--card-radius-sm);
+	}
+	.feed-item .card-body {
+		padding: var(--card-padding-sm);
+	}
+	.feed-item .card-summary {
+		-webkit-line-clamp: 2;
+	}
+	.feed-item :is(.card-head, .sender) {
+		padding-right: 0;
+	}
+	/* A person's head reads on one line: small portrait, name, then mail and time. */
+	.feed-item .sender {
+		gap: 8px;
+	}
+	.feed-item .sender .avatar {
+		width: 20px !important;
+		height: 20px !important;
+		font-size: 11px;
+	}
+	.feed-item .sender > span:last-child {
+		flex-direction: row;
+		align-items: baseline;
+		gap: 4px;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+	.feed-item .sender b {
+		font-size: var(--text-meta);
+	}
+	.feed-item .sender small {
+		font-size: var(--text-meta);
+	}
+	.feed-item .sender small::before {
+		content: "· ";
+	}
+	/* Articles: a thumbnail on the right. Video and photos keep a 2:1 picture. */
+	.feed-item.has-cover:not(.type-media, .type-photo) {
+		flex-direction: row-reverse;
+		align-items: flex-start;
+	}
+	.feed-item.has-cover:not(.type-media, .type-photo) .card-cover {
+		width: var(--thumb);
+		height: var(--thumb);
+		aspect-ratio: auto;
+		margin: var(--card-padding-sm) var(--card-padding-sm) var(--card-padding-sm) 0;
+		border-radius: var(--control-radius);
+	}
+	.feed-item.has-cover:not(.type-media, .type-photo) .card-body {
+		flex: 1;
+		min-width: 0;
+		padding-right: 12px;
+	}
+	.feed-item:is(.type-media, .type-photo) .card-cover {
+		aspect-ratio: 2 / 1;
+	}
+	.feed-item .attachment {
+		align-self: stretch;
+		width: 100%;
+		margin-top: 0;
+	}
+	.feed-item .ref {
+		min-height: 32px;
+	}
+	/* Actions: a compact pill that still answers a 44px touch. */
+	.feed-item .pill {
+		position: relative;
+		min-height: 36px;
+	}
+	.feed-item .pill::after {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
+	}
+	/* Events: the start time is a column; title and span sit beside it; join shares the people row. */
+	.feed-item.type-event .card-body {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		column-gap: 12px;
+		row-gap: 2px;
+	}
+	.feed-item.type-event .card-head {
+		grid-column: 1 / -1;
+		margin-bottom: 6px;
+	}
+	.feed-item.type-event .event-time {
+		display: contents;
+	}
+	.feed-item.type-event .event-start {
+		grid-column: 1;
+		grid-row: 2 / span 2;
+		font-size: var(--text-figure-route);
+		line-height: 1;
+	}
+	.feed-item.type-event .card-title {
+		grid-column: 2;
+		grid-row: 2;
+		font-size: var(--text-body);
+	}
+	.feed-item.type-event .event-end {
+		grid-column: 2;
+		grid-row: 3;
+		flex-direction: row;
+		align-items: baseline;
+		gap: 4px;
+		padding-bottom: 0;
+		font-size: var(--text-meta);
+		font-weight: 400;
+		color: var(--muted);
+	}
+	.feed-item.type-event .event-end small::before {
+		content: "· ";
+	}
+	.feed-item.type-event .people {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		margin-top: 8px;
+		padding-top: 0;
+	}
+	.feed-item.type-event .card-actions-row {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		justify-self: end;
+		margin-top: 8px;
+		padding-top: 0;
+	}
+	.feed-item.type-event .card-actions-row .pill {
+		min-width: 96px;
+	}
+	/* To-dos: 28px rows; the head count already says how many there are. */
+	.feed-item.type-task .check-item {
+		min-height: 28px;
+		padding: 0;
+	}
+	.feed-item.type-task .check-dot {
+		width: 18px;
+		height: 18px;
+		flex-basis: 18px;
+	}
+	.feed-item.type-task .more-items {
+		display: none;
+	}
 }

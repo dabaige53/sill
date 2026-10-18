@@ -106,6 +106,12 @@ const FeedPolicy: Record<string, any> = {
 			})
 			.map((x?: any) => x.c);
 	},
+	/** A reminder head shows the source's own time; due only while it still waits in Sill. */
+	reminderTime(c?: any, s: any = {}, now: any = Date.now()) {
+		const at = s.snoozedUntil || c.due;
+		if (!Number.isFinite(at) || at <= 0) return null;
+		return { at, due: at <= now && !s.reminderDone && !s.dismissed };
+	},
 	label(c?: any, s?: any, now?: any) {
 		if (s.dismissed) return copy("web.feedpolicy.f641f7ed9f5d");
 		if (s.reminderDone) return copy("web.feedpolicy.0eb5f2f421ed");

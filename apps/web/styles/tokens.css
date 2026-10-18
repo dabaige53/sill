@@ -36,7 +36,8 @@
 	--rounded:
 		ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
 	--gap: 24px;
-	--gap-sm: 16px;
+	--gap-sm: 6px;
+	--margin-sm: 8px;
 	--gap-md: 20px;
 	--col-min: 280px;
 	--col-ideal: 340px;
@@ -46,8 +47,11 @@
 	--summary-lines: 3;
 	--block-gap: 8px;
 	--card-padding: 18px;
+	--card-padding-sm: 14px;
 	--cover-inset: 8px;
+	--thumb: 76px;
 	--card-radius: 22px;
+	--card-radius-sm: 16px;
 	--cover-radius: 14px;
 	--panel-radius: 24px;
 	--sheet-radius: 28px;

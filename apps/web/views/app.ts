@@ -10,7 +10,13 @@ import {
 	eventTimely,
 	minutes,
 } from "../atoms/primitives.ts";
-import { cardHTML, shelfHTML, stackHTML, stackOpenHTML } from "../cards/templates.ts";
+import {
+	CardPresentation,
+	cardHTML,
+	shelfHTML,
+	stackHTML,
+	stackOpenHTML,
+} from "../cards/templates.ts";
 import { copy } from "../copy.ts";
 import { cardSource, cardSourceKind } from "../data/card-source.ts";
 import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
@@ -169,10 +175,10 @@ class AppController {
 		Store.load();
 		if (window.__QG_RUNTIME__) Store.state.cards = [];
 		this.sort = Store.pref("sort");
-		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
-   <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
+		document.body.innerHTML = `${this.homeTopHTML()}<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
+   <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button>
    <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}${this.selectionAIHTML()}</div>
-   ${this.navHTML()}</div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
+   ${this.navHTML()}</div><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
 		this.grid = document.getElementById("feed-grid");
@@ -237,7 +243,7 @@ class AppController {
 		// The rail tucks away while reading on and returns on a pause or a turn back.
 		this.railHide = new ChromeAutoHide(
 			window,
-			() => [dock, document.getElementById("scroll-edge")],
+			() => [dock, document.getElementById("scroll-edge"), document.getElementById("home-top")],
 			() => this.drag?.active || this.drag?.menu?.open,
 		);
 		window.addEventListener("popstate", () => this.route());
@@ -427,7 +433,9 @@ class AppController {
 				if (!q && !statusOnly && this.shelfOf(c) !== "desk") return false;
 				return (
 					FeedPolicy.visible(c, s, f.status) &&
-					(f.type === "all" || c.type === f.type) &&
+					(f.type === "all" ||
+						c.type === f.type ||
+						(f.type === "todo" && ["task", "reminder"].includes(c.type))) &&
 					(statusOnly ||
 						f.status === "all" ||
 						(f.status === "unread" && !s.read) ||
@@ -673,7 +681,44 @@ class AppController {
 		}
 	}
 	updateFilterIndicator() {
-		document.getElementById("dock").classList.toggle("filter-active", this.filtering());
+		const tab = this.homeTab();
+		document.getElementById("dock").classList.toggle("filter-active", this.filtering() && !tab);
+		document.querySelectorAll<HTMLElement>(".home-tab").forEach((n) => {
+			n.setAttribute("aria-pressed", String(n.dataset.extra === (tab || "")));
+		});
+	}
+	/** Phone home head: the mark goes back to the top; the tabs only filter home, never search. */
+	homeTopHTML() {
+		const tabs = [
+			["all", copy("web.all")],
+			["unread", copy("web.unread")],
+			["todo", copy("web.home.todo")],
+			["later", copy("web.later")],
+			["saved", copy("web.bookmark")],
+		];
+		return `<header id="home-top" class="home-top"><button type="button" class="home-mark" data-action="top" aria-label="${copy("web.home.top")}">${icon("sill", 26)}</button><div class="home-tabs" role="group" aria-label="${copy("web.home.tabs")}">${tabs.map(([key, label]) => `<button type="button" class="home-tab" data-action="home-tab" data-extra="${key}" aria-pressed="${key === "all"}">${label}</button>`).join("")}</div></header>`;
+	}
+	homeTabFilter(key: string) {
+		return (
+			{
+				all: { type: "all", status: "all" },
+				unread: { type: "all", status: "unread" },
+				todo: { type: "todo", status: "all" },
+				later: { type: "all", status: "later" },
+				saved: { type: "all", status: "saved" },
+			} as Record<string, { type: string; status: string }>
+		)[key];
+	}
+	/** The tab the home filter matches, or "" when another filter is in use. */
+	homeTab() {
+		const f = this.filter;
+		if (f.tag || f.query) return "";
+		return (
+			["all", "unread", "todo", "later", "saved"].find((key) => {
+				const t = this.homeTabFilter(key);
+				return t.type === f.type && t.status === f.status;
+			}) || ""
+		);
 	}
 	selectionAIHTML() {
 		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-wave" aria-hidden="true"><i></i><i></i><i></i></span><span data-ai-label>${copy("web.selection.aiDrop")}</span></button>`;
@@ -1760,9 +1805,12 @@ class AppController {
 		if (n.dataset.pending === signature) return;
 		n.dataset.pending = signature;
 		MotionEngine.visibility(n, !hide);
-		n.innerHTML = this.pendingReminders.length
-			? `${icon("bell", 14)}<span class="num">${count}</span>${copy("web.app.e57ff9e28a4b")}`
-			: `${icon("up", 14)}<span class="num">${count}</span>${copy("web.app.b50caa663fcf")}`;
+		const kinds = [
+			...(this.pendingReminders.length ? [icon("bell", 12)] : []),
+			...this.pendingCards.map((c?: any) => CardPresentation.sourceIcon(c, 12)),
+		];
+		const sources = [...new Set(kinds)].slice(0, 3);
+		n.innerHTML = `${sources.length ? `<span class="new-sources" aria-hidden="true">${sources.map((k) => `<span>${k}</span>`).join("")}</span>` : ""}${icon("up", 14)}<span class="num">${count}</span>${copy("web.newContent")}`;
 		n.setAttribute(
 			"aria-label",
 			`${copy("web.app.9ae8f7e3040d")}${this.pendingCards.length}${copy("web.app.5b2f6ba24e42")}${this.pendingReminders.length}${copy("web.app.099a1047b74a")}`,
@@ -2256,8 +2304,10 @@ class AppController {
 						)
 							this.refreshCard(c.id);
 					} else if (c.type === "reminder") {
+						// The time itself is fixed; only crossing it turns the time amber.
+						const when = FeedPolicy.reminderTime(c, Store.item(c.id), Date.now());
 						const label = node.querySelector(".reminder-label");
-						if (label) label.textContent = FeedPolicy.label(c, Store.item(c.id), Date.now());
+						if (label && label.classList.contains("is-due") !== !!when?.due) this.refreshCard(c.id);
 					}
 				});
 			}
@@ -2571,6 +2621,14 @@ class AppController {
 			case "top":
 				window.scrollTo({ top: 0, behavior: MotionEngine.reduced ? "instant" : "smooth" });
 				break;
+			case "home-tab": {
+				const tab = this.homeTabFilter(extra);
+				if (!tab) break;
+				this.filter = { ...this.filter, ...tab, tag: "", query: "" };
+				window.scrollTo({ top: 0, behavior: "instant" });
+				this.renderCurrent(true);
+				break;
+			}
 			case "card-open":
 			case "preview":
 				this.navigate("#card/" + id);

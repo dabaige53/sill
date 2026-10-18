@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-17。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
+更新：2026-10-18。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
 
@@ -47,6 +47,7 @@
 - [不接入外部来源，内容由助手写入，连接器只用 Composio](adr/0033-ai-writes-composio-only.md)
 - [玻璃底栏取代入口球，工具条滚动时收起](adr/0034-glass-rail-and-tucking-bars.md)
 - [底部导航胶囊取代右下玻璃按钮组](adr/0035-bottom-navigation-capsule.md)
+- [手机主页参考 X 的密度，仍用卡片](adr/0036-phone-home-density.md)
 
 ## 记录
 
@@ -82,6 +83,7 @@
 
 - [2026-10-16-remove-sources-import：删除来源连接与文件导入](records/2026-10-16-remove-sources-import/README.md)
 - [2026-10-16-cloud-operations：云端工作区操作与 Agent 优先](records/2026-10-16-cloud-operations/README.md)
+- [2026-10-18-phone-home-x-density：手机主页参考 X 的密度](records/2026-10-18-phone-home-x-density/README.md)
 
 ## 归档
 

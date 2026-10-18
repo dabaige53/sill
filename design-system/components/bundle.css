@@ -467,23 +467,64 @@ body:has(#modal[open]:not(.page)) #dock * {
 .scroll-edge.is-tucked {
 	opacity: 0;
 }
-/* New content and offline float just above the capsule, centred, so the capsule never shifts. */
-#dock :is(#new-count, #offline) {
+/* New content and offline float just above the capsule, centred, so the capsule never shifts.
+   New content sits outside the dock so the phone can lift it to the top (ADR 0036). */
+#dock #offline {
 	position: absolute;
 	left: 50%;
 	bottom: calc(100% + 10px);
 	translate: -50% 0;
 }
 #new-count {
+	position: fixed;
+	z-index: 46;
+	left: 50%;
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 10px);
+	translate: -50% 0;
 	height: 40px;
 	padding: 0 16px;
 	border-radius: var(--pill-radius);
 	font-size: var(--text-meta);
-	font-weight: 500;
-	color: var(--accent);
+	font-weight: 600;
+	color: var(--ink);
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
+	transition:
+		top var(--dur-tuck) var(--ease),
+		opacity 240ms var(--ease),
+		visibility 0s;
+}
+#new-count:has(.new-sources) {
+	padding-left: 8px;
+}
+.new-sources {
+	display: inline-flex;
+	margin-right: 2px;
+}
+.new-sources > span {
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	margin-left: -6px;
+	border-radius: 50%;
+	background: var(--card);
+	border: 1px solid var(--line);
+	color: var(--secondary);
+}
+.new-sources > span:first-child {
+	margin-left: 0;
+}
+/* Desktop: the notice rides with the capsule and leaves with it. */
+body:has(#dock.is-tucked) #new-count,
+body:has(#modal[open]) #new-count {
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity 220ms var(--ease),
+		visibility 0s 220ms;
 }
 #new-count[hidden] {
 	display: none;
@@ -588,7 +629,8 @@ body:has(#modal[open]:not(.page)) #dock * {
 	overflow: visible;
 	scrollbar-width: none;
 }
-#dock:has(#selection-bar:not([hidden])) :is(#new-count, #offline) {
+#dock:has(#selection-bar:not([hidden])) #offline,
+body:has(#selection-bar:not([hidden])) #new-count {
 	display: none;
 }
 :is(#selection-bar, #search-selection-bar)[hidden] {
@@ -900,6 +942,11 @@ body.is-dragging #toast {
 	margin-top: 60px;
 }
 
+/* Phone home head (ADR 0036): only phones show it; see responsive.css. */
+.home-top {
+	display: none;
+}
+
 /* Sill · cards · shared source
  * Content stays on opaque white surfaces. Color communicates an action or state.
  * Heights follow content; the layout engine owns column widths and placement.
@@ -1039,13 +1086,13 @@ body.is-dragging #toast {
 	color: var(--accent);
 	font-weight: 500;
 }
+/* A reminder shows the source's time: muted until it comes due, then amber. */
 .reminder-label {
 	color: var(--muted);
-}
-.reminder-label.is-due,
-.type-reminder .reminder-label {
-	color: var(--alert);
 	font-weight: 500;
+}
+.reminder-label.is-due {
+	color: var(--alert);
 }
 .task-count,
 .stack-count {
@@ -1433,7 +1480,7 @@ button.ref:hover {
 	width: 20px;
 	height: 20px;
 	flex: 0 0 20px;
-	border: 1.5px solid var(--done-strike);
+	border: 1.5px solid var(--accent);
 	border-radius: 50%;
 	color: #fff;
 	transition:
@@ -1446,7 +1493,8 @@ button.ref:hover {
 .check-item.is-done > span:last-child {
 	color: var(--muted);
 }
-.check-item.is-done .check-dot {
+.check-item.is-done .check-dot,
+.check-dot.is-done {
 	background: var(--accent-fill);
 	border-color: var(--accent);
 }
@@ -1514,10 +1562,33 @@ button.ref:hover {
 .reminder-row {
 	display: flex;
 	align-items: center;
-	gap: 14px;
+	gap: 12px;
 }
 .reminder-row .card-title {
 	min-width: 0;
+}
+/* The circle is the reminder's only action: a 44px target around a 22px mark, Sill state only. */
+.reminder-check {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	margin: -11px -11px -11px -11px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	cursor: pointer;
+}
+.reminder-check .check-dot {
+	width: 22px;
+	height: 22px;
+	flex-basis: 22px;
+	border-width: 1.8px;
+}
+.reminder-check:hover .check-dot:not(.is-done) {
+	background: var(--accent-soft);
 }
 .reminder-actions,
 .card-actions-row {

@@ -10,6 +10,7 @@ import {
 	eventTimely,
 	pill,
 	relativeDay,
+	reminderClock,
 	segmented,
 	timeString,
 	toggle,
@@ -112,12 +113,12 @@ const Panels: Record<string, any> = {
 			s.dismissed || s.reminderDone || s.snoozedUntil
 				? pill(copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "soft")
 				: pill(
-						copy("web.templates.2d89d6318b38"),
+						copy("web.reminder.again"),
 						"snooze",
 						c.id,
 						"soft grow",
 						"",
-						copy("web.templates.5273ca462f40"),
+						copy("web.reminder.againLabel"),
 					) +
 					(c.type === "reminder"
 						? pill(
@@ -228,7 +229,17 @@ const Panels: Record<string, any> = {
 					: "";
 			const label =
 				c.type === "reminder"
-					? [copy("web.reminder"), FeedPolicy.label(c, s, Date.now())].filter(Boolean).join(" · ")
+					? [
+							...new Set([
+								copy("web.reminder"),
+								cardSource(c),
+								FeedPolicy.reminderTime(c, s)
+									? reminderClock(FeedPolicy.reminderTime(c, s).at)
+									: "",
+							]),
+						]
+							.filter(Boolean)
+							.join(" · ")
 					: c.meta || "";
 			return (
 				sheet(

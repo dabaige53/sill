@@ -137,13 +137,13 @@
 	color: var(--accent);
 	font-weight: 500;
 }
+/* A reminder shows the source's time: muted until it comes due, then amber. */
 .reminder-label {
 	color: var(--muted);
-}
-.reminder-label.is-due,
-.type-reminder .reminder-label {
-	color: var(--alert);
 	font-weight: 500;
+}
+.reminder-label.is-due {
+	color: var(--alert);
 }
 .task-count,
 .stack-count {
@@ -531,7 +531,7 @@ button.ref:hover {
 	width: 20px;
 	height: 20px;
 	flex: 0 0 20px;
-	border: 1.5px solid #c7c7cc;
+	border: 1.5px solid var(--accent);
 	border-radius: 50%;
 	color: #fff;
 	transition:
@@ -544,7 +544,8 @@ button.ref:hover {
 .check-item.is-done > span:last-child {
 	color: var(--muted);
 }
-.check-item.is-done .check-dot {
+.check-item.is-done .check-dot,
+.check-dot.is-done {
 	background: var(--accent-fill);
 	border-color: var(--accent);
 }
@@ -612,10 +613,33 @@ button.ref:hover {
 .reminder-row {
 	display: flex;
 	align-items: center;
-	gap: 14px;
+	gap: 12px;
 }
 .reminder-row .card-title {
 	min-width: 0;
+}
+/* The circle is the reminder's only action: a 44px target around a 22px mark, Sill state only. */
+.reminder-check {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	margin: -11px -11px -11px -11px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	cursor: pointer;
+}
+.reminder-check .check-dot {
+	width: 22px;
+	height: 22px;
+	flex-basis: 22px;
+	border-width: 1.8px;
+}
+.reminder-check:hover .check-dot:not(.is-done) {
+	background: var(--accent-soft);
 }
 .reminder-actions,
 .card-actions-row {

@@ -13,6 +13,7 @@ import {
 	eventTimely,
 	minutes,
 	pill,
+	reminderClock,
 	ring,
 	timeString,
 } from "../atoms/primitives.ts";
@@ -165,19 +166,19 @@ const CardTemplates: Record<string, any> = {
    ${this.title(c, ctx)}${c.people?.length ? `<div class="people">${avatars(c.people)}<span>${esc(c.people.join("、"))}</span></div>` : ""}
    ${timely && !ctx.passive ? `<div class="card-actions-row">${pill(copy("web.templates.451755e3831f"), "join", c.id, "primary", "", `${copy("web.templates.451755e3831f")}${c.meeting.name}`)}</div>` : ""}</div>`;
 	},
+	// The head shows the source's own time; the circle is the only action and only changes Sill.
 	reminder(c?: any, ctx?: any) {
 		const s = ctx.state,
-			settled = s.reminderDone || s.dismissed || s.snoozedUntil > 0,
-			label = FeedPolicy.label(c, s, ctx.now);
-		const due = !settled && /现在|到期/.test(label);
-		const acts = ctx.passive
-			? ""
-			: settled
-				? pill(copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "soft")
-				: `${pill(copy("web.templates.2d89d6318b38"), "snooze", c.id, "soft grow", "", copy("web.templates.5273ca462f40"))}${pill(copy("web.done"), "complete-reminder", c.id, "primary", "", copy("web.templates.56c2b97093d8"))}`;
-		return `<div class="card-body">${this.head(c, ctx, copy("web.reminder"), `<span class="reminder-label ${due ? "is-due" : ""}">${esc(label)}</span>`)}
-   <div class="reminder-row"><span class="check-dot" aria-hidden="true"></span>${this.title(c, ctx)}</div>${c.summary ? `<p class="card-summary indent">${esc(c.summary)}</p>` : ""}
-   <div class="reminder-actions" role="group" aria-label="${copy("web.templates.9d9382cf8476")}">${acts}</div></div>`;
+			done = !!s.reminderDone,
+			when = FeedPolicy.reminderTime(c, s, ctx.now);
+		const time = when
+			? `<span class="reminder-label num ${when.due ? "is-due" : ""}">${esc(reminderClock(when.at, ctx.now))}</span>`
+			: "";
+		const mark = ctx.passive
+			? `<span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span>`
+			: `<button type="button" class="reminder-check" data-action="${done ? "restore-reminder" : "complete-reminder"}" data-id="${esc(c.id)}" aria-pressed="${done}" aria-label="${done ? copy("web.reminder.restore") : copy("web.reminder.complete")}"><span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span></button>`;
+		return `<div class="card-body">${this.head(c, ctx, [...new Set([copy("web.reminder"), cardSource(c)].filter(Boolean))].join(" · "), time)}
+   <div class="reminder-row">${mark}${this.title(c, ctx)}</div>${c.summary ? `<p class="card-summary indent">${esc(c.summary)}</p>` : ""}</div>`;
 	},
 	media(c?: any, ctx?: any) {
 		const s = ctx.state;

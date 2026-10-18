@@ -142,9 +142,9 @@
           "type": "image/svg+xml"
         },
         "folder.svg": {
-          "blob": "c0e6ef502f2ead37132ac875cc6477d7",
+          "blob": "becf183b7ac84e01599baa4cb78f6030",
           "name": "folder.svg",
-          "size": 276,
+          "size": 279,
           "type": "image/svg+xml"
         },
         "forward.svg": {
@@ -220,9 +220,9 @@
           "type": "image/svg+xml"
         },
         "mail.svg": {
-          "blob": "5b4b9f59e8bb8821f69335b50d6c7c90",
+          "blob": "e7e006f02fa25d6037c09bfde0650508",
           "name": "mail.svg",
-          "size": 270,
+          "size": 278,
           "type": "image/svg+xml"
         },
         "mic.svg": {
@@ -376,9 +376,9 @@
           "type": "image/svg+xml"
         },
         "video.svg": {
-          "blob": "ef12bd95a930063b068fb0d5909ba03b",
+          "blob": "23eb3cfb6c325e774b48546b2f2ec68b",
           "name": "video.svg",
-          "size": 276,
+          "size": 285,
           "type": "image/svg+xml"
         },
         "x.svg": {
@@ -397,6 +397,12 @@
           "blob": "f139370679c3b326af56726a82f46df4",
           "name": "home.svg",
           "size": 285,
+          "type": "image/svg+xml"
+        },
+        "sill.svg": {
+          "blob": "a1e4f044157f8f7dcb5550c9bafa9d0c",
+          "name": "sill.svg",
+          "size": 308,
           "type": "image/svg+xml"
         }
       },
@@ -459,6 +465,7 @@
         "search.svg",
         "select.svg",
         "send.svg",
+        "sill.svg",
         "sparkles.svg",
         "tag.svg",
         "target.svg",
@@ -485,10 +492,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-17T00:20:00Z",
+    "at": "2026-10-18T03:30:00Z",
     "by": "dabaige53",
     "via": "Claude Code",
-    "note": "文档跟进导航胶囊：手机搜索是页面、胶囊不让开；多选条与导航胶囊同一行、行高 60"
+    "note": "手机主页参考 X 的密度（ADR 0036）：收紧间距、文章缩略图、提醒卡圆圈即完成、顶栏分栏标签、新内容提示移到顶部；sill、mail、video、folder 图标更方正"
   },
   "layout": "files",
   "libraries": [],

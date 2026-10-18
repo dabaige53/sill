@@ -257,23 +257,64 @@ body:has(#modal[open]:not(.page)) #dock * {
 .scroll-edge.is-tucked {
 	opacity: 0;
 }
-/* New content and offline float just above the capsule, centred, so the capsule never shifts. */
-#dock :is(#new-count, #offline) {
+/* New content and offline float just above the capsule, centred, so the capsule never shifts.
+   New content sits outside the dock so the phone can lift it to the top (ADR 0036). */
+#dock #offline {
 	position: absolute;
 	left: 50%;
 	bottom: calc(100% + 10px);
 	translate: -50% 0;
 }
 #new-count {
+	position: fixed;
+	z-index: 46;
+	left: 50%;
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 10px);
+	translate: -50% 0;
 	height: 40px;
 	padding: 0 16px;
 	border-radius: var(--pill-radius);
 	font-size: var(--text-meta);
-	font-weight: 500;
-	color: var(--accent);
+	font-weight: 600;
+	color: var(--ink);
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
+	transition:
+		top var(--dur-tuck) var(--ease),
+		opacity 240ms var(--ease),
+		visibility 0s;
+}
+#new-count:has(.new-sources) {
+	padding-left: 8px;
+}
+.new-sources {
+	display: inline-flex;
+	margin-right: 2px;
+}
+.new-sources > span {
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	margin-left: -6px;
+	border-radius: 50%;
+	background: var(--card);
+	border: 1px solid var(--line);
+	color: var(--secondary);
+}
+.new-sources > span:first-child {
+	margin-left: 0;
+}
+/* Desktop: the notice rides with the capsule and leaves with it. */
+body:has(#dock.is-tucked) #new-count,
+body:has(#modal[open]) #new-count {
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity 220ms var(--ease),
+		visibility 0s 220ms;
 }
 #new-count[hidden] {
 	display: none;
@@ -378,7 +419,8 @@ body:has(#modal[open]:not(.page)) #dock * {
 	overflow: visible;
 	scrollbar-width: none;
 }
-#dock:has(#selection-bar:not([hidden])) :is(#new-count, #offline) {
+#dock:has(#selection-bar:not([hidden])) #offline,
+body:has(#selection-bar:not([hidden])) #new-count {
 	display: none;
 }
 :is(#selection-bar, #search-selection-bar)[hidden] {
@@ -688,4 +730,9 @@ body.is-dragging #toast {
 }
 #search-selection-bar {
 	margin-top: 60px;
+}
+
+/* Phone home head (ADR 0036): only phones show it; see responsive.css. */
+.home-top {
+	display: none;
 }

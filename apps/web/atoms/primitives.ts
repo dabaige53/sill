@@ -62,6 +62,12 @@ function dateLabel(ts?: any) {
 	const d = new Date(ts);
 	return `${d.getMonth() + 1}${copy("web.primitives.1625179badc0")}${d.getDate()}${copy("web.primitives.453e841e7da3")}${d.toLocaleDateString("zh-CN", { weekday: "short" })}`;
 }
+/** A reminder's own time: the clock today, the date before it on any other day. */
+function reminderClock(at?: any, now: any = Date.now()) {
+	return new Date(at).toDateString() === new Date(now).toDateString()
+		? timeString(at)
+		: `${dateLabel(at)} ${timeString(at)}`;
+}
 function relativeDay(ts?: any, now: any = Date.now()) {
 	const day = 86400000,
 		start = new Date(now);
@@ -140,6 +146,7 @@ export {
 	minutes,
 	pill,
 	relativeDay,
+	reminderClock,
 	ring,
 	segmented,
 	tagChip,
