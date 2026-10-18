@@ -232,7 +232,7 @@ async function recordLayout(page?: any, width?: any) {
 				await action(page, "preview", "reminder-01");
 				await page
 					.locator("#modal")
-					.getByRole("button", { name: "10 分钟后在 Sill 内再提醒，不改来源里的时间", exact: true })
+					.getByRole("button", { name: "在 Sill 内再提醒", exact: true })
 					.click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				const deadline = (await state(page, "reminder-01")).snoozedUntil;
@@ -277,12 +277,13 @@ async function recordLayout(page?: any, width?: any) {
 				await page.getByRole("button", { name: "撤销操作", exact: true }).click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				await action(page, "preview", "reminder-01");
-				await page.locator("#modal").getByRole("button", { name: "完成提醒", exact: true }).click();
+				// The detail's circle completes the reminder in Sill, as on the card (ADR 0037).
+				await page.locator("#modal").getByRole("button", { name: "完成", exact: true }).click();
 				assert.equal((await state(page, "reminder-01")).reminderDone, true);
 				await filter(page, "all");
 				assert.equal(await page.locator('#search-results [data-card="reminder-01"]').count(), 1);
 				await page.locator('#search-results [data-card="reminder-01"] .card-title-button').click();
-				await page.locator("#modal").getByRole("button", { name: "恢复提醒", exact: true }).click();
+				await page.locator("#modal").getByRole("button", { name: "恢复", exact: true }).click();
 				await page.locator("#filter-search").waitFor();
 				assert.equal((await state(page, "reminder-01")).reminderDone, false);
 				await action(page, "clear-filter");
@@ -907,7 +908,7 @@ async function recordLayout(page?: any, width?: any) {
 					await page
 						.locator("#modal")
 						.getByRole("button", {
-							name: "10 分钟后在 Sill 内再提醒，不改来源里的时间",
+							name: "在 Sill 内再提醒",
 							exact: true,
 						})
 						.tap();

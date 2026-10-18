@@ -80,6 +80,13 @@ const CardPresentation: Record<string, any> = {
 		);
 	},
 };
+/** The reminder's circle: done in Sill only. The card and its detail use the same control. */
+export function reminderMark(c?: any, done?: boolean, passive?: boolean) {
+	const dot = `<span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span>`;
+	return passive
+		? dot
+		: `<button type="button" class="reminder-check" data-action="${done ? "restore-reminder" : "complete-reminder"}" data-id="${esc(c.id)}" aria-pressed="${!!done}" aria-label="${done ? copy("web.reminder.restore") : copy("web.reminder.complete")}">${dot}</button>`;
+}
 const CardTemplates: Record<string, any> = {
 	head(c?: any, ctx?: any, text?: any, right: any = "") {
 		return `<div class="card-head">${CardPresentation.sourceIcon(c)}<span class="card-src">${esc(text)}</span>${right ? `<span class="card-head-right">${right}</span>` : ""}</div>`;
@@ -174,9 +181,7 @@ const CardTemplates: Record<string, any> = {
 		const time = when
 			? `<span class="reminder-label num ${when.due ? "is-due" : ""}">${esc(reminderClock(when.at, ctx.now))}</span>`
 			: "";
-		const mark = ctx.passive
-			? `<span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span>`
-			: `<button type="button" class="reminder-check" data-action="${done ? "restore-reminder" : "complete-reminder"}" data-id="${esc(c.id)}" aria-pressed="${done}" aria-label="${done ? copy("web.reminder.restore") : copy("web.reminder.complete")}"><span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span></button>`;
+		const mark = reminderMark(c, done, ctx.passive);
 		return `<div class="card-body">${this.head(c, ctx, [...new Set([copy("web.reminder"), cardSource(c)].filter(Boolean))].join(" · "), time)}
    <div class="reminder-row">${mark}${this.title(c, ctx)}</div>${c.summary ? `<p class="card-summary indent">${esc(c.summary)}</p>` : ""}</div>`;
 	},

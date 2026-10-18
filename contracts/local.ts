@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { Card, id, timestamp } from "./card.ts";
+import { CardActions } from "./card-actions.ts";
 
 export const CardState = z
 	.object({
@@ -38,6 +39,7 @@ export const Preferences = z
 		reduceMotion: z.boolean().optional(),
 		aiLocal: z.boolean().optional(),
 		onboarded: z.boolean().optional(),
+		hiddenActions: z.array(z.enum(CardActions)).max(CardActions.length).optional(),
 	})
 	.passthrough();
 export const State = z

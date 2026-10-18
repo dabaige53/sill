@@ -21,7 +21,7 @@ import { copy } from "../copy.ts";
 import { cardSource, cardSourceKind } from "../data/card-source.ts";
 import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
-import { ChromeAutoHide } from "../interactions/chrome.ts";
+import { ChromeAutoHide, toolbarTips } from "../interactions/chrome.ts";
 import { DragManager } from "../interactions/drag.ts";
 import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
@@ -193,6 +193,7 @@ class AppController {
 		this.drag = new DragManager(this);
 		this.gestures = new Gestures(this);
 		document.addEventListener("click", (e?: any) => this.click(e));
+		toolbarTips(document);
 		this.grid.addEventListener("contextmenu", (e: MouseEvent) => {
 			const card = (e.target as Element).closest<HTMLElement>("[data-card]");
 			if (!card || this.drag.active || this.drag.pending) return;
@@ -1381,14 +1382,20 @@ class AppController {
 			const placeHead = () => {
 				this.dialog.style.setProperty("--preview-height", `${sheet.offsetHeight}px`);
 				const title = sheet.querySelector("#modal-title");
-				if (title) {
+				// The disc sits in the source row above the title, so the title keeps the full width.
+				const row = sheet.querySelector(
+					".preview-body > .preview-sender, .preview-body > .preview-meta",
+				);
+				const anchor = row || title;
+				if (anchor) {
 					const top =
-						title.getBoundingClientRect().top -
+						anchor.getBoundingClientRect().top -
 						sheet.getBoundingClientRect().top +
 						scroll.scrollTop;
-					// Align the disc's centre with the first title line.
-					const line = parseFloat(getComputedStyle(title).lineHeight) || 28;
-					sheet.style.setProperty("--preview-title-top", `${Math.max(12, top + line / 2 - 22)}px`);
+					const line = row
+						? anchor.getBoundingClientRect().height
+						: parseFloat(getComputedStyle(anchor).lineHeight) || 28;
+					sheet.style.setProperty("--preview-title-top", `${Math.max(4, top + line / 2 - 22)}px`);
 				}
 			};
 			this.previewSizeObserver = new ResizeObserver(placeHead);
@@ -2873,6 +2880,12 @@ class AppController {
 			case "pref-toggle":
 				this.setPref(id, !Store.pref(id));
 				break;
+			case "action-toggle": {
+				const hidden = new Set<string>(Store.pref("hiddenActions") || []);
+				if (!hidden.delete(id)) hidden.add(id);
+				this.setPref("hiddenActions", [...hidden]);
+				break;
+			}
 			case "toggle-transparency":
 				this.setPref("reduceTransparency", !Store.pref("reduceTransparency"));
 				break;

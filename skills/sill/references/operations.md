@@ -144,6 +144,7 @@
 | `newHint` | `away / off` |
 | `theme` | `system / light / dark` |
 | `density` | `compact / standard / roomy` |
+| `hiddenActions` | 字符串数组，取值 `bookmark / tag / later / reply / open / join / snooze / download / dismiss`；列出的操作不出现在卡片详情底部，功能本身仍可用 |
 
 `aiLocal` 是保留的偏好字段，不能据此声称存在内置助手。`reading.add` 更新工作区累计阅读秒数，总值不能超过 10000000。读取快照核对结果，不重复累加未知结果。
 

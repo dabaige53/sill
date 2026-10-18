@@ -19,6 +19,7 @@ const DefaultPreferences: Record<string, any> = {
 	reduceMotion: false,
 	aiLocal: true,
 	onboarded: true,
+	hiddenActions: [],
 };
 const Store: Record<string, any> = {
 	key: "sill-v1",
@@ -188,7 +189,7 @@ const Store: Record<string, any> = {
 		this.save();
 	},
 	pref(key?: any) {
-		return this.state.preferences[key] ?? DefaultPreferences[key];
+		return this.state.preferences?.[key] ?? DefaultPreferences[key];
 	},
 	setPref(key?: any, value?: any) {
 		this.state.preferences[key] = value;

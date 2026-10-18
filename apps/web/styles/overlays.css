@@ -149,16 +149,33 @@ dialog::backdrop {
 .preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
 	opacity: 1;
 }
-/* The close disc aligns with the title rather than reserving a blank header row. */
+/* The close disc sits in the source row above the title, so the title keeps the whole width.
+   Without a source row it falls back to the first title line. */
 .preview-sheet .sheet-head {
 	top: var(--preview-title-top, 32px);
 	height: 44px;
 }
-.preview-sheet #modal-title {
+.preview-sheet #modal-title,
+.preview-sheet .preview-body > :is(.preview-sender, .preview-meta) {
 	padding-right: 48px;
 }
-.preview-sheet:has(.sheet-head [data-action="reader"]) #modal-title {
+.preview-sheet:has(.sheet-head [data-action="reader"]) #modal-title,
+.preview-sheet:has(.sheet-head [data-action="reader"])
+	.preview-body
+	> :is(.preview-sender, .preview-meta) {
 	padding-right: 92px;
+}
+.preview-sheet:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
+	padding-right: 0;
+}
+.preview-title-row {
+	align-items: flex-start;
+}
+.preview-title-row .reminder-check {
+	margin-top: calc((1.3em - var(--hit-target)) / 2);
+}
+.preview-title-row #modal-title {
+	min-width: 0;
 }
 .preview-sheet.is-scrolled .sheet-head {
 	top: 0;
@@ -475,6 +492,24 @@ button.detail-row:hover {
 }
 .preview-detail-row dd {
 	overflow-wrap: anywhere;
+}
+/* Dates and the source note read as one grey line; empty values are never shown (ADR 0037). */
+.preview-sheet .preview-details {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px 0;
+}
+.preview-sheet .preview-detail-row {
+	display: inline-flex;
+	gap: 4px;
+}
+.preview-sheet .preview-detail-row + .preview-detail-row::before {
+	content: "·";
+	margin: 0 6px;
+}
+.settings-hint {
+	margin: 8px 4px 0;
+	font-size: var(--text-meta);
 }
 
 /* Podcast: playing happens here; progress syncs back to the show. */

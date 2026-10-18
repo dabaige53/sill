@@ -609,7 +609,7 @@ button.ref:hover {
 	text-overflow: ellipsis;
 }
 
-/* act: words, not icons, and only when the moment has come. */
+/* The reminder's circle sits before its title, on the card and in its detail alike. */
 .reminder-row {
 	display: flex;
 	align-items: center;
@@ -641,14 +641,10 @@ button.ref:hover {
 .reminder-check:hover .check-dot:not(.is-done) {
 	background: var(--accent-soft);
 }
-.reminder-actions,
 .card-actions-row {
 	display: flex;
 	gap: 8px;
 	padding-top: 8px;
-}
-.reminder-actions:empty {
-	display: none;
 }
 .pill {
 	display: inline-flex;

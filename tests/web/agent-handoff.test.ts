@@ -274,7 +274,9 @@ test("each card detail has one handoff in its content footer, including digests,
 				card.type,
 			);
 			assert.equal(document.querySelectorAll(".preview-foot .preview-foot").length, 0, card.type);
-			assert.ok(document.querySelectorAll(".float-bar button").length <= 3, card.type);
+			// Shared verbs, then at most three of the card's own (ADR 0037).
+			assert.ok(document.querySelectorAll(".float-bar button:not(.is-own)").length <= 3, card.type);
+			assert.ok(document.querySelectorAll(".float-bar button.is-own").length <= 3, card.type);
 		} finally {
 			dom.window.close();
 		}

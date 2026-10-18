@@ -376,15 +376,12 @@ try {
 			await page.waitForTimeout(450);
 			assert.equal(await page.locator(".preview-sheet.is-full").count(), 0);
 			assert.ok((await page.locator(".preview-sheet").boundingBox()).height < 650);
+			// The close disc centres on the source row above the title (ADR 0037).
 			const alignment = await page.evaluate(() => {
-				const title = document.querySelector("#modal-title");
+				const row = document.querySelector(".preview-body > .preview-meta");
 				const close = document.querySelector('.sheet-head [data-action="close"]');
-				return Math.abs(
-					close.getBoundingClientRect().top +
-						22 -
-						title.getBoundingClientRect().top -
-						parseFloat(getComputedStyle(title).lineHeight) / 2,
-				);
+				const r = row.getBoundingClientRect();
+				return Math.abs(close.getBoundingClientRect().top + 22 - r.top - r.height / 2);
 			});
 			assert.ok(alignment < 3, String(alignment));
 			assert.equal(

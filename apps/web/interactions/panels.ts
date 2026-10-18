@@ -1,3 +1,4 @@
+import { CardActions } from "../../../contracts/card-actions.ts";
 import { icon, sillIcon } from "../atoms/icons.ts";
 import {
 	avatar,
@@ -8,14 +9,13 @@ import {
 	esc,
 	eventRelative,
 	eventTimely,
-	pill,
 	relativeDay,
 	reminderClock,
 	segmented,
 	timeString,
 	toggle,
 } from "../atoms/primitives.ts";
-import { CardPresentation, cardHTML } from "../cards/templates.ts";
+import { CardPresentation, cardHTML, reminderMark } from "../cards/templates.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import { cardDates, cardSource, cardSourceKind, detailSource } from "../data/card-source.ts";
@@ -40,14 +40,15 @@ const Panels: Record<string, any> = {
 	},
 	details(c?: any) {
 		const dates = cardDates(c);
-		const row = (label: string, date: ReturnType<typeof cardDates>["created"], required = false) =>
-			date || required
-				? `<div class="preview-detail-row"><dt>${esc(label)}</dt><dd>${date ? `<time datetime="${esc(date.datetime)}">${esc(date.text)}</time>` : esc(copy("web.metadata.unknown"))}</dd></div>`
+		// A row without a value says nothing; it is left out rather than shown as unknown.
+		const row = (label: string, date: ReturnType<typeof cardDates>["created"]) =>
+			date
+				? `<div class="preview-detail-row"><dt>${esc(label)}</dt><dd><time datetime="${esc(date.datetime)}">${esc(date.text)}</time></dd></div>`
 				: "";
 		const rows = [
-			row(copy("web.metadata.published"), dates.published, c.type === "article"),
+			row(copy("web.metadata.published"), dates.published),
 			row(copy("web.metadata.saved"), dates.saved),
-			row(copy("web.metadata.created"), dates.created, c.type === "article"),
+			row(copy("web.metadata.created"), dates.created),
 			row(
 				copy("web.metadata.updated"),
 				dates.updated && dates.updated.datetime !== dates.created?.datetime ? dates.updated : null,
@@ -84,6 +85,58 @@ const Panels: Record<string, any> = {
 		return `<div class="float-bar glass" role="toolbar" aria-label="${copy("web.panels.c8bf87742cc0")}">${parts.filter(Boolean).join("")}</div>`;
 	},
 	sep: '<span class="toolbar-sep" aria-hidden="true"></span>',
+	/** Every card's toolbar: the shared verbs in ink, a rule, then at most three of this card's own verbs
+	 * in accent. Icons only; the name lives in aria-label and shows on a long press. Settings can hide any. */
+	tools(c?: any, s?: any, own: any[] = []) {
+		const hidden = new Set(Store.pref("hiddenActions") || []);
+		const shared = [
+			["bookmark", this.bookmark(c, s)],
+			["tag", button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id)],
+			["later", this.later(c, s)],
+		]
+			.filter(([key]) => !hidden.has(key))
+			.map(([, html]) => html);
+		const mine = own
+			.filter(([key, html]) => html && !hidden.has(key))
+			.slice(0, 3)
+			.map(([, html]) => html.replace('class="icon-button ', 'class="icon-button is-own '));
+		if (!shared.length && !mine.length) return "";
+		return this.bar(...shared, shared.length && mine.length ? this.sep : "", ...mine);
+	},
+	/** This card's own verbs, keyed for the settings switches. Leaving Sill is an icon with the source in its name. */
+	own(c?: any) {
+		const s = Store.item(c.id);
+		const open = c.url ? button("external", this.externalLabel(c), "external", c.id) : "";
+		const reminder = FeedPolicy.supports(c)
+			? // A finished reminder is restored by its own circle, so the toolbar does not repeat it.
+				s.dismissed || s.snoozedUntil || (s.reminderDone && c.type !== "reminder")
+				? ["snooze", button("bell", copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id)]
+				: ["snooze", button("snooze", copy("web.reminder.again"), "snooze", c.id)]
+			: ["snooze", ""];
+		const dismiss = ["dismiss", this.reminderTools(c)];
+		if (c.type === "mail")
+			return [
+				["reply", c.url ? button("reply", copy("web.panels.cf945e21ddef"), "external", c.id) : ""],
+			];
+		if (c.type === "event")
+			return [
+				[
+					"join",
+					eventTimely(c) && c.meeting
+						? button("video", copy("web.templates.451755e3831f"), "join", c.id)
+						: "",
+				],
+				reminder,
+				[
+					"download",
+					button("download", copy("web.panels.5510cee6e987"), "download-calendar", c.id),
+				],
+				dismiss,
+			];
+		if (c.type === "task" || c.type === "reminder") return [reminder, dismiss];
+		if (c.type === "file") return [];
+		return [["open", open]];
+	},
 	/** The sheet head holds the way out (and full screen) in its own row, never over the text. */
 	head(...tools: any[]) {
 		return `<button type="button" class="sheet-handle" aria-label="${copy("web.panels.resizeSheet")}" aria-expanded="false"><span class="grabber" aria-hidden="true"></span></button><div class="sheet-head"><div class="sheet-head-tools">${tools.filter(Boolean).join("")}</div></div>`;
@@ -105,37 +158,10 @@ const Panels: Record<string, any> = {
 		if (s.dismissed || s.reminderDone || s.snoozedUntil) return "";
 		return button("bell-off", copy("web.panels.311b1a019362"), "dismiss-reminder", c.id);
 	},
-	/** The same action row as on the card, with the same words, under the content. */
-	reminderRow(c?: any) {
-		if (!FeedPolicy.supports(c)) return "";
-		const s = Store.item(c.id);
-		const acts =
-			s.dismissed || s.reminderDone || s.snoozedUntil
-				? pill(copy("web.templates.4b03be14c1f4"), "restore-reminder", c.id, "soft")
-				: pill(
-						copy("web.reminder.again"),
-						"snooze",
-						c.id,
-						"soft grow",
-						"",
-						copy("web.reminder.againLabel"),
-					) +
-					(c.type === "reminder"
-						? pill(
-								copy("web.done"),
-								"complete-reminder",
-								c.id,
-								"primary",
-								"",
-								copy("web.templates.56c2b97093d8"),
-							)
-						: "");
-		return `<div class="reminder-actions" role="group" aria-label="${copy("web.templates.9d9382cf8476")}">${acts}</div>`;
-	},
-	external(c?: any, label?: any) {
-		if (!c.url) return "";
+	externalLabel(c?: any) {
+		if (c.type === "media" && c.media === "podcast") return copy("web.panels.c7f9a9b3d472");
 		const kind = SourceKinds[cardSourceKind(c)]?.label;
-		return `<button type="button" class="solid-button" data-action="external" data-id="${esc(c.id)}">${esc(label || `${copy("web.panels.99ae21ea6c39")}${kind && !["RSS", copy("web.local"), copy("web.cards.e727b8cc2df0")].includes(kind) ? kind : copy("web.panels.354b28c85333")}`)}</button>`;
+		return `${copy("web.panels.99ae21ea6c39")}${kind && !["RSS", copy("web.local"), copy("web.cards.e727b8cc2df0")].includes(kind) ? kind : copy("web.panels.354b28c85333")}`;
 	},
 	readButton(c?: any, s?: any) {
 		const p = Math.round((s.progress || 0) * 100);
@@ -155,21 +181,18 @@ const Panels: Record<string, any> = {
 				: "";
 		const sheet = (inner?: any, cover: any = "", action: any = "") =>
 			`<div class="sheet preview-sheet">${this.head(expand, closeButton)}<div class="sheet-scroll" tabindex="0" role="region" aria-label="${copy("web.panels.a67b98c6cf92")}">${cover}<div class="preview-body">${inner}${note}${this.foot(action, app?.agentAction?.(c))}</div></div></div>`;
-		const editTags = button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id);
+		const tools = this.tools(c, s, this.own(c));
 		const h1 = `<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${tags}${this.details(c)}`;
 		if (c.type === "mail") {
 			const sender = c.sender || cardSource(c);
 			return (
 				sheet(
 					`<div class="preview-sender">${avatar(sender, 36)}<span><b>${esc(sender)}</b><small>${copy("web.panels.711078d887e0")}${esc(c.meta || "")}</small></span></div>${h1}<div class="preview-full">${(c.body || [c.summary]).map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>${c.attachment ? `<span class="ref attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}`,
-					"",
-					this.external(c, copy("web.panels.cf945e21ddef")),
-				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
+				) + tools
 			);
 		}
 		if (c.type === "event") {
-			const span = Math.round((c.end - c.start) / 60000),
-				timely = eventTimely(c);
+			const span = Math.round((c.end - c.start) / 60000);
 			const rows = [
 				c.meeting
 					? `<div class="detail-row"><span class="row-icon">${icon("video", 16)}</span><span>${esc(c.meeting.name)}</span><small class="num">${esc(c.meeting.code || "")}</small></div>`
@@ -183,41 +206,30 @@ const Panels: Record<string, any> = {
 			].join("");
 			return (
 				sheet(
-					`<div class="preview-meta">${esc(dateLabel(c.start))}${eventRelative(c) ? ` · <span style="color:var(--accent);font-weight:500">${esc(eventRelative(c))}</span>` : ""}</div><div class="event-hero"><span class="num">${timeString(c.start)}</span><small class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)} · ${span}${copy("web.templates.40de54344d22")}</small></div>${h1}${rows ? `<div class="detail-rows">${rows}</div>` : ""}${c.body?.length ? `<div class="preview-full">${c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}${this.reminderRow(c)}`,
-					"",
-					timely && c.meeting
-						? `<button type="button" class="solid-button" data-action="join" data-id="${esc(c.id)}">${copy("web.templates.451755e3831f")}</button>`
-						: "",
-				) +
-				this.bar(
-					button("download", copy("web.panels.5510cee6e987"), "download-calendar", c.id),
-					editTags,
-					this.reminderTools(c),
-				)
+					`<div class="preview-meta">${esc(dateLabel(c.start))}${eventRelative(c) ? ` · <span style="color:var(--accent);font-weight:500">${esc(eventRelative(c))}</span>` : ""}</div><div class="event-hero"><span class="num">${timeString(c.start)}</span><small class="num">${copy("web.templates.83532308ecca")}${timeString(c.end)} · ${span}${copy("web.templates.40de54344d22")}</small></div>${h1}${rows ? `<div class="detail-rows">${rows}</div>` : ""}${c.body?.length ? `<div class="preview-full">${c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}`,
+				) + tools
 			);
 		}
 		if (c.type === "media" && c.media === "podcast") {
 			const total = c.duration || 0,
 				played = Math.round(total * (s.progress || 0));
 			return (
-				`<div class="sheet preview-sheet">${this.head(closeButton)}<div class="sheet-scroll" tabindex="0"><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div>${this.foot(this.external(c, copy("web.panels.c7f9a9b3d472")), app.agentAction?.(c))}</div></div></div>` +
-				this.bar(this.bookmark(c, s), editTags, this.later(c, s))
+				`<div class="sheet preview-sheet">${this.head(closeButton)}<div class="sheet-scroll" tabindex="0"><div class="player"><div class="player-art"></div>${h1}${this.meta(c)}<div class="player-bar"><span class="bar"><i id="podcast-bar" style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="player-times num"><span id="podcast-played">${duration(played)}</span><span>-${duration(total - played)}</span></span></div><div class="player-controls">${button("rewind", copy("web.panels.e18eb0c65e26"), "podcast-seek", c.id, "-15")}<button type="button" class="player-main" data-action="podcast-play" data-id="${esc(c.id)}" aria-label="${copy("web.panels.c3396195e91c")}">${icon("play", 22)}</button>${button("ffwd", copy("web.panels.ec8b7a23ea62"), "podcast-seek", c.id, "30")}</div>${this.foot(app.agentAction?.(c))}</div></div></div>` +
+				tools
 			);
 		}
 		if (c.type === "media") {
 			return (
 				sheet(
 					`${this.meta(c)}${h1}<div class="media-player"><img src="${Assets[c.image]}" alt=""><div class="media-slide" id="media-slide"></div></div><div class="media-controls">${button("back", copy("web.panels.b445bfa61071"), "media-prev", c.id)}${button("play", copy("web.panels.105587569775"), "media-play", c.id)}<span class="media-step" id="media-step">1 / ${c.body.length || 1}</span>${button("arrow", copy("web.panels.abd1f787accc"), "media-next", c.id)}</div>`,
-					"",
-					this.external(c),
-				) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
+				) + tools
 			);
 		}
 		if (c.type === "file") {
 			return (
 				sheet(
 					`<div class="preview-meta">${icon("folder", 15)}<span>${copy("web.panels.e93cb3b4dd1f")}${esc(cardSource(c) || "")}</span></div>${h1}<div class="detail-rows">${(c.files || []).map((f?: any) => `<div class="detail-row"><span class="row-icon">${icon(/\.(png|jpe?g|gif|webp)$/i.test(f.name) ? "image" : "file", 16)}</span><span><b>${esc(f.name)}</b><em>${esc(f.meta || "")}</em></span><small>${f.time ? esc(relativeTime(f.time)) : ""}</small></div>`).join("")}</div>`,
-				) + this.bar(this.bookmark(c, s), editTags)
+				) + tools
 			);
 		}
 		if (c.type === "task" || c.type === "reminder") {
@@ -243,8 +255,8 @@ const Panels: Record<string, any> = {
 					: c.meta || "";
 			return (
 				sheet(
-					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}${this.reminderRow(c)}`,
-				) + this.bar(this.bookmark(c, s), editTags, this.reminderTools(c))
+					`<div class="preview-meta">${icon((CardTypes[c.type] || CardTypes.note).icon, 15)}<span>${esc(label)}</span></div>${c.type === "reminder" ? `<div class="reminder-row preview-title-row">${reminderMark(c, !!s.reminderDone)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1></div>${tags}${this.details(c)}` : h1}${c.summary ? `<p class="preview-lead">${esc(c.summary)}</p>` : ""}${list}`,
+				) + tools
 			);
 		}
 		// Articles, notes, digests and suggestions show the content the agent actually wrote.
@@ -274,11 +286,7 @@ const Panels: Record<string, any> = {
 			? `<div class="preview-cover"><img data-shared="image" src="${Assets[c.image]}" alt="" draggable="false"></div>`
 			: "";
 		return (
-			sheet(
-				`${this.meta(c)}${h1}${lead}${points}${related}${full}`,
-				cover,
-				this.external(c) + this.whyLink(c),
-			) + this.bar(this.bookmark(c, s), editTags, this.later(c, s))
+			sheet(`${this.meta(c)}${h1}${lead}${points}${related}${full}`, cover, this.whyLink(c)) + tools
 		);
 	},
 	/* Reader: a page with a thin progress line. Reaching the end closes the ring. */
@@ -288,14 +296,10 @@ const Panels: Record<string, any> = {
 			? `<div class="skeleton-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div>`
 			: c.body.map((p?: any) => `<p>${esc(p)}</p>`).join("");
 		return (
-			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${this.tags(c)}${this.details(c)}${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(this.external(c), app.agentAction?.(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
+			`<div class="reader-progress" id="reader-progress" style="width:${Math.round(s.progress * 100)}%"></div><div class="reader-scroll" id="reader-scroll"><article class="reader-body">${this.meta(c)}<h1 id="modal-title" data-shared="title">${esc(c.title)}</h1>${this.tags(c)}${this.details(c)}${c.image ? `<img class="reader-cover" src="${Assets[c.image]}" alt="" draggable="false">` : ""}<div class="reading-caption sr-only">${esc([cardSource(c), c.meta].filter(Boolean).join(" · "))}</div>${body}${loading ? "" : this.foot(app.agentAction?.(c))}<div class="reader-end" id="reader-end" aria-hidden="true"></div></article></div>` +
 			`<div class="reader-edge is-top" aria-hidden="true"></div><div class="reader-edge is-bottom" aria-hidden="true"></div>` +
 			`<div class="reader-head glass" role="toolbar" aria-label="${copy("web.readerTools")}">${button("collapse", copy("web.panels.0f1505b6ad3f"), "close")}${button("x", copy("web.panels.f2a5f3f7db0f"), "close-all")}</div>` +
-			this.bar(
-				this.bookmark(c, s),
-				button("tag", copy("web.panels.786e2e9252a8"), "edit", c.id),
-				this.later(c, s),
-			)
+			this.tools(c, s, this.own(c))
 		);
 	},
 	lightbox(c?: any, index: any = 0, app?: any) {
@@ -422,6 +426,18 @@ const Panels: Record<string, any> = {
 			add: () =>
 				`<h1 id="modal-title">${copy("web.settings.add")}</h1><div class="settings-card settings-add"><div class="capture-field">${icon("plus", 18)}<textarea id="capture-text" aria-label="${copy("web.panels.fd06b053572e")}" placeholder="${copy("web.panels.fd06b053572e")}" maxlength="4000"></textarea></div><div class="panel-footer"><span class="muted"><kbd>N</kbd>${copy("web.panels.9be4933b25fb")}</span><button type="button" class="solid-button" data-action="capture-save">${copy("web.panels.a0fb6bc1d3c5")}</button></div></div>`,
 			desk: () => `<h1 id="modal-title">${copy("web.panels.f48d334495f6")}</h1><div class="settings-card">${row(copy("web.panels.5142e436b1f9"), `<span>${copy("web.panels.840f6c8f8823")}</span>${toggle("stack", p("stack"), copy("web.panels.5142e436b1f9"))}`)}${row(copy("web.panels.a11a80a0843c"), toggle("fadeRead", p("fadeRead"), copy("web.panels.a11a80a0843c")))}${row(copy("web.panels.0f01370710b6"), toggle("floatTimely", p("floatTimely"), copy("web.panels.0f01370710b6")))}</div>
+       <div class="group-label">${copy("web.actions.title")}</div><div class="settings-card">${CardActions.map(
+					(key) =>
+						row(
+							copy(`web.actions.${key}`),
+							toggle(
+								key,
+								!(p("hiddenActions") || []).includes(key),
+								copy(`web.actions.${key}`),
+								"action-toggle",
+							),
+						),
+				).join("")}</div><p class="settings-hint muted">${copy("web.actions.hint")}</p>
        <div class="settings-card">${row(copy("web.panels.ba8a435e2ff0"), toggle("collapseOnFinish", p("collapseOnFinish"), copy("web.panels.ba8a435e2ff0")))}${row(
 					copy("web.panels.87852ffbea52"),
 					segmented(

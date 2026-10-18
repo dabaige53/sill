@@ -495,6 +495,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -1685,6 +1703,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -1757,6 +1793,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -4549,6 +4603,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -5739,6 +5811,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -5811,6 +5901,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -8981,6 +9089,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -10171,6 +10297,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -10243,6 +10387,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -13455,6 +13617,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -14645,6 +14825,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -14717,6 +14915,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -17530,6 +17746,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -18720,6 +18954,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -18792,6 +19044,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -21622,6 +21892,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -22812,6 +23100,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -22884,6 +23190,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -25676,6 +26000,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -26866,6 +27208,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -26938,6 +27298,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -29723,6 +30101,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -30913,6 +31309,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -30985,6 +31399,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -34472,6 +34904,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -34544,6 +34994,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -35059,6 +35527,24 @@
                       },
                       "onboarded": {
                         "type": "boolean"
+                      },
+                      "hiddenActions": {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bookmark",
+                            "tag",
+                            "later",
+                            "reply",
+                            "open",
+                            "join",
+                            "snooze",
+                            "download",
+                            "dismiss"
+                          ]
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -36249,6 +36735,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
@@ -36321,6 +36825,24 @@
                             },
                             "onboarded": {
                               "type": "boolean"
+                            },
+                            "hiddenActions": {
+                              "maxItems": 9,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "bookmark",
+                                  "tag",
+                                  "later",
+                                  "reply",
+                                  "open",
+                                  "join",
+                                  "snooze",
+                                  "download",
+                                  "dismiss"
+                                ]
+                              }
                             }
                           },
                           "additionalProperties": false
