@@ -14,17 +14,20 @@
 
 1. [AGENTS.md](../../AGENTS.md)：产品约束。重点：Agent 优先，数据与状态操作要能通过 MCP 完成；保留既有轻操作；不接入外部来源；不新增复杂人工编辑器；不把本地打勾说成外部完成。
 2. [DESIGN.md](../../DESIGN.md) 和 [设计手册](../../design-system/README.md)：设计规则以手册为准。手册中与本次相关的章节：「手机主页」「预览与叠放」「图标」「底部导航与反馈」「动效」。
-3. [ADR 0032](../adr/0032-design-online-first.md)：本轮使用其仓库内例外：先改仓库里的原则和规范，再改实现，不操作线上。
+3. [ADR 0032](../adr/0032-design-online-first.md) 和 AGENTS.md「设计」一节。**本交接的工作一律只在仓库内进行，不使用任何 claude.ai 独有的工具**：不打开、不读取、不发布线上 Design System 和设计画布（claude.ai Artifact），不使用 claude.ai 的连接器（例如 Mobbin 连接器）。按 AGENTS.md 的仓库内规则：先更新仓库里的原则和规范（ADR、`design-system/README.md`、组件说明、`design-system/boards/`），再改实现。线上与仓库因此产生的差异，写进每个 PR 的 Merge Danger，由用户另行同步。
 4. [ADR 0036](../adr/0036-phone-home-density.md)、[ADR 0037](../adr/0037-card-detail-toolbar.md) 和两份讨论记录：[手机主页](../records/2026-10-18-phone-home-x-density/README.md)、[卡片详情](../records/2026-10-18-card-detail-capsule/README.md)。记录里有被否决的方案和原因，不要重新提出已否决的方案。
 5. [代码规范](code-standards.md)、[文件管理规范](file-management.md)、[PR 编写指南](../../pr.md)。
 6. 设计画布 36 号画板 `design-system/boards/MobileHome.dc.html`、37 号画板 `design-system/boards/CardDetail.dc.html`：定稿截图来自实际页面。
 
-线上地址仅作历史来源记录，本轮不打开：
+仓库内的设计来源（以这些文件为准，不访问线上）：
 
-| 名称 | 地址 |
+| 名称 | 位置 |
 | --- | --- |
-| Design System | https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb |
-| 设计画布 | https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b |
+| 设计手册 | `design-system/README.md` |
+| 组件说明与组件包 | `design-system/components/` |
+| 图标 | `apps/web/atoms/icons.ts`（来源）、`design-system/assets/Icons/`（生成） |
+| 设计变量 | `design-system/tokens.json`、`apps/web/styles/tokens.css` |
+| 画板 | `design-system/boards/*.dc.html` 与图片目录，索引 `design-system/boards/index.html`、`canvas.json` |
 
 ## 2. 当前状态
 
@@ -200,9 +203,10 @@
 
 ## 4. 工作方式
 
-- 一次只做一个工作包。设计类工作包先讨论，再更新仓库内原则和规范，最后改代码。
-- 效果图：在真实页面上用 Playwright 叠加临时样式截图（容器里用 `executablePath: /opt/pw-browsers/chromium-*/chrome-linux*/chrome`，不要运行 `playwright install`）。效果图放 `docs/records/<日期>-<主题>/`，单个文件不超过 2 MB。
+- 一次只做一个工作包。设计类工作包先讨论，再改仓库里的原则和规范，再改代码。
+- 效果图：在真实页面上用 Playwright 叠加临时样式截图。环境已预装 Chromium 时用它的路径（`executablePath`），不要重复下载浏览器。效果图放 `docs/records/<日期>-<主题>/`，单个文件不超过 2 MB。
 - 本地页面：`npm run build` 后 `npm start`，端口 4318。云端页面：`npm run build:cloud`。
+- 不使用 claude.ai 独有的工具：不读、不发布线上 Design System 和设计画布，不调用 claude.ai 连接器，不创建 claude.ai Artifact。画板只改仓库里的 `design-system/boards/`。每个改了设计的 PR，在 Merge Danger 里列出「线上未同步」的文件，由用户另行处理。
 - 仓库交付：先改 ADR、手册和组件说明，再改实现并生成组件包与图标；实际截图写入 `design-system/boards/`，同时更新本地 `index.html` 与 `canvas.json`。线上资产记录不改；未同步文件逐项写入 PR 的 Merge Danger，由用户另行处理。
 - 文案：所有用户可见文字放 `design-system/copy/zh-Hans.json`；文档用 80% ASD-STE100 风格的简体中文。
 - 交付前运行 `npm run files:check` 和 `npm test`；按改动运行相关浏览器测试（见 [tests/README.md](../../tests/README.md)）。
@@ -225,6 +229,7 @@
 - 相关浏览器测试的结果；失败项注明是否在基础提交上同样失败。
 - 界面改动：改前、改后截图（390、320、1440，浅色和深色按需）。
 - 真机：设备与系统版本；没有真机就写「未检查」。
+- 仓库内的设计文件（手册、组件说明、画板、图标）是否已更新；Merge Danger 里列出线上未同步的文件。
 - 线上未同步的仓库文件清单；本轮不读取线上，不能声称当前两边一致。
 
 ## 7. 提示词
@@ -239,7 +244,7 @@
 任务：完成交接文档中的工作包 [U1]（只做这一个）。
 - U1 不需要新的设计决定：直接实现，补测试，截 390、320、1440 宽的改前改后图。
 - 如果做的是 U2–U6 中标「需用户确认」的项：先截现状，找 3–6 个公开产品参考，出 2–3 个方案的效果图（真实页面叠临时样式截图），一次讨论一个问题，等我选定后再更新仓库 ADR、手册和组件说明，最后改代码及本地画板。
-约束：遵守交接文档第 5 节「不做的事」；设计改动先改仓库原则和规范再改实现；线上未同步文件列入 Merge Danger；所有文案进 design-system/copy/zh-Hans.json；不改 Mac、iOS 原生代码。
+约束：遵守交接文档第 5 节「不做的事」；不使用任何 claude.ai 独有的工具（线上 Design System、设计画布、claude.ai 连接器、Artifact），设计只改仓库内文件，线上未同步的内容写进 Merge Danger；所有文案进 design-system/copy/zh-Hans.json；不改 Mac、iOS 原生代码。
 交付：新分支，运行 npm run files:check、npm test 和相关浏览器测试，按 pr.md 和 PR 模板写 PR（Summary / Evidence / Merge Danger）。待完成的检查不写成通过；真机没测就写「未检查」。
 ```
 
@@ -263,7 +268,7 @@
 
 任务：对 [PR 编号或分支] 做验收。
 1. 运行 npm run files:check、npm test，以及 tests/README.md 中与手机主页、卡片详情相关的浏览器测试；记录通过数和失败项，并在基础提交上复跑失败项，判断是否本次引入。
-2. 在本地页面截 390、320、1440 宽的主页、各类卡片详情（邮件、文章、视频、日程、提醒、待办）、长按名称、设置「卡片操作」、深色模式，与设计画布 36、37 号画板逐项对照。
+2. 在本地页面截 390、320、1440 宽的主页、各类卡片详情（邮件、文章、视频、日程、提醒、待办）、长按名称、设置「卡片操作」、深色模式，与 design-system/boards/ 里的 36、37 号画板（MobileHome.dc.html、CardDetail.dc.html）逐项对照。
 3. 列出与 ADR 0036、0037 和设计手册不一致的地方，每条写：位置、期望、实际、截图。
 4. 真机项目（主屏幕冷启动、安全区、长按、键盘）如果没有设备，写「未检查」。
 交付：把结果写成 docs/records/<日期>-<主题>/README.md 加截图，按 pr.md 写 PR；不修改实现代码。
@@ -316,11 +321,11 @@
 
 # 不可违反的约束
 - 交接文档第 5 节「不做的事」全部适用。
-- 本轮只维护仓库：先改原则和规范，再改实现及本地画板。不访问 claude.ai Artifact，不用 Mobbin 连接器，不改 design-system.json 的线上资产记录。线上未同步文件写进 Merge Danger，由用户另行处理。
+- 不使用任何 claude.ai 独有的工具：不读取、不发布线上 Design System 和设计画布（claude.ai Artifact），不调用 claude.ai 连接器（包括 Mobbin 连接器），不创建 Artifact。按 AGENTS.md 的仓库内规则：先改仓库里的原则和规范，再改实现；design-system/design-system.json 的线上资产记录不改。每个改了设计的 PR 在 Merge Danger 列出线上未同步的文件。
 - 所有用户可见文字放 design-system/copy/zh-Hans.json；文档用 80% ASD-STE100 风格的简体中文。
 - 不改 Mac、iOS 原生代码；改到同一功能时在 PR 里写「Mac 未改」。
 - 不提交 token、真实账号内容、浏览器存储；单个证据文件不超过 2 MB。
-- 容器里用预装 Chromium（/opt/pw-browsers），不运行 playwright install。
+- 环境已预装 Chromium 时用它，不重复下载浏览器。
 
 # 每个 PR 的完成标准
 - npm run files:check 和 npm test 通过（写出三组测试的通过数）。
