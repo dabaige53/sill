@@ -1,0 +1,52 @@
+{
+  "base": "9989a5c",
+  "source": "6362ac0",
+  "contracts": 36,
+  "web": 169,
+  "server": 91,
+  "pwa": 10,
+  "fail": 0,
+  "boardHeight": 4370,
+  "renderedHeight": 4331.765625,
+  "imageCountBefore": 11,
+  "imageCountAfter": 17,
+  "newImages": [
+    {
+      "path": "design-system/boards/card-detail/u1-1440-light-keyboard.png",
+      "bytes": 203427,
+      "sha256": "98e3456bebf3db639ce0cb7ac614476e27d5f22928781c3d0d76784e972e0977"
+    },
+    {
+      "path": "design-system/boards/card-detail/u1-320-dark-keyboard.png",
+      "bytes": 69075,
+      "sha256": "695e0a1dfb0b4ccc9dfd73c281de8d719ea9b1ec2d513ca7a5fce22543532074"
+    },
+    {
+      "path": "design-system/boards/card-detail/u1-320-light-first.png",
+      "bytes": 68210,
+      "sha256": "b7932b4eaa049e881327b2f2efdc63a55962ff3d86bc593d1be02d477866327c"
+    },
+    {
+      "path": "design-system/boards/card-detail/u1-320-light-keyboard.png",
+      "bytes": 71133,
+      "sha256": "3583b61398c650fef09dd39c81cd945aaf8ea7dd5c7abbc1c401725916e1b0a8"
+    },
+    {
+      "path": "design-system/boards/card-detail/u1-320-light-last.png",
+      "bytes": 69293,
+      "sha256": "a00b0d6ec9e25fbaaf202190c477da3e5b2d5f479df1bf01521175043c9e2e09"
+    },
+    {
+      "path": "design-system/boards/card-detail/u1-390-light-keyboard.png",
+      "bytes": 78778,
+      "sha256": "daea3d3c2b3545b2ffafb3c8a205c8d4a4b79abde8152c4c0afa461857e82c98"
+    }
+  ],
+  "productCodeChanged": false,
+  "generatedComponentsChanged": false,
+  "onlineAssetRecordsChanged": false,
+  "externalRequests": 0,
+  "pageErrors": 0,
+  "brokenImages": 0,
+  "physicalIphone": "未检查"
+}
