@@ -96,62 +96,12 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 }
 /* Phone: one column, bottom sheets, thumbs-first toolbars. */
 @media (max-width: 650px) {
+	/* Page frame */
 	html {
 		scrollbar-gutter: auto;
 	}
 	main {
 		padding: 8px var(--margin-sm) 130px;
-	}
-	.card-more-trigger {
-		opacity: 1;
-		pointer-events: auto;
-	}
-	/* Phone: the quiet ••• sits at the bottom right, clear of the time and count in the head. */
-	.card-actions,
-	.has-cover .card-actions {
-		top: auto;
-		right: 4px;
-		bottom: 4px;
-	}
-	.card-more-trigger,
-	.has-cover .card-more-trigger {
-		width: 44px;
-		height: 44px;
-		min-width: 44px;
-		background: transparent;
-		border: 0;
-		box-shadow: none;
-		color: var(--secondary);
-	}
-	.card-more-trigger .icon {
-		width: 20px;
-		height: 20px;
-		stroke-width: 2.2;
-	}
-	.card-more-trigger:before {
-		inset: 0;
-	}
-	.card-more-menu,
-	.card-more-leaving {
-		top: auto;
-		bottom: 48px;
-		transform-origin: bottom right;
-	}
-	.card-head,
-	.sender,
-	.card-head:has(.card-head-right),
-	.has-cover .card-head {
-		padding-right: 0;
-	}
-	.feed-card .card-head-right {
-		opacity: 1;
-	}
-	.pill {
-		min-height: 44px;
-		border-radius: var(--pill-radius);
-	}
-	.check-item {
-		min-height: 44px;
 	}
 	:root {
 		--rail-edge: 16px;
@@ -161,446 +111,13 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	:root {
 		--nav-tab: 60px;
 	}
-	.nav-label {
-		display: none;
-	}
-	.nav-icon {
-		height: 30px;
-	}
-	.nav-icon > .icon {
-		width: 24px;
-		height: 24px;
-	}
-	#dock:has(#selection-bar:not([hidden])) #selection-bar {
-		flex: 1;
-	}
-	/* Too narrow for both: while selecting, the bar takes the whole row. */
-	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
-		display: none;
-	}
-	#dock #selection-bar {
-		max-width: calc(100vw - 2 * var(--rail-edge));
-	}
-	#modal.panel,
-	#modal.panel.narrow,
-	#modal.panel.wide {
-		position: fixed;
-		inset: auto 0 0;
-		margin: 0;
-		width: 100%;
-		max-width: 100%;
-	}
-	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
-	#modal.preview {
-		position: fixed;
-		inset: 0;
-		margin: 0;
-		width: 100%;
-		max-width: 100%;
-		height: 100%;
-		max-height: 100%;
-	}
-	#modal.preview .preview-sheet {
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: auto;
-		bottom: 0;
-		display: flex;
-		flex-direction: column;
-		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
-		transform: translateY(0);
-		transition:
-			transform 360ms var(--ease-sheet),
-			max-height 360ms var(--ease-sheet),
-			height 360ms var(--ease-sheet),
-			translate 360ms var(--ease-sheet),
-			border-radius 360ms var(--ease-sheet);
-	}
-	#modal.preview .preview-sheet.is-full {
-		max-height: 100dvh;
-		transform: none;
-		border-radius: 0;
-	}
-	#modal.preview .preview-sheet.is-off {
-		transform: translateY(100%);
-	}
-	#modal.preview .sheet-peek {
-		position: absolute;
-		left: 14px;
-		right: 14px;
-		top: auto;
-		bottom: calc(var(--preview-height, 100dvh - 64px) - 10px);
-		width: auto;
-		height: 24px;
-		margin: 0;
-	}
-	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
-		opacity: 0;
-		pointer-events: none;
-	}
-	#modal.preview .preview-sheet .sheet-scroll {
-		flex: 1;
-		max-height: none;
-	}
-	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
-	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
-		padding-bottom: calc(var(--rail-row) + 4px + max(8px, env(safe-area-inset-bottom)));
-		scroll-padding-bottom: calc(var(--rail-row) + 4px + max(8px, env(safe-area-inset-bottom)));
-	}
-	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
-		padding-top: calc(18px + env(safe-area-inset-top));
-	}
-	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
-		top: env(safe-area-inset-top);
-	}
-	#modal.preview #modal-title,
-	#modal.preview .preview-body > :is(.preview-sender, .preview-meta) {
-		padding-right: 52px;
-	}
-	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
-	#modal.preview:has(.sheet-head [data-action="reader"])
-		.preview-body
-		> :is(.preview-sender, .preview-meta) {
-		padding-right: 104px;
-	}
-	#modal.preview:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
-		padding-right: 0;
-	}
-	.sheet-head {
-		height: 60px;
-		padding: 0 12px;
-	}
-	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
-	.sheet-head .icon-button {
-		width: 44px;
-		height: 44px;
-		min-width: 44px;
-	}
-	.sheet-handle {
-		display: flex;
-		align-items: flex-start;
-		justify-content: center;
-		position: absolute;
-		z-index: 5;
-		top: 0;
-		left: calc(50% - 40px);
-		width: 80px;
-		height: 24px;
-		padding: 0;
-		border: 0;
-		background: transparent;
-		touch-action: none;
-		cursor: ns-resize;
-	}
-	.preview-sheet.is-full .sheet-handle {
-		top: env(safe-area-inset-top);
-	}
-	.sheet-handle .grabber {
-		position: absolute;
-		left: 50%;
-		top: 6px;
-		margin: 0 0 0 -18px;
-	}
-	#modal.preview[open] {
-		gap: 0;
-	}
-	.preview-sheet,
-	#modal.panel .sheet {
-		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
-		padding-bottom: env(safe-area-inset-bottom);
-	}
-	.sheet-scroll {
-		max-height: 84dvh;
-	}
-	.grabber {
-		display: block;
-		width: 36px;
-		height: 5px;
-		border-radius: 3px;
-		background: var(--faint);
-		margin: 8px auto 0;
-	}
-	#modal.preview > .float-bar {
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: max(8px, env(safe-area-inset-bottom));
-		margin-inline: auto;
-		z-index: 3;
-	}
-	#modal.preview:has(> .float-bar) > .preview-sheet:after {
-		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
-	}
-	.reader-head {
-		top: max(10px, env(safe-area-inset-top));
-		right: 12px;
-	}
-	#modal.preview .push-ring {
-		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
-	}
-	.preview-body {
-		padding: 18px 20px 22px;
-	}
-	.preview-body h1 {
-		font-size: var(--text-panel-title);
-	}
-	.reader-body {
-		padding: 64px 22px 150px;
-	}
-	.reader-body h1 {
-		font-size: 27px;
-	}
-	.reader-body p {
-		font-size: var(--text-reader-body);
-	}
-	.panel-content {
-		padding: 22px 20px 26px;
-	}
-	.panel-foot-row {
-		margin: 18px -20px -26px;
-		padding: 14px 20px;
-	}
-	.settings-layout {
-		grid-template-columns: 1fr;
-		min-height: 0;
-		background: var(--canvas);
-	}
-	.settings-nav {
-		flex-direction: row;
-		overflow-x: auto;
-		padding: 16px 12px 12px;
-		margin-right: 52px;
-		border-right: 0;
-		border-bottom: 0;
-		scrollbar-width: none;
-	}
-	.settings-nav::-webkit-scrollbar {
-		display: none;
-	}
-	.settings-nav button {
-		flex: none;
-	}
-	.settings-main {
-		padding: 20px 16px;
-		max-height: 70dvh;
-	}
-
-	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
-	:is(#modal, #search-background).search {
-		position: fixed;
-		inset: 0;
-		width: 100%;
-		max-width: 100%;
-		height: 100%;
-		max-height: 100%;
-		margin: 0;
-		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
-		justify-content: flex-start;
-		gap: 10px;
-	}
-	:is(#modal, #search-background).search .search-results {
-		flex: 1;
-		min-height: 0;
-		max-height: none;
-	}
-	:is(#modal, #search-background).search .search-chips {
-		flex: none;
-	}
-	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
-	#modal.panel,
-	#modal.panel.narrow,
-	#modal.panel.wide {
-		bottom: var(--kb, 0px);
-	}
-	#modal.panel .sheet {
-		max-height: calc(100dvh - var(--kb, 0px));
-	}
-	body.keyboard-open #dock,
-	body.keyboard-open .scroll-edge {
-		opacity: 0;
-		visibility: hidden;
-	}
-	/* Phone places are pages. AI/settings retain capsule navigation; search has its own exit. */
-	#modal.page,
-	#modal.page.panel,
-	#modal.page.panel.wide,
-	#modal.page.panel.narrow {
-		position: fixed;
-		inset: 0 0 var(--kb, 0px);
-		z-index: 40;
-		width: 100%;
-		max-width: 100%;
-		height: auto;
-		max-height: none;
-		margin: 0;
-		border: 0;
-		padding: 0;
-		background: var(--canvas);
-	}
-	#modal.page :is(.grabber, .sheet-close) {
-		display: none;
-	}
-	#modal.page.panel .sheet {
-		height: 100%;
-		max-height: none;
-		border-radius: 0;
-		box-shadow: none;
-		background: var(--canvas);
-		padding: calc(12px + env(safe-area-inset-top)) 0
-			calc(var(--rail-bottom) + var(--rail-row) + 24px);
-		animation: none;
-	}
-	/* The local AI preview keeps context and composer in one viewport. */
-	#modal.page.panel.narrow:has(.ai-conversation) {
-		width: 100%;
-	}
-	#modal.page.panel .ai-conversation {
-		padding: calc(16px + env(safe-area-inset-top)) 16px
-			calc(var(--rail-bottom) + var(--rail-row) + 24px);
-	}
-	:is(#modal, #search-background).page.search {
-		height: auto;
-		max-height: none;
-		inset: 0 0 var(--kb, 0px);
-		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
-	}
-	.search-chips {
-		justify-content: flex-start;
-		flex-wrap: nowrap;
-		overflow-x: auto;
-		padding-bottom: 4px;
-	}
-	.lightbox-stage > .icon-button {
-		display: none;
-	}
-}
-@media (hover: none) {
-	.card-more-trigger {
-		opacity: 1;
-		pointer-events: auto;
-	}
-	.feed-card .card-head-right {
-		opacity: 1;
-	}
-	.feed-card:hover .card-image {
-		transform: none;
-	}
-}
-/* Tablets keep the ••• at the top right, so the head leaves room for it. */
-@media (hover: none) and (min-width: 651px) {
-	.card-head:has(.card-head-right) {
-		padding-right: 36px;
-	}
-}
-@media (prefers-reduced-motion: reduce) {
-	html {
-		scroll-behavior: auto;
-	}
-	*,
-	*:before,
-	*:after,
-	*::backdrop {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-property: opacity, background-color, color, border-color, box-shadow !important;
-		transition-duration: var(--dur-reduced) !important;
-		transition-timing-function: linear !important;
-		transition-delay: 0s !important;
-	}
-}
-body.reduce-motion,
-body.reduce-motion *,
-body.reduce-motion *:before,
-body.reduce-motion *:after,
-body.reduce-motion *::backdrop {
-	scroll-behavior: auto !important;
-	animation-duration: 0.01ms !important;
-	animation-iteration-count: 1 !important;
-	transition-property: opacity, background-color, color, border-color, box-shadow !important;
-	transition-duration: var(--dur-reduced) !important;
-	transition-timing-function: linear !important;
-	transition-delay: 0s !important;
-}
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-	body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item:hover {
-		transform: translateY(-2px);
-	}
-}
-
-/* Fades preserve the layout and control state. Show visibility immediately so Tab can enter. */
-@media (prefers-reduced-motion: reduce) {
-	#dock,
-	dialog > .float-bar,
-	.reader-head,
-	.sheet-head-tools {
-		transform: none !important;
-		transition:
-			opacity var(--dur-reduced) linear,
-			visibility 0s !important;
-	}
-	#dock.is-tucked,
-	dialog > .float-bar:is(.is-tucked, .is-hidden),
-	.reader-head.is-tucked,
-	.sheet-head-tools.is-tucked {
-		transition-delay: 0s, var(--dur-reduced) !important;
-	}
-	.icon-button:active,
-	.account-button:active,
-	.solid-button:active,
-	.feed-card:not(.stack-card):active:not(:has(button:active)) {
-		transform: none;
-	}
-	.nav-lens {
-		animation: none !important;
-		scale: none;
-	}
-	.nav-tab:active .nav-icon {
-		scale: none;
-	}
-}
-body.reduce-motion #dock,
-body.reduce-motion dialog > .float-bar,
-body.reduce-motion .reader-head,
-body.reduce-motion .sheet-head-tools {
-	transform: none !important;
-	transition:
-		opacity var(--dur-reduced) linear,
-		visibility 0s !important;
-}
-body.reduce-motion #dock.is-tucked,
-body.reduce-motion dialog > .float-bar:is(.is-tucked, .is-hidden),
-body.reduce-motion .reader-head.is-tucked,
-body.reduce-motion .sheet-head-tools.is-tucked {
-	transition-delay: 0s, var(--dur-reduced) !important;
-}
-body.reduce-motion .icon-button:active,
-body.reduce-motion .account-button:active,
-body.reduce-motion .solid-button:active,
-body.reduce-motion .feed-card:not(.stack-card):active:not(:has(button:active)) {
-	transform: none;
-}
-body.reduce-motion .nav-lens {
-	animation: none !important;
-	scale: none;
-}
-body.reduce-motion .nav-tab:active .nav-icon {
-	scale: none;
-}
-
-/* The local AI window can return to the search that supplied its context. */
-#modal.page .ai-conversation .sheet-close {
-	display: block;
-}
-
-/* Phone home (ADR 0036): X-like density, still cards. Desktop keeps its own spacing. */
-@media (max-width: 650px) {
 	:root {
 		--home-top-h: 88px;
 	}
 	main {
 		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
 	}
+	/* Phone home (ADR 0036): X-like density, still cards. Desktop keeps its own spacing. */
 	.home-top {
 		position: fixed;
 		z-index: 44;
@@ -692,7 +209,58 @@ body.reduce-motion .nav-tab:active .nav-icon {
 		visibility: visible;
 		pointer-events: auto;
 	}
-
+	/* Cards and touch targets */
+	.card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	/* Phone: the quiet ••• sits at the bottom right, clear of the time and count in the head. */
+	.card-actions,
+	.has-cover .card-actions {
+		top: auto;
+		right: 4px;
+		bottom: 4px;
+	}
+	.card-more-trigger,
+	.has-cover .card-more-trigger {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+		background: transparent;
+		border: 0;
+		box-shadow: none;
+		color: var(--secondary);
+	}
+	.card-more-trigger .icon {
+		width: 20px;
+		height: 20px;
+		stroke-width: 2.2;
+	}
+	.card-more-trigger:before {
+		inset: 0;
+	}
+	.card-more-menu,
+	.card-more-leaving {
+		top: auto;
+		bottom: 48px;
+		transform-origin: bottom right;
+	}
+	.card-head,
+	.sender,
+	.card-head:has(.card-head-right),
+	.has-cover .card-head {
+		padding-right: 0;
+	}
+	.feed-card .card-head-right {
+		opacity: 1;
+	}
+	.pill {
+		min-height: 44px;
+		border-radius: var(--pill-radius);
+	}
+	.check-item {
+		min-height: 44px;
+	}
 	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
 	.feed-item.feed-card {
 		border-radius: var(--card-radius-sm);
@@ -838,4 +406,440 @@ body.reduce-motion .nav-tab:active .nav-icon {
 	.feed-item.type-task .more-items {
 		display: none;
 	}
+	/* Navigation and selection */
+	.nav-label {
+		display: none;
+	}
+	.nav-icon {
+		height: 30px;
+	}
+	.nav-icon > .icon {
+		width: 24px;
+		height: 24px;
+	}
+	#dock:has(#selection-bar:not([hidden])) #selection-bar {
+		flex: 1;
+	}
+	/* Too narrow for both: while selecting, the bar takes the whole row. */
+	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
+		display: none;
+	}
+	#dock #selection-bar {
+		max-width: calc(100vw - 2 * var(--rail-edge));
+	}
+	/* Preview and bottom sheets (ADR 0037) */
+	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
+	#modal.preview {
+		position: fixed;
+		inset: 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+	}
+	#modal.preview .preview-sheet {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: auto;
+		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
+		transform: translateY(0);
+		transition:
+			transform 360ms var(--ease-sheet),
+			max-height 360ms var(--ease-sheet),
+			height 360ms var(--ease-sheet),
+			translate 360ms var(--ease-sheet),
+			border-radius 360ms var(--ease-sheet);
+	}
+	#modal.preview .preview-sheet.is-full {
+		max-height: 100dvh;
+		transform: none;
+		border-radius: 0;
+	}
+	#modal.preview .preview-sheet.is-off {
+		transform: translateY(100%);
+	}
+	#modal.preview .sheet-peek {
+		position: absolute;
+		left: 14px;
+		right: 14px;
+		top: auto;
+		bottom: calc(var(--preview-height, 100dvh - 64px) - 10px);
+		width: auto;
+		height: 24px;
+		margin: 0;
+	}
+	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
+		opacity: 0;
+		pointer-events: none;
+	}
+	#modal.preview .preview-sheet .sheet-scroll {
+		flex: 1;
+		max-height: none;
+	}
+	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
+	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(var(--rail-row) + 4px + max(8px, env(safe-area-inset-bottom)));
+		scroll-padding-bottom: calc(var(--rail-row) + 4px + max(8px, env(safe-area-inset-bottom)));
+	}
+	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
+		padding-top: calc(18px + env(safe-area-inset-top));
+	}
+	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
+		top: env(safe-area-inset-top);
+	}
+	#modal.preview #modal-title,
+	#modal.preview .preview-body > :is(.preview-sender, .preview-meta) {
+		padding-right: 52px;
+	}
+	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
+	#modal.preview:has(.sheet-head [data-action="reader"])
+		.preview-body
+		> :is(.preview-sender, .preview-meta) {
+		padding-right: 104px;
+	}
+	#modal.preview:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
+		padding-right: 0;
+	}
+	.sheet-head {
+		height: 60px;
+		padding: 0 12px;
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+	}
+	.sheet-handle {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		position: absolute;
+		z-index: 5;
+		top: 0;
+		left: calc(50% - 40px);
+		width: 80px;
+		height: 24px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		touch-action: none;
+		cursor: ns-resize;
+	}
+	.preview-sheet.is-full .sheet-handle {
+		top: env(safe-area-inset-top);
+	}
+	.sheet-handle .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 -18px;
+	}
+	#modal.preview[open] {
+		gap: 0;
+	}
+	.preview-sheet,
+	#modal.panel .sheet {
+		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+	.sheet-scroll {
+		max-height: 84dvh;
+	}
+	.grabber {
+		display: block;
+		width: 36px;
+		height: 5px;
+		border-radius: 3px;
+		background: var(--faint);
+		margin: 8px auto 0;
+	}
+	#modal.preview > .float-bar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: max(8px, env(safe-area-inset-bottom));
+		margin-inline: auto;
+		z-index: 3;
+	}
+	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
+	}
+	#modal.preview .push-ring {
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
+	}
+	.preview-body {
+		padding: 18px 20px 22px;
+	}
+	.preview-body h1 {
+		font-size: var(--text-panel-title);
+	}
+	/* Full-screen reader */
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
+	}
+	.reader-body {
+		padding: 64px 22px 150px;
+	}
+	.reader-body h1 {
+		font-size: 27px;
+	}
+	.reader-body p {
+		font-size: var(--text-reader-body);
+	}
+	/* Settings */
+	.settings-layout {
+		grid-template-columns: 1fr;
+		min-height: 0;
+		background: var(--canvas);
+	}
+	.settings-nav {
+		flex-direction: row;
+		overflow-x: auto;
+		padding: 16px 12px 12px;
+		margin-right: 52px;
+		border-right: 0;
+		border-bottom: 0;
+		scrollbar-width: none;
+	}
+	.settings-nav::-webkit-scrollbar {
+		display: none;
+	}
+	.settings-nav button {
+		flex: none;
+	}
+	.settings-main {
+		padding: 20px 16px;
+		max-height: 70dvh;
+	}
+	/* Search */
+	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
+	:is(#modal, #search-background).search {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+		margin: 0;
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		justify-content: flex-start;
+		gap: 10px;
+	}
+	:is(#modal, #search-background).search .search-results {
+		flex: 1;
+		min-height: 0;
+		max-height: none;
+	}
+	:is(#modal, #search-background).search .search-chips {
+		flex: none;
+	}
+	:is(#modal, #search-background).page.search {
+		height: auto;
+		max-height: none;
+		inset: 0 0 var(--kb, 0px);
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+	}
+	.search-chips {
+		justify-content: flex-start;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		padding-bottom: 4px;
+	}
+	/* Keyboard, pages and photos */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		position: fixed;
+		inset: auto 0 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+	}
+	.panel-content {
+		padding: 22px 20px 26px;
+	}
+	.panel-foot-row {
+		margin: 18px -20px -26px;
+		padding: 14px 20px;
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	#modal.panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	body.keyboard-open #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
+	}
+	/* Phone places are pages. AI/settings retain capsule navigation; search has its own exit. */
+	#modal.page,
+	#modal.page.panel,
+	#modal.page.panel.wide,
+	#modal.page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	#modal.page :is(.grabber, .sheet-close) {
+		display: none;
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		padding: calc(12px + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+		animation: none;
+	}
+	/* The local AI preview keeps context and composer in one viewport. */
+	#modal.page.panel.narrow:has(.ai-conversation) {
+		width: 100%;
+	}
+	#modal.page.panel .ai-conversation {
+		padding: calc(16px + env(safe-area-inset-top)) 16px
+			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+	}
+	.lightbox-stage > .icon-button {
+		display: none;
+	}
+}
+
+@media (hover: none) {
+	.card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	.feed-card .card-head-right {
+		opacity: 1;
+	}
+	.feed-card:hover .card-image {
+		transform: none;
+	}
+}
+/* Tablets keep the ••• at the top right, so the head leaves room for it. */
+@media (hover: none) and (min-width: 651px) {
+	.card-head:has(.card-head-right) {
+		padding-right: 36px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	*,
+	*:before,
+	*:after,
+	*::backdrop {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-property: opacity, background-color, color, border-color, box-shadow !important;
+		transition-duration: var(--dur-reduced) !important;
+		transition-timing-function: linear !important;
+		transition-delay: 0s !important;
+	}
+}
+body.reduce-motion,
+body.reduce-motion *,
+body.reduce-motion *:before,
+body.reduce-motion *:after,
+body.reduce-motion *::backdrop {
+	scroll-behavior: auto !important;
+	animation-duration: 0.01ms !important;
+	animation-iteration-count: 1 !important;
+	transition-property: opacity, background-color, color, border-color, box-shadow !important;
+	transition-duration: var(--dur-reduced) !important;
+	transition-timing-function: linear !important;
+	transition-delay: 0s !important;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+	body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item:hover {
+		transform: translateY(-2px);
+	}
+}
+
+/* Fades preserve the layout and control state. Show visibility immediately so Tab can enter. */
+@media (prefers-reduced-motion: reduce) {
+	#dock,
+	dialog > .float-bar,
+	.reader-head,
+	.sheet-head-tools {
+		transform: none !important;
+		transition:
+			opacity var(--dur-reduced) linear,
+			visibility 0s !important;
+	}
+	#dock.is-tucked,
+	dialog > .float-bar:is(.is-tucked, .is-hidden),
+	.reader-head.is-tucked,
+	.sheet-head-tools.is-tucked {
+		transition-delay: 0s, var(--dur-reduced) !important;
+	}
+	.icon-button:active,
+	.account-button:active,
+	.solid-button:active,
+	.feed-card:not(.stack-card):active:not(:has(button:active)) {
+		transform: none;
+	}
+	.nav-lens {
+		animation: none !important;
+		scale: none;
+	}
+	.nav-tab:active .nav-icon {
+		scale: none;
+	}
+}
+body.reduce-motion #dock,
+body.reduce-motion dialog > .float-bar,
+body.reduce-motion .reader-head,
+body.reduce-motion .sheet-head-tools {
+	transform: none !important;
+	transition:
+		opacity var(--dur-reduced) linear,
+		visibility 0s !important;
+}
+body.reduce-motion #dock.is-tucked,
+body.reduce-motion dialog > .float-bar:is(.is-tucked, .is-hidden),
+body.reduce-motion .reader-head.is-tucked,
+body.reduce-motion .sheet-head-tools.is-tucked {
+	transition-delay: 0s, var(--dur-reduced) !important;
+}
+body.reduce-motion .icon-button:active,
+body.reduce-motion .account-button:active,
+body.reduce-motion .solid-button:active,
+body.reduce-motion .feed-card:not(.stack-card):active:not(:has(button:active)) {
+	transform: none;
+}
+body.reduce-motion .nav-lens {
+	animation: none !important;
+	scale: none;
+}
+body.reduce-motion .nav-tab:active .nav-icon {
+	scale: none;
+}
+
+/* The local AI window can return to the search that supplied its context. */
+#modal.page .ai-conversation .sheet-close {
+	display: block;
 }
