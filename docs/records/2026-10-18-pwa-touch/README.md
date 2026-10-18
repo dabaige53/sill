@@ -43,7 +43,7 @@ manifest 只读检查使用本机登录页、仓库 manifest 与 PNG，没有真
 
 ## 设计同步与遗留
 
-先读线上 README，再通过 [线上 Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb) 的手册编辑器追加 U1 规则，重新读取文件确认原文完整保留，再同步到仓库。仅追加触控、键盘提示和状态栏规则，没有改品牌资产、设计变量或组件包。
+先读线上 README，再通过 [线上 Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb) 的手册编辑器追加 U1 规则，重新读取文件确认原文完整保留，再同步到仓库。仅追加触控、键盘提示和状态栏规则，没有改品牌资产或设计变量。按现有生成脚本更新了 `components/bundle.css`；线上组件 CSS 尚未发布，须在 Merge Danger 标明。
 
 [线上设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) 的 37 号画板保留原稿。本次新的键盘与窄屏提示截图在 PR 证据中，尚未补入线上画板；这项差异写入 Merge Danger，不能声称画布已更新。品牌绘法是否统一留到 U2；192/512 与 maskable 资产未经用户确认不生成。
 
