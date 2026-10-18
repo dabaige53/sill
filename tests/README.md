@@ -1,6 +1,6 @@
 # 测试目录
 
-更新：2026-10-17。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
+更新：2026-10-18。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
 | 改动 | 入口 | 边界 |
 | --- | --- | --- |
@@ -24,5 +24,7 @@
 | Mac | `npm run build:macos`、`npm run test:macos` | Swift 模型检查及产物验签，不启动应用，不代替桌面视觉验收 |
 | 格式与类型 | `npm run lint`、`npm run typecheck` | 只读；默认规则警告不代表已实现全仓 strict |
 | Postgres | `npm run test:supabase:postgres` | 需要可用 Docker；使用合成容器数据，不连接生产 |
+
+`hiddenActions` 的迁移前拒绝、迁移后保存、非法批量回滚由 `server/helpers/hidden-actions-migration.ts` 共用断言验证。`server/cloud-workspace.test.ts` 在 PGlite 运行，Postgres 入口加载相同迁移并调用同一断言。本机没有 Docker 时写明「未执行」；CI 结果另记，不代替生产迁移部署。
 
 专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/guides/file-management.md)。

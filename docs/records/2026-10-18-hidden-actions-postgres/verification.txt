@@ -1,0 +1,22 @@
+C6 本机检查摘要（合成数据）
+
+改前证据：旧数据库迁移组合拒绝 hiddenActions，公开读取与版本保持不变。
+改后证据：执行目标迁移后，允许列表保存、公开读取、重放、清空和非法批量回滚断言均通过。
+以上前后断言在同一组迁移回归中按顺序执行。
+
+node --test tests/server/cloud-workspace.test.ts
+pass 4 / fail 0 / skipped 0
+
+npm test
+共享约定 pass 36 / fail 0 / skipped 0
+Web pass 169 / fail 0 / skipped 0
+服务端 pass 92 / fail 0 / skipped 0
+
+npm run test:cloud-operations
+PASS cloud operations: atomic menu actions and cancellation, bookmarks/later/tags/notes, tasks/reminders, durable preferences, AI structured edits, no manual content editor, AI archive/restore, preference feedback, link drop/file ignore, unknown replay, conflict draft, export/clear, desktop/mobile, session-expiry menu/search/detail/AI cleanup, no browser persistence
+
+npm run files:check
+PASS
+
+本机 Postgres：未执行；command -v docker 返回 1。
+CI Postgres：待运行。

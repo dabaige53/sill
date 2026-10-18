@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import { cloudState, workspaceBatch } from "../../contracts/cloud.ts";
 import { A, B, claims, identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
+import { verifyHiddenActionsMigration } from "./helpers/hidden-actions-migration.ts";
 
 test("workspace atomic operations, state validation, old API, replay and owner boundary", async () => {
 	const db = new PGlite();
@@ -374,5 +375,35 @@ test("workspace HTTP uses the same validation, session and receipt boundary", as
 		);
 	} finally {
 		await f.close();
+	}
+});
+
+test("hiddenActions migration: public preferences write, validation and atomic rollback", async () => {
+	const db = new PGlite();
+	try {
+		await setupBoundary(db);
+		const migrate = async (name: string) => {
+			await db.exec("reset role");
+			await db.exec(
+				await readFile(new URL("../../supabase/migrations/" + name, import.meta.url), "utf8"),
+			);
+		};
+		for (const name of [
+			"20261016052843_sill_rich_cards.sql",
+			"20261016092653_sill_workspace_operations.sql",
+		])
+			await migrate(name);
+		await verifyHiddenActionsMigration({
+			migrate,
+			owner: A,
+			identity: `reset role;set request.jwt.claims='${JSON.stringify(claims())}';set role authenticated;`,
+			sql: async (statement) => {
+				const results = await db.exec(statement);
+				const value = results.at(-1)?.rows[0]?.value;
+				return typeof value === "object" ? JSON.stringify(value) : String(value);
+			},
+		});
+	} finally {
+		await db.close();
 	}
 });

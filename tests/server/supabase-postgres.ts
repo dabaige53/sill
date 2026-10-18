@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { verifyHiddenActionsMigration } from "./helpers/hidden-actions-migration.ts";
 
 const image =
 	"postgres:17.11@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3";
@@ -390,6 +391,25 @@ test("PostgreSQL 17 actual SQL, concurrent sessions, RLS and rollback", {
 					sql(asUser(other) + `select public.sill_get_content(${quote(target)});`),
 					/not_found/,
 				);
+			},
+		);
+		await t.test(
+			"hiddenActions migration preserves preferences and rejects invalid batches through public RPC",
+			async () => {
+				const migrate = async (name: string) =>
+					sql(
+						"set session authorization sill_installer;set createrole_self_grant='';" +
+							(await readFile(
+								new URL("../../supabase/migrations/" + name, import.meta.url),
+								"utf8",
+							)),
+					);
+				for (const name of [
+					"20261016052843_sill_rich_cards.sql",
+					"20261016092653_sill_workspace_operations.sql",
+				])
+					await migrate(name);
+				await verifyHiddenActionsMigration({ sql, migrate, identity: asUser(), owner });
 			},
 		);
 		await t.test(
