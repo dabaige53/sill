@@ -50,7 +50,7 @@ mark {
 	background: var(--highlight);
 	color: inherit;
 	border-radius: 3px;
-	padding: 0 1px;
+	padding: 0 var(--space-1);
 }
 button,
 input,
@@ -73,7 +73,7 @@ textarea {
 	background: var(--surface);
 	outline: 0;
 	border-radius: var(--control-radius);
-	padding: 12px 14px;
+	padding: var(--space-12) var(--space-14);
 	color: var(--ink);
 }
 textarea {
@@ -84,15 +84,15 @@ textarea::placeholder {
 	color: var(--secondary);
 }
 ::selection {
-	background: #d8e9ff;
-	color: #1d1d1f;
+	background: var(--selection);
+	color: var(--fixed-ink);
 }
 .sr-only {
 	position: absolute !important;
 	width: 1px;
 	height: 1px;
 	padding: 0;
-	margin: -1px;
+	margin: calc(-1 * var(--space-1));
 	overflow: hidden;
 	clip: rect(0, 0, 0, 0);
 	white-space: nowrap;
@@ -105,7 +105,7 @@ textarea::placeholder {
 }
 main {
 	width: 100%;
-	padding: 40px 40px 140px;
+	padding: var(--space-40) var(--space-40) var(--space-140);
 	margin: 0 auto;
 	min-height: 100vh;
 }
@@ -125,7 +125,7 @@ p {
 	position: relative;
 	max-width: 420px;
 	margin: 12vh auto 0;
-	padding: 32px 28px;
+	padding: var(--space-32) var(--space-28);
 	text-align: center;
 	color: var(--muted);
 }
@@ -136,7 +136,7 @@ p {
 }
 .empty-card p {
 	font-size: var(--text-meta);
-	margin-top: 8px;
+	margin-top: var(--space-8);
 }
 .feed-grid > .empty-card {
 	position: relative;
@@ -164,7 +164,7 @@ body.is-dropping:after {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 6px;
+	gap: var(--space-6);
 	pointer-events: none;
 	font-size: var(--text-card-title);
 	font-weight: 600;
@@ -183,7 +183,7 @@ body.is-dropping:after {
 	height: 3px;
 	border-radius: 2px;
 	background: var(--line);
-	margin: 40px auto 0;
+	margin: var(--space-40) auto 0;
 }
 body.feed-more .feed-end,
 main:has(.welcome, .empty-card) .feed-end {
@@ -192,8 +192,8 @@ main:has(.welcome, .empty-card) .feed-end {
 /* Recovery remains available until the user resolves it; it never relies on a toast timeout. */
 #sync-status {
 	max-width: 760px;
-	margin: 0 auto 24px;
-	padding: 16px;
+	margin: 0 auto var(--space-24);
+	padding: var(--space-16);
 	border: 1px solid var(--line-hover);
 	border-radius: 16px;
 	background: var(--card);

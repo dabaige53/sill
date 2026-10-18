@@ -139,7 +139,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	display: flex;
 	align-items: center;
 	height: var(--rail-row);
-	padding: 4px;
+	padding: var(--space-4);
 	border-radius: var(--pill-radius);
 }
 .nav-tab {
@@ -156,7 +156,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 2px;
+	gap: var(--space-2);
 	font: inherit;
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
@@ -272,32 +272,32 @@ body:has(#modal[open]:not(.page)) #dock * {
 	bottom: calc(var(--rail-bottom) + var(--rail-row) + 10px);
 	translate: -50% 0;
 	height: 40px;
-	padding: 0 16px;
+	padding: 0 var(--space-16);
 	border-radius: var(--pill-radius);
 	font-size: var(--text-meta);
 	font-weight: 600;
 	color: var(--ink);
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
+	gap: var(--space-6);
 	transition:
 		top var(--dur-tuck) var(--ease),
 		opacity 240ms var(--ease),
 		visibility 0s;
 }
 #new-count:has(.new-sources) {
-	padding-left: 8px;
+	padding-left: var(--space-8);
 }
 .new-sources {
 	display: inline-flex;
-	margin-right: 2px;
+	margin-right: var(--space-2);
 }
 .new-sources > span {
 	display: grid;
 	place-items: center;
 	width: 24px;
 	height: 24px;
-	margin-left: -6px;
+	margin-left: calc(-1 * var(--space-6));
 	border-radius: 50%;
 	background: var(--card);
 	border: 1px solid var(--line);
@@ -377,14 +377,14 @@ body:has(#modal[open]) #new-count {
 /* Offline: a quiet pill above the rail; a tap retries. */
 #offline {
 	height: 40px;
-	padding: 0 14px;
+	padding: 0 var(--space-14);
 	border-radius: var(--pill-radius);
 	font-size: var(--text-meta);
 	font-weight: 500;
 	color: var(--alert);
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
+	gap: var(--space-8);
 }
 #offline:before {
 	content: "";
@@ -413,8 +413,8 @@ body:has(#modal[open]) #new-count {
 	border-radius: var(--pill-radius);
 	display: flex;
 	align-items: center;
-	padding: 4px;
-	gap: 2px;
+	padding: var(--space-4);
+	gap: var(--space-2);
 	max-width: calc(100vw - 2 * var(--rail-edge) - 4 * var(--nav-tab) - 8px - var(--rail-gap));
 	overflow: visible;
 	scrollbar-width: none;
@@ -431,11 +431,11 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	place-items: center;
 	min-width: 28px;
 	height: 28px;
-	margin: 0 8px;
-	padding: 0 8px;
+	margin: 0 var(--space-8);
+	padding: 0 var(--space-8);
 	border-radius: var(--pill-radius);
 	background: var(--accent-fill);
-	color: #fff;
+	color: var(--fixed-white);
 	font-size: var(--text-meta);
 	font-weight: 600;
 }
@@ -443,7 +443,7 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	width: 1px;
 	height: 22px;
 	background: var(--line-hover);
-	margin: 0 6px;
+	margin: 0 var(--space-6);
 	flex: none;
 }
 /* A card's own verbs (reply, open the source, join, remind again) follow the rule in accent;
@@ -465,7 +465,7 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	bottom: calc(100% + 10px);
 	left: 50%;
 	translate: var(--tip-x) 4px;
-	padding: 6px 10px;
+	padding: var(--space-6) var(--space-10);
 	border-radius: 10px;
 	background: var(--ink);
 	color: var(--card);
@@ -515,12 +515,12 @@ body.reduce-motion .float-bar .icon-button::after {
 	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
 	max-width: min(420px, calc(100vw - 2 * var(--rail-edge)));
 	min-height: 44px;
-	padding: 0 6px 0 18px;
+	padding: 0 var(--space-6) 0 var(--space-18);
 	border-radius: var(--pill-radius);
 	z-index: 120;
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: var(--space-8);
 	font-size: var(--text-meta);
 	transition: bottom var(--base) var(--ease);
 }
@@ -544,13 +544,13 @@ body.is-dragging #toast {
 }
 #toast-text {
 	white-space: normal;
-	padding: 10px 0;
+	padding: var(--space-10) 0;
 }
 #toast-text:only-child {
-	padding-right: 12px;
+	padding-right: var(--space-12);
 }
 #toast-action .text-link {
-	padding: 10px 12px;
+	padding: var(--space-10) var(--space-12);
 }
 #toast-action:empty {
 	display: none;
@@ -559,21 +559,21 @@ body.is-dragging #toast {
 /* Chips, segmented controls and switches. */
 .chips {
 	display: flex;
-	gap: 8px;
+	gap: var(--space-8);
 	flex-wrap: wrap;
 }
 .chip {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
+	gap: var(--space-6);
 	min-height: 36px;
-	padding: 0 14px;
+	padding: 0 var(--space-14);
 	border-radius: var(--pill-radius);
 	background: var(--card);
 	color: var(--ink);
 	font-size: var(--text-meta);
 	white-space: nowrap;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	box-shadow: 0 1px 3px var(--fixed-black-6);
 	transition:
 		background var(--fast),
 		color var(--fast);
@@ -601,9 +601,9 @@ body.is-dragging #toast {
 .tag-pill {
 	display: inline-flex;
 	align-items: center;
-	gap: 2px;
+	gap: var(--space-2);
 	height: 32px;
-	padding: 0 4px 0 12px;
+	padding: 0 var(--space-4) 0 var(--space-12);
 	border-radius: var(--pill-radius);
 	background: var(--surface);
 	color: var(--ink);
@@ -624,14 +624,14 @@ body.is-dragging #toast {
 }
 .segmented {
 	display: inline-flex;
-	padding: 2px;
+	padding: var(--space-2);
 	border-radius: 10px;
 	background: var(--surface);
 	flex: none;
 }
 .segmented button {
 	min-height: 30px;
-	padding: 0 12px;
+	padding: 0 var(--space-12);
 	border-radius: 8px;
 	font-size: var(--text-meta);
 	color: var(--muted);
@@ -641,7 +641,7 @@ body.is-dragging #toast {
 	background: var(--card);
 	color: var(--ink);
 	font-weight: 500;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 1px 3px var(--fixed-black-10);
 }
 .toggle {
 	width: 51px;
@@ -660,8 +660,8 @@ body.is-dragging #toast {
 	left: 2px;
 	top: 2px;
 	border-radius: 50%;
-	background: #fff;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+	background: var(--fixed-white);
+	box-shadow: 0 2px 4px var(--fixed-black-15);
 	transition: transform var(--base) var(--ease);
 }
 .toggle[aria-checked="true"] {
@@ -673,7 +673,7 @@ body.is-dragging #toast {
 .text-button {
 	background: transparent;
 	min-height: 44px;
-	padding: 8px 12px;
+	padding: var(--space-8) var(--space-12);
 	font-size: var(--text-meta);
 	border-radius: var(--control-radius);
 	color: var(--ink);
@@ -686,11 +686,11 @@ body.is-dragging #toast {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 6px;
+	gap: var(--space-6);
 	background: var(--accent-fill);
-	color: #fff;
+	color: var(--fixed-white);
 	border-radius: var(--pill-radius);
-	padding: 0 20px;
+	padding: 0 var(--space-20);
 	font-size: var(--text-control);
 	font-weight: 500;
 	min-height: 44px;
@@ -714,11 +714,11 @@ body.is-dragging #toast {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 6px;
+	gap: var(--space-6);
 	background: var(--surface);
 	color: var(--ink);
 	border-radius: var(--pill-radius);
-	padding: 0 20px;
+	padding: 0 var(--space-20);
 	font-size: var(--text-control);
 	font-weight: 500;
 	min-height: 44px;
@@ -745,8 +745,8 @@ body.is-dragging #toast {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 10px;
-	padding: 10px 14px;
+	gap: var(--space-10);
+	padding: var(--space-10) var(--space-14);
 	border: 1px solid var(--line-hover);
 	border-radius: var(--pill-radius);
 	color: var(--ink);
@@ -765,7 +765,7 @@ body.is-dragging #toast {
 .selection-ai-wave {
 	display: flex;
 	align-items: center;
-	gap: 3px;
+	gap: var(--space-3);
 	height: 18px;
 }
 .selection-ai-wave i {
@@ -792,7 +792,7 @@ body.is-dragging #toast {
 	will-change: transform;
 }
 #search-selection-bar {
-	margin-top: 60px;
+	margin-top: var(--space-60);
 }
 
 /* Phone home head (ADR 0036): only phones show it; see responsive.css. */

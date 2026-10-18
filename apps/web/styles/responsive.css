@@ -91,7 +91,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 }
 @media (max-width: 1000px) {
 	main {
-		padding: 24px 24px 140px;
+		padding: var(--space-24) var(--space-24) var(--space-140);
 	}
 }
 /* Phone: one column, bottom sheets, thumbs-first toolbars. */
@@ -101,7 +101,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		scrollbar-gutter: auto;
 	}
 	main {
-		padding: 8px var(--margin-sm) 130px;
+		padding: var(--space-8) var(--margin-sm) var(--space-130);
 	}
 	:root {
 		--rail-edge: 16px;
@@ -115,7 +115,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		--home-top-h: 88px;
 	}
 	main {
-		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
+		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + var(--space-8));
 	}
 	/* Phone home (ADR 0036): X-like density, still cards. Desktop keeps its own spacing. */
 	.home-top {
@@ -166,14 +166,14 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.home-tabs {
 		display: flex;
 		height: var(--hit-target);
-		padding: 0 4px;
+		padding: 0 var(--space-4);
 		overflow-x: auto;
 		scrollbar-width: none;
 	}
 	.home-tab {
 		position: relative;
 		flex: 1 0 auto;
-		padding: 0 12px;
+		padding: 0 var(--space-12);
 		border: 0;
 		background: none;
 		font: inherit;
@@ -276,7 +276,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	}
 	/* A person's head reads on one line: small portrait, name, then mail and time. */
 	.feed-item .sender {
-		gap: 8px;
+		gap: var(--space-8);
 	}
 	.feed-item .sender .avatar {
 		width: 20px !important;
@@ -286,7 +286,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.feed-item .sender > span:last-child {
 		flex-direction: row;
 		align-items: baseline;
-		gap: 4px;
+		gap: var(--space-4);
 		overflow: hidden;
 		white-space: nowrap;
 	}
@@ -314,7 +314,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.feed-item.has-cover:not(.type-media, .type-photo) .card-body {
 		flex: 1;
 		min-width: 0;
-		padding-right: 12px;
+		padding-right: var(--space-12);
 	}
 	.feed-item:is(.type-media, .type-photo) .card-cover {
 		aspect-ratio: 2 / 1;
@@ -342,12 +342,12 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		display: grid;
 		grid-template-columns: auto 1fr;
 		align-items: center;
-		column-gap: 12px;
-		row-gap: 2px;
+		column-gap: var(--space-12);
+		row-gap: var(--space-2);
 	}
 	.feed-item.type-event .card-head {
 		grid-column: 1 / -1;
-		margin-bottom: 6px;
+		margin-bottom: var(--space-6);
 	}
 	.feed-item.type-event .event-time {
 		display: contents;
@@ -368,7 +368,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		grid-row: 3;
 		flex-direction: row;
 		align-items: baseline;
-		gap: 4px;
+		gap: var(--space-4);
 		padding-bottom: 0;
 		font-size: var(--text-meta);
 		font-weight: 400;
@@ -380,14 +380,14 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.feed-item.type-event .people {
 		grid-column: 1 / -1;
 		grid-row: 4;
-		margin-top: 8px;
+		margin-top: var(--space-8);
 		padding-top: 0;
 	}
 	.feed-item.type-event .card-actions-row {
 		grid-column: 1 / -1;
 		grid-row: 4;
 		justify-self: end;
-		margin-top: 8px;
+		margin-top: var(--space-8);
 		padding-top: 0;
 	}
 	.feed-item.type-event .card-actions-row .pill {
@@ -483,31 +483,39 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	}
 	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
 	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
-		padding-bottom: calc(var(--rail-row) + 4px + max(8px, env(safe-area-inset-bottom)));
-		scroll-padding-bottom: calc(var(--rail-row) + 4px + max(8px, env(safe-area-inset-bottom)));
+		padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+		scroll-padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
 	}
 	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
-		padding-top: calc(18px + env(safe-area-inset-top));
+		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
 	}
 	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
 		top: env(safe-area-inset-top);
 	}
 	#modal.preview #modal-title,
 	#modal.preview .preview-body > :is(.preview-sender, .preview-meta) {
-		padding-right: 52px;
+		padding-right: var(--space-52);
 	}
 	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
 	#modal.preview:has(.sheet-head [data-action="reader"])
 		.preview-body
 		> :is(.preview-sender, .preview-meta) {
-		padding-right: 104px;
+		padding-right: var(--space-104);
 	}
 	#modal.preview:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
 		padding-right: 0;
 	}
 	.sheet-head {
 		height: 60px;
-		padding: 0 12px;
+		padding: 0 var(--space-12);
 	}
 	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
 	.sheet-head .icon-button {
@@ -538,7 +546,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		position: absolute;
 		left: 50%;
 		top: 6px;
-		margin: 0 0 0 -18px;
+		margin: 0 0 0 calc(-1 * var(--space-18));
 	}
 	#modal.preview[open] {
 		gap: 0;
@@ -557,7 +565,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		height: 5px;
 		border-radius: 3px;
 		background: var(--faint);
-		margin: 8px auto 0;
+		margin: var(--space-8) auto 0;
 	}
 	#modal.preview > .float-bar {
 		position: fixed;
@@ -574,7 +582,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 	}
 	.preview-body {
-		padding: 18px 20px 22px;
+		padding: var(--space-18) var(--space-20) var(--space-22);
 	}
 	.preview-body h1 {
 		font-size: var(--text-panel-title);
@@ -585,7 +593,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		right: 12px;
 	}
 	.reader-body {
-		padding: 64px 22px 150px;
+		padding: var(--space-64) var(--space-22) var(--space-150);
 	}
 	.reader-body h1 {
 		font-size: 27px;
@@ -602,8 +610,8 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.settings-nav {
 		flex-direction: row;
 		overflow-x: auto;
-		padding: 16px 12px 12px;
-		margin-right: 52px;
+		padding: var(--space-16) var(--space-12) var(--space-12);
+		margin-right: var(--space-52);
 		border-right: 0;
 		border-bottom: 0;
 		scrollbar-width: none;
@@ -615,7 +623,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		flex: none;
 	}
 	.settings-main {
-		padding: 20px 16px;
+		padding: var(--space-20) var(--space-16);
 		max-height: 70dvh;
 	}
 	/* Search */
@@ -628,9 +636,9 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		height: 100%;
 		max-height: 100%;
 		margin: 0;
-		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
 		justify-content: flex-start;
-		gap: 10px;
+		gap: var(--space-10);
 	}
 	:is(#modal, #search-background).search .search-results {
 		flex: 1;
@@ -644,13 +652,13 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		height: auto;
 		max-height: none;
 		inset: 0 0 var(--kb, 0px);
-		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
 	}
 	.search-chips {
 		justify-content: flex-start;
 		flex-wrap: nowrap;
 		overflow-x: auto;
-		padding-bottom: 4px;
+		padding-bottom: var(--space-4);
 	}
 	/* Keyboard, pages and photos */
 	#modal.panel,
@@ -663,11 +671,11 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		max-width: 100%;
 	}
 	.panel-content {
-		padding: 22px 20px 26px;
+		padding: var(--space-22) var(--space-20) var(--space-26);
 	}
 	.panel-foot-row {
-		margin: 18px -20px -26px;
-		padding: 14px 20px;
+		margin: var(--space-18) calc(-1 * var(--space-20)) calc(-1 * var(--space-26));
+		padding: var(--space-14) var(--space-20);
 	}
 	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
 	#modal.panel,
@@ -709,8 +717,8 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		border-radius: 0;
 		box-shadow: none;
 		background: var(--canvas);
-		padding: calc(12px + env(safe-area-inset-top)) 0
-			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+		padding: calc(var(--space-12) + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 		animation: none;
 	}
 	/* The local AI preview keeps context and composer in one viewport. */
@@ -718,8 +726,8 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		width: 100%;
 	}
 	#modal.page.panel .ai-conversation {
-		padding: calc(16px + env(safe-area-inset-top)) 16px
-			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--space-16)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 	}
 	.lightbox-stage > .icon-button {
 		display: none;
@@ -741,7 +749,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 /* Tablets keep the ••• at the top right, so the head leaves room for it. */
 @media (hover: none) and (min-width: 651px) {
 	.card-head:has(.card-head-right) {
-		padding-right: 36px;
+		padding-right: var(--space-36);
 	}
 }
 @media (prefers-reduced-motion: reduce) {
