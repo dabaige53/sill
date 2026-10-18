@@ -1,0 +1,97 @@
+{
+  "stage": "managed-app",
+  "comparisons": 18,
+  "pixelsChanged": 0,
+  "rows": [
+    {
+      "image": "1440-dark-detail.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "1440-dark-home.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "1440-dark-settings.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "1440-light-detail.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "1440-light-home.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "1440-light-settings.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "320-dark-detail.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "320-dark-home.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "320-dark-settings.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "320-light-detail.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "320-light-home.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "320-light-settings.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "390-dark-detail.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "390-dark-home.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "390-dark-settings.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "390-light-detail.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "390-light-home.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    },
+    {
+      "image": "390-light-settings.png",
+      "pixelsChanged": 0,
+      "geometryAndSelectedStylesIdentical": true
+    }
+  ]
+}

@@ -67,16 +67,16 @@
 
 | 文件 | 行数 | 职责 |
 | --- | --- | --- |
-| `apps/web/views/app.ts` | 约 3300 | AppController：路由、渲染、所有 `data-action` 分发、设置、预览定位、刷新 |
-| `apps/web/interactions/panels.ts` | 约 560 | 所有弹层的 HTML：预览、阅读、设置、搜索、菜单；`tools()` 与 `own()` 生成详情胶囊 |
-| `apps/web/interactions/gestures.ts` | 约 1070 | 抽屉跟手、下拉关闭、下拉刷新、长按选择 |
-| `apps/web/interactions/chrome.ts` | 约 160 | 工具条随滚动收起（ChromeAutoHide）、胶囊长按名称（toolbarTips） |
-| `apps/web/cards/templates.ts` | 约 280 | 信息流卡片模板 |
+| `apps/web/views/app.ts` | 2716 | AppController：路由、渲染、动作分发入口、刷新；设置与预览已拆分 |
+| `apps/web/interactions/panels.ts` | 424 | 弹层模板入口、阅读、设置、搜索、菜单；`panels/` 下按卡片类型生成预览 |
+| `apps/web/interactions/gestures.ts` | 1072 | 抽屉跟手、下拉关闭、下拉刷新、长按选择 |
+| `apps/web/interactions/chrome.ts` | 156 | 工具条随滚动收起（ChromeAutoHide）、胶囊长按名称（toolbarTips） |
+| `apps/web/cards/templates.ts` | 283 | 信息流卡片模板 |
 | `apps/web/atoms/icons.ts` | — | 所有图标路径；`design-system/assets/Icons/` 由它生成 |
-| `apps/web/styles/overlays.css` | 约 2030 | 弹层、抽屉、预览、设置 |
-| `apps/web/styles/responsive.css` | 约 840 | 手机断点；ADR 0036 的手机主页规则集中在 `@media (max-width: 650px)` 的最后一段 |
-| `apps/web/styles/controls.css` | 约 780 | 按钮、胶囊、导航、toast、`.toolbar-sep`、`.is-own`、名称提示 |
-| `apps/web/styles/cards.css` | 约 950 | 卡片、勾选圈、提醒圆圈 |
+| `apps/web/styles/overlays.css` | 2004 | 弹层、抽屉、预览、设置 |
+| `apps/web/styles/responsive.css` | 892 | 手机规则在一个 650px 区块中，按区域排序；保留 ADR 0036 注释 |
+| `apps/web/styles/controls.css` | 811 | 按钮、胶囊、导航、toast、`.toolbar-sep`、`.is-own`、名称提示 |
+| `apps/web/styles/cards.css` | 955 | 卡片、勾选圈、提醒圆圈 |
 | `apps/web/styles/tokens.css` | — | CSS 变量；与 `design-system/tokens.json` 对应 |
 | `design-system/copy/zh-Hans.json` | — | 所有界面文案；新键用语义名（如 `web.actions.reply`） |
 | `deploy/web-manifest.json`、`apps/web/shell.html` | — | PWA manifest 与页面外壳 |
@@ -182,6 +182,8 @@
 证据提交后的云端工作台曾在会话过期流程等待保存状态超时；先在 C2 基础提交复跑通过，再回到 C3 复跑通过。根因未定位，未改断言。失败与复跑均保留在检查记录；源码及首份证据提交的 7 项 CI 全绿。
 
 ### C4 整理样式（代码）
+
+2026-10-18 执行状态：C4 已实施，提交 [PR #53](https://github.com/dabaige53/sill/pull/53)。先原样移动，再提取现有数值，最后清理规则与优先级。117 条手机规则集中在一个 650px 区块，移动时全部 151 条响应式规则保持原声明；删除 9 条无引用规则，固定颜色增加 22 个变量、内部间距增加 36 个变量，`!important` 33 → 6，仅保留覆盖内联样式的声明并注明来源。新增动画中断检查检出并修复了 3 处本次回归，保持菜单打开时固定卡片、关闭后恢复同一动画，减少动态效果切换时保留淡入。`window.__app` 的 103 个公开方法签名不变。Node 三组 36 / 192 / 92，相关浏览器 112 项通过、失败 0；Web lint 0 错误、875 警告、30 条提示。文案键 826 个（哈希键 491 个，panels 哈希键 0 个），图标 69 个。普通模式 18 张最终截图均零像素差异；系统减少动态效果出现的 1 像素波动也在基础重复截图出现，原始对照均保留。详见 [检查记录](../records/2026-10-18-style-cleanup/README.md)，最新 CI 以 PR 为准。线上未同步：`design-system/README.md`、`design-system/tokens.json`、`design-system/components/bundle.css`；线上资产记录未改。真机、Safari 未检查，Mac 未改。
 
 - 手机规则分散在 `responsive.css` 的多个 `@media (max-width: 650px)` 块里（包括 ADR 0036 一段），合并成一块，按区域排序；保留指向 ADR 的注释。
 - 查找不再使用的选择器（例如已删除的 `.reminder-actions` 一类），用 `grep` 确认模板里没有再删。

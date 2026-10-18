@@ -1,0 +1,54 @@
+{
+  "before": "a091379",
+  "after": "a72de59",
+  "importantBefore": 33,
+  "importantAfter": 6,
+  "remainingImportant": [
+    {
+      "file": "apps/web/styles/overlays.css",
+      "line": 1705,
+      "declaration": "stroke-dashoffset: 30 !important;"
+    },
+    {
+      "file": "apps/web/styles/responsive.css",
+      "line": 287,
+      "declaration": "width: 20px !important;"
+    },
+    {
+      "file": "apps/web/styles/responsive.css",
+      "line": 288,
+      "declaration": "height: 20px !important;"
+    },
+    {
+      "file": "apps/web/styles/base.css",
+      "line": 146,
+      "declaration": "left: auto !important;"
+    },
+    {
+      "file": "apps/web/styles/base.css",
+      "line": 147,
+      "declaration": "top: auto !important;"
+    },
+    {
+      "file": "apps/web/styles/base.css",
+      "line": 148,
+      "declaration": "width: auto !important;"
+    }
+  ],
+  "unchangedPathsComparedToC3": [
+    "apps/web/views/app.ts",
+    "design-system/design-system.json",
+    "design-system/copy/zh-Hans.json",
+    "apps/apple",
+    "design-system/assets/Icons"
+  ],
+  "publicAppMethods": 103,
+  "phoneMediaBlocks": 1,
+  "phoneRulesAfterMove": 117,
+  "responsiveRulesAtMove": 151,
+  "deletedUnusedRules": 9,
+  "fixedColorTokensAdded": 22,
+  "spacingTokensAdded": 36,
+  "literalColorUsesReplaced": 45,
+  "transitionShorthandsWrapped": 58
+}

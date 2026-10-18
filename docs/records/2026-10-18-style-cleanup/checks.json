@@ -1,0 +1,122 @@
+{
+  "node": [
+    {
+      "commit": "ea793a8",
+      "contracts": 36,
+      "web": 192,
+      "server": 92,
+      "fail": 0,
+      "rawLogSha256": "071de5571ad16a5863a65f3b175de6abe0898292c1bfc8ffad00b543cb43ddc5"
+    },
+    {
+      "commit": "977a0a1",
+      "contracts": 36,
+      "web": 192,
+      "server": 92,
+      "fail": 0,
+      "rawLogSha256": "fd38b8bfeec922bef8ea906645f985badee89504381f1cc47060adcb1dad79c1"
+    },
+    {
+      "commit": "1a17b52",
+      "contracts": 36,
+      "web": 192,
+      "server": 92,
+      "fail": 0,
+      "rawLogSha256": "9f7ff977413c143867a1ea08868244d0b28566573252fd8e410fda4a17563c6d"
+    },
+    {
+      "commit": "2258858",
+      "contracts": 36,
+      "web": 192,
+      "server": 92,
+      "fail": 0,
+      "rawLogSha256": "5fed7c06cbb3f15c6257b65462999829d14e0916cf017d6aeff278ca2c3c3803"
+    },
+    {
+      "commit": "a72de59",
+      "contracts": 36,
+      "web": 192,
+      "server": 92,
+      "fail": 0,
+      "rawLogSha256": "32e55f609432107df19c5a32f8157f9b34637f1a1136cabd5aff2577eabc5576"
+    },
+    {
+      "commit": "9e18fc5",
+      "contracts": 36,
+      "web": 192,
+      "server": 92,
+      "fail": 0,
+      "rawLogSha256": "cb4f213929fabd5d731baf181c94d2aa46d2b60e04c15db3cc07b431b00b3509"
+    }
+  ],
+  "browserSource": "a72de59",
+  "browser": [
+    {
+      "suite": "browser",
+      "pass": 23,
+      "fail": 0,
+      "rawLogSha256": "eb09bce0820877a180ad2c761fa5d82aa119e0e739702da86b333978c7bcd606"
+    },
+    {
+      "suite": "drawer",
+      "pass": 11,
+      "fail": 0,
+      "rawLogSha256": "6e1841156628cc2408477c35d6e7e86c40120c3ea447571ee9db6b44f01c4bec"
+    },
+    {
+      "suite": "motion",
+      "pass": 17,
+      "fail": 0,
+      "rawLogSha256": "93110b03d43d87802b28ca79598669d7aa1f5653883e74f99f57a8f8ca96405d"
+    },
+    {
+      "suite": "density",
+      "pass": 6,
+      "fail": 0,
+      "rawLogSha256": "79aee0ff7ea072f8a176bcf6e916ee908cd89938ea6f729225bcf09dd91916c5"
+    },
+    {
+      "suite": "axe",
+      "pass": 13,
+      "fail": 0,
+      "rawLogSha256": "892e27a8f3ca0b6362d3397642c3ee0040b5724a7c856486efbb0efd5ae42019"
+    },
+    {
+      "suite": "pwa",
+      "pass": 10,
+      "fail": 0,
+      "rawLogSha256": "38387d4e10cd451285b33057bdd3a724d90ce2a05f34cf7151b6e8bff76b9e19"
+    },
+    {
+      "suite": "search",
+      "pass": 2,
+      "fail": 0,
+      "rawLogSha256": "d814efb01df1ae494178636dcb5a7324b6b27bd82be7ca4e951138323b86cfcf"
+    },
+    {
+      "suite": "selection",
+      "pass": 28,
+      "fail": 0,
+      "rawLogSha256": "90f3ec63765e15c0ab2453dc024c0ed0788d1b4d16a12e707e5df37545a5ccb7"
+    },
+    {
+      "suite": "refresh",
+      "source": "9e18fc5",
+      "pass": 2,
+      "fail": 0,
+      "rawLogSha256": "6647462220aa8556473be4dfe258220a3fc0c386b2ea8f1b917ee01c106311fb"
+    }
+  ],
+  "browserTotal": 112,
+  "webBiome": {
+    "errors": 0,
+    "warnings": 875,
+    "infos": 30
+  },
+  "copyKeys": 826,
+  "hashCopyKeys": 491,
+  "panelsHashCopyKeys": 0,
+  "icons": 69,
+  "nativeDevices": "未检查",
+  "production": "未部署"
+}

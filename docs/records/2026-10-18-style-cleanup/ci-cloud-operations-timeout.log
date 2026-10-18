@@ -1,0 +1,21 @@
+boundary	Run npm run test:cloud-operations	﻿2026-10-18T12:08:41.1204501Z ##[group]Run npm run test:cloud-operations
+boundary	Run npm run test:cloud-operations	2026-10-18T12:08:41.1204946Z ^[[36;1mnpm run test:cloud-operations^[[0m
+boundary	Run npm run test:cloud-operations	2026-10-18T12:08:41.1263838Z shell: /usr/bin/bash -e {0}
+boundary	Run npm run test:cloud-operations	2026-10-18T12:08:41.1264076Z ##[endgroup]
+boundary	Run npm run test:cloud-operations	2026-10-18T12:08:41.3046973Z 
+boundary	Run npm run test:cloud-operations	2026-10-18T12:08:41.3047512Z > sill@1.2.5 test:cloud-operations
+boundary	Run npm run test:cloud-operations	2026-10-18T12:08:41.3048064Z > node tests/e2e/cloud-operations-browser.ts
+boundary	Run npm run test:cloud-operations	2026-10-18T12:08:41.3048351Z 
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6024730Z node:internal/modules/run_main:107
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6025298Z     triggerUncaughtException(
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6025596Z     ^
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6025714Z 
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6025938Z page.waitForFunction: Timeout 30000ms exceeded.
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6026669Z     at saved (/home/runner/work/sill/sill/tests/e2e/cloud-operations-browser.ts:106:8)
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6027509Z     at /home/runner/work/sill/sill/tests/e2e/cloud-operations-browser.ts:437:10 {
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6027942Z   log: [],
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6028137Z   name: 'TimeoutError'
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6028337Z }
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6028479Z 
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6028585Z Node.js v24.21.0
+boundary	Run npm run test:cloud-operations	2026-10-18T12:09:27.6312100Z ##[error]Process completed with exit code 1.

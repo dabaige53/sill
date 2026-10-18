@@ -1,0 +1,114 @@
+{
+  "stage": "before",
+  "sourceCommit": "a091379",
+  "captures": [
+    {
+      "filename": "320-light-home.png",
+      "bytes": 96358,
+      "sha256": "e5295b498f04b6e28e7b5f8ed64668c2164bb94d31a9f070817247ec31428546",
+      "elements": 201
+    },
+    {
+      "filename": "320-light-detail.png",
+      "bytes": 100541,
+      "sha256": "9e9ad0972304bacbd51424e1d9aaad9d7d32b5571e883a003bf4536ff99102aa",
+      "elements": 264
+    },
+    {
+      "filename": "320-light-settings.png",
+      "bytes": 31300,
+      "sha256": "a3227bc920e1338b6d589d1423a096ae5b6b21c50af3f50258cb695d633053b6",
+      "elements": 235
+    },
+    {
+      "filename": "320-dark-home.png",
+      "bytes": 95132,
+      "sha256": "1c41fd38cb0447984df2cd3819595455aa942c8ddd413b2e7eac35f9cd970e6d",
+      "elements": 201
+    },
+    {
+      "filename": "320-dark-detail.png",
+      "bytes": 104175,
+      "sha256": "eb839050a716fd5b64cc329da2213f094ceda78766ef2c58097af10cb8844168",
+      "elements": 264
+    },
+    {
+      "filename": "320-dark-settings.png",
+      "bytes": 29615,
+      "sha256": "229afd9730e42b769aefc89cdb5ac288ad905148eaffb8e55a01a95793f86a3c",
+      "elements": 235
+    },
+    {
+      "filename": "390-light-home.png",
+      "bytes": 105361,
+      "sha256": "3a324ef601f1aa823299b79292c23e5c9a2f18a8a0b2681fb4f4029f5302b4a2",
+      "elements": 201
+    },
+    {
+      "filename": "390-light-detail.png",
+      "bytes": 109109,
+      "sha256": "156084845abf7389f65a26e619da150a353255fc02e1917cedf16d3651de8e0f",
+      "elements": 264
+    },
+    {
+      "filename": "390-light-settings.png",
+      "bytes": 33560,
+      "sha256": "a85f5e9ed85d774d5a6b7e820a0122d6a769e9907e322de9e184d68238231c64",
+      "elements": 235
+    },
+    {
+      "filename": "390-dark-home.png",
+      "bytes": 103485,
+      "sha256": "4869a83a045b7d449eae0e2a71992725598af43b608a1a360a41d4256f306046",
+      "elements": 201
+    },
+    {
+      "filename": "390-dark-detail.png",
+      "bytes": 112790,
+      "sha256": "b5f4f73845f9fdd7810ecf7e6fe796ff0a620e67f1bf1c8373df199023edfdb0",
+      "elements": 264
+    },
+    {
+      "filename": "390-dark-settings.png",
+      "bytes": 31664,
+      "sha256": "248d3315791ece9f56e13dd515dc77d9df6c607b2a9db2e0428f7dd3b4f205ae",
+      "elements": 235
+    },
+    {
+      "filename": "1440-light-home.png",
+      "bytes": 242055,
+      "sha256": "da2a6f2ce8544f71042ddeb11e5dd45819c0e85e8df4e486b5b6ce49f8c0469d",
+      "elements": 196
+    },
+    {
+      "filename": "1440-light-detail.png",
+      "bytes": 350505,
+      "sha256": "9a58df101800c7e87f2fcf7d315a307cc409c3dd62650fecb4287e1c1295414e",
+      "elements": 257
+    },
+    {
+      "filename": "1440-light-settings.png",
+      "bytes": 223074,
+      "sha256": "34a295fd1b28a342eddadb14622b8aefd11e587e8349076c099f96c06aca9785",
+      "elements": 234
+    },
+    {
+      "filename": "1440-dark-home.png",
+      "bytes": 234561,
+      "sha256": "0c64cfc628e57c04b029c90c43ce4cf086aae3daa946a80464a4320a2fa869e2",
+      "elements": 196
+    },
+    {
+      "filename": "1440-dark-detail.png",
+      "bytes": 333518,
+      "sha256": "fcc4d2c05abd67c6504ddf46d5a21292f1dda9e96844e93e9524dafd72d060b5",
+      "elements": 257
+    },
+    {
+      "filename": "1440-dark-settings.png",
+      "bytes": 194709,
+      "sha256": "7d8a44a3d35a3fee05dc512983801b5cfc9a5d0b04039156b21c383a845eb20c",
+      "elements": 234
+    }
+  ]
+}
