@@ -46,6 +46,33 @@ type Backup = Partial<StoreState> & {
 	sort?: Preferences["sort"];
 };
 
+type Snapshot = Omit<StoreState, "storageAvailable"> & { version: number } & Record<
+		string,
+		unknown
+	>;
+type Stats = { read: number; saved: number; done: number; overdue: Card[] };
+interface CardStore {
+	key: string;
+	state: StoreState;
+	legacyFields: Record<string, unknown>;
+	fresh(): StoreState;
+	sanitizeItem(input?: Record<string, unknown>): CardItem;
+	load(): StoreState;
+	item(id?: string): CardItem;
+	card(id?: string): Card;
+	patch(id?: string, values?: CardState): void;
+	pref<K extends keyof Preferences>(key?: K): Preferences[K];
+	setPref<K extends keyof Preferences>(key?: K, value?: Preferences[K]): void;
+	tags(card?: Card): string[];
+	tasks(card?: Card): NonNullable<Card["tasks"]>;
+	insert(cards?: unknown[]): number;
+	remove(ids?: Iterable<string>): void;
+	serialized(): Snapshot;
+	bytes(): number;
+	save(): void;
+	stats(since?: number): Stats;
+}
+
 /** Browser backup; local mode synchronizes it with the agent-readable repository. */
 const DefaultPreferences: Preferences = {
 	singleKeyShortcuts: true,
@@ -64,11 +91,11 @@ const DefaultPreferences: Preferences = {
 	onboarded: true,
 	hiddenActions: [],
 };
-const Store = {
+const Store: CardStore = {
 	key: "sill-v1",
 	state: {} as StoreState,
 	legacyFields: {} as Record<string, unknown>,
-	fresh(): StoreState {
+	fresh(this: CardStore): StoreState {
 		return {
 			cards: [],
 			items: {},
@@ -79,7 +106,7 @@ const Store = {
 			storageAvailable: true,
 		};
 	},
-	sanitizeItem(x?: Record<string, unknown>): CardItem {
+	sanitizeItem(this: CardStore, x?: Record<string, unknown>): CardItem {
 		const timestamp = (n?: unknown) =>
 			Number.isFinite(n) && (n as number) > 0 && (n as number) < 8.64e15 ? (n as number) : 0;
 		return {
@@ -110,7 +137,7 @@ const Store = {
 			restoredAt: timestamp(x.restoredAt),
 		};
 	},
-	load() {
+	load(this: CardStore): StoreState {
 		this.state = this.fresh();
 		let raw: Backup = null;
 		try {
@@ -199,7 +226,7 @@ const Store = {
 		this.save(); // Persist the demo clock even when there has been no interaction yet.
 		return this.state;
 	},
-	item(id?: string): CardItem {
+	item(this: CardStore, id?: string): CardItem {
 		const defaults: CardItem = {
 			seen: false,
 			read: false,
@@ -219,31 +246,31 @@ const Store = {
 		this.state.items[id] = { ...defaults, ...this.state.items[id] };
 		return this.state.items[id] as CardItem;
 	},
-	card(id?: string): Card {
+	card(this: CardStore, id?: string): Card {
 		return this.state.cards.find((c) => c.id === id);
 	},
-	patch(id?: string, values?: CardState) {
+	patch(this: CardStore, id?: string, values?: CardState) {
 		const item = this.item(id);
 		if (values.read && !item.read && !values.readAt) values = { ...values, readAt: Date.now() };
 		Object.assign(item, values);
 		this.save();
 	},
-	pref<K extends keyof Preferences>(key?: K): Preferences[K] {
+	pref<K extends keyof Preferences>(this: CardStore, key?: K): Preferences[K] {
 		return this.state.preferences?.[key] ?? DefaultPreferences[key];
 	},
-	setPref<K extends keyof Preferences>(key?: K, value?: Preferences[K]) {
+	setPref<K extends keyof Preferences>(this: CardStore, key?: K, value?: Preferences[K]) {
 		this.state.preferences[key] = value;
 		this.save();
 	},
-	tags(c?: Card): string[] {
+	tags(this: CardStore, c?: Card): string[] {
 		const s = this.item(c.id);
 		return s.tagsEdited ? [...s.tags] : [...new Set<string>([...(c.tags || []), ...s.tags])];
 	},
-	tasks(c?: Card): NonNullable<Card["tasks"]> {
+	tasks(this: CardStore, c?: Card): NonNullable<Card["tasks"]> {
 		const done = this.item(c.id).taskDone;
 		return (c.tasks || []).map((t) => ({ ...t, done: done ? done.includes(t.id) : t.done }));
 	},
-	insert(cards?: unknown[]) {
+	insert(this: CardStore, cards?: unknown[]) {
 		cards = cards.map((card) => parseCard(normalizeCard(card as Card)));
 		const known = new Set<string>(this.state.cards.map((c) => c.id));
 		const additions = (cards as Card[]).filter((c) => {
@@ -259,13 +286,15 @@ const Store = {
 		this.save();
 		return additions.length;
 	},
-	remove(ids?: Iterable<string>) {
+	remove(this: CardStore, ids?: Iterable<string>) {
 		const set = new Set<string>(ids);
 		this.state.cards = this.state.cards.filter((c) => !set.has(c.id));
 		for (const id of set) delete this.state.items[id];
 		this.save();
 	},
-	serialized() {
+	serialized(
+		this: CardStore,
+	): Omit<StoreState, "storageAvailable"> & { version: number } & Record<string, unknown> {
 		return {
 			version: 4,
 			cards: this.state.cards,
@@ -277,21 +306,24 @@ const Store = {
 			...this.legacyFields,
 		};
 	},
-	bytes() {
+	bytes(this: CardStore) {
 		try {
 			return new Blob([JSON.stringify(this.serialized())]).size;
 		} catch {
 			return 0;
 		}
 	},
-	save() {
+	save(this: CardStore) {
 		try {
 			localStorage.setItem(this.key, JSON.stringify(this.serialized()));
 		} catch {
 			this.state.storageAvailable = false;
 		}
 	},
-	stats(since = 0) {
+	stats(
+		this: CardStore,
+		since = 0,
+	): { read: number; saved: number; done: number; overdue: Card[] } {
 		const items = this.state.items,
 			cards = this.state.cards;
 		return {
