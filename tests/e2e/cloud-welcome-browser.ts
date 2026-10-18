@@ -222,7 +222,15 @@ try {
 			() => document.querySelector("#feed-grid").getAttribute("data-sync") === "saved",
 		);
 		assert.equal(workspace.state.preferences.stack, false);
-		await page.locator("main").click({ position: { x: 5, y: 5 } });
+		// The phone home bar floats over the top of main; click the margin just under it.
+		const below = await page.evaluate(() => {
+			const bar = document.querySelector("#home-top");
+			const top = document.querySelector("main").getBoundingClientRect().top;
+			return bar && getComputedStyle(bar).display !== "none"
+				? Math.max(0, bar.getBoundingClientRect().bottom - top)
+				: 0;
+		});
+		await page.locator("main").click({ position: { x: 5, y: below + 5 } });
 		await page.mouse.move(0, 0);
 		await page.waitForTimeout(600);
 		await page.screenshot({
