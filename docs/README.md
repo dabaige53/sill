@@ -22,6 +22,7 @@
 - [开发](guides/development.md)
 - [文件管理规范](guides/file-management.md)
 - [V1 三端接口与交接包](guides/handoff.md)
+- [Web 与 PWA 界面优化交接](guides/web-pwa-ui-handoff.md)
 - [本地操作](guides/local-operations.md)
 - [Sill 插件调试记录与使用规范](guides/plugin-runbook.md)
 

@@ -1,0 +1,256 @@
+# Web 与 PWA 界面优化交接
+
+更新：2026-10-18。
+
+本文交给接手的 agent。它说明 2026-10-18 已定稿的手机主页（[ADR 0036](../adr/0036-phone-home-density.md)）和卡片详情（[ADR 0037](../adr/0037-card-detail-toolbar.md)）做到了哪里、还缺什么，以及怎样把 Web 本地页面和云端 PWA 的界面与代码做完整。文末附三段可以直接使用的提示词。
+
+范围：`apps/web/`（本地页面与云端页面共用）、云端 PWA 的安装与外壳、相关测试与设计文档。不包括 Mac、iOS 原生端，不包括服务端新功能、Webhook、内置助手和外部来源。
+
+## 1. 开工前必读
+
+按顺序读，读完再动手：
+
+1. [AGENTS.md](../../AGENTS.md)：产品约束。重点：Agent 优先，数据与状态操作要能通过 MCP 完成；保留既有轻操作；不接入外部来源；不新增复杂人工编辑器；不把本地打勾说成外部完成。
+2. [DESIGN.md](../../DESIGN.md) 和 [设计手册](../../design-system/README.md)：设计规则以手册为准。手册中与本次相关的章节：「手机主页」「预览与叠放」「图标」「底部导航与反馈」「动效」。
+3. [ADR 0032](../adr/0032-design-online-first.md)：设计改动先改线上 Design System 和设计画布，再同步回 `design-system/`。用户明确要求只在仓库内处理时，先改仓库里的原则和规范，再改实现，不操作线上。
+4. [ADR 0036](../adr/0036-phone-home-density.md)、[ADR 0037](../adr/0037-card-detail-toolbar.md) 和两份讨论记录：[手机主页](../records/2026-10-18-phone-home-x-density/README.md)、[卡片详情](../records/2026-10-18-card-detail-capsule/README.md)。记录里有被否决的方案和原因，不要重新提出已否决的方案。
+5. [代码规范](code-standards.md)、[文件管理规范](file-management.md)、[PR 编写指南](../../pr.md)。
+6. 设计画布 36 号画板 `design-system/boards/MobileHome.dc.html`、37 号画板 `design-system/boards/CardDetail.dc.html`：定稿截图来自实际页面。
+
+线上地址（只有所有者能打开，需要所有者授权）：
+
+| 名称 | 地址 |
+| --- | --- |
+| Design System | https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb |
+| 设计画布 | https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b |
+
+## 2. 当前状态
+
+### 2.1 分支与合并顺序
+
+| PR | 分支 | 内容 | 基于 |
+| --- | --- | --- | --- |
+| [#45](https://github.com/dabaige53/sill/pull/45) | `claude/phone-home-x-density` | 手机主页（ADR 0036） | `main` |
+| [#46](https://github.com/dabaige53/sill/pull/46) | `claude/phone-detail-capsule` | 卡片详情胶囊与线条积木图标（ADR 0037） | #45 |
+| 本文所在 PR | `claude/web-pwa-ui-handoff` | 本交接文档 | #46 |
+
+合并顺序：#45 → #46 → 本文。三个 PR 合并前，新工作从本文所在分支开始；合并后从 `main` 开始。
+
+### 2.2 已经完成
+
+**手机主页（≤650px，ADR 0036）**
+
+- 卡片收紧：页边距 8、间距 6、圆角 16、内边距 14，摘要 2 行。文章用右侧 76 见方缩略图；视频和照片用 2:1 大图。
+- 日程时间在左侧一列；「加入」和参与者同一行。待办每项 28 高，不写「另有 N 项」。
+- 提醒卡头部写「提醒 · 来源」和来源时间（到点 `alert`）；卡上没有按钮，圆圈就是完成，只改 Sill。
+- 顶栏：Sill 标志（点它回到顶部）和「全部 / 未读 / 待办 / 稍后读 / 收藏」；往下滑时顶栏和底部胶囊一起收起。
+- 新内容提示在顶部：「↑ N 项新内容」，最多三个来源类型图标，白色玻璃。
+- `sill`、`mail`、`video`、`folder` 图标更方正。
+
+**卡片详情（所有宽度，ADR 0037）**
+
+- 打开方式不变：手机是从下往上的抽屉，桌面是淡入的预览。
+- 操作都在底部玻璃胶囊里，只用图标：左边收藏、标签、稍后读（`ink`），竖线后是这张卡片自己的操作，最多 3 个（`accent`，`.is-own`）。
+- 长按显示名称（`toolbarTips`，0.45 秒），这次按下不执行；鼠标悬停 0.5 秒显示。
+- 提醒的完成是标题前的圆圈（`reminderMark`，卡面和详情共用）。
+- 关闭圆钮与来源行对齐；没有值的日期不显示，日期和来源备注一行。
+- 手机上正文到胶囊 26px，胶囊到底边 `max(8px, 安全区)`。
+- 设置「桌面」页的「卡片操作」开关，偏好 `hiddenActions`（`contracts/card-actions.ts`、`contracts/local.ts`、MCP 说明、云端迁移 `supabase/migrations/20261018060000_sill_hidden_card_actions.sql`）。
+- 九个图标按「线条积木」重画：`bookmark`、`tag`、`glasses`、`reply`、`external`、`snooze`、`bell-off`、`video`、`download`。
+
+### 2.3 主要代码位置
+
+| 文件 | 行数 | 职责 |
+| --- | --- | --- |
+| `apps/web/views/app.ts` | 约 3300 | AppController：路由、渲染、所有 `data-action` 分发、设置、预览定位、刷新 |
+| `apps/web/interactions/panels.ts` | 约 560 | 所有弹层的 HTML：预览、阅读、设置、搜索、菜单；`tools()` 与 `own()` 生成详情胶囊 |
+| `apps/web/interactions/gestures.ts` | 约 1070 | 抽屉跟手、下拉关闭、下拉刷新、长按选择 |
+| `apps/web/interactions/chrome.ts` | 约 160 | 工具条随滚动收起（ChromeAutoHide）、胶囊长按名称（toolbarTips） |
+| `apps/web/cards/templates.ts` | 约 280 | 信息流卡片模板 |
+| `apps/web/atoms/icons.ts` | — | 所有图标路径；`design-system/assets/Icons/` 由它生成 |
+| `apps/web/styles/overlays.css` | 约 2030 | 弹层、抽屉、预览、设置 |
+| `apps/web/styles/responsive.css` | 约 840 | 手机断点；ADR 0036 的手机主页规则集中在 `@media (max-width: 650px)` 的最后一段 |
+| `apps/web/styles/controls.css` | 约 780 | 按钮、胶囊、导航、toast、`.toolbar-sep`、`.is-own`、名称提示 |
+| `apps/web/styles/cards.css` | 约 950 | 卡片、勾选圈、提醒圆圈 |
+| `apps/web/styles/tokens.css` | — | CSS 变量；与 `design-system/tokens.json` 对应 |
+| `design-system/copy/zh-Hans.json` | — | 所有界面文案；新键用语义名（如 `web.actions.reply`） |
+| `deploy/web-manifest.json`、`apps/web/shell.html` | — | PWA manifest 与页面外壳 |
+
+## 3. 工作包
+
+按编号顺序做。每个工作包单独一个 PR，叠在前一个上或在合并后从 `main` 开始。标「需用户确认」的项目，先出效果图和选项，等用户选定，再写代码。
+
+### U1 PWA 触控与外壳（不需要新的设计决定）
+
+| 编号 | 问题 | 做法 | 验收 |
+| --- | --- | --- | --- |
+| U1.1 | 详情胶囊的图标按钮没有禁止 iOS 长按菜单和放大镜。`-webkit-touch-callout: none` 只加在卡片上（`cards.css`）。长按名称在 iOS Safari 上可能被系统菜单或文字选择打断。 | 给 `.float-bar .icon-button`（以及 `#dock` 按钮，如果也缺）加 `-webkit-touch-callout: none; user-select: none; -webkit-user-select: none`。 | 真实 iPhone：长按胶囊图标只显示名称，不出系统菜单，松手不执行。 |
+| U1.2 | 名称提示只对触屏和鼠标有效。键盘用户聚焦图标时看不到名称。 | `:focus-visible` 时也显示名称提示（同一个 `::after`）；减少动态效果时不做位移。 | `npm run test:accessibility` 通过；新增一个键盘聚焦显示名称的浏览器测试。 |
+| U1.3 | 名称提示固定在图标正上方居中，胶囊最左、最右的图标在 320px 宽时可能超出屏幕。 | 测量后靠边对齐（左端图标左对齐、右端右对齐），不用 JS 定位能解决就不用。 | 320、390 宽截图：提示完整可见。 |
+| U1.4 | 页面只有一个浅色 `theme-color`（`#f5f5f7`）：`apps/web/shell.html`、云端构建时 `scripts/build.ts` 写入的安装元数据、`server/cloud/login-page.ts`。深色模式下状态栏区域可能是浅色。 | 三处都加 `media="(prefers-color-scheme: dark)"` 的第二个 `theme-color`，值取 `tokens.css` 深色 `--canvas`（`#111113`）。manifest 的 `theme_color` 不支持媒体查询，保持不变。 | 深色模式下从主屏幕启动，状态栏区域与页面底色一致。 |
+| U1.5 | manifest 只有一个 256px 图标。`assets/sill-line*.svg` 在 #45 已改成新标志，PNG 图标是否同步未核对。 | 核对 `assets/sill-icon.png` 与新标志一致；如需补 192、512 尺寸和 `maskable`，先问用户是否改品牌资产。 | Chrome DevTools Application 面板没有 manifest 警告。 |
+| U1.6 | 手机主页顶栏、底部胶囊、详情胶囊都依赖安全区。自动测试只模拟了 390×844。 | 按 [apps/web/README.md](../../apps/web/README.md)「发布后设备验收」在真实 iPhone 上检查：冷启动、详情、搜索键盘、横竖屏、底部安全区、长按名称。 | 在 PR 的 Evidence 里写明设备、系统版本和截图；没有真机就写「未检查」。 |
+
+### U2 剩余图标统一为线条积木（需用户确认）
+
+- 规则在手册「图标」一节：圆角方块（2–2.5px 圆角）、地平线（窗台）、「窗」短线；线宽档位不变。
+- 已完成 9 个，`design-system/assets/Icons/` 共 69 个。剩余约 60 个按同一规则重画。
+- 做法：先出 1 张对照图（现在 / 改后，16、20、24px，浅色和深色），一次给用户看全部；用户逐个确认后再改 `apps/web/atoms/icons.ts`。
+- 改完运行 `node design-system/scripts/generate.ts design-system .` 生成图标和组件包；先发布到线上 Design System（图标是资产，需更新 `design-system.json` 的 `assetGroups.Icons`，索引最后发布），再提交仓库。
+- 图标是全局的，信息流、多选菜单、设置都会变化；在 PR 的 Merge Danger 里写清楚。
+
+### U3 底部导航胶囊的图标（需用户确认）
+
+讨论中断时的状态：
+
+- 用户已决定保留居中的玻璃胶囊（ADR 0035），不改成通栏标签栏。
+- 未决定：当前一格怎么表示。现在是灰色圆底（镜片）。讨论中提过的参考：Shop 的「当前一格实心图标、无底色」、X 的「实心 / 线条切换」。
+- 未决定：四个图标（主页、搜索、AI、设置）是否按线条积木重画；AI 的对话气泡是否换成更明确的图标；设置格已用 `sill` 标志（用户已同意顶栏标志和设置格用同一个图标）。
+- 做法：出 2–3 套效果图（真实页面上叠临时样式截图），连同 Mobbin 参考给用户选；定稿后先改线上，再改代码，并更新 35 号画板或新增画板。
+
+### U4 卡片详情的遗留项
+
+| 编号 | 问题 | 做法 |
+| --- | --- | --- |
+| U4.1 | 日程有 4 个自己的操作时按顺序截断，会议快开始时「忽略此提醒」不显示。 | 先问用户：保持截断，还是快开始时把「下载日程」让出位置。 |
+| U4.2 | 邮件只放一个「回复」，因为「回复」和「打开原邮件」是同一个动作（打开 `c.url`）。 | 如果以后卡片有单独的回复链接（如 `mailto:` 或来源提供的回复地址），再拆成两个；拆之前要有契约字段。 |
+| U4.3 | 照片大图页（`Panels.lightbox`）和播客播放器没有按「通用｜专属」检查过。 | 对照 ADR 0037 检查；不一致时出截图给用户确认。 |
+| U4.4 | 全屏阅读页（`Panels.reader`）已用同一个胶囊，但阅读页顶部的玻璃按钮组仍是旧样式。 | 只核对，不主动改；有差异就记录到 U6 一起讨论。 |
+| U4.5 | 「卡片操作」设置只有开关，没有说明哪些卡片会受影响。 | 不加复杂编辑器。只在每行右侧加一行灰字示例（如「邮件」「日程」）时也需用户确认。 |
+
+### U5 桌面与手机的一致性
+
+- 手机主页的顶栏和分栏标签只在手机宽度生效；桌面没有。是否给桌面加分栏标签，需用户确认。
+- 改任何一端，都要检查另一端同一功能是否用同样的词、状态表达和设计变量角色（AGENTS.md）。
+- Mac 原生端不在本文范围，但 [DESIGN.md](../../DESIGN.md) 已列出 ADR 0036、0037 在 Mac 上未核对的项目；改到相同功能时在 PR 里写明「Mac 未改」。
+
+### U6 尚未讨论的页面（需用户确认，先讨论再动手）
+
+用户在 2026-10-18 的讨论里把这些留到以后，一次讨论一个：
+
+1. 搜索页
+2. AI 页（目前是本地占位窗，不能假装已连接）
+3. 设置页整体
+4. 深色模式整体检查
+
+每一项按同一流程：截现状 → 用 Mobbin 找参考（用户偏好 X 和 Apple 系的质感）→ 出 2–3 个方案的效果图 → 用户选定 → 写 ADR 和手册 → 先改线上 → 改代码 → 画板截图。
+
+### C1 修复已知失败的浏览器测试（代码，不需要设计决定）
+
+下面这些在 #45 的基础提交上就失败，不是 ADR 0036、0037 引起的。先逐个找根因；不跳过、不禁用、不放宽断言来变绿。
+
+| 测试 | 现象 | 线索 |
+| --- | --- | --- |
+| `tests/e2e/drawer-browser.ts`「Sill settings icon: dark」 | 图标 `stroke` 与按钮 `color` 不相等。`main` 的 CI 也失败（run 39014449076）。 | 深色下颜色有过渡（`.icon-button` 的 `transition: color`），或 `.account-wrap > .icon` 有单独的颜色规则；先确认读数时过渡是否结束。 |
+| `tests/e2e/browser.ts`「Refresh keeps the reading position…」 | refresh moved the reading position。只在本地容器失败，CI 通过。 | 平滑滚动下 50ms 内读到的位置不足 40，触发了直接插入。 |
+| `tests/e2e/drawer-browser.ts`「PWA has no maximize button…」 | 第 417 行 `true !== false`。只在本地失败。 | 对照 CI 的 Chromium 版本，确认 `display-mode: standalone` 的模拟方式。 |
+| `tests/e2e/motion-material-browser.ts`「Real Tab reaches a completely hidden rail」 | `railHide.hide()` 后马上被 `show()`。#45 上本地失败，CI 通过。 | 页面高度变化后，`scrollTo(600)` 落在离底部 24px 以内，触发了「到底就显示」。测试不应依赖页面高度。 |
+| `tests/e2e/workspace-polish-browser.ts` | 第 141 行 `source` 为 undefined。`main` 本地同样失败。 | 本地 API 返回的来源列表与测试预期不同；先看测试数据如何准备。 |
+| `tests/e2e/cloud-welcome-browser.ts` | 本地第 243 行 `scrollY > 0` 失败（`main` 本地同样）；CI 通过。 | 本地容器字体或视口差异导致页面不够长。 |
+
+### C2 拆分 AppController（代码）
+
+`apps/web/views/app.ts` 约 3300 行，`click()` 里的 `switch` 集中了几乎所有动作。目标：行为不变，文件更小，每块职责清楚。
+
+- 先补测试再拆：对要移动的动作（设置、预览定位、提醒、外链、刷新），确认 `tests/web/` 或 `tests/e2e/` 已覆盖；没有就先补。
+- 建议的切分（可以调整，切之前在 PR 里写清楚）：
+  - `views/actions/`：按领域分组的动作处理（卡片状态、提醒、设置、外链与交接、筛选）。`click()` 只查表分发。
+  - `views/preview-controller.ts`：打开、定位关闭圆钮（`--preview-title-top`）、尺寸观察、叠放。
+  - `views/settings-controller.ts`：`setPref`、`repaintSettings`、`action-toggle`。
+- 每次只移动一组，移动和改写分两次提交；每次提交后运行 `npm test` 和相关浏览器测试。
+- 不改公开的 `window.__app` 接口，浏览器测试依赖它；确需改时同步改测试并在 PR 里说明。
+
+### C3 整理弹层模板与文案键（代码）
+
+- `apps/web/interactions/panels.ts` 用长模板字符串拼 HTML，每种卡片的预览混在 `preview()` 一个函数里。按卡片类型拆成小函数（`mailPreview`、`eventPreview`……），共用 `sheet()`、`tools()`、`own()`。
+- `design-system/copy/zh-Hans.json` 里有约 90 个哈希键（如 `web.panels.c8bf87742cc0`）。改成语义键（如 `web.preview.toolbar`）。先 `grep` 全仓库（包括 `apps/apple/`、`scripts/`、`tests/`）确认引用，再一次改完；不留旧键。
+- 每次改动后对比改前改后的预览 HTML（可以写一个只在本地运行的对比脚本，不提交），确认输出一致。
+
+### C4 整理样式（代码）
+
+- 手机规则分散在 `responsive.css` 的多个 `@media (max-width: 650px)` 块里（包括 ADR 0036 一段），合并成一块，按区域排序；保留指向 ADR 的注释。
+- 查找不再使用的选择器（例如已删除的 `.reminder-actions` 一类），用 `grep` 确认模板里没有再删。
+- 硬编码的颜色、间距改用 `tokens.css` 变量；`!important` 只留在确实需要压过内联样式的地方，并写明原因。
+- 每次整理后截 390、320、1440 三个宽度的主页、详情、设置，和改前逐张对比；有差异就说明原因或撤回。
+
+### C5 类型与静态检查（代码）
+
+- `npx biome lint apps/web` 当前约 900 条警告，大多是显式 `any`。按文件逐步收紧：先 `data/store.ts`、`interactions/panels.ts`，再 `views/app.ts`。
+- 不为消除警告改行为；不在一次 PR 里改超过三个文件的类型。
+- 不把「零错误」写成「零警告」。
+
+### C6 云端迁移验证（代码）
+
+- `supabase/migrations/20261018060000_sill_hidden_card_actions.sql` 没有在 Postgres 上执行过。在有 Docker 的环境运行 `npm run test:supabase:postgres`，并补一个用例：带 `hiddenActions` 的偏好写入成功，带未列出值的写入被拒绝。
+- 部署顺序：先部署迁移，再发布网页。迁移部署前，云端会拒绝带 `hiddenActions` 的偏好写入。
+
+## 4. 工作方式
+
+- 一次只做一个工作包。设计类工作包先讨论，再改线上，再改代码。
+- 效果图：在真实页面上用 Playwright 叠加临时样式截图（容器里用 `executablePath: /opt/pw-browsers/chromium-*/chrome-linux*/chrome`，不要运行 `playwright install`）。效果图放 `docs/records/<日期>-<主题>/`，单个文件不超过 2 MB。
+- 本地页面：`npm run build` 后 `npm start`，端口 4318。云端页面：`npm run build:cloud`。
+- 线上发布：先 `read` 线上文件再发布；图标作为资产上传并写入 `design-system.json`，索引文件最后发布；画布先发布画板，`canvas.json` 最后发布。线上和仓库不一致时，写进 PR 的 Merge Danger。
+- 文案：所有用户可见文字放 `design-system/copy/zh-Hans.json`；文档用 80% ASD-STE100 风格的简体中文。
+- 交付前运行 `npm run files:check` 和 `npm test`；按改动运行相关浏览器测试（见 [tests/README.md](../../tests/README.md)）。
+
+## 5. 不做的事
+
+- 不重新提出已否决的方案：卡片原地放大的详情、黑色主操作胶囊、「⋯」更多菜单、图标加文字、改成通栏列表、通栏标签栏。
+- 不在正文里加回色块按钮。
+- 不接入外部来源，不新增复杂人工编辑器，不把 API 字段做成表单。
+- 不把 Sill 内的完成、延后说成来源里已完成或已改时间。
+- 不跳过、不禁用、不放宽测试来变绿；不用空提交触发 CI。
+- 不改 Mac、iOS 原生代码；需要时另开事项。
+- 不提交 token、真实账号内容或浏览器存储。
+
+## 6. 验收清单
+
+每个 PR 至少写明：
+
+- `npm test` 的结果（三组测试的通过数）。
+- 相关浏览器测试的结果；失败项注明是否在基础提交上同样失败。
+- 界面改动：改前、改后截图（390、320、1440，浅色和深色按需）。
+- 真机：设备与系统版本；没有真机就写「未检查」。
+- 线上 Design System 和设计画布是否已更新，与仓库是否一致。
+
+## 7. 提示词
+
+下面三段可以直接交给接手的 agent。按需替换方括号里的内容。
+
+### 7.1 界面与 PWA（U1–U6）
+
+```text
+你在 Sill 仓库（dabaige53/sill）工作。先完整阅读 docs/guides/web-pwa-ui-handoff.md，再按其中「开工前必读」的顺序读 AGENTS.md、DESIGN.md、design-system/README.md、ADR 0032、0036、0037 和两份 2026-10-18 讨论记录。
+
+任务：完成交接文档中的工作包 [U1]（只做这一个）。
+- U1 不需要新的设计决定：直接实现，补测试，截 390、320、1440 宽的改前改后图。
+- 如果做的是 U2–U6 中标「需用户确认」的项：先截现状，用 Mobbin 找参考，出 2–3 个方案的效果图（真实页面叠临时样式截图），一次讨论一个问题，等我选定后再写 ADR、改线上 Design System 与设计画布，最后改代码。
+约束：遵守交接文档第 5 节「不做的事」；设计改动先改线上再同步仓库；所有文案进 design-system/copy/zh-Hans.json；不改 Mac、iOS 原生代码。
+交付：新分支，运行 npm run files:check、npm test 和相关浏览器测试，按 pr.md 和 PR 模板写 PR（Summary / Evidence / Merge Danger）。待完成的检查不写成通过；真机没测就写「未检查」。
+```
+
+### 7.2 代码优化（C1–C6）
+
+```text
+你在 Sill 仓库（dabaige53/sill）工作。先完整阅读 docs/guides/web-pwa-ui-handoff.md、AGENTS.md、docs/guides/code-standards.md、docs/guides/file-management.md 和 tests/README.md。
+
+任务：完成交接文档中的工作包 [C1]（只做这一个）。目标是行为不变的代码优化，不改界面设计。
+- C1：逐个找出列出的浏览器测试失败的根因并修复。先在基础提交上复现，再修，再证明同一测试通过。不跳过、不禁用、不放宽断言。
+- C2–C5：先确认测试覆盖，再小步移动；移动和改写分开提交；每次提交后运行 npm test 和相关浏览器测试；改前改后截图对比，界面不能变化。
+- C6：在有 Docker 的环境运行 npm run test:supabase:postgres，并为 hiddenActions 补用例。
+约束：不改 window.__app 的公开接口（除非同步改测试并说明）；不引入新语言或新依赖（需要时先写 ADR）；不改 Mac、iOS 原生代码。
+交付：新分支，按 pr.md 和 PR 模板写 PR。写清楚哪些失败在基础提交上就存在、哪些是本次修复的；警告数量按实际写，不说「零警告」。
+```
+
+### 7.3 验收与真机检查
+
+```text
+你在 Sill 仓库（dabaige53/sill）工作，只做验收，不改产品代码。先阅读 docs/guides/web-pwa-ui-handoff.md 第 6 节、apps/web/README.md「添加到 iPhone／iPad 主屏幕」一节、ADR 0036 和 ADR 0037。
+
+任务：对 [PR 编号或分支] 做验收。
+1. 运行 npm run files:check、npm test，以及 tests/README.md 中与手机主页、卡片详情相关的浏览器测试；记录通过数和失败项，并在基础提交上复跑失败项，判断是否本次引入。
+2. 在本地页面截 390、320、1440 宽的主页、各类卡片详情（邮件、文章、视频、日程、提醒、待办）、长按名称、设置「卡片操作」、深色模式，与设计画布 36、37 号画板逐项对照。
+3. 列出与 ADR 0036、0037 和设计手册不一致的地方，每条写：位置、期望、实际、截图。
+4. 真机项目（主屏幕冷启动、安全区、长按、键盘）如果没有设备，写「未检查」。
+交付：把结果写成 docs/records/<日期>-<主题>/README.md 加截图，按 pr.md 写 PR；不修改实现代码。
+```
