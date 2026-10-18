@@ -29,4 +29,6 @@
 
 `server/` 的云端迁移检查之外，`web/app.test.ts` 验证控制器拆分前后的设置焦点、滚动、动作开关、外链账号边界和详情尺寸定位。完整 Node 检查会自动运行；真实抽屉、键盘与云端保存仍由相关浏览器专项覆盖。
 
+`web/panels.test.ts` 覆盖 11 类卡片、播客、转义、助手动作位置、关联卡片、任务与提醒状态。C3 的完整 HTML 比较仅在本机运行，摘要保存在检查记录。非 Linux 环境运行 `test:cloud-welcome` 时，通过 `CHROMIUM_PATH` 指定已安装的 Chromium，不安装新浏览器或修改断言。
+
 专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/guides/file-management.md)。

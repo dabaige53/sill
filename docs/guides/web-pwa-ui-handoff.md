@@ -168,8 +168,10 @@
 
 ### C3 整理弹层模板与文案键（代码）
 
+2026-10-18 执行状态：C3 已实施，提交 [PR #52](https://github.com/dabaige53/sill/pull/52)。先补 14 项测试，再分提交原样移动与按类型拆分；预览入口 121 → 23 行。110 个 panels 哈希键全部改为语义键，1122 份 HTML 在移动、拆分和替换后均逐字一致。Node 三组 36 / 192 / 92，相关浏览器专项去重后 51 项通过。首次欢迎页因本机缺少默认 Chromium 路径而未启动，基础提交同样失败；指定预装路径后 2/2 通过。Web lint 0 错误、903 警告、30 条提示；文案键 826 个（哈希键 491 个，panels 哈希键 0 个），图标 69 个。见 [检查记录](../records/2026-10-18-preview-copy/README.md)，最新 CI 以 PR 为准。组件 JS 已重建，线上发布未执行；U1 组件 CSS、37 号画板仍待同步。真机未检查，Mac 未改。
+
 - `apps/web/interactions/panels.ts` 用长模板字符串拼 HTML，每种卡片的预览混在 `preview()` 一个函数里。按卡片类型拆成小函数（`mailPreview`、`eventPreview`……），共用 `sheet()`、`tools()`、`own()`。
-- `design-system/copy/zh-Hans.json` 里有约 90 个哈希键（如 `web.preview.cardTools`）。改成语义键（如 `web.preview.toolbar`）。先 `grep` 全仓库（包括 `apps/apple/`、`scripts/`、`tests/`）确认引用，再一次改完；不留旧键。
+- `design-system/copy/zh-Hans.json` 交接时有 110 个 panels 哈希键，现已改为语义键（如 `web.preview.cardTools`）。先 `grep` 全仓库（包括 `apps/apple/`、`scripts/`、`tests/`）确认引用，再一次改完；不留旧键。
 - 每次改动后对比改前改后的预览 HTML（可以写一个只在本地运行的对比脚本，不提交），确认输出一致。
 
 ### C4 整理样式（代码）

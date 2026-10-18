@@ -1,0 +1,34 @@
+C3 本机检查摘要（合成数据）
+
+每次代码提交后的 npm test：
+30157cc 共享约定 36 / Web 192 / 服务端 92
+8e8ed1d 共享约定 36 / Web 192 / 服务端 92
+7559b54 共享约定 36 / Web 192 / 服务端 92
+d6add9f 共享约定 36 / Web 192 / 服务端 92
+以上 fail 0 / skipped 0。
+
+每次代码提交后的相关浏览器：
+30157cc drawer PASS 11/11
+8e8ed1d drawer PASS 11/11
+7559b54 browser PASS 23/23; drawer PASS 11/11
+d6add9f accessibility PASS 13/13; cloud-welcome PASS 2/2; cloud-app-browser PASS 1/1; cloud-operations PASS 1/1
+cloud-welcome 需通过 CHROMIUM_PATH 指定本机预装 Chromium。
+
+启动失败与基础提交：
+首次未指定路径：executable doesn't exist at /usr/bin/chromium
+基础提交 2589bd9 同样失败于浏览器启动，页面与断言尚未执行。
+显式指定已安装路径后 2/2 通过；未修改或放宽断言。
+
+HTML 基准：1122 份；3 次改后比较均 1122 一致、差异 0。
+SHA-256 8370dc118803698828e55cb167243ae8d9e629370808d1f5d25ad3dc99d2c705
+文案：110 个一对一键名替换，826 个值和其余键不变。
+公有 Panels 属性 29、模块导出与 AppController 的 103 个方法签名保持不变。
+组件 JS 只改键名；样式、图标、原生代码改动 0。
+
+npm run files:check PASS
+npm run lint:web PASS
+npx biome lint apps/web: 0 errors / 903 warnings / 30 infos
+copy keys 826 / hash keys 491 / panels hash keys 0 / icons 69
+
+最终证据提交后的检查和 CI 以 PR #52 为准。
+真机未检查；生产未部署；组件 JS 线上发布未执行。

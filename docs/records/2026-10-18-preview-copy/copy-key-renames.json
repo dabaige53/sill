@@ -1,0 +1,442 @@
+[
+  {
+    "oldSuffix": "dca60869e7d2",
+    "newKey": "web.preview.removeBookmark"
+  },
+  {
+    "oldSuffix": "c4d2d1edba13",
+    "newKey": "web.preview.removeLater"
+  },
+  {
+    "oldSuffix": "c8bf87742cc0",
+    "newKey": "web.preview.cardTools"
+  },
+  {
+    "oldSuffix": "311b1a019362",
+    "newKey": "web.preview.dismissReminder"
+  },
+  {
+    "oldSuffix": "99ae21ea6c39",
+    "newKey": "web.preview.openSourcePrefix"
+  },
+  {
+    "oldSuffix": "354b28c85333",
+    "newKey": "web.preview.originalSource"
+  },
+  {
+    "oldSuffix": "04316fccb7c7",
+    "newKey": "web.reader.readAgain"
+  },
+  {
+    "oldSuffix": "4ec2a77b1ae3",
+    "newKey": "web.reader.continueReading"
+  },
+  {
+    "oldSuffix": "a67b98c6cf92",
+    "newKey": "web.preview.contentRegion"
+  },
+  {
+    "oldSuffix": "1eb05d311508",
+    "newKey": "web.preview.close"
+  },
+  {
+    "oldSuffix": "711078d887e0",
+    "newKey": "web.preview.sentToYouPrefix"
+  },
+  {
+    "oldSuffix": "786e2e9252a8",
+    "newKey": "web.editor.openTagsAndNote"
+  },
+  {
+    "oldSuffix": "cf945e21ddef",
+    "newKey": "web.preview.reply"
+  },
+  {
+    "oldSuffix": "d63842643d06",
+    "newKey": "web.preview.peopleCountSuffix"
+  },
+  {
+    "oldSuffix": "5510cee6e987",
+    "newKey": "web.preview.downloadCalendar"
+  },
+  {
+    "oldSuffix": "e18eb0c65e26",
+    "newKey": "web.preview.podcast.rewind15"
+  },
+  {
+    "oldSuffix": "c3396195e91c",
+    "newKey": "web.preview.play"
+  },
+  {
+    "oldSuffix": "ec8b7a23ea62",
+    "newKey": "web.preview.podcast.forward30"
+  },
+  {
+    "oldSuffix": "c7f9a9b3d472",
+    "newKey": "web.preview.podcast.openApp"
+  },
+  {
+    "oldSuffix": "b445bfa61071",
+    "newKey": "web.preview.media.previousSegment"
+  },
+  {
+    "oldSuffix": "105587569775",
+    "newKey": "web.preview.media.playDemo"
+  },
+  {
+    "oldSuffix": "abd1f787accc",
+    "newKey": "web.preview.media.nextSegment"
+  },
+  {
+    "oldSuffix": "e93cb3b4dd1f",
+    "newKey": "web.preview.fileSourcePrefix"
+  },
+  {
+    "oldSuffix": "fdc032965548",
+    "newKey": "web.why.title"
+  },
+  {
+    "oldSuffix": "363753bbbfaa",
+    "newKey": "web.reader.openOriginalInNewTab"
+  },
+  {
+    "oldSuffix": "22ea3f47fee8",
+    "newKey": "web.preview.fullscreen"
+  },
+  {
+    "oldSuffix": "0f1505b6ad3f",
+    "newKey": "web.reader.exitFullscreen"
+  },
+  {
+    "oldSuffix": "f2a5f3f7db0f",
+    "newKey": "web.reader.close"
+  },
+  {
+    "oldSuffix": "28d70fb85c88",
+    "newKey": "web.photo.close"
+  },
+  {
+    "oldSuffix": "bcf200709dbc",
+    "newKey": "web.photo.previous"
+  },
+  {
+    "oldSuffix": "fab2a038b6d0",
+    "newKey": "web.photo.altIndexPrefix"
+  },
+  {
+    "oldSuffix": "e9e0fdc242b4",
+    "newKey": "web.common.cardCountSuffix"
+  },
+  {
+    "oldSuffix": "dcd4eb027369",
+    "newKey": "web.photo.next"
+  },
+  {
+    "oldSuffix": "9552fe3bd366",
+    "newKey": "web.photo.indexPrefix"
+  },
+  {
+    "oldSuffix": "2d41b6a035a0",
+    "newKey": "web.editor.closeTagsAndNote"
+  },
+  {
+    "oldSuffix": "0d1e7200becb",
+    "newKey": "web.editor.removeTagPrefix"
+  },
+  {
+    "oldSuffix": "7e2f159f6491",
+    "newKey": "web.editor.newTagLabel"
+  },
+  {
+    "oldSuffix": "795cbff909c4",
+    "newKey": "web.editor.addTagPlaceholder"
+  },
+  {
+    "oldSuffix": "daede9881787",
+    "newKey": "web.editor.noteLabel"
+  },
+  {
+    "oldSuffix": "9cdbdc0a45a7",
+    "newKey": "web.editor.notePlaceholder"
+  },
+  {
+    "oldSuffix": "b7325aa77693",
+    "newKey": "web.editor.deviceStorageHint"
+  },
+  {
+    "oldSuffix": "26ec49d512cf",
+    "newKey": "web.why.connectedSourcePrefix"
+  },
+  {
+    "oldSuffix": "3055a035f0eb",
+    "newKey": "web.why.updatedSuffix"
+  },
+  {
+    "oldSuffix": "9667e2fa911a",
+    "newKey": "web.why.close"
+  },
+  {
+    "oldSuffix": "e31c8842b98a",
+    "newKey": "web.why.showLess"
+  },
+  {
+    "oldSuffix": "a54a0add5447",
+    "newKey": "web.why.stopPrompting"
+  },
+  {
+    "oldSuffix": "71d9a93075be",
+    "newKey": "web.search.type.article"
+  },
+  {
+    "oldSuffix": "4da199fae933",
+    "newKey": "web.search.type.mail"
+  },
+  {
+    "oldSuffix": "f6d4e9026e14",
+    "newKey": "web.search.title"
+  },
+  {
+    "oldSuffix": "1589e32bc6d5",
+    "newKey": "web.search.inputLabel"
+  },
+  {
+    "oldSuffix": "a76ee88e6c2e",
+    "newKey": "web.search.inputPlaceholder"
+  },
+  {
+    "oldSuffix": "b6f00afa6537",
+    "newKey": "web.search.clear"
+  },
+  {
+    "oldSuffix": "b5f15473fdc0",
+    "newKey": "web.search.filtersLabel"
+  },
+  {
+    "oldSuffix": "11a8f9879575",
+    "newKey": "web.search.noResultsPrefix"
+  },
+  {
+    "oldSuffix": "51984343bcac",
+    "newKey": "web.search.deskGroupPrefix"
+  },
+  {
+    "oldSuffix": "342927bba059",
+    "newKey": "web.search.shelvedGroupPrefix"
+  },
+  {
+    "oldSuffix": "b4c6c3eb0bce",
+    "newKey": "web.archive.thisWeek"
+  },
+  {
+    "oldSuffix": "c56a5bb657de",
+    "newKey": "web.archive.earlier"
+  },
+  {
+    "oldSuffix": "cb7aa46a18d2",
+    "newKey": "web.archive.archiveAll"
+  },
+  {
+    "oldSuffix": "561642967386",
+    "newKey": "web.archive.restoreToDesk"
+  },
+  {
+    "oldSuffix": "d2156defb0c9",
+    "newKey": "web.archive.empty"
+  },
+  {
+    "oldSuffix": "f48d334495f6",
+    "newKey": "web.common.desk"
+  },
+  {
+    "oldSuffix": "86a63f23a076",
+    "newKey": "web.settings.appearance"
+  },
+  {
+    "oldSuffix": "ee2638183d3e",
+    "newKey": "web.settings.shortcuts"
+  },
+  {
+    "oldSuffix": "5142e436b1f9",
+    "newKey": "web.settings.stackSameSource"
+  },
+  {
+    "oldSuffix": "840f6c8f8823",
+    "newKey": "web.settings.stackThreshold"
+  },
+  {
+    "oldSuffix": "a11a80a0843c",
+    "newKey": "web.settings.fadeRead"
+  },
+  {
+    "oldSuffix": "1495127fad02",
+    "newKey": "web.settings.readShelf.label"
+  },
+  {
+    "oldSuffix": "0c3f03b97727",
+    "newKey": "web.settings.readShelf.afterThreeDays"
+  },
+  {
+    "oldSuffix": "d94daba31605",
+    "newKey": "web.settings.readShelf.afterOneWeek"
+  },
+  {
+    "oldSuffix": "3e8a08c97402",
+    "newKey": "web.settings.readShelf.never"
+  },
+  {
+    "oldSuffix": "f28b5313cf29",
+    "newKey": "web.settings.readShelf.controlLabel"
+  },
+  {
+    "oldSuffix": "0f01370710b6",
+    "newKey": "web.settings.floatTimely"
+  },
+  {
+    "oldSuffix": "ba8a435e2ff0",
+    "newKey": "web.settings.collapseOnFinish"
+  },
+  {
+    "oldSuffix": "87852ffbea52",
+    "newKey": "web.settings.newContentHint.label"
+  },
+  {
+    "oldSuffix": "d4d78fb603fd",
+    "newKey": "web.settings.newContentHint.awayFromTop"
+  },
+  {
+    "oldSuffix": "a0937d519f82",
+    "newKey": "web.settings.newContentHint.off"
+  },
+  {
+    "oldSuffix": "788db1cfec2a",
+    "newKey": "web.settings.theme.label"
+  },
+  {
+    "oldSuffix": "217cfe7db1e3",
+    "newKey": "web.settings.theme.system"
+  },
+  {
+    "oldSuffix": "aa0819dfc4d8",
+    "newKey": "web.settings.theme.light"
+  },
+  {
+    "oldSuffix": "a6b75d068032",
+    "newKey": "web.settings.theme.dark"
+  },
+  {
+    "oldSuffix": "1cbb90eb7995",
+    "newKey": "web.settings.cardWidth.label"
+  },
+  {
+    "oldSuffix": "5d63d587b0b0",
+    "newKey": "web.settings.cardWidth.compact"
+  },
+  {
+    "oldSuffix": "6bea77acefb3",
+    "newKey": "web.settings.cardWidth.standard"
+  },
+  {
+    "oldSuffix": "051a34d53a73",
+    "newKey": "web.settings.cardWidth.roomy"
+  },
+  {
+    "oldSuffix": "7a56d47cadcb",
+    "newKey": "web.settings.reduceMotion"
+  },
+  {
+    "oldSuffix": "0ff470103d8e",
+    "newKey": "web.settings.reduceTransparency"
+  },
+  {
+    "oldSuffix": "cad165d34a9d",
+    "newKey": "web.settings.singleKeyShortcuts"
+  },
+  {
+    "oldSuffix": "5a15649c2481",
+    "newKey": "web.capture.title"
+  },
+  {
+    "oldSuffix": "9347631d48bf",
+    "newKey": "web.settings.shortcuts.openCard"
+  },
+  {
+    "oldSuffix": "ba167b0c3011",
+    "newKey": "web.settings.shortcuts.closeOverlay"
+  },
+  {
+    "oldSuffix": "aee887434131",
+    "newKey": "web.settings.shortcuts.refresh"
+  },
+  {
+    "oldSuffix": "53d77f56548d",
+    "newKey": "web.settings.shortcuts.backToTop"
+  },
+  {
+    "oldSuffix": "f3a8c4c52977",
+    "newKey": "web.settings.storage.location"
+  },
+  {
+    "oldSuffix": "e722a46eabe8",
+    "newKey": "web.settings.storage.localDirectory"
+  },
+  {
+    "oldSuffix": "9bf6eeb295f4",
+    "newKey": "web.settings.storage.browser"
+  },
+  {
+    "oldSuffix": "c0aa76aebce6",
+    "newKey": "web.settings.storage.usage"
+  },
+  {
+    "oldSuffix": "18fb131cc724",
+    "newKey": "web.settings.aiLocal"
+  },
+  {
+    "oldSuffix": "af419089eb31",
+    "newKey": "web.settings.exportAllCards"
+  },
+  {
+    "oldSuffix": "21f7e90ee0f1",
+    "newKey": "web.settings.clearAllData"
+  },
+  {
+    "oldSuffix": "77b17fc4a52a",
+    "newKey": "web.settings.close"
+  },
+  {
+    "oldSuffix": "4a48d745e350",
+    "newKey": "web.settings.groupsLabel"
+  },
+  {
+    "oldSuffix": "8d12fc0d4eb2",
+    "newKey": "web.preview.pause"
+  },
+  {
+    "oldSuffix": "fd06b053572e",
+    "newKey": "web.capture.placeholder"
+  },
+  {
+    "oldSuffix": "9be4933b25fb",
+    "newKey": "web.capture.shortcutHint"
+  },
+  {
+    "oldSuffix": "a0fb6bc1d3c5",
+    "newKey": "web.capture.save"
+  },
+  {
+    "oldSuffix": "3d7d3ac3581f",
+    "newKey": "web.welcome.tagline"
+  },
+  {
+    "oldSuffix": "0245f51ac89a",
+    "newKey": "web.welcome.viewDemo"
+  },
+  {
+    "oldSuffix": "f8083e01520b",
+    "newKey": "web.time.minutesAgoSuffix"
+  },
+  {
+    "oldSuffix": "9ebf77f67bc4",
+    "newKey": "web.time.hoursAgoSuffix"
+  }
+]
