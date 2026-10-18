@@ -489,6 +489,79 @@ try {
 		phone,
 	);
 
+	for (const mode of ["normal", "system", "app"]) {
+		await scenario(
+			`Style priorities preserve gesture and toolbar behavior (${mode})`,
+			async (page) => {
+				if (mode === "app") await page.evaluate(() => window.__app.setPref("reduceMotion", true));
+				await page.evaluate(() => window.__app.openCard("motion-0"));
+				await page.locator("#modal.preview[open]").waitFor();
+				await page.waitForTimeout(700);
+				const states = await page.evaluate(() => {
+					const sheet = document.querySelector<HTMLElement>(".preview-sheet"),
+						scroll = sheet.querySelector<HTMLElement>(".sheet-scroll"),
+						bar = document.querySelector<HTMLElement>("#modal > .float-bar"),
+						head = sheet.querySelector<HTMLElement>(".sheet-head-tools");
+					const transition = (node: HTMLElement) => {
+						const style = getComputedStyle(node);
+						return {
+							properties: style.transitionProperty.split(", "),
+							transform: style.transform,
+							durations: style.transitionDuration.split(", ").map(Number.parseFloat),
+							delays: style.transitionDelay.split(", ").map(Number.parseFloat),
+						};
+					};
+					const initial = transition(sheet);
+					sheet.classList.add("is-drag");
+					const dragging = transition(sheet),
+						nested = transition(scroll);
+					sheet.classList.remove("is-drag");
+					scroll.classList.add("is-drag");
+					const directScroll = transition(scroll);
+					scroll.classList.remove("is-drag");
+					bar.classList.add("is-tucked");
+					head.classList.add("is-tucked");
+					return {
+						initial,
+						dragging,
+						nested,
+						directScroll,
+						bar: transition(bar),
+						head: transition(head),
+					};
+				});
+				const fades = ["opacity", "background-color", "color", "border-color", "box-shadow"];
+				assert.deepEqual(
+					states.nested.properties,
+					["none"],
+					"content under a dragged parent follows immediately",
+				);
+				assert.deepEqual(states.dragging.properties, mode === "app" ? fades : ["none"]);
+				assert.deepEqual(states.directScroll.properties, mode === "app" ? fades : ["none"]);
+				if (mode === "normal") {
+					assert.ok(
+						states.initial.properties.includes("height"),
+						"ordinary sheets retain their expansion transition",
+					);
+				} else {
+					assert.deepEqual(
+						states.initial.properties,
+						fades,
+						"reduced motion never transitions geometry",
+					);
+					assert.ok(states.initial.durations.every((duration) => duration === 0.07));
+					for (const toolbar of [states.bar, states.head]) {
+						assert.equal(toolbar.transform, "none");
+						assert.deepEqual(toolbar.properties, ["opacity", "visibility"]);
+						assert.deepEqual(toolbar.durations, [0.07, 0]);
+						assert.deepEqual(toolbar.delays, [0, 0.07], "visibility waits for the existing fade");
+					}
+				}
+			},
+			{ ...phone, reducedMotion: mode === "system" ? "reduce" : "no-preference" },
+		);
+	}
+
 	await scenario(
 		"A delayed gesture dismissal leaves a newly opened search usable",
 		async (page) => {
