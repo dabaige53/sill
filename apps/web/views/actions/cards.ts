@@ -82,7 +82,7 @@ function archiveAll(this: AppController) {
 	this.closeNative();
 	this.withFeedAnchor(() => {});
 	this.toast(
-		`${copy("web.app.d22d0186c603")}${ids.length}${copy("web.panels.e9e0fdc242b4")}`,
+		`${copy("web.app.d22d0186c603")}${ids.length}${copy("web.common.cardCountSuffix")}`,
 		() => {
 			before.forEach(([i, v]: any) => {
 				Store.patch(i, v);

@@ -178,7 +178,7 @@ class AppController {
 		Store.load();
 		if (window.__QG_RUNTIME__) Store.state.cards = [];
 		this.sort = Store.pref("sort");
-		document.body.innerHTML = `${this.homeTopHTML()}<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
+		document.body.innerHTML = `${this.homeTopHTML()}<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.common.desk")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
    <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button>
    <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}${this.selectionAIHTML()}</div>
    ${this.navHTML()}</div><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
@@ -462,7 +462,7 @@ class AppController {
 			return this.filtering()
 				? emptyState(
 						this.filter.query
-							? `${copy("web.panels.11a8f9879575")}${this.filter.query}」`
+							? `${copy("web.search.noResultsPrefix")}${this.filter.query}」`
 							: copy("web.app.4a684ec67af5"),
 						"",
 						`<button type="button" class="text-link" data-action="clear-filter">${copy("web.app.657d9cbf45ec")}</button>`,
@@ -1484,14 +1484,14 @@ class AppController {
 				n.classList.toggle("active", s.bookmarked);
 				n.setAttribute(
 					"aria-label",
-					s.bookmarked ? copy("web.panels.dca60869e7d2") : copy("web.bookmark"),
+					s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
 				);
 			});
 		this.dialog
 			.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="later"]`)
 			.forEach((n?: any) => {
 				n.classList.toggle("active", s.later);
-				n.setAttribute("aria-label", s.later ? copy("web.panels.c4d2d1edba13") : copy("web.later"));
+				n.setAttribute("aria-label", s.later ? copy("web.preview.removeLater") : copy("web.later"));
 			});
 	}
 	toggleTask(id?: any, taskId?: any) {
@@ -1571,10 +1571,10 @@ class AppController {
 		menu.id = "card-menu-" + id;
 		const s = Store.item(id),
 			items = [
-				...(card.why ? [["info", copy("web.panels.fdc032965548"), "why"]] : []),
+				...(card.why ? [["info", copy("web.why.title"), "why"]] : []),
 				[
 					"bookmark",
-					s.bookmarked ? copy("web.panels.dca60869e7d2") : copy("web.bookmark"),
+					s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
 					"bookmark",
 				],
 				["glasses", s.later ? copy("web.app.1056291ba162") : copy("web.later"), "later"],
@@ -1871,7 +1871,7 @@ class AppController {
 		});
 		this.toast(
 			target === "bookmark"
-				? `${copy("web.app.96e7ee93f3ba")}${ids.length}${copy("web.panels.e9e0fdc242b4")}`
+				? `${copy("web.app.96e7ee93f3ba")}${ids.length}${copy("web.common.cardCountSuffix")}`
 				: `${ids.length}${copy("web.app.34d0636b70c8")}`,
 			() =>
 				old.forEach(([id, v]: any) => {
@@ -1904,12 +1904,12 @@ class AppController {
 		const b = this.dialog?.querySelector('[data-action="media-play"]');
 		if (b) {
 			b.innerHTML = icon("play");
-			b.setAttribute("aria-label", copy("web.panels.105587569775"));
+			b.setAttribute("aria-label", copy("web.preview.media.playDemo"));
 		}
 		const p = this.dialog?.querySelector('[data-action="podcast-play"]');
 		if (p) {
 			p.innerHTML = icon("play", 22);
-			p.setAttribute("aria-label", copy("web.panels.c3396195e91c"));
+			p.setAttribute("aria-label", copy("web.preview.play"));
 		}
 	}
 	playMedia() {
@@ -1962,7 +1962,7 @@ class AppController {
 		}
 		const b = this.dialog.querySelector('[data-action="podcast-play"]');
 		b.innerHTML = icon("pause", 22);
-		b.setAttribute("aria-label", copy("web.panels.8d12fc0d4eb2"));
+		b.setAttribute("aria-label", copy("web.preview.pause"));
 		this.podcastTimer = setInterval(() => {
 			const p = Math.min(1, Store.item(id).progress + 1 / total);
 			Store.patch(id, { progress: p, read: p >= 0.985 || Store.item(id).read });
@@ -2493,7 +2493,7 @@ class AppController {
 			this.searchScroll = 0;
 			this.searchLimit = 40;
 			document.getElementById("filter-result").textContent =
-				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.panels.e9e0fdc242b4")}`;
+				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.common.cardCountSuffix")}`;
 			clearTimeout(this.searchTimer);
 			this.searchTimer = window.setTimeout(() => {
 				const results = document.getElementById("search-results");

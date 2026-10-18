@@ -169,7 +169,7 @@
 ### C3 整理弹层模板与文案键（代码）
 
 - `apps/web/interactions/panels.ts` 用长模板字符串拼 HTML，每种卡片的预览混在 `preview()` 一个函数里。按卡片类型拆成小函数（`mailPreview`、`eventPreview`……），共用 `sheet()`、`tools()`、`own()`。
-- `design-system/copy/zh-Hans.json` 里有约 90 个哈希键（如 `web.panels.c8bf87742cc0`）。改成语义键（如 `web.preview.toolbar`）。先 `grep` 全仓库（包括 `apps/apple/`、`scripts/`、`tests/`）确认引用，再一次改完；不留旧键。
+- `design-system/copy/zh-Hans.json` 里有约 90 个哈希键（如 `web.preview.cardTools`）。改成语义键（如 `web.preview.toolbar`）。先 `grep` 全仓库（包括 `apps/apple/`、`scripts/`、`tests/`）确认引用，再一次改完；不留旧键。
 - 每次改动后对比改前改后的预览 HTML（可以写一个只在本地运行的对比脚本，不提交），确认输出一致。
 
 ### C4 整理样式（代码）
