@@ -1,0 +1,30 @@
+{
+  "base": "8a0f04e",
+  "rows": [
+    {
+      "file": "apps/web/data/store.ts",
+      "beforeSha256": "5b1da483f613b67db7e5f812dcbf54cf4577280838452f2c33851e8c4b0db80b",
+      "afterSha256": "5b1da483f613b67db7e5f812dcbf54cf4577280838452f2c33851e8c4b0db80b",
+      "runtimeIdentical": true
+    },
+    {
+      "file": "apps/web/interactions/panels.ts",
+      "beforeSha256": "66013beb48aef3d8cae81963bd388803f514fa918285cbfbb03b76dfe8397678",
+      "afterSha256": "66013beb48aef3d8cae81963bd388803f514fa918285cbfbb03b76dfe8397678",
+      "runtimeIdentical": true
+    },
+    {
+      "file": "apps/web/views/app.ts",
+      "beforeSha256": "e5e1db8c37355594ce2b4bfca002deb042d4fe434fe4ae671a4b23b39d5d4979",
+      "afterSha256": "e5e1db8c37355594ce2b4bfca002deb042d4fe434fe4ae671a4b23b39d5d4979",
+      "runtimeIdentical": true
+    }
+  ],
+  "after": "2978d27",
+  "normalization": {
+    "loader": "ts",
+    "format": "esm",
+    "minifyWhitespace": true,
+    "target": "es2022"
+  }
+}

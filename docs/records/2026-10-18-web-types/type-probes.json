@@ -1,0 +1,117 @@
+{
+  "compiler": "TypeScript 7.0.2",
+  "base": "8a0f04e",
+  "after": "2978d27",
+  "invalidCalls": 15,
+  "baselineErrors": 0,
+  "currentErrorsForInvalidCalls": 15,
+  "unexpectedErrors": 0,
+  "validSamplesAccepted": true,
+  "cases": [
+    {
+      "call": "Store.setPref(\"typo\", true);",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2345,
+      "message": "Argument of type '\"typo\"' is not assignable to parameter of type '\"aiLocal\" | \"archiveAfter\" | \"collapseOnFinish\" | \"density\" | \"fadeRead\" | \"floatTimely\" | \"hiddenActions\" | \"newHint\" | \"onboarded\" | \"reduceMotion\" | \"reduceTransparency\" | \"singleKeyShortcuts\" | \"sort\" | \"stack\" | \"theme\"'."
+    },
+    {
+      "call": "Store.setPref(\"theme\", true);",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2345,
+      "message": "Argument of type 'boolean' is not assignable to parameter of type 'string'."
+    },
+    {
+      "call": "Store.setPref(\"theme\", \"unlisted\");",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2345,
+      "message": "Argument of type '\"unlisted\"' is not assignable to parameter of type 'never'."
+    },
+    {
+      "call": "Store.setPref(\"hiddenActions\", [\"unlisted\"]);",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2345,
+      "message": "Argument of type '\"unlisted\"[]' is not assignable to parameter of type 'string | (\"bookmark\" | \"dismiss\" | \"download\" | \"join\" | \"later\" | \"open\" | \"reply\" | \"snooze\" | \"tag\")[]'."
+    },
+    {
+      "call": "Store.patch(\"card\", { progress: \"half\" });",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'."
+    },
+    {
+      "call": "Store.patch(\"card\", { bookmarked: \"yes\" });",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'boolean'."
+    },
+    {
+      "call": "Store.tags({ id: \"x\", type: \"note\" });",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2741,
+      "message": "Property 'title' is missing in type '{ id: string; type: string; }' but required in type '{ [x: string]: unknown; id: string; type: string; title: string; summary?: string; meta?: string; form?: \"compact\" | \"data\" | \"image\" | \"quote\" | \"standard\"; image?: \"architecture\" | \"botanical\" | \"coast\" | \"mountain\"; ... 21 more ...; priority?: number; }'."
+    },
+    {
+      "call": "app.pendingCards = [42];",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2322,
+      "message": "Type 'number' is not assignable to type '{ [x: string]: unknown; id: string; type: string; title: string; summary?: string; meta?: string; form?: \"compact\" | \"data\" | \"image\" | \"quote\" | \"standard\"; image?: \"architecture\" | \"botanical\" | \"coast\" | \"mountain\"; ... 21 more ...; priority?: number; }'."
+    },
+    {
+      "call": "app.mediaIndex = \"first\";",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'."
+    },
+    {
+      "call": "app.openStacks.add(123);",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2345,
+      "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+    },
+    {
+      "call": "app.announce(42);",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2345,
+      "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+    },
+    {
+      "call": "app.setFlag(\"probe\", \"bookmarked\", \"yes\");",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2345,
+      "message": "Argument of type 'string' is not assignable to parameter of type 'boolean'."
+    },
+    {
+      "call": "Panels.readButton(card, { progress: \"half\", read: false });",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'."
+    },
+    {
+      "call": "Panels.tools(card, Store.item(\"probe\"), [[\"unlisted\", \"html\"]]);",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2322,
+      "message": "Type '\"unlisted\"' is not assignable to type '\"bookmark\" | \"dismiss\" | \"download\" | \"join\" | \"later\" | \"open\" | \"reply\" | \"snooze\" | \"tag\"'."
+    },
+    {
+      "call": "Panels.unlistedMethod();",
+      "beforeAccepted": true,
+      "afterRejected": true,
+      "code": 2339,
+      "message": "Property 'unlistedMethod' does not exist on type 'PanelRenderers'."
+    }
+  ]
+}

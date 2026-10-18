@@ -67,8 +67,9 @@
 
 | 文件 | 行数 | 职责 |
 | --- | --- | --- |
-| `apps/web/views/app.ts` | 2716 | AppController：路由、渲染、动作分发入口、刷新；设置与预览已拆分 |
-| `apps/web/interactions/panels.ts` | 424 | 弹层模板入口、阅读、设置、搜索、菜单；`panels/` 下按卡片类型生成预览 |
+| `apps/web/data/store.ts` | 352 | 卡片与个人状态、偏好、浏览器备份；类型复用契约 |
+| `apps/web/views/app.ts` | 2795 | AppController：路由、渲染、动作分发入口、刷新；设置与预览已拆分 |
+| `apps/web/interactions/panels.ts` | 479 | 弹层模板入口、阅读、设置、搜索、菜单；`panels/` 下按卡片类型生成预览 |
 | `apps/web/interactions/gestures.ts` | 1072 | 抽屉跟手、下拉关闭、下拉刷新、长按选择 |
 | `apps/web/interactions/chrome.ts` | 156 | 工具条随滚动收起（ChromeAutoHide）、胶囊长按名称（toolbarTips） |
 | `apps/web/cards/templates.ts` | 283 | 信息流卡片模板 |
@@ -192,7 +193,9 @@
 
 ### C5 类型与静态检查（代码）
 
-- `npx biome lint apps/web` 当前约 900 条警告，大多是显式 `any`。按文件逐步收紧：先 `data/store.ts`、`interactions/panels.ts`，再 `views/app.ts`。
+2026-10-18 执行状态：C5 已实施，提交 [PR #54](https://github.com/dabaige53/sill/pull/54)。仅修改 `data/store.ts`、`interactions/panels.ts`、`views/app.ts` 三个文件的类型，显式 `any` 分别 49 → 0、80 → 0、231 → 0。Web lint 从 875 降至 515 条警告，0 错误、30 条提示。15 个错误调用在基准上可编译，本次全部被拒绝，合法样本仍通过；三个模块导出的类型声明没有 `any`。去掉类型并统一空白后的 JavaScript 与 C4 基准逐字一致；本地、云端构建的 HTML/CSS 原文一致，脚本只出现构建器换行差异。原有 103 个 AppController 方法及 `selected` 访问器不变。各提交 Node 三组 36 / 192 / 92，最终相关浏览器 110 项通过、失败 0。文案键 826 个（哈希键 491 个，panels 哈希键 0 个），图标 69 个。见 [检查记录](../records/2026-10-18-web-types/README.md)，最新 CI 以 PR 为准。未开启全仓 strict，未增加运行时数据校验。没有新增设计或线上待同步文件；真机、Safari 未检查，Mac 未改。
+
+- `npx biome lint apps/web` 在交接时约 900 条警告，大多是显式 `any`。按文件逐步收紧：先 `data/store.ts`、`interactions/panels.ts`，再 `views/app.ts`。
 - 不为消除警告改行为；不在一次 PR 里改超过三个文件的类型。
 - 不把「零错误」写成「零警告」。
 

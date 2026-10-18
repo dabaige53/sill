@@ -1,0 +1,39 @@
+{
+  "files": [
+    {
+      "path": "checks.json",
+      "bytes": 3363,
+      "sha256": "b9efed59729dc185380a5b009c688c5b71f60f906213e4ed42f73188872afc47"
+    },
+    {
+      "path": "page-build-proof.json",
+      "bytes": 1094,
+      "sha256": "95b525f38d9f131f809d47d8ded0b219c733d23eaecd282f7824d2c8a39d1726"
+    },
+    {
+      "path": "public-surface.json",
+      "bytes": 26606,
+      "sha256": "7884bc2dd378b83c707ea3a218a47c6fbdff6ad81efd8962a086e7cd063b1d15"
+    },
+    {
+      "path": "runtime-proof.json",
+      "bytes": 979,
+      "sha256": "1b31f8bf693766dba0b2e339261b9ded181899661cdec922015c5938319f85ac"
+    },
+    {
+      "path": "scope.json",
+      "bytes": 303,
+      "sha256": "cd0c0d4647fb8ea0306bbf9338a789be8666125ffb155a0356eaa7b8f1a15eb6"
+    },
+    {
+      "path": "static-checks.json",
+      "bytes": 591,
+      "sha256": "190ded066762ab46c3e4f38aff362c45d3e1927b5423a65abc16c2afba4c94ff"
+    },
+    {
+      "path": "type-probes.json",
+      "bytes": 4771,
+      "sha256": "31e20445a6348109e6bac1de7266a52aa8ff53a7ddbcb6b260fceb80bd7dbeff"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "base": "8a0f04e",
+  "after": "2978d27",
+  "changedCodeFiles": [
+    "apps/web/data/store.ts",
+    "apps/web/interactions/panels.ts",
+    "apps/web/views/app.ts"
+  ],
+  "runtimeOperationsChanged": false,
+  "designChanged": false,
+  "nativeCodeChanged": false,
+  "onlineAssetRecordsChanged": false
+}
