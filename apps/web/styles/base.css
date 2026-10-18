@@ -1,6 +1,8 @@
 /* Sill · base · shared source */
 * {
 	box-sizing: border-box;
+	/* A held card must not pass its motion state to its menu or other children. */
+	--motion-managed-transform: initial;
 }
 html {
 	background: var(--canvas);

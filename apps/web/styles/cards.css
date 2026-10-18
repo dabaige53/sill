@@ -949,6 +949,7 @@ button.ref:hover {
 .feed-card.tools-open,
 .feed-card.tools-open:not(.stack-card):active:not(:has(button:active)),
 body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item.tools-open:hover {
+	--motion-managed-transform: none;
 	transform: none;
 	transition-property: var(--motion-transition-properties, box-shadow, border-color);
 }

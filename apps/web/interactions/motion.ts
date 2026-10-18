@@ -23,7 +23,13 @@ const MotionEngine: Record<string, any> = {
 				duration: this.reducedDuration,
 			});
 		}
-		return el.animate(keyframes, {
+		// CSS state can hold travel without cancelling the animation's fade or timeline.
+		const managed = keyframes.map((frame?: any) =>
+			typeof frame.transform === "string"
+				? { ...frame, transform: `var(--motion-managed-transform, ${frame.transform})` }
+				: frame,
+		);
+		return el.animate(managed, {
 			duration: 260,
 			easing: "cubic-bezier(.2,.75,.25,1)",
 			...options,

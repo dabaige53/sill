@@ -823,6 +823,7 @@ body.reduce-motion *::backdrop {
 	.reader-head,
 	.sheet-head-tools {
 		--motion-toolbar-transform: none;
+		--motion-managed-transform: none;
 		--motion-transition: opacity var(--dur-reduced) linear, visibility 0s;
 		transform: none;
 		transition:
@@ -856,6 +857,7 @@ body.reduce-motion dialog > .float-bar,
 body.reduce-motion .reader-head,
 body.reduce-motion .sheet-head-tools {
 	--motion-toolbar-transform: none;
+	--motion-managed-transform: none;
 	--motion-transition: opacity var(--dur-reduced) linear, visibility 0s;
 	transform: none;
 	transition:

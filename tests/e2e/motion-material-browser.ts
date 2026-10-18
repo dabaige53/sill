@@ -489,6 +489,112 @@ try {
 		phone,
 	);
 
+	await scenario(
+		"A menu holds an entering card without stopping its fade or its own entry",
+		async (page) => {
+			const states = await page.evaluate(() => {
+				window.__app.renderCurrent(true);
+				const card = document.querySelector<HTMLElement>('[data-card="motion-0"]');
+				const entering = card
+					.getAnimations()
+					.find((animation) =>
+						(animation.effect as KeyframeEffect)
+							.getKeyframes()
+							.some((frame) => "transform" in frame),
+					);
+				if (!entering) throw new Error("Expected the real card entry animation");
+				entering.pause();
+				const timing = entering.effect.getTiming();
+				entering.currentTime = Number(timing.delay) + Number(timing.duration) / 2;
+				const read = () => ({
+					transform: getComputedStyle(card).transform,
+					opacity: getComputedStyle(card).opacity,
+					time: entering.currentTime,
+					state: entering.playState,
+				});
+				const before = read();
+				window.__app.more("motion-0");
+				const held = read(),
+					menu = card.querySelector<HTMLElement>(".card-more-menu");
+				const menuEntry = menu
+					.getAnimations()
+					.find((animation) =>
+						(animation.effect as KeyframeEffect)
+							.getKeyframes()
+							.some((frame) => "transform" in frame),
+					);
+				menuEntry.pause();
+				menuEntry.currentTime = Number(menuEntry.effect.getTiming().duration) / 2;
+				const menuTransform = getComputedStyle(menu).transform;
+				window.__app.closeMore();
+				return { before, held, resumed: read(), menuTransform };
+			});
+			assert.notEqual(states.before.transform, "none");
+			assert.equal(states.held.transform, "none", "an open menu fixes its card during entry");
+			assert.equal(
+				states.held.opacity,
+				states.before.opacity,
+				"the original fade is uninterrupted",
+			);
+			assert.equal(states.held.time, states.before.time);
+			assert.equal(states.held.state, "paused");
+			assert.notEqual(
+				states.menuTransform,
+				"none",
+				"the card's hold does not suppress its menu animation",
+			);
+			assert.deepEqual(states.resumed, states.before, "closing resumes the same animation frame");
+		},
+	);
+
+	for (const mode of ["system", "app"]) {
+		await scenario(
+			`Changing reduced motion during toolbar entry preserves its fade (${mode})`,
+			async (page) => {
+				const before = await page.evaluate(() => {
+					window.__app.openCard("motion-0");
+					const bar = document.querySelector<HTMLElement>("#modal > .float-bar");
+					const entering = bar
+						.getAnimations()
+						.find((animation) =>
+							(animation.effect as KeyframeEffect)
+								.getKeyframes()
+								.some((frame) => "transform" in frame),
+						);
+					if (!entering) throw new Error("Expected the real toolbar entry animation");
+					entering.pause();
+					entering.currentTime = Number(entering.effect.getTiming().duration) / 2;
+					return {
+						transform: getComputedStyle(bar).transform,
+						opacity: getComputedStyle(bar).opacity,
+					};
+				});
+				assert.notEqual(before.transform, "none");
+				if (mode === "system") await page.emulateMedia({ reducedMotion: "reduce" });
+				else await page.evaluate(() => window.__app.setPref("reduceMotion", true));
+				const held = await page.locator("#modal > .float-bar").evaluate((bar: Element) => ({
+					transform: getComputedStyle(bar).transform,
+					opacity: getComputedStyle(bar).opacity,
+				}));
+				assert.equal(
+					held.transform,
+					"none",
+					"a newly enabled preference immediately suppresses travel",
+				);
+				assert.equal(held.opacity, before.opacity, "the existing fade stays on its original frame");
+				if (mode === "system") await page.emulateMedia({ reducedMotion: "no-preference" });
+				else await page.evaluate(() => window.__app.setPref("reduceMotion", false));
+				assert.deepEqual(
+					await page.locator("#modal > .float-bar").evaluate((bar: Element) => ({
+						transform: getComputedStyle(bar).transform,
+						opacity: getComputedStyle(bar).opacity,
+					})),
+					before,
+				);
+			},
+		);
+	}
+
 	for (const mode of ["normal", "system", "app"]) {
 		await scenario(
 			`Style priorities preserve gesture and toolbar behavior (${mode})`,

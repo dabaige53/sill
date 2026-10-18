@@ -14,7 +14,7 @@
 | 原位多选与批量菜单 | `npm run build && npm run test:selection-browser` | 隔离合成卡片；桌面、390×844 触屏、减少动态效果、长按原位选择、无角落对号与长按缩略图、主页/搜索独立选择、工具条进出与中断、焦点、取消、滚动与写入边界 |
 | 工具条收起、输入法、搜索与导航胶囊 | `npm run test:core`（`web/chrome.test.ts`） | JSDOM：向下滚动收起、抖动不触发、到顶到底与停下回来、键盘焦点回来；拼写中不筛选；搜索不显示数量；导航胶囊四格、镜片跟随、设置「添加」组、AI 面板没有可点动作 |
 | 内容保真与阅读密度 | `npm run build && npm run test:material-density` | 合成卡片：中等桌面列宽、紧凑五列上限、任务焦点、摘要原文、长要点与任务换行；1320px、390px、320px，截图在 `artifacts/material-density/` |
-| 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 真实 Tab、CDP touchCancel、迟到关闭、减少动态/透明度、增强对比、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
+| 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 17 项：真实 Tab、CDP touchCancel、迟到关闭、拖动层级、工具条延迟、入场中打开菜单及切换减少动态效果、减少透明度、增强对比、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界和减少动态效果；不代替 iPhone 系统菜单与主屏幕实测 |
 | 下拉刷新图标反馈与请求锁 | `npm run build && node tests/e2e/refresh-motion-browser.ts` | 合成卡片、Chromium 触屏事件、普通及减少动态效果、轻阈值与取消、真实等待、成功勾与失败重试、慢请求防重复、正常滚动；云端错误不弹文字反馈；不代替 Safari/iPhone 实测 |
 | 单卡交给宿主助手 | `npm run test:core`、`npm run build:cloud && npm run test:cloud-app-browser` | 真实 SDK 协议的 sandbox 宿主模拟：能力协商、账号条件、单次发送、回执未知、手动复制回退、外链确认与明确拒绝的草稿恢复；不发送真实对话 |
