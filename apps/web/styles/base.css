@@ -4,7 +4,7 @@
 }
 html {
 	background: var(--canvas);
-	scroll-behavior: smooth;
+	scroll-behavior: var(--motion-scroll-behavior, smooth);
 	scrollbar-gutter: stable;
 	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
 	overscroll-behavior-y: none;
@@ -18,7 +18,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
 	min-height: 100vh;
-	transition: background var(--base);
+	transition: var(--motion-transition, background var(--base));
 }
 button,
 input,
@@ -88,7 +88,7 @@ textarea::placeholder {
 	color: var(--fixed-ink);
 }
 .sr-only {
-	position: absolute !important;
+	position: absolute;
 	width: 1px;
 	height: 1px;
 	padding: 0;
@@ -138,6 +138,7 @@ p {
 	font-size: var(--text-meta);
 	margin-top: var(--space-8);
 }
+/* Layout writes inline width/left/top for every feed item; an empty desk stays in flow. */
 .feed-grid > .empty-card {
 	position: relative;
 	left: auto !important;

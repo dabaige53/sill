@@ -89,7 +89,7 @@ dialog::backdrop {
 	display: flex;
 	flex-direction: column;
 	max-height: min(88dvh, 900px);
-	transition: max-height 360ms var(--ease-sheet);
+	transition: var(--motion-transition, max-height 360ms var(--ease-sheet));
 }
 /* The head floats over the content: no band of white above the text. Its round buttons tuck away with
    the toolbar while reading on, and come back on a pause over a soft edge. */
@@ -114,20 +114,24 @@ dialog::backdrop {
 	display: flex;
 	gap: var(--space-8);
 	pointer-events: auto;
-	transition:
+	transition: var(
+		--motion-transition,
 		transform 380ms var(--ease-sheet),
 		opacity 240ms var(--ease),
-		visibility 0s;
+		visibility 0s
+	);
 }
 .sheet-head-tools.is-tucked {
-	transform: translateY(-12px);
+	transform: var(--motion-toolbar-transform, translateY(-12px));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition:
+	transition: var(
+		--motion-transition,
 		transform var(--rail-tuck) var(--ease),
 		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck);
+		visibility 0s var(--rail-tuck)
+	);
 }
 .preview-sheet:before {
 	content: "";
@@ -144,7 +148,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 92%, transparent) 30%,
 		color-mix(in srgb, var(--card) 0%, transparent)
 	);
-	transition: opacity 260ms var(--ease);
+	transition: var(--motion-transition, opacity 260ms var(--ease));
 }
 .preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
 	opacity: 1;
@@ -233,7 +237,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 18px),
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
-	transition: opacity 260ms var(--ease);
+	transition: var(--motion-transition, opacity 260ms var(--ease));
 }
 #modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
 	opacity: 0;
@@ -262,7 +266,7 @@ dialog::backdrop {
 	background: var(--card-read);
 	box-shadow: var(--shadow-sheet);
 	cursor: pointer;
-	transition: opacity var(--base) var(--ease);
+	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .preview-sheet .sheet-scroll {
 	flex: 0 1 auto;
@@ -323,24 +327,6 @@ dialog::backdrop {
 	font-size: 16px;
 	line-height: 1.7;
 	color: var(--ink);
-}
-.preview-excerpt {
-	position: relative;
-	max-height: 150px;
-	overflow: hidden;
-	font-size: var(--text-body);
-	line-height: 1.75;
-	color: var(--muted);
-}
-.preview-excerpt:after {
-	content: "";
-	position: absolute;
-	inset: auto 0 0;
-	height: 64px;
-	background: linear-gradient(transparent, var(--card));
-}
-.preview-excerpt p + p {
-	margin-top: var(--space-12);
 }
 .preview-full p {
 	font-size: 16px;
@@ -752,7 +738,7 @@ button.detail-row:hover {
 	height: 2px;
 	background: var(--accent-fill);
 	z-index: 4;
-	transition: width 120ms linear;
+	transition: var(--motion-transition, width 120ms linear);
 }
 .reader-scroll {
 	height: 100vh;
@@ -809,32 +795,38 @@ button.detail-row:hover {
 /* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
 dialog > .float-bar,
 .reader-head {
-	transition:
+	transition: var(
+		--motion-transition,
 		transform 380ms var(--ease-sheet),
 		opacity 240ms var(--ease),
 		translate 360ms var(--ease-sheet),
-		visibility 0s;
+		visibility 0s
+	);
 }
 dialog > .float-bar.is-tucked,
 dialog > .float-bar.is-hidden {
-	transform: translateY(calc(100% + 40px));
+	transform: var(--motion-toolbar-transform, translateY(calc(100% + 40px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition:
+	transition: var(
+		--motion-transition,
 		transform var(--rail-tuck) var(--ease),
 		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck);
+		visibility 0s var(--rail-tuck)
+	);
 }
 .reader-head.is-tucked {
-	transform: translateY(calc(-100% - 24px));
+	transform: var(--motion-toolbar-transform, translateY(calc(-100% - 24px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition:
+	transition: var(
+		--motion-transition,
 		transform var(--rail-tuck) var(--ease),
 		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck);
+		visibility 0s var(--rail-tuck)
+	);
 }
 /* The read-end ring closes into a check when the last paragraph is reached. */
 .skeleton-lines {
@@ -919,11 +911,6 @@ dialog > .float-bar.is-hidden {
 }
 .panel-footer:empty {
 	display: none;
-}
-.settings-note {
-	font-size: var(--text-meta);
-	line-height: 1.8;
-	color: var(--muted);
 }
 .row-list {
 	display: flex;
@@ -1011,7 +998,7 @@ button.list-row:hover,
 	gap: var(--space-4);
 	white-space: nowrap;
 	opacity: 0;
-	transition: opacity var(--fast);
+	transition: var(--motion-transition, opacity var(--fast));
 }
 .list-row:hover .row-put,
 .list-row:focus-within .row-put {
@@ -1020,20 +1007,6 @@ button.list-row:hover,
 .list-row:hover .row-date,
 .list-row:focus-within .row-date {
 	opacity: 0;
-}
-
-.panel-foot-row {
-	display: flex;
-	align-items: center;
-	gap: var(--space-8);
-	margin: var(--space-18) calc(-1 * var(--space-28)) calc(-1 * var(--space-28));
-	padding: var(--space-14) var(--space-28);
-	background: var(--canvas);
-	font-size: var(--text-meta);
-	color: var(--muted);
-}
-.panel-foot-row .text-link {
-	margin-left: auto;
 }
 
 /* Settings: five groups, one screen each. */
@@ -1248,11 +1221,6 @@ kbd {
 	color: var(--muted);
 	padding: var(--space-24) 0;
 }
-.search-actions {
-	display: flex;
-	justify-content: center;
-	gap: var(--space-8);
-}
 
 /* More menu, popovers. */
 .card-more-menu,
@@ -1333,14 +1301,6 @@ kbd {
 	flex-wrap: wrap;
 	gap: var(--space-6);
 	margin-top: var(--space-8);
-}
-
-.app-badge {
-	display: grid;
-	place-items: center;
-	border-radius: 22%;
-	overflow: hidden;
-	flex: none;
 }
 
 /* First run: an empty sill, one sentence, one button. */
@@ -1526,7 +1486,7 @@ kbd {
 		0 1px 2px var(--fixed-black-6),
 		0 10px 28px var(--fixed-black-14);
 	overflow: hidden;
-	transition: transform var(--base) var(--ease);
+	transition: var(--motion-transition, transform var(--base) var(--ease));
 }
 .selection-stack-face[data-layer="1"] {
 	transform: translate(14px, -6px) rotate(6deg) scale(0.95);
@@ -1538,7 +1498,9 @@ kbd {
 	opacity: 1;
 	border: 0;
 	box-shadow: none;
-	animation: none;
+	animation: var(--motion-animation, none);
+	animation-duration: var(--motion-animation-duration, 0s);
+	animation-iteration-count: var(--motion-animation-iterations, 1);
 }
 .selection-thumbnail-fallback {
 	padding: var(--space-14);
@@ -1567,7 +1529,7 @@ kbd {
 	transform: scale(1.03) rotate(-1deg);
 }
 body.is-dragging {
-	cursor: grabbing !important;
+	cursor: grabbing;
 	user-select: none;
 	-webkit-user-select: none;
 }
@@ -1686,7 +1648,7 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 #modal::backdrop {
 	opacity: var(--backdrop, 1);
-	transition: opacity 280ms linear;
+	transition: var(--motion-transition, opacity 280ms linear);
 }
 .pull-ring {
 	position: fixed;
@@ -1703,24 +1665,22 @@ input[type="search"]::-webkit-search-cancel-button {
 	translate: 0 -48px;
 	pointer-events: none;
 	color: var(--accent);
-	transition:
-		opacity 200ms,
-		translate 180ms var(--ease);
+	transition: var(--motion-transition, opacity 200ms, translate 180ms var(--ease));
 }
 main {
-	transition: translate 180ms var(--ease);
+	transition: var(--motion-transition, translate 180ms var(--ease));
 }
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {
-	transition: none;
+	transition: var(--motion-transition, none);
 	will-change: translate;
 }
 body.is-pulling main,
 body.is-pulling .pull-ring {
-	transition: none;
+	transition: var(--motion-transition, none);
 }
 #modal.is-drag::backdrop {
-	transition: none;
+	transition: var(--motion-transition, none);
 }
 .pull-ring svg {
 	width: 24px;
@@ -1736,8 +1696,11 @@ body.is-pulling .pull-ring {
 	stroke-dashoffset: 100;
 }
 .pull-ring.is-spinning .pull-progress {
-	animation: orb-arc 0.8s linear infinite;
+	animation: var(--motion-animation, orb-arc 0.8s linear infinite);
+	animation-duration: var(--motion-animation-duration, 0.8s);
+	animation-iteration-count: var(--motion-animation-iterations, infinite);
 }
+/* Gesture progress is inline; spinning holds one fixed arc while the request is pending. */
 .pull-ring.is-spinning circle {
 	stroke-dashoffset: 30 !important;
 }
@@ -1851,30 +1814,39 @@ body.is-pulling .pull-ring {
    the transition carries it there, so wheel steps glide and a change of direction never jumps. A finger on the glass turns it off. */
 .preview-sheet,
 #modal.reader {
-	transition:
+	transition: var(
+		--motion-transition,
 		translate 360ms var(--ease-sheet),
-		max-height 360ms var(--ease-sheet);
+		max-height 360ms var(--ease-sheet)
+	);
 }
-.is-drag,
-.is-drag .sheet-scroll,
-.is-drag .reader-scroll {
-	transition: none !important;
-}
+
 .sheet-scroll,
 .reader-scroll {
-	transition: translate 220ms var(--ease);
+	transition: var(--motion-transition, translate 220ms var(--ease));
+}
+/* Direct surfaces keep the existing app-reduced fade; nested content always follows immediately. */
+.is-drag,
+#modal.preview .preview-sheet.is-drag,
+#modal.reader.is-drag,
+.sheet-scroll.is-drag,
+.reader-scroll.is-drag {
+	transition: var(--motion-drag-transition, none);
+}
+.is-drag .sheet-scroll,
+.is-drag .reader-scroll {
+	transition: none;
 }
 .push-ring {
-	transition:
-		opacity 140ms,
-		transform 140ms,
-		background 200ms;
+	transition: var(--motion-transition, opacity 140ms, transform 140ms, background 200ms);
 }
 .push-ring .arc circle {
-	transition: stroke-dashoffset 140ms;
+	transition: var(--motion-transition, stroke-dashoffset 140ms);
 }
 .push-ring.is-done {
-	animation: ring-pop 320ms var(--ease) both;
+	animation: var(--motion-animation, ring-pop 320ms var(--ease) both);
+	animation-duration: var(--motion-animation-duration, 320ms);
+	animation-iteration-count: var(--motion-animation-iterations, 1);
 }
 @keyframes ring-pop {
 	0% {
@@ -1919,7 +1891,7 @@ body.is-pulling .pull-ring {
 	right: 0;
 	z-index: 4;
 	pointer-events: none;
-	transition: opacity 260ms var(--ease);
+	transition: var(--motion-transition, opacity 260ms var(--ease));
 }
 .reader-edge.is-bottom {
 	bottom: 0;

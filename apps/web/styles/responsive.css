@@ -131,20 +131,24 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		-webkit-backdrop-filter: blur(28px) saturate(1.6);
 		backdrop-filter: blur(28px) saturate(1.6);
 		border-bottom: 0.5px solid var(--line);
-		transition:
+		transition: var(
+			--motion-transition,
 			transform 380ms var(--ease-sheet),
 			opacity 240ms var(--ease),
-			visibility 0s;
+			visibility 0s
+		);
 	}
 	.home-top.is-tucked {
 		transform: translateY(calc(-100% + env(safe-area-inset-top)));
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
-		transition:
+		transition: var(
+			--motion-transition,
 			transform var(--dur-tuck) var(--ease),
 			opacity var(--dur-tuck) var(--ease),
-			visibility 0s var(--dur-tuck);
+			visibility 0s var(--dur-tuck)
+		);
 	}
 	body:has(#modal[open]) .home-top {
 		opacity: 0;
@@ -278,6 +282,7 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.feed-item .sender {
 		gap: var(--space-8);
 	}
+	/* avatar() emits inline desktop sizes; phone sender portraits stay 20px. */
 	.feed-item .sender .avatar {
 		width: 20px !important;
 		height: 20px !important;
@@ -448,12 +453,14 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		flex-direction: column;
 		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
 		transform: translateY(0);
-		transition:
+		transition: var(
+			--motion-transition,
 			transform 360ms var(--ease-sheet),
 			max-height 360ms var(--ease-sheet),
 			height 360ms var(--ease-sheet),
 			translate 360ms var(--ease-sheet),
-			border-radius 360ms var(--ease-sheet);
+			border-radius 360ms var(--ease-sheet)
+		);
 	}
 	#modal.preview .preview-sheet.is-full {
 		max-height: 100dvh;
@@ -673,10 +680,6 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.panel-content {
 		padding: var(--space-22) var(--space-20) var(--space-26);
 	}
-	.panel-foot-row {
-		margin: var(--space-18) calc(-1 * var(--space-20)) calc(-1 * var(--space-26));
-		padding: var(--space-14) var(--space-20);
-	}
 	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
 	#modal.panel,
 	#modal.panel.narrow,
@@ -719,7 +722,9 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		background: var(--canvas);
 		padding: calc(var(--space-12) + env(safe-area-inset-top)) 0
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
-		animation: none;
+		animation: var(--motion-animation, none);
+		animation-duration: var(--motion-animation-duration, 0s);
+		animation-iteration-count: var(--motion-animation-iterations, 1);
 	}
 	/* The local AI preview keeps context and composer in one viewport. */
 	#modal.page.panel.narrow:has(.ai-conversation) {
@@ -760,12 +765,23 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	*:before,
 	*:after,
 	*::backdrop {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-property: opacity, background-color, color, border-color, box-shadow !important;
-		transition-duration: var(--dur-reduced) !important;
-		transition-timing-function: linear !important;
-		transition-delay: 0s !important;
+		--motion-transition:
+			opacity var(--dur-reduced) linear, background-color var(--dur-reduced) linear, color var(
+				--dur-reduced
+			) linear, border-color var(--dur-reduced) linear, box-shadow var(--dur-reduced) linear;
+		--motion-transition-properties: opacity, background-color, color, border-color, box-shadow;
+		--motion-transition-duration: var(--dur-reduced);
+		--motion-transition-timing: linear;
+		--motion-transition-delay: 0s;
+		--motion-animation-duration: 0.01ms;
+		--motion-animation-iterations: 1;
+		--motion-scroll-behavior: auto;
+		animation-duration: 0.01ms;
+		animation-iteration-count: 1;
+		transition-property: opacity, background-color, color, border-color, box-shadow;
+		transition-duration: var(--dur-reduced);
+		transition-timing-function: linear;
+		transition-delay: 0s;
 	}
 }
 body.reduce-motion,
@@ -773,13 +789,25 @@ body.reduce-motion *,
 body.reduce-motion *:before,
 body.reduce-motion *:after,
 body.reduce-motion *::backdrop {
-	scroll-behavior: auto !important;
-	animation-duration: 0.01ms !important;
-	animation-iteration-count: 1 !important;
-	transition-property: opacity, background-color, color, border-color, box-shadow !important;
-	transition-duration: var(--dur-reduced) !important;
-	transition-timing-function: linear !important;
-	transition-delay: 0s !important;
+	--motion-drag-transition: var(--motion-transition);
+	scroll-behavior: auto;
+	--motion-transition:
+		opacity var(--dur-reduced) linear, background-color var(--dur-reduced) linear, color var(
+			--dur-reduced
+		) linear, border-color var(--dur-reduced) linear, box-shadow var(--dur-reduced) linear;
+	--motion-transition-properties: opacity, background-color, color, border-color, box-shadow;
+	--motion-transition-duration: var(--dur-reduced);
+	--motion-transition-timing: linear;
+	--motion-transition-delay: 0s;
+	--motion-animation-duration: 0.01ms;
+	--motion-animation-iterations: 1;
+	--motion-scroll-behavior: auto;
+	animation-duration: 0.01ms;
+	animation-iteration-count: 1;
+	transition-property: opacity, background-color, color, border-color, box-shadow;
+	transition-duration: var(--dur-reduced);
+	transition-timing-function: linear;
+	transition-delay: 0s;
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
 	body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item:hover {
@@ -787,31 +815,36 @@ body.reduce-motion *::backdrop {
 	}
 }
 
-/* Fades preserve the layout and control state. Show visibility immediately so Tab can enter. */
+/* Component fallbacks share the existing reduced-motion policy, including pseudo-elements/backdrops.
+   Toolbars retain their separate visibility delay; CSS state, not importance, selects the fade. */
 @media (prefers-reduced-motion: reduce) {
 	#dock,
 	dialog > .float-bar,
 	.reader-head,
 	.sheet-head-tools {
-		transform: none !important;
+		--motion-toolbar-transform: none;
+		--motion-transition: opacity var(--dur-reduced) linear, visibility 0s;
+		transform: none;
 		transition:
 			opacity var(--dur-reduced) linear,
-			visibility 0s !important;
+			visibility 0s;
 	}
 	#dock.is-tucked,
 	dialog > .float-bar:is(.is-tucked, .is-hidden),
 	.reader-head.is-tucked,
 	.sheet-head-tools.is-tucked {
-		transition-delay: 0s, var(--dur-reduced) !important;
+		--motion-transition: opacity var(--dur-reduced) linear, visibility 0s var(--dur-reduced);
+		transition-delay: 0s, var(--dur-reduced);
 	}
 	.icon-button:active,
-	.account-button:active,
 	.solid-button:active,
 	.feed-card:not(.stack-card):active:not(:has(button:active)) {
 		transform: none;
 	}
 	.nav-lens {
-		animation: none !important;
+		--motion-animation: none;
+		--motion-animation-duration: 0s;
+		animation: none;
 		scale: none;
 	}
 	.nav-tab:active .nav-icon {
@@ -822,25 +855,29 @@ body.reduce-motion #dock,
 body.reduce-motion dialog > .float-bar,
 body.reduce-motion .reader-head,
 body.reduce-motion .sheet-head-tools {
-	transform: none !important;
+	--motion-toolbar-transform: none;
+	--motion-transition: opacity var(--dur-reduced) linear, visibility 0s;
+	transform: none;
 	transition:
 		opacity var(--dur-reduced) linear,
-		visibility 0s !important;
+		visibility 0s;
 }
 body.reduce-motion #dock.is-tucked,
 body.reduce-motion dialog > .float-bar:is(.is-tucked, .is-hidden),
 body.reduce-motion .reader-head.is-tucked,
 body.reduce-motion .sheet-head-tools.is-tucked {
-	transition-delay: 0s, var(--dur-reduced) !important;
+	--motion-transition: opacity var(--dur-reduced) linear, visibility 0s var(--dur-reduced);
+	transition-delay: 0s, var(--dur-reduced);
 }
 body.reduce-motion .icon-button:active,
-body.reduce-motion .account-button:active,
 body.reduce-motion .solid-button:active,
 body.reduce-motion .feed-card:not(.stack-card):active:not(:has(button:active)) {
 	transform: none;
 }
 body.reduce-motion .nav-lens {
-	animation: none !important;
+	--motion-animation: none;
+	--motion-animation-duration: 0s;
+	animation: none;
 	scale: none;
 }
 body.reduce-motion .nav-tab:active .nav-icon {

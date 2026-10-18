@@ -16,11 +16,13 @@
 	border: 1px solid var(--line-card);
 	border-radius: var(--card-radius);
 	box-shadow: var(--shadow);
-	transition:
+	transition: var(
+		--motion-transition,
 		background-color var(--settle) var(--ease),
 		box-shadow var(--settle) var(--ease),
 		border-color var(--settle) var(--ease),
-		transform var(--base) var(--ease);
+		transform var(--base) var(--ease)
+	);
 	isolation: isolate;
 	overflow: hidden;
 	cursor: pointer;
@@ -56,7 +58,7 @@
 	border-radius: inherit;
 	border: 2px solid transparent;
 	pointer-events: none;
-	transition: border-color var(--base);
+	transition: var(--motion-transition, border-color var(--base));
 }
 .card-body {
 	display: flex;
@@ -84,10 +86,10 @@
 }
 /* The reserved action slot keeps counts and timely information readable while hovering. */
 .card-head-right {
-	transition: opacity var(--fast);
+	transition: var(--motion-transition, opacity var(--fast));
 }
 .has-cover .card-head-right {
-	opacity: 1 !important;
+	opacity: 1;
 }
 .card-head > .icon,
 .card-head > .source-icons {
@@ -159,7 +161,7 @@
 	letter-spacing: -0.02em;
 	line-height: 1.35;
 	color: var(--ink);
-	transition: color var(--settle) var(--ease);
+	transition: var(--motion-transition, color var(--settle) var(--ease));
 }
 .card-title-button {
 	display: -webkit-box;
@@ -271,9 +273,11 @@
 	object-fit: cover;
 	opacity: 0;
 	transform: scale(1.04);
-	transition:
+	transition: var(
+		--motion-transition,
 		opacity var(--settle) var(--ease),
-		transform var(--settle) var(--ease);
+		transform var(--settle) var(--ease)
+	);
 }
 .card-image.is-loaded {
 	opacity: 1;
@@ -534,9 +538,7 @@ button.ref:hover {
 	border: 1.5px solid var(--accent);
 	border-radius: 50%;
 	color: var(--fixed-white);
-	transition:
-		background var(--base),
-		border-color var(--base);
+	transition: var(--motion-transition, background var(--base), border-color var(--base));
 }
 .check-item:hover .check-dot {
 	border-color: var(--accent);
@@ -660,10 +662,12 @@ button.ref:hover {
 	white-space: nowrap;
 	background: var(--surface);
 	color: var(--ink);
-	transition:
+	transition: var(
+		--motion-transition,
 		background var(--fast),
 		filter var(--fast),
-		transform var(--fast);
+		transform var(--fast)
+	);
 }
 .pill:active {
 	transform: scale(0.97);
@@ -705,9 +709,7 @@ button.ref:hover {
 	box-shadow: 0 2px 8px var(--fixed-black-8);
 	opacity: 0;
 	pointer-events: none;
-	transition:
-		opacity var(--fast),
-		background var(--fast);
+	transition: var(--motion-transition, opacity var(--fast), background var(--fast));
 }
 .card-more-trigger .icon {
 	width: 16px;
@@ -857,7 +859,7 @@ button.ref:hover {
 	font-weight: 500;
 }
 .stack-card .card-head-right {
-	opacity: 1 !important;
+	opacity: 1;
 }
 .stack-pos {
 	color: var(--ink);
@@ -921,7 +923,7 @@ button.ref:hover {
 	font-size: var(--text-control);
 	color: var(--ink);
 	text-align: left;
-	transition: background var(--fast);
+	transition: var(--motion-transition, background var(--fast));
 }
 .shelf-row:hover {
 	background: var(--faint);
@@ -940,11 +942,13 @@ button.ref:hover {
 /* Pressing a card gives a little, like the prototype: it is something you can pick up. */
 .feed-card:not(.stack-card):active:not(:has(button:active)) {
 	transform: scale(0.97);
-	transition-duration: 120ms;
+	transition-duration: var(--motion-transition-duration, 120ms);
 }
 
 /* A menu's hit targets keep their size even while the touched parent settles. */
-.feed-card.tools-open {
-	transform: none !important;
-	transition-property: box-shadow, border-color;
+.feed-card.tools-open,
+.feed-card.tools-open:not(.stack-card):active:not(:has(button:active)),
+body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item.tools-open:hover {
+	transform: none;
+	transition-property: var(--motion-transition-properties, box-shadow, border-color);
 }
