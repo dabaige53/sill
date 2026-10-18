@@ -48,6 +48,7 @@
 - [玻璃底栏取代入口球，工具条滚动时收起](adr/0034-glass-rail-and-tucking-bars.md)
 - [底部导航胶囊取代右下玻璃按钮组](adr/0035-bottom-navigation-capsule.md)
 - [手机主页参考 X 的密度，仍用卡片](adr/0036-phone-home-density.md)
+- [卡片详情：操作收进底部胶囊，只用图标](adr/0037-card-detail-toolbar.md)
 
 ## 记录
 
@@ -84,6 +85,7 @@
 - [2026-10-16-remove-sources-import：删除来源连接与文件导入](records/2026-10-16-remove-sources-import/README.md)
 - [2026-10-16-cloud-operations：云端工作区操作与 Agent 优先](records/2026-10-16-cloud-operations/README.md)
 - [2026-10-18-phone-home-x-density：手机主页参考 X 的密度](records/2026-10-18-phone-home-x-density/README.md)
+- [2026-10-18-card-detail-capsule：卡片详情的操作胶囊](records/2026-10-18-card-detail-capsule/README.md)
 
 ## 归档
 

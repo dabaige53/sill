@@ -22,9 +22,9 @@
           "type": "image/svg+xml"
         },
         "bell-off.svg": {
-          "blob": "fed8204bc75e60796f3471f3f5d9d6d4",
+          "blob": "1b1d63894ff333f793f76992b6921f3e",
           "name": "bell-off.svg",
-          "size": 289,
+          "size": 292,
           "type": "image/svg+xml"
         },
         "bell.svg": {
@@ -40,9 +40,9 @@
           "type": "image/svg+xml"
         },
         "bookmark.svg": {
-          "blob": "44f309bbd661bd0bedfa6eaf74554a90",
+          "blob": "01326b9898677ce3e7932c29e24ea27a",
           "name": "bookmark.svg",
-          "size": 251,
+          "size": 285,
           "type": "image/svg+xml"
         },
         "calendar.svg": {
@@ -100,9 +100,9 @@
           "type": "image/svg+xml"
         },
         "download.svg": {
-          "blob": "7157f875cdec490a6fad0946977c744c",
+          "blob": "b23b6db029275b964266a1c5ef99590a",
           "name": "download.svg",
-          "size": 237,
+          "size": 246,
           "type": "image/svg+xml"
         },
         "expand.svg": {
@@ -112,9 +112,9 @@
           "type": "image/svg+xml"
         },
         "external.svg": {
-          "blob": "61dc0db4d27f0671bc94388287e13e1b",
+          "blob": "d66016a6618679449ad9382ae3660c03",
           "name": "external.svg",
-          "size": 282,
+          "size": 294,
           "type": "image/svg+xml"
         },
         "eye.svg": {
@@ -160,9 +160,9 @@
           "type": "image/svg+xml"
         },
         "glasses.svg": {
-          "blob": "4fd03728c7c74f344504eae6a401deb5",
+          "blob": "438557b4a78f77fc1edef1e0a1e64c13",
           "name": "glasses.svg",
-          "size": 337,
+          "size": 362,
           "type": "image/svg+xml"
         },
         "globe.svg": {
@@ -340,9 +340,9 @@
           "type": "image/svg+xml"
         },
         "tag.svg": {
-          "blob": "63cc13b335980f4c0867ef96407adfab",
+          "blob": "53c9e23004e708b88d5a091d37991c0b",
           "name": "tag.svg",
-          "size": 282,
+          "size": 284,
           "type": "image/svg+xml"
         },
         "target.svg": {
@@ -376,9 +376,9 @@
           "type": "image/svg+xml"
         },
         "video.svg": {
-          "blob": "23eb3cfb6c325e774b48546b2f2ec68b",
+          "blob": "ebf8d0611313cf2a6fe78b660a0c51eb",
           "name": "video.svg",
-          "size": 285,
+          "size": 290,
           "type": "image/svg+xml"
         },
         "x.svg": {
@@ -403,6 +403,18 @@
           "blob": "a1e4f044157f8f7dcb5550c9bafa9d0c",
           "name": "sill.svg",
           "size": 308,
+          "type": "image/svg+xml"
+        },
+        "reply.svg": {
+          "blob": "e6bb6385a435b4bb04b8f9244c11b6c5",
+          "name": "reply.svg",
+          "size": 257,
+          "type": "image/svg+xml"
+        },
+        "snooze.svg": {
+          "blob": "2ff9b1783df29e2c6e83fa1836597ed7",
+          "name": "snooze.svg",
+          "size": 286,
           "type": "image/svg+xml"
         }
       },
@@ -459,6 +471,7 @@
         "pull.svg",
         "quote.svg",
         "refresh.svg",
+        "reply.svg",
         "rewind.svg",
         "ring.svg",
         "rss.svg",
@@ -466,6 +479,7 @@
         "select.svg",
         "send.svg",
         "sill.svg",
+        "snooze.svg",
         "sparkles.svg",
         "tag.svg",
         "target.svg",
@@ -492,10 +506,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-18T03:30:00Z",
+    "at": "2026-10-18T06:00:00Z",
     "by": "dabaige53",
     "via": "Claude Code",
-    "note": "手机主页参考 X 的密度（ADR 0036）：收紧间距、文章缩略图、提醒卡圆圈即完成、顶栏分栏标签、新内容提示移到顶部；sill、mail、video、folder 图标更方正"
+    "note": "卡片详情（ADR 0037）：操作收进底部胶囊，通用操作深色｜卡片操作蓝色，只用图标；提醒完成用圆圈；设置可隐藏操作；九个图标按线条积木重画，新增 reply、snooze"
   },
   "layout": "files",
   "libraries": [],

@@ -257,6 +257,13 @@
       "w": 1440,
       "x": 10530,
       "y": 4220
+    },
+    "CardDetail.dc.html": {
+      "h": 2980,
+      "title": "37 定稿 v6 · 卡片详情（操作胶囊）",
+      "w": 1440,
+      "x": 6080,
+      "y": 7060
     }
   },
   "createdOnFiles": {
@@ -376,6 +383,7 @@
     "MotionProto.dc.html",
     "Details.dc.html",
     "ExitRules.dc.html",
+    "CardDetail.dc.html",
     "SearchArchive.dc.html",
     "Trust.dc.html",
     "Settings.dc.html",
