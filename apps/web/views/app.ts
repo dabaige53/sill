@@ -18,7 +18,7 @@ import {
 	stackOpenHTML,
 } from "../cards/templates.ts";
 import { copy } from "../copy.ts";
-import { cardSource, cardSourceKind } from "../data/card-source.ts";
+import { cardSource } from "../data/card-source.ts";
 import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { ChromeAutoHide, toolbarTips } from "../interactions/chrome.ts";
@@ -39,6 +39,7 @@ import {
 import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
+import { bindPreview, bindSheetChrome, openCard } from "./preview-controller.ts";
 import { repaintSettings, setPref } from "./settings-controller.ts";
 
 /** The lens leads; the place it names opens just after, so the move is seen before the sheet covers it. */
@@ -1251,83 +1252,11 @@ class AppController {
 		}
 	}
 	openCard(id?: any, reading: any = false) {
-		const c = Store.card(id);
-		if (!c) return;
-		const source = (
-			this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
-		).querySelector(`[data-card="${CSS.escape(id)}"]`);
-		// A quick note opens where it is: the card becomes its own editor.
-		if (
-			!reading &&
-			c.type === "note" &&
-			cardSourceKind(c) === "capture" &&
-			c.form !== "quote" &&
-			source &&
-			!this.dialog.open
-		) {
-			history.replaceState({ glass: true, prev: null }, "", "#feed");
-			this.lastRouteHash = "#feed";
-			this.startInlineEdit(id);
-			return;
-		}
-		if (!this.dialog.open || this.currentId !== id)
-			try {
-				this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));
-			} catch {}
-		const origin = MotionEngine.capture(
-			this.dialog.open && this.currentId === id && ["preview", "reader"].includes(this.modalKind)
-				? MotionEngine.surface(this.dialog)
-				: source,
-		);
-		if (!this.dialog.open || this.modalKind !== "preview") this.previewTrail = [];
-		else if (!reading && this.currentId && this.currentId !== id) {
-			const back = this.previewTrail.lastIndexOf(id);
-			if (back >= 0) this.previewTrail = this.previewTrail.slice(0, back);
-			else this.previewTrail.push(this.currentId);
-		}
-		if (this.modalKind === "search") this.suspendSearch();
-		this.currentId = id;
-		Store.patch(id, { seen: true });
-		this.refreshCard(id);
-		if (c.type === "photo" && !reading) {
-			this.photoIndex = 0;
-			this.openModal(Panels.lightbox(c, 0, this), "lightbox", null, "lightbox");
-			Store.patch(id, { read: true, progress: 1 });
-			this.refreshCard(id);
-			return;
-		}
-		if (reading) {
-			// Bodies are on this device, so the page opens complete. The skeleton is kept for bodies fetched from a source.
-			this.openModal(Panels.reader(this, c, false), "reader", origin);
-			this.bindReader(id);
-			this.gestures.bindPullDown();
-			this.bindSheetChrome();
-			return;
-		}
-		this.openModal(Panels.preview(this, c), "preview", origin);
-		// The card below shows as an edge behind this one; tapping it goes back one card.
-		const below = Store.card(this.previewTrail.at(-1));
-		if (below)
-			this.dialog.insertAdjacentHTML(
-				"afterbegin",
-				`<button type="button" class="sheet-peek" data-action="close" aria-label="${esc(copy("web.peekBack") + below.title)}"></button>`,
-			);
-		this.bindPreview(id);
-		this.gestures.bindPullDown();
-		this.bindSheetChrome();
-		if (c.type === "media" && c.media !== "podcast") {
-			this.mediaIndex = Math.min(
-				(c.body.length || 1) - 1,
-				Math.floor(Store.item(id).progress * (c.body.length || 1)),
-			);
-			this.paintMedia();
-		}
+		return openCard.call(this, id, reading);
 	}
 	// Always listen, including when a short sheet later expands or images load.
 	bindPreview(id?: any) {
-		const scroll = this.dialog.querySelector(".preview-sheet .sheet-scroll");
-		if (!scroll || !CardTypes[Store.card(id)?.type]?.readable) return;
-		this.bindReading(id, scroll);
+		return bindPreview.call(this, id);
 	}
 	bindReading(id: string, scroll: HTMLElement) {
 		const token = this.modalToken;
@@ -1368,48 +1297,7 @@ class AppController {
 
 	/** The preview and reader toolbars follow the same tuck-and-return rule as the desk rail. */
 	bindSheetChrome() {
-		this.sheetHide?.destroy();
-		this.previewSizeObserver?.disconnect();
-		const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
-		if (!scroll) return;
-		this.sheetHide = new ChromeAutoHide(scroll, () => [
-			...this.dialog.querySelectorAll(
-				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
-			),
-		]);
-		// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
-		const sheet = this.dialog.querySelector(".preview-sheet");
-		if (sheet) {
-			const placeHead = () => {
-				this.dialog.style.setProperty("--preview-height", `${sheet.offsetHeight}px`);
-				const title = sheet.querySelector("#modal-title");
-				// The disc sits in the source row above the title, so the title keeps the full width.
-				const row = sheet.querySelector(
-					".preview-body > .preview-sender, .preview-body > .preview-meta",
-				);
-				const anchor = row || title;
-				if (anchor) {
-					const top =
-						anchor.getBoundingClientRect().top -
-						sheet.getBoundingClientRect().top +
-						scroll.scrollTop;
-					const line = row
-						? anchor.getBoundingClientRect().height
-						: parseFloat(getComputedStyle(anchor).lineHeight) || 28;
-					sheet.style.setProperty("--preview-title-top", `${Math.max(4, top + line / 2 - 22)}px`);
-				}
-			};
-			this.previewSizeObserver = new ResizeObserver(placeHead);
-			this.previewSizeObserver.observe(sheet);
-			const body = sheet.querySelector(".preview-body, .player");
-			if (body) this.previewSizeObserver.observe(body);
-			placeHead();
-			scroll.addEventListener(
-				"scroll",
-				() => sheet.classList.toggle("is-scrolled", scroll.scrollTop > 8),
-				{ passive: true },
-			);
-		}
+		return bindSheetChrome.call(this);
 	}
 	bindReader(id?: any) {
 		this.lastActivity = Date.now();
