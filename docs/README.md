@@ -55,6 +55,7 @@
 
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
 
+- [2026-10-18-app-controller：控制器职责拆分与不变性检查（C2）](records/2026-10-18-app-controller/README.md)
 - [2026-10-18-browser-regressions：浏览器回归测试修复（C1）](records/2026-10-18-browser-regressions/README.md)
 - [2026-10-18-hidden-actions-postgres：云端偏好迁移验证（C6）](records/2026-10-18-hidden-actions-postgres/README.md)
 - [2026-10-18-pwa-touch：PWA 触控、键盘名称与状态栏检查（U1）](records/2026-10-18-pwa-touch/README.md)

@@ -27,4 +27,6 @@
 
 `hiddenActions` 的迁移前拒绝、迁移后保存、非法批量回滚由 `server/helpers/hidden-actions-migration.ts` 共用断言验证。`server/cloud-workspace.test.ts` 在 PGlite 运行，Postgres 入口加载相同迁移并调用同一断言。本机没有 Docker 时写明「未执行」；CI 结果另记，不代替生产迁移部署。
 
+`server/` 的云端迁移检查之外，`web/app.test.ts` 验证控制器拆分前后的设置焦点、滚动、动作开关、外链账号边界和详情尺寸定位。完整 Node 检查会自动运行；真实抽屉、键盘与云端保存仍由相关浏览器专项覆盖。
+
 专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/guides/file-management.md)。
