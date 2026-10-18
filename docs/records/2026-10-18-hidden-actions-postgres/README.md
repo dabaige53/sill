@@ -22,7 +22,7 @@
 | --- | --- | --- |
 | `npm test` | 通过：共享约定 36、Web 169、服务端 92；失败和跳过均为 0 | 合成数据 |
 | `node --test tests/server/cloud-workspace.test.ts` | 4/4 通过 | PGlite，不代替实际 Postgres |
-| `npm run test:cloud-operations` | 1/1 通过 | 预装 Chromium；桌面及手机模拟 |
+| `npm run test:cloud-operations` | 本机先后两次通过；证据提交后一次超时；两组 CI 通过 | 预装 Chromium；本机基础提交也超时，见下文 |
 | `npm run files:check` | 通过 | 文件归属与引用检查 |
 | 本机 `npm run test:supabase:postgres` | 未执行 | 本机没有 Docker |
 | CI `npm run test:supabase:postgres` | 11/11 通过（含主测试及 10 个子用例）；失败与跳过均为 0 | 固定 Postgres 17.11 镜像 |
@@ -31,6 +31,12 @@
 实际 Postgres 证据：[CI run 39117720532](https://github.com/dabaige53/sill/actions/runs/39117720532/job/117646795896)，源码提交 `609744f`；`hiddenActions` 子用例通过，日志记录引擎为 PostgreSQL 17.11。此提交的 7 个 CI 检查全绿；追加证据文档后的最新 CI 以 PR 为准。
 
 审阅后的命令摘要见 [verification.txt](verification.txt)。界面没有改动，因此没有新增前后截图。Web lint、文案键和图标沿用 U1：0 错误、902 警告；826 个文案键（601 个哈希键，其中 panels 110 个），69 个图标。
+
+## 本机浏览器不稳定项
+
+C6 源码提交前后两次本机浏览器回归通过。证据文档提交 `21b9589` 后复跑，在 `cloud-operations-browser.ts:439` 的面板状态等待处超时。该提交只改文档。随后切到 C6 基础提交 `9989a5c` 运行相同命令，在同一会话过期流程的 `:437` 保存等待处超时。
+
+两个超时发生在同一流程，但断言位置不同，不能据此声称根因相同。保留断言，未跳过或放宽测试；两组云端 CI 的浏览器步骤均通过。本机不稳定性尚未定位，后续拆分 AppController 时须继续关注。PR 正文保留每次检查的边界。
 
 ## 部署与依赖
 

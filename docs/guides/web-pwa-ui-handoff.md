@@ -185,7 +185,7 @@
 
 ### C6 云端迁移验证（代码）
 
-2026-10-18 执行状态：C6 已提交 [PR #50](https://github.com/dabaige53/sill/pull/50) 审阅，已补齐公开 RPC 的迁移前后验证。本机 PGlite 4/4、云端工作台浏览器 1/1、Node 三组 36 / 169 / 92 通过。实际 Postgres 17.11 在 CI 11/11 通过（含主测试及 10 个子用例），源码提交的 7 项 CI 全绿；最新状态以 PR 为准。本机因没有 Docker 未执行。详情见 [迁移检查记录](../records/2026-10-18-hidden-actions-postgres/README.md)。迁移与产品代码未改，未部署。Web lint 0 错误、902 警告，文案键 826 个（哈希键 601 个，其中 panels 110 个），图标 69 个。
+2026-10-18 执行状态：C6 已提交 [PR #50](https://github.com/dabaige53/sill/pull/50) 审阅，已补齐公开 RPC 的迁移前后验证。本机 PGlite 4/4、Node 三组 36 / 169 / 92 通过。云端工作台浏览器本机先后两次通过，后续一次在会话过期流程超时；基础提交也在该流程的另一断言超时，根因未定位。两组云端 CI 浏览器检查通过。实际 Postgres 17.11 在 CI 11/11 通过（含主测试及 10 个子用例），源码提交的 7 项 CI 全绿；最新状态以 PR 为准。本机因没有 Docker 未执行。详情见 [迁移检查记录](../records/2026-10-18-hidden-actions-postgres/README.md)。迁移与产品代码未改，未部署。Web lint 0 错误、902 警告，文案键 826 个（哈希键 601 个，其中 panels 110 个），图标 69 个。
 
 - `supabase/migrations/20261018060000_sill_hidden_card_actions.sql` 交接时尚未在 Postgres 上执行。在有 Docker 的环境运行 `npm run test:supabase:postgres`，并补一个用例：带 `hiddenActions` 的偏好写入成功，带未列出值的写入被拒绝。
 - 部署顺序：先部署迁移，再发布网页。迁移部署前，云端会拒绝带 `hiddenActions` 的偏好写入。

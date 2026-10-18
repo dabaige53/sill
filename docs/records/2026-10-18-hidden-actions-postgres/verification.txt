@@ -26,3 +26,9 @@ ENGINE PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2), x86_64-pc-linux-gnu
 PASS hiddenActions migration preserves preferences and rejects invalid batches through public RPC
 pass 11 / fail 0 / skipped 0（含主测试及 10 个子用例）
 完整 CI：源码提交的 7 项检查通过；追加证据文档后的结果以 PR 为准。
+
+本机后续复跑的边界（不覆盖前面的通过记录）：
+21b9589：cloud-operations-browser.ts:439，面板状态等待超时 30000ms。
+基础提交 9989a5c：同一会话过期流程的 :437 保存等待超时 30000ms。
+断言位置不同，未确认同一根因；未跳过或放宽断言。
+两组云端 CI 的 cloud operations 步骤均通过。
