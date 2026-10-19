@@ -51,8 +51,11 @@
 - [手机主页参考 X 的密度，仍用卡片](adr/0036-phone-home-density.md)
 - [卡片详情：操作收进底部胶囊，只用图标](adr/0037-card-detail-toolbar.md)
 - [保留当前图标，不继续全套方圆化](adr/0038-keep-original-icons.md)
+- [导航当前项保留现状镜片](adr/0039-keep-navigation-lens.md)
 
 ## 记录
+
+- [导航当前项比较与保留镜片的决定（U3，2026-10-19）](records/2026-10-19-navigation-choice/README.md)
 
 - [全套图标比较与保留原版的决定（U2，2026-10-19）](records/2026-10-19-icon-choice/README.md)
 

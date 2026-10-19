@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "a342700",
+  "results": [
+    {
+      "theme": "light",
+      "view": "ai",
+      "filename": "390-light-ai.jpg",
+      "selected": "ai",
+      "errors": [],
+      "external": []
+    },
+    {
+      "theme": "light",
+      "view": "settings",
+      "filename": "390-light-settings.jpg",
+      "selected": "settings",
+      "errors": [],
+      "external": []
+    },
+    {
+      "theme": "dark",
+      "view": "ai",
+      "filename": "390-dark-ai.jpg",
+      "selected": "ai",
+      "errors": [],
+      "external": []
+    },
+    {
+      "theme": "dark",
+      "view": "settings",
+      "filename": "390-dark-settings.jpg",
+      "selected": "settings",
+      "errors": [],
+      "external": []
+    }
+  ]
+}

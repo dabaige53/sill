@@ -1,0 +1,103 @@
+{
+  "box": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 3814.71875
+  },
+  "images": [
+    {
+      "src": "navigation-state/390-light-home-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-light-search-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-light-ai-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-light-settings-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-dark-home-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-dark-search-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-dark-ai-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-dark-settings-nav.jpg",
+      "w": 248,
+      "h": 60
+    },
+    {
+      "src": "navigation-state/390-light-home.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/390-light-ai.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/390-light-settings.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/390-dark-home.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/390-dark-ai.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/390-dark-settings.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/320-light-home.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/320-dark-home.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "navigation-state/1440-light-home.jpg",
+      "w": 1440,
+      "h": 1000
+    },
+    {
+      "src": "navigation-state/1440-dark-home.jpg",
+      "w": 1440,
+      "h": 1000
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "external": []
+}
