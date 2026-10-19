@@ -1,0 +1,59 @@
+reporter/violations ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  i Some lint rules or assist actions reported some violations.
+  
+  i The following files have violations:
+  
+  - apps/web/atoms/icons.ts (3 warnings)
+  - apps/web/atoms/primitives.ts (55 warnings)
+  - apps/web/cards/templates.ts (85 warnings, 3 infos)
+  - apps/web/cloud-bridge.ts (15 warnings)
+  - apps/web/cloud-entry.ts (53 warnings, 3 infos)
+  - apps/web/cloud.css (3 warnings)
+  - apps/web/data/assets.ts (1 warning)
+  - apps/web/data/card-source.ts (1 warning)
+  - apps/web/data/cards.ts (6 warnings, 1 info)
+  - apps/web/data/store.ts (3 infos)
+  - apps/web/interactions/chrome.ts (1 warning)
+  - apps/web/interactions/drag.ts (9 warnings)
+  - apps/web/interactions/gestures.ts (37 warnings)
+  - apps/web/interactions/layout.ts (20 warnings, 4 infos)
+  - apps/web/interactions/motion.ts (30 warnings)
+  - apps/web/interactions/panels.ts (5 warnings)
+  - apps/web/interactions/previews.ts (11 warnings)
+  - apps/web/services/agent-handoff.ts (2 infos)
+  - apps/web/services/capture.ts (14 warnings)
+  - apps/web/services/cloud-sync.ts (22 warnings)
+  - apps/web/services/feed-policy.ts (49 warnings, 1 info)
+  - apps/web/services/local-sync.ts (23 warnings, 1 info)
+  - apps/web/styles/base.css (3 warnings)
+  - apps/web/styles/cards.css (12 warnings)
+  - apps/web/styles/controls.css (4 warnings)
+  - apps/web/styles/overlays.css (23 warnings)
+  - apps/web/styles/responsive.css (10 warnings)
+  - apps/web/views/actions/cards.ts (9 warnings)
+  - apps/web/views/actions/external.ts (1 warning)
+  - apps/web/views/actions/feedback.ts (1 warning)
+  - apps/web/views/actions/navigation.ts (2 infos)
+  - apps/web/views/actions/selection.ts (1 warning)
+  - apps/web/views/app.ts (2 warnings, 10 infos)
+  - apps/web/views/preview-controller.ts (3 warnings)
+  - apps/web/views/settings-controller.ts (3 warnings)
+  
+  i The following lint rules have violations:
+  
+  Rule Name                                                 Diagnostics
+  
+  lint/correctness/noUnusedFunctionParameters               10 (10 warnings)
+  lint/style/noDescendingSpecificity                        49 (49 warnings)
+  lint/correctness/noUnusedVariables                        1 (1 warning)
+  lint/complexity/noImportantStyles                         6 (6 warnings)
+  lint/correctness/noUnusedImports                          1 (1 warning)
+  lint/complexity/useOptionalChain                          2 (2 warnings)
+  lint/suspicious/noExplicitAny                             443 (443 warnings)
+  lint/style/noNonNullAssertion                             3 (3 warnings)
+  lint/style/useTemplate                                    30 (30 infos)
+
+Checked 45 files in 168ms. No fixes applied.
+Found 515 warnings.
+Found 30 infos.

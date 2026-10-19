@@ -1,0 +1,10 @@
+
+> sill@1.2.5 test:material-density
+> node tests/e2e/material-density-browser.ts
+
+PASS desktop-content
+PASS keyboard-task-preview
+PASS pagination-keeps-card-focus
+PASS compact-density
+PASS phone-390
+PASS phone-320

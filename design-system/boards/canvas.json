@@ -292,6 +292,13 @@
       "w": 1440,
       "x": 16610,
       "y": 13440
+    },
+    "DesktopHomeFilters.dc.html": {
+      "h": 1820,
+      "title": "42 定稿 · 桌面主页分栏",
+      "w": 1440,
+      "x": 18130,
+      "y": 13440
     }
   },
   "createdOnFiles": {
@@ -393,6 +400,7 @@
     }
   },
   "order": [
+    "DesktopHomeFilters.dc.html",
     "Brand.dc.html",
     "Sitemap.dc.html",
     "Onboarding.dc.html",

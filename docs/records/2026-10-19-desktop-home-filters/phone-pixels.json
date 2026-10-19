@@ -1,0 +1,38 @@
+{
+  "before": "9e803f7",
+  "after": "22471b3",
+  "results": [
+    {
+      "file": "320-light.png",
+      "size": [
+        320,
+        844
+      ],
+      "differentPixels": 0
+    },
+    {
+      "file": "320-dark.png",
+      "size": [
+        320,
+        844
+      ],
+      "differentPixels": 0
+    },
+    {
+      "file": "390-light.png",
+      "size": [
+        390,
+        844
+      ],
+      "differentPixels": 0
+    },
+    {
+      "file": "390-dark.png",
+      "size": [
+        390,
+        844
+      ],
+      "differentPixels": 0
+    }
+  ]
+}
