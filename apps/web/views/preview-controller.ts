@@ -4,7 +4,6 @@ import { cardSourceKind } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { ChromeAutoHide } from "../interactions/chrome.ts";
-import { MotionEngine } from "../interactions/motion.ts";
 import { Panels } from "../interactions/panels.ts";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController } from "./app.ts";
@@ -34,11 +33,6 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		try {
 			this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));
 		} catch {}
-	const origin = MotionEngine.capture(
-		this.dialog.open && this.currentId === id && ["preview", "reader"].includes(this.modalKind)
-			? MotionEngine.surface(this.dialog)
-			: source,
-	);
 	if (!this.dialog.open || this.modalKind !== "preview") this.previewTrail = [];
 	else if (!reading && this.currentId && this.currentId !== id) {
 		const back = this.previewTrail.lastIndexOf(id);
@@ -58,13 +52,13 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	}
 	if (reading) {
 		// Bodies are on this device, so the page opens complete. The skeleton is kept for bodies fetched from a source.
-		this.openModal(Panels.reader(this, c, false), "reader", origin);
+		this.openModal(Panels.reader(this, c, false), "reader");
 		this.bindReader(id);
 		this.gestures.bindPullDown();
 		this.bindSheetChrome();
 		return;
 	}
-	this.openModal(Panels.preview(this, c), "preview", origin);
+	this.openModal(Panels.preview(this, c), "preview");
 	// The card below shows as an edge behind this one; tapping it goes back one card.
 	const below = Store.card(this.previewTrail.at(-1));
 	if (below)

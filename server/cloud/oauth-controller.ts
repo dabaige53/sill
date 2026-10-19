@@ -1,3 +1,4 @@
+import { readCookie } from "./browser-session.ts";
 import { consentStyles, authStyles } from "./auth-page.ts";
 import { copy } from "../../design-system/copy.ts";
 import { consentSummary, reviewConsent } from "./consent-policy.ts";
@@ -22,18 +23,6 @@ const esc = (s?: any) =>
 	);
 const cookie = (name?: any, value?: any, age: any = 600) =>
 	`${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${age}`;
-function readCookie(request?: any, name?: any) {
-	const matches = (request.headers.get("cookie") || "")
-		.split(";")
-		.map((x?: any) => x.trim())
-		.filter((x?: any) => x.startsWith(name + "="));
-	if (matches.length !== 1) return null;
-	try {
-		return decodeURIComponent(matches[0].slice(name.length + 1));
-	} catch {
-		return null;
-	}
-}
 const canonical = (value?: any) =>
 	JSON.stringify(value, (_key?: any, v?: any) =>
 		v && typeof v === "object" && !Array.isArray(v)

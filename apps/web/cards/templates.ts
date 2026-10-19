@@ -11,7 +11,6 @@ import {
 	eventEnded,
 	eventRelative,
 	eventTimely,
-	minutes,
 	pill,
 	reminderClock,
 	ring,

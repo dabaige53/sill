@@ -984,7 +984,7 @@ class AppController {
 		window.scrollTo({ top: this.lockedScroll, behavior: "instant" });
 	}
 	/* ——— Overlays ——— */
-	openModal(html?: string, kind?: string, origin: unknown = null, shape: string = "") {
+	openModal(html?: string, kind?: string, _origin: unknown = null, shape: string = "") {
 		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
@@ -1020,7 +1020,7 @@ class AppController {
 				easing: "ease-out",
 			});
 		else if (kind === "search") MotionEngine.enter(this.dialog);
-		else MotionEngine.openPanel(this.dialog, origin);
+		else MotionEngine.openPanel(this.dialog);
 		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
 				? "#filter-search"
@@ -1114,14 +1114,7 @@ class AppController {
 		const source = this.grid.querySelector<HTMLElement>(
 			`[data-card="${CSS.escape(this.currentId || "")}"]`,
 		);
-		if (animate && ["preview", "reader"].includes(this.modalKind))
-			MotionEngine.closePanel(this.dialog, MotionEngine.capture(source), () =>
-				MotionEngine.lift(null),
-			);
-		else {
-			MotionEngine.cancelPanel(this.dialog);
-			MotionEngine.lift(null);
-		}
+		MotionEngine.cancelPanel(this.dialog);
 		this.sheetHide?.destroy();
 		this.sheetHide = null;
 		this.previewSizeObserver?.disconnect();
@@ -2463,7 +2456,7 @@ class AppController {
 	}
 	deckSettle(deck?: Deck, dir?: number) {
 		deck._finish?.();
-		const { cards, i, top, next, prev, w } = this.deckParts(deck);
+		const { i, top, next, prev, w } = this.deckParts(deck);
 		if (!top) return;
 		if ((dir === 1 && !next) || (dir === -1 && !prev)) dir = 0;
 		const t: KeyframeAnimationOptions = {

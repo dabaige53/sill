@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "sill-runtime-review-only",
-  "main": "../../server/cloud/worker.mjs",
+  "main": "../../dist/cloud/worker.mjs",
   "compatibility_date": "2026-10-14",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,

@@ -147,45 +147,6 @@ const MotionEngine: Record<string, any> = {
 			{ duration: 360, delay, fill: "backwards" },
 		);
 	},
-	press(el?: any) {
-		return this.animate(
-			el,
-			[
-				{ transform: "scale(1)" },
-				{ transform: "scale(.93)", offset: 0.35 },
-				{ transform: "scale(1)" },
-			],
-			{ duration: 240 },
-		);
-	},
-	capture(el?: any) {
-		if (!el) return null;
-		const rect = el.getBoundingClientRect();
-		if (!rect.width || !rect.height || rect.bottom < 0 || rect.top > innerHeight) return null;
-		const title =
-			el.querySelector('[data-shared="title"]') || el.querySelector(".card-title-button,h2,h1");
-		return {
-			el,
-			id: el.dataset.card || "",
-			rect,
-			title: title?.getBoundingClientRect(),
-			radius: getComputedStyle(el).borderTopLeftRadius,
-		};
-	},
-	// The card that is open leaves an empty place on the desk until it lands back.
-	lift(id?: any) {
-		let style = document.getElementById("lift-style");
-		if (!id) {
-			style?.remove();
-			return;
-		}
-		if (!style) {
-			style = document.createElement("style");
-			style.id = "lift-style";
-			document.head.appendChild(style);
-		}
-		style.textContent = `[data-card="${CSS.escape(id)}"]:not(dialog *){opacity:0!important;transition:none!important}`;
-	},
 	phoneSheet(el?: any) {
 		return (
 			el.classList.contains("preview") &&
@@ -212,7 +173,7 @@ const MotionEngine: Record<string, any> = {
 		});
 		this.panelAnimations.delete(el);
 	},
-	openPanel(el?: any, origin?: any) {
+	openPanel(el?: any) {
 		this.cancelPanel(el);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
@@ -263,10 +224,6 @@ const MotionEngine: Record<string, any> = {
 		if (bar && bar !== sheet) animations.push(this.enter(bar));
 		this.panelAnimations.set(el, animations);
 	},
-	closePanel(el?: any, origin?: any, done: any = () => {}) {
-		this.cancelPanel(el);
-		done();
-	},
 	flip(el?: any, oldRect?: any, newRect?: any) {
 		this.layoutAnimations.get(el)?.cancel();
 		this.layoutAnimations.delete(el);
@@ -285,17 +242,6 @@ const MotionEngine: Record<string, any> = {
 					{ duration: this.time("layout") },
 				),
 			);
-	},
-	pulse(el?: any) {
-		return this.animate(
-			el,
-			[
-				{ transform: "scale(1)" },
-				{ transform: "scale(1.08)", offset: 0.5 },
-				{ transform: "scale(1)" },
-			],
-			{ duration: 350 },
-		);
 	},
 };
 
