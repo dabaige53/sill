@@ -1,0 +1,1331 @@
+{
+  "sourceCommit": "1acc771",
+  "proposal": "Only temporary example DOM; product source and copy keys unchanged.",
+  "examples": {
+    "bookmark": "所有卡片",
+    "tag": "所有卡片",
+    "later": "所有卡片",
+    "reply": "邮件",
+    "open": "文章、视频等",
+    "join": "日程",
+    "snooze": "待办、日程、提醒",
+    "download": "日程",
+    "dismiss": "待办、日程、提醒"
+  },
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "A",
+      "file": "320-light-a.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "B",
+      "file": "320-light-b.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 58.1875,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "C",
+      "file": "320-light-c.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "A",
+      "file": "320-dark-a.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "B",
+      "file": "320-dark-b.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 58.1875,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "C",
+      "file": "320-dark-c.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "A",
+      "file": "390-light-a.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "B",
+      "file": "390-light-b.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 58.1875,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "C",
+      "file": "390-light-c.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "A",
+      "file": "390-dark-a.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "B",
+      "file": "390-dark-b.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 58.1875,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "C",
+      "file": "390-dark-c.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "A",
+      "file": "1440-light-a.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "B",
+      "file": "1440-light-b.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 58.1875,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "C",
+      "file": "1440-light-c.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "A",
+      "file": "1440-dark-a.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": null,
+          "height": 48,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "B",
+      "file": "1440-dark-b.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 58.1875,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 59.1875,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 59.1875,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "C",
+      "file": "1440-dark-c.jpg",
+      "metrics": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "example": "所有卡片",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "example": "邮件",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "example": "文章、视频等",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "example": "日程",
+          "height": 48,
+          "overflow": false
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "example": "待办、日程、提醒",
+          "height": 49.375,
+          "overflow": false
+        }
+      ],
+      "errors": [],
+      "external": []
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "sourceCommit": "037f3f8",
+  "node": {
+    "contracts": 36,
+    "web": 196,
+    "server": 92,
+    "fail": 0
+  },
+  "settingsBrowser": {
+    "pass": 6,
+    "fail": 0
+  },
+  "accessibilityBrowser": {
+    "pass": 13,
+    "fail": 0
+  },
+  "webLint": {
+    "errors": 0,
+    "warnings": 515,
+    "infos": 30
+  },
+  "copy": {
+    "keys": 831,
+    "hash": 491,
+    "panelsHash": 0,
+    "newSemanticKeys": 5
+  },
+  "icons": 69,
+  "device": "未检查",
+  "Safari": "未检查",
+  "Mac": "未改"
+}

@@ -68,13 +68,13 @@
 | 文件 | 行数 | 职责 |
 | --- | --- | --- |
 | `apps/web/data/store.ts` | 352 | 卡片与个人状态、偏好、浏览器备份；类型复用契约 |
-| `apps/web/views/app.ts` | 2795 | AppController：路由、渲染、动作分发入口、刷新；设置与预览已拆分 |
-| `apps/web/interactions/panels.ts` | 479 | 弹层模板入口、阅读、设置、搜索、菜单；`previews.ts` 按卡片类型生成预览 |
+| `apps/web/views/app.ts` | 2803 | AppController：路由、渲染、动作分发入口、刷新；设置与预览已拆分 |
+| `apps/web/interactions/panels.ts` | 490 | 弹层模板入口、阅读、设置、搜索、菜单；`previews.ts` 按卡片类型生成预览 |
 | `apps/web/interactions/gestures.ts` | 1072 | 抽屉跟手、下拉关闭、下拉刷新、长按选择 |
 | `apps/web/interactions/chrome.ts` | 156 | 工具条随滚动收起（ChromeAutoHide）、胶囊长按名称（toolbarTips） |
 | `apps/web/cards/templates.ts` | 283 | 信息流卡片模板 |
 | `apps/web/atoms/icons.ts` | — | 所有图标路径；`design-system/assets/Icons/` 由它生成 |
-| `apps/web/styles/overlays.css` | 2004 | 弹层、抽屉、预览、设置 |
+| `apps/web/styles/overlays.css` | 2014 | 弹层、抽屉、预览、设置 |
 | `apps/web/styles/responsive.css` | 892 | 手机规则在一个 650px 区块中，按区域排序；保留 ADR 0036 注释 |
 | `apps/web/styles/controls.css` | 811 | 按钮、胶囊、导航、toast、`.toolbar-sep`、`.is-own`、名称提示 |
 | `apps/web/styles/cards.css` | 955 | 卡片、勾选圈、提醒圆圈 |
@@ -118,15 +118,21 @@
 
 ### U4 卡片详情的遗留项
 
-2026-10-19 执行状态：无需设计决定的核对已完成，见 [PR #55](https://github.com/dabaige53/sill/pull/55) 与 [36 张核对截图](../records/2026-10-19-card-detail-audit/README.md)。U4.1 用户选择 B：显示「加入」时，忽略提醒优先于下载；未显示加入时保持原顺序，隐藏偏好过滤后再取三个。已写 [ADR 0040](../adr/0040-event-reminder-priority.md)，实现、回归与六组真实点击及前后截图见 [记录](../records/2026-10-19-event-action-priority/README.md)。邮件保留一个回复；播客分组符合规则；照片大图页已由用户选择 B：缩略图下补通用胶囊，复用原版图标和既有深色环境，保存或取消标签返回原照片，见 [ADR 0041](../adr/0041-photo-shared-toolbar.md) 与 [照片记录](../records/2026-10-19-photo-shared-toolbar/README.md)；U4.5 设置示例仍等确认，阅读页顶部样式留到 U6。照片浏览器 6 场景加组件包 1 项、云端 MCP App 1/1 通过；Node 三组 36 / 195 / 92，PWA 10/10；抽屉首次 10/11，基础与当前复跑均 11/11，原失败未在基础复现、根因未确认，未改断言。Web 目录 lint 0 错误、515 警告、30 提示，文案 826（哈希 491、panels 哈希 0），图标 69。ADR、手册、Dialog、本地 37 号画板与六张新增图片、40 号画板与六张照片截图、组件 CSS、样式来源、索引与 canvas.json 线上未同步，列入 Merge Danger。真机与 Safari 未检查，Mac 未改；最终提交检查与 CI 以 PR 为准。
+2026-10-19：U4 核对与三项用户选择已完成，见 [PR #55](https://github.com/dabaige53/sill/pull/55)。邮件保留一个回复；播客分组符合现有规则；阅读页共用胶囊，顶部旧样式已记入 U6。原核对的 [36 张截图](../records/2026-10-19-card-detail-audit/README.md) 保留。
+
+- U4.1 已按 B 实施：显示加入时优先忽略提醒，下载保留补位；未显示加入时不变。见 [ADR 0040](../adr/0040-event-reminder-priority.md) 与 [日程前后证据](../records/2026-10-19-event-action-priority/README.md)。
+- 照片已按 B 实施：缩略图下补通用胶囊，复用原版图标与既有深色环境；保存或取消标签返回原照片。见 [ADR 0041](../adr/0041-photo-shared-toolbar.md) 与 [照片记录](../records/2026-10-19-photo-shared-toolbar/README.md)。
+- U4.5 已按 B 实施：名称下方加 muted 类型示例，关联读屏说明，不改开关或偏好。见 [ADR 0042](../adr/0042-card-action-type-examples.md) 与 [设置记录](../records/2026-10-19-card-action-examples/README.md)。
+- Node 三组 36 / 196 / 92，设置浏览器 6/6、无障碍 13/13、照片 6 场景加组件包 1 项、云端 MCP App 1/1、动效 17/17 通过。日程阶段 PWA 10/10；抽屉首次 10/11，基础和恢复当前后均 11/11，首次失败未在基础复现、原因未确认，断言未改。最终提交检查与 CI 以 PR 为准。
+- Web 目录 lint 0 错误、515 警告、30 提示；文案 831 键（新增 5 个语义键，哈希 491、panels 哈希 0），图标 69。ADR、手册、Dialog / Toggle 说明、统一文案、样式来源、组件 JS/CSS、37 / 40 / 41 号画板与新增实际图片、索引和 canvas.json 线上未同步，逐项列入 Merge Danger。线上资产记录不改，真机与 Safari 未检查，Mac 未改。
 
 | 编号 | 问题 | 做法 |
 | --- | --- | --- |
 | U4.1 | 日程有 4 个自己的操作时按顺序截断，会议快开始时「忽略此提醒」不显示。 | 已选 B 并实施：显示加入时优先忽略提醒；下载在前项隐藏后补位。 |
 | U4.2 | 邮件只放一个「回复」，因为「回复」和「打开原邮件」是同一个动作（打开 `c.url`）。 | 如果以后卡片有单独的回复链接（如 `mailto:` 或来源提供的回复地址），再拆成两个；拆之前要有契约字段。 |
-| U4.3 | 照片大图页（`Panels.lightbox`）和播客播放器没有按「通用｜专属」检查过。 | 对照 ADR 0037 检查；不一致时出截图给用户确认。 |
+| U4.3 | 照片大图页（`Panels.lightbox`）和播客播放器没有按「通用｜专属」检查过。 | 播客分组核对完成；照片已按用户选择 B 补通用胶囊，见 ADR 0041。 |
 | U4.4 | 全屏阅读页（`Panels.reader`）已用同一个胶囊，但阅读页顶部的玻璃按钮组仍是旧样式。 | 只核对，不主动改；有差异就记录到 U6 一起讨论。 |
-| U4.5 | 「卡片操作」设置只有开关，没有说明哪些卡片会受影响。 | 不加复杂编辑器。只在每行右侧加一行灰字示例（如「邮件」「日程」）时也需用户确认。 |
+| U4.5 | 「卡片操作」设置只有开关，没有说明哪些卡片会受影响。 | 已选 B 并实施：名称下方加灰字示例，关联读屏说明；不改开关或偏好。 |
 
 ### U5 桌面与手机的一致性
 
