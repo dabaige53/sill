@@ -348,6 +348,7 @@ function adoptWorkspace(value: any) {
 	sync.rebase(workspaceState(), value.revision, Cloud.user);
 	app.applyPreferences();
 	app.grid.dataset.revision = value.revision;
+	syncStatus();
 	if (app.modalKind === "settings") app.repaintSettings();
 	if (app.modalKind === "preview" && !app.sheetLeaving) {
 		const card = Store.card(app.currentId);
