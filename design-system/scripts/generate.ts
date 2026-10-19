@@ -69,7 +69,7 @@ const map = {
 // Carry app sizes and fixed values so previews also work before manual hosted-token sync.
 const local = src("apps/web/styles/tokens.css")
 	.split("[data-theme")[0]
-	.match(/--(?:text-[\w-]+|pill-radius|fixed-[\w-]+|space-\d+|selection):[^;]+;/g)
+	.match(/--(?:text-[\w-]+|pill-radius|fixed-[\w-]+|space-\d+|selection|feed-max):[^;]+;/g)
 	.join("");
 let css = `/* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */\n:root{--font:var(--font-sans);--ease:cubic-bezier(.2,.75,.25,1);--fast:140ms;--base:220ms;--layout:320ms;${local}}\n`;
 // Carry the canonical dark context so photo tools also stay readable in hosted light previews.

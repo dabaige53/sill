@@ -114,7 +114,7 @@ main {
 .feed-grid {
 	position: relative;
 	width: 100%;
-	max-width: 1640px;
+	max-width: var(--feed-max);
 	margin: 0 auto;
 	min-height: 60vh;
 }

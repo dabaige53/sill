@@ -743,7 +743,7 @@ class AppController {
 			n.setAttribute("aria-pressed", String(n.dataset.extra === (tab || "")));
 		});
 	}
-	/** Phone home head: the mark goes back to the top; the tabs only filter home, never search. */
+	/** Shared home filters; only the phone shows the mark. The tabs never change search. */
 	homeTopHTML() {
 		const tabs = [
 			["all", copy("web.all")],

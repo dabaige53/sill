@@ -805,7 +805,55 @@ body.is-dragging #toast {
 	margin-top: var(--space-60);
 }
 
-/* Phone home head (ADR 0036): only phones show it; see responsive.css. */
+/* Shared home filters. The phone head stays in responsive.css (ADR 0036). */
 .home-top {
 	display: none;
+}
+/* Desktop uses an intrinsic-width head aligned with the capped feed (ADR 0043). */
+@media (min-width: 651px) {
+	.home-top {
+		display: block;
+		position: relative;
+		width: max-content;
+		max-width: calc(100% - var(--space-40) * 2);
+		margin: var(--space-24) 0 0 max(var(--space-40), calc((100% - var(--feed-max)) / 2));
+	}
+	.home-mark {
+		display: none;
+	}
+	.home-tabs {
+		display: flex;
+		align-items: stretch;
+		gap: var(--space-24);
+		height: var(--hit-target);
+	}
+	.home-tab {
+		position: relative;
+		padding: 0 var(--space-4);
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: var(--text-control);
+		color: var(--muted);
+		white-space: nowrap;
+	}
+	.home-tab[aria-pressed="true"] {
+		color: var(--ink);
+		font-weight: 700;
+	}
+	.home-tab[aria-pressed="true"]::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		width: var(--space-28);
+		height: var(--space-3);
+		translate: -50% 0;
+		border-radius: var(--space-2);
+		background: var(--ink);
+	}
+	main {
+		padding-top: var(--space-16);
+		min-height: calc(100vh - var(--space-24) - var(--hit-target));
+	}
 }

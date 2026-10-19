@@ -28,6 +28,7 @@ jobs:
           npm run test:pwa-touch || status=1
           node tests/e2e/photo-toolbar-browser.ts || status=1
           node tests/e2e/card-actions-settings-browser.ts || status=1
+          node tests/e2e/home-tabs-browser.ts || status=1
           node tests/e2e/drawer-browser.ts || status=1
           node tests/e2e/search-browser.ts || status=1
           node tests/e2e/refresh-motion-browser.ts || status=1
