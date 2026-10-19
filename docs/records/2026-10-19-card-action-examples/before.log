@@ -1,0 +1,42 @@
+(node:88378) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ card detail: shared verbs in ink, a rule, then at most three own verbs; no solid buttons (168.786166ms)
+✔ mail replies, the event downloads and reminders remind again from the toolbar (10.199792ms)
+✔ settings can hide any toolbar verb; the rule goes when one side is empty (3.730375ms)
+✔ hiddenActions is a closed list in the shared preference contract (0.891625ms)
+✖ card action examples describe types without changing switch names or preferences (4.400416ms)
+✔ photo lightbox shares toolbar state and hides empty tools without hiding thumbnails (11.540709ms)
+✔ imminent event prioritizes dismiss over download only when join is available (12.964ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 677.274541
+
+✖ failing tests:
+
+test at tests/web/detail-toolbar.test.ts:96:1
+✖ card action examples describe types without changing switch names or preferences (4.400416ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - '所有卡片'
+  
+      at TestContext.<anonymous> (file:///Users/w/code/sill/tests/web/detail-toolbar.test.ts:107:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '所有卡片',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -9,6 +9,7 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 	for (const file of [
 		"20261016052843_sill_rich_cards.sql",
 		"20261016092653_sill_workspace_operations.sql",
+		"20261019031622_sill_hidden_card_actions.sql",
 	])
 		await db.exec(
 			await (await import("node:fs/promises")).readFile(

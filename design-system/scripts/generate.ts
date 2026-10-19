@@ -66,12 +66,18 @@ const map = {
 	"#dceaff": "var(--accent-soft-hover)",
 	"#d8e9ff": "var(--selection)",
 };
-// Type sizes and the pill radius are not in the hosted tokens yet; carry them from tokens.css.
+// Carry app sizes and fixed values so previews also work before manual hosted-token sync.
 const local = src("apps/web/styles/tokens.css")
 	.split("[data-theme")[0]
-	.match(/--(?:text-[\w-]+|pill-radius):[^;]+;/g)
+	.match(/--(?:text-[\w-]+|pill-radius|fixed-[\w-]+|space-\d+|selection|feed-max):[^;]+;/g)
 	.join("");
 let css = `/* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */\n:root{--font:var(--font-sans);--ease:cubic-bezier(.2,.75,.25,1);--fast:140ms;--base:220ms;--layout:320ms;${local}}\n`;
+// Carry the canonical dark context so photo tools also stay readable in hosted light previews.
+const darkContext = src("apps/web/styles/tokens.css").match(
+	/:root\[data-theme="dark"\][^{]*\{[^}]*\}/,
+)?.[0];
+if (!darkContext) throw new Error("Missing dark theme context");
+css += darkContext + "\n";
 for (const f of ["base", "controls", "cards", "overlays"]) {
 	let t = src(`apps/web/styles/${f}.css`);
 	for (const [k, v] of Object.entries(map)) t = t.split(k).join(v);

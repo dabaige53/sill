@@ -1,0 +1,22 @@
+{
+  "migration": {
+    "version": "20261019031622",
+    "name": "sill_hidden_card_actions"
+  },
+  "sourceSha256": "9818a65037483f546f11672f8462379c7eb400d62852d60babc427c180dc758e",
+  "renamedFrom": "20261018060000_sill_hidden_card_actions.sql",
+  "sqlContentUnchanged": true,
+  "verification": [
+    {
+      "postgres_version": "17.11",
+      "default_empty_verified": true,
+      "allowed_actions_verified": 9,
+      "invalid_cases_rejected": 4,
+      "old_preferences_accepted": true,
+      "invoker_and_empty_search_path": true,
+      "anon_private_schema_denied": true
+    }
+  ],
+  "noCardDataReadOrChanged": true
+}
+

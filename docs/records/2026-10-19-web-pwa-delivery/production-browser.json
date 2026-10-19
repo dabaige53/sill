@@ -1,0 +1,132 @@
+{
+  "origin": "https://sill-web-preview.scs1213-temp-email.workers.dev",
+  "checkedAt": "2026-10-19T03:19:06.248Z",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "file": "320-light.jpg",
+      "scope": "signed-out only; no account or workspace contents read",
+      "loginVisible": true,
+      "cards": 0,
+      "horizontalOverflow": false,
+      "themeColors": [
+        {
+          "media": "(prefers-color-scheme: light)",
+          "color": "#f5f5f7"
+        },
+        {
+          "media": "(prefers-color-scheme: dark)",
+          "color": "#111113"
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "file": "320-dark.jpg",
+      "scope": "signed-out only; no account or workspace contents read",
+      "loginVisible": true,
+      "cards": 0,
+      "horizontalOverflow": false,
+      "themeColors": [
+        {
+          "media": "(prefers-color-scheme: light)",
+          "color": "#f5f5f7"
+        },
+        {
+          "media": "(prefers-color-scheme: dark)",
+          "color": "#111113"
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "file": "390-light.jpg",
+      "scope": "signed-out only; no account or workspace contents read",
+      "loginVisible": true,
+      "cards": 0,
+      "horizontalOverflow": false,
+      "themeColors": [
+        {
+          "media": "(prefers-color-scheme: light)",
+          "color": "#f5f5f7"
+        },
+        {
+          "media": "(prefers-color-scheme: dark)",
+          "color": "#111113"
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "file": "390-dark.jpg",
+      "scope": "signed-out only; no account or workspace contents read",
+      "loginVisible": true,
+      "cards": 0,
+      "horizontalOverflow": false,
+      "themeColors": [
+        {
+          "media": "(prefers-color-scheme: light)",
+          "color": "#f5f5f7"
+        },
+        {
+          "media": "(prefers-color-scheme: dark)",
+          "color": "#111113"
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "file": "1440-light.jpg",
+      "scope": "signed-out only; no account or workspace contents read",
+      "loginVisible": true,
+      "cards": 0,
+      "horizontalOverflow": false,
+      "themeColors": [
+        {
+          "media": "(prefers-color-scheme: light)",
+          "color": "#f5f5f7"
+        },
+        {
+          "media": "(prefers-color-scheme: dark)",
+          "color": "#111113"
+        }
+      ],
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "file": "1440-dark.jpg",
+      "scope": "signed-out only; no account or workspace contents read",
+      "loginVisible": true,
+      "cards": 0,
+      "horizontalOverflow": false,
+      "themeColors": [
+        {
+          "media": "(prefers-color-scheme: light)",
+          "color": "#f5f5f7"
+        },
+        {
+          "media": "(prefers-color-scheme: dark)",
+          "color": "#111113"
+        }
+      ],
+      "errors": [],
+      "external": []
+    }
+  ]
+}

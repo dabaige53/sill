@@ -46,3 +46,38 @@ test("workspace and login policies allow only same-origin installation metadata"
 	assert.equal((source.match(/manifest-src 'self'/g) || []).length, 2);
 	assert.doesNotMatch(source, /manifest-src \*/);
 });
+
+test("local, generated cloud, and both login variants select the canvas theme color", async () => {
+	await buildPage({ cloud: true });
+	const pages = [
+		await readFile("dist/web/index.html", "utf8"),
+		await readFile("dist/cloud/index.html", "utf8"),
+		loginPage(),
+		loginPage({ setup: true }),
+	];
+	const tokens = await readFile("apps/web/styles/tokens.css", "utf8");
+	for (const html of pages) {
+		const dom = new JSDOM(html);
+		try {
+			const themes = [...dom.window.document.querySelectorAll('meta[name="theme-color"]')];
+			assert.equal(themes.length, 2, "cloud generation must not duplicate shell colors");
+			for (const [scheme, color] of [
+				["light", "#f5f5f7"],
+				["dark", "#111113"],
+			]) {
+				assert.ok(
+					tokens.includes(`--canvas: ${color}`),
+					"color comes from the existing canvas role",
+				);
+				assert.equal(
+					themes
+						.find((meta) => meta.getAttribute("media") === `(prefers-color-scheme: ${scheme})`)
+						?.getAttribute("content"),
+					color,
+				);
+			}
+		} finally {
+			dom.window.close();
+		}
+	}
+});

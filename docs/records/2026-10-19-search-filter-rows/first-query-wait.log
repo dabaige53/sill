@@ -1,0 +1,41 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   'review-digest',
++   'review-task',
++   'review-article',
+    'review-note',
++   'review-event',
++   'review-reminder',
++   'review-suggestion',
++   'review-note-2',
++   'review-file'
+  ]
+
+    at file:///Users/w/code/sill/tests/e2e/search-filters-browser.ts:151:10
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processImmediate (node:internal/timers:541:9) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'review-digest',
+    'review-task',
+    'review-article',
+    'review-note',
+    'review-event',
+    'review-reminder',
+    'review-suggestion',
+    'review-note-2',
+    'review-file'
+  ],
+  expected: [ 'review-note' ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.11.1

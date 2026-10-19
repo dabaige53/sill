@@ -1,0 +1,27 @@
+{
+  "base": "8a0f04e",
+  "after": "2978d27",
+  "normalization": "Only JavaScript whitespace and non-runtime comments normalized by esbuild transform; HTML and CSS compared raw.",
+  "rows": [
+    {
+      "target": "web",
+      "rawIdentical": false,
+      "rawBeforeSha256": "eb1016977a36a6990adaba425f210bdaf736bc485d6230e6e59e76588d5b3491",
+      "rawAfterSha256": "c1d1af3eecfa56642d2cc3707a2f7a7c638006b195aa5723b2fabc1f21a05fb5",
+      "htmlAndCssIdentical": true,
+      "normalizedScriptIdentical": true,
+      "normalizedScriptSha256": "6824d4042101535b6f8dba13366e88f80f02b8ab7e261ca429814d418259b7e9",
+      "bytes": 511726
+    },
+    {
+      "target": "cloud",
+      "rawIdentical": false,
+      "rawBeforeSha256": "661ba5e0d317821239ba36549280f5f607c7e9522be283be80eab95ebb25b6fd",
+      "rawAfterSha256": "49bf45904ccdf73482f83f7e51907b875d2204717773df355b0d9c808079c545",
+      "htmlAndCssIdentical": true,
+      "normalizedScriptIdentical": true,
+      "normalizedScriptSha256": "27c0e20eb0df36b6fa08acd078219915701c70b6454d06a9fe6993733eda0a6e",
+      "bytes": 558497
+    }
+  ]
+}

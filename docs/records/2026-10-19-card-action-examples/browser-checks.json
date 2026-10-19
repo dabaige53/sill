@@ -1,0 +1,616 @@
+{
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "rows": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "name": "收藏",
+          "text": "所有卡片",
+          "describedBy": "action-example-bookmark",
+          "exampleId": "action-example-bookmark",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "name": "标签",
+          "text": "所有卡片",
+          "describedBy": "action-example-tag",
+          "exampleId": "action-example-tag",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "name": "稍后读",
+          "text": "所有卡片",
+          "describedBy": "action-example-later",
+          "exampleId": "action-example-later",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "name": "回复",
+          "text": "邮件",
+          "describedBy": "action-example-reply",
+          "exampleId": "action-example-reply",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "name": "去原文",
+          "text": "文章、视频等",
+          "describedBy": "action-example-open",
+          "exampleId": "action-example-open",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "name": "加入会议",
+          "text": "日程",
+          "describedBy": "action-example-join",
+          "exampleId": "action-example-join",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "name": "在 Sill 内再提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-snooze",
+          "exampleId": "action-example-snooze",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "name": "下载日程",
+          "text": "日程",
+          "describedBy": "action-example-download",
+          "exampleId": "action-example-download",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "name": "忽略此提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-dismiss",
+          "exampleId": "action-example-dismiss",
+          "overflow": false,
+          "muted": true
+        }
+      ],
+      "focusPreserved": true,
+      "lastSwitchReachable": true,
+      "onlyRequestedPreferencesChanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "rows": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "name": "收藏",
+          "text": "所有卡片",
+          "describedBy": "action-example-bookmark",
+          "exampleId": "action-example-bookmark",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "name": "标签",
+          "text": "所有卡片",
+          "describedBy": "action-example-tag",
+          "exampleId": "action-example-tag",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "name": "稍后读",
+          "text": "所有卡片",
+          "describedBy": "action-example-later",
+          "exampleId": "action-example-later",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "name": "回复",
+          "text": "邮件",
+          "describedBy": "action-example-reply",
+          "exampleId": "action-example-reply",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "name": "去原文",
+          "text": "文章、视频等",
+          "describedBy": "action-example-open",
+          "exampleId": "action-example-open",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "name": "加入会议",
+          "text": "日程",
+          "describedBy": "action-example-join",
+          "exampleId": "action-example-join",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "name": "在 Sill 内再提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-snooze",
+          "exampleId": "action-example-snooze",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "name": "下载日程",
+          "text": "日程",
+          "describedBy": "action-example-download",
+          "exampleId": "action-example-download",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "name": "忽略此提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-dismiss",
+          "exampleId": "action-example-dismiss",
+          "overflow": false,
+          "muted": true
+        }
+      ],
+      "focusPreserved": true,
+      "lastSwitchReachable": true,
+      "onlyRequestedPreferencesChanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "rows": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "name": "收藏",
+          "text": "所有卡片",
+          "describedBy": "action-example-bookmark",
+          "exampleId": "action-example-bookmark",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "name": "标签",
+          "text": "所有卡片",
+          "describedBy": "action-example-tag",
+          "exampleId": "action-example-tag",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "name": "稍后读",
+          "text": "所有卡片",
+          "describedBy": "action-example-later",
+          "exampleId": "action-example-later",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "name": "回复",
+          "text": "邮件",
+          "describedBy": "action-example-reply",
+          "exampleId": "action-example-reply",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "name": "去原文",
+          "text": "文章、视频等",
+          "describedBy": "action-example-open",
+          "exampleId": "action-example-open",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "name": "加入会议",
+          "text": "日程",
+          "describedBy": "action-example-join",
+          "exampleId": "action-example-join",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "name": "在 Sill 内再提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-snooze",
+          "exampleId": "action-example-snooze",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "name": "下载日程",
+          "text": "日程",
+          "describedBy": "action-example-download",
+          "exampleId": "action-example-download",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "name": "忽略此提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-dismiss",
+          "exampleId": "action-example-dismiss",
+          "overflow": false,
+          "muted": true
+        }
+      ],
+      "focusPreserved": true,
+      "lastSwitchReachable": true,
+      "onlyRequestedPreferencesChanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "rows": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "name": "收藏",
+          "text": "所有卡片",
+          "describedBy": "action-example-bookmark",
+          "exampleId": "action-example-bookmark",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "name": "标签",
+          "text": "所有卡片",
+          "describedBy": "action-example-tag",
+          "exampleId": "action-example-tag",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "name": "稍后读",
+          "text": "所有卡片",
+          "describedBy": "action-example-later",
+          "exampleId": "action-example-later",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "name": "回复",
+          "text": "邮件",
+          "describedBy": "action-example-reply",
+          "exampleId": "action-example-reply",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "name": "去原文",
+          "text": "文章、视频等",
+          "describedBy": "action-example-open",
+          "exampleId": "action-example-open",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "name": "加入会议",
+          "text": "日程",
+          "describedBy": "action-example-join",
+          "exampleId": "action-example-join",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "name": "在 Sill 内再提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-snooze",
+          "exampleId": "action-example-snooze",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "name": "下载日程",
+          "text": "日程",
+          "describedBy": "action-example-download",
+          "exampleId": "action-example-download",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "name": "忽略此提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-dismiss",
+          "exampleId": "action-example-dismiss",
+          "overflow": false,
+          "muted": true
+        }
+      ],
+      "focusPreserved": true,
+      "lastSwitchReachable": true,
+      "onlyRequestedPreferencesChanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "rows": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "name": "收藏",
+          "text": "所有卡片",
+          "describedBy": "action-example-bookmark",
+          "exampleId": "action-example-bookmark",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "name": "标签",
+          "text": "所有卡片",
+          "describedBy": "action-example-tag",
+          "exampleId": "action-example-tag",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "name": "稍后读",
+          "text": "所有卡片",
+          "describedBy": "action-example-later",
+          "exampleId": "action-example-later",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "name": "回复",
+          "text": "邮件",
+          "describedBy": "action-example-reply",
+          "exampleId": "action-example-reply",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "name": "去原文",
+          "text": "文章、视频等",
+          "describedBy": "action-example-open",
+          "exampleId": "action-example-open",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "name": "加入会议",
+          "text": "日程",
+          "describedBy": "action-example-join",
+          "exampleId": "action-example-join",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "name": "在 Sill 内再提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-snooze",
+          "exampleId": "action-example-snooze",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "name": "下载日程",
+          "text": "日程",
+          "describedBy": "action-example-download",
+          "exampleId": "action-example-download",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "name": "忽略此提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-dismiss",
+          "exampleId": "action-example-dismiss",
+          "overflow": false,
+          "muted": true
+        }
+      ],
+      "focusPreserved": true,
+      "lastSwitchReachable": true,
+      "onlyRequestedPreferencesChanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "rows": [
+        {
+          "key": "bookmark",
+          "label": "收藏",
+          "name": "收藏",
+          "text": "所有卡片",
+          "describedBy": "action-example-bookmark",
+          "exampleId": "action-example-bookmark",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "tag",
+          "label": "标签",
+          "name": "标签",
+          "text": "所有卡片",
+          "describedBy": "action-example-tag",
+          "exampleId": "action-example-tag",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "later",
+          "label": "稍后读",
+          "name": "稍后读",
+          "text": "所有卡片",
+          "describedBy": "action-example-later",
+          "exampleId": "action-example-later",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "reply",
+          "label": "回复",
+          "name": "回复",
+          "text": "邮件",
+          "describedBy": "action-example-reply",
+          "exampleId": "action-example-reply",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "open",
+          "label": "去原文",
+          "name": "去原文",
+          "text": "文章、视频等",
+          "describedBy": "action-example-open",
+          "exampleId": "action-example-open",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "join",
+          "label": "加入会议",
+          "name": "加入会议",
+          "text": "日程",
+          "describedBy": "action-example-join",
+          "exampleId": "action-example-join",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "snooze",
+          "label": "在 Sill 内再提醒",
+          "name": "在 Sill 内再提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-snooze",
+          "exampleId": "action-example-snooze",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "download",
+          "label": "下载日程",
+          "name": "下载日程",
+          "text": "日程",
+          "describedBy": "action-example-download",
+          "exampleId": "action-example-download",
+          "overflow": false,
+          "muted": true
+        },
+        {
+          "key": "dismiss",
+          "label": "忽略此提醒",
+          "name": "忽略此提醒",
+          "text": "待办、日程、提醒",
+          "describedBy": "action-example-dismiss",
+          "exampleId": "action-example-dismiss",
+          "overflow": false,
+          "muted": true
+        }
+      ],
+      "focusPreserved": true,
+      "lastSwitchReachable": true,
+      "onlyRequestedPreferencesChanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    }
+  ]
+}

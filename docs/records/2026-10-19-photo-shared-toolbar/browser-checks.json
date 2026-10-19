@@ -1,0 +1,101 @@
+{
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "layout": {
+        "left": 86,
+        "right": 234,
+        "top": 768,
+        "bottom": 828,
+        "thumbsBottom": 768,
+        "color": "rgb(242, 242, 244)"
+      },
+      "sourceCardUnchanged": true,
+      "samePhotoAfterSaveAndCancel": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "layout": {
+        "left": 86,
+        "right": 234,
+        "top": 768,
+        "bottom": 828,
+        "thumbsBottom": 768,
+        "color": "rgb(242, 242, 244)"
+      },
+      "sourceCardUnchanged": true,
+      "samePhotoAfterSaveAndCancel": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "layout": {
+        "left": 121,
+        "right": 269,
+        "top": 768,
+        "bottom": 828,
+        "thumbsBottom": 768,
+        "color": "rgb(242, 242, 244)"
+      },
+      "sourceCardUnchanged": true,
+      "samePhotoAfterSaveAndCancel": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "layout": {
+        "left": 121,
+        "right": 269,
+        "top": 768,
+        "bottom": 828,
+        "thumbsBottom": 768,
+        "color": "rgb(242, 242, 244)"
+      },
+      "sourceCardUnchanged": true,
+      "samePhotoAfterSaveAndCancel": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "layout": {
+        "left": 646,
+        "right": 794,
+        "top": 924,
+        "bottom": 984,
+        "thumbsBottom": 924,
+        "color": "rgb(242, 242, 244)"
+      },
+      "sourceCardUnchanged": true,
+      "samePhotoAfterSaveAndCancel": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "layout": {
+        "left": 646,
+        "right": 794,
+        "top": 924,
+        "bottom": 984,
+        "thumbsBottom": 924,
+        "color": "rgb(242, 242, 244)"
+      },
+      "sourceCardUnchanged": true,
+      "samePhotoAfterSaveAndCancel": true,
+      "errors": [],
+      "external": []
+    }
+  ],
+  "generatedComponentDarkContext": true
+}

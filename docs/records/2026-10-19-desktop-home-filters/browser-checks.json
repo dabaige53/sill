@@ -1,0 +1,354 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "geometry": {
+        "left": 40,
+        "width": 290,
+        "bottom": 68,
+        "gridLeft": 40,
+        "gridTop": 84,
+        "mark": "none",
+        "position": "relative"
+      },
+      "views": {
+        "unread": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ],
+        "todo": [
+          "review-reminder",
+          "review-task"
+        ],
+        "later": [
+          "review-article"
+        ],
+        "saved": [
+          "review-article"
+        ],
+        "all": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ]
+      },
+      "searchUnchanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "geometry": {
+        "left": 40,
+        "width": 290,
+        "bottom": 68,
+        "gridLeft": 40,
+        "gridTop": 84,
+        "mark": "none",
+        "position": "relative"
+      },
+      "views": {
+        "unread": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ],
+        "todo": [
+          "review-reminder",
+          "review-task"
+        ],
+        "later": [
+          "review-article"
+        ],
+        "saved": [
+          "review-article"
+        ],
+        "all": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ]
+      },
+      "searchUnchanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1920,
+      "theme": "light",
+      "geometry": {
+        "left": 140,
+        "width": 290,
+        "bottom": 68,
+        "gridLeft": 140,
+        "gridTop": 84,
+        "mark": "none",
+        "position": "relative"
+      },
+      "views": {
+        "unread": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ],
+        "todo": [
+          "review-reminder",
+          "review-task"
+        ],
+        "later": [
+          "review-article"
+        ],
+        "saved": [
+          "review-article"
+        ],
+        "all": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ]
+      },
+      "searchUnchanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "geometry": {
+        "left": 0,
+        "width": 320,
+        "bottom": 89,
+        "gridLeft": 8,
+        "gridTop": 96,
+        "mark": "grid",
+        "position": "fixed"
+      },
+      "views": {
+        "unread": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ],
+        "todo": [
+          "review-reminder",
+          "review-task"
+        ],
+        "later": [
+          "review-article"
+        ],
+        "saved": [
+          "review-article"
+        ],
+        "all": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ]
+      },
+      "searchUnchanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "geometry": {
+        "left": 0,
+        "width": 320,
+        "bottom": 89,
+        "gridLeft": 8,
+        "gridTop": 96,
+        "mark": "grid",
+        "position": "fixed"
+      },
+      "views": {
+        "unread": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ],
+        "todo": [
+          "review-reminder",
+          "review-task"
+        ],
+        "later": [
+          "review-article"
+        ],
+        "saved": [
+          "review-article"
+        ],
+        "all": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ]
+      },
+      "searchUnchanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "geometry": {
+        "left": 0,
+        "width": 390,
+        "bottom": 89,
+        "gridLeft": 8,
+        "gridTop": 96,
+        "mark": "grid",
+        "position": "fixed"
+      },
+      "views": {
+        "unread": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ],
+        "todo": [
+          "review-reminder",
+          "review-task"
+        ],
+        "later": [
+          "review-article"
+        ],
+        "saved": [
+          "review-article"
+        ],
+        "all": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ]
+      },
+      "searchUnchanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "geometry": {
+        "left": 0,
+        "width": 390,
+        "bottom": 89,
+        "gridLeft": 8,
+        "gridTop": 96,
+        "mark": "grid",
+        "position": "fixed"
+      },
+      "views": {
+        "unread": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ],
+        "todo": [
+          "review-reminder",
+          "review-task"
+        ],
+        "later": [
+          "review-article"
+        ],
+        "saved": [
+          "review-article"
+        ],
+        "all": [
+          "review-article",
+          "review-digest",
+          "review-event",
+          "review-file",
+          "review-note",
+          "review-note-2",
+          "review-reminder",
+          "review-suggestion",
+          "review-task"
+        ]
+      },
+      "searchUnchanged": true,
+      "sourceCardsUnchanged": true,
+      "errors": [],
+      "external": []
+    }
+  ]
+}

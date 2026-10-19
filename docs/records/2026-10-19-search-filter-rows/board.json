@@ -1,0 +1,43 @@
+{
+  "box": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 1810.171875
+  },
+  "images": [
+    {
+      "src": "search-filters/320-light.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "search-filters/320-dark.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "search-filters/390-light.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "search-filters/390-dark.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "search-filters/1440-light.jpg",
+      "w": 1440,
+      "h": 1000
+    },
+    {
+      "src": "search-filters/1440-dark.jpg",
+      "w": 1440,
+      "h": 1000
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "external": []
+}

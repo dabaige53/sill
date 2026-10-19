@@ -232,7 +232,7 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		);
 		assert.match(
 			settings.querySelector(".account-wrap > .icon path").getAttribute("d"),
-			/M4 18V10/,
+			/M4 20V7\.5/,
 		);
 		const settingsIcon = settings.innerHTML;
 		w.__SILL_ACCOUNT__ = "Synthetic Account";

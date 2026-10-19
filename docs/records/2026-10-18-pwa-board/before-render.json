@@ -1,0 +1,69 @@
+{
+  "phase": "before",
+  "box": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 2947.984375
+  },
+  "images": [
+    {
+      "src": "card-detail/phone-mail.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-reminder.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-event.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-article.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-media.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-task.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-tip.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-settings.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/phone-dark.jpg",
+      "width": 780,
+      "height": 1688
+    },
+    {
+      "src": "card-detail/desktop-mail.jpg",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "src": "card-detail/icons-a.jpg",
+      "width": 2000,
+      "height": 820
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "external": []
+}

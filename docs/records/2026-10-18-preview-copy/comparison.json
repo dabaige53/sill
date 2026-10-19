@@ -1,0 +1,56 @@
+{
+  "sourceBaseCommit": "2589bd9",
+  "codeCommit": "d6add9f",
+  "htmlComparisons": [
+    {
+      "stage": "before",
+      "outputs": 1122,
+      "cardTypes": 11,
+      "sha256": "8370dc118803698828e55cb167243ae8d9e629370808d1f5d25ad3dc99d2c705"
+    },
+    {
+      "stage": "moved",
+      "outputs": 1122,
+      "cardTypes": 11,
+      "sha256": "8370dc118803698828e55cb167243ae8d9e629370808d1f5d25ad3dc99d2c705",
+      "changed": [],
+      "exactMatches": 1122
+    },
+    {
+      "stage": "split",
+      "outputs": 1122,
+      "cardTypes": 11,
+      "sha256": "8370dc118803698828e55cb167243ae8d9e629370808d1f5d25ad3dc99d2c705",
+      "changed": [],
+      "exactMatches": 1122
+    },
+    {
+      "stage": "renamed",
+      "outputs": 1122,
+      "cardTypes": 11,
+      "sha256": "8370dc118803698828e55cb167243ae8d9e629370808d1f5d25ad3dc99d2c705",
+      "changed": [],
+      "exactMatches": 1122
+    }
+  ],
+  "publicPanelProperties": 29,
+  "panelPropertiesAndExportsUnchanged": true,
+  "publicAppMethods": 103,
+  "publicAppSignaturesUnchanged": true,
+  "previewEntryLines": {
+    "before": 121,
+    "after": 23
+  },
+  "copy": {
+    "keysBefore": 826,
+    "keysAfter": 826,
+    "renamed": 110,
+    "hashKeysBefore": 601,
+    "hashKeysAfter": 491,
+    "remainingPanelHashKeys": 0,
+    "allValuesAndUnrelatedKeysUnchanged": true,
+    "canonicalBeforeAndNormalizedAfterSha256": "9b51e2c15ec48ef0014491a6804e6e6af81b939fdf3401b1bbc22930acf96972"
+  },
+  "componentBundleOnlyKeyNamesChanged": true,
+  "styleIconAndNativeFilesChanged": 0
+}

@@ -1,0 +1,128 @@
+{
+  "box": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 5808.75
+  },
+  "images": [
+    {
+      "src": "card-detail/phone-mail.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-reminder.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-event.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-article.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-media.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-task.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-tip.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-settings.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/phone-dark.jpg",
+      "w": 780,
+      "h": 1688
+    },
+    {
+      "src": "card-detail/u1-320-light-first.png",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u1-320-light-last.png",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u1-320-light-keyboard.png",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u1-390-light-keyboard.png",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u1-320-dark-keyboard.png",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u1-1440-light-keyboard.png",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "src": "card-detail/desktop-mail.jpg",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "src": "card-detail/icons-a.jpg",
+      "w": 2000,
+      "h": 820
+    },
+    {
+      "src": "card-detail/u4-event-320-light.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u4-event-320-dark.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u4-event-390-light.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u4-event-390-dark.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "card-detail/u4-event-1440-light.jpg",
+      "w": 1440,
+      "h": 1000
+    },
+    {
+      "src": "card-detail/u4-event-1440-dark.jpg",
+      "w": 1440,
+      "h": 1000
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "external": []
+}

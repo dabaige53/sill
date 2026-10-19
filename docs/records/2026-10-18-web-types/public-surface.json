@@ -1,0 +1,1483 @@
+{
+  "base": "8a0f04e",
+  "after": {
+    "app": [
+      {
+        "name": "selected",
+        "arity": null,
+        "get": true,
+        "set": true
+      },
+      {
+        "name": "init",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "applyPreferences",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "announce",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindKeyboard",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintAccount",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "accountRing",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "navHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setNav",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "isPage",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "goTo",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "shelfOf",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "shelved",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "matches",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "searchAll",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "filtering",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "filtered",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deskHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "renderCurrent",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "revealImages",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "refreshCard",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "updateFilterIndicator",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "homeTopHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "homeTabFilter",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "homeTab",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "selectionAIHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openSelectionAI",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "markSelectionCard",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "selectionContext",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindSearchSelection",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "select",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "updateSelection",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "navigate",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "route",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "lockPageScroll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "unlockPageScroll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openModal",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeNative",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeAll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeToDesk",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeModal",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openPanel",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindSearchResults",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "suspendSearch",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "restoreSearch",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "discardSearchBackground",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "swapPanel",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openCard",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindPreview",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindReading",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindSheetChrome",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindReader",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "updateReading",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "agentScope",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "readAgentCard",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "agentAction",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintAgentActions",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "handoffCard",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openExternal",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "toast",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "alert",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "showToast",
+        "arity": 4,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "hideToast",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setFlag",
+        "arity": 3,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "syncPreviewButtons",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "toggleTask",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeMore",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "more",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "refresh",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setOffline",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "checkReminders",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintPending",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "withFeedAnchor",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "showNew",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "changeReminder",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "applySelectionAction",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintMedia",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "pauseMedia",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "playMedia",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "podcast",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "startInlineEdit",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "saveInlineEdit",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "finishInlineEdit",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "capture",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindCaptureDrop",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "loadDemo",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setPref",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "replacePanelContent",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "repaintSettings",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "exportAll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "download",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "tick",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindStacks",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckParts",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckFollow",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckSettle",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckShow",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "restoreStacks",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "click",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "action",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "repaintSearch",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "input",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paste",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "key",
+        "arity": 1,
+        "get": false,
+        "set": false
+      }
+    ],
+    "panels": [
+      {
+        "name": "close",
+        "arity": 1
+      },
+      {
+        "name": "meta",
+        "arity": 1
+      },
+      {
+        "name": "tags",
+        "arity": 1
+      },
+      {
+        "name": "details",
+        "arity": 1
+      },
+      {
+        "name": "bookmark",
+        "arity": 2
+      },
+      {
+        "name": "later",
+        "arity": 2
+      },
+      {
+        "name": "bar",
+        "arity": 0
+      },
+      {
+        "name": "tools",
+        "arity": 2
+      },
+      {
+        "name": "own",
+        "arity": 1
+      },
+      {
+        "name": "head",
+        "arity": 0
+      },
+      {
+        "name": "foot",
+        "arity": 0
+      },
+      {
+        "name": "whyLink",
+        "arity": 1
+      },
+      {
+        "name": "reminderTools",
+        "arity": 1
+      },
+      {
+        "name": "externalLabel",
+        "arity": 1
+      },
+      {
+        "name": "readButton",
+        "arity": 2
+      },
+      {
+        "name": "preview",
+        "arity": 2
+      },
+      {
+        "name": "reader",
+        "arity": 2
+      },
+      {
+        "name": "lightbox",
+        "arity": 1
+      },
+      {
+        "name": "editor",
+        "arity": 2
+      },
+      {
+        "name": "why",
+        "arity": 2
+      },
+      {
+        "name": "search",
+        "arity": 1
+      },
+      {
+        "name": "searchResults",
+        "arity": 1
+      },
+      {
+        "name": "archive",
+        "arity": 2
+      },
+      {
+        "name": "settings",
+        "arity": 1
+      },
+      {
+        "name": "confirm",
+        "arity": 3
+      },
+      {
+        "name": "ai",
+        "arity": 1
+      },
+      {
+        "name": "capture",
+        "arity": 1
+      }
+    ]
+  },
+  "identical": true,
+  "appMethods": 103,
+  "appAccessors": 1,
+  "panelMethods": 27,
+  "before": {
+    "app": [
+      {
+        "name": "selected",
+        "arity": null,
+        "get": true,
+        "set": true
+      },
+      {
+        "name": "init",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "applyPreferences",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "announce",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindKeyboard",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintAccount",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "accountRing",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "navHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setNav",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "isPage",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "goTo",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "shelfOf",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "shelved",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "matches",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "searchAll",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "filtering",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "filtered",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deskHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "renderCurrent",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "revealImages",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "refreshCard",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "updateFilterIndicator",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "homeTopHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "homeTabFilter",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "homeTab",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "selectionAIHTML",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openSelectionAI",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "markSelectionCard",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "selectionContext",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindSearchSelection",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "select",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "updateSelection",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "navigate",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "route",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "lockPageScroll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "unlockPageScroll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openModal",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeNative",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeAll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeToDesk",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeModal",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openPanel",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindSearchResults",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "suspendSearch",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "restoreSearch",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "discardSearchBackground",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "swapPanel",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openCard",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindPreview",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindReading",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindSheetChrome",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindReader",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "updateReading",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "agentScope",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "readAgentCard",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "agentAction",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintAgentActions",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "handoffCard",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "openExternal",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "toast",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "alert",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "showToast",
+        "arity": 4,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "hideToast",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setFlag",
+        "arity": 3,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "syncPreviewButtons",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "toggleTask",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "closeMore",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "more",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "refresh",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setOffline",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "checkReminders",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintPending",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "withFeedAnchor",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "showNew",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "changeReminder",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "applySelectionAction",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paintMedia",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "pauseMedia",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "playMedia",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "podcast",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "startInlineEdit",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "saveInlineEdit",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "finishInlineEdit",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "capture",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindCaptureDrop",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "loadDemo",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "setPref",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "replacePanelContent",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "repaintSettings",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "exportAll",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "download",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "tick",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "bindStacks",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckParts",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckFollow",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckSettle",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "deckShow",
+        "arity": 2,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "restoreStacks",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "click",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "action",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "repaintSearch",
+        "arity": 0,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "input",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "paste",
+        "arity": 1,
+        "get": false,
+        "set": false
+      },
+      {
+        "name": "key",
+        "arity": 1,
+        "get": false,
+        "set": false
+      }
+    ],
+    "panels": [
+      {
+        "name": "close",
+        "arity": 1
+      },
+      {
+        "name": "meta",
+        "arity": 1
+      },
+      {
+        "name": "tags",
+        "arity": 1
+      },
+      {
+        "name": "details",
+        "arity": 1
+      },
+      {
+        "name": "bookmark",
+        "arity": 2
+      },
+      {
+        "name": "later",
+        "arity": 2
+      },
+      {
+        "name": "bar",
+        "arity": 0
+      },
+      {
+        "name": "tools",
+        "arity": 2
+      },
+      {
+        "name": "own",
+        "arity": 1
+      },
+      {
+        "name": "head",
+        "arity": 0
+      },
+      {
+        "name": "foot",
+        "arity": 0
+      },
+      {
+        "name": "whyLink",
+        "arity": 1
+      },
+      {
+        "name": "reminderTools",
+        "arity": 1
+      },
+      {
+        "name": "externalLabel",
+        "arity": 1
+      },
+      {
+        "name": "readButton",
+        "arity": 2
+      },
+      {
+        "name": "preview",
+        "arity": 2
+      },
+      {
+        "name": "reader",
+        "arity": 2
+      },
+      {
+        "name": "lightbox",
+        "arity": 1
+      },
+      {
+        "name": "editor",
+        "arity": 2
+      },
+      {
+        "name": "why",
+        "arity": 2
+      },
+      {
+        "name": "search",
+        "arity": 1
+      },
+      {
+        "name": "searchResults",
+        "arity": 1
+      },
+      {
+        "name": "archive",
+        "arity": 2
+      },
+      {
+        "name": "settings",
+        "arity": 1
+      },
+      {
+        "name": "confirm",
+        "arity": 3
+      },
+      {
+        "name": "ai",
+        "arity": 1
+      },
+      {
+        "name": "capture",
+        "arity": 1
+      }
+    ]
+  }
+}

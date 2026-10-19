@@ -1,0 +1,10 @@
+{
+  "beforeRules": 151,
+  "afterRules": 151,
+  "allSelectorsScopesAndDeclarationsUnchanged": true,
+  "phoneRules": 117,
+  "phoneMediaBlocks": {
+    "before": 2,
+    "after": 1
+  }
+}

@@ -1,0 +1,44 @@
+(node:68964) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ card detail: shared verbs in ink, a rule, then at most three own verbs; no solid buttons (154.841083ms)
+✔ mail replies, the event downloads and reminders remind again from the toolbar (9.441ms)
+✔ settings can hide any toolbar verb; the rule goes when one side is empty (3.967166ms)
+✔ hiddenActions is a closed list in the shared preference contract (0.968375ms)
+✖ imminent event prioritizes dismiss over download only when join is available (4.62725ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 613.604875
+
+✖ failing tests:
+
+test at tests/web/detail-toolbar.test.ts:95:1
+✖ imminent event prioritizes dismiss over download only when join is available (4.62725ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'join',
+      'snooze',
+  +   'download-calendar'
+  -   'dismiss-reminder'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/w/code/sill/tests/web/detail-toolbar.test.ts:123:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'join', 'snooze', 'download-calendar' ],
+    expected: [ 'join', 'snooze', 'dismiss-reminder' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

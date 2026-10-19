@@ -1,0 +1,155 @@
+{
+  "sourceCommit": "25027b0",
+  "labels": {
+    "A": "A · 现状：镜片与线条（推荐）",
+    "B": "B · 无镜片，当前项实心",
+    "C": "C · 无镜片，当前项线条加粗"
+  },
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "A",
+      "filename": "320-light-a-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "B",
+      "filename": "320-light-b-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "C",
+      "filename": "320-light-c-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "A",
+      "filename": "320-dark-a-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "B",
+      "filename": "320-dark-b-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "C",
+      "filename": "320-dark-c-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "A",
+      "filename": "390-light-a-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "B",
+      "filename": "390-light-b-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "C",
+      "filename": "390-light-c-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "A",
+      "filename": "390-dark-a-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "B",
+      "filename": "390-dark-b-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "C",
+      "filename": "390-dark-c-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "A",
+      "filename": "1440-light-a-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "B",
+      "filename": "1440-light-b-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "C",
+      "filename": "1440-light-c-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "A",
+      "filename": "1440-dark-a-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "B",
+      "filename": "1440-dark-b-home.jpg",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "C",
+      "filename": "1440-dark-c-home.jpg",
+      "errors": [],
+      "external": []
+    }
+  ],
+  "navigationStateImages": "Temporarily selected on a home page; no actual page navigation or AI connection."
+}

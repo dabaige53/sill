@@ -1,0 +1,15 @@
+
+> sill@1.2.5 test:cloud-operations
+> node tests/e2e/cloud-operations-browser.ts
+
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+page.waitForFunction: Timeout 30000ms exceeded.
+    at /Users/w/code/sill/tests/e2e/cloud-operations-browser.ts:63:13 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v26.11.1

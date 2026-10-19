@@ -1,8 +1,12 @@
 # 浏览器端
 
-更新：2026-10-16。现行运行代码；通用规则见 [代码规范](../../docs/guides/code-standards.md)。
+更新：2026-10-18。现行运行代码；通用规则见 [代码规范](../../docs/guides/code-standards.md)。
 
 `index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
+
+`views/app.ts` 保留状态和公开入口。设置保存与重绘位于 `views/settings-controller.ts`，详情打开和定位位于 `views/preview-controller.ts`。`views/actions/` 按导航筛选、卡片、多选、设置、外链交接、提醒媒体、反馈恢复分组；`action()` 只按原名称分发。
+
+`interactions/panels.ts` 保留弹层入口，`interactions/previews.ts` 按卡片类型组织预览，共用外壳与工具栏。文案键按预览、阅读、照片、搜索、设置等用途命名，实际文字仍只从 `design-system/copy/zh-Hans.json` 读取。
 
 `npm run build` 用 esbuild 生成 `dist/web/index.html`，`npm start` 提供本地页面。`npm run build:cloud` 生成 `dist/cloud/`。产物不提交到 Git，不手工修改。
 

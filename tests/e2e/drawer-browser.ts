@@ -85,7 +85,11 @@ try {
 	browser = await chromium.launch({
 		headless: true,
 		...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
-		args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+		// Linux CI needs software rendering; forcing SwiftShader on macOS can stall animations.
+		args:
+			process.platform === "linux"
+				? ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
+				: [],
 	});
 	async function scenario(
 		name: string,
@@ -256,12 +260,12 @@ try {
 				assert.equal(await settings.locator(".account-wrap > .icon path").count(), 1);
 				const size = await settings.boundingBox();
 				assert.ok(size.width >= 44 && size.height >= 44);
-				assert.equal(
-					await settings
-						.locator(".account-wrap > .icon")
-						.evaluate((n: SVGElement) => getComputedStyle(n).stroke),
-					await settings.evaluate((n: HTMLElement) => getComputedStyle(n).color),
-				);
+				// Read inherited currentColor and its parent in the same animation frame.
+				const colors = await settings.evaluate((n: HTMLElement) => ({
+					stroke: getComputedStyle(n.querySelector(".account-wrap > .icon")).stroke,
+					color: getComputedStyle(n).color,
+				}));
+				assert.equal(colors.stroke, colors.color);
 				await settings.focus();
 				await page.keyboard.press("Enter");
 				await page.waitForFunction(() => window.__app.modalKind === "settings");
@@ -376,15 +380,12 @@ try {
 			await page.waitForTimeout(450);
 			assert.equal(await page.locator(".preview-sheet.is-full").count(), 0);
 			assert.ok((await page.locator(".preview-sheet").boundingBox()).height < 650);
+			// The close disc centres on the source row above the title (ADR 0037).
 			const alignment = await page.evaluate(() => {
-				const title = document.querySelector("#modal-title");
+				const row = document.querySelector(".preview-body > .preview-meta");
 				const close = document.querySelector('.sheet-head [data-action="close"]');
-				return Math.abs(
-					close.getBoundingClientRect().top +
-						22 -
-						title.getBoundingClientRect().top -
-						parseFloat(getComputedStyle(title).lineHeight) / 2,
-				);
+				const r = row.getBoundingClientRect();
+				return Math.abs(close.getBoundingClientRect().top + 22 - r.top - r.height / 2);
 			});
 			assert.ok(alignment < 3, String(alignment));
 			assert.equal(
@@ -413,7 +414,11 @@ try {
 				);
 			assert.ok(frames.every((frame) => !frame.transform || frame.transform === "none"));
 			await page.evaluate(() => window.__app.closeNative());
-			await page.waitForTimeout(150);
+			await page.waitForFunction(
+				() => !(document.getElementById("modal") as HTMLDialogElement).open,
+				null,
+				{ timeout: 1000 },
+			);
 			assert.equal(await page.locator("#modal").evaluate((node) => node.open), false);
 		},
 		{ ...phone, reducedMotion: "reduce" },

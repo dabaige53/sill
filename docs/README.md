@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-17。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
+更新：2026-10-19。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
 
@@ -22,6 +22,7 @@
 - [开发](guides/development.md)
 - [文件管理规范](guides/file-management.md)
 - [V1 三端接口与交接包](guides/handoff.md)
+- [Web 与 PWA 界面优化交接](guides/web-pwa-ui-handoff.md)
 - [本地操作](guides/local-operations.md)
 - [Sill 插件调试记录与使用规范](guides/plugin-runbook.md)
 
@@ -47,10 +48,47 @@
 - [不接入外部来源，内容由助手写入，连接器只用 Composio](adr/0033-ai-writes-composio-only.md)
 - [玻璃底栏取代入口球，工具条滚动时收起](adr/0034-glass-rail-and-tucking-bars.md)
 - [底部导航胶囊取代右下玻璃按钮组](adr/0035-bottom-navigation-capsule.md)
+- [手机主页参考 X 的密度，仍用卡片](adr/0036-phone-home-density.md)
+- [卡片详情：操作收进底部胶囊，只用图标](adr/0037-card-detail-toolbar.md)
+- [保留当前图标，不继续全套方圆化](adr/0038-keep-original-icons.md)
+- [导航当前项保留现状镜片](adr/0039-keep-navigation-lens.md)
+- [显示加入时优先保留忽略提醒](adr/0040-event-reminder-priority.md)
+- [照片大图页补通用操作胶囊](adr/0041-photo-shared-toolbar.md)
+- [卡片操作设置显示适用类型示例](adr/0042-card-action-type-examples.md)
+- [桌面主页显示左上紧凑分栏](adr/0043-desktop-home-filters.md)
+- [搜索按类型、状态、标签分行](adr/0044-search-filter-rows.md)
+- [结束剩余页面调整并保留现状](adr/0045-close-web-pwa-ui-scope.md)
 
 ## 记录
 
+- [导航当前项比较与保留镜片的决定（U3，2026-10-19）](records/2026-10-19-navigation-choice/README.md)
+- [日程专属操作优先级（U4.1，2026-10-19）](records/2026-10-19-event-action-priority/README.md)
+- [搜索、AI、设置与深色现状（U6，2026-10-19）](records/2026-10-19-page-audit/README.md)
+- [搜索筛选排布候选（U6，2026-10-19）](records/2026-10-19-search-filter-proposals/README.md)
+- [搜索筛选按条件分行（U6，2026-10-19）](records/2026-10-19-search-filter-rows/README.md)
+- [Web/PWA 交付与发布检查（2026-10-19）](records/2026-10-19-web-pwa-delivery/README.md)
+- [照片大图页补通用操作（U4，2026-10-19）](records/2026-10-19-photo-shared-toolbar/README.md)
+- [卡片操作设置的类型示例（U4.5，2026-10-19）](records/2026-10-19-card-action-examples/README.md)
+- [桌面主页左上紧凑分栏（U5，2026-10-19）](records/2026-10-19-desktop-home-filters/README.md)
+- [桌面分栏后的云端位置检查（U5，2026-10-19）](records/2026-10-19-desktop-filter-cloud-checks/README.md)
+
+- [全套图标比较与保留原版的决定（U2，2026-10-19）](records/2026-10-19-icon-choice/README.md)
+
+- [云端首次加载的保存状态（C1 补充，2026-10-19）](records/2026-10-19-cloud-sync-initial-state/README.md)
+
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
+
+- [卡片详情核对（U4，2026-10-19）](records/2026-10-19-card-detail-audit/README.md)
+- [桌面与手机一致性核对（U5，2026-10-19）](records/2026-10-19-cross-screen-audit/README.md)
+
+- [2026-10-18-preview-copy：预览模板拆分与语义文案键（C3）](records/2026-10-18-preview-copy/README.md)
+- [样式整理与逐张对照（2026-10-18）](records/2026-10-18-style-cleanup/README.md)
+- [Web 类型整理与运行代码对照（2026-10-18）](records/2026-10-18-web-types/README.md)
+- [2026-10-18-app-controller：控制器职责拆分与不变性检查（C2）](records/2026-10-18-app-controller/README.md)
+- [2026-10-18-browser-regressions：浏览器回归测试修复（C1）](records/2026-10-18-browser-regressions/README.md)
+- [2026-10-18-hidden-actions-postgres：云端偏好迁移验证（C6）](records/2026-10-18-hidden-actions-postgres/README.md)
+- [2026-10-18-pwa-touch：PWA 触控、键盘名称与状态栏检查（U1）](records/2026-10-18-pwa-touch/README.md)
+- [PWA 名称提示补入本地画板（2026-10-18）](records/2026-10-18-pwa-board/README.md)
 
 - [2026-10-17-product-review：内容密度、动效材质与 Agent 交接审查](records/2026-10-17-product-review/README.md)
 - [2026-10-17-ci-recovery：产品审查后的 CI 回归修正](records/2026-10-17-ci-recovery/README.md)
@@ -82,6 +120,8 @@
 
 - [2026-10-16-remove-sources-import：删除来源连接与文件导入](records/2026-10-16-remove-sources-import/README.md)
 - [2026-10-16-cloud-operations：云端工作区操作与 Agent 优先](records/2026-10-16-cloud-operations/README.md)
+- [2026-10-18-phone-home-x-density：手机主页参考 X 的密度](records/2026-10-18-phone-home-x-density/README.md)
+- [2026-10-18-card-detail-capsule：卡片详情的操作胶囊](records/2026-10-18-card-detail-capsule/README.md)
 
 ## 归档
 

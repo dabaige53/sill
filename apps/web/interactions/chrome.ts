@@ -113,4 +113,44 @@ class ChromeAutoHide {
 	}
 }
 
-export { ChromeAutoHide };
+/**
+ * Toolbar icons carry no words; a long press on a touch screen shows the name from aria-label
+ * for a moment, and that press does not act. A mouse sees the same name on hover (CSS).
+ */
+const TIP_AFTER = 450;
+const TIP_FOR = 1400;
+function toolbarTips(root: Document) {
+	let timer = 0;
+	let shown: HTMLElement | null = null;
+	const hide = () => {
+		shown?.classList.remove("is-tipping");
+		shown = null;
+	};
+	root.addEventListener("pointerdown", (e: PointerEvent) => {
+		const button = (e.target as Element).closest?.<HTMLElement>(".float-bar .icon-button");
+		clearTimeout(timer);
+		hide();
+		if (!button || e.pointerType === "mouse") return;
+		timer = window.setTimeout(() => {
+			shown = button;
+			button.classList.add("is-tipping");
+		}, TIP_AFTER);
+	});
+	const release = () => {
+		clearTimeout(timer);
+		if (shown) timer = window.setTimeout(hide, TIP_FOR);
+	};
+	root.addEventListener("pointerup", release);
+	root.addEventListener("pointercancel", release);
+	root.addEventListener(
+		"click",
+		(e: MouseEvent) => {
+			if (!shown || !shown.contains(e.target as Node)) return;
+			e.preventDefault();
+			e.stopPropagation();
+		},
+		true,
+	);
+}
+
+export { ChromeAutoHide, toolbarTips };

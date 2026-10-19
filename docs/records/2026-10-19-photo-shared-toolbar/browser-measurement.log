@@ -1,0 +1,16 @@
+PASS photo tools, tags return, hidden preferences and opaque fallback 320-light
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"left":86,"right":234,"top":788,"bottom":848,"thumbsBottom":778,"color":"rgb(242, 242, 244)"}
+    at file:///Users/w/code/sill/tests/e2e/photo-toolbar-browser.ts:94:11 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v26.11.1

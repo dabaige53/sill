@@ -62,6 +62,12 @@ function dateLabel(ts?: any) {
 	const d = new Date(ts);
 	return `${d.getMonth() + 1}${copy("web.primitives.1625179badc0")}${d.getDate()}${copy("web.primitives.453e841e7da3")}${d.toLocaleDateString("zh-CN", { weekday: "short" })}`;
 }
+/** A reminder's own time: the clock today, the date before it on any other day. */
+function reminderClock(at?: any, now: any = Date.now()) {
+	return new Date(at).toDateString() === new Date(now).toDateString()
+		? timeString(at)
+		: `${dateLabel(at)} ${timeString(at)}`;
+}
 function relativeDay(ts?: any, now: any = Date.now()) {
 	const day = 86400000,
 		start = new Date(now);
@@ -103,8 +109,14 @@ function tagChip(label?: any, active: any = false, action: any = "filter-tag") {
 function segmented(name?: any, options?: any, value?: any, label?: any) {
 	return `<span class="segmented" role="radiogroup" aria-label="${esc(label)}">${options.map(([v, t]: any) => `<button type="button" role="radio" tabindex="${v === value ? 0 : -1}" aria-checked="${v === value}" class="${v === value ? "on" : ""}" data-action="pref" data-id="${esc(name)}" data-extra="${esc(v)}">${esc(t)}</button>`).join("")}</span>`;
 }
-function toggle(name?: any, on?: any, label?: any, action: any = "pref-toggle") {
-	return `<button class="toggle" type="button" role="switch" aria-label="${esc(label)}" aria-checked="${!!on}" data-action="${action}" data-id="${esc(name)}"></button>`;
+function toggle(
+	name?: any,
+	on?: any,
+	label?: any,
+	action: any = "pref-toggle",
+	descriptionId = "",
+) {
+	return `<button class="toggle" type="button" role="switch" aria-label="${esc(label)}"${descriptionId ? ` aria-describedby="${esc(descriptionId)}"` : ""} aria-checked="${!!on}" data-action="${action}" data-id="${esc(name)}"></button>`;
 }
 function highlight(text?: any, query?: any) {
 	const t = String(text || "");
@@ -140,6 +152,7 @@ export {
 	minutes,
 	pill,
 	relativeDay,
+	reminderClock,
 	ring,
 	segmented,
 	tagChip,

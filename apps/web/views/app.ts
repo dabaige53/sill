@@ -1,3 +1,4 @@
+import type { Card } from "../../../contracts/card.ts";
 import { icon } from "../atoms/icons.ts";
 import {
 	button,
@@ -10,12 +11,19 @@ import {
 	eventTimely,
 	minutes,
 } from "../atoms/primitives.ts";
-import { cardHTML, shelfHTML, stackHTML, stackOpenHTML } from "../cards/templates.ts";
+import {
+	CardPresentation,
+	cardHTML,
+	shelfHTML,
+	stackHTML,
+	stackOpenHTML,
+} from "../cards/templates.ts";
 import { copy } from "../copy.ts";
-import { cardSource, cardSourceKind } from "../data/card-source.ts";
+import { cardSource } from "../data/card-source.ts";
 import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
+import type { CardItem, Preferences } from "../data/store.ts";
 import { Store } from "../data/store.ts";
-import { ChromeAutoHide } from "../interactions/chrome.ts";
+import { ChromeAutoHide, toolbarTips } from "../interactions/chrome.ts";
 import { DragManager } from "../interactions/drag.ts";
 import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
@@ -33,6 +41,47 @@ import {
 import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
+import { action as dispatchAction } from "./actions/index.ts";
+import { bindPreview, bindSheetChrome, openCard } from "./preview-controller.ts";
+import { repaintSettings, setPref } from "./settings-controller.ts";
+
+type Filter = { type: string; status: string; tag: string; query: string };
+type TargetEvent<E extends Event> = E & {
+	target: HTMLElement & { value?: string; disabled?: boolean };
+};
+/** Selectors in the injected app containers target HTML, with native tag overloads retained. */
+interface ViewQueries {
+	querySelector<K extends keyof HTMLElementTagNameMap>(selector: K): HTMLElementTagNameMap[K];
+	querySelector<K extends keyof SVGElementTagNameMap>(selector: K): SVGElementTagNameMap[K];
+	querySelector<E extends Element = HTMLElement>(selector: string): E;
+	querySelectorAll<K extends keyof HTMLElementTagNameMap>(
+		selector: K,
+	): NodeListOf<HTMLElementTagNameMap[K]>;
+	querySelectorAll<K extends keyof SVGElementTagNameMap>(
+		selector: K,
+	): NodeListOf<SVGElementTagNameMap[K]>;
+	querySelectorAll<E extends Element = HTMLElement>(selector: string): NodeListOf<E>;
+}
+type ViewElement = ViewQueries & HTMLElement;
+type ViewDialog = ViewQueries & HTMLDialogElement;
+type Deck = ViewElement & {
+	_finish?: () => void;
+	_wheel?: { dx: number; t?: number };
+	_hold?: number;
+	_wheelDirection?: number;
+};
+type DeckGesture = {
+	deck: Deck;
+	id: number;
+	x: number;
+	y: number;
+	at: number;
+	live: boolean;
+	dx: number;
+};
+type CardFlag = keyof {
+	[K in keyof CardItem as CardItem[K] extends boolean ? K : never]: CardItem[K];
+};
 
 /** The lens leads; the place it names opens just after, so the move is seen before the sheet covers it. */
 const NAV_LEAD_MS = 160;
@@ -42,9 +91,9 @@ const PAGE_KINDS = ["search", "ai", "settings"];
 
 class AppController {
 	agentHandoff = new AgentHandoff();
-	declare mode: any;
-	declare baseMode: any;
-	declare filter: any;
+	declare mode: string;
+	declare baseMode: string;
+	declare filter: Filter;
 	searchFilter = { type: "all", status: "all", tag: "", query: "" };
 	searchScroll = 0;
 	searchLimit = 40;
@@ -62,71 +111,71 @@ class AppController {
 		if (this.modalKind === "search") this.searchSelected = value;
 		else this.homeSelected = value;
 	}
-	declare pendingCards: any;
+	declare pendingCards: Card[];
 	declare pullRefreshFeedback: boolean;
-	declare refreshBusy: any;
-	declare openStacks: any;
-	declare modalKind: any;
-	declare currentId: any;
-	declare panelReturn: any;
-	declare lastFocus: any;
-	declare mediaIndex: any;
-	declare mediaTimer: any;
-	declare podcastTimer: any;
-	declare lastActivity: any;
-	declare modalToken: any;
-	declare routeScroll: any;
-	declare photoIndex: any;
-	declare sort: any;
-	declare feedNow: any;
-	declare pendingReminders: any;
-	declare settingsGroup: any;
+	declare refreshBusy: boolean;
+	declare openStacks: Set<string>;
+	declare modalKind: string;
+	declare currentId: string;
+	declare panelReturn: () => void;
+	declare lastFocus: Element;
+	declare mediaIndex: number;
+	declare mediaTimer: ReturnType<typeof setInterval>;
+	declare podcastTimer: ReturnType<typeof setInterval>;
+	declare lastActivity: number;
+	declare modalToken: number;
+	declare routeScroll: Record<string, number>;
+	declare photoIndex: number;
+	declare sort: Preferences["sort"];
+	declare feedNow: number;
+	declare pendingReminders: string[];
+	declare settingsGroup: string;
 	declare navKey: string;
 	declare navTimer: number;
 	declare navOpenTimer: number;
-	declare editingId: any;
-	declare loadedImages: any;
-	declare grid: any;
-	declare dialog: any;
-	declare themeQuery: any;
-	declare layout: any;
-	declare pageLimit: any;
-	declare drag: any;
-	declare gestures: any;
-	declare hasMore: any;
-	declare readTicker: any;
-	declare railHide: any;
-	declare sheetHide: any;
-	declare lastRouteHash: any;
-	declare skipReturnMotion: any;
-	declare sheetLeaving: any;
-	declare lockedScroll: any;
+	declare editingId: string;
+	declare loadedImages: Set<string>;
+	declare grid: ViewElement;
+	declare dialog: ViewDialog;
+	declare themeQuery: MediaQueryList;
+	declare layout: FeedLayout;
+	declare pageLimit: number;
+	declare drag: DragManager;
+	declare gestures: Gestures;
+	declare hasMore: boolean;
+	declare readTicker: ReturnType<typeof setInterval>;
+	declare railHide: ChromeAutoHide;
+	declare sheetHide: ChromeAutoHide;
+	declare lastRouteHash: string;
+	declare skipReturnMotion: boolean;
+	declare sheetLeaving: boolean;
+	declare lockedScroll: number;
 	pageScrollLocked = false;
 	pageOverflow = "";
 	previewSizeObserver?: ResizeObserver;
-	declare editId: any;
-	declare editTags: any;
-	declare toastTimer: any;
-	declare toastSeq: any;
-	declare selectAnchor: any;
-	declare previewTrail: any;
-	declare closingAll: any;
-	declare undoAction: any;
-	declare bulkEditIds: any;
-	declare clockMinute: any;
-	declare stackIndex: any;
-	declare stackDragUntil: any;
-	declare searchTimer: any;
-	declare inlineTimer: any;
+	declare editId: string;
+	declare editTags: Set<string>;
+	declare toastTimer: number;
+	declare toastSeq: number;
+	declare selectAnchor: string;
+	declare previewTrail: string[];
+	declare closingAll: boolean;
+	declare undoAction: () => void;
+	declare bulkEditIds: string[];
+	declare clockMinute: number;
+	declare stackIndex: Map<string, number>;
+	declare stackDragUntil: number;
+	declare searchTimer: number;
+	declare inlineTimer: number;
 
 	constructor() {
 		this.mode = window.__PAGE__ || "feed";
 		this.baseMode = this.mode;
 		this.filter = { type: "all", status: "all", tag: "", query: "" };
-		this.selected = new Set<any>();
+		this.selected = new Set<string>();
 		this.pendingCards = [];
 		this.refreshBusy = false;
-		this.openStacks = new Set<any>();
+		this.openStacks = new Set<string>();
 		this.modalKind = "";
 		this.currentId = "";
 		this.panelReturn = null;
@@ -145,7 +194,7 @@ class AppController {
 		this.navKey = "home";
 		this.navTimer = 0;
 		this.editingId = "";
-		this.loadedImages = new Set<any>();
+		this.loadedImages = new Set<string>();
 	}
 	init() {
 		// Track the input that opened the card; restoring focus must not draw a touch selection box.
@@ -169,14 +218,14 @@ class AppController {
 		Store.load();
 		if (window.__QG_RUNTIME__) Store.state.cards = [];
 		this.sort = Store.pref("sort");
-		document.body.innerHTML = `<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.panels.f48d334495f6")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
-   <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button>
+		document.body.innerHTML = `${this.homeTopHTML()}<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.common.desk")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
+   <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button>
    <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}${this.selectionAIHTML()}</div>
-   ${this.navHTML()}</div><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
+   ${this.navHTML()}</div><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
    <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
    <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
-		this.grid = document.getElementById("feed-grid");
-		this.dialog = document.getElementById("modal");
+		this.grid = document.getElementById("feed-grid") as ViewElement;
+		this.dialog = document.getElementById("modal") as ViewDialog;
 		this.setNav("home");
 		if (typeof ResizeObserver === "function")
 			new ResizeObserver(() => this.setNav(this.navKey)).observe(document.getElementById("nav"));
@@ -186,7 +235,8 @@ class AppController {
 		this.pageLimit = 40;
 		this.drag = new DragManager(this);
 		this.gestures = new Gestures(this);
-		document.addEventListener("click", (e?: any) => this.click(e));
+		document.addEventListener("click", (e?: TargetEvent<MouseEvent>) => this.click(e));
+		toolbarTips(document);
 		this.grid.addEventListener("contextmenu", (e: MouseEvent) => {
 			const card = (e.target as Element).closest<HTMLElement>("[data-card]");
 			if (!card || this.drag.active || this.drag.pending) return;
@@ -202,30 +252,35 @@ class AppController {
 			this.drag.openMenu([...this.selected], trigger, { x: e.clientX, y: e.clientY });
 		});
 		this.bindStacks();
-		document.addEventListener("input", (e?: any) => this.input(e));
-		document.addEventListener("compositionend", (e?: any) => this.input(e));
+		document.addEventListener("input", (e?: TargetEvent<Event>) => this.input(e));
+		document.addEventListener("compositionend", (e?: TargetEvent<Event>) => this.input(e));
 		this.bindKeyboard();
-		document.addEventListener("keydown", (e?: any) => this.key(e));
-		document.addEventListener("paste", (e?: any) => this.paste(e));
-		["pointerdown", "keydown", "wheel", "touchstart"].forEach((type?: any) => {
+		document.addEventListener("keydown", (e?: TargetEvent<KeyboardEvent>) => this.key(e));
+		document.addEventListener("paste", (e?: TargetEvent<ClipboardEvent>) => this.paste(e));
+		["pointerdown", "keydown", "wheel", "touchstart"].forEach((type?: string) => {
 			document.addEventListener(type, () => (this.lastActivity = Date.now()), { passive: true });
 		});
-		document.addEventListener("focusin", (e?: any) => {
+		document.addEventListener("focusin", (e?: TargetEvent<Event>) => {
 			const menu = document.querySelector<HTMLElement>(".card-more-menu");
-			if (menu && !menu.contains(e.target) && !e.target.closest?.('[data-action="card-more"]'))
+			if (
+				menu &&
+				!menu.contains(e.target) &&
+				!e.target.closest?.<HTMLElement>('[data-action="card-more"]')
+			)
 				this.closeMore();
-			if (this.editingId && !e.target.closest?.(".is-editing")) this.finishInlineEdit();
+			if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing"))
+				this.finishInlineEdit();
 		});
-		this.dialog.addEventListener("cancel", (e?: any) => {
+		this.dialog.addEventListener("cancel", (e?: TargetEvent<Event>) => {
 			e.preventDefault();
 			if (this.modalKind === "search" && this.selected.size) this.action("clear-selection");
 			else this.closeModal();
 		});
-		this.dialog.addEventListener("click", (e?: any) => {
+		this.dialog.addEventListener("click", (e?: TargetEvent<MouseEvent>) => {
 			if (e.target !== this.dialog) return;
 			if (this.modalKind === "lightbox" || this.dialog.classList.contains("page")) return;
 			// A click on the dim area, outside the sheet and its toolbar, closes the overlay.
-			const inside = [...this.dialog.children].some((n?: any) => {
+			const inside = [...this.dialog.children].some((n?: HTMLElement) => {
 				const r = n.getBoundingClientRect();
 				return (
 					e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
@@ -237,7 +292,7 @@ class AppController {
 		// The rail tucks away while reading on and returns on a pause or a turn back.
 		this.railHide = new ChromeAutoHide(
 			window,
-			() => [dock, document.getElementById("scroll-edge")],
+			() => [dock, document.getElementById("scroll-edge"), document.getElementById("home-top")],
 			() => this.drag?.active || this.drag?.menu?.open,
 		);
 		window.addEventListener("popstate", () => this.route());
@@ -283,7 +338,7 @@ class AppController {
 		document.body.dataset.density = Store.pref("density");
 		this.sort = Store.pref("floatTimely") ? Store.pref("sort") : "time";
 	}
-	announce(text?: any) {
+	announce(text?: string) {
 		document.getElementById("announcer").textContent = text;
 	}
 	/** On phones the on-screen keyboard covers the bottom: sheets that take typing rise above it, the rail steps away. */
@@ -300,7 +355,7 @@ class AppController {
 		sync();
 	}
 	paintAccount() {
-		const face = document.querySelector("#account .account-wrap");
+		const face = document.querySelector<HTMLElement>("#account .account-wrap");
 		if (face) face.innerHTML = this.accountRing();
 	}
 	accountRing() {
@@ -323,7 +378,7 @@ class AppController {
 		if (!tab) return;
 		const moved = this.navKey !== key;
 		this.navKey = key;
-		nav.querySelectorAll(".nav-tab").forEach((n) => {
+		nav.querySelectorAll<HTMLElement>(".nav-tab").forEach((n) => {
 			if (n === tab) n.setAttribute("aria-current", "page");
 			else n.removeAttribute("aria-current");
 		});
@@ -378,24 +433,24 @@ class AppController {
 		else this.navOpenTimer = window.setTimeout(open, NAV_LEAD_MS);
 	}
 	/* ——— What is on the desk ——— */
-	shelfOf(c?: any) {
+	shelfOf(c?: Card): "desk" | "read" {
 		return FeedPolicy.shelf(c, Store.item(c.id), this.feedNow, Store.pref("archiveAfter"));
 	}
-	shelved(which?: any) {
+	shelved(which?: string) {
 		return Store.state.cards.filter(
-			(c?: any) => this.shelfOf(c) === which && FeedPolicy.visible(c, Store.item(c.id)),
+			(c?: Card) => this.shelfOf(c) === which && FeedPolicy.visible(c, Store.item(c.id)),
 		);
 	}
-	matches(c?: any, q?: any) {
+	matches(c?: Card, q?: string) {
 		const s = Store.item(c.id);
 		return [c.title, c.summary, cardSource(c), s.note, ...(c.body || []), ...Store.tags(c)]
 			.join(" ")
 			.toLocaleLowerCase()
 			.includes(q.toLocaleLowerCase());
 	}
-	searchAll(q?: any) {
+	searchAll(q?: string) {
 		const f = this.searchFilter;
-		const all = Store.state.cards.filter((c?: any) => {
+		const all = Store.state.cards.filter((c?: Card) => {
 			const state = Store.item(c.id);
 			return (
 				(!q || this.matches(c, q)) &&
@@ -408,26 +463,28 @@ class AppController {
 			);
 		});
 		return {
-			desk: all.filter((c?: any) => this.shelfOf(c) === "desk"),
-			shelved: all.filter((c?: any) => this.shelfOf(c) !== "desk"),
+			desk: all.filter((c?: Card) => this.shelfOf(c) === "desk"),
+			shelved: all.filter((c?: Card) => this.shelfOf(c) !== "desk"),
 		};
 	}
 	filtering() {
 		const f = this.filter;
 		return f.type !== "all" || f.status !== "all" || !!f.tag || !!f.query;
 	}
-	filtered() {
+	filtered(): Card[] {
 		const f = this.filter,
 			q = f.query.trim();
 		const statusOnly = ["snoozed", "dismissed", "done"].includes(f.status);
 		return FeedPolicy.sort(
-			Store.state.cards.filter((c?: any) => {
+			Store.state.cards.filter((c?: Card) => {
 				const s = Store.item(c.id);
 				// Searching reaches every shelf; browsing shows only the desk.
 				if (!q && !statusOnly && this.shelfOf(c) !== "desk") return false;
 				return (
 					FeedPolicy.visible(c, s, f.status) &&
-					(f.type === "all" || c.type === f.type) &&
+					(f.type === "all" ||
+						c.type === f.type ||
+						(f.type === "todo" && ["task", "reminder"].includes(c.type))) &&
 					(statusOnly ||
 						f.status === "all" ||
 						(f.status === "unread" && !s.read) ||
@@ -450,7 +507,7 @@ class AppController {
 			return this.filtering()
 				? emptyState(
 						this.filter.query
-							? `${copy("web.panels.11a8f9879575")}${this.filter.query}」`
+							? `${copy("web.search.noResultsPrefix")}${this.filter.query}」`
 							: copy("web.app.4a684ec67af5"),
 						"",
 						`<button type="button" class="text-link" data-action="clear-filter">${copy("web.app.657d9cbf45ec")}</button>`,
@@ -460,11 +517,11 @@ class AppController {
 		const stacks =
 			Store.pref("stack") && !this.filtering()
 				? FeedPolicy.stacks(cards, Store.state.items)
-				: new Map<any, any>();
-		const inStack = new Map<any, any>();
+				: new Map<string, Card[]>();
+		const inStack = new Map<string, string>();
 		for (const [key, list] of stacks) for (const c of list) inStack.set(c.id, key);
 		const html = [],
-			done = new Set<any>();
+			done = new Set<string>();
 		for (const c of cards) {
 			const key = inStack.get(c.id);
 			if (!key) {
@@ -487,9 +544,9 @@ class AppController {
 		document.body.classList.toggle("feed-more", this.hasMore);
 		return html.join("");
 	}
-	renderCurrent(animate: any = false) {
-		const focused = this.grid.contains(document.activeElement)
-			? (document.activeElement as HTMLElement)
+	renderCurrent(animate = false) {
+		const focused = this.grid.contains(document.activeElement as HTMLElement)
+			? (document.activeElement as HTMLElement as HTMLElement)
 			: null;
 		const previousCard = focused?.closest<HTMLElement>("[data-card]"),
 			focusedCardId = previousCard?.dataset.card;
@@ -504,7 +561,7 @@ class AppController {
 		document.body.dataset.view = this.mode;
 		this.grid.innerHTML = this.deskHTML();
 		let focusedCard = focusedCardId
-			? this.grid.querySelector(`[data-card="${CSS.escape(focusedCardId)}"]`)
+			? this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(focusedCardId)}"]`)
 			: null;
 		if (focusedCard && taskPreviewOrder.length) {
 			const temp = document.createElement("div");
@@ -517,7 +574,7 @@ class AppController {
 			held.dataset.taskPreviewLocked = "true";
 			held.addEventListener("focusout", () => {
 				window.setTimeout(() => {
-					if (held.isConnected && !held.contains(document.activeElement))
+					if (held.isConnected && !held.contains(document.activeElement as HTMLElement))
 						this.refreshCard(focusedCardId);
 				}, 0);
 			});
@@ -534,8 +591,8 @@ class AppController {
 			const target =
 				focused === previousCard
 					? focusedCard
-					: [...focusedCard.querySelectorAll("[data-action]")].find(
-							(node?: any) =>
+					: [...focusedCard.querySelectorAll<HTMLElement>("[data-action]")].find(
+							(node?: HTMLElement) =>
 								node.dataset.action === focused.dataset.action &&
 								node.dataset.id === focused.dataset.id &&
 								node.dataset.extra === focused.dataset.extra,
@@ -545,14 +602,14 @@ class AppController {
 		// Only the first screen enters; cards below the fold are simply there when scrolled to.
 		if (animate)
 			[...this.grid.children]
-				.filter((n?: any) => n.getBoundingClientRect().top < innerHeight)
-				.forEach((n?: any, i?: any) => {
+				.filter((n?: HTMLElement) => n.getBoundingClientRect().top < innerHeight)
+				.forEach((n?: HTMLElement, i?: number) => {
 					MotionEngine.enter(n, Math.min(i * 60, 240));
 				});
 	}
 	// Covers sharpen once decoded; a cover seen before appears at once, without replaying the blur.
-	revealImages(root?: any) {
-		root.querySelectorAll("img.card-image").forEach((img?: any) => {
+	revealImages(root?: ParentNode) {
+		root.querySelectorAll<HTMLImageElement>("img.card-image").forEach((img) => {
 			if (this.loadedImages.has(img.src)) {
 				img.classList.add("is-loaded");
 				return;
@@ -566,19 +623,19 @@ class AppController {
 			else img.addEventListener("load", done, { once: true });
 		});
 	}
-	refreshCard(id?: any) {
+	refreshCard(id?: string) {
 		const searchCard = (
 			this.searchBackground || (this.modalKind === "search" ? this.dialog : null)
-		)?.querySelector(`[data-card="${CSS.escape(id)}"]`);
+		)?.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 		const sharedCard = Store.card(id);
 		if (searchCard && sharedCard) {
 			const temp = document.createElement("div");
-			const active = searchCard.contains(document.activeElement)
-				? (document.activeElement as HTMLElement)
+			const active = searchCard.contains(document.activeElement as HTMLElement)
+				? (document.activeElement as HTMLElement as HTMLElement)
 				: null;
 			const taskPreviewOrder =
 				sharedCard.type === "task" && active?.dataset.action === "task"
-					? [...searchCard.querySelectorAll('[data-action="task"]')].map(
+					? [...searchCard.querySelectorAll<HTMLElement>('[data-action="task"]')].map(
 							(n: HTMLElement) => n.dataset.extra,
 						)
 					: [];
@@ -586,7 +643,9 @@ class AppController {
 			const replacement = temp.firstElementChild;
 			this.markSelectionCard(replacement as HTMLElement, this.searchSelected);
 			if (searchCard.contains(this.searchFocus))
-				this.searchFocus = replacement.querySelector(".card-title-button") as HTMLElement;
+				this.searchFocus = replacement.querySelector<HTMLElement>(
+					".card-title-button",
+				) as HTMLElement;
 			searchCard.replaceWith(replacement);
 			if (active)
 				[...replacement.querySelectorAll<HTMLElement>("[data-action]")]
@@ -599,9 +658,11 @@ class AppController {
 					?.focus({ preventScroll: true });
 			this.revealImages(replacement);
 		}
-		let old = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+		let old = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 		const c = Store.card(id),
-			active = old?.contains(document.activeElement) ? document.activeElement : null;
+			active = old?.contains(document.activeElement as HTMLElement)
+				? (document.activeElement as HTMLElement)
+				: null;
 		const focus = (active as HTMLElement)?.dataset.action,
 			focusExtra = (active as HTMLElement)?.dataset.extra,
 			focusId = (active as HTMLElement)?.dataset.id;
@@ -610,23 +671,23 @@ class AppController {
 			c?.type === "task" &&
 			active &&
 			(old.dataset.taskPreviewLocked || (focus === "task" && active.matches(":focus-visible")))
-				? [...old.querySelectorAll('.checklist [data-action="task"]')].map(
-						(n?: any) => n.dataset.extra,
+				? [...old.querySelectorAll<HTMLElement>('.checklist [data-action="task"]')].map(
+						(n?: HTMLElement) => n.dataset.extra,
 					)
 				: [];
 		if (this.mode === "feed") {
-			const before = [...this.grid.querySelectorAll("[data-card],[data-stack]")]
-				.map((n?: any) => n.dataset.card || n.dataset.stack)
+			const before = [...this.grid.querySelectorAll<HTMLElement>("[data-card],[data-stack]")]
+				.map((n?: HTMLElement) => n.dataset.card || n.dataset.stack)
 				.join(",");
 			const probe = document.createElement("div");
 			probe.innerHTML = this.deskHTML();
-			const after = [...probe.querySelectorAll("[data-card],[data-stack]")]
-				.map((n?: any) => n.dataset.card || n.dataset.stack)
+			const after = [...probe.querySelectorAll<HTMLElement>("[data-card],[data-stack]")]
+				.map((n?: HTMLElement) => n.dataset.card || n.dataset.stack)
 				.join(",");
 			if (before !== after) {
 				this.withFeedAnchor(() => {}, true);
 				if (!taskPreviewOrder.length) return;
-				old = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+				old = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 			}
 		}
 		if (!old || !c) return;
@@ -644,7 +705,8 @@ class AppController {
 			node.addEventListener("focusout", () => {
 				window.setTimeout(() => {
 					// Let the browser finish moving focus before settling the live card.
-					if (node.isConnected && !node.contains(document.activeElement)) this.refreshCard(id);
+					if (node.isConnected && !node.contains(document.activeElement as HTMLElement))
+						this.refreshCard(id);
 				}, 0);
 			});
 		}
@@ -670,21 +732,60 @@ class AppController {
 		this.updateSelection();
 		if (active) {
 			const target = focusTitle
-				? node.querySelector(".card-title-button")
-				: [...node.querySelectorAll("[data-action]")].find(
-						(n?: any) =>
+				? node.querySelector<HTMLElement>(".card-title-button")
+				: [...node.querySelectorAll<HTMLElement>("[data-action]")].find(
+						(n?: HTMLElement) =>
 							n.dataset.action === focus &&
 							n.dataset.extra === focusExtra &&
 							n.dataset.id === focusId,
 					);
 			(node as HTMLElement).focus({ preventScroll: true });
-			((target || node.querySelector(".card-title-button") || node) as HTMLElement).focus({
+			(
+				(target || node.querySelector<HTMLElement>(".card-title-button") || node) as HTMLElement
+			).focus({
 				preventScroll: true,
 			});
 		}
 	}
 	updateFilterIndicator() {
-		document.getElementById("dock").classList.toggle("filter-active", this.filtering());
+		const tab = this.homeTab();
+		document.getElementById("dock").classList.toggle("filter-active", this.filtering() && !tab);
+		document.querySelectorAll<HTMLElement>(".home-tab").forEach((n) => {
+			n.setAttribute("aria-pressed", String(n.dataset.extra === (tab || "")));
+		});
+	}
+	/** Shared home filters; only the phone shows the mark. The tabs never change search. */
+	homeTopHTML() {
+		const tabs = [
+			["all", copy("web.all")],
+			["unread", copy("web.unread")],
+			["todo", copy("web.home.todo")],
+			["later", copy("web.later")],
+			["saved", copy("web.bookmark")],
+		];
+		return `<header id="home-top" class="home-top"><button type="button" class="home-mark" data-action="top" aria-label="${copy("web.home.top")}">${icon("sill", 26)}</button><div class="home-tabs" role="group" aria-label="${copy("web.home.tabs")}">${tabs.map(([key, label]) => `<button type="button" class="home-tab" data-action="home-tab" data-extra="${key}" aria-pressed="${key === "all"}">${label}</button>`).join("")}</div></header>`;
+	}
+	homeTabFilter(key: string) {
+		return (
+			{
+				all: { type: "all", status: "all" },
+				unread: { type: "all", status: "unread" },
+				todo: { type: "todo", status: "all" },
+				later: { type: "all", status: "later" },
+				saved: { type: "all", status: "saved" },
+			} as Record<string, { type: string; status: string }>
+		)[key];
+	}
+	/** The tab the home filter matches, or "" when another filter is in use. */
+	homeTab() {
+		const f = this.filter;
+		if (f.tag || f.query) return "";
+		return (
+			["all", "unread", "todo", "later", "saved"].find((key) => {
+				const t = this.homeTabFilter(key);
+				return t.type === f.type && t.status === f.status;
+			}) || ""
+		);
 	}
 	selectionAIHTML() {
 		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-wave" aria-hidden="true"><i></i><i></i><i></i></span><span data-ai-label>${copy("web.selection.aiDrop")}</span></button>`;
@@ -697,21 +798,21 @@ class AppController {
 	markSelectionCard(node: HTMLElement, selection: Set<string>) {
 		const selected = selection.has(node.dataset.card);
 		node.classList.toggle("is-selected", selected);
-		const title = node.querySelector(".card-title-button");
+		const title = node.querySelector<HTMLElement>(".card-title-button");
 		if (selection.size) title?.setAttribute("aria-pressed", String(selected));
 		else title?.removeAttribute("aria-pressed");
 	}
 	selectionContext() {
 		const search = this.modalKind === "search";
 		return {
-			grid: search ? this.dialog.querySelector("#search-results") : this.grid,
+			grid: search ? this.dialog.querySelector<HTMLElement>("#search-results") : this.grid,
 			selected: search ? this.searchSelected : this.homeSelected,
 			bar: document.getElementById(search ? "search-selection-bar" : "selection-bar"),
 			search,
 		};
 	}
 	bindSearchSelection() {
-		if (!this.dialog.querySelector("#search-selection-bar")) {
+		if (!this.dialog.querySelector<HTMLElement>("#search-selection-bar")) {
 			const original = document.getElementById("selection-bar");
 			if (original) {
 				const bar = original.cloneNode(true) as HTMLElement;
@@ -731,10 +832,10 @@ class AppController {
 		this.updateSelection();
 	}
 	/** Toggle one card, add it, or (Shift) fill the range from the last picked card. */
-	select(id?: any, options: any = {}) {
+	select(id?: string, options: { add?: boolean; range?: boolean } = {}) {
 		const context = this.selectionContext();
-		const order = [...context.grid.querySelectorAll("[data-card]")].map(
-				(n?: any) => n.dataset.card,
+		const order = [...context.grid.querySelectorAll<HTMLElement>("[data-card]")].map(
+				(n?: HTMLElement) => n.dataset.card,
 			),
 			from = order.indexOf(context.search ? this.searchSelectAnchor : this.selectAnchor),
 			to = order.indexOf(id);
@@ -752,7 +853,7 @@ class AppController {
 		if (!grid) return;
 		const selecting = selection.size > 0;
 		const entering = selecting && !grid.classList.contains("is-selecting");
-		grid.querySelectorAll("[data-card]").forEach((n: HTMLElement) => {
+		grid.querySelectorAll<HTMLElement>("[data-card]").forEach((n: HTMLElement) => {
 			const selected = selection.has(n.dataset.card);
 			this.markSelectionCard(n, selection);
 			if (entering && !selected && !MotionEngine.reduced) {
@@ -774,15 +875,15 @@ class AppController {
 		bar.inert = !selecting;
 		bar.setAttribute("aria-hidden", String(!selecting));
 		bar.style.pointerEvents = selecting ? "" : "none";
-		if (!selecting && bar.contains(document.activeElement))
-			grid.querySelector(".card-title-button")?.focus({ preventScroll: true });
-		bar.querySelector(".selection-count").textContent = String(this.selected.size);
+		if (!selecting && bar.contains(document.activeElement as HTMLElement))
+			grid.querySelector<HTMLElement>(".card-title-button")?.focus({ preventScroll: true });
+		bar.querySelector<HTMLElement>(".selection-count").textContent = String(this.selected.size);
 		if (state.visible === selecting) return;
 		state.visible = selecting;
 		if (selecting) {
 			this.railHide?.show();
 			if (!MotionEngine.reduced)
-				bar.querySelectorAll(".selection-ai-wave i").forEach((wave, index) => {
+				bar.querySelectorAll<HTMLElement>(".selection-ai-wave i").forEach((wave, index) => {
 					MotionEngine.animate(
 						wave,
 						[
@@ -822,12 +923,12 @@ class AppController {
 		else finish();
 	}
 	/* ——— Routes: #feed · #card/<id> · #read/<id> ——— */
-	navigate(hash?: any) {
+	navigate(hash?: string) {
 		if (!this.pageScrollLocked) this.routeScroll[this.mode] = scrollY;
 		history.pushState({ glass: true, prev: location.hash }, "", hash);
 		this.route(true);
 	}
-	route(force: any = false) {
+	route(force = false) {
 		const hash = location.hash;
 		// Back/forward emits both popstate and hashchange; handle one transition only.
 		if (!force && this.lastRouteHash === hash) return;
@@ -881,7 +982,7 @@ class AppController {
 		window.scrollTo({ top: this.lockedScroll, behavior: "instant" });
 	}
 	/* ——— Overlays ——— */
-	openModal(html?: any, kind?: any, origin: any = null, shape: any = "") {
+	openModal(html?: string, kind?: string, origin: unknown = null, shape: string = "") {
 		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
@@ -896,7 +997,7 @@ class AppController {
 		const page = this.isPage(kind);
 		if (this.dialog.open && this.dialog.classList.contains("page") !== page) this.dialog.close();
 		if (!this.dialog.open) {
-			this.lastFocus = document.activeElement;
+			this.lastFocus = document.activeElement as HTMLElement;
 			this.lockPageScroll();
 		}
 		const liveToast = document.getElementById("toast");
@@ -918,7 +1019,7 @@ class AppController {
 			});
 		else if (kind === "search") MotionEngine.enter(this.dialog);
 		else MotionEngine.openPanel(this.dialog, origin);
-		const focus = this.dialog.querySelector(
+		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
 				? "#filter-search"
 				: kind === "capture"
@@ -932,7 +1033,7 @@ class AppController {
 			focus.focus({ preventScroll: true });
 		}
 	}
-	closeNative(animate: any = true) {
+	closeNative(animate = true) {
 		if (!this.dialog.open) return;
 		// A sheet already dragged off screen closes as it is: no return motion.
 		if (this.skipReturnMotion) {
@@ -947,14 +1048,14 @@ class AppController {
 			MotionEngine.phoneSheet(this.dialog) &&
 			!MotionEngine.reduced
 		) {
-			const sheet = this.dialog.querySelector(".preview-sheet"),
+			const sheet = this.dialog.querySelector<HTMLElement>(".preview-sheet"),
 				token = this.modalToken;
 			MotionEngine.cancelPanel(this.dialog);
 			this.sheetLeaving = true;
 			sheet.classList.remove("is-drag");
 			sheet.classList.add("is-off");
 			sheet.style.translate = "";
-			this.dialog.querySelector(":scope > .float-bar")?.classList.add("is-hidden");
+			this.dialog.querySelector<HTMLElement>(":scope > .float-bar")?.classList.add("is-hidden");
 			this.dialog.style.setProperty("--backdrop", "0");
 			// Read after the class change so CSS has created its actual exit transition.
 			void sheet.offsetHeight;
@@ -986,7 +1087,7 @@ class AppController {
 				],
 				{ duration: MotionEngine.time("fast"), fill: "forwards" },
 			);
-			const bar = this.dialog.querySelector(":scope > .float-bar");
+			const bar = this.dialog.querySelector<HTMLElement>(":scope > .float-bar");
 			const barAnimation = bar
 				? MotionEngine.animate(bar, [{ opacity: 1 }, { opacity: 0 }], {
 						duration: 100,
@@ -1008,7 +1109,9 @@ class AppController {
 		this.pauseMedia();
 		const toast = document.getElementById("toast");
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);
-		const source = this.grid.querySelector(`[data-card="${CSS.escape(this.currentId || "")}"]`);
+		const source = this.grid.querySelector<HTMLElement>(
+			`[data-card="${CSS.escape(this.currentId || "")}"]`,
+		);
 		if (animate && ["preview", "reader"].includes(this.modalKind))
 			MotionEngine.closePanel(this.dialog, MotionEngine.capture(source), () =>
 				MotionEngine.lift(null),
@@ -1021,7 +1124,7 @@ class AppController {
 		this.sheetHide = null;
 		this.previewSizeObserver?.disconnect();
 		if (this.modalKind === "search")
-			this.searchScroll = this.dialog.querySelector("#search-results")?.scrollTop || 0;
+			this.searchScroll = this.dialog.querySelector<HTMLElement>("#search-results")?.scrollTop || 0;
 		this.dialog.close();
 		if (this.searchBackground) {
 			this.restoreSearch();
@@ -1045,20 +1148,21 @@ class AppController {
 		this.dialog.style.transform = "";
 		this.dialog.style.translate = "";
 		this.dialog.classList.remove("is-drag");
-		this.dialog.getAnimations({ subtree: true }).forEach((a?: any) => {
-			if (a.effect?.pseudoElement === "::backdrop") a.cancel();
+		this.dialog.getAnimations({ subtree: true }).forEach((a) => {
+			if ((a.effect as KeyframeEffect)?.pseudoElement === "::backdrop") a.cancel();
 		});
 		let focus =
 			this.lastFocus?.isConnected && this.lastFocus !== document.body
-				? this.lastFocus
-				: source?.querySelector(".card-title-button") || source;
+				? (this.lastFocus as HTMLElement)
+				: source?.querySelector<HTMLElement>(".card-title-button") || source;
 		if (
 			focus &&
 			(!focus.getClientRects().length || getComputedStyle(focus).visibility === "hidden")
 		)
 			focus =
-				focus.closest("[data-card]")?.querySelector(".card-title-button") ||
-				document.getElementById("account");
+				focus
+					.closest<HTMLElement>("[data-card]")
+					?.querySelector<HTMLElement>(".card-title-button") || document.getElementById("account");
 		(focus || document.getElementById("account")).focus({ preventScroll: true });
 	}
 	// Leave a card for the desk directly, wherever it was opened from.
@@ -1071,7 +1175,7 @@ class AppController {
 			history.go(-depth);
 		} else this.closeToDesk();
 	}
-	closeToDesk(animate: any = true) {
+	closeToDesk(animate = true) {
 		const destination = this.searchBackground ? "search" : this.baseMode;
 		history.replaceState({ glass: true, prev: null }, "", "#" + destination);
 		this.lastRouteHash = "#" + destination;
@@ -1091,20 +1195,28 @@ class AppController {
 			back();
 		} else this.closeNative();
 	}
-	openPanel(kind?: any, id: any = "") {
+	openPanel(kind?: string, id: string = "") {
 		if (kind === "search" && location.hash !== "#search") {
 			this.navigate("#search");
 			return;
 		}
 		if (kind === "search") this.panelReturn = null;
-		else if (["preview", "reader"].includes(this.modalKind)) {
+		else if (
+			["preview", "reader"].includes(this.modalKind) ||
+			(this.modalKind === "lightbox" && kind === "editor")
+		) {
 			const cardId = this.currentId,
-				reading = this.modalKind === "reader";
-			this.panelReturn = () => this.openCard(cardId, reading);
+				reading = this.modalKind === "reader",
+				photoIndex = this.modalKind === "lightbox" ? this.photoIndex : null;
+			this.panelReturn = () => {
+				this.openCard(cardId, reading);
+				if (photoIndex !== null && this.modalKind === "lightbox")
+					this.action("photo-go", cardId, String(photoIndex));
+			};
 		}
 		this.editId = id;
 		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);
-		if (kind === "editor") this.editTags = new Set<any>(Store.tags(Store.card(id)));
+		if (kind === "editor") this.editTags = new Set<string>(Store.tags(Store.card(id)));
 		const narrow = ["editor", "why", "capture", "confirm", "ai"].includes(kind),
 			wide = kind === "settings";
 		const html =
@@ -1130,14 +1242,14 @@ class AppController {
 			kind === "search" ? "search" : `panel${narrow ? " narrow" : wide ? " wide" : ""}`,
 		);
 		if (kind === "search") {
-			this.dialog.querySelector("#search-results").scrollTop = this.searchScroll;
+			this.dialog.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 			this.bindSearchResults();
 			this.revealImages(this.dialog);
 		}
 	}
 	bindSearchResults() {
 		this.bindSearchSelection();
-		const results = this.dialog.querySelector("#search-results");
+		const results = this.dialog.querySelector<HTMLElement>("#search-results");
 		results?.addEventListener(
 			"scroll",
 			() => {
@@ -1157,19 +1269,19 @@ class AppController {
 	}
 	suspendSearch() {
 		clearTimeout(this.searchTimer);
-		this.searchScroll = this.dialog.querySelector("#search-results")?.scrollTop || 0;
-		this.searchFocus = document.activeElement as HTMLElement;
+		this.searchScroll = this.dialog.querySelector<HTMLElement>("#search-results")?.scrollTop || 0;
+		this.searchFocus = document.activeElement as HTMLElement as HTMLElement;
 		const background = document.createElement("dialog");
 		background.id = "search-background";
 		background.className = this.dialog.className;
 		background.setAttribute("aria-label", copy("web.search"));
 		background.append(...this.dialog.childNodes);
 		// A second title must not compete with the active card dialog's label.
-		background.querySelector("#modal-title")?.removeAttribute("id");
+		background.querySelector<HTMLElement>("#modal-title")?.removeAttribute("id");
 		document.body.append(background);
 		this.dialog.close();
 		background.show();
-		background.querySelector("#search-results").scrollTop = this.searchScroll;
+		background.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 		this.searchBackground = background;
 	}
 	restoreSearch() {
@@ -1177,7 +1289,7 @@ class AppController {
 		if (!background) return;
 		this.dialog.className = background.className;
 		this.dialog.replaceChildren(...background.childNodes);
-		this.dialog.querySelector("h1").id = "modal-title";
+		this.dialog.querySelector<HTMLElement>("h1").id = "modal-title";
 		background.close();
 		background.remove();
 		this.searchBackground = undefined;
@@ -1188,12 +1300,12 @@ class AppController {
 		this.dialog.style.translate = "";
 		this.dialog.style.transform = "";
 		this.dialog.showModal();
-		this.dialog.querySelector("#search-results").scrollTop = this.searchScroll;
+		this.dialog.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 		this.setNav("search");
 		this.updateSelection();
 		(this.searchFocus?.isConnected
 			? this.searchFocus
-			: this.dialog.querySelector("#filter-search")
+			: this.dialog.querySelector<HTMLElement>("#filter-search")
 		)?.focus({ preventScroll: true });
 	}
 	discardSearchBackground() {
@@ -1201,7 +1313,7 @@ class AppController {
 		this.searchBackground?.remove();
 		this.searchBackground = undefined;
 	}
-	swapPanel(html?: any, kind?: any, shape: any = "panel") {
+	swapPanel(html?: string, kind?: string, shape: string = "panel") {
 		this.modalToken++;
 		MotionEngine.cancelPanel(this.dialog);
 		this.sheetLeaving = false;
@@ -1214,95 +1326,23 @@ class AppController {
 		this.dialog.className = shape;
 		this.dialog.innerHTML = html;
 		if (!this.dialog.open) {
-			this.lastFocus = document.activeElement;
+			this.lastFocus = document.activeElement as HTMLElement;
 			this.lockPageScroll();
 			this.dialog.showModal();
 		}
 		MotionEngine.enter(this.dialog.firstElementChild);
-		const focus = this.dialog.querySelector("#modal-title");
+		const focus = this.dialog.querySelector<HTMLElement>("#modal-title");
 		if (focus) {
 			focus.tabIndex = -1;
 			focus.focus({ preventScroll: true });
 		}
 	}
-	openCard(id?: any, reading: any = false) {
-		const c = Store.card(id);
-		if (!c) return;
-		const source = (
-			this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
-		).querySelector(`[data-card="${CSS.escape(id)}"]`);
-		// A quick note opens where it is: the card becomes its own editor.
-		if (
-			!reading &&
-			c.type === "note" &&
-			cardSourceKind(c) === "capture" &&
-			c.form !== "quote" &&
-			source &&
-			!this.dialog.open
-		) {
-			history.replaceState({ glass: true, prev: null }, "", "#feed");
-			this.lastRouteHash = "#feed";
-			this.startInlineEdit(id);
-			return;
-		}
-		if (!this.dialog.open || this.currentId !== id)
-			try {
-				this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));
-			} catch {}
-		const origin = MotionEngine.capture(
-			this.dialog.open && this.currentId === id && ["preview", "reader"].includes(this.modalKind)
-				? MotionEngine.surface(this.dialog)
-				: source,
-		);
-		if (!this.dialog.open || this.modalKind !== "preview") this.previewTrail = [];
-		else if (!reading && this.currentId && this.currentId !== id) {
-			const back = this.previewTrail.lastIndexOf(id);
-			if (back >= 0) this.previewTrail = this.previewTrail.slice(0, back);
-			else this.previewTrail.push(this.currentId);
-		}
-		if (this.modalKind === "search") this.suspendSearch();
-		this.currentId = id;
-		Store.patch(id, { seen: true });
-		this.refreshCard(id);
-		if (c.type === "photo" && !reading) {
-			this.photoIndex = 0;
-			this.openModal(Panels.lightbox(c, 0, this), "lightbox", null, "lightbox");
-			Store.patch(id, { read: true, progress: 1 });
-			this.refreshCard(id);
-			return;
-		}
-		if (reading) {
-			// Bodies are on this device, so the page opens complete. The skeleton is kept for bodies fetched from a source.
-			this.openModal(Panels.reader(this, c, false), "reader", origin);
-			this.bindReader(id);
-			this.gestures.bindPullDown();
-			this.bindSheetChrome();
-			return;
-		}
-		this.openModal(Panels.preview(this, c), "preview", origin);
-		// The card below shows as an edge behind this one; tapping it goes back one card.
-		const below = Store.card(this.previewTrail.at(-1));
-		if (below)
-			this.dialog.insertAdjacentHTML(
-				"afterbegin",
-				`<button type="button" class="sheet-peek" data-action="close" aria-label="${esc(copy("web.peekBack") + below.title)}"></button>`,
-			);
-		this.bindPreview(id);
-		this.gestures.bindPullDown();
-		this.bindSheetChrome();
-		if (c.type === "media" && c.media !== "podcast") {
-			this.mediaIndex = Math.min(
-				(c.body.length || 1) - 1,
-				Math.floor(Store.item(id).progress * (c.body.length || 1)),
-			);
-			this.paintMedia();
-		}
+	openCard(id?: string, reading = false): undefined {
+		return openCard.call(this, id, reading);
 	}
 	// Always listen, including when a short sheet later expands or images load.
-	bindPreview(id?: any) {
-		const scroll = this.dialog.querySelector(".preview-sheet .sheet-scroll");
-		if (!scroll || !CardTypes[Store.card(id)?.type]?.readable) return;
-		this.bindReading(id, scroll);
+	bindPreview(id?: string): undefined {
+		return bindPreview.call(this, id);
 	}
 	bindReading(id: string, scroll: HTMLElement) {
 		const token = this.modalToken;
@@ -1342,47 +1382,12 @@ class AppController {
 	}
 
 	/** The preview and reader toolbars follow the same tuck-and-return rule as the desk rail. */
-	bindSheetChrome() {
-		this.sheetHide?.destroy();
-		this.previewSizeObserver?.disconnect();
-		const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
-		if (!scroll) return;
-		this.sheetHide = new ChromeAutoHide(scroll, () => [
-			...this.dialog.querySelectorAll(
-				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
-			),
-		]);
-		// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
-		const sheet = this.dialog.querySelector(".preview-sheet");
-		if (sheet) {
-			const placeHead = () => {
-				this.dialog.style.setProperty("--preview-height", `${sheet.offsetHeight}px`);
-				const title = sheet.querySelector("#modal-title");
-				if (title) {
-					const top =
-						title.getBoundingClientRect().top -
-						sheet.getBoundingClientRect().top +
-						scroll.scrollTop;
-					// Align the disc's centre with the first title line.
-					const line = parseFloat(getComputedStyle(title).lineHeight) || 28;
-					sheet.style.setProperty("--preview-title-top", `${Math.max(12, top + line / 2 - 22)}px`);
-				}
-			};
-			this.previewSizeObserver = new ResizeObserver(placeHead);
-			this.previewSizeObserver.observe(sheet);
-			const body = sheet.querySelector(".preview-body, .player");
-			if (body) this.previewSizeObserver.observe(body);
-			placeHead();
-			scroll.addEventListener(
-				"scroll",
-				() => sheet.classList.toggle("is-scrolled", scroll.scrollTop > 8),
-				{ passive: true },
-			);
-		}
+	bindSheetChrome(): undefined {
+		return bindSheetChrome.call(this);
 	}
-	bindReader(id?: any) {
+	bindReader(id?: string) {
 		this.lastActivity = Date.now();
-		const scroll = this.dialog.querySelector("#reader-scroll");
+		const scroll = this.dialog.querySelector<HTMLElement>("#reader-scroll");
 		if (!scroll) return;
 		const token = this.modalToken;
 		requestAnimationFrame(() => {
@@ -1392,9 +1397,9 @@ class AppController {
 			this.bindReading(id, scroll);
 		});
 	}
-	updateReading(id?: any, scroll?: any) {
+	updateReading(id?: string, scroll?: HTMLElement) {
 		const available = scroll.scrollHeight - scroll.clientHeight;
-		const end = scroll.querySelector("#reader-end");
+		const end = scroll.querySelector<HTMLElement>("#reader-end");
 		const viewport = scroll.getBoundingClientRect();
 		const endBox = end?.getBoundingClientRect();
 		// The content end precedes trailing actions/padding. Seeing it counts as reaching the end.
@@ -1413,9 +1418,9 @@ class AppController {
 		const bar = document.getElementById("reader-progress");
 		if (bar) bar.style.width = Math.round(actual * 100) + "%";
 		document.getElementById("reader-end")?.classList.toggle("is-done", Store.item(id).read);
-		this.dialog.querySelectorAll(".progress-ring").forEach((n?: any) => {
+		this.dialog.querySelectorAll<HTMLElement>(".progress-ring").forEach((n?: HTMLElement) => {
 			n.setAttribute("aria-valuenow", String(Math.round(p * 100)));
-			n.querySelector("circle:last-child").setAttribute(
+			n.querySelector<HTMLElement>("circle:last-child").setAttribute(
 				"stroke-dashoffset",
 				String(50.265 * (1 - p)),
 			);
@@ -1452,20 +1457,22 @@ class AppController {
 		return `<button type="button" class="text-button" data-action="agent-handoff" data-id="${esc(card.id)}"${busy || state === "sent" || state === "unknown" ? " disabled" : ""} aria-busy="${busy}">${labels[state]}</button>`;
 	}
 	paintAgentActions() {
-		this.dialog.querySelectorAll('[data-action="agent-handoff"]').forEach((button: HTMLElement) => {
-			const card = Store.card(button.dataset.id);
-			if (!card) return;
-			const template = document.createElement("template");
-			template.innerHTML = this.agentAction(card);
-			const next = template.content.querySelector("button");
-			if (!next) {
-				button.remove();
-				return;
-			}
-			button.textContent = next.textContent;
-			(button as HTMLButtonElement).disabled = next.disabled;
-			button.setAttribute("aria-busy", next.getAttribute("aria-busy"));
-		});
+		this.dialog
+			.querySelectorAll<HTMLElement>('[data-action="agent-handoff"]')
+			.forEach((button: HTMLElement) => {
+				const card = Store.card(button.dataset.id);
+				if (!card) return;
+				const template = document.createElement("template");
+				template.innerHTML = this.agentAction(card);
+				const next = template.content.querySelector<HTMLButtonElement>("button");
+				if (!next) {
+					button.remove();
+					return;
+				}
+				button.textContent = next.textContent;
+				(button as HTMLButtonElement).disabled = next.disabled;
+				button.setAttribute("aria-busy", next.getAttribute("aria-busy"));
+			});
 	}
 	async handoffCard(id: string) {
 		try {
@@ -1495,7 +1502,7 @@ class AppController {
 			this.paintAgentActions();
 		}
 	}
-	async openExternal(c?: any, url: string = c?.url) {
+	async openExternal(c?: Card, url: string = c?.url) {
 		try {
 			return await openCardLink(url, window.__SILL_HOST__, (value) =>
 				window.open(value, "_blank", "noopener,noreferrer"),
@@ -1506,14 +1513,14 @@ class AppController {
 		}
 	}
 	/** Toast is for undo and short facts; it sits one row above the bottom rail. */
-	toast(text?: any, undo: any = null, actionLabel: any = copy("web.app.926a50b98ece")) {
+	toast(text?: string, undo: () => void = null, actionLabel = copy("web.app.926a50b98ece")) {
 		this.showToast(text, undo, actionLabel, false);
 	}
 	/** A failure or a step the person must take stays until it is closed. */
-	alert(text?: any) {
+	alert(text?: string) {
 		this.showToast(text, null, "", true);
 	}
-	showToast(text?: any, undo?: any, actionLabel?: any, persistent?: any) {
+	showToast(text?: string, undo?: () => void, actionLabel?: string, persistent?: boolean) {
 		clearTimeout(this.toastTimer);
 		this.toastSeq = (this.toastSeq || 0) + 1;
 		this.undoAction = undo;
@@ -1551,50 +1558,50 @@ class AppController {
 		leave ? leave.finished.then(done, done) : done();
 	}
 	/** A single flag shows its result on the card and in the preview; no toast. */
-	setFlag(id?: any, key?: any, value?: any) {
+	setFlag(id?: string, key?: CardFlag, value?: boolean) {
 		Store.patch(id, { [key]: value });
 		this.refreshCard(id);
 		this.syncPreviewButtons(id);
 	}
-	syncPreviewButtons(id?: any) {
+	syncPreviewButtons(id?: string) {
 		const s = Store.item(id);
 		this.dialog
-			.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="bookmark"]`)
-			.forEach((n?: any) => {
+			.querySelectorAll<HTMLElement>(`[data-id="${CSS.escape(id)}"][data-action="bookmark"]`)
+			.forEach((n?: HTMLElement) => {
 				n.classList.toggle("active", s.bookmarked);
 				n.setAttribute(
 					"aria-label",
-					s.bookmarked ? copy("web.panels.dca60869e7d2") : copy("web.bookmark"),
+					s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
 				);
 			});
 		this.dialog
-			.querySelectorAll(`[data-id="${CSS.escape(id)}"][data-action="later"]`)
-			.forEach((n?: any) => {
+			.querySelectorAll<HTMLElement>(`[data-id="${CSS.escape(id)}"][data-action="later"]`)
+			.forEach((n?: HTMLElement) => {
 				n.classList.toggle("active", s.later);
-				n.setAttribute("aria-label", s.later ? copy("web.panels.c4d2d1edba13") : copy("web.later"));
+				n.setAttribute("aria-label", s.later ? copy("web.preview.removeLater") : copy("web.later"));
 			});
 	}
-	toggleTask(id?: any, taskId?: any) {
+	toggleTask(id?: string, taskId?: string) {
 		const c = Store.card(id),
 			before = Store.tasks(c)
-				.filter((t?: any) => t.done)
-				.map((t?: any) => t.id);
+				.filter((t) => t.done)
+				.map((t) => t.id);
 		const after = before.includes(taskId)
-			? before.filter((t?: any) => t !== taskId)
+			? before.filter((t) => t !== taskId)
 			: [...before, taskId];
 		Store.patch(id, { taskDone: after });
 		this.refreshCard(id);
 		if (this.dialog.open && this.currentId === id && this.modalKind === "preview") {
-			const holder = this.dialog.querySelector(".detail-task-list");
+			const holder = this.dialog.querySelector<HTMLElement>(".detail-task-list");
 			if (holder)
 				for (const t of Store.tasks(c)) {
-					const node = [...holder.querySelectorAll("[data-extra]")].find(
-						(n?: any) => n.dataset.extra === t.id,
+					const node = [...holder.querySelectorAll<HTMLElement>("[data-extra]")].find(
+						(n?: HTMLElement) => n.dataset.extra === t.id,
 					);
 					if (node) {
 						node.classList.toggle("is-done", t.done);
 						node.setAttribute("aria-checked", String(t.done));
-						node.querySelector(".check-dot").outerHTML = checkMark(t.done);
+						node.querySelector<HTMLElement>(".check-dot").outerHTML = checkMark(t.done);
 						if (t.id === taskId) MotionEngine.fade(node);
 					}
 				}
@@ -1605,10 +1612,10 @@ class AppController {
 				this.refreshCard(id);
 			});
 	}
-	closeMore(restoreFocus: any = false) {
+	closeMore(restoreFocus = false) {
 		const menu = document.querySelector<HTMLElement>(".card-more-menu");
 		if (!menu) return;
-		const card = menu.closest("[data-card]"),
+		const card = menu.closest<HTMLElement>("[data-card]"),
 			trigger = card?.querySelector<HTMLElement>(".card-title-button");
 		if (restoreFocus) trigger?.focus({ preventScroll: true });
 		// The menu leaves faster than it came, toward its anchor.
@@ -1633,13 +1640,13 @@ class AppController {
 		trigger?.setAttribute("aria-expanded", "false");
 		trigger?.removeAttribute("aria-controls");
 	}
-	more(id?: any) {
-		const c = (this.modalKind === "search" ? this.dialog : this.grid).querySelector(
+	more(id?: string) {
+		const c = (this.modalKind === "search" ? this.dialog : this.grid).querySelector<HTMLElement>(
 				`[data-card="${CSS.escape(id)}"]`,
 			),
 			card = Store.card(id);
 		if (!c || !card) return;
-		if (c.querySelector(".card-more-menu")) {
+		if (c.querySelector<HTMLElement>(".card-more-menu")) {
 			this.closeMore(true);
 			return;
 		}
@@ -1652,10 +1659,10 @@ class AppController {
 		menu.id = "card-menu-" + id;
 		const s = Store.item(id),
 			items = [
-				...(card.why ? [["info", copy("web.panels.fdc032965548"), "why"]] : []),
+				...(card.why ? [["info", copy("web.why.title"), "why"]] : []),
 				[
 					"bookmark",
-					s.bookmarked ? copy("web.panels.dca60869e7d2") : copy("web.bookmark"),
+					s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
 					"bookmark",
 				],
 				["glasses", s.later ? copy("web.app.1056291ba162") : copy("web.later"), "later"],
@@ -1677,12 +1684,12 @@ class AppController {
 			];
 		menu.innerHTML = items
 			.map(
-				([symbol, label, action]: any) =>
+				([symbol, label, action]) =>
 					`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span></button>`,
 			)
 			.join("");
 		c.appendChild(menu);
-		const trigger = c.querySelector(".card-title-button");
+		const trigger = c.querySelector<HTMLElement>(".card-title-button");
 		trigger?.setAttribute("aria-expanded", "true");
 		trigger?.setAttribute("aria-controls", menu.id);
 		MotionEngine.animate(
@@ -1693,7 +1700,7 @@ class AppController {
 			],
 			{ duration: 180 },
 		);
-		menu.querySelector("button")?.focus({ preventScroll: true });
+		menu.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
 	}
 	/* ——— Refresh, new content, reminders ——— */
 	async refresh({ feedback = "default" } = {}) {
@@ -1720,7 +1727,7 @@ class AppController {
 			} else {
 				// Demo: the next unseen sample arrives as new content; nothing jumps into the desk.
 				const next = FreshCards.find(
-					(f?: any) => !Store.card(f.id) && !this.pendingCards.some((p?: any) => p.id === f.id),
+					(f) => !Store.card(f.id) && !this.pendingCards.some((p) => p.id === f.id),
 				);
 				if (next) this.pendingCards.push({ ...next, time: Date.now() });
 				this.feedNow = Date.now();
@@ -1760,16 +1767,16 @@ class AppController {
 				);
 		}
 	}
-	setOffline(on?: any) {
+	setOffline(on?: boolean) {
 		const n = document.getElementById("offline");
 		MotionEngine.visibility(n, !!on);
 		n.classList.remove("is-retrying");
 	}
-	checkReminders(now: any = Date.now()) {
+	checkReminders(now = Date.now()) {
 		const next = Store.state.cards
-			.filter((c?: any) => FeedPolicy.eligible(c, Store.item(c.id), now))
-			.map((c?: any) => c.id);
-		const added = next.some((id?: any) => !this.pendingReminders.includes(id));
+			.filter((c?: Card) => FeedPolicy.eligible(c, Store.item(c.id), now))
+			.map((c?: Card) => c.id);
+		const added = next.some((id?: string) => !this.pendingReminders.includes(id));
 		this.pendingReminders = next;
 		this.paintPending();
 		if (added)
@@ -1783,41 +1790,44 @@ class AppController {
 		if (n.dataset.pending === signature) return;
 		n.dataset.pending = signature;
 		MotionEngine.visibility(n, !hide);
-		n.innerHTML = this.pendingReminders.length
-			? `${icon("bell", 14)}<span class="num">${count}</span>${copy("web.app.e57ff9e28a4b")}`
-			: `${icon("up", 14)}<span class="num">${count}</span>${copy("web.app.b50caa663fcf")}`;
+		const kinds = [
+			...(this.pendingReminders.length ? [icon("bell", 12)] : []),
+			...this.pendingCards.map((c?: Card) => CardPresentation.sourceIcon(c, 12)),
+		];
+		const sources = [...new Set(kinds)].slice(0, 3);
+		n.innerHTML = `${sources.length ? `<span class="new-sources" aria-hidden="true">${sources.map((k) => `<span>${k}</span>`).join("")}</span>` : ""}${icon("up", 14)}<span class="num">${count}</span>${copy("web.newContent")}`;
 		n.setAttribute(
 			"aria-label",
 			`${copy("web.app.9ae8f7e3040d")}${this.pendingCards.length}${copy("web.app.5b2f6ba24e42")}${this.pendingReminders.length}${copy("web.app.099a1047b74a")}`,
 		);
 	}
-	withFeedAnchor(change?: any, animate: any = false) {
-		const nodes = [...this.grid.querySelectorAll("[data-card]")];
-		const surfaces = [...this.grid.querySelectorAll(":scope > .feed-item")];
+	withFeedAnchor(change?: () => void, animate = false) {
+		const nodes = [...this.grid.querySelectorAll<HTMLElement>("[data-card]")];
+		const surfaces = [...this.grid.querySelectorAll<HTMLElement>(":scope > .feed-item")];
 		const key = (n: HTMLElement) =>
 			n.dataset.card || n.dataset.stack || n.dataset.stackOpen || "shelf";
 		const positions = animate
-			? new Map<any, any>(
-					surfaces.map((n?: any) => [key(n), { node: n, rect: n.getBoundingClientRect() }]),
+			? new Map<string, { node: HTMLElement; rect: DOMRect }>(
+					surfaces.map((n: HTMLElement) => [key(n), { node: n, rect: n.getBoundingClientRect() }]),
 				)
 			: null;
 		const anchors = nodes
-			.filter((n?: any) => n.getBoundingClientRect().bottom > 0)
-			.map((n?: any) => ({ id: n.dataset.card, top: n.getBoundingClientRect().top }));
+			.filter((n?: HTMLElement) => n.getBoundingClientRect().bottom > 0)
+			.map((n?: HTMLElement) => ({ id: n.dataset.card, top: n.getBoundingClientRect().top }));
 		const oldY = scrollY,
-			focus = document.activeElement;
-		const focusCard = (focus?.closest("[data-card]") as HTMLElement)?.dataset.card,
+			focus = document.activeElement as HTMLElement;
+		const focusCard = (focus?.closest<HTMLElement>("[data-card]") as HTMLElement)?.dataset.card,
 			focusAction = (focus as HTMLElement)?.dataset.action,
 			focusExtra = (focus as HTMLElement)?.dataset.extra,
 			focusId = (focus as HTMLElement)?.dataset.id;
 		change();
 		this.renderCurrent(false);
 		if (oldY > 0) {
-			const anchor = anchors.find((a?: any) =>
-				this.grid.querySelector(`[data-card="${CSS.escape(a.id)}"]`),
+			const anchor = anchors.find((a) =>
+				this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(a.id)}"]`),
 			);
 			if (anchor) {
-				const node = this.grid.querySelector(`[data-card="${CSS.escape(anchor.id)}"]`);
+				const node = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(anchor.id)}"]`);
 				const targetY = scrollY + node.getBoundingClientRect().top - anchor.top;
 				const scroller = document.scrollingElement;
 				// Masonry can move this card further than the whole feed grows. Near the bottom,
@@ -1830,11 +1840,11 @@ class AppController {
 			}
 		}
 		if (focusCard && !this.dialog.open) {
-			const card = this.grid.querySelector(`[data-card="${CSS.escape(focusCard)}"]`);
+			const card = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(focusCard)}"]`);
 			const target =
 				card &&
-				[...card.querySelectorAll("[data-action]")].find(
-					(n?: any) =>
+				[...card.querySelectorAll<HTMLElement>("[data-action]")].find(
+					(n?: HTMLElement) =>
 						n.dataset.action === focusAction &&
 						n.dataset.extra === focusExtra &&
 						n.dataset.id === focusId,
@@ -1842,13 +1852,13 @@ class AppController {
 			card?.focus({ preventScroll: true });
 			(
 				target ||
-				card?.querySelector(".card-title-button") ||
+				card?.querySelector<HTMLElement>(".card-title-button") ||
 				card ||
 				document.getElementById("account")
 			).focus({ preventScroll: true });
 		}
 		if (positions) {
-			this.grid.querySelectorAll(":scope > .feed-item").forEach((node?: any) => {
+			this.grid.querySelectorAll<HTMLElement>(":scope > .feed-item").forEach((node: HTMLElement) => {
 				MotionEngine.cancelExit(key(node));
 				const previous = positions.get(key(node));
 				const rect = node.getBoundingClientRect();
@@ -1864,7 +1874,7 @@ class AppController {
 			for (const [id, { node, rect }] of positions) MotionEngine.retire(node, rect, id);
 		}
 	}
-	showNew(quiet: any = false) {
+	showNew(quiet = false) {
 		if (this.dialog.open || this.drag.active) return;
 		this.checkReminders();
 		if (!this.pendingCards.length && !this.pendingReminders.length) return;
@@ -1894,12 +1904,12 @@ class AppController {
 				`${copy("web.app.fa2c54768fda")}${count}${copy("web.app.f9c6ab19b7d4")}${reminderCount}${copy("web.app.904aa82438d8")}`,
 			);
 	}
-	changeReminder(id?: any, action?: any) {
+	changeReminder(id?: string, action?: string) {
 		const c = Store.card(id);
 		if (!c || !FeedPolicy.supports(c)) return;
 		const item = Store.item(id),
 			keys = ["snoozedUntil", "dismissed", "reminderDone", "lastReminderKey", "lastNotifiedAt"];
-		const before = Object.fromEntries(keys.map((k?: any) => [k, item[k]]));
+		const before = Object.fromEntries(keys.map((k) => [k, item[k]]));
 		const now = Date.now();
 		const patch =
 			action === "snooze"
@@ -1921,10 +1931,10 @@ class AppController {
 		if (this.dialog.open) this.closeToDesk(false);
 		this.withFeedAnchor(() => {}, true);
 		this.checkReminders();
-		const card = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+		const card = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 		(
-			card?.querySelector(".card-title-button") ||
-			this.grid.querySelector(".card-title-button") ||
+			card?.querySelector<HTMLElement>(".card-title-button") ||
+			this.grid.querySelector<HTMLElement>(".card-title-button") ||
 			document.getElementById("account")
 		).focus({ preventScroll: true });
 		const text =
@@ -1939,9 +1949,9 @@ class AppController {
 			Store.patch(id, before);
 			this.withFeedAnchor(() => {}, true);
 			this.checkReminders();
-			const back = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+			const back = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 			(
-				back?.querySelector(".card-title-button") ||
+				back?.querySelector<HTMLElement>(".card-title-button") ||
 				back ||
 				document.getElementById("account")
 			).focus({
@@ -1949,7 +1959,7 @@ class AppController {
 			});
 		});
 	}
-	applySelectionAction(ids?: any, target?: any) {
+	applySelectionAction(ids?: string[], target?: string) {
 		if (!ids?.length || !["tag", "bookmark", "later"].includes(target)) return;
 		if (target === "tag") {
 			this.bulkEditIds = ids;
@@ -1957,17 +1967,17 @@ class AppController {
 			return;
 		}
 		const key = target === "bookmark" ? "bookmarked" : "later",
-			old = ids.map((id?: any) => [id, Store.item(id)[key]]);
-		ids.forEach((id?: any) => {
+			old = ids.map((id?: string): [string, boolean] => [id, Store.item(id)[key]]);
+		ids.forEach((id?: string) => {
 			Store.patch(id, { [key]: true });
 			this.refreshCard(id);
 		});
 		this.toast(
 			target === "bookmark"
-				? `${copy("web.app.96e7ee93f3ba")}${ids.length}${copy("web.panels.e9e0fdc242b4")}`
+				? `${copy("web.app.96e7ee93f3ba")}${ids.length}${copy("web.common.cardCountSuffix")}`
 				: `${ids.length}${copy("web.app.34d0636b70c8")}`,
 			() =>
-				old.forEach(([id, v]: any) => {
+				old.forEach(([id, v]) => {
 					Store.patch(id, { [key]: v });
 					this.refreshCard(id);
 				}),
@@ -1994,15 +2004,15 @@ class AppController {
 		this.mediaTimer = null;
 		clearInterval(this.podcastTimer);
 		this.podcastTimer = null;
-		const b = this.dialog?.querySelector('[data-action="media-play"]');
+		const b = this.dialog?.querySelector<HTMLElement>('[data-action="media-play"]');
 		if (b) {
 			b.innerHTML = icon("play");
-			b.setAttribute("aria-label", copy("web.panels.105587569775"));
+			b.setAttribute("aria-label", copy("web.preview.media.playDemo"));
 		}
-		const p = this.dialog?.querySelector('[data-action="podcast-play"]');
+		const p = this.dialog?.querySelector<HTMLElement>('[data-action="podcast-play"]');
 		if (p) {
 			p.innerHTML = icon("play", 22);
-			p.setAttribute("aria-label", copy("web.panels.c3396195e91c"));
+			p.setAttribute("aria-label", copy("web.preview.play"));
 		}
 	}
 	playMedia() {
@@ -2014,7 +2024,7 @@ class AppController {
 			last = (c.body.length || 1) - 1;
 		if (this.mediaIndex === last) this.mediaIndex = 0;
 		this.paintMedia();
-		const b = this.dialog.querySelector('[data-action="media-play"]');
+		const b = this.dialog.querySelector<HTMLElement>('[data-action="media-play"]');
 		b.innerHTML = icon("pause");
 		b.setAttribute("aria-label", copy("web.app.8c3c5d2fa170"));
 		this.mediaTimer = setInterval(() => {
@@ -2030,7 +2040,7 @@ class AppController {
 			} else this.pauseMedia();
 		}, 2500);
 	}
-	podcast(id?: any, seek: any = 0) {
+	podcast(id?: string, seek = 0) {
 		const c = Store.card(id);
 		if (!c) return;
 		const total = c.duration || 1,
@@ -2053,9 +2063,9 @@ class AppController {
 			this.pauseMedia();
 			return;
 		}
-		const b = this.dialog.querySelector('[data-action="podcast-play"]');
+		const b = this.dialog.querySelector<HTMLElement>('[data-action="podcast-play"]');
 		b.innerHTML = icon("pause", 22);
-		b.setAttribute("aria-label", copy("web.panels.8d12fc0d4eb2"));
+		b.setAttribute("aria-label", copy("web.preview.pause"));
 		this.podcastTimer = setInterval(() => {
 			const p = Math.min(1, Store.item(id).progress + 1 / total);
 			Store.patch(id, { progress: p, read: p >= 0.985 || Store.item(id).read });
@@ -2064,18 +2074,18 @@ class AppController {
 		}, 1000);
 	}
 	/* ——— Inline note editing ——— */
-	startInlineEdit(id?: any) {
+	startInlineEdit(id?: string) {
 		this.finishInlineEdit();
-		const node = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`),
+		const node = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`),
 			c = Store.card(id);
 		if (!node || !c) return;
 		this.editingId = id;
 		Store.patch(id, { seen: true, read: true });
 		node.classList.add("is-editing");
-		node.querySelector(".card-body").outerHTML =
+		node.querySelector<HTMLElement>(".card-body").outerHTML =
 			`<div class="inline-editor"><span class="card-head">${icon("note", 16)}<span class="card-src">${copy("web.app.5d7845b38bf2")}${esc(c.meta || copy("web.cards.de6785d99e02"))}</span></span><input id="inline-title" aria-label="${copy("web.title")}" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="${copy("web.app.7a688306423b")}" maxlength="4000">${esc((c.body?.length ? c.body.join("\n") : c.summary) || "")}</textarea><small id="inline-state">${copy("web.app.f2db3712a685")}</small></div>`;
 		this.layout.schedule(false);
-		const area = node.querySelector("#inline-body");
+		const area = node.querySelector<HTMLTextAreaElement>("#inline-body");
 		area.focus();
 		area.setSelectionRange(area.value.length, area.value.length);
 	}
@@ -2088,7 +2098,7 @@ class AppController {
 			text = (document.getElementById("inline-body") as HTMLInputElement)?.value || "";
 		const body = text
 			.split("\n")
-			.map((s?: any) => s.trim())
+			.map((s) => s.trim())
 			.filter(Boolean);
 		Object.assign(c, {
 			title: title.slice(0, 200),
@@ -2108,13 +2118,13 @@ class AppController {
 		const id = this.editingId;
 		this.saveInlineEdit();
 		this.editingId = "";
-		const node = this.grid.querySelector(`[data-card="${CSS.escape(id)}"]`);
+		const node = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 		node?.classList.remove("is-editing");
 		this.refreshCard(id);
 		this.layout.schedule(false);
 	}
 	/* ——— Capture ——— */
-	capture(text?: any, toast: any = true) {
+	capture(text?: string, toast = true): Card | null {
 		const card = Capture.capture(text);
 		if (!card) return null;
 		const { fresh } = Capture.dedupe([card]);
@@ -2135,12 +2145,10 @@ class AppController {
 	bindCaptureDrop() {
 		let depth = 0;
 		const hint = document.getElementById("drop-hint");
-		const isCapture = (e?: any) =>
+		const isCapture = (e?: DragEvent) =>
 			!e.dataTransfer?.types?.includes("Files") &&
-			[...(e.dataTransfer?.types || [])].some(
-				(t?: any) => t === "text/uri-list" || t === "text/plain",
-			);
-		document.addEventListener("dragenter", (e?: any) => {
+			[...(e.dataTransfer?.types || [])].some((t) => t === "text/uri-list" || t === "text/plain");
+		document.addEventListener("dragenter", (e?: TargetEvent<DragEvent>) => {
 			if (!isCapture(e) || this.drag.active) return;
 			depth++;
 			document.body.classList.add("is-dropping");
@@ -2153,10 +2161,10 @@ class AppController {
 				hint.hidden = true;
 			}
 		});
-		document.addEventListener("dragover", (e?: any) => {
+		document.addEventListener("dragover", (e?: TargetEvent<DragEvent>) => {
 			if (isCapture(e)) e.preventDefault();
 		});
-		document.addEventListener("drop", (e?: any) => {
+		document.addEventListener("drop", (e?: TargetEvent<DragEvent>) => {
 			if (!isCapture(e)) return;
 			e.preventDefault();
 			depth = 0;
@@ -2171,9 +2179,9 @@ class AppController {
 	loadDemo() {
 		const before = Store.state.cards.length;
 		Store.state.preferences.onboarded = true;
-		const demo = SeedCards.map((c?: any) => ({
+		const demo = SeedCards.map((c?: Card) => ({
 			...c,
-			tasks: c.tasks?.map((t?: any) => ({ ...t })),
+			tasks: c.tasks?.map((t) => ({ ...t })),
 			time: c.time,
 			...(c.start
 				? { start: Date.now() + (c.start - demoBase), end: Date.now() + (c.end - demoBase) }
@@ -2189,51 +2197,48 @@ class AppController {
 			this.toast(
 				copy("web.app.7c8adb347efd"),
 				() => {
-					Store.remove(demo.map((c?: any) => c.id));
+					Store.remove(demo.map((c?: Card) => c.id));
 					this.withFeedAnchor(() => {});
 				},
 				copy("web.app.309edeceecd6"),
 			);
 	}
 	/* ——— Settings ——— */
-	setPref(key?: any, value?: any) {
-		const before = Store.pref(key);
-		Store.setPref(key, value);
-		this.applyPreferences();
-		if (["stack", "fadeRead", "archiveAfter", "floatTimely", "density"].includes(key))
-			this.withFeedAnchor(() => {}, true);
-		if (this.modalKind === "settings") this.repaintSettings();
-		return before;
+	setPref(key?: string, value?: unknown): unknown {
+		return setPref.call(this, key, value);
 	}
-	replacePanelContent(html?: any) {
+	replacePanelContent(html?: string) {
 		const oldSurface = MotionEngine.surface(this.dialog);
 		const oldHeight = oldSurface.getBoundingClientRect().height;
 		const oldBody = oldSurface.querySelector(".preview-body")?.innerHTML;
-		const active = document.activeElement;
-		const key = (n?: any) => [n.id, n.dataset.action, n.dataset.id, n.dataset.extra].join("|");
+		const active = document.activeElement as HTMLElement;
+		const key = (n?: HTMLElement) =>
+			[n.id, n.dataset.action, n.dataset.id, n.dataset.extra].join("|");
 		const focused = this.dialog.contains(active) ? key(active) : null;
 		const selectors = [".sheet-scroll", ".settings-main", ".settings-nav", ".sheet"];
-		const positions = selectors.map((selector?: any) => {
-			const node = this.dialog.querySelector(selector);
+		const positions = selectors.map((selector) => {
+			const node = this.dialog.querySelector<HTMLElement>(selector);
 			return { selector, x: node?.scrollLeft || 0, y: node?.scrollTop || 0 };
 		});
-		const full = this.dialog.querySelector(".preview-sheet")?.classList.contains("is-full");
+		const full = this.dialog
+			.querySelector<HTMLElement>(".preview-sheet")
+			?.classList.contains("is-full");
 		const toast = document.getElementById("toast");
 		if (toast && this.dialog.contains(toast)) document.body.appendChild(toast);
 		this.dialog.innerHTML = html;
-		if (full) this.dialog.querySelector(".preview-sheet")?.classList.add("is-full");
+		if (full) this.dialog.querySelector<HTMLElement>(".preview-sheet")?.classList.add("is-full");
 		if (focused) {
-			const target = [...this.dialog.querySelectorAll("button,input,textarea,a,[tabindex]")].find(
-				(n?: any) => key(n) === focused,
-			);
-			const focus = target || this.dialog.querySelector("#modal-title");
+			const target = [
+				...this.dialog.querySelectorAll<HTMLElement>("button,input,textarea,a,[tabindex]"),
+			].find((n?: HTMLElement) => key(n) === focused);
+			const focus = target || this.dialog.querySelector<HTMLElement>("#modal-title");
 			if (focus) {
 				if (!focus.matches("button,input,textarea,a,[tabindex]")) focus.tabIndex = -1;
 				focus.focus({ preventScroll: true });
 			}
 		}
 		for (const { selector, x, y } of positions) {
-			const node = this.dialog.querySelector(selector);
+			const node = this.dialog.querySelector<HTMLElement>(selector);
 			if (node) {
 				node.scrollLeft = x;
 				node.scrollTop = y;
@@ -2245,24 +2250,11 @@ class AppController {
 		else if (oldBody === undefined || oldBody !== surface.querySelector(".preview-body")?.innerHTML)
 			MotionEngine.resize(surface, oldHeight);
 	}
-	repaintSettings() {
-		const main = this.dialog.querySelector(".settings-main"),
-			y = main?.scrollTop || 0,
-			active = document.activeElement,
-			key = [
-				(active as HTMLElement)?.dataset.action,
-				(active as HTMLElement)?.dataset.id,
-				(active as HTMLElement)?.dataset.extra,
-			].join("|");
-		this.replacePanelContent(Panels.settings(this, this.settingsGroup));
-		const next = this.dialog.querySelector(".settings-main");
-		if (next) next.scrollTop = y;
-		[...this.dialog.querySelectorAll("[data-action]")]
-			.find((n?: any) => [n.dataset.action, n.dataset.id, n.dataset.extra].join("|") === key)
-			?.focus({ preventScroll: true });
+	repaintSettings(): undefined {
+		return repaintSettings.call(this);
 	}
 	exportAll() {
-		const data: Record<string, any> = {
+		const data: ReturnType<typeof Store.serialized> = {
 			app: "Sill",
 			exportedAt: new Date().toISOString(),
 			...Store.serialized(),
@@ -2273,7 +2265,7 @@ class AppController {
 			"application/json",
 		);
 	}
-	download(name?: any, text?: any, type: any = "text/plain") {
+	download(name?: string, text?: string, type: string = "text/plain") {
 		const blob = new Blob([text], { type }),
 			url = URL.createObjectURL(blob),
 			a = document.createElement("a");
@@ -2289,21 +2281,24 @@ class AppController {
 			const minute = Math.floor(Date.now() / 60000);
 			if (this.clockMinute !== minute) {
 				this.clockMinute = minute;
-				this.grid.querySelectorAll("[data-card]").forEach((node?: any) => {
+				this.grid.querySelectorAll<HTMLElement>("[data-card]").forEach((node?: HTMLElement) => {
 					const c = Store.card(node.dataset.card);
 					if (!c) return;
 					if (c.type === "event") {
-						const label = node.querySelector(".event-relative");
+						const label = node.querySelector<HTMLElement>(".event-relative");
 						if (label) label.textContent = eventRelative(c);
 						// The join button appears only once the meeting is near; an ended meeting fades.
 						if (
-							!!node.querySelector('[data-action="join"]') !== (eventTimely(c) && !!c.meeting) ||
+							!!node.querySelector<HTMLElement>('[data-action="join"]') !==
+								(eventTimely(c) && !!c.meeting) ||
 							node.classList.contains("is-ended") !== eventEnded(c)
 						)
 							this.refreshCard(c.id);
 					} else if (c.type === "reminder") {
-						const label = node.querySelector(".reminder-label");
-						if (label) label.textContent = FeedPolicy.label(c, Store.item(c.id), Date.now());
+						// The time itself is fixed; only crossing it turns the time amber.
+						const when = FeedPolicy.reminderTime(c, Store.item(c.id), Date.now());
+						const label = node.querySelector<HTMLElement>(".reminder-label");
+						if (label && label.classList.contains("is-due") !== !!when?.due) this.refreshCard(c.id);
 					}
 				});
 			}
@@ -2315,7 +2310,7 @@ class AppController {
 			Date.now() - this.lastActivity < 60000
 		) {
 			Store.state.seconds++;
-			document.querySelectorAll("[data-live-time]").forEach((n?: any) => {
+			document.querySelectorAll<HTMLElement>("[data-live-time]").forEach((n?: HTMLElement) => {
 				n.textContent = minutes(Store.state.seconds);
 			});
 			if (Store.state.seconds % 5 === 0) Store.save();
@@ -2325,10 +2320,10 @@ class AppController {
 	/* Stacks are decks: the top card moves with the hand (finger, mouse or a sideways trackpad swipe) and leaves whole;
     the next card rises from beneath. Swiping right brings the previous card back over the top. */
 	bindStacks() {
-		this.stackIndex = new Map<any, any>();
-		let g = null;
-		this.grid.addEventListener("pointerdown", (e?: any) => {
-			const deck = e.target.closest?.(".deck");
+		this.stackIndex = new Map<string, number>();
+		let g: DeckGesture = null;
+		this.grid.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
+			const deck = e.target.closest?.<Deck>(".deck");
 			if (!deck || e.button !== 0 || e.isPrimary === false) return;
 			// A new hand gesture owns the deck, including while the previous card settles.
 			deck._finish?.();
@@ -2338,7 +2333,7 @@ class AppController {
 			this.stackDragUntil = 0;
 			g = { deck, id: e.pointerId, x: e.clientX, y: e.clientY, at: Date.now(), live: false, dx: 0 };
 		});
-		document.addEventListener("pointermove", (e?: any) => {
+		document.addEventListener("pointermove", (e?: TargetEvent<PointerEvent>) => {
 			if (!g || e.pointerId !== g.id) return;
 			const dx = e.clientX - g.x,
 				dy = e.clientY - g.y;
@@ -2359,7 +2354,7 @@ class AppController {
 			g.dx = dx;
 			this.deckFollow(g.deck, dx);
 		});
-		const release = (e?: any, cancelled?: any) => {
+		const release = (e?: Pick<PointerEvent, "pointerId">, cancelled?: boolean) => {
 			if (!g || e.pointerId !== g.id) return;
 			const d = g;
 			g = null;
@@ -2372,9 +2367,9 @@ class AppController {
 				!cancelled && (Math.abs(d.dx) > w * 0.3 || (Math.abs(v) > 0.45 && Math.abs(d.dx) > 30));
 			this.deckSettle(d.deck, go ? (d.dx < 0 ? 1 : -1) : 0);
 		};
-		document.addEventListener("pointerup", (e?: any) => release(e, false));
-		document.addEventListener("pointercancel", (e?: any) => release(e, true));
-		this.grid.addEventListener("lostpointercapture", (e?: any) => {
+		document.addEventListener("pointerup", (e?: TargetEvent<PointerEvent>) => release(e, false));
+		document.addEventListener("pointercancel", (e?: TargetEvent<PointerEvent>) => release(e, true));
+		this.grid.addEventListener("lostpointercapture", (e?: TargetEvent<PointerEvent>) => {
 			if (g && e.target === g.deck) release(e, true);
 		});
 		window.addEventListener("blur", () => {
@@ -2383,8 +2378,8 @@ class AppController {
 		// Trackpad: a sideways swipe drags the top card too. Its coasting momentum is ignored until the hand stops.
 		this.grid.addEventListener(
 			"wheel",
-			(e?: any) => {
-				const deck = e.target.closest?.(".deck");
+			(e?: TargetEvent<WheelEvent>) => {
+				const deck = e.target.closest?.<Deck>(".deck");
 				if (!deck || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
 				e.preventDefault();
 				const now = Date.now();
@@ -2419,8 +2414,8 @@ class AppController {
 			{ passive: false },
 		);
 	}
-	deckParts(deck?: any) {
-		const cards = [...deck.children],
+	deckParts(deck?: Deck) {
+		const cards = [...deck.children] as HTMLElement[],
 			i = Number(deck.dataset.cur || 0);
 		return {
 			cards,
@@ -2431,7 +2426,7 @@ class AppController {
 			w: deck.offsetWidth || 1,
 		};
 	}
-	deckFollow(deck?: any, dx?: any) {
+	deckFollow(deck?: Deck, dx?: number) {
 		const { top, next, prev, w } = this.deckParts(deck);
 		if (dx <= 0 || !prev) {
 			// Toward the next card; with nothing beyond, the top card only gives a little.
@@ -2452,17 +2447,17 @@ class AppController {
 			prev.style.transform = `translateX(${x}px) rotate(${(x / w) * 6}deg)`;
 		}
 	}
-	deckSettle(deck?: any, dir?: any) {
+	deckSettle(deck?: Deck, dir?: number) {
 		deck._finish?.();
 		const { cards, i, top, next, prev, w } = this.deckParts(deck);
 		if (!top) return;
 		if ((dir === 1 && !next) || (dir === -1 && !prev)) dir = 0;
-		const t: Record<string, any> = {
+		const t: KeyframeAnimationOptions = {
 				duration: MotionEngine.reduced ? 1 : 260,
 				easing: "cubic-bezier(.2,.75,.25,1)",
 			},
-			anims = [];
-		const run = (el?: any, to?: any) => {
+			anims: Animation[] = [];
+		const run = (el?: HTMLElement, to?: string) => {
 			if (!el) return;
 			const from = el.style.transform || "none";
 			anims.push(el.animate([{ transform: from }, { transform: to }], t));
@@ -2484,7 +2479,7 @@ class AppController {
 		const done = () => {
 			if (finished) return;
 			finished = true;
-			anims.forEach((a?: any) => {
+			anims.forEach((a) => {
 				a.cancel();
 			});
 			delete deck.dataset.busy;
@@ -2492,15 +2487,15 @@ class AppController {
 			this.deckShow(deck, i + dir);
 		};
 		deck._finish = done;
-		Promise.all(anims.map((a?: any) => a.finished)).then(done, done);
+		Promise.all(anims.map((a) => a.finished)).then(done, done);
 	}
-	deckShow(deck?: any, i?: any) {
-		const cards = [...deck.children];
+	deckShow(deck?: Deck, i?: number) {
+		const cards = [...deck.children] as HTMLElement[];
 		i = Math.max(0, Math.min(cards.length - 1, i));
-		const stack = deck.closest("[data-stack]");
+		const stack = deck.closest<HTMLElement>("[data-stack]");
 		if (!stack) return;
 		const key = stack.dataset.stack;
-		cards.forEach((c?: any, k?: any) => {
+		cards.forEach((c: HTMLElement, k: number) => {
 			c.classList.toggle("is-top", k === i);
 			c.classList.toggle("is-next", k === i + 1);
 			c.classList.remove("is-prev");
@@ -2509,8 +2504,8 @@ class AppController {
 			c.setAttribute("aria-hidden", String(k !== i));
 		});
 		// The one button that spreads the pile out always sits on the card you can see.
-		const button = deck.querySelector(".card-title-button"),
-			h = cards[i].querySelector(".card-title");
+		const button = deck.querySelector<HTMLElement>(".card-title-button"),
+			h = cards[i].querySelector<HTMLElement>(".card-title");
 		if (button && h && !h.contains(button)) {
 			const old = button.parentElement;
 			old.textContent = button.textContent;
@@ -2518,28 +2513,30 @@ class AppController {
 			h.textContent = "";
 			h.appendChild(button);
 		}
-		deck.dataset.cur = i;
+		(deck.dataset as Record<string, string | number>).cur = i;
 		this.stackIndex.set(key, i);
 	}
 	restoreStacks() {
-		this.grid.querySelectorAll("[data-stack] .deck").forEach((deck?: any) => {
-			const i = this.stackIndex.get(deck.closest("[data-stack]").dataset.stack) || 0;
+		this.grid.querySelectorAll<HTMLElement>("[data-stack] .deck").forEach((deck?: Deck) => {
+			const i = this.stackIndex.get(deck.closest<HTMLElement>("[data-stack]").dataset.stack) || 0;
 			if (i) this.deckShow(deck, i);
 		});
 	}
-	click(e?: any) {
+	click(e?: TargetEvent<MouseEvent>) {
 		// The end of a sideways drag through a stack is not a tap.
-		if (this.stackDragUntil > Date.now() && e.target.closest?.("[data-stack]")) {
+		if (this.stackDragUntil > Date.now() && e.target.closest?.<HTMLElement>("[data-stack]")) {
 			e.preventDefault();
 			e.stopPropagation();
 			return;
 		}
 		if (Date.now() < this.drag.suppressUntil) return;
-		const picked = e.target.closest?.("#feed-grid [data-card], #search-results [data-card]");
+		const picked = e.target.closest?.<HTMLElement>(
+			"#feed-grid [data-card], #search-results [data-card]",
+		);
 		if (
 			picked &&
 			this.selectionContext().grid?.contains(picked) &&
-			!e.target.closest(".card-actions, .card-more-menu, .is-editing") &&
+			!e.target.closest<HTMLElement>(".card-actions, .card-more-menu, .is-editing") &&
 			(e.metaKey || e.ctrlKey || e.shiftKey || this.selected.size)
 		) {
 			e.preventDefault();
@@ -2548,11 +2545,14 @@ class AppController {
 			this.select(picked.dataset.card, { range: e.shiftKey });
 			return;
 		}
-		const el = e.target.closest?.("[data-action]");
-		if (el?.closest(".card-more-menu")) this.closeMore(true);
-		else if (!el?.matches('[data-action="card-more"]') && !e.target.closest?.(".card-more-menu"))
+		const el = e.target.closest?.<HTMLElement & { disabled?: boolean }>("[data-action]");
+		if (el?.closest<HTMLElement>(".card-more-menu")) this.closeMore(true);
+		else if (
+			!el?.matches('[data-action="card-more"]') &&
+			!e.target.closest?.<HTMLElement>(".card-more-menu")
+		)
 			this.closeMore();
-		if (this.editingId && !e.target.closest?.(".is-editing")) this.finishInlineEdit();
+		if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing")) this.finishInlineEdit();
 		if (el) {
 			if (el.disabled) return;
 			e.preventDefault();
@@ -2560,475 +2560,26 @@ class AppController {
 			this.action(el.dataset.action, el.dataset.id, el.dataset.extra, el, e);
 			return;
 		}
-		if (e.target.closest?.(".is-editing")) return;
-		const stack = e.target.closest?.("[data-stack]");
-		if (stack && !e.target.closest("button,a,input,textarea")) {
+		if (e.target.closest?.<HTMLElement>(".is-editing")) return;
+		const stack = e.target.closest?.<HTMLElement>("[data-stack]");
+		if (stack && !e.target.closest<HTMLElement>("button,a,input,textarea")) {
 			this.action("stack-open", "", stack.dataset.stack);
 			return;
 		}
-		const card = e.target.closest?.("[data-card]");
-		if (card && !e.target.closest("button,a,input,textarea")) {
+		const card = e.target.closest?.<HTMLElement>("[data-card]");
+		if (card && !e.target.closest<HTMLElement>("button,a,input,textarea")) {
 			this.navigate("#card/" + card.dataset.card);
 			return;
 		}
 	}
-	action(name?: any, id: any = "", extra: any = "", el: any = null, event: any = null) {
-		switch (name) {
-			case "agent-handoff":
-				void this.handoffCard(id);
-				break;
-			case "filter":
-			case "search":
-				this.openPanel("search");
-				break;
-			case "settings":
-				this.settingsGroup = "desk";
-				this.openPanel("settings");
-				break;
-			case "nav":
-				this.goTo(extra);
-				break;
-			case "settings-group":
-				this.settingsGroup = extra;
-				this.repaintSettings();
-				this.dialog
-					.querySelector(`[data-action="settings-group"][data-extra="${extra}"]`)
-					?.scrollIntoView({ block: "nearest", inline: "nearest" });
-				break;
-			case "capture":
-				this.openPanel("capture");
-				break;
-			case "capture-save": {
-				const text = (document.getElementById("capture-text") as HTMLInputElement)?.value;
-				if (!text?.trim()) return;
-				this.closeNative();
-				this.capture(text);
-				break;
-			}
-			case "refresh":
-				this.gestures.refresh();
-				break;
-			case "retry":
-				this.gestures.refresh();
-				break;
-			case "show-new":
-				this.showNew();
-				break;
-			case "top":
-				window.scrollTo({ top: 0, behavior: MotionEngine.reduced ? "instant" : "smooth" });
-				break;
-			case "card-open":
-			case "preview":
-				this.navigate("#card/" + id);
-				break;
-			case "reader":
-				this.navigate("#read/" + id);
-				break;
-			case "close":
-				this.closeModal();
-				break;
-			case "close-all":
-				this.closeToDesk();
-				break;
-			case "bookmark":
-				this.setFlag(id, "bookmarked", !Store.item(id).bookmarked);
-				break;
-			case "later":
-				this.setFlag(id, "later", !Store.item(id).later);
-				break;
-			case "task":
-				this.toggleTask(id, extra);
-				break;
-			case "edit":
-				this.bulkEditIds = null;
-				this.openPanel("editor", id);
-				break;
-			case "why":
-				this.openPanel("why", id);
-				break;
-			case "less-like":
-				this.closeNative();
-				this.toast(copy("web.app.0ec82d74e53c"));
-				break;
-			case "never-show": {
-				const before: Record<string, any> = { ...Store.item(id) };
-				this.closeNative();
-				Store.patch(id, { dismissed: true });
-				this.withFeedAnchor(() => {}, true);
-				this.toast(copy("web.app.c7fec996c47f"), () => {
-					Store.patch(id, before);
-					this.withFeedAnchor(() => {}, true);
-				});
-				break;
-			}
-			case "card-more":
-				this.more(id);
-				break;
-			case "toggle-read": {
-				const before: Record<string, any> = { ...Store.item(id) },
-					read = !before.read;
-				Store.patch(id, {
-					read,
-					seen: read,
-					progress: read ? 1 : 0,
-					readAt: read ? Date.now() : 0,
-				});
-				this.refreshCard(id);
-				break;
-			}
-			case "select":
-				this.select(id);
-				break;
-			case "select-all":
-				this.selectionContext()
-					.grid.querySelectorAll("[data-card]")
-					.forEach((n?: any) => {
-						this.selected.add(n.dataset.card);
-					});
-				this.updateSelection();
-				break;
-			case "clear-selection":
-				this.selected.clear();
-				this.updateSelection();
-				break;
-			case "selection-menu":
-				this.drag.openMenu([...this.selected], el);
-				break;
-			case "selected-ai":
-				this.openSelectionAI([...this.selected]);
-				break;
-			case "selected-bookmark":
-				this.applySelectionAction([...this.selected], "bookmark");
-				this.selected.clear();
-				this.updateSelection();
-				break;
-			case "selected-later":
-				this.applySelectionAction([...this.selected], "later");
-				this.selected.clear();
-				this.updateSelection();
-				break;
-			case "selected-tag": {
-				const ids = [...this.selected];
-				this.selected.clear();
-				this.updateSelection();
-				this.applySelectionAction(ids, "tag");
-				break;
-			}
-			case "stack-open":
-				this.openStacks.add(extra);
-				this.withFeedAnchor(() => {}, true);
-				this.grid
-					.querySelector(`[data-stack-open="${CSS.escape(extra)}"] .card-title-button`)
-					?.focus({ preventScroll: true });
-				break;
-			case "stack-close":
-				this.openStacks.delete(extra);
-				this.withFeedAnchor(() => {}, true);
-				this.grid
-					.querySelector(`[data-stack="${CSS.escape(extra)}"]`)
-					?.focus({ preventScroll: true });
-				break;
-			case "archive":
-				this.openPanel("archive", extra);
-				break;
-			case "restore-card": {
-				const before: Record<string, any> = { ...Store.item(id) };
-				Store.patch(id, { archived: false, restoredAt: Date.now() });
-				this.replacePanelContent(Panels.archive(this, this.editId));
-				this.withFeedAnchor(() => {}, true);
-				this.toast(copy("web.app.fff336942d9b"), () => {
-					Store.patch(id, before);
-					this.withFeedAnchor(() => {}, true);
-					if (this.modalKind === "archive")
-						this.replacePanelContent(Panels.archive(this, this.editId));
-				});
-				break;
-			}
-			case "archive-all": {
-				const ids = this.shelved("stale").map((c?: any) => c.id),
-					before = ids.map((i?: any) => [i, { ...Store.item(i) }]);
-				ids.forEach((i?: any) => {
-					Store.patch(i, { archived: true });
-				});
-				this.closeNative();
-				this.withFeedAnchor(() => {}, true);
-				this.toast(
-					`${copy("web.app.d22d0186c603")}${ids.length}${copy("web.panels.e9e0fdc242b4")}`,
-					() => {
-						before.forEach(([i, v]: any) => {
-							Store.patch(i, v);
-						});
-						this.withFeedAnchor(() => {}, true);
-					},
-				);
-				break;
-			}
-			case "filter-type":
-				this.searchFilter.type = extra;
-				this.repaintSearch();
-				break;
-			case "filter-status":
-				this.searchFilter.status = this.searchFilter.status === extra ? "all" : extra;
-				this.repaintSearch();
-				break;
-			case "filter-tag":
-				this.searchFilter.tag = this.searchFilter.tag === extra ? "" : extra;
-				this.repaintSearch();
-				break;
-			case "clear-query":
-				this.searchFilter.query = "";
-				this.repaintSearch();
-				document.getElementById("filter-search")?.focus();
-				break;
-			case "clear-filter":
-				if (this.modalKind === "search") {
-					this.searchFilter = { type: "all", status: "all", tag: "", query: "" };
-					this.repaintSearch();
-				} else {
-					this.filter = { type: "all", status: "all", tag: "", query: "" };
-					this.withFeedAnchor(() => {}, true);
-				}
-				break;
-			case "apply-filter":
-				this.closeNative();
-				window.scrollTo(0, 0);
-				break;
-			case "sort-feed":
-				if (FeedPolicy.sorts.includes(extra)) {
-					Store.setPref("sort", extra);
-					this.applyPreferences();
-					this.feedNow = Date.now();
-					this.withFeedAnchor(() => {}, true);
-				}
-				break;
-			case "editor-tag": {
-				this.editTags.has(extra) ? this.editTags.delete(extra) : this.editTags.add(extra);
-				const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
-				this.dialog.innerHTML = Panels.editor(this, this.editId);
-				if (note !== undefined)
-					(document.getElementById("note-editor") as HTMLInputElement).value = note;
-				document.getElementById("tag-new")?.focus();
-				break;
-			}
-			case "add-tag": {
-				const field = document.getElementById("tag-new"),
-					value = (field as HTMLInputElement).value.trim().replace(/^#/, "").slice(0, 30);
-				if (!value) return;
-				if (this.editTags.size >= 20) {
-					this.alert(copy("web.app.1859bc867672"));
-					return;
-				}
-				this.editTags.add(value);
-				const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
-				this.dialog.innerHTML = Panels.editor(this, this.editId);
-				(document.getElementById("note-editor") as HTMLInputElement).value = note || "";
-				document.getElementById("tag-new").focus();
-				break;
-			}
-			case "save-note": {
-				const pending = (document.getElementById("tag-new") as HTMLInputElement)?.value.trim();
-				if (pending) this.editTags.add(pending.replace(/^#/, "").slice(0, 30));
-				const note = (document.getElementById("note-editor") as HTMLInputElement).value.slice(
-					0,
-					4000,
-				);
-				const ids = this.bulkEditIds || [id];
-				ids.forEach((cardId?: any, i?: any) => {
-					Store.patch(cardId, {
-						tags: [...this.editTags],
-						tagsEdited: true,
-						...(i === 0 ? { note } : {}),
-					});
-					this.refreshCard(cardId);
-				});
-				this.bulkEditIds = null;
-				this.closeModal();
-				this.toast(
-					Store.state.storageAvailable
-						? window.__QG_LOCAL__
-							? copy("web.app.5fa0ce52b47e")
-							: copy("web.cloudentry.1bd91a7d0c53")
-						: copy("web.app.ea63f4be5073"),
-				);
-				break;
-			}
-			case "pref": {
-				const before = this.setPref(id, extra);
-				if (before !== extra && ["archiveAfter", "theme", "density"].includes(id))
-					this.announce(copy("web.app.434203a723b4"));
-				break;
-			}
-			case "pref-toggle":
-				this.setPref(id, !Store.pref(id));
-				break;
-			case "toggle-transparency":
-				this.setPref("reduceTransparency", !Store.pref("reduceTransparency"));
-				break;
-			case "export-all":
-				this.exportAll();
-				break;
-			case "clear-all": {
-				const back =
-					this.modalKind === "settings"
-						? () => this.swapPanel(Panels.settings(this, "data"), "settings", "panel wide")
-						: null;
-				this.panelReturn = back;
-				this.swapPanel(
-					Panels.confirm(
-						copy("web.app.7f1a78cdb3f2"),
-						copy("web.app.d008fc7f75ba"),
-						`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="clear-confirm">${copy("web.app.bce2377283c2")}</button>`,
-					),
-					"confirm",
-					"panel narrow",
-				);
-				break;
-			}
-			case "clear-confirm":
-				Store.state.cards = [];
-				Store.state.items = {};
-				Store.state.freshIds = [];
-				Store.state.preferences.onboarded = false;
-				Store.save();
-				this.panelReturn = null;
-				this.closeNative();
-				this.pendingCards = [];
-				this.renderCurrent(true);
-				break;
-			case "welcome-demo":
-				this.loadDemo();
-				break;
-			case "join": {
-				const c = Store.card(id);
-				if (c?.meeting?.url) void this.openExternal(c, c.meeting.url);
-				break;
-			}
-			case "photo-step":
-			case "photo-go": {
-				const c = Store.card(id),
-					n = (c.photos || [c.image]).length;
-				this.photoIndex =
-					name === "photo-go" ? Number(extra) : (this.photoIndex + Number(extra) + n) % n;
-				// Photo navigation replaces the content; retain the shared recovery notice and its state.
-				const toast = this.dialog.querySelector("#toast");
-				if (toast) document.body.appendChild(toast);
-				this.replacePanelContent(Panels.lightbox(c, this.photoIndex, this));
-				if (toast) this.dialog.appendChild(toast);
-				break;
-			}
-			case "sync-retry":
-				this.refresh();
-				break;
-			case "sync-export":
-				this.exportAll();
-				break;
-			case "sync-discard":
-				this.openModal(
-					Panels.confirm(
-						copy("web.app.ecb323046b6a"),
-						copy("web.app.cd47b1d68c71"),
-						`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" data-action="sync-discard-confirm">${copy("web.app.c3520240ae08")}</button>`,
-					),
-					"confirm",
-					null,
-					"panel narrow",
-				);
-				break;
-			case "sync-discard-confirm":
-				LocalSync.discard()
-					.then(() => this.closeNative())
-					.catch((error?: any) => this.alert(error.message));
-				break;
-			case "toast-close":
-				this.hideToast();
-				break;
-			case "undo":
-				if (this.undoAction) {
-					const fn = this.undoAction;
-					this.undoAction = null;
-					this.hideToast();
-					fn();
-				}
-				break;
-			case "external": {
-				const card = Store.card(id);
-				let scope: string;
-				try {
-					scope = agentKey(id, this.agentScope());
-				} catch {
-					this.alert(copy("web.agent.disconnected"));
-					break;
-				}
-				void this.openExternal(card).then((opened) => {
-					let current = false;
-					try {
-						current = scope === agentKey(id, this.agentScope());
-					} catch {}
-					if (opened && current && Store.card(id)?.type === "mail" && !Store.item(id).read) {
-						Store.patch(id, { read: true });
-						this.refreshCard(id);
-					}
-				});
-				break;
-			}
-			case "download-calendar": {
-				const c = Store.card(id),
-					date = (x?: any) =>
-						new Date(x)
-							.toISOString()
-							.replace(/[-:]/g, "")
-							.replace(/\.\d{3}/, "");
-				this.download(
-					"sill.ics",
-					`BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Sill//Local//ZH
-BEGIN:VEVENT
-UID:${c.id}@sill.local
-DTSTAMP:${date(Date.now())}
-DTSTART:${date(c.start)}
-DTEND:${date(c.end)}
-SUMMARY:${c.title}
-${
-	c.location
-		? `LOCATION:${c.location}
-`
-		: ""
-}END:VEVENT
-END:VCALENDAR
-`,
-					"text/calendar",
-				);
-				break;
-			}
-			case "snooze":
-			case "dismiss-reminder":
-			case "complete-reminder":
-			case "restore-reminder":
-				this.changeReminder(id, name);
-				break;
-			case "media-play":
-				this.playMedia();
-				break;
-			case "media-next": {
-				const c = Store.card(this.currentId);
-				this.pauseMedia();
-				this.mediaIndex = Math.min((c.body.length || 1) - 1, this.mediaIndex + 1);
-				this.paintMedia();
-				break;
-			}
-			case "media-prev":
-				this.pauseMedia();
-				this.mediaIndex = Math.max(0, this.mediaIndex - 1);
-				this.paintMedia();
-				break;
-			case "podcast-play":
-				this.podcast(id);
-				break;
-			case "podcast-seek":
-				this.podcast(id, Number(extra));
-				break;
-		}
+	action(
+		name?: string,
+		id: string = "",
+		extra: string = "",
+		el: HTMLElement = null,
+		event: Event = null,
+	): undefined {
+		return dispatchAction.call(this, name, id, extra, el, event);
 	}
 	repaintSearch() {
 		clearTimeout(this.searchTimer);
@@ -3037,16 +2588,22 @@ END:VCALENDAR
 		if (this.modalKind !== "search") {
 			return;
 		}
-		const active = document.activeElement,
+		const active = document.activeElement as HTMLElement,
 			searchFocused = active?.id === "filter-search",
 			pos = (active as HTMLInputElement)?.selectionStart;
 		const action = (active as HTMLElement)?.dataset.action,
 			extra = (active as HTMLElement)?.dataset.extra;
 		const liveToast = document.getElementById("toast");
 		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
+		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
+			(row) => row.scrollLeft,
+		);
 		this.dialog.innerHTML = Panels.search(this);
 		MotionEngine.fade(document.getElementById("search-results"));
 		this.bindSearchResults();
+		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
+			row.scrollLeft = filterScroll[index] ?? 0;
+		});
 		if (searchFocused) {
 			const n = document.getElementById("filter-search");
 			n.focus();
@@ -3054,12 +2611,12 @@ END:VCALENDAR
 				(n as HTMLInputElement).setSelectionRange(pos, pos);
 			} catch {}
 		} else if (action)
-			[...this.dialog.querySelectorAll("[data-action]")]
-				.find((n?: any) => n.dataset.action === action && n.dataset.extra === extra)
+			[...this.dialog.querySelectorAll<HTMLElement>("[data-action]")]
+				.find((n?: HTMLElement) => n.dataset.action === action && n.dataset.extra === extra)
 				?.focus({ preventScroll: true });
 		this.revealImages(this.dialog);
 	}
-	input(e?: any) {
+	input(e?: TargetEvent<Event> & { isComposing?: boolean }) {
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "search") {
@@ -3067,7 +2624,7 @@ END:VCALENDAR
 			this.searchScroll = 0;
 			this.searchLimit = 40;
 			document.getElementById("filter-result").textContent =
-				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.panels.e9e0fdc242b4")}`;
+				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.common.cardCountSuffix")}`;
 			clearTimeout(this.searchTimer);
 			this.searchTimer = window.setTimeout(() => {
 				const results = document.getElementById("search-results");
@@ -3080,34 +2637,38 @@ END:VCALENDAR
 				}
 			}, 140);
 		}
-		if (this.editingId && e.target.closest?.(".inline-editor")) {
+		if (this.editingId && e.target.closest?.<HTMLElement>(".inline-editor")) {
 			const state = document.getElementById("inline-state");
 			if (state) state.textContent = copy("web.cloudentry.6bdb4435095e");
 			clearTimeout(this.inlineTimer);
 			this.inlineTimer = window.setTimeout(() => this.saveInlineEdit(), 500);
 		}
 	}
-	paste(e?: any) {
+	paste(e?: TargetEvent<ClipboardEvent>) {
 		// Paste a link or a line anywhere on the desk to keep it.
-		if (this.dialog.open || e.target.closest?.("input,textarea,[contenteditable]")) return;
+		if (this.dialog.open || e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]"))
+			return;
 		const text = e.clipboardData?.getData("text/plain");
 		if (!text?.trim()) return;
 		e.preventDefault();
 		this.capture(text);
 	}
-	key(e?: any) {
+	key(e?: TargetEvent<KeyboardEvent>) {
 		if (e.isComposing) return;
 		if (
 			(!this.dialog.open || this.modalKind === "search") &&
-			!e.target.closest?.("input,textarea,[contenteditable]") &&
+			!e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]") &&
 			(e.key === "ContextMenu" || (e.shiftKey && e.key === "F10"))
 		) {
-			if (e.target.closest?.("#selection-bar, #search-selection-bar") && this.selected.size) {
+			if (
+				e.target.closest?.<HTMLElement>("#selection-bar, #search-selection-bar") &&
+				this.selected.size
+			) {
 				e.preventDefault();
 				this.drag.openMenu([...this.selected], e.target);
 				return;
 			}
-			const card = e.target.closest?.("[data-card]");
+			const card = e.target.closest?.<HTMLElement>("[data-card]");
 			if (card) {
 				e.preventDefault();
 				this.more(card.dataset.card);
@@ -3117,7 +2678,7 @@ END:VCALENDAR
 		if (
 			e.key === "Escape" &&
 			this.modalKind === "search" &&
-			this.dialog.querySelector(".card-more-menu")
+			this.dialog.querySelector<HTMLElement>(".card-more-menu")
 		) {
 			e.preventDefault();
 			this.closeMore(true);
@@ -3140,13 +2701,13 @@ END:VCALENDAR
 			this.closeModal();
 			return;
 		}
-		const radio = e.target.closest?.('[role="radio"]'),
-			group = radio?.closest('[role="radiogroup"]');
+		const radio = e.target.closest?.<HTMLElement>('[role="radio"]'),
+			group = radio?.closest<HTMLElement>('[role="radiogroup"]');
 		if (
 			group &&
 			["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)
 		) {
-			const radios = [...group.querySelectorAll('[role="radio"]')],
+			const radios = [...group.querySelectorAll<HTMLElement>('[role="radio"]')],
 				i = radios.indexOf(radio);
 			const index =
 				e.key === "Home"
@@ -3160,10 +2721,10 @@ END:VCALENDAR
 			radios[index].click();
 			return;
 		}
-		const menu = e.target.closest?.(".card-more-menu");
+		const menu = e.target.closest?.<HTMLElement>(".card-more-menu");
 		if (menu && ["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) {
-			const items = [...menu.querySelectorAll("button")],
-				index = items.indexOf(document.activeElement);
+			const items = [...menu.querySelectorAll<HTMLElement>("button")],
+				index = items.indexOf(document.activeElement as HTMLElement);
 			const next =
 				e.key === "Home"
 					? 0
@@ -3174,7 +2735,7 @@ END:VCALENDAR
 			items[next]?.focus();
 			return;
 		}
-		if (e.key === "Escape" && this.grid.querySelector(".card-more-menu")) {
+		if (e.key === "Escape" && this.grid.querySelector<HTMLElement>(".card-more-menu")) {
 			e.preventDefault();
 			this.closeMore(true);
 			return;
@@ -3183,7 +2744,9 @@ END:VCALENDAR
 			e.preventDefault();
 			const id = this.editingId;
 			this.finishInlineEdit();
-			this.grid.querySelector(`[data-card="${CSS.escape(id)}"] .card-title-button`)?.focus();
+			this.grid
+				.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"] .card-title-button`)
+				?.focus();
 			return;
 		}
 		if (this.modalKind === "lightbox" && ["ArrowLeft", "ArrowRight"].includes(e.key)) {
@@ -3193,15 +2756,16 @@ END:VCALENDAR
 		}
 		if (e.key === "Tab" && this.dialog.open) {
 			const focusable = [
-				...this.dialog.querySelectorAll(
+				...this.dialog.querySelectorAll<HTMLElement>(
 					'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]',
 				),
 			].filter(
-				(n?: any) => n.getClientRects().length && getComputedStyle(n).visibility !== "hidden",
+				(n?: HTMLElement) =>
+					n.getClientRects().length && getComputedStyle(n).visibility !== "hidden",
 			);
 			const first = focusable[0],
 				last = focusable[focusable.length - 1],
-				active = document.activeElement;
+				active = document.activeElement as HTMLElement;
 			if (first && last) {
 				if (e.shiftKey && (active === first || !focusable.includes(active))) {
 					e.preventDefault();
@@ -3227,7 +2791,7 @@ END:VCALENDAR
 		}
 		if (e.target.id === "filter-search" && e.key === "Enter") {
 			e.preventDefault();
-			const first = this.dialog.querySelector(
+			const first = this.dialog.querySelector<HTMLElement>(
 				'#search-results .card-title-button[data-action="card-open"]',
 			);
 			if (first) first.click();
@@ -3245,7 +2809,7 @@ END:VCALENDAR
 			}
 			return;
 		}
-		const typing = e.target.closest?.("input,textarea,[contenteditable]");
+		const typing = e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]");
 		if (
 			Store.pref("singleKeyShortcuts") &&
 			!this.dialog.open &&
@@ -3279,7 +2843,7 @@ END:VCALENDAR
 			this.action("stack-open", "", e.target.dataset.stack);
 		}
 		if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && e.target.matches("[data-stack]")) {
-			const deck = e.target.querySelector(".deck");
+			const deck = e.target.querySelector<Deck>(".deck");
 			if (deck && !deck.dataset.busy) {
 				e.preventDefault();
 				this.deckSettle(deck, e.key === "ArrowRight" ? 1 : -1);

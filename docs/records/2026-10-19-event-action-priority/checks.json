@@ -1,0 +1,42 @@
+{
+  "sourceCommit": "2c295b7",
+  "node": {
+    "contracts": 36,
+    "web": 193,
+    "server": 92,
+    "fail": 0
+  },
+  "pwa": {
+    "pass": 10,
+    "fail": 0
+  },
+  "drawer": {
+    "initialPass": 10,
+    "initialFail": 1,
+    "baselinePass": 11,
+    "baselineFail": 0,
+    "repeatPass": 11,
+    "repeatFail": 0,
+    "assertionsChanged": false,
+    "cause": "Initial mid-transition observation failed; baseline and current repeat passed. Timing cause remains unconfirmed."
+  },
+  "webLint": {
+    "errors": 0,
+    "warnings": 515,
+    "infos": 30
+  },
+  "repositoryWebCommandLint": {
+    "errors": 0,
+    "warnings": 1542,
+    "infos": 298
+  },
+  "copy": {
+    "keys": 826,
+    "hash": 491,
+    "panelsHash": 0
+  },
+  "icons": 69,
+  "physicalDevice": "未检查",
+  "Safari": "未检查",
+  "Mac": "未改"
+}

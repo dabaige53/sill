@@ -222,7 +222,15 @@ try {
 			() => document.querySelector("#feed-grid").getAttribute("data-sync") === "saved",
 		);
 		assert.equal(workspace.state.preferences.stack, false);
-		await page.locator("main").click({ position: { x: 5, y: 5 } });
+		// The phone home bar floats over the top of main; click the margin just under it.
+		const below = await page.evaluate(() => {
+			const bar = document.querySelector("#home-top");
+			const top = document.querySelector("main").getBoundingClientRect().top;
+			return bar && getComputedStyle(bar).display !== "none"
+				? Math.max(0, bar.getBoundingClientRect().bottom - top)
+				: 0;
+		});
+		await page.locator("main").click({ position: { x: 5, y: below + 5 } });
 		await page.mouse.move(0, 0);
 		await page.waitForTimeout(600);
 		await page.screenshot({
@@ -231,9 +239,14 @@ try {
 			path: `tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-cards.png`,
 		});
 		assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-		await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+		await page.waitForFunction(
+			() => window.__app.layout.frame === 0 && document.documentElement.scrollHeight > innerHeight,
+		);
+		await page.evaluate(() =>
+			window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
+		);
 		assert.ok(await page.evaluate(() => scrollY > 0));
-		await page.evaluate(() => window.scrollTo(0, 0));
+		await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 		await page.locator(".card-title-button").first().click();
 		await page.waitForFunction(() => (document.querySelector("#modal") as HTMLDialogElement).open);
 		await page.keyboard.press("Escape");

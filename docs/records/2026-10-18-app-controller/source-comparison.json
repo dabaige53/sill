@@ -1,0 +1,30 @@
+{
+  "sourceBaseCommit": "1d2ffab",
+  "codeCommit": "8c24604",
+  "methodComparison": {
+    "publicMethods": 103,
+    "unchangedMovedBodies": 5,
+    "publicSignaturesUnchanged": true,
+    "otherMethodsUnchanged": 97,
+    "constructorAccessorsAndFieldsUnchanged": true,
+    "presentationFilesUnchanged": true
+  },
+  "actionComparison": {
+    "actionLabels": 78,
+    "handlerBodies": 72,
+    "groups": 7,
+    "statementsAndLiteralValuesUnchanged": true,
+    "onlySwitchBreaksChangedToHandlerReturns": true
+  },
+  "unchangedPresentationSha256": {
+    "apps/web/interactions/panels.ts": "23eb94e291f2be02fd017f850853325dc40dbba35b80caa5ec93439e01515e15",
+    "design-system/copy/zh-Hans.json": "d5ee07c457df2b78c2ff5bd4780af209c843edd399acd00f89b580af611ff621",
+    "design-system/tokens.json": "df05e55a4307b0c8fd641958106fae95fc51a8bca979418268f17f3e29a0a692",
+    "apps/web/styles/tokens.css": "6561fe17bf3cb413e94222f12de624968ad1aa6a0ced57912306512c415d8a72",
+    "apps/web/styles/base.css": "56b188a4f80e309731a2c3454b9d3c4cafe0a7804f8f6a7e62b4365bb0e9428c",
+    "apps/web/styles/controls.css": "35d0a7858795eddee80db7e38647532c561c361866fd625432fe46b5758157ba",
+    "apps/web/styles/cards.css": "4003e0ab6530d32f9e8d6056b6608f08a615b11d1baa9916b0e659dfa8c838e0",
+    "apps/web/styles/overlays.css": "4a405527a83f9e7ddc85181a35bbd7d05154bca6feb0288b0a98d39e2969118e",
+    "apps/web/styles/responsive.css": "795abac01f5273c7507f7105fad5cdcf97fe97dc04b693a208b1beb09e240861"
+  }
+}

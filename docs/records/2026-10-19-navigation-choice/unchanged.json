@@ -1,0 +1,35 @@
+{
+  "baseline": "a342700",
+  "files": [
+    {
+      "file": "apps/web/atoms/icons.ts",
+      "unchanged": true,
+      "sha256": "46c2c4438f5ebf09b27a1f73816931864b24a8de3b62c20d2e8c2f05b05613a6"
+    },
+    {
+      "file": "apps/web/views/app.ts",
+      "unchanged": true,
+      "sha256": "93c57c29de3e39ec777ad848ebb7e1e862adeab1ffa1adb373f6671419284e72"
+    },
+    {
+      "file": "apps/web/styles/controls.css",
+      "unchanged": true,
+      "sha256": "bca7590f4742cb743f09fb1f498dde433e6fa647c9643e20c151bca3fc0279be"
+    },
+    {
+      "file": "design-system/components/bundle.js",
+      "unchanged": true,
+      "sha256": "b6f14849b37e1693df1d1adf86d9d10426986ef89943be19936ccc5ee7a472bf"
+    },
+    {
+      "file": "design-system/components/bundle.css",
+      "unchanged": true,
+      "sha256": "fc3585937f3d159bdfcf401499cd2336dfa461408217b6e0a63acca1d014b706"
+    },
+    {
+      "file": "design-system/design-system.json",
+      "unchanged": true,
+      "sha256": "a1ee4f7fbd6c5811715d1d6df682f86c799da93ea1f957bf85939bed6689844f"
+    }
+  ]
+}

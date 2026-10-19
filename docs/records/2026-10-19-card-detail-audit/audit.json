@@ -1,0 +1,2814 @@
+{
+  "sourceCommit": "a073721",
+  "scope": "Synthetic Chromium observation, not device or production acceptance",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "view": "mail",
+      "filename": "320-light-mail.jpg",
+      "bytes": 37435,
+      "kind": "preview",
+      "title": "确认下次评审时间",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            57.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            105.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            153.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "回复",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            218.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "view": "event",
+      "filename": "320-light-event.jpg",
+      "bytes": 36804,
+      "kind": "preview",
+      "title": "一起检查交互中的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            20,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            68,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            116,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "join",
+          "label": "加入",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            181,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "snooze",
+          "label": "在 Sill 内再提醒",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            229,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "download-calendar",
+          "label": "下载日程",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            277,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "view": "photo",
+      "filename": "320-light-photo.jpg",
+      "bytes": 10276,
+      "kind": "lightbox",
+      "title": "照片大图页",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [
+        {
+          "action": "photo-step",
+          "label": "上一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "action": "photo-step",
+          "label": "下一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": null,
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "view": "podcast",
+      "filename": "320-light-podcast.jpg",
+      "bytes": 29333,
+      "kind": "preview",
+      "title": "讨论内容与工具的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            57.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            105.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            153.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "在播客应用打开",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            218.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [
+        {
+          "action": "podcast-seek",
+          "label": "后退 15 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            66,
+            692,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "podcast-play",
+          "label": "播放",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            132,
+            686,
+            56,
+            56
+          ]
+        },
+        {
+          "action": "podcast-seek",
+          "label": "前进 30 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            210,
+            692,
+            44,
+            44
+          ]
+        }
+      ],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "view": "reader",
+      "filename": "320-light-reader.jpg",
+      "bytes": 32913,
+      "kind": "reader",
+      "title": "让内容成为视线的落点",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            57.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            105.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            153.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "去助手",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            218.5,
+            768,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [
+        {
+          "action": "close",
+          "label": "退出全屏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            214,
+            14,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "close-all",
+          "label": "关闭阅读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            260,
+            14,
+            44,
+            44
+          ]
+        }
+      ],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "view": "settings",
+      "filename": "320-light-settings.jpg",
+      "bytes": 26180,
+      "kind": "settings",
+      "title": "桌面",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [
+        "收藏",
+        "标签",
+        "稍后读",
+        "回复",
+        "去原文",
+        "加入会议",
+        "在 Sill 内再提醒",
+        "下载日程",
+        "忽略此提醒"
+      ],
+      "barRole": null,
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "view": "mail",
+      "filename": "320-dark-mail.jpg",
+      "bytes": 32418,
+      "kind": "preview",
+      "title": "确认下次评审时间",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            57.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            105.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            153.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "回复",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            218.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "view": "event",
+      "filename": "320-dark-event.jpg",
+      "bytes": 32667,
+      "kind": "preview",
+      "title": "一起检查交互中的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            20,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            68,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            116,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "join",
+          "label": "加入",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            181,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "snooze",
+          "label": "在 Sill 内再提醒",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            229,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "download-calendar",
+          "label": "下载日程",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            277,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "view": "photo",
+      "filename": "320-dark-photo.jpg",
+      "bytes": 10276,
+      "kind": "lightbox",
+      "title": "照片大图页",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [
+        {
+          "action": "photo-step",
+          "label": "上一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "action": "photo-step",
+          "label": "下一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": null,
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "view": "podcast",
+      "filename": "320-dark-podcast.jpg",
+      "bytes": 25580,
+      "kind": "preview",
+      "title": "讨论内容与工具的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            57.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            105.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            153.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "在播客应用打开",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            218.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [
+        {
+          "action": "podcast-seek",
+          "label": "后退 15 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            66,
+            692,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "podcast-play",
+          "label": "播放",
+          "text": "",
+          "own": false,
+          "color": "rgb(28, 28, 31)",
+          "box": [
+            132,
+            686,
+            56,
+            56
+          ]
+        },
+        {
+          "action": "podcast-seek",
+          "label": "前进 30 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            210,
+            692,
+            44,
+            44
+          ]
+        }
+      ],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "view": "reader",
+      "filename": "320-dark-reader.jpg",
+      "bytes": 33160,
+      "kind": "reader",
+      "title": "让内容成为视线的落点",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            57.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            105.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            153.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "去助手",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            218.5,
+            768,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [
+        {
+          "action": "close",
+          "label": "退出全屏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            214,
+            14,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "close-all",
+          "label": "关闭阅读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            260,
+            14,
+            44,
+            44
+          ]
+        }
+      ],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "view": "settings",
+      "filename": "320-dark-settings.jpg",
+      "bytes": 25309,
+      "kind": "settings",
+      "title": "桌面",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [
+        "收藏",
+        "标签",
+        "稍后读",
+        "回复",
+        "去原文",
+        "加入会议",
+        "在 Sill 内再提醒",
+        "下载日程",
+        "忽略此提醒"
+      ],
+      "barRole": null,
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "view": "mail",
+      "filename": "390-light-mail.jpg",
+      "bytes": 40107,
+      "kind": "preview",
+      "title": "确认下次评审时间",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            92.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            140.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            188.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "回复",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            253.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "view": "event",
+      "filename": "390-light-event.jpg",
+      "bytes": 41756,
+      "kind": "preview",
+      "title": "一起检查交互中的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            44.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            92.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            140.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "join",
+          "label": "加入",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            205.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "snooze",
+          "label": "在 Sill 内再提醒",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            253.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "download-calendar",
+          "label": "下载日程",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            301.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "view": "photo",
+      "filename": "390-light-photo.jpg",
+      "bytes": 11994,
+      "kind": "lightbox",
+      "title": "照片大图页",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [
+        {
+          "action": "photo-step",
+          "label": "上一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "action": "photo-step",
+          "label": "下一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": null,
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "view": "podcast",
+      "filename": "390-light-podcast.jpg",
+      "bytes": 32140,
+      "kind": "preview",
+      "title": "讨论内容与工具的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            92.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            140.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            188.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "在播客应用打开",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            253.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [
+        {
+          "action": "podcast-seek",
+          "label": "后退 15 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            101,
+            692,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "podcast-play",
+          "label": "播放",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            167,
+            686,
+            56,
+            56
+          ]
+        },
+        {
+          "action": "podcast-seek",
+          "label": "前进 30 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            245,
+            692,
+            44,
+            44
+          ]
+        }
+      ],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "view": "reader",
+      "filename": "390-light-reader.jpg",
+      "bytes": 39046,
+      "kind": "reader",
+      "title": "让内容成为视线的落点",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            92.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            140.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            188.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "去助手",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            253.5,
+            768,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [
+        {
+          "action": "close",
+          "label": "退出全屏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            284,
+            14,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "close-all",
+          "label": "关闭阅读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            330,
+            14,
+            44,
+            44
+          ]
+        }
+      ],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "view": "settings",
+      "filename": "390-light-settings.jpg",
+      "bytes": 29870,
+      "kind": "settings",
+      "title": "桌面",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [
+        "收藏",
+        "标签",
+        "稍后读",
+        "回复",
+        "去原文",
+        "加入会议",
+        "在 Sill 内再提醒",
+        "下载日程",
+        "忽略此提醒"
+      ],
+      "barRole": null,
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "view": "mail",
+      "filename": "390-dark-mail.jpg",
+      "bytes": 34704,
+      "kind": "preview",
+      "title": "确认下次评审时间",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            92.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            140.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            188.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "回复",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            253.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "view": "event",
+      "filename": "390-dark-event.jpg",
+      "bytes": 36921,
+      "kind": "preview",
+      "title": "一起检查交互中的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            44.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            92.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            140.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "join",
+          "label": "加入",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            205.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "snooze",
+          "label": "在 Sill 内再提醒",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            253.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "download-calendar",
+          "label": "下载日程",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            301.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "view": "photo",
+      "filename": "390-dark-photo.jpg",
+      "bytes": 11994,
+      "kind": "lightbox",
+      "title": "照片大图页",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [
+        {
+          "action": "photo-step",
+          "label": "上一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "action": "photo-step",
+          "label": "下一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": null,
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "view": "podcast",
+      "filename": "390-dark-podcast.jpg",
+      "bytes": 27896,
+      "kind": "preview",
+      "title": "讨论内容与工具的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            92.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            140.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            188.5,
+            784,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "在播客应用打开",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            253.5,
+            784,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [
+        {
+          "action": "podcast-seek",
+          "label": "后退 15 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            101,
+            692,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "podcast-play",
+          "label": "播放",
+          "text": "",
+          "own": false,
+          "color": "rgb(28, 28, 31)",
+          "box": [
+            167,
+            686,
+            56,
+            56
+          ]
+        },
+        {
+          "action": "podcast-seek",
+          "label": "前进 30 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            245,
+            692,
+            44,
+            44
+          ]
+        }
+      ],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "view": "reader",
+      "filename": "390-dark-reader.jpg",
+      "bytes": 39168,
+      "kind": "reader",
+      "title": "让内容成为视线的落点",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            92.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            140.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            188.5,
+            768,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "去助手",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            253.5,
+            768,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [
+        {
+          "action": "close",
+          "label": "退出全屏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            284,
+            14,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "close-all",
+          "label": "关闭阅读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            330,
+            14,
+            44,
+            44
+          ]
+        }
+      ],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "view": "settings",
+      "filename": "390-dark-settings.jpg",
+      "bytes": 28735,
+      "kind": "settings",
+      "title": "桌面",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [
+        "收藏",
+        "标签",
+        "稍后读",
+        "回复",
+        "去原文",
+        "加入会议",
+        "在 Sill 内再提醒",
+        "下载日程",
+        "忽略此提醒"
+      ],
+      "barRole": null,
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "view": "mail",
+      "filename": "1440-light-mail.jpg",
+      "bytes": 113316,
+      "kind": "preview",
+      "title": "确认下次评审时间",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            617.5,
+            574.578125,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            665.5,
+            574.578125,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            713.5,
+            574.578125,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "回复",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            778.5,
+            574.578125,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "view": "event",
+      "filename": "1440-light-event.jpg",
+      "bytes": 108446,
+      "kind": "preview",
+      "title": "一起检查交互中的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            569.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            617.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            665.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "join",
+          "label": "加入",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            730.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "snooze",
+          "label": "在 Sill 内再提醒",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            778.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "download-calendar",
+          "label": "下载日程",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            826.5,
+            695.6875,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "view": "photo",
+      "filename": "1440-light-photo.jpg",
+      "bytes": 34616,
+      "kind": "lightbox",
+      "title": "照片大图页",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [
+        {
+          "action": "photo-step",
+          "label": "上一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            20,
+            476,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "photo-step",
+          "label": "下一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            1376,
+            476,
+            44,
+            44
+          ]
+        }
+      ],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": null,
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "view": "podcast",
+      "filename": "1440-light-podcast.jpg",
+      "bytes": 100346,
+      "kind": "preview",
+      "title": "讨论内容与工具的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            617.5,
+            678.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            665.5,
+            678.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            713.5,
+            678.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "在播客应用打开",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            778.5,
+            678.984375,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [
+        {
+          "action": "podcast-seek",
+          "label": "后退 15 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            626,
+            568.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "podcast-play",
+          "label": "播放",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            692,
+            562.984375,
+            56,
+            56
+          ]
+        },
+        {
+          "action": "podcast-seek",
+          "label": "前进 30 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            770,
+            568.984375,
+            44,
+            44
+          ]
+        }
+      ],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "view": "reader",
+      "filename": "1440-light-reader.jpg",
+      "bytes": 62940,
+      "kind": "reader",
+      "title": "让内容成为视线的落点",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            617.5,
+            924,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            665.5,
+            924,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            713.5,
+            924,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "去助手",
+          "text": "",
+          "own": true,
+          "color": "rgb(0, 102, 204)",
+          "box": [
+            778.5,
+            924,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [
+        {
+          "action": "close",
+          "label": "退出全屏",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            1330,
+            18,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "close-all",
+          "label": "关闭阅读",
+          "text": "",
+          "own": false,
+          "color": "rgb(29, 29, 31)",
+          "box": [
+            1376,
+            18,
+            44,
+            44
+          ]
+        }
+      ],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "view": "settings",
+      "filename": "1440-light-settings.jpg",
+      "bytes": 110034,
+      "kind": "settings",
+      "title": "桌面",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [
+        "收藏",
+        "标签",
+        "稍后读",
+        "回复",
+        "去原文",
+        "加入会议",
+        "在 Sill 内再提醒",
+        "下载日程",
+        "忽略此提醒"
+      ],
+      "barRole": null,
+      "colors": {
+        "ink": "#1d1d1f",
+        "accent": "#0066cc"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "view": "mail",
+      "filename": "1440-dark-mail.jpg",
+      "bytes": 92682,
+      "kind": "preview",
+      "title": "确认下次评审时间",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            617.5,
+            574.578125,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            665.5,
+            574.578125,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            713.5,
+            574.578125,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "回复",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            778.5,
+            574.578125,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "view": "event",
+      "filename": "1440-dark-event.jpg",
+      "bytes": 89645,
+      "kind": "preview",
+      "title": "一起检查交互中的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            569.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            617.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            665.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "join",
+          "label": "加入",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            730.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "snooze",
+          "label": "在 Sill 内再提醒",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            778.5,
+            695.6875,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "download-calendar",
+          "label": "下载日程",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            826.5,
+            695.6875,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "view": "photo",
+      "filename": "1440-dark-photo.jpg",
+      "bytes": 34616,
+      "kind": "lightbox",
+      "title": "照片大图页",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [
+        {
+          "action": "photo-step",
+          "label": "上一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            20,
+            476,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "photo-step",
+          "label": "下一张",
+          "text": "",
+          "own": false,
+          "color": "rgb(255, 255, 255)",
+          "box": [
+            1376,
+            476,
+            44,
+            44
+          ]
+        }
+      ],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": null,
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "view": "podcast",
+      "filename": "1440-dark-podcast.jpg",
+      "bytes": 82153,
+      "kind": "preview",
+      "title": "讨论内容与工具的边界",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            617.5,
+            678.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            665.5,
+            678.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            713.5,
+            678.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "在播客应用打开",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            778.5,
+            678.984375,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [
+        {
+          "action": "podcast-seek",
+          "label": "后退 15 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            626,
+            568.984375,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "podcast-play",
+          "label": "播放",
+          "text": "",
+          "own": false,
+          "color": "rgb(28, 28, 31)",
+          "box": [
+            692,
+            562.984375,
+            56,
+            56
+          ]
+        },
+        {
+          "action": "podcast-seek",
+          "label": "前进 30 秒",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            770,
+            568.984375,
+            44,
+            44
+          ]
+        }
+      ],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "view": "reader",
+      "filename": "1440-dark-reader.jpg",
+      "bytes": 63982,
+      "kind": "reader",
+      "title": "让内容成为视线的落点",
+      "toolbar": [
+        {
+          "action": "bookmark",
+          "label": "收藏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            617.5,
+            924,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "edit",
+          "label": "编辑标签与备注",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            665.5,
+            924,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "later",
+          "label": "稍后读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            713.5,
+            924,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "external",
+          "label": "去助手",
+          "text": "",
+          "own": true,
+          "color": "rgb(76, 155, 255)",
+          "box": [
+            778.5,
+            924,
+            44,
+            44
+          ]
+        }
+      ],
+      "separators": 1,
+      "player": [],
+      "photo": [],
+      "readerHead": [
+        {
+          "action": "close",
+          "label": "退出全屏",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            1330,
+            18,
+            44,
+            44
+          ]
+        },
+        {
+          "action": "close-all",
+          "label": "关闭阅读",
+          "text": "",
+          "own": false,
+          "color": "rgb(242, 242, 244)",
+          "box": [
+            1376,
+            18,
+            44,
+            44
+          ]
+        }
+      ],
+      "hiddenActions": [],
+      "actionRows": [],
+      "barRole": "toolbar",
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "view": "settings",
+      "filename": "1440-dark-settings.jpg",
+      "bytes": 92192,
+      "kind": "settings",
+      "title": "桌面",
+      "toolbar": [],
+      "separators": 0,
+      "player": [],
+      "photo": [],
+      "readerHead": [],
+      "hiddenActions": [],
+      "actionRows": [
+        "收藏",
+        "标签",
+        "稍后读",
+        "回复",
+        "去原文",
+        "加入会议",
+        "在 Sill 内再提醒",
+        "下载日程",
+        "忽略此提醒"
+      ],
+      "barRole": null,
+      "colors": {
+        "ink": "#f2f2f4",
+        "accent": "#4c9bff"
+      }
+    }
+  ]
+}

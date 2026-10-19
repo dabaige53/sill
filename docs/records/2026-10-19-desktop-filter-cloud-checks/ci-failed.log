@@ -1,0 +1,52 @@
+boundary	Run npm run test:cloud-browser	﻿2026-10-19T02:43:04.7449353Z ##[group]Run npm run test:cloud-browser
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:04.7449778Z ^[[36;1mnpm run test:cloud-browser^[[0m
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:04.7491566Z shell: /usr/bin/bash -e {0}
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:04.7491924Z ##[endgroup]
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:04.8385361Z 
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:04.8386240Z > sill@1.2.5 test:cloud-browser
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:04.8387167Z > node tests/e2e/cloud-browser.ts
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:04.8387666Z 
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2802773Z node:internal/modules/run_main:107
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2803499Z     triggerUncaughtException(
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2804679Z     ^
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2804924Z 
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2805815Z AssertionError [ERR_ASSERTION]: content starts at viewport top
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2808430Z     at waitCloud (file:///home/runner/work/sill/sill/tests/server/helpers/cloud-ui.ts:9:9)
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2809521Z     at runNextTicks (node:internal/process/task_queues:65:5)
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2810331Z     at process.processImmediate (node:internal/timers:541:9)
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2811059Z     at async file:///home/runner/work/sill/sill/tests/e2e/cloud-browser.ts:90:2 {
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2811643Z   generatedMessage: false,
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2811986Z   code: 'ERR_ASSERTION',
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2812323Z   actual: false,
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2812676Z   expected: true,
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2812971Z   operator: '==',
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2813686Z   diff: 'simple'
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2813979Z }
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2814151Z 
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.2814254Z Node.js v24.21.0
+boundary	Run npm run test:cloud-browser	2026-10-19T02:43:09.3062484Z ##[error]Process completed with exit code 1.
+boundary	Run npm run test:cloud-welcome	﻿2026-10-19T02:43:50.5239766Z ##[group]Run npm run test:cloud-welcome
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:43:50.5240245Z ^[[36;1mnpm run test:cloud-welcome^[[0m
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:43:50.5280653Z shell: /usr/bin/bash -e {0}
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:43:50.5281181Z ##[endgroup]
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:43:50.6201329Z 
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:43:50.6202020Z > sill@1.2.5 test:cloud-welcome
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:43:50.6202488Z > node tests/e2e/cloud-welcome-browser.ts
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:43:50.6202747Z 
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3580165Z node:internal/modules/run_main:107
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3581326Z     triggerUncaughtException(
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3582204Z     ^
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3582735Z 
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3583776Z AssertionError [ERR_ASSERTION]: content starts at viewport top
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3584834Z     at waitCloud (file:///home/runner/work/sill/sill/tests/server/helpers/cloud-ui.ts:9:9)
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3585870Z     at async file:///home/runner/work/sill/sill/tests/e2e/cloud-welcome-browser.ts:177:3 {
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3586577Z   generatedMessage: false,
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3587148Z   code: 'ERR_ASSERTION',
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3587832Z   actual: false,
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3588274Z   expected: true,
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3588680Z   operator: '==',
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3589059Z   diff: 'simple'
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3589523Z }
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3589693Z 
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3589885Z Node.js v24.21.0
+boundary	Run npm run test:cloud-welcome	2026-10-19T02:44:10.3734319Z ##[error]Process completed with exit code 1.

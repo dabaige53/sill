@@ -1,0 +1,26 @@
+{
+  "browser": "151.0.7922.34",
+  "manifest": {
+    "id": "/",
+    "name": "Sill · 窗台",
+    "short_name": "Sill",
+    "lang": "zh-CN",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f5f5f7",
+    "theme_color": "#f5f5f7",
+    "icons": [
+      {
+        "src": "/assets/sill-icon.png",
+        "sizes": "256x256",
+        "type": "image/png",
+        "purpose": "any"
+      }
+    ]
+  },
+  "parseErrors": [],
+  "installability": {
+    "installabilityErrors": []
+  }
+}

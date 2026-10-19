@@ -1,0 +1,26 @@
+✔ closing photo tags returns to the same photo index (28.665125ms)
+✔ settings changes preserve focus, scroll, the previous value and unrelated preferences (16.303625ms)
+✔ action visibility toggles hide and restore only the requested verb (3.079625ms)
+✔ public action routes refresh, reminder aliases, detail navigation and unknown names (2.679834ms)
+✔ external mail action marks read only after an accepted opening in the same account: opened (5.62125ms)
+✔ external mail action marks read only after an accepted opening in the same account: declined (3.136959ms)
+✔ external mail action marks read only after an accepted opening in the same account: account-changed (3.817833ms)
+✔ external mail action marks read only after an accepted opening in the same account: disconnected (3.168209ms)
+✔ preview chrome tracks height and close-disc position after resize (source row) (5.821583ms)
+✔ preview chrome tracks height and close-disc position after resize (title fallback) (23.338708ms)
+(node:80468) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ card detail: shared verbs in ink, a rule, then at most three own verbs; no solid buttons (128.719084ms)
+✔ mail replies, the event downloads and reminders remind again from the toolbar (7.211083ms)
+✔ settings can hide any toolbar verb; the rule goes when one side is empty (5.922417ms)
+✔ hiddenActions is a closed list in the shared preference contract (0.942667ms)
+✔ photo lightbox shares toolbar state and hides empty tools without hiding thumbnails (7.252958ms)
+✔ imminent event prioritizes dismiss over download only when join is available (10.390625ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 460.0335

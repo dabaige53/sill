@@ -135,11 +135,26 @@ try {
 	);
 	await page.evaluate(() => __app.action("sync-discard-confirm"));
 	await page.waitForFunction(() => __app.grid.dataset.sync === "saved");
+	// ADR 0033 removes source connections; a stale action must not write a source.
+	const beforeSourceAction = await request("state");
+	let sourceWrites = 0;
+	page.on("request", (request) => {
+		if (request.method() === "POST") sourceWrites++;
+	});
 	await page.evaluate(() => __app.action("permission-allow", "", "photos"));
-	await page.waitForFunction(() => __app.grid.dataset.sync === "saved");
-	const source = (await request("state")).state.sources.find((s?: any) => s.id === "src-photos");
-	assert.equal(source.status, "attention");
-	assert.equal(source.syncedAt, undefined);
+	const afterSourceAction = await request("state");
+	assert.deepEqual(afterSourceAction.state.sources, []);
+	assert.equal(afterSourceAction.revision, beforeSourceAction.revision);
+	assert.equal(sourceWrites, 0, "the removed permission action makes no write request");
+	await page.evaluate(() => __app.openPanel("settings"));
+	assert.equal(
+		await page
+			.locator(
+				'[data-action="settings-group"][data-extra="sources"], [data-action="permission-allow"]',
+			)
+			.count(),
+		0,
+	);
 	await page.keyboard.press("Escape");
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
 	await page.emulateMedia({ reducedMotion: "reduce" });
@@ -155,7 +170,7 @@ try {
 	});
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS workspace polish: embedded resize, system theme, IME, live conflict, durable draft, honest source state, reduced motion",
+		"PASS workspace polish: embedded resize, system theme, IME, live conflict, durable draft, no source connections or writes, reduced motion",
 	);
 } finally {
 	await browser?.close();

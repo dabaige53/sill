@@ -1,0 +1,181 @@
+{
+  "sourceCommit": "1e652ba",
+  "actualImplementation": true,
+  "temporaryStyles": false,
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "A",
+      "file": "320-light-a.jpg",
+      "actions": [
+        {
+          "label": "收藏",
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "action": "later"
+        }
+      ],
+      "thumbs": 2,
+      "photoBox": {
+        "x": 20,
+        "y": 76,
+        "width": 280,
+        "height": 612
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "A",
+      "file": "320-dark-a.jpg",
+      "actions": [
+        {
+          "label": "收藏",
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "action": "later"
+        }
+      ],
+      "thumbs": 2,
+      "photoBox": {
+        "x": 20,
+        "y": 76,
+        "width": 280,
+        "height": 612
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "A",
+      "file": "390-light-a.jpg",
+      "actions": [
+        {
+          "label": "收藏",
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "action": "later"
+        }
+      ],
+      "thumbs": 2,
+      "photoBox": {
+        "x": 20,
+        "y": 76,
+        "width": 350,
+        "height": 612
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "A",
+      "file": "390-dark-a.jpg",
+      "actions": [
+        {
+          "label": "收藏",
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "action": "later"
+        }
+      ],
+      "thumbs": 2,
+      "photoBox": {
+        "x": 20,
+        "y": 76,
+        "width": 350,
+        "height": 612
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "A",
+      "file": "1440-light-a.jpg",
+      "actions": [
+        {
+          "label": "收藏",
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "action": "later"
+        }
+      ],
+      "thumbs": 2,
+      "photoBox": {
+        "x": 76,
+        "y": 76,
+        "width": 1288,
+        "height": 768
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "A",
+      "file": "1440-dark-a.jpg",
+      "actions": [
+        {
+          "label": "收藏",
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "action": "later"
+        }
+      ],
+      "thumbs": 2,
+      "photoBox": {
+        "x": 76,
+        "y": 76,
+        "width": 1288,
+        "height": 768
+      },
+      "errors": [],
+      "external": []
+    }
+  ]
+}

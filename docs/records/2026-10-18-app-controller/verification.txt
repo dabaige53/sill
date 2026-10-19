@@ -1,0 +1,27 @@
+C2 检查摘要（本机合成数据）
+
+每次提交后的 npm test：
+ebf49ff 共享约定 36 / Web 178 / 服务端 92
+9b0761f 共享约定 36 / Web 178 / 服务端 92
+316e09a 共享约定 36 / Web 178 / 服务端 92
+01c5518 共享约定 36 / Web 178 / 服务端 92
+8c24604 共享约定 36 / Web 178 / 服务端 92
+以上 fail 0 / skipped 0。
+
+每次提交后的相关浏览器：
+ebf49ff npm run test:browser PASS 23/23
+9b0761f npm run test:accessibility PASS 13/13
+316e09a node tests/e2e/drawer-browser.ts PASS 11/11
+01c5518 npm run test:browser PASS 23/23; npm run test:cloud-app-browser PASS 1/1
+8c24604 npm run test:browser PASS 23/23; npm run test:cloud-app-browser PASS 1/1; npm run test:cloud-operations PASS 1/1
+云端检查前均执行 npm run build:cloud。
+
+源码核对：公开方法 103；未移动方法 97；设置与详情方法体 5；动作名称 78、处理逻辑 72、职责分组 7。
+公开签名、构造函数、访问器、字段、其余方法及展示文件不变。
+
+npm run lint:web PASS（包含仓库其他范围的检查，不等于只查 Web）
+npx biome lint apps/web: 0 errors / 906 warnings / 30 infos
+copy keys 826 / hashed keys 601 / panels hashed keys 110 / icons 69
+
+最终证据文档提交后的检查与 CI 以 PR #51 为准，未取得的异步结果不计为通过。
+真机未检查；生产未部署。

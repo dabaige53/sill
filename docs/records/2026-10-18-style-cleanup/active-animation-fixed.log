@@ -1,0 +1,21 @@
+
+> sill@1.2.5 test:motion-material
+> node tests/e2e/motion-material-browser.ts
+
+PASS Real Tab reaches a completely hidden rail from the feed
+PASS App transparency preference covers menu and search backdrops
+PASS System transparency and increased contrast keep dark menus solid and outlined
+PASS Forced no-blur fallback uses solid surfaces and a one-pixel outline
+PASS Reduced motion includes head tools and preserves immediate keyboard visibility
+PASS Reduced phone navigation keeps its lens and does not become a draggable sheet
+PASS A toolbar-free preview fixture keeps its final action visible
+PASS Standalone previews, readers and photo pages have no copy-to-assistant action
+PASS Real touchCancel restores the phone sheet without closing or writing
+PASS Closing during phone entry does not revive the sheet
+PASS A menu holds an entering card without stopping its fade or its own entry
+PASS Changing reduced motion during toolbar entry preserves its fade (system)
+PASS Changing reduced motion during toolbar entry preserves its fade (app)
+PASS Style priorities preserve gesture and toolbar behavior (normal)
+PASS Style priorities preserve gesture and toolbar behavior (system)
+PASS Style priorities preserve gesture and toolbar behavior (app)
+PASS A delayed gesture dismissal leaves a newly opened search usable

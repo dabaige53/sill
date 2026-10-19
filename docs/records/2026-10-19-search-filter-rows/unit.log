@@ -1,0 +1,21 @@
+✔ search filters all shelves independently of the home projection (37.636375ms)
+✔ Escape clears only search selection before a second Escape leaves the search page (17.134875ms)
+✔ a card drawer retains the exact search nodes, query, scroll and focus (15.132917ms)
+✔ snooze from a search detail restores the search route and retained results (18.2265ms)
+✔ dismiss-reminder from a search detail restores the search route and retained results (13.669417ms)
+✔ complete-reminder from a search detail restores the search route and retained results (8.603625ms)
+✔ restore-reminder from a search detail restores the search route and retained results (8.220208ms)
+✔ home and search render the same shared completion and reading state (9.015375ms)
+✔ AI preview returns to the same search through Escape or the search tab (18.566667ms)
+✔ leaving the search route closes an AI preview as well as its retained background (8.276542ms)
+✔ shared card refresh keeps each surface's independent selection decoration (9.526792ms)
+✔ search rows name independent groups and omit the empty tag row (12.524083ms)
+✔ search repaint retains each row scroll and the focused condition (23.57475ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 597.323916

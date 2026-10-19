@@ -1,0 +1,52 @@
+U1 检查输出（本机合成数据）
+
+改前专项
+FAIL 320-light keyboard focus shows the control name
+FAIL 320-dark keyboard focus shows the control name
+FAIL 390-light keyboard focus shows the control name
+FAIL 390-dark keyboard focus shows the control name
+FAIL 1440-light keyboard focus shows the control name
+FAIL 1440-dark keyboard focus shows the control name
+FAIL 320-light-reduced keyboard focus shows the control name
+FAIL 320-dark-reduced keyboard focus shows the control name
+
+改后专项
+PASS 320-light
+PASS 320-dark
+PASS 390-light
+PASS 390-dark
+PASS 1440-light
+PASS 1440-dark
+PASS 320-light-system-reduced
+PASS 320-dark-system-reduced
+PASS 320-light-app-reduced
+PASS 320-dark-app-reduced
+
+无障碍
+PASS Offline draft survives reload and synchronizes; conflict never overwrites newer state
+PASS GET outage after reload journals new edits before reconnecting
+PASS Same-session failed write retry cannot overwrite another client card
+PASS Update arriving during phone dismissal cannot revive the sheet
+PASS Remote updates preserve preview scroll, focus, full sheet and renewed scroll behavior
+PASS Keyboard task and preference changes retain focus; radio arrows and shortcut opt-out work
+PASS Keyboard navigation reaches settings Add, persists a note, and exposes no removed source or import entries
+PASS Empty desk retains an actionable archive
+PASS 320px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS 390px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS 768px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS 1440px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS Short viewport can scroll capture save into view and submit by keyboard
+
+抽屉
+PASS rail notices fade and survive interrupted dismissal
+PASS capsule fades during scrolling, pause and interruption
+PASS Sill settings icon: light
+PASS Sill settings icon: dark
+PASS Layout stays inside 320px with long titles, tags and dates
+PASS Layout stays inside 390px with long titles, tags and dates
+PASS Layout stays inside 1280px with long titles, tags and dates
+PASS Phone short drawers fit content; long articles cap and expand while reading
+PASS Preview edge resistance stays bounded and restores the locked background
+PASS Handle drags up to expand, down to collapse, and cancels without changing state
+PASS PWA has no maximize button; reduced motion opens and closes without travel
+

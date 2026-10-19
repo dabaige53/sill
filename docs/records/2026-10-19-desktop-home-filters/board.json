@@ -1,0 +1,43 @@
+{
+  "box": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 1810.171875
+  },
+  "images": [
+    {
+      "src": "desktop-home-filters/1440-light.png",
+      "w": 1440,
+      "h": 1000
+    },
+    {
+      "src": "desktop-home-filters/1440-dark.png",
+      "w": 1440,
+      "h": 1000
+    },
+    {
+      "src": "desktop-home-filters/320-light.png",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "desktop-home-filters/320-dark.png",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "desktop-home-filters/390-light.png",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "desktop-home-filters/390-dark.png",
+      "w": 390,
+      "h": 844
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "external": []
+}

@@ -1,0 +1,49 @@
+{
+  "pixel": [
+    84,
+    772
+  ],
+  "records": [
+    {
+      "stage": "before-system",
+      "sha256": "248d3315791ece9f56e13dd515dc77d9df6c607b2a9db2e0428f7dd3b4f205ae",
+      "pixel84x772": [
+        21,
+        21,
+        22,
+        255
+      ]
+    },
+    {
+      "stage": "base-repeat-system",
+      "sha256": "dd5a70a67a9b281a940e55fa61aeb1e3ccc7f35c22d97b84a231844107a46504",
+      "pixel84x772": [
+        23,
+        23,
+        24,
+        255
+      ]
+    },
+    {
+      "stage": "cleaned-system",
+      "sha256": "dd5a70a67a9b281a940e55fa61aeb1e3ccc7f35c22d97b84a231844107a46504",
+      "pixel84x772": [
+        23,
+        23,
+        24,
+        255
+      ]
+    },
+    {
+      "stage": "managed-system",
+      "sha256": "248d3315791ece9f56e13dd515dc77d9df6c607b2a9db2e0428f7dd3b4f205ae",
+      "pixel84x772": [
+        21,
+        21,
+        22,
+        255
+      ]
+    }
+  ],
+  "observation": "The same one-pixel variation occurs between two captures of the baseline; the final capture matches the first baseline exactly. No assertion changed. Exact rendering cause not determined."
+}

@@ -1,0 +1,23 @@
+{
+  "baseline": "46565cf",
+  "baseNode": [
+    36,
+    192,
+    92
+  ],
+  "observationCases": 6,
+  "screenshots": 18,
+  "failures": {
+    "initial": "wrong expectation that detail stays open",
+    "second": "wrong expectation that returning to search closes the dialog",
+    "reproducedOn": "a073721",
+    "resolution": "wait for search then reopen the detail; assertions retained"
+  },
+  "logs": {
+    "observation-initial.log": "c836071bd94f304899a71da0084a2cb8558a1b81a4d02f4f78b30eb0306b2976",
+    "observation-base.log": "c836071bd94f304899a71da0084a2cb8558a1b81a4d02f4f78b30eb0306b2976",
+    "observation-timeout.log": "e38c9b6a0433ca7d55944f1a88bdc097e2afbc2a4f3aa0e8859d43479b09ecea",
+    "observation-timeout-base.log": "e38c9b6a0433ca7d55944f1a88bdc097e2afbc2a4f3aa0e8859d43479b09ecea",
+    "observation-corrected.log": "11fe125a7b9018e1c56e6edfe3cf0248e88f748c5bc59af16d01dd7c5c11ed25"
+  }
+}

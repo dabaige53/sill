@@ -1,0 +1,22 @@
+{
+  "apps/web/styles/base.css": {
+    "colorsReplaced": 2,
+    "spacingDeclarationsVisited": 17
+  },
+  "apps/web/styles/controls.css": {
+    "colorsReplaced": 6,
+    "spacingDeclarationsVisited": 41
+  },
+  "apps/web/styles/cards.css": {
+    "colorsReplaced": 11,
+    "spacingDeclarationsVisited": 69
+  },
+  "apps/web/styles/overlays.css": {
+    "colorsReplaced": 26,
+    "spacingDeclarationsVisited": 177
+  },
+  "apps/web/styles/responsive.css": {
+    "colorsReplaced": 0,
+    "spacingDeclarationsVisited": 59
+  }
+}

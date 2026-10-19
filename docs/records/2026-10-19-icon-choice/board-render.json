@@ -1,0 +1,44 @@
+{
+  "box": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 4942.359375
+  },
+  "glyphs": 414,
+  "images": [
+    {
+      "src": "icon-set/320-light-home.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "icon-set/390-light-home.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "icon-set/320-dark-home.jpg",
+      "w": 320,
+      "h": 844
+    },
+    {
+      "src": "icon-set/390-dark-home.jpg",
+      "w": 390,
+      "h": 844
+    },
+    {
+      "src": "icon-set/1440-light-home.jpg",
+      "w": 1440,
+      "h": 1000
+    },
+    {
+      "src": "icon-set/1440-dark-home.jpg",
+      "w": 1440,
+      "h": 1000
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "external": []
+}

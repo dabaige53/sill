@@ -1,0 +1,134 @@
+{
+  "sourceCommit": "9e803f7",
+  "actualPage": true,
+  "temporaryStyles": false,
+  "stage": "before",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "A",
+      "file": "320-light.png",
+      "metrics": {
+        "visible": true,
+        "left": 0,
+        "width": 320,
+        "top": 0,
+        "tabs": [
+          "全部",
+          "未读",
+          "待办",
+          "稍后读",
+          "收藏"
+        ]
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "A",
+      "file": "320-dark.png",
+      "metrics": {
+        "visible": true,
+        "left": 0,
+        "width": 320,
+        "top": 0,
+        "tabs": [
+          "全部",
+          "未读",
+          "待办",
+          "稍后读",
+          "收藏"
+        ]
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "A",
+      "file": "390-light.png",
+      "metrics": {
+        "visible": true,
+        "left": 0,
+        "width": 390,
+        "top": 0,
+        "tabs": [
+          "全部",
+          "未读",
+          "待办",
+          "稍后读",
+          "收藏"
+        ]
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "A",
+      "file": "390-dark.png",
+      "metrics": {
+        "visible": true,
+        "left": 0,
+        "width": 390,
+        "top": 0,
+        "tabs": [
+          "全部",
+          "未读",
+          "待办",
+          "稍后读",
+          "收藏"
+        ]
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "A",
+      "file": "1440-light.png",
+      "metrics": {
+        "visible": false,
+        "left": 0,
+        "width": 0,
+        "top": 0,
+        "tabs": [
+          "全部",
+          "未读",
+          "待办",
+          "稍后读",
+          "收藏"
+        ]
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "A",
+      "file": "1440-dark.png",
+      "metrics": {
+        "visible": false,
+        "left": 0,
+        "width": 0,
+        "top": 0,
+        "tabs": [
+          "全部",
+          "未读",
+          "待办",
+          "稍后读",
+          "收藏"
+        ]
+      },
+      "errors": [],
+      "external": []
+    }
+  ]
+}

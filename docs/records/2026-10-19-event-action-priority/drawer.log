@@ -1,0 +1,17 @@
+PASS rail notices fade and survive interrupted dismissal
+FAIL capsule fades during scrolling, pause and interruption AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(returning > 0 && returning < 1)
+
+    at file:///Users/w/code/sill/tests/e2e/drawer-browser.ts:238:11
+    at async scenario (file:///Users/w/code/sill/tests/e2e/drawer-browser.ts:132:4)
+    at async file:///Users/w/code/sill/tests/e2e/drawer-browser.ts:208:2
+PASS Sill settings icon: light
+PASS Sill settings icon: dark
+PASS Layout stays inside 320px with long titles, tags and dates
+PASS Layout stays inside 390px with long titles, tags and dates
+PASS Layout stays inside 1280px with long titles, tags and dates
+PASS Phone short drawers fit content; long articles cap and expand while reading
+PASS Preview edge resistance stays bounded and restores the locked background
+PASS Handle drags up to expand, down to collapse, and cancels without changing state
+PASS PWA has no maximize button; reduced motion opens and closes without travel

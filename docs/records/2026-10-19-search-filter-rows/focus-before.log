@@ -1,0 +1,20 @@
+PASS search filter rows, keyboard controls and retained detail 1440-light-1000
+PASS search filter rows, keyboard controls and retained detail 1440-dark-1000
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: keyboard-selected tag remains visible in its row
+
+false !== true
+
+    at file:///Users/w/code/sill/tests/e2e/search-filters-browser.ts:142:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.11.1

@@ -1,0 +1,7 @@
+PASS photo tools, tags return, hidden preferences and opaque fallback 320-light
+PASS photo tools, tags return, hidden preferences and opaque fallback 320-dark
+PASS photo tools, tags return, hidden preferences and opaque fallback 390-light
+PASS photo tools, tags return, hidden preferences and opaque fallback 390-dark
+PASS photo tools, tags return, hidden preferences and opaque fallback 1440-light
+PASS photo tools, tags return, hidden preferences and opaque fallback 1440-dark
+PASS generated component CSS carries the photo dark context in a light host
