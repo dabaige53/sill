@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { create, event, revision, update, workspaceBatch } from "../../contracts/cloud.ts";
 import { copy } from "../../design-system/copy.ts";
 import { accessName as cookieName, createBrowserSessions, readCookie } from "./browser-session.ts";
+import { callbackFailurePage } from "./auth-page.ts";
 import { loginPage } from "./login-page.ts";
 import { createMcpHandler } from "./mcp.ts";
 import { createOAuthController } from "./oauth-controller.ts";
@@ -156,6 +157,24 @@ export function createSillRuntime(
 					throw serviceError("forbidden");
 				return json(200, { status: "ready", contract: "sill-v1-draft1" });
 			}
+			if (request.method === "GET" && path === "/auth/recovery") {
+				const reason = url.searchParams.get("reason");
+				return new Response(
+					callbackFailurePage(
+						reason === "forbidden" || reason === "unavailable" || reason === "cancelled"
+							? reason
+							: "expired",
+					),
+					{
+						headers: {
+							...headers,
+							"Content-Type": "text/html; charset=utf-8",
+							"Content-Security-Policy":
+								"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'",
+						},
+					},
+				);
+			}
 			if (request.method === "GET" && (path === "/auth/login" || path === "/auth/password/new")) {
 				if (path === "/auth/password/new") await authenticate(request);
 				else {
@@ -176,6 +195,7 @@ export function createSillRuntime(
 					loginPage({
 						setup: path === "/auth/password/new",
 						failed: url.searchParams.has("login_error"),
+						authorizing: !!oauth.resumeLocation(request)?.includes("/oauth/consent?"),
 					}),
 					{
 						headers: {
@@ -256,8 +276,16 @@ export function createSillRuntime(
 			}
 			if (path === "/auth/login" && request.method === "POST") {
 				sameOrigin(request, config.appOrigin);
-				const { email, setupPassword } = z
-					.object({ email: z.string().email().max(254), setupPassword: z.boolean().optional() })
+				const {
+					email,
+					setupPassword,
+					client: loginClient,
+				} = z
+					.object({
+						email: z.string().email().max(254),
+						setupPassword: z.boolean().optional(),
+						client: z.literal("macos").optional(),
+					})
 					.strict()
 					.parse(await body(request));
 				// Preserve the production browser cooldown; provider rate limits remain authoritative.
@@ -281,7 +309,7 @@ export function createSillRuntime(
 					email,
 					options: {
 						shouldCreateUser: false,
-						emailRedirectTo: `${config.appOrigin}/auth/callback`,
+						emailRedirectTo: `${config.appOrigin}/auth/callback${loginClient === "macos" ? "?client=macos" : ""}`,
 					},
 				});
 				if (result.error?.status === 429)
@@ -320,7 +348,28 @@ export function createSillRuntime(
 				// Fixed redirect URL needs no wildcard query allowlist or separate echoed state.
 				const code = url.searchParams.get("code"),
 					verifier = readCookie(request, verifierName);
-				if (!code || code.length > 4096 || !verifier || verifier.length > 512)
+				if (url.searchParams.get("client") === "macos") {
+					if (!code || code.length > 4096 || url.searchParams.getAll("code").length !== 1)
+						throw serviceError("unauthenticated");
+					if (request.headers.get("X-Sill-Client") !== "macos") {
+						// Forward only the one-use code. The native session retains its PKCE verifier.
+						return new Response(null, {
+							status: 303,
+							headers: {
+								...headers,
+								Location: `sill://auth/callback?code=${encodeURIComponent(code)}`,
+							},
+						});
+					}
+					sameOrigin(request, config.appOrigin);
+				}
+				if (
+					!code ||
+					url.searchParams.getAll("code").length !== 1 ||
+					code.length > 4096 ||
+					!verifier ||
+					verifier.length > 512
+				)
 					throw serviceError("unauthenticated");
 				const client = authClient(new Map<any, any>([["sill-web-code-verifier", verifier]]));
 				const { data, error } = await client.auth.exchangeCodeForSession(code);
@@ -476,7 +525,19 @@ export function createSillRuntime(
 			) {
 				return new Response(null, {
 					status: 303,
-					headers: { ...headers, Location: config.appOrigin + "/?login_error=1" },
+					headers: {
+						...headers,
+						Location:
+							config.appOrigin +
+							"/auth/recovery?reason=" +
+							(failedUrl.searchParams.get("error") === "access_denied"
+								? "cancelled"
+								: error.status === 403
+									? "forbidden"
+									: error.status >= 500
+										? "unavailable"
+										: "expired"),
+					},
 				});
 			}
 			const alias = {

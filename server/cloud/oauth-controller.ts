@@ -1,3 +1,4 @@
+import { consentStyles, authStyles } from "./auth-page.ts";
 import { copy } from "../../design-system/copy.ts";
 import { consentSummary, reviewConsent } from "./consent-policy.ts";
 import { isAuthorizationId } from "./oauth-identifiers.ts";
@@ -48,9 +49,9 @@ const hash = async (s?: any) =>
 		new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s))),
 		(x?: any) => x.toString(16).padStart(2, "0"),
 	).join("");
-const page = (html?: any, status: any = 200) =>
+const page = (html?: any, status: any = 200, consent = false) =>
 	new Response(
-		`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${copy("server.oauthcontroller.1e12aceb3b8c")}</title><style>body{margin:0;background:#f5f5f7;color:#1d1d1f;font:16px/1.65 system-ui}main{max-width:620px;margin:40px auto;padding:28px;background:white;border-radius:24px}h1{font-size:23px}dt{color:#636366;margin-top:14px}dd{margin:0;overflow-wrap:anywhere}button,a{min-height:44px}button{padding:12px 20px;margin:12px 8px 0 0;border:0;border-radius:22px;cursor:pointer}button[value=approve]{background:#0066cc;color:white}a{color:#0066cc}button:focus-visible,a:focus-visible{outline:3px solid #0066cc;outline-offset:3px}@media(max-width:680px){main{margin:16px;padding:20px}}</style><main><a href="/">${copy("server.oauthcontroller.6f07cd6b8efc")}</a>${html}</main></html>`,
+		`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${copy("server.oauthcontroller.1e12aceb3b8c")}</title><style>${authStyles}${consent ? consentStyles : ""}</style><main${consent ? ' class="consent-page"' : ""}>${consent ? "" : `<a href="/">${copy("server.oauthcontroller.6f07cd6b8efc")}</a>`}${html}</main></html>`,
 		{ status, headers: { ...headers, "Content-Type": "text/html; charset=utf-8" } },
 	);
 async function form(request?: any) {
@@ -272,14 +273,14 @@ export function createOAuthController(
 					stage = "flow-store";
 					html =
 						consentSummary(review) +
-						`<form method="post" action="/oauth/decision">${await newFlow("consent", review.clientId, review)}<button name="decision" value="approve">${copy("server.oauthcontroller.78153f238e89")}</button><button name="decision" value="deny">${copy("server.oauthcontroller.136de7a8c46f")}</button></form><p>${copy("server.oauthcontroller.48d7f4b56329")}</p><a href="/oauth/grants">${copy("server.oauthcontroller.8782b690d2e7")}</a>`;
+						`<form class="consent-actions" method="post" action="/oauth/decision">${await newFlow("consent", review.clientId, review)}<button name="decision" value="deny">${copy("server.oauthcontroller.136de7a8c46f")}</button><button name="decision" value="approve">${copy("server.oauthcontroller.78153f238e89")}</button></form>`;
 				} else if (path === "/oauth/grants" && !url.search) {
 					html = `<h1>${copy("server.oauthcontroller.8782b690d2e7")}</h1><p>${copy("server.oauthcontroller.2b3045f9e2af")}</p>`;
 					for (const row of await rpc("list"))
 						if (allowed(row.clientId))
 							html += `<section><h2>${esc(row.clientId)}</h2><p>${row.grant ? copy("server.oauthcontroller.b13cb614f05b") + esc(row.grant.scopes.join("、")) + copy("server.oauthcontroller.389ae3297b0f") + esc(row.grant.resources.join("、")) : copy("server.oauthcontroller.9a3166f75c45")}</p><form method="post" action="/oauth/revoke">${await newFlow("revoke", row.clientId, null)}<button name="decision" value="revoke">${copy("server.oauthcontroller.b379985b08ae")}</button></form></section>`;
 				} else throw serviceError("not_found");
-				const r = page(html);
+				const r = page(html, 200, path === "/oauth/consent");
 				// Chromium applies form-action to the provider's 303 callback as well. Permit
 				// only the exact server-reviewed callback, never a browser-supplied target.
 				if (reviewedCallback)

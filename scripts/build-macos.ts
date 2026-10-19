@@ -56,6 +56,9 @@ await rm(app, { recursive: true, force: true });
 await mkdir(resolve(contents, "MacOS"), { recursive: true });
 await mkdir(resources, { recursive: true });
 await cp(resolve(binaryDirectory, "Sill"), resolve(contents, "MacOS/Sill"));
+await cp(resolve(binaryDirectory, "Sill_Sill.bundle"), resolve(resources, "Sill_Sill.bundle"), {
+	recursive: true,
+});
 const copy = JSON.parse(
 	await readFile(resolve(root, "design-system/copy/zh-Hans.json"), "utf8"),
 ) as Record<string, string>;
@@ -110,6 +113,7 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <key>CFBundleDevelopmentRegion</key><string>zh-Hans</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSPrincipalClass</key><string>NSApplication</string>
+<key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>Sill authentication</string><key>CFBundleURLSchemes</key><array><string>sill</string></array></dict></array>
 </dict></plist>
 `;
 await writeFile(resolve(contents, "Info.plist"), plist);

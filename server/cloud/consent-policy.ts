@@ -1,3 +1,4 @@
+import { consentGlyph } from "./auth-page.ts";
 import { copy } from "../../design-system/copy.ts";
 import { isAuthorizationId } from "./oauth-identifiers.ts";
 
@@ -147,5 +148,23 @@ export function consentSummary(review?: any) {
 		review.resources[0] === "*"
 			? copy("server.consentpolicy.2d55a9134f5d")
 			: review.resources.map(escapeHtml).join("、");
-	return `<section aria-labelledby="consent-title"><h1 id="consent-title">${copy("server.consentpolicy.65051d44e433")}${escapeHtml(review.clientName)}${copy("server.consentpolicy.070dee491968")}</h1><dl><dt>${copy("server.consentpolicy.92ceb36a3d2c")}</dt><dd>${escapeHtml(review.clientId)}</dd><dt>${copy("server.consentpolicy.9ca160d65985")}</dt><dd>${escapeHtml(review.redirectUri)}</dd><dt>${copy("server.consentpolicy.02739d1bae8b")}</dt><dd>${escapeHtml(review.audience)}</dd><dt>${copy("server.consentpolicy.b10ce5499816")}</dt><dd>${review.identityScopes.map(escapeHtml).join("、")}</dd><dt>${copy("server.consentpolicy.be74f928b8be")}</dt><dd>${review.contentScopes.map((s?: any) => ({ "content:read": copy("server.consentpolicy.bf6dfdcb4066"), "content:write": copy("server.consentpolicy.97b7145eb4ee"), "content:delete": copy("server.consentpolicy.7ca7b60a347c"), "event:submit": copy("server.consentpolicy.08e1bf580476"), "event:read": copy("server.consentpolicy.6ccfdd828764") })[s]).join("、")}</dd><dt>${copy("server.consentpolicy.ffd105fcc26e")}</dt><dd>${range}</dd></dl><p>${copy("server.consentpolicy.8c743ee83f59")}</p>${review.canList ? "" : `<p>${copy("server.consentpolicy.30d1f064d9d7")}</p>`}</section>`;
+	const identity = {
+		openid: copy("auth.identity.openid"),
+		email: copy("auth.identity.email"),
+		profile: copy("auth.identity.profile"),
+		phone: copy("auth.identity.phone"),
+		offline_access: copy("auth.identity.offline_access"),
+	};
+	const permissions = {
+		"content:read": copy("server.consentpolicy.bf6dfdcb4066"),
+		"content:write": review.canCreate
+			? copy("server.consentpolicy.97b7145eb4ee")
+			: copy("auth.modifySelected"),
+		"content:delete": copy("server.consentpolicy.7ca7b60a347c"),
+		"event:submit": copy("server.consentpolicy.08e1bf580476"),
+		"event:read": copy("server.consentpolicy.6ccfdd828764"),
+	};
+	const list = (scopes, labels) =>
+		scopes.map((scope) => "<li>" + consentGlyph(scope) + "<span>" + escapeHtml(labels[scope] || scope) + "</span></li>").join("");
+	return `<section aria-labelledby="consent-title"><div class="consent-brand"><span class="consent-brand-mark">${consentGlyph("sill")}</span><span>Sill</span></div><h1 id="consent-title">${copy("server.consentpolicy.65051d44e433")}${escapeHtml(review.clientName)}${copy("server.consentpolicy.070dee491968")}</h1><p>${range}</p><h2 class="visually-hidden">${copy("auth.permissions")}</h2><ul class="consent-permissions">${list(review.contentScopes, permissions)}${list(review.identityScopes, identity)}</ul>${review.canList ? "" : "<p>" + copy("server.consentpolicy.30d1f064d9d7") + "</p>"}<details><summary>${copy("auth.details")}</summary><dl><dt>${copy("auth.account")}</dt><dd>${escapeHtml(review.userId)}</dd><dt>${copy("server.consentpolicy.92ceb36a3d2c")}</dt><dd>${escapeHtml(review.clientId)}</dd><dt>${copy("server.consentpolicy.9ca160d65985")}</dt><dd>${escapeHtml(review.redirectUri)}</dd><dt>${copy("server.consentpolicy.02739d1bae8b")}</dt><dd>${escapeHtml(review.audience)}</dd><dt>${copy("server.consentpolicy.b10ce5499816")}</dt><dd>${review.identityScopes.map(escapeHtml).join("、")}</dd></dl></details>${review.contentScopes.includes("event:submit") ? "<p>" + copy("auth.eventQueue") + "</p>" : ""}</section>`;
 }

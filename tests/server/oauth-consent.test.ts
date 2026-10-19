@@ -573,7 +573,7 @@ test("full login handoff reaches review, while another browser and expired retur
 			headers: { Accept: "text/html" },
 		});
 		assert.equal(other.status, 303);
-		assert.equal(other.headers.get("location"), f.config.appOrigin + "/?login_error=1");
+		assert.equal(other.headers.get("location"), f.config.appOrigin + "/auth/recovery?reason=expired");
 		const callback = await f.call("/auth/callback?code=synthetic-code", { cookieJar: jar });
 		const review = await f.call(
 			new URL(callback.headers.get("location")).pathname +
@@ -581,7 +581,7 @@ test("full login handoff reaches review, while another browser and expired retur
 			{ cookieJar: jar },
 		);
 		assert.equal(review.status, 200);
-		assert.match(await review.text(), /允许上述访问/);
+		assert.match(await review.text(), /value="approve">允许<\/button>/);
 		assert.equal(await f.grant(), undefined, "login does not approve access");
 		const expired = new Map<any, any>([
 			["__Host-sill-oauth-return", AUTH + "." + (Date.now() - 1000)],

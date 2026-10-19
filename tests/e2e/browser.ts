@@ -701,7 +701,7 @@ async function recordLayout(page?: any, width?: any) {
 				assert.doesNotMatch(await card(page, relation).locator(".card-head").innerText(), /张卡/);
 				await page.waitForFunction(
 					() =>
-						Date.now() >= window.__app.drag.suppressUntil &&
+						Date.now() >= (window.__app.drag.suppressedClick?.until || 0) &&
 						window.__app.selected.size === 0 &&
 						!window.__app.drag.active,
 				);

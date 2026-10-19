@@ -317,3 +317,38 @@ test("search repaint retains each row scroll and the focused condition", () => {
 		f.dom.window.close();
 	}
 });
+
+test("switching away flushes pending search before retaining results", () => {
+	const f = fixture();
+	try {
+		f.app.searchFilter.query = "Alpha";
+		f.app.searchTimer = f.w.setTimeout(() => {}, 1000);
+		f.app.suspendSearch();
+		assert.equal(f.app.searchBackground.querySelectorAll("[data-card]").length, 2);
+		assert.equal(f.app.searchTimer, 0);
+		f.app.restoreSearch();
+		assert.equal(f.app.dialog.querySelectorAll("[data-card]").length, 2);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("repeated close requests on a stacked card only move back one history entry", () => {
+	const f = fixture();
+	try {
+		f.app.modalKind = "preview";
+		f.app.previewTrail = ["a"];
+		f.w.history.replaceState({ prev: "#card/a" }, "", "#card/b");
+		let backs = 0;
+		f.w.history.back = () => {
+			backs++;
+		};
+		f.app.closeModal();
+		f.app.closeModal();
+		assert.equal(backs, 1);
+		assert.equal(f.app.dialog.open, true);
+		assert.equal(f.app.previewTrail.length, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});

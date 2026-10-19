@@ -677,7 +677,7 @@ try {
 			await page.locator(".ai-conversation").waitFor();
 			assert.equal(await page.locator("[data-ai-context]").count(), 1);
 			await page.locator('#modal [data-action="close"]').click();
-			await page.locator("#filter-search").waitFor();
+			await page.locator("#modal.search[open] #filter-search").waitFor();
 			assert.equal(await page.locator("#filter-search").inputValue(), "选择测试");
 			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);
 			assert.deepEqual(await page.evaluate(() => [...window.__app.searchSelected]), [

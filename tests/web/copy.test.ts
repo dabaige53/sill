@@ -86,14 +86,14 @@ test("Web user-facing Chinese stays in shared copy rather than source literals",
 	);
 });
 
-test("Apple keys and values remain unchanged during Web copy extraction", () => {
+test("Apple copy includes the merged native workspace vocabulary", () => {
 	const apple = Object.entries(messages)
 		.filter(([key]) => key.startsWith("apple."))
 		.sort();
-	assert.equal(apple.length, 57);
+	assert.equal(apple.length, 127);
 	assert.equal(
 		createHash("sha256").update(JSON.stringify(apple)).digest("hex"),
-		"730bd061e40498185da99eb87b67019545b3e28ecb33632dc3d99c24014fec1c",
+		"d23c6c18e7096c4fce7ce3a443f10a88601f19583fb23c3e8caa2f1e6211d02f",
 	);
 });
 

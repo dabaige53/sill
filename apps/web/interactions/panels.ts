@@ -70,7 +70,7 @@ interface PanelRenderers {
 	settingsGroups: string[][];
 	settings(app?: unknown, group?: string): string;
 	confirm(title?: string, detail?: string, actions?: string): string;
-	ai(app?: Pick<AppController, "aiSelectionIds">): string;
+	ai(app?: Pick<AppController, "aiSelectionIds"> & Partial<Pick<AppController, "aiDraft">>): string;
 	capture(app?: unknown): string;
 }
 
@@ -445,7 +445,10 @@ const Panels: PanelRenderers = {
 		return `<div class="sheet"><div class="permission"><h1 id="modal-title">${esc(title)}</h1><p class="muted">${esc(detail)}</p><div class="permission-actions">${actions}</div></div></div>`;
 	},
 	/* AI: a place kept for the assistant. It says plainly that nothing works here yet. */
-	ai(this: PanelRenderers, app?: Pick<AppController, "aiSelectionIds">) {
+	ai(
+		this: PanelRenderers,
+		app?: Pick<AppController, "aiSelectionIds"> & Partial<Pick<AppController, "aiDraft">>,
+	) {
 		const cards = [...new Set<string>(app?.aiSelectionIds || [])]
 			.map((id) => Store.card(id))
 			.filter(Boolean);
@@ -455,7 +458,7 @@ const Panels: PanelRenderers = {
 				return `<article class="ai-context-card" data-ai-context="${esc(card.id)}"><h3>${esc(card.title)}</h3>${excerpt ? `<p>${esc(excerpt)}</p>` : ""}</article>`;
 			})
 			.join("");
-		return `<div class="sheet ai-conversation"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<header class="ai-conversation-head">${icon("chat", 24)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span></header><p id="ai-availability" class="muted">${copy("web.ai.localOnly")}</p><section class="ai-context" aria-label="${copy("web.ai.context")}">${context || `<p class="muted ai-context-empty">${copy("web.ai.emptyContext")}</p>`}</section><div class="ai-composer"><textarea id="ai-local-draft" aria-label="${copy("web.ai.composer")}" aria-describedby="ai-availability" placeholder="${copy("web.ai.placeholder")}" maxlength="4000" rows="3"></textarea><button type="button" class="icon-button" disabled aria-label="${copy("web.ai.sendUnavailable")}">${icon("send", 20)}</button></div></div>`;
+		return `<div class="sheet ai-conversation"><div class="grabber" aria-hidden="true"></div>${this.close(copy("web.close"))}<header class="ai-conversation-head">${icon("chat", 24)}<h1 id="modal-title">${copy("web.ai.title")}</h1><span class="soon-badge">${copy("web.ai.soon")}</span></header><p id="ai-availability" class="muted">${copy("web.ai.localOnly")}</p><section class="ai-context" aria-label="${copy("web.ai.context")}">${context || `<p class="muted ai-context-empty">${copy("web.ai.emptyContext")}</p>`}</section><div class="ai-composer"><textarea id="ai-local-draft" aria-label="${copy("web.ai.composer")}" aria-describedby="ai-availability" placeholder="${copy("web.ai.placeholder")}" maxlength="4000" rows="3">${esc(app?.aiDraft || "")}</textarea><button type="button" class="icon-button" disabled aria-label="${copy("web.ai.sendUnavailable")}">${icon("send", 20)}</button></div></div>`;
 	},
 	/* Capture: one field. A link becomes an article, a line becomes a note. */
 	capture(this: PanelRenderers, app?: unknown) {

@@ -91,6 +91,7 @@
 - [PWA 名称提示补入本地画板（2026-10-18）](records/2026-10-18-pwa-board/README.md)
 
 - [2026-10-17-product-review：内容密度、动效材质与 Agent 交接审查](records/2026-10-17-product-review/README.md)
+- [2026-10-17-issue-polish：Web/PWA 需求修正与验证](records/2026-10-17-issue-polish/README.md)
 - [2026-10-17-ci-recovery：产品审查后的 CI 回归修正](records/2026-10-17-ci-recovery/README.md)
 
 - [2026-10-11-product-conversation：Sill — 产品对话与需求演进记录](records/2026-10-11-product-conversation/README.md)

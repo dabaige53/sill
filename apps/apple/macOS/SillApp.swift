@@ -1,3 +1,4 @@
+import AppKit
 import SillKit
 import SwiftUI
 
@@ -6,7 +7,13 @@ import SwiftUI
   @StateObject private var model = Workspace()
   var body: some Scene {
     Window(Copy.appleWindowTitle, id: "desktop") {
-      Desktop().environmentObject(model).onAppear { delegate.model = model }
+      Group {
+        if model.ready && !model.needsPasswordSetup { Desktop() } else { CloudLogin() }
+      }.environmentObject(model).onAppear { delegate.model = model }
+        .onOpenURL { model.completeLogin($0) }
+        .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { _ in
+          if NSApp.isActive && model.owner != nil && model.error == nil { model.refresh() }
+        }
     }.defaultSize(width: AppleMetrics.windowWidth, height: AppleMetrics.windowHeight).windowStyle(
       .hiddenTitleBar
     )
@@ -21,7 +28,7 @@ import SwiftUI
         Button(Copy.appleSearch) {
           model.searchPresented = true
           model.searchFocusRequest += 1
-        }.keyboardShortcut("f")
+        }.keyboardShortcut("k")
       }
     }
   }

@@ -63,7 +63,7 @@ test("SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
 			Accept: "text/html",
 		});
 		assert.equal(recovery.status, 303);
-		assert.equal(recovery.headers.get("location"), origin + "/?login_error=1");
+		assert.equal(recovery.headers.get("location"), origin + "/auth/recovery?reason=expired");
 		assert.equal(
 			recovery.headers.get("set-cookie"),
 			null,

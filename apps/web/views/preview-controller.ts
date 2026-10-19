@@ -12,6 +12,7 @@ import type { AppController } from "./app.ts";
 export function openCard(this: AppController, id?: any, reading: any = false) {
 	const c = Store.card(id);
 	if (!c) return;
+	this.closingCardRoute = "";
 	const source = (
 		this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
 	).querySelector(`[data-card="${CSS.escape(id)}"]`);

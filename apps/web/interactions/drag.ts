@@ -10,7 +10,7 @@ class DragManager {
 	declare pending: any;
 	declare active: any;
 	declare timer: any;
-	declare suppressUntil: number;
+	declare suppressedClick: { element: HTMLElement; until: number } | null;
 	declare ghost: HTMLElement | null;
 	declare menu: HTMLDialogElement;
 	declare returnFocus: HTMLElement | null;
@@ -21,7 +21,7 @@ class DragManager {
 		this.pending = null;
 		this.active = null;
 		this.timer = 0;
-		this.suppressUntil = 0;
+		this.suppressedClick = null;
 		this.ghost = null;
 		this.menuIds = [];
 		this.menu = document.createElement("dialog");
@@ -45,6 +45,24 @@ class DragManager {
 				}
 			} else if (e.target === this.menu) this.closeMenu();
 		});
+		document.addEventListener(
+			"click",
+			(e) => {
+				const suppressed = this.suppressedClick;
+				if (
+					this.active ||
+					(suppressed &&
+						Date.now() < suppressed.until &&
+						e.target instanceof Node &&
+						suppressed.element.contains(e.target))
+				) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+				}
+				this.suppressedClick = null;
+			},
+			true,
+		);
 		document.addEventListener("pointerdown", (e) => {
 			if (e.pointerType !== "touch" && e.button === 0) this.prepare(e.target, e.clientX, e.clientY);
 		});
@@ -142,6 +160,8 @@ class DragManager {
 	}
 	prepare(target: EventTarget | null, x: number, y: number) {
 		this.clearPending();
+		// A new press is a new gesture, even within the compatibility-click window.
+		this.suppressedClick = null;
 		if (
 			(this.app.dialog.open && this.app.modalKind !== "search") ||
 			this.menu.open ||
@@ -181,7 +201,6 @@ class DragManager {
 		};
 		this.app.railHide?.show();
 		this.clearPending();
-		this.suppressUntil = Date.now() + 1000;
 		this.app.announce(
 			`${copy("web.selection.countPrefix")}${ids.length}${copy("web.selection.countSuffix")}`,
 		);
@@ -358,6 +377,9 @@ class DragManager {
 		this.closeMenu();
 	}
 	cleanup() {
+		if (this.active) {
+			this.suppressedClick = { element: this.active.element, until: Date.now() + 400 };
+		}
 		this.active?.target?.classList.remove("is-ready");
 		const label = this.active?.target?.querySelector("[data-ai-label]");
 		if (label) label.textContent = copy("web.selection.aiDrop");
@@ -369,7 +391,6 @@ class DragManager {
 		this.ghost = null;
 		this.active = null;
 		this.clearPending();
-		this.suppressUntil = Date.now() + 400;
 	}
 }
 

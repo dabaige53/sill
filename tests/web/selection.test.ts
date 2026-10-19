@@ -577,7 +577,7 @@ test("selection: search reuses gestures and toolbar with its own selected set", 
 			f.document.getElementById("selection-bar").querySelector(".selection-count").textContent,
 			"1",
 		);
-		f.app.drag.suppressUntil = 0;
+		f.app.drag.suppressedClick = null;
 		const third = results.querySelector('[data-card="three"] p');
 		f.app.click({ target: third, preventDefault() {}, stopPropagation() {} });
 		assert.deepEqual(Array.from(f.app.searchSelected), ["two", "three"]);

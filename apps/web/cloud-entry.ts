@@ -215,6 +215,7 @@ function clearCloud({ retainDrafts = false }: any = {}) {
 	app.homeSelected.clear();
 	app.searchSelected.clear();
 	app.aiSelectionIds = [];
+	app.aiDraft = "";
 	app.selectAnchor = "";
 	app.searchSelectAnchor = "";
 	app.searchFilter = { type: "all", status: "all", tag: "", query: "" };

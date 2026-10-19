@@ -234,6 +234,8 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 
 ## 使用组件
 
+- macOS 原生端使用 SwiftUI 与 AppKit，不嵌入网页；主页、搜索、AI 与设置共用四格底部导航。主题、密度、颜色和文案使用共享设计变量。现有原生实现的视觉与交互仍须在实际窗口验收，不能以源码合并或构建通过代替。
+
 - 组件是原生 HTML 字符串函数（`window.Sill`）。先加载 tokens.css，再加载 `components/bundle.css`。
 - 新增的 CardBlocks、StackCard、KeyPoints、ReadEndRing、SourceRow 目前是静态示例，直接用令牌变量写成，还没有进 bundle。
 

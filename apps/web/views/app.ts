@@ -100,6 +100,8 @@ class AppController {
 	searchBackground?: HTMLDialogElement;
 	searchFocus?: HTMLElement;
 	aiSelectionIds: string[] = [];
+	aiDraft = "";
+	closingCardRoute = "";
 	homeSelected = new Set<string>();
 	searchSelected = new Set<string>();
 	searchSelectAnchor = "";
@@ -1183,6 +1185,8 @@ class AppController {
 	}
 	closeModal() {
 		if (["preview", "reader", "lightbox"].includes(this.modalKind)) {
+			if (this.closingCardRoute === location.hash || this.sheetLeaving) return;
+			this.closingCardRoute = location.hash;
 			if (history.state?.prev !== undefined && /^#(card|read)\//.test(location.hash))
 				history.back();
 			else {
@@ -1268,7 +1272,14 @@ class AppController {
 		);
 	}
 	suspendSearch() {
-		clearTimeout(this.searchTimer);
+		if (this.searchTimer) {
+			clearTimeout(this.searchTimer);
+			this.searchTimer = 0;
+			const results = this.dialog.querySelector<HTMLElement>("#search-results");
+			results.innerHTML = Panels.searchResults(this);
+			this.revealImages(results);
+			this.updateSelection();
+		}
 		this.searchScroll = this.dialog.querySelector<HTMLElement>("#search-results")?.scrollTop || 0;
 		this.searchFocus = document.activeElement as HTMLElement as HTMLElement;
 		const background = document.createElement("dialog");
@@ -1281,6 +1292,7 @@ class AppController {
 		document.body.append(background);
 		this.dialog.close();
 		background.show();
+		background.inert = true;
 		background.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 		this.searchBackground = background;
 	}
@@ -1858,19 +1870,21 @@ class AppController {
 			).focus({ preventScroll: true });
 		}
 		if (positions) {
-			this.grid.querySelectorAll<HTMLElement>(":scope > .feed-item").forEach((node: HTMLElement) => {
-				MotionEngine.cancelExit(key(node));
-				const previous = positions.get(key(node));
-				const rect = node.getBoundingClientRect();
-				if (rect.bottom > 0 && rect.top < innerHeight) {
-					if (previous) {
-						MotionEngine.flip(node, previous.rect);
-						if (previous.node.textContent !== node.textContent)
-							MotionEngine.resize(node, previous.rect.height);
-					} else MotionEngine.drop(node, this.sheetLeaving ? MotionEngine.time("fast") : 0);
-				}
-				positions.delete(key(node));
-			});
+			this.grid
+				.querySelectorAll<HTMLElement>(":scope > .feed-item")
+				.forEach((node: HTMLElement) => {
+					MotionEngine.cancelExit(key(node));
+					const previous = positions.get(key(node));
+					const rect = node.getBoundingClientRect();
+					if (rect.bottom > 0 && rect.top < innerHeight) {
+						if (previous) {
+							MotionEngine.flip(node, previous.rect);
+							if (previous.node.textContent !== node.textContent)
+								MotionEngine.resize(node, previous.rect.height);
+						} else MotionEngine.drop(node, this.sheetLeaving ? MotionEngine.time("fast") : 0);
+					}
+					positions.delete(key(node));
+				});
 			for (const [id, { node, rect }] of positions) MotionEngine.retire(node, rect, id);
 		}
 	}
@@ -2529,7 +2543,6 @@ class AppController {
 			e.stopPropagation();
 			return;
 		}
-		if (Date.now() < this.drag.suppressUntil) return;
 		const picked = e.target.closest?.<HTMLElement>(
 			"#feed-grid [data-card], #search-results [data-card]",
 		);
@@ -2617,6 +2630,10 @@ class AppController {
 		this.revealImages(this.dialog);
 	}
 	input(e?: TargetEvent<Event> & { isComposing?: boolean }) {
+		if (e.target.id === "ai-local-draft") {
+			this.aiDraft = (e.target as HTMLTextAreaElement).value;
+			return;
+		}
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "search") {
@@ -2627,6 +2644,7 @@ class AppController {
 				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.common.cardCountSuffix")}`;
 			clearTimeout(this.searchTimer);
 			this.searchTimer = window.setTimeout(() => {
+				this.searchTimer = 0;
 				const results = document.getElementById("search-results");
 				if (results) {
 					results.innerHTML = Panels.searchResults(this);
