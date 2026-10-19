@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
-import { CardActions } from "../../contracts/card-actions.ts";
+import { type CardAction, CardActions } from "../../contracts/card-actions.ts";
 import { Preferences } from "../../contracts/local.ts";
 
 const toolbar = (card: any) => {
@@ -100,7 +100,7 @@ test("imminent event prioritizes dismiss over download only when join is availab
 		end: now + 65 * 60000,
 		meeting: { name: "合成会议", url: "https://example.com/meeting" },
 	};
-	const cases = [
+	const cases: { card: typeof event; hidden: CardAction[]; expected: string[] }[] = [
 		{ card: event, hidden: [], expected: ["join", "snooze", "dismiss-reminder"] },
 		{
 			card: { ...event, start: now + 60 * 60000 },
