@@ -1,0 +1,6 @@
+
+> sill@1.2.5 test:cloud-welcome
+> node tests/e2e/cloud-welcome-browser.ts
+
+PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry desktop 1440x1000
+PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry iPhone12 390x844

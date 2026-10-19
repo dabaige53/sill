@@ -1,0 +1,5 @@
+
+> sill@1.2.5 test:cloud-browser
+> node tests/e2e/cloud-browser.ts
+
+PASS cloud browser: PKCE, CRUD, lost-response replay, CAS draft, MCP write visible in web, logout, 1440/390, no localStorage
