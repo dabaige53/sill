@@ -45,7 +45,7 @@ test("card detail: shared verbs in ink, a rule, then at most three own verbs; no
 test("mail replies, the event downloads and reminders remind again from the toolbar", () => {
 	Store.state = Store.fresh();
 	const mail = toolbar(seed("mail"));
-	const event = toolbar(seed("event"));
+	const event = toolbar({ ...seed("event"), start: Date.now() + 60 * 60000 });
 	const reminder = toolbar(seed("reminder"));
 	try {
 		assert.deepEqual(mail.own, ["external"]);
@@ -90,4 +90,45 @@ test("settings can hide any toolbar verb; the rule goes when one side is empty",
 test("hiddenActions is a closed list in the shared preference contract", () => {
 	assert.ok(Preferences.safeParse({ hiddenActions: ["reply", "download"] }).success);
 	assert.ok(!Preferences.safeParse({ hiddenActions: ["delete"] }).success);
+});
+
+test("imminent event prioritizes dismiss over download only when join is available", () => {
+	const now = Date.now();
+	const event = {
+		...seed("event"),
+		start: now + 5 * 60000,
+		end: now + 65 * 60000,
+		meeting: { name: "合成会议", url: "https://example.com/meeting" },
+	};
+	const cases = [
+		{ card: event, hidden: [], expected: ["join", "snooze", "dismiss-reminder"] },
+		{
+			card: { ...event, start: now + 60 * 60000 },
+			hidden: [],
+			expected: ["snooze", "download-calendar", "dismiss-reminder"],
+		},
+		{
+			card: { ...event, meeting: undefined },
+			hidden: [],
+			expected: ["snooze", "download-calendar", "dismiss-reminder"],
+		},
+		{ card: event, hidden: ["dismiss"], expected: ["join", "snooze", "download-calendar"] },
+		{
+			card: event,
+			hidden: ["snooze"],
+			expected: ["join", "dismiss-reminder", "download-calendar"],
+		},
+	];
+	for (const { card, hidden, expected } of cases) {
+		Store.state = Store.fresh();
+		Store.setPref("hiddenActions", hidden);
+		const bar = toolbar(card);
+		try {
+			assert.deepEqual(bar.own, expected);
+			assert.deepEqual(bar.shared, ["bookmark", "edit", "later"]);
+		} finally {
+			bar.close();
+		}
+	}
+	Store.state = Store.fresh();
 });

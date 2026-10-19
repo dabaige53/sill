@@ -158,21 +158,19 @@ const Panels: PanelRenderers = {
 		const dismiss: ToolbarAction = ["dismiss", this.reminderTools(c)];
 		if (c.type === "mail")
 			return [["reply", c.url ? button("reply", copy("web.preview.reply"), "external", c.id) : ""]];
-		if (c.type === "event")
-			return [
-				[
-					"join",
-					eventTimely(c) && c.meeting
-						? button("video", copy("web.templates.451755e3831f"), "join", c.id)
-						: "",
-				],
-				reminder,
-				[
-					"download",
-					button("download", copy("web.preview.downloadCalendar"), "download-calendar", c.id),
-				],
-				dismiss,
+		if (c.type === "event") {
+			const join: ToolbarAction = [
+				"join",
+				eventTimely(c) && c.meeting
+					? button("video", copy("web.templates.451755e3831f"), "join", c.id)
+					: "",
 			];
+			const download: ToolbarAction = [
+				"download",
+				button("download", copy("web.preview.downloadCalendar"), "download-calendar", c.id),
+			];
+			return join[1] ? [join, reminder, dismiss, download] : [join, reminder, download, dismiss];
+		}
 		if (c.type === "task" || c.type === "reminder") return [reminder, dismiss];
 		if (c.type === "file") return [];
 		return [["open", open]];
