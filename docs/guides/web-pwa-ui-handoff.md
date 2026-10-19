@@ -1,6 +1,6 @@
 # Web 与 PWA 界面优化交接
 
-更新：2026-10-18。
+更新：2026-10-19。
 
 本文交给接手的 agent。它说明 2026-10-18 已定稿的手机主页（[ADR 0036](../adr/0036-phone-home-density.md)）和卡片详情（[ADR 0037](../adr/0037-card-detail-toolbar.md)）做到了哪里、还缺什么，以及怎样把 Web 本地页面和云端 PWA 的界面与代码做完整。文末附可直接使用的提示词。
 
@@ -69,7 +69,7 @@
 | --- | --- | --- |
 | `apps/web/data/store.ts` | 352 | 卡片与个人状态、偏好、浏览器备份；类型复用契约 |
 | `apps/web/views/app.ts` | 2795 | AppController：路由、渲染、动作分发入口、刷新；设置与预览已拆分 |
-| `apps/web/interactions/panels.ts` | 479 | 弹层模板入口、阅读、设置、搜索、菜单；`panels/` 下按卡片类型生成预览 |
+| `apps/web/interactions/panels.ts` | 479 | 弹层模板入口、阅读、设置、搜索、菜单；`previews.ts` 按卡片类型生成预览 |
 | `apps/web/interactions/gestures.ts` | 1072 | 抽屉跟手、下拉关闭、下拉刷新、长按选择 |
 | `apps/web/interactions/chrome.ts` | 156 | 工具条随滚动收起（ChromeAutoHide）、胶囊长按名称（toolbarTips） |
 | `apps/web/cards/templates.ts` | 283 | 信息流卡片模板 |
@@ -117,6 +117,8 @@
 - 做法：出 2–3 套效果图（真实页面上叠临时样式截图），连同 3–6 个公开产品参考链接给用户选；定稿后先更新仓库 ADR、手册和组件说明，再改代码，并更新本地 35 号画板或新增画板。
 
 ### U4 卡片详情的遗留项
+
+2026-10-19 执行状态：无需设计决定的核对已完成，见 [PR #55](https://github.com/dabaige53/sill/pull/55) 与 [36 张实际页面截图、逐项结果](../records/2026-10-19-card-detail-audit/README.md)。邮件保留一个回复动作，约定没有独立回复地址；播客胶囊分组符合现行规则；照片大图页缺少通用操作，差异已记录，等用户确认。阅读页底部共用胶囊，顶部按钮组外观留到 U6。U4.1、U4.5 与照片差异均未改实现，待准备方案、逐项询问。合并基准 Node 三组 36 / 192 / 92，抽屉浏览器 11 项通过，失败 0；Web lint 0 错误、515 警告、30 条提示，文案键 826（哈希键 491、panels 哈希键 0），图标 69。U4 不新增线上未同步文件，真机与 Safari 未检查，Mac 未改；最终提交检查与 CI 以 PR 为准。
 
 | 编号 | 问题 | 做法 |
 | --- | --- | --- |

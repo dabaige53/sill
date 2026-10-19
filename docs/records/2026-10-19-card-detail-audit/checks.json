@@ -1,0 +1,59 @@
+{
+  "baseline": "a073721",
+  "node": [
+    36,
+    192,
+    92
+  ],
+  "drawer": 11,
+  "captures": 36,
+  "logs": {
+    "u4-merge-node.log": {
+      "sha256": "619fcfdb1f8e1838e0f5c16df5bfc24a70693e280065a2b19a7cfbf99fe6de61",
+      "bytes": 29463,
+      "summary": [
+        "ℹ tests 36",
+        "ℹ pass 36",
+        "ℹ fail 0",
+        "ℹ tests 192",
+        "ℹ pass 192",
+        "ℹ fail 0",
+        "ℹ tests 92",
+        "ℹ pass 92",
+        "ℹ fail 0"
+      ]
+    },
+    "u4-merge-drawer.log": {
+      "sha256": "6e1841156628cc2408477c35d6e7e86c40120c3ea447571ee9db6b44f01c4bec",
+      "bytes": 695,
+      "summary": [
+        "PASS rail notices fade and survive interrupted dismissal",
+        "PASS capsule fades during scrolling, pause and interruption",
+        "PASS Sill settings icon: light",
+        "PASS Sill settings icon: dark",
+        "PASS Layout stays inside 320px with long titles, tags and dates",
+        "PASS Layout stays inside 390px with long titles, tags and dates",
+        "PASS Layout stays inside 1280px with long titles, tags and dates",
+        "PASS Phone short drawers fit content; long articles cap and expand while reading",
+        "PASS Preview edge resistance stays bounded and restores the locked background",
+        "PASS Handle drags up to expand, down to collapse, and cancels without changing state",
+        "PASS PWA has no maximize button; reduced motion opens and closes without travel"
+      ]
+    },
+    "u4-web-lint.log": {
+      "sha256": "9c0531bb221fe0f8fdca3c8bc5d856f37df9691ae90f4d6028e529a5e6fb2826",
+      "bytes": 2964,
+      "summary": [
+        "Found 515 warnings",
+        "Found 30 infos"
+      ]
+    },
+    "u4-audit-capture.log": {
+      "sha256": "62a4b141a306e8a19121c81bc08b22b2f7a6fd0c1eb9cb839956bd0a6645cb2c",
+      "bytes": 2224,
+      "summary": [
+        "PASS 36 real-page captures; no page errors or external requests"
+      ]
+    }
+  }
+}
