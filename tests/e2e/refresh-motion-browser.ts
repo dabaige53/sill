@@ -101,7 +101,13 @@ try {
 			"",
 		);
 		await pull();
-		await page.waitForTimeout(1150);
+		await page.waitForTimeout(300);
+		assert.equal(
+			await page.locator("main").evaluate((node) => (node as HTMLElement).style.translate),
+			reducedMotion === "reduce" ? "" : "0px 36px",
+			"the desk pauses open while the ring turns",
+		);
+		await page.waitForTimeout(850);
 		assert.equal(await page.evaluate(() => window.__pullCalls), 1);
 		assert.equal(await page.locator(".pull-ring.is-spinning").count(), 1);
 		await page.screenshot({ path: `tests/artifacts/refresh-loading-${reducedMotion}.png` });

@@ -46,7 +46,8 @@
 		color var(--fast)
 	);
 }
-.icon-button:hover {
+.icon-button:hover,
+.icon-button:active {
 	background: var(--surface);
 }
 .icon-button:active {
@@ -591,7 +592,8 @@ body.is-dragging #toast {
 .chip .icon {
 	color: var(--secondary);
 }
-.chip:hover {
+.chip:hover,
+.chip:active {
 	background: var(--surface);
 }
 .chip.active {
@@ -647,6 +649,10 @@ body.is-dragging #toast {
 	color: var(--muted);
 	white-space: nowrap;
 }
+/* Touch has no hover: every control darkens a little while pressed. */
+.segmented button:not(.on):active {
+	background: var(--faint);
+}
 .segmented button.on {
 	background: var(--card);
 	color: var(--ink);
@@ -689,7 +695,8 @@ body.is-dragging #toast {
 	color: var(--ink);
 	transition: var(--motion-transition, background var(--fast));
 }
-.text-button:hover {
+.text-button:hover,
+.text-button:active {
 	background: var(--surface);
 }
 .solid-button {
@@ -732,7 +739,8 @@ body.is-dragging #toast {
 	min-height: 44px;
 	transition: var(--motion-transition, background var(--fast));
 }
-.soft-button:hover {
+.soft-button:hover,
+.soft-button:active {
 	background: var(--faint);
 }
 

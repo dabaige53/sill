@@ -243,12 +243,6 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.card-more-trigger:before {
 		inset: 0;
 	}
-	.card-more-menu,
-	.card-more-leaving {
-		top: auto;
-		bottom: 48px;
-		transform-origin: bottom right;
-	}
 	.card-head,
 	.sender,
 	.card-head:has(.card-head-right),
@@ -632,6 +626,23 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 	.settings-main {
 		padding: var(--space-20) var(--space-16);
 		max-height: 70dvh;
+	}
+	/* The settings page fills the screen behind the capsule: its groups scroll to the bottom edge, not to a box above it. */
+	#modal.page.panel.wide .sheet {
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0;
+	}
+	#modal.page .settings-layout {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+	#modal.page .settings-main {
+		flex: 1;
+		max-height: none;
+		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 	}
 	/* Search */
 	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */

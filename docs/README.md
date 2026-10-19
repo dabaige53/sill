@@ -58,6 +58,7 @@
 - [桌面主页显示左上紧凑分栏](adr/0043-desktop-home-filters.md)
 - [搜索按类型、状态、标签分行](adr/0044-search-filter-rows.md)
 - [结束剩余页面调整并保留现状](adr/0045-close-web-pwa-ui-scope.md)
+- [点遮罩每次只关一张叠卡](adr/0046-backdrop-closes-one-stacked-card.md)
 
 ## 记录
 

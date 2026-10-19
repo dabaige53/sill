@@ -58,7 +58,9 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		this.bindSheetChrome();
 		return;
 	}
-	this.openModal(Panels.preview(this, c), "preview");
+	// Opened from the desk, the preview grows out of its card; opened from another preview it stacks.
+	const origin = this.dialog.open ? null : this.cardRect(id);
+	this.openModal(Panels.preview(this, c), "preview", origin);
 	// The card below shows as an edge behind this one; tapping it goes back one card.
 	const below = Store.card(this.previewTrail.at(-1));
 	if (below)
