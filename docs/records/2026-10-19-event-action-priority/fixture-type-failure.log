@@ -1,0 +1,6 @@
+> sill@1.2.5 typecheck
+> tsc --noEmit
+
+tests/web/detail-toolbar.test.ts(124,34): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'string | ("bookmark" | "dismiss" | "download" | "join" | "later" | "open" | "reply" | "snooze" | "tag")[]'.
+  Type 'string[]' is not assignable to type '("bookmark" | "dismiss" | "download" | "join" | "later" | "open" | "reply" | "snooze" | "tag")[]'.
+    Type 'string' is not assignable to type '"bookmark" | "dismiss" | "download" | "join" | "later" | "open" | "reply" | "snooze" | "tag"'.

@@ -1,0 +1,15 @@
+(node:69185) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ card detail: shared verbs in ink, a rule, then at most three own verbs; no solid buttons (138.139875ms)
+✔ mail replies, the event downloads and reminders remind again from the toolbar (7.257709ms)
+✔ settings can hide any toolbar verb; the rule goes when one side is empty (3.709292ms)
+✔ hiddenActions is a closed list in the shared preference contract (0.893875ms)
+✔ imminent event prioritizes dismiss over download only when join is available (14.964708ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 574.232334

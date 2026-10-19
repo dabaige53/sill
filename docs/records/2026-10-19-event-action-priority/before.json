@@ -1,0 +1,253 @@
+{
+  "sourceCommit": "66884d0",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "A",
+      "filename": "320-light-a.jpg",
+      "buttons": [
+        {
+          "label": "收藏",
+          "own": false,
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "own": false,
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "own": false,
+          "action": "later"
+        },
+        {
+          "label": "加入",
+          "own": true,
+          "action": "join"
+        },
+        {
+          "label": "在 Sill 内再提醒",
+          "own": true,
+          "action": "snooze"
+        },
+        {
+          "label": "下载日程",
+          "own": true,
+          "action": "download-calendar"
+        }
+      ],
+      "tip": "1",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "A",
+      "filename": "320-dark-a.jpg",
+      "buttons": [
+        {
+          "label": "收藏",
+          "own": false,
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "own": false,
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "own": false,
+          "action": "later"
+        },
+        {
+          "label": "加入",
+          "own": true,
+          "action": "join"
+        },
+        {
+          "label": "在 Sill 内再提醒",
+          "own": true,
+          "action": "snooze"
+        },
+        {
+          "label": "下载日程",
+          "own": true,
+          "action": "download-calendar"
+        }
+      ],
+      "tip": "1",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "A",
+      "filename": "390-light-a.jpg",
+      "buttons": [
+        {
+          "label": "收藏",
+          "own": false,
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "own": false,
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "own": false,
+          "action": "later"
+        },
+        {
+          "label": "加入",
+          "own": true,
+          "action": "join"
+        },
+        {
+          "label": "在 Sill 内再提醒",
+          "own": true,
+          "action": "snooze"
+        },
+        {
+          "label": "下载日程",
+          "own": true,
+          "action": "download-calendar"
+        }
+      ],
+      "tip": "1",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "A",
+      "filename": "390-dark-a.jpg",
+      "buttons": [
+        {
+          "label": "收藏",
+          "own": false,
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "own": false,
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "own": false,
+          "action": "later"
+        },
+        {
+          "label": "加入",
+          "own": true,
+          "action": "join"
+        },
+        {
+          "label": "在 Sill 内再提醒",
+          "own": true,
+          "action": "snooze"
+        },
+        {
+          "label": "下载日程",
+          "own": true,
+          "action": "download-calendar"
+        }
+      ],
+      "tip": "1",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "A",
+      "filename": "1440-light-a.jpg",
+      "buttons": [
+        {
+          "label": "收藏",
+          "own": false,
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "own": false,
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "own": false,
+          "action": "later"
+        },
+        {
+          "label": "加入",
+          "own": true,
+          "action": "join"
+        },
+        {
+          "label": "在 Sill 内再提醒",
+          "own": true,
+          "action": "snooze"
+        },
+        {
+          "label": "下载日程",
+          "own": true,
+          "action": "download-calendar"
+        }
+      ],
+      "tip": "1",
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "A",
+      "filename": "1440-dark-a.jpg",
+      "buttons": [
+        {
+          "label": "收藏",
+          "own": false,
+          "action": "bookmark"
+        },
+        {
+          "label": "编辑标签与备注",
+          "own": false,
+          "action": "edit"
+        },
+        {
+          "label": "稍后读",
+          "own": false,
+          "action": "later"
+        },
+        {
+          "label": "加入",
+          "own": true,
+          "action": "join"
+        },
+        {
+          "label": "在 Sill 内再提醒",
+          "own": true,
+          "action": "snooze"
+        },
+        {
+          "label": "下载日程",
+          "own": true,
+          "action": "download-calendar"
+        }
+      ],
+      "tip": "1",
+      "errors": [],
+      "external": []
+    }
+  ],
+  "stage": "before",
+  "temporaryStyles": false
+}
