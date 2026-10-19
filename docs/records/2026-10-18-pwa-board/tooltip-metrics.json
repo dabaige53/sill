@@ -1,0 +1,134 @@
+{
+  "source": "6362ac0",
+  "modesChecked": 10,
+  "samples": [
+    {
+      "viewport": "320-light",
+      "tips": [
+        {
+          "label": "收藏",
+          "left": 42,
+          "right": 88,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        },
+        {
+          "label": "忽略此提醒",
+          "left": 214,
+          "right": 299,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        }
+      ],
+      "keyboard": {
+        "label": "编辑标签与备注",
+        "left": 34.5,
+        "right": 145.5,
+        "opacity": 1,
+        "translate": "-50%",
+        "focus": true,
+        "selection": "none"
+      }
+    },
+    {
+      "viewport": "390-light",
+      "tips": [
+        {
+          "label": "收藏",
+          "left": 66.5,
+          "right": 112.5,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        },
+        {
+          "label": "忽略此提醒",
+          "left": 238.5,
+          "right": 323.5,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        }
+      ],
+      "keyboard": {
+        "label": "编辑标签与备注",
+        "left": 59,
+        "right": 170,
+        "opacity": 1,
+        "translate": "-50%",
+        "focus": true,
+        "selection": "none"
+      }
+    },
+    {
+      "viewport": "1440-light",
+      "tips": [
+        {
+          "label": "收藏",
+          "left": 584,
+          "right": 630,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        },
+        {
+          "label": "忽略此提醒",
+          "left": 756,
+          "right": 841,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        }
+      ],
+      "keyboard": {
+        "label": "编辑标签与备注",
+        "left": 576.5,
+        "right": 687.5,
+        "opacity": 1,
+        "translate": "-50%",
+        "focus": true,
+        "selection": "none"
+      }
+    },
+    {
+      "viewport": "320-dark",
+      "tips": [
+        {
+          "label": "收藏",
+          "left": 42,
+          "right": 88,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        },
+        {
+          "label": "忽略此提醒",
+          "left": 214,
+          "right": 299,
+          "opacity": 1,
+          "translate": "0px",
+          "focus": false,
+          "selection": "none"
+        }
+      ],
+      "keyboard": {
+        "label": "编辑标签与备注",
+        "left": 34.5,
+        "right": 145.5,
+        "opacity": 1,
+        "translate": "-50%",
+        "focus": true,
+        "selection": "none"
+      }
+    }
+  ]
+}

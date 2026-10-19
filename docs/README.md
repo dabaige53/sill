@@ -62,6 +62,7 @@
 - [2026-10-18-browser-regressions：浏览器回归测试修复（C1）](records/2026-10-18-browser-regressions/README.md)
 - [2026-10-18-hidden-actions-postgres：云端偏好迁移验证（C6）](records/2026-10-18-hidden-actions-postgres/README.md)
 - [2026-10-18-pwa-touch：PWA 触控、键盘名称与状态栏检查（U1）](records/2026-10-18-pwa-touch/README.md)
+- [PWA 名称提示补入本地画板（2026-10-18）](records/2026-10-18-pwa-board/README.md)
 
 - [2026-10-17-product-review：内容密度、动效材质与 Agent 交接审查](records/2026-10-17-product-review/README.md)
 - [2026-10-17-ci-recovery：产品审查后的 CI 回归修正](records/2026-10-17-ci-recovery/README.md)
