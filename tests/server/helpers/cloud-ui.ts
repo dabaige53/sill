@@ -6,10 +6,28 @@ export async function waitCloud(page?: any) {
 		0,
 		"no top account/icon toolbar or placeholder",
 	);
-	assert.ok(
-		await page.locator("main").evaluate((e?: any) => e.getBoundingClientRect().top <= 1),
-		"content starts at viewport top",
-	);
+	const layout = await page.evaluate(() => {
+		const main = document.querySelector("main").getBoundingClientRect(),
+			header = document.getElementById("home-top"),
+			head = header.getBoundingClientRect();
+		return {
+			desktop: matchMedia("(min-width: 651px)").matches,
+			mainTop: main.top + scrollY,
+			headerTop: head.top + scrollY,
+			headerHeight: head.height,
+			headerPosition: getComputedStyle(header).position,
+		};
+	});
+	if (layout.desktop) {
+		// ADR 0043 adds only the shared home filters, never an account toolbar.
+		assert.equal(layout.headerTop, 24, "desktop home filters start at 24px");
+		assert.equal(layout.headerHeight, 44, "desktop home filters remain 44px high");
+		assert.equal(layout.headerPosition, "relative", "desktop home filters stay in page flow");
+		assert.equal(layout.mainTop, 68, "desktop content follows the 24px margin and 44px filters");
+	} else {
+		assert.equal(layout.mainTop, 0, "phone content still starts at viewport top");
+		assert.equal(layout.headerPosition, "fixed", "phone home header stays fixed");
+	}
 }
 /**
  * The rail is the navigation capsule: the face opens settings, refresh is the R key (or a pull at the top),

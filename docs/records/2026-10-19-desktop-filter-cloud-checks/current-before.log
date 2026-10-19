@@ -1,0 +1,22 @@
+
+> sill@1.2.5 test:cloud-browser
+> node tests/e2e/cloud-browser.ts
+
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: content starts at viewport top
+    at waitCloud (file:///Users/w/code/sill/tests/server/helpers/cloud-ui.ts:9:9)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processImmediate (node:internal/timers:541:9)
+    at async file:///Users/w/code/sill/tests/e2e/cloud-browser.ts:90:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v26.11.1
