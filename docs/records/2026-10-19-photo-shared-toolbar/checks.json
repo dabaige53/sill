@@ -1,0 +1,32 @@
+{
+  "sourceCommit": "1e652ba",
+  "node": {
+    "contracts": 36,
+    "web": 195,
+    "server": 92,
+    "fail": 0
+  },
+  "photoBrowser": {
+    "contexts": 6,
+    "componentBundle": 1,
+    "fail": 0
+  },
+  "cloudMcpAppBrowser": {
+    "pass": 1,
+    "fail": 0
+  },
+  "webLint": {
+    "errors": 0,
+    "warnings": 515,
+    "infos": 30
+  },
+  "copy": {
+    "keys": 826,
+    "hash": 491,
+    "panelsHash": 0
+  },
+  "icons": 69,
+  "device": "未检查",
+  "Safari": "未检查",
+  "Mac": "未改"
+}

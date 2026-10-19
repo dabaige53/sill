@@ -1,0 +1,41 @@
+✖ closing photo tags returns to the same photo index (28.437083ms)
+✔ settings changes preserve focus, scroll, the previous value and unrelated preferences (16.107875ms)
+✔ action visibility toggles hide and restore only the requested verb (3.223542ms)
+✔ public action routes refresh, reminder aliases, detail navigation and unknown names (2.693833ms)
+✔ external mail action marks read only after an accepted opening in the same account: opened (5.653417ms)
+✔ external mail action marks read only after an accepted opening in the same account: declined (2.861083ms)
+✔ external mail action marks read only after an accepted opening in the same account: account-changed (2.759292ms)
+✔ external mail action marks read only after an accepted opening in the same account: disconnected (2.614416ms)
+✔ preview chrome tracks height and close-disc position after resize (source row) (7.213792ms)
+✔ preview chrome tracks height and close-disc position after resize (title fallback) (22.055875ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 493.607917
+
+✖ failing tests:
+
+test at tests/web/app.test.ts:69:1
+✖ closing photo tags returns to the same photo index (28.437083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'object'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/w/code/sill/tests/web/app.test.ts:90:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'object',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -2724,7 +2724,7 @@ button.detail-row:hover {
 	height: 100%;
 	object-fit: cover;
 }
-.lightbox > .float-bar {
+#modal.lightbox > .float-bar {
 	position: static;
 	flex: none;
 	align-self: center;

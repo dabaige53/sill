@@ -118,7 +118,7 @@
 
 ### U4 卡片详情的遗留项
 
-2026-10-19 执行状态：无需设计决定的核对已完成，见 [PR #55](https://github.com/dabaige53/sill/pull/55) 与 [36 张核对截图](../records/2026-10-19-card-detail-audit/README.md)。U4.1 用户选择 B：显示「加入」时，忽略提醒优先于下载；未显示加入时保持原顺序，隐藏偏好过滤后再取三个。已写 [ADR 0040](../adr/0040-event-reminder-priority.md)，实现、回归与六组真实点击及前后截图见 [记录](../records/2026-10-19-event-action-priority/README.md)。邮件保留一个回复；播客分组符合规则；照片大图页缺少通用操作、U4.5 设置示例仍等确认，阅读页顶部样式留到 U6。Node 三组 36 / 193 / 92，PWA 10/10；抽屉首次 10/11，基础与当前复跑均 11/11，原失败未在基础复现、根因未确认，未改断言。Web 目录 lint 0 错误、515 警告、30 提示，文案 826（哈希 491、panels 哈希 0），图标 69。ADR、手册、Dialog、本地 37 号画板与六张新增图片、索引与 canvas.json 线上未同步，列入 Merge Danger。真机与 Safari 未检查，Mac 未改；最终提交检查与 CI 以 PR 为准。
+2026-10-19 执行状态：无需设计决定的核对已完成，见 [PR #55](https://github.com/dabaige53/sill/pull/55) 与 [36 张核对截图](../records/2026-10-19-card-detail-audit/README.md)。U4.1 用户选择 B：显示「加入」时，忽略提醒优先于下载；未显示加入时保持原顺序，隐藏偏好过滤后再取三个。已写 [ADR 0040](../adr/0040-event-reminder-priority.md)，实现、回归与六组真实点击及前后截图见 [记录](../records/2026-10-19-event-action-priority/README.md)。邮件保留一个回复；播客分组符合规则；照片大图页已由用户选择 B：缩略图下补通用胶囊，复用原版图标和既有深色环境，保存或取消标签返回原照片，见 [ADR 0041](../adr/0041-photo-shared-toolbar.md) 与 [照片记录](../records/2026-10-19-photo-shared-toolbar/README.md)；U4.5 设置示例仍等确认，阅读页顶部样式留到 U6。照片浏览器 6 场景加组件包 1 项、云端 MCP App 1/1 通过；Node 三组 36 / 195 / 92，PWA 10/10；抽屉首次 10/11，基础与当前复跑均 11/11，原失败未在基础复现、根因未确认，未改断言。Web 目录 lint 0 错误、515 警告、30 提示，文案 826（哈希 491、panels 哈希 0），图标 69。ADR、手册、Dialog、本地 37 号画板与六张新增图片、40 号画板与六张照片截图、组件 CSS、样式来源、索引与 canvas.json 线上未同步，列入 Merge Danger。真机与 Safari 未检查，Mac 未改；最终提交检查与 CI 以 PR 为准。
 
 | 编号 | 问题 | 做法 |
 | --- | --- | --- |

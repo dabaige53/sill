@@ -4,8 +4,8 @@ import { JSDOM } from "jsdom";
 import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
-import { type CardAction, CardActions } from "../../contracts/card-actions.ts";
 import type { Card } from "../../contracts/card.ts";
+import { type CardAction, CardActions } from "../../contracts/card-actions.ts";
 import { Preferences } from "../../contracts/local.ts";
 
 const toolbar = (card: any) => {
