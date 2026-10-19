@@ -2551,8 +2551,14 @@ class AppController {
 			extra = (active as HTMLElement)?.dataset.extra;
 		const liveToast = document.getElementById("toast");
 		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
+		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
+			(row) => row.scrollLeft,
+		);
 		this.dialog.innerHTML = Panels.search(this);
 		this.bindSearchResults();
+		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
+			row.scrollLeft = filterScroll[index] ?? 0;
+		});
 		if (searchFocused) {
 			const n = document.getElementById("filter-search");
 			n.focus();

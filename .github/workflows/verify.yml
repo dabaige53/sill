@@ -31,6 +31,7 @@ jobs:
           node tests/e2e/home-tabs-browser.ts || status=1
           node tests/e2e/drawer-browser.ts || status=1
           node tests/e2e/search-browser.ts || status=1
+          node tests/e2e/search-filters-browser.ts || status=1
           node tests/e2e/refresh-motion-browser.ts || status=1
           npm run test:browser || status=1
           npm run test:selection-browser || status=1

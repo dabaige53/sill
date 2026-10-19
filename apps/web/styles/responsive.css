@@ -661,12 +661,6 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		inset: 0 0 var(--kb, 0px);
 		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
 	}
-	.search-chips {
-		justify-content: flex-start;
-		flex-wrap: nowrap;
-		overflow-x: auto;
-		padding-bottom: var(--space-4);
-	}
 	/* Keyboard, pages and photos */
 	#modal.panel,
 	#modal.panel.narrow,

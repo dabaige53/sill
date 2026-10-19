@@ -829,5 +829,8 @@
 	"web.selection.aiDrop": "拖到这里，打开 AI 对话",
 	"web.selection.aiReady": "松手打开 AI 对话",
 	"web.selection.aiOpen": "将选中卡片放入 AI 对话",
-	"web.selection.aiCountPrefix": "已选择 "
+	"web.selection.aiCountPrefix": "已选择 ",
+	"web.search.filters.type": "类型",
+	"web.search.filters.status": "状态",
+	"web.search.filters.tag": "标签"
 }

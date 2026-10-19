@@ -945,7 +945,10 @@ var Sill = (() => {
     "web.selection.aiDrop": "\u62D6\u5230\u8FD9\u91CC\uFF0C\u6253\u5F00 AI \u5BF9\u8BDD",
     "web.selection.aiReady": "\u677E\u624B\u6253\u5F00 AI \u5BF9\u8BDD",
     "web.selection.aiOpen": "\u5C06\u9009\u4E2D\u5361\u7247\u653E\u5165 AI \u5BF9\u8BDD",
-    "web.selection.aiCountPrefix": "\u5DF2\u9009\u62E9 "
+    "web.selection.aiCountPrefix": "\u5DF2\u9009\u62E9 ",
+    "web.search.filters.type": "\u7C7B\u578B",
+    "web.search.filters.status": "\u72B6\u6001",
+    "web.search.filters.tag": "\u6807\u7B7E"
   };
 
   // design-system/copy.ts

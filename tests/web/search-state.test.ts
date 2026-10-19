@@ -275,3 +275,45 @@ test("shared card refresh keeps each surface's independent selection decoration"
 		f.dom.window.close();
 	}
 });
+
+test("search rows name independent groups and omit the empty tag row", () => {
+	const f = fixture();
+	try {
+		const groups = f.app.dialog.querySelectorAll('.search-filter-items[role="group"]');
+		assert.deepEqual(
+			[...groups].map((n) => n.getAttribute("aria-label")),
+			["类型", "状态"],
+		);
+		assert.equal(f.app.dialog.querySelectorAll('[data-action="filter-type"]').length, 7);
+		assert.equal(f.app.dialog.querySelectorAll('[data-action="filter-status"]').length, 3);
+		f.Store.state.cards[0].tags = ["<draft>"];
+		f.app.repaintSearch();
+		const tags = f.app.dialog.querySelector('.search-filter-items[aria-label="标签"]');
+		assert.equal(tags.querySelector("button").textContent, "#<draft>");
+		assert.equal(tags.querySelector("draft"), null, "tag text is escaped");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("search repaint retains each row scroll and the focused condition", () => {
+	const f = fixture();
+	try {
+		f.Store.state.cards[0].tags = ["评审"];
+		f.app.repaintSearch();
+		const rows = [...f.app.dialog.querySelectorAll(".search-filter-items")];
+		rows.forEach((n, index) => {
+			n.scrollLeft = (index + 1) * 30;
+		});
+		f.app.dialog.querySelector('[data-action="filter-tag"]').focus();
+		f.app.repaintSearch();
+		assert.deepEqual(
+			[...f.app.dialog.querySelectorAll(".search-filter-items")].map((n) => n.scrollLeft),
+			[30, 60, 90],
+		);
+		assert.equal(f.w.document.activeElement.dataset.action, "filter-tag");
+		assert.equal(f.w.document.activeElement.dataset.extra, "评审");
+	} finally {
+		f.dom.window.close();
+	}
+});
