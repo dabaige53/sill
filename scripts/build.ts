@@ -42,6 +42,19 @@ export async function buildPage({ cloud = false, check = false }: any = {}) {
 			"{{TITLE}}",
 			escapeHtml(copy[cloud ? "web.pageTitle.cloud" : "web.pageTitle.local"]),
 		)
+		.replace(
+			"{{HOME_SCREEN}}",
+			cloud
+				? `<!-- home-screen:start -->
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="256x256" href="/assets/sill-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sill">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- home-screen:end -->`
+				: "",
+		)
 		.replace("{{STYLES}}", css)
 		.replace("{{SCRIPT}}", script);
 	const directory = resolve(root, cloud ? "dist/cloud" : "dist/web");

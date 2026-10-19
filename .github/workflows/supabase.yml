@@ -16,12 +16,20 @@ jobs:
       - run: npm run test:oauth
       - run: npm run test:cloud-app
       - run: npm run test:supabase:postgres
-      - run: npm run build:cloud
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:cloud-browser
-      - run: npm run test:cloud-app-browser
-      - run: npm run test:cloud-welcome
-      - run: npm run test:oauth-browser
+      - id: cloudbuild
+        run: npm run build:cloud
+      - id: chromium
+        run: npx playwright install --with-deps chromium
+      - if: ${{ !cancelled() && steps.cloudbuild.outcome == 'success' && steps.chromium.outcome == 'success' }}
+        run: npm run test:cloud-browser
+      - if: ${{ !cancelled() && steps.cloudbuild.outcome == 'success' && steps.chromium.outcome == 'success' }}
+        run: npm run test:cloud-app-browser
+      - if: ${{ !cancelled() && steps.cloudbuild.outcome == 'success' && steps.chromium.outcome == 'success' }}
+        run: npm run test:cloud-operations
+      - if: ${{ !cancelled() && steps.cloudbuild.outcome == 'success' && steps.chromium.outcome == 'success' }}
+        run: npm run test:cloud-welcome
+      - if: ${{ !cancelled() && steps.cloudbuild.outcome == 'success' && steps.chromium.outcome == 'success' }}
+        run: npm run test:oauth-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:

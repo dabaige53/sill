@@ -1,15 +1,92 @@
 /* Sill · responsive · shared source */
-body.opaque .glass,
-body.opaque .dock-tools .icon-button,
-body.opaque #orb {
+/* Every functional glass surface, including the separate selection menu, shares the fallback. */
+@media (prefers-contrast: more) {
+	.glass,
+	.selection-options {
+		background: var(--glass-thick);
+	}
+}
+body.opaque :is(.glass, .selection-options) {
 	background: var(--card);
 	backdrop-filter: none;
 	-webkit-backdrop-filter: none;
+	box-shadow:
+		0 0 0 1px var(--line-hover),
+		var(--shadow-glass);
 }
-@supports not (backdrop-filter: blur(1px)) {
+body.opaque .nav-lens {
+	--lens-highlight: var(--surface);
+	background: var(--surface);
+	box-shadow: inset 0 0 0 1px var(--line-hover);
+}
+body.opaque .scroll-edge {
+	display: none;
+}
+body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdrop {
+	background: var(--canvas);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+@media (prefers-reduced-transparency: reduce) {
 	.glass,
-	.dock-tools .icon-button {
+	.selection-options {
 		background: var(--card);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
+	.scroll-edge {
+		display: none;
+	}
+	:is(#modal, #search-background).search::backdrop,
+	#selection-menu::backdrop {
+		background: var(--canvas);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.glass,
+	.selection-options {
+		background: var(--card);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
+	:is(#modal, #search-background).search::backdrop,
+	#selection-menu::backdrop {
+		background: var(--canvas);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+@media (prefers-contrast: more) {
+	.glass,
+	.selection-options,
+	body.opaque :is(.glass, .selection-options) {
+		box-shadow:
+			0 0 0 1px var(--ink),
+			var(--shadow-glass);
+	}
+	.nav-lens,
+	body.opaque .nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--ink);
 	}
 }
 @media (max-width: 1000px) {
@@ -83,8 +160,25 @@ body.opaque #orb {
 		--rail-edge: 16px;
 		--rail-bottom: max(16px, env(safe-area-inset-bottom));
 	}
+	/* Phone rail: a compact capsule in the middle, icons only; the names stay for screen readers. */
+	:root {
+		--nav-tab: 60px;
+	}
+	.nav-label {
+		display: none;
+	}
+	.nav-icon {
+		height: 30px;
+	}
+	.nav-icon > .icon {
+		width: 24px;
+		height: 24px;
+	}
+	#dock:has(#selection-bar:not([hidden])) #selection-bar {
+		flex: 1;
+	}
 	/* Too narrow for both: while selecting, the bar takes the whole row. */
-	#dock:has(#selection-bar:not([hidden])) .orb-wrap {
+	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
 		display: none;
 	}
 	#dock #selection-bar {
@@ -99,8 +193,7 @@ body.opaque #orb {
 		width: 100%;
 		max-width: 100%;
 	}
-	/* Phone preview is a sheet (MobileProto): it rises to 64px from the top, goes full screen once you read on,
-    steps back to half when pulled at the top, and leaves on a further pull. Position is a CSS transition target. */
+	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
 	#modal.preview {
 		position: fixed;
 		inset: 0;
@@ -114,17 +207,21 @@ body.opaque #orb {
 		position: absolute;
 		left: 0;
 		right: 0;
-		top: 0;
+		top: auto;
 		bottom: 0;
 		display: flex;
 		flex-direction: column;
-		transform: translateY(64px);
+		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
+		transform: translateY(0);
 		transition:
 			transform 360ms var(--ease-sheet),
+			max-height 360ms var(--ease-sheet),
+			height 360ms var(--ease-sheet),
 			translate 360ms var(--ease-sheet),
 			border-radius 360ms var(--ease-sheet);
 	}
 	#modal.preview .preview-sheet.is-full {
+		max-height: 100dvh;
 		transform: none;
 		border-radius: 0;
 	}
@@ -135,11 +232,11 @@ body.opaque #orb {
 		position: absolute;
 		left: 14px;
 		right: 14px;
-		top: 0;
+		top: auto;
+		bottom: calc(var(--preview-height, 100dvh - 64px) - 10px);
 		width: auto;
-		height: 60px;
+		height: 24px;
 		margin: 0;
-		transform: translateY(50px);
 	}
 	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
 		opacity: 0;
@@ -148,17 +245,57 @@ body.opaque #orb {
 	#modal.preview .preview-sheet .sheet-scroll {
 		flex: 1;
 		max-height: none;
-		padding-bottom: 110px;
 	}
-	#modal.preview .float-bar {
-		transition:
-			transform 240ms var(--ease),
-			opacity 240ms,
-			translate 360ms var(--ease-sheet);
+	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(var(--rail-row) + 48px + env(safe-area-inset-bottom));
+		scroll-padding-bottom: calc(var(--rail-row) + 48px + env(safe-area-inset-bottom));
 	}
-	#modal.preview .float-bar.is-hidden {
-		transform: translateY(120%);
-		opacity: 0;
+	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
+		padding-top: calc(18px + env(safe-area-inset-top));
+	}
+	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
+		top: env(safe-area-inset-top);
+	}
+	#modal.preview #modal-title {
+		padding-right: 52px;
+	}
+	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title {
+		padding-right: 104px;
+	}
+	.sheet-head {
+		height: 60px;
+		padding: 0 12px;
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+	}
+	.sheet-handle {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		position: absolute;
+		z-index: 5;
+		top: 0;
+		left: calc(50% - 40px);
+		width: 80px;
+		height: 24px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		touch-action: none;
+		cursor: ns-resize;
+	}
+	.preview-sheet.is-full .sheet-handle {
+		top: env(safe-area-inset-top);
+	}
+	.sheet-handle .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 -18px;
 	}
 	#modal.preview[open] {
 		gap: 0;
@@ -179,17 +316,23 @@ body.opaque #orb {
 		background: var(--faint);
 		margin: 8px auto 0;
 	}
-	#modal.preview .float-bar {
+	#modal.preview > .float-bar {
 		position: fixed;
-		left: 16px;
-		right: 16px;
-		bottom: max(16px, env(safe-area-inset-bottom));
-		width: auto;
-		justify-content: space-between;
+		left: 0;
+		right: 0;
+		bottom: var(--rail-bottom);
+		margin-inline: auto;
 		z-index: 3;
 	}
+	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+		height: calc(var(--rail-row) + 56px + env(safe-area-inset-bottom));
+	}
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
+	}
 	#modal.preview .push-ring {
-		bottom: 150px;
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 	}
 	.preview-body {
 		padding: 18px 20px 22px;
@@ -236,11 +379,86 @@ body.opaque #orb {
 	.settings-main {
 		padding: 20px 16px;
 		max-height: 70dvh;
-		border-top: 1px solid var(--line);
 	}
 
-	#modal.search {
-		margin: 12px auto auto;
+	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
+	:is(#modal, #search-background).search {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+		margin: 0;
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		justify-content: flex-start;
+		gap: 10px;
+	}
+	:is(#modal, #search-background).search .search-results {
+		flex: 1;
+		min-height: 0;
+		max-height: none;
+	}
+	:is(#modal, #search-background).search .search-chips {
+		flex: none;
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	#modal.panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	body.keyboard-open #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
+	}
+	/* Phone places are pages. AI/settings retain capsule navigation; search has its own exit. */
+	#modal.page,
+	#modal.page.panel,
+	#modal.page.panel.wide,
+	#modal.page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	#modal.page :is(.grabber, .sheet-close) {
+		display: none;
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		padding: calc(12px + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+		animation: none;
+	}
+	/* The local AI preview keeps context and composer in one viewport. */
+	#modal.page.panel.narrow:has(.ai-conversation) {
+		width: 100%;
+	}
+	#modal.page.panel .ai-conversation {
+		padding: calc(16px + env(safe-area-inset-top)) 16px
+			calc(var(--rail-bottom) + var(--rail-row) + 24px);
+	}
+	:is(#modal, #search-background).page.search {
+		height: auto;
+		max-height: none;
+		inset: 0 0 var(--kb, 0px);
+		padding: calc(16px + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
 	}
 	.search-chips {
 		justify-content: flex-start;
@@ -274,38 +492,30 @@ body.opaque #orb {
 	html {
 		scroll-behavior: auto;
 	}
-}
-body.reduce-motion,
-body.reduce-motion * {
-	scroll-behavior: auto !important;
-}
-@media (prefers-reduced-motion: reduce) {
 	*,
 	*:before,
-	*:after {
+	*:after,
+	*::backdrop {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
+		transition-property: opacity, background-color, color, border-color, box-shadow !important;
+		transition-duration: var(--dur-reduced) !important;
+		transition-timing-function: linear !important;
+		transition-delay: 0s !important;
 	}
 }
+body.reduce-motion,
 body.reduce-motion *,
 body.reduce-motion *:before,
-body.reduce-motion *:after {
+body.reduce-motion *:after,
+body.reduce-motion *::backdrop {
+	scroll-behavior: auto !important;
 	animation-duration: 0.01ms !important;
 	animation-iteration-count: 1 !important;
-	transition-duration: 0.01ms !important;
-}
-@media (prefers-reduced-transparency: reduce) {
-	.glass,
-	.dock-tools .icon-button {
-		background: var(--card);
-		backdrop-filter: none;
-		-webkit-backdrop-filter: none;
-	}
-	dialog::backdrop {
-		backdrop-filter: none;
-		-webkit-backdrop-filter: none;
-	}
+	transition-property: opacity, background-color, color, border-color, box-shadow !important;
+	transition-duration: var(--dur-reduced) !important;
+	transition-timing-function: linear !important;
+	transition-delay: 0s !important;
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
 	body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item:hover {
@@ -313,11 +523,67 @@ body.reduce-motion *:after {
 	}
 }
 
-body.reduce-motion,
-body.reduce-motion *,
-body.reduce-motion *:before,
-body.reduce-motion *:after {
-	animation-duration: 0.01ms !important;
-	animation-iteration-count: 1 !important;
-	transition-duration: 0.01ms !important;
+/* Fades preserve the layout and control state. Show visibility immediately so Tab can enter. */
+@media (prefers-reduced-motion: reduce) {
+	#dock,
+	dialog > .float-bar,
+	.reader-head,
+	.sheet-head-tools {
+		transform: none !important;
+		transition:
+			opacity var(--dur-reduced) linear,
+			visibility 0s !important;
+	}
+	#dock.is-tucked,
+	dialog > .float-bar:is(.is-tucked, .is-hidden),
+	.reader-head.is-tucked,
+	.sheet-head-tools.is-tucked {
+		transition-delay: 0s, var(--dur-reduced) !important;
+	}
+	.icon-button:active,
+	.account-button:active,
+	.solid-button:active,
+	.feed-card:not(.stack-card):active:not(:has(button:active)) {
+		transform: none;
+	}
+	.nav-lens {
+		animation: none !important;
+		scale: none;
+	}
+	.nav-tab:active .nav-icon {
+		scale: none;
+	}
+}
+body.reduce-motion #dock,
+body.reduce-motion dialog > .float-bar,
+body.reduce-motion .reader-head,
+body.reduce-motion .sheet-head-tools {
+	transform: none !important;
+	transition:
+		opacity var(--dur-reduced) linear,
+		visibility 0s !important;
+}
+body.reduce-motion #dock.is-tucked,
+body.reduce-motion dialog > .float-bar:is(.is-tucked, .is-hidden),
+body.reduce-motion .reader-head.is-tucked,
+body.reduce-motion .sheet-head-tools.is-tucked {
+	transition-delay: 0s, var(--dur-reduced) !important;
+}
+body.reduce-motion .icon-button:active,
+body.reduce-motion .account-button:active,
+body.reduce-motion .solid-button:active,
+body.reduce-motion .feed-card:not(.stack-card):active:not(:has(button:active)) {
+	transform: none;
+}
+body.reduce-motion .nav-lens {
+	animation: none !important;
+	scale: none;
+}
+body.reduce-motion .nav-tab:active .nav-icon {
+	scale: none;
+}
+
+/* The local AI window can return to the search that supplied its context. */
+#modal.page .ai-conversation .sheet-close {
+	display: block;
 }

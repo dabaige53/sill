@@ -5,6 +5,6 @@
 <div id="root"></div>
 <script>
 const Q=window.Sill,I=Q.icon,root=document.getElementById('root');
-root.innerHTML=`<div id="selection-bar" class="glass"><span class="selection-count">已选 3 项</span>${Q.button('sparkles','交给 AI','x')}${Q.button('bookmark','收藏','x')}${Q.button('x','取消选择','x')}</div>`;
+root.innerHTML=`<div id="selection-bar" class="glass"><span class="selection-count">已选 3 项</span><button type="button" class="text-button">全选</button><button type="button" class="text-button" aria-haspopup="dialog">操作</button>${Q.button('x','取消选择','x')}</div>`;
 </script>
 </body></html>

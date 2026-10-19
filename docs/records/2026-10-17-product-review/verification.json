@@ -1,0 +1,395 @@
+{
+  "review_date": "2026-10-17",
+  "pull_request_base": "6bb4f0938e2227fc80f55ac90254e791036c1e2f",
+  "before_code_commit": "a6f3a0193579b2cee9021fddedf275ab3b90c5cc",
+  "base_note": "The final base adds seven documentation changes only; production source matches the before-code commit.",
+  "environment": {
+    "node": "24.19.0",
+    "chromium": "153.0.8010.0",
+    "fixtures": "synthetic; no production account or card writes"
+  },
+  "before": {
+    "npm_test": {
+      "contracts": 36,
+      "web": 84,
+      "server": 90,
+      "failed": 0
+    },
+    "browser": {
+      "passed": 21,
+      "failed": 0
+    },
+    "accessibility": {
+      "passed": 11,
+      "failed": 2,
+      "reason": "obsolete source-toggle and file-input expectations removed by ADR 0033"
+    }
+  },
+  "after": {
+    "lint_web": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings_present": true
+    },
+    "npm_test": {
+      "contracts": 36,
+      "web": 110,
+      "server": 90,
+      "failed": 0
+    },
+    "verify": {
+      "status": "PASS",
+      "repeated_core_tests": 19
+    },
+    "browser": [
+      {
+        "name": "Preview, reader, bookmark undo, tags and task controls remain independent",
+        "status": "PASS"
+      },
+      {
+        "name": "Snooze survives reload, queues once, waits during reading and reappears on demand",
+        "status": "PASS"
+      },
+      {
+        "name": "Dismiss, completion, status recovery and undo use accessible actions",
+        "status": "PASS"
+      },
+      {
+        "name": "Inline reminder actions work by keyboard without opening or reading the card",
+        "status": "PASS"
+      },
+      {
+        "name": "Card menus close on Escape and outside click, and keep actions separate from preview",
+        "status": "PASS"
+      },
+      {
+        "name": "Expanded cards return to the same scroll position and focus, including rapid dismissal",
+        "status": "PASS"
+      },
+      {
+        "name": "Search filters the desk live, reaches archived cards and clears in one step",
+        "status": "PASS"
+      },
+      {
+        "name": "Refresh keeps the reading position, new content waits off the top and state survives reload",
+        "status": "PASS"
+      },
+      {
+        "name": "Read state is color only, stacks open in place and time moves cards to the shelves",
+        "status": "PASS"
+      },
+      {
+        "name": "Bottom rail, selection menu, refresh and stacked previews share one rule",
+        "status": "PASS"
+      },
+      {
+        "name": "Phone selection takes the whole rail and the toast rises above it",
+        "status": "PASS"
+      },
+      {
+        "name": "Capture and dropped text add cards; files are ignored",
+        "status": "PASS"
+      },
+      {
+        "name": "Settings and first run expose capture without source connections",
+        "status": "PASS"
+      },
+      {
+        "name": "680px desktop uses compact cards across the available screen",
+        "status": "PASS"
+      },
+      {
+        "name": "700px desktop uses compact cards across the available screen",
+        "status": "PASS"
+      },
+      {
+        "name": "810px desktop uses compact cards across the available screen",
+        "status": "PASS"
+      },
+      {
+        "name": "1440px desktop uses compact cards across the available screen",
+        "status": "PASS"
+      },
+      {
+        "name": "2048px desktop uses compact cards across the available screen",
+        "status": "PASS"
+      },
+      {
+        "name": "390px touch layout, reminder controls and reduced motion",
+        "status": "PASS"
+      },
+      {
+        "name": "320px touch layout, reminder controls and reduced motion",
+        "status": "PASS"
+      },
+      {
+        "name": "Desktop drag cancellation preserves cards and read state",
+        "status": "PASS"
+      }
+    ],
+    "material_density": [
+      {
+        "name": "desktop-content",
+        "status": "PASS"
+      },
+      {
+        "name": "keyboard-task-preview",
+        "status": "PASS"
+      },
+      {
+        "name": "pagination-keeps-card-focus",
+        "status": "PASS"
+      },
+      {
+        "name": "compact-density",
+        "status": "PASS"
+      },
+      {
+        "name": "phone-390",
+        "status": "PASS"
+      },
+      {
+        "name": "phone-320",
+        "status": "PASS"
+      }
+    ],
+    "motion_material": [
+      {
+        "name": "Real Tab reaches a completely hidden rail from the feed",
+        "status": "PASS"
+      },
+      {
+        "name": "App transparency preference covers menu and search backdrops",
+        "status": "PASS"
+      },
+      {
+        "name": "System transparency and increased contrast keep dark menus solid and outlined",
+        "status": "PASS"
+      },
+      {
+        "name": "Forced no-blur fallback uses solid surfaces and a one-pixel outline",
+        "status": "PASS"
+      },
+      {
+        "name": "Reduced motion includes head tools and preserves immediate keyboard visibility",
+        "status": "PASS"
+      },
+      {
+        "name": "Reduced phone navigation keeps its lens and does not become a draggable sheet",
+        "status": "PASS"
+      },
+      {
+        "name": "A toolbar-free preview fixture keeps its final action visible",
+        "status": "PASS"
+      },
+      {
+        "name": "Photo handoff and a denied clipboard leave a readable reference below the thumbnails",
+        "status": "PASS"
+      },
+      {
+        "name": "Scrolling a retained reference never pushes the reader to completion",
+        "status": "PASS"
+      },
+      {
+        "name": "Real touchCancel restores the phone sheet without closing or writing",
+        "status": "PASS"
+      },
+      {
+        "name": "Closing during phone entry does not revive the sheet",
+        "status": "PASS"
+      },
+      {
+        "name": "A delayed gesture dismissal leaves a newly opened search usable",
+        "status": "PASS"
+      }
+    ],
+    "accessibility": [
+      {
+        "name": "Offline draft survives reload and synchronizes; conflict never overwrites newer state",
+        "status": "PASS"
+      },
+      {
+        "name": "GET outage after reload journals new edits before reconnecting",
+        "status": "PASS"
+      },
+      {
+        "name": "Same-session failed write retry cannot overwrite another client card",
+        "status": "PASS"
+      },
+      {
+        "name": "Update arriving during phone dismissal cannot revive the sheet",
+        "status": "PASS"
+      },
+      {
+        "name": "Remote updates preserve preview scroll, focus, full sheet and renewed scroll behavior",
+        "status": "PASS"
+      },
+      {
+        "name": "Keyboard task and preference changes retain focus; radio arrows and shortcut opt-out work",
+        "status": "PASS"
+      },
+      {
+        "name": "Keyboard navigation reaches settings Add, persists a note, and exposes no removed source or import entries",
+        "status": "PASS"
+      },
+      {
+        "name": "Empty desk retains an actionable archive",
+        "status": "PASS"
+      },
+      {
+        "name": "320px keyboard search, panel reachability, light/dark axe and reduced motion",
+        "status": "PASS"
+      },
+      {
+        "name": "390px keyboard search, panel reachability, light/dark axe and reduced motion",
+        "status": "PASS"
+      },
+      {
+        "name": "768px keyboard search, panel reachability, light/dark axe and reduced motion",
+        "status": "PASS"
+      },
+      {
+        "name": "1440px keyboard search, panel reachability, light/dark axe and reduced motion",
+        "status": "PASS"
+      },
+      {
+        "name": "Short viewport can scroll capture save into view and submit by keyboard",
+        "status": "PASS"
+      }
+    ],
+    "axe": {
+      "scans": 32,
+      "violations": 0,
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "views": [
+        "feed",
+        "search",
+        "preview",
+        "settings"
+      ]
+    },
+    "local_browser": {
+      "status": "PASS"
+    },
+    "cloud_build": {
+      "status": "PASS"
+    },
+    "cloud_app_browser": {
+      "status": "PASS",
+      "viewports": [
+        1280,
+        390
+      ],
+      "host": "strict sandbox protocol fixture",
+      "photo_failure_page_failure": "PASS",
+      "real_host_messages_sent": 0
+    }
+  },
+  "before_observations": {
+    "source": "a6f3a0193579b2cee9021fddedf275ab3b90c5cc",
+    "mode": "baseline observations; no new-regression pass claim",
+    "metrics": [
+      {
+        "name": "desktop",
+        "columns": 4,
+        "firstTaskIds": [
+          "done-a",
+          "done-b",
+          "done-c"
+        ],
+        "digest": "演示工作区\n产品评审：把下一步放到眼前\n0\n已读\n0\n收藏\n0\n完成\n\n这周没有拖过截止的待办。",
+        "pageErrors": []
+      },
+      {
+        "name": "phone",
+        "columns": 1,
+        "firstTaskIds": [
+          "done-a",
+          "done-b",
+          "done-c"
+        ],
+        "digest": "演示工作区\n产品评审：把下一步放到眼前\n0\n已读\n0\n收藏\n0\n完成\n\n这周没有拖过截止的待办。",
+        "pageErrors": []
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "after-desktop-dark.png",
+      "bytes": 245405,
+      "sha256": "6b9d6a398cbed7328092f674a06f5315aac34ab05833b758df0b54111c0379ea"
+    },
+    {
+      "file": "after-desktop-light.png",
+      "bytes": 243986,
+      "sha256": "771172c11f7f68221f09ed53d67e358d316ed32a4fa9f046a7d57fd37ee8e48c"
+    },
+    {
+      "file": "after-phone-detail-end.png",
+      "bytes": 82964,
+      "sha256": "0f6cffbf31fa1aa6fcc3fe3aafacc2f5e1d55766eff293141bf870eba6af9a6a"
+    },
+    {
+      "file": "after-phone-detail.png",
+      "bytes": 85463,
+      "sha256": "27447851c9d59053f980b0b39c50baabdc6769744f2d2193f263f18e690f470e"
+    },
+    {
+      "file": "after-phone-feed.png",
+      "bytes": 105484,
+      "sha256": "d924b2312ecc2f7658e8620b802551925b8e6d0c05761cbe2cad6ed60cacc18c"
+    },
+    {
+      "file": "agent-photo-recovery.png",
+      "bytes": 64121,
+      "sha256": "ad3d43187c6d93395b17f41664a80db8c2c86ba93600166b47b5314826527845"
+    },
+    {
+      "file": "agent-reference-desktop.png",
+      "bytes": 95543,
+      "sha256": "479cf8572301390683416c2e0b6d1d2cd4af22b9d046c333275e4d35ce6c3dd0"
+    },
+    {
+      "file": "agent-reference-mobile.png",
+      "bytes": 61780,
+      "sha256": "bf1ea3133c5a5dbb80f701d0b3b2dd85e464074ca7d99d19c533d7803ff6f4fd"
+    },
+    {
+      "file": "before-desktop-dark.png",
+      "bytes": 184273,
+      "sha256": "1187080d621984de2cbf5e8b888b6f3e8c5b6bfde0cce90ee63c01fb3d55b0cb"
+    },
+    {
+      "file": "before-desktop-light.png",
+      "bytes": 192076,
+      "sha256": "315e00a7d2519f9b93811a9769eabdae90ec0ba063923228c0598043e624043f"
+    },
+    {
+      "file": "before-phone-detail.png",
+      "bytes": 48271,
+      "sha256": "169bc6cadef9dfabe804908cd246e5f6e2e481287e366218f5ad16f8c6d2623f"
+    },
+    {
+      "file": "before-phone-feed.png",
+      "bytes": 90753,
+      "sha256": "77bee22261d8f5cc15c5c62100e95bbc410bbd270a6142ddb475b2bffa26f1ef"
+    }
+  ],
+  "not_verified": [
+    "Safari and Apple hardware",
+    "Native macOS/iOS changes",
+    "Real production host capability availability",
+    "Every legacy browser without backdrop-filter",
+    "Online claude.ai design canvas update",
+    "Remote CI: inspect the PR checks"
+  ]
+}

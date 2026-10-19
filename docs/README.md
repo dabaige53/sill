@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-16。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
+更新：2026-10-17。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
 
@@ -10,6 +10,8 @@
 - [Sill · 窗台 — 产品需求文档](product/requirements.md)
 
 ## 设计规则
+
+- [卡片内容设计规范](design/card-content.md)：标题、摘要、来源与阅读时长、结构化内容和发布检查。
 
 - [设计决策记录（ADR）](design/decisions.md)
 - [Sill 设计系统](design/system.md)
@@ -43,10 +45,15 @@
 - [根目录 DESIGN.md 作为设计入口](adr/0031-design-md-entry.md)
 - [设计改动先改线上，再同步线下](adr/0032-design-online-first.md)
 - [不接入外部来源，内容由助手写入，连接器只用 Composio](adr/0033-ai-writes-composio-only.md)
+- [玻璃底栏取代入口球，工具条滚动时收起](adr/0034-glass-rail-and-tucking-bars.md)
+- [底部导航胶囊取代右下玻璃按钮组](adr/0035-bottom-navigation-capsule.md)
 
 ## 记录
 
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
+
+- [2026-10-17-product-review：内容密度、动效材质与 Agent 交接审查](records/2026-10-17-product-review/README.md)
+- [2026-10-17-ci-recovery：产品审查后的 CI 回归修正](records/2026-10-17-ci-recovery/README.md)
 
 - [2026-10-11-product-conversation：Sill — 产品对话与需求演进记录](records/2026-10-11-product-conversation/README.md)
 - [2026-10-12-local-acceptance：Sill 本地版本](records/2026-10-12-local-acceptance/README.md)

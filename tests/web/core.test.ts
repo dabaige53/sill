@@ -63,6 +63,9 @@ function fixture(raw: any = null, at: any = 1800000000000) {
 	api.Store.load();
 	const app = new api.AppController();
 	app.dialog = { open: false };
+	app.replacePanelContent = (html: string) => {
+		app.dialog.innerHTML = html;
+	};
 	app.drag = { active: null };
 	app.grid = { querySelector: () => null };
 	app.renders = 0;
@@ -177,6 +180,76 @@ test("refresh insertion deduplicates IDs and restores new-card flags and timesta
 	assert.equal(g.Store.card(card.id).time, card.time);
 	assert.equal(g.Store.item(card.id).bookmarked, true);
 });
+test("home retains read, completed and old cards for every legacy age preference", () => {
+	const { FeedPolicy: p, now } = fixture();
+	const old = now() - 365 * 86400000;
+	for (const type of ["article", "media", "note", "mail", "task", "event", "reminder"]) {
+		const c = { id: type, type, time: old, tasks: [{ id: "step", done: true }] };
+		for (const pref of ["3d", "7d", "never"]) {
+			for (const state of [
+				{},
+				{ read: true, readAt: old },
+				{ reminderDone: true },
+				{ taskDone: ["step"] },
+				{ dismissed: true },
+				{ snoozedUntil: now() + 60000 },
+			]) {
+				assert.equal(p.shelf(c, state, now(), pref), "desk");
+				assert.equal(p.visible(c, state), true);
+				assert.equal(p.shelf(c, { ...state, archived: true }, now(), pref), "read");
+			}
+		}
+	}
+});
+test("only explicit archive removes cards from home, without rewriting existing flags", () => {
+	const f = fixture();
+	f.Store.patch("article-01", { read: true, readAt: f.now() - 30 * 86400000 });
+	f.Store.patch("reminder-01", { reminderDone: true, dismissed: true });
+	f.Store.patch("task-01", { taskDone: f.Store.card("task-01").tasks.map((t: any) => t.id) });
+	for (const id of ["article-01", "reminder-01", "task-01"]) {
+		assert.ok(ids(f.app.filtered()).includes(id));
+	}
+	f.Store.patch("article-01", { archived: true });
+	assert.ok(!ids(f.app.filtered()).includes("article-01"));
+	const g = fixture(f.data.get(f.Store.key), f.now() + 365 * 86400000);
+	assert.ok(!ids(g.app.filtered()).includes("article-01"));
+	assert.ok(ids(g.app.filtered()).includes("reminder-01"));
+	assert.ok(ids(g.app.filtered()).includes("task-01"));
+	assert.equal(g.Store.item("reminder-01").dismissed, true);
+	assert.equal(g.Store.item("reminder-01").archived, false);
+	g.app.filter.status = "done";
+	assert.ok(ids(g.app.filtered()).includes("task-01"));
+	g.app.filter.status = "all";
+	g.app.filter.query = g.Store.card("article-01").title;
+	assert.ok(ids(g.app.filtered()).includes("article-01"));
+	assert.ok(ids(g.app.searchAll(g.Store.card("reminder-01").title).desk).includes("reminder-01"));
+});
+test("explicit restore keeps reading state and undo restores the archive flag", () => {
+	const f = fixture();
+	f.Store.patch("article-01", { archived: true, read: true, progress: 1, bookmarked: true });
+	f.app.editId = "read";
+	f.app.action("restore-card", "article-01");
+	assert.equal(f.Store.item("article-01").archived, false);
+	assert.equal(f.Store.item("article-01").read, true);
+	assert.equal(f.Store.item("article-01").progress, 1);
+	assert.equal(f.Store.item("article-01").bookmarked, true);
+	assert.ok(ids(f.app.filtered()).includes("article-01"));
+	f.app.undoAction();
+	assert.equal(f.Store.item("article-01").archived, true);
+	assert.ok(!ids(f.app.filtered()).includes("article-01"));
+});
+test("snooze, dismissal, completion and archive suppress notifications independently of home", () => {
+	const { FeedPolicy: p, now } = fixture();
+	const c = { id: "r", type: "reminder", due: now() - 1 };
+	for (const state of [
+		{ snoozedUntil: now() + 60000 },
+		{ dismissed: true },
+		{ reminderDone: true },
+		{ archived: true },
+	]) {
+		assert.equal(p.eligible(c, state, now()), false);
+	}
+});
 test("priority, unread and time sorts are stable, immutable and deduplicated", () => {
 	const { FeedPolicy: p, now } = fixture();
 	const cards = [
@@ -225,12 +298,12 @@ test("one occurrence is not delivered twice; cooldown gates a changed occurrence
 		true,
 	);
 });
-test("snooze remains hidden until explicit confirmation, including across reload", () => {
+test("snooze stays on home while notification confirmation survives reload", () => {
 	const f = fixture();
 	f.app.changeReminder("reminder-01", "snooze");
 	assert.equal(
 		f.app.filtered().some((c?: any) => c.id === "reminder-01"),
-		false,
+		true,
 	);
 	f.advance(600001);
 	f.app.checkReminders();
@@ -238,7 +311,7 @@ test("snooze remains hidden until explicit confirmation, including across reload
 	assert.equal(f.app.pendingReminders.filter((id?: any) => id === "reminder-01").length, 1);
 	assert.equal(
 		f.app.filtered().some((c?: any) => c.id === "reminder-01"),
-		false,
+		true,
 	);
 	const g = fixture(f.data.get(f.Store.key), f.now());
 	g.app.checkReminders();
@@ -284,7 +357,7 @@ test("dismiss, complete, restore and undo preserve unrelated content state", () 
 		f.app.changeReminder(id, action);
 		assert.equal(
 			f.app.filtered().some((c?: any) => c.id === id),
-			false,
+			true,
 		);
 		f.app.filter.status = action === "dismiss-reminder" ? "dismissed" : "done";
 		assert.equal(
@@ -349,19 +422,17 @@ test("duplicate popstate/hashchange does not close a newly opened local panel", 
 	assert.equal(closes, 2);
 });
 
-test("touch consistently opens local tools", () => {
+test("the settings button opens settings directly; there is no expanding entrance", () => {
 	const f = fixture();
 	f.context.matchMedia = () => ({ matches: false });
-	let tools = 0,
-		ai = 0;
-	f.app.openDock = () => tools++;
-	f.app.openAI = () => ai++;
+	const opened: string[] = [];
+	f.app.openPanel = (kind: string) => opened.push(kind);
+	f.app.action("settings", "", "", null, { pointerType: "touch" });
+	f.app.action("settings", "", "", null, { pointerType: "mouse" });
+	assert.deepEqual(opened, ["settings", "settings"]);
+	assert.equal(typeof f.app.openDock, "undefined");
 	f.app.action("orb", "", "", null, { pointerType: "touch" });
-	assert.equal(tools, 1);
-	assert.equal(ai, 0);
-	f.app.action("orb", "", "", null, { pointerType: "touch" });
-	assert.equal(tools, 2);
-	assert.equal(ai, 0);
+	assert.deepEqual(opened, ["settings", "settings"]);
 });
 
 test("Sill rename copies old cards and drafts once without replacing newer data", () => {

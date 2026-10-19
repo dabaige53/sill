@@ -1,10 +1,10 @@
 const MotionEngine: Record<string, any> = {
 	query: matchMedia("(prefers-reduced-motion: reduce)"),
 	panelAnimations: new WeakMap(),
-	panelRuns: new WeakMap(),
+	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),
+	visibilityAnimations: new WeakMap(),
 	contentAnimations: new WeakMap(),
-	visibilityRuns: new WeakMap(),
 	exits: new Map(),
 	time(name: string) {
 		return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--${name}`));
@@ -12,17 +12,56 @@ const MotionEngine: Record<string, any> = {
 	get reduced() {
 		return this.query.matches || !!document.body?.classList.contains("reduce-motion");
 	},
+	get reducedDuration() {
+		return (
+			parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-reduced")) || 70
+		);
+	},
 	animate(el?: any, keyframes?: any, options: any = {}) {
 		if (!el || !el.animate) return null;
 		if (this.reduced) {
 			const opacity = keyframes.map((k?: any) => ({ opacity: k.opacity ?? 1 }));
-			return el.animate(opacity, { easing: "linear", ...options, delay: 0, duration: 70 });
+			return el.animate(opacity, {
+				...options,
+				easing: "linear",
+				delay: 0,
+				duration: this.reducedDuration,
+			});
 		}
 		return el.animate(keyframes, {
 			duration: 260,
 			easing: "cubic-bezier(.2,.75,.25,1)",
 			...options,
 		});
+	},
+	/** Absolute rail notices fade without moving the navigation or leaving clickable ghosts. */
+	visibility(el: HTMLElement, visible: boolean) {
+		if (!el) return;
+		const previous = this.visibilityAnimations.get(el);
+		if (previous?.visible === visible || (!previous && el.hidden === !visible)) return;
+		const style = el.animate ? getComputedStyle(el) : null;
+		const opacity = el.hidden ? 0 : Number.parseFloat(style?.opacity || "1");
+		const transform = el.hidden ? "translateY(4px)" : style?.transform || "none";
+		previous?.animation?.cancel();
+		el.inert = !visible;
+		el.hidden = false;
+		const state = { visible, animation: null as Animation | null };
+		this.visibilityAnimations.set(el, state);
+		const finish = () => {
+			if (this.visibilityAnimations.get(el) !== state) return;
+			el.hidden = !visible;
+			state.animation = null;
+		};
+		state.animation = this.animate(
+			el,
+			[
+				{ opacity, transform },
+				{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(4px)" },
+			],
+			{ duration: visible ? 220 : 180 },
+		);
+		if (state.animation) state.animation.finished.then(finish, finish);
+		else finish();
 	},
 	enter(el?: any, delay: any = 0) {
 		return this.animate(
@@ -58,30 +97,6 @@ const MotionEngine: Record<string, any> = {
 		);
 		this.contentAnimations.set(el, animation);
 		return animation;
-	},
-	visibility(el: HTMLElement, visible: boolean, done: () => void = () => {}) {
-		const previous = this.visibilityRuns.get(el);
-		if (previous?.visible === visible) return;
-		const opacity = el.hidden ? 0 : getComputedStyle(el).opacity;
-		previous?.animation?.cancel();
-		const run = { visible, animation: null };
-		this.visibilityRuns.set(el, run);
-		if (visible) el.hidden = false;
-		el.inert = !visible;
-		if (el.hidden) {
-			done();
-			return;
-		}
-		run.animation = this.animate(el, [{ opacity }, { opacity: visible ? 1 : 0 }], {
-			duration: this.time(visible ? "base" : "fast"),
-		});
-		const finish = () => {
-			if (this.visibilityRuns.get(el) !== run) return;
-			el.hidden = !visible;
-			done();
-		};
-		if (run.animation) run.animation.finished.then(finish, () => {});
-		else finish();
 	},
 	// Retain the removed surface only for its exit; it has no live controls or identity.
 	cancelExit(key: string) {
@@ -178,9 +193,14 @@ const MotionEngine: Record<string, any> = {
 			: dialog.querySelector(".preview-sheet") || dialog;
 	},
 	cancelPanel(el?: any) {
-		this.panelRuns.delete(el);
 		this.contentAnimations.get(el)?.cancel();
 		this.contentAnimations.get(this.surface(el))?.cancel();
+		const tasks = this.panelTasks.get(el);
+		if (tasks) {
+			cancelAnimationFrame(tasks.frame);
+			clearTimeout(tasks.timer);
+			this.panelTasks.delete(el);
+		}
 		(this.panelAnimations.get(el) || []).forEach((animation?: any) => {
 			animation?.cancel();
 		});
@@ -188,8 +208,6 @@ const MotionEngine: Record<string, any> = {
 	},
 	openPanel(el?: any, origin?: any) {
 		this.cancelPanel(el);
-		const run = {};
-		this.panelRuns.set(el, run);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
 		// Phone: the preview is a sheet rising from the bottom edge; its position is a CSS transition, the dim fades in with it.
@@ -202,13 +220,19 @@ const MotionEngine: Record<string, any> = {
 			el.style.setProperty("--backdrop", "0");
 			bar?.classList.add("is-hidden");
 			void sheet.offsetHeight;
-			requestAnimationFrame(() => {
-				if (this.panelRuns.get(el) !== run || !sheet.isConnected) return;
+			const tasks = { frame: 0, timer: 0 };
+			this.panelTasks.set(el, tasks);
+			tasks.frame = requestAnimationFrame(() => {
+				tasks.frame = 0;
+				if (this.panelTasks.get(el) !== tasks || !el.open || !sheet.isConnected) return;
 				sheet.classList.remove("is-drag", "is-off");
 				el.style.removeProperty("--backdrop");
-				window.setTimeout(() => {
-					if (this.panelRuns.get(el) === run) bar?.classList.remove("is-hidden");
-				}, this.time("fast"));
+				tasks.timer = window.setTimeout(() => {
+					if (this.panelTasks.get(el) !== tasks) return;
+					this.panelTasks.delete(el);
+					if (el.open && sheet.isConnected && !sheet.classList.contains("is-off"))
+						bar?.classList.remove("is-hidden");
+				}, 140);
 			});
 			this.panelAnimations.set(
 				el,

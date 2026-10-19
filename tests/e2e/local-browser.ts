@@ -145,11 +145,9 @@ try {
 	);
 	await page.keyboard.press("Escape");
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
-	await page.locator("#orb").click();
-	await page.getByRole("button", { name: "刷新卡片", exact: true }).click();
-	await page.waitForFunction(
-		() => document.querySelector("#announcer").textContent === "卡片已刷新",
-	);
+	// Refresh has no button on the rail: the R key (or a pull at the top) runs it.
+	await page.keyboard.press("r");
+	await page.waitForFunction(() => document.querySelector("#announcer").textContent === "刷新完成");
 	assert.equal(value.state.cards.length, 31);
 	const box = await page.locator('[data-card="agent-test"]').boundingBox();
 	assert.ok(box.width >= 280 && box.width <= 380);

@@ -90,7 +90,7 @@ async function recordLayout(page?: any, width?: any) {
 					pageErrors: errors,
 					externalRequests: external,
 				});
-				console.error("FAIL", name, e.message);
+				console.error("FAIL", name, e.stack || e.message);
 			} finally {
 				await context.close();
 			}
@@ -106,7 +106,7 @@ async function recordLayout(page?: any, width?: any) {
 		const openCard = (page?: any, id?: any) => card(page, id).locator(".card-title-button").click();
 		const feedUnopened = async (page?: any, id?: any) => {
 			assert.equal(
-				await page.locator("dialog").evaluate((n?: any) => n.open),
+				await page.locator("#modal").evaluate((n?: any) => n.open),
 				false,
 				"inline action opened a dialog",
 			);
@@ -140,7 +140,15 @@ async function recordLayout(page?: any, width?: any) {
 				JSON.stringify(boxes),
 			);
 		};
-		const filter = (page?: any, status?: any) => action(page, "filter-status", "", status);
+		const filter = async (page?: any, status?: any) => {
+			if (await page.locator("#modal").evaluate((n: HTMLDialogElement) => n.open)) {
+				await page.keyboard.press("Escape");
+				await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
+			}
+			await page.keyboard.press("Control+k");
+			await page.locator("#filter-search").waitFor();
+			await action(page, "filter-status", "", status);
+		};
 		await scenario(
 			"Preview, reader, bookmark undo, tags and task controls remain independent",
 			async (page?: any) => {
@@ -157,16 +165,16 @@ async function recordLayout(page?: any, width?: any) {
 				await openCard(page, "article-01");
 				assert.equal((await state(page, "article-01")).seen, true);
 				assert.equal((await state(page, "article-01")).read, false);
-				await page.locator('dialog [data-action="bookmark"]').click();
+				await page.locator('#modal [data-action="bookmark"]').click();
 				assert.equal((await state(page, "article-01")).bookmarked, true);
 				assert.equal(
 					await page.locator("#toast").isVisible(),
 					false,
 					"a single flag needs no toast",
 				);
-				await page.locator('dialog [data-action="bookmark"]').click();
+				await page.locator('#modal [data-action="bookmark"]').click();
 				assert.equal((await state(page, "article-01")).bookmarked, false);
-				await page.locator('dialog [data-action="reader"]').click();
+				await page.locator('#modal [data-action="reader"]').click();
 				await page.evaluate(
 					() =>
 						new Promise((resolve?: any) =>
@@ -218,15 +226,15 @@ async function recordLayout(page?: any, width?: any) {
 			},
 		);
 		await scenario(
-			"Snooze survives reload, queues once, waits during reading and reappears on demand",
+			"Snooze stays on home, survives reload and queues one notification",
 			async (page?: any) => {
 				await page.clock.install();
 				await action(page, "preview", "reminder-01");
 				await page
-					.locator("dialog")
+					.locator("#modal")
 					.getByRole("button", { name: "延后十分钟", exact: true })
 					.click();
-				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 0);
+				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				const deadline = (await state(page, "reminder-01")).snoozedUntil;
 				await page.reload();
 				assert.equal((await state(page, "reminder-01")).snoozedUntil, deadline);
@@ -243,12 +251,15 @@ async function recordLayout(page?: any, width?: any) {
 					order,
 				);
 				await action(page, "show-new");
-				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 0);
+				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				await page.keyboard.press("Escape");
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
 				await page.locator("#new-count").click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				await page.clock.fastForward(120000);
+				await page.locator("#new-count").evaluate(async (n: HTMLElement) => {
+					await Promise.all(n.getAnimations().map((a) => a.finished));
+				});
 				assert.equal(await page.locator("#new-count").isVisible(), false);
 				await page.reload();
 				assert.equal(await page.locator("#new-count").isVisible(), false);
@@ -259,20 +270,25 @@ async function recordLayout(page?: any, width?: any) {
 			async (page?: any) => {
 				await action(page, "preview", "reminder-01");
 				await page
-					.locator("dialog")
+					.locator("#modal")
 					.getByRole("button", { name: "忽略此提醒", exact: true })
 					.click();
-				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 0);
+				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				await page.getByRole("button", { name: "撤销操作", exact: true }).click();
 				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 				await action(page, "preview", "reminder-01");
-				await page.locator("dialog").getByRole("button", { name: "完成提醒", exact: true }).click();
-				await filter(page, "done");
-				assert.equal(await page.locator("#feed-grid .feed-card").count(), 1);
-				await openCard(page, "reminder-01");
-				await page.locator("dialog").getByRole("button", { name: "恢复提醒", exact: true }).click();
+				await page.locator("#modal").getByRole("button", { name: "完成提醒", exact: true }).click();
+				assert.equal((await state(page, "reminder-01")).reminderDone, true);
+				await filter(page, "all");
+				assert.equal(await page.locator('#search-results [data-card="reminder-01"]').count(), 1);
+				await page.locator('#search-results [data-card="reminder-01"] .card-title-button').click();
+				await page.locator("#modal").getByRole("button", { name: "恢复提醒", exact: true }).click();
+				await page.locator("#filter-search").waitFor();
+				assert.equal((await state(page, "reminder-01")).reminderDone, false);
 				await action(page, "clear-filter");
-				assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
+				await page.keyboard.press("Escape");
+				await page.waitForFunction(() => !document.querySelector("dialog").open);
+				assert.equal(await page.locator('#feed-grid [data-card="reminder-01"]').count(), 1);
 			},
 		);
 		await scenario(
@@ -282,12 +298,12 @@ async function recordLayout(page?: any, width?: any) {
 				await reminder.locator('[data-action="complete-reminder"]').focus();
 				await page.keyboard.press("Enter");
 				assert.equal((await state(page, "reminder-01")).reminderDone, true);
-				assert.equal(await reminder.count(), 0);
+				assert.equal(await reminder.count(), 1);
 				await feedUnopened(page, "reminder-01");
 				assert.equal(
 					await page.evaluate(() => document.activeElement !== document.body),
 					true,
-					"removing the active card lost keyboard focus",
+					"updating the active card lost keyboard focus",
 				);
 				await page.getByRole("button", { name: "撤销操作", exact: true }).click();
 				assert.equal((await state(page, "reminder-01")).reminderDone, false);
@@ -302,7 +318,7 @@ async function recordLayout(page?: any, width?: any) {
 				assert.ok(
 					(await state(page, "reminder-01")).snoozedUntil > (await page.evaluate(() => Date.now())),
 				);
-				assert.equal(await reminder.count(), 0);
+				assert.equal(await reminder.count(), 1);
 				await feedUnopened(page, "reminder-01");
 				await page.getByRole("button", { name: "撤销操作", exact: true }).click();
 				assert.equal((await state(page, "reminder-01")).snoozedUntil, 0);
@@ -313,59 +329,37 @@ async function recordLayout(page?: any, width?: any) {
 			"Card menus close on Escape and outside click, and keep actions separate from preview",
 			async (page?: any) => {
 				const note = card(page, "note-01"),
-					more = note.locator('[data-action="card-more"]');
-				await page.mouse.move(3, 3);
-				assert.equal(
-					await more.evaluate((n?: any) => getComputedStyle(n).opacity),
-					"0",
-					"the more button shows only on hover or focus",
-				);
-				await note.hover();
-				await more.evaluate(
-					(n?: any) =>
-						new Promise((done) => {
-							const check = () =>
-								getComputedStyle(n).opacity === "1" ? done(true) : requestAnimationFrame(check);
-							check();
-						}),
-				);
-				await page.mouse.move(3, 3);
-				await note.focus();
-				await more.focus();
-				await page.keyboard.press("Enter");
+					title = note.locator(".card-title-button");
+				assert.equal(await page.locator('[data-action="card-more"],.card-more-trigger').count(), 0);
+				await title.press("Shift+F10");
 				assert.equal(await page.locator(".card-more-menu").count(), 1);
-				assert.equal(await more.getAttribute("aria-expanded"), "true");
+				assert.equal(await title.getAttribute("aria-expanded"), "true");
 				await page.keyboard.press("Escape");
 				assert.equal(await page.locator(".card-more-menu").count(), 0);
 				assert.equal(
-					await more.evaluate((n?: any) => document.activeElement === n),
+					await title.evaluate((n?: any) => document.activeElement === n),
 					true,
-					"Escape should return to the card menu trigger",
+					"Escape should return to the card title",
 				);
-				assert.equal(await more.getAttribute("aria-expanded"), "false");
+				assert.equal(await title.getAttribute("aria-expanded"), "false");
 				await feedUnopened(page, "note-01");
-				await more.click();
-				await card(page, "article-01").hover();
-				await card(page, "article-01").locator('[data-action="card-more"]').click();
+				await note.click({ button: "right" });
+				await card(page, "article-01").click({ button: "right" });
 				assert.equal(await page.locator(".card-more-menu").count(), 1);
 				assert.equal(await note.locator(".card-more-menu").count(), 0);
 				await page.mouse.click(3, 3);
 				assert.equal(await page.locator(".card-more-menu").count(), 0);
-				await note.hover();
-				await more.click();
+				await title.press("ContextMenu");
 				await note.locator('.card-more-menu [data-action="later"]').click();
 				assert.equal((await state(page, "note-01")).later, true);
 				assert.equal(await page.locator(".card-more-menu").count(), 0);
 				await feedUnopened(page, "note-01");
 				assert.equal(
-					await more.evaluate((n?: any) => document.activeElement === n),
+					await title.evaluate((n?: any) => document.activeElement === n),
 					true,
 					"a menu action should preserve a usable focus target",
 				);
-				await page.mouse.move(3, 3);
-				await note.focus();
-				await more.focus();
-				await page.keyboard.press("Enter");
+				await title.press("Shift+F10");
 				await page.keyboard.press("ArrowDown");
 				await page.keyboard.press("ArrowDown");
 				assert.equal(
@@ -431,9 +425,82 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal(await title.evaluate((n?: any) => document.activeElement === n), true);
 			},
 		);
+		for (const width of [390, 1440]) {
+			await scenario(
+				`Search starts at the top and restores navigation on exit (${width})`,
+				async (page?: any) => {
+					const trigger = page.locator('#nav [data-extra="search"]');
+					for (const exit of ["close", "Escape"]) {
+						await trigger.click();
+						await page.locator("#filter-search").waitFor();
+						await page.waitForFunction(
+							() => getComputedStyle(document.getElementById("dock")).visibility === "hidden",
+						);
+						assert.equal(
+							await page
+								.locator("#filter-search")
+								.evaluate((n?: any) => n === document.activeElement),
+							true,
+						);
+						const field = await page.locator(".search-header").boundingBox();
+						const chips = await page.locator(".search-chips").boundingBox();
+						assert.ok(
+							field.y < 100 && chips.y >= field.y + field.height,
+							"field precedes filters at the top",
+						);
+						await page.locator("#filter-search").fill("留白");
+						await page.locator('#search-results [data-action="card-open"]').first().waitFor();
+						if (width < 720) {
+							await page.evaluate(() => {
+								document.documentElement.style.setProperty("--kb", "300px");
+								document.body.classList.add("keyboard-open");
+							});
+							const keyboardField = await page.locator(".search-header").boundingBox();
+							const results = await page.locator(".search-results").boundingBox();
+							assert.ok(
+								Math.abs(keyboardField.y - field.y) < 1,
+								"keyboard does not lift the field",
+							);
+							assert.ok(results.y + results.height <= 800 - 300, "results stay above the keyboard");
+							await page.evaluate(() => {
+								document.documentElement.style.removeProperty("--kb");
+								document.body.classList.remove("keyboard-open");
+							});
+						}
+						assert.equal(
+							await page.locator("#dock").evaluate((n?: any) => getComputedStyle(n).visibility),
+							"hidden",
+							"capsule stays hidden without keyboard",
+						);
+						await page.screenshot({
+							animations: "disabled",
+							path: path.join(artifacts, `search-top-${width}.png`),
+						});
+						if (exit === "close")
+							await page.locator('.search-header [data-action="close"]').click();
+						else await page.keyboard.press("Escape");
+						await page.waitForFunction(
+							() =>
+								!document.querySelector("dialog").open &&
+								getComputedStyle(document.getElementById("dock")).visibility === "visible",
+						);
+					}
+				},
+				{ viewport: { width, height: 800 }, reducedMotion: "reduce" },
+			);
+		}
 		await scenario(
-			"Search filters the desk live, reaches archived cards and clears in one step",
+			"Search keeps home unchanged and reaches archived cards with shared card components",
 			async (page?: any) => {
+				await page.addInitScript(() => {
+					const state = JSON.parse(localStorage.getItem("sill-v1"));
+					state.items["old-01"].archived = true;
+					localStorage.setItem("sill-v1", JSON.stringify(state));
+				});
+				await page.reload();
+				await page.waitForFunction(() => window.__app);
+				assert.equal((await state(page, "old-01")).archived, true);
+				const homeCount = await page.locator("#feed-grid .feed-card").count();
 				await page.keyboard.press("Control+k");
 				await page.waitForFunction(() => window.__app.modalKind === "search");
 				await page.locator("#filter-search").fill("不存在的关键词");
@@ -442,25 +509,19 @@ async function recordLayout(page?: any, width?: any) {
 				);
 				await page.locator(".search-empty").waitFor();
 				await page.keyboard.press("Enter");
-				await page.waitForFunction(() => !document.querySelector("dialog").open);
-				assert.equal(await page.locator(".empty-card").count(), 1);
-				assert.equal(
-					await page.locator("#dock").evaluate((n?: any) => n.classList.contains("filter-active")),
-					true,
-				);
-				await action(page, "clear-filter");
-				assert.ok((await page.locator(".feed-card").count()) > 10);
-				await action(page, "search");
+				assert.equal(await page.locator("#modal").evaluate((n: HTMLDialogElement) => n.open), true);
+				assert.equal(await page.locator("#feed-grid .feed-card").count(), homeCount);
 				await page.locator("#filter-search").fill("留白");
 				await page.waitForFunction(
-					() => document.querySelectorAll('#search-results [data-action="card-open"]').length === 2,
+					() => document.querySelectorAll("#search-results .feed-card").length === 2,
 				);
-				assert.equal(await page.locator("#search-results mark").first().textContent(), "留白");
-				assert.match(await page.locator("#search-results").textContent(), /已收起/);
+				assert.equal(await page.locator('#feed-grid [data-card="old-01"]').count(), 0);
+				assert.equal(await page.locator('#search-results [data-card="old-01"]').count(), 1);
 				await page.locator('[data-action="filter-type"][data-extra="mail"]').click();
-				assert.equal(await page.evaluate(() => window.__app.filter.type), "mail");
+				assert.equal(await page.evaluate(() => window.__app.searchFilter.type), "mail");
+				assert.equal(await page.evaluate(() => window.__app.filter.type), "all");
 				await page.keyboard.press("Escape");
-				await action(page, "clear-filter");
+				assert.equal(await page.locator("#feed-grid .feed-card").count(), homeCount);
 			},
 		);
 		await scenario(
@@ -489,7 +550,7 @@ async function recordLayout(page?: any, width?: any) {
 			},
 		);
 		await scenario(
-			"Read state is color only, stacks open in place and time moves cards to the shelves",
+			"Read state is color only, stacks open in place and only explicit archive moves cards",
 			async (page?: any) => {
 				assert.equal(
 					await card(page, "article-04").evaluate((n?: any) => n.classList.contains("is-read")),
@@ -515,10 +576,22 @@ async function recordLayout(page?: any, width?: any) {
 				await page.locator('[data-action="stack-close"]').click();
 				assert.equal(await page.locator("[data-stack]").count(), 1);
 				for (const id of ["old-01", "old-03"])
-					assert.equal(await card(page, id).count(), 0, id + " should have left the desk");
+					assert.equal(
+						await card(page, id).count(),
+						1,
+						id + " remains on the desk despite reading or age",
+					);
+				await page.addInitScript(() => {
+					const state = JSON.parse(localStorage.getItem("sill-v1"));
+					state.items["old-01"].archived = true;
+					localStorage.setItem("sill-v1", JSON.stringify(state));
+				});
+				await page.reload();
+				await page.waitForFunction(() => window.__app);
+				assert.equal((await state(page, "old-01")).archived, true);
 				await page.locator('[data-action="archive"][data-extra="read"]').click();
-				await page.locator("dialog .list-row", { hasText: "安静的界面" }).hover();
-				await page.locator('dialog [data-action="restore-card"][data-id="old-01"]').click();
+				await page.locator("#modal .list-row", { hasText: "安静的界面" }).hover();
+				await page.locator('#modal [data-action="restore-card"][data-id="old-01"]').click();
 				await page.keyboard.press("Escape");
 				await card(page, "old-01").waitFor();
 				await action(page, "toggle-read", "article-01");
@@ -531,7 +604,7 @@ async function recordLayout(page?: any, width?: any) {
 		const rect = (page?: any, selector?: any) =>
 			page.locator(selector).evaluate((n?: any) => n.getBoundingClientRect().toJSON());
 		await scenario(
-			"Bottom rail, selection, drop targets, refresh and stacked previews share one rule",
+			"Bottom rail, selection menu, refresh and stacked previews share one rule",
 			async (page?: any) => {
 				const ids = await page.evaluate(() =>
 					[...document.querySelectorAll("#feed-grid [data-card]")].map((n?: any) => n.dataset.card),
@@ -546,58 +619,98 @@ async function recordLayout(page?: any, width?: any) {
 				const before = await inside();
 				await card(page, ids[0]).click({ modifiers: [mod] });
 				await card(page, ids[1]).click({ modifiers: ["Shift"] });
-				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), false);
+				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), false);
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 2);
 				assert.deepEqual(await inside(), before, "selecting moved the card's content");
-				const bar = await rect(page, "#selection-bar"),
-					orb = await rect(page, "#orb");
-				assert.ok(bar.right <= orb.left, "selection bar overlaps the orb");
-				assert.equal(Math.round(bar.bottom), Math.round(orb.bottom), "rail rows differ");
-				assert.equal(Math.round(bar.height), Math.round(orb.height), "rail rows differ");
+				// No entrance orb: the rail is the navigation capsule, and selection shares its row.
+				assert.equal(await page.locator("#orb,.dock-tools,.rail-tools").count(), 0);
+				// Selection can scroll a card into view and tuck the rail. Compare its resting layout,
+				// after both the rail and selection bar have entered, in one browser frame.
+				await page.waitForFunction(
+					() => !document.getElementById("dock").classList.contains("is-tucked"),
+				);
+				await page.locator("#dock").evaluate(async (node: HTMLElement) => {
+					await Promise.all(
+						node
+							.getAnimations({ subtree: true })
+							.filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+							.map((animation) => animation.finished.catch(() => {})),
+					);
+				});
+				const { bar, nav, face } = await page.evaluate(() => {
+					const box = (id: string) => document.getElementById(id).getBoundingClientRect().toJSON();
+					return { bar: box("selection-bar"), nav: box("nav"), face: box("account") };
+				});
+				assert.ok(bar.right <= nav.left, "selection bar overlaps the navigation capsule");
+				assert.ok(
+					face.right <= nav.right && face.left > nav.left,
+					"settings sits inside the capsule",
+				);
+				assert.equal(Math.round(bar.bottom), Math.round(nav.bottom), "rail rows differ");
+				assert.equal(Math.round(bar.height), Math.round(nav.height), "rail rows differ");
 				await page.evaluate(() => window.__app.toast("撤销测试", () => {}));
 				const toast = await rect(page, "#toast");
 				assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");
 				await card(page, ids[2]).click();
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 3);
-				await page.locator('[data-action="select-all"]').click();
+				assert.equal(
+					await page.locator('[data-action="select-all"],[data-action="selection-menu"]').count(),
+					0,
+				);
+				await action(page, "select-all");
 				assert.equal(await page.evaluate(() => window.__app.selected.size), ids.length);
 				await page.keyboard.press("Escape");
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 0);
-				await page.locator("#selection-bar").waitFor({ state: "hidden" });
-				const start = await card(page, ids[0]).boundingBox(),
-					x = start.x + 60,
-					y = start.y + start.height - 30;
+				await page.waitForFunction(() => document.getElementById("selection-bar").hidden);
+				assert.equal(await page.locator("#selection-bar").isVisible(), false);
+				const start = await card(page, ids[0]).locator(".card-head").boundingBox(),
+					x = start.x + start.width / 2,
+					y = start.y + start.height / 2;
 				await page.mouse.move(x, y);
 				await page.mouse.down();
+				await page.waitForTimeout(440);
 				await page.mouse.move(x + 20, y + 10, { steps: 4 });
-				const targets = await rect(page, "#drop-targets");
-				assert.ok(
-					Math.hypot(
-						targets.left + targets.width / 2 - (x + 20),
-						targets.top + targets.height / 2 - (y + 10),
-					) < 160,
-					"drop targets are far from the pointer",
-				);
-				assert.ok(targets.top > y + 10, "drop targets open below the pointer");
-				await page.keyboard.press("Escape");
+				assert.equal(await page.locator(".selection-lift .selection-stack").isVisible(), false);
+				assert.equal(await page.evaluate(() => window.__app.selected.size), 1);
+				assert.equal(await page.locator("#drop-targets,[data-drop]").count(), 0);
 				await page.mouse.up();
+				assert.equal(await page.locator("#selection-menu").isVisible(), false);
+				await page.locator("#selection-bar").click({ button: "right" });
+				assert.equal(await page.locator("#selection-menu").isVisible(), true);
+				await page.keyboard.press("Escape");
+				assert.equal(await page.locator("#selection-menu").isVisible(), false);
+				assert.equal(await page.evaluate(() => window.__app.selected.size), 1);
+				await page.keyboard.press("Escape");
 				await action(page, "refresh");
-				await page.waitForFunction(() =>
-					document.getElementById("dock").classList.contains("is-done"),
+				await page.waitForFunction(
+					() => document.getElementById("pull-ring").dataset.state === "success",
 				);
 				const relation = await page.evaluate(
 					() => (document.querySelector(".type-suggestion") as HTMLElement)?.dataset.card,
 				);
 				assert.doesNotMatch(await card(page, relation).locator(".card-head").innerText(), /张卡/);
+				await page.waitForFunction(
+					() =>
+						Date.now() >= window.__app.drag.suppressUntil &&
+						window.__app.selected.size === 0 &&
+						!window.__app.drag.active,
+				);
 				await openCard(page, relation);
-				await page.locator('dialog .refs [data-action="card-open"]').first().click();
+				await page.waitForFunction(
+					(id: string) =>
+						window.__app.modalKind === "preview" &&
+						window.__app.currentId === id &&
+						document.querySelector("dialog").open,
+					relation,
+				);
+				await page.locator('#modal .refs [data-action="card-open"]').first().click();
 				await page.waitForFunction((id?: any) => window.__app.currentId !== id, relation);
-				assert.equal(await page.locator("dialog .sheet-peek").count(), 1);
-				await page.locator('dialog .float-bar [data-action="close"]').click();
+				assert.equal(await page.locator("#modal .sheet-peek").count(), 1);
+				await page.locator('#modal .sheet-head [data-action="close"]').click();
 				await page.waitForFunction((id?: any) => window.__app.currentId === id, relation);
-				assert.equal(await page.locator("dialog").evaluate((n?: any) => n.open), true);
-				assert.equal(await page.locator("dialog .sheet-peek").count(), 0);
-				await page.locator('dialog .refs [data-action="card-open"]').first().click();
+				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
+				assert.equal(await page.locator("#modal .sheet-peek").count(), 0);
+				await page.locator('#modal .refs [data-action="card-open"]').first().click();
 				await page.waitForFunction(() => !!document.querySelector("dialog .sheet-peek"));
 				await page.mouse.click(8, 8);
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
@@ -613,7 +726,7 @@ async function recordLayout(page?: any, width?: any) {
 				await action(page, "select", id);
 				const bar = await rect(page, "#selection-bar");
 				assert.ok(bar.left >= 0 && bar.right <= 390, "selection bar leaves the screen");
-				assert.equal(await page.locator(".orb-wrap").isVisible(), false);
+				assert.equal(await page.locator("#dock .nav-capsule").isVisible(), false);
 				await page.evaluate(() => window.__app.alert("无法导入"));
 				const toast = await rect(page, "#toast");
 				assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");
@@ -740,7 +853,7 @@ async function recordLayout(page?: any, width?: any) {
 				{ viewport: { width, height: 1000 } },
 			);
 		await scenario(
-			"Motion exits preserve live identity and survive rapid undo and reselection",
+			"Motion exits preserve live identity and survive rapid filtering and reselection",
 			async (page: any) => {
 				await page.evaluate(async () => {
 					const app = window.__app;
@@ -761,15 +874,23 @@ async function recordLayout(page?: any, width?: any) {
 					if (bar.hidden || bar.inert) throw new Error("Old selection exit hid new selection");
 					app.selected.clear();
 					app.updateSelection();
-					app.action("complete-reminder", "reminder-01");
+					const liveIds = [...app.grid.querySelectorAll("[data-card]")]
+						.map((n: HTMLElement) => n.dataset.card)
+						.join(",");
+					app.filter.query = "no matching card for motion regression";
+					app.withFeedAnchor(() => {}, true);
 					const exit = document.querySelector<HTMLElement>(".motion-exit");
 					if (!exit || !exit.inert || exit.querySelector("[data-card],[data-action],[id]"))
 						throw new Error("Removed card retained an interactive identity");
-					app.undoAction();
-					if (document.querySelector(".motion-exit"))
-						throw new Error("Undo left duplicate exit surface");
-					if (document.querySelectorAll('[data-card="reminder-01"]').length !== 1)
-						throw new Error("Undo duplicated or lost the card");
+					app.filter.query = "";
+					app.withFeedAnchor(() => {}, true);
+					if (exit.isConnected) throw new Error("Restoring filter left duplicate exit surface");
+					if (
+						[...app.grid.querySelectorAll("[data-card]")]
+							.map((n: HTMLElement) => n.dataset.card)
+							.join(",") !== liveIds
+					)
+						throw new Error("Restoring filter duplicated or lost the card");
 				});
 			},
 		);
@@ -783,7 +904,7 @@ async function recordLayout(page?: any, width?: any) {
 				await page.waitForTimeout(1000);
 				await page.evaluate(() => window.__app.closeNative());
 				await page.waitForTimeout(400);
-				assert.equal(await page.locator("dialog").evaluate((n: HTMLDialogElement) => n.open), true);
+				assert.equal(await page.locator("#modal").evaluate((n: HTMLDialogElement) => n.open), true);
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
 				await page.evaluate(async () => {
 					const app = window.__app;
@@ -842,11 +963,8 @@ async function recordLayout(page?: any, width?: any) {
 					);
 					const reminder = card(page, "reminder-01");
 					await reminder.scrollIntoViewIfNeeded();
-					await touchTargets(
-						reminder.locator(".reminder-actions button,.card-more-trigger"),
-						width,
-					);
-					await reminder.locator('[data-action="card-more"]').tap();
+					await touchTargets(reminder.locator(".reminder-actions button"), width);
+					await reminder.locator(".card-title-button").press("Shift+F10");
 					await touchTargets(page.locator(".card-more-menu button"), width);
 					await page.waitForTimeout(240);
 					await touchTargets(page.locator(".card-more-menu button"), width);
@@ -857,12 +975,11 @@ async function recordLayout(page?: any, width?: any) {
 					await page.touchscreen.tap(3, 3);
 					assert.equal(await page.locator(".card-more-menu").count(), 0);
 					await reminder.locator('[data-action="snooze"]').tap();
-					assert.equal(await reminder.count(), 0);
+					assert.equal(await reminder.count(), 1);
 					await feedUnopened(page, "reminder-01");
 					await page.getByRole("button", { name: "撤销操作", exact: true }).tap();
 					assert.equal(await reminder.count(), 1);
-					await page.locator("#orb").tap();
-					await page.getByRole("button", { name: "筛选与搜索", exact: true }).tap();
+					await page.getByRole("button", { name: "搜索", exact: true }).tap();
 					await page.waitForFunction(() => window.__app.modalKind === "search");
 					await page.screenshot({
 						animations: "disabled",
@@ -871,7 +988,7 @@ async function recordLayout(page?: any, width?: any) {
 					await page.keyboard.press("Escape");
 					await page.waitForFunction(() => !document.querySelector("dialog").open);
 					await action(page, "preview", "reminder-01");
-					const controls = page.locator("dialog .icon-button");
+					const controls = page.locator("#modal .icon-button");
 					const boxes = await controls.evaluateAll((nodes?: any) =>
 						nodes.map((n?: any) => {
 							const r = n.getBoundingClientRect();
@@ -884,18 +1001,24 @@ async function recordLayout(page?: any, width?: any) {
 						path: path.join(artifacts, `reminder-${width}.png`),
 					});
 					await page
-						.locator("dialog")
+						.locator("#modal")
 						.getByRole("button", { name: "延后十分钟", exact: true })
 						.tap();
-					await filter(page, "snoozed");
-					assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
+					assert.ok(
+						(await state(page, "reminder-01")).snoozedUntil >
+							(await page.evaluate(() => Date.now())),
+					);
+					await filter(page, "all");
+					assert.equal(await page.locator('#search-results [data-card="reminder-01"]').count(), 1);
 					await action(page, "clear-filter");
+					await page.keyboard.press("Escape");
+					await page.waitForFunction(() => !document.querySelector("dialog").open);
 					await action(page, "card-open", "article-01");
 					await page.screenshot({
 						animations: "disabled",
 						path: path.join(artifacts, `preview-${width}.png`),
 					});
-					const bar = await page.locator("dialog .float-bar").boundingBox();
+					const bar = await page.locator("#modal .float-bar").boundingBox();
 					assert.ok(bar.x >= 0 && bar.x + bar.width <= width, "toolbar overflows the phone");
 				},
 				{
@@ -913,9 +1036,16 @@ async function recordLayout(page?: any, width?: any) {
 					y = box.y + box.height / 2;
 				await page.mouse.move(x, y);
 				await page.mouse.down();
+				await page.waitForTimeout(440);
+				await page.mouse.up();
+				assert.equal(await page.evaluate(() => window.__app.selected.has("article-01")), true);
+				await page.mouse.down();
+				await page.waitForFunction(() => !!window.__app.drag.active);
 				await page.mouse.move(x + 30, y + 30, { steps: 3 });
+				assert.equal(await page.locator(".selection-drag-count").isVisible(), true);
 				await page.keyboard.press("Escape");
 				await page.mouse.up();
+				assert.equal(await page.locator(".selection-drag-count").count(), 0);
 				assert.equal((await state(page, "article-01"))?.seen || false, false);
 				assert.equal(await page.locator('[data-card="article-01"]').count(), 1);
 			},
