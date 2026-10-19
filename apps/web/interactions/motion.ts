@@ -147,6 +147,15 @@ const MotionEngine: Record<string, any> = {
 			{ duration: 360, delay, fill: "backwards" },
 		);
 	},
+	/** The scale and travel that put a surface over a card's rectangle, centre on centre. */
+	cardOffset(surface: HTMLElement, card: DOMRect) {
+		const r = surface.getBoundingClientRect();
+		if (!r.width || !card?.width) return null;
+		const k = Math.min(1, card.width / r.width),
+			x = card.left + card.width / 2 - (r.left + r.width / 2),
+			y = card.top + card.height / 2 - (r.top + r.height / 2);
+		return `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${k.toFixed(3)})`;
+	},
 	phoneSheet(el?: any) {
 		return (
 			el.classList.contains("preview") &&
@@ -173,7 +182,7 @@ const MotionEngine: Record<string, any> = {
 		});
 		this.panelAnimations.delete(el);
 	},
-	openPanel(el?: any) {
+	openPanel(el?: any, origin?: DOMRect | null) {
 		this.cancelPanel(el);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
@@ -220,8 +229,33 @@ const MotionEngine: Record<string, any> = {
 		}
 		// Keep text at its final size. Scaling a cloned card over the detail sheet
 		// creates two text layers and clips short notes during the transition.
-		const animations = [this.enter(sheet)];
-		if (bar && bar !== sheet) animations.push(this.enter(bar));
+		// Desktop preview: it grows out of the card it came from; the toolbar rises a beat later.
+		const from = origin && el.classList.contains("preview") ? this.cardOffset(sheet, origin) : null;
+		const animations = [
+			from
+				? this.animate(
+						sheet,
+						[
+							{ opacity: 0.3, transform: from },
+							{ opacity: 1, transform: "none" },
+						],
+						{ duration: 320 },
+					)
+				: this.enter(sheet),
+		];
+		if (bar && bar !== sheet)
+			animations.push(
+				from
+					? this.animate(
+							bar,
+							[
+								{ opacity: 0, transform: "translateY(14px)" },
+								{ opacity: 1, transform: "none" },
+							],
+							{ duration: 260, delay: 120, fill: "backwards" },
+						)
+					: this.enter(bar),
+			);
 		this.panelAnimations.set(el, animations);
 	},
 	flip(el?: any, oldRect?: any, newRect?: any) {

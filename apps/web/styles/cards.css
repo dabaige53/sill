@@ -442,7 +442,8 @@
 	flex: none;
 	color: var(--secondary);
 }
-button.ref:hover {
+button.ref:hover,
+button.ref:active {
 	background: var(--faint);
 }
 .refs {
@@ -675,7 +676,8 @@ button.ref:hover {
 .pill.grow {
 	flex: 1 1 auto;
 }
-.pill.soft:hover {
+.pill.soft:hover,
+.pill.soft:active {
 	background: var(--faint);
 }
 .pill.primary {
@@ -683,7 +685,8 @@ button.ref:hover {
 	color: var(--fixed-white);
 	min-width: 72px;
 }
-.pill.primary:hover {
+.pill.primary:hover,
+.pill.primary:active {
 	filter: brightness(1.08);
 }
 .pill.primary .icon {
@@ -904,6 +907,9 @@ button.ref:hover {
 }
 .text-link:hover {
 	text-decoration: underline;
+}
+.text-link:active {
+	opacity: 0.6;
 }
 
 /* The two shelf rows at the end of the desk. */

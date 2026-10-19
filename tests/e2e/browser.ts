@@ -722,6 +722,12 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal(await page.locator("#modal .sheet-peek").count(), 0);
 				await page.locator('#modal .refs [data-action="card-open"]').first().click();
 				await page.waitForFunction(() => !!document.querySelector("dialog .sheet-peek"));
+				// The dim area closes one card at a time, like the close button.
+				await page.mouse.click(8, 8);
+				await page.waitForFunction((id?: any) => window.__app.currentId === id, relation);
+				assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
+				assert.equal(await page.locator("#modal .sheet-peek").count(), 0);
+				await page.waitForTimeout(400);
 				await page.mouse.click(8, 8);
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
 				assert.equal(await page.evaluate(() => location.hash), "#feed");
@@ -746,6 +752,89 @@ async function recordLayout(page?: any, width?: any) {
 				await page.waitForFunction(() => document.getElementById("toast").hidden);
 			},
 			{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
+		);
+		await scenario(
+			"Phone pages switch without showing the desk; settings fills the screen; card menu has icons and clears the rail",
+			async (page?: any) => {
+				await page.locator('.nav-tab[data-extra="settings"]').click();
+				await page.waitForFunction(() => window.__app.modalKind === "settings");
+				await page.waitForTimeout(300);
+				const main = await rect(page, "#modal .settings-main");
+				assert.equal(Math.round(main.bottom), 844, "settings scrolls behind the capsule");
+				const switching = await page.evaluate(async () => {
+					const dialog = document.getElementById("modal");
+					(document.querySelector('.nav-tab[data-extra="ai"]') as HTMLElement).click();
+					await new Promise((resolve) => setTimeout(resolve, 30));
+					return {
+						opacity: getComputedStyle(dialog).opacity,
+						pageAnimations: dialog.getAnimations().length,
+					};
+				});
+				assert.deepEqual(switching, { opacity: "1", pageAnimations: 0 });
+				await page.locator('.nav-tab[data-extra="home"]').click();
+				await page.waitForFunction(() => !(document.getElementById("modal") as HTMLDialogElement).open);
+				const placed = await page.evaluate(async () => {
+					const cards = [...document.querySelectorAll<HTMLElement>("#feed-grid [data-card]")];
+					const low = cards.find((n) => n.getBoundingClientRect().top > innerHeight * 0.55);
+					window.__app.more(low.dataset.card);
+					await new Promise((resolve) => setTimeout(resolve, 250));
+					const menu = low.querySelector(".card-more-menu");
+					const rail = Math.min(
+						...[...document.getElementById("dock").children]
+							.map((n) => n.getBoundingClientRect())
+							.filter((r) => r.height)
+							.map((r) => r.top),
+					);
+					return {
+						bottom: menu.getBoundingClientRect().bottom,
+						rail,
+						icons: [...menu.querySelectorAll(".card-menu-item")].every((b) =>
+							b.querySelector("svg"),
+						),
+					};
+				});
+				assert.equal(placed.icons, true, "every menu item has its icon");
+				assert.ok(placed.bottom <= placed.rail, JSON.stringify(placed));
+			},
+			{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
+		);
+		await scenario(
+			"Desktop preview grows out of its card and shrinks back into it",
+			async (page?: any) => {
+				const open = await page.evaluate(async () => {
+					(
+						document.querySelector('[data-card="article-01"] .card-title-button') as HTMLElement
+					).click();
+					await new Promise((resolve) => requestAnimationFrame(resolve));
+					return document
+						.querySelector(".preview-sheet")
+						.getAnimations()
+						.map((a: any) => [
+							a.effect.getTiming().duration,
+							String(a.effect.getKeyframes()[0].transform),
+						]);
+				});
+				assert.equal(open[0][0], 320);
+				assert.match(open[0][1], /scale\(0\.\d+\)/);
+				await page.waitForTimeout(400);
+				const close = await page.evaluate(async () => {
+					const sheet = document.querySelector(".preview-sheet");
+					(document.querySelector('#modal [data-action="close"]') as HTMLElement).click();
+					for (let i = 0; i < 10; i++) {
+						await new Promise((resolve) => setTimeout(resolve, 16));
+						const running = sheet.getAnimations();
+						if (running.length)
+							return running.map((a: any) => [
+								a.effect.getTiming().duration,
+								String(a.effect.getKeyframes().at(-1).transform),
+							]);
+					}
+					return [];
+				});
+				assert.equal(close[0]?.[0], 230);
+				assert.match(close[0][1], /scale\(0\.\d+\)/);
+				await page.waitForFunction(() => !(document.getElementById("modal") as HTMLDialogElement).open);
+			},
 		);
 		await scenario("Capture and dropped text add cards; files are ignored", async (page?: any) => {
 			await page.keyboard.press("n");

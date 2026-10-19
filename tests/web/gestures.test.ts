@@ -160,6 +160,71 @@ test("touchcancel resets desk pull, sheet drag, reader swipes, toast and read-en
 	}
 });
 
+test("a preview pulled down from its top closes once on release, even full screen", () => {
+	for (const full of [false, true]) {
+		const f = fixture({ phone: true });
+		try {
+			const sheet = f.dialog.querySelector(".preview-sheet"),
+				target = f.scroll.querySelector("p");
+			sheet.classList.toggle("is-full", full);
+			f.fire(target, "touchstart", 120, 200);
+			f.fire(target, "touchmove", 120, 300);
+			f.fire(target, "touchmove", 120, 450);
+			assert.equal(sheet.style.translate, "0 250px", "the sheet follows the finger");
+			assert.equal(f.app.closed, 0, "pulling past the line is not itself a close");
+			f.fire(target, "touchend", 120, 450);
+			f.flush();
+			assert.equal(f.app.closed, 1, `full=${full}: one pull closes`);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("a short pull on a full preview glides back and keeps it full", () => {
+	const f = fixture({ phone: true });
+	try {
+		const sheet = f.dialog.querySelector(".preview-sheet"),
+			target = f.scroll.querySelector("p");
+		sheet.classList.add("is-full");
+		f.fire(target, "touchstart", 120, 200);
+		f.fire(target, "touchmove", 120, 280);
+		f.w.Date.now = (() => {
+			const later = Date.now() + 1000;
+			return () => later;
+		})();
+		f.fire(target, "touchend", 120, 280);
+		f.flush();
+		assert.equal(f.app.closed, 0);
+		assert.equal(sheet.style.translate, "");
+		assert.equal(sheet.classList.contains("is-full"), true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("pushing on at the end of a stacked preview folds back one card, not the desk", () => {
+	const f = fixture({ end: true });
+	try {
+		let desk = 0;
+		Object.assign(f.app, {
+			modalKind: "preview",
+			closeToDesk() {
+				desk++;
+			},
+		});
+		const target = f.scroll.querySelector("p");
+		f.fire(target, "touchstart", 120, 500);
+		f.fire(target, "touchmove", 120, 300);
+		assert.equal(f.Store.item("article").read, true);
+		f.flush();
+		assert.equal(f.app.closed, 1);
+		assert.equal(desk, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("a delayed gesture close cannot close a later panel or alter its return motion", () => {
 	const f = fixture();
 	try {
@@ -359,7 +424,11 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 		f.flush();
 		await settle();
 		assert.ok(f.document.querySelector(".is-spinning"));
-		assert.equal(f.document.querySelector("main").style.translate, "");
+		assert.equal(
+			f.document.querySelector("main").style.translate,
+			"",
+			"a slow request lets the cards back after the hold",
+		);
 		pull();
 		await settle();
 		assert.equal(f.app.refreshes, 1);
@@ -367,6 +436,7 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 		await settle();
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "error");
 		assert.equal(f.document.querySelector("#pull-ring").disabled, false);
+		assert.equal(f.document.querySelector("main").style.translate, "");
 		f.app.refresh = () => {
 			f.app.refreshes++;
 			return Promise.resolve();
@@ -419,9 +489,21 @@ test("short pull cancels, light threshold commits once on release, and long trav
 		assert.equal(f.document.querySelector("main").style.translate, "0 54px");
 		f.fire(target, "touchend", 120, 900);
 		assert.equal(f.app.refreshes, 1);
-		assert.equal(f.document.querySelector("main").style.translate, "");
+		assert.equal(f.document.querySelector("main").style.translate, "0 36px", "held while loading");
 		assert.equal(f.document.querySelector("#pull-ring").textContent, "");
-		await Promise.resolve();
+		for (let i = 0; i < 8; i++) await Promise.resolve();
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
+		assert.equal(
+			f.document.querySelector("main").style.translate,
+			"0 36px",
+			"held under the check",
+		);
+		f.flush();
+		assert.equal(
+			f.document.querySelector("main").style.translate,
+			"",
+			"glides back after the result",
+		);
 	} finally {
 		f.dom.window.close();
 	}

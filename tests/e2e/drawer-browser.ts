@@ -321,7 +321,52 @@ try {
 		phone,
 	);
 	await scenario(
-		"Preview edge resistance stays bounded and restores the locked background",
+		"Preview pulled down from its text closes on release, and a short pull glides back",
+		async (page, context) => {
+			await page.evaluate(() => window.__app.openCard("motion-0"));
+			await page.waitForTimeout(500);
+			await page.locator(".sheet-scroll").evaluate((node) => {
+				node.scrollTop = 120;
+			});
+			await page.waitForTimeout(450);
+			assert.equal(await page.locator(".preview-sheet.is-full").count(), 1);
+			await page.locator(".sheet-scroll").evaluate((node) => {
+				node.scrollTop = 0;
+			});
+			await page.waitForTimeout(100);
+			const session = await context.newCDPSession(page);
+			const box = await page.locator(".sheet-scroll").boundingBox();
+			const y = box.y + 200;
+			await touch(session, "touchStart", 180, y);
+			await touch(session, "touchMove", 180, y + 60);
+			await page.waitForTimeout(200);
+			await touch(session, "touchEnd");
+			await page.waitForTimeout(450);
+			assert.equal(await page.locator("#modal").evaluate((node) => node.open), true);
+			assert.equal(
+				await page.locator(".preview-sheet.is-full").count(),
+				1,
+				"short pull keeps full",
+			);
+			assert.equal(
+				await page.locator(".preview-sheet").evaluate((n: HTMLElement) => n.style.translate),
+				"",
+			);
+			await touch(session, "touchStart", 180, y);
+			for (const step of [40, 120, 220, 300]) await touch(session, "touchMove", 180, y + step);
+			await page.waitForTimeout(40);
+			assert.equal(
+				await page.locator("#modal").evaluate((node: HTMLDialogElement) => node.open),
+				true,
+				"open until release",
+			);
+			await touch(session, "touchEnd");
+			await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
+		},
+		phone,
+	);
+	await scenario(
+		"Preview end resistance stays bounded and restores the locked background",
 		async (page, context) => {
 			await page.evaluate(() => {
 				window.scrollTo({ top: 500, behavior: "instant" });
@@ -335,12 +380,12 @@ try {
 			const box = await page.locator(".sheet-scroll").boundingBox();
 			const y = box.y + 150;
 			await touch(session, "touchStart", 180, y);
-			await touch(session, "touchMove", 180, y + 55);
+			await touch(session, "touchMove", 180, y - 55);
 			await page.waitForTimeout(40);
 			const offset = await page
 				.locator(".sheet-scroll")
 				.evaluate((node) => parseFloat(node.style.translate.split(" ")[1]) || 0);
-			assert.ok(offset > 0 && offset <= 14, String(offset));
+			assert.ok(offset < 0 && offset >= -14, String(offset));
 			await touch(session, "touchCancel");
 			await page.waitForTimeout(260);
 			assert.equal(

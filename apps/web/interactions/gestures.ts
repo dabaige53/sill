@@ -64,6 +64,22 @@ class Gestures {
 			},
 		};
 	}
+	/** Trackpads have no "let go" event: the hand has let go once the deltas start to fall away as momentum. */
+	release() {
+		let prev = 0,
+			falling = 0;
+		return {
+			feed(d: number) {
+				falling = prev && d < prev * 0.85 ? falling + 1 : 0;
+				prev = d;
+				return falling >= 3;
+			},
+			reset() {
+				prev = 0;
+				falling = 0;
+			},
+		};
+	}
 	// A surface sent off screen stays there; the dialog closes once it is out of sight, with no return motion.
 	dismiss(close?: any, delay: any = 300) {
 		const token = this.app.modalToken;
@@ -111,10 +127,12 @@ class Gestures {
 			pull = 0,
 			busy = false,
 			timer = 0,
+			holdTimer = 0,
 			frame = 0,
 			inset = 16,
 			state = "idle";
-		const wheel = this.intent();
+		const wheel = this.intent(),
+			wheelRelease = this.release();
 		const labels = {
 			idle: copy("web.refresh.pull"),
 			pulling: copy("web.refresh.pull"),
@@ -143,11 +161,14 @@ class Gestures {
 			const shift = Math.round(pull * 0.75),
 				feedback = state === "loading" || state === "success" || state === "error";
 			main.style.translate = pull && !MotionEngine.reduced ? `0 ${shift}px` : "";
-			ring.style.translate = feedback
+			// While loading the desk stays open and the ring turns in the gap it made.
+			ring.style.translate = MotionEngine.reduced
 				? "0 12px"
-				: MotionEngine.reduced
-					? "0 12px"
-					: `0 ${pull ? Math.round((inset + shift) / 2 - 18) : -48}px`;
+				: pull
+					? `0 ${Math.round((inset + shift) / 2 - 18)}px`
+					: feedback
+						? "0 12px"
+						: "0 -48px";
 			ring.style.opacity = String(feedback ? 1 : Math.min(1, pull / 18));
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
 			ring.toggleAttribute("data-ready", pull >= need);
@@ -172,22 +193,33 @@ class Gestures {
 			start = null;
 			wheel.reset();
 			clearTimeout(timer);
-			pull = 0;
+			// Hold the desk at the threshold while it loads. A slow request lets the cards back after a second;
+			// the ring keeps turning above them.
+			pull = need;
 			document.body.classList.remove("is-pulling");
 			status("loading");
 			paint();
+			clearTimeout(holdTimer);
+			holdTimer = window.setTimeout(() => {
+				if (state !== "loading") return;
+				pull = 0;
+				paint();
+			}, 1000);
 			try {
 				const result = await this.app.refresh({ feedback: "pull" });
 				if (result === false) throw new Error("Refresh did not complete");
 				status("success");
 				timer = window.setTimeout(
 					() => {
+						pull = 0;
 						status("idle");
 						paint();
 					},
 					MotionEngine.reduced ? 250 : 480,
 				);
 			} catch {
+				clearTimeout(holdTimer);
+				pull = 0;
 				status("error");
 			} finally {
 				busy = false;
@@ -268,6 +300,7 @@ class Gestures {
 			(e?: any) => {
 				if (
 					busy ||
+					state === "success" ||
 					this.app.selected.size > 0 ||
 					this.app.drag?.menu?.open ||
 					this.app.dialog.open ||
@@ -286,13 +319,21 @@ class Gestures {
 				pull = Math.min(need, pull + -e.deltaY * 0.5);
 				schedulePaint();
 				clearTimeout(timer);
-				if (pull >= need) {
+				// A full ring waits for the hand to let go: the wheel stops or starts coasting.
+				if (pull >= need && wheelRelease.feed(-e.deltaY)) {
+					wheelRelease.reset();
 					wheel.reset();
 					this.swallowMomentum();
 					refresh();
 					return;
 				}
 				timer = window.setTimeout(() => {
+					wheelRelease.reset();
+					if (pull >= need) {
+						wheel.reset(false);
+						refresh();
+						return;
+					}
 					pull = 0;
 					status("idle");
 					paint();
@@ -332,8 +373,8 @@ class Gestures {
 				const sheet = sheetOf(e.target);
 				if (!sheet) return;
 				const scroll = sheet.querySelector(".sheet-scroll");
-				// Content edges resist gently; dismissal belongs to the visible handle/header.
-				if (dialog.classList.contains("preview")) return;
+				// The handle resizes the sheet itself; text already at its top pulls the whole sheet down.
+				if (e.target.closest(".sheet-handle")) return;
 				if (!e.target.closest(".grabber") && scroll && scroll.scrollTop > 0) return;
 				if (this.fromField(e) || e.target.closest(".player-bar,.media-player")) return;
 				drag = {
@@ -397,7 +438,6 @@ class Gestures {
 			}
 			sheet.style.translate = "";
 			this.dim(null);
-			if (dy > 60 && sheet.classList.contains("is-full")) sheet.classList.remove("is-full");
 		});
 		dialog.addEventListener("touchcancel", cancel, { passive: true });
 	}
@@ -555,13 +595,12 @@ class Gestures {
 			: surface.querySelector(".sheet-scroll") || surface;
 		const bar = reader ? null : dialog.querySelector(":scope > .float-bar"),
 			token = app.modalToken,
-			wheel = this.intent();
+			wheel = this.intent(),
+			letGo = this.release();
 		const need = () => (phone ? 110 : Math.min(150, Math.max(110, surface.offsetHeight * 0.2)));
 		let pull = 0,
 			timer = 0,
-			done = false,
-			hold = 0,
-			last = 0;
+			done = false;
 		const atTop = () => scroll.scrollTop <= 0;
 		const paint = () => {
 			if (app.modalToken !== token) return;
@@ -615,7 +654,6 @@ class Gestures {
 		// Listen on the whole dialog: as the sheet slides down it leaves the pointer behind, and the pull must keep going.
 		if (this.pullWheel) dialog.removeEventListener("wheel", this.pullWheel);
 		this.pullWheel = (e?: any) => {
-			if (!reader && e.target.closest?.(".sheet-scroll")) return;
 			if (done || app.modalToken !== token || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
 			if (this.fromField(e)) {
 				clearTimeout(timer);
@@ -624,28 +662,14 @@ class Gestures {
 				paint();
 				return;
 			}
-			const now = Date.now(),
-				d = -e.deltaY * (e.deltaMode === 1 ? 16 : 1),
-				gap = now - last;
-			last = now;
+			const d = -e.deltaY * (e.deltaMode === 1 ? 16 : 1);
 			if (d <= 0 || !atTop()) {
 				wheel.reset();
+				letGo.reset();
 				if (pull && d < 0) {
 					pull = 0;
 					paint();
 				}
-				return;
-			}
-			// The coasting tail of the gesture that just changed state is not a new pull.
-			if (hold) {
-				if (gap < 160) return;
-				hold = 0;
-			}
-			if (phone && surface.classList.contains("is-full")) {
-				surface.classList.remove("is-full");
-				hold = 1;
-				pull = 0;
-				paint();
 				return;
 			}
 			if (!wheel.feed(d)) return;
@@ -655,13 +679,19 @@ class Gestures {
 			);
 			paint();
 			clearTimeout(timer);
-			if (pull >= need()) {
+			// Past the line it closes once the hand lets go, not while it is still pulling.
+			if (pull >= need() && letGo.feed(d)) {
 				close();
 				return;
 			}
 			timer = window.setTimeout(
 				() => {
 					if (app.modalToken !== token) return;
+					letGo.reset();
+					if (pull >= need()) {
+						close();
+						return;
+					}
 					pull = 0;
 					paint();
 					wheel.reset(false);
@@ -837,7 +867,7 @@ class Gestures {
 			window.setTimeout(() => {
 				delete handle.dataset.dragged;
 			}, 0);
-			if (!previous.full && dy > 160) {
+			if (dy > 160) {
 				surface.classList.remove("is-drag");
 				this.app.closeModal();
 				return;
@@ -860,10 +890,11 @@ class Gestures {
 		let distance = 0,
 			timer = 0;
 		const current = () => token === this.app.modalToken && surface.isConnected;
+		// Pulling down at the top moves the sheet; pushing on at the end belongs to the read-end ring when it is on.
 		const edge = (delta: number) =>
-			delta > 0
-				? scroll.scrollTop <= 0
-				: scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
+			delta < 0 &&
+			!surface.querySelector(".push-ring") &&
+			scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
 		const paint = (delta: number) => {
 			if (!current()) return;
 			const offset = Math.sign(delta) * 14 * (1 - Math.exp(-Math.abs(delta) / 100));
@@ -921,7 +952,6 @@ class Gestures {
 		scroll.addEventListener("touchcancel", reset, { passive: true });
 	}
 	bindPush(id?: any, scroll?: any) {
-		if (this.app.modalKind === "preview") return;
 		const app = this.app,
 			dialog = app.dialog;
 		if (!dialog.querySelector("#reader-end") || !Store.pref("collapseOnFinish")) return;
@@ -971,7 +1001,10 @@ class Gestures {
 			app.refreshCard(id);
 			this.swallowMomentum();
 			window.setTimeout(() => {
-				if (app.modalToken === token) app.closeToDesk(true);
+				if (app.modalToken !== token) return;
+				// A stacked preview folds back to the card below it; reading returns to the desk.
+				if (app.modalKind === "preview") app.closeModal();
+				else app.closeToDesk(true);
 			}, 460);
 		};
 		const set = (v?: any) => {

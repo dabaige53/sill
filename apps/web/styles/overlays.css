@@ -412,7 +412,8 @@ button.detail-row {
 	width: 100%;
 	text-align: left;
 }
-button.detail-row:hover {
+button.detail-row:hover,
+button.detail-row:active {
 	background: var(--canvas);
 }
 .event-hero {
@@ -949,6 +950,7 @@ dialog > .float-bar.is-hidden {
 	border-top: 1px solid var(--line);
 }
 button.list-row:hover,
+button.list-row:active,
 .list-row.hoverable:hover {
 	background: var(--canvas);
 }
@@ -1040,7 +1042,8 @@ button.list-row:hover,
 	color: var(--ink);
 	text-align: left;
 }
-.settings-nav button:hover {
+.settings-nav button:hover,
+.settings-nav button:active {
 	background: var(--faint);
 }
 /* Selected is a quiet, raised row in the same ink; blue stays for the one action that commits. */
@@ -1289,7 +1292,11 @@ kbd {
 	font-size: var(--text-control);
 	color: var(--ink);
 }
+.card-menu-item .icon {
+	flex: none;
+}
 .card-menu-item:hover,
+.card-menu-item:active,
 .card-menu-item:focus-visible {
 	background: var(--fixed-black-5);
 }

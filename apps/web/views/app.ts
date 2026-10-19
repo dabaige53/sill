@@ -288,7 +288,8 @@ class AppController {
 					e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
 				);
 			});
-			if (!inside) this.previewTrail?.length ? this.closeAll() : this.closeModal();
+			// Stacked cards close one at a time, like the close button.
+			if (!inside) this.closeModal();
 		});
 		const dock = document.getElementById("dock");
 		// The rail tucks away while reading on and returns on a pause or a turn back.
@@ -984,7 +985,7 @@ class AppController {
 		window.scrollTo({ top: this.lockedScroll, behavior: "instant" });
 	}
 	/* ——— Overlays ——— */
-	openModal(html?: string, kind?: string, _origin: unknown = null, shape: string = "") {
+	openModal(html?: string, kind?: string, origin: DOMRect | null = null, shape: string = "") {
 		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
@@ -998,6 +999,7 @@ class AppController {
 		// A phone page is not a modal: switching between a page and a sheet reopens the dialog in the other mode.
 		const page = this.isPage(kind);
 		if (this.dialog.open && this.dialog.classList.contains("page") !== page) this.dialog.close();
+		const pageToPage = page && this.dialog.open;
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement as HTMLElement;
 			this.lockPageScroll();
@@ -1013,14 +1015,16 @@ class AppController {
 			if (page && kind !== "search") this.dialog.show();
 			else this.dialog.showModal();
 		}
-		// Pages change in place under the capsule: a short cross-fade, never a rising sheet.
+		// Pages change in place under the capsule: a short fade, never a rising sheet. Between two pages only
+		// the new content fades; the page itself stays opaque so the desk never shows through.
 		if (page)
-			this.dialog.animate([{ opacity: 0 }, { opacity: 1 }], {
-				duration: MotionEngine.reduced ? 0 : PAGE_FADE_MS,
-				easing: "ease-out",
-			});
+			for (const target of pageToPage ? [...this.dialog.children] : [this.dialog])
+				target.animate([{ opacity: 0 }, { opacity: 1 }], {
+					duration: MotionEngine.reduced ? 0 : PAGE_FADE_MS,
+					easing: "ease-out",
+				});
 		else if (kind === "search") MotionEngine.enter(this.dialog);
-		else MotionEngine.openPanel(this.dialog);
+		else MotionEngine.openPanel(this.dialog, origin);
 		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
 				? "#filter-search"
@@ -1034,6 +1038,12 @@ class AppController {
 			if (!/INPUT|TEXTAREA|BUTTON/.test(focus.tagName)) focus.tabIndex = -1;
 			focus.focus({ preventScroll: true });
 		}
+	}
+	/** The on-screen rectangle of a desk card, or null when it is not visible. */
+	cardRect(id?: string) {
+		const el = id && this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
+		const r = el?.getBoundingClientRect();
+		return r?.width && r.bottom > 0 && r.top < innerHeight ? r : null;
 	}
 	closeNative(animate = true) {
 		if (!this.dialog.open) return;
@@ -1078,16 +1088,19 @@ class AppController {
 			const token = this.modalToken,
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;
+			// A desktop preview shrinks back into its card when that card is on screen.
+			const card = this.modalKind === "preview" ? this.cardRect(this.currentId) : null,
+				to = card ? MotionEngine.cardOffset(sheet, card) : null;
 			MotionEngine.cancelPanel(this.dialog);
 			this.sheetLeaving = true;
 			this.dialog.style.setProperty("--backdrop", "0");
 			const animation = MotionEngine.animate(
 				sheet,
 				[
-					{ opacity, transform: "translateY(0)" },
-					{ opacity: 0, transform: "translateY(4px)" },
+					{ opacity, transform: "none" },
+					{ opacity: 0, transform: to || "translateY(4px)" },
 				],
-				{ duration: MotionEngine.time("fast"), fill: "forwards" },
+				{ duration: to ? 230 : MotionEngine.time("fast"), fill: "forwards" },
 			);
 			const bar = this.dialog.querySelector<HTMLElement>(":scope > .float-bar");
 			const barAnimation = bar
@@ -1690,17 +1703,30 @@ class AppController {
 		menu.innerHTML = items
 			.map(
 				([symbol, label, action]) =>
-					`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}"><span>${label}</span></button>`,
+					`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}">${icon(symbol, 18)}<span>${label}</span></button>`,
 			)
 			.join("");
 		c.appendChild(menu);
+		// One place on every screen: under the card's top-right corner. Near the bottom it slides up only
+		// as far as it must to stay clear of the capsule.
+		const box = c.getBoundingClientRect(),
+			floor =
+				Math.min(
+					innerHeight,
+					...[...(document.getElementById("dock")?.children || [])]
+						.map((n) => n.getBoundingClientRect())
+						.filter((r) => r.height)
+						.map((r) => r.top),
+				) - 12,
+			top = Math.min(48, floor - box.top - menu.offsetHeight);
+		if (top < 48) menu.style.top = `${Math.max(8 - box.top, top)}px`;
 		const trigger = c.querySelector<HTMLElement>(".card-title-button");
 		trigger?.setAttribute("aria-expanded", "true");
 		trigger?.setAttribute("aria-controls", menu.id);
 		MotionEngine.animate(
 			menu,
 			[
-				{ opacity: 0, transform: "translateY(-4px)" },
+				{ opacity: 0, transform: "translateY(-4px) scale(.92)" },
 				{ opacity: 1, transform: "none" },
 			],
 			{ duration: 180 },
