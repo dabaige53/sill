@@ -1,5 +1,4 @@
 const MotionEngine: Record<string, any> = {
-	query: matchMedia("(prefers-reduced-motion: reduce)"),
 	panelAnimations: new WeakMap(),
 	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),
@@ -19,23 +18,8 @@ const MotionEngine: Record<string, any> = {
 	get keyboard() {
 		return document.documentElement.dataset.inputModality === "keyboard";
 	},
-	get reduced() {
-		return this.query.matches || !!document.body?.classList.contains("reduce-motion");
-	},
-	get reducedDuration() {
-		return this.time("dur-reduced") || 70;
-	},
 	animate(el?: any, keyframes?: any, options: any = {}) {
 		if (!el || !el.animate) return null;
-		if (this.reduced) {
-			const opacity = keyframes.map((k?: any) => ({ opacity: k.opacity ?? 1 }));
-			return el.animate(opacity, {
-				...options,
-				easing: "linear",
-				delay: 0,
-				duration: this.reducedDuration,
-			});
-		}
 		// CSS state can hold travel without cancelling the animation's fade or timeline.
 		const managed = keyframes.map((frame?: any) =>
 			typeof frame.transform === "string"
@@ -96,26 +80,13 @@ const MotionEngine: Record<string, any> = {
 	},
 	fade(el?: any) {
 		if (!el) return;
-		this.contentAnimations.get(el)?.cancel();
-		const animation = this.animate(el, [{ opacity: 0 }, { opacity: 1 }], {
+		const previous = this.contentAnimations.get(el);
+		const opacity =
+			previous && previous.playState !== "finished" ? getComputedStyle(el).opacity : 0;
+		previous?.cancel();
+		const animation = this.animate(el, [{ opacity }, { opacity: 1 }], {
 			duration: this.time("fast"),
 		});
-		this.contentAnimations.set(el, animation);
-		return animation;
-	},
-	resize(el: HTMLElement, before: number) {
-		if (!el) return;
-		this.contentAnimations.get(el)?.cancel();
-		const after = el.getBoundingClientRect().height;
-		if (this.reduced || Math.abs(before - after) < 1) return this.fade(el);
-		const animation = this.animate(
-			el,
-			[
-				{ height: `${before}px`, opacity: 0.5, overflow: "hidden" },
-				{ height: `${after}px`, opacity: 1, overflow: "hidden" },
-			],
-			{ duration: this.time("base") },
-		);
 		this.contentAnimations.set(el, animation);
 		return animation;
 	},
@@ -194,10 +165,6 @@ const MotionEngine: Record<string, any> = {
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
 		// Phone: the preview is a sheet rising from the bottom edge; its position is a CSS transition, the dim fades in with it.
 		if (this.phoneSheet(el)) {
-			if (this.reduced) {
-				this.panelAnimations.set(el, [this.enter(el)]);
-				return;
-			}
 			sheet.classList.add("is-drag", "is-off");
 			el.style.setProperty("--backdrop", "0");
 			bar?.classList.add("is-hidden");

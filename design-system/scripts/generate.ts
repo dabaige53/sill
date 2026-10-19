@@ -83,7 +83,19 @@ const darkContext = src("apps/web/styles/tokens.css").match(
 )?.[0];
 if (!darkContext) throw new Error("Missing dark theme context");
 css += darkContext + "\n";
-for (const f of ["base", "controls", "cards", "overlays"]) {
+// Keep the pre-responsive component rules in the same order as styles.json.
+for (const f of [
+	"base",
+	"controls",
+	"form-controls",
+	"cards",
+	"card-stacks",
+	"overlays",
+	"preview-media",
+	"panels",
+	"overlay-actions",
+	"overlay-gestures",
+]) {
 	let t = src(`apps/web/styles/${f}.css`);
 	for (const [k, v] of Object.entries(map)) t = t.split(k).join(v);
 	css += t + "\n";

@@ -1,0 +1,576 @@
+{
+	"appleColors": {
+		"canvas": "#f5f5f7/#111113",
+		"card": "#ffffff/#1c1c1f",
+		"readCard": "#e9e9ee/#121215",
+		"primary": "#1d1d1f/#f2f2f4",
+		"secondary": "#636366/#a1a1a8",
+		"warning": "#b45309/#f0a04b",
+		"error": "red",
+		"shadow": "black",
+		"accent": "#0066cc/#4c9bff",
+		"surface": "#f0f0f2/#26262a",
+		"glass": "#ffffff61/#28282e6b",
+		"glassThick": "#ffffffe0/#242428e6",
+		"glassEdge": "#ffffffe6/#ffffff38",
+		"glassShade": "#ffffff52/#ffffff0f",
+		"glassRim": "#00000012/#00000080",
+		"dim": "#12141a42/#00000085",
+		"toggleOff": "#e5e5ea/#3a3a3f",
+		"accentFill": "#0066cc/#0066cc"
+	},
+	"apple": {
+		"zero": 0,
+		"space4": 4,
+		"space5": 5,
+		"space10": 10,
+		"space12": 12,
+		"space14": 14,
+		"space16": 16,
+		"space18": 18,
+		"space20": 20,
+		"space22": 22,
+		"space24": 24,
+		"space32": 32,
+		"space36": 36,
+		"space40": 40,
+		"font12": 12,
+		"font14": 14,
+		"font16": 16,
+		"font17": 17,
+		"font19": 19,
+		"font30": 30,
+		"font36": 36,
+		"filterWidth": 110,
+		"cardMinWidth": 280,
+		"cardMaxWidth": 380,
+		"cardMinHeight": 200,
+		"desktopMinWidth": 640,
+		"desktopMinHeight": 480,
+		"readerWidth": 650,
+		"readerHeight": 650,
+		"editorWidth": 620,
+		"editorHeight": 580,
+		"windowWidth": 1100,
+		"windowHeight": 760,
+		"searchDelay": 180,
+		"searchAnimation": 0.15,
+		"warningOpacity": 0.1,
+		"borderOpacity": 0.06,
+		"shadowOpacity": 0.035,
+		"space8": 8,
+		"font13": 13,
+		"font15": 15,
+		"font21": 21,
+		"font34": 34,
+		"cardIdealWidth": 340,
+		"cardPadding": 18,
+		"cardRadius": 22,
+		"coverRadius": 14,
+		"railRow": 60,
+		"railEdge": 28,
+		"navTab": 76,
+		"hitTarget": 44,
+		"panelRadius": 24,
+		"coverHeight": 180,
+		"railInset": 4,
+		"feedBottom": 140,
+		"settingsNavWidth": 200,
+		"settingsHeight": 560,
+		"settingsWidth": 840,
+		"settingsRowHeight": 48,
+		"settingsRadius": 14,
+		"settingsNavRadius": 9,
+		"searchPillHeight": 52,
+		"aiWidth": 680,
+		"captureHeight": 160,
+		"compactMinWidth": 240,
+		"compactIdealWidth": 280,
+		"compactMaxWidth": 320,
+		"roomyMinWidth": 340,
+		"roomyIdealWidth": 400,
+		"roomyMaxWidth": 440,
+		"chromeRest": 0.65,
+		"chromeHideTravel": 28,
+		"chromeShowTravel": 14,
+		"space6": 6,
+		"space28": 28,
+		"font18": 18,
+		"font20": 20,
+		"font44": 44,
+		"previewTitle": 24,
+		"previewLead": 16,
+		"previewBodyGap": 14,
+		"previewPaddingX": 30,
+		"previewPaddingTop": 26,
+		"pillHeight": 36,
+		"pillPaddingX": 14,
+		"primaryMinWidth": 72,
+		"solidHeight": 44,
+		"solidPaddingX": 20,
+		"playerArtSize": 150,
+		"toggleWidth": 51,
+		"toggleHeight": 31,
+		"toggleKnob": 27,
+		"toggleInset": 2,
+		"toggleTravel": 20,
+		"compactReaderWidth": 560,
+		"motionDetailOpen": 0.22,
+		"motionDetailClose": 0.16,
+		"motionRailHide": 0.18,
+		"motionRailShow": 0.22,
+		"motionLens": 0.3,
+		"motionDeckSpring": 0.5,
+		"motionDeckBounce": 0.2,
+		"motionDeckTravel": 0.3,
+		"motionDeckSpeed": 0.45,
+		"motionDeckMinFlick": 30,
+		"motionDeckResistance": 0.25,
+		"motionDeckRotation": 6,
+		"motionDeckExitRotation": 8,
+		"motionDeckExitTravel": 1.15,
+		"motionDeckInset": 6,
+		"motionDeckScale": 0.97,
+		"motionDetailEnterY": 10,
+		"motionDetailExitY": 4,
+		"motionRailTravel": 20,
+		"motionDeckGestureStart": 8
+	},
+	"name": "Sill",
+	"version": 2,
+	"meta": {
+		"source": "github",
+		"repo": "dabaige53/sill",
+		"ref": "main@a27ae2a",
+		"paths": {
+			"tokens": ["apps/web/styles/tokens.css"],
+			"assets": ["apps/web/atoms/icons.ts"],
+			"docs": ["design-system/README.md", "docs/design/system.md"]
+		},
+		"components": {
+			"*": "apps/web/atoms/primitives.ts, apps/web/cards/templates.ts, apps/web/styles/*.css"
+		},
+		"synced": "2026-10-16",
+		"design": {
+			"canvas": "https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b",
+			"note": "v2 依据 Sill 设计画布定稿更新；圆角与字号已同步到 apps/web/styles/tokens.css；其余令牌未逐项核对"
+		}
+	},
+	"type": {
+		"fonts": [],
+		"families": {
+			"sans": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", sans-serif",
+			"rounded": "ui-rounded, \"SF Pro Rounded\", -apple-system, BlinkMacSystemFont, \"PingFang SC\", sans-serif"
+		},
+		"groups": [
+			{
+				"name": "Display",
+				"family": "sans",
+				"styles": [
+					{
+						"name": "reader-title",
+						"fontSize": "30px",
+						"lineHeight": "1.3",
+						"fontWeight": 600,
+						"letterSpacing": "-0.035em",
+						"usage": "桌面阅读页标题。",
+						"sample": "界面的安静来自分层"
+					},
+					{
+						"name": "detail-title",
+						"fontSize": "26px",
+						"lineHeight": "1.35",
+						"fontWeight": 600,
+						"letterSpacing": "-0.03em",
+						"usage": "手机抽屉、站内详情页标题。"
+					},
+					{
+						"name": "figure-xl",
+						"fontSize": "44px",
+						"lineHeight": "1",
+						"fontWeight": 600,
+						"letterSpacing": "-0.03em",
+						"family": "rounded",
+						"usage": "日程详情的开始时间。圆体，tabular-nums。",
+						"sample": "14:30"
+					},
+					{
+						"name": "figure",
+						"fontSize": "34px",
+						"lineHeight": "1.1",
+						"fontWeight": 600,
+						"letterSpacing": "-0.02em",
+						"family": "rounded",
+						"usage": "卡片上的主角数字：日程时间、指标、回顾。圆体，tabular-nums。",
+						"sample": "42"
+					},
+					{
+						"name": "figure-route",
+						"fontSize": "28px",
+						"lineHeight": "1.15",
+						"fontWeight": 600,
+						"family": "rounded",
+						"usage": "行程卡的机场代码。",
+						"sample": "PEK"
+					}
+				]
+			},
+			{
+				"name": "Card",
+				"family": "sans",
+				"styles": [
+					{
+						"name": "quote",
+						"fontSize": "21px",
+						"lineHeight": "1.55",
+						"fontWeight": 500,
+						"letterSpacing": "-0.01em",
+						"usage": "金句积木，最多 4 行；超过 40 字自动换成 body。"
+					},
+					{
+						"name": "panel-title",
+						"fontSize": "22px",
+						"lineHeight": "1.3",
+						"fontWeight": 600,
+						"letterSpacing": "-0.03em",
+						"usage": "设置、来源、添加来源等面板标题。"
+					},
+					{
+						"name": "card-title",
+						"fontSize": "17px",
+						"lineHeight": "1.35",
+						"fontWeight": 600,
+						"letterSpacing": "-0.02em",
+						"usage": "标题积木，最多 2 行（约 32 字）。",
+						"sample": "让 AI 成为工作流的一部分"
+					},
+					{
+						"name": "reader-body",
+						"fontSize": "17px",
+						"lineHeight": "1.9",
+						"fontWeight": 400,
+						"usage": "阅读页正文。"
+					}
+				]
+			},
+			{
+				"name": "Text",
+				"family": "sans",
+				"styles": [
+					{
+						"name": "summary",
+						"fontSize": "15px",
+						"lineHeight": "1.5",
+						"fontWeight": 400,
+						"usage": "摘要积木，muted，最多 3 行；有封面时 2 行，手机一律 2 行。"
+					},
+					{
+						"name": "body",
+						"fontSize": "15px",
+						"lineHeight": "1.55",
+						"fontWeight": 400,
+						"usage": "正文、要点积木，ink；正文最多 6 行。"
+					},
+					{
+						"name": "control",
+						"fontSize": "14px",
+						"lineHeight": "1.4",
+						"fontWeight": 500,
+						"usage": "按钮、菜单项、分段控件。"
+					},
+					{
+						"name": "meta",
+						"fontSize": "13px",
+						"lineHeight": "1.4",
+						"fontWeight": 400,
+						"usage": "卡片头部：来源、时间、提示。"
+					},
+					{
+						"name": "caption",
+						"fontSize": "12px",
+						"lineHeight": "1.5",
+						"fontWeight": 400,
+						"usage": "次要说明、文件大小、检查项时长。"
+					}
+				]
+			}
+		]
+	},
+	"radius": {
+		"tokens": [
+			{
+				"name": "card-radius",
+				"value": "22px",
+				"usage": "内容卡片。"
+			},
+			{
+				"name": "card-radius-sm",
+				"value": "16px",
+				"usage": "手机内容卡片。"
+			},
+			{
+				"name": "cover-radius",
+				"value": "14px",
+				"usage": "卡片内封面、原图、拼图、引用条容器。"
+			},
+			{
+				"name": "sheet-radius",
+				"value": "28px",
+				"usage": "预览、抽屉、站内详情的顶角；手机抽屉展开到全屏时变 0。"
+			},
+			{
+				"name": "panel-radius",
+				"value": "24px",
+				"usage": "设置、来源等面板与弹出框。"
+			},
+			{
+				"name": "control-radius",
+				"value": "12px",
+				"usage": "输入框、分段控件、列表项悬停底。"
+			},
+			{
+				"name": "pill-radius",
+				"value": "999px",
+				"usage": "胶囊、按钮、标签、入口球。"
+			}
+		]
+	},
+	"shadow": {
+		"tokens": [
+			{
+				"name": "shadow",
+				"value": "0 1px 2px rgba(0,0,0,.025), 0 4px 16px rgba(0,0,0,.035)",
+				"usage": "未读卡片静止阴影。已读卡片没有阴影。"
+			},
+			{
+				"name": "shadow-hover",
+				"value": "0 2px 5px rgba(0,0,0,.04), 0 10px 24px rgba(0,0,0,.07)",
+				"usage": "卡片悬停，配合上移 2px；已读卡悬停时仍保留已读底色。"
+			},
+			{
+				"name": "shadow-glass",
+				"value": "0 2px 6px rgba(16,24,40,.05), 0 12px 32px rgba(16,24,40,.09)",
+				"usage": "玻璃按钮组、工具条、Toast：宽而淡，不用深色光晕。"
+			},
+			{
+				"name": "shadow-float",
+				"value": "0 1px 2px rgba(16,24,40,.05), 0 6px 18px rgba(16,24,40,.07)",
+				"usage": "浮起的白色圆片：详情顶部的关闭、全屏，面板的关闭。"
+			},
+			{
+				"name": "shadow-sheet",
+				"value": "0 2px 8px rgba(0,0,0,.04), 0 28px 100px rgba(0,0,0,.2)",
+				"usage": "预览、抽屉、详情页。"
+			}
+		]
+	},
+	"timing": {
+		"note": "按压、入场、重排和手势释放遵循 handbook/motion.md；所有用户使用同一套规则。",
+		"tokens": [
+			{
+				"name": "ease",
+				"value": "cubic-bezier(0.23,1,0.32,1)",
+				"usage": "默认曲线。"
+			},
+			{
+				"name": "ease-sheet",
+				"value": "cubic-bezier(.32,.72,0,1)",
+				"usage": "手机抽屉。"
+			},
+			{
+				"name": "ease-spring",
+				"value": "linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1)",
+				"usage": "导航镜片换格：越过约 6% 再落定的柔和弹簧。"
+			},
+			{
+				"name": "dur-press",
+				"value": "120ms",
+				"usage": "按下缩放 .97。"
+			},
+			{
+				"name": "dur-hover",
+				"value": "160ms",
+				"usage": "悬停。"
+			},
+			{
+				"name": "dur-menu",
+				"value": "180ms",
+				"usage": "菜单弹出；收起 120ms。"
+			},
+			{
+				"name": "dur-state",
+				"value": "220ms",
+				"usage": "状态切换、遮罩淡入。"
+			},
+			{
+				"name": "dur-open",
+				"value": "220ms",
+				"usage": "桌面详情最终字号淡入，上移10px；不缩放正文。"
+			},
+			{
+				"name": "dur-close",
+				"value": "160ms",
+				"usage": "桌面详情淡出，下移4px。"
+			},
+			{
+				"name": "dur-sheet",
+				"value": "360ms",
+				"usage": "手机抽屉升起。"
+			},
+			{
+				"name": "dur-read",
+				"value": "220ms",
+				"usage": "卡片变为已读的颜色过渡。"
+			},
+			{
+				"name": "stagger",
+				"value": "30ms",
+				"usage": "首屏卡片依次入场的间隔；只有首屏有入场。"
+			},
+			{
+				"name": "delay-loading",
+				"value": "300ms",
+				"usage": "等待短于它不出现任何加载态。"
+			},
+			{
+				"name": "dur-tuck",
+				"value": "180ms",
+				"usage": "工具条收起180ms；出现使用dur-show和ease-sheet。"
+			},
+			{
+				"name": "dur-lens",
+				"value": "300ms",
+				"usage": "导航镜片换格300ms；面板立即打开，形变1.05/0.97。"
+			},
+			{
+				"name": "rest-show",
+				"value": "650ms",
+				"usage": "滚动停下这么久后，收起的工具条回来。"
+			},
+			{
+				"name": "fast",
+				"value": "140ms",
+				"usage": "内容短淡入。"
+			},
+			{
+				"name": "base",
+				"value": "220ms",
+				"usage": "普通状态衔接。"
+			},
+			{
+				"name": "layout",
+				"value": "220ms",
+				"usage": "卡片位置重排。"
+			},
+			{
+				"name": "settle",
+				"value": "220ms",
+				"usage": "封面与已读颜色。"
+			},
+			{
+				"name": "dur-show",
+				"value": "220ms",
+				"usage": "工具条出现。"
+			},
+			{
+				"name": "dur-deck",
+				"value": "260ms",
+				"usage": "叠卡手势松手；键盘立即切换。"
+			},
+			{
+				"name": "gesture-dismiss-distance",
+				"value": "110",
+				"usage": "正文下拉关闭距离，px。"
+			},
+			{
+				"name": "gesture-handle-distance",
+				"value": "160",
+				"usage": "把手下拉关闭距离，px。"
+			},
+			{
+				"name": "gesture-flick-speed",
+				"value": "0.5",
+				"usage": "松手前速度，px/ms。"
+			},
+			{
+				"name": "gesture-flick-distance",
+				"value": "40",
+				"usage": "快速甩动最小位移，px。"
+			},
+			{
+				"name": "gesture-velocity-window",
+				"value": "100",
+				"usage": "释放速度采样窗口，ms。"
+			},
+			{
+				"name": "gesture-spring-frequency",
+				"value": "24",
+				"usage": "临界阻尼回弹角频率，1/s。"
+			}
+		]
+	},
+	"lines": {
+		"note": "卡上按行截，写入按字限。按 322 宽每行约 19 个汉字。",
+		"tokens": [
+			{
+				"name": "lines-title",
+				"value": "2",
+				"usage": "标题积木最多 2 行；AI 写入不超过 30 字。"
+			},
+			{
+				"name": "lines-summary",
+				"value": "3",
+				"usage": "摘要积木最多 3 行，有封面时 2 行；写入不超过 60 字，更长改写成要点。"
+			},
+			{
+				"name": "lines-points",
+				"value": "3",
+				"usage": "要点积木最多 3 条，每条 1 行；写入每条不超过 18 字。"
+			},
+			{
+				"name": "lines-body",
+				"value": "6",
+				"usage": "正文积木最多 6 行；短帖、评论用。"
+			},
+			{
+				"name": "lines-quote",
+				"value": "4",
+				"usage": "金句积木最多 4 行；写入不超过 40 字。"
+			}
+		]
+	},
+	"density": {
+		"presets": {
+			"compact": {
+				"col-min": "240px",
+				"col-ideal": "280px",
+				"col-max": "320px",
+				"summary-lines": "2"
+			},
+			"standard": {
+				"col-min": "280px",
+				"col-ideal": "340px",
+				"col-max": "380px",
+				"summary-lines": "3"
+			},
+			"roomy": {
+				"col-min": "340px",
+				"col-ideal": "400px",
+				"col-max": "440px",
+				"summary-lines": "3"
+			}
+		},
+		"tokens": [
+			{
+				"name": "col-limit",
+				"value": "5",
+				"usage": "信息流最多五列；按理想列宽就近选择，不能靠持续增加窄列提高密度。"
+			},
+			{
+				"name": "summary-lines",
+				"value": "3",
+				"usage": "标准和宽松密度显示最多三行摘要，紧凑密度最多两行；不裁剪详情原文。"
+			}
+		]
+	}
+}

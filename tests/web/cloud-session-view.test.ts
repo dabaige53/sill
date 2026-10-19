@@ -10,8 +10,9 @@ import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const source = readFileSync(path.join(root, "apps/web/cloud-entry.ts"), "utf8");
-const start = source.indexOf("function clearCloud(");
-const end = source.indexOf("function cloudConnection()", start);
+const workspaceSource = readFileSync(path.join(root, "apps/web/cloud-workspace.ts"), "utf8");
+const start = workspaceSource.indexOf("function clearCloud(");
+const end = workspaceSource.indexOf("export function cloudConnection()", start);
 assert.ok(start >= 0 && end > start);
 const bundle = buildSync({
 	stdin: {
@@ -29,7 +30,7 @@ const bundle = buildSync({
 // Exercise the actual reset function without starting cloud polling or a network session.
 const reset = buildSync({
 	stdin: {
-		contents: source.slice(start, end) + "\nwindow.__clearCloudTest = clearCloud;",
+		contents: workspaceSource.slice(start, end) + "\nwindow.__clearCloudTest = clearCloud;",
 		loader: "ts",
 	},
 	write: false,

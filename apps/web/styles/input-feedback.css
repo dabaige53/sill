@@ -1,0 +1,38 @@
+@media (hover: none) {
+	.card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	.feed-card .card-head-right {
+		opacity: 1;
+	}
+}
+/* Tablets keep the ••• at the top right, so the head leaves room for it. */
+@media (hover: none) and (min-width: 651px) {
+	.card-head:has(.card-head-right) {
+		padding-right: var(--space-36);
+	}
+}
+@media (hover: hover) and (pointer: fine) {
+	body:not(.is-dragging) .feed-card.feed-item:hover {
+		transform: translateY(-2px);
+	}
+}
+
+/* The local AI window can return to the search that supplied its context. */
+#modal.page .ai-conversation .sheet-close {
+	display: block;
+}
+
+/* Safari focus zoom also affects touch devices with a trackpad attached. */
+@media (any-pointer: coarse) {
+	input,
+	textarea,
+	select,
+	.tag-editor input,
+	.editor-note,
+	.inline-editor textarea,
+	.ai-composer textarea {
+		font-size: max(16px, var(--text-control));
+	}
+}

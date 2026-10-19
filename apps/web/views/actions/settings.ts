@@ -35,10 +35,6 @@ function actionToggle(this: AppController, { id }: ActionContext) {
 	this.setPref("hiddenActions", [...hidden]);
 }
 
-function toggleTransparency(this: AppController) {
-	this.setPref("reduceTransparency", !Store.pref("reduceTransparency"));
-}
-
 function exportAll(this: AppController) {
 	this.exportAll();
 }
@@ -86,7 +82,6 @@ export const settingsActions = {
 	pref: pref,
 	"pref-toggle": prefToggle,
 	"action-toggle": actionToggle,
-	"toggle-transparency": toggleTransparency,
 	"export-all": exportAll,
 	"clear-all": clearAll,
 	"clear-confirm": clearConfirm,

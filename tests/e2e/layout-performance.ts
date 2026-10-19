@@ -37,7 +37,6 @@ try {
 	for (const version of ["baseline", "current"]) {
 		const page = await browser.newPage({
 			viewport: result.fixture.viewport,
-			reducedMotion: "reduce",
 		});
 		await page.goto(
 			`http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}/${version}`,

@@ -1,0 +1,227 @@
+/* Stacks: one place on the desk, layered edges, opened in place. */
+@media (hover: hover) and (pointer: fine) {
+	.stack-card:hover {
+		overflow: visible;
+		background: transparent;
+		border-color: transparent;
+		box-shadow: none;
+	}
+}
+.stack-card,
+.stack-card:focus-within {
+	overflow: visible;
+	background: transparent;
+	border-color: transparent;
+	box-shadow: none;
+}
+.deck-edge {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: -6px;
+	height: 24px;
+	border-radius: 0 0 18px 18px;
+	background: var(--card);
+	border: 1px solid var(--line-card);
+	border-top: 0;
+	box-shadow: var(--shadow);
+	z-index: 0;
+}
+.deck-edge.deep {
+	left: 20px;
+	right: 20px;
+	bottom: -11px;
+	opacity: 0.7;
+	z-index: -1;
+}
+/* The deck: every piece is a whole card in the same place. The top one moves with the hand; the next waits just beneath. */
+.deck {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	touch-action: pan-y;
+	user-select: none;
+	-webkit-user-select: none;
+}
+.deck-card {
+	grid-area: 1 / 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--card);
+	border: 1px solid var(--line-card);
+	border-radius: var(--card-radius);
+	box-shadow: var(--shadow);
+	transform-origin: 50% 100%;
+	visibility: hidden;
+	will-change: transform;
+}
+.deck-card.is-top {
+	visibility: visible;
+	z-index: 3;
+}
+@media (hover: hover) and (pointer: fine) {
+	.stack-card:hover .deck-card.is-top {
+		border-color: var(--line-hover);
+		box-shadow: var(--shadow-hover);
+	}
+}
+.stack-card:focus-within .deck-card.is-top {
+	border-color: var(--line-hover);
+	box-shadow: var(--shadow-hover);
+}
+.deck-card.is-next {
+	visibility: visible;
+	z-index: 2;
+	transform: translateY(6px) scale(0.97);
+	box-shadow: none;
+}
+.deck-card.is-prev {
+	z-index: 4;
+}
+.deck.is-dragging {
+	cursor: grabbing;
+}
+/* While a card is in the hand or in flight it passes over the neighbouring columns. */
+.stack-card:has(.deck.is-dragging),
+.stack-card:has(.deck[data-busy]),
+.stack-card:has(.deck-card[style*="transform"]) {
+	z-index: 20;
+}
+.stack-count {
+	color: var(--muted);
+	font-weight: 500;
+}
+.stack-card .card-head-right {
+	opacity: 1;
+}
+.stack-pos {
+	color: var(--ink);
+	font-weight: 600;
+}
+.stack-open {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-10);
+}
+.stack-open-head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: 28px;
+	padding: 0 var(--space-4);
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.stack-open-head .icon {
+	color: var(--secondary);
+}
+.stack-open-head .text-link {
+	margin-left: auto;
+}
+.feed-card.is-compact .card-summary {
+	display: none;
+}
+.feed-card.is-compact .card-body {
+	padding: var(--space-14) var(--card-padding);
+}
+.text-link {
+	background: none;
+	padding: var(--space-6) var(--space-2);
+	font-size: var(--text-meta);
+	font-weight: 500;
+	color: var(--accent);
+	border-radius: 6px;
+}
+.text-link.warn {
+	color: var(--alert);
+}
+@media (hover: hover) and (pointer: fine) {
+	.text-link:hover {
+		text-decoration: underline;
+	}
+}
+.text-link:active {
+	opacity: 0.6;
+}
+
+/* The two shelf rows at the end of the desk. */
+.shelf-entry {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-10);
+}
+.shelf-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: 48px;
+	padding: 0 var(--space-18);
+	border-radius: 16px;
+	background: var(--faint-row);
+	font-size: var(--text-control);
+	color: var(--ink);
+	text-align: left;
+	transition: var(--motion-transition, background var(--fast));
+}
+@media (hover: hover) and (pointer: fine) {
+	.shelf-row:hover {
+		background: var(--faint);
+	}
+}
+.shelf-row > .icon {
+	color: var(--muted);
+}
+.shelf-row span {
+	color: var(--muted);
+	font-size: var(--text-meta);
+}
+.shelf-row .num {
+	margin-left: auto;
+	color: var(--muted);
+}
+/* Pressing a card gives a little, like the prototype: it is something you can pick up. */
+.feed-card:not(.stack-card):active:not(:has(button:active)) {
+	transform: scale(0.97);
+	transition-duration: var(--motion-transition-duration, 120ms);
+}
+
+/* A menu's hit targets keep their size even while the touched parent settles. */
+@media (hover: hover) and (pointer: fine) {
+	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
+		--motion-managed-transform: none;
+		transform: none;
+		transition-property: var(--motion-transition-properties, box-shadow, border-color);
+	}
+}
+.feed-card.tools-open,
+.feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
+	--motion-managed-transform: none;
+	transform: none;
+	transition-property: var(--motion-transition-properties, box-shadow, border-color);
+}
+
+/* Desktop spacing groups metadata, content and supporting references. */
+@media (min-width: 651px) {
+	.card-body > :is(.card-head, .sender) + :is(.card-title, .quote-text) {
+		margin-top: var(--space-4);
+	}
+	.card-body > .card-title + .card-summary {
+		margin-top: calc(-1 * var(--space-2));
+	}
+	.card-body > :is(.checklist, .refs, .file-rows, .attachment) {
+		margin-top: var(--space-4);
+	}
+	.feed-card .check-item {
+		align-items: flex-start;
+	}
+	.feed-card .check-item > span:last-child {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		white-space: normal;
+	}
+}
+.related-more {
+	padding-left: 0;
+}

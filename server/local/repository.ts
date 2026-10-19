@@ -95,7 +95,7 @@ export class LocalRepository {
 					cards: [],
 					items: {},
 					seconds: 0,
-					preferences: { sort: "priority", reduceTransparency: false },
+					preferences: { sort: "priority" },
 				};
 		for (const operation of operations) {
 			const operationId =

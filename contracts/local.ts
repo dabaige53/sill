@@ -26,8 +26,10 @@ export const CardState = z
 export const Preferences = z
 	.object({
 		singleKeyShortcuts: z.boolean().optional(),
-		sort: z.enum(["priority", "unread", "time"]).optional(),
+		// Legacy stored fields remain readable; clients no longer expose or apply them.
+		reduceMotion: z.boolean().optional(),
 		reduceTransparency: z.boolean().optional(),
+		sort: z.enum(["priority", "unread", "time"]).optional(),
 		stack: z.boolean().optional(),
 		fadeRead: z.boolean().optional(),
 		archiveAfter: z.enum(["3d", "7d", "never"]).optional(),
@@ -36,7 +38,6 @@ export const Preferences = z
 		newHint: z.enum(["away", "off"]).optional(),
 		theme: z.enum(["system", "light", "dark"]).optional(),
 		density: z.enum(["compact", "standard", "roomy"]).optional(),
-		reduceMotion: z.boolean().optional(),
 		aiLocal: z.boolean().optional(),
 		onboarded: z.boolean().optional(),
 		hiddenActions: z.array(z.enum(CardActions)).max(CardActions.length).optional(),

@@ -1,0 +1,572 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Sill V1 contract draft — NOT IMPLEMENTED",
+		"version": "sill-v1-draft1",
+		"description": "Design only. Current /api/local API is unchanged. See ../../docs/guides/handoff.md. No server exists at the reserved example URL."
+	},
+	"servers": [
+		{
+			"url": "https://api.sill.invalid/api/v1"
+		}
+	],
+	"security": [
+		{
+			"bearerAuth": []
+		}
+	],
+	"paths": {
+		"/health": {
+			"get": {
+				"operationId": "health",
+				"responses": {
+					"200": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Health"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				]
+			}
+		},
+		"/contents": {
+			"get": {
+				"operationId": "listContents",
+				"x-required-scope": "content:read",
+				"responses": {
+					"200": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CardPage"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "cursor",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"maxLength": 2048
+						}
+					},
+					{
+						"name": "since",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"maxLength": 2048
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 100,
+							"default": 50
+						}
+					},
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "createContent",
+				"x-required-scope": "content:write",
+				"responses": {
+					"201": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Card"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "Idempotency-Key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 8,
+							"maxLength": 128,
+							"pattern": "^[a-zA-Z0-9_-]+$"
+						},
+						"description": "Caller + operation scoped; same key/body replays original result. Different body => 409."
+					},
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCard"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/contents/{id}": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string",
+						"pattern": "^[a-zA-Z0-9_-]{1,100}$"
+					}
+				}
+			],
+			"get": {
+				"operationId": "getContent",
+				"x-required-scope": "content:read",
+				"responses": {
+					"200": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Card"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "updateContent",
+				"x-required-scope": "content:write",
+				"responses": {
+					"200": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Card"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "Idempotency-Key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 8,
+							"maxLength": 128,
+							"pattern": "^[a-zA-Z0-9_-]+$"
+						},
+						"description": "Caller + operation scoped; same key/body replays original result. Different body => 409."
+					},
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateCard"
+							}
+						}
+					}
+				},
+				"x-result-scope": "event:result"
+			},
+			"delete": {
+				"operationId": "deleteContent",
+				"x-required-scope": "content:delete",
+				"responses": {
+					"200": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Card"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "Idempotency-Key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 8,
+							"maxLength": 128,
+							"pattern": "^[a-zA-Z0-9_-]+$"
+						},
+						"description": "Caller + operation scoped; same key/body replays original result. Different body => 409."
+					},
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/DeleteCard"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/events": {
+			"post": {
+				"operationId": "submitEvent",
+				"x-required-scope": "event:submit",
+				"responses": {
+					"202": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Event"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "Idempotency-Key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"minLength": 8,
+							"maxLength": 128,
+							"pattern": "^[a-zA-Z0-9_-]+$"
+						},
+						"description": "Caller + operation scoped; same key/body replays original result. Different body => 409."
+					},
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SubmitEvent"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/events/{id}": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string",
+						"pattern": "^[a-zA-Z0-9_-]{1,100}$"
+					}
+				}
+			],
+			"get": {
+				"operationId": "getEvent",
+				"x-required-scope": "event:read",
+				"responses": {
+					"200": {
+						"description": "Designed response; not implemented",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Event"
+								}
+							}
+						}
+					},
+					"default": {
+						"description": "Unified error; HTTP 400/401/403/404/409/410/429/503",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				]
+			}
+		},
+		"/workspace": {
+			"get": {
+				"operationId": "getWorkspace",
+				"x-required-scope": "content:read",
+				"responses": {
+					"200": {
+						"description": "Workspace snapshot",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Workspace"
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				]
+			}
+		},
+		"/workspace/operations": {
+			"post": {
+				"operationId": "applyOperations",
+				"x-required-scope": "content:write",
+				"parameters": [
+					{
+						"name": "Idempotency-Key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"pattern": "^[a-zA-Z0-9_-]{8,128}$"
+						}
+					},
+					{
+						"name": "X-Sill-Owner",
+						"in": "header",
+						"required": false,
+						"description": "Reject if the authenticated account differs; this condition grants no permissions.",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"maxLength": 100
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/WorkspaceBatch"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Workspace snapshot",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Workspace"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"description": "Identity provider undecided; audience/issuer/expiry and application scopes must be enforced server-side."
+			}
+		}
+	}
+}

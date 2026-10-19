@@ -1,37 +1,14 @@
 import { execFileSync } from "node:child_process";
-import { basename } from "node:path";
-
-const maxBytes = 20_000;
-// Rebuilt outputs are exempt; their authored sources remain subject to the limit.
-const generatedFiles = new Set([
-	"contracts/schema.json",
-	"contracts/apple-openapi.json",
-	"contracts/design/mcp-tools.json",
-	"contracts/design/fixtures.json",
-	"design-system/components/bundle.js",
-	"design-system/components/bundle.css",
-]);
-const lockfiles = new Set([
-	"package-lock.json",
-	"npm-shrinkwrap.json",
-	"yarn.lock",
-	"pnpm-lock.yaml",
-	"bun.lock",
-	"bun.lockb",
-	"Package.resolved",
-	"Cargo.lock",
-	"uv.lock",
-	"poetry.lock",
-	"Gemfile.lock",
-	"composer.lock",
-	"go.sum",
-]);
+import { lstatSync, readFileSync } from "node:fs";
+import { isExempt, maxBytes } from "./file-token-policy.ts";
 
 function git(args: string[]) {
-	return execFileSync("git", args, { encoding: "utf8" });
+	return execFileSync("git", args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
 }
 
 try {
+	process.chdir(git(["rev-parse", "--show-toplevel"]).trim());
+	const oversized: string[] = [];
 	const entries = git([
 		"diff",
 		"--cached",
@@ -42,41 +19,50 @@ try {
 		"--diff-filter=ACMT",
 		"-z",
 	]).split("\0");
-	const oversized: string[] = [];
 	for (const entry of entries) {
 		if (!entry) continue;
 		const firstTab = entry.indexOf("\t");
-		const secondTab = entry.indexOf("\t", firstTab + 1);
-		const path = entry.slice(secondTab + 1);
-		if (
-			entry.slice(0, firstTab) === "-" ||
-			lockfiles.has(basename(path)) ||
-			generatedFiles.has(path) ||
-			path.startsWith("design-system/assets/Icons/") ||
-			/(^|\/)(generated|__generated__|vendor|node_modules)\//.test(path) ||
-			/\.(generated|g)\.[^/]+$/.test(path)
-		)
-			continue;
+		const path = entry.slice(entry.indexOf("\t", firstTab + 1) + 1);
+		if (entry.slice(0, firstTab) === "-" || isExempt(path)) continue;
 		const bytes = Number(git(["cat-file", "-s", `:${path}`]).trim());
 		if (bytes > maxBytes)
-			oversized.push(`  ${JSON.stringify(path)}: ${bytes} bytes = ${bytes / 4} tokens`);
+			oversized.push(`  暂存 ${JSON.stringify(path)}: ${bytes} bytes = ${bytes / 4} tokens`);
+	}
+	if (process.argv.includes("--local")) {
+		const paths = new Set(
+			git(["ls-files", "--cached", "--others", "--exclude-standard", "-z"]).split("\0"),
+		);
+		for (const path of paths) {
+			if (!path || isExempt(path)) continue;
+			try {
+				const stat = lstatSync(path);
+				if (!stat.isFile() || stat.size <= maxBytes) continue;
+				const bytes = readFileSync(path);
+				if (bytes.subarray(0, 8000).includes(0)) continue;
+				oversized.push(
+					`  本地 ${JSON.stringify(path)}: ${stat.size} bytes = ${stat.size / 4} tokens`,
+				);
+			} catch (error) {
+				if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+			}
+		}
 	}
 	if (oversized.length) {
 		console.error(
 			[
-				"提交已阻止：以下暂存文件超过 5,000 tokens（tokens = bytes / 4；上限 20,000 bytes）：",
+				"提交已阻止：以下文件超过 5,000 tokens（tokens = bytes / 4；上限 20,000 bytes）：",
 				...oversized,
 				"",
 				"请按以下步骤拆分，再提交：",
 				"1. 按职责把代码移到同目录下命名明确的模块；通过 import/export 连接，避免循环依赖。",
 				"2. 文档按主题拆成独立文件，在原文件保留简短入口和相对链接；测试按功能拆分，公共样例放入辅助文件。",
 				"3. 保留现有行为、内容与对外接口，更新引用和目录说明；每个拆分后的文件均须不超过 20,000 bytes。不要通过压缩或删除必要内容规避限制。",
-				"4. 运行相关检查，用 git add -- <原文件> <新文件> 暂存拆分结果，然后重新 git commit。检查读取暂存版本，仅修改工作区不会解除报错。",
+				"4. 运行相关检查，再单独用 git add -- <原文件> <新文件> 暂存拆分结果，然后单独运行 git commit。暂存版本与本地版本分别检查；修改工作区后仍须重新暂存。",
 			].join("\n"),
 		);
 		process.exitCode = 1;
 	}
 } catch (error) {
-	console.error("无法检查暂存文件大小；请修复 Git/Node 错误后重新提交。", error);
+	console.error("无法检查文件大小；请修复 Git/Node 错误后重新提交。", error);
 	process.exitCode = 1;
 }

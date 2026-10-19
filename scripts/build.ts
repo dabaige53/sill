@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "vite";
 import { repositoryRoot, webConfig } from "../apps/web/vite.config.ts";
+import { exportDesignData } from "../design-system/scripts/export-data.ts";
 
 export const root = repositoryRoot;
 export async function buildPage({
@@ -12,6 +13,7 @@ export async function buildPage({
 	cloud?: boolean;
 	check?: boolean;
 } = {}) {
+	exportDesignData(true);
 	const config = webConfig({ cloud });
 	const result = await build({
 		...config,

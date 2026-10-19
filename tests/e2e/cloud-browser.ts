@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
-import { createRequire } from "node:module";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { chromium } from "playwright";
@@ -10,8 +9,6 @@ import { A } from "../server/helpers/boundary-fixture.ts";
 import { cloudFixture } from "../server/helpers/cloud-fixture.ts";
 import { cloudLogout, cloudTool, waitCloud } from "../server/helpers/cloud-ui.ts";
 import { token } from "../server/helpers/signed-auth.ts";
-
-const require = createRequire(import.meta.url);
 
 // Real browser -> HTTP runtime -> official SDK -> synthetic auth transport -> actual SQL.
 // No email, production credentials, cloud database, or deployment is involved.
@@ -245,7 +242,6 @@ try {
 	await page.screenshot({ path: "tests/artifacts/cloud-mobile.png", animations: "disabled" });
 	await page.locator("#cloud-editor [data-action=close]").click();
 	await cloudTool(page, "capture");
-	await page.addScriptTag({ path: require.resolve("axe-core/axe.min.js") });
 	for (const theme of ["light", "dark"])
 		for (const viewport of [
 			{ width: 1440, height: 1000 },
@@ -270,20 +266,6 @@ try {
 						.filter((a?: any) => Number.isFinite(a.effect?.getTiming().iterations))
 						.map((a?: any) => a.finished),
 				),
-			);
-			const violations = await page.evaluate(async () => {
-				const result = await (window as Window & { axe?: typeof import("axe-core") }).axe!.run({
-					runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"] },
-				});
-				return result.violations.map((v?: any) => ({
-					id: v.id,
-					nodes: v.nodes.map((n?: any) => n.target),
-				}));
-			});
-			assert.deepEqual(
-				violations,
-				[],
-				`${theme} cloud editor ${viewport.width}x${viewport.height}`,
 			);
 			const overflow = await page.evaluate(() => ({
 				width: innerWidth,

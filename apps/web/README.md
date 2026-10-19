@@ -4,7 +4,11 @@
 
 `index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
 
-`views/app.ts` 保留状态和公开入口。设置保存与重绘位于 `views/settings-controller.ts`，详情打开和定位位于 `views/preview-controller.ts`。`views/actions/` 按导航筛选、卡片、多选、设置、外链交接、提醒媒体、反馈恢复分组；`action()` 只按原名称分发。
+`views/app.ts` 保留状态和公开入口，`views/app-*.ts` 按启动、信息流、选择、弹层、反馈、卡片动作、采集、堆叠与输入拆分方法；`app-types.ts` 保存共用类型。方法仍安装到原控制器的原型上。设置保存与重绘位于 `views/settings-controller.ts`，详情打开和定位位于 `views/preview-controller.ts`。`views/actions/` 按导航筛选、卡片、多选、设置、外链交接、提醒媒体、反馈恢复分组；`action()` 只按原名称分发。
+
+`interactions/panels-components.tsx` 汇总卡片、搜索和设置弹层，具体组件分别在 `panel-card.tsx`、`panel-search.tsx`、`panel-settings.tsx`，共用渲染约定在 `panel-contract.ts`。`interactions/gestures.ts` 保留手势状态与通用工具，`gesture-*.ts` 分别负责刷新下拉、弹层和预览手势。
+
+`cloud-entry.ts` 保留云端启动与事件接线；工作区读写在 `cloud-workspace.ts`，草稿、保存与退出在 `cloud-compose.ts`。样式清单 `styles/styles.json` 保持层叠顺序，并按预览媒体、弹层、动作、手势、卡片堆叠、控件、手机和无障碍分组。
 
 `interactions/panels.ts` 保留弹层入口，`interactions/previews.ts` 按卡片类型组织预览，共用外壳与工具栏。文案键按预览、阅读、照片、搜索、设置等用途命名，实际文字仍只从 `design-system/copy/zh-Hans.json` 读取。
 

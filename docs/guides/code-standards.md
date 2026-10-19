@@ -52,8 +52,8 @@
 
 ## 6. 设计 tokens 与文案
 
-- 颜色、间距、圆角、字号和动效只引用 `design-system/tokens.json` 生成的 CSS 变量或 Swift 常量，不在代码中直接写数值。
-- 用户可见文字只放在 `design-system/copy/zh-Hans.json`。key 使用英文点分格式，例如 `card.type.article`。
+- 颜色、间距、圆角、字号和动效只引用共享设计变量生成的 CSS 变量或 Swift 常量，不在代码中直接写数值。设计变量源文件按类别放在 `design-system/tokens/*.json`，生成兼容文件 `tokens.json`。
+- 用户可见文字按职责放在 `design-system/copy/zh-Hans/*.json`，生成供各端读取的 `design-system/copy/zh-Hans.json`。key 使用英文点分格式，例如 `card.type.article`。运行 `npm run contracts:generate` 更新生成文件，`contracts:check` 检查是否过期。
 - Web 端在构建时读取文案文件。Apple 端在构建时生成 String Catalog，并通过生成的常量引用，key 写错时编译失败。
 - 测试检查 `card.type.*` 正好对应 GLOSSARY 中的 11 种卡片类型，来源类型同样检查。
 - 当前只提供简体中文。增加语言时新增同结构的文件，不修改 key。

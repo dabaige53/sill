@@ -7,7 +7,11 @@ import { demoBase, FreshCards, SeedCards, SeedItems } from "./cards.ts";
 
 /** Reuse contract fields while excluding its unknown extension-key signature. */
 export type Preferences = Required<{
-	[K in keyof State["preferences"] as string extends K ? never : K]: State["preferences"][K];
+	[K in keyof State["preferences"] as string extends K
+		? never
+		: K extends "reduceMotion" | "reduceTransparency"
+			? never
+			: K]: State["preferences"][K];
 }>;
 export type CardItem = CardState &
 	Required<
@@ -42,7 +46,6 @@ export type StoreState = {
 type Backup = Partial<StoreState> & {
 	version?: number;
 	sources?: unknown;
-	reduceTransparency?: boolean;
 	sort?: Preferences["sort"];
 };
 
@@ -79,7 +82,6 @@ interface CardStore {
 /** Browser backup; local mode synchronizes it with the agent-readable repository. */
 const DefaultPreferences: Preferences = {
 	singleKeyShortcuts: true,
-	reduceTransparency: false,
 	sort: "priority",
 	stack: true,
 	fadeRead: true,
@@ -89,7 +91,6 @@ const DefaultPreferences: Preferences = {
 	newHint: "away",
 	theme: "system",
 	density: "standard",
-	reduceMotion: false,
 	aiLocal: true,
 	onboarded: true,
 	hiddenActions: [],
@@ -182,7 +183,7 @@ const Store: CardStore = {
 			const prefs =
 				raw.preferences && typeof raw.preferences === "object"
 					? raw.preferences
-					: { reduceTransparency: raw.reduceTransparency, sort: raw.sort };
+					: { sort: raw.sort };
 			for (const key of Object.keys(DefaultPreferences) as (keyof Preferences)[])
 				if (prefs[key] !== undefined && typeof prefs[key] === typeof DefaultPreferences[key])
 					(this.state.preferences as Record<string, unknown>)[key] = prefs[key];

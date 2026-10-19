@@ -2,66 +2,25 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod/v4";
 import { create, event, revision, update, workspaceBatch } from "../../contracts/cloud.ts";
 import { copy } from "../../design-system/copy.ts";
-import { accessName as cookieName, createBrowserSessions, readCookie } from "./browser-session.ts";
 import { callbackFailurePage } from "./auth-page.ts";
+import { accessName as cookieName, createBrowserSessions, readCookie } from "./browser-session.ts";
+import {
+	body,
+	cookie,
+	cooldownName,
+	headers,
+	json,
+	resendSeconds,
+	sameOrigin,
+	setupName,
+	verifierName,
+} from "./http-response.ts";
 import { loginPage } from "./login-page.ts";
 import { createMcpHandler } from "./mcp.ts";
 import { createOAuthController } from "./oauth-controller.ts";
 import { authenticateSupabase } from "./supabase-auth.ts";
 import { SupabaseRepository, serviceError } from "./supabase-repository.ts";
 
-const headers = {
-	"Cache-Control": "no-store",
-	"X-Content-Type-Options": "nosniff",
-	"Referrer-Policy": "no-referrer",
-};
-const verifierName = "__Host-sill-pkce",
-	cooldownName = "__Host-sill-login-until";
-const setupName = "__Host-sill-password-setup";
-const resendSeconds = 60;
-const cookie = (name?: any, value?: any, maxAge?: any) =>
-	`${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax${maxAge === undefined ? "" : `; Max-Age=${maxAge}`}`;
-const json = (status?: any, data?: any, extra: any = {}) =>
-	new Response(JSON.stringify(data), {
-		status,
-		headers: { ...headers, "Content-Type": "application/json; charset=utf-8", ...extra },
-	});
-async function body(request?: any) {
-	if (request.headers.get("content-type")?.split(";")[0] !== "application/json")
-		throw serviceError("invalid_request", 415);
-	const reader = request.body?.getReader();
-	if (!reader) throw serviceError("invalid_request");
-	let size = 0;
-	const chunks = [];
-	for (;;) {
-		const { value, done } = await reader.read();
-		if (done) break;
-		size += value.length;
-		if (size > 524288) {
-			await reader.cancel();
-			throw serviceError("invalid_request", 413);
-		}
-		chunks.push(value);
-	}
-	const bytes = new Uint8Array(size);
-	let offset = 0;
-	for (const c of chunks) {
-		bytes.set(c, offset);
-		offset += c.length;
-	}
-	try {
-		return JSON.parse(new TextDecoder().decode(bytes));
-	} catch {
-		throw serviceError("invalid_request");
-	}
-}
-function sameOrigin(request?: any, origin?: any) {
-	if (
-		request.headers.get("origin") !== origin ||
-		request.headers.get("sec-fetch-site") === "cross-site"
-	)
-		throw serviceError("forbidden");
-}
 export function createSillRuntime(
 	config?: any,
 	{

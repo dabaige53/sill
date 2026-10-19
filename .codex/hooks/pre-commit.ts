@@ -31,7 +31,7 @@ try {
 		} else {
 			const result = spawnSync(
 				process.execPath,
-				[fileURLToPath(new URL("check-staged-file-tokens.ts", import.meta.url))],
+				[fileURLToPath(new URL("check-staged-file-tokens.ts", import.meta.url)), "--local"],
 				{ cwd: input.workdir ?? input.cwd ?? payload.cwd ?? process.cwd(), encoding: "utf8" },
 			);
 			if (result.status !== 0)

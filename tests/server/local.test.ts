@@ -76,7 +76,7 @@ test("local operations persist all card states and reject conflicts atomically",
 						reminderDone: true,
 					},
 				},
-				{ op: "preferences.patch", values: { sort: "time", reduceTransparency: true } },
+				{ op: "preferences.patch", values: { sort: "time", density: "compact" } },
 				{ op: "reading.add", seconds: 12 },
 			],
 		});

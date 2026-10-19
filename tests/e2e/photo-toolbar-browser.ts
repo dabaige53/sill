@@ -148,14 +148,6 @@ try {
 				["照片核对"],
 			);
 			await page.evaluate(() => {
-				window.__app.setPref("reduceTransparency", true);
-			});
-			assert.equal(await bar.evaluate((n) => getComputedStyle(n).backdropFilter), "none");
-			assert.equal(
-				await bar.evaluate((n) => getComputedStyle(n).backgroundColor),
-				"rgb(28, 28, 31)",
-			);
-			await page.evaluate(() => {
 				window.__app.setPref("hiddenActions", ["bookmark", "tag", "later"]);
 				window.__app.openCard("photo-tools");
 			});
@@ -172,9 +164,7 @@ try {
 				errors,
 				external,
 			});
-			console.log(
-				`PASS photo tools, tags return, hidden preferences and opaque fallback ${width}-${theme}`,
-			);
+			console.log(`PASS photo tools, tags return, hidden preferences ${width}-${theme}`);
 			await context.close();
 		}
 	}

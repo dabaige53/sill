@@ -433,6 +433,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -440,9 +446,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -486,9 +489,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -1641,6 +1641,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -1648,9 +1654,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -1694,9 +1697,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -1731,6 +1731,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -1738,9 +1744,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -1784,9 +1787,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -4541,6 +4541,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -4548,9 +4554,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -4594,9 +4597,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -5749,6 +5749,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -5756,9 +5762,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -5802,9 +5805,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -5839,6 +5839,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -5846,9 +5852,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -5892,9 +5895,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -9027,6 +9027,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -9034,9 +9040,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -9080,9 +9083,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -10235,6 +10235,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -10242,9 +10248,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -10288,9 +10291,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -10325,6 +10325,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -10332,9 +10338,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -10378,9 +10381,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -13555,6 +13555,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -13562,9 +13568,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -13608,9 +13611,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -14763,6 +14763,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -14770,9 +14776,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -14816,9 +14819,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -14853,6 +14853,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -14860,9 +14866,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -14906,9 +14909,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -17684,6 +17684,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -17691,9 +17697,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -17737,9 +17740,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -18892,6 +18892,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -18899,9 +18905,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -18945,9 +18948,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -18982,6 +18982,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -18989,9 +18995,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -19035,9 +19038,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -21830,6 +21830,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -21837,9 +21843,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -21883,9 +21886,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -23038,6 +23038,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -23045,9 +23051,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -23091,9 +23094,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -23128,6 +23128,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -23135,9 +23141,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -23181,9 +23184,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -25938,6 +25938,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -25945,9 +25951,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -25991,9 +25994,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -27146,6 +27146,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -27153,9 +27159,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -27199,9 +27202,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -27236,6 +27236,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -27243,9 +27249,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -27289,9 +27292,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -30039,6 +30039,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -30046,9 +30052,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -30092,9 +30095,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -31247,6 +31247,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -31254,9 +31260,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -31300,9 +31303,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -31337,6 +31337,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -31344,9 +31350,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -31390,9 +31393,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -34842,6 +34842,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -34849,9 +34855,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -34895,9 +34898,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -34932,6 +34932,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -34939,9 +34945,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -34985,9 +34988,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -35465,6 +35465,12 @@
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
+                      "reduceMotion": {
+                        "type": "boolean"
+                      },
+                      "reduceTransparency": {
+                        "type": "boolean"
+                      },
                       "sort": {
                         "type": "string",
                         "enum": [
@@ -35472,9 +35478,6 @@
                           "unread",
                           "time"
                         ]
-                      },
-                      "reduceTransparency": {
-                        "type": "boolean"
                       },
                       "stack": {
                         "type": "boolean"
@@ -35518,9 +35521,6 @@
                           "standard",
                           "roomy"
                         ]
-                      },
-                      "reduceMotion": {
-                        "type": "boolean"
                       },
                       "aiLocal": {
                         "type": "boolean"
@@ -36673,6 +36673,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -36680,9 +36686,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -36726,9 +36729,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"
@@ -36763,6 +36763,12 @@
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
+                            "reduceMotion": {
+                              "type": "boolean"
+                            },
+                            "reduceTransparency": {
+                              "type": "boolean"
+                            },
                             "sort": {
                               "type": "string",
                               "enum": [
@@ -36770,9 +36776,6 @@
                                 "unread",
                                 "time"
                               ]
-                            },
-                            "reduceTransparency": {
-                              "type": "boolean"
                             },
                             "stack": {
                               "type": "boolean"
@@ -36816,9 +36819,6 @@
                                 "standard",
                                 "roomy"
                               ]
-                            },
-                            "reduceMotion": {
-                              "type": "boolean"
                             },
                             "aiLocal": {
                               "type": "boolean"

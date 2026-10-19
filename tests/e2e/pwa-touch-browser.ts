@@ -61,142 +61,144 @@ async function tooltip(button: Locator) {
 }
 
 try {
-	for (const motion of ["normal", "system", "app"] as const) {
-		const reduced = motion !== "normal";
-		for (const width of reduced ? [320] : [320, 390, 1440]) {
-			for (const colorScheme of ["light", "dark"] as const) {
-				const name = `${width}-${colorScheme}${reduced ? `-${motion}-reduced` : ""}`;
-				const context = await browser.newContext({
-					viewport: { width, height: width > 650 ? 900 : 844 },
-					hasTouch: true,
-					isMobile: width <= 650,
-					colorScheme,
-					reducedMotion: motion === "system" ? "reduce" : "no-preference",
+	for (const width of [320, 390, 1440]) {
+		for (const colorScheme of ["light", "dark"] as const) {
+			const name = `${width}-${colorScheme}`;
+			const context = await browser.newContext({
+				viewport: { width, height: width > 650 ? 900 : 844 },
+				hasTouch: true,
+				isMobile: width <= 650,
+				colorScheme,
+			});
+			const page = await context.newPage();
+			const errors: string[] = [];
+			page.on("pageerror", (error) => errors.push(error.message));
+			await context.route("**/*", (route) =>
+				route.request().url().startsWith(origin) || route.request().url().startsWith("data:")
+					? route.continue()
+					: route.abort(),
+			);
+			await page.clock.setFixedTime(new Date(reviewTime));
+			await page.addInitScript(
+				({ cards }) => {
+					localStorage.setItem(
+						"sill-v1",
+						JSON.stringify({
+							version: 4,
+							cards,
+							items: {},
+							preferences: {
+								onboarded: true,
+								stack: false,
+								theme: "system",
+								archiveAfter: "never",
+							},
+						}),
+					);
+					Object.defineProperty(navigator, "standalone", { value: true });
+				},
+				{ cards: materialDensityCards() },
+			);
+			const screenshot = (view: string) =>
+				page.screenshot({ path: path.join(artifacts, `${name}-${view}.png`) });
+			try {
+				await page.goto(origin);
+				await page.waitForFunction(() => window.__app?.layout.frame === 0);
+				await page.evaluate(async () => {
+					await document.fonts.ready;
+					await Promise.all(
+						document.getAnimations().map((animation) => animation.finished.catch(() => {})),
+					);
 				});
-				const page = await context.newPage();
-				const errors: string[] = [];
-				page.on("pageerror", (error) => errors.push(error.message));
-				await context.route("**/*", (route) =>
-					route.request().url().startsWith(origin) || route.request().url().startsWith("data:")
-						? route.continue()
-						: route.abort(),
-				);
-				await page.clock.setFixedTime(new Date(reviewTime));
-				await page.addInitScript(
-					({ cards, reduceMotion }) => {
-						localStorage.setItem(
-							"sill-v1",
-							JSON.stringify({
-								version: 4,
-								cards,
-								items: {},
-								preferences: {
-									onboarded: true,
-									stack: false,
-									theme: "system",
-									archiveAfter: "never",
-									reduceMotion,
-								},
-							}),
-						);
-						Object.defineProperty(navigator, "standalone", { value: true });
-					},
-					{ cards: materialDensityCards(), reduceMotion: motion === "app" },
-				);
-				const screenshot = (view: string) =>
-					page.screenshot({ path: path.join(artifacts, `${name}-${view}.png`) });
-				try {
-					await page.goto(origin);
-					await page.waitForFunction(() => window.__app?.layout.frame === 0);
-					await page.evaluate(async () => {
-						await document.fonts.ready;
-						await Promise.all(
-							document.getAnimations().map((animation) => animation.finished.catch(() => {})),
-						);
-					});
-					await screenshot("home");
-					await page.evaluate(() => window.__app.openCard("review-event"));
-					await page.waitForTimeout(500);
-					await screenshot("detail");
-					const buttons = page.locator("#modal > .float-bar .icon-button");
-					const before = await page.evaluate(() =>
-						JSON.stringify(window.__store.item("review-event")),
-					);
-					const session = await context.newCDPSession(page);
-					const tips = [];
-					for (const [edge, button] of [
-						["first", buttons.first()],
-						["last", buttons.last()],
-					] as const) {
-						const box = await button.boundingBox();
-						await session.send("Input.dispatchTouchEvent", {
-							type: "touchStart",
-							touchPoints: [{ x: box.x + box.width / 2, y: box.y + box.height / 2, id: 1 }],
-						});
-						await button.waitFor({ state: "visible" });
-						await page.waitForFunction(() => !!document.querySelector(".float-bar .is-tipping"));
-						await settleTooltip(button);
-						tips.push(await tooltip(button));
-						await screenshot(`tip-${edge}`);
-						await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-					}
-					await page.waitForFunction(() => !document.querySelector(".float-bar .is-tipping"));
-					await buttons.first().focus();
-					await page.keyboard.press("Tab");
-					await settleTooltip(buttons.nth(1));
-					const keyboard = await tooltip(buttons.nth(1));
-					await screenshot("keyboard");
-					fs.writeFileSync(
-						path.join(artifacts, `${name}-metrics.json`),
-						JSON.stringify({ tips, keyboard }, null, 2),
-					);
-					assert.equal(keyboard.focus, true, "real Tab reaches a toolbar control");
-					assert.equal(keyboard.opacity, 1, "keyboard focus shows the control name");
-					assert.ok(
-						await page
-							.locator("#dock button")
-							.evaluateAll((nodes) =>
-								nodes.every((node) => getComputedStyle(node).userSelect === "none"),
-							),
-						"navigation controls also suppress text selection",
-					);
-					for (const tip of tips) {
-						assert.equal(tip.opacity, 1);
-						assert.ok(tip.left >= 0 && tip.right <= width, JSON.stringify(tip));
-						assert.equal(tip.selection, "none", "long presses cannot select toolbar text");
-					}
-					if (reduced) {
-						assert.ok(
-							[...tips, keyboard].every((tip) => !tip.translate.endsWith("4px")),
-							"reduced motion has no vertical tooltip displacement",
-						);
-						await page.keyboard.press("Tab");
-						const hidden = await tooltip(buttons.nth(1));
-						assert.equal(
-							hidden.translate,
-							keyboard.translate,
-							"hiding the name does not move it in reduced motion",
-						);
-					}
-					assert.equal(
-						await page.evaluate(() => JSON.stringify(window.__store.item("review-event"))),
-						before,
-						"long press and release perform no card action",
-					);
-					assert.equal(
-						await page.locator('.sheet-head [data-action="reader"]').count(),
-						0,
-						"standalone preview has no maximize control",
-					);
-					assert.deepEqual(errors, []);
-					results.push({ name, status: "PASS" });
-					console.log("PASS", name);
-				} catch (error) {
-					results.push({ name, status: "FAIL", error: error.message });
-					console.error("FAIL", name, error.message);
-				} finally {
-					await context.close();
+				await screenshot("home");
+				const platform = await page.evaluate(() => ({
+					viewport: document.querySelector<HTMLMetaElement>('meta[name="viewport"]').content,
+					textAdjust: getComputedStyle(document.documentElement).webkitTextSizeAdjust,
+					touch: getComputedStyle(document.querySelector("#dock button")).touchAction,
+				}));
+				assert.ok(platform.viewport.includes("interactive-widget=resizes-content"));
+				assert.equal(platform.textAdjust, "100%");
+				assert.equal(platform.touch, "manipulation");
+				for (const theme of ["dark", "light", "system"]) {
+					const matches = await page.evaluate((theme) => {
+						window.__app.setPref("theme", theme);
+						const canvas = getComputedStyle(document.documentElement)
+							.getPropertyValue("--canvas")
+							.trim();
+						return [
+							...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'),
+						].every((meta) => meta.content === canvas);
+					}, theme);
+					assert.ok(matches, "browser chrome follows the selected app theme");
 				}
+				await page.evaluate(() => window.__app.openCard("review-event"));
+				await page.waitForTimeout(500);
+				await screenshot("detail");
+				const buttons = page.locator("#modal > .float-bar .icon-button");
+				const before = await page.evaluate(() =>
+					JSON.stringify(window.__store.item("review-event")),
+				);
+				const session = await context.newCDPSession(page);
+				const tips = [];
+				for (const [edge, button] of [
+					["first", buttons.first()],
+					["last", buttons.last()],
+				] as const) {
+					const box = await button.boundingBox();
+					await session.send("Input.dispatchTouchEvent", {
+						type: "touchStart",
+						touchPoints: [{ x: box.x + box.width / 2, y: box.y + box.height / 2, id: 1 }],
+					});
+					await button.waitFor({ state: "visible" });
+					await page.waitForFunction(() => !!document.querySelector(".float-bar .is-tipping"));
+					await settleTooltip(button);
+					tips.push(await tooltip(button));
+					await screenshot(`tip-${edge}`);
+					await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+				}
+				await page.waitForFunction(() => !document.querySelector(".float-bar .is-tipping"));
+				await buttons.first().focus();
+				await page.keyboard.press("Tab");
+				await settleTooltip(buttons.nth(1));
+				const keyboard = await tooltip(buttons.nth(1));
+				await screenshot("keyboard");
+				fs.writeFileSync(
+					path.join(artifacts, `${name}-metrics.json`),
+					JSON.stringify({ tips, keyboard }, null, 2),
+				);
+				assert.equal(keyboard.focus, true, "real Tab reaches a toolbar control");
+				assert.equal(keyboard.opacity, 1, "keyboard focus shows the control name");
+				assert.ok(
+					await page
+						.locator("#dock button")
+						.evaluateAll((nodes) =>
+							nodes.every((node) => getComputedStyle(node).userSelect === "none"),
+						),
+					"navigation controls also suppress text selection",
+				);
+				for (const tip of tips) {
+					assert.equal(tip.opacity, 1);
+					assert.ok(tip.left >= 0 && tip.right <= width, JSON.stringify(tip));
+					assert.equal(tip.selection, "none", "long presses cannot select toolbar text");
+				}
+				assert.equal(
+					await page.evaluate(() => JSON.stringify(window.__store.item("review-event"))),
+					before,
+					"long press and release perform no card action",
+				);
+				assert.equal(
+					await page.locator('.sheet-head [data-action="reader"]').count(),
+					0,
+					"standalone preview has no maximize control",
+				);
+				assert.deepEqual(errors, []);
+				results.push({ name, status: "PASS" });
+				console.log("PASS", name);
+			} catch (error) {
+				results.push({ name, status: "FAIL", error: error.message });
+				console.error("FAIL", name, error.message);
+			} finally {
+				await context.close();
 			}
 		}
 	}

@@ -157,7 +157,6 @@ try {
 	);
 	await page.keyboard.press("Escape");
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
-	await page.emulateMedia({ reducedMotion: "reduce" });
 	await page.keyboard.press("Control+k");
 	assert.equal(
 		await page.locator("#filter-search").evaluate((e?: any) => e === document.activeElement),
@@ -170,7 +169,7 @@ try {
 	});
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS workspace polish: embedded resize, system theme, IME, live conflict, durable draft, no source connections or writes, reduced motion",
+		"PASS workspace polish: embedded resize, system theme, IME, live conflict, durable draft, no source connections or writes",
 	);
 } finally {
 	await browser?.close();

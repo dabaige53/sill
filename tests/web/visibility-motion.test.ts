@@ -16,13 +16,13 @@ const bundle = buildSync({
 	platform: "browser",
 	globalName: "MotionTest",
 }).outputFiles[0].text;
-function fixture(reduced = false) {
+function fixture() {
 	const dom = new JSDOM("<!doctype html><button hidden>Notice</button>", {
 		runScripts: "outside-only",
 		pretendToBeVisual: true,
 	});
 	const w = dom.window as any;
-	w.matchMedia = () => ({ matches: reduced });
+	w.matchMedia = () => ({ matches: false });
 	w.eval(bundle);
 	const el = w.document.querySelector("button");
 	const animations: any[] = [];
@@ -86,11 +86,10 @@ test("fast hide/show cancels stale completion and repeated state does not restar
 		f.dom.window.close();
 	}
 });
-test("reduced motion uses opacity only and missing animation support remains functional", async () => {
-	const f = fixture(true);
+test("missing animation support remains functional", async () => {
+	const f = fixture();
 	try {
 		f.motion.visibility(f.el, true);
-		assert.ok(f.animations[0].frames.every((frame: any) => !("transform" in frame)));
 		f.animations[0].finish();
 		await Promise.resolve();
 		f.el.animate = undefined;
@@ -127,8 +126,6 @@ test("motion durations accept both milliseconds and Vite-minified seconds", () =
 		assert.equal(f.w.MotionTest.MotionEngine.time("base"), 220);
 		root.style.setProperty("--base", ".22s");
 		assert.equal(f.w.MotionTest.MotionEngine.time("base"), 220);
-		root.style.setProperty("--dur-reduced", ".07s");
-		assert.equal(f.w.MotionTest.MotionEngine.reducedDuration, 70);
 	} finally {
 		f.dom.window.close();
 	}

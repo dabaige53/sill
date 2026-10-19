@@ -1,0 +1,332 @@
+import { Store } from "../data/store.ts";
+import type { Gestures } from "./gestures.ts";
+
+export const gesturePreviewMethods = {
+	bindPreviewHandle(this: Gestures, surface: HTMLElement) {
+		const handle = surface.querySelector<HTMLButtonElement>(".sheet-handle");
+		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
+		if (!handle || !scroll) return;
+		const token = this.app.modalToken;
+		let drag: {
+			id: number;
+			x: number;
+			y: number;
+			full: boolean;
+			live: boolean;
+			base: number;
+			velocity: ReturnType<Gestures["velocity"]>;
+		} | null = null;
+		let frame = 0,
+			distance = 0;
+		const paint = () => {
+			frame = 0;
+			if (!drag || !current()) return;
+			// Keep text geometry stable; upward travel resists until release expands the sheet.
+			surface.style.translate = `0 ${distance > 0 ? distance : distance * 0.2}px`;
+		};
+		const current = () => token === this.app.modalToken && surface.isConnected;
+		const snap = (full: boolean, velocity = 0) => {
+			if (!current()) return;
+			cancelAnimationFrame(frame);
+			frame = 0;
+			surface.classList.remove("is-drag");
+			surface.style.maxHeight = "";
+			this.settle(surface, velocity);
+			surface.style.height = "";
+			surface.classList.toggle("is-full", full);
+			handle.setAttribute("aria-expanded", String(full));
+		};
+		const cancel = () => {
+			if (!drag) return;
+			const previous = drag;
+			drag = null;
+			snap(previous.full);
+		};
+		handle.addEventListener("pointerdown", (event: PointerEvent) => {
+			if (!current() || event.button !== 0 || !event.isPrimary) return;
+			distance = 0;
+			drag = {
+				id: event.pointerId,
+				x: event.clientX,
+				y: event.clientY,
+				full: surface.classList.contains("is-full"),
+				live: false,
+				base: this.capture(surface),
+				velocity: this.velocity(event.clientY),
+			};
+			handle.setPointerCapture(event.pointerId);
+		});
+		handle.addEventListener("pointermove", (event: PointerEvent) => {
+			if (!drag || drag.id !== event.pointerId || !current()) return;
+			const dy = event.clientY - drag.y,
+				dx = event.clientX - drag.x;
+			if (!drag.live && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 6) return cancel();
+			if (!drag.live && Math.abs(dy) < 6) return;
+			drag.live = true;
+			surface.classList.add("is-drag");
+			if (event.cancelable) event.preventDefault();
+			drag.velocity.feed(event.clientY);
+			distance = drag.base + dy;
+			if (!frame) frame = requestAnimationFrame(paint);
+		});
+		handle.addEventListener("pointerup", (event: PointerEvent) => {
+			if (!drag || drag.id !== event.pointerId || !current()) return;
+			const previous = drag,
+				dy = previous.base + event.clientY - previous.y;
+			cancelAnimationFrame(frame);
+			frame = 0;
+			drag = null;
+			if (!previous.live) {
+				snap(previous.full);
+				return;
+			}
+			// Suppress the click synthesized after a drag; keyboard clicks still toggle.
+			handle.dataset.dragged = "true";
+			window.setTimeout(() => {
+				delete handle.dataset.dragged;
+			}, 0);
+			if (dy >= this.value("handle-distance", 160)) {
+				this.exitSurface(surface, () => this.app.closeModal());
+				return;
+			}
+			snap(dy < -40 ? true : dy > 40 ? false : previous.full, previous.velocity.read());
+		});
+		handle.addEventListener("pointercancel", cancel);
+		handle.addEventListener("lostpointercapture", cancel);
+		handle.addEventListener("click", () => {
+			if (handle.dataset.dragged || !current()) return;
+			snap(!surface.classList.contains("is-full"));
+		});
+	},
+	bindPreviewResistance(this: Gestures, surface: HTMLElement) {
+		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
+		if (!scroll) return;
+		const token = this.app.modalToken;
+		let touch: { x: number; y: number } | null = null;
+		let distance = 0,
+			timer = 0;
+		const current = () => token === this.app.modalToken && surface.isConnected;
+		// Pulling down at the top moves the sheet; pushing on at the end belongs to the read-end ring when it is on.
+		const edge = (delta: number) =>
+			delta < 0 &&
+			!surface.querySelector(".push-ring") &&
+			scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
+		const paint = (delta: number) => {
+			if (!current()) return;
+			const offset = Math.sign(delta) * 14 * (1 - Math.exp(-Math.abs(delta) / 100));
+			scroll.style.translate = `0 ${offset.toFixed(2)}px`;
+		};
+		const reset = () => {
+			clearTimeout(timer);
+			touch = null;
+			distance = 0;
+			scroll.classList.remove("is-drag");
+			if (current()) scroll.style.translate = "";
+		};
+		scroll.addEventListener(
+			"wheel",
+			(event: WheelEvent) => {
+				if (!current() || this.fromField(event) || Math.abs(event.deltaX) > Math.abs(event.deltaY))
+					return;
+				const delta = -event.deltaY * (event.deltaMode === 1 ? 16 : 1);
+				if (!delta || !edge(delta)) return reset();
+				if (event.cancelable) event.preventDefault();
+				distance = Math.sign(distance) === Math.sign(delta) ? distance + delta : delta;
+				paint(distance);
+				clearTimeout(timer);
+				timer = window.setTimeout(reset, 120);
+			},
+			{ passive: false },
+		);
+		scroll.addEventListener(
+			"touchstart",
+			(event: TouchEvent) => {
+				reset();
+				if (event.touches.length === 1 && !this.fromField(event)) touch = this.point(event);
+			},
+			{ passive: true },
+		);
+		scroll.addEventListener(
+			"touchmove",
+			(event: TouchEvent) => {
+				if (!touch || !current()) return;
+				if (event.touches.length !== 1) return reset();
+				const point = this.point(event),
+					delta = point.y - touch.y;
+				if (Math.abs(point.x - touch.x) > Math.abs(delta)) return reset();
+				if (!edge(delta)) {
+					touch = point;
+					return;
+				}
+				if (event.cancelable) event.preventDefault();
+				scroll.classList.add("is-drag");
+				paint(delta);
+			},
+			{ passive: false },
+		);
+		scroll.addEventListener("touchend", reset, { passive: true });
+		scroll.addEventListener("touchcancel", reset, { passive: true });
+	},
+	bindPush(this: Gestures, id?: any, scroll?: any) {
+		const app = this.app,
+			dialog = app.dialog;
+		if (!dialog.querySelector("#reader-end") || !Store.pref("collapseOnFinish")) return;
+		const host = dialog.classList.contains("reader")
+			? dialog
+			: dialog.querySelector(".preview-sheet");
+		if (!host) return;
+		const chip = document.createElement("div");
+		chip.className = "push-ring";
+		chip.setAttribute("aria-hidden", "true");
+		chip.innerHTML =
+			'<svg class="arc" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="8" stroke-dasharray="50.27" stroke-dashoffset="50.27"/></svg><svg class="tick" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+		host.appendChild(chip);
+		const arc = chip.querySelector(".arc circle:last-child"),
+			bar = dialog.querySelector(":scope > .float-bar");
+		const need = 120,
+			token = app.modalToken,
+			wheel = this.intent(),
+			letGo = this.release();
+		let pull = 0,
+			timer = 0,
+			touch = null,
+			done = false;
+		const atEnd = () => scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
+		const paint = () => {
+			if (app.modalToken !== token) return;
+			chip.style.opacity = String(Math.min(1, pull / 30));
+			chip.style.transform = `scale(${(0.6 + 0.4 * Math.min(1, pull / 60)).toFixed(3)})`;
+			arc.setAttribute("stroke-dashoffset", String(50.27 * (1 - Math.min(1, pull / need))));
+			scroll.style.translate = pull ? `0 ${-Math.round(pull * 0.35)}px` : "";
+			if (bar) {
+				bar.style.opacity = pull ? "0" : "";
+				bar.style.translate = pull ? "0 16px" : "";
+			}
+		};
+		const finish = () => {
+			if (done || app.modalToken !== token) return;
+			done = true;
+			clearTimeout(timer);
+			pull = need;
+			paint();
+			chip.classList.add("is-done");
+			chip.style.transform = "scale(1)";
+			Store.patch(id, { read: true, progress: 1 });
+			app.refreshCard(id);
+			this.swallowMomentum();
+			window.setTimeout(() => {
+				if (app.modalToken !== token) return;
+				// A stacked preview folds back to the card below it; reading returns to the desk.
+				if (app.modalKind === "preview") app.closeModal();
+				else app.closeToDesk(true);
+			}, 460);
+		};
+		const set = (v?: any) => {
+			if (done || app.modalToken !== token) return;
+			pull = Math.max(0, Math.min(need, v));
+			paint();
+		};
+		const cancel = () => {
+			touch = null;
+			if (done || app.modalToken !== token) return;
+			clearTimeout(timer);
+			wheel.reset();
+			letGo.reset();
+			pull = 0;
+			host.classList.remove("is-drag");
+			paint();
+		};
+		scroll.addEventListener(
+			"scroll",
+			() => {
+				if (!atEnd() && pull && !done) {
+					pull = 0;
+					paint();
+				}
+			},
+			{ passive: true },
+		);
+		scroll.addEventListener(
+			"wheel",
+			(e?: any) => {
+				if (done || app.modalToken !== token) return;
+				if (this.fromField(e)) return cancel();
+				const d = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+				if (d <= 0 || !atEnd()) {
+					wheel.reset();
+					if (pull) {
+						pull = 0;
+						paint();
+					}
+					return;
+				}
+				if (!wheel.feed(d)) return;
+				set(pull + Math.min(40, d) * 0.5);
+				clearTimeout(timer);
+				if (pull >= need && letGo.feed(d)) {
+					finish();
+					return;
+				}
+				timer = window.setTimeout(() => {
+					if (pull >= need) {
+						finish();
+						return;
+					}
+					if (!done && app.modalToken === token) {
+						pull = 0;
+						paint();
+						wheel.reset(false);
+					}
+				}, 180);
+			},
+			{ passive: true },
+		);
+		scroll.addEventListener(
+			"touchstart",
+			(e?: any) => {
+				cancel();
+				if (
+					e.touches.length === 1 &&
+					!this.fromField(e) &&
+					atEnd() &&
+					!done &&
+					app.modalToken === token
+				)
+					touch = { ...this.point(e) };
+			},
+			{ passive: true },
+		);
+		scroll.addEventListener(
+			"touchmove",
+			(e?: any) => {
+				if (!touch) return;
+				if (e.touches.length !== 1 || app.modalToken !== token) return cancel();
+				const point = this.point(e),
+					dy = touch.y - point.y;
+				if (Math.abs(point.x - touch.x) > Math.abs(dy)) return cancel();
+				host.classList.add("is-drag");
+				if (dy <= 0) {
+					if (pull) {
+						pull = 0;
+						paint();
+					}
+					return;
+				}
+				set(dy * 0.7);
+			},
+			{ passive: true },
+		);
+		scroll.addEventListener("touchend", () => {
+			if (touch) {
+				host.classList.remove("is-drag");
+				if (pull >= need) {
+					touch = null;
+					finish();
+					return;
+				}
+			}
+			cancel();
+		});
+		scroll.addEventListener("touchcancel", cancel, { passive: true });
+	},
+};

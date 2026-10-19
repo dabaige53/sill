@@ -1,6 +1,6 @@
 # Sill Apple
 
-更新：2026-10-17。
+更新：2026-10-19。
 
 一个 Swift Package。macOS 用 SwiftUI 与 AppKit 实现当前 Web 工作台，默认登录同一云端账号并读写同一工作区；不使用 WebView、Node 或后台服务。SillKit 提供卡片校验、本地存储与云端客户端。iOS 仍只有共享数据层，没有界面或设备验收。
 
@@ -32,3 +32,10 @@ codesign --verify --deep --strict dist/macos/Sill.app
 产物为 `dist/macos/Sill.app`，仅本机 ad-hoc 签名；构建不表示安装、公证、部署或真实账号验收。测试使用临时目录与模拟 HTTP 响应，不访问真实卡片或账号。桌面视觉与交互须另外在实际窗口对照 Web 检查，不能用编译通过替代 1:1 验收。
 
 类型、文案和图标在构建时由 `contracts/` 与 `design-system/` 生成。四张封面 PNG 是 Web 现有 SVG 图像的原生资源副本；构建随 SwiftPM 资源包复制，不能依赖开发机的路径。新增设计值必须回到设计系统维护。
+
+## 源文件职责
+
+- `Desktop.swift` 保留窗口与状态；`DesktopFeed.swift` 组织主页、归档与搜索；`DesktopActions.swift` 处理选择、标签与 AI 页；`DesktopInteraction.swift` 处理键盘、滚动与提示计时；`DesktopPresentation.swift` 保存展示状态类型。
+- `CardReader.swift` 保留阅读浮层与状态；`CardReaderContent.swift` 展示正文与信息；`CardReaderMetadata.swift` 处理备注、标签与媒体操作。
+- `CardTile.swift` 展示卡片；`CardActions.swift` 提供共用卡片控件与动作。`WorkspaceFeed.swift` 负责主页排序与搜索过滤。
+- `CloudWorkspace.swift` 负责云端工作区；`CloudSessionVault.swift` 负责会话存储。跨文件扩展只开放必要的模块内成员，不增加公共接口。

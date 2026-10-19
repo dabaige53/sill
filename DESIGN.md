@@ -9,7 +9,7 @@
 | 内容 | 位置 |
 | --- | --- |
 | 设计规则：立场、文案、颜色、字体、卡片积木、动效、图标 | [design-system/README.md](design-system/README.md) |
-| 设计变量的来源 | [design-system/tokens.json](design-system/tokens.json) |
+| 设计变量的来源 | [design-system/tokens/](design-system/tokens/)；生成兼容文件 `tokens.json` |
 | Web 设计变量 | [apps/web/styles/tokens.css](apps/web/styles/tokens.css) |
 | 规则和代码位置的对照 | [设计系统映射](docs/design/system.md) |
 | 设计决策 | [ADR-01 至 ADR-21](docs/design/decisions.md)，ADR-22 起见 [docs/adr/](docs/README.md) |
@@ -30,7 +30,7 @@
 3. 同步线下：读取线上变化的文件，覆盖到仓库对应路径：Design System 的 `project/<路径>` 对应 `design-system/<路径>`，设计画布的 `project/<画板>` 对应 `design-system/boards/<画板>`。画板尺寸变了，同时更新 `design-system/boards/canvas.json` 和 `index.html`。
 4. 改代码。数值有对应变量时用变量：颜色、圆角、字号（`--text-<样式名>`）、阴影、动效时长。没有对应变量的新数值，先判断它是不是一级新规则；是就回到第 2 步，在线上加进变量，再同步到 `tokens.json` 和 `tokens.css`；不是就改用已有的一级。
 5. 重新生成组件包和图标：`node design-system/scripts/generate.ts design-system .`，再把变化的组件包和图标发布到线上 Design System。
-6. 检查：`npm test`、`node tests/e2e/browser.ts`；在浏览器里看浅色、深色、手机宽度和减少动态效果。
+6. 检查：`npm test`、`node tests/e2e/browser.ts`；在浏览器里看浅色、深色、手机宽度和快速连续操作。
 7. 实现中发现规则要调整时，回到第 2 步先改线上，不只改仓库。仓库里有线上没有的设计改动时，在 PR 的 Merge Danger 里写明。
 
 ## 不能做的事
@@ -51,3 +51,7 @@
 - 2026-10-17 原生源码按当前 Web 对齐：卡片标题 17、摘要 15、内边距 18，并映射浅深色、已读底色与动作色；卡片积木、导航、搜索、设置与详情继续复用 Web 的配方和文案。严格 1:1 仍须通过实际窗口的视觉与交互检查，源码对齐不等于验收完成。
 - 2026-10-18 手机主页（[ADR 0036](docs/adr/0036-phone-home-density.md)）只改了 Web。Mac 是桌面窗口，不需要手机顶栏和分栏标签；提醒和待办的勾选圈是否用 `accent` 描边、提醒是否显示来源时间，还没有在 Mac 上核对。
 - 2026-10-18 卡片详情（[ADR 0037](docs/adr/0037-card-detail-toolbar.md)）只改了 Web。Mac 的详情工具条是否按「通用｜专属」分组、是否用新的九个图标、设置里是否有「卡片操作」开关，还没有核对。
+
+## 产品设置边界
+
+项目不提供专门的无障碍设置或系统偏好适配。移除减少动态、减少透明度和增强对比度分支；保留正常键盘操作、焦点恢复、原生控件语义与图标名称。动效统一按设计手册执行。

@@ -1,0 +1,307 @@
+{
+	"color": {
+		"themes": [
+			{
+				"id": "light",
+				"name": "Light"
+			}
+		],
+		"tokens": [
+			{
+				"name": "canvas",
+				"value": "#f5f5f7",
+				"usage": "页面底色（html、body）。信息流卡片浮在其上。"
+			},
+			{
+				"name": "card",
+				"value": "#ffffff",
+				"usage": "内容卡片、对话框、面板、AI 面板的实体表面。内容永远放在不透明表面上。"
+			},
+			{
+				"name": "surface",
+				"value": "#f0f0f2",
+				"usage": "次级填充：icon-button hover、tag-chip、输入框、context-card、用户消息气泡。"
+			},
+			{
+				"name": "faint",
+				"value": "#e8e8ed",
+				"usage": "更深一级的填充：tag-chip / filter-kind 的 hover、context 缩略图底。"
+			},
+			{
+				"name": "ink",
+				"value": "#1d1d1f",
+				"usage": "正文与标题文字，用于 card、canvas、surface 之上（≥14.8:1）。"
+			},
+			{
+				"name": "muted",
+				"value": "#636366",
+				"usage": "摘要、元信息、说明文字。card 上 5.9:1、canvas 上 5.4:1、surface 上 5.1:1，三种底上都过 4.5:1（旧值 #6e6e73 在 surface 上不足）。"
+			},
+			{
+				"name": "secondary",
+				"value": "#68686d",
+				"usage": "辅助文字、图标和 placeholder；浅色 #68686d，深色 #a1a1a8。正常文字需在实际背景上验证至少 4.5:1。"
+			},
+			{
+				"name": "line",
+				"value": "rgba(0,0,0,.06)",
+				"usage": "1px 发丝线：卡片边框、列表分隔。"
+			},
+			{
+				"name": "accent",
+				"value": "#0066cc",
+				"usage": "动作前景色：焦点、进度与链接；深色模式使用 #4c9bff。白字按钮背景必须使用 accent-fill。"
+			},
+			{
+				"name": "accent-fill",
+				"value": "#0066cc",
+				"usage": "深浅主题中白字按钮和选中项的实色背景，与动作前景色分离。"
+			},
+			{
+				"name": "accent-soft",
+				"value": "#edf4ff",
+				"usage": "选中态底色：icon-button.active、tag-chip.active、filter-kind.active、suggestion-action。其上文字用 accent（5.03:1）。"
+			},
+			{
+				"name": "accent-soft-hover",
+				"value": "#dceaff",
+				"usage": "suggestion-action 的 hover 底色（cards.css 中的字面值）。"
+			},
+			{
+				"name": "accent-pressed",
+				"value": "#0057ad",
+				"usage": "reminder-complete 实心按钮 hover（cards.css 中的字面值）。"
+			},
+			{
+				"name": "selection",
+				"value": "#d8e9ff",
+				"usage": "::selection 文字选区底色（base.css 中的字面值）。"
+			},
+			{
+				"name": "success",
+				"value": "#248a3d",
+				"usage": "完成标记：completed-symbol 勾选图标。card 上 4.4:1、surface 上 3.86:1，仅作图标（≥3:1）使用。"
+			},
+			{
+				"name": "alert",
+				"value": "#b45309",
+				"usage": "提醒与警示状态的文字或图标，card 上 5.02:1。提醒卡本身不用警示色面板。"
+			},
+			{
+				"name": "glass",
+				"value": "rgba(255,255,255,.38)",
+				"usage": "功能层玻璃的填充：底栏按钮组与头像、详情和阅读页工具条、阅读页右上按钮组、多选条、Toast、下拉刷新圆环。配 glass-filter、glass-edge、glass-shade、glass-rim 与 shadow-glass；深色 rgba(40,40,46,.42)。只用于功能层。"
+			},
+			{
+				"name": "glass-thick",
+				"value": "rgba(255,255,255,.88)",
+				"usage": "字多的玻璃：多选操作菜单、增强对比度时的工具条；深色 rgba(36,36,40,.9)。"
+			},
+			{
+				"name": "glass-edge",
+				"value": "rgba(255,255,255,.9)",
+				"usage": "玻璃左上的高光边（内侧 1px）；深色 rgba(255,255,255,.22)。"
+			},
+			{
+				"name": "glass-shade",
+				"value": "rgba(255,255,255,.32)",
+				"usage": "玻璃右下的弱边与镜片内的柔光；深色 rgba(255,255,255,.06)。"
+			},
+			{
+				"name": "glass-rim",
+				"value": "rgba(0,0,0,.07)",
+				"usage": "玻璃外圈 0.5px 发丝线，把玻璃和白卡分开；深色 rgba(0,0,0,.5)。"
+			},
+			{
+				"name": "glass-press",
+				"value": "rgba(0,0,0,.06)",
+				"usage": "玻璃上按钮的悬停与按下底，也是筛选进行中搜索按钮的浅底；深色 rgba(255,255,255,.1)。"
+			},
+			{
+				"name": "toggle-off",
+				"value": "#d1d1d6",
+				"usage": "偏好开关关闭时的轨道色（controls.css 中的字面值）。"
+			},
+			{
+				"name": "check-border",
+				"value": "#b8b8bd",
+				"usage": "待办选择项未完成圆点的 1.2px 描边（cards.css 中的字面值）。"
+			},
+			{
+				"name": "done-strike",
+				"value": "#c7c7cc",
+				"usage": "已完成待办文字的删除线颜色（cards.css 中的字面值）。"
+			},
+			{
+				"name": "card-read",
+				"value": "#e9e9ee",
+				"usage": "已读卡片的底色：浅色 #e9e9ee、深色 #121215，比 card 明显退一层，去掉阴影。已读未读只靠这一层颜色表达，不加蓝点、不写「已读」。"
+			},
+			{
+				"name": "line-read",
+				"value": "rgba(0,0,0,.04)",
+				"usage": "已读卡片的边框，比 line 更淡。"
+			},
+			{
+				"name": "alert-soft",
+				"value": "#fdf3e7",
+				"usage": "琥珀状态胶囊底色：「待你审阅」「构建失败」「待回复」。其上文字用 alert。"
+			},
+			{
+				"name": "success-soft",
+				"value": "#e8f4ec",
+				"usage": "完成态胶囊底色。其上图标用 success。"
+			},
+			{
+				"name": "highlight",
+				"value": "#fff1a8",
+				"usage": "搜索结果中命中词的底色，圆角 3px。"
+			},
+			{
+				"name": "toggle-on",
+				"value": "#0066cc",
+				"usage": "设置开关打开时的轨道色，与 accent-fill 同一个蓝，不用系统绿。"
+			},
+			{
+				"name": "dim",
+				"value": "rgba(18,20,26,.26)",
+				"usage": "预览、抽屉、面板背后的遮罩：只压暗，不模糊；深色 rgba(0,0,0,.52)。"
+			},
+			{
+				"name": "frost",
+				"value": "rgba(245,245,247,.56)",
+				"usage": "搜索与多选菜单的磨砂背景：配 blur(28px) saturate(1.6)，不压暗；深色 rgba(17,17,19,.6)。"
+			},
+			{
+				"name": "sky",
+				"value": "#bcd5ef",
+				"usage": "品牌色：Sill 图标与封面的天空上沿。只用于品牌表达，不进界面。"
+			},
+			{
+				"name": "sky-soft",
+				"value": "#eef4fa",
+				"usage": "品牌色：天空下沿，接到窗台。"
+			},
+			{
+				"name": "ledge",
+				"value": "#f7f5f0",
+				"usage": "品牌色：窗台上沿的暖白。"
+			},
+			{
+				"name": "ledge-deep",
+				"value": "#ebe7df",
+				"usage": "品牌色：窗台下沿。"
+			},
+			{
+				"name": "fixed-white",
+				"value": "#fff",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-ink",
+				"value": "#1d1d1f",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-podcast-light",
+				"value": "#f4ede4",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-podcast-dark",
+				"value": "#2a2622",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-podcast-cover-start",
+				"value": "#d9cbbb",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-podcast-cover-mid",
+				"value": "#efe6db",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-podcast-cover-end",
+				"value": "#cdbcaa",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-photo-canvas",
+				"value": "#0b0b0c",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-white-72",
+				"value": "rgba(255, 255, 255, 0.72)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-white-82",
+				"value": "rgba(255, 255, 255, 0.82)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-white-75",
+				"value": "rgba(255, 255, 255, 0.75)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-white-12",
+				"value": "rgba(255, 255, 255, 0.12)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-5",
+				"value": "rgba(0, 0, 0, 0.05)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-6",
+				"value": "rgba(0, 0, 0, 0.06)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-8",
+				"value": "rgba(0, 0, 0, 0.08)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-10",
+				"value": "rgba(0, 0, 0, 0.1)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-12",
+				"value": "rgba(0, 0, 0, 0.12)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-14",
+				"value": "rgba(0, 0, 0, 0.14)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-15",
+				"value": "rgba(0, 0, 0, 0.15)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-16",
+				"value": "rgba(0, 0, 0, 0.16)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-18",
+				"value": "rgba(0, 0, 0, 0.18)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "fixed-black-55",
+				"value": "rgba(0, 0, 0, 0.55)",
+				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			}
+		]
+	}
+}

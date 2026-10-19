@@ -1,0 +1,437 @@
+import { copy } from "../copy.ts";
+import type { Gestures } from "./gestures.ts";
+import { MotionEngine } from "./motion.ts";
+
+export const gesturePullMethods = {
+	bindPull(this: Gestures) {
+		const ring = document.createElement("button");
+		ring.type = "button";
+		ring.id = "pull-ring";
+		ring.className = "pull-ring glass";
+		ring.disabled = true;
+		ring.setAttribute("aria-hidden", "true");
+		ring.innerHTML =
+			'<svg class="pull-progress" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" pathLength="100"/></svg><svg class="pull-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><svg class="pull-retry" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 6"/></svg>';
+		document.body.appendChild(ring);
+		const need = 48,
+			circle = ring.querySelector("circle"),
+			main = document.querySelector("main");
+		let start = null,
+			pull = 0,
+			busy = false,
+			timer = 0,
+			holdTimer = 0,
+			frame = 0,
+			inset = 16,
+			markTop: number | null = null,
+			state = "idle";
+		const mark = document.querySelector<HTMLElement>(".home-mark");
+		const wheel = this.intent(),
+			wheelRelease = this.release();
+		const labels = {
+			idle: copy("web.refresh.pull"),
+			pulling: copy("web.refresh.pull"),
+			loading: copy("web.refresh.loading"),
+			success: copy("web.refresh.success"),
+			error: copy("web.refresh.retry"),
+		};
+		const status = (next: keyof typeof labels) => {
+			if (state === next && ring.dataset.state === next) return;
+			state = next;
+			ring.dataset.state = next;
+			ring.classList.toggle("is-spinning", next === "loading");
+			ring.disabled = next !== "error";
+			ring.setAttribute("aria-hidden", String(next === "idle" || next === "pulling"));
+			ring.setAttribute("aria-label", labels[next]);
+			ring.setAttribute("aria-busy", String(next === "loading"));
+			if (next === "loading" || next === "success" || next === "error")
+				this.app.announce?.(labels[next]);
+		};
+		const measure = () => {
+			inset = parseFloat(getComputedStyle(main).paddingTop) || 16;
+			const rect = mark?.getBoundingClientRect();
+			markTop = rect?.height ? rect.top + (rect.height - ring.offsetHeight) / 2 : null;
+			ring.classList.toggle("in-home-mark", markTop !== null);
+			ring.style.top = markTop === null ? "" : `${markTop}px`;
+		};
+		const paint = () => {
+			cancelAnimationFrame(frame);
+			frame = 0;
+			const shift = Math.round(pull * 0.75),
+				feedback = state === "loading" || state === "success" || state === "error";
+			main.style.translate = pull ? `0 ${shift}px` : "";
+			// While loading the desk stays open and the ring turns in the gap it made.
+			mark?.classList.toggle("is-refreshing-mark", markTop !== null && state !== "idle");
+			ring.style.translate =
+				markTop !== null
+					? "0 0"
+					: pull
+						? `0 ${Math.round((inset + shift) / 2 - 18)}px`
+						: feedback
+							? "0 12px"
+							: "0 -48px";
+			ring.style.opacity = String(feedback ? 1 : Math.min(1, pull / 18));
+			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
+			ring.toggleAttribute("data-ready", pull >= need);
+		};
+		const schedulePaint = () => {
+			if (!frame) frame = requestAnimationFrame(paint);
+		};
+		const cancel = () => {
+			start = null;
+			wheel.reset();
+			document.body.classList.remove("is-pulling");
+			if (state === "pulling") {
+				clearTimeout(timer);
+				pull = 0;
+				status("idle");
+				paint();
+			}
+		};
+		const refresh = async () => {
+			if (busy) return;
+			busy = true;
+			measure();
+			start = null;
+			wheel.reset();
+			clearTimeout(timer);
+			// Hold the desk at the threshold while it loads. A slow request lets the cards back after a second;
+			// the ring keeps turning above them.
+			pull = need;
+			document.body.classList.remove("is-pulling");
+			status("loading");
+			paint();
+			clearTimeout(holdTimer);
+			holdTimer = window.setTimeout(() => {
+				if (state !== "loading") return;
+				pull = 0;
+				paint();
+			}, 1000);
+			try {
+				const result = await this.app.refresh({ feedback: "pull" });
+				if (result === false) throw new Error("Refresh did not complete");
+				status("success");
+				timer = window.setTimeout(() => {
+					pull = 0;
+					status("idle");
+					paint();
+				}, 480);
+			} catch {
+				clearTimeout(holdTimer);
+				pull = 0;
+				status("error");
+			} finally {
+				busy = false;
+				paint();
+			}
+		};
+		this.refresh = refresh;
+		status("idle");
+		paint();
+		ring.addEventListener("click", () => {
+			if (state === "error") refresh();
+		});
+		document.addEventListener(
+			"touchstart",
+			(e?: any) => {
+				cancel();
+				if (
+					busy ||
+					this.app.selected.size > 0 ||
+					this.app.drag?.menu?.open ||
+					scrollY > 0 ||
+					this.app.dialog.open ||
+					e.touches.length > 1 ||
+					this.fromField(e) ||
+					e.target.closest?.("#dock,#toast,#pull-ring,.card-more-menu,.deck")
+				)
+					return;
+				measure();
+				start = { ...this.point(e) };
+			},
+			{ passive: true },
+		);
+		document.addEventListener(
+			"touchmove",
+			(e?: any) => {
+				if (!start) return;
+				if (this.app.drag?.active) return cancel();
+				if (e.touches.length !== 1 || this.app.dialog.open) return cancel();
+				const p = this.point(e),
+					dy = p.y - start.y,
+					dx = Math.abs(p.x - start.x);
+				if (dy <= 0 || dx > dy) {
+					if (pull) {
+						pull = 0;
+						paint();
+					}
+					if (dy < -4 || dx > 12) cancel();
+					return;
+				}
+				// If the browser already owns the gesture, do not show a second pull.
+				if (!e.cancelable) return cancel();
+				e.preventDefault();
+				if (state !== "pulling") {
+					clearTimeout(timer);
+					status("pulling");
+				}
+				document.body.classList.add("is-pulling");
+				// Light initial travel, then progressively stronger resistance beyond threshold.
+				pull = Math.min(72, Math.min(dy, 80) * 0.65 + Math.max(0, dy - 80) * 0.18);
+				schedulePaint();
+			},
+			{ passive: false },
+		);
+		document.addEventListener("touchend", () => {
+			if (!start) return;
+			start = null;
+			document.body.classList.remove("is-pulling");
+			if (pull >= need) refresh();
+			else {
+				pull = 0;
+				status("idle");
+				paint();
+			}
+		});
+		document.addEventListener("touchcancel", cancel, { passive: true });
+		window.addEventListener(
+			"wheel",
+			(e?: any) => {
+				if (
+					busy ||
+					state === "success" ||
+					this.app.selected.size > 0 ||
+					this.app.drag?.menu?.open ||
+					this.app.dialog.open ||
+					scrollY > 0 ||
+					e.deltaY >= 0 ||
+					Math.abs(e.deltaX) > Math.abs(e.deltaY)
+				) {
+					wheel.reset();
+					return;
+				}
+				if (!e.cancelable) return cancel();
+				e.preventDefault();
+				if (!wheel.feed(-e.deltaY)) return;
+				if (!pull) measure();
+				status("pulling");
+				pull = Math.min(need, pull + -e.deltaY * 0.5);
+				schedulePaint();
+				clearTimeout(timer);
+				// A full ring waits for the hand to let go: the wheel stops or starts coasting.
+				if (pull >= need && wheelRelease.feed(-e.deltaY)) {
+					wheelRelease.reset();
+					wheel.reset();
+					this.swallowMomentum();
+					refresh();
+					return;
+				}
+				timer = window.setTimeout(() => {
+					wheelRelease.reset();
+					if (pull >= need) {
+						wheel.reset(false);
+						refresh();
+						return;
+					}
+					pull = 0;
+					status("idle");
+					paint();
+					wheel.reset(false);
+				}, 180);
+			},
+			{ passive: false },
+		);
+	},
+	bindPullDown(this: Gestures) {
+		const app = this.app,
+			dialog = app.dialog,
+			reader = dialog.classList.contains("reader"),
+			phone = MotionEngine.phoneSheet(dialog);
+		const surface = reader ? dialog : dialog.querySelector(".preview-sheet");
+		if (!surface) return;
+		if (!reader) {
+			this.bindPreviewResistance(surface);
+			this.bindPreviewHandle(surface);
+		}
+		const scroll = reader
+			? dialog.querySelector("#reader-scroll")
+			: surface.querySelector(".sheet-scroll") || surface;
+		const bar = reader ? null : dialog.querySelector(":scope > .float-bar"),
+			token = app.modalToken,
+			wheel = this.intent(),
+			letGo = this.release();
+		let threshold = this.value("dismiss-distance", 110);
+		const measure = () => {
+			threshold = this.value("dismiss-distance", 110);
+		};
+		measure();
+		const need = () => threshold;
+		let pull = 0,
+			timer = 0,
+			frame = 0,
+			done = false;
+		const atTop = () => scroll.scrollTop <= 0;
+		const paint = () => {
+			cancelAnimationFrame(frame);
+			frame = 0;
+			if (done || app.modalToken !== token) return;
+			surface.classList.toggle("is-drag", pull > 0);
+			surface.style.translate = pull ? `0 ${Math.round(pull * (phone ? 0.6 : 1))}px` : "";
+			this.dim(pull ? 1 - Math.min(1, pull / need()) * 0.7 : null);
+			if (bar) bar.style.opacity = pull ? String(Math.max(0, 1 - (pull / need()) * 1.6)) : "";
+		};
+		const schedulePaint = () => {
+			if (!frame) frame = requestAnimationFrame(paint);
+		};
+		const close = () => {
+			if (done || app.modalToken !== token) return;
+			done = true;
+			clearTimeout(timer);
+			this.swallowMomentum();
+			cancelAnimationFrame(frame);
+			this.exitSurface(surface, () => {
+				if (reader) app.closeToDesk(false);
+				else app.closeModal();
+			});
+		};
+		// Phone: reading on makes the sheet full screen. The bars follow the shared tuck rule (ChromeAutoHide).
+		if (phone || matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone)
+			scroll.addEventListener(
+				"scroll",
+				() => {
+					if (scroll.scrollTop > 4 && !surface.classList.contains("is-drag")) {
+						surface.classList.add("is-full");
+						surface.querySelector(".sheet-handle")?.setAttribute("aria-expanded", "true");
+					}
+				},
+				{ passive: true },
+			);
+		scroll.addEventListener(
+			"scroll",
+			() => {
+				if (!atTop() && pull) {
+					pull = 0;
+					paint();
+				}
+			},
+			{ passive: true },
+		);
+		// Listen on the whole dialog: as the sheet slides down it leaves the pointer behind, and the pull must keep going.
+		if (this.pullWheel) dialog.removeEventListener("wheel", this.pullWheel);
+		this.pullWheel = (e?: any) => {
+			if (done || app.modalToken !== token || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+			if (this.fromField(e)) {
+				clearTimeout(timer);
+				wheel.reset();
+				pull = 0;
+				paint();
+				return;
+			}
+			const d = -e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+			if (d <= 0 || !atTop()) {
+				wheel.reset();
+				letGo.reset();
+				if (pull && d < 0) {
+					pull = 0;
+					paint();
+				}
+				return;
+			}
+			if (!wheel.feed(d)) return;
+			if (!pull) measure();
+			pull = Math.min(
+				need() * 1.2,
+				pull + Math.min(40, d) * (phone ? 1 : 1 - pull / (need() * 2.5)),
+			);
+			schedulePaint();
+			clearTimeout(timer);
+			// Past the line it closes once the hand lets go, not while it is still pulling.
+			if (pull >= need() && letGo.feed(d)) {
+				close();
+				return;
+			}
+			timer = window.setTimeout(() => {
+				if (app.modalToken !== token) return;
+				letGo.reset();
+				if (pull >= need()) {
+					close();
+					return;
+				}
+				pull = 0;
+				paint();
+				wheel.reset(false);
+			}, 120);
+		};
+		dialog.addEventListener("wheel", this.pullWheel, { passive: true });
+		if (!reader) return;
+		// Full screen reading by finger: pull down from the top, past a fifth or with a flick, and it slides away.
+		let touch = null;
+		const cancel = () => {
+			touch = null;
+			if (done || app.modalToken !== token) return;
+			clearTimeout(timer);
+			wheel.reset();
+			pull = 0;
+			this.settle(surface);
+			this.dim(null);
+		};
+		scroll.addEventListener(
+			"touchstart",
+			(e?: any) => {
+				cancel();
+				if (
+					e.touches.length === 1 &&
+					!this.fromField(e) &&
+					atTop() &&
+					!done &&
+					app.modalToken === token
+				)
+					touch = {
+						...this.point(e),
+						velocity: this.velocity(this.point(e).y),
+						base: this.capture(surface),
+						live: false,
+					};
+			},
+			{ passive: true },
+		);
+		scroll.addEventListener(
+			"touchmove",
+			(e?: any) => {
+				if (!touch) return;
+				if (e.touches.length !== 1 || app.modalToken !== token) return cancel();
+				const p = this.point(e),
+					dy = touch.base + p.y - touch.y,
+					dx = Math.abs(p.x - touch.x);
+				if (!touch.live) {
+					if (dy < 6 && dx < 6) return;
+					if (dy <= 0 || dx > dy) {
+						cancel();
+						return;
+					}
+					touch.live = true;
+					dialog.classList.add("is-drag");
+				}
+				if (e.cancelable) e.preventDefault();
+				touch.velocity.feed(p.y);
+				pull = Math.max(0, dy);
+				paint();
+			},
+			{ passive: false },
+		);
+		scroll.addEventListener("touchend", () => {
+			if (app.modalToken !== token) return cancel();
+			if (!touch?.live) return cancel();
+			const v = touch.velocity.read();
+			touch = null;
+			dialog.classList.remove("is-drag");
+			if (pull >= need() || this.flick(pull, v)) close();
+			else {
+				pull = 0;
+				this.settle(surface, v);
+				this.dim(null);
+			}
+		});
+		scroll.addEventListener("touchcancel", cancel, { passive: true });
+	},
+};

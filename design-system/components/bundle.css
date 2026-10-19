@@ -1,5 +1,5 @@
 /* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */
-:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:160ms;--dur-sheet:360ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-reduced:70ms;--dur-tuck:180ms;--dur-lens:300ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:220ms;--dur-deck:260ms;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 17px;--text-reader-body: 17px;--text-summary: 15px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;}
+:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:160ms;--dur-sheet:360ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:180ms;--dur-lens:300ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:220ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 17px;--text-reader-body: 17px;--text-summary: 15px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;}
 :root[data-theme="dark"],
 .lightbox .float-bar {
 	--canvas: #111113;
@@ -48,6 +48,8 @@
 	--motion-managed-transform: initial;
 }
 html {
+	-webkit-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
 	background: var(--canvas);
 	scroll-behavior: var(--motion-scroll-behavior, smooth);
 	scrollbar-gutter: stable;
@@ -55,6 +57,7 @@ html {
 	overscroll-behavior-y: none;
 }
 body {
+	overscroll-behavior-y: none;
 	margin: 0;
 	font-family: var(--font);
 	color: var(--ink);
@@ -62,7 +65,7 @@ body {
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
-	min-height: 100vh;
+	min-height: 100dvh;
 	transition: var(--motion-transition, background var(--base));
 }
 button,
@@ -152,14 +155,14 @@ main {
 	width: 100%;
 	padding: var(--space-40) var(--space-40) var(--space-140);
 	margin: 0 auto;
-	min-height: 100vh;
+	min-height: 100dvh;
 }
 .feed-grid {
 	position: relative;
 	width: 100%;
 	max-width: var(--feed-max);
 	margin: 0 auto;
-	min-height: 60vh;
+	min-height: 60dvh;
 }
 h1,
 h2,
@@ -169,7 +172,7 @@ p {
 .empty-card {
 	position: relative;
 	max-width: 420px;
-	margin: 12vh auto 0;
+	margin: 12dvh auto 0;
 	padding: var(--space-32) var(--space-28);
 	text-align: center;
 	color: var(--muted);
@@ -252,6 +255,18 @@ main:has(.welcome, .empty-card) .feed-end {
 	display: block;
 }
 
+/* Controls suppress text selection; reading content keeps native copy/link menus. */
+button,
+[role="button"] {
+	touch-action: manipulation;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+a {
+	touch-action: manipulation;
+}
+
 /* Sill · controls · shared source */
 /* Liquid glass, for the functional layer only (bars, round buttons, menus floating over content).
    A clear, lightly tinted lens: little fill, a short blur with lifted saturation so the content
@@ -300,7 +315,11 @@ main:has(.welcome, .empty-card) .feed-end {
 		color var(--fast)
 	);
 }
-.icon-button:hover,
+@media (hover: hover) and (pointer: fine) {
+	.icon-button:hover {
+		background: var(--surface);
+	}
+}
 .icon-button:active {
 	background: var(--surface);
 }
@@ -743,14 +762,6 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	transition: none;
 	transition-delay: var(--motion-transition-delay, 0s);
 }
-@media (prefers-reduced-motion: reduce) {
-	.float-bar .icon-button::after {
-		translate: var(--tip-x) 0;
-	}
-}
-body.reduce-motion .float-bar .icon-button::after {
-	translate: var(--tip-x) 0;
-}
 #toast {
 	position: fixed;
 	right: var(--rail-edge);
@@ -821,7 +832,11 @@ body.is-dragging #toast {
 .chip .icon {
 	color: var(--secondary);
 }
-.chip:hover,
+@media (hover: hover) and (pointer: fine) {
+	.chip:hover {
+		background: var(--surface);
+	}
+}
 .chip:active {
 	background: var(--surface);
 }
@@ -860,8 +875,10 @@ body.is-dragging #toast {
 	opacity: 0.6;
 	border-radius: 50%;
 }
-.tag-pill button:hover {
-	opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+	.tag-pill button:hover {
+		opacity: 1;
+	}
 }
 .segmented {
 	display: inline-flex;
@@ -924,7 +941,11 @@ body.is-dragging #toast {
 	color: var(--ink);
 	transition: var(--motion-transition, background var(--fast));
 }
-.text-button:hover,
+@media (hover: hover) and (pointer: fine) {
+	.text-button:hover {
+		background: var(--surface);
+	}
+}
 .text-button:active {
 	background: var(--surface);
 }
@@ -943,8 +964,10 @@ body.is-dragging #toast {
 	transition: var(--motion-transition, filter var(--fast), transform var(--fast));
 	white-space: nowrap;
 }
-.solid-button:hover {
-	filter: brightness(1.08);
+@media (hover: hover) and (pointer: fine) {
+	.solid-button:hover {
+		filter: brightness(1.08);
+	}
 }
 .solid-button:active {
 	transform: scale(0.98);
@@ -968,7 +991,11 @@ body.is-dragging #toast {
 	min-height: 44px;
 	transition: var(--motion-transition, background var(--fast));
 }
-.soft-button:hover,
+@media (hover: hover) and (pointer: fine) {
+	.soft-button:hover {
+		background: var(--faint);
+	}
+}
 .soft-button:active {
 	background: var(--faint);
 }
@@ -1098,7 +1125,7 @@ body.is-dragging #toast {
 	}
 	main {
 		padding-top: var(--space-16);
-		min-height: calc(100vh - var(--space-24) - var(--hit-target));
+		min-height: calc(100dvh - var(--space-24) - var(--hit-target));
 	}
 }
 
@@ -1138,7 +1165,12 @@ body.is-dragging #toast {
 .feed-item.feed-card {
 	position: absolute;
 }
-.feed-card:hover,
+@media (hover: hover) and (pointer: fine) {
+	.feed-card:hover {
+		border-color: var(--line-hover);
+		box-shadow: var(--shadow-hover);
+	}
+}
 .feed-card:focus-within {
 	border-color: var(--line-hover);
 	box-shadow: var(--shadow-hover);
@@ -1538,7 +1570,11 @@ body.is-dragging #toast {
 	flex: none;
 	color: var(--secondary);
 }
-button.ref:hover,
+@media (hover: hover) and (pointer: fine) {
+	button.ref:hover {
+		background: var(--faint);
+	}
+}
 button.ref:active {
 	background: var(--faint);
 }
@@ -1637,8 +1673,10 @@ button.ref:active {
 	color: var(--fixed-white);
 	transition: var(--motion-transition, background var(--base), border-color var(--base));
 }
-.check-item:hover .check-dot {
-	border-color: var(--accent);
+@media (hover: hover) and (pointer: fine) {
+	.check-item:hover .check-dot {
+		border-color: var(--accent);
+	}
 }
 .check-item.is-done > span:last-child {
 	color: var(--muted);
@@ -1738,8 +1776,10 @@ button.ref:active {
 	flex-basis: 22px;
 	border-width: 1.8px;
 }
-.reminder-check:hover .check-dot:not(.is-done) {
-	background: var(--accent-soft);
+@media (hover: hover) and (pointer: fine) {
+	.reminder-check:hover .check-dot:not(.is-done) {
+		background: var(--accent-soft);
+	}
 }
 .card-actions-row {
 	display: flex;
@@ -1772,7 +1812,11 @@ button.ref:active {
 .pill.grow {
 	flex: 1 1 auto;
 }
-.pill.soft:hover,
+@media (hover: hover) and (pointer: fine) {
+	.pill.soft:hover {
+		background: var(--faint);
+	}
+}
 .pill.soft:active {
 	background: var(--faint);
 }
@@ -1781,7 +1825,11 @@ button.ref:active {
 	color: var(--fixed-white);
 	min-width: 72px;
 }
-.pill.primary:hover,
+@media (hover: hover) and (pointer: fine) {
+	.pill.primary:hover {
+		filter: brightness(1.08);
+	}
+}
 .pill.primary:active {
 	filter: brightness(1.08);
 }
@@ -1820,13 +1868,22 @@ button.ref:active {
 	position: absolute;
 	inset: -6px;
 }
-.feed-card:hover .card-more-trigger,
+@media (hover: hover) and (pointer: fine) {
+	.feed-card:hover .card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
 .feed-card:focus-within .card-more-trigger,
 .feed-card.tools-open .card-more-trigger {
 	opacity: 1;
 	pointer-events: auto;
 }
-.card-more-trigger:hover,
+@media (hover: hover) and (pointer: fine) {
+	.card-more-trigger:hover {
+		background: var(--card);
+	}
+}
 .feed-card.tools-open .card-more-trigger {
 	background: var(--card);
 }
@@ -1866,18 +1923,29 @@ button.ref:active {
 .feed-card.is-read .card-image.is-loaded {
 	filter: saturate(0.6);
 }
-.feed-card.is-read:hover,
+@media (hover: hover) and (pointer: fine) {
+	.feed-card.is-read:hover,
+	.feed-card.is-ended:hover,
+	.feed-card.is-complete:hover {
+		border-color: var(--line-hover);
+	}
+}
 .feed-card.is-read:focus-within,
-.feed-card.is-ended:hover,
 .feed-card.is-ended:focus-within,
-.feed-card.is-complete:hover,
 .feed-card.is-complete:focus-within {
 	border-color: var(--line-hover);
 }
 
 /* Stacks: one place on the desk, layered edges, opened in place. */
+@media (hover: hover) and (pointer: fine) {
+	.stack-card:hover {
+		overflow: visible;
+		background: transparent;
+		border-color: transparent;
+		box-shadow: none;
+	}
+}
 .stack-card,
-.stack-card:hover,
 .stack-card:focus-within {
 	overflow: visible;
 	background: transparent;
@@ -1930,7 +1998,12 @@ button.ref:active {
 	visibility: visible;
 	z-index: 3;
 }
-.stack-card:hover .deck-card.is-top,
+@media (hover: hover) and (pointer: fine) {
+	.stack-card:hover .deck-card.is-top {
+		border-color: var(--line-hover);
+		box-shadow: var(--shadow-hover);
+	}
+}
 .stack-card:focus-within .deck-card.is-top {
 	border-color: var(--line-hover);
 	box-shadow: var(--shadow-hover);
@@ -2001,8 +2074,10 @@ button.ref:active {
 .text-link.warn {
 	color: var(--alert);
 }
-.text-link:hover {
-	text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+	.text-link:hover {
+		text-decoration: underline;
+	}
 }
 .text-link:active {
 	opacity: 0.6;
@@ -2027,8 +2102,10 @@ button.ref:active {
 	text-align: left;
 	transition: var(--motion-transition, background var(--fast));
 }
-.shelf-row:hover {
-	background: var(--faint);
+@media (hover: hover) and (pointer: fine) {
+	.shelf-row:hover {
+		background: var(--faint);
+	}
 }
 .shelf-row > .icon {
 	color: var(--muted);
@@ -2048,9 +2125,15 @@ button.ref:active {
 }
 
 /* A menu's hit targets keep their size even while the touched parent settles. */
+@media (hover: hover) and (pointer: fine) {
+	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
+		--motion-managed-transform: none;
+		transform: none;
+		transition-property: var(--motion-transition-properties, box-shadow, border-color);
+	}
+}
 .feed-card.tools-open,
-.feed-card.tools-open:not(.stack-card):active:not(:has(button:active)),
-body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item.tools-open:hover {
+.feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
 	--motion-managed-transform: none;
 	transform: none;
 	transition-property: var(--motion-transition-properties, box-shadow, border-color);
@@ -2097,7 +2180,7 @@ dialog {
 	border: 0;
 	background: transparent;
 	max-width: 100vw;
-	max-height: 100vh;
+	max-height: 100dvh;
 	overflow: visible;
 	outline: none;
 }
@@ -2113,7 +2196,7 @@ dialog::backdrop {
 	overflow: hidden;
 }
 .sheet-scroll {
-	max-height: min(78vh, 760px);
+	max-height: min(78dvh, 760px);
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	scrollbar-width: none;
@@ -2172,7 +2255,6 @@ dialog::backdrop {
 	display: flex;
 	flex-direction: column;
 	max-height: min(88dvh, 900px);
-	transition: var(--motion-transition, max-height var(--dur-sheet) var(--ease-sheet));
 }
 /* The head floats over the content: no band of white above the text. Its round buttons tuck away with
    the toolbar while reading on, and come back on a pause over a soft edge. */
@@ -2287,8 +2369,10 @@ dialog::backdrop {
 	position: absolute;
 	inset: -4px;
 }
-.sheet-head .icon-button:hover {
-	background: var(--surface);
+@media (hover: hover) and (pointer: fine) {
+	.sheet-head .icon-button:hover {
+		background: var(--surface);
+	}
 }
 .sheet-head .icon .icon,
 .sheet-head .icon-button .icon {
@@ -2495,7 +2579,11 @@ button.detail-row {
 	width: 100%;
 	text-align: left;
 }
-button.detail-row:hover,
+@media (hover: hover) and (pointer: fine) {
+	button.detail-row:hover {
+		background: var(--canvas);
+	}
+}
 button.detail-row:active {
 	background: var(--canvas);
 }
@@ -2543,39 +2631,17 @@ button.detail-row:active {
 	max-width: 100%;
 	overflow-wrap: anywhere;
 }
-.preview-details {
-	margin: 0;
-	display: grid;
-	gap: var(--space-4);
+.preview-published {
+	flex: none;
+	white-space: nowrap;
+}
+.preview-source-note {
+	margin: var(--space-16) 0 0;
 	font-size: var(--text-caption);
-	line-height: 1.5;
+	line-height: 1.6;
 	color: var(--secondary);
-}
-.preview-detail-row {
-	display: grid;
-	grid-template-columns: max-content minmax(0, 1fr);
-	gap: var(--space-8);
-}
-.preview-detail-row dt,
-.preview-detail-row dd {
-	margin: 0;
-}
-.preview-detail-row dd {
+	white-space: pre-wrap;
 	overflow-wrap: anywhere;
-}
-/* Dates and the source note read as one grey line; empty values are never shown (ADR 0037). */
-.preview-sheet .preview-details {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--space-2) 0;
-}
-.preview-sheet .preview-detail-row {
-	display: inline-flex;
-	gap: var(--space-4);
-}
-.preview-sheet .preview-detail-row + .preview-detail-row::before {
-	content: "·";
-	margin: 0 var(--space-6);
 }
 .settings-hint {
 	margin: var(--space-8) var(--space-4) 0;
@@ -2699,7 +2765,7 @@ button.detail-row:active {
 /* Photos: black, large, left and right, Esc to leave. */
 #modal.lightbox {
 	width: 100vw;
-	height: 100vh;
+	height: 100dvh;
 	max-width: none;
 	max-height: none;
 	margin: 0;
@@ -2736,8 +2802,10 @@ button.detail-row:active {
 .lightbox-top .icon-button {
 	color: var(--fixed-white);
 }
-.lightbox-top .icon-button:hover {
-	background: var(--fixed-white-12);
+@media (hover: hover) and (pointer: fine) {
+	.lightbox-top .icon-button:hover {
+		background: var(--fixed-white-12);
+	}
 }
 .lightbox-stage {
 	flex: 1;
@@ -2760,8 +2828,10 @@ button.detail-row:active {
 	color: var(--fixed-white);
 	flex: none;
 }
-.lightbox-stage .icon-button:hover {
-	background: var(--fixed-white-12);
+@media (hover: hover) and (pointer: fine) {
+	.lightbox-stage .icon-button:hover {
+		background: var(--fixed-white-12);
+	}
 }
 .lightbox-thumbs {
 	display: flex;
@@ -2802,8 +2872,10 @@ button.detail-row:active {
 	margin-left: 0;
 	color: var(--fixed-white);
 }
-.lightbox .preview-foot .text-button:hover {
-	background: var(--fixed-white-12);
+@media (hover: hover) and (pointer: fine) {
+	.lightbox .preview-foot .text-button:hover {
+		background: var(--fixed-white-12);
+	}
 }
 .lightbox .preview-foot :focus-visible {
 	outline-color: var(--fixed-white);
@@ -2812,7 +2884,7 @@ button.detail-row:active {
 /* Reader: a page, not a box. A thin line on top shows how far you are. */
 #modal.reader {
 	width: 100vw;
-	height: 100vh;
+	height: 100dvh;
 	max-width: none;
 	max-height: none;
 	margin: 0;
@@ -2822,16 +2894,18 @@ button.detail-row:active {
 	background: var(--card);
 }
 .reader-progress {
+	width: 100%;
+	transform-origin: left center;
 	position: fixed;
 	left: 0;
 	top: 0;
 	height: 2px;
 	background: var(--accent-fill);
 	z-index: 4;
-	transition: var(--motion-transition, width 120ms linear);
+	transition: var(--motion-transition, transform var(--fast) linear);
 }
 .reader-scroll {
-	height: 100vh;
+	height: 100dvh;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 }
@@ -3032,9 +3106,13 @@ dialog > .float-bar.is-hidden {
 	top: 0;
 	border-top: 1px solid var(--line);
 }
-button.list-row:hover,
-button.list-row:active,
-.list-row.hoverable:hover {
+@media (hover: hover) and (pointer: fine) {
+	button.list-row:hover,
+	.list-row.hoverable:hover {
+		background: var(--canvas);
+	}
+}
+button.list-row:active {
 	background: var(--canvas);
 }
 .list-row .row-icon {
@@ -3091,11 +3169,19 @@ button.list-row:active,
 	opacity: 0;
 	transition: var(--motion-transition, opacity var(--fast));
 }
-.list-row:hover .row-put,
+@media (hover: hover) and (pointer: fine) {
+	.list-row:hover .row-put {
+		opacity: 1;
+	}
+}
 .list-row:focus-within .row-put {
 	opacity: 1;
 }
-.list-row:hover .row-date,
+@media (hover: hover) and (pointer: fine) {
+	.list-row:hover .row-date {
+		opacity: 0;
+	}
+}
 .list-row:focus-within .row-date {
 	opacity: 0;
 }
@@ -3104,7 +3190,7 @@ button.list-row:active,
 .settings-layout {
 	display: grid;
 	grid-template-columns: 200px minmax(0, 1fr);
-	min-height: min(560px, 78vh);
+	min-height: min(560px, 78dvh);
 }
 .settings-nav {
 	display: flex;
@@ -3125,7 +3211,11 @@ button.list-row:active,
 	color: var(--ink);
 	text-align: left;
 }
-.settings-nav button:hover,
+@media (hover: hover) and (pointer: fine) {
+	.settings-nav button:hover {
+		background: var(--faint);
+	}
+}
 .settings-nav button:active {
 	background: var(--faint);
 }
@@ -3140,7 +3230,7 @@ button.list-row:active,
 }
 .settings-main {
 	padding: var(--space-28) var(--space-32);
-	max-height: min(78vh, 760px);
+	max-height: min(78dvh, 760px);
 	overflow-y: auto;
 	background: var(--canvas);
 }
@@ -3378,7 +3468,11 @@ kbd {
 .card-menu-item .icon {
 	flex: none;
 }
-.card-menu-item:hover,
+@media (hover: hover) and (pointer: fine) {
+	.card-menu-item:hover {
+		background: var(--fixed-black-5);
+	}
+}
 .card-menu-item:active,
 .card-menu-item:focus-visible {
 	background: var(--fixed-black-5);
@@ -3438,7 +3532,7 @@ kbd {
 	justify-content: center;
 	text-align: center;
 	gap: var(--space-10);
-	min-height: 70vh;
+	min-height: 70dvh;
 }
 .welcome h1 {
 	font-size: var(--text-detail-title);
@@ -3740,7 +3834,11 @@ body.selection-menu-open {
 .selection-options button + button {
 	border-top: 0.5px solid var(--line-hover);
 }
-.selection-options button:hover,
+@media (hover: hover) and (pointer: fine) {
+	.selection-options button:hover {
+		background: var(--glass-press);
+	}
+}
 .selection-options button:focus-visible {
 	background: var(--glass-press);
 }
@@ -3751,14 +3849,6 @@ body.selection-menu-open {
 .selection-context > .selection-stack {
 	flex-shrink: 0;
 }
-@media (prefers-reduced-motion: reduce) {
-	.selection-lift .selection-stack {
-		transform: none;
-	}
-}
-body.reduce-motion .selection-lift .selection-stack {
-	transform: none;
-}
 
 [tabindex="-1"]:focus {
 	outline: none;
@@ -3767,6 +3857,7 @@ input[type="search"]::-webkit-search-cancel-button {
 	-webkit-appearance: none;
 	display: none;
 }
+
 /* Gestures: sheets and pages follow the finger; the dim follows them. */
 @property --backdrop {
 	syntax: "<number>";
@@ -3941,18 +4032,14 @@ body.is-pulling .pull-ring {
    the transition carries it there, so wheel steps glide and a change of direction never jumps. A finger on the glass turns it off. */
 .preview-sheet,
 #modal.reader {
-	transition: var(
-		--motion-transition,
-		translate var(--dur-sheet) var(--ease-sheet),
-		max-height var(--dur-sheet) var(--ease-sheet)
-	);
+	transition: var(--motion-transition, translate var(--dur-sheet) var(--ease-sheet));
 }
 
 .sheet-scroll,
 .reader-scroll {
 	transition: var(--motion-transition, translate 220ms var(--ease));
 }
-/* Direct surfaces keep the existing app-reduced fade; nested content always follows immediately. */
+/* Nested content follows its dragged parent immediately. */
 .is-drag,
 #modal.preview .preview-sheet.is-drag,
 #modal.reader.is-drag,

@@ -1,0 +1,319 @@
+/* Chips, segmented controls and switches. */
+.chips {
+	display: flex;
+	gap: var(--space-8);
+	flex-wrap: wrap;
+}
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: 36px;
+	padding: 0 var(--space-14);
+	border-radius: var(--pill-radius);
+	background: var(--card);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	white-space: nowrap;
+	box-shadow: 0 1px 3px var(--fixed-black-6);
+	transition: var(--motion-transition, background var(--fast), color var(--fast));
+}
+.chip .icon {
+	color: var(--secondary);
+}
+@media (hover: hover) and (pointer: fine) {
+	.chip:hover {
+		background: var(--surface);
+	}
+}
+.chip:active {
+	background: var(--surface);
+}
+.chip.active {
+	background: var(--ink);
+	color: var(--card);
+}
+.chip.active .icon {
+	color: var(--card);
+}
+.chip.soft {
+	background: var(--surface);
+	box-shadow: none;
+}
+.chip.soft.active {
+	background: var(--ink);
+}
+.tag-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	height: 32px;
+	padding: 0 var(--space-4) 0 var(--space-12);
+	border-radius: var(--pill-radius);
+	background: var(--surface);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	font-weight: 500;
+}
+.tag-pill button {
+	width: 24px;
+	height: 24px;
+	display: grid;
+	place-items: center;
+	color: inherit;
+	opacity: 0.6;
+	border-radius: 50%;
+}
+@media (hover: hover) and (pointer: fine) {
+	.tag-pill button:hover {
+		opacity: 1;
+	}
+}
+.segmented {
+	display: inline-flex;
+	padding: var(--space-2);
+	border-radius: 10px;
+	background: var(--surface);
+	flex: none;
+}
+.segmented button {
+	min-height: 30px;
+	padding: 0 var(--space-12);
+	border-radius: 8px;
+	font-size: var(--text-meta);
+	color: var(--muted);
+	white-space: nowrap;
+}
+/* Touch has no hover: every control darkens a little while pressed. */
+.segmented button:not(.on):active {
+	background: var(--faint);
+}
+.segmented button.on {
+	background: var(--card);
+	color: var(--ink);
+	font-weight: 500;
+	box-shadow: 0 1px 3px var(--fixed-black-10);
+}
+.toggle {
+	width: 51px;
+	height: 31px;
+	border-radius: var(--pill-radius);
+	background: var(--toggle-off);
+	position: relative;
+	flex: none;
+	transition: var(--motion-transition, background var(--base));
+}
+.toggle:before {
+	content: "";
+	position: absolute;
+	width: 27px;
+	height: 27px;
+	left: 2px;
+	top: 2px;
+	border-radius: 50%;
+	background: var(--fixed-white);
+	box-shadow: 0 2px 4px var(--fixed-black-15);
+	transition: var(--motion-transition, transform var(--base) var(--ease));
+}
+.toggle[aria-checked="true"] {
+	background: var(--toggle-on);
+}
+.toggle[aria-checked="true"]:before {
+	transform: translateX(20px);
+}
+.text-button {
+	background: transparent;
+	min-height: 44px;
+	padding: var(--space-8) var(--space-12);
+	font-size: var(--text-meta);
+	border-radius: var(--control-radius);
+	color: var(--ink);
+	transition: var(--motion-transition, background var(--fast));
+}
+@media (hover: hover) and (pointer: fine) {
+	.text-button:hover {
+		background: var(--surface);
+	}
+}
+.text-button:active {
+	background: var(--surface);
+}
+.solid-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	background: var(--accent-fill);
+	color: var(--fixed-white);
+	border-radius: var(--pill-radius);
+	padding: 0 var(--space-20);
+	font-size: var(--text-control);
+	font-weight: 500;
+	min-height: 44px;
+	transition: var(--motion-transition, filter var(--fast), transform var(--fast));
+	white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+	.solid-button:hover {
+		filter: brightness(1.08);
+	}
+}
+.solid-button:active {
+	transform: scale(0.98);
+}
+.solid-button small {
+	font-size: var(--text-caption);
+	opacity: 1;
+	font-family: var(--rounded);
+}
+.soft-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	background: var(--surface);
+	color: var(--ink);
+	border-radius: var(--pill-radius);
+	padding: 0 var(--space-20);
+	font-size: var(--text-control);
+	font-weight: 500;
+	min-height: 44px;
+	transition: var(--motion-transition, background var(--fast));
+}
+@media (hover: hover) and (pointer: fine) {
+	.soft-button:hover {
+		background: var(--faint);
+	}
+}
+.soft-button:active {
+	background: var(--faint);
+}
+
+#search-selection-bar {
+	flex: none;
+	align-self: center;
+	max-width: calc(100% - 2 * var(--rail-edge));
+	margin: 0 auto max(var(--rail-edge), env(safe-area-inset-bottom));
+}
+
+/* Local AI receiver shares the active selection rail, never a side drop palette. */
+.selection-ai-target {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: calc(100% + var(--rail-gap));
+	min-height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-10);
+	padding: var(--space-10) var(--space-14);
+	border: 1px solid var(--line-hover);
+	border-radius: var(--pill-radius);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	white-space: nowrap;
+	transition: var(
+		--motion-transition,
+		border-color var(--fast) var(--ease),
+		background-color var(--fast) var(--ease),
+		box-shadow var(--fast) var(--ease)
+	);
+}
+.selection-ai-target.is-ready {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 2px var(--accent);
+	background: var(--card);
+}
+.selection-ai-wave {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	height: 18px;
+}
+.selection-ai-wave i {
+	width: 3px;
+	height: 10px;
+	background: currentColor;
+	border-radius: 3px;
+}
+.selection-ai-wave i:nth-child(2) {
+	height: 18px;
+}
+.selection-drag-count {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 100;
+	min-width: 36px;
+	height: 36px;
+	display: grid;
+	place-items: center;
+	border-radius: var(--pill-radius);
+	pointer-events: none;
+	font-variant-numeric: tabular-nums;
+	will-change: transform;
+}
+#search-selection-bar {
+	margin-top: var(--space-60);
+}
+
+/* Shared home filters. The phone head stays in responsive.css (ADR 0036). */
+.home-top {
+	display: none;
+}
+/* Desktop filters stay reachable and align with the actual card columns. */
+@media (min-width: 651px) {
+	.home-top {
+		display: block;
+		position: sticky;
+		top: 0;
+		z-index: 20;
+		width: max-content;
+		max-width: calc(100% - var(--space-40) * 2);
+		margin: var(--space-24) 0 0 var(--feed-left, var(--space-40));
+		background: var(--canvas);
+		border-radius: var(--control-radius);
+	}
+	.home-mark {
+		display: none;
+	}
+	.home-tabs {
+		display: flex;
+		align-items: stretch;
+		gap: var(--space-8);
+		min-height: var(--hit-target);
+		overflow-x: auto;
+	}
+	.home-tab {
+		position: relative;
+		padding: 0 var(--space-12);
+		min-height: var(--hit-target);
+		flex: none;
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: var(--text-control);
+		color: var(--muted);
+		white-space: nowrap;
+	}
+	.home-tab[aria-pressed="true"] {
+		color: var(--ink);
+		font-weight: 700;
+	}
+	.home-tab[aria-pressed="true"]::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		width: var(--space-28);
+		height: var(--space-3);
+		translate: -50% 0;
+		border-radius: var(--space-2);
+		background: var(--ink);
+	}
+	main {
+		padding-top: var(--space-16);
+		min-height: calc(100dvh - var(--space-24) - var(--hit-target));
+	}
+}

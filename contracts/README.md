@@ -9,6 +9,7 @@
 - `migration-fixtures.json`：两端共用的旧来源迁移边界；保留 300 字发件人、10+1 个来源、显式空发件人与未知字段。
 - `fixtures.json`：合法与非法合成样例；每个写入端都必须执行同一批样例。
 - `design/`：从原 `docs/examples/v1/` 迁入的接口设计材料。类型名改为 Card，不表示未实现的接口已上线。
+- `design/openapi-source.json` 保存人工维护的接口说明与路由；Schema 仍来自 `cloud.ts`。`scripts/export-design.ts` 合成原路径的 `design/openapi.json`，不要直接修改生成文件。
 
 JSON Schema 不能表达日程起止顺序、待办 ID 唯一等规则。业务校验在 TypeScript 和 Swift 中执行，不能仅用结构检查代替。
 

@@ -7,7 +7,7 @@ import test from "node:test";
 
 const root = resolve(import.meta.dirname, "../..");
 
-test("Codex pre-commit hook enforces the byte limit against the index", async (t) => {
+test("Codex pre-commit hook enforces the byte limit against index and local files", async (t) => {
 	const directory = mkdtempSync(join(tmpdir(), "sill-token-hook-"));
 	t.after(() => rmSync(directory, { recursive: true, force: true }));
 	const git = (...args: string[]) =>
@@ -21,11 +21,15 @@ test("Codex pre-commit hook enforces the byte limit against the index", async (t
 	git("config", "user.email", "hook@example.invalid");
 	git("config", "commit.gpgsign", "false");
 	git("config", "core.hooksPath", "/dev/null");
-	const check = () =>
-		spawnSync(process.execPath, [join(root, ".codex/hooks/check-staged-file-tokens.ts")], {
-			cwd: directory,
-			encoding: "utf8",
-		});
+	const check = (flags: string[] = []) =>
+		spawnSync(
+			process.execPath,
+			[join(root, ".codex/hooks/check-staged-file-tokens.ts"), ...flags],
+			{
+				cwd: directory,
+				encoding: "utf8",
+			},
+		);
 	const hook = (command: string) => {
 		const result = spawnSync(process.execPath, [join(root, ".codex/hooks/pre-commit.ts")], {
 			cwd: root,
@@ -44,14 +48,21 @@ test("Codex pre-commit hook enforces the byte limit against the index", async (t
 	await t.test("empty index and untracked oversized files pass", () => {
 		write("untracked.ts", "a".repeat(20_001));
 		assert.equal(check().status, 0);
+		assert.equal(check(["--local"]).status, 1);
+		assert.match(
+			hook('git commit -m "Local limit"').permissionDecisionReason,
+			/本地.*untracked\.ts/,
+		);
+		rmSync(join(directory, "untracked.ts"));
 	});
 	await t.test("exactly 20,000 staged bytes pass despite oversized working copy", () => {
 		write("boundary.ts", "a".repeat(20_000));
 		git("add", "--", "boundary.ts");
 		write("boundary.ts", "a".repeat(20_001));
 		assert.equal(check().status, 0);
-		assert.equal(hook('git commit -m "Allowed"'), undefined);
+		assert.equal(hook('git commit -m "Local limit"').permissionDecision, "deny");
 		write("boundary.ts", "a".repeat(20_000));
+		assert.equal(hook('git commit -m "Allowed"'), undefined);
 	});
 	await t.test("locks, generated outputs and binary assets pass", () => {
 		for (const path of [
@@ -69,6 +80,16 @@ test("Codex pre-commit hook enforces the byte limit against the index", async (t
 			"src/client.generated.ts",
 			"src/client.g.swift",
 			"vendor/library.ts",
+			"contracts/design/openapi.json",
+			"design-system/copy/zh-Hans.json",
+			"design-system/tokens.json",
+			"design-system/boards/support.js",
+			"design-system/boards/Example.dc.html",
+			"docs/records/2026-10-19-example/audit.json",
+			"deploy/releases/example/worker.mjs",
+			".agents/skills/example/SKILL.md",
+			"supabase/drafts/sill_v1_rpc.sql",
+			"supabase/migrations/20261016092653_sill_workspace_operations.sql",
 		]) {
 			write(path, "a".repeat(20_001));
 			git("add", "--", path);
@@ -76,6 +97,7 @@ test("Codex pre-commit hook enforces the byte limit against the index", async (t
 		write("asset.png", Buffer.alloc(20_001));
 		git("add", "--", "asset.png");
 		assert.equal(check().status, 0);
+		assert.equal(check(["--local"]).status, 0);
 		git("commit", "--quiet", "-m", "Allowed staged files");
 	});
 	await t.test(
@@ -104,6 +126,7 @@ test("Codex pre-commit hook enforces the byte limit against the index", async (t
 		git("add", "--", "old.ts");
 		git("-c", "core.hooksPath=/dev/null", "commit", "--quiet", "-m", "Existing large file");
 		assert.equal(check().status, 0);
+		assert.equal(check(["--local"]).status, 1);
 		git("mv", "--", "old.ts", "renamed.ts");
 		assert.equal(check().status, 1);
 		git("rm", "-f", "--", "renamed.ts");
@@ -117,4 +140,22 @@ test("Codex pre-commit hook enforces the byte limit against the index", async (t
 		])
 			assert.equal(hook(command).permissionDecision, "deny");
 	});
+	await t.test(
+		"local checks honor ignores and do not exempt authored data or new migrations",
+		() => {
+			write(".gitignore", "ignored/\n");
+			write("ignored/large.ts", "x".repeat(20_001));
+			assert.equal(check(["--local"]).status, 0);
+			for (const path of [
+				"design-system/copy/zh-Hans/web.json",
+				"design-system/tokens/color.json",
+				"contracts/design/openapi-source.json",
+				"supabase/migrations/20990101000000_new.sql",
+			]) {
+				write(path, "x".repeat(20_001));
+				assert.equal(check(["--local"]).status, 1);
+				rmSync(join(directory, path));
+			}
+		},
+	);
 });

@@ -19,7 +19,7 @@ const bundle = buildSync({
 	globalName: "GestureTest",
 }).outputFiles[0].text;
 
-function fixture({ kind = "preview", reduced = false, phone = false, end = false } = {}) {
+function fixture({ kind = "preview", phone = false, end = false } = {}) {
 	const reader = kind === "reader";
 	const dom = new JSDOM(
 		`<!doctype html><main><p>桌面卡片</p></main><dialog id="modal" class="${kind}">${reader ? '<div class="reader-scroll" id="reader-scroll">' : '<div class="sheet preview-sheet"><div class="sheet-scroll">'}<p>卡片正文</p><div id="reader-end"></div></div>${reader ? "" : "</div>"}<div class="float-bar"><button>收藏</button></div></dialog><div id="toast">可撤销操作</div>`,
@@ -28,7 +28,7 @@ function fixture({ kind = "preview", reduced = false, phone = false, end = false
 	const w = dom.window as any,
 		document = w.document;
 	w.matchMedia = (query: string) => ({
-		matches: query.includes("max-width") ? phone : reduced,
+		matches: query.includes("max-width") && phone,
 		addEventListener() {},
 	});
 	w.structuredClone = structuredClone;
@@ -191,8 +191,8 @@ test("a short pull on a full preview glides back and keeps it full", () => {
 		sheet.classList.add("is-full");
 		f.fire(target, "touchstart", 120, 200);
 		f.fire(target, "touchmove", 120, 280);
-		f.w.Date.now = (() => {
-			const later = Date.now() + 1000;
+		f.w.performance.now = (() => {
+			const later = f.w.performance.now() + 1000;
 			return () => later;
 		})();
 		f.fire(target, "touchend", 120, 280);
@@ -218,6 +218,7 @@ test("pushing on at the end of a stacked preview folds back one card, not the de
 		const target = f.scroll.querySelector("p");
 		f.fire(target, "touchstart", 120, 500);
 		f.fire(target, "touchmove", 120, 300);
+		f.fire(target, "touchend", 120, 300);
 		assert.equal(f.Store.item("article").read, true);
 		f.flush();
 		assert.equal(f.app.closed, 1);
@@ -227,18 +228,27 @@ test("pushing on at the end of a stacked preview folds back one card, not the de
 	}
 });
 
-test("a delayed gesture close cannot close a later panel or alter its return motion", () => {
+test("a delayed gesture close cannot close a later panel or alter its return motion", async () => {
 	const f = fixture();
 	try {
-		f.gestures.dismiss(() => f.app.closeModal());
+		const completions = [];
+		f.dialog.animate = () => ({
+			finished: new Promise((resolve) => completions.push(resolve)),
+			cancel() {},
+		});
+		f.gestures.exitSurface(f.dialog, () => f.app.closeModal());
 		f.app.modalToken++;
 		f.dialog.style.removeProperty("--backdrop");
+		completions.shift()();
+		await Promise.resolve();
 		f.flush();
 		assert.equal(f.dialog.open, true);
 		assert.equal(f.app.closed, 0);
 		assert.equal(f.app.skipReturnMotion, false);
 		assert.equal(f.dialog.style.getPropertyValue("--backdrop"), "");
-		f.gestures.dismiss(() => f.app.closeModal());
+		f.gestures.exitSurface(f.dialog, () => f.app.closeModal());
+		completions.shift()();
+		await Promise.resolve();
 		f.flush();
 		assert.equal(f.app.closed, 1, "the current panel still closes normally");
 	} finally {
@@ -304,29 +314,6 @@ test("a canceled phone opening cannot revive the exiting sheet or its toolbar", 
 		assert.equal(sheet.classList.contains("is-off"), true);
 		assert.equal(bar.classList.contains("is-hidden"), true);
 		assert.equal(f.dialog.style.getPropertyValue("--backdrop"), "0");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("reduced motion keeps gesture feedback and completion without moving the reading surface", () => {
-	const f = fixture({ reduced: true, end: true });
-	try {
-		const target = f.scroll.querySelector("p"),
-			bar = f.dialog.querySelector(".float-bar");
-		f.fire(target, "touchstart", 120, 500);
-		f.fire(target, "touchmove", 120, 420);
-		const ring = f.dialog.querySelector(".push-ring");
-		assert.equal(f.scroll.style.translate, "");
-		assert.equal(bar.style.translate, "");
-		assert.equal(ring.style.transform, "none");
-		assert.ok(Number(ring.style.opacity) > 0, "progress remains visible");
-		assert.equal(f.Store.item("article").read, false);
-		f.fire(target, "touchmove", 120, 300);
-		assert.equal(f.Store.item("article").read, true);
-		assert.equal(ring.classList.contains("is-done"), true);
-		f.flush();
-		assert.equal(f.app.closed, 1);
 	} finally {
 		f.dom.window.close();
 	}

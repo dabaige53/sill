@@ -74,6 +74,7 @@
 
 - 产物统一放在 `dist/<端>/`，不纳入 Git，可随时重建。不在产物、发布快照或生成文件中修改实现。
 - 生成文件按用途区分：`contracts/` 导出的 JSON Schema 提交到仓库，并由 CI 检查与来源一致；Swift 生成的类型和 String Catalog 不提交。
+- 文案源文件位于 `design-system/copy/zh-Hans/`，设计变量源文件位于 `design-system/tokens/`。`zh-Hans.json`、`tokens.json` 和 `contracts/design/openapi.json` 为兼容现有读取入口的生成文件，分别由分文件源数据和 `openapi-source.json` 导出。SQL 准备脚本由 `supabase/drafts/rpc/authorization.sql` 与 `operations.sql` 按顺序合成 `sill_v1_rpc.sql`，分文件不能单独执行。以上均由 `contracts:generate` 更新、`contracts:check` 核对；已执行迁移和历史快照不改写。
 - 产品版本只写在根目录 `package.json`；其他位置的版本号由构建脚本写入。已发布的版本写在发布记录中，不写在配置文件中。
 
 ## 7. 数据、秘密与清理

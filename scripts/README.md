@@ -16,10 +16,10 @@
 | 语法与配置检查 | `npm run check` | 构建后 HTML 脚本和插件模板 → 终端结果 |
 | 类型检查 | `npm run typecheck` | 活跃 TypeScript 源码、脚本与测试 → 终端结果；未启用 strict |
 | 格式与默认规则 | `npm run format`、`npm run lint` | 前者改写格式；后者只读检查 Biome 默认规则与 Swift 格式，保留动态类型警告 |
-| 共享定义导出 | `npm run contracts:generate` | zod → `contracts/schema.json`、Apple OpenAPI 与设计材料；检查使用 `contracts:check` |
+| 共享定义导出 | `npm run contracts:generate` | 分文件文案/变量、SQL 准备脚本、zod 与接口说明 → 兼容 JSON/SQL、Schema 与设计材料；检查使用 `contracts:check` |
 | V1 设计约定检查 | `scripts/check-contracts.ts` | `contracts/design/` → 准备材料一致性；不证明 API 已实现 |
 | V1 健康检查 | `scripts/smoke-health.ts` | 显式指定目标；使用前阅读 [V1 交接包](../docs/guides/handoff.md) 的参数与边界 |
 
 `build-cloud-worker.ts` 由云端构建调用。脚本使用 Node 24+ 直接运行 TypeScript，不再依赖 Python。`build-plugin.ts` 会替换候选产物目录，不要在产物目录保存唯一副本。候选构建保留既有 App 身份，但不能证明该云端对象当前存在；发布前仍需核对平台。
 
-Codex 的提交前文件大小检查位于 [.codex](../.codex/README.md)，不通过 npm 安装 Git hook。
+Codex 的提交前文件大小检查位于 [.codex](../.codex/README.md)，同时检查暂存版本与本地文件，不通过 npm 安装 Git hook。

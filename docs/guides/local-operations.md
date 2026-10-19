@@ -1,6 +1,31 @@
 # 本地操作
 
-更新：2026-10-16。
+更新：2026-10-19。
+
+## 页面入口与更新
+
+本地产品查看与验收统一使用 `http://127.0.0.1:4318/#feed`，只保留这一个常驻预览服务。动效独立预览 4337 已关闭，不再作为产品入口。
+
+Web 使用 React + TypeScript + Vite；macOS 保留 SwiftUI。5173 仅供开发时临时使用，结束开发后关闭，不作为另一套产品版本或验收入口：
+
+| 入口 | 用途 | 如何更新 |
+| --- | --- | --- |
+| `http://127.0.0.1:4318/#feed` | `npm start` 提供构建后的本地产品页面 | 修改源码后运行 `npm run build`，再刷新浏览器 |
+| `http://localhost:5173/#feed` | 另开终端运行 `npm run dev`，用于界面开发 | Vite 热更新；本地 API 仍需 4318 服务 |
+
+4318 不监听源码变化。服务正在运行、源码已合入，都不表示浏览器已加载最新构建。服务每次请求读取 `dist/web/index.html`，仅更新前端产物时无需重启服务；更新 `server/local/` 后需要重启。
+
+```sh
+npm run build
+node scripts/build.ts --check
+npm start
+```
+
+已有本地服务运行时跳过最后一条，刷新页面即可。`--check` 会重新构建并比较现有产物；出现 `stale_build` 时重新执行 `npm run build`。若报告 `Stale design data`，先运行 `npm run contracts:generate` 更新设计数据导出，再构建。
+
+主页、搜索、设置和卡片详情属于同一应用，通过页面内入口访问；它们不是不同版本。4318 与 5173 是不同运行方式，也不是两个产品。独立 worktree 的预览只代表该目录的源码；此前动效任务使用过 4337，它不是主目录的固定入口，不能用来判断主目录是否更新。动效合入与验证记录见 [React 迁移与动效本地整合](../records/2026-10-19-react-motion-integration/README.md)。
+
+## 数据与 AI 操作
 
 当前页面和 AI 共用 `server/local/index.ts` 与 `.sill/local/cards.json`。当前外部应用由宿主 AI 使用，默认运行路径不提供桥接；目标中的内置助手（只用 Composio 连接器）和对外 MCP 见 [Agent与MCP](../product/agent-mcp.md)，尚未实现。
 
@@ -16,7 +41,7 @@
 | 完成或恢复任务 | `item.patch` 的 `taskDone`，填写已完成任务的 ID 数组 |
 | 提醒延后、忽略、完成、恢复 | `item.patch` 的 `snoozedUntil / dismissed / reminderDone`；时间使用毫秒 |
 | 阅读计时 | `reading.add`，累加秒数 |
-| 排序与减少透明度 | `preferences.patch` 的 `sort / reduceTransparency` |
+| 排序与密度 | `preferences.patch` 的 `sort / density` |
 | 导出、备份、批量同步 | `state` 返回完整 JSON；`apply` 原子提交多个操作；数据文件可在服务停止后备份 |
 
 `card.upsert` 是完整替换。读取现有卡片后修改需要的字段，连同完整卡片写回；保留未要求修改的内容。任务 ID 必须唯一；任务完成状态只能使用卡片内的任务 ID。来源链接只接受 HTTP / HTTPS。

@@ -1,0 +1,645 @@
+@media (max-width: 650px) {
+	/* Page frame */
+	html {
+		scrollbar-gutter: auto;
+	}
+	main {
+		padding: var(--space-8) var(--margin-sm) var(--space-130);
+	}
+	:root {
+		--rail-edge: 16px;
+		--rail-bottom: max(16px, env(safe-area-inset-bottom));
+	}
+	/* Phone rail: a compact capsule in the middle, icons only; the names stay for screen readers. */
+	:root {
+		--nav-tab: 60px;
+	}
+	:root {
+		--home-top-h: 88px;
+	}
+	main {
+		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + var(--space-8));
+	}
+	/* Phone home (ADR 0036): X-like density, still cards. Desktop keeps its own spacing. */
+	.home-top {
+		position: fixed;
+		z-index: 44;
+		top: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		padding-top: env(safe-area-inset-top);
+		background: var(--frost);
+		-webkit-backdrop-filter: blur(28px) saturate(1.6);
+		backdrop-filter: blur(28px) saturate(1.6);
+		border-bottom: 0.5px solid var(--line);
+		transition: var(
+			--motion-transition,
+			transform var(--dur-show) var(--ease-sheet),
+			opacity var(--dur-show) var(--ease),
+			visibility 0s
+		);
+	}
+	.home-top.is-tucked {
+		transform: translateY(calc(-100% + env(safe-area-inset-top)));
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition: var(
+			--motion-transition,
+			transform var(--dur-tuck) var(--ease),
+			opacity var(--dur-tuck) var(--ease),
+			visibility 0s var(--dur-tuck)
+		);
+	}
+	body:has(#modal[open]) .home-top {
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	.home-mark {
+		align-self: center;
+		display: grid;
+		place-items: center;
+		width: var(--hit-target);
+		height: var(--hit-target);
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		color: var(--ink);
+	}
+	.home-tabs {
+		display: flex;
+		height: var(--hit-target);
+		padding: 0 var(--space-4);
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.home-tab {
+		position: relative;
+		flex: 1 0 auto;
+		padding: 0 var(--space-12);
+		border: 0;
+		background: none;
+		font: inherit;
+		font-size: var(--text-body);
+		color: var(--muted);
+		white-space: nowrap;
+	}
+	.home-tab[aria-pressed="true"] {
+		color: var(--ink);
+		font-weight: 700;
+	}
+	.home-tab[aria-pressed="true"]::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		width: 28px;
+		height: 3px;
+		translate: -50% 0;
+		border-radius: 2px;
+		background: var(--ink);
+	}
+	/* New content waits at the top: under the tabs, or under the status bar once they tuck away. */
+	#new-count {
+		top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
+		bottom: auto;
+	}
+	body:has(.home-top.is-tucked) #new-count {
+		top: calc(env(safe-area-inset-top) + 8px);
+	}
+	body:has(#dock.is-tucked) #new-count {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+	/* Cards and touch targets */
+	.card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	/* Phone: the quiet ••• sits at the bottom right, clear of the time and count in the head. */
+	.card-actions,
+	.has-cover .card-actions {
+		top: auto;
+		right: 4px;
+		bottom: 4px;
+	}
+	.card-more-trigger,
+	.has-cover .card-more-trigger {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+		background: transparent;
+		border: 0;
+		box-shadow: none;
+		color: var(--secondary);
+	}
+	.card-more-trigger .icon {
+		width: 20px;
+		height: 20px;
+		stroke-width: 2.2;
+	}
+	.card-more-trigger:before {
+		inset: 0;
+	}
+	.card-head,
+	.sender,
+	.card-head:has(.card-head-right),
+	.has-cover .card-head {
+		padding-right: 0;
+	}
+	.feed-card .card-head-right {
+		opacity: 1;
+	}
+	.pill {
+		min-height: 44px;
+		border-radius: var(--pill-radius);
+	}
+	.check-item {
+		min-height: 44px;
+	}
+	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
+	.feed-item.feed-card {
+		border-radius: var(--card-radius-sm);
+	}
+	.feed-item .card-body {
+		padding: var(--card-padding-sm);
+	}
+	.feed-item .card-summary {
+		-webkit-line-clamp: 2;
+	}
+	.feed-item :is(.card-head, .sender) {
+		padding-right: 0;
+	}
+	/* A person's head reads on one line: small portrait, name, then mail and time. */
+	.feed-item .sender {
+		gap: var(--space-8);
+	}
+	/* avatar() emits inline desktop sizes; phone sender portraits stay 20px. */
+	.feed-item .sender .avatar {
+		width: 20px !important;
+		height: 20px !important;
+		font-size: 11px;
+	}
+	.feed-item .sender > span:last-child {
+		flex-direction: row;
+		align-items: baseline;
+		gap: var(--space-4);
+		overflow: hidden;
+		white-space: nowrap;
+	}
+	.feed-item .sender b {
+		font-size: var(--text-meta);
+	}
+	.feed-item .sender small {
+		font-size: var(--text-meta);
+	}
+	.feed-item .sender small::before {
+		content: "· ";
+	}
+	/* Articles: a thumbnail on the right. Video and photos keep a 2:1 picture. */
+	.feed-item.has-cover:not(.type-media, .type-photo) {
+		flex-direction: row-reverse;
+		align-items: flex-start;
+	}
+	.feed-item.has-cover:not(.type-media, .type-photo) .card-cover {
+		width: var(--thumb);
+		height: var(--thumb);
+		aspect-ratio: auto;
+		margin: var(--card-padding-sm) var(--card-padding-sm) var(--card-padding-sm) 0;
+		border-radius: var(--control-radius);
+	}
+	.feed-item.has-cover:not(.type-media, .type-photo) .card-body {
+		flex: 1;
+		min-width: 0;
+		padding-right: var(--space-12);
+	}
+	.feed-item:is(.type-media, .type-photo) .card-cover {
+		aspect-ratio: 2 / 1;
+	}
+	.feed-item .attachment {
+		align-self: stretch;
+		width: 100%;
+		margin-top: 0;
+	}
+	.feed-item .ref {
+		min-height: 32px;
+	}
+	/* Actions: a compact pill that still answers a 44px touch. */
+	.feed-item .pill {
+		position: relative;
+		min-height: 36px;
+	}
+	.feed-item .pill::after {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
+	}
+	/* Events: the start time is a column; title and span sit beside it; join shares the people row. */
+	.feed-item.type-event .card-body {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		column-gap: var(--space-12);
+		row-gap: var(--space-2);
+	}
+	.feed-item.type-event .card-head {
+		grid-column: 1 / -1;
+		margin-bottom: var(--space-6);
+	}
+	.feed-item.type-event .event-time {
+		display: contents;
+	}
+	.feed-item.type-event .event-start {
+		grid-column: 1;
+		grid-row: 2 / span 2;
+		font-size: var(--text-figure-route);
+		line-height: 1;
+	}
+	.feed-item.type-event .card-title {
+		grid-column: 2;
+		grid-row: 2;
+		font-size: var(--text-body);
+	}
+	.feed-item.type-event .event-end {
+		grid-column: 2;
+		grid-row: 3;
+		flex-direction: row;
+		align-items: baseline;
+		gap: var(--space-4);
+		padding-bottom: 0;
+		font-size: var(--text-meta);
+		font-weight: 400;
+		color: var(--muted);
+	}
+	.feed-item.type-event .event-end small::before {
+		content: "· ";
+	}
+	.feed-item.type-event .people {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		margin-top: var(--space-8);
+		padding-top: 0;
+	}
+	.feed-item.type-event .card-actions-row {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		justify-self: end;
+		margin-top: var(--space-8);
+		padding-top: 0;
+	}
+	.feed-item.type-event .card-actions-row .pill {
+		min-width: 96px;
+	}
+	/* To-dos: 28px rows; the head count already says how many there are. */
+	.feed-item.type-task .check-item {
+		min-height: 28px;
+		padding: 0;
+	}
+	.feed-item.type-task .check-dot {
+		width: 18px;
+		height: 18px;
+		flex-basis: 18px;
+	}
+	.feed-item.type-task .more-items {
+		display: none;
+	}
+	/* Navigation and selection */
+	.nav-label {
+		display: none;
+	}
+	.nav-icon {
+		height: 30px;
+	}
+	.nav-icon > .icon {
+		width: 24px;
+		height: 24px;
+	}
+	#dock:has(#selection-bar:not([hidden])) #selection-bar {
+		flex: 1;
+	}
+	/* Too narrow for both: while selecting, the bar takes the whole row. */
+	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
+		display: none;
+	}
+	#dock #selection-bar {
+		max-width: calc(100vw - 2 * var(--rail-edge));
+	}
+	/* Preview and bottom sheets (ADR 0037) */
+	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
+	#modal.preview {
+		position: fixed;
+		inset: 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+	}
+	#modal.preview .preview-sheet {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: auto;
+		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
+		transform: translateY(0);
+		transition: var(
+			--motion-transition,
+			transform var(--dur-sheet) var(--ease-sheet),
+			translate var(--dur-sheet) var(--ease-sheet)
+		);
+	}
+	#modal.preview .preview-sheet.is-full {
+		max-height: 100dvh;
+		transform: none;
+		border-radius: 0;
+	}
+	#modal.preview .preview-sheet.is-off {
+		transform: translateY(100%);
+	}
+	#modal.preview .sheet-peek {
+		position: absolute;
+		left: 14px;
+		right: 14px;
+		top: auto;
+		bottom: calc(var(--preview-height, 100dvh - 64px) - 10px);
+		width: auto;
+		height: 24px;
+		margin: 0;
+	}
+	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
+		opacity: 0;
+		pointer-events: none;
+	}
+	#modal.preview .preview-sheet .sheet-scroll {
+		flex: 1;
+		max-height: none;
+	}
+	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
+	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+		scroll-padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+	}
+	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
+		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
+	}
+	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
+		top: env(safe-area-inset-top);
+	}
+	#modal.preview #modal-title,
+	#modal.preview .preview-body > :is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-52);
+	}
+	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
+	#modal.preview:has(.sheet-head [data-action="reader"])
+		.preview-body
+		> :is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-104);
+	}
+	#modal.preview:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
+		padding-right: 0;
+	}
+	.sheet-head {
+		height: 60px;
+		padding: 0 var(--space-12);
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+	}
+	.sheet-handle {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		position: absolute;
+		z-index: 5;
+		top: 0;
+		left: calc(50% - 40px);
+		width: 80px;
+		height: 24px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		touch-action: none;
+		cursor: ns-resize;
+	}
+	.preview-sheet.is-full .sheet-handle {
+		top: env(safe-area-inset-top);
+	}
+	.sheet-handle .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 calc(-1 * var(--space-18));
+	}
+	#modal.preview[open] {
+		gap: 0;
+	}
+	.preview-sheet,
+	#modal.panel .sheet {
+		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+	.sheet-scroll {
+		max-height: 84dvh;
+	}
+	.grabber {
+		display: block;
+		width: 36px;
+		height: 5px;
+		border-radius: 3px;
+		background: var(--faint);
+		margin: var(--space-8) auto 0;
+	}
+	#modal.preview > .float-bar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: max(8px, env(safe-area-inset-bottom));
+		margin-inline: auto;
+		z-index: 3;
+	}
+	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
+	}
+	#modal.preview .push-ring {
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
+	}
+	.preview-body {
+		padding: var(--space-18) var(--space-20) var(--space-22);
+	}
+	.preview-body h1 {
+		font-size: var(--text-panel-title);
+	}
+	/* Full-screen reader */
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
+	}
+	.reader-body {
+		padding: var(--space-64) var(--space-22) var(--space-150);
+	}
+	.reader-body h1 {
+		font-size: 27px;
+	}
+	.reader-body p {
+		font-size: var(--text-reader-body);
+	}
+	/* Settings */
+	.settings-layout {
+		grid-template-columns: 1fr;
+		min-height: 0;
+		background: var(--canvas);
+	}
+	.settings-nav {
+		flex-direction: row;
+		overflow-x: auto;
+		padding: var(--space-16) var(--space-12) var(--space-12);
+		margin-right: var(--space-52);
+		border-right: 0;
+		border-bottom: 0;
+		scrollbar-width: none;
+	}
+	.settings-nav::-webkit-scrollbar {
+		display: none;
+	}
+	.settings-nav button {
+		flex: none;
+	}
+	.settings-main {
+		padding: var(--space-20) var(--space-16);
+		max-height: 70dvh;
+	}
+	/* The settings page fills the screen behind the capsule: its groups scroll to the bottom edge, not to a box above it. */
+	#modal.page.panel.wide .sheet {
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0;
+	}
+	#modal.page .settings-layout {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+	#modal.page .settings-main {
+		flex: 1;
+		max-height: none;
+		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+	/* Search */
+	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
+	:is(#modal, #search-background).search {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+		margin: 0;
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		justify-content: flex-start;
+		gap: var(--space-10);
+	}
+	:is(#modal, #search-background).search .search-results {
+		flex: 1;
+		min-height: 0;
+		max-height: none;
+	}
+	:is(#modal, #search-background).search .search-chips {
+		flex: none;
+	}
+	:is(#modal, #search-background).page.search {
+		height: auto;
+		max-height: none;
+		inset: 0 0 var(--kb, 0px);
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+	}
+	/* Keyboard, pages and photos */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		position: fixed;
+		inset: auto 0 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+	}
+	.panel-content {
+		padding: var(--space-22) var(--space-20) var(--space-26);
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	#modal.panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	body.keyboard-open #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
+	}
+	/* Phone places are pages. AI/settings retain capsule navigation; search has its own exit. */
+	#modal.page,
+	#modal.page.panel,
+	#modal.page.panel.wide,
+	#modal.page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	#modal.page :is(.grabber, .sheet-close) {
+		display: none;
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		padding: calc(var(--space-12) + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+		animation: var(--motion-animation, none);
+		animation-duration: var(--motion-animation-duration, 0s);
+		animation-iteration-count: var(--motion-animation-iterations, 1);
+	}
+	/* The local AI preview keeps context and composer in one viewport. */
+	#modal.page.panel.narrow:has(.ai-conversation) {
+		width: 100%;
+	}
+	#modal.page.panel .ai-conversation {
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--space-16)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+	.lightbox-stage > .icon-button {
+		display: none;
+	}
+}

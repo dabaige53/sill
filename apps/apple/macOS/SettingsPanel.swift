@@ -130,8 +130,6 @@ struct SettingsPanel: View {
             ("compact", "web.panels.5d63d587b0b0"), ("standard", "web.panels.6bea77acefb3"),
             ("roomy", "web.panels.051a34d53a73"),
           ])
-        toggle("web.panels.7a56d47cadcb", "reduceMotion")
-        toggle("web.panels.0ff470103d8e", "reduceTransparency")
       }
     case "keys":
       settingsCard {

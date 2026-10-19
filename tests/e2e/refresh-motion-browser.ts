@@ -15,12 +15,11 @@ const browser = await chromium.launch({
 });
 try {
 	fs.mkdirSync("tests/artifacts", { recursive: true });
-	for (const reducedMotion of ["no-preference", "reduce"] as const) {
+	{
 		const context = await browser.newContext({
 			viewport: { width: 390, height: 844 },
 			isMobile: true,
 			hasTouch: true,
-			reducedMotion,
 		});
 		await context.addInitScript(() => {
 			localStorage.setItem(
@@ -90,7 +89,7 @@ try {
 			const shift = await page
 				.locator("main")
 				.evaluate((node) => (node as HTMLElement).style.translate);
-			assert.equal(reducedMotion === "reduce" ? shift === "" : shift !== "", true);
+			assert.equal(shift !== "", true);
 			const bounds = await page.evaluate(() => ({
 				ring: document.querySelector("#pull-ring").getBoundingClientRect().toJSON(),
 				tabs: document.querySelector(".home-tabs").getBoundingClientRect().toJSON(),
@@ -111,15 +110,15 @@ try {
 		await page.waitForTimeout(300);
 		assert.equal(
 			await page.locator("main").evaluate((node) => (node as HTMLElement).style.translate),
-			reducedMotion === "reduce" ? "" : "0px 36px",
+			"0px 36px",
 			"the desk pauses open while the ring turns",
 		);
 		await page.waitForTimeout(850);
 		assert.equal(await page.evaluate(() => window.__pullCalls), 1);
 		assert.equal(await page.locator(".pull-ring.is-spinning").count(), 1);
-		await page.screenshot({ path: `tests/artifacts/refresh-loading-${reducedMotion}.png` });
+		await page.screenshot({ path: `tests/artifacts/refresh-loading-normal.png` });
 		await page.screenshot({
-			path: `tests/artifacts/refresh-header-${reducedMotion}.png`,
+			path: `tests/artifacts/refresh-header-normal.png`,
 			clip: { x: 0, y: 0, width: 390, height: 180 },
 		});
 		assert.equal(
@@ -153,7 +152,7 @@ try {
 		await pull();
 		await page.waitForTimeout(30);
 		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "error");
-		await page.screenshot({ path: `tests/artifacts/refresh-retry-${reducedMotion}.png` });
+		await page.screenshot({ path: `tests/artifacts/refresh-retry-normal.png` });
 		assert.equal(await page.locator("#pull-ring").getAttribute("aria-label"), "刷新失败，重试");
 		await page.evaluate(() => {
 			window.__app.refresh = async () => true;
@@ -166,7 +165,7 @@ try {
 		await page.waitForTimeout(300);
 		assert.ok((await page.evaluate(() => scrollY)) > 0, "ordinary scrolling remains available");
 		assert.deepEqual(errors, []);
-		console.log(`PASS refresh ownership, cancel, request lock, scroll: ${reducedMotion}`);
+		console.log(`PASS refresh ownership, cancel, request lock, scroll: normal`);
 		await context.close();
 	}
 } finally {

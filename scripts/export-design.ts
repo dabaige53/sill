@@ -17,7 +17,7 @@ const renamed = (value: string) =>
 			})[name],
 	);
 const read = (file: string) => JSON.parse(renamed(readFileSync(new URL(file, directory), "utf8")));
-const spec = read("openapi.json");
+const spec = read("openapi-source.json");
 spec.components.schemas = Object.fromEntries(
 	Object.entries(cloudSchemas).map(([name, schema]: any) => {
 		const { $schema, ...value } = z.toJSONSchema(schema, { io: "input" });

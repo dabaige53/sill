@@ -7,7 +7,6 @@ struct NativeStack: View {
   let toggle: () -> Void
   let open: (Card) -> Void
   @EnvironmentObject private var model: Workspace
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.controlActiveState) private var windowActivity
   @State private var selection = DeckSelection()
   @State private var width: CGFloat = 1
@@ -20,7 +19,6 @@ struct NativeStack: View {
   @State private var velocity: CGFloat = 0
   @State private var generation = 0
   @GestureState private var dragging = false
-  private var animated: Bool { !reduceMotion && model.preferences["reduceMotion"]?.bool != true }
   private var currentIndex: Int { min(max(0, selection.index), max(0, cards.count - 1)) }
   var body: some View {
     if expanded {
@@ -39,7 +37,7 @@ struct NativeStack: View {
         .opacity(entering ? 0 : 1)
         .modifier(
           DeckPosition(
-            x: animated ? offset : 0, width: width,
+            x: offset, width: width,
             rotation: exiting
               ? AppleMetrics.motionDeckExitRotation : AppleMetrics.motionDeckRotation
           ) { value in
@@ -107,17 +105,6 @@ struct NativeStack: View {
               selection.confirm(target)
               generation += 1
               let completionGeneration = generation
-              if !animated {
-                entering = true
-                selection.settle(count: cards.count)
-                offset = 0
-                Task { @MainActor in
-                  await Task.yield()
-                  guard generation == completionGeneration else { return }
-                  withAnimation(.linear(duration: AppleMetrics.motionReduced)) { entering = false }
-                }
-                return
-              }
               exiting = true
               let destination =
                 (target > currentIndex ? -1.0 : 1.0) * width * AppleMetrics.motionDeckExitTravel
@@ -148,7 +135,6 @@ struct NativeStack: View {
         .onChange(of: windowActivity) { _, activity in
           if activity == .inactive { resetDrag() }
         }
-        .onChange(of: animated) { _, _ in resetDrag() }
         .onChange(of: cards.map(\.id)) { _, _ in
           selection.settle(count: cards.count)
           resetDrag()
@@ -218,12 +204,10 @@ struct NativeStack: View {
     entering = false
     guard !confirmed else { return }
     withAnimation(
-      animated
-        ? .interpolatingSpring(
-          duration: AppleMetrics.motionDeckSpring,
-          bounce: AppleMetrics.motionDeckBounce,
-          initialVelocity: offset == 0 ? 0 : releaseVelocity * 1000 / -offset)
-        : nil
+      .interpolatingSpring(
+        duration: AppleMetrics.motionDeckSpring,
+        bounce: AppleMetrics.motionDeckBounce,
+        initialVelocity: offset == 0 ? 0 : releaseVelocity * 1000 / -offset)
     ) {
       offset = 0
     }

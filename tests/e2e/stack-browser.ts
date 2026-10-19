@@ -79,23 +79,6 @@ import { chromium } from "playwright";
 		await page.waitForTimeout(350);
 		assert.equal(await current(page), "1");
 	});
-	await scenario("Reduced motion removes live deck travel and still switches", async (page) => {
-		await page.emulateMedia({ reducedMotion: "reduce" });
-		const p = await position(page);
-		await page.mouse.move(p.x, p.y);
-		await page.mouse.down();
-		await page.mouse.move(p.x - 160, p.y, { steps: 5 });
-		assert.equal(await page.locator(".deck .is-top").evaluate((el) => el.style.transform), "");
-		await page.mouse.up();
-		assert.equal(await current(page), "1");
-		await page.emulateMedia({ reducedMotion: "no-preference" });
-		await page.mouse.down();
-		await page.mouse.move(p.x - 100, p.y, { steps: 4 });
-		await page.evaluate(() => document.body.classList.add("reduce-motion"));
-		await page.waitForTimeout(30);
-		assert.equal(await page.locator(".deck .is-top").evaluate((el) => el.style.transform), "");
-		await page.mouse.up();
-	});
 	await scenario(
 		"Trackpad reversal during the coasting guard changes direction",
 		async (page?: any) => {

@@ -1,6 +1,6 @@
 # 测试目录
 
-更新：2026-10-18。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
+更新：2026-10-19。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
 | 改动 | 入口 | 边界 |
 | --- | --- | --- |
@@ -9,7 +9,7 @@
 | 完整 Node 检查 | `npm test` | 文件、Schema、构建、语法、类型、共享约定、Web 核心和全部服务端测试 |
 | 共享约定 | `npm run test:contracts` | 合法、非法与旧来源迁移样例；纯合成文件，验证读不改写和未知字段保留 |
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |
-| 浏览器交互与布局 | `npm run test:browser`、`npm run test:local-browser`、`npm run test:accessibility` | 按改动选择；输出放被忽略的 `artifacts/` |
+| 浏览器交互与布局 | `npm run test:browser`、`npm run test:local-browser`、`npm run test:navigation-recovery` | 按改动选择；输出放被忽略的 `artifacts/` |
 | 内容自适应抽屉、边界阻尼与背景锁定 | `npm run build && node tests/e2e/drawer-browser.ts` | 合成卡片：短内容高度、长文上限及滚动扩展、PWA 按钮、减少动态效果、边界阻尼与位置还原；不代替 iPhone 实测 |
 | 搜索和主页独立、详情返回 | `npm run build && node tests/e2e/search-browser.ts` | 合成卡片；查询和类型不改主页、搜索卡片组件、抽屉下方保留结果、前进后退与滚动还原 |
 | 搜索条件分行 | `npm run build && node tests/e2e/search-filters-browser.ts` | 320/390/1440 浅深色及窄键盘空间；具名分组、横滑边界、键盘类型/标签、状态筛选、详情返回和来源不变 |
@@ -37,3 +37,5 @@
 `web/panels.test.ts` 覆盖 11 类卡片、播客、转义、助手动作位置、关联卡片、任务与提醒状态。C3 的完整 HTML 比较仅在本机运行，摘要保存在检查记录。非 Linux 环境运行 `test:cloud-welcome` 时，通过 `CHROMIUM_PATH` 指定已安装的 Chromium，不安装新浏览器或修改断言。
 
 专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/guides/file-management.md)。
+
+浏览器入口保留服务启动、合成数据和结果汇总；相邻模块按卡片操作、阅读与选择、捕获与布局、触控与拖动、材质、抽屉和无障碍场景分组，按原顺序执行。`web/selection.test.ts` 与 `server/oauth-consent.test.ts` 分别注册相邻模块中的全部测试；`server/supabase-postgres.ts` 在同一容器中依次运行权限与 OAuth 检查。拆分模块不单独启动浏览器、服务或数据库。

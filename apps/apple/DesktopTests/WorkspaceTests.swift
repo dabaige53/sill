@@ -16,6 +16,35 @@ import Testing
     if let due { fields["due"] = .number(due) }
     return try Card(json: .object(fields))
   }
+  @Test func readerDismissReturnsOneRelatedCardAtATime() throws {
+    let model = Workspace(autoload: false)
+    model.cards = try [card("first"), card("second"), card("third")]
+    model.selected = "first"
+    model.selected = "second"
+    model.selected = "third"
+    model.dismissReader()
+    #expect(model.selected == "second")
+    model.dismissReader()
+    #expect(model.selected == "first")
+    model.dismissReader()
+    #expect(model.selected == nil)
+    #expect(model.readerTrail.isEmpty)
+  }
+
+  @Test func readerDismissSkipsRemovedCardsAndClearsHistoryWhenClosed() throws {
+    let model = Workspace(autoload: false)
+    model.cards = try [card("first"), card("third")]
+    model.selected = "first"
+    model.selected = "removed"
+    model.selected = "third"
+    model.dismissReader()
+    #expect(model.selected == "first")
+    model.selected = nil
+    model.selected = "third"
+    model.dismissReader()
+    #expect(model.selected == nil)
+  }
+
   @Test func searchDoesNotFilterHomeAndMatchesNotesAndTags() throws {
     let model = Workspace(autoload: false)
     model.cards = try [card("first"), card("second")]

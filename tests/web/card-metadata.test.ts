@@ -44,7 +44,7 @@ test("ambiguous, invalid and missing timestamps never become invented dates", ()
 	assert.equal(cardDates(card).created, null);
 });
 
-test("preview and reader keep tags under title and labelled dates outside the source header", () => {
+test("preview and reader keep tags under the title and source notes after the body", () => {
 	const card = {
 		id: "synthetic-metadata",
 		type: "article",
@@ -65,27 +65,43 @@ test("preview and reader keep tags under title and labelled dates outside the so
 		assert.equal(doc.querySelector(".preview-meta")?.textContent, "Readwise");
 		assert.equal(doc.querySelector("h1")?.nextElementSibling?.className, "preview-tags");
 		assert.equal(doc.querySelectorAll(".preview-tags").length, 1);
-		// A date the card does not have is left out, not shown as unknown (ADR 0037).
-		assert.doesNotMatch(doc.querySelector(".preview-details")!.textContent!, /发布时间|未提供/);
-		assert.match(doc.querySelector(".preview-details")!.textContent!, /写入 Sill/);
-		assert.match(doc.querySelector(".preview-source-note")!.textContent!, /2026-10-13 保存/);
-		assert.equal(doc.querySelectorAll("time").length, 1);
+		assert.equal(doc.querySelector(".preview-details"), null);
+		assert.equal(doc.querySelector(".preview-source-note")?.textContent, card.meta);
+		assert.ok(
+			doc.body.textContent!.lastIndexOf(card.meta) > doc.body.textContent!.indexOf("Synthetic body"),
+		);
+		assert.equal(doc.querySelectorAll("time").length, 0);
 	}
 	assert.equal(JSON.stringify(card), before);
 	assert.equal(detailSource(card), "Readwise");
 });
 
-test("metadata escapes source notes and does not repeat identical update time", () => {
-	const html = Panels.details({
-		type: "article",
-		meta: "<img src=x onerror=alert(1)>",
-		created_at: "2026-10-16T01:00:00Z",
-		updated_at: "2026-10-16T01:00:00Z",
-	});
+test("metadata shows only the publication date and retains the full timestamp as a hint", () => {
+	const html = Panels.preview(
+		{},
+		{
+			id: "published-card",
+			title: "Publication",
+			body: ["正文"],
+			sources: [{ kind: "local", name: "Reader" }],
+			type: "article",
+			meta: "<img src=x onerror=alert(1)>",
+			published_at: "2026-10-01T01:30:00Z",
+			created_at: "2026-10-16T01:00:00Z",
+			updated_at: "2026-10-16T01:00:00Z",
+		},
+	);
 	const doc = new JSDOM(html).window.document;
 	assert.equal(doc.querySelector("img"), null);
 	assert.equal(doc.querySelectorAll("time").length, 1);
-	assert.doesNotMatch(doc.body.textContent!, /更新于/);
+	assert.doesNotMatch(doc.body.textContent!, /更新|收录|UTC/);
+	assert.equal(doc.querySelector("time")?.parentElement?.className, "preview-meta");
+	assert.match(doc.querySelector("time")!.textContent!, /10月1日/);
+	assert.equal(
+		doc.querySelector(".preview-source-note")!.textContent,
+		"<img src=x onerror=alert(1)>",
+	);
+	assert.match(doc.querySelector("time")!.title, /UTC/);
 });
 
 test("instant formatting follows the device zone without shifting date-only values", () => {

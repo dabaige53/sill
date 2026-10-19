@@ -1,0 +1,348 @@
+import { copy } from "../copy.ts";
+import { Store } from "../data/store.ts";
+import { MotionEngine } from "../interactions/motion.ts";
+import { PanelViews as Panels } from "../interactions/panels-components.tsx";
+import { action as dispatchAction } from "./actions/index.ts";
+import type { AppController } from "./app.ts";
+import { type Deck, type TargetEvent } from "./app-types.ts";
+import { renderContent, renderView } from "./react-renderer.ts";
+
+export const appInputMethods = {
+	click(this: AppController, e?: TargetEvent<MouseEvent>) {
+		// The end of a sideways drag through a stack is not a tap.
+		if (this.stackDragUntil > Date.now() && e.target.closest?.<HTMLElement>("[data-stack]")) {
+			e.preventDefault();
+			e.stopPropagation();
+			return;
+		}
+		const picked = e.target.closest?.<HTMLElement>(
+			"#feed-grid [data-card], #search-results [data-card]",
+		);
+		if (
+			picked &&
+			this.selectionContext().grid?.contains(picked) &&
+			!e.target.closest<HTMLElement>(".card-actions, .card-more-menu, .is-editing") &&
+			(e.metaKey || e.ctrlKey || e.shiftKey || this.selected.size)
+		) {
+			e.preventDefault();
+			e.stopPropagation();
+			this.closeMore();
+			this.select(picked.dataset.card, { range: e.shiftKey });
+			return;
+		}
+		const el = e.target.closest?.<HTMLElement & { disabled?: boolean }>("[data-action]");
+		if (el?.closest<HTMLElement>(".card-more-menu")) this.closeMore(true);
+		else if (
+			!el?.matches('[data-action="card-more"]') &&
+			!e.target.closest?.<HTMLElement>(".card-more-menu")
+		)
+			this.closeMore();
+		if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing")) this.finishInlineEdit();
+		if (el) {
+			if (el.disabled) return;
+			e.preventDefault();
+			e.stopPropagation();
+			this.action(el.dataset.action, el.dataset.id, el.dataset.extra, el, e);
+			return;
+		}
+		if (e.target.closest?.<HTMLElement>(".is-editing")) return;
+		const stack = e.target.closest?.<HTMLElement>("[data-stack]");
+		if (stack && !e.target.closest<HTMLElement>("button,a,input,textarea")) {
+			this.action("stack-open", "", stack.dataset.stack);
+			return;
+		}
+		const card = e.target.closest?.<HTMLElement>("[data-card]");
+		if (card && !e.target.closest<HTMLElement>("button,a,input,textarea")) {
+			this.navigate("#card/" + card.dataset.card);
+			return;
+		}
+	},
+	action(
+		this: AppController,
+		name?: string,
+		id: string = "",
+		extra: string = "",
+		el: HTMLElement = null,
+		event: Event = null,
+	): undefined {
+		return dispatchAction.call(this, name, id, extra, el, event);
+	},
+	repaintSearch(this: AppController) {
+		clearTimeout(this.searchTimer);
+		this.searchScroll = 0;
+		this.searchLimit = 40;
+		if (this.modalKind !== "search") {
+			return;
+		}
+		const active = document.activeElement as HTMLElement,
+			searchFocused = active?.id === "filter-search",
+			pos = (active as HTMLInputElement)?.selectionStart;
+		const action = (active as HTMLElement)?.dataset.action,
+			extra = (active as HTMLElement)?.dataset.extra;
+		const liveToast = document.getElementById("toast");
+		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
+		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
+			(row) => row.scrollLeft,
+		);
+		renderContent(this.dialog, Panels.search(this));
+		MotionEngine.fade(document.getElementById("search-results"));
+		this.bindSearchResults();
+		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
+			row.scrollLeft = filterScroll[index] ?? 0;
+		});
+		if (searchFocused) {
+			const n = document.getElementById("filter-search");
+			n.focus();
+			try {
+				(n as HTMLInputElement).setSelectionRange(pos, pos);
+			} catch {}
+		} else if (action)
+			[...this.dialog.querySelectorAll<HTMLElement>("[data-action]")]
+				.find((n?: HTMLElement) => n.dataset.action === action && n.dataset.extra === extra)
+				?.focus({ preventScroll: true });
+		this.revealImages(this.dialog);
+	},
+	input(this: AppController, e?: TargetEvent<Event> & { isComposing?: boolean }) {
+		if (e.target.id === "ai-local-draft") {
+			this.aiDraft = (e.target as HTMLTextAreaElement).value;
+			return;
+		}
+		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
+		if (e.isComposing) return;
+		if (e.target.dataset.input === "search") {
+			this.searchFilter.query = e.target.value;
+			this.searchScroll = 0;
+			this.searchLimit = 40;
+			document.getElementById("filter-result").textContent =
+				`${Object.values(this.searchAll(this.searchFilter.query)).flat().length}${copy("web.common.cardCountSuffix")}`;
+			clearTimeout(this.searchTimer);
+			this.searchTimer = window.setTimeout(() => {
+				this.searchTimer = 0;
+				const results = document.getElementById("search-results");
+				if (results) {
+					renderView(results, Panels.searchResults(this));
+					MotionEngine.fade(results);
+					results.scrollTop = 0;
+					this.revealImages(results);
+					this.updateSelection();
+				}
+			}, 140);
+		}
+		if (this.editingId && e.target.closest?.<HTMLElement>(".inline-editor")) {
+			const state = document.getElementById("inline-state");
+			if (state) state.textContent = copy("web.cloudentry.6bdb4435095e");
+			clearTimeout(this.inlineTimer);
+			this.inlineTimer = window.setTimeout(() => this.saveInlineEdit(), 500);
+		}
+	},
+	paste(this: AppController, e?: TargetEvent<ClipboardEvent>) {
+		// Paste a link or a line anywhere on the desk to keep it.
+		if (this.dialog.open || e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]"))
+			return;
+		const text = e.clipboardData?.getData("text/plain");
+		if (!text?.trim()) return;
+		e.preventDefault();
+		this.capture(text);
+	},
+	key(this: AppController, e?: TargetEvent<KeyboardEvent>) {
+		if (e.isComposing) return;
+		if (
+			(!this.dialog.open || this.modalKind === "search") &&
+			!e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]") &&
+			(e.key === "ContextMenu" || (e.shiftKey && e.key === "F10"))
+		) {
+			if (
+				e.target.closest?.<HTMLElement>("#selection-bar, #search-selection-bar") &&
+				this.selected.size
+			) {
+				e.preventDefault();
+				this.drag.openMenu([...this.selected], e.target);
+				return;
+			}
+			const card = e.target.closest?.<HTMLElement>("[data-card]");
+			if (card) {
+				e.preventDefault();
+				this.more(card.dataset.card);
+				return;
+			}
+		}
+		if (
+			e.key === "Escape" &&
+			this.modalKind === "search" &&
+			this.dialog.querySelector<HTMLElement>(".card-more-menu")
+		) {
+			e.preventDefault();
+			this.closeMore(true);
+			return;
+		}
+		if (e.key === "Escape" && this.modalKind === "search" && this.selected.size) {
+			e.preventDefault();
+			this.action("clear-selection");
+			return;
+		}
+		// Search selection gets the first Escape; only then does a page return home.
+		if (e.key === "Escape" && this.dialog.open && this.dialog.classList.contains("page")) {
+			e.preventDefault();
+			if (this.searchBackground) this.closeNative();
+			else this.goTo("home");
+			return;
+		}
+		if (e.key === "Escape" && this.modalKind === "search") {
+			e.preventDefault();
+			this.closeModal();
+			return;
+		}
+		const radio = e.target.closest?.<HTMLElement>('[role="radio"]'),
+			group = radio?.closest<HTMLElement>('[role="radiogroup"]');
+		if (
+			group &&
+			["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)
+		) {
+			const radios = [...group.querySelectorAll<HTMLElement>('[role="radio"]')],
+				i = radios.indexOf(radio);
+			const index =
+				e.key === "Home"
+					? 0
+					: e.key === "End"
+						? radios.length - 1
+						: (i + (["ArrowLeft", "ArrowUp"].includes(e.key) ? -1 : 1) + radios.length) %
+							radios.length;
+			e.preventDefault();
+			radios[index].focus();
+			radios[index].click();
+			return;
+		}
+		const menu = e.target.closest?.<HTMLElement>(".card-more-menu");
+		if (menu && ["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) {
+			const items = [...menu.querySelectorAll<HTMLElement>("button")],
+				index = items.indexOf(document.activeElement as HTMLElement);
+			const next =
+				e.key === "Home"
+					? 0
+					: e.key === "End"
+						? items.length - 1
+						: (index + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+			e.preventDefault();
+			items[next]?.focus();
+			return;
+		}
+		if (e.key === "Escape" && this.grid.querySelector<HTMLElement>(".card-more-menu")) {
+			e.preventDefault();
+			this.closeMore(true);
+			return;
+		}
+		if (e.key === "Escape" && this.editingId) {
+			e.preventDefault();
+			const id = this.editingId;
+			this.finishInlineEdit();
+			this.grid
+				.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"] .card-title-button`)
+				?.focus();
+			return;
+		}
+		if (this.modalKind === "lightbox" && ["ArrowLeft", "ArrowRight"].includes(e.key)) {
+			e.preventDefault();
+			this.action("photo-step", this.currentId, e.key === "ArrowLeft" ? "-1" : "1");
+			return;
+		}
+		if (e.key === "Tab" && this.dialog.open) {
+			const focusable = [
+				...this.dialog.querySelectorAll<HTMLElement>(
+					'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]',
+				),
+			].filter(
+				(n?: HTMLElement) =>
+					n.getClientRects().length && getComputedStyle(n).visibility !== "hidden",
+			);
+			const first = focusable[0],
+				last = focusable[focusable.length - 1],
+				active = document.activeElement as HTMLElement;
+			if (first && last) {
+				if (e.shiftKey && (active === first || !focusable.includes(active))) {
+					e.preventDefault();
+					last.focus();
+					return;
+				}
+				if (!e.shiftKey && active === last) {
+					e.preventDefault();
+					first.focus();
+					return;
+				}
+			}
+		}
+		if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+			e.preventDefault();
+			if (this.modalKind !== "search") this.openPanel("search");
+			return;
+		}
+		if (e.target.id === "tag-new" && e.key === "Enter") {
+			e.preventDefault();
+			this.action("add-tag", this.editId);
+			return;
+		}
+		if (e.target.id === "filter-search" && e.key === "Enter") {
+			e.preventDefault();
+			const first = this.dialog.querySelector<HTMLElement>(
+				'#search-results .card-title-button[data-action="card-open"]',
+			);
+			if (first) first.click();
+			return;
+		}
+		if (e.target.id === "capture-text" && e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			this.action("capture-save");
+			return;
+		}
+		if (e.key === "Escape" && !this.dialog.open) {
+			if (this.selected.size) {
+				this.selected.clear();
+				this.updateSelection();
+			}
+			return;
+		}
+		const typing = e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]");
+		if (
+			Store.pref("singleKeyShortcuts") &&
+			!this.dialog.open &&
+			!typing &&
+			!e.metaKey &&
+			!e.ctrlKey &&
+			!e.altKey
+		) {
+			if (e.key === "n" || e.key === "N") {
+				e.preventDefault();
+				this.openPanel("capture");
+				return;
+			}
+			if (e.key === "r" || e.key === "R") {
+				e.preventDefault();
+				this.gestures.refresh();
+				return;
+			}
+			if (e.key === "t" || e.key === "T") {
+				e.preventDefault();
+				this.action("top");
+				return;
+			}
+		}
+		if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-card]")) {
+			e.preventDefault();
+			this.navigate("#card/" + e.target.dataset.card);
+		}
+		if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-stack]")) {
+			e.preventDefault();
+			this.action("stack-open", "", e.target.dataset.stack);
+		}
+		if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && e.target.matches("[data-stack]")) {
+			const deck = e.target.querySelector<Deck>(".deck");
+			if (deck) {
+				e.preventDefault();
+				deck._cancelGesture?.();
+				clearTimeout(deck._wheel?.t);
+				deck._wheel = null;
+				deck._finish?.();
+				this.deckShow(deck, Number(deck.dataset.cur || 0) + (e.key === "ArrowRight" ? 1 : -1));
+			}
+		}
+	},
+};

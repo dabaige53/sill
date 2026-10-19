@@ -84,13 +84,10 @@ try {
 	assert.equal(value.state.items["agent-test"].bookmarked, false);
 	await apply([
 		{ op: "item.patch", id: "agent-test", values: { note: "新 AI 备注" } },
-		{ op: "preferences.patch", values: { reduceTransparency: true } },
+		{ op: "preferences.patch", values: { density: "compact" } },
 	]);
 	await page.getByText("新 AI 备注", { exact: true }).waitFor();
-	assert.equal(
-		await page.locator("body").evaluate((n?: any) => n.classList.contains("opaque")),
-		true,
-	);
+	assert.equal(await page.evaluate(() => window.__store.pref("density")), "compact");
 	await page.getByRole("button", { name: "编辑标签与备注", exact: true }).click();
 	await page.locator("#note-editor").fill("页面写回给 AI");
 	await page.locator('[data-action="save-note"]').click();
@@ -117,7 +114,7 @@ try {
 		},
 		{ times: 1 },
 	);
-	await page.evaluate(() => window.__app.setPref("reduceTransparency", false));
+	await page.evaluate(() => window.__app.setPref("density", "standard"));
 	await saveStarted;
 	await page.evaluate(() => window.__app.openPanel("editor", "agent-test"));
 	await apply([{ op: "item.patch", id: "agent-test", values: { note: "并发 AI 备注" } }]);

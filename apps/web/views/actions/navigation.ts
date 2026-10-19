@@ -1,5 +1,4 @@
 import { Store } from "../../data/store.ts";
-import { MotionEngine } from "../../interactions/motion.ts";
 import { FeedPolicy } from "../../services/feed-policy.ts";
 import type { AppController } from "../app.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
@@ -24,7 +23,7 @@ function captureSave(this: AppController) {
 }
 
 function top(this: AppController) {
-	window.scrollTo({ top: 0, behavior: MotionEngine.reduced ? "instant" : "smooth" });
+	window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function homeTab(this: AppController, { extra }: ActionContext) {

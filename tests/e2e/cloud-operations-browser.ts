@@ -306,7 +306,6 @@ try {
 	await mkdir("tests/artifacts", { recursive: true });
 	await page.screenshot({ path: "tests/artifacts/cloud-operations-desktop.png" });
 	await page.setViewportSize({ width: 390, height: 844 });
-	await page.emulateMedia({ reducedMotion: "reduce" });
 	await action("capture");
 	await page.locator("#cloud-title").fill("手机速记");
 	assert.equal(await page.locator("[data-cloud-field]").count(), 0);

@@ -5,6 +5,7 @@
 ## 产品规则
 
 - [Agent 驱动与 MCP 连接](product/agent-mcp.md)
+- [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
 - [Sill 交互规范](product/interaction-spec.md)
 - [Sill · 窗台 — 产品需求文档](product/requirements.md)
@@ -23,6 +24,9 @@
 - [文件管理规范](guides/file-management.md)
 - [V1 三端接口与交接包](guides/handoff.md)
 - [Web 与 PWA 界面优化交接](guides/web-pwa-ui-handoff.md)
+- [Web 与 PWA 界面工作包](guides/web-pwa-ui-packages.md)
+- [Web 代码工作包](guides/web-pwa-code-packages.md)
+- [Web 与 PWA 接手提示词](guides/web-pwa-agent-prompts.md)
 - [本地操作](guides/local-operations.md)
 - [Sill 插件调试记录与使用规范](guides/plugin-runbook.md)
 
@@ -62,6 +66,8 @@
 - [Web 使用 React、TypeScript 与 Vite](adr/0047-react-web.md)
 
 ## 记录
+
+- [React 迁移与动效本地整合（2026-10-19）](records/2026-10-19-react-motion-integration/README.md)
 
 - [无效代码清理（2026-10-19）](records/2026-10-19-dead-code-cleanup/README.md)
 

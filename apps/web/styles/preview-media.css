@@ -1,0 +1,359 @@
+/* Podcast: playing happens here; progress syncs back to the show. */
+.player {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-14);
+	padding: var(--space-28) var(--space-28) var(--space-30);
+	background: linear-gradient(180deg, var(--fixed-podcast-light), var(--card) 70%);
+}
+:root[data-theme="dark"] .player {
+	background: linear-gradient(180deg, var(--fixed-podcast-dark), var(--card) 70%);
+}
+.player-art {
+	width: 150px;
+	height: 150px;
+	border-radius: 22px;
+	background: linear-gradient(
+		140deg,
+		var(--fixed-podcast-cover-start),
+		var(--fixed-podcast-cover-mid) 55%,
+		var(--fixed-podcast-cover-end)
+	);
+	box-shadow: 0 12px 30px var(--fixed-black-12);
+}
+.player h1 {
+	font-size: 20px;
+	text-align: center;
+}
+.player .preview-meta {
+	justify-content: center;
+}
+.player-bar {
+	width: 100%;
+	max-width: 360px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-6);
+}
+.player-bar .bar {
+	display: block;
+	height: 4px;
+}
+.player-times {
+	display: flex;
+	justify-content: space-between;
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.player-controls {
+	display: flex;
+	align-items: center;
+	gap: var(--space-22);
+}
+.player-main {
+	display: grid;
+	place-items: center;
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	background: var(--ink);
+	color: var(--card);
+}
+.player-main svg {
+	fill: currentColor;
+}
+
+/* Video and the old four-step demo. */
+.media-player {
+	position: relative;
+	background: var(--surface);
+	border-radius: 18px;
+	overflow: hidden;
+	aspect-ratio: 16 / 9;
+}
+.media-player img {
+	height: 100%;
+	width: 100%;
+	object-fit: cover;
+	opacity: 0.45;
+	filter: saturate(0.7);
+}
+.media-slide {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: var(--space-25);
+	background: linear-gradient(0deg, var(--frost), transparent);
+	flex-direction: column;
+	gap: var(--space-12);
+}
+.media-slide b {
+	font-size: var(--text-panel-title);
+	font-weight: 600;
+	letter-spacing: -0.03em;
+}
+.media-slide span {
+	font-size: var(--text-control);
+	line-height: 1.8;
+}
+.media-controls {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-12);
+}
+.media-step {
+	font-size: var(--text-caption);
+	color: var(--muted);
+	font-family: var(--rounded);
+}
+
+/* Photos: black, large, left and right, Esc to leave. */
+#modal.lightbox {
+	width: 100vw;
+	height: 100dvh;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	background: var(--fixed-photo-canvas);
+	color: var(--fixed-white);
+}
+@supports (height: 100dvh) {
+	#modal.lightbox {
+		height: 100dvh;
+	}
+}
+#modal.lightbox[open] {
+	display: flex;
+	flex-direction: column;
+}
+/* Recovery stays in the photo layout so it cannot cover thumbnails or discussion controls. */
+#modal.lightbox #toast {
+	position: static;
+	flex: none;
+	align-self: center;
+	margin: 0 var(--rail-edge) max(var(--space-12), env(safe-area-inset-bottom));
+}
+#modal.lightbox::backdrop {
+	background: var(--fixed-photo-canvas);
+}
+.lightbox-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-16) var(--space-20);
+	font-size: var(--text-meta);
+	color: var(--fixed-white-75);
+}
+.lightbox-top .icon-button {
+	color: var(--fixed-white);
+}
+@media (hover: hover) and (pointer: fine) {
+	.lightbox-top .icon-button:hover {
+		background: var(--fixed-white-12);
+	}
+}
+.lightbox-stage {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-12);
+	padding: 0 var(--space-20);
+	min-height: 0;
+}
+.lightbox-stage img {
+	width: min(1100px, 100%);
+	height: 100%;
+	border-radius: 6px;
+	object-fit: contain;
+	min-width: 0;
+	flex: 1;
+}
+.lightbox-stage .icon-button {
+	color: var(--fixed-white);
+	flex: none;
+}
+@media (hover: hover) and (pointer: fine) {
+	.lightbox-stage .icon-button:hover {
+		background: var(--fixed-white-12);
+	}
+}
+.lightbox-thumbs {
+	display: flex;
+	justify-content: center;
+	gap: var(--space-8);
+	padding: var(--space-16);
+}
+.lightbox-thumbs button {
+	width: 48px;
+	height: 48px;
+	border-radius: 8px;
+	overflow: hidden;
+	opacity: 0.55;
+	border: 2px solid transparent;
+}
+.lightbox-thumbs button.on {
+	opacity: 1;
+	border-color: var(--fixed-white);
+}
+.lightbox-thumbs img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+#modal.lightbox > .float-bar {
+	position: static;
+	flex: none;
+	align-self: center;
+	margin: 0 auto max(var(--space-16), env(safe-area-inset-bottom));
+}
+.lightbox .preview-foot {
+	flex: none;
+	justify-content: center;
+	padding: 0 var(--space-20) max(var(--space-12), env(safe-area-inset-bottom));
+}
+.lightbox .preview-foot .text-button {
+	min-height: var(--hit-target);
+	margin-left: 0;
+	color: var(--fixed-white);
+}
+@media (hover: hover) and (pointer: fine) {
+	.lightbox .preview-foot .text-button:hover {
+		background: var(--fixed-white-12);
+	}
+}
+.lightbox .preview-foot :focus-visible {
+	outline-color: var(--fixed-white);
+}
+
+/* Reader: a page, not a box. A thin line on top shows how far you are. */
+#modal.reader {
+	width: 100vw;
+	height: 100dvh;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	background: var(--card);
+}
+#modal.reader::backdrop {
+	background: var(--card);
+}
+.reader-progress {
+	width: 100%;
+	transform-origin: left center;
+	position: fixed;
+	left: 0;
+	top: 0;
+	height: 2px;
+	background: var(--accent-fill);
+	z-index: 4;
+	transition: var(--motion-transition, transform var(--fast) linear);
+}
+.reader-scroll {
+	height: 100dvh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.reader-body {
+	max-width: 860px;
+	margin: 0 auto;
+	padding: var(--space-88) var(--space-32) var(--space-160);
+}
+.reader-body .preview-meta {
+	margin-bottom: var(--space-14);
+}
+.reader-body h1 {
+	font-size: 34px;
+	line-height: 1.3;
+	font-weight: 600;
+	letter-spacing: -0.035em;
+	margin: 0 0 var(--space-28);
+	white-space: pre-line;
+}
+.reader-body p {
+	font-size: 18px;
+	line-height: 1.9;
+	margin: 0 0 var(--space-24);
+	color: var(--ink);
+}
+.reader-body .reader-cover {
+	width: 100%;
+	border-radius: 18px;
+	margin: 0 0 var(--space-32);
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+}
+.reader .float-bar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: max(24px, env(safe-area-inset-bottom));
+	margin-inline: auto;
+	z-index: 5;
+}
+.reader-head {
+	position: fixed;
+	top: max(14px, env(safe-area-inset-top));
+	right: max(16px, env(safe-area-inset-right));
+	z-index: 5;
+	display: flex;
+	gap: var(--space-2);
+	padding: var(--space-4);
+	border-radius: var(--pill-radius);
+}
+/* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
+dialog > .float-bar,
+.reader-head {
+	transition: var(
+		--motion-transition,
+		transform var(--dur-show) var(--ease-sheet),
+		opacity var(--dur-show) var(--ease),
+		translate var(--dur-sheet) var(--ease-sheet),
+		visibility 0s
+	);
+}
+dialog > .float-bar.is-tucked,
+dialog > .float-bar.is-hidden {
+	transform: var(--motion-toolbar-transform, translateY(calc(100% + 40px)));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: var(
+		--motion-transition,
+		transform var(--rail-tuck) var(--ease),
+		opacity 180ms var(--ease),
+		visibility 0s var(--rail-tuck)
+	);
+}
+.reader-head.is-tucked {
+	transform: var(--motion-toolbar-transform, translateY(calc(-100% - 24px)));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: var(
+		--motion-transition,
+		transform var(--rail-tuck) var(--ease),
+		opacity 180ms var(--ease),
+		visibility 0s var(--rail-tuck)
+	);
+}
+/* The read-end ring closes into a check when the last paragraph is reached. */
+.skeleton-lines {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-14);
+	margin-bottom: var(--space-28);
+}
+.skeleton-lines i {
+	height: 12px;
+	border-radius: 6px;
+	background: var(--surface);
+}
+.skeleton-lines i:last-child {
+	width: 62%;
+}

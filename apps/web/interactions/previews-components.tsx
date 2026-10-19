@@ -88,6 +88,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 					<div className={"preview-body"}>
 						{inner}
 						{note}
+						{this.details(c)}
 						{this.foot(action, agentAction(app, c))}
 					</div>
 				</div>
@@ -101,7 +102,6 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 				{c.title}
 			</h1>
 			{tags}
-			{this.details(c)}
 		</>
 	);
 	const context: PreviewContext = { app, s, tags, closeButton, sheet, tools, h1 };
@@ -294,31 +294,8 @@ function podcastPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 										</span>
 									</span>
 								</div>
-								<div className={"player-controls"}>
-									{button(
-										"rewind",
-										copy("web.preview.podcast.rewind15"),
-										"podcast-seek",
-										c.id,
-										"-15",
-									)}
-									<button
-										type={"button"}
-										className={"player-main"}
-										data-action={"podcast-play"}
-										data-id={c.id}
-										aria-label={copy("web.preview.play")}
-									>
-										{icon("play", 22)}
-									</button>
-									{button(
-										"ffwd",
-										copy("web.preview.podcast.forward30"),
-										"podcast-seek",
-										c.id,
-										"30",
-									)}
-								</div>
+								<p className="empty-description">{copy("web.media.playbackUnavailable")}</p>
+								{this.details(c)}
 								{this.foot(agentAction(app, c))}
 							</div>
 						</div>
@@ -443,7 +420,6 @@ function taskReminderPreview(this: PanelRenderers, c: PreviewCard, context: Prev
 								</h1>
 							</div>
 							{tags}
-							{this.details(c)}
 						</>
 					) : (
 						h1

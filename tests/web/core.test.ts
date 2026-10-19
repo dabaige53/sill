@@ -100,7 +100,6 @@ test("v1 state migrates without losing independent reading, tags, tasks or notes
 			"task-01": { taskDone: ["t2"] },
 		},
 		seconds: 42,
-		reduceTransparency: true,
 	});
 	assert.equal(Store.item("article-01").progress, 0.4);
 	assert.equal(Store.item("article-01").read, false);
@@ -115,7 +114,6 @@ test("v1 state migrates without losing independent reading, tags, tasks or notes
 		["t2"],
 	);
 	assert.equal(Store.state.seconds, 42);
-	assert.equal(Store.state.preferences.reduceTransparency, true);
 	assert.equal(JSON.parse(data.get(Store.key)).version, 4);
 });
 test("reload preserves the original demo clock, snooze deadline and ordering preference", () => {

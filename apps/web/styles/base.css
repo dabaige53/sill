@@ -5,6 +5,8 @@
 	--motion-managed-transform: initial;
 }
 html {
+	-webkit-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
 	background: var(--canvas);
 	scroll-behavior: var(--motion-scroll-behavior, smooth);
 	scrollbar-gutter: stable;
@@ -12,6 +14,7 @@ html {
 	overscroll-behavior-y: none;
 }
 body {
+	overscroll-behavior-y: none;
 	margin: 0;
 	font-family: var(--font);
 	color: var(--ink);
@@ -19,7 +22,7 @@ body {
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
-	min-height: 100vh;
+	min-height: 100dvh;
 	transition: var(--motion-transition, background var(--base));
 }
 button,
@@ -109,14 +112,14 @@ main {
 	width: 100%;
 	padding: var(--space-40) var(--space-40) var(--space-140);
 	margin: 0 auto;
-	min-height: 100vh;
+	min-height: 100dvh;
 }
 .feed-grid {
 	position: relative;
 	width: 100%;
 	max-width: var(--feed-max);
 	margin: 0 auto;
-	min-height: 60vh;
+	min-height: 60dvh;
 }
 h1,
 h2,
@@ -126,7 +129,7 @@ p {
 .empty-card {
 	position: relative;
 	max-width: 420px;
-	margin: 12vh auto 0;
+	margin: 12dvh auto 0;
 	padding: var(--space-32) var(--space-28);
 	text-align: center;
 	color: var(--muted);
@@ -207,4 +210,16 @@ main:has(.welcome, .empty-card) .feed-end {
 }
 #sync-status > span {
 	display: block;
+}
+
+/* Controls suppress text selection; reading content keeps native copy/link menus. */
+button,
+[role="button"] {
+	touch-action: manipulation;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+a {
+	touch-action: manipulation;
 }
