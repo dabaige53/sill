@@ -1,0 +1,1602 @@
+{
+  "sourceCommit": "7d5e1fe",
+  "scope": "Search design proposals only. B uses temporary DOM wrappers and CSS on the real page; original buttons, labels, state and results are unchanged. No source implementation was edited.",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "A",
+      "file": "320-light-a.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 288,
+          "height": 40
+        },
+        "result": {
+          "y": 132,
+          "height": 696
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "option": "B",
+      "file": "320-light-b.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 288,
+          "height": 140
+        },
+        "result": {
+          "y": 232,
+          "height": 596
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "A",
+      "file": "320-dark-a.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 288,
+          "height": 40
+        },
+        "result": {
+          "y": 132,
+          "height": 696
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "option": "B",
+      "file": "320-dark-b.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 288,
+          "height": 140
+        },
+        "result": {
+          "y": 232,
+          "height": 596
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "A",
+      "file": "390-light-a.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 358,
+          "height": 40
+        },
+        "result": {
+          "y": 132,
+          "height": 696
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "option": "B",
+      "file": "390-light-b.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 358,
+          "height": 140
+        },
+        "result": {
+          "y": 232,
+          "height": 596
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "A",
+      "file": "390-dark-a.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 358,
+          "height": 40
+        },
+        "result": {
+          "y": 132,
+          "height": 696
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "option": "B",
+      "file": "390-dark-b.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 16,
+          "y": 80,
+          "width": 358,
+          "height": 140
+        },
+        "result": {
+          "y": 232,
+          "height": 596
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "A",
+      "file": "1440-light-a.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 0,
+          "y": 64,
+          "width": 1440,
+          "height": 36
+        },
+        "result": {
+          "y": 112,
+          "height": 888
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "option": "B",
+      "file": "1440-light-b.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 0,
+          "y": 64,
+          "width": 1440,
+          "height": 140
+        },
+        "result": {
+          "y": 216,
+          "height": 784
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "A",
+      "file": "1440-dark-a.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 0,
+          "y": 64,
+          "width": 1440,
+          "height": 36
+        },
+        "result": {
+          "y": 112,
+          "height": 888
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "option": "B",
+      "file": "1440-dark-b.jpg",
+      "buttons": [
+        {
+          "label": "全部",
+          "action": "filter-type",
+          "extra": "all",
+          "pressed": "true"
+        },
+        {
+          "label": "资讯",
+          "action": "filter-type",
+          "extra": "article",
+          "pressed": "false"
+        },
+        {
+          "label": "消息",
+          "action": "filter-type",
+          "extra": "mail",
+          "pressed": "false"
+        },
+        {
+          "label": "笔记",
+          "action": "filter-type",
+          "extra": "note",
+          "pressed": "false"
+        },
+        {
+          "label": "待办",
+          "action": "filter-type",
+          "extra": "task",
+          "pressed": "false"
+        },
+        {
+          "label": "日程",
+          "action": "filter-type",
+          "extra": "event",
+          "pressed": "false"
+        },
+        {
+          "label": "媒体",
+          "action": "filter-type",
+          "extra": "media",
+          "pressed": "false"
+        },
+        {
+          "label": "未读",
+          "action": "filter-status",
+          "extra": "unread",
+          "pressed": "false"
+        },
+        {
+          "label": "收藏",
+          "action": "filter-status",
+          "extra": "saved",
+          "pressed": "false"
+        },
+        {
+          "label": "稍后读",
+          "action": "filter-status",
+          "extra": "later",
+          "pressed": "false"
+        },
+        {
+          "label": "#产品",
+          "action": "filter-tag",
+          "extra": "产品",
+          "pressed": "false"
+        },
+        {
+          "label": "#评审",
+          "action": "filter-tag",
+          "extra": "评审",
+          "pressed": "false"
+        },
+        {
+          "label": "#待办",
+          "action": "filter-tag",
+          "extra": "待办",
+          "pressed": "false"
+        },
+        {
+          "label": "#设计",
+          "action": "filter-tag",
+          "extra": "设计",
+          "pressed": "false"
+        },
+        {
+          "label": "#想法",
+          "action": "filter-tag",
+          "extra": "想法",
+          "pressed": "false"
+        },
+        {
+          "label": "#下一步",
+          "action": "filter-tag",
+          "extra": "下一步",
+          "pressed": "false"
+        },
+        {
+          "label": "#关联",
+          "action": "filter-tag",
+          "extra": "关联",
+          "pressed": "false"
+        },
+        {
+          "label": "#交互",
+          "action": "filter-tag",
+          "extra": "交互",
+          "pressed": "false"
+        }
+      ],
+      "metrics": {
+        "chips": {
+          "x": 0,
+          "y": 64,
+          "width": 1440,
+          "height": 140
+        },
+        "result": {
+          "y": 216,
+          "height": 784
+        },
+        "documentOverflow": false,
+        "modalOverflow": false,
+        "navVisible": true
+      },
+      "errors": [],
+      "external": []
+    }
+  ]
+}

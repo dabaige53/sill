@@ -62,6 +62,7 @@
 - [导航当前项比较与保留镜片的决定（U3，2026-10-19）](records/2026-10-19-navigation-choice/README.md)
 - [日程专属操作优先级（U4.1，2026-10-19）](records/2026-10-19-event-action-priority/README.md)
 - [搜索、AI、设置与深色现状（U6，2026-10-19）](records/2026-10-19-page-audit/README.md)
+- [搜索筛选排布候选（U6，2026-10-19）](records/2026-10-19-search-filter-proposals/README.md)
 - [照片大图页补通用操作（U4，2026-10-19）](records/2026-10-19-photo-shared-toolbar/README.md)
 - [卡片操作设置的类型示例（U4.5，2026-10-19）](records/2026-10-19-card-action-examples/README.md)
 - [桌面主页左上紧凑分栏（U5，2026-10-19）](records/2026-10-19-desktop-home-filters/README.md)
