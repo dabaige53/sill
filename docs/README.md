@@ -53,6 +53,8 @@
 
 ## 记录
 
+- [云端首次加载的保存状态（C1 补充，2026-10-19）](records/2026-10-19-cloud-sync-initial-state/README.md)
+
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
 
 - [2026-10-18-browser-regressions：浏览器回归测试修复（C1）](records/2026-10-18-browser-regressions/README.md)

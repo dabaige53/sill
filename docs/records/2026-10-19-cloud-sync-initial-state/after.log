@@ -1,0 +1,5 @@
+
+> sill@1.2.5 test:cloud-operations
+> node tests/e2e/cloud-operations-browser.ts
+
+PASS cloud operations: atomic menu actions and cancellation, bookmarks/later/tags/notes, tasks/reminders, durable preferences, AI structured edits, no manual content editor, AI archive/restore, preference feedback, link drop/file ignore, unknown replay, conflict draft, export/clear, desktop/mobile, session-expiry menu/search/detail/AI cleanup, no browser persistence

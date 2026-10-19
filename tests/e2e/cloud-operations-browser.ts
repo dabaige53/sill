@@ -59,6 +59,21 @@ try {
 	});
 	await page.reload();
 	await page.locator("body.cloud-signed-in").waitFor();
+	// A freshly loaded workspace is already saved, even before the first mutation.
+	await page.waitForFunction(() => __app.grid.dataset.sync === "saved");
+	const initialWrites = batchRequests.length;
+	await page.evaluate(async () => {
+		__store.setPref("theme", __store.pref("theme"));
+		await new Promise<void>((resolve) =>
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+		);
+	});
+	assert.equal(await page.evaluate(() => __app.grid.dataset.sync), "saved");
+	assert.equal(
+		batchRequests.length,
+		initialWrites,
+		"an unchanged preference needs no save request",
+	);
 	const api = async (path: string, body?: any, method = "POST") =>
 		page.evaluate(
 			async ({ path, body, method }) => {
@@ -416,6 +431,7 @@ try {
 		await page.unroute("**/auth/session");
 		await page.reload();
 		await page.locator("body.cloud-signed-in").waitFor();
+		await saved();
 		const ids = await page.evaluate(() => __store.state.cards.slice(0, 2).map((card) => card.id));
 		assert.equal(ids.length, 2);
 		await page.evaluate((id) => __app.select(id, { add: true }), ids[0]);
