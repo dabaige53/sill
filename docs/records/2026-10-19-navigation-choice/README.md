@@ -37,4 +37,6 @@
 
 按既有生成器重建并核对图标和组件包，不采用 B/C，也不修改导航实现。新增本地 39 号画板，展示选定状态与实际页面，并更新索引和 canvas.json。最终 Node、相关浏览器、产物不变性与本地渲染结果以 PR Evidence 为准；不能把规范确认写成新功能上线。
 
-本轮没有设计代码变化，不新增重复实现的测试；沿用 Node 中的 chrome、导航与状态检查，以及 PWA 触控、动效浏览器检查。真机、Safari 未检查。手册、GlassDock 说明、本地画板和图片线上未同步，逐项列在 PR Merge Danger，由用户处理；`design-system/design-system.json` 未改，未访问 claude.ai 工具、线上 Design System 或画布。
+提交 `b210c35` 后 `npm test` 通过：共享约定 36、Web 192、服务端 92，失败 0，包含 `files:check`；相关动效浏览器 17/17、PWA 触控与键盘 10/10 通过。原图标、AppController、导航样式、组件 JS/CSS 和线上资产记录逐字不变，见 [不变性检查](unchanged.json)。本地画板 18 张图片全部解码，无页面异常、失败资源或外部请求，实际高 3814.72px、元数据 3820px，无裁切或与旧画板重叠，见 [渲染](board-render.json) 与 [位置](canvas-check.json)。
+
+实际截图还显示 AI 页有关闭按钮，与手册中手机页面没有关闭按钮的规则不同，已列入 U6 待讨论；本轮不修改，也不把保留镜片当作批准该差异。本轮没有设计代码变化，不新增重复实现的测试。真机、Safari 未检查。手册、GlassDock 说明、本地画板和图片线上未同步，逐项列在 PR Merge Danger，由用户处理；`design-system/design-system.json` 未改，未访问 claude.ai 工具、线上 Design System 或画布。
