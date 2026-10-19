@@ -1,0 +1,18 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+undefined !== '恢复'
+
+    at file:///private/tmp/sill-u5-audit.mjs:60:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: '恢复',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.11.1

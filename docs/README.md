@@ -56,6 +56,7 @@
 下列目录保留正文与证据。历史“待验收”“已发布”只指记录时点，不表示本次重新验收。
 
 - [卡片详情核对（U4，2026-10-19）](records/2026-10-19-card-detail-audit/README.md)
+- [桌面与手机一致性核对（U5，2026-10-19）](records/2026-10-19-cross-screen-audit/README.md)
 
 - [2026-10-18-preview-copy：预览模板拆分与语义文案键（C3）](records/2026-10-18-preview-copy/README.md)
 - [样式整理与逐张对照（2026-10-18）](records/2026-10-18-style-cleanup/README.md)

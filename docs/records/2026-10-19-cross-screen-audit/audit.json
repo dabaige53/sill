@@ -1,0 +1,1637 @@
+{
+  "sourceCommit": "46565cf",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "home": {
+        "homeTopVisible": true,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [],
+        "tokens": {
+          "ink": "#1d1d1f",
+          "muted": "#636366",
+          "secondary": "#68686d",
+          "accent": "#0066cc",
+          "alert": "#b45309",
+          "card": "#fff",
+          "canvas": "#f5f5f7"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(29, 29, 31)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "search": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [
+          {
+            "key": "all",
+            "label": "全部"
+          },
+          {
+            "key": "article",
+            "label": "资讯"
+          },
+          {
+            "key": "mail",
+            "label": "消息"
+          },
+          {
+            "key": "note",
+            "label": "笔记"
+          },
+          {
+            "key": "task",
+            "label": "待办"
+          },
+          {
+            "key": "event",
+            "label": "日程"
+          },
+          {
+            "key": "media",
+            "label": "媒体"
+          },
+          {
+            "key": "unread",
+            "label": "未读"
+          },
+          {
+            "key": "saved",
+            "label": "收藏"
+          },
+          {
+            "key": "later",
+            "label": "稍后读"
+          },
+          {
+            "key": "产品",
+            "label": "#产品"
+          },
+          {
+            "key": "评审",
+            "label": "#评审"
+          },
+          {
+            "key": "待办",
+            "label": "#待办"
+          },
+          {
+            "key": "设计",
+            "label": "#设计"
+          },
+          {
+            "key": "想法",
+            "label": "#想法"
+          },
+          {
+            "key": "下一步",
+            "label": "#下一步"
+          },
+          {
+            "key": "关联",
+            "label": "#关联"
+          },
+          {
+            "key": "交互",
+            "label": "#交互"
+          }
+        ],
+        "tokens": {
+          "ink": "#1d1d1f",
+          "muted": "#636366",
+          "secondary": "#68686d",
+          "accent": "#0066cc",
+          "alert": "#b45309",
+          "card": "#fff",
+          "canvas": "#f5f5f7"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(29, 29, 31)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "reminder": {
+        "card": "{\"id\":\"review-reminder\",\"type\":\"reminder\",\"title\":\"给助手一个明确的交接点\",\"summary\":\"打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页不显示交接入口。\",\"due\":1792227540000,\"tags\":[\"下一步\"],\"sources\":[{\"name\":\"演示工作区\",\"kind\":\"agent\"}],\"time\":1792227300000}",
+        "label": "完成",
+        "actions": [
+          {
+            "action": "bookmark",
+            "label": "收藏",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "edit",
+            "label": "编辑标签与备注",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "later",
+            "label": "稍后读",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "snooze",
+            "label": "在 Sill 内再提醒",
+            "color": "rgb(0, 102, 204)",
+            "own": true
+          },
+          {
+            "action": "dismiss-reminder",
+            "label": "忽略此提醒",
+            "color": "rgb(0, 102, 204)",
+            "own": true
+          }
+        ]
+      },
+      "completed": {
+        "done": true,
+        "label": "恢复",
+        "sourceCardUnchanged": true
+      },
+      "externalRequests": 0,
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "home": {
+        "homeTopVisible": true,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [],
+        "tokens": {
+          "ink": "#f2f2f4",
+          "muted": "#a1a1a8",
+          "secondary": "#a1a1a8",
+          "accent": "#4c9bff",
+          "alert": "#f0a04b",
+          "card": "#1c1c1f",
+          "canvas": "#111113"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(242, 242, 244)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "search": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [
+          {
+            "key": "all",
+            "label": "全部"
+          },
+          {
+            "key": "article",
+            "label": "资讯"
+          },
+          {
+            "key": "mail",
+            "label": "消息"
+          },
+          {
+            "key": "note",
+            "label": "笔记"
+          },
+          {
+            "key": "task",
+            "label": "待办"
+          },
+          {
+            "key": "event",
+            "label": "日程"
+          },
+          {
+            "key": "media",
+            "label": "媒体"
+          },
+          {
+            "key": "unread",
+            "label": "未读"
+          },
+          {
+            "key": "saved",
+            "label": "收藏"
+          },
+          {
+            "key": "later",
+            "label": "稍后读"
+          },
+          {
+            "key": "产品",
+            "label": "#产品"
+          },
+          {
+            "key": "评审",
+            "label": "#评审"
+          },
+          {
+            "key": "待办",
+            "label": "#待办"
+          },
+          {
+            "key": "设计",
+            "label": "#设计"
+          },
+          {
+            "key": "想法",
+            "label": "#想法"
+          },
+          {
+            "key": "下一步",
+            "label": "#下一步"
+          },
+          {
+            "key": "关联",
+            "label": "#关联"
+          },
+          {
+            "key": "交互",
+            "label": "#交互"
+          }
+        ],
+        "tokens": {
+          "ink": "#f2f2f4",
+          "muted": "#a1a1a8",
+          "secondary": "#a1a1a8",
+          "accent": "#4c9bff",
+          "alert": "#f0a04b",
+          "card": "#1c1c1f",
+          "canvas": "#111113"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(242, 242, 244)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "reminder": {
+        "card": "{\"id\":\"review-reminder\",\"type\":\"reminder\",\"title\":\"给助手一个明确的交接点\",\"summary\":\"打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页不显示交接入口。\",\"due\":1792227540000,\"tags\":[\"下一步\"],\"sources\":[{\"name\":\"演示工作区\",\"kind\":\"agent\"}],\"time\":1792227300000}",
+        "label": "完成",
+        "actions": [
+          {
+            "action": "bookmark",
+            "label": "收藏",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "edit",
+            "label": "编辑标签与备注",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "later",
+            "label": "稍后读",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "snooze",
+            "label": "在 Sill 内再提醒",
+            "color": "rgb(76, 155, 255)",
+            "own": true
+          },
+          {
+            "action": "dismiss-reminder",
+            "label": "忽略此提醒",
+            "color": "rgb(76, 155, 255)",
+            "own": true
+          }
+        ]
+      },
+      "completed": {
+        "done": true,
+        "label": "恢复",
+        "sourceCardUnchanged": true
+      },
+      "externalRequests": 0,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "home": {
+        "homeTopVisible": true,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [],
+        "tokens": {
+          "ink": "#1d1d1f",
+          "muted": "#636366",
+          "secondary": "#68686d",
+          "accent": "#0066cc",
+          "alert": "#b45309",
+          "card": "#fff",
+          "canvas": "#f5f5f7"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(29, 29, 31)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "search": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [
+          {
+            "key": "all",
+            "label": "全部"
+          },
+          {
+            "key": "article",
+            "label": "资讯"
+          },
+          {
+            "key": "mail",
+            "label": "消息"
+          },
+          {
+            "key": "note",
+            "label": "笔记"
+          },
+          {
+            "key": "task",
+            "label": "待办"
+          },
+          {
+            "key": "event",
+            "label": "日程"
+          },
+          {
+            "key": "media",
+            "label": "媒体"
+          },
+          {
+            "key": "unread",
+            "label": "未读"
+          },
+          {
+            "key": "saved",
+            "label": "收藏"
+          },
+          {
+            "key": "later",
+            "label": "稍后读"
+          },
+          {
+            "key": "产品",
+            "label": "#产品"
+          },
+          {
+            "key": "评审",
+            "label": "#评审"
+          },
+          {
+            "key": "待办",
+            "label": "#待办"
+          },
+          {
+            "key": "设计",
+            "label": "#设计"
+          },
+          {
+            "key": "想法",
+            "label": "#想法"
+          },
+          {
+            "key": "下一步",
+            "label": "#下一步"
+          },
+          {
+            "key": "关联",
+            "label": "#关联"
+          },
+          {
+            "key": "交互",
+            "label": "#交互"
+          }
+        ],
+        "tokens": {
+          "ink": "#1d1d1f",
+          "muted": "#636366",
+          "secondary": "#68686d",
+          "accent": "#0066cc",
+          "alert": "#b45309",
+          "card": "#fff",
+          "canvas": "#f5f5f7"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(29, 29, 31)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "reminder": {
+        "card": "{\"id\":\"review-reminder\",\"type\":\"reminder\",\"title\":\"给助手一个明确的交接点\",\"summary\":\"打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页不显示交接入口。\",\"due\":1792227540000,\"tags\":[\"下一步\"],\"sources\":[{\"name\":\"演示工作区\",\"kind\":\"agent\"}],\"time\":1792227300000}",
+        "label": "完成",
+        "actions": [
+          {
+            "action": "bookmark",
+            "label": "收藏",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "edit",
+            "label": "编辑标签与备注",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "later",
+            "label": "稍后读",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "snooze",
+            "label": "在 Sill 内再提醒",
+            "color": "rgb(0, 102, 204)",
+            "own": true
+          },
+          {
+            "action": "dismiss-reminder",
+            "label": "忽略此提醒",
+            "color": "rgb(0, 102, 204)",
+            "own": true
+          }
+        ]
+      },
+      "completed": {
+        "done": true,
+        "label": "恢复",
+        "sourceCardUnchanged": true
+      },
+      "externalRequests": 0,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "home": {
+        "homeTopVisible": true,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [],
+        "tokens": {
+          "ink": "#f2f2f4",
+          "muted": "#a1a1a8",
+          "secondary": "#a1a1a8",
+          "accent": "#4c9bff",
+          "alert": "#f0a04b",
+          "card": "#1c1c1f",
+          "canvas": "#111113"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(242, 242, 244)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "search": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [
+          {
+            "key": "all",
+            "label": "全部"
+          },
+          {
+            "key": "article",
+            "label": "资讯"
+          },
+          {
+            "key": "mail",
+            "label": "消息"
+          },
+          {
+            "key": "note",
+            "label": "笔记"
+          },
+          {
+            "key": "task",
+            "label": "待办"
+          },
+          {
+            "key": "event",
+            "label": "日程"
+          },
+          {
+            "key": "media",
+            "label": "媒体"
+          },
+          {
+            "key": "unread",
+            "label": "未读"
+          },
+          {
+            "key": "saved",
+            "label": "收藏"
+          },
+          {
+            "key": "later",
+            "label": "稍后读"
+          },
+          {
+            "key": "产品",
+            "label": "#产品"
+          },
+          {
+            "key": "评审",
+            "label": "#评审"
+          },
+          {
+            "key": "待办",
+            "label": "#待办"
+          },
+          {
+            "key": "设计",
+            "label": "#设计"
+          },
+          {
+            "key": "想法",
+            "label": "#想法"
+          },
+          {
+            "key": "下一步",
+            "label": "#下一步"
+          },
+          {
+            "key": "关联",
+            "label": "#关联"
+          },
+          {
+            "key": "交互",
+            "label": "#交互"
+          }
+        ],
+        "tokens": {
+          "ink": "#f2f2f4",
+          "muted": "#a1a1a8",
+          "secondary": "#a1a1a8",
+          "accent": "#4c9bff",
+          "alert": "#f0a04b",
+          "card": "#1c1c1f",
+          "canvas": "#111113"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(242, 242, 244)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "reminder": {
+        "card": "{\"id\":\"review-reminder\",\"type\":\"reminder\",\"title\":\"给助手一个明确的交接点\",\"summary\":\"打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页不显示交接入口。\",\"due\":1792227540000,\"tags\":[\"下一步\"],\"sources\":[{\"name\":\"演示工作区\",\"kind\":\"agent\"}],\"time\":1792227300000}",
+        "label": "完成",
+        "actions": [
+          {
+            "action": "bookmark",
+            "label": "收藏",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "edit",
+            "label": "编辑标签与备注",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "later",
+            "label": "稍后读",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "snooze",
+            "label": "在 Sill 内再提醒",
+            "color": "rgb(76, 155, 255)",
+            "own": true
+          },
+          {
+            "action": "dismiss-reminder",
+            "label": "忽略此提醒",
+            "color": "rgb(76, 155, 255)",
+            "own": true
+          }
+        ]
+      },
+      "completed": {
+        "done": true,
+        "label": "恢复",
+        "sourceCardUnchanged": true
+      },
+      "externalRequests": 0,
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "home": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [],
+        "tokens": {
+          "ink": "#1d1d1f",
+          "muted": "#636366",
+          "secondary": "#68686d",
+          "accent": "#0066cc",
+          "alert": "#b45309",
+          "card": "#fff",
+          "canvas": "#f5f5f7"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(29, 29, 31)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "search": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [
+          {
+            "key": "all",
+            "label": "全部"
+          },
+          {
+            "key": "article",
+            "label": "资讯"
+          },
+          {
+            "key": "mail",
+            "label": "消息"
+          },
+          {
+            "key": "note",
+            "label": "笔记"
+          },
+          {
+            "key": "task",
+            "label": "待办"
+          },
+          {
+            "key": "event",
+            "label": "日程"
+          },
+          {
+            "key": "media",
+            "label": "媒体"
+          },
+          {
+            "key": "unread",
+            "label": "未读"
+          },
+          {
+            "key": "saved",
+            "label": "收藏"
+          },
+          {
+            "key": "later",
+            "label": "稍后读"
+          },
+          {
+            "key": "产品",
+            "label": "#产品"
+          },
+          {
+            "key": "评审",
+            "label": "#评审"
+          },
+          {
+            "key": "待办",
+            "label": "#待办"
+          },
+          {
+            "key": "设计",
+            "label": "#设计"
+          },
+          {
+            "key": "想法",
+            "label": "#想法"
+          },
+          {
+            "key": "下一步",
+            "label": "#下一步"
+          },
+          {
+            "key": "关联",
+            "label": "#关联"
+          },
+          {
+            "key": "交互",
+            "label": "#交互"
+          }
+        ],
+        "tokens": {
+          "ink": "#1d1d1f",
+          "muted": "#636366",
+          "secondary": "#68686d",
+          "accent": "#0066cc",
+          "alert": "#b45309",
+          "card": "#fff",
+          "canvas": "#f5f5f7"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(29, 29, 31)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "reminder": {
+        "card": "{\"id\":\"review-reminder\",\"type\":\"reminder\",\"title\":\"给助手一个明确的交接点\",\"summary\":\"打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页不显示交接入口。\",\"due\":1792227540000,\"tags\":[\"下一步\"],\"sources\":[{\"name\":\"演示工作区\",\"kind\":\"agent\"}],\"time\":1792227300000}",
+        "label": "完成",
+        "actions": [
+          {
+            "action": "bookmark",
+            "label": "收藏",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "edit",
+            "label": "编辑标签与备注",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "later",
+            "label": "稍后读",
+            "color": "rgb(29, 29, 31)",
+            "own": false
+          },
+          {
+            "action": "snooze",
+            "label": "在 Sill 内再提醒",
+            "color": "rgb(0, 102, 204)",
+            "own": true
+          },
+          {
+            "action": "dismiss-reminder",
+            "label": "忽略此提醒",
+            "color": "rgb(0, 102, 204)",
+            "own": true
+          }
+        ]
+      },
+      "completed": {
+        "done": true,
+        "label": "恢复",
+        "sourceCardUnchanged": true
+      },
+      "externalRequests": 0,
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "home": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [],
+        "tokens": {
+          "ink": "#f2f2f4",
+          "muted": "#a1a1a8",
+          "secondary": "#a1a1a8",
+          "accent": "#4c9bff",
+          "alert": "#f0a04b",
+          "card": "#1c1c1f",
+          "canvas": "#111113"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(242, 242, 244)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "search": {
+        "homeTopVisible": false,
+        "homeTabs": [
+          {
+            "key": "all",
+            "label": "全部",
+            "pressed": "true"
+          },
+          {
+            "key": "unread",
+            "label": "未读",
+            "pressed": "false"
+          },
+          {
+            "key": "todo",
+            "label": "待办",
+            "pressed": "false"
+          },
+          {
+            "key": "later",
+            "label": "稍后读",
+            "pressed": "false"
+          },
+          {
+            "key": "saved",
+            "label": "收藏",
+            "pressed": "false"
+          }
+        ],
+        "searchLabels": [
+          {
+            "key": "all",
+            "label": "全部"
+          },
+          {
+            "key": "article",
+            "label": "资讯"
+          },
+          {
+            "key": "mail",
+            "label": "消息"
+          },
+          {
+            "key": "note",
+            "label": "笔记"
+          },
+          {
+            "key": "task",
+            "label": "待办"
+          },
+          {
+            "key": "event",
+            "label": "日程"
+          },
+          {
+            "key": "media",
+            "label": "媒体"
+          },
+          {
+            "key": "unread",
+            "label": "未读"
+          },
+          {
+            "key": "saved",
+            "label": "收藏"
+          },
+          {
+            "key": "later",
+            "label": "稍后读"
+          },
+          {
+            "key": "产品",
+            "label": "#产品"
+          },
+          {
+            "key": "评审",
+            "label": "#评审"
+          },
+          {
+            "key": "待办",
+            "label": "#待办"
+          },
+          {
+            "key": "设计",
+            "label": "#设计"
+          },
+          {
+            "key": "想法",
+            "label": "#想法"
+          },
+          {
+            "key": "下一步",
+            "label": "#下一步"
+          },
+          {
+            "key": "关联",
+            "label": "#关联"
+          },
+          {
+            "key": "交互",
+            "label": "#交互"
+          }
+        ],
+        "tokens": {
+          "ink": "#f2f2f4",
+          "muted": "#a1a1a8",
+          "secondary": "#a1a1a8",
+          "accent": "#4c9bff",
+          "alert": "#f0a04b",
+          "card": "#1c1c1f",
+          "canvas": "#111113"
+        },
+        "article": {
+          "label": "文章：让内容成为视线的落点",
+          "bookmarked": true,
+          "titleColor": "rgb(242, 242, 244)"
+        },
+        "homeFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "searchFilter": {
+          "type": "all",
+          "status": "all",
+          "tag": "",
+          "query": ""
+        },
+        "state": {
+          "seen": false,
+          "read": false,
+          "bookmarked": true,
+          "later": true,
+          "progress": 0,
+          "note": "",
+          "tags": [],
+          "snoozedUntil": 0,
+          "dismissed": false,
+          "reminderDone": false,
+          "lastReminderKey": "",
+          "lastNotifiedAt": 0,
+          "readAt": 0,
+          "restoredAt": 0,
+          "archived": false,
+          "tagsEdited": false,
+          "addedAt": 0
+        }
+      },
+      "reminder": {
+        "card": "{\"id\":\"review-reminder\",\"type\":\"reminder\",\"title\":\"给助手一个明确的交接点\",\"summary\":\"打开卡片后，可把当前卡片交给支持的宿主讨论。独立网页不显示交接入口。\",\"due\":1792227540000,\"tags\":[\"下一步\"],\"sources\":[{\"name\":\"演示工作区\",\"kind\":\"agent\"}],\"time\":1792227300000}",
+        "label": "完成",
+        "actions": [
+          {
+            "action": "bookmark",
+            "label": "收藏",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "edit",
+            "label": "编辑标签与备注",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "later",
+            "label": "稍后读",
+            "color": "rgb(242, 242, 244)",
+            "own": false
+          },
+          {
+            "action": "snooze",
+            "label": "在 Sill 内再提醒",
+            "color": "rgb(76, 155, 255)",
+            "own": true
+          },
+          {
+            "action": "dismiss-reminder",
+            "label": "忽略此提醒",
+            "color": "rgb(76, 155, 255)",
+            "own": true
+          }
+        ]
+      },
+      "completed": {
+        "done": true,
+        "label": "恢复",
+        "sourceCardUnchanged": true
+      },
+      "externalRequests": 0,
+      "pageErrors": []
+    }
+  ]
+}
