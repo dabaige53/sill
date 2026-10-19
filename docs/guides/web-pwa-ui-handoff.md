@@ -60,7 +60,7 @@
 - 提醒的完成是标题前的圆圈（`reminderMark`，卡面和详情共用）。
 - 关闭圆钮与来源行对齐；没有值的日期不显示，日期和来源备注一行。
 - 手机上正文到胶囊 26px，胶囊到底边 `max(8px, 安全区)`。
-- 设置「桌面」页的「卡片操作」开关，偏好 `hiddenActions`（`contracts/card-actions.ts`、`contracts/local.ts`、MCP 说明、云端迁移 `supabase/migrations/20261018060000_sill_hidden_card_actions.sql`）。
+- 设置「桌面」页的「卡片操作」开关，偏好 `hiddenActions`（`contracts/card-actions.ts`、`contracts/local.ts`、MCP 说明、云端迁移 `supabase/migrations/20261019031622_sill_hidden_card_actions.sql`）。
 - 九个图标按「线条积木」重画：`bookmark`、`tag`、`glasses`、`reply`、`external`、`snooze`、`bell-off`、`video`、`download`。
 
 ### 2.3 主要代码位置
@@ -153,7 +153,7 @@ U5 CI 补充：旧云端检查要求 main 在窗口顶部，与获准的桌面�
 
 用户随后要求「未 UI 调整的页面无需调整了，现在结束！没问题后发布线上」，按 ADR 0045 保留 AI、设置整体、深色及阅读顶部现状；手机 AI 关闭按钮作为当前例外保留，不实施去除候选。没有待决定 UI 项，也不把保留说成重做。原 [24 张现状](../records/2026-10-19-page-audit/README.md) 与 [搜索候选](../records/2026-10-19-search-filter-proposals/README.md) 继续留作记录。
 
-ADR、手册、Dialog、统一文案、样式来源、生成组件 JS/CSS、43 号画板与六图、index.html 和 canvas.json 线上未同步，逐项列入 Merge Danger。线上资产记录不改；Mac 未改，真机、Safari、Mac 原生视觉未检查。最终发布与各包清单见 [交付记录](../records/2026-10-19-web-pwa-delivery/README.md)。
+ADR、手册、Dialog、统一文案、样式来源、生成组件 JS/CSS、43 号画板与六图、index.html 和 canvas.json 线上未同步，逐项列入 Merge Danger。线上资产记录不改；Mac 未改，真机、Safari、Mac 原生视觉未检查。1.2.6 已发布，来源 4237cb6 的 7 项 CI 全绿；发布验收与各包清单见 [交付记录](../records/2026-10-19-web-pwa-delivery/README.md)。
 
 ### C1 修复已知失败的浏览器测试（代码，不需要设计决定）
 
@@ -216,9 +216,11 @@ ADR、手册、Dialog、统一文案、样式来源、生成组件 JS/CSS、43 �
 
 ### C6 云端迁移验证（代码）
 
+2026-10-19 发布补充：1.2.6 已发布，先将 C6 已验证的 hiddenActions 偏好函数迁移应用到生产，实际编号 20261019031622。仓库仅将 SQL 文件名及执行引用对齐平台记录，SQL 字节不变。线上 PostgreSQL 17.11 的默认空数组、九个合法动作、四组非法值拒绝、旧偏好兼容及 invoker/私有 schema 边界均通过，不改卡片数据。详见 [发布与数据库检查](../records/2026-10-19-web-pwa-delivery/README.md)。本机仍无 Docker、未执行本机 Postgres；原 CI 11/11 证据继续保留。
+
 2026-10-18 执行状态：C6 已提交 [PR #50](https://github.com/dabaige53/sill/pull/50) 审阅，已补齐公开 RPC 的迁移前后验证。本机 PGlite 4/4、Node 三组 36 / 169 / 92 通过。云端工作台浏览器本机先后两次通过，后续一次在会话过期流程超时；基础提交也在该流程的另一断言超时，根因未定位。两组云端 CI 浏览器检查通过。实际 Postgres 17.11 在 CI 11/11 通过（含主测试及 10 个子用例），源码提交的 7 项 CI 全绿；最新状态以 PR 为准。本机因没有 Docker 未执行。详情见 [迁移检查记录](../records/2026-10-18-hidden-actions-postgres/README.md)。迁移与产品代码未改，未部署。Web lint 0 错误、902 警告，文案键 826 个（哈希键 601 个，其中 panels 110 个），图标 69 个。
 
-- `supabase/migrations/20261018060000_sill_hidden_card_actions.sql` 交接时尚未在 Postgres 上执行。在有 Docker 的环境运行 `npm run test:supabase:postgres`，并补一个用例：带 `hiddenActions` 的偏好写入成功，带未列出值的写入被拒绝。
+- `supabase/migrations/20261019031622_sill_hidden_card_actions.sql` 交接时尚未在 Postgres 上执行。在有 Docker 的环境运行 `npm run test:supabase:postgres`，并补一个用例：带 `hiddenActions` 的偏好写入成功，带未列出值的写入被拒绝。
 - 部署顺序：先部署迁移，再发布网页。迁移部署前，云端会拒绝带 `hiddenActions` 的偏好写入。
 
 ## 4. 工作方式

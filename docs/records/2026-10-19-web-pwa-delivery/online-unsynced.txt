@@ -86,6 +86,7 @@ design-system/copy/zh-Hans.json
 design-system/scripts/generate.ts
 design-system/tokens.json
 docs/adr/0032-design-online-first.md
+docs/adr/0037-card-detail-toolbar.md
 docs/adr/0038-keep-original-icons.md
 docs/adr/0039-keep-navigation-lens.md
 docs/adr/0040-event-reminder-priority.md

@@ -1,0 +1,6 @@
+PASS / 200
+PASS /api/v1/health 200
+PASS /api/v1/workspace 401
+PASS /mcp 401
+PASS /.well-known/oauth-protected-resource/mcp 200
+PASS /manifest.webmanifest 200

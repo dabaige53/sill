@@ -1,0 +1,60 @@
+{
+  "productVersion": "1.2.6",
+  "sourceCommit": "4237cb6554c725b11395589192b28d1e6c85cb08",
+  "worker": "sill-web-preview",
+  "url": "https://sill-web-preview.scs1213-temp-email.workers.dev/",
+  "deployment": {
+    "success": true,
+    "deploymentId": "a738285c-aa95-4ada-a150-8a36511056b7",
+    "versions": [
+      {
+        "version_id": "944b6b86-4343-442f-9baf-6b5ee73f23aa",
+        "percentage": 100
+      }
+    ],
+    "createdOn": "2026-10-19T03:17:23.977923Z"
+  },
+  "workerVersion": "944b6b86-4343-442f-9baf-6b5ee73f23aa",
+  "workerBytes": 2710426,
+  "workerSha256": "1be05f04e8c7835aa08525e8a7db9be171deb91b59ce6e26a4dcf672d8f0cab3",
+  "webSha256": "77e33fc0cd48c93c0276898224eb87e50de31044b16472d7682eb950ab682702",
+  "bindingsPreserved": [
+    {
+      "name": "AGENT_AUDIENCE",
+      "type": "plain_text"
+    },
+    {
+      "name": "APP_ORIGIN",
+      "type": "plain_text"
+    },
+    {
+      "name": "MCP_ENABLE",
+      "type": "plain_text"
+    },
+    {
+      "name": "OAUTH_CLIENT_IDS",
+      "type": "plain_text"
+    },
+    {
+      "name": "OAUTH_CONSENT_ENABLE",
+      "type": "plain_text"
+    },
+    {
+      "name": "SUPABASE_PUBLISHABLE_KEY",
+      "type": "plain_text"
+    },
+    {
+      "name": "SUPABASE_URL",
+      "type": "plain_text"
+    }
+  ],
+  "bindingsMatchVerified": true,
+  "rollbackWorkerVersion": "9691932c-4aef-4cff-a281-7dfb80f93c70",
+  "rollbackDeployment": "78880979-41a0-467f-bf7a-d8926dc07046",
+  "migration": {
+    "version": "20261019031622",
+    "name": "sill_hidden_card_actions"
+  },
+  "scope": "Web/PWA and pre-existing preference compatibility migration. No card data mutations; no native, plugin or online design-system publication."
+}
+

@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-10-19T03:18:21.554Z",
+  "origin": "https://sill-web-preview.scs1213-temp-email.workers.dev",
+  "sourceCommit": "4237cb6554c725b11395589192b28d1e6c85cb08",
+  "noAccountDataRead": true,
+  "noWrites": true,
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 562562,
+      "sha256": "77e33fc0cd48c93c0276898224eb87e50de31044b16472d7682eb950ab682702",
+      "exactBuildMatch": true
+    },
+    {
+      "path": "/api/v1/health",
+      "status": 200,
+      "bytes": 46
+    },
+    {
+      "path": "/api/v1/workspace",
+      "status": 401,
+      "bytes": 116
+    },
+    {
+      "path": "/mcp",
+      "status": 401,
+      "bytes": 116
+    },
+    {
+      "path": "/.well-known/oauth-protected-resource/mcp",
+      "status": 200,
+      "bytes": 212
+    },
+    {
+      "path": "/assets/sill-icon.png",
+      "status": 200,
+      "bytes": 3182,
+      "sha256": "612515473486295dafb83d6609f33111cb0f0764c62e5a56751de96717d8e07d"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "bytes": 268
+    }
+  ]
+}

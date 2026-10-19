@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-const migration = "20261018060000_sill_hidden_card_actions.sql";
+const migration = "20261019031622_sill_hidden_card_actions.sql";
 const actions = [
 	"bookmark",
 	"tag",

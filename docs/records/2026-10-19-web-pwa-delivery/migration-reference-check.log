@@ -1,0 +1,12 @@
+✔ workspace atomic operations, state validation, old API, replay and owner boundary (819.607959ms)
+✔ workspace request schemas reject forged server metadata and unknown state (2.115375ms)
+✔ workspace HTTP uses the same validation, session and receipt boundary (611.479625ms)
+✔ hiddenActions migration: public preferences write, validation and atomic rollback (480.745625ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2106.05575
