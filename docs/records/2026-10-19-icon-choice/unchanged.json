@@ -1,0 +1,382 @@
+{
+  "baseline": "8c39bd5",
+  "generator": "node design-system/scripts/generate.ts design-system .",
+  "icons": 69,
+  "files": [
+    {
+      "file": "apps/web/atoms/icons.ts",
+      "unchanged": true,
+      "sha256": "46c2c4438f5ebf09b27a1f73816931864b24a8de3b62c20d2e8c2f05b05613a6"
+    },
+    {
+      "file": "design-system/components/bundle.css",
+      "unchanged": true,
+      "sha256": "fc3585937f3d159bdfcf401499cd2336dfa461408217b6e0a63acca1d014b706"
+    },
+    {
+      "file": "design-system/components/bundle.js",
+      "unchanged": true,
+      "sha256": "b6f14849b37e1693df1d1adf86d9d10426986ef89943be19936ccc5ee7a472bf"
+    },
+    {
+      "file": "design-system/design-system.json",
+      "unchanged": true,
+      "sha256": "a1ee4f7fbd6c5811715d1d6df682f86c799da93ea1f957bf85939bed6689844f"
+    },
+    {
+      "file": "assets/sill-icon.png",
+      "unchanged": true,
+      "sha256": "612515473486295dafb83d6609f33111cb0f0764c62e5a56751de96717d8e07d"
+    },
+    {
+      "file": "deploy/web-manifest.json",
+      "unchanged": true,
+      "sha256": "81bfa9a27b08ba0ad2090310500f1a64582994929230ea3457cb1e85af7bc486"
+    },
+    {
+      "file": "design-system/assets/Icons/arrow.svg",
+      "unchanged": true,
+      "sha256": "f2a0129db898384a4658635fbb77b254ba3b348dc1f14eecc868aaf3998ae032"
+    },
+    {
+      "file": "design-system/assets/Icons/at.svg",
+      "unchanged": true,
+      "sha256": "e6a9bff0b9e4e7a3a443258a956b6ef6f17f6b387fdc80d2e09d5b3cecece285"
+    },
+    {
+      "file": "design-system/assets/Icons/back.svg",
+      "unchanged": true,
+      "sha256": "222c3f635ba1d8197cb58b3020d320b9270df5b198e5558ba4a34f8882d58653"
+    },
+    {
+      "file": "design-system/assets/Icons/bell-off.svg",
+      "unchanged": true,
+      "sha256": "810a2fc57eaa9c2b359c07c45b5041a3db650ee52458eb8107cce31f7d26b247"
+    },
+    {
+      "file": "design-system/assets/Icons/bell.svg",
+      "unchanged": true,
+      "sha256": "430de69edcd2b2ecb7daf85aed23f020792844006666e109a377e430f7e1ba9d"
+    },
+    {
+      "file": "design-system/assets/Icons/book.svg",
+      "unchanged": true,
+      "sha256": "8e65955b07d76a182aadc6f36e7223fda2c87131e0122747c19a27285259e9ca"
+    },
+    {
+      "file": "design-system/assets/Icons/bookmark.svg",
+      "unchanged": true,
+      "sha256": "355b59b97ef5ebb2f877d0657cb5c461c3cbf12bc3882642a7ef0c9fed21e2be"
+    },
+    {
+      "file": "design-system/assets/Icons/calendar.svg",
+      "unchanged": true,
+      "sha256": "59b04a5e83f479b6e4c0b73ca6ee174fd30d27dec227340628188e8c028668a1"
+    },
+    {
+      "file": "design-system/assets/Icons/chart.svg",
+      "unchanged": true,
+      "sha256": "608b73f166479eccfd734ffa718db0864ea75c4f8e9e6b30847b6ac39944b610"
+    },
+    {
+      "file": "design-system/assets/Icons/chat.svg",
+      "unchanged": true,
+      "sha256": "08801c213c0f293d13a60caabd9944b72194115eb1f545afbf10acc94fa3bcbd"
+    },
+    {
+      "file": "design-system/assets/Icons/check-circle.svg",
+      "unchanged": true,
+      "sha256": "0a8b7b5e616587c207db7a6ef474c9a07a92b051eceb3b8a476f09be3f5dc15f"
+    },
+    {
+      "file": "design-system/assets/Icons/check.svg",
+      "unchanged": true,
+      "sha256": "ddfcb7212617b8bde4365aab35f60ef50ef9006652ab02fd511f0780e6ad612a"
+    },
+    {
+      "file": "design-system/assets/Icons/chevron.svg",
+      "unchanged": true,
+      "sha256": "e2cbd83a8f6668c783a2622488f4ec195bb61bbb965fffb4c09d5761ad9035de"
+    },
+    {
+      "file": "design-system/assets/Icons/circle.svg",
+      "unchanged": true,
+      "sha256": "bcced45391a1e6a4ce5b36bbeac1459a71d588de1b835af05579c914918ede06"
+    },
+    {
+      "file": "design-system/assets/Icons/clock.svg",
+      "unchanged": true,
+      "sha256": "43a589c9ff51456fdd3abc8088015954722b07763349d97e7f2963736c78946e"
+    },
+    {
+      "file": "design-system/assets/Icons/collapse.svg",
+      "unchanged": true,
+      "sha256": "26f297189036ac2d84f523f3456baa478ad71b87b87a37b5d257f03e8a0e32cc"
+    },
+    {
+      "file": "design-system/assets/Icons/download.svg",
+      "unchanged": true,
+      "sha256": "cc50675ff01b2c88d1fe2f59e5858321d115fe0d16bb22933464e140d88d8c71"
+    },
+    {
+      "file": "design-system/assets/Icons/expand.svg",
+      "unchanged": true,
+      "sha256": "10c7f4f1416140779584c0b410aacb11a21846f546140bb5b0e8551c1057ec48"
+    },
+    {
+      "file": "design-system/assets/Icons/external.svg",
+      "unchanged": true,
+      "sha256": "82eb7f22d9162f2a22f942168124b595730f8bc513a506886e7b9ef336569f31"
+    },
+    {
+      "file": "design-system/assets/Icons/eye.svg",
+      "unchanged": true,
+      "sha256": "77a11e609e1dc286bb143705fdf949deab432c831825f706b32b33b8fe54fb3c"
+    },
+    {
+      "file": "design-system/assets/Icons/ffwd.svg",
+      "unchanged": true,
+      "sha256": "eaafbf59cc690fe8c6860a5b2a6d0accf24af8a940175ffefd7ea097f5346a33"
+    },
+    {
+      "file": "design-system/assets/Icons/file.svg",
+      "unchanged": true,
+      "sha256": "40e5bdf0201b59323f307edd92cebaf86bc64a397700d22244adce1d99318e24"
+    },
+    {
+      "file": "design-system/assets/Icons/filter.svg",
+      "unchanged": true,
+      "sha256": "9d3d30dfbe86e0d70e7d7a3c76456d36a9ca5b8c5c72d6df6183528864e60551"
+    },
+    {
+      "file": "design-system/assets/Icons/folder.svg",
+      "unchanged": true,
+      "sha256": "f1325680ebc0bf848b088832d5564239ca00fd667b780040ffb48df225da3dda"
+    },
+    {
+      "file": "design-system/assets/Icons/forward.svg",
+      "unchanged": true,
+      "sha256": "a00d877cbe13b482b35d169291c140a4c246d33b611cb600eb6d3f499ca0835b"
+    },
+    {
+      "file": "design-system/assets/Icons/gear.svg",
+      "unchanged": true,
+      "sha256": "bd264cd444694ce4ffa7afca05a15a79ff0ba81dc4da723ff9bc5f78627a81bc"
+    },
+    {
+      "file": "design-system/assets/Icons/glasses.svg",
+      "unchanged": true,
+      "sha256": "45e8fa72b0ffefbb45cb1719264e127738a195672a76469528ac603328d14989"
+    },
+    {
+      "file": "design-system/assets/Icons/globe.svg",
+      "unchanged": true,
+      "sha256": "136ff06b7e300915edfcd7276f7c7b62a566b7754948601140f11654a39702d3"
+    },
+    {
+      "file": "design-system/assets/Icons/grid.svg",
+      "unchanged": true,
+      "sha256": "069f9c5a91bfef55ef3b746af2efe43f660c3e847525f7902f5865762839d80b"
+    },
+    {
+      "file": "design-system/assets/Icons/grip.svg",
+      "unchanged": true,
+      "sha256": "9c4cef5074b0506323a4bb38301bf18f41f4aba5b515dcbaed435fe2608b84cb"
+    },
+    {
+      "file": "design-system/assets/Icons/home.svg",
+      "unchanged": true,
+      "sha256": "bef8441d4fb5c0e216ee3b423ec4dc20c342162e65f3317f64292c61679500f3"
+    },
+    {
+      "file": "design-system/assets/Icons/image.svg",
+      "unchanged": true,
+      "sha256": "6ea5cf30bcd3d8aaffca603416c25bb3fab465495a064b4d635c05c3d353009f"
+    },
+    {
+      "file": "design-system/assets/Icons/info.svg",
+      "unchanged": true,
+      "sha256": "08dd735572b7933a0a31544901ab3d9c69ae951b9b09865cf1c40c2e7808466c"
+    },
+    {
+      "file": "design-system/assets/Icons/keyboard.svg",
+      "unchanged": true,
+      "sha256": "c0987567c00245bc1f07646561934d9eedeeda5803b16718efd49e2f4fbce677"
+    },
+    {
+      "file": "design-system/assets/Icons/layers.svg",
+      "unchanged": true,
+      "sha256": "1f49ae965849b249a37407918fb32516c8fdf25aa5d6cb9ff279490075acb1f0"
+    },
+    {
+      "file": "design-system/assets/Icons/link.svg",
+      "unchanged": true,
+      "sha256": "3ada79107abab69ba0aebea27c732794ac8e4e8812acc4a500548cb29945fbee"
+    },
+    {
+      "file": "design-system/assets/Icons/lock.svg",
+      "unchanged": true,
+      "sha256": "1e7b9ee488b3415acf7b2b9f288c1d24faefee38d4863e10ac6a627a50ccca8e"
+    },
+    {
+      "file": "design-system/assets/Icons/mail.svg",
+      "unchanged": true,
+      "sha256": "f4a6ec621f5db68727840f83d2d1455d03fcde2c72799d7dd317aa4ff76481af"
+    },
+    {
+      "file": "design-system/assets/Icons/mic.svg",
+      "unchanged": true,
+      "sha256": "a5a55f544344d71a5a6d47769d30277855d559a26107b911b203cd872c91c425"
+    },
+    {
+      "file": "design-system/assets/Icons/monitor.svg",
+      "unchanged": true,
+      "sha256": "84f63b445906a652d572f35b7eb6f38a40b5848f963846629eddf613dbf6e31f"
+    },
+    {
+      "file": "design-system/assets/Icons/moon.svg",
+      "unchanged": true,
+      "sha256": "2e7807c9e0802fd111dc230b2ff33fb47560fc5faa813100c2e394fb4083b18d"
+    },
+    {
+      "file": "design-system/assets/Icons/more.svg",
+      "unchanged": true,
+      "sha256": "bc48e0d622ec64a5aaf3a792c23ab8cb7b4f9b7e68d8ba2d518d08b96db28acf"
+    },
+    {
+      "file": "design-system/assets/Icons/note.svg",
+      "unchanged": true,
+      "sha256": "cce349725d8cbd8d446df97c0d4b84b5584689ea87b8c518457931685706a6e6"
+    },
+    {
+      "file": "design-system/assets/Icons/pause.svg",
+      "unchanged": true,
+      "sha256": "c8803215717e6bab8f5dbcc0350c916969f32c31b5a1d2f452c87ecf0ec8c9ca"
+    },
+    {
+      "file": "design-system/assets/Icons/person.svg",
+      "unchanged": true,
+      "sha256": "2d26e1eb281fe5b0ac1108e3ca51e807af02c6bf64f3dfe6b6d1ebc5811b222a"
+    },
+    {
+      "file": "design-system/assets/Icons/pin.svg",
+      "unchanged": true,
+      "sha256": "6aa310604f725876d2a9a0251b35e79533de50a6fd8aa89d33d4466b4604219d"
+    },
+    {
+      "file": "design-system/assets/Icons/play.svg",
+      "unchanged": true,
+      "sha256": "66a362003fee4b785ab130fc98450da9701950fc7b857c87f661d4baac702b7b"
+    },
+    {
+      "file": "design-system/assets/Icons/plus.svg",
+      "unchanged": true,
+      "sha256": "f8ec10b24bae3624f8a37b0fc213710ce20c3b78b5fab5dc7dccc659a30547ae"
+    },
+    {
+      "file": "design-system/assets/Icons/pull.svg",
+      "unchanged": true,
+      "sha256": "e140ab1fefc8b4bf3c4e11a80c9db84ab7e3868eea04e87178a9d348a28c4239"
+    },
+    {
+      "file": "design-system/assets/Icons/quote.svg",
+      "unchanged": true,
+      "sha256": "9d8381f7b401c39d352922c2babcdaa23154cf320718865324d35d979aaf99a6"
+    },
+    {
+      "file": "design-system/assets/Icons/refresh.svg",
+      "unchanged": true,
+      "sha256": "e89f1a2384e0eabf8fee37c2d4c7a533c454c9c788f1d43538c91657174c2121"
+    },
+    {
+      "file": "design-system/assets/Icons/reply.svg",
+      "unchanged": true,
+      "sha256": "38f21d73cb825a7e6a120df800404af4e7449e195191d1e4ff4eb10fcf5c570f"
+    },
+    {
+      "file": "design-system/assets/Icons/rewind.svg",
+      "unchanged": true,
+      "sha256": "d0226f8cf9ebd0c79aaf24de852ce5c14289c26bc60e9b422938e0943156b397"
+    },
+    {
+      "file": "design-system/assets/Icons/ring.svg",
+      "unchanged": true,
+      "sha256": "78da9735a1acbf22f1896b1540d04d89dc8585f60532ea701c89d7dc797195cb"
+    },
+    {
+      "file": "design-system/assets/Icons/rss.svg",
+      "unchanged": true,
+      "sha256": "701091b0ca56755dd37e562fbe9c7939b1b5cacbf6e07428820f4c3228750437"
+    },
+    {
+      "file": "design-system/assets/Icons/search.svg",
+      "unchanged": true,
+      "sha256": "d6ae1c823259da5b3511f3ddcc07145813c2af8f82bbb3f9232f3a816661c47d"
+    },
+    {
+      "file": "design-system/assets/Icons/select.svg",
+      "unchanged": true,
+      "sha256": "08fba8d2321cfe0f080fb88a2d9e5a918a0e555592d126113091ddc44fae97cc"
+    },
+    {
+      "file": "design-system/assets/Icons/send.svg",
+      "unchanged": true,
+      "sha256": "574ea95184024d450ba10e08b1f383d5c1cd330612363521079991945b513c34"
+    },
+    {
+      "file": "design-system/assets/Icons/sill.svg",
+      "unchanged": true,
+      "sha256": "9cdaac9e8c761f924d739bc08bdb2aa4fe32677c880b39f5e19bed0f2b6bd821"
+    },
+    {
+      "file": "design-system/assets/Icons/snooze.svg",
+      "unchanged": true,
+      "sha256": "69b1aa42ec1299109e4ddd1557eec59e19784eb39f6863981f781f98c489bb25"
+    },
+    {
+      "file": "design-system/assets/Icons/sparkles.svg",
+      "unchanged": true,
+      "sha256": "e65659df3a98add39426afc4c75bdd8b591820002c45a4b8b011cef4c0bf6210"
+    },
+    {
+      "file": "design-system/assets/Icons/tag.svg",
+      "unchanged": true,
+      "sha256": "6cabafd8338227e6436102cef517684fdf3d615b1dfd7f45b33a42230df90a5d"
+    },
+    {
+      "file": "design-system/assets/Icons/target.svg",
+      "unchanged": true,
+      "sha256": "7a70ad9d0cc0fe9cc1d7135ee9dbfb0ed0088f0a17746b6dcd95be3e818c29aa"
+    },
+    {
+      "file": "design-system/assets/Icons/trash.svg",
+      "unchanged": true,
+      "sha256": "3f52d5c393a0b06e3b016a2ed8e6c14e3e505cdb415d18962e80a54dad810612"
+    },
+    {
+      "file": "design-system/assets/Icons/undo.svg",
+      "unchanged": true,
+      "sha256": "32cea5f6da10554258c4e4ece99bfb639066a613842ed582a635ebddd5a34c86"
+    },
+    {
+      "file": "design-system/assets/Icons/up.svg",
+      "unchanged": true,
+      "sha256": "b9e47b18e374c852a7d5d576a0e0bf681c32d29bd690d2c662b2542220a26a0f"
+    },
+    {
+      "file": "design-system/assets/Icons/upload.svg",
+      "unchanged": true,
+      "sha256": "878372a795d34e8d434e5ea9cb47204cb8b7c7eb1bd20d2cdbf896c937ab7432"
+    },
+    {
+      "file": "design-system/assets/Icons/video.svg",
+      "unchanged": true,
+      "sha256": "8ee374488d3c620fc2330f74bc245752576466d0b8e8cc05a5b415d2390e50e4"
+    },
+    {
+      "file": "design-system/assets/Icons/x.svg",
+      "unchanged": true,
+      "sha256": "8a86299dbab5cef8294ac8810f3c26f472d1d74d7f1b4589b72de826139d4097"
+    }
+  ]
+}

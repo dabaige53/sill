@@ -50,8 +50,11 @@
 - [底部导航胶囊取代右下玻璃按钮组](adr/0035-bottom-navigation-capsule.md)
 - [手机主页参考 X 的密度，仍用卡片](adr/0036-phone-home-density.md)
 - [卡片详情：操作收进底部胶囊，只用图标](adr/0037-card-detail-toolbar.md)
+- [保留当前图标，不继续全套方圆化](adr/0038-keep-original-icons.md)
 
 ## 记录
+
+- [全套图标比较与保留原版的决定（U2，2026-10-19）](records/2026-10-19-icon-choice/README.md)
 
 - [云端首次加载的保存状态（C1 补充，2026-10-19）](records/2026-10-19-cloud-sync-initial-state/README.md)
 
