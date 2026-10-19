@@ -1,0 +1,17 @@
+
+> sill@1.2.5 test:accessibility
+> node tests/e2e/accessibility-browser.ts
+
+PASS Offline draft survives reload and synchronizes; conflict never overwrites newer state
+PASS GET outage after reload journals new edits before reconnecting
+PASS Same-session failed write retry cannot overwrite another client card
+PASS Update arriving during phone dismissal cannot revive the sheet
+PASS Remote updates preserve preview scroll, focus, full sheet and renewed scroll behavior
+PASS Keyboard task and preference changes retain focus; radio arrows and shortcut opt-out work
+PASS Keyboard navigation reaches settings Add, persists a note, and exposes no removed source or import entries
+PASS Empty desk retains an actionable archive
+PASS 320px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS 390px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS 768px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS 1440px keyboard search, panel reachability, light/dark axe and reduced motion
+PASS Short viewport can scroll capture save into view and submit by keyboard

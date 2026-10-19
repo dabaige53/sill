@@ -1,0 +1,33 @@
+{
+  "base": "323a108",
+  "results": [
+    {
+      "width": 1440,
+      "immediateResultsAfterQueryState": 9,
+      "settledResults": 1,
+      "focus": {
+        "focused": true,
+        "visible": true,
+        "left": 1257.375,
+        "right": 1319.5,
+        "parentLeft": 0,
+        "parentRight": 1440,
+        "scrollLeft": 0
+      }
+    },
+    {
+      "width": 320,
+      "immediateResultsAfterQueryState": 9,
+      "settledResults": 1,
+      "focus": {
+        "focused": true,
+        "visible": false,
+        "left": 1152.875,
+        "right": 1215,
+        "parentLeft": 16,
+        "parentRight": 304,
+        "scrollLeft": 0
+      }
+    }
+  ]
+}

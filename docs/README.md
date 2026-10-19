@@ -57,6 +57,7 @@
 - [卡片操作设置显示适用类型示例](adr/0042-card-action-type-examples.md)
 - [桌面主页显示左上紧凑分栏](adr/0043-desktop-home-filters.md)
 - [搜索按类型、状态、标签分行](adr/0044-search-filter-rows.md)
+- [结束剩余页面调整并保留现状](adr/0045-close-web-pwa-ui-scope.md)
 
 ## 记录
 
@@ -65,6 +66,7 @@
 - [搜索、AI、设置与深色现状（U6，2026-10-19）](records/2026-10-19-page-audit/README.md)
 - [搜索筛选排布候选（U6，2026-10-19）](records/2026-10-19-search-filter-proposals/README.md)
 - [搜索筛选按条件分行（U6，2026-10-19）](records/2026-10-19-search-filter-rows/README.md)
+- [Web/PWA 交付与发布检查（2026-10-19）](records/2026-10-19-web-pwa-delivery/README.md)
 - [照片大图页补通用操作（U4，2026-10-19）](records/2026-10-19-photo-shared-toolbar/README.md)
 - [卡片操作设置的类型示例（U4.5，2026-10-19）](records/2026-10-19-card-action-examples/README.md)
 - [桌面主页左上紧凑分栏（U5，2026-10-19）](records/2026-10-19-desktop-home-filters/README.md)
