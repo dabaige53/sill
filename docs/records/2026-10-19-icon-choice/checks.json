@@ -16,5 +16,18 @@
     "errors": [],
     "external": []
   },
-  "repositoryBoardCount": 38
+  "repositoryBoardCount": 38,
+  "verifiedCommit": "25027b0",
+  "node": [
+    36,
+    192,
+    92
+  ],
+  "pwaTouch": 10,
+  "failures": 0,
+  "logs": {
+    "u2-final-node.log": "2711bc9854113845898ffba19c77a936ecc30c0c1600e16426a897114846744d",
+    "u2-final-pwa.log": "38387d4e10cd451285b33057bdd3a724d90ce2a05f34cf7151b6e8bff76b9e19",
+    "u2-lint-web.log": "fd4abff0c67827d2cc2ffe01876b23c89345e90ee80fb8e15ac619637c31ab96"
+  }
 }
