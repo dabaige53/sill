@@ -5,6 +5,7 @@
 | 改动 | 入口 | 边界 |
 | --- | --- | --- |
 | 文件归属、导航、忽略规则 | `npm run files:check` | 只读，不启动服务 |
+| Codex 提交前文件大小钩子 | `node --test tests/server/check-staged-file-tokens.test.ts` | 临时 Git 仓库与合成 hook 输入；字节边界、UTF-8、部分暂存、特殊文件名、豁免、改名、删除与 Codex 阻止结果 |
 | 完整 Node 检查 | `npm test` | 文件、Schema、构建、语法、类型、共享约定、Web 核心和全部服务端测试 |
 | 共享约定 | `npm run test:contracts` | 合法、非法与旧来源迁移样例；纯合成文件，验证读不改写和未知字段保留 |
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |

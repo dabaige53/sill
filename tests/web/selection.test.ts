@@ -4,6 +4,9 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { SelectionBar } from "../../apps/web/atoms/selection.tsx";
 
 const bundle = buildSync({
 	stdin: {
@@ -555,7 +558,7 @@ test("selection: search reuses gestures and toolbar with its own selected set", 
 	try {
 		f.app.select("one");
 		const before = f.state();
-		f.app.dialog.innerHTML = `<div id="search-results">${f.app.grid.innerHTML}</div>`;
+		f.app.dialog.innerHTML = `<div id="search-results">${f.app.grid.innerHTML}</div>${renderToStaticMarkup(createElement(SelectionBar, { id: "search-selection-bar" }))}`;
 		f.app.modalKind = "search";
 		f.app.dialog.showModal();
 		f.app.bindSearchSelection();
@@ -609,7 +612,7 @@ test("selection: dragging into AI receiver opens a local context window without 
 				.insertAdjacentHTML("beforeend", f.app.selectionAIHTML());
 			if (search) {
 				f.app.select("three");
-				f.app.dialog.innerHTML = `<div id="search-results">${f.app.grid.innerHTML}</div>`;
+				f.app.dialog.innerHTML = `<div id="search-results">${f.app.grid.innerHTML}</div>${renderToStaticMarkup(createElement(SelectionBar, { id: "search-selection-bar" }))}`;
 				f.app.modalKind = "search";
 				f.app.dialog.showModal();
 				f.app.bindSearchSelection();

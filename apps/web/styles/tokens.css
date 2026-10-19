@@ -1,6 +1,37 @@
 /* Sill · tokens · shared source (design-system/tokens.json v2) */
 :root {
+	--dur-deck: 260ms;
+	--dur-show: 220ms;
+	--dur-lens: 300ms;
+	--delay-loading: 300ms;
+	--stagger: 30ms;
+	--dur-read: 220ms;
+	--dur-sheet: 360ms;
+	--dur-close: 160ms;
+	--dur-open: 220ms;
+	--dur-state: 220ms;
+	--dur-menu: 180ms;
+	--dur-hover: 160ms;
+	--dur-press: 120ms;
+	--ease-spring: linear(
+		0,
+		0.03 2%,
+		0.11 4.4%,
+		0.24 7%,
+		0.51 12%,
+		0.75 17%,
+		0.91 22%,
+		1.01 27.4%,
+		1.05 31%,
+		1.065 35.5%,
+		1.06 40%,
+		1.03 49%,
+		1.007 59%,
+		0.997 70%,
+		1
+	);
 	--feed-max: 1640px;
+	--preview-short-width: 560px;
 	--canvas: #f5f5f7;
 	--card: #fff;
 	--ink: #1d1d1f;
@@ -145,14 +176,14 @@
 	--glass-rim: rgba(0, 0, 0, 0.07);
 	--glass-filter: blur(12px) saturate(1.9) brightness(1.06);
 	--glass-press: rgba(0, 0, 0, 0.06);
-	--ease: cubic-bezier(0.2, 0.75, 0.25, 1);
+	--ease: cubic-bezier(0.23, 1, 0.32, 1);
 	--ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
 	--fast: 140ms;
 	--base: 220ms;
-	--layout: 320ms;
-	--settle: 500ms;
+	--layout: 220ms;
+	--settle: 220ms;
 	--dur-reduced: 70ms;
-	--dur-tuck: 300ms;
+	--dur-tuck: 180ms;
 	--rest-show: 650ms;
 	color-scheme: light;
 }

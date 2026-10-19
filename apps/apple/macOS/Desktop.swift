@@ -5,6 +5,9 @@ import SwiftUI
 struct Desktop: View {
   @EnvironmentObject var model: Workspace
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.controlActiveState) private var windowActivity
+  @FocusState private var toastFocused: Bool
+  @FocusState private var undoFocused: Bool
   @FocusState private var searchFocused: Bool
   @State private var pageLimit = 40
   @State private var homeTopRequest = 0
@@ -33,14 +36,22 @@ struct Desktop: View {
   @FocusState private var focusedCard: String?
   @State private var toastText = ""
   @State private var toastTask: Task<Void, Never>?
+  @State private var toastLifetime = ToastLifetime(duration: .zero)
+  @State private var toastHovered = false
   @State private var undoPatches: [String: JSONValue] = [:]
   @State private var undoRevision = 0
   @State private var pendingUndo: [String: JSONValue] = [:]
   @State private var pendingToast = ""
-  @State private var navOverride: String?
-  @State private var navTask: Task<Void, Never>?
+  @State private var detail = DetailPresentation()
   @Namespace private var navigation
   private var animated: Bool { !reduceMotion && model.preferences["reduceMotion"]?.bool != true }
+  private var railConcealed: Bool { railHidden || model.settingsPresented }
+  private var railAnimation: Animation {
+    if !animated { return .linear(duration: AppleMetrics.motionReduced) }
+    return railConcealed
+      ? .timingCurve(0.23, 1, 0.32, 1, duration: AppleMetrics.motionRailHide)
+      : .timingCurve(0.32, 0.72, 0, 1, duration: AppleMetrics.motionRailShow)
+  }
   var body: some View {
     GeometryReader { geometry in
       ZStack(alignment: .bottom) {
@@ -65,10 +76,13 @@ struct Desktop: View {
           endPoint: .top
         )
         .frame(height: AppleMetrics.railRow + AppleMetrics.space24).allowsHitTesting(false)
-        .opacity(railHidden || model.settingsPresented ? 0 : 1)
+        .opacity(railConcealed ? 0 : 1)
+        .animation(railAnimation, value: railConcealed)
         rail.padding(.bottom, AppleMetrics.railEdge)
-          .opacity(railHidden || model.settingsPresented ? 0 : 1)
-          .offset(y: railHidden && animated ? AppleMetrics.space20 : 0)
+          .opacity(railConcealed ? 0 : 1)
+          .animation(railAnimation, value: railConcealed)
+          .offset(y: railConcealed && animated ? AppleMetrics.motionRailTravel : 0)
+          .animation(railAnimation, value: railConcealed)
           .allowsHitTesting(!railHidden && !model.settingsPresented)
           .accessibilityHidden(railHidden || model.settingsPresented)
         if model.settingsPresented {
@@ -102,11 +116,21 @@ struct Desktop: View {
               width: min(AppleMetrics.editorWidth, geometry.size.width - AppleMetrics.space32))
           }
         }
-        if model.selected != nil {
+        if let displayedID = detail.cardID {
           ZStack {
             AppleColors.dim.ignoresSafeArea().onTapGesture { model.selected = nil }
-            CardReader(availableSize: geometry.size).environmentObject(model)
+              .opacity(detail.visible ? 1 : 0)
+            CardReader(availableSize: geometry.size, presentedID: displayedID).environmentObject(
+              model
+            )
+            .opacity(detail.visible ? 1 : 0)
+            .offset(
+              y: animated && !detail.visible
+                ? (model.selected == nil
+                  ? AppleMetrics.motionDetailExitY : AppleMetrics.motionDetailEnterY) : 0)
           }
+          .allowsHitTesting(model.selected != nil)
+          .accessibilityHidden(model.selected == nil)
         }
         if !toastText.isEmpty {
           HStack(spacing: AppleMetrics.space16) {
@@ -115,14 +139,16 @@ struct Desktop: View {
               Button(Copy.text("web.app.926a50b98ece")) {
                 guard !model.busy else { return }
                 model.batchPatch(undoPatches, expectedRevision: undoRevision)
-                toastText = ""
-                undoPatches = [:]
-                toastTask?.cancel()
+                dismissToast()
               }.buttonStyle(.plain).foregroundStyle(AppleColors.accent).disabled(model.busy)
+                .focused($undoFocused)
             }
           }.font(.system(size: AppleMetrics.font14)).padding(.horizontal, AppleMetrics.space18)
             .padding(.vertical, AppleMetrics.space12)
-            .modifier(GlassSurface()).frame(maxWidth: .infinity, alignment: .trailing).padding(
+            .modifier(GlassSurface())
+            .focusable(undoPatches.isEmpty).focused($toastFocused)
+            .onHover { toastHovered = $0 }
+            .frame(maxWidth: .infinity, alignment: .trailing).padding(
               .trailing, AppleMetrics.railEdge
             )
             .padding(.bottom, AppleMetrics.railEdge + AppleMetrics.railRow + AppleMetrics.space12)
@@ -140,8 +166,6 @@ struct Desktop: View {
           .padding(AppleMetrics.space16)
         }
       }
-      .animation(
-        animated ? .easeOut(duration: AppleMetrics.searchAnimation) : nil, value: railHidden)
     }
     .dropDestination(for: String.self) { values, _ in
       guard model.page == "home", model.selected == nil, !model.settingsPresented,
@@ -198,11 +222,47 @@ struct Desktop: View {
     .onChange(of: model.capturePresented) {
       if !model.capturePresented && model.error == nil { captureText = "" }
     }
+    .onChange(of: toastPaused) { updateToastTimer() }
+    .onAppear {
+      updateToastTimer()
+      presentDetail(model.selected)
+    }
+    .onChange(of: model.selected) { _, id in presentDetail(id) }
     .onExitCommand { dismissTop() }
     .onDisappear {
       revealTask?.cancel()
       toastTask?.cancel()
-      navTask?.cancel()
+      toastLifetime.pause(at: .now)
+      detail.invalidate()
+    }
+  }
+  private func presentDetail(_ id: String?) {
+    let generation = detail.prepare(id)
+    let duration =
+      !animated
+      ? AppleMetrics.motionReduced
+      : (id == nil ? AppleMetrics.motionDetailClose : AppleMetrics.motionDetailOpen)
+    if id != nil {
+      // Mount at the entry position before starting the local presentation transaction.
+      Task { @MainActor in
+        await Task.yield()
+        guard detail.generation == generation else { return }
+        withAnimation(
+          animated
+            ? .timingCurve(0.23, 1, 0.32, 1, duration: duration) : .linear(duration: duration)
+        ) {
+          detail.visible = true
+        }
+      }
+    } else {
+      withAnimation(
+        animated ? .timingCurve(0.23, 1, 0.32, 1, duration: duration) : .linear(duration: duration),
+        completionCriteria: .removed
+      ) {
+        detail.visible = false
+      } completion: {
+        detail.finishClose(generation)
+      }
     }
   }
   private var rail: some View {
@@ -447,35 +507,43 @@ struct Desktop: View {
             .frame(height: AppleMetrics.searchPillHeight).background(
               AppleColors.card, in: Capsule())
         }
-        FlowLayout(spacing: AppleMetrics.space8) {
-          ForEach(["all", "article", "mail", "note", "task", "event", "media"], id: \.self) {
-            type in
-            chip(
-              Copy.text(
-                [
-                  "all": "web.all", "article": "web.panels.71d9a93075be",
-                  "mail": "web.panels.4da199fae933", "note": "web.note", "task": "web.task",
-                  "event": "web.event", "media": "web.media",
-                ][type] ?? "web.all"), selected: model.typeFilter == type
-            ) { model.typeFilter = type }
-          }
-          ForEach(
-            [
-              (Copy.appleUnread, "web.unread"), (Copy.appleBookmarks, "web.bookmark"),
-              (Copy.appleLater, "web.later"),
-            ], id: \.0
-          ) { value, key in
-            chip(Copy.text(key), selected: model.filter == value) {
-              model.filter = model.filter == value ? Copy.appleAll : value
+        VStack(spacing: AppleMetrics.space8) {
+          searchFilterRow("web.search.filters.type") {
+            ForEach(["all", "article", "mail", "note", "task", "event", "media"], id: \.self) {
+              type in
+              chip(
+                Copy.text(
+                  [
+                    "all": "web.all", "article": "web.search.type.article",
+                    "mail": "web.search.type.mail", "note": "web.note", "task": "web.task",
+                    "event": "web.event", "media": "web.media",
+                  ][type] ?? "web.all"), selected: model.typeFilter == type
+              ) { model.typeFilter = type }
             }
           }
-          ForEach(Array(Set(model.cards.flatMap { model.tags($0) })).sorted().prefix(8), id: \.self)
-          { tag in
-            chip("#" + tag, selected: model.tagFilter == tag) {
-              model.tagFilter = model.tagFilter == tag ? "" : tag
+          searchFilterRow("web.search.filters.status") {
+            ForEach(
+              [
+                (Copy.appleUnread, "web.unread"), (Copy.appleBookmarks, "web.bookmark"),
+                (Copy.appleLater, "web.later"),
+              ], id: \.0
+            ) { value, key in
+              chip(Copy.text(key), selected: model.filter == value) {
+                model.filter = model.filter == value ? Copy.appleAll : value
+              }
             }
           }
-        }
+          let tags = Array(Set(model.cards.flatMap { model.tags($0) })).sorted()
+          if !tags.isEmpty {
+            searchFilterRow("web.search.filters.tag") {
+              ForEach(tags, id: \.self) { tag in
+                chip("#" + tag, selected: model.tagFilter == tag) {
+                  model.tagFilter = model.tagFilter == tag ? "" : tag
+                }
+              }
+            }
+          }
+        }.padding(.bottom, AppleMetrics.space4)
         ScrollViewReader { proxy in
           ScrollView {
             observation("search")
@@ -548,6 +616,21 @@ struct Desktop: View {
       model.selection.insert(id)
     }
   }
+  private func searchFilterRow<Content: View>(
+    _ key: String, @ViewBuilder content: () -> Content
+  ) -> some View {
+    HStack(spacing: AppleMetrics.space8) {
+      Text(Copy.text(key)).font(.system(size: AppleMetrics.font12))
+        .foregroundStyle(AppleColors.secondary).frame(
+          width: AppleMetrics.space28, alignment: .leading
+        )
+        .accessibilityHidden(true)
+      ScrollView(.horizontal) {
+        HStack(spacing: AppleMetrics.space8, content: content).padding(AppleMetrics.space4 / 2)
+      }.scrollIndicators(.hidden).accessibilityElement(children: .contain)
+        .accessibilityLabel(Copy.text(key))
+    }
+  }
   private func chip(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Text(label).font(.system(size: AppleMetrics.font13)).padding(
@@ -561,40 +644,31 @@ struct Desktop: View {
   private func nav(_ page: String, _ name: String, _ label: String) -> some View {
     Button {
       showRail()
-      navTask?.cancel()
-      withAnimation(animated ? .spring(response: 0.52, dampingFraction: 0.76) : nil) {
-        if page == "settings" {
-          navOverride = "settings"
-          if animated {
-            navTask = Task {
-              try? await Task.sleep(for: .milliseconds(160))
-              guard !Task.isCancelled else { return }
-              model.settingsPresented = true
-              navOverride = nil
-            }
-          } else {
-            model.settingsPresented = true
-            navOverride = nil
-          }
-        } else {
-          navOverride = nil
-          if page == "home" && model.page == "home" { homeTopRequest += 1 }
-          model.settingsPresented = false
-          model.page = page
-        }
-      }
+      if page == "home" && model.page == "home" { homeTopRequest += 1 }
+      model.presentNavigation(page)
     } label: {
       ZStack {
-        if (navOverride ?? (model.settingsPresented ? "settings" : model.page)) == page {
-          Capsule().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity))
-            .matchedGeometryEffect(id: "lens", in: navigation)
+        if (model.settingsPresented ? "settings" : model.page) == page {
+          if animated {
+            Capsule().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity))
+              .matchedGeometryEffect(id: "lens", in: navigation)
+          } else {
+            Capsule().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity))
+              .transition(.opacity)
+          }
         }
         NativeIcon(name: name, size: AppleMetrics.space22)
           .foregroundStyle(
             AppleColors.primary.opacity(
-              (navOverride ?? (model.settingsPresented ? "settings" : model.page)) == page
+              (model.settingsPresented ? "settings" : model.page) == page
                 ? 1 : 0.62))
-      }.frame(width: AppleMetrics.navTab, height: AppleMetrics.railRow - AppleMetrics.railInset * 2)
+      }.animation(
+        animated
+          ? .timingCurve(0.32, 0.72, 0, 1, duration: AppleMetrics.motionLens)
+          : .linear(duration: AppleMetrics.motionReduced),
+        value: model.settingsPresented ? "settings" : model.page
+      )
+      .frame(width: AppleMetrics.navTab, height: AppleMetrics.railRow - AppleMetrics.railInset * 2)
     }.buttonStyle(.plain).accessibilityLabel(Copy.text(label)).help(Copy.text(label))
   }
   private var selectionBar: some View {
@@ -868,15 +942,34 @@ struct Desktop: View {
     upward = 0
     revealTask?.cancel()
   }
+  private var toastPaused: Bool {
+    windowActivity == .inactive || toastHovered || toastFocused || undoFocused
+  }
   private func showToast(_ text: String, undo: Bool = false) {
     toastTask?.cancel()
     toastText = text
+    if !undo { undoPatches = [:] }
+    toastLifetime = ToastLifetime(duration: .seconds(undo ? 5.5 : 3.2))
+    updateToastTimer()
+  }
+  private func dismissToast() {
+    toastTask?.cancel()
+    toastTask = nil
+    toastText = ""
+    undoPatches = [:]
+    toastLifetime = ToastLifetime(duration: .zero)
+  }
+  private func updateToastTimer() {
+    toastTask?.cancel()
+    toastTask = nil
+    toastLifetime.pause(at: .now)
+    guard !toastText.isEmpty, !toastPaused else { return }
+    toastLifetime.resume(at: .now)
+    let remaining = toastLifetime.remaining
     toastTask = Task {
-      try? await Task.sleep(for: .seconds(undo ? 5.5 : 3.2))
-      if !Task.isCancelled {
-        toastText = ""
-        undoPatches = [:]
-      }
+      do { try await Task.sleep(for: remaining) } catch { return }
+      guard !Task.isCancelled else { return }
+      dismissToast()
     }
   }
   private func handleKey(_ event: NSEvent, _ typing: Bool) -> Bool {
@@ -887,8 +980,7 @@ struct Desktop: View {
       return false
     }
     if command && key == "k" {
-      model.settingsPresented = false
-      model.page = "search"
+      model.presentNavigation("search")
       model.searchFocusRequest += 1
       return true
     }
@@ -969,7 +1061,58 @@ struct Desktop: View {
       ? AppleMetrics.space16 : width < 1000 ? AppleMetrics.space20 : AppleMetrics.space24
     let fits = max(1, Int((width + gap) / (minimum + gap)))
     return (
-      max(1, min(5, fits, Int(((width + gap) / (ideal + gap)).rounded()))), gap, maximum, ideal
+      max(1, min(5, fits, max(min(2, fits), Int((width + gap) / (ideal + gap))))),
+      gap, maximum, ideal
     )
+  }
+}
+
+/// Counts only the time for which a visible toast is available for reading.
+struct ToastLifetime {
+  private(set) var remaining: Duration
+  private var started: ContinuousClock.Instant?
+
+  init(duration: Duration) { remaining = duration }
+
+  mutating func pause(at now: ContinuousClock.Instant) {
+    guard let started else { return }
+    remaining = max(.zero, remaining - started.duration(to: now))
+    self.started = nil
+  }
+
+  mutating func resume(at now: ContinuousClock.Instant) {
+    guard started == nil else { return }
+    started = now
+  }
+}
+
+/// Presentation identity outlives selection only while the reader fades out.
+struct DetailPresentation {
+  private(set) var cardID: String?
+  var visible = false
+  private(set) var generation = 0
+
+  mutating func prepare(_ id: String?) -> Int {
+    generation += 1
+    if let id {
+      if cardID == nil { visible = false }
+      cardID = id
+    }
+    return generation
+  }
+
+  mutating func finishClose(_ closingGeneration: Int) {
+    guard generation == closingGeneration, !visible else { return }
+    cardID = nil
+  }
+
+  mutating func invalidate() { generation += 1 }
+}
+
+@MainActor extension Workspace {
+  /// Navigation commits immediately; the lens animation never schedules a later page change.
+  func presentNavigation(_ destination: String) {
+    settingsPresented = destination == "settings"
+    if destination != "settings" { page = destination }
   }
 }

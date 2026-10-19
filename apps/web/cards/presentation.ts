@@ -1,0 +1,72 @@
+import { icon } from "../atoms/icons.ts";
+import { button, esc } from "../atoms/primitives.ts";
+import { copy } from "../copy.ts";
+import { cardSourceKind } from "../data/card-source.ts";
+import { CardTypes, SourceKinds } from "../data/cards.ts";
+import { Store } from "../data/store.ts";
+
+/** One renderer for the live feed; design-system/ documents the same blocks. Rendering never mutates Store.
+ * A card is a stack of blocks: head · media · text · data · list · act. Content is read here; actions go back to the source.
+ */
+const CardPresentation: Record<string, any> = {
+	state(c?: any, options: any = {}) {
+		const defaults: Record<string, any> = {
+			seen: false,
+			read: false,
+			bookmarked: false,
+			later: false,
+			selected: false,
+			progress: 0,
+			snoozedUntil: 0,
+			dismissed: false,
+			reminderDone: false,
+		};
+		return {
+			...defaults,
+			...(options.state !== undefined ? options.state : Store.state.items[c.id] || {}),
+		};
+	},
+	tasks(c?: any, state?: any) {
+		return (c.tasks || []).map((t?: any) => ({
+			...t,
+			done: Array.isArray(state.taskDone) ? state.taskDone.includes(t.id) : t.done,
+		}));
+	},
+	action(
+		ctx?: any,
+		glyph?: any,
+		label?: any,
+		action?: any,
+		id: any = "",
+		extra: any = "",
+		className: any = "",
+	) {
+		return ctx.passive
+			? `<span class="icon-button ${className}" role="img" aria-label="${esc(label)}">${icon(glyph)}</span>`
+			: button(glyph, label, action, id, extra, className);
+	},
+	sourceIcon(c?: any, size: any = 16) {
+		if (c.sources?.length > 1)
+			return `<span class="source-icons" aria-hidden="true">${c.sources
+				.slice(0, 3)
+				.map((s?: any) => `<span>${icon(SourceKinds[s.kind]?.icon || "book", 12)}</span>`)
+				.join("")}</span>`;
+		// Content shows where it came from; things to do show what they are.
+		const byType = ["task", "event", "reminder", "digest", "photo", "file"].includes(c.type);
+		return icon(
+			byType
+				? (CardTypes[c.type] || CardTypes.note).icon
+				: SourceKinds[cardSourceKind(c)]?.icon || (CardTypes[c.type] || CardTypes.note).icon,
+			size,
+		);
+	},
+};
+/** The reminder's circle: done in Sill only. The card and its detail use the same control. */
+export function reminderMark(c?: any, done?: boolean, passive?: boolean) {
+	const dot = `<span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span>`;
+	return passive
+		? dot
+		: `<button type="button" class="reminder-check" data-action="${done ? "restore-reminder" : "complete-reminder"}" data-id="${esc(c.id)}" aria-pressed="${!!done}" aria-label="${done ? copy("web.reminder.restore") : copy("web.reminder.complete")}">${dot}</button>`;
+}
+
+export { CardPresentation };

@@ -4,11 +4,12 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
 const bundle = buildSync({
 	stdin: {
 		contents:
-			"export {ChromeAutoHide} from './apps/web/interactions/chrome.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts';",
+			"export {ChromeAutoHide, toolbarTips} from './apps/web/interactions/chrome.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -27,6 +28,7 @@ function fixture() {
 	const w = dom.window as any;
 	w.matchMedia = () => ({ matches: false, addEventListener() {} });
 	w.structuredClone = structuredClone;
+	installReactBrowserAPIs(w);
 	w.eval(bundle);
 	const scroll = w.document.getElementById("scroll");
 	let top = 0;
@@ -204,6 +206,7 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 	try {
 		w.matchMedia = () => ({ matches: false, addEventListener() {} });
 		w.structuredClone = structuredClone;
+		installReactBrowserAPIs(w);
 		w.eval(bundle);
 		const { AppController, Panels, Store } = w.ChromeTest;
 		Store.load();
@@ -302,6 +305,51 @@ test("AI placeholder shows only selected local context and cannot send or change
 		draft.dispatchEvent(new f.w.Event("input", { bubbles: true }));
 		assert.equal(JSON.stringify(Store.state), before);
 		assert.equal(Panels.ai({ aiSelectionIds: [] }).includes("data-ai-context="), false);
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
+test("adjacent toolbar names skip the first hover delay only after a tooltip was shown", () => {
+	const f = fixture();
+	try {
+		const { w } = f;
+		w.document.body.insertAdjacentHTML(
+			"beforeend",
+			'<div class="float-bar"><button class="icon-button" id="tip-a">A</button><button class="icon-button" id="tip-b">B</button></div>',
+		);
+		let now = 0,
+			pending: (() => void) | null = null;
+		w.performance.now = () => now;
+		w.setTimeout = (fn: () => void) => {
+			pending = fn;
+			return 1;
+		};
+		w.clearTimeout = () => {
+			pending = null;
+		};
+		w.ChromeTest.toolbarTips(w.document);
+		const a = w.document.getElementById("tip-a"),
+			b = w.document.getElementById("tip-b");
+		const pointer = (el: Element, type: string, relatedTarget: Element | null = null) => {
+			const event = new w.MouseEvent(type, { bubbles: true, relatedTarget });
+			Object.defineProperty(event, "pointerType", { value: "mouse" });
+			el.dispatchEvent(event);
+		};
+		pointer(a, "pointerover");
+		assert.equal(a.classList.contains("is-hover-tipping"), false);
+		now = 500;
+		pending!();
+		assert.equal(a.classList.contains("is-hover-tipping"), true);
+		pointer(a, "pointerout", b);
+		pointer(b, "pointerover", a);
+		assert.equal(b.classList.contains("is-instant-tip"), true);
+		assert.equal(b.classList.contains("is-hover-tipping"), true);
+		pointer(b, "pointerout");
+		now = 2000;
+		pointer(a, "pointerover");
+		assert.equal(a.classList.contains("is-hover-tipping"), false);
 	} finally {
 		f.hide.destroy();
 		f.dom.window.close();

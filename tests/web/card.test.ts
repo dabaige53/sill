@@ -149,7 +149,7 @@ test("keyboard task previews keep their positions without changing the stored or
 	assert.deepEqual(card, before);
 });
 
-test("completing the focused preview retains its checkboxes until the preview is released", () => {
+test("completed tasks retain their checkboxes after focus leaves and in passive previews", () => {
 	Store.state = Store.fresh();
 	const card = {
 		id: "task-last",
@@ -169,8 +169,30 @@ test("completing the focused preview retains its checkboxes until the preview is
 	assert.equal(held.querySelectorAll('.check-item[aria-checked="true"]').length, 2);
 	assert.equal(held.querySelector(".task-count").textContent, "2/2");
 	const released = new JSDOM(cardHTML(card, { state: options.state })).window.document;
-	assert.ok(released.querySelector(".done-row"));
-	assert.equal(released.querySelectorAll(".check-item").length, 0);
+	assert.equal(released.querySelector(".done-row"), null);
+	assert.equal(released.querySelectorAll(".check-item").length, 2);
 	const passive = new JSDOM(cardHTML(card, { ...options, passive: true })).window.document;
-	assert.ok(passive.querySelector(".done-row"));
+	assert.equal(passive.querySelector(".done-row"), null);
+	assert.equal(passive.querySelectorAll(".check-item").length, 2);
+});
+
+test("suggestions disclose hidden references and mail attachments remain static file rows", () => {
+	Store.state = Store.fresh();
+	Store.state.cards = ["one", "two", "three"].map((id) => ({ id, type: "note", title: id }));
+	const suggestion = new JSDOM(
+		cardHTML({
+			id: "suggestion",
+			type: "suggestion",
+			title: "Connections",
+			related: ["one", "two", "three", "missing"],
+		}),
+	).window.document;
+	assert.equal(suggestion.querySelectorAll(".refs button").length, 2);
+	assert.match(suggestion.querySelector(".related-more").textContent, /1.*关联内容/);
+	const mail = new JSDOM(
+		cardHTML({ id: "mail", type: "mail", title: "Mail", attachment: "report.txt" }),
+	).window.document;
+	assert.equal(mail.querySelector(".attachment").tagName, "SPAN");
+	assert.ok(mail.querySelector(".attachment.file-row"));
+	assert.equal(mail.querySelector(".attachment.ref"), null);
 });

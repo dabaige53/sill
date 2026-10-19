@@ -1,6 +1,6 @@
 # 文件管理规范
 
-更新：2026-10-16。文档与代码目录已按第 9 节迁移。当前路径为新增文件的位置依据；旧实现可从 Git 标签 `legacy-final` 查阅。
+更新：2026-10-19。文档与代码目录已按第 9 节迁移。当前路径为新增文件的位置依据；旧实现可从 Git 标签 `legacy-final` 查阅。
 
 本规范管理仓库中的文档、目录、命名、证据和产物。代码写法见 [代码规范](code-standards.md)。决策依据见 ADR [0022](../adr/0022-docs-location-shows-validity.md)、[0023](../adr/0023-three-clients-repo-layout.md)、[0025](../adr/0025-single-product-version.md)。
 
@@ -22,6 +22,7 @@
 | `skills/` | 随产品交付的 agent 技能 |
 | `assets/` | 品牌图标 |
 | `.github/` | CI 与 PR 模板 |
+| `.agents/`、`.codex/` | 本地助手技能与开发环境配置；不属于产品运行代码，不存放凭据 |
 
 根目录只放约定俗成的入口和配置：`README.md`、`AGENTS.md`、`DESIGN.md`、`GLOSSARY.md`、`pr.md`、`package.json`、`package-lock.json`、`tsconfig.json`、`biome.json`、`.swift-format`、`.git-blame-ignore-revs`、`.gitignore`、`.env.example`、`plugin.json`、`.app.json`。环境类型声明放在 `contracts/`，不新增根目录声明文件。新增顶层目录或根文件时，先写 ADR，再更新本表和 `files:check` 的允许列表。
 

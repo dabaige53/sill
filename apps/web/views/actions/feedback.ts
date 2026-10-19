@@ -1,7 +1,9 @@
+import { createElement } from "react";
 import { copy } from "../../copy.ts";
-import { Panels } from "../../interactions/panels.ts";
+import { PanelViews as Panels } from "../../interactions/panels-components.tsx";
 import { LocalSync } from "../../services/local-sync.ts";
 import type { AppController } from "../app.ts";
+import { ConfirmActions } from "../cloud-views.tsx";
 import type { ActionHandler } from "./types.ts";
 
 function refresh(this: AppController) {
@@ -29,7 +31,10 @@ function syncDiscard(this: AppController) {
 		Panels.confirm(
 			copy("web.app.ecb323046b6a"),
 			copy("web.app.cd47b1d68c71"),
-			`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" data-action="sync-discard-confirm">${copy("web.app.c3520240ae08")}</button>`,
+			createElement(ConfirmActions, {
+				label: copy("web.app.c3520240ae08"),
+				action: "sync-discard-confirm",
+			}),
 		),
 		"confirm",
 		null,

@@ -132,7 +132,8 @@ try {
 	const home = await frame.locator('#nav [data-extra="home"]').boundingBox();
 	await page.mouse.click(settings.x + settings.width / 2, settings.y + settings.height / 2);
 	await page.mouse.click(home.x + home.width / 2, home.y + home.height / 2);
-	await page.waitForTimeout(220);
+	// Wait for the actual close lifecycle; iframe frames can be delayed by the host compositor.
+	await frame.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal")?.open);
 	assert.equal(
 		await frame.locator("#modal[open]").count(),
 		0,

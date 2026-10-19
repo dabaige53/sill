@@ -33,49 +33,39 @@ struct CardTile: View {
           .horizontal, AppleMetrics.space8
         ).padding(.top, AppleMetrics.space8)
       }
-      VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-        if card.type == "task" && complete && heldTasks.isEmpty && !detail {
-          HStack(spacing: AppleMetrics.space12) {
-            NativeIcon(name: "check", size: AppleMetrics.font14).frame(
-              width: AppleMetrics.space24, height: AppleMetrics.space24
-            ).background(AppleColors.surface, in: Circle())
-            VStack(alignment: .leading, spacing: AppleMetrics.space4) {
-              Text(
-                Copy.text("web.templates.f838d1ef1773") + "\(tasks.count)"
-                  + Copy.text("web.templates.f9d529eacdf3")
-              ).font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
-              title
-            }
-          }
-        } else {
-          if card.type == "mail" { sender } else { head }
-          if card.type == "event", let start = card.date("start") { eventTime(start) }
-          title
-          if showSummary { summary }
-          if card.type == "task" { checklist }
-          if card.type == "event", let people = fields["people"]?.strings, !people.isEmpty {
-            HStack(spacing: AppleMetrics.space8) {
-              avatarRow(people)
-              Text(people.joined(separator: "、")).lineLimit(1)
-            }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-          }
-          if card.type == "media" && fields["media"]?.string == "podcast" { podcastBar }
-          if card.type == "mail", let attachment = fields["attachment"]?.string {
-            reference("file", attachment)
-          }
-          if card.type == "file" { files }
-          if card.type == "suggestion" { related }
-          if card.type == "reminder" { ReminderActions(card: card) }
-          if card.type == "event", let start = card.date("start"), let end = card.date("end"),
-            start.timeIntervalSinceNow <= 900, end > .now,
-            let link = fields["meeting"]?["url"]?.string, let url = URL(string: link)
-          {
-            HStack {
-              Spacer()
-              Link(Copy.text("web.templates.451755e3831f"), destination: url).buttonStyle(
-                CardPillStyle(primary: true))
-            }
-          }
+      VStack(alignment: .leading, spacing: 0) {
+        if card.type == "mail" { sender } else { head }
+        if card.type == "event", let start = card.date("start") {
+          eventTime(start).padding(.top, AppleMetrics.space8)
+        }
+        title.padding(.top, AppleMetrics.space12)
+        if showSummary { summary.padding(.top, AppleMetrics.space6) }
+        if card.type == "task" { checklist.padding(.top, AppleMetrics.space12) }
+        if card.type == "event", let people = fields["people"]?.strings, !people.isEmpty {
+          HStack(spacing: AppleMetrics.space8) {
+            avatarRow(people)
+            Text(people.joined(separator: "、")).lineLimit(1)
+          }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+            .padding(.top, AppleMetrics.space8)
+        }
+        if card.type == "media" && fields["media"]?.string == "podcast" {
+          podcastBar.padding(.top, AppleMetrics.space8)
+        }
+        if card.type == "mail", let attachment = fields["attachment"]?.string {
+          reference("file", attachment).padding(.top, AppleMetrics.space12)
+        }
+        if card.type == "file" { files.padding(.top, AppleMetrics.space12) }
+        if card.type == "suggestion" { related.padding(.top, AppleMetrics.space12) }
+        if card.type == "reminder" { ReminderActions(card: card).padding(.top, AppleMetrics.space8) }
+        if card.type == "event", let start = card.date("start"), let end = card.date("end"),
+          start.timeIntervalSinceNow <= 900, end > .now,
+          let link = fields["meeting"]?["url"]?.string, let url = URL(string: link)
+        {
+          HStack {
+            Spacer()
+            Link(Copy.text("web.templates.451755e3831f"), destination: url).buttonStyle(
+              CardPillStyle(primary: true))
+          }.padding(.top, AppleMetrics.space8)
         }
       }.padding(.horizontal, AppleMetrics.cardPadding).padding(
         .vertical, compact ? AppleMetrics.space14 : AppleMetrics.cardPadding)
@@ -410,7 +400,7 @@ struct CardReferences: View {
   var limit: Int?
   var body: some View {
     let ids = card.fields["related"]?.strings ?? []
-    VStack(spacing: AppleMetrics.space8) {
+    VStack(alignment: .leading, spacing: AppleMetrics.space8) {
       ForEach(Array(ids.prefix(limit ?? ids.count)), id: \.self) { id in
         if let related = model.cards.first(where: { $0.id == id }) {
           Button {
@@ -425,6 +415,12 @@ struct CardReferences: View {
               AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
           }.buttonStyle(.plain)
         }
+      }
+      if let limit, ids.count > limit {
+        Text(
+          Copy.text("web.templates.dff74742a6f0") + "\(ids.count - limit)"
+            + Copy.text("web.related.moreSuffix")
+        ).font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
       }
     }
   }

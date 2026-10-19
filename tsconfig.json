@@ -10,10 +10,12 @@
 		"skipLibCheck": true,
 		"strict": false,
 		"lib": ["ES2023", "DOM", "DOM.Iterable"],
-		"types": ["node"]
+		"types": ["node"],
+		"jsx": "react-jsx"
 	},
 	"include": [
 		"apps/web/**/*.ts",
+		"apps/web/**/*.tsx",
 		"server/**/*.ts",
 		"contracts/**/*.ts",
 		"scripts/**/*.ts",

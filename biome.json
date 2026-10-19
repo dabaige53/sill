@@ -3,6 +3,7 @@
 	"files": {
 		"includes": [
 			"apps/web/**/*.ts",
+			"apps/web/**/*.tsx",
 			"apps/web/**/*.css",
 			"apps/web/styles/styles.json",
 			"server/**/*.ts",
@@ -25,5 +26,7 @@
 			"!!tests/artifacts"
 		]
 	},
-	"formatter": { "lineWidth": 100 }
+	"formatter": {
+		"lineWidth": 100
+	}
 }

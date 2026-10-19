@@ -28,7 +28,7 @@ function sourceFiles(directory: string): string[] {
 test("active copy references and shell markers use existing shared keys", () => {
 	for (const file of ["apps/web", "server", "scripts", "contracts"]
 		.flatMap((directory) => sourceFiles(resolve(root, directory)))
-		.filter((file) => /\.(?:ts|html)$/.test(file) && !file.endsWith("/assets.ts"))) {
+		.filter((file) => /\.(?:tsx?|html)$/.test(file) && !file.endsWith("/assets.ts"))) {
 		const body = readFileSync(file, "utf8");
 		for (const match of body.matchAll(/copy\(["']([^"']+)["']\)|\{\{COPY:([^}]+)\}\}/g)) {
 			assert.ok(Object.hasOwn(messages, match[1] || match[2]), `${file}: ${match[1] || match[2]}`);
@@ -70,10 +70,10 @@ test("shared card and source labels exactly cover the contract kinds", () => {
 
 test("Web user-facing Chinese stays in shared copy rather than source literals", () => {
 	for (const file of sourceFiles(resolve(root, "apps/web")).filter(
-		(file) => file.endsWith(".ts") && !file.endsWith("/assets.ts"),
+		(file) => /\.tsx?$/.test(file) && !file.endsWith("/assets.ts"),
 	)) {
 		const result = transformSync(readFileSync(file, "utf8"), {
-			loader: "ts",
+			loader: file.endsWith(".tsx") ? "tsx" : "ts",
 			charset: "utf8",
 			minifyWhitespace: true,
 			legalComments: "none",
@@ -81,7 +81,7 @@ test("Web user-facing Chinese stays in shared copy rather than source literals",
 		assert.doesNotMatch(result, /\p{Script=Han}/u, file);
 	}
 	assert.doesNotMatch(
-		readFileSync(resolve(root, "apps/web/shell.html"), "utf8"),
+		readFileSync(resolve(root, "apps/web/index.html"), "utf8"),
 		/\p{Script=Han}/u,
 	);
 });

@@ -93,6 +93,45 @@ class Gestures {
 			MotionEngine.reduced ? 0 : delay,
 		);
 	}
+	/** Keep the drawn offset until the exit finishes; no reset between hand and dismissal. */
+	exitSurface(surface: HTMLElement, close: () => void) {
+		const dialog = this.app.dialog,
+			token = this.app.modalToken;
+		const style = getComputedStyle(surface);
+		const drawn = style.translate,
+			transform = style.transform,
+			opacity = style.opacity;
+		const y = parseFloat(drawn.split(" ")[1] || "0") || 0;
+		const destination = y + innerHeight - surface.getBoundingClientRect().top + 1;
+		// Freeze an unfinished entry before cancelling it, so a fast release cannot snap upward.
+		if (surface !== dialog) surface.style.transform = transform;
+		MotionEngine.cancelPanel(dialog);
+		surface.classList.add("is-drag");
+		dialog.classList.remove("is-drag");
+		const bar = dialog.querySelector(":scope > .float-bar");
+		if (bar) bar.style.opacity = "0";
+		this.dim(0);
+		const animation = MotionEngine.animate(
+			surface,
+			[
+				{ translate: drawn === "none" ? "0 0" : drawn, opacity },
+				{ translate: `0 ${destination}px`, opacity: MotionEngine.reduced ? 0 : 1 },
+			],
+			{ duration: MotionEngine.time("base"), easing: MotionEngine.curve(), fill: "forwards" },
+		);
+		const finish = () => {
+			if (this.app.modalToken !== token || !dialog.open) return;
+			this.app.skipReturnMotion = true;
+			close();
+		};
+		// A replacement panel cancels this exit through the same managed animation owner.
+		MotionEngine.panelAnimations.set(dialog, [
+			...(MotionEngine.panelAnimations.get(dialog) || []),
+			animation,
+		]);
+		if (animation) animation.finished.then(finish, () => {});
+		else finish();
+	}
 	// After a pull or push closes something, the trackpad keeps coasting. Those leftover wheel events must not scroll the desk:
 	// they are held until the hand has really stopped (no wheel for 200ms, at most 2.5s).
 	swallowMomentum() {
@@ -130,7 +169,9 @@ class Gestures {
 			holdTimer = 0,
 			frame = 0,
 			inset = 16,
+			markTop: number | null = null,
 			state = "idle";
+		const mark = document.querySelector<HTMLElement>(".home-mark");
 		const wheel = this.intent(),
 			wheelRelease = this.release();
 		const labels = {
@@ -154,6 +195,10 @@ class Gestures {
 		};
 		const measure = () => {
 			inset = parseFloat(getComputedStyle(main).paddingTop) || 16;
+			const rect = mark?.getBoundingClientRect();
+			markTop = rect?.height ? rect.top + (rect.height - ring.offsetHeight) / 2 : null;
+			ring.classList.toggle("in-home-mark", markTop !== null);
+			ring.style.top = markTop === null ? "" : `${markTop}px`;
 		};
 		const paint = () => {
 			cancelAnimationFrame(frame);
@@ -162,13 +207,17 @@ class Gestures {
 				feedback = state === "loading" || state === "success" || state === "error";
 			main.style.translate = pull && !MotionEngine.reduced ? `0 ${shift}px` : "";
 			// While loading the desk stays open and the ring turns in the gap it made.
-			ring.style.translate = MotionEngine.reduced
-				? "0 12px"
-				: pull
-					? `0 ${Math.round((inset + shift) / 2 - 18)}px`
-					: feedback
+			mark?.classList.toggle("is-refreshing-mark", markTop !== null && state !== "idle");
+			ring.style.translate =
+				markTop !== null
+					? "0 0"
+					: MotionEngine.reduced
 						? "0 12px"
-						: "0 -48px";
+						: pull
+							? `0 ${Math.round((inset + shift) / 2 - 18)}px`
+							: feedback
+								? "0 12px"
+								: "0 -48px";
 			ring.style.opacity = String(feedback ? 1 : Math.min(1, pull / 18));
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
 			ring.toggleAttribute("data-ready", pull >= need);
@@ -190,6 +239,7 @@ class Gestures {
 		const refresh = async () => {
 			if (busy) return;
 			busy = true;
+			measure();
 			start = null;
 			wheel.reset();
 			clearTimeout(timer);
@@ -346,6 +396,7 @@ class Gestures {
 	/* Sheets by finger: drag down from the grabber, or from content already at its top. Past 190px or a flick it leaves;
     otherwise it glides back. A full screen phone sheet pulled a little steps back to half height. */
 	bindSheetDrag() {
+		let frame = 0;
 		const dialog = this.app.dialog;
 		let drag = null;
 		const sheetOf = (t?: any) =>
@@ -355,6 +406,8 @@ class Gestures {
 				: null;
 		const cancel = () => {
 			if (!drag) return;
+			cancelAnimationFrame(frame);
+			frame = 0;
 			const { sheet, bar, token } = drag;
 			drag = null;
 			sheet.classList.remove("is-drag");
@@ -379,6 +432,7 @@ class Gestures {
 				if (this.fromField(e) || e.target.closest(".player-bar,.media-player")) return;
 				drag = {
 					sheet,
+					height: sheet.offsetHeight || 1,
 					token: this.app.modalToken,
 					...this.point(e),
 					at: Date.now(),
@@ -409,9 +463,14 @@ class Gestures {
 				}
 				if (e.cancelable) e.preventDefault();
 				drag.dy = Math.max(0, dy);
-				drag.sheet.style.translate = MotionEngine.reduced ? "" : `0 ${drag.dy}px`;
-				this.dim(1 - Math.min(1, drag.dy / (drag.sheet.offsetHeight || 1)) * 0.7);
-				if (drag.bar) drag.bar.style.opacity = String(Math.max(0, 1 - drag.dy / 120));
+				if (!frame)
+					frame = requestAnimationFrame(() => {
+						frame = 0;
+						if (!drag || drag.token !== this.app.modalToken) return;
+						drag.sheet.style.translate = MotionEngine.reduced ? "" : `0 ${drag.dy}px`;
+						this.dim(1 - Math.min(1, drag.dy / drag.height) * 0.7);
+						if (drag.bar) drag.bar.style.opacity = String(Math.max(0, 1 - drag.dy / 120));
+					});
 			},
 			{ passive: false },
 		);
@@ -421,21 +480,19 @@ class Gestures {
 				drag = null;
 				return;
 			}
+			cancelAnimationFrame(frame);
+			frame = 0;
 			const { sheet, dy, bar } = drag,
 				v = dy / Math.max(1, Date.now() - drag.at);
 			drag = null;
+			if (dy > 190 || (v > 0.5 && dy > 40)) {
+				this.swallowMomentum();
+				this.exitSurface(sheet, () => this.app.closeModal());
+				return;
+			}
 			sheet.classList.remove("is-drag");
 			dialog.classList.remove("is-drag");
 			if (bar) bar.style.opacity = "";
-			if (dy > 190 || (v > 0.5 && dy > 40)) {
-				if (MotionEngine.phoneSheet(dialog)) this.app.closeModal();
-				else {
-					sheet.style.translate = MotionEngine.reduced ? "" : `0 ${sheet.offsetHeight + 80}px`;
-					bar?.classList.add("is-hidden");
-					this.dismiss(() => this.app.closeModal());
-				}
-				return;
-			}
 			sheet.style.translate = "";
 			this.dim(null);
 		});
@@ -597,34 +654,37 @@ class Gestures {
 			token = app.modalToken,
 			wheel = this.intent(),
 			letGo = this.release();
-		const need = () => (phone ? 110 : Math.min(150, Math.max(110, surface.offsetHeight * 0.2)));
+		let threshold = 110;
+		const measure = () => {
+			threshold = phone ? 110 : Math.min(150, Math.max(110, surface.offsetHeight * 0.2));
+		};
+		measure();
+		const need = () => threshold;
 		let pull = 0,
 			timer = 0,
+			frame = 0,
 			done = false;
 		const atTop = () => scroll.scrollTop <= 0;
 		const paint = () => {
-			if (app.modalToken !== token) return;
+			cancelAnimationFrame(frame);
+			frame = 0;
+			if (done || app.modalToken !== token) return;
+			surface.classList.toggle("is-drag", pull > 0);
 			surface.style.translate =
 				pull && !MotionEngine.reduced ? `0 ${Math.round(pull * (phone ? 0.6 : 1))}px` : "";
 			this.dim(pull ? 1 - Math.min(1, pull / need()) * 0.7 : null);
 			if (bar) bar.style.opacity = pull ? String(Math.max(0, 1 - (pull / need()) * 1.6)) : "";
+		};
+		const schedulePaint = () => {
+			if (!frame) frame = requestAnimationFrame(paint);
 		};
 		const close = () => {
 			if (done || app.modalToken !== token) return;
 			done = true;
 			clearTimeout(timer);
 			this.swallowMomentum();
-			if (phone) {
-				app.closeModal();
-				return;
-			}
-			surface.style.translate = MotionEngine.reduced
-				? ""
-				: reader
-					? `0 ${innerHeight}px`
-					: `0 ${surface.offsetHeight + 80}px`;
-			if (bar) bar.style.opacity = "0";
-			this.dismiss(() => {
+			cancelAnimationFrame(frame);
+			this.exitSurface(surface, () => {
 				if (reader) app.closeToDesk(false);
 				else app.closeModal();
 			});
@@ -673,31 +733,29 @@ class Gestures {
 				return;
 			}
 			if (!wheel.feed(d)) return;
+			if (!pull) measure();
 			pull = Math.min(
 				need() * 1.2,
 				pull + Math.min(40, d) * (phone ? 1 : 1 - pull / (need() * 2.5)),
 			);
-			paint();
+			schedulePaint();
 			clearTimeout(timer);
 			// Past the line it closes once the hand lets go, not while it is still pulling.
 			if (pull >= need() && letGo.feed(d)) {
 				close();
 				return;
 			}
-			timer = window.setTimeout(
-				() => {
-					if (app.modalToken !== token) return;
-					letGo.reset();
-					if (pull >= need()) {
-						close();
-						return;
-					}
-					pull = 0;
-					paint();
-					wheel.reset(false);
-				},
-				phone ? 180 : 260,
-			);
+			timer = window.setTimeout(() => {
+				if (app.modalToken !== token) return;
+				letGo.reset();
+				if (pull >= need()) {
+					close();
+					return;
+				}
+				pull = 0;
+				paint();
+				wheel.reset(false);
+			}, 120);
 		};
 		dialog.addEventListener("wheel", this.pullWheel, { passive: true });
 		if (!reader) return;
@@ -784,6 +842,16 @@ class Gestures {
 			live: boolean;
 		} | null = null;
 		let snapTimer = 0;
+		let frame = 0,
+			distance = 0;
+		const paint = () => {
+			frame = 0;
+			if (!drag || !current() || MotionEngine.reduced) return;
+			// Downward dismissal keeps content geometry stable, including the sticky header.
+			surface.style.translate = distance > 0 ? `0 ${distance}px` : "";
+			surface.style.maxHeight = "100dvh";
+			surface.style.height = `${Math.max(120, Math.min(innerHeight, drag.height - Math.min(0, distance)))}px`;
+		};
 		const current = () => token === this.app.modalToken && surface.isConnected;
 		const collapsed = () => {
 			const style = getComputedStyle(scroll);
@@ -807,6 +875,8 @@ class Gestures {
 		const snap = (full: boolean, from?: number) => {
 			if (!current()) return;
 			clearTimeout(snapTimer);
+			cancelAnimationFrame(frame);
+			frame = 0;
 			surface.classList.remove("is-drag");
 			surface.style.maxHeight = "";
 			surface.style.translate = "";
@@ -828,11 +898,15 @@ class Gestures {
 			if (!drag) return;
 			const previous = drag;
 			drag = null;
-			snap(previous.full, surface.offsetHeight);
+			snap(
+				previous.full,
+				surface.offsetHeight - (MotionEngine.reduced ? 0 : Math.max(0, distance)),
+			);
 		};
 		handle.addEventListener("pointerdown", (event: PointerEvent) => {
 			if (!current() || event.button !== 0 || !event.isPrimary) return;
 			clearTimeout(snapTimer);
+			distance = 0;
 			drag = {
 				id: event.pointerId,
 				x: event.clientX,
@@ -853,13 +927,15 @@ class Gestures {
 			surface.classList.add("is-drag");
 			if (event.cancelable) event.preventDefault();
 			if (MotionEngine.reduced) return;
-			surface.style.maxHeight = "100dvh";
-			surface.style.height = `${Math.max(120, Math.min(innerHeight, drag.height - dy))}px`;
+			distance = dy;
+			if (!frame) frame = requestAnimationFrame(paint);
 		});
 		handle.addEventListener("pointerup", (event: PointerEvent) => {
 			if (!drag || drag.id !== event.pointerId || !current()) return;
 			const previous = drag,
 				dy = event.clientY - previous.y;
+			cancelAnimationFrame(frame);
+			frame = 0;
 			drag = null;
 			if (!previous.live) return;
 			// Suppress the click synthesized after a drag; keyboard clicks still toggle.
@@ -868,11 +944,13 @@ class Gestures {
 				delete handle.dataset.dragged;
 			}, 0);
 			if (dy > 160) {
-				surface.classList.remove("is-drag");
-				this.app.closeModal();
+				this.exitSurface(surface, () => this.app.closeModal());
 				return;
 			}
-			snap(dy < -40 ? true : dy > 40 ? false : previous.full, surface.offsetHeight);
+			snap(
+				dy < -40 ? true : dy > 40 ? false : previous.full,
+				surface.offsetHeight - (MotionEngine.reduced ? 0 : Math.max(0, distance)),
+			);
 		});
 		handle.addEventListener("pointercancel", cancel);
 		handle.addEventListener("lostpointercapture", cancel);

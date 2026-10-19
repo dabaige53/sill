@@ -5,6 +5,8 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { renderToStaticMarkup } from "react-dom/server";
+import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const source = readFileSync(path.join(root, "apps/web/cloud-entry.ts"), "utf8");
@@ -37,7 +39,7 @@ const reset = buildSync({
 const modalGuardStart = source.indexOf("const originalOpen = app.openModal.bind(app);");
 const modalGuardEnd = source.indexOf("const originalClose =", modalGuardStart);
 const panelGuardStart = source.indexOf("const localOpenPanel = app.openPanel.bind(app);");
-const panelGuardEnd = source.indexOf("const localEditor =", panelGuardStart);
+const panelGuardEnd = source.indexOf("app.cloudSavedAccount =", panelGuardStart);
 assert.ok(modalGuardStart >= 0 && modalGuardEnd > modalGuardStart);
 assert.ok(panelGuardStart >= 0 && panelGuardEnd > panelGuardStart);
 const navigationGuards = buildSync({
@@ -68,6 +70,7 @@ function fixture() {
 		this.open = false;
 	};
 	w.HTMLElement.prototype.getAnimations = () => [];
+	installReactBrowserAPIs(w);
 	w.eval(bundle);
 	const { AppController, Store, Panels } = w.SessionViewTest;
 	Store.state = Store.fresh();
@@ -219,7 +222,7 @@ test("uncertain cloud save blocks search before it can change the route or repla
 		// Resolving the write allows the same shortcut to open search normally.
 		f.w.Cloud.pending = null;
 		f.app.openModal = (html: string, kind: string) => {
-			f.app.dialog.innerHTML = html;
+			f.app.dialog.innerHTML = typeof html === "string" ? html : renderToStaticMarkup(html);
 			f.app.modalKind = kind;
 		};
 		f.app.revealImages = () => {};

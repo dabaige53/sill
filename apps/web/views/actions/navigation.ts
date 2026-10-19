@@ -29,10 +29,13 @@ function top(this: AppController) {
 
 function homeTab(this: AppController, { extra }: ActionContext) {
 	const tab = this.homeTabFilter(extra);
-	if (!tab) return;
+	if (!tab || this.homeTab() === extra) return;
+	this.homePositions[this.homeTab() || "all"] = { scroll: window.scrollY, limit: this.pageLimit };
+	const saved = this.homePositions[extra];
+	this.pageLimit = saved?.limit || 40;
 	this.filter = { ...this.filter, ...tab, tag: "", query: "" };
-	window.scrollTo({ top: 0, behavior: "instant" });
-	this.renderCurrent(true);
+	this.renderCurrent(false);
+	window.scrollTo({ top: saved?.scroll || 0, behavior: "instant" });
 }
 
 function cardOpen(this: AppController, { id }: ActionContext) {

@@ -12,8 +12,8 @@
 body{margin:0}
 @keyframes qgFade{from{opacity:0}to{opacity:1}}
 @keyframes qgFadeOut{from{opacity:1}to{opacity:0}}
-@keyframes qgFromCard{from{opacity:.3;transform:translate(-346px,-262px) scale(.57);border-radius:22px}to{opacity:1;transform:none;border-radius:24px}}
-@keyframes qgToCard{from{opacity:1;transform:none}to{opacity:0;transform:translate(-346px,-262px) scale(.57)}}
+@keyframes qgFromCard{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes qgToCard{from{opacity:1;transform:none}to{opacity:0;transform:translateY(4px)}}
 @keyframes qgMenu{from{opacity:0;transform:translateY(-4px) scale(.92)}to{opacity:1;transform:none}}
 @keyframes qgMenuOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(.96)}}
 @keyframes qgRise{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
@@ -26,16 +26,16 @@ body{margin:0}
 @keyframes qgDropOut{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-8px)}}
 @keyframes qgToast{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes qgToastOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(8px)}}
-.ease{--ease:cubic-bezier(.2,.75,.25,1)}
+.ease{--ease:cubic-bezier(.23,1,.32,1)}
 .backdrop{position:absolute;inset:0;border:0;padding:0;background:rgba(0,0,0,.2);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:qgFade calc(220ms * var(--k)) linear both;cursor:default}
 .backdrop.out{animation:qgFadeOut calc(180ms * var(--k)) linear both}
-.dlg{position:absolute;left:250px;top:96px;width:560px;background:#fff;border-radius:28px;box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);overflow:hidden;animation:qgFromCard calc(320ms * var(--k)) var(--ease) both}
-.dlg.out{animation:qgToCard calc(230ms * var(--k)) var(--ease) both}
-.panel{position:absolute;left:310px;top:150px;width:440px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:24px;box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);animation:qgPanel calc(260ms * var(--k)) var(--ease) both}
+.dlg{position:absolute;left:250px;top:96px;width:560px;background:#fff;border-radius:28px;box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);overflow:hidden;animation:qgFromCard calc(220ms * var(--k)) var(--ease) both}
+.dlg.out{animation:qgToCard calc(160ms * var(--k)) var(--ease) both}
+.panel{position:absolute;left:310px;top:150px;width:440px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:24px;box-shadow:0 2px 8px rgba(0,0,0,.04),0 28px 100px rgba(0,0,0,.2);animation:qgPanel calc(220ms * var(--k)) var(--ease) both}
 .panel.out{animation:qgPanelOut calc(180ms * var(--k)) var(--ease) both}
-.pcap{position:absolute;left:50%;top:600px;display:flex;align-items:center;gap:2px;padding:6px;border-radius:30px;background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.72);box-shadow:0 10px 30px rgba(0,0,0,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);animation:qgCap calc(260ms * var(--k)) var(--ease) calc(120ms * var(--k)) both}
+.pcap{position:absolute;left:50%;top:600px;display:flex;align-items:center;gap:2px;padding:6px;border-radius:30px;background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.72);box-shadow:0 10px 30px rgba(0,0,0,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);animation:qgCap calc(220ms * var(--k)) var(--ease) 0ms both}
 .pcap.out{animation:qgCapOut calc(140ms * var(--k)) linear both}
-.spot{position:absolute;left:50%;top:56px;width:620px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:qgDrop calc(260ms * var(--k)) var(--ease) both}
+.spot{position:absolute;left:50%;top:56px;width:620px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:qgDrop calc(220ms * var(--k)) var(--ease) both}
 .spot.out{animation:qgDropOut calc(160ms * var(--k)) linear both}
 .frost{position:absolute;inset:0;border:0;padding:0;background:rgba(245,245,247,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:qgFade calc(220ms * var(--k)) linear both;cursor:default}
 .frost.out{animation:qgFadeOut calc(160ms * var(--k)) linear both}
@@ -178,18 +178,18 @@ body{margin:0}
       <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">点资讯卡 → 预览；点消息卡「更多」→ 菜单；点右下入口 → 工具栏，再点筛选 → 搜索；消息卡「更多」→「不再提示」→ 卡片收起，入口球左边出现可撤销的 Toast；预览打开时 Toast 升高一行。单张卡收藏只改按钮和卡片状态，不弹 Toast。任何弹层都可以点外面或按 Esc 关闭；工具栏鼠标移开会自动收起；筛选按回车关闭并留下顶部标记。Tweaks 里可放慢 3 倍或模拟「减少动态效果」。</p>
     </div>
     <div>
-      <div class="sr"><b>预览打开</b><code>320ms</code><span>从卡片原位展开到居中，圆角 22→24</span></div>
-      <div class="sr"><b>预览关闭</b><code>230ms</code><span>缩回原卡片位置，焦点回到卡片</span></div>
+      <div class="sr"><b>预览打开</b><code>220ms</code><span>最终字号上移10px淡入，不缩放正文</span></div>
+      <div class="sr"><b>预览关闭</b><code>160ms</code><span>下移4px淡出，焦点回到卡片</span></div>
       <div class="sr"><b>遮罩</b><code>220 / 180</code><span>0→20% 黑 + 4px 模糊，线性</span></div>
       <div class="sr"><b>更多菜单</b><code>180 / 120</code><span>锚点右上，缩放 .92→1，下移 4px；白色实底，不用玻璃</span></div>
       <div class="sr"><b>全局工具</b><code>220ms</code><span>自下而上依次浮出，间隔 40ms；入口转成关闭</span></div>
-      <div class="sr"><b>操作胶囊</b><code>260ms</code><span>晚 120ms 从下方浮起，跟在预览之后</span></div>
+      <div class="sr"><b>操作胶囊</b><code>220ms</code><span>与预览同时淡入，不延迟操作</span></div>
       <div class="sr"><b>筛选</b><code>260 / 160</code><span>搜索框自上落下，背景磨砂而非压暗</span></div>
       <div class="sr"><b>手机抽屉</b><code>360ms</code><span>自底部滑入，曲线 (.32,.72,0,1)；下拉关闭</span></div>
       <div class="sr"><b>Toast</b><code>220 / 140</code><span>入口球左边上浮 12px；可撤销 5.5 秒、普通 3.2 秒后淡出，失败一直留着</span></div>
       <div class="sr"><b>减少动效</b><code>70ms</code><span>全部改为淡入淡出，不位移不缩放</span></div>
     </div>
-    <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">曲线统一 <code style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px">cubic-bezier(.2,.75,.25,1)</code>；出场比进场快约 30%，让关闭显得干脆。</p>
+    <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #636366">曲线统一 <code style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px">cubic-bezier(.23,1,.32,1)</code>；出场比进场快约 30%，让关闭显得干脆。</p>
   </aside>
 </div>
 </x-dc>
@@ -208,7 +208,7 @@ class Component extends DCLogic {
     this.later('toastOut', 5500, () => this.setState({ toast: 'out' }));
     this.later('toastOff', 5640, () => this.setState({ toast: 'off' }));
   }
-  closePreview() { this.setState({ preview: 'closing' }); this.later('preview', 230, () => this.setState({ preview: 'closed' })); }
+  closePreview() { this.setState({ preview: 'closing' }); this.later('preview', 160, () => this.setState({ preview: 'closed' })); }
   closePanel() { this.setState({ panel: 'closing' }); this.later('panel', 160, () => this.setState({ panel: 'closed' })); }
   closeFloating() {
     if (this.state.menu === 'open') { this.setState({ menu: 'closing' }); this.later('menu', 120, () => this.setState({ menu: 'closed' })); }

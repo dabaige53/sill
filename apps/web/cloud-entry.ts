@@ -1,12 +1,21 @@
+import { createElement } from "react";
 import { button, esc } from "./atoms/primitives.ts";
 import { copy } from "./copy.ts";
 import { demoBase, SeedCards, SeedItems } from "./data/cards.ts";
 import { cloudCard, cloudCardChanges } from "./data/cloud-card.ts";
 import { Store } from "./data/store.ts";
-import { Panels, welcomeHTML } from "./interactions/panels.ts";
+import { PanelViews as Panels } from "./interactions/panels-components.tsx";
 import { agentFailure } from "./services/agent-handoff.ts";
 import { CloudSync, clone } from "./services/cloud-sync.ts";
 import { AppController } from "./views/app.ts";
+import {
+	CloudCompose,
+	CloudSettings,
+	CloudWelcome,
+	ConfirmActions,
+	RecoveryNotice,
+} from "./views/cloud-views.tsx";
+import { renderView } from "./views/react-renderer.ts";
 
 /* Cloud build: cards stay in memory; browser login uses server-set HttpOnly cookies. */
 // Invitation/legacy implicit fragments are never accepted as app sessions.
@@ -38,36 +47,12 @@ const Cloud: Record<string, any> = {
 const callbackFailed = new URL(location.href).searchParams.has("login_error");
 if (callbackFailed) history.replaceState(null, "", location.pathname + location.hash);
 function cloudWelcome() {
-	const recovery = [...Cloud.drafts]
-		.filter(([, draft]: any) => draft.locked)
-		.map(
-			([key, draft]: any) =>
-				`<button type="button" class="soft-button" data-action="resume-draft" data-id="${esc(key)}">${copy("web.cloudentry.b9e8d3a1bc64")}${esc(draft.values.title || copy("web.unnamedNote"))}</button>`,
-		)
-		.join("");
-	if (window.__SILL_HOST__ && !Cloud.user && !Cloud.connectionError)
-		return welcomeHTML({
-			actions: recovery,
-			detail: `<p class="cloud-detail" role="status">${copy("web.cloudentry.c4b63bd25d98")}</p>`,
-		});
-	if (window.__SILL_HOST__ && !Cloud.user)
-		return welcomeHTML({
-			actions:
-				`<button type="button" class="solid-button" data-action="refresh">${copy("web.cloudentry.b31296c9c33e")}</button>` +
-				recovery,
-			detail: `<p class="cloud-detail">${copy("web.cloudentry.8b8a45a6a4a2")}</p>`,
-		});
-	return welcomeHTML({
-		actions:
-			(Cloud.user
-				? `<button type="button" class="solid-button" data-action="capture">${copy("web.cloudentry.21dfdf7a86e7")}</button><button type="button" class="text-link" data-action="welcome-demo">${copy("web.welcome.viewDemo")}</button>`
-				: `<a class="solid-button" href="/auth/login">${copy("web.cloudentry.be4ece4b22aa")}</a><form id="cloud-login"><label for="cloud-email">${copy("web.cloudentry.d261be8e9b91")}</label><input id="cloud-email" name="email" type="email" autocomplete="email" required placeholder="${copy("web.cloudentry.27558ddc9803")}" aria-describedby="cloud-login-status"><button class="solid-button" type="submit">${copy("web.cloudentry.92b193fad920")}</button><p id="cloud-login-status" role="status">${callbackFailed ? copy("web.cloudentry.83bf2b73aee3") : copy("web.cloudentry.5eef9638100a")}</p></form>`) +
-			recovery,
-		detail: recovery
-			? `<p class="cloud-detail">${copy("web.cloudentry.a7c0c329d7a1")}</p>`
-			: Cloud.user
-				? `<p class="cloud-detail">${copy("web.cloudentry.4da32c150cfa")}</p>`
-				: "",
+	return createElement(CloudWelcome, {
+		user: !!Cloud.user,
+		host: !!window.__SILL_HOST__,
+		connectionError: Cloud.connectionError,
+		callbackFailed,
+		drafts: [...Cloud.drafts],
 	});
 }
 const app = new AppController();
@@ -85,10 +70,10 @@ app.readAgentCard = async (id, scope) => {
 		throw agentFailure("account_changed", copy("web.agent.accountChanged"));
 	return card;
 };
-const originalDeskHTML = app.deskHTML.bind(app);
-app.deskHTML = () => {
+const originalDeskView = app.deskView.bind(app);
+app.deskView = () => {
 	if (!Cloud.user || !Store.state.cards.length) return cloudWelcome();
-	return originalDeskHTML();
+	return originalDeskView();
 };
 app.init();
 const sync = new CloudSync({
@@ -311,8 +296,7 @@ function syncStatus() {
 		document.body.append(bar);
 	}
 	bar.hidden = !sync.failed;
-	if (sync.failed)
-		bar.innerHTML = `<span role="status">${esc(sync.failed.message)}</span><button class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button><button class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button><button class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
+	if (sync.failed) renderView(bar, createElement(RecoveryNotice, { message: sync.failed.message }));
 }
 function paintRecords() {
 	Store.state.cards = [...Cloud.records.values()]
@@ -511,7 +495,12 @@ function editCloud(id?: any) {
 		read: !!Cloud.edit.state.read,
 	};
 	originalOpen(
-		`<div class="sheet cloud-compose"><header class="cloud-compose-head"><h1 id="modal-title">${id ? copy("web.cloudentry.b1c46471ae91") : copy("web.cloudentry.d3d2d99f6003")}</h1><span id="cloud-draft-state" role="status"></span>${button("x", copy("web.cloudentry.48ada7873f17"), "close")}</header><form id="cloud-editor"><div class="cloud-compose-body"><label class="sr-only" for="cloud-title">${copy("web.title")}</label><input id="cloud-title" required maxlength="1000" placeholder="${copy("web.cloudentry.a90371571cc7")}" value="${esc(values.title)}"><label class="sr-only" for="cloud-body">${copy("web.body")}</label><textarea id="cloud-body" rows="10" placeholder="${copy("web.cloudentry.cbef01d0a3d3")}">${esc(values.body)}</textarea><div class="cloud-compose-meta"><label><input id="cloud-read" type="checkbox" ${values.read ? "checked" : ""}>${copy("web.cloudentry.419893e7d756")}</label><span id="cloud-word-count" class="num"></span></div><p id="cloud-save-status" role="status"></p></div><footer class="cloud-compose-actions"><button class="solid-button" type="${window.__SILL_HOST__ ? "button" : "submit"}" id="cloud-save">${copy("web.cloudentry.c6a1f219cdc8")}</button><button type="button" class="soft-button" data-action="close">${copy("web.close")}</button><button type="button" class="text-link" id="cloud-discard" hidden>${copy("web.cloudentry.70403791a994")}</button>${id && (!Cloud.scopes || Cloud.scopes.includes("content:delete")) ? `<button class="text-link cloud-delete" type="button" id="cloud-delete">${copy("web.cloudentry.92d8b5e3dc99")}</button>` : ""}<span class="cloud-save-hint">⌘ / Ctrl + Enter</span></footer></form></div>`,
+		createElement(CloudCompose, {
+			id,
+			host: !!window.__SILL_HOST__,
+			canDelete: !Cloud.scopes || Cloud.scopes.includes("content:delete"),
+			values,
+		}),
 		"cloud-editor",
 		null,
 		"panel wide",
@@ -785,35 +774,11 @@ app.openPanel = (kind?: any, ...args: any[]) => {
 	}
 	return localOpenPanel(kind, ...args);
 };
-const localEditor = Panels.editor.bind(Panels);
-Panels.editor = (...args: any[]) => {
-	const doc = document.createElement("template");
-	doc.innerHTML = localEditor(...args);
-	const hint = doc.content.querySelector(".panel-footer .muted");
-	if (hint) hint.textContent = copy("web.cloud.savedAccount");
-	return doc.innerHTML;
-};
-const localSettings = Panels.settings.bind(Panels);
-Panels.settings = (app?: any, group?: any) => {
-	const html = localSettings(app, group),
-		doc = document.createElement("template");
-	doc.innerHTML = html;
-	if (group === "data")
-		doc.content.querySelector(".settings-main").innerHTML =
-			`<h1 id="modal-title">${copy("web.cloudentry.ebdc835e8f87")}</h1><p class="panel-sub">${copy("web.cloudentry.67c5f7479766")}</p><p class="panel-sub">` +
-			(window.__SILL_HOST__
-				? copy("web.cloudentry.c360ffadc6df")
-				: copy("web.cloudentry.adf4e8d0d4f0")) +
-			`</p><div class="settings-card"><div class="setting-row"><button type="button" class="text-link" data-action="export-all">${copy("web.cloud.export")}</button></div><div class="setting-row"><span>${copy("web.cloud.clear")}</span><button type="button" class="text-link" data-action="clear-all">${copy("web.cloud.clear")}</button></div></div>` +
-			(Cloud.user
-				? `<div class="settings-card"><div class="setting-row"><span>${copy("web.cloudentry.4cc5be794516")}</span><button type="button" class="text-link" id="cloud-logout">` +
-					(window.__SILL_HOST__
-						? copy("web.cloudentry.55cce35fb13e")
-						: copy("web.cloudentry.3ab8cc15939f")) +
-					"</button></div></div>"
-				: "");
-	return doc.innerHTML;
-};
+app.cloudSavedAccount = true;
+Object.defineProperty(app, "cloudSettingsContent", {
+	get: () => createElement(CloudSettings, { user: !!Cloud.user, host: !!window.__SILL_HOST__ }),
+});
+
 async function refreshWorkspace({ feedback = "default" } = {}) {
 	const quiet = feedback === "pull";
 	if (Cloud.refreshFeedback) return false;
@@ -868,11 +833,7 @@ function confirmCloud(title?: any, detail?: any, label?: any, action?: any, back
 		back();
 	};
 	app.swapPanel(
-		Panels.confirm(
-			title,
-			detail,
-			`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" id="cloud-confirm">${esc(label)}</button>`,
-		),
+		Panels.confirm(title, detail, createElement(ConfirmActions, { label, id: "cloud-confirm" })),
 		"confirm",
 		"panel narrow",
 	);
@@ -1048,12 +1009,11 @@ export {
 	editCloud,
 	loadCloud,
 	localOpenPanel,
-	localSettings,
 	logoutCloud,
 	messages,
 	originalAction,
 	originalClose,
-	originalDeskHTML,
+	originalDeskView,
 	originalOpen,
 	paintCloudDraft,
 	paintRecords,

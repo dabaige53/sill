@@ -1,3 +1,5 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { icon } from "../atoms/icons.ts";
 import {
 	avatar,
@@ -8,7 +10,6 @@ import {
 	dateLabel,
 	duration,
 	esc,
-	eventEnded,
 	eventRelative,
 	eventTimely,
 	pill,
@@ -22,70 +23,11 @@ import { cardSource, cardSourceKind } from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
+import { CardView, OpenStackView, ShelfView, StackView } from "./components.tsx";
+import { CardPresentation, reminderMark } from "./presentation.ts";
 
-/** One renderer for the live feed; design-system/ documents the same blocks. Rendering never mutates Store.
- * A card is a stack of blocks: head · media · text · data · list · act. Content is read here; actions go back to the source.
- */
-const CardPresentation: Record<string, any> = {
-	state(c?: any, options: any = {}) {
-		const defaults: Record<string, any> = {
-			seen: false,
-			read: false,
-			bookmarked: false,
-			later: false,
-			selected: false,
-			progress: 0,
-			snoozedUntil: 0,
-			dismissed: false,
-			reminderDone: false,
-		};
-		return {
-			...defaults,
-			...(options.state !== undefined ? options.state : Store.state.items[c.id] || {}),
-		};
-	},
-	tasks(c?: any, state?: any) {
-		return (c.tasks || []).map((t?: any) => ({
-			...t,
-			done: Array.isArray(state.taskDone) ? state.taskDone.includes(t.id) : t.done,
-		}));
-	},
-	action(
-		ctx?: any,
-		glyph?: any,
-		label?: any,
-		action?: any,
-		id: any = "",
-		extra: any = "",
-		className: any = "",
-	) {
-		return ctx.passive
-			? `<span class="icon-button ${className}" role="img" aria-label="${esc(label)}">${icon(glyph)}</span>`
-			: button(glyph, label, action, id, extra, className);
-	},
-	sourceIcon(c?: any, size: any = 16) {
-		if (c.sources?.length > 1)
-			return `<span class="source-icons" aria-hidden="true">${c.sources
-				.slice(0, 3)
-				.map((s?: any) => `<span>${icon(SourceKinds[s.kind]?.icon || "book", 12)}</span>`)
-				.join("")}</span>`;
-		// Content shows where it came from; things to do show what they are.
-		const byType = ["task", "event", "reminder", "digest", "photo", "file"].includes(c.type);
-		return icon(
-			byType
-				? (CardTypes[c.type] || CardTypes.note).icon
-				: SourceKinds[cardSourceKind(c)]?.icon || (CardTypes[c.type] || CardTypes.note).icon,
-			size,
-		);
-	},
-};
-/** The reminder's circle: done in Sill only. The card and its detail use the same control. */
-export function reminderMark(c?: any, done?: boolean, passive?: boolean) {
-	const dot = `<span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span>`;
-	return passive
-		? dot
-		: `<button type="button" class="reminder-check" data-action="${done ? "restore-reminder" : "complete-reminder"}" data-id="${esc(c.id)}" aria-pressed="${!!done}" aria-label="${done ? copy("web.reminder.restore") : copy("web.reminder.complete")}">${dot}</button>`;
-}
+export { CardView, OpenStackView, reminderMark, ShelfView, StackView };
+
 const CardTemplates: Record<string, any> = {
 	head(c?: any, ctx?: any, text?: any, right: any = "") {
 		return `<div class="card-head">${CardPresentation.sourceIcon(c)}<span class="card-src">${esc(text)}</span>${right ? `<span class="card-head-right">${right}</span>` : ""}</div>`;
@@ -133,7 +75,7 @@ const CardTemplates: Record<string, any> = {
 	},
 	mail(c?: any, ctx?: any) {
 		const sender = c.sender || cardSource(c) || copy("web.mail");
-		return `<div class="card-body"><div class="sender">${avatar(sender)}<span><b>${esc(sender)}</b><small>${copy("web.mail")}${c.meta ? " · " + esc(c.meta) : ""}</small></span></div>${this.title(c, ctx)}${this.summary(c)}${c.attachment ? `<span class="ref attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}</div>`;
+		return `<div class="card-body"><div class="sender">${avatar(sender)}<span><b>${esc(sender)}</b><small>${copy("web.mail")}${c.meta ? " · " + esc(c.meta) : ""}</small></span></div>${this.title(c, ctx)}${this.summary(c)}${c.attachment ? `<span class="file-row attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}</div>`;
 	},
 	note(c?: any, ctx?: any) {
 		if (cardSourceKind(c) !== "capture" && c.form !== "quote")
@@ -152,8 +94,6 @@ const CardTemplates: Record<string, any> = {
 			done = tasks.filter((t?: any) => t.done).length,
 			byId = new Map(tasks.map((t?: any) => [t.id, t])),
 			held = [...new Set(ctx.taskPreviewOrder)].map((id) => byId.get(id)).filter(Boolean);
-		if (tasks.length > 0 && done === tasks.length && !held.length)
-			return `<div class="card-body done-row"><span class="done-mark">${icon("check", 14)}</span><span class="done-copy"><small>${copy("web.templates.f838d1ef1773")}${tasks.length}${copy("web.templates.f9d529eacdf3")}</small>${this.title(c, ctx)}</span></div>`;
 		const item = (t?: any) =>
 			ctx.passive
 				? `<div class="check-item ${t.done ? "is-done" : ""}" role="img" aria-label="${esc(t.text)}：${t.done ? copy("web.templates.f28461bb49c8") : copy("web.templates.6707de42c29d")}">${checkMark(t.done)}<span>${esc(t.text)}</span></div>`
@@ -203,12 +143,10 @@ const CardTemplates: Record<string, any> = {
 		return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c))}${this.title(c, ctx)}${this.summary(preview)}</div>`;
 	},
 	suggestion(c?: any, ctx?: any) {
-		const related = (c.related || [])
-				.map((id?: any) => Store.card(id))
-				.filter(Boolean)
-				.slice(0, 2),
+		const allRelated = (c.related || []).map((id?: any) => Store.card(id)).filter(Boolean),
+			related = allRelated.slice(0, 2),
 			tag = ctx.passive ? "span" : "button";
-		return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c))}${this.title(c, ctx)}${this.summary(c)}<div class="refs" aria-label="${copy("web.templates.9f2ab3a03303")}">${related.map((r?: any) => `<${tag}${ctx.passive ? "" : ` type="button" data-action="card-open" data-id="${esc(r.id)}"`} class="ref">${icon((CardTypes[r.type] || CardTypes.note).icon, 15)}<span>${esc(r.title)}</span>${icon("chevron", 14)}</${tag}>`).join("")}</div></div>`;
+		return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c))}${this.title(c, ctx)}${this.summary(c)}<div class="refs" aria-label="${copy("web.templates.9f2ab3a03303")}">${related.map((r?: any) => `<${tag}${ctx.passive ? "" : ` type="button" data-action="card-open" data-id="${esc(r.id)}"`} class="ref">${icon((CardTypes[r.type] || CardTypes.note).icon, 15)}<span>${esc(r.title)}</span>${icon("chevron", 14)}</${tag}>`).join("")}</div>${allRelated.length > 2 ? `<span class="more-items related-more">${copy("web.templates.dff74742a6f0")}${allRelated.length - 2}${copy("web.related.moreSuffix")}</span>` : ""}</div>`;
 	},
 	photo(c?: any, ctx?: any) {
 		const photos = c.photos?.length ? c.photos : [c.image];
@@ -236,47 +174,16 @@ const CardTemplates: Record<string, any> = {
 	},
 };
 function cardHTML(c?: any, options: any = {}) {
-	options = options && typeof options === "object" ? options : {};
-	const s = CardPresentation.state(c, options),
-		tasks = CardPresentation.tasks(c, s),
-		isDone =
-			(c.type === "task" && tasks.length && tasks.every((t?: any) => t.done)) ||
-			(c.type === "reminder" && s.reminderDone);
-	const ctx: Record<string, any> = {
-		state: s,
-		tasks,
-		taskPreviewOrder:
-			!options.passive && Array.isArray(options.taskPreviewOrder) ? options.taskPreviewOrder : [],
-		passive: !!options.passive,
-		now: options.now ?? Date.now(),
-	};
-	const read = (CardTypes[c.type] || CardTypes.note).readable && s.read && Store.pref("fadeRead");
-	const ended = c.type === "event" && eventEnded(c, ctx.now);
-	const attributes = ctx.passive
-		? ' data-passive="true"'
-		: ` tabindex="0" data-card="${esc(c.id)}"`;
-	const covered = (c.image && ["article", "media"].includes(c.type)) || c.type === "photo";
-	return `<article class="feed-card ${options.compact ? "" : "feed-item"} type-${esc(c.type)} ${covered ? "has-cover" : ""} ${options.compact ? "is-compact" : ""} ${read ? "is-read" : ""} ${ended ? "is-ended" : ""} ${s.bookmarked ? "is-bookmarked" : ""} ${s.selected ? "is-selected" : ""} ${s.snoozedUntil > 0 ? "is-snoozed" : ""} ${isDone ? "is-complete" : ""}"${attributes} aria-label="${esc((CardTypes[c.type] || CardTypes.note).label + "：" + c.title + (s.read ? copy("web.templates.732aa8f1efe5") : ""))}">
- ${Object.hasOwn(CardTypes, c.type) && Object.hasOwn(CardTemplates, c.type) ? CardTemplates[c.type](c, ctx) : CardTemplates.article(c, ctx)}
- </article>`;
+	return renderToStaticMarkup(createElement(CardView, { card: c, options }));
 }
-/** A burst from one source, folded. Opening it expands in place; nothing navigates. */
 function stackHTML(key?: any, cards?: any) {
-	// A deck: one whole card per piece, in the same place. Swipe moves the top card away; tap spreads the pile out in place.
-	const top = cards[0],
-		n = cards.length;
-	const face = (c?: any, i?: any) =>
-		`<div class="deck-card${i === 0 ? " is-top" : i === 1 ? " is-next" : ""}" data-index="${i}"${i ? ' aria-hidden="true"' : ""}><div class="card-body">${CardTemplates.head(c, { state: {} }, cardSource(c), `<span class="num stack-count"><span class="stack-pos">${i + 1}</span>/${n}</span>`)}<h2 class="card-title">${i === 0 ? `<button type="button" class="card-title-button" data-action="stack-open" data-extra="${esc(key)}">${esc(c.title)}</button>` : esc(c.title)}</h2>${c.summary ? `<p class="card-summary clamp-2">${esc(c.summary)}</p>` : ""}</div></div>`;
-	return `<article class="feed-card feed-item stack-card" tabindex="0" data-stack="${esc(key)}" aria-label="${esc(`${cardSource(top)}：${n}${copy("web.templates.50091bfc40b5")}`)}">
- <span class="deck-edge deep" aria-hidden="true"></span><span class="deck-edge" aria-hidden="true"></span><div class="deck">${cards.map(face).join("")}</div></article>`;
+	return renderToStaticMarkup(createElement(StackView, { stackKey: key, cards }));
 }
 function stackOpenHTML(key?: any, cards?: any) {
-	return `<section class="feed-item stack-open" data-stack-open="${esc(key)}"><div class="stack-open-head">${icon(SourceKinds[cardSourceKind(cards[0])]?.icon || "rss", 15)}<span>${esc(cardSource(cards[0]))} · <span class="num">${cards.length}</span></span><button type="button" class="text-link" data-action="stack-close" data-extra="${esc(key)}">${copy("web.templates.afd4b783536b")}</button></div>${cards.map((c?: any) => cardHTML(c, { compact: true })).join("")}</section>`;
+	return renderToStaticMarkup(createElement(OpenStackView, { stackKey: key, cards }));
 }
-/** The two quiet rows at the end of the desk: what was read, and what waited too long. */
 function shelfHTML(read?: any, stale?: any) {
-	if (!read && !stale) return "";
-	return `<nav class="feed-item shelf-entry" aria-label="${copy("web.templates.25775c98c7b8")}">${read ? `<button type="button" class="shelf-row" data-action="archive" data-extra="read">${icon("ring", 16)}<b>${copy("web.templates.7b7e6e8bd4ba")}</b><span>${copy("web.templates.08ae1ab86ff2")}</span><span class="num">${read}</span></button>` : ""}${stale ? `<button type="button" class="shelf-row" data-action="archive" data-extra="stale">${icon("clock", 16)}<b>${copy("web.templates.709b79e460c8")}</b><span>${copy("web.templates.77edd3c039f9")}</span><span class="num">${stale}</span></button>` : ""}</nav>`;
+	return renderToStaticMarkup(createElement(ShelfView, { read, stale }));
 }
 
 export { CardPresentation, CardTemplates, cardHTML, shelfHTML, stackHTML, stackOpenHTML };

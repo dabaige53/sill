@@ -1,7 +1,8 @@
 import { copy } from "../../copy.ts";
 import { Store } from "../../data/store.ts";
-import { Panels } from "../../interactions/panels.ts";
+import { PanelViews as Panels } from "../../interactions/panels-components.tsx";
 import type { AppController } from "../app.ts";
+import { renderView } from "../react-renderer.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
 function bookmark(this: AppController, { id }: ActionContext) {
@@ -19,10 +20,6 @@ function task(this: AppController, { id, extra }: ActionContext) {
 function edit(this: AppController, { id }: ActionContext) {
 	this.bulkEditIds = null;
 	this.openPanel("editor", id);
-}
-
-function why(this: AppController, { id }: ActionContext) {
-	this.openPanel("why", id);
 }
 
 function lessLike(this: AppController) {
@@ -95,7 +92,7 @@ function archiveAll(this: AppController) {
 function editorTag(this: AppController, { extra }: ActionContext) {
 	this.editTags.has(extra) ? this.editTags.delete(extra) : this.editTags.add(extra);
 	const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
-	this.dialog.innerHTML = Panels.editor(this, this.editId);
+	renderView(this.dialog, Panels.editor(this, this.editId));
 	if (note !== undefined) (document.getElementById("note-editor") as HTMLInputElement).value = note;
 	document.getElementById("tag-new")?.focus();
 }
@@ -110,7 +107,7 @@ function addTag(this: AppController) {
 	}
 	this.editTags.add(value);
 	const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
-	this.dialog.innerHTML = Panels.editor(this, this.editId);
+	renderView(this.dialog, Panels.editor(this, this.editId));
 	(document.getElementById("note-editor") as HTMLInputElement).value = note || "";
 	document.getElementById("tag-new").focus();
 }
@@ -144,7 +141,6 @@ export const cardsActions = {
 	later: later,
 	task: task,
 	edit: edit,
-	why: why,
 	"less-like": lessLike,
 	"never-show": neverShow,
 	"card-more": cardMore,

@@ -18,6 +18,8 @@ npm start
 
 打开 [本地卡片页面](http://127.0.0.1:4318/#feed)。服务只监听本机。数据保存在 `.sill/local/cards.json`，不要将它提交到 Git。Mac 数据和云端账号数据独立，不会自动上传。
 
+Web 使用 React + TypeScript + Vite；macOS 保留 SwiftUI。开发界面时，在本地服务运行后另开终端执行 `npm run dev`，访问 http://localhost:5173，支持组件热更新。生产构建保留单文件 HTML，供本地网页、云端网页和 MCP 宿主使用。
+
 ## AI 操作
 
 ```sh

@@ -170,6 +170,8 @@ test("a preview pulled down from its top closes once on release, even full scree
 			f.fire(target, "touchstart", 120, 200);
 			f.fire(target, "touchmove", 120, 300);
 			f.fire(target, "touchmove", 120, 450);
+			assert.equal(f.frames.size, 1, "moves share one frame");
+			f.flush(f.frames);
 			assert.equal(sheet.style.translate, "0 250px", "the sheet follows the finger");
 			assert.equal(f.app.closed, 0, "pulling past the line is not itself a close");
 			f.fire(target, "touchend", 120, 450);

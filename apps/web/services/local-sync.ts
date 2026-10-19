@@ -1,7 +1,7 @@
 import { esc } from "../atoms/primitives.ts";
 import { copy, errorMessage } from "../copy.ts";
 import { Store } from "../data/store.ts";
-import { Panels } from "../interactions/panels.ts";
+import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 
 /** Page and agents share one loopback service. Browser storage remains a migration backup. */
 const LocalSync: Record<string, any> = {

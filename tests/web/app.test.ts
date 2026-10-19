@@ -4,6 +4,8 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { renderToStaticMarkup } from "react-dom/server";
+import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
 const bundle = buildSync({
 	stdin: {
@@ -44,6 +46,7 @@ function fixture() {
 			this.disconnected = true;
 		}
 	};
+	installReactBrowserAPIs(w);
 	w.eval(bundle);
 	const { AppController, Store, Panels } = w.ControllerTest;
 	Store.state = {
@@ -78,7 +81,7 @@ test("closing photo tags returns to the same photo index", () => {
 		app.photoIndex = 1;
 		app.panelReturn = null;
 		app.openModal = (html: string, kind: string) => {
-			app.dialog.innerHTML = html;
+			app.dialog.innerHTML = typeof html === "string" ? html : renderToStaticMarkup(html);
 			app.modalKind = kind;
 		};
 		const returned: unknown[] = [];
@@ -267,3 +270,55 @@ for (const sourceRow of [true, false]) {
 		}
 	});
 }
+
+test("toast pauses elapsed time and a replacement cannot inherit the old countdown", () => {
+	const f = fixture();
+	try {
+		const { w, app } = f;
+		w.document.body.insertAdjacentHTML(
+			"beforeend",
+			'<div id="toast" hidden><span id="toast-text"></span><span id="toast-action"></span></div>',
+		);
+		let now = 0,
+			active = true,
+			next = 1;
+		const timers = new Map<number, { callback: () => void; duration: number }>();
+		w.performance.now = () => now;
+		w.document.hasFocus = () => active;
+		w.setTimeout = (callback: () => void, duration: number) => {
+			const id = next++;
+			timers.set(id, { callback, duration });
+			return id;
+		};
+		w.clearTimeout = (id: number) => timers.delete(id);
+		app.showToast("Undo", () => {}, "Undo", false);
+		assert.equal(timers.get(app.toastTimer).duration, 5500);
+		now = 1200;
+		app.toastHover = true;
+		app.updateToastClock();
+		assert.equal(app.toastRemaining, 4300);
+		assert.equal(timers.size, 0);
+		now = 9000;
+		app.updateToastClock();
+		assert.equal(app.toastRemaining, 4300);
+		app.toastHover = false;
+		app.updateToastClock();
+		assert.equal(timers.get(app.toastTimer).duration, 4300);
+		now += 300;
+		active = false;
+		app.updateToastClock(true);
+		assert.equal(app.toastRemaining, 4000);
+		app.showToast("Replacement", null, "", false);
+		assert.equal(timers.size, 0);
+		active = true;
+		app.updateToastClock();
+		assert.equal(timers.get(app.toastTimer).duration, 3200);
+		app.hideToast();
+		assert.equal(timers.size, 0);
+		assert.equal(w.document.getElementById("toast").inert, true);
+		app.showToast("Failure", null, "", true);
+		assert.equal(timers.size, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});

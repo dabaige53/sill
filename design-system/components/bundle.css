@@ -1,5 +1,5 @@
 /* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */
-:root{--font:var(--font-sans);--ease:cubic-bezier(.2,.75,.25,1);--fast:140ms;--base:220ms;--layout:320ms;--feed-max: 1640px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 17px;--text-reader-body: 17px;--text-summary: 15px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;}
+:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:160ms;--dur-sheet:360ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-reduced:70ms;--dur-tuck:180ms;--dur-lens:300ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:220ms;--dur-deck:260ms;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 17px;--text-reader-body: 17px;--text-summary: 15px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;}
 :root[data-theme="dark"],
 .lightbox .float-bar {
 	--canvas: #111113;
@@ -300,7 +300,8 @@ main:has(.welcome, .empty-card) .feed-end {
 		color var(--fast)
 	);
 }
-.icon-button:hover {
+.icon-button:hover,
+.icon-button:active {
 	background: var(--surface);
 }
 .icon-button:active {
@@ -324,25 +325,6 @@ main:has(.welcome, .empty-card) .feed-end {
 	--rail-gap: 8px;
 	--rail-tuck: var(--dur-tuck);
 	--nav-tab: 76px;
-	/* A soft spring: overshoots about 6% and settles. */
-	--ease-spring: linear(
-		0,
-		0.03 2%,
-		0.11 4.4%,
-		0.24 7%,
-		0.51 12%,
-		0.75 17%,
-		0.91 22%,
-		1.01 27.4%,
-		1.05 31%,
-		1.065 35.5%,
-		1.06 40%,
-		1.03 49%,
-		1.007 59%,
-		0.997 70%,
-		1
-	);
-	--dur-lens: 520ms;
 }
 #dock {
 	position: fixed;
@@ -357,8 +339,8 @@ main:has(.welcome, .empty-card) .feed-end {
 	pointer-events: none;
 	transition: var(
 		--motion-transition,
-		transform 380ms var(--ease-sheet),
-		opacity 240ms var(--ease),
+		transform var(--dur-show) var(--ease-sheet),
+		opacity var(--dur-show) var(--ease),
 		visibility 0s
 	);
 }
@@ -430,7 +412,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	transition: var(--motion-transition, scale var(--fast) var(--ease));
 }
 .nav-tab:active .nav-icon {
-	scale: 0.88;
+	scale: 0.97;
 }
 .nav-label {
 	font-size: 10.5px;
@@ -452,11 +434,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	box-shadow:
 		inset 0 1px 0.5px var(--glass-edge),
 		inset 0 -0.5px 0.5px var(--glass-shade);
-	transition: var(
-		--motion-transition,
-		translate var(--dur-lens) var(--ease-spring),
-		width var(--dur-lens) var(--ease-spring)
-	);
+	transition: var(--motion-transition, translate var(--dur-lens) var(--ease-spring));
 }
 .nav-capsule.is-moving .nav-lens {
 	animation: var(--motion-animation, lens-drop var(--dur-lens) var(--ease) both);
@@ -468,7 +446,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 		scale: 1;
 	}
 	35% {
-		scale: 1.16 0.9;
+		scale: 1.05 0.97;
 		background: var(
 			--lens-highlight,
 			color-mix(in srgb, var(--glass-edge) 40%, var(--glass-press))
@@ -514,7 +492,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 		color-mix(in srgb, var(--canvas) 70%, transparent),
 		color-mix(in srgb, var(--canvas) 0%, transparent)
 	);
-	transition: var(--motion-transition, opacity 260ms var(--ease));
+	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .scroll-edge.is-tucked {
 	opacity: 0;
@@ -545,7 +523,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	transition: var(
 		--motion-transition,
 		top var(--dur-tuck) var(--ease),
-		opacity 240ms var(--ease),
+		opacity var(--dur-show) var(--ease),
 		visibility 0s
 	);
 }
@@ -753,18 +731,16 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	right: 50%;
 }
 .float-bar .icon-button.is-tipping::after,
+.float-bar .icon-button.is-hover-tipping::after,
 .float-bar .icon-button:focus-visible::after {
 	opacity: 1;
 	translate: var(--tip-x) 0;
 }
-@media (hover: hover) and (pointer: fine) {
-	.float-bar .icon-button:hover::after {
-		opacity: 1;
-		translate: var(--tip-x) 0;
-		transition-delay: var(--motion-transition-delay, 500ms);
-	}
+.float-bar .icon-button.is-instant-tip::after {
+	transition: none;
 }
 .float-bar .icon-button:focus-visible::after {
+	transition: none;
 	transition-delay: var(--motion-transition-delay, 0s);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -845,7 +821,8 @@ body.is-dragging #toast {
 .chip .icon {
 	color: var(--secondary);
 }
-.chip:hover {
+.chip:hover,
+.chip:active {
 	background: var(--surface);
 }
 .chip.active {
@@ -901,6 +878,10 @@ body.is-dragging #toast {
 	color: var(--muted);
 	white-space: nowrap;
 }
+/* Touch has no hover: every control darkens a little while pressed. */
+.segmented button:not(.on):active {
+	background: var(--faint);
+}
 .segmented button.on {
 	background: var(--card);
 	color: var(--ink);
@@ -943,7 +924,8 @@ body.is-dragging #toast {
 	color: var(--ink);
 	transition: var(--motion-transition, background var(--fast));
 }
-.text-button:hover {
+.text-button:hover,
+.text-button:active {
 	background: var(--surface);
 }
 .solid-button {
@@ -986,7 +968,8 @@ body.is-dragging #toast {
 	min-height: 44px;
 	transition: var(--motion-transition, background var(--fast));
 }
-.soft-button:hover {
+.soft-button:hover,
+.soft-button:active {
 	background: var(--faint);
 }
 
@@ -1063,14 +1046,18 @@ body.is-dragging #toast {
 .home-top {
 	display: none;
 }
-/* Desktop uses an intrinsic-width head aligned with the capped feed (ADR 0043). */
+/* Desktop filters stay reachable and align with the actual card columns. */
 @media (min-width: 651px) {
 	.home-top {
 		display: block;
-		position: relative;
+		position: sticky;
+		top: 0;
+		z-index: 20;
 		width: max-content;
 		max-width: calc(100% - var(--space-40) * 2);
-		margin: var(--space-24) 0 0 max(var(--space-40), calc((100% - var(--feed-max)) / 2));
+		margin: var(--space-24) 0 0 var(--feed-left, var(--space-40));
+		background: var(--canvas);
+		border-radius: var(--control-radius);
 	}
 	.home-mark {
 		display: none;
@@ -1078,12 +1065,15 @@ body.is-dragging #toast {
 	.home-tabs {
 		display: flex;
 		align-items: stretch;
-		gap: var(--space-24);
-		height: var(--hit-target);
+		gap: var(--space-8);
+		min-height: var(--hit-target);
+		overflow-x: auto;
 	}
 	.home-tab {
 		position: relative;
-		padding: 0 var(--space-4);
+		padding: 0 var(--space-12);
+		min-height: var(--hit-target);
+		flex: none;
 		border: 0;
 		background: none;
 		font: inherit;
@@ -1386,20 +1376,12 @@ body.is-dragging #toast {
 	height: 100%;
 	object-fit: cover;
 	opacity: 0;
-	transform: scale(1.04);
-	transition: var(
-		--motion-transition,
-		opacity var(--settle) var(--ease),
-		transform var(--settle) var(--ease)
-	);
+	transition: var(--motion-transition, opacity var(--settle) var(--ease));
 }
 .card-image.is-loaded {
 	opacity: 1;
 	filter: none;
 	transform: none;
-}
-.feed-card:hover .card-cover .card-image.is-loaded {
-	transform: scale(1.018);
 }
 .play-mark {
 	position: absolute;
@@ -1556,7 +1538,8 @@ body.is-dragging #toast {
 	flex: none;
 	color: var(--secondary);
 }
-button.ref:hover {
+button.ref:hover,
+button.ref:active {
 	background: var(--faint);
 }
 .refs {
@@ -1789,7 +1772,8 @@ button.ref:hover {
 .pill.grow {
 	flex: 1 1 auto;
 }
-.pill.soft:hover {
+.pill.soft:hover,
+.pill.soft:active {
 	background: var(--faint);
 }
 .pill.primary {
@@ -1797,7 +1781,8 @@ button.ref:hover {
 	color: var(--fixed-white);
 	min-width: 72px;
 }
-.pill.primary:hover {
+.pill.primary:hover,
+.pill.primary:active {
 	filter: brightness(1.08);
 }
 .pill.primary .icon {
@@ -2019,6 +2004,9 @@ button.ref:hover {
 .text-link:hover {
 	text-decoration: underline;
 }
+.text-link:active {
+	opacity: 0.6;
+}
 
 /* The two shelf rows at the end of the desk. */
 .shelf-entry {
@@ -2066,6 +2054,31 @@ body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item.tools-open:hover
 	--motion-managed-transform: none;
 	transform: none;
 	transition-property: var(--motion-transition-properties, box-shadow, border-color);
+}
+
+/* Desktop spacing groups metadata, content and supporting references. */
+@media (min-width: 651px) {
+	.card-body > :is(.card-head, .sender) + :is(.card-title, .quote-text) {
+		margin-top: var(--space-4);
+	}
+	.card-body > .card-title + .card-summary {
+		margin-top: calc(-1 * var(--space-2));
+	}
+	.card-body > :is(.checklist, .refs, .file-rows, .attachment) {
+		margin-top: var(--space-4);
+	}
+	.feed-card .check-item {
+		align-items: flex-start;
+	}
+	.feed-card .check-item > span:last-child {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		white-space: normal;
+	}
+}
+.related-more {
+	padding-left: 0;
 }
 
 /* Sill · overlays · shared source
@@ -2159,7 +2172,7 @@ dialog::backdrop {
 	display: flex;
 	flex-direction: column;
 	max-height: min(88dvh, 900px);
-	transition: var(--motion-transition, max-height 360ms var(--ease-sheet));
+	transition: var(--motion-transition, max-height var(--dur-sheet) var(--ease-sheet));
 }
 /* The head floats over the content: no band of white above the text. Its round buttons tuck away with
    the toolbar while reading on, and come back on a pause over a soft edge. */
@@ -2186,8 +2199,8 @@ dialog::backdrop {
 	pointer-events: auto;
 	transition: var(
 		--motion-transition,
-		transform 380ms var(--ease-sheet),
-		opacity 240ms var(--ease),
+		transform var(--dur-show) var(--ease-sheet),
+		opacity var(--dur-show) var(--ease),
 		visibility 0s
 	);
 }
@@ -2218,7 +2231,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 92%, transparent) 30%,
 		color-mix(in srgb, var(--card) 0%, transparent)
 	);
-	transition: var(--motion-transition, opacity 260ms var(--ease));
+	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
 	opacity: 1;
@@ -2307,7 +2320,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 18px),
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
-	transition: var(--motion-transition, opacity 260ms var(--ease));
+	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 #modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
 	opacity: 0;
@@ -2482,7 +2495,8 @@ button.detail-row {
 	width: 100%;
 	text-align: left;
 }
-button.detail-row:hover {
+button.detail-row:hover,
+button.detail-row:active {
 	background: var(--canvas);
 }
 .event-hero {
@@ -2873,9 +2887,9 @@ dialog > .float-bar,
 .reader-head {
 	transition: var(
 		--motion-transition,
-		transform 380ms var(--ease-sheet),
-		opacity 240ms var(--ease),
-		translate 360ms var(--ease-sheet),
+		transform var(--dur-show) var(--ease-sheet),
+		opacity var(--dur-show) var(--ease),
+		translate var(--dur-sheet) var(--ease-sheet),
 		visibility 0s
 	);
 }
@@ -3019,6 +3033,7 @@ dialog > .float-bar.is-hidden {
 	border-top: 1px solid var(--line);
 }
 button.list-row:hover,
+button.list-row:active,
 .list-row.hoverable:hover {
 	background: var(--canvas);
 }
@@ -3110,7 +3125,8 @@ button.list-row:hover,
 	color: var(--ink);
 	text-align: left;
 }
-.settings-nav button:hover {
+.settings-nav button:hover,
+.settings-nav button:active {
 	background: var(--faint);
 }
 /* Selected is a quiet, raised row in the same ink; blue stays for the one action that commits. */
@@ -3359,7 +3375,11 @@ kbd {
 	font-size: var(--text-control);
 	color: var(--ink);
 }
+.card-menu-item .icon {
+	flex: none;
+}
 .card-menu-item:hover,
+.card-menu-item:active,
 .card-menu-item:focus-visible {
 	background: var(--fixed-black-5);
 }
@@ -3755,7 +3775,7 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 #modal::backdrop {
 	opacity: var(--backdrop, 1);
-	transition: var(--motion-transition, opacity 280ms linear);
+	transition: var(--motion-transition, opacity var(--dur-open) linear);
 }
 .pull-ring {
 	position: fixed;
@@ -3923,8 +3943,8 @@ body.is-pulling .pull-ring {
 #modal.reader {
 	transition: var(
 		--motion-transition,
-		translate 360ms var(--ease-sheet),
-		max-height 360ms var(--ease-sheet)
+		translate var(--dur-sheet) var(--ease-sheet),
+		max-height var(--dur-sheet) var(--ease-sheet)
 	);
 }
 
@@ -3998,7 +4018,7 @@ body.is-pulling .pull-ring {
 	right: 0;
 	z-index: 4;
 	pointer-events: none;
-	transition: var(--motion-transition, opacity 260ms var(--ease));
+	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .reader-edge.is-bottom {
 	bottom: 0;
@@ -4108,6 +4128,27 @@ body.is-pulling .pull-ring {
 }
 .settings-add .panel-footer {
 	margin-top: var(--space-4);
+}
+
+@media (min-width: 651px) {
+	#modal.preview.is-short {
+		width: min(var(--preview-short-width), calc(100vw - var(--space-48)));
+	}
+	#modal.preview.is-short .preview-body {
+		padding-bottom: var(--space-16);
+	}
+	#modal.preview.is-short:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(var(--rail-row) + var(--space-24));
+	}
+}
+
+/* Refresh temporarily owns the mark slot; the category row never gets covered. */
+.home-mark.is-refreshing-mark {
+	visibility: hidden;
+}
+body:has(.home-top.is-tucked) .pull-ring.in-home-mark,
+body:has(#modal[open]) .pull-ring.in-home-mark {
+	visibility: hidden;
 }
 
 /* Preview frame: cards and fixed layers render in flow. */

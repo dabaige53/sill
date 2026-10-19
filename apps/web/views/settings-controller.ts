@@ -1,5 +1,5 @@
 import { Store } from "../data/store.ts";
-import { Panels } from "../interactions/panels.ts";
+import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import type { AppController } from "./app.ts";
 
 export function setPref(this: AppController, key?: any, value?: any) {

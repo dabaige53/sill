@@ -90,7 +90,7 @@ try {
 				left: r.left,
 				width: r.width,
 				bottom: r.bottom,
-				gridLeft: grid.left,
+				gridLeft: document.querySelector("#feed-grid .feed-item").getBoundingClientRect().left,
 				gridTop: grid.top,
 				mark: getComputedStyle(n.querySelector(".home-mark")).display,
 				position: getComputedStyle(n).position,
@@ -101,11 +101,26 @@ try {
 			assert.equal(geometry.left, geometry.gridLeft);
 			assert.equal(geometry.gridTop - geometry.bottom, 16);
 			assert.equal(geometry.mark, "none");
-			assert.equal(geometry.position, "relative");
+			assert.equal(geometry.position, "sticky");
 		} else {
 			assert.equal(geometry.position, "fixed");
 			assert.notEqual(geometry.mark, "none");
 		}
+		await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
+		await page.waitForTimeout(100);
+		assert.ok(
+			await head.evaluate((n) => {
+				const r = n.getBoundingClientRect();
+				return (
+					r.top >= 0 &&
+					r.bottom < innerHeight &&
+					!(n as HTMLElement).inert &&
+					getComputedStyle(n).opacity !== "0"
+				);
+			}),
+			"home tabs remain visible while scrolling",
+		);
+		await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 		const source = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
 		await page.evaluate(() => {
 			window.__app.searchFilter = { type: "note", status: "all", tag: "", query: "密度" };
@@ -135,6 +150,89 @@ try {
 		await page.keyboard.press("Escape");
 		await page.waitForFunction(() => !document.getElementById("modal").hasAttribute("open"));
 		assert.equal(await head.locator('[data-extra="all"]').getAttribute("aria-pressed"), "true");
+
+		await page.evaluate(() => {
+			window.__app.sort = "priority";
+		});
+		await head.locator('[data-extra="unread"]').click();
+		await page.waitForTimeout(400);
+		const positions = () =>
+			page.locator("#feed-grid [data-card]").evaluateAll((nodes) =>
+				nodes.map((n) => {
+					const r = n.getBoundingClientRect();
+					return {
+						id: n.getAttribute("data-card"),
+						x: r.x + scrollX,
+						y: r.y + scrollY,
+						w: r.width,
+						h: r.height,
+					};
+				}),
+			);
+		const beforeDone = await positions();
+		await page.evaluate(() => {
+			window.__store.patch("review-article", { read: true, progress: 1 });
+			window.__app.refreshCard("review-article");
+			window.__app.changeReminder("review-reminder", "complete-reminder");
+			window.__app.toggleTask("review-task", "next-a");
+			window.__app.toggleTask("review-task", "next-b");
+		});
+		await page.waitForTimeout(450);
+		assert.deepEqual(
+			await positions(),
+			beforeDone,
+			"done updates must retain membership, order and card rectangles",
+		);
+		assert.equal(
+			await page
+				.locator('[data-card="review-reminder"]')
+				.evaluate((n) => n.classList.contains("is-complete")),
+			true,
+		);
+		await head.locator('[data-extra="all"]').click();
+		await head.locator('[data-extra="unread"]').click();
+		assert.equal(
+			await page.locator('#feed-grid [data-card="review-article"]').count(),
+			0,
+			"explicit tab change applies latest filter",
+		);
+		await head.locator('[data-extra="all"]').click();
+		if (width === 1920) {
+			await page.evaluate(() => {
+				const seed = window.__store.state.cards.find((card) => card.type === "article");
+				window.__store.state.cards.push(
+					...Array.from({ length: 45 }, (_, i) => ({ ...seed, id: "scroll-fixture-" + i })),
+				);
+				window.__app.renderCurrent(false);
+				window.scrollTo(0, 500);
+			});
+			await page.waitForFunction(() => scrollY === 500);
+			assert.equal(await head.evaluate((node) => node.getBoundingClientRect().top), 0);
+			await head.locator('[data-extra="todo"]').click();
+			assert.equal(await page.evaluate(() => scrollY), 0);
+			await head.locator('[data-extra="all"]').click();
+			assert.equal(await page.evaluate(() => scrollY), 500);
+			await head.locator('[data-extra="all"]').click();
+			assert.equal(await page.evaluate(() => scrollY), 500);
+			await page.keyboard.press("ControlOrMeta+k");
+			assert.equal(
+				await page.locator("#filter-search").evaluate((node) => node === document.activeElement),
+				true,
+			);
+			assert.equal(await page.locator("#modal").evaluate((node) => node.getAnimations().length), 0);
+			await page.keyboard.press("Escape");
+			await page.clock.install();
+			await page.evaluate(() => window.__app.toast("Synthetic undo", () => {}));
+			await page.clock.runFor(2000);
+			await page.locator("#toast").hover();
+			await page.clock.runFor(6000);
+			assert.equal(await page.locator("#toast").isVisible(), true);
+			await page.mouse.move(0, 0);
+			await page.clock.runFor(4000);
+			await page.locator("#toast").waitFor({ state: "hidden" });
+			await page.evaluate(() => window.scrollTo(0, 0));
+		}
+		await page.screenshot({ path: path.join(artifacts, width + "-" + theme + ".png") });
 		assert.deepEqual(errors, []);
 		assert.deepEqual(external, []);
 		results.push({

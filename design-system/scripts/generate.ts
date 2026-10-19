@@ -69,9 +69,14 @@ const map = {
 // Carry app sizes and fixed values so previews also work before manual hosted-token sync.
 const local = src("apps/web/styles/tokens.css")
 	.split("[data-theme")[0]
-	.match(/--(?:text-[\w-]+|pill-radius|fixed-[\w-]+|space-\d+|selection|feed-max):[^;]+;/g)
+	.match(
+		/--(?:text-[\w-]+|pill-radius|fixed-[\w-]+|space-\d+|selection|feed-max|preview-short-width):[^;]+;/g,
+	)
 	.join("");
-let css = `/* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */\n:root{--font:var(--font-sans);--ease:cubic-bezier(.2,.75,.25,1);--fast:140ms;--base:220ms;--layout:320ms;${local}}\n`;
+const motion = JSON.parse(src("design-system/tokens.json"))
+	.timing.tokens.map((token: any) => `--${token.name}:${token.value};`)
+	.join("");
+let css = `/* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */\n:root{--font:var(--font-sans);${motion}${local}}\n`;
 // Carry the canonical dark context so photo tools also stay readable in hosted light previews.
 const darkContext = src("apps/web/styles/tokens.css").match(
 	/:root\[data-theme="dark"\][^{]*\{[^}]*\}/,

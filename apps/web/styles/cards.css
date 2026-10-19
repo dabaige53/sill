@@ -272,20 +272,12 @@
 	height: 100%;
 	object-fit: cover;
 	opacity: 0;
-	transform: scale(1.04);
-	transition: var(
-		--motion-transition,
-		opacity var(--settle) var(--ease),
-		transform var(--settle) var(--ease)
-	);
+	transition: var(--motion-transition, opacity var(--settle) var(--ease));
 }
 .card-image.is-loaded {
 	opacity: 1;
 	filter: none;
 	transform: none;
-}
-.feed-card:hover .card-cover .card-image.is-loaded {
-	transform: scale(1.018);
 }
 .play-mark {
 	position: absolute;
@@ -958,4 +950,29 @@ body:not(.is-dragging):not(.reduce-motion) .feed-card.feed-item.tools-open:hover
 	--motion-managed-transform: none;
 	transform: none;
 	transition-property: var(--motion-transition-properties, box-shadow, border-color);
+}
+
+/* Desktop spacing groups metadata, content and supporting references. */
+@media (min-width: 651px) {
+	.card-body > :is(.card-head, .sender) + :is(.card-title, .quote-text) {
+		margin-top: var(--space-4);
+	}
+	.card-body > .card-title + .card-summary {
+		margin-top: calc(-1 * var(--space-2));
+	}
+	.card-body > :is(.checklist, .refs, .file-rows, .attachment) {
+		margin-top: var(--space-4);
+	}
+	.feed-card .check-item {
+		align-items: flex-start;
+	}
+	.feed-card .check-item > span:last-child {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		white-space: normal;
+	}
+}
+.related-more {
+	padding-left: 0;
 }

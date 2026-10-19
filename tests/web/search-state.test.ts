@@ -4,6 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
 const bundle = buildSync({
 	stdin: {
@@ -35,6 +36,7 @@ function fixture() {
 	w.HTMLDialogElement.prototype.close = function () {
 		this.open = false;
 	};
+	installReactBrowserAPIs(w);
 	w.eval(bundle);
 	const { AppController, Store, Panels, cardHTML } = w.SearchTest;
 	Store.state = {
@@ -62,7 +64,9 @@ function fixture() {
 	app.modalKind = "search";
 	app.setNav = (key: string) => (app.navKey = key);
 	app.revealImages = () => {};
-	app.layout = { schedule() {} };
+	app.layout = { schedule() {}, layout() {} };
+	app.updateFilterIndicator = () => {};
+	app.pageLimit = 40;
 	app.updateSelection = () => {};
 	app.grid.innerHTML = Store.state.cards.map((c) => cardHTML(c)).join("");
 	return { dom, w, app, Store, Panels };

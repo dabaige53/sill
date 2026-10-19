@@ -68,6 +68,10 @@ function fixture(raw: any = null, at: any = 1800000000000) {
 	app.drag = { active: null };
 	app.grid = { querySelector: () => null };
 	app.renders = 0;
+	// This fixture checks state policy; actual card geometry is covered by home-tabs-browser.
+	app.refreshCard = () => {
+		app.renders++;
+	};
 	app.withFeedAnchor = (fn?: any) => {
 		fn();
 		app.renders++;

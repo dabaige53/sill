@@ -6,8 +6,8 @@ struct CardReader: View {
   @EnvironmentObject var model: Workspace
   @Environment(\.colorScheme) private var colorScheme
   var availableSize = CGSize(width: 1100, height: 760)
+  var presentedID: String?
   @State private var organizing = false
-  @State private var why = false
   @State private var expanded = false
   @State private var editRevision = 0
   @State private var note = ""
@@ -21,8 +21,15 @@ struct CardReader: View {
   @State private var readingProgress = 0.0
   @State private var contentHeight: CGFloat = 280
   @State private var lastActivity = Date.now
+  private func previewWidth(_ card: Card) -> CGFloat {
+    let short =
+      ["task", "reminder", "note"].contains(card.type)
+      && card.paragraphs.joined(separator: "\n").utf16.count < 500
+      && card.summary.utf16.count < 280
+    return short ? AppleMetrics.compactReaderWidth : AppleMetrics.readerWidth
+  }
   var body: some View {
-    if let card = model.cards.first(where: { $0.id == model.selected }) {
+    if let card = model.cards.first(where: { $0.id == (model.selected ?? presentedID) }) {
       VStack(spacing: 0) {
         if expanded {
           GeometryReader { geometry in
@@ -80,10 +87,7 @@ struct CardReader: View {
               }
               HStack(spacing: AppleMetrics.space12) {
                 external(card)
-                if card.fields["why"] != nil {
-                  Button(Copy.text("web.panels.fdc032965548")) { why = true }.buttonStyle(.plain)
-                    .foregroundStyle(AppleColors.secondary)
-                }
+
               }.padding(.top, AppleMetrics.space8)
             }
           }.padding(.horizontal, AppleMetrics.previewPaddingX).padding(
@@ -184,16 +188,14 @@ struct CardReader: View {
             ? availableSize.width
             : card.type == "photo"
               ? max(280, availableSize.width - AppleMetrics.space32)
-              : min(AppleMetrics.readerWidth, max(280, availableSize.width - AppleMetrics.space32)),
+              : min(previewWidth(card), max(280, availableSize.width - AppleMetrics.space32)),
           height: organizing
             ? min(AppleMetrics.editorHeight, max(280, availableSize.height - 64))
-            : why
-              ? min(max(400, contentHeight), max(280, availableSize.height - 64))
-              : expanded
-                ? availableSize.height
-                : card.type == "photo"
-                  ? max(280, availableSize.height - AppleMetrics.space32)
-                  : min(max(180, contentHeight + 80), max(180, availableSize.height - 64))
+            : expanded
+              ? availableSize.height
+              : card.type == "photo"
+                ? max(280, availableSize.height - AppleMetrics.space32)
+                : min(max(180, contentHeight + 80), max(180, availableSize.height - 64))
         )
         .onPreferenceChange(ReaderContentHeight.self) { contentHeight = $0 }
         .simultaneousGesture(TapGesture().onEnded { lastActivity = .now })
@@ -212,6 +214,11 @@ struct CardReader: View {
         }
         .onDisappear { model.flushReading() }
         .onChange(of: model.selected) { old, new in
+          guard new != nil else {
+            playing = false
+            model.flushReading()
+            return
+          }
           if steppingBack { steppingBack = false } else if let old, new != nil { trail.append(old) }
           expanded = false
           mediaStep = 0
@@ -258,16 +265,15 @@ struct CardReader: View {
         }
         .onChange(of: model.error) { _, error in if error != nil { playing = false } }
         .overlay {
-          if organizing || why {
+          if organizing {
             ZStack {
               Color.black.opacity(0.25).contentShape(Rectangle()).onTapGesture {
                 if !model.busy {
                   organizing = false
-                  why = false
                 }
               }
               Group {
-                if organizing { editor(card) } else { whyPanel(card) }
+                editor(card)
               }.background(
                 AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.panelRadius)
               )
@@ -276,7 +282,6 @@ struct CardReader: View {
             }.onKeyPress(.escape) {
               if !model.busy {
                 organizing = false
-                why = false
               }
               return .handled
             }
@@ -583,27 +588,6 @@ struct CardReader: View {
     let value = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
     if !value.isEmpty && !tags.contains(value) { tags.append(String(value.prefix(30))) }
     newTag = ""
-  }
-  private func whyPanel(_ card: Card) -> some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      HStack {
-        Text(Copy.text("web.panels.fdc032965548")).font(
-          .system(size: AppleMetrics.font21, weight: .semibold))
-        Spacer()
-        tool("x", Copy.appleCloseReader) { why = false }
-      }
-      detailRow("sparkles", card.fields["why"]?["reason"]?.string ?? "")
-      ForEach(card.fields["why"]?["basis"]?.strings ?? [], id: \.self) { detailRow("clock", $0) }
-      CardReferences(card: card)
-      HStack {
-        Button(Copy.text("web.panels.e31c8842b98a")) { why = false }
-        Button(Copy.text("web.panels.a54a0add5447")) {
-          model.patch([card.id], values: ["dismissed": .bool(true)])
-          why = false
-        }
-      }.buttonStyle(.plain).foregroundStyle(AppleColors.secondary)
-    }.padding(AppleMetrics.space28).frame(
-      width: min(AppleMetrics.editorWidth, max(280, availableSize.width - 64)))
   }
   private var podcastArtwork: some View {
     RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).fill(

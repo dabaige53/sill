@@ -5,6 +5,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
 const bundle = buildSync({
 	stdin: {
@@ -27,6 +28,7 @@ function fixture() {
 	const w = dom.window as any;
 	w.structuredClone = structuredClone;
 	w.matchMedia = () => ({ matches: false, addEventListener() {} });
+	installReactBrowserAPIs(w);
 	w.eval(bundle);
 	const { AppController, Store } = w.ReadingTest;
 	Store.state = {

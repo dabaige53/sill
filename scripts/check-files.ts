@@ -10,6 +10,7 @@ const roots = new Set<any>([
 	".github",
 	".claude",
 	".agents",
+	".codex",
 	".gitignore",
 	".env.example",
 	".app.json",

@@ -257,8 +257,11 @@ try {
 		await assertFeed();
 		await page.keyboard.press("Space");
 		await outside.focus();
-		await task.locator(".done-row").waitFor();
-		assert.equal(await task.locator(".check-item").count(), 0);
+		await page.waitForFunction(
+			() => document.querySelector('[data-card="review-task"] .task-count')?.textContent === "5/5",
+		);
+		assert.equal(await task.locator(".done-row").count(), 0);
+		assert.equal(await task.locator(".check-item").count(), 3);
 		assert.equal(
 			await outside.evaluate((node: HTMLElement) => node === document.activeElement),
 			true,

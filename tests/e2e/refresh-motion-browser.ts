@@ -91,6 +91,13 @@ try {
 				.locator("main")
 				.evaluate((node) => (node as HTMLElement).style.translate);
 			assert.equal(reducedMotion === "reduce" ? shift === "" : shift !== "", true);
+			const bounds = await page.evaluate(() => ({
+				ring: document.querySelector("#pull-ring").getBoundingClientRect().toJSON(),
+				tabs: document.querySelector(".home-tabs").getBoundingClientRect().toJSON(),
+				mark: getComputedStyle(document.querySelector(".home-mark")).visibility,
+			}));
+			assert.ok(bounds.ring.bottom <= bounds.tabs.top, "refresh must not cover the home tabs");
+			assert.equal(bounds.mark, "hidden", "refresh temporarily replaces the mark");
 			await touch(cancel ? "touchCancel" : "touchEnd");
 		}
 		await pull(true);
@@ -111,6 +118,10 @@ try {
 		assert.equal(await page.evaluate(() => window.__pullCalls), 1);
 		assert.equal(await page.locator(".pull-ring.is-spinning").count(), 1);
 		await page.screenshot({ path: `tests/artifacts/refresh-loading-${reducedMotion}.png` });
+		await page.screenshot({
+			path: `tests/artifacts/refresh-header-${reducedMotion}.png`,
+			clip: { x: 0, y: 0, width: 390, height: 180 },
+		});
 		assert.equal(
 			await page.locator("main").evaluate((node) => (node as HTMLElement).style.translate),
 			"",
@@ -132,6 +143,10 @@ try {
 		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "success");
 		await page.waitForTimeout(550);
 		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "idle");
+		assert.equal(
+			await page.locator(".home-mark").evaluate((node) => getComputedStyle(node).visibility),
+			"visible",
+		);
 		await page.evaluate(() => {
 			window.__app.refresh = async () => false;
 		});

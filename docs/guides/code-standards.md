@@ -1,6 +1,6 @@
 # 代码规范
 
-更新：2026-10-16。目录与语言迁移已完成，批次与验收边界见 [文件管理规范](file-management.md#9-迁移进度)。动态界面仍有显式 `any`，类型检查尚未使用 strict；Biome 默认规则保留警告，不把零错误说成零警告。
+更新：2026-10-19。目录与语言迁移已完成，批次与验收边界见 [文件管理规范](file-management.md#9-迁移进度)。动态界面仍有显式 `any`，类型检查尚未使用 strict；Biome 默认规则保留警告，不把零错误说成零警告。
 
 本规范适用于 Web、Mac、iOS、服务端和 `contracts/`。各端 README（`apps/web/`、`apps/apple/`、`server/`、`contracts/`）只写本端的补充规则，不重复本文。决策依据见 ADR [0023](../adr/0023-three-clients-repo-layout.md) 至 [0027](../adr/0027-native-apple-data-layer.md)。
 
@@ -13,7 +13,7 @@
 | SQL | Supabase 迁移 |
 
 - 不引入其他语言。需要引入时先写 ADR。
-- TypeScript 使用 ES 模块。Node 24 直接运行 `.ts`；Web 用 esbuild 打包；CI 运行 `tsc --noEmit`。
+- TypeScript 使用 ES 模块。Node 24 直接运行 `.ts`；Web 使用 React 与 TSX，由 Vite 和官方 React 插件构建；CI 运行 `tsc --noEmit`。
 - Mac 与 iOS 完全原生：界面与数据层都用 Swift 实现，不使用 WebView，不随包运行 Node 或其他服务进程。
 
 ## 2. 结构与依赖
@@ -28,7 +28,7 @@
 
 - 代码标识符、文件名和代码注释使用英文。用户可见文字放在文案文件中（见第 6 节）。
 - 业务概念使用 [GLOSSARY](../../GLOSSARY.md) 中的名称：卡片写作 `Card`，来源写作 `sources`，不使用 `Item`、`Content`、`AI 整理` 等已弃用的说法。
-- TypeScript：文件名用 `kebab-case.ts`；类型和类用 `PascalCase`；函数和变量用 `camelCase`；常量对象也用 `camelCase`，不使用全局变量。
+- TypeScript：普通模块用 `kebab-case.ts`，React 组件用 `kebab-case.tsx`；类型和类用 `PascalCase`；函数和变量用 `camelCase`；常量对象也用 `camelCase`，不使用全局变量。
 - Swift：一个主要类型一个文件，文件名与类型名相同，使用 `UpperCamelCase`。
 - 测试文件与被测文件同名：`card-store.ts` 对应 `card-store.test.ts`；`CardStore.swift` 对应 `CardStoreTests.swift`。
 - SQL 迁移：`supabase/migrations/YYYYMMDDHHMMSS_topic.sql`，名称中不写产品版本号。

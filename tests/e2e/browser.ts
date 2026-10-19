@@ -673,6 +673,7 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 0);
 				await page.waitForFunction(() => document.getElementById("selection-bar").hidden);
 				assert.equal(await page.locator("#selection-bar").isVisible(), false);
+				await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 				const start = await card(page, ids[0]).locator(".card-head").boundingBox(),
 					x = start.x + start.width / 2,
 					y = start.y + start.height / 2;
@@ -772,7 +773,9 @@ async function recordLayout(page?: any, width?: any) {
 				});
 				assert.deepEqual(switching, { opacity: "1", pageAnimations: 0 });
 				await page.locator('.nav-tab[data-extra="home"]').click();
-				await page.waitForFunction(() => !(document.getElementById("modal") as HTMLDialogElement).open);
+				await page.waitForFunction(
+					() => !(document.getElementById("modal") as HTMLDialogElement).open,
+				);
 				const placed = await page.evaluate(async () => {
 					const cards = [...document.querySelectorAll<HTMLElement>("#feed-grid [data-card]")];
 					const low = cards.find((n) => n.getBoundingClientRect().top > innerHeight * 0.55);
@@ -799,7 +802,7 @@ async function recordLayout(page?: any, width?: any) {
 			{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
 		);
 		await scenario(
-			"Desktop preview grows out of its card and shrinks back into it",
+			"Desktop preview keeps text size while entering and leaving",
 			async (page?: any) => {
 				const open = await page.evaluate(async () => {
 					(
@@ -814,8 +817,9 @@ async function recordLayout(page?: any, width?: any) {
 							String(a.effect.getKeyframes()[0].transform),
 						]);
 				});
-				assert.equal(open[0][0], 320);
-				assert.match(open[0][1], /scale\(0\.\d+\)/);
+				assert.equal(open[0][0], 220);
+				assert.match(open[0][1], /translateY\(10px\)/);
+				assert.doesNotMatch(open[0][1], /scale/);
 				await page.waitForTimeout(400);
 				const close = await page.evaluate(async () => {
 					const sheet = document.querySelector(".preview-sheet");
@@ -831,9 +835,12 @@ async function recordLayout(page?: any, width?: any) {
 					}
 					return [];
 				});
-				assert.equal(close[0]?.[0], 230);
-				assert.match(close[0][1], /scale\(0\.\d+\)/);
-				await page.waitForFunction(() => !(document.getElementById("modal") as HTMLDialogElement).open);
+				assert.equal(close[0]?.[0], 160);
+				assert.match(close[0][1], /translateY\(4px\)/);
+				assert.doesNotMatch(close[0][1], /scale/);
+				await page.waitForFunction(
+					() => !(document.getElementById("modal") as HTMLDialogElement).open,
+				);
 			},
 		);
 		await scenario("Capture and dropped text add cards; files are ignored", async (page?: any) => {

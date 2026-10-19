@@ -59,6 +59,7 @@
 - [搜索按类型、状态、标签分行](adr/0044-search-filter-rows.md)
 - [结束剩余页面调整并保留现状](adr/0045-close-web-pwa-ui-scope.md)
 - [点遮罩每次只关一张叠卡](adr/0046-backdrop-closes-one-stacked-card.md)
+- [Web 使用 React、TypeScript 与 Vite](adr/0047-react-web.md)
 
 ## 记录
 

@@ -1,7 +1,9 @@
+import { createElement } from "react";
 import { copy } from "../../copy.ts";
 import { Store } from "../../data/store.ts";
-import { Panels } from "../../interactions/panels.ts";
+import { PanelViews as Panels } from "../../interactions/panels-components.tsx";
 import type { AppController } from "../app.ts";
+import { ConfirmActions } from "../cloud-views.tsx";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
 function settings(this: AppController) {
@@ -51,7 +53,11 @@ function clearAll(this: AppController) {
 		Panels.confirm(
 			copy("web.app.7f1a78cdb3f2"),
 			copy("web.app.d008fc7f75ba"),
-			`<button type="button" class="soft-button" data-action="close">${copy("web.cancel")}</button><button type="button" class="solid-button" style="background:var(--alert)" data-action="clear-confirm">${copy("web.app.bce2377283c2")}</button>`,
+			createElement(ConfirmActions, {
+				label: copy("web.app.bce2377283c2"),
+				action: "clear-confirm",
+				danger: true,
+			}),
 		),
 		"confirm",
 		"panel narrow",

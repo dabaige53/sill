@@ -12,7 +12,14 @@ for (const [index, seed] of cards.entries()) {
 	test(`preview preserves escaped content and one assistant action: ${seed.type}/${index}`, () => {
 		Store.state = Store.fresh();
 		const text = 'Synthetic <script> & "quoted" ${literal}';
-		const card = { ...seed, title: text, tags: [text], body: [text], summary: text };
+		const card = {
+			...seed,
+			title: text,
+			tags: [text],
+			body: [text],
+			summary: text,
+			why: { reason: "Synthetic reason", basis: ["Keep evidence"] },
+		};
 		const before = JSON.stringify(card);
 		const dom = new JSDOM(
 			Panels.preview({ agentAction: () => "<button data-agent-test>Assistant</button>" }, card),
@@ -25,6 +32,8 @@ for (const [index, seed] of cards.entries()) {
 			assert.equal(document.querySelectorAll("[data-agent-test]").length, 1);
 			assert.ok(document.querySelector(".sheet-scroll[tabindex='0']"));
 			assert.equal(document.querySelectorAll("input,textarea").length, 0);
+			assert.equal(document.querySelector('[data-action="why"]'), null);
+			assert.deepEqual(card.why, { reason: "Synthetic reason", basis: ["Keep evidence"] });
 			assert.equal(JSON.stringify(card), before);
 		} finally {
 			dom.window.close();
@@ -103,4 +112,13 @@ test("task checks and completed reminder controls reflect stored state without c
 		taskDom.window.close();
 		reminderDom.window.close();
 	}
+});
+
+test("reason entry is removed while existing feedback actions remain available", async () => {
+	const { cardsActions } = await import("../../apps/web/views/actions/cards.ts");
+	assert.equal("why" in Panels, false);
+	assert.equal("whyLink" in Panels, false);
+	assert.equal("why" in cardsActions, false);
+	assert.equal(typeof cardsActions["less-like"], "function");
+	assert.equal(typeof cardsActions["never-show"], "function");
 });

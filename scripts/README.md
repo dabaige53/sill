@@ -1,11 +1,12 @@
 # 脚本目录
 
-状态：操作说明。更新：2026-10-16。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/guides/file-management.md)。构建只生成本地文件，不代表安装、发布或线上验收。
+状态：操作说明。更新：2026-10-19。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/guides/file-management.md)。构建只生成本地文件，不代表安装、发布或线上验收。
 
 | 用途 | 命令或脚本 | 主要输入 → 输出 |
 | --- | --- | --- |
 | 文件管理检查 | `npm run files:check` | 根目录、导航、Git 文件清单 → 终端结果；只读 |
-| 本地页面 | `npm run build` | `apps/web/`、共享文案与样式清单 → `dist/web/index.html` |
+| React 开发服务 | `npm run dev` / `scripts/dev.ts` | Vite + React Fast Refresh，5173；本地 API 代理到 4318 |
+| 本地页面 | `npm run build` | Vite、`apps/web/`、共享文案与样式清单 → `dist/web/index.html` |
 | 云端页面与 Worker | `npm run build:cloud` | `apps/web/`、`server/cloud/`、`contracts/` → `dist/cloud/` |
 | 发布候选构建 | `npm run build:release` | 同上，压缩 Worker → `dist/cloud/`；不执行部署 |
 | 云端 App 页面 | `node scripts/build-cloud-app.ts` | `dist/cloud/index.html` 等 → `dist/cloud/app.html`；先完成云端页面构建 |
@@ -20,3 +21,5 @@
 | V1 健康检查 | `scripts/smoke-health.ts` | 显式指定目标；使用前阅读 [V1 交接包](../docs/guides/handoff.md) 的参数与边界 |
 
 `build-cloud-worker.ts` 由云端构建调用。脚本使用 Node 24+ 直接运行 TypeScript，不再依赖 Python。`build-plugin.ts` 会替换候选产物目录，不要在产物目录保存唯一副本。候选构建保留既有 App 身份，但不能证明该云端对象当前存在；发布前仍需核对平台。
+
+Codex 的提交前文件大小检查位于 [.codex](../.codex/README.md)，不通过 npm 安装 Git hook。

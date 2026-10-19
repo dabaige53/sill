@@ -71,25 +71,6 @@
 	--rail-gap: 8px;
 	--rail-tuck: var(--dur-tuck);
 	--nav-tab: 76px;
-	/* A soft spring: overshoots about 6% and settles. */
-	--ease-spring: linear(
-		0,
-		0.03 2%,
-		0.11 4.4%,
-		0.24 7%,
-		0.51 12%,
-		0.75 17%,
-		0.91 22%,
-		1.01 27.4%,
-		1.05 31%,
-		1.065 35.5%,
-		1.06 40%,
-		1.03 49%,
-		1.007 59%,
-		0.997 70%,
-		1
-	);
-	--dur-lens: 520ms;
 }
 #dock {
 	position: fixed;
@@ -104,8 +85,8 @@
 	pointer-events: none;
 	transition: var(
 		--motion-transition,
-		transform 380ms var(--ease-sheet),
-		opacity 240ms var(--ease),
+		transform var(--dur-show) var(--ease-sheet),
+		opacity var(--dur-show) var(--ease),
 		visibility 0s
 	);
 }
@@ -177,7 +158,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	transition: var(--motion-transition, scale var(--fast) var(--ease));
 }
 .nav-tab:active .nav-icon {
-	scale: 0.88;
+	scale: 0.97;
 }
 .nav-label {
 	font-size: 10.5px;
@@ -199,11 +180,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	box-shadow:
 		inset 0 1px 0.5px var(--glass-edge),
 		inset 0 -0.5px 0.5px var(--glass-shade);
-	transition: var(
-		--motion-transition,
-		translate var(--dur-lens) var(--ease-spring),
-		width var(--dur-lens) var(--ease-spring)
-	);
+	transition: var(--motion-transition, translate var(--dur-lens) var(--ease-spring));
 }
 .nav-capsule.is-moving .nav-lens {
 	animation: var(--motion-animation, lens-drop var(--dur-lens) var(--ease) both);
@@ -215,7 +192,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 		scale: 1;
 	}
 	35% {
-		scale: 1.16 0.9;
+		scale: 1.05 0.97;
 		background: var(
 			--lens-highlight,
 			color-mix(in srgb, var(--glass-edge) 40%, var(--glass-press))
@@ -261,7 +238,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 		color-mix(in srgb, var(--canvas) 70%, transparent),
 		color-mix(in srgb, var(--canvas) 0%, transparent)
 	);
-	transition: var(--motion-transition, opacity 260ms var(--ease));
+	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .scroll-edge.is-tucked {
 	opacity: 0;
@@ -292,7 +269,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	transition: var(
 		--motion-transition,
 		top var(--dur-tuck) var(--ease),
-		opacity 240ms var(--ease),
+		opacity var(--dur-show) var(--ease),
 		visibility 0s
 	);
 }
@@ -500,18 +477,16 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	right: 50%;
 }
 .float-bar .icon-button.is-tipping::after,
+.float-bar .icon-button.is-hover-tipping::after,
 .float-bar .icon-button:focus-visible::after {
 	opacity: 1;
 	translate: var(--tip-x) 0;
 }
-@media (hover: hover) and (pointer: fine) {
-	.float-bar .icon-button:hover::after {
-		opacity: 1;
-		translate: var(--tip-x) 0;
-		transition-delay: var(--motion-transition-delay, 500ms);
-	}
+.float-bar .icon-button.is-instant-tip::after {
+	transition: none;
 }
 .float-bar .icon-button:focus-visible::after {
+	transition: none;
 	transition-delay: var(--motion-transition-delay, 0s);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -817,14 +792,18 @@ body.is-dragging #toast {
 .home-top {
 	display: none;
 }
-/* Desktop uses an intrinsic-width head aligned with the capped feed (ADR 0043). */
+/* Desktop filters stay reachable and align with the actual card columns. */
 @media (min-width: 651px) {
 	.home-top {
 		display: block;
-		position: relative;
+		position: sticky;
+		top: 0;
+		z-index: 20;
 		width: max-content;
 		max-width: calc(100% - var(--space-40) * 2);
-		margin: var(--space-24) 0 0 max(var(--space-40), calc((100% - var(--feed-max)) / 2));
+		margin: var(--space-24) 0 0 var(--feed-left, var(--space-40));
+		background: var(--canvas);
+		border-radius: var(--control-radius);
 	}
 	.home-mark {
 		display: none;
@@ -832,12 +811,15 @@ body.is-dragging #toast {
 	.home-tabs {
 		display: flex;
 		align-items: stretch;
-		gap: var(--space-24);
-		height: var(--hit-target);
+		gap: var(--space-8);
+		min-height: var(--hit-target);
+		overflow-x: auto;
 	}
 	.home-tab {
 		position: relative;
-		padding: 0 var(--space-4);
+		padding: 0 var(--space-12);
+		min-height: var(--hit-target);
+		flex: none;
 		border: 0;
 		background: none;
 		font: inherit;

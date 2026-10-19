@@ -1,6 +1,6 @@
 import { esc } from "./atoms/primitives.ts";
 import { Store } from "./data/store.ts";
-import { Panels } from "./interactions/panels.ts";
+import { PanelViews as Panels } from "./interactions/panels-components.tsx";
 import { LocalSync } from "./services/local-sync.ts";
 import { AppController } from "./views/app.ts";
 

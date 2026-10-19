@@ -133,8 +133,8 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		border-bottom: 0.5px solid var(--line);
 		transition: var(
 			--motion-transition,
-			transform 380ms var(--ease-sheet),
-			opacity 240ms var(--ease),
+			transform var(--dur-show) var(--ease-sheet),
+			opacity var(--dur-show) var(--ease),
 			visibility 0s
 		);
 	}
@@ -449,11 +449,11 @@ body.opaque :is(:is(#modal, #search-background).search, #selection-menu)::backdr
 		transform: translateY(0);
 		transition: var(
 			--motion-transition,
-			transform 360ms var(--ease-sheet),
-			max-height 360ms var(--ease-sheet),
-			height 360ms var(--ease-sheet),
-			translate 360ms var(--ease-sheet),
-			border-radius 360ms var(--ease-sheet)
+			transform var(--dur-sheet) var(--ease-sheet),
+			max-height var(--dur-sheet) var(--ease-sheet),
+			height var(--dur-sheet) var(--ease-sheet),
+			translate var(--dur-sheet) var(--ease-sheet),
+			border-radius var(--dur-sheet) var(--ease-sheet)
 		);
 	}
 	#modal.preview .preview-sheet.is-full {

@@ -80,7 +80,7 @@
 | `apps/web/styles/cards.css` | 955 | 卡片、勾选圈、提醒圆圈 |
 | `apps/web/styles/tokens.css` | — | CSS 变量；与 `design-system/tokens.json` 对应 |
 | `design-system/copy/zh-Hans.json` | — | 所有界面文案；新键用语义名（如 `web.actions.reply`） |
-| `deploy/web-manifest.json`、`apps/web/shell.html` | — | PWA manifest 与页面外壳 |
+| `deploy/web-manifest.json`、`apps/web/index.html` | — | PWA manifest 与页面外壳 |
 
 ## 3. 工作包
 
@@ -95,7 +95,7 @@
 | U1.1 | 详情胶囊的图标按钮没有禁止 iOS 长按菜单和放大镜。`-webkit-touch-callout: none` 只加在卡片上（`cards.css`）。长按名称在 iOS Safari 上可能被系统菜单或文字选择打断。 | 给 `.float-bar .icon-button`（以及 `#dock` 按钮，如果也缺）加 `-webkit-touch-callout: none; user-select: none; -webkit-user-select: none`。 | 真实 iPhone：长按胶囊图标只显示名称，不出系统菜单，松手不执行。 |
 | U1.2 | 名称提示只对触屏和鼠标有效。键盘用户聚焦图标时看不到名称。 | `:focus-visible` 时也显示名称提示（同一个 `::after`）；减少动态效果时不做位移。 | `npm run test:accessibility` 通过；新增一个键盘聚焦显示名称的浏览器测试。 |
 | U1.3 | 名称提示固定在图标正上方居中，胶囊最左、最右的图标在 320px 宽时可能超出屏幕。 | 测量后靠边对齐（左端图标左对齐、右端右对齐），不用 JS 定位能解决就不用。 | 320、390 宽截图：提示完整可见。 |
-| U1.4 | 页面只有一个浅色 `theme-color`（`#f5f5f7`）：`apps/web/shell.html`、云端构建时 `scripts/build.ts` 写入的安装元数据、`server/cloud/login-page.ts`。深色模式下状态栏区域可能是浅色。 | 三处都加 `media="(prefers-color-scheme: dark)"` 的第二个 `theme-color`，值取 `tokens.css` 深色 `--canvas`（`#111113`）。manifest 的 `theme_color` 不支持媒体查询，保持不变。 | 深色模式下从主屏幕启动，状态栏区域与页面底色一致。 |
+| U1.4 | 页面只有一个浅色 `theme-color`（`#f5f5f7`）：`apps/web/index.html`、云端构建时 `apps/web/vite.config.ts` 写入的安装元数据、`server/cloud/login-page.ts`。深色模式下状态栏区域可能是浅色。 | 三处都加 `media="(prefers-color-scheme: dark)"` 的第二个 `theme-color`，值取 `tokens.css` 深色 `--canvas`（`#111113`）。manifest 的 `theme_color` 不支持媒体查询，保持不变。 | 深色模式下从主屏幕启动，状态栏区域与页面底色一致。 |
 | U1.5 | manifest 只有一个 256px 图标。`assets/sill-line*.svg` 在 #45 已改成新标志，PNG 图标是否同步未核对。 | 核对 `assets/sill-icon.png` 与新标志一致；如需补 192、512 尺寸和 `maskable`，先问用户是否改品牌资产。 | Chrome DevTools Application 面板没有 manifest 警告。 |
 | U1.6 | 手机主页顶栏、底部胶囊、详情胶囊都依赖安全区。自动测试只模拟了 390×844。 | 按 [apps/web/README.md](../../apps/web/README.md)「发布后设备验收」在真实 iPhone 上检查：冷启动、详情、搜索键盘、横竖屏、底部安全区、长按名称。 | 在 PR 的 Evidence 里写明设备、系统版本和截图；没有真机就写「未检查」。 |
 

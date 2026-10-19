@@ -120,6 +120,39 @@ class ChromeAutoHide {
 const TIP_AFTER = 450;
 const TIP_FOR = 1400;
 function toolbarTips(root: Document) {
+	let hoverTimer = 0;
+	let hoverButton: HTMLElement | null = null;
+	let warmBar: Element | null = null;
+	root.addEventListener("pointerover", (e: PointerEvent) => {
+		if (e.pointerType !== "mouse") return;
+		const button = (e.target as Element).closest?.<HTMLElement>(".float-bar .icon-button");
+		if (!button || button === hoverButton) return;
+		hoverButton = button;
+		const bar = button.closest(".float-bar");
+		const instant = warmBar === bar;
+		const show = () => {
+			if (
+				hoverButton !== button ||
+				!button.isConnected ||
+				button.closest(".is-hidden,.is-tucked") ||
+				(button.closest("dialog") && !button.closest("dialog").open)
+			)
+				return;
+			warmBar = bar;
+			button.classList.toggle("is-instant-tip", instant);
+			button.classList.add("is-hover-tipping");
+		};
+		if (instant) show();
+		else hoverTimer = window.setTimeout(show, 500);
+	});
+	root.addEventListener("pointerout", (e: PointerEvent) => {
+		if (warmBar && !warmBar.contains(e.relatedTarget as Node)) warmBar = null;
+		if (!hoverButton || hoverButton.contains(e.relatedTarget as Node)) return;
+		clearTimeout(hoverTimer);
+		if (!warmBar?.contains(e.relatedTarget as Node)) warmBar = null;
+		hoverButton.classList.remove("is-hover-tipping", "is-instant-tip");
+		hoverButton = null;
+	});
 	let timer = 0;
 	let shown: HTMLElement | null = null;
 	const hide = () => {

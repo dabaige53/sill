@@ -1,10 +1,11 @@
+import { createElement, Fragment } from "react";
 import { esc } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { cardSourceKind } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { ChromeAutoHide } from "../interactions/chrome.ts";
-import { Panels } from "../interactions/panels.ts";
+import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController } from "./app.ts";
 
@@ -60,14 +61,24 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	}
 	// Opened from the desk, the preview grows out of its card; opened from another preview it stacks.
 	const origin = this.dialog.open ? null : this.cardRect(id);
-	this.openModal(Panels.preview(this, c), "preview", origin);
-	// The card below shows as an edge behind this one; tapping it goes back one card.
 	const below = Store.card(this.previewTrail.at(-1));
-	if (below)
-		this.dialog.insertAdjacentHTML(
-			"afterbegin",
-			`<button type="button" class="sheet-peek" data-action="close" aria-label="${esc(copy("web.peekBack") + below.title)}"></button>`,
-		);
+	this.openModal(
+		createElement(
+			Fragment,
+			null,
+			below
+				? createElement("button", {
+						type: "button",
+						className: "sheet-peek",
+						"data-action": "close",
+						"aria-label": copy("web.peekBack") + below.title,
+					})
+				: null,
+			Panels.preview(this, c),
+		),
+		"preview",
+		origin,
+	);
 	this.bindPreview(id);
 	this.gestures.bindPullDown();
 	this.bindSheetChrome();

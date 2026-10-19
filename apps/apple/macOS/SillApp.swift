@@ -26,7 +26,7 @@ import SwiftUI
       }
       CommandGroup(after: .textEditing) {
         Button(Copy.appleSearch) {
-          model.searchPresented = true
+          model.presentNavigation("search")
           model.searchFocusRequest += 1
         }.keyboardShortcut("k")
       }

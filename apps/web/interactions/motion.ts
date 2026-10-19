@@ -7,15 +7,23 @@ const MotionEngine: Record<string, any> = {
 	contentAnimations: new WeakMap(),
 	exits: new Map(),
 	time(name: string) {
-		return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--${name}`));
+		const value = getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+		return parseFloat(value) * (value.endsWith("s") && !value.endsWith("ms") ? 1000 : 1);
+	},
+	curve(name = "ease") {
+		return (
+			getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim() ||
+			"cubic-bezier(0.23,1,0.32,1)"
+		);
+	},
+	get keyboard() {
+		return document.documentElement.dataset.inputModality === "keyboard";
 	},
 	get reduced() {
 		return this.query.matches || !!document.body?.classList.contains("reduce-motion");
 	},
 	get reducedDuration() {
-		return (
-			parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-reduced")) || 70
-		);
+		return this.time("dur-reduced") || 70;
 	},
 	animate(el?: any, keyframes?: any, options: any = {}) {
 		if (!el || !el.animate) return null;
@@ -35,8 +43,8 @@ const MotionEngine: Record<string, any> = {
 				: frame,
 		);
 		return el.animate(managed, {
-			duration: 260,
-			easing: "cubic-bezier(.2,.75,.25,1)",
+			duration: this.time("base"),
+			easing: this.curve(),
 			...options,
 		});
 	},
@@ -44,6 +52,13 @@ const MotionEngine: Record<string, any> = {
 	visibility(el: HTMLElement, visible: boolean) {
 		if (!el) return;
 		const previous = this.visibilityAnimations.get(el);
+		if (!el.animate) {
+			previous?.animation?.cancel();
+			this.visibilityAnimations.delete(el);
+			el.inert = !visible;
+			el.hidden = !visible;
+			return;
+		}
 		if (previous?.visible === visible || (!previous && el.hidden === !visible)) return;
 		const style = el.animate ? getComputedStyle(el) : null;
 		const opacity = el.hidden ? 0 : Number.parseFloat(style?.opacity || "1");
@@ -64,7 +79,7 @@ const MotionEngine: Record<string, any> = {
 				{ opacity, transform },
 				{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(4px)" },
 			],
-			{ duration: visible ? 220 : 180 },
+			{ duration: this.time(visible ? "base" : "dur-tuck") },
 		);
 		if (state.animation) state.animation.finished.then(finish, finish);
 		else finish();
@@ -76,7 +91,7 @@ const MotionEngine: Record<string, any> = {
 				{ opacity: 0, transform: "translateY(10px)" },
 				{ opacity: 1, transform: "translateY(0)" },
 			],
-			{ duration: 280, delay, fill: "backwards" },
+			{ duration: this.time("dur-open"), delay, fill: "backwards" },
 		);
 	},
 	fade(el?: any) {
@@ -141,20 +156,11 @@ const MotionEngine: Record<string, any> = {
 		return this.animate(
 			el,
 			[
-				{ opacity: 0, transform: "translateY(-14px)" },
+				{ opacity: 0, transform: "translateY(-10px)" },
 				{ opacity: 1, transform: "translateY(0)" },
 			],
-			{ duration: 360, delay, fill: "backwards" },
+			{ duration: this.time("base"), delay, fill: "backwards" },
 		);
-	},
-	/** The scale and travel that put a surface over a card's rectangle, centre on centre. */
-	cardOffset(surface: HTMLElement, card: DOMRect) {
-		const r = surface.getBoundingClientRect();
-		if (!r.width || !card?.width) return null;
-		const k = Math.min(1, card.width / r.width),
-			x = card.left + card.width / 2 - (r.left + r.width / 2),
-			y = card.top + card.height / 2 - (r.top + r.height / 2);
-		return `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${k.toFixed(3)})`;
 	},
 	phoneSheet(el?: any) {
 		return (
@@ -182,7 +188,7 @@ const MotionEngine: Record<string, any> = {
 		});
 		this.panelAnimations.delete(el);
 	},
-	openPanel(el?: any, origin?: DOMRect | null) {
+	openPanel(el?: any, _origin?: DOMRect | null) {
 		this.cancelPanel(el);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
@@ -203,59 +209,14 @@ const MotionEngine: Record<string, any> = {
 				if (this.panelTasks.get(el) !== tasks || !el.open || !sheet.isConnected) return;
 				sheet.classList.remove("is-drag", "is-off");
 				el.style.removeProperty("--backdrop");
-				tasks.timer = window.setTimeout(() => {
-					if (this.panelTasks.get(el) !== tasks) return;
-					this.panelTasks.delete(el);
-					if (el.open && sheet.isConnected && !sheet.classList.contains("is-off"))
-						bar?.classList.remove("is-hidden");
-				}, 140);
+				this.panelTasks.delete(el);
+				bar?.classList.remove("is-hidden");
 			});
-			this.panelAnimations.set(
-				el,
-				[
-					...sheet.querySelectorAll(
-						":is(.preview-body,.reader-body)>:not(h1,.preview-meta,.preview-sender)",
-					),
-				].map((n?: any) =>
-					n.animate([{ opacity: 0 }, { opacity: 1 }], {
-						duration: 280,
-						delay: 200,
-						easing: "linear",
-						fill: "backwards",
-					}),
-				),
-			);
 			return;
 		}
-		// Keep text at its final size. Scaling a cloned card over the detail sheet
-		// creates two text layers and clips short notes during the transition.
-		// Desktop preview: it grows out of the card it came from; the toolbar rises a beat later.
-		const from = origin && el.classList.contains("preview") ? this.cardOffset(sheet, origin) : null;
-		const animations = [
-			from
-				? this.animate(
-						sheet,
-						[
-							{ opacity: 0.3, transform: from },
-							{ opacity: 1, transform: "none" },
-						],
-						{ duration: 320 },
-					)
-				: this.enter(sheet),
-		];
-		if (bar && bar !== sheet)
-			animations.push(
-				from
-					? this.animate(
-							bar,
-							[
-								{ opacity: 0, transform: "translateY(14px)" },
-								{ opacity: 1, transform: "none" },
-							],
-							{ duration: 260, delay: 120, fill: "backwards" },
-						)
-					: this.enter(bar),
-			);
+		// Keep a single text layer at its final size; the toolbar enters at the same time.
+		const animations = [this.enter(sheet)];
+		if (bar && bar !== sheet) animations.push(this.enter(bar));
 		this.panelAnimations.set(el, animations);
 	},
 	flip(el?: any, oldRect?: any, newRect?: any) {
@@ -264,15 +225,13 @@ const MotionEngine: Record<string, any> = {
 		const now = newRect || el.getBoundingClientRect(),
 			x = oldRect.left - now.left,
 			y = oldRect.top - now.top;
-		if (Math.abs(x) + Math.abs(y) + Math.abs(oldRect.width - now.width) > 1)
+		if (Math.abs(oldRect.width - now.width) > 1) this.fade(el.querySelector(".card-body") || el);
+		if (Math.abs(x) + Math.abs(y) > 1)
 			this.layoutAnimations.set(
 				el,
 				this.animate(
 					el,
-					[
-						{ transform: `translate(${x}px,${y}px)`, width: `${oldRect.width}px` },
-						{ transform: "translate(0,0)", width: `${now.width}px` },
-					],
+					[{ transform: `translate(${x}px,${y}px)` }, { transform: "translate(0,0)" }],
 					{ duration: this.time("layout") },
 				),
 			);

@@ -83,7 +83,8 @@ test("projected rich cards render sources, task state, and reminder state", () =
 	assert.match(rendered.body.textContent, /Agent/);
 	assert.ok(rendered.querySelector(".card-cover"));
 	const task = new JSDOM(cardHTML(rich, { state: cloudCardState(rich) })).window.document;
-	assert.ok(task.querySelector(".done-row"));
+	assert.equal(task.querySelector(".done-row"), null);
+	assert.ok(task.querySelector('.check-item[aria-checked="true"]'));
 	const reminder = { ...rich, type: "reminder" };
 	const renderedReminder = new JSDOM(cardHTML(reminder, { state: cloudCardState(reminder) })).window
 		.document;

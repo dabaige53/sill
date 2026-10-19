@@ -1,6 +1,6 @@
 # 浏览器端
 
-更新：2026-10-18。现行运行代码；通用规则见 [代码规范](../../docs/guides/code-standards.md)。
+更新：2026-10-19。现行运行代码；通用规则见 [代码规范](../../docs/guides/code-standards.md)。
 
 `index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
 
@@ -8,11 +8,22 @@
 
 `interactions/panels.ts` 保留弹层入口，`interactions/previews.ts` 按卡片类型组织预览，共用外壳与工具栏。文案键按预览、阅读、照片、搜索、设置等用途命名，实际文字仍只从 `design-system/copy/zh-Hans.json` 读取。
 
-`npm run build` 用 esbuild 生成 `dist/web/index.html`，`npm start` 提供本地页面。`npm run build:cloud` 生成 `dist/cloud/`。产物不提交到 Git，不手工修改。
+`npm run build` 用 Vite 生成 `dist/web/index.html`，`npm start` 提供本地页面。`npm run build:cloud` 生成 `dist/cloud/`。产物不提交到 Git，不手工修改。
 
 卡片类型从 `contracts/` 导入。浏览器根据导出的 JSON Schema 检查写入，复用纯数据转换与业务规则，不打包 zod。未知卡片类型采用通用卡片；未知字段保持不变。
 
 来源设置的本地状态不是外部连接回执。线上整卡覆盖与虚假连接成功两个 P1 不因本次迁移关闭。浏览器视觉及辅助功能验收需单独执行。
+
+## React 与开发服务
+
+Web 使用 React + TypeScript + Vite，决策见 [ADR 0047](../../docs/adr/0047-react-web.md)。
+
+- `views/shell.tsx` 与 `views/feed.tsx` 组成页面；卡片在 `cards/components.tsx`，弹层和详情在 `interactions/*-components.tsx`，云端欢迎与速记在 `views/cloud-views.tsx`。
+- `views/react-renderer.ts` 管理 React 根与同步测量边界。信息流保留稳定 key；详情覆盖搜索时保留搜索容器及节点。控制器仍负责动作、手势、焦点和网络适配，新内容布局写成 TSX，不新增整页 HTML 模板。
+- `cards/templates.ts`、`interactions/panels.ts` 和 `interactions/previews.ts` 保留静态 HTML 兼容出口，供 Node 测试和画板使用。浏览器运行时直接导入组件，避免包含服务端渲染器。
+- 先运行 `npm start` 提供本地 API，再运行 `npm run dev`，打开 http://localhost:5173。Vite 提供 TSX Fast Refresh，`/api/local` 代理到 4318。开发服务只监听本机。
+- `apps/web/index.html` 是 Vite 页面入口，`vite.config.ts` 读取原有样式清单及文案。生产用 singlefile 插件输出单文件 HTML，保留云端 MCP 的宿主脚本注入顺序。
+- Node 的 Web 测试通过 tsx 加载 TSX。JSDOM 的浏览器 API 补充集中在 `tests/web/react-browser-fixture.ts`，不改变生产代码。
 
 ## 添加到 iPhone／iPad 主屏幕
 

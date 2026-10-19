@@ -1,3 +1,4 @@
+import { createElement, type ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { icon } from "../atoms/icons.ts";
 import {
@@ -11,13 +12,7 @@ import {
 	eventTimely,
 	minutes,
 } from "../atoms/primitives.ts";
-import {
-	CardPresentation,
-	cardHTML,
-	shelfHTML,
-	stackHTML,
-	stackOpenHTML,
-} from "../cards/templates.ts";
+import { CardPresentation } from "../cards/presentation.ts";
 import { copy } from "../copy.ts";
 import { cardSource } from "../data/card-source.ts";
 import { CardTypes, demoBase, FreshCards, SeedCards, SeedItems } from "../data/cards.ts";
@@ -28,7 +23,7 @@ import { DragManager } from "../interactions/drag.ts";
 import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
-import { Panels, welcomeHTML } from "../interactions/panels.ts";
+import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import {
 	type AgentCard,
 	AgentHandoff,
@@ -42,8 +37,11 @@ import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
 import { action as dispatchAction } from "./actions/index.ts";
+import { feedView } from "./feed.tsx";
 import { bindPreview, bindSheetChrome, openCard } from "./preview-controller.ts";
+import { releaseView, renderContent, renderView } from "./react-renderer.ts";
 import { repaintSettings, setPref } from "./settings-controller.ts";
+import { AccountRing, WorkspaceShell } from "./shell.tsx";
 
 type Filter = { type: string; status: string; tag: string; query: string };
 type TargetEvent<E extends Event> = E & {
@@ -69,6 +67,7 @@ type Deck = ViewElement & {
 	_wheel?: { dx: number; t?: number };
 	_hold?: number;
 	_wheelDirection?: number;
+	_cancelGesture?: () => void;
 };
 type DeckGesture = {
 	deck: Deck;
@@ -83,9 +82,6 @@ type CardFlag = keyof {
 	[K in keyof CardItem as CardItem[K] extends boolean ? K : never]: CardItem[K];
 };
 
-/** The lens leads; the place it names opens just after, so the move is seen before the sheet covers it. */
-const NAV_LEAD_MS = 160;
-const PAGE_FADE_MS = 180;
 /** On a phone these places are pages under the capsule, not sheets. */
 const PAGE_KINDS = ["search", "ai", "settings"];
 
@@ -158,6 +154,10 @@ class AppController {
 	declare editId: string;
 	declare editTags: Set<string>;
 	declare toastTimer: number;
+	toastRemaining = 0;
+	toastStarted = 0;
+	toastHover = false;
+	homePositions: Record<string, { scroll: number; limit: number }> = {};
 	declare toastSeq: number;
 	declare selectAnchor: string;
 	declare previewTrail: string[];
@@ -169,6 +169,8 @@ class AppController {
 	declare stackDragUntil: number;
 	declare searchTimer: number;
 	declare inlineTimer: number;
+	cloudSavedAccount?: boolean;
+	cloudSettingsContent?: ReactNode;
 
 	constructor() {
 		this.mode = window.__PAGE__ || "feed";
@@ -210,7 +212,7 @@ class AppController {
 		document.addEventListener(
 			"keydown",
 			(event) => {
-				if (!event.metaKey && !event.ctrlKey && !event.altKey)
+				if (!["Meta", "Control", "Alt", "Shift"].includes(event.key))
 					document.documentElement.dataset.inputModality = "keyboard";
 			},
 			{ capture: true },
@@ -220,12 +222,7 @@ class AppController {
 		Store.load();
 		if (window.__QG_RUNTIME__) Store.state.cards = [];
 		this.sort = Store.pref("sort");
-		document.body.innerHTML = `${this.homeTopHTML()}<main aria-label="${copy("web.app.75db60dcb6ad")}"><h1 class="sr-only" id="page-title">${copy("web.common.desk")}</h1><div class="feed-grid" id="feed-grid"></div><div class="feed-end" aria-hidden="true"></div></main>
-   <div id="dock"><button type="button" id="offline" class="glass" data-action="retry" hidden>${copy("web.app.3d52574ce150")}</button>
-   <div id="selection-bar" class="glass" hidden role="toolbar" aria-label="${copy("web.app.461e085d5ca2")}"><span class="selection-count num"></span>${button("bookmark", copy("web.app.87aeb7040c82"), "selected-bookmark")}${button("glasses", copy("web.app.d108c0a7e2c3"), "selected-later")}${button("tag", copy("web.app.b5816e5fd0be"), "selected-tag")}<span class="toolbar-sep" aria-hidden="true"></span>${button("x", copy("web.app.74966e20df2e"), "clear-selection")}${this.selectionAIHTML()}</div>
-   ${this.navHTML()}</div><button type="button" id="new-count" class="glass" data-action="show-new" hidden aria-label="${copy("web.app.3fa133e511d1")}"></button><div class="scroll-edge" id="scroll-edge" aria-hidden="true"></div>
-   <div class="drop-hint" id="drop-hint" hidden><span>${copy("web.app.2c8fe7be9774")}</span><small>${copy("web.app.4cb50c8338fe")}</small></div>
-   <dialog id="modal" aria-labelledby="modal-title"></dialog><div id="toast" class="glass" role="status" aria-live="polite" hidden><span id="toast-text"></span><span id="toast-action"></span></div><div class="sr-only" id="announcer" aria-live="polite"></div>`;
+		renderView(document.body, createElement(WorkspaceShell));
 		this.grid = document.getElementById("feed-grid") as ViewElement;
 		this.dialog = document.getElementById("modal") as ViewDialog;
 		this.setNav("home");
@@ -273,29 +270,26 @@ class AppController {
 			if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing"))
 				this.finishInlineEdit();
 		});
-		this.dialog.addEventListener("cancel", (e?: TargetEvent<Event>) => {
-			e.preventDefault();
-			if (this.modalKind === "search" && this.selected.size) this.action("clear-selection");
-			else this.closeModal();
+		this.bindDialog();
+		const toast = document.getElementById("toast");
+		toast.addEventListener("pointerenter", () => {
+			this.toastHover = true;
+			this.updateToastClock();
 		});
-		this.dialog.addEventListener("click", (e?: TargetEvent<MouseEvent>) => {
-			if (e.target !== this.dialog) return;
-			if (this.modalKind === "lightbox" || this.dialog.classList.contains("page")) return;
-			// A click on the dim area, outside the sheet and its toolbar, closes the overlay.
-			const inside = [...this.dialog.children].some((n?: HTMLElement) => {
-				const r = n.getBoundingClientRect();
-				return (
-					e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
-				);
-			});
-			// Stacked cards close one at a time, like the close button.
-			if (!inside) this.closeModal();
+		toast.addEventListener("pointerleave", () => {
+			this.toastHover = false;
+			this.updateToastClock();
 		});
+		toast.addEventListener("focusin", () => this.updateToastClock());
+		toast.addEventListener("focusout", () => queueMicrotask(() => this.updateToastClock()));
+		window.addEventListener("blur", () => this.updateToastClock(true));
+		window.addEventListener("focus", () => this.updateToastClock());
+		document.addEventListener("visibilitychange", () => this.updateToastClock());
 		const dock = document.getElementById("dock");
 		// The rail tucks away while reading on and returns on a pause or a turn back.
 		this.railHide = new ChromeAutoHide(
 			window,
-			() => [dock, document.getElementById("scroll-edge"), document.getElementById("home-top")],
+			() => [dock, document.getElementById("scroll-edge")],
 			() => this.drag?.active || this.drag?.menu?.open,
 		);
 		window.addEventListener("popstate", () => this.route());
@@ -332,6 +326,26 @@ class AppController {
 		window.__app = this;
 		window.__store = Store; // Deliberate test hooks, no network credentials or private data.
 	}
+	bindDialog() {
+		this.dialog.addEventListener("cancel", (e?: TargetEvent<Event>) => {
+			e.preventDefault();
+			if (this.modalKind === "search" && this.selected.size) this.action("clear-selection");
+			else this.closeModal();
+		});
+		this.dialog.addEventListener("click", (e?: TargetEvent<MouseEvent>) => {
+			if (e.target !== this.dialog) return;
+			if (this.modalKind === "lightbox" || this.dialog.classList.contains("page")) return;
+			// A click on the dim area, outside the sheet and its toolbar, closes the overlay.
+			const inside = [...this.dialog.children].some((n?: HTMLElement) => {
+				const r = n.getBoundingClientRect();
+				return (
+					e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+				);
+			});
+			// Stacked cards close one at a time, like the close button.
+			if (!inside) this.closeModal();
+		});
+	}
 	applyPreferences() {
 		const theme = Store.pref("theme"),
 			dark = theme === "dark" || (theme === "system" && this.themeQuery?.matches);
@@ -359,7 +373,7 @@ class AppController {
 	}
 	paintAccount() {
 		const face = document.querySelector<HTMLElement>("#account .account-wrap");
-		if (face) face.innerHTML = this.accountRing();
+		if (face) renderView(face, createElement(AccountRing));
 	}
 	accountRing() {
 		return `${icon("sill", 22)}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
@@ -388,11 +402,12 @@ class AppController {
 		nav.style.setProperty("--lens-x", `${tab.offsetLeft}px`);
 		nav.style.setProperty("--lens-w", `${tab.offsetWidth}px`);
 		if (!moved || MotionEngine.reduced) return;
-		nav.classList.remove("is-moving");
-		void nav.offsetWidth;
 		nav.classList.add("is-moving");
 		clearTimeout(this.navTimer);
-		this.navTimer = window.setTimeout(() => nav.classList.remove("is-moving"), 420);
+		this.navTimer = window.setTimeout(
+			() => nav.classList.remove("is-moving"),
+			MotionEngine.time("dur-lens"),
+		);
 	}
 	isPage(kind: string) {
 		return (
@@ -401,7 +416,7 @@ class AppController {
 	}
 	/**
 	 * A tab opens its place. On a phone the place is a page and the capsule stays, so the lens
-	 * slides while the page changes. On a desktop the place is a panel; the lens moves first.
+	 * slides while the page changes. Desktop panels also respond immediately.
 	 */
 	goTo(key: string) {
 		clearTimeout(this.navOpenTimer);
@@ -432,8 +447,7 @@ class AppController {
 			if (key === "settings") this.settingsGroup = "desk";
 			this.openPanel(key);
 		};
-		if (MotionEngine.reduced || this.isPage(key)) open();
-		else this.navOpenTimer = window.setTimeout(open, NAV_LEAD_MS);
+		open();
 	}
 	/* ——— What is on the desk ——— */
 	shelfOf(c?: Card): "desk" | "read" {
@@ -503,86 +517,55 @@ class AppController {
 			this.feedNow,
 		);
 	}
-	deskHTML() {
-		if (!Store.state.cards.length && !window.__QG_RUNTIME__) return welcomeHTML();
-		const cards = this.filtered();
-		if (!cards.length)
-			return this.filtering()
-				? emptyState(
-						this.filter.query
-							? `${copy("web.search.noResultsPrefix")}${this.filter.query}」`
-							: copy("web.app.4a684ec67af5"),
-						"",
-						`<button type="button" class="text-link" data-action="clear-filter">${copy("web.app.657d9cbf45ec")}</button>`,
-					)
-				: emptyState(copy("web.app.a510cac879f0")) +
-						shelfHTML(this.shelved("read").length, this.shelved("stale").length);
-		const stacks =
-			Store.pref("stack") && !this.filtering()
-				? FeedPolicy.stacks(cards, Store.state.items)
-				: new Map<string, Card[]>();
-		const inStack = new Map<string, string>();
-		for (const [key, list] of stacks) for (const c of list) inStack.set(c.id, key);
-		const html = [],
-			done = new Set<string>();
-		for (const c of cards) {
-			const key = inStack.get(c.id);
-			if (!key) {
-				html.push(cardHTML(c, { now: this.feedNow }));
-				continue;
-			}
-			if (done.has(key)) continue;
-			done.add(key);
-			html.push(
-				this.openStacks.has(key)
-					? stackOpenHTML(key, stacks.get(key))
-					: stackHTML(key, stacks.get(key)),
-			);
-		}
-		// A large desk is laid out a screen ahead of the reader, never all at once.
-		this.hasMore = html.length > this.pageLimit;
-		if (this.hasMore) html.length = this.pageLimit;
-		else if (!this.filtering())
-			html.push(shelfHTML(this.shelved("read").length, this.shelved("stale").length));
-		document.body.classList.toggle("feed-more", this.hasMore);
-		return html.join("");
+	deskView(heldId = "", taskPreviewOrder: string[] = []): ReactNode {
+		return feedView(this, heldId, taskPreviewOrder);
 	}
+
+	feedSnapshot: { cards: Card[]; stacks: Map<string, Card[]> } | null = null;
+	preserveFeed = false;
 	renderCurrent(animate = false) {
+		const heights = new Map(
+			[...this.grid.querySelectorAll<HTMLElement>("[data-card]")].map((n) => [
+				n.dataset.card,
+				n.getBoundingClientRect().height,
+			]),
+		);
 		const focused = this.grid.contains(document.activeElement as HTMLElement)
 			? (document.activeElement as HTMLElement as HTMLElement)
 			: null;
 		const previousCard = focused?.closest<HTMLElement>("[data-card]"),
 			focusedCardId = previousCard?.dataset.card;
-		const taskPreviewOrder = previousCard?.dataset.taskPreviewLocked
-			? [...previousCard.querySelectorAll<HTMLElement>('.checklist [data-action="task"]')].map(
-					(node) => node.dataset.extra,
-				)
-			: [];
+		const taskPreviewOrder =
+			previousCard?.dataset.taskPreviewLocked ||
+			(focused?.dataset.action === "task" && focused.matches(":focus-visible"))
+				? [...previousCard.querySelectorAll<HTMLElement>('.checklist [data-action="task"]')].map(
+						(node) => node.dataset.extra,
+					)
+				: [];
 		this.closeMore();
 		// An anchored reflow may temporarily need extra room below the final row.
 		this.grid.style.removeProperty("min-height");
 		document.body.dataset.view = this.mode;
-		this.grid.innerHTML = this.deskHTML();
+		renderView(this.grid, this.deskView(focusedCardId, taskPreviewOrder));
 		let focusedCard = focusedCardId
 			? this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(focusedCardId)}"]`)
 			: null;
 		if (focusedCard && taskPreviewOrder.length) {
-			const temp = document.createElement("div");
-			temp.innerHTML = cardHTML(Store.card(focusedCardId), {
-				compact: focusedCard.classList.contains("is-compact"),
-				now: this.feedNow,
-				taskPreviewOrder,
-			});
-			const held = temp.firstElementChild as HTMLElement;
-			held.dataset.taskPreviewLocked = "true";
-			held.addEventListener("focusout", () => {
-				window.setTimeout(() => {
-					if (held.isConnected && !held.contains(document.activeElement as HTMLElement))
-						this.refreshCard(focusedCardId);
-				}, 0);
-			});
-			focusedCard.replaceWith(held);
-			focusedCard = held;
+			focusedCard.dataset.taskPreviewLocked = "true";
+			const held = focusedCard;
+			held.addEventListener(
+				"focusout",
+				() =>
+					window.setTimeout(() => {
+						if (held.isConnected && !held.contains(document.activeElement))
+							this.refreshCard(focusedCardId);
+					}, 0),
+				{ once: true },
+			);
+		}
+		for (const n of this.grid.querySelectorAll<HTMLElement>("[data-card]")) {
+			n.style.minHeight =
+				this.preserveFeed && heights.has(n.dataset.card) ? `${heights.get(n.dataset.card)}px` : "";
 		}
 		this.revealImages(this.grid);
 		this.layout.layout(false);
@@ -607,7 +590,7 @@ class AppController {
 			[...this.grid.children]
 				.filter((n?: HTMLElement) => n.getBoundingClientRect().top < innerHeight)
 				.forEach((n?: HTMLElement, i?: number) => {
-					MotionEngine.enter(n, Math.min(i * 60, 240));
+					MotionEngine.enter(n, i < 10 ? i * MotionEngine.time("stagger") : 0);
 				});
 	}
 	// Covers sharpen once decoded; a cover seen before appears at once, without replaying the blur.
@@ -627,129 +610,41 @@ class AppController {
 		});
 	}
 	refreshCard(id?: string) {
-		const searchCard = (
-			this.searchBackground || (this.modalKind === "search" ? this.dialog : null)
-		)?.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
-		const sharedCard = Store.card(id);
-		if (searchCard && sharedCard) {
-			const temp = document.createElement("div");
-			const active = searchCard.contains(document.activeElement as HTMLElement)
-				? (document.activeElement as HTMLElement as HTMLElement)
-				: null;
-			const taskPreviewOrder =
-				sharedCard.type === "task" && active?.dataset.action === "task"
-					? [...searchCard.querySelectorAll<HTMLElement>('[data-action="task"]')].map(
-							(n: HTMLElement) => n.dataset.extra,
-						)
-					: [];
-			temp.innerHTML = cardHTML(sharedCard, { now: this.feedNow, taskPreviewOrder });
-			const replacement = temp.firstElementChild;
-			this.markSelectionCard(replacement as HTMLElement, this.searchSelected);
-			if (searchCard.contains(this.searchFocus))
-				this.searchFocus = replacement.querySelector<HTMLElement>(
-					".card-title-button",
-				) as HTMLElement;
-			searchCard.replaceWith(replacement);
-			if (active)
-				[...replacement.querySelectorAll<HTMLElement>("[data-action]")]
-					.find(
-						(n: HTMLElement) =>
-							n.dataset.action === active.dataset.action &&
-							n.dataset.extra === active.dataset.extra &&
-							n.dataset.id === active.dataset.id,
-					)
-					?.focus({ preventScroll: true });
-			this.revealImages(replacement);
-		}
-		let old = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
-		const c = Store.card(id),
-			active = old?.contains(document.activeElement as HTMLElement)
-				? (document.activeElement as HTMLElement)
-				: null;
-		const focus = (active as HTMLElement)?.dataset.action,
-			focusExtra = (active as HTMLElement)?.dataset.extra,
-			focusId = (active as HTMLElement)?.dataset.id;
-		const focusTitle = active?.classList.contains("card-title-button");
-		const taskPreviewOrder =
-			c?.type === "task" &&
-			active &&
-			(old.dataset.taskPreviewLocked || (focus === "task" && active.matches(":focus-visible")))
-				? [...old.querySelectorAll<HTMLElement>('.checklist [data-action="task"]')].map(
-						(n?: HTMLElement) => n.dataset.extra,
-					)
-				: [];
-		if (this.mode === "feed") {
-			const before = [...this.grid.querySelectorAll<HTMLElement>("[data-card],[data-stack]")]
-				.map((n?: HTMLElement) => n.dataset.card || n.dataset.stack)
-				.join(",");
-			const probe = document.createElement("div");
-			probe.innerHTML = this.deskHTML();
-			const after = [...probe.querySelectorAll<HTMLElement>("[data-card],[data-stack]")]
-				.map((n?: HTMLElement) => n.dataset.card || n.dataset.stack)
-				.join(",");
-			if (before !== after) {
-				this.withFeedAnchor(() => {}, true);
-				if (!taskPreviewOrder.length) return;
-				old = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
+		const active = document.activeElement as HTMLElement;
+		const search = this.searchBackground || (this.modalKind === "search" ? this.dialog : null);
+		const results = search?.querySelector<HTMLElement>("#search-results");
+		if (results && Store.card(id)) {
+			const scroll = results.scrollTop;
+			const focused = results.contains(active);
+			renderView(results, Panels.searchResults(this));
+			results.scrollTop = scroll;
+			for (const card of results.querySelectorAll<HTMLElement>("[data-card]"))
+				this.markSelectionCard(card, this.searchSelected);
+			if (focused) {
+				const next = [...results.querySelectorAll<HTMLElement>("[data-action]")].find(
+					(node) =>
+						node.dataset.action === active.dataset.action &&
+						node.dataset.id === active.dataset.id &&
+						node.dataset.extra === active.dataset.extra,
+				);
+				next?.focus({ preventScroll: true });
+				this.searchFocus = next;
 			}
+			this.revealImages(results);
 		}
-		if (!old || !c) return;
-		const temp = document.createElement("div");
-		temp.innerHTML = cardHTML(c, {
-			compact: old.classList.contains("is-compact"),
-			now: this.feedNow,
-			taskPreviewOrder,
-		});
-		const node = temp.firstElementChild;
-		const oldHeight = old.getBoundingClientRect().height;
-		const taskChanged = c.type === "task" && old.innerHTML !== node.innerHTML;
-		if (taskPreviewOrder.length) {
-			(node as HTMLElement).dataset.taskPreviewLocked = "true";
-			node.addEventListener("focusout", () => {
-				window.setTimeout(() => {
-					// Let the browser finish moving focus before settling the live card.
-					if (node.isConnected && !node.contains(document.activeElement as HTMLElement))
-						this.refreshCard(id);
-				}, 0);
-			});
+		const oldY = scrollY;
+		this.preserveFeed = true;
+		try {
+			this.renderCurrent(false);
+		} finally {
+			this.preserveFeed = false;
 		}
-		// Start from the old classes so a read/unread change settles as a color transition.
-		const nextClass = node.className;
-		node.className = old.className;
-		(node as HTMLElement).style.cssText = old.style.cssText;
-		old.replaceWith(node);
-		this.revealImages(node);
-		void (node as HTMLElement).offsetWidth;
-		node.className = nextClass;
-		if (taskChanged) {
-			const resize = MotionEngine.resize(node, oldHeight);
-			resize?.finished.then(
-				() => {
-					if (node.isConnected) this.layout.schedule(true);
-				},
-				() => {},
-			);
-		}
-		this.markSelectionCard(node as HTMLElement, this.homeSelected);
-		this.layout.schedule(true);
-		this.updateSelection();
-		if (active) {
-			const target = focusTitle
-				? node.querySelector<HTMLElement>(".card-title-button")
-				: [...node.querySelectorAll<HTMLElement>("[data-action]")].find(
-						(n?: HTMLElement) =>
-							n.dataset.action === focus &&
-							n.dataset.extra === focusExtra &&
-							n.dataset.id === focusId,
-					);
-			(node as HTMLElement).focus({ preventScroll: true });
-			(
-				(target || node.querySelector<HTMLElement>(".card-title-button") || node) as HTMLElement
-			).focus({
-				preventScroll: true,
-			});
-		}
+		for (const card of this.grid.querySelectorAll<HTMLElement>("[data-card]"))
+			this.markSelectionCard(card, this.homeSelected);
+
+		if (scrollY !== oldY) window.scrollTo({ top: oldY, behavior: "instant" });
 	}
+
 	updateFilterIndicator() {
 		const tab = this.homeTab();
 		document.getElementById("dock").classList.toggle("filter-active", this.filtering() && !tab);
@@ -815,25 +710,21 @@ class AppController {
 		};
 	}
 	bindSearchSelection() {
-		if (!this.dialog.querySelector<HTMLElement>("#search-selection-bar")) {
-			const original = document.getElementById("selection-bar");
-			if (original) {
-				const bar = original.cloneNode(true) as HTMLElement;
-				bar.id = "search-selection-bar";
-				bar.hidden = true;
-				this.dialog.append(bar);
-				bar.addEventListener("contextmenu", (e: MouseEvent) => {
-					if (!this.searchSelected.size) return;
-					e.preventDefault();
-					this.drag.openMenu([...this.searchSelected], e.target as HTMLElement, {
-						x: e.clientX,
-						y: e.clientY,
-					});
+		const bar = this.dialog.querySelector<HTMLElement>("#search-selection-bar");
+		if (bar && !bar.dataset.bound) {
+			bar.dataset.bound = "true";
+			bar.addEventListener("contextmenu", (e: MouseEvent) => {
+				if (!this.searchSelected.size) return;
+				e.preventDefault();
+				this.drag.openMenu([...this.searchSelected], e.target as HTMLElement, {
+					x: e.clientX,
+					y: e.clientY,
 				});
-			}
+			});
 		}
 		this.updateSelection();
 	}
+
 	/** Toggle one card, add it, or (Shift) fill the range from the last picked card. */
 	select(id?: string, options: { add?: boolean; range?: boolean } = {}) {
 		const context = this.selectionContext();
@@ -985,7 +876,7 @@ class AppController {
 		window.scrollTo({ top: this.lockedScroll, behavior: "instant" });
 	}
 	/* ——— Overlays ——— */
-	openModal(html?: string, kind?: string, origin: DOMRect | null = null, shape: string = "") {
+	openModal(html?: ReactNode, kind?: string, origin: DOMRect | null = null, shape: string = "") {
 		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
@@ -1010,17 +901,26 @@ class AppController {
 		this.dialog.className =
 			shape || (["reader", "preview", "lightbox", "search"].includes(kind) ? kind : "panel");
 		if (page) this.dialog.classList.add("page");
-		this.dialog.innerHTML = html;
+		const card = kind === "preview" ? Store.card(this.currentId) : null;
+		if (
+			card &&
+			["task", "reminder", "note"].includes(card.type) &&
+			(card.body || []).join("\n").length < 500 &&
+			(card.summary || "").length < 280
+		)
+			this.dialog.classList.add("is-short");
+		renderContent(this.dialog, html);
 		if (!this.dialog.open) {
 			if (page && kind !== "search") this.dialog.show();
 			else this.dialog.showModal();
 		}
 		// Pages change in place under the capsule: a short fade, never a rising sheet. Between two pages only
 		// the new content fades; the page itself stays opaque so the desk never shows through.
-		if (page)
+		if (MotionEngine.keyboard) MotionEngine.cancelPanel(this.dialog);
+		else if (page)
 			for (const target of pageToPage ? [...this.dialog.children] : [this.dialog])
 				target.animate([{ opacity: 0 }, { opacity: 1 }], {
-					duration: MotionEngine.reduced ? 0 : PAGE_FADE_MS,
+					duration: MotionEngine.reduced ? MotionEngine.reducedDuration : MotionEngine.time("fast"),
 					easing: "ease-out",
 				});
 		else if (kind === "search") MotionEngine.enter(this.dialog);
@@ -1046,6 +946,7 @@ class AppController {
 		return r?.width && r.bottom > 0 && r.top < innerHeight ? r : null;
 	}
 	closeNative(animate = true) {
+		if (MotionEngine.keyboard) animate = false;
 		if (!this.dialog.open) return;
 		// A sheet already dragged off screen closes as it is: no return motion.
 		if (this.skipReturnMotion) {
@@ -1088,19 +989,17 @@ class AppController {
 			const token = this.modalToken,
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;
-			// A desktop preview shrinks back into its card when that card is on screen.
-			const card = this.modalKind === "preview" ? this.cardRect(this.currentId) : null,
-				to = card ? MotionEngine.cardOffset(sheet, card) : null;
+			const transform = getComputedStyle(sheet).transform;
 			MotionEngine.cancelPanel(this.dialog);
 			this.sheetLeaving = true;
 			this.dialog.style.setProperty("--backdrop", "0");
 			const animation = MotionEngine.animate(
 				sheet,
 				[
-					{ opacity, transform: "none" },
-					{ opacity: 0, transform: to || "translateY(4px)" },
+					{ opacity, transform },
+					{ opacity: 0, transform: "translateY(4px)" },
 				],
-				{ duration: to ? 230 : MotionEngine.time("fast"), fill: "forwards" },
+				{ duration: MotionEngine.time("dur-close"), fill: "forwards" },
 			);
 			const bar = this.dialog.querySelector<HTMLElement>(":scope > .float-bar");
 			const barAnimation = bar
@@ -1227,24 +1126,22 @@ class AppController {
 		this.editId = id;
 		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);
 		if (kind === "editor") this.editTags = new Set<string>(Store.tags(Store.card(id)));
-		const narrow = ["editor", "why", "capture", "confirm", "ai"].includes(kind),
+		const narrow = ["editor", "capture", "confirm", "ai"].includes(kind),
 			wide = kind === "settings";
 		const html =
 			kind === "search"
 				? Panels.search(this)
 				: kind === "editor"
 					? Panels.editor(this, id)
-					: kind === "why"
-						? Panels.why(this, Store.card(id))
-						: kind === "settings"
-							? Panels.settings(this, this.settingsGroup)
-							: kind === "capture"
-								? Panels.capture(this)
-								: kind === "ai"
-									? Panels.ai(this)
-									: kind === "archive"
-										? Panels.archive(this, id)
-										: "";
+					: kind === "settings"
+						? Panels.settings(this, this.settingsGroup)
+						: kind === "capture"
+							? Panels.capture(this)
+							: kind === "ai"
+								? Panels.ai(this)
+								: kind === "archive"
+									? Panels.archive(this, id)
+									: "";
 		this.openModal(
 			html,
 			kind,
@@ -1269,7 +1166,7 @@ class AppController {
 				const hits = this.searchAll(this.searchFilter.query.trim());
 				if (this.searchLimit >= hits.desk.length + hits.shelved.length) return;
 				this.searchLimit += 40;
-				results.innerHTML = Panels.searchResults(this);
+				renderView(results, Panels.searchResults(this));
 				results.scrollTop = this.searchScroll;
 				this.revealImages(results);
 				this.updateSelection();
@@ -1282,34 +1179,42 @@ class AppController {
 			clearTimeout(this.searchTimer);
 			this.searchTimer = 0;
 			const results = this.dialog.querySelector<HTMLElement>("#search-results");
-			results.innerHTML = Panels.searchResults(this);
+			renderView(results, Panels.searchResults(this));
 			this.revealImages(results);
 			this.updateSelection();
 		}
 		this.searchScroll = this.dialog.querySelector<HTMLElement>("#search-results")?.scrollTop || 0;
 		this.searchFocus = document.activeElement as HTMLElement as HTMLElement;
-		const background = document.createElement("dialog");
+		const background = this.dialog;
+		background.close();
 		background.id = "search-background";
-		background.className = this.dialog.className;
+		background.removeAttribute("aria-labelledby");
 		background.setAttribute("aria-label", copy("web.search"));
-		background.append(...this.dialog.childNodes);
-		// A second title must not compete with the active card dialog's label.
 		background.querySelector<HTMLElement>("#modal-title")?.removeAttribute("id");
-		document.body.append(background);
-		this.dialog.close();
 		background.show();
 		background.inert = true;
 		background.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 		this.searchBackground = background;
+		const dialog = document.createElement("dialog");
+		dialog.id = "modal";
+		dialog.setAttribute("aria-labelledby", "modal-title");
+		document.body.append(dialog);
+		this.dialog = dialog as ViewDialog;
+		this.bindDialog();
 	}
 	restoreSearch() {
 		const background = this.searchBackground;
 		if (!background) return;
-		this.dialog.className = background.className;
-		this.dialog.replaceChildren(...background.childNodes);
-		this.dialog.querySelector<HTMLElement>("h1").id = "modal-title";
+		releaseView(this.dialog);
+		this.dialog.close();
+		this.dialog.remove();
 		background.close();
-		background.remove();
+		this.dialog = background as ViewDialog;
+		this.dialog.id = "modal";
+		this.dialog.inert = false;
+		this.dialog.removeAttribute("aria-label");
+		this.dialog.setAttribute("aria-labelledby", "modal-title");
+		this.dialog.querySelector<HTMLElement>("h1").id = "modal-title";
 		this.searchBackground = undefined;
 		this.modalKind = "search";
 		this.panelReturn = null;
@@ -1328,10 +1233,11 @@ class AppController {
 	}
 	discardSearchBackground() {
 		this.searchBackground?.close();
+		if (this.searchBackground) releaseView(this.searchBackground);
 		this.searchBackground?.remove();
 		this.searchBackground = undefined;
 	}
-	swapPanel(html?: string, kind?: string, shape: string = "panel") {
+	swapPanel(html?: ReactNode, kind?: string, shape: string = "panel") {
 		this.modalToken++;
 		MotionEngine.cancelPanel(this.dialog);
 		this.sheetLeaving = false;
@@ -1342,7 +1248,7 @@ class AppController {
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);
 		this.modalKind = kind;
 		this.dialog.className = shape;
-		this.dialog.innerHTML = html;
+		renderContent(this.dialog, html);
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement as HTMLElement;
 			this.lockPageScroll();
@@ -1474,6 +1380,35 @@ class AppController {
 		const busy = state === "sending";
 		return `<button type="button" class="text-button" data-action="agent-handoff" data-id="${esc(card.id)}"${busy || state === "sent" || state === "unknown" ? " disabled" : ""} aria-busy="${busy}">${labels[state]}</button>`;
 	}
+	agentActionView(card: AgentCard): ReactNode {
+		if (!window.__SILL_HOST__?.canDiscuss?.()) return null;
+		let scope: AgentScope;
+		try {
+			scope = this.agentScope();
+		} catch {
+			return null;
+		}
+		const state = this.agentHandoff.state(agentKey(card.id, scope), window.__SILL_HOST__);
+		if (state === "unavailable") return null;
+		const labels = {
+			unknown: copy("web.agent.unknownLabel"),
+			discuss: copy("web.agent.discuss"),
+			sending: copy("web.agent.sending"),
+			sent: copy("web.agent.sentLabel"),
+		};
+		return createElement(
+			"button",
+			{
+				type: "button",
+				className: "text-button",
+				"data-action": "agent-handoff",
+				"data-id": card.id,
+				disabled: state !== "discuss",
+				"aria-busy": state === "sending",
+			},
+			labels[state],
+		);
+	}
 	paintAgentActions() {
 		this.dialog
 			.querySelectorAll<HTMLElement>('[data-action="agent-handoff"]')
@@ -1552,16 +1487,45 @@ class AppController {
 				: "";
 		toast.classList.toggle("is-alert", !!persistent);
 		toast.setAttribute("role", persistent ? "alert" : "status");
+		for (const animation of toast.getAnimations?.() || []) animation.cancel();
 		toast.hidden = false;
+		toast.inert = false;
 		MotionEngine.enter(toast);
-		if (!persistent)
-			this.toastTimer = window.setTimeout(() => this.hideToast(), undo ? 5500 : 3200);
+		this.toastRemaining = persistent ? 0 : undo ? 5500 : 3200;
+		this.toastStarted = 0;
+		this.toastTimer = 0;
+		this.updateToastClock();
+	}
+	updateToastClock(forcePause = false) {
+		if (this.toastTimer) {
+			clearTimeout(this.toastTimer);
+			this.toastRemaining = Math.max(
+				0,
+				this.toastRemaining - (performance.now() - this.toastStarted),
+			);
+			this.toastTimer = 0;
+		}
+		const toast = document.getElementById("toast");
+		if (!toast || toast.hidden || toast.inert || toast.classList.contains("is-alert")) return;
+		if (
+			forcePause ||
+			document.hidden ||
+			!document.hasFocus() ||
+			this.toastHover ||
+			toast.contains(document.activeElement)
+		)
+			return;
+		this.toastStarted = performance.now();
+		this.toastTimer = window.setTimeout(() => this.hideToast(), this.toastRemaining);
 	}
 	hideToast() {
 		clearTimeout(this.toastTimer);
+		this.toastTimer = 0;
+		this.toastRemaining = 0;
 		const toast = document.getElementById("toast"),
 			seq = this.toastSeq;
 		if (!toast || toast.hidden) return;
+		toast.inert = true;
 		const done = () => {
 			if (seq === this.toastSeq) toast.hidden = true;
 		};
@@ -1609,21 +1573,8 @@ class AppController {
 			: [...before, taskId];
 		Store.patch(id, { taskDone: after });
 		this.refreshCard(id);
-		if (this.dialog.open && this.currentId === id && this.modalKind === "preview") {
-			const holder = this.dialog.querySelector<HTMLElement>(".detail-task-list");
-			if (holder)
-				for (const t of Store.tasks(c)) {
-					const node = [...holder.querySelectorAll<HTMLElement>("[data-extra]")].find(
-						(n?: HTMLElement) => n.dataset.extra === t.id,
-					);
-					if (node) {
-						node.classList.toggle("is-done", t.done);
-						node.setAttribute("aria-checked", String(t.done));
-						node.querySelector<HTMLElement>(".check-dot").outerHTML = checkMark(t.done);
-						if (t.id === taskId) MotionEngine.fade(node);
-					}
-				}
-		}
+		if (this.dialog.open && this.currentId === id && this.modalKind === "preview")
+			this.replacePanelContent(Panels.preview(this, c));
 		if (after.length === c.tasks.length)
 			this.toast(copy("web.app.58d2aeefaa41"), () => {
 				Store.patch(id, { taskDone: before });
@@ -1677,7 +1628,6 @@ class AppController {
 		menu.id = "card-menu-" + id;
 		const s = Store.item(id),
 			items = [
-				...(card.why ? [["info", copy("web.why.title"), "why"]] : []),
 				[
 					"bookmark",
 					s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
@@ -1839,7 +1789,10 @@ class AppController {
 			n.dataset.card || n.dataset.stack || n.dataset.stackOpen || "shelf";
 		const positions = animate
 			? new Map<string, { node: HTMLElement; rect: DOMRect }>(
-					surfaces.map((n: HTMLElement) => [key(n), { node: n, rect: n.getBoundingClientRect() }]),
+					surfaces.map((n: HTMLElement) => [
+						key(n),
+						{ node: n.cloneNode(true) as HTMLElement, rect: n.getBoundingClientRect() },
+					]),
 				)
 			: null;
 		const anchors = nodes
@@ -1962,7 +1915,7 @@ class AppController {
 		this.selected.delete(id);
 		// End the active preview before refreshing its source card state.
 		if (this.dialog.open) this.closeToDesk(false);
-		this.withFeedAnchor(() => {}, true);
+		this.refreshCard(id);
 		this.checkReminders();
 		const card = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 		(
@@ -1980,7 +1933,7 @@ class AppController {
 						: copy("web.app.480719186cc8");
 		this.toast(text, () => {
 			Store.patch(id, before);
-			this.withFeedAnchor(() => {}, true);
+			this.refreshCard(id);
 			this.checkReminders();
 			const back = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 			(
@@ -2240,7 +2193,7 @@ class AppController {
 	setPref(key?: string, value?: unknown): unknown {
 		return setPref.call(this, key, value);
 	}
-	replacePanelContent(html?: string) {
+	replacePanelContent(html?: ReactNode) {
 		const oldSurface = MotionEngine.surface(this.dialog);
 		const oldHeight = oldSurface.getBoundingClientRect().height;
 		const oldBody = oldSurface.querySelector(".preview-body")?.innerHTML;
@@ -2258,7 +2211,7 @@ class AppController {
 			?.classList.contains("is-full");
 		const toast = document.getElementById("toast");
 		if (toast && this.dialog.contains(toast)) document.body.appendChild(toast);
-		this.dialog.innerHTML = html;
+		renderContent(this.dialog, html);
 		if (full) this.dialog.querySelector<HTMLElement>(".preview-sheet")?.classList.add("is-full");
 		if (focused) {
 			const target = [
@@ -2355,6 +2308,18 @@ class AppController {
 	bindStacks() {
 		this.stackIndex = new Map<string, number>();
 		let g: DeckGesture = null;
+		const reduce = () => {
+			if (!MotionEngine.reduced) return;
+			this.grid.querySelectorAll<Deck>(".deck").forEach((deck) => {
+				deck._finish?.();
+				this.deckShow(deck, Number(deck.dataset.cur || 0));
+			});
+		};
+		MotionEngine.query.addEventListener("change", reduce);
+		new MutationObserver(reduce).observe(document.body, {
+			attributes: true,
+			attributeFilter: ["class"],
+		});
 		this.grid.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
 			const deck = e.target.closest?.<Deck>(".deck");
 			if (!deck || e.button !== 0 || e.isPrimary === false) return;
@@ -2364,6 +2329,12 @@ class AppController {
 			deck._wheel = null;
 			deck._hold = 0;
 			this.stackDragUntil = 0;
+			deck._cancelGesture = () => {
+				g = null;
+				deck.classList.remove("is-dragging");
+				clearTimeout(deck._wheel?.t);
+				deck._wheel = null;
+			};
 			g = { deck, id: e.pointerId, x: e.clientX, y: e.clientY, at: Date.now(), live: false, dx: 0 };
 		});
 		document.addEventListener("pointermove", (e?: TargetEvent<PointerEvent>) => {
@@ -2461,6 +2432,10 @@ class AppController {
 	}
 	deckFollow(deck?: Deck, dx?: number) {
 		const { top, next, prev, w } = this.deckParts(deck);
+		if (MotionEngine.reduced) {
+			for (const card of [...deck.children] as HTMLElement[]) card.style.transform = "";
+			return;
+		}
 		if (dx <= 0 || !prev) {
 			// Toward the next card; with nothing beyond, the top card only gives a little.
 			const x = dx < 0 && next ? dx : dx * 0.25,
@@ -2485,9 +2460,14 @@ class AppController {
 		const { i, top, next, prev, w } = this.deckParts(deck);
 		if (!top) return;
 		if ((dir === 1 && !next) || (dir === -1 && !prev)) dir = 0;
+		if (MotionEngine.reduced) {
+			this.deckShow(deck, i + dir);
+			if (dir) MotionEngine.fade(deck.children[i + dir]);
+			return;
+		}
 		const t: KeyframeAnimationOptions = {
-				duration: MotionEngine.reduced ? 1 : 260,
-				easing: "cubic-bezier(.2,.75,.25,1)",
+				duration: MotionEngine.time("dur-deck"),
+				easing: MotionEngine.curve(),
 			},
 			anims: Animation[] = [];
 		const run = (el?: HTMLElement, to?: string) => {
@@ -2630,7 +2610,7 @@ class AppController {
 		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
 			(row) => row.scrollLeft,
 		);
-		this.dialog.innerHTML = Panels.search(this);
+		renderContent(this.dialog, Panels.search(this));
 		MotionEngine.fade(document.getElementById("search-results"));
 		this.bindSearchResults();
 		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
@@ -2666,7 +2646,7 @@ class AppController {
 				this.searchTimer = 0;
 				const results = document.getElementById("search-results");
 				if (results) {
-					results.innerHTML = Panels.searchResults(this);
+					renderView(results, Panels.searchResults(this));
 					MotionEngine.fade(results);
 					results.scrollTop = 0;
 					this.revealImages(results);
@@ -2881,9 +2861,13 @@ class AppController {
 		}
 		if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && e.target.matches("[data-stack]")) {
 			const deck = e.target.querySelector<Deck>(".deck");
-			if (deck && !deck.dataset.busy) {
+			if (deck) {
 				e.preventDefault();
-				this.deckSettle(deck, e.key === "ArrowRight" ? 1 : -1);
+				deck._cancelGesture?.();
+				clearTimeout(deck._wheel?.t);
+				deck._wheel = null;
+				deck._finish?.();
+				this.deckShow(deck, Number(deck.dataset.cur || 0) + (e.key === "ArrowRight" ? 1 : -1));
 			}
 		}
 	}

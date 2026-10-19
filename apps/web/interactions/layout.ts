@@ -5,8 +5,12 @@ export function columnGeometry(
 	{ min = 280, ideal = 340, max = 380, gap = 24, limit = 5 } = {},
 ) {
 	const fits = Math.max(1, Math.floor((width + gap) / (min + gap)));
-	const columns = Math.max(1, Math.min(limit, fits, Math.round((width + gap) / (ideal + gap))));
-	const columnWidth = fits === 1 ? width : Math.min(max, (width - (columns - 1) * gap) / columns);
+	const columns = Math.max(
+		1,
+		Math.min(limit, fits, Math.max(Math.min(2, fits), Math.floor((width + gap) / (ideal + gap)))),
+	);
+	const columnWidth =
+		columns === 1 ? width : Math.min(max, (width - (columns - 1) * gap) / columns);
 	return {
 		columns,
 		columnWidth,
@@ -77,9 +81,24 @@ class FeedLayout {
 			gap,
 			limit,
 		});
+		if (el.id === "feed-grid") {
+			const header = document.getElementById("home-top");
+			if (header) {
+				header.style.setProperty("--feed-left", `${el.getBoundingClientRect().left + inset}px`);
+				if (matchMedia("(min-width:651px)").matches) {
+					header.inert = false;
+					header.classList.remove("is-tucked");
+				}
+			}
+		}
 		const old = animate
 			? new Map<any, any>(items.map((n?: any) => [n, n.getBoundingClientRect()]))
 			: null;
+		// Measure the visible positions first, then remove old transforms before final layout.
+		items.forEach((n: HTMLElement) => {
+			MotionEngine.layoutAnimations.get(n)?.cancel();
+			MotionEngine.layoutAnimations.delete(n);
+		});
 		el.dataset.columns = cols;
 		items.forEach((n?: any) => {
 			n.style.width = col + "px";

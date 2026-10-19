@@ -101,3 +101,35 @@ test("reduced motion uses opacity only and missing animation support remains fun
 		f.dom.window.close();
 	}
 });
+
+test("layout retargeting animates position without changing width or scaling text", () => {
+	const f = fixture();
+	try {
+		f.motion.flip(f.el, { left: 120, top: 40, width: 200 }, { left: 20, top: 10, width: 300 });
+		assert.equal(f.animations.length, 2, "width change fades content and translates its container");
+		for (const animation of f.animations) {
+			assert.ok(
+				animation.frames.every((frame: any) => !("width" in frame) && !("height" in frame)),
+			);
+			assert.ok(animation.frames.every((frame: any) => !String(frame.transform).includes("scale")));
+		}
+		assert.match(f.animations.at(-1).frames[0].transform, /translate\(100px,30px\)/);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("motion durations accept both milliseconds and Vite-minified seconds", () => {
+	const f = fixture();
+	try {
+		const root = f.w.document.documentElement;
+		root.style.setProperty("--base", "220ms");
+		assert.equal(f.w.MotionTest.MotionEngine.time("base"), 220);
+		root.style.setProperty("--base", ".22s");
+		assert.equal(f.w.MotionTest.MotionEngine.time("base"), 220);
+		root.style.setProperty("--dur-reduced", ".07s");
+		assert.equal(f.w.MotionTest.MotionEngine.reducedDuration, 70);
+	} finally {
+		f.dom.window.close();
+	}
+});

@@ -925,5 +925,6 @@
 	"auth.cancelledTitle": "登录已取消",
 	"auth.permissions": "访问权限",
 	"auth.manageGrants": "管理授权",
-	"auth.eventQueue": "提交事件进入队列，不代表执行完成。"
+	"auth.eventQueue": "提交事件进入队列，不代表执行完成。",
+	"web.related.moreSuffix": " 项关联内容"
 }

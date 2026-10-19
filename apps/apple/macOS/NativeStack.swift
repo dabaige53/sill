@@ -6,7 +6,22 @@ struct NativeStack: View {
   let expanded: Bool
   let toggle: () -> Void
   let open: (Card) -> Void
-  @State private var index = 0
+  @EnvironmentObject private var model: Workspace
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.controlActiveState) private var windowActivity
+  @State private var selection = DeckSelection()
+  @State private var width: CGFloat = 1
+  @State private var offset: CGFloat = 0
+  @State private var presentationOffset: CGFloat = 0
+  @State private var dragOrigin: CGFloat = 0
+  @State private var entering = false
+  @State private var exiting = false
+  @State private var sample: (time: Date, x: CGFloat)?
+  @State private var velocity: CGFloat = 0
+  @State private var generation = 0
+  @GestureState private var dragging = false
+  private var animated: Bool { !reduceMotion && model.preferences["reduceMotion"]?.bool != true }
+  private var currentIndex: Int { min(max(0, selection.index), max(0, cards.count - 1)) }
   var body: some View {
     if expanded {
       VStack(spacing: AppleMetrics.space12) {
@@ -20,48 +35,136 @@ struct NativeStack: View {
         ForEach(cards) { card in CardTile(card: card, compact: true, open: { open(card) }) }
       }
     } else if !cards.isEmpty {
-      VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-        HStack {
-          CardSourceGlyph(card: cards[index % cards.count])
-          Text(cards[index % cards.count].source).lineLimit(1)
-          Spacer()
-          Text("\(index % cards.count + 1)/\(cards.count)").monospacedDigit()
-        }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-        Button(action: toggle) {
-          Text(cards[index % cards.count].title).font(
-            .system(size: AppleMetrics.font17, weight: .semibold)
-          ).lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
-        }.buttonStyle(.plain)
-        if !cards[index % cards.count].summary.isEmpty {
-          Text(cards[index % cards.count].summary).font(.system(size: AppleMetrics.font15))
-            .foregroundStyle(AppleColors.secondary).lineLimit(2)
-        }
-      }.padding(AppleMetrics.cardPadding).frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
-        .background {
-          RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).fill(AppleColors.surface).padding(
-            .horizontal, AppleMetrics.space8
-          ).offset(y: AppleMetrics.space8)
-        }
-        .background {
-          RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).fill(AppleColors.surface).padding(
-            .horizontal, AppleMetrics.space16
-          ).offset(y: AppleMetrics.space14)
-        }
-        .padding(.bottom, AppleMetrics.space14)
-        .gesture(
-          DragGesture(minimumDistance: AppleMetrics.space24).onEnded { value in
-            if abs(value.translation.width) > AppleMetrics.space40 {
-              index = (index + 1) % cards.count
-            }
+      stackFace(cards[currentIndex])
+        .opacity(entering ? 0 : 1)
+        .modifier(
+          DeckPosition(
+            x: animated ? offset : 0, width: width,
+            rotation: exiting
+              ? AppleMetrics.motionDeckExitRotation : AppleMetrics.motionDeckRotation
+          ) { value in
+            presentationOffset = value
           }
         )
+        .background {
+          let neighbor = currentIndex + (offset > 0 ? -1 : 1)
+          if cards.indices.contains(neighbor) {
+            stackFace(cards[neighbor])
+              .scaleEffect(AppleMetrics.motionDeckScale)
+              .offset(y: AppleMetrics.motionDeckInset)
+              .allowsHitTesting(false).accessibilityHidden(true)
+          }
+        }
+        .background(
+          GeometryReader { geometry in
+            Color.clear.onAppear { width = max(1, geometry.size.width) }
+              .onChange(of: geometry.size.width) { _, value in width = max(1, value) }
+          }
+        )
+        .padding(.bottom, AppleMetrics.motionDeckInset)
+        .simultaneousGesture(
+          DragGesture(minimumDistance: AppleMetrics.motionDeckGestureStart)
+            .updating($dragging) { _, state, _ in state = true }
+            .onChanged { value in
+              guard abs(value.translation.width) > abs(value.translation.height) else { return }
+              if sample == nil {
+                let confirmed = selection.pendingTarget != nil
+                if confirmed { settleConfirmedSelection() }
+                dragOrigin = confirmed ? 0 : presentationOffset
+                velocity = 0
+              }
+              generation += 1
+              exiting = false
+              let x = value.translation.width
+              if let sample {
+                let elapsed = value.time.timeIntervalSince(sample.time) * 1000
+                if elapsed > 0 { velocity = (x - sample.x) / elapsed }
+              }
+              sample = (value.time, x)
+              let next = currentIndex + (x < 0 ? 1 : -1)
+              var transaction = Transaction()
+              transaction.disablesAnimations = true
+              withTransaction(transaction) {
+                offset =
+                  dragOrigin + x
+                  * (cards.indices.contains(next) ? 1 : AppleMetrics.motionDeckResistance)
+              }
+            }
+            .onEnded { value in
+              guard abs(value.translation.width) > abs(value.translation.height) else {
+                resetDrag()
+                return
+              }
+              if let sample, value.time.timeIntervalSince(sample.time) > 0.1 { velocity = 0 }
+              let target = DeckNavigation.target(
+                index: currentIndex, count: cards.count,
+                translation: value.translation.width, velocity: velocity, width: width)
+              sample = nil
+              guard target != currentIndex else {
+                resetDrag(releaseVelocity: velocity)
+                return
+              }
+              selection.confirm(target)
+              generation += 1
+              let completionGeneration = generation
+              if !animated {
+                entering = true
+                selection.settle(count: cards.count)
+                offset = 0
+                Task { @MainActor in
+                  await Task.yield()
+                  guard generation == completionGeneration else { return }
+                  withAnimation(.linear(duration: AppleMetrics.motionReduced)) { entering = false }
+                }
+                return
+              }
+              exiting = true
+              let destination =
+                (target > currentIndex ? -1.0 : 1.0) * width * AppleMetrics.motionDeckExitTravel
+              let remaining = destination - offset
+              let initialVelocity = remaining == 0 ? 0 : velocity * 1000 / remaining
+              withAnimation(
+                .interpolatingSpring(
+                  duration: AppleMetrics.motionDeckSpring,
+                  bounce: AppleMetrics.motionDeckBounce, initialVelocity: initialVelocity),
+                completionCriteria: .removed
+              ) {
+                offset = destination
+              } completion: {
+                guard generation == completionGeneration else { return }
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                  selection.settle(count: cards.count)
+                  offset = 0
+                  exiting = false
+                }
+              }
+            }
+        )
+        .onChange(of: dragging) { _, active in
+          if !active && sample != nil { resetDrag() }
+        }
+        .onChange(of: windowActivity) { _, activity in
+          if activity == .inactive { resetDrag() }
+        }
+        .onChange(of: animated) { _, _ in resetDrag() }
+        .onChange(of: cards.map(\.id)) { _, _ in
+          selection.settle(count: cards.count)
+          resetDrag()
+        }
         .focusable()
         .onKeyPress(keys: [.return, .space, .leftArrow, .rightArrow]) { press in
           if press.key == .return || press.key == .space {
+            resetDrag()
             toggle()
           } else {
-            index = (index + (press.key == .rightArrow ? 1 : cards.count - 1)) % cards.count
+            generation += 1
+            sample = nil
+            entering = false
+            exiting = false
+            offset = 0
+            selection.step(press.key == .rightArrow ? 1 : -1, count: cards.count)
           }
           return .handled
         }
@@ -69,5 +172,114 @@ struct NativeStack: View {
         .accessibilityLabel(
           (cards.first?.source ?? "") + "：\(cards.count)" + Copy.text("web.templates.50091bfc40b5"))
     }
+  }
+
+  private func stackFace(_ card: Card) -> some View {
+    VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+      HStack {
+        CardSourceGlyph(card: card)
+        Text(card.source).lineLimit(1)
+        Spacer()
+        Text("\(currentIndex + 1)/\(cards.count)").monospacedDigit()
+      }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+      Button(action: toggle) {
+        Text(card.title).font(
+          .system(size: AppleMetrics.font17, weight: .semibold)
+        ).lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
+      }.buttonStyle(.plain)
+      if !card.summary.isEmpty {
+        Text(card.summary).font(.system(size: AppleMetrics.font15))
+          .foregroundStyle(AppleColors.secondary).lineLimit(2)
+      }
+    }.padding(AppleMetrics.cardPadding).frame(maxWidth: .infinity, alignment: .leading)
+      .background(AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
+
+  }
+
+  private func settleConfirmedSelection() {
+    var transaction = Transaction()
+    transaction.disablesAnimations = true
+    withTransaction(transaction) {
+      selection.settle(count: cards.count)
+      offset = 0
+      presentationOffset = 0
+      exiting = false
+      entering = false
+    }
+  }
+
+  private func resetDrag(releaseVelocity: CGFloat = 0) {
+    generation += 1
+    let confirmed = selection.pendingTarget != nil
+    if confirmed { settleConfirmedSelection() }
+    sample = nil
+    velocity = 0
+    exiting = false
+    entering = false
+    guard !confirmed else { return }
+    withAnimation(
+      animated
+        ? .interpolatingSpring(
+          duration: AppleMetrics.motionDeckSpring,
+          bounce: AppleMetrics.motionDeckBounce,
+          initialVelocity: offset == 0 ? 0 : releaseVelocity * 1000 / -offset)
+        : nil
+    ) {
+      offset = 0
+    }
+  }
+}
+
+/// A released gesture is a confirmed choice even if its exit animation is interrupted.
+struct DeckSelection {
+  private(set) var index = 0
+  private(set) var pendingTarget: Int?
+
+  mutating func confirm(_ target: Int) { pendingTarget = target }
+
+  mutating func settle(count: Int) {
+    index = min(max(0, pendingTarget ?? index), max(0, count - 1))
+    pendingTarget = nil
+  }
+
+  mutating func step(_ direction: Int, count: Int) {
+    settle(count: count)
+    index = min(max(0, index + direction), max(0, count - 1))
+  }
+}
+
+struct DeckNavigation {
+  static func target(
+    index: Int, count: Int, translation: CGFloat, velocity: CGFloat, width: CGFloat
+  ) -> Int {
+    guard count > 0 else { return 0 }
+    let current = min(max(0, index), count - 1)
+    let far = abs(translation) > width * AppleMetrics.motionDeckTravel
+    let flick =
+      abs(translation) > AppleMetrics.motionDeckMinFlick
+      && abs(velocity) > AppleMetrics.motionDeckSpeed && translation * velocity > 0
+    guard far || flick else { return current }
+    return min(max(0, current + (translation < 0 ? 1 : -1)), count - 1)
+  }
+}
+
+/// Reports the actual rendered position so a new gesture can take over a running spring.
+private struct DeckPosition: AnimatableModifier {
+  nonisolated var x: CGFloat
+  let width: CGFloat
+  nonisolated var rotation: Double
+  let update: (CGFloat) -> Void
+  nonisolated var animatableData: AnimatablePair<CGFloat, Double> {
+    get { AnimatablePair(x, rotation) }
+    set {
+      x = newValue.first
+      rotation = newValue.second
+    }
+  }
+  func body(content: Content) -> some View {
+    let position = x
+    return content.offset(x: position)
+      .rotationEffect(.degrees(Double(max(-1, min(1, position / width))) * rotation))
+      .onChange(of: position) { _, value in update(value) }
   }
 }

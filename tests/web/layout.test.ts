@@ -41,3 +41,21 @@ test("density breakpoints never overlap or put columns outside the container", (
 		}
 	}
 });
+
+test("adding a column requires its ideal reading width, including near the former jump", () => {
+	for (const width of [1600, 1610, 1620, 1640]) {
+		const result = columnGeometry(width);
+		assert.equal(result.columns, 4);
+		assert.equal(result.columnWidth, 380);
+	}
+	assert.equal(columnGeometry(1796).columns, 5);
+	assert.equal(columnGeometry(1796).columnWidth, 340);
+});
+
+test("narrow desktop windows retain two usable columns", () => {
+	for (const width of [632, 652]) {
+		const result = columnGeometry(width, { gap: 20 });
+		assert.equal(result.columns, 2);
+		assert.ok(result.columnWidth >= 280);
+	}
+});
