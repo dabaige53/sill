@@ -1,7 +1,14 @@
 const MotionEngine: Record<string, any> = {
 	query: matchMedia("(prefers-reduced-motion: reduce)"),
 	panelAnimations: new WeakMap(),
+	panelRuns: new WeakMap(),
 	layoutAnimations: new WeakMap(),
+	contentAnimations: new WeakMap(),
+	visibilityRuns: new WeakMap(),
+	exits: new Map(),
+	time(name: string) {
+		return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--${name}`));
+	},
 	get reduced() {
 		return this.query.matches || !!document.body?.classList.contains("reduce-motion");
 	},
@@ -27,6 +34,87 @@ const MotionEngine: Record<string, any> = {
 			{ duration: 280, delay, fill: "backwards" },
 		);
 	},
+	fade(el?: any) {
+		if (!el) return;
+		this.contentAnimations.get(el)?.cancel();
+		const animation = this.animate(el, [{ opacity: 0 }, { opacity: 1 }], {
+			duration: this.time("fast"),
+		});
+		this.contentAnimations.set(el, animation);
+		return animation;
+	},
+	resize(el: HTMLElement, before: number) {
+		if (!el) return;
+		this.contentAnimations.get(el)?.cancel();
+		const after = el.getBoundingClientRect().height;
+		if (this.reduced || Math.abs(before - after) < 1) return this.fade(el);
+		const animation = this.animate(
+			el,
+			[
+				{ height: `${before}px`, opacity: 0.5, overflow: "hidden" },
+				{ height: `${after}px`, opacity: 1, overflow: "hidden" },
+			],
+			{ duration: this.time("base") },
+		);
+		this.contentAnimations.set(el, animation);
+		return animation;
+	},
+	visibility(el: HTMLElement, visible: boolean, done: () => void = () => {}) {
+		const previous = this.visibilityRuns.get(el);
+		if (previous?.visible === visible) return;
+		const opacity = el.hidden ? 0 : getComputedStyle(el).opacity;
+		previous?.animation?.cancel();
+		const run = { visible, animation: null };
+		this.visibilityRuns.set(el, run);
+		if (visible) el.hidden = false;
+		el.inert = !visible;
+		if (el.hidden) {
+			done();
+			return;
+		}
+		run.animation = this.animate(el, [{ opacity }, { opacity: visible ? 1 : 0 }], {
+			duration: this.time(visible ? "base" : "fast"),
+		});
+		const finish = () => {
+			if (this.visibilityRuns.get(el) !== run) return;
+			el.hidden = !visible;
+			done();
+		};
+		if (run.animation) run.animation.finished.then(finish, () => {});
+		else finish();
+	},
+	// Retain the removed surface only for its exit; it has no live controls or identity.
+	cancelExit(key: string) {
+		this.exits.get(key)?.remove();
+		this.exits.delete(key);
+	},
+	retire(el: HTMLElement, rect: DOMRect, key: string) {
+		this.cancelExit(key);
+		if (rect.bottom <= 0 || rect.top >= innerHeight) return;
+		for (const animation of el.getAnimations({ subtree: true })) animation.cancel();
+		const layer = document.createElement("div");
+		layer.className = "motion-exit";
+		layer.inert = true;
+		layer.setAttribute("aria-hidden", "true");
+		layer.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:2`;
+		for (const node of [el, ...el.querySelectorAll("*")]) {
+			for (const attr of ["id", "data-card", "data-stack", "data-action", "autofocus"])
+				node.removeAttribute(attr);
+		}
+		el.style.cssText = `position:relative;left:0;top:0;width:${rect.width}px;margin:0`;
+		layer.append(el);
+		document.body.append(layer);
+		this.exits.set(key, layer);
+		const animation = this.animate(layer, [{ opacity: 1 }, { opacity: 0 }], {
+			duration: this.time("fast"),
+		});
+		const remove = () => {
+			layer.remove();
+			if (this.exits.get(key) === layer) this.exits.delete(key);
+		};
+		if (animation) animation.finished.then(remove, remove);
+		else remove();
+	},
 	// New cards drop in from above: the one motion for arrivals.
 	drop(el?: any, delay: any = 0) {
 		return this.animate(
@@ -35,7 +123,7 @@ const MotionEngine: Record<string, any> = {
 				{ opacity: 0, transform: "translateY(-14px)" },
 				{ opacity: 1, transform: "translateY(0)" },
 			],
-			{ duration: 360, delay },
+			{ duration: 360, delay, fill: "backwards" },
 		);
 	},
 	press(el?: any) {
@@ -90,6 +178,9 @@ const MotionEngine: Record<string, any> = {
 			: dialog.querySelector(".preview-sheet") || dialog;
 	},
 	cancelPanel(el?: any) {
+		this.panelRuns.delete(el);
+		this.contentAnimations.get(el)?.cancel();
+		this.contentAnimations.get(this.surface(el))?.cancel();
 		(this.panelAnimations.get(el) || []).forEach((animation?: any) => {
 			animation?.cancel();
 		});
@@ -97,6 +188,8 @@ const MotionEngine: Record<string, any> = {
 	},
 	openPanel(el?: any, origin?: any) {
 		this.cancelPanel(el);
+		const run = {};
+		this.panelRuns.set(el, run);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
 		// Phone: the preview is a sheet rising from the bottom edge; its position is a CSS transition, the dim fades in with it.
@@ -110,9 +203,12 @@ const MotionEngine: Record<string, any> = {
 			bar?.classList.add("is-hidden");
 			void sheet.offsetHeight;
 			requestAnimationFrame(() => {
+				if (this.panelRuns.get(el) !== run || !sheet.isConnected) return;
 				sheet.classList.remove("is-drag", "is-off");
 				el.style.removeProperty("--backdrop");
-				window.setTimeout(() => bar?.classList.remove("is-hidden"), 140);
+				window.setTimeout(() => {
+					if (this.panelRuns.get(el) === run) bar?.classList.remove("is-hidden");
+				}, this.time("fast"));
 			});
 			this.panelAnimations.set(
 				el,
@@ -147,13 +243,16 @@ const MotionEngine: Record<string, any> = {
 		const now = newRect || el.getBoundingClientRect(),
 			x = oldRect.left - now.left,
 			y = oldRect.top - now.top;
-		if (Math.abs(x) + Math.abs(y) > 1)
+		if (Math.abs(x) + Math.abs(y) + Math.abs(oldRect.width - now.width) > 1)
 			this.layoutAnimations.set(
 				el,
 				this.animate(
 					el,
-					[{ transform: `translate(${x}px,${y}px)` }, { transform: "translate(0,0)" }],
-					{ duration: 320 },
+					[
+						{ transform: `translate(${x}px,${y}px)`, width: `${oldRect.width}px` },
+						{ transform: "translate(0,0)", width: `${now.width}px` },
+					],
+					{ duration: this.time("layout") },
 				),
 			);
 	},

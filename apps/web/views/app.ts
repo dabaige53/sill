@@ -20,8 +20,8 @@ import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { Panels, welcomeHTML } from "../interactions/panels.ts";
-import { FeedPolicy } from "../services/feed-policy.ts";
 import { Capture } from "../services/capture.ts";
+import { FeedPolicy } from "../services/feed-policy.ts";
 import { LocalSync } from "../services/local-sync.ts";
 
 class AppController {
@@ -385,7 +385,7 @@ class AppController {
 				.map((n?: any) => n.dataset.card || n.dataset.stack)
 				.join(",");
 			if (before !== after) {
-				this.withFeedAnchor(() => {});
+				this.withFeedAnchor(() => {}, true);
 				return;
 			}
 		}
@@ -403,6 +403,8 @@ class AppController {
 			now: this.feedNow,
 		});
 		const node = temp.firstElementChild;
+		const oldHeight = old.getBoundingClientRect().height;
+		const taskChanged = c.type === "task" && old.innerHTML !== node.innerHTML;
 		// Start from the old classes so a read/unread change settles as a color transition.
 		const nextClass = node.className;
 		node.className = old.className;
@@ -411,6 +413,15 @@ class AppController {
 		this.revealImages(node);
 		void (node as HTMLElement).offsetWidth;
 		node.className = nextClass;
+		if (taskChanged) {
+			const resize = MotionEngine.resize(node, oldHeight);
+			resize?.finished.then(
+				() => {
+					if (node.isConnected) this.layout.schedule(true);
+				},
+				() => {},
+			);
+		}
 		this.layout.schedule(true);
 		this.updateSelection();
 		if (active) {
@@ -459,8 +470,11 @@ class AppController {
 			n.classList.toggle("is-selected", this.selected.has(n.dataset.card));
 		});
 		const bar = document.getElementById("selection-bar");
-		bar.hidden = this.selected.size === 0;
-		document.body.classList.toggle("is-selecting", this.selected.size > 0);
+		const selecting = this.selected.size > 0;
+		if (selecting) document.body.classList.add("is-selecting");
+		MotionEngine.visibility(bar, selecting, () => {
+			document.body.classList.toggle("is-selecting", this.selected.size > 0);
+		});
 		bar.querySelector(".selection-count").textContent = String(this.selected.size);
 	}
 	/* ——— Routes: #feed · #card/<id> · #read/<id> ——— */
@@ -553,21 +567,28 @@ class AppController {
 			const sheet = this.dialog.querySelector(".preview-sheet"),
 				token = this.modalToken;
 			this.sheetLeaving = true;
+			MotionEngine.cancelPanel(this.dialog);
 			sheet.classList.remove("is-drag");
 			sheet.classList.add("is-off");
 			sheet.style.translate = "";
 			this.dialog.querySelector(":scope > .float-bar")?.classList.add("is-hidden");
 			this.dialog.style.setProperty("--backdrop", "0");
-			window.setTimeout(() => {
-				this.sheetLeaving = false;
-				if (this.modalToken === token && this.dialog.open) {
-					this.skipReturnMotion = true;
-					this.closeNative();
-				}
-			}, 300);
+			// Read after the class change so CSS has created its actual exit transition.
+			void sheet.offsetHeight;
+			const animations = sheet.getAnimations();
+			Promise.allSettled(animations.map((animation: Animation) => animation.finished)).then(
+				() => {
+					if (this.modalToken === token && this.sheetLeaving && this.dialog.open) {
+						this.sheetLeaving = false;
+						this.skipReturnMotion = true;
+						this.closeNative();
+					}
+				},
+				() => {},
+			);
 			return;
 		}
-		if (animate && this.modalKind === "preview" && !MotionEngine.reduced) {
+		if (animate) {
 			const token = this.modalToken,
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;
@@ -580,7 +601,7 @@ class AppController {
 					{ opacity, transform: "translateY(0)" },
 					{ opacity: 0, transform: "translateY(4px)" },
 				],
-				{ duration: 140, fill: "forwards" },
+				{ duration: MotionEngine.time("fast"), fill: "forwards" },
 			);
 			const bar = this.dialog.querySelector(":scope > .float-bar");
 			const barAnimation = bar
@@ -699,6 +720,11 @@ class AppController {
 		);
 	}
 	swapPanel(html?: any, kind?: any, shape: any = "panel") {
+		this.modalToken++;
+		MotionEngine.cancelPanel(this.dialog);
+		this.sheetLeaving = false;
+		this.skipReturnMotion = false;
+		this.dialog.style.removeProperty("--backdrop");
 		// Move inside the same sheet without re-animating from a card.
 		const toast = document.getElementById("toast");
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);
@@ -943,6 +969,7 @@ class AppController {
 						node.classList.toggle("is-done", t.done);
 						node.setAttribute("aria-checked", String(t.done));
 						node.querySelector(".check-dot").outerHTML = checkMark(t.done);
+						if (t.id === taskId) MotionEngine.fade(node);
 					}
 				}
 		}
@@ -1121,8 +1148,13 @@ class AppController {
 	}
 	withFeedAnchor(change?: any, animate: any = false) {
 		const nodes = [...this.grid.querySelectorAll("[data-card]")];
+		const surfaces = [...this.grid.querySelectorAll(":scope > .feed-item")];
+		const key = (n: HTMLElement) =>
+			n.dataset.card || n.dataset.stack || n.dataset.stackOpen || "shelf";
 		const positions = animate
-			? new Map<any, any>(nodes.map((n?: any) => [n.dataset.card, n.getBoundingClientRect()]))
+			? new Map<any, any>(
+					surfaces.map((n?: any) => [key(n), { node: n, rect: n.getBoundingClientRect() }]),
+				)
 			: null;
 		const anchors = nodes
 			.filter((n?: any) => n.getBoundingClientRect().bottom > 0)
@@ -1170,12 +1202,22 @@ class AppController {
 				document.getElementById("orb")
 			).focus({ preventScroll: true });
 		}
-		if (positions)
-			this.grid.querySelectorAll("[data-card]").forEach((node?: any) => {
-				const rect = positions.get(node.dataset.card);
-				if (rect) MotionEngine.flip(node, rect);
-				else MotionEngine.drop(node);
+		if (positions) {
+			this.grid.querySelectorAll(":scope > .feed-item").forEach((node?: any) => {
+				MotionEngine.cancelExit(key(node));
+				const previous = positions.get(key(node));
+				const rect = node.getBoundingClientRect();
+				if (rect.bottom > 0 && rect.top < innerHeight) {
+					if (previous) {
+						MotionEngine.flip(node, previous.rect);
+						if (previous.node.textContent !== node.textContent)
+							MotionEngine.resize(node, previous.rect.height);
+					} else MotionEngine.drop(node, this.sheetLeaving ? MotionEngine.time("fast") : 0);
+				}
+				positions.delete(key(node));
 			});
+			for (const [id, { node, rect }] of positions) MotionEngine.retire(node, rect, id);
+		}
 	}
 	showNew(quiet: any = false) {
 		if (this.dialog.open || this.drag.active) return;
@@ -1435,11 +1477,11 @@ class AppController {
 		}
 		this.withFeedAnchor(() => {
 			Store.insert(fresh);
-		});
+		}, true);
 		if (toast)
 			this.toast(copy("web.app.4f060a8371c3"), () => {
 				Store.remove([card.id]);
-				this.withFeedAnchor(() => {});
+				this.withFeedAnchor(() => {}, true);
 			});
 		return card;
 	}
@@ -1512,11 +1554,14 @@ class AppController {
 		Store.setPref(key, value);
 		this.applyPreferences();
 		if (["stack", "fadeRead", "archiveAfter", "floatTimely", "density"].includes(key))
-			this.withFeedAnchor(() => {});
+			this.withFeedAnchor(() => {}, true);
 		if (this.modalKind === "settings") this.repaintSettings();
 		return before;
 	}
 	replacePanelContent(html?: any) {
+		const oldSurface = MotionEngine.surface(this.dialog);
+		const oldHeight = oldSurface.getBoundingClientRect().height;
+		const oldBody = oldSurface.querySelector(".preview-body")?.innerHTML;
 		const active = document.activeElement;
 		const key = (n?: any) => [n.id, n.dataset.action, n.dataset.id, n.dataset.extra].join("|");
 		const focused = this.dialog.contains(active) ? key(active) : null;
@@ -1547,6 +1592,11 @@ class AppController {
 				node.scrollTop = y;
 			}
 		}
+		const surface = MotionEngine.surface(this.dialog);
+		if (this.modalKind === "lightbox")
+			MotionEngine.fade(this.dialog.querySelector(".lightbox-stage img"));
+		else if (oldBody === undefined || oldBody !== surface.querySelector(".preview-body")?.innerHTML)
+			MotionEngine.resize(surface, oldHeight);
 	}
 	repaintSettings() {
 		const main = this.dialog.querySelector(".settings-main"),
@@ -2026,13 +2076,13 @@ class AppController {
 			case "restore-card": {
 				const before: Record<string, any> = { ...Store.item(id) };
 				Store.patch(id, { restoredAt: Date.now(), read: false, seen: false, progress: 0 });
-				this.dialog.innerHTML = Panels.archive(this, this.editId);
-				this.withFeedAnchor(() => {});
+				this.replacePanelContent(Panels.archive(this, this.editId));
+				this.withFeedAnchor(() => {}, true);
 				this.toast(copy("web.app.fff336942d9b"), () => {
 					Store.patch(id, before);
-					this.withFeedAnchor(() => {});
+					this.withFeedAnchor(() => {}, true);
 					if (this.modalKind === "archive")
-						this.dialog.innerHTML = Panels.archive(this, this.editId);
+						this.replacePanelContent(Panels.archive(this, this.editId));
 				});
 				break;
 			}
@@ -2043,14 +2093,14 @@ class AppController {
 					Store.patch(i, { read: true, seen: true, readAt: Date.now() - 8 * 86400000 });
 				});
 				this.closeNative();
-				this.withFeedAnchor(() => {});
+				this.withFeedAnchor(() => {}, true);
 				this.toast(
 					`${copy("web.app.d22d0186c603")}${ids.length}${copy("web.panels.e9e0fdc242b4")}`,
 					() => {
 						before.forEach(([i, v]: any) => {
 							Store.patch(i, v);
 						});
-						this.withFeedAnchor(() => {});
+						this.withFeedAnchor(() => {}, true);
 					},
 				);
 				break;
@@ -2075,7 +2125,7 @@ class AppController {
 			case "clear-filter":
 				this.filter = { type: "all", status: "all", tag: "", query: "" };
 				if (this.modalKind === "search") this.repaintSearch();
-				else this.renderCurrent(true);
+				else this.withFeedAnchor(() => {}, true);
 				break;
 			case "apply-filter":
 				this.closeNative();
@@ -2086,7 +2136,7 @@ class AppController {
 					Store.setPref("sort", extra);
 					this.applyPreferences();
 					this.feedNow = Date.now();
-					this.renderCurrent(false);
+					this.withFeedAnchor(() => {}, true);
 				}
 				break;
 			case "editor-tag": {
@@ -2197,7 +2247,7 @@ class AppController {
 					n = (c.photos || [c.image]).length;
 				this.photoIndex =
 					name === "photo-go" ? Number(extra) : (this.photoIndex + Number(extra) + n) % n;
-				this.dialog.innerHTML = Panels.lightbox(c, this.photoIndex);
+				this.replacePanelContent(Panels.lightbox(c, this.photoIndex));
 				break;
 			}
 			case "sync-retry":
@@ -2302,7 +2352,7 @@ END:VCALENDAR
 	}
 	repaintSearch() {
 		if (this.modalKind !== "search") {
-			this.renderCurrent(false);
+			this.withFeedAnchor(() => {}, true);
 			this.updateFilterIndicator();
 			return;
 		}
@@ -2314,6 +2364,7 @@ END:VCALENDAR
 		const liveToast = document.getElementById("toast");
 		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
 		this.dialog.innerHTML = Panels.search(this);
+		MotionEngine.fade(document.getElementById("search-results"));
 		if (searchFocused) {
 			const n = document.getElementById("filter-search");
 			n.focus();
@@ -2324,7 +2375,7 @@ END:VCALENDAR
 			[...this.dialog.querySelectorAll("[data-action]")]
 				.find((n?: any) => n.dataset.action === action && n.dataset.extra === extra)
 				?.focus({ preventScroll: true });
-		this.renderCurrent(false);
+		this.withFeedAnchor(() => {}, true);
 		this.updateFilterIndicator();
 	}
 	input(e?: any) {
@@ -2335,8 +2386,11 @@ END:VCALENDAR
 			clearTimeout(this.searchTimer);
 			this.searchTimer = window.setTimeout(() => {
 				const results = document.getElementById("search-results");
-				if (results) results.innerHTML = Panels.searchResults(this);
-				if (this.mode === "feed") this.renderCurrent(false);
+				if (results) {
+					results.innerHTML = Panels.searchResults(this);
+					MotionEngine.fade(results);
+				}
+				if (this.mode === "feed") this.withFeedAnchor(() => {}, true);
 				this.updateFilterIndicator();
 			}, 140);
 		}

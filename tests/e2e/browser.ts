@@ -268,7 +268,7 @@ async function recordLayout(page?: any, width?: any) {
 				await action(page, "preview", "reminder-01");
 				await page.locator("dialog").getByRole("button", { name: "完成提醒", exact: true }).click();
 				await filter(page, "done");
-				assert.equal(await page.locator(".feed-card").count(), 1);
+				assert.equal(await page.locator("#feed-grid .feed-card").count(), 1);
 				await openCard(page, "reminder-01");
 				await page.locator("dialog").getByRole("button", { name: "恢复提醒", exact: true }).click();
 				await action(page, "clear-filter");
@@ -563,7 +563,7 @@ async function recordLayout(page?: any, width?: any) {
 				assert.equal(await page.evaluate(() => window.__app.selected.size), ids.length);
 				await page.keyboard.press("Escape");
 				assert.equal(await page.evaluate(() => window.__app.selected.size), 0);
-				assert.equal(await page.locator("#selection-bar").isVisible(), false);
+				await page.locator("#selection-bar").waitFor({ state: "hidden" });
 				const start = await card(page, ids[0]).boundingBox(),
 					x = start.x + 60,
 					y = start.y + start.height - 30;
@@ -739,6 +739,87 @@ async function recordLayout(page?: any, width?: any) {
 				},
 				{ viewport: { width, height: 1000 } },
 			);
+		await scenario(
+			"Motion exits preserve live identity and survive rapid undo and reselection",
+			async (page: any) => {
+				await page.evaluate(async () => {
+					const app = window.__app;
+					app.openPanel("settings");
+					app.closeNative();
+					if (!app.dialog.open || !app.sheetLeaving) throw new Error("Panel skipped its exit");
+					app.openPanel("search");
+					await new Promise((resolve) => setTimeout(resolve, 400));
+					if (!app.dialog.open || app.modalKind !== "search")
+						throw new Error("Old close hid new panel");
+					app.closeNative(false);
+					app.select("article-01");
+					app.selected.clear();
+					app.updateSelection();
+					app.select("article-01");
+					await new Promise((resolve) => setTimeout(resolve, 400));
+					const bar = document.getElementById("selection-bar");
+					if (bar.hidden || bar.inert) throw new Error("Old selection exit hid new selection");
+					app.selected.clear();
+					app.updateSelection();
+					app.action("complete-reminder", "reminder-01");
+					const exit = document.querySelector<HTMLElement>(".motion-exit");
+					if (!exit || !exit.inert || exit.querySelector("[data-card],[data-action],[id]"))
+						throw new Error("Removed card retained an interactive identity");
+					app.undoAction();
+					if (document.querySelector(".motion-exit"))
+						throw new Error("Undo left duplicate exit surface");
+					if (document.querySelectorAll('[data-card="reminder-01"]').length !== 1)
+						throw new Error("Undo duplicated or lost the card");
+				});
+			},
+		);
+		await scenario(
+			"Phone drawer waits for its CSS exit and cancels stale opening callbacks",
+			async (page: any) => {
+				await page.addStyleTag({
+					content: "#modal.preview .preview-sheet { transition-duration: 800ms !important; }",
+				});
+				await page.evaluate(() => window.__app.openCard("article-01"));
+				await page.waitForTimeout(1000);
+				await page.evaluate(() => window.__app.closeNative());
+				await page.waitForTimeout(400);
+				assert.equal(await page.locator("dialog").evaluate((n: HTMLDialogElement) => n.open), true);
+				await page.waitForFunction(() => !document.querySelector("dialog").open);
+				await page.evaluate(async () => {
+					const app = window.__app;
+					app.openCard("article-01");
+					app.closeNative();
+					app.openCard("mail-01");
+					await new Promise((resolve) => setTimeout(resolve, 1000));
+					if (!app.dialog.open || app.currentId !== "mail-01" || app.sheetLeaving)
+						throw new Error("Stale drawer callback affected new card");
+					if (app.dialog.querySelector(".preview-sheet").classList.contains("is-off"))
+						throw new Error("New drawer stayed off screen");
+				});
+			},
+			{ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
+		);
+		await scenario(
+			"Reduced motion keeps new card feedback opacity-only",
+			async (page: any) => {
+				await page.evaluate(() => {
+					const card = window.__app.capture("Reduced motion regression note");
+					const node = document.querySelector(`[data-card="${card.id}"]`);
+					const animations = node.getAnimations();
+					if (!animations.length) throw new Error("New card has no arrival feedback");
+					for (const animation of animations) {
+						const effect = animation.effect as KeyframeEffect;
+						if (Number(effect.getTiming().duration) > 70)
+							throw new Error("Reduced duration exceeded");
+						if (
+							effect.getKeyframes().some((frame) => frame.transform || frame.height || frame.width)
+						)
+							throw new Error("Reduced motion moved or resized content");
+					}
+				});
+			},
+			{ reducedMotion: "reduce" },
+		);
 		for (const width of [390, 320])
 			await scenario(
 				`${width}px touch layout, reminder controls and reduced motion`,
