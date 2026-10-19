@@ -16,6 +16,7 @@
 | 内容保真与阅读密度 | `npm run build && npm run test:material-density` | 合成卡片：中等桌面列宽、紧凑五列上限、任务焦点、摘要原文、长要点与任务换行；1320px、390px、320px，截图在 `artifacts/material-density/` |
 | 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 17 项：真实 Tab、CDP touchCancel、迟到关闭、拖动层级、工具条延迟、入场中打开菜单及切换减少动态效果、减少透明度、增强对比、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界和减少动态效果；不代替 iPhone 系统菜单与主屏幕实测 |
+| 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、隐藏偏好、减少透明度和生成组件包的固定深色环境；不代替真机 |
 | 下拉刷新图标反馈与请求锁 | `npm run build && node tests/e2e/refresh-motion-browser.ts` | 合成卡片、Chromium 触屏事件、普通及减少动态效果、轻阈值与取消、真实等待、成功勾与失败重试、慢请求防重复、正常滚动；云端错误不弹文字反馈；不代替 Safari/iPhone 实测 |
 | 单卡交给宿主助手 | `npm run test:core`、`npm run build:cloud && npm run test:cloud-app-browser` | 真实 SDK 协议的 sandbox 宿主模拟：能力协商、账号条件、单次发送、回执未知、手动复制回退、外链确认与明确拒绝的草稿恢复；不发送真实对话 |
 | 云端服务 | `npm run test:supabase`、`npm run test:cloud-app` | 本地检查不代替生产数据和账号验收 |

@@ -72,6 +72,12 @@ const local = src("apps/web/styles/tokens.css")
 	.match(/--(?:text-[\w-]+|pill-radius|fixed-[\w-]+|space-\d+|selection):[^;]+;/g)
 	.join("");
 let css = `/* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */\n:root{--font:var(--font-sans);--ease:cubic-bezier(.2,.75,.25,1);--fast:140ms;--base:220ms;--layout:320ms;${local}}\n`;
+// Carry the canonical dark context so photo tools also stay readable in hosted light previews.
+const darkContext = src("apps/web/styles/tokens.css").match(
+	/:root\[data-theme="dark"\][^{]*\{[^}]*\}/,
+)?.[0];
+if (!darkContext) throw new Error("Missing dark theme context");
+css += darkContext + "\n";
 for (const f of ["base", "controls", "cards", "overlays"]) {
 	let t = src(`apps/web/styles/${f}.css`);
 	for (const [k, v] of Object.entries(map)) t = t.split(k).join(v);

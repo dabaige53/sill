@@ -167,7 +167,9 @@ body[data-density="roomy"] {
 	--col-max: 440px;
 }
 /* Dark: same hierarchy, lower light. Cards stay one step above the canvas. */
-:root[data-theme="dark"] {
+/* Photos keep their black viewing context, including shared tools, in either theme (ADR 0041). */
+:root[data-theme="dark"],
+.lightbox .float-bar {
 	--canvas: #111113;
 	--card: #1c1c1f;
 	--ink: #f2f2f4;

@@ -66,6 +66,41 @@ function fixture() {
 	return { dom, w, app, Store, Panels, observers };
 }
 
+test("closing photo tags returns to the same photo index", () => {
+	const f = fixture();
+	try {
+		const { app, Store } = f;
+		Store.state.cards = [
+			{ id: "photo-one", type: "photo", title: "合成照片", photos: ["coast", "mountain"] },
+		];
+		app.currentId = "photo-one";
+		app.modalKind = "lightbox";
+		app.photoIndex = 1;
+		app.panelReturn = null;
+		app.openModal = (html: string, kind: string) => {
+			app.dialog.innerHTML = html;
+			app.modalKind = kind;
+		};
+		const returned: unknown[] = [];
+		app.openCard = (id: string, reading: boolean) => {
+			returned.push([id, reading]);
+			app.modalKind = "lightbox";
+			app.photoIndex = 0;
+		};
+		app.action = (...args: unknown[]) => returned.push(args);
+		app.openPanel("editor", "photo-one");
+		assert.equal(typeof app.panelReturn, "function");
+		app.closeModal();
+		assert.deepEqual(returned, [
+			["photo-one", false],
+			["photo-go", "photo-one", "1"],
+		]);
+		assert.equal(app.panelReturn, null);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("settings changes preserve focus, scroll, the previous value and unrelated preferences", () => {
 	const f = fixture();
 	try {

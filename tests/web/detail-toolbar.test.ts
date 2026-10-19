@@ -5,6 +5,7 @@ import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 import { type CardAction, CardActions } from "../../contracts/card-actions.ts";
+import type { Card } from "../../contracts/card.ts";
 import { Preferences } from "../../contracts/local.ts";
 
 const toolbar = (card: any) => {
@@ -90,6 +91,42 @@ test("settings can hide any toolbar verb; the rule goes when one side is empty",
 test("hiddenActions is a closed list in the shared preference contract", () => {
 	assert.ok(Preferences.safeParse({ hiddenActions: ["reply", "download"] }).success);
 	assert.ok(!Preferences.safeParse({ hiddenActions: ["delete"] }).success);
+});
+
+test("photo lightbox shares toolbar state and hides empty tools without hiding thumbnails", () => {
+	const photo: Card = { ...seed("photo"), photos: ["architecture", "coast"] };
+	for (const hidden of [[], ["tag"], ["bookmark", "tag", "later"]] as CardAction[][]) {
+		Store.state = Store.fresh();
+		Store.setPref("hiddenActions", hidden);
+		Store.patch(photo.id, { bookmarked: true, later: true });
+		const dom = new JSDOM(Panels.lightbox(photo, 1));
+		try {
+			const document = dom.window.document;
+			const expected = ["bookmark", "edit", "later"].filter(
+				(action) => !hidden.includes(action === "edit" ? "tag" : (action as CardAction)),
+			);
+			assert.deepEqual(
+				[...document.querySelectorAll(".float-bar button")].map((n) =>
+					n.getAttribute("data-action"),
+				),
+				expected,
+			);
+			assert.equal(document.querySelectorAll(".float-bar").length, expected.length ? 1 : 0);
+			assert.equal(document.querySelectorAll(".toolbar-sep,.is-own").length, 0);
+			assert.equal(document.querySelectorAll(".lightbox-thumbs button").length, 2);
+			assert.equal(document.querySelector(".lightbox-thumbs .on")?.getAttribute("data-extra"), "1");
+			if (!hidden.includes("bookmark")) {
+				assert.equal(
+					document.querySelector('[data-action="bookmark"]')?.getAttribute("aria-label"),
+					"取消收藏",
+				);
+				assert.ok(document.querySelector('[data-action="bookmark"]')?.classList.contains("active"));
+			}
+		} finally {
+			dom.window.close();
+		}
+	}
+	Store.state = Store.fresh();
 });
 
 test("imminent event prioritizes dismiss over download only when join is available", () => {

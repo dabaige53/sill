@@ -1184,10 +1184,18 @@ class AppController {
 			return;
 		}
 		if (kind === "search") this.panelReturn = null;
-		else if (["preview", "reader"].includes(this.modalKind)) {
+		else if (
+			["preview", "reader"].includes(this.modalKind) ||
+			(this.modalKind === "lightbox" && kind === "editor")
+		) {
 			const cardId = this.currentId,
-				reading = this.modalKind === "reader";
-			this.panelReturn = () => this.openCard(cardId, reading);
+				reading = this.modalKind === "reader",
+				photoIndex = this.modalKind === "lightbox" ? this.photoIndex : null;
+			this.panelReturn = () => {
+				this.openCard(cardId, reading);
+				if (photoIndex !== null && this.modalKind === "lightbox")
+					this.action("photo-go", cardId, String(photoIndex));
+			};
 		}
 		this.editId = id;
 		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);

@@ -227,7 +227,7 @@ const Panels: PanelRenderers = {
 		const i = Math.max(0, Math.min(photos.length - 1, index));
 		return `<div class="lightbox-top"><span>${esc([c.location, dateLabel(c.time)].filter(Boolean).join(" · "))}</span><span id="modal-title" class="sr-only">${esc(c.title)}</span>${button("x", copy("web.photo.close"), "close")}</div>
    <div class="lightbox-stage">${photos.length > 1 ? button("back", copy("web.photo.previous"), "photo-step", c.id, "-1") : ""}<img src="${Assets[photos[i]]}" alt="${esc(c.title)}${copy("web.photo.altIndexPrefix")}${i + 1}${copy("web.common.cardCountSuffix")}">${photos.length > 1 ? button("arrow", copy("web.photo.next"), "photo-step", c.id, "1") : ""}</div>
-   <div class="lightbox-thumbs">${photos.map((p, n) => `<button type="button" class="${n === i ? "on" : ""}" data-action="photo-go" data-id="${esc(c.id)}" data-extra="${n}" aria-label="${copy("web.photo.indexPrefix")}${n + 1}${copy("web.common.cardCountSuffix")}"><img src="${Assets[p]}" alt=""></button>`).join("")}</div>${this.foot(app?.agentAction?.(c))}`;
+   <div class="lightbox-thumbs">${photos.map((p, n) => `<button type="button" class="${n === i ? "on" : ""}" data-action="photo-go" data-id="${esc(c.id)}" data-extra="${n}" aria-label="${copy("web.photo.indexPrefix")}${n + 1}${copy("web.common.cardCountSuffix")}"><img src="${Assets[p]}" alt=""></button>`).join("")}</div>${this.tools(c, Store.item(c.id))}${this.foot(app?.agentAction?.(c))}`;
 	},
 	/* Tags and notes: chips you can remove, a field to add, a note below. */
 	editor(this: PanelRenderers, app?: Pick<AppController, "editTags">, id?: string) {

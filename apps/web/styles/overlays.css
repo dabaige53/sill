@@ -702,6 +702,12 @@ button.detail-row:hover {
 	height: 100%;
 	object-fit: cover;
 }
+.lightbox > .float-bar {
+	position: static;
+	flex: none;
+	align-self: center;
+	margin: 0 auto max(var(--space-16), env(safe-area-inset-bottom));
+}
 .lightbox .preview-foot {
 	flex: none;
 	justify-content: center;

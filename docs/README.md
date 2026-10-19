@@ -53,12 +53,14 @@
 - [保留当前图标，不继续全套方圆化](adr/0038-keep-original-icons.md)
 - [导航当前项保留现状镜片](adr/0039-keep-navigation-lens.md)
 - [显示加入时优先保留忽略提醒](adr/0040-event-reminder-priority.md)
+- [照片大图页补通用操作胶囊](adr/0041-photo-shared-toolbar.md)
 
 ## 记录
 
 - [导航当前项比较与保留镜片的决定（U3，2026-10-19）](records/2026-10-19-navigation-choice/README.md)
 - [日程专属操作优先级（U4.1，2026-10-19）](records/2026-10-19-event-action-priority/README.md)
 - [搜索、AI、设置与深色现状（U6，2026-10-19）](records/2026-10-19-page-audit/README.md)
+- [照片大图页补通用操作（U4，2026-10-19）](records/2026-10-19-photo-shared-toolbar/README.md)
 
 - [全套图标比较与保留原版的决定（U2，2026-10-19）](records/2026-10-19-icon-choice/README.md)
 
