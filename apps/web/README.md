@@ -29,6 +29,8 @@ Web 使用 React + TypeScript + Vite，决策见 [ADR 0047](../../docs/adr/0047-
 - `apps/web/index.html` 是 Vite 页面入口，`vite.config.ts` 读取原有样式清单及文案。生产用 singlefile 插件输出单文件 HTML，保留云端 MCP 的宿主脚本注入顺序。
 - Node 的 Web 测试通过 tsx 加载 TSX。JSDOM 的浏览器 API 补充集中在 `tests/web/react-browser-fixture.ts`，不改变生产代码。
 
+动效由 Motion 统一控制：`interactions/motion.ts` 管理按压、进出场和键盘立即响应；`interactions/motion-playback.ts` 管理取消、播放完成与手势速度。CSS 只描述静止状态。控制器测试用 `tests/web/motion-fixture.ts`，浏览器回归运行真实 Motion。
+
 ## 添加到 iPhone／iPad 主屏幕
 
 云端页面使用 manifest 的 standalone 模式和 Apple 兼容元数据。Safari 打开云端首页后，选择分享 → 添加到主屏幕，再从新图标启动。iOS 26 的「作为网页 App 打开」（Open as Web App）须保持开启。普通 Safari 标签页仍有地址栏。

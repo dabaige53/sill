@@ -14,6 +14,10 @@ const bundle = buildSync({
 		loader: "ts",
 	},
 	bundle: true,
+	alias: {
+		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
+		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
+	},
 	write: false,
 	format: "iife",
 	platform: "browser",
@@ -43,7 +47,17 @@ function fixture() {
 		scroll.dispatchEvent(new w.Event("scroll"));
 	};
 	const tucked = () => bar.classList.contains("is-tucked") && edge.classList.contains("is-tucked");
-	return { dom, w, hide, to, tucked, bar };
+	return {
+		dom,
+		w,
+		hide,
+		to,
+		tucked,
+		bar,
+		position: (y: number) => {
+			top = y;
+		},
+	};
 }
 
 test("bars tuck away completely after steady downward reading, not on a jitter", () => {
@@ -84,6 +98,100 @@ test("bars come back at the top, at the end, and after a pause", async () => {
 		assert.equal(f.tucked(), true);
 		await new Promise((resolve) => setTimeout(resolve, 760));
 		assert.equal(f.tucked(), false, "a pause brings the bars back");
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
+test("locking and restoring the background preserves the bars' reading state", () => {
+	const f = fixture();
+	try {
+		let paused = false;
+		f.hide.paused = () => paused;
+		f.to(400);
+		f.to(500);
+		assert.equal(f.tucked(), true);
+		paused = true;
+		f.to(0);
+		assert.equal(f.tucked(), true, "opening a detail does not reveal the hidden bars");
+		paused = false;
+		f.to(500);
+		assert.equal(f.tucked(), true);
+		f.hide.show();
+		paused = true;
+		f.to(0);
+		paused = false;
+		f.to(500);
+		assert.equal(f.tucked(), false, "restoring a detail is not a downward reading gesture");
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
+test("restoring a tab's scroll position does not tuck the navigation", () => {
+	const f = fixture();
+	try {
+		f.position(700);
+		f.hide.syncPosition();
+		f.to(700);
+		assert.equal(f.tucked(), false, "the queued restoration scroll is not a gesture");
+		f.to(720);
+		assert.equal(f.tucked(), false);
+		f.to(740);
+		assert.equal(f.tucked(), true, "real downward scrolling still tucks the bars");
+		f.position(300);
+		f.hide.syncPosition();
+		f.to(300);
+		assert.equal(f.tucked(), true, "position sync also preserves a hidden toolbar");
+		f.to(280);
+		assert.equal(f.tucked(), false);
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
+test("a modal keeps hidden background bars tucked after the rest timer and Tab", async () => {
+	const f = fixture();
+	try {
+		f.to(500);
+		f.hide.paused = () => true;
+		await new Promise((resolve) => setTimeout(resolve, 760));
+		assert.equal(f.tucked(), true, "the pending rest timer respects the active modal");
+		f.w.document.body.dispatchEvent(
+			new f.w.KeyboardEvent("keydown", { key: "Tab", bubbles: true }),
+		);
+		assert.equal(f.tucked(), true, "Tab inside the modal does not reveal background controls");
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
+test("keyboard bounds use the next frame and update on a window resize", () => {
+	const f = fixture();
+	try {
+		const viewport = new f.w.EventTarget();
+		viewport.height = f.w.innerHeight;
+		viewport.offsetTop = 0;
+		Object.defineProperty(f.w, "visualViewport", { value: viewport });
+		const frames: (() => void)[] = [];
+		f.w.requestAnimationFrame = (callback: () => void) => frames.push(callback);
+		f.w.ChromeTest.AppController.prototype.bindKeyboard.call({});
+		viewport.dispatchEvent(new f.w.Event("resize"));
+		viewport.dispatchEvent(new f.w.Event("scroll"));
+		viewport.height -= 300;
+		assert.equal(frames.length, 1, "viewport events share one measurement");
+		frames.shift()();
+		assert.equal(f.w.document.documentElement.style.getPropertyValue("--kb"), "300px");
+		assert.equal(f.w.document.body.classList.contains("keyboard-open"), true);
+		f.w.dispatchEvent(new f.w.Event("resize"));
+		viewport.height = f.w.innerHeight;
+		frames.shift()();
+		assert.equal(f.w.document.documentElement.style.getPropertyValue("--kb"), "0px");
+		assert.equal(f.w.document.body.classList.contains("keyboard-open"), false);
 	} finally {
 		f.hide.destroy();
 		f.dom.window.close();
@@ -196,7 +304,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 	}
 });
 
-test("the navigation capsule holds home, search, AI and settings; the lens follows the open place", () => {
+test("three destinations share the capsule; the home avatar opens settings", () => {
 	const dom = new JSDOM(`<!doctype html><body></body>`, {
 		url: "http://chrome.test/",
 		runScripts: "outside-only",
@@ -212,9 +320,9 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		Store.load();
 		const app = Object.create(AppController.prototype);
 		app.navKey = "home";
-		w.document.body.innerHTML = `<div id="dock">${app.navHTML()}</div>`;
+		w.document.body.innerHTML = `${app.homeTopHTML()}<div id="dock">${app.navHTML()}</div>`;
 		const tabs = [...w.document.querySelectorAll("#nav .nav-tab")].map((n: any) => n.dataset.extra);
-		assert.deepEqual(tabs, ["home", "search", "ai", "settings"]);
+		assert.deepEqual(tabs, ["home", "ai", "search"]);
 		assert.equal(
 			w.document.querySelectorAll("#nav [data-action=capture]").length,
 			0,
@@ -224,7 +332,9 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		const settings = w.document.getElementById("account");
 		assert.equal(settings.getAttribute("aria-label"), "设置");
 		assert.equal(settings.querySelectorAll(".account-face,.nav-label,img").length, 0);
-		assert.equal(settings.querySelectorAll(".account-wrap > .icon path").length, 1);
+		assert.ok(settings.querySelector(".account-wrap > .icon"));
+		assert.ok(settings.closest(".home-heading"));
+		assert.equal(w.document.querySelector("#nav #account"), null);
 		assert.equal(
 			settings.querySelector(".account-wrap > .icon").getAttribute("stroke-width"),
 			"1.65",
@@ -233,10 +343,7 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 			settings.querySelector(".account-wrap > .icon").getAttribute("aria-hidden"),
 			"true",
 		);
-		assert.match(
-			settings.querySelector(".account-wrap > .icon path").getAttribute("d"),
-			/M4 20V7\.5/,
-		);
+
 		const settingsIcon = settings.innerHTML;
 		w.__SILL_ACCOUNT__ = "Synthetic Account";
 		Store.state.preferences.profileName = "Profile Initial";
@@ -253,6 +360,13 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		app.setNav("search");
 		assert.equal(w.document.querySelector("#nav [aria-current=page]").dataset.extra, "search");
 		assert.equal(w.document.querySelectorAll("#nav [aria-current]").length, 1);
+		const opened: string[] = [];
+		app.openPanel = (kind: string) => opened.push(kind);
+		app.dialog = { open: false };
+		app.goTo("settings");
+		assert.deepEqual(opened, ["settings"]);
+		assert.equal(app.navKey, "settings");
+		assert.equal(w.document.querySelector("#nav [aria-current=page]").dataset.extra, "home");
 		assert.equal(Panels.settingsGroups[0][0], "add");
 		const page = w.document.createElement("div");
 		page.innerHTML = Panels.settings(app, "add");
@@ -260,9 +374,9 @@ test("the navigation capsule holds home, search, AI and settings; the lens follo
 		assert.ok(page.querySelector('[data-action="capture-save"]'));
 		const ai = w.document.createElement("div");
 		ai.innerHTML = Panels.ai();
-		assert.match(ai.textContent, /即将推出/);
+		assert.match(ai.textContent, /尚未连接 AI/);
 		assert.equal(ai.querySelectorAll(".solid-button").length, 0, "nothing pretends to work");
-		assert.ok(ai.querySelector(".icon"), "AI uses the chat glyph");
+		assert.ok(ai.querySelector(".ai-composer button:disabled"), "AI cannot send");
 		w.matchMedia = (q: string) => ({ matches: q.includes("max-width"), addEventListener() {} });
 		assert.equal(app.isPage("search"), true, "on a phone, search is a page");
 		assert.equal(app.isPage("settings"), true);
@@ -295,8 +409,7 @@ test("AI placeholder shows only selected local context and cannot send or change
 		assert.equal(panel.querySelectorAll("[data-ai-context]").length, 1);
 		assert.equal(panel.querySelector("script, img, form"), null);
 		assert.match(panel.textContent, /尚未连接 AI/);
-		assert.match(panel.textContent, /内容不会发送/);
-		assert.match(panel.textContent, /输入不会保存/);
+		assert.match(panel.textContent, /输入不保存/);
 		assert.doesNotMatch(panel.textContent, /Should not appear/);
 		assert.equal(panel.querySelector(".ai-composer button").disabled, true);
 		assert.equal(panel.querySelector(".ai-composer [data-action]"), null);

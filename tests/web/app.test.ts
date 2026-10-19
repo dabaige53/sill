@@ -15,6 +15,10 @@ const bundle = buildSync({
 		loader: "ts",
 	},
 	bundle: true,
+	alias: {
+		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
+		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
+	},
 	write: false,
 	format: "iife",
 	platform: "browser",

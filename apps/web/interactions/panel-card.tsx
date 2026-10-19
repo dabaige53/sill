@@ -26,21 +26,11 @@ export const panelCard = {
 		);
 	},
 	meta(this: PanelRenderers, c?: Card) {
-		const date = cardDates(c).published;
-		const [year, month, day] = date?.text.slice(0, 10).split("-").map(Number) || [];
-		const label = date
-			? `${year === new Date().getFullYear() ? "" : `${year}年`}${month}月${day}日`
-			: "";
 		return (
 			<>
 				<div className={"preview-meta"}>
 					{sourceIcon(c, 15)}
 					<span>{detailSource(c) || (CardTypes[c.type] || CardTypes.note).label}</span>
-					{date ? (
-						<time className="preview-published" dateTime={date.datetime} title={date.text}>
-							· {label}
-						</time>
-					) : null}
 				</div>
 			</>
 		);
@@ -65,9 +55,33 @@ export const panelCard = {
 			""
 		);
 	},
+	publication(this: PanelRenderers, c?: Record<string, unknown>) {
+		const date = cardDates(c).published;
+		const [year, month, day] = date?.text.slice(0, 10).split("-").map(Number) || [];
+		const label = date
+			? new Intl.DateTimeFormat("zh-CN", {
+					year: year === new Date().getFullYear() ? undefined : "numeric",
+					month: "long",
+					day: "numeric",
+				}).format(new Date(year, month - 1, day))
+			: "";
+		return date ? (
+			<div className="preview-published">
+				<time dateTime={date.datetime} title={date.text}>
+					{label}
+				</time>
+			</div>
+		) : null;
+	},
 	details(this: PanelRenderers, c?: Pick<Card, "type" | "meta"> & Record<string, unknown>) {
-		return c.meta && !["task", "reminder", "event", "mail", "file"].includes(c.type) ? (
-			<p className="preview-source-note">{c.meta}</p>
+		const note =
+			c.meta?.trim() && !["task", "reminder", "event", "mail", "file"].includes(c.type)
+				? c.meta
+				: "";
+		return note ? (
+			<div className="preview-source-details">
+				{note ? <p className="preview-source-note">{note}</p> : null}
+			</div>
 		) : (
 			""
 		);
@@ -261,6 +275,7 @@ export const panelCard = {
 													{c.title}
 												</h1>
 												{this.tags(c)}
+												{this.publication(c)}
 												{c.image ? (
 													<>
 														<img

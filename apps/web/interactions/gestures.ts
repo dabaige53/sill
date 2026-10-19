@@ -59,7 +59,6 @@ class Gestures {
 	flick(distance: number, velocity: number) {
 		return distance > this.value("flick-distance", 40) && velocity > this.value("flick-speed", 0.5);
 	}
-	private rebounds = new WeakMap<HTMLElement, Animation>();
 	capture(surface: HTMLElement, axis: "x" | "y" = "y") {
 		const style = getComputedStyle(surface);
 		const translate = style.translate;
@@ -75,6 +74,7 @@ class Gestures {
 				offset += axis === "x" ? transform.m41 : transform.m42;
 			}
 			this.app.sheetLeaving = false;
+			surface.inert = false;
 			MotionEngine.cancelPanel(this.app.dialog);
 			surface.classList.add("is-drag");
 			surface.classList.remove("is-off");
@@ -86,44 +86,17 @@ class Gestures {
 				bar.style.opacity = "";
 			}
 		}
-		this.rebounds.get(surface)?.cancel();
-		this.rebounds.delete(surface);
+		MotionEngine.cancel(surface);
 		surface.classList.add("is-drag");
-		surface.style.translate = axis === "x" ? `${offset}px 0` : `0 ${offset}px`;
+		MotionEngine.move(surface, axis === "x" ? `${offset}px 0` : `0 ${offset}px`, true);
 		return offset;
 	}
-	settle(surface: HTMLElement, velocity = 0, axis: "x" | "y" = "y") {
-		const offset = this.capture(surface, axis);
-		const omega = this.value("spring-frequency", 24);
-		// Closed-form critically damped spring, sampled once for browser-owned playback.
-		const duration = MotionEngine.time("dur-sheet") || 360;
-		const frames = Array.from({ length: 61 }, (_, i) => {
-			const t = ((i / 60) * duration) / 1000;
-			const position =
-				i === 60 ? 0 : (offset + (velocity * 1000 + omega * offset) * t) * Math.exp(-omega * t);
-			return { translate: axis === "x" ? `${position}px 0` : `0 ${position}px` };
-		});
-		surface.style.translate = "";
-		const animation = MotionEngine.animate(surface, frames, { duration, easing: "linear" });
+	settle(surface: HTMLElement, _velocity = 0, _axis: "x" | "y" = "y") {
 		surface.classList.remove("is-drag");
-		const finish = () => {
-			if (this.rebounds.get(surface) !== animation) return;
-			this.rebounds.delete(surface);
-			surface.classList.remove("is-drag");
-			surface.style.translate = "";
-		};
-		if (animation) {
-			this.rebounds.set(surface, animation);
-			animation.finished.then(finish, () => {});
-		} else {
-			surface.classList.remove("is-drag");
-			surface.style.translate = "";
-		}
+		MotionEngine.move(surface);
 	}
 	dim(v?: any) {
-		const d = this.app.dialog;
-		if (v == null) d.style.removeProperty("--backdrop");
-		else d.style.setProperty("--backdrop", String(v));
+		MotionEngine.dim(this.app.dialog, v ?? null);
 	}
 	// Momentum guard: a wheel stream that is still coasting into an edge is not a new gesture.
 	// It counts after a pause, or once the deltas hold steady or grow again (momentum only ever weakens).
@@ -155,22 +128,6 @@ class Gestures {
 			},
 		};
 	}
-	/** Trackpads have no "let go" event: the hand has let go once the deltas start to fall away as momentum. */
-	release() {
-		let prev = 0,
-			falling = 0;
-		return {
-			feed(d: number) {
-				falling = prev && d < prev * 0.85 ? falling + 1 : 0;
-				prev = d;
-				return falling >= 3;
-			},
-			reset() {
-				prev = 0;
-				falling = 0;
-			},
-		};
-	}
 	/** Keep the drawn offset until the exit finishes; no reset between hand and dismissal. */
 	exitSurface(surface: HTMLElement, close: () => void, axis: "x" | "y" = "y") {
 		const dialog = this.app.dialog,
@@ -183,23 +140,30 @@ class Gestures {
 		const rect = surface.getBoundingClientRect();
 		const destination =
 			offset + (axis === "x" ? innerWidth - rect.left : innerHeight - rect.top) + 1;
-		this.rebounds.get(surface)?.cancel();
-		this.rebounds.delete(surface);
-		// Freeze an unfinished entry before cancelling it, so a fast release cannot snap upward.
-		if (surface !== dialog) surface.style.transform = transform;
+		MotionEngine.cancel(surface);
+		// Freeze the drawn transform before cancelling entry and travel.
 		MotionEngine.cancelPanel(dialog);
+		MotionEngine.move(surface, "", true);
 		surface.classList.add("is-drag");
 		dialog.classList.remove("is-drag");
 		const bar = dialog.querySelector(":scope > .float-bar");
 		if (bar) bar.style.opacity = "0";
-		this.dim(0);
+		MotionEngine.dim(dialog, 0, MotionEngine.time("dur-sheet"));
+		surface.inert = true;
+		const base = transform === "none" ? "" : transform;
+		const translate = (value: number) =>
+			`${axis === "x" ? "translateX" : "translateY"}(${value}px) ${base}`;
 		const animation = MotionEngine.animate(
 			surface,
 			[
-				{ translate: drawn === "none" ? "0 0" : drawn, opacity },
-				{ translate: axis === "x" ? `${destination}px 0` : `0 ${destination}px`, opacity: 1 },
+				{ transform: translate(offset), opacity },
+				{ transform: translate(destination), opacity },
 			],
-			{ duration: MotionEngine.time("base"), easing: MotionEngine.curve(), fill: "forwards" },
+			{
+				duration: MotionEngine.time("dur-sheet"),
+				easing: MotionEngine.curve("ease-sheet"),
+				fill: "forwards",
+			},
 		);
 		const finish = () => {
 			if (this.app.modalToken !== token || !dialog.open) return;

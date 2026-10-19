@@ -1,5 +1,5 @@
 /* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */
-:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:160ms;--dur-sheet:360ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:180ms;--dur-lens:300ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:220ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 17px;--text-reader-body: 17px;--text-summary: 15px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;}
+:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:220ms;--dur-sheet:260ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:180ms;--dur-lens:0ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:220ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 17px;--text-reader-body: 17px;--text-summary: 15px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;}
 :root[data-theme="dark"],
 .lightbox .float-bar {
 	--canvas: #111113;
@@ -51,10 +51,15 @@ html {
 	-webkit-text-size-adjust: 100%;
 	-webkit-tap-highlight-color: transparent;
 	background: var(--canvas);
-	scroll-behavior: var(--motion-scroll-behavior, smooth);
-	scrollbar-gutter: stable;
+	scroll-behavior: auto;
+	scrollbar-gutter: auto;
+	scrollbar-width: none;
 	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
 	overscroll-behavior-y: none;
+}
+/* Hide the page track without disabling wheel, touch or keyboard scrolling. */
+html::-webkit-scrollbar {
+	display: none;
 }
 body {
 	overscroll-behavior-y: none;
@@ -66,7 +71,6 @@ body {
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
 	min-height: 100dvh;
-	transition: var(--motion-transition, background var(--base));
 }
 button,
 input,
@@ -267,6 +271,17 @@ a {
 	touch-action: manipulation;
 }
 
+/* Nested app panels follow the same hidden-track rule as the page. */
+.settings-main::-webkit-scrollbar,
+.search-results::-webkit-scrollbar,
+.ai-context::-webkit-scrollbar,
+.selection-context::-webkit-scrollbar,
+#selection-menu::-webkit-scrollbar,
+#modal.panel .sheet::-webkit-scrollbar,
+.cloud-compose-body::-webkit-scrollbar {
+	display: none;
+}
+
 /* Sill · controls · shared source */
 /* Liquid glass, for the functional layer only (bars, round buttons, menus floating over content).
    A clear, lightly tinted lens: little fill, a short blur with lifted saturation so the content
@@ -308,12 +323,6 @@ a {
 	background: transparent;
 	position: relative;
 	color: var(--ink);
-	transition: var(
-		--motion-transition,
-		background var(--fast),
-		transform var(--fast),
-		color var(--fast)
-	);
 }
 @media (hover: hover) and (pointer: fine) {
 	.icon-button:hover {
@@ -322,9 +331,6 @@ a {
 }
 .icon-button:active {
 	background: var(--surface);
-}
-.icon-button:active {
-	transform: scale(0.95);
 }
 .icon-button.active {
 	color: var(--accent);
@@ -356,12 +362,6 @@ a {
 	align-items: center;
 	gap: var(--rail-gap);
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--dur-show) var(--ease-sheet),
-		opacity var(--dur-show) var(--ease),
-		visibility 0s
-	);
 }
 #dock > * {
 	pointer-events: auto;
@@ -371,25 +371,9 @@ a {
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--rail-tuck) var(--ease),
-		opacity var(--rail-tuck) var(--ease),
-		visibility 0s var(--rail-tuck)
-	);
-}
-body:has(#modal[open].search) #dock,
-body:has(#modal[open].search) .scroll-edge,
-body:has(#modal[open]:not(.page)) #dock,
-body:has(#modal[open]:not(.page)) .scroll-edge {
-	opacity: 0;
-	visibility: hidden;
-	/* The lens finishes its move while the rail fades under the sheet. */
-	transition: var(--motion-transition, opacity 220ms var(--ease), visibility 0s 220ms);
 }
 /* Descendants opt into hit testing normally, so suppress them throughout the fade. */
 #dock.is-tucked *,
-body:has(#modal[open].search) #dock *,
 body:has(#modal[open]:not(.page)) #dock * {
 	pointer-events: none;
 }
@@ -419,7 +403,6 @@ body:has(#modal[open]:not(.page)) #dock * {
 	font: inherit;
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
-	transition: var(--motion-transition, color var(--base) var(--ease));
 }
 .nav-tab[aria-current="page"] {
 	color: var(--ink);
@@ -428,10 +411,6 @@ body:has(#modal[open]:not(.page)) #dock * {
 	display: grid;
 	place-items: center;
 	height: 28px;
-	transition: var(--motion-transition, scale var(--fast) var(--ease));
-}
-.nav-tab:active .nav-icon {
-	scale: 0.97;
 }
 .nav-label {
 	font-size: 10.5px;
@@ -439,8 +418,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 	font-weight: 600;
 	letter-spacing: 0.01em;
 }
-/* The lens: a clear drop of glass over the current place. It moves on a spring and, while
-   moving, stretches along the way and flattens a little, then settles round again. */
+/* The current destination is immediate; the merged motion rules keep the lens stable. */
 .nav-lens {
 	position: absolute;
 	top: 4px;
@@ -453,27 +431,6 @@ body:has(#modal[open]:not(.page)) #dock * {
 	box-shadow:
 		inset 0 1px 0.5px var(--glass-edge),
 		inset 0 -0.5px 0.5px var(--glass-shade);
-	transition: var(--motion-transition, translate var(--dur-lens) var(--ease-spring));
-}
-.nav-capsule.is-moving .nav-lens {
-	animation: var(--motion-animation, lens-drop var(--dur-lens) var(--ease) both);
-	animation-duration: var(--motion-animation-duration, var(--dur-lens));
-	animation-iteration-count: var(--motion-animation-iterations, 1);
-}
-@keyframes lens-drop {
-	0% {
-		scale: 1;
-	}
-	35% {
-		scale: 1.05 0.97;
-		background: var(
-			--lens-highlight,
-			color-mix(in srgb, var(--glass-edge) 40%, var(--glass-press))
-		);
-	}
-	100% {
-		scale: 1;
-	}
 }
 /* A filter in effect: a small dot under the search icon, never a count. */
 #dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after {
@@ -511,7 +468,6 @@ body:has(#modal[open]:not(.page)) #dock * {
 		color-mix(in srgb, var(--canvas) 70%, transparent),
 		color-mix(in srgb, var(--canvas) 0%, transparent)
 	);
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .scroll-edge.is-tucked {
 	opacity: 0;
@@ -539,12 +495,6 @@ body:has(#modal[open]:not(.page)) #dock * {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-6);
-	transition: var(
-		--motion-transition,
-		top var(--dur-tuck) var(--ease),
-		opacity var(--dur-show) var(--ease),
-		visibility 0s
-	);
 }
 #new-count:has(.new-sources) {
 	padding-left: var(--space-8);
@@ -573,7 +523,6 @@ body:has(#modal[open]) #new-count {
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(--motion-transition, opacity 220ms var(--ease), visibility 0s 220ms);
 }
 #new-count[hidden] {
 	display: none;
@@ -586,7 +535,6 @@ body:has(#modal[open]) #new-count {
 	height: 34px;
 	pointer-events: none;
 	opacity: 0;
-	transition: var(--motion-transition, opacity var(--base));
 }
 .orb-arc circle {
 	fill: none;
@@ -598,11 +546,6 @@ body:has(#modal[open]) #new-count {
 }
 #dock.is-busy .orb-arc {
 	opacity: 0.9;
-}
-#dock.is-busy .orb-arc circle {
-	animation: var(--motion-animation, orb-arc 1.1s linear infinite);
-	animation-duration: var(--motion-animation-duration, 1.1s);
-	animation-iteration-count: var(--motion-animation-iterations, infinite);
 }
 /* Done: the arc closes and a check shows over the settings icon, then both fade. */
 .orb-done {
@@ -616,11 +559,6 @@ body:has(#modal[open]) #new-count {
 	opacity: 0;
 	scale: 0.8;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		opacity var(--base) var(--ease),
-		scale var(--base) var(--ease)
-	);
 }
 #dock.is-done .orb-done {
 	opacity: 1;
@@ -631,11 +569,6 @@ body:has(#modal[open]) #new-count {
 }
 #dock.is-done .orb-arc circle {
 	stroke-dasharray: 100 0;
-}
-@keyframes orb-arc {
-	to {
-		transform: rotate(360deg);
-	}
 }
 /* Offline: a quiet pill above the rail; a tap retries. */
 #offline {
@@ -656,18 +589,8 @@ body:has(#modal[open]) #new-count {
 	border-radius: 50%;
 	background: var(--alert);
 }
-#offline.is-retrying:before {
-	animation: var(--motion-animation, pulse 1s ease-in-out infinite);
-	animation-duration: var(--motion-animation-duration, 1s);
-	animation-iteration-count: var(--motion-animation-iterations, infinite);
-}
 #offline[hidden] {
 	display: none;
-}
-@keyframes pulse {
-	50% {
-		opacity: 0.3;
-	}
 }
 
 /* Selection takes the rail row; new-content and offline pills step aside. */
@@ -680,7 +603,7 @@ body:has(#modal[open]) #new-count {
 	align-items: center;
 	padding: var(--space-4);
 	gap: var(--space-2);
-	max-width: calc(100vw - 2 * var(--rail-edge) - 4 * var(--nav-tab) - 8px - var(--rail-gap));
+	max-width: calc(100vw - 2 * var(--rail-edge) - 3 * var(--nav-tab) - 8px - var(--rail-gap));
 	overflow: visible;
 	scrollbar-width: none;
 }
@@ -740,7 +663,6 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	white-space: nowrap;
 	pointer-events: none;
 	opacity: 0;
-	transition: var(--motion-transition, opacity var(--fast), translate var(--fast));
 }
 .float-bar .icon-button:is(:first-child, :last-child)::after {
 	--tip-x: 0px;
@@ -755,13 +677,6 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	opacity: 1;
 	translate: var(--tip-x) 0;
 }
-.float-bar .icon-button.is-instant-tip::after {
-	transition: none;
-}
-.float-bar .icon-button:focus-visible::after {
-	transition: none;
-	transition-delay: var(--motion-transition-delay, 0s);
-}
 #toast {
 	position: fixed;
 	right: var(--rail-edge);
@@ -775,7 +690,6 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	align-items: center;
 	gap: var(--space-8);
 	font-size: var(--text-meta);
-	transition: var(--motion-transition, bottom var(--base) var(--ease));
 }
 /* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
 #modal #toast {
@@ -827,7 +741,6 @@ body.is-dragging #toast {
 	font-size: var(--text-meta);
 	white-space: nowrap;
 	box-shadow: 0 1px 3px var(--fixed-black-6);
-	transition: var(--motion-transition, background var(--fast), color var(--fast));
 }
 .chip .icon {
 	color: var(--secondary);
@@ -912,7 +825,6 @@ body.is-dragging #toast {
 	background: var(--toggle-off);
 	position: relative;
 	flex: none;
-	transition: var(--motion-transition, background var(--base));
 }
 .toggle:before {
 	content: "";
@@ -924,7 +836,6 @@ body.is-dragging #toast {
 	border-radius: 50%;
 	background: var(--fixed-white);
 	box-shadow: 0 2px 4px var(--fixed-black-15);
-	transition: var(--motion-transition, transform var(--base) var(--ease));
 }
 .toggle[aria-checked="true"] {
 	background: var(--toggle-on);
@@ -939,7 +850,6 @@ body.is-dragging #toast {
 	font-size: var(--text-meta);
 	border-radius: var(--control-radius);
 	color: var(--ink);
-	transition: var(--motion-transition, background var(--fast));
 }
 @media (hover: hover) and (pointer: fine) {
 	.text-button:hover {
@@ -961,16 +871,12 @@ body.is-dragging #toast {
 	font-size: var(--text-control);
 	font-weight: 500;
 	min-height: 44px;
-	transition: var(--motion-transition, filter var(--fast), transform var(--fast));
 	white-space: nowrap;
 }
 @media (hover: hover) and (pointer: fine) {
 	.solid-button:hover {
 		filter: brightness(1.08);
 	}
-}
-.solid-button:active {
-	transform: scale(0.98);
 }
 .solid-button small {
 	font-size: var(--text-caption);
@@ -989,7 +895,6 @@ body.is-dragging #toast {
 	font-size: var(--text-control);
 	font-weight: 500;
 	min-height: 44px;
-	transition: var(--motion-transition, background var(--fast));
 }
 @media (hover: hover) and (pointer: fine) {
 	.soft-button:hover {
@@ -1024,12 +929,6 @@ body.is-dragging #toast {
 	color: var(--ink);
 	font-size: var(--text-meta);
 	white-space: nowrap;
-	transition: var(
-		--motion-transition,
-		border-color var(--fast) var(--ease),
-		background-color var(--fast) var(--ease),
-		box-shadow var(--fast) var(--ease)
-	);
 }
 .selection-ai-target.is-ready {
 	border-color: var(--accent);
@@ -1071,61 +970,91 @@ body.is-dragging #toast {
 
 /* Shared home filters. The phone head stays in responsive.css (ADR 0036). */
 .home-top {
-	display: none;
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	width: calc(100% - var(--feed-left, var(--margin-lg)) * 2);
+	margin: var(--space-12) auto 0;
+	background: var(--canvas);
 }
-/* Desktop filters stay reachable and align with the actual card columns. */
+.home-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: var(--space-60);
+}
+.home-mark {
+	padding: 0;
+	min-height: var(--hit-target);
+	background: none;
+	color: var(--ink);
+	font-size: var(--text-figure);
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -0.04em;
+}
+.home-account {
+	display: grid;
+	place-items: center;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	padding: 0;
+	border-radius: 50%;
+}
+.home-account .account-wrap {
+	width: var(--space-36);
+	height: var(--space-36);
+	border-radius: 50%;
+	background: var(--faint);
+	color: var(--secondary);
+}
+.home-tabs {
+	display: flex;
+	align-items: stretch;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.home-tab {
+	position: relative;
+	padding: 0 var(--space-12);
+	min-height: var(--hit-target);
+	flex: none;
+	border: 0;
+	background: none;
+	font: inherit;
+	font-size: var(--text-control);
+	color: var(--muted);
+	white-space: nowrap;
+}
+.home-tab:first-child {
+	padding-left: 0;
+}
+.home-tab[aria-pressed="true"] {
+	color: var(--ink);
+	font-weight: 700;
+}
+.home-tab[aria-pressed="true"]::after {
+	content: "";
+	position: absolute;
+	left: var(--space-12);
+	bottom: 0;
+	width: var(--space-28);
+	height: var(--space-3);
+	border-radius: var(--space-2);
+	background: var(--ink);
+}
+.home-tab:first-child::after {
+	left: 0;
+}
+body:has(#modal[open].page) .home-top {
+	visibility: hidden;
+}
 @media (min-width: 651px) {
-	.home-top {
-		display: block;
-		position: sticky;
-		top: 0;
-		z-index: 20;
-		width: max-content;
-		max-width: calc(100% - var(--space-40) * 2);
-		margin: var(--space-24) 0 0 var(--feed-left, var(--space-40));
-		background: var(--canvas);
-		border-radius: var(--control-radius);
-	}
-	.home-mark {
-		display: none;
-	}
-	.home-tabs {
-		display: flex;
-		align-items: stretch;
-		gap: var(--space-8);
-		min-height: var(--hit-target);
-		overflow-x: auto;
-	}
-	.home-tab {
-		position: relative;
-		padding: 0 var(--space-12);
-		min-height: var(--hit-target);
-		flex: none;
-		border: 0;
-		background: none;
-		font: inherit;
-		font-size: var(--text-control);
-		color: var(--muted);
-		white-space: nowrap;
-	}
-	.home-tab[aria-pressed="true"] {
-		color: var(--ink);
-		font-weight: 700;
-	}
-	.home-tab[aria-pressed="true"]::after {
-		content: "";
-		position: absolute;
-		left: 50%;
-		bottom: 0;
-		width: var(--space-28);
-		height: var(--space-3);
-		translate: -50% 0;
-		border-radius: var(--space-2);
-		background: var(--ink);
-	}
 	main {
 		padding-top: var(--space-16);
-		min-height: calc(100dvh - var(--space-24) - var(--hit-target));
+		min-height: calc(100dvh - var(--space-130));
 	}
 }
 
@@ -1147,13 +1076,6 @@ body.is-dragging #toast {
 	border: 1px solid var(--line-card);
 	border-radius: var(--card-radius);
 	box-shadow: var(--shadow);
-	transition: var(
-		--motion-transition,
-		background-color var(--settle) var(--ease),
-		box-shadow var(--settle) var(--ease),
-		border-color var(--settle) var(--ease),
-		transform var(--base) var(--ease)
-	);
 	isolation: isolate;
 	overflow: hidden;
 	cursor: pointer;
@@ -1194,7 +1116,6 @@ body.is-dragging #toast {
 	border-radius: inherit;
 	border: 2px solid transparent;
 	pointer-events: none;
-	transition: var(--motion-transition, border-color var(--base));
 }
 .card-body {
 	display: flex;
@@ -1221,9 +1142,6 @@ body.is-dragging #toast {
 	color: var(--muted);
 }
 /* The reserved action slot keeps counts and timely information readable while hovering. */
-.card-head-right {
-	transition: var(--motion-transition, opacity var(--fast));
-}
 .has-cover .card-head-right {
 	opacity: 1;
 }
@@ -1297,7 +1215,6 @@ body.is-dragging #toast {
 	letter-spacing: -0.02em;
 	line-height: 1.35;
 	color: var(--ink);
-	transition: var(--motion-transition, color var(--settle) var(--ease));
 }
 .card-title-button {
 	display: -webkit-box;
@@ -1408,7 +1325,6 @@ body.is-dragging #toast {
 	height: 100%;
 	object-fit: cover;
 	opacity: 0;
-	transition: var(--motion-transition, opacity var(--settle) var(--ease));
 }
 .card-image.is-loaded {
 	opacity: 1;
@@ -1671,7 +1587,6 @@ button.ref:active {
 	border: 1.5px solid var(--accent);
 	border-radius: 50%;
 	color: var(--fixed-white);
-	transition: var(--motion-transition, background var(--base), border-color var(--base));
 }
 @media (hover: hover) and (pointer: fine) {
 	.check-item:hover .check-dot {
@@ -1799,15 +1714,6 @@ button.ref:active {
 	white-space: nowrap;
 	background: var(--surface);
 	color: var(--ink);
-	transition: var(
-		--motion-transition,
-		background var(--fast),
-		filter var(--fast),
-		transform var(--fast)
-	);
-}
-.pill:active {
-	transform: scale(0.97);
 }
 .pill.grow {
 	flex: 1 1 auto;
@@ -1856,7 +1762,6 @@ button.ref:active {
 	box-shadow: 0 2px 8px var(--fixed-black-8);
 	opacity: 0;
 	pointer-events: none;
-	transition: var(--motion-transition, opacity var(--fast), background var(--fast));
 }
 .card-more-trigger .icon {
 	width: 16px;
@@ -2100,7 +2005,6 @@ button.ref:active {
 	font-size: var(--text-control);
 	color: var(--ink);
 	text-align: left;
-	transition: var(--motion-transition, background var(--fast));
 }
 @media (hover: hover) and (pointer: fine) {
 	.shelf-row:hover {
@@ -2119,24 +2023,18 @@ button.ref:active {
 	color: var(--muted);
 }
 /* Pressing a card gives a little, like the prototype: it is something you can pick up. */
-.feed-card:not(.stack-card):active:not(:has(button:active)) {
-	transform: scale(0.97);
-	transition-duration: var(--motion-transition-duration, 120ms);
-}
 
 /* A menu's hit targets keep their size even while the touched parent settles. */
 @media (hover: hover) and (pointer: fine) {
 	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
 		--motion-managed-transform: none;
 		transform: none;
-		transition-property: var(--motion-transition-properties, box-shadow, border-color);
 	}
 }
 .feed-card.tools-open,
 .feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
 	--motion-managed-transform: none;
 	transform: none;
-	transition-property: var(--motion-transition-properties, box-shadow, border-color);
 }
 
 /* Desktop spacing groups metadata, content and supporting references. */
@@ -2167,13 +2065,7 @@ button.ref:active {
 /* Sill · overlays · shared source
  * One dialog, several shapes: a lifted card (preview), a page (reader), a sheet (panels), a lightbox (photos).
  */
-body.modal-scroll-locked {
-	position: fixed;
-	top: var(--locked-scroll);
-	left: 0;
-	right: 0;
-	overscroll-behavior: none;
-}
+
 dialog {
 	color: var(--ink);
 	padding: 0;
@@ -2279,24 +2171,12 @@ dialog::backdrop {
 	display: flex;
 	gap: var(--space-8);
 	pointer-events: auto;
-	transition: var(
-		--motion-transition,
-		transform var(--dur-show) var(--ease-sheet),
-		opacity var(--dur-show) var(--ease),
-		visibility 0s
-	);
 }
 .sheet-head-tools.is-tucked {
 	transform: var(--motion-toolbar-transform, translateY(-12px));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--rail-tuck) var(--ease),
-		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck)
-	);
 }
 .preview-sheet:before {
 	content: "";
@@ -2313,7 +2193,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 92%, transparent) 30%,
 		color-mix(in srgb, var(--card) 0%, transparent)
 	);
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
 	opacity: 1;
@@ -2404,7 +2283,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 18px),
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 #modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
 	opacity: 0;
@@ -2433,7 +2311,6 @@ dialog::backdrop {
 	background: var(--card-read);
 	box-shadow: var(--shadow-sheet);
 	cursor: pointer;
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .preview-sheet .sheet-scroll {
 	flex: 0 1 auto;
@@ -2631,15 +2508,21 @@ button.detail-row:active {
 	max-width: 100%;
 	overflow-wrap: anywhere;
 }
-.preview-published {
-	flex: none;
-	white-space: nowrap;
-}
-.preview-source-note {
-	margin: var(--space-16) 0 0;
+.preview-published,
+.preview-source-details {
+	margin-top: 0;
+	display: grid;
+	gap: var(--space-6);
 	font-size: var(--text-caption);
 	line-height: 1.6;
 	color: var(--secondary);
+}
+.preview-source-details > p {
+	margin: 0;
+	font: inherit;
+	color: inherit;
+}
+.preview-source-note {
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
 }
@@ -2902,7 +2785,6 @@ button.detail-row:active {
 	height: 2px;
 	background: var(--accent-fill);
 	z-index: 4;
-	transition: var(--motion-transition, transform var(--fast) linear);
 }
 .reader-scroll {
 	height: 100dvh;
@@ -2957,40 +2839,18 @@ button.detail-row:active {
 	border-radius: var(--pill-radius);
 }
 /* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
-dialog > .float-bar,
-.reader-head {
-	transition: var(
-		--motion-transition,
-		transform var(--dur-show) var(--ease-sheet),
-		opacity var(--dur-show) var(--ease),
-		translate var(--dur-sheet) var(--ease-sheet),
-		visibility 0s
-	);
-}
 dialog > .float-bar.is-tucked,
 dialog > .float-bar.is-hidden {
 	transform: var(--motion-toolbar-transform, translateY(calc(100% + 40px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--rail-tuck) var(--ease),
-		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck)
-	);
 }
 .reader-head.is-tucked {
 	transform: var(--motion-toolbar-transform, translateY(calc(-100% - 24px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--rail-tuck) var(--ease),
-		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck)
-	);
 }
 /* The read-end ring closes into a check when the last paragraph is reached. */
 .skeleton-lines {
@@ -3167,7 +3027,6 @@ button.list-row:active {
 	gap: var(--space-4);
 	white-space: nowrap;
 	opacity: 0;
-	transition: var(--motion-transition, opacity var(--fast));
 }
 @media (hover: hover) and (pointer: fine) {
 	.list-row:hover .row-put {
@@ -3233,8 +3092,9 @@ button.list-row:active {
 	max-height: min(78dvh, 760px);
 	overflow-y: auto;
 	background: var(--canvas);
+	scrollbar-width: none;
 }
-.settings-main h1 {
+.settings-main h2 {
 	font-size: var(--text-panel-title);
 	margin: 0 var(--space-40) var(--space-18) 0;
 }
@@ -3297,15 +3157,19 @@ kbd {
 }
 
 /* Search owns its page; the home feed keeps its own state underneath. */
+body:has(dialog.search[open]) #feed-grid {
+	visibility: hidden;
+}
 :is(#modal, #search-background).search {
 	position: fixed;
-	inset: 0 0 var(--kb, 0px);
+	inset: 0;
 	width: 100%;
 	max-width: none;
-	height: auto;
+	height: 100dvh;
 	max-height: none;
 	margin: 0;
-	padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--margin-lg) var(--rail-bottom);
+	padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--margin-lg)
+		calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
 	background: var(--canvas);
 	z-index: 40;
 	display: none;
@@ -3343,13 +3207,10 @@ kbd {
 	display: flex;
 	align-items: center;
 	gap: var(--space-10);
-	height: 52px;
-	padding: 0 var(--space-10) 0 var(--space-18);
-	border-radius: var(--pill-radius);
-	background: var(--card);
-	box-shadow:
-		0 0 0 0.5px var(--line-card),
-		var(--shadow-glass);
+	height: var(--space-48);
+	padding: 0 var(--space-10) 0 var(--space-16);
+	border-radius: var(--control-radius);
+	background: var(--surface);
 }
 .search-pill > .icon {
 	color: var(--muted);
@@ -3424,15 +3285,81 @@ kbd {
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	padding: var(--space-2) var(--space-2) var(--space-24);
-}
-.search-results:empty {
-	display: none;
+	scrollbar-width: none;
 }
 .search-empty {
 	text-align: center;
 	font-size: var(--text-body);
 	color: var(--muted);
 	padding: var(--space-24) 0;
+}
+
+/* Pages share the application frame; cards still open in the existing dialog. */
+@media (min-width: 651px) {
+	#modal.page.panel {
+		position: fixed;
+		inset: 0;
+		z-index: 40;
+		width: 100%;
+		max-width: none;
+		height: 100dvh;
+		max-height: none;
+		margin: 0;
+		background: var(--canvas);
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		width: min(100%, 1040px);
+		margin-inline: auto;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		display: flex;
+		flex-direction: column;
+		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-16));
+	}
+	#modal.page .settings-layout {
+		flex: 1;
+		min-height: 0;
+	}
+	#modal.page .settings-main {
+		max-height: none;
+	}
+	#modal.page.panel .ai-conversation {
+		max-width: 720px;
+		padding: var(--space-24) var(--space-24)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16));
+	}
+	#modal.page.panel .ai-conversation > .sheet-close {
+		display: none;
+	}
+	:is(#modal, #search-background).page.search {
+		padding-inline: max(var(--margin-lg), calc((100vw - 1040px) / 2));
+	}
+}
+.settings-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--space-60);
+	padding: var(--space-16) var(--space-32) 0;
+	flex: none;
+}
+.settings-head h1 {
+	margin: 0;
+	font-size: var(--text-figure);
+	line-height: 1.2;
+	letter-spacing: -0.025em;
+}
+.settings-head .sheet-close {
+	position: static;
+}
+.settings-head .sheet-close .icon-button {
+	background: var(--faint);
+	box-shadow: none;
+	width: var(--hit-target);
+	height: var(--hit-target);
 }
 
 /* More menu, popovers. */
@@ -3707,7 +3634,6 @@ kbd {
 		0 1px 2px var(--fixed-black-6),
 		0 10px 28px var(--fixed-black-14);
 	overflow: hidden;
-	transition: var(--motion-transition, transform var(--base) var(--ease));
 }
 .selection-stack-face[data-layer="1"] {
 	transform: translate(14px, -6px) rotate(6deg) scale(0.95);
@@ -3719,9 +3645,6 @@ kbd {
 	opacity: 1;
 	border: 0;
 	box-shadow: none;
-	animation: var(--motion-animation, none);
-	animation-duration: var(--motion-animation-duration, 0s);
-	animation-iteration-count: var(--motion-animation-iterations, 1);
 }
 .selection-thumbnail-fallback {
 	padding: var(--space-14);
@@ -3776,6 +3699,7 @@ body.selection-menu-open {
 	max-width: 100vw;
 	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 	box-shadow: none;
+	scrollbar-width: none;
 }
 #selection-menu::backdrop {
 	background: var(--frost);
@@ -3793,6 +3717,7 @@ body.selection-menu-open {
 	flex-direction: column;
 	align-items: center;
 	gap: var(--space-14);
+	scrollbar-width: none;
 }
 /* A compact menu: words first, a matching icon at the end, as in a system context menu. */
 .selection-options {
@@ -3859,15 +3784,6 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 /* Gestures: sheets and pages follow the finger; the dim follows them. */
-@property --backdrop {
-	syntax: "<number>";
-	inherits: true;
-	initial-value: 1;
-}
-#modal::backdrop {
-	opacity: var(--backdrop, 1);
-	transition: var(--motion-transition, opacity var(--dur-open) linear);
-}
 .pull-ring {
 	position: fixed;
 	left: 50%;
@@ -3880,25 +3796,12 @@ input[type="search"]::-webkit-search-cancel-button {
 	display: grid;
 	place-items: center;
 	opacity: 0;
-	translate: 0 -48px;
 	pointer-events: none;
 	color: var(--accent);
-	transition: var(--motion-transition, opacity 200ms, translate 180ms var(--ease));
-}
-main {
-	transition: var(--motion-transition, translate 180ms var(--ease));
 }
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {
-	transition: var(--motion-transition, none);
 	will-change: translate;
-}
-body.is-pulling main,
-body.is-pulling .pull-ring {
-	transition: var(--motion-transition, none);
-}
-#modal.is-drag::backdrop {
-	transition: var(--motion-transition, none);
 }
 .pull-ring svg {
 	width: 24px;
@@ -3906,17 +3809,13 @@ body.is-pulling .pull-ring {
 	transform: rotate(-90deg);
 }
 .pull-ring circle {
+	transform-origin: center;
 	fill: none;
 	stroke: currentColor;
 	stroke-width: 2.4;
 	stroke-linecap: round;
 	stroke-dasharray: 100;
 	stroke-dashoffset: 100;
-}
-.pull-ring.is-spinning .pull-progress {
-	animation: var(--motion-animation, orb-arc 0.8s linear infinite);
-	animation-duration: var(--motion-animation-duration, 0.8s);
-	animation-iteration-count: var(--motion-animation-iterations, infinite);
 }
 /* Gesture progress is inline; spinning holds one fixed arc while the request is pending. */
 .pull-ring.is-spinning circle {
@@ -4028,57 +3927,15 @@ body.is-pulling .pull-ring {
 	scrollbar-width: none;
 	-webkit-overflow-scrolling: touch;
 }
-/* Gesture offsets live in `translate`, separate from the sheet's own position in `transform`. Every move only sets a target;
-   the transition carries it there, so wheel steps glide and a change of direction never jumps. A finger on the glass turns it off. */
-.preview-sheet,
-#modal.reader {
-	transition: var(--motion-transition, translate var(--dur-sheet) var(--ease-sheet));
-}
-
-.sheet-scroll,
-.reader-scroll {
-	transition: var(--motion-transition, translate 220ms var(--ease));
-}
+/* Motion owns gesture offsets in translate, separate from surface transforms. */
 /* Nested content follows its dragged parent immediately. */
-.is-drag,
-#modal.preview .preview-sheet.is-drag,
-#modal.reader.is-drag,
-.sheet-scroll.is-drag,
-.reader-scroll.is-drag {
-	transition: var(--motion-drag-transition, none);
-}
-.is-drag .sheet-scroll,
-.is-drag .reader-scroll {
-	transition: none;
-}
-.push-ring {
-	transition: var(--motion-transition, opacity 140ms, transform 140ms, background 200ms);
-}
-.push-ring .arc circle {
-	transition: var(--motion-transition, stroke-dashoffset 140ms);
-}
-.push-ring.is-done {
-	animation: var(--motion-animation, ring-pop 320ms var(--ease) both);
-	animation-duration: var(--motion-animation-duration, 320ms);
-	animation-iteration-count: var(--motion-animation-iterations, 1);
-}
-@keyframes ring-pop {
-	0% {
-		transform: scale(1);
-	}
-	45% {
-		transform: scale(1.2);
-	}
-	100% {
-		transform: scale(1);
-	}
-}
 
 /* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
 #modal.panel .sheet {
 	max-height: 100dvh;
 	overflow-y: auto;
 	overscroll-behavior: contain;
+	scrollbar-width: none;
 }
 
 /* Focus stays visible but sits close to the field, in a soft ring instead of a second outline. */
@@ -4105,7 +3962,6 @@ body.is-pulling .pull-ring {
 	right: 0;
 	z-index: 4;
 	pointer-events: none;
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .reader-edge.is-bottom {
 	bottom: 0;
@@ -4132,23 +3988,24 @@ body.is-pulling .pull-ring {
 }
 /* Local AI conversation preview: no messages or connected send action. */
 #modal.panel.narrow:has(.ai-conversation) {
-	width: min(680px, calc(100vw - 32px));
+	width: 100%;
 }
 .ai-conversation {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-16);
+	gap: var(--space-12);
 	max-height: calc(100dvh - 32px);
 }
 .ai-conversation-head {
 	display: flex;
 	align-items: center;
-	gap: var(--space-12);
-	padding-right: var(--space-44);
+	justify-content: center;
+	min-height: var(--hit-target);
+	flex: none;
 }
 .ai-conversation h1 {
 	margin: 0;
-	font-size: var(--text-title, 20px);
+	font-size: var(--text-card-title);
 }
 .ai-conversation > p {
 	margin: 0;
@@ -4161,6 +4018,7 @@ body.is-pulling .pull-ring {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-12);
+	scrollbar-width: none;
 }
 .ai-context-card {
 	padding: var(--card-padding);
@@ -4181,20 +4039,23 @@ body.is-pulling .pull-ring {
 }
 .ai-context-empty {
 	margin: auto 0;
+	text-align: center;
+	font-size: var(--text-control);
 }
 .ai-composer {
 	display: flex;
 	align-items: flex-end;
 	gap: var(--space-8);
-	border: 1px solid var(--line-card);
-	border-radius: var(--control-radius);
-	padding: var(--space-12);
+	border: 0;
+	border-radius: var(--panel-radius);
+	padding: var(--space-16);
+	flex: none;
 	background: var(--surface);
 }
 .ai-composer textarea {
 	flex: 1;
 	min-width: 0;
-	resize: vertical;
+	resize: none;
 	max-height: 160px;
 	border: 0;
 	background: transparent;
@@ -4236,6 +4097,21 @@ body.is-pulling .pull-ring {
 body:has(.home-top.is-tucked) .pull-ring.in-home-mark,
 body:has(#modal[open]) .pull-ring.in-home-mark {
 	visibility: hidden;
+}
+
+.ai-composer textarea {
+	line-height: 1.6;
+	outline: none;
+}
+.ai-composer .icon-button {
+	border-radius: 50%;
+	background: var(--ink);
+	color: var(--card);
+}
+.ai-availability {
+	font-size: var(--text-caption);
+	text-align: center;
+	flex: none;
 }
 
 /* Preview frame: cards and fixed layers render in flow. */

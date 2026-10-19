@@ -36,7 +36,7 @@ type PreviewContext = {
 	s: ReturnType<typeof Store.item>;
 	tags: ReactNode;
 	closeButton: ReactNode;
-	sheet: (inner: ReactNode, cover?: ReactNode, action?: ReactNode) => ReactNode;
+	sheet: (inner: ReactNode, cover?: ReactNode, action?: ReactNode, end?: ReactNode) => ReactNode;
 	tools: ReactNode;
 	h1: ReactNode;
 };
@@ -72,7 +72,12 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 		!["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
 			? button("expand", copy("web.preview.fullscreen"), "reader", c.id)
 			: "";
-	const sheet = (inner: ReactNode, cover: ReactNode = "", action: ReactNode = "") => (
+	const sheet = (
+		inner: ReactNode,
+		cover: ReactNode = "",
+		action: ReactNode = "",
+		end: ReactNode = "",
+	) => (
 		<>
 			<div className={"sheet preview-sheet"}>
 				{this.head(expand, closeButton)}
@@ -90,6 +95,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 						{note}
 						{this.details(c)}
 						{this.foot(action, agentAction(app, c))}
+						{end}
 					</div>
 				</div>
 			</div>
@@ -102,6 +108,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 				{c.title}
 			</h1>
 			{tags}
+			{this.publication(c)}
 		</>
 	);
 	const context: PreviewContext = { app, s, tags, closeButton, sheet, tools, h1 };
@@ -507,7 +514,6 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 					)),
 				)}
 			</div>
-			<div className={"reader-end"} id={"reader-end"} aria-hidden={"true"}></div>
 		</>
 	) : (
 		""
@@ -533,6 +539,10 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 					{full}
 				</>,
 				cover,
+				"",
+				c.body?.length ? (
+					<div className={"reader-end"} id={"reader-end"} aria-hidden={"true"}></div>
+				) : null,
 			)}
 			{tools}
 		</>

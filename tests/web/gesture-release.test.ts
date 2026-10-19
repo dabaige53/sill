@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
@@ -11,6 +12,10 @@ const bundle = buildSync({
 		loader: "ts",
 	},
 	bundle: true,
+	alias: {
+		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
+		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
+	},
 	write: false,
 	format: "iife",
 	globalName: "ReleaseTest",
@@ -105,15 +110,12 @@ test("a repeated content update starts at the currently visible opacity", () => 
 	try {
 		const el = f.w.document.querySelector("p");
 		const calls: any[] = [];
-		el.animate = (frames: any) => {
-			calls.push(frames);
-			return { playState: "running", cancel() {} };
-		};
+		f.w.__motionAnimations = calls;
 		f.MotionEngine.fade(el);
 		el.style.opacity = "0.45";
 		f.MotionEngine.fade(el);
-		assert.equal(calls[0][0].opacity, 0);
-		assert.equal(Number(calls[1][0].opacity), 0.45);
+		assert.equal(calls[0].frames[0].opacity, 0);
+		assert.equal(Number(calls[1].frames[0].opacity), 0.45);
 	} finally {
 		f.dom.window.close();
 	}
@@ -123,15 +125,8 @@ test("cancelled toast exit does not hide a toast grabbed again", async () => {
 	const f = fixture();
 	try {
 		const toast = f.w.document.getElementById("toast");
-		let reject: (reason?: any) => void;
-		toast.animate = () => ({
-			finished: new Promise((_, failure) => {
-				reject = failure;
-			}),
-			cancel() {
-				reject();
-			},
-		});
+		const animations: any[] = [];
+		f.w.__motionAnimations = animations;
 		const fire = (type: string, y: number) => {
 			const event = new f.w.Event(type, { bubbles: true, cancelable: true });
 			Object.assign(event, {
@@ -144,6 +139,7 @@ test("cancelled toast exit does not hide a toast grabbed again", async () => {
 		fire("touchmove", 150);
 		fire("touchend", 150);
 		fire("touchstart", 150);
+		for (const animation of animations) animation.finish();
 		await Promise.resolve();
 		assert.equal(toast.hidden, false);
 	} finally {

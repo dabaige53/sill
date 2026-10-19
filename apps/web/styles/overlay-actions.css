@@ -270,7 +270,6 @@
 		0 1px 2px var(--fixed-black-6),
 		0 10px 28px var(--fixed-black-14);
 	overflow: hidden;
-	transition: var(--motion-transition, transform var(--base) var(--ease));
 }
 .selection-stack-face[data-layer="1"] {
 	transform: translate(14px, -6px) rotate(6deg) scale(0.95);
@@ -282,9 +281,6 @@
 	opacity: 1;
 	border: 0;
 	box-shadow: none;
-	animation: var(--motion-animation, none);
-	animation-duration: var(--motion-animation-duration, 0s);
-	animation-iteration-count: var(--motion-animation-iterations, 1);
 }
 .selection-thumbnail-fallback {
 	padding: var(--space-14);
@@ -339,6 +335,7 @@ body.selection-menu-open {
 	max-width: 100vw;
 	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 	box-shadow: none;
+	scrollbar-width: none;
 }
 #selection-menu::backdrop {
 	background: var(--frost);
@@ -356,6 +353,7 @@ body.selection-menu-open {
 	flex-direction: column;
 	align-items: center;
 	gap: var(--space-14);
+	scrollbar-width: none;
 }
 /* A compact menu: words first, a matching icon at the end, as in a system context menu. */
 .selection-options {

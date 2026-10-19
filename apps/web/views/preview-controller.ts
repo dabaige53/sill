@@ -42,8 +42,10 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	}
 	if (this.modalKind === "search") this.suspendSearch();
 	this.currentId = id;
-	Store.patch(id, { seen: true });
-	this.refreshCard(id);
+	if (!Store.item(id).seen) {
+		Store.patch(id, { seen: true });
+		this.refreshCard(id);
+	}
 	if (c.type === "photo" && !reading) {
 		this.photoIndex = 0;
 		this.openModal(Panels.lightbox(c, 0, this), "lightbox", null, "lightbox");

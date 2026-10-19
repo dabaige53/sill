@@ -157,7 +157,6 @@ button.list-row:active {
 	gap: var(--space-4);
 	white-space: nowrap;
 	opacity: 0;
-	transition: var(--motion-transition, opacity var(--fast));
 }
 @media (hover: hover) and (pointer: fine) {
 	.list-row:hover .row-put {
@@ -223,8 +222,9 @@ button.list-row:active {
 	max-height: min(78dvh, 760px);
 	overflow-y: auto;
 	background: var(--canvas);
+	scrollbar-width: none;
 }
-.settings-main h1 {
+.settings-main h2 {
 	font-size: var(--text-panel-title);
 	margin: 0 var(--space-40) var(--space-18) 0;
 }
@@ -287,15 +287,19 @@ kbd {
 }
 
 /* Search owns its page; the home feed keeps its own state underneath. */
+body:has(dialog.search[open]) #feed-grid {
+	visibility: hidden;
+}
 :is(#modal, #search-background).search {
 	position: fixed;
-	inset: 0 0 var(--kb, 0px);
+	inset: 0;
 	width: 100%;
 	max-width: none;
-	height: auto;
+	height: 100dvh;
 	max-height: none;
 	margin: 0;
-	padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--margin-lg) var(--rail-bottom);
+	padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--margin-lg)
+		calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
 	background: var(--canvas);
 	z-index: 40;
 	display: none;
@@ -333,13 +337,10 @@ kbd {
 	display: flex;
 	align-items: center;
 	gap: var(--space-10);
-	height: 52px;
-	padding: 0 var(--space-10) 0 var(--space-18);
-	border-radius: var(--pill-radius);
-	background: var(--card);
-	box-shadow:
-		0 0 0 0.5px var(--line-card),
-		var(--shadow-glass);
+	height: var(--space-48);
+	padding: 0 var(--space-10) 0 var(--space-16);
+	border-radius: var(--control-radius);
+	background: var(--surface);
 }
 .search-pill > .icon {
 	color: var(--muted);
@@ -414,13 +415,79 @@ kbd {
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	padding: var(--space-2) var(--space-2) var(--space-24);
-}
-.search-results:empty {
-	display: none;
+	scrollbar-width: none;
 }
 .search-empty {
 	text-align: center;
 	font-size: var(--text-body);
 	color: var(--muted);
 	padding: var(--space-24) 0;
+}
+
+/* Pages share the application frame; cards still open in the existing dialog. */
+@media (min-width: 651px) {
+	#modal.page.panel {
+		position: fixed;
+		inset: 0;
+		z-index: 40;
+		width: 100%;
+		max-width: none;
+		height: 100dvh;
+		max-height: none;
+		margin: 0;
+		background: var(--canvas);
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		width: min(100%, 1040px);
+		margin-inline: auto;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		display: flex;
+		flex-direction: column;
+		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-16));
+	}
+	#modal.page .settings-layout {
+		flex: 1;
+		min-height: 0;
+	}
+	#modal.page .settings-main {
+		max-height: none;
+	}
+	#modal.page.panel .ai-conversation {
+		max-width: 720px;
+		padding: var(--space-24) var(--space-24)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16));
+	}
+	#modal.page.panel .ai-conversation > .sheet-close {
+		display: none;
+	}
+	:is(#modal, #search-background).page.search {
+		padding-inline: max(var(--margin-lg), calc((100vw - 1040px) / 2));
+	}
+}
+.settings-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--space-60);
+	padding: var(--space-16) var(--space-32) 0;
+	flex: none;
+}
+.settings-head h1 {
+	margin: 0;
+	font-size: var(--text-figure);
+	line-height: 1.2;
+	letter-spacing: -0.025em;
+}
+.settings-head .sheet-close {
+	position: static;
+}
+.settings-head .sheet-close .icon-button {
+	background: var(--faint);
+	box-shadow: none;
+	width: var(--hit-target);
+	height: var(--hit-target);
 }

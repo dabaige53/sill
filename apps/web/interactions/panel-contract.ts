@@ -34,6 +34,7 @@ export interface PanelRenderers {
 	meta(card?: Card): ReactNode;
 	tags(card?: Card): ReactNode;
 	details(card?: Pick<Card, "type" | "meta"> & Record<string, unknown>): ReactNode;
+	publication(card?: Record<string, unknown>): ReactNode;
 	bookmark(card?: Card, state?: CardItem): ReactNode;
 	later(card?: Card, state?: CardItem): ReactNode;
 	bar(...parts: Fragments): ReactNode;

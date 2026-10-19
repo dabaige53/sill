@@ -1,13 +1,15 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { copy } from "../copy.ts";
 import { FreshCards } from "../data/cards.ts";
 import type { Preferences } from "../data/store.ts";
 import { Store } from "../data/store.ts";
-import { ChromeAutoHide } from "../interactions/chrome.ts";
-import { DragManager } from "../interactions/drag.ts";
-import { Gestures } from "../interactions/gestures.ts";
-import { FeedLayout } from "../interactions/layout.ts";
+import type { ChromeAutoHide } from "../interactions/chrome.ts";
+import type { DragManager } from "../interactions/drag.ts";
+import type { Gestures } from "../interactions/gestures.ts";
+import type { FeedLayout } from "../interactions/layout.ts";
+import { MotionEngine } from "../interactions/motion.ts";
+import type { Playback } from "../interactions/motion-playback.ts";
 import {
 	type AgentCard,
 	AgentHandoff,
@@ -29,7 +31,7 @@ import { appPanelsMethods } from "./app-panels.ts";
 import { appSelectionMethods } from "./app-selection.ts";
 import { appStacksMethods } from "./app-stacks.ts";
 import { appSurfacesMethods } from "./app-surfaces.ts";
-import { type Filter, type ViewDialog, type ViewElement } from "./app-types.ts";
+import type { Filter, ViewDialog, ViewElement } from "./app-types.ts";
 
 class AppController {
 	declare startInlineEdit: AppControllerMethods["startInlineEdit"];
@@ -151,7 +153,7 @@ class AppController {
 	homeSelected = new Set<string>();
 	searchSelected = new Set<string>();
 	searchSelectAnchor = "";
-	selectionBars = new WeakMap<HTMLElement, { visible: boolean; animation: Animation | null }>();
+	selectionBars = new WeakMap<HTMLElement, { visible: boolean; animation: Playback | null }>();
 	get selected() {
 		return this.modalKind === "search" ? this.searchSelected : this.homeSelected;
 	}
@@ -301,12 +303,20 @@ class AppController {
 		this.refreshBusy = true;
 		this.pullRefreshFeedback = quiet;
 		// Background work shows as a thin arc around the face; success needs no sentence.
-		const dock = document.getElementById("dock"),
-			started = Date.now();
+		const dock = document.getElementById("dock");
+		const feedbackReady = quiet
+			? Promise.resolve()
+			: new Promise<void>((resolve) =>
+					window.setTimeout(resolve, MotionEngine.time("delay-loading")),
+				);
+		dock.classList.remove("is-done");
 		let finished = false;
-		if (!quiet) dock.classList.add("is-busy");
-		else {
+		if (!quiet) {
+			dock.classList.add("is-busy");
+			MotionEngine.loading(dock.querySelector(".orb-arc circle"), true, 1100);
+		} else {
 			dock.classList.remove("is-busy", "is-done");
+			MotionEngine.loading(dock.querySelector(".orb-arc circle"), false);
 			for (const id of ["offline"]) {
 				const notice = document.getElementById(id);
 				if (notice) notice.hidden = true;
@@ -344,19 +354,15 @@ class AppController {
 			}
 			return false;
 		} finally {
+			await feedbackReady;
 			this.refreshBusy = false;
 			this.pullRefreshFeedback = false;
-			// The arc closes into a check for a moment: the refresh ran, with no sentence.
-			if (!quiet)
-				window.setTimeout(
-					() => {
-						dock.classList.remove("is-busy");
-						if (!finished) return;
-						dock.classList.add("is-done");
-						window.setTimeout(() => dock.classList.remove("is-done"), 900);
-					},
-					Math.max(0, 600 - (Date.now() - started)),
-				);
+			dock.classList.remove("is-busy");
+			MotionEngine.loading(dock.querySelector(".orb-arc circle"), false);
+			if (!quiet && finished) {
+				dock.classList.add("is-done");
+				window.setTimeout(() => dock.classList.remove("is-done"), 900);
+			}
 		}
 	}
 }

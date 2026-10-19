@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { CardActions } from "../../../contracts/card-actions.ts";
 import { eventRelative, eventTimely, timeString } from "../atoms/primitives.ts";
@@ -47,7 +47,7 @@ export const panelSettings = {
 			// Adding lives here now: the same one field as the capture sheet. N still opens the sheet directly.
 			add: () => (
 				<>
-					<h1 id={"modal-title"}>{copy("web.settings.add")}</h1>
+					<h2>{copy("web.settings.add")}</h2>
 					<div className={"settings-card settings-add"}>
 						<div className={"capture-field"}>
 							{icon("plus", 18)}
@@ -73,7 +73,7 @@ export const panelSettings = {
 			),
 			desk: () => (
 				<>
-					<h1 id={"modal-title"}>{copy("web.common.desk")}</h1>
+					<h2>{copy("web.common.desk")}</h2>
 					<div className={"settings-card"}>
 						{row(
 							copy("web.settings.stackSameSource"),
@@ -138,7 +138,7 @@ export const panelSettings = {
 			),
 			look: () => (
 				<>
-					<h1 id={"modal-title"}>{copy("web.settings.appearance")}</h1>
+					<h2>{copy("web.settings.appearance")}</h2>
 					<div className={"settings-card"}>
 						{row(
 							copy("web.settings.theme.label"),
@@ -171,7 +171,7 @@ export const panelSettings = {
 			),
 			keys: () => (
 				<>
-					<h1 id={"modal-title"}>{copy("web.settings.shortcuts")}</h1>
+					<h2>{copy("web.settings.shortcuts")}</h2>
 					<div className={"settings-card"}>
 						{row(
 							copy("web.settings.singleKeyShortcuts"),
@@ -205,7 +205,7 @@ export const panelSettings = {
 			),
 			data: () => (
 				<>
-					<h1 id={"modal-title"}>{copy("web.cloudentry.ebdc835e8f87")}</h1>
+					<h2>{copy("web.cloudentry.ebdc835e8f87")}</h2>
 					<div className={"settings-card"}>
 						{row(
 							copy("web.settings.storage.location"),
@@ -254,7 +254,10 @@ export const panelSettings = {
 			<>
 				<div className={"sheet"}>
 					<div className={"grabber"} aria-hidden={"true"}></div>
-					{this.close(copy("web.settings.close"))}
+					<header className={"settings-head"}>
+						<h1 id={"modal-title"}>{copy("web.nav.settings")}</h1>
+						{this.close(copy("web.settings.close"))}
+					</header>
 					<div className={"settings-layout"}>
 						<nav className={"settings-nav"} aria-label={copy("web.settings.groupsLabel")}>
 							{keyed(
@@ -326,13 +329,8 @@ export const panelSettings = {
 					<div className={"grabber"} aria-hidden={"true"}></div>
 					{this.close(copy("web.close"))}
 					<header className={"ai-conversation-head"}>
-						{icon("chat", 24)}
 						<h1 id={"modal-title"}>{copy("web.ai.title")}</h1>
-						<span className={"soon-badge"}>{copy("web.ai.soon")}</span>
 					</header>
-					<p id={"ai-availability"} className={"muted"}>
-						{copy("web.ai.localOnly")}
-					</p>
 					<section className={"ai-context"} aria-label={copy("web.ai.context")}>
 						{cards.length ? (
 							keyed(context)
@@ -349,7 +347,7 @@ export const panelSettings = {
 							aria-describedby={"ai-availability"}
 							placeholder={copy("web.ai.placeholder")}
 							maxLength={4000}
-							rows={3}
+							rows={2}
 							defaultValue={app?.aiDraft || ""}
 						/>
 						<button
@@ -361,6 +359,9 @@ export const panelSettings = {
 							{icon("send", 20)}
 						</button>
 					</div>
+					<p id={"ai-availability"} className={"ai-availability muted"}>
+						{copy("web.ai.localOnly")}
+					</p>
 				</div>
 			</>
 		);

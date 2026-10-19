@@ -61,16 +61,21 @@ export const appCardActionsMethods = {
 		if (restoreFocus) trigger?.focus({ preventScroll: true });
 		const drawn = getComputedStyle(menu);
 		const from = { opacity: drawn.opacity, transform: drawn.transform };
-		for (const animation of menu.getAnimations()) animation.cancel();
+		MotionEngine.cancel(menu);
 		// The menu leaves faster than it came, toward its anchor.
 		menu.classList.replace("card-more-menu", "card-more-leaving");
 		menu.removeAttribute("id");
 		menu.inert = true;
 		const out = MotionEngine.keyboard
 			? null
-			: MotionEngine.animate(menu, [from, { opacity: 0, transform: "translateY(-4px)" }], {
-					duration: 120,
-				});
+			: MotionEngine.animate(
+					menu,
+					[from, { opacity: 0, transform: "translateY(-4px) scale(.95)" }],
+					{
+						duration: MotionEngine.time("fast"),
+						easing: MotionEngine.curve(),
+					},
+				);
 		if (out)
 			out.finished.then(
 				() => menu.remove(),
@@ -92,6 +97,7 @@ export const appCardActionsMethods = {
 			return;
 		}
 		this.closeMore();
+		MotionEngine.cancel(c);
 		c.classList.add("tools-open");
 		const menu = document.createElement("div");
 		menu.className = "card-more-menu";
@@ -149,7 +155,7 @@ export const appCardActionsMethods = {
 			MotionEngine.animate(
 				menu,
 				[
-					{ opacity: 0, transform: "translateY(-4px) scale(.92)" },
+					{ opacity: 0, transform: "translateY(-4px) scale(.95)" },
 					{ opacity: 1, transform: "none" },
 				],
 				{ duration: 180 },

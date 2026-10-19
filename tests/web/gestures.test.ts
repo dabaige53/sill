@@ -13,6 +13,10 @@ const bundle = buildSync({
 		loader: "ts",
 	},
 	bundle: true,
+	alias: {
+		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
+		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
+	},
 	write: false,
 	format: "iife",
 	platform: "browser",
@@ -35,9 +39,11 @@ function fixture({ kind = "preview", phone = false, end = false } = {}) {
 	const timers = new Map<number, () => void>(),
 		frames = new Map<number, () => void>();
 	let taskId = 0;
-	w.setTimeout = (callback: () => void) => {
+	const delays = new Map<number, number>();
+	w.setTimeout = (callback: () => void, delay = 0) => {
 		const id = ++taskId;
 		timers.set(id, callback);
+		delays.set(id, delay);
 		return id;
 	};
 	w.clearTimeout = (id: number) => timers.delete(id);
@@ -98,12 +104,12 @@ function fixture({ kind = "preview", phone = false, end = false } = {}) {
 		});
 		target.dispatchEvent(event);
 	};
-	const flush = (tasks = timers) => {
-		const pending = [...tasks.values()];
-		tasks.clear();
-		pending.forEach((callback) => {
+	const flush = (tasks = timers, maximumDelay = Infinity) => {
+		for (const [id, callback] of [...tasks]) {
+			if (tasks === timers && delays.get(id) > maximumDelay) continue;
+			tasks.delete(id);
 			callback();
-		});
+		}
 	};
 	return {
 		dom,
@@ -160,7 +166,7 @@ test("touchcancel resets desk pull, sheet drag, reader swipes, toast and read-en
 	}
 });
 
-test("a preview pulled down from its top closes once on release, even full screen", () => {
+test("a preview pulled down from its top closes once on release, even full screen", async () => {
 	for (const full of [false, true]) {
 		const f = fixture({ phone: true });
 		try {
@@ -176,6 +182,7 @@ test("a preview pulled down from its top closes once on release, even full scree
 			assert.equal(f.app.closed, 0, "pulling past the line is not itself a close");
 			f.fire(target, "touchend", 120, 450);
 			f.flush();
+			await new Promise((resolve) => setImmediate(resolve));
 			assert.equal(f.app.closed, 1, `full=${full}: one pull closes`);
 		} finally {
 			f.dom.window.close();
@@ -231,15 +238,12 @@ test("pushing on at the end of a stacked preview folds back one card, not the de
 test("a delayed gesture close cannot close a later panel or alter its return motion", async () => {
 	const f = fixture();
 	try {
-		const completions = [];
-		f.dialog.animate = () => ({
-			finished: new Promise((resolve) => completions.push(resolve)),
-			cancel() {},
-		});
+		const animations: any[] = [];
+		f.w.__motionAnimations = animations;
 		f.gestures.exitSurface(f.dialog, () => f.app.closeModal());
 		f.app.modalToken++;
 		f.dialog.style.removeProperty("--backdrop");
-		completions.shift()();
+		animations.at(-1).finish();
 		await Promise.resolve();
 		f.flush();
 		assert.equal(f.dialog.open, true);
@@ -247,7 +251,7 @@ test("a delayed gesture close cannot close a later panel or alter its return mot
 		assert.equal(f.app.skipReturnMotion, false);
 		assert.equal(f.dialog.style.getPropertyValue("--backdrop"), "");
 		f.gestures.exitSurface(f.dialog, () => f.app.closeModal());
-		completions.shift()();
+		animations.at(-1).finish();
 		await Promise.resolve();
 		f.flush();
 		assert.equal(f.app.closed, 1, "the current panel still closes normally");
@@ -312,8 +316,8 @@ test("a canceled phone opening cannot revive the exiting sheet or its toolbar", 
 		f.flush(f.frames);
 		f.flush();
 		assert.equal(sheet.classList.contains("is-off"), true);
-		assert.equal(bar.classList.contains("is-hidden"), true);
-		assert.equal(f.dialog.style.getPropertyValue("--backdrop"), "0");
+		assert.equal(f.MotionEngine.panelAnimations.has(f.dialog), false);
+		assert.equal(bar.style.transform, "");
 	} finally {
 		f.dom.window.close();
 	}
@@ -323,18 +327,14 @@ test("a toast swipe completion cannot hide a newer result", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
 		const toast = f.document.getElementById("toast");
-		let finish: () => void;
-		toast.animate = () => ({
-			finished: new Promise<void>((resolve) => {
-				finish = resolve;
-			}),
-		});
+		const animations: any[] = [];
+		f.w.__motionAnimations = animations;
 		f.fire(toast, "touchstart");
 		f.fire(toast, "touchmove", 120, 250);
 		f.fire(toast, "touchend", 120, 250);
 		f.app.toastSeq++;
 		toast.textContent = "后来的结果";
-		finish();
+		animations.at(-1).finish();
 		await Promise.resolve();
 		assert.equal(toast.hidden, false);
 		assert.equal(toast.textContent, "后来的结果");
@@ -431,6 +431,7 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 			return Promise.resolve();
 		};
 		f.document.querySelector("#pull-ring").click();
+		f.flush(undefined, 300);
 		await settle();
 		assert.equal(f.app.refreshes, 2);
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
@@ -480,6 +481,12 @@ test("short pull cancels, light threshold commits once on release, and long trav
 		assert.equal(f.app.refreshes, 1);
 		assert.equal(f.document.querySelector("main").style.translate, "0 36px", "held while loading");
 		assert.equal(f.document.querySelector("#pull-ring").textContent, "");
+		assert.equal(
+			f.document.querySelector("#pull-ring").dataset.state,
+			"loading",
+			"fast requests retain visible feedback",
+		);
+		f.flush(undefined, 300);
 		for (let i = 0; i < 8; i++) await Promise.resolve();
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
 		assert.equal(

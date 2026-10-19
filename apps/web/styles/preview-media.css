@@ -252,7 +252,6 @@
 	height: 2px;
 	background: var(--accent-fill);
 	z-index: 4;
-	transition: var(--motion-transition, transform var(--fast) linear);
 }
 .reader-scroll {
 	height: 100dvh;
@@ -307,40 +306,18 @@
 	border-radius: var(--pill-radius);
 }
 /* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
-dialog > .float-bar,
-.reader-head {
-	transition: var(
-		--motion-transition,
-		transform var(--dur-show) var(--ease-sheet),
-		opacity var(--dur-show) var(--ease),
-		translate var(--dur-sheet) var(--ease-sheet),
-		visibility 0s
-	);
-}
 dialog > .float-bar.is-tucked,
 dialog > .float-bar.is-hidden {
 	transform: var(--motion-toolbar-transform, translateY(calc(100% + 40px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--rail-tuck) var(--ease),
-		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck)
-	);
 }
 .reader-head.is-tucked {
 	transform: var(--motion-toolbar-transform, translateY(calc(-100% - 24px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--rail-tuck) var(--ease),
-		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck)
-	);
 }
 /* The read-end ring closes into a check when the last paragraph is reached. */
 .skeleton-lines {

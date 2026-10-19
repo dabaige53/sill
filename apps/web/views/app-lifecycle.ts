@@ -14,6 +14,7 @@ import { AccountRing, WorkspaceShell } from "./shell.tsx";
 
 export const appLifecycleMethods = {
 	init(this: AppController) {
+		MotionEngine.bind();
 		// Track the input that opened the card; restoring focus must not draw a touch selection box.
 		document.addEventListener(
 			"pointerdown",
@@ -21,6 +22,13 @@ export const appLifecycleMethods = {
 				document.documentElement.dataset.inputModality = "pointer";
 			},
 			{ capture: true },
+		);
+		document.addEventListener(
+			"wheel",
+			() => {
+				document.documentElement.dataset.inputModality = "pointer";
+			},
+			{ capture: true, passive: true },
 		);
 		document.addEventListener(
 			"keydown",
@@ -102,8 +110,11 @@ export const appLifecycleMethods = {
 		// The rail tucks away while reading on and returns on a pause or a turn back.
 		this.railHide = new ChromeAutoHide(
 			window,
-			() => [dock, document.getElementById("scroll-edge")],
-			() => this.drag?.active || this.drag?.menu?.open,
+			() =>
+				[dock, document.getElementById("home-top"), document.getElementById("scroll-edge")].filter(
+					Boolean,
+				),
+			() => this.dialog.open || this.drag?.active || this.drag?.menu?.open,
 		);
 		window.addEventListener("popstate", () => this.route());
 		window.addEventListener("hashchange", () => this.route());
@@ -176,13 +187,19 @@ export const appLifecycleMethods = {
 	bindKeyboard(this: AppController) {
 		const vv = window.visualViewport;
 		if (!vv) return;
+		let frame = 0;
 		const sync = () => {
+			frame = 0;
 			const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
 			document.documentElement.style.setProperty("--kb", `${kb}px`);
 			document.body.classList.toggle("keyboard-open", kb > 120);
 		};
-		vv.addEventListener("resize", sync);
-		vv.addEventListener("scroll", sync);
+		const schedule = () => {
+			if (!frame) frame = requestAnimationFrame(sync);
+		};
+		vv.addEventListener("resize", schedule);
+		vv.addEventListener("scroll", schedule);
+		window.addEventListener("resize", schedule);
 		sync();
 	},
 	paintAccount(this: AppController) {
@@ -190,38 +207,30 @@ export const appLifecycleMethods = {
 		if (face) renderView(face, createElement(AccountRing));
 	},
 	accountRing(this: AppController) {
-		return `${icon("sill", 22)}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
+		return `${icon("person", 22)}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
 	},
 	navHTML(this: AppController) {
 		const tab = (key: string, face: string, label: string, aria = label, id = "") =>
 			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span>${key === "settings" ? "" : `<span class="nav-label" aria-hidden="true">${label}</span>`}</button>`;
-		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("search", icon("search", 22), copy("web.nav.search"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("settings", `<span class="account-wrap">${this.accountRing()}</span>`, copy("web.nav.settings"), copy("web.nav.settings"), "account")}</nav>`;
+		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("search", icon("search", 22), copy("web.nav.search"))}</nav>`;
 	},
 	setNav(this: AppController, key: string) {
 		const nav = document.getElementById("nav");
 		if (!nav) return;
-		const tab = nav.querySelector<HTMLElement>(`[data-extra="${key}"]`);
-		if (!tab) return;
-		const moved = this.navKey !== key;
 		this.navKey = key;
+		const tab = nav.querySelector<HTMLElement>(
+			`[data-extra="${key === "settings" ? "home" : key}"]`,
+		);
+		if (!tab) return;
 		nav.querySelectorAll<HTMLElement>(".nav-tab").forEach((n) => {
 			if (n === tab) n.setAttribute("aria-current", "page");
 			else n.removeAttribute("aria-current");
 		});
 		nav.style.setProperty("--lens-x", `${tab.offsetLeft}px`);
 		nav.style.setProperty("--lens-w", `${tab.offsetWidth}px`);
-		if (!moved) return;
-		nav.classList.add("is-moving");
-		clearTimeout(this.navTimer);
-		this.navTimer = window.setTimeout(
-			() => nav.classList.remove("is-moving"),
-			MotionEngine.time("dur-lens"),
-		);
 	},
 	isPage(this: AppController, kind: string) {
-		return (
-			kind === "search" || (PAGE_KINDS.includes(kind) && matchMedia("(max-width:650px)").matches)
-		);
+		return PAGE_KINDS.includes(kind);
 	},
 	goTo(this: AppController, key: string) {
 		clearTimeout(this.navOpenTimer);
@@ -234,7 +243,11 @@ export const appLifecycleMethods = {
 			this.discardSearchBackground();
 			this.setNav("home");
 			if (this.dialog.open) this.closeNative();
-			else window.scrollTo({ top: 0, behavior: "smooth" });
+			else {
+				window.scrollTo({ top: 0, behavior: "instant" });
+				this.railHide?.syncPosition();
+				this.railHide?.show();
+			}
 			return;
 		}
 		if (key === "search" && this.searchBackground) {

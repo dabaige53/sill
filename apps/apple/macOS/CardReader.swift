@@ -70,6 +70,8 @@ struct CardReader: View {
                 card.fields["media"]?.string == "podcast"
                   ? 0 : AppleMetrics.hitTarget * (card.paragraphs.isEmpty ? 1 : 2))
               if !model.tags(card).isEmpty { tagChips(model.tags(card), removable: false) }
+              metadata(card).font(.system(size: AppleMetrics.font12)).foregroundStyle(
+                AppleColors.secondary)
               if card.type == "media" && card.fields["media"]?.string == "podcast" {
                 sourceMeta(card)
               }

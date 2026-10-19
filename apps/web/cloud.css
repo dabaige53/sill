@@ -64,7 +64,7 @@
 	padding: 24px 32px 12px;
 	overflow-y: auto;
 	overscroll-behavior: contain;
-	scrollbar-width: thin;
+	scrollbar-width: none;
 }
 #cloud-editor #cloud-title {
 	display: block;

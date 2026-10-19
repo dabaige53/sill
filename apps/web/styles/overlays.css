@@ -1,13 +1,7 @@
 /* Sill · overlays · shared source
  * One dialog, several shapes: a lifted card (preview), a page (reader), a sheet (panels), a lightbox (photos).
  */
-body.modal-scroll-locked {
-	position: fixed;
-	top: var(--locked-scroll);
-	left: 0;
-	right: 0;
-	overscroll-behavior: none;
-}
+
 dialog {
 	color: var(--ink);
 	padding: 0;
@@ -113,24 +107,12 @@ dialog::backdrop {
 	display: flex;
 	gap: var(--space-8);
 	pointer-events: auto;
-	transition: var(
-		--motion-transition,
-		transform var(--dur-show) var(--ease-sheet),
-		opacity var(--dur-show) var(--ease),
-		visibility 0s
-	);
 }
 .sheet-head-tools.is-tucked {
 	transform: var(--motion-toolbar-transform, translateY(-12px));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-	transition: var(
-		--motion-transition,
-		transform var(--rail-tuck) var(--ease),
-		opacity 180ms var(--ease),
-		visibility 0s var(--rail-tuck)
-	);
 }
 .preview-sheet:before {
 	content: "";
@@ -147,7 +129,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 92%, transparent) 30%,
 		color-mix(in srgb, var(--card) 0%, transparent)
 	);
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
 	opacity: 1;
@@ -238,7 +219,6 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 18px),
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 #modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
 	opacity: 0;
@@ -267,7 +247,6 @@ dialog::backdrop {
 	background: var(--card-read);
 	box-shadow: var(--shadow-sheet);
 	cursor: pointer;
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .preview-sheet .sheet-scroll {
 	flex: 0 1 auto;
@@ -465,15 +444,21 @@ button.detail-row:active {
 	max-width: 100%;
 	overflow-wrap: anywhere;
 }
-.preview-published {
-	flex: none;
-	white-space: nowrap;
-}
-.preview-source-note {
-	margin: var(--space-16) 0 0;
+.preview-published,
+.preview-source-details {
+	margin-top: 0;
+	display: grid;
+	gap: var(--space-6);
 	font-size: var(--text-caption);
 	line-height: 1.6;
 	color: var(--secondary);
+}
+.preview-source-details > p {
+	margin: 0;
+	font: inherit;
+	color: inherit;
+}
+.preview-source-note {
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
 }

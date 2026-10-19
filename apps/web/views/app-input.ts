@@ -1,6 +1,5 @@
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
-import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { action as dispatchAction } from "./actions/index.ts";
 import type { AppController } from "./app.ts";
@@ -85,7 +84,6 @@ export const appInputMethods = {
 			(row) => row.scrollLeft,
 		);
 		renderContent(this.dialog, Panels.search(this));
-		MotionEngine.fade(document.getElementById("search-results"));
 		this.bindSearchResults();
 		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
 			row.scrollLeft = filterScroll[index] ?? 0;
@@ -121,7 +119,6 @@ export const appInputMethods = {
 				const results = document.getElementById("search-results");
 				if (results) {
 					renderView(results, Panels.searchResults(this));
-					MotionEngine.fade(results);
 					results.scrollTop = 0;
 					this.revealImages(results);
 					this.updateSelection();

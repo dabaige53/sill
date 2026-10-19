@@ -44,7 +44,7 @@ struct DetailPresentation {
 }
 
 @MainActor extension Workspace {
-  /// Navigation commits immediately; the lens animation never schedules a later page change.
+  /// High-frequency navigation commits immediately without a selection transition.
   func presentNavigation(_ destination: String) {
     settingsPresented = destination == "settings"
     if destination != "settings" { page = destination }

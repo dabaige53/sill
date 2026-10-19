@@ -76,7 +76,7 @@ export const gestureSurfacesMethods = {
 					frame = requestAnimationFrame(() => {
 						frame = 0;
 						if (!drag || drag.token !== this.app.modalToken) return;
-						drag.sheet.style.translate = `0 ${drag.dy}px`;
+						MotionEngine.move(drag.sheet, `0 ${drag.dy}px`, true);
 						this.dim(1 - Math.min(1, drag.dy / drag.height) * 0.7);
 						if (drag.bar) drag.bar.style.opacity = String(Math.max(0, 1 - drag.dy / 120));
 					});
@@ -159,7 +159,7 @@ export const gestureSurfacesMethods = {
 				if (e.cancelable) e.preventDefault();
 				swipe.velocity.feed(p.x);
 				swipe.dx = Math.max(0, swipe.base + dx);
-				dialog.style.translate = `${swipe.dx}px 0`;
+				MotionEngine.move(dialog, `${swipe.dx}px 0`, true);
 				this.dim(1 - Math.min(1, swipe.dx / innerWidth));
 			},
 			{ passive: false },
@@ -183,64 +183,61 @@ export const gestureSurfacesMethods = {
 	bindToastSwipe(this: Gestures) {
 		const toast = document.getElementById("toast");
 		let start = null;
-		let animation: Animation | null = null;
+		let generation = 0;
 		const cancel = () => {
+			generation++;
 			start = null;
-			animation?.cancel();
-			animation = null;
-			toast.style.translate = "";
+			MotionEngine.cancel(toast);
+			MotionEngine.move(toast, "", true);
 			toast.style.opacity = "";
 		};
 		toast.addEventListener(
 			"touchstart",
-			(e?: any) => {
+			(event: TouchEvent) => {
+				const offset = parseFloat(getComputedStyle(toast).translate.split(" ")[1]) || 0;
 				cancel();
-				if (e.touches.length === 1 && !e.target.closest("button"))
-					start = { ...this.point(e), seq: this.app.toastSeq };
+				if (event.touches.length === 1 && !(event.target as Element).closest("button")) {
+					MotionEngine.move(toast, `0 ${offset}px`, true);
+					start = { ...this.point(event), offset, seq: this.app.toastSeq };
+				}
 			},
 			{ passive: true },
 		);
 		toast.addEventListener(
 			"touchmove",
-			(e?: any) => {
+			(event: TouchEvent) => {
 				if (!start) return;
-				if (e.touches.length !== 1 || start.seq !== this.app.toastSeq) return cancel();
-				const dy = this.point(e).y - start.y;
-				if (dy > 0) {
-					if (e.cancelable) e.preventDefault();
-					toast.style.translate = `0 ${dy}px`;
-					toast.style.opacity = String(1 - Math.min(1, dy / 80));
-				}
+				if (event.touches.length !== 1 || start.seq !== this.app.toastSeq) return cancel();
+				const dy = Math.max(0, this.point(event).y - start.y + start.offset);
+				if (event.cancelable) event.preventDefault();
+				MotionEngine.move(toast, `0 ${dy}px`, true);
+				toast.style.opacity = String(1 - Math.min(1, dy / 80));
 			},
 			{ passive: false },
 		);
-		toast.addEventListener("touchend", (e?: any) => {
+		toast.addEventListener("touchend", (event: TouchEvent) => {
 			if (!start) return;
 			if (start.seq !== this.app.toastSeq) return cancel();
-			const dy = this.point(e).y - start.y;
-			const seq = start.seq;
+			const dy = this.point(event).y - start.y + start.offset;
+			const seq = start.seq,
+				token = generation;
 			start = null;
-			const from: Record<string, any> = {
-				translate: toast.style.translate || "0 0",
-				opacity: toast.style.opacity || "1",
-			};
-			toast.style.translate = "";
+			const opacity = toast.style.opacity || "1";
 			toast.style.opacity = "";
-			if (dy > 24) {
-				const a = MotionEngine.animate(toast, [from, { translate: "0 60px", opacity: 0 }], {
-					duration: MotionEngine.time("dur-tuck"),
-				});
-				animation = a;
-				const hide = () => {
-					if (seq !== this.app.toastSeq) return;
-					toast.hidden = true;
-					clearTimeout(this.app.toastTimer);
-				};
-				a ? a.finished.then(hide, () => {}) : hide();
-			} else if (dy > 0) {
-				toast.style.translate = from.translate;
-				this.settle(toast);
-			}
+			MotionEngine.animate(toast, [{ opacity }, { opacity: dy > 24 ? 0 : 1 }], {
+				duration: 180,
+				fill: dy > 24 ? "forwards" : undefined,
+			});
+			const animation = MotionEngine.move(toast, dy > 24 ? "0 60px" : "");
+			if (dy > 24)
+				animation.finished.then(
+					() => {
+						if (seq !== this.app.toastSeq || token !== generation) return;
+						toast.hidden = true;
+						clearTimeout(this.app.toastTimer);
+					},
+					() => {},
+				);
 		});
 		toast.addEventListener("touchcancel", cancel, { passive: true });
 	},

@@ -31,23 +31,22 @@ extension Desktop {
   func nav(_ page: String, _ name: String, _ label: String) -> some View {
     Button {
       showRail()
-      if page == "home" && model.page == "home" { homeTopRequest += 1 }
+      if page == "home" && model.page == "home" { requestHomeTop() }
       model.presentNavigation(page)
     } label: {
       ZStack {
-        if (model.settingsPresented ? "settings" : model.page) == page {
+        if model.page == page {
           Capsule().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity))
-            .matchedGeometryEffect(id: "lens", in: navigation)
         }
-        NativeIcon(name: name, size: AppleMetrics.space22)
+        VStack(spacing: AppleMetrics.space4) {
+          NativeIcon(name: name, size: AppleMetrics.space22)
+          Text(Copy.text(label)).font(.system(size: 10.5, weight: .medium))
+        }
           .foregroundStyle(
             AppleColors.primary.opacity(
-              (model.settingsPresented ? "settings" : model.page) == page
+              model.page == page
                 ? 1 : 0.62))
-      }.animation(
-        .timingCurve(0.32, 0.72, 0, 1, duration: AppleMetrics.motionLens),
-        value: model.settingsPresented ? "settings" : model.page
-      )
+      }
       .frame(width: AppleMetrics.navTab, height: AppleMetrics.railRow - AppleMetrics.railInset * 2)
     }.buttonStyle(.plain).accessibilityLabel(Copy.text(label)).help(Copy.text(label))
   }
@@ -211,7 +210,7 @@ extension Desktop {
   }
   var aiPage: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      Text(Copy.text("web.ai.title")).font(.system(size: AppleMetrics.space20, weight: .semibold))
+      Text(Copy.text("web.nav.ai")).font(.system(size: AppleMetrics.space20, weight: .semibold))
       ScrollView {
         VStack(spacing: AppleMetrics.space12) {
           ForEach(model.aiCards.compactMap { id in model.cards.first { $0.id == id } }) { card in
@@ -235,7 +234,7 @@ extension Desktop {
         .accessibilityLabel(Copy.text("web.ai.context"))
       HStack(alignment: .bottom, spacing: AppleMetrics.space8) {
         TextField(Copy.text("web.ai.placeholder"), text: $model.aiDraft, axis: .vertical)
-          .textFieldStyle(.plain).lineLimit(3...8)
+          .textFieldStyle(.plain).lineLimit(1...8)
           .accessibilityLabel(Copy.text("web.ai.composer"))
           .onChange(of: model.aiDraft) {
             if model.aiDraft.count > 4000 { model.aiDraft = String(model.aiDraft.prefix(4000)) }
@@ -243,6 +242,8 @@ extension Desktop {
         iconButton("send", "web.ai.sendUnavailable") {}.disabled(true)
       }.padding(AppleMetrics.space12).background(
         AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
+      Text(Copy.text("web.ai.localOnly")).font(.system(size: AppleMetrics.font12))
+        .foregroundStyle(AppleColors.secondary)
     }.frame(maxWidth: .infinity, maxHeight: .infinity)
       .dropDestination(for: String.self) { ids, _ in
         for id in ids

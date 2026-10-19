@@ -44,11 +44,39 @@ extension Desktop {
             if pageLimit < homeEntries.count { pageLimit += 40 }
           }
         }.scrollIndicators(.hidden)
+          .safeAreaInset(edge: .top, spacing: 0) {
+            homeHeader.padding(.horizontal, feedMargin(geometry.size.width))
+              .opacity(railHidden ? 0 : 1)
+              .offset(y: railHidden ? -AppleMetrics.motionRailTravel : 0)
+              .animation(
+                .timingCurve(0.32, 0.72, 0, 1, duration: AppleMetrics.motionRailShow),
+                value: railHidden
+              )
+              .allowsHitTesting(!railHidden)
+          }
           .onChange(of: homeTopRequest) {
-            withAnimation(.easeOut) { proxy.scrollTo("home-top", anchor: .top) }
+            withAnimation(homeTopImmediate ? nil : .easeOut) {
+              proxy.scrollTo("home-top", anchor: .top)
+            }
           }
       }
     }
+  }
+  private var homeHeader: some View {
+    HStack {
+      Button("Sill") { requestHomeTop() }
+        .buttonStyle(.plain)
+        .font(.system(size: AppleMetrics.font34, weight: .bold))
+      Spacer()
+      Button { model.presentNavigation("settings") } label: {
+        NativeIcon(name: "person", size: AppleMetrics.space22)
+          .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
+          .background(AppleColors.surface, in: Circle())
+          .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+      }.buttonStyle(.plain).accessibilityLabel(Copy.text("web.nav.settings"))
+        .help(Copy.text("web.nav.settings"))
+    }.frame(height: AppleMetrics.railRow)
+      .background(AppleColors.canvas.opacity(0.94))
   }
   var homeCards: [Card] {
     // Workspace supplies the same home sorting policy, independent of the search filters.
@@ -217,7 +245,7 @@ extension Desktop {
             }
           }.padding(.leading, AppleMetrics.space18).padding(.trailing, AppleMetrics.space10)
             .frame(height: AppleMetrics.searchPillHeight).background(
-              AppleColors.card, in: Capsule())
+              AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
         }
         VStack(spacing: AppleMetrics.space8) {
           searchFilterRow("web.search.filters.type") {
@@ -259,17 +287,21 @@ extension Desktop {
         ScrollViewReader { proxy in
           ScrollView {
             observation("search")
-            let all = model.visible
+            let searching =
+              !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              || model.typeFilter != "all" || model.filter != Copy.appleAll
+              || !model.tagFilter.isEmpty
+            let all = searching ? model.visible : []
             let desk = Array(
               all.filter { model.items[$0.id]?["archived"]?.bool != true }.prefix(searchLimit))
             let shelved = Array(
               all.filter { model.items[$0.id]?["archived"]?.bool == true }.prefix(
                 max(0, searchLimit - desk.count)))
-            if all.isEmpty {
+            if searching && all.isEmpty {
               Text(Copy.text("web.panels.11a8f9879575") + model.query + "」").foregroundStyle(
                 AppleColors.secondary
               ).padding(AppleMetrics.space24)
-            } else {
+            } else if searching {
               let ideal = grid(geometry.size.width - AppleMetrics.space40 * 2).ideal
               let columns = [
                 GridItem(
@@ -290,7 +322,7 @@ extension Desktop {
               }
             }
             Color.clear.frame(height: AppleMetrics.feedBottom).onAppear {
-              if searchLimit < model.visible.count { searchLimit += 40 }
+              if searching && searchLimit < all.count { searchLimit += 40 }
             }
           }.scrollIndicators(.hidden)
             .onChange(of: model.query) { resetSearch(proxy) }

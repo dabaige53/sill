@@ -3,10 +3,11 @@ import SillKit
 import SwiftUI
 
 extension Desktop {
-  func dismissTop() {
+  func dismissTop(immediateDetail: Bool = false) {
     if tagEditor {
       tagEditor = false
     } else if model.selected != nil {
+      detailImmediateRequest = immediateDetail
       model.dismissReader()
     } else if archivePresented {
       archivePresented = false
@@ -20,12 +21,25 @@ extension Desktop {
       model.page = "home"
     }
   }
+  func selectDetailFromKeyboard(_ id: String?) {
+    guard model.selected != id else { return }
+    detailImmediateRequest = true
+    model.selected = id
+  }
+  func requestHomeTop(immediate: Bool = false) {
+    homeTopImmediate = immediate
+    homeTopRequest += 1
+  }
   func observation(_ page: String) -> some View {
     Color.clear.frame(height: 0).id(page + "-top")
       .background(
         ScrollObservation(initialOffset: model.scrollOffsets[page] ?? 0) { offset, bottom, user in
           model.scrollOffsets[page] = offset
           guard model.page == page, user else { return }
+          guard page == "home" else {
+            showRail()
+            return
+          }
           let delta = offset - lastOffset
           lastOffset = offset
           revealTask?.cancel()
@@ -99,7 +113,7 @@ extension Desktop {
       return true
     }
     if event.keyCode == 53 {
-      dismissTop()
+      dismissTop(immediateDetail: true)
       return true
     }
     if command && event.keyCode == 36 && model.capturePresented {
@@ -109,7 +123,7 @@ extension Desktop {
       return true
     }
     if model.searchPresented && searchFocused && event.keyCode == 36 {
-      model.selected = model.visible.first?.id
+      selectDetailFromKeyboard(model.visible.first?.id)
       return true
     }
     guard !typing else { return false }
@@ -139,13 +153,13 @@ extension Desktop {
         model.refresh()
         return true
       case "t":
-        homeTopRequest += 1
+        requestHomeTop(immediate: true)
         return true
       default: break
       }
     }
     if event.keyCode == 36 || event.keyCode == 49, let focusedCard, model.selected == nil {
-      model.selected = focusedCard
+      selectDetailFromKeyboard(focusedCard)
       return true
     }
     return false

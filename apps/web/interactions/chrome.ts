@@ -1,3 +1,5 @@
+import { MotionEngine } from "./motion.ts";
+
 /**
  * Bars step aside while you read on and come back when you pause or turn back.
  * One rule for the desk rail, the preview toolbar and the reader, on phone and desktop:
@@ -37,10 +39,10 @@ class ChromeAutoHide {
 		// Hidden controls are absent from the tab order. Reveal them before the browser
 		// chooses the next focus target, including the app's dialog focus trap.
 		this.onKeyDown = (e) => {
-			if (e.key === "Tab" && !e.isComposing) this.show();
+			if (e.key === "Tab" && !e.isComposing && !this.paused()) this.show();
 		};
 		this.onFocus = (e) => {
-			if (this.targets().some((t) => t.contains(e.target as Node))) this.show();
+			if (!this.paused() && this.targets().some((t) => t.contains(e.target as Node))) this.show();
 		};
 		source.addEventListener("scroll", this.onScroll, { passive: true });
 		document.addEventListener("keydown", this.onKeyDown, true);
@@ -60,13 +62,23 @@ class ChromeAutoHide {
 		const el = this.source as HTMLElement;
 		return el.scrollHeight - el.clientHeight;
 	}
+	/** Adopt a restored reading position without treating it as a scroll gesture. */
+	syncPosition() {
+		this.last = this.position();
+		this.down = this.up = 0;
+	}
 	scrolled() {
+		// Background controls keep their state while a modal or a gesture owns input.
+		if (this.paused()) {
+			clearTimeout(this.timer);
+			return;
+		}
 		const y = this.position(),
 			dy = y - this.last,
 			max = this.limit();
 		this.last = y;
+		if (!dy) return;
 		clearTimeout(this.timer);
-		if (this.paused()) return this.show();
 		if (y <= EDGE || y >= max - EDGE) {
 			this.down = this.up = 0;
 			this.show();
@@ -81,16 +93,25 @@ class ChromeAutoHide {
 			this.down = 0;
 			if (this.up > SHOW_AFTER) this.show();
 		}
-		if (this.hidden) this.timer = window.setTimeout(() => this.show(), REST_MS);
+		if (this.hidden)
+			this.timer = window.setTimeout(() => {
+				if (!this.paused()) this.show();
+			}, REST_MS);
 	}
 	hide() {
 		if (this.hidden) return;
-		const focused = this.targets().some((t) => t.contains(document.activeElement));
+		const focused =
+			document.activeElement?.matches(":focus-visible") &&
+			this.targets().some((t) => t.contains(document.activeElement));
 		if (focused) return;
 		this.hidden = true;
 		for (const t of this.targets()) {
 			(t as HTMLElement).inert = true;
-			t.classList.add("is-tucked");
+			MotionEngine.change(
+				t as HTMLElement,
+				() => t.classList.add("is-tucked"),
+				MotionEngine.time("dur-tuck"),
+			);
 		}
 	}
 	show() {
@@ -101,7 +122,11 @@ class ChromeAutoHide {
 		this.hidden = false;
 		for (const t of this.targets()) {
 			(t as HTMLElement).inert = false;
-			t.classList.remove("is-tucked");
+			MotionEngine.change(
+				t as HTMLElement,
+				() => t.classList.remove("is-tucked"),
+				MotionEngine.time("dur-show"),
+			);
 		}
 	}
 	destroy() {
@@ -109,7 +134,12 @@ class ChromeAutoHide {
 		this.source.removeEventListener("scroll", this.onScroll);
 		document.removeEventListener("keydown", this.onKeyDown, true);
 		document.removeEventListener("focusin", this.onFocus);
-		this.show();
+		for (const target of this.targets()) {
+			MotionEngine.cancel(target);
+			target.classList.remove("is-tucked");
+			(target as HTMLElement).inert = false;
+			(target as HTMLElement).style.visibility = "";
+		}
 	}
 }
 

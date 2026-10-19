@@ -36,7 +36,6 @@ const cards: any[] = Array.from({ length: 38 }, (_, index) => ({
 Object.assign(cards[0], {
 	title: "一个很长的标题用来检查小屏幕上文字与关闭按钮不会互相遮挡",
 	sources: [{ kind: "readwise", name: "Reader 来源名称很长时仍保持头部整洁" }],
-	meta: "来源中的长备注保留在详情中，不挤在头部。",
 	tags: ["界面布局", "长标签检查"],
 	published_at: "2026-10-01",
 	created_at: "2026-10-16T01:00:00Z",

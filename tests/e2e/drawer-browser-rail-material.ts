@@ -152,11 +152,15 @@ export async function runRailMaterial({
 					.locator(".sheet-scroll")
 					.evaluate((node) => ({ client: node.clientWidth, scroll: node.scrollWidth }));
 				assert.ok(dimensions.scroll <= dimensions.client + 1);
-				assert.equal(
-					await page.locator(".preview-meta .preview-published").count(),
-					1,
-				);
+				assert.equal(await page.locator(".preview-published").count(), 1);
 				await page.screenshot({ path: path.join(artifacts, `drawer-layout-${width}.png`) });
+				assert.equal(await page.locator(".preview-meta time").count(), 0);
+				const date = await page.locator(".preview-published").boundingBox();
+				const title = await page.locator("#modal-title").boundingBox();
+				const body = await page.locator(".preview-full").boundingBox();
+				assert.ok(date.y > title.y + title.height);
+				assert.ok(date.y + date.height <= body.y);
+				assert.equal(await page.locator(".preview-source-details").count(), 0);
 			},
 			{ viewport: { width, height: 844 }, colorScheme: width === 320 ? "dark" : "light" },
 		);

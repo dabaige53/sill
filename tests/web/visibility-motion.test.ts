@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
@@ -11,6 +12,10 @@ const bundle = buildSync({
 		loader: "ts",
 	},
 	bundle: true,
+	alias: {
+		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
+		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
+	},
 	write: false,
 	format: "iife",
 	platform: "browser",
@@ -26,25 +31,7 @@ function fixture() {
 	w.eval(bundle);
 	const el = w.document.querySelector("button");
 	const animations: any[] = [];
-	el.animate = (frames: any, options: any) => {
-		let resolve: any, reject: any;
-		const animation = {
-			frames,
-			options,
-			finished: new Promise((ok, no) => {
-				resolve = ok;
-				reject = no;
-			}),
-			cancel() {
-				reject(new Error("cancelled"));
-			},
-			finish() {
-				resolve();
-			},
-		};
-		animations.push(animation);
-		return animation;
-	};
+	w.__motionAnimations = animations;
 	return { dom, w, el, animations, motion: w.MotionTest.MotionEngine };
 }
 test("notice fades before hiding and disables clicks from the first frame", async () => {
@@ -64,6 +51,20 @@ test("notice fades before hiding and disables clicks from the first frame", asyn
 		assert.equal(f.el.hidden, true);
 	} finally {
 		f.dom.window.close();
+	}
+});
+
+test("Web styles leave all animation playback to Motion", () => {
+	const directory = path.resolve(import.meta.dirname, "../../apps/web/styles");
+	for (const name of fs.readdirSync(directory).filter((name) => name.endsWith(".css"))) {
+		const css = fs
+			.readFileSync(path.join(directory, name), "utf8")
+			.replace(/\/\*[\s\S]*?\*\//g, "");
+		assert.doesNotMatch(
+			css,
+			/@(?:-webkit-)?keyframes\b|(?:^|[;{])\s*(?:animation|transition)(?:-[\w-]+)?\s*:/m,
+			name,
+		);
 	}
 });
 test("fast hide/show cancels stale completion and repeated state does not restart", async () => {
@@ -86,13 +87,13 @@ test("fast hide/show cancels stale completion and repeated state does not restar
 		f.dom.window.close();
 	}
 });
-test("missing animation support remains functional", async () => {
+test("keyboard state changes remain immediate", async () => {
 	const f = fixture();
 	try {
 		f.motion.visibility(f.el, true);
 		f.animations[0].finish();
 		await Promise.resolve();
-		f.el.animate = undefined;
+		f.w.document.documentElement.dataset.inputModality = "keyboard";
 		f.motion.visibility(f.el, false);
 		assert.equal(f.el.hidden, true);
 		assert.equal(f.el.inert, true);

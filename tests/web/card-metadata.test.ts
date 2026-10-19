@@ -68,7 +68,8 @@ test("preview and reader keep tags under the title and source notes after the bo
 		assert.equal(doc.querySelector(".preview-details"), null);
 		assert.equal(doc.querySelector(".preview-source-note")?.textContent, card.meta);
 		assert.ok(
-			doc.body.textContent!.lastIndexOf(card.meta) > doc.body.textContent!.indexOf("Synthetic body"),
+			doc.body.textContent!.lastIndexOf(card.meta) >
+				doc.body.textContent!.indexOf("Synthetic body"),
 		);
 		assert.equal(doc.querySelectorAll("time").length, 0);
 	}
@@ -95,7 +96,10 @@ test("metadata shows only the publication date and retains the full timestamp as
 	assert.equal(doc.querySelector("img"), null);
 	assert.equal(doc.querySelectorAll("time").length, 1);
 	assert.doesNotMatch(doc.body.textContent!, /更新|收录|UTC/);
-	assert.equal(doc.querySelector("time")?.parentElement?.className, "preview-meta");
+	assert.equal(doc.querySelector("time")?.parentElement?.className, "preview-published");
+	assert.equal(doc.querySelector(".preview-meta time"), null);
+	assert.doesNotMatch(doc.body.textContent!, /发布于/);
+	assert.ok(doc.body.textContent!.indexOf("10月1日") < doc.body.textContent!.indexOf("正文"));
 	assert.match(doc.querySelector("time")!.textContent!, /10月1日/);
 	assert.equal(
 		doc.querySelector(".preview-source-note")!.textContent,

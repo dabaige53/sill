@@ -121,6 +121,68 @@ import { chromium } from "playwright";
 		},
 	);
 	await scenario(
+		"Touch deck stays level and settles without wobble through the last card and back",
+		async (page) => {
+			const cdp = await page.context().newCDPSession(page);
+			const count = await page.locator(".deck-card").count();
+			const swipe = async (dx: number, expected: number, direction: number) => {
+				const before = Number(await current(page));
+				const p = await position(page);
+				const x = dx > 0 ? p.x - p.w * 0.4 : p.x;
+				await cdp.send("Input.dispatchTouchEvent", {
+					type: "touchStart",
+					touchPoints: [{ x, y: p.y }],
+				});
+				for (let step = 1; step <= 6; step++)
+					await cdp.send("Input.dispatchTouchEvent", {
+						type: "touchMove",
+						touchPoints: [{ x: x + (dx * step) / 6, y: p.y }],
+					});
+				const capture = page.evaluate(
+					async (index: number) => {
+						const deck = document.querySelector<HTMLElement>(".deck");
+						const card = deck.children[index];
+						const frames = [];
+						const end = performance.now() + 2000;
+						let started = false;
+						do {
+							await new Promise(requestAnimationFrame);
+							if (started && !deck.dataset.busy) break;
+							started ||= !!deck.dataset.busy;
+							const style = getComputedStyle(card);
+							const matrix = new DOMMatrixReadOnly(style.transform);
+							frames.push({
+								x: matrix.m41 + (parseFloat(style.translate) || 0),
+								b: matrix.m12,
+								c: matrix.m21,
+							});
+						} while (performance.now() < end);
+						return { started, frames };
+					},
+					dx > 0 && before > 0 ? before - 1 : before,
+				);
+				await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+				const { started, frames } = await capture;
+				assert.ok(started && frames.length > 3, "sample the actual release animation");
+				for (const [i, frame] of frames.entries()) {
+					assert.ok(Math.abs(frame.b) < 0.001 && Math.abs(frame.c) < 0.001, "no tilt");
+					if (!i) continue;
+					const delta = frame.x - frames[i - 1].x;
+					assert.ok(direction ? delta * direction >= -0.1 : Math.abs(delta) < 0.1, "no bounce");
+				}
+				await settled(page);
+				assert.equal(await current(page), String(expected));
+			};
+			await swipe(100, 0, 0);
+			await swipe(-24, 0, 1);
+			for (let index = 1; index < count; index++) await swipe(-150, index, -1);
+			await swipe(-100, count - 1, 0);
+			for (let index = count - 2; index >= 0; index--) await swipe(150, index, 1);
+		},
+		390,
+		true,
+	);
+	await scenario(
 		"Touch swipe, reverse, vertical scroll and title tap remain independent",
 		async (page?: any) => {
 			const cdp = await page.context().newCDPSession(page);

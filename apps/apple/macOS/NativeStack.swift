@@ -14,7 +14,6 @@ struct NativeStack: View {
   @State private var presentationOffset: CGFloat = 0
   @State private var dragOrigin: CGFloat = 0
   @State private var entering = false
-  @State private var exiting = false
   @State private var sample: (time: Date, x: CGFloat)?
   @State private var velocity: CGFloat = 0
   @State private var generation = 0
@@ -36,11 +35,7 @@ struct NativeStack: View {
       stackFace(cards[currentIndex])
         .opacity(entering ? 0 : 1)
         .modifier(
-          DeckPosition(
-            x: offset, width: width,
-            rotation: exiting
-              ? AppleMetrics.motionDeckExitRotation : AppleMetrics.motionDeckRotation
-          ) { value in
+          DeckPosition(x: offset) { value in
             presentationOffset = value
           }
         )
@@ -72,7 +67,6 @@ struct NativeStack: View {
                 velocity = 0
               }
               generation += 1
-              exiting = false
               let x = value.translation.width
               if let sample {
                 let elapsed = value.time.timeIntervalSince(sample.time) * 1000
@@ -99,21 +93,16 @@ struct NativeStack: View {
                 translation: value.translation.width, velocity: velocity, width: width)
               sample = nil
               guard target != currentIndex else {
-                resetDrag(releaseVelocity: velocity)
+                resetDrag()
                 return
               }
               selection.confirm(target)
               generation += 1
               let completionGeneration = generation
-              exiting = true
               let destination =
                 (target > currentIndex ? -1.0 : 1.0) * width * AppleMetrics.motionDeckExitTravel
-              let remaining = destination - offset
-              let initialVelocity = remaining == 0 ? 0 : velocity * 1000 / remaining
               withAnimation(
-                .interpolatingSpring(
-                  duration: AppleMetrics.motionDeckSpring,
-                  bounce: AppleMetrics.motionDeckBounce, initialVelocity: initialVelocity),
+                .timingCurve(0.23, 1, 0.32, 1, duration: AppleMetrics.motionDeckDuration),
                 completionCriteria: .removed
               ) {
                 offset = destination
@@ -124,7 +113,6 @@ struct NativeStack: View {
                 withTransaction(transaction) {
                   selection.settle(count: cards.count)
                   offset = 0
-                  exiting = false
                 }
               }
             }
@@ -148,7 +136,6 @@ struct NativeStack: View {
             generation += 1
             sample = nil
             entering = false
-            exiting = false
             offset = 0
             selection.step(press.key == .rightArrow ? 1 : -1, count: cards.count)
           }
@@ -189,25 +176,20 @@ struct NativeStack: View {
       selection.settle(count: cards.count)
       offset = 0
       presentationOffset = 0
-      exiting = false
       entering = false
     }
   }
 
-  private func resetDrag(releaseVelocity: CGFloat = 0) {
+  private func resetDrag() {
     generation += 1
     let confirmed = selection.pendingTarget != nil
     if confirmed { settleConfirmedSelection() }
     sample = nil
     velocity = 0
-    exiting = false
     entering = false
     guard !confirmed else { return }
     withAnimation(
-      .interpolatingSpring(
-        duration: AppleMetrics.motionDeckSpring,
-        bounce: AppleMetrics.motionDeckBounce,
-        initialVelocity: offset == 0 ? 0 : releaseVelocity * 1000 / -offset)
+      .timingCurve(0.23, 1, 0.32, 1, duration: AppleMetrics.motionDeckDuration)
     ) {
       offset = 0
     }
@@ -247,23 +229,17 @@ struct DeckNavigation {
   }
 }
 
-/// Reports the actual rendered position so a new gesture can take over a running spring.
+/// Reports the actual rendered position so a new gesture can take over a running transition.
 private struct DeckPosition: AnimatableModifier {
   nonisolated var x: CGFloat
-  let width: CGFloat
-  nonisolated var rotation: Double
   let update: (CGFloat) -> Void
-  nonisolated var animatableData: AnimatablePair<CGFloat, Double> {
-    get { AnimatablePair(x, rotation) }
-    set {
-      x = newValue.first
-      rotation = newValue.second
-    }
+  nonisolated var animatableData: CGFloat {
+    get { x }
+    set { x = newValue }
   }
   func body(content: Content) -> some View {
     let position = x
     return content.offset(x: position)
-      .rotationEffect(.degrees(Double(max(-1, min(1, position / width))) * rotation))
       .onChange(of: position) { _, value in update(value) }
   }
 }

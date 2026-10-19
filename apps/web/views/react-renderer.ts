@@ -2,10 +2,13 @@ import { createElement, Fragment, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 
+import { cancelMotion } from "../interactions/motion-playback.ts";
+
 const roots = new Map<Element, { root: Root; revision: number }>();
 
 /** Dispose nested islands before their owning surface is replaced. */
 export function releaseView(container: Element) {
+	cancelMotion(container, true);
 	for (const [element, entry] of [...roots].reverse()) {
 		if (element === container || container.contains(element)) {
 			flushSync(() => entry.root.unmount());

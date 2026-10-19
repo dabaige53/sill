@@ -16,14 +16,28 @@ export function HomeTop() {
 	];
 	return (
 		<header id="home-top" className="home-top">
-			<button
-				type="button"
-				className="home-mark"
-				data-action="top"
-				aria-label={copy("web.home.top")}
-			>
-				<Icon name="sill" size={26} />
-			</button>
+			<div className="home-heading">
+				<button
+					type="button"
+					className="home-mark"
+					data-action="top"
+					aria-label={copy("web.home.top")}
+				>
+					Sill
+				</button>
+				<button
+					type="button"
+					className="home-account"
+					id="account"
+					data-action="nav"
+					data-extra="settings"
+					aria-label={copy("web.nav.settings")}
+				>
+					<span className="account-wrap">
+						<AccountRing />
+					</span>
+				</button>
+			</div>
 			{/* biome-ignore lint/a11y/useSemanticElements: This group contains navigation filters, not form fields; preserve the existing layout and semantics. */}
 			<div className="home-tabs" role="group" aria-label={copy("web.home.tabs")}>
 				{tabs.map(([key, label]) => (
@@ -45,7 +59,7 @@ export function HomeTop() {
 export function AccountRing() {
 	return (
 		<>
-			<Icon name="sill" size={22} />
+			<Icon name="person" size={22} />
 			<svg className="orb-arc" viewBox="0 0 64 64" aria-hidden="true">
 				<circle cx="32" cy="32" r="30" pathLength="100" />
 			</svg>
@@ -58,9 +72,8 @@ export function AccountRing() {
 export function Navigation() {
 	const tabs = [
 		["home", "home", copy("web.nav.home")],
-		["search", "search", copy("web.nav.search")],
 		["ai", "chat", copy("web.nav.ai")],
-		["settings", "sill", copy("web.nav.settings")],
+		["search", "search", copy("web.nav.search")],
 	];
 	return (
 		<nav className="nav-capsule glass" id="nav" aria-label={copy("web.nav.label")}>
@@ -70,26 +83,17 @@ export function Navigation() {
 					key={key}
 					type="button"
 					className="nav-tab"
-					id={key === "settings" ? "account" : undefined}
 					data-action="nav"
 					data-extra={key}
 					aria-label={key === "ai" ? copy("web.nav.aiLabel") : label}
 					aria-current={key === "home" ? "page" : undefined}
 				>
 					<span className="nav-icon">
-						{key === "settings" ? (
-							<span className="account-wrap">
-								<AccountRing />
-							</span>
-						) : (
-							<Icon name={glyph} size={22} />
-						)}
+						<Icon name={glyph} size={22} />
 					</span>
-					{key !== "settings" && (
-						<span className="nav-label" aria-hidden="true">
-							{label}
-						</span>
-					)}
+					<span className="nav-label" aria-hidden="true">
+						{label}
+					</span>
 				</button>
 			))}
 		</nav>

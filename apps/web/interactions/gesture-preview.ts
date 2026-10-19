@@ -1,5 +1,6 @@
 import { Store } from "../data/store.ts";
 import type { Gestures } from "./gestures.ts";
+import { MotionEngine } from "./motion.ts";
 
 export const gesturePreviewMethods = {
 	bindPreviewHandle(this: Gestures, surface: HTMLElement) {
@@ -22,19 +23,22 @@ export const gesturePreviewMethods = {
 			frame = 0;
 			if (!drag || !current()) return;
 			// Keep text geometry stable; upward travel resists until release expands the sheet.
-			surface.style.translate = `0 ${distance > 0 ? distance : distance * 0.2}px`;
+			MotionEngine.move(surface, `0 ${distance > 0 ? distance : distance * 0.25}px`, true);
 		};
 		const current = () => token === this.app.modalToken && surface.isConnected;
-		const snap = (full: boolean, velocity = 0) => {
+		const snap = (full: boolean) => {
 			if (!current()) return;
 			cancelAnimationFrame(frame);
 			frame = 0;
 			surface.classList.remove("is-drag");
-			surface.style.maxHeight = "";
-			this.settle(surface, velocity);
-			surface.style.height = "";
-			surface.classList.toggle("is-full", full);
+			if (surface.classList.contains("is-full") !== full) {
+				const top = surface.getBoundingClientRect().top;
+				MotionEngine.move(surface, "", true);
+				surface.classList.toggle("is-full", full);
+				MotionEngine.move(surface, `0 ${top - surface.getBoundingClientRect().top}px`, true);
+			}
 			handle.setAttribute("aria-expanded", String(full));
+			MotionEngine.move(surface);
 		};
 		const cancel = () => {
 			if (!drag) return;
@@ -89,7 +93,7 @@ export const gesturePreviewMethods = {
 				this.exitSurface(surface, () => this.app.closeModal());
 				return;
 			}
-			snap(dy < -40 ? true : dy > 40 ? false : previous.full, previous.velocity.read());
+			snap(dy < -40 ? true : dy > 40 ? false : previous.full);
 		});
 		handle.addEventListener("pointercancel", cancel);
 		handle.addEventListener("lostpointercapture", cancel);
@@ -114,14 +118,14 @@ export const gesturePreviewMethods = {
 		const paint = (delta: number) => {
 			if (!current()) return;
 			const offset = Math.sign(delta) * 14 * (1 - Math.exp(-Math.abs(delta) / 100));
-			scroll.style.translate = `0 ${offset.toFixed(2)}px`;
+			MotionEngine.move(scroll, `0 ${offset.toFixed(2)}px`, !!touch);
 		};
 		const reset = () => {
 			clearTimeout(timer);
 			touch = null;
 			distance = 0;
 			scroll.classList.remove("is-drag");
-			if (current()) scroll.style.translate = "";
+			if (current()) MotionEngine.move(scroll);
 		};
 		scroll.addEventListener(
 			"wheel",
@@ -185,8 +189,7 @@ export const gesturePreviewMethods = {
 			bar = dialog.querySelector(":scope > .float-bar");
 		const need = 120,
 			token = app.modalToken,
-			wheel = this.intent(),
-			letGo = this.release();
+			wheel = this.intent();
 		let pull = 0,
 			timer = 0,
 			touch = null,
@@ -195,12 +198,12 @@ export const gesturePreviewMethods = {
 		const paint = () => {
 			if (app.modalToken !== token) return;
 			chip.style.opacity = String(Math.min(1, pull / 30));
-			chip.style.transform = `scale(${(0.6 + 0.4 * Math.min(1, pull / 60)).toFixed(3)})`;
+			chip.style.transform = "none";
 			arc.setAttribute("stroke-dashoffset", String(50.27 * (1 - Math.min(1, pull / need))));
-			scroll.style.translate = pull ? `0 ${-Math.round(pull * 0.35)}px` : "";
+			MotionEngine.move(scroll, pull ? `0 ${-Math.round(pull * 0.35)}px` : "", pull > 0);
 			if (bar) {
 				bar.style.opacity = pull ? "0" : "";
-				bar.style.translate = pull ? "0 16px" : "";
+				MotionEngine.move(bar, pull ? "0 16px" : "", pull > 0);
 			}
 		};
 		const finish = () => {
@@ -211,8 +214,11 @@ export const gesturePreviewMethods = {
 			paint();
 			chip.classList.add("is-done");
 			chip.style.transform = "scale(1)";
-			Store.patch(id, { read: true, progress: 1 });
-			app.refreshCard(id);
+			MotionEngine.fade(chip.querySelector(".tick"));
+			if (!Store.item(id).read || Store.item(id).progress !== 1) {
+				Store.patch(id, { read: true, progress: 1 });
+				app.refreshCard(id);
+			}
 			this.swallowMomentum();
 			window.setTimeout(() => {
 				if (app.modalToken !== token) return;
@@ -231,7 +237,6 @@ export const gesturePreviewMethods = {
 			if (done || app.modalToken !== token) return;
 			clearTimeout(timer);
 			wheel.reset();
-			letGo.reset();
 			pull = 0;
 			host.classList.remove("is-drag");
 			paint();
@@ -263,10 +268,6 @@ export const gesturePreviewMethods = {
 				if (!wheel.feed(d)) return;
 				set(pull + Math.min(40, d) * 0.5);
 				clearTimeout(timer);
-				if (pull >= need && letGo.feed(d)) {
-					finish();
-					return;
-				}
 				timer = window.setTimeout(() => {
 					if (pull >= need) {
 						finish();

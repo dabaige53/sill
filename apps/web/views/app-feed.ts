@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { icon } from "../atoms/icons.ts";
 import { copy } from "../copy.ts";
@@ -29,6 +29,8 @@ export const appFeedMethods = {
 	},
 	searchAll(this: AppController, q?: string) {
 		const f = this.searchFilter;
+		if (!q?.trim() && f.type === "all" && f.status === "all" && !f.tag)
+			return { desk: [], shelved: [] };
 		const all = Store.state.cards.filter((c?: Card) => {
 			const state = Store.item(c.id);
 			return (
@@ -106,7 +108,7 @@ export const appFeedMethods = {
 		this.grid.style.removeProperty("min-height");
 		document.body.dataset.view = this.mode;
 		renderView(this.grid, this.deskView(focusedCardId, taskPreviewOrder));
-		let focusedCard = focusedCardId
+		const focusedCard = focusedCardId
 			? this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(focusedCardId)}"]`)
 			: null;
 		if (focusedCard && taskPreviewOrder.length) {
@@ -217,7 +219,7 @@ export const appFeedMethods = {
 			["later", copy("web.later")],
 			["saved", copy("web.bookmark")],
 		];
-		return `<header id="home-top" class="home-top"><button type="button" class="home-mark" data-action="top" aria-label="${copy("web.home.top")}">${icon("sill", 26)}</button><div class="home-tabs" role="group" aria-label="${copy("web.home.tabs")}">${tabs.map(([key, label]) => `<button type="button" class="home-tab" data-action="home-tab" data-extra="${key}" aria-pressed="${key === "all"}">${label}</button>`).join("")}</div></header>`;
+		return `<header id="home-top" class="home-top"><div class="home-heading"><button type="button" class="home-mark" data-action="top" aria-label="${copy("web.home.top")}">Sill</button><button type="button" class="home-account" id="account" data-action="nav" data-extra="settings" aria-label="${copy("web.nav.settings")}"><span class="account-wrap">${this.accountRing()}</span></button></div><div class="home-tabs" role="group" aria-label="${copy("web.home.tabs")}">${tabs.map(([key, label]) => `<button type="button" class="home-tab" data-action="home-tab" data-extra="${key}" aria-pressed="${key === "all"}">${label}</button>`).join("")}</div></header>`;
 	},
 	homeTabFilter(this: AppController, key: string) {
 		return (

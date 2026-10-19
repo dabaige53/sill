@@ -74,6 +74,14 @@ try {
 		const home = await page.evaluate(() => JSON.stringify(window.__app.filter));
 		await page.locator('#nav [data-extra="search"]').click();
 		await page.locator("#filter-search").waitFor();
+		assert.equal(await page.locator("#search-results").innerHTML(), "", "empty search stays blank");
+		assert.equal(
+			await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),
+			"hidden",
+			"search does not paint the underlying home cards",
+		);
+		if (width === 390 && height === 844)
+			await page.screenshot({ path: path.join(artifacts, theme + "-blank-search.png") });
 		const rows = page.locator("#modal .search-filter-row");
 		assert.equal(await rows.count(), 3, "three named filter rows");
 		assert.deepEqual(await rows.locator(".search-filter-label").allTextContents(), [
@@ -112,6 +120,65 @@ try {
 			await page.locator("#modal").evaluate((n) => n.scrollWidth > n.clientWidth + 1),
 			false,
 		);
+		if (width < 650 && height === 844) {
+			await page.locator("#filter-search").fill("jje");
+			await page.waitForFunction(
+				() =>
+					window.__app.searchFilter.query === "jje" &&
+					document.querySelectorAll("#search-results [data-card]").length === 0,
+			);
+			const keyboard = await page.evaluate(async () => {
+				const viewport = window.visualViewport;
+				const visibleHeight = viewport.height;
+				let keyboardHeight = 0;
+				Object.defineProperty(viewport, "height", {
+					configurable: true,
+					get: () => visibleHeight - keyboardHeight,
+				});
+				const nextFrame = () =>
+					new Promise<void>((resolve) =>
+						requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+					);
+				const measure = () => ({
+					page: document.getElementById("modal").getBoundingClientRect().bottom,
+					input: document.getElementById("filter-search").getBoundingClientRect().top,
+					results: document.getElementById("search-results").getBoundingClientRect().height,
+					inset: document.documentElement.style.getPropertyValue("--kb"),
+				});
+				try {
+					const before = measure();
+					// WebKit may report geometry only after the viewport event handler returns.
+					viewport.dispatchEvent(new Event("resize"));
+					keyboardHeight = 300;
+					await nextFrame();
+					const open = measure();
+					keyboardHeight = 0;
+					window.dispatchEvent(new Event("resize"));
+					await nextFrame();
+					return { before, open, closed: measure(), height: innerHeight };
+				} finally {
+					Reflect.deleteProperty(viewport, "height");
+					viewport.dispatchEvent(new Event("resize"));
+				}
+			});
+			assert.equal(keyboard.before.page, keyboard.height);
+			assert.equal(keyboard.open.page, keyboard.height, "keyboard never cuts the page background");
+			assert.equal(keyboard.open.input, keyboard.before.input, "input remains anchored");
+			assert.equal(keyboard.before.results - keyboard.open.results, 300);
+			assert.equal(keyboard.open.inset, "300px");
+			assert.deepEqual(
+				keyboard.closed,
+				keyboard.before,
+				"dismissal restores the full results area",
+			);
+			await page.screenshot({ path: path.join(artifacts, width + "-" + theme + "-empty.png") });
+			await page.locator("#filter-search").fill("");
+			await page.waitForFunction(
+				() =>
+					window.__app.searchFilter.query === "" &&
+					document.getElementById("search-results").childElementCount === 0,
+			);
+		}
 		await page.locator('[data-action="filter-type"][data-extra="note"]').focus();
 		await page.keyboard.press("Enter");
 		assert.equal(
@@ -127,6 +194,7 @@ try {
 			["review-note", "review-note-2"],
 		);
 		await page.locator('[data-action="filter-type"][data-extra="all"]').click();
+		assert.equal(await page.locator("#search-results").innerHTML(), "");
 		await page.locator('[data-action="filter-status"][data-extra="saved"]').click();
 		assert.deepEqual(
 			await page

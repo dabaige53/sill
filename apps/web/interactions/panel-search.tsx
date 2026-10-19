@@ -264,8 +264,10 @@ export const panelSearch = {
 		);
 	},
 	searchResults(this: PanelRenderers, app?: SearchApp) {
-		const q = app.searchFilter.query.trim(),
-			hits = app.searchAll(q);
+		const f = app.searchFilter,
+			q = f.query.trim();
+		if (!q && f.type === "all" && f.status === "all" && !f.tag) return null;
+		const hits = app.searchAll(q);
 		if (!hits.desk.length && !hits.shelved.length)
 			return (
 				<>

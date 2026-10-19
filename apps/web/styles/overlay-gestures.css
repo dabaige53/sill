@@ -1,13 +1,4 @@
 /* Gestures: sheets and pages follow the finger; the dim follows them. */
-@property --backdrop {
-	syntax: "<number>";
-	inherits: true;
-	initial-value: 1;
-}
-#modal::backdrop {
-	opacity: var(--backdrop, 1);
-	transition: var(--motion-transition, opacity var(--dur-open) linear);
-}
 .pull-ring {
 	position: fixed;
 	left: 50%;
@@ -20,25 +11,12 @@
 	display: grid;
 	place-items: center;
 	opacity: 0;
-	translate: 0 -48px;
 	pointer-events: none;
 	color: var(--accent);
-	transition: var(--motion-transition, opacity 200ms, translate 180ms var(--ease));
-}
-main {
-	transition: var(--motion-transition, translate 180ms var(--ease));
 }
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {
-	transition: var(--motion-transition, none);
 	will-change: translate;
-}
-body.is-pulling main,
-body.is-pulling .pull-ring {
-	transition: var(--motion-transition, none);
-}
-#modal.is-drag::backdrop {
-	transition: var(--motion-transition, none);
 }
 .pull-ring svg {
 	width: 24px;
@@ -46,17 +24,13 @@ body.is-pulling .pull-ring {
 	transform: rotate(-90deg);
 }
 .pull-ring circle {
+	transform-origin: center;
 	fill: none;
 	stroke: currentColor;
 	stroke-width: 2.4;
 	stroke-linecap: round;
 	stroke-dasharray: 100;
 	stroke-dashoffset: 100;
-}
-.pull-ring.is-spinning .pull-progress {
-	animation: var(--motion-animation, orb-arc 0.8s linear infinite);
-	animation-duration: var(--motion-animation-duration, 0.8s);
-	animation-iteration-count: var(--motion-animation-iterations, infinite);
 }
 /* Gesture progress is inline; spinning holds one fixed arc while the request is pending. */
 .pull-ring.is-spinning circle {
@@ -168,57 +142,15 @@ body.is-pulling .pull-ring {
 	scrollbar-width: none;
 	-webkit-overflow-scrolling: touch;
 }
-/* Gesture offsets live in `translate`, separate from the sheet's own position in `transform`. Every move only sets a target;
-   the transition carries it there, so wheel steps glide and a change of direction never jumps. A finger on the glass turns it off. */
-.preview-sheet,
-#modal.reader {
-	transition: var(--motion-transition, translate var(--dur-sheet) var(--ease-sheet));
-}
-
-.sheet-scroll,
-.reader-scroll {
-	transition: var(--motion-transition, translate 220ms var(--ease));
-}
+/* Motion owns gesture offsets in translate, separate from surface transforms. */
 /* Nested content follows its dragged parent immediately. */
-.is-drag,
-#modal.preview .preview-sheet.is-drag,
-#modal.reader.is-drag,
-.sheet-scroll.is-drag,
-.reader-scroll.is-drag {
-	transition: var(--motion-drag-transition, none);
-}
-.is-drag .sheet-scroll,
-.is-drag .reader-scroll {
-	transition: none;
-}
-.push-ring {
-	transition: var(--motion-transition, opacity 140ms, transform 140ms, background 200ms);
-}
-.push-ring .arc circle {
-	transition: var(--motion-transition, stroke-dashoffset 140ms);
-}
-.push-ring.is-done {
-	animation: var(--motion-animation, ring-pop 320ms var(--ease) both);
-	animation-duration: var(--motion-animation-duration, 320ms);
-	animation-iteration-count: var(--motion-animation-iterations, 1);
-}
-@keyframes ring-pop {
-	0% {
-		transform: scale(1);
-	}
-	45% {
-		transform: scale(1.2);
-	}
-	100% {
-		transform: scale(1);
-	}
-}
 
 /* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
 #modal.panel .sheet {
 	max-height: 100dvh;
 	overflow-y: auto;
 	overscroll-behavior: contain;
+	scrollbar-width: none;
 }
 
 /* Focus stays visible but sits close to the field, in a soft ring instead of a second outline. */
@@ -245,7 +177,6 @@ body.is-pulling .pull-ring {
 	right: 0;
 	z-index: 4;
 	pointer-events: none;
-	transition: var(--motion-transition, opacity var(--base) var(--ease));
 }
 .reader-edge.is-bottom {
 	bottom: 0;
@@ -272,23 +203,24 @@ body.is-pulling .pull-ring {
 }
 /* Local AI conversation preview: no messages or connected send action. */
 #modal.panel.narrow:has(.ai-conversation) {
-	width: min(680px, calc(100vw - 32px));
+	width: 100%;
 }
 .ai-conversation {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-16);
+	gap: var(--space-12);
 	max-height: calc(100dvh - 32px);
 }
 .ai-conversation-head {
 	display: flex;
 	align-items: center;
-	gap: var(--space-12);
-	padding-right: var(--space-44);
+	justify-content: center;
+	min-height: var(--hit-target);
+	flex: none;
 }
 .ai-conversation h1 {
 	margin: 0;
-	font-size: var(--text-title, 20px);
+	font-size: var(--text-card-title);
 }
 .ai-conversation > p {
 	margin: 0;
@@ -301,6 +233,7 @@ body.is-pulling .pull-ring {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-12);
+	scrollbar-width: none;
 }
 .ai-context-card {
 	padding: var(--card-padding);
@@ -321,20 +254,23 @@ body.is-pulling .pull-ring {
 }
 .ai-context-empty {
 	margin: auto 0;
+	text-align: center;
+	font-size: var(--text-control);
 }
 .ai-composer {
 	display: flex;
 	align-items: flex-end;
 	gap: var(--space-8);
-	border: 1px solid var(--line-card);
-	border-radius: var(--control-radius);
-	padding: var(--space-12);
+	border: 0;
+	border-radius: var(--panel-radius);
+	padding: var(--space-16);
+	flex: none;
 	background: var(--surface);
 }
 .ai-composer textarea {
 	flex: 1;
 	min-width: 0;
-	resize: vertical;
+	resize: none;
 	max-height: 160px;
 	border: 0;
 	background: transparent;
@@ -376,4 +312,19 @@ body.is-pulling .pull-ring {
 body:has(.home-top.is-tucked) .pull-ring.in-home-mark,
 body:has(#modal[open]) .pull-ring.in-home-mark {
 	visibility: hidden;
+}
+
+.ai-composer textarea {
+	line-height: 1.6;
+	outline: none;
+}
+.ai-composer .icon-button {
+	border-radius: 50%;
+	background: var(--ink);
+	color: var(--card);
+}
+.ai-availability {
+	font-size: var(--text-caption);
+	text-align: center;
+	flex: none;
 }

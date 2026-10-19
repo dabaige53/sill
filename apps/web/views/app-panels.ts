@@ -1,10 +1,10 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import type { AppController } from "./app.ts";
-import { type ViewDialog } from "./app-types.ts";
+import type { ViewDialog } from "./app-types.ts";
 import { bindPreview, bindSheetChrome, openCard } from "./preview-controller.ts";
 import { releaseView, renderContent, renderView } from "./react-renderer.ts";
 
@@ -124,10 +124,10 @@ export const appPanelsMethods = {
 		this.modalKind = "search";
 		this.panelReturn = null;
 		this.currentId = "";
-		this.dialog.style.removeProperty("--backdrop");
+		MotionEngine.dim(this.dialog, null);
 		this.dialog.style.translate = "";
 		this.dialog.style.transform = "";
-		this.dialog.showModal();
+		this.dialog.show();
 		this.dialog.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 		this.setNav("search");
 		this.updateSelection();
@@ -146,8 +146,9 @@ export const appPanelsMethods = {
 		this.modalToken++;
 		MotionEngine.cancelPanel(this.dialog);
 		this.sheetLeaving = false;
+		this.dialog.inert = false;
 		this.skipReturnMotion = false;
-		this.dialog.style.removeProperty("--backdrop");
+		MotionEngine.dim(this.dialog, null);
 		// Move inside the same sheet without re-animating from a card.
 		const toast = document.getElementById("toast");
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);

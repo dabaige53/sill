@@ -10,6 +10,7 @@ struct Desktop: View {
   @FocusState var searchFocused: Bool
   @State var pageLimit = 40
   @State var homeTopRequest = 0
+  @State var homeTopImmediate = false
   @State var searchLimit = 40
   @State var railHidden = false
   @State var lastOffset: CGFloat = 0
@@ -42,7 +43,7 @@ struct Desktop: View {
   @State var pendingUndo: [String: JSONValue] = [:]
   @State var pendingToast = ""
   @State private var detail = DetailPresentation()
-  @Namespace var navigation
+  @State var detailImmediateRequest = false
   private var railConcealed: Bool { railHidden || model.settingsPresented }
   private var railAnimation: Animation {
     return railConcealed
@@ -225,7 +226,7 @@ struct Desktop: View {
       presentDetail(model.selected)
     }
     .onChange(of: model.selected) { _, id in presentDetail(id) }
-    .onExitCommand { dismissTop() }
+    .onExitCommand { dismissTop(immediateDetail: true) }
     .onDisappear {
       revealTask?.cancel()
       toastTask?.cancel()
@@ -234,7 +235,18 @@ struct Desktop: View {
     }
   }
   private func presentDetail(_ id: String?) {
+    let immediate = detailImmediateRequest
+    detailImmediateRequest = false
     let generation = detail.prepare(id)
+    if immediate {
+      var transaction = Transaction(animation: nil)
+      transaction.disablesAnimations = true
+      withTransaction(transaction) {
+        detail.visible = id != nil
+        if id == nil { detail.finishClose(generation) }
+      }
+      return
+    }
     let duration = id == nil ? AppleMetrics.motionDetailClose : AppleMetrics.motionDetailOpen
     if id != nil {
       // Mount at the entry position before starting the local presentation transaction.
@@ -265,7 +277,7 @@ struct Desktop: View {
       {
         Button {
           pendingIds.removeAll()
-          homeTopRequest += 1
+          requestHomeTop()
         } label: {
           HStack(spacing: AppleMetrics.space8) {
             NativeIcon(name: "up", size: AppleMetrics.space14)
@@ -278,9 +290,8 @@ struct Desktop: View {
       if !model.selection.isEmpty { selectionBar }
       HStack(spacing: 0) {
         nav("home", "home", "web.nav.home")
+        nav("ai", "chat", "web.nav.ai")
         nav("search", "search", "web.nav.search")
-        nav("ai", "chat", "web.nav.aiLabel")
-        nav("settings", "sill", "web.nav.settings")
       }.padding(AppleMetrics.railInset).modifier(GlassSurface())
     }
   }

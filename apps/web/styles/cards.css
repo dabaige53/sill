@@ -16,13 +16,6 @@
 	border: 1px solid var(--line-card);
 	border-radius: var(--card-radius);
 	box-shadow: var(--shadow);
-	transition: var(
-		--motion-transition,
-		background-color var(--settle) var(--ease),
-		box-shadow var(--settle) var(--ease),
-		border-color var(--settle) var(--ease),
-		transform var(--base) var(--ease)
-	);
 	isolation: isolate;
 	overflow: hidden;
 	cursor: pointer;
@@ -63,7 +56,6 @@
 	border-radius: inherit;
 	border: 2px solid transparent;
 	pointer-events: none;
-	transition: var(--motion-transition, border-color var(--base));
 }
 .card-body {
 	display: flex;
@@ -90,9 +82,6 @@
 	color: var(--muted);
 }
 /* The reserved action slot keeps counts and timely information readable while hovering. */
-.card-head-right {
-	transition: var(--motion-transition, opacity var(--fast));
-}
 .has-cover .card-head-right {
 	opacity: 1;
 }
@@ -166,7 +155,6 @@
 	letter-spacing: -0.02em;
 	line-height: 1.35;
 	color: var(--ink);
-	transition: var(--motion-transition, color var(--settle) var(--ease));
 }
 .card-title-button {
 	display: -webkit-box;
@@ -277,7 +265,6 @@
 	height: 100%;
 	object-fit: cover;
 	opacity: 0;
-	transition: var(--motion-transition, opacity var(--settle) var(--ease));
 }
 .card-image.is-loaded {
 	opacity: 1;
@@ -540,7 +527,6 @@ button.ref:active {
 	border: 1.5px solid var(--accent);
 	border-radius: 50%;
 	color: var(--fixed-white);
-	transition: var(--motion-transition, background var(--base), border-color var(--base));
 }
 @media (hover: hover) and (pointer: fine) {
 	.check-item:hover .check-dot {
@@ -668,15 +654,6 @@ button.ref:active {
 	white-space: nowrap;
 	background: var(--surface);
 	color: var(--ink);
-	transition: var(
-		--motion-transition,
-		background var(--fast),
-		filter var(--fast),
-		transform var(--fast)
-	);
-}
-.pill:active {
-	transform: scale(0.97);
 }
 .pill.grow {
 	flex: 1 1 auto;
@@ -725,7 +702,6 @@ button.ref:active {
 	box-shadow: 0 2px 8px var(--fixed-black-8);
 	opacity: 0;
 	pointer-events: none;
-	transition: var(--motion-transition, opacity var(--fast), background var(--fast));
 }
 .card-more-trigger .icon {
 	width: 16px;

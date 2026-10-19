@@ -277,13 +277,11 @@ export async function runMaterialFocus({
 			assert.equal(
 				await page
 					.locator(".preview-sheet")
-					.evaluate((node: Element) => node.classList.contains("is-off")),
+					.evaluate((node: Element) => node.closest("dialog")?.inert),
 				true,
 			);
 			assert.equal(
-				await page
-					.locator(".float-bar")
-					.evaluate((node: Element) => node.classList.contains("is-hidden")),
+				await page.locator(".float-bar").evaluate((node: Element) => node.closest("dialog")?.inert),
 				true,
 			);
 			await page.waitForFunction(

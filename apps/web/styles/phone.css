@@ -10,12 +10,12 @@
 		--rail-edge: 16px;
 		--rail-bottom: max(16px, env(safe-area-inset-bottom));
 	}
-	/* Phone rail: a compact capsule in the middle, icons only; the names stay for screen readers. */
+	/* Three destinations share the same compact glass capsule. */
 	:root {
-		--nav-tab: 60px;
+		--nav-tab: 76px;
 	}
 	:root {
-		--home-top-h: 88px;
+		--home-top-h: 104px;
 	}
 	main {
 		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + var(--space-8));
@@ -29,79 +29,54 @@
 		right: 0;
 		display: flex;
 		flex-direction: column;
-		padding-top: env(safe-area-inset-top);
-		background: var(--frost);
+		width: auto;
+		margin: 0;
+		padding: env(safe-area-inset-top) var(--margin-sm) 0;
+		background: color-mix(in srgb, var(--canvas) 92%, transparent);
 		-webkit-backdrop-filter: blur(28px) saturate(1.6);
 		backdrop-filter: blur(28px) saturate(1.6);
-		border-bottom: 0.5px solid var(--line);
-		transition: var(
-			--motion-transition,
-			transform var(--dur-show) var(--ease-sheet),
-			opacity var(--dur-show) var(--ease),
-			visibility 0s
-		);
 	}
 	.home-top.is-tucked {
 		transform: translateY(calc(-100% + env(safe-area-inset-top)));
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
-		transition: var(
-			--motion-transition,
-			transform var(--dur-tuck) var(--ease),
-			opacity var(--dur-tuck) var(--ease),
-			visibility 0s var(--dur-tuck)
-		);
 	}
-	body:has(#modal[open]) .home-top {
+	body:has(#modal[open].page) .home-top {
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
 	}
-	.home-mark {
-		align-self: center;
-		display: grid;
-		place-items: center;
-		width: var(--hit-target);
-		height: var(--hit-target);
-		padding: 0;
-		border: 0;
-		border-radius: 50%;
-		background: none;
-		color: var(--ink);
-	}
 	.home-tabs {
-		display: flex;
-		height: var(--hit-target);
-		padding: 0 var(--space-4);
+		gap: 0;
 		overflow-x: auto;
-		scrollbar-width: none;
 	}
 	.home-tab {
-		position: relative;
 		flex: 1 0 auto;
-		padding: 0 var(--space-12);
-		border: 0;
-		background: none;
-		font: inherit;
+		padding: 0 var(--space-8);
 		font-size: var(--text-body);
-		color: var(--muted);
-		white-space: nowrap;
+		text-align: center;
 	}
-	.home-tab[aria-pressed="true"] {
-		color: var(--ink);
-		font-weight: 700;
+	.home-tab:first-child {
+		padding-left: 0;
+		text-align: left;
+	}
+	.home-tab:last-child {
+		padding-right: 0;
+		text-align: right;
 	}
 	.home-tab[aria-pressed="true"]::after {
-		content: "";
-		position: absolute;
 		left: 50%;
-		bottom: 0;
-		width: 28px;
-		height: 3px;
 		translate: -50% 0;
-		border-radius: 2px;
-		background: var(--ink);
+	}
+	.home-tab:first-child::after {
+		left: 0;
+		translate: none;
+	}
+	.home-tab:last-child::after {
+		left: auto;
+		right: 0;
+		translate: none;
 	}
 	/* New content waits at the top: under the tabs, or under the status bar once they tuck away. */
 	#new-count {
@@ -309,11 +284,9 @@
 		display: none;
 	}
 	/* Navigation and selection */
-	.nav-label {
-		display: none;
-	}
+
 	.nav-icon {
-		height: 30px;
+		height: 26px;
 	}
 	.nav-icon > .icon {
 		width: 24px;
@@ -350,11 +323,6 @@
 		flex-direction: column;
 		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
 		transform: translateY(0);
-		transition: var(
-			--motion-transition,
-			transform var(--dur-sheet) var(--ease-sheet),
-			translate var(--dur-sheet) var(--ease-sheet)
-		);
 	}
 	#modal.preview .preview-sheet.is-full {
 		max-height: 100dvh;
@@ -512,7 +480,6 @@
 		flex-direction: row;
 		overflow-x: auto;
 		padding: var(--space-16) var(--space-12) var(--space-12);
-		margin-right: var(--space-52);
 		border-right: 0;
 		border-bottom: 0;
 		scrollbar-width: none;
@@ -551,10 +518,11 @@
 		inset: 0;
 		width: 100%;
 		max-width: 100%;
-		height: 100%;
-		max-height: 100%;
+		height: 100dvh;
+		max-height: none;
 		margin: 0;
-		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
 		justify-content: flex-start;
 		gap: var(--space-10);
 	}
@@ -567,10 +535,11 @@
 		flex: none;
 	}
 	:is(#modal, #search-background).page.search {
-		height: auto;
+		height: 100dvh;
 		max-height: none;
-		inset: 0 0 var(--kb, 0px);
-		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge) var(--rail-bottom);
+		inset: 0;
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge)
+			calc(var(--rail-bottom) + var(--kb, 0px));
 	}
 	/* Keyboard, pages and photos */
 	#modal.panel,
@@ -599,7 +568,7 @@
 		opacity: 0;
 		visibility: hidden;
 	}
-	/* Phone places are pages. AI/settings retain capsule navigation; search has its own exit. */
+	/* All three destinations are pages. The keyboard temporarily clears the capsule. */
 	#modal.page,
 	#modal.page.panel,
 	#modal.page.panel.wide,
@@ -616,7 +585,7 @@
 		padding: 0;
 		background: var(--canvas);
 	}
-	#modal.page :is(.grabber, .sheet-close) {
+	#modal.page .grabber {
 		display: none;
 	}
 	#modal.page.panel .sheet {
@@ -627,19 +596,31 @@
 		background: var(--canvas);
 		padding: calc(var(--space-12) + env(safe-area-inset-top)) 0
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
-		animation: var(--motion-animation, none);
-		animation-duration: var(--motion-animation-duration, 0s);
-		animation-iteration-count: var(--motion-animation-iterations, 1);
 	}
 	/* The local AI preview keeps context and composer in one viewport. */
 	#modal.page.panel.narrow:has(.ai-conversation) {
 		width: 100%;
 	}
 	#modal.page.panel .ai-conversation {
-		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--space-16)
-			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+		padding: calc(var(--space-12) + env(safe-area-inset-top)) var(--margin-sm)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
 	}
 	.lightbox-stage > .icon-button {
 		display: none;
+	}
+	#modal.page .settings-head {
+		padding: 0 var(--margin-sm);
+	}
+	#modal.page.panel .ai-conversation > .sheet-close {
+		display: none;
+	}
+	body.keyboard-open #modal.page.panel .ai-conversation {
+		padding-bottom: var(--space-12);
+	}
+	body.keyboard-open :is(#modal, #search-background).page.search {
+		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
+	}
+	.search-card-grid {
+		gap: var(--gap-sm);
 	}
 }

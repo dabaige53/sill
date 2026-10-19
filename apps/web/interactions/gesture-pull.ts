@@ -26,8 +26,7 @@ export const gesturePullMethods = {
 			markTop: number | null = null,
 			state = "idle";
 		const mark = document.querySelector<HTMLElement>(".home-mark");
-		const wheel = this.intent(),
-			wheelRelease = this.release();
+		const wheel = this.intent();
 		const labels = {
 			idle: copy("web.refresh.pull"),
 			pulling: copy("web.refresh.pull"),
@@ -40,6 +39,7 @@ export const gesturePullMethods = {
 			state = next;
 			ring.dataset.state = next;
 			ring.classList.toggle("is-spinning", next === "loading");
+			MotionEngine.loading(ring.querySelector(".pull-progress"), next === "loading");
 			ring.disabled = next !== "error";
 			ring.setAttribute("aria-hidden", String(next === "idle" || next === "pulling"));
 			ring.setAttribute("aria-label", labels[next]);
@@ -53,23 +53,27 @@ export const gesturePullMethods = {
 			markTop = rect?.height ? rect.top + (rect.height - ring.offsetHeight) / 2 : null;
 			ring.classList.toggle("in-home-mark", markTop !== null);
 			ring.style.top = markTop === null ? "" : `${markTop}px`;
+			ring.style.left = markTop === null ? "" : `${rect.left + rect.width / 2}px`;
 		};
 		const paint = () => {
 			cancelAnimationFrame(frame);
 			frame = 0;
 			const shift = Math.round(pull * 0.75),
 				feedback = state === "loading" || state === "success" || state === "error";
-			main.style.translate = pull ? `0 ${shift}px` : "";
+			MotionEngine.move(main, pull ? `0 ${shift}px` : "", state === "pulling");
 			// While loading the desk stays open and the ring turns in the gap it made.
 			mark?.classList.toggle("is-refreshing-mark", markTop !== null && state !== "idle");
-			ring.style.translate =
+			MotionEngine.move(
+				ring,
 				markTop !== null
 					? "0 0"
 					: pull
 						? `0 ${Math.round((inset + shift) / 2 - 18)}px`
 						: feedback
 							? "0 12px"
-							: "0 -48px";
+							: "0 -48px",
+				state === "pulling",
+			);
 			ring.style.opacity = String(feedback ? 1 : Math.min(1, pull / 18));
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
 			ring.toggleAttribute("data-ready", pull >= need);
@@ -91,6 +95,9 @@ export const gesturePullMethods = {
 		const refresh = async () => {
 			if (busy) return;
 			busy = true;
+			const feedbackReady = new Promise<void>((resolve) =>
+				window.setTimeout(resolve, MotionEngine.time("delay-loading")),
+			);
 			measure();
 			start = null;
 			wheel.reset();
@@ -110,6 +117,7 @@ export const gesturePullMethods = {
 			try {
 				const result = await this.app.refresh({ feedback: "pull" });
 				if (result === false) throw new Error("Refresh did not complete");
+				await feedbackReady;
 				status("success");
 				timer = window.setTimeout(() => {
 					pull = 0;
@@ -117,6 +125,7 @@ export const gesturePullMethods = {
 					paint();
 				}, 480);
 			} catch {
+				await feedbackReady;
 				clearTimeout(holdTimer);
 				pull = 0;
 				status("error");
@@ -218,16 +227,8 @@ export const gesturePullMethods = {
 				pull = Math.min(need, pull + -e.deltaY * 0.5);
 				schedulePaint();
 				clearTimeout(timer);
-				// A full ring waits for the hand to let go: the wheel stops or starts coasting.
-				if (pull >= need && wheelRelease.feed(-e.deltaY)) {
-					wheelRelease.reset();
-					wheel.reset();
-					this.swallowMomentum();
-					refresh();
-					return;
-				}
+				// Commit after the trackpad input stream stops.
 				timer = window.setTimeout(() => {
-					wheelRelease.reset();
 					if (pull >= need) {
 						wheel.reset(false);
 						refresh();
@@ -258,8 +259,7 @@ export const gesturePullMethods = {
 			: surface.querySelector(".sheet-scroll") || surface;
 		const bar = reader ? null : dialog.querySelector(":scope > .float-bar"),
 			token = app.modalToken,
-			wheel = this.intent(),
-			letGo = this.release();
+			wheel = this.intent();
 		let threshold = this.value("dismiss-distance", 110);
 		const measure = () => {
 			threshold = this.value("dismiss-distance", 110);
@@ -276,7 +276,11 @@ export const gesturePullMethods = {
 			frame = 0;
 			if (done || app.modalToken !== token) return;
 			surface.classList.toggle("is-drag", pull > 0);
-			surface.style.translate = pull ? `0 ${Math.round(pull * (phone ? 0.6 : 1))}px` : "";
+			MotionEngine.move(
+				surface,
+				pull ? `0 ${Math.round(pull * (phone ? 0.6 : 1))}px` : "",
+				pull > 0,
+			);
 			this.dim(pull ? 1 - Math.min(1, pull / need()) * 0.7 : null);
 			if (bar) bar.style.opacity = pull ? String(Math.max(0, 1 - (pull / need()) * 1.6)) : "";
 		};
@@ -330,7 +334,6 @@ export const gesturePullMethods = {
 			const d = -e.deltaY * (e.deltaMode === 1 ? 16 : 1);
 			if (d <= 0 || !atTop()) {
 				wheel.reset();
-				letGo.reset();
 				if (pull && d < 0) {
 					pull = 0;
 					paint();
@@ -345,14 +348,9 @@ export const gesturePullMethods = {
 			);
 			schedulePaint();
 			clearTimeout(timer);
-			// Past the line it closes once the hand lets go, not while it is still pulling.
-			if (pull >= need() && letGo.feed(d)) {
-				close();
-				return;
-			}
+			// Commit after the trackpad input stream stops.
 			timer = window.setTimeout(() => {
 				if (app.modalToken !== token) return;
-				letGo.reset();
 				if (pull >= need()) {
 					close();
 					return;

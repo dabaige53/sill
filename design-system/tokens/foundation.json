@@ -81,7 +81,7 @@
 		"settingsRowHeight": 48,
 		"settingsRadius": 14,
 		"settingsNavRadius": 9,
-		"searchPillHeight": 52,
+		"searchPillHeight": 48,
 		"aiWidth": 680,
 		"captureHeight": 160,
 		"compactMinWidth": 240,
@@ -116,25 +116,22 @@
 		"toggleTravel": 20,
 		"compactReaderWidth": 560,
 		"motionDetailOpen": 0.22,
-		"motionDetailClose": 0.16,
+		"motionDetailClose": 0.22,
 		"motionRailHide": 0.18,
 		"motionRailShow": 0.22,
 		"motionLens": 0.3,
-		"motionDeckSpring": 0.5,
-		"motionDeckBounce": 0.2,
 		"motionDeckTravel": 0.3,
 		"motionDeckSpeed": 0.45,
 		"motionDeckMinFlick": 30,
-		"motionDeckResistance": 0.25,
-		"motionDeckRotation": 6,
-		"motionDeckExitRotation": 8,
+		"motionDeckResistance": 0,
 		"motionDeckExitTravel": 1.15,
 		"motionDeckInset": 6,
 		"motionDeckScale": 0.97,
 		"motionDetailEnterY": 10,
-		"motionDetailExitY": 4,
+		"motionDetailExitY": 10,
 		"motionRailTravel": 20,
-		"motionDeckGestureStart": 8
+		"motionDeckGestureStart": 8,
+		"motionDeckDuration": 0.26
 	},
 	"name": "Sill",
 	"version": 2,
@@ -365,7 +362,7 @@
 		]
 	},
 	"timing": {
-		"note": "按压、入场、重排和手势释放遵循 handbook/motion.md；所有用户使用同一套规则。",
+		"note": "Web 动效统一由 Motion 控制；高频与键盘操作立即响应，不倾斜、拉伸或反复淡闪。",
 		"tokens": [
 			{
 				"name": "ease",
@@ -409,13 +406,13 @@
 			},
 			{
 				"name": "dur-close",
-				"value": "160ms",
-				"usage": "桌面详情淡出，下移4px。"
+				"value": "220ms",
+				"usage": "桌面详情沿10px原路淡出。"
 			},
 			{
 				"name": "dur-sheet",
-				"value": "360ms",
-				"usage": "手机抽屉升起。"
+				"value": "260ms",
+				"usage": "手机抽屉升起与手势确认后的离场。"
 			},
 			{
 				"name": "dur-read",
@@ -430,7 +427,7 @@
 			{
 				"name": "delay-loading",
 				"value": "300ms",
-				"usage": "等待短于它不出现任何加载态。"
+				"usage": "后台加载态延迟；主动刷新的加载反馈至少保持该时长。"
 			},
 			{
 				"name": "dur-tuck",
@@ -439,8 +436,8 @@
 			},
 			{
 				"name": "dur-lens",
-				"value": "300ms",
-				"usage": "导航镜片换格300ms；面板立即打开，形变1.05/0.97。"
+				"value": "0ms",
+				"usage": "高频导航立即换格。"
 			},
 			{
 				"name": "rest-show",
@@ -475,7 +472,7 @@
 			{
 				"name": "dur-deck",
 				"value": "260ms",
-				"usage": "叠卡手势松手；键盘立即切换。"
+				"usage": "叠卡松手后平稳移动，不倾斜或回弹；键盘立即切换。"
 			},
 			{
 				"name": "gesture-dismiss-distance",
@@ -572,5 +569,16 @@
 				"usage": "标准和宽松密度显示最多三行摘要，紧凑密度最多两行；不裁剪详情原文。"
 			}
 		]
+	},
+	"motion": {
+		"spring": {
+			"mass": 1,
+			"stiffness": 600,
+			"damping": 45
+		},
+		"pressScale": 0.97,
+		"menuScale": 0.95,
+		"detailTravel": 10,
+		"toastTravel": 8
 	}
 }

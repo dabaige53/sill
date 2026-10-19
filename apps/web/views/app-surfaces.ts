@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
@@ -52,16 +52,13 @@ export const appSurfacesMethods = {
 		this.lockedScroll = scrollY;
 		this.pageOverflow = document.documentElement.style.overflow;
 		document.documentElement.style.overflow = "hidden";
-		document.body.style.setProperty("--locked-scroll", `${-this.lockedScroll}px`);
-		document.body.classList.add("modal-scroll-locked");
 	},
 	unlockPageScroll(this: AppController) {
 		if (!this.pageScrollLocked) return;
 		this.pageScrollLocked = false;
-		document.body.classList.remove("modal-scroll-locked");
-		document.body.style.removeProperty("--locked-scroll");
 		document.documentElement.style.overflow = this.pageOverflow;
 		window.scrollTo({ top: this.lockedScroll, behavior: "instant" });
+		this.railHide?.syncPosition();
 	},
 	openModal(
 		this: AppController,
@@ -78,12 +75,12 @@ export const appSurfacesMethods = {
 		MotionEngine.cancelPanel(this.dialog);
 		this.skipReturnMotion = false;
 		this.sheetLeaving = false;
-		this.dialog.style.removeProperty("--backdrop");
+		this.dialog.inert = false;
+		MotionEngine.dim(this.dialog, null);
 		this.dialog.style.translate = "";
 		// A phone page is not a modal: switching between a page and a sheet reopens the dialog in the other mode.
 		const page = this.isPage(kind);
 		if (this.dialog.open && this.dialog.classList.contains("page") !== page) this.dialog.close();
-		const pageToPage = page && this.dialog.open;
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement as HTMLElement;
 			this.lockPageScroll();
@@ -104,20 +101,11 @@ export const appSurfacesMethods = {
 			this.dialog.classList.add("is-short");
 		renderContent(this.dialog, html);
 		if (!this.dialog.open) {
-			if (page && kind !== "search") this.dialog.show();
+			if (page) this.dialog.show();
 			else this.dialog.showModal();
 		}
-		// Pages change in place under the capsule: a short fade, never a rising sheet. Between two pages only
-		// the new content fades; the page itself stays opaque so the desk never shows through.
-		if (MotionEngine.keyboard) MotionEngine.cancelPanel(this.dialog);
-		else if (page)
-			for (const target of pageToPage ? [...this.dialog.children] : [this.dialog])
-				target.animate([{ opacity: 0 }, { opacity: 1 }], {
-					duration: MotionEngine.time("fast"),
-					easing: "ease-out",
-				});
-		else if (kind === "search") MotionEngine.enter(this.dialog);
-		else MotionEngine.openPanel(this.dialog, origin);
+		// Frequent navigation changes in place; only sheets enter over the current page.
+		if (!MotionEngine.keyboard && !page) MotionEngine.openPanel(this.dialog, origin);
 		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
 				? "#filter-search"
@@ -145,48 +133,36 @@ export const appSurfacesMethods = {
 			animate = false;
 			this.skipReturnMotion = false;
 		}
-		// Phone sheet: it slides back down past the bottom edge while the dim fades, then the dialog closes.
 		if (this.sheetLeaving) return;
-		if (animate && this.modalKind === "preview" && MotionEngine.phoneSheet(this.dialog)) {
-			const sheet = this.dialog.querySelector<HTMLElement>(".preview-sheet"),
-				token = this.modalToken;
-			MotionEngine.cancelPanel(this.dialog);
-			this.sheetLeaving = true;
-			sheet.classList.remove("is-drag");
-			sheet.classList.add("is-off");
-			sheet.style.translate = "";
-			this.dialog.querySelector<HTMLElement>(":scope > .float-bar")?.classList.add("is-hidden");
-			this.dialog.style.setProperty("--backdrop", "0");
-			// Read after the class change so CSS has created its actual exit transition.
-			void sheet.offsetHeight;
-			const animations = sheet.getAnimations();
-			Promise.allSettled(animations.map((animation: Animation) => animation.finished)).then(
-				() => {
-					if (this.modalToken === token && this.sheetLeaving && this.dialog.open) {
-						this.sheetLeaving = false;
-						this.skipReturnMotion = true;
-						this.closeNative();
-					}
-				},
-				() => {},
-			);
-			return;
-		}
-		if (animate && !this.isPage(this.modalKind)) {
+		if (
+			animate &&
+			(!this.isPage(this.modalKind) || ["reader", "lightbox"].includes(this.modalKind))
+		) {
 			const token = this.modalToken,
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;
 			const transform = getComputedStyle(sheet).transform;
 			MotionEngine.cancelPanel(this.dialog);
 			this.sheetLeaving = true;
-			this.dialog.style.setProperty("--backdrop", "0");
+			this.dialog.inert = true;
+			MotionEngine.dim(this.dialog, 0, MotionEngine.time("dur-close"));
 			const animation = MotionEngine.animate(
 				sheet,
 				[
 					{ opacity, transform },
-					{ opacity: 0, transform: "translateY(4px)" },
+					{
+						opacity: 0,
+						transform: MotionEngine.phoneSheet(this.dialog)
+							? "translateY(100%)"
+							: "translateY(10px)",
+					},
 				],
-				{ duration: MotionEngine.time("dur-close"), fill: "forwards" },
+				{
+					duration: MotionEngine.phoneSheet(this.dialog)
+						? MotionEngine.time("dur-sheet")
+						: MotionEngine.time("dur-close"),
+					fill: "forwards",
+				},
 			);
 			const bar = this.dialog.querySelector<HTMLElement>(":scope > .float-bar");
 			const barAnimation = bar
@@ -235,10 +211,9 @@ export const appSurfacesMethods = {
 		this.modalKind = "";
 		this.panelReturn = null;
 		this.updateSelection();
-		// The rail is back: the lens slides home from the place that was open.
-		if (this.navKey !== "home") requestAnimationFrame(() => this.setNav("home"));
+		if (this.navKey !== "home") this.setNav("home");
 		// Leftovers of a drag or swipe are cleared only now that nothing is on screen.
-		this.dialog.style.removeProperty("--backdrop");
+		MotionEngine.dim(this.dialog, null);
 		this.dialog.style.transform = "";
 		this.dialog.style.translate = "";
 		this.dialog.classList.remove("is-drag");

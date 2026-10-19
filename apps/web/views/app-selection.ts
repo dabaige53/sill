@@ -63,19 +63,8 @@ export const appSelectionMethods = {
 		const { grid, bar, selected: selection, search } = this.selectionContext();
 		if (!grid) return;
 		const selecting = selection.size > 0;
-		const entering = selecting && !grid.classList.contains("is-selecting");
 		grid.querySelectorAll<HTMLElement>("[data-card]").forEach((n: HTMLElement) => {
-			const selected = selection.has(n.dataset.card);
 			this.markSelectionCard(n, selection);
-			if (entering && !selected) {
-				const bounds = n.getBoundingClientRect();
-				if (bounds.bottom > 0 && bounds.top < innerHeight)
-					MotionEngine.animate(
-						n,
-						[{ opacity: 1 }, { opacity: 0.88, offset: 0.4 }, { opacity: 1 }],
-						{ duration: 240 },
-					);
-			}
 		});
 		grid.classList.add("selection-surface");
 		grid.classList.toggle("is-selecting", selecting);
@@ -91,19 +80,7 @@ export const appSelectionMethods = {
 		bar.querySelector<HTMLElement>(".selection-count").textContent = String(this.selected.size);
 		if (state.visible === selecting) return;
 		state.visible = selecting;
-		if (selecting) {
-			this.railHide?.show();
-			bar.querySelectorAll<HTMLElement>(".selection-ai-wave i").forEach((wave, index) => {
-				MotionEngine.animate(
-					wave,
-					[
-						{ transform: "scaleY(0.4)", opacity: 0.4 },
-						{ transform: "scaleY(1)", opacity: 1 },
-					],
-					{ duration: 260, delay: index * 45 },
-				);
-			});
-		}
+		if (selecting) this.railHide?.show();
 		// Resume from the currently drawn frame when selection reverses mid-transition.
 		const drawn = state.animation ? getComputedStyle(bar) : null;
 		const from = drawn

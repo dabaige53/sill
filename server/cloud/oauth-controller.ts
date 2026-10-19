@@ -1,6 +1,6 @@
-import { readCookie } from "./browser-session.ts";
-import { consentStyles, authStyles } from "./auth-page.ts";
 import { copy } from "../../design-system/copy.ts";
+import { authStyles, consentStyles } from "./auth-page.ts";
+import { readCookie } from "./browser-session.ts";
 import { consentSummary, reviewConsent } from "./consent-policy.ts";
 import { isAuthorizationId } from "./oauth-identifiers.ts";
 import { checkedRedirect, oauthProvider } from "./oauth-provider.ts";

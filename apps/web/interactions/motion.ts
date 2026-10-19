@@ -1,12 +1,19 @@
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
+import { cancelMotion, dim, move, type Playback, play } from "./motion-playback.ts";
+
 const MotionEngine: Record<string, any> = {
 	panelAnimations: new WeakMap(),
 	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),
 	visibilityAnimations: new WeakMap(),
 	contentAnimations: new WeakMap(),
+	loops: new WeakMap(),
 	exits: new Map(),
 	time(name: string) {
-		const value = getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+		const value =
+			getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim() ||
+			tokens.timing.tokens.find((token) => token.name === name)?.value ||
+			"220ms";
 		return parseFloat(value) * (value.endsWith("s") && !value.endsWith("ms") ? 1000 : 1);
 	},
 	curve(name = "ease") {
@@ -18,25 +25,87 @@ const MotionEngine: Record<string, any> = {
 	get keyboard() {
 		return document.documentElement.dataset.inputModality === "keyboard";
 	},
-	animate(el?: any, keyframes?: any, options: any = {}) {
-		if (!el || !el.animate) return null;
-		// CSS state can hold travel without cancelling the animation's fade or timeline.
-		const managed = keyframes.map((frame?: any) =>
-			typeof frame.transform === "string"
-				? { ...frame, transform: `var(--motion-managed-transform, ${frame.transform})` }
-				: frame,
-		);
-		return el.animate(managed, {
+	animate(el?: HTMLElement, keyframes?: any[], options: any = {}): Playback | null {
+		if (!el || this.keyboard) return null;
+		return play(el, keyframes, {
 			duration: this.time("base"),
 			easing: this.curve(),
 			...options,
 		});
 	},
+	cancel: cancelMotion,
+	dim,
+	move(el: HTMLElement, destination = "", direct = false) {
+		return move(el, destination, direct || this.keyboard);
+	},
+	loading(el: HTMLElement | null, busy: boolean, duration = 800) {
+		if (!el) return;
+		this.loops.get(el)?.cancel();
+		this.loops.delete(el);
+		if (!busy) return;
+		// A request still needs progress feedback when it starts from the keyboard.
+		const animation = play(el, [{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], {
+			duration,
+			easing: "linear",
+			repeat: Infinity,
+		});
+		this.loops.set(el, animation);
+	},
+	/** Capture before changing CSS state, then let Motion bridge only visual properties. */
+	change(el: HTMLElement, update: () => void, duration = this.time("base")) {
+		const before = getComputedStyle(el);
+		const from = { opacity: before.opacity, transform: before.transform };
+		this.cancel(el);
+		update();
+		const after = getComputedStyle(el);
+		const to = { opacity: after.opacity, transform: after.transform };
+		const visibility = after.visibility;
+		if (this.keyboard) return null;
+		el.style.visibility = "visible";
+		const animation = this.animate(el, [from, to], { duration });
+		const finish = () => {
+			if (this.contentAnimations.get(el) === animation) el.style.visibility = "";
+		};
+		this.contentAnimations.set(el, animation);
+		if (animation) animation.finished.then(finish, () => {});
+		else el.style.visibility = visibility;
+		return animation;
+	},
+	bind() {
+		let pressed: HTMLElement | null = null;
+		const release = () => {
+			if (!pressed) return;
+			const el = pressed;
+			pressed = null;
+			const from = getComputedStyle(el).transform;
+			this.cancel(el);
+			this.animate(el, [{ transform: from }, { transform: "scale(1)" }], {
+				duration: this.time("dur-press"),
+			});
+		};
+		document.addEventListener("pointerdown", (event: PointerEvent) => {
+			release();
+			if (event.button !== 0 || !event.isPrimary) return;
+			const target = (event.target as Element).closest<HTMLElement>(
+				".icon-button,.solid-button,.nav-tab",
+			);
+			if (!target || target.matches(":disabled") || target.closest("[inert]")) return;
+			pressed = target.querySelector<HTMLElement>(".nav-icon") || target;
+			this.animate(
+				pressed,
+				[{ transform: "scale(1)" }, { transform: `scale(${tokens.motion.pressScale})` }],
+				{ duration: this.time("dur-press"), fill: "forwards" },
+			);
+		});
+		document.addEventListener("pointerup", release);
+		document.addEventListener("pointercancel", release);
+		window.addEventListener("blur", release);
+	},
 	/** Absolute rail notices fade without moving the navigation or leaving clickable ghosts. */
 	visibility(el: HTMLElement, visible: boolean) {
 		if (!el) return;
 		const previous = this.visibilityAnimations.get(el);
-		if (!el.animate) {
+		if (this.keyboard) {
 			previous?.animation?.cancel();
 			this.visibilityAnimations.delete(el);
 			el.inert = !visible;
@@ -44,13 +113,13 @@ const MotionEngine: Record<string, any> = {
 			return;
 		}
 		if (previous?.visible === visible || (!previous && el.hidden === !visible)) return;
-		const style = el.animate ? getComputedStyle(el) : null;
+		const style = getComputedStyle(el);
 		const opacity = el.hidden ? 0 : Number.parseFloat(style?.opacity || "1");
 		const transform = el.hidden ? "translateY(4px)" : style?.transform || "none";
 		previous?.animation?.cancel();
 		el.inert = !visible;
 		el.hidden = false;
-		const state = { visible, animation: null as Animation | null };
+		const state = { visible, animation: null as Playback | null };
 		this.visibilityAnimations.set(el, state);
 		const finish = () => {
 			if (this.visibilityAnimations.get(el) !== state) return;
@@ -81,15 +150,23 @@ const MotionEngine: Record<string, any> = {
 	fade(el?: any) {
 		if (!el) return;
 		const previous = this.contentAnimations.get(el);
-		const opacity =
-			previous && previous.playState !== "finished" ? getComputedStyle(el).opacity : 0;
+		const opacity = previous ? getComputedStyle(el).opacity : 0;
 		previous?.cancel();
 		const animation = this.animate(el, [{ opacity }, { opacity: 1 }], {
 			duration: this.time("fast"),
 		});
 		this.contentAnimations.set(el, animation);
+		const clear = () => {
+			if (this.contentAnimations.get(el) === animation) this.contentAnimations.delete(el);
+		};
+		if (animation) animation.finished.then(clear, clear);
+		else clear();
 		return animation;
 	},
+	resize(el: HTMLElement, _before: number) {
+		return this.fade(el);
+	},
+
 	// Retain the removed surface only for its exit; it has no live controls or identity.
 	cancelExit(key: string) {
 		this.exits.get(key)?.remove();
@@ -98,7 +175,7 @@ const MotionEngine: Record<string, any> = {
 	retire(el: HTMLElement, rect: DOMRect, key: string) {
 		this.cancelExit(key);
 		if (rect.bottom <= 0 || rect.top >= innerHeight) return;
-		for (const animation of el.getAnimations({ subtree: true })) animation.cancel();
+		this.cancel(el, true);
 		const layer = document.createElement("div");
 		layer.className = "motion-exit";
 		layer.inert = true;
@@ -163,22 +240,17 @@ const MotionEngine: Record<string, any> = {
 		this.cancelPanel(el);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
-		// Phone: the preview is a sheet rising from the bottom edge; its position is a CSS transition, the dim fades in with it.
 		if (this.phoneSheet(el)) {
-			sheet.classList.add("is-drag", "is-off");
-			el.style.setProperty("--backdrop", "0");
-			bar?.classList.add("is-hidden");
-			void sheet.offsetHeight;
-			const tasks = { frame: 0, timer: 0 };
-			this.panelTasks.set(el, tasks);
-			tasks.frame = requestAnimationFrame(() => {
-				tasks.frame = 0;
-				if (this.panelTasks.get(el) !== tasks || !el.open || !sheet.isConnected) return;
-				sheet.classList.remove("is-drag", "is-off");
-				el.style.removeProperty("--backdrop");
-				this.panelTasks.delete(el);
-				bar?.classList.remove("is-hidden");
-			});
+			sheet.classList.remove("is-off", "is-drag");
+			const animation = this.animate(
+				sheet,
+				[
+					{ opacity: 0, transform: "translateY(100%)" },
+					{ opacity: 1, transform: "translateY(0)" },
+				],
+				{ duration: this.time("dur-sheet"), easing: this.curve("ease-sheet") },
+			);
+			this.panelAnimations.set(el, [animation, ...(bar ? [this.enter(bar)] : [])]);
 			return;
 		}
 		// Keep a single text layer at its final size; the toolbar enters at the same time.

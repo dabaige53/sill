@@ -162,7 +162,6 @@
 	font-size: var(--text-control);
 	color: var(--ink);
 	text-align: left;
-	transition: var(--motion-transition, background var(--fast));
 }
 @media (hover: hover) and (pointer: fine) {
 	.shelf-row:hover {
@@ -181,24 +180,18 @@
 	color: var(--muted);
 }
 /* Pressing a card gives a little, like the prototype: it is something you can pick up. */
-.feed-card:not(.stack-card):active:not(:has(button:active)) {
-	transform: scale(0.97);
-	transition-duration: var(--motion-transition-duration, 120ms);
-}
 
 /* A menu's hit targets keep their size even while the touched parent settles. */
 @media (hover: hover) and (pointer: fine) {
 	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
 		--motion-managed-transform: none;
 		transform: none;
-		transition-property: var(--motion-transition-properties, box-shadow, border-color);
 	}
 }
 .feed-card.tools-open,
 .feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
 	--motion-managed-transform: none;
 	transform: none;
-	transition-property: var(--motion-transition-properties, box-shadow, border-color);
 }
 
 /* Desktop spacing groups metadata, content and supporting references. */

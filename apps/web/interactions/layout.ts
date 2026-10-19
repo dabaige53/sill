@@ -85,10 +85,6 @@ class FeedLayout {
 			const header = document.getElementById("home-top");
 			if (header) {
 				header.style.setProperty("--feed-left", `${el.getBoundingClientRect().left + inset}px`);
-				if (matchMedia("(min-width:651px)").matches) {
-					header.inert = false;
-					header.classList.remove("is-tucked");
-				}
 			}
 		}
 		const old = animate

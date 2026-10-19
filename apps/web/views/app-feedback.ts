@@ -107,10 +107,15 @@ export const appFeedbackMethods = {
 				: "";
 		toast.classList.toggle("is-alert", !!persistent);
 		toast.setAttribute("role", persistent ? "alert" : "status");
-		for (const animation of toast.getAnimations?.() || []) animation.cancel();
+		const drawnToast = toast.hidden
+			? { opacity: 0, transform: "translateY(8px)" }
+			: { opacity: getComputedStyle(toast).opacity, transform: getComputedStyle(toast).transform };
+		MotionEngine.cancel(toast);
 		toast.hidden = false;
 		toast.inert = false;
-		MotionEngine.enter(toast);
+		MotionEngine.animate(toast, [drawnToast, { opacity: 1, transform: "none" }], {
+			duration: MotionEngine.time("dur-menu"),
+		});
 		this.toastRemaining = persistent ? 0 : undo ? 5500 : 3200;
 		this.toastStarted = 0;
 		this.toastTimer = 0;
@@ -149,12 +154,14 @@ export const appFeedbackMethods = {
 		const done = () => {
 			if (seq === this.toastSeq) toast.hidden = true;
 		};
+		const drawnToast = {
+			opacity: getComputedStyle(toast).opacity,
+			transform: getComputedStyle(toast).transform,
+		};
+		MotionEngine.cancel(toast);
 		const leave = MotionEngine.animate(
 			toast,
-			[
-				{ opacity: 1, transform: "none" },
-				{ opacity: 0, transform: "translateY(4px)" },
-			],
+			[drawnToast, { opacity: 0, transform: "translateY(8px)" }],
 			{ duration: 140 },
 		);
 		leave ? leave.finished.then(done, done) : done();

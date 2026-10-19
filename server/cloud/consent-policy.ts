@@ -1,5 +1,5 @@
-import { consentGlyph } from "./auth-page.ts";
 import { copy } from "../../design-system/copy.ts";
+import { consentGlyph } from "./auth-page.ts";
 import { isAuthorizationId } from "./oauth-identifiers.ts";
 
 /** Offline consent policy. Not imported by the Worker and never writes grants or calls OAuth. */
@@ -165,6 +165,15 @@ export function consentSummary(review?: any) {
 		"event:read": copy("server.consentpolicy.6ccfdd828764"),
 	};
 	const list = (scopes, labels) =>
-		scopes.map((scope) => "<li>" + consentGlyph(scope) + "<span>" + escapeHtml(labels[scope] || scope) + "</span></li>").join("");
+		scopes
+			.map(
+				(scope) =>
+					"<li>" +
+					consentGlyph(scope) +
+					"<span>" +
+					escapeHtml(labels[scope] || scope) +
+					"</span></li>",
+			)
+			.join("");
 	return `<section aria-labelledby="consent-title"><div class="consent-brand"><span class="consent-brand-mark">${consentGlyph("sill")}</span><span>Sill</span></div><h1 id="consent-title">${copy("server.consentpolicy.65051d44e433")}${escapeHtml(review.clientName)}${copy("server.consentpolicy.070dee491968")}</h1><p>${range}</p><h2 class="visually-hidden">${copy("auth.permissions")}</h2><ul class="consent-permissions">${list(review.contentScopes, permissions)}${list(review.identityScopes, identity)}</ul>${review.canList ? "" : "<p>" + copy("server.consentpolicy.30d1f064d9d7") + "</p>"}<details><summary>${copy("auth.details")}</summary><dl><dt>${copy("auth.account")}</dt><dd>${escapeHtml(review.userId)}</dd><dt>${copy("server.consentpolicy.92ceb36a3d2c")}</dt><dd>${escapeHtml(review.clientId)}</dd><dt>${copy("server.consentpolicy.9ca160d65985")}</dt><dd>${escapeHtml(review.redirectUri)}</dd><dt>${copy("server.consentpolicy.02739d1bae8b")}</dt><dd>${escapeHtml(review.audience)}</dd><dt>${copy("server.consentpolicy.b10ce5499816")}</dt><dd>${review.identityScopes.map(escapeHtml).join("、")}</dd></dl></details>${review.contentScopes.includes("event:submit") ? "<p>" + copy("auth.eventQueue") + "</p>" : ""}</section>`;
 }

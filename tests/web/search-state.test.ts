@@ -186,6 +186,8 @@ for (const action of ["snooze", "dismiss-reminder", "complete-reminder", "restor
 test("home and search render the same shared completion and reading state", () => {
 	const f = fixture();
 	try {
+		f.app.searchFilter.query = "a";
+		f.app.dialog.innerHTML = f.Panels.search(f.app);
 		f.app.mode = "test";
 		f.app.suspendSearch();
 		const results = f.app.searchBackground.querySelector("#search-results");
@@ -252,6 +254,8 @@ test("leaving the search route closes an AI preview as well as its retained back
 test("shared card refresh keeps each surface's independent selection decoration", () => {
 	const f = fixture();
 	try {
+		f.app.searchFilter.query = "a";
+		f.app.dialog.innerHTML = f.Panels.search(f.app);
 		f.app.homeSelected.add("a");
 		f.app.searchSelected.add("b");
 		f.app.mode = "test";

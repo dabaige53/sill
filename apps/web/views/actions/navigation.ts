@@ -23,7 +23,9 @@ function captureSave(this: AppController) {
 }
 
 function top(this: AppController) {
-	window.scrollTo({ top: 0, behavior: "smooth" });
+	window.scrollTo({ top: 0, behavior: "instant" });
+	this.railHide?.syncPosition();
+	this.railHide?.show();
 }
 
 function homeTab(this: AppController, { extra }: ActionContext) {
@@ -35,6 +37,7 @@ function homeTab(this: AppController, { extra }: ActionContext) {
 	this.filter = { ...this.filter, ...tab, tag: "", query: "" };
 	this.renderCurrent(false);
 	window.scrollTo({ top: saved?.scroll || 0, behavior: "instant" });
+	this.railHide?.syncPosition();
 }
 
 function cardOpen(this: AppController, { id }: ActionContext) {

@@ -38,10 +38,12 @@ function fixture(raw: any = null, at: any = 1800000000000) {
 			setItem: (k?: any, v?: any) => data.set(k, v),
 		},
 		structuredClone,
+		queueMicrotask,
 		matchMedia: () => ({ matches: false }),
 		window: { scrollTo() {} },
 		CSS: { escape: (value?: any) => String(value) },
 		document: {
+			documentElement: { dataset: { inputModality: "keyboard" } },
 			getElementById(id?: any) {
 				if (!nodes.has(id))
 					nodes.set(id, {

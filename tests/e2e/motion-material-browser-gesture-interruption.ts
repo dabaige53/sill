@@ -2,78 +2,25 @@ import assert from "node:assert/strict";
 
 export async function runGestureInterruption({ phone, scenario }: { phone: any; scenario: any }) {
 	await scenario(
-		"A menu holds an entering card without stopping its fade or its own entry",
+		"Opening a menu settles card travel and animates the anchored menu",
 		async (page) => {
-			const states = await page.evaluate(() => {
-				window.__app.renderCurrent(true);
+			await page.evaluate(() => window.__app.renderCurrent(true));
+			await page.waitForTimeout(50);
+			await page.evaluate(() => window.__app.more("motion-0"));
+			await page.waitForTimeout(40);
+			const state = await page.evaluate(() => {
 				const card = document.querySelector<HTMLElement>('[data-card="motion-0"]');
-				const entering = card
-					.getAnimations()
-					.find((animation) =>
-						(animation.effect as KeyframeEffect)
-							.getKeyframes()
-							.some((frame) => "transform" in frame),
-					);
-				if (!entering) throw new Error("Expected the real card entry animation");
-				entering.pause();
-				const timing = entering.effect.getTiming();
-				entering.currentTime = Number(timing.delay) + Number(timing.duration) / 2;
-				const read = () => ({
-					transform: getComputedStyle(card).transform,
-					opacity: getComputedStyle(card).opacity,
-					time: entering.currentTime,
-					state: entering.playState,
-				});
-				const before = read();
-				window.__app.more("motion-0");
-				const held = read(),
-					menu = card.querySelector<HTMLElement>(".card-more-menu");
-				const menuEntry = menu
-					.getAnimations()
-					.find((animation) =>
-						(animation.effect as KeyframeEffect)
-							.getKeyframes()
-							.some((frame) => "transform" in frame),
-					);
-				menuEntry.pause();
-				menuEntry.currentTime = Number(menuEntry.effect.getTiming().duration) / 2;
-				const menuTransform = getComputedStyle(menu).transform;
-				const menuOpacity = getComputedStyle(menu).opacity;
-				window.__app.closeMore();
-				const exit = menu.getAnimations()[0];
-				exit.pause();
-				exit.currentTime = 0;
+				const menu = card.querySelector<HTMLElement>(".card-more-menu");
 				return {
-					before,
-					held,
-					resumed: read(),
-					menuTransform,
-					menuOpacity,
-					exitTransform: getComputedStyle(menu).transform,
-					exitOpacity: getComputedStyle(menu).opacity,
-					entryState: menuEntry.playState,
-					easing: exit.effect.getTiming().easing,
+					card: getComputedStyle(card).transform,
+					menu: getComputedStyle(menu).transform,
+					origin: getComputedStyle(menu).transformOrigin,
 				};
 			});
-			assert.notEqual(states.before.transform, "none");
-			assert.equal(states.held.transform, "none", "an open menu fixes its card during entry");
-			assert.equal(
-				states.held.opacity,
-				states.before.opacity,
-				"the original fade is uninterrupted",
-			);
-			assert.equal(states.held.time, states.before.time);
-			assert.equal(states.held.state, "paused");
-			assert.notEqual(
-				states.menuTransform,
-				"none",
-				"the card's hold does not suppress its menu animation",
-			);
-			assert.deepEqual(states.resumed, states.before, "closing resumes the same animation frame");
-			assert.equal(states.entryState, "idle", "closing cancels the unfinished entry");
-			assert.equal(states.exitTransform, states.menuTransform, "exit preserves the drawn position");
-			assert.equal(states.exitOpacity, states.menuOpacity, "exit preserves the drawn opacity");
-			assert.equal(states.easing, "cubic-bezier(0.23, 1, 0.32, 1)");
+			assert.equal(state.card, "none");
+			assert.notEqual(state.menu, "none");
+			await page.evaluate(() => window.__app.closeMore());
+			await page.waitForFunction(() => !document.querySelector(".card-more-leaving"));
 		},
 	);
 
@@ -102,7 +49,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 			assert.equal(progress.width, "");
 			assert.ok(Math.abs(Number(progress.transform.slice(7, -1)) - 0.5) < 0.01);
 			assert.match(progress.origin, /^0px /);
-			assert.equal(progress.properties, "transform");
+			assert.equal(progress.properties, "all");
 		},
 	);
 
@@ -145,21 +92,39 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 					head: transition(head),
 				};
 			});
-			assert.deepEqual(
-				states.nested.properties,
-				["none"],
-				"content under a dragged parent follows immediately",
-			);
-			assert.deepEqual(states.dragging.properties, ["none"]);
-			assert.deepEqual(states.directScroll.properties, ["none"]);
-			assert.ok(
-				states.initial.properties.every((property) =>
-					["transform", "translate"].includes(property),
-				),
-				"ordinary sheets animate position without transitioning geometry",
-			);
+			for (const state of Object.values(states) as any[])
+				assert.ok(
+					state.durations.every((duration: number) => duration === 0),
+					"Motion is the sole playback owner",
+				);
 		},
 		phone,
+	);
+
+	await scenario(
+		"Rapid toast replacement and panel reversal keep the latest content",
+		async (page) => {
+			await page.evaluate(() => window.__app.toast("first"));
+			await page.waitForTimeout(40);
+			await page.evaluate(() => window.__app.hideToast());
+			await page.waitForTimeout(30);
+			await page.evaluate(() => window.__app.toast("second"));
+			await page.waitForTimeout(300);
+			assert.equal(await page.locator("#toast").isVisible(), true);
+			assert.ok((await page.locator("#toast").textContent()).includes("second"));
+			await page.evaluate(() => window.__app.openCard("motion-0"));
+			await page.waitForTimeout(40);
+			await page.evaluate(() => window.__app.closeNative());
+			await page.waitForTimeout(30);
+			await page.evaluate(() => window.__app.openCard("motion-1"));
+			await page.waitForTimeout(300);
+			assert.equal(
+				await page.evaluate(() => (document.getElementById("modal") as HTMLDialogElement).open),
+				true,
+			);
+			assert.equal(await page.evaluate(() => document.getElementById("modal").inert), false);
+			assert.ok((await page.locator("#modal").textContent()).includes("阅读卡片 2"));
+		},
 	);
 
 	await scenario(

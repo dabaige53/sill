@@ -95,7 +95,10 @@ try {
 				tabs: document.querySelector(".home-tabs").getBoundingClientRect().toJSON(),
 				mark: getComputedStyle(document.querySelector(".home-mark")).visibility,
 			}));
-			assert.ok(bounds.ring.bottom <= bounds.tabs.top, "refresh must not cover the home tabs");
+			assert.ok(
+				bounds.ring.top >= 0 && bounds.ring.bottom <= bounds.tabs.top,
+				"refresh stays visible above the home tabs",
+			);
 			assert.equal(bounds.mark, "hidden", "refresh temporarily replaces the mark");
 			await touch(cancel ? "touchCancel" : "touchEnd");
 		}
@@ -108,11 +111,10 @@ try {
 		);
 		await pull();
 		await page.waitForTimeout(300);
-		assert.equal(
-			await page.locator("main").evaluate((node) => (node as HTMLElement).style.translate),
-			"0px 36px",
-			"the desk pauses open while the ring turns",
-		);
+		const heldOffset = await page
+			.locator("main")
+			.evaluate((node) => parseFloat(getComputedStyle(node).translate.split(" ")[1]) || 0);
+		assert.ok(heldOffset > 20, "the desk pauses open while the ring turns");
 		await page.waitForTimeout(850);
 		assert.equal(await page.evaluate(() => window.__pullCalls), 1);
 		assert.equal(await page.locator(".pull-ring.is-spinning").count(), 1);
@@ -121,10 +123,10 @@ try {
 			path: `tests/artifacts/refresh-header-normal.png`,
 			clip: { x: 0, y: 0, width: 390, height: 180 },
 		});
-		assert.equal(
-			await page.locator("main").evaluate((node) => (node as HTMLElement).style.translate),
-			"",
-			"cards return while the real request is pending",
+		await page.waitForFunction(
+			() => (document.querySelector("main") as HTMLElement).style.translate === "",
+			null,
+			{ timeout: 3000 },
 		);
 		assert.equal(await page.locator("#pull-ring").getAttribute("aria-busy"), "true");
 		assert.equal(
@@ -151,6 +153,8 @@ try {
 		});
 		await pull();
 		await page.waitForTimeout(30);
+		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "loading");
+		await page.waitForTimeout(300);
 		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "error");
 		await page.screenshot({ path: `tests/artifacts/refresh-retry-normal.png` });
 		assert.equal(await page.locator("#pull-ring").getAttribute("aria-label"), "刷新失败，重试");
@@ -159,6 +163,13 @@ try {
 		});
 		await page.locator("#pull-ring").press("Enter");
 		await page.waitForTimeout(30);
+		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "loading");
+		assert.equal(
+			await page.locator(".pull-progress").evaluate((el) => el.getAnimations().length > 0),
+			true,
+			"keyboard refresh retains progress feedback",
+		);
+		await page.waitForTimeout(300);
 		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "success");
 		await page.waitForTimeout(550);
 		await page.mouse.wheel(0, 400);

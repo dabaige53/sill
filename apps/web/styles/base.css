@@ -8,10 +8,15 @@ html {
 	-webkit-text-size-adjust: 100%;
 	-webkit-tap-highlight-color: transparent;
 	background: var(--canvas);
-	scroll-behavior: var(--motion-scroll-behavior, smooth);
-	scrollbar-gutter: stable;
+	scroll-behavior: auto;
+	scrollbar-gutter: auto;
+	scrollbar-width: none;
 	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
 	overscroll-behavior-y: none;
+}
+/* Hide the page track without disabling wheel, touch or keyboard scrolling. */
+html::-webkit-scrollbar {
+	display: none;
 }
 body {
 	overscroll-behavior-y: none;
@@ -23,7 +28,6 @@ body {
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
 	min-height: 100dvh;
-	transition: var(--motion-transition, background var(--base));
 }
 button,
 input,
@@ -222,4 +226,15 @@ button,
 }
 a {
 	touch-action: manipulation;
+}
+
+/* Nested app panels follow the same hidden-track rule as the page. */
+.settings-main::-webkit-scrollbar,
+.search-results::-webkit-scrollbar,
+.ai-context::-webkit-scrollbar,
+.selection-context::-webkit-scrollbar,
+#selection-menu::-webkit-scrollbar,
+#modal.panel .sheet::-webkit-scrollbar,
+.cloud-compose-body::-webkit-scrollbar {
+	display: none;
 }

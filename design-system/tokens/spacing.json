@@ -13,7 +13,7 @@
 			},
 			{
 				"name": "card-padding-sm",
-				"value": "14px",
+				"value": "16px",
 				"usage": "手机卡片内边距。"
 			},
 			{
@@ -28,8 +28,8 @@
 			},
 			{
 				"name": "gap-sm",
-				"value": "6px",
-				"usage": "手机信息流卡片间距（2026-10-18 由 16 收紧到 6，参考 X 的密度）。"
+				"value": "12px",
+				"usage": "手机信息流卡片间距。"
 			},
 			{
 				"name": "gap-md",
@@ -43,8 +43,8 @@
 			},
 			{
 				"name": "margin-sm",
-				"value": "8px",
-				"usage": "手机页边距（2026-10-18 由 16 收紧到 8）。"
+				"value": "16px",
+				"usage": "手机页面左右边距，与标题和卡片对齐。"
 			},
 			{
 				"name": "margin-md",
@@ -89,7 +89,7 @@
 			{
 				"name": "nav-tab",
 				"value": "76px",
-				"usage": "导航胶囊每一格的宽度；手机 60px，只有图标，胶囊不占满一行。"
+				"usage": "三项主导航每格76px，手机与桌面一致，图标下有短名称。"
 			},
 			{
 				"name": "space-1",

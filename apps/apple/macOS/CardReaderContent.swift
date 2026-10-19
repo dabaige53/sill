@@ -188,16 +188,17 @@ extension CardReader {
       let parts = text.prefix(10).split(separator: "-").compactMap { Int($0) }
       if parts.count == 3 {
         let year = parts[0] == Calendar.current.component(.year, from: Date()) ? "" : "\(parts[0])年"
-        Text("· \(year)\(parts[1])月\(parts[2])日").help(text)
+        Text("\(year)\(parts[1])月\(parts[2])日").help(text)
       }
     }
   }
   @ViewBuilder func sourceNote(_ card: Card) -> some View {
-    if !["task", "reminder", "event", "mail", "file"].contains(card.type),
-      let note = card.fields["meta"]?.string, !note.isEmpty
-    {
-      Text(note).font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
-        .fixedSize(horizontal: false, vertical: true).padding(.top, AppleMetrics.space16)
+    let note =
+      ["task", "reminder", "event", "mail", "file"].contains(card.type)
+      ? "" : card.fields["meta"]?.string ?? ""
+    if !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      Text(note).fixedSize(horizontal: false, vertical: true)
+        .font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
     }
   }
 

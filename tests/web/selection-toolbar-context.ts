@@ -9,20 +9,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 		const f = fixture();
 		try {
 			const animations: any[] = [];
-			f.w.HTMLElement.prototype.animate = (frames: any, options: any) => {
-				let finish: () => void;
-				const animation = {
-					frames,
-					options,
-					finished: new Promise<void>((resolve) => {
-						finish = resolve;
-					}),
-					cancel() {},
-					finish: () => finish(),
-				};
-				animations.push(animation);
-				return animation;
-			};
+			f.w.__motionAnimations = animations;
 			const bar = f.document.getElementById("selection-bar");
 			f.app.select("one");
 			assert.equal(bar.hidden, false);

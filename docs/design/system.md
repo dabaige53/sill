@@ -87,4 +87,4 @@ node tests/e2e/local-browser.ts
 node tests/e2e/browser.ts
 ```
 
-`index.html` 是构建产物，由 `npm run build` 生成，不手工修改。项目只用原生 HTML、CSS、SVG 和 Web Animations；没有引入 React 或第三方动效库。
+`index.html` 是构建产物，由 `npm run build` 生成，不手工修改。Web 使用 React、TypeScript 和 Motion。`interactions/motion.ts` 统一动效策略，`interactions/motion-playback.ts` 管理播放、取消与手势速度；CSS 只表达静止状态。

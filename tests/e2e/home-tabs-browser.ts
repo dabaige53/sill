@@ -107,7 +107,7 @@ try {
 			assert.notEqual(geometry.mark, "none");
 		}
 		await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
-		await page.waitForTimeout(100);
+		await page.waitForTimeout(1000);
 		assert.ok(
 			await head.evaluate((n) => {
 				const r = n.getBoundingClientRect();
@@ -118,7 +118,7 @@ try {
 					getComputedStyle(n).opacity !== "0"
 				);
 			}),
-			"home tabs remain visible while scrolling",
+			"home tabs return after scrolling pauses",
 		);
 		await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 		const source = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
@@ -197,7 +197,7 @@ try {
 			"explicit tab change applies latest filter",
 		);
 		await head.locator('[data-extra="all"]').click();
-		if (width === 1920) {
+		{
 			await page.evaluate(() => {
 				const seed = window.__store.state.cards.find((card) => card.type === "article");
 				window.__store.state.cards.push(
@@ -207,13 +207,85 @@ try {
 				window.scrollTo(0, 500);
 			});
 			await page.waitForFunction(() => scrollY === 500);
+			await page.waitForTimeout(1000);
 			assert.equal(await head.evaluate((node) => node.getBoundingClientRect().top), 0);
 			await head.locator('[data-extra="todo"]').click();
 			assert.equal(await page.evaluate(() => scrollY), 0);
+			await page.evaluate(() => {
+				const frames: { opacity: number; visible: boolean; tucked: boolean }[][] = [];
+				const until = performance.now() + 1000;
+				(window as any).navigationFrames = frames;
+				const sample = () => {
+					frames.push(
+						["home-top", "dock"].map((id) => {
+							const node = document.getElementById(id),
+								style = getComputedStyle(node);
+							return {
+								opacity: Number(style.opacity),
+								visible: style.visibility === "visible",
+								tucked: node.classList.contains("is-tucked"),
+							};
+						}),
+					);
+					if (performance.now() < until) requestAnimationFrame(sample);
+				};
+				sample();
+			});
 			await head.locator('[data-extra="all"]').click();
 			assert.equal(await page.evaluate(() => scrollY), 500);
+			await page.waitForTimeout(1050);
+			const frames = await page.evaluate(() => (window as any).navigationFrames);
+			assert.ok(frames.length > 10);
+			assert.ok(
+				frames.flat().every((frame) => frame.opacity === 1 && frame.visible && !frame.tucked),
+				"restoring an offscreen reading position never hides or fades the navigation",
+			);
 			await head.locator('[data-extra="all"]').click();
 			assert.equal(await page.evaluate(() => scrollY), 500);
+			await page.locator('#nav [data-extra="search"]').click();
+			assert.equal(
+				await page.locator("#modal").evaluate((node) => getComputedStyle(node).opacity),
+				"1",
+			);
+			assert.equal(
+				await page.locator("#modal").evaluate((node) => node.getAnimations().length),
+				0,
+				"pointer navigation never fades the page over the feed",
+			);
+			await page.locator('#modal .search-header > [data-action="close"]').click();
+			assert.equal(
+				await page.locator('#nav [aria-current="page"]').getAttribute("data-extra"),
+				"home",
+			);
+			assert.equal(await page.evaluate(() => scrollY), 500);
+			if (width < 650) {
+				for (const place of ["ai", "settings"]) {
+					await page.locator(`#nav [data-extra="${place}"]`).tap();
+					assert.equal(
+						await page.locator("#modal").evaluate((node) => getComputedStyle(node).opacity),
+						"1",
+					);
+					assert.equal(
+						await page
+							.locator("#modal")
+							.evaluate((node) => node.getAnimations({ subtree: true }).length),
+						0,
+					);
+					assert.equal(
+						await page.locator("#dock").evaluate((node) => getComputedStyle(node).opacity),
+						"1",
+					);
+				}
+				await page.locator('#nav [data-extra="home"]').tap();
+				assert.equal(
+					await page.locator("#modal").evaluate((node: HTMLDialogElement) => node.open),
+					false,
+				);
+				assert.equal(await page.evaluate(() => scrollY), 500);
+				assert.equal(await head.evaluate((node) => getComputedStyle(node).opacity), "1");
+			}
+		}
+		if (width === 1920) {
 			await page.keyboard.press("ControlOrMeta+k");
 			assert.equal(
 				await page.locator("#filter-search").evaluate((node) => node === document.activeElement),

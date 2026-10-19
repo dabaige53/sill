@@ -1,6 +1,7 @@
 import { MotionEngine } from "../interactions/motion.ts";
+import type { Playback } from "../interactions/motion-playback.ts";
 import type { AppController } from "./app.ts";
-import { type Deck, type DeckGesture, type TargetEvent } from "./app-types.ts";
+import type { Deck, DeckGesture, TargetEvent } from "./app-types.ts";
 
 export const appStacksMethods = {
 	bindStacks(this: AppController) {
@@ -119,10 +120,10 @@ export const appStacksMethods = {
 	deckFollow(this: AppController, deck?: Deck, dx?: number) {
 		const { top, next, prev, w } = this.deckParts(deck);
 		if (dx <= 0 || !prev) {
-			// Toward the next card; with nothing beyond, the top card only gives a little.
-			const x = dx < 0 && next ? dx : dx * 0.25,
+			// At either end the card stays still; only a real neighbor can be revealed.
+			const x = dx < 0 && next ? dx : 0,
 				f = next ? Math.min(1, -Math.min(0, dx) / w) : 0;
-			top.style.transform = `translateX(${x}px) rotate(${(x / w) * 6}deg)`;
+			top.style.transform = `translateX(${x}px)`;
 			if (next) next.style.transform = `translateY(${6 * (1 - f)}px) scale(${0.97 + 0.03 * f})`;
 			if (prev) {
 				prev.classList.remove("is-prev");
@@ -134,7 +135,7 @@ export const appStacksMethods = {
 			prev.classList.add("is-prev");
 			prev.style.visibility = "visible";
 			const x = -w - 24 + dx;
-			prev.style.transform = `translateX(${x}px) rotate(${(x / w) * 6}deg)`;
+			prev.style.transform = `translateX(${x}px)`;
 		}
 	},
 	deckSettle(this: AppController, deck?: Deck, dir?: number) {
@@ -145,16 +146,18 @@ export const appStacksMethods = {
 		const t: KeyframeAnimationOptions = {
 				duration: MotionEngine.time("dur-deck"),
 				easing: MotionEngine.curve(),
+				fill: "forwards",
 			},
-			anims: Animation[] = [];
+			anims: Playback[] = [];
 		const run = (el?: HTMLElement, to?: string) => {
 			if (!el) return;
-			const from = el.style.transform || "none";
-			anims.push(el.animate([{ transform: from }, { transform: to }], t));
+			const from = getComputedStyle(el).transform;
+			const animation = MotionEngine.animate(el, [{ transform: from }, { transform: to }], t);
+			if (animation) anims.push(animation);
 			el.style.transform = to;
 		};
 		if (dir === 1) {
-			run(top, `translateX(${-w * 1.15}px) rotate(-8deg)`);
+			run(top, `translateX(${-w * 1.15}px)`);
 			run(next, "none");
 		} else if (dir === -1) {
 			if (!prev.classList.contains("is-prev")) this.deckFollow(deck, 1);
@@ -162,7 +165,7 @@ export const appStacksMethods = {
 		} else {
 			run(top, "none");
 			if (next) run(next, "translateY(6px) scale(.97)");
-			if (prev?.classList.contains("is-prev")) run(prev, `translateX(${-w - 24}px) rotate(-6deg)`);
+			if (prev?.classList.contains("is-prev")) run(prev, `translateX(${-w - 24}px)`);
 		}
 		deck.dataset.busy = "1";
 		let finished = false;
@@ -186,6 +189,8 @@ export const appStacksMethods = {
 		if (!stack) return;
 		const key = stack.dataset.stack;
 		cards.forEach((c: HTMLElement, k: number) => {
+			MotionEngine.cancel(c);
+			c.style.translate = "";
 			c.classList.toggle("is-top", k === i);
 			c.classList.toggle("is-next", k === i + 1);
 			c.classList.remove("is-prev");
