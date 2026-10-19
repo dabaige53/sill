@@ -93,6 +93,45 @@ test("hiddenActions is a closed list in the shared preference contract", () => {
 	assert.ok(!Preferences.safeParse({ hiddenActions: ["delete"] }).success);
 });
 
+test("card action examples describe types without changing switch names or preferences", () => {
+	Store.state = Store.fresh();
+	Store.setPref("hiddenActions", ["tag"]);
+	const dom = new JSDOM(Panels.settings({}, "desk"));
+	const examples = [
+		"所有卡片",
+		"所有卡片",
+		"所有卡片",
+		"邮件",
+		"文章、视频等",
+		"日程",
+		"待办、日程、提醒",
+		"日程",
+		"待办、日程、提醒",
+	];
+	try {
+		const switches = [...dom.window.document.querySelectorAll('[data-action="action-toggle"]')];
+		assert.equal(switches.length, 9);
+		for (const [index, toggle] of switches.entries()) {
+			assert.equal(toggle.getAttribute("data-id"), CardActions[index]);
+			const row = toggle.closest(".setting-row");
+			assert.equal(row?.querySelector("small")?.textContent, examples[index]);
+			assert.equal(toggle.getAttribute("aria-describedby"), row?.querySelector("small")?.id);
+			assert.equal(
+				row?.firstElementChild?.firstChild?.textContent,
+				toggle.getAttribute("aria-label"),
+			);
+			assert.equal(
+				toggle.getAttribute("aria-checked"),
+				CardActions[index] === "tag" ? "false" : "true",
+			);
+		}
+		assert.deepEqual(Store.pref("hiddenActions"), ["tag"]);
+	} finally {
+		dom.window.close();
+		Store.state = Store.fresh();
+	}
+});
+
 test("photo lightbox shares toolbar state and hides empty tools without hiding thumbnails", () => {
 	const photo: Card = { ...seed("photo"), photos: ["architecture", "coast"] };
 	for (const hidden of [[], ["tag"], ["bookmark", "tag", "later"]] as CardAction[][]) {

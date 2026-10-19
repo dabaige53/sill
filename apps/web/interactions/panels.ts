@@ -14,7 +14,7 @@ import {
 	toggle,
 } from "../atoms/primitives.ts";
 import { CardPresentation, cardHTML } from "../cards/templates.ts";
-import { copy } from "../copy.ts";
+import { type CopyKey, copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import { cardDates, cardSource, cardSourceKind, detailSource } from "../data/card-source.ts";
 import { CardTypes, SourceKinds } from "../data/cards.ts";
@@ -25,6 +25,17 @@ import type { AppController } from "../views/app.ts";
 import { preview, relativeTime } from "./previews.ts";
 
 type ToolbarAction = [CardAction, string];
+const actionTypeExamples = {
+	bookmark: "web.actions.example.all",
+	tag: "web.actions.example.all",
+	later: "web.actions.example.all",
+	reply: "web.actions.example.mail",
+	open: "web.actions.example.source",
+	join: "web.actions.example.event",
+	snooze: "web.actions.example.reminder",
+	download: "web.actions.example.event",
+	dismiss: "web.actions.example.reminder",
+} satisfies Record<CardAction, CopyKey>;
 type PreviewApp = Partial<Pick<AppController, "agentAction">>;
 type SearchApp = Pick<AppController, "searchFilter" | "searchAll" | "searchLimit" | "feedNow">;
 /** Legacy callers may retain an unrecognized display form; the renderer keeps its fallback. */
@@ -342,8 +353,8 @@ const Panels: PanelRenderers = {
 	],
 	settings(this: PanelRenderers, app?: unknown, group = "desk") {
 		const p = <K extends keyof Preferences>(k?: K) => Store.pref(k),
-			row = (label?: string, side?: string) =>
-				`<div class="setting-row"><span>${label}</span><span class="setting-side">${side}</span></div>`;
+			row = (label?: string, side?: string, example?: { text: string; id: string }) =>
+				`<div class="setting-row"><span>${label}${example ? `<small class="setting-example" id="${esc(example.id)}">${esc(example.text)}</small>` : ""}</span><span class="setting-side">${side}</span></div>`;
 		const pages: Record<string, () => string> = {
 			// Adding lives here now: the same one field as the capture sheet. N still opens the sheet directly.
 			add: () =>
@@ -358,7 +369,9 @@ const Panels: PanelRenderers = {
 								!(p("hiddenActions") || []).includes(key),
 								copy(`web.actions.${key}`),
 								"action-toggle",
+								`action-example-${key}`,
 							),
+							{ text: copy(actionTypeExamples[key]), id: `action-example-${key}` },
 						),
 				).join("")}</div><p class="settings-hint muted">${copy("web.actions.hint")}</p>
        <div class="settings-card">${row(copy("web.settings.collapseOnFinish"), toggle("collapseOnFinish", p("collapseOnFinish"), copy("web.settings.collapseOnFinish")))}${row(

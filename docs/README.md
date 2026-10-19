@@ -54,6 +54,7 @@
 - [导航当前项保留现状镜片](adr/0039-keep-navigation-lens.md)
 - [显示加入时优先保留忽略提醒](adr/0040-event-reminder-priority.md)
 - [照片大图页补通用操作胶囊](adr/0041-photo-shared-toolbar.md)
+- [卡片操作设置显示适用类型示例](adr/0042-card-action-type-examples.md)
 
 ## 记录
 
@@ -61,6 +62,7 @@
 - [日程专属操作优先级（U4.1，2026-10-19）](records/2026-10-19-event-action-priority/README.md)
 - [搜索、AI、设置与深色现状（U6，2026-10-19）](records/2026-10-19-page-audit/README.md)
 - [照片大图页补通用操作（U4，2026-10-19）](records/2026-10-19-photo-shared-toolbar/README.md)
+- [卡片操作设置的类型示例（U4.5，2026-10-19）](records/2026-10-19-card-action-examples/README.md)
 
 - [全套图标比较与保留原版的决定（U2，2026-10-19）](records/2026-10-19-icon-choice/README.md)
 
