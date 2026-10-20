@@ -8,6 +8,7 @@ const MotionEngine: Record<string, any> = {
 	visibilityAnimations: new WeakMap(),
 	contentAnimations: new WeakMap(),
 	loops: new WeakMap(),
+	menuAnimations: new WeakMap(),
 	exits: new Map(),
 	time(name: string) {
 		const value =
@@ -100,6 +101,62 @@ const MotionEngine: Record<string, any> = {
 		document.addEventListener("pointerup", release);
 		document.addEventListener("pointercancel", release);
 		window.addEventListener("blur", release);
+	},
+	popover(el: HTMLElement, visible: boolean) {
+		const previous = this.menuAnimations.get(el);
+		if (previous?.visible === visible || (!previous && el.hidden === !visible)) return;
+		const style = getComputedStyle(el);
+		const from = el.hidden
+			? { opacity: 0, transform: "translateY(-4px) scale(.95)" }
+			: { opacity: style.opacity, transform: style.transform };
+		previous?.animation?.cancel();
+		el.hidden = false;
+		el.inert = !visible;
+		const state = { visible, animation: null as Playback | null };
+		this.menuAnimations.set(el, state);
+		state.animation = this.animate(
+			el,
+			[
+				from,
+				visible
+					? { opacity: 1, transform: "none" }
+					: { opacity: 0, transform: "translateY(-4px) scale(.95)" },
+			],
+			{
+				duration: this.time(visible ? "dur-menu" : "dur-press"),
+			},
+		);
+		const finish = () => {
+			if (this.menuAnimations.get(el) !== state) return;
+			el.hidden = !visible;
+			state.animation = null;
+		};
+		if (state.animation) state.animation.finished.then(finish, () => {});
+		else finish();
+	},
+	/** Layout settles once. Only the background stretches; text and caret keep their size. */
+	searchResize(el: HTMLElement, previousWidth: number) {
+		const width = el.getBoundingClientRect().width;
+		if (!width || !previousWidth || width === previousWidth) return;
+		const transform = getComputedStyle(el, "::before").transform;
+		const scale = transform.startsWith("matrix(") ? Number(transform.slice(7).split(",")[0]) : 1;
+		const visualWidth = previousWidth * (Number.isFinite(scale) ? scale : 1);
+		this.cancel(el);
+		this.animate(
+			el,
+			[{ transform: `scaleX(${visualWidth / width})` }, { transform: "scaleX(1)" }],
+			{ duration: this.time("dur-state"), pseudoElement: "::before" },
+		);
+		for (const child of el.querySelectorAll<HTMLElement>(
+			":scope > .icon, #home-search-token, #home-search",
+		)) {
+			this.cancel(child);
+			this.animate(
+				child,
+				[{ transform: `translateX(${width - visualWidth}px)` }, { transform: "none" }],
+				{ duration: this.time("dur-state") },
+			);
+		}
 	},
 	/** Absolute rail notices fade without moving the navigation or leaving clickable ghosts. */
 	visibility(el: HTMLElement, visible: boolean) {
@@ -229,6 +286,7 @@ const MotionEngine: Record<string, any> = {
 		if (tasks) {
 			cancelAnimationFrame(tasks.frame);
 			clearTimeout(tasks.timer);
+			tasks.restore?.();
 			this.panelTasks.delete(el);
 		}
 		(this.panelAnimations.get(el) || []).forEach((animation?: any) => {
@@ -236,10 +294,42 @@ const MotionEngine: Record<string, any> = {
 		});
 		this.panelAnimations.delete(el);
 	},
-	openPanel(el?: any, _origin?: DOMRect | null) {
+	/** Wait until dialog sizing and focus settle; keep its first frame hidden until Motion owns it. */
+	queuePanel(
+		el: HTMLElement,
+		origin?: DOMRect | null,
+		resume?: { opacity: string; transform: string },
+	) {
+		this.cancelPanel(el);
+		if (this.keyboard) return;
+		const sheet = this.surface(el);
+		const opacity = sheet.style.opacity;
+		const restore = () => {
+			sheet.style.opacity = opacity;
+		};
+		sheet.style.opacity = resume?.opacity || "0";
+		const task = { frame: 0, restore };
+		this.panelTasks.set(el, task);
+		task.frame = requestAnimationFrame(() => {
+			if (this.panelTasks.get(el) !== task) return;
+			this.panelTasks.delete(el);
+			restore();
+			if ((el as HTMLDialogElement).open) this.openPanel(el, origin, resume);
+		});
+	},
+	openPanel(el?: any, _origin?: DOMRect | null, resume?: { opacity: string; transform: string }) {
 		this.cancelPanel(el);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
+		if (resume) {
+			this.panelAnimations.set(el, [
+				this.animate(sheet, [resume, { opacity: 1, transform: "none" }], {
+					duration: this.time("dur-open"),
+				}),
+				...(bar ? [this.enter(bar)] : []),
+			]);
+			return;
+		}
 		if (this.phoneSheet(el)) {
 			sheet.classList.remove("is-off", "is-drag");
 			const animation = this.animate(

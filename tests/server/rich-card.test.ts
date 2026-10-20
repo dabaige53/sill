@@ -5,16 +5,23 @@ import { PGlite } from "@electric-sql/pglite";
 import { changes, create } from "../../contracts/cloud.ts";
 import { identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
 
-const migration = new URL(
-	"../../supabase/migrations/20261016052843_sill_rich_cards.sql",
-	import.meta.url,
-);
+async function applyCardMigrations(db: PGlite) {
+	for (const file of [
+		"20261016052843_sill_rich_cards.sql",
+		"20261016092653_sill_workspace_operations.sql",
+		"20261019031622_sill_hidden_card_actions.sql",
+		"20261020034430_sill_explicit_card_fields.sql",
+	])
+		await db.exec(
+			await readFile(new URL("../../supabase/migrations/" + file, import.meta.url), "utf8"),
+		);
+}
 
 test("rich cloud cards preserve fields, merge state, protect revisions and replay unknown writes", async () => {
 	const db = new PGlite();
 	try {
 		await setupBoundary(db);
-		await db.exec(await readFile(migration, "utf8"));
+		await applyCardMigrations(db);
 		await identity(db);
 		const body = {
 			type: "task",
@@ -42,7 +49,12 @@ test("rich cloud cards preserve fields, merge state, protect revisions and repla
 			{ expectedRevision: 1, changes: { title: "Updated", state: { read: true } } },
 			"rich_update_01",
 		);
-		assert.deepEqual(updated.body.state, { read: true, done: false, archived: false });
+		assert.deepEqual(updated.body.state, {
+			read: true,
+			done: false,
+			archived: false,
+			taskDone: [],
+		});
 		assert.deepEqual(updated.body.tasks, body.tasks);
 		await assert.rejects(
 			write("update", id, { expectedRevision: 1, changes: { tasks: [] } }, "rich_conflict_01"),
@@ -111,7 +123,7 @@ test("all eleven card fixtures round-trip through cloud storage and skill exampl
 	const db = new PGlite();
 	try {
 		await setupBoundary(db);
-		await db.exec(await readFile(migration, "utf8"));
+		await applyCardMigrations(db);
 		await identity(db);
 		for (const sample of fixtures.valid.filter((s) => s.name !== "future-card")) {
 			const body = Object.fromEntries(
@@ -122,7 +134,7 @@ test("all eleven card fixtures round-trip through cloud storage and skill exampl
 				"create",
 				null,
 				JSON.stringify(body),
-				"fixture_" + sample.name,
+				"fixture_" + sample.name.replace(/[^a-zA-Z0-9_-]/g, "_"),
 			]);
 			for (const [key, value] of Object.entries(body))
 				assert.deepEqual(result.body[key], value, sample.name + ":" + key);
@@ -151,7 +163,7 @@ test("rich SQL rejects invalid structured values without changing existing rows"
 	const db = new PGlite();
 	try {
 		await setupBoundary(db);
-		await db.exec(await readFile(migration, "utf8"));
+		await applyCardMigrations(db);
 		await identity(db);
 		const invalid = [
 			{ type: "task", tasks: [] },

@@ -53,11 +53,13 @@ export function play(
 		fill?: string;
 		spring?: boolean;
 		repeat?: number;
+		pseudoElement?: string;
 	},
 ): Playback {
 	const properties = [...new Set(frames.flatMap(Object.keys))].filter((key) => key !== "offset");
+	const propertyKey = (key: string) => `${options.pseudoElement || ""}:${key}`;
 	for (const owner of [...(active.get(el) || [])]) {
-		if (properties.some((key) => ownedProperties.get(owner)?.has(key))) owner.cancel();
+		if (properties.some((key) => ownedProperties.get(owner)?.has(propertyKey(key)))) owner.cancel();
 	}
 	const previous = Object.fromEntries(properties.map((key) => [key, el.style[key]]));
 	const keyframes = Object.fromEntries(
@@ -81,13 +83,14 @@ export function play(
 		ownedProperties.delete(handle);
 	};
 	const restore = () => {
+		if (options.pseudoElement) return;
 		for (const key of properties) el.style[key] = previous[key] || "";
 	};
 	const finish = () => {
 		if (settled) return;
 		settled = true;
 		controls?.cancel();
-		if (options.fill === "forwards") {
+		if (options.fill === "forwards" && !options.pseudoElement) {
 			for (const key of properties) el.style[key] = String(keyframes[key].at(-1));
 		} else {
 			restore();
@@ -116,13 +119,14 @@ export function play(
 	const set = active.get(el) || new Set<Playback>();
 	set.add(handle);
 	active.set(el, set);
-	ownedProperties.set(handle, new Set(properties));
+	ownedProperties.set(handle, new Set(properties.map(propertyKey)));
 	controls = animateStyle(el, keyframes, {
 		...(options.spring
 			? { type: spring, ...tokens.motion.spring }
 			: { duration: options.duration / 1000, ease }),
 		delay: (options.delay || 0) / 1000,
 		repeat: options.repeat || 0,
+		pseudoElement: options.pseudoElement,
 		...(frames.some((frame) => frame.offset !== undefined)
 			? { times: frames.map((frame, index) => frame.offset ?? index / (frames.length - 1)) }
 			: {}),

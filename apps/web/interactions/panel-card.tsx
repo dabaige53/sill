@@ -3,7 +3,13 @@ import type { Card } from "../../../contracts/card.ts";
 import { dateLabel, eventTimely } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardDates, cardSource, cardSourceKind, detailSource } from "../data/card-source.ts";
+import {
+	cardDate,
+	cardDates,
+	cardReadingTime,
+	cardSourceKind,
+	detailSource,
+} from "../data/card-source.ts";
 import { CardTypes, SourceKinds } from "../data/cards.ts";
 import type { CardItem } from "../data/store.ts";
 import { Store } from "../data/store.ts";
@@ -14,8 +20,15 @@ import {
 	type PreviewCard,
 	type ToolbarAction,
 } from "./panel-contract.ts";
-import { agentAction, button, keyed, ownButton, sourceIcon } from "./panel-primitives.tsx";
-import { previewView as preview } from "./previews-components.tsx";
+import {
+	agentAction,
+	button,
+	keyed,
+	ownButton,
+	sourceIcon,
+	personalNote,
+} from "./panel-primitives.tsx";
+import { articleContent, previewView as preview } from "./previews-components.tsx";
 
 export const panelCard = {
 	close(this: PanelRenderers, label?: string) {
@@ -30,7 +43,11 @@ export const panelCard = {
 			<>
 				<div className={"preview-meta"}>
 					{sourceIcon(c, 15)}
-					<span>{detailSource(c) || (CardTypes[c.type] || CardTypes.note).label}</span>
+					<span>
+						{[detailSource(c) || (CardTypes[c.type] || CardTypes.note).label, cardReadingTime(c)]
+							.filter(Boolean)
+							.join(" · ")}
+					</span>
 				</div>
 			</>
 		);
@@ -55,35 +72,49 @@ export const panelCard = {
 			""
 		);
 	},
-	publication(this: PanelRenderers, c?: Record<string, unknown>) {
+	publication(this: PanelRenderers, c?: Card) {
 		const date = cardDates(c).published;
-		const [year, month, day] = date?.text.slice(0, 10).split("-").map(Number) || [];
 		const label = date
 			? new Intl.DateTimeFormat("zh-CN", {
-					year: year === new Date().getFullYear() ? undefined : "numeric",
+					year: Number(date.text.slice(0, 4)) === new Date().getFullYear() ? undefined : "numeric",
 					month: "long",
 					day: "numeric",
-				}).format(new Date(year, month - 1, day))
+				}).format(new Date(date.text.slice(0, 10) + "T00:00:00"))
 			: "";
-		return date ? (
+		const rows = [
+			c.authors?.length
+				? [copy("web.metadata.authors"), c.authors.map((author) => author.name).join(" / ")]
+				: null,
+			c.publisher ? [copy("web.metadata.publisher"), c.publisher.name] : null,
+			c.recipients?.length ? [copy("web.metadata.recipients"), c.recipients.join(" / ")] : null,
+			c.project ? [copy("web.metadata.project"), c.project.name] : null,
+			c.sentAt ? [copy("web.metadata.sent"), c.sentAt] : null,
+			c.takenAt ? [copy("web.metadata.taken"), c.takenAt] : null,
+			c.chapterCount ? [copy("web.metadata.chapters"), String(c.chapterCount)] : null,
+			c.timeZone ? ["", c.timeZone] : null,
+			c.caption ? ["", c.caption] : null,
+			c.coverageStart !== undefined && c.coverageEnd !== undefined
+				? [
+						copy("web.metadata.coverage"),
+						`${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`,
+					]
+				: null,
+		].filter(Boolean);
+		if (!date && !rows.length) return null;
+		return (
 			<div className="preview-published">
-				<time dateTime={date.datetime} title={date.text}>
-					{label}
-				</time>
+				{date ? (
+					<time dateTime={date.datetime} title={date.text}>
+						{label}
+					</time>
+				) : null}
+				{rows.map(([label, value], index) => (
+					<span key={index}>
+						{label ? `${label} · ` : ""}
+						{value}
+					</span>
+				))}
 			</div>
-		) : null;
-	},
-	details(this: PanelRenderers, c?: Pick<Card, "type" | "meta"> & Record<string, unknown>) {
-		const note =
-			c.meta?.trim() && !["task", "reminder", "event", "mail", "file"].includes(c.type)
-				? c.meta
-				: "";
-		return note ? (
-			<div className="preview-source-details">
-				{note ? <p className="preview-source-note">{note}</p> : null}
-			</div>
-		) : (
-			""
 		);
 	},
 	bookmark(this: PanelRenderers, c?: Card, s?: CardItem) {
@@ -270,29 +301,16 @@ export const panelCard = {
 										></div>
 										<div className={"reader-scroll"} id={"reader-scroll"}>
 											<article className={"reader-body"}>
-												{this.meta(c)}
-												<h1 id={"modal-title"} data-shared={"title"}>
-													{c.title}
-												</h1>
-												{this.tags(c)}
-												{this.publication(c)}
-												{c.image ? (
+												{loading ? (
 													<>
-														<img
-															className={"reader-cover"}
-															src={Assets[c.image]}
-															alt={""}
-															draggable={"false"}
-														/>
+														{this.meta(c)}
+														<h1 id="modal-title">{c.title}</h1>
+														{keyed(body)}
 													</>
 												) : (
-													""
+													articleContent.call(this, c)
 												)}
-												<div className={"reading-caption sr-only"}>
-													{[cardSource(c), c.meta].filter(Boolean).join(" · ")}
-												</div>
-												{keyed(body)}
-												{loading ? "" : this.details(c)}
+												{personalNote(s.note)}
 												{loading ? "" : this.foot(agentAction(app, c))}
 												<div className={"reader-end"} id={"reader-end"} aria-hidden={"true"}></div>
 											</article>
@@ -331,7 +349,7 @@ export const panelCard = {
 		return (
 			<>
 				<div className={"lightbox-top"}>
-					<span>{[c.location, dateLabel(c.time)].filter(Boolean).join(" · ")}</span>
+					<span>{[c.location, cardDate(c.takenAt)?.text].filter(Boolean).join(" · ")}</span>
 					<span id={"modal-title"} className={"sr-only"}>
 						{c.title}
 					</span>
@@ -387,6 +405,8 @@ export const panelCard = {
 						)),
 					)}
 				</div>
+				{c.caption ? <div className="lightbox-caption">{c.caption}</div> : null}
+				{personalNote(Store.item(c.id).note)}
 				{this.tools(c, Store.item(c.id))}
 				{this.foot(agentAction(app, c))}
 			</>

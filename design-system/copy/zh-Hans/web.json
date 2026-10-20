@@ -374,7 +374,7 @@
 	"web.search.hashStatus": "状态",
 	"web.search.hashTag": "标签",
 	"web.search.hashList": "# 条件",
-	"web.search.removeCondition": "移除条件",
+	"web.search.removeCondition": "移除筛选条件",
 	"web.search.reset": "关闭搜索",
 	"web.selection.toAI": "交给 AI",
 	"web.selection.aiDrop": "拖到这里，打开 AI 对话",
@@ -384,6 +384,16 @@
 	"web.search.filters.type": "类型",
 	"web.search.filters.status": "状态",
 	"web.search.filters.tag": "标签",
-	"web.search.removeCondition": "移除筛选条件",
-	"web.related.moreSuffix": " 项关联内容"
+	"web.related.moreSuffix": " 项关联内容",
+	"web.metadata.readingFull": "约",
+	"web.metadata.readingAvailable": "当前内容约",
+	"web.metadata.readingSuffix": "分钟阅读",
+	"web.metadata.authors": "作者",
+	"web.metadata.publisher": "发布方",
+	"web.metadata.sent": "发送时间",
+	"web.metadata.taken": "拍摄时间",
+	"web.metadata.project": "项目",
+	"web.metadata.chapters": "章节",
+	"web.metadata.coverage": "覆盖时间",
+	"web.metadata.recipients": "收件人"
 }

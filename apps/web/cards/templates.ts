@@ -19,7 +19,7 @@ import {
 } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardSource, cardSourceKind } from "../data/card-source.ts";
+import { cardReadingTime, cardSource, cardSourceKind } from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -38,7 +38,7 @@ const CardTemplates: Record<string, any> = {
 				? c.sources.map((s?: any) => s.name).join(" · ")
 				: cardSource(c) || (CardTypes[c.type] || CardTypes.note).label,
 			// A relation lists its cards below; a count in the head would say it twice.
-			c.type === "suggestion" && c.related?.length ? "" : c.meta,
+			cardReadingTime(c),
 		]
 			.filter(Boolean)
 			.join(" · ");
@@ -75,7 +75,7 @@ const CardTemplates: Record<string, any> = {
 	},
 	mail(c?: any, ctx?: any) {
 		const sender = c.sender || cardSource(c) || copy("web.mail");
-		return `<div class="card-body"><div class="sender">${avatar(sender)}<span><b>${esc(sender)}</b><small>${copy("web.mail")}${c.meta ? " · " + esc(c.meta) : ""}</small></span></div>${this.title(c, ctx)}${this.summary(c)}${c.attachment ? `<span class="file-row attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}</div>`;
+		return `<div class="card-body"><div class="sender">${avatar(sender)}<span><b>${esc(sender)}</b><small>${copy("web.mail")}${c.sentAt ? " · " + esc(dateLabel(Date.parse(c.sentAt))) : ""}${cardReadingTime(c) ? " · " + esc(cardReadingTime(c)) : ""}</small></span></div>${this.title(c, ctx)}${this.summary(c)}${c.attachment ? `<span class="file-row attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}</div>`;
 	},
 	note(c?: any, ctx?: any) {
 		if (cardSourceKind(c) !== "capture" && c.form !== "quote")
@@ -101,7 +101,7 @@ const CardTemplates: Record<string, any> = {
 		// Preserve the current keyboard preview until focus leaves the card; Store keeps its order.
 		const ordered = [...tasks.filter((t?: any) => !t.done), ...tasks.filter((t?: any) => t.done)];
 		const visible = [...held, ...ordered.filter((t?: any) => !held.includes(t))].slice(0, 3);
-		return `<div class="card-body">${this.head(c, ctx, c.meta || copy("web.task"), tasks.length ? `<span class="num task-count">${done}/${tasks.length}</span>` : "")}${this.title(c, ctx)}${tasks.length ? `<div class="checklist">${visible.map(item).join("")}</div>` : this.summary(c)}${tasks.length > 3 ? `<span class="more-items">${copy("web.templates.dff74742a6f0")}${tasks.length - 3}${copy("web.templates.f9d529eacdf3")}</span>` : ""}</div>`;
+		return `<div class="card-body">${this.head(c, ctx, c.project?.name || copy("web.task"), tasks.length ? `<span class="num task-count">${done}/${tasks.length}</span>` : "")}${this.title(c, ctx)}${tasks.length ? `<div class="checklist">${visible.map(item).join("")}</div>` : this.summary(c)}${tasks.length > 3 ? `<span class="more-items">${copy("web.templates.dff74742a6f0")}${tasks.length - 3}${copy("web.templates.f9d529eacdf3")}</span>` : ""}</div>`;
 	},
 	event(c?: any, ctx?: any) {
 		const span = Math.round((c.end - c.start) / 60000),
@@ -158,11 +158,11 @@ const CardTemplates: Record<string, any> = {
 			)
 			.join(
 				"",
-			)}</div><div class="card-body">${this.head(c, ctx, [copy("web.photo"), c.location || c.meta].filter(Boolean).join(" · "), photos.length > 3 ? `<span class="num">${photos.length}</span>` : "")}${this.title(c, ctx)}</div>`;
+			)}</div><div class="card-body">${this.head(c, ctx, [copy("web.photo"), c.location].filter(Boolean).join(" · "), photos.length > 3 ? `<span class="num">${photos.length}</span>` : "")}${this.title(c, ctx)}</div>`;
 	},
 	file(c?: any, ctx?: any) {
 		const files = c.files || [];
-		return `<div class="card-body">${this.head(c, ctx, [copy("web.file"), cardSource(c)].filter(Boolean).join(" · "), c.meta ? esc(c.meta) : "")}${this.title(c, ctx)}<div class="file-rows">${files
+		return `<div class="card-body">${this.head(c, ctx, [copy("web.file"), cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · "), "")}${this.title(c, ctx)}<div class="file-rows">${files
 			.slice(0, 3)
 			.map(
 				(f?: any) =>

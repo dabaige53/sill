@@ -288,6 +288,7 @@ export const gesturePullMethods = {
 		};
 		const close = () => {
 			if (done || app.modalToken !== token) return;
+			paint();
 			done = true;
 			clearTimeout(timer);
 			this.swallowMomentum();

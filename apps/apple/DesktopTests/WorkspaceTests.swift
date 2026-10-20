@@ -16,6 +16,24 @@ import Testing
     if let due { fields["due"] = .number(due) }
     return try Card(json: .object(fields))
   }
+  @Test func sourceLineUsesOnlySourcesAndExplicitEstimate() throws {
+    let card = try Card(
+      json: .object([
+        "id": .string("source"), "type": .string("article"), "title": .string("Title"),
+        "sources": .array([.object(["name": .string("Source"), "kind": .string("web")])]),
+        "authors": .array([.object(["name": .string("Author")])]),
+        "publishedAt": .string("2026-10-20T12:30:45.123+08:00"),
+        "readingEstimate": .object([
+          "seconds": .number(61), "origin": .string("provided"), "scope": .string("available"),
+        ]),
+      ]))
+    #expect(card.sourceLine.hasPrefix("Source · "))
+    #expect(card.sourceLine.contains("2"))
+    #expect(!card.sourceLine.contains("Author"))
+    #expect(card.dateText("published_at") == nil)
+    #expect(card.dateText("publishedAt") == "2026-10-20 12:30:45.123+08:00")
+  }
+
   @Test func readerDismissReturnsOneRelatedCardAtATime() throws {
     let model = Workspace(autoload: false)
     model.cards = try [card("first"), card("second"), card("third")]

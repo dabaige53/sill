@@ -131,3 +131,103 @@ test("motion durations accept both milliseconds and Vite-minified seconds", () =
 		f.dom.window.close();
 	}
 });
+
+test("menu reversal keeps the latest state and keyboard closing is immediate", async () => {
+	const f = fixture();
+	try {
+		f.motion.popover(f.el, true);
+		assert.equal(f.el.hidden, false);
+		f.motion.popover(f.el, false);
+		assert.equal(f.el.inert, true);
+		f.motion.popover(f.el, true);
+		f.animations[1].finish();
+		await Promise.resolve();
+		assert.equal(f.el.hidden, false);
+		f.animations[2].finish();
+		await Promise.resolve();
+		f.w.document.documentElement.dataset.inputModality = "keyboard";
+		f.motion.popover(f.el, false);
+		assert.equal(f.el.hidden, true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("pseudo-element animation neither cancels nor writes the host transform", async () => {
+	const f = fixture();
+	try {
+		f.motion.animate(f.el, [{ transform: "scale(1)" }, { transform: "scale(.97)" }], {
+			fill: "forwards",
+		});
+		f.motion.animate(f.el, [{ transform: "none" }, { transform: "translateX(20px)" }], {
+			pseudoElement: "::before",
+		});
+		f.animations[1].finish();
+		await Promise.resolve();
+		assert.equal(f.el.style.transform, "");
+		f.animations[0].finish();
+		await Promise.resolve();
+		assert.equal(f.el.style.transform, "scale(.97)");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("search expansion scales only its background and translates text at fixed size", () => {
+	const f = fixture();
+	try {
+		f.el.innerHTML = '<span class="icon"></span><input id="home-search">';
+		f.el.getBoundingClientRect = () => ({ width: 480 });
+		const computed = f.w.getComputedStyle.bind(f.w);
+		f.w.getComputedStyle = (el: Element, pseudo?: string) =>
+			pseudo ? { transform: "none" } : computed(el);
+		f.motion.searchResize(f.el, 280);
+		assert.equal(f.animations.length, 3);
+		assert.equal(f.animations[0].options.pseudoElement, "::before");
+		assert.match(f.animations[0].frames[0].transform, /scaleX\(0\.583/);
+		for (const animation of f.animations.slice(1)) {
+			assert.equal(animation.frames[0].transform, "translateX(200px)");
+			assert.ok(
+				animation.frames.every(
+					(frame: any) => !("width" in frame) && !String(frame.transform).includes("scale"),
+				),
+			);
+		}
+		f.w.document.documentElement.dataset.inputModality = "keyboard";
+		f.motion.searchResize(f.el, 480);
+		assert.equal(f.animations.length, 3);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("queued card entry waits for layout and canceled entry never revives", () => {
+	const f = fixture();
+	try {
+		const dialog = f.w.document.createElement("dialog");
+		dialog.open = true;
+		dialog.innerHTML = '<div class="preview-sheet"></div>';
+		f.w.document.body.append(dialog);
+		const sheet = dialog.firstElementChild;
+		const frames = new Map<number, () => void>();
+		let id = 0;
+		f.w.requestAnimationFrame = (fn: () => void) => {
+			frames.set(++id, fn);
+			return id;
+		};
+		f.w.cancelAnimationFrame = (key: number) => frames.delete(key);
+		f.motion.queuePanel(dialog);
+		assert.equal(sheet.style.opacity, "0");
+		assert.equal(f.animations.length, 0);
+		f.motion.cancelPanel(dialog);
+		assert.equal(sheet.style.opacity, "");
+		assert.equal(frames.size, 0);
+		f.motion.queuePanel(dialog);
+		for (const fn of frames.values()) fn();
+		assert.equal(sheet.style.opacity, "");
+		assert.equal(f.animations.at(-1).options.duration, 220);
+		assert.equal(f.animations.at(-1).frames[0].transform, "translateY(10px)");
+	} finally {
+		f.dom.window.close();
+	}
+});

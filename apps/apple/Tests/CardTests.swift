@@ -61,6 +61,68 @@ struct CardTests {
     }
   }
 
+  @Test func explicitFieldsRejectDeprecatedAndInvalidSemantics() throws {
+    let base: JSONValue = .object([
+      "id": .string("explicit"), "type": .string("article"), "title": .string("Explicit"),
+      "body": .array([.string("Body")]), "bodyCoverage": .string("full"),
+      "readingEstimate": .object([
+        "seconds": .number(61), "origin": .string("calculated"),
+        "scope": .string("full"), "method": .string("editor estimate"),
+      ]),
+    ])
+    _ = try Card(json: base)
+    for text in ["2026-02-30", "2026-10-20T12:00:00", "2026-10-20T25:00:00Z"] {
+      var json = base
+      json["publishedAt"] = .string(text)
+      #expect(throws: (any Error).self) { try Card(json: json) }
+    }
+    for text in [
+      "2024-02-29", "2026-10-20T12:00+08:00", "2026-10-20T12:00:00+08:00",
+      "2026-10-20T12:00:00.123Z",
+    ] {
+      var json = base
+      json["publishedAt"] = .string(text)
+      _ = try Card(json: json)
+    }
+    for (key, value) in [
+      ("meta", JSONValue.string("old")), ("bodyCoverage", .string("excerpt")),
+      ("bodyCoverage", .string("none")), ("body", .array([])),
+      ("project", .object(["name": .string("Wrong type")])),
+    ] {
+      var json = base
+      json[key] = value
+      #expect(throws: (any Error).self) { try Card(json: json) }
+    }
+    var cleared = base
+    cleared["readingEstimate"] = .null
+    _ = try Card(json: cleared)
+    for key in ["meta", "time"] {
+      let json: JSONValue = .object([
+        "id": .string("file"), "title": .string("File"),
+        "type": .string("file"),
+        "files": .array([.object(["name": .string("a"), key: .string("old")])]),
+      ])
+      #expect(throws: (any Error).self) { try Card(json: json) }
+    }
+  }
+
+  @Test func eventTimeZoneRequiresIANAIdentifier() throws {
+    let base: JSONValue = .object([
+      "id": .string("zone"), "type": .string("event"), "title": .string("Event"),
+      "start": .number(1000), "end": .number(2000),
+    ])
+    for zone in ["+03:00", "GMT+0300", "UTC+3"] {
+      var json = base
+      json["timeZone"] = .string(zone)
+      #expect(throws: (any Error).self) { try Card(json: json) }
+    }
+    for zone in ["Asia/Shanghai", "asia/shanghai", "US/Eastern", "Etc/GMT+3", "UTC", "GMT"] {
+      var json = base
+      json["timeZone"] = .string(zone)
+      _ = try Card(json: json)
+    }
+  }
+
   @Test func migrationPreservesUnknownTypesAndFields() throws {
     let json: JSONValue = .object([
       "id": .string("old"), "type": .string("insight"), "title": .string("Legacy"),

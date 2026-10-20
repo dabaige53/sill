@@ -1,7 +1,8 @@
+import { metadataIssues } from "./card-metadata.ts";
 import type { Card } from "./card.ts";
 
 export function cardIssues(card: Card): string[] {
-	const issues: string[] = [];
+	const issues: string[] = metadataIssues(card);
 	const unsafe = new Set(["__proto__", "constructor", "prototype"]);
 	if (
 		[card.id, ...(card.tasks ?? []).map((task) => task.id), ...(card.related ?? [])].some((value) =>

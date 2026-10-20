@@ -2,11 +2,9 @@ import type { Card } from "../../../contracts/card.ts";
 import { normalizeCard } from "../../../contracts/card-migration.ts";
 
 /** Project cloud records without dropping fields added by agents or future clients. */
-export function cloudCard(record: Card, fallback: { source: string; meta: string }) {
+export function cloudCard(record: Card) {
 	const card = normalizeCard(record);
 	card.summary ??= card.body?.[0] || "";
-	card.sources ??= [{ name: fallback.source, kind: "web" }];
-	card.meta ??= fallback.meta;
 	if (card.time === undefined && typeof card.updated_at === "string") {
 		const time = Date.parse(card.updated_at);
 		if (Number.isFinite(time)) card.time = time;

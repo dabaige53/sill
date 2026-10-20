@@ -79,6 +79,9 @@
 	gap: var(--rail-gap);
 	pointer-events: none;
 }
+body:has(#modal[open] .settings-layout) #dock {
+	display: none;
+}
 #dock > * {
 	pointer-events: auto;
 }

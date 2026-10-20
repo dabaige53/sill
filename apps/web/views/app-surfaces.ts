@@ -67,6 +67,9 @@ export const appSurfacesMethods = {
 		origin: DOMRect | null = null,
 		shape: string = "",
 	) {
+		const reversing = this.dialog.open && this.sheetLeaving;
+		const drawn = reversing ? getComputedStyle(MotionEngine.surface(this.dialog)) : null;
+		const resume = drawn ? { opacity: drawn.opacity, transform: drawn.transform } : undefined;
 		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
@@ -105,7 +108,7 @@ export const appSurfacesMethods = {
 			else this.dialog.showModal();
 		}
 		// Frequent navigation changes in place; only sheets enter over the current page.
-		if (!MotionEngine.keyboard && !page) MotionEngine.openPanel(this.dialog, origin);
+		if (!MotionEngine.keyboard && !page) MotionEngine.queuePanel(this.dialog, origin, resume);
 		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
 				? "#filter-search"

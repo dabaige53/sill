@@ -38,13 +38,17 @@ export function materialDensityCards(now = reviewTime) {
 		},
 		{
 			id: "review-article",
+			authors: [{ name: "研究作者" }],
+			publisher: { name: "设计周刊" },
+			publishedAt: "2026-10-17",
 			type: "article",
 			title: "让内容成为视线的落点",
 			image: "architecture",
 			form: "image",
 			summary: "信息卡片保持稳定的实色表面。玻璃承载导航和轻操作，让内容与工具之间有明确的层次。",
 			body: ["通过更合适的阅读宽度，标题与摘要能组成稳定的节奏。留白用于分组，操作在需要时出现。"],
-			meta: "设计笔记 · 4 分钟",
+			readingEstimate: { seconds: 240, origin: "provided", scope: "full" },
+			bodyCoverage: "full",
 			tags: ["设计"],
 		},
 		{

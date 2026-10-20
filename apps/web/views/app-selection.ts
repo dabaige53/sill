@@ -34,6 +34,11 @@ export const appSelectionMethods = {
 	renderAIDock(this: AppController) {
 		const box = document.getElementById("ai-dock-context");
 		if (!box) return;
+		const previousIds = new Set(
+			[...box.querySelectorAll<HTMLElement>("[data-ai-context]")].map(
+				(node) => node.dataset.aiContext,
+			),
+		);
 		this.aiSelectionIds = this.aiSelectionIds.filter((id) => Store.card(id));
 		renderView(
 			box,
@@ -59,6 +64,17 @@ export const appSelectionMethods = {
 				),
 			),
 		);
+		for (const node of box.querySelectorAll<HTMLElement>("[data-ai-context]")) {
+			if (!previousIds.has(node.dataset.aiContext))
+				MotionEngine.animate(
+					node,
+					[
+						{ opacity: 0, transform: "translateY(4px)" },
+						{ opacity: 1, transform: "none" },
+					],
+					{ duration: MotionEngine.time("fast") },
+				);
+		}
 		const input = document.getElementById("ai-dock-input") as HTMLInputElement | null;
 		if (input && input.value !== this.aiDraft) input.value = this.aiDraft;
 	},

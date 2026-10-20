@@ -278,6 +278,12 @@ dialog::backdrop {
 	padding: var(--space-26) var(--space-30) var(--space-30);
 	overflow-wrap: anywhere;
 }
+.preview-body > .preview-cover,
+.reader-body > .preview-cover {
+	margin: 0;
+	width: 100%;
+	flex: none;
+}
 .preview-meta {
 	min-width: 0;
 	display: flex;
@@ -318,12 +324,27 @@ dialog::backdrop {
 	margin-top: var(--space-16);
 }
 .preview-note {
-	border-left: 2px solid var(--line-hover);
-	padding: var(--space-2) 0 var(--space-2) var(--space-14);
+	border: 1px solid var(--line);
+	border-radius: var(--control-radius);
+	background: var(--surface);
+	padding: var(--space-16);
 	font-size: var(--text-control);
 	line-height: 1.75;
-	color: var(--muted);
+	color: var(--secondary);
 	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.preview-note-label {
+	display: block;
+	font-size: var(--text-caption);
+	font-weight: 600;
+	margin-bottom: var(--space-6);
+}
+.preview-body .preview-note p,
+.reader-body .preview-note p {
+	margin: 0;
+	font: inherit;
+	color: inherit;
 }
 .preview-sender {
 	display: flex;
@@ -444,23 +465,13 @@ button.detail-row:active {
 	max-width: 100%;
 	overflow-wrap: anywhere;
 }
-.preview-published,
-.preview-source-details {
+.preview-published {
 	margin-top: 0;
 	display: grid;
 	gap: var(--space-6);
 	font-size: var(--text-caption);
 	line-height: 1.6;
 	color: var(--secondary);
-}
-.preview-source-details > p {
-	margin: 0;
-	font: inherit;
-	color: inherit;
-}
-.preview-source-note {
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
 }
 .settings-hint {
 	margin: var(--space-8) var(--space-4) 0;

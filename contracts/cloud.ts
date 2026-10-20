@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { metadataIssues } from "./card-metadata.ts";
 import { Card, cardTypes, id } from "./card.ts";
 import { CardState, Preferences } from "./local.ts";
 
@@ -86,7 +87,15 @@ export const changes = z
 		state: cloudState.optional(),
 	})
 	.strict();
-export const create = changes.required({ title: true, type: true });
+export const create = changes.required({ title: true, type: true }).superRefine((card, context) => {
+	for (const message of metadataIssues({
+		...card,
+		id: "new",
+		type: card.type!,
+		title: card.title!,
+	}))
+		context.addIssue({ code: "custom", message });
+});
 export const metadata = z
 	.object({
 		event_id: id,

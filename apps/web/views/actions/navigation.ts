@@ -1,4 +1,5 @@
 import { Store } from "../../data/store.ts";
+import { MotionEngine } from "../../interactions/motion.ts";
 import { FeedPolicy } from "../../services/feed-policy.ts";
 import type { AppController } from "../app.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
@@ -31,8 +32,8 @@ function top(this: AppController) {
 function closeHomeMenu(this: AppController, focusToggle = false) {
 	const menu = document.getElementById("home-menu");
 	const toggle = document.getElementById("home-menu-toggle");
-	if (!menu || menu.hidden) return;
-	menu.hidden = true;
+	if (!menu || !this.homeMenuOpen) return;
+	MotionEngine.popover(menu, false);
 	toggle?.setAttribute("aria-expanded", "false");
 	this.homeMenuOpen = false;
 	if (focusToggle) toggle?.focus({ preventScroll: true });
@@ -43,11 +44,11 @@ function homeMenu(this: AppController) {
 	const menu = document.getElementById("home-menu");
 	const toggle = document.getElementById("home-menu-toggle");
 	if (!menu) return;
-	if (!menu.hidden) {
+	if (this.homeMenuOpen) {
 		closeHomeMenu.call(this);
 		return;
 	}
-	menu.hidden = false;
+	MotionEngine.popover(menu, true);
 	toggle?.setAttribute("aria-expanded", "true");
 	this.homeMenuOpen = true;
 	const outside = (e: PointerEvent) => {

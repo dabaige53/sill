@@ -198,6 +198,97 @@
 					"nested": ["preserve"]
 				}
 			}
+		},
+		{
+			"name": "explicit article metadata",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": {
+					"seconds": 360,
+					"origin": "calculated",
+					"scope": "full",
+					"method": "words-v1"
+				},
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "cleared reading estimate",
+			"card": {
+				"id": "cleared",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": null,
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "mail explicit date",
+			"card": {
+				"id": "mail-v3",
+				"type": "mail",
+				"title": "Mail",
+				"sentAt": "2026-10-01T12:30Z",
+				"recipients": ["Recipient"]
+			}
+		},
+		{
+			"name": "file explicit description",
+			"card": {
+				"id": "file-v3",
+				"type": "file",
+				"title": "File",
+				"files": [
+					{
+						"name": "report.pdf",
+						"mimeType": "application/pdf",
+						"sizeBytes": 1024,
+						"modifiedAt": "2026-10-01"
+					}
+				]
+			}
 		}
 	],
 	"invalid": [
@@ -313,6 +404,344 @@
 				"type": "note",
 				"title": "Synthetic",
 				"points": ["A", "B", "C", "D"]
+			}
+		},
+		{
+			"name": "deprecated metadata",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": {
+					"seconds": 360,
+					"origin": "calculated",
+					"scope": "full",
+					"method": "words-v1"
+				},
+				"section": "Technology",
+				"meta": "6 min"
+			}
+		},
+		{
+			"name": "reading time string",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": "6 min",
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "reading time no unit",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": {
+					"seconds": 0,
+					"origin": "provided",
+					"scope": "full"
+				},
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "calculation no method",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": {
+					"seconds": 60,
+					"origin": "calculated",
+					"scope": "full"
+				},
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "excerpt estimated as full",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "excerpt",
+				"readingEstimate": {
+					"seconds": 360,
+					"origin": "calculated",
+					"scope": "full",
+					"method": "words-v1"
+				},
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "invalid publication date",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-02-30",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": {
+					"seconds": 360,
+					"origin": "calculated",
+					"scope": "full",
+					"method": "words-v1"
+				},
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "date without timezone",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01T12:00:00",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": {
+					"seconds": 360,
+					"origin": "calculated",
+					"scope": "full",
+					"method": "words-v1"
+				},
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "wrong metadata card type",
+			"card": {
+				"id": "explicit-article",
+				"type": "photo",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "full",
+				"readingEstimate": {
+					"seconds": 360,
+					"origin": "calculated",
+					"scope": "full",
+					"method": "words-v1"
+				},
+				"section": "Technology",
+				"image": "coast"
+			}
+		},
+		{
+			"name": "unexpected missing body",
+			"card": {
+				"id": "explicit-article",
+				"type": "article",
+				"title": "Article",
+				"authors": [
+					{
+						"name": "Author",
+						"url": "https://example.com/author"
+					}
+				],
+				"publisher": {
+					"name": "Publisher"
+				},
+				"sources": [
+					{
+						"name": "Reader",
+						"kind": "readwise"
+					}
+				],
+				"publishedAt": "2026-10-01",
+				"modifiedAt": "2026-10-02T12:00:00+08:00",
+				"savedAt": "2026-10-03",
+				"body": ["Body"],
+				"bodyCoverage": "none",
+				"readingEstimate": {
+					"seconds": 360,
+					"origin": "calculated",
+					"scope": "full",
+					"method": "words-v1"
+				},
+				"section": "Technology"
+			}
+		},
+		{
+			"name": "deprecated file metadata",
+			"card": {
+				"id": "file-meta",
+				"type": "file",
+				"title": "File",
+				"files": [
+					{
+						"name": "file",
+						"meta": "PDF"
+					}
+				]
+			}
+		},
+		{
+			"name": "deprecated file time",
+			"card": {
+				"id": "file-time",
+				"type": "file",
+				"title": "File",
+				"files": [
+					{
+						"name": "file",
+						"time": 1
+					}
+				]
 			}
 		}
 	]

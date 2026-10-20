@@ -10,7 +10,7 @@ import {
 } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardSource } from "../data/card-source.ts";
+import { cardSource, cardReadingTime, fileDescription } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -23,6 +23,7 @@ import {
 	keyed,
 	reminderMark,
 	TrustedFragment,
+	personalNote,
 } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
 
@@ -57,13 +58,7 @@ const renderers = {
 
 export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewCard) {
 	const s = Store.item(c.id),
-		note = s.note ? (
-			<>
-				<div className={"preview-note"}>{s.note}</div>
-			</>
-		) : (
-			""
-		);
+		note = personalNote(s.note);
 	const tags = this.tags(c);
 	const closeButton = button("x", copy("web.preview.close"), "close");
 	const expand =
@@ -93,7 +88,6 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 					<div className={"preview-body"}>
 						{inner}
 						{note}
-						{this.details(c)}
 						{this.foot(action, agentAction(app, c))}
 						{end}
 					</div>
@@ -135,7 +129,7 @@ function mailPreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 								<b>{sender}</b>
 								<small>
 									{copy("web.preview.sentToYouPrefix")}
-									{c.meta || ""}
+									{[c.sentAt, cardReadingTime(c)].filter(Boolean).join(" · ")}
 								</small>
 							</span>
 						</div>
@@ -302,7 +296,7 @@ function podcastPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 									</span>
 								</div>
 								<p className="empty-description">{copy("web.media.playbackUnavailable")}</p>
-								{this.details(c)}
+								{personalNote(s.note)}
 								{this.foot(agentAction(app, c))}
 							</div>
 						</div>
@@ -355,7 +349,7 @@ function filePreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 							{icon("folder", 15)}
 							<span>
 								{copy("web.preview.fileSourcePrefix")}
-								{cardSource(c) || ""}
+								{[cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · ")}
 							</span>
 						</div>
 						{h1}
@@ -369,9 +363,9 @@ function filePreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 											</span>
 											<span>
 												<b>{f.name}</b>
-												<em>{f.meta || ""}</em>
+												<em>{fileDescription(f)}</em>
 											</span>
-											<small>{f.time ? relativeTime(f.time) : ""}</small>
+											<small>{f.modifiedAt || ""}</small>
 										</div>
 									</>
 								)),
@@ -409,7 +403,7 @@ function taskReminderPreview(this: PanelRenderers, c: PreviewCard, context: Prev
 				]
 					.filter(Boolean)
 					.join(" · ")
-			: c.meta || "";
+			: c.project?.name || "";
 	return (
 		<>
 			{sheet(
@@ -447,8 +441,21 @@ function taskReminderPreview(this: PanelRenderers, c: PreviewCard, context: Prev
 }
 
 function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { sheet, h1, tools } = context;
+	const { sheet, tools } = context;
+	return (
+		<>
+			{sheet(
+				articleContent.call(this, c),
+				"",
+				"",
+				c.body?.length ? <div className="reader-end" id="reader-end" aria-hidden="true" /> : null,
+			)}
+			{tools}
+		</>
+	);
+}
 
+export function articleContent(this: PanelRenderers, c: PreviewCard) {
 	const lead =
 		c.summary && c.form !== "quote" && c.summary !== c.body?.[0] ? (
 			<>
@@ -529,22 +536,17 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 	);
 	return (
 		<>
-			{sheet(
-				<>
-					{this.meta(c)}
-					{h1}
-					{lead}
-					{points}
-					{related}
-					{full}
-				</>,
-				cover,
-				"",
-				c.body?.length ? (
-					<div className={"reader-end"} id={"reader-end"} aria-hidden={"true"}></div>
-				) : null,
-			)}
-			{tools}
+			{this.meta(c)}
+			<h1 id="modal-title" data-shared="title">
+				{c.title}
+			</h1>
+			{this.tags(c)}
+			{this.publication(c)}
+			{cover}
+			{lead}
+			{points}
+			{related}
+			{full}
 		</>
 	);
 }

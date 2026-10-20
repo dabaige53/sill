@@ -64,7 +64,14 @@ class DragManager {
 			true,
 		);
 		document.addEventListener("pointerdown", (e) => {
-			if (e.pointerType !== "touch" && e.button === 0) this.prepare(e.target, e.clientX, e.clientY);
+			if (e.pointerType !== "touch" && e.button === 0) {
+				this.prepare(e.target, e.clientX, e.clientY);
+				if (this.pending) {
+					this.pending.mouse = true;
+					// Keep browser text/image dragging from taking this card gesture.
+					e.preventDefault();
+				}
+			}
 		});
 		document.addEventListener("pointermove", (e) => {
 			if (e.pointerType === "touch") return;
@@ -284,7 +291,10 @@ class DragManager {
 		return stack;
 	}
 	track(x: number, y: number) {
-		if (this.pending && Math.hypot(x - this.pending.x, y - this.pending.y) > 8) this.clearPending();
+		if (this.pending && Math.hypot(x - this.pending.x, y - this.pending.y) > 8) {
+			if (this.pending.mouse && this.app.desktop()) this.start(this.pending);
+			else this.clearPending();
+		}
 		if (this.active) {
 			if (Math.hypot(x - this.active.x, y - this.active.y) > 8) this.active.moved = true;
 			this.active.point = { x, y };
@@ -313,13 +323,20 @@ class DragManager {
 		}
 		if (!this.ghost) {
 			this.ghost = document.createElement("div");
-			this.ghost.className = "selection-drag-count glass";
+			this.ghost.className = "selection-drag-preview";
 			this.ghost.setAttribute("aria-hidden", "true");
-			this.ghost.textContent = String(this.active.ids.length);
+			this.ghost.inert = true;
+			this.ghost.appendChild(
+				this.createStack([
+					this.active.id,
+					...this.active.ids.filter((id: string) => id !== this.active.id),
+				]),
+			);
+			document.body.classList.add("is-carrying");
 			(this.app.modalKind === "search" ? this.app.dialog : document.body).append(this.ghost);
 		}
 		// Direct compositor movement: no queued animation can trail the finger.
-		this.ghost.style.transform = `translate3d(${x + 12}px, ${y - 24}px, 0)`;
+		this.ghost.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
 	}
 	finish(releasePoint?: { x: number; y: number }) {
 		this.clearPending();
@@ -399,6 +416,7 @@ class DragManager {
 		if (dockInput) dockInput.placeholder = copy("web.ai.dockPlaceholder");
 		document.getElementById("dock")?.classList.remove("is-ai-drag");
 		document.body.classList.remove("is-dragging");
+		document.body.classList.remove("is-carrying");
 		document.querySelectorAll(".is-drag-source").forEach((n) => {
 			n.classList.remove("is-drag-source");
 		});

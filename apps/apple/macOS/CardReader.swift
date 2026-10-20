@@ -38,14 +38,12 @@ struct CardReader: View {
           VStack(alignment: .leading, spacing: AppleMetrics.previewBodyGap) {
             if card.type == "photo" {
               CardMedia(card: card, detail: true)
+              metadata(card).font(.system(size: AppleMetrics.font12)).foregroundStyle(
+                AppleColors.secondary)
             } else {
-              if !expanded && card.type == "article" && card.fields["image"]?.string != nil {
-                CardMedia(card: card, detail: true).padding(
-                  .horizontal, AppleMetrics.space8 - AppleMetrics.previewPaddingX
-                ).padding(.top, AppleMetrics.space8 - AppleMetrics.previewPaddingTop)
-              }
               if card.type == "mail" {
                 sender(card)
+                sourceMeta(card)
               } else if card.type == "event", let start = card.date("start") {
                 Text(cardDay(start)).foregroundStyle(AppleColors.secondary).font(
                   .system(size: AppleMetrics.font13))
@@ -75,21 +73,16 @@ struct CardReader: View {
               if card.type == "media" && card.fields["media"]?.string == "podcast" {
                 sourceMeta(card)
               }
-              if expanded && card.fields["image"]?.string != nil {
+              if card.type == "article" && card.fields["image"]?.string != nil {
                 CardMedia(card: card, detail: true)
               }
               detailContent(card)
-              sourceNote(card)
-              if let note = model.items[card.id]?["note"]?.string, !note.isEmpty {
-                Text(note).font(.system(size: AppleMetrics.font15)).padding(AppleMetrics.space16)
-                  .frame(maxWidth: .infinity, alignment: .leading).background(
-                    AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
-              }
               HStack(spacing: AppleMetrics.space12) {
                 external(card)
 
               }.padding(.top, AppleMetrics.space8)
             }
+            personalNote(card)
           }.padding(.horizontal, AppleMetrics.previewPaddingX).padding(
             .top, AppleMetrics.previewPaddingTop
           ).padding(.bottom, AppleMetrics.previewPaddingX).frame(

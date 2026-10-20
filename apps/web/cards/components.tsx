@@ -11,7 +11,7 @@ import {
 import { Avatar, Avatars, CheckMark, Icon, ProgressRing } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardSource, cardSourceKind } from "../data/card-source.ts";
+import { cardReadingTime, cardSource, cardSourceKind } from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -65,7 +65,7 @@ function sourceLine(c: Card) {
 		c.sources?.length > 1
 			? c.sources.map((s: Card) => s.name).join(" · ")
 			: cardSource(c) || (CardTypes[c.type] || CardTypes.note).label,
-		c.type === "suggestion" && c.related?.length ? "" : c.meta,
+		cardReadingTime(c),
 	]
 		.filter(Boolean)
 		.join(" · ");
@@ -165,7 +165,8 @@ function Mail({ card: c, ctx }: BlockProps) {
 					<b>{sender}</b>
 					<small>
 						{copy("web.mail")}
-						{c.meta ? ` · ${c.meta}` : ""}
+						{c.sentAt ? ` · ${dateLabel(Date.parse(c.sentAt))}` : ""}
+						{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
 					</small>
 				</span>
 			</div>
@@ -233,7 +234,7 @@ function Task({ card: c, ctx }: BlockProps) {
 		<div className="card-body">
 			<Head
 				card={c}
-				text={c.meta || copy("web.task")}
+				text={c.project?.name || copy("web.task")}
 				right={
 					tasks.length ? (
 						<span className="num task-count">
@@ -497,7 +498,7 @@ function Photo({ card: c, ctx }: BlockProps) {
 			<div className="card-body">
 				<Head
 					card={c}
-					text={[copy("web.photo"), c.location || c.meta].filter(Boolean).join(" · ")}
+					text={[copy("web.photo"), c.location].filter(Boolean).join(" · ")}
 					right={photos.length > 3 ? <span className="num">{photos.length}</span> : null}
 				/>
 				<Title card={c} ctx={ctx} />
@@ -511,8 +512,8 @@ function File({ card: c, ctx }: BlockProps) {
 		<div className="card-body">
 			<Head
 				card={c}
-				text={[copy("web.file"), cardSource(c)].filter(Boolean).join(" · ")}
-				right={c.meta || null}
+				text={[copy("web.file"), cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · ")}
+				right={null}
 			/>
 			<Title card={c} ctx={ctx} />
 			<div className="file-rows">

@@ -603,9 +603,191 @@
                       "type": "string",
                       "maxLength": 10000
                     },
-                    "meta": {
+                    "authors": {
+                      "description": "Original content authors, not sources or the agent writing this card.",
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          },
+                          "url": {
+                            "type": "string",
+                            "pattern": "^https?:\\/\\/"
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ],
+                        "additionalProperties": {}
+                      }
+                    },
+                    "publisher": {
+                      "description": "Original publisher, separate from authors and acquisition sources.",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 300
+                        },
+                        "url": {
+                          "type": "string",
+                          "pattern": "^https?:\\/\\/"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": {}
+                    },
+                    "publishedAt": {
+                      "description": "Original publication date or offset datetime. Preserve date-only precision.",
                       "type": "string",
-                      "maxLength": 300
+                      "minLength": 10,
+                      "maxLength": 40,
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                    },
+                    "modifiedAt": {
+                      "description": "Original content modification date, not the Sill updated_at timestamp.",
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 40,
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                    },
+                    "savedAt": {
+                      "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 40,
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                    },
+                    "bodyCoverage": {
+                      "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+                      "type": "string",
+                      "enum": [
+                        "full",
+                        "excerpt",
+                        "summary",
+                        "none"
+                      ]
+                    },
+                    "readingEstimate": {
+                      "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "seconds": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 31536000
+                            },
+                            "origin": {
+                              "type": "string",
+                              "enum": [
+                                "provided",
+                                "calculated"
+                              ]
+                            },
+                            "scope": {
+                              "type": "string",
+                              "enum": [
+                                "full",
+                                "available"
+                              ]
+                            },
+                            "method": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            }
+                          },
+                          "required": [
+                            "seconds",
+                            "origin",
+                            "scope"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "section": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "sentAt": {
+                      "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 40,
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                    },
+                    "recipients": {
+                      "maxItems": 100,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300
+                      }
+                    },
+                    "project": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 300
+                        },
+                        "url": {
+                          "type": "string",
+                          "pattern": "^https?:\\/\\/"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": {}
+                    },
+                    "timeZone": {
+                      "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "chapterCount": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10000
+                    },
+                    "takenAt": {
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 40,
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                    },
+                    "caption": {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "coverageStart": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 8640000000000000
+                    },
+                    "coverageEnd": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 8640000000000000
                     },
                     "form": {
                       "type": "string",
@@ -755,14 +937,26 @@
                             "minLength": 1,
                             "maxLength": 300
                           },
-                          "meta": {
+                          "mimeType": {
                             "type": "string",
-                            "maxLength": 200
+                            "minLength": 3,
+                            "maxLength": 200,
+                            "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                           },
-                          "time": {
-                            "type": "number",
+                          "sizeBytes": {
+                            "type": "integer",
                             "minimum": 0,
-                            "maximum": 8640000000000000
+                            "maximum": 9007199254740991
+                          },
+                          "modifiedAt": {
+                            "type": "string",
+                            "minLength": 10,
+                            "maxLength": 40,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                          },
+                          "url": {
+                            "type": "string",
+                            "pattern": "^https?:\\/\\/"
                           }
                         },
                         "required": [
@@ -1109,9 +1303,191 @@
                           "type": "string",
                           "maxLength": 10000
                         },
-                        "meta": {
+                        "authors": {
+                          "description": "Original content authors, not sources or the agent writing this card.",
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 300
+                              },
+                              "url": {
+                                "type": "string",
+                                "pattern": "^https?:\\/\\/"
+                              }
+                            },
+                            "required": [
+                              "name"
+                            ],
+                            "additionalProperties": {}
+                          }
+                        },
+                        "publisher": {
+                          "description": "Original publisher, separate from authors and acquisition sources.",
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 300
+                            },
+                            "url": {
+                              "type": "string",
+                              "pattern": "^https?:\\/\\/"
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        "publishedAt": {
+                          "description": "Original publication date or offset datetime. Preserve date-only precision.",
                           "type": "string",
-                          "maxLength": 300
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "modifiedAt": {
+                          "description": "Original content modification date, not the Sill updated_at timestamp.",
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "savedAt": {
+                          "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "bodyCoverage": {
+                          "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "excerpt",
+                            "summary",
+                            "none"
+                          ]
+                        },
+                        "readingEstimate": {
+                          "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "seconds": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 31536000
+                                },
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "provided",
+                                    "calculated"
+                                  ]
+                                },
+                                "scope": {
+                                  "type": "string",
+                                  "enum": [
+                                    "full",
+                                    "available"
+                                  ]
+                                },
+                                "method": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100
+                                }
+                              },
+                              "required": [
+                                "seconds",
+                                "origin",
+                                "scope"
+                              ],
+                              "additionalProperties": {}
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "section": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "sentAt": {
+                          "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "recipients": {
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          }
+                        },
+                        "project": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 300
+                            },
+                            "url": {
+                              "type": "string",
+                              "pattern": "^https?:\\/\\/"
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        "timeZone": {
+                          "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "chapterCount": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 10000
+                        },
+                        "takenAt": {
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "caption": {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "coverageStart": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 8640000000000000
+                        },
+                        "coverageEnd": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 8640000000000000
                         },
                         "form": {
                           "type": "string",
@@ -1261,14 +1637,26 @@
                                 "minLength": 1,
                                 "maxLength": 300
                               },
-                              "meta": {
+                              "mimeType": {
                                 "type": "string",
-                                "maxLength": 200
+                                "minLength": 3,
+                                "maxLength": 200,
+                                "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                               },
-                              "time": {
-                                "type": "number",
+                              "sizeBytes": {
+                                "type": "integer",
                                 "minimum": 0,
-                                "maximum": 8640000000000000
+                                "maximum": 9007199254740991
+                              },
+                              "modifiedAt": {
+                                "type": "string",
+                                "minLength": 10,
+                                "maxLength": 40,
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                              },
+                              "url": {
+                                "type": "string",
+                                "pattern": "^https?:\\/\\/"
                               }
                             },
                             "required": [
@@ -1392,9 +1780,191 @@
                               "type": "string",
                               "maxLength": 10000
                             },
-                            "meta": {
+                            "authors": {
+                              "description": "Original content authors, not sources or the agent writing this card.",
+                              "maxItems": 20,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 300
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "pattern": "^https?:\\/\\/"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ],
+                                "additionalProperties": {}
+                              }
+                            },
+                            "publisher": {
+                              "description": "Original publisher, separate from authors and acquisition sources.",
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "pattern": "^https?:\\/\\/"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ],
+                              "additionalProperties": {}
+                            },
+                            "publishedAt": {
+                              "description": "Original publication date or offset datetime. Preserve date-only precision.",
                               "type": "string",
-                              "maxLength": 300
+                              "minLength": 10,
+                              "maxLength": 40,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                            },
+                            "modifiedAt": {
+                              "description": "Original content modification date, not the Sill updated_at timestamp.",
+                              "type": "string",
+                              "minLength": 10,
+                              "maxLength": 40,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                            },
+                            "savedAt": {
+                              "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+                              "type": "string",
+                              "minLength": 10,
+                              "maxLength": 40,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                            },
+                            "bodyCoverage": {
+                              "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+                              "type": "string",
+                              "enum": [
+                                "full",
+                                "excerpt",
+                                "summary",
+                                "none"
+                              ]
+                            },
+                            "readingEstimate": {
+                              "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "seconds": {
+                                      "type": "integer",
+                                      "minimum": 1,
+                                      "maximum": 31536000
+                                    },
+                                    "origin": {
+                                      "type": "string",
+                                      "enum": [
+                                        "provided",
+                                        "calculated"
+                                      ]
+                                    },
+                                    "scope": {
+                                      "type": "string",
+                                      "enum": [
+                                        "full",
+                                        "available"
+                                      ]
+                                    },
+                                    "method": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100
+                                    }
+                                  },
+                                  "required": [
+                                    "seconds",
+                                    "origin",
+                                    "scope"
+                                  ],
+                                  "additionalProperties": {}
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "section": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "sentAt": {
+                              "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+                              "type": "string",
+                              "minLength": 10,
+                              "maxLength": 40,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                            },
+                            "recipients": {
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 300
+                              }
+                            },
+                            "project": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 300
+                                },
+                                "url": {
+                                  "type": "string",
+                                  "pattern": "^https?:\\/\\/"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ],
+                              "additionalProperties": {}
+                            },
+                            "timeZone": {
+                              "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "chapterCount": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000
+                            },
+                            "takenAt": {
+                              "type": "string",
+                              "minLength": 10,
+                              "maxLength": 40,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                            },
+                            "caption": {
+                              "type": "string",
+                              "maxLength": 2000
+                            },
+                            "coverageStart": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "coverageEnd": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
                             },
                             "form": {
                               "type": "string",
@@ -1544,14 +2114,26 @@
                                     "minLength": 1,
                                     "maxLength": 300
                                   },
-                                  "meta": {
+                                  "mimeType": {
                                     "type": "string",
-                                    "maxLength": 200
+                                    "minLength": 3,
+                                    "maxLength": 200,
+                                    "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                                   },
-                                  "time": {
-                                    "type": "number",
+                                  "sizeBytes": {
+                                    "type": "integer",
                                     "minimum": 0,
-                                    "maximum": 8640000000000000
+                                    "maximum": 9007199254740991
+                                  },
+                                  "modifiedAt": {
+                                    "type": "string",
+                                    "minLength": 10,
+                                    "maxLength": 40,
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "pattern": "^https?:\\/\\/"
                                   }
                                 },
                                 "required": [
@@ -1696,9 +2278,191 @@
                           "type": "string",
                           "maxLength": 10000
                         },
-                        "meta": {
+                        "authors": {
+                          "description": "Original content authors, not sources or the agent writing this card.",
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 300
+                              },
+                              "url": {
+                                "type": "string",
+                                "pattern": "^https?:\\/\\/"
+                              }
+                            },
+                            "required": [
+                              "name"
+                            ],
+                            "additionalProperties": {}
+                          }
+                        },
+                        "publisher": {
+                          "description": "Original publisher, separate from authors and acquisition sources.",
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 300
+                            },
+                            "url": {
+                              "type": "string",
+                              "pattern": "^https?:\\/\\/"
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        "publishedAt": {
+                          "description": "Original publication date or offset datetime. Preserve date-only precision.",
                           "type": "string",
-                          "maxLength": 300
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "modifiedAt": {
+                          "description": "Original content modification date, not the Sill updated_at timestamp.",
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "savedAt": {
+                          "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "bodyCoverage": {
+                          "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "excerpt",
+                            "summary",
+                            "none"
+                          ]
+                        },
+                        "readingEstimate": {
+                          "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "seconds": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 31536000
+                                },
+                                "origin": {
+                                  "type": "string",
+                                  "enum": [
+                                    "provided",
+                                    "calculated"
+                                  ]
+                                },
+                                "scope": {
+                                  "type": "string",
+                                  "enum": [
+                                    "full",
+                                    "available"
+                                  ]
+                                },
+                                "method": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100
+                                }
+                              },
+                              "required": [
+                                "seconds",
+                                "origin",
+                                "scope"
+                              ],
+                              "additionalProperties": {}
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "section": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "sentAt": {
+                          "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "recipients": {
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          }
+                        },
+                        "project": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 300
+                            },
+                            "url": {
+                              "type": "string",
+                              "pattern": "^https?:\\/\\/"
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": {}
+                        },
+                        "timeZone": {
+                          "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "chapterCount": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 10000
+                        },
+                        "takenAt": {
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 40,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                        },
+                        "caption": {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "coverageStart": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 8640000000000000
+                        },
+                        "coverageEnd": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 8640000000000000
                         },
                         "form": {
                           "type": "string",
@@ -1848,14 +2612,26 @@
                                 "minLength": 1,
                                 "maxLength": 300
                               },
-                              "meta": {
+                              "mimeType": {
                                 "type": "string",
-                                "maxLength": 200
+                                "minLength": 3,
+                                "maxLength": 200,
+                                "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                               },
-                              "time": {
-                                "type": "number",
+                              "sizeBytes": {
+                                "type": "integer",
                                 "minimum": 0,
-                                "maximum": 8640000000000000
+                                "maximum": 9007199254740991
+                              },
+                              "modifiedAt": {
+                                "type": "string",
+                                "minLength": 10,
+                                "maxLength": 40,
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                              },
+                              "url": {
+                                "type": "string",
+                                "pattern": "^https?:\\/\\/"
                               }
                             },
                             "required": [
@@ -2426,9 +3202,191 @@
             "type": "string",
             "maxLength": 10000
           },
-          "meta": {
+          "authors": {
+            "description": "Original content authors, not sources or the agent writing this card.",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": {}
+            }
+          },
+          "publisher": {
+            "description": "Original publisher, separate from authors and acquisition sources.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": {}
+          },
+          "publishedAt": {
+            "description": "Original publication date or offset datetime. Preserve date-only precision.",
             "type": "string",
-            "maxLength": 300
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "modifiedAt": {
+            "description": "Original content modification date, not the Sill updated_at timestamp.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "savedAt": {
+            "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "bodyCoverage": {
+            "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+            "type": "string",
+            "enum": [
+              "full",
+              "excerpt",
+              "summary",
+              "none"
+            ]
+          },
+          "readingEstimate": {
+            "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 31536000
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "provided",
+                      "calculated"
+                    ]
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "available"
+                    ]
+                  },
+                  "method": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "seconds",
+                  "origin",
+                  "scope"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "sentAt": {
+            "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "recipients": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            }
+          },
+          "project": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": {}
+          },
+          "timeZone": {
+            "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "chapterCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "takenAt": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "caption": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "coverageStart": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8640000000000000
+          },
+          "coverageEnd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8640000000000000
           },
           "form": {
             "type": "string",
@@ -2578,14 +3536,26 @@
                   "minLength": 1,
                   "maxLength": 300
                 },
-                "meta": {
+                "mimeType": {
                   "type": "string",
-                  "maxLength": 200
+                  "minLength": 3,
+                  "maxLength": 200,
+                  "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                 },
-                "time": {
-                  "type": "number",
+                "sizeBytes": {
+                  "type": "integer",
                   "minimum": 0,
-                  "maximum": 8640000000000000
+                  "maximum": 9007199254740991
+                },
+                "modifiedAt": {
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
                 }
               },
               "required": [
@@ -2803,9 +3773,191 @@
             "type": "string",
             "maxLength": 10000
           },
-          "meta": {
+          "authors": {
+            "description": "Original content authors, not sources or the agent writing this card.",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": {}
+            }
+          },
+          "publisher": {
+            "description": "Original publisher, separate from authors and acquisition sources.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": {}
+          },
+          "publishedAt": {
+            "description": "Original publication date or offset datetime. Preserve date-only precision.",
             "type": "string",
-            "maxLength": 300
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "modifiedAt": {
+            "description": "Original content modification date, not the Sill updated_at timestamp.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "savedAt": {
+            "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "bodyCoverage": {
+            "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+            "type": "string",
+            "enum": [
+              "full",
+              "excerpt",
+              "summary",
+              "none"
+            ]
+          },
+          "readingEstimate": {
+            "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 31536000
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "provided",
+                      "calculated"
+                    ]
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "available"
+                    ]
+                  },
+                  "method": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "seconds",
+                  "origin",
+                  "scope"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "sentAt": {
+            "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "recipients": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            }
+          },
+          "project": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": {}
+          },
+          "timeZone": {
+            "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "chapterCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "takenAt": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "caption": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "coverageStart": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8640000000000000
+          },
+          "coverageEnd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8640000000000000
           },
           "form": {
             "type": "string",
@@ -2955,14 +4107,26 @@
                   "minLength": 1,
                   "maxLength": 300
                 },
-                "meta": {
+                "mimeType": {
                   "type": "string",
-                  "maxLength": 200
+                  "minLength": 3,
+                  "maxLength": 200,
+                  "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                 },
-                "time": {
-                  "type": "number",
+                "sizeBytes": {
+                  "type": "integer",
                   "minimum": 0,
-                  "maximum": 8640000000000000
+                  "maximum": 9007199254740991
+                },
+                "modifiedAt": {
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
                 }
               },
               "required": [
@@ -3211,9 +4375,191 @@
                 "type": "string",
                 "maxLength": 10000
               },
-              "meta": {
+              "authors": {
+                "description": "Original content authors, not sources or the agent writing this card.",
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    },
+                    "url": {
+                      "type": "string",
+                      "pattern": "^https?:\\/\\/"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": {}
+                }
+              },
+              "publisher": {
+                "description": "Original publisher, separate from authors and acquisition sources.",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https?:\\/\\/"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": {}
+              },
+              "publishedAt": {
+                "description": "Original publication date or offset datetime. Preserve date-only precision.",
                 "type": "string",
-                "maxLength": 300
+                "minLength": 10,
+                "maxLength": 40,
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+              },
+              "modifiedAt": {
+                "description": "Original content modification date, not the Sill updated_at timestamp.",
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 40,
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+              },
+              "savedAt": {
+                "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 40,
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+              },
+              "bodyCoverage": {
+                "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+                "type": "string",
+                "enum": [
+                  "full",
+                  "excerpt",
+                  "summary",
+                  "none"
+                ]
+              },
+              "readingEstimate": {
+                "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "seconds": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 31536000
+                      },
+                      "origin": {
+                        "type": "string",
+                        "enum": [
+                          "provided",
+                          "calculated"
+                        ]
+                      },
+                      "scope": {
+                        "type": "string",
+                        "enum": [
+                          "full",
+                          "available"
+                        ]
+                      },
+                      "method": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      }
+                    },
+                    "required": [
+                      "seconds",
+                      "origin",
+                      "scope"
+                    ],
+                    "additionalProperties": {}
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "section": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "sentAt": {
+                "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 40,
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+              },
+              "recipients": {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                }
+              },
+              "project": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https?:\\/\\/"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": {}
+              },
+              "timeZone": {
+                "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "chapterCount": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000
+              },
+              "takenAt": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 40,
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+              },
+              "caption": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "coverageStart": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 8640000000000000
+              },
+              "coverageEnd": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 8640000000000000
               },
               "form": {
                 "type": "string",
@@ -3363,14 +4709,26 @@
                       "minLength": 1,
                       "maxLength": 300
                     },
-                    "meta": {
+                    "mimeType": {
                       "type": "string",
-                      "maxLength": 200
+                      "minLength": 3,
+                      "maxLength": 200,
+                      "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                     },
-                    "time": {
-                      "type": "number",
+                    "sizeBytes": {
+                      "type": "integer",
                       "minimum": 0,
-                      "maximum": 8640000000000000
+                      "maximum": 9007199254740991
+                    },
+                    "modifiedAt": {
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 40,
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                    },
+                    "url": {
+                      "type": "string",
+                      "pattern": "^https?:\\/\\/"
                     }
                   },
                   "required": [
@@ -3620,9 +4978,191 @@
             "type": "string",
             "maxLength": 10000
           },
-          "meta": {
+          "authors": {
+            "description": "Original content authors, not sources or the agent writing this card.",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": {}
+            }
+          },
+          "publisher": {
+            "description": "Original publisher, separate from authors and acquisition sources.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": {}
+          },
+          "publishedAt": {
+            "description": "Original publication date or offset datetime. Preserve date-only precision.",
             "type": "string",
-            "maxLength": 300
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "modifiedAt": {
+            "description": "Original content modification date, not the Sill updated_at timestamp.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "savedAt": {
+            "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "bodyCoverage": {
+            "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+            "type": "string",
+            "enum": [
+              "full",
+              "excerpt",
+              "summary",
+              "none"
+            ]
+          },
+          "readingEstimate": {
+            "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 31536000
+                  },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "provided",
+                      "calculated"
+                    ]
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "available"
+                    ]
+                  },
+                  "method": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "seconds",
+                  "origin",
+                  "scope"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "sentAt": {
+            "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "recipients": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            }
+          },
+          "project": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": {}
+          },
+          "timeZone": {
+            "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "chapterCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "takenAt": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+          },
+          "caption": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "coverageStart": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8640000000000000
+          },
+          "coverageEnd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8640000000000000
           },
           "form": {
             "type": "string",
@@ -3772,14 +5312,26 @@
                   "minLength": 1,
                   "maxLength": 300
                 },
-                "meta": {
+                "mimeType": {
                   "type": "string",
-                  "maxLength": 200
+                  "minLength": 3,
+                  "maxLength": 200,
+                  "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                 },
-                "time": {
-                  "type": "number",
+                "sizeBytes": {
+                  "type": "integer",
                   "minimum": 0,
-                  "maximum": 8640000000000000
+                  "maximum": 9007199254740991
+                },
+                "modifiedAt": {
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/"
                 }
               },
               "required": [
@@ -4020,9 +5572,191 @@
                   "type": "string",
                   "maxLength": 10000
                 },
-                "meta": {
+                "authors": {
+                  "description": "Original content authors, not sources or the agent writing this card.",
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300
+                      },
+                      "url": {
+                        "type": "string",
+                        "pattern": "^https?:\\/\\/"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "additionalProperties": {}
+                  }
+                },
+                "publisher": {
+                  "description": "Original publisher, separate from authors and acquisition sources.",
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    },
+                    "url": {
+                      "type": "string",
+                      "pattern": "^https?:\\/\\/"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": {}
+                },
+                "publishedAt": {
+                  "description": "Original publication date or offset datetime. Preserve date-only precision.",
                   "type": "string",
-                  "maxLength": 300
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "modifiedAt": {
+                  "description": "Original content modification date, not the Sill updated_at timestamp.",
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "savedAt": {
+                  "description": "Save date in the external source, not Sill created_at or personal addedAt.",
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "bodyCoverage": {
+                  "description": "Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+                  "type": "string",
+                  "enum": [
+                    "full",
+                    "excerpt",
+                    "summary",
+                    "none"
+                  ]
+                },
+                "readingEstimate": {
+                  "description": "Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "seconds": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 31536000
+                        },
+                        "origin": {
+                          "type": "string",
+                          "enum": [
+                            "provided",
+                            "calculated"
+                          ]
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": [
+                            "full",
+                            "available"
+                          ]
+                        },
+                        "method": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        }
+                      },
+                      "required": [
+                        "seconds",
+                        "origin",
+                        "scope"
+                      ],
+                      "additionalProperties": {}
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "section": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "sentAt": {
+                  "description": "Mail only: actual send datetime with timezone; date-only values are invalid.",
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "recipients": {
+                  "maxItems": 100,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  }
+                },
+                "project": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    },
+                    "url": {
+                      "type": "string",
+                      "pattern": "^https?:\\/\\/"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": {}
+                },
+                "timeZone": {
+                  "description": "Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "chapterCount": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                },
+                "takenAt": {
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 40,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                },
+                "caption": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "coverageStart": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 8640000000000000
+                },
+                "coverageEnd": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 8640000000000000
                 },
                 "form": {
                   "type": "string",
@@ -4172,14 +5906,26 @@
                         "minLength": 1,
                         "maxLength": 300
                       },
-                      "meta": {
+                      "mimeType": {
                         "type": "string",
-                        "maxLength": 200
+                        "minLength": 3,
+                        "maxLength": 200,
+                        "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
                       },
-                      "time": {
-                        "type": "number",
+                      "sizeBytes": {
+                        "type": "integer",
                         "minimum": 0,
-                        "maximum": 8640000000000000
+                        "maximum": 9007199254740991
+                      },
+                      "modifiedAt": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 40,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d))?$"
+                      },
+                      "url": {
+                        "type": "string",
+                        "pattern": "^https?:\\/\\/"
                       }
                     },
                     "required": [

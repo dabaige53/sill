@@ -18,7 +18,6 @@ interface PanelRenderers {
 	close(label?: string): string;
 	meta(card?: Card): string;
 	tags(card?: Card): string;
-	details(card?: Pick<Card, "type" | "meta"> & Record<string, unknown>): string;
 	bookmark(card?: Card, state?: CardItem): string;
 	later(card?: Card, state?: CardItem): string;
 	bar(...parts: Fragments): string;

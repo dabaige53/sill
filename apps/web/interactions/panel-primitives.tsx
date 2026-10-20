@@ -184,3 +184,12 @@ export function keyed(nodes: React.ReactNode): React.ReactNode {
 		),
 	);
 }
+
+export function personalNote(note?: string) {
+	return note ? (
+		<aside className="preview-note" aria-label={copy("web.metadata.note")}>
+			<span className="preview-note-label">{copy("web.metadata.note")}</span>
+			<p>{note}</p>
+		</aside>
+	) : null;
+}

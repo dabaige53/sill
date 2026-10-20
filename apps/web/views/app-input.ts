@@ -130,6 +130,7 @@ export const appInputMethods = {
 		if (this.dialog.open) return false;
 		if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") {
 			e.preventDefault();
+			this.railHide?.show();
 			input.focus();
 			input.select();
 			return true;

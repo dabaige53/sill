@@ -211,7 +211,7 @@ try {
 			return route.abort();
 		});
 		await page.addInitScript(() => {
-			const cards = Array.from({ length: 12 }, (_, i) => ({
+			const cards = Array.from({ length: 40 }, (_, i) => ({
 				id: `selection-${String(i + 1).padStart(2, "0")}`,
 				type: "article",
 				title: `选择测试 ${i + 1}`,

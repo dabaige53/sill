@@ -73,7 +73,7 @@
 .deck-card.is-next {
 	visibility: visible;
 	z-index: 2;
-	transform: translateY(6px) scale(0.97);
+	transform: translateY(6px);
 	box-shadow: none;
 }
 .deck-card.is-prev {

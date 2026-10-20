@@ -33,11 +33,18 @@ extension Card {
     ][kind] ?? "book"
   }
   var sourceLine: String {
-    [
-      source.isEmpty ? typeLabel : source,
-      type == "suggestion" && !(fields["related"]?.strings ?? []).isEmpty
-        ? "" : fields["meta"]?.string ?? "",
-    ].filter { !$0.isEmpty }.joined(separator: " · ")
+    [source.isEmpty ? typeLabel : source, readingEstimateText]
+      .filter { !$0.isEmpty }.joined(separator: " · ")
+  }
+  var readingEstimateText: String {
+    guard let estimate = fields["readingEstimate"]?.object,
+      let seconds = estimate["seconds"]?.number
+    else { return "" }
+    let key =
+      estimate["scope"]?.string == "full"
+      ? "web.metadata.readingFull" : "web.metadata.readingAvailable"
+    return Copy.text(key) + " \(Int(ceil(seconds / 60)))" + " "
+      + Copy.text("web.metadata.readingSuffix")
   }
   var readable: Bool { ["article", "mail", "note", "media", "suggestion", "photo"].contains(type) }
   var paragraphs: [String] { fields["body"]?.strings ?? (body.isEmpty ? [] : [body]) }
@@ -54,7 +61,11 @@ extension Card {
   func date(_ field: String) -> Date? {
     if let value = fields[field]?.number { return Date(timeIntervalSince1970: value / 1000) }
     guard let value = fields[field]?.string else { return nil }
-    return ISO8601DateFormatter().date(from: value)
+    let formatter = ISO8601DateFormatter()
+    if value.contains(".") { formatter.formatOptions.insert(.withFractionalSeconds) }
+    return formatter.date(
+      from: value.replacingOccurrences(
+        of: #"T(\d{2}:\d{2})(Z|[+-]\d{2}:\d{2})$"#, with: "T$1:00$2", options: .regularExpression))
   }
   func dateText(_ field: String) -> String? {
     guard let raw = fields[field] else { return nil }
@@ -64,7 +75,8 @@ extension Card {
       formatter.isLenient = false
       return formatter.date(from: text).map { _ in text }
     }
-    guard let date = date(field), date.timeIntervalSince1970 >= 0 else { return nil }
+    if let text = raw.string { return text.replacingOccurrences(of: "T", with: " ") }
+    guard let date = date(field) else { return nil }
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm 'UTC'XXXXX"
     return formatter.string(from: date)

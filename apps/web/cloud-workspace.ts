@@ -144,10 +144,7 @@ export function workspaceState() {
 	const cards = Store.state.cards.map((card: any) => {
 		const raw = Cloud.records.get(card.id);
 		if (!raw) return card;
-		const projected = cloudCard(raw, {
-			source: copy("web.cloudentry.e70adb19c721"),
-			meta: copy("web.cloudentry.1bd91a7d0c53"),
-		});
+		const projected = cloudCard(raw);
 		const value = { ...card };
 		for (const key of Object.keys(projected))
 			if (!(key in raw) && JSON.stringify(value[key]) === JSON.stringify(projected[key]))
@@ -176,12 +173,7 @@ export function syncStatus() {
 export function paintRecords() {
 	Store.state.cards = [...Cloud.records.values()]
 		.filter((c: any) => !c.deleted)
-		.map((c: any) =>
-			cloudCard(c, {
-				source: copy("web.cloudentry.e70adb19c721"),
-				meta: copy("web.cloudentry.1bd91a7d0c53"),
-			}),
-		);
+		.map((c: any) => cloudCard(c));
 	app.withFeedAnchor(() => {}, true);
 }
 export function adoptWorkspace(value: any) {

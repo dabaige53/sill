@@ -30,7 +30,7 @@
 3. 同步线下：读取线上变化的文件，覆盖到仓库对应路径：Design System 的 `project/<路径>` 对应 `design-system/<路径>`，设计画布的 `project/<画板>` 对应 `design-system/boards/<画板>`。画板尺寸变了，同时更新 `design-system/boards/canvas.json` 和 `index.html`。
 4. 改代码。数值有对应变量时用变量：颜色、圆角、字号（`--text-<样式名>`）、阴影、动效时长。没有对应变量的新数值，先判断它是不是一级新规则；是就回到第 2 步，在线上加进变量，再同步到 `tokens.json` 和 `tokens.css`；不是就改用已有的一级。
 5. 重新生成组件包和图标：`node design-system/scripts/generate.ts design-system .`，再把变化的组件包和图标发布到线上 Design System。
-6. 检查：`npm test`、`node tests/e2e/browser.ts`；在浏览器里看浅色、深色、手机宽度和快速连续操作。
+6. 按变更范围选择静态检查、类型检查、构建和非浏览器测试。浏览器测试、视觉自动化和 e2e 须先取得用户明确授权；获准后只测本次修改涉及的场景，完整 e2e 须另有明确授权。以 `AGENTS.md`「验证与测试授权」为准。
 7. 实现中发现规则要调整时，回到第 2 步先改线上，不只改仓库。仓库里有线上没有的设计改动时，在 PR 的 Merge Danger 里写明。
 
 ## 不能做的事

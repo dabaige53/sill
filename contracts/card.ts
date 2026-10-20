@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { cardIssues } from "./card-rules.ts";
 
-export const contractVersion = "2.0.0";
+export const contractVersion = "3.0.0";
 export const cardTypes = [
 	"article",
 	"mail",
@@ -48,13 +48,78 @@ const image = z.enum(["architecture", "coast", "mountain", "botanical"]);
 export const SourceReference = z
 	.object({ name: z.string().min(1).max(300), kind: z.string().min(1).max(100) })
 	.passthrough();
+const namedParty = z
+	.object({ name: z.string().trim().min(1).max(300), url: httpUrl.optional() })
+	.passthrough();
+const contentDate = z
+	.string()
+	.min(10)
+	.max(40)
+	.regex(
+		/^\d{4}-\d{2}-\d{2}(?:T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d))?$/,
+	);
 export const Card = z
 	.object({
 		id,
 		type: z.string().min(1).max(100),
 		title: z.string().min(1).max(1000),
 		summary: z.string().max(10000).optional(),
-		meta: z.string().max(300).optional(),
+		authors: z
+			.array(namedParty)
+			.max(20)
+			.optional()
+			.describe("Original content authors, not sources or the agent writing this card."),
+		publisher: namedParty
+			.optional()
+			.describe("Original publisher, separate from authors and acquisition sources."),
+		publishedAt: contentDate
+			.optional()
+			.describe("Original publication date or offset datetime. Preserve date-only precision."),
+		modifiedAt: contentDate
+			.optional()
+			.describe("Original content modification date, not the Sill updated_at timestamp."),
+		savedAt: contentDate
+			.optional()
+			.describe("Save date in the external source, not Sill created_at or personal addedAt."),
+		bodyCoverage: z
+			.enum(["full", "excerpt", "summary", "none"])
+			.optional()
+			.describe(
+				"Coverage of the saved body. Never estimate the entire article from an excerpt or summary.",
+			),
+		readingEstimate: z
+			.object({
+				seconds: z.number().int().min(1).max(31536000),
+				origin: z.enum(["provided", "calculated"]),
+				scope: z.enum(["full", "available"]),
+				method: z.string().trim().min(1).max(100).optional(),
+			})
+			.passthrough()
+			.nullable()
+			.optional()
+			.describe(
+				"Estimated reading duration in seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
+			),
+		section: z.string().trim().min(1).max(100).optional(),
+		sentAt: contentDate
+			.optional()
+			.describe("Mail only: actual send datetime with timezone; date-only values are invalid."),
+		recipients: z.array(z.string().trim().min(1).max(300)).max(100).optional(),
+		project: namedParty.optional(),
+		timeZone: z
+			.string()
+			.trim()
+			.min(1)
+			.max(100)
+			.optional()
+			.describe(
+				"Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
+			),
+		chapterCount: z.number().int().min(1).max(10000).optional(),
+		takenAt: contentDate.optional(),
+		caption: z.string().max(2000).optional(),
+		coverageStart: timestamp.optional(),
+		coverageEnd: timestamp.optional(),
 		form: z.enum(["standard", "image", "quote", "compact", "data"]).optional(),
 		image: image.optional(),
 		tags: strings.optional(),
@@ -86,8 +151,15 @@ export const Card = z
 				z
 					.object({
 						name: z.string().min(1).max(300),
-						meta: z.string().max(200).optional(),
-						time: timestamp.optional(),
+						mimeType: z
+							.string()
+							.min(3)
+							.max(200)
+							.regex(/^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/)
+							.optional(),
+						sizeBytes: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
+						modifiedAt: contentDate.optional(),
+						url: httpUrl.optional(),
 					})
 					.passthrough(),
 			)

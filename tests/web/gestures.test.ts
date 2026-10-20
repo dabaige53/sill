@@ -1,131 +1,7 @@
 /** Interrupted gestures never commit actions or change a later panel's state. */
 import assert from "node:assert/strict";
-import path from "node:path";
 import { test } from "node:test";
-import { buildSync } from "esbuild";
-import { JSDOM } from "jsdom";
-
-const bundle = buildSync({
-	stdin: {
-		contents:
-			"export {Gestures} from './apps/web/interactions/gestures.ts'; export {MotionEngine} from './apps/web/interactions/motion.ts'; export {Store} from './apps/web/data/store.ts';",
-		resolveDir: path.resolve(import.meta.dirname, "../.."),
-		loader: "ts",
-	},
-	bundle: true,
-	alias: {
-		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
-		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
-	},
-	write: false,
-	format: "iife",
-	platform: "browser",
-	globalName: "GestureTest",
-}).outputFiles[0].text;
-
-function fixture({ kind = "preview", phone = false, end = false } = {}) {
-	const reader = kind === "reader";
-	const dom = new JSDOM(
-		`<!doctype html><main><p>桌面卡片</p></main><dialog id="modal" class="${kind}">${reader ? '<div class="reader-scroll" id="reader-scroll">' : '<div class="sheet preview-sheet"><div class="sheet-scroll">'}<p>卡片正文</p><div id="reader-end"></div></div>${reader ? "" : "</div>"}<div class="float-bar"><button>收藏</button></div></dialog><div id="toast">可撤销操作</div>`,
-		{ url: "http://gestures.test/", runScripts: "outside-only", pretendToBeVisual: true },
-	);
-	const w = dom.window as any,
-		document = w.document;
-	w.matchMedia = (query: string) => ({
-		matches: query.includes("max-width") && phone,
-		addEventListener() {},
-	});
-	w.structuredClone = structuredClone;
-	const timers = new Map<number, () => void>(),
-		frames = new Map<number, () => void>();
-	let taskId = 0;
-	const delays = new Map<number, number>();
-	w.setTimeout = (callback: () => void, delay = 0) => {
-		const id = ++taskId;
-		timers.set(id, callback);
-		delays.set(id, delay);
-		return id;
-	};
-	w.clearTimeout = (id: number) => timers.delete(id);
-	w.requestAnimationFrame = (callback: () => void) => {
-		const id = ++taskId;
-		frames.set(id, callback);
-		return id;
-	};
-	w.cancelAnimationFrame = (id: number) => frames.delete(id);
-	w.eval(bundle);
-	const { Gestures, MotionEngine, Store } = w.GestureTest;
-	Store.state = Store.fresh();
-	Store.state.cards = [{ id: "article", type: "article", title: "阅读卡片", body: ["正文"] }];
-	Store.item("article");
-	Store.save();
-	const dialog = document.getElementById("modal"),
-		scroll = dialog.querySelector(".sheet-scroll, .reader-scroll");
-	dialog.open = kind !== "desk";
-	Object.defineProperties(scroll, {
-		scrollHeight: { value: 1600 },
-		clientHeight: { value: 600 },
-	});
-	scroll.scrollTop = end ? 1000 : 0;
-	Object.defineProperty(dialog.querySelector(".preview-sheet") || dialog, "offsetHeight", {
-		value: 600,
-	});
-	const app = {
-		dialog,
-		modalToken: 1,
-		toastSeq: 1,
-		toastTimer: 0,
-		selected: new Set(),
-		drag: { active: false, menu: { open: false } },
-		refreshes: 0,
-		closed: 0,
-		skipReturnMotion: false,
-		refresh() {
-			this.refreshes++;
-			return Promise.resolve();
-		},
-		refreshCard() {},
-		closeModal() {
-			this.closed++;
-			dialog.open = false;
-		},
-		closeToDesk() {
-			this.closeModal();
-		},
-	};
-	const gestures = new Gestures(app);
-	if (kind === "reader") gestures.bindPullDown();
-	if (end) gestures.bindPush("article", scroll);
-	const fire = (target: Element, type: string, x = 120, y = 200) => {
-		const event = new w.Event(type, { bubbles: true, cancelable: true });
-		Object.assign(event, {
-			touches: type === "touchend" || type === "touchcancel" ? [] : [{ clientX: x, clientY: y }],
-			changedTouches: [{ clientX: x, clientY: y }],
-		});
-		target.dispatchEvent(event);
-	};
-	const flush = (tasks = timers, maximumDelay = Infinity) => {
-		for (const [id, callback] of [...tasks]) {
-			if (tasks === timers && delays.get(id) > maximumDelay) continue;
-			tasks.delete(id);
-			callback();
-		}
-	};
-	return {
-		dom,
-		w,
-		document,
-		dialog,
-		scroll,
-		app,
-		gestures,
-		MotionEngine,
-		Store,
-		fire,
-		flush,
-		frames,
-	};
-}
+import { fixture } from "./gesture-fixture.ts";
 
 test("touchcancel resets desk pull, sheet drag, reader swipes, toast and read-end push without actions", () => {
 	const scenarios = [
@@ -235,6 +111,23 @@ test("pushing on at the end of a stacked preview folds back one card, not the de
 	}
 });
 
+test("read-end success badge disappears even when navigation changes before closing", () => {
+	const f = fixture({ end: true });
+	try {
+		const target = f.scroll.querySelector("p");
+		f.fire(target, "touchstart", 120, 500);
+		f.fire(target, "touchmove", 120, 300);
+		f.fire(target, "touchend", 120, 300);
+		assert.equal(f.dialog.querySelectorAll(".push-ring.is-done").length, 1);
+		f.app.modalToken++;
+		f.flush();
+		assert.equal(f.dialog.querySelector(".push-ring"), null);
+		assert.equal(f.app.closed, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("a delayed gesture close cannot close a later panel or alter its return motion", async () => {
 	const f = fixture();
 	try {
@@ -242,6 +135,9 @@ test("a delayed gesture close cannot close a later panel or alter its return mot
 		f.w.__motionAnimations = animations;
 		f.gestures.exitSurface(f.dialog, () => f.app.closeModal());
 		f.app.modalToken++;
+		// A replacement surface resets the exit lock, as openModal does.
+		f.app.sheetLeaving = false;
+		f.dialog.inert = false;
 		f.dialog.style.removeProperty("--backdrop");
 		animations.at(-1).finish();
 		await Promise.resolve();
@@ -500,6 +396,114 @@ test("short pull cancels, light threshold commits once on release, and long trav
 			"",
 			"glides back after the result",
 		);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("read-end touch progress coalesces frames and commits once before release", () => {
+	const f = fixture({ end: true });
+	try {
+		const target = f.scroll.querySelector("p");
+		let refreshes = 0;
+		f.app.refreshCard = () => refreshes++;
+		f.fire(target, "touchstart", 120, 500);
+		f.fire(target, "touchmove", 120, 460);
+		f.fire(target, "touchmove", 120, 440);
+		assert.equal(f.frames.size, 1);
+		assert.equal(Boolean(f.Store.item("article").read), false);
+		f.fire(target, "touchmove", 120, 300);
+		assert.equal(f.frames.size, 0);
+		assert.equal(f.Store.item("article").read, true);
+		assert.equal(f.dialog.querySelectorAll(".push-ring.is-done").length, 1);
+		assert.equal(refreshes, 0, "feed rendering waits until confirmation has been visible");
+		f.fire(target, "touchend", 120, 300);
+		f.flush();
+		assert.equal(f.app.closed, 1);
+		assert.equal(refreshes, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("read-end wheel threshold completes without waiting for the stream to stop", () => {
+	const f = fixture({ end: true });
+	try {
+		let writes = 0;
+		const patch = f.Store.patch.bind(f.Store);
+		f.Store.patch = (...args: any[]) => {
+			writes++;
+			return patch(...args);
+		};
+		for (let i = 0; i < 20; i++)
+			f.scroll.dispatchEvent(new f.w.WheelEvent("wheel", { bubbles: true, deltaY: 40 }));
+		assert.equal(f.Store.item("article").read, true);
+		assert.equal(f.dialog.querySelectorAll(".push-ring.is-done").length, 1);
+		assert.equal(writes, 1);
+		assert.equal(f.app.closed, 0, "confirmation is visible before the layer closes");
+		f.flush();
+		assert.equal(f.app.closed, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("desktop pull fades from the release position; phone keeps its downward slide", async () => {
+	for (const phone of [false, true]) {
+		const f = fixture({ phone });
+		try {
+			const sheet = f.dialog.querySelector(".preview-sheet");
+			sheet.style.translate = "0 140px";
+			sheet.getBoundingClientRect = () => ({ top: 240, left: 0, height: 400, width: 400 });
+			const animations: any[] = [];
+			f.w.__motionAnimations = animations;
+			f.gestures.exitSurface(sheet, () => f.app.closeModal());
+			const exit = animations.at(-1);
+			assert.match(exit.frames[0].transform, /translateY\(140px\)/);
+			assert.equal(exit.options.duration, phone ? 260 : 220);
+			if (!phone) {
+				assert.match(exit.frames[1].transform, /translateY\(150px\)/);
+				assert.equal(exit.frames[1].opacity, 0);
+			} else {
+				assert.notEqual(exit.frames[1].opacity, 0);
+				assert.ok(parseFloat(exit.frames[1].transform.match(/translateY\(([^)]+)\)/)[1]) > 140);
+			}
+			assert.equal(f.app.closed, 0);
+			assert.equal(f.dialog.inert, true);
+			const count = animations.length;
+			f.gestures.exitSurface(sheet, () => f.app.closeModal());
+			assert.equal(animations.length, count, "a second dismissal cannot replace the active exit");
+			exit.finish();
+			await Promise.resolve();
+			assert.equal(f.app.closed, 1);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("a fast release hands its last touch position to the exit before a drawing frame", async () => {
+	const f = fixture();
+	try {
+		const animations: any[] = [];
+		f.w.__motionAnimations = animations;
+		const target = f.scroll.querySelector("p");
+		f.fire(target, "touchstart", 120, 200);
+		f.fire(target, "touchmove", 120, 450);
+		assert.equal(f.frames.size, 1);
+		f.fire(target, "touchend", 120, 450);
+		assert.equal(f.frames.size, 0);
+		const exit = animations.findLast((a: any) =>
+			a.frames[0]?.transform?.includes("translateY(250px)"),
+		);
+		assert.ok(
+			exit,
+			"exit must start from the final touch position, not the previous painted frame",
+		);
+		assert.equal(f.app.closed, 0);
+		exit.finish();
+		await Promise.resolve();
+		assert.equal(f.app.closed, 1);
 	} finally {
 		f.dom.window.close();
 	}

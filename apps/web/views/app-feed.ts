@@ -171,8 +171,15 @@ export const appFeedMethods = {
 				return;
 			}
 			const done = () => {
+				if (this.loadedImages.has(img.src)) {
+					img.classList.add("is-loaded");
+					return;
+				}
 				this.loadedImages.add(img.src);
 				img.classList.add("is-loaded");
+				MotionEngine.animate(img, [{ opacity: 0 }, { opacity: getComputedStyle(img).opacity }], {
+					duration: MotionEngine.time("fast"),
+				});
 				this.layout.schedule(false);
 			};
 			if (img.complete && img.naturalWidth) requestAnimationFrame(done);

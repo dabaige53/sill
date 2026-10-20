@@ -2,10 +2,19 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { z } from "zod/v4";
-import { Card, normalizeCard, sourceKinds, cardTypes as types } from "../../contracts/card.ts";
+import {
+	Card,
+	contractVersion,
+	normalizeCard,
+	sourceKinds,
+	cardTypes as types,
+} from "../../contracts/card.ts";
 import { Batch, CardState, Preferences, State } from "../../contracts/local.ts";
 import { copy } from "../../design-system/copy.ts";
 export const capabilities = {
+	contractVersion,
+	deprecatedCardFields: ["meta"],
+	deprecatedFileFields: ["meta", "time"],
 	operations: ["card.upsert", "card.delete", "item.patch", "preferences.patch", "reading.add"],
 	cardFields: Object.keys(Card.shape),
 	itemFields: Object.keys(CardState.shape),

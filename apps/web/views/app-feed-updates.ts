@@ -205,9 +205,36 @@ export const appFeedUpdatesMethods = {
 				copy("web.app.3a71561035b2"),
 			],
 			total = c.body.length || 1;
-		el.innerHTML = `<b>${labels[this.mediaIndex] || copy("web.app.c8e19ce87856") + (this.mediaIndex + 1)}</b><span>${esc(c.body[this.mediaIndex] || "")}</span>`;
+		const title = labels[this.mediaIndex] || copy("web.app.c8e19ce87856") + (this.mediaIndex + 1),
+			body = c.body[this.mediaIndex] || "";
 		document.getElementById("media-step").textContent = `${this.mediaIndex + 1} / ${total}`;
-		MotionEngine.enter(el);
+		const current = el.querySelector<HTMLElement>(".media-slide-copy:not(.is-leaving)");
+		if (
+			current?.querySelector("b")?.textContent === title &&
+			current.querySelector("span")?.textContent === body
+		)
+			return;
+		const previous = [...el.querySelectorAll<HTMLElement>(".media-slide-copy")];
+		const next = document.createElement("div");
+		next.className = "media-slide-copy";
+		next.innerHTML = `<b>${esc(title)}</b><span>${esc(body)}</span>`;
+		for (const layer of previous) {
+			const opacity = getComputedStyle(layer).opacity || "1";
+			MotionEngine.cancel(layer);
+			layer.classList.add("is-leaving");
+			layer.setAttribute("aria-hidden", "true");
+			const out = MotionEngine.animate(layer, [{ opacity }, { opacity: 0 }], {
+				duration: MotionEngine.time("fast"),
+			});
+			if (out)
+				out.finished.then(
+					() => layer.remove(),
+					() => {},
+				);
+			else layer.remove();
+		}
+		el.append(next);
+		if (previous.length) MotionEngine.fade(next);
 	},
 	pauseMedia(this: AppController) {
 		clearInterval(this.mediaTimer);

@@ -52,6 +52,15 @@ export const appLifecycleMethods = {
 		this.themeQuery = matchMedia("(prefers-color-scheme: dark)");
 		this.applyPreferences();
 		this.layout = new FeedLayout(this.grid);
+		const searchField = document.getElementById("home-search-field");
+		if (searchField && typeof ResizeObserver === "function") {
+			let width = searchField.getBoundingClientRect().width;
+			new ResizeObserver(() => {
+				const next = searchField.getBoundingClientRect().width;
+				if (this.desktop()) MotionEngine.searchResize(searchField, width);
+				width = next;
+			}).observe(searchField);
+		}
 		this.pageLimit = 40;
 		this.drag = new DragManager(this);
 		this.gestures = new Gestures(this);
@@ -111,13 +120,15 @@ export const appLifecycleMethods = {
 		this.railHide = new ChromeAutoHide(
 			window,
 			() =>
-				// The desktop AI box is an input, so it stays while reading (ADR 0049).
-				[
-					this.desktop() ? null : dock,
-					document.getElementById("home-top"),
-					document.getElementById("scroll-edge"),
-				].filter(Boolean),
-			() => this.dialog.open || this.drag?.active || this.drag?.menu?.open,
+				[dock, document.getElementById("home-top"), document.getElementById("scroll-edge")].filter(
+					Boolean,
+				),
+			() =>
+				this.dialog.open ||
+				this.drag?.active ||
+				this.drag?.menu?.open ||
+				(this.desktop() &&
+					(this.homeMenuOpen || document.activeElement?.matches("#home-search, #ai-dock-input"))),
 		);
 		window.addEventListener("popstate", () => this.route());
 		window.addEventListener("hashchange", () => this.route());

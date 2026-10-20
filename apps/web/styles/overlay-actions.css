@@ -308,6 +308,7 @@
 .selection-lift .selection-stack {
 	transform: scale(1.03) rotate(-1deg);
 }
+body.is-carrying,
 body.is-dragging {
 	cursor: grabbing;
 	user-select: none;

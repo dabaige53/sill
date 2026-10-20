@@ -23,7 +23,7 @@ export const appCaptureMethods = {
 		Store.patch(id, { seen: true, read: true });
 		node.classList.add("is-editing");
 		node.querySelector<HTMLElement>(".card-body").outerHTML =
-			`<div class="inline-editor"><span class="card-head">${icon("note", 16)}<span class="card-src">${copy("web.app.5d7845b38bf2")}${esc(c.meta || copy("web.cards.de6785d99e02"))}</span></span><input id="inline-title" aria-label="${copy("web.title")}" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="${copy("web.app.7a688306423b")}" maxlength="4000">${esc((c.body?.length ? c.body.join("\n") : c.summary) || "")}</textarea><small id="inline-state">${copy("web.app.f2db3712a685")}</small></div>`;
+			`<div class="inline-editor"><span class="card-head">${icon("note", 16)}<span class="card-src">${copy("web.app.5d7845b38bf2")}${esc(copy("web.cards.de6785d99e02"))}</span></span><input id="inline-title" aria-label="${copy("web.title")}" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="${copy("web.app.7a688306423b")}" maxlength="4000">${esc((c.body?.length ? c.body.join("\n") : c.summary) || "")}</textarea><small id="inline-state">${copy("web.app.f2db3712a685")}</small></div>`;
 		this.layout.schedule(false);
 		const area = node.querySelector<HTMLTextAreaElement>("#inline-body");
 		area.focus();
@@ -44,7 +44,6 @@ export const appCaptureMethods = {
 			title: title.slice(0, 200),
 			body: body.length ? body : [title],
 			summary: body.join("").slice(0, 300),
-			meta: copy("web.cards.de6785d99e02"),
 		});
 		Store.save();
 		const state = document.getElementById("inline-state");
@@ -182,7 +181,10 @@ export const appCaptureMethods = {
 		const surface = MotionEngine.surface(this.dialog);
 		if (this.modalKind === "lightbox")
 			MotionEngine.fade(this.dialog.querySelector(".lightbox-stage img"));
-		else if (oldBody === undefined || oldBody !== surface.querySelector(".preview-body")?.innerHTML)
+		else if (
+			this.modalKind !== "settings" &&
+			(oldBody === undefined || oldBody !== surface.querySelector(".preview-body")?.innerHTML)
+		)
 			MotionEngine.fade(surface);
 	},
 	repaintSettings(this: AppController): undefined {

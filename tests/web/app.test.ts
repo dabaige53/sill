@@ -33,6 +33,11 @@ function fixture() {
 	const w = dom.window as any;
 	w.matchMedia = () => ({ matches: false, addEventListener() {} });
 	w.structuredClone = structuredClone;
+	const computed = w.getComputedStyle.bind(w);
+	w.getComputedStyle = (el: Element, pseudo?: string) =>
+		pseudo === "::before"
+			? { transform: el.getAttribute("aria-checked") === "true" ? "translateX(20px)" : "none" }
+			: computed(el);
 	w.CSS = { escape: (value: string) => value };
 	const observers: any[] = [];
 	w.ResizeObserver = class {
@@ -322,6 +327,153 @@ test("toast pauses elapsed time and a replacement cannot inherit the old countdo
 		assert.equal(w.document.getElementById("toast").inert, true);
 		app.showToast("Failure", null, "", true);
 		assert.equal(timers.size, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("settings toggles animate their knob without fading the panel", () => {
+	const f = fixture();
+	try {
+		const { app, w, Store, Panels } = f;
+		Store.setPref("stack", true);
+		app.modalKind = "settings";
+		app.dialog.innerHTML = Panels.settings(app, "desk");
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		app.setPref("stack", false);
+		assert.equal(animations.length, 1);
+		assert.equal(animations[0].options.pseudoElement, "::before");
+		assert.equal(animations[0].options.duration, 120);
+		assert.equal(animations[0].frames[0].transform, "translateX(20px)");
+		assert.equal(animations[0].frames[1].transform, "none");
+		w.document.documentElement.dataset.inputModality = "keyboard";
+		app.setPref("stack", true);
+		assert.equal(animations.length, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("media crossfades text while retaining its background and handles rapid reversal", async () => {
+	const f = fixture();
+	try {
+		const { app, w, Store } = f;
+		Store.state.cards = [
+			{ id: "media", type: "media", title: "Segments", body: ["first", "second"] },
+		];
+		app.currentId = "media";
+		app.mediaIndex = 0;
+		app.dialog.innerHTML = '<div id="media-slide"></div><span id="media-step"></span>';
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		app.paintMedia();
+		assert.equal(animations.length, 0);
+		const first = app.dialog.querySelector(".media-slide-copy");
+		app.mediaIndex = 1;
+		app.paintMedia();
+		assert.equal(animations.length, 2);
+		assert.equal(first.isConnected, true, "old text stays until the new text fades in");
+		assert.equal(app.dialog.querySelector("#media-slide").style.opacity, "");
+		assert.equal(animations[0].options.duration, 140);
+		assert.ok(animations[0].frames.every((frame: any) => !("transform" in frame)));
+		app.paintMedia();
+		assert.equal(animations.length, 2);
+		app.mediaIndex = 0;
+		app.paintMedia();
+		for (const animation of animations) animation.finish();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.equal(app.dialog.querySelectorAll(".media-slide-copy").length, 1);
+		assert.equal(app.dialog.querySelector(".media-slide-copy span").textContent, "first");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("desktop card close keeps the dialog until its exit completes", async () => {
+	const f = fixture();
+	try {
+		const { app, w } = f;
+		app.dialog.className = "preview";
+		app.dialog.innerHTML = '<div class="preview-sheet"></div><div class="float-bar"></div>';
+		app.dialog.close = () => app.dialog.removeAttribute("open");
+		app.dialog.getAnimations = () => [];
+		app.modalKind = "preview";
+		app.modalToken = 1;
+		app.navKey = "home";
+		app.updateSelection = () => {};
+		w.document.body.insertAdjacentHTML("beforeend", '<button id="account">Account</button>');
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		app.closeNative();
+		assert.equal(app.dialog.open, true);
+		assert.equal(app.dialog.inert, true);
+		const exit = animations.find(
+			(animation: any) => animation.frames[1]?.transform === "translateY(10px)",
+		);
+		assert.ok(exit);
+		assert.equal(exit.options.duration, 220);
+		exit.finish();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.equal(app.dialog.open, false);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("AI references enter once and stay inert until their removal finishes", async () => {
+	const f = fixture();
+	try {
+		const { app, w } = f;
+		w.document.body.insertAdjacentHTML(
+			"beforeend",
+			'<div id="ai-dock"><div id="ai-dock-context"></div><input id="ai-dock-input"></div>',
+		);
+		app.aiSelectionIds = ["mail-one"];
+		app.aiDraft = "";
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		app.renderAIDock();
+		assert.equal(animations.length, 1);
+		app.renderAIDock();
+		assert.equal(animations.length, 1);
+		app.action("ai-context-remove", "mail-one");
+		const node = w.document.querySelector("[data-ai-context]");
+		assert.equal(node.inert, true);
+		assert.equal(w.document.querySelectorAll("[data-ai-context]").length, 1);
+		animations.at(-1).finish();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.equal(w.document.querySelectorAll("[data-ai-context]").length, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("new cover fades to its read-state opacity and cached covers do not replay", () => {
+	const f = fixture();
+	try {
+		const { app, w } = f;
+		w.document.head.innerHTML =
+			"<style>.card-image{opacity:0}.card-image.is-loaded{opacity:.66}</style>";
+		app.grid.innerHTML = '<img class="card-image" src="https://synthetic.test/cover.png">';
+		const image = app.grid.firstElementChild;
+		Object.defineProperties(image, { complete: { value: true }, naturalWidth: { value: 100 } });
+		w.requestAnimationFrame = (fn: () => void) => {
+			fn();
+			return 0;
+		};
+		app.loadedImages = new Set();
+		app.layout = { schedule() {} };
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		app.revealImages(app.grid);
+		assert.equal(animations.length, 1);
+		assert.equal(animations[0].frames[1].opacity, "0.66");
+		app.revealImages(app.grid);
+		assert.equal(animations.length, 1);
 	} finally {
 		f.dom.window.close();
 	}

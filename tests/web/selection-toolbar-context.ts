@@ -123,7 +123,10 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 				f.hold();
 				f.fire("touchmove", source, { touches: [{ clientX: 180, clientY: 720 }] });
 				assert.equal(receiver.classList.contains("is-ready"), true);
-				assert.equal(f.document.querySelector(".selection-drag-count").textContent, "2");
+				assert.equal(
+					f.document.querySelector(".selection-drag-preview .selection-stack-count").textContent,
+					"2",
+				);
 				f.fire("touchend", source, {
 					touches: [],
 					changedTouches: [{ clientX: 180, clientY: 720 }],
@@ -131,7 +134,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 				assert.deepEqual(Array.from(f.app.aiSelectionIds), ["one", "two"]);
 				assert.equal(f.app.openedPanel.kind, "ai");
 				assert.equal(receiver.classList.contains("is-ready"), false);
-				assert.equal(f.document.querySelector(".selection-drag-count"), null);
+				assert.equal(f.document.querySelector(".selection-drag-preview"), null);
 				assert.equal(f.state(), before);
 				if (search) assert.deepEqual(Array.from(f.app.homeSelected), ["three"]);
 			} finally {
@@ -154,7 +157,7 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 				if (cancel) f.fire("touchcancel");
 				else f.release();
 				assert.equal(f.app.openedPanel, undefined);
-				assert.equal(f.document.querySelector(".selection-drag-count"), null);
+				assert.equal(f.document.querySelector(".selection-drag-preview"), null);
 				assert.equal(f.state(), before);
 				f.app.action("selected-ai");
 				assert.equal(f.app.openedPanel.kind, "ai");

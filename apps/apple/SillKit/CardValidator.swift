@@ -7,6 +7,7 @@ public enum CardValidator {
     guard let card = value.object, let type = card["type"]?.string else {
       throw CardValidationError("card")
     }
+    try validateExplicitFields(card, type: type)
     try validateIDs(value)
     for url in [card["url"]?.string, card["meeting"]?["url"]?.string].compactMap({ $0 }) {
       guard let parsed = URL(string: url), ["http", "https"].contains(parsed.scheme ?? ""),
@@ -43,6 +44,110 @@ public enum CardValidator {
       }
     default: break
     }
+  }
+
+  private static func validateExplicitFields(_ card: [String: JSONValue], type: String) throws {
+    guard card["meta"] == nil else { throw CardValidationError("card.meta") }
+    let readable = ["article", "note", "mail", "digest", "suggestion", "file"]
+    let attributed = readable + ["media"]
+    let restricted: [String: [String]] = [
+      "authors": attributed, "publisher": attributed, "bodyCoverage": readable,
+      "readingEstimate": readable, "section": ["article"], "sentAt": ["mail"],
+      "recipients": ["mail"], "project": ["task", "reminder"], "timeZone": ["event"],
+      "chapterCount": ["media"], "takenAt": ["photo"], "caption": ["photo"],
+      "coverageStart": ["digest"], "coverageEnd": ["digest"],
+    ]
+    for (field, types) in restricted where card[field] != nil && !types.contains(type) {
+      throw CardValidationError("card." + field)
+    }
+    for field in ["publishedAt", "modifiedAt", "savedAt", "takenAt", "sentAt"] {
+      if let value = card[field] {
+        guard let text = value.string,
+          validDate(text, dateOnly: field != "sentAt")
+        else { throw CardValidationError("card." + field) }
+      }
+    }
+    if let zone = card["timeZone"]?.string {
+      let fixedOffset =
+        zone.range(
+          of: #"^(?:[+-]|(?:GMT|UTC)[+-])"#,
+          options: [.regularExpression, .caseInsensitive]) != nil
+      let known =
+        ["UTC", "GMT"].contains { $0.caseInsensitiveCompare(zone) == .orderedSame }
+        || TimeZone.knownTimeZoneIdentifiers.contains {
+          $0.caseInsensitiveCompare(zone) == .orderedSame
+        }
+      guard !fixedOffset, known || TimeZone(identifier: zone) != nil else {
+        throw CardValidationError("card.timeZone")
+      }
+    }
+    for file in card["files"]?.array ?? [] {
+      guard file["meta"] == nil, file["time"] == nil else {
+        throw CardValidationError("card.files.deprecated")
+      }
+      if let date = file["modifiedAt"] {
+        guard let text = date.string, validDate(text, dateOnly: true) else {
+          throw CardValidationError("card.files.modifiedAt")
+        }
+      }
+    }
+    if let estimate = card["readingEstimate"]?.object, estimate["origin"]?.string == "calculated" {
+      guard let method = estimate["method"]?.string,
+        !method.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        card["bodyCoverage"]?.string != nil, card["bodyCoverage"]?.string != "none",
+        (card["body"]?.strings ?? []).contains(where: {
+          !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }), estimate["scope"]?.string != "full" || card["bodyCoverage"]?.string == "full"
+      else { throw CardValidationError("card.readingEstimate") }
+    }
+    if card["bodyCoverage"]?.string == "none",
+      (card["body"]?.strings ?? []).contains(where: {
+        !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      })
+    {
+      throw CardValidationError("card.bodyCoverage")
+    }
+    var trimmed = (card["authors"]?.array ?? []).compactMap { $0["name"]?.string }
+    trimmed += [
+      card["publisher"]?["name"]?.string, card["project"]?["name"]?.string,
+      card["section"]?.string, card["timeZone"]?.string,
+      card["readingEstimate"]?["method"]?.string,
+    ].compactMap { $0 }
+    trimmed += card["recipients"]?.strings ?? []
+    if trimmed.contains(where: { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+      throw CardValidationError("card.emptyMetadata")
+    }
+    if card["coverageStart"] != nil || card["coverageEnd"] != nil {
+      guard let start = card["coverageStart"]?.number, let end = card["coverageEnd"]?.number,
+        end > start
+      else { throw CardValidationError("card.coverage") }
+    }
+  }
+
+  private static func validDate(_ text: String, dateOnly: Bool) -> Bool {
+    let day = String(text.prefix(10))
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.isLenient = false
+    guard let date = formatter.date(from: day), formatter.string(from: date) == day else {
+      return false
+    }
+    if text.count == 10 { return dateOnly }
+    guard
+      text.range(
+        of:
+          #"^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$"#,
+        options: .regularExpression) != nil
+    else { return false }
+    let iso = ISO8601DateFormatter()
+    if text.contains(".") { iso.formatOptions.insert(.withFractionalSeconds) }
+    let precise = text.replacingOccurrences(
+      of: #"T(\d{2}:\d{2})(Z|[+-]\d{2}:\d{2})$"#,
+      with: "T$1:00$2", options: .regularExpression)
+    return iso.date(from: precise) != nil
   }
 
   private static func validateIDs(_ value: JSONValue) throws {
@@ -136,6 +241,8 @@ public enum CardValidator {
         maximum: schema["maximum"]?.number, path: path)
     case "boolean":
       guard value.bool != nil else { throw CardValidationError(path) }
+    case "null":
+      guard value == .null else { throw CardValidationError(path) }
     default: break
     }
   }

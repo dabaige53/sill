@@ -4,14 +4,13 @@ import { JSDOM } from "jsdom";
 import { cardHTML } from "../../apps/web/cards/templates.ts";
 import { cloudCard, cloudCardChanges, cloudCardState } from "../../apps/web/data/cloud-card.ts";
 
-const fallback = { source: "Sill", meta: "Cloud" };
 const rich = {
 	id: "synthetic-rich",
 	type: "task",
 	title: "Synthetic card",
 	body: ["Body"],
 	summary: "Independent summary",
-	meta: "Original metadata",
+	project: { name: "Project" },
 	form: "image" as const,
 	image: "coast" as const,
 	tags: ["Synthetic"],
@@ -23,7 +22,7 @@ const rich = {
 	meeting: { name: "Meeting", url: "https://example.com/meeting" },
 	media: "video" as const,
 	duration: 60,
-	files: [{ name: "File", meta: "PDF", time: 1 }],
+	files: [{ name: "File", mimeType: "application/pdf", sizeBytes: 1024 }],
 	photos: ["coast" as const],
 	attachment: "Attachment",
 	tasks: [{ id: "step", text: "Step", done: false, future: "preserved" }],
@@ -41,31 +40,37 @@ const rich = {
 };
 
 test("cloud projection preserves rich fields and real presentation values", () => {
-	const projected = cloudCard(rich, fallback);
+	const projected = cloudCard(rich);
 	assert.deepEqual(projected, rich);
 	projected.future.nested.push("clone");
 	assert.deepEqual(rich.future.nested, ["keep"]);
 });
 
 test("cloud projection normalizes legacy sources before applying missing-value fallbacks", () => {
-	const projected = cloudCard(
-		{ id: "old", type: "note", title: "Old", source: "Legacy", kind: "ai", body: ["Text"] },
-		fallback,
-	);
+	const projected = cloudCard({
+		id: "old",
+		type: "note",
+		title: "Old",
+		source: "Legacy",
+		kind: "ai",
+		body: ["Text"],
+	});
 	assert.deepEqual(projected.sources, [{ name: "Legacy", kind: "agent" }]);
 	assert.equal(projected.summary, "Text");
-	assert.equal(projected.meta, "Cloud");
+	assert.equal(projected.meta, undefined);
 	assert.equal(projected.source, undefined);
 	assert.equal(projected.time, undefined);
-	const empty = cloudCard({ ...rich, summary: "", meta: "", sources: [] }, fallback);
+	const empty = cloudCard({ ...rich, summary: "", sources: [] });
 	assert.equal(empty.summary, "");
-	assert.equal(empty.meta, "");
+	assert.equal(empty.meta, undefined);
 	assert.deepEqual(empty.sources, []);
-	const missing = cloudCard(
-		{ id: "missing", type: "note", title: "Missing", updated_at: rich.updated_at },
-		fallback,
-	);
-	assert.deepEqual(missing.sources, [{ name: "Sill", kind: "web" }]);
+	const missing = cloudCard({
+		id: "missing",
+		type: "note",
+		title: "Missing",
+		updated_at: rich.updated_at,
+	});
+	assert.equal(missing.sources, undefined);
 	assert.equal(missing.time, Date.parse(rich.updated_at));
 });
 
@@ -77,7 +82,7 @@ test("cloud done state presents recorded task and reminder state without changin
 });
 
 test("projected rich cards render sources, task state, and reminder state", () => {
-	const article = cloudCard({ ...rich, type: "article" }, fallback);
+	const article = cloudCard({ ...rich, type: "article" });
 	const rendered = new JSDOM(cardHTML(article, { state: cloudCardState(article) })).window.document;
 	assert.match(rendered.body.textContent, /Independent summary/);
 	assert.match(rendered.body.textContent, /Agent/);

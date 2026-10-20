@@ -49,7 +49,7 @@ try {
 						JSON.stringify({
 							version: 4,
 							cards,
-							items: {},
+							items: { "review-article": { note: "对照现有流程，再确认适用范围。" } },
 							preferences: { onboarded: true, stack: false, theme, archiveAfter: "never" },
 						}),
 					);
@@ -58,6 +58,24 @@ try {
 			);
 			await page.goto(origin);
 			await page.waitForFunction(() => window.__app?.layout.frame === 0);
+			const homeLines = await page.locator("#home-top").evaluate((head) => {
+				const first = document.querySelector("#feed-grid .feed-item").getBoundingClientRect();
+				const mark = head.querySelector(".home-mark").getBoundingClientRect();
+				const account = head.querySelector("#account .account-wrap").getBoundingClientRect();
+				return {
+					left: mark.left,
+					cardLeft: first.left,
+					right: account.right,
+					gridRight: Math.max(
+						...Array.from(document.querySelectorAll("#feed-grid .feed-item")).map(
+							(n) => n.getBoundingClientRect().right,
+						),
+					),
+				};
+			});
+			assert.ok(Math.abs(homeLines.left - homeLines.cardLeft) < 1);
+			if (width > 650)
+				assert.ok(Math.abs(homeLines.right - homeLines.gridRight) < 1, JSON.stringify(homeLines));
 			await page.locator("#account").click();
 			await page.locator('[data-action="action-toggle"]').first().waitFor();
 			await page.locator("#modal").evaluate(async (modal) => {
@@ -105,10 +123,26 @@ try {
 			});
 			const before = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
 			const reply = page.locator('[data-action="action-toggle"][data-id="reply"]');
+			assert.equal(await page.locator("#dock").isVisible(), false);
+			const originalToggle = await reply.elementHandle();
 			await reply.focus();
 			await reply.click();
 			assert.deepEqual(await page.evaluate(() => window.__store.pref("hiddenActions")), ["reply"]);
 			assert.equal(await reply.getAttribute("aria-checked"), "false");
+			assert.equal(await originalToggle.evaluate((n) => n.isConnected), true);
+			assert.equal(
+				await page
+					.locator(".settings-layout")
+					.evaluate(
+						(n) =>
+							n
+								.getAnimations({ subtree: true })
+								.filter(
+									(animation) => (animation.effect as KeyframeEffect)?.pseudoElement !== "::before",
+								).length,
+					),
+				0,
+			);
 			assert.equal(await reply.evaluate((n) => document.activeElement === n), true);
 			const last = page.locator('[data-action="action-toggle"][data-id="dismiss"]');
 			await last.scrollIntoViewIfNeeded();
@@ -119,6 +153,46 @@ try {
 			]);
 			assert.equal(await page.evaluate(() => window.__store.pref("stack")), false);
 			assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), before);
+			await page.evaluate(() => {
+				window.__app.closeNative(false);
+				window.__app.openCard("review-article");
+			});
+			const blocks = async (selector: string) =>
+				page.locator(selector).evaluate((body) =>
+					Array.from(body.children)
+						.filter((n) => n.id !== "reader-end")
+						.map((n) => [n.tagName, n.className, n.textContent]),
+				);
+			const previewBlocks = await blocks(".preview-body");
+			assert.equal(
+				await page.locator("aside.preview-note .preview-note-label").textContent(),
+				"备注",
+			);
+			assert.equal(
+				await page.locator("aside.preview-note p").textContent(),
+				"对照现有流程，再确认适用范围。",
+			);
+			assert.ok((await page.locator(".preview-meta").textContent()).includes("约 4 分钟阅读"));
+			const aligned = async (selector: string) =>
+				page.locator(selector).evaluate((body) => {
+					const nodes = body.querySelectorAll(
+						":scope > h1, :scope > .preview-meta, :scope > .preview-cover, :scope > .preview-lead, :scope > .preview-full",
+					);
+					return Array.from(nodes).map((n) => Math.round(n.getBoundingClientRect().left));
+				});
+			assert.equal(new Set(await aligned(".preview-body")).size, 1);
+			await page.screenshot({
+				path: path.join(artifacts, `article-preview-${width}-${theme}.jpg`),
+				animations: "disabled",
+			});
+			await page.locator('[data-action="reader"]').click();
+			await page.locator(".reader-body").waitFor();
+			assert.deepEqual(await blocks(".reader-body"), previewBlocks);
+			assert.equal(new Set(await aligned(".reader-body")).size, 1);
+			await page.screenshot({
+				path: path.join(artifacts, `article-reader-${width}-${theme}.jpg`),
+				animations: "disabled",
+			});
 			assert.deepEqual(errors, []);
 			assert.deepEqual(external, []);
 			results.push({

@@ -266,10 +266,10 @@ export async function runTouchDrag({
 		await page.mouse.down();
 		await page.waitForFunction(() => !!window.__app.drag.active);
 		await page.mouse.move(x + 30, y + 30, { steps: 3 });
-		assert.equal(await page.locator(".selection-drag-count").isVisible(), true);
+		assert.equal(await page.locator(".selection-drag-preview").isVisible(), true);
 		await page.keyboard.press("Escape");
 		await page.mouse.up();
-		assert.equal(await page.locator(".selection-drag-count").count(), 0);
+		assert.equal(await page.locator(".selection-drag-preview").count(), 0);
 		assert.equal((await state(page, "article-01"))?.seen || false, false);
 		assert.equal(await page.locator('[data-card="article-01"]').count(), 1);
 	});

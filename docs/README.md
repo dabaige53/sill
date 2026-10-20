@@ -172,6 +172,7 @@
 ## 仓库入口与准备材料
 
 - [术语表](../GLOSSARY.md)
+- [0050：卡片使用明确字段](adr/0050-explicit-card-fields.md)
 - [设计系统](../design-system/README.md)
 - [脚本目录](../scripts/README.md)
 - [测试目录](../tests/README.md)

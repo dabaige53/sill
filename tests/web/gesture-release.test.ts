@@ -70,18 +70,25 @@ function fixture() {
 	};
 }
 
-test("read-end remains a preview until release and system cancellation never writes read", () => {
+test("read-end cancels below threshold and completes at threshold without release", () => {
 	const f = fixture();
 	try {
 		f.scroll.scrollTop = 800;
 		f.gestures.bindPush("a", f.scroll);
 		f.fire("touchstart", 500);
-		f.fire("touchmove", 250);
+		f.fire("touchmove", 400);
 		assert.equal(Boolean(f.Store.item("a").read), false);
-		f.fire("touchcancel", 250);
+		f.fire("touchcancel", 400);
 		assert.equal(Boolean(f.Store.item("a").read), false);
 		f.fire("touchstart", 500);
 		f.fire("touchmove", 250);
+		assert.equal(f.Store.item("a").read, true);
+		assert.equal(
+			f.scroll.closest("dialog").querySelector(".push-ring").classList.contains("is-done"),
+			true,
+		);
+		f.fire("touchcancel", 250);
+		assert.equal(f.Store.item("a").read, true);
 		f.fire("touchend", 250);
 		assert.equal(f.Store.item("a").read, true);
 	} finally {

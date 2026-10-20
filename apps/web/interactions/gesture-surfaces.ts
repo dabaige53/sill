@@ -92,6 +92,8 @@ export const gestureSurfacesMethods = {
 				v = drag.velocity.read();
 			drag = null;
 			if (dy >= this.value("dismiss-distance", 110) || this.flick(dy, v)) {
+				// A fast release may arrive before the queued drawing frame.
+				MotionEngine.move(sheet, `0 ${dy}px`, true);
 				this.swallowMomentum();
 				this.exitSurface(sheet, () => this.app.closeModal());
 				return;

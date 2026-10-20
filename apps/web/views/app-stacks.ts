@@ -124,7 +124,7 @@ export const appStacksMethods = {
 			const x = dx < 0 && next ? dx : 0,
 				f = next ? Math.min(1, -Math.min(0, dx) / w) : 0;
 			top.style.transform = `translateX(${x}px)`;
-			if (next) next.style.transform = `translateY(${6 * (1 - f)}px) scale(${0.97 + 0.03 * f})`;
+			if (next) next.style.transform = `translateY(${6 * (1 - f)}px)`;
 			if (prev) {
 				prev.classList.remove("is-prev");
 				prev.style.transform = "";
@@ -164,7 +164,7 @@ export const appStacksMethods = {
 			run(prev, "none");
 		} else {
 			run(top, "none");
-			if (next) run(next, "translateY(6px) scale(.97)");
+			if (next) run(next, "translateY(6px)");
 			if (prev?.classList.contains("is-prev")) run(prev, `translateX(${-w - 24}px)`);
 		}
 		deck.dataset.busy = "1";

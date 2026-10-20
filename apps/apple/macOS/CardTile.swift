@@ -17,7 +17,8 @@ struct CardTile: View {
   private var complete: Bool { !tasks.isEmpty && tasks.allSatisfy { model.taskDone(card, $0) } }
   private var settled: Bool {
     (card.readable && state["read"]?.bool == true && model.preferences["fadeRead"]?.bool != false)
-      || (card.type == "digest" && state["seen"]?.bool == true && model.preferences["fadeRead"]?.bool != false)
+      || (card.type == "digest" && state["seen"]?.bool == true
+        && model.preferences["fadeRead"]?.bool != false)
       || (card.type == "task" && complete)
       || (card.type == "reminder" && state["reminderDone"]?.bool == true)
       || (card.type == "event" && (card.date("end") ?? .distantFuture) < .now)
@@ -56,7 +57,9 @@ struct CardTile: View {
         }
         if card.type == "file" { files.padding(.top, AppleMetrics.space12) }
         if card.type == "suggestion" { related.padding(.top, AppleMetrics.space12) }
-        if card.type == "reminder" { ReminderActions(card: card).padding(.top, AppleMetrics.space8) }
+        if card.type == "reminder" {
+          ReminderActions(card: card).padding(.top, AppleMetrics.space8)
+        }
         if card.type == "event", let start = card.date("start"), let end = card.date("end"),
           start.timeIntervalSinceNow <= 900, end > .now,
           let link = fields["meeting"]?["url"]?.string, let url = URL(string: link)
@@ -208,14 +211,17 @@ struct CardTile: View {
   }
   private var headText: String {
     if card.type == "event", let date = card.date("start") { return cardDay(date) }
-    if card.type == "task" { return fields["meta"]?.string ?? Copy.text("web.task") }
-    if card.type == "reminder" { return Copy.text("web.reminder") }
+    if card.type == "task" { return fields["project"]?["name"]?.string ?? Copy.text("web.task") }
+    if card.type == "reminder" {
+      return fields["project"]?["name"]?.string ?? Copy.text("web.reminder")
+    }
     if card.type == "photo" {
-      return [Copy.text("web.photo"), fields["location"]?.string ?? fields["meta"]?.string ?? ""]
+      return [Copy.text("web.photo"), fields["location"]?.string ?? ""]
         .filter { !$0.isEmpty }.joined(separator: " · ")
     }
     if card.type == "file" {
-      return [Copy.text("web.file"), card.source].filter { !$0.isEmpty }.joined(separator: " · ")
+      return [Copy.text("web.file"), card.sourceLine].filter { !$0.isEmpty }.joined(
+        separator: " · ")
     }
     return card.sourceLine
   }
@@ -276,7 +282,7 @@ struct CardTile: View {
       VStack(alignment: .leading, spacing: 2) {
         Text(name).font(.system(size: AppleMetrics.font14, weight: .semibold))
         Text(
-          [Copy.text("web.mail"), fields["meta"]?.string ?? ""].filter { !$0.isEmpty }.joined(
+          [card.sourceLine, card.dateText("sentAt") ?? ""].filter { !$0.isEmpty }.joined(
             separator: " · ")
         ).font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
       }

@@ -21,6 +21,65 @@ export async function runSelectionKeyboardActions({
 	snapshot: any;
 	unchanged: any;
 }) {
+	for (const width of [822, 1512])
+		await scenario(
+			`Desktop ${width}: bars hide down and return up`,
+			async (page) => {
+				if (width === 1512)
+					assert.equal(await page.locator("#feed-grid").getAttribute("data-columns"), "4");
+				await page.evaluate(() => window.scrollTo(0, 160));
+				await page.waitForTimeout(250);
+				for (const selector of ["#home-top", "#dock"]) {
+					assert.equal(
+						await page
+							.locator(selector)
+							.evaluate((el) => el.inert && getComputedStyle(el).opacity === "0"),
+						true,
+					);
+				}
+				await page.evaluate(() => window.scrollTo(0, 120));
+				await page.waitForTimeout(260);
+				for (const selector of ["#home-top", "#dock"]) {
+					assert.equal(
+						await page
+							.locator(selector)
+							.evaluate((el) => !el.inert && getComputedStyle(el).opacity === "1"),
+						true,
+					);
+				}
+				await page.locator("#ai-dock-input").focus();
+				await page.evaluate(() => window.scrollTo(0, 200));
+				assert.equal(await page.locator("#dock.is-tucked").count(), 0);
+				await page.locator("#ai-dock-input").blur();
+				await page.evaluate(() => window.scrollTo(0, 0));
+				if (width === 1512)
+					await page.screenshot({ path: "tests/artifacts/desktop-four-columns.png" });
+			},
+			{ viewport: { width, height: 749 } },
+		);
+	for (const hold of [false, true])
+		await scenario(
+			`Desktop: ${hold ? "hold" : "press"} a card and drop it into the AI dock`,
+			async (page) => {
+				const before = await snapshot(page);
+				const source = await page.locator('[data-card="selection-01"] .card-summary').boundingBox();
+				await page.mouse.move(source.x + 20, source.y + 10);
+				await page.mouse.down();
+				if (hold) await page.waitForTimeout(440);
+				await page.mouse.move(source.x + 40, source.y + 30);
+				const receiver = await page.locator("#ai-dock").boundingBox();
+				assert.ok(receiver, "holding a card must reveal the AI dock");
+				await page.mouse.move(receiver.x + receiver.width / 2, receiver.y + receiver.height / 2, {
+					steps: 12,
+				});
+				assert.equal(await page.locator("#ai-dock.is-ready").count(), 1);
+				await page.mouse.up();
+				await page.waitForTimeout(300);
+				assert.equal(await page.locator('#ai-dock [data-ai-context="selection-01"]').count(), 1);
+				assert.deepEqual(await snapshot(page), before);
+				assert.deepEqual(await selection(page), []);
+			},
+		);
 	for (const mobile of [false, true]) {
 		await scenario(
 			`${mobile ? "Phone" : "Desktop"}: AI drop opens a local-only context window`,
@@ -28,26 +87,32 @@ export async function runSelectionKeyboardActions({
 				await selectTwo(page);
 				const before = await snapshot(page);
 				const gesture = await beginLift(page, mobile);
-				const receiver = await page.locator("#selection-bar .selection-ai-target").boundingBox();
+				const target = mobile ? "#selection-bar .selection-ai-target" : "#ai-dock";
+				const receiver = await page.locator(target).boundingBox();
 				assert.ok(receiver);
 				await gesture.moveTo({
 					x: receiver.x + receiver.width / 2,
 					y: receiver.y + receiver.height / 2,
 				});
 				assert.equal(
-					await page
-						.locator("#selection-bar .selection-ai-target")
-						.evaluate((n) => n.classList.contains("is-ready")),
+					await page.locator(target).evaluate((n) => n.classList.contains("is-ready")),
 					true,
 				);
 				await gesture.release();
+				if (!mobile) {
+					await page.waitForTimeout(300);
+					assert.equal(await page.locator("#ai-dock [data-ai-context]").count(), 2);
+					assert.deepEqual(await snapshot(page), before);
+					assert.deepEqual(await selection(page), []);
+					return;
+				}
 				await page.locator(".ai-conversation").waitFor();
 				assert.equal(await page.locator("[data-ai-context]").count(), 2);
-				assert.equal(await page.locator(".selection-drag-count").count(), 0);
+				assert.equal(await page.locator(".selection-drag-preview").count(), 0);
 				await page.locator("#ai-local-draft").fill("只在本地输入，不发送");
-				assert.equal(await page.locator(".ai-conversation button[disabled]").count(), 1);
+				assert.equal(await page.locator(".ai-composer-tools button:not([disabled])").count(), 0);
 				await unchanged(page, before);
-				await page.locator('#modal [data-action="close"]').click();
+				await page.keyboard.press("Escape");
 				await page.waitForTimeout(250);
 				assert.deepEqual(await selection(page), firstIds);
 			},
@@ -73,11 +138,11 @@ export async function runSelectionKeyboardActions({
 				"selection-02",
 			]);
 			await page.waitForTimeout(420);
-			await page.locator('#search-selection-bar [data-action="selected-ai"]').focus();
+			await page.locator("#search-selection-bar .selection-ai-target").focus();
 			await page.keyboard.press("Enter");
 			await page.locator(".ai-conversation").waitFor();
 			assert.equal(await page.locator("[data-ai-context]").count(), 1);
-			await page.locator('#modal [data-action="close"]').click();
+			await page.keyboard.press("Escape");
 			await page.locator("#modal.search[open] #filter-search").waitFor();
 			assert.equal(await page.locator("#filter-search").inputValue(), "选择测试");
 			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);

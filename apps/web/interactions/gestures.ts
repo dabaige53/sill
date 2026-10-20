@@ -2,6 +2,7 @@ import { gesturePreviewMethods } from "./gesture-preview.ts";
 import { gesturePullMethods } from "./gesture-pull.ts";
 import { gestureSurfacesMethods } from "./gesture-surfaces.ts";
 import { MotionEngine } from "./motion.ts";
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 
 /** Shared gesture release, interruption and surface exit rules. */
 class Gestures {
@@ -130,6 +131,7 @@ class Gestures {
 	}
 	/** Keep the drawn offset until the exit finishes; no reset between hand and dismissal. */
 	exitSurface(surface: HTMLElement, close: () => void, axis: "x" | "y" = "y") {
+		if (this.app.sheetLeaving) return;
 		const dialog = this.app.dialog,
 			token = this.app.modalToken;
 		const style = getComputedStyle(surface);
@@ -138,17 +140,23 @@ class Gestures {
 			opacity = style.opacity;
 		const offset = parseFloat(drawn.split(" ")[axis === "x" ? 0 : 1] || "0") || 0;
 		const rect = surface.getBoundingClientRect();
-		const destination =
-			offset + (axis === "x" ? innerWidth - rect.left : innerHeight - rect.top) + 1;
+		const desktopPreview =
+			axis === "y" && dialog.classList.contains("preview") && !this.phone.matches;
+		const duration = MotionEngine.time(desktopPreview ? "dur-close" : "dur-sheet");
+		const destination = desktopPreview
+			? offset + tokens.motion.detailTravel
+			: offset + (axis === "x" ? innerWidth - rect.left : innerHeight - rect.top) + 1;
 		MotionEngine.cancel(surface);
 		// Freeze the drawn transform before cancelling entry and travel.
 		MotionEngine.cancelPanel(dialog);
+		this.app.sheetLeaving = true;
+		dialog.inert = true;
 		MotionEngine.move(surface, "", true);
 		surface.classList.add("is-drag");
 		dialog.classList.remove("is-drag");
 		const bar = dialog.querySelector(":scope > .float-bar");
 		if (bar) bar.style.opacity = "0";
-		MotionEngine.dim(dialog, 0, MotionEngine.time("dur-sheet"));
+		MotionEngine.dim(dialog, 0, duration);
 		surface.inert = true;
 		const base = transform === "none" ? "" : transform;
 		const translate = (value: number) =>
@@ -157,16 +165,17 @@ class Gestures {
 			surface,
 			[
 				{ transform: translate(offset), opacity },
-				{ transform: translate(destination), opacity },
+				{ transform: translate(destination), opacity: desktopPreview ? 0 : opacity },
 			],
 			{
-				duration: MotionEngine.time("dur-sheet"),
-				easing: MotionEngine.curve("ease-sheet"),
+				duration,
+				easing: MotionEngine.curve(desktopPreview ? "ease" : "ease-sheet"),
 				fill: "forwards",
 			},
 		);
 		const finish = () => {
 			if (this.app.modalToken !== token || !dialog.open) return;
+			this.app.sheetLeaving = false;
 			this.app.skipReturnMotion = true;
 			close();
 		};

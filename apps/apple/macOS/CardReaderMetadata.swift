@@ -84,7 +84,7 @@ extension CardReader {
   func sourceMeta(_ card: Card) -> some View {
     HStack(spacing: AppleMetrics.space6) {
       CardSourceGlyph(card: card)
-      Text(card.source.isEmpty ? card.typeLabel : card.source).lineLimit(1)
+      Text(card.sourceLine).lineLimit(1)
     }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
   }
   func externalLabel(_ card: Card) -> String {

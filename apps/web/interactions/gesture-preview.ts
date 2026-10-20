@@ -90,6 +90,7 @@ export const gesturePreviewMethods = {
 				delete handle.dataset.dragged;
 			}, 0);
 			if (dy >= this.value("handle-distance", 160)) {
+				MotionEngine.move(surface, `0 ${dy}px`, true);
 				this.exitSurface(surface, () => this.app.closeModal());
 				return;
 			}
@@ -192,6 +193,7 @@ export const gesturePreviewMethods = {
 			wheel = this.intent();
 		let pull = 0,
 			timer = 0,
+			frame = 0,
 			touch = null,
 			done = false;
 		const atEnd = () => scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
@@ -209,19 +211,31 @@ export const gesturePreviewMethods = {
 		const finish = () => {
 			if (done || app.modalToken !== token) return;
 			done = true;
+			touch = null;
+			host.classList.remove("is-drag");
 			clearTimeout(timer);
+			cancelAnimationFrame(frame);
+			frame = 0;
 			pull = need;
 			paint();
 			chip.classList.add("is-done");
 			chip.style.transform = "scale(1)";
-			MotionEngine.fade(chip.querySelector(".tick"));
-			if (!Store.item(id).read || Store.item(id).progress !== 1) {
+			const changed = !Store.item(id).read || Store.item(id).progress !== 1;
+			if (changed) {
 				Store.patch(id, { read: true, progress: 1 });
-				app.refreshCard(id);
 			}
 			this.swallowMomentum();
 			window.setTimeout(() => {
+				// A changed route can keep this surface cached; never leave its success badge behind.
+				chip.remove();
 				if (app.modalToken !== token) return;
+				MotionEngine.move(scroll);
+				if (bar) {
+					bar.style.opacity = "";
+					MotionEngine.move(bar);
+				}
+				// Keep feed rendering out of the frame that reveals the completion check.
+				if (changed) app.refreshCard(id);
 				// A stacked preview folds back to the card below it; reading returns to the desk.
 				if (app.modalKind === "preview") app.closeModal();
 				else app.closeToDesk(true);
@@ -230,12 +244,22 @@ export const gesturePreviewMethods = {
 		const set = (v?: any) => {
 			if (done || app.modalToken !== token) return;
 			pull = Math.max(0, Math.min(need, v));
-			paint();
+			if (pull >= need) {
+				finish();
+				return;
+			}
+			if (!frame)
+				frame = requestAnimationFrame(() => {
+					frame = 0;
+					paint();
+				});
 		};
 		const cancel = () => {
 			touch = null;
 			if (done || app.modalToken !== token) return;
 			clearTimeout(timer);
+			cancelAnimationFrame(frame);
+			frame = 0;
 			wheel.reset();
 			pull = 0;
 			host.classList.remove("is-drag");
@@ -267,12 +291,9 @@ export const gesturePreviewMethods = {
 				}
 				if (!wheel.feed(d)) return;
 				set(pull + Math.min(40, d) * 0.5);
+				if (done) return;
 				clearTimeout(timer);
 				timer = window.setTimeout(() => {
-					if (pull >= need) {
-						finish();
-						return;
-					}
 					if (!done && app.modalToken === token) {
 						pull = 0;
 						paint();
@@ -318,14 +339,6 @@ export const gesturePreviewMethods = {
 			{ passive: true },
 		);
 		scroll.addEventListener("touchend", () => {
-			if (touch) {
-				host.classList.remove("is-drag");
-				if (pull >= need) {
-					touch = null;
-					finish();
-					return;
-				}
-			}
 			cancel();
 		});
 		scroll.addEventListener("touchcancel", cancel, { passive: true });

@@ -39,7 +39,6 @@ const Capture: Record<string, any> = {
 				title: this.clip(rest || host + new URL(url).pathname.replace(/\/$/, ""), 200),
 				summary: "",
 				sources: [{ name: host, kind: "web" }],
-				meta: copy("web.capture.1e579068c564"),
 				url,
 				tags: [],
 				body: rest ? [rest] : [],
@@ -54,7 +53,6 @@ const Capture: Record<string, any> = {
 			title,
 			summary: this.clip(value, 300),
 			sources: [{ name: copy("web.cards.e727b8cc2df0"), kind: "capture" }],
-			meta: copy("web.cards.de6785d99e02"),
 			tags: [],
 			body: value
 				.split(/\n{2,}/)

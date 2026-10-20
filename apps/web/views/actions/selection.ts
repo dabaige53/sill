@@ -1,4 +1,5 @@
 import type { AppController } from "../app.ts";
+import { MotionEngine } from "../../interactions/motion.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
 function select(this: AppController, { id }: ActionContext) {
@@ -47,9 +48,30 @@ function selectedTag(this: AppController) {
 }
 
 function aiContextRemove(this: AppController, { id }: ActionContext) {
-	this.aiSelectionIds = this.aiSelectionIds.filter((n) => n !== id);
-	this.renderAIDock();
-	document.getElementById("ai-dock-input")?.focus({ preventScroll: true });
+	const node = document.querySelector<HTMLElement>(
+		`#ai-dock [data-ai-context="${CSS.escape(id)}"]`,
+	);
+	if (node?.inert) return;
+	if (node) node.inert = true;
+	const finish = () => {
+		if (node && !node.isConnected) return;
+		this.aiSelectionIds = this.aiSelectionIds.filter((n) => n !== id);
+		this.renderAIDock();
+		document.getElementById("ai-dock-input")?.focus({ preventScroll: true });
+	};
+	const style = node && getComputedStyle(node);
+	const animation =
+		node &&
+		MotionEngine.animate(
+			node,
+			[
+				{ opacity: style.opacity, transform: style.transform },
+				{ opacity: 0, transform: "translateY(4px)" },
+			],
+			{ duration: MotionEngine.time("dur-press") },
+		);
+	if (animation) animation.finished.then(finish, () => {});
+	else finish();
 }
 
 export const selectionActions = {

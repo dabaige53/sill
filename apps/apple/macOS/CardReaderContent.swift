@@ -64,14 +64,16 @@ extension CardReader {
             NativeIcon(name: "file", size: AppleMetrics.font16)
             VStack(alignment: .leading, spacing: AppleMetrics.space4) {
               Text(file["name"]?.string ?? "")
-              Text(file["meta"]?.string ?? "").font(.system(size: AppleMetrics.font13))
+              Text(fileDetails(file)).font(.system(size: AppleMetrics.font13))
                 .foregroundStyle(AppleColors.secondary)
             }
             Spacer()
-            if let time = file["time"]?.number {
-              Text(cardDay(Date(timeIntervalSince1970: time / 1000))).font(
-                .system(size: AppleMetrics.font12)
-              ).foregroundStyle(AppleColors.secondary)
+            if let date = file["modifiedAt"]?.string {
+              Text(date).font(.system(size: AppleMetrics.font12))
+                .foregroundStyle(AppleColors.secondary)
+            }
+            if let raw = file["url"]?.string, let url = URL(string: raw) {
+              Link(destination: url) { NativeIcon(name: "arrow", size: AppleMetrics.font16) }
             }
           }.padding(.vertical, AppleMetrics.space12)
         }
@@ -129,9 +131,10 @@ extension CardReader {
       CardAvatar(name: card.fields["sender"]?.string ?? card.source, size: 36)
       VStack(alignment: .leading, spacing: AppleMetrics.space4) {
         Text(card.fields["sender"]?.string ?? card.source).fontWeight(.semibold)
-        Text(Copy.text("web.panels.711078d887e0") + (card.fields["meta"]?.string ?? "")).font(
-          .system(size: AppleMetrics.font13)
-        ).foregroundStyle(AppleColors.secondary)
+        if let recipients = card.fields["recipients"]?.strings, !recipients.isEmpty {
+          Text(Copy.text("web.metadata.recipients") + " · " + recipients.joined(separator: " / "))
+            .font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+        }
       }
     }
   }
@@ -182,23 +185,63 @@ extension CardReader {
       ).frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
     }.buttonStyle(.plain).accessibilityLabel(label).help(label).disabled(model.busy)
   }
+  private func fileDetails(_ file: JSONValue) -> String {
+    var parts = [file["mimeType"]?.string].compactMap { $0 }
+    if let bytes = file["sizeBytes"]?.number {
+      parts.append(ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file))
+    }
+    return parts.joined(separator: " · ")
+  }
   @ViewBuilder func metadata(_ card: Card) -> some View {
-    if let text = card.dateText(card.fields["published_at"] == nil ? "publishedAt" : "published_at")
-    {
-      let parts = text.prefix(10).split(separator: "-").compactMap { Int($0) }
-      if parts.count == 3 {
-        let year = parts[0] == Calendar.current.component(.year, from: Date()) ? "" : "\(parts[0])年"
-        Text("\(year)\(parts[1])月\(parts[2])日").help(text)
+    VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+      let authors = (card.fields["authors"]?.array ?? []).compactMap { $0["name"]?.string }
+      if !authors.isEmpty {
+        Text(Copy.text("web.metadata.authors") + " · " + authors.joined(separator: " / "))
       }
+      if let publisher = card.fields["publisher"]?["name"]?.string {
+        Text(Copy.text("web.metadata.publisher") + " · " + publisher)
+      }
+      if let text = card.dateText("publishedAt") {
+        let parts = text.prefix(10).split(separator: "-").compactMap { Int($0) }
+        if parts.count == 3 {
+          let year =
+            parts[0] == Calendar.current.component(.year, from: Date()) ? "" : "\(parts[0])年"
+          Text("\(year)\(parts[1])月\(parts[2])日").help(text)
+        }
+      }
+      ForEach(["sentAt", "takenAt"], id: \.self) { field in
+        if let text = card.dateText(field) {
+          Text(
+            Copy.text(field == "sentAt" ? "web.metadata.sent" : "web.metadata.taken") + " · " + text
+          )
+        }
+      }
+      if let zone = card.fields["timeZone"]?.string { Text(zone) }
+      if let project = card.fields["project"]?["name"]?.string {
+        Text(Copy.text("web.metadata.project") + " · " + project)
+      }
+      if let count = card.fields["chapterCount"]?.number {
+        Text(Copy.text("web.metadata.chapters") + " \(Int(count))")
+      }
+      if let start = card.dateText("coverageStart"), let end = card.dateText("coverageEnd") {
+        Text(Copy.text("web.metadata.coverage") + " " + start + " – " + end)
+      }
+      if let caption = card.fields["caption"]?.string { Text(caption) }
     }
   }
-  @ViewBuilder func sourceNote(_ card: Card) -> some View {
-    let note =
-      ["task", "reminder", "event", "mail", "file"].contains(card.type)
-      ? "" : card.fields["meta"]?.string ?? ""
-    if !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      Text(note).fixedSize(horizontal: false, vertical: true)
-        .font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+  @ViewBuilder func personalNote(_ card: Card) -> some View {
+    if let note = model.items[card.id]?["note"]?.string,
+      !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    {
+      VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+        Text(Copy.text("web.metadata.note")).font(.system(size: AppleMetrics.font12))
+          .foregroundStyle(AppleColors.secondary)
+        Text(note).font(.system(size: AppleMetrics.font15))
+      }.padding(AppleMetrics.space16).frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
+        .overlay(
+          RoundedRectangle(cornerRadius: AppleMetrics.space12)
+            .strokeBorder(AppleColors.primary.opacity(AppleMetrics.borderOpacity), lineWidth: 0.5))
     }
   }
 

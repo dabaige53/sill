@@ -54,7 +54,14 @@ export async function runSelectionPressMenu({
 						.evaluateAll((buttons: HTMLElement[]) =>
 							buttons.map((button) => button.dataset.action),
 						),
-					["selected-bookmark", "selected-later", "selected-tag", "clear-selection", "selected-ai"],
+					[
+						"selected-bookmark",
+						"selected-later",
+						"selected-tag",
+						"selected-ai",
+						"clear-selection",
+						"selected-ai",
+					],
 				);
 				for (const [action, glyph] of [
 					["bookmark", "bookmark"],

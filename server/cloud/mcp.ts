@@ -185,7 +185,8 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 						.map((t?: any) => ({
 							...t,
 							description:
-								t.name + " through the same authorized Sill data layer used by the webpage.",
+								t.name +
+								" through the authorized Sill data layer. Card contract 3.0.0 uses explicit authors, publisher, dates, bodyCoverage and readingEstimate (seconds/origin/scope/method). Card and file meta are rejected. Personal notes belong to state.note. Preserve version and idempotency conditions.",
 							annotations: {
 								readOnlyHint: [
 									"sill_getWorkspace",

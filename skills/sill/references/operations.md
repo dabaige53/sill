@@ -1,5 +1,7 @@
 # 云端操作协议
 
+卡片字段约定为 3.0.0。仓库工具定义已更新；未部署或宿主缓存未刷新时，须以当前连接实际发现的 inputSchema 为准，不声称新字段已在线可用。
+
 只使用当前连接发现的工具。本文说明已发布的接口；宿主缓存可能尚未包含新增工具。没有发现工具时报告缺少能力，不声称已经执行。
 
 ## 查询、筛选与导出
@@ -41,7 +43,7 @@
 }
 ```
 
-示例 ID、版本、幂等键须换成实际值。`changes` 只发送修改字段；`state` 合并子字段。数组整体替换，先保留不需改动的元素；嵌套对象也整体替换，例如改 `why.reason` 时保留 `why.basis`。没有变化就不写入。不接受 `null` 清空；空数组、空文本还须满足卡片规则。
+示例 ID、版本、幂等键须换成实际值。`changes` 只发送修改字段；`state` 合并子字段。数组整体替换，先保留不需改动的元素；嵌套对象也整体替换，例如改 `why.reason` 时保留 `why.basis`。没有变化就不写入。除 `readingEstimate:null` 明确清除估算外，不接受 `null` 清空；空数组、空文本还须满足卡片规则。
 
 不要把读取结果中的 `id`、`revision`、`created_at`、`updated_at`、`deleted` 等服务端字段塞进 `changes`。未知卡片字段由服务端保留。
 
@@ -170,3 +172,17 @@
 每次新写入使用新 UUID 作为幂等键。批量成功回放返回原快照，可能早于后续编辑；需要最新状态时另读 `sill_getWorkspace`。删除由明确回执确认；一次列表未出现或权限错误不能证明删除成功。单卡删除仍支持 `{id,idempotency_key,body:{expectedRevision}}`。
 
 事件工具只用于已配置且已授权的事件。`queued / accepted` 不表示外部执行完成。当前没有 Webhook 投递器、内置助手或可靠执行器；批量操作不接受事件 `metadata`，不能用它伪造事件结果。外部执行使用助手宿主的工具，并核对真实回执。
+
+## 明确卡片字段
+
+不要写 card.meta 或 files[].meta/time。来源 sources、作者 authors、发布方 publisher 分开。卡片内容日期 publishedAt / modifiedAt / savedAt 使用 YYYY-MM-DD 或带时区 ISO 时间；不以 Sill 系统 created_at / updated_at 替代。阅读估算不是 reading.add 实际计时。
+
+文章示例字段：
+
+```json
+{"type":"article","title":"文章","sources":[{"name":"某阅读器","kind":"readwise"}],"authors":[{"name":"作者"}],"publisher":{"name":"发布方"},"publishedAt":"2026-10-20","body":["正文"],"bodyCoverage":"full","readingEstimate":{"seconds":360,"origin":"provided","scope":"full"}}
+```
+
+readingEstimate 使用正整数秒；origin 为 provided（有外部明确估算）或 calculated（按已保存正文计算），scope 为 full 或 available。calculated 必填 method；全文估算要求 bodyCoverage=full。不按未知语言速度虚构估算。正文或覆盖范围改变时必须同时提供新的估算对象或 readingEstimate:null 清除；只有此字段允许 null。用户备注通过 changes.state.note 或 item.patch 写入，不能写到正文事实。
+
+专属字段：邮件 sentAt（必须有时区时刻）/ recipients；待办和提醒 project；日程 timeZone（IANA）；媒体 chapterCount 与既有秒数 duration；文件 files[].mimeType / sizeBytes / modifiedAt / url；照片 takenAt / caption；摘要 coverageStart / coverageEnd（毫秒，成对且结束晚于开始）。authors、publisher、bodyCoverage 与 readingEstimate 的适用类型见字段字典。数组与对象仍整体替换；先读原版本，保留不改字段。旧 meta 无推断、回退、双写或自动迁移。

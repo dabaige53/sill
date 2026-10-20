@@ -1,3 +1,4 @@
+import { copy } from "../copy.ts";
 import type { Card } from "../../../contracts/card.ts";
 
 export function cardSource(card: Pick<Card, "sources">): string {
@@ -40,8 +41,8 @@ export function cardDate(value: unknown): { datetime: string; text: string } | n
 
 export function cardDates(card: Record<string, any>) {
 	return {
-		published: cardDate(card.published_at ?? card.publishedAt),
-		saved: cardDate(card.saved_at ?? card.savedAt),
+		published: cardDate(card.publishedAt),
+		saved: cardDate(card.savedAt),
 		created: cardDate(card.created_at),
 		updated: cardDate(card.updated_at),
 	};
@@ -51,4 +52,25 @@ export function detailSource(card: Pick<Card, "sources">): string {
 	return [
 		...new Set((card.sources || []).map((source) => source.name.trim()).filter(Boolean)),
 	].join(" · ");
+}
+
+/** All surfaces format explicit estimates identically; no text inference. */
+export function cardReadingTime(card: Pick<Card, "readingEstimate">): string {
+	const estimate = card.readingEstimate;
+	return estimate
+		? `${copy(estimate.scope === "full" ? "web.metadata.readingFull" : "web.metadata.readingAvailable")} ${Math.ceil(estimate.seconds / 60)} ${copy("web.metadata.readingSuffix")}`
+		: "";
+}
+
+export function fileDescription(file: NonNullable<Card["files"]>[number]): string {
+	const bytes = file.sizeBytes;
+	const size =
+		bytes === undefined
+			? ""
+			: bytes < 1024
+				? `${bytes} B`
+				: bytes < 1048576
+					? `${(bytes / 1024).toFixed(1)} KB`
+					: `${(bytes / 1048576).toFixed(1)} MB`;
+	return [file.mimeType, size].filter(Boolean).join(" · ");
 }

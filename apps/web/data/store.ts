@@ -203,7 +203,7 @@ const Store: CardStore = {
 			shift({
 				...c,
 				tasks: c.tasks?.map((t) => ({ ...t })),
-				files: c.files?.map((f) => ({ ...f, time: f.time ? f.time + offset : undefined })),
+				files: c.files?.map((f) => ({ ...f })),
 			}),
 		);
 		if (valid && raw.version >= 3 && Array.isArray(raw.cards)) this.state.cards = raw.cards;
