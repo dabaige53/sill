@@ -412,3 +412,28 @@ struct LaunchOptionTests {
     #expect(drag.end(at: CGPoint(x: 300, y: 520)) == nil)
   }
 }
+
+@MainActor struct ArchiveTests {
+  @Test func restoreReturnsCardToDeskWithUndo() async throws {
+    let (workspace, _) = await ready()
+    let feed = Feed(workspace: workspace)
+    workspace.change("b", ["archived": .bool(true)])
+    await until { workspace.queue.idle && !workspace.state("b").isWriting }
+    feed.refreshMembership()
+    #expect(feed.shelfCount == 1)
+    #expect(!feed.cardOrder.contains("b"))
+    #expect(ArchivePanel.groups(workspace: workspace, now: Format.milliseconds()).count == 1)
+
+    workspace.restore("b") { feed.refreshMembership() }
+    #expect(!workspace.state("b").archived)
+    #expect(feed.cardOrder.contains("b"))
+    #expect(feed.shelfCount == 0)
+    let notice = try #require(workspace.notice)
+    #expect(notice.text == Copy.text("web.app.fff336942d9b"))
+    await until { workspace.queue.idle && !workspace.state("b").isWriting }
+    notice.undo?()
+    #expect(workspace.state("b").archived)
+    #expect(!feed.cardOrder.contains("b"))
+    #expect(feed.shelfCount == 1)
+  }
+}

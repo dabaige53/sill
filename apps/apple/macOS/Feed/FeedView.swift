@@ -21,6 +21,9 @@ struct FeedView: View {
         Color.clear.frame(height: topInset)
         if feed.empty != .none {
           EmptyFeed(empty: feed.empty)
+          if shelf {
+            ShelfEntry(count: feed.shelfCount).frame(width: geometry.columnWidth)
+          }
         } else {
           let entering = !feed.entered
           MasonryLayout(geometry: geometry) {
@@ -31,6 +34,8 @@ struct FeedView: View {
                 .layoutValue(
                   key: StackSpacing.self, value: entry.isStack ? AppleMetrics.stackLayoutExtra : 0)
             }
+            // Web `ShelfView`: one more item after the last page of the desk.
+            if shelf { ShelfEntry(count: feed.shelfCount).transition(.opacity) }
           }
           .frame(width: geometry.width)
           .animation(Motion.layout, value: feed.entries)
@@ -44,6 +49,9 @@ struct FeedView: View {
     .scrollIndicators(.hidden)
     .environment(\.relatedCards, { [workspace] id in workspace.model(id) })
   }
+
+  /// Browsing only, after the last page, and only with something on the shelf.
+  private var shelf: Bool { !feed.filtering && !feed.hasMore && feed.shelfCount > 0 }
 }
 
 /// Feed motion (motion.md): cards that stay move to their new place in `layout` 220ms; new cards

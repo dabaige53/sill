@@ -15,6 +15,7 @@ struct DesktopView: View {
   @Environment(AIContext.self) private var ai
   @Environment(CardDrag.self) private var drag
   @Environment(CardMenu.self) private var menu
+  @Environment(Panels.self) private var panels
   @State private var scroll: FeedScroll?
   @State private var cardIntents = CardIntents()
   @State private var readerIntents = ReaderIntents()
@@ -62,6 +63,7 @@ struct DesktopView: View {
           DragPile(cardWidth: geometry.columnWidth)
         }
         ReaderOverlay()
+        PanelOverlay()
         // Over an open detail too (Web moves `#toast` into the dialog).
         Toast(hidden: drag.active)
       }
@@ -93,8 +95,12 @@ struct DesktopView: View {
       ai.prune { workspace.model($0) != nil }
     }
     .onChange(of: reader.presented) { _, open in
-      PointerRouter.shared.enabled = !open
+      PointerRouter.shared.enabled = !open && panels.kind == nil
       if open { menu.close() }
+    }
+    .onChange(of: panels.kind) { _, kind in
+      PointerRouter.shared.enabled = kind == nil && !reader.presented
+      if kind != nil { menu.close() }
     }
   }
 
@@ -130,12 +136,13 @@ struct DesktopView: View {
     let selection = selection
     let reader = reader
     let shell = shell
+    let panels = panels
     let workspace = workspace
     escape = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
       guard event.keyCode == 53 else { return event }
       let typing = event.window?.firstResponder is NSText
       let handled = MainActor.assumeIsolated {
-        guard !reader.presented, !shell.searchFocused else { return false }
+        guard !reader.presented, panels.kind == nil, !shell.searchFocused else { return false }
         if drag.active {
           drag.cancel()
         } else if let id = menu.id {

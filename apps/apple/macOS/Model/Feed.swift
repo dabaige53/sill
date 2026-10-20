@@ -47,6 +47,8 @@ enum FeedEntry: Identifiable, Equatable {
   private(set) var query = ""
   private(set) var entries: [FeedEntry] = []
   private(set) var hasMore = false
+  /// Cards put away, for the shelf row at the end of the desk.
+  private(set) var shelfCount = 0
   private(set) var empty = Empty.none
   /// Increments when the entries are rebuilt for a new scope, so the card area can restore its place.
   private(set) var scopeVersion = 0
@@ -147,6 +149,8 @@ enum FeedEntry: Identifiable, Equatable {
     if !keepClock { now = Format.milliseconds() }
     let state = workspace.state
     let text = query.trimmingCharacters(in: .whitespaces).lowercased()
+    let shelved = workspace.cards.reduce(0) { $0 + (state($1.id).archived ? 1 : 0) }
+    if shelved != shelfCount { shelfCount = shelved }
     let cards = FeedPolicy.sort(
       workspace.cards.filter { card in
         let s = state(card.id)

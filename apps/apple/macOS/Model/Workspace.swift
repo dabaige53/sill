@@ -255,6 +255,22 @@ import SillKit
     toast(text) { [weak self] in self?.change(before, queued: true) }
   }
 
+  /// Web `restoreCard`: back on the desk, with an undo that puts it away again. `then` runs after
+  /// the change and after an undo, so the feed can take the card in or out.
+  func restore(_ id: String, then: @escaping @MainActor () -> Void) {
+    let before: [String: JSONValue] = [
+      "archived": .bool(true),
+      "restoredAt": state(id).confirmed["restoredAt"] ?? .number(0),
+    ]
+    guard change(id, ["archived": .bool(false), "restoredAt": .number(Format.milliseconds())])
+    else { return }
+    then()
+    toast(Copy.text("web.app.fff336942d9b")) { [weak self] in
+      guard let self, self.change(id, before, queued: true) else { return }
+      then()
+    }
+  }
+
   func toggleRead(_ id: String) { setRead(id, !state(id).read) }
 
   func setRead(_ id: String, _ read: Bool) {

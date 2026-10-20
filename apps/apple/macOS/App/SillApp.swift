@@ -18,6 +18,7 @@ import SwiftUI
         .environment(app.ai)
         .environment(app.drag)
         .environment(app.menu)
+        .environment(app.panels)
         .preferredColorScheme(app.workspace.preferences.colorScheme)
         .onAppear {
           Keyboard.install()
@@ -45,6 +46,7 @@ import SwiftUI
   let chrome = Chrome()
   let shell = Shell()
   let ai = AIContext()
+  let panels = Panels()
   let drag = CardDrag()
 
   init() {
