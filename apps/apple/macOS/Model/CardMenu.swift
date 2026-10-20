@@ -3,7 +3,8 @@ import Observation
 import SillKit
 import SwiftUI
 
-/// The card's more menu (Web `more` / `closeMore`). One menu at a time; the open card draws it.
+/// The card's menu (Web `more` / `closeMore`), opened by right-click; the Mac card has no more
+/// button. One menu at a time; the open card draws it.
 /// A click anywhere outside it, Esc, or any item closes it. The click that closes it still goes
 /// where it was aimed.
 @MainActor @Observable final class CardMenu {
@@ -16,8 +17,8 @@ import SwiftUI
 
   init(workspace: Workspace) { self.workspace = workspace }
 
-  /// The more button and right-click toggle the menu. A press outside closes it first, so the
-  /// same press on its own card's button does not open it again.
+  /// Right-click toggles the menu. A right-click outside closes it first, so the same press on
+  /// its own card does not open it again.
   func toggle(_ id: String) {
     if self.id == id {
       close()

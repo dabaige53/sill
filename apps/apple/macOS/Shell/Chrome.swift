@@ -13,11 +13,11 @@ import SwiftUI
   }
 
   func show() {
-    if tucked { withAnimation(Motion.sheet(AppleMetrics.motionRailShow)) { tucked = false } }
+    if tucked { withAnimation(Motion.ease(AppleMetrics.motionRailShow)) { tucked = false } }
   }
   func hide() {
     guard !pinned, !tucked else { return }
-    withAnimation(Motion.sheet(AppleMetrics.motionRailHide)) { tucked = true }
+    withAnimation(Motion.ease(AppleMetrics.motionRailHide)) { tucked = true }
   }
 }
 

@@ -76,12 +76,6 @@ struct CardTile: View {
       .overlay(shape.strokeBorder(border, lineWidth: AppleMetrics.lineWidth))
       .overlay(shape.strokeBorder(selection, lineWidth: AppleMetrics.selectionLineWidth))
       .shadow(lifted ? .hover : .card, visible: !faded)
-      .overlay(alignment: .topTrailing) {
-        MoreButton(visible: (lifted || state.isWriting || state.menuOpen) && !selecting) {
-          intents.menu(card.id)
-        }
-        .padding(AppleMetrics.moreInset)
-      }
       .overlay { focusRing }
   }
 
@@ -110,34 +104,6 @@ private struct CardAccessibility: ViewModifier {
       .accessibilityAddTraits(traits)
       .accessibilityAction { intents.open(card.id) }
       .accessibilityAction(named: Copy.text("web.templates.ee9430845e26")) { intents.menu(card.id) }
-  }
-}
-
-/// The more button: hidden at rest, a glass circle with bold dots on hover or focus.
-struct MoreButton: View {
-  let visible: Bool
-  let action: () -> Void
-  @State private var hovered = false
-  var body: some View {
-    Button(action: action) {
-      Icon("more", size: AppleMetrics.space16, weight: AppleMetrics.moreStroke)
-        .foregroundStyle(AppleColors.primary)
-        .frame(width: AppleMetrics.moreSize, height: AppleMetrics.moreSize)
-        .background(
-          Circle().fill(hovered ? AppleColors.card : AppleColors.glass)
-            .background(.ultraThinMaterial, in: Circle())
-        )
-        .overlay(Circle().strokeBorder(AppleColors.fixedWhite72, lineWidth: AppleMetrics.lineWidth))
-        .shadow(.more)
-        .contentShape(Circle().inset(by: -AppleMetrics.space6))
-    }
-    // `.card-more-trigger` is an icon button: its own glass disc, the shared press scale.
-    .buttonStyle(IconPress(highlight: false))
-    .opacity(visible ? 1 : 0)
-    .allowsHitTesting(visible)
-    .onHover { hovered = $0 }
-    .animation(Motion.hover, value: visible)
-    .accessibilityLabel(Copy.text("web.templates.ee9430845e26"))
   }
 }
 

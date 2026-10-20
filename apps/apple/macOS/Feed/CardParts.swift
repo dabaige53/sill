@@ -46,16 +46,13 @@ extension EnvironmentValues {
 struct CardHead<Right: View>: View {
   let icon: AnyView
   let text: String
-  var reserveMore = true
   @ViewBuilder var right: Right
 
   init(
-    card: CardModel, text: String, reserveMore: Bool = true,
-    @ViewBuilder right: () -> Right = { EmptyView() }
+    card: CardModel, text: String, @ViewBuilder right: () -> Right = { EmptyView() }
   ) {
     self.icon = AnyView(SourceIcon(card: card))
     self.text = text
-    self.reserveMore = reserveMore
     self.right = right()
   }
 
@@ -69,8 +66,6 @@ struct CardHead<Right: View>: View {
     }
     .font(.sans(AppleMetrics.font13))
     .frame(minHeight: AppleMetrics.cardHeadHeight)
-    // The more button's slot stays free; covers carry it over the image instead.
-    .padding(.trailing, reserveMore ? AppleMetrics.space30 : 0)
   }
 }
 
