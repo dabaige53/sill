@@ -32,7 +32,7 @@
 | 云端服务 | `npm run test:supabase`、`npm run test:cloud-app` | 本地检查不代替生产数据和账号验收 |
 | OAuth | `npm run test:oauth` | 真实授权另行验收 |
 | 云端页面 | `npm run test:cloud-browser`、`npm run test:cloud-app-browser`、`npm run test:cloud-operations` | 不默认访问生产 |
-| Mac | `npm run build:macos`、`npm run test:macos` | Swift 模型检查及产物验签，不启动应用，不代替桌面视觉验收 |
+| Mac | `npm run test:macos` | SillKit 数据层检查；macOS 界面层正在重建，`npm run build:macos` 暂不可用 |
 | 格式与类型 | `npm run lint`、`npm run typecheck` | 只读；默认规则警告不代表已实现全仓 strict |
 | Postgres | `npm run test:supabase:postgres` | 需要可用 Docker；使用合成容器数据，不连接生产 |
 

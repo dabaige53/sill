@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,10 @@ const app = resolve(output, "Sill.app");
 const contents = resolve(app, "Contents");
 const resources = resolve(contents, "Resources");
 const cache = resolve(apple, ".build");
+if (!existsSync(resolve(apple, "macOS"))) {
+	console.error("apps/apple/macOS 不存在：macOS 界面层正在重建，暂时无法打包 Sill.app。");
+	process.exit(1);
+}
 const environment = {
 	...process.env,
 	CLANG_MODULE_CACHE_PATH: resolve(cache, "module-cache"),

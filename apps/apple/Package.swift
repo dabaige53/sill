@@ -7,7 +7,6 @@ let package = Package(
   products: [
     .library(name: "SillKit", targets: ["SillKit"]),
     .library(name: "SillMobile", targets: ["SillMobile"]),
-    .executable(name: "Sill", targets: ["Sill"]),
   ],
   dependencies: [
     .package(url: "https://github.com/apple/swift-openapi-generator", exact: "1.9.0"),
@@ -18,14 +17,11 @@ let package = Package(
       name: "SillKit",
       dependencies: [.product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")],
       path: "SillKit", plugins: ["CardGenerator"]),
-    .executableTarget(
-      name: "Sill", dependencies: ["SillKit"], path: "macOS", resources: [.process("Resources")]),
     .target(name: "SillMobile", dependencies: ["SillKit"], path: "iOS"),
     .executableTarget(name: "SillStoreProbe", dependencies: ["SillKit"], path: "Tests/Probe"),
     .testTarget(
       name: "SillKitTests", dependencies: ["SillKit", "SillStoreProbe"], path: "Tests",
       exclude: ["Probe"]),
-    .testTarget(name: "SillDesktopTests", dependencies: ["Sill", "SillKit"], path: "DesktopTests"),
     .plugin(
       name: "CardGenerator", capability: .buildTool(),
       dependencies: [.product(name: "swift-openapi-generator", package: "swift-openapi-generator")]),
