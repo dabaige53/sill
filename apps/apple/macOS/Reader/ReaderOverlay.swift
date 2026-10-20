@@ -62,6 +62,9 @@ private struct LayerView: View {
       if layer.full {
         ReaderPage(card: card, state: state, layer: layer)
           .transition(.opacity)
+      } else if card.kind == .photo {
+        PhotoLightbox(card: card, state: state)
+          .transition(.opacity)
       } else {
         PreviewSheet(
           card: card, state: state, layer: layer,
