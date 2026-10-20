@@ -159,6 +159,7 @@ struct StackTile: View {
   @State private var pressed = false
   @State private var width: CGFloat = 1
   @State private var settling = false
+  @State private var wheelIdle: Task<Void, Never>?
   @FocusState private var focused: Bool
 
   var body: some View {
@@ -188,7 +189,10 @@ struct StackTile: View {
     .animation(Motion.press, value: pressed)
     .zIndex(dragX != 0 || settling ? 20 : 0)
     .contentShape(shape)
-    .onHover { hovered = $0 }
+    .onHover { inside in
+      hovered = inside
+      StackWheel.shared.hover(key, inside: inside, scroll: wheel)
+    }
     .gesture(deckGesture)
     .focusable()
     .focusEffectDisabled()
@@ -288,6 +292,26 @@ struct StackTile: View {
       }
   }
 
+  /// Web trackpad deck: a sideways swipe drags the top card; past 35% of the width it goes to
+  /// the next card, and a hand that stops for 140ms short of that lets the card settle back.
+  /// Coasting after the hand lifts does nothing.
+  private func wheel(_ delta: CGFloat) {
+    guard !settling else { return }
+    wheelIdle?.cancel()
+    let index = position.index
+    let next = max(-width, min(width, dragX + delta))
+    dragX = next < 0 ? (index + 1 < cards.count ? next : 0) : (index > 0 ? next : 0)
+    if abs(dragX) > width * AppleMetrics.motionDeckWheelTravel {
+      settle(dragX < 0 ? 1 : -1)
+      return
+    }
+    wheelIdle = Task {
+      try? await Task.sleep(for: .seconds(AppleMetrics.motionDeckWheelIdle))
+      guard !Task.isCancelled, !settling, dragX != 0 else { return }
+      settle(0)
+    }
+  }
+
   /// 260ms settle without bounce; at either end the card stays.
   private func settle(_ direction: Int) {
     let target = position.index + direction
@@ -343,6 +367,42 @@ struct OpenStack: View {
         CardTile(card: card, state: state, context: compact, selecting: selection.active)
           .zIndex(state.menuOpen ? 10 : 0)
       }
+    }
+  }
+}
+
+/// Sideways scrolling goes to the stack under the pointer. One window-level monitor for every
+/// stack; vertical scrolling and momentum pass through to the feed.
+@MainActor final class StackWheel {
+  static let shared = StackWheel()
+  private var hovered: (key: String, scroll: (CGFloat) -> Void)?
+  private var monitor: Any?
+
+  func hover(_ key: String, inside: Bool, scroll: @escaping (CGFloat) -> Void) {
+    if inside {
+      hovered = (key, scroll)
+    } else if hovered?.key == key {
+      hovered = nil
+    }
+    install()
+  }
+
+  private func install() {
+    guard monitor == nil else { return }
+    monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+      let dx = event.scrollingDeltaX
+      let dy = event.scrollingDeltaY
+      let coasting = !event.momentumPhase.isEmpty
+      let precise = event.hasPreciseScrollingDeltas
+      guard abs(dx) > abs(dy) else { return event }
+      let handled = MainActor.assumeIsolated {
+        guard let stack = StackWheel.shared.hovered, PointerRouter.shared.enabled else {
+          return false
+        }
+        if !coasting { stack.scroll(precise ? dx : dx * AppleMetrics.wheelLineHeight) }
+        return true
+      }
+      return handled ? nil : event
     }
   }
 }
