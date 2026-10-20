@@ -251,7 +251,7 @@ try {
 		await page.waitForFunction(() => (document.querySelector("#modal") as HTMLDialogElement).open);
 		await page.keyboard.press("Escape");
 		await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
-		await page.locator("#nav [data-action=nav][data-extra=settings]").click();
+		await page.locator("#account").click();
 		await page.locator(".settings-nav").waitFor();
 		assert.equal(
 			await page.locator("[data-action=settings-group][data-extra=sources]").count(),
@@ -261,10 +261,7 @@ try {
 		await page.locator("[data-action=settings-group][data-extra=add]").click();
 		await page.locator(".settings-main #capture-text").waitFor();
 		assert.equal(await page.locator("#nav [data-action=capture]").count(), 0);
-		assert.equal(
-			await page.locator("#modal").evaluate((e) => e.classList.contains("page")),
-			mobile,
-		);
+		assert.equal(await page.locator("#modal").evaluate((e) => e.classList.contains("page")), true);
 		await page.locator("[data-action=settings-group][data-extra=data]").click();
 		assert.match(
 			await page.locator(".settings-main").textContent(),

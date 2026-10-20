@@ -111,7 +111,7 @@ export function CloudWelcome({
 export function CloudSettings({ user, host }: { user: boolean; host: boolean }) {
 	return (
 		<>
-			<h1 id="modal-title">{copy("web.cloudentry.ebdc835e8f87")}</h1>
+			<h2>{copy("web.cloudentry.ebdc835e8f87")}</h2>
 			<p className="panel-sub">{copy("web.cloudentry.67c5f7479766")}</p>
 			<p className="panel-sub">
 				{host ? copy("web.cloudentry.c360ffadc6df") : copy("web.cloudentry.adf4e8d0d4f0")}

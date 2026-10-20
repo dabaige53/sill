@@ -252,30 +252,77 @@ body.is-pulling main {
 	color: var(--muted);
 	overflow-wrap: anywhere;
 }
-.ai-context-empty {
-	margin: auto 0;
-	text-align: center;
-	font-size: var(--text-control);
-}
 .ai-composer {
 	display: flex;
-	align-items: flex-end;
-	gap: var(--space-8);
+	flex-direction: column;
+	gap: var(--space-4);
 	border: 0;
 	border-radius: var(--panel-radius);
-	padding: var(--space-16);
+	padding: var(--space-12);
 	flex: none;
-	background: var(--surface);
+	background: var(--ai-composer);
+	color: var(--ai-ink);
 }
 .ai-composer textarea {
-	flex: 1;
+	width: 100%;
 	min-width: 0;
+	min-height: var(--space-36);
+	height: var(--space-36);
+	padding: var(--space-2) var(--space-4);
 	resize: none;
-	max-height: 160px;
 	border: 0;
+	border-radius: 0;
 	background: transparent;
-	color: var(--ink);
-	font: inherit;
+	color: inherit;
+	font-size: var(--text-card-title);
+	line-height: var(--space-24);
+	outline: none;
+}
+.ai-composer-tools {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+}
+.ai-composer-tools .icon-button {
+	width: var(--space-32);
+	height: var(--space-32);
+	min-width: var(--space-32);
+}
+.ai-composer-tools .ai-attach {
+	margin-right: auto;
+	border-radius: var(--space-12);
+	background: var(--ai-control);
+}
+.ai-attach .icon {
+	transform: rotate(-45deg);
+}
+.ai-composer-tools .ai-send {
+	width: var(--space-24);
+	height: var(--space-24);
+	min-width: var(--space-24);
+	border-radius: var(--pill-radius);
+	border: var(--space-2) solid var(--ai-ink);
+}
+.ai-speak {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	min-width: calc(var(--space-60) + var(--space-24));
+	height: var(--space-32);
+	padding-inline: var(--space-12);
+	border-radius: var(--pill-radius);
+	background: var(--ai-ink);
+	color: var(--card);
+	font-size: var(--text-card-title);
+	font-weight: 500;
+}
+.ai-composer-tools button:disabled {
+	opacity: 1;
+}
+#modal.page.panel:has(.ai-conversation),
+#modal.page.panel .ai-conversation {
+	background: var(--card);
 }
 .soon-badge {
 	padding: var(--space-3) var(--space-10);
@@ -305,26 +352,8 @@ body.is-pulling main {
 	}
 }
 
-/* Refresh temporarily owns the mark slot; the category row never gets covered. */
-.home-mark.is-refreshing-mark {
+/* Refresh stays centered in the heading without replacing the Sill title. */
+body:has(.home-top.is-tucked) .pull-ring.in-home-heading,
+body:has(#modal[open]) .pull-ring.in-home-heading {
 	visibility: hidden;
-}
-body:has(.home-top.is-tucked) .pull-ring.in-home-mark,
-body:has(#modal[open]) .pull-ring.in-home-mark {
-	visibility: hidden;
-}
-
-.ai-composer textarea {
-	line-height: 1.6;
-	outline: none;
-}
-.ai-composer .icon-button {
-	border-radius: 50%;
-	background: var(--ink);
-	color: var(--card);
-}
-.ai-availability {
-	font-size: var(--text-caption);
-	text-align: center;
-	flex: none;
 }

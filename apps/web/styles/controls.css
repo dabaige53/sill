@@ -128,12 +128,6 @@ body:has(#modal[open]:not(.page)) #dock * {
 	place-items: center;
 	height: 28px;
 }
-.nav-label {
-	font-size: 10.5px;
-	line-height: 1;
-	font-weight: 600;
-	letter-spacing: 0.01em;
-}
 /* The current destination is immediate; the merged motion rules keep the lens stable. */
 .nav-lens {
 	position: absolute;

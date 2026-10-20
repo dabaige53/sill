@@ -210,8 +210,8 @@ export const appLifecycleMethods = {
 		return `${icon("person", 22)}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
 	},
 	navHTML(this: AppController) {
-		const tab = (key: string, face: string, label: string, aria = label, id = "") =>
-			`<button type="button" class="nav-tab"${id ? ` id="${id}"` : ""} data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span>${key === "settings" ? "" : `<span class="nav-label" aria-hidden="true">${label}</span>`}</button>`;
+		const tab = (key: string, face: string, label: string, aria = label) =>
+			`<button type="button" class="nav-tab" data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span></button>`;
 		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("search", icon("search", 22), copy("web.nav.search"))}</nav>`;
 	},
 	setNav(this: AppController, key: string) {

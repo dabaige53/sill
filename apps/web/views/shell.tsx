@@ -91,9 +91,6 @@ export function Navigation() {
 					<span className="nav-icon">
 						<Icon name={glyph} size={22} />
 					</span>
-					<span className="nav-label" aria-hidden="true">
-						{label}
-					</span>
 				</button>
 			))}
 		</nav>

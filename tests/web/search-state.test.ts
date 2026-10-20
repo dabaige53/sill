@@ -72,6 +72,46 @@ function fixture() {
 	return { dom, w, app, Store, Panels };
 }
 
+test("category browsing preserves home filters and expanded refinements", () => {
+	const f = fixture();
+	try {
+		const home = JSON.stringify(f.app.filter);
+		assert.equal(f.app.dialog.querySelectorAll(".search-category").length, 6);
+		assert.equal(f.app.dialog.querySelector(".search-refinements").open, false);
+		f.app.dialog.querySelector(".search-refinements").open = true;
+		f.app.action("filter-type", "", "task");
+		assert.equal(f.app.dialog.querySelector(".search-browse"), null);
+		assert.equal(f.app.dialog.querySelector(".search-refinements").open, true);
+		assert.deepEqual(
+			[...f.app.dialog.querySelectorAll("#search-results [data-card]")].map(
+				(card: HTMLElement) => card.dataset.card,
+			),
+			["b"],
+		);
+		assert.equal(JSON.stringify(f.app.filter), home);
+		f.app.action("filter-type", "", "all");
+		assert.equal(f.app.dialog.querySelectorAll(".search-category").length, 6);
+		assert.equal(f.app.dialog.querySelector(".search-refinements").open, true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("Tab reaches the collapsed search refinements", () => {
+	const f = fixture();
+	try {
+		f.app.dialog.innerHTML =
+			'<input id="filter-search"><details><summary>筛选</summary><button>收藏</button></details>';
+		f.w.HTMLElement.prototype.getClientRects = () => [{}];
+		const input = f.app.dialog.querySelector("input");
+		input.focus();
+		f.app.key({ key: "Tab", target: input, preventDefault() {} });
+		assert.equal(f.w.document.activeElement.tagName, "SUMMARY");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("search filters all shelves independently of the home projection", () => {
 	const f = fixture();
 	try {
@@ -287,12 +327,15 @@ test("shared card refresh keeps each surface's independent selection decoration"
 test("search rows name independent groups and omit the empty tag row", () => {
 	const f = fixture();
 	try {
-		const groups = f.app.dialog.querySelectorAll('.search-filter-items[role="group"]');
+		const groups = f.app.dialog.querySelectorAll("fieldset.search-filter-items");
 		assert.deepEqual(
 			[...groups].map((n) => n.getAttribute("aria-label")),
 			["类型", "状态"],
 		);
-		assert.equal(f.app.dialog.querySelectorAll('[data-action="filter-type"]').length, 7);
+		assert.equal(
+			f.app.dialog.querySelectorAll('.search-scope [data-action="filter-type"]').length,
+			7,
+		);
 		assert.equal(f.app.dialog.querySelectorAll('[data-action="filter-status"]').length, 3);
 		f.Store.state.cards[0].tags = ["<draft>"];
 		f.app.repaintSearch();

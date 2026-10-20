@@ -14,7 +14,7 @@ export async function runRecoveryLayout({
 	await scenario(
 		"Keyboard navigation reaches settings Add, persists a note, and exposes no removed source or import entries",
 		async (page?: any) => {
-			// ADR 0033 removes sources and imports; ADR 0035 keeps four places and moves Add into settings.
+			// ADR 0033 removes sources and imports; the main rail has three destinations and Add stays in avatar settings.
 			const removed = page.locator(
 				'#file-input,[data-action="sources"],[data-action="source-toggle"],[data-action="import"],[data-action="import-run"],[data-action="import-toggle"],[data-action="settings-group"][data-extra="sources"]',
 			);
@@ -24,17 +24,18 @@ export async function runRecoveryLayout({
 				await nav
 					.locator(".nav-tab")
 					.evaluateAll((nodes: HTMLElement[]) => nodes.map((node) => node.dataset.extra)),
-				["home", "search", "ai", "settings"],
+				["home", "ai", "search"],
 			);
 			assert.equal(await nav.locator('[data-action="capture"]').count(), 0);
 			await nav.getByRole("button", { name: "主页", exact: true }).focus();
-			for (const key of ["search", "ai", "settings"]) {
+			for (const key of ["ai", "search"]) {
 				await page.keyboard.press("Tab");
 				assert.equal(
 					await page.evaluate(() => (document.activeElement as HTMLElement).dataset.extra),
 					key,
 				);
 			}
+			await page.locator("#account").focus();
 			await page.keyboard.press("Enter");
 			const groups = page.getByRole("navigation", { name: "设置分组" });
 			await groups.waitFor();

@@ -97,7 +97,7 @@
 
 ## 间距与尺寸
 
-- 卡片内边距 `card-padding` 18（手机 `card-padding-sm` 14），积木之间 `block-gap` 8，封面内缩 `cover-inset` 8。
+- 卡片内边距 `card-padding` 18（手机 `card-padding-sm` 16），积木之间 `block-gap` 8，封面内缩 `cover-inset` 8。
 - 信息流间距：手机 `gap-sm` 12、中等宽度 `gap-md`、桌面 `gap`；页边距对应 `margin-sm` 16、`margin-md`、`margin-lg`。
 - 列宽在 `col-min` 到 `col-max` 之间，理想 `col-ideal`，1–5 列。
 - 列数按理想列宽就近选择，再受最小列宽和五列上限约束；不持续挤入更多窄列。紧凑、标准、宽松的理想列宽分别为 280、340、400，取值见 `density`；紧凑摘要最多两行，其他密度最多三行。详情不受此截断规则影响。

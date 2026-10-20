@@ -36,6 +36,9 @@ var Sill = (() => {
 
   // apps/web/atoms/icons.ts
   var Glyphs = {
+    // Lucide ISC icons; source and license are recorded in assets/Icons/README.md.
+    paperclip: '<path d="m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"/>',
+    "audio-lines": '<path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3"/>',
     "bell-off": '<path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5M3.5 16.5h17M10.5 20h3"/><path d="M4.5 3.5l15 17"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
     glasses: '<rect x="2.5" y="8" width="8" height="8.5" rx="2.5"/><rect x="13.5" y="8" width="8" height="8.5" rx="2.5"/><path d="M10.5 11.5h3M2.5 10 4 5.5M21.5 10 20 5.5"/>',
@@ -640,7 +643,8 @@ var Sill = (() => {
     "web.why.stopPrompting": "\u4E0D\u518D\u63D0\u793A",
     "web.search.type.article": "\u8D44\u8BAF",
     "web.search.type.mail": "\u6D88\u606F",
-    "web.search.title": "\u641C\u7D22\u4E0E\u7B5B\u9009",
+    "web.search.title": "\u641C\u7D22",
+    "web.search.browseCategories": "\u6D4F\u89C8\u5206\u7C7B",
     "web.search.inputLabel": "\u641C\u7D22\u6807\u9898\u3001\u6458\u8981\u548C\u5907\u6CE8",
     "web.search.inputPlaceholder": "\u641C\u7D22\u5361\u7247\u3001\u5907\u6CE8\u3001\u6765\u6E90",
     "web.search.clear": "\u6E05\u7A7A\u641C\u7D22",
@@ -867,7 +871,9 @@ var Sill = (() => {
     "web.ai.context": "\u5DF2\u9009\u5361\u7247",
     "web.ai.emptyContext": "\u4ECE\u5361\u7247\u4E2D\u9009\u62E9\u5185\u5BB9\uFF0C\u5E26\u5230\u8FD9\u91CC\u8BA8\u8BBA",
     "web.ai.composer": "\u60F3\u548C AI \u8BA8\u8BBA\u4EC0\u4E48\uFF1F",
-    "web.ai.placeholder": "\u5199\u4E0B\u4F60\u7684\u60F3\u6CD5\u2026",
+    "web.ai.placeholder": "\u8BE2\u95EE\u4EFB\u4F55\u95EE\u9898",
+    "web.ai.attach": "\u6DFB\u52A0\u9644\u4EF6",
+    "web.ai.speak": "\u8BED\u97F3",
     "web.ai.sendUnavailable": "\u53D1\u9001\uFF08\u5C1A\u672A\u8FDE\u63A5 AI\uFF09",
     "web.selection.aiDrop": "\u62D6\u5230\u8FD9\u91CC\uFF0C\u6253\u5F00 AI \u5BF9\u8BDD",
     "web.selection.aiReady": "\u677E\u624B\u6253\u5F00 AI \u5BF9\u8BDD",

@@ -242,9 +242,7 @@ export async function runDialogNavigation({
 				"t3",
 			);
 			await close(page);
-			const settings = page
-				.getByRole("navigation", { name: "主导航" })
-				.getByRole("button", { name: "设置", exact: true });
+			const settings = page.locator("#account");
 			await settings.waitFor({ state: "visible" });
 			await settings.focus();
 			await page.keyboard.press("Enter");

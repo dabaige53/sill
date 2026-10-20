@@ -301,6 +301,21 @@
 				"name": "fixed-black-55",
 				"value": "rgba(0, 0, 0, 0.55)",
 				"usage": "C4 提取既有固定色值；深浅色均保持原值，不随主题替换。"
+			},
+			{
+				"name": "ai-composer",
+				"value": "#eff3f4",
+				"usage": "X 对话输入框的浅色底；深色 #202327。"
+			},
+			{
+				"name": "ai-control",
+				"value": "#e4e9eb",
+				"usage": "AI 输入框附件控件浅底；深色 #2f3336。"
+			},
+			{
+				"name": "ai-ink",
+				"value": "#0f1419",
+				"usage": "AI 输入框前景和语音按钮；深色 #e7e9ea。"
 			}
 		]
 	}

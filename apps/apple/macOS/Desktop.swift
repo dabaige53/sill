@@ -12,6 +12,7 @@ struct Desktop: View {
   @State var homeTopRequest = 0
   @State var homeTopImmediate = false
   @State var searchLimit = 40
+  @State var searchFiltersExpanded = false
   @State var railHidden = false
   @State var lastOffset: CGFloat = 0
   @State var downward: CGFloat = 0
@@ -67,7 +68,7 @@ struct Desktop: View {
           .padding(.top, AppleMetrics.space16).padding(
             .bottom, AppleMetrics.railEdge + AppleMetrics.railRow + AppleMetrics.space24
           )
-          .frame(maxWidth: .infinity, maxHeight: .infinity).background(AppleColors.canvas)
+          .frame(maxWidth: .infinity, maxHeight: .infinity).background(AppleColors.card)
         }
         LinearGradient(
           colors: [AppleColors.canvas, AppleColors.canvas.opacity(0)], startPoint: .bottom,

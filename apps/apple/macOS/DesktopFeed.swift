@@ -68,7 +68,9 @@ extension Desktop {
         .buttonStyle(.plain)
         .font(.system(size: AppleMetrics.font34, weight: .bold))
       Spacer()
-      Button { model.presentNavigation("settings") } label: {
+      Button {
+        model.presentNavigation("settings")
+      } label: {
         NativeIcon(name: "person", size: AppleMetrics.space22)
           .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
           .background(AppleColors.surface, in: Circle())
@@ -226,13 +228,34 @@ extension Desktop {
       ).disabled(!model.ready)
     }.frame(maxWidth: .infinity).padding(AppleMetrics.space40)
   }
+  private var searchCategories: [(type: String, label: String, artwork: String)] {
+    [
+      ("article", "web.search.type.article", "architecture"),
+      ("mail", "web.search.type.mail", "coast"),
+      ("note", "web.note", "botanical"),
+      ("task", "web.task", "mountain"),
+      ("event", "web.event", "coast"),
+      ("media", "web.media", "mountain"),
+    ]
+  }
   var searchPage: some View {
     GeometryReader { geometry in
-      VStack(spacing: AppleMetrics.space12) {
+      let searching =
+        !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        || model.typeFilter != "all" || model.filter != Copy.appleAll
+        || !model.tagFilter.isEmpty
+      VStack(spacing: AppleMetrics.space16) {
+        HStack {
+          Text(Copy.text("web.search.title"))
+            .font(.system(size: AppleMetrics.font17, weight: .semibold))
+          Spacer()
+          iconButton("person", "web.nav.settings") { model.presentNavigation("settings") }
+            .background(AppleColors.surface, in: Circle())
+        }
         HStack(spacing: AppleMetrics.space8) {
-          HStack(spacing: AppleMetrics.space10) {
-            NativeIcon(name: "search", size: AppleMetrics.space18).foregroundStyle(
-              AppleColors.secondary)
+          HStack(spacing: AppleMetrics.space8) {
+            NativeIcon(name: "search", size: AppleMetrics.space22).foregroundStyle(
+              AppleColors.primary)
             TextField(Copy.text("web.panels.a76ee88e6c2e"), text: $model.query).textFieldStyle(
               .plain
             )
@@ -242,63 +265,110 @@ extension Desktop {
             }
             if !model.query.isEmpty {
               iconButton("x", "web.panels.b6f00afa6537") { model.query = "" }
+            } else {
+              iconButton("mic", "web.ai.speak") {}.disabled(true)
             }
-          }.padding(.leading, AppleMetrics.space18).padding(.trailing, AppleMetrics.space10)
+          }.padding(.leading, AppleMetrics.space12).padding(.trailing, AppleMetrics.space10)
             .frame(height: AppleMetrics.searchPillHeight).background(
-              AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
+              AppleColors.surface, in: Capsule())
         }
-        VStack(spacing: AppleMetrics.space8) {
-          searchFilterRow("web.search.filters.type") {
-            ForEach(["all", "article", "mail", "note", "task", "event", "media"], id: \.self) {
-              type in
-              chip(
-                Copy.text(
-                  [
-                    "all": "web.all", "article": "web.search.type.article",
-                    "mail": "web.search.type.mail", "note": "web.note", "task": "web.task",
-                    "event": "web.event", "media": "web.media",
-                  ][type] ?? "web.all"), selected: model.typeFilter == type
-              ) { model.typeFilter = type }
-            }
-          }
-          searchFilterRow("web.search.filters.status") {
-            ForEach(
-              [
-                (Copy.appleUnread, "web.unread"), (Copy.appleBookmarks, "web.bookmark"),
-                (Copy.appleLater, "web.later"),
-              ], id: \.0
-            ) { value, key in
-              chip(Copy.text(key), selected: model.filter == value) {
-                model.filter = model.filter == value ? Copy.appleAll : value
+        if searching {
+          ScrollView(.horizontal) {
+            HStack(spacing: AppleMetrics.space8) {
+              chip(Copy.text("web.all"), selected: model.typeFilter == "all") {
+                model.typeFilter = "all"
               }
-            }
-          }
-          let tags = Array(Set(model.cards.flatMap { model.tags($0) })).sorted()
-          if !tags.isEmpty {
-            searchFilterRow("web.search.filters.tag") {
-              ForEach(tags, id: \.self) { tag in
-                chip("#" + tag, selected: model.tagFilter == tag) {
-                  model.tagFilter = model.tagFilter == tag ? "" : tag
+              ForEach(searchCategories, id: \.type) { category in
+                chip(Copy.text(category.label), selected: model.typeFilter == category.type) {
+                  model.typeFilter = category.type
+                }
+              }
+            }.padding(AppleMetrics.space4 / 2)
+          }.scrollIndicators(.hidden).accessibilityLabel(Copy.text("web.search.filters.type"))
+        }
+        DisclosureGroup(isExpanded: $searchFiltersExpanded) {
+          VStack(spacing: AppleMetrics.space8) {
+            searchFilterRow("web.search.filters.status") {
+              ForEach(
+                [
+                  (Copy.appleUnread, "web.unread"), (Copy.appleBookmarks, "web.bookmark"),
+                  (Copy.appleLater, "web.later"),
+                ], id: \.0
+              ) { value, key in
+                chip(Copy.text(key), selected: model.filter == value) {
+                  model.filter = model.filter == value ? Copy.appleAll : value
                 }
               }
             }
+            let tags = Array(Set(model.cards.flatMap { model.tags($0) })).sorted()
+            if !tags.isEmpty {
+              searchFilterRow("web.search.filters.tag") {
+                ForEach(tags, id: \.self) { tag in
+                  chip("#" + tag, selected: model.tagFilter == tag) {
+                    model.tagFilter = model.tagFilter == tag ? "" : tag
+                  }
+                }
+              }
+            }
+          }.padding(.top, AppleMetrics.space8)
+        } label: {
+          HStack(spacing: AppleMetrics.space8) {
+            Text(Copy.text("web.search.filtersLabel"))
+            if model.filter != Copy.appleAll {
+              Text(model.filter).foregroundStyle(AppleColors.secondary)
+            }
+            if !model.tagFilter.isEmpty {
+              Text("#" + model.tagFilter).foregroundStyle(AppleColors.secondary)
+            }
           }
-        }.padding(.bottom, AppleMetrics.space4)
+        }.font(.system(size: AppleMetrics.font14)).tint(AppleColors.primary)
         ScrollViewReader { proxy in
           ScrollView {
             observation("search")
-            let searching =
-              !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-              || model.typeFilter != "all" || model.filter != Copy.appleAll
-              || !model.tagFilter.isEmpty
             let all = searching ? model.visible : []
             let desk = Array(
               all.filter { model.items[$0.id]?["archived"]?.bool != true }.prefix(searchLimit))
             let shelved = Array(
               all.filter { model.items[$0.id]?["archived"]?.bool == true }.prefix(
                 max(0, searchLimit - desk.count)))
-            if searching && all.isEmpty {
-              Text(Copy.text("web.panels.11a8f9879575") + model.query + "」").foregroundStyle(
+            if !searching {
+              LazyVGrid(
+                columns: Array(
+                  repeating: GridItem(.flexible(), spacing: AppleMetrics.space12),
+                  count: geometry.size.width > 650 ? 3 : 2),
+                spacing: AppleMetrics.space12
+              ) {
+                ForEach(searchCategories, id: \.type) { category in
+                  Button {
+                    model.typeFilter = category.type
+                  } label: {
+                    Color.clear.aspectRatio(16 / 9, contentMode: .fit)
+                      .overlay {
+                        GeometryReader { size in
+                          Image(category.artwork, bundle: .module).resizable().scaledToFill()
+                            .frame(width: size.size.width, height: size.size.height).clipped()
+                        }
+                      }
+                      .overlay(Color.black.opacity(0.18))
+                      .overlay(alignment: .bottomLeading) {
+                        Text(Copy.text(category.label)).font(
+                          .system(size: AppleMetrics.font17, weight: .semibold)
+                        )
+                        .foregroundStyle(.white).shadow(
+                          color: .black.opacity(0.55), radius: 3, y: 1
+                        )
+                        .padding(AppleMetrics.space12)
+                      }
+                      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.space12))
+                  }.buttonStyle(.plain)
+                }
+              }
+            } else if all.isEmpty {
+              Text(
+                model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  ? Copy.text("web.app.4a684ec67af5")
+                  : Copy.text("web.panels.11a8f9879575") + model.query + "」"
+              ).foregroundStyle(
                 AppleColors.secondary
               ).padding(AppleMetrics.space24)
             } else if searching {
@@ -331,7 +401,7 @@ extension Desktop {
             .onChange(of: model.tagFilter) { resetSearch(proxy) }
         }
       }.padding(.horizontal, AppleMetrics.space40).padding(.top, AppleMetrics.space16)
-    }.background(AppleColors.canvas)
+    }.background(AppleColors.card)
   }
   private func resetSearch(_ proxy: ScrollViewProxy) {
     searchLimit = 40

@@ -76,6 +76,15 @@ try {
 		await page.waitForFunction(() => window.__app?.layout.frame === 0);
 		const head = page.locator("#home-top");
 		assert.equal(await head.isVisible(), true);
+		assert.equal(await head.locator(".home-mark").innerText(), "Sill");
+		assert.deepEqual(await page.locator("#nav .nav-label").allTextContents(), [
+			"主页",
+			"AI",
+			"搜索",
+		]);
+		for (const label of await page.locator("#nav .nav-label").all()) {
+			assert.equal(await label.isVisible(), true);
+		}
 		assert.deepEqual(await head.locator(".home-tab").allTextContents(), [
 			"全部",
 			"未读",
@@ -97,10 +106,10 @@ try {
 			};
 		});
 		if (width > 650) {
-			assert.ok(geometry.width < width / 2);
+			assert.ok(geometry.width <= width);
 			assert.equal(geometry.left, geometry.gridLeft);
 			assert.equal(geometry.gridTop - geometry.bottom, 16);
-			assert.equal(geometry.mark, "none");
+			assert.notEqual(geometry.mark, "none");
 			assert.equal(geometry.position, "sticky");
 		} else {
 			assert.equal(geometry.position, "fixed");
@@ -259,29 +268,44 @@ try {
 			);
 			assert.equal(await page.evaluate(() => scrollY), 500);
 			if (width < 650) {
-				for (const place of ["ai", "settings"]) {
-					await page.locator(`#nav [data-extra="${place}"]`).tap();
-					assert.equal(
-						await page.locator("#modal").evaluate((node) => getComputedStyle(node).opacity),
-						"1",
-					);
-					assert.equal(
-						await page
-							.locator("#modal")
-							.evaluate((node) => node.getAnimations({ subtree: true }).length),
-						0,
-					);
-					assert.equal(
-						await page.locator("#dock").evaluate((node) => getComputedStyle(node).opacity),
-						"1",
-					);
-				}
+				await page.locator('#nav [data-extra="ai"]').tap();
+				assert.equal(
+					await page.locator("#modal").evaluate((node) => getComputedStyle(node).opacity),
+					"1",
+				);
+				assert.equal(
+					await page
+						.locator("#modal")
+						.evaluate((node) => node.getAnimations({ subtree: true }).length),
+					0,
+				);
+				assert.equal(
+					await page.locator("#dock").evaluate((node) => getComputedStyle(node).opacity),
+					"1",
+				);
 				await page.locator('#nav [data-extra="home"]').tap();
 				assert.equal(
 					await page.locator("#modal").evaluate((node: HTMLDialogElement) => node.open),
 					false,
 				);
 				assert.equal(await page.evaluate(() => scrollY), 500);
+				await page.locator("#account").tap();
+				await page.waitForFunction(() => window.__app.modalKind === "settings");
+				assert.equal(
+					await page.locator("#modal").evaluate((node) => getComputedStyle(node).opacity),
+					"1",
+				);
+				assert.equal(
+					await page
+						.locator("#modal")
+						.evaluate((node) => node.getAnimations({ subtree: true }).length),
+					0,
+				);
+				await page.keyboard.press("Escape");
+				await page.waitForFunction(
+					() => !(document.getElementById("modal") as HTMLDialogElement).open,
+				);
+				assert.equal(await page.evaluate(() => document.activeElement.id), "account");
 				assert.equal(await head.evaluate((node) => getComputedStyle(node).opacity), "1");
 			}
 		}

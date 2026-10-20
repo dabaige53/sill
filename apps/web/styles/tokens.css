@@ -39,6 +39,9 @@
 	--secondary: #68686d;
 	--faint: #e8e8ed;
 	--surface: #f0f0f2;
+	--ai-composer: #eff3f4;
+	--ai-control: #e4e9eb;
+	--ai-ink: #0f1419;
 	--faint-row: #ececf0;
 	--line: rgba(0, 0, 0, 0.06);
 	--line-card: rgba(0, 0, 0, 0.08);
@@ -209,6 +212,9 @@ body[data-density="roomy"] {
 	--secondary: #a1a1a8;
 	--faint: #2c2c31;
 	--surface: #26262a;
+	--ai-composer: #202327;
+	--ai-control: #2f3336;
+	--ai-ink: #e7e9ea;
 	--faint-row: #1f1f23;
 	--line: rgba(255, 255, 255, 0.07);
 	--line-card: rgba(255, 255, 255, 0.08);

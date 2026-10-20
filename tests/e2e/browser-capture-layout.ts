@@ -52,10 +52,7 @@ export async function runCaptureLayout({
 				return { bar: box("selection-bar"), nav: box("nav"), face: box("account") };
 			});
 			assert.ok(bar.right <= nav.left, "selection bar overlaps the navigation capsule");
-			assert.ok(
-				face.right <= nav.right && face.left > nav.left,
-				"settings sits inside the capsule",
-			);
+			assert.ok(face.bottom < nav.top, "settings stays in the home header above the capsule");
 			assert.equal(Math.round(bar.bottom), Math.round(nav.bottom), "rail rows differ");
 			assert.equal(Math.round(bar.height), Math.round(nav.height), "rail rows differ");
 			await page.evaluate(() => window.__app.toast("撤销测试", () => {}));
@@ -157,7 +154,7 @@ export async function runCaptureLayout({
 	await scenario(
 		"Phone pages switch without showing the desk; settings fills the screen; card menu has icons and clears the rail",
 		async (page?: any) => {
-			await page.locator('.nav-tab[data-extra="settings"]').click();
+			await page.locator("#account").click();
 			await page.waitForFunction(() => window.__app.modalKind === "settings");
 			await page.waitForTimeout(300);
 			const main = await rect(page, "#modal .settings-main");

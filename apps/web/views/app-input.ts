@@ -3,7 +3,7 @@ import { Store } from "../data/store.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { action as dispatchAction } from "./actions/index.ts";
 import type { AppController } from "./app.ts";
-import { type Deck, type TargetEvent } from "./app-types.ts";
+import type { Deck, TargetEvent } from "./app-types.ts";
 import { renderContent, renderView } from "./react-renderer.ts";
 
 export const appInputMethods = {
@@ -83,7 +83,11 @@ export const appInputMethods = {
 		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
 			(row) => row.scrollLeft,
 		);
+		const refinementsOpen =
+			this.dialog.querySelector<HTMLDetailsElement>(".search-refinements")?.open;
 		renderContent(this.dialog, Panels.search(this));
+		const refinements = this.dialog.querySelector<HTMLDetailsElement>(".search-refinements");
+		if (refinements && refinementsOpen) refinements.open = true;
 		this.bindSearchResults();
 		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
 			row.scrollLeft = filterScroll[index] ?? 0;
@@ -109,6 +113,8 @@ export const appInputMethods = {
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "search") {
 			this.searchFilter.query = e.target.value;
+			const clear = document.querySelector<HTMLButtonElement>(".search-clear");
+			if (clear) clear.hidden = !e.target.value;
 			this.searchScroll = 0;
 			this.searchLimit = 40;
 			document.getElementById("filter-result").textContent =
@@ -243,10 +249,12 @@ export const appInputMethods = {
 			return;
 		}
 		if (e.key === "Tab" && this.dialog.open) {
+			const page = this.dialog.classList.contains("page");
 			const focusable = [
 				...this.dialog.querySelectorAll<HTMLElement>(
-					'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]',
+					'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),summary,a[href],[tabindex="0"]',
 				),
+				...(page ? document.querySelectorAll<HTMLElement>("#nav button") : []),
 			].filter(
 				(n?: HTMLElement) =>
 					n.getClientRects().length && getComputedStyle(n).visibility !== "hidden",
@@ -255,6 +263,14 @@ export const appInputMethods = {
 				last = focusable[focusable.length - 1],
 				active = document.activeElement as HTMLElement;
 			if (first && last) {
+				if (page) {
+					const index = focusable.indexOf(active);
+					const next =
+						index < 0 ? (e.shiftKey ? focusable.length - 1 : 0) : index + (e.shiftKey ? -1 : 1);
+					e.preventDefault();
+					focusable[(next + focusable.length) % focusable.length].focus();
+					return;
+				}
 				if (e.shiftKey && (active === first || !focusable.includes(active))) {
 					e.preventDefault();
 					last.focus();

@@ -332,36 +332,40 @@ export const panelSettings = {
 						<h1 id={"modal-title"}>{copy("web.ai.title")}</h1>
 					</header>
 					<section className={"ai-context"} aria-label={copy("web.ai.context")}>
-						{cards.length ? (
-							keyed(context)
-						) : (
-							<>
-								<p className={"muted ai-context-empty"}>{copy("web.ai.emptyContext")}</p>
-							</>
-						)}
+						{keyed(context)}
 					</section>
 					<div className={"ai-composer"}>
 						<textarea
 							id={"ai-local-draft"}
 							aria-label={copy("web.ai.composer")}
-							aria-describedby={"ai-availability"}
 							placeholder={copy("web.ai.placeholder")}
 							maxLength={4000}
-							rows={2}
+							rows={1}
 							defaultValue={app?.aiDraft || ""}
 						/>
-						<button
-							type={"button"}
-							className={"icon-button"}
-							disabled
-							aria-label={copy("web.ai.sendUnavailable")}
-						>
-							{icon("send", 20)}
-						</button>
+						<div className="ai-composer-tools">
+							<button
+								type="button"
+								className="icon-button ai-attach"
+								disabled
+								aria-label={copy("web.ai.attach")}
+							>
+								{icon("paperclip", 18)}
+							</button>
+							<button
+								type="button"
+								className="icon-button ai-send"
+								disabled
+								aria-label={copy("web.ai.sendUnavailable")}
+							>
+								{icon("up", 20)}
+							</button>
+							<button type="button" className="ai-speak" disabled>
+								{icon("audio-lines", 18)}
+								<span>{copy("web.ai.speak")}</span>
+							</button>
+						</div>
 					</div>
-					<p id={"ai-availability"} className={"ai-availability muted"}>
-						{copy("web.ai.localOnly")}
-					</p>
 				</div>
 			</>
 		);

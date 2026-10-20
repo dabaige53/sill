@@ -58,7 +58,7 @@ try {
 			);
 			await page.goto(origin);
 			await page.waitForFunction(() => window.__app?.layout.frame === 0);
-			await page.locator('#nav [data-extra="settings"]').click();
+			await page.locator("#account").click();
 			await page.locator('[data-action="action-toggle"]').first().waitFor();
 			await page.locator("#modal").evaluate(async (modal) => {
 				await document.fonts.ready;

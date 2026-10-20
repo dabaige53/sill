@@ -1,4 +1,4 @@
-Mono24 图标，64 个，从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出：24×24 viewBox，stroke-width 1.65，round cap/join，无填充。
+Mono24 图标，71 个，从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出：24×24 viewBox，stroke-width 1.65，round cap/join，无填充。
 
 导出文件的墨色固定为 `ink`（#1d1d1f），因为 `<img>` 无法继承 `currentColor`。在页面中需要随文字变色时，用 `Sill.icon(name, size)` 生成内联 SVG。新增图标时先加到 `Glyphs`，再运行 `node design-system/scripts/generate.ts design-system .` 并在下表补充用途。
 
@@ -74,6 +74,10 @@ Mono24 图标，64 个，从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出
 | `pause.svg` | 暂停 | 暂停正在播放的媒体。 |
 | `video.svg` | 视频 | 识别视频媒体内容。 |
 | `send.svg` | 发送 | 明确发送用户已准备好的消息。 |
+| `paperclip.svg` | 附件 | AI 输入框的附件入口。 |
+| `audio-lines.svg` | 语音 | AI 输入框的语音入口。 |
+
+`paperclip` 和 `audio-lines` 路径来自 [Lucide](https://github.com/lucide-icons/lucide)，使用 ISC 许可；原始许可见 [lucide-license.txt](lucide-license.txt)。导出沿用 Mono24 的线宽与颜色。
 
 ## 尚未写明用途
 

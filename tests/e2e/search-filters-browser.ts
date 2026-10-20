@@ -74,7 +74,12 @@ try {
 		const home = await page.evaluate(() => JSON.stringify(window.__app.filter));
 		await page.locator('#nav [data-extra="search"]').click();
 		await page.locator("#filter-search").waitFor();
-		assert.equal(await page.locator("#search-results").innerHTML(), "", "empty search stays blank");
+		assert.equal(
+			await page.locator(".search-category").count(),
+			6,
+			"empty search shows category cards",
+		);
+		await page.locator(".search-refinements summary").click();
 		assert.equal(
 			await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),
 			"hidden",
@@ -83,17 +88,16 @@ try {
 		if (width === 390 && height === 844)
 			await page.screenshot({ path: path.join(artifacts, theme + "-blank-search.png") });
 		const rows = page.locator("#modal .search-filter-row");
-		assert.equal(await rows.count(), 3, "three named filter rows");
+		assert.equal(await rows.count(), 2, "status and tag refinements");
 		assert.deepEqual(await rows.locator(".search-filter-label").allTextContents(), [
-			"类型",
 			"状态",
 			"标签",
 		]);
 		assert.deepEqual(
 			await rows
-				.locator('[role="group"]')
+				.locator("fieldset")
 				.evaluateAll((ns) => ns.map((n) => n.getAttribute("aria-label"))),
-			["类型", "状态", "标签"],
+			["状态", "标签"],
 		);
 		const geometry = await rows.evaluateAll((ns) =>
 			ns.map((n) => {
@@ -109,9 +113,8 @@ try {
 			}),
 		);
 		assert.equal(geometry[1].y - geometry[0].bottom, 8);
-		assert.equal(geometry[2].y - geometry[1].bottom, 8);
 		const bounds = await page.locator("#search-results").boundingBox();
-		assert.ok(bounds.height > 0 && bounds.y >= geometry[2].bottom);
+		assert.ok(bounds.height > 0 && bounds.y >= geometry[1].bottom);
 		assert.equal(
 			await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
 			false,
@@ -176,10 +179,10 @@ try {
 			await page.waitForFunction(
 				() =>
 					window.__app.searchFilter.query === "" &&
-					document.getElementById("search-results").childElementCount === 0,
+					document.querySelectorAll(".search-category").length === 6,
 			);
 		}
-		await page.locator('[data-action="filter-type"][data-extra="note"]').focus();
+		await page.locator('.search-category[data-extra="note"]').focus();
 		await page.keyboard.press("Enter");
 		assert.equal(
 			await page
@@ -194,7 +197,7 @@ try {
 			["review-note", "review-note-2"],
 		);
 		await page.locator('[data-action="filter-type"][data-extra="all"]').click();
-		assert.equal(await page.locator("#search-results").innerHTML(), "");
+		assert.equal(await page.locator(".search-category").count(), 6);
 		await page.locator('[data-action="filter-status"][data-extra="saved"]').click();
 		assert.deepEqual(
 			await page
@@ -237,11 +240,11 @@ try {
 		);
 		await page.locator('#search-results [data-card="review-note"] .card-title-button').click();
 		await page.locator("#search-background[open]").waitFor();
-		assert.equal(await page.locator("#search-background .search-filter-row").count(), 3);
+		assert.equal(await page.locator("#search-background .search-filter-row").count(), 2);
 		await page.keyboard.press("Escape");
 		await page.locator("#modal.search[open]").waitFor();
 		assert.equal(await page.locator("#filter-search").inputValue(), "密度");
-		assert.equal(await page.locator("#modal .search-filter-row").count(), 3);
+		assert.equal(await page.locator("#modal .search-filter-row").count(), 2);
 		assert.equal(await page.evaluate(() => JSON.stringify(window.__app.filter)), home);
 		assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), source);
 		await page.screenshot({

@@ -23,9 +23,9 @@ export const gesturePullMethods = {
 			holdTimer = 0,
 			frame = 0,
 			inset = 16,
-			markTop: number | null = null,
+			headingTop: number | null = null,
 			state = "idle";
-		const mark = document.querySelector<HTMLElement>(".home-mark");
+		const heading = document.querySelector<HTMLElement>(".home-heading");
 		const wheel = this.intent();
 		const labels = {
 			idle: copy("web.refresh.pull"),
@@ -49,11 +49,11 @@ export const gesturePullMethods = {
 		};
 		const measure = () => {
 			inset = parseFloat(getComputedStyle(main).paddingTop) || 16;
-			const rect = mark?.getBoundingClientRect();
-			markTop = rect?.height ? rect.top + (rect.height - ring.offsetHeight) / 2 : null;
-			ring.classList.toggle("in-home-mark", markTop !== null);
-			ring.style.top = markTop === null ? "" : `${markTop}px`;
-			ring.style.left = markTop === null ? "" : `${rect.left + rect.width / 2}px`;
+			const rect = heading?.getBoundingClientRect();
+			headingTop = rect?.height ? rect.top + (rect.height - ring.offsetHeight) / 2 : null;
+			ring.classList.toggle("in-home-heading", headingTop !== null);
+			ring.style.top = headingTop === null ? "" : `${headingTop}px`;
+			ring.style.left = headingTop === null ? "" : `${rect.left + rect.width / 2}px`;
 		};
 		const paint = () => {
 			cancelAnimationFrame(frame);
@@ -62,10 +62,9 @@ export const gesturePullMethods = {
 				feedback = state === "loading" || state === "success" || state === "error";
 			MotionEngine.move(main, pull ? `0 ${shift}px` : "", state === "pulling");
 			// While loading the desk stays open and the ring turns in the gap it made.
-			mark?.classList.toggle("is-refreshing-mark", markTop !== null && state !== "idle");
 			MotionEngine.move(
 				ring,
-				markTop !== null
+				headingTop !== null
 					? "0 0"
 					: pull
 						? `0 ${Math.round((inset + shift) / 2 - 18)}px`

@@ -38,14 +38,11 @@ extension Desktop {
         if model.page == page {
           Capsule().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity))
         }
-        VStack(spacing: AppleMetrics.space4) {
-          NativeIcon(name: name, size: AppleMetrics.space22)
-          Text(Copy.text(label)).font(.system(size: 10.5, weight: .medium))
-        }
-          .foregroundStyle(
-            AppleColors.primary.opacity(
-              model.page == page
-                ? 1 : 0.62))
+        NativeIcon(name: name, size: AppleMetrics.space22)
+        .foregroundStyle(
+          AppleColors.primary.opacity(
+            model.page == page
+              ? 1 : 0.62))
       }
       .frame(width: AppleMetrics.navTab, height: AppleMetrics.railRow - AppleMetrics.railInset * 2)
     }.buttonStyle(.plain).accessibilityLabel(Copy.text(label)).help(Copy.text(label))
@@ -210,10 +207,12 @@ extension Desktop {
   }
   var aiPage: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      Text(Copy.text("web.nav.ai")).font(.system(size: AppleMetrics.space20, weight: .semibold))
+      let contextCards = model.aiCards.compactMap { id in model.cards.first { $0.id == id } }
+      Text(Copy.text("web.nav.ai")).font(.system(size: AppleMetrics.font17, weight: .semibold))
+        .frame(maxWidth: .infinity)
       ScrollView {
         VStack(spacing: AppleMetrics.space12) {
-          ForEach(model.aiCards.compactMap { id in model.cards.first { $0.id == id } }) { card in
+          ForEach(contextCards) { card in
             VStack(alignment: .leading, spacing: AppleMetrics.space8) {
               Text(card.title).font(.system(size: AppleMetrics.font17, weight: .semibold))
               let excerpt = String((card.summary.isEmpty ? card.body : card.summary).prefix(180))
@@ -232,18 +231,46 @@ extension Desktop {
         }
       }.frame(maxHeight: .infinity)
         .accessibilityLabel(Copy.text("web.ai.context"))
-      HStack(alignment: .bottom, spacing: AppleMetrics.space8) {
+      VStack(spacing: AppleMetrics.space4) {
         TextField(Copy.text("web.ai.placeholder"), text: $model.aiDraft, axis: .vertical)
           .textFieldStyle(.plain).lineLimit(1...8)
+          .font(.system(size: AppleMetrics.font17))
+          .padding(.horizontal, AppleMetrics.space4)
+          .frame(minHeight: AppleMetrics.space36, alignment: .top)
           .accessibilityLabel(Copy.text("web.ai.composer"))
           .onChange(of: model.aiDraft) {
             if model.aiDraft.count > 4000 { model.aiDraft = String(model.aiDraft.prefix(4000)) }
           }
-        iconButton("send", "web.ai.sendUnavailable") {}.disabled(true)
+        HStack(spacing: AppleMetrics.space12) {
+          Button {
+          } label: {
+            NativeIcon(name: "paperclip", size: AppleMetrics.space18)
+              .rotationEffect(.degrees(-45))
+              .frame(width: AppleMetrics.space32, height: AppleMetrics.space32)
+              .background(
+                AppleColors.aiControl, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
+          }.buttonStyle(.plain).disabled(true).accessibilityLabel(Copy.text("web.ai.attach"))
+          Spacer()
+          Button {
+          } label: {
+            NativeIcon(name: "up", size: AppleMetrics.space20)
+              .frame(width: AppleMetrics.space24, height: AppleMetrics.space24)
+              .overlay(Circle().strokeBorder(AppleColors.aiInk, lineWidth: 2))
+          }.buttonStyle(.plain).disabled(true).accessibilityLabel(
+            Copy.text("web.ai.sendUnavailable"))
+          Button {
+          } label: {
+            HStack(spacing: AppleMetrics.space6) {
+              NativeIcon(name: "audio-lines", size: AppleMetrics.space18)
+              Text(Copy.text("web.ai.speak")).font(
+                .system(size: AppleMetrics.font17, weight: .medium))
+            }.frame(minWidth: AppleMetrics.space20 * 3, minHeight: AppleMetrics.space32)
+              .padding(.horizontal, AppleMetrics.space12)
+              .foregroundStyle(AppleColors.card).background(AppleColors.aiInk, in: Capsule())
+          }.buttonStyle(.plain).disabled(true)
+        }.foregroundStyle(AppleColors.aiInk)
       }.padding(AppleMetrics.space12).background(
-        AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
-      Text(Copy.text("web.ai.localOnly")).font(.system(size: AppleMetrics.font12))
-        .foregroundStyle(AppleColors.secondary)
+        AppleColors.aiComposer, in: RoundedRectangle(cornerRadius: AppleMetrics.panelRadius))
     }.frame(maxWidth: .infinity, maxHeight: .infinity)
       .dropDestination(for: String.self) { ids, _ in
         for id in ids

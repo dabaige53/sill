@@ -374,7 +374,7 @@ test("three destinations share the capsule; the home avatar opens settings", () 
 		assert.ok(page.querySelector('[data-action="capture-save"]'));
 		const ai = w.document.createElement("div");
 		ai.innerHTML = Panels.ai();
-		assert.match(ai.textContent, /尚未连接 AI/);
+		assert.doesNotMatch(ai.textContent, /尚未连接 AI|输入不保存/);
 		assert.equal(ai.querySelectorAll(".solid-button").length, 0, "nothing pretends to work");
 		assert.ok(ai.querySelector(".ai-composer button:disabled"), "AI cannot send");
 		w.matchMedia = (q: string) => ({ matches: q.includes("max-width"), addEventListener() {} });
@@ -408,10 +408,10 @@ test("AI placeholder shows only selected local context and cannot send or change
 		panel.innerHTML = Panels.ai({ aiSelectionIds: ["local-one", "local-one", "missing"] });
 		assert.equal(panel.querySelectorAll("[data-ai-context]").length, 1);
 		assert.equal(panel.querySelector("script, img, form"), null);
-		assert.match(panel.textContent, /尚未连接 AI/);
-		assert.match(panel.textContent, /输入不保存/);
+		assert.doesNotMatch(panel.textContent, /尚未连接 AI|输入不保存/);
 		assert.doesNotMatch(panel.textContent, /Should not appear/);
 		assert.equal(panel.querySelector(".ai-composer button").disabled, true);
+		assert.equal(panel.querySelectorAll(".ai-composer button:disabled").length, 3);
 		assert.equal(panel.querySelector(".ai-composer [data-action]"), null);
 		const draft = panel.querySelector("textarea");
 		draft.value = "A temporary local draft";

@@ -127,8 +127,8 @@ try {
 	assert.equal(startupReads, 3);
 	assert.equal(await frame.getByRole("button", { name: "重新连接云端" }).count(), 0);
 	// Desktop panels keep the navigation lead; two actual clicks keep the latest destination.
-	await frame.locator('#nav [data-extra="settings"]').click({ trial: true });
-	const settings = await frame.locator('#nav [data-extra="settings"]').boundingBox();
+	await frame.locator("#account").click({ trial: true });
+	const settings = await frame.locator("#account").boundingBox();
 	const home = await frame.locator('#nav [data-extra="home"]').boundingBox();
 	await page.mouse.click(settings.x + settings.width / 2, settings.y + settings.height / 2);
 	await page.mouse.click(home.x + home.width / 2, home.y + home.height / 2);
@@ -146,14 +146,14 @@ try {
 	// Search now opens its own page immediately and returns through its top Close control.
 	await frame.locator('#nav [data-extra="search"]').click();
 	assert.equal(await frame.locator("#modal[open].search.page").count(), 1);
-	assert.equal(
+	assert.notEqual(
 		await frame
 			.locator('#nav [data-extra="home"]')
 			.evaluate((node: HTMLElement) => getComputedStyle(node).pointerEvents),
 		"none",
-		"search immediately removes the capsule from hit testing",
+		"search keeps the capsule reachable",
 	);
-	await frame.locator("#dock").waitFor({ state: "hidden" });
+	await frame.locator("#dock").waitFor({ state: "visible" });
 	await frame.locator('.search-header [data-action="close"]').click();
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
 	await frame.locator("#dock").waitFor({ state: "visible" });

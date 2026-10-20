@@ -3,12 +3,22 @@ import type { Card } from "../../../contracts/card.ts";
 import { SelectionBar } from "../atoms/selection.tsx";
 import { CardView } from "../cards/components.tsx";
 import { type CopyKey, copy } from "../copy.ts";
+import { Assets } from "../data/assets.ts";
 import { cardSource } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import type { AppController } from "../views/app.ts";
 import { type PanelRenderers, type SearchApp } from "./panel-contract.ts";
 import { button, icon, keyed } from "./panel-primitives.tsx";
+
+const searchTypes = [
+	["article", "web.search.type.article", "architecture"],
+	["mail", "web.search.type.mail", "coast"],
+	["note", "web.note", "botanical"],
+	["task", "web.task", "mountain"],
+	["event", "web.event", "coast"],
+	["media", "web.media", "mountain"],
+] as const;
 
 export const panelSearch = {
 	editor(
@@ -130,133 +140,147 @@ export const panelSearch = {
 		);
 	},
 	search(this: PanelRenderers, app?: SearchApp) {
-		const f = app.searchFilter,
-			tags = [...new Set<string>(Store.state.cards.flatMap((c?: Card) => Store.tags(c)))].slice(
-				0,
-				8,
-			);
+		const f = app.searchFilter;
+		const tags = [...new Set<string>(Store.state.cards.flatMap((c: Card) => Store.tags(c)))];
 		const types = [
-			["all", copy("web.all"), ""],
-			["article", copy("web.search.type.article"), "book"],
-			["mail", copy("web.search.type.mail"), "mail"],
-			["note", copy("web.note"), "note"],
-			["task", copy("web.task"), "check-circle"],
-			["event", copy("web.event"), "calendar"],
-			["media", copy("web.media"), "video"],
+			["all", copy("web.all")],
+			...searchTypes.map(([key, label]) => [key, copy(label)]),
 		];
 		const status = [
 			["unread", copy("web.unread")],
 			["saved", copy("web.bookmark")],
 			["later", copy("web.later")],
 		];
-		const row = (label: CopyKey, buttons: ReactNode) =>
-			React.Children.count(buttons) ? (
-				<>
-					<div className={"search-filter-row"}>
-						<span className={"search-filter-label"} aria-hidden={"true"}>
-							{copy(label)}
-						</span>
-						{/* biome-ignore lint/a11y/useSemanticElements: Keep the existing filter layout; aria-label names this non-form button group. */}
-						<div className={"search-filter-items"} role={"group"} aria-label={copy(label)}>
-							{buttons}
-						</div>
-					</div>
-				</>
-			) : (
-				""
-			);
+		const conditions = [
+			status.find(([key]) => key === f.status)?.[1],
+			f.tag ? `#${f.tag}` : "",
+		].filter(Boolean);
+		const row = (label: CopyKey, buttons: ReactNode) => (
+			<div className="search-filter-row">
+				<span className="search-filter-label">{copy(label)}</span>
+				<fieldset className="search-filter-items" aria-label={copy(label)}>
+					{buttons}
+				</fieldset>
+			</div>
+		);
 		return (
 			<>
-				<h1 id={"modal-title"} className={"sr-only"}>
-					{copy("web.search.title")}
-				</h1>
-				<div className={"search-header"}>
-					<div className={"search-pill"}>
-						{icon("search", 18)}
+				<div className="search-page-heading">
+					<h1 id="modal-title">{copy("web.search.title")}</h1>
+					<button
+						type="button"
+						className="icon-button search-account"
+						data-action="nav"
+						data-extra="settings"
+						aria-label={copy("web.nav.settings")}
+					>
+						{icon("person", 20)}
+					</button>
+				</div>
+				<div className="search-header">
+					<div className="search-pill">
+						{icon("search", 22)}
 						<input
-							type={"search"}
-							id={"filter-search"}
+							type="search"
+							id="filter-search"
 							aria-label={copy("web.search.inputLabel")}
 							placeholder={copy("web.search.inputPlaceholder")}
 							defaultValue={f.query}
-							data-input={"search"}
-							autoComplete={"off"}
+							data-input="search"
+							autoComplete="off"
 						/>
 						<span
-							className={"search-count num sr-only"}
-							id={"filter-result"}
-							role={"status"}
-							aria-live={"polite"}
-							aria-atomic={"true"}
+							className="search-count num sr-only"
+							id="filter-result"
+							role="status"
+							aria-live="polite"
+							aria-atomic="true"
 						>
 							{Object.values(app.searchAll(f.query)).flat().length}
 							{copy("web.common.cardCountSuffix")}
 						</span>
-						{f.query ? button("x", copy("web.search.clear"), "clear-query") : ""}
+						<button
+							type="button"
+							className="icon-button search-clear"
+							data-action="clear-query"
+							aria-label={copy("web.search.clear")}
+							hidden={!f.query}
+						>
+							{icon("x", 16)}
+						</button>
+						<button
+							type="button"
+							className="icon-button search-dictate"
+							disabled
+							aria-label={copy("web.ai.speak")}
+						>
+							{icon("mic", 22)}
+						</button>
 					</div>
 					{button("x", copy("web.close"), "close")}
 				</div>
-				{"\n   "}
-				{/* biome-ignore lint/a11y/useSemanticElements: This existing group contains filter button groups, not form fields. */}
-				<div className={"search-chips"} role={"group"} aria-label={copy("web.search.filtersLabel")}>
-					{keyed(
-						row(
-							"web.search.filters.type",
-							types.map(([k, v, ic]) => (
-								<>
+				<div className="search-chips">
+					<fieldset
+						className="search-scope search-filter-items"
+						aria-label={copy("web.search.filters.type")}
+					>
+						{types.map(([key, label]) => (
+							<button
+								key={key}
+								type="button"
+								className={`chip ${f.type === key ? "active" : ""}`}
+								data-action="filter-type"
+								data-extra={key}
+								aria-pressed={f.type === key}
+							>
+								{label}
+							</button>
+						))}
+					</fieldset>
+					<details className="search-refinements">
+						<summary>
+							<span>{copy("web.search.filtersLabel")}</span>
+							{conditions.length > 0 && (
+								<span className="search-active-conditions">{conditions.join(" · ")}</span>
+							)}
+							{icon("chevron", 14)}
+						</summary>
+						<div className="search-refinement-content">
+							{row(
+								"web.search.filters.status",
+								status.map(([key, label]) => (
 									<button
-										type={"button"}
-										className={"chip " + (f.type === k ? "active" : "") + ""}
-										data-action={"filter-type"}
-										data-extra={k}
-										aria-pressed={f.type === k}
+										key={key}
+										type="button"
+										className={`chip ${f.status === key ? "active" : ""}`}
+										data-action="filter-status"
+										data-extra={key}
+										aria-pressed={f.status === key}
 									>
-										{v}
+										{label}
 									</button>
-								</>
-							)),
-						),
-					)}
-					{keyed(
-						row(
-							"web.search.filters.status",
-							status.map(([k, v]) => (
-								<>
-									<button
-										type={"button"}
-										className={"chip " + (f.status === k ? "active" : "") + ""}
-										data-action={"filter-status"}
-										data-extra={k}
-										aria-pressed={f.status === k}
-									>
-										{v}
-									</button>
-								</>
-							)),
-						),
-					)}
-					{keyed(
-						row(
-							"web.search.filters.tag",
-							tags.map((t) => (
-								<>
-									<button
-										type={"button"}
-										className={"chip " + (f.tag === t ? "active" : "") + ""}
-										data-action={"filter-tag"}
-										data-extra={t}
-										aria-pressed={f.tag === t}
-									>
-										{"#"}
-										{t}
-									</button>
-								</>
-							)),
-						),
-					)}
+								)),
+							)}
+							{tags.length > 0 &&
+								row(
+									"web.search.filters.tag",
+									tags.map((tag) => (
+										<button
+											key={tag}
+											type="button"
+											className={`chip ${f.tag === tag ? "active" : ""}`}
+											data-action="filter-tag"
+											data-extra={tag}
+											aria-pressed={f.tag === tag}
+										>
+											#{tag}
+										</button>
+									)),
+								)}
+						</div>
+					</details>
 				</div>
-				{"\n   "}
-				<div className={"search-results"} id={"search-results"}>
+				<div className="search-results" id="search-results">
 					{this.searchResults(app)}
 				</div>
 				<SelectionBar id="search-selection-bar" />
@@ -266,15 +290,29 @@ export const panelSearch = {
 	searchResults(this: PanelRenderers, app?: SearchApp) {
 		const f = app.searchFilter,
 			q = f.query.trim();
-		if (!q && f.type === "all" && f.status === "all" && !f.tag) return null;
+		if (!q && f.type === "all" && f.status === "all" && !f.tag)
+			return (
+				<section className="search-browse" aria-label={copy("web.search.browseCategories")}>
+					{searchTypes.map(([key, label, artwork]) => (
+						<button
+							key={key}
+							type="button"
+							className="search-category"
+							data-action="filter-type"
+							data-extra={key}
+						>
+							<img src={Assets[artwork]} alt="" />
+							<span>{copy(label)}</span>
+						</button>
+					))}
+				</section>
+			);
 		const hits = app.searchAll(q);
 		if (!hits.desk.length && !hits.shelved.length)
 			return (
 				<>
 					<p className={"search-empty"}>
-						{copy("web.search.noResultsPrefix")}
-						{q}
-						{"」"}
+						{q ? `${copy("web.search.noResultsPrefix")}${q}」` : copy("web.app.4a684ec67af5")}
 					</p>
 				</>
 			);

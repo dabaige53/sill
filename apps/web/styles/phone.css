@@ -538,8 +538,9 @@
 		height: 100dvh;
 		max-height: none;
 		inset: 0;
-		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge)
-			calc(var(--rail-bottom) + var(--kb, 0px));
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--space-20)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+		gap: var(--space-16);
 	}
 	/* Keyboard, pages and photos */
 	#modal.panel,
@@ -602,8 +603,9 @@
 		width: 100%;
 	}
 	#modal.page.panel .ai-conversation {
-		padding: calc(var(--space-12) + env(safe-area-inset-top)) var(--margin-sm)
+		padding: calc(var(--space-12) + env(safe-area-inset-top)) var(--space-12)
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
+		background: var(--card);
 	}
 	.lightbox-stage > .icon-button {
 		display: none;
