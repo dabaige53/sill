@@ -1,13 +1,14 @@
 import SillKit
 import SwiftUI
 
-/// The system owns the optics, contrast and inactive-window appearance.
+/// Web color and shadow roles, with the platform supplying backdrop sampling only.
 struct GlassSurface: ViewModifier {
   func body(content: Content) -> some View {
-    if #available(macOS 26.0, *) {
-      content.glassEffect(.regular, in: Capsule())
-    } else {
-      content.background(.regularMaterial, in: Capsule())
+    content.background {
+      Capsule().fill(AppleColors.glass)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(Capsule().strokeBorder(AppleColors.glassEdge, lineWidth: AppleMetrics.lineWidth))
+        .modifier(NativeShadow(kind: .glass))
     }
   }
 }

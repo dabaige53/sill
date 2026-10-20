@@ -76,9 +76,9 @@ extension CardReader {
     RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).fill(
       LinearGradient(
         stops: [
-          .init(color: Color(red: 217 / 255, green: 203 / 255, blue: 187 / 255), location: 0),
-          .init(color: Color(red: 239 / 255, green: 230 / 255, blue: 219 / 255), location: 0.55),
-          .init(color: Color(red: 205 / 255, green: 188 / 255, blue: 170 / 255), location: 1),
+          .init(color: AppleColors.fixedPodcastCoverStart, location: 0),
+          .init(color: AppleColors.fixedPodcastCoverMid, location: 0.55),
+          .init(color: AppleColors.fixedPodcastCoverEnd, location: 1),
         ], startPoint: .topLeading, endPoint: .bottomTrailing)
     ).frame(width: AppleMetrics.playerArtSize, height: AppleMetrics.playerArtSize).shadow(
       color: .black.opacity(0.12), radius: AppleMetrics.previewPaddingX, y: AppleMetrics.space12)

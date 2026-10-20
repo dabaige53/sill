@@ -15,10 +15,12 @@ struct NativeStack: View {
   @State private var presentationOffset: CGFloat = 0
   @State private var dragOrigin: CGFloat = 0
   @State private var entering = false
+  @State private var wheelActive = false
   @State private var sample: (time: Date, x: CGFloat)?
   @State private var velocity: CGFloat = 0
   @State private var generation = 0
   @GestureState private var dragging = false
+  @FocusState private var focused: Bool
   private var currentIndex: Int { min(max(0, selection.index), max(0, cards.count - 1)) }
   var body: some View {
     if expanded {
@@ -44,7 +46,6 @@ struct NativeStack: View {
           let neighbor = currentIndex + (offset > 0 ? -1 : 1)
           if cards.indices.contains(neighbor) {
             stackFace(cards[neighbor])
-              .scaleEffect(AppleMetrics.motionDeckScale)
               .offset(y: AppleMetrics.motionDeckInset)
               .allowsHitTesting(false).accessibilityHidden(true)
           }
@@ -62,6 +63,7 @@ struct NativeStack: View {
             .onChanged { value in
               guard abs(value.translation.width) > abs(value.translation.height) else { return }
               if sample == nil {
+                model.activeDeckID = cards.first?.id
                 let confirmed = selection.pendingTarget != nil
                 if confirmed { settleConfirmedSelection() }
                 dragOrigin = confirmed ? 0 : presentationOffset
@@ -97,30 +99,14 @@ struct NativeStack: View {
                 resetDrag()
                 return
               }
-              selection.confirm(target)
-              if reduceMotion {
-                settleConfirmedSelection()
-                return
-              }
-              generation += 1
-              let completionGeneration = generation
-              let destination =
-                (target > currentIndex ? -1.0 : 1.0) * width * AppleMetrics.motionDeckExitTravel
-              withAnimation(
-                .timingCurve(0.23, 1, 0.32, 1, duration: AppleMetrics.motionDeckDuration),
-                completionCriteria: .removed
-              ) {
-                offset = destination
-              } completion: {
-                guard generation == completionGeneration else { return }
-                var transaction = Transaction()
-                transaction.disablesAnimations = true
-                withTransaction(transaction) {
-                  selection.settle(count: cards.count)
-                  offset = 0
-                }
-              }
+              animateSelection(target)
             }
+        )
+        .background(
+          ScrollObservation(
+            enabled: model.selected == nil && model.cardMenuID == nil,
+            horizontalOnly: true, edgeGesture: handleWheel
+          ) { _, _, _ in }
         )
         .onChange(of: dragging) { _, active in
           if !active && sample != nil { resetDrag() }
@@ -132,7 +118,7 @@ struct NativeStack: View {
           selection.settle(count: cards.count)
           resetDrag()
         }
-        .focusable()
+        .focusable().focusEffectDisabled().focused($focused)
         .onKeyPress(keys: [.return, .space, .leftArrow, .rightArrow]) { press in
           if press.key == .return || press.key == .space {
             resetDrag()
@@ -141,6 +127,7 @@ struct NativeStack: View {
             generation += 1
             sample = nil
             entering = false
+            model.activeDeckID = nil
             offset = 0
             selection.step(press.key == .rightArrow ? 1 : -1, count: cards.count)
           }
@@ -153,25 +140,64 @@ struct NativeStack: View {
   }
 
   private func stackFace(_ card: Card) -> some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-      HStack {
-        CardSourceGlyph(card: card)
-        Text(card.source).lineLimit(1)
-        Spacer()
-        Text("\(currentIndex + 1)/\(cards.count)").monospacedDigit()
-      }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-      Button(action: toggle) {
-        Text(card.title).font(
-          .system(size: AppleMetrics.font17, weight: .semibold)
-        ).lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
-      }.buttonStyle(.plain)
-      if !card.summary.isEmpty {
-        Text(card.summary).font(.system(size: AppleMetrics.font15))
-          .foregroundStyle(AppleColors.secondary).lineLimit(2)
-      }
-    }.padding(AppleMetrics.cardPadding).frame(maxWidth: .infinity, alignment: .leading)
-      .background(AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
+    CardTile(
+      card: card, open: toggle, keyboardFocused: focused && card.id == cards[currentIndex].id,
+      stackPosition: "\((cards.firstIndex { $0.id == card.id } ?? 0) + 1)/\(cards.count)"
+    )
+    .contextMenu { CardActions(card: card) }
+  }
 
+  private func handleWheel(_ event: EdgeGestureSample) -> Bool {
+    let translation = event.distance * (event.edge == "left" ? -1 : 1)
+    switch event.phase {
+    case .changed:
+      if !wheelActive {
+        if selection.pendingTarget != nil { settleConfirmedSelection() }
+        dragOrigin = presentationOffset
+        model.activeDeckID = cards.first?.id
+        wheelActive = true
+        generation += 1
+      }
+      velocity = event.velocity * (event.edge == "left" ? -1 : 1)
+      let next = currentIndex + (translation < 0 ? 1 : -1)
+      var transaction = Transaction(animation: nil)
+      transaction.disablesAnimations = true
+      withTransaction(transaction) {
+        offset = cards.indices.contains(next) ? dragOrigin + translation : 0
+      }
+      return false
+    case .cancelled:
+      resetDrag()
+      return false
+    case .released:
+      wheelActive = false
+      let target = DeckNavigation.target(
+        index: currentIndex, count: cards.count,
+        translation: translation, velocity: velocity, width: width)
+      if target == currentIndex {
+        resetDrag()
+        return false
+      }
+      animateSelection(target)
+      return true
+    }
+  }
+
+  private func animateSelection(_ target: Int) {
+    selection.confirm(target)
+    if reduceMotion {
+      settleConfirmedSelection()
+      return
+    }
+    generation += 1
+    let completionGeneration = generation
+    withAnimation(NativeMotion.ease(AppleMetrics.motionDeckDuration), completionCriteria: .removed)
+    {
+      offset = (target > currentIndex ? -1.0 : 1.0) * width * AppleMetrics.motionDeckExitTravel
+    } completion: {
+      guard generation == completionGeneration else { return }
+      settleConfirmedSelection()
+    }
   }
 
   private func settleConfirmedSelection() {
@@ -179,6 +205,7 @@ struct NativeStack: View {
     transaction.disablesAnimations = true
     withTransaction(transaction) {
       selection.settle(count: cards.count)
+      if model.activeDeckID == cards.first?.id { model.activeDeckID = nil }
       offset = 0
       presentationOffset = 0
       entering = false
@@ -186,6 +213,7 @@ struct NativeStack: View {
   }
 
   private func resetDrag() {
+    wheelActive = false
     generation += 1
     let confirmed = selection.pendingTarget != nil
     if confirmed { settleConfirmedSelection() }
@@ -193,10 +221,16 @@ struct NativeStack: View {
     velocity = 0
     entering = false
     guard !confirmed else { return }
+    let completionGeneration = generation
     withAnimation(
-      reduceMotion ? nil : .timingCurve(0.23, 1, 0.32, 1, duration: AppleMetrics.motionDeckDuration)
+      reduceMotion ? nil : NativeMotion.ease(AppleMetrics.motionDeckDuration),
+      completionCriteria: .removed
     ) {
       offset = 0
+    } completion: {
+      if generation == completionGeneration && model.activeDeckID == cards.first?.id {
+        model.activeDeckID = nil
+      }
     }
   }
 }

@@ -1,3 +1,4 @@
+import SillKit
 import SwiftUI
 
 struct MasonryLayout: Layout {
@@ -63,5 +64,46 @@ struct MasonryLayout: Layout {
         subview.sizeThatFits(ProposedViewSize(width: width, height: nil)).height + spacing
     }
     return (points, CGSize(width: total, height: max(0, (heights.max() ?? 0) - spacing)), width)
+  }
+}
+
+/// The Layout commits the final size once. Only this drawing offset interpolates.
+struct MasonryMotion: ViewModifier {
+  var frozen = false
+  @State private var target: CGPoint?
+  @State private var offset = CGSize.zero
+  @State private var rendered = CGSize.zero
+  @State private var generation = 0
+  func body(content: Content) -> some View {
+    content.modifier(TranslationPresentation(position: offset) { rendered = $0 })
+      .onGeometryChange(for: CGPoint.self) {
+        $0.frame(in: .named("feed-layout")).origin
+      } action: { point in
+        guard let previous = target else {
+          target = point
+          return
+        }
+        guard previous != point else { return }
+        target = point
+        generation += 1
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+          offset = CGSize(
+            width: rendered.width + previous.x - point.x,
+            height: rendered.height + previous.y - point.y)
+        }
+      }
+      .task(id: generation) {
+        guard !frozen else { return }
+        await Task.yield()
+        guard !Task.isCancelled else { return }
+        withAnimation(NativeMotion.ease(AppleMetrics.motionLayout)) { offset = .zero }
+      }
+      .onChange(of: frozen) { _, frozen in
+        if !frozen {
+          withAnimation(NativeMotion.ease(AppleMetrics.motionLayout)) { offset = .zero }
+        }
+      }
   }
 }

@@ -49,11 +49,12 @@ struct CardTaskRow: View {
         set: { if $0 != model.taskDone(card, task) { model.toggleTask(card, task) } }
       )
     ) {
-      Text(task["text"]?.string ?? "").strikethrough(done)
-        .foregroundStyle(done ? .secondary : .primary)
+      Text(task["text"]?.string ?? "")
+        .foregroundStyle(done ? AppleColors.secondary : AppleColors.primary)
         .multilineTextAlignment(.leading).lineLimit(2)
-    }.toggleStyle(.checkbox).font(.system(size: AppleMetrics.font15)).disabled(model.busy)
-      .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4)
+    }.toggleStyle(NativeCheckStyle()).font(.system(size: AppleMetrics.font14)).disabled(model.busy)
+      .frame(maxWidth: .infinity, alignment: .leading).animation(
+        NativeMotion.ease(AppleMetrics.motionState), value: done)
   }
 }
 struct CardReferences: View {

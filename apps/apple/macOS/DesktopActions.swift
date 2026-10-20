@@ -47,7 +47,7 @@ extension Desktop {
         if !model.selection.isDisjoint(with: valid) {
           model.discussSelection()
         } else {
-          model.appendAIContext(valid)
+          withAnimation(NativeMotion.ease(AppleMetrics.motionFast)) { model.appendAIContext(valid) }
           model.selection.removeAll()
         }
         aiDropTargeted = false
@@ -205,7 +205,9 @@ extension Desktop {
                   NativeIcon(name: card.nativeIcon, size: AppleMetrics.space14)
                   Text(card.title).lineLimit(1)
                   Button {
-                    model.aiCards.removeAll { $0 == id }
+                    withAnimation(NativeMotion.ease(AppleMetrics.motionPress)) {
+                      model.aiCards.removeAll { $0 == id }
+                    }
                   } label: {
                     NativeIcon(name: "x", size: AppleMetrics.space12)
                       .frame(width: AppleMetrics.space20, height: AppleMetrics.space24)
@@ -214,10 +216,14 @@ extension Desktop {
                 }.font(.system(size: AppleMetrics.font13)).padding(.horizontal, AppleMetrics.space8)
                   .frame(maxWidth: 260).frame(height: AppleMetrics.space32)
                   .background(
-                    AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.space10))
+                    AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.space10)
+                  )
+                  .transition(NativeMotion.context)
+                  .allowsHitTesting(model.aiCards.contains(id))
               }
             }
-          }.padding(.bottom, AppleMetrics.railRow + AppleMetrics.space8)
+          }.animation(NativeMotion.ease(AppleMetrics.motionFast), value: model.aiCards)
+            .padding(.bottom, AppleMetrics.railRow + AppleMetrics.space8)
         }
       }
       .dropDestination(for: String.self) { ids, _ in
@@ -234,6 +240,7 @@ extension Desktop {
       NativeIcon(name: name, size: AppleMetrics.space20).frame(
         width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
     }
-    .buttonStyle(.plain).accessibilityLabel(Copy.text(label)).help(Copy.text(label))
+    .buttonStyle(.plain).accessibilityLabel(Copy.text(label)).modifier(
+      NativeTooltip(text: Copy.text(label), group: "desktop-rail"))
   }
 }

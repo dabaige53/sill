@@ -46,13 +46,10 @@
 
 ## Web 与 macOS 一致
 
-- macOS 的工作范围是适配和性能优化。保留 Sill 的信息结构、卡片构图、内容顺序、字号层级、留白与轻操作，不把原生化解释为重新设计产品。内容、功能、文案与业务状态继续与 Web 一致。
-- 卡片由 SwiftUI 原生视图组成，沿用设计系统的卡片圆角、内边距、字体尺寸与已读退色；不为使用标准容器而把内容卡片改成 GroupBox 表单分组。字体使用系统字体，动作使用 SF Symbols、原生按钮、复选框和菜单。
-- 顶栏、搜索、菜单、窗口缩放和系统快捷键遵循 macOS。设置保留独立 Settings 窗口；阅读恢复主窗口内的预览与展开，不在点击卡片时强制另开窗口。速记、备注和标签使用系统 Sheet，清空数据使用系统确认弹窗。
-- 玻璃只用于功能层，卡片与正文保持不透明。macOS 26 及以上使用系统 Liquid Glass，旧系统使用原生 material，不叠加手工模糊和多层阴影。
-- 参考 [Apple macOS 设计资源](https://developer.apple.com/design/resources/#macos-apps)、[Designing for macOS](https://developer.apple.com/design/human-interface-guidelines/designing-for-macos) 与 [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)，按现有产品结构适配窗口、控件和材质。
-- 按用户要求以代码检查和构建交付，不运行测试或视觉自动化。构建通过不表示实际交互和性能已验收。
+2026-10-20 用户确认：macOS 的视觉与动效以当前 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。此前本节的原生控件、SF Symbols、单层阴影和 Liquid Glass 规定全部撤销。
 
-## 产品设置边界
-
-不新增应用内无障碍设置。macOS 遵循系统的减少动态效果、材质和对比度设置，保留键盘、焦点与 VoiceOver 语义。Web 的既有规则不变。
+- 保留信息结构、内容顺序、文案和既有轻操作。SwiftUI 负责绘制，视觉、状态与动效参数对齐 Web。
+- 本轮在 Codex 内先更新仓库规范和设计变量，再修改实现；不调整 claude.ai 云端设计。仓库新增的 apple 设计变量尚未同步到线上；如编写 PR，须写入 Merge Danger。
+- 设计变量维护于 design-system/tokens/foundation.json，导出 tokens.json 后由 CardGenerator 生成 AppleMetrics、AppleColors。组件不另写动画参数。
+- 保留已有 reduceMotion 分支，本轮新增动效不加减少动态效果分支。此保留项与手册统一动效规则的差异须在交付中说明。
+- 保留键盘、焦点恢复及 VoiceOver 语义。按 AGENTS.md 运行非浏览器检查；真实窗口中未观察的效果须明确标明。

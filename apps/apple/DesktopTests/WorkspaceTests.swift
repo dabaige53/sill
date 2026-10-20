@@ -116,7 +116,7 @@ import Testing
     #expect(model.selected == nil)
   }
 
-  @Test func searchDoesNotFilterHomeAndMatchesNotesAndTags() throws {
+  @Test func searchSharesHomeStateAndMatchesNotesAndTags() throws {
     let model = Workspace(autoload: false)
     model.cards = try [card("first"), card("second")]
     model.items = [
@@ -130,7 +130,7 @@ import Testing
     #expect(model.visible.map(\.id) == ["first"])
     #expect(model.homeCards.count == 2)
     model.page = "home"
-    #expect(model.visible.count == 2)
+    #expect(model.visible.map(\.id) == ["first"])
     model.page = "search"
     #expect(model.visible.map(\.id) == ["first"])
   }
@@ -210,7 +210,8 @@ struct ToastLifetimeTests {
     model.presentNavigation("search")
     try await Task.sleep(for: .milliseconds(180))
     #expect(!model.settingsPresented)
-    #expect(model.page == "search")
+    #expect(model.page == "home")
+    #expect(model.searchFocusRequest == 1)
     model.presentNavigation("settings")
     model.presentNavigation("home")
     #expect(!model.settingsPresented)

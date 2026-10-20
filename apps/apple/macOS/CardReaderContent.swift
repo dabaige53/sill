@@ -7,7 +7,8 @@ extension CardReader {
     HStack {
       if !model.readerTrail.isEmpty {
         Button(Copy.appleBack, systemImage: "chevron.left") { model.dismissReader() }
-          .labelStyle(.iconOnly).buttonStyle(.bordered).help(Copy.appleBack)
+          .labelStyle(.iconOnly).buttonStyle(ReaderDiscStyle()).modifier(
+            NativeTooltip(text: Copy.appleBack, group: "reader-head"))
       }
       Spacer()
       HStack(spacing: AppleMetrics.space8) {
@@ -17,11 +18,15 @@ extension CardReader {
             systemImage: expanded
               ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
           ) { expanded.toggle() }
-          .labelStyle(.iconOnly).buttonStyle(.bordered)
-          .help(Copy.text(expanded ? "web.reader.exitFullscreen" : "web.preview.fullscreen"))
+          .labelStyle(.iconOnly).buttonStyle(ReaderDiscStyle())
+          .modifier(
+            NativeTooltip(
+              text: Copy.text(expanded ? "web.reader.exitFullscreen" : "web.preview.fullscreen"),
+              group: "reader-head"))
         }
         Button(Copy.text("web.preview.close"), systemImage: "xmark") { model.dismissReader() }
-          .labelStyle(.iconOnly).buttonStyle(.bordered).help(Copy.text("web.preview.close"))
+          .labelStyle(.iconOnly).buttonStyle(ReaderDiscStyle()).modifier(
+            NativeTooltip(text: Copy.text("web.preview.close"), group: "reader-head"))
       }
     }
   }
@@ -75,7 +80,8 @@ extension CardReader {
       if let points = card.fields["points"]?.strings {
         ForEach(Array(points.enumerated()), id: \.offset) { i, point in
           HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space10) {
-            Text("\(i + 1)").foregroundStyle(AppleColors.accent)
+            Text("\(i + 1)").foregroundStyle(AppleColors.accent).monospacedDigit()
+              .frame(width: AppleMetrics.space10, alignment: .trailing)
             Text(point)
           }.font(.system(size: AppleMetrics.font15))
         }
@@ -123,7 +129,7 @@ extension CardReader {
   func eventHero(_ card: Card, _ start: Date) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space12) {
       Text(cardTime(start)).font(
-        .system(size: AppleMetrics.font44, weight: .medium, design: .rounded))
+        .system(size: AppleMetrics.font44, weight: .semibold, design: .rounded))
       if let end = card.date("end") {
         Text(
           Copy.text("web.templates.83532308ecca") + cardTime(end)
@@ -277,7 +283,8 @@ extension CardReader {
       .font(.system(size: AppleMetrics.font18))
       .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
       .foregroundStyle(active ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
-      .help(label).disabled(model.busy)
+      .animation(NativeMotion.ease(AppleMetrics.motionState), value: active)
+      .modifier(NativeTooltip(text: label, group: "reader-tools")).disabled(model.busy)
   }
   private func fileDetails(_ file: JSONValue) -> String {
     var parts = [file["mimeType"]?.string].compactMap { $0 }

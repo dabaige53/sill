@@ -3,8 +3,44 @@ import SillKit
 import SwiftUI
 
 extension Desktop {
+  func presentDetail(_ id: String?) {
+    let wasClosed = detail.cardID == nil
+    if wasClosed && id != nil { detailFocus = focusedCard }
+    let generation: Int
+    if detail.cardID != nil && id != nil {
+      generation = withAnimation(NativeMotion.ease(AppleMetrics.motionDetailOpen)) {
+        detail.prepare(id)
+      }
+    } else {
+      generation = detail.prepare(id)
+    }
+    let animation: Animation? =
+      model.readerImmediate
+      ? nil
+      : NativeMotion.ease(
+        id == nil ? AppleMetrics.motionDetailClose : AppleMetrics.motionDetailOpen)
+    if id != nil {
+      Task { @MainActor in
+        await Task.yield()
+        guard detail.generation == generation else { return }
+        withAnimation(animation) { detail.visible = true }
+      }
+    } else {
+      withAnimation(animation, completionCriteria: .removed) {
+        detail.visible = false
+      } completion: {
+        detail.finishClose(generation)
+        if detail.cardID == nil { focusedCard = detailFocus }
+      }
+    }
+  }
   func dismissTop(immediateDetail: Bool = false) {
-    if tagEditor {
+    if scopePresented {
+      scopeImmediate = true
+      scopePresented = false
+    } else if model.cardMenuVisible {
+      model.closeCardMenu(immediate: true)
+    } else if tagEditor {
       tagEditor = false
     } else if model.selected != nil {
       model.dismissReader()
@@ -36,11 +72,25 @@ extension Desktop {
   func observation(_ page: String) -> some View {
     Color.clear.frame(height: 0).id(page + "-top")
       .background(
-        ScrollObservation(initialOffset: model.scrollOffsets[page] ?? 0) { offset, bottom, user in
+        ScrollObservation(
+          initialOffset: model.scrollOffsets[page] ?? 0,
+          enabled: detail.cardID == nil && !scopeMounted && model.cardMenuID == nil,
+          restoreRequest: restoreRequest, requestedOffset: restoreOffset,
+          edgeGesture: { handleFeedEdge($0) }
+        ) { offset, bottom, user in
           model.scrollOffsets[page] = offset
           guard model.page == page else { return }
           if page == "home", bottom, pageLimit < chrome.feedEntryCount { pageLimit += 40 }
-          guard user else { return }
+          guard user else {
+            chrome.lastOffset = offset
+            return
+          }
+          guard !searchFocused, !aiFocused, !model.cardMenuVisible, !scopePresented,
+            detail.cardID == nil
+          else {
+            showRail()
+            return
+          }
           guard page == "home" else {
             showRail()
             return
@@ -55,11 +105,11 @@ extension Desktop {
           if delta > 0 {
             chrome.downward += delta
             chrome.upward = 0
-            if chrome.downward > AppleMetrics.chromeHideTravel && !railHidden { railHidden = true }
+            if chrome.downward >= AppleMetrics.chromeHideTravel && !railHidden { railHidden = true }
           } else if delta < 0 {
             chrome.upward -= delta
             chrome.downward = 0
-            if chrome.upward > AppleMetrics.chromeShowTravel { showRail() }
+            if chrome.upward >= AppleMetrics.chromeShowTravel { showRail() }
           }
           if railHidden {
             chrome.revealTask = Task {
@@ -69,6 +119,40 @@ extension Desktop {
           }
         })
   }
+  func handleFeedEdge(_ sample: EdgeGestureSample) -> Bool {
+    guard detail.cardID == nil, !model.loading, !model.cardMenuVisible, !scopePresented else {
+      return false
+    }
+    if sample.phase == .changed {
+      if sample.edge == "top" {
+        refreshPull = min(sample.distance, AppleMetrics.gestureRefreshDistance)
+      } else {
+        withAnimation(NativeMotion.sheet(AppleMetrics.motionSheet)) {
+          feedEdge =
+            -AppleMetrics.gestureEdgeLimit * sample.distance
+            / (sample.distance + AppleMetrics.gestureEdgeLimit)
+        }
+      }
+    } else if sample.phase == .released && sample.edge == "top"
+      && sample.distance >= AppleMetrics.gestureRefreshDistance
+    {
+      model.refresh()
+      refreshHold?.cancel()
+      refreshHold = Task {
+        do { try await Task.sleep(for: .seconds(AppleMetrics.gestureRefreshRelease)) } catch {
+          return
+        }
+        withAnimation(NativeMotion.sheet(AppleMetrics.motionSheet)) { refreshPull = 0 }
+      }
+      return true
+    } else {
+      withAnimation(NativeMotion.spring()) {
+        refreshPull = 0
+        feedEdge = 0
+      }
+    }
+    return false
+  }
   func showRail() {
     if railHidden { railHidden = false }
     chrome.downward = 0
@@ -77,12 +161,14 @@ extension Desktop {
   }
   var toastPaused: Bool {
     windowActivity == .inactive || toastHovered || toastFocused || undoFocused
+      || detail.cardID != nil || model.capturePresented || tagEditor || archivePresented
   }
   func showToast(_ text: String, undo: Bool = false) {
     toastTask?.cancel()
     toastText = text
     if !undo { undoPatches = [:] }
-    toastLifetime = ToastLifetime(duration: .seconds(undo ? 5.5 : 3.2))
+    toastLifetime = ToastLifetime(
+      duration: .seconds(undo ? AppleMetrics.toastUndoDuration : AppleMetrics.toastDuration))
     updateToastTimer()
   }
   func dismissToast() {
@@ -109,14 +195,18 @@ extension Desktop {
     let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
     let command = event.modifierFlags.contains(.command)
     if event.keyCode == 48 {
+      model.readerToolsFocusRequest += 1
       showRail()
       return false
     }
     if command, let number = Int(key), (1...5).contains(number), model.selected == nil {
+      scopeImmediate = true
+      scopePresented = false
       model.feedScope = FeedScope.tabs[number - 1]
       showRail()
       return true
     }
+    if scopePresented || model.cardMenuVisible { return false }
     if searchFocused && event.keyCode == 36 {
       selectDetailFromKeyboard(model.visible.first?.id)
       return true

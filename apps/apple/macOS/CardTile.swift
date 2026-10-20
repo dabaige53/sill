@@ -1,13 +1,20 @@
+import AppKit
 import SillKit
 import SwiftUI
 
 struct CardTile: View {
   @Environment(Workspace.self) var model: Workspace
-  @Environment(\.colorScheme) private var colorScheme
   let card: Card
   var detail = false
   var compact = false
   var open: (() -> Void)?
+  var keyboardFocused = false
+  var stackPosition: String?
+  @State private var hovered = false
+  @State private var pressed = false
+  @FocusState private var moreFocused: Bool
+  private var menuOpen: Bool { model.cardMenuID == card.id }
+  private var emphasized: Bool { hovered || keyboardFocused || moreFocused || menuOpen }
   @FocusState private var focusedTask: String?
   @State private var heldTasks: [String] = []
   private var fields: JSONValue { card.fields }
@@ -15,7 +22,8 @@ struct CardTile: View {
   private var tasks: [JSONValue] { fields["tasks"]?.array ?? [] }
   private var complete: Bool { !tasks.isEmpty && tasks.allSatisfy { model.taskDone(card, $0) } }
   private var settled: Bool {
-    (card.readable && state["read"]?.bool == true && model.preferences["fadeRead"]?.bool != false)
+    (card.readable && state["read"]?.bool == true && !model.deferredReadAppearance.contains(card.id)
+      && model.preferences["fadeRead"]?.bool != false)
       || (card.type == "task" && complete)
       || (card.type == "reminder" && state["reminderDone"]?.bool == true)
       || (card.type == "event" && (card.date("end") ?? .distantFuture) < .now)
@@ -94,26 +102,69 @@ struct CardTile: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    .modifier(ShortContentTransition(value: card.fields))
     .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
     .background {
       RoundedRectangle(cornerRadius: AppleMetrics.cardRadius)
         .fill(settled ? AppleColors.readCard : AppleColors.card)
-        .shadow(
-          color: .black.opacity(settled ? 0 : colorScheme == .dark ? 0.3 : 0.04),
-          radius: AppleMetrics.space16, y: AppleMetrics.space4)
+        .modifier(NativeShadow(kind: emphasized ? .hover : .card, visible: !settled))
     }
     .overlay {
       RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).strokeBorder(
         model.selection.contains(card.id) && !detail
-          ? AppleColors.primary : AppleColors.primary.opacity(AppleMetrics.borderOpacity),
-        lineWidth: model.selection.contains(card.id) && !detail ? 2 : 1)
+          ? AppleColors.accent
+          : emphasized
+            ? AppleColors.lineHover : settled ? AppleColors.lineRead : AppleColors.lineCard,
+        lineWidth: model.selection.contains(card.id) && !detail
+          ? AppleMetrics.selectionLineWidth : AppleMetrics.lineWidth)
     }
+    .overlay {
+      if keyboardFocused {
+        RoundedRectangle(cornerRadius: AppleMetrics.cardRadius + AppleMetrics.focusOutset)
+          .stroke(AppleColors.accent, lineWidth: AppleMetrics.selectionLineWidth)
+          .padding(-AppleMetrics.focusOutset).allowsHitTesting(false)
+      }
+    }
+    .animation(
+      NativeMotion.ease(card.readable ? AppleMetrics.motionRead : AppleMetrics.motionState),
+      value: settled
+    )
+    .animation(NativeMotion.ease(AppleMetrics.motionHover), value: emphasized)
+    .scaleEffect(pressed && !menuOpen ? AppleMetrics.motionPressScale : 1)
+    .animation(NativeMotion.ease(AppleMetrics.motionPress), value: pressed && !menuOpen)
+    .overlay(alignment: .topTrailing) {
+      if !detail {
+        Button {
+          model.openCardMenu(card.id)
+        } label: {
+          NativeIcon(name: "more", size: AppleMetrics.space20)
+            .frame(width: AppleMetrics.space32, height: AppleMetrics.space32)
+            .background {
+              Circle().fill(menuOpen ? AppleColors.card : AppleColors.glass)
+                .background(.ultraThinMaterial, in: Circle())
+                .overlay(
+                  Circle().strokeBorder(AppleColors.fixedWhite72, lineWidth: AppleMetrics.lineWidth)
+                )
+                .modifier(NativeShadow(kind: .more))
+            }
+        }.buttonStyle(.plain).focused($moreFocused)
+          .accessibilityLabel(Copy.appleOrganize)
+          .modifier(NativeTooltip(text: Copy.appleOrganize))
+          .opacity(emphasized ? 1 : 0)
+          .allowsHitTesting(emphasized)
+          .animation(NativeMotion.ease(AppleMetrics.motionHover), value: emphasized)
+          .anchorPreference(key: CardMenuAnchor.self, value: .bounds) { [card.id: $0] }
+          .padding(AppleMetrics.space12)
+      }
+    }
+    .onHover { hovered = $0 }
+    .onLongPressGesture(minimumDuration: .infinity, pressing: { pressed = $0 }, perform: {})
     .contentShape(RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
     .onTapGesture { open?() }
     .accessibilityElement(children: .contain)
     .accessibilityAction(named: Text(Copy.appleView)) { open?() }
     .accessibilityAddTraits(model.selection.contains(card.id) ? .isSelected : [])
-    .onChange(of: focusedTask) { _, next in if next == nil { heldTasks = [] } }
+
     .tint(AppleColors.accent)
   }
   private var searchSnippet: String? {
@@ -172,7 +223,12 @@ struct CardTile: View {
           size: quote ? AppleMetrics.font21 : capture ? AppleMetrics.font15 : AppleMetrics.font17,
           weight: quote ? .medium : capture ? .regular : .semibold)
       )
-      .lineSpacing(quote ? AppleMetrics.space4 : 0).lineLimit(
+      .tracking(
+        quote
+          ? AppleMetrics.font21 * AppleMetrics.quoteTracking
+          : capture ? 0 : AppleMetrics.font17 * AppleMetrics.cardTitleTracking
+      )
+      .lineSpacing(titleLineSpacing(quote: quote, capture: capture)).lineLimit(
         detail ? nil : quote ? 4 : capture ? 6 : 2
       )
       .frame(maxWidth: .infinity, alignment: .leading).multilineTextAlignment(.leading)
@@ -183,10 +239,7 @@ struct CardTile: View {
       CardSourceGlyph(card: card)
       Text(headText).lineLimit(1)
       Spacer(minLength: 0)
-      if model.selection.contains(card.id) {
-        Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
-          .accessibilityLabel(Copy.appleSelect)
-      }
+      if let stackPosition { Text(stackPosition).monospacedDigit().fontWeight(.semibold) }
       if card.type == "task" && !tasks.isEmpty {
         Text("\(tasks.count { model.taskDone(card, $0) })/\(tasks.count)").foregroundStyle(
           AppleColors.primary
@@ -200,7 +253,8 @@ struct CardTile: View {
           Circle().trim(from: 0, to: progress).stroke(AppleColors.accent, lineWidth: 2)
             .rotationEffect(.degrees(-90))
         }.frame(width: AppleMetrics.font14, height: AppleMetrics.font14)
-        Text("\(Int((progress * 100).rounded()))%").foregroundStyle(AppleColors.accent)
+        Text("\(Int((progress * 100).rounded()))%").foregroundStyle(AppleColors.accent).fontWeight(
+          .medium)
       }
       if card.type == "reminder", let due = card.date("due") {
         let snooze = state["snoozedUntil"]?.number ?? 0
@@ -211,21 +265,17 @@ struct CardTile: View {
         )
         .foregroundStyle(
           date <= .now && state["reminderDone"]?.bool != true && state["dismissed"]?.bool != true
-            ? AppleColors.accent : AppleColors.secondary
+            ? AppleColors.warning : AppleColors.secondary
         )
-        .font(.system(size: AppleMetrics.font13, design: .rounded))
+        .font(.system(size: AppleMetrics.font13, weight: .medium, design: .rounded))
       }
       if card.type == "event" {
         Text(cardEventRelative(card)).foregroundStyle(AppleColors.accent).fontWeight(.medium)
       }
-      if !detail {
-        Menu(Copy.appleOrganize, systemImage: "ellipsis") { CardActions(card: card) }
-          .labelStyle(.iconOnly).menuStyle(.borderlessButton).menuIndicator(.hidden)
-          .controlSize(.small).fixedSize().help(Copy.appleOrganize)
-      }
+
     }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary).frame(
       minHeight: AppleMetrics.space20
-    )
+    ).padding(.trailing, !detail && !covered ? AppleMetrics.space30 : 0)
 
   }
   private var headText: String {
@@ -265,7 +315,8 @@ struct CardTile: View {
         HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space10) {
           Text("\(i + 1)").font(
             .system(size: AppleMetrics.font13, weight: .semibold, design: .rounded)
-          ).foregroundStyle(AppleColors.accent)
+          ).foregroundStyle(AppleColors.accent).monospacedDigit()
+            .frame(width: AppleMetrics.space10, alignment: .trailing)
           Text(point).font(.system(size: AppleMetrics.font15)).lineLimit(detail ? nil : 1)
         }
       }
@@ -296,6 +347,8 @@ struct CardTile: View {
             + Copy.text("web.templates.f9d529eacdf3")
         ).font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
       }
+    }.onAppear {
+      if heldTasks.isEmpty { heldTasks = ordered.compactMap { $0["id"]?.string } }
     }
   }
   private var sender: some View {
@@ -318,29 +371,25 @@ struct CardTile: View {
         ).font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
       }
       Spacer(minLength: 0)
-      if model.selection.contains(card.id) {
-        Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
-      }
-      Menu(Copy.appleOrganize, systemImage: "ellipsis") { CardActions(card: card) }
-        .labelStyle(.iconOnly).menuStyle(.borderlessButton).menuIndicator(.hidden)
-        .controlSize(.small).fixedSize().help(Copy.appleOrganize)
-    }
+    }.padding(.trailing, detail ? 0 : AppleMetrics.space30)
   }
   private func eventTime(_ start: Date) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space12) {
       Text(cardTime(start)).font(
-        .system(size: AppleMetrics.font34, weight: .medium, design: .rounded)
-      ).foregroundStyle(settled ? AppleColors.secondary : AppleColors.primary)
+        .system(size: AppleMetrics.font34, weight: .semibold, design: .rounded)
+      ).tracking(AppleMetrics.font34 * AppleMetrics.cardTitleTracking)
+        .foregroundStyle(settled ? AppleColors.secondary : AppleColors.primary)
       Spacer(minLength: AppleMetrics.space8)
       if let end = card.date("end") {
         VStack(alignment: .trailing, spacing: 2) {
           Text(Copy.text("web.templates.83532308ecca") + cardTime(end))
+            .font(.system(size: AppleMetrics.font15, weight: .medium, design: .rounded))
+            .foregroundStyle(AppleColors.primary)
           Text(
             Copy.text("web.templates.2428420e407f") + "\(Int(end.timeIntervalSince(start) / 60))"
               + Copy.text("web.templates.40de54344d22")
-          ).font(.system(size: AppleMetrics.font12))
-        }.font(.system(size: AppleMetrics.font13, design: .rounded)).foregroundStyle(
-          AppleColors.secondary)
+          ).font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+        }
       }
     }
   }
@@ -363,7 +412,17 @@ struct CardTile: View {
     HStack(spacing: AppleMetrics.space8) {
       NativeIcon(name: icon, size: AppleMetrics.font15)
       Text(text).lineLimit(1)
-    }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+      Spacer(minLength: 0)
+    }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.primary)
+      .padding(.horizontal, AppleMetrics.space10).frame(height: AppleMetrics.space36)
+      .background(AppleColors.canvas, in: RoundedRectangle(cornerRadius: AppleMetrics.space10))
+  }
+  private func titleLineSpacing(quote: Bool, capture: Bool) -> CGFloat {
+    let size = quote ? AppleMetrics.font21 : capture ? AppleMetrics.font15 : AppleMetrics.font17
+    let font = NSFont.systemFont(
+      ofSize: size, weight: quote ? .medium : capture ? .regular : .semibold)
+    let leading = quote || capture ? AppleMetrics.quoteLeading : AppleMetrics.cardTitleLeading
+    return max(0, size * leading - (font.ascender - font.descender + font.leading))
   }
   private func avatarRow(_ people: [String]) -> some View {
     HStack(spacing: -AppleMetrics.space6) {

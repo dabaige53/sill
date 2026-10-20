@@ -12,7 +12,7 @@ struct CloudLogin: View {
     ZStack {
       AppleColors.canvas.ignoresSafeArea()
       if model.connecting {
-        ProgressView().controlSize(.small)
+        LoadingFeedback(active: model.connecting)
       } else if passwordPage || model.needsPasswordSetup {
         passwordForm
       } else {

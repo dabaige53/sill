@@ -10,9 +10,20 @@ struct Desktop: View {
   @FocusState var toastFocused: Bool
   @FocusState var undoFocused: Bool
   @FocusState var searchFocused: Bool
+  @State var scopePresented = false
+  @State var scopeMounted = false
+  @State var scopeImmediate = false
+  @State var scopeFrame = CGRect.zero
+  @State var desktopFrame = CGRect.zero
+  @State var detail = DetailPresentation()
+  @State var detailFocus: String?
   @State var pageLimit = 40
   @State var homeTopRequest = 0
   @State var homeTopImmediate = false
+  @State var scopeOffsets: [FeedScope: CGFloat] = [:]
+  @State var pendingScopeOffset: CGFloat?
+  @State var restoreOffset: CGFloat = 0
+  @State var restoreRequest = 0
   @State var railHidden = false
   @State var chrome = ScrollChromeState()
   @FocusState var aiFocused: Bool
@@ -31,6 +42,9 @@ struct Desktop: View {
   @State var archivePresented = false
   @State var archiveSelection: String?
   @State var pendingIds: Set<String> = []
+  @State var refreshPull: CGFloat = 0
+  @State var feedEdge: CGFloat = 0
+  @State var refreshHold: Task<Void, Never>?
   @State var aiDropTargeted = false
   @FocusState var focusedCard: String?
   @State var toastText = ""
@@ -43,13 +57,16 @@ struct Desktop: View {
   @State var pendingToast = ""
   private var railConcealed: Bool { railHidden }
   private var railAnimation: Animation? {
-    reduceMotion ? nil : .spring(response: 0.32, dampingFraction: 1)
+    reduceMotion
+      ? nil
+      : NativeMotion.sheet(railHidden ? AppleMetrics.motionRailHide : AppleMetrics.motionRailShow)
   }
   var body: some View {
     @Bindable var workspace = model
     ZStack(alignment: .bottom) {
       AppleColors.canvas.ignoresSafeArea()
-      feed.disabled(model.readerPresented).accessibilityHidden(model.readerPresented)
+      feed.disabled(detail.cardID != nil).accessibilityHidden(detail.cardID != nil)
+        .scrollDisabled(detail.cardID != nil || scopeMounted || model.cardMenuID != nil)
       LinearGradient(
         colors: [AppleColors.canvas, AppleColors.canvas.opacity(0)], startPoint: .bottom,
         endPoint: .top
@@ -62,7 +79,7 @@ struct Desktop: View {
         .animation(railAnimation, value: railConcealed)
         .offset(y: railConcealed && !reduceMotion ? AppleMetrics.motionRailTravel : 0)
         .animation(railAnimation, value: railConcealed)
-        .allowsHitTesting(!railHidden && !model.readerPresented)
+        .allowsHitTesting(!railHidden && detail.cardID == nil)
         .accessibilityHidden(railHidden || model.readerPresented)
       if !toastText.isEmpty {
         HStack(spacing: AppleMetrics.space16) {
@@ -84,6 +101,7 @@ struct Desktop: View {
             .trailing, AppleMetrics.railEdge
           )
           .padding(.bottom, AppleMetrics.railEdge + AppleMetrics.railRow + AppleMetrics.space12)
+          .transition(NativeMotion.fade)
       }
       if let error = model.error {
         VStack {
@@ -98,6 +116,26 @@ struct Desktop: View {
         .padding(AppleMetrics.space16)
       }
     }
+    .animation(NativeMotion.ease(AppleMetrics.motionFast), value: toastText.isEmpty)
+    .background(WindowAnchor { desktopFrame = $0 })
+    .overlay {
+      if scopeMounted {
+        ScopeMenu(
+          presented: $scopePresented,
+          anchor: CGPoint(
+            x: scopeFrame.minX - desktopFrame.minX, y: desktopFrame.maxY - scopeFrame.minY),
+          immediate: scopeImmediate, removed: { scopeMounted = false })
+      }
+    }
+    .overlayPreferenceValue(CardMenuAnchor.self) { anchors in
+      GeometryReader { geometry in
+        if let id = model.cardMenuID, let anchor = anchors[id],
+          let card = model.cards.first(where: { $0.id == id })
+        {
+          CardMenu(card: card, anchor: geometry[anchor], available: geometry.size).id(id)
+        }
+      }
+    }
     .dropDestination(for: String.self) { values, _ in
       guard model.page == "home", model.selected == nil, !model.settingsPresented,
         !values.allSatisfy({ id in model.cards.contains { $0.id == id } })
@@ -107,20 +145,29 @@ struct Desktop: View {
       model.capture(text)
       return true
     }
-    .disabled(model.readerPresented)
-    .accessibilityHidden(model.readerPresented)
+    .disabled(detail.cardID != nil)
+    .accessibilityHidden(detail.cardID != nil)
     .overlay {
       GeometryReader { geometry in
-        if let selected = model.selected {
+        if let selected = detail.cardID {
           ZStack {
-            AppleColors.dim.ignoresSafeArea().onTapGesture { model.dismissReader() }
+            AppleColors.dim.ignoresSafeArea().opacity(detail.visible ? 1 : 0)
+              .onTapGesture { model.dismissReader() }
             CardReader(availableSize: geometry.size, presentedID: selected)
+              .id(selected)
+              .opacity(detail.visible ? 1 : 0)
+              .offset(y: detail.visible ? 0 : AppleMetrics.motionDetailEnterY)
+              .transition(
+                .opacity.combined(
+                  with: .offset(y: detail.visible ? AppleMetrics.motionDetailEnterY : 0))
+              )
+              .allowsHitTesting(detail.visible && model.selected == selected)
           }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }
       }
     }
     .toolbar { nativeToolbar }
-    .toolbar(model.readerPresented ? .hidden : .visible, for: .windowToolbar)
+    .toolbar(detail.cardID != nil ? .hidden : .visible, for: .windowToolbar)
     .sheet(isPresented: $workspace.capturePresented) {
       CaptureSheet(text: $captureText).environment(model)
     }
@@ -139,7 +186,9 @@ struct Desktop: View {
     ) {
       archivePanel.frame(width: AppleMetrics.aiWidth)
     }
-    .onChange(of: model.selected) { _, selected in
+    .onChange(of: model.selected, initial: true) { _, selected in
+      presentDetail(selected)
+      if selected != nil { model.closeCardMenu(immediate: true) }
       if selected != nil {
         searchFocused = false
         aiFocused = false
@@ -151,7 +200,7 @@ struct Desktop: View {
         model.settingsPresented = false
       }
     }
-    .modifier(WorkspaceSearch(query: $workspace.query, focus: $searchFocused))
+    .modifier(WorkspaceSearch(query: $workspace.query, focus: $searchFocused, hidden: railHidden))
     .onChange(of: model.searchFocusRequest) { searchFocused = true }
     .background(NativeKeyboard(handle: handleKey).frame(width: 0, height: 0))
     .foregroundStyle(AppleColors.primary).tint(AppleColors.accent)
@@ -159,18 +208,36 @@ struct Desktop: View {
     .preferredColorScheme(model.preferredAppearance)
     .onChange(of: model.cards.map(\.id)) { old, new in
       let additions = Set(new).subtracting(old)
-      if !old.isEmpty && (model.scrollOffsets["home"] ?? 0) > AppleMetrics.space24 {
-        pendingIds.formUnion(additions)
+      if !old.isEmpty && model.preferences["newHint"]?.string != "off"
+        && (model.scrollOffsets["home"] ?? 0) > AppleMetrics.space24
+      {
+        pendingIds.formUnion(additions.subtracting(model.capturedIDs))
       }
+      model.capturedIDs.subtract(additions)
       pendingIds.formIntersection(Set(new))
     }
+    .onChange(of: model.loading) { _, loading in
+      if !loading {
+        refreshHold?.cancel()
+        withAnimation(NativeMotion.sheet(AppleMetrics.motionSheet)) { refreshPull = 0 }
+        if model.refreshInitiated && model.error == nil { resetFeed() }
+      }
+    }
     .onChange(of: model.query) { resetFeed() }
-    .onChange(of: model.feedScope) { resetFeed() }
+    .onChange(of: model.feedScope) { old, new in
+      scopeOffsets[old] = model.scrollOffsets["home"] ?? 0
+      pendingScopeOffset = scopeOffsets[new] ?? 0
+      resetFeed(restoreScope: true)
+    }
     .onChange(of: model.typeFilter) { resetFeed() }
     .onChange(of: model.tagFilter) { resetFeed() }
     .onChange(of: model.preferences["sort"]) { resetFeed() }
     .onChange(of: model.preferences["stack"]) { resetFeed() }
     .onChange(of: model.preferences["floatTimely"]) { resetFeed() }
+    .onChange(of: searchFocused) { if searchFocused { showRail() } }
+    .onChange(of: aiFocused) { if aiFocused { showRail() } }
+    .onChange(of: scopePresented) { if scopePresented { showRail() } }
+    .onChange(of: model.cardMenuVisible) { if model.cardMenuVisible { showRail() } }
     .onChange(of: model.aiFocusRequest) {
       showRail()
       aiFocused = true
@@ -209,9 +276,13 @@ struct Desktop: View {
     }
   }
   private var rail: some View {
-    Group {
-      if model.selection.isEmpty { aiDock } else { selectionBar }
+    ZStack {
+      aiDock.opacity(model.selection.isEmpty ? 1 : 0)
+        .allowsHitTesting(model.selection.isEmpty).accessibilityHidden(!model.selection.isEmpty)
+      selectionBar.opacity(model.selection.isEmpty ? 0 : 1)
+        .allowsHitTesting(!model.selection.isEmpty).accessibilityHidden(model.selection.isEmpty)
     }
+    .animation(NativeMotion.ease(AppleMetrics.motionFast), value: model.selection.isEmpty)
     .frame(maxWidth: 640)
     .padding(.horizontal, AppleMetrics.space24)
   }

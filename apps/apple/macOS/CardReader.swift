@@ -15,6 +15,11 @@ struct CardReader: View {
   @State var tags: [String] = []
   @State var newTag = ""
   @State var submitting = false
+  @State var gesture = ReaderGestureState()
+  @State var chrome = ScrollChromeState()
+  @State var toolsHidden = false
+  @State var scrolled = false
+  @State var finishTask: Task<Void, Never>?
   @State private var activity = ReaderActivity()
   @State private var contentHeight: CGFloat = 280
   @State private var viewportHeight: CGFloat = 0
@@ -26,7 +31,7 @@ struct CardReader: View {
     return short ? AppleMetrics.compactReaderWidth : AppleMetrics.readerWidth
   }
   var body: some View {
-    if let card = model.cards.first(where: { $0.id == (model.selected ?? presentedID) }) {
+    if let card = model.cards.first(where: { $0.id == (presentedID ?? model.selected) }) {
       VStack(spacing: 0) {
         VStack(spacing: 0) {
           ReaderProgress(activity: activity, card: card, expanded: expanded).id(card.id)
@@ -90,38 +95,32 @@ struct CardReader: View {
               )
               .background(
                 ScrollObservation(
+                  initialOffset: model.scrollOffsets["reader:" + card.id] ?? 0,
+                  enabled: model.selected == card.id && !organizing,
+                  horizontal: expanded,
                   progressChanged: { activity.updateProgress($0) },
-                  overscroll: { direction in
-                    if direction == "top" {
-                      if expanded { expanded = false } else { model.dismissReader() }
-                    } else if direction == "bottom" && card.readable {
-                      if model.items[card.id]?["read"]?.bool != true && !model.busy {
-                        model.patch(
-                          [card.id],
-                          values: [
-                            "read": .bool(true), "progress": .number(1),
-                            "readAt": .number(Date.now.timeIntervalSince1970 * 1000),
-                          ])
-                      }
-                      if model.preferences["collapseOnFinish"]?.bool != false {
-                        model.dismissReader()
-                      }
+                  immediateDistance: AppleMetrics.gestureFinishDistance,
+                  edgeGesture: { handleReaderEdge($0, card: card) }
+                ) { offset, bottom, userScrolled in
+                  model.scrollOffsets["reader:" + card.id] = offset
+                  if userScrolled && model.selected == card.id {
+                    activity.lastInteraction = .now
+                    updateReaderChrome(offset: offset, bottom: bottom)
+                    if bottom && offset > 0 && card.readable
+                      && model.preferences["collapseOnFinish"]?.bool == false
+                      && model.items[card.id]?["read"]?.bool != true && !model.busy
+                    {
+                      model.patch(
+                        [card.id],
+                        values: [
+                          "read": .bool(true), "progress": .number(1),
+                          "readAt": .number(Date.now.timeIntervalSince1970 * 1000),
+                        ])
                     }
                   }
-                ) { offset, bottom, userScrolled in
-                  if userScrolled { activity.lastInteraction = .now }
-                  if userScrolled && card.readable && bottom && offset > 0
-                    && model.items[card.id]?["read"]?.bool != true && !model.busy
-                  {
-                    model.patch(
-                      [card.id],
-                      values: [
-                        "read": .bool(true), "progress": .number(1),
-                        "readAt": .number(Date.now.timeIntervalSince1970 * 1000),
-                      ])
-                  }
                 })
-          }.id(card.id)
+          }.id(card.id).scrollIndicators(.hidden)
+            .scrollDisabled(gesture.reached && !gesture.failed)
             .background(
               GeometryReader { proxy in
                 Color.clear.preference(key: ReaderViewportHeight.self, value: proxy.size.height)
@@ -133,14 +132,13 @@ struct CardReader: View {
               readerToolbar(card)
             }
           }.padding(.bottom, AppleMetrics.space20)
+            .modifier(ReaderChrome(hidden: toolsHidden || gesture.distance > 0))
         }.background {
           if card.fields["media"]?.string == "podcast" {
             LinearGradient(
               stops: [
                 .init(
-                  color: colorScheme == .dark
-                    ? Color(red: 42 / 255, green: 38 / 255, blue: 34 / 255)
-                    : Color(red: 244 / 255, green: 237 / 255, blue: 228 / 255), location: 0),
+                  color: AppleColors.fixedPodcast, location: 0),
                 .init(color: AppleColors.card, location: 0.7),
               ], startPoint: .top, endPoint: .bottom)
           }
@@ -155,11 +153,84 @@ struct CardReader: View {
               ? availableSize.height
               : card.type == "photo"
                 ? max(280, availableSize.height - AppleMetrics.space32)
-                : min(max(280, contentHeight + 80), max(280, availableSize.height - 64))
+                : min(
+                  max(280, contentHeight + 80),
+                  max(280, availableSize.height - AppleMetrics.space64))
           )
-          .clipShape(RoundedRectangle(cornerRadius: expanded ? 0 : AppleMetrics.panelRadius))
+          .clipShape(RoundedRectangle(cornerRadius: expanded ? 0 : AppleMetrics.sheetRadius))
+          .background {
+            RoundedRectangle(cornerRadius: expanded ? 0 : AppleMetrics.sheetRadius)
+              .fill(AppleColors.card).modifier(NativeShadow(kind: .sheet))
+          }
+          .background(alignment: .top) {
+            if !model.readerTrail.isEmpty {
+              GeometryReader { geometry in
+                Button {
+                  model.dismissReader()
+                } label: {
+                  RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius)
+                    .fill(AppleColors.readCard)
+                    .overlay(
+                      RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius).strokeBorder(
+                        AppleColors.lineCard)
+                    )
+                    .frame(
+                      width: geometry.size.width * AppleMetrics.sheetPeekWidth,
+                      height: AppleMetrics.space44
+                    )
+                    .frame(maxWidth: .infinity)
+                }.buttonStyle(.plain).offset(y: -AppleMetrics.space8)
+                  .accessibilityLabel(Copy.appleBack)
+              }
+            }
+          }
+          .overlay(alignment: .top) {
+            LinearGradient(
+              colors: [
+                AppleColors.card.opacity(AppleMetrics.headerEdgeOpacity),
+                AppleColors.card.opacity(0),
+              ],
+              startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: AppleMetrics.headerEdgeHeight)
+            .opacity(scrolled && !toolsHidden ? 1 : 0).allowsHitTesting(false)
+            .animation(NativeMotion.ease(AppleMetrics.motionFast), value: scrolled && !toolsHidden)
+          }
           .overlay(alignment: .topTrailing) {
-            readerHead(card).padding(AppleMetrics.space12)
+            readerHead(card).padding(.horizontal, AppleMetrics.space12)
+              .padding(
+                .top,
+                scrolled
+                  ? AppleMetrics.space12
+                  : AppleMetrics.previewPaddingTop + AppleMetrics.space28
+                    - (AppleMetrics.hitTarget - AppleMetrics.font13) / 2
+              )
+              .modifier(ReaderChrome(hidden: toolsHidden || gesture.distance > 0, top: true))
+          }
+          .overlay(alignment: .bottom) {
+            ReaderFinishIndicator(gesture: gesture).padding(.bottom, AppleMetrics.space20)
+            if gesture.failed, let error = model.error {
+              Text(error).font(.system(size: AppleMetrics.font14))
+                .padding(AppleMetrics.space12).background(AppleColors.card)
+            }
+          }
+          .modifier(
+            TranslationPresentation(
+              position: CGSize(width: gesture.offsetX, height: gesture.offset),
+              update: {
+                gesture.renderedOffset = $0.height
+                gesture.renderedX = $0.width
+              })
+          )
+          .modifier(
+            ShortContentTransition(value: expanded, duration: AppleMetrics.motionDetailOpen)
+          )
+          .onAppear { expanded = model.readerExpansion[card.id] ?? false }
+          .onChange(of: expanded) { _, value in model.readerExpansion[card.id] = value }
+          .onChange(of: model.busy) { if !model.busy { submitFinish(card) } }
+          .onChange(of: model.readerToolsFocusRequest) { revealReaderTools() }
+          .onChange(of: windowActivity) { _, state in
+            if state == .inactive && !gesture.reached { cancelReaderGesture() }
           }
           .onPreferenceChange(ReaderContentHeight.self) {
             if contentHeight != $0 { contentHeight = $0 }
@@ -198,13 +269,30 @@ struct CardReader: View {
               }
             }
           }
-          .onDisappear { model.flushReading() }
-          .onChange(of: model.selected) { _, new in
+          .onDisappear {
+            finishTask?.cancel()
+            chrome.revealTask?.cancel()
+            model.deferredReadAppearance.remove(card.id)
+            model.flushReading()
+          }
+          .onChange(of: model.selected) { old, new in
             guard new != nil else {
               model.flushReading()
               return
             }
-            expanded = false
+            if new != card.id { finishTask?.cancel() }
+            if new == card.id && old == nil {
+              finishTask?.cancel()
+              gesture.reached = false
+              gesture.submitted = false
+              gesture.confirmed = false
+              gesture.failed = false
+              withAnimation(NativeMotion.spring()) {
+                gesture.offset = 0
+                gesture.offsetX = 0
+                gesture.distance = 0
+              }
+            }
             activity.reset()
           }
           .sheet(isPresented: $organizing) {
@@ -212,7 +300,7 @@ struct CardReader: View {
           }
       }
       .onExitCommand {
-        if expanded { expanded = false } else { model.dismissReader() }
+        model.dismissReader()
       }
       .environment(\.colorScheme, card.type == "photo" ? .dark : colorScheme)
     }

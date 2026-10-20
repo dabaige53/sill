@@ -11,7 +11,27 @@ import SwiftUI
   var feedScope: FeedScope = .all
   var aiFocusRequest = 0
   @ObservationIgnored var scrollOffsets: [String: CGFloat] = [:]
+  @ObservationIgnored var readerExpansion: [String: Bool] = [:]
+  @ObservationIgnored var capturedIDs: Set<String> = []
   var selection: Set<String> = []
+  var activeDeckID: String?
+  var cardMenuID: String?
+  var cardMenuVisible = false
+  var cardMenuGeneration = 0
+  var menuImmediate = false
+  var deferredReadAppearance: Set<String> = []
+  func openCardMenu(_ id: String) {
+    cardMenuGeneration += 1
+    menuImmediate = NSApp?.currentEvent?.type == .keyDown
+    cardMenuID = id
+    cardMenuVisible = true
+  }
+  func closeCardMenu(immediate: Bool = false) {
+    guard cardMenuVisible else { return }
+    cardMenuGeneration += 1
+    menuImmediate = immediate
+    cardMenuVisible = false
+  }
   var aiCards: [String] = []
   var aiDraft = ""
   var typeFilter = "all"
@@ -44,9 +64,14 @@ import SwiftUI
     tagFilter = ""
   }
   var searchFocusRequest = 0
+  @ObservationIgnored var readerGeneration = 0
+  var readerImmediate = false
+  var readerToolsFocusRequest = 0
   var selected: String? {
     didSet {
       guard selected != oldValue else { return }
+      readerGeneration += 1
+      readerImmediate = NSApp?.currentEvent?.type == .keyDown
       if selected == nil {
         readerTrail.removeAll()
       } else if !returningToReader, let oldValue {
@@ -83,6 +108,7 @@ import SwiftUI
   @ObservationIgnored private var pendingReading = 0
   var busy = false
   var loading = false
+  var refreshInitiated = false
   @ObservationIgnored private var refreshTask: Task<Void, Never>?
   @ObservationIgnored private var store: CardStore?
   @ObservationIgnored private var session: WorkspaceSession?
@@ -90,7 +116,7 @@ import SwiftUI
   var seconds = 0.0
 
   init(autoload: Bool = true) {
-    if autoload { refresh() } else { connecting = false }
+    if autoload { refresh(feedback: false) } else { connecting = false }
   }
 
   func tags(_ card: Card) -> [String] {
@@ -115,16 +141,26 @@ import SwiftUI
     patch([card.id], values: ["taskDone": .array(done.map(JSONValue.string))])
   }
 
-  func patch(_ ids: [String], values: [String: JSONValue], expectedRevision: Int? = nil) {
-    guard !busy, ready else { return }
+  func patch(
+    _ ids: [String], values: [String: JSONValue], expectedRevision: Int? = nil,
+    completion: ((Bool) -> Void)? = nil
+  ) {
+    guard !busy, ready else {
+      completion?(false)
+      return
+    }
     if !localMode {
       applyCloud(
         ids.map {
           .object(["op": .string("item.patch"), "id": .string($0), "values": .object(values)])
-        }, expectedRevision: expectedRevision ?? revision)
+        }, expectedRevision: expectedRevision ?? revision, after: { completion?(true) },
+        failed: { completion?(false) })
       return
     }
-    guard let store else { return }
+    guard let store else {
+      completion?(false)
+      return
+    }
     let expected = expectedRevision ?? revision
     busy = true
     Task {
@@ -135,7 +171,11 @@ import SwiftUI
             Dictionary(uniqueKeysWithValues: Set(ids).map { ($0, .object(values)) }),
             expectedRevision: expected))
         error = nil
-      } catch { report(error) }
+        completion?(true)
+      } catch {
+        report(error)
+        completion?(false)
+      }
     }
   }
 
@@ -229,7 +269,9 @@ import SwiftUI
     if let selected, !cards.contains(where: { $0.id == selected }) { self.selected = nil }
   }
 
-  func refresh() {
+  func refresh(feedback: Bool = true) {
+    guard refreshTask == nil, !busy else { return }
+    refreshInitiated = feedback
     if !localMode {
       refreshCloud()
       return
@@ -455,6 +497,13 @@ import SwiftUI
     items = [:]
     preferences = [:]
     selection = []
+    activeDeckID = nil
+    cardMenuGeneration += 1
+    cardMenuID = nil
+    cardMenuVisible = false
+    deferredReadAppearance = []
+    readerExpansion = [:]
+    capturedIDs = []
     aiCards = []
     aiDraft = ""
     selected = nil
@@ -493,7 +542,8 @@ import SwiftUI
   }
 
   private func applyCloud(
-    _ operations: [JSONValue], expectedRevision: Int, after: (() -> Void)? = nil
+    _ operations: [JSONValue], expectedRevision: Int, after: (() -> Void)? = nil,
+    failed: (() -> Void)? = nil
   ) {
     guard !busy, owner != nil else { return }
     let generation = accountGeneration
@@ -507,7 +557,12 @@ import SwiftUI
         try acceptCloud(result, generation: generation)
         error = nil
         after?()
-      } catch { if generation == accountGeneration { report(error) } }
+      } catch {
+        if generation == accountGeneration {
+          report(error)
+          failed?()
+        }
+      }
     }
   }
 
@@ -550,6 +605,7 @@ import SwiftUI
     }
     do {
       let card = try Card(json: json)
+      capturedIDs.insert(card.id)
       if !localMode {
         applyCloud(
           [.object(["op": .string("card.upsert"), "card": card.fields, "before": .null])],

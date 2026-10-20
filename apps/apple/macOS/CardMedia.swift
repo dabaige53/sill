@@ -26,6 +26,7 @@ struct CardMedia: View {
           HStack(spacing: AppleMetrics.space12) {
             if images.count > 1 { photoStep("back", -1, "web.photo.previous") }
             NativeArtwork(name: images[min(index, images.count - 1)], fit: true)
+              .id(images[min(index, images.count - 1)]).transition(NativeMotion.fade)
               .frame(maxWidth: .infinity, minHeight: AppleMetrics.coverHeight, maxHeight: .infinity)
             if images.count > 1 { photoStep("arrow", 1, "web.photo.next") }
           }
@@ -45,7 +46,7 @@ struct CardMedia: View {
                   + Copy.text("web.common.cardCountSuffix"))
             }
           }
-        }
+        }.animation(NativeMotion.ease(AppleMetrics.motionFast), value: index)
       } else {
         GeometryReader { geometry in
           ZStack(alignment: .bottom) {
@@ -111,24 +112,86 @@ struct CardMedia: View {
   }
 }
 
-/// Resolve packaged PNGs explicitly; SwiftUI named images require an asset catalog on some hosts.
+/// Cached artwork appears immediately; newly decoded artwork fades over its placeholder.
 struct NativeArtwork: View {
   let name: String
   var fit = false
-  private static let images: [String: NSImage] = {
+  @State private var loaded: NSImage?
+  @State private var opacity = 0.0
+  @State private var placeholder = AppleColors.surface
+  private var cached: NSImage? {
+    ArtworkCache.packaged[name] ?? ArtworkCache.remote.object(forKey: name as NSString)
+  }
+  var body: some View {
+    GeometryReader { geometry in
+      ZStack {
+        if !fit { placeholder }
+        if let image = loaded ?? cached {
+          Image(nsImage: image).resizable().aspectRatio(contentMode: fit ? .fit : .fill)
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .opacity(loaded == nil && cached != nil ? 1 : opacity)
+        } else {
+          NativeIcon(name: "image", size: AppleMetrics.space24).foregroundStyle(
+            AppleColors.secondary)
+        }
+      }
+    }.clipped().task(id: name) {
+      loaded = nil
+      opacity = 0
+      placeholder = AppleColors.surface
+      if cached != nil {
+        opacity = 1
+        return
+      }
+      guard let url = URL(string: name), ["https", "http"].contains(url.scheme ?? "") else {
+        return
+      }
+      do {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard !Task.isCancelled, (response as? HTTPURLResponse)?.statusCode == 200,
+          let image = NSImage(data: data)
+        else { return }
+        loaded = image
+        placeholder = Self.dominantColor(image)
+        ArtworkCache.remote.setObject(image, forKey: name as NSString)
+        await Task.yield()
+        guard !Task.isCancelled else { return }
+        withAnimation(NativeMotion.ease(AppleMetrics.motionFast)) { opacity = 1 }
+      } catch { return }
+    }
+  }
+
+  private static func dominantColor(_ image: NSImage) -> Color {
+    guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+      return AppleColors.surface
+    }
+    let bitmap = NSBitmapImageRep(cgImage: cgImage)
+    var red = 0.0
+    var green = 0.0
+    var blue = 0.0
+    var weight = 0.0
+    // A small fixed sample grid is enough for the temporary color behind the decoded image.
+    for y in stride(from: 0, to: bitmap.pixelsHigh, by: max(1, bitmap.pixelsHigh / 16)) {
+      for x in stride(from: 0, to: bitmap.pixelsWide, by: max(1, bitmap.pixelsWide / 16)) {
+        guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB) else { continue }
+        red += color.redComponent * color.alphaComponent
+        green += color.greenComponent * color.alphaComponent
+        blue += color.blueComponent * color.alphaComponent
+        weight += color.alphaComponent
+      }
+    }
+    return weight > 0
+      ? Color(red: red / weight, green: green / weight, blue: blue / weight) : AppleColors.surface
+  }
+}
+
+@MainActor private enum ArtworkCache {
+  static let remote = NSCache<NSString, NSImage>()
+  static let packaged: [String: NSImage] = {
     let urls = Bundle.module.urls(forResourcesWithExtension: "png", subdirectory: nil) ?? []
     return Dictionary(
       uniqueKeysWithValues: urls.compactMap { url in
         NSImage(contentsOf: url).map { (url.deletingPathExtension().lastPathComponent, $0) }
       })
   }()
-  var body: some View {
-    if let image = Self.images[name] {
-      Image(nsImage: image).resizable().aspectRatio(contentMode: fit ? .fit : .fill)
-    } else {
-      Rectangle().fill(AppleColors.surface).overlay {
-        NativeIcon(name: "image", size: AppleMetrics.space24).foregroundStyle(AppleColors.secondary)
-      }.accessibilityLabel(Copy.text("web.photo"))
-    }
-  }
 }

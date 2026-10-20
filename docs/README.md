@@ -69,6 +69,8 @@
 
 ## 记录
 
+- [macOS 视觉与动效对齐 Web](records/2026-10-20-macos-web-alignment/README.md)
+
 - [React 迁移与动效本地整合（2026-10-19）](records/2026-10-19-react-motion-integration/README.md)
 
 - [无效代码清理（2026-10-19）](records/2026-10-19-dead-code-cleanup/README.md)

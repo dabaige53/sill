@@ -90,7 +90,7 @@ struct SettingsPanel: View {
           ["bookmark", "tag", "later", "reply", "open", "join", "snooze", "download", "dismiss"],
           id: \.self
         ) { action in
-          row("web.actions." + action) {
+          LabeledContent {
             Toggle(
               Copy.text("web.actions." + action),
               isOn: Binding(
@@ -102,7 +102,14 @@ struct SettingsPanel: View {
                   model.setPreference("hiddenActions", .array(hidden.map(JSONValue.string)))
                 }
               )
-            ).labelsHidden().toggleStyle(.switch).disabled(model.busy)
+            ).labelsHidden().toggleStyle(NativeSwitchStyle(labelVisible: false)).disabled(
+              model.busy)
+          } label: {
+            VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+              Text(Copy.text("web.actions." + action))
+              Text(actionExample(action)).font(.system(size: AppleMetrics.font12)).foregroundStyle(
+                AppleColors.secondary)
+            }
           }
         }
       }
@@ -167,6 +174,14 @@ struct SettingsPanel: View {
       }
     }
   }
+  private func actionExample(_ action: String) -> String {
+    let key =
+      [
+        "reply": "mail", "open": "source", "join": "event", "download": "event",
+        "snooze": "reminder", "dismiss": "reminder",
+      ][action] ?? "all"
+    return Copy.text("web.actions.example." + key)
+  }
   private var storageSize: String {
     let value = JSONValue.object([
       "cards": .array(model.cards.compactMap { try? $0.raw }), "items": .object(model.items),
@@ -197,7 +212,7 @@ struct SettingsPanel: View {
             .fixedSize(horizontal: false, vertical: true)
         }
       }
-    }.toggleStyle(.switch).disabled(model.busy)
+    }.toggleStyle(NativeSwitchStyle()).disabled(model.busy)
   }
   private func segmented(
     _ label: String, _ key: String, fallback: String, options: [(String, String)]

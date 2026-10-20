@@ -18,7 +18,7 @@ extension Desktop {
               Label(
                 "\(pendingIds.count)" + Copy.text("web.app.b50caa663fcf"), systemImage: "arrow.up")
             }.buttonStyle(.plain).font(.system(size: AppleMetrics.font13))
-              .padding(AppleMetrics.space10).modifier(GlassSurface())
+              .padding(AppleMetrics.space10).modifier(GlassSurface()).transition(NativeMotion.fade)
           }
           if model.cards.isEmpty {
             welcome.padding(.top, AppleMetrics.space40)
@@ -27,35 +27,63 @@ extension Desktop {
               Text(Copy.text("web.app.a510cac879f0")).foregroundStyle(AppleColors.secondary)
               if archiveCount > 0 { archiveEntry }
             }.padding(AppleMetrics.space40)
-          } else {
-            let configuration = grid(geometry.size.width - feedMargin(geometry.size.width) * 2)
-            MasonryLayout(
-              columns: configuration.count, spacing: configuration.gap,
-              maximumColumnWidth: configuration.maximum
-            ) {
-              ForEach(Array(entries.prefix(pageLimit))) { entry in
-                if entry.cards.count > 1 {
-                  NativeStack(
-                    cards: entry.cards, expanded: openStacks.contains(entry.id),
-                    toggle: {
-                      if openStacks.contains(entry.id) {
-                        openStacks.remove(entry.id)
-                      } else {
-                        openStacks.insert(entry.id)
-                      }
-                    }, open: open)
-                } else if let card = entry.cards.first {
-                  tile(card)
-                }
-              }
-              if !model.searchPresented && pageLimit >= entries.count && archiveCount > 0 {
-                archiveEntry
-              }
-            }.padding(.horizontal, feedMargin(geometry.size.width)).padding(
-              .top, AppleMetrics.space16)
           }
+          let configuration = grid(geometry.size.width - feedMargin(geometry.size.width) * 2)
+          FeedCollection(
+            entries: entries
+              + (!model.searchPresented && pageLimit >= entries.count && archiveCount > 0
+                && !entries.isEmpty ? [FeedEntry(id: "archive-entry", cards: [])] : []),
+            pageLimit: pageLimit + (pageLimit >= entries.count ? 1 : 0),
+            viewportHeight: geometry.size.height,
+            columns: configuration.count, spacing: configuration.gap,
+            maximumWidth: configuration.maximum,
+            settled: {
+              if let pendingScopeOffset {
+                restoreOffset = pendingScopeOffset
+                restoreRequest += 1
+                self.pendingScopeOffset = nil
+              }
+            }
+          ) { entry in
+            if entry.id == "archive-entry" {
+              archiveEntry
+            } else if entry.cards.count > 1 {
+              NativeStack(
+                cards: entry.cards, expanded: openStacks.contains(entry.id),
+                toggle: {
+                  if openStacks.contains(entry.id) {
+                    openStacks.remove(entry.id)
+                  } else {
+                    openStacks.insert(entry.id)
+                  }
+                }, open: open)
+            } else if let card = entry.cards.first {
+              tile(card)
+            }
+          }.offset(y: refreshPull * AppleMetrics.gestureRefreshTravel + feedEdge)
+            .padding(.horizontal, feedMargin(geometry.size.width)).padding(
+              .top, AppleMetrics.space16
+            ).coordinateSpace(name: "feed-layout")
+
           Color.clear.frame(height: AppleMetrics.feedBottom)
-        }.scrollIndicators(.automatic)
+        }.animation(NativeMotion.ease(AppleMetrics.motionFast), value: pendingIds.isEmpty)
+          .overlay(alignment: .top) {
+            if refreshPull > 0 && !model.loading {
+              Circle().trim(from: 0, to: min(1, refreshPull / AppleMetrics.gestureRefreshDistance))
+                .stroke(AppleColors.accent, lineWidth: AppleMetrics.selectionLineWidth)
+                .rotationEffect(.degrees(-90)).frame(
+                  width: AppleMetrics.space20, height: AppleMetrics.space20
+                )
+                .frame(width: AppleMetrics.space40, height: AppleMetrics.space40)
+                .background(AppleColors.card, in: Circle()).padding(.top, AppleMetrics.space12)
+            }
+            LoadingFeedback(
+              active: model.loading, initiated: model.refreshInitiated, success: model.error == nil
+            )
+            .padding(.top, AppleMetrics.space12)
+          }
+          .scrollIndicators(.hidden).coordinateSpace(name: "feed-viewport")
+          .simultaneousGesture(TapGesture().onEnded { searchFocused = false })
           .onChange(of: entries.count, initial: true) { _, count in chrome.feedEntryCount = count }
           .clipped()
           .onAppear {
@@ -68,7 +96,9 @@ extension Desktop {
             captureStacks()
           }
           .onChange(of: homeTopRequest) {
-            withAnimation(homeTopImmediate || reduceMotion ? nil : .easeOut) {
+            withAnimation(
+              homeTopImmediate || reduceMotion ? nil : NativeMotion.ease(AppleMetrics.motionLayout)
+            ) {
               proxy.scrollTo("home-top", anchor: .top)
             }
           }
@@ -76,45 +106,52 @@ extension Desktop {
     }
   }
   @ToolbarContentBuilder var nativeToolbar: some ToolbarContent {
-    @Bindable var workspace = model
     ToolbarItem(placement: .navigation) {
-      Menu {
-        Picker(Copy.text("web.home.filterMenu"), selection: $workspace.feedScope) {
-          ForEach(FeedScope.tabs) { scope in Text(scope.label).tag(scope) }
-        }.pickerStyle(.inline)
-        Divider()
-        Button(Copy.appleNewNote) { model.capturePresented = true }
+      Button {
+        scopeImmediate = NSApp.currentEvent?.type == .keyDown
+        if !scopeMounted {
+          scopeMounted = true
+          scopePresented = true
+        } else {
+          scopePresented.toggle()
+        }
       } label: {
-        Text(model.feedScope.label)
-      }.help(Copy.text("web.home.filterMenu"))
+        HStack(spacing: AppleMetrics.space6) {
+          Text(model.feedScope.label)
+          NativeIcon(name: "chevron-down", size: AppleMetrics.font14)
+        }
+      }.buttonStyle(.plain).modifier(NativeTooltip(text: Copy.text("web.home.filterMenu")))
+        .background(WindowAnchor { scopeFrame = $0 })
+        .modifier(ReaderChrome(hidden: railHidden, top: true))
     }
     ToolbarItemGroup(placement: .primaryAction) {
       Button(Copy.appleNewNote, systemImage: "square.and.pencil") { model.edit() }
         .disabled(!model.ready || model.busy || model.capturePresented || model.readerPresented)
         .help(Copy.appleNewNote)
+        .modifier(ReaderChrome(hidden: railHidden, top: true))
       SettingsLink {
         Label(Copy.text("web.nav.settings"), systemImage: "person.crop.circle")
       }.help(Copy.text("web.nav.settings"))
+        .modifier(ReaderChrome(hidden: railHidden, top: true))
     }
   }
   var homeCards: [Card] {
     let candidates = model.visible.filter { !pendingIds.contains($0.id) }
-    let byID = Dictionary(uniqueKeysWithValues: candidates.map { ($0.id, $0) })
+    let retained = model.cards.filter {
+      model.items[$0.id]?["archived"]?.bool != true || model.feedScope == .archived
+    }
+    let byID = Dictionary(uniqueKeysWithValues: retained.map { ($0.id, $0) })
     let held = feedOrder.compactMap { byID[$0] }
     let known = Set(feedOrder)
     return held + candidates.filter { !known.contains($0.id) }
   }
-  func resetFeed() {
+  func resetFeed(restoreScope: Bool = false) {
     feedOrder = model.visible.map(\.id)
     captureStacks()
     model.selection.removeAll()
     pageLimit = 40
     openStacks.removeAll()
-    requestHomeTop(immediate: true)
-  }
-  private struct FeedEntry: Identifiable {
-    let id: String
-    let cards: [Card]
+    if !restoreScope { requestHomeTop(immediate: true) }
   }
   private var archivedCards: [Card] {
     model.cards.filter { model.items[$0.id]?["archived"]?.bool == true }
@@ -283,15 +320,18 @@ extension Desktop {
     }.frame(maxWidth: .infinity).padding(AppleMetrics.space40)
   }
   private func tile(_ card: Card) -> some View {
-    CardTile(card: card, open: { open(card) })
+    CardTile(card: card, open: { open(card) }, keyboardFocused: focusedCard == card.id)
       .simultaneousGesture(
         TapGesture().onEnded {
           if NSEvent.modifierFlags.contains(.command) { toggleSelection(card.id) }
         }
       )
-      .focusable().focused($focusedCard, equals: card.id)
+      .focusable().focusEffectDisabled().focused($focusedCard, equals: card.id)
       .contextMenu { CardActions(card: card) }
-      .draggable(card.id)
+      .onDrag {
+        showRail()
+        return NSItemProvider(object: card.id as NSString)
+      }
   }
   private func open(_ card: Card) {
     if NSEvent.modifierFlags.contains(.command) { return }
@@ -306,23 +346,15 @@ extension Desktop {
   }
 }
 
-/// SwiftUI creates and hosts the platform search field in the window toolbar.
+/// Search remains in the window toolbar, with Web widths and drawing-only expansion.
 struct WorkspaceSearch: ViewModifier {
   @Binding var query: String
   let focus: FocusState<Bool>.Binding
+  let hidden: Bool
   func body(content: Content) -> some View {
-    if #available(macOS 15.0, *) {
-      content.searchable(
-        text: $query, placement: .toolbar,
-        prompt: Text(Copy.text("web.home.searchPlaceholder"))
-      )
-      .searchFocused(focus)
-    } else {
-      content.toolbar {
-        ToolbarItem(placement: .automatic) {
-          TextField(Copy.text("web.home.searchPlaceholder"), text: $query)
-            .textFieldStyle(.roundedBorder).focused(focus).frame(width: 280)
-        }
+    content.toolbar {
+      ToolbarItem(placement: .automatic) {
+        DesktopSearch(query: $query, focus: focus).modifier(ReaderChrome(hidden: hidden, top: true))
       }
     }
   }

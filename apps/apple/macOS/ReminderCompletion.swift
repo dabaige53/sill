@@ -20,6 +20,6 @@ struct ReminderCompletion: View {
         }
       )
     )
-    .toggleStyle(.checkbox).labelsHidden().disabled(model.busy)
+    .toggleStyle(NativeCheckStyle(reminder: true)).labelsHidden().disabled(model.busy)
   }
 }

@@ -17,7 +17,9 @@ import SwiftUI
       }.environment(model).onAppear { delegate.model = model }
         .onOpenURL { model.completeLogin($0) }
         .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { _ in
-          if NSApp.isActive && model.owner != nil && model.error == nil { model.refresh() }
+          if NSApp.isActive && model.owner != nil && model.error == nil {
+            model.refresh(feedback: false)
+          }
         }
     }.defaultSize(width: AppleMetrics.windowWidth, height: AppleMetrics.windowHeight)
       .windowStyle(.titleBar)
