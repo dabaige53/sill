@@ -18,13 +18,14 @@ private actor FakeBackend: WorkspaceBackend {
   private var failNext: (any Error)?
   private var delay: Duration = .zero
 
-  init(ids: [String]) {
-    cards = ids.map {
-      .object([
-        "id": .string($0), "type": .string("article"), "title": .string("Synthetic " + $0),
-        "body": .array([.string("One"), .string("Two")]), "time": .number(1),
-      ])
-    }
+  init(ids: [String], extra: [JSONValue] = []) {
+    cards =
+      ids.map {
+        .object([
+          "id": .string($0), "type": .string("article"), "title": .string("Synthetic " + $0),
+          "body": .array([.string("One"), .string("Two")]), "time": .number(1),
+        ])
+      } + extra
   }
 
   func failNextWrite(_ error: any Error) { failNext = error }
@@ -102,8 +103,24 @@ private final class Flag: @unchecked Sendable { var value = false }
   return flag.value
 }
 
-@MainActor private func ready(_ ids: [String] = ["a", "b", "c"]) async -> (Workspace, FakeBackend) {
-  let backend = FakeBackend(ids: ids)
+private let syntheticTask: JSONValue = .object([
+  "id": .string("task"), "type": .string("task"), "title": .string("Synthetic task"),
+  "time": .number(1),
+  "tasks": .array([
+    .object(["id": .string("t1"), "text": .string("One"), "done": .bool(true)]),
+    .object(["id": .string("t2"), "text": .string("Two"), "done": .bool(false)]),
+  ]),
+])
+
+private let syntheticReminder: JSONValue = .object([
+  "id": .string("reminder"), "type": .string("reminder"), "title": .string("Synthetic reminder"),
+  "time": .number(1), "due": .number(2),
+])
+
+@MainActor private func ready(
+  _ ids: [String] = ["a", "b", "c"], extra: [JSONValue] = []
+) async -> (Workspace, FakeBackend) {
+  let backend = FakeBackend(ids: ids, extra: extra)
   let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
   workspace.connect(backend)
   await until { workspace.phase == .ready }
@@ -302,5 +319,41 @@ struct LaunchOptionTests {
     await until { workspace.cards.isEmpty }
     #expect(workspace.cards.isEmpty)
     #expect(await backend.writes == 2)
+  }
+}
+
+@MainActor struct UndoTests {
+  @Test func finishingTasksOffersUndo() async throws {
+    let (workspace, _) = await ready(extra: [syntheticTask])
+    let card = try #require(workspace.model("task"))
+    workspace.toggleTask("task", task: "t2")
+    let notice = try #require(workspace.notice)
+    #expect(notice.text == Copy.text("web.app.58d2aeefaa41"))
+    #expect(workspace.state("task").completed(card))
+    notice.undo?()
+    await until { workspace.queue.idle && !workspace.state("task").isWriting }
+    #expect(!workspace.state("task").completed(card))
+    #expect(workspace.state("task").tasks(of: card).filter(\.done).map(\.id) == ["t1"])
+  }
+
+  @Test func reminderUndoRestoresState() async throws {
+    let (workspace, _) = await ready(extra: [syntheticReminder])
+    workspace.changeReminder("reminder", .dismiss)
+    #expect(workspace.state("reminder").dismissed)
+    let notice = try #require(workspace.notice)
+    #expect(notice.text == Copy.text("web.app.c9bb70bcaaa3"))
+    notice.undo?()
+    await until { workspace.queue.idle && !workspace.state("reminder").isWriting }
+    #expect(!workspace.state("reminder").dismissed)
+  }
+
+  @Test func captureUndoRemovesTheCard() async throws {
+    let (workspace, _) = await ready()
+    workspace.capture("撤销这一条")
+    await until { workspace.cards.count == 4 }
+    let notice = try #require(workspace.notice)
+    notice.undo?()
+    await until { workspace.cards.count == 3 }
+    #expect(!workspace.cards.contains { $0.title == "撤销这一条" })
   }
 }

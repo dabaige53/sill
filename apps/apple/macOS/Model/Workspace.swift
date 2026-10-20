@@ -10,11 +10,18 @@ import SillKit
     case connecting, signedOut, ready
     case unavailable(String)
   }
+  /// Web `#toast`. An undoable notice stays 5.5s of unattended time, a plain one 3.2s; a
+  /// persistent one (a failure or an unknown result) stays until closed.
   struct Notice: Equatable, Identifiable {
     let id = UUID()
     var text: String
     var persistent = false
+    var undo: (@MainActor () -> Void)?
     static func == (a: Notice, b: Notice) -> Bool { a.id == b.id }
+  }
+
+  func toast(_ text: String, undo: (@MainActor () -> Void)? = nil) {
+    notice = Notice(text: text, undo: undo)
   }
 
   private(set) var phase: Phase = .connecting
@@ -155,21 +162,22 @@ import SillKit
 
   /// Change one card's stored state. The card draws the new value at once and locks only its
   /// own controls until the store answers; a failure returns it to the stored value.
+  /// `queued` lets an undo follow a write that is still in flight; it still locks the card.
   @discardableResult
   func change(
-    _ id: String, _ values: [String: JSONValue], lock: Bool = true,
+    _ id: String, _ values: [String: JSONValue], lock: Bool = true, queued: Bool = false,
     completion: ((Bool) -> Void)? = nil
   ) -> Bool {
-    change([id: values], lock: lock, completion: completion)
+    change([id: values], lock: lock, queued: queued, completion: completion)
   }
 
   @discardableResult
   func change(
-    _ patches: [String: [String: JSONValue]], lock: Bool = true,
+    _ patches: [String: [String: JSONValue]], lock: Bool = true, queued: Bool = false,
     completion: ((Bool) -> Void)? = nil
   ) -> Bool {
     guard phase == .ready, !patches.isEmpty,
-      patches.keys.allSatisfy({ models[$0] != nil && !(lock && state($0).isWriting) })
+      patches.keys.allSatisfy({ models[$0] != nil && (queued || !(lock && state($0).isWriting)) })
     else { return false }
     let touched = patches.keys.map(state)
     for state in touched {
@@ -242,6 +250,12 @@ import SillKit
     let before = state(id).tasks(of: card).filter(\.done).map(\.id)
     let after = before.contains(task) ? before.filter { $0 != task } : before + [task]
     let changed = change(id, ["taskDone": .array(after.map(JSONValue.string))])
+    // Web: finishing the last task offers an undo that returns every check as it was.
+    if changed, !card.tasks.isEmpty, Set(after).isSuperset(of: card.tasks.map(\.id)) {
+      toast(Copy.text("web.app.58d2aeefaa41")) { [weak self] in
+        self?.change(id, ["taskDone": .array(before.map(JSONValue.string))], queued: true)
+      }
+    }
     return changed ? before : nil
   }
 
@@ -257,9 +271,12 @@ import SillKit
     guard let card = models[id], card.kind.remindable else { return nil }
     let now = Format.milliseconds()
     let state = state(id)
+    let stored = baseline.items[id]?.object ?? [:]
     let before: [String: JSONValue] = [
       "snoozedUntil": .number(state.snoozedUntil), "dismissed": .bool(state.dismissed),
       "reminderDone": .bool(state.reminderDone),
+      "lastReminderKey": stored["lastReminderKey"] ?? .null,
+      "lastNotifiedAt": stored["lastNotifiedAt"] ?? .null,
     ]
     let values: [String: JSONValue] =
       switch action {
@@ -277,7 +294,16 @@ import SillKit
           "lastNotifiedAt": .number(now),
         ]
       }
-    return change(id, values) ? before : nil
+    guard change(id, values) else { return nil }
+    let text =
+      switch action {
+      case .snooze: Copy.text("web.app.8b61908123ce")
+      case .dismiss: Copy.text("web.app.c9bb70bcaaa3")
+      case .complete: Copy.text("web.app.4203e358dee2")
+      case .restore: Copy.text("web.app.480719186cc8")
+      }
+    toast(text) { [weak self] in self?.change(id, before, queued: true) }
+    return before
   }
 
   // MARK: Workspace actions (settings, capture)
@@ -294,8 +320,14 @@ import SillKit
     }
     do {
       let card = try Card(json: json)
-      write([.upsert(card: try card.raw, before: .null)]) { [weak self] done in
-        if done { self?.notice = Notice(text: Copy.text("web.app.4f060a8371c3")) }
+      let raw = try card.raw
+      write([.upsert(card: raw, before: .null)]) { [weak self] done in
+        if done {
+          self?.toast(Copy.text("web.app.4f060a8371c3")) { [weak self] in
+            guard let self else { return }
+            self.write([.delete(id: card.id, before: self.baseline.raw[card.id] ?? raw)])
+          }
+        }
         completion?(done)
       }
       return .sent

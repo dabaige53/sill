@@ -41,8 +41,9 @@ struct DesktopView: View {
           .modifier(Tuck(tucked: chrome.tucked, travel: AppleMetrics.motionRailTravel))
           .frame(maxHeight: .infinity, alignment: .bottom)
           .padding(.bottom, AppleMetrics.railEdge)
-        Toast()
         ReaderOverlay()
+        // Over an open detail too (Web moves `#toast` into the dialog).
+        Toast(hidden: ai.dragging)
       }
       .ignoresSafeArea(edges: .top)
     }
@@ -97,7 +98,13 @@ struct DesktopView: View {
     }
     cardIntents.select = { id in selection.toggle(id) }
     cardIntents.toggleTask = { id, task in workspace.toggleTask(id, task: task) }
-    cardIntents.reminder = { id, action in workspace.changeReminder(id, action) }
+    // Web `changeReminder`: the card leaves the selection and an open detail closes first.
+    let reminder: @MainActor (String, Workspace.ReminderAction) -> Void = { id, action in
+      if selection.contains(id) { selection.toggle(id) }
+      if reader.presented { reader.closeAll() }
+      workspace.changeReminder(id, action)
+    }
+    cardIntents.reminder = reminder
     cardIntents.join = { id in
       if let url = workspace.model(id)?.meeting?.url { NSWorkspace.shared.open(url) }
     }
@@ -111,9 +118,9 @@ struct DesktopView: View {
       switch kind {
       case .bookmark: workspace.toggleBookmark(id)
       case .later: workspace.toggleLater(id)
-      case .snooze: workspace.changeReminder(id, .snooze)
-      case .restoreReminder: workspace.changeReminder(id, .restore)
-      case .dismiss: workspace.changeReminder(id, .dismiss)
+      case .snooze: reminder(id, .snooze)
+      case .restoreReminder: reminder(id, .restore)
+      case .dismiss: reminder(id, .dismiss)
       case .open, .reply:
         if let url = workspace.model(id)?.url { NSWorkspace.shared.open(url) }
       case .join:
