@@ -18,11 +18,9 @@ import PackagePlugin
     // Reject stale literal references before they can surface as raw keys in the native UI.
     let sourceDirectory = context.package.directoryURL.appending(path: "macOS")
     let copyPattern = try NSRegularExpression(pattern: #""(web\.[A-Za-z0-9_.]+)""#)
-    // The macOS UI layer is being rebuilt; until it returns there is nothing to scan.
     let macSources =
-      FileManager.default.fileExists(atPath: sourceDirectory.path)
-      ? try FileManager.default.contentsOfDirectory(
-        at: sourceDirectory, includingPropertiesForKeys: nil) : []
+      FileManager.default.enumerator(at: sourceDirectory, includingPropertiesForKeys: nil)?
+      .compactMap { $0 as? URL } ?? []
     for source in macSources where source.pathExtension == "swift" {
       let text = try String(contentsOf: source, encoding: .utf8)
       let matches = copyPattern.matches(in: text, range: NSRange(text.startIndex..., in: text))

@@ -1,0 +1,219 @@
+import SillKit
+import SwiftUI
+
+/// The preview: the card lifts into a sheet. Its round discs float over the source row, the
+/// glass toolbar floats inside the bottom edge over a soft fade, and the height follows the
+/// content up to 88% of the window (at most 900).
+struct PreviewSheet: View {
+  let card: CardModel
+  let state: CardState
+  let layer: Reader.Layer
+  let below: CardModel?
+  let size: CGSize
+  @Environment(Reader.self) private var reader
+  @Environment(Workspace.self) private var workspace
+  @State private var scroll = ReaderScroll()
+  @State private var contentHeight: CGFloat = 0
+  @State private var firstRow: CGFloat = 0
+
+  private var expandable: Bool {
+    !card.body.isEmpty
+      && ![.event, .mail, .media, .task, .reminder, .digest, .file].contains(card.kind)
+  }
+
+  var body: some View {
+    let width = min(
+      card.shortDetail ? AppleMetrics.compactReaderWidth : AppleMetrics.previewWidth,
+      size.width - AppleMetrics.previewMargin)
+    let maxHeight = min(
+      size.height * AppleMetrics.previewHeightRatio, AppleMetrics.previewMaxHeight)
+    let tools = ReaderTools.actions(
+      card: card, state: state, hidden: workspace.preferences.hiddenActions)
+    let barRoom =
+      tools.isEmpty
+      ? AppleMetrics.previewPaddingX
+      : AppleMetrics.railRow + (card.shortDetail ? AppleMetrics.space24 : AppleMetrics.space40)
+    VStack(spacing: 0) {
+      if let below {
+        Button {
+          reader.close()
+        } label: {
+          UnevenRoundedRectangle(
+            topLeadingRadius: AppleMetrics.sheetRadius, topTrailingRadius: AppleMetrics.sheetRadius
+          )
+          .fill(AppleColors.readCard)
+          .overlay(
+            UnevenRoundedRectangle(
+              topLeadingRadius: AppleMetrics.sheetRadius,
+              topTrailingRadius: AppleMetrics.sheetRadius
+            ).strokeBorder(AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth)
+          )
+          .shadow(.sheet)
+          .frame(width: width * AppleMetrics.sheetPeekWidth, height: AppleMetrics.space44)
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, -AppleMetrics.space46)
+        .accessibilityLabel(Copy.text("web.peekBack") + below.title)
+      }
+      ZStack(alignment: .top) {
+        ScrollView(.vertical) {
+          ReaderContent(card: card, state: state, discRoom: discRoom)
+            .padding(.top, AppleMetrics.previewPaddingTop)
+            .padding(.horizontal, AppleMetrics.previewPaddingX)
+            .padding(.bottom, barRoom)
+            .background(
+              GeometryReader { proxy in
+                Color.clear.onAppear { contentHeight = proxy.size.height }
+                  .onChange(of: proxy.size.height) { _, value in contentHeight = value }
+              }
+            )
+            .background(ReaderScrollProbe(scroll: scroll))
+            .modifier(ReaderPullOffset(motion: scroll.motion))
+        }
+        .scrollIndicators(.hidden)
+        .frame(height: max(1, min(maxHeight, contentHeight)))
+        .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
+        TopFade(motion: scroll.motion)
+        HeadDiscs(
+          motion: scroll.motion, firstRow: firstRow,
+          expand: expandable ? { reader.open(card.id, full: true) } : nil,
+          close: { reader.close() })
+        if !tools.isEmpty {
+          VStack(spacing: 0) {
+            Spacer(minLength: 0)
+            BottomFade(motion: scroll.motion)
+          }
+          VStack(spacing: 0) {
+            Spacer(minLength: 0)
+            ReaderToolbar(card: card, state: state, actions: tools)
+              .modifier(ReaderToolsTuck(motion: scroll.motion))
+              .padding(.bottom, AppleMetrics.previewBarBottom)
+          }
+        }
+        VStack {
+          Spacer(minLength: 0)
+          FinishRing(motion: scroll.motion)
+            .padding(.bottom, barRoom - AppleMetrics.space40)
+        }
+      }
+      .frame(width: width)
+      .frame(maxHeight: maxHeight)
+      .background(AppleColors.card)
+      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
+      .shadow(.sheet)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .onAppear { configure() }
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel(card.title)
+    .accessibilityAddTraits(.isModal)
+  }
+
+  /// The discs sit over the source row, so the title keeps the whole width.
+  private var discRoom: CGFloat { expandable ? AppleMetrics.space92 : AppleMetrics.space48 }
+
+  private func configure() {
+    scroll.initialOffset = reader.positions[layer.id] ?? 0
+    scroll.trailing = AppleMetrics.railRow + AppleMetrics.space40
+    scroll.finishEnabled =
+      card.kind.readable && !card.body.isEmpty && workspace.preferences.collapseOnFinish
+    let id = card.id
+    let layerID = layer.id
+    scroll.offsetChanged = { [weak reader] offset in reader?.positions[layerID] = offset }
+    scroll.progressChanged = { [weak workspace] value in
+      workspace?.recorder.read(id, progress: value)
+    }
+    scroll.reachedEnd = { [weak reader] in
+      if card.kind.readable { reader?.reachedEnd(id) }
+    }
+    scroll.finished = { [weak reader] done in
+      reader?.reachedEnd(id, completion: done) ?? done(false)
+    }
+    scroll.close = { [weak reader] in reader?.close() }
+  }
+}
+
+/// Close and fullscreen: white discs (36, hit 44) centered on the first row; at the top once scrolled.
+struct HeadDiscs: View {
+  let motion: ReaderMotion
+  let firstRow: CGFloat
+  var expand: (() -> Void)?
+  let close: () -> Void
+  var body: some View {
+    let center =
+      motion.scrolled
+      ? AppleMetrics.previewHeadHeight / 2
+      : AppleMetrics.previewPaddingTop + max(firstRow, AppleMetrics.cardHeadHeight) / 2
+    HStack(spacing: AppleMetrics.space8) {
+      Spacer(minLength: 0)
+      if let expand {
+        Disc(icon: "expand", label: Copy.text("web.preview.fullscreen"), action: expand)
+      }
+      Disc(icon: "x", label: Copy.text("web.preview.close"), action: close)
+    }
+    .padding(.horizontal, AppleMetrics.space16)
+    .padding(.top, center - AppleMetrics.previewDisc / 2)
+    .modifier(ReaderToolsTuck(motion: motion, top: true))
+    .animation(Motion.state, value: motion.scrolled)
+  }
+}
+
+struct Disc: View {
+  let icon: String
+  let label: String
+  let action: () -> Void
+  @State private var hovered = false
+  var body: some View {
+    Button(action: action) {
+      Icon(icon, size: AppleMetrics.previewDiscIcon)
+        .foregroundStyle(AppleColors.primary)
+        .frame(width: AppleMetrics.previewDisc, height: AppleMetrics.previewDisc)
+        .background(Circle().fill(hovered ? AppleColors.surface : AppleColors.card))
+        .overlay(Circle().stroke(AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth / 2))
+        .shadow(.floating)
+        .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+        .contentShape(Circle())
+    }
+    .buttonStyle(.plain)
+    .padding(-(AppleMetrics.hitTarget - AppleMetrics.previewDisc) / 2)
+    .onHover { hovered = $0 }
+    .animation(Motion.hover, value: hovered)
+    .accessibilityLabel(label)
+  }
+}
+
+/// Once the text has moved under the discs, a soft edge keeps the two apart.
+struct TopFade: View {
+  let motion: ReaderMotion
+  var body: some View {
+    LinearGradient(
+      stops: [
+        .init(color: AppleColors.card.opacity(AppleMetrics.headerEdgeOpacity), location: 0.3),
+        .init(color: AppleColors.card.opacity(0), location: 1),
+      ], startPoint: .top, endPoint: .bottom
+    )
+    .frame(height: AppleMetrics.headerEdgeHeight)
+    .opacity(motion.scrolled && !motion.toolsHidden ? 1 : 0)
+    .animation(Motion.state, value: motion.scrolled && !motion.toolsHidden)
+    .allowsHitTesting(false)
+  }
+}
+
+/// Text fades where the toolbar floats: a faint texture under the capsule, then 44px of fade.
+struct BottomFade: View {
+  let motion: ReaderMotion
+  var body: some View {
+    let bar = AppleMetrics.railRow + AppleMetrics.previewBarBottom
+    let height = bar + AppleMetrics.previewEdgeHeight
+    LinearGradient(
+      stops: [
+        .init(color: AppleColors.card.opacity(0.94), location: 0),
+        .init(color: AppleColors.card.opacity(0.86), location: bar / height),
+        .init(color: AppleColors.card.opacity(0), location: 1),
+      ], startPoint: .bottom, endPoint: .top
+    )
+    .frame(height: height)
+    .opacity(motion.toolsHidden ? 0 : 1)
+    .allowsHitTesting(false)
+  }
+}

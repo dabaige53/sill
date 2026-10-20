@@ -1,0 +1,148 @@
+import AppKit
+import Observation
+import SillKit
+import SwiftUI
+
+/// Whether the top bar and the AI box are tucked away. Only those two views observe it, and it
+/// changes only when the answer flips, never per scroll frame.
+@MainActor @Observable final class Chrome {
+  private(set) var tucked = false
+  /// Search focus, an open menu or a drag keep the chrome visible.
+  @ObservationIgnored var pinned = false {
+    didSet { if pinned { show() } }
+  }
+
+  func show() {
+    if tucked { withAnimation(Motion.sheet(AppleMetrics.motionRailShow)) { tucked = false } }
+  }
+  func hide() {
+    guard !pinned, !tucked else { return }
+    withAnimation(Motion.sheet(AppleMetrics.motionRailHide)) { tucked = true }
+  }
+}
+
+/// Reads the feed's scroll position from AppKit: tucks the chrome (down 28, up 14, rest 650ms,
+/// edges), loads the next page near the end, and keeps each scope's position.
+@MainActor final class FeedScroll {
+  weak var scrollView: NSScrollView?
+  let chrome: Chrome
+  var nearEnd: () -> Void = {}
+  private var last: CGFloat = 0
+  private var down: CGFloat = 0
+  private var up: CGFloat = 0
+  private var rest: Task<Void, Never>?
+
+  init(chrome: Chrome) { self.chrome = chrome }
+
+  var offset: CGFloat { scrollView?.contentView.bounds.minY ?? 0 }
+
+  func scrolled(offset: CGFloat, visible: CGFloat, content: CGFloat) {
+    let delta = offset - last
+    last = offset
+    rest?.cancel()
+    let atEdge = offset <= 0 || offset + visible >= content - 1
+    if content - (offset + visible) < visible * 2 { nearEnd() }
+    if atEdge {
+      down = 0
+      up = 0
+      chrome.show()
+      return
+    }
+    if delta > 0 {
+      down += delta
+      up = 0
+      if down >= AppleMetrics.chromeHideTravel { chrome.hide() }
+    } else if delta < 0 {
+      up -= delta
+      down = 0
+      if up >= AppleMetrics.chromeShowTravel { chrome.show() }
+    }
+    if chrome.tucked {
+      rest = Task { [chrome] in
+        try? await Task.sleep(for: .seconds(AppleMetrics.chromeRest))
+        guard !Task.isCancelled else { return }
+        chrome.show()
+      }
+    }
+  }
+
+  func scroll(to y: CGFloat, animated: Bool = false) {
+    guard let scrollView else { return }
+    let point = NSPoint(x: 0, y: max(0, y))
+    if animated {
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = AppleMetrics.motionSheet
+        context.timingFunction = CAMediaTimingFunction(
+          controlPoints: Float(AppleMetrics.easeSheetX1), Float(AppleMetrics.easeSheetY1),
+          Float(AppleMetrics.easeSheetX2), Float(AppleMetrics.easeSheetY2))
+        scrollView.contentView.animator().setBoundsOrigin(point)
+      }
+    } else {
+      scrollView.contentView.scroll(to: point)
+    }
+    scrollView.reflectScrolledClipView(scrollView.contentView)
+  }
+}
+
+/// Finds the enclosing NSScrollView and forwards bounds changes to `FeedScroll`.
+struct ScrollProbe: NSViewRepresentable {
+  let scroll: FeedScroll
+
+  func makeNSView(context: Context) -> Probe {
+    let probe = Probe()
+    probe.scroll = scroll
+    return probe
+  }
+  func updateNSView(_ view: Probe, context: Context) { view.scroll = scroll }
+  static func dismantleNSView(_ view: Probe, coordinator: ()) { view.disconnect() }
+
+  final class Probe: NSView {
+    var scroll: FeedScroll?
+    private var observer: NSObjectProtocol?
+
+    override func viewDidMoveToWindow() {
+      super.viewDidMoveToWindow()
+      disconnect()
+      guard window != nil else { return }
+      DispatchQueue.main.async { [weak self] in self?.connect() }
+    }
+
+    private func connect() {
+      guard observer == nil, let view = enclosingScrollView else { return }
+      scroll?.scrollView = view
+      view.contentView.postsBoundsChangedNotifications = true
+      observer = NotificationCenter.default.addObserver(
+        forName: NSView.boundsDidChangeNotification, object: view.contentView, queue: .main
+      ) { [weak self] _ in
+        MainActor.assumeIsolated {
+          guard let self, let view = self.scroll?.scrollView, let document = view.documentView
+          else {
+            return
+          }
+          self.scroll?.scrolled(
+            offset: view.contentView.bounds.minY, visible: view.contentView.bounds.height,
+            content: document.bounds.height)
+        }
+      }
+    }
+
+    func disconnect() {
+      if let observer { NotificationCenter.default.removeObserver(observer) }
+      observer = nil
+    }
+  }
+}
+
+/// Tucks a chrome element with a fade; hidden elements stop taking input at once.
+/// The AI box moves 20px down; the top bar moves up by its own height (Web `.home-top.is-tucked`).
+struct Tuck: ViewModifier {
+  let tucked: Bool
+  let travel: CGFloat
+  func body(content: Content) -> some View {
+    content
+      .offset(y: tucked ? travel : 0)
+      .opacity(tucked ? 0 : 1)
+      .allowsHitTesting(!tucked)
+      .accessibilityHidden(tucked)
+  }
+}
