@@ -16,6 +16,7 @@ struct DesktopView: View {
   @Environment(CardDrag.self) private var drag
   @Environment(CardMenu.self) private var menu
   @Environment(Panels.self) private var panels
+  @Environment(NewContent.self) private var newContent
   @State private var scroll: FeedScroll?
   @State private var cardIntents = CardIntents()
   @State private var readerIntents = ReaderIntents()
@@ -63,6 +64,7 @@ struct DesktopView: View {
         if drag.active, drag.moved {
           DragPile(cardWidth: geometry.columnWidth)
         }
+        NewHint { showNew() }
         ReaderOverlay()
         PanelOverlay()
         // Over an open detail too (Web moves `#toast` into the dialog).
@@ -74,6 +76,7 @@ struct DesktopView: View {
     .environment(\.readerIntents, readerIntents)
     .onAppear { connect() }
     .task { await poll() }
+    .task { await tick() }
     .onChange(of: shell.searchFocused) { pinChrome() }
     .onChange(of: shell.menu.open) { pinChrome() }
     .onChange(of: drag.active) { pinChrome() }
@@ -112,6 +115,29 @@ struct DesktopView: View {
       try? await Task.sleep(for: .seconds(5))
       if NSApp.isActive, workspace.queue.idle { workspace.refresh(quiet: true) }
     }
+  }
+
+  /// Web `tick`: due reminders are checked every second.
+  private func tick() async {
+    while !Task.isCancelled {
+      newContent.check(workspace)
+      try? await Task.sleep(for: .seconds(1))
+    }
+  }
+
+  /// Web `showNew`: back to the top, the due reminders return to the desk.
+  private func showNew() {
+    guard !drag.active, !newContent.reminders.isEmpty else { return }
+    let ids = newContent.reminders
+    scroll?.scroll(to: 0, animated: false)
+    workspace.showReminders(ids) { [feed, newContent, workspace] in
+      feed.refreshMembership()
+      newContent.check(workspace)
+    }
+    AccessibilityNotification.Announcement(
+      Copy.text("web.app.fa2c54768fda") + "0" + Copy.text("web.app.f9c6ab19b7d4") + "\(ids.count)"
+        + Copy.text("web.app.904aa82438d8")
+    ).post()
   }
 
   private func pinChrome() {

@@ -1,4 +1,5 @@
 import Foundation
+import SillKit
 
 /// Web `services/feed-policy.ts`. Pure: the clock and card state are supplied by the caller.
 @MainActor enum FeedPolicy {
@@ -6,7 +7,11 @@ import Foundation
   static let stackThreshold = 5
 
   static func trigger(_ card: CardModel, state: CardState) -> Double {
-    if state.snoozedUntil > 0 { return state.snoozedUntil }
+    trigger(card, snoozedUntil: state.snoozedUntil)
+  }
+
+  static func trigger(_ card: CardModel, snoozedUntil: Double) -> Double {
+    if snoozedUntil > 0 { return snoozedUntil }
     switch card.kind {
     case .event: return (card.start ?? .nan) - 15 * 60000
     case .task: return (card.due ?? .nan) - 30 * 60000
@@ -16,8 +21,29 @@ import Foundation
   }
 
   static func key(_ card: CardModel, state: CardState) -> String {
-    let at = trigger(card, state: state)
+    key(card, snoozedUntil: state.snoozedUntil)
+  }
+
+  /// Web `key(c)` without a state is the card's own time, ignoring a snooze.
+  static func key(_ card: CardModel, snoozedUntil: Double = 0) -> String {
+    let at = trigger(card, snoozedUntil: snoozedUntil)
     return "\(card.id):\(at.isNaN ? "NaN" : String(format: "%.0f", at))"
+  }
+
+  /// A reminder shows again at most once a minute.
+  static let cooldown = 60_000.0
+
+  /// Web `eligible`: due now, still open, and not already shown for this trigger time.
+  static func eligible(
+    _ card: CardModel, state: CardState, stored: [String: JSONValue], now: Double
+  ) -> Bool {
+    let at = trigger(card, state: state)
+    let lastNotified = stored["lastNotifiedAt"]?.number ?? 0
+    return card.kind.remindable && at.isFinite && at > 0 && at <= now && !state.dismissed
+      && !state.archived && !state.completed(card)
+      && !(card.kind == .event && (card.end ?? .infinity) <= now)
+      && stored["lastReminderKey"]?.string != key(card, state: state)
+      && (lastNotified == 0 || now - lastNotified >= cooldown)
   }
 
   static func score(_ card: CardModel, state: CardState, now: Double) -> Double {

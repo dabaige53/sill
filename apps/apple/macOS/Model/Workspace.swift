@@ -325,6 +325,30 @@ import SillKit
     if !started { completion(.busy) }
   }
 
+  /// Web `checkReminders`: reminders that are due and not yet shown.
+  func dueReminders(now: Double = Format.milliseconds()) -> [String] {
+    cards.filter { card in
+      FeedPolicy.eligible(
+        card, state: state(card.id), stored: baseline.items[card.id]?.object ?? [:], now: now)
+    }.map(\.id)
+  }
+
+  /// Web `showNew`: the due reminders come back to the desk and count as shown.
+  func showReminders(_ ids: [String], then: @escaping @MainActor () -> Void) {
+    let now = Format.milliseconds()
+    var patches: [String: [String: JSONValue]] = [:]
+    for id in ids {
+      guard let card = models[id] else { continue }
+      patches[id] = [
+        "snoozedUntil": .number(0),
+        "lastReminderKey": .string(FeedPolicy.key(card)),
+        "lastNotifiedAt": .number(now),
+      ]
+    }
+    // `then` runs once the stored keys are back, so the hint counts again from them.
+    change(patches) { _ in then() }
+  }
+
   func toggleRead(_ id: String) { setRead(id, !state(id).read) }
 
   func setRead(_ id: String, _ read: Bool) {
