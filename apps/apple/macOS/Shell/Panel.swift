@@ -1,13 +1,14 @@
 import SillKit
 import SwiftUI
 
-/// The window's one panel (Web `#modal.panel`).
+/// The window's one panel (Web `#modal.panel`): the archive, tags and note, or a quick note.
 /// One at a time; opening another replaces it.
 @MainActor @Observable final class Panels {
   enum Kind: Equatable {
     case archive
     /// Tags and note for these cards; the note belongs to the first.
     case editor([String])
+    case capture
 
     var narrow: Bool { self != .archive }
   }
@@ -48,6 +49,7 @@ struct PanelOverlay: View {
           switch kind {
           case .archive: ArchivePanel()
           case .editor(let ids): EditorPanel(ids: ids)
+          case .capture: CapturePanel()
           }
         }
         .id(panels.generation)

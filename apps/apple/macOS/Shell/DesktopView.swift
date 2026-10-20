@@ -23,6 +23,7 @@ struct DesktopView: View {
   /// The AI box comes back only after the selection bar has left.
   @State private var dockShown = true
   @State private var escape: Any?
+  @State private var keys: Any?
 
   var body: some View {
     GeometryReader { proxy in
@@ -159,6 +160,49 @@ struct DesktopView: View {
     }
   }
 
+  /// Web `key` and `paste` on the desk, only when nothing takes typing and no panel or reader is
+  /// open. With single-key shortcuts on: N a quick note, R refresh, T back to the top. ⌘V keeps
+  /// the pasted line or link as a card.
+  private func installKeys() {
+    guard keys == nil else { return }
+    let workspace = workspace
+    let feed = feed
+    let reader = reader
+    let panels = panels
+    let shell = shell
+    let chrome = chrome
+    // Read when T is pressed: the feed's scroll is created in `connect`.
+    let view = self
+    keys = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+      let typing = event.window?.firstResponder is NSText
+      let flags = event.modifierFlags.intersection([.command, .control, .option])
+      let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
+      let handled = MainActor.assumeIsolated {
+        guard !typing, !reader.presented, panels.kind == nil, !shell.searchFocused else {
+          return false
+        }
+        if flags == .command, key == "v" {
+          guard let text = NSPasteboard.general.string(forType: .string),
+            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+          else { return false }
+          workspace.capture(text)
+          return true
+        }
+        guard flags.isEmpty, workspace.preferences.singleKeyShortcuts else { return false }
+        switch key {
+        case "n": panels.open(.capture)
+        case "r": workspace.refresh { done in if done { feed.refreshMembership() } }
+        case "t":
+          chrome.show()
+          view.scroll?.scroll(to: 0, animated: true)
+        default: return false
+        }
+        return true
+      }
+      return handled ? nil : event
+    }
+  }
+
   private func connect() {
     if scroll == nil {
       let next = FeedScroll(chrome: chrome)
@@ -222,6 +266,7 @@ struct DesktopView: View {
     }
     selectionIntents.cancel = { selection.clear() }
     installEscape()
+    installKeys()
     cardIntents.toggleTask = { id, task in workspace.toggleTask(id, task: task) }
     // Web `changeReminder`: the card leaves the selection and an open detail closes first.
     let reminder: @MainActor (String, Workspace.ReminderAction) -> Void = { id, action in

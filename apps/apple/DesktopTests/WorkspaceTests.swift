@@ -479,3 +479,24 @@ struct LaunchOptionTests {
 @MainActor final class Box<Value> {
   var value: Value?
 }
+
+@MainActor struct CapturePanelTests {
+  @Test func nextEventIsTheSoonestWithinThreeHours() async {
+    let now = Format.milliseconds()
+    func event(_ id: String, start: Double, end: Double) -> JSONValue {
+      .object([
+        "id": .string(id), "type": .string("event"), "title": .string(id), "time": .number(1),
+        "start": .number(start), "end": .number(end),
+      ])
+    }
+    let (workspace, _) = await ready(
+      [],
+      extra: [
+        event("later", start: now + 2 * 3_600_000, end: now + 3 * 3_600_000),
+        event("soon", start: now + 600_000, end: now + 3_600_000),
+        event("far", start: now + 5 * 3_600_000, end: now + 6 * 3_600_000),
+        event("over", start: now - 7_200_000, end: now - 3_600_000),
+      ])
+    #expect(CapturePanel.nextEvent(workspace.cards, now: now)?.id == "soon")
+  }
+}

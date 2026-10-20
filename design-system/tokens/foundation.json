@@ -242,6 +242,7 @@
 		"tagFieldMinWidth": 120,
 		"editorNoteMinHeight": 120,
 		"editorNoteLeading": 1.7,
+		"nextEventRadius": 14,
 		"motionDeckGestureStart": 8,
 		"motionDeckDuration": 0.26,
 		"space2": 2,
