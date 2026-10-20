@@ -57,6 +57,8 @@ enum FeedEntry: Identifiable, Equatable {
   @ObservationIgnored private(set) var openStacks: Set<String> = []
   @ObservationIgnored private var stackPositions: [String: StackPosition] = [:]
   @ObservationIgnored var scrollOffsets: [Scope: CGFloat] = [:]
+  /// The first screen has played its entrance; later cards arrive with the drop instead.
+  @ObservationIgnored var entered = false
   @ObservationIgnored private var lastPreferences = Preferences()
 
   static let page = 40

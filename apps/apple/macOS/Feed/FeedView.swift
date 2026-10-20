@@ -22,15 +22,19 @@ struct FeedView: View {
         if feed.empty != .none {
           EmptyFeed(empty: feed.empty)
         } else {
+          let entering = !feed.entered
           MasonryLayout(geometry: geometry) {
-            ForEach(feed.entries) { entry in
+            ForEach(Array(feed.entries.enumerated()), id: \.element.id) { index, entry in
               FeedEntryView(entry: entry, context: context)
+                .modifier(Entrance(delay: entering ? Entrance.delay(index) : nil))
+                .transition(FeedMotion.arrival)
                 .layoutValue(
                   key: StackSpacing.self, value: entry.isStack ? AppleMetrics.stackLayoutExtra : 0)
             }
           }
           .frame(width: geometry.width)
           .animation(Motion.layout, value: feed.entries)
+          .onAppear { feed.entered = true }
         }
         Color.clear.frame(height: AppleMetrics.feedBottom)
       }
@@ -39,6 +43,40 @@ struct FeedView: View {
     }
     .scrollIndicators(.hidden)
     .environment(\.relatedCards, { [workspace] id in workspace.model(id) })
+  }
+}
+
+/// Feed motion (motion.md): cards that stay move to their new place in `layout` 220ms; new cards
+/// drop 10px from above in 220ms; leaving cards stop taking input and fade out where they were
+/// in `fast` 140ms while the others close the gap.
+@MainActor enum FeedMotion {
+  static let arrival = AnyTransition.asymmetric(
+    insertion: .opacity.combined(with: .offset(y: -AppleMetrics.motionDetailEnterY)),
+    removal: .opacity.animation(Motion.fast))
+}
+
+/// Only the first screen enters: 10px up and in over 220ms, the first ten 30ms apart.
+struct Entrance: ViewModifier {
+  let delay: Double?
+  @State private var shown: Bool
+
+  init(delay: Double?) {
+    self.delay = delay
+    _shown = State(initialValue: delay == nil)
+  }
+
+  static func delay(_ index: Int) -> Double {
+    index < Int(AppleMetrics.motionFirstCount) ? Double(index) * AppleMetrics.motionStagger : 0
+  }
+
+  func body(content: Content) -> some View {
+    content
+      .opacity(shown ? 1 : 0)
+      .offset(y: shown ? 0 : AppleMetrics.motionDetailEnterY)
+      .onAppear {
+        guard !shown, let delay else { return }
+        withAnimation(Motion.open.delay(delay)) { shown = true }
+      }
   }
 }
 
@@ -96,18 +134,6 @@ struct EmptyFeed: View {
     case .filtered: Copy.text("web.app.4a684ec67af5")
     default: Copy.text("web.app.a510cac879f0")
     }
-  }
-}
-
-struct TextLinkStyle: ButtonStyle {
-  var warn = false
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .font(.sans(AppleMetrics.font13, .medium))
-      .foregroundStyle(warn ? AppleColors.warning : AppleColors.accent)
-      .padding(.vertical, AppleMetrics.space6).padding(.horizontal, AppleMetrics.space2)
-      .opacity(configuration.isPressed ? 0.6 : 1)
-      .contentShape(Rectangle())
   }
 }
 

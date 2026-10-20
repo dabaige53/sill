@@ -178,6 +178,8 @@
 		"motionDetailExitY": 10,
 		"motionRailTravel": 20,
 		"motionToastTravel": 8,
+		"pressBrightness": 1.08,
+		"textLinkPressOpacity": 0.6,
 		"motionDeckGestureStart": 8,
 		"motionDeckDuration": 0.26,
 		"space2": 2,

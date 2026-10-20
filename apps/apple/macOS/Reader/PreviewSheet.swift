@@ -174,7 +174,8 @@ struct Disc: View {
         .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
         .contentShape(Circle())
     }
-    .buttonStyle(.plain)
+    // `.sheet-head .icon-button`: its own white disc, the shared press scale.
+    .buttonStyle(IconPress(highlight: false))
     .padding(-(AppleMetrics.hitTarget - AppleMetrics.previewDisc) / 2)
     .onHover { hovered = $0 }
     .animation(Motion.hover, value: hovered)

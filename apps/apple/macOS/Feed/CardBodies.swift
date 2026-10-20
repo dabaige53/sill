@@ -335,7 +335,7 @@ struct EventBody: View {
               .frame(minWidth: AppleMetrics.primaryMinWidth, minHeight: AppleMetrics.pillHeight)
               .background(Capsule().fill(AppleColors.accentFill))
           }
-          .buttonStyle(.plain)
+          .buttonStyle(PrimaryPillStyle())
           .accessibilityLabel("\(Copy.text("web.templates.451755e3831f"))\(meeting.name)")
         }
         .padding(.top, AppleMetrics.space8)
@@ -510,7 +510,6 @@ struct RelatedRow: View {
   let card: CardModel
   var background = AppleColors.canvas
   let open: () -> Void
-  @State private var hovered = false
   var body: some View {
     Button(action: open) {
       HStack(spacing: AppleMetrics.space8) {
@@ -523,14 +522,8 @@ struct RelatedRow: View {
       .foregroundStyle(AppleColors.primary)
       .padding(.horizontal, AppleMetrics.space10)
       .frame(minHeight: AppleMetrics.refRowHeight)
-      .background(
-        RoundedRectangle(cornerRadius: AppleMetrics.refRadius)
-          .fill(hovered ? AppleColors.faint : background)
-      )
-      .contentShape(Rectangle())
     }
-    .buttonStyle(.plain)
-    .onHover { hovered = $0 }
+    .buttonStyle(RowStyle(fill: background))
   }
 }
 

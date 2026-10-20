@@ -54,6 +54,8 @@ struct CardTile: View {
     let selection: Color =
       state.selected ? AppleColors.accent : selecting ? AppleColors.lineHover : .clear
     return CardBody(card: card, state: state, context: context)
+      // Changed text fades in once (`fast`); a running fade continues from where it is.
+      .modifier(ContentFade(value: card.fingerprint))
       .environment(\.cardFaded, faded)
       .background(shape.fill(faded ? AppleColors.readCard : AppleColors.card))
       .clipShape(shape)
@@ -113,7 +115,8 @@ struct MoreButton: View {
         .shadow(.more)
         .contentShape(Circle().inset(by: -AppleMetrics.space6))
     }
-    .buttonStyle(.plain)
+    // `.card-more-trigger` is an icon button: its own glass disc, the shared press scale.
+    .buttonStyle(IconPress(highlight: false))
     .opacity(visible ? 1 : 0)
     .allowsHitTesting(visible)
     .onHover { hovered = $0 }

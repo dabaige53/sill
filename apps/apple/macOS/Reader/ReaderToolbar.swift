@@ -119,14 +119,13 @@ struct ReaderToolbar: View {
   }
 }
 
-/// A 44 icon button. Active shared actions turn accent and fill their glyph.
+/// A 44 icon button (Web `.icon-button`). Active shared actions turn accent and fill their glyph.
 struct ToolButton: View {
   let icon: String
   let label: String
   var active = false
   var accent = false
   let action: () -> Void
-  @State private var pressed = false
   var body: some View {
     Button(action: action) {
       ZStack {
@@ -140,17 +139,9 @@ struct ToolButton: View {
       .frame(width: AppleMetrics.iconButton, height: AppleMetrics.iconButton)
       .contentShape(Circle())
     }
-    .buttonStyle(PressBackground())
+    .buttonStyle(IconPress())
     .accessibilityLabel(label)
     .help(label)
-  }
-}
-
-/// `.icon-button:active` background.
-struct PressBackground: ButtonStyle {
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .background(Circle().fill(configuration.isPressed ? AppleColors.surface : .clear))
   }
 }
 
