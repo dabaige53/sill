@@ -6,6 +6,7 @@ import SwiftUI
 struct ReaderOverlay: View {
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
+  @Environment(Panels.self) private var panels
 
   var body: some View {
     if reader.presented {
@@ -36,8 +37,10 @@ struct ReaderOverlay: View {
       .ignoresSafeArea()
       // Esc leaves the top layer wherever focus is.
       .background {
+        // A panel over the reader takes Esc first.
         Button("") { reader.close() }
           .keyboardShortcut(.cancelAction)
+          .disabled(panels.kind != nil)
           .opacity(0)
           .accessibilityHidden(true)
       }

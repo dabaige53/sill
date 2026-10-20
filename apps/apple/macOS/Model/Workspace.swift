@@ -271,6 +271,60 @@ import SillKit
     }
   }
 
+  /// The stored tags and note an edit started from (AGENTS.md: keep an edit baseline).
+  struct EditBaseline: Equatable {
+    var tags: [String]
+    var tagsEdited: Bool
+    var note: String
+  }
+
+  func editBaseline(_ ids: [String]) -> [String: EditBaseline] {
+    var result: [String: EditBaseline] = [:]
+    for id in ids where models[id] != nil {
+      let stored = state(id).confirmed
+      result[id] = EditBaseline(
+        tags: stored["tags"]?.strings ?? [], tagsEdited: stored["tagsEdited"]?.bool ?? false,
+        note: stored["note"]?.string ?? "")
+    }
+    return result
+  }
+
+  enum EditResult { case saved, conflict, failed, busy }
+
+  /// Web `saveNote`: every card gets the tags and `tagsEdited`; only the first gets the note.
+  /// When a card's stored tags or note changed after the editor opened, nothing is written: the
+  /// editor keeps its input and shows the conflict.
+  func saveEdits(
+    _ ids: [String], tags: [String], note: String, baseline: [String: EditBaseline],
+    completion: @escaping @MainActor (EditResult) -> Void
+  ) {
+    let kept = ids.filter { models[$0] != nil }
+    guard let first = kept.first else { return completion(.failed) }
+    let current = editBaseline(kept)
+    guard kept.allSatisfy({ current[$0] == baseline[$0] }) else {
+      notice = Notice(text: Copy.appleConflict, persistent: false)
+      return completion(.conflict)
+    }
+    var patches: [String: [String: JSONValue]] = [:]
+    for id in kept {
+      var values: [String: JSONValue] = [
+        "tags": .array(tags.map(JSONValue.string)), "tagsEdited": .bool(true),
+      ]
+      if id == first { values["note"] = .string(String(note.prefix(4000))) }
+      patches[id] = values
+    }
+    let started = change(patches) { [weak self] done in
+      guard let self else { return }
+      if done {
+        self.toast(
+          self.isLocal
+            ? Copy.text("web.app.5fa0ce52b47e") : Copy.text("web.cloudentry.1bd91a7d0c53"))
+      }
+      completion(done ? .saved : .failed)
+    }
+    if !started { completion(.busy) }
+  }
+
   func toggleRead(_ id: String) { setRead(id, !state(id).read) }
 
   func setRead(_ id: String, _ read: Bool) {

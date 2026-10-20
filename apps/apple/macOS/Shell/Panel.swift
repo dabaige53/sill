@@ -6,6 +6,8 @@ import SwiftUI
 @MainActor @Observable final class Panels {
   enum Kind: Equatable {
     case archive
+    /// Tags and note for these cards; the note belongs to the first.
+    case editor([String])
 
     var narrow: Bool { self != .archive }
   }
@@ -45,6 +47,7 @@ struct PanelOverlay: View {
         PanelSheet(narrow: kind.narrow) {
           switch kind {
           case .archive: ArchivePanel()
+          case .editor(let ids): EditorPanel(ids: ids)
           }
         }
         .id(panels.generation)

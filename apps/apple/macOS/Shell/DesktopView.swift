@@ -192,6 +192,8 @@ struct DesktopView: View {
         selection.clear()
       })
     let menu = menu
+    let panels = panels
+    cardIntents.edit = { ids in if !ids.isEmpty { panels.open(.editor(ids)) } }
     cardIntents.menu = { id in menu.toggle(id) }
     cardIntents.bookmark = { id in workspace.toggleBookmark(id) }
     cardIntents.later = { id in workspace.toggleLater(id) }
@@ -248,8 +250,9 @@ struct DesktopView: View {
         if let url = workspace.model(id)?.url { NSWorkspace.shared.open(url) }
       case .join:
         if let url = workspace.model(id)?.meeting?.url { NSWorkspace.shared.open(url) }
-      case .tag, .download:
-        // Tags and note, and the calendar file, arrive with their own groups.
+      case .tag: panels.open(.editor([id]))
+      case .download:
+        // The calendar file arrives with its own group.
         break
       }
     }
