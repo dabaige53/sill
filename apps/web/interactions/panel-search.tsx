@@ -1,8 +1,8 @@
-import React, { type ReactNode } from "react";
+import React from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { SelectionBar } from "../atoms/selection.tsx";
 import { CardView } from "../cards/components.tsx";
-import { type CopyKey, copy } from "../copy.ts";
+import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import { cardSource } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
@@ -18,6 +18,11 @@ const searchTypes = [
 	["task", "web.task", "mountain"],
 	["event", "web.event", "coast"],
 	["media", "web.media", "mountain"],
+] as const;
+const searchStatuses = [
+	["unread", "web.unread"],
+	["saved", "web.bookmark"],
+	["later", "web.later"],
 ] as const;
 
 export const panelSearch = {
@@ -141,28 +146,20 @@ export const panelSearch = {
 	},
 	search(this: PanelRenderers, app?: SearchApp) {
 		const f = app.searchFilter;
-		const tags = [...new Set<string>(Store.state.cards.flatMap((c: Card) => Store.tags(c)))];
 		const types = [
 			["all", copy("web.all")],
 			...searchTypes.map(([key, label]) => [key, copy(label)]),
 		];
-		const status = [
-			["unread", copy("web.unread")],
-			["saved", copy("web.bookmark")],
-			["later", copy("web.later")],
-		];
-		const conditions = [
-			status.find(([key]) => key === f.status)?.[1],
-			f.tag ? `#${f.tag}` : "",
-		].filter(Boolean);
-		const row = (label: CopyKey, buttons: ReactNode) => (
-			<div className="search-filter-row">
-				<span className="search-filter-label">{copy(label)}</span>
-				<fieldset className="search-filter-items" aria-label={copy(label)}>
-					{buttons}
-				</fieldset>
-			</div>
-		);
+		const text = app.searchText(f.query);
+		const category =
+			f.pinned && f.type !== "all" ? searchTypes.find(([key]) => key === f.type) : null;
+		const status = searchStatuses.find(([key]) => key === f.status);
+		// Category is ink; # conditions are accent. Backspace removes them from the end.
+		const tokens = [
+			category && { key: "type", label: copy(category[1]), hash: false },
+			status && { key: "status", label: `#${copy(status[1])}`, hash: true },
+			f.tag && { key: "tag", label: `#${f.tag}`, hash: true },
+		].filter(Boolean) as { key: string; label: string; hash: boolean }[];
 		return (
 			<>
 				<div className="search-page-heading">
@@ -180,11 +177,27 @@ export const panelSearch = {
 				<div className="search-header">
 					<div className="search-pill">
 						{icon("search", 22)}
+						{tokens.length > 0 && (
+							<span className="search-tokens">
+								{tokens.map((t) => (
+									<button
+										key={t.key}
+										type="button"
+										className={`search-token${t.hash ? " is-hash" : ""}`}
+										data-action="search-untoken"
+										data-extra={t.key}
+										aria-label={`${copy("web.search.removeCondition")} ${t.label}`}
+									>
+										{t.label}
+									</button>
+								))}
+							</span>
+						)}
 						<input
 							type="search"
 							id="filter-search"
 							aria-label={copy("web.search.inputLabel")}
-							placeholder={copy("web.search.inputPlaceholder")}
+							placeholder={tokens.length ? "" : copy("web.search.inputPlaceholder")}
 							defaultValue={f.query}
 							data-input="search"
 							autoComplete="off"
@@ -217,69 +230,32 @@ export const panelSearch = {
 							{icon("mic", 22)}
 						</button>
 					</div>
-					{button("x", copy("web.close"), "close")}
+					{button("x", copy("web.search.reset"), "search-reset")}
+					<div className="search-hash-slot" id="search-hash-slot">
+						{this.searchHashList(app)}
+					</div>
 				</div>
-				<div className="search-chips">
-					<fieldset
-						className="search-scope search-filter-items"
-						aria-label={copy("web.search.filters.type")}
-					>
-						{types.map(([key, label]) => (
-							<button
-								key={key}
-								type="button"
-								className={`chip ${f.type === key ? "active" : ""}`}
-								data-action="filter-type"
-								data-extra={key}
-								aria-pressed={f.type === key}
-							>
-								{label}
-							</button>
-						))}
-					</fieldset>
-					<details className="search-refinements">
-						<summary>
-							<span>{copy("web.search.filtersLabel")}</span>
-							{conditions.length > 0 && (
-								<span className="search-active-conditions">{conditions.join(" · ")}</span>
-							)}
-							{icon("chevron", 14)}
-						</summary>
-						<div className="search-refinement-content">
-							{row(
-								"web.search.filters.status",
-								status.map(([key, label]) => (
-									<button
-										key={key}
-										type="button"
-										className={`chip ${f.status === key ? "active" : ""}`}
-										data-action="filter-status"
-										data-extra={key}
-										aria-pressed={f.status === key}
-									>
-										{label}
-									</button>
-								)),
-							)}
-							{tags.length > 0 &&
-								row(
-									"web.search.filters.tag",
-									tags.map((tag) => (
-										<button
-											key={tag}
-											type="button"
-											className={`chip ${f.tag === tag ? "active" : ""}`}
-											data-action="filter-tag"
-											data-extra={tag}
-											aria-pressed={f.tag === tag}
-										>
-											#{tag}
-										</button>
-									)),
-								)}
-						</div>
-					</details>
-				</div>
+				{!category && (
+					<div className="search-chips" hidden={!text}>
+						<fieldset
+							className="search-scope search-filter-items"
+							aria-label={copy("web.search.filters.type")}
+						>
+							{types.map(([key, label]) => (
+								<button
+									key={key}
+									type="button"
+									className={`chip ${f.type === key ? "active" : ""}`}
+									data-action="filter-type"
+									data-extra={key}
+									aria-pressed={f.type === key}
+								>
+									{label}
+								</button>
+							))}
+						</fieldset>
+					</div>
+				)}
 				<div className="search-results" id="search-results">
 					{this.searchResults(app)}
 				</div>
@@ -287,9 +263,52 @@ export const panelSearch = {
 			</>
 		);
 	},
+	/** Typing # lists the existing statuses, then the existing tags; picking one makes an accent token. */
+	searchHashList(this: PanelRenderers, app?: SearchApp) {
+		const f = app.searchFilter;
+		const frag = app.searchHash(f.query);
+		if (frag === null) return null;
+		const needle = frag.toLocaleLowerCase();
+		const statuses = searchStatuses.filter(
+			([key, label]) => key !== f.status && copy(label).toLocaleLowerCase().includes(needle),
+		);
+		const tags = [...new Set<string>(Store.state.cards.flatMap((c: Card) => Store.tags(c)))].filter(
+			(tag) => tag !== f.tag && tag.toLocaleLowerCase().includes(needle),
+		);
+		if (!statuses.length && !tags.length) return null;
+		const option = (extra: string, label: string) => (
+			<button
+				key={extra}
+				type="button"
+				role="option"
+				aria-selected="false"
+				className="search-hash-option"
+				data-action="search-hash"
+				data-extra={extra}
+			>
+				{label}
+			</button>
+		);
+		return (
+			<div className="search-hash" role="listbox" aria-label={copy("web.search.hashList")}>
+				{statuses.length > 0 && (
+					<>
+						<div className="search-hash-label">{copy("web.search.hashStatus")}</div>
+						{statuses.map(([key, label]) => option(`status:${key}`, copy(label)))}
+					</>
+				)}
+				{tags.length > 0 && (
+					<>
+						<div className="search-hash-label">{copy("web.search.hashTag")}</div>
+						{tags.map((tag) => option(`tag:${tag}`, `#${tag}`))}
+					</>
+				)}
+			</div>
+		);
+	},
 	searchResults(this: PanelRenderers, app?: SearchApp) {
 		const f = app.searchFilter,
-			q = f.query.trim();
+			q = app.searchText(f.query);
 		if (!q && f.type === "all" && f.status === "all" && !f.tag)
 			return (
 				<section className="search-browse" aria-label={copy("web.search.browseCategories")}>
@@ -298,7 +317,7 @@ export const panelSearch = {
 							key={key}
 							type="button"
 							className="search-category"
-							data-action="filter-type"
+							data-action="search-category"
 							data-extra={key}
 						>
 							<img src={Assets[artwork]} alt="" />

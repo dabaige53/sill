@@ -66,6 +66,13 @@ class AppController {
 	declare shelved: AppControllerMethods["shelved"];
 	declare matches: AppControllerMethods["matches"];
 	declare searchAll: AppControllerMethods["searchAll"];
+	declare searchText: AppControllerMethods["searchText"];
+	declare searchHash: AppControllerMethods["searchHash"];
+	declare repaintSearchHash: AppControllerMethods["repaintSearchHash"];
+	declare syncHomeSearch: AppControllerMethods["syncHomeSearch"];
+	declare renderAIDock: AppControllerMethods["renderAIDock"];
+	declare desktop: AppControllerMethods["desktop"];
+	declare homeKey: AppControllerMethods["homeKey"];
 	declare filtering: AppControllerMethods["filtering"];
 	declare filtered: AppControllerMethods["filtered"];
 	declare deskView: AppControllerMethods["deskView"];
@@ -142,7 +149,9 @@ class AppController {
 	declare mode: string;
 	declare baseMode: string;
 	declare filter: Filter;
-	searchFilter = { type: "all", status: "all", tag: "", query: "" };
+	searchFilter = { type: "all", status: "all", tag: "", query: "", pinned: false };
+	homeMenuOpen = false;
+	homeSearchTimer = 0;
 	searchScroll = 0;
 	searchLimit = 40;
 	searchBackground?: HTMLDialogElement;

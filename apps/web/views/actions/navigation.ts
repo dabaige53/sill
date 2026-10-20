@@ -28,16 +28,57 @@ function top(this: AppController) {
 	this.railHide?.show();
 }
 
+function closeHomeMenu(this: AppController, focusToggle = false) {
+	const menu = document.getElementById("home-menu");
+	const toggle = document.getElementById("home-menu-toggle");
+	if (!menu || menu.hidden) return;
+	menu.hidden = true;
+	toggle?.setAttribute("aria-expanded", "false");
+	this.homeMenuOpen = false;
+	if (focusToggle) toggle?.focus({ preventScroll: true });
+}
+
+/** The ⌄ after Sill opens the tab menu; Escape or a click outside closes it without a change. */
+function homeMenu(this: AppController) {
+	const menu = document.getElementById("home-menu");
+	const toggle = document.getElementById("home-menu-toggle");
+	if (!menu) return;
+	if (!menu.hidden) {
+		closeHomeMenu.call(this);
+		return;
+	}
+	menu.hidden = false;
+	toggle?.setAttribute("aria-expanded", "true");
+	this.homeMenuOpen = true;
+	const outside = (e: PointerEvent) => {
+		if (menu.contains(e.target as Node) || toggle?.contains(e.target as Node)) return;
+		document.removeEventListener("pointerdown", outside, true);
+		closeHomeMenu.call(this);
+	};
+	document.addEventListener("pointerdown", outside, true);
+}
+
 function homeTab(this: AppController, { extra }: ActionContext) {
 	const tab = this.homeTabFilter(extra);
+	const fromMenu = !document.getElementById("home-menu")?.hidden;
+	closeHomeMenu.call(this, fromMenu);
 	if (!tab || this.homeTab() === extra) return;
 	this.homePositions[this.homeTab() || "all"] = { scroll: window.scrollY, limit: this.pageLimit };
 	const saved = this.homePositions[extra];
 	this.pageLimit = saved?.limit || 40;
-	this.filter = { ...this.filter, ...tab, tag: "", query: "" };
+	// Desktop keeps the typed text: the tab is a token beside it (ADR 0049).
+	this.filter = { ...this.filter, ...tab, tag: "", query: this.desktop() ? this.filter.query : "" };
 	this.renderCurrent(false);
 	window.scrollTo({ top: saved?.scroll || 0, behavior: "instant" });
 	this.railHide?.syncPosition();
+}
+
+function homeSearchClear(this: AppController) {
+	const input = document.getElementById("home-search") as HTMLInputElement | null;
+	if (input) input.value = "";
+	this.filter = { ...this.filter, query: "" };
+	this.renderCurrent(false);
+	input?.focus({ preventScroll: true });
 }
 
 function cardOpen(this: AppController, { id }: ActionContext) {
@@ -72,7 +113,52 @@ function stackClose(this: AppController, { extra }: ActionContext) {
 
 function filterType(this: AppController, { extra }: ActionContext) {
 	this.searchFilter.type = extra;
+	this.searchFilter.pinned = false;
 	this.repaintSearch();
+}
+
+/** A category card becomes an ink token in the search bar (ADR 0048). */
+function searchCategory(this: AppController, { extra }: ActionContext) {
+	this.searchFilter.type = extra;
+	this.searchFilter.pinned = true;
+	this.repaintSearch();
+}
+
+function focusSearchInput() {
+	const input = document.getElementById("filter-search") as HTMLInputElement | null;
+	if (!input) return;
+	input.focus({ preventScroll: true });
+	input.setSelectionRange(input.value.length, input.value.length);
+}
+
+/** A picked # option becomes an accent token; the typed #fragment leaves the text. */
+function searchHash(this: AppController, { extra }: ActionContext) {
+	const at = extra.indexOf(":");
+	const kind = extra.slice(0, at),
+		value = extra.slice(at + 1);
+	if (kind === "status") this.searchFilter.status = value;
+	else if (kind === "tag") this.searchFilter.tag = value;
+	else return;
+	this.searchFilter.query = this.searchFilter.query.replace(/(^|\s)#\S*$/, "$1").trimEnd();
+	this.repaintSearch();
+	focusSearchInput();
+}
+
+function searchUntoken(this: AppController, { extra }: ActionContext) {
+	if (extra === "type") {
+		this.searchFilter.type = "all";
+		this.searchFilter.pinned = false;
+	} else if (extra === "status") this.searchFilter.status = "all";
+	else if (extra === "tag") this.searchFilter.tag = "";
+	this.repaintSearch();
+	focusSearchInput();
+}
+
+/** The results page's close returns to the search home with no conditions. */
+function searchReset(this: AppController) {
+	this.searchFilter = { type: "all", status: "all", tag: "", query: "", pinned: false };
+	this.repaintSearch();
+	(document.activeElement as HTMLElement)?.blur?.();
 }
 
 function filterStatus(this: AppController, { extra }: ActionContext) {
@@ -93,7 +179,7 @@ function clearQuery(this: AppController) {
 
 function clearFilter(this: AppController) {
 	if (this.modalKind === "search") {
-		this.searchFilter = { type: "all", status: "all", tag: "", query: "" };
+		this.searchFilter = { type: "all", status: "all", tag: "", query: "", pinned: false };
 		this.repaintSearch();
 	} else {
 		this.filter = { type: "all", status: "all", tag: "", query: "" };
@@ -123,6 +209,8 @@ export const navigationActions = {
 	"capture-save": captureSave,
 	top: top,
 	"home-tab": homeTab,
+	"home-menu": homeMenu,
+	"home-search-clear": homeSearchClear,
 	"card-open": cardOpen,
 	preview: cardOpen,
 	reader: reader,
@@ -131,6 +219,10 @@ export const navigationActions = {
 	"stack-open": stackOpen,
 	"stack-close": stackClose,
 	"filter-type": filterType,
+	"search-category": searchCategory,
+	"search-hash": searchHash,
+	"search-untoken": searchUntoken,
+	"search-reset": searchReset,
 	"filter-status": filterStatus,
 	"filter-tag": filterTag,
 	"clear-query": clearQuery,

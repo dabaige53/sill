@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>手机顶行与搜索标签 · 定稿</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+
+:root{
+  --canvas:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#636366;--surface:#f0f0f2;
+  --line:rgba(0,0,0,.06);--line-card:rgba(0,0,0,.08);--accent:#0066cc;--card-read:#e9e9ee;
+  --ai-composer:#eff3f4;--ai-control:#e4e9eb;--field:#ececf0;
+  --glass:rgba(255,255,255,.88);--rim:rgba(0,0,0,.07);
+  --bad:#c4372c;--good:#1f8a4c;--page:#e9e9ec;--note:#3a3a3c;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{margin:0}
+.doc{background:var(--page);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+.doc{width:1720px;margin:0;padding:48px 16px 96px}
+.doc>header h1{font-size:34px;font-weight:700;letter-spacing:-.4px}
+.doc>header p{color:var(--muted);font-size:15px;margin-top:8px;max-width:720px;line-height:1.6}
+section{margin-top:64px}
+section>h2{font-size:24px;font-weight:700;display:flex;gap:12px;align-items:baseline}
+section>h2 .n{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.5px}
+section>.lead{color:var(--note);font-size:15px;line-height:1.65;margin-top:8px;max-width:780px}
+.row{display:flex;gap:32px;flex-wrap:wrap;margin-top:28px;align-items:flex-start}
+.shot{display:flex;flex-direction:column;gap:12px;width:375px;max-width:100%}
+.shot .cap{font-size:14px;font-weight:600}
+.shot .cap span{font-weight:400;color:var(--muted);margin-left:6px}
+.shot ul{font-size:13px;line-height:1.6;color:var(--note);padding-left:18px}
+.arrow{align-self:center;font-size:28px;color:var(--muted)}
+@media (max-width:860px){.arrow{display:none}}
+
+/* phone */
+.phone{width:375px;height:812px;max-width:100%;background:var(--canvas);border-radius:44px;overflow:hidden;position:relative;
+  box-shadow:0 0 0 10px #1d1d1f,0 30px 60px -20px rgba(0,0,0,.35);margin:10px}
+.phone.white{background:var(--card)}
+.status{height:47px;display:flex;justify-content:space-between;align-items:center;padding:0 30px;font-size:15px;font-weight:600}
+.status i{display:inline-block;width:24px;height:11px;border:1.5px solid var(--ink);border-radius:3px;opacity:.8}
+/* unified top row */
+.top{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:relative}
+.top .t{font-size:34px;font-weight:700;letter-spacing:-.5px;line-height:44px}
+.top .acts{display:flex;gap:4px}
+.circ{width:44px;height:44px;display:grid;place-items:center}
+.circ>b{width:36px;height:36px;border-radius:50%;background:var(--surface);display:grid;place-items:center}
+.white .circ>b{background:var(--surface)}
+svg{width:20px;height:20px;fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* spec overlay */
+.spec .top{outline:1px dashed rgba(196,55,44,.7);outline-offset:-1px}
+.spec .top::after{content:"60";position:absolute;left:-1px;top:50%;transform:translate(-100%,-50%);font-size:10px;color:var(--bad);font-weight:600;padding-right:2px}
+.spec .top .t{background:rgba(0,102,204,.08)}
+.spec .circ{background:rgba(0,102,204,.08)}
+/* home tabs */
+.tabs{height:44px;display:flex;align-items:stretch;padding:0 16px;gap:24px;overflow-x:auto;scrollbar-width:none}
+.tabs span{font-size:15px;color:var(--muted);display:flex;align-items:center;position:relative;white-space:nowrap;flex:none}
+.tabs span.on{color:var(--ink);font-weight:700}
+.tabs span.on::after{content:"";position:absolute;left:0;bottom:4px;width:28px;height:3px;border-radius:2px;background:var(--ink)}
+.tabs.old{gap:0;justify-content:space-between;padding:0 16px}
+.tabs.old a{flex:1 1 auto;justify-content:center}
+.tabs.old a:first-child{justify-content:flex-start}
+.tabs.old a:last-child{justify-content:flex-end}
+.gapmark{position:relative}
+.gapmark em{position:absolute;top:-2px;font-style:normal;font-size:10px;font-weight:700;color:var(--bad);transform:translateX(-50%)}
+.gapmark.good em{color:var(--good)}
+/* feed */
+.feed{padding:12px 16px 0;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--line-card)}
+.card.read{background:var(--card-read)}
+.meta{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.meta svg{width:14px;height:14px;stroke:var(--muted)}
+.ct{font-size:17px;font-weight:600;margin-top:6px;line-height:1.35}
+.cs{font-size:15px;color:var(--muted);margin-top:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.art{display:flex;gap:12px}.art>div{flex:1;min-width:0}
+.thumb{width:76px;height:76px;border-radius:12px;object-fit:cover;flex:none}
+.ev{display:flex;gap:12px;align-items:center;margin-top:6px}
+.ev .tm{font-size:34px;font-weight:700;letter-spacing:-.5px}
+.ev .ct{margin:0}
+.ev .cs{margin:0}
+.todo{display:flex;gap:12px;align-items:flex-start}
+.todo .ring{width:22px;height:22px;border-radius:50%;border:1.6px solid var(--accent);flex:none;margin-top:2px}
+.todo .ct{margin:0}
+mark{background:none;color:var(--ink);font-weight:700}
+/* bottom nav */
+.nav{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);height:60px;padding:4px;border-radius:30px;background:var(--glass);
+  box-shadow:0 0 0 .5px var(--rim),0 10px 30px -10px rgba(0,0,0,.25);display:flex;backdrop-filter:blur(12px)}
+.nav b{width:76px;border-radius:26px;display:grid;place-items:center}
+.nav b svg{width:24px;height:24px;stroke:rgba(29,29,31,.62)}
+.nav b.on{background:rgba(0,0,0,.06)}.nav b.on svg{stroke:var(--ink)}
+.fade{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(transparent,var(--canvas) 70%)}
+.white .fade{background:linear-gradient(transparent,var(--card) 70%)}
+/* AI */
+.ai-empty{flex:1}
+.composer{position:absolute;left:12px;right:12px;bottom:100px;background:var(--ai-composer);border-radius:24px;padding:12px}
+.composer p{font-size:17px;color:var(--muted);padding:2px 4px 12px}
+.composer .bar{display:flex;align-items:center;gap:8px}
+.composer .clip{width:32px;height:32px;border-radius:16px;background:var(--ai-control);display:grid;place-items:center}
+.composer .sp{flex:1}
+.composer .voice{height:32px;padding:0 12px;border-radius:16px;background:#0f1419;color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.composer .voice svg{stroke:#fff;width:16px;height:16px}
+.composer .send{width:24px;height:24px;border-radius:50%;border:1.6px solid var(--muted);display:grid;place-items:center;opacity:.5}
+.composer .send svg{width:14px;height:14px}
+/* search */
+.sfield{margin:0 16px;height:44px;border-radius:22px;background:var(--field);display:flex;align-items:center;gap:8px;padding:0 14px;font-size:17px;color:var(--muted)}
+.sfield svg{stroke:var(--muted);width:18px;height:18px;flex:none}
+.sfield .txt{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:6px}
+.sfield .ph{color:var(--muted)}
+.sfield .clr{width:18px;height:18px;border-radius:50%;background:#aeaeb2;display:grid;place-items:center;flex:none}
+.sfield .clr svg{stroke:#fff;width:10px;height:10px;stroke-width:2.4}
+.caret{width:2px;height:22px;background:var(--accent);border-radius:1px}
+.token{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:14px;background:var(--ink);color:#fff;font-size:15px;font-weight:600;flex:none}
+.srow{display:flex;align-items:center;gap:8px;padding:8px 16px 0 16px}
+.srow .sfield{margin:0;flex:1}
+.srow .x{width:44px;height:44px;border-radius:50%;background:var(--surface);display:grid;place-items:center;flex:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+.cat img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cat{aspect-ratio:16/10;border-radius:12px;position:relative;overflow:hidden}
+.cat::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.45))}
+.cat span{position:absolute;left:12px;bottom:10px;color:#fff;font-size:17px;font-weight:700;z-index:1}
+.cat.press{transform:scale(.96);box-shadow:0 0 0 3px var(--accent)}
+.sec-t{font-size:22px;font-weight:700;padding:20px 16px 0}
+.chips{display:flex;gap:8px;padding:12px 16px 4px;overflow-x:auto;scrollbar-width:none}
+.chips span{height:32px;padding:0 14px;border-radius:16px;background:var(--surface);font-size:14px;display:flex;align-items:center;white-space:nowrap;flex:none}
+.chips span.on{background:var(--ink);color:#fff;font-weight:600}
+.chips.home{padding:6px 16px}
+.chips.home span{background:var(--card);box-shadow:inset 0 0 0 1px var(--line-card);color:var(--ink)}
+.chips.home span.on{background:var(--ink);box-shadow:none;color:#fff}
+.sugg{margin:12px 16px 0;background:var(--card);border-radius:16px;box-shadow:0 0 0 1px var(--line-card),0 12px 30px -12px rgba(0,0,0,.2);padding:6px 0}
+.sugg h5{font-size:12px;color:var(--muted);font-weight:600;padding:8px 16px 4px}
+.sugg li{list-style:none;height:40px;display:flex;align-items:center;gap:10px;padding:0 16px;font-size:16px}
+.sugg li .h{color:var(--muted);width:12px}
+.sugg li.on{background:var(--surface)}
+.token.hash{background:var(--accent)}
+.pager{position:relative;overflow:hidden}
+.pager .peek{position:absolute;top:0;right:-322px;width:343px;opacity:.55}
+.swipe{display:flex;justify-content:center;gap:6px;padding:10px 0 0}
+.swipe i{width:6px;height:6px;border-radius:3px;background:#c7c7cc}
+.swipe i.on{width:16px;background:var(--ink)}
+.hint{position:absolute;left:50%;transform:translateX(-50%);bottom:100px;display:flex;align-items:center;gap:6px;background:rgba(29,29,31,.82);color:#fff;font-size:12px;padding:6px 10px;border-radius:12px;z-index:3}
+.hint svg{stroke:#fff;width:14px;height:14px}
+.kb{position:absolute;left:0;right:0;bottom:0;height:291px;background:#d1d3d9;padding:8px 3px}
+.kb div{display:flex;gap:6px;justify-content:center;margin-top:11px}
+.kb s{width:31px;height:42px;background:#fff;border-radius:5px;box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.kb s.w{width:180px}
+.recent{padding:8px 16px}
+.recent h4{font-size:17px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
+.recent h4 a{font-size:15px;font-weight:400;color:var(--accent)}
+.recent li{list-style:none;height:44px;display:flex;align-items:center;gap:10px;font-size:17px;border-bottom:1px solid var(--line)}
+.recent li svg{stroke:var(--muted);width:16px;height:16px}
+
+/* comparison table */
+table{border-collapse:collapse;margin-top:20px;font-size:14px;background:var(--card);border-radius:12px;overflow:hidden;width:100%;max-width:900px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+th{font-weight:600;background:var(--surface)}
+td.bad{color:var(--bad)}td.good{color:var(--good)}
+.qs{margin-top:20px;background:var(--card);border-radius:12px;padding:16px 20px;max-width:900px;font-size:14px;line-height:1.7}
+.qs b{display:block;margin-bottom:4px}
+
+</style>
+</helmet>
+<div class="doc">
+<header>
+  <h1>手机顶行、主页胶囊与搜索标签</h1>
+  <p>2026-10-20 定稿。375×812 手机宽度。依据：当前本地页面实测，Apple Music 搜索流程（<a href="https://mobbin.com/flows/aa6db5b1-4567-4ab8-9d57-c348a0e03f82">搜索</a>、<a href="https://mobbin.com/flows/cec77559-7491-4117-8eb8-11693f11dfec">分类</a>）。卡片、底部胶囊、AI 输入框沿用现有规则，本稿只改顶栏、主页标签和搜索流程。</p>
+</header>
+
+<!-- ============ 1 顶栏 ============ -->
+<section>
+  <h2><span class="n">01</span>三个页面共用一种顶栏</h2>
+  <p class="lead">现状：主页标题 34/700，AI 标题居中且很小，搜索标题 17/600，三页高度和位置都不同。方案：三页都用 60px 顶行，左侧 34/700 页名，右侧 36px 圆钮（44px 点击区）。主页和搜索右侧是头像；AI 右侧换成「历史」和「新对话」两个圆钮。虚线和蓝底是尺寸标注。</p>
+  <div class="row">
+    <div class="shot">
+      <div class="phone spec"><div class="status"></div>
+        <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
+        <div class="chips home"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span></div>
+        <div class="feed">
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+          <div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div>
+          <div class="card read"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg> 林舟 · 邮件 · 14:32</div><div class="ct">这周的方案，只差最后一个决定</div><div class="cs">三种方向已经整理好了。比起增加功能，我们更想先确认：什么应该留下。</div></div>
+        </div>
+        <div class="fade"></div><div class="nav"><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">主页<span>顶栏不变，标签改为胶囊</span></div>
+    </div>
+    <div class="shot">
+      <div class="phone white spec"><div class="status"></div>
+        <div class="top"><span class="t">AI</span><span class="acts"><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg></b></span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/><path d="M17.5 4.5a1.8 1.8 0 0 1 2.5 2.5L12.5 14.5 9.5 15l.5-3z"/></svg></b></span></span></div>
+        <div class="composer"><p>询问任何问题</p><div class="bar"><span class="clip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 7.5 9 14a2 2 0 0 0 2.8 2.8l7-7a3.6 3.6 0 0 0-5.1-5.1l-7 7a5.2 5.2 0 0 0 7.4 7.4l5.4-5.4"/></svg></span><span class="sp"></span><span class="send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18V6M7 11l5-5 5 5"/></svg></span><span class="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10v4M9 7v10M12 9v6M15 6v12M18 10v4"/></svg> 语音</span></div></div>
+        <div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">AI<span>标题移到左侧，与主页同大小</span></div>
+      <ul><li>右侧两个圆钮：历史（时钟）在左，新对话（铅笔方框）在右，间距 4。</li><li>AI 页不放头像，设置仍从主页、搜索的头像进入。</li><li>没有接入前两个圆钮保持禁用，不伪造历史列表。</li></ul>
+    </div>
+    <div class="shot">
+      <div class="phone white spec"><div class="status"></div>
+        <div class="top"><span class="t">搜索</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
+        <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt"><span class="ph">卡片、备注、来源</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V20.5"/></svg></div></div>
+        <div class="grid">
+          <div class="cat"><img src="phone-chrome/architecture.jpg" alt=""><span>资讯</span></div>
+          <div class="cat"><img src="phone-chrome/coast.jpg" alt=""><span>消息</span></div>
+          <div class="cat"><img src="phone-chrome/botanical.jpg" alt=""><span>笔记</span></div>
+          <div class="cat"><img src="phone-chrome/mountain.jpg" alt=""><span>待办</span></div>
+        </div>
+        <div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">搜索<span>17/600 → 34/700</span></div>
+      <ul><li>标题与头像的位置、大小与主页一致。</li><li>去掉「筛选」行（见 03）。</li></ul>
+    </div>
+  </div>
+  <table>
+    <tr><th>项目</th><th>主页 现状</th><th>AI 现状</th><th>搜索 现状</th><th>统一后</th></tr>
+    <tr><td>顶行高度</td><td>60</td><td>约 40，标题居中</td><td>约 76</td><td class="good">60</td></tr>
+    <tr><td>页名</td><td>34 / 700，左</td><td class="bad">约 17 / 600，居中</td><td class="bad">17 / 600，左</td><td class="good">34 / 700，左，起点 16</td></tr>
+    <tr><td>右侧</td><td>头像 36（点击区 44）</td><td class="bad">无</td><td>头像 36，顶部 16</td><td class="good">36 圆钮，点击区 44，垂直居中</td></tr>
+  </table>
+</section>
+
+<!-- ============ 2 Tab ============ -->
+<section>
+  <h2><span class="n">02</span>主页标签：等距，并改为胶囊</h2>
+  <p class="lead">现状按 5 格平均分宽，「全部」靠左、「收藏」靠右，其余居中，文字之间的距离是 50 / 39 / 38 / 51。A 方案保留下划线，改为左对齐、间距 24。B 方案改为与搜索相同的实心胶囊，间距 8；主页是灰底，所以未选中的胶囊用白底和细边，与白色卡片同一材质。已选 B。</p>
+  <div class="row">
+    <div class="shot">
+      <div class="phone" style="height:430px"><div class="status"></div>
+        <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
+        <div class="tabs old gapmark"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span>
+          <em style="left:71px">50</em><em style="left:145px">39</em><em style="left:214px">38</em><em style="left:304px">51</em></div>
+        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
+      </div>
+      <div class="cap">现状<span>间距 38–51 不等</span></div>
+    </div>
+    <div class="shot">
+      <div class="phone" style="height:430px"><div class="status"></div>
+        <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
+        <div class="tabs gapmark good"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span>
+          <em style="left:58px">24</em><em style="left:112px">24</em><em style="left:166px">24</em><em style="left:235px">24</em></div>
+        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
+      </div>
+      <div class="cap">A 下划线<span>间距 24，左对齐</span></div>
+      <ul><li>最轻，顶部更安静。</li><li>与搜索的胶囊不是同一种样式。</li></ul>
+    </div>
+    <div class="shot">
+      <div class="phone" style="height:430px"><div class="status"></div>
+        <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
+        <div class="chips home"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span></div>
+        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
+      </div>
+      <div class="cap">B 胶囊 · 已选<span>高 32，间距 8</span></div>
+      <ul><li>与搜索结果的类型行用同一个组件，一个产品只有一种切换样式。</li><li>每个胶囊有自己的边界，间距一定整齐；放不下时横滑。</li><li>选中 ink 底白字；未选中 card 白底、line-card 细边、ink 字。</li><li>顶行 60 + 胶囊行 44，总高度不变。</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 搜索 ============ -->
+<section>
+  <h2><span class="n">03</span>搜索流程：首页 → 结果页 → # 条件</h2>
+  <p class="lead">参照 Apple Music：搜索首页只有搜索栏和分类卡，没有筛选。点分类卡，分类作为标签放进搜索栏，并进入结果页；输入文字也进入结果页。结果页是新的一页：顶部是搜索栏和关闭钮，下面一行类型胶囊，左右滑动内容区可切换类型。</p>
+  <div class="row">
+    <div class="shot">
+      <div class="phone white"><div class="status"></div>
+        <div class="top"><span class="t">搜索</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
+        <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt"><span class="ph">卡片、备注、来源</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V20.5"/></svg></div></div>
+        <div class="grid">
+          <div class="cat"><img src="phone-chrome/architecture.jpg" alt=""><span>资讯</span></div>
+          <div class="cat"><img src="phone-chrome/coast.jpg" alt=""><span>消息</span></div>
+          <div class="cat"><img src="phone-chrome/botanical.jpg" alt=""><span>笔记</span></div>
+          <div class="cat press"><img src="phone-chrome/mountain.jpg" alt=""><span>待办</span></div>
+          <div class="cat"><img src="phone-chrome/coast.jpg" alt=""><span>日程</span></div>
+          <div class="cat"><img src="phone-chrome/mountain.jpg" alt=""><span>媒体</span></div>
+          <div class="cat"><img src="phone-chrome/botanical.jpg" alt=""><span>提醒</span></div>
+          <div class="cat"><img src="phone-chrome/architecture.jpg" alt=""><span>附件</span></div>
+        </div>
+        <div class="fade"></div><div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">① 搜索首页<span>无筛选</span></div>
+      <ul><li>删去「筛选」行和状态、标签展开区。</li><li>分类卡 2 列、间距 12、圆角 12，比例由 16:9 改为 16:10，名字更易读。</li><li>蓝框表示点按「待办」，进入 ②。</li></ul>
+    </div>
+
+    <div class="shot">
+      <div class="phone white"><div class="status"></div>
+        <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt"><span class="token">待办</span><span class="caret"></span></span></div><span class="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
+        <div class="feed" style="padding-top:16px">
+          <div class="card"><div class="todo"><span class="ring"></span><div><div class="ct">确认第二版首页的筛选顺序</div><div class="cs">今天 18:00 · 产品讨论会</div></div></div></div>
+          <div class="card"><div class="todo"><span class="ring"></span><div><div class="ct">回复林舟关于方案的邮件</div><div class="cs">明天</div></div></div></div>
+          <div class="card"><div class="todo"><span class="ring"></span><div><div class="ct">整理本周读过的三篇文章</div><div class="cs">周五</div></div></div></div>
+          <div class="card read"><div class="todo"><span class="ring" style="background:var(--accent)"></span><div><div class="ct">发出设计评审邀请</div><div class="cs">已于周一完成</div></div></div></div>
+        </div>
+        <div class="fade"></div><div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">② 点分类后<span>分类进入搜索栏</span></div>
+      <ul><li>新页面，不显示大标题和头像；顶行是搜索栏 + 44 圆形关闭钮。</li><li>「待办」是搜索栏里的黑色标签，结果只显示待办卡。继续输入文字可在待办里搜。</li><li>标签已经表达类型，因此这页不显示类型胶囊行。</li><li>光标在标签后按删除键，或点 ✕，标签移除，回到 ③。关闭钮回到 ①。</li></ul>
+    </div>
+
+    <div class="shot">
+      <div class="phone white"><div class="status"></div>
+        <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt">AI</span><span class="clr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><span class="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
+        <div class="chips"><span class="on">全部</span><span>资讯</span><span>消息</span><span>笔记</span><span>待办</span><span>日程</span><span>媒体</span></div>
+        <div class="pager">
+          <div class="feed">
+            <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+            <div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg> 林舟 · 邮件 · 14:32</div><div class="ct">关于 <mark>AI</mark> 助手的接入顺序</div><div class="cs">外部助手先通过 Webhook 回写，内置助手放到后面。</div></div>
+            <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
+          </div>
+        </div>
+        <div class="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8 4 12l4 4M16 8l4 4-4 4M4 12h16"/></svg> 左右滑动切换类型</div>
+        <div class="fade"></div><div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">③ 输入文字后<span>结果页</span></div>
+      <ul><li>按回车或停止输入后进入此页；输入法组词时不切换。</li><li>类型胶囊一行：选中 ink 底白字，其余浅灰底；间距 8，可横滑。</li><li>内容区左右滑动 = 切换胶囊，胶囊同步滚到可见位置。每个类型各自保留滚动位置。</li><li>命中词加粗，不加底色。不显示结果数量。</li></ul>
+    </div>
+
+    <div class="shot">
+      <div class="phone white"><div class="status"></div>
+        <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt">AI</span><span class="clr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><span class="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
+        <div class="chips"><span>全部</span><span class="on">资讯</span><span>消息</span><span>笔记</span><span>待办</span><span>日程</span><span>媒体</span></div>
+        <div class="feed">
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
+          <div class="card read art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 产品随记 · 刚刚写下</div><div class="ct">不是所有信息都值得被处理</div><div class="cs">让 <mark>AI</mark> 先挑出值得看的部分。</div></div><img class="thumb" src="phone-chrome/botanical.jpg" alt=""></div>
+        </div>
+        <div class="fade"></div><div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">④ 向左滑一页<span>切到「资讯」</span></div>
+      <ul><li>只显示资讯卡，卡片样式与主页相同。</li><li>没有结果的类型不显示胶囊，避免滑到空页。</li><li>点卡片打开详情抽屉，关闭后回到这页原位置。</li></ul>
+    </div>
+
+    <div class="shot">
+      <div class="phone white"><div class="status"></div>
+        <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt">AI #<span class="caret"></span></span></div><span class="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
+        <div class="sugg">
+          <h5>状态</h5>
+          <ul><li class="on"><span class="h">#</span>未读</li><li><span class="h">#</span>收藏</li><li><span class="h">#</span>稍后读</li></ul>
+          <h5>标签</h5>
+          <ul><li><span class="h">#</span>产品</li><li><span class="h">#</span>设计评审</li></ul>
+        </div>
+        <div class="kb" style="height:200px"><div><s></s><s></s><s></s><s></s><s></s><s></s><s></s><s></s><s></s><s></s></div><div><s></s><s></s><s></s><s></s><s></s><s></s><s></s><s></s><s></s></div><div><s class="w"></s></div></div>
+      </div>
+      <div class="cap">⑤ 输入 #<span>弹出条件列表</span></div>
+      <ul><li>在搜索栏任意位置输入 #，栏下出现列表：先状态（沿用现有的未读、收藏、稍后读），后标签；继续输入可按名称过滤，如 #设。</li><li>点选或回车后，条件变成搜索栏里的蓝色标签，与分类的黑色标签区分。</li><li>标签组只列已有标签；没有标签时不显示这一组。</li><li>列表浮在结果上方，不推开结果；点空白处或删掉 # 收起。</li></ul>
+    </div>
+
+    <div class="shot">
+      <div class="phone white"><div class="status"></div>
+        <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt"><span class="token">资讯</span><span class="token hash">#未读</span>AI</span><span class="clr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><span class="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
+        <div class="feed" style="padding-top:16px">
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
+        </div>
+        <div class="fade"></div><div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
+      </div>
+      <div class="cap">⑥ 组合条件<span>分类 + # + 文字</span></div>
+      <ul><li>分类标签、# 标签、文字可同时存在，结果同时满足。</li><li>栏里有分类标签时不显示类型胶囊行（同 ②）。</li><li>标签过多时搜索栏内部横滑，栏高不变。</li><li>删除键从后往前逐个删除标签。</li></ul>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>现在的规则</th><th>改为</th></tr>
+    <tr><td>搜索页标题 17/600，搜索栏边距 20</td><td>标题 34/700，边距 16，与主页对齐</td></tr>
+    <tr><td>结果顶部有「筛选」，状态和标签放在展开区</td><td>删除筛选；类型用分类标签或类型胶囊表达，状态和标签用 # 输入</td></tr>
+    <tr><td>输入后在同一页即时显示结果</td><td>进入新的结果页；顶部搜索栏 + 关闭钮，类型胶囊可左右滑动切换</td></tr>
+    <tr><td>点分类卡在本页筛选</td><td>分类成为搜索栏里的标签，进入结果页</td></tr>
+  </table>
+
+  <div class="qs">
+    <b>已确认（2026-10-20）</b>
+    1. 搜索去掉筛选，状态和标签改为在搜索栏输入 # 选择。<br>
+    2. AI 页右侧放「历史 + 新对话」，不放头像。<br>
+    3. 搜索类型和主页标签都用实心胶囊（02 的 B 方案），两处是同一个组件；主页未选中项用白底细边，搜索页用浅灰底。
+  </div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1720,"height":5100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

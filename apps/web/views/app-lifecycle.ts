@@ -111,9 +111,12 @@ export const appLifecycleMethods = {
 		this.railHide = new ChromeAutoHide(
 			window,
 			() =>
-				[dock, document.getElementById("home-top"), document.getElementById("scroll-edge")].filter(
-					Boolean,
-				),
+				// The desktop AI box is an input, so it stays while reading (ADR 0049).
+				[
+					this.desktop() ? null : dock,
+					document.getElementById("home-top"),
+					document.getElementById("scroll-edge"),
+				].filter(Boolean),
 			() => this.dialog.open || this.drag?.active || this.drag?.menu?.open,
 		);
 		window.addEventListener("popstate", () => this.route());

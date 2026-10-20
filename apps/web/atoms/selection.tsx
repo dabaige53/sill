@@ -33,6 +33,7 @@ export function SelectionBar({ id = "selection-bar" }: { id?: string }) {
 			<Action glyph="bookmark" label={copy("web.app.87aeb7040c82")} action="selected-bookmark" />
 			<Action glyph="glasses" label={copy("web.app.d108c0a7e2c3")} action="selected-later" />
 			<Action glyph="tag" label={copy("web.app.b5816e5fd0be")} action="selected-tag" />
+			<Action glyph="chat" label={copy("web.selection.toAI")} action="selected-ai" />
 			<span className="toolbar-sep" aria-hidden="true" />
 			<Action glyph="x" label={copy("web.app.74966e20df2e")} action="clear-selection" />
 			<SelectionAI />

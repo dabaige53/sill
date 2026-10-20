@@ -197,8 +197,15 @@ class DragManager {
 			...p,
 			ids,
 			moved: false,
-			target: this.app.selectionContext().bar?.querySelector(".selection-ai-target"),
+			target:
+				this.app.desktop() && !this.app.selectionContext().search
+					? document.getElementById("ai-dock")
+					: this.app.selectionContext().bar?.querySelector(".selection-ai-target"),
 		};
+		// Desktop: the AI box takes the rail back while a card is carried to it.
+		document
+			.getElementById("dock")
+			?.classList.toggle("is-ai-drag", this.active.target?.id === "ai-dock");
 		this.app.railHide?.show();
 		this.clearPending();
 		this.app.announce(
@@ -300,6 +307,9 @@ class DragManager {
 			target?.classList.toggle("is-ready", ready);
 			const label = target?.querySelector("[data-ai-label]");
 			if (label) label.textContent = copy(ready ? "web.selection.aiReady" : "web.selection.aiDrop");
+			const dockInput = target?.querySelector<HTMLInputElement>("#ai-dock-input");
+			if (dockInput)
+				dockInput.placeholder = copy(ready ? "web.ai.dockReady" : "web.ai.dockPlaceholder");
 		}
 		if (!this.ghost) {
 			this.ghost = document.createElement("div");
@@ -383,6 +393,11 @@ class DragManager {
 		this.active?.target?.classList.remove("is-ready");
 		const label = this.active?.target?.querySelector("[data-ai-label]");
 		if (label) label.textContent = copy("web.selection.aiDrop");
+		const dockInput = (
+			this.active?.target as HTMLElement | undefined
+		)?.querySelector<HTMLInputElement>("#ai-dock-input");
+		if (dockInput) dockInput.placeholder = copy("web.ai.dockPlaceholder");
+		document.getElementById("dock")?.classList.remove("is-ai-drag");
 		document.body.classList.remove("is-dragging");
 		document.querySelectorAll(".is-drag-source").forEach((n) => {
 			n.classList.remove("is-drag-source");

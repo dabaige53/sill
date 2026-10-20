@@ -330,6 +330,24 @@ export const panelSettings = {
 					{this.close(copy("web.close"))}
 					<header className={"ai-conversation-head"}>
 						<h1 id={"modal-title"}>{copy("web.ai.title")}</h1>
+						<div className="ai-head-actions">
+							<button
+								type="button"
+								className="icon-button ai-head-button"
+								disabled
+								aria-label={copy("web.ai.history")}
+							>
+								{icon("clock", 20)}
+							</button>
+							<button
+								type="button"
+								className="icon-button ai-head-button"
+								disabled
+								aria-label={copy("web.ai.newChat")}
+							>
+								{icon("plus", 20)}
+							</button>
+						</div>
 					</header>
 					<section className={"ai-context"} aria-label={copy("web.ai.context")}>
 						{keyed(context)}

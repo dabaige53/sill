@@ -48,6 +48,10 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 
 见[基础与组件](handbook/foundation.md#间距与尺寸)。
 
+## 两端对照
+
+移动（650px 及以下）与网页（宽于 650px）分开写布局、尺寸、交互和状态，见[页面与交互](handbook/interaction.md#两端对照)。
+
 ## 手机主页
 
 见[页面与交互](handbook/interaction.md#手机主页)。

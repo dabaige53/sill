@@ -149,7 +149,8 @@ async function recordLayout(page?: any, width?: any) {
 				await page.keyboard.press("Escape");
 				await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
 			}
-			await page.keyboard.press("Control+k");
+			// Desktop ⌘K focuses the top-bar search (ADR 0049); the search page still opens by action.
+			await action(page, "search");
 			await page.locator("#filter-search").waitFor();
 			await action(page, "filter-status", "", status);
 		};

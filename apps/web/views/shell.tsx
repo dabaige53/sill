@@ -5,26 +5,99 @@ export { SelectionAI } from "../atoms/selection.tsx";
 
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
+import { sillIcon } from "../interactions/panel-primitives.tsx";
 
+const homeTabs = [
+	["all", "web.all"],
+	["unread", "web.unread"],
+	["todo", "web.home.todo"],
+	["later", "web.later"],
+	["saved", "web.bookmark"],
+] as const;
+
+/**
+ * Phone: title, avatar and a row of solid tabs (ADR 0048).
+ * Desktop: brand, a ⌄ tab menu, the search field and the avatar on one 40px line (ADR 0049).
+ */
 export function HomeTop() {
-	const tabs = [
-		["all", copy("web.all")],
-		["unread", copy("web.unread")],
-		["todo", copy("web.home.todo")],
-		["later", copy("web.later")],
-		["saved", copy("web.bookmark")],
-	];
 	return (
 		<header id="home-top" className="home-top">
 			<div className="home-heading">
-				<button
-					type="button"
-					className="home-mark"
-					data-action="top"
-					aria-label={copy("web.home.top")}
-				>
-					Sill
-				</button>
+				<div className="home-brand">
+					<button
+						type="button"
+						className="home-mark"
+						data-action="top"
+						aria-label={copy("web.home.top")}
+					>
+						<span className="home-logo">{sillIcon(40)}</span>
+						Sill
+					</button>
+					<button
+						type="button"
+						className="home-menu-toggle"
+						id="home-menu-toggle"
+						data-action="home-menu"
+						aria-haspopup="menu"
+						aria-expanded="false"
+						aria-controls="home-menu"
+						aria-label={copy("web.home.filterMenu")}
+					>
+						<Icon name="chevron" size={20} />
+					</button>
+					<div className="home-menu" id="home-menu" role="menu" hidden>
+						{homeTabs.map(([key, label], i) => (
+							<button
+								key={key}
+								type="button"
+								role="menuitemradio"
+								className="home-menu-item"
+								data-action="home-tab"
+								data-extra={key}
+								aria-checked={key === "all"}
+							>
+								<span className="home-menu-check" aria-hidden="true">
+									<Icon name="check" size={16} />
+								</span>
+								<span className="home-menu-label">{copy(label)}</span>
+								<span className="home-menu-key" aria-hidden="true">
+									⌘{i + 1}
+								</span>
+							</button>
+						))}
+					</div>
+				</div>
+				<div className="home-search" id="home-search-field">
+					<Icon name="search" size={16} />
+					<button
+						type="button"
+						className="home-search-token"
+						id="home-search-token"
+						data-action="home-tab"
+						data-extra="all"
+						hidden
+					/>
+					<input
+						type="search"
+						id="home-search"
+						data-input="home-search"
+						autoComplete="off"
+						aria-label={copy("web.search.inputLabel")}
+						placeholder={copy("web.home.searchPlaceholder")}
+					/>
+					<span className="home-search-key" aria-hidden="true">
+						⌘K
+					</span>
+					<button
+						type="button"
+						className="home-search-clear"
+						data-action="home-search-clear"
+						aria-label={copy("web.search.clear")}
+						hidden
+					>
+						<Icon name="x" size={12} />
+					</button>
+				</div>
 				<button
 					type="button"
 					className="home-account"
@@ -40,7 +113,7 @@ export function HomeTop() {
 			</div>
 			{/* biome-ignore lint/a11y/useSemanticElements: This group contains navigation filters, not form fields; preserve the existing layout and semantics. */}
 			<div className="home-tabs" role="group" aria-label={copy("web.home.tabs")}>
-				{tabs.map(([key, label]) => (
+				{homeTabs.map(([key, label]) => (
 					<button
 						key={key}
 						type="button"
@@ -49,7 +122,7 @@ export function HomeTop() {
 						data-extra={key}
 						aria-pressed={key === "all"}
 					>
-						{label}
+						{copy(label)}
 					</button>
 				))}
 			</div>
@@ -96,6 +169,47 @@ export function Navigation() {
 		</nav>
 	);
 }
+/**
+ * Desktop bottom rail (ADR 0049): one AI box in place of the navigation capsule.
+ * The built-in AI is not connected, so add, voice and send stay disabled.
+ */
+export function AIDock() {
+	return (
+		<div id="ai-dock" className="ai-dock glass">
+			<div className="ai-dock-context" id="ai-dock-context" />
+			<button
+				type="button"
+				className="ai-dock-button"
+				disabled
+				aria-label={copy("web.ai.addUnavailable")}
+			>
+				<Icon name="plus" size={20} />
+			</button>
+			<input
+				type="text"
+				id="ai-dock-input"
+				className="ai-dock-input"
+				maxLength={4000}
+				autoComplete="off"
+				aria-label={copy("web.ai.dock")}
+				placeholder={copy("web.ai.dockPlaceholder")}
+			/>
+			<button type="button" className="ai-dock-button" disabled aria-label={copy("web.ai.speak")}>
+				<Icon name="mic" size={20} />
+			</button>
+			<button
+				type="button"
+				className="ai-dock-button ai-dock-send"
+				disabled
+				aria-label={copy("web.ai.sendUnavailable")}
+			>
+				<span>
+					<Icon name="up" size={16} />
+				</span>
+			</button>
+		</div>
+	);
+}
 export function WorkspaceShell() {
 	return (
 		<>
@@ -112,6 +226,7 @@ export function WorkspaceShell() {
 					{copy("web.app.3d52574ce150")}
 				</button>
 				<SelectionBar />
+				<AIDock />
 				<Navigation />
 			</div>
 			<button

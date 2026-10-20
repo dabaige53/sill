@@ -83,11 +83,7 @@ export const appInputMethods = {
 		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
 			(row) => row.scrollLeft,
 		);
-		const refinementsOpen =
-			this.dialog.querySelector<HTMLDetailsElement>(".search-refinements")?.open;
 		renderContent(this.dialog, Panels.search(this));
-		const refinements = this.dialog.querySelector<HTMLDetailsElement>(".search-refinements");
-		if (refinements && refinementsOpen) refinements.open = true;
 		this.bindSearchResults();
 		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
 			row.scrollLeft = filterScroll[index] ?? 0;
@@ -104,17 +100,102 @@ export const appInputMethods = {
 				?.focus({ preventScroll: true });
 		this.revealImages(this.dialog);
 	},
+	/** Desktop top bar keys (ADR 0049). Escape steps back one layer: menu, text, token, focus. */
+	homeKey(this: AppController, e?: TargetEvent<KeyboardEvent>) {
+		if (!this.desktop()) return false;
+		const input = document.getElementById("home-search") as HTMLInputElement | null;
+		if (!input) return false;
+		const menu = document.getElementById("home-menu");
+		if (this.homeMenuOpen && menu && !menu.hidden) {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				this.action("home-menu");
+				document.getElementById("home-menu-toggle")?.focus({ preventScroll: true });
+				return true;
+			}
+			if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+				const items = [...menu.querySelectorAll<HTMLElement>(".home-menu-item")];
+				const index = items.indexOf(document.activeElement as HTMLElement);
+				const next =
+					index < 0
+						? e.key === "ArrowDown"
+							? 0
+							: items.length - 1
+						: (index + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+				e.preventDefault();
+				items[next]?.focus();
+				return true;
+			}
+		}
+		if (this.dialog.open) return false;
+		if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") {
+			e.preventDefault();
+			input.focus();
+			input.select();
+			return true;
+		}
+		const tabs = ["all", "unread", "todo", "later", "saved"];
+		if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && /^[1-5]$/.test(e.key)) {
+			e.preventDefault();
+			this.action("home-tab", "", tabs[Number(e.key) - 1]);
+			return true;
+		}
+		if (e.target !== input) return false;
+		if (e.key === "Escape") {
+			e.preventDefault();
+			if (input.value) {
+				input.value = "";
+				this.filter = { ...this.filter, query: "" };
+				clearTimeout(this.homeSearchTimer);
+				this.renderCurrent(false);
+			} else if ((this.homeTab() || "all") !== "all") this.action("home-tab", "", "all");
+			else input.blur();
+			return true;
+		}
+		if (
+			e.key === "Backspace" &&
+			!input.value &&
+			input.selectionStart === 0 &&
+			(this.homeTab() || "all") !== "all"
+		) {
+			e.preventDefault();
+			this.action("home-tab", "", "all");
+			return true;
+		}
+		return false;
+	},
+	repaintSearchHash(this: AppController) {
+		const slot = document.getElementById("search-hash-slot");
+		if (slot) renderView(slot, Panels.searchHashList(this));
+	},
 	input(this: AppController, e?: TargetEvent<Event> & { isComposing?: boolean }) {
-		if (e.target.id === "ai-local-draft") {
+		if (e.target.id === "ai-local-draft" || e.target.id === "ai-dock-input") {
 			this.aiDraft = (e.target as HTMLTextAreaElement).value;
 			return;
 		}
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
+		if (e.target.dataset.input === "home-search") {
+			const value = (e.target as HTMLInputElement).value;
+			this.filter = { ...this.filter, query: value };
+			this.syncHomeSearch();
+			clearTimeout(this.homeSearchTimer);
+			this.homeSearchTimer = window.setTimeout(() => {
+				this.homeSearchTimer = 0;
+				this.pageLimit = 40;
+				this.renderCurrent(false);
+				window.scrollTo({ top: 0, behavior: "instant" });
+				this.railHide?.syncPosition();
+			}, 140);
+			return;
+		}
 		if (e.target.dataset.input === "search") {
 			this.searchFilter.query = e.target.value;
 			const clear = document.querySelector<HTMLButtonElement>(".search-clear");
 			if (clear) clear.hidden = !e.target.value;
+			const chips = document.querySelector<HTMLElement>(".search-chips");
+			if (chips) chips.hidden = !this.searchText(e.target.value);
+			this.repaintSearchHash();
 			this.searchScroll = 0;
 			this.searchLimit = 40;
 			document.getElementById("filter-result").textContent =
@@ -149,6 +230,7 @@ export const appInputMethods = {
 	},
 	key(this: AppController, e?: TargetEvent<KeyboardEvent>) {
 		if (e.isComposing) return;
+		if (this.homeKey(e)) return;
 		if (
 			(!this.dialog.open || this.modalKind === "search") &&
 			!e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]") &&
@@ -293,8 +375,25 @@ export const appInputMethods = {
 			this.action("add-tag", this.editId);
 			return;
 		}
+		if (e.target.id === "filter-search" && e.key === "Backspace") {
+			const input = e.target as HTMLInputElement;
+			const f = this.searchFilter;
+			if (!input.value && input.selectionStart === 0 && input.selectionEnd === 0) {
+				const last = f.tag ? "tag" : f.status !== "all" ? "status" : f.pinned ? "type" : "";
+				if (last) {
+					e.preventDefault();
+					this.action("search-untoken", "", last);
+				}
+				return;
+			}
+		}
 		if (e.target.id === "filter-search" && e.key === "Enter") {
 			e.preventDefault();
+			const option = this.dialog.querySelector<HTMLElement>(".search-hash-option");
+			if (option) {
+				option.click();
+				return;
+			}
 			const first = this.dialog.querySelector<HTMLElement>(
 				'#search-results .card-title-button[data-action="card-open"]',
 			);

@@ -32,7 +32,7 @@ export async function runCaptureLayout({
 			assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), false);
 			assert.equal(await page.evaluate(() => window.__app.selected.size), 2);
 			assert.deepEqual(await inside(), before, "selecting moved the card's content");
-			// No entrance orb: the rail is the navigation capsule, and selection shares its row.
+			// No entrance orb. On desktop the rail holds the AI box; selection takes the same slot (ADR 0049).
 			assert.equal(await page.locator("#orb,.dock-tools,.rail-tools").count(), 0);
 			// Selection can scroll a card into view and tuck the rail. Compare its resting layout,
 			// after both the rail and selection bar have entered, in one browser frame.
@@ -47,14 +47,27 @@ export async function runCaptureLayout({
 						.map((animation) => animation.finished.catch(() => {})),
 				);
 			});
-			const { bar, nav, face } = await page.evaluate(() => {
+			const { bar, nav, aiDock, face, viewport } = await page.evaluate(() => {
 				const box = (id: string) => document.getElementById(id).getBoundingClientRect().toJSON();
-				return { bar: box("selection-bar"), nav: box("nav"), face: box("account") };
+				return {
+					bar: box("selection-bar"),
+					nav: getComputedStyle(document.getElementById("nav")).display,
+					aiDock: getComputedStyle(document.getElementById("ai-dock")).display,
+					face: box("account"),
+					viewport: { width: innerWidth, height: innerHeight },
+				};
 			});
-			assert.ok(bar.right <= nav.left, "selection bar overlaps the navigation capsule");
-			assert.ok(face.bottom < nav.top, "settings stays in the home header above the capsule");
-			assert.equal(Math.round(bar.bottom), Math.round(nav.bottom), "rail rows differ");
-			assert.equal(Math.round(bar.height), Math.round(nav.height), "rail rows differ");
+			assert.equal(nav, "none", "desktop shows no navigation capsule");
+			assert.equal(aiDock, "none", "selection replaces the AI box in the rail");
+			assert.equal(Math.round(bar.width), 640, "selection bar is as wide as the AI box");
+			assert.equal(Math.round(bar.height), 60, "rail rows differ");
+			assert.equal(Math.round(viewport.height - bar.bottom), 28, "selection sits on the rail");
+			assert.equal(
+				Math.round(bar.left + bar.width / 2),
+				viewport.width / 2,
+				"selection is centred",
+			);
+			assert.ok(face.bottom < bar.top, "settings stays in the top bar");
 			await page.evaluate(() => window.__app.toast("撤销测试", () => {}));
 			const toast = await rect(page, "#toast");
 			assert.ok(toast.bottom <= bar.top, "toast overlaps the selection bar");

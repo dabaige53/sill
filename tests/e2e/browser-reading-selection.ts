@@ -14,66 +14,104 @@ export async function runReadingSelection({
 	scenario: any;
 	state: any;
 }) {
-	for (const width of [390, 1440]) {
-		await scenario(
-			`Search starts at the top and restores navigation on exit (${width})`,
-			async (page?: any) => {
-				const trigger = page.locator('#nav [data-extra="search"]');
-				for (const exit of ["close", "Escape"]) {
-					await trigger.click();
-					await page.locator("#filter-search").waitFor();
-					await page.waitForFunction(
-						() => getComputedStyle(document.getElementById("dock")).visibility === "hidden",
-					);
-					assert.equal(
-						await page
-							.locator("#filter-search")
-							.evaluate((n?: any) => n === document.activeElement),
-						true,
-					);
-					const field = await page.locator(".search-header").boundingBox();
-					const chips = await page.locator(".search-chips").boundingBox();
-					assert.ok(
-						field.y < 100 && chips.y >= field.y + field.height,
-						"field precedes filters at the top",
-					);
-					await page.locator("#filter-search").fill("留白");
-					await page.locator('#search-results [data-action="card-open"]').first().waitFor();
-					if (width < 720) {
-						await page.evaluate(() => {
-							document.documentElement.style.setProperty("--kb", "300px");
-							document.body.classList.add("keyboard-open");
-						});
-						const keyboardField = await page.locator(".search-header").boundingBox();
-						const results = await page.locator(".search-results").boundingBox();
-						assert.ok(Math.abs(keyboardField.y - field.y) < 1, "keyboard does not lift the field");
-						assert.ok(results.y + results.height <= 800 - 300, "results stay above the keyboard");
-						await page.evaluate(() => {
-							document.documentElement.style.removeProperty("--kb");
-							document.body.classList.remove("keyboard-open");
-						});
-					}
-					assert.equal(
-						await page.locator("#dock").evaluate((n?: any) => getComputedStyle(n).visibility),
-						"hidden",
-						"capsule stays hidden without keyboard",
-					);
-					await page.screenshot({
-						animations: "disabled",
-						path: path.join(artifacts, `search-top-${width}.png`),
-					});
-					if (exit === "close") await page.locator('.search-header [data-action="close"]').click();
-					else await page.keyboard.press("Escape");
-					await page.waitForFunction(
-						() =>
-							!document.querySelector("dialog").open &&
-							getComputedStyle(document.getElementById("dock")).visibility === "visible",
-					);
-				}
-			},
-			{ viewport: { width, height: 800 } },
-		);
-	}
+	await scenario(
+		"Phone search starts at the top, closes back to its home and leaves by Escape",
+		async (page?: any) => {
+			const trigger = page.locator('#nav [data-extra="search"]');
+			await trigger.click();
+			await page.locator("#filter-search").waitFor();
+			assert.equal(
+				await page.locator("#filter-search").evaluate((n?: any) => n === document.activeElement),
+				true,
+			);
+			assert.equal(
+				await page.locator(".search-category").count(),
+				6,
+				"search home shows categories",
+			);
+			assert.equal(await page.locator(".search-refinements").count(), 0, "no filter row");
+			await page.locator("#filter-search").fill("留白");
+			await page.locator('#search-results [data-action="card-open"]').first().waitFor();
+			// The results page drops the top row, so its field sits at the top.
+			const field = await page.locator(".search-header").boundingBox();
+			assert.ok(field.y < 20, "the results field is at the top");
+			const chips = await page.locator(".search-chips").boundingBox();
+			assert.ok(chips.y >= field.y + field.height, "type chips follow the field");
+			assert.equal(
+				await page
+					.locator(".search-page-heading")
+					.evaluate((n?: any) => getComputedStyle(n).display),
+				"none",
+				"the results page has no top row",
+			);
+			await page.evaluate(() => {
+				document.documentElement.style.setProperty("--kb", "300px");
+				document.body.classList.add("keyboard-open");
+			});
+			const keyboardField = await page.locator(".search-header").boundingBox();
+			const results = await page.locator(".search-results").boundingBox();
+			assert.ok(Math.abs(keyboardField.y - field.y) < 1, "keyboard does not lift the field");
+			assert.ok(results.y + results.height <= 800 - 300, "results stay above the keyboard");
+			await page.evaluate(() => {
+				document.documentElement.style.removeProperty("--kb");
+				document.body.classList.remove("keyboard-open");
+			});
+			await page.screenshot({
+				animations: "disabled",
+				path: path.join(artifacts, "search-top-390.png"),
+			});
+			await page.locator('.search-header [data-action="search-reset"]').click();
+			await page.locator(".search-category").first().waitFor();
+			assert.equal(await page.evaluate(() => window.__app.searchFilter.query), "");
+			await page.keyboard.press("Escape");
+			await page.waitForFunction(() => !document.querySelector("dialog").open);
+		},
+		{ viewport: { width: 390, height: 800 } },
+	);
+	await scenario(
+		"Desktop search lives in the top bar and filters the feed in place",
+		async (page?: any) => {
+			const homeCount = await page.locator("#feed-grid .feed-card").count();
+			assert.equal(
+				await page.locator("#nav").evaluate((n?: any) => getComputedStyle(n).display),
+				"none",
+			);
+			await page.keyboard.press("Control+k");
+			assert.equal(
+				await page.locator("#home-search").evaluate((n?: any) => n === document.activeElement),
+				true,
+			);
+			assert.equal(await page.evaluate(() => window.__app.modalKind === "search"), false);
+			await page.locator("#home-search").fill("留白");
+			await page.waitForFunction(
+				(count: number) => document.querySelectorAll("#feed-grid .feed-card").length < count,
+				homeCount,
+			);
+			assert.equal(await page.locator("#modal").evaluate((n: HTMLDialogElement) => n.open), false);
+			await page.keyboard.press("Control+2");
+			assert.equal(await page.locator("#home-search-token").textContent(), "未读");
+			assert.equal(
+				await page.locator("#home-search").inputValue(),
+				"留白",
+				"text stays beside the tab",
+			);
+			await page.screenshot({
+				animations: "disabled",
+				path: path.join(artifacts, "search-top-1440.png"),
+			});
+			await page.locator("#home-search").focus();
+			await page.keyboard.press("Escape");
+			assert.equal(await page.locator("#home-search").inputValue(), "");
+			assert.equal(await page.locator("#home-search-token").isVisible(), true);
+			await page.keyboard.press("Escape");
+			assert.equal(await page.locator("#home-search-token").isVisible(), false);
+			await page.waitForFunction(
+				(count: number) => document.querySelectorAll("#feed-grid .feed-card").length === count,
+				homeCount,
+			);
+		},
+		{ viewport: { width: 1440, height: 800 } },
+	);
 	await scenario(
 		"Search keeps home unchanged and reaches archived cards with shared card components",
 		async (page?: any) => {
@@ -86,7 +124,7 @@ export async function runReadingSelection({
 			await page.waitForFunction(() => window.__app);
 			assert.equal((await state(page, "old-01")).archived, true);
 			const homeCount = await page.locator("#feed-grid .feed-card").count();
-			await page.keyboard.press("Control+k");
+			await action(page, "search");
 			await page.waitForFunction(() => window.__app.modalKind === "search");
 			await page.locator("#filter-search").fill("不存在的关键词");
 			await page.waitForFunction(

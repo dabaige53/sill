@@ -432,3 +432,148 @@ body.is-dragging #toast {
 #toast-action:empty {
 	display: none;
 }
+
+/* Desktop bottom rail (ADR 0049): the AI box replaces the navigation capsule.
+   Selection takes the same 640 × 60 slot; a carried card brings the AI box back. */
+.ai-dock {
+	display: none;
+}
+@media (min-width: 651px) {
+	#dock .nav-capsule,
+	#dock .selection-ai-target {
+		display: none;
+	}
+	.ai-dock {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+		width: min(640px, 100%);
+		height: var(--rail-row);
+		padding: 0 var(--space-12);
+		border-radius: 30px;
+	}
+	#dock:has(#selection-bar:not([hidden])) .ai-dock {
+		display: none;
+	}
+	#dock.is-ai-drag #selection-bar {
+		display: none;
+	}
+	#dock.is-ai-drag:has(#selection-bar) .ai-dock {
+		display: flex;
+	}
+	.ai-dock.is-ready {
+		background: color-mix(in srgb, var(--accent) 7%, var(--card));
+		box-shadow:
+			0 0 0 2px var(--accent),
+			0 16px 40px -14px color-mix(in srgb, var(--accent) 45%, transparent);
+	}
+	.ai-dock.is-ready .ai-dock-input::placeholder {
+		color: var(--accent);
+		font-weight: 600;
+		opacity: 1;
+	}
+	.ai-dock-button {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 36px;
+		height: 36px;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		color: var(--ink);
+	}
+	.ai-dock-button:disabled {
+		color: var(--muted);
+		cursor: default;
+	}
+	.ai-dock-send > span {
+		display: grid;
+		place-items: center;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: var(--faint);
+		color: var(--card);
+	}
+	.ai-dock-send:not(:disabled) > span {
+		background: var(--ink);
+	}
+	.ai-dock-input {
+		flex: 1;
+		min-width: 0;
+		height: 36px;
+		padding: 0 var(--space-4);
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		color: var(--ink);
+		font-size: 16px;
+		line-height: 36px;
+	}
+	.ai-dock-input:focus-visible {
+		outline: 0;
+	}
+	.ai-dock-context:empty {
+		display: none;
+	}
+	.ai-dock-context {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: calc(100% + var(--space-8));
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-8);
+	}
+	.ai-dock-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-6);
+		max-width: 260px;
+		height: 30px;
+		padding: 0 var(--space-6) 0 var(--space-10);
+		border-radius: var(--space-10);
+		background: var(--card);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		font-size: var(--text-meta);
+	}
+	.ai-dock-chip-title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.ai-dock-chip button {
+		display: grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--muted);
+	}
+	/* New content and offline wait under the top bar, clear of the AI box and its context. */
+	#new-count,
+	#dock #offline {
+		position: fixed;
+		top: calc(var(--space-12) + var(--space-60) + var(--space-10));
+		bottom: auto;
+	}
+	body:has(#dock.is-tucked) #new-count {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+	#dock #selection-bar {
+		width: min(640px, 100%);
+		max-width: none;
+		justify-content: center;
+	}
+	#dock #selection-bar .icon-button {
+		width: 44px;
+		height: 44px;
+	}
+}

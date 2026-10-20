@@ -211,16 +211,37 @@ body.is-pulling main {
 	gap: var(--space-12);
 	max-height: calc(100dvh - 32px);
 }
+/* Same top row as home and search (ADR 0048): title left, round controls right. */
 .ai-conversation-head {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	min-height: var(--hit-target);
+	justify-content: space-between;
+	min-height: var(--space-60);
 	flex: none;
 }
 .ai-conversation h1 {
 	margin: 0;
-	font-size: var(--text-card-title);
+	font-size: var(--text-figure);
+	font-weight: 700;
+	letter-spacing: -0.04em;
+	line-height: 1.2;
+}
+.ai-head-actions {
+	display: flex;
+	gap: var(--space-4);
+}
+.ai-head-button {
+	width: var(--hit-target);
+	height: var(--hit-target);
+}
+.ai-head-button .icon {
+	box-sizing: content-box;
+	padding: var(--space-8);
+	border-radius: 50%;
+	background: var(--surface);
+}
+.ai-head-button:disabled {
+	opacity: 0.45;
 }
 .ai-conversation > p {
 	margin: 0;

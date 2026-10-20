@@ -309,22 +309,33 @@ body:has(dialog.search[open]) #feed-grid {
 	flex-direction: column;
 	gap: var(--space-12);
 }
+/* Same top row as home and AI (ADR 0048). The results page has no top row. */
 .search-page-heading {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	flex: none;
-	min-height: var(--space-44);
+	min-height: var(--space-60);
 }
 .search-page-heading h1 {
 	margin: 0;
-	font-size: var(--text-card-title);
-	font-weight: 600;
+	font-size: var(--text-figure);
+	font-weight: 700;
+	letter-spacing: -0.04em;
 	line-height: 1.2;
 }
 .search-account {
-	border-radius: var(--pill-radius);
+	width: var(--hit-target);
+	height: var(--hit-target);
+}
+.search-account .icon {
+	box-sizing: content-box;
+	padding: var(--space-8);
+	border-radius: 50%;
 	background: var(--surface);
+}
+.search:not(:has(.search-browse)) .search-page-heading {
+	display: none;
 }
 :is(#modal, #search-background).page.search {
 	background: var(--card);
@@ -336,7 +347,7 @@ body:has(dialog.search[open]) #feed-grid {
 }
 .search-category {
 	position: relative;
-	aspect-ratio: 16 / 9;
+	aspect-ratio: 16 / 10;
 	overflow: hidden;
 	border-radius: var(--control-radius);
 	text-align: left;
@@ -374,10 +385,71 @@ body:has(dialog.search[open]) #feed-grid {
 	transform: none;
 }
 .search-header {
+	position: relative;
 	display: flex;
 	align-items: center;
 	gap: var(--space-8);
 	flex: none;
+}
+.search-tokens {
+	display: flex;
+	flex: none;
+	gap: var(--space-6);
+	max-width: 60%;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.search-token {
+	flex: none;
+	height: 28px;
+	padding: 0 var(--space-10);
+	border-radius: var(--pill-radius);
+	background: var(--ink);
+	color: var(--card);
+	font-size: var(--text-body);
+	font-weight: 600;
+	white-space: nowrap;
+}
+.search-token.is-hash {
+	background: var(--accent);
+	color: var(--fixed-white);
+}
+/* The # list floats over the results instead of pushing them down. */
+.search-hash-slot:empty {
+	display: none;
+}
+.search-hash {
+	position: absolute;
+	z-index: 5;
+	top: calc(100% + var(--space-8));
+	left: 0;
+	right: calc(var(--hit-target) + var(--space-8));
+	max-height: 50vh;
+	overflow-y: auto;
+	padding: var(--space-6);
+	border-radius: var(--control-radius);
+	background: var(--card);
+	box-shadow: var(--shadow-float);
+}
+.search-hash-label {
+	padding: var(--space-8) var(--space-10) var(--space-4);
+	font-size: var(--text-caption);
+	font-weight: 600;
+	color: var(--muted);
+}
+.search-hash-option {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-height: 40px;
+	padding: 0 var(--space-10);
+	border-radius: var(--space-10);
+	font-size: var(--text-body);
+	text-align: left;
+}
+.search-hash-option:first-of-type,
+.search-hash-option:focus-visible {
+	background: var(--faint);
 }
 .search-header .search-pill {
 	flex: 1;
@@ -431,9 +503,6 @@ body:has(dialog.search[open]) #feed-grid {
 	gap: var(--space-8);
 	padding-bottom: var(--space-4);
 }
-.search:has(.search-browse) .search-scope {
-	display: none;
-}
 .search:has(.search-browse) .search-header > .icon-button {
 	display: none;
 }
@@ -449,53 +518,6 @@ body:has(dialog.search[open]) #feed-grid {
 .search-pill .search-dictate:disabled {
 	opacity: 1;
 	color: var(--ink);
-}
-.search-refinements {
-	flex: none;
-}
-.search-refinements summary {
-	display: flex;
-	align-items: center;
-	gap: var(--space-8);
-	min-height: var(--space-36);
-	width: fit-content;
-	max-width: 100%;
-	list-style: none;
-	cursor: pointer;
-	font-size: var(--text-control);
-}
-.search-refinements summary::-webkit-details-marker {
-	display: none;
-}
-.search-refinements summary > .icon {
-	rotate: 90deg;
-	flex: none;
-}
-.search-refinements[open] summary > .icon {
-	rotate: -90deg;
-}
-.search-active-conditions {
-	color: var(--secondary);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.search-refinement-content {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-8);
-	padding-block: var(--space-8);
-}
-.search-filter-row {
-	display: flex;
-	align-items: center;
-	gap: var(--space-8);
-	min-width: 0;
-}
-.search-filter-label {
-	flex: 0 0 var(--space-28);
-	font-size: var(--text-caption);
-	color: var(--muted);
 }
 .search-filter-items {
 	display: flex;
@@ -604,4 +626,20 @@ body:has(dialog.search[open]) #feed-grid {
 	box-shadow: none;
 	width: var(--hit-target);
 	height: var(--hit-target);
+}
+/* Type chips: the same pill as the home tabs; on search the idle ones are surface without a rim. */
+.search-chips .chip {
+	min-height: var(--space-32);
+	height: var(--space-32);
+	background: var(--surface);
+	box-shadow: none;
+	font-size: var(--text-control);
+}
+.search-chips .chip.active {
+	background: var(--ink);
+	color: var(--card);
+	font-weight: 600;
+}
+.search-chips[hidden] {
+	display: none;
 }

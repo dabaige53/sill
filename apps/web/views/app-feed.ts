@@ -27,8 +27,18 @@ export const appFeedMethods = {
 			.toLocaleLowerCase()
 			.includes(q.toLocaleLowerCase());
 	},
+	/** Text to match, without a trailing # condition that is still being typed. */
+	searchText(this: AppController, q = "") {
+		return q.replace(/(^|\s)#\S*$/, "").trim();
+	},
+	/** The # fragment at the end of the query, or null when none is being typed. */
+	searchHash(this: AppController, q = "") {
+		const m = q.match(/(?:^|\s)#(\S*)$/);
+		return m ? m[1] : null;
+	},
 	searchAll(this: AppController, q?: string) {
 		const f = this.searchFilter;
+		q = this.searchText(q);
 		if (!q?.trim() && f.type === "all" && f.status === "all" && !f.tag)
 			return { desk: [], shelved: [] };
 		const all = Store.state.cards.filter((c?: Card) => {
@@ -206,9 +216,45 @@ export const appFeedMethods = {
 	},
 	updateFilterIndicator(this: AppController) {
 		const tab = this.homeTab();
-		document.getElementById("dock").classList.toggle("filter-active", this.filtering() && !tab);
+		document
+			.getElementById("dock")
+			.classList.toggle("filter-active", this.filtering() && !tab && !this.desktop());
 		document.querySelectorAll<HTMLElement>(".home-tab").forEach((n) => {
 			n.setAttribute("aria-pressed", String(n.dataset.extra === (tab || "")));
+		});
+		this.syncHomeSearch();
+	},
+	/** Desktop windows (wider than 650px) use the top-bar search and the bottom AI box (ADR 0049). */
+	desktop(this: AppController) {
+		return matchMedia("(min-width: 651px)").matches;
+	},
+	/** The chosen tab is a token in the top-bar search; home filter and search share one state. */
+	syncHomeSearch(this: AppController) {
+		const field = document.getElementById("home-search-field");
+		if (!field) return;
+		const tab = this.homeTab() || "all";
+		const labels: Record<string, string> = {
+			unread: copy("web.unread"),
+			todo: copy("web.home.todo"),
+			later: copy("web.later"),
+			saved: copy("web.bookmark"),
+		};
+		const token = document.getElementById("home-search-token");
+		const input = document.getElementById("home-search") as HTMLInputElement;
+		const label = labels[tab];
+		token.hidden = !label;
+		token.textContent = label || "";
+		token.setAttribute("aria-label", label ? `${copy("web.home.removeTab")} ${label}` : "");
+		input.placeholder = label
+			? `${copy("web.home.searchInPrefix")}${label}${copy("web.home.searchInSuffix")}`
+			: copy("web.home.searchPlaceholder");
+		if (document.activeElement !== input && input.value !== this.filter.query)
+			input.value = this.filter.query;
+		field.classList.toggle("has-token", !!label);
+		field.classList.toggle("has-text", !!this.filter.query);
+		field.querySelector<HTMLElement>(".home-search-clear").hidden = !this.filter.query;
+		document.querySelectorAll<HTMLElement>(".home-menu-item").forEach((n) => {
+			n.setAttribute("aria-checked", String(n.dataset.extra === tab));
 		});
 	},
 	homeTopHTML(this: AppController) {
@@ -234,7 +280,7 @@ export const appFeedMethods = {
 	},
 	homeTab(this: AppController) {
 		const f = this.filter;
-		if (f.tag || f.query) return "";
+		if (f.tag) return "";
 		return (
 			["all", "unread", "todo", "later", "saved"].find((key) => {
 				const t = this.homeTabFilter(key);

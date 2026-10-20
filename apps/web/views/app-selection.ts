@@ -1,16 +1,66 @@
+import { createElement, Fragment } from "react";
+import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
+import { renderView } from "./react-renderer.ts";
 
 export const appSelectionMethods = {
 	selectionAIHTML(this: AppController) {
 		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-wave" aria-hidden="true"><i></i><i></i><i></i></span><span data-ai-label>${copy("web.selection.aiDrop")}</span></button>`;
 	},
 	openSelectionAI(this: AppController, ids: string[]) {
+		// Desktop: the cards join the bottom AI box as context; nothing is sent (ADR 0049).
+		if (this.desktop() && this.modalKind !== "search") {
+			const added = ids.filter((id) => Store.card(id));
+			if (!added.length) return;
+			this.aiSelectionIds = [...new Set([...this.aiSelectionIds, ...added])];
+			this.selected.clear();
+			this.updateSelection();
+			this.renderAIDock();
+			// The selection bar leaves first (180ms); the AI box can take focus once it is back.
+			window.setTimeout(
+				() => document.getElementById("ai-dock-input")?.focus({ preventScroll: true }),
+				200,
+			);
+			return;
+		}
 		this.aiSelectionIds = [...new Set(ids)].filter((id) => Store.card(id));
 		if (!this.aiSelectionIds.length) return;
 		this.openPanel("ai");
+	},
+	/** Context cards above the AI box: the card title and a remove button, nothing more. */
+	renderAIDock(this: AppController) {
+		const box = document.getElementById("ai-dock-context");
+		if (!box) return;
+		this.aiSelectionIds = this.aiSelectionIds.filter((id) => Store.card(id));
+		renderView(
+			box,
+			createElement(
+				Fragment,
+				null,
+				...this.aiSelectionIds.map((id) =>
+					createElement(
+						"span",
+						{ key: id, className: "ai-dock-chip", "data-ai-context": id },
+						createElement("span", { className: "ai-dock-chip-title" }, Store.card(id).title),
+						createElement(
+							"button",
+							{
+								type: "button",
+								"data-action": "ai-context-remove",
+								"data-id": id,
+								"aria-label": `${copy("web.ai.removeContext")} ${Store.card(id).title}`,
+							},
+							createElement(Icon, { name: "x", size: 11 }),
+						),
+					),
+				),
+			),
+		);
+		const input = document.getElementById("ai-dock-input") as HTMLInputElement | null;
+		if (input && input.value !== this.aiDraft) input.value = this.aiDraft;
 	},
 	markSelectionCard(this: AppController, node: HTMLElement, selection: Set<string>) {
 		const selected = selection.has(node.dataset.card);

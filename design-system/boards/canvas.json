@@ -306,6 +306,20 @@
       "w": 1440,
       "x": 19650,
       "y": 13440
+    },
+    "PhoneChrome.dc.html": {
+      "h": 5100,
+      "title": "44 定稿 · 手机顶行与搜索标签",
+      "w": 1720,
+      "x": 12050,
+      "y": 4220
+    },
+    "WebChrome.dc.html": {
+      "h": 6420,
+      "title": "45 定稿 · Web 顶栏与 AI 框",
+      "w": 1840,
+      "x": 13850,
+      "y": 4220
     }
   },
   "createdOnFiles": {
@@ -423,6 +437,8 @@
     "GlassRail.dc.html",
     "NavCapsule.dc.html",
     "MobileHome.dc.html",
+    "PhoneChrome.dc.html",
+    "WebChrome.dc.html",
     "FinalOverlays.dc.html",
     "MotionProto.dc.html",
     "Details.dc.html",

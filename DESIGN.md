@@ -14,14 +14,14 @@
 | 规则和代码位置的对照 | [设计系统映射](docs/design/system.md) |
 | 设计决策 | [ADR-01 至 ADR-21](docs/design/decisions.md)，ADR-22 起见 [docs/adr/](docs/README.md) |
 | 定稿画板 | `design-system/boards/`，运行 `npm run boards` 后打开 http://127.0.0.1:4310/ |
-| 线上版本 | [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)、[Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) |
+| 线上版本 | [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)、[Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)、[Sill 界面定稿](https://claude.ai/artifact/7VR39DnLMEVoJgV1kn62JV)（移动与网页最新界面，本地 `design-system/boards/final-ui/`） |
 
 - 线上先改，线下后同步。设计规则、组件说明、变量和画板先在线上 Design System 和设计画布里改，再同步回仓库的 `design-system/`。线上和仓库不一致时，以线上为准。
 - 组件包（`bundle.css`、`bundle.js`）和图标由仓库代码生成，生成后再发布到线上。
 - 手册和代码不一致时，先对照画板和实际页面，再在同一个 PR 里改掉错的一方。用户确认的新决定写入手册，必要时补 ADR。
 - 用户已明确要求本次在 Codex 内完成、不调整 claude.ai 云端设计：先更新仓库内产品原则与设计规范，再修改代码。下述线上同步步骤本次不执行，不能因此停止已授权的仓库工作。
 
-本轮使用上述仓库模式：设计参考只用公开页面或用户截图，先改仓库规范，再改实现和本地画板；不访问 claude.ai Artifact；用户已指定 Mobbin，参考图通过该连接器读取。`design-system/design-system.json` 的线上资产记录不改。线上未同步文件列入 PR 的 Merge Danger，由用户处理。下列线上步骤本轮不执行。
+2026-10-20 起恢复线上优先：手机顶行与搜索标签（[ADR 0048](docs/adr/0048-phone-top-row-and-search-tokens.md)）先发布到线上 Design System 和设计画布 44 号画板，再同步回仓库。此前几轮只在仓库内修改的规则、画板（39–43 号）和手册拆分尚未发布到线上，线上与仓库仍有差异，需要另做一次完整对齐；对齐前不要用线上整份文件覆盖仓库。
 
 ## 改动顺序
 
@@ -51,6 +51,7 @@
 - 2026-10-17 原生源码按当前 Web 对齐：卡片标题 17、摘要 15、内边距 18，并映射浅深色、已读底色与动作色；卡片积木、导航、搜索、设置与详情继续复用 Web 的配方和文案。严格 1:1 仍须通过实际窗口的视觉与交互检查，源码对齐不等于验收完成。
 - 2026-10-19 手机主页标题与头像、三项主导航按设计手册的新规则实现；Mac 同步入口和词义。2026-10-18 手机主页（[ADR 0036](docs/adr/0036-phone-home-density.md)）只改了 Web。Mac 是桌面窗口，不需要手机顶栏和分栏标签；提醒和待办的勾选圈是否用 `accent` 描边、提醒是否显示来源时间，还没有在 Mac 上核对。
 - 2026-10-18 卡片详情（[ADR 0037](docs/adr/0037-card-detail-toolbar.md)）只改了 Web。Mac 的详情工具条是否按「通用｜专属」分组、是否用新的九个图标、设置里是否有「卡片操作」开关，还没有核对。
+- 2026-10-20 Web 顶栏搜索与底部 AI 框（[ADR 0049](docs/adr/0049-web-top-search-and-ai-dock.md)）先只改 Web。Mac 是否改成相同的顶栏、分栏菜单、AI 框和多选共用轨道，待用户确认。
 
 ## 产品设置边界
 

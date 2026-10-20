@@ -72,16 +72,22 @@ function fixture() {
 	return { dom, w, app, Store, Panels };
 }
 
-test("category browsing preserves home filters and expanded refinements", () => {
+test("a category card becomes an ink token and leaves the home filter alone", () => {
 	const f = fixture();
 	try {
 		const home = JSON.stringify(f.app.filter);
 		assert.equal(f.app.dialog.querySelectorAll(".search-category").length, 6);
-		assert.equal(f.app.dialog.querySelector(".search-refinements").open, false);
-		f.app.dialog.querySelector(".search-refinements").open = true;
-		f.app.action("filter-type", "", "task");
+		assert.equal(f.app.dialog.querySelector(".search-refinements"), null, "no filter row");
+		f.app.action("search-category", "", "task");
 		assert.equal(f.app.dialog.querySelector(".search-browse"), null);
-		assert.equal(f.app.dialog.querySelector(".search-refinements").open, true);
+		const token = f.app.dialog.querySelector(".search-token");
+		assert.equal(token.textContent, "待办");
+		assert.equal(token.classList.contains("is-hash"), false);
+		assert.equal(
+			f.app.dialog.querySelector(".search-chips"),
+			null,
+			"no type chips beside a category",
+		);
 		assert.deepEqual(
 			[...f.app.dialog.querySelectorAll("#search-results [data-card]")].map(
 				(card: HTMLElement) => card.dataset.card,
@@ -89,14 +95,13 @@ test("category browsing preserves home filters and expanded refinements", () => 
 			["b"],
 		);
 		assert.equal(JSON.stringify(f.app.filter), home);
-		f.app.action("filter-type", "", "all");
+		f.app.action("search-untoken", "", "type");
 		assert.equal(f.app.dialog.querySelectorAll(".search-category").length, 6);
-		assert.equal(f.app.dialog.querySelector(".search-refinements").open, true);
+		assert.equal(f.app.dialog.querySelector(".search-token"), null);
 	} finally {
 		f.dom.window.close();
 	}
 });
-
 test("Tab reaches the collapsed search refinements", () => {
 	const f = fixture();
 	try {
@@ -324,51 +329,73 @@ test("shared card refresh keeps each surface's independent selection decoration"
 	}
 });
 
-test("search rows name independent groups and omit the empty tag row", () => {
+test("# lists statuses then existing tags; a pick becomes an escaped accent token", () => {
 	const f = fixture();
 	try {
-		const groups = f.app.dialog.querySelectorAll("fieldset.search-filter-items");
-		assert.deepEqual(
-			[...groups].map((n) => n.getAttribute("aria-label")),
-			["类型", "状态"],
-		);
-		assert.equal(
-			f.app.dialog.querySelectorAll('.search-scope [data-action="filter-type"]').length,
-			7,
-		);
-		assert.equal(f.app.dialog.querySelectorAll('[data-action="filter-status"]').length, 3);
 		f.Store.state.cards[0].tags = ["<draft>"];
+		f.app.searchFilter.query = "Alpha #";
 		f.app.repaintSearch();
-		const tags = f.app.dialog.querySelector('.search-filter-items[aria-label="标签"]');
-		assert.equal(tags.querySelector("button").textContent, "#<draft>");
-		assert.equal(tags.querySelector("draft"), null, "tag text is escaped");
+		const list = f.app.dialog.querySelector(".search-hash");
+		assert.deepEqual(
+			[...list.querySelectorAll(".search-hash-label")].map((n: HTMLElement) => n.textContent),
+			["状态", "标签"],
+		);
+		assert.deepEqual(
+			[...list.querySelectorAll(".search-hash-option")].map((n: HTMLElement) => n.textContent),
+			["未读", "收藏", "稍后读", "#<draft>"],
+		);
+		assert.equal(list.querySelector("draft"), null, "tag text is escaped");
+		assert.equal(
+			f.app.searchText(f.app.searchFilter.query),
+			"Alpha",
+			"the # fragment is not searched",
+		);
+		f.app.action("search-hash", "", "tag:<draft>");
+		assert.equal(f.app.searchFilter.tag, "<draft>");
+		assert.equal(f.app.searchFilter.query, "Alpha");
+		const token = f.app.dialog.querySelector(".search-token.is-hash");
+		assert.equal(token.textContent, "#<draft>");
+		assert.equal(f.app.dialog.querySelector(".search-hash"), null);
 	} finally {
 		f.dom.window.close();
 	}
 });
-
-test("search repaint retains each row scroll and the focused condition", () => {
+test("type chips follow text only; Backspace on an empty field removes tokens from the end", () => {
 	const f = fixture();
 	try {
-		f.Store.state.cards[0].tags = ["评审"];
+		assert.equal(f.app.dialog.querySelector(".search-chips").hidden, true);
+		f.app.searchFilter.query = "Alpha";
 		f.app.repaintSearch();
-		const rows = [...f.app.dialog.querySelectorAll(".search-filter-items")];
-		rows.forEach((n, index) => {
-			n.scrollLeft = (index + 1) * 30;
-		});
-		f.app.dialog.querySelector('[data-action="filter-tag"]').focus();
-		f.app.repaintSearch();
-		assert.deepEqual(
-			[...f.app.dialog.querySelectorAll(".search-filter-items")].map((n) => n.scrollLeft),
-			[30, 60, 90],
+		const chips = f.app.dialog.querySelector(".search-chips");
+		assert.equal(chips.hidden, false);
+		assert.equal(chips.querySelectorAll('[data-action="filter-type"]').length, 7);
+		chips.querySelector('[data-extra="article"]').focus();
+		f.app.action("filter-type", "", "article");
+		assert.equal(
+			f.w.document.activeElement.dataset.extra,
+			"article",
+			"repaint keeps the chip focused",
 		);
-		assert.equal(f.w.document.activeElement.dataset.action, "filter-tag");
-		assert.equal(f.w.document.activeElement.dataset.extra, "评审");
+		assert.equal(f.app.dialog.querySelector(".search-token"), null, "a chip is not a token");
+		f.app.searchFilter = { type: "task", status: "unread", tag: "", query: "", pinned: true };
+		f.app.repaintSearch();
+		const input = f.app.dialog.querySelector("#filter-search");
+		input.focus();
+		input.setSelectionRange(0, 0);
+		f.app.key({ key: "Backspace", target: input, preventDefault() {} });
+		assert.equal(f.app.searchFilter.status, "all");
+		assert.equal(f.app.searchFilter.type, "task");
+		f.app.key({
+			key: "Backspace",
+			target: f.app.dialog.querySelector("#filter-search"),
+			preventDefault() {},
+		});
+		assert.equal(f.app.searchFilter.type, "all");
+		assert.equal(f.app.searchFilter.pinned, false);
 	} finally {
 		f.dom.window.close();
 	}
 });
-
 test("switching away flushes pending search before retaining results", () => {
 	const f = fixture();
 	try {

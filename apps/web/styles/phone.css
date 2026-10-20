@@ -47,37 +47,6 @@
 		visibility: hidden;
 		pointer-events: none;
 	}
-	.home-tabs {
-		gap: 0;
-		overflow-x: auto;
-	}
-	.home-tab {
-		flex: 1 0 auto;
-		padding: 0 var(--space-8);
-		font-size: var(--text-body);
-		text-align: center;
-	}
-	.home-tab:first-child {
-		padding-left: 0;
-		text-align: left;
-	}
-	.home-tab:last-child {
-		padding-right: 0;
-		text-align: right;
-	}
-	.home-tab[aria-pressed="true"]::after {
-		left: 50%;
-		translate: -50% 0;
-	}
-	.home-tab:first-child::after {
-		left: 0;
-		translate: none;
-	}
-	.home-tab:last-child::after {
-		left: auto;
-		right: 0;
-		translate: none;
-	}
 	/* New content waits at the top: under the tabs, or under the status bar once they tuck away. */
 	#new-count {
 		top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
@@ -538,7 +507,8 @@
 		height: 100dvh;
 		max-height: none;
 		inset: 0;
-		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--space-20)
+		/* The top row sits right under the safe area, like home and AI (ADR 0048). */
+		padding: env(safe-area-inset-top) var(--margin-sm)
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
 		gap: var(--space-16);
 	}
@@ -603,7 +573,7 @@
 		width: 100%;
 	}
 	#modal.page.panel .ai-conversation {
-		padding: calc(var(--space-12) + env(safe-area-inset-top)) var(--space-12)
+		padding: env(safe-area-inset-top) var(--space-12)
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
 		background: var(--card);
 	}
@@ -615,6 +585,14 @@
 	}
 	#modal.page.panel .ai-conversation > .sheet-close {
 		display: none;
+	}
+	/* Title and round controls line up with the home and search top rows (16px margin). */
+	#modal.page.panel .ai-conversation-head {
+		padding: 0 var(--space-4);
+	}
+	/* The results page has no top row: its search bar keeps a small gap under the safe area. */
+	:is(#modal, #search-background).page.search:not(:has(.search-browse)) {
+		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
 	}
 	body.keyboard-open #modal.page.panel .ai-conversation {
 		padding-bottom: var(--space-12);

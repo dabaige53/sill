@@ -75,9 +75,10 @@ export function clearCloud({ retainDrafts = false }: any = {}) {
 	app.searchSelected.clear();
 	app.aiSelectionIds = [];
 	app.aiDraft = "";
+	app.renderAIDock?.();
 	app.selectAnchor = "";
 	app.searchSelectAnchor = "";
-	app.searchFilter = { type: "all", status: "all", tag: "", query: "" };
+	app.searchFilter = { type: "all", status: "all", tag: "", query: "", pinned: false };
 	app.searchScroll = 0;
 	app.searchLimit = 40;
 	app.searchFocus = undefined;

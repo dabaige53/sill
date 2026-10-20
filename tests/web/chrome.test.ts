@@ -279,12 +279,14 @@ test("search shows no counts: the total is for screen readers only and groups ca
 			searchFilter: { query: "工作", type: "all", status: "", tag: "" },
 			filtered: () => [card],
 			searchAll: () => ({ desk: [card], shelved: [card] }),
+			searchText: (q: string) => q,
+			searchHash: () => null,
 		};
 		const field = f.w.document.createElement("div");
 		field.innerHTML = Panels.search(app);
 		assert.ok(
-			field.querySelector('.search-header [data-action="close"]'),
-			"search has an exit when the capsule is hidden",
+			field.querySelector('.search-header [data-action="search-reset"]'),
+			"the results page closes back to the search home",
 		);
 		assert.ok(
 			field.querySelector('.search-pill [data-action="clear-query"]'),

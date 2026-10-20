@@ -4,7 +4,7 @@
 
 改界面前先读根目录的 [设计约束](../../DESIGN.md)，其中写明改动顺序和线上同步要求。
 
-Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`。线上版本是 [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)，全部定稿画板在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，本地副本见下文「画板」。
+Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`。线上版本是 [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)，全部定稿画板在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，移动与网页的最新界面另见 [Sill 界面定稿](https://claude.ai/artifact/7VR39DnLMEVoJgV1kn62JV)（本地 `design-system/boards/final-ui/`），本地副本见下文「画板」。
 
 组件脚本的全局名是 `Sill`（`window.Sill`）。
 
@@ -42,6 +42,8 @@ npm run boards
 ```
 
 然后在浏览器打开 `http://127.0.0.1:4310/`。标「可交互」的四块原型（卡片积木、桌面交互、手机交互、弹出动效）可以直接点、滑。不能直接双击打开 HTML 文件：原型的运行脚本 `support.js` 要读取画板文件本身，浏览器不允许本地文件这样读。
+
+`design-system/boards/final-ui/` 是 [Sill 界面定稿](https://claude.ai/artifact/7VR39DnLMEVoJgV1kn62JV) 的本地副本：移动 4 块（主页、搜索首页、结果页与 # 条件、AI）和网页 6 块（主页、分栏菜单、在未读里搜索、拖入卡片、多选、AI 会话）。`canvas.json` 记录位置与标题，图片在 `assets/`。实现移动与网页界面时，以这 10 块画板和手册 [交互](../../design-system/handbook/interaction.md) 的「两端对照」为准。
 
 这个目录是线上设计画布的副本。视觉定稿或交互规则变了，先在线上设计画布改画板，再把变化的画板同步到这里，顺序见 [设计约束](../../DESIGN.md)。
 

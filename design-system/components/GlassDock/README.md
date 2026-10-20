@@ -12,3 +12,5 @@
 - AI 页面及输入状态见 [AICompose](../AICompose/README.md)，搜索见 [SearchField](../SearchField/README.md)。记一笔保留在设置的「添加」组，快捷键 N 保持可用。
 
 页面结构见[页面与交互](../../handbook/interaction.md#底部导航与反馈)，来源见[设计参考](../../references/README.md)。
+
+桌面（宽于 650px）不显示本组件：底部轨道只放 AI 框，多选时由多选条替换，见设计手册「桌面顶栏与 AI 框」。

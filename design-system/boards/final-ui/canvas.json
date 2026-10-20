@@ -1,0 +1,27 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-20T11:05:00Z"},
+  "title": "Sill 界面定稿",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "移动 · 主页"},
+    "MobileSearch.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "移动 · 搜索首页"},
+    "MobileResults.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "移动 · 结果页与 # 条件"},
+    "MobileAI.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "移动 · AI"},
+    "WebHome.dc.html": {"x": 0, "y": 1300, "w": 1440, "h": 900, "title": "网页 · 主页（分栏收起）"},
+    "WebMenu.dc.html": {"x": 1520, "y": 1300, "w": 1440, "h": 900, "title": "网页 · 分栏菜单"},
+    "WebSearch.dc.html": {"x": 3040, "y": 1300, "w": 1440, "h": 900, "title": "网页 · 在未读里搜索"},
+    "WebDrop.dc.html": {"x": 0, "y": 2320, "w": 1440, "h": 900, "title": "网页 · 拖入卡片"},
+    "WebSelect.dc.html": {"x": 1520, "y": 2320, "w": 1440, "h": 900, "title": "网页 · 多选"},
+    "WebSession.dc.html": {"x": 3040, "y": 2320, "w": 1440, "h": 900, "title": "网页 · AI 会话（接入后）"}
+  },
+  "order": ["Main.dc.html", "MobileSearch.dc.html", "MobileResults.dc.html", "MobileAI.dc.html", "WebHome.dc.html", "WebMenu.dc.html", "WebSearch.dc.html", "WebDrop.dc.html", "WebSelect.dc.html", "WebSession.dc.html"],
+  "notes": {
+    "mobileTitle": {"x": 0, "y": -300, "text": "移动（650px 及以下）", "kind": "title1", "maxW": 1800},
+    "mobileFlow": {"x": 1880, "y": 0, "w": 440, "maxH": 844, "fill": "gray", "size": "s", "text": "移动交互\n\n• 顶行三页相同：高 60，页名 34/700，右侧 36px 圆钮。点 Sill 回到顶部。\n• 分栏胶囊高 32、间距 8；放不下横滑。每个分栏保留滚动位置。\n• 搜索首页 → 点分类卡或确认输入 → 结果页。结果页不显示顶行，右上关闭回首页。\n• 只有文字时显示类型胶囊，左右滑结果区切换类型。\n• 输入 # 浮出列表：状态（未读、收藏、稍后读）和已有标签；选中后成为 accent 底 # 标签。\n• 删除键从后往前删：先文字，再最后一个标签。\n• 输入法组词时不筛选；不显示结果数量和加载动画。\n• 搜索栏有标签时，导航的搜索图标显示 5px 小点。\n• 导航下滚 28px 收起，上滚 14px 或停 650ms 回来；软键盘出现时让开。\n• 内置 AI 未接入：发送、语音、历史、新对话禁用。"},
+    "webTitle": {"x": 0, "y": 1000, "text": "网页（宽于 650px）", "kind": "title1", "maxW": 4480},
+    "webFlow": {"x": 4560, "y": 1300, "w": 480, "maxH": 1920, "fill": "gray", "size": "s", "text": "网页交互\n\n• 顶栏四者统一 40 高、同一中线。搜索栏宽 280，有标签 360，聚焦 480（dur-state 220ms，右缘固定）。\n• ⌄ 打开分栏菜单（宽 220，dur-menu 180ms）。⌘1–⌘5 切换分栏。上下键移动高亮，回车选择。\n• 选「全部」以外的分栏 → 成为搜索栏里的 ink 标签，占位字改为「在未读里搜索」。可以接着输入。\n• 结果在卡片区原地显示，保持多列。每个分栏保留滚动位置。\n• Esc 每次退一层：菜单 → 文字 → 标签 → 焦点。\n• ⌘K / Ctrl K 聚焦搜索栏。有文字时 ⌘K 换成清除按钮。\n• 拖动卡片：AI 框 accent 描边 +「松手，把卡片交给 AI」。松手成为上下文卡，可点 × 移除；原卡不动。\n• 多选条与 AI 框同宽 640、同高 60、同一位置，一次只出现一样。「交给 AI」把所选卡片放进 AI 框。\n• 窗口缩到 650px 及以下：改用移动布局。\n• 内置 AI 未接入：发送和麦克风禁用；会话、历史、完整视图接入后启用。"}
+  },
+  "designSystems": []
+}

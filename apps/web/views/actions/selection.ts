@@ -46,12 +46,19 @@ function selectedTag(this: AppController) {
 	this.applySelectionAction(ids, "tag");
 }
 
+function aiContextRemove(this: AppController, { id }: ActionContext) {
+	this.aiSelectionIds = this.aiSelectionIds.filter((n) => n !== id);
+	this.renderAIDock();
+	document.getElementById("ai-dock-input")?.focus({ preventScroll: true });
+}
+
 export const selectionActions = {
 	select: select,
 	"select-all": selectAll,
 	"clear-selection": clearSelection,
 	"selection-menu": selectionMenu,
 	"selected-ai": selectedAi,
+	"ai-context-remove": aiContextRemove,
 	"selected-bookmark": selectedBookmark,
 	"selected-later": selectedLater,
 	"selected-tag": selectedTag,

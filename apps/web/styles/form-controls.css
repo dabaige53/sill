@@ -283,52 +283,244 @@
 	background: var(--faint);
 	color: var(--secondary);
 }
+/* Home tabs are the same solid pill as the search type chips (ADR 0048). */
 .home-tabs {
 	display: flex;
-	align-items: stretch;
+	align-items: center;
 	gap: var(--space-8);
 	min-height: var(--hit-target);
 	overflow-x: auto;
 	scrollbar-width: none;
 }
+.home-tabs::-webkit-scrollbar {
+	display: none;
+}
 .home-tab {
-	position: relative;
-	padding: 0 var(--space-12);
-	min-height: var(--hit-target);
 	flex: none;
+	height: var(--space-32);
+	padding: 0 var(--space-14);
 	border: 0;
-	background: none;
+	border-radius: var(--pill-radius);
+	background: var(--card);
+	box-shadow: inset 0 0 0 1px var(--line-card);
+	color: var(--ink);
 	font: inherit;
 	font-size: var(--text-control);
-	color: var(--muted);
 	white-space: nowrap;
 }
-.home-tab:first-child {
-	padding-left: 0;
-}
 .home-tab[aria-pressed="true"] {
-	color: var(--ink);
-	font-weight: 700;
-}
-.home-tab[aria-pressed="true"]::after {
-	content: "";
-	position: absolute;
-	left: var(--space-12);
-	bottom: 0;
-	width: var(--space-28);
-	height: var(--space-3);
-	border-radius: var(--space-2);
 	background: var(--ink);
-}
-.home-tab:first-child::after {
-	left: 0;
+	color: var(--card);
+	font-weight: 600;
+	box-shadow: none;
 }
 body:has(#modal[open].page) .home-top {
 	visibility: hidden;
+}
+/* Desktop-only parts of the top bar stay out of the phone row. */
+.home-brand {
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+.home-logo,
+.home-menu-toggle,
+.home-menu,
+.home-search {
+	display: none;
 }
 @media (min-width: 651px) {
 	main {
 		padding-top: var(--space-16);
 		min-height: calc(100dvh - var(--space-130));
+	}
+	/* ADR 0049: brand, ⌄, search and avatar share one 40px centerline. */
+	.home-heading {
+		gap: var(--space-8);
+	}
+	.home-brand {
+		gap: var(--space-2);
+		margin-right: auto;
+	}
+	.home-mark {
+		display: flex;
+		align-items: center;
+		gap: var(--space-10);
+		line-height: 40px;
+		letter-spacing: -0.02em;
+	}
+	.home-logo {
+		display: flex;
+	}
+	.home-menu-toggle {
+		display: grid;
+		place-items: center;
+		width: var(--space-36);
+		height: var(--space-36);
+		padding: 0;
+		border: 0;
+		border-radius: var(--space-10);
+		background: none;
+		color: var(--muted);
+	}
+	.home-menu-toggle .icon {
+		rotate: 90deg;
+	}
+	.home-menu-toggle[aria-expanded="true"] {
+		background: var(--faint);
+		color: var(--ink);
+	}
+	.home-menu:not([hidden]) {
+		position: absolute;
+		z-index: 50;
+		top: calc(100% + var(--space-8));
+		left: calc(100% - var(--space-36) - var(--space-6));
+		display: flex;
+		flex-direction: column;
+		width: 220px;
+		padding: var(--space-6);
+		border-radius: var(--space-14);
+		background: var(--card);
+		box-shadow:
+			0 0 0 0.5px var(--line-hover),
+			var(--shadow-float);
+	}
+	.home-menu-item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-6);
+		height: 40px;
+		padding: 0 var(--space-12) 0 var(--space-6);
+		border: 0;
+		border-radius: 9px;
+		background: none;
+		color: var(--ink);
+		font: inherit;
+		font-size: var(--text-body);
+		text-align: left;
+	}
+	.home-menu-item[aria-checked="true"] {
+		font-weight: 600;
+		background: var(--faint);
+	}
+	.home-menu-check {
+		display: grid;
+		place-items: center;
+		width: 24px;
+		height: 24px;
+		visibility: hidden;
+	}
+	.home-menu-item[aria-checked="true"] .home-menu-check {
+		visibility: visible;
+	}
+	.home-menu-label {
+		flex: 1;
+	}
+	.home-menu-key {
+		font-size: var(--text-meta);
+		color: var(--muted);
+		font-weight: 400;
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-menu-item:hover {
+			background: var(--faint);
+		}
+	}
+	.home-search {
+		display: flex;
+		align-items: center;
+		gap: var(--space-8);
+		width: 280px;
+		height: 40px;
+		padding: 0 var(--space-8) 0 var(--space-14);
+		border-radius: 20px;
+		background: var(--card);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		color: var(--muted);
+	}
+	.home-search.has-token {
+		width: 360px;
+	}
+	.home-search:focus-within {
+		width: 480px;
+		box-shadow:
+			inset 0 0 0 1px var(--accent),
+			0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+	}
+	.home-search > .icon {
+		flex: none;
+	}
+	.home-search input {
+		flex: 1;
+		min-width: 0;
+		height: 100%;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		color: var(--ink);
+		font-size: var(--text-body);
+	}
+	.home-search input:focus-visible {
+		outline: 0;
+	}
+	.home-search input::-webkit-search-cancel-button {
+		display: none;
+	}
+	.home-search-key {
+		flex: none;
+		padding-right: var(--space-6);
+		font-size: var(--text-meta);
+		color: var(--muted);
+	}
+	.home-search.has-text .home-search-key {
+		display: none;
+	}
+	.home-search-token {
+		flex: none;
+		height: 24px;
+		padding: 0 9px;
+		border: 0;
+		border-radius: var(--pill-radius);
+		background: var(--ink);
+		color: var(--card);
+		font: inherit;
+		font-size: var(--text-meta);
+		font-weight: 600;
+	}
+	.home-search-token[hidden],
+	.home-search-clear[hidden] {
+		display: none;
+	}
+	.home-search-clear {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--card);
+	}
+	.home-search-clear .icon {
+		box-sizing: content-box;
+		padding: 3px;
+		border-radius: 50%;
+		background: var(--secondary);
+	}
+	.home-account {
+		margin-right: calc(-1 * var(--space-2));
+	}
+	.home-account .account-wrap {
+		width: 40px;
+		height: 40px;
+		background: var(--card);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		color: var(--ink);
+	}
+	.home-tabs {
+		display: none;
 	}
 }
