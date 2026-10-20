@@ -2,7 +2,7 @@ import SillKit
 import SwiftUI
 
 struct Editor: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   @State private var confirmDiscard = false
   @FocusState private var titleFocused: Bool
   var body: some View {

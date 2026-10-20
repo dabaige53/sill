@@ -38,7 +38,7 @@ struct CardAvatar: View {
   }
 }
 struct CardTaskRow: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   let card: Card
   let task: JSONValue
   var body: some View {
@@ -57,7 +57,7 @@ struct CardTaskRow: View {
   }
 }
 struct CardReferences: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   let card: Card
   var limit: Int?
   var body: some View {
@@ -124,7 +124,7 @@ struct ReminderStatusIcon: View {
 }
 
 struct ReminderActions: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   let card: Card
   var body: some View {
     let state = model.items[card.id]
@@ -162,7 +162,7 @@ struct ReminderActions: View {
   }
 }
 struct CardActions: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   let card: Card
   var body: some View {
     Button(Copy.appleView) { model.selected = card.id }

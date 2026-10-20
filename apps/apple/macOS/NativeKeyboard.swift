@@ -19,6 +19,7 @@ struct NativeKeyboard: NSViewRepresentable {
     private var monitor: Any?
     init(handle: @escaping (NSEvent, Bool) -> Bool) { self.handle = handle }
     func start() {
+      guard monitor == nil else { return }
       monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
         let consumed = MainActor.assumeIsolated {
           guard let self, let window = self.view?.window,

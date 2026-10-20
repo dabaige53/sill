@@ -2,7 +2,7 @@ import SillKit
 import SwiftUI
 
 struct CloudLogin: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   @State private var email = ""
   @State private var password = ""
   @State private var passwordPage = false

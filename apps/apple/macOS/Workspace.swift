@@ -1,23 +1,23 @@
-import Combine
 import Foundation
+import Observation
 import SillKit
 import SwiftUI
 
-@MainActor final class Workspace: ObservableObject {
-  @Published var cards: [Card] = []
-  @Published var items: [String: JSONValue] = [:]
-  @Published var preferences: [String: JSONValue] = [:]
-  @Published var page = "home"
-  @Published var feedScope: FeedScope = .all
-  @Published var aiFocusRequest = 0
-  var scrollOffsets: [String: CGFloat] = [:]
-  @Published var selection: Set<String> = []
-  @Published var aiCards: [String] = []
-  @Published var aiDraft = ""
-  @Published var typeFilter = "all"
-  @Published var tagFilter = ""
-  @Published var settingsPresented = false
-  @Published var query = ""
+@MainActor @Observable final class Workspace {
+  var cards: [Card] = []
+  var items: [String: JSONValue] = [:]
+  var preferences: [String: JSONValue] = [:]
+  var page = "home"
+  var feedScope: FeedScope = .all
+  var aiFocusRequest = 0
+  @ObservationIgnored var scrollOffsets: [String: CGFloat] = [:]
+  var selection: Set<String> = []
+  var aiCards: [String] = []
+  var aiDraft = ""
+  var typeFilter = "all"
+  var tagFilter = ""
+  var settingsPresented = false
+  var query = ""
   var filter: String {
     get { feedScope.label }
     set { feedScope = FeedScope.allCases.first { $0.label == newValue } ?? .all }
@@ -43,8 +43,8 @@ import SwiftUI
     typeFilter = "all"
     tagFilter = ""
   }
-  @Published var searchFocusRequest = 0
-  @Published var selected: String? {
+  var searchFocusRequest = 0
+  var selected: String? {
     didSet {
       guard selected != oldValue else { return }
       if selected == nil {
@@ -54,8 +54,8 @@ import SwiftUI
       }
     }
   }
-  private(set) var readerTrail: [String] = []
-  private var returningToReader = false
+  @ObservationIgnored private(set) var readerTrail: [String] = []
+  @ObservationIgnored private var returningToReader = false
 
   func dismissReader() {
     returningToReader = true
@@ -68,26 +68,26 @@ import SwiftUI
     }
     selected = nil
   }
-  @Published var draft: Draft?
-  @Published var error: String?
-  @Published var ready = false
-  @Published var owner: String?
-  @Published var connecting = true
-  @Published var capturePresented = false
-  @Published var needsPasswordSetup = false
-  @Published var loginMessage: String?
+  var draft: Draft?
+  var error: String?
+  var ready = false
+  var owner: String?
+  var connecting = true
+  var capturePresented = false
+  var needsPasswordSetup = false
+  var loginMessage: String?
   private let cloud = CloudWorkspace()
   private let localMode = ProcessInfo.processInfo.arguments.contains("--data-directory")
-  private var accountGeneration = 0
-  private var cloudSnapshot: JSONValue?
-  private var pendingReading = 0
-  @Published var busy = false
-  @Published var loading = false
-  private var refreshTask: Task<Void, Never>?
-  private var store: CardStore?
-  private var session: WorkspaceSession?
-  private(set) var revision = 0
-  @Published var seconds = 0.0
+  @ObservationIgnored private var accountGeneration = 0
+  @ObservationIgnored private var cloudSnapshot: JSONValue?
+  @ObservationIgnored private var pendingReading = 0
+  var busy = false
+  var loading = false
+  @ObservationIgnored private var refreshTask: Task<Void, Never>?
+  @ObservationIgnored private var store: CardStore?
+  @ObservationIgnored private var session: WorkspaceSession?
+  @ObservationIgnored private(set) var revision = 0
+  var seconds = 0.0
 
   init(autoload: Bool = true) {
     if autoload { refresh() } else { connecting = false }
@@ -224,7 +224,8 @@ import SwiftUI
     if items != snapshot.items { items = snapshot.items }
     let incomingPreferences = snapshot.json["state"]?["preferences"]?.object ?? [:]
     if preferences != incomingPreferences { preferences = incomingPreferences }
-    selection.formIntersection(Set(cards.map(\.id)))
+    let remainingSelection = selection.intersection(Set(cards.map(\.id)))
+    if selection != remainingSelection { selection = remainingSelection }
     if let selected, !cards.contains(where: { $0.id == selected }) { self.selected = nil }
   }
 

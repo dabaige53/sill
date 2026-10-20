@@ -90,20 +90,19 @@ extension Desktop {
             .padding(.vertical, AppleMetrics.space8).background(AppleColors.surface, in: Capsule())
         }
       }
-      TextField(Copy.text("web.editor.addTagPlaceholder"), text: $tagText).textFieldStyle(.plain)
-        .accessibilityLabel(Copy.text("web.editor.newTagLabel")).onSubmit { appendTag() }
-        .onChange(of: tagText) { if tagText.count > 30 { tagText = String(tagText.prefix(30)) } }
+      TextField(Copy.text("web.editor.addTagPlaceholder"), text: $tagText).textFieldStyle(
+        .roundedBorder
+      )
+      .accessibilityLabel(Copy.text("web.editor.newTagLabel")).onSubmit { appendTag() }
+      .onChange(of: tagText) { if tagText.count > 30 { tagText = String(tagText.prefix(30)) } }
       FlowLayout(spacing: AppleMetrics.space8) {
         ForEach(tagSuggestions, id: \.self) { tag in
           chip(tag, selected: false) { if editingTags.count < 20 { editingTags.append(tag) } }
         }
       }
       TextField(Copy.text("web.editor.notePlaceholder"), text: $editingNote, axis: .vertical)
-        .textFieldStyle(.plain).lineLimit(5...10)
+        .textFieldStyle(.roundedBorder).lineLimit(5...10)
         .accessibilityLabel(Copy.text("web.editor.noteLabel"))
-        .padding(AppleMetrics.space12).background(
-          AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12)
-        )
         .onChange(of: editingNote) {
           if editingNote.count > 4000 { editingNote = String(editingNote.prefix(4000)) }
         }
@@ -179,12 +178,15 @@ extension Desktop {
   var aiDock: some View {
     HStack(spacing: AppleMetrics.space4) {
       iconButton("plus", "web.ai.addUnavailable") {}.disabled(true)
-      TextField(Copy.text("web.ai.dockPlaceholder"), text: $model.aiDraft)
-        .textFieldStyle(.plain).font(.system(size: AppleMetrics.font16)).focused($aiFocused)
-        .accessibilityLabel(Copy.text("web.ai.dock"))
-        .onChange(of: model.aiDraft) {
-          if model.aiDraft.count > 4000 { model.aiDraft = String(model.aiDraft.prefix(4000)) }
-        }
+      TextField(
+        Copy.text("web.ai.dockPlaceholder"),
+        text: Binding(
+          get: { model.aiDraft },
+          set: { model.aiDraft = String($0.prefix(4000)) }
+        )
+      )
+      .textFieldStyle(.plain).font(.system(size: AppleMetrics.font16)).focused($aiFocused)
+      .accessibilityLabel(Copy.text("web.ai.dock"))
       iconButton("mic", "web.ai.speak") {}.disabled(true)
       Button {
       } label: {

@@ -3,7 +3,7 @@ import SillKit
 import SwiftUI
 
 struct CardReader: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   @Environment(\.colorScheme) private var colorScheme
   var availableSize = CGSize(width: 1100, height: 760)
   var presentedID: String?
@@ -15,10 +15,9 @@ struct CardReader: View {
   @State var tags: [String] = []
   @State var newTag = ""
   @State var submitting = false
-  @State private var readingProgress = 0.0
+  @State private var activity = ReaderActivity()
   @State private var contentHeight: CGFloat = 280
   @State private var viewportHeight: CGFloat = 0
-  @State private var lastActivity = Date.now
   private func previewWidth(_ card: Card) -> CGFloat {
     let short =
       ["task", "reminder", "note"].contains(card.type)
@@ -30,10 +29,7 @@ struct CardReader: View {
     if let card = model.cards.first(where: { $0.id == (model.selected ?? presentedID) }) {
       VStack(spacing: 0) {
         VStack(spacing: 0) {
-          if expanded {
-            ProgressView(value: readingProgress).progressViewStyle(.linear)
-              .accessibilityLabel(Copy.text("web.primitives.8bf1d0b76278"))
-          }
+          ReaderProgress(activity: activity, card: card, expanded: expanded).id(card.id)
           ScrollView {
             VStack(alignment: .leading, spacing: AppleMetrics.previewBodyGap) {
               if card.type == "photo" {
@@ -94,10 +90,7 @@ struct CardReader: View {
               )
               .background(
                 ScrollObservation(
-                  progressChanged: { progress in
-                    let displayed = (progress * 100).rounded(.down) / 100
-                    if displayed != readingProgress { readingProgress = displayed }
-                  },
+                  progressChanged: { activity.updateProgress($0) },
                   overscroll: { direction in
                     if direction == "top" {
                       if expanded { expanded = false } else { model.dismissReader() }
@@ -116,7 +109,7 @@ struct CardReader: View {
                     }
                   }
                 ) { offset, bottom, userScrolled in
-                  if userScrolled { lastActivity = .now }
+                  if userScrolled { activity.lastInteraction = .now }
                   if userScrolled && card.readable && bottom && offset > 0
                     && model.items[card.id]?["read"]?.bool != true && !model.busy
                   {
@@ -133,7 +126,13 @@ struct CardReader: View {
               GeometryReader { proxy in
                 Color.clear.preference(key: ReaderViewportHeight.self, value: proxy.size.height)
               })
-          readerToolbar(card).padding(.bottom, AppleMetrics.space20)
+          Group {
+            if card.type == "event" {
+              TimelineView(.everyMinute) { _ in readerToolbar(card) }
+            } else {
+              readerToolbar(card)
+            }
+          }.padding(.bottom, AppleMetrics.space20)
         }.background {
           if card.fields["media"]?.string == "podcast" {
             LinearGradient(
@@ -162,8 +161,12 @@ struct CardReader: View {
           .overlay(alignment: .topTrailing) {
             readerHead(card).padding(AppleMetrics.space12)
           }
-          .onPreferenceChange(ReaderContentHeight.self) { contentHeight = $0 }
-          .onPreferenceChange(ReaderViewportHeight.self) { viewportHeight = $0 }
+          .onPreferenceChange(ReaderContentHeight.self) {
+            if contentHeight != $0 { contentHeight = $0 }
+          }
+          .onPreferenceChange(ReaderViewportHeight.self) {
+            if viewportHeight != $0 { viewportHeight = $0 }
+          }
           .task(id: card.id) {
             if model.items[card.id]?["seen"]?.bool != true && !model.busy {
               model.patch([card.id], values: ["seen": .bool(true)])
@@ -184,21 +187,13 @@ struct CardReader: View {
                 "readAt": .number(Date.now.timeIntervalSince1970 * 1000),
               ])
           }
-          .task(id: Int(readingProgress * 100)) {
-            guard readingProgress > 0, readingProgress < 1, card.readable else { return }
-            do { try await Task.sleep(for: .milliseconds(750)) } catch { return }
-            guard windowActivity == .key, model.selected == card.id, !model.busy,
-              model.items[card.id]?["read"]?.bool != true,
-              readingProgress > (model.items[card.id]?["progress"]?.number ?? 0) + 0.02
-            else { return }
-            model.patch([card.id], values: ["progress": .number(readingProgress)])
-          }
-          .simultaneousGesture(TapGesture().onEnded { lastActivity = .now })
+          .simultaneousGesture(TapGesture().onEnded { activity.lastInteraction = .now })
           .task(id: card.id) {
             while !Task.isCancelled {
               do { try await Task.sleep(for: .seconds(1)) } catch { return }
               guard model.selected == card.id else { return }
-              if windowActivity == .key && Date.now.timeIntervalSince(lastActivity) < 60 {
+              if windowActivity == .key && Date.now.timeIntervalSince(activity.lastInteraction) < 60
+              {
                 model.recordReadingSecond()
               }
             }
@@ -210,7 +205,7 @@ struct CardReader: View {
               return
             }
             expanded = false
-            readingProgress = 0
+            activity.reset()
           }
           .sheet(isPresented: $organizing) {
             editor(card).interactiveDismissDisabled(model.busy)

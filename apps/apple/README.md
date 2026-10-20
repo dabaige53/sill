@@ -35,11 +35,14 @@ codesign --verify --deep --strict dist/macos/Sill.app
 
 构建会检查 Mac 源码中的完整文案键；失效引用会阻止构建。搜索、分栏共用同一信息流，支持 ⌘1–5 切换分栏与 ⌘K 聚焦搜索；AI 上下文追加并去重。
 
+工作区使用 Observation 按视图实际读取的字段更新。滚动位置、操作版本与阅读活动时间不发布界面更新；阅读进度由独立视图显示和延迟保存。空搜索不拼接正文，排序在每轮计算中只为每张卡计算一次优先级。日程与提醒的相对时间和退色由卡片内的分钟时钟更新，不依赖后台刷新。卡片阴影只绘制不透明的背景形状；原生标题栏、分栏菜单、速记按钮与搜索共用窗口工具栏。
+
 类型、文案和图标在构建时由 `contracts/` 与 `design-system/` 生成。四张封面 PNG 是 Web 现有 SVG 图像的原生资源副本；构建随 SwiftPM 资源包复制，不能依赖开发机的路径。新增设计值必须回到设计系统维护。
 
 ## 源文件职责
 
 - `Desktop.swift` 保留窗口与状态；`DesktopFeed.swift` 组织统一信息流、顶部搜索与归档；`DesktopActions.swift` 处理选择、标签与 AI 输入区；`DesktopInteraction.swift` 处理键盘、滚动与提示计时；`DesktopPresentation.swift` 保存展示状态类型。
 - `CardReader.swift` 保留阅读浮层与状态；`CardReaderContent.swift` 展示正文与信息；`CardReaderMetadata.swift` 处理备注、标签、媒体正文与总时长。
+- `ReaderActivity.swift` 保存阅读进度与活动时间；`ReaderProgress.swift` 独立更新进度条并保存进度，避免滚动时重新计算正文。
 - `CardTile.swift` 展示卡片；`CardActions.swift` 提供共用卡片控件与动作。`WorkspaceFeed.swift` 负责主页排序与搜索过滤。
 - `CloudWorkspace.swift` 负责云端工作区；`CloudSessionVault.swift` 负责会话存储。跨文件扩展只开放必要的模块内成员，不增加公共接口。

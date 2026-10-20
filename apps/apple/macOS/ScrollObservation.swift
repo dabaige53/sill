@@ -25,21 +25,23 @@ struct ScrollObservation: NSViewRepresentable {
     var initialOffset: CGFloat = 0
     var changed: ((CGFloat, Bool, Bool) -> Void)?
     var progressChanged: ((Double) -> Void)?
-    var overscroll: ((String) -> Void)?
+    var overscroll: ((String) -> Void)? {
+      didSet { updateEventMonitor() }
+    }
     private var observer: NSObjectProtocol?
     private var monitor: Any?
+    private var connectionTask: Task<Void, Never>?
     private var edgeDistance: CGFloat = 0
     private var lastEdge = ""
     private weak var scroll: NSScrollView?
     override func viewDidMoveToWindow() {
       super.viewDidMoveToWindow()
-      guard window != nil else {
-        stop()
-        return
-      }
-      Task { @MainActor [weak self] in
+      stop()
+      guard window != nil else { return }
+      connectionTask = Task { @MainActor [weak self] in
         await Task.yield()
-        guard let self, self.window != nil else { return }
+        guard !Task.isCancelled, let self, self.window != nil else { return }
+        self.connectionTask = nil
         self.connect()
       }
     }
@@ -65,10 +67,22 @@ struct ScrollObservation: NSViewRepresentable {
           self.changed?(offset, bottom, userScrolled)
         }
       }
+      updateEventMonitor()
+    }
+    private func updateEventMonitor() {
+      guard overscroll != nil else {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+        edgeDistance = 0
+        lastEdge = ""
+        return
+      }
+      guard monitor == nil, scroll != nil, window != nil else { return }
       monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
         let consumed = MainActor.assumeIsolated {
           guard let self, let scroll = self.scroll, let document = scroll.documentView,
-            event.window === self.window,
+            let window = self.window, event.window === window,
+            window.isKeyWindow, window.attachedSheet == nil,
             scroll.bounds.contains(scroll.convert(event.locationInWindow, from: nil))
           else { return false }
           guard event.momentumPhase.isEmpty else {
@@ -99,10 +113,15 @@ struct ScrollObservation: NSViewRepresentable {
       }
     }
     func stop() {
+      connectionTask?.cancel()
+      connectionTask = nil
       if let observer { NotificationCenter.default.removeObserver(observer) }
       observer = nil
       if let monitor { NSEvent.removeMonitor(monitor) }
       monitor = nil
+      scroll = nil
+      edgeDistance = 0
+      lastEdge = ""
     }
   }
 }

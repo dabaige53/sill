@@ -2,7 +2,7 @@ import SillKit
 import SwiftUI
 
 struct CardTile: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   @Environment(\.colorScheme) private var colorScheme
   let card: Card
   var detail = false
@@ -25,6 +25,13 @@ struct CardTile: View {
       || (["article", "media"].contains(card.type) && fields["image"]?.string != nil)
   }
   var body: some View {
+    if card.type == "event" || card.type == "reminder" {
+      TimelineView(.everyMinute) { _ in content }
+    } else {
+      content
+    }
+  }
+  private var content: some View {
     VStack(alignment: .leading, spacing: 0) {
       if covered {
         CardMedia(card: card, detail: detail, faded: settled).padding(
@@ -87,21 +94,20 @@ struct CardTile: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(
-      settled ? AppleColors.readCard : AppleColors.card,
-      in: RoundedRectangle(cornerRadius: AppleMetrics.cardRadius)
-    )
     .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
+    .background {
+      RoundedRectangle(cornerRadius: AppleMetrics.cardRadius)
+        .fill(settled ? AppleColors.readCard : AppleColors.card)
+        .shadow(
+          color: .black.opacity(settled ? 0 : colorScheme == .dark ? 0.3 : 0.04),
+          radius: AppleMetrics.space16, y: AppleMetrics.space4)
+    }
     .overlay {
       RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).strokeBorder(
         model.selection.contains(card.id) && !detail
           ? AppleColors.primary : AppleColors.primary.opacity(AppleMetrics.borderOpacity),
         lineWidth: model.selection.contains(card.id) && !detail ? 2 : 1)
     }
-    .shadow(
-      color: .black.opacity(settled ? 0 : colorScheme == .dark ? 0.3 : 0.04),
-      radius: AppleMetrics.space16, y: AppleMetrics.space4
-    )
     .contentShape(RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
     .onTapGesture { open?() }
     .accessibilityElement(children: .contain)
@@ -181,10 +187,6 @@ struct CardTile: View {
         Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
           .accessibilityLabel(Copy.appleSelect)
       }
-      if !detail {
-        Menu(Copy.appleOrganize, systemImage: "ellipsis") { CardActions(card: card) }
-          .labelStyle(.iconOnly).menuStyle(.borderlessButton).fixedSize()
-      }
       if card.type == "task" && !tasks.isEmpty {
         Text("\(tasks.count { model.taskDone(card, $0) })/\(tasks.count)").foregroundStyle(
           AppleColors.primary
@@ -215,6 +217,11 @@ struct CardTile: View {
       }
       if card.type == "event" {
         Text(cardEventRelative(card)).foregroundStyle(AppleColors.accent).fontWeight(.medium)
+      }
+      if !detail {
+        Menu(Copy.appleOrganize, systemImage: "ellipsis") { CardActions(card: card) }
+          .labelStyle(.iconOnly).menuStyle(.borderlessButton).menuIndicator(.hidden)
+          .controlSize(.small).fixedSize().help(Copy.appleOrganize)
       }
     }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary).frame(
       minHeight: AppleMetrics.space20
@@ -315,7 +322,8 @@ struct CardTile: View {
         Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
       }
       Menu(Copy.appleOrganize, systemImage: "ellipsis") { CardActions(card: card) }
-        .labelStyle(.iconOnly).menuStyle(.borderlessButton).fixedSize()
+        .labelStyle(.iconOnly).menuStyle(.borderlessButton).menuIndicator(.hidden)
+        .controlSize(.small).fixedSize().help(Copy.appleOrganize)
     }
   }
   private func eventTime(_ start: Date) -> some View {

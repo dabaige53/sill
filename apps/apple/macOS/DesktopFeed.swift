@@ -76,22 +76,22 @@ extension Desktop {
     }
   }
   @ToolbarContentBuilder var nativeToolbar: some ToolbarContent {
+    @Bindable var workspace = model
     ToolbarItem(placement: .navigation) {
       Menu {
-        Picker(Copy.text("web.home.filterMenu"), selection: $model.feedScope) {
+        Picker(Copy.text("web.home.filterMenu"), selection: $workspace.feedScope) {
           ForEach(FeedScope.tabs) { scope in Text(scope.label).tag(scope) }
         }.pickerStyle(.inline)
         Divider()
         Button(Copy.appleNewNote) { model.capturePresented = true }
       } label: {
-        HStack(spacing: AppleMetrics.space8) {
-          NativeIcon(name: "sill", size: AppleMetrics.space28)
-          Text(model.feedScope == .all ? "Sill" : "Sill · " + model.feedScope.label)
-            .font(.system(size: AppleMetrics.font20, weight: .semibold))
-        }
+        Text(model.feedScope.label)
       }.help(Copy.text("web.home.filterMenu"))
     }
-    ToolbarItem(placement: .primaryAction) {
+    ToolbarItemGroup(placement: .primaryAction) {
+      Button(Copy.appleNewNote, systemImage: "square.and.pencil") { model.edit() }
+        .disabled(!model.ready || model.busy || model.capturePresented || model.readerPresented)
+        .help(Copy.appleNewNote)
       SettingsLink {
         Label(Copy.text("web.nav.settings"), systemImage: "person.crop.circle")
       }.help(Copy.text("web.nav.settings"))

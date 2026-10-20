@@ -13,10 +13,12 @@ extension CardReader {
           .keyboardShortcut(.cancelAction).disabled(model.busy)
       }
       tagChips(tags, removable: true)
-      TextField(Copy.text("web.editor.addTagPlaceholder"), text: $newTag).textFieldStyle(.plain)
-        .onSubmit { addTag() }.onChange(of: newTag) { _, text in
-          if text.count > 30 { newTag = String(text.prefix(30)) }
-        }
+      TextField(Copy.text("web.editor.addTagPlaceholder"), text: $newTag).textFieldStyle(
+        .roundedBorder
+      )
+      .onSubmit { addTag() }.onChange(of: newTag) { _, text in
+        if text.count > 30 { newTag = String(text.prefix(30)) }
+      }
       let suggestions = Array(
         Set(
           (card.fields["tags"]?.strings ?? []) + [
@@ -30,11 +32,10 @@ extension CardReader {
           Button(value) { tags.append(value) }.buttonStyle(.bordered)
         }
       }
-      TextEditor(text: $note).font(.body).scrollContentBackground(
-        .hidden
-      ).accessibilityLabel(Copy.text("apple.note")).onChange(of: note) { _, text in
-        if text.count > 4000 { note = String(text.prefix(4000)) }
-      }
+      TextEditor(text: $note).font(.body)
+        .accessibilityLabel(Copy.text("apple.note")).onChange(of: note) { _, text in
+          if text.count > 4000 { note = String(text.prefix(4000)) }
+        }
       if let error = model.error {
         Text(error).font(.callout).foregroundStyle(AppleColors.error)
       }

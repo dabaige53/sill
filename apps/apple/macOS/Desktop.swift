@@ -3,7 +3,7 @@ import SillKit
 import SwiftUI
 
 struct Desktop: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   @Environment(\.controlActiveState) var windowActivity
   @Environment(\.openSettings) private var openSettings
   @Environment(\.accessibilityReduceMotion) var reduceMotion
@@ -46,6 +46,7 @@ struct Desktop: View {
     reduceMotion ? nil : .spring(response: 0.32, dampingFraction: 1)
   }
   var body: some View {
+    @Bindable var workspace = model
     ZStack(alignment: .bottom) {
       AppleColors.canvas.ignoresSafeArea()
       feed.disabled(model.readerPresented).accessibilityHidden(model.readerPresented)
@@ -120,8 +121,8 @@ struct Desktop: View {
     }
     .toolbar { nativeToolbar }
     .toolbar(model.readerPresented ? .hidden : .visible, for: .windowToolbar)
-    .sheet(isPresented: $model.capturePresented) {
-      CaptureSheet(text: $captureText).environmentObject(model)
+    .sheet(isPresented: $workspace.capturePresented) {
+      CaptureSheet(text: $captureText).environment(model)
     }
     .sheet(isPresented: $tagEditor) {
       metadataEditor.frame(width: AppleMetrics.editorWidth)
@@ -150,7 +151,7 @@ struct Desktop: View {
         model.settingsPresented = false
       }
     }
-    .modifier(WorkspaceSearch(query: $model.query, focus: $searchFocused))
+    .modifier(WorkspaceSearch(query: $workspace.query, focus: $searchFocused))
     .onChange(of: model.searchFocusRequest) { searchFocused = true }
     .background(NativeKeyboard(handle: handleKey).frame(width: 0, height: 0))
     .foregroundStyle(AppleColors.primary).tint(AppleColors.accent)

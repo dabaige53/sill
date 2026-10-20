@@ -6,7 +6,7 @@ struct NativeStack: View {
   let expanded: Bool
   let toggle: () -> Void
   let open: (Card) -> Void
-  @EnvironmentObject private var model: Workspace
+  @Environment(Workspace.self) private var model: Workspace
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.controlActiveState) private var windowActivity
   @State private var selection = DeckSelection()

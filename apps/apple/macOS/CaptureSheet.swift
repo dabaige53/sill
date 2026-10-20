@@ -2,7 +2,7 @@ import SillKit
 import SwiftUI
 
 struct CaptureSheet: View {
-  @EnvironmentObject private var model: Workspace
+  @Environment(Workspace.self) private var model: Workspace
   @Binding var text: String
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {

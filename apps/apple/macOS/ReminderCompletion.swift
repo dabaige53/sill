@@ -2,7 +2,7 @@ import SillKit
 import SwiftUI
 
 struct ReminderCompletion: View {
-  @EnvironmentObject private var model: Workspace
+  @Environment(Workspace.self) private var model: Workspace
   let card: Card
   var body: some View {
     Toggle(

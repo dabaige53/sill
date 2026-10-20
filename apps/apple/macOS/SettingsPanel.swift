@@ -2,7 +2,7 @@ import SillKit
 import SwiftUI
 
 struct SettingsPanel: View {
-  @EnvironmentObject var model: Workspace
+  @Environment(Workspace.self) var model: Workspace
   @Environment(\.dismiss) private var dismiss
   @State private var group: String? = "desk"
   @State private var captureText = ""
@@ -184,19 +184,20 @@ struct SettingsPanel: View {
   private func toggle(_ label: String, _ key: String, fallback: Bool = false, detail: String? = nil)
     -> some View
   {
-    row(label) {
-      if let detail {
-        Text(Copy.text(detail)).font(.callout).foregroundStyle(
-          AppleColors.secondary)
+    Toggle(
+      isOn: Binding(
+        get: { model.preferences[key]?.bool ?? fallback },
+        set: { model.setPreference(key, .bool($0)) }
+      )
+    ) {
+      VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+        Text(Copy.text(label))
+        if let detail {
+          Text(Copy.text(detail)).font(.caption).foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
       }
-      Toggle(
-        Copy.text(label),
-        isOn: Binding(
-          get: { model.preferences[key]?.bool ?? fallback },
-          set: { model.setPreference(key, .bool($0)) }
-        )
-      ).labelsHidden().toggleStyle(.switch).disabled(model.busy)
-    }
+    }.toggleStyle(.switch).disabled(model.busy)
   }
   private func segmented(
     _ label: String, _ key: String, fallback: String, options: [(String, String)]
