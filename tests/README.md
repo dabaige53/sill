@@ -13,6 +13,7 @@
 | 明确字段、MCP 和数据库一致 | `npm test`（`server/explicit-card-fields.test.ts`） | 3.0.0 字段、完整与局部写入、未知扩展、旧 meta 拒绝、日期精度、时长清空及过期防护；隔离 PGlite / HTTP / MCP，不操作线上 |
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |
 | 浏览器交互与布局 | `npm run test:browser`、`npm run test:local-browser`、`npm run test:navigation-recovery` | 按改动选择；输出放被忽略的 `artifacts/` |
+| 卡片字段显示边界 | `npm run build && node tests/e2e/card-fields-browser.ts` | 隔离合成卡片，390/1440 浅深色；缺发件人、未知与零时长、缺正文、段落和章节数分别显示，媒体没有模拟播放或进度写入 |
 | 内容自适应抽屉、边界阻尼与背景锁定 | `npm run build && node tests/e2e/drawer-browser.ts` | 合成卡片：短内容高度、长文上限及滚动扩展、PWA 按钮、边界阻尼与位置还原；不代替 iPhone 实测 |
 | 搜索和主页独立、详情返回 | `npm run build && node tests/e2e/search-browser.ts` | 合成卡片；查询和类型不改主页、搜索卡片组件、抽屉下方保留结果、前进后退与滚动还原 |
 | 搜索条件分行 | `npm run build && node tests/e2e/search-filters-browser.ts` | 320/390/1440 浅深色及窄键盘空间；空查询留白、键盘出现后背景与输入框固定、具名分组、横滑边界、键盘类型/标签、状态筛选、详情返回和来源不变 |

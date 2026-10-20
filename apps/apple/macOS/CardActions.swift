@@ -23,10 +23,17 @@ struct CardSourceGlyph: View {
 struct CardAvatar: View {
   let name: String
   var size: CGFloat = 32
+  private var tone: Color {
+    let tones: [UInt32] = [0x5e7a99, 0x7d6b8f, 0x6b8a7a, 0x9a7b5f, 0x5f8a99, 0x8a6b6b]
+    let value = tones[name.unicodeScalars.reduce(0) { $0 + Int($1.value) } % tones.count]
+    return Color(
+      red: Double(value >> 16) / 255, green: Double((value >> 8) & 255) / 255,
+      blue: Double(value & 255) / 255)
+  }
   var body: some View {
     Text(String(name.prefix(1))).font(.system(size: size * 0.4, weight: .medium)).frame(
       width: size, height: size
-    ).background(AppleColors.surface, in: Circle()).overlay(
+    ).foregroundStyle(.white).background(tone, in: Circle()).overlay(
       Circle().strokeBorder(AppleColors.card, lineWidth: 2))
   }
 }
@@ -36,18 +43,17 @@ struct CardTaskRow: View {
   let task: JSONValue
   var body: some View {
     let done = model.taskDone(card, task)
-    Button {
-      model.toggleTask(card, task)
-    } label: {
-      HStack(alignment: .top, spacing: AppleMetrics.space10) {
-        NativeIcon(name: done ? "check-circle" : "ring", size: AppleMetrics.font20).foregroundStyle(
-          done ? AppleColors.accent : AppleColors.secondary)
-        Text(task["text"]?.string ?? "").strikethrough(done).foregroundStyle(
-          done ? AppleColors.secondary : AppleColors.primary
-        ).multilineTextAlignment(.leading)
-        Spacer(minLength: 0)
-      }.font(.system(size: AppleMetrics.font15)).padding(.vertical, AppleMetrics.space4)
-    }.buttonStyle(.plain).disabled(model.busy)
+    Toggle(
+      isOn: Binding(
+        get: { model.taskDone(card, task) },
+        set: { if $0 != model.taskDone(card, task) { model.toggleTask(card, task) } }
+      )
+    ) {
+      Text(task["text"]?.string ?? "").strikethrough(done)
+        .foregroundStyle(done ? .secondary : .primary)
+        .multilineTextAlignment(.leading).lineLimit(2)
+    }.toggleStyle(.checkbox).font(.system(size: AppleMetrics.font15)).disabled(model.busy)
+      .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4)
   }
 }
 struct CardReferences: View {
@@ -55,7 +61,9 @@ struct CardReferences: View {
   let card: Card
   var limit: Int?
   var body: some View {
-    let ids = card.fields["related"]?.strings ?? []
+    let ids = (card.fields["related"]?.strings ?? []).filter { id in
+      model.cards.contains { $0.id == id }
+    }
     VStack(alignment: .leading, spacing: AppleMetrics.space8) {
       ForEach(Array(ids.prefix(limit ?? ids.count)), id: \.self) { id in
         if let related = model.cards.first(where: { $0.id == id }) {
@@ -100,13 +108,17 @@ struct ReminderStatusIcon: View {
     let dismissed = state["dismissed"]?.bool == true
     let done = state["reminderDone"]?.bool == true
     let snoozed = state["snoozedUntil"]?.number ?? 0
-    let due = (snoozed > 0 ? snoozed : card.fields["due"]?.number ?? .infinity) <= Date.now.timeIntervalSince1970 * 1000
+    let due =
+      (snoozed > 0 ? snoozed : card.fields["due"]?.number ?? .infinity) <= Date.now
+      .timeIntervalSince1970 * 1000
     let label = reminderLabel(card, state)
     if !label.isEmpty {
-      NativeIcon(name: dismissed ? "bell-off" : done ? "check-circle" : due ? "bell" : "clock", size: 18)
-        .foregroundStyle(!dismissed && !done && due ? AppleColors.warning : AppleColors.secondary)
-        .frame(width: 28, height: 28).background(AppleColors.surface, in: Circle())
-        .accessibilityElement(children: .ignore).accessibilityLabel(label).help(label)
+      NativeIcon(
+        name: dismissed ? "bell-off" : done ? "check-circle" : due ? "bell" : "clock", size: 18
+      )
+      .foregroundStyle(!dismissed && !done && due ? AppleColors.warning : AppleColors.secondary)
+      .frame(width: 28, height: 28).background(AppleColors.surface, in: Circle())
+      .accessibilityElement(children: .ignore).accessibilityLabel(label).help(label)
     }
   }
 }
@@ -139,11 +151,11 @@ struct ReminderActions: View {
             values: [
               "snoozedUntil": .number(Date.now.addingTimeInterval(600).timeIntervalSince1970 * 1000)
             ])
-        }.buttonStyle(CardPillStyle()).frame(maxWidth: .infinity)
+        }.buttonStyle(.bordered).frame(maxWidth: .infinity)
         if card.type == "reminder" {
           Button(Copy.text("web.done")) {
             model.patch([card.id], values: ["reminderDone": .bool(true)])
-          }.buttonStyle(CardPillStyle(primary: true))
+          }.buttonStyle(.borderedProminent)
         }
       }
     }.controlSize(.large).disabled(model.busy)
@@ -173,23 +185,5 @@ struct CardActions: View {
       model.patch(
         [card.id], values: ["archived": .bool(model.items[card.id]?["archived"]?.bool != true)])
     }
-  }
-}
-
-struct CardPillStyle: ButtonStyle {
-  var primary = false
-  var solid = false
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label.font(
-      .system(size: solid ? AppleMetrics.font14 : AppleMetrics.font13, weight: .medium)
-    )
-    .padding(.horizontal, solid ? AppleMetrics.space20 : AppleMetrics.space14)
-    .frame(
-      minWidth: primary && !solid ? 72 : nil,
-      minHeight: solid ? AppleMetrics.hitTarget : AppleMetrics.space36
-    )
-    .foregroundStyle(primary ? Color.white : AppleColors.primary)
-    .background(primary ? AppleColors.accent : AppleColors.surface, in: Capsule())
-    .scaleEffect(configuration.isPressed ? (solid ? 0.98 : 0.97) : 1)
   }
 }

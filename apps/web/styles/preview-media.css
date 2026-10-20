@@ -1,4 +1,4 @@
-/* Podcast: playing happens here; progress syncs back to the show. */
+/* Podcast facts: only a provided total duration is shown. Playback stays at the source. */
 .player {
 	display: flex;
 	flex-direction: column;
@@ -29,99 +29,12 @@
 .player .preview-meta {
 	justify-content: center;
 }
-.player-bar {
-	width: 100%;
-	max-width: 360px;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-6);
-}
-.player-bar .bar {
-	display: block;
-	height: 4px;
-}
 .player-times {
 	display: flex;
 	justify-content: space-between;
 	font-size: var(--text-caption);
 	color: var(--muted);
 }
-.player-controls {
-	display: flex;
-	align-items: center;
-	gap: var(--space-22);
-}
-.player-main {
-	display: grid;
-	place-items: center;
-	width: 56px;
-	height: 56px;
-	border-radius: 50%;
-	background: var(--ink);
-	color: var(--card);
-}
-.player-main svg {
-	fill: currentColor;
-}
-
-/* Video and the old four-step demo. */
-.media-player {
-	position: relative;
-	background: var(--surface);
-	border-radius: 18px;
-	overflow: hidden;
-	aspect-ratio: 16 / 9;
-}
-.media-player img {
-	height: 100%;
-	width: 100%;
-	object-fit: cover;
-	opacity: 0.45;
-	filter: saturate(0.7);
-}
-.media-slide {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	padding: var(--space-25);
-	background: linear-gradient(0deg, var(--frost), transparent);
-	flex-direction: column;
-	gap: var(--space-12);
-}
-.media-slide b {
-	font-size: var(--text-panel-title);
-	font-weight: 600;
-	letter-spacing: -0.03em;
-}
-.media-slide-copy {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: var(--space-12);
-	padding: inherit;
-}
-.media-slide span {
-	font-size: var(--text-control);
-	line-height: 1.8;
-}
-.media-controls {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--space-12);
-}
-.media-step {
-	font-size: var(--text-caption);
-	color: var(--muted);
-	font-family: var(--rounded);
-}
-
 /* Photos: black, large, left and right, Esc to leave. */
 #modal.lightbox {
 	width: 100vw;

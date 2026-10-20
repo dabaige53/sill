@@ -1,8 +1,8 @@
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { gesturePreviewMethods } from "./gesture-preview.ts";
 import { gesturePullMethods } from "./gesture-pull.ts";
 import { gestureSurfacesMethods } from "./gesture-surfaces.ts";
 import { MotionEngine } from "./motion.ts";
-import tokens from "../../../design-system/tokens.json" with { type: "json" };
 
 /** Shared gesture release, interruption and surface exit rules. */
 class Gestures {

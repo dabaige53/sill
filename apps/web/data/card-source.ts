@@ -1,5 +1,5 @@
-import { copy } from "../copy.ts";
 import type { Card } from "../../../contracts/card.ts";
+import { copy } from "../copy.ts";
 
 export function cardSource(card: Pick<Card, "sources">): string {
 	return card.sources?.map((source) => source.name).join(" · ") || "";

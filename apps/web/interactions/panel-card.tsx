@@ -25,8 +25,8 @@ import {
 	button,
 	keyed,
 	ownButton,
-	sourceIcon,
 	personalNote,
+	sourceIcon,
 } from "./panel-primitives.tsx";
 import { articleContent, previewView as preview } from "./previews-components.tsx";
 
@@ -83,18 +83,27 @@ export const panelCard = {
 			: "";
 		const rows = [
 			c.authors?.length
-				? [copy("web.metadata.authors"), c.authors.map((author) => author.name).join(" / ")]
+				? [
+						"authors",
+						copy("web.metadata.authors"),
+						c.authors.map((author) => author.name).join(" / "),
+					]
 				: null,
-			c.publisher ? [copy("web.metadata.publisher"), c.publisher.name] : null,
-			c.recipients?.length ? [copy("web.metadata.recipients"), c.recipients.join(" / ")] : null,
-			c.project ? [copy("web.metadata.project"), c.project.name] : null,
-			c.sentAt ? [copy("web.metadata.sent"), c.sentAt] : null,
-			c.takenAt ? [copy("web.metadata.taken"), c.takenAt] : null,
-			c.chapterCount ? [copy("web.metadata.chapters"), String(c.chapterCount)] : null,
-			c.timeZone ? ["", c.timeZone] : null,
-			c.caption ? ["", c.caption] : null,
+			c.publisher ? ["publisher", copy("web.metadata.publisher"), c.publisher.name] : null,
+			c.recipients?.length
+				? ["recipients", copy("web.metadata.recipients"), c.recipients.join(" / ")]
+				: null,
+			c.project ? ["project", copy("web.metadata.project"), c.project.name] : null,
+			c.sentAt ? ["sentAt", copy("web.metadata.sent"), c.sentAt] : null,
+			c.takenAt ? ["takenAt", copy("web.metadata.taken"), c.takenAt] : null,
+			c.chapterCount
+				? ["chapterCount", copy("web.metadata.chapters"), String(c.chapterCount)]
+				: null,
+			c.timeZone ? ["timeZone", "", c.timeZone] : null,
+			c.caption ? ["caption", "", c.caption] : null,
 			c.coverageStart !== undefined && c.coverageEnd !== undefined
 				? [
+						"coverage",
 						copy("web.metadata.coverage"),
 						`${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`,
 					]
@@ -108,8 +117,8 @@ export const panelCard = {
 						{label}
 					</time>
 				) : null}
-				{rows.map(([label, value], index) => (
-					<span key={index}>
+				{rows.map(([field, label, value]) => (
+					<span key={field}>
 						{label ? `${label} · ` : ""}
 						{value}
 					</span>

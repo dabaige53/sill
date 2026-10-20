@@ -8,7 +8,6 @@ struct CardTile: View {
   var detail = false
   var compact = false
   var open: (() -> Void)?
-  @State private var hovering = false
   @FocusState private var focusedTask: String?
   @State private var heldTasks: [String] = []
   private var fields: JSONValue { card.fields }
@@ -17,8 +16,6 @@ struct CardTile: View {
   private var complete: Bool { !tasks.isEmpty && tasks.allSatisfy { model.taskDone(card, $0) } }
   private var settled: Bool {
     (card.readable && state["read"]?.bool == true && model.preferences["fadeRead"]?.bool != false)
-      || (card.type == "digest" && state["seen"]?.bool == true
-        && model.preferences["fadeRead"]?.bool != false)
       || (card.type == "task" && complete)
       || (card.type == "reminder" && state["reminderDone"]?.bool == true)
       || (card.type == "event" && (card.date("end") ?? .distantFuture) < .now)
@@ -39,8 +36,18 @@ struct CardTile: View {
         if card.type == "event", let start = card.date("start") {
           eventTime(start).padding(.top, AppleMetrics.space8)
         }
-        title.padding(.top, AppleMetrics.space12)
-        if showSummary { summary.padding(.top, AppleMetrics.space6) }
+        if card.type == "reminder" {
+          HStack(alignment: .top, spacing: AppleMetrics.space10) {
+            ReminderCompletion(card: card)
+            title
+          }.padding(.top, AppleMetrics.space12)
+        } else {
+          title.padding(.top, AppleMetrics.space12)
+        }
+        if showSummary {
+          summary.padding(.top, AppleMetrics.space6)
+            .padding(.leading, card.type == "reminder" ? AppleMetrics.space28 : 0)
+        }
         if card.type == "task" { checklist.padding(.top, AppleMetrics.space12) }
         if card.type == "event", let people = fields["people"]?.strings, !people.isEmpty {
           HStack(spacing: AppleMetrics.space8) {
@@ -49,17 +56,17 @@ struct CardTile: View {
           }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
             .padding(.top, AppleMetrics.space8)
         }
-        if card.type == "media" && fields["media"]?.string == "podcast" {
-          podcastBar.padding(.top, AppleMetrics.space8)
+        if card.type == "media", fields["media"]?.string == "podcast",
+          let duration = card.mediaDurationText
+        {
+          Text(duration).font(.system(size: AppleMetrics.font12, design: .rounded))
+            .foregroundStyle(AppleColors.secondary).padding(.top, AppleMetrics.space8)
         }
         if card.type == "mail", let attachment = fields["attachment"]?.string {
           reference("file", attachment).padding(.top, AppleMetrics.space12)
         }
         if card.type == "file" { files.padding(.top, AppleMetrics.space12) }
         if card.type == "suggestion" { related.padding(.top, AppleMetrics.space12) }
-        if card.type == "reminder" {
-          ReminderActions(card: card).padding(.top, AppleMetrics.space8)
-        }
         if card.type == "event", let start = card.date("start"), let end = card.date("end"),
           start.timeIntervalSinceNow <= 900, end > .now,
           let link = fields["meeting"]?["url"]?.string, let url = URL(string: link)
@@ -67,7 +74,7 @@ struct CardTile: View {
           HStack {
             Spacer()
             Link(Copy.text("web.templates.451755e3831f"), destination: url).buttonStyle(
-              CardPillStyle(primary: true))
+              .borderedProminent)
           }.padding(.top, AppleMetrics.space8)
         }
       }.padding(.horizontal, AppleMetrics.cardPadding).padding(
@@ -75,7 +82,8 @@ struct CardTile: View {
       if let snippet = searchSnippet {
         Text(highlighted(snippet)).font(.system(size: AppleMetrics.font13)).foregroundStyle(
           AppleColors.secondary
-        ).padding(.horizontal, AppleMetrics.cardPadding).padding(.bottom, AppleMetrics.cardPadding)
+        ).padding(.horizontal, AppleMetrics.cardPadding).padding(
+          .bottom, AppleMetrics.cardPadding)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -84,40 +92,26 @@ struct CardTile: View {
       in: RoundedRectangle(cornerRadius: AppleMetrics.cardRadius)
     )
     .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
-    .overlay(
+    .overlay {
       RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).strokeBorder(
         model.selection.contains(card.id) && !detail
           ? AppleColors.primary : AppleColors.primary.opacity(AppleMetrics.borderOpacity),
-        lineWidth: model.selection.contains(card.id) ? 2 : 1)
-    )
-    .overlay(alignment: .topTrailing) {
-      if !detail && hovering {
-        Menu {
-          CardActions(card: card)
-        } label: {
-          NativeIcon(name: "more", size: AppleMetrics.font18).frame(
-            width: AppleMetrics.space28, height: AppleMetrics.space28)
-        }
-        .menuStyle(.borderlessButton).fixedSize().padding(AppleMetrics.space12).accessibilityLabel(
-          Copy.appleOrganize)
-      }
+        lineWidth: model.selection.contains(card.id) && !detail ? 2 : 1)
     }
     .shadow(
-      color: .black.opacity(settled ? 0 : colorScheme == .dark ? 0.3 : hovering ? 0.04 : 0.025),
-      radius: hovering ? 5 : 2, y: hovering ? 2 : 1
-    )
-    .shadow(
-      color: .black.opacity(settled || colorScheme == .dark ? 0 : hovering ? 0.07 : 0.035),
-      radius: hovering ? 24 : 16, y: hovering ? 10 : 4
+      color: .black.opacity(settled ? 0 : colorScheme == .dark ? 0.3 : 0.04),
+      radius: AppleMetrics.space16, y: AppleMetrics.space4
     )
     .contentShape(RoundedRectangle(cornerRadius: AppleMetrics.cardRadius))
     .onTapGesture { open?() }
-    .onHover { hovering = $0 }
+    .accessibilityElement(children: .contain)
+    .accessibilityAction(named: Text(Copy.appleView)) { open?() }
+    .accessibilityAddTraits(model.selection.contains(card.id) ? .isSelected : [])
     .onChange(of: focusedTask) { _, next in if next == nil { heldTasks = [] } }
     .tint(AppleColors.accent)
   }
   private var searchSnippet: String? {
-    let query = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
+    let query = model.searchWords.trimmingCharacters(in: .whitespacesAndNewlines)
     guard model.searchPresented, !query.isEmpty,
       let text = ([card.summary, state["note"]?.string ?? ""] + card.paragraphs).first(where: {
         $0.localizedCaseInsensitiveContains(query)
@@ -135,11 +129,11 @@ struct CardTile: View {
   }
   private func highlighted(_ text: String) -> AttributedString {
     var result = AttributedString(text)
-    let query = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
+    let query = model.searchWords.trimmingCharacters(in: .whitespacesAndNewlines)
     guard model.searchPresented, !query.isEmpty else { return result }
     var remaining = result.startIndex..<result.endIndex
     while let range = result[remaining].range(of: query, options: .caseInsensitive) {
-      result[range].backgroundColor = AppleColors.warning.opacity(0.2)
+      result[range].inlinePresentationIntent = .stronglyEmphasized
       result[range].foregroundColor = AppleColors.primary
       remaining = range.upperBound..<result.endIndex
     }
@@ -170,7 +164,7 @@ struct CardTile: View {
       .font(
         .system(
           size: quote ? AppleMetrics.font21 : capture ? AppleMetrics.font15 : AppleMetrics.font17,
-          weight: capture ? .regular : quote ? .medium : .semibold)
+          weight: quote ? .medium : capture ? .regular : .semibold)
       )
       .lineSpacing(quote ? AppleMetrics.space4 : 0).lineLimit(
         detail ? nil : quote ? 4 : capture ? 6 : 2
@@ -183,8 +177,16 @@ struct CardTile: View {
       CardSourceGlyph(card: card)
       Text(headText).lineLimit(1)
       Spacer(minLength: 0)
+      if model.selection.contains(card.id) {
+        Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
+          .accessibilityLabel(Copy.appleSelect)
+      }
+      if !detail {
+        Menu(Copy.appleOrganize, systemImage: "ellipsis") { CardActions(card: card) }
+          .labelStyle(.iconOnly).menuStyle(.borderlessButton).fixedSize()
+      }
       if card.type == "task" && !tasks.isEmpty {
-        Text("\(tasks.filter { model.taskDone(card, $0) }.count)/\(tasks.count)").foregroundStyle(
+        Text("\(tasks.count { model.taskDone(card, $0) })/\(tasks.count)").foregroundStyle(
           AppleColors.primary
         ).fontWeight(.semibold)
       }
@@ -198,8 +200,18 @@ struct CardTile: View {
         }.frame(width: AppleMetrics.font14, height: AppleMetrics.font14)
         Text("\(Int((progress * 100).rounded()))%").foregroundStyle(AppleColors.accent)
       }
-      if card.type == "reminder" {
-        ReminderStatusIcon(card: card, state: state)
+      if card.type == "reminder", let due = card.date("due") {
+        let snooze = state["snoozedUntil"]?.number ?? 0
+        let date = snooze > 0 ? Date(timeIntervalSince1970: snooze / 1000) : due
+        Text(
+          Calendar.current.isDateInToday(date)
+            ? cardTime(date) : cardDay(date) + " " + cardTime(date)
+        )
+        .foregroundStyle(
+          date <= .now && state["reminderDone"]?.bool != true && state["dismissed"]?.bool != true
+            ? AppleColors.accent : AppleColors.secondary
+        )
+        .font(.system(size: AppleMetrics.font13, design: .rounded))
       }
       if card.type == "event" {
         Text(cardEventRelative(card)).foregroundStyle(AppleColors.accent).fontWeight(.medium)
@@ -207,13 +219,15 @@ struct CardTile: View {
     }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary).frame(
       minHeight: AppleMetrics.space20
     )
-    .padding(.trailing, covered ? 0 : AppleMetrics.space28)
+
   }
   private var headText: String {
     if card.type == "event", let date = card.date("start") { return cardDay(date) }
     if card.type == "task" { return fields["project"]?["name"]?.string ?? Copy.text("web.task") }
     if card.type == "reminder" {
-      return fields["project"]?["name"]?.string ?? Copy.text("web.reminder")
+      return [Copy.text("web.reminder"), card.source].reduce(into: [String]()) {
+        if !$1.isEmpty && !$0.contains($1) { $0.append($1) }
+      }.joined(separator: " · ")
     }
     if card.type == "photo" {
       return [Copy.text("web.photo"), fields["location"]?.string ?? ""]
@@ -234,7 +248,10 @@ struct CardTile: View {
       if !text.isEmpty {
         Text(text).font(.system(size: AppleMetrics.font15)).lineSpacing(AppleMetrics.space4)
           .foregroundStyle(AppleColors.secondary).lineLimit(
-            detail ? nil : covered || !points.isEmpty ? 2 : 3)
+            detail
+              ? nil
+              : covered || !points.isEmpty || model.preferences["density"]?.string == "compact"
+                ? 2 : 3)
       }
       ForEach(Array(points.prefix(detail ? points.count : 3).enumerated()), id: \.offset) {
         i, point in
@@ -257,9 +274,8 @@ struct CardTile: View {
         Text(card.summary).font(.system(size: AppleMetrics.font15)).foregroundStyle(
           AppleColors.secondary)
       }
-      ForEach(Array(visible.prefix(detail ? tasks.count : 3).enumerated()), id: \.offset) {
-        _, task in
-        CardTaskRow(card: card, task: task).focused($focusedTask, equals: task["id"]?.string ?? "")
+      ForEach(visible.prefix(detail ? tasks.count : 3).map(CardTaskEntry.init)) { entry in
+        CardTaskRow(card: card, task: entry.value).focused($focusedTask, equals: entry.id)
           .simultaneousGesture(
             TapGesture().onEnded {
               if heldTasks.isEmpty {
@@ -276,16 +292,30 @@ struct CardTile: View {
     }
   }
   private var sender: some View {
-    let name = fields["sender"]?.string ?? card.source
     return HStack(spacing: AppleMetrics.space10) {
-      CardAvatar(name: name)
+      if let name = card.senderName {
+        CardAvatar(name: name, size: 28)
+      } else {
+        CardSourceGlyph(card: card)
+      }
       VStack(alignment: .leading, spacing: 2) {
-        Text(name).font(.system(size: AppleMetrics.font14, weight: .semibold))
+        if let name = card.senderName {
+          Text(name).font(.system(size: AppleMetrics.font15, weight: .semibold))
+        }
         Text(
-          [card.sourceLine, card.dateText("sentAt") ?? ""].filter { !$0.isEmpty }.joined(
+          [
+            card.senderName == nil ? card.source : Copy.text("web.mail"),
+            card.date("sentAt").map(cardDay) ?? "", card.readingEstimateText,
+          ].filter { !$0.isEmpty }.joined(
             separator: " · ")
         ).font(.system(size: AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
       }
+      Spacer(minLength: 0)
+      if model.selection.contains(card.id) {
+        Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
+      }
+      Menu(Copy.appleOrganize, systemImage: "ellipsis") { CardActions(card: card) }
+        .labelStyle(.iconOnly).menuStyle(.borderlessButton).fixedSize()
     }
   }
   private func eventTime(_ start: Date) -> some View {
@@ -293,8 +323,9 @@ struct CardTile: View {
       Text(cardTime(start)).font(
         .system(size: AppleMetrics.font34, weight: .medium, design: .rounded)
       ).foregroundStyle(settled ? AppleColors.secondary : AppleColors.primary)
+      Spacer(minLength: AppleMetrics.space8)
       if let end = card.date("end") {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .trailing, spacing: 2) {
           Text(Copy.text("web.templates.83532308ecca") + cardTime(end))
           Text(
             Copy.text("web.templates.2428420e407f") + "\(Int(end.timeIntervalSince(start) / 60))"
@@ -304,24 +335,6 @@ struct CardTile: View {
           AppleColors.secondary)
       }
     }
-  }
-  private var podcastBar: some View {
-    let total = fields["duration"]?.number ?? 0
-    let progress = state["progress"]?.number ?? 0
-    return HStack(spacing: AppleMetrics.space10) {
-      NativeIcon(name: "play", size: AppleMetrics.font14).foregroundStyle(AppleColors.card).frame(
-        width: AppleMetrics.space28, height: AppleMetrics.space28
-      ).background(AppleColors.primary, in: Circle())
-      GeometryReader { geometry in
-        ZStack(alignment: .leading) {
-          Capsule().fill(AppleColors.surface)
-          Capsule().fill(AppleColors.primary).frame(width: geometry.size.width * progress)
-        }
-      }.frame(height: AppleMetrics.space4)
-      Text((progress > 0 ? "-" : "") + cardDuration(total * (1 - progress))).font(
-        .system(size: AppleMetrics.font12, design: .rounded)
-      ).foregroundStyle(AppleColors.secondary)
-    }.padding(.top, AppleMetrics.space4)
   }
   private var files: some View {
     let values = fields["files"]?.array ?? []

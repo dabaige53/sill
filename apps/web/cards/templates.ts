@@ -74,8 +74,8 @@ const CardTemplates: Record<string, any> = {
 		return `${c.image ? this.cover(c, ctx) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}${this.summary(c, !!c.image)}</div>`;
 	},
 	mail(c?: any, ctx?: any) {
-		const sender = c.sender || cardSource(c) || copy("web.mail");
-		return `<div class="card-body"><div class="sender">${avatar(sender)}<span><b>${esc(sender)}</b><small>${copy("web.mail")}${c.sentAt ? " · " + esc(dateLabel(Date.parse(c.sentAt))) : ""}${cardReadingTime(c) ? " · " + esc(cardReadingTime(c)) : ""}</small></span></div>${this.title(c, ctx)}${this.summary(c)}${c.attachment ? `<span class="file-row attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}</div>`;
+		const sender = c.sender?.trim();
+		return `<div class="card-body">${sender ? `<div class="sender">${avatar(sender)}<span><b>${esc(sender)}</b><small>${copy("web.mail")}${c.sentAt ? " · " + esc(dateLabel(Date.parse(c.sentAt))) : ""}${cardReadingTime(c) ? " · " + esc(cardReadingTime(c)) : ""}</small></span></div>` : this.head(c, ctx, [cardSource(c) || copy("web.mail"), c.sentAt ? dateLabel(Date.parse(c.sentAt)) : "", cardReadingTime(c)].filter(Boolean).join(" · "))}${this.title(c, ctx)}${this.summary(c)}${c.attachment ? `<span class="file-row attachment">${icon("file", 15)}<span>${esc(c.attachment)}</span></span>` : ""}</div>`;
 	},
 	note(c?: any, ctx?: any) {
 		if (cardSourceKind(c) !== "capture" && c.form !== "quote")
@@ -125,14 +125,14 @@ const CardTemplates: Record<string, any> = {
    <div class="reminder-row">${mark}${this.title(c, ctx)}</div>${c.summary ? `<p class="card-summary indent">${esc(c.summary)}</p>` : ""}</div>`;
 	},
 	media(c?: any, ctx?: any) {
-		const s = ctx.state;
 		if (c.media === "podcast") {
-			const total = c.duration || 0,
-				played = total * (s.progress || 0);
 			return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}${this.summary(c, true)}
-     <div class="mini-player"><span class="mini-play" aria-hidden="true">${icon("play", 14)}</span><span class="bar"><i style="width:${Math.round((s.progress || 0) * 100)}%"></i></span><span class="num">${played ? "-" + duration(total - played) : duration(total)}</span></div></div>`;
+     ${c.duration !== undefined ? `<div class="mini-player"><span class="num">${duration(c.duration)}</span></div>` : ""}</div>`;
 		}
-		const inner = `<span class="play-mark" aria-hidden="true">${icon("play", 18)}</span>${c.duration ? `<span class="media-length num">${duration(c.duration)}</span>` : ""}`;
+		const inner =
+			c.duration !== undefined
+				? `<span class="media-length num">${duration(c.duration)}</span>`
+				: "";
 		return `${c.image ? this.cover(c, ctx, inner) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}</div>`;
 	},
 	digest(c?: any, ctx?: any) {

@@ -36,7 +36,7 @@ export const gestureSurfacesMethods = {
 				// The handle resizes the sheet itself; text already at its top pulls the whole sheet down.
 				if (e.target.closest(".sheet-handle")) return;
 				if (!e.target.closest(".grabber") && scroll && scroll.scrollTop > 0) return;
-				if (this.fromField(e) || e.target.closest(".player-bar,.media-player")) return;
+				if (this.fromField(e)) return;
 				drag = {
 					sheet,
 					height: sheet.offsetHeight || 1,

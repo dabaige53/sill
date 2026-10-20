@@ -58,10 +58,6 @@ class AppController {
 	declare showNew: AppControllerMethods["showNew"];
 	declare changeReminder: AppControllerMethods["changeReminder"];
 	declare applySelectionAction: AppControllerMethods["applySelectionAction"];
-	declare paintMedia: AppControllerMethods["paintMedia"];
-	declare pauseMedia: AppControllerMethods["pauseMedia"];
-	declare playMedia: AppControllerMethods["playMedia"];
-	declare podcast: AppControllerMethods["podcast"];
 	declare shelfOf: AppControllerMethods["shelfOf"];
 	declare shelved: AppControllerMethods["shelved"];
 	declare matches: AppControllerMethods["matches"];
@@ -178,8 +174,6 @@ class AppController {
 	declare currentId: string;
 	declare panelReturn: () => void;
 	declare lastFocus: Element;
-	declare mediaIndex: number;
-	declare mediaTimer: ReturnType<typeof setInterval>;
 	declare lastActivity: number;
 	declare modalToken: number;
 	declare routeScroll: Record<string, number>;
@@ -244,8 +238,6 @@ class AppController {
 		this.currentId = "";
 		this.panelReturn = null;
 		this.lastFocus = null;
-		this.mediaIndex = 0;
-		this.mediaTimer = null;
 		this.lastActivity = Date.now();
 		this.modalToken = 0;
 		this.routeScroll = {};

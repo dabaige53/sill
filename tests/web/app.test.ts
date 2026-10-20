@@ -355,37 +355,38 @@ test("settings toggles animate their knob without fading the panel", () => {
 	}
 });
 
-test("media crossfades text while retaining its background and handles rapid reversal", async () => {
+test("media opens without body or playback state and ignores obsolete playback actions", () => {
 	const f = fixture();
 	try {
 		const { app, w, Store } = f;
-		Store.state.cards = [
-			{ id: "media", type: "media", title: "Segments", body: ["first", "second"] },
-		];
-		app.currentId = "media";
-		app.mediaIndex = 0;
-		app.dialog.innerHTML = '<div id="media-slide"></div><span id="media-step"></span>';
-		const animations: any[] = [];
-		w.__motionAnimations = animations;
-		app.paintMedia();
-		assert.equal(animations.length, 0);
-		const first = app.dialog.querySelector(".media-slide-copy");
-		app.mediaIndex = 1;
-		app.paintMedia();
-		assert.equal(animations.length, 2);
-		assert.equal(first.isConnected, true, "old text stays until the new text fades in");
-		assert.equal(app.dialog.querySelector("#media-slide").style.opacity, "");
-		assert.equal(animations[0].options.duration, 140);
-		assert.ok(animations[0].frames.every((frame: any) => !("transform" in frame)));
-		app.paintMedia();
-		assert.equal(animations.length, 2);
-		app.mediaIndex = 0;
-		app.paintMedia();
-		for (const animation of animations) animation.finish();
-		await Promise.resolve();
-		await Promise.resolve();
-		assert.equal(app.dialog.querySelectorAll(".media-slide-copy").length, 1);
-		assert.equal(app.dialog.querySelector(".media-slide-copy span").textContent, "first");
+		const card = { id: "media", type: "media", title: "Video", image: "coast", chapterCount: 8 };
+		Store.state.cards = [card];
+		Store.state.items = { media: { seen: true, read: false, progress: 0.25 } };
+		Store.item(card.id);
+		const before = JSON.stringify(Store.state);
+		Store.patch = () => {
+			throw new Error("Preview must not write playback state");
+		};
+		app.previewTrail = [];
+		app.currentId = "";
+		app.bindPreview = () => {};
+		app.bindSheetChrome = () => {};
+		app.gestures = { bindPullDown() {} };
+		app.openModal = (content, kind) => {
+			app.dialog.innerHTML = renderToStaticMarkup(content);
+			app.modalKind = kind;
+		};
+		w.setInterval = () => {
+			throw new Error("Preview must not simulate playback");
+		};
+		app.openCard("media");
+		assert.equal(app.dialog.querySelector("#modal-title").textContent, "Video");
+		assert.equal(app.dialog.querySelector(".media-step,.media-controls"), null);
+		assert.match(app.dialog.textContent, /章节 · 8/);
+		for (const name of ["media-play", "media-next", "media-prev", "podcast-play", "podcast-seek"]) {
+			app.action(name, "media");
+		}
+		assert.equal(JSON.stringify(Store.state), before);
 	} finally {
 		f.dom.window.close();
 	}

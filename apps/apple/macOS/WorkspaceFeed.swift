@@ -59,25 +59,71 @@ import SwiftUI
       + max(0, min(10, card.fields["priority"]?.number ?? 0))
   }
 
+  var searchWords: String {
+    query.split(whereSeparator: \.isWhitespace).filter { !$0.hasPrefix("#") }.joined(separator: " ")
+  }
+
   var visible: [Card] {
-    let searching = page == "search"
-    if !searching { return homeCards }
-    return cards.filter { card in
-      let item = items[card.id]
-      if !searching { return item?["archived"]?.bool != true }
-      let words = [
+    let tokens = query.split(whereSeparator: \.isWhitespace).filter { $0.hasPrefix("#") }
+      .map { String($0.dropFirst()) }
+    let words = searchWords
+    let archived =
+      feedScope == .archived || tokens.contains(FeedScope.archived.label)
+      || tokens.contains(FeedScope.archived.rawValue)
+    let candidates =
+      archived
+      ? cards
+      : searchWords.isEmpty
+        ? homeCards
+        : homeCards + cards.filter { items[$0.id]?["archived"]?.bool == true }
+    return candidates.filter { card in
+      let state = items[card.id] ?? .object([:])
+      let haystack = [
         card.title, card.body, card.summary, card.source,
-        item?["note"]?.string ?? "", tags(card).joined(separator: " "),
+        state["note"]?.string ?? "", tags(card).joined(separator: " "),
       ].joined(separator: " ")
-      return (query.isEmpty || words.localizedCaseInsensitiveContains(query))
-        && (typeFilter == "all" || card.type == typeFilter)
-        && (tagFilter.isEmpty || tags(card).contains(tagFilter))
-        && (filter == Copy.appleAll
-          || filter == Copy.appleBookmarks && item?["bookmarked"]?.bool == true
-          || filter == Copy.appleLater && item?["later"]?.bool == true
-          || filter == Copy.appleUnread && item?["read"]?.bool != true
-          || filter == Copy.appleArchived && item?["archived"]?.bool == true)
+      guard matches(feedScope, card: card, state: state),
+        typeFilter == "all" || card.type == typeFilter,
+        tagFilter.isEmpty || tags(card).contains(tagFilter),
+        words.isEmpty || haystack.localizedCaseInsensitiveContains(words)
+      else { return false }
+      return tokens.allSatisfy { token in
+        if let scope = FeedScope.allCases.first(where: { $0.label == token || $0.rawValue == token }
+        ) {
+          return matches(scope, card: card, state: state)
+        }
+        if let type = Card.typeLabels.first(where: { $0.value == token || $0.key == token })?.key {
+          return card.type == type
+        }
+        return tags(card).contains { $0.localizedCaseInsensitiveCompare(token) == .orderedSame }
+      }
     }
   }
 
+  private func matches(_ scope: FeedScope, card: Card, state: JSONValue) -> Bool {
+    switch scope {
+    case .all: return true
+    case .unread: return state["read"]?.bool != true
+    case .todo: return ["task", "reminder"].contains(card.type)
+    case .later: return state["later"]?.bool == true
+    case .saved: return state["bookmarked"]?.bool == true
+    case .archived: return state["archived"]?.bool == true
+    }
+  }
+}
+
+enum FeedScope: String, CaseIterable, Identifiable {
+  case all, unread, todo, later, saved, archived
+  var id: String { rawValue }
+  static var tabs: [Self] { [.all, .unread, .todo, .later, .saved] }
+  var label: String {
+    switch self {
+    case .all: Copy.text("web.all")
+    case .unread: Copy.text("web.unread")
+    case .todo: Copy.text("web.home.todo")
+    case .later: Copy.text("web.later")
+    case .saved: Copy.text("web.bookmark")
+    case .archived: Copy.text("web.templates.7b7e6e8bd4ba")
+    }
+  }
 }

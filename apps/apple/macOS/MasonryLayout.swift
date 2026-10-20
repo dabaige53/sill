@@ -4,14 +4,40 @@ struct MasonryLayout: Layout {
   let columns: Int
   let spacing: CGFloat
   var maximumColumnWidth: CGFloat = .greatestFiniteMagnitude
-  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-    positions(proposal: proposal, subviews: subviews).size
+  struct Cache {
+    var width: CGFloat?
+    var columns = 0
+    var spacing: CGFloat = 0
+    var maximumColumnWidth: CGFloat = 0
+    var result: (points: [CGPoint], size: CGSize, width: CGFloat)?
+  }
+  func makeCache(subviews: Subviews) -> Cache { Cache() }
+  func updateCache(_ cache: inout Cache, subviews: Subviews) { cache = Cache() }
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
+    measured(proposal: proposal, subviews: subviews, cache: &cache).size
+  }
+  private func measured(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache)
+    -> (points: [CGPoint], size: CGSize, width: CGFloat)
+  {
+    if cache.width == proposal.width, cache.columns == columns, cache.spacing == spacing,
+      cache.maximumColumnWidth == maximumColumnWidth, let result = cache.result
+    {
+      return result
+    }
+    let result = positions(proposal: proposal, subviews: subviews)
+    cache.width = proposal.width
+    cache.columns = columns
+    cache.spacing = spacing
+    cache.maximumColumnWidth = maximumColumnWidth
+    cache.result = result
+    return result
   }
   func placeSubviews(
-    in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+    in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache
   ) {
-    let result = positions(
-      proposal: ProposedViewSize(width: bounds.width, height: nil), subviews: subviews)
+    let result = measured(
+      proposal: ProposedViewSize(width: bounds.width, height: nil), subviews: subviews,
+      cache: &cache)
     for (index, point) in result.points.enumerated() {
       subviews[index].place(
         at: CGPoint(x: bounds.minX + point.x, y: bounds.minY + point.y), anchor: .topLeading,

@@ -156,20 +156,33 @@ function Article({ card: c, ctx }: BlockProps) {
 	);
 }
 function Mail({ card: c, ctx }: BlockProps) {
-	const sender = c.sender || cardSource(c) || copy("web.mail");
+	const sender = c.sender?.trim();
 	return (
 		<div className="card-body">
-			<div className="sender">
-				<Avatar name={sender} />
-				<span>
-					<b>{sender}</b>
-					<small>
-						{copy("web.mail")}
-						{c.sentAt ? ` · ${dateLabel(Date.parse(c.sentAt))}` : ""}
-						{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
-					</small>
-				</span>
-			</div>
+			{sender ? (
+				<div className="sender">
+					<Avatar name={sender} />
+					<span>
+						<b>{sender}</b>
+						<small>
+							{copy("web.mail")}
+							{c.sentAt ? ` · ${dateLabel(Date.parse(c.sentAt))}` : ""}
+							{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
+						</small>
+					</span>
+				</div>
+			) : (
+				<Head
+					card={c}
+					text={[
+						cardSource(c) || copy("web.mail"),
+						c.sentAt ? dateLabel(Date.parse(c.sentAt)) : "",
+						cardReadingTime(c),
+					]
+						.filter(Boolean)
+						.join(" · ")}
+				/>
+			)}
 			<Title card={c} ctx={ctx} />
 			<Summary card={c} />
 			{c.attachment && (
@@ -391,24 +404,17 @@ function Reminder({ card: c, ctx }: BlockProps) {
 	);
 }
 function Media({ card: c, ctx }: BlockProps) {
-	const s = ctx.state;
 	if (c.media === "podcast") {
-		const total = c.duration || 0,
-			played = total * (s.progress || 0);
 		return (
 			<div className="card-body">
 				<Head card={c} text={sourceLine(c)} right={Progress({ card: c, ctx })} />
 				<Title card={c} ctx={ctx} />
 				<Summary card={c} short />
-				<div className="mini-player">
-					<span className="mini-play" aria-hidden="true">
-						<Icon name="play" size={14} />
-					</span>
-					<span className="bar">
-						<i style={{ width: `${Math.round((s.progress || 0) * 100)}%` }} />
-					</span>
-					<span className="num">{played ? `-${duration(total - played)}` : duration(total)}</span>
-				</div>
+				{c.duration !== undefined && (
+					<div className="mini-player">
+						<span className="num">{duration(c.duration)}</span>
+					</div>
+				)}
 			</div>
 		);
 	}
@@ -416,10 +422,9 @@ function Media({ card: c, ctx }: BlockProps) {
 		<>
 			{c.image && (
 				<Cover card={c}>
-					<span className="play-mark" aria-hidden="true">
-						<Icon name="play" size={18} />
-					</span>
-					{!!c.duration && <span className="media-length num">{duration(c.duration)}</span>}
+					{c.duration !== undefined && (
+						<span className="media-length num">{duration(c.duration)}</span>
+					)}
 				</Cover>
 			)}
 			<div className="card-body">

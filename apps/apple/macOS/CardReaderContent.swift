@@ -3,45 +3,29 @@ import SillKit
 import SwiftUI
 
 extension CardReader {
-  @ViewBuilder func readerHead(_ card: Card) -> some View {
-    if expanded {
-      HStack(spacing: AppleMetrics.space4) {
-        tool("collapse", Copy.text("web.panels.0f1505b6ad3f")) { expanded = false }
-        tool("x", Copy.text("web.panels.f2a5f3f7db0f")) { model.dismissReader() }.keyboardShortcut(
-          .cancelAction)
-      }.padding(AppleMetrics.space6).modifier(GlassSurface())
-    } else {
+  func readerHead(_ card: Card) -> some View {
+    HStack {
+      if !model.readerTrail.isEmpty {
+        Button(Copy.appleBack, systemImage: "chevron.left") { model.dismissReader() }
+          .labelStyle(.iconOnly).buttonStyle(.bordered).help(Copy.appleBack)
+      }
+      Spacer()
       HStack(spacing: AppleMetrics.space8) {
-        if !model.readerTrail.isEmpty {
-          headTool("back", Copy.appleBack) {
-            model.dismissReader()
-          }
+        if !card.paragraphs.isEmpty {
+          Button(
+            Copy.text(expanded ? "web.reader.exitFullscreen" : "web.preview.fullscreen"),
+            systemImage: expanded
+              ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
+          ) { expanded.toggle() }
+          .labelStyle(.iconOnly).buttonStyle(.bordered)
+          .help(Copy.text(expanded ? "web.reader.exitFullscreen" : "web.preview.fullscreen"))
         }
-        Spacer()
-        if !card.paragraphs.isEmpty
-          && !["event", "mail", "media", "task", "reminder", "digest", "file", "photo"].contains(
-            card.type)
-        {
-          headTool("expand", Copy.text("web.panels.22ea3f47fee8")) { expanded = true }
-        }
-        headTool("x", Copy.text("web.panels.1eb05d311508")) { model.dismissReader() }
-          .keyboardShortcut(.cancelAction)
+        Button(Copy.text("web.preview.close"), systemImage: "xmark") { model.dismissReader() }
+          .labelStyle(.iconOnly).buttonStyle(.bordered).help(Copy.text("web.preview.close"))
       }
     }
   }
-  private func headTool(_ icon: String, _ label: String, action: @escaping () -> Void) -> some View
-  {
-    Button(action: action) {
-      NativeIcon(name: icon, size: AppleMetrics.font20).frame(
-        width: AppleMetrics.space36, height: AppleMetrics.space36
-      ).background(AppleColors.card, in: Circle()).overlay(
-        Circle().strokeBorder(
-          AppleColors.primary.opacity(AppleMetrics.borderOpacity), lineWidth: 0.5)
-      ).shadow(color: AppleColors.shadow.opacity(0.05), radius: 2, y: 1).shadow(
-        color: AppleColors.shadow.opacity(0.07), radius: 18, y: 6
-      ).frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-    }.buttonStyle(.plain).accessibilityLabel(label).help(label)
-  }
+
   @ViewBuilder func detailContent(_ card: Card) -> some View {
     if card.type == "event" {
       VStack(spacing: 0) {
@@ -52,11 +36,10 @@ extension CardReader {
         if let people = card.fields["people"]?.strings, !people.isEmpty {
           detailRow(
             "at", people.joined(separator: "、"),
-            side: "\(people.count)" + Copy.text("web.panels.d63842643d06"))
+            side: "\(people.count)" + Copy.text("web.preview.peopleCountSuffix"))
         }
       }
       paragraphs(card)
-      ReminderActions(card: card)
     } else if card.type == "file" {
       VStack(spacing: 0) {
         ForEach(Array((card.fields["files"]?.array ?? []).enumerated()), id: \.offset) { _, file in
@@ -84,9 +67,10 @@ extension CardReader {
       if card.type != "mail" && !card.summary.isEmpty && card.fields["form"]?.string != "quote"
         && card.summary != card.paragraphs.first
       {
-        Text(card.summary).font(.system(size: AppleMetrics.font17)).foregroundStyle(
-          AppleColors.secondary
-        ).lineSpacing(AppleMetrics.space6)
+        Text(card.summary).font(.system(size: AppleMetrics.font17, weight: .medium))
+          .foregroundStyle(
+            AppleColors.secondary
+          ).lineSpacing(AppleMetrics.space6)
       }
       if let points = card.fields["points"]?.strings {
         ForEach(Array(points.enumerated()), id: \.offset) { i, point in
@@ -99,16 +83,12 @@ extension CardReader {
       if card.type == "suggestion" { CardReferences(card: card) }
       if card.type == "task" {
         VStack(spacing: AppleMetrics.space8) {
-          ForEach(Array((card.fields["tasks"]?.array ?? []).enumerated()), id: \.offset) {
-            _, task in CardTaskRow(card: card, task: task)
+          ForEach((card.fields["tasks"]?.array ?? []).map(CardTaskEntry.init)) { entry in
+            CardTaskRow(card: card, task: entry.value)
           }
         }
       }
-      if ["task", "reminder"].contains(card.type) {
-        ReminderActions(card: card)
-      } else {
-        paragraphs(card)
-      }
+      paragraphs(card)
       if card.type == "mail", let attachment = card.fields["attachment"]?.string {
         detailRow("file", attachment)
       }
@@ -128,12 +108,14 @@ extension CardReader {
   }
   func sender(_ card: Card) -> some View {
     HStack(spacing: AppleMetrics.space10) {
-      CardAvatar(name: card.fields["sender"]?.string ?? card.source, size: 36)
+      if let name = card.senderName { CardAvatar(name: name, size: 36) }
       VStack(alignment: .leading, spacing: AppleMetrics.space4) {
-        Text(card.fields["sender"]?.string ?? card.source).fontWeight(.semibold)
-        if let recipients = card.fields["recipients"]?.strings, !recipients.isEmpty {
-          Text(Copy.text("web.metadata.recipients") + " · " + recipients.joined(separator: " / "))
-            .font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+        if let name = card.senderName { Text(name).fontWeight(.semibold) }
+        if !card.recipients.isEmpty {
+          Text(
+            Copy.text("web.metadata.recipients") + " · " + card.recipients.joined(separator: " / ")
+          )
+          .font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
         }
       }
     }
@@ -162,28 +144,140 @@ extension CardReader {
       }
     }.font(.system(size: AppleMetrics.font15)).padding(.vertical, AppleMetrics.space12)
   }
-  @ViewBuilder func external(_ card: Card) -> some View {
-    if card.type == "event", let start = card.date("start"), let end = card.date("end"),
-      start.timeIntervalSinceNow <= 900, end > .now,
-      let raw = card.fields["meeting"]?["url"]?.string, let url = URL(string: raw)
-    {
-      Link(Copy.text("web.templates.451755e3831f"), destination: url).buttonStyle(
-        CardPillStyle(primary: true, solid: true))
-    } else if let raw = card.value.url, let url = URL(string: raw),
-      ["http", "https"].contains(url.scheme ?? "")
-    {
-      Link(externalLabel(card), destination: url).buttonStyle(
-        CardPillStyle(primary: true, solid: true))
+  private struct ReaderAction: Identifiable {
+    let id: String
+    let icon: String
+    let label: String
+  }
+  private func readerActions(_ card: Card) -> [ReaderAction] {
+    var actions: [ReaderAction] = []
+    let state = model.items[card.id]
+    let settled =
+      state?["dismissed"]?.bool == true || state?["reminderDone"]?.bool == true
+      || (state?["snoozedUntil"]?.number ?? 0) > 0
+    if card.type == "mail" {
+      if safeURL(card.value.url) != nil {
+        actions.append(.init(id: "reply", icon: "reply", label: Copy.text("web.preview.reply")))
+      }
+    } else if ["event", "task", "reminder"].contains(card.type) {
+      let joining =
+        card.type == "event" && (card.date("start")?.timeIntervalSinceNow ?? .infinity) <= 900
+        && (card.date("end") ?? .distantPast) > .now
+        && safeURL(card.fields["meeting"]?["url"]?.string) != nil
+      if joining {
+        actions.append(
+          .init(id: "join", icon: "video", label: Copy.text("web.templates.451755e3831f")))
+      }
+      let restore =
+        state?["dismissed"]?.bool == true || (state?["snoozedUntil"]?.number ?? 0) > 0
+        || (state?["reminderDone"]?.bool == true && card.type != "reminder")
+      actions.append(
+        .init(
+          id: "snooze", icon: restore ? "bell" : "snooze",
+          label: Copy.text(restore ? "web.reminder.restore" : "web.reminder.again")))
+      let dismiss = ReaderAction(
+        id: "dismiss", icon: "bell-off", label: Copy.text("web.preview.dismissReminder"))
+      if joining && !settled { actions.append(dismiss) }
+      if card.type == "event" {
+        actions.append(
+          .init(id: "download", icon: "download", label: Copy.text("web.preview.downloadCalendar")))
+      }
+      if !joining && !settled { actions.append(dismiss) }
+    } else if card.type != "file", safeURL(card.value.url) != nil {
+      actions.append(.init(id: "open", icon: "external", label: externalLabel(card)))
+    }
+    let hidden = Set(model.preferences["hiddenActions"]?.strings ?? [])
+    return Array(actions.filter { !hidden.contains($0.id) }.prefix(3))
+  }
+  @ViewBuilder func readerToolbar(_ card: Card) -> some View {
+    let hidden = Set(model.preferences["hiddenActions"]?.strings ?? [])
+    let shared = ["bookmark", "tag", "later"].filter { !hidden.contains($0) }
+    let own = readerActions(card)
+    if !shared.isEmpty || !own.isEmpty {
+      HStack(spacing: AppleMetrics.space4) {
+        ForEach(shared, id: \.self) { action in
+          if action == "bookmark" {
+            let active = model.items[card.id]?["bookmarked"]?.bool == true
+            tool(
+              "bookmark", Copy.text(active ? "web.preview.removeBookmark" : "web.bookmark"),
+              active: active
+            ) {
+              model.toggle("bookmarked", card: card)
+            }
+          } else if action == "tag" {
+            tool("tag", Copy.text("web.editor.openTagsAndNote")) {
+              editRevision = model.revision
+              note = model.items[card.id]?["note"]?.string ?? ""
+              tags = model.tags(card)
+              newTag = ""
+              submitting = false
+              organizing = true
+            }
+          } else {
+            let active = model.items[card.id]?["later"]?.bool == true
+            tool(
+              "glasses", Copy.text(active ? "web.preview.removeLater" : "web.later"), active: active
+            ) {
+              model.toggle("later", card: card)
+            }
+          }
+        }
+        if !shared.isEmpty && !own.isEmpty {
+          Rectangle().fill(AppleColors.secondary.opacity(AppleMetrics.borderOpacity))
+            .frame(width: 1, height: AppleMetrics.space20).padding(.horizontal, AppleMetrics.space4)
+        }
+        ForEach(own) { action in
+          tool(action.icon, action.label, active: true) { performReaderAction(action.id, card) }
+        }
+      }.padding(AppleMetrics.space8).modifier(GlassSurface())
+        .accessibilityLabel(Copy.text("web.preview.cardTools"))
+
+    }
+  }
+  func reminderCompletion(_ card: Card) -> some View {
+    ReminderCompletion(card: card)
+  }
+  private func safeURL(_ raw: String?) -> URL? {
+    guard let raw, let url = URL(string: raw), ["http", "https"].contains(url.scheme ?? "") else {
+      return nil
+    }
+    return url
+  }
+  private func performReaderAction(_ action: String, _ card: Card) {
+    switch action {
+    case "download": exportCalendar(card)
+    case "open", "reply", "join":
+      if let url = safeURL(
+        action == "join" ? card.fields["meeting"]?["url"]?.string : card.value.url)
+      {
+        NSWorkspace.shared.open(url)
+      }
+    case "dismiss":
+      model.patch([card.id], values: ["dismissed": .bool(true), "snoozedUntil": .number(0)])
+    case "snooze":
+      let state = model.items[card.id]
+      let restore =
+        state?["dismissed"]?.bool == true || (state?["snoozedUntil"]?.number ?? 0) > 0
+        || (state?["reminderDone"]?.bool == true && card.type != "reminder")
+      model.patch(
+        [card.id],
+        values: [
+          "snoozedUntil": .number(
+            restore ? 0 : Date.now.addingTimeInterval(600).timeIntervalSince1970 * 1000),
+          "dismissed": .bool(false), "reminderDone": .bool(false),
+        ])
+    default: break
     }
   }
   func tool(
     _ icon: String, _ label: String, active: Bool = false, action: @escaping () -> Void
   ) -> some View {
-    Button(action: action) {
-      NativeIcon(name: icon, size: AppleMetrics.font20).foregroundStyle(
-        active ? AppleColors.accent : AppleColors.primary
-      ).frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-    }.buttonStyle(.plain).accessibilityLabel(label).help(label).disabled(model.busy)
+    Button(label, systemImage: NativeIcon.symbol(for: icon), action: action)
+      .labelStyle(.iconOnly).buttonStyle(.borderless)
+      .font(.system(size: AppleMetrics.font18))
+      .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
+      .foregroundStyle(active ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
+      .help(label).disabled(model.busy)
   }
   private func fileDetails(_ file: JSONValue) -> String {
     var parts = [file["mimeType"]?.string].compactMap { $0 }
@@ -263,7 +357,7 @@ extension CardReader {
           tags.removeAll { $0 == tag }
         } label: {
           NativeIcon(name: "x", size: AppleMetrics.font12)
-        }.buttonStyle(.plain).accessibilityLabel(Copy.text("web.panels.0d1e7200becb") + tag)
+        }.buttonStyle(.plain).accessibilityLabel(Copy.text("web.editor.removeTagPrefix") + tag)
       }
     }.font(.system(size: AppleMetrics.font13)).padding(.horizontal, AppleMetrics.space10).padding(
       .vertical, AppleMetrics.space6

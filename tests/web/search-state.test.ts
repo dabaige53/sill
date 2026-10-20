@@ -210,7 +210,6 @@ for (const action of ["snooze", "dismiss-reminder", "complete-reminder", "restor
 			f.w.history.replaceState({ glass: true, prev: "#search" }, "", "#card/b");
 			f.app.lastRouteHash = "#card/b";
 			f.w.HTMLElement.prototype.getAnimations = () => [];
-			f.app.pauseMedia = () => {};
 			f.app.withFeedAnchor = () => {};
 			f.app.checkReminders = () => {};
 			f.app.toast = () => {};

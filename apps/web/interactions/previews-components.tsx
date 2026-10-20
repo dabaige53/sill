@@ -10,7 +10,7 @@ import {
 } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardSource, cardReadingTime, fileDescription } from "../data/card-source.ts";
+import { cardDate, cardReadingTime, cardSource, fileDescription } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -21,9 +21,8 @@ import {
 	checkItem,
 	icon,
 	keyed,
-	reminderMark,
-	TrustedFragment,
 	personalNote,
+	reminderMark,
 } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
 
@@ -50,7 +49,7 @@ type PreviewRenderer = (
 const renderers = {
 	mail: mailPreview,
 	event: eventPreview,
-	media: mediaPreview,
+	media: contentPreview,
 	file: filePreview,
 	task: taskReminderPreview,
 	reminder: taskReminderPreview,
@@ -117,22 +116,25 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 function mailPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
 	const { sheet, h1, tools } = context;
 
-	const sender = c.sender || cardSource(c);
+	const sender = c.sender?.trim();
 	return (
 		<>
 			{keyed(
 				sheet(
 					<>
-						<div className={"preview-sender"}>
-							{avatar(sender, 36)}
-							<span>
-								<b>{sender}</b>
-								<small>
-									{copy("web.preview.sentToYouPrefix")}
-									{[c.sentAt, cardReadingTime(c)].filter(Boolean).join(" · ")}
-								</small>
-							</span>
-						</div>
+						{sender ? (
+							<div className={"preview-sender"}>
+								{avatar(sender, 36)}
+								<span>
+									<b>{sender}</b>
+									<small>
+										{[cardDate(c.sentAt)?.text, cardReadingTime(c)].filter(Boolean).join(" · ")}
+									</small>
+								</span>
+							</div>
+						) : (
+							this.meta(c)
+						)}
 						{h1}
 						<div className={"preview-full"}>
 							{keyed(
@@ -266,8 +268,6 @@ function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCont
 function podcastPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
 	const { app, s, h1, tools, closeButton } = context;
 
-	const total = c.duration || 0,
-		played = Math.round(total * (s.progress || 0));
 	return (
 		<>
 			{
@@ -280,21 +280,18 @@ function podcastPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 								<div className={"player-art"}></div>
 								{h1}
 								{this.meta(c)}
-								<div className={"player-bar"}>
-									<span className={"bar"}>
-										<i
-											id={"podcast-bar"}
-											style={{ width: "" + Math.round((s.progress || 0) * 100) + "%" }}
-										></i>
-									</span>
-									<span className={"player-times num"}>
-										<span id={"podcast-played"}>{duration(played)}</span>
-										<span>
-											{"-"}
-											{duration(total - played)}
-										</span>
-									</span>
-								</div>
+								{c.duration !== undefined && (
+									<div className="player-times num">{duration(c.duration)}</div>
+								)}
+								{c.summary && <p className="preview-lead">{c.summary}</p>}
+								{c.body?.length ? (
+									<div className="preview-full">
+										{c.body.map((p, index) => (
+											// biome-ignore lint/suspicious/noArrayIndexKey: Paragraphs may repeat; these static text rows have no component state.
+											<p key={index}>{p}</p>
+										))}
+									</div>
+								) : null}
 								<p className="empty-description">{copy("web.media.playbackUnavailable")}</p>
 								{personalNote(s.note)}
 								{this.foot(agentAction(app, c))}
@@ -303,35 +300,6 @@ function podcastPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 					</div>
 				</>
 			}
-			{tools}
-		</>
-	);
-}
-
-function mediaPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { sheet, h1, tools } = context;
-
-	return (
-		<>
-			{sheet(
-				<>
-					{this.meta(c)}
-					{h1}
-					<div className={"media-player"}>
-						<img src={Assets[c.image]} alt={""} />
-						<div className={"media-slide"} id={"media-slide"}></div>
-					</div>
-					<div className={"media-controls"}>
-						{button("back", copy("web.preview.media.previousSegment"), "media-prev", c.id)}
-						{button("play", copy("web.preview.media.playDemo"), "media-play", c.id)}
-						<span className={"media-step"} id={"media-step"}>
-							{"1 / "}
-							{c.body.length || 1}
-						</span>
-						{button("arrow", copy("web.preview.media.nextSegment"), "media-next", c.id)}
-					</div>
-				</>,
-			)}
 			{tools}
 		</>
 	);
@@ -542,6 +510,9 @@ export function articleContent(this: PanelRenderers, c: PreviewCard) {
 			</h1>
 			{this.tags(c)}
 			{this.publication(c)}
+			{c.type === "media" && c.duration !== undefined ? (
+				<div className="player-times num">{duration(c.duration)}</div>
+			) : null}
 			{cover}
 			{lead}
 			{points}

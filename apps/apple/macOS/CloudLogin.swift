@@ -25,7 +25,7 @@ struct CloudLogin: View {
     VStack(spacing: AppleMetrics.space24) {
       NativeIcon(name: "sill", size: AppleMetrics.space40)
       Text(Copy.appleWindowTitle).font(.system(size: AppleMetrics.font30, weight: .semibold))
-      Text(Copy.text("web.panels.3d7d3ac3581f")).foregroundStyle(AppleColors.secondary)
+      Text(Copy.text("web.welcome.tagline")).foregroundStyle(AppleColors.secondary)
       Button(Copy.text("web.cloudentry.be4ece4b22aa")) { passwordPage = true }.buttonStyle(
         LoginButtonStyle())
       VStack(alignment: .leading, spacing: AppleMetrics.space12) {

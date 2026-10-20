@@ -1,17 +1,17 @@
 # Sill Apple
 
-更新：2026-10-19。
+更新：2026-10-20。
 
 一个 Swift Package。macOS 用 SwiftUI 与 AppKit 实现当前 Web 工作台，默认登录同一云端账号并读写同一工作区；不使用 WebView、Node 或后台服务。SillKit 提供卡片校验、本地存储与云端客户端。iOS 仍只有共享数据层，没有界面或设备验收。
 
 ## 产品与数据
 
-- 页面、卡片配方、文案、图标和状态以当前 Web 与设计系统为准，不另外设计 Mac 版。四格底部导航保留主页、搜索、AI、设置；已有正文由助手修改，用户保留速记与轻操作。
+- 卡片内容、文案、功能与业务状态以当前 Web 与设计系统为准；Mac 卡片由 SwiftUI 原生视图按现有圆角、留白与字体层级组成；动作采用 SF Symbols、系统复选框和按钮。卡片不加玻璃，使用单层静态阴影。窗口工具栏、搜索和菜单使用 macOS 系统组件，macOS 26 及以上浮动工具使用 Liquid Glass，较旧系统使用原生 material。Mac 使用统一信息流：顶部品牌、分栏菜单、搜索和账号，底部 AI 输入区与多选工具条互相切换；已有正文由助手修改，用户保留速记与轻操作。
 - 云端使用既有密码登录、会话、工作区与原子批量接口。Cookie 保存在系统钥匙串，密码不持久保存；固定可信 HTTPS 服务，不自动跟随重定向，不使用 service-role 凭据。账号切换清理界面中的旧账号内容。
 - 邮件登录新增 `client=macos` 的 PKCE 回调适配。浏览器只把一次性 code 转给 `sill://auth/callback`，原生持有验证信息并回 HTTPS 兑换。回调地址已写入应用包；这条链路需要服务端发布并核对 Supabase redirect 配置，源码完成不表示线上已可用。
 - 卡片写入携带读取时的版本；标签与备注保留打开时的编辑基准，冲突保留输入。批量操作整批保存。请求结果未知先读取确认，不重发写请求；未确认前阻止新的写操作。待核对请求只在当前进程保留，不是持久执行队列。
-- AI 页与 Web 一样只展示所选卡片和临时输入，不能发送，不连接模型。独立原生应用没有 MCP App 宿主消息能力，不显示虚假的助手交接入口。
-- Web 的演示媒体按相同片段和进度展示，不表示播放外部音视频。来源字段只记录出处，不接入来源或同步外部内容。
+- AI 输入区与 Web 一样只展示所选卡片和临时输入，不能发送，不连接模型。独立原生应用没有 MCP App 宿主消息能力，不显示虚假的助手交接入口。
+- 媒体正文按普通段落展示，不提供演示播放或把阅读进度当作播放进度；仅在提供时显示总时长，真实零时长保留。来源字段只记录出处，不接入来源或同步外部内容。
 
 ## 本地数据兼容
 
@@ -31,11 +31,15 @@ codesign --verify --deep --strict dist/macos/Sill.app
 
 产物为 `dist/macos/Sill.app`，仅本机 ad-hoc 签名；构建不表示安装、公证、部署或真实账号验收。测试使用临时目录与模拟 HTTP 响应，不访问真实卡片或账号。桌面视觉与交互须另外在实际窗口对照 Web 检查，不能用编译通过替代 1:1 验收。
 
+设置使用独立 Settings 窗口，支持系统 ⌘,；阅读保留主窗口内的居中预览与展开，点击卡片不另开窗口。主窗口缩放和全屏由系统管理。速记、标签和备注通过 Sheet 操作，保存仍检查编辑基准与冲突。信息流按滚动位置分批加载，同一次呈现复用筛选和分组结果，滚动采样不重新筛选全部卡片；任务行按任务 ID 保持身份；自定义动画响应系统减少动态效果。
+
+构建会检查 Mac 源码中的完整文案键；失效引用会阻止构建。搜索、分栏共用同一信息流，支持 ⌘1–5 切换分栏与 ⌘K 聚焦搜索；AI 上下文追加并去重。
+
 类型、文案和图标在构建时由 `contracts/` 与 `design-system/` 生成。四张封面 PNG 是 Web 现有 SVG 图像的原生资源副本；构建随 SwiftPM 资源包复制，不能依赖开发机的路径。新增设计值必须回到设计系统维护。
 
 ## 源文件职责
 
-- `Desktop.swift` 保留窗口与状态；`DesktopFeed.swift` 组织主页、归档与搜索；`DesktopActions.swift` 处理选择、标签与 AI 页；`DesktopInteraction.swift` 处理键盘、滚动与提示计时；`DesktopPresentation.swift` 保存展示状态类型。
-- `CardReader.swift` 保留阅读浮层与状态；`CardReaderContent.swift` 展示正文与信息；`CardReaderMetadata.swift` 处理备注、标签与媒体操作。
+- `Desktop.swift` 保留窗口与状态；`DesktopFeed.swift` 组织统一信息流、顶部搜索与归档；`DesktopActions.swift` 处理选择、标签与 AI 输入区；`DesktopInteraction.swift` 处理键盘、滚动与提示计时；`DesktopPresentation.swift` 保存展示状态类型。
+- `CardReader.swift` 保留阅读浮层与状态；`CardReaderContent.swift` 展示正文与信息；`CardReaderMetadata.swift` 处理备注、标签、媒体正文与总时长。
 - `CardTile.swift` 展示卡片；`CardActions.swift` 提供共用卡片控件与动作。`WorkspaceFeed.swift` 负责主页排序与搜索过滤。
 - `CloudWorkspace.swift` 负责云端工作区；`CloudSessionVault.swift` 负责会话存储。跨文件扩展只开放必要的模块内成员，不增加公共接口。

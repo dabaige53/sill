@@ -135,7 +135,6 @@ export const appLifecycleMethods = {
 		document.addEventListener("visibilitychange", () => {
 			if (document.hidden) {
 				Store.save();
-				this.pauseMedia();
 			} else this.checkReminders();
 		});
 		window.addEventListener("pagehide", () => Store.save());

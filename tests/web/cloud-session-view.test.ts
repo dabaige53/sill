@@ -99,7 +99,6 @@ function fixture() {
 	app.lastFocus = app.dialog.querySelector(".card-title-button");
 	app.setNav = () => {};
 	app.updateSelection = () => {};
-	app.pauseMedia = () => {};
 	app.renderCurrent = () => app.grid.replaceChildren();
 	const menu = w.document.getElementById("selection-menu");
 	menu.innerHTML = '<article data-card="session-card">Synthetic menu clone</article>';

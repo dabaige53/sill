@@ -34,6 +34,59 @@ import Testing
     #expect(card.dateText("publishedAt") == "2026-10-20 12:30:45.123+08:00")
   }
 
+  @Test func missingMailFieldsDoNotBorrowSource() throws {
+    let mail = try Card(
+      json: .object([
+        "id": .string("mail"), "type": .string("mail"), "title": .string("Mail"),
+        "sources": .array([.object(["name": .string("Mailbox"), "kind": .string("mail")])]),
+      ]))
+    #expect(mail.senderName == nil)
+    #expect(mail.recipients.isEmpty)
+    #expect(mail.source == "Mailbox")
+    let missing = try card("missing", type: "mail")
+    #expect(missing.source.isEmpty)
+    #expect(missing.sourceLine.isEmpty)
+    #expect(missing.sourceKind.isEmpty)
+  }
+
+  @Test(arguments: ["", " ", " \n\t "])
+  func blankSenderDoesNotCreateAnAvatar(_ sender: String) throws {
+    let mail = try Card(
+      json: .object([
+        "id": .string("mail"), "type": .string("mail"), "title": .string("Mail"),
+        "sender": .string(sender),
+      ]))
+    #expect(mail.senderName == nil)
+  }
+
+  @Test func explicitMailFieldsKeepTheirMeaning() throws {
+    let mail = try Card(
+      json: .object([
+        "id": .string("mail"), "type": .string("mail"), "title": .string("Mail"),
+        "sender": .string("Sender"), "recipients": .array([.string("Recipient")]),
+        "sources": .array([.object(["name": .string("Mailbox"), "kind": .string("mail")])]),
+      ]))
+    #expect(mail.senderName == "Sender")
+    #expect(mail.recipients == ["Recipient"])
+    #expect(mail.source == "Mailbox")
+  }
+
+  @Test func mediaDurationRemainsOptionalAndBodyRemainsProse() throws {
+    var fields: JSONValue = .object([
+      "id": .string("media"), "type": .string("media"), "title": .string("Media"),
+      "media": .string("podcast"),
+      "body": .array([.string("First paragraph"), .string("Second paragraph")]),
+      "chapterCount": .number(8),
+    ])
+    let absent = try Card(json: fields)
+    #expect(absent.mediaDurationText == nil)
+    #expect(absent.paragraphs == ["First paragraph", "Second paragraph"])
+    fields["duration"] = .number(0)
+    #expect(try Card(json: fields).mediaDurationText == "0:00")
+    fields["duration"] = .number(125)
+    #expect(try Card(json: fields).mediaDurationText == "2:05")
+  }
+
   @Test func readerDismissReturnsOneRelatedCardAtATime() throws {
     let model = Workspace(autoload: false)
     model.cards = try [card("first"), card("second"), card("third")]

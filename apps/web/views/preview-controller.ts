@@ -84,13 +84,6 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	this.bindPreview(id);
 	this.gestures.bindPullDown();
 	this.bindSheetChrome();
-	if (c.type === "media" && c.media !== "podcast") {
-		this.mediaIndex = Math.min(
-			(c.body.length || 1) - 1,
-			Math.floor(Store.item(id).progress * (c.body.length || 1)),
-		);
-		this.paintMedia();
-	}
 }
 
 export function bindPreview(this: AppController, id?: any) {

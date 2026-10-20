@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Routes the Web shortcuts through AppKit while preserving text input and IME events.
+/// Routes workspace shortcuts only while its window owns keyboard focus.
 struct NativeKeyboard: NSViewRepresentable {
   var handle: (NSEvent, Bool) -> Bool
   func makeCoordinator() -> Coordinator { Coordinator(handle: handle) }
@@ -21,7 +21,9 @@ struct NativeKeyboard: NSViewRepresentable {
     func start() {
       monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
         let consumed = MainActor.assumeIsolated {
-          guard let self, event.window === self.view?.window else { return false }
+          guard let self, let window = self.view?.window,
+            event.window === window, window.isKeyWindow, window.attachedSheet == nil
+          else { return false }
           let responder = event.window?.firstResponder
           let typing = responder is NSTextView || responder is NSTextField
           if let text = responder as? NSTextView, text.hasMarkedText() { return false }

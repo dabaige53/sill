@@ -7,7 +7,6 @@ extension Desktop {
     if tagEditor {
       tagEditor = false
     } else if model.selected != nil {
-      detailImmediateRequest = immediateDetail
       model.dismissReader()
     } else if archivePresented {
       archivePresented = false
@@ -17,13 +16,17 @@ extension Desktop {
       model.settingsPresented = false
     } else if !model.selection.isEmpty {
       model.selection.removeAll()
+    } else if !model.query.isEmpty {
+      model.query = ""
+    } else if model.feedScope != .all {
+      model.feedScope = .all
     } else {
-      model.page = "home"
+      searchFocused = false
+      aiFocused = false
     }
   }
   func selectDetailFromKeyboard(_ id: String?) {
     guard model.selected != id else { return }
-    detailImmediateRequest = true
     model.selected = id
   }
   func requestHomeTop(immediate: Bool = false) {
@@ -35,29 +38,31 @@ extension Desktop {
       .background(
         ScrollObservation(initialOffset: model.scrollOffsets[page] ?? 0) { offset, bottom, user in
           model.scrollOffsets[page] = offset
-          guard model.page == page, user else { return }
+          guard model.page == page else { return }
+          if page == "home", bottom, pageLimit < chrome.feedEntryCount { pageLimit += 40 }
+          guard user else { return }
           guard page == "home" else {
             showRail()
             return
           }
-          let delta = offset - lastOffset
-          lastOffset = offset
-          revealTask?.cancel()
+          let delta = offset - chrome.lastOffset
+          chrome.lastOffset = offset
+          chrome.revealTask?.cancel()
           if offset <= AppleMetrics.space24 || bottom {
             showRail()
             return
           }
           if delta > 0 {
-            downward += delta
-            upward = 0
-            if downward > AppleMetrics.chromeHideTravel { railHidden = true }
+            chrome.downward += delta
+            chrome.upward = 0
+            if chrome.downward > AppleMetrics.chromeHideTravel && !railHidden { railHidden = true }
           } else if delta < 0 {
-            upward -= delta
-            downward = 0
-            if upward > AppleMetrics.chromeShowTravel { showRail() }
+            chrome.upward -= delta
+            chrome.downward = 0
+            if chrome.upward > AppleMetrics.chromeShowTravel { showRail() }
           }
           if railHidden {
-            revealTask = Task {
+            chrome.revealTask = Task {
               try? await Task.sleep(for: .seconds(AppleMetrics.chromeRest))
               if !Task.isCancelled { showRail() }
             }
@@ -65,10 +70,10 @@ extension Desktop {
         })
   }
   func showRail() {
-    railHidden = false
-    downward = 0
-    upward = 0
-    revealTask?.cancel()
+    if railHidden { railHidden = false }
+    chrome.downward = 0
+    chrome.upward = 0
+    chrome.revealTask?.cancel()
   }
   var toastPaused: Bool {
     windowActivity == .inactive || toastHovered || toastFocused || undoFocused
@@ -102,27 +107,17 @@ extension Desktop {
   }
   func handleKey(_ event: NSEvent, _ typing: Bool) -> Bool {
     let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
-    let command = event.modifierFlags.contains(.command) || event.modifierFlags.contains(.control)
+    let command = event.modifierFlags.contains(.command)
     if event.keyCode == 48 {
       showRail()
       return false
     }
-    if command && key == "k" {
-      model.presentNavigation("search")
-      model.searchFocusRequest += 1
+    if command, let number = Int(key), (1...5).contains(number), model.selected == nil {
+      model.feedScope = FeedScope.tabs[number - 1]
+      showRail()
       return true
     }
-    if event.keyCode == 53 {
-      dismissTop(immediateDetail: true)
-      return true
-    }
-    if command && event.keyCode == 36 && model.capturePresented {
-      if !captureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-        model.capture(captureText)
-      }
-      return true
-    }
-    if model.searchPresented && searchFocused && event.keyCode == 36 {
+    if searchFocused && event.keyCode == 36 {
       selectDetailFromKeyboard(model.visible.first?.id)
       return true
     }

@@ -18,31 +18,6 @@ function snooze(this: AppController, { id, name }: ActionContext) {
 	this.changeReminder(id, name);
 }
 
-function mediaPlay(this: AppController) {
-	this.playMedia();
-}
-
-function mediaNext(this: AppController) {
-	const c = Store.card(this.currentId);
-	this.pauseMedia();
-	this.mediaIndex = Math.min((c.body.length || 1) - 1, this.mediaIndex + 1);
-	this.paintMedia();
-}
-
-function mediaPrev(this: AppController) {
-	this.pauseMedia();
-	this.mediaIndex = Math.max(0, this.mediaIndex - 1);
-	this.paintMedia();
-}
-
-function podcastPlay(this: AppController, { id }: ActionContext) {
-	this.podcast(id);
-}
-
-function podcastSeek(this: AppController, { id, extra }: ActionContext) {
-	this.podcast(id, Number(extra));
-}
-
 export const mediaReminderActions = {
 	"photo-step": photoStep,
 	"photo-go": photoStep,
@@ -50,9 +25,4 @@ export const mediaReminderActions = {
 	"dismiss-reminder": snooze,
 	"complete-reminder": snooze,
 	"restore-reminder": snooze,
-	"media-play": mediaPlay,
-	"media-next": mediaNext,
-	"media-prev": mediaPrev,
-	"podcast-play": podcastPlay,
-	"podcast-seek": podcastSeek,
 } satisfies Record<string, ActionHandler>;

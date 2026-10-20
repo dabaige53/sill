@@ -28,74 +28,42 @@ extension Desktop {
     }
     .buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
   }
-  func nav(_ page: String, _ name: String, _ label: String) -> some View {
-    Button {
-      showRail()
-      if page == "home" && model.page == "home" { requestHomeTop() }
-      model.presentNavigation(page)
-    } label: {
-      ZStack {
-        if model.page == page {
-          Capsule().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity))
-        }
-        NativeIcon(name: name, size: AppleMetrics.space22)
-        .foregroundStyle(
-          AppleColors.primary.opacity(
-            model.page == page
-              ? 1 : 0.62))
-      }
-      .frame(width: AppleMetrics.navTab, height: AppleMetrics.railRow - AppleMetrics.railInset * 2)
-    }.buttonStyle(.plain).accessibilityLabel(Copy.text(label)).help(Copy.text(label))
-  }
   var selectionBar: some View {
     HStack(spacing: AppleMetrics.space8) {
       Text("\(model.selection.count)").font(.system(size: AppleMetrics.font14, design: .rounded))
         .monospacedDigit().padding(.leading, AppleMetrics.space12)
-      iconButton("bookmark", "web.app.87aeb7040c82") { bulk("bookmarked") }
-      iconButton("glasses", "web.app.d108c0a7e2c3") { bulk("later") }
-      iconButton("tag", "web.app.b5816e5fd0be") { presentTags() }
-      Rectangle().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity)).frame(
-        width: 1, height: AppleMetrics.space24)
-      iconButton("x", "web.app.74966e20df2e") { model.selection.removeAll() }
+      Spacer()
+      iconButton("bookmark", "web.selection.bookmark") { bulk("bookmarked") }
+      iconButton("glasses", "web.selection.later") { bulk("later") }
+      iconButton("tag", "web.selection.tag") { presentTags() }
+      Rectangle().fill(AppleColors.primary.opacity(AppleMetrics.borderOpacity))
+        .frame(width: 1, height: AppleMetrics.space24)
+      iconButton("chat", "web.selection.aiOpen") { model.discussSelection() }
+      iconButton("x", "web.selection.cancel") { model.selection.removeAll() }
     }.padding(AppleMetrics.railInset).frame(height: AppleMetrics.railRow).modifier(GlassSurface())
-      .overlay {
-        Button {
-          model.discussSelection()
-        } label: {
-          NativeIcon(name: "chat", size: AppleMetrics.space24).frame(
-            maxWidth: .infinity, maxHeight: .infinity
-          )
-          .background(AppleColors.card, in: Capsule())
-          .overlay(
-            Capsule().strokeBorder(aiDropTargeted ? AppleColors.accent : .clear, lineWidth: 2)
-          )
-          .foregroundStyle(aiDropTargeted ? AppleColors.accent : AppleColors.primary)
-        }.buttonStyle(.plain).accessibilityLabel(Copy.text("web.selection.aiOpen"))
-          .focused($aiTargetFocused).opacity(aiDropTargeted || aiTargetFocused ? 1 : 0)
-          .allowsHitTesting(aiDropTargeted || aiTargetFocused)
-      }
       .dropDestination(for: String.self) { ids, _ in
         let valid = ids.filter { id in model.cards.contains { $0.id == id } }
         guard !valid.isEmpty else { return false }
         if !model.selection.isDisjoint(with: valid) {
           model.discussSelection()
         } else {
-          model.aiCards = valid
-          model.page = "ai"
+          model.appendAIContext(valid)
+          model.selection.removeAll()
         }
         aiDropTargeted = false
         return true
       } isTargeted: {
         aiDropTargeted = $0
-        if $0 { showRail() }
       }
-      .contextMenu {
-        Button(Copy.text("web.selection.bookmark")) { bulk("bookmarked") }
-        Button(Copy.text("web.selection.later")) { bulk("later") }
-        Divider()
-        Button(Copy.text("web.selection.tag")) { presentTags() }
-        Divider()
-        Button(Copy.text("web.selection.cancel")) {}
+      .overlay {
+        if aiDropTargeted {
+          HStack {
+            NativeIcon(name: "chat", size: AppleMetrics.space24)
+            Text(Copy.text("web.selection.aiOpen"))
+          }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppleColors.card, in: Capsule()).foregroundStyle(AppleColors.accent)
+            .allowsHitTesting(false)
+        }
       }
   }
   var metadataEditor: some View {
@@ -105,7 +73,8 @@ extension Desktop {
           .system(size: AppleMetrics.font15)
         ).foregroundStyle(AppleColors.secondary)
         Spacer()
-        iconButton("x", "web.close") { tagEditor = false }
+        Button(Copy.text("web.cancel")) { tagEditor = false }
+          .keyboardShortcut(.cancelAction).disabled(model.busy)
       }
       FlowLayout(spacing: AppleMetrics.space8) {
         ForEach(editingTags, id: \.self) { tag in
@@ -116,22 +85,22 @@ extension Desktop {
             } label: {
               NativeIcon(name: "x", size: AppleMetrics.font12)
             }
-            .buttonStyle(.plain).accessibilityLabel(Copy.text("web.panels.0d1e7200becb") + tag)
+            .buttonStyle(.plain).accessibilityLabel(Copy.text("web.editor.removeTagPrefix") + tag)
           }.font(.system(size: AppleMetrics.font13)).padding(.horizontal, AppleMetrics.space10)
             .padding(.vertical, AppleMetrics.space8).background(AppleColors.surface, in: Capsule())
         }
       }
-      TextField(Copy.text("web.panels.795cbff909c4"), text: $tagText).textFieldStyle(.plain)
-        .accessibilityLabel(Copy.text("web.panels.7e2f159f6491")).onSubmit { appendTag() }
+      TextField(Copy.text("web.editor.addTagPlaceholder"), text: $tagText).textFieldStyle(.plain)
+        .accessibilityLabel(Copy.text("web.editor.newTagLabel")).onSubmit { appendTag() }
         .onChange(of: tagText) { if tagText.count > 30 { tagText = String(tagText.prefix(30)) } }
       FlowLayout(spacing: AppleMetrics.space8) {
         ForEach(tagSuggestions, id: \.self) { tag in
           chip(tag, selected: false) { if editingTags.count < 20 { editingTags.append(tag) } }
         }
       }
-      TextField(Copy.text("web.panels.9cdbdc0a45a7"), text: $editingNote, axis: .vertical)
+      TextField(Copy.text("web.editor.notePlaceholder"), text: $editingNote, axis: .vertical)
         .textFieldStyle(.plain).lineLimit(5...10)
-        .accessibilityLabel(Copy.text("web.panels.daede9881787"))
+        .accessibilityLabel(Copy.text("web.editor.noteLabel"))
         .padding(AppleMetrics.space12).background(
           AppleColors.surface, in: RoundedRectangle(cornerRadius: AppleMetrics.space12)
         )
@@ -140,7 +109,7 @@ extension Desktop {
         }
       HStack(spacing: AppleMetrics.space8) {
         NativeIcon(name: "lock", size: AppleMetrics.font13)
-        Text(Copy.text("web.panels.b7325aa77693")).font(.system(size: AppleMetrics.font13))
+        Text(Copy.text("web.editor.deviceStorageHint")).font(.system(size: AppleMetrics.font13))
           .foregroundStyle(AppleColors.secondary)
         Spacer()
         Button(Copy.text("web.save")) {
@@ -155,10 +124,12 @@ extension Desktop {
           }
           tagSaving = true
           model.batchPatch(patches, expectedRevision: tagRevision)
-        }.buttonStyle(CardPillStyle(primary: true, solid: true)).disabled(model.busy)
+        }.buttonStyle(.borderedProminent).keyboardShortcut("s").disabled(model.busy)
       }
-    }.padding(AppleMetrics.railEdge).background(
-      AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.panelRadius))
+      if let error = model.error {
+        Text(error).foregroundStyle(.red).textSelection(.enabled)
+      }
+    }.padding(AppleMetrics.railEdge)
   }
   private var tagSuggestions: [String] {
     let existing = model.cards.first { $0.id == tagIds.first }?.fields["tags"]?.strings ?? []
@@ -200,83 +171,57 @@ extension Desktop {
       })
     pendingToast =
       key == "bookmarked"
-      ? Copy.text("web.app.96e7ee93f3ba") + "\(ids.count)" + Copy.text("web.panels.e9e0fdc242b4")
+      ? Copy.text("web.app.96e7ee93f3ba") + "\(ids.count)" + Copy.text("web.common.cardCountSuffix")
       : key == "later" ? "\(ids.count)" + Copy.text("web.app.34d0636b70c8") : ""
     bulkPending = true
     model.patch(ids, values: [key: .bool(value)])
   }
-  var aiPage: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      let contextCards = model.aiCards.compactMap { id in model.cards.first { $0.id == id } }
-      Text(Copy.text("web.nav.ai")).font(.system(size: AppleMetrics.font17, weight: .semibold))
-        .frame(maxWidth: .infinity)
-      ScrollView {
-        VStack(spacing: AppleMetrics.space12) {
-          ForEach(contextCards) { card in
-            VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-              Text(card.title).font(.system(size: AppleMetrics.font17, weight: .semibold))
-              let excerpt = String((card.summary.isEmpty ? card.body : card.summary).prefix(180))
-              if !excerpt.isEmpty {
-                Text(excerpt).font(.system(size: AppleMetrics.font15)).foregroundStyle(
-                  AppleColors.secondary)
+  var aiDock: some View {
+    HStack(spacing: AppleMetrics.space4) {
+      iconButton("plus", "web.ai.addUnavailable") {}.disabled(true)
+      TextField(Copy.text("web.ai.dockPlaceholder"), text: $model.aiDraft)
+        .textFieldStyle(.plain).font(.system(size: AppleMetrics.font16)).focused($aiFocused)
+        .accessibilityLabel(Copy.text("web.ai.dock"))
+        .onChange(of: model.aiDraft) {
+          if model.aiDraft.count > 4000 { model.aiDraft = String(model.aiDraft.prefix(4000)) }
+        }
+      iconButton("mic", "web.ai.speak") {}.disabled(true)
+      Button {
+      } label: {
+        NativeIcon(name: "up", size: AppleMetrics.space16)
+          .frame(width: AppleMetrics.space32, height: AppleMetrics.space32)
+          .foregroundStyle(AppleColors.card).background(AppleColors.surface, in: Circle())
+      }.buttonStyle(.plain).disabled(true).accessibilityLabel(Copy.text("web.ai.sendUnavailable"))
+    }.padding(.horizontal, AppleMetrics.space12).frame(height: AppleMetrics.railRow)
+      .modifier(GlassSurface())
+      .overlay(alignment: .bottomLeading) {
+        if !model.aiCards.isEmpty {
+          FlowLayout(spacing: AppleMetrics.space8) {
+            ForEach(model.aiCards, id: \.self) { id in
+              if let card = model.cards.first(where: { $0.id == id }) {
+                HStack(spacing: AppleMetrics.space6) {
+                  NativeIcon(name: card.nativeIcon, size: AppleMetrics.space14)
+                  Text(card.title).lineLimit(1)
+                  Button {
+                    model.aiCards.removeAll { $0 == id }
+                  } label: {
+                    NativeIcon(name: "x", size: AppleMetrics.space12)
+                      .frame(width: AppleMetrics.space20, height: AppleMetrics.space24)
+                  }.buttonStyle(.plain).accessibilityLabel(
+                    Copy.text("web.close") + " " + card.title)
+                }.font(.system(size: AppleMetrics.font13)).padding(.horizontal, AppleMetrics.space8)
+                  .frame(maxWidth: 260).frame(height: AppleMetrics.space32)
+                  .background(
+                    AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.space10))
               }
-            }.padding(AppleMetrics.cardPadding).frame(maxWidth: .infinity, alignment: .leading)
-              .background(
-                AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.cardRadius)
-              )
-              .overlay(
-                RoundedRectangle(cornerRadius: AppleMetrics.cardRadius).strokeBorder(
-                  AppleColors.primary.opacity(AppleMetrics.borderOpacity)))
-          }
+            }
+          }.padding(.bottom, AppleMetrics.railRow + AppleMetrics.space8)
         }
-      }.frame(maxHeight: .infinity)
-        .accessibilityLabel(Copy.text("web.ai.context"))
-      VStack(spacing: AppleMetrics.space4) {
-        TextField(Copy.text("web.ai.placeholder"), text: $model.aiDraft, axis: .vertical)
-          .textFieldStyle(.plain).lineLimit(1...8)
-          .font(.system(size: AppleMetrics.font17))
-          .padding(.horizontal, AppleMetrics.space4)
-          .frame(minHeight: AppleMetrics.space36, alignment: .top)
-          .accessibilityLabel(Copy.text("web.ai.composer"))
-          .onChange(of: model.aiDraft) {
-            if model.aiDraft.count > 4000 { model.aiDraft = String(model.aiDraft.prefix(4000)) }
-          }
-        HStack(spacing: AppleMetrics.space12) {
-          Button {
-          } label: {
-            NativeIcon(name: "paperclip", size: AppleMetrics.space18)
-              .rotationEffect(.degrees(-45))
-              .frame(width: AppleMetrics.space32, height: AppleMetrics.space32)
-              .background(
-                AppleColors.aiControl, in: RoundedRectangle(cornerRadius: AppleMetrics.space12))
-          }.buttonStyle(.plain).disabled(true).accessibilityLabel(Copy.text("web.ai.attach"))
-          Spacer()
-          Button {
-          } label: {
-            NativeIcon(name: "up", size: AppleMetrics.space20)
-              .frame(width: AppleMetrics.space24, height: AppleMetrics.space24)
-              .overlay(Circle().strokeBorder(AppleColors.aiInk, lineWidth: 2))
-          }.buttonStyle(.plain).disabled(true).accessibilityLabel(
-            Copy.text("web.ai.sendUnavailable"))
-          Button {
-          } label: {
-            HStack(spacing: AppleMetrics.space6) {
-              NativeIcon(name: "audio-lines", size: AppleMetrics.space18)
-              Text(Copy.text("web.ai.speak")).font(
-                .system(size: AppleMetrics.font17, weight: .medium))
-            }.frame(minWidth: AppleMetrics.space20 * 3, minHeight: AppleMetrics.space32)
-              .padding(.horizontal, AppleMetrics.space12)
-              .foregroundStyle(AppleColors.card).background(AppleColors.aiInk, in: Capsule())
-          }.buttonStyle(.plain).disabled(true)
-        }.foregroundStyle(AppleColors.aiInk)
-      }.padding(AppleMetrics.space12).background(
-        AppleColors.aiComposer, in: RoundedRectangle(cornerRadius: AppleMetrics.panelRadius))
-    }.frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
       .dropDestination(for: String.self) { ids, _ in
-        for id in ids
-        where model.cards.contains(where: { $0.id == id }) && !model.aiCards.contains(id) {
-          model.aiCards.append(id)
-        }
+        let valid = ids.filter { id in model.cards.contains { $0.id == id } }
+        guard !valid.isEmpty else { return false }
+        model.appendAIContext(valid)
         return true
       }
   }
@@ -288,13 +233,5 @@ extension Desktop {
         width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
     }
     .buttonStyle(.plain).accessibilityLabel(Copy.text(label)).help(Copy.text(label))
-  }
-  func overlay<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-    ZStack {
-      AppleColors.dim.ignoresSafeArea().onTapGesture { dismissTop() }
-      content().shadow(
-        color: AppleColors.shadow.opacity(0.18), radius: AppleMetrics.space40,
-        y: AppleMetrics.space24)
-    }.frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 }

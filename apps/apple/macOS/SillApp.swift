@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SillKit
 import SwiftUI
 
@@ -8,7 +9,11 @@ import SwiftUI
   var body: some Scene {
     Window(Copy.appleWindowTitle, id: "desktop") {
       Group {
-        if model.ready && !model.needsPasswordSetup { Desktop() } else { CloudLogin() }
+        if model.ready && !model.needsPasswordSetup {
+          NavigationStack { Desktop() }
+        } else {
+          CloudLogin()
+        }
       }.environmentObject(model).onAppear { delegate.model = model }
         .onOpenURL { model.completeLogin($0) }
         .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { _ in
@@ -17,9 +22,11 @@ import SwiftUI
     }.defaultSize(width: AppleMetrics.windowWidth, height: AppleMetrics.windowHeight).windowStyle(
       .hiddenTitleBar
     )
+    .windowToolbarStyle(.unified)
     .commands {
       CommandGroup(replacing: .newItem) {
-        Button(Copy.appleNewNote) { model.edit() }.keyboardShortcut("n").disabled(!model.ready)
+        Button(Copy.appleNewNote) { model.edit() }.keyboardShortcut("n").disabled(
+          !model.ready || model.capturePresented || model.readerPresented)
       }
       CommandGroup(after: .newItem) {
         Button(Copy.appleRefresh) { model.refresh() }.keyboardShortcut("r")
@@ -27,9 +34,12 @@ import SwiftUI
       CommandGroup(after: .textEditing) {
         Button(Copy.appleSearch) {
           model.presentNavigation("search")
-          model.searchFocusRequest += 1
-        }.keyboardShortcut("k")
+        }.keyboardShortcut("k").disabled(model.readerPresented)
       }
     }
+    Settings {
+      SettingsPanel().environmentObject(model)
+    }.defaultSize(width: 720, height: 560)
+      .windowResizability(.contentMinSize)
   }
 }

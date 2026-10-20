@@ -2,21 +2,23 @@ import Foundation
 
 public struct Card: Codable, Identifiable, Sendable {
   public let value: Components.Schemas.Card
+  private let encodedFields: JSONValue
   public var id: String { value.id }
   public var title: String { value.title }
   public var type: String { value._type }
   public var body: String { (value.body ?? []).joined(separator: "\n\n") }
   public var summary: String { value.summary ?? "" }
   public var source: String {
-    let names = value.sources?.map(\.name).joined(separator: " · ") ?? ""
-    return names.isEmpty ? Copy.appleLocalSource : names
+    value.sources?.map(\.name).joined(separator: " · ") ?? ""
   }
-  public var raw: JSONValue { get throws { try JSONValue.decode(JSONEncoder().encode(value)) } }
+  // Cards are immutable; encode once when loading, not for every field in every render.
+  public var raw: JSONValue { get throws { encodedFields } }
 
   public init(json: JSONValue, normalize: Bool = false) throws {
     let normalized = normalize ? Self.normalize(json) : json
     try CardValidator.validate(normalized)
     value = try JSONDecoder().decode(Components.Schemas.Card.self, from: normalized.encoded())
+    encodedFields = try JSONValue.decode(JSONEncoder().encode(value))
   }
 
   public init(from decoder: any Decoder) throws {

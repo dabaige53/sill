@@ -5,15 +5,27 @@ import SwiftUI
 extension Desktop {
   var feed: some View {
     GeometryReader { geometry in
+      let entries = homeEntries
+      let archiveCount = archivedCards.count
       ScrollViewReader { proxy in
         ScrollView {
           observation("home")
+          if !pendingIds.isEmpty {
+            Button {
+              pendingIds.removeAll()
+              resetFeed()
+            } label: {
+              Label(
+                "\(pendingIds.count)" + Copy.text("web.app.b50caa663fcf"), systemImage: "arrow.up")
+            }.buttonStyle(.plain).font(.system(size: AppleMetrics.font13))
+              .padding(AppleMetrics.space10).modifier(GlassSurface())
+          }
           if model.cards.isEmpty {
             welcome.padding(.top, AppleMetrics.space40)
-          } else if homeCards.isEmpty {
+          } else if entries.isEmpty {
             VStack(spacing: AppleMetrics.space24) {
               Text(Copy.text("web.app.a510cac879f0")).foregroundStyle(AppleColors.secondary)
-              if !archivedCards.isEmpty { archiveEntry }
+              if archiveCount > 0 { archiveEntry }
             }.padding(AppleMetrics.space40)
           } else {
             let configuration = grid(geometry.size.width - feedMargin(geometry.size.width) * 2)
@@ -21,7 +33,7 @@ extension Desktop {
               columns: configuration.count, spacing: configuration.gap,
               maximumColumnWidth: configuration.maximum
             ) {
-              ForEach(Array(homeEntries.prefix(pageLimit))) { entry in
+              ForEach(Array(entries.prefix(pageLimit))) { entry in
                 if entry.cards.count > 1 {
                   NativeStack(
                     cards: entry.cards, expanded: openStacks.contains(entry.id),
@@ -36,53 +48,69 @@ extension Desktop {
                   tile(card)
                 }
               }
-              if pageLimit >= homeEntries.count && archivedCards.count > 0 { archiveEntry }
+              if !model.searchPresented && pageLimit >= entries.count && archiveCount > 0 {
+                archiveEntry
+              }
             }.padding(.horizontal, feedMargin(geometry.size.width)).padding(
-              .top, feedMargin(geometry.size.width))
+              .top, AppleMetrics.space16)
           }
-          Color.clear.frame(height: AppleMetrics.feedBottom).onAppear {
-            if pageLimit < homeEntries.count { pageLimit += 40 }
+          Color.clear.frame(height: AppleMetrics.feedBottom)
+        }.scrollIndicators(.automatic)
+          .onChange(of: entries.count, initial: true) { _, count in chrome.feedEntryCount = count }
+          .clipped()
+          .onAppear {
+            if feedOrder.isEmpty { feedOrder = model.visible.map(\.id) }
+            captureStacks()
           }
-        }.scrollIndicators(.hidden)
-          .safeAreaInset(edge: .top, spacing: 0) {
-            homeHeader.padding(.horizontal, feedMargin(geometry.size.width))
-              .opacity(railHidden ? 0 : 1)
-              .offset(y: railHidden ? -AppleMetrics.motionRailTravel : 0)
-              .animation(
-                .timingCurve(0.32, 0.72, 0, 1, duration: AppleMetrics.motionRailShow),
-                value: railHidden
-              )
-              .allowsHitTesting(!railHidden)
+          .onChange(of: model.cards.map(\.id)) { _, _ in
+            let ids = Set(feedOrder)
+            feedOrder += model.visible.map(\.id).filter { !ids.contains($0) }
+            captureStacks()
           }
           .onChange(of: homeTopRequest) {
-            withAnimation(homeTopImmediate ? nil : .easeOut) {
+            withAnimation(homeTopImmediate || reduceMotion ? nil : .easeOut) {
               proxy.scrollTo("home-top", anchor: .top)
             }
           }
       }
     }
   }
-  private var homeHeader: some View {
-    HStack {
-      Button("Sill") { requestHomeTop() }
-        .buttonStyle(.plain)
-        .font(.system(size: AppleMetrics.font34, weight: .bold))
-      Spacer()
-      Button {
-        model.presentNavigation("settings")
+  @ToolbarContentBuilder var nativeToolbar: some ToolbarContent {
+    ToolbarItem(placement: .navigation) {
+      Menu {
+        Picker(Copy.text("web.home.filterMenu"), selection: $model.feedScope) {
+          ForEach(FeedScope.tabs) { scope in Text(scope.label).tag(scope) }
+        }.pickerStyle(.inline)
+        Divider()
+        Button(Copy.appleNewNote) { model.capturePresented = true }
       } label: {
-        NativeIcon(name: "person", size: AppleMetrics.space22)
-          .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
-          .background(AppleColors.surface, in: Circle())
-          .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-      }.buttonStyle(.plain).accessibilityLabel(Copy.text("web.nav.settings"))
-        .help(Copy.text("web.nav.settings"))
-    }.frame(height: AppleMetrics.railRow)
-      .background(AppleColors.canvas.opacity(0.94))
+        HStack(spacing: AppleMetrics.space8) {
+          NativeIcon(name: "sill", size: AppleMetrics.space28)
+          Text(model.feedScope == .all ? "Sill" : "Sill · " + model.feedScope.label)
+            .font(.system(size: AppleMetrics.font20, weight: .semibold))
+        }
+      }.help(Copy.text("web.home.filterMenu"))
+    }
+    ToolbarItem(placement: .primaryAction) {
+      SettingsLink {
+        Label(Copy.text("web.nav.settings"), systemImage: "person.crop.circle")
+      }.help(Copy.text("web.nav.settings"))
+    }
   }
   var homeCards: [Card] {
-    // Workspace supplies the same home sorting policy, independent of the search filters.
-    model.homeCards.filter { !pendingIds.contains($0.id) }
+    let candidates = model.visible.filter { !pendingIds.contains($0.id) }
+    let byID = Dictionary(uniqueKeysWithValues: candidates.map { ($0.id, $0) })
+    let held = feedOrder.compactMap { byID[$0] }
+    let known = Set(feedOrder)
+    return held + candidates.filter { !known.contains($0.id) }
+  }
+  func resetFeed() {
+    feedOrder = model.visible.map(\.id)
+    captureStacks()
+    model.selection.removeAll()
+    pageLimit = 40
+    openStacks.removeAll()
+    requestHomeTop(immediate: true)
   }
   private struct FeedEntry: Identifiable {
     let id: String
@@ -92,13 +120,39 @@ extension Desktop {
     model.cards.filter { model.items[$0.id]?["archived"]?.bool == true }
   }
   private var homeEntries: [FeedEntry] {
-    guard model.preferences["stack"]?.bool != false else {
-      return homeCards.map { FeedEntry(id: $0.id, cards: [$0]) }
+    let ordered = homeCards
+    guard !model.searchPresented, model.preferences["stack"]?.bool != false else {
+      return ordered.map { FeedEntry(id: $0.id, cards: [$0]) }
+    }
+    let cards = Dictionary(uniqueKeysWithValues: ordered.map { ($0.id, $0) })
+    var groupByCard: [String: String] = [:]
+    for (group, ids) in stackGroups {
+      for id in ids { groupByCard[id] = group }
+    }
+    var included = Set<String>()
+    return ordered.compactMap { card in
+      if let group = groupByCard[card.id] {
+        guard included.insert(group).inserted else { return nil }
+        return FeedEntry(id: group, cards: (stackGroups[group] ?? []).compactMap { cards[$0] })
+      }
+      return FeedEntry(id: card.id, cards: [card])
+    }
+  }
+  private func captureStacks() {
+    stackGroups = Dictionary(
+      uniqueKeysWithValues: calculatedEntries.filter { $0.cards.count > 1 }
+        .map { ($0.id, $0.cards.map(\.id)) })
+  }
+  private var calculatedEntries: [FeedEntry] {
+    let ordered = homeCards
+    guard !model.searchPresented, model.preferences["stack"]?.bool != false else {
+      return ordered.map { FeedEntry(id: $0.id, cards: [$0]) }
     }
     let candidates = Dictionary(
-      grouping: homeCards.filter { card in
+      grouping: ordered.filter { card in
         let kind = card.fields["sources"]?.array?.first?["kind"]?.string ?? "local"
-        return ["article", "media"].contains(card.type) && !["agent", "capture"].contains(kind)
+        return !card.source.isEmpty && ["article", "media"].contains(card.type)
+          && !["agent", "capture"].contains(kind)
       }
     ) { card in
       (card.fields["sources"]?.array?.first?["kind"]?.string ?? "local") + ":" + card.source
@@ -116,7 +170,7 @@ extension Desktop {
     }
     var included: Set<String> = []
     var result: [FeedEntry] = []
-    for card in homeCards {
+    for card in ordered {
       let key =
         (card.fields["sources"]?.array?.first?["kind"]?.string ?? "local") + ":" + card.source
       if let cards = stacks[key], cards.contains(where: { $0.id == card.id }) {
@@ -145,7 +199,7 @@ extension Desktop {
   }
   private var archiveGroups: [(label: String, cards: [Card])] {
     let keys = [
-      "web.panels.b4c6c3eb0bce", "web.primitives.0cf8b14f4651", "web.panels.c56a5bb657de",
+      "web.archive.thisWeek", "web.primitives.0cf8b14f4651", "web.archive.earlier",
     ]
     let sorted = archivedCards.sorted {
       ($0.fields["time"]?.number ?? 0) > ($1.fields["time"]?.number ?? 0)
@@ -171,7 +225,7 @@ extension Desktop {
         Text(Copy.text("web.templates.7b7e6e8bd4ba")).font(
           .system(size: AppleMetrics.space22, weight: .semibold))
         Spacer()
-        iconButton("x", "web.close") { archivePresented = false }
+        Button(Copy.text("web.close")) { archivePresented = false }.keyboardShortcut(.cancelAction)
       }
       ScrollView {
         VStack(spacing: 0) {
@@ -186,7 +240,8 @@ extension Desktop {
                 NativeIcon(name: archiveIcon(card.type), size: AppleMetrics.space16)
                   .foregroundStyle(AppleColors.secondary)
                 Button {
-                  model.selected = card.id
+                  archiveSelection = card.id
+                  archivePresented = false
                 } label: {
                   VStack(alignment: .leading, spacing: AppleMetrics.space5) {
                     Text(card.title).fontWeight(.medium)
@@ -200,7 +255,7 @@ extension Desktop {
                 )
                 .font(.system(size: AppleMetrics.font13, design: .rounded)).foregroundStyle(
                   AppleColors.secondary)
-                Button(Copy.text("web.panels.561642967386")) {
+                Button(Copy.text("web.archive.restoreToDesk")) {
                   model.patch(
                     [card.id],
                     values: [
@@ -214,199 +269,18 @@ extension Desktop {
           }
         }
       }.frame(maxHeight: AppleMetrics.settingsHeight)
-    }.padding(AppleMetrics.railEdge).background(
-      AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.panelRadius))
+    }.padding(AppleMetrics.railEdge)
   }
   private var welcome: some View {
     VStack(spacing: AppleMetrics.space16) {
       NativeIcon(name: "sill", size: AppleMetrics.space36 * 2)
       Text("Sill").font(.system(size: AppleMetrics.font36, weight: .semibold))
-      Text(Copy.text("web.panels.3d7d3ac3581f")).font(.system(size: AppleMetrics.font17))
+      Text(Copy.text("web.welcome.tagline")).font(.system(size: AppleMetrics.font17))
         .foregroundStyle(AppleColors.secondary)
-      Button(Copy.text("web.panels.5a15649c2481")) { model.capturePresented = true }.buttonStyle(
-        CardPillStyle(primary: true, solid: true)
+      Button(Copy.text("web.capture.title")) { model.capturePresented = true }.buttonStyle(
+        .borderedProminent
       ).disabled(!model.ready)
     }.frame(maxWidth: .infinity).padding(AppleMetrics.space40)
-  }
-  private var searchCategories: [(type: String, label: String, artwork: String)] {
-    [
-      ("article", "web.search.type.article", "architecture"),
-      ("mail", "web.search.type.mail", "coast"),
-      ("note", "web.note", "botanical"),
-      ("task", "web.task", "mountain"),
-      ("event", "web.event", "coast"),
-      ("media", "web.media", "mountain"),
-    ]
-  }
-  var searchPage: some View {
-    GeometryReader { geometry in
-      let searching =
-        !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        || model.typeFilter != "all" || model.filter != Copy.appleAll
-        || !model.tagFilter.isEmpty
-      VStack(spacing: AppleMetrics.space16) {
-        HStack {
-          Text(Copy.text("web.search.title"))
-            .font(.system(size: AppleMetrics.font17, weight: .semibold))
-          Spacer()
-          iconButton("person", "web.nav.settings") { model.presentNavigation("settings") }
-            .background(AppleColors.surface, in: Circle())
-        }
-        HStack(spacing: AppleMetrics.space8) {
-          HStack(spacing: AppleMetrics.space8) {
-            NativeIcon(name: "search", size: AppleMetrics.space22).foregroundStyle(
-              AppleColors.primary)
-            TextField(Copy.text("web.panels.a76ee88e6c2e"), text: $model.query).textFieldStyle(
-              .plain
-            )
-            .font(.system(size: AppleMetrics.font17)).focused($searchFocused)
-            .onAppear { searchFocused = true }.onChange(of: model.searchFocusRequest) {
-              searchFocused = true
-            }
-            if !model.query.isEmpty {
-              iconButton("x", "web.panels.b6f00afa6537") { model.query = "" }
-            } else {
-              iconButton("mic", "web.ai.speak") {}.disabled(true)
-            }
-          }.padding(.leading, AppleMetrics.space12).padding(.trailing, AppleMetrics.space10)
-            .frame(height: AppleMetrics.searchPillHeight).background(
-              AppleColors.surface, in: Capsule())
-        }
-        if searching {
-          ScrollView(.horizontal) {
-            HStack(spacing: AppleMetrics.space8) {
-              chip(Copy.text("web.all"), selected: model.typeFilter == "all") {
-                model.typeFilter = "all"
-              }
-              ForEach(searchCategories, id: \.type) { category in
-                chip(Copy.text(category.label), selected: model.typeFilter == category.type) {
-                  model.typeFilter = category.type
-                }
-              }
-            }.padding(AppleMetrics.space4 / 2)
-          }.scrollIndicators(.hidden).accessibilityLabel(Copy.text("web.search.filters.type"))
-        }
-        DisclosureGroup(isExpanded: $searchFiltersExpanded) {
-          VStack(spacing: AppleMetrics.space8) {
-            searchFilterRow("web.search.filters.status") {
-              ForEach(
-                [
-                  (Copy.appleUnread, "web.unread"), (Copy.appleBookmarks, "web.bookmark"),
-                  (Copy.appleLater, "web.later"),
-                ], id: \.0
-              ) { value, key in
-                chip(Copy.text(key), selected: model.filter == value) {
-                  model.filter = model.filter == value ? Copy.appleAll : value
-                }
-              }
-            }
-            let tags = Array(Set(model.cards.flatMap { model.tags($0) })).sorted()
-            if !tags.isEmpty {
-              searchFilterRow("web.search.filters.tag") {
-                ForEach(tags, id: \.self) { tag in
-                  chip("#" + tag, selected: model.tagFilter == tag) {
-                    model.tagFilter = model.tagFilter == tag ? "" : tag
-                  }
-                }
-              }
-            }
-          }.padding(.top, AppleMetrics.space8)
-        } label: {
-          HStack(spacing: AppleMetrics.space8) {
-            Text(Copy.text("web.search.filtersLabel"))
-            if model.filter != Copy.appleAll {
-              Text(model.filter).foregroundStyle(AppleColors.secondary)
-            }
-            if !model.tagFilter.isEmpty {
-              Text("#" + model.tagFilter).foregroundStyle(AppleColors.secondary)
-            }
-          }
-        }.font(.system(size: AppleMetrics.font14)).tint(AppleColors.primary)
-        ScrollViewReader { proxy in
-          ScrollView {
-            observation("search")
-            let all = searching ? model.visible : []
-            let desk = Array(
-              all.filter { model.items[$0.id]?["archived"]?.bool != true }.prefix(searchLimit))
-            let shelved = Array(
-              all.filter { model.items[$0.id]?["archived"]?.bool == true }.prefix(
-                max(0, searchLimit - desk.count)))
-            if !searching {
-              LazyVGrid(
-                columns: Array(
-                  repeating: GridItem(.flexible(), spacing: AppleMetrics.space12),
-                  count: geometry.size.width > 650 ? 3 : 2),
-                spacing: AppleMetrics.space12
-              ) {
-                ForEach(searchCategories, id: \.type) { category in
-                  Button {
-                    model.typeFilter = category.type
-                  } label: {
-                    Color.clear.aspectRatio(16 / 9, contentMode: .fit)
-                      .overlay {
-                        GeometryReader { size in
-                          Image(category.artwork, bundle: .module).resizable().scaledToFill()
-                            .frame(width: size.size.width, height: size.size.height).clipped()
-                        }
-                      }
-                      .overlay(Color.black.opacity(0.18))
-                      .overlay(alignment: .bottomLeading) {
-                        Text(Copy.text(category.label)).font(
-                          .system(size: AppleMetrics.font17, weight: .semibold)
-                        )
-                        .foregroundStyle(.white).shadow(
-                          color: .black.opacity(0.55), radius: 3, y: 1
-                        )
-                        .padding(AppleMetrics.space12)
-                      }
-                      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.space12))
-                  }.buttonStyle(.plain)
-                }
-              }
-            } else if all.isEmpty {
-              Text(
-                model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                  ? Copy.text("web.app.4a684ec67af5")
-                  : Copy.text("web.panels.11a8f9879575") + model.query + "」"
-              ).foregroundStyle(
-                AppleColors.secondary
-              ).padding(AppleMetrics.space24)
-            } else if searching {
-              let ideal = grid(geometry.size.width - AppleMetrics.space40 * 2).ideal
-              let columns = [
-                GridItem(
-                  .adaptive(minimum: min(ideal, geometry.size.width - AppleMetrics.space40 * 2)),
-                  spacing: AppleMetrics.space24, alignment: .top)
-              ]
-              LazyVGrid(columns: columns, spacing: AppleMetrics.space24) {
-                ForEach(desk) { card in tile(card) }
-              }
-              if !shelved.isEmpty {
-                Text(Copy.text("web.search.shelvedGroup")).font(.system(size: AppleMetrics.font13))
-                  .foregroundStyle(AppleColors.secondary)
-                  .frame(maxWidth: .infinity, alignment: .leading).padding(
-                    .top, AppleMetrics.space24)
-                LazyVGrid(columns: columns, spacing: AppleMetrics.space24) {
-                  ForEach(shelved) { card in tile(card) }
-                }
-              }
-            }
-            Color.clear.frame(height: AppleMetrics.feedBottom).onAppear {
-              if searching && searchLimit < all.count { searchLimit += 40 }
-            }
-          }.scrollIndicators(.hidden)
-            .onChange(of: model.query) { resetSearch(proxy) }
-            .onChange(of: model.typeFilter) { resetSearch(proxy) }
-            .onChange(of: model.filter) { resetSearch(proxy) }
-            .onChange(of: model.tagFilter) { resetSearch(proxy) }
-        }
-      }.padding(.horizontal, AppleMetrics.space40).padding(.top, AppleMetrics.space16)
-    }.background(AppleColors.card)
-  }
-  private func resetSearch(_ proxy: ScrollViewProxy) {
-    searchLimit = 40
-    model.scrollOffsets["search"] = 0
-    proxy.scrollTo("search-top", anchor: .top)
   }
   private func tile(_ card: Card) -> some View {
     CardTile(card: card, open: { open(card) })
@@ -428,6 +302,28 @@ extension Desktop {
       model.selection.remove(id)
     } else {
       model.selection.insert(id)
+    }
+  }
+}
+
+/// SwiftUI creates and hosts the platform search field in the window toolbar.
+struct WorkspaceSearch: ViewModifier {
+  @Binding var query: String
+  let focus: FocusState<Bool>.Binding
+  func body(content: Content) -> some View {
+    if #available(macOS 15.0, *) {
+      content.searchable(
+        text: $query, placement: .toolbar,
+        prompt: Text(Copy.text("web.home.searchPlaceholder"))
+      )
+      .searchFocused(focus)
+    } else {
+      content.toolbar {
+        ToolbarItem(placement: .automatic) {
+          TextField(Copy.text("web.home.searchPlaceholder"), text: $query)
+            .textFieldStyle(.roundedBorder).focused(focus).frame(width: 280)
+        }
+      }
     }
   }
 }

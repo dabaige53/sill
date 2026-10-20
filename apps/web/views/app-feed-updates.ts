@@ -1,5 +1,3 @@
-import { icon } from "../atoms/icons.ts";
-import { esc } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
@@ -193,90 +191,5 @@ export const appFeedUpdatesMethods = {
 					this.refreshCard(id);
 				}),
 		);
-	},
-	paintMedia(this: AppController) {
-		const c = Store.card(this.currentId),
-			el = document.getElementById("media-slide");
-		if (!el || !c) return;
-		const labels = [
-				copy("web.app.a8c81f93f2e0"),
-				copy("web.app.18b083a026ba"),
-				copy("web.app.8d017e1c9a30"),
-				copy("web.app.3a71561035b2"),
-			],
-			total = c.body.length || 1;
-		const title = labels[this.mediaIndex] || copy("web.app.c8e19ce87856") + (this.mediaIndex + 1),
-			body = c.body[this.mediaIndex] || "";
-		document.getElementById("media-step").textContent = `${this.mediaIndex + 1} / ${total}`;
-		const current = el.querySelector<HTMLElement>(".media-slide-copy:not(.is-leaving)");
-		if (
-			current?.querySelector("b")?.textContent === title &&
-			current.querySelector("span")?.textContent === body
-		)
-			return;
-		const previous = [...el.querySelectorAll<HTMLElement>(".media-slide-copy")];
-		const next = document.createElement("div");
-		next.className = "media-slide-copy";
-		next.innerHTML = `<b>${esc(title)}</b><span>${esc(body)}</span>`;
-		for (const layer of previous) {
-			const opacity = getComputedStyle(layer).opacity || "1";
-			MotionEngine.cancel(layer);
-			layer.classList.add("is-leaving");
-			layer.setAttribute("aria-hidden", "true");
-			const out = MotionEngine.animate(layer, [{ opacity }, { opacity: 0 }], {
-				duration: MotionEngine.time("fast"),
-			});
-			if (out)
-				out.finished.then(
-					() => layer.remove(),
-					() => {},
-				);
-			else layer.remove();
-		}
-		el.append(next);
-		if (previous.length) MotionEngine.fade(next);
-	},
-	pauseMedia(this: AppController) {
-		clearInterval(this.mediaTimer);
-		this.mediaTimer = null;
-		const b = this.dialog?.querySelector<HTMLElement>('[data-action="media-play"]');
-		if (b) {
-			b.innerHTML = icon("play");
-			b.setAttribute("aria-label", copy("web.preview.media.playDemo"));
-		}
-		const p = this.dialog?.querySelector<HTMLElement>('[data-action="podcast-play"]');
-		if (p) {
-			p.innerHTML = icon("play", 22);
-			p.setAttribute("aria-label", copy("web.preview.play"));
-		}
-	},
-	playMedia(this: AppController) {
-		if (this.mediaTimer) {
-			this.pauseMedia();
-			return;
-		}
-		const c = Store.card(this.currentId),
-			last = (c.body.length || 1) - 1;
-		if (this.mediaIndex === last) this.mediaIndex = 0;
-		this.paintMedia();
-		const b = this.dialog.querySelector<HTMLElement>('[data-action="media-play"]');
-		b.innerHTML = icon("pause");
-		b.setAttribute("aria-label", copy("web.app.8c3c5d2fa170"));
-		this.mediaTimer = setInterval(() => {
-			if (document.hidden) return;
-			if (this.mediaIndex < last) {
-				this.mediaIndex++;
-				this.paintMedia();
-				Store.patch(this.currentId, {
-					progress: (this.mediaIndex + 1) / (last + 1),
-					read: this.mediaIndex === last,
-				});
-				this.refreshCard(this.currentId);
-			} else this.pauseMedia();
-		}, 2500);
-	},
-	podcast(this: AppController, id?: string, _seek = 0) {
-		if (!Store.card(id)) return;
-		this.toast(copy("web.media.playbackUnavailable"));
 	},
 };

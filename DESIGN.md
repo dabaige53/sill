@@ -46,13 +46,13 @@
 
 ## Web 与 macOS 一致
 
-- macOS 的尺寸和颜色由构建插件从 `tokens.json` 生成（`AppleMetrics`、`AppleColors`），文案来自 `design-system/copy/zh-Hans.json`。改 Mac 界面时，按手册的角色取值，例如卡片标题 17、摘要 15、内边距 18、卡片圆角 22，不按像素另起一套。
-- macOS 以当前 Web 为 1:1 基准，使用同一套图标、文案、颜色角色、控件外观与交互，不另做 Mac 差异化设计。SwiftUI/AppKit 负责原生实现，系统控件不得替换成另一套产品样式。
-- 2026-10-17 原生源码按当前 Web 对齐：卡片标题 17、摘要 15、内边距 18，并映射浅深色、已读底色与动作色；卡片积木、导航、搜索、设置与详情继续复用 Web 的配方和文案。严格 1:1 仍须通过实际窗口的视觉与交互检查，源码对齐不等于验收完成。
-- 2026-10-19 手机主页标题与头像、三项主导航按设计手册的新规则实现；Mac 同步入口和词义。2026-10-18 手机主页（[ADR 0036](docs/adr/0036-phone-home-density.md)）只改了 Web。Mac 是桌面窗口，不需要手机顶栏和分栏标签；提醒和待办的勾选圈是否用 `accent` 描边、提醒是否显示来源时间，还没有在 Mac 上核对。
-- 2026-10-18 卡片详情（[ADR 0037](docs/adr/0037-card-detail-toolbar.md)）只改了 Web。Mac 的详情工具条是否按「通用｜专属」分组、是否用新的九个图标、设置里是否有「卡片操作」开关，还没有核对。
-- 2026-10-20 Web 顶栏搜索与底部 AI 框（[ADR 0049](docs/adr/0049-web-top-search-and-ai-dock.md)）先只改 Web。Mac 是否改成相同的顶栏、分栏菜单、AI 框和多选共用轨道，待用户确认。
+- macOS 的工作范围是适配和性能优化。保留 Sill 的信息结构、卡片构图、内容顺序、字号层级、留白与轻操作，不把原生化解释为重新设计产品。内容、功能、文案与业务状态继续与 Web 一致。
+- 卡片由 SwiftUI 原生视图组成，沿用设计系统的卡片圆角、内边距、字体尺寸与已读退色；不为使用标准容器而把内容卡片改成 GroupBox 表单分组。字体使用系统字体，动作使用 SF Symbols、原生按钮、复选框和菜单。
+- 顶栏、搜索、菜单、窗口缩放和系统快捷键遵循 macOS。设置保留独立 Settings 窗口；阅读恢复主窗口内的预览与展开，不在点击卡片时强制另开窗口。速记、备注和标签使用系统 Sheet，清空数据使用系统确认弹窗。
+- 玻璃只用于功能层，卡片与正文保持不透明。macOS 26 及以上使用系统 Liquid Glass，旧系统使用原生 material，不叠加手工模糊和多层阴影。
+- 参考 [Apple macOS 设计资源](https://developer.apple.com/design/resources/#macos-apps)、[Designing for macOS](https://developer.apple.com/design/human-interface-guidelines/designing-for-macos) 与 [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)，按现有产品结构适配窗口、控件和材质。
+- 按用户要求以代码检查和构建交付，不运行测试或视觉自动化。构建通过不表示实际交互和性能已验收。
 
 ## 产品设置边界
 
-项目不提供专门的无障碍设置或系统偏好适配。移除减少动态、减少透明度和增强对比度分支；保留正常键盘操作、焦点恢复、原生控件语义与图标名称。动效统一按设计手册执行。
+不新增应用内无障碍设置。macOS 遵循系统的减少动态效果、材质和对比度设置，保留键盘、焦点与 VoiceOver 语义。Web 的既有规则不变。

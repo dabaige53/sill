@@ -1,8 +1,8 @@
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
-import { renderView } from "./react-renderer.ts";
 import type { AppController } from "./app.ts";
+import { renderView } from "./react-renderer.ts";
 
 export function setPref(this: AppController, key?: any, value?: any) {
 	const before = Store.pref(key);

@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import SillKit
 import SwiftUI
@@ -7,6 +8,8 @@ import SwiftUI
   @Published var items: [String: JSONValue] = [:]
   @Published var preferences: [String: JSONValue] = [:]
   @Published var page = "home"
+  @Published var feedScope: FeedScope = .all
+  @Published var aiFocusRequest = 0
   var scrollOffsets: [String: CGFloat] = [:]
   @Published var selection: Set<String> = []
   @Published var aiCards: [String] = []
@@ -15,10 +18,30 @@ import SwiftUI
   @Published var tagFilter = ""
   @Published var settingsPresented = false
   @Published var query = ""
-  @Published var filter = Copy.appleAll
+  var filter: String {
+    get { feedScope.label }
+    set { feedScope = FeedScope.allCases.first { $0.label == newValue } ?? .all }
+  }
   var searchPresented: Bool {
-    get { page == "search" }
-    set { page = newValue ? "search" : "home" }
+    get { !query.isEmpty || feedScope != .all || typeFilter != "all" || !tagFilter.isEmpty }
+    set { if newValue { searchFocusRequest += 1 } else { clearSearch() } }
+  }
+  var preferredAppearance: ColorScheme? {
+    switch preferences["theme"]?.string {
+    case "dark": .dark
+    case "light": .light
+    default: nil
+    }
+  }
+  var readerPresented: Bool {
+    get { selected != nil }
+    set { if !newValue { selected = nil } }
+  }
+  func clearSearch() {
+    query = ""
+    feedScope = .all
+    typeFilter = "all"
+    tagFilter = ""
   }
   @Published var searchFocusRequest = 0
   @Published var selected: String? {
@@ -157,8 +180,15 @@ import SwiftUI
   }
 
   func discussSelection() {
-    aiCards = cards.filter { selection.contains($0.id) }.map(\.id)
-    page = "ai"
+    appendAIContext(cards.filter { selection.contains($0.id) }.map(\.id))
+    selection.removeAll()
+  }
+
+  func appendAIContext(_ ids: [String]) {
+    for id in ids where cards.contains(where: { $0.id == id }) && !aiCards.contains(id) {
+      aiCards.append(id)
+    }
+    aiFocusRequest += 1
   }
 
   private func localStore() throws -> CardStore {
@@ -184,10 +214,16 @@ import SwiftUI
   private func accept(_ snapshot: Snapshot) {
     guard snapshot.revision >= revision else { return }
     revision = snapshot.revision
-    seconds = snapshot.json["state"]?["seconds"]?.number ?? 0
-    cards = snapshot.cards
-    items = snapshot.items
-    preferences = snapshot.json["state"]?["preferences"]?.object ?? [:]
+    let incomingSeconds = snapshot.json["state"]?["seconds"]?.number ?? 0
+    if seconds != incomingSeconds { seconds = incomingSeconds }
+    if cards.count != snapshot.cards.count
+      || !zip(cards, snapshot.cards).allSatisfy({ (try? $0.0.raw) == (try? $0.1.raw) })
+    {
+      cards = snapshot.cards
+    }
+    if items != snapshot.items { items = snapshot.items }
+    let incomingPreferences = snapshot.json["state"]?["preferences"]?.object ?? [:]
+    if preferences != incomingPreferences { preferences = incomingPreferences }
     selection.formIntersection(Set(cards.map(\.id)))
     if let selected, !cards.contains(where: { $0.id == selected }) { self.selected = nil }
   }

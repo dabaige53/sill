@@ -1,5 +1,5 @@
-import type { AppController } from "../app.ts";
 import { MotionEngine } from "../../interactions/motion.ts";
+import type { AppController } from "../app.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
 function select(this: AppController, { id }: ActionContext) {

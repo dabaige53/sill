@@ -17,7 +17,7 @@ extension Card {
       "suggestion": "sparkles", "photo": "image", "file": "folder",
     ][type] ?? "book"
   }
-  var sourceKind: String { fields["sources"]?.array?.first?["kind"]?.string ?? "local" }
+  var sourceKind: String { fields["sources"]?.array?.first?["kind"]?.string ?? "" }
   var sourceIcon: String {
     if ["task", "event", "reminder", "digest", "photo", "file"].contains(type) {
       return nativeIcon
@@ -33,7 +33,7 @@ extension Card {
     ][kind] ?? "book"
   }
   var sourceLine: String {
-    [source.isEmpty ? typeLabel : source, readingEstimateText]
+    [source, readingEstimateText]
       .filter { !$0.isEmpty }.joined(separator: " · ")
   }
   var readingEstimateText: String {
@@ -46,6 +46,14 @@ extension Card {
     return Copy.text(key) + " \(Int(ceil(seconds / 60)))" + " "
       + Copy.text("web.metadata.readingSuffix")
   }
+  var senderName: String? {
+    guard let name = fields["sender"]?.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+      !name.isEmpty
+    else { return nil }
+    return name
+  }
+  var recipients: [String] { fields["recipients"]?.strings ?? [] }
+  var mediaDurationText: String? { fields["duration"]?.number.map(cardDuration) }
   var readable: Bool { ["article", "mail", "note", "media", "suggestion", "photo"].contains(type) }
   var paragraphs: [String] { fields["body"]?.strings ?? (body.isEmpty ? [] : [body]) }
   var typeLabel: String { Self.typeLabels[type] ?? Copy.appleTypeNote }

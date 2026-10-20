@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
-import { Card } from "../../contracts/card.ts";
+import { CardPresentation, CardTemplates, cardHTML } from "../../apps/web/cards/templates.ts";
 import {
 	cardDate,
 	cardDates,
 	cardReadingTime,
 	detailSource,
 } from "../../apps/web/data/card-source.ts";
-import { cardHTML } from "../../apps/web/cards/templates.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
+import { Card } from "../../contracts/card.ts";
 
 const article: Card = {
 	id: "explicit-article",
@@ -143,4 +143,122 @@ test("specialized mail and file views retain estimates; podcasts retain personal
 	const doc = new JSDOM(Panels.preview({}, podcast)).window.document;
 	assert.equal(doc.querySelector("aside.preview-note p")?.textContent, "Personal podcast note");
 	assert.equal(doc.querySelector(".preview-note-label")?.textContent, "备注");
+});
+
+test("mail identity never borrows sources or assumes the current user is a recipient", () => {
+	Store.state = Store.fresh();
+	for (const sender of [undefined, "", "Real sender"]) {
+		const card = Card.parse({
+			id: "mail-identity",
+			type: "mail",
+			title: "Mail",
+			sources: [{ name: "InboxSource", kind: "mail" }],
+			...(sender === undefined ? {} : { sender }),
+			recipients: ["Actual recipient"],
+		});
+		for (const html of [
+			cardHTML(card),
+			CardTemplates.mail(card, { state: CardPresentation.state(card) }),
+			Panels.preview({}, card),
+		]) {
+			const dom = new JSDOM(html);
+			try {
+				const doc = dom.window.document;
+				assert.equal(
+					doc.querySelector(".sender b,.preview-sender b")?.textContent,
+					sender || undefined,
+				);
+				assert.ok(!doc.body.textContent!.includes("发给你"));
+				if (!sender) assert.match(doc.body.textContent!, /InboxSource/);
+				if (doc.querySelector(".preview-published"))
+					assert.match(doc.body.textContent!, /收件人 · Actual recipient/);
+			} finally {
+				dom.window.close();
+			}
+		}
+	}
+	const noIdentity = new JSDOM(
+		Panels.preview({}, { id: "mail-empty", type: "mail", title: "Mail" }),
+	);
+	assert.equal(noIdentity.window.document.querySelector(".preview-sender"), null);
+	assert.ok(!noIdentity.window.document.body.textContent!.includes("本地"));
+	noIdentity.window.close();
+});
+
+test("podcast duration stays unknown when absent and never derives playback from reading progress", () => {
+	Store.state = Store.fresh();
+	for (const seconds of [undefined, 0, 240]) {
+		const card = Card.parse({
+			id: "duration-podcast",
+			type: "media",
+			media: "podcast",
+			title: "Podcast",
+			body: ["Actual podcast notes"],
+			...(seconds === undefined ? {} : { duration: seconds }),
+		});
+		Store.state.items[card.id] = { progress: 0.75, note: "Personal note" };
+		const expected = seconds === undefined ? undefined : seconds === 0 ? "0:00" : "4:00";
+		for (const html of [
+			cardHTML(card),
+			CardTemplates.media(card, { state: Store.item(card.id) }),
+			Panels.preview({}, card),
+		]) {
+			const dom = new JSDOM(html);
+			try {
+				const doc = dom.window.document;
+				assert.equal(doc.querySelector(".mini-player .num,.player-times")?.textContent, expected);
+				assert.equal(
+					doc.querySelector(".mini-play,.mini-player .bar,.player-bar,#podcast-played"),
+					null,
+				);
+				if (doc.querySelector(".player")) {
+					assert.match(doc.body.textContent!, /Actual podcast notes/);
+					assert.equal(doc.querySelector("aside.preview-note p")?.textContent, "Personal note");
+				}
+			} finally {
+				dom.window.close();
+			}
+		}
+	}
+});
+
+test("valid media without body opens and prose never becomes media chapters or playback steps", () => {
+	Store.state = Store.fresh();
+	for (const body of [undefined, [], ["First paragraph", "Second paragraph"]]) {
+		const card = Card.parse({
+			id: "video-facts",
+			type: "media",
+			media: "video",
+			title: "Video",
+			image: "coast",
+			chapterCount: 8,
+			duration: 125,
+			url: "https://example.com/video",
+			...(body === undefined ? {} : { body }),
+		});
+		Store.state.items[card.id] = { progress: 0.25, note: "Video note" };
+		Store.item(card.id);
+		const before = JSON.stringify(Store.state);
+		const dom = new JSDOM(Panels.preview({}, card));
+		try {
+			const doc = dom.window.document;
+			assert.equal(doc.querySelector("#modal-title")?.textContent, "Video");
+			assert.equal(
+				doc.querySelector(".media-step,.media-slide,.media-controls,[data-action='media-play']"),
+				null,
+			);
+			assert.match(doc.querySelector(".preview-published")!.textContent!, /章节 · 8/);
+			assert.equal(doc.querySelector(".player-times")?.textContent, "2:05");
+			assert.deepEqual(
+				[...doc.querySelectorAll(".preview-full p")].map((p) => p.textContent),
+				body || [],
+			);
+			assert.ok(doc.querySelector(".preview-cover img"));
+			assert.ok(doc.querySelector("[data-action='external']"));
+			assert.equal(doc.querySelector("aside.preview-note p")?.textContent, "Video note");
+			assert.equal(JSON.stringify(Store.state), before);
+		} finally {
+			dom.window.close();
+		}
+	}
 });

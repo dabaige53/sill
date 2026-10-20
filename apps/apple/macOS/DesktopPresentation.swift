@@ -47,6 +47,17 @@ struct DetailPresentation {
   /// High-frequency navigation commits immediately without a selection transition.
   func presentNavigation(_ destination: String) {
     settingsPresented = destination == "settings"
-    if destination != "settings" { page = destination }
+    if destination == "search" { searchFocusRequest += 1 }
+    if destination == "ai" { aiFocusRequest += 1 }
+    page = "home"
   }
+}
+
+/// Raw scroll samples do not invalidate the SwiftUI tree. Only visibility does.
+@MainActor final class ScrollChromeState {
+  var feedEntryCount = 0
+  var lastOffset: CGFloat = 0
+  var downward: CGFloat = 0
+  var upward: CGFloat = 0
+  var revealTask: Task<Void, Never>?
 }

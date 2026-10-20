@@ -15,6 +15,26 @@ import PackagePlugin
       to: embedded, atomically: true, encoding: .utf8)
     let copyURL = root.appending(path: "design-system/copy/zh-Hans.json")
     let copy = try JSONDecoder().decode([String: String].self, from: Data(contentsOf: copyURL))
+    // Reject stale literal references before they can surface as raw keys in the native UI.
+    let sourceDirectory = context.package.directoryURL.appending(path: "macOS")
+    let copyPattern = try NSRegularExpression(pattern: #""(web\.[A-Za-z0-9_.]+)""#)
+    for source in try FileManager.default.contentsOfDirectory(
+      at: sourceDirectory, includingPropertiesForKeys: nil)
+    where source.pathExtension == "swift" {
+      let text = try String(contentsOf: source, encoding: .utf8)
+      let matches = copyPattern.matches(in: text, range: NSRange(text.startIndex..., in: text))
+      for match in matches {
+        guard let range = Range(match.range(at: 1), in: text) else { continue }
+        let key = String(text[range])
+        guard !key.hasSuffix("."), copy[key] == nil else { continue }
+        throw NSError(
+          domain: "Sill.Copy", code: 1,
+          userInfo: [
+            NSLocalizedDescriptionKey:
+              "Missing copy key \(key) in \(source.lastPathComponent)"
+          ])
+      }
+    }
     let copyOutput = output.appending(path: "Copy.swift")
     let declarations = copy.sorted(by: { $0.key < $1.key }).filter { $0.key.hasPrefix("apple.") }
       .map { key, value in

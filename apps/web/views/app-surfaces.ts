@@ -74,7 +74,6 @@ export const appSurfacesMethods = {
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
 		this.modalToken++;
-		this.pauseMedia();
 		MotionEngine.cancelPanel(this.dialog);
 		this.skipReturnMotion = false;
 		this.sheetLeaving = false;
@@ -186,7 +185,6 @@ export const appSurfacesMethods = {
 			return;
 		}
 		this.modalToken++;
-		this.pauseMedia();
 		const toast = document.getElementById("toast");
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);
 		const source = this.grid.querySelector<HTMLElement>(

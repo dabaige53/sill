@@ -6,16 +6,17 @@ extension CardReader {
   func editor(_ card: Card) -> some View {
     VStack(alignment: .leading, spacing: AppleMetrics.space18) {
       HStack {
-        Text(card.title).font(.system(size: AppleMetrics.font15)).foregroundStyle(
+        Text(card.title).font(.body).foregroundStyle(
           AppleColors.secondary)
         Spacer()
-        tool("x", Copy.text("web.panels.2d41b6a035a0")) { organizing = false }
+        Button(Copy.text("web.cancel")) { organizing = false }
+          .keyboardShortcut(.cancelAction).disabled(model.busy)
       }
       tagChips(tags, removable: true)
-      TextField(Copy.text("web.panels.795cbff909c4"), text: $newTag).textFieldStyle(.plain).onSubmit
-      { addTag() }.onChange(of: newTag) { _, text in
-        if text.count > 30 { newTag = String(text.prefix(30)) }
-      }
+      TextField(Copy.text("web.editor.addTagPlaceholder"), text: $newTag).textFieldStyle(.plain)
+        .onSubmit { addTag() }.onChange(of: newTag) { _, text in
+          if text.count > 30 { newTag = String(text.prefix(30)) }
+        }
       let suggestions = Array(
         Set(
           (card.fields["tags"]?.strings ?? []) + [
@@ -26,20 +27,20 @@ extension CardReader {
       ).filter { !tags.contains($0) }.sorted()
       HStack {
         ForEach(suggestions.prefix(6), id: \.self) { value in
-          Button(value) { tags.append(value) }.buttonStyle(CardPillStyle())
+          Button(value) { tags.append(value) }.buttonStyle(.bordered)
         }
       }
-      TextEditor(text: $note).font(.system(size: AppleMetrics.font15)).scrollContentBackground(
+      TextEditor(text: $note).font(.body).scrollContentBackground(
         .hidden
-      ).accessibilityLabel(Copy.text("web.panels.daede9881787")).onChange(of: note) { _, text in
+      ).accessibilityLabel(Copy.text("apple.note")).onChange(of: note) { _, text in
         if text.count > 4000 { note = String(text.prefix(4000)) }
       }
       if let error = model.error {
-        Text(error).font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.error)
+        Text(error).font(.callout).foregroundStyle(AppleColors.error)
       }
       HStack {
         NativeIcon(name: "lock", size: AppleMetrics.font13)
-        Text(Copy.text("web.panels.b7325aa77693")).font(.system(size: AppleMetrics.font13))
+        Text(Copy.text("web.editor.deviceStorageHint")).font(.callout)
           .foregroundStyle(AppleColors.secondary)
         Spacer()
         Button(Copy.text("web.save")) {
@@ -51,7 +52,7 @@ extension CardReader {
               "note": .string(note), "tags": .array(tags.map(JSONValue.string)),
               "tagsEdited": .bool(true),
             ], expectedRevision: editRevision)
-        }.buttonStyle(CardPillStyle(primary: true, solid: true)).disabled(model.busy)
+        }.buttonStyle(.borderedProminent).keyboardShortcut("s").disabled(model.busy)
       }
     }.padding(AppleMetrics.space28).frame(
       width: min(AppleMetrics.editorWidth, max(280, availableSize.width - 64)),
@@ -81,55 +82,32 @@ extension CardReader {
     ).frame(width: AppleMetrics.playerArtSize, height: AppleMetrics.playerArtSize).shadow(
       color: .black.opacity(0.12), radius: AppleMetrics.previewPaddingX, y: AppleMetrics.space12)
   }
-  func sourceMeta(_ card: Card) -> some View {
-    HStack(spacing: AppleMetrics.space6) {
-      CardSourceGlyph(card: card)
-      Text(card.sourceLine).lineLimit(1)
-    }.font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+  @ViewBuilder func sourceMeta(_ card: Card) -> some View {
+    if !card.sourceLine.isEmpty {
+      HStack(spacing: AppleMetrics.space6) {
+        CardSourceGlyph(card: card)
+        Text(card.sourceLine).lineLimit(1)
+      }.font(.callout).foregroundStyle(AppleColors.secondary)
+    }
   }
   func externalLabel(_ card: Card) -> String {
-    if card.type == "mail" { return Copy.text("web.panels.cf945e21ddef") }
+    if card.type == "mail" { return Copy.text("web.preview.reply") }
     if card.type == "media" && card.fields["media"]?.string == "podcast" {
-      return Copy.text("web.panels.c7f9a9b3d472")
+      return Copy.text("web.preview.podcast.openApp")
     }
     let destination =
-      ["rss", "local", "capture"].contains(card.sourceKind)
-      ? Copy.text("web.panels.354b28c85333") : Copy.text("source.type." + card.sourceKind)
-    return Copy.text("web.panels.99ae21ea6c39") + destination
+      ["", "rss", "local", "capture"].contains(card.sourceKind)
+      ? Copy.text("web.preview.originalSource") : Copy.text("source.type." + card.sourceKind)
+    return Copy.text("web.preview.openSourcePrefix") + destination
   }
   func media(_ card: Card) -> some View {
-    let total = card.fields["duration"]?.number ?? 0
-    let progress = model.items[card.id]?["progress"]?.number ?? 0
-    return VStack(spacing: AppleMetrics.space16) {
-      if card.fields["media"]?.string == "podcast" {
-
-        ProgressView(value: progress).tint(AppleColors.primary)
-        HStack {
-          Text(cardDuration(total * progress))
-          Spacer()
-          Text("-" + cardDuration(total * (1 - progress)))
-        }.font(.system(size: AppleMetrics.font13, design: .rounded)).foregroundStyle(
-          AppleColors.secondary)
-        Text(Copy.text("web.media.playbackUnavailable"))
-          .font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-      } else {
-        CardMedia(card: card, detail: true)
-        if !card.paragraphs.isEmpty {
-          Text(card.paragraphs[min(mediaStep, card.paragraphs.count - 1)]).font(
-            .system(size: AppleMetrics.font17))
-        }
-        HStack {
-          tool("back", Copy.text("web.panels.b445bfa61071")) { mediaStep = max(0, mediaStep - 1) }
-          tool(playing ? "pause" : "play", Copy.text("web.panels.105587569775")) {
-            playing.toggle()
-          }
-          Text("\(mediaStep + 1) / \(max(1, card.paragraphs.count))").font(
-            .system(size: AppleMetrics.font13, design: .rounded))
-          tool("arrow", Copy.text("web.panels.abd1f787accc")) {
-            mediaStep = min(max(0, card.paragraphs.count - 1), mediaStep + 1)
-          }
-        }
+    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+      if card.fields["image"]?.string != nil { CardMedia(card: card, detail: true) }
+      if let duration = card.mediaDurationText {
+        Text(duration).font(.system(size: AppleMetrics.font13, design: .rounded))
+          .foregroundStyle(AppleColors.secondary)
       }
+      paragraphs(card)
     }
   }
   func exportCalendar(_ card: Card) {

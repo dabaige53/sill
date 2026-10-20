@@ -7,6 +7,7 @@ struct NativeStack: View {
   let toggle: () -> Void
   let open: (Card) -> Void
   @EnvironmentObject private var model: Workspace
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.controlActiveState) private var windowActivity
   @State private var selection = DeckSelection()
   @State private var width: CGFloat = 1
@@ -97,6 +98,10 @@ struct NativeStack: View {
                 return
               }
               selection.confirm(target)
+              if reduceMotion {
+                settleConfirmedSelection()
+                return
+              }
               generation += 1
               let completionGeneration = generation
               let destination =
@@ -189,7 +194,7 @@ struct NativeStack: View {
     entering = false
     guard !confirmed else { return }
     withAnimation(
-      .timingCurve(0.23, 1, 0.32, 1, duration: AppleMetrics.motionDeckDuration)
+      reduceMotion ? nil : .timingCurve(0.23, 1, 0.32, 1, duration: AppleMetrics.motionDeckDuration)
     ) {
       offset = 0
     }
@@ -230,7 +235,7 @@ struct DeckNavigation {
 }
 
 /// Reports the actual rendered position so a new gesture can take over a running transition.
-private struct DeckPosition: AnimatableModifier {
+private struct DeckPosition: ViewModifier, Animatable {
   nonisolated var x: CGFloat
   let update: (CGFloat) -> Void
   nonisolated var animatableData: CGFloat {

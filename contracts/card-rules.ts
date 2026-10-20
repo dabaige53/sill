@@ -1,5 +1,5 @@
-import { metadataIssues } from "./card-metadata.ts";
 import type { Card } from "./card.ts";
+import { metadataIssues } from "./card-metadata.ts";
 
 export function cardIssues(card: Card): string[] {
 	const issues: string[] = metadataIssues(card);

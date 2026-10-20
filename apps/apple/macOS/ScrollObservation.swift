@@ -37,7 +37,11 @@ struct ScrollObservation: NSViewRepresentable {
         stop()
         return
       }
-      DispatchQueue.main.async { [weak self] in self?.connect() }
+      Task { @MainActor [weak self] in
+        await Task.yield()
+        guard let self, self.window != nil else { return }
+        self.connect()
+      }
     }
     private func connect() {
       guard observer == nil, let scroll = enclosingScrollView else { return }

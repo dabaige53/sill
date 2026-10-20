@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { metadataIssues } from "./card-metadata.ts";
 import { Card, cardTypes, id } from "./card.ts";
+import { metadataIssues } from "./card-metadata.ts";
 import { CardState, Preferences } from "./local.ts";
 
 export { id };
