@@ -234,6 +234,29 @@ import SillKit
   func toggleBookmark(_ id: String) { change(id, ["bookmarked": .bool(!state(id).bookmarked)]) }
   func toggleLater(_ id: String) { change(id, ["later": .bool(!state(id).later)]) }
 
+  enum Flag { case bookmarked, later }
+
+  /// Web `applySelectionAction`: every card gets the flag in one write; undo puts back each
+  /// card's own value.
+  func mark(_ ids: [String], _ flag: Flag) {
+    let key = flag == .bookmarked ? "bookmarked" : "later"
+    let kept = ids.filter { models[$0] != nil }
+    var before: [String: [String: JSONValue]] = [:]
+    for id in kept {
+      before[id] = [key: .bool(flag == .bookmarked ? state(id).bookmarked : state(id).later)]
+    }
+    let after = Dictionary(uniqueKeysWithValues: kept.map { ($0, [key: JSONValue.bool(true)]) })
+    guard change(after) else { return }
+    let text =
+      flag == .bookmarked
+      ? Copy.text("web.app.96e7ee93f3ba") + "\(kept.count)"
+        + Copy.text("web.common.cardCountSuffix")
+      : "\(kept.count)" + Copy.text("web.app.34d0636b70c8")
+    toast(text) { [weak self] in self?.change(before, queued: true) }
+  }
+
+  func toggleRead(_ id: String) { setRead(id, !state(id).read) }
+
   func setRead(_ id: String, _ read: Bool) {
     change(
       id,

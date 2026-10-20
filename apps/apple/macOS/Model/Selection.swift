@@ -7,11 +7,28 @@ import Observation
   /// Shown in the selection bar.
   private(set) var count = 0
   @ObservationIgnored private(set) var ids: [String] = []
+  /// Where a shift-click range starts (Web `selectAnchor`).
+  @ObservationIgnored private var anchor: String?
   @ObservationIgnored private unowned let workspace: Workspace
 
   init(workspace: Workspace) { self.workspace = workspace }
 
   func contains(_ id: String) -> Bool { ids.contains(id) }
+
+  /// Web `select`: shift extends from the anchor over the cards in feed order; `add` only adds;
+  /// otherwise the card toggles. The card becomes the new anchor.
+  func select(_ id: String, range: Bool = false, add: Bool = false, order: [String] = []) {
+    if range, let anchor, let from = order.firstIndex(of: anchor), let to = order.firstIndex(of: id)
+    {
+      let span = order[min(from, to)...max(from, to)]
+      set(ids + span.filter { !ids.contains($0) })
+    } else if add || !ids.contains(id) {
+      if !ids.contains(id) { set(ids + [id]) }
+    } else {
+      set(ids.filter { $0 != id })
+    }
+    anchor = id
+  }
 
   func toggle(_ id: String) {
     if let index = ids.firstIndex(of: id) {

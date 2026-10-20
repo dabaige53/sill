@@ -98,14 +98,16 @@ private struct FeedEntryView: View {
     switch entry {
     case .card(let id):
       if let card = workspace.model(id) {
-        CardTile(
-          card: card, state: workspace.state(id), context: context, selecting: selection.active)
+        let state = workspace.state(id)
+        CardTile(card: card, state: state, context: context, selecting: selection.active)
+          .zIndex(state.menuOpen ? 10 : 0)
       }
     case .stack(let key, let ids):
       StackTile(
         key: key, cards: ids.compactMap(workspace.model), position: feed.stackPosition(key))
     case .openStack(let key, let ids):
       OpenStack(key: key, cards: ids.compactMap(workspace.model), context: context)
+        .zIndex(ids.contains { workspace.state($0).menuOpen } ? 10 : 0)
     }
   }
 }
@@ -308,6 +310,7 @@ struct OpenStack: View {
   let cards: [CardModel]
   let context: CardContext
   @Environment(Workspace.self) private var workspace
+  @Environment(Selection.self) private var selection
   @Environment(\.cardIntents) private var intents
   var body: some View {
     var compact = context
@@ -328,7 +331,9 @@ struct OpenStack: View {
       .frame(minHeight: AppleMetrics.stackOpenHeadHeight)
       .padding(.horizontal, AppleMetrics.space4)
       ForEach(cards) { card in
-        CardTile(card: card, state: workspace.state(card.id), context: compact)
+        let state = workspace.state(card.id)
+        CardTile(card: card, state: state, context: compact, selecting: selection.active)
+          .zIndex(state.menuOpen ? 10 : 0)
       }
     }
   }

@@ -21,8 +21,14 @@ final class CardIntents: @unchecked Sendable {
   var openStack: @MainActor (String) -> Void = { _ in }
   var closeStack: @MainActor (String) -> Void = { _ in }
   var menu: @MainActor (String) -> Void = { _ in }
-  var select: @MainActor (String) -> Void = { _ in }
-  var beginDrag: @MainActor (String) -> Void = { _ in }
+  /// The card, and whether the selection extends as a range.
+  var select: @MainActor (String, Bool) -> Void = { _, _ in }
+  var carry = CardCarry()
+  var bookmark: @MainActor (String) -> Void = { _ in }
+  var later: @MainActor (String) -> Void = { _ in }
+  var toggleRead: @MainActor (String) -> Void = { _ in }
+  /// Tags and note for these cards.
+  var edit: @MainActor ([String]) -> Void = { _ in }
 }
 
 private struct CardIntentsKey: EnvironmentKey {

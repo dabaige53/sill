@@ -7,8 +7,10 @@ import SwiftUI
 @MainActor @Observable final class AIContext {
   var draft = ""
   private(set) var cards: [String] = []
-  /// A card is being dragged toward the box.
-  var dragging = false
+  /// Bumped to put focus in the input.
+  private(set) var focusRequest = 0
+
+  func requestFocus() { focusRequest += 1 }
 
   func add(_ ids: [String]) {
     for id in ids where !cards.contains(id) {
@@ -25,6 +27,7 @@ import SwiftUI
 struct AIDock: View {
   @Environment(AIContext.self) private var context
   @Environment(Workspace.self) private var workspace
+  @Environment(CardDrag.self) private var drag
   @FocusState private var focused: Bool
 
   var body: some View {
@@ -35,9 +38,10 @@ struct AIDock: View {
       TextField(
         "", text: $context.draft,
         prompt: Text(
-          context.dragging ? Copy.text("web.ai.dockReady") : Copy.text("web.ai.dockPlaceholder")
+          drag.ready ? Copy.text("web.ai.dockReady") : Copy.text("web.ai.dockPlaceholder")
         )
-        .foregroundStyle(context.dragging ? AppleColors.accent : AppleColors.iconSecondary)
+        .fontWeight(drag.ready ? .semibold : nil)
+        .foregroundStyle(drag.ready ? AppleColors.accent : AppleColors.iconSecondary)
       )
       .textFieldStyle(.plain)
       .font(.sans(AppleMetrics.font16))
@@ -63,15 +67,32 @@ struct AIDock: View {
     .padding(.horizontal, AppleMetrics.space12)
     .frame(maxWidth: AppleMetrics.aiDockWidth)
     .frame(height: AppleMetrics.railRow)
+    // Web `.ai-dock.is-ready`: a carried card over the box tints it and draws a 2px accent ring.
+    .background {
+      if drag.ready {
+        shape.fill(AppleColors.card)
+          .overlay(shape.fill(AppleColors.accent.opacity(AppleMetrics.aiReadyTint)))
+          .shadow(
+            color: AppleColors.accent.opacity(AppleMetrics.aiReadyGlowOpacity),
+            radius: AppleMetrics.aiReadyGlowBlur / 4, y: AppleMetrics.aiReadyGlowY / 2)
+      }
+    }
     .glass(shape)
-    .overlay(
-      shape.strokeBorder(
-        context.dragging ? AppleColors.accent : .clear, lineWidth: AppleMetrics.selectionLineWidth)
-    )
+    .overlay {
+      if drag.ready {
+        shape.strokeBorder(AppleColors.accent, lineWidth: AppleMetrics.selectionLineWidth)
+          .allowsHitTesting(false)
+      }
+    }
     .overlay(alignment: .top) {
       contextCards.alignmentGuide(.top) { $0[.bottom] + AppleMetrics.space8 }
     }
-    .animation(Motion.state, value: context.dragging)
+    .onGeometryChange(for: CGRect.self) {
+      $0.frame(in: .global)
+    } action: {
+      drag.target = $0
+    }
+    .onChange(of: context.focusRequest) { focused = true }
   }
 
   private func dockButton(_ icon: String, label: String) -> some View {

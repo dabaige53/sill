@@ -68,6 +68,16 @@ enum FeedEntry: Identifiable, Equatable {
     workspace.catalogChanged = { [weak self] in self?.rebuild() }
   }
 
+  /// Card ids in feed order, for a shift-click range.
+  var cardOrder: [String] {
+    entries.flatMap { entry -> [String] in
+      switch entry {
+      case .card(let id): [id]
+      case .stack(_, let cards), .openStack(_, let cards): cards
+      }
+    }
+  }
+
   var filtering: Bool { scope != .all || !query.isEmpty }
 
   func stackPosition(_ key: String) -> StackPosition {

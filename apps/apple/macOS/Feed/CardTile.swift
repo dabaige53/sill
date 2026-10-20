@@ -16,19 +16,31 @@ struct CardTile: View {
 
   var body: some View {
     let faded = cardFaded(card, state, context)
-    let lifted = hovered || focused
+    // Web `.tools-open`: a card with its menu open neither lifts nor presses.
+    let lifted = (hovered || focused) && !state.menuOpen
     surface(faded: faded, lifted: lifted)
       .contentShape(Self.shape)
-      .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
+      .scaleEffect(pressed && !state.menuOpen ? AppleMetrics.motionPressScale : 1)
       .animation(Motion.press, value: pressed)
       .animation(Motion.hover, value: lifted)
       .animation(Motion.read, value: faded)
       .modifier(
         CardPointer(
           id: card.id, pressed: $pressed, hovered: $hovered,
-          click: { command in command ? intents.select(card.id) : intents.open(card.id) },
-          drag: { intents.beginDrag(card.id) }, secondary: { intents.menu(card.id) })
+          click: { modifiers in
+            if modifiers.contains(.shift) {
+              intents.select(card.id, true)
+            } else if modifiers.contains(.command) {
+              intents.select(card.id, false)
+            } else {
+              intents.open(card.id)
+            }
+          },
+          carry: intents.carry, secondary: { intents.menu(card.id) })
       )
+      .overlay {
+        if state.menuOpen { CardMenuLayer(card: card, state: state) }
+      }
       .focusable()
       .focusEffectDisabled()
       .focused($focused)
@@ -54,6 +66,8 @@ struct CardTile: View {
     let selection: Color =
       state.selected ? AppleColors.accent : selecting ? AppleColors.lineHover : .clear
     return CardBody(card: card, state: state, context: context)
+      // While selecting, a click anywhere on the card selects it; its own buttons wait.
+      .allowsHitTesting(!selecting)
       // Changed text fades in once (`fast`); a running fade continues from where it is.
       .modifier(ContentFade(value: card.fingerprint))
       .environment(\.cardFaded, faded)
@@ -63,8 +77,10 @@ struct CardTile: View {
       .overlay(shape.strokeBorder(selection, lineWidth: AppleMetrics.selectionLineWidth))
       .shadow(lifted ? .hover : .card, visible: !faded)
       .overlay(alignment: .topTrailing) {
-        MoreButton(visible: (lifted || state.isWriting) && !selecting) { intents.menu(card.id) }
-          .padding(AppleMetrics.moreInset)
+        MoreButton(visible: (lifted || state.isWriting || state.menuOpen) && !selecting) {
+          intents.menu(card.id)
+        }
+        .padding(AppleMetrics.moreInset)
       }
       .overlay { focusRing }
   }
@@ -125,18 +141,21 @@ struct MoreButton: View {
   }
 }
 
-/// The card's single pointer decision. A press shows the press scale; releasing without moving
-/// is a click (⌘ adds to the selection); moving past the threshold is a drag. Right-click opens
-/// the card menu. Buttons inside the card take their own clicks first.
+/// The card's single pointer decision (Web `click` and `DragManager`). A press shows the press
+/// scale. Releasing without moving is a click: ⌘ toggles the selection, ⇧ extends it as a range.
+/// Moving 8px, or holding still for 380ms, picks the card up: it joins the selection and follows
+/// the pointer until released. Right-click opens the card menu. Buttons inside the card take
+/// their own clicks first.
 struct CardPointer: ViewModifier {
   let id: String
   @Binding var pressed: Bool
   @Binding var hovered: Bool
-  let click: (_ command: Bool) -> Void
-  let drag: () -> Void
+  let click: (_ modifiers: NSEvent.ModifierFlags) -> Void
+  let carry: CardCarry
   let secondary: () -> Void
   @State private var phase = Phase.idle
-  private enum Phase { case idle, pressing, dragging }
+  @State private var hold: Task<Void, Never>?
+  private enum Phase { case idle, pressing, carrying }
 
   func body(content: Content) -> some View {
     content
@@ -151,24 +170,49 @@ struct CardPointer: ViewModifier {
             case .idle:
               phase = .pressing
               pressed = true
+              let start = value.startLocation
+              hold = Task {
+                try? await Task.sleep(for: .seconds(AppleMetrics.holdToSelect))
+                guard !Task.isCancelled, phase == .pressing else { return }
+                pickUp(at: start)
+              }
             case .pressing:
               let moved = hypot(value.translation.width, value.translation.height)
-              if moved >= AppleMetrics.motionDeckGestureStart {
-                phase = .dragging
-                pressed = false
-                drag()
+              if moved > AppleMetrics.dragStartDistance {
+                pickUp(at: value.startLocation)
+                carry.move(value.location)
               }
-            case .dragging: break
+            case .carrying:
+              carry.move(value.location)
             }
           }
-          .onEnded { _ in
-            let wasPressing = phase == .pressing
+          .onEnded { value in
+            hold?.cancel()
+            let ended = phase
             phase = .idle
             pressed = false
-            if wasPressing { click(NSEvent.modifierFlags.contains(.command)) }
+            switch ended {
+            case .pressing: click(NSEvent.modifierFlags)
+            case .carrying: carry.end(value.location)
+            case .idle: break
+            }
           }
       )
   }
+
+  private func pickUp(at point: CGPoint) {
+    hold?.cancel()
+    phase = .carrying
+    pressed = false
+    carry.begin(id, point)
+  }
+}
+
+/// What picking a card up does. Not observable.
+struct CardCarry {
+  var begin: @MainActor (String, CGPoint) -> Void = { _, _ in }
+  var move: @MainActor (CGPoint) -> Void = { _ in }
+  var end: @MainActor (CGPoint) -> Void = { _ in }
 }
 
 /// Right-click goes to the card under the pointer. One window-level monitor for every card.

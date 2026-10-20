@@ -16,6 +16,8 @@ import SwiftUI
         .environment(app.chrome)
         .environment(app.shell)
         .environment(app.ai)
+        .environment(app.drag)
+        .environment(app.menu)
         .preferredColorScheme(app.workspace.preferences.colorScheme)
         .onAppear {
           Keyboard.install()
@@ -39,15 +41,18 @@ import SwiftUI
   let feed: Feed
   let selection: Selection
   let reader: Reader
+  let menu: CardMenu
   let chrome = Chrome()
   let shell = Shell()
   let ai = AIContext()
+  let drag = CardDrag()
 
   init() {
     workspace = Workspace()
     feed = Feed(workspace: workspace)
     selection = Selection(workspace: workspace)
     reader = Reader(workspace: workspace)
+    menu = CardMenu(workspace: workspace)
   }
 }
 

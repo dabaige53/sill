@@ -26,6 +26,8 @@ import SillKit
   /// Incremented to move keyboard focus back to this card (after the reader closes).
   private(set) var focusRequest = 0
   func requestFocus() { focusRequest += 1 }
+  /// Interface only: this card's more menu is open (Web `.tools-open`).
+  var menuOpen = false
   /// Foreground writes in flight for this card. Only this card's controls lock while it is above 0.
   private(set) var writing = 0
 
