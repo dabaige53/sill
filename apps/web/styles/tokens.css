@@ -1,7 +1,7 @@
 /* Sill · tokens · shared source (design-system/tokens.json v2) */
 :root {
 	--dur-deck: 260ms;
-	--dur-show: 220ms;
+	--dur-show: 320ms;
 	--dur-lens: 0ms;
 	--delay-loading: 300ms;
 	--stagger: 30ms;
@@ -186,7 +186,7 @@
 	--layout: 220ms;
 	--settle: 220ms;
 	--dur-reduced: 70ms;
-	--dur-tuck: 180ms;
+	--dur-tuck: 240ms;
 	--rest-show: 650ms;
 	color-scheme: light;
 }

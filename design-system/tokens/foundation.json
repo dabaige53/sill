@@ -181,8 +181,8 @@
 		"compactReaderWidth": 560,
 		"motionDetailOpen": 0.22,
 		"motionDetailClose": 0.22,
-		"motionRailHide": 0.18,
-		"motionRailShow": 0.22,
+		"motionRailHide": 0.24,
+		"motionRailShow": 0.32,
 		"motionLens": 0,
 		"motionDeckTravel": 0.3,
 		"motionDeckSpeed": 0.45,
@@ -246,7 +246,7 @@
 		"editorNoteLeading": 1.7,
 		"nextEventRadius": 14,
 		"motionBase": 0.22,
-		"motionTuck": 0.18,
+		"motionTuck": 0.24,
 		"motionVisibilityY": 4,
 		"newCountHeight": 40,
 		"newSourceSize": 24,
@@ -808,8 +808,8 @@
 			},
 			{
 				"name": "dur-tuck",
-				"value": "180ms",
-				"usage": "工具条收起180ms；出现使用dur-show和ease-sheet。"
+				"value": "240ms",
+				"usage": "工具条收起240ms；出现使用dur-show。"
 			},
 			{
 				"name": "dur-lens",
@@ -843,7 +843,7 @@
 			},
 			{
 				"name": "dur-show",
-				"value": "220ms",
+				"value": "320ms",
 				"usage": "工具条出现。"
 			},
 			{
