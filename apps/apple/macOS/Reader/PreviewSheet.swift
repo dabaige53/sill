@@ -55,49 +55,46 @@ struct PreviewSheet: View {
         .padding(.bottom, -AppleMetrics.space46)
         .accessibilityLabel(Copy.text("web.peekBack") + below.title)
       }
-      ZStack(alignment: .top) {
-        ScrollView(.vertical) {
-          ReaderContent(card: card, state: state, discRoom: discRoom)
-            .padding(.top, AppleMetrics.previewPaddingTop)
-            .padding(.horizontal, AppleMetrics.previewPaddingX)
-            .padding(.bottom, barRoom)
-            .background(
-              GeometryReader { proxy in
-                Color.clear.onAppear { contentHeight = proxy.size.height }
-                  .onChange(of: proxy.size.height) { _, value in contentHeight = value }
-              }
-            )
-            .background(ReaderScrollProbe(scroll: scroll))
-            .modifier(ReaderPullOffset(motion: scroll.motion))
-        }
-        .scrollIndicators(.hidden)
-        .frame(height: max(1, min(maxHeight, contentHeight)))
-        .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
+      ScrollView(.vertical) {
+        ReaderContent(card: card, state: state, discRoom: discRoom)
+          .padding(.top, AppleMetrics.previewPaddingTop)
+          .padding(.horizontal, AppleMetrics.previewPaddingX)
+          .padding(.bottom, barRoom)
+          .background(
+            GeometryReader { proxy in
+              Color.clear.onAppear { contentHeight = proxy.size.height }
+                .onChange(of: proxy.size.height) { _, value in contentHeight = value }
+            }
+          )
+          .background(ReaderScrollProbe(scroll: scroll))
+          .modifier(ReaderPullOffset(motion: scroll.motion))
+      }
+      .scrollIndicators(.hidden)
+      // The text decides the height (up to `maxHeight`); everything else lies over it, so a
+      // short card gets a short sheet.
+      .frame(height: max(1, min(maxHeight, contentHeight)))
+      .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
+      .overlay(alignment: .top) {
         TopFade(motion: scroll.motion)
         HeadDiscs(
           motion: scroll.motion, firstRow: firstRow,
           expand: expandable ? { reader.open(card.id, full: true) } : nil,
           close: { reader.close() })
-        if !tools.isEmpty {
-          VStack(spacing: 0) {
-            Spacer(minLength: 0)
+      }
+      .overlay(alignment: .bottom) {
+        ZStack(alignment: .bottom) {
+          if !tools.isEmpty {
             BottomFade(motion: scroll.motion)
-          }
-          VStack(spacing: 0) {
-            Spacer(minLength: 0)
             ReaderToolbar(card: card, state: state, actions: tools)
               .modifier(ReaderToolsTuck(motion: scroll.motion))
               .padding(.bottom, AppleMetrics.previewBarBottom)
           }
-        }
-        VStack {
-          Spacer(minLength: 0)
+          // Web `.push-ring`: 24 above the bottom edge, where the toolbar was.
           FinishRing(motion: scroll.motion)
-            .padding(.bottom, barRoom - AppleMetrics.space40)
+            .padding(.bottom, AppleMetrics.space24)
         }
       }
       .frame(width: width)
-      .frame(maxHeight: maxHeight)
       .background(AppleColors.card)
       .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
       .shadow(.sheet)

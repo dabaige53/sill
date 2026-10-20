@@ -400,12 +400,18 @@ struct ReaderToolsTuck: ViewModifier {
   let motion: ReaderMotion
   var top = false
   func body(content: Content) -> some View {
+    // Web `bindPush`: while the finish ring is pulled, the bottom toolbar fades and drops 16px
+    // so the ring has the place to itself.
+    let pushing = !top && (motion.finish > 0 || motion.confirmed)
+    let hidden = motion.toolsHidden || pushing
     content
-      .opacity(motion.toolsHidden ? 0 : 1)
+      .opacity(hidden ? 0 : 1)
       .offset(
-        y: motion.toolsHidden ? (top ? -AppleMetrics.space12 : AppleMetrics.motionRailTravel) : 0
+        y: pushing
+          ? AppleMetrics.space16
+          : motion.toolsHidden ? (top ? -AppleMetrics.space12 : AppleMetrics.motionRailTravel) : 0
       )
-      .allowsHitTesting(!motion.toolsHidden)
-      .accessibilityHidden(motion.toolsHidden)
+      .allowsHitTesting(!hidden)
+      .accessibilityHidden(hidden)
   }
 }

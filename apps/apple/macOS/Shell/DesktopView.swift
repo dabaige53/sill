@@ -264,7 +264,7 @@ struct DesktopView: View {
     let menu = menu
     let panels = panels
     cardIntents.edit = { ids in if !ids.isEmpty { panels.open(.editor(ids)) } }
-    cardIntents.menu = { id in menu.toggle(id) }
+    cardIntents.menu = { id, point in menu.toggle(id, at: point) }
     cardIntents.bookmark = { id in workspace.toggleBookmark(id) }
     cardIntents.later = { id in workspace.toggleLater(id) }
     cardIntents.toggleRead = { id in workspace.toggleRead(id) }

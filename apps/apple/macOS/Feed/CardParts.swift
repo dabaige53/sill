@@ -20,7 +20,8 @@ final class CardIntents: @unchecked Sendable {
   var join: @MainActor (String) -> Void = { _ in }
   var openStack: @MainActor (String) -> Void = { _ in }
   var closeStack: @MainActor (String) -> Void = { _ in }
-  var menu: @MainActor (String) -> Void = { _ in }
+  /// The card, and the pointer in window coordinates (nil from VoiceOver).
+  var menu: @MainActor (String, CGPoint?) -> Void = { _, _ in }
   /// The card, and whether the selection extends as a range.
   var select: @MainActor (String, Bool) -> Void = { _, _ in }
   var carry = CardCarry()

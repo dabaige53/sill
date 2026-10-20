@@ -1,9 +1,11 @@
 import SillKit
 import SwiftUI
 
-/// Web `.card-more-menu`: under the card's top-right corner, solid card color with a line and the
-/// glass shadow. Near the bottom it moves up only as far as it must to stay clear of the AI box.
-/// It opens from 4px up at 95% in 180ms and closes the same way in 140ms.
+/// Web `.card-more-menu`, solid card color with a line and the glass shadow. A right-click
+/// opens it at the pointer, toward the lower right; near the window's right edge it opens to the
+/// left, and near the bottom (or the AI box) it opens upward. Without a pointer (VoiceOver) it
+/// sits under the card's top-right corner as on Web. It grows from the corner at the pointer:
+/// 4px and 95% to full in 180ms, back in 140ms.
 struct CardMenuLayer: View {
   let card: CardModel
   let state: CardState
@@ -11,37 +13,77 @@ struct CardMenuLayer: View {
   @Environment(CardMenu.self) private var menu
   @Environment(CardDrag.self) private var drag
   @Environment(Selection.self) private var selection
-  @State private var height: CGFloat = 0
+  @State private var size: CGSize = .zero
+  @State private var appeared = false
 
   var body: some View {
     GeometryReader { proxy in
       let box = proxy.frame(in: .global)
+      let place = placement(box, cardWidth: proxy.size.width)
+      // Hidden until measured, so the first frame is already in the right place.
+      let open = appeared && size != .zero && menu.id == card.id
       items
-        .frame(
-          width: min(AppleMetrics.cardMenuWidth, proxy.size.width - 2 * AppleMetrics.cardMenuInset)
-        )
+        .frame(width: width(proxy.size.width))
+        // Layout size (the scale is only drawn); the window frame for outside clicks.
+        .onGeometryChange(for: CGSize.self) {
+          $0.size
+        } action: {
+          size = $0
+        }
         .onGeometryChange(for: CGRect.self) {
           $0.frame(in: .global)
-        } action: { frame in
-          height = frame.height
-          menu.frame = frame
+        } action: {
+          menu.frame = $0
         }
-        .padding(.top, top(box))
-        .padding(.trailing, AppleMetrics.cardMenuInset)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+        .scaleEffect(open ? 1 : AppleMetrics.motionMenuScale, anchor: place.anchor)
+        .offset(y: open ? 0 : (place.up ? AppleMetrics.motionMenuY : -AppleMetrics.motionMenuY))
+        .opacity(open ? 1 : 0)
+        .animation(open ? Motion.menuOpen : Motion.menuClose, value: open)
+        .offset(x: place.origin.x, y: place.origin.y)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
-    .transition(
-      .opacity
-        .combined(with: .scale(scale: AppleMetrics.motionMenuScale, anchor: .topTrailing))
-        .combined(with: .offset(y: -AppleMetrics.motionMenuY)))
+    .onAppear {
+      // A menu opened from the keyboard appears at once (Web skips the motion for keys).
+      if Motion.keyboardDriven { Motion.instantly { appeared = true } } else { appeared = true }
+    }
   }
 
-  /// Web: `min(48, floor − cardTop − menuHeight)`, never above 8px from the window top.
-  private func top(_ box: CGRect) -> CGFloat {
-    let window = NSApp.keyWindow?.contentView?.bounds.height ?? .infinity
-    let floor = min(window, drag.target.isNull ? window : drag.target.minY) - AppleMetrics.space12
-    let top = min(AppleMetrics.cardMenuTop, floor - box.minY - height)
-    return top < AppleMetrics.cardMenuTop ? max(AppleMetrics.cardMenuEdge - box.minY, top) : top
+  private func width(_ cardWidth: CGFloat) -> CGFloat {
+    min(AppleMetrics.cardMenuWidth, cardWidth - 2 * AppleMetrics.cardMenuInset)
+  }
+
+  private struct Placement {
+    var origin: CGPoint
+    var anchor: UnitPoint
+    var up: Bool
+  }
+
+  /// The menu's top-left corner inside the card, and the corner it grows from.
+  private func placement(_ box: CGRect, cardWidth: CGFloat) -> Placement {
+    let window =
+      NSApp.keyWindow?.contentView?.bounds.size
+      ?? CGSize(width: CGFloat.infinity, height: CGFloat.infinity)
+    let floor =
+      min(window.height, drag.target.isNull ? window.height : drag.target.minY)
+      - AppleMetrics.space12
+    let edge = AppleMetrics.cardMenuEdge
+    let w = width(cardWidth)
+    let h = size.height
+    guard let point = menu.point else {
+      // Web: `min(48, floor − cardTop − menuHeight)`, never above 8px from the window top.
+      var top = min(AppleMetrics.cardMenuTop, floor - box.minY - h)
+      if top < AppleMetrics.cardMenuTop { top = max(edge - box.minY, top) }
+      return Placement(
+        origin: CGPoint(x: box.width - AppleMetrics.cardMenuInset - w, y: top),
+        anchor: .topTrailing, up: false)
+    }
+    let left = point.x + w > window.width - edge
+    let up = point.y + h > floor
+    let x = max(edge, left ? point.x - w : point.x)
+    let y = max(edge, up ? point.y - h : point.y)
+    return Placement(
+      origin: CGPoint(x: x - box.minX, y: y - box.minY),
+      anchor: UnitPoint(x: left ? 1 : 0, y: up ? 1 : 0), up: up)
   }
 
   private var items: some View {

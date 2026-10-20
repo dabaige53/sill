@@ -36,7 +36,7 @@ struct CardTile: View {
               intents.open(card.id)
             }
           },
-          carry: intents.carry, secondary: { intents.menu(card.id) })
+          carry: intents.carry, secondary: { point in intents.menu(card.id, point) })
       )
       .overlay {
         if state.menuOpen { CardMenuLayer(card: card, state: state) }
@@ -103,7 +103,9 @@ private struct CardAccessibility: ViewModifier {
       .accessibilityLabel(label)
       .accessibilityAddTraits(traits)
       .accessibilityAction { intents.open(card.id) }
-      .accessibilityAction(named: Copy.text("web.templates.ee9430845e26")) { intents.menu(card.id) }
+      .accessibilityAction(named: Copy.text("web.templates.ee9430845e26")) {
+        intents.menu(card.id, nil)
+      }
   }
 }
 
@@ -118,7 +120,7 @@ struct CardPointer: ViewModifier {
   @Binding var hovered: Bool
   let click: (_ modifiers: NSEvent.ModifierFlags) -> Void
   let carry: CardCarry
-  let secondary: () -> Void
+  let secondary: (CGPoint) -> Void
   @State private var phase = Phase.idle
   @State private var hold: Task<Void, Never>?
   private enum Phase { case idle, pressing, carrying }
@@ -184,11 +186,12 @@ struct CardCarry {
 /// Right-click goes to the card under the pointer. One window-level monitor for every card.
 @MainActor final class PointerRouter {
   static let shared = PointerRouter()
-  private var hovered: (id: String, secondary: () -> Void)?
+  private var hovered: (id: String, secondary: (CGPoint) -> Void)?
   private var monitor: Any?
   var enabled = true
 
-  func hover(_ id: String, inside: Bool, secondary: @escaping () -> Void) {
+  /// `secondary` gets the pointer in window coordinates, top-left origin.
+  func hover(_ id: String, inside: Bool, secondary: @escaping (CGPoint) -> Void) {
     if inside {
       hovered = (id, secondary)
     } else if hovered?.id == id {
@@ -200,11 +203,14 @@ struct CardCarry {
   private func install() {
     guard monitor == nil else { return }
     monitor = NSEvent.addLocalMonitorForEvents(matching: .rightMouseDown) { event in
+      let location = event.locationInWindow
+      let height = event.window?.contentView?.bounds.height ?? 0
+      let point = CGPoint(x: location.x, y: height - location.y)
       let handled = MainActor.assumeIsolated {
         guard let router = PointerRouter.shared.hovered, PointerRouter.shared.enabled else {
           return false
         }
-        router.secondary()
+        router.secondary(point)
         return true
       }
       return handled ? nil : event

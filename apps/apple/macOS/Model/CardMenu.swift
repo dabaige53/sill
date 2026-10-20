@@ -9,6 +9,8 @@ import SwiftUI
 /// where it was aimed.
 @MainActor @Observable final class CardMenu {
   private(set) var id: String?
+  /// Where the right-click was, in window coordinates; nil places the menu at the card's corner.
+  @ObservationIgnored private(set) var point: CGPoint?
   /// The menu, in window coordinates; set by the menu itself.
   @ObservationIgnored var frame: CGRect = .null
   @ObservationIgnored private unowned let workspace: Workspace
@@ -17,39 +19,40 @@ import SwiftUI
 
   init(workspace: Workspace) { self.workspace = workspace }
 
-  /// Right-click toggles the menu. A right-click outside closes it first, so the same press on
-  /// its own card does not open it again.
-  func toggle(_ id: String) {
-    if self.id == id {
-      close()
-      return
-    }
-    if let closed, closed.id == id, Date().timeIntervalSince(closed.at) < 0.4 {
-      self.closed = nil
-      return
+  /// A right-click always opens the menu at the pointer, also when one is open (Mac context
+  /// menus move to the new click). Without a pointer (VoiceOver) it toggles, as Web `more`.
+  func toggle(_ id: String, at point: CGPoint? = nil) {
+    if point == nil {
+      if self.id == id {
+        close()
+        return
+      }
+      if let closed, closed.id == id, Date().timeIntervalSince(closed.at) < 0.4 {
+        self.closed = nil
+        return
+      }
     }
     close()
+    self.point = point
     self.id = id
     frame = .null
-    animate(Motion.menuOpen) { workspace.state(id).menuOpen = true }
+    Motion.instantly { workspace.state(id).menuOpen = true }
     install()
   }
 
+  /// The menu draws its own leave motion (140ms) while `id` is already nil, then the card lets
+  /// it go.
   func close() {
     guard let id else { return }
     self.id = nil
     closed = (id, Date())
-    animate(Motion.menuClose) { workspace.state(id).menuOpen = false }
     if let monitor { NSEvent.removeMonitor(monitor) }
     monitor = nil
-  }
-
-  /// A menu opened from the keyboard appears at once (Web skips the motion for keyboard input).
-  private func animate(_ animation: Animation, _ change: () -> Void) {
-    if Motion.keyboardDriven {
-      Motion.instantly(change)
-    } else {
-      withAnimation(animation, change)
+    let state = workspace.state(id)
+    Task { [weak self] in
+      try? await Task.sleep(for: .seconds(AppleMetrics.motionMenuClose))
+      guard self?.id != id else { return }
+      Motion.instantly { state.menuOpen = false }
     }
   }
 
