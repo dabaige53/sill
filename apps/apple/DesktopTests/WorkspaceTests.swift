@@ -12,6 +12,7 @@ private actor FakeBackend: WorkspaceBackend {
   private var cards: [JSONValue]
   private var items: [String: JSONValue] = [:]
   private var seconds: Double = 0
+  private var preferences: [String: JSONValue] = [:]
   private(set) var writes = 0
   private(set) var reads = 0
   private var failNext: (any Error)?
@@ -52,7 +53,11 @@ private actor FakeBackend: WorkspaceBackend {
       switch operation {
       case .itemPatch(let id, let values): merge(id, values)
       case .reading(let amount): seconds += Double(amount)
-      default: break
+      case .upsert(let card, _): cards.append(card)
+      case .delete(let id, _):
+        cards.removeAll { $0["id"]?.string == id }
+        items[id] = nil
+      case .preferences(let values): preferences.merge(values) { $1 }
       }
     }
     revision += 1
@@ -70,7 +75,7 @@ private actor FakeBackend: WorkspaceBackend {
       json: .object([
         "revision": .number(Double(revision)),
         "state": .object([
-          "cards": .array(cards), "items": .object(items), "preferences": .object([:]),
+          "cards": .array(cards), "items": .object(items), "preferences": .object(preferences),
           "seconds": .number(seconds),
         ]),
       ]))
@@ -252,5 +257,50 @@ struct LaunchOptionTests {
     #expect(
       LaunchOptions(arguments: ["Sill", "--data-directory", "relative"]).dataDirectory == nil)
     #expect(LaunchOptions(arguments: ["Sill"]).dataDirectory == nil)
+  }
+}
+
+@MainActor struct SettingsTests {
+  @Test func linkBecomesArticleFromItsSite() throws {
+    let card = try #require(Capture.card(from: "https://www.example.com/post/ 读这篇", now: 1))
+    #expect(card["type"]?.string == "article")
+    #expect(card["title"]?.string == "读这篇")
+    #expect(card["sources"]?.array?.first?["name"]?.string == "example.com")
+    let bare = try #require(Capture.card(from: "https://www.example.com/post/", now: 1))
+    #expect(bare["title"]?.string == "example.com/post")
+  }
+
+  @Test func textBecomesNoteWithParagraphs() throws {
+    let card = try #require(Capture.card(from: "第一行\n接着\n\n\n第二段", now: 1))
+    #expect(card["type"]?.string == "note")
+    #expect(card["title"]?.string == "第一行")
+    #expect(card["body"]?.strings == ["第一行\n接着", "第二段"])
+    #expect(Capture.card(from: "  \n ") == nil)
+  }
+
+  @Test func captureAddsCardAndSkipsDuplicate() async {
+    let (workspace, _) = await ready()
+    #expect(workspace.capture("新的想法") == .sent)
+    await until { workspace.cards.count == 4 }
+    #expect(workspace.cards.contains { $0.title == "新的想法" })
+    #expect(workspace.notice?.text == Copy.text("web.app.4f060a8371c3"))
+    #expect(workspace.capture("新的想法") == .duplicate)
+  }
+
+  @Test func timelyOffSortsByTime() async {
+    let (workspace, _) = await ready()
+    workspace.setPreference("floatTimely", .bool(false))
+    await until { !workspace.preferences.floatTimely }
+    #expect(workspace.preferences.feedSort == .time)
+  }
+
+  @Test func clearAllRemovesEveryCard() async {
+    let (workspace, backend) = await ready()
+    workspace.setRead("a", true)
+    await until { workspace.queue.idle }
+    workspace.clearAll()
+    await until { workspace.cards.isEmpty }
+    #expect(workspace.cards.isEmpty)
+    #expect(await backend.writes == 2)
   }
 }

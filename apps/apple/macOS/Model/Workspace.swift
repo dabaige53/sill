@@ -280,6 +280,55 @@ import SillKit
     return change(id, values) ? before : nil
   }
 
+  // MARK: Workspace actions (settings, capture)
+
+  enum CaptureResult { case saved, empty, duplicate, sent }
+
+  /// A note or link the person typed. Only the control that asked waits for the store.
+  @discardableResult
+  func capture(_ text: String, completion: ((Bool) -> Void)? = nil) -> CaptureResult {
+    guard let json = Capture.card(from: String(text.prefix(Capture.limit))) else { return .empty }
+    if Capture.duplicate(json, in: cards) {
+      notice = Notice(text: Copy.text("web.app.17ebeb500554"))
+      return .duplicate
+    }
+    do {
+      let card = try Card(json: json)
+      write([.upsert(card: try card.raw, before: .null)]) { [weak self] done in
+        if done { self?.notice = Notice(text: Copy.text("web.app.4f060a8371c3")) }
+        completion?(done)
+      }
+      return .sent
+    } catch {
+      report(error)
+      return .empty
+    }
+  }
+
+  /// Everything stored, in the Web export shape (`app`, `exportedAt` and the state).
+  func exportState() -> JSONValue {
+    .object([
+      "app": .string("Sill"),
+      "exportedAt": .string(ISO8601DateFormatter().string(from: .now)),
+      "cards": .array(order.compactMap { baseline.raw[$0] }),
+      "items": .object(baseline.items),
+      "seconds": .number(seconds),
+      "preferences": .object(storedPreferences),
+    ])
+  }
+
+  /// Deletes every card and its stored state in one write, checked against the read revision.
+  func clearAll(completion: ((Bool) -> Void)? = nil) {
+    let operations = order.compactMap { id in
+      baseline.raw[id].map { WorkspaceOperation.delete(id: id, before: $0) }
+    }
+    guard !operations.isEmpty else {
+      completion?(true)
+      return
+    }
+    write(operations, completion: completion)
+  }
+
   // MARK: Failures
 
   func report(_ failure: any Error) {

@@ -76,13 +76,16 @@ private struct RowBody: View {
 }
 
 /// Web `.text-link`: accent words; pressing dims them to 0.6.
+/// In a settings row it has no padding (`.setting-row .text-link`).
 struct TextLinkStyle: ButtonStyle {
   var warn = false
+  var padded = true
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .font(.sans(AppleMetrics.font13, .medium))
       .foregroundStyle(warn ? AppleColors.warning : AppleColors.accent)
-      .padding(.vertical, AppleMetrics.space6).padding(.horizontal, AppleMetrics.space2)
+      .padding(.vertical, padded ? AppleMetrics.space6 : 0)
+      .padding(.horizontal, padded ? AppleMetrics.space2 : 0)
       .opacity(configuration.isPressed ? AppleMetrics.textLinkPressOpacity : 1)
       .contentShape(Rectangle())
   }

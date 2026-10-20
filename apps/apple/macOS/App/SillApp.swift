@@ -26,9 +26,10 @@ import SwiftUI
     .windowStyle(.hiddenTitleBar)
     .commands { DesktopCommands(app: app) }
     Settings {
-      // The settings window arrives with its own group.
-      EmptyView()
+      SettingsView()
+        .environment(app.workspace)
     }
+    .windowResizability(.contentSize)
   }
 }
 

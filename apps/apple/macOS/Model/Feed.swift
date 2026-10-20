@@ -124,7 +124,9 @@ enum FeedEntry: Identifiable, Equatable {
 
   func preferencesChanged(_ preferences: Preferences) {
     defer { lastPreferences = preferences }
-    if preferences.sort != lastPreferences.sort || preferences.stack != lastPreferences.stack {
+    if preferences.feedSort != lastPreferences.feedSort
+      || preferences.stack != lastPreferences.stack
+    {
       rebuild()
     }
   }
@@ -148,7 +150,7 @@ enum FeedEntry: Identifiable, Equatable {
         case .saved: if !s.bookmarked { return false }
         }
         return text.isEmpty || matches(card, state: s, text: text)
-      }, mode: workspace.preferences.sort, state: state, now: now)
+      }, mode: workspace.preferences.feedSort, state: state, now: now)
 
     if cards.isEmpty {
       set(entries: [], more: false)

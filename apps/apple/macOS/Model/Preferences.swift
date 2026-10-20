@@ -6,6 +6,7 @@ struct Preferences: Equatable, Sendable {
   enum Theme: String, Sendable { case system, light, dark }
   enum Density: String, Sendable { case compact, standard, roomy }
   enum Sort: String, Sendable { case priority, unread, time }
+  enum NewHint: String, Sendable { case away, off }
 
   var theme = Theme.system
   var density = Density.standard
@@ -13,6 +14,9 @@ struct Preferences: Equatable, Sendable {
   var stack = true
   var fadeRead = true
   var collapseOnFinish = true
+  var floatTimely = true
+  var newHint = NewHint.away
+  var aiLocal = true
   var singleKeyShortcuts = true
   var hiddenActions: Set<String> = []
 
@@ -25,9 +29,15 @@ struct Preferences: Equatable, Sendable {
     stack = json["stack"]?.bool ?? true
     fadeRead = json["fadeRead"]?.bool ?? true
     collapseOnFinish = json["collapseOnFinish"]?.bool ?? true
+    floatTimely = json["floatTimely"]?.bool ?? true
+    newHint = json["newHint"]?.string.flatMap(NewHint.init) ?? .away
+    aiLocal = json["aiLocal"]?.bool ?? true
     singleKeyShortcuts = json["singleKeyShortcuts"]?.bool ?? true
     hiddenActions = Set(json["hiddenActions"]?.strings ?? [])
   }
+
+  /// Web `applyPreferences`: without "timely first" the desk is ordered by time alone.
+  var feedSort: Sort { floatTimely ? sort : .time }
 
   var colorScheme: ColorScheme? {
     switch theme {
