@@ -292,13 +292,16 @@ struct DesktopView: View {
       case .restoreReminder: reminder(id, .restore)
       case .dismiss: reminder(id, .dismiss)
       case .open, .reply:
-        if let url = workspace.model(id)?.url { NSWorkspace.shared.open(url) }
+        guard let card = workspace.model(id), let url = card.url else { return }
+        // Web `external`: an opened mail counts as read.
+        if NSWorkspace.shared.open(url), card.kind == .mail, !workspace.state(id).read {
+          workspace.setRead(id, true)
+        }
       case .join:
         if let url = workspace.model(id)?.meeting?.url { NSWorkspace.shared.open(url) }
       case .tag: panels.open(.editor([id]))
       case .download:
-        // The calendar file arrives with its own group.
-        break
+        if let card = workspace.model(id) { CalendarFile.save(card, workspace: workspace) }
       }
     }
     reader.onClosed = { origin in
