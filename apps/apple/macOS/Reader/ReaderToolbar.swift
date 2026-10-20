@@ -89,6 +89,7 @@ struct ReaderToolbar: View {
   let state: CardState
   let actions: [ReaderAction]
   @Environment(\.readerIntents) private var intents
+  @State private var tips = ToolbarTips()
 
   var body: some View {
     let shared = actions.filter { !$0.own }
@@ -106,14 +107,22 @@ struct ReaderToolbar: View {
     .padding(AppleMetrics.railInset)
     .frame(height: AppleMetrics.railRow)
     .glass(Capsule())
+    .onHover { inside in if !inside { tips.leaveBar() } }
     .accessibilityElement(children: .contain)
     .accessibilityLabel(Copy.text("web.preview.cardTools"))
   }
 
   private func button(_ action: ReaderAction) -> some View {
-    ToolButton(icon: action.icon, label: action.label, active: action.active, accent: action.own) {
+    let edge: ToolbarTip.Edge =
+      action.id == actions.first?.id
+      ? .leading : action.id == actions.last?.id ? .trailing : .center
+    return ToolButton(
+      icon: action.icon, label: action.label, active: action.active, accent: action.own,
+      help: false
+    ) {
       intents.perform(action.kind, card.id)
     }
+    .modifier(ToolbarTip(id: action.id, label: action.label, edge: edge, tips: tips))
     .disabled(
       state.isWriting && action.kind != .open && action.kind != .reply && action.kind != .join)
   }
@@ -125,6 +134,8 @@ struct ToolButton: View {
   let label: String
   var active = false
   var accent = false
+  /// The system help tag; off where the toolbar draws its own name (`ToolbarTip`).
+  var help = true
   let action: () -> Void
   var body: some View {
     Button(action: action) {
@@ -141,7 +152,77 @@ struct ToolButton: View {
     }
     .buttonStyle(IconPress())
     .accessibilityLabel(label)
-    .help(label)
+    .help(help ? label : "")
+  }
+}
+
+/// Toolbar names (interaction.md, Web `toolbarTips`): the first hover shows a name after 0.5s;
+/// once one is showing, moving to another tool in the same bar shows its name at once, until the
+/// pointer leaves the bar. Keyboard focus shows the name too.
+@MainActor @Observable final class ToolbarTips {
+  private(set) var shown: String?
+  @ObservationIgnored private var warm = false
+  @ObservationIgnored private var timer: Task<Void, Never>?
+
+  func enter(_ id: String) {
+    timer?.cancel()
+    if warm {
+      shown = id
+      return
+    }
+    timer = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(AppleMetrics.tipDelay))
+      guard let self, !Task.isCancelled else { return }
+      self.shown = id
+      self.warm = true
+    }
+  }
+
+  func leave(_ id: String) {
+    timer?.cancel()
+    if shown == id { shown = nil }
+  }
+
+  func leaveBar() {
+    timer?.cancel()
+    warm = false
+    shown = nil
+  }
+}
+
+/// Web `.float-bar .icon-button::after`: the name above the tool, `ink` with `card` text; the
+/// first and last tools open their names inward.
+struct ToolbarTip: ViewModifier {
+  enum Edge { case leading, center, trailing }
+  let id: String
+  let label: String
+  let edge: Edge
+  let tips: ToolbarTips
+  @FocusState private var focused: Bool
+
+  func body(content: Content) -> some View {
+    let alignment: Alignment =
+      edge == .leading ? .topLeading : edge == .trailing ? .topTrailing : .top
+    content
+      .focused($focused)
+      .onHover { inside in inside ? tips.enter(id) : tips.leave(id) }
+      .overlay(alignment: alignment) {
+        if tips.shown == id || (focused && Keyboard.focusVisible) {
+          Text(label)
+            .font(.sans(AppleMetrics.font13, .medium))
+            .foregroundStyle(AppleColors.card)
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.vertical, AppleMetrics.space6)
+            .padding(.horizontal, AppleMetrics.space10)
+            .background(
+              RoundedRectangle(cornerRadius: AppleMetrics.tipRadius).fill(AppleColors.primary)
+            )
+            .alignmentGuide(.top) { $0[.bottom] + AppleMetrics.tipGap }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+      }
   }
 }
 
