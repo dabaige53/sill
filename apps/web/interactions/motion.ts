@@ -141,55 +141,15 @@ const MotionEngine: Record<string, any> = {
 		});
 		this.loops.set(el, animation);
 	},
-	headerAnimations: new WeakMap(),
-	/** Fade glass layers together without making their common ancestor a backdrop root. */
-	headerChange(el: HTMLElement, update: () => void, duration: number) {
-		const layers = [
-			{ node: el, pseudoElement: "::before" },
-			{ node: el, pseudoElement: "::after" },
-			...Array.from(
-				el.querySelectorAll<HTMLElement>(
-					":scope > .home-edge-blur, :scope > .home-heading, :scope > .home-tabs",
-				),
-			).map((node) => ({ node, pseudoElement: undefined })),
-		];
-		const from = layers.map(
-			({ node, pseudoElement }) => getComputedStyle(node, pseudoElement).opacity,
-		);
-		for (const animation of this.headerAnimations.get(el) || []) animation?.cancel();
-		update();
-		el.style.visibility = "";
-		if (this.keyboard) return null;
-		const to = layers.map(
-			({ node, pseudoElement }) => getComputedStyle(node, pseudoElement).opacity,
-		);
-		el.style.visibility = "visible";
-		const animations = layers.map(({ node, pseudoElement }, index) =>
-			this.animate(node, [{ opacity: from[index] }, { opacity: to[index] }], {
-				duration,
-				pseudoElement,
-			}),
-		);
-		this.headerAnimations.set(el, animations);
-		Promise.all(animations.map((animation) => animation?.finished)).then(
-			() => {
-				if (this.headerAnimations.get(el) !== animations) return;
-				el.style.visibility = "";
-				this.headerAnimations.delete(el);
-			},
-			() => {},
-		);
-		return animations;
-	},
 	/** Capture before changing CSS state, then let Motion bridge only visual properties. */
 	change(el: HTMLElement, update: () => void, duration = this.time("base")) {
-		if (el.id === "home-top" && matchMedia("(min-width: 651px)").matches) {
-			return this.headerChange(el, update, duration);
-		}
 		const before = getComputedStyle(el);
 		const from = { opacity: before.opacity, transform: before.transform };
 		this.cancel(el);
 		update();
+		if (el.id === "home-top" && matchMedia("(min-width: 651px)").matches) {
+			duration = this.time(el.classList.contains("is-tucked") ? "dur-tuck" : "dur-open");
+		}
 		const after = getComputedStyle(el);
 		const to = { opacity: after.opacity, transform: after.transform };
 		const visibility = after.visibility;
@@ -217,6 +177,7 @@ const MotionEngine: Record<string, any> = {
 		else el.style.visibility = visibility;
 		return animation;
 	},
+	// @design button-feedback
 	bind() {
 		let pressed: HTMLElement | null = null;
 		const release = () => {
@@ -233,13 +194,16 @@ const MotionEngine: Record<string, any> = {
 			release();
 			if (event.button !== 0 || !event.isPrimary) return;
 			const target = (event.target as Element).closest<HTMLElement>(
-				".icon-button,.solid-button,.nav-tab",
+				".icon-button,.solid-button,.soft-button,.text-button,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring",
 			);
 			if (!target || target.matches(":disabled") || target.closest("[inert]")) return;
-			pressed = target.querySelector<HTMLElement>(".nav-icon") || target;
+			// Keep task text and the surrounding card still; only the mark acknowledges the press.
+			pressed = target.querySelector<HTMLElement>(".nav-icon,.check-dot") || target;
+			const from = getComputedStyle(pressed).transform;
+			this.cancel(pressed);
 			this.animate(
 				pressed,
-				[{ transform: "scale(1)" }, { transform: `scale(${tokens.motion.pressScale})` }],
+				[{ transform: from }, { transform: `scale(${tokens.motion.pressScale})` }],
 				{ duration: this.time("dur-press"), fill: "forwards" },
 			);
 		});

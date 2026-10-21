@@ -84,7 +84,7 @@
 macOS 的视觉与动效以 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。不使用原生控件样式、SF Symbols 或单层阴影。浮动操作区在 macOS 26 及以上使用原生 Liquid Glass：顶部搜索与账户、AI 栏、阅读工具、预览按钮、多选栏、刷新圆环、新内容提示和 Toast；内容与设置保留实底。
 
 - 保留信息结构、内容顺序、文案和既有轻操作。SwiftUI 负责绘制，视觉、状态与动效参数对齐 Web。
-- macOS 顶栏在独立的 36 高窗口控制区下方；品牌图标左缘和账户按钮右缘分别对齐卡片区两侧。设置在两端桌面都是主窗口中央的弹窗。
+- macOS 顶栏顶部留白 18，控件在 64 高导航行内居中；品牌图标左缘和账户按钮右缘分别对齐卡片区两侧。设置在两端桌面都是主窗口中央的弹窗。
 - 设计变量维护于 design-system/tokens/foundation.json，导出 tokens.json 后由 CardGenerator 生成 AppleMetrics、AppleColors。组件不另写动画参数。
 - 保留已有 reduceMotion 分支；新增动效不加减少动态效果分支。此保留项与手册统一动效规则的差异须在交付中说明。
 - 保留键盘、焦点恢复及 VoiceOver 语义。验证范围和结果说明见 [测试与验证](docs/guides/testing.md)。

@@ -84,8 +84,10 @@ struct PreviewSheet: View {
       .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
       .frame(width: width)
       .background(AppleColors.card)
-      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
-      .shadow(.sheet)
+      .overlay(alignment: .top) { TopFade(motion: scroll.motion) }
+      .overlay(alignment: .bottom) {
+        if !tools.isEmpty { BottomFade(motion: scroll.motion) }
+      }
       .modifier(
         CardGeometryDestination(
           id: card.id,
@@ -94,7 +96,6 @@ struct PreviewSheet: View {
       )
       .overlay(alignment: .top) {
         ZStack(alignment: .top) {
-          TopFade(motion: scroll.motion)
           HeadDiscs(
             motion: scroll.motion, firstRow: firstRow,
             expand: expandable ? { reader.open(card.id, full: true) } : nil,
@@ -106,7 +107,6 @@ struct PreviewSheet: View {
       .overlay(alignment: .bottom) {
         ZStack(alignment: .bottom) {
           if !tools.isEmpty {
-            BottomFade(motion: scroll.motion)
             ReaderToolbar(card: card, state: state, actions: tools)
               .modifier(ReaderToolsTuck(motion: scroll.motion))
               .padding(.bottom, AppleMetrics.previewBarBottom)
@@ -219,20 +219,17 @@ struct TopFade: View {
   }
 }
 
-/// Text fades where the toolbar floats: a faint texture under the capsule, then 44px of fade.
+/// A short edge fade inside the card mask; the native capsule supplies its own material.
 struct BottomFade: View {
   let motion: ReaderMotion
   var body: some View {
-    let bar = AppleMetrics.railRow + AppleMetrics.previewBarBottom
-    let height = bar + AppleMetrics.previewEdgeHeight
     LinearGradient(
-      stops: [
-        .init(color: AppleColors.card.opacity(0.94), location: 0),
-        .init(color: AppleColors.card.opacity(0.86), location: bar / height),
-        .init(color: AppleColors.card.opacity(0), location: 1),
-      ], startPoint: .bottom, endPoint: .top
+      colors: [
+        AppleColors.card.opacity(AppleMetrics.readerBottomFadeOpacity), AppleColors.card.opacity(0),
+      ],
+      startPoint: .bottom, endPoint: .top
     )
-    .frame(height: height)
+    .frame(height: AppleMetrics.readerBottomFadeHeight)
     .opacity(motion.toolsHidden ? 0 : 1)
     .allowsHitTesting(false)
   }

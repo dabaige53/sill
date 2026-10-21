@@ -59,7 +59,7 @@ import SwiftUI
     rest?.cancel()
     guard phase == .pulling else { return }
     if !cancelled && distance >= AppleMetrics.gestureRefreshDistance {
-      refresh()
+      refresh(fromPull: true)
     } else {
       withAnimation(Motion.spring()) {
         distance = 0
@@ -68,13 +68,13 @@ import SwiftUI
     }
   }
 
-  func refresh() {
+  func refresh(fromPull: Bool = false) {
     guard phase != .loading else { return }
     generation += 1
     let token = generation
     let start = ProcessInfo.processInfo.systemUptime
     withAnimation(Motion.spring()) {
-      distance = AppleMetrics.gestureRefreshDistance
+      distance = fromPull ? AppleMetrics.gestureRefreshDistance : 0
       phase = .loading
     }
     // Let the content return during a slow read; the progress indicator stays visible.
@@ -94,11 +94,9 @@ import SwiftUI
         do { try await Task.sleep(for: .seconds(remaining)) } catch { return }
         guard let self, self.generation == token else { return }
         self.hold?.cancel()
-        self.phase = success ? .success : .error
-        if !success {
-          withAnimation(Motion.spring()) { self.distance = 0 }
-          return
-        }
+        withAnimation(Motion.fast) { self.phase = success ? .success : .error }
+        withAnimation(Motion.spring()) { self.distance = 0 }
+        if !success { return }
         do { try await Task.sleep(for: .seconds(AppleMetrics.gestureRefreshSuccessHold)) } catch {
           return
         }
@@ -131,55 +129,58 @@ struct FeedPullOffset: ViewModifier {
 struct FeedRefreshIndicator: View {
   let refresh: FeedRefresh
   var body: some View {
-    if refresh.visible {
-      Button {
-        if refresh.phase == .error { refresh.refresh() }
-      } label: {
-        ZStack {
-          if refresh.phase == .success {
-            Icon("check", size: AppleMetrics.space20)
-          } else if refresh.phase == .error {
-            Icon("refresh", size: AppleMetrics.space20)
-          } else if refresh.phase == .loading {
-            TimelineView(.animation(minimumInterval: 1 / 30)) { context in
-              Circle().trim(from: 0, to: 0.75)
-                .stroke(
-                  AppleColors.accent,
-                  style: StrokeStyle(lineWidth: AppleMetrics.selectionLineWidth, lineCap: .round)
-                )
-                .rotationEffect(
-                  .degrees(
-                    context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1)
-                      * 360)
-                )
-                .padding(AppleMetrics.space8)
-            }
-          } else {
-            Circle().trim(
-              from: 0, to: min(1, refresh.distance / AppleMetrics.gestureRefreshDistance)
-            )
-            .stroke(
-              AppleColors.accent,
-              style: StrokeStyle(lineWidth: AppleMetrics.selectionLineWidth, lineCap: .round)
-            )
-            .rotationEffect(.degrees(-90)).padding(AppleMetrics.space8)
+    Button {
+      if refresh.phase == .error { refresh.refresh() }
+    } label: {
+      ZStack {
+        if refresh.phase == .success {
+          Icon("check", size: AppleMetrics.space20)
+        } else if refresh.phase == .error {
+          Icon("refresh", size: AppleMetrics.space20)
+        } else if refresh.phase == .loading {
+          TimelineView(.animation(minimumInterval: 1 / 30)) { context in
+            Circle().trim(from: 0, to: 0.75)
+              .stroke(
+                AppleColors.accent,
+                style: StrokeStyle(lineWidth: AppleMetrics.selectionLineWidth, lineCap: .round)
+              )
+              .rotationEffect(
+                .degrees(
+                  context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1)
+                    * 360)
+              )
+              .padding(AppleMetrics.space8)
           }
+        } else {
+          Circle().trim(
+            from: 0, to: min(1, refresh.distance / AppleMetrics.gestureRefreshDistance)
+          )
+          .stroke(
+            AppleColors.accent,
+            style: StrokeStyle(lineWidth: AppleMetrics.selectionLineWidth, lineCap: .round)
+          )
+          .rotationEffect(.degrees(-90)).padding(AppleMetrics.space8)
         }
-        .foregroundStyle(AppleColors.accent)
-        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
-        .desktopGlass(Circle())
-        .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-        .contentShape(Circle())
       }
-      .buttonStyle(.plain)
-      .allowsHitTesting(refresh.phase == .error)
-      .accessibilityLabel(
-        Copy.text(
-          refresh.phase == .error
-            ? "apple.retry"
-            : refresh.phase == .success ? "apple.refresh.success" : "apple.refresh.loading")
-      )
-      .opacity(refresh.phase == .pulling ? min(1, refresh.distance / AppleMetrics.space18) : 1)
+      .foregroundStyle(AppleColors.accent)
+      .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
+      .desktopGlass(Circle())
+      .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+      .contentShape(Circle())
     }
+    .buttonStyle(IconPress())
+    .allowsHitTesting(refresh.phase == .error)
+    .accessibilityLabel(
+      Copy.text(
+        refresh.phase == .error
+          ? "apple.retry"
+          : refresh.phase == .success ? "apple.refresh.success" : "apple.refresh.loading")
+    )
+    .opacity(
+      refresh.phase == .idle
+        ? 0 : refresh.phase == .pulling ? min(1, refresh.distance / AppleMetrics.space18) : 1
+    )
+    .animation(refresh.phase == .pulling ? nil : Motion.fast, value: refresh.phase)
+    .accessibilityHidden(!refresh.visible)
   }
 }

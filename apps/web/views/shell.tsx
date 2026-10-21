@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { SelectionBar } from "../atoms/selection.tsx";
 
 export { SelectionAI } from "../atoms/selection.tsx";
 
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 import { sillIcon } from "../interactions/panel-primitives.tsx";
 
 const homeTabs = [
@@ -20,8 +21,22 @@ const homeTabs = [
  * Desktop: brand, a ⌄ tab menu, the search field and the avatar on one 40px line (ADR 0049).
  */
 export function HomeTop() {
+	const header = useRef<HTMLElement>(null);
+	useLayoutEffect(() => {
+		const node = header.current;
+		if (!node) return;
+		if (matchMedia("(min-width: 651px)").matches) {
+			MotionEngine.change(node, () => node.classList.remove("is-entering"), MotionEngine.time("dur-open"));
+		} else {
+			node.classList.remove("is-entering");
+		}
+		return () => {
+			MotionEngine.cancel(node);
+			node.style.visibility = "";
+		};
+	}, []);
 	return (
-		<header id="home-top" className="home-top">
+		<header ref={header} id="home-top" className="home-top is-entering">
 			<span className="home-edge-blur" aria-hidden="true" />
 			<div className="home-heading">
 				<div className="home-brand">

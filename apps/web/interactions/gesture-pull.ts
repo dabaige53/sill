@@ -24,7 +24,8 @@ export const gesturePullMethods = {
 			frame = 0,
 			inset = 16,
 			headingTop: number | null = null,
-			state = "idle";
+			state = "idle",
+			visibleOpacity = 0;
 		const heading = document.querySelector<HTMLElement>(".home-heading");
 		const wheel = this.intent();
 		let mouse: { id: number; x: number; y: number } | null = null;
@@ -37,10 +38,19 @@ export const gesturePullMethods = {
 		};
 		const status = (next: keyof typeof labels) => {
 			if (state === next && ring.dataset.state === next) return;
+			const glyphs = next === "pulling" ? [] : Array.from(ring.querySelectorAll<SVGElement>("svg"));
+			const opacity = glyphs.map((glyph) => getComputedStyle(glyph).opacity);
 			state = next;
 			ring.dataset.state = next;
 			ring.classList.toggle("is-spinning", next === "loading");
 			MotionEngine.loading(ring.querySelector(".pull-progress"), next === "loading");
+			for (const [index, glyph] of glyphs.entries()) {
+				const target = getComputedStyle(glyph).opacity;
+				if (opacity[index] !== target)
+					MotionEngine.animate(glyph, [{ opacity: opacity[index] }, { opacity: target }], {
+						duration: MotionEngine.time("fast"),
+					});
+			}
 			ring.disabled = next !== "error";
 			ring.setAttribute("aria-hidden", String(next === "idle" || next === "pulling"));
 			ring.setAttribute("aria-label", labels[next]);
@@ -74,7 +84,20 @@ export const gesturePullMethods = {
 							: "0 -48px",
 				state === "pulling",
 			);
-			ring.style.opacity = String(feedback ? 1 : Math.min(1, pull / 18));
+			const opacity = feedback ? 1 : Math.min(1, pull / 18);
+			if (state === "pulling") {
+				MotionEngine.cancel(ring);
+				ring.style.opacity = String(opacity);
+			} else if (opacity !== visibleOpacity) {
+				MotionEngine.change(
+					ring,
+					() => {
+						ring.style.opacity = String(opacity);
+					},
+					MotionEngine.time("fast"),
+				);
+			}
+			visibleOpacity = opacity;
 			circle.style.strokeDashoffset = String(100 - Math.min(100, (pull / need) * 100));
 			ring.toggleAttribute("data-ready", pull >= need);
 		};
@@ -93,7 +116,7 @@ export const gesturePullMethods = {
 				paint();
 			}
 		};
-		const refresh = async () => {
+		const refresh = async (fromPull = false) => {
 			if (busy) return;
 			busy = true;
 			const feedbackReady = new Promise<void>((resolve) =>
@@ -103,9 +126,8 @@ export const gesturePullMethods = {
 			start = null;
 			wheel.reset();
 			clearTimeout(timer);
-			// Hold the desk at the threshold while it loads. A slow request lets the cards back after a second;
-			// the ring keeps turning above them.
-			pull = need;
+			// Only a released pull holds the cards; buttons and shortcuts leave them in place.
+			pull = fromPull ? need : 0;
 			document.body.classList.remove("is-pulling");
 			status("loading");
 			paint();
@@ -119,6 +141,8 @@ export const gesturePullMethods = {
 				const result = await this.app.refresh({ feedback: "pull" });
 				if (result === false) throw new Error("Refresh did not complete");
 				await feedbackReady;
+				clearTimeout(holdTimer);
+				pull = 0;
 				status("success");
 				timer = window.setTimeout(() => {
 					pull = 0;
@@ -143,7 +167,7 @@ export const gesturePullMethods = {
 			if (state !== "pulling") return;
 			if (this.app.dialog.open || this.app.selected.size || this.app.drag?.active || scrollY > 0)
 				return cancel();
-			if (pull >= need) refresh();
+			if (pull >= need) refresh(true);
 			else cancel();
 		};
 		// Mouse dragging has a real release event. Never substitute wheel silence for it.

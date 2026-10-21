@@ -334,31 +334,20 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 }
 @media (min-width: 651px) {
 	.home-top {
-		top: var(--space-20);
+		top: var(--space-10);
 		width: calc(100% - var(--space-12) * 2);
-		margin-top: var(--space-20);
+		margin-top: var(--space-10);
 	}
 	.home-top {
 		opacity: 1;
 	}
-	.home-top.is-tucked {
-		transform: none;
+	.home-top.is-tucked,
+	.home-top.is-entering {
+		/* Include the sticky offset and glass feather in the shared travel. */
+		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
 		opacity: 1;
-	}
-	/* Keep the backdrop root opaque. Controls and blur layers fade on the same clock. */
-	.home-top::before,
-	.home-top::after,
-	.home-top > .home-edge-blur,
-	.home-top > .home-heading,
-	.home-top > .home-tabs {
-		opacity: 1;
-	}
-	.home-top.is-tucked::before,
-	.home-top.is-tucked::after,
-	.home-top.is-tucked > .home-edge-blur,
-	.home-top.is-tucked > .home-heading,
-	.home-top.is-tucked > .home-tabs {
-		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
 	}
 	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
 		.home-top { background: transparent; }
@@ -369,7 +358,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 			content: "";
 			display: block;
 			position: absolute;
-			inset: calc(-1 * var(--space-20)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
+			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
 			z-index: 0;
 			pointer-events: none;
 		}
@@ -398,7 +387,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	}
 	main {
 		padding-inline: var(--space-12);
-		padding-top: var(--space-20);
+		padding-top: var(--space-10);
 		min-height: calc(100dvh - var(--space-130));
 	}
 	/* Brand and account align with the outer card edges. */

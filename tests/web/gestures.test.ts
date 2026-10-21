@@ -405,6 +405,7 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 			return Promise.resolve();
 		};
 		f.document.querySelector("#pull-ring").click();
+		assert.equal(f.document.querySelector("main").style.translate, "", "retry never moves cards");
 		f.flush(undefined, 300);
 		await settle();
 		assert.equal(f.app.refreshes, 2);
@@ -465,8 +466,8 @@ test("short pull cancels, light threshold commits once on release, and long trav
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
 		assert.equal(
 			f.document.querySelector("main").style.translate,
-			"0 36px",
-			"held under the check",
+			"",
+			"cards return while the success check remains visible",
 		);
 		f.flush();
 		assert.equal(
@@ -638,5 +639,22 @@ test("desktop completed reading keeps tools hidden through the close handoff", (
 		} finally {
 			f.dom.window.close();
 		}
+	}
+});
+
+test("direct refresh leaves cards in place and ignores repeat activation while busy", () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		f.app.refresh = () => {
+			f.app.refreshes++;
+			return new Promise(() => {});
+		};
+		f.gestures.refresh();
+		assert.equal(f.document.querySelector("main").style.translate, "");
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "loading");
+		f.gestures.refresh();
+		assert.equal(f.app.refreshes, 1);
+	} finally {
+		f.dom.window.close();
 	}
 });

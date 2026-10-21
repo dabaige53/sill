@@ -23,7 +23,6 @@ import SwiftUI
   private(set) var contentShown = false
   private(set) var toolsShown = false
   @ObservationIgnored private var waitingForGeometry = false
-  @ObservationIgnored private var revealTask: Task<Void, Never>?
 
   @ObservationIgnored var viewport: CGRect = .zero
   @ObservationIgnored var cardFrames: [String: CGRect] = [:]
@@ -76,7 +75,6 @@ import SwiftUI
       }
       return
     }
-    revealTask?.cancel()
     contentShown = true
     toolsShown = true
     if layers.last?.card == id {
@@ -117,7 +115,6 @@ import SwiftUI
     }
     token += 1
     let current = token
-    revealTask?.cancel()
     if waitingForGeometry {
       waitingForGeometry = false
       finish()
@@ -134,7 +131,7 @@ import SwiftUI
       return
     }
     withAnimation(
-      matching ? Motion.cardReturn : Motion.close, completionCriteria: .logicallyComplete
+      matching ? Motion.cardReturn : Motion.close, completionCriteria: .removed
     ) {
       shown = false
     } completion: { [weak self] in
@@ -192,7 +189,6 @@ import SwiftUI
   }
 
   private func present(_ value: Bool) {
-    revealTask?.cancel()
     if Motion.keyboardDriven || !matching {
       contentShown = value
       toolsShown = value
@@ -212,11 +208,8 @@ import SwiftUI
       guard let self, self.token == current else { return }
       self.travelling = false
     }
-    revealTask = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(AppleMetrics.motionDetailContentDelay))
-      guard let self, !Task.isCancelled, self.token == current, self.shown else { return }
-      self.contentShown = true
-    }
+    // The surface blends content from the same progress as its geometry.
+    contentShown = value
   }
 
   private func animate(_ animation: Animation, _ changes: () -> Void) {
@@ -236,7 +229,6 @@ import SwiftUI
     matchedFrame = nil
     contentShown = false
     toolsShown = false
-    revealTask?.cancel()
     positions = [:]
     origin = nil
     // The feed redraws read colors only now that the overlay is gone.

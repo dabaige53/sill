@@ -49,20 +49,53 @@ struct TopBar: View {
       }
     }
     .frame(height: AppleMetrics.space64)
-    .padding(.top, AppleMetrics.topBarInset)
+    .padding(.top, (AppleMetrics.topBarInset / 2))
     .padding(.leading, edge)
     .padding(.trailing, edge)
     .background {
-      if #available(macOS 26.0, *) {
-        Color.clear
-      } else {
-        Rectangle().fill(.regularMaterial)
-          .mask(LinearGradient(colors: [.black, .black, .clear], startPoint: .top, endPoint: .bottom))
-          .allowsHitTesting(false)
-      }
+      // Attach the system material to the controls so both share the same reveal.
+      // A custom window cannot rely on automatic scroll-edge coverage alone.
+      Rectangle().fill(.regularMaterial)
+        .mask(
+          LinearGradient(
+            stops: [.init(color: .black, location: 0),
+                    .init(color: .black.opacity(0.7), location: 0.45),
+                    .init(color: .clear, location: 1)],
+            startPoint: .top, endPoint: .bottom)
+        )
+        .padding(.bottom, -AppleMetrics.space12)
+        .allowsHitTesting(false)
     }
     .coordinateSpace(.named(TopBarSpace.name))
-    .modifier(Tuck(tucked: chrome.tucked, travel: 0))
+    .modifier(TopBarReveal(tucked: chrome.tucked))
+  }
+}
+
+/// One transition owns the controls and material, including the first mounted frame.
+private struct TopBarReveal: ViewModifier {
+  let tucked: Bool
+  @State private var entered = false
+
+  func body(content: Content) -> some View {
+    let hidden = !entered || tucked
+    let travel = AppleMetrics.topBarInset / 2 + AppleMetrics.space64 + AppleMetrics.space12
+    content
+      .offset(y: hidden ? -travel : 0)
+      .opacity(hidden ? 0 : 1)
+      .allowsHitTesting(!hidden)
+      .accessibilityHidden(hidden)
+      .animation(
+        Motion.keyboardDriven ? nil : Motion.ease(
+          hidden ? AppleMetrics.motionRailHide : AppleMetrics.motionDetailOpen),
+        value: hidden
+      )
+      .task {
+        guard !entered else { return }
+        // Commit the initial offscreen state before starting the entrance.
+        await Task.yield()
+        guard !Task.isCancelled else { return }
+        entered = true
+      }
   }
 }
 

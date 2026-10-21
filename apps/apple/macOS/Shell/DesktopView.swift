@@ -45,7 +45,7 @@ struct DesktopView: View {
           // A click anywhere else closes the tab menu.
           Color.clear.contentShape(Rectangle())
             .onTapGesture { shell.menu.close() }
-            .padding(.top, AppleMetrics.topBarInset + AppleMetrics.space64)
+            .padding(.top, (AppleMetrics.topBarInset / 2) + AppleMetrics.space64)
             .accessibilityHidden(true)
         }
         if #available(macOS 26.0, *) {
@@ -55,7 +55,7 @@ struct DesktopView: View {
         }
         if let scroll {
           FeedRefreshIndicator(refresh: scroll.refresh)
-            .padding(.top, AppleMetrics.topBarInset + (AppleMetrics.space64 - AppleMetrics.hitTarget) / 2)
+            .padding(.top, (AppleMetrics.topBarInset / 2) + (AppleMetrics.space64 - AppleMetrics.hitTarget) / 2)
         }
         ZStack(alignment: .bottom) {
           AIDock()
@@ -82,7 +82,7 @@ struct DesktopView: View {
           .padding(.leading, max(0, shell.menu.anchor - AppleMetrics.space6))
           .padding(
             .top,
-            AppleMetrics.topBarInset + (AppleMetrics.space64 + AppleMetrics.hitTarget) / 2
+            (AppleMetrics.topBarInset / 2) + (AppleMetrics.space64 + AppleMetrics.hitTarget) / 2
               + AppleMetrics.space8
           )
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -158,8 +158,9 @@ struct DesktopView: View {
   }
 
   private var feedTopInset: CGFloat {
-    if #available(macOS 26.0, *) { return AppleMetrics.space20 }
-    return AppleMetrics.topBarInset + AppleMetrics.space64 + AppleMetrics.space20
+    let gap = AppleMetrics.topBarInset / 2
+    if #available(macOS 26.0, *) { return gap }
+    return gap + AppleMetrics.space64 + gap
   }
 
   /// Changes made elsewhere (an external assistant, the CLI) arrive every 5s while the window is
@@ -405,17 +406,15 @@ struct DesktopView: View {
   }
 }
 
-/// Register the controls with the scroll view so the system blurs only the scroll edge.
+/// Reserve the header safe area; TopBar owns the material and reveal animation.
 private struct FeedTopBar: ViewModifier {
   let header: TopBar
-  @Environment(Chrome.self) private var chrome
-
   @ViewBuilder func body(content: Content) -> some View {
     if #available(macOS 26.0, *) {
       content
         .safeAreaBar(edge: .top, spacing: 0) { header }
-        .scrollEdgeEffectStyle(.soft, for: .top)
-        .scrollEdgeEffectHidden(chrome.tucked, for: .top)
+        // TopBar owns the native material and its fade; avoid a separate system edge.
+        .scrollEdgeEffectHidden(true, for: .top)
     } else {
       content
     }

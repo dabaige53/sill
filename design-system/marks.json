@@ -1,6 +1,18 @@
 {
 	"note": "设计印记：代码里写 `@design <编号>`，编号在这里登记规则、变量、ADR 和现行画板。用 `scripts/design-init.sh trace <编号或变量名>` 反查。",
 	"marks": {
+		"button-feedback": {
+			"title": "按钮与勾选按压反馈",
+			"rule": "handbook/motion.md#其他组件",
+			"tokens": [
+				"dur-press",
+				"ease"
+			],
+			"adr": "0056",
+			"boards": [
+				"CardActionExamples"
+			]
+		},
 		"card-type": {
 			"title": "卡片 A 字号",
 			"rule": "handbook/foundation.md#字体",

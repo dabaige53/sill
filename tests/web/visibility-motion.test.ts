@@ -35,6 +35,47 @@ function fixture() {
 	w.__motionAnimations = animations;
 	return { dom, w, el, animations, motion: w.MotionTest.MotionEngine };
 }
+test("task press moves only its mark, resumes from the drawn scale, and cancels without a click", () => {
+	const f = fixture();
+	try {
+		f.el.hidden = false;
+		f.el.className = "check-item";
+		f.el.innerHTML = '<span class="check-dot"></span><span>Task text</span>';
+		const mark = f.el.firstElementChild;
+		let clicks = 0;
+		f.el.addEventListener("click", () => clicks++);
+		f.motion.bind();
+		const press = () => {
+			const event = new f.w.MouseEvent("pointerdown", { bubbles: true, button: 0 });
+			Object.defineProperty(event, "isPrimary", { value: true });
+			f.el.lastElementChild.dispatchEvent(event);
+		};
+		press();
+		f.animations.at(-1).finish();
+		assert.equal(mark.style.transform, "scale(0.97)");
+		assert.equal(f.el.style.transform, "");
+		assert.equal(f.el.lastElementChild.style.transform, "");
+		f.w.document.dispatchEvent(new f.w.Event("pointerup"));
+		mark.style.transform = "scale(0.985)";
+		press();
+		assert.equal(f.animations.at(-1).frames[0].transform, "scale(0.985)");
+		f.w.document.dispatchEvent(new f.w.Event("pointercancel"));
+		f.animations.at(-1).finish();
+		assert.equal(mark.style.transform, "");
+		assert.equal(clicks, 0);
+		const count = f.animations.length;
+		f.el.disabled = true;
+		press();
+		assert.equal(f.animations.length, count);
+		f.el.disabled = false;
+		f.w.document.documentElement.dataset.inputModality = "keyboard";
+		f.el.click();
+		assert.equal(clicks, 1);
+		assert.equal(f.animations.length, count);
+	} finally {
+		f.dom.window.close();
+	}
+});
 test("sliding glass chrome does not start an opacity animation and restores visibility", async () => {
 	const f = fixture();
 	try {
@@ -57,37 +98,31 @@ test("sliding glass chrome does not start an opacity animation and restores visi
 		f.dom.window.close();
 	}
 });
-test("desktop header fades controls and blur together without fading its backdrop root", async () => {
+test("desktop header enters and retargets as one transform without opacity tracks", async () => {
 	const f = fixture();
 	try {
 		f.el.hidden = false;
 		f.el.id = "home-top";
-		f.el.innerHTML =
-			'<span class="home-edge-blur"></span><span class="home-heading"></span><span class="home-tabs"></span>';
+		f.el.classList.add("is-entering");
 		f.w.matchMedia = () => ({ matches: true });
 		const style = f.w.document.createElement("style");
-		style.textContent =
-			"#home-top { opacity:1; transform:none } #home-top > span { opacity:1 } #home-top.is-tucked { visibility:hidden } #home-top.is-tucked > span { opacity:0 }";
+		style.textContent = ":root { --dur-open:280ms; --dur-tuck:240ms } #home-top { opacity:1; transform:translateY(0px) } #home-top.is-entering, #home-top.is-tucked { transform:translateY(-86px); visibility:hidden }";
 		f.w.document.head.append(style);
-		const computed = f.w.getComputedStyle.bind(f.w);
-		f.w.getComputedStyle = (node: Element, pseudo?: string) =>
-			pseudo ? { opacity: f.el.classList.contains("is-tucked") ? "0" : "1" } : computed(node);
-		for (const hidden of [true, false]) {
-			f.motion.change(f.el, () => f.el.classList.toggle("is-tucked", hidden), 240);
-			const batch = f.animations.slice(-5);
-			assert.equal(batch.length, 5);
-			assert.equal(batch.filter((a) => a.options.pseudoElement).length, 2);
-			assert.equal(computed(f.el).opacity, "1");
-			assert.equal(f.el.style.visibility, "visible");
-			for (const animation of batch) {
-				assert.equal(animation.options.duration, 240);
-				assert.deepEqual(Object.keys(animation.frames[0]), ["opacity"]);
-				assert.equal(animation.frames[1].opacity, hidden ? "0" : "1");
-				animation.finish();
-			}
-			await new Promise((resolve) => setTimeout(resolve, 0));
-			assert.equal(f.el.style.visibility, "");
+		f.motion.change(f.el, () => f.el.classList.remove("is-entering"));
+		assert.equal(f.animations.length, 1);
+		assert.equal(f.animations[0].frames[0].transform, "translateY(-86px)");
+		assert.equal(f.animations[0].options.duration, 280);
+		// Reverse before entrance completes; the old completion must not hide the header.
+		f.motion.change(f.el, () => f.el.classList.add("is-tucked"));
+		assert.equal(f.animations.at(-1).options.duration, 240);
+		f.motion.change(f.el, () => f.el.classList.remove("is-tucked"));
+		for (const animation of f.animations) {
+			assert.deepEqual(Object.keys(animation.frames[0]), ["transform"]);
+			animation.finish();
 		}
+		await Promise.resolve();
+		assert.equal(f.el.style.visibility, "");
+		assert.equal(f.w.getComputedStyle(f.el).visibility, "visible");
 	} finally {
 		f.dom.window.close();
 	}

@@ -195,6 +195,7 @@ struct Highlighted: View {
 
 /// The task and reminder circle: accent outline, filled with a white check when done.
 struct CheckDot: View {
+  @Environment(\.checkPressed) private var pressed
   var done: Bool
   var size: CGFloat = AppleMetrics.taskDotSize
   var line: CGFloat = AppleMetrics.taskDotLine
@@ -210,6 +211,8 @@ struct CheckDot: View {
     }
     .frame(width: size, height: size)
     .animation(Motion.state, value: done)
+    .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
+    .animation(Motion.press, value: pressed)
   }
 }
 

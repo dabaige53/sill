@@ -61,23 +61,13 @@ struct CardTile: View {
     cornerRadius: AppleMetrics.cardRadius, style: .continuous)
 
   private func surface(faded: Bool, lifted: Bool) -> some View {
-    let shape = Self.shape
-    let border: Color =
-      lifted ? AppleColors.lineHover : faded ? AppleColors.lineRead : AppleColors.lineCard
-    let selection: Color =
-      state.selected ? AppleColors.accent : selecting ? AppleColors.lineHover : .clear
-    return CardBody(card: card, state: state, context: context)
-      // While selecting, a click anywhere on the card selects it; its own buttons wait.
-      .allowsHitTesting(!selecting)
-      // Changed text fades in once (`fast`); a running fade continues from where it is.
-      .modifier(ContentFade(value: card.fingerprint))
-      .environment(\.cardFaded, faded)
-      .background(shape.fill(faded ? AppleColors.readCard : AppleColors.card))
-      .clipShape(shape)
-      .overlay(shape.strokeBorder(border, lineWidth: AppleMetrics.lineWidth))
-      .overlay(shape.strokeBorder(selection, lineWidth: AppleMetrics.selectionLineWidth))
-      .shadow(lifted ? .hover : .card, visible: !faded)
-      .overlay { focusRing }
+    CardFace(
+      card: card, state: state, context: context, faded: faded,
+      lifted: lifted, selecting: selecting
+    )
+    .allowsHitTesting(!selecting)
+    .modifier(ContentFade(value: card.fingerprint))
+    .overlay { focusRing }
   }
 
   @ViewBuilder private var focusRing: some View {
@@ -86,6 +76,31 @@ struct CardTile: View {
         .stroke(AppleColors.accent, lineWidth: AppleMetrics.selectionLineWidth)
         .allowsHitTesting(false)
     }
+  }
+}
+
+/// Shared appearance for the live tile and its noninteractive transition face.
+struct CardFace: View {
+  let card: CardModel
+  let state: CardState
+  let context: CardContext
+  let faded: Bool
+  var lifted = false
+  var selecting = false
+
+  var body: some View {
+    let shape = RoundedRectangle(cornerRadius: AppleMetrics.cardRadius, style: .continuous)
+    let border =
+      lifted ? AppleColors.lineHover : faded ? AppleColors.lineRead : AppleColors.lineCard
+    let selection: Color =
+      state.selected ? AppleColors.accent : selecting ? AppleColors.lineHover : .clear
+    CardBody(card: card, state: state, context: context)
+      .environment(\.cardFaded, faded)
+      .background(shape.fill(faded ? AppleColors.readCard : AppleColors.card))
+      .clipShape(shape)
+      .overlay(shape.strokeBorder(border, lineWidth: AppleMetrics.lineWidth))
+      .overlay(shape.strokeBorder(selection, lineWidth: AppleMetrics.selectionLineWidth))
+      .shadow(lifted ? .hover : .card, visible: !faded)
   }
 }
 

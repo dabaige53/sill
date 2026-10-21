@@ -266,7 +266,7 @@ struct TaskRow: View {
       .frame(minHeight: large ? AppleMetrics.hitTarget : AppleMetrics.checkRowHeight)
       .contentShape(Rectangle())
     }
-    .buttonStyle(.plain)
+    .buttonStyle(CheckPress())
     .disabled(locked)
     .onHover { hovered = $0 }
     .accessibilityLabel(task.text)
@@ -400,7 +400,7 @@ struct ReminderCheck: View {
       .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
       .contentShape(Circle())
     }
-    .buttonStyle(.plain)
+    .buttonStyle(CheckPress())
     .padding(-AppleMetrics.space11)
     .disabled(state.isWriting)
     .onHover { hovered = $0 }

@@ -242,10 +242,14 @@ private struct TagRemoveStyle: ButtonStyle {
 
 private struct TagRemoveBody: View {
   let configuration: ButtonStyleConfiguration
+  @Environment(\.isEnabled) private var enabled
   @State private var hovered = false
   var body: some View {
+    let pressed = configuration.isPressed && enabled && !Motion.keyboardDriven
     configuration.label
       .opacity(hovered || configuration.isPressed ? 1 : AppleMetrics.tagRemoveOpacity)
+      .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
+      .animation(Motion.press, value: pressed)
       .onHover { hovered = $0 }
   }
 }

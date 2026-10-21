@@ -58,6 +58,27 @@ import Testing
     #expect(motion.dimOpacity == 1)
   }
 
+  @Test func buttonRefreshAndRetryKeepCardsInPlace() async throws {
+    let refresh = FeedRefresh()
+    var calls = 0
+    var reply: ((Bool) -> Void)?
+    refresh.request = {
+      calls += 1
+      reply = $0
+    }
+    refresh.refresh()
+    #expect(refresh.distance == 0)
+    refresh.refresh()
+    #expect(calls == 1)
+    reply?(false)
+    try await Task.sleep(for: .seconds(AppleMetrics.loadingDelay + 0.1))
+    #expect(refresh.phase == .error)
+    refresh.refresh()
+    #expect(calls == 2)
+    #expect(refresh.distance == 0)
+    refresh.cancel()
+  }
+
   @Test func refreshThresholdCancellationAndStaleResult() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -105,6 +126,36 @@ import Testing
     refresh.release()
     #expect(calls == 1)
     refresh.cancel()
+  }
+
+  @Test func cardBoundaryTravelsContinuouslyWithoutChangingTextScale() {
+    let source = CGRect(x: 40, y: 80, width: 300, height: 180)
+    let target = CGRect(x: 100, y: 120, width: 800, height: 600)
+    #expect(CardFlightSurface.rect(source: source, target: target, progress: 0) == source)
+    #expect(CardFlightSurface.rect(source: source, target: target, progress: 1) == target)
+    let halfway = CardFlightSurface.rect(source: source, target: target, progress: 0.5)
+    #expect(halfway == CGRect(x: 70, y: 100, width: 550, height: 390))
+    let tools = CardToolsTravel.offset(source: source, target: target, top: false)
+    #expect(halfway.maxY == target.maxY + tools.height * 0.5)
+    #expect(halfway.midX == target.midX + tools.width * 0.5)
+  }
+
+  @Test func contentAndToolsFollowGeometryProgressInBothDirections() {
+    #expect(CardFlightSurface.detailOpacity(0) == 0)
+    #expect(CardFlightSurface.detailOpacity(1) == 1)
+    #expect(CardFlightSurface.toolOpacity(0) == 0)
+    #expect(CardFlightSurface.toolOpacity(AppleMetrics.cardToolsRevealProgress) == 1)
+    var previous = 0.0
+    for step in 0...100 {
+      let progress = CGFloat(step) / 100
+      let alpha = CardFlightSurface.detailOpacity(progress)
+      #expect(alpha >= previous && alpha <= 1)
+      previous = alpha
+    }
+    let halfway = CardFlightSurface.detailOpacity(0.5)
+    #expect(halfway > 0 && halfway < 1)
+    #expect(CardFlightSurface.detailOpacity(0.4) < halfway)
+    #expect(CardFlightSurface.detailOpacity(0.6) > halfway)
   }
 
   @Test func toolsTravelWithTheSourceEdgesWithoutScalingIcons() {

@@ -32,16 +32,8 @@ import SwiftUI
     .linear(duration: AppleMetrics.motionCardHandoffFade).delay(AppleMetrics.motionCardHandoffDelay)
   }
 
-  static var cardContentReturn: Animation {
-    .linear(duration: AppleMetrics.motionCardContentReturnFade)
-      .delay(AppleMetrics.motionCardContentReturnDelay)
-  }
-
   static var cardReturn: Animation {
-    .timingCurve(
-      AppleMetrics.cardReturnX1, AppleMetrics.cardReturnY1,
-      AppleMetrics.cardReturnX2, AppleMetrics.cardReturnY2,
-      duration: AppleMetrics.motionCardReturn)
+    .spring(duration: AppleMetrics.motionCardReturn, bounce: AppleMetrics.cardReturnBounce)
   }
 
   static var press: Animation { ease(AppleMetrics.motionPress) }

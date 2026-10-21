@@ -32,7 +32,28 @@ private struct IconPressBody: View {
   }
 }
 
-/// Web `.pill.primary`: hover and press brighten the fill (`brightness(1.08)`), at once.
+/// @design button-feedback
+/// Pass press state only to the check mark, leaving task text and its hit target stationary.
+private struct CheckPressedKey: EnvironmentKey {
+  static let defaultValue = false
+}
+
+extension EnvironmentValues {
+  var checkPressed: Bool {
+    get { self[CheckPressedKey.self] }
+    set { self[CheckPressedKey.self] = newValue }
+  }
+}
+
+struct CheckPress: ButtonStyle {
+  @Environment(\.isEnabled) private var enabled
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .environment(\.checkPressed, configuration.isPressed && enabled && !Motion.keyboardDriven)
+  }
+}
+
+/// Web `.pill.primary`: immediate fill feedback with the shared press scale.
 struct PrimaryPillStyle: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     PrimaryPillBody(configuration: configuration)
@@ -41,10 +62,16 @@ struct PrimaryPillStyle: ButtonStyle {
 
 private struct PrimaryPillBody: View {
   let configuration: ButtonStyleConfiguration
+  @Environment(\.isEnabled) private var enabled
   @State private var hovered = false
   var body: some View {
+    let pressed = configuration.isPressed && enabled && !Motion.keyboardDriven
     configuration.label
-      .brightness(hovered || configuration.isPressed ? AppleMetrics.pressBrightness - 1 : 0)
+      .brightness(
+        enabled && (hovered || configuration.isPressed) ? AppleMetrics.pressBrightness - 1 : 0
+      )
+      .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
+      .animation(Motion.press, value: pressed)
       .onHover { hovered = $0 }
   }
 }

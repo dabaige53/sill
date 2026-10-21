@@ -3,7 +3,7 @@ import Observation
 import SillKit
 import SwiftUI
 
-/// Whether the tools are tucked away. The desktop top bar fades without moving.
+/// Whether the tools are tucked away. The top bar owns its sliding reveal; the other tools keep their own motion.
 /// Changes only when the answer flips, never per scroll frame.
 @MainActor @Observable final class Chrome {
   private(set) var tucked = false
@@ -163,7 +163,7 @@ struct ScrollProbe: NSViewRepresentable {
 }
 
 /// Tucks a chrome element with a fade; hidden elements stop taking input at once.
-/// The AI box moves down; the desktop top bar uses zero travel to fade in place.
+/// The AI box moves down; TopBarReveal owns the desktop header motion.
 struct Tuck: ViewModifier {
   let tucked: Bool
   let travel: CGFloat

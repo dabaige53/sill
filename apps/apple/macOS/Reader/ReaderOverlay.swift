@@ -128,21 +128,14 @@ struct CardGeometryDestination: ViewModifier {
   @Environment(Reader.self) private var reader
   func body(content: Content) -> some View {
     let source = reader.matching && reader.matchedCard == id ? reader.matchedFrame : nil
-    let collapsed = source != nil && !reader.shown
     content
-      .overlay { CardReturnFace(id: id, target: target) }
-      .scaleEffect(
-        x: collapsed ? source!.width / max(1, target.width) : 1,
-        y: collapsed ? source!.height / max(1, target.height) : 1
+      .modifier(
+        CardFlightSurface(
+          id: source == nil ? nil : id, source: source ?? target, target: target,
+          progress: source != nil && !reader.shown ? 0 : 1,
+          targetRadius: reader.top?.full == true ? 0 : AppleMetrics.sheetRadius)
       )
-      .offset(
-        x: collapsed ? source!.midX - target.midX : 0,
-        y: collapsed ? source!.midY - target.midY : 0
-      )
-      .animation(reader.shown ? Motion.ease(AppleMetrics.motionDetailFade) : Motion.cardHandoff) {
-        surface in
-        surface.opacity(reader.shown || reader.returning || !reader.matching ? 1 : 0)
-      }
+      .opacity(ready ? 1 : 0)
       .task(id: ready) {
         if ready { reader.geometryReady(id) }
       }
@@ -155,45 +148,26 @@ struct DetailReveal: ViewModifier {
   @Environment(Reader.self) private var reader
   func body(content: Content) -> some View {
     let visible = !reader.matching || (tools ? reader.toolsShown : reader.contentShown)
-    content.opacity(visible ? 1 : 0)
+    content.opacity(reader.matching ? 1 : (visible ? 1 : 0))
       .allowsHitTesting(visible)
       .accessibilityHidden(!visible)
-      .animation(Motion.ease(AppleMetrics.motionDetailFade), value: visible)
+      .animation(reader.matching ? nil : Motion.ease(AppleMetrics.motionDetailFade), value: visible)
   }
 }
 
-/// A noninteractive feed face replaces the detail inside the same opaque returning surface.
-private struct CardReturnFace: View {
+/// Uses the complete live-card appearance, without pointer handlers or focus effects.
+private struct CardTransitionFace: View {
   let id: String
-  let target: CGRect
-  @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
   @Environment(Feed.self) private var feed
-
   var body: some View {
-    if reader.matching, reader.matchedCard == id,
-      let source = reader.matchedFrame, let card = workspace.model(id)
-    {
+    if let card = workspace.model(id) {
       let state = workspace.state(id)
       let context = CardContext(
         now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
         fadeRead: workspace.preferences.fadeRead)
-      let faded = cardFaded(card, state, context)
-      CardBody(card: card, state: state, context: context)
-        .environment(\.cardFaded, faded)
-        .frame(width: source.width, height: source.height, alignment: .topLeading)
-        .background(faded ? AppleColors.readCard : AppleColors.card)
-        .clipped()
-        .scaleEffect(
-          x: target.width / max(1, source.width),
-          y: target.height / max(1, source.height), anchor: .topLeading
-        )
-        .frame(width: target.width, height: target.height, alignment: .topLeading)
-        .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
-        .opacity(reader.returning ? 1 : 0)
-        .animation(reader.returning ? Motion.cardContentReturn : nil, value: reader.returning)
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+      CardFace(card: card, state: state, context: context, faded: cardFaded(card, state, context))
+        .allowsHitTesting(false).accessibilityHidden(true)
     }
   }
 }
@@ -215,6 +189,88 @@ struct CardToolsTravel: ViewModifier {
     let source = reader.matching && reader.matchedCard == id ? reader.matchedFrame : nil
     let collapsed = source != nil && !reader.shown
     let offset = source.map { Self.offset(source: $0, target: target, top: top) } ?? .zero
-    content.offset(x: collapsed ? offset.width : 0, y: collapsed ? offset.height : 0)
+    content.modifier(CardToolsFlight(offset: offset, progress: collapsed ? 0 : 1))
+  }
+}
+
+/// The same interpolated progress drives geometry and appearance, including reversals.
+struct CardToolsFlight: AnimatableModifier {
+  let offset: CGSize
+  nonisolated var progress: CGFloat
+  nonisolated var animatableData: CGFloat {
+    get { progress }
+    set { progress = newValue }
+  }
+  func body(content: Content) -> some View {
+    content
+      .offset(x: offset.width * (1 - progress), y: offset.height * (1 - progress))
+      .opacity(CardFlightSurface.toolOpacity(progress))
+  }
+}
+
+/// Fixed layouts, uniform content transforms and one moving mask; no per-frame frame resizing.
+struct CardFlightSurface: AnimatableModifier {
+  let id: String?
+  let source: CGRect
+  let target: CGRect
+  nonisolated var progress: CGFloat
+  var targetRadius: CGFloat
+  nonisolated var animatableData: CGFloat {
+    get { progress }
+    set { progress = newValue }
+  }
+
+  static func rect(source: CGRect, target: CGRect, progress: CGFloat) -> CGRect {
+    CGRect(
+      x: source.minX + (target.minX - source.minX) * progress,
+      y: source.minY + (target.minY - source.minY) * progress,
+      width: max(1, source.width + (target.width - source.width) * progress),
+      height: max(1, source.height + (target.height - source.height) * progress))
+  }
+
+  static func detailOpacity(_ progress: CGFloat) -> Double {
+    let value = min(
+      1,
+      max(
+        0,
+        (progress - AppleMetrics.cardBlendStart)
+          / (AppleMetrics.cardBlendEnd - AppleMetrics.cardBlendStart)))
+    return Double(value * value * (3 - 2 * value))
+  }
+  static func toolOpacity(_ progress: CGFloat) -> Double {
+    Double(min(1, max(0, progress / AppleMetrics.cardToolsRevealProgress)))
+  }
+
+  func body(content: Content) -> some View {
+    let rect = Self.rect(source: source, target: target, progress: progress)
+    let blend = id == nil ? 1 : Self.detailOpacity(progress)
+    let radius =
+      AppleMetrics.cardRadius
+      + (targetRadius - AppleMetrics.cardRadius) * min(1, max(0, progress))
+    ZStack(alignment: .topLeading) {
+      AppleColors.card
+      content
+        .frame(width: target.width, height: target.height, alignment: .topLeading)
+        .scaleEffect(rect.width / max(1, target.width), anchor: .topLeading)
+        .opacity(blend)
+      if let id {
+        CardTransitionFace(id: id)
+          .frame(width: source.width, height: source.height, alignment: .topLeading)
+          .scaleEffect(rect.width / max(1, source.width), anchor: .topLeading)
+          .opacity(1 - blend)
+      }
+    }
+    .frame(width: target.width, height: target.height, alignment: .topLeading)
+    .clipShape(CardFlightMask(size: rect.size, radius: radius))
+    .shadow(.sheet)
+    .offset(x: rect.minX - target.minX, y: rect.minY - target.minY)
+  }
+}
+
+private struct CardFlightMask: Shape {
+  var size: CGSize
+  var radius: CGFloat
+  func path(in rect: CGRect) -> Path {
+    Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: radius)
   }
 }
