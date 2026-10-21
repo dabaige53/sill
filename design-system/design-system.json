@@ -506,10 +506,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-21T08:03:49Z",
+    "at": "2026-10-21T08:18:28Z",
     "by": "dabaige53",
     "via": "Claude Code · design-init",
-    "note": "同步近期 Web/macOS 界面变化：顶栏收起与材质、工具条与菜单时长、外边距、卡片列数与无更多按钮、Mac 顶栏与设置弹窗"
+    "note": "合入搜索失焦、卡片关闭工具先淡出、卡片头部日期，并去掉撤销文案"
   },
   "layout": "files",
   "libraries": [],
