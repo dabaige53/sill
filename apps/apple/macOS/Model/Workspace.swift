@@ -16,6 +16,7 @@ import SillKit
     let id = UUID()
     var text: String
     var persistent = false
+    var isFailure = false
     var undo: (@MainActor () -> Void)?
     static func == (a: Notice, b: Notice) -> Bool { a.id == b.id }
   }
@@ -308,7 +309,7 @@ import SillKit
     guard let first = kept.first else { return completion(.failed) }
     let current = editBaseline(kept)
     guard kept.allSatisfy({ current[$0] == baseline[$0] }) else {
-      notice = Notice(text: Copy.appleConflict, persistent: false)
+      notice = Notice(text: Copy.appleConflict, isFailure: true)
       return completion(.conflict)
     }
     var patches: [String: [String: JSONValue]] = [:]
@@ -516,7 +517,7 @@ import SillKit
     case is CardValidationError: text = Copy.appleInvalidCard
     default: text = Copy.appleWriteError
     }
-    notice = Notice(text: text, persistent: persistent)
+    notice = Notice(text: text, persistent: persistent, isFailure: true)
   }
 
   private static func signedOut(_ error: any Error) -> Bool {
@@ -530,7 +531,7 @@ import SillKit
   private func checkPendingCloudWrite() async {
     guard let cloud = (backend as? CloudBackend)?.cloud else { return }
     if await cloud.pendingWriteKey != nil {
-      notice = Notice(text: Copy.appleUnknownWrite, persistent: true)
+      notice = Notice(text: Copy.appleUnknownWrite, persistent: true, isFailure: true)
     } else if notice?.text == Copy.appleUnknownWrite {
       notice = nil
     }

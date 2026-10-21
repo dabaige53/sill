@@ -128,6 +128,40 @@ private let syntheticReminder: JSONValue = .object([
 }
 
 @MainActor struct WorkspaceTests {
+  @Test func measuredEntryAndCancelledReveal() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.open("a")
+    #expect(reader.matching && !reader.shown && !reader.toolsShown)
+    reader.geometryReady("b")
+    #expect(!reader.shown)
+    reader.geometryReady("a")
+    #expect(reader.shown && reader.toolsShown)
+    reader.closeAll()
+    try await Task.sleep(for: .milliseconds(350))
+    #expect(!reader.toolsShown && !reader.contentShown)
+  }
+
+  @Test func measuredEntryRevealsToolsWithSurfaceAndSurvivesReopening() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.open("a")
+    reader.geometryReady("a")
+    try await Task.sleep(for: .milliseconds(350))
+    #expect(reader.contentShown && reader.toolsShown && reader.shown)
+    reader.closeAll()
+    reader.open("a")
+    // Without a mounted view SwiftUI may complete closure synchronously; a new mount measures again.
+    if !reader.shown { reader.geometryReady("a") }
+    #expect(reader.shown)
+    try await Task.sleep(for: .milliseconds(350))
+    #expect(reader.presented && reader.toolsShown)
+  }
+
   @Test func escapeClosesOnlyTheTopLayerAndPreservesSearch() async {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)
@@ -212,6 +246,8 @@ private let syntheticReminder: JSONValue = .object([
     await until { !workspace.state("a").isWriting }
     #expect(!workspace.state("a").bookmarked)
     #expect(workspace.notice?.text == Copy.appleWriteError)
+    #expect(workspace.notice?.isFailure == true)
+    #expect(workspace.notice?.persistent == false)
   }
 
   @Test func unknownResultIsCheckedNotRetried() async {
@@ -224,6 +260,7 @@ private let syntheticReminder: JSONValue = .object([
     #expect(await backend.writes == 1)
     #expect(await backend.reads > readsBefore)
     #expect(workspace.notice?.persistent == true)
+    #expect(workspace.notice?.isFailure == true)
   }
 
   @Test func changeMadeElsewhereSurfacesAsConflict() async {

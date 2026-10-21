@@ -1,4 +1,3 @@
-import AppKit
 import Foundation
 import Observation
 import SillKit
@@ -17,10 +16,18 @@ import SwiftUI
   private(set) var layers: [Layer] = []
   /// Drawn visibility of the whole overlay; the overlay stays mounted until its exit finishes.
   private(set) var shown = false
+  private(set) var returning = false
+  private(set) var travelling = false
   private(set) var matchedCard: String?
+  private(set) var matchedFrame: CGRect?
+  private(set) var contentShown = false
+  private(set) var toolsShown = false
+  @ObservationIgnored private var waitingForGeometry = false
+  @ObservationIgnored private var revealTask: Task<Void, Never>?
+
+  @ObservationIgnored var viewport: CGRect = .zero
   @ObservationIgnored var cardFrames: [String: CGRect] = [:]
   var matching: Bool { matchedCard != nil && layers.count == 1 }
-
 
   @ObservationIgnored private var token = 0
   @ObservationIgnored private unowned let workspace: Workspace
@@ -43,32 +50,35 @@ import SwiftUI
     defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
     token += 1
+    returning = false
     hold(id)
     workspace.recorder.opened(id)
     if card.kind == .photo, !full { markPhotoRead(id) }
     if layers.isEmpty || !shown {
       // A fresh overlay, or reopening while the previous one is still leaving.
-      if layers.last?.card != id || layers.count != 1 {
+      let fresh = layers.last?.card != id || layers.count != 1
+      if fresh {
         origin = origin ?? id
-        let viewport = NSApp?.keyWindow?.contentView?.bounds ?? .zero
-        matchedCard = !Motion.keyboardDriven && card.kind != .photo
-          && cardFrames[id].map { $0.intersects(viewport) } == true ? id : nil
+        matchedCard =
+          !Motion.keyboardDriven && card.kind != .photo
+            && cardFrames[id].map { $0.intersects(viewport) } == true ? id : nil
+        matchedFrame = matchedCard.flatMap { cardFrames[$0] }
+        contentShown = false
+        toolsShown = false
         layers = [Layer(card: id, full: full)]
       } else if let index = layers.indices.last {
         layers[index].full = full
       }
-      if matching && !shown {
-        // Mount both geometries before switching their source in the next transaction.
-        let current = token
-        DispatchQueue.main.async { [weak self] in
-          guard let self, self.token == current else { return }
-          self.present(true)
-        }
+      if matching && !shown && fresh {
+        waitingForGeometry = true
       } else {
         present(true)
       }
       return
     }
+    revealTask?.cancel()
+    contentShown = true
+    toolsShown = true
     if layers.last?.card == id {
       animate(full ? Motion.open : Motion.close) { layers[layers.count - 1].full = full }
       return
@@ -102,15 +112,30 @@ import SwiftUI
   /// Leaves every layer; the overlay unmounts once its exit animation has finished.
   func closeAll() {
     guard presented else { return }
-    if let matchedCard, cardFrames[matchedCard] == nil { self.matchedCard = nil }
+    if let matchedCard, cardFrames[matchedCard].map({ $0.intersects(viewport) }) != true {
+      self.matchedCard = nil
+    }
     token += 1
     let current = token
+    revealTask?.cancel()
+    if waitingForGeometry {
+      waitingForGeometry = false
+      finish()
+      return
+    }
+    matchedFrame = matchedCard.flatMap { cardFrames[$0] }
+    returning = matching
+    toolsShown = false
+    // Keep the content in the returning surface until the source-card handoff.
+    if !matching { contentShown = false }
     if Motion.keyboardDriven {
       Motion.instantly { shown = false }
       finish()
       return
     }
-    withAnimation(matching ? Motion.card : Motion.close, completionCriteria: .logicallyComplete) {
+    withAnimation(
+      matching ? Motion.cardReturn : Motion.close, completionCriteria: .logicallyComplete
+    ) {
       shown = false
     } completion: { [weak self] in
       guard let self, self.token == current else { return }
@@ -159,11 +184,38 @@ import SwiftUI
     held.insert(id)
   }
 
+  /// The destination calls this only after its final content height has been measured.
+  func geometryReady(_ id: String) {
+    guard waitingForGeometry, top?.card == id else { return }
+    waitingForGeometry = false
+    present(true)
+  }
+
   private func present(_ value: Bool) {
-    if Motion.keyboardDriven {
-      Motion.instantly { shown = value }
-    } else {
-      withAnimation(matching ? Motion.card : Motion.open) { shown = value }
+    revealTask?.cancel()
+    if Motion.keyboardDriven || !matching {
+      contentShown = value
+      toolsShown = value
+      if Motion.keyboardDriven {
+        Motion.instantly { shown = value }
+      } else {
+        withAnimation(Motion.open) { shown = value }
+      }
+      return
+    }
+    let current = token
+    travelling = true
+    withAnimation(Motion.card, completionCriteria: .logicallyComplete) {
+      shown = value
+      toolsShown = value
+    } completion: { [weak self] in
+      guard let self, self.token == current else { return }
+      self.travelling = false
+    }
+    revealTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(AppleMetrics.motionDetailContentDelay))
+      guard let self, !Task.isCancelled, self.token == current, self.shown else { return }
+      self.contentShown = true
     }
   }
 
@@ -178,7 +230,13 @@ import SwiftUI
   private func finish() {
     let returning = origin
     layers = []
+    self.returning = false
+    travelling = false
     matchedCard = nil
+    matchedFrame = nil
+    contentShown = false
+    toolsShown = false
+    revealTask?.cancel()
     positions = [:]
     origin = nil
     // The feed redraws read colors only now that the overlay is gone.

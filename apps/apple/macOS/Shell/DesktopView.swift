@@ -18,7 +18,6 @@ struct DesktopView: View {
   @Environment(CardMenu.self) private var menu
   @Environment(Panels.self) private var panels
   @Environment(NewContent.self) private var newContent
-  @Namespace private var cardSpace
   @State private var scroll: FeedScroll?
   @State private var cardIntents = CardIntents()
   @State private var readerIntents = ReaderIntents()
@@ -38,18 +37,25 @@ struct DesktopView: View {
         if let scroll {
           FeedView(
             geometry: geometry, scroll: scroll,
-            topInset: AppleMetrics.topBarInset + AppleMetrics.space64 + AppleMetrics.space20)
+            topInset: feedTopInset
+          )
+          .modifier(FeedTopBar(header: TopBar(edge: edge, menu: shell.menu) { scrollToTop() }))
         }
         if shell.menu.open {
           // A click anywhere else closes the tab menu.
           Color.clear.contentShape(Rectangle())
             .onTapGesture { shell.menu.close() }
+            .padding(.top, AppleMetrics.topBarInset + AppleMetrics.space64)
             .accessibilityHidden(true)
         }
-        TopBar(edge: edge, menu: shell.menu) { scrollToTop() }
+        if #available(macOS 26.0, *) {
+          // The feed owns the native scroll-edge bar.
+        } else {
+          TopBar(edge: edge, menu: shell.menu) { scrollToTop() }
+        }
         if let scroll {
           FeedRefreshIndicator(refresh: scroll.refresh)
-            .padding(.top, AppleMetrics.topBarInset + AppleMetrics.space64)
+            .padding(.top, AppleMetrics.topBarInset + (AppleMetrics.space64 - AppleMetrics.hitTarget) / 2)
         }
         ZStack(alignment: .bottom) {
           AIDock()
@@ -87,7 +93,12 @@ struct DesktopView: View {
       }
       .ignoresSafeArea(edges: .top)
     }
-    .environment(\.cardSpace, cardSpace)
+    .coordinateSpace(name: "card-workspace")
+    .onGeometryChange(for: CGSize.self) {
+      $0.size
+    } action: {
+      reader.viewport = CGRect(origin: .zero, size: $0)
+    }
     .environment(\.cardIntents, cardIntents)
     .environment(\.readerIntents, readerIntents)
     .onAppear { connect() }
@@ -144,6 +155,11 @@ struct DesktopView: View {
         shell.menu.close()
       }
     }
+  }
+
+  private var feedTopInset: CGFloat {
+    if #available(macOS 26.0, *) { return AppleMetrics.space20 }
+    return AppleMetrics.topBarInset + AppleMetrics.space64 + AppleMetrics.space20
   }
 
   /// Changes made elsewhere (an external assistant, the CLI) arrive every 5s while the window is
@@ -385,6 +401,23 @@ struct DesktopView: View {
     reader.onClosed = { origin in
       guard let origin, Keyboard.focusVisible else { return }
       workspace.state(origin).requestFocus()
+    }
+  }
+}
+
+/// Register the controls with the scroll view so the system blurs only the scroll edge.
+private struct FeedTopBar: ViewModifier {
+  let header: TopBar
+  @Environment(Chrome.self) private var chrome
+
+  @ViewBuilder func body(content: Content) -> some View {
+    if #available(macOS 26.0, *) {
+      content
+        .safeAreaBar(edge: .top, spacing: 0) { header }
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .scrollEdgeEffectHidden(chrome.tucked, for: .top)
+    } else {
+      content
     }
   }
 }

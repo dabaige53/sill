@@ -153,12 +153,6 @@ dialog::backdrop {
 .preview-sheet:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
 	padding-right: 0;
 }
-.preview-title-row {
-	align-items: flex-start;
-}
-.preview-title-row .reminder-check {
-	margin-top: calc((1.3em - var(--hit-target)) / 2);
-}
 .preview-title-row #modal-title {
 	min-width: 0;
 }
@@ -303,7 +297,8 @@ dialog::backdrop {
 	flex: none;
 	color: var(--secondary);
 }
-.preview-body h1 {
+.preview-body h1,
+.preview-body .preview-title-row {
 	font-size: 24px;
 	font-weight: 600;
 	letter-spacing: -0.03em;
@@ -398,6 +393,12 @@ dialog::backdrop {
 .detail-row small {
 	font-size: var(--text-meta);
 	color: var(--muted);
+	white-space: nowrap;
+}
+.detail-row b,
+.detail-row em {
+	overflow: hidden;
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 .detail-row b {

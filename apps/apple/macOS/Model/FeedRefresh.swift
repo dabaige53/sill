@@ -32,13 +32,26 @@ import SwiftUI
 
   func pull(_ delta: CGFloat, discrete: Bool = true) {
     guard phase == .idle || phase == .pulling else { return }
-    phase = .pulling
-    distance = max(0, min(AppleMetrics.gestureRefreshDistance * 2, distance + delta))
+    Motion.instantly {
+      phase = .pulling
+      distance = max(0, min(AppleMetrics.gestureRefreshDistance * 2, distance + delta))
+    }
     rest?.cancel()
     guard discrete else { return }
     rest = Task { [weak self] in
       do { try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest)) } catch { return }
       self?.release()
+    }
+  }
+
+  /// Absolute mouse travel: preview immediately, never schedule a timeout to commit it.
+  func drag(_ travel: CGFloat) {
+    guard phase == .idle || phase == .pulling else { return }
+    rest?.cancel()
+    let travel = max(0, travel)
+    Motion.instantly {
+      phase = .pulling
+      distance = min(72, min(travel, 80) * 0.65 + max(0, travel - 80) * 0.18)
     }
   }
 
@@ -153,8 +166,10 @@ struct FeedRefreshIndicator: View {
           }
         }
         .foregroundStyle(AppleColors.accent)
-        .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
+        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
         .desktopGlass(Circle())
+        .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+        .contentShape(Circle())
       }
       .buttonStyle(.plain)
       .allowsHitTesting(refresh.phase == .error)

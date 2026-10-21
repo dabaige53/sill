@@ -182,6 +182,17 @@
 		"compactReaderWidth": 560,
 		"motionDetailOpen": 0.28,
 		"motionDetailClose": 0.22,
+		"motionCardReturn": 0.32,
+		"motionCardHandoffDelay": 0.22,
+		"motionCardHandoffFade": 0.1,
+		"motionCardContentReturnDelay": 0.08,
+		"motionCardContentReturnFade": 0.14,
+		"cardReturnX1": 0.4,
+		"cardReturnY1": 0,
+		"cardReturnX2": 0.2,
+		"cardReturnY2": 1,
+		"motionDetailContentDelay": 0.1,
+		"motionDetailFade": 0.12,
 		"motionRailHide": 0.24,
 		"motionRailShow": 0.32,
 		"motionLens": 0,
@@ -290,10 +301,10 @@
 		"easeSheetY1": 0.72,
 		"easeSheetX2": 0,
 		"easeSheetY2": 1,
-		"chromeGlassOpacity": 0.8,
+		"chromeGlassOpacity": 0.94,
 		"cardSpringMass": 1,
-		"cardSpringStiffness": 190,
-		"cardSpringDamping": 25,
+		"cardSpringStiffness": 274,
+		"cardSpringDamping": 30,
 		"springMass": 1,
 		"springStiffness": 600,
 		"springDamping": 45,
@@ -479,13 +490,11 @@
 		"readerProgressHeight": 2,
 		"cardTitleLineHeight": 22,
 		"cardSummaryLineHeight": 22,
-		"cardReadingSummaryLines": 4,
 		"articleTitleLineHeight": 30,
 		"articleSectionLineHeight": 24,
 		"articleBodyLineHeight": 25,
 		"articleMetaLineHeight": 18,
-		"articleMeasure": 600,
-		"articleGutter": 32,
+		"articleGutter": 30,
 		"iconButton": 44,
 		"toolbarSeparatorHeight": 22,
 		"tipRadius": 10,
@@ -987,7 +996,7 @@
 				"col-min": "240px",
 				"col-ideal": "280px",
 				"col-max": "320px",
-				"summary-lines": "2"
+				"summary-lines": "3"
 			},
 			"standard": {
 				"col-min": "280px",
@@ -1006,17 +1015,22 @@
 			{
 				"name": "summary-reading-lines",
 				"value": "4",
-				"usage": "资讯与邮件的纯文字摘要最多四行，不随密度降为两行。"
+				"usage": "手机资讯与邮件的纯文字摘要最多四行；桌面不截断。"
 			},
 			{
 				"name": "summary-lines",
 				"value": "3",
-				"usage": "标准和宽松密度显示最多三行摘要，紧凑密度最多两行；不裁剪详情原文。"
+				"usage": "兼容窄屏摘要行数；桌面标题、摘要和要点自然换行，密度只改变列宽。"
 			}
 		]
 	},
 	"motion": {
-		"cardSpring": { "mass": 1, "stiffness": 190, "damping": 25 },
+		"detailContentDelay": 100,
+		"detailFade": 120,
+		"cardContentReturn": { "delay": 80, "duration": 140, "easing": "linear" },
+		"cardHandoff": { "delay": 220, "duration": 100, "easing": "linear" },
+		"cardReturn": { "duration": 320, "easing": "cubic-bezier(0.4,0,0.2,1)" },
+		"cardSpring": { "mass": 1, "stiffness": 274, "damping": 30 },
 		"spring": {
 			"mass": 1,
 			"stiffness": 600,

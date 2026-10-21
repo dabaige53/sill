@@ -190,7 +190,14 @@ export const gesturePreviewMethods = {
 		chip.innerHTML = pushRingHTML;
 		host.appendChild(chip);
 		const arc = chip.querySelector(".arc circle:last-child"),
-			bar = dialog.querySelector(":scope > .float-bar");
+			bar = dialog.querySelector(":scope > .float-bar, .reader .float-bar") as HTMLElement | null;
+		const desktop = !matchMedia("(max-width:650px)").matches;
+		// React may reuse the toolbar node for the next card.
+		if (bar?.dataset.readComplete) {
+			bar.style.visibility = "";
+			delete bar.dataset.readComplete;
+		}
+		const barVisibility = bar?.style.visibility || "";
 		const need = 120,
 			token = app.modalToken,
 			wheel = this.intent();
@@ -222,6 +229,11 @@ export const gesturePreviewMethods = {
 			pull = need;
 			paint();
 			chip.classList.add("is-done");
+			// Completion owns the toolbar until this detail leaves, including pending reveal animations.
+			if (desktop && bar) {
+				bar.dataset.readComplete = String(token);
+				bar.style.visibility = "hidden";
+			}
 			chip.style.transform = "scale(1)";
 			const changed = !Store.item(id).read || Store.item(id).progress !== 1;
 			if (changed) {
@@ -231,9 +243,15 @@ export const gesturePreviewMethods = {
 			window.setTimeout(() => {
 				// A changed route can keep this surface cached; never leave its success badge behind.
 				chip.remove();
-				if (app.modalToken !== token) return;
-				MotionEngine.move(scroll);
-				if (bar) {
+				if (app.modalToken !== token) {
+					if (desktop && bar?.dataset.readComplete === String(token)) {
+						bar.style.visibility = barVisibility;
+						delete bar.dataset.readComplete;
+					}
+					return;
+				}
+				if (!desktop) MotionEngine.move(scroll);
+				if (bar && !desktop) {
 					bar.style.opacity = "";
 					MotionEngine.move(bar);
 				}

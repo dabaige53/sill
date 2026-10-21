@@ -6,6 +6,7 @@ import SwiftUI
 struct FeedView: View {
   let geometry: ColumnGeometry
   let scroll: FeedScroll
+  @State private var mousePull: Bool?
   let topInset: CGFloat
   @Environment(Workspace.self) private var workspace
   @Environment(Feed.self) private var feed
@@ -15,7 +16,7 @@ struct FeedView: View {
     let preferences = workspace.preferences
     let context = CardContext(
       now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
-      fadeRead: preferences.fadeRead, summaryLines: preferences.summaryLines)
+      fadeRead: preferences.fadeRead)
     ScrollView(.vertical) {
       VStack(spacing: 0) {
         Color.clear.frame(height: topInset)
@@ -46,10 +47,45 @@ struct FeedView: View {
         Color.clear.frame(height: AppleMetrics.feedBottom)
       }
       .frame(maxWidth: .infinity)
+      .background {
+        // Only empty feed space owns this gesture; cards and controls keep their own input.
+        Color.clear.contentShape(Rectangle())
+          .gesture(
+            DragGesture(minimumDistance: 4, coordinateSpace: .named("card-workspace"))
+              .onChanged { value in
+                if mousePull == nil {
+                  mousePull =
+                    scroll.refreshAllowed() && scroll.offset <= 0
+                    && value.translation.height > abs(value.translation.width)
+                }
+                guard mousePull == true else { return }
+                guard scroll.refreshAllowed(), scroll.offset <= 0,
+                  value.translation.height >= -4,
+                  abs(value.translation.width) <= max(12, value.translation.height)
+                else {
+                  scroll.refresh.release(cancelled: true)
+                  mousePull = false
+                  return
+                }
+                scroll.chrome.show()
+                scroll.refresh.drag(value.translation.height)
+              }
+              .onEnded { _ in
+                if mousePull == true {
+                  scroll.refresh.release(cancelled: !scroll.refreshAllowed())
+                }
+                mousePull = nil
+              }
+          )
+      }
       .background(ScrollProbe(scroll: scroll))
       .modifier(FeedPullOffset(refresh: scroll.refresh))
     }
     .scrollIndicators(.hidden)
+    .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in
+      if mousePull == true { scroll.refresh.release(cancelled: true) }
+      mousePull = nil
+    }
     .environment(\.relatedCards, { [workspace] id in workspace.model(id) })
   }
 
@@ -232,7 +268,7 @@ struct StackTile: View {
         .font(.number(AppleMetrics.font13, .medium))
       }
       CardTitle(text: card.title).afterHead()
-      if !card.summary.isEmpty { CardSummary(text: card.summary, lines: 2).afterTitle() }
+      if !card.summary.isEmpty { CardSummary(text: card.summary).afterTitle() }
     }
     .background(shape.fill(AppleColors.card))
     .overlay(

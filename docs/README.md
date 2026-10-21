@@ -21,6 +21,8 @@
 ## 操作与规范
 
 - [代码规范](guides/code-standards.md)
+- [测试与验证](guides/testing.md)：测试授权、CI 与验证结果边界。
+- [跨端对齐检查清单](guides/cross-platform-checklist.md)：Web、Mac 与手机的标准检查项、平台差异及结果格式。
 - [开发](guides/development.md)
 - [文件管理规范](guides/file-management.md)
 - [V1 三端接口与交接包](guides/handoff.md)

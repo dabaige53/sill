@@ -378,3 +378,15 @@ body:has(.home-top.is-tucked) .pull-ring.in-home-heading,
 body:has(#modal[open]) .pull-ring.in-home-heading {
 	visibility: hidden;
 }
+
+@media (min-width: 651px) {
+	.pull-ring.in-home-heading {
+		width: var(--space-40);
+		height: var(--space-40);
+		margin-left: calc(-1 * var(--space-20));
+	}
+	.pull-ring.in-home-heading svg {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}

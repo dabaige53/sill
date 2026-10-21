@@ -27,6 +27,7 @@ export const gesturePullMethods = {
 			state = "idle";
 		const heading = document.querySelector<HTMLElement>(".home-heading");
 		const wheel = this.intent();
+		let mouse: { id: number; x: number; y: number } | null = null;
 		const labels = {
 			idle: copy("web.refresh.pull"),
 			pulling: copy("web.refresh.pull"),
@@ -50,8 +51,8 @@ export const gesturePullMethods = {
 		const measure = () => {
 			inset = parseFloat(getComputedStyle(main).paddingTop) || 16;
 			const rect = heading?.getBoundingClientRect();
+			ring.classList.toggle("in-home-heading", !!rect?.height);
 			headingTop = rect?.height ? rect.top + (rect.height - ring.offsetHeight) / 2 : null;
-			ring.classList.toggle("in-home-heading", headingTop !== null);
 			ring.style.top = headingTop === null ? "" : `${headingTop}px`;
 			ring.style.left = headingTop === null ? "" : `${rect.left + rect.width / 2}px`;
 		};
@@ -81,6 +82,7 @@ export const gesturePullMethods = {
 			if (!frame) frame = requestAnimationFrame(paint);
 		};
 		const cancel = () => {
+			mouse = null;
 			start = null;
 			wheel.reset();
 			document.body.classList.remove("is-pulling");
@@ -133,6 +135,65 @@ export const gesturePullMethods = {
 				paint();
 			}
 		};
+		const release = () => {
+			start = null;
+			mouse = null;
+			document.body.classList.remove("is-pulling");
+			clearTimeout(timer);
+			if (state !== "pulling") return;
+			if (this.app.dialog.open || this.app.selected.size || this.app.drag?.active || scrollY > 0)
+				return cancel();
+			if (pull >= need) refresh();
+			else cancel();
+		};
+		// Mouse dragging has a real release event. Never substitute wheel silence for it.
+		document.addEventListener("pointerdown", (e: PointerEvent) => {
+			if (e.pointerType !== "mouse" || e.button !== 0 || this.phone.matches) return;
+			cancel();
+			const target = e.target as Element;
+			if (
+				busy ||
+				state === "success" ||
+				scrollY > 0 ||
+				this.app.dialog.open ||
+				this.app.selected.size ||
+				this.app.drag?.active ||
+				this.app.drag?.menu?.open ||
+				!target.closest?.("main,.home-heading") ||
+				target.closest(
+					"[data-card],.deck,button,a,input,textarea,select,[role=button],[contenteditable]",
+				)
+			)
+				return;
+			measure();
+			mouse = { id: e.pointerId, x: e.clientX, y: e.clientY };
+		});
+		document.addEventListener("pointermove", (e: PointerEvent) => {
+			if (!mouse || e.pointerId !== mouse.id) return;
+			if (!(e.buttons & 1) || this.app.dialog.open || this.app.drag?.active || scrollY > 0)
+				return cancel();
+			const dy = e.clientY - mouse.y,
+				dx = Math.abs(e.clientX - mouse.x);
+			if (dy < -4 || dx > Math.max(12, dy)) return cancel();
+			if (dy <= 0) {
+				pull = 0;
+				schedulePaint();
+				return;
+			}
+			e.preventDefault();
+			clearTimeout(timer);
+			status("pulling");
+			document.body.classList.add("is-pulling");
+			pull = Math.min(72, Math.min(dy, 80) * 0.65 + Math.max(0, dy - 80) * 0.18);
+			schedulePaint();
+		});
+		window.addEventListener("pointerup", (e: PointerEvent) => {
+			if (mouse && e.pointerId === mouse.id && e.button === 0) release();
+		});
+		window.addEventListener("pointercancel", (e: PointerEvent) => {
+			if (mouse && e.pointerId === mouse.id) cancel();
+		});
+		window.addEventListener("blur", cancel);
 		this.refresh = refresh;
 		status("idle");
 		paint();
@@ -191,20 +252,14 @@ export const gesturePullMethods = {
 			{ passive: false },
 		);
 		document.addEventListener("touchend", () => {
-			if (!start) return;
-			start = null;
-			document.body.classList.remove("is-pulling");
-			if (pull >= need) refresh();
-			else {
-				pull = 0;
-				status("idle");
-				paint();
-			}
+			if (start) release();
 		});
 		document.addEventListener("touchcancel", cancel, { passive: true });
 		window.addEventListener(
 			"wheel",
 			(e?: any) => {
+				// A held mouse owns its pointer stream; wheel timers cannot commit it.
+				if (mouse || e.buttons) return;
 				if (
 					busy ||
 					state === "success" ||
@@ -215,7 +270,7 @@ export const gesturePullMethods = {
 					e.deltaY >= 0 ||
 					Math.abs(e.deltaX) > Math.abs(e.deltaY)
 				) {
-					wheel.reset();
+					cancel();
 					return;
 				}
 				if (!e.cancelable) return cancel();
@@ -228,14 +283,7 @@ export const gesturePullMethods = {
 				clearTimeout(timer);
 				// Commit after the trackpad input stream stops.
 				timer = window.setTimeout(() => {
-					if (pull >= need) {
-						wheel.reset(false);
-						refresh();
-						return;
-					}
-					pull = 0;
-					status("idle");
-					paint();
+					release();
 					wheel.reset(false);
 				}, 180);
 			},
@@ -251,7 +299,11 @@ export const gesturePullMethods = {
 		if (!surface) return;
 		if (!reader) {
 			this.bindPreviewResistance(surface);
-			this.bindPreviewHandle(surface);
+			if (phone) this.bindPreviewHandle(surface);
+		}
+		if (!matchMedia("(max-width:650px)").matches) {
+			if (this.pullWheel) dialog.removeEventListener("wheel", this.pullWheel);
+			return;
 		}
 		const scroll = reader
 			? dialog.querySelector("#reader-scroll")

@@ -22,6 +22,7 @@ const homeTabs = [
 export function HomeTop() {
 	return (
 		<header id="home-top" className="home-top">
+			<span className="home-edge-blur" aria-hidden="true" />
 			<div className="home-heading">
 				<div className="home-brand">
 					<button
@@ -205,7 +206,7 @@ export function AIDock() {
 				aria-label={copy("web.ai.sendUnavailable")}
 			>
 				<span>
-					<Icon name="up" size={16} />
+					<Icon name="up" size={20} />
 				</span>
 			</button>
 		</div>

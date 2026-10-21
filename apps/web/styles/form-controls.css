@@ -327,15 +327,72 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 }
 .home-logo,
 .home-menu-toggle,
+.home-edge-blur,
 .home-menu,
 .home-search {
 	display: none;
 }
 @media (min-width: 651px) {
 	.home-top {
+		top: var(--space-20);
 		width: calc(100% - var(--space-12) * 2);
 		margin-top: var(--space-20);
 	}
+	.home-top {
+		opacity: 1;
+	}
+	.home-top.is-tucked {
+		transform: none;
+		opacity: 1;
+	}
+	/* Keep the backdrop root opaque. Controls and blur layers fade on the same clock. */
+	.home-top::before,
+	.home-top::after,
+	.home-top > .home-edge-blur,
+	.home-top > .home-heading,
+	.home-top > .home-tabs {
+		opacity: 1;
+	}
+	.home-top.is-tucked::before,
+	.home-top.is-tucked::after,
+	.home-top.is-tucked > .home-edge-blur,
+	.home-top.is-tucked > .home-heading,
+	.home-top.is-tucked > .home-tabs {
+		opacity: 0;
+	}
+	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.home-top { background: transparent; }
+		.home-top > .home-heading { position: relative; z-index: 1; }
+		.home-top::before,
+		.home-top::after,
+		.home-edge-blur {
+			content: "";
+			display: block;
+			position: absolute;
+			inset: calc(-1 * var(--space-20)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
+			z-index: 0;
+			pointer-events: none;
+		}
+		.home-top::before {
+			-webkit-backdrop-filter: var(--edge-blur-soft);
+			backdrop-filter: var(--edge-blur-soft);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+		}
+		.home-top::after {
+			-webkit-backdrop-filter: var(--edge-blur-mid);
+			backdrop-filter: var(--edge-blur-mid);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+		}
+		.home-edge-blur {
+			-webkit-backdrop-filter: var(--edge-blur-strong);
+			backdrop-filter: var(--edge-blur-strong);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+		}
+	}
+
 	#feed-grid {
 		max-width: none;
 	}
@@ -357,7 +414,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-10);
-		line-height: 40px;
+		line-height: var(--space-40);
 		letter-spacing: -0.02em;
 	}
 	.home-logo {
@@ -447,7 +504,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		width: 360px;
 		min-width: 0;
 		flex-shrink: 1;
-		height: 40px;
+		height: var(--space-40);
 		padding: 0 var(--space-8) 0 var(--space-14);
 		border-radius: 20px;
 		background: transparent;
@@ -459,7 +516,9 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		inset: 0;
 		z-index: -1;
 		border-radius: inherit;
-		background: var(--card);
+		background: color-mix(in srgb, var(--glass) 35%, transparent);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		transform-origin: right center;
 		pointer-events: none;
@@ -471,6 +530,8 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	}
 	.home-search > .icon {
 		flex: none;
+		width: var(--space-20);
+		height: var(--space-20);
 	}
 	.home-search input {
 		flex: 1;
@@ -534,22 +595,18 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	.home-account {
 		margin-right: calc(-1 * var(--space-2));
 	}
+	.home-account .account-wrap > .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
 	.home-account .account-wrap {
-		width: 40px;
-		height: 40px;
+		width: var(--space-40);
+		height: var(--space-40);
 		background: var(--card);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		color: var(--ink);
 	}
 	.home-tabs {
 		display: none;
-	}
-}
-
-@media (min-width: 651px) {
-	.home-top {
-		background: var(--glass-thick);
-		-webkit-backdrop-filter: var(--glass-filter);
-		backdrop-filter: var(--glass-filter);
 	}
 }

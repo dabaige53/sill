@@ -1,5 +1,9 @@
 /* Sill · tokens · shared source (design-system/tokens.json v2) */
 :root {
+	--edge-blur-soft: blur(4px);
+	--edge-blur-mid: blur(8px);
+	--edge-blur-strong: blur(16px);
+	--chrome-glass-filter: blur(24px) saturate(1.2);
 	--summary-reading-lines: 4;
 	--settings-body-height: 560px;
 	--dur-deck: 260ms;
@@ -140,8 +144,8 @@
 	--col-min: 280px;
 	--col-ideal: 340px;
 	--col-max: 380px;
-	--article-measure: 600px;
-	--article-gutter: 32px;
+	--article-measure: none;
+	--article-gutter: 30px;
 	--article-gutter-sm: 20px;
 	--hit-target: 44px;
 	--summary-lines: 3;
@@ -205,7 +209,7 @@ body[data-density="compact"] {
 	--col-min: 240px;
 	--col-ideal: 280px;
 	--col-max: 320px;
-	--summary-lines: 2;
+	--summary-lines: 3;
 }
 body[data-density="roomy"] {
 	--col-min: 340px;

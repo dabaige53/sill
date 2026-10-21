@@ -4,8 +4,8 @@ import { copy } from "../copy.ts";
 import { cardSourceKind } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
-import { MotionEngine } from "../interactions/motion.ts";
 import { ChromeAutoHide } from "../interactions/chrome.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController } from "./app.ts";
@@ -106,11 +106,15 @@ export function bindSheetChrome(this: AppController) {
 	this.previewSizeObserver?.disconnect();
 	const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
 	if (!scroll) return;
-	this.sheetHide = new ChromeAutoHide(scroll, () => [
-		...this.dialog.querySelectorAll(
-			":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
-		),
-	]);
+	this.sheetHide = new ChromeAutoHide(
+		scroll,
+		() => [
+			...this.dialog.querySelectorAll(
+				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
+			),
+		],
+		() => this.sheetLeaving || !!this.dialog.querySelector("[data-card-flight]"),
+	);
 	// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 	const sheet = this.dialog.querySelector(".preview-sheet");
 	if (sheet) {

@@ -32,7 +32,7 @@ struct SearchField: View {
       : Copy.text("web.home.searchInPrefix") + feed.scope.label
         + Copy.text("web.home.searchInSuffix")
     HStack(spacing: AppleMetrics.space8) {
-      Icon("search", size: AppleMetrics.space16).foregroundStyle(AppleColors.secondary)
+      Icon("search", size: AppleMetrics.space20).foregroundStyle(AppleColors.secondary)
       if feed.scope != .all {
         Button {
           feed.select(.all)
@@ -48,7 +48,7 @@ struct SearchField: View {
         .accessibilityLabel("\(Copy.text("web.home.removeTab")) \(feed.scope.label)")
       }
       TextField(
-        "", text: $text, prompt: Text(placeholder).foregroundStyle(AppleColors.iconSecondary)
+        "", text: $text, prompt: Text(placeholder).foregroundStyle(AppleColors.secondary)
       )
       .textFieldStyle(.plain)
       .font(.sans(AppleMetrics.font15))
@@ -74,7 +74,7 @@ struct SearchField: View {
           Icon("x", size: AppleMetrics.font12)
             .foregroundStyle(AppleColors.card)
             .padding(AppleMetrics.space3)
-            .background(Circle().fill(AppleColors.iconSecondary))
+            .background(Circle().fill(AppleColors.secondary))
             .frame(width: AppleMetrics.searchClearSize, height: AppleMetrics.searchClearSize)
             .contentShape(Rectangle())
         }
@@ -125,7 +125,7 @@ private struct SearchSurface: ViewModifier {
         maxWidth: AppleMetrics.searchTaggedWidth
       )
       .frame(height: AppleMetrics.searchHeight)
-      .desktopGlass(Capsule())
+      .modifier(SearchGlass())
       .overlay {
         if focused {
           Capsule().strokeBorder(AppleColors.accent, lineWidth: AppleMetrics.lineWidth)
@@ -137,5 +137,16 @@ private struct SearchSurface: ViewModifier {
             .allowsHitTesting(false)
         }
       }
+  }
+}
+
+/// Clear native glass; readability comes from the scroll edge behind the field.
+private struct SearchGlass: ViewModifier {
+  @ViewBuilder func body(content: Content) -> some View {
+    if #available(macOS 26.0, *) {
+      content.glassEffect(.clear, in: Capsule())
+    } else {
+      content.desktopGlass(Capsule())
+    }
   }
 }

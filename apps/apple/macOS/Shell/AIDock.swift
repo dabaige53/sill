@@ -41,7 +41,7 @@ struct AIDock: View {
           drag.ready ? Copy.text("web.ai.dockReady") : Copy.text("web.ai.dockPlaceholder")
         )
         .fontWeight(drag.ready ? .semibold : nil)
-        .foregroundStyle(drag.ready ? AppleColors.accent : AppleColors.iconSecondary)
+        .foregroundStyle(drag.ready ? AppleColors.accent : AppleColors.secondary)
       )
       .textFieldStyle(.plain)
       .font(.sans(AppleMetrics.font16))

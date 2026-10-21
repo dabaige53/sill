@@ -145,13 +145,14 @@ button.list-row:active {
 	gap: var(--space-10);
 }
 .list-row .row-side {
-	position: relative;
+	display: grid;
+	flex: none;
+	justify-items: end;
+}
+.list-row .row-side > * {
+	grid-area: 1 / 1;
 }
 .list-row .row-put {
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-4);

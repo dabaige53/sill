@@ -13,7 +13,7 @@ struct Toast: View {
 
   var body: some View {
     ZStack(alignment: .bottomTrailing) {
-      if let notice = workspace.notice, !hidden {
+      if let notice = workspace.notice, !hidden, !notice.isFailure {
         ToastCapsule(notice: notice) { dismiss(notice) }
           .id(notice.id)
           .transition(
@@ -92,5 +92,53 @@ private struct ToastCapsule: View {
       if !paused { remaining -= step }
     }
     dismiss()
+  }
+}
+
+/// Recovery is anchored beside search; unknown writes start expanded.
+struct FailureNotice: View {
+  let notice: Workspace.Notice
+  let dismiss: () -> Void
+  @Environment(Workspace.self) private var workspace
+  @State private var expanded: Bool
+
+  init(notice: Workspace.Notice, dismiss: @escaping () -> Void) {
+    self.notice = notice
+    self.dismiss = dismiss
+    _expanded = State(initialValue: notice.persistent)
+  }
+
+  var body: some View {
+    Button {
+      expanded.toggle()
+    } label: {
+      Icon("info", size: AppleMetrics.space20)
+        .foregroundStyle(AppleColors.warning)
+        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
+        .desktopGlass(Circle())
+        .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+        .contentShape(Circle())
+    }
+    .buttonStyle(IconPress())
+    .accessibilityLabel(Copy.text(expanded ? "web.templates.afd4b783536b" : "auth.details"))
+    .accessibilityValue(notice.text)
+    .help(notice.text)
+    .popover(isPresented: $expanded, arrowEdge: .top) {
+      VStack(alignment: .leading, spacing: AppleMetrics.space12) {
+        Text(notice.text)
+          .font(.sans(AppleMetrics.font13))
+          .foregroundStyle(AppleColors.primary)
+          .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: AppleMetrics.space8) {
+          ToolButton(icon: "refresh", label: Copy.text("web.app.26b4905705d6"), accent: true) {
+            workspace.refresh()
+          }
+          Spacer(minLength: 0)
+          ToolButton(icon: "x", label: Copy.text("web.close"), action: dismiss)
+        }
+      }
+      .padding(AppleMetrics.space16)
+      .frame(width: AppleMetrics.toastMaxWidth, alignment: .leading)
+    }
   }
 }

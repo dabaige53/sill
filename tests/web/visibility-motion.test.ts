@@ -7,7 +7,8 @@ import { JSDOM } from "jsdom";
 
 const bundle = buildSync({
 	stdin: {
-		contents: "export {MotionEngine} from './apps/web/interactions/motion.ts'",
+		contents:
+			"export {MotionEngine} from './apps/web/interactions/motion.ts'; export {capsulePose, readCardPose} from './apps/web/interactions/card-transition.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -34,6 +35,63 @@ function fixture() {
 	w.__motionAnimations = animations;
 	return { dom, w, el, animations, motion: w.MotionTest.MotionEngine };
 }
+test("sliding glass chrome does not start an opacity animation and restores visibility", async () => {
+	const f = fixture();
+	try {
+		f.el.hidden = false;
+		const style = f.w.document.createElement("style");
+		style.textContent =
+			"button { opacity:1; transform:translateY(0px) } button.tucked { transform:translateY(-76px); visibility:hidden }";
+		f.w.document.head.append(style);
+		for (const hidden of [true, false]) {
+			f.motion.change(f.el, () => f.el.classList.toggle("tucked", hidden));
+			const animation = f.animations.at(-1);
+			assert.deepEqual(Object.keys(animation.frames[0]), ["transform"]);
+			assert.equal(f.el.style.visibility, "visible");
+			animation.finish();
+			await Promise.resolve();
+			assert.equal(f.el.style.visibility, "");
+			assert.equal(f.w.getComputedStyle(f.el).visibility, hidden ? "hidden" : "visible");
+		}
+	} finally {
+		f.dom.window.close();
+	}
+});
+test("desktop header fades controls and blur together without fading its backdrop root", async () => {
+	const f = fixture();
+	try {
+		f.el.hidden = false;
+		f.el.id = "home-top";
+		f.el.innerHTML =
+			'<span class="home-edge-blur"></span><span class="home-heading"></span><span class="home-tabs"></span>';
+		f.w.matchMedia = () => ({ matches: true });
+		const style = f.w.document.createElement("style");
+		style.textContent =
+			"#home-top { opacity:1; transform:none } #home-top > span { opacity:1 } #home-top.is-tucked { visibility:hidden } #home-top.is-tucked > span { opacity:0 }";
+		f.w.document.head.append(style);
+		const computed = f.w.getComputedStyle.bind(f.w);
+		f.w.getComputedStyle = (node: Element, pseudo?: string) =>
+			pseudo ? { opacity: f.el.classList.contains("is-tucked") ? "0" : "1" } : computed(node);
+		for (const hidden of [true, false]) {
+			f.motion.change(f.el, () => f.el.classList.toggle("is-tucked", hidden), 240);
+			const batch = f.animations.slice(-5);
+			assert.equal(batch.length, 5);
+			assert.equal(batch.filter((a) => a.options.pseudoElement).length, 2);
+			assert.equal(computed(f.el).opacity, "1");
+			assert.equal(f.el.style.visibility, "visible");
+			for (const animation of batch) {
+				assert.equal(animation.options.duration, 240);
+				assert.deepEqual(Object.keys(animation.frames[0]), ["opacity"]);
+				assert.equal(animation.frames[1].opacity, hidden ? "0" : "1");
+				animation.finish();
+			}
+			await new Promise((resolve) => setTimeout(resolve, 0));
+			assert.equal(f.el.style.visibility, "");
+		}
+	} finally {
+		f.dom.window.close();
+	}
+});
 test("notice fades before hiding and disables clicks from the first frame", async () => {
 	const f = fixture();
 	try {
@@ -245,11 +303,18 @@ test("desktop card entry matches its source rect and phone entry keeps its sheet
 		f.motion.openPanel(dialog, source);
 		const entry = f.animations.at(-1);
 		assert.equal(entry.frames[0].transform, "translate(-450px,-220px) scale(0.5,0.5)");
-		assert.equal(entry.options.stiffness, 190);
-		assert.equal(entry.options.damping, 25);
+		assert.equal(entry.options.stiffness, 274);
+		assert.equal(entry.options.damping, 30);
 		assert.ok(entry.frames.every((frame: any) => !("width" in frame) && !("height" in frame)));
 		f.motion.matchSource(dialog, f.el);
 		assert.equal(f.el.style.visibility, "hidden");
+		f.motion.returnSource(dialog);
+		assert.equal(f.el.style.visibility, "");
+		assert.equal(f.animations.at(-1).options.duration, 100);
+		assert.equal(f.animations.at(-1).options.delay, 0.22);
+		assert.equal(f.animations.at(-1).options.ease, "linear");
+		assert.equal(f.animations.at(-1).frames[0].opacity, 0);
+		assert.equal(f.animations.at(-1).frames[1].opacity, 1);
 		f.motion.releaseSource(dialog);
 		assert.equal(f.el.style.visibility, "");
 		f.w.matchMedia = () => ({ matches: true });
@@ -257,6 +322,110 @@ test("desktop card entry matches its source rect and phone entry keeps its sheet
 		assert.equal(f.animations.at(-1).frames[0].transform, "translateY(100%)");
 		f.motion.matchSource(dialog, f.el);
 		assert.equal(f.el.style.visibility, "");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("desktop detail tools start with the surface after layout and cancel together", () => {
+	const f = fixture();
+	try {
+		const dialog = f.w.document.createElement("dialog");
+		dialog.open = true;
+		dialog.className = "preview";
+		dialog.innerHTML =
+			'<div class="preview-sheet"><div class="preview-body"></div><div class="sheet-head-tools"></div></div><div class="float-bar"></div>';
+		f.w.document.body.append(dialog);
+		const sheet = dialog.firstElementChild;
+		sheet.getBoundingClientRect = () => ({ left: 400, top: 200, width: 600, height: 400 });
+		const bar = dialog.querySelector(".float-bar");
+		let frame: () => void = () => {};
+		f.w.requestAnimationFrame = (fn: () => void) => {
+			frame = fn;
+			return 1;
+		};
+		f.w.cancelAnimationFrame = () => {};
+		f.motion.queuePanel(dialog, { left: 100, top: 80, width: 300, height: 200 });
+		assert.equal(bar.style.opacity, "0");
+		frame();
+		assert.equal(f.animations[0].options.delay, 0);
+		const reveals = f.animations.filter((a: any) => !("transform" in a.frames[0]));
+		assert.deepEqual(
+			reveals.map((a: any) => a.options.delay),
+			[0.1, 0, 0],
+		);
+		assert.ok(
+			reveals.every((a: any) => a.frames[0].opacity === 0 && !("transform" in a.frames[0])),
+		);
+		assert.equal(bar.inert, true);
+		f.motion.cancelPanel(dialog);
+		assert.ok(!bar.inert);
+		assert.equal(bar.style.opacity, "");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("capsule follows the card bottom at source, midpoint and destination without scaling icons", () => {
+	const f = fixture();
+	try {
+		const surface = { left: 400, top: 200, width: 600, height: 400 };
+		const tool = { left: 550, top: 520, width: 300, height: 60 };
+		for (const p of [0, 0.5, 1]) {
+			const pose = { x: -450 * (1 - p), y: -220 * (1 - p), sx: 0.5 + 0.5 * p, sy: 0.5 + 0.5 * p };
+			for (const nested of [false, true]) {
+				const result = f.w.MotionTest.capsulePose(pose, surface, tool, nested);
+				const worldScaleX = result.sx * (nested ? pose.sx : 1);
+				const worldScaleY = result.sy * (nested ? pose.sy : 1);
+				assert.equal(worldScaleX, 1);
+				assert.equal(worldScaleY, 1);
+				const center = nested ? 400 + pose.y + (150 + result.y) * pose.sy : 550 + result.y;
+				const bottom = 400 + pose.y + 200 * pose.sy;
+				assert.ok(
+					Math.abs(bottom - (center + 30) - 20) < 0.001,
+					"keep the 20px bottom gap throughout the flight",
+				);
+			}
+		}
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("return content changes inside the opaque surface while the real card stays hidden", () => {
+	const f = fixture();
+	try {
+		const dialog = f.w.document.createElement("dialog");
+		dialog.innerHTML = '<div class="preview-sheet"></div>';
+		f.w.document.body.append(dialog);
+		const sheet = dialog.firstElementChild;
+		const source = f.w.document.createElement("article");
+		source.className = "feed-card";
+		source.id = "original";
+		source.dataset.card = "a";
+		source.innerHTML = '<h2 id="title">Original summary</h2>';
+		f.w.document.body.append(source);
+		source.getBoundingClientRect = () => ({ left: 10, top: 20, width: 300, height: 200 });
+		sheet.getBoundingClientRect = () => ({ left: 400, top: 200, width: 600, height: 400 });
+		f.motion.matchSource(dialog, source);
+		const handoff = f.motion.prepareReturn(dialog, sheet);
+		const face = sheet.querySelector("[data-return-face]");
+		assert.ok(face);
+		assert.equal(face.textContent, "Original summary");
+		assert.equal(face.querySelector("[id]"), null);
+		assert.equal(face.hasAttribute("data-card"), false);
+		assert.equal(face.inert, true);
+		assert.equal(face.style.transform, "scale(2,2)");
+		assert.equal(source.style.visibility, "hidden");
+		assert.equal(f.animations.at(-1).options.delay, 0.08);
+		assert.equal(f.animations.at(-1).options.duration, 140);
+		f.animations.at(-1).finish();
+		assert.equal(face.style.opacity, "1");
+		assert.equal(source.style.visibility, "hidden");
+		handoff.cancel();
+		assert.equal(sheet.querySelector("[data-return-face]"), null);
+		f.motion.releaseSource(dialog);
+		assert.equal(source.style.visibility, "");
 	} finally {
 		f.dom.window.close();
 	}

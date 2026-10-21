@@ -17,7 +17,6 @@ struct ReaderOverlay: View {
               LayerView(
                 layer: layer, below: index > 0 ? reader.layers[index - 1] : nil, size: proxy.size
               )
-              .id(layer.full)
               .transition(
                 .asymmetric(
                   insertion: .opacity.combined(with: .offset(y: AppleMetrics.motionDetailEnterY)),
@@ -74,7 +73,7 @@ private struct LayerView: View {
     if let card = workspace.model(layer.card) {
       let state = workspace.state(layer.card)
       if layer.full {
-        ReaderPage(card: card, state: state, layer: layer, scroll: scroll)
+        ReaderPage(card: card, state: state, size: size, layer: layer, scroll: scroll)
           .transition(.opacity)
       } else if card.kind == .photo {
         PhotoLightbox(card: card, state: state)
@@ -101,42 +100,121 @@ private struct ReaderBackdrop: View {
   }
 }
 
-// The feed keeps its layout slot. SwiftUI transfers the frame between source and detail.
-private struct CardSpaceKey: EnvironmentKey {
-  static let defaultValue: Namespace.ID? = nil
-}
-extension EnvironmentValues {
-  var cardSpace: Namespace.ID? {
-    get { self[CardSpaceKey.self] }
-    set { self[CardSpaceKey.self] = newValue }
-  }
-}
-
+// Geometry is measured in one window coordinate space. The feed never moves into the overlay.
 struct CardGeometrySource: ViewModifier {
   let id: String
   @Environment(Reader.self) private var reader
-  @Environment(\.cardSpace) private var namespace
   func body(content: Content) -> some View {
-    if let namespace {
-      content
-        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: {
-          if !reader.presented || reader.matchedCard != id { reader.cardFrames[id] = $0 }
-        }
-        .matchedGeometryEffect(id: id, in: namespace,
-          isSource: !(reader.matching && reader.matchedCard == id && reader.shown))
-        .opacity(reader.presented && reader.matchedCard == id ? 0 : 1)
-        .onDisappear { reader.cardFrames.removeValue(forKey: id) }
-    } else { content }
+    content
+      .onGeometryChange(for: CGRect.self) {
+        $0.frame(in: .named("card-workspace"))
+      } action: {
+        reader.cardFrames[id] = $0
+      }
+      .opacity((reader.shown || reader.returning) && reader.matchedCard == id ? 0 : 1)
+      .animation(
+        reader.shown ? Motion.ease(AppleMetrics.motionDetailFade) : nil,
+        value: reader.shown
+      )
+      .onDisappear { reader.cardFrames.removeValue(forKey: id) }
   }
 }
 
+/// Only the already-laid-out surface moves. Target geometry does not change while it travels.
 struct CardGeometryDestination: ViewModifier {
   let id: String
+  let target: CGRect
+  var ready = true
   @Environment(Reader.self) private var reader
-  @Environment(\.cardSpace) private var namespace
   func body(content: Content) -> some View {
-    if let namespace, reader.matching, reader.matchedCard == id {
-      content.matchedGeometryEffect(id: id, in: namespace, isSource: reader.shown)
-    } else { content }
+    let source = reader.matching && reader.matchedCard == id ? reader.matchedFrame : nil
+    let collapsed = source != nil && !reader.shown
+    content
+      .overlay { CardReturnFace(id: id, target: target) }
+      .scaleEffect(
+        x: collapsed ? source!.width / max(1, target.width) : 1,
+        y: collapsed ? source!.height / max(1, target.height) : 1
+      )
+      .offset(
+        x: collapsed ? source!.midX - target.midX : 0,
+        y: collapsed ? source!.midY - target.midY : 0
+      )
+      .animation(reader.shown ? Motion.ease(AppleMetrics.motionDetailFade) : Motion.cardHandoff) {
+        surface in
+        surface.opacity(reader.shown || reader.returning || !reader.matching ? 1 : 0)
+      }
+      .task(id: ready) {
+        if ready { reader.geometryReady(id) }
+      }
+  }
+}
+
+/// Text and tools join the same presentation, without sharing its size transform.
+struct DetailReveal: ViewModifier {
+  var tools = false
+  @Environment(Reader.self) private var reader
+  func body(content: Content) -> some View {
+    let visible = !reader.matching || (tools ? reader.toolsShown : reader.contentShown)
+    content.opacity(visible ? 1 : 0)
+      .allowsHitTesting(visible)
+      .accessibilityHidden(!visible)
+      .animation(Motion.ease(AppleMetrics.motionDetailFade), value: visible)
+  }
+}
+
+/// A noninteractive feed face replaces the detail inside the same opaque returning surface.
+private struct CardReturnFace: View {
+  let id: String
+  let target: CGRect
+  @Environment(Reader.self) private var reader
+  @Environment(Workspace.self) private var workspace
+  @Environment(Feed.self) private var feed
+
+  var body: some View {
+    if reader.matching, reader.matchedCard == id,
+      let source = reader.matchedFrame, let card = workspace.model(id)
+    {
+      let state = workspace.state(id)
+      let context = CardContext(
+        now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
+        fadeRead: workspace.preferences.fadeRead)
+      let faded = cardFaded(card, state, context)
+      CardBody(card: card, state: state, context: context)
+        .environment(\.cardFaded, faded)
+        .frame(width: source.width, height: source.height, alignment: .topLeading)
+        .background(faded ? AppleColors.readCard : AppleColors.card)
+        .clipped()
+        .scaleEffect(
+          x: target.width / max(1, source.width),
+          y: target.height / max(1, source.height), anchor: .topLeading
+        )
+        .frame(width: target.width, height: target.height, alignment: .topLeading)
+        .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
+        .opacity(reader.returning ? 1 : 0)
+        .animation(reader.returning ? Motion.cardContentReturn : nil, value: reader.returning)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+  }
+}
+
+/// Tools follow the card's edge with the same spring, while their icons keep their size.
+struct CardToolsTravel: ViewModifier {
+  let id: String
+  let target: CGRect
+  var top = false
+  @Environment(Reader.self) private var reader
+
+  static func offset(source: CGRect, target: CGRect, top: Bool) -> CGSize {
+    CGSize(
+      width: source.midX - target.midX,
+      height: top ? source.minY - target.minY : source.maxY - target.maxY)
+  }
+
+  func body(content: Content) -> some View {
+    let source = reader.matching && reader.matchedCard == id ? reader.matchedFrame : nil
+    let collapsed = source != nil && !reader.shown
+    let offset = source.map { Self.offset(source: $0, target: target, top: top) } ?? .zero
+    content.offset(x: collapsed ? offset.width : 0, y: collapsed ? offset.height : 0)
   }
 }

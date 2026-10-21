@@ -1,5 +1,9 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>设置</title><style>/* Sill · tokens · shared source (design-system/tokens.json v2) */
 :root {
+	--edge-blur-soft: blur(4px);
+	--edge-blur-mid: blur(8px);
+	--edge-blur-strong: blur(16px);
+	--chrome-glass-filter: blur(24px) saturate(1.2);
 	--summary-reading-lines: 4;
 	--settings-body-height: 560px;
 	--dur-deck: 260ms;
@@ -140,8 +144,8 @@
 	--col-min: 280px;
 	--col-ideal: 340px;
 	--col-max: 380px;
-	--article-measure: 600px;
-	--article-gutter: 32px;
+	--article-measure: none;
+	--article-gutter: 30px;
 	--article-gutter-sm: 20px;
 	--hit-target: 44px;
 	--summary-lines: 3;
@@ -205,7 +209,7 @@ body[data-density="compact"] {
 	--col-min: 240px;
 	--col-ideal: 280px;
 	--col-max: 320px;
-	--summary-lines: 2;
+	--summary-lines: 3;
 }
 body[data-density="roomy"] {
 	--col-min: 340px;
@@ -460,21 +464,80 @@ body.feed-more .feed-end,
 main:has(.welcome, .empty-card) .feed-end {
 	display: none;
 }
-/* Recovery remains available until the user resolves it; it never relies on a toast timeout. */
+/* Recovery lives in the top layer and never participates in the card layout. */
 #sync-status {
-	max-width: 760px;
-	margin: 0 auto var(--space-24);
-	padding: var(--space-16);
-	border: 1px solid var(--line-hover);
-	border-radius: 16px;
-	background: var(--card);
-	overflow-wrap: anywhere;
+	flex: none;
+	width: var(--hit-target);
+	margin: 0;
 }
 #sync-status[hidden] {
 	display: none;
 }
-#sync-status > span {
+#sync-status > .icon-button {
+	color: var(--alert);
+	background: transparent;
+}
+#sync-status > .icon-button::before {
+	content: "";
+	position: absolute;
+	inset: var(--space-2);
+	border-radius: 50%;
+	background: var(--alert-soft);
+}
+#sync-status > .icon-button > .icon {
+	position: relative;
+	width: var(--space-20);
+	height: var(--space-20);
+}
+body > #sync-status {
+	position: fixed;
+	top: var(--space-20);
+	right: var(--space-12);
+}
+#sync-status-panel {
+	position: fixed;
+	inset: auto var(--space-12) auto auto;
+	top: var(--sync-panel-top, var(--space-64));
+	width: min(var(--preview-short-width), calc(100vw - var(--space-24)));
+	max-height: calc(100dvh - var(--sync-panel-top, var(--space-64)) - var(--space-12));
+	margin: 0;
+	padding: var(--space-16);
+	overflow: auto;
+	overflow-wrap: anywhere;
+	border: 1px solid var(--line);
+	border-radius: var(--card-radius-sm);
+	background: var(--card);
+	color: var(--ink);
+	box-shadow: var(--shadow-float);
+}
+#sync-status-panel .sync-status-copy strong {
 	display: block;
+	font-size: var(--text-body);
+	font-weight: 600;
+}
+#sync-status-panel .sync-status-copy p {
+	margin: var(--space-6) 0 0;
+	font-size: var(--text-control);
+	line-height: 1.6;
+	color: var(--muted);
+}
+.sync-status-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+	margin-top: var(--space-16);
+}
+#sync-status-panel .sync-status-retry {
+	color: var(--accent);
+}
+#sync-status-panel .sync-status-discard {
+	margin-left: auto;
+	color: var(--muted);
+}
+/* @design nav-capsule — recovery actions replace the duplicate offline pill. */
+body:has(#sync-status:not([hidden])) #dock #offline {
+	display: none;
 }
 
 /* Controls suppress text selection; reading content keeps native copy/link menus. */
@@ -991,7 +1054,7 @@ body.is-dragging #toast {
 		color: var(--ink);
 	}
 	.ai-dock-button:disabled {
-		color: var(--muted);
+		color: var(--secondary);
 		cursor: default;
 	}
 	.ai-dock-send > span {
@@ -1088,6 +1151,8 @@ body.is-dragging #toast {
 	#selection-bar,
 	#search-selection-bar {
 		background: var(--glass-thick);
+		-webkit-backdrop-filter: var(--chrome-glass-filter);
+		backdrop-filter: var(--chrome-glass-filter);
 	}
 	.ai-dock-send:disabled > span {
 		color: var(--secondary);
@@ -1096,6 +1161,11 @@ body.is-dragging #toast {
 		width: var(--space-20);
 		height: var(--space-20);
 	}
+}
+
+@media (min-width: 651px) {
+  .ai-dock-input::placeholder { color: var(--secondary); opacity: 1; }
+  #search-selection-bar { width: max-content; margin-inline: auto; }
 }
 
 /* Chips, segmented controls and switches. */
@@ -1427,15 +1497,72 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 }
 .home-logo,
 .home-menu-toggle,
+.home-edge-blur,
 .home-menu,
 .home-search {
 	display: none;
 }
 @media (min-width: 651px) {
 	.home-top {
+		top: var(--space-20);
 		width: calc(100% - var(--space-12) * 2);
 		margin-top: var(--space-20);
 	}
+	.home-top {
+		opacity: 1;
+	}
+	.home-top.is-tucked {
+		transform: none;
+		opacity: 1;
+	}
+	/* Keep the backdrop root opaque. Controls and blur layers fade on the same clock. */
+	.home-top::before,
+	.home-top::after,
+	.home-top > .home-edge-blur,
+	.home-top > .home-heading,
+	.home-top > .home-tabs {
+		opacity: 1;
+	}
+	.home-top.is-tucked::before,
+	.home-top.is-tucked::after,
+	.home-top.is-tucked > .home-edge-blur,
+	.home-top.is-tucked > .home-heading,
+	.home-top.is-tucked > .home-tabs {
+		opacity: 0;
+	}
+	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.home-top { background: transparent; }
+		.home-top > .home-heading { position: relative; z-index: 1; }
+		.home-top::before,
+		.home-top::after,
+		.home-edge-blur {
+			content: "";
+			display: block;
+			position: absolute;
+			inset: calc(-1 * var(--space-20)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
+			z-index: 0;
+			pointer-events: none;
+		}
+		.home-top::before {
+			-webkit-backdrop-filter: var(--edge-blur-soft);
+			backdrop-filter: var(--edge-blur-soft);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+		}
+		.home-top::after {
+			-webkit-backdrop-filter: var(--edge-blur-mid);
+			backdrop-filter: var(--edge-blur-mid);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+		}
+		.home-edge-blur {
+			-webkit-backdrop-filter: var(--edge-blur-strong);
+			backdrop-filter: var(--edge-blur-strong);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+		}
+	}
+
 	#feed-grid {
 		max-width: none;
 	}
@@ -1457,7 +1584,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-10);
-		line-height: 40px;
+		line-height: var(--space-40);
 		letter-spacing: -0.02em;
 	}
 	.home-logo {
@@ -1547,7 +1674,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		width: 360px;
 		min-width: 0;
 		flex-shrink: 1;
-		height: 40px;
+		height: var(--space-40);
 		padding: 0 var(--space-8) 0 var(--space-14);
 		border-radius: 20px;
 		background: transparent;
@@ -1559,7 +1686,9 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		inset: 0;
 		z-index: -1;
 		border-radius: inherit;
-		background: var(--card);
+		background: color-mix(in srgb, var(--glass) 35%, transparent);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		transform-origin: right center;
 		pointer-events: none;
@@ -1571,6 +1700,8 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	}
 	.home-search > .icon {
 		flex: none;
+		width: var(--space-20);
+		height: var(--space-20);
 	}
 	.home-search input {
 		flex: 1;
@@ -1634,23 +1765,19 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	.home-account {
 		margin-right: calc(-1 * var(--space-2));
 	}
+	.home-account .account-wrap > .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
 	.home-account .account-wrap {
-		width: 40px;
-		height: 40px;
+		width: var(--space-40);
+		height: var(--space-40);
 		background: var(--card);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		color: var(--ink);
 	}
 	.home-tabs {
 		display: none;
-	}
-}
-
-@media (min-width: 651px) {
-	.home-top {
-		background: var(--glass-thick);
-		-webkit-backdrop-filter: var(--glass-filter);
-		backdrop-filter: var(--glass-filter);
 	}
 }
 
@@ -1732,16 +1859,9 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	align-items: center;
 	gap: var(--space-6);
 	min-height: 20px;
-	padding-right: var(--space-30);
 	font-size: var(--text-card-meta);
 	line-height: 18px;
 	color: var(--muted);
-}
-/* Reserve the action slot only while the desktop more button is visible. */
-@media (min-width: 651px) and (hover: hover) and (pointer: fine) {
-	.feed-card:not(:hover):not(:focus-within):not(.tools-open) :is(.card-head, .sender) {
-		padding-right: 0;
-	}
 }
 .has-cover .card-head-right {
 	opacity: 1;
@@ -1994,7 +2114,6 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	display: flex;
 	align-items: center;
 	gap: var(--space-10);
-	padding-right: var(--space-30);
 }
 .sender > span:last-child {
 	display: flex;
@@ -2135,7 +2254,7 @@ button.ref:active {
 }
 .check-item {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-10);
 	width: 100%;
 	min-height: 32px;
@@ -2145,6 +2264,10 @@ button.ref:active {
 	font-size: var(--text-control);
 	line-height: 1.5;
 	color: var(--ink);
+}
+/* @design card-type: the circle stays centered on the first text line. */
+.check-item > .check-dot {
+	margin-top: calc((1lh - 20px) / 2);
 }
 .check-item > span:last-child {
 	min-width: 0;
@@ -2241,8 +2364,10 @@ button.ref:active {
 /* The reminder's circle sits before its title, on the card and in its detail alike. */
 .reminder-row {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-12);
+	font-size: var(--text-card-title);
+	line-height: 22px;
 }
 .reminder-row .card-title {
 	min-width: 0;
@@ -2256,6 +2381,7 @@ button.ref:active {
 	height: var(--hit-target);
 	margin: calc(-1 * var(--space-11)) calc(-1 * var(--space-11)) calc(-1 * var(--space-11))
 		calc(-1 * var(--space-11));
+	margin-top: calc((1lh - var(--hit-target)) / 2);
 	padding: 0;
 	border: 0;
 	border-radius: 50%;
@@ -2416,6 +2542,21 @@ button.ref:active {
 .feed-card.is-ended:focus-within,
 .feed-card.is-complete:focus-within {
 	border-color: var(--line-hover);
+}
+
+/* Desktop density changes width only; text determines the card's height. */
+@media (min-width: 651px) {
+	.feed-card .card-title-button,
+	.feed-card .card-summary {
+		display: block;
+		-webkit-line-clamp: unset;
+		overflow: visible;
+	}
+	.feed-card .key-points li span {
+		white-space: normal;
+		overflow: visible;
+		text-overflow: clip;
+	}
 }
 
 /* Stacks: one place on the desk, layered edges, opened in place. */
@@ -2794,12 +2935,6 @@ dialog::backdrop {
 .preview-sheet:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
 	padding-right: 0;
 }
-.preview-title-row {
-	align-items: flex-start;
-}
-.preview-title-row .reminder-check {
-	margin-top: calc((1.3em - var(--hit-target)) / 2);
-}
 .preview-title-row #modal-title {
 	min-width: 0;
 }
@@ -2944,7 +3079,8 @@ dialog::backdrop {
 	flex: none;
 	color: var(--secondary);
 }
-.preview-body h1 {
+.preview-body h1,
+.preview-body .preview-title-row {
 	font-size: 24px;
 	font-weight: 600;
 	letter-spacing: -0.03em;
@@ -3039,6 +3175,12 @@ dialog::backdrop {
 .detail-row small {
 	font-size: var(--text-meta);
 	color: var(--muted);
+	white-space: nowrap;
+}
+.detail-row b,
+.detail-row em {
+	overflow: hidden;
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 .detail-row b {
@@ -3314,7 +3456,8 @@ button.detail-row:active {
 .reader-body .preview-meta {
 	margin-bottom: 0;
 }
-.reader-body h1 {
+.reader-body h1,
+.reader-body .preview-title-row {
 	font-size: 34px;
 	line-height: 1.3;
 	font-weight: 600;
@@ -3337,13 +3480,13 @@ button.detail-row:active {
 }
 /* @design article-reading
    Article reading (balanced): the preview and the full reader share one type set. The text keeps a
-   600 column, centered, with 32 at the sides (20 on a phone); the page itself is never scaled. */
+   full-width column with 30 at the sides (20 on a phone); the page itself is never scaled. */
 :is(.preview-body, .reader-body).is-article {
 	gap: 0;
 	padding-inline: var(--article-gutter);
 }
 .reader-body.is-article {
-	max-width: calc(var(--article-measure) + 2 * var(--article-gutter));
+	max-width: var(--article-measure);
 }
 :is(.preview-body, .reader-body).is-article > * {
 	width: 100%;
@@ -3598,13 +3741,14 @@ button.list-row:active {
 	gap: var(--space-10);
 }
 .list-row .row-side {
-	position: relative;
+	display: grid;
+	flex: none;
+	justify-items: end;
+}
+.list-row .row-side > * {
+	grid-area: 1 / 1;
 }
 .list-row .row-put {
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-4);
@@ -4932,6 +5076,18 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	visibility: hidden;
 }
 
+@media (min-width: 651px) {
+	.pull-ring.in-home-heading {
+		width: var(--space-40);
+		height: var(--space-40);
+		margin-left: calc(-1 * var(--space-20));
+	}
+	.pull-ring.in-home-heading svg {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}
+
 /* Sill · responsive · shared source */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
 	.glass,
@@ -5389,7 +5545,8 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	.preview-body {
 		padding: var(--space-18) var(--space-20) var(--space-22);
 	}
-	.preview-body h1 {
+	.preview-body h1,
+	.preview-body .preview-title-row {
 		font-size: var(--text-panel-title);
 	}
 	/* Full-screen reader */
@@ -5400,7 +5557,8 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	.reader-body {
 		padding: var(--space-64) var(--space-22) var(--space-150);
 	}
-	.reader-body h1 {
+	.reader-body h1,
+	.reader-body .preview-title-row {
 		font-size: 27px;
 	}
 	.reader-body p {

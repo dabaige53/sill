@@ -8,6 +8,13 @@ import { root } from "./build.ts";
 const target = process.argv.includes("--cloud") ? "dist/cloud/index.html" : "dist/web/index.html";
 const html = await readFile(resolve(root, target), "utf8");
 const markup = html.replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/g, "$1</script>");
+// CSS minification must retain the standard blur declaration, not only the Safari prefix.
+const css = [...markup.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)]
+	.map(([, value]) => value).join("\n");
+const topBlur = css.match(/\.home-top::?before\s*\{([^}]+)\}/)?.[1];
+assert.ok(topBlur, "missing_top_bar_blur_layer");
+assert.match(topBlur, /(?:^|;)\s*backdrop-filter\s*:\s*var\(--edge-blur-soft\)/,
+	"missing_standard_top_bar_backdrop_filter");
 if (/<script\b[^>]*\bsrc=/i.test(markup) || /<link\b[^>]*rel=["']stylesheet/i.test(markup))
 	throw new Error("external_runtime_asset");
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];

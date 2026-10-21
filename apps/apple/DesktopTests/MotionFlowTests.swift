@@ -5,7 +5,7 @@ import Testing
 @testable import SillKit
 
 @MainActor struct MotionFlowTests {
-  @Test func completedReadingReturnsBeforeClosing() async throws {
+  @Test func completedReadingClosesWithoutASeparateRebound() async throws {
     let scroll = ReaderScroll()
     var closed = false
     scroll.close = { closed = true }
@@ -14,7 +14,8 @@ import Testing
     #expect(scroll.motion.confirmed)
     #expect(!closed)
     try await Task.sleep(for: .seconds(AppleMetrics.gestureFinishHold + 0.6))
-    #expect(scroll.motion.finish == 0)
+    #expect(abs(scroll.motion.finish - CGFloat(AppleMetrics.gestureFinishDistance)) < 0.001)
+    #expect(scroll.motion.confirmed)
     #expect(closed)
     scroll.disconnect()
   }
@@ -80,6 +81,40 @@ import Testing
     try await Task.sleep(for: .seconds(AppleMetrics.loadingDelay + 0.05))
     #expect(refresh.phase == .idle)
     #expect(refresh.distance == 0)
+  }
+
+  @Test func mouseRefreshWaitsForReleaseAndCanBeReversed() async throws {
+    let refresh = FeedRefresh()
+    var calls = 0
+    refresh.request = { _ in calls += 1 }
+    refresh.drag(80)
+    #expect(refresh.distance == 52)
+    #expect(refresh.offset == 39)
+    try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest + 0.1))
+    #expect(refresh.phase == .pulling)
+    #expect(calls == 0)
+    refresh.drag(20)
+    refresh.release()
+    #expect(refresh.phase == .idle)
+    #expect(calls == 0)
+    refresh.drag(100)
+    refresh.release(cancelled: true)
+    #expect(calls == 0)
+    refresh.drag(80)
+    refresh.release()
+    refresh.release()
+    #expect(calls == 1)
+    refresh.cancel()
+  }
+
+  @Test func toolsTravelWithTheSourceEdgesWithoutScalingIcons() {
+    let source = CGRect(x: 40, y: 80, width: 300, height: 180)
+    let target = CGRect(x: 100, y: 120, width: 800, height: 600)
+    let bottom = CardToolsTravel.offset(source: source, target: target, top: false)
+    let top = CardToolsTravel.offset(source: source, target: target, top: true)
+    #expect(target.midX + bottom.width == source.midX)
+    #expect(target.maxY + bottom.height == source.maxY)
+    #expect(target.minY + top.height == source.minY)
   }
 
   @Test func refreshFailureRetryAndSuccess() async throws {

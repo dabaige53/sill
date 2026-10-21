@@ -425,7 +425,8 @@
 	.preview-body {
 		padding: var(--space-18) var(--space-20) var(--space-22);
 	}
-	.preview-body h1 {
+	.preview-body h1,
+	.preview-body .preview-title-row {
 		font-size: var(--text-panel-title);
 	}
 	/* Full-screen reader */
@@ -436,7 +437,8 @@
 	.reader-body {
 		padding: var(--space-64) var(--space-22) var(--space-150);
 	}
-	.reader-body h1 {
+	.reader-body h1,
+	.reader-body .preview-title-row {
 		font-size: 27px;
 	}
 	.reader-body p {

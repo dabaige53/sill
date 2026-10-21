@@ -1,4 +1,5 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
+import { carryCapsule, returnFace } from "./card-transition.ts";
 import { cancelMotion, dim, move, type Playback, play } from "./motion-playback.ts";
 
 /** Center-origin FLIP: final layout stays fixed while the surface travels from/to its card. */
@@ -18,12 +19,79 @@ const MotionEngine: Record<string, any> = {
 		this.matchedSources.set(dialog, { source, visibility: source.style.visibility });
 		source.style.visibility = "hidden";
 	},
+	returnSource(dialog: HTMLElement) {
+		const state = this.matchedSources.get(dialog);
+		if (!state?.source.isConnected) return null;
+		state.source.style.visibility = state.visibility;
+		return this.animate(state.source, [{ opacity: 0 }, { opacity: 1 }], {
+			...tokens.motion.cardHandoff,
+		});
+	},
 	releaseSource(dialog: HTMLElement) {
 		const state = this.matchedSources.get(dialog);
 		if (state) state.source.style.visibility = state.visibility;
 		this.matchedSources.delete(dialog);
 	},
 	cardTransform,
+	carryCapsule,
+	prepareReturn(dialog: HTMLElement, sheet: HTMLElement) {
+		const source = this.matchedSources.get(dialog)?.source as HTMLElement | undefined;
+		if (!source?.isConnected) return null;
+		const face = returnFace(source, sheet);
+		if (!face) return null;
+		const animation = this.animate(face, [{ opacity: 0 }, { opacity: 1 }], {
+			...tokens.motion.cardContentReturn,
+			fill: "forwards",
+		});
+		return {
+			finished: animation?.finished || Promise.resolve(),
+			cancel() {
+				animation?.cancel();
+				face.remove();
+			},
+			complete() {
+				animation?.complete();
+			},
+		};
+	},
+	detailTools(el: HTMLElement): HTMLElement[] {
+		return [...el.querySelectorAll<HTMLElement>(".float-bar, .sheet-head-tools, .reader-head")];
+	},
+	revealDetail(el: HTMLElement, delay: number): Playback | null {
+		const inert = el.inert;
+		el.inert = true;
+		const animation = this.animate(el, [{ opacity: 0 }, { opacity: 1 }], {
+			duration: tokens.motion.detailFade,
+			delay,
+			fill: "backwards",
+		});
+		if (!animation) {
+			el.inert = inert;
+			return null;
+		}
+		let active = true;
+		animation.finished.then(
+			() => {
+				if (active) el.inert = inert;
+			},
+			() => {},
+		);
+		return {
+			finished: animation.finished,
+			cancel: () => {
+				active = false;
+				animation.cancel();
+				el.inert = inert;
+			},
+			complete: () => {
+				animation.complete();
+				el.inert = inert;
+			},
+		};
+	},
+	detailEntry(el: HTMLElement) {
+		return this.detailTools(el).map((tool: HTMLElement) => this.revealDetail(tool, 0));
+	},
 	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),
 	visibilityAnimations: new WeakMap(),
@@ -73,8 +141,51 @@ const MotionEngine: Record<string, any> = {
 		});
 		this.loops.set(el, animation);
 	},
+	headerAnimations: new WeakMap(),
+	/** Fade glass layers together without making their common ancestor a backdrop root. */
+	headerChange(el: HTMLElement, update: () => void, duration: number) {
+		const layers = [
+			{ node: el, pseudoElement: "::before" },
+			{ node: el, pseudoElement: "::after" },
+			...Array.from(
+				el.querySelectorAll<HTMLElement>(
+					":scope > .home-edge-blur, :scope > .home-heading, :scope > .home-tabs",
+				),
+			).map((node) => ({ node, pseudoElement: undefined })),
+		];
+		const from = layers.map(
+			({ node, pseudoElement }) => getComputedStyle(node, pseudoElement).opacity,
+		);
+		for (const animation of this.headerAnimations.get(el) || []) animation?.cancel();
+		update();
+		el.style.visibility = "";
+		if (this.keyboard) return null;
+		const to = layers.map(
+			({ node, pseudoElement }) => getComputedStyle(node, pseudoElement).opacity,
+		);
+		el.style.visibility = "visible";
+		const animations = layers.map(({ node, pseudoElement }, index) =>
+			this.animate(node, [{ opacity: from[index] }, { opacity: to[index] }], {
+				duration,
+				pseudoElement,
+			}),
+		);
+		this.headerAnimations.set(el, animations);
+		Promise.all(animations.map((animation) => animation?.finished)).then(
+			() => {
+				if (this.headerAnimations.get(el) !== animations) return;
+				el.style.visibility = "";
+				this.headerAnimations.delete(el);
+			},
+			() => {},
+		);
+		return animations;
+	},
 	/** Capture before changing CSS state, then let Motion bridge only visual properties. */
 	change(el: HTMLElement, update: () => void, duration = this.time("base")) {
+		if (el.id === "home-top" && matchMedia("(min-width: 651px)").matches) {
+			return this.headerChange(el, update, duration);
+		}
 		const before = getComputedStyle(el);
 		const from = { opacity: before.opacity, transform: before.transform };
 		this.cancel(el);
@@ -83,8 +194,21 @@ const MotionEngine: Record<string, any> = {
 		const to = { opacity: after.opacity, transform: after.transform };
 		const visibility = after.visibility;
 		if (this.keyboard) return null;
+		// A constant opacity animation still creates a compositing boundary for glass
+		// descendants. Animate only properties that change so their backdrop stays live.
+		const keys = (Object.keys(from) as (keyof typeof from)[]).filter(
+			(key) => from[key] !== to[key],
+		);
+		if (!keys.length) {
+			el.style.visibility = "";
+			return null;
+		}
 		el.style.visibility = "visible";
-		const animation = this.animate(el, [from, to], { duration });
+		const animation = this.animate(
+			el,
+			[from, to].map((frame) => Object.fromEntries(keys.map((key) => [key, frame[key]]))),
+			{ duration },
+		);
 		const finish = () => {
 			if (this.contentAnimations.get(el) === animation) el.style.visibility = "";
 		};
@@ -325,8 +449,14 @@ const MotionEngine: Record<string, any> = {
 		if (this.keyboard) return;
 		const sheet = this.surface(el);
 		const opacity = sheet.style.opacity;
+		const desktop = !matchMedia("(max-width:650px)").matches;
+		const tools = desktop
+			? this.detailTools(el).map((tool: HTMLElement) => [tool, tool.style.opacity] as const)
+			: [];
+		for (const [tool] of tools) tool.style.opacity = "0";
 		const restore = () => {
 			sheet.style.opacity = opacity;
+			for (const [tool, value] of tools) tool.style.opacity = value;
 		};
 		sheet.style.opacity = resume?.opacity || "0";
 		const task = { frame: 0, restore };
@@ -343,12 +473,21 @@ const MotionEngine: Record<string, any> = {
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
 		if (resume) {
+			const carried =
+				origin && !matchMedia("(max-width:650px)").matches
+					? this.carryCapsule(el, sheet, resume.transform, "none", true)
+					: null;
 			this.panelAnimations.set(el, [
 				this.animate(sheet, [resume, { opacity: 1, transform: "none" }], {
 					duration: this.time("dur-open"),
 					spring: origin && !matchMedia("(max-width:650px)").matches ? "card" : false,
 				}),
-				...(bar ? [this.enter(bar)] : []),
+				carried,
+				...(!matchMedia("(max-width:650px)").matches
+					? this.detailEntry(el)
+					: bar
+						? [this.enter(bar)]
+						: []),
 			]);
 			return;
 		}
@@ -368,6 +507,13 @@ const MotionEngine: Record<string, any> = {
 		if (origin?.width && origin.height && !matchMedia("(max-width:650px)").matches) {
 			const destination = sheet.getBoundingClientRect();
 			if (destination.width && destination.height) {
+				const carried = this.carryCapsule(
+					el,
+					sheet,
+					cardTransform(origin, destination),
+					"none",
+					true,
+				);
 				const animation = this.animate(
 					sheet,
 					[
@@ -376,13 +522,21 @@ const MotionEngine: Record<string, any> = {
 					],
 					{ duration: this.time("dur-open"), spring: "card" },
 				);
-				this.panelAnimations.set(el, [animation, ...(bar ? [this.enter(bar)] : [])]);
+				const body = sheet.querySelector(".preview-body, .reader-body") as HTMLElement | null;
+				this.panelAnimations.set(el, [
+					animation,
+					carried,
+					...(body ? [this.revealDetail(body, tokens.motion.detailContentDelay)] : []),
+					...this.detailEntry(el),
+				]);
 				return;
 			}
 		}
-		// Keep a single text layer at its final size; the toolbar enters at the same time.
+		// Without a source, fade the surface in and retain the same tool sequence.
 		const animations = [this.enter(sheet)];
-		if (bar && bar !== sheet) animations.push(this.enter(bar));
+		if (!matchMedia("(max-width:650px)").matches && el.matches(".preview, .reader"))
+			animations.push(...this.detailEntry(el));
+		else if (bar && bar !== sheet) animations.push(this.enter(bar));
 		this.panelAnimations.set(el, animations);
 	},
 	flip(el?: any, oldRect?: any, newRect?: any) {

@@ -61,7 +61,7 @@ import SwiftUI
   private var connected = true
   private var completionGeneration = 0
 
-  private enum Edge { case top, bottom, right }
+  private enum Edge { case bottom, right }
 
   // MARK: Position
 
@@ -175,7 +175,6 @@ import SwiftUI
     }
     if phase == .began { reset() }
     let offset = view.contentView.bounds.minY
-    let atTop = offset <= 0
     let atBottom = offset >= available - 1
     let sideways = abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY)
     let edge: Edge? =
@@ -184,13 +183,11 @@ import SwiftUI
         ? .right
         : sideways
           ? nil
-          : atTop && event.scrollingDeltaY > 0
-            ? .top : atBottom && event.scrollingDeltaY < 0 ? .bottom : nil)
+          : atBottom && event.scrollingDeltaY < 0 ? .bottom : nil)
     guard let edge else { return false }
     edgeName = edge
     let delta: CGFloat =
       switch edge {
-      case .top: event.scrollingDeltaY
       case .bottom: -event.scrollingDeltaY
       case .right: event.scrollingDeltaX
       }
@@ -211,8 +208,6 @@ import SwiftUI
 
   private func follow(_ edge: Edge) {
     switch edge {
-    case .top:
-      motion.dismiss = distance
     case .right:
       motion.swipe = distance
     case .bottom where finishEnabled:
@@ -238,7 +233,6 @@ import SwiftUI
       distance > AppleMetrics.gestureFlickDistance && velocity > AppleMetrics.gestureFlickSpeed
     let close: Bool =
       switch edge {
-      case .top: !cancelled && (distance >= AppleMetrics.gestureDismissDistance || flick)
       case .right: !cancelled && (distance >= width * AppleMetrics.motionDeckTravel || flick)
       case .bottom: false
       }
@@ -280,15 +274,9 @@ import SwiftUI
       self.confirmation = Task { [weak self] in
         do { try await Task.sleep(for: .seconds(AppleMetrics.gestureFinishHold)) } catch { return }
         guard let self, self.connected, self.completionGeneration == generation else { return }
-        // Keep the success badge visible while the displaced text returns, then close.
-        withAnimation(Motion.spring(), completionCriteria: .logicallyComplete) {
-          self.motion.finish = 0
-        } completion: { [weak self] in
-          guard let self, self.connected, self.inputAllowed(),
-            self.completionGeneration == generation
-          else { return }
-          self.close()
-        }
+        guard self.inputAllowed() else { return }
+        // Close from the current displaced content; a separate rebound breaks the return path.
+        self.close()
       }
     }
   }
@@ -444,19 +432,21 @@ struct ReaderPullOffset: ViewModifier {
 
 /// Hides a layer's floating tools while reading on.
 struct ReaderToolsTuck: ViewModifier {
+  @Environment(Reader.self) private var reader
   let motion: ReaderMotion
   var top = false
   func body(content: Content) -> some View {
     // Web `bindPush`: while the finish ring is pulled, the bottom toolbar fades and drops 16px
     // so the ring has the place to itself.
     let pushing = !top && (motion.finish > 0 || motion.confirmed)
-    let hidden = motion.toolsHidden || pushing
+    let tucked = motion.toolsHidden && !reader.travelling
+    let hidden = tucked || pushing
     content
       .opacity(hidden ? 0 : 1)
       .offset(
         y: pushing
           ? AppleMetrics.space16
-          : motion.toolsHidden ? (top ? -AppleMetrics.space12 : AppleMetrics.motionRailTravel) : 0
+          : tucked ? (top ? -AppleMetrics.space12 : AppleMetrics.motionRailTravel) : 0
       )
       .allowsHitTesting(!hidden)
       .accessibilityHidden(hidden)

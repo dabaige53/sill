@@ -3,37 +3,43 @@ import SillKit
 import SwiftUI
 
 /// The fullscreen page: the whole window, card background, a 2px progress line at the top,
-/// collapse and close in one glass group top right, ordinary content fills the page with preview gutters; articles keep a 600-wide measure.
+/// collapse and close in one glass group top right, all content fills the page with the same preview gutters.
 struct ReaderPage: View {
   let card: CardModel
   let state: CardState
+  let size: CGSize
   let layer: Reader.Layer
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
   let scroll: ReaderScroll
 
   var body: some View {
+    let target = CGRect(origin: .zero, size: size)
     let tools = ReaderTools.actions(
       card: card, state: state, hidden: workspace.preferences.hiddenActions)
     ZStack(alignment: .top) {
-      AppleColors.card
-      ScrollView(.vertical) {
-        ReaderContent(card: card, state: state, type: .page)
-          .frame(
-            maxWidth: card.kind == .article
-              ? AppleMetrics.articleMeasure : .infinity
-          )
-          .padding(.top, AppleMetrics.space88)
-          .padding(
-            .horizontal, card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
-          )
-          .padding(.bottom, AppleMetrics.space160)
-          .frame(maxWidth: .infinity)
-          .background(ReaderScrollProbe(scroll: scroll))
-          .modifier(ReaderPullOffset(motion: scroll.motion))
+      ZStack {
+        AppleColors.card
+        ScrollView(.vertical) {
+          ReaderContent(card: card, state: state, type: .page)
+            .modifier(DetailReveal())
+            .frame(maxWidth: .infinity)
+            .padding(.top, AppleMetrics.space88)
+            .padding(
+              .horizontal,
+              card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
+            )
+            .padding(.bottom, AppleMetrics.space160)
+            .frame(maxWidth: .infinity)
+            .background(ReaderScrollProbe(scroll: scroll))
+            .modifier(ReaderPullOffset(motion: scroll.motion))
+        }
+        .scrollIndicators(.automatic)
       }
-      .scrollIndicators(.automatic)
+      .modifier(CardGeometryDestination(id: card.id, target: target))
       ReaderProgress(motion: scroll.motion)
+        .modifier(DetailReveal(tools: true))
+        .modifier(CardToolsTravel(id: card.id, target: target, top: true))
       HStack(spacing: AppleMetrics.space2) {
         ToolButton(icon: "collapse", label: Copy.text("web.reader.exitFullscreen")) {
           reader.open(card.id, full: false)
@@ -48,6 +54,8 @@ struct ReaderPage: View {
       .padding(.top, AppleMetrics.readerToolsTop)
       .padding(.trailing, AppleMetrics.readerToolsRight)
       .frame(maxWidth: .infinity, alignment: .trailing)
+      .modifier(DetailReveal(tools: true))
+      .modifier(CardToolsTravel(id: card.id, target: target, top: true))
       VStack(spacing: AppleMetrics.space12) {
         Spacer(minLength: 0)
         FinishRing(motion: scroll.motion)
@@ -57,8 +65,9 @@ struct ReaderPage: View {
         }
       }
       .padding(.bottom, AppleMetrics.readerBarBottom)
+      .modifier(DetailReveal(tools: true))
+      .modifier(CardToolsTravel(id: card.id, target: target))
     }
-    .modifier(CardGeometryDestination(id: card.id))
     .ignoresSafeArea()
     .modifier(ReaderSurfaceOffset(motion: scroll.motion))
     .onAppear { configure() }

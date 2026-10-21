@@ -3,8 +3,8 @@ import Observation
 import SillKit
 import SwiftUI
 
-/// Whether the top bar and the AI box are tucked away. Only those two views observe it, and it
-/// changes only when the answer flips, never per scroll frame.
+/// Whether the tools are tucked away. The desktop top bar fades without moving.
+/// Changes only when the answer flips, never per scroll frame.
 @MainActor @Observable final class Chrome {
   private(set) var tucked = false
   /// Search focus, an open menu or a drag keep the chrome visible.
@@ -69,6 +69,7 @@ import SwiftUI
   }
 
   func receive(_ event: NSEvent) -> Bool {
+    guard NSEvent.pressedMouseButtons & 1 == 0 else { return false }
     guard refreshAllowed(), let view = scrollView, event.window === view.window,
       view.window?.attachedSheet == nil,
       view.bounds.contains(view.convert(event.locationInWindow, from: nil))
@@ -162,7 +163,7 @@ struct ScrollProbe: NSViewRepresentable {
 }
 
 /// Tucks a chrome element with a fade; hidden elements stop taking input at once.
-/// The AI box moves 20px down; the top bar moves up by its own height (Web `.home-top.is-tucked`).
+/// The AI box moves down; the desktop top bar uses zero travel to fade in place.
 struct Tuck: ViewModifier {
   let tucked: Bool
   let travel: CGFloat

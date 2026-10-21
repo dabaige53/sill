@@ -27,6 +27,10 @@ struct PreviewSheet: View {
       size.width - AppleMetrics.previewMargin)
     let maxHeight = min(
       size.height * AppleMetrics.previewHeightRatio, AppleMetrics.previewMaxHeight)
+    let target = CGRect(
+      x: (size.width - width) / 2,
+      y: (size.height - min(maxHeight, contentHeight)) / 2,
+      width: width, height: min(maxHeight, contentHeight))
     let tools = ReaderTools.actions(
       card: card, state: state, hidden: workspace.preferences.hiddenActions)
     let barRoom =
@@ -57,6 +61,7 @@ struct PreviewSheet: View {
       }
       ScrollView(.vertical) {
         ReaderContent(card: card, state: state, discRoom: discRoom)
+          .modifier(DetailReveal())
           .padding(.top, AppleMetrics.previewPaddingTop)
           .padding(
             .horizontal,
@@ -77,12 +82,26 @@ struct PreviewSheet: View {
       // short card gets a short sheet.
       .frame(height: max(1, min(maxHeight, contentHeight)))
       .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
+      .frame(width: width)
+      .background(AppleColors.card)
+      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
+      .shadow(.sheet)
+      .modifier(
+        CardGeometryDestination(
+          id: card.id,
+          target: target,
+          ready: contentHeight > 0)
+      )
       .overlay(alignment: .top) {
-        TopFade(motion: scroll.motion)
-        HeadDiscs(
-          motion: scroll.motion, firstRow: firstRow,
-          expand: expandable ? { reader.open(card.id, full: true) } : nil,
-          close: { reader.close() })
+        ZStack(alignment: .top) {
+          TopFade(motion: scroll.motion)
+          HeadDiscs(
+            motion: scroll.motion, firstRow: firstRow,
+            expand: expandable ? { reader.open(card.id, full: true) } : nil,
+            close: { reader.close() })
+        }
+        .modifier(DetailReveal(tools: true))
+        .modifier(CardToolsTravel(id: card.id, target: target, top: true))
       }
       .overlay(alignment: .bottom) {
         ZStack(alignment: .bottom) {
@@ -96,12 +115,10 @@ struct PreviewSheet: View {
           FinishRing(motion: scroll.motion)
             .padding(.bottom, AppleMetrics.space24)
         }
+        .modifier(DetailReveal(tools: true))
+        .modifier(CardToolsTravel(id: card.id, target: target))
       }
-      .frame(width: width)
-      .background(AppleColors.card)
-      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
-      .shadow(.sheet)
-      .modifier(CardGeometryDestination(id: card.id))
+
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .modifier(ReaderSurfaceOffset(motion: scroll.motion))

@@ -76,16 +76,9 @@
 	align-items: center;
 	gap: var(--space-6);
 	min-height: 20px;
-	padding-right: var(--space-30);
 	font-size: var(--text-card-meta);
 	line-height: 18px;
 	color: var(--muted);
-}
-/* Reserve the action slot only while the desktop more button is visible. */
-@media (min-width: 651px) and (hover: hover) and (pointer: fine) {
-	.feed-card:not(:hover):not(:focus-within):not(.tools-open) :is(.card-head, .sender) {
-		padding-right: 0;
-	}
 }
 .has-cover .card-head-right {
 	opacity: 1;
@@ -338,7 +331,6 @@
 	display: flex;
 	align-items: center;
 	gap: var(--space-10);
-	padding-right: var(--space-30);
 }
 .sender > span:last-child {
 	display: flex;
@@ -479,7 +471,7 @@ button.ref:active {
 }
 .check-item {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-10);
 	width: 100%;
 	min-height: 32px;
@@ -489,6 +481,10 @@ button.ref:active {
 	font-size: var(--text-control);
 	line-height: 1.5;
 	color: var(--ink);
+}
+/* @design card-type: the circle stays centered on the first text line. */
+.check-item > .check-dot {
+	margin-top: calc((1lh - 20px) / 2);
 }
 .check-item > span:last-child {
 	min-width: 0;
@@ -585,8 +581,10 @@ button.ref:active {
 /* The reminder's circle sits before its title, on the card and in its detail alike. */
 .reminder-row {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-12);
+	font-size: var(--text-card-title);
+	line-height: 22px;
 }
 .reminder-row .card-title {
 	min-width: 0;
@@ -600,6 +598,7 @@ button.ref:active {
 	height: var(--hit-target);
 	margin: calc(-1 * var(--space-11)) calc(-1 * var(--space-11)) calc(-1 * var(--space-11))
 		calc(-1 * var(--space-11));
+	margin-top: calc((1lh - var(--hit-target)) / 2);
 	padding: 0;
 	border: 0;
 	border-radius: 50%;
@@ -760,4 +759,19 @@ button.ref:active {
 .feed-card.is-ended:focus-within,
 .feed-card.is-complete:focus-within {
 	border-color: var(--line-hover);
+}
+
+/* Desktop density changes width only; text determines the card's height. */
+@media (min-width: 651px) {
+	.feed-card .card-title-button,
+	.feed-card .card-summary {
+		display: block;
+		-webkit-line-clamp: unset;
+		overflow: visible;
+	}
+	.feed-card .key-points li span {
+		white-space: normal;
+		overflow: visible;
+		text-overflow: clip;
+	}
 }

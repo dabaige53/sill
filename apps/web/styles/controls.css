@@ -489,7 +489,7 @@ body.is-dragging #toast {
 		color: var(--ink);
 	}
 	.ai-dock-button:disabled {
-		color: var(--muted);
+		color: var(--secondary);
 		cursor: default;
 	}
 	.ai-dock-send > span {
@@ -586,6 +586,8 @@ body.is-dragging #toast {
 	#selection-bar,
 	#search-selection-bar {
 		background: var(--glass-thick);
+		-webkit-backdrop-filter: var(--chrome-glass-filter);
+		backdrop-filter: var(--chrome-glass-filter);
 	}
 	.ai-dock-send:disabled > span {
 		color: var(--secondary);
@@ -594,4 +596,9 @@ body.is-dragging #toast {
 		width: var(--space-20);
 		height: var(--space-20);
 	}
+}
+
+@media (min-width: 651px) {
+  .ai-dock-input::placeholder { color: var(--secondary); opacity: 1; }
+  #search-selection-bar { width: max-content; margin-inline: auto; }
 }

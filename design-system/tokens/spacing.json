@@ -78,13 +78,13 @@
 			},
 			{
 				"name": "article-measure",
-				"value": "600px",
-				"usage": "资讯阅读的正文最大宽度，居中。预览与全屏相同。"
+				"value": "none",
+				"usage": "资讯正文不设置最大宽度，使用详情内边距以内的可用空间。"
 			},
 			{
 				"name": "article-gutter",
-				"value": "32px",
-				"usage": "资讯阅读的左右内边距（桌面）。容器总宽最大 664。"
+				"value": "30px",
+				"usage": "资讯阅读的左右内边距（桌面），与其他详情一致。"
 			},
 			{
 				"name": "article-gutter-sm",

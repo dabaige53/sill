@@ -1,0 +1,45 @@
+name: Verify Sill macOS
+on:
+  push:
+    branches: [main]
+    paths: &apple-inputs
+      - 'apps/apple/**'
+      - 'contracts/**'
+      - 'design-system/**'
+      - 'assets/**'
+      - 'tests/apple/**'
+      - 'scripts/build-macos.ts'
+      - 'scripts/format.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.swift-format'
+      - '.github/workflows/macos.yml'
+  pull_request:
+    paths: *apple-inputs
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Show Apple toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check Apple formatting
+        run: npm run lint:apple
+      - name: Run Swift tests without UI automation
+        if: ${{ !cancelled() }}
+        run: node tests/apple/run.ts
+      - name: Build and verify signed app bundle
+        if: ${{ !cancelled() }}
+        run: npm run build:macos

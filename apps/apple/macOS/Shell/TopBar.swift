@@ -10,6 +10,7 @@ struct TopBar: View {
   let edge: CGFloat
   let menu: ScopeMenuState
   let scrollToTop: () -> Void
+  @Environment(Workspace.self) private var workspace
   @Environment(Chrome.self) private var chrome
   @Environment(Panels.self) private var panels
 
@@ -35,6 +36,12 @@ struct TopBar: View {
       Spacer(minLength: AppleMetrics.space8)
       DesktopGlassGroup {
         HStack(spacing: AppleMetrics.space8) {
+          if let notice = workspace.notice, notice.isFailure {
+            FailureNotice(notice: notice) {
+              if workspace.notice == notice { workspace.notice = nil }
+            }
+            .id(notice.id)
+          }
           SearchField()
           AccountButton { panels.open(.settings) }
             .padding(.trailing, -AppleMetrics.space2)
@@ -45,10 +52,17 @@ struct TopBar: View {
     .padding(.top, AppleMetrics.topBarInset)
     .padding(.leading, edge)
     .padding(.trailing, edge)
-    .background(.regularMaterial)
+    .background {
+      if #available(macOS 26.0, *) {
+        Color.clear
+      } else {
+        Rectangle().fill(.regularMaterial)
+          .mask(LinearGradient(colors: [.black, .black, .clear], startPoint: .top, endPoint: .bottom))
+          .allowsHitTesting(false)
+      }
+    }
     .coordinateSpace(.named(TopBarSpace.name))
-    .modifier(
-      Tuck(tucked: chrome.tucked, travel: -(AppleMetrics.topBarInset + AppleMetrics.space64)))
+    .modifier(Tuck(tucked: chrome.tucked, travel: 0))
   }
 }
 
@@ -57,7 +71,7 @@ struct AccountButton: View {
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      Icon("person", size: AppleMetrics.accountIcon)
+      Icon("person", size: AppleMetrics.space20)
         .foregroundStyle(AppleColors.primary)
         .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
         .desktopGlass(Circle(), interactive: true)

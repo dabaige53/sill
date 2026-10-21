@@ -28,6 +28,22 @@ import SwiftUI
       damping: AppleMetrics.cardSpringDamping)
   }
 
+  static var cardHandoff: Animation {
+    .linear(duration: AppleMetrics.motionCardHandoffFade).delay(AppleMetrics.motionCardHandoffDelay)
+  }
+
+  static var cardContentReturn: Animation {
+    .linear(duration: AppleMetrics.motionCardContentReturnFade)
+      .delay(AppleMetrics.motionCardContentReturnDelay)
+  }
+
+  static var cardReturn: Animation {
+    .timingCurve(
+      AppleMetrics.cardReturnX1, AppleMetrics.cardReturnY1,
+      AppleMetrics.cardReturnX2, AppleMetrics.cardReturnY2,
+      duration: AppleMetrics.motionCardReturn)
+  }
+
   static var press: Animation { ease(AppleMetrics.motionPress) }
   static var hover: Animation { ease(AppleMetrics.motionHover) }
   static var state: Animation { ease(AppleMetrics.motionState) }

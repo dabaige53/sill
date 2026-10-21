@@ -283,6 +283,84 @@ test("wheel pull claims only a vertical top-edge gesture", () => {
 	}
 });
 
+function mousePull(
+	f: ReturnType<typeof fixture>,
+	type: string,
+	y = 200,
+	target = f.document.querySelector("main p"),
+) {
+	const event = new f.w.MouseEvent(type, {
+		bubbles: true,
+		cancelable: true,
+		clientX: 120,
+		clientY: y,
+		button: 0,
+		buttons: type === "pointerup" ? 0 : 1,
+	});
+	Object.assign(event, { pointerType: "mouse", pointerId: 7 });
+	target.dispatchEvent(event);
+}
+
+test("mouse refresh follows the next frame, holds without loading, and commits once on release", () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		mousePull(f, "pointerdown");
+		mousePull(f, "pointermove", 280);
+		f.flush(f.frames);
+		assert.equal(f.document.querySelector("main").style.translate, "0 39px");
+		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
+		f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY: -180, buttons: 1, cancelable: true }));
+		f.flush();
+		assert.equal(f.app.refreshes, 0, "a stationary held mouse must never load");
+		mousePull(f, "pointerup", 280);
+		assert.equal(f.app.refreshes, 1);
+		mousePull(f, "pointerup", 280);
+		assert.equal(f.app.refreshes, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("mouse refresh cancels short pulls, interruptions, and movement back below threshold", () => {
+	for (const interruption of ["short", "reverse", "pointercancel", "blur", "dialog"]) {
+		const f = fixture({ kind: "desk" });
+		try {
+			mousePull(f, "pointerdown");
+			mousePull(f, "pointermove", interruption === "short" ? 220 : 280);
+			if (interruption === "reverse") mousePull(f, "pointermove", 220);
+			if (interruption === "pointercancel") mousePull(f, "pointercancel");
+			if (interruption === "blur") f.w.dispatchEvent(new f.w.Event("blur"));
+			if (interruption === "dialog") f.dialog.open = true;
+			mousePull(f, "pointerup", 280);
+			f.flush(f.frames);
+			f.flush();
+			assert.equal(f.app.refreshes, 0, interruption);
+			assert.equal(f.document.querySelector("main").style.translate, "", interruption);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("mouse refresh leaves cards, controls and phone input to their existing handlers", () => {
+	for (const excluded of ["card", "button", "phone"]) {
+		const f = fixture({ kind: "desk", phone: excluded === "phone" });
+		try {
+			const target = f.document.querySelector("main p");
+			if (excluded === "card") target.dataset.card = "article";
+			if (excluded === "button") target.setAttribute("role", "button");
+			mousePull(f, "pointerdown");
+			mousePull(f, "pointermove", 280);
+			mousePull(f, "pointerup", 280);
+			f.flush(f.frames);
+			f.flush();
+			assert.equal(f.app.refreshes, 0, excluded);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
 test("a slow refresh keeps feedback and its lock until completion, then offers retry on rejection", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -482,8 +560,8 @@ test("desktop pull fades from the release position; phone keeps its downward sli
 	}
 });
 
-test("a fast release hands its last touch position to the exit before a drawing frame", async () => {
-	const f = fixture();
+test("a fast phone release hands its last touch position to the exit before a drawing frame", async () => {
+	const f = fixture({ phone: true });
 	try {
 		const animations: any[] = [];
 		f.w.__motionAnimations = animations;
@@ -506,5 +584,59 @@ test("a fast release hands its last touch position to the exit before a drawing 
 		assert.equal(f.app.closed, 1);
 	} finally {
 		f.dom.window.close();
+	}
+});
+
+test("desktop downward wheel and touch never close previews or readers", () => {
+	for (const kind of ["preview", "reader"]) {
+		const f = fixture({ kind });
+		try {
+			f.gestures.bindPullDown();
+			const target = f.scroll.querySelector("p");
+			for (let i = 0; i < 20; i++)
+				target.dispatchEvent(new f.w.WheelEvent("wheel", { bubbles: true, deltaY: -40 }));
+			f.fire(target, "touchstart", 120, 100);
+			f.fire(target, "touchmove", 120, 500);
+			f.fire(target, "touchend", 120, 500);
+			f.flush();
+			assert.equal(f.app.closed, 0);
+			assert.equal(f.dialog.querySelector(".is-drag"), null);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("desktop completed reading keeps tools hidden through the close handoff", () => {
+	for (const kind of ["preview", "reader"]) {
+		const f = fixture({ kind, end: true });
+		try {
+			const bar = f.dialog.querySelector(".float-bar") as HTMLElement;
+			let closed = false;
+			const close = () => {
+				assert.equal(bar.style.opacity, "0");
+				assert.equal(bar.style.visibility, "hidden");
+				assert.equal(
+					f.scroll.style.translate,
+					"0 -42px",
+					"completion closes from its current position without rebounding",
+				);
+				closed = true;
+			};
+			Object.assign(f.app, { modalKind: kind, closeModal: close, closeToDesk: close });
+			const target = f.scroll.querySelector("p");
+			f.fire(target, "touchstart", 120, 500);
+			f.fire(target, "touchmove", 120, 300);
+			assert.equal(bar.style.visibility, "hidden");
+			// A pending toolbar animation cannot reveal a completion-owned surface.
+			bar.style.opacity = "1";
+			assert.equal(f.w.getComputedStyle(bar).visibility, "hidden");
+			bar.style.opacity = "0";
+			f.flush();
+			assert.equal(closed, true);
+			assert.equal(bar.style.visibility, "hidden");
+		} finally {
+			f.dom.window.close();
+		}
 	}
 });

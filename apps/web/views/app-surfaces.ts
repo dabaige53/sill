@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
@@ -76,6 +77,10 @@ export const appSurfacesMethods = {
 			this.suspendSearch();
 		this.modalToken++;
 		MotionEngine.cancelPanel(this.dialog);
+		if (reversing) {
+			const source = MotionEngine.matchedSources.get(this.dialog)?.source;
+			if (source) source.style.visibility = "hidden";
+		}
 		this.skipReturnMotion = false;
 		this.sheetLeaving = false;
 		this.dialog.inert = false;
@@ -149,6 +154,17 @@ export const appSurfacesMethods = {
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;
 			const transform = getComputedStyle(sheet).transform;
+			const desktop = !matchMedia("(max-width:650px)").matches;
+			const details = desktop
+				? [
+						...MotionEngine.detailTools(this.dialog),
+						...this.dialog.querySelectorAll<HTMLElement>(".preview-body, .reader-body"),
+					].map((node: HTMLElement) => ({
+						node,
+						opacity: getComputedStyle(node).opacity,
+						body: node.matches(".preview-body, .reader-body"),
+					}))
+				: [];
 			MotionEngine.cancelPanel(this.dialog);
 			const returning =
 				!matchMedia("(max-width:650px)").matches && ["preview", "reader"].includes(this.modalKind)
@@ -157,15 +173,35 @@ export const appSurfacesMethods = {
 			const destination = returning
 				? MotionEngine.cardTransform(returning, sheet.getBoundingClientRect())
 				: null;
+			const face = destination ? MotionEngine.prepareReturn(this.dialog, sheet) : null;
+			const carried = destination
+				? MotionEngine.carryCapsule(this.dialog, sheet, transform, destination, false)
+				: null;
+			const sourceNode = MotionEngine.matchedSources.get(this.dialog)?.source as
+				| HTMLElement
+				| undefined;
+			const radius =
+				face && sourceNode ? parseFloat(getComputedStyle(sourceNode).borderTopLeftRadius) || 0 : 0;
+			const targetRect = sheet.getBoundingClientRect();
+			const endRadius = returning
+				? `${(radius * targetRect.width) / returning.width}px / ${(radius * targetRect.height) / returning.height}px`
+				: "";
 			this.sheetLeaving = true;
 			this.dialog.inert = true;
-			MotionEngine.dim(this.dialog, 0, MotionEngine.time("dur-close"));
+			MotionEngine.dim(
+				this.dialog,
+				0,
+				destination ? tokens.motion.cardReturn.duration : MotionEngine.time("dur-close"),
+			);
 			const animation = MotionEngine.animate(
 				sheet,
 				[
-					{ opacity, transform },
+					destination
+						? { transform, ...(face ? { borderRadius: getComputedStyle(sheet).borderRadius } : {}) }
+						: { opacity, transform },
 					{
-						opacity: destination ? 1 : 0,
+						...(destination ? {} : { opacity: 0 }),
+						...(face ? { borderRadius: endRadius } : {}),
 						transform:
 							destination ||
 							(MotionEngine.phoneSheet(this.dialog) ? "translateY(100%)" : "translateY(10px)"),
@@ -175,18 +211,44 @@ export const appSurfacesMethods = {
 					duration: MotionEngine.phoneSheet(this.dialog)
 						? MotionEngine.time("dur-sheet")
 						: MotionEngine.time("dur-close"),
-					spring: destination ? "card" : false,
+					...(destination ? tokens.motion.cardReturn : {}),
 					fill: "forwards",
 				},
 			);
 			const bar = this.dialog.querySelector<HTMLElement>(":scope > .float-bar");
-			const barAnimation = bar
-				? MotionEngine.animate(bar, [{ opacity: 1 }, { opacity: 0 }], {
-						duration: 100,
-						fill: "forwards",
-					})
-				: null;
-			MotionEngine.panelAnimations.set(this.dialog, [animation, barAnimation]);
+			const barAnimation =
+				!desktop && bar
+					? MotionEngine.animate(bar, [{ opacity: 1 }, { opacity: 0 }], {
+							duration: 100,
+							fill: "forwards",
+						})
+					: null;
+			MotionEngine.panelAnimations.set(this.dialog, [
+				animation,
+				barAnimation,
+				carried,
+				face,
+				...(destination && !face
+					? [
+							MotionEngine.animate(sheet, [{ opacity }, { opacity: 0 }], {
+								...tokens.motion.cardHandoff,
+								fill: "forwards",
+							}),
+						]
+					: []),
+				...details.map(({ node, opacity, body }) =>
+					MotionEngine.animate(
+						node,
+						[{ opacity }, { opacity: destination && body ? opacity : 0 }],
+						{
+							duration:
+								destination && body ? tokens.motion.cardReturn.duration : tokens.motion.detailFade,
+							fill: "forwards",
+						},
+					),
+				),
+				...(destination && !face ? [MotionEngine.returnSource(this.dialog)] : []),
+			]);
 			const finish = () => {
 				if (this.modalToken === token && this.sheetLeaving) {
 					this.sheetLeaving = false;
