@@ -28,14 +28,9 @@ function lessLike(this: AppController) {
 }
 
 function neverShow(this: AppController, { id }: ActionContext) {
-	const before: Record<string, any> = { ...Store.item(id) };
 	this.closeNative();
 	Store.patch(id, { dismissed: true });
 	this.withFeedAnchor(() => {}, true);
-	this.toast(copy("web.app.c7fec996c47f"), () => {
-		Store.patch(id, before);
-		this.withFeedAnchor(() => {}, true);
-	});
 }
 
 function cardMore(this: AppController, { id }: ActionContext) {
@@ -59,34 +54,18 @@ function archive(this: AppController, { extra }: ActionContext) {
 }
 
 function restoreCard(this: AppController, { id }: ActionContext) {
-	const before: Record<string, any> = { ...Store.item(id) };
 	Store.patch(id, { archived: false, restoredAt: Date.now() });
 	this.replacePanelContent(Panels.archive(this, this.editId));
 	this.withFeedAnchor(() => {}, true);
-	this.toast(copy("web.app.fff336942d9b"), () => {
-		Store.patch(id, before);
-		this.withFeedAnchor(() => {}, true);
-		if (this.modalKind === "archive") this.replacePanelContent(Panels.archive(this, this.editId));
-	});
 }
 
 function archiveAll(this: AppController) {
-	const ids = this.shelved("stale").map((c?: any) => c.id),
-		before = ids.map((i?: any) => [i, { ...Store.item(i) }]);
+	const ids = this.shelved("stale").map((c?: any) => c.id);
 	ids.forEach((i?: any) => {
 		Store.patch(i, { archived: true });
 	});
 	this.closeNative();
 	this.withFeedAnchor(() => {}, true);
-	this.toast(
-		`${copy("web.app.d22d0186c603")}${ids.length}${copy("web.common.cardCountSuffix")}`,
-		() => {
-			before.forEach(([i, v]: any) => {
-				Store.patch(i, v);
-			});
-			this.withFeedAnchor(() => {}, true);
-		},
-	);
 }
 
 function editorTag(this: AppController, { extra }: ActionContext) {

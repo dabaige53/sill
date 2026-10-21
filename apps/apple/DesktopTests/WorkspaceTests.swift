@@ -373,6 +373,33 @@ private let syntheticReminder: JSONValue = .object([
     #expect(!feed.entries.contains(.card("a")))
   }
 
+  @Test func completionKeepsOrderUntilExplicitRefresh() async throws {
+    var task = try #require(syntheticTask.object)
+    task["due"] = .number(2)
+    let (workspace, _) = await ready(
+      (0..<45).map { "card\($0)" }, extra: [.object(task), syntheticReminder])
+    let feed = Feed(workspace: workspace)
+    feed.refreshMembership()
+    let before = feed.cardOrder
+    #expect(Array(before.prefix(2)) == ["task", "reminder"])
+    workspace.toggleTask("task", task: "t2")
+    workspace.changeReminder("reminder", .complete)
+    await until { workspace.queue.idle }
+    #expect(feed.cardOrder == before)
+    feed.loadMore()
+    #expect(Array(feed.cardOrder.prefix(before.count)) == before)
+    feed.select(.todo)
+    #expect(feed.cardOrder == ["task", "reminder"])
+    feed.select(.all)
+    #expect(Array(feed.cardOrder.prefix(2)) == ["task", "reminder"])
+    workspace.capture("A newly saved card")
+    await until { workspace.queue.idle && workspace.cards.count == 48 }
+    #expect(Array(feed.cardOrder.prefix(2)) == ["task", "reminder"])
+    feed.refreshMembership(reorder: true)
+    #expect(!feed.cardOrder.prefix(2).contains("task"))
+    #expect(!feed.cardOrder.prefix(2).contains("reminder"))
+  }
+
   @Test func pagesBy40() async {
     let (workspace, _) = await ready((0..<90).map { "card\($0)" })
     let feed = Feed(workspace: workspace)
@@ -442,39 +469,32 @@ struct LaunchOptionTests {
   }
 }
 
-@MainActor struct UndoTests {
-  @Test func finishingTasksOffersUndo() async throws {
+@MainActor struct ActionFeedbackTests {
+  @Test func finishingTasksDoesNotShowNotice() async throws {
     let (workspace, _) = await ready(extra: [syntheticTask])
     let card = try #require(workspace.model("task"))
     workspace.toggleTask("task", task: "t2")
-    let notice = try #require(workspace.notice)
-    #expect(notice.text == Copy.text("web.app.58d2aeefaa41"))
-    #expect(workspace.state("task").completed(card))
-    notice.undo?()
     await until { workspace.queue.idle && !workspace.state("task").isWriting }
+    #expect(workspace.notice == nil)
+    #expect(workspace.state("task").completed(card))
+    workspace.toggleTask("task", task: "t2")
     #expect(!workspace.state("task").completed(card))
-    #expect(workspace.state("task").tasks(of: card).filter(\.done).map(\.id) == ["t1"])
   }
 
-  @Test func reminderUndoRestoresState() async throws {
+  @Test func reminderDoesNotShowNotice() async throws {
     let (workspace, _) = await ready(extra: [syntheticReminder])
     workspace.changeReminder("reminder", .dismiss)
-    #expect(workspace.state("reminder").dismissed)
-    let notice = try #require(workspace.notice)
-    #expect(notice.text == Copy.text("web.app.c9bb70bcaaa3"))
-    notice.undo?()
     await until { workspace.queue.idle && !workspace.state("reminder").isWriting }
-    #expect(!workspace.state("reminder").dismissed)
+    #expect(workspace.state("reminder").dismissed)
+    #expect(workspace.notice == nil)
   }
 
-  @Test func captureUndoRemovesTheCard() async throws {
+  @Test func captureDoesNotShowSuccessNotice() async throws {
     let (workspace, _) = await ready()
-    workspace.capture("撤销这一条")
-    await until { workspace.cards.count == 4 }
-    let notice = try #require(workspace.notice)
-    notice.undo?()
-    await until { workspace.cards.count == 3 }
-    #expect(!workspace.cards.contains { $0.title == "撤销这一条" })
+    workspace.capture("记下这一条")
+    await until { workspace.cards.count == 4 && workspace.queue.idle }
+    #expect(workspace.notice == nil)
+    #expect(workspace.cards.contains { $0.title == "记下这一条" })
   }
 }
 
@@ -494,24 +514,16 @@ struct LaunchOptionTests {
     #expect(selection.contains("c"))
   }
 
-  @Test func batchMarkUndoRestoresEachCard() async throws {
+  @Test func batchMarkDoesNotShowNotice() async throws {
     let (workspace, backend) = await ready()
     workspace.toggleBookmark("b")
     await until { workspace.queue.idle && !workspace.state("b").isWriting }
     let writes = await backend.writes
     workspace.mark(["a", "b", "c"], .bookmarked)
     #expect(["a", "b", "c"].allSatisfy { workspace.state($0).bookmarked })
-    let notice = try #require(workspace.notice)
-    #expect(
-      notice.text
-        == Copy.text("web.app.96e7ee93f3ba") + "3" + Copy.text("web.common.cardCountSuffix"))
     await until { workspace.queue.idle && !workspace.state("a").isWriting }
     #expect(await backend.writes == writes + 1)
-    notice.undo?()
-    await until { workspace.queue.idle && workspace.state("a").bookmarked == false }
-    #expect(!workspace.state("a").bookmarked)
-    #expect(workspace.state("b").bookmarked)
-    #expect(!workspace.state("c").bookmarked)
+    #expect(workspace.notice == nil)
   }
 
   @Test func dragHandsCardsOnlyWhenDroppedOnTarget() {
@@ -534,7 +546,7 @@ struct LaunchOptionTests {
 }
 
 @MainActor struct ArchiveTests {
-  @Test func restoreReturnsCardToDeskWithUndo() async throws {
+  @Test func restoreReturnsCardToDeskWithoutNotice() async throws {
     let (workspace, _) = await ready()
     let feed = Feed(workspace: workspace)
     workspace.change("b", ["archived": .bool(true)])
@@ -548,13 +560,8 @@ struct LaunchOptionTests {
     #expect(!workspace.state("b").archived)
     #expect(feed.cardOrder.contains("b"))
     #expect(feed.shelfCount == 0)
-    let notice = try #require(workspace.notice)
-    #expect(notice.text == Copy.text("web.app.fff336942d9b"))
     await until { workspace.queue.idle && !workspace.state("b").isWriting }
-    notice.undo?()
-    #expect(workspace.state("b").archived)
-    #expect(!feed.cardOrder.contains("b"))
-    #expect(feed.shelfCount == 1)
+    #expect(workspace.notice == nil)
   }
 }
 

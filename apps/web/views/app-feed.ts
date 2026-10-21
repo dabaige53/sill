@@ -12,6 +12,11 @@ import { feedView } from "./feed.tsx";
 import { renderView } from "./react-renderer.ts";
 
 export const appFeedMethods = {
+	refreshFeedOrder(this: AppController) {
+		this.feedOrder = null;
+		this.feedNow = Date.now();
+		this.withFeedAnchor(() => {});
+	},
 	shelfOf(this: AppController, c?: Card): "desk" | "read" {
 		return FeedPolicy.shelf(c, Store.item(c.id), this.feedNow, Store.pref("archiveAfter"));
 	},
@@ -66,8 +71,17 @@ export const appFeedMethods = {
 		const f = this.filter,
 			q = f.query.trim();
 		const statusOnly = ["snoozed", "dismissed", "done"].includes(f.status);
-		return FeedPolicy.sort(
-			Store.state.cards.filter((c?: Card) => {
+		// Keep one order across saves, pagination and filter changes until an explicit refresh.
+		if (!this.feedOrder || this.feedOrderSort !== this.sort) {
+			this.feedOrder = new Map();
+			this.feedOrderSort = this.sort;
+		}
+		const ranked = FeedPolicy.sort(Store.state.cards, this.sort, Store.state.items, this.feedNow);
+		for (const card of ranked) {
+			if (!this.feedOrder.has(card.id)) this.feedOrder.set(card.id, this.feedOrder.size);
+		}
+		return Store.state.cards
+			.filter((c?: Card) => {
 				const s = Store.item(c.id);
 				// Searching reaches every shelf; browsing shows only the desk.
 				if (!q && !statusOnly && this.shelfOf(c) !== "desk") return false;
@@ -85,11 +99,8 @@ export const appFeedMethods = {
 					(!f.tag || Store.tags(c).includes(f.tag)) &&
 					(!q || this.matches(c, q))
 				);
-			}),
-			this.sort,
-			Store.state.items,
-			this.feedNow,
-		);
+			})
+			.sort((a, b) => this.feedOrder.get(a.id) - this.feedOrder.get(b.id));
 	},
 	deskView(this: AppController, heldId = "", taskPreviewOrder: string[] = []): ReactNode {
 		return feedView(this, heldId, taskPreviewOrder);

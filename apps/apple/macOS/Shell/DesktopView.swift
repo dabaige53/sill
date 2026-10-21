@@ -278,7 +278,7 @@ struct DesktopView: View {
         guard flags.isEmpty, workspace.preferences.singleKeyShortcuts else { return false }
         switch key {
         case "n": panels.open(.capture)
-        case "r": workspace.refresh { done in if done { feed.refreshMembership() } }
+        case "r": workspace.refresh { done in if done { feed.refreshMembership(reorder: true) } }
         case "t":
           chrome.show()
           view.scroll?.scroll(to: 0, animated: true)
@@ -320,7 +320,7 @@ struct DesktopView: View {
           return
         }
         workspace.refresh(quiet: true) { success in
-          if success { feed?.refreshMembership() }
+          if success { feed?.refreshMembership(reorder: true) }
           done(success)
         }
       }

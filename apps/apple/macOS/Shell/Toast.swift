@@ -3,8 +3,8 @@ import SillKit
 import SwiftUI
 
 /// Web `#toast`: a glass capsule at the bottom right, one row above the AI box, over an open
-/// detail too. It rises 8px in 180ms and leaves the same way in 140ms. An undoable notice stays
-/// 5.5s and a plain one 3.2s of unattended time: the clock stops while the app is in the
+/// detail too. It rises 8px in 180ms and leaves the same way in 140ms. A plain notice stays
+/// 3.2s of unattended time: the clock stops while the app is in the
 /// background, the window is not key, the pointer is over it or focus is inside it. A persistent
 /// notice stays until closed.
 struct Toast: View {
@@ -52,18 +52,8 @@ private struct ToastCapsule: View {
         .foregroundStyle(AppleColors.primary)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, AppleMetrics.space10)
-        .padding(.trailing, notice.undo == nil && !notice.persistent ? AppleMetrics.space12 : 0)
-      if let undo = notice.undo {
-        Button(Copy.text("web.app.926a50b98ece")) {
-          dismiss()
-          undo()
-        }
-        .buttonStyle(TextLinkStyle(padded: false))
-        .padding(.vertical, AppleMetrics.space10)
-        .padding(.horizontal, AppleMetrics.space12)
-        .focused($focused)
-        .accessibilityLabel(Copy.text("web.app.493c9056731b"))
-      } else if notice.persistent {
+        .padding(.trailing, !notice.persistent ? AppleMetrics.space12 : 0)
+      if notice.persistent {
         ToolButton(icon: "x", label: Copy.text("web.close"), action: dismiss)
           .focused($focused)
       }
@@ -83,7 +73,7 @@ private struct ToastCapsule: View {
   /// Counts only unattended time, in 100ms steps.
   private func run() async {
     guard !notice.persistent else { return }
-    var remaining = notice.undo == nil ? AppleMetrics.toastDuration : AppleMetrics.toastUndoDuration
+    var remaining = AppleMetrics.toastDuration
     let step = 0.1
     while remaining > 0 {
       try? await Task.sleep(for: .seconds(step))

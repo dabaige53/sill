@@ -78,9 +78,8 @@ function fixture(raw: any = null, at: any = 1800000000000) {
 		fn();
 		app.renders++;
 	};
-	app.toast = (message?: any, undo?: any) => {
+	app.toast = (message?: any) => {
 		app.lastToast = message;
-		app.undoAction = undo;
 	};
 	return { ...api, app, context, data, nodes, now: () => now, advance: (ms?: any) => (now += ms) };
 }
@@ -227,7 +226,45 @@ test("only explicit archive removes cards from home, without rewriting existing 
 	assert.ok(ids(g.app.filtered()).includes("article-01"));
 	assert.ok(ids(g.app.searchAll(g.Store.card("reminder-01").title).desk).includes("reminder-01"));
 });
-test("explicit restore keeps reading state and undo restores the archive flag", () => {
+test("completed tasks and reminders keep their order until a user refresh", () => {
+	const f = fixture();
+	const task = { ...f.Store.card("task-01"), due: f.now() - 1, priority: 10 };
+	const reminder = { ...f.Store.card("reminder-01"), due: f.now() - 1, priority: 5 };
+	const article = { ...f.Store.card("article-01"), priority: 0 };
+	f.Store.state.cards = [article, task, reminder];
+	f.Store.state.items = {};
+	const before = ids(f.app.filtered());
+	assert.deepEqual(before, [task.id, reminder.id, article.id]);
+	for (const row of f.Store.tasks(task).filter((row) => !row.done))
+		f.app.toggleTask(task.id, row.id);
+	f.app.changeReminder(reminder.id, "complete-reminder");
+	assert.deepEqual(ids(f.app.filtered()), before);
+	// A saved snapshot and a later render must not replace the current order.
+	f.Store.state.items = structuredClone(f.Store.state.items);
+	f.advance(60000);
+	assert.deepEqual(ids(f.app.filtered()), before);
+	f.app.filter.type = "todo";
+	assert.deepEqual(ids(f.app.filtered()), [task.id, reminder.id]);
+	f.app.filter.type = "all";
+	assert.deepEqual(ids(f.app.filtered()), before);
+	f.app.refreshFeedOrder();
+	assert.deepEqual(ids(f.app.filtered()), [article.id, task.id, reminder.id]);
+});
+test("finishing and restoring tasks stays silent", () => {
+	const f = fixture();
+	const card = f.Store.card("task-01");
+	f.Store.patch(card.id, { taskDone: [] });
+	for (const task of card.tasks) f.app.toggleTask(card.id, task.id);
+	assert.equal(
+		f.Store.tasks(card).every((task) => task.done),
+		true,
+	);
+	assert.equal(f.app.lastToast, undefined);
+	f.app.toggleTask(card.id, card.tasks[0].id);
+	assert.equal(f.Store.tasks(card)[0].done, false);
+	assert.equal(f.app.lastToast, undefined);
+});
+test("explicit restore keeps reading state without a success toast", () => {
 	const f = fixture();
 	f.Store.patch("article-01", { archived: true, read: true, progress: 1, bookmarked: true });
 	f.app.editId = "read";
@@ -237,9 +274,7 @@ test("explicit restore keeps reading state and undo restores the archive flag", 
 	assert.equal(f.Store.item("article-01").progress, 1);
 	assert.equal(f.Store.item("article-01").bookmarked, true);
 	assert.ok(ids(f.app.filtered()).includes("article-01"));
-	f.app.undoAction();
-	assert.equal(f.Store.item("article-01").archived, true);
-	assert.ok(!ids(f.app.filtered()).includes("article-01"));
+	assert.equal(f.app.lastToast, undefined);
 });
 test("snooze, dismissal, completion and archive suppress notifications independently of home", () => {
 	const { FeedPolicy: p, now } = fixture();
@@ -352,7 +387,7 @@ test("reading or dragging prevents pending content insertion", () => {
 	f.app.showNew();
 	assert.equal(f.app.renders, 0);
 });
-test("dismiss, complete, restore and undo preserve unrelated content state", () => {
+test("reminder actions preserve unrelated content state without a success toast", () => {
 	const f = fixture(),
 		id = "reminder-01";
 	f.Store.patch(id, { bookmarked: true, note: "保留" });
@@ -368,7 +403,7 @@ test("dismiss, complete, restore and undo preserve unrelated content state", () 
 			true,
 		);
 		f.app.filter.status = "all";
-		f.app.undoAction();
+		assert.equal(f.app.lastToast, undefined);
 		assert.equal(
 			f.app.filtered().some((c?: any) => c.id === id),
 			true,

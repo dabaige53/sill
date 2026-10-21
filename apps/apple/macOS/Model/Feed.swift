@@ -62,6 +62,7 @@ enum FeedEntry: Identifiable, Equatable {
   /// The first screen has played its entrance; later cards arrive with the drop instead.
   @ObservationIgnored var entered = false
   @ObservationIgnored private var lastPreferences = Preferences()
+  @ObservationIgnored private var order: [String: Int] = [:]
 
   static let page = 40
 
@@ -158,15 +159,18 @@ enum FeedEntry: Identifiable, Equatable {
     rebuild(keepClock: true)
   }
 
-  /// Apply the newest filter and order: on refresh, preference changes and archive.
-  func refreshMembership() { rebuild() }
+  /// Apply membership changes; only an explicit refresh also replaces the order.
+  func refreshMembership(reorder: Bool = false) {
+    if reorder { order.removeAll() }
+    rebuild()
+  }
 
   func preferencesChanged(_ preferences: Preferences) {
     defer { lastPreferences = preferences }
     if preferences.feedSort != lastPreferences.feedSort
       || preferences.stack != lastPreferences.stack
     {
-      rebuild()
+      refreshMembership(reorder: preferences.feedSort != lastPreferences.feedSort)
     }
   }
 
@@ -186,20 +190,23 @@ enum FeedEntry: Identifiable, Equatable {
     let text = query.trimmingCharacters(in: .whitespaces).lowercased()
     let shelved = workspace.cards.reduce(0) { $0 + (state($1.id).archived ? 1 : 0) }
     if shelved != shelfCount { shelfCount = shelved }
-    let cards = FeedPolicy.sort(
-      workspace.cards.filter { card in
-        let s = state(card.id)
-        // Searching reaches archived cards; browsing shows only the desk.
-        if text.isEmpty, s.archived { return false }
-        switch scope {
-        case .all: break
-        case .unread: if s.read { return false }
-        case .todo: if card.kind != .task && card.kind != .reminder { return false }
-        case .later: if !s.later { return false }
-        case .saved: if !s.bookmarked { return false }
-        }
-        return text.isEmpty || matches(card, state: s, text: text)
-      }, mode: workspace.preferences.feedSort, state: state, now: now)
+    // Saves, pagination and catalog updates keep existing cards in their current order.
+    let ranked = FeedPolicy.sort(
+      workspace.cards, mode: workspace.preferences.feedSort, state: state, now: now)
+    for card in ranked where order[card.id] == nil { order[card.id] = order.count }
+    let cards = workspace.cards.filter { card in
+      let s = state(card.id)
+      // Searching reaches archived cards; browsing shows only the desk.
+      if text.isEmpty, s.archived { return false }
+      switch scope {
+      case .all: break
+      case .unread: if s.read { return false }
+      case .todo: if card.kind != .task && card.kind != .reminder { return false }
+      case .later: if !s.later { return false }
+      case .saved: if !s.bookmarked { return false }
+      }
+      return text.isEmpty || matches(card, state: s, text: text)
+    }.sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
 
     if cards.isEmpty {
       set(entries: [], more: false)

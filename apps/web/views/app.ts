@@ -70,6 +70,7 @@ class AppController {
 	declare desktop: AppControllerMethods["desktop"];
 	declare homeKey: AppControllerMethods["homeKey"];
 	declare filtering: AppControllerMethods["filtering"];
+	declare refreshFeedOrder: AppControllerMethods["refreshFeedOrder"];
 	declare filtered: AppControllerMethods["filtered"];
 	declare deskView: AppControllerMethods["deskView"];
 	declare renderCurrent: AppControllerMethods["renderCurrent"];
@@ -216,7 +217,6 @@ class AppController {
 	declare selectAnchor: string;
 	declare previewTrail: string[];
 	declare closingAll: boolean;
-	declare undoAction: () => void;
 	declare bulkEditIds: string[];
 	declare clockMinute: number;
 	declare stackIndex: Map<string, number>;
@@ -254,6 +254,8 @@ class AppController {
 
 	feedSnapshot: { cards: Card[]; stacks: Map<string, Card[]> } | null = null;
 	preserveFeed = false;
+	feedOrder: Map<string, number> | null = null;
+	feedOrderSort = "";
 	async readAgentCard(id: string, _scope: AgentScope): Promise<AgentCard> {
 		const card = Store.card(id);
 		if (!card) throw agentFailure("card_unavailable", copy("web.agent.noCard"));
@@ -327,14 +329,14 @@ class AppController {
 			if (window.__QG_LOCAL__) {
 				const result = await LocalSync.refresh(true);
 				if (result === false) return false;
+				this.refreshFeedOrder();
 			} else {
 				// Demo: the next unseen sample arrives as new content; nothing jumps into the desk.
 				const next = FreshCards.find(
 					(f) => !Store.card(f.id) && !this.pendingCards.some((p) => p.id === f.id),
 				);
 				if (next) this.pendingCards.push({ ...next, time: Date.now() });
-				this.feedNow = Date.now();
-				this.withFeedAnchor(() => {});
+				this.refreshFeedOrder();
 				if (
 					scrollY < 40 &&
 					Store.pref("newHint") !== "off" &&

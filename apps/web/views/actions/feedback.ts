@@ -52,15 +52,6 @@ function toastClose(this: AppController) {
 	this.hideToast();
 }
 
-function undo(this: AppController) {
-	if (this.undoAction) {
-		const fn = this.undoAction;
-		this.undoAction = null;
-		this.hideToast();
-		fn();
-	}
-}
-
 export const feedbackActions = {
 	refresh: refresh,
 	retry: retry,
@@ -70,5 +61,4 @@ export const feedbackActions = {
 	"sync-discard": syncDiscard,
 	"sync-discard-confirm": syncDiscardConfirm,
 	"toast-close": toastClose,
-	undo: undo,
 } satisfies Record<string, ActionHandler>;

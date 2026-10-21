@@ -76,35 +76,21 @@ export const appFeedbackMethods = {
 				button.setAttribute("aria-busy", next.getAttribute("aria-busy"));
 			});
 	},
-	toast(
-		this: AppController,
-		text?: string,
-		undo: () => void = null,
-		actionLabel = copy("web.app.926a50b98ece"),
-	) {
-		this.showToast(text, undo, actionLabel, false);
+	toast(this: AppController, text?: string) {
+		this.showToast(text, false);
 	},
 	alert(this: AppController, text?: string) {
-		this.showToast(text, null, "", true);
+		this.showToast(text, true);
 	},
-	showToast(
-		this: AppController,
-		text?: string,
-		undo?: () => void,
-		actionLabel?: string,
-		persistent?: boolean,
-	) {
+	showToast(this: AppController, text?: string, persistent = false) {
 		clearTimeout(this.toastTimer);
 		this.toastSeq = (this.toastSeq || 0) + 1;
-		this.undoAction = undo;
 		const toast = document.getElementById("toast");
 		(this.dialog.open ? this.dialog : document.body).appendChild(toast);
 		document.getElementById("toast-text").textContent = text;
-		document.getElementById("toast-action").innerHTML = undo
-			? `<button type="button" class="text-link" data-action="undo" aria-label="${actionLabel === copy("web.app.926a50b98ece") ? copy("web.app.493c9056731b") : esc(actionLabel)}">${esc(actionLabel)}</button>`
-			: persistent
-				? button("x", copy("web.close"), "toast-close")
-				: "";
+		document.getElementById("toast-action").innerHTML = persistent
+			? button("x", copy("web.close"), "toast-close")
+			: "";
 		toast.classList.toggle("is-alert", !!persistent);
 		toast.setAttribute("role", persistent ? "alert" : "status");
 		const drawnToast = toast.hidden
@@ -116,7 +102,7 @@ export const appFeedbackMethods = {
 		MotionEngine.animate(toast, [drawnToast, { opacity: 1, transform: "none" }], {
 			duration: MotionEngine.time("dur-menu"),
 		});
-		this.toastRemaining = persistent ? 0 : undo ? 5500 : 3200;
+		this.toastRemaining = persistent ? 0 : 3200;
 		this.toastStarted = 0;
 		this.toastTimer = 0;
 		this.updateToastClock();
