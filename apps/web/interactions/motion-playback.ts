@@ -51,7 +51,7 @@ export function play(
 		delay?: number;
 		easing?: string;
 		fill?: string;
-		spring?: boolean;
+		spring?: boolean | "card";
 		repeat?: number;
 		pseudoElement?: string;
 	},
@@ -122,7 +122,10 @@ export function play(
 	ownedProperties.set(handle, new Set(properties.map(propertyKey)));
 	controls = animateStyle(el, keyframes, {
 		...(options.spring
-			? { type: spring, ...tokens.motion.spring }
+			? {
+					type: spring,
+					...(options.spring === "card" ? tokens.motion.cardSpring : tokens.motion.spring),
+				}
 			: { duration: options.duration / 1000, ease }),
 		delay: (options.delay || 0) / 1000,
 		repeat: options.repeat || 0,

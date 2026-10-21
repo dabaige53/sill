@@ -4,65 +4,143 @@
 		"card-type": {
 			"title": "卡片 A 字号",
 			"rule": "handbook/foundation.md#字体",
-			"tokens": ["card-title", "summary", "card-meta"],
+			"tokens": [
+				"card-title",
+				"summary",
+				"card-meta"
+			],
 			"adr": "0051",
-			"boards": ["CardTypeA"]
+			"boards": [
+				"CardTypeA"
+			]
 		},
 		"card-summary": {
 			"title": "卡片摘要行数",
 			"rule": "handbook/foundation.md#文字长度",
-			"tokens": ["lines-summary", "summary-lines"],
+			"tokens": [
+				"lines-summary",
+				"summary-lines"
+			],
 			"adr": "0051",
-			"boards": ["CardTypeA"]
+			"boards": [
+				"CardTypeA"
+			]
 		},
 		"feed-columns": {
 			"title": "信息流列数",
 			"rule": "handbook/foundation.md#间距与尺寸",
-			"tokens": ["col-limit", "col-min", "col-ideal", "col-max"],
+			"tokens": [
+				"col-min",
+				"col-ideal",
+				"col-max"
+			],
 			"adr": "0051",
-			"boards": ["CardTypeA"]
+			"boards": [
+				"CardTypeA"
+			]
 		},
 		"article-reading": {
 			"title": "资讯阅读",
 			"rule": "handbook/web-interaction.md#资讯阅读",
-			"tokens": ["article-title", "article-body", "article-meta", "article-measure", "article-gutter"],
+			"tokens": [
+				"article-title",
+				"article-body",
+				"article-meta",
+				"article-measure",
+				"article-gutter"
+			],
 			"adr": "0051",
-			"boards": ["ArticleReading"]
+			"boards": [
+				"ArticleReading"
+			]
 		},
 		"settings-sheet": {
 			"title": "设置弹窗",
 			"rule": "handbook/web-interaction.md#设置弹窗",
-			"tokens": ["figure"],
+			"tokens": [
+				"figure",
+				"settings-body-height"
+			],
 			"adr": "0051",
-			"boards": ["MacChrome"]
+			"boards": [
+				"MacChrome",
+				"SettingsDesktop",
+				"SettingsMobile"
+			]
 		},
 		"top-bar": {
 			"title": "桌面顶栏",
 			"rule": "handbook/web-interaction.md#桌面顶栏与-ai-框",
-			"tokens": ["rail-row"],
+			"tokens": [
+				"rail-row"
+			],
 			"adr": "0049",
-			"boards": ["WebChrome", "MacChrome"]
+			"boards": [
+				"WebChrome",
+				"MacChrome"
+			]
 		},
 		"nav-capsule": {
 			"title": "底部导航胶囊",
 			"rule": "handbook/interaction.md#底部导航与反馈",
-			"tokens": ["rail-row", "nav-tab"],
+			"tokens": [
+				"rail-row",
+				"nav-tab"
+			],
 			"adr": "0035",
-			"boards": ["ScreenMobileHome"]
+			"boards": [
+				"ScreenMobileHome"
+			]
 		},
 		"selection-bar": {
 			"title": "多选条",
 			"rule": "handbook/interaction.md#底部导航与反馈",
-			"tokens": ["rail-row"],
+			"tokens": [
+				"rail-row"
+			],
 			"adr": "0049",
-			"boards": ["ScreenWebSelect"]
+			"boards": [
+				"ScreenWebSelect"
+			]
 		},
 		"search-tokens": {
 			"title": "搜索分类与 # 条件",
 			"rule": "handbook/interaction.md#搜索与键盘",
 			"tokens": [],
 			"adr": "0048",
-			"boards": ["PhoneChrome", "ScreenMobileResults", "ScreenWebSearch"]
+			"boards": [
+				"PhoneChrome",
+				"ScreenMobileResults",
+				"ScreenWebSearch"
+			]
+		},
+		"auth-login": {
+			"title": "登录页面",
+			"rule": "handbook/web-interaction.md#登录与授权",
+			"tokens": [
+				"control-radius",
+				"hit-target",
+				"auth-login-width"
+			],
+			"adr": "0052",
+			"boards": [
+				"Login",
+				"LoginMobile"
+			]
+		},
+		"auth-consent": {
+			"title": "授权页面",
+			"rule": "handbook/web-interaction.md#登录与授权",
+			"tokens": [
+				"control-radius",
+				"hit-target",
+				"auth-consent-width"
+			],
+			"adr": "0052",
+			"boards": [
+				"Authorization",
+				"AuthorizationMobile"
+			]
 		}
 	}
 }

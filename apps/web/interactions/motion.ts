@@ -1,8 +1,29 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { cancelMotion, dim, move, type Playback, play } from "./motion-playback.ts";
 
+/** Center-origin FLIP: final layout stays fixed while the surface travels from/to its card. */
+export function cardTransform(
+	source: Pick<DOMRect, "left" | "top" | "width" | "height">,
+	target: Pick<DOMRect, "left" | "top" | "width" | "height">,
+) {
+	return `translate(${source.left + source.width / 2 - target.left - target.width / 2}px,${source.top + source.height / 2 - target.top - target.height / 2}px) scale(${source.width / target.width},${source.height / target.height})`;
+}
+
 const MotionEngine: Record<string, any> = {
 	panelAnimations: new WeakMap(),
+	matchedSources: new WeakMap(),
+	matchSource(dialog: HTMLElement, source: HTMLElement | null) {
+		this.releaseSource(dialog);
+		if (!source || this.keyboard || matchMedia("(max-width:650px)").matches) return;
+		this.matchedSources.set(dialog, { source, visibility: source.style.visibility });
+		source.style.visibility = "hidden";
+	},
+	releaseSource(dialog: HTMLElement) {
+		const state = this.matchedSources.get(dialog);
+		if (state) state.source.style.visibility = state.visibility;
+		this.matchedSources.delete(dialog);
+	},
+	cardTransform,
 	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),
 	visibilityAnimations: new WeakMap(),
@@ -123,7 +144,7 @@ const MotionEngine: Record<string, any> = {
 					: { opacity: 0, transform: "translateY(-4px) scale(.95)" },
 			],
 			{
-				duration: this.time(visible ? "dur-menu" : "dur-press"),
+				duration: this.time(visible ? "dur-menu" : "dur-menu-close"),
 			},
 		);
 		const finish = () => {
@@ -317,7 +338,7 @@ const MotionEngine: Record<string, any> = {
 			if ((el as HTMLDialogElement).open) this.openPanel(el, origin, resume);
 		});
 	},
-	openPanel(el?: any, _origin?: DOMRect | null, resume?: { opacity: string; transform: string }) {
+	openPanel(el?: any, origin?: DOMRect | null, resume?: { opacity: string; transform: string }) {
 		this.cancelPanel(el);
 		const sheet = this.surface(el),
 			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
@@ -325,6 +346,7 @@ const MotionEngine: Record<string, any> = {
 			this.panelAnimations.set(el, [
 				this.animate(sheet, [resume, { opacity: 1, transform: "none" }], {
 					duration: this.time("dur-open"),
+					spring: origin && !matchMedia("(max-width:650px)").matches ? "card" : false,
 				}),
 				...(bar ? [this.enter(bar)] : []),
 			]);
@@ -342,6 +364,21 @@ const MotionEngine: Record<string, any> = {
 			);
 			this.panelAnimations.set(el, [animation, ...(bar ? [this.enter(bar)] : [])]);
 			return;
+		}
+		if (origin?.width && origin.height && !matchMedia("(max-width:650px)").matches) {
+			const destination = sheet.getBoundingClientRect();
+			if (destination.width && destination.height) {
+				const animation = this.animate(
+					sheet,
+					[
+						{ opacity: 1, transform: cardTransform(origin, destination) },
+						{ opacity: 1, transform: "translate(0px,0px) scale(1,1)" },
+					],
+					{ duration: this.time("dur-open"), spring: "card" },
+				);
+				this.panelAnimations.set(el, [animation, ...(bar ? [this.enter(bar)] : [])]);
+				return;
+			}
 		}
 		// Keep a single text layer at its final size; the toolbar enters at the same time.
 		const animations = [this.enter(sheet)];

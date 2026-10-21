@@ -1,7 +1,7 @@
 // Writes components/<Comp>/preview.html from the product renderers, so the online previews show what
 // the app draws. Run: node --import tsx design-system/scripts/previews.ts [--check]
 import "./fixed-clock.ts";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { createElement } from "react";
@@ -207,3 +207,31 @@ if (check && stale) process.exit(1);
 console.log(
 	check ? "previews up to date" : `${Object.keys(previews).length} previews, ${stale} written`,
 );
+
+// Settings boards share the product renderer and styles; only group navigation is interactive.
+const settingsDir = resolve(root, "../boards/settings");
+const settingsCss = (
+	JSON.parse(readFileSync(resolve(root, "../../apps/web/styles/styles.json"), "utf8")) as string[]
+)
+	.map((file) => readFileSync(resolve(root, "../../", file), "utf8"))
+	.join("\n");
+const settingsDom = new JSDOM("", { url: "https://sill.invalid" });
+Object.assign(globalThis, {
+	window: settingsDom.window,
+	localStorage: settingsDom.window.localStorage,
+});
+const settingsPages = Object.fromEntries(
+	Panels.settingsGroups.map(([key]) => [key, Panels.settings({}, key)]),
+);
+settingsDom.window.close();
+const settingsHtml = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>设置</title><style>${settingsCss}
+body{min-height:100svh;display:grid;place-items:center;padding:var(--space-24)}#modal{position:relative;margin:auto;max-height:calc(100svh - var(--space-48))}#modal::backdrop{display:none}@media(max-width:650px){body{padding:0;display:block}#modal{margin:0;max-height:100svh;height:100svh;width:100%;border-radius:0}}
+</style></head><body><dialog open id="modal" class="panel wide">${settingsPages.desk}</dialog><script>const pages=${JSON.stringify(settingsPages).replace(/</g, "\\u003c")};const modal=document.getElementById('modal');function size(){modal.classList.toggle('page',matchMedia('(max-width:650px)').matches)}size();window.addEventListener('resize',size);document.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button)return;if(button.dataset.action==='settings-group'){modal.innerHTML=pages[button.dataset.extra];size()}else event.preventDefault()});</script></body></html>`;
+const settingsFile = resolve(settingsDir, "content.html");
+if (check) {
+	if (readFileSync(settingsFile, "utf8") !== settingsHtml)
+		throw new Error("settings board is stale");
+} else {
+	mkdirSync(settingsDir, { recursive: true });
+	writeFileSync(settingsFile, settingsHtml);
+}

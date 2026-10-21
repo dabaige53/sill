@@ -242,7 +242,7 @@ export async function registerSessionPolicyTests() {
 				{ cookieJar: jar },
 			);
 			assert.equal(review.status, 200);
-			assert.match(await review.text(), /value="approve">允许<\/button>/);
+			assert.match(await review.text(), /value="approve">允许访问<\/button>/);
 			assert.equal(await f.grant(), undefined, "login does not approve access");
 			const expired = new Map<any, any>([
 				["__Host-sill-oauth-return", `${AUTH}.${Date.now() - 1000}`],

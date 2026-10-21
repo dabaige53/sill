@@ -54,6 +54,7 @@ struct CardTile: View {
         return .handled
       }
       .modifier(CardAccessibility(card: card, state: state))
+      .modifier(CardGeometrySource(id: card.id))
   }
 
   private static let shape = RoundedRectangle(
@@ -100,6 +101,7 @@ private struct CardAccessibility: ViewModifier {
     let traits: AccessibilityTraits = state.selected ? [.isButton, .isSelected] : .isButton
     content
       .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("card-\(card.id)")
       .accessibilityLabel(label)
       .accessibilityAddTraits(traits)
       .accessibilityAction { intents.open(card.id) }

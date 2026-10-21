@@ -160,5 +160,20 @@
 	"auth.permissions": "访问权限",
 	"auth.manageGrants": "管理授权",
 	"auth.eventQueue": "提交事件进入队列，不代表执行完成。",
-	"web.media.playbackUnavailable": "暂不支持在 Sill 内播放，请前往来源收听。"
+	"web.media.playbackUnavailable": "暂不支持在 Sill 内播放，请前往来源收听。",
+	"auth.loginTitle": "登录窗台",
+	"auth.emailLogin": "通过邮件登录",
+	"auth.forgotPassword": "忘记密码？",
+	"auth.resetTitle": "重新设置密码",
+	"auth.sendLogin": "发送登录链接",
+	"auth.sendReset": "发送重设链接",
+	"auth.backPassword": "返回密码登录",
+	"auth.showPassword": "显示密码",
+	"auth.hidePassword": "隐藏密码",
+	"auth.or": "或",
+	"auth.revokeHint": "可在「已授权客户端」中撤销。",
+	"auth.allowAccess": "允许访问",
+	"auth.cancel": "取消",
+	"auth.checkEmail": "查看邮件",
+	"auth.resendEmail": "重新发送邮件"
 }

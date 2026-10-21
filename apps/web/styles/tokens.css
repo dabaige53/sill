@@ -1,5 +1,7 @@
 /* Sill · tokens · shared source (design-system/tokens.json v2) */
 :root {
+	--summary-reading-lines: 4;
+	--settings-body-height: 560px;
 	--dur-deck: 260ms;
 	--dur-show: 320ms;
 	--dur-lens: 0ms;
@@ -8,9 +10,10 @@
 	--dur-read: 220ms;
 	--dur-sheet: 260ms;
 	--dur-close: 220ms;
-	--dur-open: 220ms;
+	--dur-open: 280ms;
 	--dur-state: 220ms;
-	--dur-menu: 180ms;
+	--dur-menu: 200ms;
+	--dur-menu-close: 160ms;
 	--dur-hover: 160ms;
 	--dur-press: 120ms;
 	--ease-spring: linear(
@@ -140,7 +143,6 @@
 	--article-measure: 600px;
 	--article-gutter: 32px;
 	--article-gutter-sm: 20px;
-	--col-limit: 4;
 	--hit-target: 44px;
 	--summary-lines: 3;
 	--block-gap: 8px;

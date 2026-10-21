@@ -184,3 +184,19 @@
 - [Mac 原生说明](../apps/apple/README.md)
 - [PR 编写指南](../pr.md)与[PR 模板](../.github/pull_request_template.md)
 - [接口准备示例](../contracts/design/)：保留准备材料，不表示新增 API 已实现。
+
+- [登录授权页面与设置画板](adr/0052-auth-pages-and-settings-boards.md)
+- [桌面导航对齐与稳定搜索宽度](adr/0053-desktop-navigation-alignment.md)
+- [桌面阅读与刷新动效衔接](adr/0054-desktop-motion-continuity.md)
+- [Mac 导航与 AI 输入栏原生玻璃](adr/0055-macos-navigation-liquid-glass.md)
+- [登录授权与设置画板交接](records/2026-10-21-auth-settings-ui/README.md)
+
+- [Mac 性能追踪与自动化测试](guides/macos-performance.md)
+
+- [Mac 性能工作流验证记录](records/2026-10-21-macos-performance/README.md)
+
+- [桌面交互架构与验证](guides/desktop-interaction.md)
+- [桌面输入归属与动效职责](adr/0056-desktop-input-ownership.md)
+- [桌面卡片空间过渡与浮层可读性](adr/0057-desktop-card-spatial-transition.md)
+
+- [2026-10-21 测试整理](records/2026-10-21-test-cleanup/README.md)：旧测试删除依据、恢复标签和运行入口分工。

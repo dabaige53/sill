@@ -2,15 +2,19 @@ import { MotionEngine } from "./motion.ts";
 
 export function columnGeometry(
 	width: number,
-	{ min = 280, ideal = 340, max = 380, gap = 24, limit = 4 } = {},
+	{ min = 280, ideal = 340, max = 380, gap = 24, fill = false } = {},
 ) {
 	const fits = Math.max(1, Math.floor((width + gap) / (min + gap)));
 	const columns = Math.max(
 		1,
-		Math.min(limit, fits, Math.max(Math.min(2, fits), Math.floor((width + gap) / (ideal + gap)))),
+		Math.min(fits, Math.max(Math.min(2, fits), Math.floor((width + gap) / (ideal + gap)))),
 	);
 	const columnWidth =
-		columns === 1 ? width : Math.min(max, (width - (columns - 1) * gap) / columns);
+		columns === 1
+			? width
+			: fill
+				? (width - (columns - 1) * gap) / columns
+				: Math.min(max, (width - (columns - 1) * gap) / columns);
 	return {
 		columns,
 		columnWidth,
@@ -30,7 +34,7 @@ class FeedLayout {
 		this.container = container;
 		this.frame = 0;
 		this.animateNext = false;
-		this.onResize = () => this.schedule(false);
+		this.onResize = () => this.schedule(true);
 		window.addEventListener("resize", this.onResize, { passive: true });
 		// Embedded workspaces can resize without a window resize event.
 		this.observedWidth = container.clientWidth;
@@ -38,7 +42,7 @@ class FeedLayout {
 			const width = entries[0].contentRect.width;
 			if (Math.abs(width - this.observedWidth) < 1) return;
 			this.observedWidth = width;
-			this.schedule(false);
+			this.schedule(true);
 		});
 		this.observer.observe(container);
 	}
@@ -68,8 +72,7 @@ class FeedLayout {
 		// @design feed-columns
 		const min = value("--col-min", 280),
 			ideal = value("--col-ideal", 340),
-			max = value("--col-max", 380),
-			limit = value("--col-limit", 4);
+			max = value("--col-max", 380);
 		const gap = value(width < min * 2 + 24 ? "--gap-sm" : width < 1000 ? "--gap-md" : "--gap", 24);
 		const {
 			columns: cols,
@@ -80,7 +83,7 @@ class FeedLayout {
 			ideal,
 			max,
 			gap,
-			limit,
+			fill: el.id === "feed-grid" && window.innerWidth > 650,
 		});
 		if (el.id === "feed-grid") {
 			const header = document.getElementById("home-top");

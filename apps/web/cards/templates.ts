@@ -64,7 +64,7 @@ const CardTemplates: Record<string, any> = {
 				.map((p?: any, i?: any) => `<li><i class="num">${i + 1}</i><span>${esc(p)}</span></li>`)
 				.join("")}</ol>`;
 		return c.summary
-			? `<p class="card-summary ${short ? "clamp-2" : ""}">${esc(c.summary)}</p>`
+			? `<p class="card-summary ${c.type === "article" || c.type === "mail" ? "reading-summary" : short ? "clamp-2" : ""}">${esc(c.summary)}</p>`
 			: "";
 	},
 	cover(c?: any, ctx?: any, inner: any = "") {

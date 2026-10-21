@@ -123,17 +123,23 @@ import SillKit
         then?()
         return
       }
+      let trace = PerformanceTrace.shared.begin(.snapshotDiff, reason: .refresh)
       let baseline = self.baseline
       let diff = await Task.detached(priority: .userInitiated) {
         SnapshotDiff.make(snapshot, against: baseline)
       }.value
       guard token == self.generation else { return }
+      PerformanceTrace.shared.end(trace)
       self.apply(diff)
       then?()
     }
   }
 
   private func apply(_ diff: SnapshotDiff) {
+    let trace = PerformanceTrace.shared.begin(.snapshotApply, reason: .refresh)
+    defer {
+      PerformanceTrace.shared.end(trace, values: ["changed_cards": Double(diff.models.count)])
+    }
     revision = diff.revision
     seconds = diff.seconds
     for model in diff.models { models[model.id] = model }

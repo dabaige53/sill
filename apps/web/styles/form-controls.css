@@ -315,7 +315,7 @@
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(#modal[open].page) .home-top {
+body:has(:is(#modal, #search-background)[open].page) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -332,12 +332,21 @@ body:has(#modal[open].page) .home-top {
 	display: none;
 }
 @media (min-width: 651px) {
+	.home-top {
+		width: calc(100% - var(--space-12) * 2);
+		margin-top: var(--space-20);
+	}
+	#feed-grid {
+		max-width: none;
+	}
 	main {
-		padding-top: var(--space-16);
+		padding-inline: var(--space-12);
+		padding-top: var(--space-20);
 		min-height: calc(100dvh - var(--space-130));
 	}
-	/* ADR 0049: brand, ⌄, search and avatar share one 40px centerline. */
+	/* Brand and account align with the outer card edges. */
 	.home-heading {
+		height: var(--space-64);
 		gap: var(--space-8);
 	}
 	.home-brand {
@@ -435,7 +444,9 @@ body:has(#modal[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-8);
-		width: 280px;
+		width: 360px;
+		min-width: 0;
+		flex-shrink: 1;
 		height: 40px;
 		padding: 0 var(--space-8) 0 var(--space-14);
 		border-radius: 20px;
@@ -452,12 +463,6 @@ body:has(#modal[open].page) .home-top {
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		transform-origin: right center;
 		pointer-events: none;
-	}
-	.home-search.has-token {
-		width: 360px;
-	}
-	.home-search:focus-within {
-		width: 480px;
 	}
 	.home-search:focus-within::before {
 		box-shadow:
@@ -538,5 +543,13 @@ body:has(#modal[open].page) .home-top {
 	}
 	.home-tabs {
 		display: none;
+	}
+}
+
+@media (min-width: 651px) {
+	.home-top {
+		background: var(--glass-thick);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
 	}
 }

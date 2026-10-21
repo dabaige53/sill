@@ -52,15 +52,6 @@ export const appLifecycleMethods = {
 		this.themeQuery = matchMedia("(prefers-color-scheme: dark)");
 		this.applyPreferences();
 		this.layout = new FeedLayout(this.grid);
-		const searchField = document.getElementById("home-search-field");
-		if (searchField && typeof ResizeObserver === "function") {
-			let width = searchField.getBoundingClientRect().width;
-			new ResizeObserver(() => {
-				const next = searchField.getBoundingClientRect().width;
-				if (this.desktop()) MotionEngine.searchResize(searchField, width);
-				width = next;
-			}).observe(searchField);
-		}
 		this.pageLimit = 40;
 		this.drag = new DragManager(this);
 		this.gestures = new Gestures(this);

@@ -6,6 +6,7 @@ import SwiftUI
 /// transparent, only the traffic lights remain), the AI box at the bottom, and the reading overlay
 /// over everything. Opening a card adds the overlay; nothing under it lays out again.
 struct DesktopView: View {
+  @Environment(DesktopInteraction.self) private var interaction
   @Environment(Workspace.self) private var workspace
   @Environment(Feed.self) private var feed
   @Environment(Selection.self) private var selection
@@ -17,6 +18,7 @@ struct DesktopView: View {
   @Environment(CardMenu.self) private var menu
   @Environment(Panels.self) private var panels
   @Environment(NewContent.self) private var newContent
+  @Namespace private var cardSpace
   @State private var scroll: FeedScroll?
   @State private var cardIntents = CardIntents()
   @State private var readerIntents = ReaderIntents()
@@ -36,7 +38,7 @@ struct DesktopView: View {
         if let scroll {
           FeedView(
             geometry: geometry, scroll: scroll,
-            topInset: AppleMetrics.topBarInset + AppleMetrics.space60 + AppleMetrics.space40)
+            topInset: AppleMetrics.topBarInset + AppleMetrics.space64 + AppleMetrics.space20)
         }
         if shell.menu.open {
           // A click anywhere else closes the tab menu.
@@ -45,6 +47,10 @@ struct DesktopView: View {
             .accessibilityHidden(true)
         }
         TopBar(edge: edge, menu: shell.menu) { scrollToTop() }
+        if let scroll {
+          FeedRefreshIndicator(refresh: scroll.refresh)
+            .padding(.top, AppleMetrics.topBarInset + AppleMetrics.space64)
+        }
         ZStack(alignment: .bottom) {
           AIDock()
             .opacity(dockShown || drag.active ? 1 : 0)
@@ -65,6 +71,15 @@ struct DesktopView: View {
           DragPile(cardWidth: geometry.columnWidth)
         }
         NewHint { showNew() }
+        // Keep the dropdown in the window layer: its rows extend below the top bar.
+        ScopeMenu(menu: shell.menu)
+          .padding(.leading, max(0, shell.menu.anchor - AppleMetrics.space6))
+          .padding(
+            .top,
+            AppleMetrics.topBarInset + (AppleMetrics.space64 + AppleMetrics.hitTarget) / 2
+              + AppleMetrics.space8
+          )
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         ReaderOverlay()
         PanelOverlay()
         // Over an open detail too (Web moves `#toast` into the dialog).
@@ -72,24 +87,43 @@ struct DesktopView: View {
       }
       .ignoresSafeArea(edges: .top)
     }
+    .environment(\.cardSpace, cardSpace)
     .environment(\.cardIntents, cardIntents)
     .environment(\.readerIntents, readerIntents)
     .onAppear { connect() }
+    .onDisappear {
+      if let escape { NSEvent.removeMonitor(escape) }
+      if let keys { NSEvent.removeMonitor(keys) }
+      escape = nil
+      keys = nil
+    }
     .task { await poll() }
     .task { await tick() }
-    .onChange(of: shell.searchFocused) { pinChrome() }
-    .onChange(of: shell.menu.open) { pinChrome() }
+    .onChange(of: shell.searchFocused) { _, focused in
+      if focused {
+        shell.menu.close()
+        menu.close()
+      }
+      pinChrome()
+    }
+    .onChange(of: interaction.layer) { _, layer in
+      PointerRouter.shared.enabled = layer == .home || layer == .drag
+      if layer != .home { scroll?.refresh.cancel() }
+    }
+    .onChange(of: shell.menu.open) { _, open in
+      if open { shell.blurSearch() }
+      pinChrome()
+    }
     .onChange(of: drag.active) { pinChrome() }
-    .onChange(of: barShown) { _, shown in
-      if shown {
+    .task(id: barShown) {
+      if barShown {
         dockShown = false
       } else if drag.active {
         dockShown = true
       } else {
-        Task {
-          try? await Task.sleep(for: .seconds(AppleMetrics.motionMenuOpen))
-          if !barShown { dockShown = true }
-        }
+        do { try await Task.sleep(for: .seconds(AppleMetrics.motionMenuClose)) } catch { return }
+        guard !Task.isCancelled else { return }
+        dockShown = true
       }
     }
     .onChange(of: workspace.preferences) { _, value in feed.preferencesChanged(value) }
@@ -99,12 +133,16 @@ struct DesktopView: View {
       ai.prune { workspace.model($0) != nil }
     }
     .onChange(of: reader.presented) { _, open in
-      PointerRouter.shared.enabled = !open && panels.kind == nil
-      if open { menu.close() }
+      if open {
+        menu.close()
+        shell.menu.close()
+      }
     }
     .onChange(of: panels.kind) { _, kind in
-      PointerRouter.shared.enabled = kind == nil && !reader.presented
-      if kind != nil { menu.close() }
+      if kind != nil {
+        menu.close()
+        shell.menu.close()
+      }
     }
   }
 
@@ -158,24 +196,24 @@ struct DesktopView: View {
   /// selection ends. The reader and the search field handle their own Esc.
   private func installEscape() {
     guard escape == nil else { return }
-    let drag = drag
     let menu = menu
     let selection = selection
-    let reader = reader
     let shell = shell
-    let panels = panels
     let workspace = workspace
+    let interaction = interaction
     escape = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-      guard event.keyCode == 53 else { return event }
+      guard event.keyCode == 53, event.window === NSApp.mainWindow,
+        event.window?.attachedSheet == nil
+      else { return event }
       let typing = event.window?.firstResponder is NSText
       let handled = MainActor.assumeIsolated {
-        guard !reader.presented, panels.kind == nil, !shell.searchFocused else { return false }
-        if drag.active {
-          drag.cancel()
-        } else if let id = menu.id {
-          menu.close()
-          workspace.state(id).requestFocus()
-        } else if selection.active, !typing {
+        let menuOrigin = menu.id
+        if interaction.dismiss() {
+          if let menuOrigin { workspace.state(menuOrigin).requestFocus() }
+          return true
+        }
+        guard !shell.searchFocused else { return false }
+        if selection.active, !typing {
           selection.clear()
         } else {
           return false
@@ -193,18 +231,21 @@ struct DesktopView: View {
     guard keys == nil else { return }
     let workspace = workspace
     let feed = feed
-    let reader = reader
     let panels = panels
     let shell = shell
+    let interaction = interaction
     let chrome = chrome
     // Read when T is pressed: the feed's scroll is created in `connect`.
     let view = self
     keys = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+      guard event.window === NSApp.mainWindow, event.window?.attachedSheet == nil else {
+        return event
+      }
       let typing = event.window?.firstResponder is NSText
       let flags = event.modifierFlags.intersection([.command, .control, .option])
       let key = event.charactersIgnoringModifiers?.lowercased() ?? ""
       let handled = MainActor.assumeIsolated {
-        guard !typing, !reader.presented, panels.kind == nil, !shell.searchFocused else {
+        guard !typing, interaction.layer == .home, !shell.searchFocused else {
           return false
         }
         if flags == .command, key == "v" {
@@ -233,6 +274,17 @@ struct DesktopView: View {
     if scroll == nil {
       let next = FeedScroll(chrome: chrome)
       next.nearEnd = { [weak feed] in feed?.loadMore() }
+      next.refreshAllowed = { [weak interaction] in interaction?.canScrollFeed == true }
+      next.refresh.request = { [weak workspace, weak feed] done in
+        guard let workspace else {
+          done(false)
+          return
+        }
+        workspace.refresh(quiet: true) { success in
+          if success { feed?.refreshMembership() }
+          done(success)
+        }
+      }
       scroll = next
     }
     let workspace = workspace

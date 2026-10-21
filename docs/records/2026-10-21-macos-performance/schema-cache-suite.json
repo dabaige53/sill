@@ -1,0 +1,883 @@
+{
+  "status": 0,
+  "tool": "Xcode XCTest via swift test",
+  "configuration": "release",
+  "scenarios": [
+    "-[SillDesktopTests.PerformanceBenchmarks testFeedScroll3000]",
+    "-[SillDesktopTests.PerformanceBenchmarks testPanelOpenClose]",
+    "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands300]",
+    "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands3000]",
+    "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch300]",
+    "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch3000]",
+    "-[SillDesktopTests.PerformanceBenchmarks testSearch300]",
+    "-[SillDesktopTests.PerformanceBenchmarks testSearch3000]"
+  ],
+  "measurement_scope": "In-process commands and scroll handlers; excludes rendered frames, input hit testing and deferred I/O.",
+  "metrics": [
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testFeedScroll3000]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        1474.56,
+        1425.408,
+        1458.176,
+        1441.792,
+        1425.408,
+        1458.176,
+        1458.176,
+        1458.176,
+        1425.408,
+        1409.024
+      ],
+      "mean": 1443.4303999999997
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testFeedScroll3000]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        239597.649,
+        230058.474,
+        238558.949,
+        236748.087,
+        234184.239,
+        225177.322,
+        240869.766,
+        247197.234,
+        252844.659,
+        245724.075
+      ],
+      "mean": 239096.04540000003
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testFeedScroll3000]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.058417,
+        0.056004,
+        0.058217,
+        0.057599,
+        0.057215,
+        0.05496,
+        0.059262,
+        0.060177,
+        0.061974,
+        0.059809
+      ],
+      "mean": 0.058363399999999996
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testFeedScroll3000]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.058684,
+        0.056332,
+        0.058395,
+        0.057864,
+        0.057461,
+        0.05523,
+        0.059269,
+        0.060454,
+        0.062062,
+        0.060053
+      ],
+      "mean": 0.0585804
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testFeedScroll3000]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        856850.385,
+        856936.28,
+        856754.804,
+        856582.688,
+        856717.684,
+        856774.238,
+        857299.466,
+        856708.533,
+        857201.087,
+        856676.16
+      ],
+      "mean": 856850.1325
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testFeedScroll3000]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        88671.048,
+        90112.84,
+        91571.016,
+        93029.192,
+        94454.6,
+        95912.776,
+        97403.72,
+        98894.664,
+        100320.072,
+        101761.864
+      ],
+      "mean": 95213.17919999998
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testPanelOpenClose]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        16.384,
+        0
+      ],
+      "mean": 1.6384
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testPanelOpenClose]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        1051.082,
+        1016.762,
+        994.387,
+        1010.677,
+        1013.683,
+        974.661,
+        1000.009,
+        966.036,
+        1003.58,
+        1007.764
+      ],
+      "mean": 1003.8641
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testPanelOpenClose]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.000059,
+        0.000065,
+        0.000059,
+        0.000061,
+        0.000059,
+        0.000058,
+        0.000059,
+        0.000059,
+        0.000058,
+        0.000058
+      ],
+      "mean": 0.0000595
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testPanelOpenClose]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.000263,
+        0.000254,
+        0.000249,
+        0.000253,
+        0.000254,
+        0.000244,
+        0.00025,
+        0.000242,
+        0.000251,
+        0.000252
+      ],
+      "mean": 0.0002512
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testPanelOpenClose]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        3684.576,
+        3694.66,
+        3722.433,
+        3681.518,
+        3646.598,
+        3680.004,
+        3693.308,
+        3648.363,
+        3686.799,
+        3678.705
+      ],
+      "mean": 3681.6964000000007
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testPanelOpenClose]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        104530.784,
+        104530.784,
+        104530.784,
+        104530.784,
+        104530.784,
+        104530.784,
+        104530.784,
+        104530.784,
+        104547.168,
+        104547.168
+      ],
+      "mean": 104534.0608
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands300]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        0,
+        16.384,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mean": 1.6384
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands300]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        1676.321,
+        1710.223,
+        1747.062,
+        1690.102,
+        1773.951,
+        1676.067,
+        1764.244,
+        1745.644,
+        1726.848,
+        1662.551
+      ],
+      "mean": 1717.3012999999999
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands300]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.000224,
+        0.000218,
+        0.000222,
+        0.000226,
+        0.000234,
+        0.000239,
+        0.00024,
+        0.000224,
+        0.000227,
+        0.000219
+      ],
+      "mean": 0.00022730000000000002
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands300]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.00042,
+        0.000427,
+        0.00044,
+        0.000424,
+        0.000448,
+        0.000435,
+        0.000444,
+        0.000448,
+        0.000434,
+        0.000418
+      ],
+      "mean": 0.0004338000000000001
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands300]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        6161.168,
+        6152.73,
+        6205.467,
+        6147.172,
+        6214.038,
+        6164.991,
+        6154.475,
+        6184.943,
+        6145.807,
+        6142.762
+      ],
+      "mean": 6167.3553
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands300]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        28853.088,
+        28869.472,
+        28869.472,
+        28869.472,
+        28869.472,
+        28869.472,
+        28902.24,
+        28902.24,
+        28902.24,
+        28902.24
+      ],
+      "mean": 28880.9408
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands3000]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mean": 0
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands3000]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        1808.708,
+        1760.95,
+        1867.886,
+        1775.847,
+        1691.897,
+        1758.431,
+        1743.654,
+        1731.032,
+        1720.827,
+        1713.009
+      ],
+      "mean": 1757.2241000000001
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands3000]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.000246,
+        0.00023,
+        0.000247,
+        0.000227,
+        0.000224,
+        0.000232,
+        0.000228,
+        0.000225,
+        0.000224,
+        0.000227
+      ],
+      "mean": 0.00023099999999999995
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands3000]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.000468,
+        0.000457,
+        0.000478,
+        0.000446,
+        0.000429,
+        0.000442,
+        0.000437,
+        0.000438,
+        0.000434,
+        0.000433
+      ],
+      "mean": 0.00044620000000000006
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands3000]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        6190.659,
+        6182.694,
+        6235.465,
+        6182.04,
+        6130.775,
+        6149.036,
+        6164.223,
+        6128.241,
+        6130.424,
+        6171.586
+      ],
+      "mean": 6166.514300000001
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testReaderCommands3000]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        35177.312,
+        35177.312,
+        35177.312,
+        35177.312,
+        35177.312,
+        35177.312,
+        35177.312,
+        35177.312,
+        35177.312,
+        35177.312
+      ],
+      "mean": 35177.31199999999
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch300]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        0,
+        16.384,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mean": 1.6384
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch300]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        8551.187,
+        8242.141,
+        7673.141,
+        8583.847,
+        7911.022,
+        7660.77,
+        7696.7,
+        7989.541,
+        7996.874,
+        8903.206
+      ],
+      "mean": 8120.842899999999
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch300]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.001877,
+        0.001827,
+        0.001695,
+        0.001899,
+        0.001719,
+        0.001688,
+        0.001689,
+        0.001817,
+        0.0018,
+        0.002148
+      ],
+      "mean": 0.0018158999999999998
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch300]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.002103,
+        0.002047,
+        0.001908,
+        0.002103,
+        0.001941,
+        0.001888,
+        0.001895,
+        0.002009,
+        0.002008,
+        0.002329
+      ],
+      "mean": 0.0020231000000000003
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch300]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        29588.634,
+        29649.531,
+        29542.119,
+        29544.18,
+        29642.314,
+        29584.686,
+        29593.226,
+        29648.473,
+        29596.909,
+        29825.7
+      ],
+      "mean": 29621.5772
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch300]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        35324.792,
+        35341.176,
+        35341.176,
+        35341.176,
+        35341.176,
+        35341.176,
+        35341.176,
+        35341.176,
+        35341.176,
+        35341.176
+      ],
+      "mean": 35339.537599999996
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch3000]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        0,
+        0,
+        0,
+        16.384,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mean": 1.6384
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch3000]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        79729.289,
+        79151.151,
+        82123.888,
+        83651.686,
+        81200.938,
+        81060.695,
+        82130.4,
+        76469.354,
+        80998.56,
+        79066.039
+      ],
+      "mean": 80558.20000000001
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch3000]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.019243,
+        0.019144,
+        0.019997,
+        0.020612,
+        0.019724,
+        0.019685,
+        0.019897,
+        0.018456,
+        0.01956,
+        0.019086
+      ],
+      "mean": 0.0195404
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch3000]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.019464,
+        0.019404,
+        0.020251,
+        0.020772,
+        0.019929,
+        0.019917,
+        0.020117,
+        0.018698,
+        0.019796,
+        0.019331
+      ],
+      "mean": 0.019767899999999998
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch3000]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        275435.252,
+        275554.984,
+        275559.686,
+        275867.674,
+        275554.629,
+        275584.397,
+        275531.11,
+        275502.462,
+        275504.88,
+        275481.735
+      ],
+      "mean": 275557.6808999999
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testScopeSwitch3000]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        38454.136,
+        38454.136,
+        38454.136,
+        38470.52,
+        38470.52,
+        38470.52,
+        38470.52,
+        38470.52,
+        38470.52,
+        38470.52
+      ],
+      "mean": 38465.6048
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch300]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mean": 0
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch300]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        70266.635,
+        69273.582,
+        67943.361,
+        66567.832,
+        67287.34,
+        66617.49,
+        65732.213,
+        69929.474,
+        68634.166,
+        67416.177
+      ],
+      "mean": 67966.827
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch300]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.017094,
+        0.016701,
+        0.01641,
+        0.016085,
+        0.016234,
+        0.016047,
+        0.015842,
+        0.016874,
+        0.016597,
+        0.016377
+      ],
+      "mean": 0.0164261
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch300]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.01728,
+        0.016922,
+        0.016627,
+        0.016282,
+        0.016462,
+        0.016244,
+        0.016066,
+        0.017092,
+        0.016828,
+        0.016598
+      ],
+      "mean": 0.0166401
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch300]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        454454.183,
+        454279.438,
+        454220.671,
+        454276.67,
+        454294.511,
+        454190.576,
+        454252.47,
+        454241.785,
+        454315.03,
+        454315.958
+      ],
+      "mean": 454284.12919999997
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch300]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        38486.904,
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288
+      ],
+      "mean": 38501.6496
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch3000]",
+      "metric": "Memory Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        -17874.944,
+        16.384,
+        0,
+        0,
+        0,
+        0
+      ],
+      "mean": -1785.8560000000002
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch3000]",
+      "metric": "CPU Cycles, kC",
+      "id": "com.apple.dt.XCTMetric_CPU.cycles",
+      "values": [
+        669297.657,
+        665099.523,
+        669044.39,
+        671215.008,
+        676637.536,
+        664247.046,
+        667452.364,
+        663569.472,
+        660818.934,
+        666307.216
+      ],
+      "mean": 667368.9146
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch3000]",
+      "metric": "Clock Monotonic Time, s",
+      "id": "com.apple.dt.XCTMetric_Clock.time.monotonic",
+      "values": [
+        0.163929,
+        0.162847,
+        0.171742,
+        0.164187,
+        0.166413,
+        0.163367,
+        0.16357,
+        0.162493,
+        0.161127,
+        0.163849
+      ],
+      "mean": 0.1643524
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch3000]",
+      "metric": "CPU Time, s",
+      "id": "com.apple.dt.XCTMetric_CPU.time",
+      "values": [
+        0.164036,
+        0.163147,
+        0.170976,
+        0.164272,
+        0.166616,
+        0.16357,
+        0.163657,
+        0.162711,
+        0.161372,
+        0.163801
+      ],
+      "mean": 0.16441580000000003
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch3000]",
+      "metric": "CPU Instructions Retired, kI",
+      "id": "com.apple.dt.XCTMetric_CPU.instructions_retired",
+      "values": [
+        4526124.815,
+        4526105.509,
+        4527852.275,
+        4525967.489,
+        4541200.572,
+        4525762.443,
+        4526244.852,
+        4525715.128,
+        4525641.342,
+        4526478.301
+      ],
+      "mean": 4527709.2726
+    },
+    {
+      "test": "-[SillDesktopTests.PerformanceBenchmarks testSearch3000]",
+      "metric": "Memory Peak Physical, kB",
+      "id": "com.apple.dt.XCTMetric_Memory.physical_peak",
+      "values": [
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288,
+        38503.288,
+        20644.728,
+        20644.728,
+        20644.728,
+        20644.728,
+        20644.728
+      ],
+      "mean": 29574.008
+    }
+  ],
+  "xcode": "Xcode 27.1\nBuild version 27A9275\n"
+}

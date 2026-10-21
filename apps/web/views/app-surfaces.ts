@@ -70,6 +70,7 @@ export const appSurfacesMethods = {
 		const reversing = this.dialog.open && this.sheetLeaving;
 		const drawn = reversing ? getComputedStyle(MotionEngine.surface(this.dialog)) : null;
 		const resume = drawn ? { opacity: drawn.opacity, transform: drawn.transform } : undefined;
+		if (kind !== "preview" && kind !== "reader") MotionEngine.releaseSource(this.dialog);
 		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
@@ -123,7 +124,11 @@ export const appSurfacesMethods = {
 		}
 	},
 	cardRect(this: AppController, id?: string) {
-		const el = id && this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
+		const el =
+			id &&
+			(this.searchBackground || this.grid).querySelector<HTMLElement>(
+				`[data-card="${CSS.escape(id)}"]`,
+			);
 		const r = el?.getBoundingClientRect();
 		return r?.width && r.bottom > 0 && r.top < innerHeight ? r : null;
 	},
@@ -145,6 +150,13 @@ export const appSurfacesMethods = {
 				opacity = getComputedStyle(sheet).opacity;
 			const transform = getComputedStyle(sheet).transform;
 			MotionEngine.cancelPanel(this.dialog);
+			const returning =
+				!matchMedia("(max-width:650px)").matches && ["preview", "reader"].includes(this.modalKind)
+					? this.cardRect(this.currentId)
+					: null;
+			const destination = returning
+				? MotionEngine.cardTransform(returning, sheet.getBoundingClientRect())
+				: null;
 			this.sheetLeaving = true;
 			this.dialog.inert = true;
 			MotionEngine.dim(this.dialog, 0, MotionEngine.time("dur-close"));
@@ -153,16 +165,17 @@ export const appSurfacesMethods = {
 				[
 					{ opacity, transform },
 					{
-						opacity: 0,
-						transform: MotionEngine.phoneSheet(this.dialog)
-							? "translateY(100%)"
-							: "translateY(10px)",
+						opacity: destination ? 1 : 0,
+						transform:
+							destination ||
+							(MotionEngine.phoneSheet(this.dialog) ? "translateY(100%)" : "translateY(10px)"),
 					},
 				],
 				{
 					duration: MotionEngine.phoneSheet(this.dialog)
 						? MotionEngine.time("dur-sheet")
 						: MotionEngine.time("dur-close"),
+					spring: destination ? "card" : false,
 					fill: "forwards",
 				},
 			);
@@ -197,6 +210,7 @@ export const appSurfacesMethods = {
 		if (this.modalKind === "search")
 			this.searchScroll = this.dialog.querySelector<HTMLElement>("#search-results")?.scrollTop || 0;
 		this.dialog.close();
+		MotionEngine.releaseSource(this.dialog);
 		if (this.searchBackground) {
 			this.restoreSearch();
 			return;

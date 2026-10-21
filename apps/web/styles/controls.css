@@ -571,12 +571,27 @@ body.is-dragging #toast {
 		pointer-events: auto;
 	}
 	#dock #selection-bar {
-		width: min(640px, 100%);
-		max-width: none;
+		width: max-content;
+		max-width: 100%;
 		justify-content: center;
 	}
 	#dock #selection-bar .icon-button {
 		width: 44px;
 		height: 44px;
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock,
+	#selection-bar,
+	#search-selection-bar {
+		background: var(--glass-thick);
+	}
+	.ai-dock-send:disabled > span {
+		color: var(--secondary);
+	}
+	.ai-dock-send .icon {
+		width: var(--space-20);
+		height: var(--space-20);
 	}
 }

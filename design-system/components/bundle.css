@@ -1,5 +1,5 @@
 /* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */
-:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:220ms;--dur-sheet:260ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:240ms;--dur-lens:0ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:320ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 16px;--text-input: 17px;--text-reader-body: 17px;--text-article-title: 22px;--text-article-section: 17px;--text-article-body: 15px;--text-article-meta: 12px;--text-summary: 14px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;--text-card-meta: 12px;}
+:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:200ms;--dur-menu-close:160ms;--dur-state:220ms;--dur-open:280ms;--dur-close:220ms;--dur-sheet:260ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:240ms;--dur-lens:0ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:320ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 16px;--text-input: 17px;--text-reader-body: 17px;--text-article-title: 22px;--text-article-section: 17px;--text-article-body: 15px;--text-article-meta: 12px;--text-summary: 14px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;--text-card-meta: 12px;}
 :root[data-theme="dark"],
 .lightbox .float-bar {
 	--canvas: #111113;
@@ -858,13 +858,28 @@ body.is-dragging #toast {
 		pointer-events: auto;
 	}
 	#dock #selection-bar {
-		width: min(640px, 100%);
-		max-width: none;
+		width: max-content;
+		max-width: 100%;
 		justify-content: center;
 	}
 	#dock #selection-bar .icon-button {
 		width: 44px;
 		height: 44px;
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock,
+	#selection-bar,
+	#search-selection-bar {
+		background: var(--glass-thick);
+	}
+	.ai-dock-send:disabled > span {
+		color: var(--secondary);
+	}
+	.ai-dock-send .icon {
+		width: var(--space-20);
+		height: var(--space-20);
 	}
 }
 
@@ -1185,7 +1200,7 @@ body.is-dragging #toast {
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(#modal[open].page) .home-top {
+body:has(:is(#modal, #search-background)[open].page) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -1202,12 +1217,21 @@ body:has(#modal[open].page) .home-top {
 	display: none;
 }
 @media (min-width: 651px) {
+	.home-top {
+		width: calc(100% - var(--space-12) * 2);
+		margin-top: var(--space-20);
+	}
+	#feed-grid {
+		max-width: none;
+	}
 	main {
-		padding-top: var(--space-16);
+		padding-inline: var(--space-12);
+		padding-top: var(--space-20);
 		min-height: calc(100dvh - var(--space-130));
 	}
-	/* ADR 0049: brand, ⌄, search and avatar share one 40px centerline. */
+	/* Brand and account align with the outer card edges. */
 	.home-heading {
+		height: var(--space-64);
 		gap: var(--space-8);
 	}
 	.home-brand {
@@ -1305,7 +1329,9 @@ body:has(#modal[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-8);
-		width: 280px;
+		width: 360px;
+		min-width: 0;
+		flex-shrink: 1;
 		height: 40px;
 		padding: 0 var(--space-8) 0 var(--space-14);
 		border-radius: 20px;
@@ -1322,12 +1348,6 @@ body:has(#modal[open].page) .home-top {
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		transform-origin: right center;
 		pointer-events: none;
-	}
-	.home-search.has-token {
-		width: 360px;
-	}
-	.home-search:focus-within {
-		width: 480px;
 	}
 	.home-search:focus-within::before {
 		box-shadow:
@@ -1408,6 +1428,14 @@ body:has(#modal[open].page) .home-top {
 	}
 	.home-tabs {
 		display: none;
+	}
+}
+
+@media (min-width: 651px) {
+	.home-top {
+		background: var(--glass-thick);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
 	}
 }
 
@@ -1494,7 +1522,12 @@ body:has(#modal[open].page) .home-top {
 	line-height: 18px;
 	color: var(--muted);
 }
-/* The reserved action slot keeps counts and timely information readable while hovering. */
+/* Reserve the action slot only while the desktop more button is visible. */
+@media (min-width: 651px) and (hover: hover) and (pointer: fine) {
+	.feed-card:not(:hover):not(:focus-within):not(.tools-open) :is(.card-head, .sender) {
+		padding-right: 0;
+	}
+}
 .has-cover .card-head-right {
 	opacity: 1;
 }
@@ -1598,6 +1631,9 @@ body:has(#modal[open].page) .home-top {
 }
 .card-summary.clamp-2 {
 	-webkit-line-clamp: 2;
+}
+.card-summary.reading-summary {
+	-webkit-line-clamp: var(--summary-reading-lines);
 }
 .card-summary.indent {
 	padding-left: var(--space-34);
@@ -2440,6 +2476,7 @@ dialog::backdrop {
 
 /* The card toolbar: two to three verbs as icons in one glass capsule. Words live in the content. */
 .float-bar {
+	background: var(--glass-thick);
 	display: flex;
 	align-items: center;
 	gap: var(--space-4);
@@ -3055,9 +3092,9 @@ button.detail-row:active {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-14);
-	max-width: 860px;
+	width: 100%;
 	margin: 0 auto;
-	padding: var(--space-88) var(--space-32) var(--space-160);
+	padding: var(--space-88) var(--space-30) var(--space-160);
 }
 .reader-body .preview-meta {
 	margin-bottom: 0;
@@ -3127,8 +3164,9 @@ button.detail-row:active {
 	line-height: 25px;
 	color: var(--ink);
 }
+/* Keep the centered column: paragraph spacing must not reset inline auto margins. */
 :is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points) {
-	margin: 0 0 var(--space-16);
+	margin-block: 0 var(--space-16);
 }
 :is(.preview-body, .reader-body).is-article .key-points {
 	gap: var(--space-6);
@@ -3385,7 +3423,7 @@ button.list-row:active {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-2);
-	padding: var(--space-12) var(--space-16) var(--space-28);
+	padding: var(--space-28) var(--space-16);
 	background: var(--canvas);
 	border-right: 1px solid var(--line);
 }
@@ -3842,6 +3880,38 @@ body:has(dialog.search[open]) #feed-grid {
 }
 .search-chips[hidden] {
 	display: none;
+}
+
+/* @design settings-sheet: group changes never resize the desktop frame. */
+@media (min-width: 651px) {
+	#modal.panel:not(.page) .settings-sheet {
+		display: flex;
+		flex-direction: column;
+		height: min(
+			calc(var(--settings-body-height) + var(--space-60) + var(--space-16)),
+			calc(100dvh - var(--space-32))
+		);
+		overflow: hidden;
+	}
+	#modal.panel:not(.page) .settings-head {
+		min-height: calc(var(--space-60) + var(--space-16));
+	}
+	#modal.panel:not(.page) .settings-layout {
+		flex: 1;
+		min-height: 0;
+		grid-template-rows: minmax(0, 1fr);
+	}
+	#modal.panel:not(.page) :is(.settings-nav, .settings-main) {
+		min-height: 0;
+		max-height: none;
+		overflow-y: auto;
+	}
+	#modal.panel:not(.page) .settings-nav button {
+		flex-shrink: 0;
+	}
+	#modal.panel:not(.page) .settings-main h2 {
+		line-height: var(--space-32);
+	}
 }
 
 /* More menu, popovers. */

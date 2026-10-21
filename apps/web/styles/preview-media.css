@@ -185,9 +185,9 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-14);
-	max-width: 860px;
+	width: 100%;
 	margin: 0 auto;
-	padding: var(--space-88) var(--space-32) var(--space-160);
+	padding: var(--space-88) var(--space-30) var(--space-160);
 }
 .reader-body .preview-meta {
 	margin-bottom: 0;
@@ -257,8 +257,9 @@
 	line-height: 25px;
 	color: var(--ink);
 }
+/* Keep the centered column: paragraph spacing must not reset inline auto margins. */
 :is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points) {
-	margin: 0 0 var(--space-16);
+	margin-block: 0 var(--space-16);
 }
 :is(.preview-body, .reader-body).is-article .key-points {
 	gap: var(--space-6);

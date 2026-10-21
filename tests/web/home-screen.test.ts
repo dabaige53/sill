@@ -47,7 +47,7 @@ test("workspace and login policies allow only same-origin installation metadata"
 	assert.doesNotMatch(source, /manifest-src \*/);
 });
 
-test("local, generated cloud, and both login variants select the canvas theme color", async () => {
+test("local, generated cloud, and both login variants select the theme color of their own surface", async () => {
 	await buildPage({ cloud: true });
 	const pages = [
 		await readFile("dist/web/index.html", "utf8"),
@@ -56,18 +56,20 @@ test("local, generated cloud, and both login variants select the canvas theme co
 		loginPage({ setup: true }),
 	];
 	const tokens = await readFile("apps/web/styles/tokens.css", "utf8");
-	for (const html of pages) {
+	for (const [index, html] of pages.entries()) {
 		const dom = new JSDOM(html);
 		try {
 			const themes = [...dom.window.document.querySelectorAll('meta[name="theme-color"]')];
 			assert.equal(themes.length, 2, "cloud generation must not duplicate shell colors");
 			for (const [scheme, color] of [
-				["light", "#f5f5f7"],
-				["dark", "#111113"],
+				["light", index < 2 ? "#f5f5f7" : "#ffffff"],
+				["dark", index < 2 ? "#111113" : "#1c1c1f"],
 			]) {
 				assert.ok(
-					tokens.includes(`--canvas: ${color}`),
-					"color comes from the existing canvas role",
+					tokens
+						.replaceAll("#fff;", "#ffffff;")
+						.includes(`--${index < 2 ? "canvas" : "card"}: ${color}`),
+					"color comes from the page surface role",
 				);
 				assert.equal(
 					themes

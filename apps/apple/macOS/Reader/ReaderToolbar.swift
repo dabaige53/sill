@@ -106,7 +106,7 @@ struct ReaderToolbar: View {
     }
     .padding(AppleMetrics.railInset)
     .frame(height: AppleMetrics.railRow)
-    .glass(Capsule())
+    .desktopGlass(Capsule())
     .onHover { inside in if !inside { tips.leaveBar() } }
     .accessibilityElement(children: .contain)
     .accessibilityLabel(Copy.text("web.preview.cardTools"))
@@ -218,7 +218,9 @@ struct ToolbarTip: ViewModifier {
             .background(
               RoundedRectangle(cornerRadius: AppleMetrics.tipRadius).fill(AppleColors.primary)
             )
-            .alignmentGuide(.top) { $0[.bottom] + AppleMetrics.tipGap }
+            // Anchor the label's bottom above the button, independent of conditional alignment.
+            .frame(height: 0, alignment: .bottom)
+            .offset(y: -AppleMetrics.tipGap)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
         }

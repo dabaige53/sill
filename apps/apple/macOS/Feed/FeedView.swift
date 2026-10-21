@@ -29,6 +29,7 @@ struct FeedView: View {
           MasonryLayout(geometry: geometry) {
             ForEach(Array(feed.entries.enumerated()), id: \.element.id) { index, entry in
               FeedEntryView(entry: entry, context: context)
+                .modifier(ContentFade(value: geometry.columnWidth))
                 .modifier(Entrance(delay: entering ? Entrance.delay(index) : nil))
                 .transition(FeedMotion.arrival)
                 .layoutValue(
@@ -39,12 +40,14 @@ struct FeedView: View {
           }
           .frame(width: geometry.width)
           .animation(Motion.layout, value: feed.entries)
+          .animation(Motion.layout, value: geometry.columns)
           .onAppear { feed.entered = true }
         }
         Color.clear.frame(height: AppleMetrics.feedBottom)
       }
       .frame(maxWidth: .infinity)
       .background(ScrollProbe(scroll: scroll))
+      .modifier(FeedPullOffset(refresh: scroll.refresh))
     }
     .scrollIndicators(.hidden)
     .environment(\.relatedCards, { [workspace] id in workspace.model(id) })

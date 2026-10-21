@@ -39,9 +39,9 @@ struct SelectionBar: View {
       ToolButton(icon: "x", label: Copy.text("web.app.74966e20df2e"), action: intents.cancel)
     }
     .padding(AppleMetrics.space4)
-    .frame(maxWidth: AppleMetrics.aiDockWidth)
+    .fixedSize(horizontal: true, vertical: false)
     .frame(height: AppleMetrics.railRow)
-    .glass(Capsule())
+    .desktopGlass(Capsule(), dense: true)
     .contextMenu {
       Button(Copy.text("web.app.87aeb7040c82"), action: intents.bookmark)
       Button(Copy.text("web.app.d108c0a7e2c3"), action: intents.later)

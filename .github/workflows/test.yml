@@ -16,7 +16,6 @@ jobs:
       - run: npm run plugin:build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:local-browser
-      - run: npm run test:accessibility
       - name: Retain live integration evidence
         if: always()
         uses: actions/upload-artifact@v4

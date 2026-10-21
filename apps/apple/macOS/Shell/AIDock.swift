@@ -54,8 +54,8 @@ struct AIDock: View {
         if value.utf16.count > 4000 { context.draft = String(value.prefix(4000)) }
       }
       dockButton("mic", label: Copy.text("web.ai.speak"))
-      Icon("up", size: AppleMetrics.space16)
-        .foregroundStyle(AppleColors.card)
+      Icon("up", size: AppleMetrics.space20)
+        .foregroundStyle(AppleColors.secondary)
         .frame(width: AppleMetrics.aiSendSize, height: AppleMetrics.aiSendSize)
         .background(Circle().fill(AppleColors.faint))
         .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
@@ -68,16 +68,17 @@ struct AIDock: View {
     .frame(maxWidth: AppleMetrics.aiDockWidth)
     .frame(height: AppleMetrics.railRow)
     // Web `.ai-dock.is-ready`: a carried card over the box tints it and draws a 2px accent ring.
-    .background {
+    .desktopGlass(shape, dense: true)
+    .overlay {
       if drag.ready {
-        shape.fill(AppleColors.card)
-          .overlay(shape.fill(AppleColors.accent.opacity(AppleMetrics.aiReadyTint)))
+        shape.fill(AppleColors.accent.opacity(AppleMetrics.aiReadyTint))
           .shadow(
             color: AppleColors.accent.opacity(AppleMetrics.aiReadyGlowOpacity),
-            radius: AppleMetrics.aiReadyGlowBlur / 4, y: AppleMetrics.aiReadyGlowY / 2)
+            radius: AppleMetrics.aiReadyGlowBlur / 4, y: AppleMetrics.aiReadyGlowY / 2
+          )
+          .allowsHitTesting(false)
       }
     }
-    .glass(shape)
     .overlay {
       if drag.ready {
         shape.strokeBorder(AppleColors.accent, lineWidth: AppleMetrics.selectionLineWidth)

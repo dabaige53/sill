@@ -72,7 +72,7 @@ private struct ToastCapsule: View {
     .padding(.trailing, AppleMetrics.space6)
     .frame(minHeight: AppleMetrics.hitTarget)
     .frame(maxWidth: AppleMetrics.toastMaxWidth, alignment: .leading)
-    .glass(Capsule())
+    .desktopGlass(Capsule())
     .onHover { hovered = $0 }
     .onChange(of: active, initial: true) { _, value in windowActive = value != .inactive }
     .task { await run() }

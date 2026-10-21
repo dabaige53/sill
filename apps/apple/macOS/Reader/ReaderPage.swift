@@ -3,14 +3,14 @@ import SillKit
 import SwiftUI
 
 /// The fullscreen page: the whole window, card background, a 2px progress line at the top,
-/// collapse and close in one glass group top right, text at most 860 wide (an article: 600).
+/// collapse and close in one glass group top right, ordinary content fills the page with preview gutters; articles keep a 600-wide measure.
 struct ReaderPage: View {
   let card: CardModel
   let state: CardState
   let layer: Reader.Layer
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
-  @State private var scroll = ReaderScroll()
+  let scroll: ReaderScroll
 
   var body: some View {
     let tools = ReaderTools.actions(
@@ -21,11 +21,11 @@ struct ReaderPage: View {
         ReaderContent(card: card, state: state, type: .page)
           .frame(
             maxWidth: card.kind == .article
-              ? AppleMetrics.articleMeasure : AppleMetrics.readerBodyWidth
+              ? AppleMetrics.articleMeasure : .infinity
           )
           .padding(.top, AppleMetrics.space88)
           .padding(
-            .horizontal, card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.space32
+            .horizontal, card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
           )
           .padding(.bottom, AppleMetrics.space160)
           .frame(maxWidth: .infinity)
@@ -41,7 +41,7 @@ struct ReaderPage: View {
         ToolButton(icon: "x", label: Copy.text("web.reader.close")) { reader.closeAll() }
       }
       .padding(AppleMetrics.space4)
-      .glass(Capsule())
+      .desktopGlass(Capsule())
       .accessibilityElement(children: .contain)
       .accessibilityLabel(Copy.text("web.readerTools"))
       .modifier(ReaderToolsTuck(motion: scroll.motion, top: true))
@@ -58,7 +58,9 @@ struct ReaderPage: View {
       }
       .padding(.bottom, AppleMetrics.readerBarBottom)
     }
+    .modifier(CardGeometryDestination(id: card.id))
     .ignoresSafeArea()
+    .modifier(ReaderSurfaceOffset(motion: scroll.motion))
     .onAppear { configure() }
     .task { await countReadingTime() }
     .accessibilityElement(children: .contain)

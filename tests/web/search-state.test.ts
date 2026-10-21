@@ -1,5 +1,6 @@
 /** Independent navigation projections over one synthetic card store. */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
@@ -161,6 +162,36 @@ test("Escape clears only search selection before a second Escape leaves the sear
 		assert.equal(f.app.dialog.open, false);
 		assert.equal(f.w.location.hash, "#feed");
 		assert.deepEqual([...f.app.homeSelected], ["b"]);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("the home heading stays hidden while a search detail is open", () => {
+	const f = fixture();
+	try {
+		const heading = f.w.document.createElement("header");
+		heading.className = "home-top";
+		f.w.document.body.prepend(heading);
+		const selectors = ["form-controls.css", "phone.css"].map((file) => {
+			const css = readFileSync(`apps/web/styles/${file}`, "utf8");
+			return css.match(/body:has\([^\n]+\) \.home-top(?= \{)/)?.[0];
+		});
+		const hidden = () => {
+			for (const selector of selectors) {
+				assert.ok(selector);
+				assert.ok(heading.matches(selector));
+			}
+		};
+		hidden();
+		f.app.suspendSearch();
+		f.app.dialog.className = "preview";
+		f.app.dialog.showModal();
+		hidden();
+		f.app.restoreSearch();
+		hidden();
+		f.app.dialog.close();
+		for (const selector of selectors) assert.equal(heading.matches(selector), false);
 	} finally {
 		f.dom.window.close();
 	}
@@ -425,6 +456,41 @@ test("repeated close requests on a stacked card only move back one history entry
 		assert.equal(backs, 1);
 		assert.equal(f.app.dialog.open, true);
 		assert.equal(f.app.previewTrail.length, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("open panels keep home menu and search shortcuts from consuming keys", () => {
+	const f = fixture();
+	try {
+		f.w.document.body.insertAdjacentHTML(
+			"beforeend",
+			'<input id="home-search" value="Alpha"><div id="home-menu"></div>',
+		);
+		f.app.desktop = () => true;
+		f.app.homeMenuOpen = true;
+		let actions = 0;
+		f.app.action = () => {
+			actions++;
+		};
+		for (const key of ["Escape", "ArrowDown", "k", "1"]) {
+			let prevented = false;
+			assert.equal(
+				f.app.homeKey({
+					key,
+					metaKey: key === "k" || key === "1",
+					target: f.w.document.getElementById("home-search"),
+					preventDefault() {
+						prevented = true;
+					},
+				}),
+				false,
+			);
+			assert.equal(prevented, false);
+		}
+		assert.equal(actions, 0);
+		assert.equal(f.w.document.getElementById("home-search").value, "Alpha");
 	} finally {
 		f.dom.window.close();
 	}

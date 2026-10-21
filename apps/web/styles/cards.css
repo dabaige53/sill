@@ -81,7 +81,12 @@
 	line-height: 18px;
 	color: var(--muted);
 }
-/* The reserved action slot keeps counts and timely information readable while hovering. */
+/* Reserve the action slot only while the desktop more button is visible. */
+@media (min-width: 651px) and (hover: hover) and (pointer: fine) {
+	.feed-card:not(:hover):not(:focus-within):not(.tools-open) :is(.card-head, .sender) {
+		padding-right: 0;
+	}
+}
 .has-cover .card-head-right {
 	opacity: 1;
 }
@@ -185,6 +190,9 @@
 }
 .card-summary.clamp-2 {
 	-webkit-line-clamp: 2;
+}
+.card-summary.reading-summary {
+	-webkit-line-clamp: var(--summary-reading-lines);
 }
 .card-summary.indent {
 	padding-left: var(--space-34);

@@ -128,6 +128,47 @@ private let syntheticReminder: JSONValue = .object([
 }
 
 @MainActor struct WorkspaceTests {
+  @Test func escapeClosesOnlyTheTopLayerAndPreservesSearch() async {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    let panels = Panels()
+    let shell = Shell()
+    let interaction = DesktopInteraction(
+      panels: panels, reader: reader, shell: shell, menu: CardMenu(workspace: workspace),
+      drag: CardDrag())
+    let feed = Feed(workspace: workspace)
+    feed.search("Synthetic")
+    shell.searchFocused = true
+    reader.open("a")
+    reader.open("b")
+    for kind in [Panels.Kind.settings, .editor(["b"]), .archive, .capture] {
+      panels.open(kind)
+      #expect(interaction.dismiss())
+      #expect(panels.kind == nil)
+      #expect(reader.top?.card == "b")
+      #expect(feed.query == "Synthetic")
+    }
+    #expect(interaction.dismiss())
+    #expect(reader.top?.card == "a")
+    #expect(feed.query == "Synthetic")
+  }
+
+  @Test func escapeClosesScopeMenuBeforeSearch() {
+    let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
+    let shell = Shell()
+    let panels = Panels()
+    let reader = Reader(workspace: workspace)
+    let interaction = DesktopInteraction(
+      panels: panels, reader: reader, shell: shell, menu: CardMenu(workspace: workspace),
+      drag: CardDrag())
+    shell.searchFocused = true
+    #expect(!interaction.dismiss())
+    shell.menu.present()
+    #expect(interaction.dismiss())
+    #expect(!shell.menu.shown)
+    #expect(shell.searchFocused)
+  }
+
   @Test func writeOnOneCardDoesNotTouchOthers() async {
     let (workspace, _) = await ready()
     let a = workspace.state("a")

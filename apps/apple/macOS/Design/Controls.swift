@@ -1,3 +1,4 @@
+import AppKit
 import SillKit
 import SwiftUI
 
@@ -27,6 +28,7 @@ private struct IconPressBody: View {
       .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
       .animation(Motion.press, value: pressed)
       .onHover { hovered = $0 }
+      .modifier(HandCursor())
   }
 }
 
@@ -88,5 +90,22 @@ struct TextLinkStyle: ButtonStyle {
       .padding(.horizontal, padded ? AppleMetrics.space2 : 0)
       .opacity(configuration.isPressed ? AppleMetrics.textLinkPressOpacity : 1)
       .contentShape(Rectangle())
+  }
+}
+
+/// Button feedback shared by toolbar and navigation controls.
+struct HandCursor: ViewModifier {
+  @Environment(\.isEnabled) private var enabled
+  @State private var inside = false
+  func body(content: Content) -> some View {
+    content
+      .onHover { hovering in
+        inside = hovering
+        (hovering && enabled ? NSCursor.pointingHand : NSCursor.arrow).set()
+      }
+      .onChange(of: enabled) { _, value in
+        if inside { (value ? NSCursor.pointingHand : NSCursor.arrow).set() }
+      }
+      .onDisappear { if inside { NSCursor.arrow.set() } }
   }
 }

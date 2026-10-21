@@ -225,8 +225,38 @@ test("queued card entry waits for layout and canceled entry never revives", () =
 		f.motion.queuePanel(dialog);
 		for (const fn of frames.values()) fn();
 		assert.equal(sheet.style.opacity, "");
-		assert.equal(f.animations.at(-1).options.duration, 220);
+		assert.equal(f.animations.at(-1).options.duration, f.motion.time("dur-open"));
 		assert.equal(f.animations.at(-1).frames[0].transform, "translateY(10px)");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("desktop card entry matches its source rect and phone entry keeps its sheet motion", () => {
+	const f = fixture();
+	try {
+		const dialog = f.w.document.createElement("dialog");
+		dialog.className = "preview";
+		dialog.innerHTML = '<div class="preview-sheet"></div>';
+		f.w.document.body.append(dialog);
+		const sheet = dialog.firstElementChild;
+		sheet.getBoundingClientRect = () => ({ left: 400, top: 200, width: 600, height: 400 });
+		const source = { left: 100, top: 80, width: 300, height: 200 };
+		f.motion.openPanel(dialog, source);
+		const entry = f.animations.at(-1);
+		assert.equal(entry.frames[0].transform, "translate(-450px,-220px) scale(0.5,0.5)");
+		assert.equal(entry.options.stiffness, 190);
+		assert.equal(entry.options.damping, 25);
+		assert.ok(entry.frames.every((frame: any) => !("width" in frame) && !("height" in frame)));
+		f.motion.matchSource(dialog, f.el);
+		assert.equal(f.el.style.visibility, "hidden");
+		f.motion.releaseSource(dialog);
+		assert.equal(f.el.style.visibility, "");
+		f.w.matchMedia = () => ({ matches: true });
+		f.motion.openPanel(dialog, source);
+		assert.equal(f.animations.at(-1).frames[0].transform, "translateY(100%)");
+		f.motion.matchSource(dialog, f.el);
+		assert.equal(f.el.style.visibility, "");
 	} finally {
 		f.dom.window.close();
 	}

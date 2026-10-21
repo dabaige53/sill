@@ -12,7 +12,7 @@ struct PreviewSheet: View {
   let size: CGSize
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
-  @State private var scroll = ReaderScroll()
+  let scroll: ReaderScroll
   @State private var contentHeight: CGFloat = 0
   @State private var firstRow: CGFloat = 0
 
@@ -101,10 +101,14 @@ struct PreviewSheet: View {
       .background(AppleColors.card)
       .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
       .shadow(.sheet)
+      .modifier(CardGeometryDestination(id: card.id))
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .modifier(ReaderSurfaceOffset(motion: scroll.motion))
     .onAppear { configure() }
     .accessibilityElement(children: .contain)
+    .accessibilityIdentifier("reader-preview")
+    .onAppear { PerformanceTrace.shared.event(.viewAppeared) }
     .accessibilityLabel(card.title)
     .accessibilityAddTraits(.isModal)
   }
@@ -133,7 +137,7 @@ struct PreviewSheet: View {
   }
 }
 
-/// Close and fullscreen: white discs (36, hit 44) centered on the first row; at the top once scrolled.
+/// Close and fullscreen: glass discs (36, hit 44) centered on the first row; at the top once scrolled.
 struct HeadDiscs: View {
   let motion: ReaderMotion
   let firstRow: CGFloat
@@ -146,10 +150,14 @@ struct HeadDiscs: View {
       : AppleMetrics.previewPaddingTop + max(firstRow, AppleMetrics.cardHeadHeight) / 2
     HStack(spacing: AppleMetrics.space8) {
       Spacer(minLength: 0)
-      if let expand {
-        Disc(icon: "expand", label: Copy.text("web.preview.fullscreen"), action: expand)
+      DesktopGlassGroup {
+        HStack(spacing: AppleMetrics.space8) {
+          if let expand {
+            Disc(icon: "expand", label: Copy.text("web.preview.fullscreen"), action: expand)
+          }
+          Disc(icon: "x", label: Copy.text("web.preview.close"), action: close)
+        }
       }
-      Disc(icon: "x", label: Copy.text("web.preview.close"), action: close)
     }
     .padding(.horizontal, AppleMetrics.space16)
     .padding(.top, center - AppleMetrics.previewDisc / 2)
@@ -162,23 +170,17 @@ struct Disc: View {
   let icon: String
   let label: String
   let action: () -> Void
-  @State private var hovered = false
   var body: some View {
     Button(action: action) {
       Icon(icon, size: AppleMetrics.previewDiscIcon)
         .foregroundStyle(AppleColors.primary)
         .frame(width: AppleMetrics.previewDisc, height: AppleMetrics.previewDisc)
-        .background(Circle().fill(hovered ? AppleColors.surface : AppleColors.card))
-        .overlay(Circle().stroke(AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth / 2))
-        .shadow(.floating)
+        .desktopGlass(Circle())
         .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
         .contentShape(Circle())
     }
-    // `.sheet-head .icon-button`: its own white disc, the shared press scale.
     .buttonStyle(IconPress(highlight: false))
     .padding(-(AppleMetrics.hitTarget - AppleMetrics.previewDisc) / 2)
-    .onHover { hovered = $0 }
-    .animation(Motion.hover, value: hovered)
     .accessibilityLabel(label)
   }
 }

@@ -101,7 +101,7 @@ struct ArticleBody: View {
         if !context.compact {
           SummaryBlock(
             summary: card.summary, points: card.points,
-            lines: context.summaryLines, query: context.query
+            lines: Int(AppleMetrics.cardReadingSummaryLines), query: context.query
           ).afterTitle()
         }
       }
@@ -140,7 +140,7 @@ struct MailBody: View {
       CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
       if !context.compact {
         SummaryBlock(
-          summary: card.summary, points: card.points, lines: context.summaryLines,
+          summary: card.summary, points: card.points, lines: Int(AppleMetrics.cardReadingSummaryLines),
           query: context.query
         ).afterTitle()
       }

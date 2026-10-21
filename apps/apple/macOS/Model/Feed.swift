@@ -91,8 +91,29 @@ enum FeedEntry: Identifiable, Equatable {
 
   // MARK: Intents
 
+  @ObservationIgnored private var searchTask: Task<Void, Never>?
+  @ObservationIgnored private var pendingQuery: String?
+
+  /// Text editing is immediate; only the last result calculation survives rapid typing.
+  func scheduleSearch(_ text: String) {
+    searchTask?.cancel()
+    pendingQuery = text
+    searchTask = Task { [weak self] in
+      do { try await Task.sleep(for: .milliseconds(Int(AppleMetrics.searchDelay))) } catch {
+        return
+      }
+      guard let self else { return }
+      self.search(text)
+    }
+  }
+
   func select(_ next: Scope) {
+    let trace = PerformanceTrace.shared.begin(.selectScope)
+    defer { PerformanceTrace.shared.end(trace) }
     guard next != scope else { return }
+    searchTask?.cancel()
+    if let pendingQuery { query = pendingQuery }
+    pendingQuery = nil
     scope = next
     pageLimit = Feed.page
     scopeVersion += 1
@@ -100,6 +121,10 @@ enum FeedEntry: Identifiable, Equatable {
   }
 
   func search(_ text: String) {
+    searchTask?.cancel()
+    pendingQuery = nil
+    let trace = PerformanceTrace.shared.begin(.search)
+    defer { PerformanceTrace.shared.end(trace) }
     guard text != query else { return }
     query = text
     pageLimit = Feed.page
@@ -107,6 +132,8 @@ enum FeedEntry: Identifiable, Equatable {
   }
 
   func clearFilter() {
+    searchTask?.cancel()
+    pendingQuery = nil
     query = ""
     if scope != .all {
       scope = .all
@@ -146,6 +173,14 @@ enum FeedEntry: Identifiable, Equatable {
   // MARK: Building
 
   private func rebuild(keepClock: Bool = false) {
+    let trace = PerformanceTrace.shared.begin(.feedRebuild)
+    defer {
+      PerformanceTrace.shared.end(
+        trace,
+        values: [
+          "card_count": Double(workspace.cards.count), "visible_count": Double(entries.count),
+        ])
+    }
     if !keepClock { now = Format.milliseconds() }
     let state = workspace.state
     let text = query.trimmingCharacters(in: .whitespaces).lowercased()

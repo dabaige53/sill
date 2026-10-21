@@ -168,7 +168,7 @@ test("login copy distinguishes workspace entry from consent and recovery never e
 	try {
 		const jar = new Map();
 		let page = await f.call("/auth/login", { cookieJar: jar });
-		assert.match(await page.text(), /登录后进入你的 Sill 工作台/);
+		assert.match(await page.text(), /登录窗台/);
 		await f.call("/oauth/consent?authorization_id=" + AUTH, { cookieJar: jar });
 		page = await f.call("/auth/login", { cookieJar: jar });
 		assert.match(await page.text(), /登录后返回本次授权/);

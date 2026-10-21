@@ -24,10 +24,14 @@ for (const group of tokens.type.groups)
 // Marks: `@design <id>` in code must be registered, and every registered id must be used.
 const marks = JSON.parse(read("design-system/marks.json")).marks;
 const used = new Map<string, string[]>();
-const grep = execFileSync("git", ["grep", "-n", "-o", "-E", "@design [a-z0-9-]+", "--", "apps"], {
-	cwd: repo,
-	encoding: "utf8",
-}).trim();
+const grep = execFileSync(
+	"git",
+	["grep", "-n", "-o", "-E", "@design [a-z0-9-]+", "--", "apps", "server"],
+	{
+		cwd: repo,
+		encoding: "utf8",
+	},
+).trim();
 for (const line of grep.split("\n").filter(Boolean)) {
 	const [file, , hit] = line.split(":");
 	const id = hit.replace("@design ", "");
@@ -42,7 +46,7 @@ const anchor = (heading: string) =>
 		.replace(/[^\p{L}\p{N}\s-]/gu, "")
 		.replace(/\s/g, "-");
 for (const [id, mark] of Object.entries(marks) as [string, any][]) {
-	if (!used.has(id)) fail(`marks.json ${id} has no @design mark in apps/`);
+	if (!used.has(id)) fail(`marks.json ${id} has no @design mark in apps/ or server/`);
 	const [file, hash] = mark.rule.split("#");
 	if (!existsSync(resolve(ds, file))) fail(`marks.json ${id}: missing ${file}`);
 	else if (

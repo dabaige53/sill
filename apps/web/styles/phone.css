@@ -42,7 +42,7 @@
 		visibility: hidden;
 		pointer-events: none;
 	}
-	body:has(#modal[open].page) .home-top {
+	body:has(:is(#modal, #search-background)[open].page) .home-top {
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
@@ -115,6 +115,9 @@
 	}
 	.feed-item .card-summary {
 		-webkit-line-clamp: 2;
+	}
+	.feed-item .card-summary.reading-summary {
+		-webkit-line-clamp: var(--summary-reading-lines);
 	}
 	.feed-item :is(.card-head, .sender) {
 		padding-right: 0;

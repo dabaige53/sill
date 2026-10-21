@@ -102,7 +102,7 @@ export const appInputMethods = {
 	},
 	/** Desktop top bar keys (ADR 0049). Escape steps back one layer: menu, text, token, focus. */
 	homeKey(this: AppController, e?: TargetEvent<KeyboardEvent>) {
-		if (!this.desktop()) return false;
+		if (!this.desktop() || this.dialog.open) return false;
 		const input = document.getElementById("home-search") as HTMLInputElement | null;
 		if (!input) return false;
 		const menu = document.getElementById("home-menu");
@@ -127,7 +127,6 @@ export const appInputMethods = {
 				return true;
 			}
 		}
-		if (this.dialog.open) return false;
 		if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") {
 			e.preventDefault();
 			this.railHide?.show();

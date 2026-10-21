@@ -27,6 +27,8 @@ import SwiftUI
   weak var scrollView: NSScrollView?
   let chrome: Chrome
   var nearEnd: () -> Void = {}
+  let refresh = FeedRefresh()
+  var refreshAllowed: () -> Bool = { true }
   private var last: CGFloat = 0
   private var down: CGFloat = 0
   private var up: CGFloat = 0
@@ -66,6 +68,19 @@ import SwiftUI
     }
   }
 
+  func receive(_ event: NSEvent) -> Bool {
+    guard refreshAllowed(), let view = scrollView, event.window === view.window,
+      view.window?.attachedSheet == nil,
+      view.bounds.contains(view.convert(event.locationInWindow, from: nil))
+    else { return false }
+    let phase = WheelPhase(event)
+    let terminal = phase == .ended || phase == .cancelled || phase == .momentum
+    guard terminal || abs(event.scrollingDeltaY) > abs(event.scrollingDeltaX) else { return false }
+    let consumed = refresh.receive(delta: event.scrollingDeltaY, input: phase, atTop: offset <= 0)
+    if consumed { chrome.show() }
+    return consumed
+  }
+
   func scroll(to y: CGFloat, animated: Bool = false) {
     guard let scrollView else { return }
     let point = NSPoint(x: 0, y: max(0, y))
@@ -99,6 +114,8 @@ struct ScrollProbe: NSViewRepresentable {
   final class Probe: NSView {
     var scroll: FeedScroll?
     private var observer: NSObjectProtocol?
+    private var monitor: Any?
+    private var elasticity: NSScrollView.Elasticity?
 
     override func viewDidMoveToWindow() {
       super.viewDidMoveToWindow()
@@ -110,6 +127,12 @@ struct ScrollProbe: NSViewRepresentable {
     private func connect() {
       guard observer == nil, let view = enclosingScrollView else { return }
       scroll?.scrollView = view
+      elasticity = view.verticalScrollElasticity
+      view.verticalScrollElasticity = .none
+      monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+        nonisolated(unsafe) let event = event
+        return MainActor.assumeIsolated { self?.scroll?.receive(event) == true } ? nil : event
+      }
       view.contentView.postsBoundsChangedNotifications = true
       observer = NotificationCenter.default.addObserver(
         forName: NSView.boundsDidChangeNotification, object: view.contentView, queue: .main
@@ -127,6 +150,11 @@ struct ScrollProbe: NSViewRepresentable {
     }
 
     func disconnect() {
+      scroll?.refresh.cancel()
+      if let elasticity { scroll?.scrollView?.verticalScrollElasticity = elasticity }
+      elasticity = nil
+      if let monitor { NSEvent.removeMonitor(monitor) }
+      monitor = nil
       if let observer { NotificationCenter.default.removeObserver(observer) }
       observer = nil
     }

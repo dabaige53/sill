@@ -22,6 +22,12 @@ import SwiftUI
       damping: AppleMetrics.springDamping, initialVelocity: velocity)
   }
 
+  static var card: Animation {
+    .interpolatingSpring(
+      mass: AppleMetrics.cardSpringMass, stiffness: AppleMetrics.cardSpringStiffness,
+      damping: AppleMetrics.cardSpringDamping)
+  }
+
   static var press: Animation { ease(AppleMetrics.motionPress) }
   static var hover: Animation { ease(AppleMetrics.motionHover) }
   static var state: Animation { ease(AppleMetrics.motionState) }

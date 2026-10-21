@@ -50,6 +50,7 @@ dialog::backdrop {
 
 /* The card toolbar: two to three verbs as icons in one glass capsule. Words live in the content. */
 .float-bar {
+	background: var(--glass-thick);
 	display: flex;
 	align-items: center;
 	gap: var(--space-4);

@@ -446,6 +446,54 @@
       "w": 1440,
       "x": 7600,
       "y": 6060
+    },
+    "Login.dc.html": {
+      "h": 900,
+      "w": 1440,
+      "x": 0,
+      "y": 28410,
+      "title": "桌面登录 · 居中表单",
+      "is_interactive": true
+    },
+    "Authorization.dc.html": {
+      "h": 900,
+      "w": 1440,
+      "x": 1520,
+      "y": 28410,
+      "title": "桌面授权 · 居中标题与权限",
+      "is_interactive": true
+    },
+    "LoginMobile.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 3040,
+      "y": 28410,
+      "title": "手机登录 · 居中布局",
+      "is_interactive": true
+    },
+    "AuthorizationMobile.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 3510,
+      "y": 28410,
+      "title": "手机授权 · 居中布局",
+      "is_interactive": true
+    },
+    "SettingsDesktop.dc.html": {
+      "w": 1440,
+      "h": 1000,
+      "x": 3980,
+      "y": 28410,
+      "title": "桌面设置",
+      "is_interactive": true
+    },
+    "SettingsMobile.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 5500,
+      "y": 28410,
+      "title": "手机设置",
+      "is_interactive": true
     }
   },
   "createdOnFiles": {
@@ -540,6 +588,13 @@
       "x": 0,
       "y": 16260,
       "page": "history"
+    },
+    "current6": {
+      "kind": "title1",
+      "maxW": 5890,
+      "text": "账号 · 登录与授权",
+      "x": 0,
+      "y": 28130
     }
   },
   "order": [
@@ -566,6 +621,12 @@
     "ExitRules.dc.html",
     "IconSet.dc.html",
     "Brand.dc.html",
+    "Login.dc.html",
+    "Authorization.dc.html",
+    "LoginMobile.dc.html",
+    "AuthorizationMobile.dc.html",
+    "SettingsDesktop.dc.html",
+    "SettingsMobile.dc.html",
     "MobileProto.dc.html",
     "MobileHome.dc.html",
     "NavCapsule.dc.html",

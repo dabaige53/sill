@@ -12,23 +12,18 @@ import SwiftUI
 
   func focusSearch() { searchRequest += 1 }
   func blurSearch() { blurRequest += 1 }
+
 }
 
 /// The search field in the top bar. The tab is a token in the field; home filter and search share
-/// one state. Width 280, 360 with a token, 480 while focused; the right edge stays put and the
-/// background stretches while the content slides (220ms `ease`). Text and caret never scale.
+/// one state. Width stays stable across focus and token changes, shrinking only with the window.
 struct SearchField: View {
+  @Environment(DesktopInteraction.self) private var interaction
   @Environment(Feed.self) private var feed
   @Environment(Shell.self) private var shell
   @State private var text = ""
   @State private var hovered = false
   @FocusState private var focused: Bool
-
-  private var target: CGFloat {
-    focused
-      ? AppleMetrics.searchFocusedWidth
-      : feed.scope != .all ? AppleMetrics.searchTaggedWidth : AppleMetrics.searchWidth
-  }
 
   var body: some View {
     let placeholder =
@@ -59,6 +54,7 @@ struct SearchField: View {
       .font(.sans(AppleMetrics.font15))
       .foregroundStyle(AppleColors.primary)
       .focused($focused)
+      .accessibilityIdentifier("home-search")
       .accessibilityLabel(Copy.text("web.search.inputLabel"))
       .onKeyPress(.delete) {
         // Delete at the start removes the last token.
@@ -88,10 +84,11 @@ struct SearchField: View {
     }
     .padding(.leading, AppleMetrics.space14)
     .padding(.trailing, AppleMetrics.space8)
-    .modifier(SearchResize(target: target, focused: focused))
+    .modifier(SearchSurface(focused: focused))
+    .disabled(!interaction.canSearch)
     .onHover { hovered = $0 }
-    .onTapGesture { focused = true }
-    .onChange(of: text) { _, value in feed.search(value) }
+    .onTapGesture { interaction.focusSearch() }
+    .onChange(of: text) { _, value in feed.scheduleSearch(value) }
     .onChange(of: feed.query) { _, value in if value != text { text = value } }
     .onChange(of: focused) { _, value in shell.searchFocused = value }
     .onChange(of: shell.searchRequest) {
@@ -118,38 +115,26 @@ struct SearchField: View {
   }
 }
 
-/// The field keeps its final width in layout at once; the drawn background follows with the
-/// state animation from the fixed right edge, and the content slides with it.
-private struct SearchResize: ViewModifier {
-  var target: CGFloat
+/// Focus changes the border only; available window space controls the field width.
+private struct SearchSurface: ViewModifier {
   var focused: Bool
-  @State private var drawn: CGFloat = AppleMetrics.searchWidth
-
   func body(content: Content) -> some View {
     content
-      .frame(width: target, height: AppleMetrics.searchHeight)
-      .offset(x: target - drawn)
-      .mask(alignment: .trailing) { Capsule().frame(width: drawn) }
-      .background(alignment: .trailing) {
-        Capsule().fill(AppleColors.card)
-          .overlay(
-            Capsule().strokeBorder(
-              focused ? AppleColors.accent : AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth
+      .frame(
+        minWidth: AppleMetrics.searchWidth, idealWidth: AppleMetrics.searchTaggedWidth,
+        maxWidth: AppleMetrics.searchTaggedWidth
+      )
+      .frame(height: AppleMetrics.searchHeight)
+      .desktopGlass(Capsule())
+      .overlay {
+        if focused {
+          Capsule().strokeBorder(AppleColors.accent, lineWidth: AppleMetrics.lineWidth)
+            .overlay(
+              Capsule().stroke(
+                AppleColors.accent.opacity(AppleMetrics.searchFocusOpacity),
+                lineWidth: AppleMetrics.searchFocusRing * 2)
             )
-          )
-          .background(
-            Capsule().stroke(
-              AppleColors.accent.opacity(focused ? AppleMetrics.searchFocusOpacity : 0),
-              lineWidth: AppleMetrics.searchFocusRing * 2)
-          )
-          .frame(width: drawn)
-      }
-      .onAppear { drawn = target }
-      .onChange(of: target) { _, value in
-        if Motion.keyboardDriven {
-          Motion.instantly { drawn = value }
-        } else {
-          withAnimation(Motion.state) { drawn = value }
+            .allowsHitTesting(false)
         }
       }
   }

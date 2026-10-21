@@ -12,9 +12,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: npm run test:supabase
-      - run: npm run test:oauth
-      - run: npm run test:cloud-app
+      # Node service coverage runs once in test.yml via npm test.
       - run: npm run test:supabase:postgres
       - id: cloudbuild
         run: npm run build:cloud

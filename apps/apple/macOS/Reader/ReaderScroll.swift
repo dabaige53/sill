@@ -20,12 +20,20 @@ import SwiftUI
   /// Drawn by the reader's 2px bar only.
   var progress: Double = 0
 
-  var contentOffset: CGFloat { dismiss - finish * AppleMetrics.gestureFinishTravel + edge }
+  var contentOffset: CGFloat { -finish * AppleMetrics.gestureFinishTravel + edge }
+  var surfaceWidth: CGFloat = 1
+  var dimOpacity: Double {
+    let progress = max(
+      dismiss / AppleMetrics.gestureDismissDistance,
+      swipe / max(1, surfaceWidth * AppleMetrics.motionDeckTravel))
+    return Double(1 - min(1, max(0, progress)) * 0.7)
+  }
 }
 
 /// Connects a layer's NSScrollView: position, end of text, edge pulls and chrome hiding.
 @MainActor final class ReaderScroll {
   let motion = ReaderMotion()
+  var inputAllowed: () -> Bool = { true }
   weak var scrollView: NSScrollView?
   var finishEnabled = false
   /// Space after the end marker (toolbar room and bottom padding).
@@ -49,12 +57,16 @@ import SwiftUI
   private var up: CGFloat = 0
   private var reported = false
   private var dwell: Task<Void, Never>?
+  private var confirmation: Task<Void, Never>?
+  private var connected = true
+  private var completionGeneration = 0
 
   private enum Edge { case top, bottom, right }
 
   // MARK: Position
 
   func connected(_ view: NSScrollView) {
+    connected = true
     scrollView = view
     view.contentView.scroll(to: NSPoint(x: 0, y: initialOffset))
     view.reflectScrolledClipView(view.contentView)
@@ -72,6 +84,9 @@ import SwiftUI
   }
 
   func disconnect() {
+    connected = false
+    completionGeneration += 1
+    confirmation?.cancel()
     dwell?.cancel()
     rest?.cancel()
     toolsRest?.cancel()
@@ -99,7 +114,7 @@ import SwiftUI
   }
 
   private func report() {
-    guard !reported else { return }
+    guard !reported, inputAllowed() else { return }
     reported = true
     reachedEnd()
   }
@@ -145,16 +160,20 @@ import SwiftUI
 
   /// Trackpad and wheel input at the text's edges. Returns true when the event is consumed.
   func receive(_ event: NSEvent) -> Bool {
-    guard let view = scrollView, let window = view.window, event.window === window,
+    guard inputAllowed(), let view = scrollView, let window = view.window, event.window === window,
+      window.attachedSheet == nil,
       view.bounds.contains(view.convert(event.locationInWindow, from: nil))
     else { return false }
+    motion.surfaceWidth = view.bounds.width
     if committed { return true }
-    if !event.momentumPhase.isEmpty { return edgeName != nil }
-    if event.phase == .cancelled {
-      release(cancelled: true)
-      return true
+    let phase = WheelPhase(event)
+    if phase == .momentum { return edgeName != nil }
+    if phase == .ended || phase == .cancelled {
+      let owned = edgeName != nil
+      if owned { release(cancelled: phase == .cancelled) }
+      return owned
     }
-    if event.phase == .began { reset() }
+    if phase == .began { reset() }
     let offset = view.contentView.bounds.minY
     let atTop = offset <= 0
     let atBottom = offset >= available - 1
@@ -180,12 +199,13 @@ import SwiftUI
     samples.removeAll { event.timestamp - $0.0 > AppleMetrics.gestureVelocityWindow }
     follow(edge)
     rest?.cancel()
-    rest = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest))
-      guard !Task.isCancelled else { return }
-      self?.release(cancelled: false)
+    if phase == .discrete {
+      rest = Task { [weak self] in
+        try? await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest))
+        guard !Task.isCancelled else { return }
+        self?.release(cancelled: false)
+      }
     }
-    if event.phase == .ended { release(cancelled: false) }
     return true
   }
 
@@ -239,13 +259,16 @@ import SwiftUI
     setTools(hidden: false)
   }
 
-  private func commitFinish() {
+  func commitFinish() {
     guard !committed else { return }
     committed = true
+    completionGeneration += 1
+    let generation = completionGeneration
     rest?.cancel()
     MomentumShield.start(window: scrollView?.window)
     finished { [weak self] success in
-      guard let self else { return }
+      guard let self, self.connected, self.inputAllowed(), self.completionGeneration == generation
+      else { return }
       guard success else {
         self.committed = false
         self.reset()
@@ -254,9 +277,18 @@ import SwiftUI
       }
       // A blue disc with a white check, then the layer leaves.
       self.motion.confirmed = true
-      Task { [weak self] in
-        try? await Task.sleep(for: .seconds(AppleMetrics.gestureFinishHold))
-        self?.close()
+      self.confirmation = Task { [weak self] in
+        do { try await Task.sleep(for: .seconds(AppleMetrics.gestureFinishHold)) } catch { return }
+        guard let self, self.connected, self.completionGeneration == generation else { return }
+        // Keep the success badge visible while the displaced text returns, then close.
+        withAnimation(Motion.spring(), completionCriteria: .logicallyComplete) {
+          self.motion.finish = 0
+        } completion: { [weak self] in
+          guard let self, self.connected, self.inputAllowed(),
+            self.completionGeneration == generation
+          else { return }
+          self.close()
+        }
       }
     }
   }
@@ -265,6 +297,21 @@ import SwiftUI
     edgeName = nil
     distance = 0
     samples = []
+  }
+
+  func cancelGesture() {
+    completionGeneration += 1
+    confirmation?.cancel()
+    committed = false
+    release(cancelled: true)
+    reset()
+    withAnimation(Motion.spring()) {
+      motion.dismiss = 0
+      motion.swipe = 0
+      motion.finish = 0
+      motion.edge = 0
+      motion.confirmed = false
+    }
   }
 }
 
@@ -281,7 +328,7 @@ import SwiftUI
       nonisolated(unsafe) let event = event
       let consumed = MainActor.assumeIsolated {
         guard event.window === window else { return false }
-        if event.phase == .began {
+        if WheelPhase(event) != .momentum {
           stop()
           return false
         }
@@ -391,7 +438,7 @@ struct FinishRing: View {
 struct ReaderPullOffset: ViewModifier {
   let motion: ReaderMotion
   func body(content: Content) -> some View {
-    content.offset(x: motion.swipe, y: motion.contentOffset)
+    content.offset(y: motion.contentOffset)
   }
 }
 
@@ -413,5 +460,13 @@ struct ReaderToolsTuck: ViewModifier {
       )
       .allowsHitTesting(!hidden)
       .accessibilityHidden(hidden)
+  }
+}
+
+/// Dismiss gestures carry the sheet, its background and tools together.
+struct ReaderSurfaceOffset: ViewModifier {
+  let motion: ReaderMotion
+  func body(content: Content) -> some View {
+    content.offset(x: motion.swipe, y: motion.dismiss)
   }
 }

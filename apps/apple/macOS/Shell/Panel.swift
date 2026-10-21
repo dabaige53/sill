@@ -19,6 +19,8 @@ import SwiftUI
   @ObservationIgnored var onClosed: ((Kind) -> Void)?
 
   func open(_ next: Kind) {
+    let trace = next == .settings ? PerformanceTrace.shared.begin(.openSettings) : nil
+    defer { PerformanceTrace.shared.end(trace) }
     generation += 1
     withAnimation(Motion.keyboardDriven ? nil : Motion.open) { kind = next }
   }

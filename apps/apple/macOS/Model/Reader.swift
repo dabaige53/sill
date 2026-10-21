@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 import SillKit
@@ -16,6 +17,10 @@ import SwiftUI
   private(set) var layers: [Layer] = []
   /// Drawn visibility of the whole overlay; the overlay stays mounted until its exit finishes.
   private(set) var shown = false
+  private(set) var matchedCard: String?
+  @ObservationIgnored var cardFrames: [String: CGRect] = [:]
+  var matching: Bool { matchedCard != nil && layers.count == 1 }
+
 
   @ObservationIgnored private var token = 0
   @ObservationIgnored private unowned let workspace: Workspace
@@ -34,6 +39,8 @@ import SwiftUI
   // MARK: Opening
 
   func open(_ id: String, full: Bool = false) {
+    let trace = PerformanceTrace.shared.begin(.openCard)
+    defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
     token += 1
     hold(id)
@@ -43,11 +50,23 @@ import SwiftUI
       // A fresh overlay, or reopening while the previous one is still leaving.
       if layers.last?.card != id || layers.count != 1 {
         origin = origin ?? id
+        let viewport = NSApp?.keyWindow?.contentView?.bounds ?? .zero
+        matchedCard = !Motion.keyboardDriven && card.kind != .photo
+          && cardFrames[id].map { $0.intersects(viewport) } == true ? id : nil
         layers = [Layer(card: id, full: full)]
       } else if let index = layers.indices.last {
         layers[index].full = full
       }
-      present(true)
+      if matching && !shown {
+        // Mount both geometries before switching their source in the next transaction.
+        let current = token
+        DispatchQueue.main.async { [weak self] in
+          guard let self, self.token == current else { return }
+          self.present(true)
+        }
+      } else {
+        present(true)
+      }
       return
     }
     if layers.last?.card == id {
@@ -83,6 +102,7 @@ import SwiftUI
   /// Leaves every layer; the overlay unmounts once its exit animation has finished.
   func closeAll() {
     guard presented else { return }
+    if let matchedCard, cardFrames[matchedCard] == nil { self.matchedCard = nil }
     token += 1
     let current = token
     if Motion.keyboardDriven {
@@ -90,7 +110,7 @@ import SwiftUI
       finish()
       return
     }
-    withAnimation(Motion.close, completionCriteria: .logicallyComplete) {
+    withAnimation(matching ? Motion.card : Motion.close, completionCriteria: .logicallyComplete) {
       shown = false
     } completion: { [weak self] in
       guard let self, self.token == current else { return }
@@ -143,7 +163,7 @@ import SwiftUI
     if Motion.keyboardDriven {
       Motion.instantly { shown = value }
     } else {
-      withAnimation(Motion.open) { shown = value }
+      withAnimation(matching ? Motion.card : Motion.open) { shown = value }
     }
   }
 
@@ -158,6 +178,7 @@ import SwiftUI
   private func finish() {
     let returning = origin
     layers = []
+    matchedCard = nil
     positions = [:]
     origin = nil
     // The feed redraws read colors only now that the overlay is gone.

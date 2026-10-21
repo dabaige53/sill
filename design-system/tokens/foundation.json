@@ -180,7 +180,7 @@
 		"toggleInset": 2,
 		"toggleTravel": 20,
 		"compactReaderWidth": 560,
-		"motionDetailOpen": 0.22,
+		"motionDetailOpen": 0.28,
 		"motionDetailClose": 0.22,
 		"motionRailHide": 0.24,
 		"motionRailShow": 0.32,
@@ -269,8 +269,8 @@
 		"motionPress": 0.12,
 		"motionPressScale": 0.97,
 		"motionHover": 0.16,
-		"motionMenuOpen": 0.18,
-		"motionMenuClose": 0.12,
+		"motionMenuOpen": 0.2,
+		"motionMenuClose": 0.16,
 		"motionMenuScale": 0.95,
 		"motionMenuY": 4,
 		"motionLayout": 0.22,
@@ -290,6 +290,10 @@
 		"easeSheetY1": 0.72,
 		"easeSheetX2": 0,
 		"easeSheetY2": 1,
+		"chromeGlassOpacity": 0.8,
+		"cardSpringMass": 1,
+		"cardSpringStiffness": 190,
+		"cardSpringDamping": 25,
 		"springMass": 1,
 		"springStiffness": 600,
 		"springDamping": 45,
@@ -306,6 +310,7 @@
 		"gestureEdgeLimit": 14,
 		"gestureRefreshDistance": 48,
 		"gestureRefreshRelease": 1,
+		"gestureRefreshSuccessHold": 0.48,
 		"tooltipDelay": 0.5,
 		"toastUndoDuration": 5.5,
 		"toastMaxWidth": 420,
@@ -468,13 +473,13 @@
 		"detailRowHeight": 48,
 		"detailIconSize": 30,
 		"detailIconRadius": 8,
-		"readerBodyWidth": 860,
 		"readerTitleLeading": 1.3,
 		"readerTitleTracking": -0.035,
 		"readerBodyLeading": 1.9,
 		"readerProgressHeight": 2,
 		"cardTitleLineHeight": 22,
 		"cardSummaryLineHeight": 22,
+		"cardReadingSummaryLines": 4,
 		"articleTitleLineHeight": 30,
 		"articleSectionLineHeight": 24,
 		"articleBodyLineHeight": 25,
@@ -504,9 +509,8 @@
 		"feedGapMedium": 20,
 		"feedGapSmall": 12,
 		"feedGapBreak": 1000,
-		"columnLimit": 4,
-		"feedMargin": 40,
-		"topBarInset": 12,
+		"feedMargin": 12,
+		"topBarInset": 36,
 		"emptyMaxWidth": 420,
 		"emptyTopRatio": 0.12,
 		"accountIcon": 22,
@@ -827,8 +831,13 @@
 			},
 			{
 				"name": "dur-menu",
-				"value": "180ms",
-				"usage": "菜单弹出；收起 120ms。"
+				"value": "200ms",
+				"usage": "菜单弹出。"
+			},
+			{
+				"name": "dur-menu-close",
+				"value": "160ms",
+				"usage": "菜单收起；不复用按压时长。"
 			},
 			{
 				"name": "dur-state",
@@ -837,7 +846,7 @@
 			},
 			{
 				"name": "dur-open",
-				"value": "220ms",
+				"value": "280ms",
 				"usage": "桌面详情最终字号淡入，上移10px；不缩放正文。"
 			},
 			{
@@ -995,9 +1004,9 @@
 		},
 		"tokens": [
 			{
-				"name": "col-limit",
+				"name": "summary-reading-lines",
 				"value": "4",
-				"usage": "桌面信息流最多四列，列宽随可用宽度变化；放不下最小列宽时减列，窄屏保留单列。"
+				"usage": "资讯与邮件的纯文字摘要最多四行，不随密度降为两行。"
 			},
 			{
 				"name": "summary-lines",
@@ -1007,6 +1016,7 @@
 		]
 	},
 	"motion": {
+		"cardSpring": { "mass": 1, "stiffness": 190, "damping": 25 },
 		"spring": {
 			"mass": 1,
 			"stiffness": 600,
