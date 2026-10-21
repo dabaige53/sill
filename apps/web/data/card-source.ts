@@ -48,6 +48,20 @@ export function cardDates(card: Record<string, any>) {
 	};
 }
 
+/** A content date as a local moment: a bare day is that local day, a timestamp is an instant. */
+export function contentDay(value: unknown): Date | null {
+	const date = cardDate(value);
+	if (!date) return null;
+	return new Date(date.datetime.length === 10 ? `${date.datetime}T00:00:00` : date.datetime);
+}
+
+/** The day an article belongs to: published, else saved, else the card's own time. */
+export function articleDate(card: Record<string, any>): Date | null {
+	const day = contentDay(card.publishedAt) || contentDay(card.savedAt);
+	if (day) return day;
+	return typeof card.time === "number" ? new Date(card.time) : null;
+}
+
 export function detailSource(card: Pick<Card, "sources">): string {
 	return [
 		...new Set((card.sources || []).map((source) => source.name.trim()).filter(Boolean)),

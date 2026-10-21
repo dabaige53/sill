@@ -94,7 +94,10 @@ struct ArticleBody: View {
         CardCover(card: card, faded: faded) { EmptyView() }
       }
       BodyStack(compact: context.compact) {
-        CardHead(card: card, text: card.sourceLine) {
+        // The same head as the article preview: source · day · reading time.
+        CardHead(
+          card: card, text: card.sourceLine(day: card.articleDate, now: Format.date(context.now))
+        ) {
           ReadingProgress(card: card, state: state)
         }
         CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
@@ -546,8 +549,10 @@ struct PhotoBody: View {
       BodyStack(compact: context.compact) {
         CardHead(
           card: card,
-          text: [Copy.text("web.photo"), card.location ?? ""].filter { !$0.isEmpty }
-            .joined(separator: " · ")
+          text: [
+            Copy.text("web.photo"), card.location ?? "",
+            card.takenDay.map { Format.shortDay($0, now: Format.date(context.now)) } ?? "",
+          ].filter { !$0.isEmpty }.joined(separator: " · ")
         ) {
           if photos.count > 3 { Text("\(photos.count)").font(.number(AppleMetrics.font13)) }
         }

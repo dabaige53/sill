@@ -162,6 +162,48 @@ private let syntheticReminder: JSONValue = .object([
     #expect(reader.presented && reader.toolsShown)
   }
 
+  @Test func anotherCardOpensWhileThePreviousOneIsReturning() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.cardFrames["b"] = CGRect(x: 320, y: 100, width: 280, height: 200)
+    reader.open("a")
+    reader.geometryReady("a")
+    try await Task.sleep(for: .milliseconds(350))
+    reader.closeAll()
+    #expect(!reader.shown)
+    reader.open("b")
+    if !reader.shown { reader.geometryReady("b") }
+    #expect(reader.top?.card == "b")
+    #expect(reader.layers.count == 1)
+    #expect(!reader.returning)
+    #expect(reader.matchedCard == "b")
+  }
+
+  @Test func articleAndPhotoHeadsNameTheirDay() async throws {
+    let (workspace, _) = await ready(
+      [],
+      extra: [
+        .object([
+          "id": .string("story"), "type": .string("article"), "title": .string("Story"),
+          "time": .number(1), "publishedAt": .string("2026-10-18"),
+          "sources": .array([.object(["name": .string("Feed"), "kind": .string("web")])]),
+        ]),
+        .object([
+          "id": .string("trip"), "type": .string("photo"), "title": .string("Trip"),
+          "time": .number(1), "takenAt": .string("2026-10-20"), "image": .string("coast"),
+        ]),
+      ])
+    let now = try #require(Format.localDay("2026-10-21"))
+    let story = try #require(workspace.model("story"))
+    #expect(story.sourceLine(day: story.articleDate, now: now) == "Feed · 10/18")
+    #expect(story.sourceLine == "Feed")
+    let trip = try #require(workspace.model("trip"))
+    let day = try #require(trip.takenDay)
+    #expect(Format.shortDay(day, now: now) == Copy.text("web.primitives.0c184871f658"))
+  }
+
   @Test func escapeClosesOnlyTheTopLayerAndPreservesSearch() async {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)

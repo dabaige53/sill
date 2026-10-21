@@ -26,6 +26,7 @@ struct DesktopView: View {
   @State private var dockShown = true
   @State private var escape: Any?
   @State private var keys: Any?
+  @State private var pointer: Any?
 
   var body: some View {
     GeometryReader { proxy in
@@ -105,8 +106,10 @@ struct DesktopView: View {
     .onDisappear {
       if let escape { NSEvent.removeMonitor(escape) }
       if let keys { NSEvent.removeMonitor(keys) }
+      if let pointer { NSEvent.removeMonitor(pointer) }
       escape = nil
       keys = nil
+      pointer = nil
     }
     .task { await poll() }
     .task { await tick() }
@@ -287,6 +290,25 @@ struct DesktopView: View {
     }
   }
 
+  /// Web blur: a click anywhere outside the focused search field ends the search focus. The click
+  /// still reaches what it landed on; the query and the token stay.
+  private func installPointer() {
+    guard pointer == nil else { return }
+    let shell = shell
+    pointer = NSEvent.addLocalMonitorForEvents(
+      matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+    ) { event in
+      guard let window = event.window, window === NSApp.mainWindow,
+        let height = window.contentView?.bounds.height
+      else { return event }
+      let point = CGPoint(x: event.locationInWindow.x, y: height - event.locationInWindow.y)
+      MainActor.assumeIsolated {
+        if shell.searchFocused, !shell.searchFrame.contains(point) { shell.blurSearch() }
+      }
+      return event
+    }
+  }
+
   private func connect() {
     if scroll == nil {
       let next = FeedScroll(chrome: chrome)
@@ -362,6 +384,7 @@ struct DesktopView: View {
     selectionIntents.cancel = { selection.clear() }
     installEscape()
     installKeys()
+    installPointer()
     cardIntents.toggleTask = { id, task in workspace.toggleTask(id, task: task) }
     // Web `changeReminder`: the card leaves the selection and an open detail closes first.
     let reminder: @MainActor (String, Workspace.ReminderAction) -> Void = { id, action in

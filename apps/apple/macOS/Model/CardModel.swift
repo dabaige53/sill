@@ -70,6 +70,8 @@ struct CardModel: Identifiable, Equatable, Sendable {
   let related: [String]
   let files: [FileItem]
   let takenAt: String?
+  /// The local day a photo was taken, for the card head.
+  let takenDay: Date?
   let caption: String?
   let publication: Publication
   /// The day an article belongs to: published, else saved, else the card's own time.
@@ -88,12 +90,14 @@ struct CardModel: Identifiable, Equatable, Sendable {
     kind.headIconByType ? kind.icon : SourceKind.icon(sourceKind) ?? kind.icon
   }
   /// Source names plus reading time (Web `sourceLine`).
-  var sourceLine: String {
+  var sourceLine: String { sourceLine(day: nil, now: .now) }
+  /// Source names, an optional short day (今天, 昨天, 10/18) and reading time.
+  func sourceLine(day: Date?, now: Date) -> String {
     [
       sources.count > 1
         ? sources.map(\.name).joined(separator: " · ")
         : sourceName.isEmpty
-          ? kind.label : sourceName, readingTime,
+          ? kind.label : sourceName, day.map { Format.shortDay($0, now: now) } ?? "", readingTime,
     ].filter { !$0.isEmpty }.joined(separator: " · ")
   }
   /// A short task, reminder or note preview opens in the narrower detail.
@@ -159,6 +163,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
           ]) != nil)
     }
     takenAt = value.takenAt
+    takenDay = value.takenAt.flatMap(Format.localDay)
     caption = value.caption
     var rows: [(String, String)] = []
     if let authors = value.authors, !authors.isEmpty {

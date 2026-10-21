@@ -49,7 +49,10 @@ import SwiftUI
     defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
     token += 1
+    // A click on another card while the previous one is still flying home starts over at once.
+    let interrupted = returning
     returning = false
+    if interrupted, layers.last?.card != id { releaseHeld() }
     hold(id)
     workspace.recorder.opened(id)
     if card.kind == .photo, !full { markPhotoRead(id) }
@@ -176,6 +179,12 @@ import SwiftUI
     }
   }
 
+  /// The feed redraws read colors only once the overlay is gone (or replaced).
+  private func releaseHeld() {
+    for id in held { workspace.state(id).releaseReadAppearance() }
+    held = []
+  }
+
   private func hold(_ id: String) {
     workspace.state(id).holdReadAppearance()
     held.insert(id)
@@ -231,9 +240,7 @@ import SwiftUI
     toolsShown = false
     positions = [:]
     origin = nil
-    // The feed redraws read colors only now that the overlay is gone.
-    for id in held { workspace.state(id).releaseReadAppearance() }
-    held = []
+    releaseHeld()
     workspace.recorder.flush()
     onClosed(returning)
   }

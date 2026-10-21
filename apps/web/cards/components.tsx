@@ -6,12 +6,19 @@ import {
 	eventRelative,
 	eventTimely,
 	reminderClock,
+	shortDay,
 	timeString,
 } from "../atoms/primitives.ts";
 import { Avatar, Avatars, CheckMark, Icon, ProgressRing } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardReadingTime, cardSource, cardSourceKind } from "../data/card-source.ts";
+import {
+	articleDate,
+	cardReadingTime,
+	cardSource,
+	cardSourceKind,
+	contentDay,
+} from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -60,11 +67,12 @@ function SourceIcon({ card: c, size = 16 }: { card: Card; size?: number }) {
 		/>
 	);
 }
-function sourceLine(c: Card) {
+function sourceLine(c: Card, date: Date | null = null) {
 	return [
 		c.sources?.length > 1
 			? c.sources.map((s: Card) => s.name).join(" · ")
 			: cardSource(c) || (CardTypes[c.type] || CardTypes.note).label,
+		date ? shortDay(date.getTime()) : "",
 		cardReadingTime(c),
 	]
 		.filter(Boolean)
@@ -149,7 +157,8 @@ function Article({ card: c, ctx }: BlockProps) {
 		<>
 			{c.image && <Cover card={c} />}
 			<div className="card-body">
-				<Head card={c} text={sourceLine(c)} right={Progress({ card: c, ctx })} />
+				{/* The same head as the article preview: source · day · reading time. */}
+				<Head card={c} text={sourceLine(c, articleDate(c))} right={Progress({ card: c, ctx })} />
 				<Title card={c} ctx={ctx} />
 				<Summary card={c} />
 			</div>
@@ -484,6 +493,7 @@ function Suggestion({ card: c, ctx }: BlockProps) {
 }
 function Photo({ card: c, ctx }: BlockProps) {
 	const photos = c.photos?.length ? c.photos : [c.image];
+	const taken = contentDay(c.takenAt);
 	return (
 		<>
 			<div className={`card-cover photo-grid n${Math.min(3, photos.length)}`}>
@@ -504,7 +514,9 @@ function Photo({ card: c, ctx }: BlockProps) {
 			<div className="card-body">
 				<Head
 					card={c}
-					text={[copy("web.photo"), c.location].filter(Boolean).join(" · ")}
+					text={[copy("web.photo"), c.location, taken ? shortDay(taken.getTime()) : ""]
+						.filter(Boolean)
+						.join(" · ")}
 					right={photos.length > 3 ? <span className="num">{photos.length}</span> : null}
 				/>
 				<Title card={c} ctx={ctx} />

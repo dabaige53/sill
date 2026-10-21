@@ -8,6 +8,8 @@ import SwiftUI
   /// Incremented by Esc when the field has nothing left to clear; the field gives up focus.
   private(set) var blurRequest = 0
   var searchFocused = false
+  /// The field's frame in window coordinates (top-left origin); a click outside it blurs search.
+  @ObservationIgnored var searchFrame: CGRect = .zero
   let menu = ScopeMenuState()
 
   func focusSearch() { searchRequest += 1 }
@@ -85,6 +87,11 @@ struct SearchField: View {
     .padding(.leading, AppleMetrics.space14)
     .padding(.trailing, AppleMetrics.space8)
     .modifier(SearchSurface(focused: focused))
+    .onGeometryChange(for: CGRect.self) {
+      $0.frame(in: .global)
+    } action: {
+      shell.searchFrame = $0
+    }
     .disabled(!interaction.canSearch)
     .onHover { hovered = $0 }
     .onTapGesture { interaction.focusSearch() }
@@ -95,6 +102,8 @@ struct SearchField: View {
       Motion.instantly { focused = true }
     }
     .onChange(of: shell.blurRequest) { focused = false }
+    // Losing focus elsewhere (a click, the reader, a panel) must not leave the field marked focused.
+    .onChange(of: interaction.canSearch) { _, allowed in if !allowed { focused = false } }
   }
 
   private func clear() {

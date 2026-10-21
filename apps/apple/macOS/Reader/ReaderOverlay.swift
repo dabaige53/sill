@@ -30,6 +30,9 @@ struct ReaderOverlay: View {
         .offset(y: reader.matching || reader.shown ? 0 : AppleMetrics.motionDetailEnterY)
       }
       .ignoresSafeArea()
+      // A leaving overlay is only a picture: clicks reach the feed at once, so the next card opens
+      // without waiting for the return spring to settle.
+      .allowsHitTesting(reader.shown)
       // Esc leaves the top layer wherever focus is.
       .background {
         // A panel over the reader takes Esc first.
@@ -148,10 +151,16 @@ struct DetailReveal: ViewModifier {
   @Environment(Reader.self) private var reader
   func body(content: Content) -> some View {
     let visible = !reader.matching || (tools ? reader.toolsShown : reader.contentShown)
-    content.opacity(reader.matching ? 1 : (visible ? 1 : 0))
-      .allowsHitTesting(visible)
-      .accessibilityHidden(!visible)
-      .animation(reader.matching ? nil : Motion.ease(AppleMetrics.motionDetailFade), value: visible)
+    // Returning to the card: the tools leave first instead of riding the edge back; the text
+    // stays in the surface until the handoff.
+    let leaving = tools && reader.returning
+    let opacity: Double = leaving ? 0 : reader.matching || visible ? 1 : 0
+    content.opacity(opacity)
+      .allowsHitTesting(visible && !leaving)
+      .accessibilityHidden(!visible || leaving)
+      .animation(
+        reader.matching && !leaving ? nil : Motion.ease(AppleMetrics.motionDetailFade),
+        value: opacity)
   }
 }
 

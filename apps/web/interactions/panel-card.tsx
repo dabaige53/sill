@@ -4,6 +4,7 @@ import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import {
+	articleDate,
 	cardDate,
 	cardDates,
 	cardReadingTime,
@@ -430,12 +431,3 @@ export const panelCard = {
 		);
 	},
 };
-
-/** The day an article belongs to: published, else saved, else the card's own time. */
-function articleDate(c: Card) {
-	const dates = cardDates(c);
-	const date = dates.published || dates.saved;
-	if (!date) return typeof c.time === "number" ? new Date(c.time) : null;
-	// A bare day is that local day; a timestamp is an instant.
-	return new Date(date.datetime.length === 10 ? `${date.datetime}T00:00:00` : date.datetime);
-}
