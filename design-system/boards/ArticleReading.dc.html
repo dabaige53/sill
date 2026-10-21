@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>资讯阅读 · B 均衡 · 定稿</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+:root{--canvas:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#636366;--secondary:#636366;--surface:#f0f0f2;--faint:rgba(0,0,0,.05);--line:rgba(0,0,0,.06);--line-card:rgba(0,0,0,.08);--accent:#0066cc;--page:#e4e4e8;--note:#3a3a3c;
+--font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{margin:0}
+.doc{background:var(--page);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;padding:48px 40px 96px}
+.doc>header h1{font-size:34px;font-weight:700}.doc>header p{color:var(--muted);font-size:15px;margin-top:8px;line-height:1.6;max-width:880px}
+.doc>section{margin-top:56px}.doc>section>h2{font-size:24px;font-weight:700;display:flex;gap:12px;align-items:baseline}.doc>section>h2 .n{font-size:13px;color:var(--muted);font-weight:600}
+.row{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;margin-top:24px}
+figure{margin:0}figcaption{margin-top:12px;font-size:13px;line-height:1.6;color:var(--note);max-width:640px}figcaption b{font-size:14px;color:var(--ink)}figcaption ul{padding-left:18px;margin-top:4px}
+.spec{border-collapse:collapse;margin-top:20px;font-size:14px;background:var(--card);border-radius:12px;overflow:hidden;width:100%;max-width:1100px}
+.spec th,.spec td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+.spec th{font-size:12px;color:var(--muted);font-weight:600;background:#fafafb}
+.spec td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.qs{margin-top:20px;max-width:1100px;background:var(--card);border-radius:12px;padding:16px 18px;font-size:14px;line-height:1.7}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+.doc{width:1840px}
+.art{font-family:var(--font);color:var(--ink);overflow-wrap:anywhere}
+.art .meta{display:flex;align-items:center;gap:6px;font-size:12px;line-height:18px;color:var(--secondary);margin-bottom:14px}
+.art .meta svg{width:15px;height:15px}.art .meta span+span:before{content:'·';margin-right:6px}
+.art h1{font-size:22px;line-height:30px;font-weight:600;letter-spacing:normal;margin:0 0 24px}
+.art h2{font-size:17px;line-height:24px;font-weight:600;margin:28px 0 12px}
+.art p,.art li,.art blockquote{font-size:15px;line-height:25px;font-weight:400}
+.art p{margin:0 0 16px}.art ul{padding-left:22px;margin:0 0 16px}.art li{margin:0 0 6px}.art li::marker{color:var(--muted)}
+.art blockquote{margin:24px 0;padding-left:18px;border-left:2px solid #d2d2d7}.art blockquote p{margin:0}
+.art figure{margin:24px 0}.art figure img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px}
+.art figcaption{font-size:12px;line-height:18px;color:var(--secondary);margin-top:10px;max-width:none}
+.art .ending{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;line-height:18px;color:var(--secondary)}
+.art strong{font-weight:600}
+.page{width:1100px;background:var(--card);border-radius:14px;box-shadow:0 0 0 1px rgba(0,0,0,.1),0 20px 40px -20px rgba(0,0,0,.3);position:relative;overflow:hidden}
+.page .tools{position:absolute;top:14px;right:16px;display:flex;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.86);box-shadow:0 0 0 .5px rgba(0,0,0,.1),0 6px 18px rgba(0,0,0,.1)}
+.page .tools span{width:36px;height:36px;display:grid;place-items:center}.page .tools svg{width:18px;height:18px}
+.page .progress{height:2px;width:38%;background:var(--accent)}
+.page .col{max-width:664px;margin:0 auto;padding:88px 32px 80px}
+.page .col .art{max-width:600px}
+.ruler{position:absolute;top:0;bottom:0;border-left:1px dashed rgba(0,102,204,.35)}
+.tag{position:absolute;top:58px;font-size:11px;color:var(--accent);background:rgba(0,102,204,.08);padding:2px 6px;border-radius:6px}
+.dim{width:1100px;height:auto;background:rgba(0,0,0,.28);border-radius:14px;padding:48px 0;display:flex;justify-content:center}
+.sheet{width:760px;background:var(--card);border-radius:28px;box-shadow:0 30px 80px -30px rgba(0,0,0,.45);position:relative;overflow:hidden}
+.sheet .head{position:absolute;top:24px;right:24px;display:flex;gap:8px}
+.sheet .head span{width:36px;height:36px;border-radius:50%;background:var(--card);box-shadow:0 0 0 .5px var(--line-card),0 4px 12px rgba(0,0,0,.08);display:grid;place-items:center}.sheet .head svg{width:18px;height:18px}
+.sheet .body{padding:26px 32px 30px}.sheet .body .art{max-width:600px;margin:0 auto}
+.sheet .meta{padding-right:92px}
+.sheet .bar{display:flex;justify-content:center;padding:4px 0 22px}
+.sheet .bar div{display:flex;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.9);box-shadow:0 0 0 .5px rgba(0,0,0,.1),0 6px 18px rgba(0,0,0,.1)}
+.sheet .bar span{width:40px;height:40px;display:grid;place-items:center}
+.phone{width:390px;background:var(--card);border-radius:40px;box-shadow:0 0 0 10px #1d1d1f,0 30px 60px -20px rgba(0,0,0,.4);overflow:hidden;margin:10px}
+.phone .col{padding:64px 20px 40px}
+
+</style>
+</helmet>
+<div class="doc">
+<header><h1>资讯阅读 · B 均衡</h1><p>只用于资讯卡（article）。预览浮层和全屏阅读页用同一套字号与间距，Web 与 macOS 相同。其他 10 类查看页沿用原有实现。示例为排版演示，不写入真实卡片。</p></header>
+<section><h2><span class="n">01</span>全屏阅读页</h2><div class="row"><figure><div class="page"><div class="progress"></div><div class="tools"><span><svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><span class="ruler" style="left:250px"></span><span class="ruler" style="left:850px"></span><span class="tag" style="left:256px">600 正文宽</span><div class="col"><div class="art">
+<div class="meta"><svg viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"/><path d="M12 5v15"/></svg><span>产品随记</span><span>昨天</span><span>阅读约 3 分钟</span></div>
+<h1>让信息停下来，给理解留一点空间</h1> <p>保存值得留下的内容并不难，难的是下次打开时仍然记得为什么留下它。阅读页让标题、来源和正文各在其位，安静地展开。</p>
+<p>我们每天都会遇到值得留下的内容：一篇文章、一段对话、一份还没读完的报告。把它们保存下来并不难，难的是在下一次打开时，仍然知道自己为什么留下它们。</p>
+<p>一个好的阅读页面，应该让这件事变得简单。标题告诉我们正在读什么，来源和日期提供必要的背景，正文则安静地展开。读者不需要先理解界面，就可以接着上一次的思路往下读。</p>
+<figure><img src="web-chrome/architecture.jpg" alt="建筑空间示意图"><figcaption>阅读空间的留白，让内容有清楚的边界。</figcaption></figure>
+<h2>先看清，再读进去</h2>
+<p>卡片和文章承担不同的任务。在卡片里，我们快速判断内容是否值得打开；进入文章后，我们开始连接观点、理解原因，也可能停下来想一会儿。因此，阅读页不需要延续信息流里的密度。</p>
+<p>阅读区域需要有稳定的边界。窗口变宽时，可以增加两侧留白，让正文保持适合阅读的宽度。每一行的长度相对稳定，读完一行之后，视线也更容易找到下一行的起点。</p>
+<p>段落之间留出一点空白，用来表示一个想法已经结束，另一个想法即将开始。这样的停顿不需要装饰，也不必在每一段前面增加标签。结构清楚，页面自然就会显得有秩序。</p>
+<h2>小信息，留在合适的位置</h2>
+<p>作者、日期和来源有用，但它们不需要和文章标题争夺注意力。把这些信息放在标题上方，用一行简短的小字说明，就足以帮助读者判断背景。</p>
+<ul><li>日期直接写成“昨天”或“10/18”，省去重复的说明。</li><li>正文保持深色，图片说明和来源使用次一级的颜色。</li><li>小节标题上方留出更多空间，说明新的话题开始了。</li></ul>
+<p>信息的轻重也不完全由字号决定。同样大小的文字，放在不同的位置，配合不同的间距，会产生不同的阅读顺序。与其不断增加新的样式，不如先把已有的几种样式用好。</p>
+<blockquote><p>留下来的内容，应该帮助我们继续思考，而不是提醒我们还有多少东西没有读完。</p></blockquote>
+<h2>让界面适应内容</h2>
+<p>实际文章并不总是整齐的短段落。它可能包含一句很短的结论，也可能需要一整段来解释来龙去脉；可能混合中文、英文和数字，例如 AI、Sill 与 2026 年的工作计划。排版应该容纳这些变化，而不是要求作者把每段写成同样的长度。</p>
+<p><strong>好的阅读节奏，需要保留内容本来的层次。</strong> 短句可以独立成段，必要的列举可以使用列表，引用也可以与正文稍作区分。只要这些形式使用克制，读者就能知道哪里适合快速浏览，哪里值得放慢速度。</p>
+<p>当页面不再要求我们不断辨认控件、区分装饰和正文，注意力就能回到内容本身。读到最后，我们记住的是一个新的想法，以及它与自己正在做的事情有什么关系。</p>
+<div class="ending">本文为阅读排版示例，使用现有原型配图。</div>
+</div></div></div>
+<figcaption><b>顺序</b><ul><li>来源 · 日期 · 阅读时长 → 标题 → 标签与出版信息 → 封面 → 导语与要点 → 正文 → 备注。</li><li>正文完整显示，不截断。日期只写「今天」「昨天」「10/18」。</li><li>右上收起与关闭、底部工具条、进度线和读完圆环保持原有行为。</li></ul></figcaption></figure></div></section>
+<section><h2><span class="n">02</span>预览浮层</h2><div class="row"><figure><div class="dim"><div class="sheet"><div class="head"><span><svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><div class="body"><div class="art">
+<div class="meta"><svg viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"/><path d="M12 5v15"/></svg><span>产品随记</span><span>昨天</span><span>阅读约 3 分钟</span></div>
+<h1>让信息停下来，给理解留一点空间</h1> <p>保存值得留下的内容并不难，难的是下次打开时仍然记得为什么留下它。阅读页让标题、来源和正文各在其位，安静地展开。</p>
+<p>我们每天都会遇到值得留下的内容：一篇文章、一段对话、一份还没读完的报告。把它们保存下来并不难，难的是在下一次打开时，仍然知道自己为什么留下它们。</p>
+<p>一个好的阅读页面，应该让这件事变得简单。标题告诉我们正在读什么，来源和日期提供必要的背景，正文则安静地展开。读者不需要先理解界面，就可以接着上一次的思路往下读。</p>
+<figure><img src="web-chrome/architecture.jpg" alt="建筑空间示意图"><figcaption>阅读空间的留白，让内容有清楚的边界。</figcaption></figure>
+<h2>先看清，再读进去</h2>
+<p>卡片和文章承担不同的任务。在卡片里，我们快速判断内容是否值得打开；进入文章后，我们开始连接观点、理解原因，也可能停下来想一会儿。因此，阅读页不需要延续信息流里的密度。</p>
+<p>阅读区域需要有稳定的边界。窗口变宽时，可以增加两侧留白，让正文保持适合阅读的宽度。每一行的长度相对稳定，读完一行之后，视线也更容易找到下一行的起点。</p>
+<p>段落之间留出一点空白，用来表示一个想法已经结束，另一个想法即将开始。这样的停顿不需要装饰，也不必在每一段前面增加标签。结构清楚，页面自然就会显得有秩序。</p>
+</div></div><div class="bar"><div><span><svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></svg></span><span><svg viewBox="0 0 24 24"><circle cx="6.5" cy="15" r="3.5"/><circle cx="17.5" cy="15" r="3.5"/><path d="M10 15h4M3 15l2-7M21 15l-2-7"/></svg></span></div></div></div></div>
+<figcaption><b>预览</b><ul><li>浮层仍是 760 宽；资讯内容左右 32，正文最大 600，居中。</li><li>字号、行高、段距与全屏完全一致；只是高度跟着内容，超过 88% 窗口高后滚动。</li></ul></figcaption></figure>
+<figure><div class="phone"><div class="col"><div class="art">
+<div class="meta"><svg viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z"/><path d="M12 5v15"/></svg><span>产品随记</span><span>昨天</span><span>阅读约 3 分钟</span></div>
+<h1>让信息停下来，给理解留一点空间</h1> <p>保存值得留下的内容并不难，难的是下次打开时仍然记得为什么留下它。阅读页让标题、来源和正文各在其位，安静地展开。</p>
+<p>我们每天都会遇到值得留下的内容：一篇文章、一段对话、一份还没读完的报告。把它们保存下来并不难，难的是在下一次打开时，仍然知道自己为什么留下它们。</p>
+<p>一个好的阅读页面，应该让这件事变得简单。标题告诉我们正在读什么，来源和日期提供必要的背景，正文则安静地展开。读者不需要先理解界面，就可以接着上一次的思路往下读。</p>
+<figure><img src="web-chrome/architecture.jpg" alt="建筑空间示意图"><figcaption>阅读空间的留白，让内容有清楚的边界。</figcaption></figure>
+<h2>先看清，再读进去</h2>
+<p>卡片和文章承担不同的任务。在卡片里，我们快速判断内容是否值得打开；进入文章后，我们开始连接观点、理解原因，也可能停下来想一会儿。因此，阅读页不需要延续信息流里的密度。</p>
+<p>阅读区域需要有稳定的边界。窗口变宽时，可以增加两侧留白，让正文保持适合阅读的宽度。每一行的长度相对稳定，读完一行之后，视线也更容易找到下一行的起点。</p>
+<p>段落之间留出一点空白，用来表示一个想法已经结束，另一个想法即将开始。这样的停顿不需要装饰，也不必在每一段前面增加标签。结构清楚，页面自然就会显得有秩序。</p>
+</div></div></div><figcaption><b>手机 390</b><ul><li>左右 20，字号不变，不缩放整页。</li></ul></figcaption></figure></div></section>
+<section><h2><span class="n">03</span>数值</h2>
+<table class="spec"><tr><th>角色</th><th>变量</th><th>字号 / 行高</th><th>间距</th></tr>
+<tr><td>页面标题</td><td>article-title</td><td class="num">22 / 30，600</td><td>下方 24；正常字距，左对齐</td></tr>
+<tr><td>小节标题</td><td>article-section</td><td class="num">17 / 24，600</td><td>上方 28，下方 12</td></tr>
+<tr><td>正文、列表、引用</td><td>article-body</td><td class="num">15 / 25，400</td><td>段距 16；列表项 6；引用左细线、缩进 18，不放大</td></tr>
+<tr><td>来源、日期、图注</td><td>article-meta</td><td class="num">12 / 18，400</td><td>secondary 色；来源行下方 14</td></tr>
+<tr><td>正文宽度</td><td>article-measure</td><td class="num">600</td><td>居中；容器最大 664</td></tr>
+<tr><td>左右内边距</td><td>article-gutter / -sm</td><td class="num">32 / 20</td><td>桌面 / 手机</td></tr>
+</table>
+<div class="qs"><b>边界</b>　小节、列表、引用、图注的样式已定为变量；当前卡片正文是纯段落，出现这些结构前不改数据格式。卡片仍用 A 字号，其他详情页不用 article-* 变量。不加折叠区、属性侧栏或信息表。</div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1840,"height":4200}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

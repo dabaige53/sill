@@ -238,7 +238,7 @@
 	margin-top: var(--space-60);
 }
 
-/* Shared home filters. The phone head stays in responsive.css (ADR 0036). */
+/* Shared home filters. The phone head stays in responsive.css (ADR 0036). @design top-bar */
 .home-top {
 	position: sticky;
 	top: 0;

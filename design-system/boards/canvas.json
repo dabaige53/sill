@@ -7,319 +7,445 @@
       "title": "05 Apple 风格对照",
       "w": 1440,
       "x": 0,
-      "y": 20010
+      "y": 14620,
+      "page": "history"
     },
     "Brand.dc.html": {
       "h": 1240,
       "title": "27 品牌 · Sill 窗台",
       "w": 1440,
-      "x": 0,
-      "y": 280
+      "x": 1520,
+      "y": 22770
     },
     "Capture.dc.html": {
       "h": 1340,
       "title": "33 收集入口",
       "w": 1440,
-      "x": 3040,
-      "y": 2120
+      "x": 9120,
+      "y": 10360,
+      "page": "history"
     },
     "CardBlocks.dc.html": {
       "h": 2140,
       "is_interactive": true,
       "title": "21 卡片积木（可拼）",
       "w": 1440,
-      "x": 0,
-      "y": 13440
+      "x": 7020,
+      "y": 280,
+      "page": "history"
     },
     "CardForms.dc.html": {
       "h": 1240,
       "title": "09 七类卡片表达",
       "w": 1440,
       "x": 1520,
-      "y": 21850
+      "y": 16540,
+      "page": "history"
     },
     "CardRecipes.dc.html": {
       "h": 3770,
       "title": "22 预设卡片 · 32 种 · 站内与跳转",
       "w": 1440,
-      "x": 1520,
-      "y": 13440
+      "x": 8540,
+      "y": 280,
+      "page": "history"
     },
     "CardSizing.dc.html": {
       "h": 1380,
       "title": "10 尺寸与内容规范",
       "w": 1440,
       "x": 3040,
-      "y": 21850
+      "y": 16540,
+      "page": "history"
     },
     "CardSystem.dc.html": {
       "h": 1120,
       "title": "08 卡片体系 · 10 → 7",
       "w": 1440,
       "x": 0,
-      "y": 21850
+      "y": 16540,
+      "page": "history"
     },
     "Cards.dc.html": {
       "h": 1180,
       "title": "02 卡片类型",
       "w": 1440,
       "x": 1520,
-      "y": 18230
+      "y": 12760,
+      "page": "history"
     },
     "CardsNext.dc.html": {
       "h": 1240,
       "title": "06 卡片 · 优化前后",
       "w": 1440,
       "x": 1520,
-      "y": 20010
+      "y": 14620,
+      "page": "history"
     },
     "Details.dc.html": {
       "h": 1720,
       "title": "29 站内详情",
       "w": 1440,
-      "x": 3040,
-      "y": 7060
+      "x": 4560,
+      "y": 10360,
+      "page": "history"
     },
     "ExitRules.dc.html": {
       "h": 1220,
       "title": "17 定稿 · 退出交互",
       "w": 1440,
-      "x": 4560,
-      "y": 7060
+      "x": 4960,
+      "y": 16280
     },
     "FinalFeed.dc.html": {
       "h": 1560,
       "title": "11 定稿 · 桌面信息流 1440",
       "w": 1440,
-      "x": 0,
-      "y": 4220
+      "x": 1520,
+      "y": 4260,
+      "page": "history"
     },
     "FinalIcons.dc.html": {
       "h": 1000,
       "title": "13 定稿 · 图标 36 + 4",
       "w": 1440,
-      "x": 4560,
-      "y": 13440
+      "x": 3510,
+      "y": 4260,
+      "page": "history"
     },
     "FinalMobile.dc.html": {
       "h": 1560,
       "title": "12 定稿 · 手机 390",
       "w": 390,
-      "x": 1520,
-      "y": 4220
+      "x": 3040,
+      "y": 4260,
+      "page": "history"
     },
     "FinalOverlays.dc.html": {
       "h": 3440,
       "title": "15 定稿 · 弹层 v2",
       "w": 1440,
-      "x": 0,
-      "y": 7060
+      "x": 6550,
+      "y": 4260,
+      "page": "history"
     },
     "FinalSpec.dc.html": {
       "h": 1180,
       "title": "14 定稿 · 规范总表",
       "w": 1440,
-      "x": 6080,
-      "y": 13440
+      "x": 5030,
+      "y": 4260,
+      "page": "history"
     },
     "Foundations.dc.html": {
       "h": 1120,
       "title": "04 视觉基础",
       "w": 1440,
       "x": 4560,
-      "y": 18230
+      "y": 12760,
+      "page": "history"
     },
     "Icons.dc.html": {
       "h": 1120,
       "title": "03 图标盘点",
       "w": 1440,
       "x": 3040,
-      "y": 18230
+      "y": 12760,
+      "page": "history"
     },
     "IconsNext.dc.html": {
       "h": 1240,
       "title": "07 图标 · 语义重排",
       "w": 1440,
       "x": 3040,
-      "y": 20010
+      "y": 14620,
+      "page": "history"
     },
     "Main.dc.html": {
       "h": 1180,
       "title": "01 功能分布",
       "w": 1440,
       "x": 0,
-      "y": 18230
+      "y": 12760,
+      "page": "history"
     },
     "MobileProto.dc.html": {
       "h": 940,
       "is_interactive": true,
       "title": "19 定稿 · 手机交互（可滑动，导航胶囊）",
       "w": 860,
-      "x": 3510,
-      "y": 4220
+      "x": 0,
+      "y": 280,
+      "page": "history"
     },
     "MotionProto.dc.html": {
       "h": 960,
       "is_interactive": true,
       "title": "16 定稿 · 弹出动效（可点击，导航胶囊）",
       "w": 1440,
-      "x": 1520,
-      "y": 7060
+      "x": 8070,
+      "y": 4260,
+      "page": "history"
     },
     "Onboarding.dc.html": {
       "h": 1500,
       "title": "24 首次打开与导入",
       "w": 1440,
       "x": 0,
-      "y": 2120
+      "y": 10360,
+      "page": "history"
     },
     "ScrollWait.dc.html": {
       "h": 2240,
       "title": "18 定稿 · 下滑与等待 v2",
       "w": 1440,
-      "x": 4450,
-      "y": 4220
+      "x": 4720,
+      "y": 13160
     },
     "SearchArchive.dc.html": {
       "h": 1400,
       "title": "30 搜索与归档",
       "w": 1440,
-      "x": 0,
-      "y": 10920
+      "x": 6080,
+      "y": 10360,
+      "page": "history"
     },
     "Settings.dc.html": {
       "h": 1900,
       "title": "32 设置",
       "w": 1440,
-      "x": 3040,
-      "y": 10920
+      "x": 0,
+      "y": 4260,
+      "page": "history"
     },
     "Sitemap.dc.html": {
       "h": 1000,
       "title": "28 页面地图",
       "w": 1440,
-      "x": 1520,
-      "y": 280
+      "x": 3040,
+      "y": 10360,
+      "page": "history"
     },
     "SourcesImport.dc.html": {
       "h": 1360,
       "title": "31 来源与导入",
       "w": 1440,
-      "x": 1520,
-      "y": 2120
+      "x": 7600,
+      "y": 10360,
+      "page": "history"
     },
     "TextLimits.dc.html": {
       "h": 1508,
       "title": "23 文字长度",
       "w": 1440,
-      "x": 3040,
-      "y": 13440
+      "x": 10060,
+      "y": 280,
+      "page": "history"
     },
     "Trust.dc.html": {
       "h": 1060,
       "title": "26 来源与信任",
       "w": 1440,
       "x": 1520,
-      "y": 10920
+      "y": 10360,
+      "page": "history"
     },
     "Volume.dc.html": {
       "h": 1700,
       "title": "25 量大与去重",
       "w": 1440,
-      "x": 5970,
-      "y": 4220
+      "x": 3200,
+      "y": 13160
     },
     "WebProto.dc.html": {
       "h": 960,
       "is_interactive": true,
       "title": "20 定稿 · 桌面交互（可滚动，导航胶囊）",
       "w": 1440,
-      "x": 1990,
-      "y": 4220
+      "x": 9590,
+      "y": 4260,
+      "page": "history"
     },
     "GlassRail.dc.html": {
       "h": 2380,
       "title": "34 定稿 v3 · 玻璃底栏与工具条",
       "w": 1440,
-      "x": 7490,
-      "y": 4220
+      "x": 11110,
+      "y": 4260,
+      "page": "history"
     },
     "NavCapsule.dc.html": {
       "h": 2310,
       "title": "35 定稿 v4 · 底部导航胶囊",
       "w": 1440,
-      "x": 9010,
-      "y": 4220
+      "x": 2460,
+      "y": 280,
+      "page": "history"
     },
     "MobileHome.dc.html": {
       "h": 2420,
       "title": "36 定稿 v5 · 手机主页（X 的密度）",
       "w": 1440,
-      "x": 10530,
-      "y": 4220
+      "x": 940,
+      "y": 280,
+      "page": "history"
     },
     "CardDetail.dc.html": {
       "h": 5810,
       "title": "37 定稿 v6 · 卡片详情（胶囊与名称提示）",
       "w": 1440,
-      "x": 6080,
-      "y": 7060
-    },
-    "IconSet.dc.html": {
-      "h": 4960,
-      "title": "38 定稿 · 保留原版图标 69 个",
-      "w": 1440,
-      "x": 12050,
-      "y": 13440
-    },
-    "NavigationState.dc.html": {
-      "h": 3820,
-      "title": "39 定稿 · 导航当前项保留镜片",
-      "w": 1440,
-      "x": 13570,
-      "y": 13440
-    },
-    "PhotoTools.dc.html": {
-      "h": 1840,
-      "title": "40 定稿 · 照片通用操作",
-      "w": 1440,
-      "x": 15090,
-      "y": 13440
-    },
-    "CardActionExamples.dc.html": {
-      "h": 2440,
-      "title": "41 定稿 · 卡片操作适用类型",
-      "w": 1440,
-      "x": 16610,
-      "y": 13440
-    },
-    "DesktopHomeFilters.dc.html": {
-      "h": 1820,
-      "title": "42 定稿 · 桌面主页分栏",
-      "w": 1440,
-      "x": 18130,
-      "y": 13440
-    },
-    "SearchFilters.dc.html": {
-      "h": 1820,
-      "title": "43 定稿 · 搜索条件分行",
-      "w": 1440,
-      "x": 19650,
-      "y": 13440
+      "x": 0,
+      "y": 16280
     },
     "PhoneChrome.dc.html": {
       "h": 5100,
       "title": "44 定稿 · 手机顶行与搜索标签",
       "w": 1720,
-      "x": 12050,
-      "y": 4220
+      "x": 1880,
+      "y": 280
     },
     "WebChrome.dc.html": {
       "h": 6420,
       "title": "45 定稿 · Web 顶栏与 AI 框",
       "w": 1840,
-      "x": 13850,
-      "y": 4220
+      "x": 9120,
+      "y": 6060
+    },
+    "IconSet.dc.html": {
+      "h": 4960,
+      "title": "38 定稿 · 保留原版图标",
+      "w": 1440,
+      "x": 0,
+      "y": 22770
+    },
+    "NavigationState.dc.html": {
+      "h": 3820,
+      "title": "39 定稿 · 导航当前项保留镜片",
+      "w": 1440,
+      "x": 3980,
+      "y": 280,
+      "page": "history"
+    },
+    "PhotoTools.dc.html": {
+      "h": 1840,
+      "title": "40 定稿 · 照片通用操作",
+      "w": 1440,
+      "x": 3440,
+      "y": 16280
+    },
+    "CardActionExamples.dc.html": {
+      "h": 2440,
+      "title": "41 定稿 · 卡片操作适用类型",
+      "w": 1440,
+      "x": 1680,
+      "y": 13160
+    },
+    "DesktopHomeFilters.dc.html": {
+      "h": 1820,
+      "title": "42 定稿 · 桌面主页分栏",
+      "w": 1440,
+      "x": 0,
+      "y": 7860,
+      "page": "history"
+    },
+    "SearchFilters.dc.html": {
+      "h": 1820,
+      "title": "43 定稿 · 搜索条件分行",
+      "w": 1440,
+      "x": 5500,
+      "y": 280,
+      "page": "history"
+    },
+    "CardTypeA.dc.html": {
+      "h": 2000,
+      "title": "46 定稿 · 卡片 A 字号与四列",
+      "w": 1600,
+      "x": 0,
+      "y": 13160
+    },
+    "ArticleReading.dc.html": {
+      "h": 4200,
+      "title": "47 定稿 · 资讯阅读 B 均衡",
+      "w": 1840,
+      "x": 1520,
+      "y": 16280
+    },
+    "MacChrome.dc.html": {
+      "h": 2200,
+      "title": "48 定稿 · Mac 顶栏与设置弹窗",
+      "w": 1840,
+      "x": 11040,
+      "y": 6060
+    },
+    "ScreenMobileHome.dc.html": {
+      "h": 844,
+      "title": "手机 · 主页",
+      "w": 390,
+      "x": 0,
+      "y": 280
+    },
+    "ScreenMobileSearch.dc.html": {
+      "h": 844,
+      "title": "手机 · 搜索首页",
+      "w": 390,
+      "x": 470,
+      "y": 280
+    },
+    "ScreenMobileResults.dc.html": {
+      "h": 844,
+      "title": "手机 · 结果页与 # 条件",
+      "w": 390,
+      "x": 940,
+      "y": 280
+    },
+    "ScreenMobileAI.dc.html": {
+      "h": 844,
+      "title": "手机 · AI",
+      "w": 390,
+      "x": 1410,
+      "y": 280
+    },
+    "ScreenWebHome.dc.html": {
+      "h": 900,
+      "title": "网页 · 主页（分栏收起）",
+      "w": 1440,
+      "x": 0,
+      "y": 6060
+    },
+    "ScreenWebMenu.dc.html": {
+      "h": 900,
+      "title": "网页 · 分栏菜单",
+      "w": 1440,
+      "x": 1520,
+      "y": 6060
+    },
+    "ScreenWebSearch.dc.html": {
+      "h": 900,
+      "title": "网页 · 在未读里搜索",
+      "w": 1440,
+      "x": 3040,
+      "y": 6060
+    },
+    "ScreenWebDrop.dc.html": {
+      "h": 900,
+      "title": "网页 · 拖入卡片",
+      "w": 1440,
+      "x": 4560,
+      "y": 6060
+    },
+    "ScreenWebSelect.dc.html": {
+      "h": 900,
+      "title": "网页 · 多选",
+      "w": 1440,
+      "x": 6080,
+      "y": 6060
+    },
+    "ScreenWebSession.dc.html": {
+      "h": 900,
+      "title": "网页 · AI 会话（接入后）",
+      "w": 1440,
+      "x": 7600,
+      "y": 6060
     }
   },
   "createdOnFiles": {
@@ -329,129 +455,142 @@
   "designSystems": [
     {
       "artifact": "https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb",
-      "copiedAt": "2026-10-16T06:59:00Z",
+      "copiedAt": "2026-10-21T06:00:00Z",
       "namespace": "sill",
       "title": "Sill",
-      "version": "1792133654-8a24"
+      "version": "1792545276-6a1f"
     }
   ],
   "launch": {
-    "view": "canvas"
+    "view": "canvas",
+    "page": "page-1"
   },
   "notes": {
-    "row0": {
+    "current1": {
       "kind": "title1",
-      "maxW": 8000,
-      "text": "① 品牌与全貌 · Sill 是什么、有哪些页面",
-      "w": 240,
+      "maxW": 4480,
+      "text": "手机 · 页面与顶行",
       "x": 0,
       "y": 0
     },
-    "row1": {
+    "current2": {
       "kind": "title1",
-      "maxW": 8000,
-      "text": "② 进来 · 首次打开、接入来源、随手收集",
-      "w": 240,
+      "maxW": 12880,
+      "text": "网页与 Mac · 页面、顶栏与 AI 框",
       "x": 0,
-      "y": 1840
+      "y": 5780
     },
-    "row2": {
+    "current3": {
       "kind": "title1",
-      "maxW": 8000,
-      "text": "③ 桌面 · 信息流、下滑与等待、量大与去重",
-      "w": 240,
+      "maxW": 6160,
+      "text": "卡片 · 字号、操作、量大与等待",
       "x": 0,
-      "y": 3940
+      "y": 12880
     },
-    "row3": {
+    "current4": {
       "kind": "title1",
-      "maxW": 8000,
-      "text": "④ 打开 · 预览、动效、站内详情、退出",
-      "w": 240,
+      "maxW": 6400,
+      "text": "打开 · 详情、资讯阅读、照片与退出",
       "x": 0,
-      "y": 6780
+      "y": 16000
     },
-    "row4": {
+    "current5": {
       "kind": "title1",
-      "maxW": 8000,
-      "text": "⑤ 找与管 · 搜索归档、来源信任、设置",
-      "w": 240,
+      "maxW": 4480,
+      "text": "图标与品牌",
       "x": 0,
-      "y": 10640
+      "y": 22490
     },
-    "row5": {
+    "history1": {
       "kind": "title1",
-      "maxW": 8000,
-      "text": "⑥ 底层 · 卡片积木、预设、文字、图标与规范",
-      "w": 240,
+      "maxW": 12550,
+      "text": "已被取代的定稿 · 不作依据",
       "x": 0,
-      "y": 13160
+      "y": 0,
+      "page": "history"
     },
-    "row6": {
+    "history2": {
       "kind": "title1",
-      "maxW": 8000,
-      "text": "过程 1 · 现状盘点 main@fc9f267",
-      "w": 240,
+      "maxW": 10560,
+      "text": "早期概念稿 · 不作依据",
       "x": 0,
-      "y": 17950
+      "y": 10080,
+      "page": "history"
     },
-    "row7": {
-      "kind": "title1",
-      "maxW": 8000,
-      "text": "过程 2 · 优化方向，向 Apple 的细节靠拢",
-      "w": 240,
-      "x": 0,
-      "y": 19730
-    },
-    "row8": {
-      "kind": "title1",
-      "maxW": 8000,
-      "text": "过程 3 · 卡片重构：类型、表达与尺寸",
-      "w": 240,
-      "x": 0,
-      "y": 21570
-    },
-    "story": {
+    "history3": {
       "kind": "title1",
       "maxW": 6000,
-      "text": "产品如何形成 · 下面是一路走来的过程稿",
-      "w": 240,
+      "text": "过程 1 · 现状盘点",
       "x": 0,
-      "y": 17530
+      "y": 12480,
+      "page": "history"
+    },
+    "history4": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "过程 2 · 优化方向",
+      "x": 0,
+      "y": 14340,
+      "page": "history"
+    },
+    "history5": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "过程 3 · 卡片重构",
+      "x": 0,
+      "y": 16260,
+      "page": "history"
     }
   },
   "order": [
-    "SearchFilters.dc.html",
-    "DesktopHomeFilters.dc.html",
-    "Brand.dc.html",
-    "Sitemap.dc.html",
-    "Onboarding.dc.html",
-    "SourcesImport.dc.html",
-    "Capture.dc.html",
-    "FinalFeed.dc.html",
-    "FinalMobile.dc.html",
-    "WebProto.dc.html",
-    "MobileProto.dc.html",
-    "ScrollWait.dc.html",
-    "Volume.dc.html",
-    "GlassRail.dc.html",
-    "NavCapsule.dc.html",
-    "MobileHome.dc.html",
+    "ScreenMobileHome.dc.html",
+    "ScreenMobileSearch.dc.html",
+    "ScreenMobileResults.dc.html",
+    "ScreenMobileAI.dc.html",
     "PhoneChrome.dc.html",
+    "ScreenWebHome.dc.html",
+    "ScreenWebMenu.dc.html",
+    "ScreenWebSearch.dc.html",
+    "ScreenWebDrop.dc.html",
+    "ScreenWebSelect.dc.html",
+    "ScreenWebSession.dc.html",
     "WebChrome.dc.html",
-    "FinalOverlays.dc.html",
-    "MotionProto.dc.html",
-    "Details.dc.html",
-    "ExitRules.dc.html",
+    "MacChrome.dc.html",
+    "CardTypeA.dc.html",
+    "CardActionExamples.dc.html",
+    "Volume.dc.html",
+    "ScrollWait.dc.html",
     "CardDetail.dc.html",
-    "SearchArchive.dc.html",
-    "Trust.dc.html",
-    "Settings.dc.html",
+    "ArticleReading.dc.html",
+    "PhotoTools.dc.html",
+    "ExitRules.dc.html",
+    "IconSet.dc.html",
+    "Brand.dc.html",
+    "MobileProto.dc.html",
+    "MobileHome.dc.html",
+    "NavCapsule.dc.html",
+    "NavigationState.dc.html",
+    "SearchFilters.dc.html",
     "CardBlocks.dc.html",
     "CardRecipes.dc.html",
     "TextLimits.dc.html",
+    "Settings.dc.html",
+    "FinalFeed.dc.html",
+    "FinalMobile.dc.html",
     "FinalIcons.dc.html",
     "FinalSpec.dc.html",
+    "FinalOverlays.dc.html",
+    "MotionProto.dc.html",
+    "WebProto.dc.html",
+    "GlassRail.dc.html",
+    "DesktopHomeFilters.dc.html",
+    "Onboarding.dc.html",
+    "Trust.dc.html",
+    "Sitemap.dc.html",
+    "Details.dc.html",
+    "SearchArchive.dc.html",
+    "SourcesImport.dc.html",
+    "Capture.dc.html",
     "Main.dc.html",
     "Cards.dc.html",
     "Icons.dc.html",
@@ -466,7 +605,11 @@
   "pages": [
     {
       "id": "page-1",
-      "name": "Page 1"
+      "name": "现行"
+    },
+    {
+      "id": "history",
+      "name": "历史"
     }
   ],
   "title": "Sill · 设计"

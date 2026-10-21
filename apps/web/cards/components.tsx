@@ -109,6 +109,7 @@ function Title({ card: c, ctx, className = "" }: BlockProps & { className?: stri
 		</h2>
 	);
 }
+// @design card-summary
 function Summary({ card: c, short = false }: { card: Card; short?: boolean }) {
 	return c.points?.length ? (
 		<>
@@ -150,7 +151,7 @@ function Article({ card: c, ctx }: BlockProps) {
 			<div className="card-body">
 				<Head card={c} text={sourceLine(c)} right={Progress({ card: c, ctx })} />
 				<Title card={c} ctx={ctx} />
-				<Summary card={c} short={!!c.image} />
+				<Summary card={c} />
 			</div>
 		</>
 	);

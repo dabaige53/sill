@@ -1,9 +1,10 @@
 # 脚本目录
 
-状态：操作说明。更新：2026-10-20。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/guides/file-management.md)。构建只生成本地文件，不代表安装、发布或线上验收。
+状态：操作说明。更新：2026-10-21。命令定义以 [package.json](../package.json) 为准，目录规则见 [文件管理规范](../docs/guides/file-management.md)。构建只生成本地文件，不代表安装、发布或线上验收。
 
 | 用途 | 命令或脚本 | 主要输入 → 输出 |
 | --- | --- | --- |
+| 设计材料 | `scripts/design-init.sh` / `npm run design` | 变量、产品代码、画板 → 组件示例、画布索引、`dist/design/` 发布准备；命令见 [设计约束](../DESIGN.md#工具) |
 | 文件管理检查 | `npm run files:check` | 根目录、导航、Git 文件清单 → 终端结果；只读 |
 | React 开发服务 | `npm run dev` / `scripts/dev.ts` | Vite + React Fast Refresh，5173；本地 API 代理到 4318 |
 | 本地页面 | `npm run build` | Vite、`apps/web/`、共享文案与样式清单 → `dist/web/index.html` |

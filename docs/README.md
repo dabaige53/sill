@@ -16,6 +16,7 @@
 
 - [设计决策记录（ADR）](design/decisions.md)
 - [Sill 设计系统](design/system.md)
+- [设计版本记录](design/versions.md)：每个设计版本对应的 ADR、线上 Design System 与设计画布版本、提交。
 
 ## 操作与规范
 
@@ -66,10 +67,12 @@
 - [Web 使用 React、TypeScript 与 Vite](adr/0047-react-web.md)
 - [手机顶行统一，搜索改用分类与 # 标签](adr/0048-phone-top-row-and-search-tokens.md)
 - [Web 顶栏搜索与底部 AI 框](adr/0049-web-top-search-and-ai-dock.md)
+- [卡片 A 字号、资讯阅读与 Mac 设置弹窗](adr/0051-card-type-a-and-article-reading.md)
 
 ## 记录
 
 - [macOS 视觉与动效对齐 Web](records/2026-10-20-macos-web-alignment/README.md)
+- [设计材料精简与 design-init 工具](records/2026-10-21-design-streamlining/README.md)
 
 - [React 迁移与动效本地整合（2026-10-19）](records/2026-10-19-react-motion-integration/README.md)
 

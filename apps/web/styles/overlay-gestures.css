@@ -264,7 +264,7 @@ body.is-pulling main {
 }
 .ai-context-card h3 {
 	margin: 0;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	overflow-wrap: anywhere;
 }
 .ai-context-card p {
@@ -295,7 +295,7 @@ body.is-pulling main {
 	border-radius: 0;
 	background: transparent;
 	color: inherit;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	line-height: var(--space-24);
 	outline: none;
 }
@@ -335,7 +335,7 @@ body.is-pulling main {
 	border-radius: var(--pill-radius);
 	background: var(--ai-ink);
 	color: var(--card);
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	font-weight: 500;
 }
 .ai-composer-tools button:disabled {

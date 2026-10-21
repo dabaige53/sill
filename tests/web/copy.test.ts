@@ -90,10 +90,10 @@ test("Apple copy includes the merged native workspace vocabulary", () => {
 	const apple = Object.entries(messages)
 		.filter(([key]) => key.startsWith("apple."))
 		.sort();
-	assert.equal(apple.length, 125);
+	assert.equal(apple.length, 126);
 	assert.equal(
 		createHash("sha256").update(JSON.stringify(apple)).digest("hex"),
-		"3c299f25a9cd2b56838df36823ad23154fbb294a9c50ed70ceda047a93e98a83",
+		"45a0a1a9e8b5e2ab162fa9ec13edaab555a8a5a4323533d70113148a84168d94",
 	);
 });
 

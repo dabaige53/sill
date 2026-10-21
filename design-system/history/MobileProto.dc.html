@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>手机交互原型</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@keyframes mEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes mDrop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes mFade{from{opacity:0}to{opacity:1}}
+@keyframes mPulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes mPop{0%{transform:scale(1)}45%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes mSpin{to{transform:rotate(360deg)}}
+@keyframes mPill{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.feed{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:56px 16px 120px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;scrollbar-width:none}
+.feed::-webkit-scrollbar{display:none}
+.card{position:relative;display:flex;flex-direction:column;width:100%;flex:none;text-align:left;font-family:inherit;color:#1d1d1f;padding:0;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden;cursor:pointer;transition:transform 120ms cubic-bezier(.2,.75,.25,1),opacity 280ms,background-color 500ms,box-shadow 500ms,border-color 500ms;-webkit-tap-highlight-color:transparent}
+.card:active{transform:scale(.97)}
+.card.enter{animation:mEnter 320ms cubic-bezier(.2,.75,.25,1) both}
+.card.drop{animation:mDrop 360ms cubic-bezier(.2,.75,.25,1) both}
+.card.in{animation:mFade 240ms linear both}
+.cover{position:relative;display:block;margin:8px 8px 0;aspect-ratio:16/9;border-radius:14px;width:calc(100% - 16px);overflow:hidden}
+.img{position:absolute;inset:0;opacity:0;filter:blur(14px);transform:scale(1.06);transition:opacity 420ms ease,filter 560ms cubic-bezier(.2,.75,.25,1),transform 560ms cubic-bezier(.2,.75,.25,1)}
+.img.on{opacity:1;filter:none;transform:none}
+.cb{display:flex;flex-direction:column;gap:8px;padding:16px}
+.meta{display:flex;align-items:center;gap:6px;font-size:12px;color:#636366;line-height:18px}
+.tt{font-size:16px;line-height:22px;font-weight:600;letter-spacing:-.02em;transition:color 500ms}
+.card.read{background:#e9e9ee;border-color:rgba(0,0,0,.04);box-shadow:none}
+.card.read .tt{color:#636366}
+.card.read .cover{filter:saturate(.6)}
+.sm{font-size:14px;line-height:22px;color:#636366}
+.sk{flex:none;border-radius:22px;background:#fff;position:relative;overflow:hidden;animation:mPulse 1.6s ease-in-out infinite}
+.sk span{position:absolute;left:18px;height:10px;border-radius:5px;background:#f0f0f2}
+.pill{position:absolute;left:50%;transform:translateX(-50%);bottom:88px;z-index:3;display:flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.72);background:rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-family:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;animation:mPill 260ms cubic-bezier(.2,.75,.25,1) both}
+.amber{width:6px;height:6px;border-radius:3px;background:#b45309}
+.amber.busy{animation:mPulse .8s ease-in-out infinite}
+.ptr{position:absolute;left:50%;z-index:3;width:32px;height:32px;margin-left:-16px;border-radius:16px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;transition:opacity 200ms,transform 220ms cubic-bezier(.2,.75,.25,1)}
+.ptr.out{opacity:0 !important;transform:scale(.4) !important}
+.spin{animation:mSpin .8s linear infinite}
+.nav{position:absolute;left:50%;bottom:16px;z-index:4;display:flex;padding:4px;height:60px;box-sizing:border-box;border-radius:30px;background:rgba(255,255,255,.38);backdrop-filter:blur(12px) saturate(1.9) brightness(1.06);-webkit-backdrop-filter:blur(12px) saturate(1.9) brightness(1.06);box-shadow:inset 0 1px .5px rgba(255,255,255,.9),0 0 0 .5px rgba(0,0,0,.07),0 2px 6px rgba(16,24,40,.05),0 12px 32px rgba(16,24,40,.09);transform:translateX(-50%);transition:transform 380ms cubic-bezier(.32,.72,0,1),opacity 240ms}
+.nav.tuck{transform:translate(-50%,100px);opacity:0;transition:transform 300ms cubic-bezier(.2,.75,.25,1),opacity 180ms}
+.nav button{position:relative;z-index:1;width:60px;height:52px;border:0;padding:0;background:none;border-radius:26px;display:flex;align-items:center;justify-content:center;color:rgba(29,29,31,.62);cursor:pointer}
+.nav button.on{color:#1d1d1f}
+.lens{position:absolute;top:4px;left:4px;width:60px;height:52px;border-radius:26px;background:rgba(0,0,0,.06);box-shadow:inset 0 1px .5px rgba(255,255,255,.9);transition:transform 520ms linear(0,.03 2%,.11 4.4%,.24 7%,.51 12%,.75 17%,.91 22%,1.01 27.4%,1.05 31%,1.065 35.5%,1.06 40%,1.03 49%,1.007 59%,.997 70%,1)}
+.lens.moving{animation:lensDrop 520ms cubic-bezier(.2,.75,.25,1)}
+@keyframes lensDrop{35%{scale:1.16 .9}}
+.face{position:relative;width:26px;height:26px;border-radius:13px;background:#b4b4b9;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.page{position:absolute;inset:0;z-index:3;background:#f5f5f7;padding:52px 16px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;animation:pageIn 180ms ease-out both}
+@keyframes pageIn{from{opacity:0}}
+.pchips{display:flex;gap:6px;overflow:hidden}
+.pchips span{flex:none;height:30px;padding:0 12px;border-radius:15px;display:flex;align-items:center;font-size:13px;color:#1d1d1f}
+.pchips span.on{background:#fff;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.pbox{background:#fff;border-radius:14px;padding:0 14px;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
+.prow{display:flex;align-items:center;justify-content:space-between;min-height:46px;border-top:1px solid rgba(0,0,0,.06);font-size:14px}
+.prow:first-child{border-top:0}
+.ptog{width:36px;height:22px;border-radius:11px;background:#0066cc;position:relative}
+.ptog::after{content:"";position:absolute;right:2px;top:2px;width:18px;height:18px;border-radius:9px;background:#fff}
+.psearch{display:flex;align-items:center;gap:10px;height:48px;padding:0 16px;border-radius:24px;background:#fff;box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 2px 6px rgba(16,24,40,.05);color:#86868b;font-size:15px}
+.arc{position:absolute;inset:-4px;animation:mSpin 1.6s linear infinite;pointer-events:none}
+.dim{position:absolute;inset:0;z-index:4;border:0;padding:0;background:rgba(0,0,0,.2);animation:mFade 240ms linear both;transition:opacity 280ms}
+.dim.out{opacity:0}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;background:#fff;box-shadow:0 -10px 40px rgba(0,0,0,.14);display:flex;flex-direction:column;overflow:hidden;transition:top 360ms cubic-bezier(.32,.72,0,1),transform 360ms cubic-bezier(.32,.72,0,1),border-radius 360ms}
+.sheet.drag{transition:none}
+.handle{flex:none;height:22px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
+.handle span{width:36px;height:5px;border-radius:3px;background:#d1d1d6}
+.inner{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.inner::-webkit-scrollbar{display:none}
+.bar{position:absolute;left:0;right:0;top:0;z-index:2;height:52px;display:flex;align-items:center;gap:4px;padding:0 52px 0 8px;background:rgba(255,255,255,.86);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);border-bottom:1px solid rgba(0,0,0,.06);transition:opacity 200ms,transform 200ms}
+.bar.hide{opacity:0;transform:translateY(-8px);pointer-events:none}
+.capsule{position:absolute;left:16px;right:16px;bottom:24px;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:6px;border-radius:30px;border:1px solid rgba(255,255,255,.72);background:rgba(255,255,255,.86);box-shadow:0 10px 30px rgba(0,0,0,.14);backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2);transition:transform 240ms cubic-bezier(.2,.75,.25,1),opacity 240ms}
+.capsule.hide{transform:translateY(120%);opacity:0}
+.ib{width:44px;height:44px;border-radius:22px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;color:#1d1d1f;padding:0;cursor:pointer;flex:none}
+.ctl{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 16px;border:0;border-radius:14px;background:#f5f5f7;font-family:inherit;font-size:14px;color:#1d1d1f;text-align:left;cursor:pointer}
+.ctl:hover{background:#ececf0}
+.p{margin:0;font-size:17px;line-height:1.9}
+.skl{display:block;height:12px;border-radius:6px;background:#f0f0f2;animation:mPulse 1.6s ease-in-out infinite}
+.bodyin{display:flex;flex-direction:column;gap:18px;animation:mFade 280ms linear both}
+.endring{position:absolute;left:50%;bottom:40px;z-index:3;width:40px;height:40px;margin-left:-20px;border-radius:20px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;transition:opacity 140ms,transform 140ms,background 200ms}
+.endring.done{background:#0066cc;animation:mPop 320ms cubic-bezier(.2,.75,.25,1) both}
+.lift{transition:transform 220ms cubic-bezier(.2,.75,.25,1)}
+</style>
+</helmet>
+<div onKeyDown="{{onKey}}" style="width: 860px; height: 940px; box-sizing: border-box; padding: 40px; background: #e8e8ed; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; gap: 40px; align-items: flex-start">
+  <div style="position: relative; width: 390px; height: 844px; flex: none; border-radius: 44px; background: #f5f5f7; overflow: hidden; box-shadow: 0 0 0 10px #1d1d1f, 0 30px 80px rgba(0,0,0,.25)">
+
+    <div class="feed" ref="{{setFeed}}" onScroll="{{onFeedScroll}}" onWheel="{{onFeedWheel}}" style="transform: translateY({{feedShift}}px); transition: {{feedTrans}}">
+      <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
+        <div class="sk" style="height: 300px"><span style="left: 8px; right: 8px; top: 8px; height: 190px; border-radius: 14px"></span><span style="top: 214px; width: 40%"></span><span style="top: 236px; width: 72%; height: 12px"></span></div>
+        <div class="sk" style="height: 140px"><span style="top: 20px; width: 35%"></span><span style="top: 44px; width: 70%; height: 12px"></span><span style="top: 70px; width: 85%"></span></div>
+        <div class="sk" style="height: 180px"><span style="top: 20px; width: 35%"></span><span style="top: 44px; width: 60%; height: 12px"></span></div>
+      </sc-if>
+      <sc-if value="{{notLoading}}" hint-placeholder-val="{{ true }}">
+        <sc-for list="{{items}}" as="item" hint-placeholder-count="6">
+          <button type="button" data-cid="{{item.id}}" class="card {{item.cls}} {{item.readCls}}" style="animation-delay: {{item.delay}}ms; opacity: {{item.op}}" onClick="{{item.open}}" aria-label="{{item.title}}">
+            <sc-if value="{{item.hasCover}}" hint-placeholder-val="{{ false }}"><span class="cover" style="background: {{item.ph}}"><span class="img {{item.imgCls}}" style="background: {{item.bg}}"></span></span></sc-if>
+            <span class="cb"><span class="meta">{{item.meta}}</span><span class="tt">{{item.title}}</span><sc-if value="{{item.hasSum}}" hint-placeholder-val="{{ true }}"><span class="sm">{{item.sum}}</span></sc-if></span>
+          </button>
+        </sc-for>
+        <sc-if value="{{paging}}" hint-placeholder-val="{{ false }}">
+          <div class="sk" style="height: 260px"><span style="left: 8px; right: 8px; top: 8px; height: 180px; border-radius: 14px"></span><span style="top: 204px; width: 40%"></span><span style="top: 226px; width: 72%; height: 12px"></span></div>
+          <div class="sk" style="height: 130px"><span style="top: 20px; width: 35%"></span><span style="top: 44px; width: 70%; height: 12px"></span></div>
+        </sc-if>
+        <sc-if value="{{atEnd}}" hint-placeholder-val="{{ true }}">
+          <span style="flex: none; align-self: center; width: 32px; height: 1px; margin: 20px 0; background: #d1d1d6"></span>
+        </sc-if>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ptrShown}}" hint-placeholder-val="{{ false }}">
+      <span class="ptr {{ptrCls}}" aria-hidden="true" style="top: {{ptrTop}}px; opacity: {{ptrOp}}">
+        <sc-if value="{{ptrSpinning}}" hint-placeholder-val="{{ false }}"><svg class="spin" width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="#0066cc" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="30 14"></circle></svg></sc-if>
+        <sc-if value="{{ptrFilling}}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="#0066cc" stroke-opacity=".15" stroke-width="2.2"></circle><circle cx="10" cy="10" r="7" fill="none" stroke="#0066cc" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="44" stroke-dashoffset="{{ptrOffset}}" transform="rotate(-90 10 10)"></circle></svg></sc-if>
+      </span>
+    </sc-if>
+
+    <sc-if value="{{showPill}}" hint-placeholder-val="{{ false }}">
+      <button type="button" class="pill" style="color: #0066cc" aria-label="3 条新内容" onClick="{{showNew}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4m-6 6 6-6 6 6"></path></svg>3</button>
+    </sc-if>
+    <sc-if value="{{offline}}" hint-placeholder-val="{{ false }}">
+      <button type="button" class="pill" role="status" aria-label="未连接，轻点重试" onClick="{{retry}}" style="color: #1d1d1f"><span class="amber {{amberCls}}"></span>未连接</button>
+    </sc-if>
+
+    <sc-if value="{{pageSearch}}" hint-placeholder-val="{{ false }}">
+      <div class="page" style="justify-content: flex-end"><div class="pchips"><span class="on">全部</span><span>资讯</span><span>消息</span><span>笔记</span><span>待办</span></div><div class="psearch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13ZM20 20l-4.6-4.6"></path></svg>搜索卡片、备注、来源</div></div>
+    </sc-if>
+    <sc-if value="{{pageAi}}" hint-placeholder-val="{{ false }}">
+      <div class="page" style="align-items: center; justify-content: center; text-align: center; gap: 10px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12Z"></path></svg><b style="font-size: 20px">AI</b><span style="padding: 3px 10px; border-radius: 12px; background: rgba(0,0,0,.06); font-size: 12px; font-weight: 600; color: #636366">即将推出</span><span style="font-size: 13px; color: #636366; max-width: 240px; line-height: 1.6">以后可以在这里让 AI 查找、整理和处理卡片。现在还不能使用。</span></div>
+    </sc-if>
+    <sc-if value="{{pageSettings}}" hint-placeholder-val="{{ false }}">
+      <div class="page"><div class="pchips"><span>添加</span><span class="on">桌面</span><span>外观</span><span>快捷键</span><span>数据与隐私</span></div><b style="font-size: 22px; margin-top: 8px">桌面</b><div class="pbox"><div class="prow">读过的卡片慢慢变淡<span class="ptog"></span></div><div class="prow">会议和提醒到点浮上来<span class="ptog"></span></div><div class="prow">读完上推收起<span class="ptog"></span></div></div></div>
+    </sc-if>
+    <nav class="nav {{navCls}}" aria-label="主导航"><span class="lens {{lensCls}}" style="transform: translateX({{lensX}}px)"></span><button type="button" class="{{homeOn}}" aria-label="主页" onClick="{{goHome}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.5h-6v5.5H5.5A1.5 1.5 0 0 1 4 19Z"></path></svg></button><button type="button" class="{{searchOn}}" aria-label="搜索" onClick="{{goSearch}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13ZM20 20l-4.6-4.6"></path></svg></button><button type="button" class="{{aiOn}}" aria-label="AI，即将推出" onClick="{{goAi}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12Z"></path></svg></button><button type="button" class="{{setOn}}" aria-label="设置" onClick="{{goSettings}}"><span class="face"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><circle cx="12" cy="9" r="4.2"></circle><path d="M3.5 24a8.5 8.5 0 0 1 17 0Z"></path></svg></span><sc-if value="{{writing}}" hint-placeholder-val="{{ false }}"><svg class="arc" viewBox="0 0 64 64" aria-hidden="true" style="position: absolute; width: 34px; height: 34px; left: 13px; top: 9px"><circle cx="32" cy="32" r="30" fill="none" stroke="#0066cc" stroke-width="3" stroke-linecap="round" stroke-dasharray="40 149"></circle></svg></sc-if></button></nav>
+
+    <sc-if value="{{sheetShown}}" hint-placeholder-val="{{ false }}">
+      <button type="button" class="dim {{dimCls}}" aria-label="收起" onClick="{{closeSheet}}"></button>
+      <section class="sheet {{dragCls}}" role="dialog" aria-label="{{cur.title}}" style="top: {{sheetTop}}px; transform: translateY({{dragY}}px); border-radius: {{radius}}px {{radius}}px 0 0">
+        <div class="handle" onPointerDown="{{dragStart}}" onPointerMove="{{dragMove}}" onPointerUp="{{dragEnd}}" onPointerCancel="{{dragEnd}}"><span></span></div>
+        <div class="bar {{barCls}}">
+          <button type="button" class="ib" aria-label="收起" onClick="{{closeSheet}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 9 7 7 7-7"></path></svg></button>
+          <span style="flex: 1; min-width: 0; font-size: 15px; font-weight: 600; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">{{cur.title}}</span>
+          <span style="position: absolute; left: 0; bottom: -1px; height: 2px; background: #0066cc; width: {{progress}}%"></span>
+        </div>
+        <div class="inner" ref="{{setInner}}" onScroll="{{onInnerScroll}}" onWheel="{{onInnerWheel}}">
+          <sc-if value="{{cur.hasCover}}" hint-placeholder-val="{{ true }}"><div style="margin: 0 8px; aspect-ratio: 16 / 9; border-radius: 20px; background: {{cur.bg}}"></div></sc-if>
+          <article class="lift" style="padding: 20px 24px 120px; display: flex; flex-direction: column; gap: 18px; transform: translateY(-{{lift}}px)">
+            <span style="font-size: 13px; color: #86868b">{{cur.meta}}</span>
+            <h2 style="margin: 0; font-size: 26px; line-height: 1.35; font-weight: 600; letter-spacing: -0.03em">{{cur.title}}</h2>
+            <sc-if value="{{bodyWait}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 8px"><span class="skl"></span><span class="skl"></span><span class="skl"></span><span class="skl" style="width: 64%"></span></div>
+            </sc-if>
+            <sc-if value="{{bodyReady}}" hint-placeholder-val="{{ true }}">
+              <div class="bodyin">
+                <p class="p">我们每天读到的内容越来越多，但真正需要做出的判断，并没有因此变得更简单。一个新的产品发布、一封等待回复的邮件、一段刚写下的笔记，常常分别停在不同的入口。</p>
+                <p class="p">这个示例讨论另一种可能：不让人反复寻找信息，而是让值得关注的内容在合适的时候出现。信息流不只是时间线，它还可以是一张会变化的工作桌。</p>
+                <p class="p">先把内容摆好，再决定要做什么。浏览时只留下标题、摘要和必要状态；当用户靠近、选择或提起一张卡片时，工具才跟随意图出现。</p>
+                <p class="p">加入引用不等于发送，预览不等于读完，打开待办不等于完成。每种状态都需要有独立的名字和清楚的反馈。</p>
+                <p class="p">同样重要的是可逆性。误点收藏可以撤销，关闭阅读页面能够回到刚才的位置。</p>
+                <p class="p">视觉上的安静，来自内容层和操作层之间的分工。阅读表面需要稳定、清晰；工具可以轻盈、暂时浮现。</p>
+              </div>
+            </sc-if>
+          </article>
+        </div>
+        <sc-if value="{{ringShown}}" hint-placeholder-val="{{ false }}">
+          <div class="endring {{ringCls}}" aria-hidden="true" style="opacity: {{ringOp}}; transform: scale({{ringScale}})">
+            <sc-if value="{{notDone}}" hint-placeholder-val="{{ true }}"><svg width="22" height="22" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#0066cc" stroke-opacity=".15" stroke-width="2.2"></circle><circle cx="10" cy="10" r="8" fill="none" stroke="#0066cc" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="50.27" stroke-dashoffset="{{ringOffset}}" transform="rotate(-90 10 10)"></circle></svg></sc-if>
+            <sc-if value="{{endDone}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+          </div>
+        </sc-if>
+        <div class="capsule {{capCls}}" role="toolbar" aria-label="阅读操作">
+          <span style="display: flex">
+            <button type="button" class="ib" aria-label="收藏" aria-pressed="{{fav}}" onClick="{{toggleFav}}" style="color: {{favColor}}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z" fill="{{favFill}}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg></button>
+            <button type="button" class="ib" aria-label="稍后读"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6.5" cy="14.5" r="3.5"></circle><circle cx="17.5" cy="14.5" r="3.5"></circle><path d="M10 14c1.2-1 2.8-1 4 0M3 14l1.5-6.5L7 7M21 14l-1.5-6.5L17 7"></path></svg></button>
+            <button type="button" class="ib" aria-label="标签与备注"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v7l10 10 8-8L11 3H4a1 1 0 0 0-1 1Z"></path><circle cx="7.5" cy="7.5" r="1"></circle></svg></button>
+          </span>
+          <button type="button" class="ib" aria-label="打开来源"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7M21 3l-10 10M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"></path></svg></button>
+        </div>
+      </section>
+    </sc-if>
+  </div>
+
+  <aside style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 22px; padding-top: 8px">
+    <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #6e6e73">19 · 手机交互</span><h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 600; letter-spacing: -0.03em">滑、等、读、退</h1></div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <button type="button" class="ctl" onClick="{{simWrite}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"></path></svg>AI 写入 3 张</button>
+      <button type="button" class="ctl" onClick="{{simRefresh}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-2L3 9m0-5v5h5M4 16a8 8 0 0 0 14 2l3-3m-5 0h5v5"></path></svg>下拉刷新</button>
+      <button type="button" class="ctl" onClick="{{simLoad}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg>首次加载</button>
+      <button type="button" class="ctl" onClick="{{simOffline}}"><span style="width: 8px; height: 8px; border-radius: 4px; background: #b45309; margin: 0 5px"></span>断开</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 1.6; color: #636366">
+      <span><b style="color: #1d1d1f">滑</b>　向下滑，底部导航胶囊完全收起；回滑、停下或到顶复原。顶部继续下拉即刷新。</span>
+      <span><b style="color: #1d1d1f">等</b>　封面先是主色块，进入视野才清晰淡入；接近底部提前取下一批。</span>
+      <span><b style="color: #1d1d1f">新</b>　AI 写入时头像外转一圈细弧；在顶部直接落下，不在顶部才在胶囊上方出现「↑ 3」。</span><span><b style="color: #1d1d1f">换</b>　胶囊四格：主页、搜索、AI、设置。只有图标，不占满一行；每一格切换页面，镜片带弹性滑过去。</span>
+      <span><b style="color: #1d1d1f">读</b>　标题立刻到，正文随后淡入。读到底继续上推，圆环满即收起，卡片退成浅灰。</span>
+      <span><b style="color: #1d1d1f">退</b>　下拉、拖把手、点上方露出的信息流或 Esc。</span>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":860,"height":940}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.base = [
+      { id: 'a1', meta: '工作方式研究 · 6 分钟', title: '让 AI 成为工作流的一部分', sum: '', cover: 'linear-gradient(160deg, #b9c6d3 0%, #dfe5ea 55%, #c9d2d9 100%)', ph: '#cdd6de', unread: true },
+      { id: 'm1', meta: '林舟 · 14:32', title: '这周的方案，只差最后一个决定', sum: '三种方向已经整理好了，先确认什么应该留下。', unread: true },
+      { id: 'n1', meta: '速记 · 昨天', title: '关于「少做一步」的三个观察', sum: '工具应该顺着意图出现。状态不必都写成标签。' },
+      { id: 'a2', meta: '知识与日常 · 3 分钟', title: '让日常的碎片，自然生长', sum: '', cover: 'linear-gradient(150deg, #b7c4ab 0%, #dde3d3 60%, #c7d0bd 100%)', ph: '#ccd5c2' },
+      { id: 'm2', meta: '陈屿 · 11:06', title: '这份分析，值得一起看一下', sum: '我把结论放在了前面，数据和假设在后面。' },
+      { id: 'a3', meta: '阅读手记 · 4 分钟', title: '注意力，也需要一点留白', sum: '', cover: 'linear-gradient(170deg, #8fa3b3 0%, #c3cdd4 50%, #e3e6e8 100%)', ph: '#b4c1cb' },
+      { id: 'n2', meta: '交互小记 · 2 分钟', title: '打开，不等于读完', sum: '预览、阅读、收藏、完成，是四件不同的事。' }
+    ];
+    this.older = [
+      { id: 'o1', meta: '设计札记 · 5 分钟', title: '安静的界面，也需要节奏', sum: '', cover: 'linear-gradient(155deg, #d6c9b8 0%, #ece4da 55%, #dcd0c2 100%)', ph: '#e0d5c8' },
+      { id: 'o2', meta: '速记 · 上周', title: '把「完成」做成一个动作', sum: '勾选之后，卡片自己退场，不再要求确认。' },
+      { id: 'o3', meta: '许然 · 上周', title: '下周评审的材料，我先放这里', sum: '只有两页，第二页是我们还没想清楚的地方。' }
+    ];
+    this.fresh = [
+      { id: 'f1', meta: 'AI 整理 · 今天', title: '上次那个想法，有了新的连接', sum: '「按需显现」与「卡片即上下文」在回答同一个问题。', unread: true },
+      { id: 'f2', meta: 'AI 整理 · 刚刚', title: '从收藏到行动，中间还有一步', sum: '把最想继续的两张卡片，放在一起看。', unread: true },
+      { id: 'f3', meta: '新的笔记 · 刚刚', title: '把一个好想法，放在手边', sum: '', cover: 'linear-gradient(140deg, #c9c3d6 0%, #e6e3ec 60%, #d4cfe0 100%)', ph: '#d9d4e3', unread: true }
+    ];
+    this.state = { list: this.base, entering: [], dropping: [], fading: [], loaded: [], loading: false, offline: false, retrying: false, phase: 'idle', paging: false, paged: false, ptr: 0, ptrState: 'idle', compact: false, tab: 'home', lensMoving: false, sheet: 'closed', cur: this.base[0], bodyReady: true, full: false, bar: false, capHidden: false, dragY: 0, dragging: false, progress: 0, fav: false, endPull: 0, endDone: false, readIds: [] };
+    this.timers = {}; this.lastFeed = 0; this.lastInner = 0; this.pull = 0; this.pending = new Set(); this.opened = new Set();
+  }
+  componentWillUnmount() { Object.values(this.timers).forEach(clearTimeout); }
+  later(n, ms, fn) { clearTimeout(this.timers[n]); this.timers[n] = setTimeout(fn, ms); }
+  checkCovers() {
+    const el = this.feedEl; if (!el) return;
+    const bottom = el.scrollTop + el.clientHeight + 60;
+    el.querySelectorAll('[data-cid]').forEach((node) => {
+      const id = node.getAttribute('data-cid');
+      if (this.pending.has(id) || node.offsetTop > bottom) return;
+      this.pending.add(id);
+      this.later('img-' + id, 380 + Math.round(Math.random() * 520), () => this.setState({ loaded: [...this.state.loaded, id] }));
+    });
+  }
+  insertNew() {
+    if (this.feedEl) this.feedEl.scrollTo({ top: 0, behavior: 'smooth' });
+    this.later('insert', 240, () => {
+      this.setState({ list: [...this.fresh, ...this.state.list.filter((c) => !this.fresh.some((f) => f.id === c.id))], dropping: this.fresh.map((c) => c.id), phase: 'idle' });
+      this.later('scanNew', 60, () => this.checkCovers());
+    });
+    this.later('clearDrop', 1000, () => this.setState({ dropping: [] }));
+  }
+  startRefresh() {
+    this.setState({ ptrState: 'spinning', ptr: 64 });
+    this.later('refresh', 900, () => {
+      if (this.state.phase === 'ready') { this.setState({ ptrState: 'idle', ptr: 0 }); this.insertNew(); return; }
+      this.setState({ ptrState: 'out' });
+      this.later('ptrGone', 240, () => this.setState({ ptrState: 'idle', ptr: 0 }));
+    });
+  }
+  openSheet(c) {
+    const cached = this.opened.has(c.id);
+    this.opened.add(c.id);
+    this.setState({ cur: c, sheet: 'opening', bodyReady: cached, full: false, bar: false, capHidden: false, dragY: 0, progress: 0, fav: false, endPull: 0, endDone: false });
+    this.later('open', 20, () => this.setState({ sheet: 'open' }));
+    if (!cached) this.later('body', 560, () => this.setState({ bodyReady: true }));
+  }
+  closeSheet() {
+    if (this.state.sheet === 'closed') return;
+    this.setState({ sheet: 'closing', dragging: false });
+    this.later('close', 300, () => this.setState({ sheet: 'closed', dragY: 0, endPull: 0, endDone: false }));
+  }
+  goTab(tab) {
+    if (tab === this.state.tab) return;
+    this.setState({ tab, lensMoving: true, compact: false });
+    this.later('lens', 520, () => this.setState({ lensMoving: false }));
+  }
+  finishRead() {
+    const id = this.state.cur.id;
+    this.setState({ endDone: true, endPull: 120, progress: 100, readIds: this.state.readIds.includes(id) ? this.state.readIds : [...this.state.readIds, id] });
+    this.later('endClose', 460, () => this.closeSheet());
+  }
+  renderVals() {
+    const s = this.state;
+    const items = s.list.map((c) => {
+      const ei = s.entering.indexOf(c.id), di = s.dropping.indexOf(c.id);
+      const isRead = s.readIds.includes(c.id);
+      const cls = ei >= 0 ? 'enter' : di >= 0 ? 'drop' : s.fading.includes(c.id) ? 'in' : '';
+      return { ...c, hasCover: !!c.cover, bg: c.cover || '#fff', ph: c.ph || '#eceef0', imgCls: s.loaded.includes(c.id) ? 'on' : '', hasSum: !!c.sum, unread: !!c.unread && !isRead, readCls: (isRead || !c.unread) ? 'read' : '', cls, delay: ei >= 0 ? ei * 60 : di >= 0 ? di * 70 : 0, op: s.offline ? 0.55 : 1, open: () => this.openSheet({ ...c, hasCover: !!c.cover, bg: c.cover || '#fff' }) };
+    });
+    const sheetTop = s.sheet === 'open' ? (s.full ? 0 : 64) : 844;
+    const pulling = s.ptrState === 'idle' && s.ptr > 0;
+    return {
+      items, loading: s.loading, notLoading: !s.loading, paging: s.paging, atEnd: s.paged,
+      writing: s.phase === 'writing', showPill: s.phase === 'ready' && this.lastFeed > 40,
+      offline: s.offline, amberCls: s.retrying ? 'busy' : '',
+      ptrShown: s.ptr > 0 || s.ptrState !== 'idle', ptrCls: s.ptrState === 'out' ? 'out' : '',
+      ptrSpinning: s.ptrState === 'spinning', ptrFilling: s.ptrState !== 'spinning',
+      ptrTop: Math.round(-20 + Math.min(64, s.ptr) * 0.75), ptrOp: Math.min(1, s.ptr / 24).toFixed(2),
+      ptrOffset: (44 * (1 - Math.min(1, s.ptr / 64))).toFixed(1),
+      feedShift: s.ptrState === 'out' ? 0 : Math.round(Math.min(64, s.ptr) * 0.5), feedTrans: pulling ? 'none' : 'transform 260ms cubic-bezier(.2,.75,.25,1)',
+      navCls: (s.compact && s.tab === 'home') || s.sheet !== 'closed' ? 'tuck' : '',
+      lensX: ['home', 'search', 'ai', 'settings'].indexOf(s.tab) * 60, lensCls: s.lensMoving ? 'moving' : '',
+      homeOn: s.tab === 'home' ? 'on' : '', searchOn: s.tab === 'search' ? 'on' : '', aiOn: s.tab === 'ai' ? 'on' : '', setOn: s.tab === 'settings' ? 'on' : '',
+      pageSearch: s.tab === 'search', pageAi: s.tab === 'ai', pageSettings: s.tab === 'settings',
+      goHome: () => this.goTab('home'), goSearch: () => this.goTab('search'), goAi: () => this.goTab('ai'), goSettings: () => this.goTab('settings'),
+      sheetShown: s.sheet !== 'closed', dimCls: s.sheet === 'closing' ? 'out' : '',
+      dragCls: s.dragging ? 'drag' : '', sheetTop, dragY: s.dragY, radius: s.full && s.sheet === 'open' ? 0 : 28,
+      barCls: s.bar ? '' : 'hide', capCls: (s.capHidden || s.endPull > 0) ? 'hide' : '', progress: s.progress,
+      bodyWait: !s.bodyReady, bodyReady: s.bodyReady,
+      lift: Math.round(s.endPull * 0.35), ringShown: s.endPull > 0 || s.endDone, ringCls: s.endDone ? 'done' : '',
+      ringOp: Math.min(1, s.endPull / 30), ringScale: (0.6 + 0.4 * Math.min(1, s.endPull / 60)).toFixed(2),
+      ringOffset: (50.27 * (1 - Math.min(1, s.endPull / 120))).toFixed(2), notDone: !s.endDone, endDone: s.endDone,
+      cur: s.cur, fav: s.fav, favColor: s.fav ? '#0066cc' : '#1d1d1f', favFill: s.fav ? 'currentColor' : 'none',
+      setFeed: (el) => { const first = !this.feedEl && el; this.feedEl = el; if (first) this.later('scan0', 120, () => this.checkCovers()); },
+      setInner: (el) => { this.innerEl = el; },
+      onFeedScroll: (e) => {
+        const el = e.currentTarget, y = el.scrollTop, down = y > this.lastFeed + 2, up = y < this.lastFeed - 2;
+        this.lastFeed = y;
+        if (down && y > 40 && !this.state.compact) this.setState({ compact: true });
+        else if ((up || y <= 40) && this.state.compact) this.setState({ compact: false });
+        if (y <= 4 && this.state.phase === 'ready') this.insertNew();
+        if (!this.state.paged && !this.state.paging && y + el.clientHeight > el.scrollHeight - 240) {
+          this.setState({ paging: true });
+          this.later('page', 700, () => {
+            this.setState({ paging: false, paged: true, list: [...this.state.list, ...this.older], fading: this.older.map((c) => c.id) });
+            this.later('scanPage', 60, () => this.checkCovers());
+          });
+        }
+        this.later('scan', 80, () => this.checkCovers());
+      },
+      onFeedWheel: (e) => {
+        const el = e.currentTarget;
+        if (this.state.ptrState !== 'idle' || this.state.loading) return;
+        if (el.scrollTop <= 0 && e.deltaY < 0) {
+          const next = Math.min(64, this.state.ptr + -e.deltaY * 0.4);
+          if (next >= 64) { this.startRefresh(); return; }
+          this.setState({ ptr: next });
+          this.later('ptrRelease', 180, () => { if (this.state.ptrState === 'idle') this.setState({ ptr: 0 }); });
+        }
+      },
+      onInnerScroll: (e) => {
+        const el = e.currentTarget, y = el.scrollTop, max = el.scrollHeight - el.clientHeight;
+        const down = y > this.lastInner + 2, up = y < this.lastInner - 2;
+        this.lastInner = y;
+        const next = { progress: max > 0 ? Math.round(Math.min(1, y / max) * 100) : 0 };
+        if (y > 4 && !this.state.full) next.full = true;
+        next.bar = y > 220;
+        if (down && y > 60) next.capHidden = true;
+        if (up || y >= max - 8) next.capHidden = false;
+        this.setState(next);
+      },
+      onInnerWheel: (e) => {
+        const el = e.currentTarget;
+        if (el.scrollTop <= 0 && e.deltaY < 0) {
+          if (this.state.full) { this.setState({ full: false }); this.pull = 0; return; }
+          this.pull += -e.deltaY;
+          if (this.pull > 90) { this.pull = 0; this.closeSheet(); }
+        } else this.pull = 0;
+        const max = el.scrollHeight - el.clientHeight;
+        if (this.state.bodyReady && el.scrollTop >= max - 1 && e.deltaY > 0 && !this.state.endDone) {
+          const next = Math.min(120, this.state.endPull + e.deltaY * 0.5);
+          if (next >= 120) { this.finishRead(); return; }
+          this.setState({ endPull: next });
+          this.later('endRelease', 180, () => { if (!this.state.endDone) this.setState({ endPull: 0 }); });
+        }
+      },
+      dragStart: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.dragStartY = e.clientY; this.setState({ dragging: true }); },
+      dragMove: (e) => { if (this.state.dragging) this.setState({ dragY: Math.max(0, e.clientY - this.dragStartY) }); },
+      dragEnd: () => {
+        if (!this.state.dragging) return;
+        if (this.state.dragY > 190) this.closeSheet();
+        else this.setState({ dragging: false, dragY: 0 });
+      },
+      closeSheet: () => this.closeSheet(),
+      toggleFav: () => this.setState({ fav: !this.state.fav }),
+      onKey: (e) => { if (e.key === 'Escape' && this.state.sheet === 'open') { e.preventDefault(); this.closeSheet(); } },
+      showNew: () => this.insertNew(),
+      simWrite: () => {
+        if (this.state.phase !== 'idle') return;
+        this.setState({ phase: 'writing', offline: false, list: this.state.list.filter((c) => !this.fresh.some((f) => f.id === c.id)) });
+        this.later('write', 2600, () => {
+          if (this.lastFeed <= 40) this.insertNew();
+          else this.setState({ phase: 'ready' });
+        });
+      },
+      simRefresh: () => {
+        if (this.state.ptrState !== 'idle') return;
+        if (this.feedEl) this.feedEl.scrollTo({ top: 0, behavior: 'smooth' });
+        this.setState({ ptr: 64 });
+        this.later('ptrAuto', 260, () => this.startRefresh());
+      },
+      simLoad: () => {
+        this.closeSheet();
+        this.pending = new Set(); this.opened = new Set();
+        this.setState({ loading: true, list: this.base, loaded: [], fading: [], dropping: [], paging: false, paged: false, phase: 'idle', readIds: [] });
+        if (this.feedEl) this.feedEl.scrollTop = 0;
+        this.later('load', 1400, () => {
+          this.setState({ loading: false, entering: this.base.slice(0, 4).map((c) => c.id) });
+          this.later('scanLoad', 120, () => this.checkCovers());
+        });
+        this.later('clearEnter', 2200, () => this.setState({ entering: [] }));
+      },
+      simOffline: () => this.setState({ offline: true, retrying: false, phase: 'idle' }),
+      retry: () => {
+        if (this.state.retrying) return;
+        this.setState({ retrying: true });
+        this.later('retry', 1200, () => this.setState({ offline: false, retrying: false }));
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

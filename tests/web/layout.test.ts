@@ -15,9 +15,9 @@ test("a medium desktop preserves readable columns instead of packing the minimum
 	assert.equal(layout.inset, 26);
 });
 
-test("compact desks stop at five columns and a phone keeps its available width", () => {
+test("compact desks stop at four columns and a phone keeps its available width", () => {
 	const compact = columnGeometry(1640, { min: 240, ideal: 280, max: 320 });
-	assert.equal(compact.columns, 5);
+	assert.equal(compact.columns, 4);
 	assert.ok(compact.columnWidth >= 300);
 	assert.deepEqual(columnGeometry(288, { gap: 16 }), {
 		columns: 1,
@@ -34,7 +34,7 @@ test("density breakpoints never overlap or put columns outside the container", (
 	]) {
 		for (const width of [288, 358, 558, 576, 580, 600, 744, 944, 1240, 1640, 2000]) {
 			const { columns, columnWidth, inset } = columnGeometry(width, profile);
-			assert.ok(columns >= 1 && columns <= 5);
+			assert.ok(columns >= 1 && columns <= 4);
 			assert.ok(inset >= -0.001);
 			assert.ok(2 * inset + columns * columnWidth + (columns - 1) * 24 <= width + 0.001);
 			if (columns > 1) assert.ok(columnWidth >= profile.min && columnWidth <= profile.max);
@@ -48,8 +48,9 @@ test("adding a column requires its ideal reading width, including near the forme
 		assert.equal(result.columns, 4);
 		assert.equal(result.columnWidth, 380);
 	}
-	assert.equal(columnGeometry(1796).columns, 5);
-	assert.equal(columnGeometry(1796).columnWidth, 340);
+	// Four columns at most: wider desks keep four columns at their widest and center them.
+	assert.equal(columnGeometry(1796).columns, 4);
+	assert.equal(columnGeometry(1796).columnWidth, 380);
 });
 
 test("narrow desktop windows retain two usable columns", () => {

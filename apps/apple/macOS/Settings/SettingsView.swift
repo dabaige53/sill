@@ -2,9 +2,11 @@ import AppKit
 import SillKit
 import SwiftUI
 
-/// The settings window (⌘,). Web `panelSettings`: five groups on the left, one screen each.
+/// The settings sheet (⌘, or the avatar). Web `panelSettings` in a desktop window: a centered wide
+/// sheet with 设置 and a close button on top, five groups on the left, one screen each.
 /// A changed setting draws at once and writes in the background; only that setting waits for
 /// the store, and a failed write returns it to the stored value.
+/// @design settings-sheet
 struct SettingsView: View {
   enum Group: String, CaseIterable {
     case add, desk, look, keys, data
@@ -20,35 +22,61 @@ struct SettingsView: View {
   }
 
   @Environment(Workspace.self) private var workspace
+  @Environment(Panels.self) private var panels
   @State private var group = Group.desk
   @State private var pending: [String: (value: JSONValue, count: Int)] = [:]
 
   var body: some View {
-    HStack(spacing: 0) {
-      nav
-      ScrollView(.vertical) {
-        VStack(alignment: .leading, spacing: 0) {
-          Text(group.title)
-            .font(.sans(AppleMetrics.font22, .bold))
-            .foregroundStyle(AppleColors.primary)
-            .padding(.trailing, AppleMetrics.space40)
-            .padding(.bottom, AppleMetrics.space18)
-            .accessibilityAddTraits(.isHeader)
-          page
+    let shape = RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous)
+    VStack(spacing: 0) {
+      head
+      HStack(spacing: 0) {
+        nav
+        ScrollView(.vertical) {
+          VStack(alignment: .leading, spacing: 0) {
+            Text(group.title)
+              .font(.sans(AppleMetrics.font22, .bold))
+              .foregroundStyle(AppleColors.primary)
+              .padding(.trailing, AppleMetrics.space40)
+              .padding(.bottom, AppleMetrics.space18)
+              .accessibilityAddTraits(.isHeader)
+            page
+          }
+          .padding(.vertical, AppleMetrics.space28)
+          .padding(.horizontal, AppleMetrics.space32)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .disabled(workspace.phase != .ready)
+          .opacity(workspace.phase == .ready ? 1 : AppleMetrics.disabledOpacity)
         }
-        .padding(.vertical, AppleMetrics.space28)
-        .padding(.horizontal, AppleMetrics.space32)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .disabled(workspace.phase != .ready)
-        .opacity(workspace.phase == .ready ? 1 : AppleMetrics.disabledOpacity)
+        .scrollIndicators(.hidden)
       }
-      .scrollIndicators(.hidden)
-      .background(AppleColors.canvas)
     }
-    .frame(width: AppleMetrics.settingsWidth, height: AppleMetrics.settingsHeight)
-    .background(AppleColors.canvas)
-    .overlay { Toast() }
-    .preferredColorScheme(workspace.preferences.colorScheme)
+    .frame(
+      maxWidth: AppleMetrics.settingsWidth,
+      maxHeight: AppleMetrics.settingsHeight + AppleMetrics.space60 + AppleMetrics.space16
+    )
+    .background(shape.fill(AppleColors.canvas))
+    .clipShape(shape)
+    .shadow(.sheet)
+    .accessibilityElement(children: .contain)
+    .accessibilityAddTraits(.isModal)
+  }
+
+  /// Web `.settings-head`: 设置 at the figure size on the left, the quiet close on the right.
+  private var head: some View {
+    HStack {
+      Text(Copy.text("web.nav.settings"))
+        .font(.sans(AppleMetrics.font34, .bold))
+        .tracking(AppleMetrics.font34 * AppleMetrics.settingsTitleTracking)
+        .foregroundStyle(AppleColors.primary)
+        .accessibilityAddTraits(.isHeader)
+      Spacer(minLength: AppleMetrics.space16)
+      SheetClose(quiet: true) { panels.close() }
+        .accessibilityLabel(Copy.text("web.settings.close"))
+    }
+    .frame(minHeight: AppleMetrics.space60)
+    .padding(.top, AppleMetrics.space16)
+    .padding(.horizontal, AppleMetrics.space32)
   }
 
   // MARK: Groups

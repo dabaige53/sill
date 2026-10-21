@@ -84,7 +84,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 					aria-label={copy("web.preview.contentRegion")}
 				>
 					{cover}
-					<div className={"preview-body"}>
+					<div className={c.type === "article" ? "preview-body is-article" : "preview-body"}>
 						{inner}
 						{note}
 						{this.foot(action, agentAction(app, c))}

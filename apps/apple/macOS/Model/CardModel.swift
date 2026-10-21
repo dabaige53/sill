@@ -72,6 +72,8 @@ struct CardModel: Identifiable, Equatable, Sendable {
   let takenAt: String?
   let caption: String?
   let publication: Publication
+  /// The day an article belongs to: published, else saved, else the card's own time.
+  let articleDate: Date?
   /// Lowercased title, summary, source and body for search (Web `matches`, without state fields).
   let searchText: String
   /// The stored card, kept for writes that carry `before`.
@@ -186,6 +188,9 @@ struct CardModel: Identifiable, Equatable, Sendable {
     publication = Publication(
       date: value.publishedAt.flatMap { Format.publication($0) },
       dateTitle: value.publishedAt, rows: rows)
+    articleDate =
+      value.publishedAt.flatMap(Format.localDay) ?? value.savedAt.flatMap(Format.localDay)
+      ?? (time > 0 ? Format.date(time) : nil)
     searchText = ([title, summary, sourceName] + body).joined(separator: " ").lowercased()
     self.raw = raw
     let encoder = JSONEncoder()

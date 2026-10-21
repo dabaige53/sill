@@ -17,6 +17,7 @@
 		"test:local": "node --import tsx --test tests/server/local.test.ts tests/server/plugin-package.test.ts",
 		"test:local-browser": "node tests/e2e/local-browser.ts",
 		"boards": "node scripts/serve-boards.ts",
+		"design": "sh scripts/design-init.sh",
 		"test:navigation-recovery": "node tests/e2e/navigation-recovery-browser.ts",
 		"test:supabase": "node --import tsx --test tests/server/supabase-preparation.test.ts tests/server/supabase-rpc.test.ts tests/server/supabase-boundary.test.ts tests/server/supabase-jwt.test.ts tests/server/supabase-http.test.ts tests/server/supabase-http-session.test.ts tests/server/supabase-http-worker.test.ts tests/server/supabase-snapshots.test.ts tests/server/supabase-mcp.test.ts",
 		"test:supabase:postgres": "node --import tsx --test tests/server/supabase-postgres.ts",

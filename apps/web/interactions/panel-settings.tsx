@@ -254,6 +254,7 @@ export const panelSettings = {
 			<>
 				<div className={"sheet"}>
 					<div className={"grabber"} aria-hidden={"true"}></div>
+					{/* @design settings-sheet */}
 					<header className={"settings-head"}>
 						<h1 id={"modal-title"}>{copy("web.nav.settings")}</h1>
 						{this.close(copy("web.settings.close"))}

@@ -2,6 +2,7 @@ import SillKit
 import SwiftUI
 
 /// Values every card in the feed shares. A plain value: changing one redraws the cards that use it.
+/// @design card-summary
 struct CardContext: Equatable {
   var now: Double
   var query = ""
@@ -65,7 +66,7 @@ struct CardHead<Right: View>: View {
       Spacer(minLength: 0)
       right
     }
-    .font(.sans(AppleMetrics.font13))
+    .font(.sans(AppleMetrics.font12))
     .frame(minHeight: AppleMetrics.cardHeadHeight)
   }
 }
@@ -95,10 +96,11 @@ struct CardTitle: View {
   var faded = false
   var query = ""
   var lines = 2
+  // @design card-type
   var body: some View {
     Highlighted(text: text, query: query)
       .textStyle(
-        AppleMetrics.font17, .semibold, leading: AppleMetrics.cardTitleLeading,
+        AppleMetrics.font16, .semibold, leading: AppleMetrics.cardTitleLeading,
         tracking: AppleMetrics.cardTitleTracking
       )
       .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
@@ -115,7 +117,9 @@ struct CardSummary: View {
   var indent: CGFloat = 0
   var body: some View {
     Highlighted(text: text, query: query)
-      .textStyle(AppleMetrics.font15, leading: AppleMetrics.summaryLeading)
+      .textStyle(
+        AppleMetrics.font14, leading: AppleMetrics.cardSummaryLineHeight / AppleMetrics.font14
+      )
       .foregroundStyle(AppleColors.secondary)
       .lineLimit(lines)
       .frame(maxWidth: .infinity, alignment: .leading)
@@ -134,8 +138,11 @@ struct SummaryBlock: View {
     if !points.isEmpty {
       VStack(alignment: .leading, spacing: AppleMetrics.space8) {
         if !summary.isEmpty { CardSummary(text: summary, lines: 2, query: query) }
-        KeyPoints(points: Array(points.prefix(3)), singleLine: true)
-          .padding(.top, AppleMetrics.space2)
+        KeyPoints(
+          points: Array(points.prefix(3)), singleLine: true, size: AppleMetrics.font14,
+          lineHeight: AppleMetrics.cardSummaryLineHeight
+        )
+        .padding(.top, AppleMetrics.space2)
       }
     } else if !summary.isEmpty {
       CardSummary(text: summary, lines: lines, query: query)
@@ -146,14 +153,18 @@ struct SummaryBlock: View {
 struct KeyPoints: View {
   let points: [String]
   var singleLine = false
+  /// Cards use the summary size (A type: 14/22); readers pass their own body size.
+  var size = AppleMetrics.font15
+  var lineHeight = AppleMetrics.font15 * AppleMetrics.summaryLeading
+  var spacing = AppleMetrics.space4
   var body: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space4) {
+    VStack(alignment: .leading, spacing: spacing) {
       ForEach(Array(points.enumerated()), id: \.offset) { index, point in
         HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space10) {
           Text("\(index + 1)").font(.number(AppleMetrics.font13, .semibold))
             .foregroundStyle(AppleColors.accent)
             .frame(width: AppleMetrics.keyPointWidth, alignment: .trailing)
-          Text(point).textStyle(AppleMetrics.font15, leading: AppleMetrics.summaryLeading)
+          Text(point).textStyle(size, leading: lineHeight / size)
             .foregroundStyle(AppleColors.primary)
             .lineLimit(singleLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: !singleLine)

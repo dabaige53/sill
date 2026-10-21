@@ -2,7 +2,7 @@ import { MotionEngine } from "./motion.ts";
 
 export function columnGeometry(
 	width: number,
-	{ min = 280, ideal = 340, max = 380, gap = 24, limit = 5 } = {},
+	{ min = 280, ideal = 340, max = 380, gap = 24, limit = 4 } = {},
 ) {
 	const fits = Math.max(1, Math.floor((width + gap) / (min + gap)));
 	const columns = Math.max(
@@ -65,10 +65,11 @@ class FeedLayout {
 		const style = getComputedStyle(el);
 		const value = (name: string, fallback: number) =>
 			Number.parseFloat(style.getPropertyValue(name)) || fallback;
+		// @design feed-columns
 		const min = value("--col-min", 280),
 			ideal = value("--col-ideal", 340),
 			max = value("--col-max", 380),
-			limit = value("--col-limit", 5);
+			limit = value("--col-limit", 4);
 		const gap = value(width < min * 2 + 24 ? "--gap-sm" : width < 1000 ? "--gap-md" : "--gap", 24);
 		const {
 			columns: cols,

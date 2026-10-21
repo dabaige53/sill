@@ -154,6 +154,7 @@ export const panelSearch = {
 		const category =
 			f.pinned && f.type !== "all" ? searchTypes.find(([key]) => key === f.type) : null;
 		const status = searchStatuses.find(([key]) => key === f.status);
+		// @design search-tokens
 		// Category is ink; # conditions are accent. Backspace removes them from the end.
 		const tokens = [
 			category && { key: "type", label: copy(category[1]), hash: false },

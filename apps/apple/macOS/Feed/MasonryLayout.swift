@@ -1,8 +1,9 @@
 import SillKit
 import SwiftUI
 
-/// Web `columnGeometry`: the nearest ideal column count, at most five, two while two minimum
+/// Web `columnGeometry`: the nearest ideal column count, at most `col-limit`, two while two minimum
 /// columns still fit; three or more columns only at their ideal width.
+/// @design feed-columns
 struct ColumnGeometry: Equatable {
   var columns = 1
   var columnWidth: CGFloat = 0

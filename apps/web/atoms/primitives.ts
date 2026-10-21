@@ -80,6 +80,16 @@ function relativeDay(ts?: any, now: any = Date.now()) {
 	const d = new Date(ts);
 	return `${d.getMonth() + 1}${copy("web.primitives.1625179badc0")}${d.getDate()}${copy("web.primitives.85217f7aff77")}`;
 }
+/** Article reader dates: 今天, 昨天, then 10/18; another year adds it (2025/10/18). */
+function shortDay(ts: number, now: number = Date.now()) {
+	const start = new Date(now);
+	start.setHours(0, 0, 0, 0);
+	if (ts >= start.getTime()) return copy("web.primitives.d5f5a7a01073");
+	if (ts >= start.getTime() - 86400000) return copy("web.primitives.0c184871f658");
+	const d = new Date(ts);
+	const day = `${d.getMonth() + 1}/${d.getDate()}`;
+	return d.getFullYear() === start.getFullYear() ? day : `${d.getFullYear()}/${day}`;
+}
 function eventRelative(c?: any, now: any = Date.now()) {
 	const min = Math.ceil((c.start - now) / 60000);
 	if (min > 90) return `${Math.round(min / 60)}${copy("web.primitives.ec13a671ba0c")}`;
@@ -155,6 +165,7 @@ export {
 	reminderClock,
 	ring,
 	segmented,
+	shortDay,
 	tagChip,
 	timeString,
 	toggle,

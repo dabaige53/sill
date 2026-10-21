@@ -1,10 +1,10 @@
 # Sill 设计系统
 
-更新：2026-10-17。
+更新：2026-10-21。
 
 改界面前先读根目录的 [设计约束](../../DESIGN.md)，其中写明改动顺序和线上同步要求。
 
-Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`。线上版本是 [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)，全部定稿画板在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)，移动与网页的最新界面另见 [Sill 界面定稿](https://claude.ai/artifact/7VR39DnLMEVoJgV1kn62JV)（本地 `design-system/boards/final-ui/`），本地副本见下文「画板」。
+Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`。线上版本是 [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)，画板在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) 的「现行」页，本地副本见下文「画板」。
 
 组件脚本的全局名是 `Sill`（`window.Sill`）。
 
@@ -13,27 +13,32 @@ Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`�
 | 路径 | 内容 |
 | --- | --- |
 | `design-system/README.md` | **设计手册，规则以它为准**：产品立场、文案、颜色、玻璃、字体、卡片积木、文字长度、间距、动效、量大与时间、图标（含「文字和图标只用一种」） |
-| `design-system/boards/` | 设计画布的本地副本和目录页，包含导航胶囊画板 35，`npm run boards` 打开 |
+| `design-system/boards/` | 现行画板：设计画布「现行」页的本地副本、画布索引和目录页，`npm run boards` 打开 |
+| `design-system/history/` | 历史画板：被取代的定稿和过程稿，不作依据 |
 | `design-system/tokens.json` | 设计变量：颜色（含深色）、字号、间距、圆角、阴影、动效时长与曲线，每项附用途 |
-| `design-system/components/<组件>/` | 30 个组件的说明（README.md）和静态示例（preview.html） |
+| `design-system/components/<组件>/` | 18 个组件的说明（README.md）和示例（preview.html，由 `scripts/previews.ts` 从产品代码生成）；`Cover/` 是封面 |
 | `design-system/components/bundle.js` / `bundle.css` | 示例用的渲染函数与样式，从 `apps/web/` 生成 |
 | `design-system/assets/Icons/` | 图标 SVG |
 | `design-system/design-system.json` | 线上版本的索引 |
-| `design-system/scripts/` | 从 `apps/web/` 重新生成上述文件的脚本 |
-
-其中 CardBlocks、StackCard、KeyPoints、ReadEndRing、SourceRow 五个组件是这一版新增的静态示例，直接用设计变量写成，还没有进 bundle。
+| `design-system/marks.json` | 设计印记登记：编号 → 手册小节、变量、ADR、现行画板 |
+| `design-system/published.json` | 上次发布到线上的文件指纹，由 `scripts/design-init.sh record` 写入 |
+| `design-system/scripts/` | 生成、检查、画布整理和发布准备脚本，统一由 `scripts/design-init.sh` 调用 |
 
 ## 画板
 
-`design-system/boards/` 保存了设计画布上的全部画板，按画布的分区排好：
+`design-system/boards/` 是设计画布「现行」页的本地副本。只有这里的画板是依据，分五组：
 
-1. 品牌与全貌：品牌、页面地图
-2. 进来：首次打开与导入、来源与导入、收集入口
-3. 桌面：桌面信息流 1440、手机 390、桌面交互原型、手机交互原型、下滑与等待、量大与去重
-4. 打开：弹层、弹出动效原型、站内详情、退出交互
-5. 找与管：搜索与归档、来源与信任、设置
-6. 底层：卡片积木、预设卡片、文字长度、图标、规范总表
-7. 过程稿：现状盘点、Apple 风格对照、卡片体系与尺寸等
+1. 手机：主页、搜索首页、结果页与 # 条件、AI 四块页面稿，手机顶行与搜索标签
+2. 网页与 Mac：主页、分栏菜单、在未读里搜索、拖入卡片、多选、AI 会话六块页面稿，Web 顶栏与 AI 框，Mac 顶栏与设置弹窗
+3. 卡片：A 字号与四列、卡片操作适用类型、量大与去重、下滑与等待
+4. 打开：卡片详情、资讯阅读、照片通用操作、退出交互
+5. 图标与品牌
+
+各类卡片的实际样子看组件 FeedCard 的示例，它由产品代码生成。
+
+页面稿（文件名以 `Screen` 开头）是整页布局。实现移动与网页界面时，以页面稿和手册 [交互](../../design-system/handbook/interaction.md) 的「两端对照」为准。
+
+`design-system/history/` 是画布「历史」页的本地副本，记录被取代的定稿、早期概念稿和过程稿，不作依据；每块的去向见 [历史画板](../../design-system/history/README.md)。画布索引 `design-system/boards/canvas.json` 与线上 `project/canvas.json` 相同，两页的画板都列在里面，历史画板带 `"page": "history"`。
 
 打开方式：
 
@@ -41,11 +46,9 @@ Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`�
 npm run boards
 ```
 
-然后在浏览器打开 `http://127.0.0.1:4310/`。标「可交互」的四块原型（卡片积木、桌面交互、手机交互、弹出动效）可以直接点、滑。不能直接双击打开 HTML 文件：原型的运行脚本 `support.js` 要读取画板文件本身，浏览器不允许本地文件这样读。
+然后在浏览器打开 `http://127.0.0.1:4310/`。目录页只列现行画板；历史画板按文件名访问。不能直接双击打开 HTML 文件：画板的运行脚本 `support.js` 要读取画板文件本身，浏览器不允许本地文件这样读。
 
-`design-system/boards/final-ui/` 是 [Sill 界面定稿](https://claude.ai/artifact/7VR39DnLMEVoJgV1kn62JV) 的本地副本：移动 4 块（主页、搜索首页、结果页与 # 条件、AI）和网页 6 块（主页、分栏菜单、在未读里搜索、拖入卡片、多选、AI 会话）。`canvas.json` 记录位置与标题，图片在 `assets/`。实现移动与网页界面时，以这 10 块画板和手册 [交互](../../design-system/handbook/interaction.md) 的「两端对照」为准。
-
-这个目录是线上设计画布的副本。视觉定稿或交互规则变了，先在线上设计画布改画板，再把变化的画板同步到这里，顺序见 [设计约束](../../DESIGN.md)。
+移走或重排画板用 `scripts/design-init.sh retire` 和 `layout`，发布顺序见 [设计约束](../../DESIGN.md)。
 
 ## 单一来源
 
@@ -54,20 +57,21 @@ npm run boards
 | 想改什么 | 实现位置 | 规范位置 |
 | --- | --- | --- |
 | 颜色、圆角、字号、阴影、动效变量 | `apps/web/styles/tokens.css` | `design-system/tokens.json`、手册「颜色」「动效」 |
-| 图标 | `apps/web/atoms/icons.ts` 的 `icon(name, size)` | 手册「图标」、画板 13 |
+| 图标 | `apps/web/atoms/icons.ts` 的 `icon(name, size)` | 手册「图标」、`IconSet` 画板 |
 | 按钮、进度环、勾选项、头像、标签 | `apps/web/atoms/primitives.ts` | 对应组件 README |
-| 卡片结构、叠卡、架子 | `apps/web/cards/templates.ts` | `FeedCard`、`StackCard`、`CardBlocks` 等，画板 21、22 |
-| 预览、阅读、搜索、设置、来源、导入等弹层 | `apps/web/interactions/panels.ts` | `Dialog`，画板 15、29、30–32 |
-| 展开与收回、落下、淡入 | `apps/web/interactions/motion.ts` | 手册「动效」，画板 16 |
-| 手势：下拉刷新、下拉关闭、读完上推、拖把手、右滑返回 | `apps/web/interactions/gestures.ts` | 手册「动效」，画板 17–19 |
+| 卡片结构、叠卡、架子 | `apps/web/cards/components.tsx`、`templates.ts` | `FeedCard`、`StackCard`、`CardMenu`，`CardTypeA` 画板 |
+| 预览、阅读、搜索、设置等弹层 | `apps/web/interactions/panels.ts` | `Dialog`，`CardDetail`、`ArticleReading`、`MacChrome` 画板 |
+| 资讯阅读（预览与全屏） | `apps/web/styles/preview-media.css` 的 `.is-article`；macOS `Reader/ReaderContent.swift` | `article-*` 变量，`ArticleReading` 画板 |
+| 展开与收回、落下、淡入 | `apps/web/interactions/motion.ts` | 手册「动效」 |
+| 手势：下拉刷新、下拉关闭、读完上推、拖把手、右滑返回 | `apps/web/interactions/gestures.ts` | 手册「动效」，`ExitRules` 画板 |
 | 卡片交接、宿主消息与外链 | `apps/web/services/agent-handoff.ts`、`apps/web/cloud-bridge.ts` | 手册「立场」、产品「当前卡片交给助手」；按宿主能力提供，AI 导航页仍为内置助手说明 |
-| 信息流排序、叠卡、收起 | `apps/web/services/feed-policy.ts` | 手册「量大与时间」，画板 25 |
-| 文件导入与去重 | `apps/web/services/importers.ts` | 画板 24、31 |
+| 信息流排序、叠卡、收起 | `apps/web/services/feed-policy.ts` | 手册「量大与时间」，`Volume` 画板 |
 
-改了 `apps/web/` 里的变量、图标或组件样式：变量和说明先在线上 Design System 改，再同步回 `design-system/`；然后重新生成图标和 bundle，并发布到线上：
+改了 `apps/web/` 里的变量、图标或组件样式，运行下面的命令重新生成并检查，再按 [设计约束](../../DESIGN.md) 发布：
 
 ```sh
-node design-system/scripts/generate.ts design-system .
+scripts/design-init.sh build
+scripts/design-init.sh check
 ```
 
 ## 样式分层

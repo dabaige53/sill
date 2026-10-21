@@ -386,6 +386,8 @@ test("three destinations share the capsule; the home avatar opens settings", () 
 		assert.equal(app.isPage("capture"), false, "capture stays a sheet");
 		w.matchMedia = () => ({ matches: false, addEventListener() {} });
 		assert.equal(app.isPage("search"), true, "search owns its page on desktop too");
+		w.matchMedia = (q: string) => ({ matches: q.includes("min-width"), addEventListener() {} });
+		assert.equal(app.isPage("settings"), false, "desktop settings is a centered sheet");
 	} finally {
 		dom.window.close();
 	}

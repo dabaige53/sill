@@ -1,6 +1,6 @@
 # Sill 的设计约束
 
-更新：2026-10-18。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
+更新：2026-10-21。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
 
 ## 依据
 
@@ -13,25 +13,58 @@
 | Web 设计变量 | [apps/web/styles/tokens.css](apps/web/styles/tokens.css) |
 | 规则和代码位置的对照 | [设计系统映射](docs/design/system.md) |
 | 设计决策 | [ADR-01 至 ADR-21](docs/design/decisions.md)，ADR-22 起见 [docs/adr/](docs/README.md) |
-| 定稿画板 | `design-system/boards/`，运行 `npm run boards` 后打开 http://127.0.0.1:4310/ |
-| 线上版本 | [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)、[Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)、[Sill 界面定稿](https://claude.ai/artifact/7VR39DnLMEVoJgV1kn62JV)（移动与网页最新界面，本地 `design-system/boards/final-ui/`） |
+| 现行画板 | `design-system/boards/`，运行 `npm run boards` 后打开 http://127.0.0.1:4310/ |
+| 设计印记 | 代码里的 `@design <编号>`，编号登记在 [marks.json](design-system/marks.json) |
+| 设计版本 | [设计版本记录](docs/design/versions.md) |
+| 线上版本 | [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)、[Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b)（「现行」页） |
 
-- 线上先改，线下后同步。设计规则、组件说明、变量和画板先在线上 Design System 和设计画布里改，再同步回仓库的 `design-system/`。线上和仓库不一致时，以线上为准。
-- 组件包（`bundle.css`、`bundle.js`）和图标由仓库代码生成，生成后再发布到线上。
+- 仓库 `design-system/` 是设计材料的来源，线上是发布副本。有人在线上页面直接改了设计，先在 Claude Code 里说「同步设计」拉回仓库，再做别的改动。
+- 组件示例、组件包和图标由产品代码生成，不手改。
 - 手册和代码不一致时，先对照画板和实际页面，再在同一个 PR 里改掉错的一方。用户确认的新决定写入手册，必要时补 ADR。
-- 用户已明确要求本次在 Codex 内完成、不调整 claude.ai 云端设计：先更新仓库内产品原则与设计规范，再修改代码。下述线上同步步骤本次不执行，不能因此停止已授权的仓库工作。
+- 只有现行画板是依据。`design-system/history/` 和线上画布的「历史」页记录被取代的定稿和过程稿，不作依据。
 
-2026-10-20 起恢复线上优先：手机顶行与搜索标签（[ADR 0048](docs/adr/0048-phone-top-row-and-search-tokens.md)）先发布到线上 Design System 和设计画布 44 号画板，再同步回仓库。此前几轮只在仓库内修改的规则、画板（39–43 号）和手册拆分尚未发布到线上，线上与仓库仍有差异，需要另做一次完整对齐；对齐前不要用线上整份文件覆盖仓库。
+## 两种工作环境
+
+| 环境 | 能做什么 | 结束时 |
+| --- | --- | --- |
+| Claude Code | 改仓库，并能更新 claude.ai 上的 Design System 和设计画布 | 同一次任务里 `stage`、说「发布设计」、`record`，线上与仓库一致 |
+| Codex 等其他 AI 产品 | 只能改仓库，不能更新 claude.ai | 运行 `build` 和 `check`；PR 的 Merge Danger 写「设计未发布到线上」。之后在 Claude Code 里说「发布设计」补齐 |
+
+`status` 列出仓库里还没发布到线上的改动，任何环境都可以运行。
+
+## 工具
+
+`scripts/design-init.sh`（`npm run design -- <命令>`）：
+
+| 命令 | 作用 |
+| --- | --- |
+| `status` | 仓库与上次发布相比改了哪些文件 |
+| `trace <编号或变量名>` | 找出规则、变量取值、ADR、画板和代码位置 |
+| `build` | 重新生成变量文件、组件包、图标、组件示例和画板目录 |
+| `check` | 检查印记、变量名、画板、组件示例、日期叙述和文件规范 |
+| `retire <画板>` | 把现行画板移到历史，重排画布 |
+| `stage [说明]` | build、check 后准备发布文件；然后在 Claude Code 里说「发布设计」 |
+| `record <DS 版本> <画布版本> [ADR]` | 发布后记录版本 |
 
 ## 改动顺序
 
-1. 读线上手册对应的一节和相关画板。交互改动先看可交互原型（桌面交互、手机交互、弹出动效、卡片积木）。
-2. 先改线上：规则、数值或交互要变时，先在线上 Design System 改手册和组件说明，在线上设计画布改受影响的画板，包括可交互原型和退出交互表。交互规则包括浮层位置、反馈时长、选择、拖动、刷新、打开和关闭。只改代码实现、规则不变时跳过这一步。
-3. 同步线下：读取线上变化的文件，覆盖到仓库对应路径：Design System 的 `project/<路径>` 对应 `design-system/<路径>`，设计画布的 `project/<画板>` 对应 `design-system/boards/<画板>`。画板尺寸变了，同时更新 `design-system/boards/canvas.json` 和 `index.html`。
-4. 改代码。数值有对应变量时用变量：颜色、圆角、字号（`--text-<样式名>`）、阴影、动效时长。没有对应变量的新数值，先判断它是不是一级新规则；是就回到第 2 步，在线上加进变量，再同步到 `tokens.json` 和 `tokens.css`；不是就改用已有的一级。
-5. 重新生成组件包和图标：`node design-system/scripts/generate.ts design-system .`，再把变化的组件包和图标发布到线上 Design System。
-6. 按变更范围选择静态检查、类型检查、构建和非浏览器测试。浏览器测试、视觉自动化和 e2e 须先取得用户明确授权；获准后只测本次修改涉及的场景，完整 e2e 须另有明确授权。以 `AGENTS.md`「验证与测试授权」为准。
-7. 实现中发现规则要调整时，回到第 2 步先改线上，不只改仓库。仓库里有线上没有的设计改动时，在 PR 的 Merge Danger 里写明。
+1. 读手册对应的一节和现行画板；用 `trace` 找到相关的变量和代码。
+2. 改规则或数值：先改设计变量（`design-system/tokens/`）、手册和受影响的画板。数值有对应变量时用变量；没有对应变量的新数值，先判断它是不是一级新规则，是就加进变量，不是就改用已有的一级。
+3. 改代码。关键实现处写 `@design <编号>`；新编号登记到 `marks.json`。
+4. 运行 `build` 和 `check`。按变更范围选择静态检查、类型检查、构建和非浏览器测试。浏览器测试、视觉自动化和 e2e 须先取得用户明确授权；以 `AGENTS.md`「验证与测试授权」为准。
+5. 发布：在 Claude Code 里运行 `stage`，说「发布设计」，发布后 `record`。在其他 AI 产品里不发布，在 PR 的 Merge Danger 写「设计未发布到线上」。
+
+## 版本更新
+
+改了设计变量，或同时改了多节手册与多块画板，就是一个设计版本。版本名用发布当天的日期。
+
+1. 先写 ADR：说明原因，列出影响范围（变量、手册小节、现行画板、实现端）。
+2. 变量、手册、组件说明一次改完；`build` 重新生成组件示例和组件包。
+3. 刷新受影响的全部现行画板。画出来的画板改到与产品一致；截图画板重新截图。
+4. 新决定画新画板。被它取代的画板用 `retire` 移到历史，在 [历史画板](design-system/history/README.md) 写一行去向。
+5. 在 Claude Code 里 `stage`，「发布设计」，`record` 会在 [设计版本记录](docs/design/versions.md) 加一行。
+
+规则文档只写现状。同步状态、经过和日期不写进手册、本文或画板说明；原因写进 ADR，发布写进版本记录，未完成的事写进 PR 的 Merge Danger。
 
 ## 不能做的事
 
@@ -46,10 +79,10 @@
 
 ## Web 与 macOS 一致
 
-2026-10-20 用户确认：macOS 的视觉与动效以当前 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。此前本节的原生控件、SF Symbols、单层阴影和 Liquid Glass 规定全部撤销。
+macOS 的视觉与动效以 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。不使用原生控件样式、SF Symbols、单层阴影或 Liquid Glass。
 
 - 保留信息结构、内容顺序、文案和既有轻操作。SwiftUI 负责绘制，视觉、状态与动效参数对齐 Web。
-- 本轮在 Codex 内先更新仓库规范和设计变量，再修改实现；不调整 claude.ai 云端设计。仓库新增的 apple 设计变量尚未同步到线上；如编写 PR，须写入 Merge Danger。
+- macOS 顶栏只有一处与 Web 不同：品牌图标左缘对齐窗口关闭按钮。设置在两端桌面都是主窗口中央的弹窗。
 - 设计变量维护于 design-system/tokens/foundation.json，导出 tokens.json 后由 CardGenerator 生成 AppleMetrics、AppleColors。组件不另写动画参数。
-- 保留已有 reduceMotion 分支，本轮新增动效不加减少动态效果分支。此保留项与手册统一动效规则的差异须在交付中说明。
+- 保留已有 reduceMotion 分支；新增动效不加减少动态效果分支。此保留项与手册统一动效规则的差异须在交付中说明。
 - 保留键盘、焦点恢复及 VoiceOver 语义。按 AGENTS.md 运行非浏览器检查；真实窗口中未观察的效果须明确标明。

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>文字长度</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums}
+.w{position:relative;width:322px}
+.card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:22px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden}
+.bd{display:flex;flex-direction:column;gap:8px;padding:18px}
+.bd>.hd+.t{margin-top:4px}
+.bd>.t+.s{margin-top:-2px}
+.hd{display:flex;align-items:center;gap:6px;font-size:12px;line-height:18px;height:18px;color:#636366}
+.hd svg{flex:none;color:#86868b}
+.t{font-size:16px;line-height:22px;font-weight:600;letter-spacing:-.02em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.s{font-size:14px;line-height:22px;color:#636366;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.s.c2{-webkit-line-clamp:2}
+.cv{margin:-10px -10px 4px;aspect-ratio:16/9;border-radius:14px}
+.ru{position:absolute;left:334px;width:6px;border:1.5px solid #0066cc;border-left:0;border-radius:0 3px 3px 0;box-sizing:border-box}
+.ru span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:600;color:#0066cc}
+.cap{font-size:13px;color:#86868b;padding-top:12px}
+.pts{display:flex;flex-direction:column;gap:4px;padding-top:2px}
+.pt{display:flex;align-items:baseline;gap:12px;font-size:14px;line-height:22px}
+.pt i{width:12px;flex:none;font-style:normal;font-size:13px;font-weight:600;color:#0066cc;text-align:right}
+.rp{display:flex;flex-direction:column}
+.rp div{display:flex;align-items:baseline;gap:16px;padding:14px 0;border-top:1px solid rgba(0,0,0,.06);font-size:17px;line-height:1.6}
+.rp div:first-child{border-top:0}
+.rp i{width:16px;flex:none;font-style:normal;font-size:15px;font-weight:600;color:#0066cc;text-align:right}
+.src{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:10px;background:#f5f5f7;font-size:13px;color:#1d1d1f}
+.src svg{color:#86868b;flex:none}
+.spec{display:flex;flex-direction:column;gap:6px}
+.spec small{font-size:13px;color:#86868b}
+.spec b{display:flex;align-items:baseline;gap:6px;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.03em;color:#1d1d1f}
+.spec b em{font-style:normal;font-size:17px;font-weight:500;color:#636366;letter-spacing:0}
+.spec span{font-size:13px;line-height:1.6;color:#636366}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1400px; box-sizing: border-box; padding: 64px 80px; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 72px">
+  <div style="display: flex; align-items: baseline; gap: 16px">
+    <h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">按行截，按字写</h1>
+    <span style="font-size: 13px; color: #86868b">23 · 文字长度</span>
+  </div>
+
+  <section style="display: grid; grid-template-columns: repeat(4, 322px); justify-content: space-between; align-items: start">
+    <div>
+      <div class="w">
+        <article class="card"><div class="bd"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"></path></svg>RSS · 2 分钟</div><div class="t">打开，不等于读完</div><div class="s">预览、阅读、收藏、完成，是四件事。</div></div></article>
+        <span class="ru num" style="top: 78px; height: 22px"><span>1</span></span>
+      </div>
+      <div class="cap">短</div>
+    </div>
+    <div>
+      <div class="w">
+        <article class="card"><div class="bd"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"></path></svg>RSS · 6 分钟</div><div class="t">让 AI 成为工作流的一部分</div><div class="s">不是多一个工具，而是让想法、判断和行动顺畅地连接起来。切换页面容易，重新建立上下文却很费力。</div></div></article>
+        <span class="ru num" style="top: 78px; height: 67px"><span>3</span></span>
+      </div>
+      <div class="cap">满</div>
+    </div>
+    <div>
+      <div class="w">
+        <article class="card"><div class="bd"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"></path></svg>Readwise · 18 分钟</div><div class="t">当信息越来越多，我们需要的不是更快的阅读，而是更少但更对的输入</div><div class="s">我们每天读到的内容越来越多，但真正需要做出的判断，并没有因此变得更简单。一个新的产品发布、一封等待回复的邮件、一段刚写下的笔记，常常分别停在不同的入口。</div></div></article>
+        <span class="ru num" style="top: 47px; height: 46px"><span>2</span></span>
+        <span class="ru num" style="top: 101px; height: 67px"><span>3</span></span>
+      </div>
+      <div class="cap">超长</div>
+    </div>
+    <div>
+      <div class="w">
+        <article class="card"><div class="bd"><div class="cv" style="background: linear-gradient(160deg, #b9c6d3 0%, #dfe5ea 55%, #c9d2d9 100%)"></div><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"></path></svg>RSS · 6 分钟</div><div class="t">让 AI 成为工作流的一部分</div><div class="s c2">不是多一个工具，而是让想法、判断和行动顺畅地连接起来。切换页面容易，重新建立上下文却很费力。</div></div></article>
+        <span class="ru num" style="top: 251px; height: 45px"><span>2</span></span>
+      </div>
+      <div class="cap">有封面</div>
+    </div>
+  </section>
+
+  <section style="display: grid; grid-template-columns: 322px minmax(0, 1fr); gap: 80px; align-items: start">
+    <div>
+      <article class="card"><div class="bd"><div class="hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"></path></svg>AI 摘要 · 来自 6 篇</div><div class="t">界面的安静来自分层，而不是删减</div><div class="pts"><div class="pt"><i class="num">1</i><span>内容在白色层，工具在玻璃层</span></div><div class="pt"><i class="num">2</i><span>工具跟着意图出现，不常驻</span></div><div class="pt"><i class="num">3</i><span>状态用颜色和形状，不写成字</span></div></div></div></article>
+      <div class="cap">总结再长，卡上只留结论和三点</div>
+    </div>
+    <div style="background: #fff; border-radius: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.04), 0 32px 90px rgba(0,0,0,.1); padding: 48px 64px 40px; display: flex; flex-direction: column; gap: 20px">
+      <span style="font-size: 12px; line-height: 18px; color: #86868b">AI 摘要 · 来自 6 篇</span>
+      <h2 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">界面的安静来自分层，<br>而不是删减</h2>
+      <p style="margin: 0; font-size: 19px; line-height: 1.7; color: #3a3a3c; max-width: 620px">六篇文章从不同角度回答了同一个问题。答案不是删掉功能，而是让内容和工具各在各的层，工具只在需要时出现。</p>
+      <div class="rp" style="max-width: 680px">
+        <div><i class="num">1</i>内容在白色层，工具在玻璃层，互不抢位置</div>
+        <div><i class="num">2</i>工具跟着意图出现：靠近、选择、提起时才浮现</div>
+        <div><i class="num">3</i>状态用颜色和形状表达，不写成字</div>
+        <div><i class="num">4</i>动效只有三种：跟手、落下、淡入</div>
+        <div><i class="num">5</i>数字用圆体，等宽对齐</div>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px">
+        <span class="src"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"></path></svg>注意力，也需要一点留白</span>
+        <span class="src"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1ZM12 5v15"></path></svg>安静的界面，也需要节奏</span>
+        <span class="src" style="color: #636366">另 4 篇</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 40px; padding-top: 40px; border-top: 1px solid rgba(0,0,0,.08)">
+    <div class="spec"><small>标题</small><b class="num">2<em>行</em></b><span>约 32 字 · 写入 ≤ 30</span></div>
+    <div class="spec"><small>摘要</small><b class="num">3<em>行</em></b><span>有封面 2 行 · 写入 ≤ 60</span></div>
+    <div class="spec"><small>要点</small><b class="num">3<em>条</em></b><span>每条 1 行 · 写入 ≤ 18</span></div>
+    <div class="spec"><small>正文</small><b class="num">6<em>行</em></b><span>短帖、评论 · 点开看全文</span></div>
+    <div class="spec"><small>金句</small><b class="num">4<em>行</em></b><span>写入 ≤ 40，超出改正文字号</span></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -30,6 +30,15 @@ struct ReaderContent: View {
   @Environment(\.cardIntents) private var intents
 
   var body: some View {
+    // @design article-reading
+    if card.kind == .article {
+      articleReading
+    } else {
+      other
+    }
+  }
+
+  private var other: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.previewBodyGap) {
       switch card.kind {
       case .mail: mail
@@ -83,6 +92,77 @@ struct ReaderContent: View {
           .textSelection(.enabled)
       }
     }
+  }
+
+  // MARK: Article reading
+
+  /// Article reading (balanced; Web `.is-article`): one type set for the preview and the page.
+  /// A 600 column, centered: source and date, the title, then the text; 16 between paragraphs.
+  private var articleReading: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      MetaRow(
+        icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15)),
+        size: AppleMetrics.font12
+      ) {
+        Text(
+          [
+            card.sources.map(\.name).filter { !$0.isEmpty }.uniqued().joined(separator: " · ")
+              .nilIfEmpty ?? card.kind.label,
+            card.articleDate.map { Format.shortDay($0) } ?? "", card.readingTime,
+          ].filter { !$0.isEmpty }.joined(separator: " · "))
+      }
+      .padding(.trailing, discRoom)
+      .firstRow()
+      .padding(.bottom, AppleMetrics.space14)
+      Text(card.title)
+        .textStyle(
+          AppleMetrics.font22, .semibold,
+          leading: AppleMetrics.articleTitleLineHeight / AppleMetrics.font22
+        )
+        .foregroundStyle(AppleColors.primary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityAddTraits(.isHeader)
+        .padding(.bottom, AppleMetrics.space24)
+      let tags = state.tags(of: card)
+      if !tags.isEmpty { ReaderTags(tags: tags).padding(.bottom, AppleMetrics.space16) }
+      if !card.publication.rows.isEmpty {
+        PublicationRows(publication: card.publication, showsDate: false)
+          .padding(.bottom, AppleMetrics.space16)
+      }
+      if card.image != nil {
+        CoverImage(name: card.image)
+          .aspectRatio(16 / 9, contentMode: .fit)
+          .frame(maxWidth: .infinity)
+          .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius, style: .continuous))
+          .padding(.bottom, AppleMetrics.space24)
+      }
+      VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+        if !card.summary.isEmpty, !card.isQuote, card.summary != card.body.first {
+          articleText(card.summary)
+        }
+        if !card.points.isEmpty {
+          KeyPoints(
+            points: card.points, size: AppleMetrics.font15,
+            lineHeight: AppleMetrics.articleBodyLineHeight, spacing: AppleMetrics.space6)
+        }
+        ForEach(Array(card.body.enumerated()), id: \.offset) { _, text in articleText(text) }
+        NoteBox(note: state.note)
+      }
+    }
+    .frame(maxWidth: AppleMetrics.articleMeasure, alignment: .leading)
+    .frame(maxWidth: .infinity)
+  }
+
+  private func articleText(_ text: String) -> some View {
+    Text(text)
+      .textStyle(
+        AppleMetrics.font15, leading: AppleMetrics.articleBodyLineHeight / AppleMetrics.font15
+      )
+      .foregroundStyle(AppleColors.primary)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .fixedSize(horizontal: false, vertical: true)
+      .textSelection(.enabled)
   }
 
   // MARK: Types
@@ -307,13 +387,14 @@ struct ReaderContent: View {
 /// Source icon and source name over the title: secondary, one line.
 struct MetaRow<Label: View>: View {
   let icon: AnyView?
+  var size = AppleMetrics.font13
   @ViewBuilder var label: Label
   var body: some View {
     HStack(spacing: AppleMetrics.space6) {
       if let icon { icon.foregroundStyle(AppleColors.iconSecondary) }
       label.lineLimit(1).truncationMode(.tail)
     }
-    .font(.sans(AppleMetrics.font13))
+    .font(.sans(size))
     .foregroundStyle(AppleColors.iconSecondary)
   }
 }
@@ -339,10 +420,13 @@ struct ReaderTags: View {
 /// Publication date and author rows: small grey text, no box (Medium-style).
 struct PublicationRows: View {
   let publication: CardModel.Publication
+  /// Off in article reading, where the date sits in the source line instead.
+  var showsDate = true
   var body: some View {
-    if publication.date != nil || !publication.rows.isEmpty {
+    let date = showsDate ? publication.date : nil
+    if date != nil || !publication.rows.isEmpty {
       VStack(alignment: .leading, spacing: AppleMetrics.space6) {
-        if let date = publication.date {
+        if let date {
           Text(date).help(publication.dateTitle ?? "")
         }
         ForEach(Array(publication.rows.enumerated()), id: \.offset) { _, row in

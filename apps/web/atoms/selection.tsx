@@ -26,6 +26,7 @@ export function SelectionAI() {
 		</button>
 	);
 }
+// @design selection-bar
 export function SelectionBar({ id = "selection-bar" }: { id?: string }) {
 	return (
 		<div id={id} className="glass" hidden role="toolbar" aria-label={copy("web.app.461e085d5ca2")}>

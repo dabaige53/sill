@@ -364,7 +364,7 @@ body:has(dialog.search[open]) #feed-grid {
 	display: flex;
 	align-items: flex-end;
 	padding: var(--space-12);
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	font-weight: 600;
 	color: var(--fixed-white);
 	background: var(--fixed-black-18);
@@ -478,7 +478,7 @@ body:has(dialog.search[open]) #feed-grid {
 	padding: 0;
 	border: 0;
 	background: transparent;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	border-radius: 0;
 }
 .search-pill input:focus-visible {

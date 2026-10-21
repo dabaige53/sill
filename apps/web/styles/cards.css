@@ -70,15 +70,15 @@
 	overflow-wrap: anywhere;
 }
 
-/* head: source icon · source · meta, with one timely value on the right. */
+/* head: source icon · source · meta, with one timely value on the right. @design card-type */
 .card-head {
 	display: flex;
 	align-items: center;
 	gap: var(--space-6);
 	min-height: 20px;
 	padding-right: var(--space-30);
-	font-size: var(--text-meta);
-	line-height: 20px;
+	font-size: var(--text-card-meta);
+	line-height: 18px;
 	color: var(--muted);
 }
 /* The reserved action slot keeps counts and timely information readable while hovering. */
@@ -147,13 +147,14 @@
 	font-weight: 600;
 }
 
-/* text: title 2 lines, summary 3 (2 beside a cover). Full text lives in the reader. */
+/* text: title 2 lines, summary 3 with or without a cover. Full text lives in the reader.
+   @design card-type @design card-summary */
 .card-title {
 	margin: 0;
 	font-size: var(--text-card-title);
 	font-weight: 600;
 	letter-spacing: -0.02em;
-	line-height: 1.35;
+	line-height: 22px;
 	color: var(--ink);
 }
 .card-title-button {
@@ -179,7 +180,7 @@
 	overflow: hidden;
 	margin: 0;
 	font-size: var(--text-summary);
-	line-height: 1.5;
+	line-height: 22px;
 	color: var(--muted);
 }
 .card-summary.clamp-2 {
@@ -225,6 +226,11 @@
 	font-size: var(--text-body);
 	line-height: 1.5;
 	color: var(--ink);
+}
+/* On a card, key points read at the summary size (A type: 14/22). */
+.feed-card .key-points li {
+	font-size: var(--text-summary);
+	line-height: 22px;
 }
 .key-points li span {
 	min-width: 0;

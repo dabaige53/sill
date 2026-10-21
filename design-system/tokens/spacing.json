@@ -77,6 +77,21 @@
 				"usage": "卡片最大列宽。"
 			},
 			{
+				"name": "article-measure",
+				"value": "600px",
+				"usage": "资讯阅读的正文最大宽度，居中。预览与全屏相同。"
+			},
+			{
+				"name": "article-gutter",
+				"value": "32px",
+				"usage": "资讯阅读的左右内边距（桌面）。容器总宽最大 664。"
+			},
+			{
+				"name": "article-gutter-sm",
+				"value": "20px",
+				"usage": "资讯阅读的左右内边距（手机）。不缩放整页。"
+			},
+			{
 				"name": "rail-row",
 				"value": "60px",
 				"usage": "底部导航胶囊和多选条的行高；详情工具条里的按钮仍是 44×44。"

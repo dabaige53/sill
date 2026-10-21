@@ -142,6 +142,7 @@ export function AccountRing() {
 		</>
 	);
 }
+// @design nav-capsule
 export function Navigation() {
 	const tabs = [
 		["home", "home", copy("web.nav.home")],

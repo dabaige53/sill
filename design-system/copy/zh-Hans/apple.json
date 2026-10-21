@@ -24,6 +24,7 @@
 	"apple.refreshing": "正在刷新本地数据",
 	"apple.refreshHelp": "刷新本地数据 ⌘R",
 	"apple.refresh": "刷新本地数据",
+	"apple.settingsMenu": "设置…",
 	"apple.newNoteHelp": "新建笔记 ⌘N",
 	"apple.newNote": "新建笔记",
 	"apple.deleteConfirm": "删除这张本地卡片？此操作无法撤销。",

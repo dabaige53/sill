@@ -56,6 +56,7 @@ const CardTemplates: Record<string, any> = {
 				: ` type="button" data-action="card-open" data-id="${esc(c.id)}"`;
 		return `<h2 class="card-title ${className}"><${tag}${attributes} class="card-title-button" data-shared="title">${esc(c.title)}</${tag}></h2>`;
 	},
+	// @design card-summary
 	summary(c?: any, short: any = false) {
 		if (c.points?.length)
 			return `${c.summary ? `<p class="card-summary clamp-2">${esc(c.summary)}</p>` : ""}<ol class="key-points">${c.points
@@ -71,7 +72,7 @@ const CardTemplates: Record<string, any> = {
 		return `<div class="card-cover" style="background:${tone}"><img class="card-image" data-shared="image" src="${Assets[c.image]}" alt="" draggable="false" loading="lazy" decoding="async">${inner}</div>`;
 	},
 	article(c?: any, ctx?: any) {
-		return `${c.image ? this.cover(c, ctx) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}${this.summary(c, !!c.image)}</div>`;
+		return `${c.image ? this.cover(c, ctx) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}${this.summary(c)}</div>`;
 	},
 	mail(c?: any, ctx?: any) {
 		const sender = c.sender?.trim();

@@ -1,8 +1,9 @@
 # CardMenu
 
-卡片情境菜单：围绕当前卡片的少量动作，从右上角「更多」按钮展开。
+卡片情境菜单：桌面右键或 Shift+F10 打开，放当前卡片的少量可逆动作：收藏、稍后读、标签、标为已读或未读、选择。
 
-- 「更多」按钮 `.card-more-trigger`：电脑上平时不显示，鼠标移到卡片上、键盘聚焦到卡片里或菜单打开时才出现。32px `glass` 圆底，白色 72% 描边，图标 16px 三个实心圆点（描边 2.4），离卡片右上角 12px。手机上一直显示，44px 透明底，放在卡片右下角。这条取代 2026-10-13 无障碍验收中「桌面更多按钮持续可见」的结论，以设计画布为准。
-- `.card-more-menu`：`card` 实底（盖在卡片文字上，不用玻璃）、`line` 边框、16px 圆角、6px 内边距、最宽 220px，阴影 `shadow-glass`。
-- 菜单项 `.card-menu-item`：44px 高、13px、图标 `muted`，hover `surface`。
-- 只放可逆、与当前内容相关的动作。
+- `card` 实底，`line` 边框，阴影 `shadow-glass`；菜单项高 `hit-target`，图标 `muted`，悬停 `surface`。
+- Web 在卡片右上角下方打开；macOS 在指针处打开，靠近窗口边缘时向内翻转。
+- 卡面不放「更多」按钮。手机用长按进入多选。
+
+实现：`apps/web/views/app-card-actions.ts` 的 `cardMenuHTML`。示例由 `design-system/scripts/previews.ts` 从产品代码生成，不手改。

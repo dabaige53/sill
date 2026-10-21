@@ -2,6 +2,10 @@ import { Store } from "../data/store.ts";
 import type { Gestures } from "./gestures.ts";
 import { MotionEngine } from "./motion.ts";
 
+/** The read-end ring; shared by the reader and the design-system previews. */
+export const pushRingHTML =
+	'<svg class="arc" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="8" stroke-dasharray="50.27" stroke-dashoffset="50.27"/></svg><svg class="tick" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 export const gesturePreviewMethods = {
 	bindPreviewHandle(this: Gestures, surface: HTMLElement) {
 		const handle = surface.querySelector<HTMLButtonElement>(".sheet-handle");
@@ -183,8 +187,7 @@ export const gesturePreviewMethods = {
 		const chip = document.createElement("div");
 		chip.className = "push-ring";
 		chip.setAttribute("aria-hidden", "true");
-		chip.innerHTML =
-			'<svg class="arc" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="8" stroke-dasharray="50.27" stroke-dashoffset="50.27"/></svg><svg class="tick" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+		chip.innerHTML = pushRingHTML;
 		host.appendChild(chip);
 		const arc = chip.querySelector(".arc circle:last-child"),
 			bar = dialog.querySelector(":scope > .float-bar");

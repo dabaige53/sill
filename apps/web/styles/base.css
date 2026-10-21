@@ -176,7 +176,7 @@ body.is-dropping:after {
 	align-items: center;
 	gap: var(--space-6);
 	pointer-events: none;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	font-weight: 600;
 }
 .drop-hint small {

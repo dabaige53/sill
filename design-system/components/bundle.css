@@ -1,5 +1,5 @@
 /* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */
-:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:220ms;--dur-sheet:260ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:240ms;--dur-lens:0ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:320ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 17px;--text-reader-body: 17px;--text-summary: 15px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;}
+:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:220ms;--dur-sheet:260ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:240ms;--dur-lens:0ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:320ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 16px;--text-input: 17px;--text-reader-body: 17px;--text-article-title: 22px;--text-article-section: 17px;--text-article-body: 15px;--text-article-meta: 12px;--text-summary: 14px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;--text-card-meta: 12px;}
 :root[data-theme="dark"],
 .lightbox .float-bar {
 	--canvas: #111113;
@@ -222,7 +222,7 @@ body.is-dropping:after {
 	align-items: center;
 	gap: var(--space-6);
 	pointer-events: none;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	font-weight: 600;
 }
 .drop-hint small {
@@ -1108,7 +1108,7 @@ body.is-dragging #toast {
 	margin-top: var(--space-60);
 }
 
-/* Shared home filters. The phone head stays in responsive.css (ADR 0036). */
+/* Shared home filters. The phone head stays in responsive.css (ADR 0036). @design top-bar */
 .home-top {
 	position: sticky;
 	top: 0;
@@ -1483,15 +1483,15 @@ body:has(#modal[open].page) .home-top {
 	overflow-wrap: anywhere;
 }
 
-/* head: source icon · source · meta, with one timely value on the right. */
+/* head: source icon · source · meta, with one timely value on the right. @design card-type */
 .card-head {
 	display: flex;
 	align-items: center;
 	gap: var(--space-6);
 	min-height: 20px;
 	padding-right: var(--space-30);
-	font-size: var(--text-meta);
-	line-height: 20px;
+	font-size: var(--text-card-meta);
+	line-height: 18px;
 	color: var(--muted);
 }
 /* The reserved action slot keeps counts and timely information readable while hovering. */
@@ -1560,13 +1560,14 @@ body:has(#modal[open].page) .home-top {
 	font-weight: 600;
 }
 
-/* text: title 2 lines, summary 3 (2 beside a cover). Full text lives in the reader. */
+/* text: title 2 lines, summary 3 with or without a cover. Full text lives in the reader.
+   @design card-type @design card-summary */
 .card-title {
 	margin: 0;
 	font-size: var(--text-card-title);
 	font-weight: 600;
 	letter-spacing: -0.02em;
-	line-height: 1.35;
+	line-height: 22px;
 	color: var(--ink);
 }
 .card-title-button {
@@ -1592,7 +1593,7 @@ body:has(#modal[open].page) .home-top {
 	overflow: hidden;
 	margin: 0;
 	font-size: var(--text-summary);
-	line-height: 1.5;
+	line-height: 22px;
 	color: var(--muted);
 }
 .card-summary.clamp-2 {
@@ -1638,6 +1639,11 @@ body:has(#modal[open].page) .home-top {
 	font-size: var(--text-body);
 	line-height: 1.5;
 	color: var(--ink);
+}
+/* On a card, key points read at the summary size (A type: 14/22). */
+.feed-card .key-points li {
+	font-size: var(--text-summary);
+	line-height: 22px;
 }
 .key-points li span {
 	min-width: 0;
@@ -3077,6 +3083,61 @@ button.detail-row:active {
 	aspect-ratio: 16 / 9;
 	object-fit: cover;
 }
+/* @design article-reading
+   Article reading (balanced): the preview and the full reader share one type set. The text keeps a
+   600 column, centered, with 32 at the sides (20 on a phone); the page itself is never scaled. */
+:is(.preview-body, .reader-body).is-article {
+	gap: 0;
+	padding-inline: var(--article-gutter);
+}
+.reader-body.is-article {
+	max-width: calc(var(--article-measure) + 2 * var(--article-gutter));
+}
+:is(.preview-body, .reader-body).is-article > * {
+	width: 100%;
+	max-width: var(--article-measure);
+	margin-inline: auto;
+}
+:is(.preview-body, .reader-body).is-article > .preview-meta {
+	margin-bottom: var(--space-14);
+	font-size: var(--text-article-meta);
+	line-height: 18px;
+}
+:is(.preview-body, .reader-body).is-article > h1 {
+	margin-bottom: var(--space-24);
+	font-size: var(--text-article-title);
+	font-weight: 600;
+	line-height: 30px;
+	letter-spacing: normal;
+}
+:is(.preview-body, .reader-body).is-article > :is(.preview-tags, .preview-published) {
+	margin-bottom: var(--space-16);
+}
+:is(.preview-body, .reader-body).is-article > .preview-published {
+	font-size: var(--text-article-meta);
+	line-height: 18px;
+}
+:is(.preview-body, .reader-body).is-article > .preview-cover {
+	margin-bottom: var(--space-24);
+	border-radius: var(--cover-radius);
+}
+:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points li) {
+	font-size: var(--text-article-body);
+	font-weight: 400;
+	line-height: 25px;
+	color: var(--ink);
+}
+:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points) {
+	margin: 0 0 var(--space-16);
+}
+:is(.preview-body, .reader-body).is-article .key-points {
+	gap: var(--space-6);
+}
+@media (max-width: 650px) {
+	:is(.preview-body, .reader-body).is-article {
+		padding-inline: var(--article-gutter-sm);
+	}
+}
 .reader .float-bar {
 	position: fixed;
 	left: 0;
@@ -3503,7 +3564,7 @@ body:has(dialog.search[open]) #feed-grid {
 	display: flex;
 	align-items: flex-end;
 	padding: var(--space-12);
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	font-weight: 600;
 	color: var(--fixed-white);
 	background: var(--fixed-black-18);
@@ -3617,7 +3678,7 @@ body:has(dialog.search[open]) #feed-grid {
 	padding: 0;
 	border: 0;
 	background: transparent;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	border-radius: 0;
 }
 .search-pill input:focus-visible {
@@ -4471,7 +4532,7 @@ body.is-pulling main {
 }
 .ai-context-card h3 {
 	margin: 0;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	overflow-wrap: anywhere;
 }
 .ai-context-card p {
@@ -4502,7 +4563,7 @@ body.is-pulling main {
 	border-radius: 0;
 	background: transparent;
 	color: inherit;
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	line-height: var(--space-24);
 	outline: none;
 }
@@ -4542,7 +4603,7 @@ body.is-pulling main {
 	border-radius: var(--pill-radius);
 	background: var(--ai-ink);
 	color: var(--card);
-	font-size: var(--text-card-title);
+	font-size: var(--text-input);
 	font-weight: 500;
 }
 .ai-composer-tools button:disabled {

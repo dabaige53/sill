@@ -71,10 +71,10 @@ svg{width:20px;height:20px;fill:none;stroke:var(--ink);stroke-width:1.6;stroke-l
 .feed{padding:12px 16px 0;display:flex;flex-direction:column;gap:12px}
 .card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--line-card)}
 .card.read{background:var(--card-read)}
-.meta{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.meta{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;line-height:18px}
 .meta svg{width:14px;height:14px;stroke:var(--muted)}
-.ct{font-size:17px;font-weight:600;margin-top:6px;line-height:1.35}
-.cs{font-size:15px;color:var(--muted);margin-top:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ct{font-size:16px;font-weight:600;margin-top:8px;line-height:22px}
+.cs{font-size:14px;color:var(--muted);margin-top:8px;line-height:22px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .art{display:flex;gap:12px}.art>div{flex:1;min-width:0}
 .thumb{width:76px;height:76px;border-radius:12px;object-fit:cover;flex:none}
 .ev{display:flex;gap:12px;align-items:center;margin-top:6px}
@@ -165,7 +165,7 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
 <div class="doc">
 <header>
   <h1>手机顶行、主页胶囊与搜索标签</h1>
-  <p>2026-10-20 定稿。375×812 手机宽度。依据：当前本地页面实测，Apple Music 搜索流程（<a href="https://mobbin.com/flows/aa6db5b1-4567-4ab8-9d57-c348a0e03f82">搜索</a>、<a href="https://mobbin.com/flows/cec77559-7491-4117-8eb8-11693f11dfec">分类</a>）。卡片、底部胶囊、AI 输入框沿用现有规则，本稿只改顶栏、主页标签和搜索流程。</p>
+  <p>375×812 手机宽度。依据：当前本地页面实测，Apple Music 搜索流程（<a href="https://mobbin.com/flows/aa6db5b1-4567-4ab8-9d57-c348a0e03f82">搜索</a>、<a href="https://mobbin.com/flows/cec77559-7491-4117-8eb8-11693f11dfec">分类</a>）。卡片、底部胶囊、AI 输入框沿用现有规则，本稿只改顶栏、主页标签和搜索流程。</p>
 </header>
 
 <!-- ============ 1 顶栏 ============ -->
@@ -178,9 +178,9 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
         <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
         <div class="chips home"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span></div>
         <div class="feed">
-          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">让想法、判断和行动顺畅地连接起来。把 AI 放进已有的工作流程，帮助整理信息、减少重复步骤，并为下一步行动提供依据。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
           <div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div>
-          <div class="card read"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg> 林舟 · 邮件 · 14:32</div><div class="ct">这周的方案，只差最后一个决定</div><div class="cs">三种方向已经整理好了。比起增加功能，我们更想先确认：什么应该留下。</div></div>
+          <div class="card read"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg> 林舟 · 邮件 · 14:32</div><div class="ct">这周的方案，只差最后一个决定</div><div class="cs">三种方向已经整理好了。比起继续增加功能，我们更想先确认哪些内容应该留下，再围绕这个决定收拢页面结构，完成这周的方案。</div></div>
         </div>
         <div class="fade"></div><div class="nav"><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
       </div>
@@ -229,7 +229,7 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
         <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
         <div class="tabs old gapmark"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span>
           <em style="left:71px">50</em><em style="left:145px">39</em><em style="left:214px">38</em><em style="left:304px">51</em></div>
-        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
+        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">让想法、判断和行动顺畅地连接起来。把 AI 放进已有的工作流程，帮助整理信息、减少重复步骤，并为下一步行动提供依据。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
       </div>
       <div class="cap">现状<span>间距 38–51 不等</span></div>
     </div>
@@ -238,7 +238,7 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
         <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
         <div class="tabs gapmark good"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span>
           <em style="left:58px">24</em><em style="left:112px">24</em><em style="left:166px">24</em><em style="left:235px">24</em></div>
-        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
+        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">让想法、判断和行动顺畅地连接起来。把 AI 放进已有的工作流程，帮助整理信息、减少重复步骤，并为下一步行动提供依据。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
       </div>
       <div class="cap">A 下划线<span>间距 24，左对齐</span></div>
       <ul><li>最轻，顶部更安静。</li><li>与搜索的胶囊不是同一种样式。</li></ul>
@@ -247,7 +247,7 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
       <div class="phone" style="height:430px"><div class="status"></div>
         <div class="top"><span class="t">Sill</span><span class="circ"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></b></span></div>
         <div class="chips home"><span class="on">全部</span><span>未读</span><span>待办</span><span>稍后读</span><span>收藏</span></div>
-        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
+        <div class="feed"><div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 AI 成为工作流的一部分</div><div class="cs">让想法、判断和行动顺畅地连接起来。把 AI 放进已有的工作流程，帮助整理信息、减少重复步骤，并为下一步行动提供依据。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div><div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3M15.5 3.5v3"/></svg> 10月12日 周一</div><div class="ev"><span class="tm">09:20</span><div><div class="ct">产品讨论会</div><div class="cs">至 10:05 · 共 45 分钟</div></div></div></div></div>
       </div>
       <div class="cap">B 胶囊 · 已选<span>高 32，间距 8</span></div>
       <ul><li>与搜索结果的类型行用同一个组件，一个产品只有一种切换样式。</li><li>每个胶囊有自己的边界，间距一定整齐；放不下时横滑。</li><li>选中 ink 底白字；未选中 card 白底、line-card 细边、ink 字。</li><li>顶行 60 + 胶囊行 44，总高度不变。</li></ul>
@@ -301,9 +301,9 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
         <div class="chips"><span class="on">全部</span><span>资讯</span><span>消息</span><span>笔记</span><span>待办</span><span>日程</span><span>媒体</span></div>
         <div class="pager">
           <div class="feed">
-            <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
-            <div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg> 林舟 · 邮件 · 14:32</div><div class="ct">关于 <mark>AI</mark> 助手的接入顺序</div><div class="cs">外部助手先通过 Webhook 回写，内置助手放到后面。</div></div>
-            <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
+            <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">让想法、判断和行动顺畅地连接起来。把 AI 放进已有的工作流程，帮助整理信息、减少重复步骤，并为下一步行动提供依据。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+            <div class="card"><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg> 林舟 · 邮件 · 14:32</div><div class="ct">关于 <mark>AI</mark> 助手的接入顺序</div><div class="cs">外部助手先通过 Webhook 把结果写回 Sill，内置助手放到后面。先定清回写方式和权限边界，再决定界面放哪些入口。</div></div>
+            <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。整理、归类和提醒都交出去，留下的注意力用来想清楚一件事。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
           </div>
         </div>
         <div class="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8 4 12l4 4M16 8l4 4-4 4M4 12h16"/></svg> 左右滑动切换类型</div>
@@ -318,9 +318,9 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
         <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt">AI</span><span class="clr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><span class="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
         <div class="chips"><span>全部</span><span class="on">资讯</span><span>消息</span><span>笔记</span><span>待办</span><span>日程</span><span>媒体</span></div>
         <div class="feed">
-          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
-          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
-          <div class="card read art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 产品随记 · 刚刚写下</div><div class="ct">不是所有信息都值得被处理</div><div class="cs">让 <mark>AI</mark> 先挑出值得看的部分。</div></div><img class="thumb" src="phone-chrome/botanical.jpg" alt=""></div>
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">让想法、判断和行动顺畅地连接起来。把 AI 放进已有的工作流程，帮助整理信息、减少重复步骤，并为下一步行动提供依据。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。整理、归类和提醒都交出去，留下的注意力用来想清楚一件事。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
+          <div class="card read art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 产品随记 · 刚刚写下</div><div class="ct">不是所有信息都值得被处理</div><div class="cs">让 <mark>AI</mark> 先挑出值得看的部分。剩下的按来源和时间收好，需要时再找回来，不必每一条都当场处理，也不怕错过。</div></div><img class="thumb" src="phone-chrome/botanical.jpg" alt=""></div>
         </div>
         <div class="fade"></div><div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
       </div>
@@ -347,8 +347,8 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
       <div class="phone white"><div class="status"></div>
         <div class="srow"><div class="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span class="txt"><span class="token">资讯</span><span class="token hash">#未读</span>AI</span><span class="clr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><span class="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
         <div class="feed" style="padding-top:16px">
-          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">不是多一个工具，而是让想法、判断和行动，顺畅地连接起来。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
-          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 工作方式研究 · 6 分钟阅读</div><div class="ct">让 <mark>AI</mark> 成为工作流的一部分</div><div class="cs">让想法、判断和行动顺畅地连接起来。把 AI 放进已有的工作流程，帮助整理信息、减少重复步骤，并为下一步行动提供依据。</div></div><img class="thumb" src="phone-chrome/architecture.jpg" alt=""></div>
+          <div class="card art"><div><div class="meta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4H6v16h12V8z"/><path d="M9 12h6M9 15.5h4"/></svg> 阅读手记 · 4 分钟阅读</div><div class="ct">注意力，也需要一点留白</div><div class="cs">把一部分时间还给不被打断的阅读，让 <mark>AI</mark> 处理其余部分。整理、归类和提醒都交出去，留下的注意力用来想清楚一件事。</div></div><img class="thumb" src="phone-chrome/coast.jpg" alt=""></div>
         </div>
         <div class="fade"></div><div class="nav"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg></b><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.4 0 8 3 8 6.8s-3.6 6.8-8 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.2-3.4C4.8 14.9 4 13.2 4 11.3 4 7.5 7.6 4.5 12 4.5z"/></svg></b><b class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg></b></div>
       </div>
@@ -366,7 +366,7 @@ td.bad{color:var(--bad)}td.good{color:var(--good)}
   </table>
 
   <div class="qs">
-    <b>已确认（2026-10-20）</b>
+    <b>已确认</b>
     1. 搜索去掉筛选，状态和标签改为在搜索栏输入 # 选择。<br>
     2. AI 页右侧放「历史 + 新对话」，不放头像。<br>
     3. 搜索类型和主页标签都用实心胶囊（02 的 B 方案），两处是同一个组件；主页未选中项用白底细边，搜索页用浅灰底。

@@ -1,16 +1,15 @@
 import SillKit
 import SwiftUI
 
-/// The window's one panel (Web `#modal.panel`): the archive, tags and note, or a quick note.
-/// One at a time; opening another replaces it.
+/// The window's one panel (Web `#modal.panel`): settings, the archive, tags and note, or a quick
+/// note. One at a time; opening another replaces it.
 @MainActor @Observable final class Panels {
   enum Kind: Equatable {
     case archive
     /// Tags and note for these cards; the note belongs to the first.
     case editor([String])
     case capture
-
-    var narrow: Bool { self != .archive }
+    case settings
   }
 
   private(set) var kind: Kind?
@@ -32,8 +31,9 @@ import SwiftUI
 }
 
 /// Dim over the whole window, the sheet centered: 560 wide (440 for narrow panels), card color,
-/// sheet radius and shadow, 28 padding, a round close button at the top right. It enters 10px up
-/// in 220ms and leaves the same way. Esc or a click on the dim closes it.
+/// sheet radius and shadow, 28 padding, a round close button at the top right. Settings is the
+/// wide sheet (Web `#modal.panel.wide`) with its own head. It enters 10px up in 220ms and leaves
+/// the same way. Esc or a click on the dim closes it.
 struct PanelOverlay: View {
   @Environment(Panels.self) private var panels
 
@@ -45,24 +45,27 @@ struct PanelOverlay: View {
           .onTapGesture { panels.close() }
           .accessibilityHidden(true)
           .transition(.opacity)
-        PanelSheet(narrow: kind.narrow) {
-          switch kind {
-          case .archive: ArchivePanel()
-          case .editor(let ids): EditorPanel(ids: ids)
-          case .capture: CapturePanel()
+        sheet(kind)
+          .id(panels.generation)
+          .transition(.opacity.combined(with: .offset(y: AppleMetrics.motionDetailEnterY)))
+          .background {
+            Button("") { panels.close() }
+              .keyboardShortcut(.cancelAction)
+              .opacity(0)
+              .accessibilityHidden(true)
           }
-        }
-        .id(panels.generation)
-        .transition(.opacity.combined(with: .offset(y: AppleMetrics.motionDetailEnterY)))
-        .background {
-          Button("") { panels.close() }
-            .keyboardShortcut(.cancelAction)
-            .opacity(0)
-            .accessibilityHidden(true)
-        }
       }
     }
     .ignoresSafeArea()
+  }
+
+  @ViewBuilder private func sheet(_ kind: Panels.Kind) -> some View {
+    switch kind {
+    case .settings: SettingsView().padding(AppleMetrics.space16)
+    case .archive: PanelSheet(narrow: false) { ArchivePanel() }
+    case .editor(let ids): PanelSheet(narrow: true) { EditorPanel(ids: ids) }
+    case .capture: PanelSheet(narrow: true) { CapturePanel() }
+    }
   }
 }
 
@@ -89,20 +92,30 @@ private struct PanelSheet<Content: View>: View {
   }
 }
 
-/// Web `.sheet-close`: a 36 card-colored disc with a hairline and the float shadow.
+/// Web `.sheet-close`: a 36 card-colored disc with a hairline and the float shadow. In a head
+/// (Web `.settings-head .sheet-close`) it is quiet: a 44 faint disc with no rim or shadow.
 struct SheetClose: View {
+  var quiet = false
   let action: () -> Void
   @State private var hovered = false
   var body: some View {
+    let size = quiet ? AppleMetrics.hitTarget : AppleMetrics.sheetCloseSize
     Button(action: action) {
       Icon("x", size: AppleMetrics.font18)
         .foregroundStyle(AppleColors.primary)
-        .frame(width: AppleMetrics.sheetCloseSize, height: AppleMetrics.sheetCloseSize)
-        .background(Circle().fill(hovered ? AppleColors.surface : AppleColors.card))
-        .overlay(Circle().strokeBorder(AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth / 2))
-        .shadow(.floating)
-        .contentShape(
-          Circle().inset(by: -(AppleMetrics.hitTarget - AppleMetrics.sheetCloseSize) / 2))
+        .frame(width: size, height: size)
+        .background(
+          Circle().fill(
+            quiet
+              ? (hovered ? AppleColors.surface : AppleColors.faint)
+              : (hovered ? AppleColors.surface : AppleColors.card))
+        )
+        .overlay(
+          Circle().strokeBorder(
+            quiet ? .clear : AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth / 2)
+        )
+        .shadow(.floating, visible: !quiet)
+        .contentShape(Circle().inset(by: -max(0, AppleMetrics.hitTarget - size) / 2))
     }
     .buttonStyle(IconPress(highlight: false))
     .onHover { hovered = $0 }

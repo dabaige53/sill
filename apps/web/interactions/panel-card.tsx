@@ -1,6 +1,6 @@
 import { type ReactElement, type ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
-import { dateLabel, eventTimely } from "../atoms/primitives.ts";
+import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import {
@@ -39,12 +39,18 @@ export const panelCard = {
 		);
 	},
 	meta(this: PanelRenderers, c?: Card) {
+		// An article names its date here, short (昨天, 10/18), instead of in the publication line.
+		const date = c.type === "article" ? articleDate(c) : null;
 		return (
 			<>
 				<div className={"preview-meta"}>
 					{sourceIcon(c, 15)}
 					<span>
-						{[detailSource(c) || (CardTypes[c.type] || CardTypes.note).label, cardReadingTime(c)]
+						{[
+							detailSource(c) || (CardTypes[c.type] || CardTypes.note).label,
+							date ? shortDay(date.getTime()) : "",
+							cardReadingTime(c),
+						]
 							.filter(Boolean)
 							.join(" · ")}
 					</span>
@@ -73,7 +79,7 @@ export const panelCard = {
 		);
 	},
 	publication(this: PanelRenderers, c?: Card) {
-		const date = cardDates(c).published;
+		const date = c.type === "article" ? null : cardDates(c).published;
 		const label = date
 			? new Intl.DateTimeFormat("zh-CN", {
 					year: Number(date.text.slice(0, 4)) === new Date().getFullYear() ? undefined : "numeric",
@@ -309,7 +315,9 @@ export const panelCard = {
 											style={{ transform: `scaleX(${Math.max(0, Math.min(1, s.progress))})` }}
 										></div>
 										<div className={"reader-scroll"} id={"reader-scroll"}>
-											<article className={"reader-body"}>
+											<article
+												className={c.type === "article" ? "reader-body is-article" : "reader-body"}
+											>
 												{loading ? (
 													<>
 														{this.meta(c)}
@@ -422,3 +430,12 @@ export const panelCard = {
 		);
 	},
 };
+
+/** The day an article belongs to: published, else saved, else the card's own time. */
+function articleDate(c: Card) {
+	const dates = cardDates(c);
+	const date = dates.published || dates.saved;
+	if (!date) return typeof c.time === "number" ? new Date(c.time) : null;
+	// A bare day is that local day; a timestamp is an instant.
+	return new Date(date.datetime.length === 10 ? `${date.datetime}T00:00:00` : date.datetime);
+}

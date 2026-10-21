@@ -243,6 +243,8 @@ export const appLifecycleMethods = {
 		nav.style.setProperty("--lens-w", `${tab.offsetWidth}px`);
 	},
 	isPage(this: AppController, kind: string) {
+		// Settings is a centered sheet in a desktop window and a page on a phone.
+		if (kind === "settings") return !this.desktop();
 		return PAGE_KINDS.includes(kind);
 	},
 	goTo(this: AppController, key: string) {

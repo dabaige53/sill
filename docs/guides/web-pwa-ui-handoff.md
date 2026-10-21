@@ -17,7 +17,7 @@
 3. [ADR 0032](../adr/0032-design-online-first.md) 和 AGENTS.md「设计」一节。**本交接的工作一律只在仓库内进行，不使用任何 claude.ai 独有的工具**：不打开、不读取、不发布线上 Design System 和设计画布（claude.ai Artifact），不使用 claude.ai 的连接器（例如 Mobbin 连接器）。按 AGENTS.md 的仓库内规则：先更新仓库里的原则和规范（ADR、`design-system/README.md`、组件说明、`design-system/boards/`），再改实现。线上与仓库因此产生的差异，写进每个 PR 的 Merge Danger，由用户另行同步。
 4. [ADR 0036](../adr/0036-phone-home-density.md)、[ADR 0037](../adr/0037-card-detail-toolbar.md) 和两份讨论记录：[手机主页](../records/2026-10-18-phone-home-x-density/README.md)、[卡片详情](../records/2026-10-18-card-detail-capsule/README.md)。记录里有被否决的方案和原因，不要重新提出已否决的方案。
 5. [代码规范](code-standards.md)、[文件管理规范](file-management.md)、[PR 编写指南](../../pr.md)。
-6. 设计画布 36 号画板 `design-system/boards/MobileHome.dc.html`、37 号画板 `design-system/boards/CardDetail.dc.html`：定稿截图来自实际页面。
+6. 设计画布 36 号历史画板 `design-system/history/MobileHome.dc.html`、37 号画板 `design-system/boards/CardDetail.dc.html`：定稿截图来自实际页面。
 
 仓库内的设计来源（以这些文件为准，不访问线上）：
 

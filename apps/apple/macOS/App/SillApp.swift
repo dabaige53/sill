@@ -29,11 +29,6 @@ import SwiftUI
     .defaultSize(width: AppleMetrics.windowWidth, height: AppleMetrics.windowHeight)
     .windowStyle(.hiddenTitleBar)
     .commands { DesktopCommands(app: app) }
-    Settings {
-      SettingsView()
-        .environment(app.workspace)
-    }
-    .windowResizability(.contentSize)
   }
 }
 
@@ -93,6 +88,11 @@ private struct RootView: View {
 private struct DesktopCommands: Commands {
   let app: AppModel
   var body: some Commands {
+    // Settings opens as a sheet in the window (Web `#modal.panel.wide`), not a window of its own.
+    CommandGroup(replacing: .appSettings) {
+      Button(Copy.appleSettingsMenu) { app.panels.open(.settings) }
+        .keyboardShortcut(",")
+    }
     CommandGroup(after: .newItem) {
       Button(Copy.appleRefresh) {
         app.workspace.refresh { done in if done { app.feed.refreshMembership() } }

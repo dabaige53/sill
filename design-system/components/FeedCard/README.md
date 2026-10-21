@@ -1,15 +1,15 @@
 # FeedCard
 
-内容卡片：信息流里唯一的载体，由积木按配方拼成，详见 CardBlocks。
+内容卡片：信息流里唯一的载体。11 类卡片由积木按配方拼成，积木与限额见手册[卡片积木](../../handbook/foundation.md#卡片积木)，行数与字数见[文字长度](../../handbook/foundation.md#文字长度)。
 
-- 列宽 `col-min`–`col-max`，底色 `card`，1px `line` 边框，圆角 `card-radius`，阴影 `shadow`；悬停时换 `shadow-hover` 并上移 2px，按下缩到 .97。
-- 手机：圆角 `card-radius-sm` 16、内边距 `card-padding-sm` 14、卡片间距 `gap-sm` 6、页边距 `margin-sm` 8；摘要最多 2 行；文章封面改为右侧 `thumb` 缩略图，视频和照片保留 2:1 大图；带人像的头部合成一行。见设计手册「手机主页」。
-- 未读：白卡带阴影。已读：底色 `card-read`、边框 `line-read`、去掉阴影，标题换 `muted`，封面降饱和到 0.6，过渡 `dur-read`。不加蓝点，不写「已读」。已读与完成卡片在悬停或聚焦时保持退色，浅色底色 #e9e9ee、深色 #121215，标题保持 muted 的文字对比度。普通点按恢复焦点不画键盘框，键盘 Tab 与多选框保留。
-- 卡面不显示省略号入口。长按进入选择，收藏、稍后读、标签用多选图标条；桌面右键与 Shift+F10 保留上下文操作。
-- 点卡片：能在站内看完的，就在站内打开；要在原处操作的（工单、项目、指标），直接跳到原应用。
+- 字号用 `card-title`、`summary`、`card-meta`；列宽用 `col-min`、`col-ideal`、`col-max`，最多 `col-limit` 列。表面用 `card`、`line`、`card-radius`、`shadow`，悬停换 `shadow-hover`。
+- 手机用 `card-radius-sm`、`card-padding-sm`、`gap-sm`、`margin-sm`；摘要一律 2 行。见手册[手机主页](../../handbook/interaction.md#手机主页)。
+- 已读与完成只改颜色：`card-read`、`line-read`，去掉阴影，标题换 `muted`。不加蓝点，不写「已读」。
+- 头部：来源 · 时间 · 状态，分隔符 `·`；右侧只放一个时效值（进度、计数或到期）。
+- 待办：卡上最多 3 项 CheckItem，未完成在前；计数按全部事项算。提醒是带到期时间的单项待办，勾选圈与待办相同，只改 Sill 的状态，不改来源。
+- 要点：总结太长时改成一句结论加最多 3 条要点，每条 1 行；详情显示全部。
+- 摘录：引用只改字号层级，不改表面颜色，不加左侧色条。
+- 卡面没有省略号入口。长按或 ⌘/Ctrl 点选进入多选；桌面右键与 Shift+F10 打开 CardMenu。
+- 点卡片：能在站内看完的在站内打开；要在原处操作的直接跳到原应用。
 
-## 预览密度
-
-列数按当前密度的理想宽度选择，最多五列。紧凑密度摘要最多两行，标准与宽松最多三行；正文与要点在详情里完整换行。头部为更多按钮留位置，数量与时效提示不在悬停时消失。
-
-摘要卡直接展示助手写入的 `summary` 与 `points`。缺少两者时用首段正文作预览，点开查看完整内容。不用当前工作区统计覆盖任意摘要的内容或时间范围；旧静态统计示例不代表产品会计算这些数值。
+实现：`apps/web/cards/components.tsx`、`apps/web/cards/templates.ts`、`apps/web/styles/cards.css`；macOS `Feed/CardBodies.swift`、`Feed/CardParts.swift`。示例由 `design-system/scripts/previews.ts` 从产品代码生成，不手改。

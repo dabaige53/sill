@@ -58,7 +58,10 @@ struct PreviewSheet: View {
       ScrollView(.vertical) {
         ReaderContent(card: card, state: state, discRoom: discRoom)
           .padding(.top, AppleMetrics.previewPaddingTop)
-          .padding(.horizontal, AppleMetrics.previewPaddingX)
+          .padding(
+            .horizontal,
+            card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
+          )
           .padding(.bottom, barRoom)
           .background(
             GeometryReader { proxy in

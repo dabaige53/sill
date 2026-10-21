@@ -101,7 +101,7 @@ struct ArticleBody: View {
         if !context.compact {
           SummaryBlock(
             summary: card.summary, points: card.points,
-            lines: card.image != nil ? 2 : context.summaryLines, query: context.query
+            lines: context.summaryLines, query: context.query
           ).afterTitle()
         }
       }

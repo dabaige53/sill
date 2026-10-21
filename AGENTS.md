@@ -16,8 +16,9 @@
 ## 设计
 
 - 改界面、样式、文案、图标或交互之前，先读 [设计约束](DESIGN.md)；规则正文以 [设计手册](design-system/README.md) 为准。
-- 设计改动先改线上、再同步线下：规则、变量、组件说明和画板先在线上 Design System 和设计画布里改，再同步回 `design-system/`；组件包和图标在仓库生成后发布到线上。仓库里有线上没有的设计改动时，写入 PR 的 Merge Danger。
-- 用户明确要求在 Codex 内处理、不要调整 claude.ai 云端设计时，先更新仓库内对应原则和规范，再修改实现；不操作云端 Design System 或设计画布。
+- 设计材料以仓库 `design-system/` 为源；claude.ai 上的 Design System 和设计画布是发布副本，只有 Claude Code 能更新。工具为 `scripts/design-init.sh`，流程见 [设计约束](DESIGN.md)「两种工作环境」。
+- 在 Claude Code 里：改完仓库，在同一次任务里 `stage`、发布设计、`record`。线上页面被人直接改过时，先「同步设计」拉回仓库再改。
+- 在 Codex 等其他 AI 产品里：只改仓库，运行 `scripts/design-init.sh build` 和 `check`，不操作 claude.ai；在 PR 的 Merge Danger 写明「设计未发布到线上」。之后在 Claude Code 里发布设计补齐，`status` 列出未发布的改动。
 - 改 Web 或 macOS 任一端的界面，都要检查另一端同一功能是否用同样的词、状态表达和设计变量角色。
 
 ## 验证与测试授权

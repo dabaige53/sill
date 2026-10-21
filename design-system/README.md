@@ -1,89 +1,23 @@
 > 东西在光里，安放一会儿。
 
-Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔记、媒体、待办、日程、工单、项目、指标和 AI 整理，都以卡片的形式放在同一张桌面上。内容在不透明的白色表面上，半透明玻璃只属于按需出现的工具。中性白灰、石墨文字，只有一种蓝色动作色。
+Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔记、媒体、待办、日程和 AI 整理，都以卡片的形式放在同一张桌面上。内容在不透明的白色表面上，半透明玻璃只属于按需出现的工具。中性白灰、石墨文字，只有一种蓝色动作色。
 
-组件脚本的全局名是 `Sill`（`window.Sill`）。
+## 手册
 
-已采用的 Apple Music、X 和 Medium 来源、原图及采用范围见[设计参考](references/README.md)。
+| 主题 | 位置 |
+| --- | --- |
+| 产品立场、主屏幕启动、文案 | [基础与组件](handbook/foundation.md#产品立场) |
+| 颜色、玻璃、字体、卡片积木、文字长度、间距与尺寸、图标 | [基础与组件](handbook/foundation.md#颜色) |
+| 两端对照：移动（650px 及以下）与网页 | [页面与交互](handbook/interaction.md#两端对照) |
+| 手机主页、搜索与键盘、底部导航与反馈 | [页面与交互](handbook/interaction.md#移动650px-及以下) |
+| 预览与叠放、量大与时间 | [页面与交互](handbook/interaction.md#预览与叠放) |
+| 桌面顶栏与 AI 框、网页键盘、设置弹窗、资讯阅读 | [网页交互](handbook/web-interaction.md) |
+| 动效 | [动效](handbook/motion.md) |
+| 设计参考：Apple Music、X、Medium 的原图与采用范围 | [设计参考](references/README.md) |
 
-规则按主题分文件，以下入口保留原有章节锚点。仅调整文件结构，不改变规则。
+## 数值与组件
 
-## 产品立场
-
-见[基础与组件](handbook/foundation.md#产品立场)。
-
-## 主屏幕启动
-
-见[基础与组件](handbook/foundation.md#主屏幕启动)。
-
-## 文案
-
-见[基础与组件](handbook/foundation.md#文案)。
-
-## 现有数值的变量维护
-
-见[基础与组件](handbook/foundation.md#现有数值的变量维护)。
-
-## 颜色
-
-见[基础与组件](handbook/foundation.md#颜色)。
-
-## 玻璃
-
-见[基础与组件](handbook/foundation.md#玻璃)。
-
-## 字体
-
-见[基础与组件](handbook/foundation.md#字体)。
-
-## 卡片积木
-
-见[基础与组件](handbook/foundation.md#卡片积木)。
-
-## 文字长度
-
-见[基础与组件](handbook/foundation.md#文字长度)。
-
-## 间距与尺寸
-
-见[基础与组件](handbook/foundation.md#间距与尺寸)。
-
-## 两端对照
-
-移动（650px 及以下）与网页（宽于 650px）分开写布局、尺寸、交互和状态，见[页面与交互](handbook/interaction.md#两端对照)与[网页交互](handbook/web-interaction.md)。
-
-## 手机主页
-
-见[页面与交互](handbook/interaction.md#手机主页)。
-
-## 动效
-
-见[动效](handbook/motion.md#动效)。
-
-## 底部导航与反馈
-
-见[页面与交互](handbook/interaction.md#底部导航与反馈)。
-
-## 搜索与键盘
-
-见[页面与交互](handbook/interaction.md#搜索与键盘)。
-
-## 预览与叠放
-
-见[页面与交互](handbook/interaction.md#预览与叠放)。
-
-## 量大与时间
-
-见[页面与交互](handbook/interaction.md#量大与时间)。
-
-## 图标
-
-见[基础与组件](handbook/foundation.md#图标)。
-
-## 使用组件
-
-见[基础与组件](handbook/foundation.md#使用组件)。
-
-## 桌面阅读与操作细节
-
-见[页面与交互](handbook/interaction.md#桌面阅读与操作细节)。
+- 数值的来源是设计变量：`tokens/*.json` 生成 `tokens.json`、Web `tokens.css` 和 macOS `AppleMetrics`。手册写数值时同时写变量名；改数值先改变量，再用 `scripts/design-init.sh trace <变量名>` 找出要同步的文字和代码。组件说明只写变量名。
+- 组件示例由 `scripts/previews.ts` 从产品代码生成，和页面实际渲染一致，不手改。组件脚本的全局名是 `Sill`（`window.Sill`）。
+- 产品代码里的 `@design <编号>` 是设计印记，编号登记在 `marks.json`，指向手册小节、变量、ADR 和现行画板。
+- 更新、检查、反查和发布准备都用 `scripts/design-init.sh`，见 [设计约束](../DESIGN.md)。

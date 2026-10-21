@@ -1,0 +1,68 @@
+{
+	"note": "设计印记：代码里写 `@design <编号>`，编号在这里登记规则、变量、ADR 和现行画板。用 `scripts/design-init.sh trace <编号或变量名>` 反查。",
+	"marks": {
+		"card-type": {
+			"title": "卡片 A 字号",
+			"rule": "handbook/foundation.md#字体",
+			"tokens": ["card-title", "summary", "card-meta"],
+			"adr": "0051",
+			"boards": ["CardTypeA"]
+		},
+		"card-summary": {
+			"title": "卡片摘要行数",
+			"rule": "handbook/foundation.md#文字长度",
+			"tokens": ["lines-summary", "summary-lines"],
+			"adr": "0051",
+			"boards": ["CardTypeA"]
+		},
+		"feed-columns": {
+			"title": "信息流列数",
+			"rule": "handbook/foundation.md#间距与尺寸",
+			"tokens": ["col-limit", "col-min", "col-ideal", "col-max"],
+			"adr": "0051",
+			"boards": ["CardTypeA"]
+		},
+		"article-reading": {
+			"title": "资讯阅读",
+			"rule": "handbook/web-interaction.md#资讯阅读",
+			"tokens": ["article-title", "article-body", "article-meta", "article-measure", "article-gutter"],
+			"adr": "0051",
+			"boards": ["ArticleReading"]
+		},
+		"settings-sheet": {
+			"title": "设置弹窗",
+			"rule": "handbook/web-interaction.md#设置弹窗",
+			"tokens": ["figure"],
+			"adr": "0051",
+			"boards": ["MacChrome"]
+		},
+		"top-bar": {
+			"title": "桌面顶栏",
+			"rule": "handbook/web-interaction.md#桌面顶栏与-ai-框",
+			"tokens": ["rail-row"],
+			"adr": "0049",
+			"boards": ["WebChrome", "MacChrome"]
+		},
+		"nav-capsule": {
+			"title": "底部导航胶囊",
+			"rule": "handbook/interaction.md#底部导航与反馈",
+			"tokens": ["rail-row", "nav-tab"],
+			"adr": "0035",
+			"boards": ["ScreenMobileHome"]
+		},
+		"selection-bar": {
+			"title": "多选条",
+			"rule": "handbook/interaction.md#底部导航与反馈",
+			"tokens": ["rail-row"],
+			"adr": "0049",
+			"boards": ["ScreenWebSelect"]
+		},
+		"search-tokens": {
+			"title": "搜索分类与 # 条件",
+			"rule": "handbook/interaction.md#搜索与键盘",
+			"tokens": [],
+			"adr": "0048",
+			"boards": ["PhoneChrome", "ScreenMobileResults", "ScreenWebSearch"]
+		}
+	}
+}

@@ -29,6 +29,30 @@ enum Format {
       + "\(Copy.text("web.primitives.453e841e7da3"))\(weekday)"
   }
 
+  /// Article reader dates (Web `shortDay`): 今天, 昨天, then 10/18; another year adds it.
+  static func shortDay(_ value: Date, now: Date = .now) -> String {
+    if calendar.isDate(value, inSameDayAs: now) { return Copy.text("web.primitives.d5f5a7a01073") }
+    if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+      calendar.isDate(value, inSameDayAs: yesterday)
+    {
+      return Copy.text("web.primitives.0c184871f658")
+    }
+    let parts = calendar.dateComponents([.year, .month, .day], from: value)
+    let day = "\(parts.month ?? 0)/\(parts.day ?? 0)"
+    return parts.year == calendar.component(.year, from: now) ? day : "\(parts.year ?? 0)/\(day)"
+  }
+
+  /// A content date as a moment: a bare day is that local day, a timestamp is an instant.
+  static func localDay(_ value: String) -> Date? {
+    guard value.count == 10 else { return parseDate(value) }
+    guard parseDate(value) != nil else { return nil }
+    let formatter = DateFormatter()
+    formatter.calendar = calendar
+    formatter.timeZone = .current
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter.date(from: value)
+  }
+
   /// A reminder's own time: the clock today, the date before it on any other day.
   static func reminderClock(_ at: Double, now: Double) -> String {
     calendar.isDate(date(at), inSameDayAs: date(now))

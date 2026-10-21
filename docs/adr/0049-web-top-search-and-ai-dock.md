@@ -2,7 +2,7 @@
 
 日期：2026-10-20。状态：已接受。
 
-用户比较 Web 设计稿后确认以下决定，适用于宽于 650px 的窗口；650px 及以下沿用 [ADR 0048](0048-phone-top-row-and-search-tokens.md) 的手机规则。规则先发布到线上 Design System 和设计画布 45 号画板，再同步到[页面与交互](../../design-system/handbook/interaction.md#桌面顶栏与-ai-框)。
+用户比较 Web 设计稿后确认以下决定，适用于宽于 650px 的窗口；650px 及以下沿用 [ADR 0048](0048-phone-top-row-and-search-tokens.md) 的手机规则。规则先发布到线上 Design System 和设计画布 45 号画板，再同步到[页面与交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框)。
 
 1. 顶栏：左侧为品牌图标和「Sill」，右侧为搜索栏和头像。四者统一 40 高、同一中线；搜索栏和头像用 `card` 底加 `line-card` 细边，与卡片同一材质，间距 8。品牌图标沿用现有应用图标。
 2. 搜索放在顶栏，不另开页面。结果在卡片区原地显示，保持多列布局；分类标签、# 条件等规则与手机相同。

@@ -1,7 +1,8 @@
 # CheckItem
 
-待办选择项：点击整行切换状态，完成同时用勾选、颜色和删除线表达。
+待办选择项：点整行切换，完成同时用勾选、颜色和删除线表达。
 
-- `Sill.checkItem(card, {id,text,done})` 生成 `role="checkbox"` 的整行按钮，min-height 44px。
-- 未完成：20px 圆点，1.2px `check-border` 描边；hover 描边变 `accent`。
-- 已完成：圆点填 `accent` + 白勾，文字 `secondary` + `done-strike` 删除线。
+- `role="checkbox"` 的整行按钮，高不小于 `hit-target`。未完成用 `check-border` 描边；完成填 `accent`，文字 `secondary` 加 `done-strike` 删除线。
+- 勾选只改 Sill 的状态，不改来源。
+
+实现：`apps/web/atoms/primitives.ts` 的 `checkItem`。示例由 `design-system/scripts/previews.ts` 从产品代码生成，不手改。

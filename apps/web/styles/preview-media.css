@@ -213,6 +213,61 @@
 	aspect-ratio: 16 / 9;
 	object-fit: cover;
 }
+/* @design article-reading
+   Article reading (balanced): the preview and the full reader share one type set. The text keeps a
+   600 column, centered, with 32 at the sides (20 on a phone); the page itself is never scaled. */
+:is(.preview-body, .reader-body).is-article {
+	gap: 0;
+	padding-inline: var(--article-gutter);
+}
+.reader-body.is-article {
+	max-width: calc(var(--article-measure) + 2 * var(--article-gutter));
+}
+:is(.preview-body, .reader-body).is-article > * {
+	width: 100%;
+	max-width: var(--article-measure);
+	margin-inline: auto;
+}
+:is(.preview-body, .reader-body).is-article > .preview-meta {
+	margin-bottom: var(--space-14);
+	font-size: var(--text-article-meta);
+	line-height: 18px;
+}
+:is(.preview-body, .reader-body).is-article > h1 {
+	margin-bottom: var(--space-24);
+	font-size: var(--text-article-title);
+	font-weight: 600;
+	line-height: 30px;
+	letter-spacing: normal;
+}
+:is(.preview-body, .reader-body).is-article > :is(.preview-tags, .preview-published) {
+	margin-bottom: var(--space-16);
+}
+:is(.preview-body, .reader-body).is-article > .preview-published {
+	font-size: var(--text-article-meta);
+	line-height: 18px;
+}
+:is(.preview-body, .reader-body).is-article > .preview-cover {
+	margin-bottom: var(--space-24);
+	border-radius: var(--cover-radius);
+}
+:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points li) {
+	font-size: var(--text-article-body);
+	font-weight: 400;
+	line-height: 25px;
+	color: var(--ink);
+}
+:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points) {
+	margin: 0 0 var(--space-16);
+}
+:is(.preview-body, .reader-body).is-article .key-points {
+	gap: var(--space-6);
+}
+@media (max-width: 650px) {
+	:is(.preview-body, .reader-body).is-article {
+		padding-inline: var(--article-gutter-sm);
+	}
+}
 .reader .float-bar {
 	position: fixed;
 	left: 0;

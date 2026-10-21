@@ -17,30 +17,26 @@ for (const [k, v] of Object.entries(Glyphs)) {
 }
 console.log(Object.keys(Glyphs).length, "icons");
 // bundle.js
+// Component names follow the folders under components/; previews come from scripts/previews.ts.
 const names = [
 	"IconButton",
 	"ActionButton",
 	"ProgressRing",
 	"CheckItem",
 	"Avatars",
-	"Attachment",
 	"TagChip",
-	"CardMeta",
-	"SearchField",
 	"Toggle",
-	"GlassDock",
+	"SearchField",
+	"Navigation",
+	"AICompose",
 	"CardMenu",
 	"FeedCard",
-	"ReminderCard",
-	"TaskCard",
-	"QuoteCard",
+	"StackCard",
 	"Dialog",
 	"Toast",
+	"ReadEndRing",
 	"SelectionBar",
 	"EmptyState",
-	"AIContext",
-	"AICompose",
-	"AIMessages",
 ];
 const header = `/* @ds-bundle: ${JSON.stringify({ format: 4, namespace: "Sill", components: names.map((n?: any) => ({ name: n })) })} */\n`;
 const body = buildSync({

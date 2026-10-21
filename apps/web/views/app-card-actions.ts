@@ -9,7 +9,41 @@ import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
-import { type CardFlag } from "./app-types.ts";
+import type { CardFlag } from "./app-types.ts";
+
+/** The card's context menu items; shared by the app and the design-system previews. */
+export function cardMenuHTML(card: Card, s: ReturnType<typeof Store.item>, selected: boolean) {
+	const id = card.id,
+		items = [
+			[
+				"bookmark",
+				s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
+				"bookmark",
+			],
+			["glasses", s.later ? copy("web.app.1056291ba162") : copy("web.later"), "later"],
+			["tag", copy("web.app.09fe39e89e28"), "edit"],
+			...(CardTypes[card.type].readable
+				? [
+						[
+							s.read ? "undo" : "circle",
+							s.read ? copy("web.app.fe32886b3172") : copy("web.app.82f35d89b827"),
+							"toggle-read",
+						],
+					]
+				: []),
+			[
+				"check-circle",
+				selected ? copy("web.app.74966e20df2e") : copy("web.app.c11330b85234"),
+				"select",
+			],
+		];
+	return items
+		.map(
+			([symbol, label, action]) =>
+				`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}">${icon(symbol, 18)}<span>${label}</span></button>`,
+		)
+		.join("");
+}
 
 export const appCardActionsMethods = {
 	setFlag(this: AppController, id?: string, key?: CardFlag, value?: boolean) {
@@ -104,36 +138,7 @@ export const appCardActionsMethods = {
 		menu.setAttribute("role", "group");
 		menu.setAttribute("aria-label", copy("web.templates.ee9430845e26"));
 		menu.id = "card-menu-" + id;
-		const s = Store.item(id),
-			items = [
-				[
-					"bookmark",
-					s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
-					"bookmark",
-				],
-				["glasses", s.later ? copy("web.app.1056291ba162") : copy("web.later"), "later"],
-				["tag", copy("web.app.09fe39e89e28"), "edit"],
-				...(CardTypes[card.type].readable
-					? [
-							[
-								s.read ? "undo" : "circle",
-								s.read ? copy("web.app.fe32886b3172") : copy("web.app.82f35d89b827"),
-								"toggle-read",
-							],
-						]
-					: []),
-				[
-					"check-circle",
-					this.selected.has(id) ? copy("web.app.74966e20df2e") : copy("web.app.c11330b85234"),
-					"select",
-				],
-			];
-		menu.innerHTML = items
-			.map(
-				([symbol, label, action]) =>
-					`<button type="button" class="card-menu-item" data-action="${action}" data-id="${esc(id)}">${icon(symbol, 18)}<span>${label}</span></button>`,
-			)
-			.join("");
+		menu.innerHTML = cardMenuHTML(card, Store.item(id), this.selected.has(id));
 		c.appendChild(menu);
 		// One place on every screen: under the card's top-right corner. Near the bottom it slides up only
 		// as far as it must to stay clear of the capsule.

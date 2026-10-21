@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Sill","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"Attachment"},{"name":"TagChip"},{"name":"CardMeta"},{"name":"SearchField"},{"name":"Toggle"},{"name":"GlassDock"},{"name":"CardMenu"},{"name":"FeedCard"},{"name":"ReminderCard"},{"name":"TaskCard"},{"name":"QuoteCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"SelectionBar"},{"name":"EmptyState"},{"name":"AIContext"},{"name":"AICompose"},{"name":"AIMessages"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Sill","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"TagChip"},{"name":"Toggle"},{"name":"SearchField"},{"name":"Navigation"},{"name":"AICompose"},{"name":"CardMenu"},{"name":"FeedCard"},{"name":"StackCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"ReadEndRing"},{"name":"SelectionBar"},{"name":"EmptyState"}]} */
 var Sill = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -143,6 +143,7 @@ var Sill = (() => {
     "apple.refreshing": "\u6B63\u5728\u5237\u65B0\u672C\u5730\u6570\u636E",
     "apple.refreshHelp": "\u5237\u65B0\u672C\u5730\u6570\u636E \u2318R",
     "apple.refresh": "\u5237\u65B0\u672C\u5730\u6570\u636E",
+    "apple.settingsMenu": "\u8BBE\u7F6E\u2026",
     "apple.newNoteHelp": "\u65B0\u5EFA\u7B14\u8BB0 \u2318N",
     "apple.newNote": "\u65B0\u5EFA\u7B14\u8BB0",
     "apple.deleteConfirm": "\u5220\u9664\u8FD9\u5F20\u672C\u5730\u5361\u7247\uFF1F\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",

@@ -506,10 +506,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-20T11:00:00Z",
+    "at": "2026-10-21T02:05:21Z",
     "by": "dabaige53",
-    "via": "Claude Code",
-    "note": "设计手册只保留最新版：新增两端对照，移动（≤650px）与网页（>650px）分开写布局、尺寸、交互与状态；去掉 V2 页；改版前手册另存为 archived/2026-10-20-README.md"
+    "via": "Claude Code · design-init",
+    "note": "卡片摘要按 50–60 字补齐：FeedCard 示例与 13 块现行画板；资讯阅读画板补上正文前的摘要；页面稿摘要按 3 行（手机 2 行）截断"
   },
   "layout": "files",
   "libraries": [],

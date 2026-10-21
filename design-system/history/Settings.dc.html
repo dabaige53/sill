@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>设置</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.capsule{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;padding:4px;height:60px;box-sizing:border-box;border-radius:30px;background:rgba(255,255,255,.38);backdrop-filter:blur(12px) saturate(1.9);-webkit-backdrop-filter:blur(12px) saturate(1.9);box-shadow:inset 0 1px .5px rgba(255,255,255,.9),0 0 0 .5px rgba(0,0,0,.07),0 2px 6px rgba(16,24,40,.05),0 12px 32px rgba(16,24,40,.09)}
+.capsule span{width:60px;display:flex;align-items:center;justify-content:center;border-radius:26px;color:rgba(29,29,31,.62)}
+.capsule span.on{background:rgba(0,0,0,.06);box-shadow:inset 0 1px .5px rgba(255,255,255,.9);color:#1d1d1f}
+.face{width:26px;height:26px;border-radius:13px;background:#b4b4b9;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.chips{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden}
+.chips span{flex:none;height:30px;padding:0 12px;border-radius:15px;display:flex;align-items:center;font-size:13px;color:#1d1d1f}
+.chips span.on{background:#fff;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.field{display:flex;gap:10px;align-items:flex-start;color:#86868b;font-size:15px;padding:14px 0;min-height:70px}
+
+body{margin:0}
+.num{font-family:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums}
+.cap{font-size:13px;color:#86868b}
+.h2{margin:0;font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.02em}
+.win{position:relative;height:300px;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06)}
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.025),0 4px 16px rgba(0,0,0,.035);overflow:hidden}
+.card.read{background:#fafafb;border-color:rgba(0,0,0,.04);box-shadow:none}
+.mc{position:absolute;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 3px 10px rgba(0,0,0,.04)}
+.mc i{position:absolute;left:10px;height:6px;border-radius:3px;background:#e8e8ed}
+.mc i.t{height:7px;background:#1d1d1f}
+.glass{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 18px;border-radius:18px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.p{background:#0066cc;color:#fff}
+.btn.s{background:#e8e8ed;color:#1d1d1f}
+.btn.g{color:#0066cc;padding:0 8px}
+.hd{display:flex;align-items:center;gap:6px;font-size:12px;line-height:18px;color:#636366}
+.hd svg{flex:none;color:#86868b}
+.t{font-size:16px;line-height:22px;font-weight:600;letter-spacing:-.02em}
+.s{font-size:14px;line-height:22px;color:#636366}
+.bd{display:flex;flex-direction:column;gap:8px;padding:18px}
+.fl{display:flex;flex-direction:column;gap:10px;min-width:0}
+
+.win{position:relative;border-radius:18px;background:#f5f5f7;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.07),0 16px 48px rgba(0,0,0,.07)}
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.18)}
+.sheet{position:absolute;left:50%;transform:translateX(-50%);background:#fff;border-radius:22px 22px 0 0;box-shadow:0 2px 8px rgba(0,0,0,.04),0 24px 80px rgba(0,0,0,.2);overflow:hidden}
+.sh{display:flex;flex-direction:column;gap:12px;padding:26px 32px}
+.meta{font-size:12px;color:#86868b}
+.h{margin:0;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.03em}
+.p{margin:0;font-size:14px;line-height:1.75;color:#1d1d1f}
+.capb{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;display:flex;align-items:center;gap:2px;padding:5px;border-radius:24px}
+.ib{width:36px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#1d1d1f}
+.av{width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex:none}
+.li{display:flex;align-items:center;gap:12px;min-height:46px;border-top:1px solid rgba(0,0,0,.06);font-size:14px}
+.li:first-child{border-top:0}
+.li .ico{width:30px;height:30px;border-radius:8px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;color:#636366;flex:none}
+.li small{font-size:12px;color:#86868b}
+.li .r{margin-left:auto;font-size:12px;color:#86868b;display:flex;align-items:center;gap:10px}
+.tog{width:36px;height:22px;border-radius:11px;background:#0066cc;position:relative;flex:none}
+.tog::after{content:"";position:absolute;right:2px;top:2px;width:18px;height:18px;border-radius:9px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.off{background:#e5e5ea}
+.tog.off::after{right:auto;left:2px}
+.seg{display:inline-flex;padding:2px;border-radius:9px;background:#ececf0;font-size:12px}
+.seg span{padding:4px 10px;border-radius:7px;color:#636366}
+.seg span.on{background:#fff;color:#1d1d1f;box-shadow:0 1px 3px rgba(0,0,0,.1);font-weight:500}
+.lab{display:flex;align-items:baseline;gap:10px}
+.lab b{font-size:15px}
+.lab i{font-style:normal;font-size:13px;font-weight:600;color:#0066cc}
+.chipx{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:14px;background:#f0f0f2;font-size:12px}
+.hl{background:#fff1a8;border-radius:3px;padding:0 1px}
+.grp{font-size:12px;color:#86868b;padding:14px 0 4px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);font-size:12px}
+.tile span.ico{width:40px;height:40px;border-radius:11px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;color:#1d1d1f}
+.tile.on{box-shadow:inset 0 0 0 2px #0066cc}
+.side{display:flex;flex-direction:column;gap:2px;padding:20px 10px;width:170px;box-sizing:border-box;background:#f5f5f7}
+.side span{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;font-size:13px;color:#1d1d1f}
+.side span svg{color:#636366}
+.side span.on{background:#fff;color:#1d1d1f;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.05)}
+.side span.on svg{color:#1d1d1f}
+.set{flex:1;padding:28px 36px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.box{background:#fff;border-radius:14px;padding:0 16px;box-shadow:0 0 0 1px rgba(0,0,0,.05)}
+.mapcol{display:flex;flex-direction:column;gap:6px}
+.mapcol > b{font-size:17px;font-weight:600;padding-bottom:6px}
+.pg{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border-radius:10px;background:#f5f5f7;font-size:13px}
+.pg .st{margin-left:auto;font-size:11px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.st.has{background:#e8e8ed;color:#636366}
+.st.des{background:#edf4ff;color:#0066cc}
+.st.new{background:#e8f4ec;color:#248a3d}
+
+</style>
+</helmet>
+<div style="width: 1440px; height: 1900px; box-sizing: border-box; padding: 64px 72px; background: #fff; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; gap: 56px">
+<div style="display: flex; align-items: baseline; gap: 16px"><h1 style="margin: 0; font-size: 34px; line-height: 1.25; font-weight: 600; letter-spacing: -0.035em">五个分组，每组一屏</h1><span class="cap">32 · 设置 · 2026-10-17 更新：添加在第一组；选中是浮起的白行；开关用蓝色；手机设置是一个页面</span></div><section style="display: grid; grid-template-columns: 760px minmax(0, 1fr); gap: 48px; align-items: start">
+      <div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 760px; height: 520px; background: #f5f5f7"><div style="position: absolute; inset: 0; display: flex; background: #f5f5f7"><div class="side"><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>添加</span><span class="on"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H4ZM8 19h8M12 15v4"/></svg>桌面</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12ZM9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>外观</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v10H3ZM7 11h.01M11 11h.01M15 11h.01M8 14h8"/></svg>快捷键</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/></svg>数据与隐私</span></div><div class="set">
+      <h2 class="h" style="padding-bottom: 12px">桌面</h2>
+      <div class="box">
+        <div class="li">同一来源刷屏时叠起来<span class="r">超过 5 张 <span class="tog"></span></span></div>
+        <div class="li">读过的卡片慢慢变淡<span class="r"><span class="tog"></span></span></div>
+        <div class="li">收进「读过的」<span class="r"><span class="seg"><span>3 天</span><span class="on">一周</span><span>不收</span></span></span></div>
+        <div class="li">会议和提醒到点浮上来<span class="r"><span class="tog"></span></span></div>
+      </div>
+      <div class="box" style="margin-top: 14px">
+        <div class="li">读完上推收起<span class="r"><span class="tog"></span></span></div>
+        <div class="li">新内容提示<span class="r"><span class="seg"><span class="on">离开顶部时</span><span>不提示</span></span></span></div>
+      </div>
+    </div></div></div><div class="lab"><i class="num">2</i><b>桌面</b><span class="cap">叠卡、变淡、收起、浮上来，都在这里。整页一层灰底，白色分组浮在上面</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 48px"><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 560px; height: 380px; background: #f5f5f7"><div style="position: absolute; inset: 0; display: flex; background: #f5f5f7"><div class="side"><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>添加</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H4ZM8 19h8M12 15v4"/></svg>桌面</span><span class="on"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12ZM9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>外观</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v10H3ZM7 11h.01M11 11h.01M15 11h.01M8 14h8"/></svg>快捷键</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/></svg>数据与隐私</span></div><div class="set">
+      <h2 class="h" style="padding-bottom: 12px">外观</h2>
+      <div class="box">
+        <div class="li">主题<span class="r"><span class="seg"><span class="on">跟随系统</span><span>浅色</span><span>深色</span></span></span></div>
+        <div class="li">卡片宽度<span class="r"><span class="seg"><span>紧凑</span><span class="on">标准</span><span>宽松</span></span></span></div>
+        <div class="li">减少动态效果<span class="r"><span class="tog off"></span></span></div>
+      </div>
+    </div></div></div><div class="lab"><i class="num">3</i><b>外观</b><span class="cap">主题、密度、减少动态效果</span></div></div></div>
+    </section>
+    <section style="display: grid; grid-template-columns: 760px minmax(0, 1fr); gap: 48px; align-items: start"><div style="display: flex; flex-direction: column; gap: 48px"><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 760px; height: 360px; background: #f5f5f7"><div style="position: absolute; inset: 0; display: flex; background: #f5f5f7"><div class="side"><span class="on"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>添加</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H4ZM8 19h8M12 15v4"/></svg>桌面</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12ZM9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>外观</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v10H3ZM7 11h.01M11 11h.01M15 11h.01M8 14h8"/></svg>快捷键</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/></svg>数据与隐私</span></div><div class="set">
+      <h2 class="h" style="padding-bottom: 12px">添加</h2>
+      <div class="box" style="padding: 4px 16px 14px">
+        <div class="field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>记一笔，或粘贴链接</span></div>
+        <div style="display: flex; align-items: center; justify-content: space-between"><span class="cap"><span style="display: inline-block; padding: 0 6px; border-radius: 6px; background: #f0f0f2; color: #1d1d1f; font-size: 12px; margin-right: 6px">N</span>随时记一笔</span><span class="btn p">存</span></div>
+      </div>
+    </div></div></div><div class="lab"><i class="num">1</i><b>添加</b><span class="cap">记一笔从底栏移到这里；键盘 N 和首次打开页仍直接打开记一笔</span></div></div><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 760px; height: 520px; background: #f5f5f7"><div style="position: absolute; inset: 0; display: flex; background: #f5f5f7"><div class="side"><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>添加</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H4ZM8 19h8M12 15v4"/></svg>桌面</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12ZM9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>外观</span><span class=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v10H3ZM7 11h.01M11 11h.01M15 11h.01M8 14h8"/></svg>快捷键</span><span class="on"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/></svg>数据与隐私</span></div><div class="set">
+      <h2 class="h" style="padding-bottom: 12px">数据与隐私</h2>
+      <div class="box">
+        <div class="li">存放位置<span class="r">~/资料库/Sill <span style="color: #0066cc">显示</span></span></div>
+        <div class="li">占用<span class="r num">2.3 GB</span></div>
+        <div class="li">AI 只在本机处理<span class="r"><span class="tog"></span></span></div>
+      </div>
+      <div class="box" style="margin-top: 14px">
+        <div class="li" style="color: #0066cc">导出全部卡片…</div>
+        <div class="li" style="color: #b45309">清除全部数据…</div>
+      </div>
+    </div></div></div><div class="lab"><i class="num">4</i><b>数据与隐私</b><span class="cap">写清位置和大小；危险操作用琥珀色，再确认一次</span></div></div></div><div style="display: flex; flex-direction: column; gap: 12px"><div class="win" style="width: 300px; height: 620px; border-radius: 36px; background: #f5f5f7"><div style="position: absolute; inset: 0; padding: 22px 16px 0; display: flex; flex-direction: column; gap: 14px">
+      <div class="chips"><span class="on">添加</span><span>桌面</span><span>外观</span><span>快捷键</span><span>数据与隐私</span></div>
+      <h2 class="h">添加</h2>
+      <div class="box" style="padding: 4px 14px 12px">
+        <div class="field" style="min-height: 90px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>记一笔，或粘贴链接</span></div>
+        <div style="display: flex; justify-content: flex-end"><span class="btn p">存</span></div>
+      </div>
+    </div><div class="capsule"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.5h-6v5.5H5.5A1.5 1.5 0 0 1 4 19Z"/></svg></span><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13ZM20 20l-4.6-4.6"/></svg></span><span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12Z"/></svg></span><span class="on"><span class="face"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><circle cx="12" cy="9" r="4.2"/><path d="M3.5 24a8.5 8.5 0 0 1 17 0Z"/></svg></span></span></div></div><div class="lab"><i class="num">5</i><b>手机</b><span class="cap">设置是一个页面，没有把手、关闭和遮罩；底部胶囊一直在</span></div></div></section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

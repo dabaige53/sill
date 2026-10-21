@@ -1,6 +1,5 @@
 # EmptyState
 
-无结果状态：说明为什么为空，并给一个明确的下一步。
+无结果状态：说明为什么为空，给一个明确的下一步（例如清除筛选）。不显示数量或加载动画。
 
-- `Sill.emptyState(title, description)`：居中、450px 宽、24px 圆角、`shadow`，搜索图标 `muted`。
-- 标题 19px，说明 13px/1.85 `muted`，动作用 `.text-button`「清除筛选」。
+实现：`apps/web/views/feed.tsx`、`apps/web/atoms/primitives.ts` 的 `emptyState`。示例由 `design-system/scripts/previews.ts` 从产品代码生成，不手改。

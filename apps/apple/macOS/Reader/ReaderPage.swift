@@ -3,7 +3,7 @@ import SillKit
 import SwiftUI
 
 /// The fullscreen page: the whole window, card background, a 2px progress line at the top,
-/// collapse and close in one glass group top right, text at most 860 wide.
+/// collapse and close in one glass group top right, text at most 860 wide (an article: 600).
 struct ReaderPage: View {
   let card: CardModel
   let state: CardState
@@ -19,9 +19,14 @@ struct ReaderPage: View {
       AppleColors.card
       ScrollView(.vertical) {
         ReaderContent(card: card, state: state, type: .page)
-          .frame(maxWidth: AppleMetrics.readerBodyWidth)
+          .frame(
+            maxWidth: card.kind == .article
+              ? AppleMetrics.articleMeasure : AppleMetrics.readerBodyWidth
+          )
           .padding(.top, AppleMetrics.space88)
-          .padding(.horizontal, AppleMetrics.space32)
+          .padding(
+            .horizontal, card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.space32
+          )
           .padding(.bottom, AppleMetrics.space160)
           .frame(maxWidth: .infinity)
           .background(ReaderScrollProbe(scroll: scroll))
