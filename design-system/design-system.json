@@ -506,10 +506,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-22T01:09:06Z",
+    "at": "2026-10-22T03:35:24Z",
     "by": "dabaige53",
     "via": "Claude Code · design-init",
-    "note": "Desktop bars tuck while a card is open; slower standalone reveal (dur-reveal, ease-reveal)"
+    "note": "13 类卡片与详情草稿（卡面、手机 390、全屏阅读与深色、播客播放页）与卡片收回弹簧"
   },
   "layout": "files",
   "libraries": [],
