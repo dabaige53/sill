@@ -1,5 +1,13 @@
 import type { CardItem } from "../data/store.ts";
-export type Filter = { type: string; status: string; tag: string; query: string };
+/** Home filter. `type`/`status` carry the tab; `kind` is the type chip and `mark` the # status. */
+export type Filter = {
+	type: string;
+	status: string;
+	tag: string;
+	query: string;
+	kind: string;
+	mark: string;
+};
 export type TargetEvent<E extends Event> = E & {
 	target: HTMLElement & { value?: string; disabled?: boolean };
 };

@@ -13,8 +13,41 @@ struct TopBar: View {
   @Environment(Workspace.self) private var workspace
   @Environment(Chrome.self) private var chrome
   @Environment(Panels.self) private var panels
+  @Environment(Feed.self) private var feed
 
   var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      row
+      // Type chips: one row under the bar while there is text (web-interaction.md 搜索).
+      if TopBar.showsKinds(feed) {
+        KindChips().padding(.bottom, AppleMetrics.space2)
+      }
+    }
+    .padding(.top, (AppleMetrics.topBarInset / 2))
+    .padding(.leading, edge)
+    .padding(.trailing, edge)
+    .background {
+      // Attach the system material to the controls so both share the same reveal.
+      // A custom window cannot rely on automatic scroll-edge coverage alone.
+      Rectangle().fill(.regularMaterial)
+        .mask(
+          LinearGradient(
+            stops: [
+              .init(color: .black, location: 0),
+              .init(color: .black.opacity(0.7), location: 0.45),
+              .init(color: .clear, location: 1),
+            ],
+            startPoint: .top, endPoint: .bottom)
+        )
+        .padding(.bottom, -AppleMetrics.space12)
+        .allowsHitTesting(false)
+    }
+    .coordinateSpace(.named(TopBarSpace.name))
+    .modifier(TopBarReveal(tucked: chrome.tucked))
+  }
+
+  /// Icon, Sill, ⌄, search and avatar on one 64-high line.
+  private var row: some View {
     HStack(spacing: AppleMetrics.space8) {
       HStack(spacing: AppleMetrics.space2) {
         Button(action: scrollToTop) {
@@ -47,28 +80,13 @@ struct TopBar: View {
             .padding(.trailing, -AppleMetrics.space2)
         }
       }
+
     }
     .frame(height: AppleMetrics.space64)
-    .padding(.top, (AppleMetrics.topBarInset / 2))
-    .padding(.leading, edge)
-    .padding(.trailing, edge)
-    .background {
-      // Attach the system material to the controls so both share the same reveal.
-      // A custom window cannot rely on automatic scroll-edge coverage alone.
-      Rectangle().fill(.regularMaterial)
-        .mask(
-          LinearGradient(
-            stops: [.init(color: .black, location: 0),
-                    .init(color: .black.opacity(0.7), location: 0.45),
-                    .init(color: .clear, location: 1)],
-            startPoint: .top, endPoint: .bottom)
-        )
-        .padding(.bottom, -AppleMetrics.space12)
-        .allowsHitTesting(false)
-    }
-    .coordinateSpace(.named(TopBarSpace.name))
-    .modifier(TopBarReveal(tucked: chrome.tucked))
   }
+
+  /// The chip row shows only while there is text to search.
+  static func showsKinds(_ feed: Feed) -> Bool { !Feed.searchText(feed.query).isEmpty }
 }
 
 /// One transition owns the controls and material, including the first mounted frame.
@@ -85,8 +103,10 @@ private struct TopBarReveal: ViewModifier {
       .allowsHitTesting(!hidden)
       .accessibilityHidden(hidden)
       .animation(
-        Motion.keyboardDriven ? nil : Motion.ease(
-          hidden ? AppleMetrics.motionRailHide : AppleMetrics.motionDetailOpen),
+        Motion.keyboardDriven
+          ? nil
+          : Motion.ease(
+            hidden ? AppleMetrics.motionRailHide : AppleMetrics.motionDetailOpen),
         value: hidden
       )
       .task {

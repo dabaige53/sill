@@ -141,25 +141,43 @@ export const appInputMethods = {
 			return true;
 		}
 		if (e.target !== input) return false;
+		// The # list takes arrows and Enter while it is open.
+		const options = this.homeHashOptions();
+		if (options.length && ["ArrowDown", "ArrowUp"].includes(e.key)) {
+			e.preventDefault();
+			const step = e.key === "ArrowDown" ? 1 : -1;
+			this.homeHashIndex = (this.homeHashIndex + step + options.length) % options.length;
+			this.syncHomeHash();
+			return true;
+		}
+		if (options.length && e.key === "Enter" && !e.isComposing) {
+			e.preventDefault();
+			this.action("home-hash", "", options[Math.min(this.homeHashIndex, options.length - 1)].extra);
+			return true;
+		}
+		const tabbed = (this.homeTab() || "all") !== "all";
+		const marked = this.filter.mark !== "all" || !!this.filter.tag;
 		if (e.key === "Escape") {
 			e.preventDefault();
 			if (input.value) {
 				input.value = "";
-				this.filter = { ...this.filter, query: "" };
+				this.filter = { ...this.filter, query: "", kind: "all" };
 				clearTimeout(this.homeSearchTimer);
 				this.renderCurrent(false);
-			} else if ((this.homeTab() || "all") !== "all") this.action("home-tab", "", "all");
-			else input.blur();
+			} else if (tabbed || marked) {
+				// Only tokens left: all of them go at once, back to everything.
+				this.filter = { ...this.filter, mark: "all", tag: "" };
+				if (tabbed) this.action("home-tab", "", "all");
+				else this.renderCurrent(false);
+			} else input.blur();
 			return true;
 		}
-		if (
-			e.key === "Backspace" &&
-			!input.value &&
-			input.selectionStart === 0 &&
-			(this.homeTab() || "all") !== "all"
-		) {
+		if (e.key === "Backspace" && !input.value && input.selectionStart === 0 && (tabbed || marked)) {
+			// From the end: the # tag, then the # status, then the tab.
 			e.preventDefault();
-			this.action("home-tab", "", "all");
+			if (this.filter.tag) this.action("home-untoken", "", "tag");
+			else if (this.filter.mark !== "all") this.action("home-untoken", "", "mark");
+			else this.action("home-tab", "", "all");
 			return true;
 		}
 		return false;
@@ -177,7 +195,10 @@ export const appInputMethods = {
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "home-search") {
 			const value = (e.target as HTMLInputElement).value;
-			this.filter = { ...this.filter, query: value };
+			// The type chips leave with the text; a hidden chip never keeps filtering.
+			const kind = this.searchText(value) ? this.filter.kind : "all";
+			if (this.searchHash(value) !== this.searchHash(this.filter.query)) this.homeHashIndex = 0;
+			this.filter = { ...this.filter, query: value, kind };
 			this.syncHomeSearch();
 			clearTimeout(this.homeSearchTimer);
 			this.homeSearchTimer = window.setTimeout(() => {

@@ -96,7 +96,13 @@ export const appLifecycleMethods = {
 		// its padding puts the caret in the input instead of dropping focus.
 		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
 			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock");
-			if (!capsule || e.target.closest?.("button, input, .ai-dock-context")) return;
+			if (!capsule) return;
+			// Picking from the # list keeps the caret in the field.
+			if (e.target.closest?.(".home-hash")) {
+				e.preventDefault();
+				return;
+			}
+			if (e.target.closest?.("button, input, .ai-dock-context")) return;
 			const input = capsule.querySelector<HTMLInputElement>("#home-search, #ai-dock-input");
 			if (!input || input.disabled) return;
 			e.preventDefault();

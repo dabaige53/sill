@@ -56,7 +56,9 @@ struct DesktopView: View {
         }
         if let scroll {
           FeedRefreshIndicator(refresh: scroll.refresh)
-            .padding(.top, (AppleMetrics.topBarInset / 2) + (AppleMetrics.space64 - AppleMetrics.hitTarget) / 2)
+            .padding(
+              .top,
+              (AppleMetrics.topBarInset / 2) + (AppleMetrics.space64 - AppleMetrics.hitTarget) / 2)
         }
         ZStack(alignment: .bottom) {
           AIDock()
@@ -91,6 +93,11 @@ struct DesktopView: View {
             (AppleMetrics.topBarInset / 2) + (AppleMetrics.space64 + AppleMetrics.hitTarget) / 2
               + AppleMetrics.space8
           )
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // The # list hangs under the search field in the window layer, over the cards.
+        HashList()
+          .padding(.leading, shell.searchFrame.minX)
+          .padding(.top, shell.searchFrame.maxY + AppleMetrics.space8)
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         ReaderOverlay()
         PanelOverlay()
@@ -168,7 +175,9 @@ struct DesktopView: View {
   private var feedTopInset: CGFloat {
     let gap = AppleMetrics.topBarInset / 2
     if #available(macOS 26.0, *) { return gap }
-    return gap + AppleMetrics.space64 + gap
+    // The overlaid bar grows by the type chip row while there is text.
+    let kinds = TopBar.showsKinds(feed) ? AppleMetrics.space32 + AppleMetrics.space2 : 0
+    return gap + AppleMetrics.space64 + kinds + gap
   }
 
   /// Changes made elsewhere (an external assistant, the CLI) arrive every 5s while the window is
@@ -316,7 +325,10 @@ struct DesktopView: View {
       else { return event }
       let point = CGPoint(x: event.locationInWindow.x, y: height - event.locationInWindow.y)
       MainActor.assumeIsolated {
-        if shell.searchFocused, !shell.searchFrame.contains(point) { shell.blurSearch() }
+        if shell.searchFocused, !shell.searchFrame.contains(point), !shell.hashFrame.contains(point)
+        {
+          shell.blurSearch()
+        }
         // `drag.target` is the AI box's frame, kept by the box itself.
         if ai.focused, !drag.target.contains(point) { ai.blur() }
       }

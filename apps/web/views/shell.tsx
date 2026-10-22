@@ -93,6 +93,7 @@ export function HomeTop() {
 						data-extra="all"
 						hidden
 					/>
+					<span className="home-search-marks" id="home-search-marks" />
 					<input
 						type="search"
 						id="home-search"
@@ -113,6 +114,7 @@ export function HomeTop() {
 					>
 						<Icon name="x" size={12} />
 					</button>
+					<div className="home-hash-slot" id="home-hash-slot" />
 				</div>
 				<button
 					type="button"
@@ -142,6 +144,7 @@ export function HomeTop() {
 					</button>
 				))}
 			</div>
+			<div className="home-kinds" id="home-kinds" hidden />
 		</header>
 	);
 }

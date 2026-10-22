@@ -67,6 +67,9 @@ class AppController {
 	declare repaintSearchHash: AppControllerMethods["repaintSearchHash"];
 	declare syncHomeSearch: AppControllerMethods["syncHomeSearch"];
 	declare openHomeSearch: AppControllerMethods["openHomeSearch"];
+	declare homeHashOptions: AppControllerMethods["homeHashOptions"];
+	declare syncHomeHash: AppControllerMethods["syncHomeHash"];
+	declare syncHomeKinds: AppControllerMethods["syncHomeKinds"];
 	declare renderAIDock: AppControllerMethods["renderAIDock"];
 	declare desktop: AppControllerMethods["desktop"];
 	declare homeKey: AppControllerMethods["homeKey"];
@@ -150,6 +153,8 @@ class AppController {
 	searchFilter = { type: "all", status: "all", tag: "", query: "", pinned: false };
 	homeMenuOpen = false;
 	homeSearchTimer = 0;
+	/** Highlighted row of the top-bar # list. */
+	homeHashIndex = 0;
 	searchScroll = 0;
 	searchLimit = 40;
 	searchBackground?: HTMLDialogElement;
@@ -230,7 +235,7 @@ class AppController {
 	constructor() {
 		this.mode = window.__PAGE__ || "feed";
 		this.baseMode = this.mode;
-		this.filter = { type: "all", status: "all", tag: "", query: "" };
+		this.filter = { type: "all", status: "all", tag: "", query: "", kind: "all", mark: "all" };
 		this.selected = new Set<string>();
 		this.pendingCards = [];
 		this.refreshBusy = false;

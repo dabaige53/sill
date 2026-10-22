@@ -1527,7 +1527,8 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 .home-menu-toggle,
 .home-edge-blur,
 .home-menu,
-.home-search {
+.home-search,
+.home-kinds {
 	display: none;
 }
 @media (min-width: 651px) {
@@ -1551,7 +1552,8 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		.home-top {
 			background: transparent;
 		}
-		.home-top > .home-heading {
+		.home-top > .home-heading,
+		.home-top > .home-kinds {
 			position: relative;
 			z-index: 1;
 		}
@@ -1769,6 +1771,62 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	.home-search-token[hidden],
 	.home-search-clear[hidden] {
 		display: none;
+	}
+	/* # conditions follow the tab token: accent, like the phone search tokens. */
+	.home-search-marks {
+		display: flex;
+		flex: none;
+		gap: var(--space-6);
+	}
+	.home-search-marks:empty,
+	.home-hash-slot:empty {
+		display: none;
+	}
+	.home-search-token.is-hash {
+		background: var(--accent);
+		color: var(--fixed-white);
+	}
+	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
+	.home-search .search-hash {
+		z-index: 60;
+		top: calc(100% + var(--space-8));
+		left: 0;
+		right: 0;
+		cursor: default;
+	}
+	.home-search .search-hash-option:first-of-type {
+		background: none;
+	}
+	.home-search .search-hash-option.is-active,
+	.home-search .search-hash-option:focus-visible {
+		background: var(--faint);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-search .search-hash-option:hover {
+			background: var(--faint);
+		}
+	}
+	/* Type chips: one row under the top bar while there is text (web-interaction.md 搜索). */
+	.home-kinds {
+		display: flex;
+		align-items: center;
+		height: var(--space-32);
+		margin-bottom: var(--space-2);
+	}
+	.home-kinds[hidden] {
+		display: none;
+	}
+	.home-kinds .chip {
+		min-height: var(--space-32);
+		height: var(--space-32);
+		background: var(--surface);
+		box-shadow: none;
+		font-size: var(--text-control);
+	}
+	.home-kinds .chip.active {
+		background: var(--ink);
+		color: var(--card);
+		font-weight: 600;
 	}
 	.home-search-clear {
 		display: grid;

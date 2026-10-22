@@ -9,6 +9,7 @@ import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
 import { feedView } from "./feed.tsx";
+import { HomeHashList, HomeKinds, HomeSearchMarks, homeHashOptions } from "./home-search.tsx";
 import { renderView } from "./react-renderer.ts";
 
 export const appFeedMethods = {
@@ -65,11 +66,21 @@ export const appFeedMethods = {
 	},
 	filtering(this: AppController) {
 		const f = this.filter;
-		return f.type !== "all" || f.status !== "all" || !!f.tag || !!f.query;
+		return (
+			f.type !== "all" ||
+			f.status !== "all" ||
+			(f.kind || "all") !== "all" ||
+			(f.mark || "all") !== "all" ||
+			!!f.tag ||
+			!!f.query
+		);
 	},
-	filtered(this: AppController): Card[] {
+	/** `anyKind` ignores the type chip, to learn which types still have results. */
+	filtered(this: AppController, anyKind = false): Card[] {
 		const f = this.filter,
-			q = f.query.trim();
+			q = this.searchText(f.query),
+			kind = f.kind || "all",
+			mark = f.mark || "all";
 		const statusOnly = ["snoozed", "dismissed", "done"].includes(f.status);
 		// Keep one order across saves, pagination and filter changes until an explicit refresh.
 		if (!this.feedOrder || this.feedOrderSort !== this.sort) {
@@ -96,6 +107,11 @@ export const appFeedMethods = {
 						(f.status === "read" && s.read) ||
 						(f.status === "saved" && s.bookmarked) ||
 						(f.status === "later" && s.later)) &&
+					(anyKind || kind === "all" || c.type === kind) &&
+					(mark === "all" ||
+						(mark === "unread" && !s.read) ||
+						(mark === "saved" && s.bookmarked) ||
+						(mark === "later" && s.later)) &&
 					(!f.tag || Store.tags(c).includes(f.tag)) &&
 					(!q || this.matches(c, q))
 				);
@@ -253,6 +269,7 @@ export const appFeedMethods = {
 		const width = field.getBoundingClientRect().width;
 		field.classList.toggle("is-open", open);
 		MotionEngine.searchResize(field, width);
+		this.syncHomeHash();
 	},
 	/** The chosen tab is a token in the top-bar search; home filter and search share one state. */
 	syncHomeSearch(this: AppController) {
@@ -268,22 +285,53 @@ export const appFeedMethods = {
 		const token = document.getElementById("home-search-token");
 		const input = document.getElementById("home-search") as HTMLInputElement;
 		const label = labels[tab];
+		const marked = this.filter.mark !== "all" || !!this.filter.tag;
 		token.hidden = !label;
 		token.textContent = label || "";
 		token.setAttribute("aria-label", label ? `${copy("web.home.removeTab")} ${label}` : "");
 		input.placeholder = label
 			? `${copy("web.home.searchInPrefix")}${label}${copy("web.home.searchInSuffix")}`
-			: copy("web.home.searchPlaceholder");
+			: marked
+				? ""
+				: copy("web.home.searchPlaceholder");
 		if (document.activeElement !== input && input.value !== this.filter.query)
 			input.value = this.filter.query;
+		const marks = document.getElementById("home-search-marks");
+		if (marks) renderView(marks, HomeSearchMarks({ filter: this.filter }));
+		this.syncHomeHash();
+		this.syncHomeKinds();
 		const width = field.getBoundingClientRect().width;
-		field.classList.toggle("has-token", !!label);
+		field.classList.toggle("has-token", !!label || marked);
 		field.classList.toggle("has-text", !!this.filter.query);
 		MotionEngine.searchResize(field, width);
 		field.querySelector<HTMLElement>(".home-search-clear").hidden = !this.filter.query;
 		document.querySelectorAll<HTMLElement>(".home-menu-item").forEach((n) => {
 			n.setAttribute("aria-checked", String(n.dataset.extra === tab));
 		});
+	},
+	/** The # list shows while the field has focus and the text ends in a # fragment. */
+	homeHashOptions(this: AppController) {
+		const input = document.getElementById("home-search") as HTMLInputElement | null;
+		const frag = this.searchHash(this.filter.query);
+		if (!input || document.activeElement !== input || frag === null) return [];
+		return homeHashOptions(frag, this.filter, this.homeTabFilter(this.homeTab() || "all").status);
+	},
+	syncHomeHash(this: AppController) {
+		const slot = document.getElementById("home-hash-slot");
+		if (!slot) return;
+		const options = this.homeHashOptions();
+		this.homeHashIndex = Math.min(this.homeHashIndex, Math.max(0, options.length - 1));
+		renderView(slot, HomeHashList({ options, active: this.homeHashIndex }));
+	},
+	/** Type chips appear under the top bar only while there is text to search. */
+	syncHomeKinds(this: AppController) {
+		const row = document.getElementById("home-kinds");
+		if (!row) return;
+		const text = this.searchText(this.filter.query);
+		row.hidden = !text;
+		if (!text) return;
+		const kinds = new Set(this.filtered(true).map((c) => c.type));
+		renderView(row, HomeKinds({ kinds, active: this.filter.kind }));
 	},
 	homeTopHTML(this: AppController) {
 		const tabs = [
@@ -308,7 +356,6 @@ export const appFeedMethods = {
 	},
 	homeTab(this: AppController) {
 		const f = this.filter;
-		if (f.tag) return "";
 		return (
 			["all", "unread", "todo", "later", "saved"].find((key) => {
 				const t = this.homeTabFilter(key);

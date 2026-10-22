@@ -296,7 +296,7 @@ const MotionEngine: Record<string, any> = {
 			{ duration: this.time("dur-state"), pseudoElement: "::before" },
 		);
 		for (const child of el.querySelectorAll<HTMLElement>(
-			":scope > .icon, #home-search-token, #home-search",
+			":scope > .icon, #home-search-token, #home-search-marks, #home-search",
 		)) {
 			this.cancel(child);
 			this.animate(

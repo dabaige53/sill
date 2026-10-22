@@ -20,6 +20,58 @@ enum Scope: String, CaseIterable, Sendable {
   var shortcut: Character { Character(String((Scope.allCases.firstIndex(of: self) ?? 0) + 1)) }
 }
 
+/// # status conditions (Web `searchStatuses`): typed after #, shown as accent tokens.
+enum Mark: String, CaseIterable, Sendable {
+  case unread, saved, later
+
+  var label: String {
+    switch self {
+    case .unread: Copy.text("web.unread")
+    case .saved: Copy.text("web.bookmark")
+    case .later: Copy.text("web.later")
+    }
+  }
+
+  /// The tab that already means this status; the # list leaves it out.
+  var scope: Scope {
+    switch self {
+    case .unread: .unread
+    case .saved: .saved
+    case .later: .later
+    }
+  }
+}
+
+/// One row of the # list.
+struct HashOption: Hashable {
+  enum Value: Hashable {
+    case mark(Mark)
+    case tag(String)
+  }
+  let value: Value
+  var label: String {
+    switch value {
+    case .mark(let mark): mark.label
+    case .tag(let tag): "#" + tag
+    }
+  }
+}
+
+/// A type chip under the top bar (Web `searchTypes`).
+struct SearchKind: Hashable {
+  let kind: CardKind
+  let label: String
+
+  static let all: [SearchKind] = [
+    SearchKind(kind: .article, label: Copy.text("web.search.type.article")),
+    SearchKind(kind: .mail, label: Copy.text("web.search.type.mail")),
+    SearchKind(kind: .note, label: Copy.text("web.note")),
+    SearchKind(kind: .task, label: Copy.text("web.task")),
+    SearchKind(kind: .event, label: Copy.text("web.event")),
+    SearchKind(kind: .media, label: Copy.text("web.media")),
+  ]
+}
+
 enum FeedEntry: Identifiable, Equatable {
   case card(String)
   case stack(key: String, cards: [String])
@@ -45,6 +97,13 @@ enum FeedEntry: Identifiable, Equatable {
 
   private(set) var scope = Scope.all
   private(set) var query = ""
+  /// The type chip; nil is 全部. It only applies while there is text.
+  private(set) var kind: CardKind?
+  /// # conditions, beside the tab token.
+  private(set) var mark: Mark?
+  private(set) var tag: String?
+  /// Types that still have results with the current text, whatever the chip.
+  private(set) var kinds: Set<CardKind> = []
   private(set) var entries: [FeedEntry] = []
   private(set) var hasMore = false
   /// Cards put away, for the shelf row at the end of the desk.
@@ -81,7 +140,41 @@ enum FeedEntry: Identifiable, Equatable {
     }
   }
 
-  var filtering: Bool { scope != .all || !query.isEmpty }
+  var filtering: Bool {
+    scope != .all || !query.isEmpty || kind != nil || mark != nil || tag != nil
+  }
+
+  /// Text to match, without a trailing # fragment still being typed (Web `searchText`).
+  static func searchText(_ query: String) -> String {
+    guard let range = query.range(of: #"(^|\s)#\S*$"#, options: .regularExpression) else {
+      return query.trimmingCharacters(in: .whitespaces)
+    }
+    return query.replacingCharacters(in: range, with: "").trimmingCharacters(in: .whitespaces)
+  }
+
+  /// The # fragment at the end of the text, or nil when none is being typed (Web `searchHash`).
+  static func hashFragment(_ query: String) -> String? {
+    guard let range = query.range(of: #"(^|\s)#\S*$"#, options: .regularExpression) else {
+      return nil
+    }
+    let match = query[range]
+    return String(match[match.index(after: match.firstIndex(of: "#")!)...])
+  }
+
+  /// # options for a fragment: statuses first, then existing tags, minus the ones in use.
+  func hashOptions(_ fragment: String) -> [HashOption] {
+    let needle = fragment.lowercased()
+    let fits = { (label: String) in needle.isEmpty || label.lowercased().contains(needle) }
+    let marks = Mark.allCases.filter { $0 != mark && $0.scope != scope && fits($0.label) }
+    var seen: Set<String> = []
+    var tags: [String] = []
+    for card in workspace.cards {
+      for name in workspace.state(card.id).tags(of: card) where seen.insert(name).inserted {
+        if name != tag, fits(name) { tags.append(name) }
+      }
+    }
+    return marks.map { HashOption(value: .mark($0)) } + tags.map { HashOption(value: .tag($0)) }
+  }
 
   func stackPosition(_ key: String) -> StackPosition {
     if let position = stackPositions[key] { return position }
@@ -128,6 +221,57 @@ enum FeedEntry: Identifiable, Equatable {
     defer { PerformanceTrace.shared.end(trace) }
     guard text != query else { return }
     query = text
+    // The chip row leaves with the text; a hidden chip never keeps filtering.
+    if Feed.searchText(text).isEmpty { kind = nil }
+    pageLimit = Feed.page
+    rebuild()
+  }
+
+  func selectKind(_ next: CardKind?) {
+    guard next != kind else { return }
+    kind = next
+    pageLimit = Feed.page
+    rebuild()
+  }
+
+  /// A picked # option becomes a token; returns the text without the typed fragment.
+  @discardableResult func pick(_ option: HashOption, in text: String) -> String {
+    switch option.value {
+    case .mark(let next): mark = next
+    case .tag(let next): tag = next
+    }
+    let rest =
+      text.range(of: #"(^|\s)#\S*$"#, options: .regularExpression).map {
+        String(text[..<$0.lowerBound])
+      } ?? text
+    searchTask?.cancel()
+    pendingQuery = nil
+    query = rest.trimmingCharacters(in: .whitespaces)
+    pageLimit = Feed.page
+    rebuild()
+    return query
+  }
+
+  func removeMark() {
+    guard mark != nil else { return }
+    mark = nil
+    rebuild()
+  }
+
+  func removeTag() {
+    guard tag != nil else { return }
+    tag = nil
+    rebuild()
+  }
+
+  /// Esc with only tokens left: the # conditions and the tab go at once.
+  func clearTokens() {
+    mark = nil
+    tag = nil
+    if scope != .all {
+      scope = .all
+      scopeVersion += 1
+    }
     pageLimit = Feed.page
     rebuild()
   }
@@ -136,6 +280,9 @@ enum FeedEntry: Identifiable, Equatable {
     searchTask?.cancel()
     pendingQuery = nil
     query = ""
+    kind = nil
+    mark = nil
+    tag = nil
     if scope != .all {
       scope = .all
       scopeVersion += 1
@@ -187,14 +334,14 @@ enum FeedEntry: Identifiable, Equatable {
     }
     if !keepClock { now = Format.milliseconds() }
     let state = workspace.state
-    let text = query.trimmingCharacters(in: .whitespaces).lowercased()
+    let text = Feed.searchText(query).lowercased()
     let shelved = workspace.cards.reduce(0) { $0 + (state($1.id).archived ? 1 : 0) }
     if shelved != shelfCount { shelfCount = shelved }
     // Saves, pagination and catalog updates keep existing cards in their current order.
     let ranked = FeedPolicy.sort(
       workspace.cards, mode: workspace.preferences.feedSort, state: state, now: now)
     for card in ranked where order[card.id] == nil { order[card.id] = order.count }
-    let cards = workspace.cards.filter { card in
+    let matched = workspace.cards.filter { card in
       let s = state(card.id)
       // Searching reaches archived cards; browsing shows only the desk.
       if text.isEmpty, s.archived { return false }
@@ -205,8 +352,20 @@ enum FeedEntry: Identifiable, Equatable {
       case .later: if !s.later { return false }
       case .saved: if !s.bookmarked { return false }
       }
+      switch mark {
+      case nil: break
+      case .unread: if s.read { return false }
+      case .saved: if !s.bookmarked { return false }
+      case .later: if !s.later { return false }
+      }
+      if let tag, !s.tags(of: card).contains(tag) { return false }
       return text.isEmpty || matches(card, state: s, text: text)
-    }.sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
+    }
+    // Chips list the types that have results with this text, whatever chip is picked.
+    let found = text.isEmpty ? [] : Set(matched.map(\.kind))
+    if found != kinds { kinds = found }
+    let cards = matched.filter { kind == nil || $0.kind == kind }
+      .sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
 
     if cards.isEmpty {
       set(entries: [], more: false)
