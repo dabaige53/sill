@@ -506,10 +506,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-21T08:18:28Z",
+    "at": "2026-10-22T00:49:58Z",
     "by": "dabaige53",
     "via": "Claude Code · design-init",
-    "note": "合入搜索失焦、卡片关闭工具先淡出、卡片头部日期，并去掉撤销文案"
+    "note": "Desktop search type chips and # conditions; card motion, rail glass and pointer rules"
   },
   "layout": "files",
   "libraries": [],
