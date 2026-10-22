@@ -147,7 +147,18 @@ try {
 	await page.waitForFunction(() => document.querySelector("#announcer").textContent === "刷新完成");
 	assert.equal(value.state.cards.length, 31);
 	const box = await page.locator('[data-card="agent-test"]').boundingBox();
-	assert.ok(box.width >= 280 && box.width <= 380);
+	// Desktop columns share the spare width with no col-max cap, so check the card against the grid.
+	const grid = await page
+		.locator("#feed-grid")
+		.evaluate((el: HTMLElement) => ({
+			width: el.clientWidth,
+			columns: Number(el.dataset.columns),
+		}));
+	const share = (grid.width - (grid.columns - 1) * 24) / grid.columns;
+	assert.ok(
+		box.width >= 280 && Math.abs(box.width - share) < 1,
+		`card width ${box.width}, share ${share}`,
+	);
 	await page.screenshot({ path: join(artifacts, "local-cards.png"), animations: "disabled" });
 	// A second page sees the same data; a restart reloads the persisted repository.
 	const second = await browser.newPage();

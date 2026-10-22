@@ -43,7 +43,7 @@ import XCTest
     }
   }
 
-  private func measureWork(setup: () -> Void = {}, _ work: () -> Void) {
+  private func measureWork(setup: () -> Void = {}, work: () -> Void) {
     let options = XCTMeasureOptions()
     options.iterationCount = 10
     options.invocationOptions = [.manuallyStart, .manuallyStop]
@@ -71,21 +71,23 @@ import XCTest
     let (workspace, _) = try await fixture(count)
     let reader = Reader(workspace: workspace)
     var transitionsValid = true
-    measureWork(setup: { transitionsValid = true }) {
-      for i in 0..<50 {
-        reader.open("perf-\(i)")
-        reader.toggleFull()
-        transitionsValid = transitionsValid && reader.shown && reader.top?.full == true
-        reader.open("perf-\(i + 1)")
-        transitionsValid = transitionsValid && reader.top?.card == "perf-\(i + 1)"
-        reader.close()  // Related layer returns to the original card.
-        transitionsValid =
-          transitionsValid && reader.top?.card == "perf-\(i)"
-          && reader.top?.full == true
-        reader.close()  // Root starts its exit; no rendered animation is awaited here.
-        transitionsValid = transitionsValid && !reader.shown
-      }
-    }
+    measureWork(
+      setup: { transitionsValid = true },
+      work: {
+        for i in 0..<50 {
+          reader.open("perf-\(i)")
+          reader.toggleFull()
+          transitionsValid = transitionsValid && reader.shown && reader.top?.full == true
+          reader.open("perf-\(i + 1)")
+          transitionsValid = transitionsValid && reader.top?.card == "perf-\(i + 1)"
+          reader.close()  // Related layer returns to the original card.
+          transitionsValid =
+            transitionsValid && reader.top?.card == "perf-\(i)"
+            && reader.top?.full == true
+          reader.close()  // Root starts its exit; no rendered animation is awaited here.
+          transitionsValid = transitionsValid && !reader.shown
+        }
+      })
     XCTAssertTrue(transitionsValid)
     XCTAssertFalse(reader.shown)
     workspace.recorder.flush()
@@ -123,19 +125,21 @@ import XCTest
       nearEnd += 1
       feed.loadMore()
     }
-    measureWork(setup: {
-      feed.select(.unread)
-      feed.select(.all)
-      scroll.scrolled(offset: 0, visible: 800, content: 48000)
-      nearEnd = 0
-    }) {
-      // Synthetic bounds notifications exercise the actual handler, without a window or input.
-      for i in 1...1000 { scroll.scrolled(offset: CGFloat(i * 40), visible: 800, content: 48000) }
-      for i in 0..<10 {
-        scroll.scrolled(offset: CGFloat(46000 + i * 100), visible: 800, content: 48000)
-      }
-      scroll.scrolled(offset: 0, visible: 800, content: 48000)
-    }
+    measureWork(
+      setup: {
+        feed.select(.unread)
+        feed.select(.all)
+        scroll.scrolled(offset: 0, visible: 800, content: 48000)
+        nearEnd = 0
+      },
+      work: {
+        // Synthetic bounds notifications exercise the actual handler, without a window or input.
+        for i in 1...1000 { scroll.scrolled(offset: CGFloat(i * 40), visible: 800, content: 48000) }
+        for i in 0..<10 {
+          scroll.scrolled(offset: CGFloat(46000 + i * 100), visible: 800, content: 48000)
+        }
+        scroll.scrolled(offset: 0, visible: 800, content: 48000)
+      })
     XCTAssertEqual(nearEnd, 10)
     XCTAssertEqual(feed.entries.count, Feed.page * 11)
     XCTAssertFalse(chrome.tucked)
@@ -147,12 +151,14 @@ import XCTest
     let panels = Panels()
     var returned = 0
     panels.onClosed = { _ in returned += 1 }
-    measureWork(setup: { returned = 0 }) {
-      for _ in 0..<100 {
-        panels.open(.settings)
-        panels.close()
-      }
-    }
+    measureWork(
+      setup: { returned = 0 },
+      work: {
+        for _ in 0..<100 {
+          panels.open(.settings)
+          panels.close()
+        }
+      })
     XCTAssertNil(panels.kind)
     XCTAssertEqual(returned, 100)
   }
