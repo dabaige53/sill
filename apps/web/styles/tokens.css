@@ -3,9 +3,11 @@
 	--edge-blur-soft: blur(4px);
 	--edge-blur-mid: blur(8px);
 	--edge-blur-strong: blur(16px);
-	--chrome-glass-filter: blur(24px) saturate(1.2);
 	--summary-reading-lines: 4;
 	--settings-body-height: 560px;
+	--search-width: 280px;
+	--search-tagged-width: 360px;
+	--search-focused-width: 480px;
 	--dur-deck: 260ms;
 	--dur-show: 320ms;
 	--dur-lens: 0ms;

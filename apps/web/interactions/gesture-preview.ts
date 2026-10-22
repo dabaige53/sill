@@ -241,25 +241,43 @@ export const gesturePreviewMethods = {
 			}
 			this.swallowMomentum();
 			window.setTimeout(() => {
-				// A changed route can keep this surface cached; never leave its success badge behind.
-				chip.remove();
 				if (app.modalToken !== token) {
+					// A changed route can keep this surface cached; never leave its success badge behind.
+					chip.remove();
 					if (desktop && bar?.dataset.readComplete === String(token)) {
 						bar.style.visibility = barVisibility;
 						delete bar.dataset.readComplete;
 					}
 					return;
 				}
-				if (!desktop) MotionEngine.move(scroll);
-				if (bar && !desktop) {
-					bar.style.opacity = "";
-					MotionEngine.move(bar);
-				}
-				// Keep feed rendering out of the frame that reveals the completion check.
+				// Keep feed rendering out of the frame that reveals the completion check, and out of
+				// the first frame of the close: the card is redrawn while nothing moves, then the
+				// detail leaves on a clean frame.
 				if (changed) app.refreshCard(id);
-				// A stacked preview folds back to the card below it; reading returns to the desk.
-				if (app.modalKind === "preview") app.closeModal();
-				else app.closeToDesk(true);
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => {
+						if (app.modalToken !== token) {
+							chip.remove();
+							return;
+						}
+						if (!desktop) MotionEngine.move(scroll);
+						if (bar && !desktop) {
+							bar.style.opacity = "";
+							MotionEngine.move(bar);
+						}
+						// The check fades with the leaving detail instead of vanishing first.
+						const fade = MotionEngine.animate(chip, [{ opacity: 1 }, { opacity: 0 }], {
+							duration: MotionEngine.time("fast"),
+							easing: MotionEngine.curve("ease"),
+							fill: "forwards",
+						});
+						if (fade) fade.finished.then(() => chip.remove(), () => chip.remove());
+						else chip.remove();
+						// A stacked preview folds back to the card below it; reading returns to the desk.
+						if (app.modalKind === "preview") app.closeModal();
+						else app.closeToDesk(true);
+					}),
+				);
 			}, 460);
 		};
 		const set = (v?: any) => {

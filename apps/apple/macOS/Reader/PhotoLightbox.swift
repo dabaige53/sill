@@ -89,9 +89,9 @@ struct PhotoLightbox: View {
             .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.lightboxImageRadius))
         }
       }
-      .id(current)
-      // Web fades the new photo in (`fast`).
-      .transition(.opacity.animation(Motion.fast))
+      // Web fades the new photo in (`fast`). Only a change of photo fades: a transition here
+      // could leave the first photo at zero opacity when the page itself appears.
+      .modifier(ContentFade(value: current))
       .frame(maxWidth: AppleMetrics.lightboxImageMaxWidth, maxHeight: .infinity)
       .accessibilityElement()
       .accessibilityLabel(

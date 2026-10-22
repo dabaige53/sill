@@ -32,8 +32,12 @@ import SwiftUI
     .linear(duration: AppleMetrics.motionCardHandoffFade).delay(AppleMetrics.motionCardHandoffDelay)
   }
 
+  /// Web `motion.cardReturn`: a fixed curve that ends exactly, so the live card takes over on time.
   static var cardReturn: Animation {
-    .spring(duration: AppleMetrics.motionCardReturn, bounce: AppleMetrics.cardReturnBounce)
+    .timingCurve(
+      AppleMetrics.cardReturnX1, AppleMetrics.cardReturnY1,
+      AppleMetrics.cardReturnX2, AppleMetrics.cardReturnY2,
+      duration: AppleMetrics.motionCardReturn)
   }
 
   static var press: Animation { ease(AppleMetrics.motionPress) }

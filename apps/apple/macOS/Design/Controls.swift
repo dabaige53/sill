@@ -50,6 +50,7 @@ struct CheckPress: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .environment(\.checkPressed, configuration.isPressed && enabled && !Motion.keyboardDriven)
+      .modifier(HandCursor())
   }
 }
 
@@ -73,6 +74,7 @@ private struct PrimaryPillBody: View {
       .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
       .animation(Motion.press, value: pressed)
       .onHover { hovered = $0 }
+      .modifier(HandCursor())
   }
 }
 
@@ -101,6 +103,7 @@ private struct RowBody: View {
       )
       .contentShape(Rectangle())
       .onHover { hovered = $0 }
+      .modifier(HandCursor())
   }
 }
 
@@ -117,22 +120,63 @@ struct TextLinkStyle: ButtonStyle {
       .padding(.horizontal, padded ? AppleMetrics.space2 : 0)
       .opacity(configuration.isPressed ? AppleMetrics.textLinkPressOpacity : 1)
       .contentShape(Rectangle())
+      .modifier(HandCursor())
   }
 }
 
 /// Button feedback shared by toolbar and navigation controls.
 struct HandCursor: ViewModifier {
   @Environment(\.isEnabled) private var enabled
-  @State private var inside = false
   func body(content: Content) -> some View {
-    content
-      .onHover { hovering in
-        inside = hovering
-        (hovering && enabled ? NSCursor.pointingHand : NSCursor.arrow).set()
-      }
-      .onChange(of: enabled) { _, value in
-        if inside { (value ? NSCursor.pointingHand : NSCursor.arrow).set() }
-      }
-      .onDisappear { if inside { NSCursor.arrow.set() } }
+    content.modifier(Pointer(kind: enabled ? .link : .arrow))
+  }
+}
+
+/// The I-beam over a whole input capsule, not only over the glyphs of its text field.
+struct TextCursor: ViewModifier {
+  func body(content: Content) -> some View { content.modifier(Pointer(kind: .text)) }
+}
+
+/// The arrow over something that looks like a control but does nothing yet.
+struct ArrowCursor: ViewModifier {
+  func body(content: Content) -> some View { content.modifier(Pointer(kind: .arrow)) }
+}
+
+/// The system pointer style where available. A cursor `set()` on hover is reset by AppKit on the
+/// next mouse move, so macOS 14 pushes the cursor while inside and pops it on the way out.
+private struct Pointer: ViewModifier {
+  enum Kind { case link, text, arrow }
+  let kind: Kind
+  @State private var pushed = false
+
+  func body(content: Content) -> some View {
+    if #available(macOS 15.0, *) {
+      content.pointerStyle(
+        kind == .link ? .link : kind == .text ? .horizontalText : .default)
+    } else {
+      content
+        .onHover { inside in inside ? push() : pop() }
+        .onChange(of: kind) { _, _ in
+          if pushed {
+            pop()
+            push()
+          }
+        }
+        .onDisappear { pop() }
+    }
+  }
+
+  private var cursor: NSCursor {
+    kind == .link ? .pointingHand : kind == .text ? .iBeam : .arrow
+  }
+  private func push() {
+    guard !pushed else { return }
+    cursor.push()
+    pushed = true
+  }
+  private func pop() {
+    guard pushed else { return }
+    NSCursor.pop()
+    pushed = false
   }
 }

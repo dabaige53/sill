@@ -23,9 +23,15 @@ import SwiftUI
   private(set) var contentShown = false
   private(set) var toolsShown = false
   @ObservationIgnored private var waitingForGeometry = false
+  /// A layer is mounted and will be shown on the next turn; it already counts as open.
+  @ObservationIgnored private var showPending = false
 
   @ObservationIgnored var viewport: CGRect = .zero
   @ObservationIgnored var cardFrames: [String: CGRect] = [:]
+  /// Where the overlay's own origin lies in the space cards are measured in. The feed's space
+  /// starts below the title bar while the overlay covers the whole window, so a card's frame is
+  /// moved by this before the overlay draws it; otherwise the flight lands off the card.
+  var overlayOrigin: CGPoint = .zero
   var matching: Bool { matchedCard != nil && layers.count == 1 }
 
   @ObservationIgnored private var token = 0
@@ -56,7 +62,7 @@ import SwiftUI
     hold(id)
     workspace.recorder.opened(id)
     if card.kind == .photo, !full { markPhotoRead(id) }
-    if layers.isEmpty || !shown {
+    if layers.isEmpty || (!shown && !showPending) {
       // A fresh overlay, or reopening while the previous one is still leaving.
       let fresh = layers.last?.card != id || layers.count != 1
       if fresh {
@@ -73,6 +79,16 @@ import SwiftUI
       }
       if matching && !shown && fresh {
         waitingForGeometry = true
+      } else if fresh && !Motion.keyboardDriven {
+        // A layer without a card to grow from (a photo, a card off screen) is inserted first and
+        // shown on the next turn. Inserting and fading in within one update could leave the new
+        // layer drawn at zero opacity: open, invisible and letting clicks through.
+        showPending = true
+        Task { @MainActor [weak self] in
+          guard let self, self.showPending else { return }
+          self.showPending = false
+          self.present(true)
+        }
       } else {
         present(true)
       }
@@ -118,7 +134,8 @@ import SwiftUI
     }
     token += 1
     let current = token
-    if waitingForGeometry {
+    if waitingForGeometry || showPending {
+      showPending = false
       waitingForGeometry = false
       finish()
       return
@@ -181,7 +198,10 @@ import SwiftUI
 
   /// The feed redraws read colors only once the overlay is gone (or replaced).
   private func releaseHeld() {
-    for id in held { workspace.state(id).releaseReadAppearance() }
+    // The read color and any change of height ease in after the card has landed.
+    withAnimation(Motion.read) {
+      for id in held { workspace.state(id).releaseReadAppearance() }
+    }
     held = []
   }
 

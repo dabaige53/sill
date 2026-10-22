@@ -66,6 +66,7 @@ class AppController {
 	declare searchHash: AppControllerMethods["searchHash"];
 	declare repaintSearchHash: AppControllerMethods["repaintSearchHash"];
 	declare syncHomeSearch: AppControllerMethods["syncHomeSearch"];
+	declare openHomeSearch: AppControllerMethods["openHomeSearch"];
 	declare renderAIDock: AppControllerMethods["renderAIDock"];
 	declare desktop: AppControllerMethods["desktop"];
 	declare homeKey: AppControllerMethods["homeKey"];

@@ -28,6 +28,11 @@ struct ReaderOverlay: View {
         }
         .opacity(reader.matching || reader.shown ? 1 : 0)
         .offset(y: reader.matching || reader.shown ? 0 : AppleMetrics.motionDetailEnterY)
+        .onGeometryChange(for: CGPoint.self) {
+          $0.frame(in: .named("card-workspace")).origin
+        } action: {
+          if reader.overlayOrigin != $0 { reader.overlayOrigin = $0 }
+        }
       }
       .ignoresSafeArea()
       // A leaving overlay is only a picture: clicks reach the feed at once, so the next card opens
@@ -130,7 +135,10 @@ struct CardGeometryDestination: ViewModifier {
   var ready = true
   @Environment(Reader.self) private var reader
   func body(content: Content) -> some View {
-    let source = reader.matching && reader.matchedCard == id ? reader.matchedFrame : nil
+    let origin = reader.overlayOrigin
+    let source =
+      reader.matching && reader.matchedCard == id
+      ? reader.matchedFrame?.offsetBy(dx: -origin.x, dy: -origin.y) : nil
     content
       .modifier(
         CardFlightSurface(
@@ -181,43 +189,9 @@ private struct CardTransitionFace: View {
   }
 }
 
-/// Tools follow the card's edge with the same spring, while their icons keep their size.
-struct CardToolsTravel: ViewModifier {
-  let id: String
-  let target: CGRect
-  var top = false
-  @Environment(Reader.self) private var reader
-
-  static func offset(source: CGRect, target: CGRect, top: Bool) -> CGSize {
-    CGSize(
-      width: source.midX - target.midX,
-      height: top ? source.minY - target.minY : source.maxY - target.maxY)
-  }
-
-  func body(content: Content) -> some View {
-    let source = reader.matching && reader.matchedCard == id ? reader.matchedFrame : nil
-    let collapsed = source != nil && !reader.shown
-    let offset = source.map { Self.offset(source: $0, target: target, top: top) } ?? .zero
-    content.modifier(CardToolsFlight(offset: offset, progress: collapsed ? 0 : 1))
-  }
-}
-
-/// The same interpolated progress drives geometry and appearance, including reversals.
-struct CardToolsFlight: AnimatableModifier {
-  let offset: CGSize
-  nonisolated var progress: CGFloat
-  nonisolated var animatableData: CGFloat {
-    get { progress }
-    set { progress = newValue }
-  }
-  func body(content: Content) -> some View {
-    content
-      .offset(x: offset.width * (1 - progress), y: offset.height * (1 - progress))
-      .opacity(CardFlightSurface.toolOpacity(progress))
-  }
-}
-
-/// Fixed layouts, uniform content transforms and one moving mask; no per-frame frame resizing.
+/// The card grows into the detail: one moving, rounded frame clips content laid out once at its
+/// final size and pinned to the frame's top-left corner. Text, tools and icons never scale; the
+/// frame reveals them as it grows, so close, fullscreen and the toolbar arrive with the card.
 struct CardFlightSurface: AnimatableModifier {
   let id: String?
   let source: CGRect
@@ -237,6 +211,13 @@ struct CardFlightSurface: AnimatableModifier {
       height: max(1, source.height + (target.height - source.height) * progress))
   }
 
+  /// The detail text stays drawn until the frame is nearly the card's size, so the part of the
+  /// frame below the card face never shows an empty sheet while it closes.
+  static func contentOpacity(_ progress: CGFloat) -> Double {
+    let value = min(1, max(0, progress / AppleMetrics.cardBlendStart))
+    return Double(value * value * (3 - 2 * value))
+  }
+
   static func detailOpacity(_ progress: CGFloat) -> Double {
     let value = min(
       1,
@@ -246,32 +227,34 @@ struct CardFlightSurface: AnimatableModifier {
           / (AppleMetrics.cardBlendEnd - AppleMetrics.cardBlendStart)))
     return Double(value * value * (3 - 2 * value))
   }
-  static func toolOpacity(_ progress: CGFloat) -> Double {
-    Double(min(1, max(0, progress / AppleMetrics.cardToolsRevealProgress)))
-  }
 
   func body(content: Content) -> some View {
     let rect = Self.rect(source: source, target: target, progress: progress)
     let blend = id == nil ? 1 : Self.detailOpacity(progress)
-    let radius =
-      AppleMetrics.cardRadius
-      + (targetRadius - AppleMetrics.cardRadius) * min(1, max(0, progress))
+    let lift = Double(min(1, max(0, progress)))
+    let radius = AppleMetrics.cardRadius + (targetRadius - AppleMetrics.cardRadius) * lift
+    let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
     ZStack(alignment: .topLeading) {
-      AppleColors.card
-      content
-        .frame(width: target.width, height: target.height, alignment: .topLeading)
-        .scaleEffect(rect.width / max(1, target.width), anchor: .topLeading)
-        .opacity(blend)
-      if let id {
-        CardTransitionFace(id: id)
-          .frame(width: source.width, height: source.height, alignment: .topLeading)
-          .scaleEffect(rect.width / max(1, source.width), anchor: .topLeading)
-          .opacity(1 - blend)
+      // The card's own shadow turns into the sheet's as it lifts, so nothing swaps at either end.
+      shape.fill(AppleColors.card).frame(width: rect.width, height: rect.height)
+        .shadow(.card).opacity(1 - lift)
+      shape.fill(AppleColors.card).frame(width: rect.width, height: rect.height)
+        .shadow(.sheet).opacity(lift)
+      ZStack(alignment: .topLeading) {
+        AppleColors.card
+        content
+          .frame(width: target.width, height: target.height, alignment: .topLeading)
+          .opacity(id == nil ? 1 : Self.contentOpacity(progress))
+        if let id {
+          CardTransitionFace(id: id)
+            .frame(width: source.width, height: source.height, alignment: .topLeading)
+            .opacity(1 - blend)
+        }
       }
+      .frame(width: target.width, height: target.height, alignment: .topLeading)
+      .clipShape(CardFlightMask(size: rect.size, radius: radius))
     }
     .frame(width: target.width, height: target.height, alignment: .topLeading)
-    .clipShape(CardFlightMask(size: rect.size, radius: radius))
-    .shadow(.sheet)
     .offset(x: rect.minX - target.minX, y: rect.minY - target.minY)
   }
 }
@@ -280,6 +263,6 @@ private struct CardFlightMask: Shape {
   var size: CGSize
   var radius: CGFloat
   func path(in rect: CGRect) -> Path {
-    Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: radius)
+    Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: radius, style: .continuous)
   }
 }

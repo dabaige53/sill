@@ -315,6 +315,7 @@ class DragManager {
 		if (this.active.ready !== ready) {
 			this.active.ready = ready;
 			target?.classList.toggle("is-ready", ready);
+			if (target?.id === "ai-dock") MotionEngine.dropTarget(target, ready ? "ready" : "carrying");
 			const label = target?.querySelector("[data-ai-label]");
 			if (label) label.textContent = copy(ready ? "web.selection.aiReady" : "web.selection.aiDrop");
 			const dockInput = target?.querySelector<HTMLInputElement>("#ai-dock-input");
@@ -333,6 +334,7 @@ class DragManager {
 				]),
 			);
 			document.body.classList.add("is-carrying");
+			if (target?.id === "ai-dock" && !ready) MotionEngine.dropTarget(target, "carrying");
 			(this.app.modalKind === "search" ? this.app.dialog : document.body).append(this.ghost);
 		}
 		// Direct compositor movement: no queued animation can trail the finger.
@@ -415,6 +417,7 @@ class DragManager {
 		)?.querySelector<HTMLInputElement>("#ai-dock-input");
 		if (dockInput) dockInput.placeholder = copy("web.ai.dockPlaceholder");
 		document.getElementById("dock")?.classList.remove("is-ai-drag");
+		MotionEngine.dropTarget(document.getElementById("ai-dock"), "idle");
 		document.body.classList.remove("is-dragging");
 		document.body.classList.remove("is-carrying");
 		document.querySelectorAll(".is-drag-source").forEach((n) => {

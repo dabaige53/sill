@@ -88,12 +88,6 @@ struct PreviewSheet: View {
       .overlay(alignment: .bottom) {
         if !tools.isEmpty { BottomFade(motion: scroll.motion) }
       }
-      .modifier(
-        CardGeometryDestination(
-          id: card.id,
-          target: target,
-          ready: contentHeight > 0)
-      )
       .overlay(alignment: .top) {
         ZStack(alignment: .top) {
           HeadDiscs(
@@ -102,7 +96,6 @@ struct PreviewSheet: View {
             close: { reader.close() })
         }
         .modifier(DetailReveal(tools: true))
-        .modifier(CardToolsTravel(id: card.id, target: target, top: true))
       }
       .overlay(alignment: .bottom) {
         ZStack(alignment: .bottom) {
@@ -116,8 +109,9 @@ struct PreviewSheet: View {
             .padding(.bottom, AppleMetrics.space24)
         }
         .modifier(DetailReveal(tools: true))
-        .modifier(CardToolsTravel(id: card.id, target: target))
       }
+      // Close, fullscreen and the toolbar belong to the surface that grows out of the card.
+      .modifier(CardGeometryDestination(id: card.id, target: target, ready: contentHeight > 0))
 
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)

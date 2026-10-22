@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 
@@ -135,16 +136,11 @@ import Testing
     #expect(CardFlightSurface.rect(source: source, target: target, progress: 1) == target)
     let halfway = CardFlightSurface.rect(source: source, target: target, progress: 0.5)
     #expect(halfway == CGRect(x: 70, y: 100, width: 550, height: 390))
-    let tools = CardToolsTravel.offset(source: source, target: target, top: false)
-    #expect(halfway.maxY == target.maxY + tools.height * 0.5)
-    #expect(halfway.midX == target.midX + tools.width * 0.5)
   }
 
   @Test func contentAndToolsFollowGeometryProgressInBothDirections() {
     #expect(CardFlightSurface.detailOpacity(0) == 0)
     #expect(CardFlightSurface.detailOpacity(1) == 1)
-    #expect(CardFlightSurface.toolOpacity(0) == 0)
-    #expect(CardFlightSurface.toolOpacity(AppleMetrics.cardToolsRevealProgress) == 1)
     var previous = 0.0
     for step in 0...100 {
       let progress = CGFloat(step) / 100
@@ -158,14 +154,10 @@ import Testing
     #expect(CardFlightSurface.detailOpacity(0.6) > halfway)
   }
 
-  @Test func toolsTravelWithTheSourceEdgesWithoutScalingIcons() {
-    let source = CGRect(x: 40, y: 80, width: 300, height: 180)
-    let target = CGRect(x: 100, y: 120, width: 800, height: 600)
-    let bottom = CardToolsTravel.offset(source: source, target: target, top: false)
-    let top = CardToolsTravel.offset(source: source, target: target, top: true)
-    #expect(target.midX + bottom.width == source.midX)
-    #expect(target.maxY + bottom.height == source.maxY)
-    #expect(target.minY + top.height == source.minY)
+  @Test func cardReturnEndsOnTimeWithoutASpringTail() {
+    // The live card takes over when the curve ends; a spring would settle long after it looks done.
+    #expect(AppleMetrics.motionCardReturn == 0.32)
+    #expect(AppleMetrics.cardReturnX1 == 0.4 && AppleMetrics.cardReturnY2 == 1)
   }
 
   @Test func refreshFailureRetryAndSuccess() async throws {
@@ -183,5 +175,20 @@ import Testing
     #expect(refresh.phase == .idle)
     #expect(refresh.distance == 0)
     refresh.cancel()
+  }
+  /// macOS 26 lays the top bar out as a safe-area bar: the clip view rests at minus its height.
+  @Test func feedTopIsMeasuredBelowTheTopBar() {
+    let view = NSScrollView(frame: NSRect(x: 0, y: 0, width: 400, height: 600))
+    view.automaticallyAdjustsContentInsets = false
+    view.contentInsets = NSEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
+    view.documentView = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 2000))
+    let scroll = FeedScroll(chrome: Chrome())
+    scroll.scrollView = view
+    scroll.scroll(to: 0)
+    #expect(view.contentView.bounds.minY == -100)
+    #expect(scroll.offset == 0)
+    // Cards still partly under the bar are not at the top, so a pull scrolls instead of refreshing.
+    view.contentView.scroll(to: NSPoint(x: 0, y: -60))
+    #expect(scroll.offset == 40)
   }
 }

@@ -18,7 +18,8 @@ import SwiftUI
 }
 
 /// The search field in the top bar. The tab is a token in the field; home filter and search share
-/// one state. Width stays stable across focus and token changes, shrinking only with the window.
+/// one state. At rest it is a short capsule; focus stretches it, and a query or token keeps it
+/// open. No focus ring: the longer field and the caret show where typing goes.
 struct SearchField: View {
   @Environment(DesktopInteraction.self) private var interaction
   @Environment(Feed.self) private var feed
@@ -47,6 +48,7 @@ struct SearchField: View {
             .background(Capsule().fill(AppleColors.primary))
         }
         .buttonStyle(.plain)
+        .modifier(HandCursor())
         .accessibilityLabel("\(Copy.text("web.home.removeTab")) \(feed.scope.label)")
       }
       TextField(
@@ -81,12 +83,16 @@ struct SearchField: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .modifier(HandCursor())
         .accessibilityLabel(Copy.text("web.search.clear"))
       }
     }
     .padding(.leading, AppleMetrics.space14)
     .padding(.trailing, AppleMetrics.space8)
-    .modifier(SearchSurface(focused: focused))
+    // The whole capsule takes typing, so the I-beam covers it, not only the text.
+    .modifier(TextCursor())
+    .modifier(SearchSurface(width: width))
+    .animation(Motion.keyboardDriven ? nil : Motion.state, value: width)
     .onGeometryChange(for: CGRect.self) {
       $0.frame(in: .global)
     } action: {
@@ -104,6 +110,13 @@ struct SearchField: View {
     .onChange(of: shell.blurRequest) { focused = false }
     // Losing focus elsewhere (a click, the reader, a panel) must not leave the field marked focused.
     .onChange(of: interaction.canSearch) { _, allowed in if !allowed { focused = false } }
+  }
+
+  /// Rest, holding a query or token, focused.
+  private var width: CGFloat {
+    if focused { return AppleMetrics.searchFocusedWidth }
+    return text.isEmpty && feed.scope == .all
+      ? AppleMetrics.searchWidth : AppleMetrics.searchTaggedWidth
   }
 
   private func clear() {
@@ -124,28 +137,14 @@ struct SearchField: View {
   }
 }
 
-/// Focus changes the border only; available window space controls the field width.
+/// The capsule takes the width it is given and shrinks only when the window has no room.
 private struct SearchSurface: ViewModifier {
-  var focused: Bool
+  var width: CGFloat
   func body(content: Content) -> some View {
     content
-      .frame(
-        minWidth: AppleMetrics.searchWidth, idealWidth: AppleMetrics.searchTaggedWidth,
-        maxWidth: AppleMetrics.searchTaggedWidth
-      )
+      .frame(minWidth: min(width, AppleMetrics.searchWidth), idealWidth: width, maxWidth: width)
       .frame(height: AppleMetrics.searchHeight)
       .modifier(SearchGlass())
-      .overlay {
-        if focused {
-          Capsule().strokeBorder(AppleColors.accent, lineWidth: AppleMetrics.lineWidth)
-            .overlay(
-              Capsule().stroke(
-                AppleColors.accent.opacity(AppleMetrics.searchFocusOpacity),
-                lineWidth: AppleMetrics.searchFocusRing * 2)
-            )
-            .allowsHitTesting(false)
-        }
-      }
   }
 }
 

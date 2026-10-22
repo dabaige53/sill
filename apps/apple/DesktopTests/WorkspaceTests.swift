@@ -181,6 +181,18 @@ private let syntheticReminder: JSONValue = .object([
     #expect(reader.matchedCard == "b")
   }
 
+  /// A layer with no card to grow from mounts first and is shown on the next turn, so its
+  /// insertion and its fade never share one update.
+  @Test func unmatchedLayerShowsOnTheNextTurn() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.open("a")
+    #expect(reader.presented && !reader.matching && !reader.shown)
+    try await Task.sleep(for: .milliseconds(20))
+    #expect(reader.shown && reader.contentShown && reader.toolsShown)
+  }
+
   @Test func articleAndPhotoHeadsNameTheirDay() async throws {
     let (workspace, _) = await ready(
       [],

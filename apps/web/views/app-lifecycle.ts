@@ -90,6 +90,22 @@ export const appLifecycleMethods = {
 				this.closeMore();
 			if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing"))
 				this.finishInlineEdit();
+			if (e.target.closest?.("#home-search-field")) this.openHomeSearch(true);
+		});
+		// The search field and the AI box show a text cursor across the capsule, so a press on
+		// its padding puts the caret in the input instead of dropping focus.
+		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
+			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock");
+			if (!capsule || e.target.closest?.("button, input, .ai-dock-context")) return;
+			const input = capsule.querySelector<HTMLInputElement>("#home-search, #ai-dock-input");
+			if (!input || input.disabled) return;
+			e.preventDefault();
+			input.focus({ preventScroll: true });
+		});
+		document.addEventListener("focusout", (e?: TargetEvent<FocusEvent>) => {
+			const field = document.getElementById("home-search-field");
+			if (field?.contains(e.target) && !field.contains(e.relatedTarget as Node | null))
+				this.openHomeSearch(false);
 		});
 		this.bindDialog();
 		const toast = document.getElementById("toast");

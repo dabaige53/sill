@@ -471,6 +471,16 @@ body.is-dragging #toast {
 			0 0 0 2px var(--accent),
 			0 16px 40px -14px color-mix(in srgb, var(--accent) 45%, transparent);
 	}
+	/* While a card is carried, an accent ring keeps spreading out of the box. */
+	.ai-dock-pulse {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: var(--pill-radius);
+		box-shadow: 0 0 0 2px var(--accent);
+		opacity: 0;
+		pointer-events: none;
+	}
 	.ai-dock.is-ready .ai-dock-input::placeholder {
 		color: var(--accent);
 		font-weight: 600;
@@ -582,12 +592,22 @@ body.is-dragging #toast {
 }
 
 @media (min-width: 651px) {
+	/* One glass for the bottom rail: the AI box, the selection bars and detail tools all keep
+	   the `.glass` lens (clear tint, bright edge, strong blur), like Apple's Liquid Glass. */
 	.ai-dock,
 	#selection-bar,
-	#search-selection-bar {
-		background: var(--glass-thick);
-		-webkit-backdrop-filter: var(--chrome-glass-filter);
-		backdrop-filter: var(--chrome-glass-filter);
+	#search-selection-bar,
+	dialog:not(.lightbox) > .float-bar {
+		background: var(--glass);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
+	}
+	/* The search field and the AI box take typing across the whole capsule. */
+	.ai-dock {
+		cursor: text;
+	}
+	.ai-dock-context {
+		cursor: default;
 	}
 	.ai-dock-send:disabled > span {
 		color: var(--secondary);
@@ -599,6 +619,12 @@ body.is-dragging #toast {
 }
 
 @media (min-width: 651px) {
-  .ai-dock-input::placeholder { color: var(--secondary); opacity: 1; }
-  #search-selection-bar { width: max-content; margin-inline: auto; }
+	.ai-dock-input::placeholder {
+		color: var(--secondary);
+		opacity: 1;
+	}
+	#search-selection-bar {
+		width: max-content;
+		margin-inline: auto;
+	}
 }

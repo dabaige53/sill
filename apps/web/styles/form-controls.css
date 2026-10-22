@@ -350,8 +350,13 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		pointer-events: none;
 	}
 	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-		.home-top { background: transparent; }
-		.home-top > .home-heading { position: relative; z-index: 1; }
+		.home-top {
+			background: transparent;
+		}
+		.home-top > .home-heading {
+			position: relative;
+			z-index: 1;
+		}
 		.home-top::before,
 		.home-top::after,
 		.home-edge-blur {
@@ -490,7 +495,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-8);
-		width: 360px;
+		width: var(--search-width);
 		min-width: 0;
 		flex-shrink: 1;
 		height: var(--space-40);
@@ -498,6 +503,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		border-radius: 20px;
 		background: transparent;
 		color: var(--muted);
+		cursor: text;
 	}
 	.home-search::before {
 		content: "";
@@ -512,10 +518,12 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		transform-origin: right center;
 		pointer-events: none;
 	}
-	.home-search:focus-within::before {
-		box-shadow:
-			inset 0 0 0 1px var(--accent),
-			0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+	/* At rest a short capsule; a query or tab keeps it open, focus stretches it. No focus ring. */
+	.home-search:is(.has-text, .has-token) {
+		width: var(--search-tagged-width);
+	}
+	.home-search.is-open {
+		width: var(--search-focused-width);
 	}
 	.home-search > .icon {
 		flex: none;

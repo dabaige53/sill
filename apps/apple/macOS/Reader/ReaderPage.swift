@@ -36,10 +36,8 @@ struct ReaderPage: View {
         }
         .scrollIndicators(.automatic)
       }
-      .modifier(CardGeometryDestination(id: card.id, target: target))
       ReaderProgress(motion: scroll.motion)
         .modifier(DetailReveal(tools: true))
-        .modifier(CardToolsTravel(id: card.id, target: target, top: true))
       HStack(spacing: AppleMetrics.space2) {
         ToolButton(icon: "collapse", label: Copy.text("web.reader.exitFullscreen")) {
           reader.open(card.id, full: false)
@@ -55,7 +53,6 @@ struct ReaderPage: View {
       .padding(.trailing, AppleMetrics.readerToolsRight)
       .frame(maxWidth: .infinity, alignment: .trailing)
       .modifier(DetailReveal(tools: true))
-      .modifier(CardToolsTravel(id: card.id, target: target, top: true))
       VStack(spacing: AppleMetrics.space12) {
         Spacer(minLength: 0)
         FinishRing(motion: scroll.motion)
@@ -66,8 +63,9 @@ struct ReaderPage: View {
       }
       .padding(.bottom, AppleMetrics.readerBarBottom)
       .modifier(DetailReveal(tools: true))
-      .modifier(CardToolsTravel(id: card.id, target: target))
     }
+    // The page and its tools grow out of the card as one surface.
+    .modifier(CardGeometryDestination(id: card.id, target: target))
     .ignoresSafeArea()
     .modifier(ReaderSurfaceOffset(motion: scroll.motion))
     .onAppear { configure() }

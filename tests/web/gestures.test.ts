@@ -104,6 +104,9 @@ test("pushing on at the end of a stacked preview folds back one card, not the de
 		f.fire(target, "touchend", 120, 300);
 		assert.equal(f.Store.item("article").read, true);
 		f.flush();
+		// The card is redrawn first; the detail leaves two frames later, on a clean frame.
+		f.flush(f.frames);
+		f.flush(f.frames);
 		assert.equal(f.app.closed, 1);
 		assert.equal(desk, 0);
 	} finally {
@@ -498,6 +501,8 @@ test("read-end touch progress coalesces frames and commits once before release",
 		assert.equal(refreshes, 0, "feed rendering waits until confirmation has been visible");
 		f.fire(target, "touchend", 120, 300);
 		f.flush();
+		f.flush(f.frames);
+		f.flush(f.frames);
 		assert.equal(f.app.closed, 1);
 		assert.equal(refreshes, 1);
 	} finally {
@@ -521,6 +526,8 @@ test("read-end wheel threshold completes without waiting for the stream to stop"
 		assert.equal(writes, 1);
 		assert.equal(f.app.closed, 0, "confirmation is visible before the layer closes");
 		f.flush();
+		f.flush(f.frames);
+		f.flush(f.frames);
 		assert.equal(f.app.closed, 1);
 	} finally {
 		f.dom.window.close();
@@ -634,6 +641,8 @@ test("desktop completed reading keeps tools hidden through the close handoff", (
 			assert.equal(f.w.getComputedStyle(bar).visibility, "hidden");
 			bar.style.opacity = "0";
 			f.flush();
+			f.flush(f.frames);
+			f.flush(f.frames);
 			assert.equal(closed, true);
 			assert.equal(bar.style.visibility, "hidden");
 		} finally {

@@ -106,6 +106,7 @@ struct ReaderToolbar: View {
     }
     .padding(AppleMetrics.railInset)
     .frame(height: AppleMetrics.railRow)
+    // One native glass for the bottom rail: detail tools, the selection bar and the AI box.
     .desktopGlass(Capsule())
     .onHover { inside in if !inside { tips.leaveBar() } }
     .accessibilityElement(children: .contain)

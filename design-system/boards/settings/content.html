@@ -3,9 +3,11 @@
 	--edge-blur-soft: blur(4px);
 	--edge-blur-mid: blur(8px);
 	--edge-blur-strong: blur(16px);
-	--chrome-glass-filter: blur(24px) saturate(1.2);
 	--summary-reading-lines: 4;
 	--settings-body-height: 560px;
+	--search-width: 280px;
+	--search-tagged-width: 360px;
+	--search-focused-width: 480px;
 	--dur-deck: 260ms;
 	--dur-show: 320ms;
 	--dur-lens: 0ms;
@@ -1036,6 +1038,16 @@ body.is-dragging #toast {
 			0 0 0 2px var(--accent),
 			0 16px 40px -14px color-mix(in srgb, var(--accent) 45%, transparent);
 	}
+	/* While a card is carried, an accent ring keeps spreading out of the box. */
+	.ai-dock-pulse {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: var(--pill-radius);
+		box-shadow: 0 0 0 2px var(--accent);
+		opacity: 0;
+		pointer-events: none;
+	}
 	.ai-dock.is-ready .ai-dock-input::placeholder {
 		color: var(--accent);
 		font-weight: 600;
@@ -1147,12 +1159,22 @@ body.is-dragging #toast {
 }
 
 @media (min-width: 651px) {
+	/* One glass for the bottom rail: the AI box, the selection bars and detail tools all keep
+	   the `.glass` lens (clear tint, bright edge, strong blur), like Apple's Liquid Glass. */
 	.ai-dock,
 	#selection-bar,
-	#search-selection-bar {
-		background: var(--glass-thick);
-		-webkit-backdrop-filter: var(--chrome-glass-filter);
-		backdrop-filter: var(--chrome-glass-filter);
+	#search-selection-bar,
+	dialog:not(.lightbox) > .float-bar {
+		background: var(--glass);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
+	}
+	/* The search field and the AI box take typing across the whole capsule. */
+	.ai-dock {
+		cursor: text;
+	}
+	.ai-dock-context {
+		cursor: default;
 	}
 	.ai-dock-send:disabled > span {
 		color: var(--secondary);
@@ -1164,8 +1186,14 @@ body.is-dragging #toast {
 }
 
 @media (min-width: 651px) {
-  .ai-dock-input::placeholder { color: var(--secondary); opacity: 1; }
-  #search-selection-bar { width: max-content; margin-inline: auto; }
+	.ai-dock-input::placeholder {
+		color: var(--secondary);
+		opacity: 1;
+	}
+	#search-selection-bar {
+		width: max-content;
+		margin-inline: auto;
+	}
 }
 
 /* Chips, segmented controls and switches. */
@@ -1520,8 +1548,13 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		pointer-events: none;
 	}
 	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-		.home-top { background: transparent; }
-		.home-top > .home-heading { position: relative; z-index: 1; }
+		.home-top {
+			background: transparent;
+		}
+		.home-top > .home-heading {
+			position: relative;
+			z-index: 1;
+		}
 		.home-top::before,
 		.home-top::after,
 		.home-edge-blur {
@@ -1660,7 +1693,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-8);
-		width: 360px;
+		width: var(--search-width);
 		min-width: 0;
 		flex-shrink: 1;
 		height: var(--space-40);
@@ -1668,6 +1701,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		border-radius: 20px;
 		background: transparent;
 		color: var(--muted);
+		cursor: text;
 	}
 	.home-search::before {
 		content: "";
@@ -1682,10 +1716,12 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		transform-origin: right center;
 		pointer-events: none;
 	}
-	.home-search:focus-within::before {
-		box-shadow:
-			inset 0 0 0 1px var(--accent),
-			0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+	/* At rest a short capsule; a query or tab keeps it open, focus stretches it. No focus ring. */
+	.home-search:is(.has-text, .has-token) {
+		width: var(--search-tagged-width);
+	}
+	.home-search.is-open {
+		width: var(--search-focused-width);
 	}
 	.home-search > .icon {
 		flex: none;

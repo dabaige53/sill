@@ -243,6 +243,45 @@ const MotionEngine: Record<string, any> = {
 		if (state.animation) state.animation.finished.then(finish, () => {});
 		else finish();
 	},
+	pulses: new WeakMap<HTMLElement, Playback>(),
+	/** The AI box as a drop target: it grows while a card is carried and rings keep spreading out. */
+	dropTarget(el: HTMLElement | null, state: "idle" | "carrying" | "ready") {
+		if (!el) return;
+		const drop = tokens.motion.aiDrop;
+		const scale = state === "ready" ? drop.readyScale : state === "carrying" ? drop.scale : 1;
+		const from = getComputedStyle(el).transform;
+		this.animate(
+			el,
+			[{ transform: from === "none" ? "scale(1)" : from }, { transform: `scale(${scale})` }],
+			{
+				spring: true,
+				fill: "forwards",
+			},
+		);
+		let ring = el.querySelector<HTMLElement>(":scope > .ai-dock-pulse");
+		if (state === "idle") {
+			this.pulses.get(el)?.cancel();
+			this.pulses.delete(el);
+			ring?.remove();
+			return;
+		}
+		if (ring) return;
+		ring = document.createElement("span");
+		ring.className = "ai-dock-pulse";
+		ring.setAttribute("aria-hidden", "true");
+		el.prepend(ring);
+		this.pulses.set(
+			el,
+			play(
+				ring,
+				[
+					{ inset: "0px", opacity: drop.opacity },
+					{ inset: `-${drop.spread}px`, opacity: 0 },
+				],
+				{ duration: drop.duration, easing: this.curve(), repeat: Infinity },
+			),
+		);
+	},
 	/** Layout settles once. Only the background stretches; text and caret keep their size. */
 	searchResize(el: HTMLElement, previousWidth: number) {
 		const width = el.getBoundingClientRect().width;

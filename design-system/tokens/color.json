@@ -108,11 +108,6 @@
 				"usage": "桌面顶栏渐进模糊的上沿。"
 			},
 			{
-				"name": "chrome-glass-filter",
-				"value": "blur(24px) saturate(1.2)",
-				"usage": "桌面 AI 栏及多选栏的背景模糊，抑制背后文字和彩色图片干扰。"
-			},
-			{
 				"name": "glass-thick",
 				"value": "rgba(255,255,255,.88)",
 				"usage": "字多的玻璃：多选操作菜单、增强对比度时的工具条；深色 rgba(36,36,40,.9)。"

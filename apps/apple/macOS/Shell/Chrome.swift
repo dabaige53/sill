@@ -36,14 +36,21 @@ import SwiftUI
 
   init(chrome: Chrome) { self.chrome = chrome }
 
-  var offset: CGFloat { scrollView?.contentView.bounds.minY ?? 0 }
+  /// Distance scrolled from the top, 0 at rest. On macOS 26 the top bar is a safe-area bar, so
+  /// the clip view rests at minus the bar height; reading the raw origin would call cards still
+  /// tucked under the bar "at the top" and let a pull to refresh take the scroll back.
+  var offset: CGFloat {
+    guard let clip = scrollView?.contentView else { return 0 }
+    return clip.bounds.minY + clip.contentInsets.top
+  }
 
-  func scrolled(offset: CGFloat, visible: CGFloat, content: CGFloat) {
+  func scrolled(offset raw: CGFloat, top: CGFloat = 0, visible: CGFloat, content: CGFloat) {
+    let offset = raw + top
     let delta = offset - last
     last = offset
     rest?.cancel()
-    let atEdge = offset <= 0 || offset + visible >= content - 1
-    if content - (offset + visible) < visible * 2 { nearEnd() }
+    let atEdge = offset <= 0 || raw + visible >= content - 1
+    if content - (raw + visible) < visible * 2 { nearEnd() }
     if atEdge {
       down = 0
       up = 0
@@ -84,7 +91,8 @@ import SwiftUI
 
   func scroll(to y: CGFloat, animated: Bool = false) {
     guard let scrollView else { return }
-    let point = NSPoint(x: 0, y: max(0, y))
+    let top = scrollView.contentView.contentInsets.top
+    let point = NSPoint(x: 0, y: max(0, y) - top)
     if animated {
       NSAnimationContext.runAnimationGroup { context in
         context.duration = AppleMetrics.motionSheet
@@ -144,8 +152,8 @@ struct ScrollProbe: NSViewRepresentable {
             return
           }
           self.scroll?.scrolled(
-            offset: view.contentView.bounds.minY, visible: view.contentView.bounds.height,
-            content: document.bounds.height)
+            offset: view.contentView.bounds.minY, top: view.contentView.contentInsets.top,
+            visible: view.contentView.bounds.height, content: document.bounds.height)
         }
       }
     }

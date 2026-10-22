@@ -246,6 +246,14 @@ export const appFeedMethods = {
 	desktop(this: AppController) {
 		return matchMedia("(min-width: 651px)").matches;
 	},
+	/** The top-bar search stretches while focus is inside it and rests short otherwise. */
+	openHomeSearch(this: AppController, open: boolean) {
+		const field = document.getElementById("home-search-field");
+		if (!field || field.classList.contains("is-open") === open) return;
+		const width = field.getBoundingClientRect().width;
+		field.classList.toggle("is-open", open);
+		MotionEngine.searchResize(field, width);
+	},
 	/** The chosen tab is a token in the top-bar search; home filter and search share one state. */
 	syncHomeSearch(this: AppController) {
 		const field = document.getElementById("home-search-field");
@@ -268,8 +276,10 @@ export const appFeedMethods = {
 			: copy("web.home.searchPlaceholder");
 		if (document.activeElement !== input && input.value !== this.filter.query)
 			input.value = this.filter.query;
+		const width = field.getBoundingClientRect().width;
 		field.classList.toggle("has-token", !!label);
 		field.classList.toggle("has-text", !!this.filter.query);
+		MotionEngine.searchResize(field, width);
 		field.querySelector<HTMLElement>(".home-search-clear").hidden = !this.filter.query;
 		document.querySelectorAll<HTMLElement>(".home-menu-item").forEach((n) => {
 			n.setAttribute("aria-checked", String(n.dataset.extra === tab));

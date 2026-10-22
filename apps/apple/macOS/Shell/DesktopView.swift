@@ -60,8 +60,8 @@ struct DesktopView: View {
         }
         ZStack(alignment: .bottom) {
           AIDock()
-            .opacity(dockShown || drag.active ? 1 : 0)
-            .allowsHitTesting(dockShown || drag.active)
+            .opacity(dockVisible ? 1 : 0)
+            .allowsHitTesting(dockVisible)
           if barShown {
             SelectionBar(intents: selectionIntents)
               .transition(.opacity.combined(with: .offset(y: AppleMetrics.motionBarTravel)))
@@ -70,13 +70,18 @@ struct DesktopView: View {
         .animation(Motion.menuOpen, value: selection.active)
         .padding(.horizontal, AppleMetrics.railEdge)
         .modifier(
-          Tuck(tucked: chrome.tucked && !drag.active, travel: AppleMetrics.motionRailTravel)
+          Tuck(tucked: chrome.tucked && !carrying, travel: AppleMetrics.motionRailTravel)
         )
         .frame(maxHeight: .infinity, alignment: .bottom)
         .padding(.bottom, AppleMetrics.railEdge)
-        if drag.active, drag.moved {
-          DragPile(cardWidth: geometry.columnWidth)
+        // The pile shrinks away when it is let go, onto the AI box or anywhere else.
+        ZStack {
+          if carrying {
+            DragPile(cardWidth: geometry.columnWidth)
+              .transition(.opacity.combined(with: .scale(scale: AppleMetrics.motionMenuScale)))
+          }
         }
+        .animation(Motion.fast, value: carrying)
         NewHint { showNew() }
         // Keep the dropdown in the window layer: its rows extend below the top bar.
         ScopeMenu(menu: shell.menu)
@@ -132,7 +137,7 @@ struct DesktopView: View {
     .task(id: barShown) {
       if barShown {
         dockShown = false
-      } else if drag.active {
+      } else if carrying {
         dockShown = true
       } else {
         do { try await Task.sleep(for: .seconds(AppleMetrics.motionMenuClose)) } catch { return }
@@ -202,8 +207,14 @@ struct DesktopView: View {
     chrome.pinned = shell.searchFocused || shell.menu.open || drag.active
   }
 
+  /// A pile is under the pointer. Holding a card to select it is not carrying yet.
+  private var carrying: Bool { drag.active && drag.moved }
+
   /// The selection bar replaces the AI box while cards are selected, except while carrying them.
-  private var barShown: Bool { selection.active && !drag.active }
+  private var barShown: Bool { selection.active && !carrying }
+
+  /// The AI box leaves in the same frame the bar arrives; it returns once the bar has gone.
+  private var dockVisible: Bool { carrying || (!barShown && dockShown) }
 
   private func scrollToTop() {
     if feed.filtering { feed.clearFilter() }
@@ -290,11 +301,13 @@ struct DesktopView: View {
     }
   }
 
-  /// Web blur: a click anywhere outside the focused search field ends the search focus. The click
-  /// still reaches what it landed on; the query and the token stay.
+  /// Web blur: a click anywhere outside the focused search field or AI box ends its focus. The
+  /// click still reaches what it landed on; the query, the token and the draft stay.
   private func installPointer() {
     guard pointer == nil else { return }
     let shell = shell
+    let ai = ai
+    let drag = drag
     pointer = NSEvent.addLocalMonitorForEvents(
       matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]
     ) { event in
@@ -304,6 +317,8 @@ struct DesktopView: View {
       let point = CGPoint(x: event.locationInWindow.x, y: height - event.locationInWindow.y)
       MainActor.assumeIsolated {
         if shell.searchFocused, !shell.searchFrame.contains(point) { shell.blurSearch() }
+        // `drag.target` is the AI box's frame, kept by the box itself.
+        if ai.focused, !drag.target.contains(point) { ai.blur() }
       }
       return event
     }

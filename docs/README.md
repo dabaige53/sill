@@ -200,5 +200,7 @@
 - [桌面交互架构与验证](guides/desktop-interaction.md)
 - [桌面输入归属与动效职责](adr/0056-desktop-input-ownership.md)
 - [桌面卡片空间过渡与浮层可读性](adr/0057-desktop-card-spatial-transition.md)
+- [Mac 卡片展开改为外框露出](adr/0058-mac-card-reveal-transition.md)
+- [桌面搜索框伸缩、AI 框拖入反馈与底部轨道玻璃统一](adr/0059-mac-search-ai-dock-rail-glass.md)
 
 - [2026-10-21 测试整理](records/2026-10-21-test-cleanup/README.md)：旧测试删除依据、恢复标签和运行入口分工。

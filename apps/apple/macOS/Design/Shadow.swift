@@ -85,18 +85,13 @@ struct Shadow: ViewModifier {
 
 extension View {
   /// Native material for floating controls; older systems keep the compatible Sill material.
-  @ViewBuilder func desktopGlass<S: InsettableShape>(_ shape: S, interactive: Bool = false, dense: Bool = false)
+  @ViewBuilder func desktopGlass<S: InsettableShape>(_ shape: S, interactive: Bool = false)
     -> some View
   {
     if #available(macOS 26.0, *) {
-      if dense {
-        self.glassEffect(
-          .regular.tint(AppleColors.card.opacity(AppleMetrics.chromeGlassOpacity)).interactive(interactive), in: shape)
-      } else {
-        self.glassEffect(.regular.interactive(interactive), in: shape)
-      }
+      self.glassEffect(.regular.interactive(interactive), in: shape)
     } else {
-      self.glass(shape, thick: dense)
+      self.glass(shape)
     }
   }
 

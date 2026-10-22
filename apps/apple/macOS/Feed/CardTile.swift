@@ -55,6 +55,8 @@ struct CardTile: View {
       }
       .modifier(CardAccessibility(card: card, state: state))
       .modifier(CardGeometrySource(id: card.id))
+      // Web `.feed-card`: the whole card opens, so the pointer says so.
+      .modifier(HandCursor())
   }
 
   private static let shape = RoundedRectangle(
