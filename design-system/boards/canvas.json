@@ -15,7 +15,7 @@
       "title": "27 品牌 · Sill 窗台",
       "w": 1440,
       "x": 1520,
-      "y": 22770
+      "y": 26388
     },
     "Capture.dc.html": {
       "h": 1340,
@@ -94,7 +94,7 @@
       "h": 1220,
       "title": "17 定稿 · 退出交互",
       "w": 1440,
-      "x": 4960,
+      "x": 6640,
       "y": 16280
     },
     "FinalFeed.dc.html": {
@@ -316,7 +316,7 @@
       "title": "38 定稿 · 保留原版图标",
       "w": 1440,
       "x": 0,
-      "y": 22770
+      "y": 26388
     },
     "NavigationState.dc.html": {
       "h": 3820,
@@ -330,7 +330,7 @@
       "h": 1840,
       "title": "40 定稿 · 照片通用操作",
       "w": 1440,
-      "x": 3440,
+      "x": 5120,
       "y": 16280
     },
     "CardActionExamples.dc.html": {
@@ -367,7 +367,7 @@
       "h": 4200,
       "title": "47 定稿 · 资讯阅读 B 均衡",
       "w": 1840,
-      "x": 1520,
+      "x": 3200,
       "y": 16280
     },
     "MacChrome.dc.html": {
@@ -451,7 +451,7 @@
       "h": 900,
       "w": 1440,
       "x": 0,
-      "y": 28410,
+      "y": 32028,
       "title": "桌面登录 · 居中表单",
       "is_interactive": true
     },
@@ -459,7 +459,7 @@
       "h": 900,
       "w": 1440,
       "x": 1520,
-      "y": 28410,
+      "y": 32028,
       "title": "桌面授权 · 居中标题与权限",
       "is_interactive": true
     },
@@ -467,7 +467,7 @@
       "w": 390,
       "h": 844,
       "x": 3040,
-      "y": 28410,
+      "y": 32028,
       "title": "手机登录 · 居中布局",
       "is_interactive": true
     },
@@ -475,7 +475,7 @@
       "w": 390,
       "h": 844,
       "x": 3510,
-      "y": 28410,
+      "y": 32028,
       "title": "手机授权 · 居中布局",
       "is_interactive": true
     },
@@ -483,7 +483,7 @@
       "w": 1440,
       "h": 1000,
       "x": 3980,
-      "y": 28410,
+      "y": 32028,
       "title": "桌面设置",
       "is_interactive": true
     },
@@ -491,9 +491,16 @@
       "w": 390,
       "h": 844,
       "x": 5500,
-      "y": 28410,
+      "y": 32028,
       "title": "手机设置",
       "is_interactive": true
+    },
+    "CardTypeDetails.dc.html": {
+      "h": 9428,
+      "title": "38 草稿 · 12 类卡片与详情（卡面与桌面详情）",
+      "w": 1600,
+      "x": 1520,
+      "y": 16280
     }
   },
   "createdOnFiles": {
@@ -537,7 +544,7 @@
     },
     "current4": {
       "kind": "title1",
-      "maxW": 6400,
+      "maxW": 8080,
       "text": "打开 · 详情、资讯阅读、照片与退出",
       "x": 0,
       "y": 16000
@@ -547,7 +554,7 @@
       "maxW": 4480,
       "text": "图标与品牌",
       "x": 0,
-      "y": 22490
+      "y": 26108
     },
     "history1": {
       "kind": "title1",
@@ -594,7 +601,7 @@
       "maxW": 5890,
       "text": "账号 · 登录与授权",
       "x": 0,
-      "y": 28130
+      "y": 31748
     }
   },
   "order": [
@@ -616,6 +623,7 @@
     "Volume.dc.html",
     "ScrollWait.dc.html",
     "CardDetail.dc.html",
+    "CardTypeDetails.dc.html",
     "ArticleReading.dc.html",
     "PhotoTools.dc.html",
     "ExitRules.dc.html",
