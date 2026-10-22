@@ -8,14 +8,13 @@ const rich = {
 	id: "synthetic-rich",
 	type: "task",
 	title: "Synthetic card",
-	body: ["Body"],
+	body: "Body",
 	summary: "Independent summary",
 	project: { name: "Project" },
 	form: "image" as const,
 	image: "coast" as const,
 	tags: ["Synthetic"],
 	sources: [{ name: "Agent", kind: "agent", upstream: { id: "source-1" } }],
-	points: ["A point"],
 	why: { reason: "A reason", basis: ["Evidence"] },
 	sender: "Sender",
 	location: "Room",
@@ -54,9 +53,10 @@ test("cloud projection normalizes legacy sources before applying missing-value f
 		source: "Legacy",
 		kind: "ai",
 		body: ["Text"],
-	});
+	} as unknown as Parameters<typeof cloudCard>[0]);
 	assert.deepEqual(projected.sources, [{ name: "Legacy", kind: "agent" }]);
 	assert.equal(projected.summary, "Text");
+	assert.equal(projected.body, "Text");
 	assert.equal(projected.meta, undefined);
 	assert.equal(projected.source, undefined);
 	assert.equal(projected.time, undefined);
@@ -104,6 +104,6 @@ test("cloud editor sends only changed fields and preserves structure and unedite
 	const saved = { ...rich, ...changes, state: { ...rich.state, ...(changes.state as object) } };
 	assert.deepEqual(saved, { ...rich, title: "Edited", state: { ...rich.state, read: true } });
 	assert.deepEqual(cloudCardChanges(rich, { title: rich.title, body: "New\nBody", read: false }), {
-		body: ["New", "Body"],
+		body: "New\nBody",
 	});
 });

@@ -27,8 +27,9 @@ public struct Draft: Identifiable, Codable, Sendable {
         ]),
       ])
     json["title"] = .string(title)
-    if json["body"]?.strings?.joined(separator: "\n\n") != body {
-      json["body"] = .array(body.components(separatedBy: "\n\n").map(JSONValue.string))
+    if Card.normalize(json)["body"]?.string ?? "" != body {
+      json["body"] = .string(body)
+      json["points"] = nil
     }
     return try Card(json: json, normalize: true)
   }
@@ -36,6 +37,6 @@ public struct Draft: Identifiable, Codable, Sendable {
   public var isDirty: Bool {
     let json = original.flatMap { try? JSONValue.decode($0) }
     return title != (json?["title"]?.string ?? "")
-      || body != (json?["body"]?.strings ?? []).joined(separator: "\n\n")
+      || body != (json.map(Card.normalize)?["body"]?.string ?? "")
   }
 }

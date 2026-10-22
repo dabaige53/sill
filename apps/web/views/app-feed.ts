@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { icon } from "../atoms/icons.ts";
+import { markdownText } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { cardSource } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
@@ -28,7 +29,7 @@ export const appFeedMethods = {
 	},
 	matches(this: AppController, c?: Card, q?: string) {
 		const s = Store.item(c.id);
-		return [c.title, c.summary, cardSource(c), s.note, ...(c.body || []), ...Store.tags(c)]
+		return [c.title, c.summary, cardSource(c), s.note, markdownText(c.body || ""), ...Store.tags(c)]
 			.join(" ")
 			.toLocaleLowerCase()
 			.includes(q.toLocaleLowerCase());

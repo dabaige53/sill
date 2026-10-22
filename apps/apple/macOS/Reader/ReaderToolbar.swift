@@ -53,7 +53,7 @@ struct ReaderAction: Identifiable, Equatable {
       ? make(.dismiss, "dismiss", "bell-off", Copy.text("web.preview.dismissReminder")) : nil
     switch card.kind {
     case .mail:
-      return card.url == nil ? [] : [make(.reply, "reply", "reply", Copy.text("web.preview.reply"))]
+      return [make(.reply, "reply", "reply", Copy.text("web.preview.reply"))]
     case .event:
       let start = card.start ?? 0
       let join: ReaderAction? =
@@ -66,8 +66,8 @@ struct ReaderAction: Identifiable, Equatable {
         .compactMap { $0 }
     case .task, .reminder:
       return [reminder, dismiss].compactMap { $0 }
-    case .file:
-      return []
+    case .file, .article, .media, .pr:
+      return [make(.open, "open", "external", externalLabel(card))]
     default:
       return card.url == nil ? [] : [make(.open, "open", "external", externalLabel(card))]
     }
@@ -125,7 +125,8 @@ struct ReaderToolbar: View {
     }
     .modifier(ToolbarTip(id: action.id, label: action.label, edge: edge, tips: tips))
     .disabled(
-      state.isWriting && action.kind != .open && action.kind != .reply && action.kind != .join)
+      (state.isWriting && action.kind != .open && action.kind != .reply && action.kind != .join)
+        || (card.url == nil && (action.kind == .open || action.kind == .reply)))
   }
 }
 

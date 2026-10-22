@@ -23,6 +23,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
     var detail: String
     var modifiedAt: String?
     var isImage: Bool
+    var url: URL? = nil
   }
   struct Publication: Equatable, Sendable {
     var date: String?
@@ -34,12 +35,13 @@ struct CardModel: Identifiable, Equatable, Sendable {
     }
   }
 
+  let rich: CardRichFields
   let id: String
   let kind: CardKind
   let title: String
   let summary: String
   let body: [String]
-  let points: [String]
+  let markdown: MarkdownBody
   let sources: [Source]
   /// All source names joined (Web `cardSource`).
   let sourceName: String
@@ -103,18 +105,20 @@ struct CardModel: Identifiable, Equatable, Sendable {
   /// A short task, reminder or note preview opens in the narrower detail.
   var shortDetail: Bool {
     [.task, .reminder, .note].contains(kind)
-      && body.joined(separator: "\n").count < 500 && summary.count < 280
+      && body.joined(separator: "\n").count < 160 && body.count <= 1 && summary.count < 280
   }
 
   init(card: Card) throws {
     let value = card.value
     let raw = try card.raw
+    rich = CardRichFields(raw: raw)
     id = value.id
     kind = CardKind(type: value._type)
     title = value.title
     summary = value.summary ?? ""
-    body = value.body ?? []
-    points = value.points ?? []
+    let parsed = MarkdownBody(value.body ?? "")
+    markdown = parsed
+    body = parsed.blocks.map(\.text).filter { !$0.isEmpty }
     sources = (value.sources ?? []).map { Source(name: $0.name, kind: $0.kind) }
     sourceName = sources.map(\.name).joined(separator: " · ")
     sourceKind = sources.first?.kind ?? "local"
@@ -153,14 +157,17 @@ struct CardModel: Identifiable, Equatable, Sendable {
     files = (value.files ?? []).map { file in
       FileItem(
         name: file.name,
-        detail: [file.mimeType ?? "", Format.fileSize(file.sizeBytes)].filter { !$0.isEmpty }
+        detail: [
+          (file.name as NSString).pathExtension.uppercased().nilIfEmpty ?? file.mimeType ?? "",
+          Format.fileSize(file.sizeBytes),
+        ].filter { !$0.isEmpty }
           .joined(separator: " · "),
         modifiedAt: file.modifiedAt,
         isImage: file.name.range(
           of: #"\.(png|jpe?g|gif|webp)$"#,
           options: [
             .regularExpression, .caseInsensitive,
-          ]) != nil)
+          ]) != nil, url: file.url.flatMap(URL.init(string:)))
     }
     takenAt = value.takenAt
     takenDay = value.takenAt.flatMap(Format.localDay)

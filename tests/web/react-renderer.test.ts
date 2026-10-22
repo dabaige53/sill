@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 
 const bundle = buildSync({
 	stdin: {
-		contents: `export {createElement as h} from 'react'; export {renderView,renderContent,releaseView} from './apps/web/views/react-renderer.ts';`,
+		contents: `export {createElement as h,useEffect,useState} from 'react'; export {renderView,renderContent,releaseView} from './apps/web/views/react-renderer.ts';`,
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -71,6 +71,30 @@ test("panel replacement disposes nested roots and resets uncontrolled draft fiel
 		assert.equal(container.querySelector("#results")!.childElementCount, 0);
 		view.releaseView(container);
 		assert.equal(container.childElementCount, 0);
+	} finally {
+		dom.window.close();
+	}
+});
+
+test("switching player surfaces saves the outgoing position before the next player initializes", () => {
+	const { dom, view, container } = fixture();
+	let savedPosition = 12;
+	function Player() {
+		const [position] = view.useState(() => savedPosition);
+		view.useEffect(
+			() => () => {
+				savedPosition = 42;
+			},
+			[],
+		);
+		return view.h("output", null, String(position));
+	}
+	try {
+		view.renderContent(container, view.h(Player));
+		assert.equal(container.textContent, "12");
+		view.renderContent(container, view.h(Player));
+		assert.equal(container.textContent, "42");
+		view.releaseView(container);
 	} finally {
 		dom.window.close();
 	}

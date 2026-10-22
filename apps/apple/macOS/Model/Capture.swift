@@ -25,12 +25,11 @@ enum Capture {
         "sources": .array([.object(["name": .string(host), "kind": .string("web")])]),
         "url": .string(url.absoluteString),
         "tags": .array([]),
-        "body": .array(rest.isEmpty ? [] : [.string(rest)]),
+        "body": .string(rest),
         "time": .number(now),
       ])
     }
     let firstLine = value.components(separatedBy: "\n").first ?? value
-    let paragraphs = value.split(separator: #/\n{2,}/#, omittingEmptySubsequences: false)
     return .object([
       "id": .string(id("note", value + stamp(now))),
       "type": .string("note"),
@@ -40,7 +39,7 @@ enum Capture {
         .object(["name": .string(Copy.text("web.cards.e727b8cc2df0")), "kind": .string("capture")])
       ]),
       "tags": .array([]),
-      "body": .array(paragraphs.prefix(100).map { .string(String($0.prefix(50000))) }),
+      "body": .string(String(value.prefix(500000))),
       "time": .number(now),
     ])
   }
@@ -51,9 +50,9 @@ enum Capture {
       return cards.contains { $0.url?.absoluteString == url }
     }
     let title = card["title"]?.string
-    let body = card["body"] ?? .array([])
+    let body = card["body"] ?? .string("")
     return cards.contains {
-      $0.url == nil && $0.title == title && ($0.raw["body"] ?? .array([])) == body
+      $0.url == nil && $0.title == title && ($0.raw["body"] ?? .string("")) == body
     }
   }
 

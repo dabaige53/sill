@@ -1,6 +1,7 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { icon } from "../atoms/icons.ts";
+import { markdownText } from "../atoms/markdown.ts";
 import { esc, eventEnded, eventRelative, eventTimely, minutes } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { demoBase, SeedCards, SeedItems } from "../data/cards.ts";
@@ -9,7 +10,7 @@ import { MotionEngine } from "../interactions/motion.ts";
 import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
-import { type TargetEvent } from "./app-types.ts";
+import type { TargetEvent } from "./app-types.ts";
 import { renderContent } from "./react-renderer.ts";
 import { repaintSettings, setPref } from "./settings-controller.ts";
 
@@ -23,7 +24,7 @@ export const appCaptureMethods = {
 		Store.patch(id, { seen: true, read: true });
 		node.classList.add("is-editing");
 		node.querySelector<HTMLElement>(".card-body").outerHTML =
-			`<div class="inline-editor"><span class="card-head">${icon("note", 16)}<span class="card-src">${copy("web.app.5d7845b38bf2")}${esc(copy("web.cards.de6785d99e02"))}</span></span><input id="inline-title" aria-label="${copy("web.title")}" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="${copy("web.app.7a688306423b")}" maxlength="4000">${esc((c.body?.length ? c.body.join("\n") : c.summary) || "")}</textarea><small id="inline-state">${copy("web.app.f2db3712a685")}</small></div>`;
+			`<div class="inline-editor"><span class="card-head">${icon("note", 16)}<span class="card-src">${copy("web.app.5d7845b38bf2")}${esc(copy("web.cards.de6785d99e02"))}</span></span><input id="inline-title" aria-label="${copy("web.title")}" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="${copy("web.app.7a688306423b")}" maxlength="4000">${esc(c.body || c.summary || "")}</textarea><small id="inline-state">${copy("web.app.f2db3712a685")}</small></div>`;
 		this.layout.schedule(false);
 		const area = node.querySelector<HTMLTextAreaElement>("#inline-body");
 		area.focus();
@@ -36,14 +37,11 @@ export const appCaptureMethods = {
 		const title =
 				(document.getElementById("inline-title") as HTMLInputElement)?.value.trim() || c.title,
 			text = (document.getElementById("inline-body") as HTMLInputElement)?.value || "";
-		const body = text
-			.split("\n")
-			.map((s) => s.trim())
-			.filter(Boolean);
+		const body = text.trim();
 		Object.assign(c, {
 			title: title.slice(0, 200),
-			body: body.length ? body : [title],
-			summary: body.join("").slice(0, 300),
+			body: body || title,
+			summary: markdownText(body).replace(/\s+/g, " ").slice(0, 300),
 		});
 		Store.save();
 		const state = document.getElementById("inline-state");
@@ -163,6 +161,7 @@ export const appCaptureMethods = {
 				node.scrollTop = y;
 			}
 		}
+		if (this.modalKind === "preview" || this.modalKind === "reader") this.bindSheetChrome();
 		const surface = MotionEngine.surface(this.dialog);
 		if (this.modalKind === "lightbox")
 			MotionEngine.fade(this.dialog.querySelector(".lightbox-stage img"));

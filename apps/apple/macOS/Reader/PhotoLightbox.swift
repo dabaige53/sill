@@ -20,7 +20,6 @@ struct PhotoLightbox: View {
     VStack(spacing: 0) {
       top
       stage(photos, current: current)
-      if photos.count > 1 { thumbs(photos, current: current) }
       if let caption = card.caption, !caption.isEmpty {
         Text(caption)
           .font(.sans(AppleMetrics.font14))
@@ -29,6 +28,13 @@ struct PhotoLightbox: View {
           .padding(.vertical, AppleMetrics.space12)
           .padding(.horizontal, AppleMetrics.space20)
       }
+      Text(
+        [card.location, card.takenAt.flatMap(ReaderContent.fullDate)].compactMap { $0 }.joined(
+          separator: " · ")
+      )
+      .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.fixedWhite75)
+      .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, AppleMetrics.space20)
+      if photos.count > 1 { thumbs(photos, current: current) }
       if !state.note.isEmpty {
         NoteBox(note: state.note)
           .padding(.vertical, AppleMetrics.space12)
@@ -60,12 +66,11 @@ struct PhotoLightbox: View {
 
   private var top: some View {
     HStack {
-      Text(
-        [card.location, card.takenAt.flatMap { Format.publication($0) }].compactMap { $0 }
-          .filter { !$0.isEmpty }.joined(separator: " · ")
-      )
-      .font(.sans(AppleMetrics.font13))
-      .foregroundStyle(AppleColors.fixedWhite75)
+      VStack(alignment: .leading, spacing: AppleMetrics.space2) {
+        Text(card.title).font(.sans(AppleMetrics.font15, .semibold))
+        Text("\(min(index + 1, Self.photos(card).count)) / \(Self.photos(card).count)")
+          .font(.number(AppleMetrics.font13)).foregroundStyle(AppleColors.fixedWhite75)
+      }
       Spacer(minLength: 0)
       DarkIconButton(icon: "x", label: Copy.text("web.photo.close")) { reader.close() }
     }
@@ -156,7 +161,9 @@ private struct DarkIconButton: View {
       Icon(icon, size: AppleMetrics.font18)
         .foregroundStyle(AppleColors.fixedWhite)
         .frame(width: AppleMetrics.iconButton, height: AppleMetrics.iconButton)
-        .background(Circle().fill(hovered ? AppleColors.fixedWhite12 : .clear))
+        .background(
+          Circle().fill(hovered ? AppleColors.fixedWhite.opacity(0.2) : AppleColors.fixedWhite12)
+        )
         .contentShape(Circle())
     }
     .buttonStyle(IconPress(highlight: false))

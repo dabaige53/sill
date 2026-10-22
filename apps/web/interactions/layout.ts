@@ -101,6 +101,9 @@ class FeedLayout {
 		});
 		el.dataset.columns = cols;
 		items.forEach((n?: any) => {
+			// Heights held during a content update are only valid at that card width.
+			if (Math.abs(Number.parseFloat(n.style.width) - col) > 0.5)
+				n.style.removeProperty("min-height");
 			n.style.width = col + "px";
 		});
 		// Measure once after setting every width, then write positions together.

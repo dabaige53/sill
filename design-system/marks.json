@@ -153,6 +153,21 @@
 				"Authorization",
 				"AuthorizationMobile"
 			]
+		},
+		"source-marks": {
+			"title": "来源单色品牌圆标",
+			"rule": "handbook/foundation.md#图标",
+			"tokens": [
+				"ink",
+				"muted",
+				"surface"
+			],
+			"adr": "0060",
+			"boards": [
+				"CardTypeDetails",
+				"CardTypeMobile",
+				"CardTypeReading"
+			]
 		}
 	}
 }

@@ -16,7 +16,7 @@ for (const [index, seed] of cards.entries()) {
 			...seed,
 			title: text,
 			tags: [text],
-			body: [text],
+			body: text,
 			summary: text,
 			why: { reason: "Synthetic reason", basis: ["Keep evidence"] },
 		};
@@ -31,7 +31,7 @@ for (const [index, seed] of cards.entries()) {
 			assert.equal(document.querySelectorAll("script").length, 0);
 			assert.equal(document.querySelectorAll("[data-agent-test]").length, 1);
 			assert.ok(document.querySelector(".sheet-scroll[tabindex='0']"));
-			assert.equal(document.querySelectorAll("input,textarea").length, 0);
+			assert.equal(document.querySelectorAll("input:not([type=range]),textarea").length, 0);
 			assert.equal(document.querySelector('[data-action="why"]'), null);
 			assert.deepEqual(card.why, { reason: "Synthetic reason", basis: ["Keep evidence"] });
 			assert.equal(JSON.stringify(card), before);
@@ -47,14 +47,14 @@ test("quote and repeated summaries stay out of the preview lead; suggestions lin
 		id: "preview-text",
 		type: "article",
 		title: "Synthetic",
-		body: ["Repeated"],
+		body: "Repeated",
 		summary: "Repeated",
 	};
 	const related = {
 		id: "preview-related",
 		type: "note",
 		title: "<img src=x> & reference",
-		body: ["Reference"],
+		body: "Reference",
 	};
 	Store.state.cards.push(related);
 	for (const card of [
@@ -72,7 +72,7 @@ test("quote and repeated summaries stay out of the preview lead; suggestions lin
 		Panels.preview({}, { ...article, type: "suggestion", related: [related.id, "missing"] }),
 	);
 	try {
-		const links = dom.window.document.querySelectorAll('.refs [data-action="card-open"]');
+		const links = dom.window.document.querySelectorAll('.detail-related [data-action="card-open"]');
 		assert.equal(links.length, 1);
 		assert.equal(links[0].getAttribute("data-id"), related.id);
 		assert.equal(links[0].querySelector("span")?.textContent, related.title);
@@ -121,4 +121,75 @@ test("reason entry is removed while existing feedback actions remain available",
 	assert.equal("why" in cardsActions, false);
 	assert.equal(typeof cardsActions["less-like"], "function");
 	assert.equal(typeof cardsActions["never-show"], "function");
+});
+
+test("article preview puts the cover before its ruled header; reading puts it after", () => {
+	Store.state = Store.fresh();
+	const card = {
+		...SeedCards.find((c) => c.type === "article" && c.image),
+		summary: "Distinct lead",
+		body: "Full body",
+	};
+	const dom = new JSDOM(Panels.preview({}, card));
+	const doc = dom.window.document;
+	const scroll = doc.querySelector(".sheet-scroll")!;
+	assert.ok(scroll.firstElementChild?.matches(".preview-cover"));
+	assert.ok(doc.querySelector(".detail-header.ruled-header h1"));
+	assert.equal(doc.querySelector(".preview-lead"), null);
+	assert.equal(doc.querySelector(".preview-full")?.textContent, "Full body\n");
+	dom.window.close();
+	const reader = new JSDOM(Panels.reader({}, card));
+	assert.ok(
+		reader.window.document
+			.querySelector(".detail-header")
+			?.nextElementSibling?.matches(".preview-cover"),
+	);
+	reader.window.close();
+});
+
+test("task detail shows the complete checklist before body without the card summary", () => {
+	Store.state = Store.fresh();
+	const card = {
+		...SeedCards.find((c) => c.type === "task"),
+		summary: "Task summary",
+		body: "Task body",
+	};
+	const dom = new JSDOM(Panels.preview({}, card));
+	const doc = dom.window.document;
+	assert.equal(doc.querySelector(".preview-lead"), null);
+	assert.ok(doc.querySelector(".detail-task-list")?.nextElementSibling?.matches(".preview-full"));
+	assert.equal(doc.querySelectorAll(".detail-task-list [role=checkbox]").length, card.tasks.length);
+	dom.window.close();
+});
+
+test("all detail types keep card summaries out of the authored body", () => {
+	Store.state = Store.fresh();
+	for (const seed of cards) {
+		const card = { ...seed, summary: "CARD_ONLY_SENTINEL", body: "Authored detail body" };
+		const dom = new JSDOM(Panels.preview({}, card));
+		assert.equal(
+			dom.window.document.body.textContent?.includes("CARD_ONLY_SENTINEL"),
+			false,
+			card.type,
+		);
+		dom.window.close();
+	}
+});
+
+test("video and PR details respect edited tags instead of source tags", () => {
+	Store.state = Store.fresh();
+	for (const type of ["media", "pr"]) {
+		const card = {
+			...SeedCards.find((c) => c.type === type),
+			id: `edited-${type}`,
+			tags: ["source-tag"],
+		};
+		Store.state.cards.push(card);
+		Store.item(card.id).tagsEdited = true;
+		Store.item(card.id).tags = ["personal-tag"];
+		const dom = new JSDOM(Panels.preview({}, card));
+		assert.equal(dom.window.document.querySelector(".preview-tags")?.textContent, "#personal-tag");
+		assert.equal(dom.window.document.body.textContent?.includes("#source-tag"), false);
+		dom.window.close();
+	}
 });

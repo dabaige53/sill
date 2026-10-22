@@ -18,7 +18,7 @@
 | `Model/` | 状态与写入：`Workspace`、`CardState`、`CardModel`、`WriteQueue`、`ActivityRecorder`、`Feed`、`Reader`、`Selection` |
 | `Shell/` | 顶栏、页签菜单、搜索框、AI 框、多选栏、面板、提示条、桌面布局 |
 | `Settings/` | 设置窗口与设置控件（开关、分段、按键标记） |
-| `Feed/` | 瀑布流、卡片外壳、11 种卡片正文、堆叠 |
+| `Feed/` | 瀑布流、卡片外壳、12 个类型的卡片正文（媒体分视频与播客）、堆叠 |
 | `Reader/` | 阅读浮层、预览、全屏页、工具栏、滚动与手势 |
 | `Design/` | 图标、动效、阴影与玻璃、字体、格式化 |
 
@@ -99,3 +99,7 @@ node tests/apple/run.ts
 测试使用临时目录与模拟 HTTP 响应，不访问真实卡片或账号。`DesktopTests/` 用内存中的模拟工作区检查桌面状态：单卡写入不影响其他卡片、写入只锁本卡、失败回到已存值、未知结果只核对不重发、外部修改表现为冲突、后台记录不触发重绘、信息流成员与分页。
 
 类型、文案、图标和设计变量（`AppleMetrics`、`AppleColors`）在构建时由 `Plugins/CardGenerator` 从 `contracts/` 与 `design-system/` 生成。生成器递归检查 `macOS/` 中的文案键，失效引用会阻止构建。新增设计值必须回到设计系统维护。
+
+### 媒体播放边界
+
+Mac 使用原生 AVPlayer 播放播客。唯一 WebView 例外为视频区域中的官方 YouTube 播放器；章节、文字稿、PR 与其他界面仍为 SwiftUI。关闭详情暂停并保存位置，真实结束事件才自动标为已读。源码已接入，真实窗口与网络媒体未验收。见 [ADR 0061](../../docs/adr/0061-in-app-media-playback-and-pr-cards.md)。

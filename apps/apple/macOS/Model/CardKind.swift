@@ -2,7 +2,7 @@ import SillKit
 
 /// Eleven card types (Web `CardTypes`). `readable` types carry read state as card color.
 enum CardKind: String, CaseIterable, Sendable {
-  case article, mail, note, task, event, reminder, media, digest, suggestion, photo, file
+  case article, mail, note, task, event, reminder, media, digest, suggestion, photo, file, pr
 
   init(type: String) { self = CardKind(rawValue: type) ?? .article }
 
@@ -21,6 +21,7 @@ enum CardKind: String, CaseIterable, Sendable {
     case .suggestion: "sparkles"
     case .photo: "image"
     case .file: "folder"
+    case .pr: "pull"
     }
   }
 

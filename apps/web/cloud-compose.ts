@@ -32,7 +32,7 @@ export function stashCloudDraft() {
 	const key = Cloud.edit.id || "new",
 		dirty =
 			values.title !== Cloud.edit.title ||
-			values.body !== Cloud.edit.body.join("\n") ||
+			values.body !== (Cloud.edit.body || "") ||
 			values.read !== !!Cloud.edit.state.read;
 	if (dirty)
 		Cloud.drafts.set(key, {
@@ -86,7 +86,7 @@ export function editCloud(id?: any) {
 		saved?.record ||
 		(record
 			? structuredClone(record)
-			: { id: null, revision: null, title: "", body: [], state: { read: false } });
+			: { id: null, revision: null, title: "", body: "", state: { read: false } });
 	Cloud.editOwner = saved?.owner || Cloud.user;
 	// A different account must never receive the previous account's recovered draft.
 	// The host and web session both expose a stable owner; another account cannot save this draft.
@@ -97,7 +97,7 @@ export function editCloud(id?: any) {
 		!!(Cloud.scopes && !Cloud.scopes.includes("content:write"));
 	const values = saved?.values || {
 		title: Cloud.edit.title,
-		body: Cloud.edit.body.join("\n"),
+		body: Cloud.edit.body || "",
 		read: !!Cloud.edit.state.read,
 	};
 	originalOpen(

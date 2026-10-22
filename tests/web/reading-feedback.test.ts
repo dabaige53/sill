@@ -32,7 +32,7 @@ function fixture() {
 	w.eval(bundle);
 	const { AppController, Store } = w.ReadingTest;
 	Store.state = {
-		cards: [{ id: "read-test", type: "article", title: "Synthetic text", body: ["Text"] }],
+		cards: [{ id: "read-test", type: "article", title: "Synthetic text", body: "Text" }],
 		items: {},
 		preferences: {},
 	};
@@ -139,7 +139,7 @@ test("hidden short content does not count as visible dwell", async () => {
 test("completed reminders receive the completed color class", () => {
 	const f = fixture();
 	try {
-		const card = { id: "done-reminder", type: "reminder", title: "Synthetic reminder", body: [] };
+		const card = { id: "done-reminder", type: "reminder", title: "Synthetic reminder", body: "" };
 		f.Store.state.cards.push(card);
 		f.Store.patch(card.id, { reminderDone: true });
 		assert.match(f.w.ReadingTest.cardHTML(card), /is-complete/);
@@ -152,7 +152,7 @@ test("pointer ring suppression leaves keyboard and selection rules intact", () =
 	assert.match(css, /data-input-modality="pointer"/);
 	assert.match(css, /\.feed-card:focus-visible\s*\{\s*outline: 2px solid var\(--accent\)/);
 	assert.match(css, /\.feed-card.is-selected:after/);
-	const readStyles = css.slice(css.indexOf("/* Read, ended"), css.indexOf("/* Stacks:"));
+	const readStyles = css.slice(css.indexOf("/* Read, ended"), css.indexOf("/* Desktop density"));
 	assert.doesNotMatch(readStyles, /background: var\(--card\)/);
 	assert.match(readStyles, /\.feed-card.is-complete/);
 });

@@ -109,9 +109,11 @@ export const appSurfacesMethods = {
 		const card = kind === "preview" ? Store.card(this.currentId) : null;
 		if (
 			card &&
-			["task", "reminder", "note"].includes(card.type) &&
-			(card.body || []).join("\n").length < 500 &&
-			(card.summary || "").length < 280
+			(["reminder", "suggestion", "media"].includes(card.type) ||
+				(card.type === "note" &&
+					(card.body || "").length < 160 &&
+					!(card.body || "").includes("\n\n") &&
+					(card.summary || "").length < 280))
 		)
 			this.dialog.classList.add("is-short");
 		renderContent(this.dialog, html);

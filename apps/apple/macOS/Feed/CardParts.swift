@@ -74,18 +74,16 @@ struct SourceIcon: View {
   let card: CardModel
   var size: CGFloat = AppleMetrics.space16
   var body: some View {
-    if card.sources.count > 1 {
-      HStack(spacing: -AppleMetrics.space6) {
-        ForEach(Array(card.sources.prefix(3).enumerated()), id: \.offset) { _, source in
-          Icon(SourceKind.icon(source.kind) ?? "book", size: AppleMetrics.font12)
-            .frame(width: AppleMetrics.sourceDisc, height: AppleMetrics.sourceDisc)
-            .background(Circle().fill(AppleColors.card))
-            .overlay(Circle().stroke(AppleColors.line, lineWidth: AppleMetrics.lineWidth))
-        }
-      }
-      .accessibilityHidden(true)
+    if card.sources.isEmpty || card.isCapture {
+      Icon(card.kind.icon, size: size)
     } else {
-      Icon(card.headIcon, size: size)
+      HStack(spacing: card.sources.count > 1 ? -AppleMetrics.space6 : 0) {
+        ForEach(Array(card.sources.prefix(3).enumerated()), id: \.offset) { _, source in
+          SourceMark(
+            name: source.name, kind: source.kind,
+            typeIcon: card.kind.headIconByType ? card.kind.icon : nil, size: size)
+        }
+      }.accessibilityHidden(true)
     }
   }
 }
@@ -125,48 +123,12 @@ struct CardSummary: View {
   }
 }
 
-/// Summary, or a one-line conclusion with up to three numbered points.
+/// Plain card-face text; body lists belong in the detail.
 struct SummaryBlock: View {
   let summary: String
-  let points: [String]
   var query = ""
   var body: some View {
-    if !points.isEmpty {
-      VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-        if !summary.isEmpty { CardSummary(text: summary, query: query) }
-        KeyPoints(
-          points: Array(points.prefix(3)), singleLine: false, size: AppleMetrics.font14,
-          lineHeight: AppleMetrics.cardSummaryLineHeight
-        )
-        .padding(.top, AppleMetrics.space2)
-      }
-    } else if !summary.isEmpty {
-      CardSummary(text: summary, query: query)
-    }
-  }
-}
-
-struct KeyPoints: View {
-  let points: [String]
-  var singleLine = false
-  /// Cards use the summary size (A type: 14/22); readers pass their own body size.
-  var size = AppleMetrics.font15
-  var lineHeight = AppleMetrics.font15 * AppleMetrics.summaryLeading
-  var spacing = AppleMetrics.space4
-  var body: some View {
-    VStack(alignment: .leading, spacing: spacing) {
-      ForEach(Array(points.enumerated()), id: \.offset) { index, point in
-        HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space10) {
-          Text("\(index + 1)").font(.number(AppleMetrics.font13, .semibold))
-            .foregroundStyle(AppleColors.accent)
-            .frame(width: AppleMetrics.keyPointWidth, alignment: .trailing)
-          Text(point).textStyle(size, leading: lineHeight / size)
-            .foregroundStyle(AppleColors.primary)
-            .lineLimit(singleLine ? 1 : nil)
-            .fixedSize(horizontal: false, vertical: !singleLine)
-        }
-      }
-    }
+    if !summary.isEmpty { CardSummary(text: summary, query: query) }
   }
 }
 
@@ -200,11 +162,17 @@ struct CheckDot: View {
   var size: CGFloat = AppleMetrics.taskDotSize
   var line: CGFloat = AppleMetrics.taskDotLine
   var highlighted = false
+  var taskStyle = false
   var body: some View {
     ZStack {
       Circle().fill(
-        done ? AppleColors.accentFill : highlighted ? AppleColors.accentSoft : Color.clear)
-      Circle().strokeBorder(AppleColors.accent, lineWidth: line)
+        done
+          ? (taskStyle ? AppleColors.success : AppleColors.accentFill)
+          : highlighted ? AppleColors.accentSoft : Color.clear)
+      Circle().strokeBorder(
+        taskStyle
+          ? (done ? AppleColors.success : AppleColors.secondary.opacity(0.35)) : AppleColors.accent,
+        lineWidth: line)
       if done {
         Icon("check", size: AppleMetrics.font12).foregroundStyle(AppleColors.fixedWhite)
       }

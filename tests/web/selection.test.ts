@@ -53,7 +53,7 @@ function fixture() {
 		"sill-v1",
 		JSON.stringify({
 			version: 4,
-			cards: ["one", "two", "three"].map((id) => ({ id, type: "article", title: id, body: [id] })),
+			cards: ["one", "two", "three"].map((id) => ({ id, type: "article", title: id, body: id })),
 			items: {},
 		}),
 	);

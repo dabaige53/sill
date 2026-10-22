@@ -11,11 +11,11 @@ struct ReaderType {
 
   static let preview = ReaderType(
     title: AppleMetrics.previewTitle, titleLeading: AppleMetrics.previewTitleLeading,
-    titleTracking: AppleMetrics.previewTitleTracking, body: AppleMetrics.previewLead,
+    titleTracking: AppleMetrics.previewTitleTracking, body: AppleMetrics.font15,
     bodyLeading: AppleMetrics.previewBodyLeading)
   static let page = ReaderType(
-    title: AppleMetrics.font34, titleLeading: AppleMetrics.readerTitleLeading,
-    titleTracking: AppleMetrics.readerTitleTracking, body: AppleMetrics.font18,
+    title: AppleMetrics.font30, titleLeading: AppleMetrics.readerTitleLeading,
+    titleTracking: AppleMetrics.readerTitleTracking, body: AppleMetrics.font17,
     bodyLeading: AppleMetrics.readerBodyLeading)
 }
 
@@ -27,6 +27,9 @@ struct ReaderContent: View {
   var type = ReaderType.preview
   /// Room kept on the right of the first row for the floating discs.
   var discRoom: CGFloat = 0
+  var mediaHeight: CGFloat?
+  var mediaOffset: CGFloat = 0
+  var returnToPlayer: () -> Void = {}
   @Environment(\.cardIntents) private var intents
 
   var body: some View {
@@ -44,8 +47,14 @@ struct ReaderContent: View {
       case .mail: mail
       case .event: event
       case .file: file
+      case .pr: PullRequestContent(card: card, detail: true, tags: state.tags(of: card))
       case .task, .reminder: taskReminder
-      case .media where card.isPodcast: podcast
+      case .digest: digest
+      case .media:
+        MediaDetail(
+          card: card, state: state, full: type.title == ReaderType.page.title,
+          availableHeight: mediaHeight, scrollOffset: mediaOffset,
+          returnToPlayer: returnToPlayer)
       default: article
       }
       NoteBox(note: state.note)
@@ -59,8 +68,9 @@ struct ReaderContent: View {
     MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) {
       Text(
         [
-          card.sources.map(\.name).filter { !$0.isEmpty }.uniqued().joined(separator: " · ")
-            .nilIfEmpty ?? card.kind.label, card.readingTime,
+          [.note, .suggestion, .file].contains(card.kind) ? card.publicationName : card.sourceName,
+          [.note, .suggestion, .file].contains(card.kind) ? card.publication.date ?? "" : "",
+          card.readingTime,
         ].filter { !$0.isEmpty }.joined(separator: " · "))
     }
     .padding(.trailing, discRoom)
@@ -79,90 +89,50 @@ struct ReaderContent: View {
   @ViewBuilder private var heading: some View {
     title
     ReaderTags(tags: state.tags(of: card))
-    PublicationRows(publication: card.publication)
+    PublicationRows(publication: card.detailPublication)
   }
 
-  private func paragraphs(_ list: [String]) -> some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      ForEach(Array(list.enumerated()), id: \.offset) { _, text in
-        Text(text).textStyle(type.body, leading: type.bodyLeading)
-          .foregroundStyle(AppleColors.primary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .fixedSize(horizontal: false, vertical: true)
-          .textSelection(.enabled)
-      }
+  @ViewBuilder private var detailText: some View {
+    if !card.markdown.blocks.isEmpty {
+      MarkdownText(document: card.markdown, size: type.body, leading: type.bodyLeading)
     }
   }
 
   // MARK: Article reading
 
-  /// Article reading (balanced; Web `.is-article`): one type set for the preview and the page.
-  /// A full-width column with shared detail gutters: source and date, the title, then the text; 16 between paragraphs.
-  private var articleReading: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      MetaRow(
-        icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15)),
-        size: AppleMetrics.font12
-      ) {
-        Text(
-          [
-            card.sources.map(\.name).filter { !$0.isEmpty }.uniqued().joined(separator: " · ")
-              .nilIfEmpty ?? card.kind.label,
-            card.articleDate.map { Format.shortDay($0) } ?? "", card.readingTime,
-          ].filter { !$0.isEmpty }.joined(separator: " · "))
-      }
-      .padding(.trailing, discRoom)
-      .firstRow()
-      .padding(.bottom, AppleMetrics.space14)
-      Text(card.title)
-        .textStyle(
-          AppleMetrics.font22, .semibold,
-          leading: AppleMetrics.articleTitleLineHeight / AppleMetrics.font22
-        )
-        .foregroundStyle(AppleColors.primary)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityAddTraits(.isHeader)
-        .padding(.bottom, AppleMetrics.space24)
-      let tags = state.tags(of: card)
-      if !tags.isEmpty { ReaderTags(tags: tags).padding(.bottom, AppleMetrics.space16) }
-      if !card.publication.rows.isEmpty {
-        PublicationRows(publication: card.publication, showsDate: false)
-          .padding(.bottom, AppleMetrics.space16)
-      }
-      if card.image != nil {
-        CoverImage(name: card.image)
-          .aspectRatio(16 / 9, contentMode: .fit)
-          .frame(maxWidth: .infinity)
-          .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius, style: .continuous))
-          .padding(.bottom, AppleMetrics.space24)
-      }
-      VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-        if !card.summary.isEmpty, !card.isQuote, card.summary != card.body.first {
-          articleText(card.summary)
-        }
-        if !card.points.isEmpty {
-          KeyPoints(
-            points: card.points, size: AppleMetrics.font15,
-            lineHeight: AppleMetrics.articleBodyLineHeight, spacing: AppleMetrics.space6)
-        }
-        ForEach(Array(card.body.enumerated()), id: \.offset) { _, text in articleText(text) }
-        NoteBox(note: state.note)
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .frame(maxWidth: .infinity)
+  private var articleCover: some View {
+    CoverImage(name: card.image)
+      .frame(height: type.title == ReaderType.page.title ? 340 : AppleMetrics.space220)
+      .frame(maxWidth: .infinity)
+      .clipped()
+      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius))
   }
 
-  private func articleText(_ text: String) -> some View {
-    Text(text)
-      .textStyle(
-        AppleMetrics.font15, leading: AppleMetrics.articleBodyLineHeight / AppleMetrics.font15
-      )
-      .foregroundStyle(AppleColors.primary)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .fixedSize(horizontal: false, vertical: true)
-      .textSelection(.enabled)
+  private var articleReading: some View {
+    VStack(alignment: .leading, spacing: AppleMetrics.space20) {
+      if card.image != nil, type.title == ReaderType.preview.title {
+        articleCover.padding(.horizontal, -AppleMetrics.articleGutter + AppleMetrics.space8)
+          .padding(.top, -AppleMetrics.space16)
+      }
+      VStack(alignment: .leading, spacing: AppleMetrics.space12) {
+        MetaRow(icon: AnyView(SourceIcon(card: card))) {
+          Text(
+            [
+              card.publicationName.nilIfEmpty ?? card.kind.label,
+              card.articleDate.map { Format.shortDay($0) } ?? "", card.readingTime,
+            ]
+            .filter { !$0.isEmpty }.joined(separator: " · "))
+        }.padding(.trailing, discRoom).firstRow()
+        title
+        ReaderTags(tags: state.tags(of: card))
+      }.padding(.bottom, AppleMetrics.space24)
+        .overlay(alignment: .bottom) {
+          Rectangle().fill(AppleColors.lineCard).frame(height: AppleMetrics.lineWidth)
+        }
+      if card.image != nil, type.title == ReaderType.page.title { articleCover }
+      detailText
+      NoteBox(note: state.note)
+    }.frame(maxWidth: .infinity, alignment: .leading)
   }
 
   // MARK: Types
@@ -170,6 +140,7 @@ struct ReaderContent: View {
   @ViewBuilder private var article: some View {
     meta
     heading
+    if card.kind == .note { Divider().padding(.bottom, AppleMetrics.space8) }
     if card.kind == .media, let duration = card.duration {
       Text(Format.duration(duration)).font(.number(AppleMetrics.font13))
         .foregroundStyle(AppleColors.secondary)
@@ -181,17 +152,40 @@ struct ReaderContent: View {
         .clipShape(
           RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius, style: .continuous))
     }
-    if !card.summary.isEmpty, !card.isQuote, card.summary != card.body.first {
-      Text(card.summary).textStyle(
-        AppleMetrics.previewLead, leading: AppleMetrics.previewLeadLeading
-      )
-      .foregroundStyle(AppleColors.primary)
-      .fixedSize(horizontal: false, vertical: true)
-      .textSelection(.enabled)
+    if card.kind == .suggestion, let why = card.why {
+      Text(Copy.text("web.card.why")).font(.sans(AppleMetrics.font14, .semibold))
+      Text(why.reason)
+      ForEach(Array(why.basis.enumerated()), id: \.offset) { _, line in Text("• \(line)") }
     }
-    if !card.points.isEmpty { KeyPoints(points: card.points) }
-    if card.kind == .suggestion { related }
-    if !card.body.isEmpty { paragraphs(card.body) }
+    if card.kind == .suggestion {
+      if !card.related.isEmpty {
+        Text(Copy.text("web.card.related")).font(.sans(AppleMetrics.font14, .semibold))
+        related
+      }
+    } else {
+      detailText
+    }
+  }
+
+  @ViewBuilder private var digest: some View {
+    MetaRow(icon: AnyView(SourceIcon(card: card))) {
+      Text(
+        [
+          card.coverageStart.flatMap { start in
+            card.coverageEnd.map { "\(Format.dateLabel(start)) – \(Format.dateLabel($0))" }
+          },
+          card.related.isEmpty ? nil : "\(card.related.count)\(Copy.text("web.card.relatedCount"))",
+        ]
+        .compactMap { $0 }.joined(separator: " · "))
+    }.padding(.trailing, discRoom).firstRow()
+    title
+    ReaderTags(tags: state.tags(of: card))
+    Divider().padding(.vertical, AppleMetrics.space8)
+    detailText
+    if !card.related.isEmpty {
+      Text(Copy.text("web.card.digestRelated")).font(.sans(AppleMetrics.font14, .semibold))
+      related
+    }
   }
 
   @Environment(\.relatedCards) private var lookup
@@ -199,7 +193,12 @@ struct ReaderContent: View {
   private var related: some View {
     VStack(spacing: AppleMetrics.space8) {
       ForEach(card.related.compactMap(lookup), id: \.id) { item in
-        RelatedRow(card: item) { intents.open(item.id) }
+        Button {
+          intents.open(item.id)
+        } label: {
+          DetailRow(
+            icon: item.kind.icon, title: item.title, trailing: item.kind.label, divider: true)
+        }.buttonStyle(.plain)
       }
     }
     .padding(.top, AppleMetrics.space4)
@@ -211,11 +210,14 @@ struct ReaderContent: View {
         Avatar(name: sender, size: AppleMetrics.space36)
         VStack(alignment: .leading, spacing: 0) {
           Text(sender).font(.sans(AppleMetrics.font15, .bold)).foregroundStyle(AppleColors.primary)
-          Text(
-            [card.sentAt.flatMap(Self.fullDate) ?? "", card.readingTime].filter { !$0.isEmpty }
-              .joined(separator: " · ")
-          )
-          .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+          HStack(spacing: AppleMetrics.space6) {
+            SourceIcon(card: card, size: AppleMetrics.font12)
+            Text(
+              [card.sentAt.flatMap(Self.fullDate) ?? "", card.readingTime].filter { !$0.isEmpty }
+                .joined(separator: " · ")
+            )
+            .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+          }
         }
       }
       .padding(.trailing, discRoom)
@@ -224,26 +226,18 @@ struct ReaderContent: View {
       meta
     }
     heading
-    paragraphs(card.body.isEmpty ? [card.summary] : card.body)
-    if let attachment = card.attachment {
-      HStack(spacing: AppleMetrics.space8) {
-        Icon("file", size: AppleMetrics.font15).foregroundStyle(AppleColors.iconSecondary)
-        Text(attachment).lineLimit(1)
-      }
-      .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.primary)
-      .padding(.horizontal, AppleMetrics.space10)
-      .frame(minHeight: AppleMetrics.refRowHeight)
-      .background(RoundedRectangle(cornerRadius: AppleMetrics.refRadius).fill(AppleColors.canvas))
-      .padding(.top, AppleMetrics.space4)
-    }
+    Divider().padding(.vertical, AppleMetrics.space8)
+    detailText
+    DetailFiles(files: card.attachments, label: Copy.text("web.card.attachments"), attachment: true)
   }
 
   @ViewBuilder private var event: some View {
     let start = card.start ?? 0
     let end = card.end ?? start
     let relative = Format.eventRelative(start: start, end: end, now: Format.milliseconds())
-    MetaRow(icon: nil) {
-      Text(Format.dateLabel(start))
+    MetaRow(icon: AnyView(SourceIcon(card: card))) {
+      Text(
+        [card.sourceName, Format.dateLabel(start)].filter { !$0.isEmpty }.joined(separator: " · "))
         + Text(relative.isEmpty ? "" : " · ")
         + Text(relative).foregroundColor(AppleColors.accent).fontWeight(.medium)
     }
@@ -258,6 +252,7 @@ struct ReaderContent: View {
         .foregroundStyle(AppleColors.primary)
       Text(
         "\(Copy.text("web.templates.83532308ecca"))\(Format.time(end)) · \(Int(((end - start) / 60000).rounded()))\(Copy.text("web.templates.40de54344d22"))"
+          + (card.raw["timeZone"]?.string.map { " · \($0)" } ?? "")
       )
       .font(.number(AppleMetrics.font15)).foregroundStyle(AppleColors.secondary)
     }
@@ -270,7 +265,11 @@ struct ReaderContent: View {
         }
       }
     }
-    if !card.body.isEmpty { paragraphs(card.body) }
+    if !card.markdown.blocks.isEmpty {
+      Text(Copy.text("web.card.agenda")).font(.sans(AppleMetrics.font13, .semibold))
+        .foregroundStyle(AppleColors.secondary)
+      detailText
+    }
   }
 
   private var eventRows: [(icon: String, title: String, trailing: String)] {
@@ -287,37 +286,8 @@ struct ReaderContent: View {
     return rows
   }
 
-  @ViewBuilder private var podcast: some View {
-    LinearGradient(
-      colors: [
-        AppleColors.fixedPodcastCoverStart, AppleColors.fixedPodcastCoverMid,
-        AppleColors.fixedPodcastCoverEnd,
-      ], startPoint: .topLeading, endPoint: .bottomTrailing
-    )
-    .frame(width: AppleMetrics.playerArtSize, height: AppleMetrics.playerArtSize)
-    .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius, style: .continuous))
-    .frame(maxWidth: .infinity)
-    .accessibilityHidden(true)
-    .firstRow()
-    heading
-    meta
-    if let duration = card.duration {
-      Text(Format.duration(duration)).font(.number(AppleMetrics.font13))
-        .foregroundStyle(AppleColors.secondary)
-    }
-    if !card.summary.isEmpty {
-      Text(card.summary).textStyle(
-        AppleMetrics.previewLead, leading: AppleMetrics.previewLeadLeading
-      )
-      .foregroundStyle(AppleColors.primary).fixedSize(horizontal: false, vertical: true)
-    }
-    if !card.body.isEmpty { paragraphs(card.body) }
-    Text(Copy.text("web.media.playbackUnavailable"))
-      .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-  }
-
   @ViewBuilder private var file: some View {
-    MetaRow(icon: AnyView(Icon("folder", size: AppleMetrics.font15))) {
+    MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) {
       Text(
         Copy.text("web.preview.fileSourcePrefix")
           + [card.sourceName, card.readingTime].filter { !$0.isEmpty }.joined(separator: " · "))
@@ -325,13 +295,8 @@ struct ReaderContent: View {
     .padding(.trailing, discRoom)
     .firstRow()
     heading
-    VStack(spacing: 0) {
-      ForEach(Array(card.files.enumerated()), id: \.offset) { index, file in
-        DetailRow(
-          icon: file.isImage ? "image" : "file", title: file.name, detail: file.detail,
-          trailing: file.modifiedAt ?? "", divider: index > 0)
-      }
-    }
+    detailText
+    DetailFiles(files: card.files)
   }
 
   @ViewBuilder private var taskReminder: some View {
@@ -344,7 +309,7 @@ struct ReaderContent: View {
         } ?? "",
       ].filter { !$0.isEmpty }.uniqued().joined(separator: " · ")
       : card.project ?? ""
-    MetaRow(icon: AnyView(Icon(card.kind.icon, size: AppleMetrics.font15))) { Text(label) }
+    MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) { Text(label) }
       .padding(.trailing, discRoom)
       .firstRow()
     if card.kind == .reminder {
@@ -359,11 +324,23 @@ struct ReaderContent: View {
     } else {
       heading
     }
-    if !card.summary.isEmpty {
-      Text(card.summary).textStyle(
-        AppleMetrics.previewLead, leading: AppleMetrics.previewLeadLeading
-      )
-      .foregroundStyle(AppleColors.primary).fixedSize(horizontal: false, vertical: true)
+    if card.kind == .task {
+      VStack(alignment: .leading, spacing: 0) {
+        if let due = card.due {
+          DetailRow(
+            icon: "clock", title: Copy.text("web.card.due") + " " + Format.dateLabel(due),
+            tone: AppleColors.warning)
+        }
+        if !card.people.isEmpty {
+          DetailRow(
+            icon: "at", title: card.people.joined(separator: "、"),
+            trailing: "\(card.people.count)\(Copy.text("web.preview.peopleCountSuffix"))")
+        }
+        if card.raw["priority"]?.number != nil {
+          DetailRow(
+            icon: "flag", title: Copy.text("web.card.priority") + " " + card.priority.formatted())
+        }
+      }
     }
     if card.kind == .task {
       VStack(alignment: .leading, spacing: 0) {
@@ -374,12 +351,23 @@ struct ReaderContent: View {
         }
       }
     }
+    if !card.markdown.blocks.isEmpty {
+      MarkdownText(document: card.markdown, size: type.body, leading: type.bodyLeading)
+    }
+    if card.kind == .reminder, let project = card.project {
+      Text(Copy.text("web.metadata.project") + " · " + project).font(.sans(AppleMetrics.font13))
+        .foregroundStyle(AppleColors.secondary)
+    }
   }
 
   static func fullDate(_ value: String) -> String? {
     guard let date = Format.parseDate(value) else { return nil }
     let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd HH:mm 'UTC'xxx"
+    formatter.locale = Locale(identifier: "zh_CN")
+    formatter.dateFormat =
+      Calendar.current.component(.year, from: date)
+        == Calendar.current.component(.year, from: Date())
+      ? "M月d日 HH:mm" : "yyyy年M月d日 HH:mm"
     return formatter.string(from: date)
   }
 }
@@ -470,13 +458,12 @@ struct DetailRow: View {
   var detail = ""
   var trailing = ""
   var divider = false
+  var tone: Color? = nil
   var body: some View {
     HStack(spacing: AppleMetrics.space12) {
       Icon(icon, size: AppleMetrics.space16)
-        .foregroundStyle(AppleColors.secondary)
-        .frame(width: AppleMetrics.detailIconSize, height: AppleMetrics.detailIconSize)
-        .background(
-          RoundedRectangle(cornerRadius: AppleMetrics.detailIconRadius).fill(AppleColors.surface))
+        .foregroundStyle(tone ?? AppleColors.secondary)
+        .frame(width: AppleMetrics.space18, height: AppleMetrics.space18)
       VStack(alignment: .leading, spacing: 0) {
         Text(title).lineLimit(1).truncationMode(.tail)
         if !detail.isEmpty {
@@ -491,7 +478,7 @@ struct DetailRow: View {
       }
     }
     .font(.sans(AppleMetrics.font15))
-    .foregroundStyle(AppleColors.primary)
+    .foregroundStyle(tone ?? AppleColors.primary)
     .frame(minHeight: AppleMetrics.detailRowHeight)
     .overlay(alignment: .top) {
       if divider { Rectangle().fill(AppleColors.line).frame(height: AppleMetrics.lineWidth) }

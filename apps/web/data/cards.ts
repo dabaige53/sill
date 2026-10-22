@@ -14,6 +14,8 @@ const articleBody = [
 	copy("web.cards.3c853dd722e9"),
 	copy("web.cards.25cf00e9a97b"),
 ];
+/** Seed text is stored as one Markdown body (ADR 0063). */
+const paragraphs = (parts: string[]) => parts.join("\n\n");
 const HOUR = 3600000,
 	MIN = 60000;
 /** Eleven card types. `readable` types carry read state as card color. */
@@ -29,6 +31,7 @@ const CardTypes: Record<string, any> = Object.assign(Object.create(null), {
 	suggestion: { label: copy("card.type.suggestion"), icon: "sparkles", readable: true },
 	photo: { label: copy("card.type.photo"), icon: "image", readable: true },
 	file: { label: copy("card.type.file"), icon: "folder" },
+	pr: { label: copy("card.type.pr"), icon: "pull" },
 });
 /** Where content comes from. Icons repeat in the source row, the source list and import. */
 const SourceKinds: Record<string, any> = Object.assign(Object.create(null), {
@@ -109,7 +112,7 @@ const SeedCards: Card[] = [
 		readingEstimate: { seconds: 360, origin: "provided", scope: "full" },
 		bodyCoverage: "full",
 		tags: ["AI", copy("web.cards.c71d0bca46eb")],
-		body: articleBody,
+		body: paragraphs(articleBody),
 		url: "https://developer.apple.com/design/human-interface-guidelines/",
 		time: demoBase - 30 * MIN,
 	},
@@ -133,11 +136,11 @@ const SeedCards: Card[] = [
 			code: "483 221 907",
 		},
 		tags: [copy("web.cards.bc62d1b6b936")],
-		body: [
+		body: paragraphs([
 			copy("web.cards.d3e4b202e92b"),
 			copy("web.cards.e1cacec18f38"),
 			copy("web.cards.8fb0508b4f85"),
-		],
+		]),
 		time: demoBase,
 	},
 	{
@@ -151,11 +154,11 @@ const SeedCards: Card[] = [
 		attachment: copy("web.cards.c3ed0b927504"),
 		tags: [copy("web.cards.bc62d1b6b936"), copy("web.cards.56c255e19858")],
 		url: "https://mail.google.com/",
-		body: [
+		body: paragraphs([
 			copy("web.cards.86384205eda3"),
 			copy("web.cards.8ce3815acc41"),
 			copy("web.cards.6ae375ee5671"),
-		],
+		]),
 		time: demoBase - 40 * MIN,
 	},
 	{
@@ -167,7 +170,7 @@ const SeedCards: Card[] = [
 		sources: [{ name: copy("web.cards.57f00ae88a87"), kind: "capture" }],
 
 		tags: [copy("web.cards.0e65f5e407c4"), copy("web.cards.aea82737cc01")],
-		body: [copy("web.cards.13731b8b0e51"), copy("web.cards.a96d68bb1701")],
+		body: paragraphs([copy("web.cards.13731b8b0e51"), copy("web.cards.a96d68bb1701")]),
 		time: demoBase - 10 * MIN,
 	},
 	{
@@ -185,7 +188,7 @@ const SeedCards: Card[] = [
 			{ id: "t7", text: copy("web.cards.552a852b911e"), done: false },
 		],
 		tags: [copy("web.cards.bc62d1b6b936"), copy("web.cards.56c255e19858")],
-		body: [copy("web.cards.6b39bfd2436f")],
+		body: paragraphs([copy("web.cards.6b39bfd2436f")]),
 		time: demoBase - 20 * MIN,
 	},
 	{
@@ -202,7 +205,7 @@ const SeedCards: Card[] = [
 			{ name: "Readwise", kind: "readwise" },
 		],
 		tags: [copy("web.cards.ce9b12499c47"), copy("web.cards.15d208d1b4c9")],
-		body: articleBody.slice().reverse(),
+		body: paragraphs(articleBody.slice().reverse()),
 		modifiedAt: new Date(demoBase - 2 * HOUR).toISOString(),
 	},
 	{
@@ -215,7 +218,7 @@ const SeedCards: Card[] = [
 		tags: ["AI", copy("web.cards.0e65f5e407c4")],
 		related: ["note-01", "article-01"],
 		why: { reason: copy("web.cards.d88e7e40d959"), basis: [copy("web.cards.56b422e0c2c7")] },
-		body: [copy("web.cards.25e406d48275"), copy("web.cards.bf7f253081d0")],
+		body: paragraphs([copy("web.cards.25e406d48275"), copy("web.cards.bf7f253081d0")]),
 		time: demoBase - 15 * MIN,
 	},
 	{
@@ -231,12 +234,12 @@ const SeedCards: Card[] = [
 		chapterCount: 4,
 		tags: [copy("web.cards.56c255e19858"), "AI"],
 		url: "https://www.youtube.com/",
-		body: [
+		body: paragraphs([
 			copy("web.cards.1a9149c03221"),
 			copy("web.cards.5aa9ccf4ae6c"),
 			copy("web.cards.e7a9d4376c25"),
 			copy("web.cards.8f84903733de"),
-		],
+		]),
 		time: demoBase - 90 * MIN,
 	},
 	{
@@ -249,7 +252,7 @@ const SeedCards: Card[] = [
 
 		due: demoBase + 10 * MIN,
 		tags: [copy("web.cards.15d208d1b4c9")],
-		body: [copy("web.cards.2681f6dbde57")],
+		body: paragraphs([copy("web.cards.2681f6dbde57")]),
 		time: demoBase - 5 * MIN,
 	},
 	{
@@ -263,7 +266,7 @@ const SeedCards: Card[] = [
 		attachment: copy("web.cards.1038c4a8e272"),
 		tags: [copy("web.cards.bc62d1b6b936")],
 		url: "https://mail.google.com/",
-		body: [copy("web.cards.ce9ab25396c3"), copy("web.cards.45b9945876dc")],
+		body: paragraphs([copy("web.cards.ce9ab25396c3"), copy("web.cards.45b9945876dc")]),
 		time: demoBase - 4 * HOUR,
 	},
 	{
@@ -276,7 +279,7 @@ const SeedCards: Card[] = [
 
 		tags: [copy("web.cards.1fe9d18bb48b")],
 		why: { reason: copy("web.cards.8c50851574e8"), basis: [copy("web.cards.327afda0ef32")] },
-		body: [copy("web.cards.67957e0ef3fc"), copy("web.cards.2b7714b87767")],
+		body: paragraphs([copy("web.cards.67957e0ef3fc"), copy("web.cards.2b7714b87767")]),
 		time: demoBase - 3 * HOUR,
 	},
 	{
@@ -286,11 +289,11 @@ const SeedCards: Card[] = [
 		summary: copy("web.cards.c66235cdab32"),
 		sources: [{ name: copy("web.cards.e727b8cc2df0"), kind: "capture" }],
 		tags: [copy("web.cards.56c255e19858"), copy("web.cards.0e65f5e407c4")],
-		body: [
+		body: paragraphs([
 			copy("web.cards.86e24107b07e"),
 			copy("web.cards.136d94e0d44b"),
 			copy("web.cards.0aeda3017a70"),
-		],
+		]),
 		time: demoBase - 26 * HOUR,
 	},
 	{
@@ -304,7 +307,7 @@ const SeedCards: Card[] = [
 		readingEstimate: { seconds: 180, origin: "provided", scope: "full" },
 		bodyCoverage: "full",
 		tags: [copy("web.cards.ce9b12499c47"), copy("web.cards.15d208d1b4c9")],
-		body: articleBody,
+		body: paragraphs(articleBody),
 		time: demoBase - 25 * HOUR,
 	},
 	{
@@ -319,7 +322,7 @@ const SeedCards: Card[] = [
 			{ id: "t6", text: copy("web.cards.1e55b7527c64"), done: true },
 		],
 		tags: [copy("web.cards.56c255e19858")],
-		body: [copy("web.cards.c34191fc5eff")],
+		body: paragraphs([copy("web.cards.c34191fc5eff")]),
 		time: demoBase - 28 * HOUR,
 	},
 	{
@@ -331,7 +334,7 @@ const SeedCards: Card[] = [
 		readingEstimate: { seconds: 120, origin: "provided", scope: "full" },
 		bodyCoverage: "full",
 		tags: [copy("web.cards.56c255e19858"), copy("web.cards.ce9b12499c47")],
-		body: articleBody.slice(2),
+		body: paragraphs(articleBody.slice(2)),
 		time: demoBase - 2 * 86400000,
 	},
 	{
@@ -345,7 +348,7 @@ const SeedCards: Card[] = [
 
 		tags: [copy("web.cards.56c255e19858")],
 		url: "https://podcasts.apple.com/",
-		body: [copy("web.cards.883b37535b80")],
+		body: paragraphs([copy("web.cards.883b37535b80")]),
 		time: demoBase - 5 * HOUR,
 	},
 	{
@@ -358,7 +361,7 @@ const SeedCards: Card[] = [
 
 		location: copy("web.cards.a8027f71a8e3"),
 		tags: [copy("web.cards.15d208d1b4c9")],
-		body: [],
+		body: "",
 		time: demoBase - 30 * HOUR,
 	},
 	{
@@ -388,18 +391,25 @@ const SeedCards: Card[] = [
 			},
 		],
 		tags: [copy("web.cards.56c255e19858")],
-		body: [],
+		body: "",
 		time: demoBase - 10 * MIN,
 	},
 	{
 		id: "pr-01",
-		type: "article",
+		type: "pr",
+		pullRequest: {
+			repository: "demo/sill",
+			number: 214,
+			state: "open",
+			observedAt: new Date(demoBase - 50 * MIN).toISOString(),
+			changedFiles: 3,
+		},
 		title: copy("web.cards.2b34435463a2"),
 		summary: copy("web.cards.6bc9228c53b6"),
 		sources: [{ name: "GitHub", kind: "github" }],
 		url: "https://github.com/",
 		tags: [copy("web.cards.bc62d1b6b936")],
-		body: [copy("web.cards.4daf57a75878"), copy("web.cards.f321fc83af79")],
+		body: paragraphs([copy("web.cards.4daf57a75878"), copy("web.cards.f321fc83af79")]),
 		time: demoBase - 50 * MIN,
 	},
 	{
@@ -410,7 +420,7 @@ const SeedCards: Card[] = [
 		sources: [{ name: "Linear", kind: "linear" }],
 		url: "https://linear.app/",
 		tags: [copy("web.cards.bc62d1b6b936")],
-		body: [copy("web.cards.06fb60a720cf")],
+		body: paragraphs([copy("web.cards.06fb60a720cf")]),
 		time: demoBase - 70 * MIN,
 	},
 	// A burst from one source: more than five within an hour stacks into one card.
@@ -430,7 +440,7 @@ const SeedCards: Card[] = [
 
 		url: "https://sspai.com/",
 		tags: [copy("web.cards.ce9b12499c47")],
-		body: articleBody.slice(i % 3, (i % 3) + 3),
+		body: paragraphs(articleBody.slice(i % 3, (i % 3) + 3)),
 		time: demoBase - (35 + i * 6) * MIN,
 	})),
 	// Time sinks cards: read a week ago goes to “读过的”; untouched for two weeks goes to “放了很久”.
@@ -443,7 +453,7 @@ const SeedCards: Card[] = [
 		readingEstimate: { seconds: 300, origin: "provided", scope: "full" },
 		bodyCoverage: "full",
 		tags: [copy("web.cards.56c255e19858")],
-		body: articleBody.slice(1, 4),
+		body: paragraphs(articleBody.slice(1, 4)),
 		time: demoBase - 9 * 86400000,
 	},
 	{
@@ -456,12 +466,12 @@ const SeedCards: Card[] = [
 		sources: [{ name: "YouTube", kind: "youtube" }],
 		duration: 600,
 		tags: [copy("web.cards.15d208d1b4c9")],
-		body: [
+		body: paragraphs([
 			copy("web.cards.9dd297c9be1e"),
 			copy("web.cards.6c111e7ea73a"),
 			copy("web.cards.a31c7d7b3707"),
 			copy("web.cards.a7d74739113d"),
-		],
+		]),
 		url: "https://www.youtube.com/",
 		time: demoBase - 15 * 86400000,
 	},
@@ -474,7 +484,7 @@ const SeedCards: Card[] = [
 		readingEstimate: { seconds: 420, origin: "provided", scope: "full" },
 		bodyCoverage: "full",
 		tags: [copy("web.cards.ce9b12499c47")],
-		body: articleBody.slice(3, 6),
+		body: paragraphs(articleBody.slice(3, 6)),
 		time: demoBase - 16 * 86400000,
 	},
 	{
@@ -486,7 +496,7 @@ const SeedCards: Card[] = [
 		readingEstimate: { seconds: 240, origin: "provided", scope: "full" },
 		bodyCoverage: "full",
 		tags: [copy("web.cards.ce9b12499c47")],
-		body: articleBody.slice(0, 2),
+		body: paragraphs(articleBody.slice(0, 2)),
 		time: demoBase - 20 * 86400000,
 	},
 ];
@@ -509,7 +519,7 @@ const FreshCards: Card[] = [
 		sources: [{ name: copy("web.reminder"), kind: "reminders" }],
 
 		tags: [copy("web.cards.bc62d1b6b936")],
-		body: [copy("web.cards.383ea9e3a031")],
+		body: paragraphs([copy("web.cards.383ea9e3a031")]),
 		time: demoBase + 1,
 	},
 	{
@@ -520,7 +530,7 @@ const FreshCards: Card[] = [
 		sources: [{ name: copy("web.cards.e727b8cc2df0"), kind: "capture" }],
 
 		tags: [copy("web.cards.0e65f5e407c4"), "AI"],
-		body: [copy("web.cards.1db802421e1f")],
+		body: paragraphs([copy("web.cards.1db802421e1f")]),
 		time: demoBase + 2,
 	},
 	{
@@ -532,7 +542,7 @@ const FreshCards: Card[] = [
 		readingEstimate: { seconds: 180, origin: "provided", scope: "full" },
 		bodyCoverage: "full",
 		tags: ["AI", copy("web.cards.ce9b12499c47")],
-		body: articleBody.slice(0, 3),
+		body: paragraphs(articleBody.slice(0, 3)),
 		time: demoBase + 3,
 	},
 ];

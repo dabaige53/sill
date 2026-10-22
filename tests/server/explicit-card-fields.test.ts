@@ -12,7 +12,7 @@ import { token } from "./helpers/signed-auth.ts";
 const article = {
 	type: "article",
 	title: "Explicit facts",
-	body: ["Full synthetic text"],
+	body: "Full synthetic text",
 	bodyCoverage: "full",
 	authors: [{ name: "Writer", url: "https://example.com/author", future: true }],
 	publisher: { name: "Publisher" },
@@ -84,8 +84,8 @@ test("explicit metadata SQL matches contract validation and checks merged partia
 			{ ...article, readingEstimate: { seconds: 0, origin: "provided", scope: "full" } },
 			{ ...article, publishedAt: "2026-02-30" },
 			{ ...article, bodyCoverage: "none" },
-			{ ...article, body: [] },
-			{ ...article, body: ["\n\t "] },
+			{ ...article, body: "" },
+			{ ...article, body: "\n\t " },
 			{ ...article, authors: [{ name: "\t " }] },
 			{
 				...article,
@@ -105,7 +105,7 @@ test("explicit metadata SQL matches contract validation and checks merged partia
 			assert.equal(create.safeParse(bad).success, false, JSON.stringify(bad));
 			await assert.rejects(write("create", null, bad), /invalid_request/);
 		}
-		for (const changes of [{ body: ["Changed"] }, { bodyCoverage: "excerpt" }, { type: "task" }])
+		for (const changes of [{ body: "Changed" }, { bodyCoverage: "excerpt" }, { type: "task" }])
 			await assert.rejects(
 				write("update", saved.id, { expectedRevision: 1, changes }),
 				/invalid_request/,
@@ -115,7 +115,7 @@ test("explicit metadata SQL matches contract validation and checks merged partia
 		const updated = (
 			await write("update", saved.id, {
 				expectedRevision: 1,
-				changes: { body: ["Changed"], readingEstimate: null, state: { note: "Personal note" } },
+				changes: { body: "Changed", readingEstimate: null, state: { note: "Personal note" } },
 			})
 		).body;
 		assert.equal(updated.readingEstimate, null);
@@ -139,7 +139,7 @@ test("explicit metadata SQL matches contract validation and checks merged partia
 							id: saved.id,
 							type: "article",
 							title: "Full replacement",
-							body: ["Replacement text"],
+							body: "Replacement text",
 						},
 					},
 				],
@@ -208,9 +208,9 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 					body: JSON.stringify({ expectedRevision: 1, changes }),
 				}),
 			);
-		assert.equal((await patch({ body: ["Updated text"] }, "explicit_http_stale")).status, 400);
+		assert.equal((await patch({ body: "Updated text" }, "explicit_http_stale")).status, 400);
 		const cleared = await patch(
-			{ body: ["Updated text"], readingEstimate: null, state: { note: "Private reader note" } },
+			{ body: "Updated text", readingEstimate: null, state: { note: "Private reader note" } },
 			"explicit_http_clear",
 		);
 		assert.equal(cleared.status, 200);
@@ -266,7 +266,7 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 				body: {
 					expectedRevision: savedMCP.revision,
 					changes: {
-						body: ["Updated through MCP"],
+						body: "Updated through MCP",
 						readingEstimate: null,
 						state: { note: "MCP personal note" },
 					},

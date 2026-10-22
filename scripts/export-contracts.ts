@@ -14,13 +14,23 @@ if (process.argv.includes("--check")) {
 	if (readFileSync(target, "utf8") !== content) throw new Error("stale_card_schema");
 } else writeFileSync(target, content);
 const { $schema, ...appleCard } = cardSchema;
+// Preserve source timestamp strings, including their offset, in generated Swift models.
+function appleSchema(value: any): any {
+	if (Array.isArray(value)) return value.map(appleSchema);
+	if (!value || typeof value !== "object") return value;
+	return Object.fromEntries(
+		Object.entries(value)
+			.filter(([key, item]) => key !== "format" || item !== "date-time")
+			.map(([key, item]) => [key, appleSchema(item)]),
+	);
+}
 const appleContent =
 	JSON.stringify(
 		{
 			openapi: "3.1.0",
 			info: { title: "Sill Card", version: contractVersion },
 			paths: {},
-			components: { schemas: { Card: appleCard } },
+			components: { schemas: { Card: appleSchema(appleCard) } },
 		},
 		null,
 		2,

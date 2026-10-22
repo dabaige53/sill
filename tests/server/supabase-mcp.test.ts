@@ -58,7 +58,7 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 			body: {
 				type: "note",
 				title: "MCP same database",
-				body: ["Synthetic MCP content"],
+				body: "Synthetic MCP content",
 				summary: "Rich preview",
 				form: "compact",
 				sources: [{ name: "Test agent", kind: "agent" }],

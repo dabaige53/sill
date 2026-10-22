@@ -127,7 +127,7 @@
 						"kind": "local"
 					}
 				],
-				"points": ["A"]
+				"body": "1. A"
 			}
 		},
 		{
@@ -223,7 +223,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -258,7 +258,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": null,
 				"section": "Technology"
@@ -286,6 +286,99 @@
 						"mimeType": "application/pdf",
 						"sizeBytes": 1024,
 						"modifiedAt": "2026-10-01"
+					}
+				]
+			}
+		},
+		{
+			"name": "pr snapshot with observed facts",
+			"card": {
+				"id": "pr-sample",
+				"type": "pr",
+				"title": "Review the change",
+				"url": "https://github.com/example/repo/pull/7",
+				"pullRequest": {
+					"repository": "example/repo",
+					"number": 7,
+					"state": "open",
+					"observedAt": "2026-10-22T13:00:00+08:00",
+					"headBranch": "feature",
+					"baseBranch": "main",
+					"author": {
+						"login": "writer"
+					},
+					"reviewers": [
+						{
+							"login": "reader",
+							"decision": "pending"
+						}
+					],
+					"checks": [
+						{
+							"name": "build",
+							"status": "completed",
+							"conclusion": "success"
+						}
+					],
+					"additions": 42,
+					"deletions": 3,
+					"changedFiles": 1,
+					"comments": 0,
+					"reviewRequested": true,
+					"files": [
+						{
+							"path": "src/main.ts",
+							"additions": 42,
+							"deletions": 3
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "podcast with timestamped content",
+			"card": {
+				"id": "media-sample",
+				"type": "media",
+				"media": "podcast",
+				"title": "Episode",
+				"audioUrl": "https://example.com/audio.mp3",
+				"duration": 180,
+				"chapterCount": 2,
+				"chapters": [
+					{
+						"start": 0,
+						"title": "Start"
+					},
+					{
+						"start": 60,
+						"title": "Next"
+					}
+				],
+				"transcript": [
+					{
+						"start": 0,
+						"text": "Hello"
+					},
+					{
+						"start": 60,
+						"text": "Next paragraph"
+					}
+				]
+			}
+		},
+		{
+			"name": "mail with attachments",
+			"card": {
+				"id": "mail-attachments",
+				"type": "mail",
+				"title": "Files",
+				"attachments": [
+					{
+						"name": "report.pdf",
+						"url": "https://example.com/report.pdf",
+						"mimeType": "application/pdf",
+						"sizeBytes": 1024
 					}
 				]
 			}
@@ -398,12 +491,12 @@
 			}
 		},
 		{
-			"name": "too-many-points",
+			"name": "legacy-body-array",
 			"card": {
 				"id": "invalid",
 				"type": "note",
 				"title": "Synthetic",
-				"points": ["A", "B", "C", "D"]
+				"body": ["A"]
 			}
 		},
 		{
@@ -430,7 +523,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -466,7 +559,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": "6 min",
 				"section": "Technology"
@@ -496,7 +589,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 0,
@@ -530,7 +623,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 60,
@@ -564,7 +657,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "excerpt",
 				"readingEstimate": {
 					"seconds": 360,
@@ -599,7 +692,7 @@
 				"publishedAt": "2026-02-30",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -634,7 +727,7 @@
 				"publishedAt": "2026-10-01T12:00:00",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -669,7 +762,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -705,7 +798,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "none",
 				"readingEstimate": {
 					"seconds": 360,
@@ -740,6 +833,289 @@
 					{
 						"name": "file",
 						"time": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "PR without snapshot",
+			"card": {
+				"id": "pr-sample",
+				"type": "pr",
+				"title": "Review the change",
+				"url": "https://github.com/example/repo/pull/7"
+			}
+		},
+		{
+			"name": "PR zero number",
+			"card": {
+				"id": "pr-sample",
+				"type": "pr",
+				"title": "Review the change",
+				"url": "https://github.com/example/repo/pull/7",
+				"pullRequest": {
+					"repository": "example/repo",
+					"number": 0,
+					"state": "open",
+					"observedAt": "2026-10-22T13:00:00+08:00",
+					"headBranch": "feature",
+					"baseBranch": "main",
+					"author": {
+						"login": "writer"
+					},
+					"reviewers": [
+						{
+							"login": "reader",
+							"decision": "pending"
+						}
+					],
+					"checks": [
+						{
+							"name": "build",
+							"status": "completed",
+							"conclusion": "success"
+						}
+					],
+					"additions": 42,
+					"deletions": 3,
+					"changedFiles": 1,
+					"comments": 0,
+					"reviewRequested": true,
+					"files": [
+						{
+							"path": "src/main.ts",
+							"additions": 42,
+							"deletions": 3
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "PR missing observation",
+			"card": {
+				"id": "pr-sample",
+				"type": "pr",
+				"title": "Review the change",
+				"url": "https://github.com/example/repo/pull/7",
+				"pullRequest": {
+					"repository": "example/repo",
+					"number": 7,
+					"state": "open",
+					"headBranch": "feature",
+					"baseBranch": "main",
+					"author": {
+						"login": "writer"
+					},
+					"reviewers": [
+						{
+							"login": "reader",
+							"decision": "pending"
+						}
+					],
+					"checks": [
+						{
+							"name": "build",
+							"status": "completed",
+							"conclusion": "success"
+						}
+					],
+					"additions": 42,
+					"deletions": 3,
+					"changedFiles": 1,
+					"comments": 0,
+					"reviewRequested": true,
+					"files": [
+						{
+							"path": "src/main.ts",
+							"additions": 42,
+							"deletions": 3
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "unfinished check with conclusion",
+			"card": {
+				"id": "pr-sample",
+				"type": "pr",
+				"title": "Review the change",
+				"url": "https://github.com/example/repo/pull/7",
+				"pullRequest": {
+					"repository": "example/repo",
+					"number": 7,
+					"state": "open",
+					"observedAt": "2026-10-22T13:00:00+08:00",
+					"headBranch": "feature",
+					"baseBranch": "main",
+					"author": {
+						"login": "writer"
+					},
+					"reviewers": [
+						{
+							"login": "reader",
+							"decision": "pending"
+						}
+					],
+					"checks": [
+						{
+							"name": "CI",
+							"status": "queued",
+							"conclusion": "success"
+						}
+					],
+					"additions": 42,
+					"deletions": 3,
+					"changedFiles": 1,
+					"comments": 0,
+					"reviewRequested": true,
+					"files": [
+						{
+							"path": "src/main.ts",
+							"additions": 42,
+							"deletions": 3
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "audio on note",
+			"card": {
+				"id": "media-sample",
+				"type": "note",
+				"media": "podcast",
+				"title": "Episode",
+				"audioUrl": "https://example.com/audio.mp3",
+				"duration": 180,
+				"chapterCount": 2,
+				"chapters": [
+					{
+						"start": 0,
+						"title": "Start"
+					},
+					{
+						"start": 60,
+						"title": "Next"
+					}
+				],
+				"transcript": [
+					{
+						"start": 0,
+						"text": "Hello"
+					},
+					{
+						"start": 60,
+						"text": "Next paragraph"
+					}
+				]
+			}
+		},
+		{
+			"name": "chapter order",
+			"card": {
+				"id": "media-sample",
+				"type": "media",
+				"media": "podcast",
+				"title": "Episode",
+				"audioUrl": "https://example.com/audio.mp3",
+				"duration": 180,
+				"chapterCount": 2,
+				"chapters": [
+					{
+						"start": 60,
+						"title": "Later"
+					},
+					{
+						"start": 0,
+						"title": "Earlier"
+					}
+				],
+				"transcript": [
+					{
+						"start": 0,
+						"text": "Hello"
+					},
+					{
+						"start": 60,
+						"text": "Next paragraph"
+					}
+				]
+			}
+		},
+		{
+			"name": "transcript beyond duration",
+			"card": {
+				"id": "media-sample",
+				"type": "media",
+				"media": "podcast",
+				"title": "Episode",
+				"audioUrl": "https://example.com/audio.mp3",
+				"duration": 180,
+				"chapterCount": 2,
+				"chapters": [
+					{
+						"start": 0,
+						"title": "Start"
+					},
+					{
+						"start": 60,
+						"title": "Next"
+					}
+				],
+				"transcript": [
+					{
+						"start": 181,
+						"text": "Beyond"
+					}
+				]
+			}
+		},
+		{
+			"name": "attachments wrong type",
+			"card": {
+				"id": "mail-attachments",
+				"type": "note",
+				"title": "Files",
+				"attachments": [
+					{
+						"name": "report.pdf",
+						"url": "https://example.com/report.pdf",
+						"mimeType": "application/pdf",
+						"sizeBytes": 1024
+					}
+				]
+			}
+		},
+		{
+			"name": "unsafe audio url",
+			"card": {
+				"id": "media-sample",
+				"type": "media",
+				"media": "podcast",
+				"title": "Episode",
+				"audioUrl": "file:///tmp/a.mp3",
+				"duration": 180,
+				"chapterCount": 2,
+				"chapters": [
+					{
+						"start": 0,
+						"title": "Start"
+					},
+					{
+						"start": 60,
+						"title": "Next"
+					}
+				],
+				"transcript": [
+					{
+						"start": 0,
+						"text": "Hello"
+					},
+					{
+						"start": 60,
+						"text": "Next paragraph"
 					}
 				]
 			}

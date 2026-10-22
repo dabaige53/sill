@@ -29,7 +29,11 @@ export function renderView(container: Element, content: ReactNode, replace = fal
 	}
 	const current = entry;
 	// A panel opening resets its uncontrolled inputs. Feed updates retain keyed cards.
-	if (replace) current.revision++;
+	if (replace) {
+		// Media cleanup saves its position; the next surface must read that saved value.
+		flushSync(() => current.root.render(null));
+		current.revision++;
+	}
 	flushSync(() => current.root.render(createElement(Fragment, { key: current.revision }, content)));
 }
 

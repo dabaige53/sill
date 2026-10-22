@@ -1,14 +1,13 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { icon } from "../atoms/icons.ts";
+import { markdownBlocks } from "../atoms/markdown.ts";
 import {
 	avatar,
 	avatars,
-	button,
 	checkItem,
 	checkMark,
 	dateLabel,
-	duration,
 	esc,
 	eventRelative,
 	eventTimely,
@@ -27,11 +26,13 @@ import {
 	cardSourceKind,
 	contentDay,
 } from "../data/card-source.ts";
-import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
+import { AssetTones, CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { CardView, OpenStackView, ShelfView, StackView } from "./components.tsx";
 import { CardPresentation, reminderMark } from "./presentation.ts";
+import { Media } from "./media-card.tsx";
+import { publicationName } from "./source-mark.tsx";
 
 export { CardView, OpenStackView, reminderMark, ShelfView, StackView };
 
@@ -41,9 +42,8 @@ const CardTemplates: Record<string, any> = {
 	},
 	sourceLine(c?: any, date: Date | null = null) {
 		return [
-			c.sources?.length > 1
-				? c.sources.map((s?: any) => s.name).join(" · ")
-				: cardSource(c) || (CardTypes[c.type] || CardTypes.note).label,
+			(["article", "media"].includes(c.type) ? publicationName(c) : cardSource(c)) ||
+				(CardTypes[c.type] || CardTypes.note).label,
 			date ? shortDay(date.getTime()) : "",
 			// A relation lists its cards below; a count in the head would say it twice.
 			cardReadingTime(c),
@@ -66,13 +66,9 @@ const CardTemplates: Record<string, any> = {
 	},
 	// @design card-summary
 	summary(c?: any, short: any = false) {
-		if (c.points?.length)
-			return `${c.summary ? `<p class="card-summary clamp-2">${esc(c.summary)}</p>` : ""}<ol class="key-points">${c.points
-				.slice(0, 3)
-				.map((p?: any, i?: any) => `<li><i class="num">${i + 1}</i><span>${esc(p)}</span></li>`)
-				.join("")}</ol>`;
-		return c.summary
-			? `<p class="card-summary ${c.type === "article" || c.type === "mail" ? "reading-summary" : short ? "clamp-2" : ""}">${esc(c.summary)}</p>`
+		const summary = c.summary || markdownBlocks(c.body || "")[0] || "";
+		return summary
+			? `<p class="card-summary ${c.type === "article" || c.type === "mail" ? "reading-summary" : short ? "clamp-2" : ""}">${esc(summary)}</p>`
 			: "";
 	},
 	cover(c?: any, ctx?: any, inner: any = "") {
@@ -134,20 +130,12 @@ const CardTemplates: Record<string, any> = {
    <div class="reminder-row">${mark}${this.title(c, ctx)}</div>${c.summary ? `<p class="card-summary indent">${esc(c.summary)}</p>` : ""}</div>`;
 	},
 	media(c?: any, ctx?: any) {
-		if (c.media === "podcast") {
-			return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}${this.summary(c, true)}
-     ${c.duration !== undefined ? `<div class="mini-player"><span class="num">${duration(c.duration)}</span></div>` : ""}</div>`;
-		}
-		const inner =
-			c.duration !== undefined
-				? `<span class="media-length num">${duration(c.duration)}</span>`
-				: "";
-		return `${c.image ? this.cover(c, ctx, inner) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}</div>`;
+		return renderToStaticMarkup(createElement(Media, { card: c, ctx }));
 	},
 	digest(c?: any, ctx?: any) {
 		const preview = {
 			...c,
-			summary: c.summary || (c.points?.length ? "" : c.body?.[0] || ""),
+			summary: c.summary || markdownBlocks(c.body || "")[0] || "",
 		};
 		return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c))}${this.title(c, ctx)}${this.summary(preview)}</div>`;
 	},

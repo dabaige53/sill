@@ -1,4 +1,5 @@
 import type { Card } from "./card.ts";
+import { richCardIssues } from "./card-rich.ts";
 
 const textTypes = ["article", "note", "mail", "digest", "suggestion", "file"];
 const creatorTypes = [...textTypes, "media"];
@@ -42,7 +43,7 @@ export function validContentDate(value: unknown, timeRequired = false): boolean 
 
 /** Cross-field rules shared by local, HTTP, MCP and the browser write validator. */
 export function metadataIssues(card: Card): string[] {
-	const issues: string[] = [];
+	const issues: string[] = richCardIssues(card);
 	if (Object.hasOwn(card, "meta")) issues.push("deprecated_meta");
 	for (const [field, types] of Object.entries(allowedTypes)) {
 		if (card[field] !== undefined && !types.includes(card.type))
@@ -68,18 +69,12 @@ export function metadataIssues(card: Card): string[] {
 	}
 	if (card.readingEstimate?.origin === "calculated") {
 		if (!card.readingEstimate.method?.trim()) issues.push("missing_reading_method");
-		if (
-			!card.body?.length ||
-			!card.body.some((p) => p.trim()) ||
-			!card.bodyCoverage ||
-			card.bodyCoverage === "none"
-		)
+		if (!card.body?.trim() || !card.bodyCoverage || card.bodyCoverage === "none")
 			issues.push("missing_reading_body");
 		if (card.readingEstimate.scope === "full" && card.bodyCoverage !== "full")
 			issues.push("incomplete_reading_body");
 	}
-	if (card.bodyCoverage === "none" && card.body?.some((p) => p.trim()))
-		issues.push("unexpected_body");
+	if (card.bodyCoverage === "none" && card.body?.trim()) issues.push("unexpected_body");
 	if (card.coverageStart !== undefined || card.coverageEnd !== undefined) {
 		if (!(card.coverageStart !== undefined && card.coverageEnd > card.coverageStart))
 			issues.push("invalid_coverage_range");

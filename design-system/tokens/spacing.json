@@ -305,6 +305,11 @@
 				"name": "settings-body-height",
 				"value": "560px",
 				"usage": "桌面设置分组区固定高度；低窗口随可用高度收缩。"
+			},
+			{
+				"name": "media-player-min-height",
+				"value": "200px",
+				"usage": "官方嵌入视频播放器的最小高度。"
 			}
 		]
 	}

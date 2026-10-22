@@ -515,11 +515,11 @@ struct LaunchOptionTests {
     #expect(bare["title"]?.string == "example.com/post")
   }
 
-  @Test func textBecomesNoteWithParagraphs() throws {
+  @Test func textBecomesNoteWithMarkdownBody() throws {
     let card = try #require(Capture.card(from: "第一行\n接着\n\n\n第二段", now: 1))
     #expect(card["type"]?.string == "note")
     #expect(card["title"]?.string == "第一行")
-    #expect(card["body"]?.strings == ["第一行\n接着", "第二段"])
+    #expect(card["body"]?.string == "第一行\n接着\n\n\n第二段")
     #expect(Capture.card(from: "  \n ") == nil)
   }
 

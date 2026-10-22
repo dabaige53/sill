@@ -42,7 +42,7 @@ function fixture() {
 	const { AppController, Store, Panels, cardHTML } = w.SearchTest;
 	Store.state = {
 		cards: [
-			{ id: "a", type: "article", title: "Alpha", body: ["Article"], time: Date.now() },
+			{ id: "a", type: "article", title: "Alpha", body: "Article", time: Date.now() },
 			{
 				id: "b",
 				type: "task",
@@ -50,7 +50,7 @@ function fixture() {
 				tasks: [{ id: "one", text: "Task" }],
 				time: Date.now(),
 			},
-			{ id: "old", type: "article", title: "Archived Alpha", body: ["Article"], time: Date.now() },
+			{ id: "old", type: "article", title: "Archived Alpha", body: "Article", time: Date.now() },
 		],
 		items: { old: { archived: true } },
 		preferences: {},
@@ -504,11 +504,11 @@ function desktopFixture() {
 			id: "m",
 			type: "mail",
 			title: "Alpha mail",
-			body: ["Mail"],
+			body: "Mail",
 			tags: ["Work"],
 			time: Date.now(),
 		},
-		{ id: "n", type: "note", title: "Gamma", body: ["Note"], tags: ["Work"], time: Date.now() },
+		{ id: "n", type: "note", title: "Gamma", body: "Note", tags: ["Work"], time: Date.now() },
 	);
 	f.Store.state.items = { ...f.Store.state.items, m: { bookmarked: true } };
 	f.w.document.body.insertAdjacentHTML(

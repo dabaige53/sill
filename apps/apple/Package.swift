@@ -10,13 +10,17 @@ let package = Package(
     .executable(name: "Sill", targets: ["Sill"]),
   ],
   dependencies: [
+    .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
     .package(url: "https://github.com/apple/swift-openapi-generator", exact: "1.9.0"),
     .package(url: "https://github.com/apple/swift-openapi-runtime", exact: "1.9.0"),
   ],
   targets: [
     .target(
       name: "SillKit",
-      dependencies: [.product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")],
+      dependencies: [
+        .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+        .product(name: "Markdown", package: "swift-markdown"),
+      ],
       path: "SillKit", plugins: ["CardGenerator"]),
     .executableTarget(
       name: "Sill", dependencies: ["SillKit"], path: "macOS", resources: [.process("Resources")]),

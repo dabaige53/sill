@@ -54,7 +54,7 @@ export function fixture({ kind = "preview", phone = false, end = false } = {}) {
 	w.eval(bundle);
 	const { Gestures, MotionEngine, Store } = w.GestureTest;
 	Store.state = Store.fresh();
-	Store.state.cards = [{ id: "article", type: "article", title: "阅读卡片", body: ["正文"] }];
+	Store.state.cards = [{ id: "article", type: "article", title: "阅读卡片", body: "正文" }];
 	Store.item("article");
 	Store.save();
 	const dialog = document.getElementById("modal"),

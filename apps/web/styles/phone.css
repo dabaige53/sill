@@ -148,25 +148,13 @@
 	.feed-item .sender small::before {
 		content: "· ";
 	}
-	/* Articles: a thumbnail on the right. Video and photos keep a 2:1 picture. */
-	.feed-item.has-cover:not(.type-media, .type-photo) {
-		flex-direction: row-reverse;
-		align-items: flex-start;
-	}
-	.feed-item.has-cover:not(.type-media, .type-photo) .card-cover {
-		width: var(--thumb);
-		height: var(--thumb);
+	/* Article covers remain above the card body on phones. */
+	.feed-item.type-article .card-cover {
+		height: 180px;
 		aspect-ratio: auto;
-		margin: var(--card-padding-sm) var(--card-padding-sm) var(--card-padding-sm) 0;
-		border-radius: var(--control-radius);
 	}
-	.feed-item.has-cover:not(.type-media, .type-photo) .card-body {
-		flex: 1;
-		min-width: 0;
-		padding-right: var(--space-12);
-	}
-	.feed-item:is(.type-media, .type-photo) .card-cover {
-		aspect-ratio: 2 / 1;
+	.feed-item.type-media .card-cover {
+		aspect-ratio: 16 / 9;
 	}
 	.feed-item .attachment {
 		align-self: stretch;
@@ -186,63 +174,7 @@
 		position: absolute;
 		inset: -4px 0;
 	}
-	/* Events: the start time is a column; title and span sit beside it; join shares the people row. */
-	.feed-item.type-event .card-body {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		align-items: center;
-		column-gap: var(--space-12);
-		row-gap: var(--space-2);
-	}
-	.feed-item.type-event .card-head {
-		grid-column: 1 / -1;
-		margin-bottom: var(--space-6);
-	}
-	.feed-item.type-event .event-time {
-		display: contents;
-	}
-	.feed-item.type-event .event-start {
-		grid-column: 1;
-		grid-row: 2 / span 2;
-		font-size: var(--text-figure-route);
-		line-height: 1;
-	}
-	.feed-item.type-event .card-title {
-		grid-column: 2;
-		grid-row: 2;
-		font-size: var(--text-body);
-	}
-	.feed-item.type-event .event-end {
-		grid-column: 2;
-		grid-row: 3;
-		flex-direction: row;
-		align-items: baseline;
-		gap: var(--space-4);
-		padding-bottom: 0;
-		font-size: var(--text-meta);
-		font-weight: 400;
-		color: var(--muted);
-	}
-	.feed-item.type-event .event-end small::before {
-		content: "· ";
-	}
-	.feed-item.type-event .people {
-		grid-column: 1 / -1;
-		grid-row: 4;
-		margin-top: var(--space-8);
-		padding-top: 0;
-	}
-	.feed-item.type-event .card-actions-row {
-		grid-column: 1 / -1;
-		grid-row: 4;
-		justify-self: end;
-		margin-top: var(--space-8);
-		padding-top: 0;
-	}
-	.feed-item.type-event .card-actions-row .pill {
-		min-width: 96px;
-	}
-	/* To-dos: 28px rows; the head count already says how many there are. */
+	/* To-dos: compact rows keep the remaining-item count visible. */
 	.feed-item.type-task .check-item {
 		min-height: 28px;
 		padding: 0;
@@ -251,9 +183,6 @@
 		width: 18px;
 		height: 18px;
 		flex-basis: 18px;
-	}
-	.feed-item.type-task .more-items {
-		display: none;
 	}
 	/* Navigation and selection */
 
@@ -427,7 +356,7 @@
 	}
 	.preview-body h1,
 	.preview-body .preview-title-row {
-		font-size: var(--text-panel-title);
+		font-size: var(--space-24);
 	}
 	/* Full-screen reader */
 	.reader-head {
@@ -607,5 +536,40 @@
 	}
 	.search-card-grid {
 		gap: var(--gap-sm);
+	}
+}
+
+@media (max-width: 650px) {
+	.feed-item:is(.type-article, .type-mail) .card-summary {
+		-webkit-line-clamp: 4;
+	}
+	.feed-item:is(.type-note, .type-digest) .card-summary {
+		-webkit-line-clamp: 2;
+	}
+	.feed-item.type-suggestion .card-summary {
+		-webkit-line-clamp: 1;
+	}
+	.feed-item .sender > span {
+		display: flex;
+		flex-direction: column;
+		align-items: start;
+	}
+	.feed-item .sender small::before {
+		content: none;
+	}
+}
+
+@media (max-width: 650px) {
+	.mail-attachments .attachment {
+		width: auto;
+	}
+	.mail-attachments .attachment-third,
+	.attachment-more-desktop {
+		display: none;
+	}
+	.attachment-more-phone {
+		display: inline;
+		font-size: var(--text-meta);
+		color: var(--secondary);
 	}
 }

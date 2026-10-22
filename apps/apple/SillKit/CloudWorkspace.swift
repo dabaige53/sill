@@ -357,7 +357,7 @@ public actor CloudWorkspace {
   private static func rawCard(_ input: JSONValue) -> JSONValue {
     var card = input
     for key in metadata { card[key] = nil }
-    if card["body"] == nil { card["body"] = .array([]) }
+    if card["body"] == nil { card["body"] = .string("") }
     return card
   }
 

@@ -21,6 +21,7 @@ struct CardBody: View {
     case .suggestion: SuggestionBody(card: card, context: context)
     case .photo: PhotoBody(card: card, state: state, context: context)
     case .file: FileBody(card: card, context: context)
+    case .pr: BodyStack { PullRequestContent(card: card) }
     }
   }
 }
@@ -58,10 +59,14 @@ private struct ReadingProgress: View {
   let card: CardModel
   let state: CardState
   var body: some View {
-    if card.kind.readable, !state.read, state.progress > 0 {
+    let progress =
+      card.kind == .media
+      ? (card.duration.map { $0 > 0 ? min(1, state.playbackPosition / Double($0)) : 0 } ?? 0)
+      : state.progress
+    if card.kind.readable, !state.read, progress > 0 {
       HStack(spacing: AppleMetrics.space4) {
-        ProgressRing(progress: state.progress)
-        Text("\(Int((state.progress * 100).rounded()))%").font(
+        ProgressRing(progress: progress)
+        Text("\(Int((progress * 100).rounded()))%").font(
           .number(AppleMetrics.font13, .medium))
       }
       .foregroundStyle(AppleColors.accent)
@@ -96,14 +101,18 @@ struct ArticleBody: View {
       BodyStack(compact: context.compact) {
         // The same head as the article preview: source · day · reading time.
         CardHead(
-          card: card, text: card.sourceLine(day: card.articleDate, now: Format.date(context.now))
+          card: card,
+          text: [
+            card.publicationName, card.articleDate.map { Format.shortDay($0) } ?? "",
+            card.readingTime,
+          ].filter { !$0.isEmpty }.joined(separator: " · ")
         ) {
           ReadingProgress(card: card, state: state)
         }
         CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
         if !context.compact {
           SummaryBlock(
-            summary: card.summary, points: card.points,
+            summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary,
             query: context.query
           ).afterTitle()
         }
@@ -124,11 +133,14 @@ struct MailBody: View {
           VStack(alignment: .leading, spacing: 0) {
             Text(sender).font(.sans(AppleMetrics.font15, .semibold)).lineLimit(1)
               .foregroundStyle(AppleColors.primary)
-            Text(
-              [Copy.text("web.mail"), card.sentAt.flatMap(Self.date) ?? "", card.readingTime]
-                .filter { !$0.isEmpty }.joined(separator: " · ")
-            )
-            .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary).lineLimit(1)
+            HStack(spacing: AppleMetrics.space4) {
+              SourceIcon(card: card, size: AppleMetrics.font12)
+              Text(
+                [Copy.text("web.mail"), card.sentAt.flatMap(Self.date) ?? "", card.readingTime]
+                  .filter { !$0.isEmpty }.joined(separator: " · ")
+              )
+              .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary).lineLimit(1)
+            }
           }
         }
         .padding(.trailing, AppleMetrics.space30)
@@ -143,11 +155,11 @@ struct MailBody: View {
       CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
       if !context.compact {
         SummaryBlock(
-          summary: card.summary, points: card.points, query: context.query
+          summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary, query: context.query
         ).afterTitle()
       }
-      if let attachment = card.attachment {
-        FileRow(name: attachment).padding(.trailing, AppleMetrics.space12).beforeList()
+      ForEach(Array(card.attachments.prefix(3).enumerated()), id: \.offset) { _, file in
+        FileRow(name: file.name).padding(.trailing, AppleMetrics.space12).beforeList()
       }
     }
   }
@@ -166,7 +178,7 @@ struct NoteBody: View {
       BodyStack(
         spacing: AppleMetrics.space10, bottom: AppleMetrics.space22, compact: context.compact
       ) {
-        CardHead(card: card, text: card.sourceLine)
+        CardHead(card: card, text: card.displaySourceLine)
         Highlighted(text: card.title, query: context.query)
           .textStyle(
             AppleMetrics.font21, .medium, leading: AppleMetrics.quoteLeading,
@@ -180,7 +192,7 @@ struct NoteBody: View {
     } else if card.isCapture {
       // A quick note is its own text; the title only names it in search and archives.
       BodyStack(compact: context.compact) {
-        CardHead(card: card, text: card.sourceLine)
+        CardHead(card: card, text: card.displaySourceLine)
         Highlighted(text: card.summary.isEmpty ? card.title : card.summary, query: context.query)
           .textStyle(AppleMetrics.font15, leading: AppleMetrics.noteLeading)
           .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
@@ -191,11 +203,14 @@ struct NoteBody: View {
       }
     } else {
       BodyStack(compact: context.compact) {
-        CardHead(card: card, text: card.sourceLine) { ReadingProgress(card: card, state: state) }
+        CardHead(card: card, text: card.displaySourceLine) {
+          ReadingProgress(card: card, state: state)
+        }
         CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
         if !context.compact {
           SummaryBlock(
-            summary: card.summary, points: card.points, query: context.query
+            summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary,
+            query: context.query
           ).afterTitle()
         }
       }
@@ -215,7 +230,11 @@ struct TaskBody: View {
     // Unfinished first, then finished; at most three.
     let visible = Array((tasks.filter { !$0.done } + tasks.filter(\.done)).prefix(3))
     BodyStack(compact: context.compact) {
-      CardHead(card: card, text: card.project ?? Copy.text("web.task")) {
+      CardHead(
+        card: card,
+        text: [card.project ?? Copy.text("web.task"), card.due.map { Format.dateLabel($0) } ?? ""]
+          .filter { !$0.isEmpty }.joined(separator: " · ")
+      ) {
         if !tasks.isEmpty {
           Text("\(done)/\(tasks.count)").font(.number(AppleMetrics.font13, .semibold))
             .foregroundStyle(AppleColors.primary)
@@ -234,7 +253,7 @@ struct TaskBody: View {
         }
       } else if !context.compact {
         SummaryBlock(
-          summary: card.summary, points: card.points, query: context.query
+          summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary, query: context.query
         ).afterTitle()
       }
     }
@@ -251,7 +270,7 @@ struct TaskRow: View {
   var body: some View {
     Button(action: toggle) {
       HStack(alignment: .top, spacing: AppleMetrics.space10) {
-        CheckDot(done: task.done, highlighted: hovered && !task.done)
+        CheckDot(done: task.done, highlighted: hovered && !task.done, taskStyle: large)
           .padding(
             .top,
             (LineHeight.height(size: large ? AppleMetrics.font15 : AppleMetrics.font14)
@@ -277,73 +296,6 @@ struct TaskRow: View {
       Copy.text(task.done ? "web.templates.f28461bb49c8" : "web.templates.6707de42c29d")
     )
     .accessibilityAddTraits(.isToggle)
-  }
-}
-
-struct EventBody: View {
-  let card: CardModel
-  let context: CardContext
-  @Environment(\.cardIntents) private var intents
-  @Environment(\.cardFaded) private var faded
-  var body: some View {
-    let start = card.start ?? 0
-    let end = card.end ?? start
-    let relative = Format.eventRelative(start: start, end: end, now: context.now)
-    let timely = card.meeting != nil && Format.eventTimely(start: start, end: end, now: context.now)
-    BodyStack(compact: context.compact) {
-      CardHead(card: card, text: Format.dateLabel(start)) {
-        if !relative.isEmpty {
-          Text(relative).font(.sans(AppleMetrics.font13, .medium)).foregroundStyle(
-            AppleColors.accent)
-        }
-      }
-      HStack(alignment: .bottom, spacing: AppleMetrics.space12) {
-        Text(Format.time(start))
-          .textStyle(
-            AppleMetrics.font34, .semibold, leading: AppleMetrics.eventStartLeading,
-            tracking: AppleMetrics.cardTitleTracking, number: true
-          )
-          .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
-        Spacer(minLength: 0)
-        VStack(alignment: .trailing, spacing: 0) {
-          Text("\(Copy.text("web.templates.83532308ecca"))\(Format.time(end))")
-            .font(.number(AppleMetrics.font15, .medium))
-          Text(
-            "\(Copy.text("web.templates.2428420e407f"))\(Int(((end - start) / 60000).rounded()))\(Copy.text("web.templates.40de54344d22"))"
-          )
-          .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-        }
-        .foregroundStyle(AppleColors.primary)
-        .padding(.bottom, AppleMetrics.space3)
-      }
-      .padding(.top, AppleMetrics.space4)
-      CardTitle(text: card.title, faded: faded, query: context.query)
-      if !card.people.isEmpty {
-        HStack(spacing: AppleMetrics.space8) {
-          Avatars(names: card.people)
-          Text(card.people.joined(separator: "、")).lineLimit(1)
-        }
-        .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-        .padding(.top, AppleMetrics.space4)
-      }
-      if timely, let meeting = card.meeting {
-        HStack(spacing: AppleMetrics.space8) {
-          Button {
-            intents.join(card.id)
-          } label: {
-            Text(Copy.text("web.templates.451755e3831f"))
-              .font(.sans(AppleMetrics.font13, .medium))
-              .foregroundStyle(AppleColors.fixedWhite)
-              .padding(.horizontal, AppleMetrics.pillPaddingX)
-              .frame(minWidth: AppleMetrics.primaryMinWidth, minHeight: AppleMetrics.pillHeight)
-              .background(Capsule().fill(AppleColors.accentFill))
-          }
-          .buttonStyle(PrimaryPillStyle())
-          .accessibilityLabel("\(Copy.text("web.templates.451755e3831f"))\(meeting.name)")
-        }
-        .padding(.top, AppleMetrics.space8)
-      }
-    }
   }
 }
 
@@ -412,71 +364,6 @@ struct ReminderCheck: View {
   }
 }
 
-struct MediaBody: View {
-  let card: CardModel
-  let state: CardState
-  let context: CardContext
-  @Environment(\.cardFaded) private var faded
-  var body: some View {
-    if card.isPodcast {
-      BodyStack(compact: context.compact) {
-        CardHead(card: card, text: card.sourceLine) { ReadingProgress(card: card, state: state) }
-        CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
-        if !context.compact {
-          SummaryBlock(summary: card.summary, points: card.points, query: context.query)
-            .afterTitle()
-        }
-        if let duration = card.duration {
-          Text(Format.duration(duration)).font(.number(AppleMetrics.font12))
-            .foregroundStyle(AppleColors.secondary).padding(.top, AppleMetrics.space4)
-        }
-      }
-    } else {
-      VStack(spacing: 0) {
-        if card.image != nil, !context.compact {
-          CardCover(card: card, faded: faded) {
-            if let duration = card.duration {
-              Text(Format.duration(duration)).font(.number(AppleMetrics.font12))
-                .foregroundStyle(AppleColors.fixedWhite)
-                .padding(.horizontal, AppleMetrics.space8).padding(.vertical, AppleMetrics.space2)
-                .background(
-                  RoundedRectangle(cornerRadius: AppleMetrics.mediaLengthRadius)
-                    .fill(AppleColors.fixedBlack55)
-                )
-                .padding(AppleMetrics.space12)
-            }
-          }
-        }
-        BodyStack(compact: context.compact) {
-          CardHead(card: card, text: card.sourceLine) {
-            ReadingProgress(card: card, state: state)
-          }
-          CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
-        }
-      }
-    }
-  }
-}
-
-struct DigestBody: View {
-  let card: CardModel
-  let context: CardContext
-  @Environment(\.cardFaded) private var faded
-  var body: some View {
-    BodyStack(compact: context.compact) {
-      CardHead(card: card, text: card.sourceLine)
-      CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
-      if !context.compact {
-        SummaryBlock(
-          summary: card.summary.isEmpty && card.points.isEmpty
-            ? card.body.first ?? "" : card.summary,
-          points: card.points, query: context.query
-        ).afterTitle()
-      }
-    }
-  }
-}
-
 struct SuggestionBody: View {
   let card: CardModel
   let context: CardContext
@@ -486,11 +373,12 @@ struct SuggestionBody: View {
   var body: some View {
     let all = card.related.compactMap(related)
     BodyStack(compact: context.compact) {
-      CardHead(card: card, text: card.sourceLine)
+      CardHead(card: card, text: card.displaySourceLine)
       CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
       if !context.compact {
         SummaryBlock(
-          summary: card.summary, points: card.points, query: context.query
+          summary: card.why?.reason
+            ?? (card.summary.isEmpty ? card.body.first ?? "" : card.summary), query: context.query
         ).afterTitle()
       }
       if !all.isEmpty {
@@ -550,13 +438,14 @@ struct PhotoBody: View {
         CardHead(
           card: card,
           text: [
-            Copy.text("web.photo"), card.location ?? "",
+            card.location ?? "",
             card.takenDay.map { Format.shortDay($0, now: Format.date(context.now)) } ?? "",
           ].filter { !$0.isEmpty }.joined(separator: " · ")
         ) {
           if photos.count > 3 { Text("\(photos.count)").font(.number(AppleMetrics.font13)) }
         }
         CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+        if let caption = card.caption { CardSummary(text: caption, query: context.query) }
       }
     }
   }
@@ -599,11 +488,18 @@ struct FileBody: View {
       CardHead(
         card: card,
         text: [Copy.text("web.file"), card.sourceName, card.readingTime].filter { !$0.isEmpty }
-          .joined(separator: " · "))
+          .joined(separator: " · ")
+      ) {
+        if !card.files.isEmpty { Text(String(card.files.count)).font(.number(AppleMetrics.font13)) }
+      }
       CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+      if !context.compact { SummaryBlock(summary: card.summary, query: context.query) }
       VStack(alignment: .leading, spacing: AppleMetrics.space2) {
         ForEach(Array(card.files.prefix(3).enumerated()), id: \.offset) { _, file in
           FileRow(name: file.name, image: file.isImage)
+            .padding(.horizontal, AppleMetrics.space10).padding(.vertical, AppleMetrics.space8)
+            .background(
+              RoundedRectangle(cornerRadius: AppleMetrics.space8).fill(AppleColors.surface))
         }
       }
       .padding(.top, AppleMetrics.space2)

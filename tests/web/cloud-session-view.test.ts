@@ -76,7 +76,7 @@ function fixture() {
 	const { AppController, Store, Panels } = w.SessionViewTest;
 	Store.state = Store.fresh();
 	Store.state.cards = [
-		{ id: "session-card", type: "article", title: "Synthetic account title", body: ["Body"] },
+		{ id: "session-card", type: "article", title: "Synthetic account title", body: "Body" },
 	];
 	Store.save = () => {};
 	Store.load = () => {

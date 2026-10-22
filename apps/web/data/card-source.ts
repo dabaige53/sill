@@ -39,6 +39,23 @@ export function cardDate(value: unknown): { datetime: string; text: string } | n
 	};
 }
 
+/** Compact, local-time label for the source row, retaining the timestamp in the data. */
+export function detailDate(value: unknown, includeTime = false): string {
+	const parsed = cardDate(value);
+	if (!parsed) return "";
+	const date = new Date(
+		parsed.datetime.length === 10 ? `${parsed.datetime}T00:00:00` : parsed.datetime,
+	);
+	return new Intl.DateTimeFormat("zh-CN", {
+		year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+		month: "long",
+		day: "numeric",
+		...(includeTime && parsed.datetime.length > 10
+			? { hour: "2-digit" as const, minute: "2-digit" as const, hour12: false }
+			: {}),
+	}).format(date);
+}
+
 export function cardDates(card: Record<string, any>) {
 	return {
 		published: cardDate(card.publishedAt),
@@ -86,5 +103,10 @@ export function fileDescription(file: NonNullable<Card["files"]>[number]): strin
 				: bytes < 1048576
 					? `${(bytes / 1024).toFixed(1)} KB`
 					: `${(bytes / 1048576).toFixed(1)} MB`;
-	return [file.mimeType, size].filter(Boolean).join(" · ");
+	const extension = file.name?.split(".").at(-1);
+	const kind =
+		extension && extension !== file.name
+			? extension.toUpperCase()
+			: file.mimeType?.split("/").at(-1);
+	return [kind, size].filter(Boolean).join(" · ");
 }

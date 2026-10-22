@@ -9,6 +9,18 @@ struct CardTests {
       .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
   }
 
+  @Test func editingLegacyDraftReplacesConvertedBodyWithoutDuplicatingPoints() throws {
+    let original: JSONValue = .object([
+      "id": .string("legacy-draft"), "type": .string("note"), "title": .string("Legacy"),
+      "body": .array([.string("Old text")]), "points": .array([.string("Old point")]),
+    ])
+    let draft = Draft(
+      id: "legacy-draft", title: "Legacy", body: "## Replacement",
+      revision: 1, original: try original.encoded())
+    #expect(try draft.submittedCard().body == "## Replacement")
+    #expect(try draft.submittedCard().raw["points"] == nil)
+  }
+
   @Test func allValidFixturesRoundTrip() throws {
     let fixtures = try JSONValue.decode(
       Data(contentsOf: root.appendingPathComponent("contracts/fixtures.json")))
@@ -39,10 +51,10 @@ struct CardTests {
       ("summary", .string(String(repeating: "x", count: 10001))), ("meta", .number(1)),
       ("form", .string("future")), ("image", .string("future")),
       ("tags", .array([.number(1)])),
-      ("body", .array([.string(String(repeating: "x", count: 50001))])),
+      ("body", .string(String(repeating: "x", count: 500001))), ("body", .array([.string("A")])),
       ("url", .string("https://")), ("url", .string("https://host with spaces")),
       ("sources", .array([.object(["name": .string(""), "kind": .string("local")])])),
-      ("points", .array([.string("")])), ("why", .object(["reason": .string("")])),
+      ("why", .object(["reason": .string("")])),
       ("sender", .string(String(repeating: "x", count: 301))),
       ("location", .string(String(repeating: "x", count: 301))),
       ("meeting", .object(["name": .string("Call"), "url": .string("https://")])),
@@ -64,7 +76,7 @@ struct CardTests {
   @Test func explicitFieldsRejectDeprecatedAndInvalidSemantics() throws {
     let base: JSONValue = .object([
       "id": .string("explicit"), "type": .string("article"), "title": .string("Explicit"),
-      "body": .array([.string("Body")]), "bodyCoverage": .string("full"),
+      "body": .string("Body"), "bodyCoverage": .string("full"),
       "readingEstimate": .object([
         "seconds": .number(61), "origin": .string("calculated"),
         "scope": .string("full"), "method": .string("editor estimate"),
@@ -86,7 +98,7 @@ struct CardTests {
     }
     for (key, value) in [
       ("meta", JSONValue.string("old")), ("bodyCoverage", .string("excerpt")),
-      ("bodyCoverage", .string("none")), ("body", .array([])),
+      ("bodyCoverage", .string("none")), ("body", .string(" ")),
       ("project", .object(["name": .string("Wrong type")])),
     ] {
       var json = base
