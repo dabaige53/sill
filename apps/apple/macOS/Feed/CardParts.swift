@@ -47,20 +47,23 @@ extension EnvironmentValues {
 struct CardHead<Right: View>: View {
   let icon: AnyView
   let text: String
+  var detail: Text?
   @ViewBuilder var right: Right
 
   init(
-    card: CardModel, text: String, @ViewBuilder right: () -> Right = { EmptyView() }
+    card: CardModel, text: String, detail: Text? = nil,
+    @ViewBuilder right: () -> Right = { EmptyView() }
   ) {
     self.icon = AnyView(SourceIcon(card: card))
     self.text = text
+    self.detail = detail
     self.right = right()
   }
 
   var body: some View {
     HStack(spacing: AppleMetrics.space6) {
       icon.foregroundStyle(AppleColors.iconSecondary)
-      Text(text).lineLimit(1).truncationMode(.tail)
+      (Text(text) + (detail ?? Text(""))).lineLimit(1).truncationMode(.tail)
         .foregroundStyle(AppleColors.secondary)
       Spacer(minLength: 0)
       right
@@ -155,23 +158,21 @@ struct Highlighted: View {
   }
 }
 
-/// The task and reminder circle: accent outline, filled with a white check when done.
+/// Task and reminder state: grey outline, green fill with a white check when done.
 struct CheckDot: View {
   @Environment(\.checkPressed) private var pressed
   var done: Bool
   var size: CGFloat = AppleMetrics.taskDotSize
   var line: CGFloat = AppleMetrics.taskDotLine
   var highlighted = false
-  var taskStyle = false
   var body: some View {
     ZStack {
       Circle().fill(
         done
-          ? (taskStyle ? AppleColors.success : AppleColors.accentFill)
+          ? AppleColors.success
           : highlighted ? AppleColors.accentSoft : Color.clear)
       Circle().strokeBorder(
-        taskStyle
-          ? (done ? AppleColors.success : AppleColors.secondary.opacity(0.35)) : AppleColors.accent,
+        done ? AppleColors.success : AppleColors.lineHover,
         lineWidth: line)
       if done {
         Icon("check", size: AppleMetrics.font12).foregroundStyle(AppleColors.fixedWhite)
@@ -230,15 +231,20 @@ struct CoverImage: View {
 struct FileRow: View {
   let name: String
   var image = false
+  var pill = false
   var body: some View {
-    HStack(spacing: AppleMetrics.space8) {
+    HStack(spacing: AppleMetrics.space6) {
       Icon(image ? "image" : "file", size: AppleMetrics.font15)
         .foregroundStyle(AppleColors.iconSecondary)
       Text(name).lineLimit(1).truncationMode(.tail)
     }
     .font(.sans(AppleMetrics.font13))
     .foregroundStyle(AppleColors.primary)
-    .frame(minHeight: AppleMetrics.fileRowHeight, alignment: .leading)
+    .padding(.vertical, pill ? AppleMetrics.space6 : 0)
+    .padding(.horizontal, pill ? AppleMetrics.space10 : 0)
+    .background(
+      RoundedRectangle(cornerRadius: AppleMetrics.space10).fill(pill ? AppleColors.surface : .clear)
+    )
   }
 }
 
@@ -246,7 +252,7 @@ struct FileRow: View {
 struct MoreItems: View {
   let count: Int
   let suffix: String
-  var indent: CGFloat = AppleMetrics.space30
+  var indent: CGFloat = 0
   var body: some View {
     Text("\(Copy.text("web.templates.dff74742a6f0"))\(count)\(suffix)")
       .font(.sans(AppleMetrics.font13))

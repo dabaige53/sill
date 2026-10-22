@@ -33,7 +33,7 @@ struct CardBody: View {
     || ((card.kind == .task || card.kind == .reminder) && state.completed(card))
 }
 
-/// Desktop rhythm: head → title 12, title → summary 6, text → list 12 (web-interaction.md).
+/// The HTML card body uses one 8-point gap between content blocks.
 struct BodyStack<Content: View>: View {
   var spacing = AppleMetrics.space8
   var bottom = AppleMetrics.cardPadding
@@ -46,13 +46,6 @@ struct BodyStack<Content: View>: View {
       .padding(.bottom, compact ? AppleMetrics.compactCardPaddingY : bottom)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
-}
-
-extension View {
-  /// Head → title adds 4 to the block gap; title → summary removes 2; lists add 4.
-  func afterHead() -> some View { padding(.top, AppleMetrics.space4) }
-  func afterTitle() -> some View { padding(.top, -AppleMetrics.space2) }
-  func beforeList() -> some View { padding(.top, AppleMetrics.space4) }
 }
 
 private struct ReadingProgress: View {
@@ -109,12 +102,12 @@ struct ArticleBody: View {
         ) {
           ReadingProgress(card: card, state: state)
         }
-        CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+        CardTitle(text: card.title, faded: faded, query: context.query)
         if !context.compact {
           SummaryBlock(
             summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary,
             query: context.query
-          ).afterTitle()
+          )
         }
       }
     }
@@ -129,14 +122,14 @@ struct MailBody: View {
     BodyStack(compact: context.compact) {
       if let sender = card.sender {
         HStack(spacing: AppleMetrics.space10) {
-          Avatar(name: sender)
+          Avatar(name: sender, size: AppleMetrics.space32)
           VStack(alignment: .leading, spacing: 0) {
-            Text(sender).font(.sans(AppleMetrics.font15, .semibold)).lineLimit(1)
+            Text(sender).font(.sans(AppleMetrics.font14, .semibold)).lineLimit(1)
               .foregroundStyle(AppleColors.primary)
             HStack(spacing: AppleMetrics.space4) {
               SourceIcon(card: card, size: AppleMetrics.font12)
               Text(
-                [Copy.text("web.mail"), card.sentAt.flatMap(Self.date) ?? "", card.readingTime]
+                [card.sourceName, card.sentAt.flatMap(Self.date) ?? "", card.readingTime]
                   .filter { !$0.isEmpty }.joined(separator: " · ")
               )
               .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary).lineLimit(1)
@@ -152,19 +145,25 @@ struct MailBody: View {
             card.sentAt.flatMap(Self.date) ?? "", card.readingTime,
           ].filter { !$0.isEmpty }.joined(separator: " · "))
       }
-      CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+      CardTitle(text: card.title, faded: faded, query: context.query)
       if !context.compact {
         SummaryBlock(
           summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary, query: context.query
-        ).afterTitle()
+        )
       }
-      ForEach(Array(card.attachments.prefix(3).enumerated()), id: \.offset) { _, file in
-        FileRow(name: file.name).padding(.trailing, AppleMetrics.space12).beforeList()
+      FlowRow(spacing: AppleMetrics.space6) {
+        ForEach(Array(card.attachments.prefix(3).enumerated()), id: \.offset) { _, file in
+          FileRow(name: file.name, image: file.isImage, pill: true)
+        }
+      }
+      if card.attachments.count > 3 {
+        MoreItems(
+          count: card.attachments.count - 3, suffix: Copy.text("web.templates.7aaf96ad52e0"))
       }
     }
   }
   static func date(_ value: String) -> String? {
-    Format.parseDate(value).map { Format.dateLabel($0.timeIntervalSince1970 * 1000) }
+    ReaderContent.fullDate(value)
   }
 }
 
@@ -187,7 +186,7 @@ struct NoteBody: View {
           .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
           .lineLimit(nil)
           .fixedSize(horizontal: false, vertical: true)
-          .afterHead()
+
       }
     } else if card.isCapture {
       // A quick note is its own text; the title only names it in search and archives.
@@ -199,19 +198,19 @@ struct NoteBody: View {
           .lineLimit(nil)
           .frame(maxWidth: .infinity, alignment: .leading)
           .fixedSize(horizontal: false, vertical: true)
-          .afterHead()
+
       }
     } else {
       BodyStack(compact: context.compact) {
         CardHead(card: card, text: card.displaySourceLine) {
           ReadingProgress(card: card, state: state)
         }
-        CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+        CardTitle(text: card.title, faded: faded, query: context.query)
         if !context.compact {
           SummaryBlock(
             summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary,
             query: context.query
-          ).afterTitle()
+          )
         }
       }
     }
@@ -232,29 +231,32 @@ struct TaskBody: View {
     BodyStack(compact: context.compact) {
       CardHead(
         card: card,
-        text: [card.project ?? Copy.text("web.task"), card.due.map { Format.dateLabel($0) } ?? ""]
-          .filter { !$0.isEmpty }.joined(separator: " · ")
+        text: card.project ?? Copy.text("web.task"),
+        detail: card.due.map {
+          Text(" · " + Copy.text("web.card.dueShort") + " " + Format.dateLabel($0)).foregroundColor(
+            AppleColors.warning)
+        }
       ) {
         if !tasks.isEmpty {
           Text("\(done)/\(tasks.count)").font(.number(AppleMetrics.font13, .semibold))
             .foregroundStyle(AppleColors.primary)
         }
       }
-      CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+      CardTitle(text: card.title, faded: faded, query: context.query)
       if !tasks.isEmpty {
         VStack(alignment: .leading, spacing: 0) {
           ForEach(visible) { task in
             TaskRow(task: task, locked: state.isWriting) { intents.toggleTask(card.id, task.id) }
           }
         }
-        .beforeList()
+
         if tasks.count > 3 {
           MoreItems(count: tasks.count - 3, suffix: Copy.text("web.templates.f9d529eacdf3"))
         }
       } else if !context.compact {
         SummaryBlock(
           summary: card.summary.isEmpty ? card.body.first ?? "" : card.summary, query: context.query
-        ).afterTitle()
+        )
       }
     }
   }
@@ -270,12 +272,16 @@ struct TaskRow: View {
   var body: some View {
     Button(action: toggle) {
       HStack(alignment: .top, spacing: AppleMetrics.space10) {
-        CheckDot(done: task.done, highlighted: hovered && !task.done, taskStyle: large)
-          .padding(
-            .top,
-            (LineHeight.height(size: large ? AppleMetrics.font15 : AppleMetrics.font14)
-              - AppleMetrics.taskDotSize) / 2)
+        CheckDot(
+          done: task.done, size: large ? AppleMetrics.taskDotSize : AppleMetrics.space18,
+          highlighted: hovered && !task.done
+        )
+        .padding(
+          .top,
+          (LineHeight.height(size: large ? AppleMetrics.font15 : AppleMetrics.font14)
+            - (large ? AppleMetrics.taskDotSize : AppleMetrics.space18)) / 2)
         Text(task.text)
+          .strikethrough(task.done)
           .textStyle(
             large ? AppleMetrics.font15 : AppleMetrics.font14, leading: AppleMetrics.summaryLeading
           )
@@ -320,27 +326,29 @@ struct ReminderBody: View {
             .foregroundStyle(when.due ? AppleColors.warning : AppleColors.secondary)
         }
       }
-      HStack(alignment: .top, spacing: AppleMetrics.space12) {
+      HStack(alignment: .top, spacing: AppleMetrics.space10) {
         ReminderCheck(card: card, state: state)
           .padding(
             .top,
             (LineHeight.height(size: AppleMetrics.font16) - AppleMetrics.reminderDotSize) / 2)
         CardTitle(text: card.title, faded: faded, query: context.query)
       }
-      .afterHead()
+
       if !card.summary.isEmpty, !context.compact {
         CardSummary(
           text: card.summary, query: context.query,
-          indent: AppleMetrics.space34)
+          indent: AppleMetrics.space28)
       }
     }
   }
 }
 
-/// The reminder's only action: a 44 target around a 22 circle. It changes Sill state only.
+/// A 44-point target around the reminder circle. It changes Sill state only.
 struct ReminderCheck: View {
   let card: CardModel
   let state: CardState
+  var large = false
+  private var size: CGFloat { large ? AppleMetrics.space24 : AppleMetrics.reminderDotSize }
   @Environment(\.cardIntents) private var intents
   @State private var hovered = false
   var body: some View {
@@ -349,14 +357,14 @@ struct ReminderCheck: View {
       intents.reminder(card.id, done ? .restore : .complete)
     } label: {
       CheckDot(
-        done: done, size: AppleMetrics.reminderDotSize, line: AppleMetrics.reminderDotLine,
+        done: done, size: size, line: AppleMetrics.reminderDotLine,
         highlighted: hovered && !done
       )
       .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
       .contentShape(Circle())
     }
     .buttonStyle(CheckPress())
-    .padding(-AppleMetrics.space11)
+    .padding((size - AppleMetrics.hitTarget) / 2)
     .disabled(state.isWriting)
     .onHover { hovered = $0 }
     .accessibilityLabel(Copy.text(done ? "web.reminder.restore" : "web.reminder.complete"))
@@ -374,21 +382,19 @@ struct SuggestionBody: View {
     let all = card.related.compactMap(related)
     BodyStack(compact: context.compact) {
       CardHead(card: card, text: card.displaySourceLine)
-      CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+      CardTitle(text: card.title, faded: faded, query: context.query)
       if !context.compact {
         SummaryBlock(
           summary: card.why?.reason
             ?? (card.summary.isEmpty ? card.body.first ?? "" : card.summary), query: context.query
-        ).afterTitle()
+        )
       }
       if !all.isEmpty {
-        VStack(spacing: AppleMetrics.space8) {
+        VStack(spacing: AppleMetrics.space6) {
           ForEach(all.prefix(2), id: \.id) { item in
             RelatedRow(card: item) { intents.open(item.id) }
           }
         }
-        .padding(.top, AppleMetrics.space4)
-        .beforeList()
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Copy.text("web.templates.9f2ab3a03303"))
         if all.count > 2 {
@@ -401,7 +407,7 @@ struct SuggestionBody: View {
 
 struct RelatedRow: View {
   let card: CardModel
-  var background = AppleColors.canvas
+  var background = AppleColors.surface
   let open: () -> Void
   var body: some View {
     Button(action: open) {
@@ -414,9 +420,9 @@ struct RelatedRow: View {
       .font(.sans(AppleMetrics.font13))
       .foregroundStyle(AppleColors.primary)
       .padding(.horizontal, AppleMetrics.space10)
-      .frame(minHeight: AppleMetrics.refRowHeight)
+      .padding(.vertical, AppleMetrics.space9)
     }
-    .buttonStyle(RowStyle(fill: background))
+    .buttonStyle(RowStyle(fill: background, radius: AppleMetrics.space12))
   }
 }
 
@@ -442,9 +448,12 @@ struct PhotoBody: View {
             card.takenDay.map { Format.shortDay($0, now: Format.date(context.now)) } ?? "",
           ].filter { !$0.isEmpty }.joined(separator: " · ")
         ) {
-          if photos.count > 3 { Text("\(photos.count)").font(.number(AppleMetrics.font13)) }
+          if !photos.isEmpty {
+            Text("\(photos.count)" + Copy.text("web.common.cardCountSuffix")).font(
+              .number(AppleMetrics.font12))
+          }
         }
-        CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+        CardTitle(text: card.title, faded: faded, query: context.query)
         if let caption = card.caption { CardSummary(text: caption, query: context.query) }
       }
     }
@@ -490,20 +499,20 @@ struct FileBody: View {
         text: [Copy.text("web.file"), card.sourceName, card.readingTime].filter { !$0.isEmpty }
           .joined(separator: " · ")
       ) {
-        if !card.files.isEmpty { Text(String(card.files.count)).font(.number(AppleMetrics.font13)) }
+        if !card.files.isEmpty {
+          Text(String(card.files.count) + Copy.text("web.card.fileCountSuffix")).font(
+            .number(AppleMetrics.font12))
+        }
       }
-      CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+      CardTitle(text: card.title, faded: faded, query: context.query)
       if !context.compact { SummaryBlock(summary: card.summary, query: context.query) }
-      VStack(alignment: .leading, spacing: AppleMetrics.space2) {
+      VStack(alignment: .leading, spacing: AppleMetrics.space6) {
         ForEach(Array(card.files.prefix(3).enumerated()), id: \.offset) { _, file in
-          FileRow(name: file.name, image: file.isImage)
-            .padding(.horizontal, AppleMetrics.space10).padding(.vertical, AppleMetrics.space8)
-            .background(
-              RoundedRectangle(cornerRadius: AppleMetrics.space8).fill(AppleColors.surface))
+          FileRow(name: file.name, image: file.isImage, pill: true)
         }
       }
       .padding(.top, AppleMetrics.space2)
-      .beforeList()
+
       if card.files.count > 3 {
         MoreItems(count: card.files.count - 3, suffix: Copy.text("web.templates.7aaf96ad52e0"))
       }

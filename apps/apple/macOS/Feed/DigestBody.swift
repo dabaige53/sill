@@ -17,13 +17,13 @@ struct DigestBody: View {
           Text("\(card.related.count)\(Copy.text("web.card.relatedCount"))")
         }
       }
-      CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
+      CardTitle(text: card.title, faded: faded, query: context.query)
       if !context.compact {
         SummaryBlock(
           summary: card.summary.isEmpty
             ? card.body.first ?? "" : card.summary,
           query: context.query
-        ).afterTitle()
+        )
       }
     }
   }

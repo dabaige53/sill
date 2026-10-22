@@ -13,7 +13,7 @@ import { PullRequest } from "../cards/pull-request.tsx";
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { detailDate, cardReadingTime, cardSource } from "../data/card-source.ts";
+import { cardReadingTime, cardSource, detailDate } from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -147,7 +147,7 @@ function mailPreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 			{keyed(
 				sheet(
 					<>
-						<header className="detail-header ruled-header">
+						<header className="detail-header">
 							{sender ? (
 								<div className={"preview-sender"}>
 									{avatar(sender, 36)}
@@ -155,7 +155,9 @@ function mailPreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 										<b>{sender}</b>
 										<small>
 											<SourceMark card={c} />
-											{[detailDate(c.sentAt, true), cardReadingTime(c)].filter(Boolean).join(" · ")}
+											{[cardSource(c), detailDate(c.sentAt, true), cardReadingTime(c)]
+												.filter(Boolean)
+												.join(" · ")}
 										</small>
 									</span>
 								</div>
@@ -224,32 +226,34 @@ function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCont
 			{keyed(
 				sheet(
 					<>
-						{this.meta(c)}
-						<div className={"preview-meta"}>
-							{dateLabel(c.start)}
-							{eventRelative(c) ? (
-								<>
+						<header className="detail-header">
+							{this.meta(c)}
+							<div className={"preview-meta"}>
+								{dateLabel(c.start)}
+								{eventRelative(c) ? (
+									<>
+										{" · "}
+										<span style={{ color: "var(--accent)", fontWeight: "500" }}>
+											{eventRelative(c)}
+										</span>
+									</>
+								) : (
+									""
+								)}
+							</div>
+							<div className={"event-hero"}>
+								<span className={"num"}>{timeString(c.start)}</span>
+								<small className={"num"}>
+									{copy("web.templates.83532308ecca")}
+									{timeString(c.end)}
 									{" · "}
-									<span style={{ color: "var(--accent)", fontWeight: "500" }}>
-										{eventRelative(c)}
-									</span>
-								</>
-							) : (
-								""
-							)}
-						</div>
-						<div className={"event-hero"}>
-							<span className={"num"}>{timeString(c.start)}</span>
-							<small className={"num"}>
-								{copy("web.templates.83532308ecca")}
-								{timeString(c.end)}
-								{" · "}
-								{span}
-								{copy("web.templates.40de54344d22")}
-								{c.timeZone ? ` · ${c.timeZone}` : ""}
-							</small>
-						</div>
-						{h1}
+									{span}
+									{copy("web.templates.40de54344d22")}
+									{c.timeZone ? ` · ${c.timeZone}` : ""}
+								</small>
+							</div>
+							{h1}
+						</header>
 						{rows.some(Boolean) ? (
 							<>
 								<div className={"detail-rows"}>{keyed(rows)}</div>
@@ -277,8 +281,10 @@ function filePreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 		<>
 			{sheet(
 				<>
-					{this.meta(c)}
-					{h1}
+					<header className="detail-header">
+						{this.meta(c)}
+						{h1}
+					</header>
 					<DetailText body={c.body} />
 					<FileList files={c.files} />
 				</>,
@@ -312,28 +318,30 @@ function taskReminderPreview(this: PanelRenderers, c: PreviewCard, context: Prev
 				]
 					.filter(Boolean)
 					.join(" · ")
-			: c.project?.name || "";
+			: [cardSource(c), c.project?.name].filter(Boolean).join(" · ");
 	return (
 		<>
 			{sheet(
 				<>
-					<div className={"preview-meta"}>
-						<SourceMark card={c} size={15} />
-						<span>{label}</span>
-					</div>
-					{c.type === "reminder" ? (
-						<>
-							<div className={"reminder-row preview-title-row"}>
-								{reminderMark(c, !!s.reminderDone)}
-								<h1 id={"modal-title"} data-shared={"title"}>
-									{c.title}
-								</h1>
-							</div>
-							{tags}
-						</>
-					) : (
-						h1
-					)}
+					<header className="detail-header">
+						<div className={"preview-meta"}>
+							<SourceMark card={c} size={15} />
+							<span>{label}</span>
+						</div>
+						{c.type === "reminder" ? (
+							<>
+								<div className={"reminder-row preview-title-row"}>
+									{reminderMark(c, !!s.reminderDone)}
+									<h1 id={"modal-title"} data-shared={"title"}>
+										{c.title}
+									</h1>
+								</div>
+								{tags}
+							</>
+						) : (
+							h1
+						)}
+					</header>
 					{c.type === "task" && <TaskFacts card={c} />}
 					{keyed(list)}
 					<DetailText body={c.body} />

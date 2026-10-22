@@ -18,6 +18,7 @@ import {
 	cardSource,
 	cardSourceKind,
 	contentDay,
+	detailDate,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -62,13 +63,13 @@ function Mail({ card: c, ctx }: BlockProps) {
 		<div className="card-body">
 			{sender ? (
 				<div className="sender">
-					<Avatar name={sender} />
+					<Avatar name={sender} size={32} />
 					<span>
 						<b>{sender}</b>
 						<small>
 							<SourceMark card={c} />
-							{copy("web.mail")}
-							{c.sentAt ? ` · ${dateLabel(Date.parse(c.sentAt))}` : ""}
+							{cardSource(c) || copy("web.mail")}
+							{c.sentAt ? ` · ${detailDate(c.sentAt, true)}` : ""}
 							{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
 						</small>
 					</span>
@@ -76,11 +77,7 @@ function Mail({ card: c, ctx }: BlockProps) {
 			) : (
 				<Head
 					card={c}
-					text={[
-						cardSource(c) || copy("web.mail"),
-						c.sentAt ? dateLabel(Date.parse(c.sentAt)) : "",
-						cardReadingTime(c),
-					]
+					text={[cardSource(c) || copy("web.mail"), detailDate(c.sentAt, true), cardReadingTime(c)]
 						.filter(Boolean)
 						.join(" · ")}
 				/>
@@ -119,7 +116,11 @@ function Note({ card: c, ctx }: BlockProps) {
 	if (cardSourceKind(c) !== "capture" && c.form !== "quote")
 		return (
 			<div className="card-body">
-				<Head card={c} text={sourceLine(c)} right={Progress({ card: c, ctx })} />
+				<Head
+					card={c}
+					text={sourceLine(c, contentDay(c.publishedAt))}
+					right={Progress({ card: c, ctx })}
+				/>
 				<Title card={c} ctx={ctx} />
 				<Summary card={c} />
 			</div>
@@ -127,13 +128,13 @@ function Note({ card: c, ctx }: BlockProps) {
 	if (c.form === "quote")
 		return (
 			<div className="card-body quote-body">
-				<Head card={c} text={sourceLine(c)} />
+				<Head card={c} text={sourceLine(c, contentDay(c.publishedAt))} />
 				<Title card={c} ctx={ctx} className="quote-text" />
 			</div>
 		);
 	return (
 		<div className="card-body">
-			<Head card={c} text={sourceLine(c)} />
+			<Head card={c} text={sourceLine(c, contentDay(c.publishedAt))} />
 			<h2 className="card-title note-text">
 				{ctx.passive ? (
 					<span className="card-title-button" data-shared="title">
@@ -168,9 +169,20 @@ function Task({ card: c, ctx }: BlockProps) {
 		<div className="card-body">
 			<Head
 				card={c}
-				text={[c.project?.name || copy("web.task"), c.due !== undefined ? dateLabel(c.due) : ""]
-					.filter(Boolean)
-					.join(" · ")}
+				text={
+					<>
+						{c.project?.name || copy("web.task")}
+						{c.due !== undefined && (
+							<>
+								{" "}
+								·{" "}
+								<span className="task-due">
+									{copy("web.card.dueShort")} {dateLabel(c.due)}
+								</span>
+							</>
+						)}
+					</>
+				}
 				right={
 					tasks.length ? (
 						<span className="num task-count">
@@ -365,7 +377,7 @@ function Suggestion({ card: c, ctx }: BlockProps) {
 		related = all.slice(0, 2);
 	return (
 		<div className="card-body">
-			<Head card={c} text={sourceLine(c)} />
+			<Head card={c} text={sourceLine(c, contentDay(c.publishedAt))} />
 			<Title card={c} ctx={ctx} />
 			<Summary card={{ ...c, summary: c.why?.reason || c.summary }} />
 			<nav className="refs" aria-label={copy("web.templates.9f2ab3a03303")}>
@@ -422,7 +434,14 @@ function Photo({ card: c, ctx }: BlockProps) {
 				<Head
 					card={c}
 					text={[c.location, taken ? shortDay(taken.getTime()) : ""].filter(Boolean).join(" · ")}
-					right={photos.length > 3 ? <span className="num">{photos.length}</span> : null}
+					right={
+						photos.length ? (
+							<span className="num">
+								{photos.length}
+								{copy("web.common.cardCountSuffix")}
+							</span>
+						) : null
+					}
 				/>
 				<Title card={c} ctx={ctx} />
 				{c.caption && <p className="card-summary">{c.caption}</p>}
@@ -437,7 +456,14 @@ function File({ card: c, ctx }: BlockProps) {
 			<Head
 				card={c}
 				text={[copy("web.file"), cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · ")}
-				right={files.length ? <span className="num">{files.length}</span> : null}
+				right={
+					files.length ? (
+						<span className="num">
+							{files.length}
+							{copy("web.card.fileCountSuffix")}
+						</span>
+					) : null
+				}
 			/>
 			<Title card={c} ctx={ctx} />
 			<Summary card={c} />

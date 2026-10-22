@@ -6,6 +6,25 @@ import { Store } from "../data/store.ts";
 import { DetailText } from "./markdown.tsx";
 import { SourceMark } from "./source-mark.tsx";
 
+function Reviewer({
+	reviewer,
+}: {
+	reviewer: NonNullable<NonNullable<Card["pullRequest"]>["reviewers"]>[number];
+}) {
+	return (
+		<span
+			className="pr-reviewer"
+			title={`${reviewer.login} · ${copy(`pr.decision.${reviewer.decision}`)}`}
+		>
+			<Avatar name={reviewer.login} size={24} />
+			<small className={`pr-decision pr-decision-${reviewer.decision}`}>
+				{reviewer.decision === "approved" && <Icon name="check" size={8} />}
+				{reviewer.decision === "changesRequested" && "!"}
+			</small>
+		</span>
+	);
+}
+
 export function PullRequest({
 	card,
 	detail = false,
@@ -92,15 +111,16 @@ export function PullRequest({
 				<div className="pr-footer">
 					<div className="pr-reviewers">
 						{pr.reviewers?.map((r) => (
-							<span key={r.login} title={`${r.login} · ${copy(`pr.decision.${r.decision}`)}`}>
-								<Avatar name={r.login} size={22} />
-								<small className={`pr-decision pr-decision-${r.decision}`}>
-									{r.decision === "approved" ? "✓" : r.decision === "changesRequested" ? "!" : "·"}
-								</small>
-							</span>
+							<Reviewer key={r.login} reviewer={r} />
 						))}
 						{!!pr.checks?.length && (
-							<span className="pr-check-count">
+							<span
+								className={`pr-check-count${pr.checks.every((c) => c.conclusion === "success") ? " is-success" : ""}`}
+							>
+								<Icon
+									name={pr.checks.every((c) => c.conclusion === "success") ? "check" : "clock"}
+									size={12}
+								/>
 								{copy("pr.checks")} {pr.checks.filter((c) => c.conclusion === "success").length}/
 								{pr.checks.length}
 							</span>
@@ -163,16 +183,7 @@ export function PullRequest({
 								</span>
 								<span className="pr-reviewer-avatars">
 									{pr.reviewers?.map((r) => (
-										<span key={r.login} title={`${r.login} · ${copy(`pr.decision.${r.decision}`)}`}>
-											<Avatar name={r.login} size={22} />
-											<small className={`pr-decision pr-decision-${r.decision}`}>
-												{r.decision === "approved"
-													? "✓"
-													: r.decision === "changesRequested"
-														? "!"
-														: "·"}
-											</small>
-										</span>
+										<Reviewer key={r.login} reviewer={r} />
 									))}
 								</span>
 							</div>

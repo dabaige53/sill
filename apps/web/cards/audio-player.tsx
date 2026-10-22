@@ -135,7 +135,9 @@ export function AudioPlayer({
 			<div className="player-times num">
 				<span>{duration(state.position)}</span>
 				<span>
-					{state.duration ? `−${duration(Math.max(0, state.duration - state.position))}` : ""}
+					{state.duration
+						? `−${duration(Math.max(0, state.duration - state.position))}`
+						: copy("web.media.unknownDuration")}
 				</span>
 			</div>
 			<div className="playback-controls">

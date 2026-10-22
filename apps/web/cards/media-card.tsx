@@ -1,13 +1,13 @@
-import { contentDay } from "../data/card-source.ts";
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
+import { contentDay } from "../data/card-source.ts";
 import { type BlockProps, Cover, Head, Summary, sourceLine, Title } from "./card-blocks.tsx";
 export function Media({ card: c, ctx }: BlockProps) {
 	const progress = c.duration > 0 ? Math.min(1, (ctx.state.playbackPosition || 0) / c.duration) : 0;
 	const remaining =
 		c.duration === undefined
-			? "—"
+			? null
 			: copy("web.media.remaining").replace(
 					"{minutes}",
 					String(Math.ceil(Math.max(0, c.duration - (ctx.state.playbackPosition || 0)) / 60)),
@@ -26,7 +26,7 @@ export function Media({ card: c, ctx }: BlockProps) {
 				<Head
 					card={c}
 					text={sourceLine(c, contentDay(c.publishedAt))}
-					right={<span className="num">{remaining}</span>}
+					right={remaining && <span className="num">{remaining}</span>}
 				/>
 				<Title card={c} ctx={ctx} />
 				<Summary card={c} short />
@@ -35,31 +35,31 @@ export function Media({ card: c, ctx }: BlockProps) {
 						<Icon name="play" size={12} />
 					</span>
 					{played}
-					<span className="num">{c.duration === undefined ? "—" : duration(c.duration)}</span>
+					<span className="num">
+						{c.duration === undefined ? copy("web.media.unknownDuration") : duration(c.duration)}
+					</span>
 				</div>
 			</div>
 		);
 	}
 	return (
 		<>
-			{c.image && (
-				<Cover card={c}>
-					<span className="media-play-mark" aria-hidden="true">
-						<Icon name="play" size={22} />
-					</span>
+			<Cover card={c}>
+				<span className="media-play-mark" aria-hidden="true">
+					<Icon name="play" size={20} />
+				</span>
+				<div className="media-cover-timeline">
 					{played}
-					{
-						<span className="media-length num">
-							{c.duration === undefined ? "—" : duration(c.duration)}
-						</span>
-					}
-				</Cover>
-			)}
+					<span className="media-length num">
+						{c.duration === undefined ? copy("web.media.unknownDuration") : duration(c.duration)}
+					</span>
+				</div>
+			</Cover>
 			<div className="card-body">
 				<Head
 					card={c}
 					text={sourceLine(c, contentDay(c.publishedAt))}
-					right={<span className="num">{remaining}</span>}
+					right={remaining && <span className="num">{remaining}</span>}
 				/>
 				<Title card={c} ctx={ctx} />
 			</div>

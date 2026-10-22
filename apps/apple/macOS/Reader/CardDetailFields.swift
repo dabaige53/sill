@@ -3,8 +3,13 @@ import SwiftUI
 
 extension CardModel {
   var displaySourceLine: String {
-    [kind == .article || kind == .media ? publicationName : sourceName, readingTime]
-      .filter { !$0.isEmpty }.joined(separator: " · ")
+    [
+      [.article, .media, .note, .suggestion].contains(kind) ? publicationName : sourceName,
+      [.media, .note, .suggestion].contains(kind)
+        ? publication.dateTitle.flatMap(Format.localDay).map { Format.shortDay($0) } ?? "" : "",
+      readingTime,
+    ]
+    .filter { !$0.isEmpty }.joined(separator: " · ")
   }
   var detailPublication: Publication {
     var result = publication
@@ -36,14 +41,16 @@ struct DetailFiles: View {
         Text(label).font(.sans(AppleMetrics.font13, .semibold)).foregroundStyle(
           AppleColors.secondary)
       }
-      ForEach(Array(files.enumerated()), id: \.offset) { index, file in
-        let row = DetailRow(
-          icon: file.isImage ? "image" : "file", title: file.name,
-          detail: attachment ? "" : file.detail,
-          trailing: attachment
-            ? file.detail : file.modifiedAt.flatMap(ReaderContent.fullDate) ?? "",
-          divider: index > 0)
-        if let url = file.url { Link(destination: url) { row }.buttonStyle(.plain) } else { row }
+      VStack(spacing: 0) {
+        ForEach(Array(files.enumerated()), id: \.offset) { index, file in
+          let row = DetailRow(
+            icon: file.isImage ? "image" : "file", title: file.name,
+            detail: attachment ? "" : file.detail,
+            trailing: attachment
+              ? file.detail : file.modifiedAt.flatMap(ReaderContent.fullDate) ?? "",
+            divider: index > 0, navigable: file.url != nil)
+          if let url = file.url { Link(destination: url) { row }.buttonStyle(.plain) } else { row }
+        }
       }
     }
   }

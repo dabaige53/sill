@@ -30,8 +30,9 @@ export interface BlockProps {
 export const SourceIcon = SourceMark;
 export function sourceLine(c: Card, date: Date | null = null) {
 	return [
-		(["article", "media"].includes(c.type) ? publicationName(c as any) : cardSource(c)) ||
-			(CardTypes[c.type] || CardTypes.note).label,
+		(["article", "media", "note", "suggestion"].includes(c.type)
+			? publicationName(c as any)
+			: cardSource(c)) || (CardTypes[c.type] || CardTypes.note).label,
 		date ? shortDay(date.getTime()) : "",
 		cardReadingTime(c),
 	]
@@ -91,15 +92,17 @@ export function Summary({ card: c, short = false }: { card: Card; short?: boolea
 export function Cover({ card: c, children }: { card: Card; children?: ReactNode }) {
 	return (
 		<div className="card-cover" style={{ background: AssetTones[c.image] || "var(--surface)" }}>
-			<img
-				className="card-image"
-				data-shared="image"
-				src={Assets[c.image]}
-				alt=""
-				draggable={false}
-				loading="lazy"
-				decoding="async"
-			/>
+			{c.image && (
+				<img
+					className="card-image"
+					data-shared="image"
+					src={Assets[c.image]}
+					alt=""
+					draggable={false}
+					loading="lazy"
+					decoding="async"
+				/>
+			)}
 			{children}
 		</div>
 	);

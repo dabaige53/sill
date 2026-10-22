@@ -200,7 +200,7 @@ test("podcast duration stays unknown when absent and never derives playback from
 			...(seconds === undefined ? {} : { duration: seconds }),
 		});
 		Store.state.items[card.id] = { progress: 0.75, note: "Personal note" };
-		const expected = seconds === undefined ? "—" : seconds === 0 ? "0:00" : "4:00";
+		const expected = seconds === undefined ? "时长未知" : seconds === 0 ? "0:00" : "4:00";
 		for (const html of [
 			cardHTML(card),
 			CardTemplates.media(card, { state: Store.item(card.id) }),
@@ -209,7 +209,13 @@ test("podcast duration stays unknown when absent and never derives playback from
 			const dom = new JSDOM(html);
 			try {
 				const doc = dom.window.document;
-				if (doc.querySelector(".mini-player")) { assert.equal(doc.querySelector(".mini-player .num")?.textContent, expected); assert.equal(doc.querySelector(".media-card-progress")?.getAttribute("value"), "0"); } else { assert.equal(doc.querySelector(".player-times span")?.textContent, "0:00"); assert.ok(doc.querySelector(".audio-player input[disabled]")); }
+				if (doc.querySelector(".mini-player")) {
+					assert.equal(doc.querySelector(".mini-player .num")?.textContent, expected);
+					assert.equal(doc.querySelector(".media-card-progress")?.getAttribute("value"), "0");
+				} else {
+					assert.equal(doc.querySelector(".player-times span")?.textContent, "0:00");
+					assert.ok(doc.querySelector(".audio-player input[disabled]"));
+				}
 				assert.equal(
 					doc.querySelector(".mini-play,.mini-player .bar,.player-bar,#podcast-played"),
 					null,

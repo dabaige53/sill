@@ -41,7 +41,7 @@ struct MediaChapters: View {
             ?? Copy.text("web.media.emptyChapters"))
         Spacer(minLength: 0)
         Text(
-          "\(Format.duration(Int(position))) / \(duration > 0 ? Format.duration(Int(duration)) : "—")"
+          "\(Format.duration(Int(position))) / \(duration > 0 ? Format.duration(Int(duration)) : Copy.text("web.media.unknownDuration"))"
         )
         .font(.number(AppleMetrics.font12))
       }.font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)

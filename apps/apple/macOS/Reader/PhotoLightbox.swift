@@ -24,7 +24,8 @@ struct PhotoLightbox: View {
         Text(caption)
           .font(.sans(AppleMetrics.font14))
           .foregroundStyle(AppleColors.fixedWhite75)
-          .multilineTextAlignment(.center)
+          .multilineTextAlignment(.leading)
+          .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.vertical, AppleMetrics.space12)
           .padding(.horizontal, AppleMetrics.space20)
       }
@@ -113,13 +114,13 @@ struct PhotoLightbox: View {
   }
 
   private func thumbs(_ photos: [String], current: Int) -> some View {
-    HStack(spacing: AppleMetrics.space8) {
+    HStack(spacing: AppleMetrics.space6) {
       ForEach(photos.indices, id: \.self) { n in
         Button {
           index = n
         } label: {
           CoverImage(name: photos[n])
-            .frame(width: AppleMetrics.lightboxThumbSize, height: AppleMetrics.lightboxThumbSize)
+            .frame(width: AppleMetrics.lightboxThumbSize, height: AppleMetrics.lightboxThumbHeight)
             .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.lightboxThumbRadius))
             .overlay(
               RoundedRectangle(cornerRadius: AppleMetrics.lightboxThumbRadius)

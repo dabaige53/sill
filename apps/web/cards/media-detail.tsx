@@ -48,10 +48,19 @@ export function MediaDetail({
 		const scroll = node?.closest(".sheet-scroll");
 		if (!node || !scroll || card.media !== "podcast") return;
 		const update = () =>
-			setCompact(node.getBoundingClientRect().bottom < scroll.getBoundingClientRect().top + 144);
+			setCompact(
+				scroll.scrollTop > 0 &&
+					node.getBoundingClientRect().bottom < scroll.getBoundingClientRect().top + 144,
+			);
 		update();
+		const resize = new ResizeObserver(update);
+		resize.observe(node);
+		resize.observe(scroll);
 		scroll.addEventListener("scroll", update, { passive: true });
-		return () => scroll.removeEventListener("scroll", update);
+		return () => {
+			resize.disconnect();
+			scroll.removeEventListener("scroll", update);
+		};
 	}, [card.media]);
 	const chapterIndex = (card.chapters || []).findLastIndex(
 		(chapter) => chapter.start <= state.position,
@@ -99,8 +108,11 @@ export function MediaDetail({
 						>
 							{card.title}
 							<small>
-								{card.chapters?.findLast((c) => c.start <= state.position)?.title} ·{" "}
-								{duration(state.position)}
+								{chapterIndex >= 0
+									? `${copy("web.media.chapterNumber").replace("{number}", String(chapterIndex + 1))} · `
+									: ""}
+								{duration(state.position)} /{" "}
+								{state.duration > 0 ? duration(state.duration) : copy("web.media.unknownDuration")}
 							</small>
 						</button>
 						<button
@@ -129,7 +141,13 @@ export function MediaDetail({
 					<div className="preview-meta">
 						<SourceMark card={card} />
 						<span>
-							{[publicationName(card), detailDate(card.publishedAt)].filter(Boolean).join(" · ")}
+							{[
+								publicationName(card),
+								detailDate(card.publishedAt),
+								card.duration !== undefined ? duration(card.duration) : "",
+							]
+								.filter(Boolean)
+								.join(" · ")}
 						</span>
 					</div>
 				)}
@@ -154,11 +172,11 @@ export function MediaDetail({
 						))}
 					</div>
 				)}
-				{card.media === "podcast" && card.chapters?.length ? (
+				{card.media === "podcast" ? (
 					<p className="current-chapter">
 						<Icon name="list" size={14} />{" "}
 						{chapterIndex >= 0
-							? `${copy("web.media.chapters")} ${chapterIndex + 1} · ${card.chapters[chapterIndex].title}`
+							? `${copy("web.media.chapterNumber").replace("{number}", String(chapterIndex + 1))} · ${card.chapters[chapterIndex].title}`
 							: copy("web.media.emptyChapters")}
 					</p>
 				) : null}
@@ -226,7 +244,8 @@ export function MediaDetail({
 									copy("web.media.emptyChapters")}
 							</span>
 							<time className="num">
-								{duration(state.position)} / {state.duration > 0 ? duration(state.duration) : "—"}
+								{duration(state.position)} /{" "}
+								{state.duration > 0 ? duration(state.duration) : copy("web.media.unknownDuration")}
 							</time>
 						</div>
 					</div>

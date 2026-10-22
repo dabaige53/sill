@@ -109,13 +109,13 @@
 .lightbox-thumbs {
 	display: flex;
 	justify-content: center;
-	gap: var(--space-8);
+	gap: var(--space-6);
 	padding: var(--space-16);
 }
 .lightbox-thumbs button {
-	width: 48px;
-	height: 48px;
-	border-radius: 8px;
+	width: 44px;
+	height: 32px;
+	border-radius: 6px;
 	overflow: hidden;
 	opacity: 0.55;
 	border: 2px solid transparent;
@@ -468,19 +468,25 @@ dialog > .float-bar.is-hidden {
 .detail-header {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 0;
+	margin-bottom: 8px;
 }
-.detail-header .preview-meta {
+.detail-header > :is(.preview-meta, .preview-sender) {
 	min-height: 36px;
 	margin-bottom: 6px;
 }
 .detail-header h1 {
-	margin: 0 0 4px;
+	margin: 0 0 16px;
+}
+.detail-header > :is(.preview-tags, .preview-published) {
+	margin-bottom: 8px;
+}
+.detail-header > :last-child {
+	margin-bottom: 0;
 }
 .detail-header.ruled-header {
 	padding-bottom: 24px;
 	border-bottom: 1px solid var(--line-card);
-	margin-bottom: 8px;
 }
 .preview-body h1 {
 	font-size: 26px;
@@ -554,7 +560,7 @@ dialog > .float-bar.is-hidden {
 	height: 18px;
 	border-radius: 0;
 }
-.detail-row > span:not(.row-icon) {
+.detail-row > span:not(.row-icon, .pr-reviewer-avatars) {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -562,11 +568,11 @@ dialog > .float-bar.is-hidden {
 .why-details > p {
 	font-size: 17px;
 	font-weight: 500;
-	line-height: 1.5;
+	line-height: 1.55;
 }
 .why-details li {
 	font-size: 14px;
-	line-height: 1.7;
+	line-height: 1.6;
 }
 .now-playing-heading {
 	position: absolute;
@@ -1000,7 +1006,7 @@ dialog > .float-bar.is-hidden {
 }
 
 .preview-sheet .is-podcast .media-secondary {
-	min-height: calc(min(88dvh, 900px) - 240px);
+	min-height: calc(min(88dvh, 900px) - 144px);
 }
 .preview-sheet .compact-player-slot {
 	top: var(--space-64);
@@ -1014,4 +1020,39 @@ dialog > .float-bar.is-hidden {
 
 .preview-sheet:has(.compact-player:not([hidden])) {
 	background: var(--card);
+}
+
+.detail-event .detail-header > .preview-meta {
+	margin-bottom: 8px;
+}
+.detail-event .detail-header > .event-hero {
+	margin-bottom: 16px;
+}
+.event-hero .num:first-child {
+	font-size: 44px;
+	line-height: 1;
+}
+.event-hero small {
+	font-size: var(--text-control);
+}
+.pr-detail .detail-header > .card-head {
+	margin-bottom: 6px;
+}
+.pr-detail .detail-header > .pr-branch-row {
+	margin-bottom: 12px;
+}
+.is-video .media-primary > .preview-meta {
+	min-height: 36px;
+	margin-bottom: -10px;
+}
+@media (max-width: 650px) {
+	.preview-sheet .is-podcast .media-secondary {
+		min-height: calc(100dvh - 144px);
+	}
+	.event-hero > .num:first-child {
+		font-size: 40px;
+	}
+	.lightbox-thumbs {
+		justify-content: flex-start;
+	}
 }

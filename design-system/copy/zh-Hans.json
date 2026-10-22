@@ -986,6 +986,7 @@
 	"auth.manageGrants": "管理授权",
 	"auth.eventQueue": "提交事件进入队列，不代表执行完成。",
 	"web.media.remaining": "剩 {minutes} 分钟",
+	"web.media.unknownDuration": "时长未知",
 	"web.media.emptyChapters": "暂无章节",
 	"web.media.emptyTranscript": "暂无文字稿",
 	"web.media.emptyNotes": "暂无内容",
@@ -1033,5 +1034,8 @@
 	"pr.check.stale": "已过期",
 	"pr.review": "审阅",
 	"pr.comments": "条评论",
-	"pr.fileCount": "个文件"
+	"pr.fileCount": "个文件",
+	"web.card.dueShort": "截止",
+	"web.card.fileCountSuffix": " 个文件",
+	"web.media.chapterNumber": "第 {number} 章"
 }

@@ -17,9 +17,29 @@ struct MediaDetail: View {
     card.isPodcast ? card.audioURL != nil : OfficialVideoPlayer.videoID(card.url) != nil
   }
   private var active: Int? { card.transcript.lastIndex { $0.start <= playback.position } }
+  private var chapterLabel: String {
+    guard let index = card.chapters.lastIndex(where: { $0.start <= playback.position }) else {
+      return Copy.text("web.media.emptyChapters")
+    }
+    return Copy.text("web.media.chapterNumber").replacingOccurrences(
+      of: "{number}", with: String(index + 1)) + " · " + card.chapters[index].title
+  }
+  private var compactPosition: String {
+    let chapter =
+      card.chapters.lastIndex(where: { $0.start <= playback.position }).map {
+        Copy.text("web.media.chapterNumber").replacingOccurrences(
+          of: "{number}", with: String($0 + 1)) + " · "
+      } ?? ""
+    return chapter + Format.duration(Int(playback.position)) + " / "
+      + (playback.duration > 0
+        ? Format.duration(Int(playback.duration)) : Copy.text("web.media.unknownDuration"))
+  }
   private var primary: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      if !card.isPodcast { source }
+      if !card.isPodcast {
+        source.frame(minHeight: AppleMetrics.space36, alignment: .leading)
+          .padding(.bottom, -AppleMetrics.space10)
+      }
       if card.isPodcast {
         CoverImage(name: card.image).frame(
           width: full ? AppleMetrics.playerArtSize : AppleMetrics.playerArtSize * 0.8,
@@ -43,12 +63,11 @@ struct MediaDetail: View {
       } else {
         ReaderTags(tags: state.tags(of: card))
       }
-      if card.isPodcast, let chapter = card.chapters.last(where: { $0.start <= playback.position })
-      {
+      if card.isPodcast {
         HStack(spacing: AppleMetrics.space6) {
           Icon("list", size: AppleMetrics.font14)
           Text(
-            "\(Copy.text("web.media.chapters")) \((card.chapters.lastIndex { $0.start <= playback.position } ?? 0) + 1) · \(chapter.title)"
+            chapterLabel
           )
         }.foregroundStyle(AppleColors.secondary)
           .font(.sans(AppleMetrics.font12))
@@ -102,7 +121,10 @@ struct MediaDetail: View {
   private var source: some View {
     MetaRow(icon: AnyView(SourceIcon(card: card))) {
       Text(
-        [card.publicationName, card.publication.date ?? ""].filter { !$0.isEmpty }.joined(
+        [
+          card.publicationName, card.publication.date ?? "",
+          card.isPodcast ? "" : card.duration.map(Format.duration) ?? "",
+        ].filter { !$0.isEmpty }.joined(
           separator: " · "))
     }.firstRow()
   }
@@ -219,13 +241,13 @@ struct MediaDetail: View {
         primary.frame(maxWidth: .infinity)
         secondary.frame(
           maxWidth: .infinity,
-          minHeight: card.isPodcast ? max(0, (availableHeight ?? 792) - 240) : nil,
+          minHeight: card.isPodcast ? max(0, (availableHeight ?? 792) - 144) : nil,
           alignment: .topLeading)
       }
     }
     .overlay(alignment: .top) {
       if card.isPodcast, !full, primaryHeight > 0, scrollOffset > primaryHeight - 144 {
-        compactControls.disabled(!available).offset(y: scrollOffset + AppleMetrics.space40)
+        compactControls.offset(y: scrollOffset + AppleMetrics.space40)
       }
     }
     .font(.sans(AppleMetrics.font15)).foregroundStyle(AppleColors.primary)
@@ -249,14 +271,16 @@ struct MediaDetail: View {
         Button(action: returnToPlayer) {
           VStack(alignment: .leading, spacing: AppleMetrics.space4) {
             Text(card.title).lineLimit(1)
-            Text(Format.duration(Int(playback.position))).font(.number(AppleMetrics.font12))
+            Text(compactPosition).font(.number(AppleMetrics.font12)).foregroundStyle(
+              AppleColors.secondary
+            ).lineLimit(1)
           }.frame(maxWidth: .infinity, alignment: .leading)
         }
         Button {
           playback.seek(playback.position - 15)
         } label: {
           Icon("rewind15")
-        }.frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
+        }.disabled(!available).frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
           .accessibilityLabel(Copy.text("web.preview.podcast.rewind15"))
         Button {
           playback.toggle()
@@ -267,23 +291,27 @@ struct MediaDetail: View {
               height: AppleMetrics.space40
             )
             .foregroundStyle(AppleColors.fixedWhite).background(Circle().fill(AppleColors.accent))
-        }.accessibilityLabel(Copy.text(playback.playing ? "web.media.pause" : "web.media.play"))
+        }.disabled(!available).accessibilityLabel(
+          Copy.text(playback.playing ? "web.media.pause" : "web.media.play"))
       }.padding(AppleMetrics.space12)
-      ProgressView(value: playback.position, total: max(1, playback.duration)).tint(
-        AppleColors.primary)
+      PlaybackTrack(position: playback.position, duration: playback.duration)
+        .frame(height: AppleMetrics.space3)
     }.buttonStyle(.plain).background(AppleColors.card)
+      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.space14))
   }
   private var audioControls: some View {
     VStack(spacing: AppleMetrics.space12) {
-      Slider(
-        value: Binding(get: { playback.position }, set: { playback.seek($0) }),
-        in: 0...max(1, playback.duration)
+      PlaybackScrubber(
+        position: playback.position, duration: playback.duration, seek: playback.seek
       )
-      .disabled(playback.duration <= 0).accessibilityLabel(Copy.text("web.media.position"))
+      .disabled(playback.duration <= 0)
       HStack {
         Text(Format.duration(Int(playback.position)))
         Spacer()
-        Text("−" + Format.duration(Int(max(0, playback.duration - playback.position))))
+        Text(
+          playback.duration > 0
+            ? "−" + Format.duration(Int(max(0, playback.duration - playback.position)))
+            : Copy.text("web.media.unknownDuration"))
       }
       .font(.number(AppleMetrics.font13))
       HStack(spacing: AppleMetrics.space12) {
@@ -327,5 +355,61 @@ struct MediaDetail: View {
       values["readAt"] = .number(Format.milliseconds())
     }
     workspace.write([.itemPatch(id: card.id, values: values)])
+  }
+}
+
+/// The same flat progress track used by the HTML player, without a system bezel.
+private struct PlaybackTrack: View {
+  let position: Double
+  let duration: Double
+  var body: some View {
+    GeometryReader { geometry in
+      ZStack(alignment: .leading) {
+        Capsule().fill(AppleColors.lineHover)
+        Capsule().fill(AppleColors.primary)
+          .frame(width: geometry.size.width * min(1, max(0, position / max(1, duration))))
+      }
+    }
+  }
+}
+
+private struct PlaybackScrubber: View {
+  let position: Double
+  let duration: Double
+  let seek: (Double) -> Void
+  @Environment(\.isEnabled) private var enabled
+  var body: some View {
+    GeometryReader { geometry in
+      let trackWidth = max(1, geometry.size.width - AppleMetrics.space12)
+      ZStack(alignment: .leading) {
+        PlaybackTrack(position: position, duration: duration)
+          .frame(height: AppleMetrics.space4).padding(.horizontal, AppleMetrics.space6)
+        Circle().fill(AppleColors.primary).frame(
+          width: AppleMetrics.space12, height: AppleMetrics.space12
+        )
+        .offset(x: trackWidth * min(1, max(0, position / max(1, duration))))
+      }.frame(height: AppleMetrics.space44)
+        .contentShape(Rectangle())
+        .gesture(
+          DragGesture(minimumDistance: 0).onChanged { value in
+            if enabled {
+              seek(
+                min(
+                  duration, max(0, (value.location.x - AppleMetrics.space6) / trackWidth * duration)
+                ))
+            }
+          })
+    }.frame(height: AppleMetrics.space44)
+      .accessibilityElement()
+      .accessibilityLabel(Copy.text("web.media.position"))
+      .accessibilityValue(Format.duration(Int(position)))
+      .accessibilityAdjustableAction { direction in
+        guard enabled else { return }
+        switch direction {
+        case .increment: seek(min(duration, position + 15))
+        case .decrement: seek(max(0, position - 15))
+        @unknown default: break
+        }
+      }
   }
 }

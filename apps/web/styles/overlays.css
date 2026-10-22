@@ -383,12 +383,11 @@ dialog::backdrop {
 	border-top: 1px solid var(--line);
 }
 .preview-note {
-	border: 1px solid var(--line);
-	border-radius: var(--control-radius);
-	background: var(--surface);
-	padding: var(--space-16);
+	border: 1px solid var(--line-card);
+	border-radius: var(--space-14);
+	padding: var(--space-12) var(--space-14);
 	font-size: var(--text-control);
-	line-height: 1.75;
+	line-height: 1.6;
 	color: var(--secondary);
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
@@ -396,8 +395,8 @@ dialog::backdrop {
 .preview-note-label {
 	display: block;
 	font-size: var(--text-caption);
-	font-weight: 600;
-	margin-bottom: var(--space-6);
+	font-weight: 400;
+	margin-bottom: var(--space-4);
 }
 .preview-body .preview-note p,
 .reader-body .preview-note p {

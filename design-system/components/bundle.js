@@ -1110,6 +1110,7 @@ var Sill = (() => {
     "auth.manageGrants": "\u7BA1\u7406\u6388\u6743",
     "auth.eventQueue": "\u63D0\u4EA4\u4E8B\u4EF6\u8FDB\u5165\u961F\u5217\uFF0C\u4E0D\u4EE3\u8868\u6267\u884C\u5B8C\u6210\u3002",
     "web.media.remaining": "\u5269 {minutes} \u5206\u949F",
+    "web.media.unknownDuration": "\u65F6\u957F\u672A\u77E5",
     "web.media.emptyChapters": "\u6682\u65E0\u7AE0\u8282",
     "web.media.emptyTranscript": "\u6682\u65E0\u6587\u5B57\u7A3F",
     "web.media.emptyNotes": "\u6682\u65E0\u5185\u5BB9",
@@ -1157,7 +1158,10 @@ var Sill = (() => {
     "pr.check.stale": "\u5DF2\u8FC7\u671F",
     "pr.review": "\u5BA1\u9605",
     "pr.comments": "\u6761\u8BC4\u8BBA",
-    "pr.fileCount": "\u4E2A\u6587\u4EF6"
+    "pr.fileCount": "\u4E2A\u6587\u4EF6",
+    "web.card.dueShort": "\u622A\u6B62",
+    "web.card.fileCountSuffix": " \u4E2A\u6587\u4EF6",
+    "web.media.chapterNumber": "\u7B2C {number} \u7AE0"
   };
 
   // design-system/copy.ts

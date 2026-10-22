@@ -178,7 +178,7 @@
 	overflow: hidden;
 	margin: 0;
 	font-size: var(--text-summary);
-	line-height: 22px;
+	line-height: 1.5;
 	color: var(--muted);
 }
 .card-summary.clamp-2 {
@@ -231,7 +231,7 @@
 /* On a card, key points read at the summary size (A type: 14/22). */
 .feed-card .key-points li {
 	font-size: var(--text-summary);
-	line-height: 22px;
+	line-height: 1.5;
 }
 .key-points li span {
 	min-width: 0;
@@ -380,9 +380,9 @@
 	align-items: center;
 	gap: var(--space-8);
 	min-height: 36px;
-	padding: 0 var(--space-10);
-	border-radius: 10px;
-	background: var(--canvas);
+	padding: 9px var(--space-10);
+	border-radius: var(--space-12);
+	background: var(--surface);
 	font-size: var(--text-meta);
 	color: var(--ink);
 	text-align: left;
@@ -410,8 +410,7 @@ button.ref:active {
 .refs {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-8);
-	padding-top: var(--space-4);
+	gap: var(--space-6);
 }
 .attachment {
 	align-self: flex-start;
@@ -501,7 +500,7 @@ button.ref:active {
 	width: 20px;
 	height: 20px;
 	flex: 0 0 20px;
-	border: 1.5px solid var(--accent);
+	border: 1.6px solid var(--line-hover);
 	border-radius: 50%;
 	color: var(--fixed-white);
 }
@@ -512,14 +511,15 @@ button.ref:active {
 }
 .check-item.is-done > span:last-child {
 	color: var(--muted);
+	text-decoration: line-through;
 }
 .check-item.is-done .check-dot,
 .check-dot.is-done {
-	background: var(--accent-fill);
-	border-color: var(--accent);
+	background: var(--success);
+	border-color: var(--success);
 }
 .more-items {
-	padding-left: var(--space-30);
+	padding-left: 0;
 	font-size: var(--text-meta);
 	color: var(--muted);
 }
@@ -801,13 +801,19 @@ button.ref:active {
 
 .event-card-main {
 	display: flex;
-	align-items: flex-start;
-	gap: var(--space-16);
+	align-items: center;
+	gap: var(--space-14);
 }
 .event-card-times {
+	padding-right: var(--space-14);
+	border-right: 2px solid var(--accent);
 	display: grid;
 	gap: var(--space-4);
 	flex: none;
+}
+.event-card-times .event-start {
+	font-size: var(--text-event-card-time);
+	line-height: 1;
 }
 .event-card-times small {
 	color: var(--muted);
@@ -816,7 +822,7 @@ button.ref:active {
 .event-card-content {
 	min-width: 0;
 	display: grid;
-	gap: var(--space-6);
+	gap: var(--space-2);
 }
 .event-card-location {
 	display: flex;
@@ -825,6 +831,11 @@ button.ref:active {
 	color: var(--muted);
 	font-size: var(--text-meta);
 	overflow-wrap: anywhere;
+}
+.event-card-location > span {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 .event-card-location .icon {
 	flex: none;
@@ -868,8 +879,8 @@ a.detail-row:hover {
 	position: absolute;
 	inset: 0;
 	margin: auto;
-	width: 48px;
-	height: 48px;
+	width: var(--space-44);
+	height: var(--space-44);
 	display: grid;
 	place-items: center;
 	border-radius: 50%;
@@ -877,14 +888,28 @@ a.detail-row:hover {
 	background: var(--glass-thick);
 	backdrop-filter: blur(12px);
 }
-.card-cover > .media-card-progress {
+.media-play-mark .icon {
+	fill: currentColor;
+	stroke: none;
+}
+.media-cover-timeline {
 	position: absolute;
 	left: var(--space-10);
-	right: var(--space-64);
-	bottom: var(--space-16);
-	width: auto;
+	right: var(--space-10);
+	bottom: var(--space-10);
+	display: flex;
+	align-items: center;
+	gap: var(--space-6);
 	--media-progress-track: var(--fixed-white-45, rgba(255, 255, 255, 0.45));
 	--media-progress-fill: var(--fixed-white);
+}
+.media-cover-timeline .media-card-progress {
+	flex: 1;
+	width: 0;
+}
+.media-cover-timeline .media-length {
+	position: static;
+	flex: none;
 }
 .sender small {
 	display: flex;
@@ -917,8 +942,9 @@ a.detail-row:hover {
 	min-width: 0;
 }
 .pr-branches {
-	font-size: 11px;
-	padding: 4px 8px;
+	font-family: "SF Mono", ui-monospace, Menlo, monospace;
+	font-size: var(--text-caption);
+	padding: var(--space-2) var(--space-6);
 	background: var(--surface);
 	border-radius: 6px;
 	overflow: hidden;
@@ -943,39 +969,55 @@ a.detail-row:hover {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 8px;
-	margin-top: 6px;
+	gap: var(--space-12);
+	margin-top: var(--space-4);
 }
 .pr-reviewers {
 	display: flex;
 	align-items: center;
-	gap: 5px;
+	gap: var(--space-10);
 	min-width: 0;
 }
 .pr-reviewers > span {
 	position: relative;
 }
+.pr-reviewer {
+	display: inline-flex;
+	position: relative;
+	flex: none;
+}
 .pr-decision {
 	position: absolute;
-	right: -2px;
-	bottom: -3px;
-	width: 11px;
-	height: 11px;
+	right: calc(-1 * var(--space-3));
+	bottom: calc(-1 * var(--space-3));
+	width: var(--space-12);
+	height: var(--space-12);
 	display: grid;
 	place-items: center;
 	border-radius: 50%;
-	background: var(--card);
-	font-size: 9px;
+	background: var(--secondary);
+	color: var(--fixed-white);
+	box-shadow: 0 0 0 var(--space-2) var(--card);
 }
 .pr-decision-approved {
-	color: var(--success);
+	background: var(--success);
+}
+.pr-decision-pending,
+.pr-decision-changesRequested {
+	background: var(--alert);
 }
 .pr-check-count {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-4);
 	color: var(--secondary);
-	font-size: 11px;
+	font-size: var(--text-caption);
+}
+.pr-check-count.is-success {
+	color: var(--success);
 }
 .pr-review {
-	font-size: 12px;
+	font-size: var(--text-control);
 	white-space: nowrap;
 }
 .pr-detail {
@@ -999,6 +1041,11 @@ a.detail-row:hover {
 	gap: var(--space-6);
 }
 .mail-attachments .attachment {
+	margin-top: 0;
+	padding: var(--space-6) var(--space-10);
+	border-radius: var(--space-10);
+	background: var(--surface);
+	gap: var(--space-6);
 	width: auto;
 	max-width: 100%;
 	min-width: 0;
@@ -1009,10 +1056,45 @@ a.detail-row:hover {
 
 .type-file .file-rows {
 	display: grid;
+	justify-items: start;
 	gap: var(--space-6);
 }
 .type-file .file-row {
-	border-radius: var(--space-8);
+	max-width: 100%;
+	border-radius: var(--space-10);
 	background: var(--surface);
-	padding: var(--space-8) var(--space-10);
+	padding: var(--space-6) var(--space-10);
+}
+
+/* CardTypeDetails: compact grey task circles; detail circles keep their larger size. */
+.feed-card .check-dot {
+	width: 18px;
+	height: 18px;
+	flex-basis: 18px;
+}
+.feed-card .check-item > .check-dot {
+	margin-top: calc((1lh - 18px) / 2);
+}
+.feed-card .reminder-check {
+	margin-inline: -13px;
+	margin-bottom: -13px;
+}
+.feed-card .reminder-row {
+	gap: var(--space-10);
+}
+.feed-card .card-summary.indent {
+	padding-left: var(--space-28);
+}
+.preview-title-row .reminder-check {
+	margin-inline: -10px;
+	margin-bottom: -10px;
+}
+.preview-title-row .reminder-check .check-dot {
+	width: 24px;
+	height: 24px;
+	flex-basis: 24px;
+}
+.mini-play-mark .icon {
+	fill: currentColor;
+	stroke: none;
 }

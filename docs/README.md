@@ -215,3 +215,6 @@
 - [2026-10-22 卡片重建设计稿合并与版本标记](records/2026-10-22-card-rebuild-release/README.md)：PR #60 合并范围、标签、线上设计版本与检查结果。
 - [2026-10-22 Markdown 正文修复与两端接入](records/2026-10-22-markdown-repair/README.md)：本轮修复、检查证据与 D17 集成内容。
 - [2026-10-22 卡片 UI 逐项 check 稿](records/2026-10-22-card-ui-check/README.md)：13 类桌面与手机截图对照、未完成项及底部空白修复。
+
+- [2026-10-22 卡片模块源码复核与界面复验](records/2026-10-22-card-ui-recheck/README.md)：原 HTML 与 Web、Mac 实现的逐模块核对和本轮验证。
+- [2026-10-22 Mac 卡片补修窗口复验](records/2026-10-22-card-macos-follow-up/README.md)：卡面日期、视频来源间距、播客收起条与返回播放器的检查结果。

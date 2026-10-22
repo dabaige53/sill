@@ -18,23 +18,27 @@ struct EventBody: View {
             AppleColors.accent)
         }
       }
-      HStack(alignment: .top, spacing: AppleMetrics.space16) {
+      HStack(alignment: .center, spacing: AppleMetrics.space14) {
         VStack(alignment: .leading, spacing: AppleMetrics.space4) {
           Text(Format.time(start))
             .textStyle(
-              AppleMetrics.font34, .semibold, leading: AppleMetrics.eventStartLeading,
+              AppleMetrics.eventCardTimeSize, .semibold, leading: 1,
               tracking: AppleMetrics.cardTitleTracking, number: true
             )
             .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
           Text(Copy.text("web.templates.83532308ecca") + Format.time(end))
             .font(.number(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
         }
-        VStack(alignment: .leading, spacing: AppleMetrics.space6) {
+        .padding(.trailing, AppleMetrics.space14)
+        .overlay(alignment: .trailing) {
+          Rectangle().fill(AppleColors.accent).frame(width: AppleMetrics.space2)
+        }
+        VStack(alignment: .leading, spacing: AppleMetrics.space2) {
           CardTitle(text: card.title, faded: faded, query: context.query)
           if let meeting = card.meeting { location(meeting.name, icon: "video") }
           if let place = card.location { location(place, icon: "pin") }
         }.frame(maxWidth: .infinity, alignment: .leading)
-      }.afterHead()
+      }
       if !card.people.isEmpty || timely {
         HStack(spacing: AppleMetrics.space12) {
           if !card.people.isEmpty {
@@ -54,14 +58,14 @@ struct EventBody: View {
                 .background(Capsule().fill(AppleColors.accentFill))
             }.buttonStyle(PrimaryPillStyle())
           }
-        }.beforeList()
+        }
       }
     }
   }
   private func location(_ text: String, icon: String) -> some View {
     HStack(spacing: AppleMetrics.space6) {
       Icon(icon, size: AppleMetrics.font15)
-      Text(text).fixedSize(horizontal: false, vertical: true)
+      Text(text).lineLimit(1).truncationMode(.tail)
     }.font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
   }
 }
