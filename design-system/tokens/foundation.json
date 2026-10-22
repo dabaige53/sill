@@ -309,6 +309,11 @@
 		"easeSheetY1": 0.72,
 		"easeSheetX2": 0,
 		"easeSheetY2": 1,
+		"motionReveal": 0.42,
+		"easeRevealX1": 0.5,
+		"easeRevealY1": 1,
+		"easeRevealX2": 0.89,
+		"easeRevealY2": 1,
 		"cardSpringMass": 1,
 		"cardSpringStiffness": 274,
 		"cardSpringDamping": 30,
@@ -831,6 +836,11 @@
 				"usage": "手机抽屉。"
 			},
 			{
+				"name": "ease-reveal",
+				"value": "cubic-bezier(.5,1,.89,1)",
+				"usage": "桌面顶栏与 AI 框单独出现：减速均匀，全程可见移动，不突然弹出。"
+			},
+			{
 				"name": "ease-spring",
 				"value": "linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1)",
 				"usage": "导航镜片换格：越过约 6% 再落定的柔和弹簧。"
@@ -929,6 +939,11 @@
 				"name": "dur-show",
 				"value": "320ms",
 				"usage": "工具条出现。"
+			},
+			{
+				"name": "dur-reveal",
+				"value": "420ms",
+				"usage": "桌面顶栏与 AI 框单独出现：首次出现、停顿、反向滚动或到达边缘；随卡片关闭恢复时不用。"
 			},
 			{
 				"name": "dur-deck",

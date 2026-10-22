@@ -15,6 +15,12 @@ import SwiftUI
       AppleMetrics.easeSheetX1, AppleMetrics.easeSheetY1,
       AppleMetrics.easeSheetX2, AppleMetrics.easeSheetY2, duration: duration)
   }
+  /// `ease-reveal` over `dur-reveal`: the desktop bars coming back on their own.
+  static var reveal: Animation {
+    .timingCurve(
+      AppleMetrics.easeRevealX1, AppleMetrics.easeRevealY1,
+      AppleMetrics.easeRevealX2, AppleMetrics.easeRevealY2, duration: AppleMetrics.motionReveal)
+  }
   /// Release spring: mass 1, stiffness 600, damping 45; it inherits the release velocity.
   static func spring(velocity: Double = 0) -> Animation {
     .interpolatingSpring(

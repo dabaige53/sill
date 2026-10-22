@@ -109,6 +109,7 @@ const MotionEngine: Record<string, any> = {
 	curve(name = "ease") {
 		return (
 			getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim() ||
+			tokens.timing.tokens.find((token) => token.name === name)?.value ||
 			"cubic-bezier(0.23,1,0.32,1)"
 		);
 	},
@@ -142,12 +143,12 @@ const MotionEngine: Record<string, any> = {
 		this.loops.set(el, animation);
 	},
 	/** Capture before changing CSS state, then let Motion bridge only visual properties. */
-	change(el: HTMLElement, update: () => void, duration = this.time("base")) {
+	change(el: HTMLElement, update: () => void, duration = this.time("base"), easing?: string) {
 		const before = getComputedStyle(el);
 		const from = { opacity: before.opacity, transform: before.transform };
 		this.cancel(el);
 		update();
-		if (el.id === "home-top" && matchMedia("(min-width: 651px)").matches) {
+		if (!easing && el.id === "home-top" && matchMedia("(min-width: 651px)").matches) {
 			duration = this.time(el.classList.contains("is-tucked") ? "dur-tuck" : "dur-open");
 		}
 		const after = getComputedStyle(el);
@@ -167,7 +168,7 @@ const MotionEngine: Record<string, any> = {
 		const animation = this.animate(
 			el,
 			[from, to].map((frame) => Object.fromEntries(keys.map((key) => [key, frame[key]]))),
-			{ duration },
+			{ duration, ...(easing ? { easing } : {}) },
 		);
 		const finish = () => {
 			if (this.contentAnimations.get(el) === animation) el.style.visibility = "";

@@ -271,7 +271,11 @@ export const gesturePreviewMethods = {
 							easing: MotionEngine.curve("ease"),
 							fill: "forwards",
 						});
-						if (fade) fade.finished.then(() => chip.remove(), () => chip.remove());
+						if (fade)
+							fade.finished.then(
+								() => chip.remove(),
+								() => chip.remove(),
+							);
 						else chip.remove();
 						// A stacked preview folds back to the card below it; reading returns to the desk.
 						if (app.modalKind === "preview") app.closeModal();

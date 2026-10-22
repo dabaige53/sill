@@ -72,7 +72,16 @@ struct DesktopView: View {
         .animation(Motion.menuOpen, value: selection.active)
         .padding(.horizontal, AppleMetrics.railEdge)
         .modifier(
-          Tuck(tucked: chrome.tucked && !carrying, travel: AppleMetrics.motionRailTravel)
+          Tuck(
+            tucked: (chrome.tucked || (reader.shown && !chrome.atTop)) && !carrying,
+            travel: AppleMetrics.motionRailTravel)
+        )
+        // An open card owns the desktop: the AI box steps aside with the top bar.
+        .animation(
+          Motion.keyboardDriven
+            ? nil
+            : Motion.ease(reader.shown ? AppleMetrics.motionRailHide : AppleMetrics.motionRailShow),
+          value: reader.shown
         )
         .frame(maxHeight: .infinity, alignment: .bottom)
         .padding(.bottom, AppleMetrics.railEdge)
@@ -163,6 +172,10 @@ struct DesktopView: View {
         menu.close()
         shell.menu.close()
       }
+    }
+    // Closing a card brings the bars back even if reading the feed had tucked them.
+    .onChange(of: reader.shown) { _, shown in
+      if !shown { chrome.show(withCard: true) }
     }
     .onChange(of: panels.kind) { _, kind in
       if kind != nil {

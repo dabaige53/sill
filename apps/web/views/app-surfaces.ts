@@ -5,6 +5,9 @@ import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
 import { renderContent } from "./react-renderer.ts";
 
+/** Surfaces that show one card; the desktop bars step aside while one is open. */
+const CARD_KINDS = ["preview", "reader", "lightbox"];
+
 export const appSurfacesMethods = {
 	navigate(this: AppController, hash?: string) {
 		if (!this.pageScrollLocked) this.routeScroll[this.mode] = scrollY;
@@ -96,6 +99,10 @@ export const appSurfacesMethods = {
 		const liveToast = document.getElementById("toast");
 		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
 		this.modalKind = kind;
+		// An open card owns the desktop: the top bar and the AI box step aside until it closes.
+		// At the top of the feed they stay; nothing sits under them there.
+		if (this.desktop() && CARD_KINDS.includes(kind) && !this.railHide?.atTop())
+			this.railHide?.hide(true);
 		this.dialog.className =
 			shape || (["reader", "preview", "lightbox", "search"].includes(kind) ? kind : "panel");
 		if (page) this.dialog.classList.add("page");
@@ -188,6 +195,7 @@ export const appSurfacesMethods = {
 				: "";
 			this.sheetLeaving = true;
 			this.dialog.inert = true;
+			if (CARD_KINDS.includes(this.modalKind)) this.railHide?.show(true);
 			MotionEngine.dim(
 				this.dialog,
 				0,
@@ -260,6 +268,7 @@ export const appSurfacesMethods = {
 			return;
 		}
 		this.modalToken++;
+		if (CARD_KINDS.includes(this.modalKind)) this.railHide?.show(true);
 		const toast = document.getElementById("toast");
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);
 		const source = this.grid.querySelector<HTMLElement>(

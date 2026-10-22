@@ -22,14 +22,22 @@ class ChromeAutoHide {
 	declare timer: number;
 	declare hidden: boolean;
 	declare paused: () => boolean;
+	declare reveal: () => boolean;
 	declare onScroll: () => void;
 	declare onFocus: (e: FocusEvent) => void;
 	declare onKeyDown: (e: KeyboardEvent) => void;
 
-	constructor(source: Source, targets: () => Element[], paused: () => boolean = () => false) {
+	/** `reveal`: bars coming back on their own use the slower `dur-reveal` entrance. */
+	constructor(
+		source: Source,
+		targets: () => Element[],
+		paused: () => boolean = () => false,
+		reveal: () => boolean = () => false,
+	) {
 		this.source = source;
 		this.targets = targets;
 		this.paused = paused;
+		this.reveal = reveal;
 		this.last = this.position();
 		this.down = 0;
 		this.up = 0;
@@ -61,6 +69,10 @@ class ChromeAutoHide {
 			return document.documentElement.scrollHeight - (this.source as Window).innerHeight;
 		const el = this.source as HTMLElement;
 		return el.scrollHeight - el.clientHeight;
+	}
+	/** Near the top the bars sit above the cards and never need to step aside. */
+	atTop() {
+		return this.position() <= EDGE;
 	}
 	/** Adopt a restored reading position without treating it as a scroll gesture. */
 	syncPosition() {
@@ -98,9 +110,11 @@ class ChromeAutoHide {
 				if (!this.paused()) this.show();
 			}, REST_MS);
 	}
-	hide() {
+	/** `force` tucks even a focused bar: an opened card takes the focus over. */
+	hide(force = false) {
 		if (this.hidden) return;
 		const focused =
+			!force &&
 			document.activeElement?.matches(":focus-visible") &&
 			this.targets().some((t) => t.contains(document.activeElement));
 		if (focused) return;
@@ -114,18 +128,21 @@ class ChromeAutoHide {
 			);
 		}
 	}
-	show() {
+	/** `withCard`: the bars return alongside a closing card and keep the quicker entrance. */
+	show(withCard = false) {
 		clearTimeout(this.timer);
 		this.timer = 0;
 		this.down = this.up = 0;
 		if (!this.hidden) return;
 		this.hidden = false;
+		const reveal = !withCard && this.reveal();
 		for (const t of this.targets()) {
 			(t as HTMLElement).inert = false;
 			MotionEngine.change(
 				t as HTMLElement,
 				() => t.classList.remove("is-tucked"),
-				MotionEngine.time("dur-show"),
+				reveal ? MotionEngine.time("dur-reveal") : MotionEngine.time("dur-show"),
+				reveal ? MotionEngine.curve("ease-reveal") : undefined,
 			);
 		}
 	}

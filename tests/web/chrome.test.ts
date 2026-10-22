@@ -60,6 +60,43 @@ function fixture() {
 	};
 }
 
+test("desktop bars coming back on their own use the slower reveal; alongside a card they keep pace", () => {
+	const f = fixture();
+	try {
+		const bar = f.w.document.getElementById("bar");
+		const animations: any[] = [];
+		f.w.__motionAnimations = animations;
+		const hide = new f.w.ChromeTest.ChromeAutoHide(
+			f.w.document.getElementById("scroll"),
+			() => [bar],
+			() => false,
+			() => true,
+		);
+		// The tucked state must change something drawn, or no animation is recorded.
+		const css = f.w.document.createElement("style");
+		css.textContent = "#bar.is-tucked{opacity:0}";
+		f.w.document.head.append(css);
+		hide.hide(true);
+		animations.length = 0;
+		hide.show();
+		assert.equal(animations.at(-1)?.options.duration, 420);
+		assert.deepEqual([...animations.at(-1).options.ease], [0.5, 1, 0.89, 1]);
+		hide.hide(true);
+		animations.length = 0;
+		hide.show(true);
+		assert.equal(
+			animations.at(-1)?.options.duration,
+			320,
+			"a closing card keeps the quicker entrance",
+		);
+		assert.notDeepEqual([...animations.at(-1).options.ease], [0.5, 1, 0.89, 1]);
+		hide.destroy();
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
 test("bars tuck away completely after steady downward reading, not on a jitter", () => {
 	const f = fixture();
 	try {

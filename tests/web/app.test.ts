@@ -424,6 +424,45 @@ test("desktop card close keeps the dialog until its exit completes", async () =>
 	}
 });
 
+test("an open card below the feed top tucks the desktop top bar and AI box until its close begins", async () => {
+	const f = fixture();
+	try {
+		const { app, w } = f;
+		const calls: string[] = [];
+		app.railHide = {
+			hide: (force: boolean) => calls.push(`hide:${force}`),
+			show: () => calls.push("show"),
+			atTop: () => atTop,
+			syncPosition() {},
+		};
+		let atTop = true;
+		app.desktop = () => true;
+		app.closeMore = () => {};
+		app.dialog.showModal = () => app.dialog.setAttribute("open", "");
+		app.dialog.close = () => app.dialog.removeAttribute("open");
+		app.dialog.getAnimations = () => [];
+		app.openModal(null, "settings");
+		assert.deepEqual(calls, [], "a panel is not a card");
+		app.dialog.close();
+		app.openModal(null, "lightbox");
+		assert.deepEqual(calls, [], "at the top of the feed the bars stay");
+		app.dialog.close();
+		atTop = false;
+		app.openModal(null, "lightbox");
+		assert.deepEqual(calls, ["hide:true"], "even a focused search field gives way");
+		app.modalKind = "preview";
+		app.navKey = "home";
+		app.updateSelection = () => {};
+		w.document.body.insertAdjacentHTML("beforeend", '<button id="account">Account</button>');
+		w.__motionAnimations = [];
+		app.closeNative();
+		assert.equal(app.dialog.open, true, "the card is still leaving");
+		assert.deepEqual(calls, ["hide:true", "show"], "the bars return as the close begins");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("AI references enter once and stay inert until their removal finishes", async () => {
 	const f = fixture();
 	try {

@@ -7,17 +7,29 @@ import SwiftUI
 /// Changes only when the answer flips, never per scroll frame.
 @MainActor @Observable final class Chrome {
   private(set) var tucked = false
+  /// The feed rests at its top; an open card leaves the bars in place there.
+  private(set) var atTop = true
   /// Search focus, an open menu or a drag keep the chrome visible.
   @ObservationIgnored var pinned = false {
     didSet { if pinned { show() } }
   }
 
-  func show() {
-    if tucked { withAnimation(Motion.ease(AppleMetrics.motionRailShow)) { tucked = false } }
+  /// Bars coming back on their own use the slower reveal; alongside a closing card they keep pace
+  /// with it. Keyboard-driven changes are instant.
+  func show(withCard: Bool = false) {
+    guard tucked else { return }
+    let animation =
+      withCard ? Motion.ease(AppleMetrics.motionDetailOpen) : Motion.reveal
+    withAnimation(Motion.keyboardDriven ? nil : animation) { tucked = false }
+  }
+  func rest(atTop value: Bool) {
+    if atTop != value { atTop = value }
   }
   func hide() {
     guard !pinned, !tucked else { return }
-    withAnimation(Motion.ease(AppleMetrics.motionRailHide)) { tucked = true }
+    withAnimation(Motion.keyboardDriven ? nil : Motion.ease(AppleMetrics.motionRailHide)) {
+      tucked = true
+    }
   }
 }
 
@@ -49,6 +61,7 @@ import SwiftUI
     let delta = offset - last
     last = offset
     rest?.cancel()
+    chrome.rest(atTop: offset <= 0)
     let atEdge = offset <= 0 || raw + visible >= content - 1
     if content - (raw + visible) < visible * 2 { nearEnd() }
     if atEdge {

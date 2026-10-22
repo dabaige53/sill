@@ -26,7 +26,12 @@ export function HomeTop() {
 		const node = header.current;
 		if (!node) return;
 		if (matchMedia("(min-width: 651px)").matches) {
-			MotionEngine.change(node, () => node.classList.remove("is-entering"), MotionEngine.time("dur-open"));
+			MotionEngine.change(
+				node,
+				() => node.classList.remove("is-entering"),
+				MotionEngine.time("dur-reveal"),
+				MotionEngine.curve("ease-reveal"),
+			);
 		} else {
 			node.classList.remove("is-entering");
 		}

@@ -144,6 +144,7 @@ export const appLifecycleMethods = {
 					(this.homeMenuOpen ||
 						document.querySelector("#sync-status-panel:popover-open") ||
 						document.activeElement?.matches("#home-search, #ai-dock-input"))),
+			() => this.desktop(),
 		);
 		window.addEventListener("popstate", () => this.route());
 		window.addEventListener("hashchange", () => this.route());
