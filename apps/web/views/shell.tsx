@@ -30,7 +30,7 @@ export function HomeTop() {
 				node,
 				() => node.classList.remove("is-entering"),
 				MotionEngine.time("dur-reveal"),
-				MotionEngine.curve("ease-reveal"),
+				{ easing: MotionEngine.curve("ease-reveal") },
 			);
 		} else {
 			node.classList.remove("is-entering");

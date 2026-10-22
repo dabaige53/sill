@@ -15,7 +15,9 @@ import SwiftUI
 
   private(set) var layers: [Layer] = []
   /// Drawn visibility of the whole overlay; the overlay stays mounted until its exit finishes.
-  private(set) var shown = false
+  private(set) var shown = false {
+    didSet { if shown != oldValue { onShown(shown) } }
+  }
   private(set) var returning = false
   private(set) var travelling = false
   private(set) var matchedCard: String?
@@ -42,6 +44,8 @@ import SwiftUI
   /// Where focus returns after the overlay closes.
   @ObservationIgnored var origin: String?
   @ObservationIgnored var onClosed: (String?) -> Void = { _ in }
+  /// The desktop bars step aside while a card is shown and return as it starts to close (`Chrome.yield`).
+  @ObservationIgnored var onShown: (Bool) -> Void = { _ in }
 
   init(workspace: Workspace) { self.workspace = workspace }
 
@@ -151,7 +155,7 @@ import SwiftUI
       return
     }
     withAnimation(
-      matching ? Motion.cardReturn : Motion.close, completionCriteria: .removed
+      matching ? Motion.card : Motion.close, completionCriteria: .removed
     ) {
       shown = false
     } completion: { [weak self] in

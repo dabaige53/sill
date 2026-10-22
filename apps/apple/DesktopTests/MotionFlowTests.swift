@@ -6,17 +6,32 @@ import Testing
 @testable import SillKit
 
 @MainActor struct MotionFlowTests {
-  @Test func completedReadingClosesWithoutASeparateRebound() async throws {
+  @Test func completedReadingShowsTheCheckAndClosesOnReleaseWithoutARebound() {
     let scroll = ReaderScroll()
-    var closed = false
-    scroll.close = { closed = true }
+    var closed = 0
+    scroll.close = { closed += 1 }
     scroll.motion.finish = AppleMetrics.gestureFinishDistance
     scroll.commitFinish()
     #expect(scroll.motion.confirmed)
-    #expect(!closed)
-    try await Task.sleep(for: .seconds(AppleMetrics.gestureFinishHold + 0.6))
+    #expect(closed == 0, "the check waits for the hand to let go")
+    scroll.releaseFinish()
+    #expect(closed == 1)
+    scroll.releaseFinish()
+    #expect(closed == 1, "a second release does not close again")
     #expect(abs(scroll.motion.finish - CGFloat(AppleMetrics.gestureFinishDistance)) < 0.001)
-    #expect(scroll.motion.confirmed)
+    scroll.disconnect()
+  }
+
+  @Test func releaseBeforeTheWriteConfirmsClosesOnConfirmation() {
+    let scroll = ReaderScroll()
+    var callback: ((Bool) -> Void)?
+    var closed = false
+    scroll.finished = { callback = $0 }
+    scroll.close = { closed = true }
+    scroll.commitFinish()
+    scroll.releaseFinish()
+    #expect(!closed)
+    callback?(true)
     #expect(closed)
     scroll.disconnect()
   }
@@ -154,12 +169,6 @@ import Testing
     #expect(CardFlightSurface.detailOpacity(0.6) > halfway)
   }
 
-  @Test func cardReturnEndsOnTimeWithoutASpringTail() {
-    // The live card takes over when the curve ends; a spring would settle long after it looks done.
-    #expect(AppleMetrics.motionCardReturn == 0.32)
-    #expect(AppleMetrics.cardReturnX1 == 0.4 && AppleMetrics.cardReturnY2 == 1)
-  }
-
   @Test func refreshFailureRetryAndSuccess() async throws {
     let refresh = FeedRefresh()
     refresh.request = { $0(false) }
@@ -190,5 +199,21 @@ import Testing
     // Cards still partly under the bar are not at the top, so a pull scrolls instead of refreshing.
     view.contentView.scroll(to: NSPoint(x: 0, y: -60))
     #expect(scroll.offset == 40)
+  }
+
+  @Test func openCardTucksTheBarsOnlyBelowTheFeedTop() {
+    let chrome = Chrome()
+    let scroll = FeedScroll(chrome: chrome)
+    scroll.scrolled(offset: 0, visible: 600, content: 2000)
+    chrome.yield(to: true)
+    #expect(!chrome.yielding, "at the top the bars stay")
+    chrome.yield(to: false)
+    scroll.scrolled(offset: 300, visible: 600, content: 2000)
+    chrome.hide()
+    chrome.yield(to: true)
+    #expect(chrome.yielding)
+    chrome.yield(to: false)
+    #expect(!chrome.yielding)
+    #expect(!chrome.tucked, "closing brings back bars that reading had tucked")
   }
 }

@@ -4,26 +4,41 @@ import SillKit
 import SwiftUI
 
 /// Whether the tools are tucked away. The top bar owns its sliding reveal; the other tools keep their own motion.
-/// Changes only when the answer flips, never per scroll frame.
+/// Changes only when the answer flips, never per scroll frame. Only the bars read these values, so
+/// a flip redraws the bars and not the workspace around them.
 @MainActor @Observable final class Chrome {
   private(set) var tucked = false
-  /// The feed rests at its top; an open card leaves the bars in place there.
-  private(set) var atTop = true
+  /// The bars step aside for an open card.
+  private(set) var yielding = false
+  /// The feed rests at its top; an open card leaves the bars in place there. Not observed: it
+  /// changes while scrolling and only matters when a card opens.
+  @ObservationIgnored private(set) var atTop = true
   /// Search focus, an open menu or a drag keep the chrome visible.
   @ObservationIgnored var pinned = false {
     didSet { if pinned { show() } }
   }
 
-  /// Bars coming back on their own use the slower reveal; alongside a closing card they keep pace
-  /// with it. Keyboard-driven changes are instant.
-  func show(withCard: Bool = false) {
+  /// Bars coming back on their own use the slower reveal. Keyboard-driven changes are instant.
+  func show() {
     guard tucked else { return }
-    let animation =
-      withCard ? Motion.ease(AppleMetrics.motionDetailOpen) : Motion.reveal
-    withAnimation(Motion.keyboardDriven ? nil : animation) { tucked = false }
+    withAnimation(Motion.keyboardDriven ? nil : Motion.reveal) { tucked = false }
   }
-  func rest(atTop value: Bool) {
-    if atTop != value { atTop = value }
+  func rest(atTop value: Bool) { atTop = value }
+  /// A card opening below the feed top takes the desktop; as it starts to close the bars come back
+  /// with it on the card spring, even if reading the feed had tucked them. The bars animate this
+  /// change themselves.
+  func yield(to card: Bool) {
+    if card {
+      if !atTop, !yielding { yielding = true }
+    } else if yielding {
+      yielding = false
+      tucked = false
+    } else if tucked {
+      // Nothing keyed changes for the bars, so this transaction carries the closing pace.
+      withAnimation(Motion.keyboardDriven ? nil : Motion.card) {
+        tucked = false
+      }
+    }
   }
   func hide() {
     guard !pinned, !tucked else { return }
@@ -180,6 +195,27 @@ struct ScrollProbe: NSViewRepresentable {
       if let observer { NotificationCenter.default.removeObserver(observer) }
       observer = nil
     }
+  }
+}
+
+/// The AI box and selection bar follow the chrome: scrolling animates through `Chrome`, an open
+/// card through this modifier. A carried pile keeps them in view.
+struct RailTuck: ViewModifier {
+  let carrying: Bool
+  @Environment(Chrome.self) private var chrome
+  func body(content: Content) -> some View {
+    content
+      .modifier(
+        Tuck(
+          tucked: (chrome.tucked || chrome.yielding) && !carrying,
+          travel: AppleMetrics.motionRailTravel)
+      )
+      .animation(
+        Motion.keyboardDriven
+          ? nil
+          : chrome.yielding ? Motion.ease(AppleMetrics.motionRailHide) : Motion.card,
+        value: chrome.yielding
+      )
   }
 }
 

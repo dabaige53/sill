@@ -205,5 +205,6 @@
 - [桌面搜索框伸缩、AI 框拖入反馈与底部轨道玻璃统一](adr/0059-mac-search-ai-dock-rail-glass.md)
 - [卡片与详情按 12 类专用重建，来源改用单色品牌圆标](adr/0060-card-rebuild-by-type-and-source-marks.md)
 - [视频与播客在 Sill 内播放，新增 PR 卡片类型](adr/0061-in-app-media-playback-and-pr-cards.md)
+- [卡片收回改用弹簧，读完确认后松手即关闭](adr/0062-card-close-spring-and-read-end-release.md)
 
 - [2026-10-21 测试整理](records/2026-10-21-test-cleanup/README.md)：旧测试删除依据、恢复标签和运行入口分工。

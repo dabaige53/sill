@@ -195,6 +195,7 @@ export const appSurfacesMethods = {
 				: "";
 			this.sheetLeaving = true;
 			this.dialog.inert = true;
+			// The bars come back with the card, from its first frame and on the same spring.
 			if (CARD_KINDS.includes(this.modalKind)) this.railHide?.show(true);
 			MotionEngine.dim(
 				this.dialog,
@@ -219,7 +220,8 @@ export const appSurfacesMethods = {
 					duration: MotionEngine.phoneSheet(this.dialog)
 						? MotionEngine.time("dur-sheet")
 						: MotionEngine.time("dur-close"),
-					...(destination ? tokens.motion.cardReturn : {}),
+					// The detail returns to its card with the same spring that opened it.
+					...(destination ? { spring: "card" } : {}),
 					fill: "forwards",
 				},
 			);

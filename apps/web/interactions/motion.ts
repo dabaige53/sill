@@ -143,12 +143,22 @@ const MotionEngine: Record<string, any> = {
 		this.loops.set(el, animation);
 	},
 	/** Capture before changing CSS state, then let Motion bridge only visual properties. */
-	change(el: HTMLElement, update: () => void, duration = this.time("base"), easing?: string) {
+	change(
+		el: HTMLElement,
+		update: () => void,
+		duration = this.time("base"),
+		timing: { easing?: string; spring?: "card" } = {},
+	) {
 		const before = getComputedStyle(el);
 		const from = { opacity: before.opacity, transform: before.transform };
 		this.cancel(el);
 		update();
-		if (!easing && el.id === "home-top" && matchMedia("(min-width: 651px)").matches) {
+		if (
+			!timing.easing &&
+			!timing.spring &&
+			el.id === "home-top" &&
+			matchMedia("(min-width: 651px)").matches
+		) {
 			duration = this.time(el.classList.contains("is-tucked") ? "dur-tuck" : "dur-open");
 		}
 		const after = getComputedStyle(el);
@@ -168,7 +178,7 @@ const MotionEngine: Record<string, any> = {
 		const animation = this.animate(
 			el,
 			[from, to].map((frame) => Object.fromEntries(keys.map((key) => [key, frame[key]]))),
-			{ duration, ...(easing ? { easing } : {}) },
+			{ duration, ...timing },
 		);
 		const finish = () => {
 			if (this.contentAnimations.get(el) === animation) el.style.visibility = "";

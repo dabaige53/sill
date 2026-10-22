@@ -50,6 +50,8 @@ import SwiftUI
   private var samples: [(TimeInterval, CGFloat)] = []
   private var distance: CGFloat = 0
   private var committed = false
+  /// The input that reached the finish distance has let go; the layer closes once confirmed.
+  private var finishReleased = false
   private var rest: Task<Void, Never>?
   private var toolsRest: Task<Void, Never>?
   private var last: CGFloat = 0
@@ -57,7 +59,6 @@ import SwiftUI
   private var up: CGFloat = 0
   private var reported = false
   private var dwell: Task<Void, Never>?
-  private var confirmation: Task<Void, Never>?
   private var connected = true
   private var completionGeneration = 0
 
@@ -86,7 +87,6 @@ import SwiftUI
   func disconnect() {
     connected = false
     completionGeneration += 1
-    confirmation?.cancel()
     dwell?.cancel()
     rest?.cancel()
     toolsRest?.cancel()
@@ -165,8 +165,17 @@ import SwiftUI
       view.bounds.contains(view.convert(event.locationInWindow, from: nil))
     else { return false }
     motion.surfaceWidth = view.bounds.width
-    if committed { return true }
     let phase = WheelPhase(event)
+    if committed {
+      // The check waits for the hand: lifting off the trackpad (end or momentum) closes the layer;
+      // a mouse wheel lets go when its clicks stop.
+      switch phase {
+      case .ended, .cancelled, .momentum: releaseFinish()
+      case .discrete: restThenReleaseFinish()
+      default: break
+      }
+      return true
+    }
     if phase == .momentum { return edgeName != nil }
     if phase == .ended || phase == .cancelled {
       let owned = edgeName != nil
@@ -199,11 +208,29 @@ import SwiftUI
     if phase == .discrete {
       rest = Task { [weak self] in
         try? await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest))
-        guard !Task.isCancelled else { return }
-        self?.release(cancelled: false)
+        guard !Task.isCancelled, let self else { return }
+        if self.committed { self.releaseFinish() } else { self.release(cancelled: false) }
       }
     }
     return true
+  }
+
+  private func restThenReleaseFinish() {
+    rest?.cancel()
+    rest = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest))
+      guard !Task.isCancelled else { return }
+      self?.releaseFinish()
+    }
+  }
+
+  /// The hand let go after the finish distance: close now, or as soon as the write confirms.
+  func releaseFinish() {
+    guard committed, !finishReleased else { return }
+    finishReleased = true
+    rest?.cancel()
+    // Close from the current displaced content; a separate rebound breaks the return path.
+    if motion.confirmed { close() }
   }
 
   private func follow(_ edge: Edge) {
@@ -256,6 +283,7 @@ import SwiftUI
   func commitFinish() {
     guard !committed else { return }
     committed = true
+    finishReleased = false
     completionGeneration += 1
     let generation = completionGeneration
     rest?.cancel()
@@ -269,15 +297,9 @@ import SwiftUI
         withAnimation(Motion.spring()) { self.motion.finish = 0 }
         return
       }
-      // A blue disc with a white check, then the layer leaves.
+      // A blue disc with a white check; the layer leaves once the hand lets go.
       self.motion.confirmed = true
-      self.confirmation = Task { [weak self] in
-        do { try await Task.sleep(for: .seconds(AppleMetrics.gestureFinishHold)) } catch { return }
-        guard let self, self.connected, self.completionGeneration == generation else { return }
-        guard self.inputAllowed() else { return }
-        // Close from the current displaced content; a separate rebound breaks the return path.
-        self.close()
-      }
+      if self.finishReleased { self.close() }
     }
   }
 
@@ -289,7 +311,6 @@ import SwiftUI
 
   func cancelGesture() {
     completionGeneration += 1
-    confirmation?.cancel()
     committed = false
     release(cancelled: true)
     reset()

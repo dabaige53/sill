@@ -123,7 +123,7 @@ test("read-end success badge disappears even when navigation changes before clos
 		f.fire(target, "touchend", 120, 300);
 		assert.equal(f.dialog.querySelectorAll(".push-ring.is-done").length, 1);
 		f.app.modalToken++;
-		f.flush();
+		f.flush(f.frames);
 		assert.equal(f.dialog.querySelector(".push-ring"), null);
 		assert.equal(f.app.closed, 0);
 	} finally {
@@ -495,7 +495,7 @@ test("read-end touch progress coalesces frames and commits once before release",
 		assert.equal(f.frames.size, 1);
 		assert.equal(Boolean(f.Store.item("article").read), false);
 		f.fire(target, "touchmove", 120, 300);
-		assert.equal(f.frames.size, 0);
+		assert.equal(f.frames.size, 0, "the check waits for the hand to let go");
 		assert.equal(f.Store.item("article").read, true);
 		assert.equal(f.dialog.querySelectorAll(".push-ring.is-done").length, 1);
 		assert.equal(refreshes, 0, "feed rendering waits until confirmation has been visible");
@@ -626,7 +626,7 @@ test("desktop completed reading keeps tools hidden through the close handoff", (
 				assert.equal(bar.style.visibility, "hidden");
 				assert.equal(
 					f.scroll.style.translate,
-					"0 -42px",
+					"0 -72px",
 					"completion closes from its current position without rebounding",
 				);
 				closed = true;
@@ -641,6 +641,10 @@ test("desktop completed reading keeps tools hidden through the close handoff", (
 			assert.equal(f.w.getComputedStyle(bar).visibility, "hidden");
 			bar.style.opacity = "0";
 			f.flush();
+			f.flush(f.frames);
+			f.flush(f.frames);
+			assert.equal(closed, false, "the check waits for the hand to let go");
+			f.fire(target, "touchend", 120, 300);
 			f.flush(f.frames);
 			f.flush(f.frames);
 			assert.equal(closed, true);

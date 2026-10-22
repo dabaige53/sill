@@ -71,18 +71,8 @@ struct DesktopView: View {
         }
         .animation(Motion.menuOpen, value: selection.active)
         .padding(.horizontal, AppleMetrics.railEdge)
-        .modifier(
-          Tuck(
-            tucked: (chrome.tucked || (reader.shown && !chrome.atTop)) && !carrying,
-            travel: AppleMetrics.motionRailTravel)
-        )
         // An open card owns the desktop: the AI box steps aside with the top bar.
-        .animation(
-          Motion.keyboardDriven
-            ? nil
-            : Motion.ease(reader.shown ? AppleMetrics.motionRailHide : AppleMetrics.motionRailShow),
-          value: reader.shown
-        )
+        .modifier(RailTuck(carrying: carrying))
         .frame(maxHeight: .infinity, alignment: .bottom)
         .padding(.bottom, AppleMetrics.railEdge)
         // The pile shrinks away when it is let go, onto the AI box or anywhere else.
@@ -122,6 +112,8 @@ struct DesktopView: View {
       reader.viewport = CGRect(origin: .zero, size: $0)
     }
     .environment(\.cardIntents, cardIntents)
+    // The feed, the card's transition face and the detail all list the same related cards.
+    .environment(\.relatedCards, { [workspace] id in workspace.model(id) })
     .environment(\.readerIntents, readerIntents)
     .onAppear { connect() }
     .onDisappear {
@@ -172,10 +164,6 @@ struct DesktopView: View {
         menu.close()
         shell.menu.close()
       }
-    }
-    // Closing a card brings the bars back even if reading the feed had tucked them.
-    .onChange(of: reader.shown) { _, shown in
-      if !shown { chrome.show(withCard: true) }
     }
     .onChange(of: panels.kind) { _, kind in
       if kind != nil {
@@ -350,6 +338,7 @@ struct DesktopView: View {
   }
 
   private func connect() {
+    reader.onShown = { [chrome] shown in chrome.yield(to: shown) }
     if scroll == nil {
       let next = FeedScroll(chrome: chrome)
       next.nearEnd = { [weak feed] in feed?.loadMore() }

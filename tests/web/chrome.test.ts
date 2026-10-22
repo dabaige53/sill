@@ -60,7 +60,7 @@ function fixture() {
 	};
 }
 
-test("desktop bars coming back on their own use the slower reveal; alongside a card they keep pace", () => {
+test("desktop bars coming back on their own use the slower reveal; with a closing card they share its spring", () => {
 	const f = fixture();
 	try {
 		const bar = f.w.document.getElementById("bar");
@@ -85,11 +85,10 @@ test("desktop bars coming back on their own use the slower reveal; alongside a c
 		animations.length = 0;
 		hide.show(true);
 		assert.equal(
-			animations.at(-1)?.options.duration,
-			320,
-			"a closing card keeps the quicker entrance",
+			animations.at(-1)?.options.stiffness,
+			274,
+			"a closing card brings the bars back on its own card spring",
 		);
-		assert.notDeepEqual([...animations.at(-1).options.ease], [0.5, 1, 0.89, 1]);
 		hide.destroy();
 	} finally {
 		f.hide.destroy();

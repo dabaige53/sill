@@ -431,12 +431,13 @@ test("an open card below the feed top tucks the desktop top bar and AI box until
 		const calls: string[] = [];
 		app.railHide = {
 			hide: (force: boolean) => calls.push(`hide:${force}`),
-			show: () => calls.push("show"),
+			show: (withCard: boolean) => calls.push(withCard ? "show" : "show:alone"),
 			atTop: () => atTop,
 			syncPosition() {},
 		};
 		let atTop = true;
 		app.desktop = () => true;
+		app.modalToken = 1;
 		app.closeMore = () => {};
 		app.dialog.showModal = () => app.dialog.setAttribute("open", "");
 		app.dialog.close = () => app.dialog.removeAttribute("open");
@@ -457,7 +458,7 @@ test("an open card below the feed top tucks the desktop top bar and AI box until
 		w.__motionAnimations = [];
 		app.closeNative();
 		assert.equal(app.dialog.open, true, "the card is still leaving");
-		assert.deepEqual(calls, ["hide:true", "show"], "the bars return as the close begins");
+		assert.deepEqual(calls, ["hide:true", "show"], "the bars return with the card's first frame");
 	} finally {
 		f.dom.window.close();
 	}

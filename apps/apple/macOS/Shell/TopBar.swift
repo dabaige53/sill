@@ -11,10 +11,8 @@ struct TopBar: View {
   let menu: ScopeMenuState
   let scrollToTop: () -> Void
   @Environment(Workspace.self) private var workspace
-  @Environment(Chrome.self) private var chrome
   @Environment(Panels.self) private var panels
   @Environment(Feed.self) private var feed
-  @Environment(Reader.self) private var reader
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -45,7 +43,7 @@ struct TopBar: View {
     }
     .coordinateSpace(.named(TopBarSpace.name))
     // An open card owns the desktop: the bar steps aside until it closes, except at the top.
-    .modifier(TopBarReveal(tucked: chrome.tucked, card: reader.shown && !chrome.atTop))
+    .modifier(TopBarReveal())
   }
 
   /// Icon, Sill, ⌄, search and avatar on one 64-high line.
@@ -94,12 +92,12 @@ struct TopBar: View {
 /// One transition owns the controls and material, including the first mounted frame.
 /// Scrolling takes its animation from `Chrome`; an open card and the first entrance set their own.
 private struct TopBarReveal: ViewModifier {
-  let tucked: Bool
-  let card: Bool
+  @Environment(Chrome.self) private var chrome
   @State private var entered = false
 
   func body(content: Content) -> some View {
-    let hidden = !entered || tucked || card
+    let card = chrome.yielding
+    let hidden = !entered || chrome.tucked || card
     let travel = AppleMetrics.topBarInset / 2 + AppleMetrics.space64 + AppleMetrics.space12
     content
       .offset(y: hidden ? -travel : 0)
@@ -109,7 +107,7 @@ private struct TopBarReveal: ViewModifier {
       .animation(
         Motion.keyboardDriven
           ? nil
-          : Motion.ease(card ? AppleMetrics.motionRailHide : AppleMetrics.motionDetailOpen),
+          : card ? Motion.ease(AppleMetrics.motionRailHide) : Motion.card,
         value: card
       )
       .animation(Motion.keyboardDriven ? nil : Motion.reveal, value: entered)

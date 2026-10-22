@@ -103,12 +103,13 @@ struct PreviewSheet: View {
             ReaderToolbar(card: card, state: state, actions: tools)
               .modifier(ReaderToolsTuck(motion: scroll.motion))
               .padding(.bottom, AppleMetrics.previewBarBottom)
+              .modifier(DetailReveal(tools: true))
           }
-          // Web `.push-ring`: 24 above the bottom edge, where the toolbar was.
+          // Web `.push-ring`: 24 above the bottom edge, where the toolbar was. The check returns
+          // with the surface and its spring instead of fading out ahead of it.
           FinishRing(motion: scroll.motion)
             .padding(.bottom, AppleMetrics.space24)
         }
-        .modifier(DetailReveal(tools: true))
       }
       // Close, fullscreen and the toolbar belong to the surface that grows out of the card.
       .modifier(CardGeometryDestination(id: card.id, target: target, ready: contentHeight > 0))

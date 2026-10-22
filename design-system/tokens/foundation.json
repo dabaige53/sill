@@ -182,7 +182,6 @@
 		"compactReaderWidth": 560,
 		"motionDetailOpen": 0.28,
 		"motionDetailClose": 0.22,
-		"motionCardReturn": 0.32,
 		"cardBlendStart": 0.2,
 		"cardBlendEnd": 0.75,
 		"readerBottomFadeHeight": 44,
@@ -191,10 +190,6 @@
 		"motionCardHandoffFade": 0.1,
 		"motionCardContentReturnDelay": 0.08,
 		"motionCardContentReturnFade": 0.14,
-		"cardReturnX1": 0.4,
-		"cardReturnY1": 0,
-		"cardReturnX2": 0.2,
-		"cardReturnY2": 1,
 		"motionDetailContentDelay": 0.1,
 		"motionDetailFade": 0.12,
 		"motionRailHide": 0.24,
@@ -327,8 +322,7 @@
 		"gestureVelocityWindow": 0.1,
 		"gestureWheelRest": 0.12,
 		"gestureFinishDistance": 120,
-		"gestureFinishHold": 0.46,
-		"gestureFinishTravel": 0.35,
+		"gestureFinishTravel": 0.6,
 		"gestureFinishReveal": 30,
 		"gestureEdgeLimit": 14,
 		"gestureRefreshDistance": 48,
@@ -1052,7 +1046,7 @@
 		"detailFade": 120,
 		"cardContentReturn": { "delay": 80, "duration": 140, "easing": "linear" },
 		"cardHandoff": { "delay": 220, "duration": 100, "easing": "linear" },
-		"cardReturn": { "duration": 320, "easing": "cubic-bezier(0.4,0,0.2,1)" },
+		"cardReturn": { "duration": 320 },
 		"cardSpring": { "mass": 1, "stiffness": 274, "damping": 30 },
 		"spring": {
 			"mass": 1,
@@ -1062,6 +1056,7 @@
 		"pressScale": 0.97,
 		"menuScale": 0.95,
 		"detailTravel": 10,
-		"toastTravel": 8
+		"toastTravel": 8,
+		"finishTravel": 0.6
 	}
 }

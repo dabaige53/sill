@@ -70,21 +70,7 @@ export function carryCapsule(
 	};
 	draw(0);
 	const unsubscribe = progress.on("change", draw);
-	const control = animate(
-		progress,
-		1,
-		opening
-			? { type: spring, ...tokens.motion.cardSpring }
-			: {
-					duration: tokens.motion.cardReturn.duration / 1000,
-					ease: tokens.motion.cardReturn.easing.match(/[\d.]+/g)!.map(Number) as [
-						number,
-						number,
-						number,
-						number,
-					],
-				},
-	);
+	const control = animate(progress, 1, { type: spring, ...tokens.motion.cardSpring });
 	const finished = control.finished.then(() => {
 		if (!active) return;
 		unsubscribe();

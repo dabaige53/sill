@@ -86,7 +86,6 @@ struct FeedView: View {
       if mousePull == true { scroll.refresh.release(cancelled: true) }
       mousePull = nil
     }
-    .environment(\.relatedCards, { [workspace] id in workspace.model(id) })
   }
 
   /// Browsing only, after the last page, and only with something on the shelf.

@@ -55,14 +55,15 @@ struct ReaderPage: View {
       .modifier(DetailReveal(tools: true))
       VStack(spacing: AppleMetrics.space12) {
         Spacer(minLength: 0)
+        // The check returns with the surface and its spring instead of fading out ahead of it.
         FinishRing(motion: scroll.motion)
         if !tools.isEmpty {
           ReaderToolbar(card: card, state: state, actions: tools)
             .modifier(ReaderToolsTuck(motion: scroll.motion))
+            .modifier(DetailReveal(tools: true))
         }
       }
       .padding(.bottom, AppleMetrics.readerBarBottom)
-      .modifier(DetailReveal(tools: true))
     }
     // The page and its tools grow out of the card as one surface.
     .modifier(CardGeometryDestination(id: card.id, target: target))

@@ -28,6 +28,7 @@ import SwiftUI
       damping: AppleMetrics.springDamping, initialVelocity: velocity)
   }
 
+  /// The card spring: a card opens into its detail and returns to the feed with it.
   static var card: Animation {
     .interpolatingSpring(
       mass: AppleMetrics.cardSpringMass, stiffness: AppleMetrics.cardSpringStiffness,
@@ -36,14 +37,6 @@ import SwiftUI
 
   static var cardHandoff: Animation {
     .linear(duration: AppleMetrics.motionCardHandoffFade).delay(AppleMetrics.motionCardHandoffDelay)
-  }
-
-  /// Web `motion.cardReturn`: a fixed curve that ends exactly, so the live card takes over on time.
-  static var cardReturn: Animation {
-    .timingCurve(
-      AppleMetrics.cardReturnX1, AppleMetrics.cardReturnY1,
-      AppleMetrics.cardReturnX2, AppleMetrics.cardReturnY2,
-      duration: AppleMetrics.motionCardReturn)
   }
 
   static var press: Animation { ease(AppleMetrics.motionPress) }

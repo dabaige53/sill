@@ -128,7 +128,7 @@ class ChromeAutoHide {
 			);
 		}
 	}
-	/** `withCard`: the bars return alongside a closing card and keep the quicker entrance. */
+	/** `withCard`: the bars return with a closing card, on the same card spring and from its first frame. */
 	show(withCard = false) {
 		clearTimeout(this.timer);
 		this.timer = 0;
@@ -142,7 +142,7 @@ class ChromeAutoHide {
 				t as HTMLElement,
 				() => t.classList.remove("is-tucked"),
 				reveal ? MotionEngine.time("dur-reveal") : MotionEngine.time("dur-show"),
-				reveal ? MotionEngine.curve("ease-reveal") : undefined,
+				withCard ? { spring: "card" } : reveal ? { easing: MotionEngine.curve("ease-reveal") } : {},
 			);
 		}
 	}
