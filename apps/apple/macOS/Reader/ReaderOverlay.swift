@@ -7,23 +7,35 @@ struct ReaderOverlay: View {
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
   @Environment(Panels.self) private var panels
+  @State private var scrolls = LayerScrolls()
 
   var body: some View {
     if reader.presented {
       GeometryReader { proxy in
+        let count = reader.layers.count
         ZStack {
+          // One dim for the whole stack: it stays put while a stacked layer enters or leaves.
+          if let top = reader.top {
+            ReaderBackdrop(motion: scrolls[top.id].motion, full: top.full) { reader.close() }
+              .opacity(reader.shown ? 1 : 0)
+              .zIndex(-1)
+          }
+          // A related card stacks over the open one; the cards below stay drawn, and only the top
+          // one takes clicks and the wheel. Leaving it reveals the one below as it was.
           ForEach(Array(reader.layers.enumerated()), id: \.element.id) { index, layer in
-            if index == reader.layers.count - 1 {
-              LayerView(
-                layer: layer, below: index > 0 ? reader.layers[index - 1] : nil, size: proxy.size
-              )
-              .transition(
-                .asymmetric(
-                  insertion: .opacity.combined(with: .offset(y: AppleMetrics.motionDetailEnterY)),
-                  removal: .opacity.combined(with: .offset(y: AppleMetrics.motionDetailExitY)))
-              )
-              .zIndex(Double(index))
-            }
+            let top = index == count - 1
+            LayerView(
+              layer: layer, below: index > 0 ? reader.layers[index - 1] : nil, size: proxy.size,
+              scroll: scrolls[layer.id]
+            )
+            .allowsHitTesting(top)
+            .accessibilityHidden(!top)
+            .transition(
+              .asymmetric(
+                insertion: .opacity.combined(with: .offset(y: AppleMetrics.motionDetailEnterY)),
+                removal: .opacity.combined(with: .offset(y: AppleMetrics.motionDetailExitY)))
+            )
+            .zIndex(Double(index))
           }
         }
         .opacity(reader.matching || reader.shown ? 1 : 0)
@@ -33,6 +45,7 @@ struct ReaderOverlay: View {
         } action: {
           if reader.overlayOrigin != $0 { reader.overlayOrigin = $0 }
         }
+        .onChange(of: reader.layers.map(\.id)) { _, mounted in scrolls.keep(mounted) }
       }
       .ignoresSafeArea()
       // A leaving overlay is only a picture: clicks reach the feed at once, so the next card opens
@@ -51,30 +64,44 @@ struct ReaderOverlay: View {
   }
 }
 
+/// Each mounted layer's scroll, kept outside the layer so the shared dim can follow the top one.
+@MainActor private final class LayerScrolls {
+  private var scrolls: [UUID: ReaderScroll] = [:]
+
+  subscript(id: UUID) -> ReaderScroll {
+    if let scroll = scrolls[id] { return scroll }
+    let scroll = ReaderScroll()
+    scrolls[id] = scroll
+    return scroll
+  }
+
+  func keep(_ ids: [UUID]) { scrolls = scrolls.filter { ids.contains($0.key) } }
+}
+
 /// One layer: the preview sheet, or the fullscreen page.
 private struct LayerView: View {
   let layer: Reader.Layer
   let below: Reader.Layer?
   let size: CGSize
+  let scroll: ReaderScroll
   @Environment(Workspace.self) private var workspace
   @Environment(Reader.self) private var reader
 
   @Environment(DesktopInteraction.self) private var interaction
-  @State private var scroll = ReaderScroll()
 
   var body: some View {
-    ZStack {
-      ReaderBackdrop(motion: scroll.motion, full: layer.full) { reader.close() }
-        .opacity(reader.shown ? 1 : 0)
-      content
-    }
-    .onAppear {
-      scroll.inputAllowed = { [interaction] in interaction.canScrollReader }
-    }
-    .onChange(of: interaction.layer) { _, layer in
-      if layer != .reader { scroll.cancelGesture() }
-    }
-    .onDisappear { scroll.disconnect() }
+    content
+      .onAppear {
+        // Only the top layer reads the wheel; the cards below it stay still.
+        let id = layer.id
+        scroll.inputAllowed = { [interaction, weak reader] in
+          interaction.canScrollReader && reader?.top?.id == id
+        }
+      }
+      .onChange(of: interaction.layer) { _, layer in
+        if layer != .reader { scroll.cancelGesture() }
+      }
+      .onDisappear { scroll.disconnect() }
   }
 
   @ViewBuilder private var content: some View {

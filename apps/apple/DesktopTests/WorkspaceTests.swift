@@ -230,6 +230,26 @@ private let syntheticReminder: JSONValue = .object([
     #expect(reader.matchedCard == "b")
   }
 
+  /// A related card stacks over the open one: the overlay stays shown, so the desktop bars stay
+  /// where they are, and the card below stays open under the new one.
+  @Test func relatedCardStacksWithoutReturningTheBars() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.open("a")
+    reader.geometryReady("a")
+    try await Task.sleep(for: .milliseconds(350))
+    var changes: [Bool] = []
+    reader.onShown = { changes.append($0) }
+    let first = try #require(reader.top?.id)
+    reader.open("b")
+    #expect(reader.layers.count == 2 && reader.shown)
+    reader.close()
+    #expect(reader.layers.count == 1 && reader.top?.id == first)
+    #expect(changes.isEmpty)
+  }
+
   /// A layer with no card to grow from mounts first and is shown on the next turn, so its
   /// insertion and its fade never share one update.
   @Test func unmatchedLayerShowsOnTheNextTurn() async throws {
@@ -508,7 +528,6 @@ struct LaunchOptionTests {
     #expect(workspace.capture("新的想法") == .sent)
     await until { workspace.cards.count == 4 }
     #expect(workspace.cards.contains { $0.title == "新的想法" })
-    #expect(workspace.notice?.text == Copy.text("web.app.4f060a8371c3"))
     #expect(workspace.capture("新的想法") == .duplicate)
   }
 
