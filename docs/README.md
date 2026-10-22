@@ -7,6 +7,7 @@
 - [Agent 驱动与 MCP 连接](product/agent-mcp.md)
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
+- [界面对账表](product/ui-alignment.md)：Web 桌面、手机 Web 与 Mac 每项界面行为的当前状态、刻意差异与实测情况。
 - [Sill 交互规范](product/interaction-spec.md)
 - [Sill · 窗台 — 产品需求文档](product/requirements.md)
 

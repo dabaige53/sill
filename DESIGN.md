@@ -1,6 +1,6 @@
 # Sill 的设计约束
 
-更新：2026-10-21。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
+更新：2026-10-22。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
 
 ## 依据
 
@@ -79,7 +79,7 @@
 
 ## Web 与 macOS 一致
 
-修改任一端界面或审查跨端一致性时，按 [跨端对齐检查清单](docs/guides/cross-platform-checklist.md) 选择相关项并记录各端证据。
+修改任一端界面或审查跨端一致性时，按 [跨端对齐检查清单](docs/guides/cross-platform-checklist.md) 选择相关项并记录各端证据，并在同一提交更新 [界面对账表](docs/product/ui-alignment.md)。
 
 macOS 的视觉与动效以 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。不使用原生控件样式、SF Symbols 或单层阴影。浮动操作区在 macOS 26 及以上使用原生 Liquid Glass：顶部搜索与账户、AI 栏、阅读工具、预览按钮、多选栏、刷新圆环、新内容提示和 Toast；内容与设置保留实底。
 

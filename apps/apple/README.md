@@ -1,12 +1,12 @@
 # Sill Apple
 
-更新：2026-10-20。
+更新：2026-10-22。
 
 一个 Swift Package。`SillKit` 提供卡片校验、本地存储与云端客户端；`macOS/` 是 Mac 应用 `Sill`；`iOS/` 只有共享数据层。
 
 ## macOS 应用
 
-2026-10-20 重建。旧界面层的完整代码保存在提交 `c81bb44`，只作参考：`git show c81bb44:apps/apple/macOS/<文件名>`。旧版的问题与对齐记录见 [macOS 对齐记录](../../docs/records/2026-10-20-macos-web-alignment/README.md)。
+2026-10-20 重建。旧界面层的完整代码保存在提交 `c81bb44`，只作参考：`git show c81bb44:apps/apple/macOS/<文件名>`。旧版的问题与对齐记录见 [macOS 对齐记录](../../docs/records/2026-10-20-macos-web-alignment/README.md)；Mac 与 Web 的当前对齐状态见 [界面对账表](../../docs/product/ui-alignment.md)。
 
 视觉与动效只以 Web 实现和设计手册（motion.md、interaction.md、web-interaction.md）为准；DESIGN.md 中的 macOS 规则不再适用。
 
