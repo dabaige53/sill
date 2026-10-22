@@ -286,6 +286,22 @@ div.nw:has(>.utabs){width:100%}
 .pcard .spd{width:auto;margin-left:4px}
 .fsh{font-size:13px;font-weight:600;color:var(--muted);margin:4px 0 8px}
 .fsr .fsh+.chaps{margin-bottom:24px}
+/* dark */
+.dark{--canvas:#111113;--card:#1c1c1f;--ink:#f2f2f4;--muted:#a1a1a8;--secondary:#a1a1a8;--surface:#26262a;--line:rgba(255,255,255,.07);--line-card:rgba(255,255,255,.08);--line-hover:rgba(255,255,255,.16);--accent:#4c9bff;--accent-soft:#16283f;--alert:#f0a04b;--success:#3fb25e;--note:#d1d1d6;--shadow:0 1px 2px rgba(0,0,0,.3);--shadow-glass:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.36);--shadow-sheet:0 30px 90px rgba(0,0,0,.6);color:var(--ink)}
+.dark .pill,.dark .abig,.dark .bigplay{background:#0066cc;color:#fff}
+.dark .disc{background:#2c2c31;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.dark .toolbar,.dark .fsg{background:rgba(40,40,46,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),var(--shadow-glass)}
+.dark .tb,.dark .fsg span{color:var(--ink)}
+.dark .tb.own{color:var(--accent)}
+.dark .sep{background:rgba(255,255,255,.16)}
+.dark .av{background:#3a3a40;color:#e5e5ea}
+.dark .rv .av,.dark .people .av{box-shadow:0 0 0 2px var(--card)}
+.dark .rvb{box-shadow:0 0 0 2px var(--card)}
+.dark .fade{background:linear-gradient(rgba(28,28,31,0),#1c1c1f 62%)}
+.dark .playg{background:rgba(40,40,46,.82);color:#fff}
+.dark .miniplay{background:var(--ink);color:var(--card)}
+.dark .scrub .vtrack,.dark .pscrub .vtrack{background:rgba(255,255,255,.14)}
+.dark .chk .dot,.dark .dot{box-shadow:inset 0 0 0 1.6px var(--line-hover)}
 /* lightbox */
 .lightbox{width:760px;height:620px;background:#000;border-radius:18px;position:relative;overflow:hidden;color:#fff;display:flex;flex-direction:column}
 .lbtop{display:flex;justify-content:space-between;align-items:center;padding:16px 18px}
@@ -303,12 +319,14 @@ div.nw:has(>.utabs){width:100%}
 .toolbar.dark{background:rgba(40,40,44,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .toolbar.dark .tb{color:#fff}
 
+.board{width:1600px}
+
 </style>
 </helmet>
 <div class="board">
 <header>
 <h1>13 类卡片与详情 · 卡面与桌面详情</h1>
-<p>见 ADR 0060、0061。每类单独设计，不设共用版式；左列为信息流卡面（标准密度 340），中列为桌面详情，右列为字段与变化。示例内容为虚构。手机 390、全屏阅读页与深色在下一轮。</p>
+<p>见 ADR 0060、0061。每类单独设计，不设共用版式；左列为信息流卡面（标准密度 340），中列为桌面详情，右列为字段与变化。示例内容为虚构。手机见 CardTypeMobile，全屏阅读页与深色见 CardTypeReading。</p>
 </header>
 <div class="intro">
 <div class="panel"><h3>规则</h3><ul>
