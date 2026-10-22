@@ -205,7 +205,7 @@ try {
 			id: "test-" + i,
 			type: "note",
 			title: "测试笔记 " + (i + 1),
-			body: ["隔离验收数据，不是真实账号内容。"],
+			body: "隔离验收数据，不是真实账号内容。",
 			state: { read: false },
 			revision: 1,
 			updated_at: new Date().toISOString(),

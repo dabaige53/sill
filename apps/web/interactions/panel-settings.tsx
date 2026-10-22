@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { CardActions } from "../../../contracts/card-actions.ts";
+import { markdownText } from "../atoms/markdown.ts";
 import { eventRelative, eventTimely, timeString } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import type { Preferences } from "../data/store.ts";
@@ -308,7 +309,7 @@ export const panelSettings = {
 			.map((id) => Store.card(id))
 			.filter(Boolean);
 		const context = cards.map((card) => {
-			const excerpt = (card.summary || (card.body || []).join(" ") || "").slice(0, 180);
+			const excerpt = (card.summary || markdownText(card.body || "")).slice(0, 180);
 			return (
 				<>
 					<article key={card.id} className={"ai-context-card"} data-ai-context={card.id}>

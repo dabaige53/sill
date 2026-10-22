@@ -19,7 +19,7 @@ const article: Card = {
 	sources: [{ kind: "readwise", name: "Reader" }],
 	authors: [{ name: "Writer" }],
 	publisher: { name: "Publisher" },
-	body: ["Body"],
+	body: "Body",
 	bodyCoverage: "full",
 	readingEstimate: { seconds: 360, origin: "provided", scope: "full" },
 	tags: ["Tag"],
@@ -115,7 +115,7 @@ test("specialized mail and file views retain estimates; podcasts retain personal
 			id: "estimated-mail",
 			type: "mail",
 			title: "Mail",
-			body: ["Body"],
+			body: "Body",
 			readingEstimate: { seconds: 360, origin: "provided" as const, scope: "full" as const },
 		},
 		{
@@ -137,7 +137,7 @@ test("specialized mail and file views retain estimates; podcasts retain personal
 		type: "media",
 		media: "podcast",
 		title: "Podcast",
-		body: [],
+		body: "",
 	};
 	Store.state.items[podcast.id] = { note: "Personal podcast note" };
 	const doc = new JSDOM(Panels.preview({}, podcast)).window.document;
@@ -193,7 +193,7 @@ test("podcast duration stays unknown when absent and never derives playback from
 			type: "media",
 			media: "podcast",
 			title: "Podcast",
-			body: ["Actual podcast notes"],
+			body: "Actual podcast notes",
 			...(seconds === undefined ? {} : { duration: seconds }),
 		});
 		Store.state.items[card.id] = { progress: 0.75, note: "Personal note" };

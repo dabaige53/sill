@@ -16,7 +16,7 @@ for (const [index, seed] of cards.entries()) {
 			...seed,
 			title: text,
 			tags: [text],
-			body: [text],
+			body: text,
 			summary: text,
 			why: { reason: "Synthetic reason", basis: ["Keep evidence"] },
 		};
@@ -47,14 +47,14 @@ test("quote and repeated summaries stay out of the preview lead; suggestions lin
 		id: "preview-text",
 		type: "article",
 		title: "Synthetic",
-		body: ["Repeated"],
+		body: "Repeated",
 		summary: "Repeated",
 	};
 	const related = {
 		id: "preview-related",
 		type: "note",
 		title: "<img src=x> & reference",
-		body: ["Reference"],
+		body: "Reference",
 	};
 	Store.state.cards.push(related);
 	for (const card of [

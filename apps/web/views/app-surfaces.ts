@@ -110,7 +110,7 @@ export const appSurfacesMethods = {
 		if (
 			card &&
 			["task", "reminder", "note"].includes(card.type) &&
-			(card.body || []).join("\n").length < 500 &&
+			(card.body || "").length < 500 &&
 			(card.summary || "").length < 280
 		)
 			this.dialog.classList.add("is-short");

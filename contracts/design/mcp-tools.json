@@ -66,6 +66,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -283,12 +284,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -316,15 +314,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -766,6 +755,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -983,12 +973,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -1016,15 +1003,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -1243,6 +1221,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -1460,12 +1439,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -1493,15 +1469,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -1741,6 +1708,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -1958,12 +1926,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -1991,15 +1956,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -2665,6 +2621,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -2882,12 +2839,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -2915,15 +2869,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -3236,6 +3181,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -3453,12 +3399,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -3486,15 +3429,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -3838,6 +3772,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -4055,12 +3990,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -4088,15 +4020,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -4441,6 +4364,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -4658,12 +4582,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -4691,15 +4611,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -5035,6 +4946,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -5252,12 +5164,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -5285,15 +5193,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -5920,6 +5819,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -6137,12 +6037,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -6170,15 +6067,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -6620,6 +6508,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -6837,12 +6726,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -6870,15 +6756,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -7097,6 +6974,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -7314,12 +7192,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -7347,15 +7222,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -7595,6 +7461,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -7812,12 +7679,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -7845,15 +7709,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -8519,6 +8374,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -8736,12 +8592,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -8769,15 +8622,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -9090,6 +8934,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -9307,12 +9152,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -9340,15 +9182,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -9692,6 +9525,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -9909,12 +9743,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -9942,15 +9773,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -10295,6 +10117,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -10512,12 +10335,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -10545,15 +10364,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -10889,6 +10699,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -11106,12 +10917,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -11139,15 +10946,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -11758,6 +11556,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -11975,12 +11774,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -12008,15 +11804,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -12346,6 +12133,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -12563,12 +12351,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -12596,15 +12381,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -13046,6 +12822,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -13263,12 +13040,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -13296,15 +13070,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -13523,6 +13288,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -13740,12 +13506,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -13773,15 +13536,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -14021,6 +13775,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -14238,12 +13993,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -14271,15 +14023,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -14945,6 +14688,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -15162,12 +14906,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -15195,15 +14936,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -15516,6 +15248,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -15733,12 +15466,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -15766,15 +15496,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -16118,6 +15839,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -16335,12 +16057,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -16368,15 +16087,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -16721,6 +16431,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -16938,12 +16649,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -16971,15 +16678,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -17315,6 +17013,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -17532,12 +17231,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -17565,15 +17260,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -18196,6 +17882,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -18413,12 +18100,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -18446,15 +18130,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -18814,6 +18489,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -19031,12 +18707,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -19064,15 +18737,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -19514,6 +19178,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -19731,12 +19396,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -19764,15 +19426,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -19991,6 +19644,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -20208,12 +19862,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -20241,15 +19892,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -20489,6 +20131,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -20706,12 +20349,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -20739,15 +20379,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -21413,6 +21044,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -21630,12 +21262,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -21663,15 +21292,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -21984,6 +21604,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -22201,12 +21822,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -22234,15 +21852,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -22586,6 +22195,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -22803,12 +22413,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -22836,15 +22443,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -23189,6 +22787,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -23406,12 +23005,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -23439,15 +23034,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -23783,6 +23369,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -24000,12 +23587,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -24033,15 +23616,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -24689,6 +24263,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -24906,12 +24481,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -24939,15 +24511,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -25389,6 +24952,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -25606,12 +25170,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -25639,15 +25200,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -25866,6 +25418,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -26083,12 +25636,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -26116,15 +25666,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -26364,6 +25905,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -26581,12 +26123,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -26614,15 +26153,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -27288,6 +26818,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -27505,12 +27036,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -27538,15 +27066,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -27859,6 +27378,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -28076,12 +27596,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -28109,15 +27626,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -28461,6 +27969,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -28678,12 +28187,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -28711,15 +28217,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -29064,6 +28561,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -29281,12 +28779,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -29314,15 +28808,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -29658,6 +29143,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -29875,12 +29361,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -29908,15 +29390,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -30581,6 +30054,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -30798,12 +30272,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -30831,15 +30302,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -31281,6 +30743,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -31498,12 +30961,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -31531,15 +30991,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -31758,6 +31209,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -31975,12 +31427,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -32008,15 +31457,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -32256,6 +31696,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -32473,12 +31914,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -32506,15 +31944,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -33180,6 +32609,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -33397,12 +32827,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -33430,15 +32857,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -33751,6 +33169,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -33968,12 +33387,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -34001,15 +33417,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -34353,6 +33760,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -34570,12 +33978,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -34603,15 +34008,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -34956,6 +34352,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -35173,12 +34570,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -35206,15 +34599,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -35550,6 +34934,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -35767,12 +35152,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -35800,15 +35181,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -36435,6 +35807,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -36652,12 +36025,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -36685,15 +36055,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -37135,6 +36496,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -37352,12 +36714,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -37385,15 +36744,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -37612,6 +36962,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -37829,12 +37180,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -37862,15 +37210,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -38110,6 +37449,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -38327,12 +37667,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -38360,15 +37697,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -39034,6 +38362,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -39251,12 +38580,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -39284,15 +38610,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -39605,6 +38922,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -39822,12 +39140,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -39855,15 +39170,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -40207,6 +39513,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -40424,12 +39731,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -40457,15 +39761,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -40810,6 +40105,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -41027,12 +40323,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -41060,15 +40352,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -41404,6 +40687,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -41621,12 +40905,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -41654,15 +40934,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -42282,6 +41553,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -42499,12 +41771,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -42532,15 +41801,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -42982,6 +42242,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -43199,12 +42460,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -43232,15 +42490,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -43459,6 +42708,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -43676,12 +42926,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -43709,15 +42956,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -43957,6 +43195,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -44174,12 +43413,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -44207,15 +43443,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -44881,6 +44108,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -45098,12 +44326,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -45131,15 +44356,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -45452,6 +44668,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -45669,12 +44886,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -45702,15 +44916,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -46054,6 +45259,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -46271,12 +45477,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -46304,15 +45507,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -46657,6 +45851,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -46874,12 +46069,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -46907,15 +46098,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -47251,6 +46433,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -47468,12 +46651,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -47501,15 +46680,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {
@@ -48129,6 +47299,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -48346,12 +47517,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -48379,15 +47547,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -48606,6 +47765,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -48823,12 +47983,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -48856,15 +48013,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -49104,6 +48252,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -49321,12 +48470,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -49354,15 +48500,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -50036,6 +49173,7 @@
                           "maxLength": 1000
                         },
                         "summary": {
+                          "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                           "type": "string",
                           "maxLength": 10000
                         },
@@ -50253,12 +49391,9 @@
                           }
                         },
                         "body": {
-                          "maxItems": 100,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "maxLength": 50000
-                          }
+                          "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                          "type": "string",
+                          "maxLength": 500000
                         },
                         "url": {
                           "type": "string",
@@ -50286,15 +49421,6 @@
                               "kind"
                             ],
                             "additionalProperties": {}
-                          }
-                        },
-                        "points": {
-                          "maxItems": 3,
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200
                           }
                         },
                         "why": {
@@ -50736,6 +49862,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -50953,12 +50080,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -50986,15 +50110,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -51213,6 +50328,7 @@
                                   "maxLength": 1000
                                 },
                                 "summary": {
+                                  "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                                   "type": "string",
                                   "maxLength": 10000
                                 },
@@ -51430,12 +50546,9 @@
                                   }
                                 },
                                 "body": {
-                                  "maxItems": 100,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "maxLength": 50000
-                                  }
+                                  "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                                  "type": "string",
+                                  "maxLength": 500000
                                 },
                                 "url": {
                                   "type": "string",
@@ -51463,15 +50576,6 @@
                                       "kind"
                                     ],
                                     "additionalProperties": {}
-                                  }
-                                },
-                                "points": {
-                                  "maxItems": 3,
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 200
                                   }
                                 },
                                 "why": {
@@ -51711,6 +50815,7 @@
                               "maxLength": 1000
                             },
                             "summary": {
+                              "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                               "type": "string",
                               "maxLength": 10000
                             },
@@ -51928,12 +51033,9 @@
                               }
                             },
                             "body": {
-                              "maxItems": 100,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "maxLength": 50000
-                              }
+                              "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                              "type": "string",
+                              "maxLength": 500000
                             },
                             "url": {
                               "type": "string",
@@ -51961,15 +51063,6 @@
                                   "kind"
                                 ],
                                 "additionalProperties": {}
-                              }
-                            },
-                            "points": {
-                              "maxItems": 3,
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200
                               }
                             },
                             "why": {
@@ -52635,6 +51728,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -52852,12 +51946,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -52885,15 +51976,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -53206,6 +52288,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -53423,12 +52506,9 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -53456,15 +52536,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -53808,6 +52879,7 @@
                     "maxLength": 1000
                   },
                   "summary": {
+                    "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                     "type": "string",
                     "maxLength": 10000
                   },
@@ -54025,12 +53097,9 @@
                     }
                   },
                   "body": {
-                    "maxItems": 100,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 50000
-                    }
+                    "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+                    "type": "string",
+                    "maxLength": 500000
                   },
                   "url": {
                     "type": "string",
@@ -54058,15 +53127,6 @@
                         "kind"
                       ],
                       "additionalProperties": {}
-                    }
-                  },
-                  "points": {
-                    "maxItems": 3,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
                     }
                   },
                   "why": {
@@ -54411,6 +53471,7 @@
                 "maxLength": 1000
               },
               "summary": {
+                "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                 "type": "string",
                 "maxLength": 10000
               },
@@ -54628,12 +53689,8 @@
                 }
               },
               "body": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "maxLength": 50000
-                }
+                "type": "string",
+                "maxLength": 500000
               },
               "url": {
                 "type": "string",
@@ -54661,15 +53718,6 @@
                     "kind"
                   ],
                   "additionalProperties": {}
-                }
-              },
-              "points": {
-                "maxItems": 3,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 200
                 }
               },
               "why": {
@@ -55005,6 +54053,7 @@
                       "maxLength": 1000
                     },
                     "summary": {
+                      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
                       "type": "string",
                       "maxLength": 10000
                     },
@@ -55222,12 +54271,8 @@
                       }
                     },
                     "body": {
-                      "maxItems": 100,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 50000
-                      }
+                      "type": "string",
+                      "maxLength": 500000
                     },
                     "url": {
                       "type": "string",
@@ -55255,15 +54300,6 @@
                           "kind"
                         ],
                         "additionalProperties": {}
-                      }
-                    },
-                    "points": {
-                      "maxItems": 3,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 200
                       }
                     },
                     "why": {

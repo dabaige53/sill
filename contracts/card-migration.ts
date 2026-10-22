@@ -27,5 +27,20 @@ export function normalizeCard(input: Card): Card {
 	if (sources.length || card.sources) card.sources = sources;
 	delete card.source;
 	delete card.kind;
+	const legacy = card as Card & { body?: unknown; points?: unknown };
+	const paragraphs = Array.isArray(legacy.body)
+		? legacy.body.filter((part) => typeof part === "string" && part.trim()).join("\n\n")
+		: legacy.body;
+	const points = Array.isArray(legacy.points)
+		? legacy.points.map((point, index) => `${index + 1}. ${point}`).join("\n")
+		: "";
+	if (Array.isArray(legacy.body) || points) {
+		const body = [points, paragraphs]
+			.filter((part) => typeof part === "string" && part.trim())
+			.join("\n\n");
+		if (body) card.body = body;
+		else delete card.body;
+	}
+	delete legacy.points;
 	return card;
 }

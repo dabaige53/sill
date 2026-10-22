@@ -113,8 +113,11 @@ struct CardModel: Identifiable, Equatable, Sendable {
     kind = CardKind(type: value._type)
     title = value.title
     summary = value.summary ?? ""
-    body = value.body ?? []
-    points = value.points ?? []
+    // ADR 0063: the Markdown body shows as plain paragraphs until macOS adds a Markdown renderer.
+    body = (value.body ?? "").components(separatedBy: "\n\n").filter {
+      !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    points = []
     sources = (value.sources ?? []).map { Source(name: $0.name, kind: $0.kind) }
     sourceName = sources.map(\.name).joined(separator: " · ")
     sourceKind = sources.first?.kind ?? "local"

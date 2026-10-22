@@ -14,7 +14,7 @@ const card: Record<string, any> = {
 	id: "test-note",
 	type: "note",
 	title: "本地卡片",
-	body: ["正文"],
+	body: "正文",
 	url: "https://example.com",
 };
 

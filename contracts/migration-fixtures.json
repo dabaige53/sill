@@ -279,7 +279,7 @@
 						}
 					}
 				],
-				"body": ["First\n\nstill first", "", "Last"],
+				"body": "First\n\nstill first\n\nLast",
 				"future": {
 					"nested": {
 						"preserve": [null, false, "synthetic"]
@@ -311,6 +311,22 @@
 						"kind": "agent"
 					}
 				]
+			}
+		},
+		{
+			"name": "legacy-body-array-and-points-become-markdown",
+			"input": {
+				"id": "legacy-body",
+				"type": "digest",
+				"title": "Synthetic legacy digest",
+				"points": ["A", "B"],
+				"body": ["First paragraph", "Second paragraph"]
+			},
+			"expected": {
+				"id": "legacy-body",
+				"type": "digest",
+				"title": "Synthetic legacy digest",
+				"body": "1. A\n2. B\n\nFirst paragraph\n\nSecond paragraph"
 			}
 		}
 	]

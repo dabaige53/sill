@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { icon } from "../atoms/icons.ts";
+import { markdownBlocks } from "../atoms/markdown.ts";
 import {
 	avatar,
 	avatars,
@@ -66,11 +67,6 @@ const CardTemplates: Record<string, any> = {
 	},
 	// @design card-summary
 	summary(c?: any, short: any = false) {
-		if (c.points?.length)
-			return `${c.summary ? `<p class="card-summary clamp-2">${esc(c.summary)}</p>` : ""}<ol class="key-points">${c.points
-				.slice(0, 3)
-				.map((p?: any, i?: any) => `<li><i class="num">${i + 1}</i><span>${esc(p)}</span></li>`)
-				.join("")}</ol>`;
 		return c.summary
 			? `<p class="card-summary ${c.type === "article" || c.type === "mail" ? "reading-summary" : short ? "clamp-2" : ""}">${esc(c.summary)}</p>`
 			: "";
@@ -147,7 +143,7 @@ const CardTemplates: Record<string, any> = {
 	digest(c?: any, ctx?: any) {
 		const preview = {
 			...c,
-			summary: c.summary || (c.points?.length ? "" : c.body?.[0] || ""),
+			summary: c.summary || markdownBlocks(c.body || "")[0] || "",
 		};
 		return `<div class="card-body">${this.head(c, ctx, this.sourceLine(c))}${this.title(c, ctx)}${this.summary(preview)}</div>`;
 	},

@@ -1,6 +1,6 @@
 # 跨端数据约定
 
-更新：2026-10-20。现行约定为 3.0.0；产品版本独立管理。字段升级不兼容旧 `meta`，不自动迁移存量数据。
+更新：2026-10-22。现行约定为 4.0.0；产品版本独立管理。字段升级不兼容旧 `meta`。4.0.0 起详情文字只有一个 Markdown `body`（[ADR 0063](../docs/adr/0063-markdown-body.md)）；旧的 `body` 数组和 `points` 只在读取副本时转换，不改写存量数据。
 
 - `card.ts`：已实现的本地卡片结构和旧来源字段的纯内存转换；保留未知字段、未知卡片类型，不修改原输入。
 - `local.ts`：已实现的本地状态和批量操作。
@@ -24,6 +24,8 @@ JSON Schema 不能表达日程起止顺序、待办 ID 唯一等规则。业务�
 | authors | 最多 20 个 {name, url?}；作者不是来源 | 文章、笔记、邮件、媒体、摘要、建议、文件 |
 | publisher | {name, url?}；原文发布方 | 同 authors |
 | publishedAt / modifiedAt / savedAt | 日期 YYYY-MM-DD 或带时区的 ISO 时间；依次为原文发布、原文修改、外部保存，非 Sill 系统时间 | 所有类型 |
+| summary | 最多 10000 字纯文本；卡面摘要，只用于信息流卡面和搜索结果，详情不显示 | 所有类型 |
+| body | 最多 500000 字的 Markdown（CommonMark）字符串；详情里唯一的文字内容，要点写成列表；原始 HTML 按文字显示，图片不加载，链接只接受 http、https、mailto | 所有类型 |
 | bodyCoverage | full / excerpt / summary / none；正文覆盖程度 | 文章、笔记、邮件、摘要、建议、文件 |
 | readingEstimate | {seconds, origin, scope, method?}；seconds 为 1–31536000 整数，origin 为 provided / calculated，scope 为 full / available；计算时 method 必填 | 同 bodyCoverage |
 | section | 最多 100 字栏目名，不替代标签或备注 | 文章 |

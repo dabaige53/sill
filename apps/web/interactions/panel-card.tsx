@@ -1,6 +1,7 @@
-import { type ReactElement, type ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
+import { DetailText } from "../cards/markdown.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import {
@@ -15,12 +16,7 @@ import { CardTypes, SourceKinds } from "../data/cards.ts";
 import type { CardItem } from "../data/store.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
-import {
-	type PanelRenderers,
-	type PreviewApp,
-	type PreviewCard,
-	type ToolbarAction,
-} from "./panel-contract.ts";
+import type { PanelRenderers, PreviewApp, PreviewCard, ToolbarAction } from "./panel-contract.ts";
 import {
 	agentAction,
 	button,
@@ -296,11 +292,7 @@ export const panelCard = {
 				</div>
 			</>
 		) : (
-			c.body.map((p) => (
-				<>
-					<p>{p}</p>
-				</>
-			))
+			<DetailText body={c.body} summary={c.summary} />
 		);
 		return (
 			<>

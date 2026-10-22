@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { cardIssues } from "./card-rules.ts";
 
-export const contractVersion = "3.0.0";
+export const contractVersion = "4.0.0";
 export const cardTypes = [
 	"article",
 	"mail",
@@ -63,7 +63,13 @@ export const Card = z
 		id,
 		type: z.string().min(1).max(100),
 		title: z.string().min(1).max(1000),
-		summary: z.string().max(10000).optional(),
+		summary: z
+			.string()
+			.max(10000)
+			.optional()
+			.describe(
+				"Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
+			),
 		authors: z
 			.array(namedParty)
 			.max(20)
@@ -123,10 +129,15 @@ export const Card = z
 		form: z.enum(["standard", "image", "quote", "compact", "data"]).optional(),
 		image: image.optional(),
 		tags: strings.optional(),
-		body: z.array(z.string().max(50000)).max(100).optional(),
+		body: z
+			.string()
+			.max(500000)
+			.optional()
+			.describe(
+				"Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+			),
 		url: httpUrl.optional(),
 		sources: z.array(SourceReference).max(11).optional(),
-		points: z.array(z.string().min(1).max(200)).max(3).optional(),
 		why: z
 			.object({
 				reason: z.string().min(1).max(300),

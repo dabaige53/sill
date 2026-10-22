@@ -8,6 +8,7 @@ import {
 	reminderClock,
 	timeString,
 } from "../atoms/primitives.ts";
+import { DetailText } from "../cards/markdown.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import { cardDate, cardReadingTime, cardSource, fileDescription } from "../data/card-source.ts";
@@ -61,7 +62,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 	const tags = this.tags(c);
 	const closeButton = button("x", copy("web.preview.close"), "close");
 	const expand =
-		c.body?.length &&
+		c.body?.trim() &&
 		!standaloneDisplay() &&
 		!["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
 			? button("expand", copy("web.preview.fullscreen"), "reader", c.id)
@@ -136,15 +137,7 @@ function mailPreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 							this.meta(c)
 						)}
 						{h1}
-						<div className={"preview-full"}>
-							{keyed(
-								(c.body || [c.summary]).map((p?: any) => (
-									<>
-										<p>{p}</p>
-									</>
-								)),
-							)}
-						</div>
+						<DetailText body={c.body} summary={c.summary} />
 						{c.attachment ? (
 							<>
 								<span className={"ref attachment"}>
@@ -240,23 +233,7 @@ function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCont
 						) : (
 							""
 						)}
-						{keyed(
-							c.body?.length ? (
-								<>
-									<div className={"preview-full"}>
-										{keyed(
-											c.body.map((p?: any) => (
-												<>
-													<p>{p}</p>
-												</>
-											)),
-										)}
-									</div>
-								</>
-							) : (
-								""
-							),
-						)}
+						<DetailText body={c.body} />
 					</>,
 				),
 			)}
@@ -283,15 +260,7 @@ function podcastPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 								{c.duration !== undefined && (
 									<div className="player-times num">{duration(c.duration)}</div>
 								)}
-								{c.summary && <p className="preview-lead">{c.summary}</p>}
-								{c.body?.length ? (
-									<div className="preview-full">
-										{c.body.map((p, index) => (
-											// biome-ignore lint/suspicious/noArrayIndexKey: Paragraphs may repeat; these static text rows have no component state.
-											<p key={index}>{p}</p>
-										))}
-									</div>
-								) : null}
+								<DetailText body={c.body} summary={c.summary} />
 								<p className="empty-description">{copy("web.media.playbackUnavailable")}</p>
 								{personalNote(s.note)}
 								{this.foot(agentAction(app, c))}
@@ -416,7 +385,7 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 				articleContent.call(this, c),
 				"",
 				"",
-				c.body?.length ? <div className="reader-end" id="reader-end" aria-hidden="true" /> : null,
+				c.body?.trim() ? <div className="reader-end" id="reader-end" aria-hidden="true" /> : null,
 			)}
 			{tools}
 		</>
@@ -424,32 +393,6 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 }
 
 export function articleContent(this: PanelRenderers, c: PreviewCard) {
-	const lead =
-		c.summary && c.form !== "quote" && c.summary !== c.body?.[0] ? (
-			<>
-				<p className={"preview-lead"}>{c.summary}</p>
-			</>
-		) : (
-			""
-		);
-	const points = c.points?.length ? (
-		<>
-			<ol className={"key-points"}>
-				{keyed(
-					c.points.map((p?: any, i?: any) => (
-						<>
-							<li>
-								<i className={"num"}>{i + 1}</i>
-								<span>{p}</span>
-							</li>
-						</>
-					)),
-				)}
-			</ol>
-		</>
-	) : (
-		""
-	);
 	const related =
 		c.type === "suggestion" ? (
 			<>
@@ -478,21 +421,6 @@ export function articleContent(this: PanelRenderers, c: PreviewCard) {
 		) : (
 			""
 		);
-	const full = c.body?.length ? (
-		<>
-			<div className={"preview-full"}>
-				{keyed(
-					c.body.map((p?: any) => (
-						<>
-							<p>{p}</p>
-						</>
-					)),
-				)}
-			</div>
-		</>
-	) : (
-		""
-	);
 	const cover = c.image ? (
 		<>
 			<div className={"preview-cover"}>
@@ -514,10 +442,8 @@ export function articleContent(this: PanelRenderers, c: PreviewCard) {
 				<div className="player-times num">{duration(c.duration)}</div>
 			) : null}
 			{cover}
-			{lead}
-			{points}
 			{related}
-			{full}
+			<DetailText body={c.body} summary={c.summary} />
 		</>
 	);
 }

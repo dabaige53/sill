@@ -207,6 +207,10 @@
 	margin: 0;
 	color: var(--ink);
 }
+.reader-body .preview-full li {
+	font-size: 18px;
+	line-height: 1.9;
+}
 .reader-body .reader-cover {
 	width: 100%;
 	border-radius: 18px;
@@ -252,7 +256,7 @@
 	margin-bottom: var(--space-24);
 	border-radius: var(--cover-radius);
 }
-:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points li) {
+:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .preview-full li, .key-points li) {
 	font-size: var(--text-article-body);
 	font-weight: 400;
 	line-height: 25px;

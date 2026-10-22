@@ -98,15 +98,12 @@ public enum CardValidator {
       guard let method = estimate["method"]?.string,
         !method.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
         card["bodyCoverage"]?.string != nil, card["bodyCoverage"]?.string != "none",
-        (card["body"]?.strings ?? []).contains(where: {
-          !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        }), estimate["scope"]?.string != "full" || card["bodyCoverage"]?.string == "full"
+        !(card["body"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        estimate["scope"]?.string != "full" || card["bodyCoverage"]?.string == "full"
       else { throw CardValidationError("card.readingEstimate") }
     }
     if card["bodyCoverage"]?.string == "none",
-      (card["body"]?.strings ?? []).contains(where: {
-        !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      })
+      !(card["body"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     {
       throw CardValidationError("card.bodyCoverage")
     }

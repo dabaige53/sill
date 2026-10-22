@@ -127,7 +127,7 @@
 						"kind": "local"
 					}
 				],
-				"points": ["A"]
+				"body": "1. A"
 			}
 		},
 		{
@@ -223,7 +223,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -258,7 +258,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": null,
 				"section": "Technology"
@@ -398,12 +398,12 @@
 			}
 		},
 		{
-			"name": "too-many-points",
+			"name": "legacy-body-array",
 			"card": {
 				"id": "invalid",
 				"type": "note",
 				"title": "Synthetic",
-				"points": ["A", "B", "C", "D"]
+				"body": ["A"]
 			}
 		},
 		{
@@ -430,7 +430,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -466,7 +466,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": "6 min",
 				"section": "Technology"
@@ -496,7 +496,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 0,
@@ -530,7 +530,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 60,
@@ -564,7 +564,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "excerpt",
 				"readingEstimate": {
 					"seconds": 360,
@@ -599,7 +599,7 @@
 				"publishedAt": "2026-02-30",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -634,7 +634,7 @@
 				"publishedAt": "2026-10-01T12:00:00",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -669,7 +669,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "full",
 				"readingEstimate": {
 					"seconds": 360,
@@ -705,7 +705,7 @@
 				"publishedAt": "2026-10-01",
 				"modifiedAt": "2026-10-02T12:00:00+08:00",
 				"savedAt": "2026-10-03",
-				"body": ["Body"],
+				"body": "Body",
 				"bodyCoverage": "none",
 				"readingEstimate": {
 					"seconds": 360,

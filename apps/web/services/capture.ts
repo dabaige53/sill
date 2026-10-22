@@ -41,7 +41,7 @@ const Capture: Record<string, any> = {
 				sources: [{ name: host, kind: "web" }],
 				url,
 				tags: [],
-				body: rest ? [rest] : [],
+				body: rest,
 				time: Date.now(),
 			};
 		}
@@ -54,10 +54,7 @@ const Capture: Record<string, any> = {
 			summary: this.clip(value, 300),
 			sources: [{ name: copy("web.cards.e727b8cc2df0"), kind: "capture" }],
 			tags: [],
-			body: value
-				.split(/\n{2,}/)
-				.map((p?: any) => p.slice(0, 50000))
-				.slice(0, 100),
+			body: value.slice(0, 500000),
 			time: Date.now(),
 		};
 	},
@@ -75,10 +72,7 @@ const Capture: Record<string, any> = {
 			const twin = c.url
 				? byUrl.get(c.url)
 				: [...byTitle.values()].find(
-						(old?: any) =>
-							!old.url &&
-							old.title === c.title &&
-							JSON.stringify(old.body || []) === JSON.stringify(c.body || []),
+						(old?: any) => !old.url && old.title === c.title && (old.body || "") === (c.body || ""),
 					);
 			if (twin) {
 				merged.push([twin, c]);

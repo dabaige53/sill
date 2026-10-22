@@ -1,4 +1,6 @@
-import React, { type ReactNode } from "react";
+import type React from "react";
+import type { ReactNode } from "react";
+import { markdownBlocks } from "../atoms/markdown.ts";
 import {
 	dateLabel,
 	duration,
@@ -119,22 +121,7 @@ function Title({ card: c, ctx, className = "" }: BlockProps & { className?: stri
 }
 // @design card-summary
 function Summary({ card: c, short = false }: { card: Card; short?: boolean }) {
-	return c.points?.length ? (
-		<>
-			{c.summary && <p className="card-summary clamp-2">{c.summary}</p>}
-			<ol className="key-points">
-				{c.points.slice(0, 3).map((p: string, i: number) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Points may repeat; these numbered text rows have no component state.
-					<li key={i}>
-						<i className="num">{i + 1}</i>
-						<span>{p}</span>
-					</li>
-				))}
-			</ol>
-		</>
-	) : c.summary ? (
-		<p className={`card-summary ${short ? "clamp-2" : ""}`}>{c.summary}</p>
-	) : null;
+	return c.summary ? <p className={`card-summary ${short ? "clamp-2" : ""}`}>{c.summary}</p> : null;
 }
 function Cover({ card: c, children }: { card: Card; children?: ReactNode }) {
 	return (
@@ -449,7 +436,7 @@ function Digest({ card: c, ctx }: BlockProps) {
 		<div className="card-body">
 			<Head card={c} text={sourceLine(c)} />
 			<Title card={c} ctx={ctx} />
-			<Summary card={{ ...c, summary: c.summary || (c.points?.length ? "" : c.body?.[0] || "") }} />
+			<Summary card={{ ...c, summary: c.summary || markdownBlocks(c.body || "")[0] || "" }} />
 		</div>
 	);
 }
