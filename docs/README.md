@@ -208,3 +208,4 @@
 - [卡片收回改用弹簧，读完确认后松手即关闭](adr/0062-card-close-spring-and-read-end-release.md)
 
 - [2026-10-21 测试整理](records/2026-10-21-test-cleanup/README.md)：旧测试删除依据、恢复标签和运行入口分工。
+- [2026-10-22 卡片重建与 Markdown 正文暂停](records/2026-10-22-card-rebuild-pending/README.md)：暂停时已完成与未完成的事项、待用户决定的问题。
