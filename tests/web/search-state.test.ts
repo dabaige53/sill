@@ -1,5 +1,6 @@
 /** Independent navigation projections over one synthetic card store. */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
@@ -161,6 +162,36 @@ test("Escape clears only search selection before a second Escape leaves the sear
 		assert.equal(f.app.dialog.open, false);
 		assert.equal(f.w.location.hash, "#feed");
 		assert.deepEqual([...f.app.homeSelected], ["b"]);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("the home heading stays hidden while a search detail is open", () => {
+	const f = fixture();
+	try {
+		const heading = f.w.document.createElement("header");
+		heading.className = "home-top";
+		f.w.document.body.prepend(heading);
+		const selectors = ["form-controls.css", "phone.css"].map((file) => {
+			const css = readFileSync(`apps/web/styles/${file}`, "utf8");
+			return css.match(/body:has\([^\n]+\) \.home-top(?= \{)/)?.[0];
+		});
+		const hidden = () => {
+			for (const selector of selectors) {
+				assert.ok(selector);
+				assert.ok(heading.matches(selector));
+			}
+		};
+		hidden();
+		f.app.suspendSearch();
+		f.app.dialog.className = "preview";
+		f.app.dialog.showModal();
+		hidden();
+		f.app.restoreSearch();
+		hidden();
+		f.app.dialog.close();
+		for (const selector of selectors) assert.equal(heading.matches(selector), false);
 	} finally {
 		f.dom.window.close();
 	}
@@ -425,6 +456,158 @@ test("repeated close requests on a stacked card only move back one history entry
 		assert.equal(backs, 1);
 		assert.equal(f.app.dialog.open, true);
 		assert.equal(f.app.previewTrail.length, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("open panels keep home menu and search shortcuts from consuming keys", () => {
+	const f = fixture();
+	try {
+		f.w.document.body.insertAdjacentHTML(
+			"beforeend",
+			'<input id="home-search" value="Alpha"><div id="home-menu"></div>',
+		);
+		f.app.desktop = () => true;
+		f.app.homeMenuOpen = true;
+		let actions = 0;
+		f.app.action = () => {
+			actions++;
+		};
+		for (const key of ["Escape", "ArrowDown", "k", "1"]) {
+			let prevented = false;
+			assert.equal(
+				f.app.homeKey({
+					key,
+					metaKey: key === "k" || key === "1",
+					target: f.w.document.getElementById("home-search"),
+					preventDefault() {
+						prevented = true;
+					},
+				}),
+				false,
+			);
+			assert.equal(prevented, false);
+		}
+		assert.equal(actions, 0);
+		assert.equal(f.w.document.getElementById("home-search").value, "Alpha");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+/** Desktop top-bar search: tab token, # conditions and type chips share the home filter. */
+function desktopFixture() {
+	const f = fixture();
+	f.Store.state.cards.push(
+		{
+			id: "m",
+			type: "mail",
+			title: "Alpha mail",
+			body: ["Mail"],
+			tags: ["Work"],
+			time: Date.now(),
+		},
+		{ id: "n", type: "note", title: "Gamma", body: ["Note"], tags: ["Work"], time: Date.now() },
+	);
+	f.Store.state.items = { ...f.Store.state.items, m: { bookmarked: true } };
+	f.w.document.body.insertAdjacentHTML(
+		"beforeend",
+		`<header><div class="home-search" id="home-search-field">
+			<button id="home-search-token" hidden></button>
+			<span id="home-search-marks"></span>
+			<input id="home-search" data-input="home-search">
+			<button class="home-search-clear" hidden></button>
+			<div id="home-hash-slot"></div>
+		</div><div id="home-kinds" hidden></div></header><div id="dock"></div>`,
+	);
+	// The real render path repaints the top bar after every change.
+	delete f.app.updateFilterIndicator;
+	f.app.desktop = () => true;
+	f.app.modalKind = "";
+	f.app.dialog.open = false;
+	f.app.railHide = { syncPosition() {}, show() {} };
+	f.w.scrollTo = () => {};
+	const input = f.w.document.getElementById("home-search");
+	const type = (value: string) => {
+		input.value = value;
+		f.app.input({ target: input });
+	};
+	const key = (name: string) => f.app.homeKey({ key: name, target: input, preventDefault() {} });
+	return { ...f, input, type, key };
+}
+
+test("desktop search: text ending in # lists statuses and tags, and picking one becomes a token", () => {
+	const f = desktopFixture();
+	try {
+		f.input.focus();
+		f.type("Alpha #");
+		const options = [...f.w.document.querySelectorAll("#home-hash .search-hash-option")].map(
+			(n: any) => n.dataset.extra,
+		);
+		assert.deepEqual(options, ["status:unread", "status:saved", "status:later", "tag:Work"]);
+		// The # fragment never filters the text; searching reaches put-away cards too.
+		assert.deepEqual(
+			f.app.filtered().map((c: any) => c.id),
+			["a", "old", "m"],
+		);
+		f.key("ArrowDown");
+		f.key("Enter");
+		assert.equal(f.app.filter.mark, "saved");
+		assert.equal(f.app.filter.query, "Alpha");
+		assert.equal(f.input.value, "Alpha");
+		assert.deepEqual(
+			f.app.filtered().map((c: any) => c.id),
+			["m"],
+		);
+		assert.equal(
+			f.w.document.querySelector("#home-search-marks .is-hash").textContent.startsWith("#"),
+			true,
+		);
+		assert.equal(f.w.document.getElementById("home-hash"), null);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("desktop search: Delete removes the # tag, then the # status, then the tab", () => {
+	const f = desktopFixture();
+	try {
+		f.app.action("home-tab", "", "unread");
+		f.app.filter = { ...f.app.filter, mark: "saved", tag: "Work" };
+		f.type("");
+		f.key("Backspace");
+		assert.equal(f.app.filter.tag, "");
+		assert.equal(f.app.filter.mark, "saved");
+		f.key("Backspace");
+		assert.equal(f.app.filter.mark, "all");
+		assert.equal(f.app.homeTab(), "unread");
+		f.key("Backspace");
+		assert.equal(f.app.homeTab(), "all");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("desktop search: type chips show with text, list only types with results, and leave with the text", () => {
+	const f = desktopFixture();
+	try {
+		const row = f.w.document.getElementById("home-kinds");
+		f.type("");
+		assert.equal(row.hidden, true);
+		f.type("Alpha");
+		assert.equal(row.hidden, false);
+		const chips = () => [...row.querySelectorAll(".chip")].map((n: any) => n.dataset.extra);
+		assert.deepEqual(chips(), ["all", "article", "mail"]);
+		f.app.action("home-kind", "", "mail");
+		assert.deepEqual(
+			f.app.filtered().map((c: any) => c.id),
+			["m"],
+		);
+		assert.deepEqual(chips(), ["all", "article", "mail"]);
+		f.type("");
+		assert.equal(f.app.filter.kind, "all");
+		assert.equal(row.hidden, true);
 	} finally {
 		f.dom.window.close();
 	}

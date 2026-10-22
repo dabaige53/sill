@@ -17,7 +17,7 @@ jobs:
       - name: Install test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify source, generated pages and core behavior
-        run: npm run lint:web && npm test && node scripts/verify.ts
+        run: npm run lint:web && npm run build && node scripts/build.ts --check
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser regressions

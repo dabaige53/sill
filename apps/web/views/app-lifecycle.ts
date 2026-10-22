@@ -52,15 +52,6 @@ export const appLifecycleMethods = {
 		this.themeQuery = matchMedia("(prefers-color-scheme: dark)");
 		this.applyPreferences();
 		this.layout = new FeedLayout(this.grid);
-		const searchField = document.getElementById("home-search-field");
-		if (searchField && typeof ResizeObserver === "function") {
-			let width = searchField.getBoundingClientRect().width;
-			new ResizeObserver(() => {
-				const next = searchField.getBoundingClientRect().width;
-				if (this.desktop()) MotionEngine.searchResize(searchField, width);
-				width = next;
-			}).observe(searchField);
-		}
 		this.pageLimit = 40;
 		this.drag = new DragManager(this);
 		this.gestures = new Gestures(this);
@@ -99,6 +90,28 @@ export const appLifecycleMethods = {
 				this.closeMore();
 			if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing"))
 				this.finishInlineEdit();
+			if (e.target.closest?.("#home-search-field")) this.openHomeSearch(true);
+		});
+		// The search field and the AI box show a text cursor across the capsule, so a press on
+		// its padding puts the caret in the input instead of dropping focus.
+		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
+			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock");
+			if (!capsule) return;
+			// Picking from the # list keeps the caret in the field.
+			if (e.target.closest?.(".home-hash")) {
+				e.preventDefault();
+				return;
+			}
+			if (e.target.closest?.("button, input, .ai-dock-context")) return;
+			const input = capsule.querySelector<HTMLInputElement>("#home-search, #ai-dock-input");
+			if (!input || input.disabled) return;
+			e.preventDefault();
+			input.focus({ preventScroll: true });
+		});
+		document.addEventListener("focusout", (e?: TargetEvent<FocusEvent>) => {
+			const field = document.getElementById("home-search-field");
+			if (field?.contains(e.target) && !field.contains(e.relatedTarget as Node | null))
+				this.openHomeSearch(false);
 		});
 		this.bindDialog();
 		const toast = document.getElementById("toast");
@@ -128,7 +141,10 @@ export const appLifecycleMethods = {
 				this.drag?.active ||
 				this.drag?.menu?.open ||
 				(this.desktop() &&
-					(this.homeMenuOpen || document.activeElement?.matches("#home-search, #ai-dock-input"))),
+					(this.homeMenuOpen ||
+						document.querySelector("#sync-status-panel:popover-open") ||
+						document.activeElement?.matches("#home-search, #ai-dock-input"))),
+			() => this.desktop(),
 		);
 		window.addEventListener("popstate", () => this.route());
 		window.addEventListener("hashchange", () => this.route());

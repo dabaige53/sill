@@ -15,7 +15,7 @@
       "title": "27 品牌 · Sill 窗台",
       "w": 1440,
       "x": 1520,
-      "y": 22770
+      "y": 32504
     },
     "Capture.dc.html": {
       "h": 1340,
@@ -94,7 +94,7 @@
       "h": 1220,
       "title": "17 定稿 · 退出交互",
       "w": 1440,
-      "x": 4960,
+      "x": 9760,
       "y": 16280
     },
     "FinalFeed.dc.html": {
@@ -316,7 +316,7 @@
       "title": "38 定稿 · 保留原版图标",
       "w": 1440,
       "x": 0,
-      "y": 22770
+      "y": 32504
     },
     "NavigationState.dc.html": {
       "h": 3820,
@@ -330,7 +330,7 @@
       "h": 1840,
       "title": "40 定稿 · 照片通用操作",
       "w": 1440,
-      "x": 3440,
+      "x": 8240,
       "y": 16280
     },
     "CardActionExamples.dc.html": {
@@ -358,7 +358,7 @@
     },
     "CardTypeA.dc.html": {
       "h": 2000,
-      "title": "46 定稿 · 卡片 A 字号与四列",
+      "title": "46 定稿 · 卡片 A 字号与列宽",
       "w": 1600,
       "x": 0,
       "y": 13160
@@ -367,7 +367,7 @@
       "h": 4200,
       "title": "47 定稿 · 资讯阅读 B 均衡",
       "w": 1840,
-      "x": 1520,
+      "x": 6320,
       "y": 16280
     },
     "MacChrome.dc.html": {
@@ -446,6 +446,75 @@
       "w": 1440,
       "x": 7600,
       "y": 6060
+    },
+    "Login.dc.html": {
+      "h": 900,
+      "w": 1440,
+      "x": 0,
+      "y": 38144,
+      "title": "桌面登录 · 居中表单",
+      "is_interactive": true
+    },
+    "Authorization.dc.html": {
+      "h": 900,
+      "w": 1440,
+      "x": 1520,
+      "y": 38144,
+      "title": "桌面授权 · 居中标题与权限",
+      "is_interactive": true
+    },
+    "LoginMobile.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 3040,
+      "y": 38144,
+      "title": "手机登录 · 居中布局",
+      "is_interactive": true
+    },
+    "AuthorizationMobile.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 3510,
+      "y": 38144,
+      "title": "手机授权 · 居中布局",
+      "is_interactive": true
+    },
+    "SettingsDesktop.dc.html": {
+      "w": 1440,
+      "h": 1000,
+      "x": 3980,
+      "y": 38144,
+      "title": "桌面设置",
+      "is_interactive": true
+    },
+    "SettingsMobile.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 5500,
+      "y": 38144,
+      "title": "手机设置",
+      "is_interactive": true
+    },
+    "CardTypeDetails.dc.html": {
+      "h": 12685,
+      "title": "38 草稿 · 13 类卡片与详情（卡面与桌面详情）",
+      "w": 1600,
+      "x": 1520,
+      "y": 16280
+    },
+    "CardTypeMobile.dc.html": {
+      "h": 15544,
+      "title": "39 草稿 · 13 类卡片与详情（手机 390）",
+      "w": 1360,
+      "x": 3200,
+      "y": 16280
+    },
+    "CardTypeReading.dc.html": {
+      "h": 7454,
+      "title": "40 草稿 · 全屏阅读页与深色",
+      "w": 1600,
+      "x": 4640,
+      "y": 16280
     }
   },
   "createdOnFiles": {
@@ -489,7 +558,7 @@
     },
     "current4": {
       "kind": "title1",
-      "maxW": 6400,
+      "maxW": 11200,
       "text": "打开 · 详情、资讯阅读、照片与退出",
       "x": 0,
       "y": 16000
@@ -499,7 +568,7 @@
       "maxW": 4480,
       "text": "图标与品牌",
       "x": 0,
-      "y": 22490
+      "y": 32224
     },
     "history1": {
       "kind": "title1",
@@ -540,6 +609,13 @@
       "x": 0,
       "y": 16260,
       "page": "history"
+    },
+    "current6": {
+      "kind": "title1",
+      "maxW": 5890,
+      "text": "账号 · 登录与授权",
+      "x": 0,
+      "y": 37864
     }
   },
   "order": [
@@ -561,11 +637,20 @@
     "Volume.dc.html",
     "ScrollWait.dc.html",
     "CardDetail.dc.html",
+    "CardTypeDetails.dc.html",
+    "CardTypeMobile.dc.html",
+    "CardTypeReading.dc.html",
     "ArticleReading.dc.html",
     "PhotoTools.dc.html",
     "ExitRules.dc.html",
     "IconSet.dc.html",
     "Brand.dc.html",
+    "Login.dc.html",
+    "Authorization.dc.html",
+    "LoginMobile.dc.html",
+    "AuthorizationMobile.dc.html",
+    "SettingsDesktop.dc.html",
+    "SettingsMobile.dc.html",
     "MobileProto.dc.html",
     "MobileHome.dc.html",
     "NavCapsule.dc.html",

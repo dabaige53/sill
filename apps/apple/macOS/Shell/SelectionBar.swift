@@ -18,7 +18,7 @@ struct SelectionBar: View {
   @Environment(Selection.self) private var selection
 
   var body: some View {
-    HStack(spacing: AppleMetrics.space2) {
+    HStack(spacing: AppleMetrics.space4) {
       Text("\(selection.count)")
         .font(.number(AppleMetrics.font13, .semibold))
         .foregroundStyle(AppleColors.fixedWhite)
@@ -33,15 +33,15 @@ struct SelectionBar: View {
       ToolButton(icon: "tag", label: Copy.text("web.app.b5816e5fd0be"), action: intents.tag)
       ToolButton(icon: "chat", label: Copy.text("web.selection.toAI"), action: intents.toAI)
       Rectangle().fill(AppleColors.lineHover)
-        .frame(width: AppleMetrics.lineWidth, height: AppleMetrics.space22)
+        .frame(width: AppleMetrics.lineWidth, height: AppleMetrics.toolbarSeparatorHeight)
         .padding(.horizontal, AppleMetrics.space6)
         .accessibilityHidden(true)
       ToolButton(icon: "x", label: Copy.text("web.app.74966e20df2e"), action: intents.cancel)
     }
-    .padding(AppleMetrics.space4)
-    .frame(maxWidth: AppleMetrics.aiDockWidth)
+    .padding(AppleMetrics.railInset)
+    .fixedSize(horizontal: true, vertical: false)
     .frame(height: AppleMetrics.railRow)
-    .glass(Capsule())
+    .desktopGlass(Capsule())
     .contextMenu {
       Button(Copy.text("web.app.87aeb7040c82"), action: intents.bookmark)
       Button(Copy.text("web.app.d108c0a7e2c3"), action: intents.later)

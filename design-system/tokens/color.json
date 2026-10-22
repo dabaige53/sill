@@ -93,6 +93,21 @@
 				"usage": "功能层玻璃的填充：底栏按钮组与头像、详情和阅读页工具条、阅读页右上按钮组、多选条、Toast、下拉刷新圆环。配 glass-filter、glass-edge、glass-shade、glass-rim 与 shadow-glass；深色 rgba(40,40,46,.42)。只用于功能层。"
 			},
 			{
+				"name": "edge-blur-soft",
+				"value": "blur(4px)",
+				"usage": "桌面顶栏渐进模糊的下沿。"
+			},
+			{
+				"name": "edge-blur-mid",
+				"value": "blur(8px)",
+				"usage": "桌面顶栏渐进模糊的中段。"
+			},
+			{
+				"name": "edge-blur-strong",
+				"value": "blur(16px)",
+				"usage": "桌面顶栏渐进模糊的上沿。"
+			},
+			{
 				"name": "glass-thick",
 				"value": "rgba(255,255,255,.88)",
 				"usage": "字多的玻璃：多选操作菜单、增强对比度时的工具条；深色 rgba(36,36,40,.9)。"

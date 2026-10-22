@@ -62,7 +62,7 @@ export const appCaptureMethods = {
 		this.refreshCard(id);
 		this.layout.schedule(false);
 	},
-	capture(this: AppController, text?: string, toast = true): Card | null {
+	capture(this: AppController, text?: string): Card | null {
 		const card = Capture.capture(text);
 		if (!card) return null;
 		const { fresh } = Capture.dedupe([card]);
@@ -73,11 +73,6 @@ export const appCaptureMethods = {
 		this.withFeedAnchor(() => {
 			Store.insert(fresh);
 		}, true);
-		if (toast)
-			this.toast(copy("web.app.4f060a8371c3"), () => {
-				Store.remove([card.id]);
-				this.withFeedAnchor(() => {}, true);
-			});
 		return card;
 	},
 	bindCaptureDrop(this: AppController) {
@@ -113,7 +108,6 @@ export const appCaptureMethods = {
 		});
 	},
 	loadDemo(this: AppController) {
-		const before = Store.state.cards.length;
 		Store.state.preferences.onboarded = true;
 		const demo = SeedCards.map((c?: Card) => ({
 			...c,
@@ -129,15 +123,6 @@ export const appCaptureMethods = {
 			Store.insert(demo);
 			for (const [id, x] of Object.entries(SeedItems)) Store.patch(id, x);
 		}, true);
-		if (!before)
-			this.toast(
-				copy("web.app.7c8adb347efd"),
-				() => {
-					Store.remove(demo.map((c?: Card) => c.id));
-					this.withFeedAnchor(() => {});
-				},
-				copy("web.app.309edeceecd6"),
-			);
 	},
 	setPref(this: AppController, key?: string, value?: unknown): unknown {
 		return setPref.call(this, key, value);

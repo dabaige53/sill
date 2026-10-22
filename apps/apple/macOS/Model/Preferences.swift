@@ -60,5 +60,4 @@ struct Preferences: Equatable, Sendable {
   }
 
   /// Compact summaries show two lines; the other densities three.
-  var summaryLines: Int { density == .compact ? 2 : 3 }
 }

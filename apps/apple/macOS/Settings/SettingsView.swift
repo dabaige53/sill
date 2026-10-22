@@ -85,6 +85,8 @@ struct SettingsView: View {
     VStack(alignment: .leading, spacing: AppleMetrics.space2) {
       ForEach(Group.allCases, id: \.self) { item in
         Button {
+          PerformanceTrace.shared.event(
+            .settingsChanged, values: ["index": Double(Group.allCases.firstIndex(of: item) ?? 0)])
           group = item
         } label: {
           Text(item.title)
@@ -94,11 +96,12 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, minHeight: AppleMetrics.space32, alignment: .leading)
         }
         .buttonStyle(NavRowStyle(on: item == group))
+        .accessibilityIdentifier("settings-group-\(item.rawValue)")
         .accessibilityAddTraits(item == group ? [.isButton, .isSelected] : .isButton)
       }
       Spacer(minLength: 0)
     }
-    .padding(.top, AppleMetrics.space12)
+    .padding(.top, AppleMetrics.space28)
     .padding(.horizontal, AppleMetrics.space16)
     .padding(.bottom, AppleMetrics.space28)
     .frame(width: AppleMetrics.settingsNavWidth)

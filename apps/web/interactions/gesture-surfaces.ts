@@ -29,7 +29,7 @@ export const gestureSurfacesMethods = {
 			"touchstart",
 			(e?: any) => {
 				cancel();
-				if (e.touches.length > 1) return;
+				if (e.touches.length > 1 || !matchMedia("(max-width:650px)").matches) return;
 				const sheet = sheetOf(e.target);
 				if (!sheet) return;
 				const scroll = sheet.querySelector(".sheet-scroll");

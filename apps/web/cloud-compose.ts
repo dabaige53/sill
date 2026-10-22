@@ -223,7 +223,9 @@ export async function refreshWorkspace({ feedback = "default" } = {}) {
 			await sync.flush();
 			if (sync.pending.length) return false;
 		}
-		return await loadCloud({ quiet });
+		const loaded = await loadCloud({ quiet });
+		if (loaded) app.refreshFeedOrder();
+		return loaded;
 	} finally {
 		Cloud.refreshFeedback = false;
 	}

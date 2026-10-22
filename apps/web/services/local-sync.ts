@@ -1,3 +1,4 @@
+import { icon } from "../atoms/icons.ts";
 import { esc } from "../atoms/primitives.ts";
 import { copy, errorMessage } from "../copy.ts";
 import { Store } from "../data/store.ts";
@@ -58,15 +59,58 @@ const LocalSync: Record<string, any> = {
 	},
 	status(message?: any) {
 		let bar = document.getElementById("sync-status");
+		let panel = document.getElementById("sync-status-panel");
 		if (!bar) {
 			bar = document.createElement("section");
 			bar.id = "sync-status";
 			bar.setAttribute("aria-label", copy("web.localsync.850476dde139"));
-			document.querySelector("main").prepend(bar);
+			const search = document.getElementById("home-search-field");
+			if (search) search.before(bar);
+			else document.body.append(bar);
+			panel = document.createElement("div");
+			panel.id = "sync-status-panel";
+			panel.setAttribute("popover", "auto");
+			panel.setAttribute("role", "dialog");
+			panel.setAttribute("aria-labelledby", "sync-status-title");
+			document.body.append(panel);
+			const position = () => {
+				const gap = parseFloat(
+					getComputedStyle(document.documentElement).getPropertyValue("--space-8"),
+				);
+				panel.style.setProperty(
+					"--sync-panel-top",
+					`${bar.getBoundingClientRect().bottom + gap}px`,
+				);
+			};
+			bar.addEventListener("click", position);
+			window.addEventListener("resize", position);
+			panel.addEventListener("toggle", () => {
+				bar
+					.querySelector("button")
+					?.setAttribute("aria-expanded", String(panel.matches(":popover-open")));
+			});
 		}
 		bar.hidden = !message;
-		if (message)
-			bar.innerHTML = `<span role="status">${esc(message)}</span> <button type="button" class="text-link" data-action="sync-retry">${copy("web.localsync.87d53fea3f05")}</button> <button type="button" class="text-link" data-action="sync-export">${copy("web.localsync.9d43037aecb7")}</button> <button type="button" class="text-link" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>`;
+		if (!message) {
+			panel.hidePopover();
+			return;
+		}
+		const title = copy(
+			this.pending.length ? "web.localsync.01a354fa55b5" : "web.localsync.e43a56d649b4",
+		);
+		const expanded = panel.matches(":popover-open") || this.durable === false;
+		bar.innerHTML = `<button type="button" class="icon-button" popovertarget="sync-status-panel" aria-expanded="${expanded}" aria-label="${esc(title)}" title="${esc(title)}">${icon("info")}</button><span class="sr-only" role="status">${esc(title)}。${esc(message)}</span>`;
+		panel.innerHTML = `<div class="sync-status-copy"><strong id="sync-status-title">${esc(title)}</strong><p>${esc(message)}</p></div>
+			<div class="sync-status-actions">
+				<button type="button" class="icon-button sync-status-retry" data-action="sync-retry" aria-label="${copy("web.localsync.87d53fea3f05")}" title="${copy("web.localsync.87d53fea3f05")}">${icon("refresh")}</button>
+				<button type="button" class="icon-button" data-action="sync-export" aria-label="${copy("web.localsync.9d43037aecb7")}" title="${copy("web.localsync.9d43037aecb7")}">${icon("download")}</button>
+				<button type="button" class="text-button sync-status-discard" data-action="sync-discard">${copy("web.localsync.169c72a6d254")}</button>
+				<button type="button" class="icon-button" popovertarget="sync-status-panel" popovertargetaction="hide" aria-label="${copy("web.close")}">${icon("x")}</button>
+			</div>`;
+		if (expanded) {
+			bar.dispatchEvent(new Event("click"));
+			panel.showPopover();
+		}
 	},
 	async discard() {
 		const value = await this.request("state");
@@ -234,8 +278,7 @@ const LocalSync: Record<string, any> = {
 			this.recovering = true;
 			this.persist();
 			this.status(
-				copy("web.localsync.1f2cebc0e229") +
-					error.message +
+				error.message +
 					(this.durable ? copy("web.localsync.70a127f4ad3b") : copy("web.localsync.a6df691251ec")),
 			);
 			this.app.grid.dataset.sync = "error";

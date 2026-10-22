@@ -15,7 +15,26 @@ import SwiftUI
 
   private(set) var layers: [Layer] = []
   /// Drawn visibility of the whole overlay; the overlay stays mounted until its exit finishes.
-  private(set) var shown = false
+  private(set) var shown = false {
+    didSet { if shown != oldValue { onShown(shown) } }
+  }
+  private(set) var returning = false
+  private(set) var travelling = false
+  private(set) var matchedCard: String?
+  private(set) var matchedFrame: CGRect?
+  private(set) var contentShown = false
+  private(set) var toolsShown = false
+  @ObservationIgnored private var waitingForGeometry = false
+  /// A layer is mounted and will be shown on the next turn; it already counts as open.
+  @ObservationIgnored private var showPending = false
+
+  @ObservationIgnored var viewport: CGRect = .zero
+  @ObservationIgnored var cardFrames: [String: CGRect] = [:]
+  /// Where the overlay's own origin lies in the space cards are measured in. The feed's space
+  /// starts below the title bar while the overlay covers the whole window, so a card's frame is
+  /// moved by this before the overlay draws it; otherwise the flight lands off the card.
+  var overlayOrigin: CGPoint = .zero
+  var matching: Bool { matchedCard != nil && layers.count == 1 }
 
   @ObservationIgnored private var token = 0
   @ObservationIgnored private unowned let workspace: Workspace
@@ -25,6 +44,8 @@ import SwiftUI
   /// Where focus returns after the overlay closes.
   @ObservationIgnored var origin: String?
   @ObservationIgnored var onClosed: (String?) -> Void = { _ in }
+  /// The desktop bars step aside while a card is shown and return as it starts to close (`Chrome.yield`).
+  @ObservationIgnored var onShown: (Bool) -> Void = { _ in }
 
   init(workspace: Workspace) { self.workspace = workspace }
 
@@ -34,22 +55,51 @@ import SwiftUI
   // MARK: Opening
 
   func open(_ id: String, full: Bool = false) {
+    let trace = PerformanceTrace.shared.begin(.openCard)
+    defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
     token += 1
+    // A click on another card while the previous one is still flying home starts over at once.
+    let interrupted = returning
+    returning = false
+    if interrupted, layers.last?.card != id { releaseHeld() }
     hold(id)
     workspace.recorder.opened(id)
     if card.kind == .photo, !full { markPhotoRead(id) }
-    if layers.isEmpty || !shown {
+    if layers.isEmpty || (!shown && !showPending) {
       // A fresh overlay, or reopening while the previous one is still leaving.
-      if layers.last?.card != id || layers.count != 1 {
+      let fresh = layers.last?.card != id || layers.count != 1
+      if fresh {
         origin = origin ?? id
+        matchedCard =
+          !Motion.keyboardDriven && card.kind != .photo
+            && cardFrames[id].map { $0.intersects(viewport) } == true ? id : nil
+        matchedFrame = matchedCard.flatMap { cardFrames[$0] }
+        contentShown = false
+        toolsShown = false
         layers = [Layer(card: id, full: full)]
       } else if let index = layers.indices.last {
         layers[index].full = full
       }
-      present(true)
+      if matching && !shown && fresh {
+        waitingForGeometry = true
+      } else if fresh && !Motion.keyboardDriven {
+        // A layer without a card to grow from (a photo, a card off screen) is inserted first and
+        // shown on the next turn. Inserting and fading in within one update could leave the new
+        // layer drawn at zero opacity: open, invisible and letting clicks through.
+        showPending = true
+        Task { @MainActor [weak self] in
+          guard let self, self.showPending else { return }
+          self.showPending = false
+          self.present(true)
+        }
+      } else {
+        present(true)
+      }
       return
     }
+    contentShown = true
+    toolsShown = true
     if layers.last?.card == id {
       animate(full ? Motion.open : Motion.close) { layers[layers.count - 1].full = full }
       return
@@ -83,14 +133,30 @@ import SwiftUI
   /// Leaves every layer; the overlay unmounts once its exit animation has finished.
   func closeAll() {
     guard presented else { return }
+    if let matchedCard, cardFrames[matchedCard].map({ $0.intersects(viewport) }) != true {
+      self.matchedCard = nil
+    }
     token += 1
     let current = token
+    if waitingForGeometry || showPending {
+      showPending = false
+      waitingForGeometry = false
+      finish()
+      return
+    }
+    matchedFrame = matchedCard.flatMap { cardFrames[$0] }
+    returning = matching
+    toolsShown = false
+    // Keep the content in the returning surface until the source-card handoff.
+    if !matching { contentShown = false }
     if Motion.keyboardDriven {
       Motion.instantly { shown = false }
       finish()
       return
     }
-    withAnimation(Motion.close, completionCriteria: .logicallyComplete) {
+    withAnimation(
+      matching ? Motion.card : Motion.close, completionCriteria: .removed
+    ) {
       shown = false
     } completion: { [weak self] in
       guard let self, self.token == current else { return }
@@ -134,17 +200,49 @@ import SwiftUI
     }
   }
 
+  /// The feed redraws read colors only once the overlay is gone (or replaced).
+  private func releaseHeld() {
+    // The read color and any change of height ease in after the card has landed.
+    withAnimation(Motion.read) {
+      for id in held { workspace.state(id).releaseReadAppearance() }
+    }
+    held = []
+  }
+
   private func hold(_ id: String) {
     workspace.state(id).holdReadAppearance()
     held.insert(id)
   }
 
+  /// The destination calls this only after its final content height has been measured.
+  func geometryReady(_ id: String) {
+    guard waitingForGeometry, top?.card == id else { return }
+    waitingForGeometry = false
+    present(true)
+  }
+
   private func present(_ value: Bool) {
-    if Motion.keyboardDriven {
-      Motion.instantly { shown = value }
-    } else {
-      withAnimation(Motion.open) { shown = value }
+    if Motion.keyboardDriven || !matching {
+      contentShown = value
+      toolsShown = value
+      if Motion.keyboardDriven {
+        Motion.instantly { shown = value }
+      } else {
+        withAnimation(Motion.open) { shown = value }
+      }
+      return
     }
+    let current = token
+    travelling = true
+    withAnimation(Motion.card, completionCriteria: .logicallyComplete) {
+      shown = value
+      toolsShown = value
+    } completion: { [weak self] in
+      guard let self, self.token == current else { return }
+      self.travelling = false
+    }
+    // The surface blends content from the same progress as its geometry.
+    contentShown = value
   }
 
   private func animate(_ animation: Animation, _ changes: () -> Void) {
@@ -158,11 +256,15 @@ import SwiftUI
   private func finish() {
     let returning = origin
     layers = []
+    self.returning = false
+    travelling = false
+    matchedCard = nil
+    matchedFrame = nil
+    contentShown = false
+    toolsShown = false
     positions = [:]
     origin = nil
-    // The feed redraws read colors only now that the overlay is gone.
-    for id in held { workspace.state(id).releaseReadAppearance() }
-    held = []
+    releaseHeld()
     workspace.recorder.flush()
     onClosed(returning)
   }

@@ -1,3 +1,4 @@
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import type { Gestures } from "./gestures.ts";
 import { MotionEngine } from "./motion.ts";
@@ -190,7 +191,14 @@ export const gesturePreviewMethods = {
 		chip.innerHTML = pushRingHTML;
 		host.appendChild(chip);
 		const arc = chip.querySelector(".arc circle:last-child"),
-			bar = dialog.querySelector(":scope > .float-bar");
+			bar = dialog.querySelector(":scope > .float-bar, .reader .float-bar") as HTMLElement | null;
+		const desktop = !matchMedia("(max-width:650px)").matches;
+		// React may reuse the toolbar node for the next card.
+		if (bar?.dataset.readComplete) {
+			bar.style.visibility = "";
+			delete bar.dataset.readComplete;
+		}
+		const barVisibility = bar?.style.visibility || "";
 		const need = 120,
 			token = app.modalToken,
 			wheel = this.intent();
@@ -198,14 +206,29 @@ export const gesturePreviewMethods = {
 			timer = 0,
 			frame = 0,
 			touch = null,
-			done = false;
+			done = false,
+			released = false,
+			leaving = false,
+			changedOnFinish = false,
+			coast = 0,
+			lastDelta = 0;
+		const release = () => {
+			if (!done || released) return;
+			released = true;
+			clearTimeout(timer);
+			leave();
+		};
 		const atEnd = () => scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
 		const paint = () => {
 			if (app.modalToken !== token) return;
 			chip.style.opacity = String(Math.min(1, pull / 30));
 			chip.style.transform = "none";
 			arc.setAttribute("stroke-dashoffset", String(50.27 * (1 - Math.min(1, pull / need))));
-			MotionEngine.move(scroll, pull ? `0 ${-Math.round(pull * 0.35)}px` : "", pull > 0);
+			MotionEngine.move(
+				scroll,
+				pull ? `0 ${-Math.round(pull * tokens.motion.finishTravel)}px` : "",
+				pull > 0,
+			);
 			if (bar) {
 				bar.style.opacity = pull ? "0" : "";
 				MotionEngine.move(bar, pull ? "0 16px" : "", pull > 0);
@@ -222,27 +245,63 @@ export const gesturePreviewMethods = {
 			pull = need;
 			paint();
 			chip.classList.add("is-done");
+			// Completion owns the toolbar until this detail leaves, including pending reveal animations.
+			if (desktop && bar) {
+				bar.dataset.readComplete = String(token);
+				bar.style.visibility = "hidden";
+			}
 			chip.style.transform = "scale(1)";
-			const changed = !Store.item(id).read || Store.item(id).progress !== 1;
-			if (changed) {
+			changedOnFinish = !Store.item(id).read || Store.item(id).progress !== 1;
+			if (changedOnFinish) {
 				Store.patch(id, { read: true, progress: 1 });
 			}
 			this.swallowMomentum();
-			window.setTimeout(() => {
-				// A changed route can keep this surface cached; never leave its success badge behind.
-				chip.remove();
-				if (app.modalToken !== token) return;
-				MotionEngine.move(scroll);
-				if (bar) {
-					bar.style.opacity = "";
-					MotionEngine.move(bar);
+		};
+		// The check stays until the hand lets go: a lifted touch, or a wheel stream that stops or
+		// starts to coast. Then the card is redrawn on the next frame, out of the frame that shows
+		// the check, and the close starts on the frame after that.
+		const leave = () => {
+			// A stale route still clears the badge in the frame below.
+			if (!done || leaving) return;
+			leaving = true;
+			const changed = changedOnFinish;
+			requestAnimationFrame(() => {
+				if (app.modalToken !== token) {
+					// A changed route can keep this surface cached; never leave its success badge behind.
+					chip.remove();
+					if (desktop && bar?.dataset.readComplete === String(token)) {
+						bar.style.visibility = barVisibility;
+						delete bar.dataset.readComplete;
+					}
+					return;
 				}
-				// Keep feed rendering out of the frame that reveals the completion check.
 				if (changed) app.refreshCard(id);
-				// A stacked preview folds back to the card below it; reading returns to the desk.
-				if (app.modalKind === "preview") app.closeModal();
-				else app.closeToDesk(true);
-			}, 460);
+				requestAnimationFrame(() => {
+					if (app.modalToken !== token) {
+						chip.remove();
+						return;
+					}
+					if (!desktop) MotionEngine.move(scroll);
+					if (bar && !desktop) {
+						bar.style.opacity = "";
+						MotionEngine.move(bar);
+					}
+					// The check leaves with the detail, on the same spring as the close.
+					const fade = MotionEngine.animate(chip, [{ opacity: 1 }, { opacity: 0 }], {
+						spring: "card",
+						fill: "forwards",
+					});
+					if (fade)
+						fade.finished.then(
+							() => chip.remove(),
+							() => chip.remove(),
+						);
+					else chip.remove();
+					// A stacked preview folds back to the card below it; reading returns to the desk.
+					if (app.modalKind === "preview") app.closeModal();
+					else app.closeToDesk(true);
+				});
+			});
 		};
 		const set = (v?: any) => {
 			if (done || app.modalToken !== token) return;
@@ -256,6 +315,14 @@ export const gesturePreviewMethods = {
 					frame = 0;
 					paint();
 				});
+		};
+		// A wheel stream lets go when it pauses, or when its deltas start to shrink (momentum).
+		const letGo = (d: number) => {
+			coast = d > 0 && lastDelta > 0 && d < lastDelta ? coast + 1 : 0;
+			lastDelta = d;
+			if (coast >= 3) return release();
+			clearTimeout(timer);
+			timer = window.setTimeout(release, 120);
 		};
 		const cancel = () => {
 			touch = null;
@@ -281,7 +348,8 @@ export const gesturePreviewMethods = {
 		scroll.addEventListener(
 			"wheel",
 			(e?: any) => {
-				if (done || app.modalToken !== token) return;
+				if (app.modalToken !== token) return;
+				if (done) return letGo(e.deltaY * (e.deltaMode === 1 ? 16 : 1));
 				if (this.fromField(e)) return cancel();
 				const d = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
 				if (d <= 0 || !atEnd()) {
@@ -294,7 +362,7 @@ export const gesturePreviewMethods = {
 				}
 				if (!wheel.feed(d)) return;
 				set(pull + Math.min(40, d) * 0.5);
-				if (done) return;
+				if (done) return letGo(d);
 				clearTimeout(timer);
 				timer = window.setTimeout(() => {
 					if (!done && app.modalToken === token) {
@@ -342,8 +410,16 @@ export const gesturePreviewMethods = {
 			{ passive: true },
 		);
 		scroll.addEventListener("touchend", () => {
-			cancel();
+			if (done) release();
+			else cancel();
 		});
-		scroll.addEventListener("touchcancel", cancel, { passive: true });
+		scroll.addEventListener(
+			"touchcancel",
+			() => {
+				if (done) release();
+				else cancel();
+			},
+			{ passive: true },
+		);
 	},
 };

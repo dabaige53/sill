@@ -262,7 +262,7 @@ export function createOAuthController(
 					stage = "flow-store";
 					html =
 						consentSummary(review) +
-						`<form class="consent-actions" method="post" action="/oauth/decision">${await newFlow("consent", review.clientId, review)}<button name="decision" value="deny">${copy("server.oauthcontroller.136de7a8c46f")}</button><button name="decision" value="approve">${copy("server.oauthcontroller.78153f238e89")}</button></form>`;
+						`<form class="consent-actions" method="post" action="/oauth/decision">${await newFlow("consent", review.clientId, review)}<button name="decision" value="deny">${copy("auth.cancel")}</button><button name="decision" value="approve">${copy("auth.allowAccess")}</button></form><p class="consent-revoke">${copy("auth.revokeHint")}</p>`;
 				} else if (path === "/oauth/grants" && !url.search) {
 					html = `<h1>${copy("server.oauthcontroller.8782b690d2e7")}</h1><p>${copy("server.oauthcontroller.2b3045f9e2af")}</p>`;
 					for (const row of await rpc("list"))

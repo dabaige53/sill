@@ -1,14 +1,34 @@
 # 测试目录
 
-更新：2026-10-20。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
+更新：2026-10-21。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
-以下命令是按需入口，不是默认执行清单。浏览器测试、视觉自动化及 e2e 仅在用户明确确认需要时执行；e2e 只覆盖本次修改涉及的场景，完整 e2e 须另有明确授权。未获授权时直接跳过，不例行询问。详见 [项目测试授权](../AGENTS.md#验证与测试授权)。
+以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/guides/testing.md) 确认授权、范围和结果边界。
+
+## 目录与默认范围
+
+| 类型 | 源码位置 | 执行方式 |
+| --- | --- | --- |
+| 数据约定 | `contracts/` | `npm run test:contracts` |
+| Web 非浏览器 | `web/` | `npm run test:core` |
+| 服务端与集成 | `server/` | `npm run test:server`；真实 Postgres 单独运行 |
+| 浏览器交互、布局与性能 | `e2e/` | 按下表选择专项，不默认执行 |
+| Apple 数据与桌面状态 | `apps/apple/Tests/`、`apps/apple/DesktopTests/` | `npm run test:macos` |
+| Mac 原生界面 | `apple/PerformanceUITests.swift` | 显式 `npm run perf:macos -- ui` |
+| 后台性能与报告 | `apps/apple/DesktopTests/PerformanceBenchmarks.swift`、`apple/performance-report.test.ts` | `npm run perf:macos`；`npm run test:performance-report` |
+
+`npm test` 负责静态检查、构建、数据约定、Web、服务端和性能报告解析；不启动浏览器或 Mac 窗口，不执行 Swift 测试、性能基准及 Docker Postgres。报告解析不需要 Xcode。构建产物断言统一由 `scripts/check.ts` 管理。
+
+CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留独立的快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint、Swift 非界面测试和 Mac 构建与签名检查。性能基准仍按需运行。
+
+旧数据迁移、未知字段保留、已移除入口不可见等测试属于当前兼容性检查，不按文件年龄删除。辅助模块由对应入口加载，不逐文件独立执行。删除记录见 [2026-10-21 测试整理](../docs/records/2026-10-21-test-cleanup/README.md)。
+
+## 按改动选择检查
 
 | 改动 | 入口 | 边界 |
 | --- | --- | --- |
 | 文件归属、导航、忽略规则 | `npm run files:check` | 只读，不启动服务 |
 | Codex 提交前文件大小钩子 | `node --test tests/server/check-staged-file-tokens.test.ts` | 临时 Git 仓库与合成 hook 输入；字节边界、UTF-8、部分暂存、特殊文件名、豁免、改名、删除与 Codex 阻止结果 |
-| 完整 Node 检查 | `npm test` | 文件、Schema、构建、语法、类型、共享约定、Web 核心和全部服务端测试 |
+| 完整 Node 检查 | `npm test` | 文件、Schema、构建、语法、类型、共享约定、Web 核心、全部服务端测试与性能报告解析 |
 | 共享约定 | `npm run test:contracts` | 合法、非法与旧来源迁移样例；纯合成文件，验证读不改写和未知字段保留 |
 | 明确字段、MCP 和数据库一致 | `npm test`（`server/explicit-card-fields.test.ts`） | 3.0.0 字段、完整与局部写入、未知扩展、旧 meta 拒绝、日期精度、时长清空及过期防护；隔离 PGlite / HTTP / MCP，不操作线上 |
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |

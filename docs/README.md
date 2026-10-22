@@ -7,6 +7,7 @@
 - [Agent 驱动与 MCP 连接](product/agent-mcp.md)
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
+- [界面对账表](product/ui-alignment.md)：Web 桌面、手机 Web 与 Mac 每项界面行为的当前状态、刻意差异与实测情况。
 - [Sill 交互规范](product/interaction-spec.md)
 - [Sill · 窗台 — 产品需求文档](product/requirements.md)
 
@@ -21,6 +22,8 @@
 ## 操作与规范
 
 - [代码规范](guides/code-standards.md)
+- [测试与验证](guides/testing.md)：测试授权、CI 与验证结果边界。
+- [跨端对齐检查清单](guides/cross-platform-checklist.md)：Web、Mac 与手机的标准检查项、平台差异及结果格式。
 - [开发](guides/development.md)
 - [文件管理规范](guides/file-management.md)
 - [V1 三端接口与交接包](guides/handoff.md)
@@ -184,3 +187,26 @@
 - [Mac 原生说明](../apps/apple/README.md)
 - [PR 编写指南](../pr.md)与[PR 模板](../.github/pull_request_template.md)
 - [接口准备示例](../contracts/design/)：保留准备材料，不表示新增 API 已实现。
+
+- [登录授权页面与设置画板](adr/0052-auth-pages-and-settings-boards.md)
+- [桌面导航对齐与稳定搜索宽度](adr/0053-desktop-navigation-alignment.md)
+- [桌面阅读与刷新动效衔接](adr/0054-desktop-motion-continuity.md)
+- [Mac 导航与 AI 输入栏原生玻璃](adr/0055-macos-navigation-liquid-glass.md)
+- [登录授权与设置画板交接](records/2026-10-21-auth-settings-ui/README.md)
+
+- [Mac 性能追踪与自动化测试](guides/macos-performance.md)
+
+- [Mac 性能工作流验证记录](records/2026-10-21-macos-performance/README.md)
+
+- [桌面交互架构与验证](guides/desktop-interaction.md)
+- [桌面输入归属与动效职责](adr/0056-desktop-input-ownership.md)
+- [桌面卡片空间过渡与浮层可读性](adr/0057-desktop-card-spatial-transition.md)
+- [Mac 卡片展开改为外框露出](adr/0058-mac-card-reveal-transition.md)
+- [桌面搜索框伸缩、AI 框拖入反馈与底部轨道玻璃统一](adr/0059-mac-search-ai-dock-rail-glass.md)
+- [卡片与详情按 12 类专用重建，来源改用单色品牌圆标](adr/0060-card-rebuild-by-type-and-source-marks.md)
+- [视频与播客在 Sill 内播放，新增 PR 卡片类型](adr/0061-in-app-media-playback-and-pr-cards.md)
+- [卡片收回改用弹簧，读完确认后松手即关闭](adr/0062-card-close-spring-and-read-end-release.md)
+
+- [2026-10-21 测试整理](records/2026-10-21-test-cleanup/README.md)：旧测试删除依据、恢复标签和运行入口分工。
+- [2026-10-22 卡片重建与 Markdown 正文暂停](records/2026-10-22-card-rebuild-pending/README.md)：暂停时已完成与未完成的事项、待用户决定的问题。
+- [2026-10-22 卡片重建设计稿合并与版本标记](records/2026-10-22-card-rebuild-release/README.md)：PR #60 合并范围、标签、线上设计版本与检查结果。

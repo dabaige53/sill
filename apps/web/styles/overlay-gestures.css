@@ -38,7 +38,6 @@ body.is-pulling main {
 }
 /* One icon owns each phase. Text remains in accessible labels only. */
 .pull-ring:disabled {
-	opacity: 1;
 	cursor: default;
 }
 .pull-ring > svg {
@@ -46,7 +45,7 @@ body.is-pulling main {
 }
 .pull-ring .pull-check,
 .pull-ring .pull-retry {
-	display: none;
+	opacity: 0;
 	transform: none;
 	fill: none;
 	stroke: currentColor;
@@ -56,11 +55,11 @@ body.is-pulling main {
 }
 .pull-ring[data-state="success"] .pull-progress,
 .pull-ring[data-state="error"] .pull-progress {
-	display: none;
+	opacity: 0;
 }
 .pull-ring[data-state="success"] .pull-check,
 .pull-ring[data-state="error"] .pull-retry {
-	display: block;
+	opacity: 1;
 }
 .pull-ring[data-state="error"] {
 	pointer-events: auto;
@@ -377,4 +376,16 @@ body.is-pulling main {
 body:has(.home-top.is-tucked) .pull-ring.in-home-heading,
 body:has(#modal[open]) .pull-ring.in-home-heading {
 	visibility: hidden;
+}
+
+@media (min-width: 651px) {
+	.pull-ring.in-home-heading {
+		width: var(--space-40);
+		height: var(--space-40);
+		margin-left: calc(-1 * var(--space-20));
+	}
+	.pull-ring.in-home-heading svg {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
 }

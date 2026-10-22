@@ -258,10 +258,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 		Store.patch(id, { lessLike: !before });
 		app.closeNative();
 		app.withFeedAnchor(() => {}, true);
-		app.toast(copy("web.app.0ec82d74e53c"), () => {
-			Store.patch(id, { lessLike: before });
-			app.withFeedAnchor(() => {}, true);
-		});
 		return;
 	}
 	if (name === "save-note") {
@@ -274,7 +270,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 // Keep the original menus and light actions. A note opens for reading, not content editing.
 app.startInlineEdit = (id: any) => app.openCard(id, true);
 app.loadDemo = function () {
-	const before = Store.state.cards.length;
 	const ids = new Map(SeedCards.map((card) => [card.id, crypto.randomUUID()]));
 	const offset = Date.now() - demoBase;
 	const demo = SeedCards.map((card) => ({
@@ -290,15 +285,6 @@ app.loadDemo = function () {
 		Store.insert(demo);
 		for (const [id, state] of Object.entries(SeedItems)) Store.patch(ids.get(id), clone(state));
 	}, true);
-	if (!before)
-		this.toast(
-			copy("web.app.7c8adb347efd"),
-			() => {
-				Store.remove(demo.map((card) => card.id));
-				this.withFeedAnchor(() => {});
-			},
-			copy("web.app.309edeceecd6"),
-		);
 };
 const localOpenPanel = app.openPanel.bind(app);
 app.openPanel = (kind?: any, ...args: any[]) => {

@@ -13,6 +13,7 @@ import SwiftUI
   func toggle() { open ? close() : present() }
 
   func present() {
+    PerformanceTrace.shared.event(.menuOpened)
     token += 1
     open = true
     highlighted = nil
@@ -26,6 +27,7 @@ import SwiftUI
   /// Fades out from where it is drawn; an older close never hides a newer menu.
   func close() {
     guard open else { return }
+    PerformanceTrace.shared.event(.menuClosed)
     token += 1
     let current = token
     if Motion.keyboardDriven {
@@ -66,6 +68,7 @@ struct ScopeToggle: View {
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .modifier(HandCursor())
     .onHover { hovered = $0 }
     .animation(Motion.hover, value: hovered)
     .background(
@@ -75,6 +78,7 @@ struct ScopeToggle: View {
           .onChange(of: proxy.frame(in: .named(TopBarSpace.name)).minX) { _, x in menu.anchor = x }
       }
     )
+    .accessibilityIdentifier("scope-toggle")
     .accessibilityLabel(Copy.text("web.home.filterMenu"))
     .accessibilityValue(menu.open ? Copy.text("web.templates.afd4b783536b") : "")
   }
@@ -93,6 +97,8 @@ struct ScopeMenu: View {
           ScopeMenuRow(
             scope: scope, checked: feed.scope == scope, highlighted: menu.highlighted == scope
           ) {
+            PerformanceTrace.shared.event(
+              .menuSelected, values: ["index": Double(Scope.allCases.firstIndex(of: scope) ?? 0)])
             feed.select(scope)
             menu.close()
           }
@@ -146,7 +152,9 @@ private struct ScopeMenuRow: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .modifier(HandCursor())
     .onHover { hovered = $0 }
+    .accessibilityIdentifier("scope-\(scope.rawValue)")
     .accessibilityAddTraits(checked ? [.isButton, .isSelected] : .isButton)
   }
 }

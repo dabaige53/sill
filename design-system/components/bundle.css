@@ -1,5 +1,5 @@
 /* Sill · component styles · from apps/web/styles (base, controls, cards, overlays). Tokens come from tokens.json. */
-:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:180ms;--dur-state:220ms;--dur-open:220ms;--dur-close:220ms;--dur-sheet:260ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:240ms;--dur-lens:0ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:320ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 16px;--text-input: 17px;--text-reader-body: 17px;--text-article-title: 22px;--text-article-section: 17px;--text-article-body: 15px;--text-article-meta: 12px;--text-summary: 14px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;--text-card-meta: 12px;}
+:root{--font:var(--font-sans);--ease:cubic-bezier(0.23,1,0.32,1);--ease-sheet:cubic-bezier(.32,.72,0,1);--ease-reveal:cubic-bezier(.5,1,.89,1);--ease-spring:linear(0, .03 2%, .11 4.4%, .24 7%, .51 12%, .75 17%, .91 22%, 1.01 27.4%, 1.05 31%, 1.065 35.5%, 1.06 40%, 1.03 49%, 1.007 59%, .997 70%, 1);--dur-press:120ms;--dur-hover:160ms;--dur-menu:200ms;--dur-menu-close:160ms;--dur-state:220ms;--dur-open:280ms;--dur-close:220ms;--dur-sheet:260ms;--dur-read:220ms;--stagger:30ms;--delay-loading:300ms;--dur-tuck:240ms;--dur-lens:0ms;--rest-show:650ms;--fast:140ms;--base:220ms;--layout:220ms;--settle:220ms;--dur-show:320ms;--dur-reveal:420ms;--dur-deck:260ms;--gesture-dismiss-distance:110;--gesture-handle-distance:160;--gesture-flick-speed:0.5;--gesture-flick-distance:40;--gesture-velocity-window:100;--gesture-spring-frequency:24;--feed-max: 1640px;--preview-short-width: 560px;--fixed-white: #fff;--fixed-ink: #1d1d1f;--selection: #d8e9ff;--fixed-podcast-light: #f4ede4;--fixed-podcast-dark: #2a2622;--fixed-podcast-cover-start: #d9cbbb;--fixed-podcast-cover-mid: #efe6db;--fixed-podcast-cover-end: #cdbcaa;--fixed-photo-canvas: #0b0b0c;--fixed-white-72: rgba(255, 255, 255, 0.72);--fixed-white-82: rgba(255, 255, 255, 0.82);--fixed-white-75: rgba(255, 255, 255, 0.75);--fixed-white-12: rgba(255, 255, 255, 0.12);--fixed-black-5: rgba(0, 0, 0, 0.05);--fixed-black-6: rgba(0, 0, 0, 0.06);--fixed-black-8: rgba(0, 0, 0, 0.08);--fixed-black-10: rgba(0, 0, 0, 0.1);--fixed-black-12: rgba(0, 0, 0, 0.12);--fixed-black-14: rgba(0, 0, 0, 0.14);--fixed-black-15: rgba(0, 0, 0, 0.15);--fixed-black-16: rgba(0, 0, 0, 0.16);--fixed-black-18: rgba(0, 0, 0, 0.18);--fixed-black-55: rgba(0, 0, 0, 0.55);--space-1: 1px;--space-2: 2px;--space-3: 3px;--space-4: 4px;--space-6: 6px;--space-8: 8px;--space-10: 10px;--space-11: 11px;--space-12: 12px;--space-14: 14px;--space-16: 16px;--space-18: 18px;--space-20: 20px;--space-22: 22px;--space-24: 24px;--space-25: 25px;--space-26: 26px;--space-28: 28px;--space-30: 30px;--space-32: 32px;--space-34: 34px;--space-36: 36px;--space-40: 40px;--space-44: 44px;--space-46: 46px;--space-48: 48px;--space-52: 52px;--space-60: 60px;--space-64: 64px;--space-88: 88px;--space-92: 92px;--space-104: 104px;--space-130: 130px;--space-140: 140px;--space-150: 150px;--space-160: 160px;--pill-radius: 999px;--text-figure-xl: 44px;--text-figure: 34px;--text-reader-title: 30px;--text-figure-route: 28px;--text-detail-title: 26px;--text-panel-title: 22px;--text-quote: 21px;--text-card-title: 16px;--text-input: 17px;--text-reader-body: 17px;--text-article-title: 22px;--text-article-section: 17px;--text-article-body: 15px;--text-article-meta: 12px;--text-summary: 14px;--text-body: 15px;--text-control: 14px;--text-meta: 13px;--text-caption: 12px;--text-card-meta: 12px;}
 :root[data-theme="dark"],
 .lightbox .float-bar {
 	--canvas: #111113;
@@ -245,21 +245,80 @@ body.feed-more .feed-end,
 main:has(.welcome, .empty-card) .feed-end {
 	display: none;
 }
-/* Recovery remains available until the user resolves it; it never relies on a toast timeout. */
+/* Recovery lives in the top layer and never participates in the card layout. */
 #sync-status {
-	max-width: 760px;
-	margin: 0 auto var(--space-24);
-	padding: var(--space-16);
-	border: 1px solid var(--line-hover);
-	border-radius: 16px;
-	background: var(--card);
-	overflow-wrap: anywhere;
+	flex: none;
+	width: var(--hit-target);
+	margin: 0;
 }
 #sync-status[hidden] {
 	display: none;
 }
-#sync-status > span {
+#sync-status > .icon-button {
+	color: var(--alert);
+	background: transparent;
+}
+#sync-status > .icon-button::before {
+	content: "";
+	position: absolute;
+	inset: var(--space-2);
+	border-radius: 50%;
+	background: var(--alert-soft);
+}
+#sync-status > .icon-button > .icon {
+	position: relative;
+	width: var(--space-20);
+	height: var(--space-20);
+}
+body > #sync-status {
+	position: fixed;
+	top: var(--space-20);
+	right: var(--space-12);
+}
+#sync-status-panel {
+	position: fixed;
+	inset: auto var(--space-12) auto auto;
+	top: var(--sync-panel-top, var(--space-64));
+	width: min(var(--preview-short-width), calc(100vw - var(--space-24)));
+	max-height: calc(100dvh - var(--sync-panel-top, var(--space-64)) - var(--space-12));
+	margin: 0;
+	padding: var(--space-16);
+	overflow: auto;
+	overflow-wrap: anywhere;
+	border: 1px solid var(--line);
+	border-radius: var(--card-radius-sm);
+	background: var(--card);
+	color: var(--ink);
+	box-shadow: var(--shadow-float);
+}
+#sync-status-panel .sync-status-copy strong {
 	display: block;
+	font-size: var(--text-body);
+	font-weight: 600;
+}
+#sync-status-panel .sync-status-copy p {
+	margin: var(--space-6) 0 0;
+	font-size: var(--text-control);
+	line-height: 1.6;
+	color: var(--muted);
+}
+.sync-status-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+	margin-top: var(--space-16);
+}
+#sync-status-panel .sync-status-retry {
+	color: var(--accent);
+}
+#sync-status-panel .sync-status-discard {
+	margin-left: auto;
+	color: var(--muted);
+}
+/* @design nav-capsule — recovery actions replace the duplicate offline pill. */
+body:has(#sync-status:not([hidden])) #dock #offline {
+	display: none;
 }
 
 /* Controls suppress text selection; reading content keeps native copy/link menus. */
@@ -758,6 +817,16 @@ body.is-dragging #toast {
 			0 0 0 2px var(--accent),
 			0 16px 40px -14px color-mix(in srgb, var(--accent) 45%, transparent);
 	}
+	/* While a card is carried, an accent ring keeps spreading out of the box. */
+	.ai-dock-pulse {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: var(--pill-radius);
+		box-shadow: 0 0 0 2px var(--accent);
+		opacity: 0;
+		pointer-events: none;
+	}
 	.ai-dock.is-ready .ai-dock-input::placeholder {
 		color: var(--accent);
 		font-weight: 600;
@@ -776,7 +845,7 @@ body.is-dragging #toast {
 		color: var(--ink);
 	}
 	.ai-dock-button:disabled {
-		color: var(--muted);
+		color: var(--secondary);
 		cursor: default;
 	}
 	.ai-dock-send > span {
@@ -858,13 +927,51 @@ body.is-dragging #toast {
 		pointer-events: auto;
 	}
 	#dock #selection-bar {
-		width: min(640px, 100%);
-		max-width: none;
+		width: max-content;
+		max-width: 100%;
 		justify-content: center;
 	}
 	#dock #selection-bar .icon-button {
 		width: 44px;
 		height: 44px;
+	}
+}
+
+@media (min-width: 651px) {
+	/* One glass for the bottom rail: the AI box, the selection bars and detail tools all keep
+	   the `.glass` lens (clear tint, bright edge, strong blur), like Apple's Liquid Glass. */
+	.ai-dock,
+	#selection-bar,
+	#search-selection-bar,
+	dialog:not(.lightbox) > .float-bar {
+		background: var(--glass);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
+	}
+	/* The search field and the AI box take typing across the whole capsule. */
+	.ai-dock {
+		cursor: text;
+	}
+	.ai-dock-context {
+		cursor: default;
+	}
+	.ai-dock-send:disabled > span {
+		color: var(--secondary);
+	}
+	.ai-dock-send .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock-input::placeholder {
+		color: var(--secondary);
+		opacity: 1;
+	}
+	#search-selection-bar {
+		width: max-content;
+		margin-inline: auto;
 	}
 }
 
@@ -1185,7 +1292,7 @@ body.is-dragging #toast {
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(#modal[open].page) .home-top {
+body:has(:is(#modal, #search-background)[open].page) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -1197,17 +1304,79 @@ body:has(#modal[open].page) .home-top {
 }
 .home-logo,
 .home-menu-toggle,
+.home-edge-blur,
 .home-menu,
-.home-search {
+.home-search,
+.home-kinds {
 	display: none;
 }
 @media (min-width: 651px) {
+	.home-top {
+		top: var(--space-10);
+		width: calc(100% - var(--space-12) * 2);
+		margin-top: var(--space-10);
+	}
+	.home-top {
+		opacity: 1;
+	}
+	.home-top.is-tucked,
+	.home-top.is-entering {
+		/* Include the sticky offset and glass feather in the shared travel. */
+		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
+		opacity: 1;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.home-top {
+			background: transparent;
+		}
+		.home-top > .home-heading,
+		.home-top > .home-kinds {
+			position: relative;
+			z-index: 1;
+		}
+		.home-top::before,
+		.home-top::after,
+		.home-edge-blur {
+			content: "";
+			display: block;
+			position: absolute;
+			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
+			z-index: 0;
+			pointer-events: none;
+		}
+		.home-top::before {
+			-webkit-backdrop-filter: var(--edge-blur-soft);
+			backdrop-filter: var(--edge-blur-soft);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+		}
+		.home-top::after {
+			-webkit-backdrop-filter: var(--edge-blur-mid);
+			backdrop-filter: var(--edge-blur-mid);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+		}
+		.home-edge-blur {
+			-webkit-backdrop-filter: var(--edge-blur-strong);
+			backdrop-filter: var(--edge-blur-strong);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+		}
+	}
+
+	#feed-grid {
+		max-width: none;
+	}
 	main {
-		padding-top: var(--space-16);
+		padding-inline: var(--space-12);
+		padding-top: var(--space-10);
 		min-height: calc(100dvh - var(--space-130));
 	}
-	/* ADR 0049: brand, ⌄, search and avatar share one 40px centerline. */
+	/* Brand and account align with the outer card edges. */
 	.home-heading {
+		height: var(--space-64);
 		gap: var(--space-8);
 	}
 	.home-brand {
@@ -1218,7 +1387,7 @@ body:has(#modal[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-10);
-		line-height: 40px;
+		line-height: var(--space-40);
 		letter-spacing: -0.02em;
 	}
 	.home-logo {
@@ -1305,12 +1474,15 @@ body:has(#modal[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-8);
-		width: 280px;
-		height: 40px;
+		width: var(--search-width);
+		min-width: 0;
+		flex-shrink: 1;
+		height: var(--space-40);
 		padding: 0 var(--space-8) 0 var(--space-14);
 		border-radius: 20px;
 		background: transparent;
 		color: var(--muted);
+		cursor: text;
 	}
 	.home-search::before {
 		content: "";
@@ -1318,24 +1490,24 @@ body:has(#modal[open].page) .home-top {
 		inset: 0;
 		z-index: -1;
 		border-radius: inherit;
-		background: var(--card);
+		background: color-mix(in srgb, var(--glass) 35%, transparent);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		transform-origin: right center;
 		pointer-events: none;
 	}
-	.home-search.has-token {
-		width: 360px;
+	/* At rest a short capsule; a query or tab keeps it open, focus stretches it. No focus ring. */
+	.home-search:is(.has-text, .has-token) {
+		width: var(--search-tagged-width);
 	}
-	.home-search:focus-within {
-		width: 480px;
-	}
-	.home-search:focus-within::before {
-		box-shadow:
-			inset 0 0 0 1px var(--accent),
-			0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+	.home-search.is-open {
+		width: var(--search-focused-width);
 	}
 	.home-search > .icon {
 		flex: none;
+		width: var(--space-20);
+		height: var(--space-20);
 	}
 	.home-search input {
 		flex: 1;
@@ -1379,6 +1551,62 @@ body:has(#modal[open].page) .home-top {
 	.home-search-clear[hidden] {
 		display: none;
 	}
+	/* # conditions follow the tab token: accent, like the phone search tokens. */
+	.home-search-marks {
+		display: flex;
+		flex: none;
+		gap: var(--space-6);
+	}
+	.home-search-marks:empty,
+	.home-hash-slot:empty {
+		display: none;
+	}
+	.home-search-token.is-hash {
+		background: var(--accent);
+		color: var(--fixed-white);
+	}
+	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
+	.home-search .search-hash {
+		z-index: 60;
+		top: calc(100% + var(--space-8));
+		left: 0;
+		right: 0;
+		cursor: default;
+	}
+	.home-search .search-hash-option:first-of-type {
+		background: none;
+	}
+	.home-search .search-hash-option.is-active,
+	.home-search .search-hash-option:focus-visible {
+		background: var(--faint);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-search .search-hash-option:hover {
+			background: var(--faint);
+		}
+	}
+	/* Type chips: one row under the top bar while there is text (web-interaction.md 搜索). */
+	.home-kinds {
+		display: flex;
+		align-items: center;
+		height: var(--space-32);
+		margin-bottom: var(--space-2);
+	}
+	.home-kinds[hidden] {
+		display: none;
+	}
+	.home-kinds .chip {
+		min-height: var(--space-32);
+		height: var(--space-32);
+		background: var(--surface);
+		box-shadow: none;
+		font-size: var(--text-control);
+	}
+	.home-kinds .chip.active {
+		background: var(--ink);
+		color: var(--card);
+		font-weight: 600;
+	}
 	.home-search-clear {
 		display: grid;
 		place-items: center;
@@ -1399,9 +1627,13 @@ body:has(#modal[open].page) .home-top {
 	.home-account {
 		margin-right: calc(-1 * var(--space-2));
 	}
+	.home-account .account-wrap > .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
 	.home-account .account-wrap {
-		width: 40px;
-		height: 40px;
+		width: var(--space-40);
+		height: var(--space-40);
 		background: var(--card);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		color: var(--ink);
@@ -1489,12 +1721,10 @@ body:has(#modal[open].page) .home-top {
 	align-items: center;
 	gap: var(--space-6);
 	min-height: 20px;
-	padding-right: var(--space-30);
 	font-size: var(--text-card-meta);
 	line-height: 18px;
 	color: var(--muted);
 }
-/* The reserved action slot keeps counts and timely information readable while hovering. */
 .has-cover .card-head-right {
 	opacity: 1;
 }
@@ -1598,6 +1828,9 @@ body:has(#modal[open].page) .home-top {
 }
 .card-summary.clamp-2 {
 	-webkit-line-clamp: 2;
+}
+.card-summary.reading-summary {
+	-webkit-line-clamp: var(--summary-reading-lines);
 }
 .card-summary.indent {
 	padding-left: var(--space-34);
@@ -1743,7 +1976,6 @@ body:has(#modal[open].page) .home-top {
 	display: flex;
 	align-items: center;
 	gap: var(--space-10);
-	padding-right: var(--space-30);
 }
 .sender > span:last-child {
 	display: flex;
@@ -1884,7 +2116,7 @@ button.ref:active {
 }
 .check-item {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-10);
 	width: 100%;
 	min-height: 32px;
@@ -1894,6 +2126,10 @@ button.ref:active {
 	font-size: var(--text-control);
 	line-height: 1.5;
 	color: var(--ink);
+}
+/* @design card-type: the circle stays centered on the first text line. */
+.check-item > .check-dot {
+	margin-top: calc((1lh - 20px) / 2);
 }
 .check-item > span:last-child {
 	min-width: 0;
@@ -1990,8 +2226,10 @@ button.ref:active {
 /* The reminder's circle sits before its title, on the card and in its detail alike. */
 .reminder-row {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: var(--space-12);
+	font-size: var(--text-card-title);
+	line-height: 22px;
 }
 .reminder-row .card-title {
 	min-width: 0;
@@ -2005,6 +2243,7 @@ button.ref:active {
 	height: var(--hit-target);
 	margin: calc(-1 * var(--space-11)) calc(-1 * var(--space-11)) calc(-1 * var(--space-11))
 		calc(-1 * var(--space-11));
+	margin-top: calc((1lh - var(--hit-target)) / 2);
 	padding: 0;
 	border: 0;
 	border-radius: 50%;
@@ -2165,6 +2404,21 @@ button.ref:active {
 .feed-card.is-ended:focus-within,
 .feed-card.is-complete:focus-within {
 	border-color: var(--line-hover);
+}
+
+/* Desktop density changes width only; text determines the card's height. */
+@media (min-width: 651px) {
+	.feed-card .card-title-button,
+	.feed-card .card-summary {
+		display: block;
+		-webkit-line-clamp: unset;
+		overflow: visible;
+	}
+	.feed-card .key-points li span {
+		white-space: normal;
+		overflow: visible;
+		text-overflow: clip;
+	}
 }
 
 /* Stacks: one place on the desk, layered edges, opened in place. */
@@ -2440,6 +2694,7 @@ dialog::backdrop {
 
 /* The card toolbar: two to three verbs as icons in one glass capsule. Words live in the content. */
 .float-bar {
+	background: var(--glass-thick);
 	display: flex;
 	align-items: center;
 	gap: var(--space-4);
@@ -2541,12 +2796,6 @@ dialog::backdrop {
 }
 .preview-sheet:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
 	padding-right: 0;
-}
-.preview-title-row {
-	align-items: flex-start;
-}
-.preview-title-row .reminder-check {
-	margin-top: calc((1.3em - var(--hit-target)) / 2);
 }
 .preview-title-row #modal-title {
 	min-width: 0;
@@ -2692,7 +2941,8 @@ dialog::backdrop {
 	flex: none;
 	color: var(--secondary);
 }
-.preview-body h1 {
+.preview-body h1,
+.preview-body .preview-title-row {
 	font-size: 24px;
 	font-weight: 600;
 	letter-spacing: -0.03em;
@@ -2787,6 +3037,12 @@ dialog::backdrop {
 .detail-row small {
 	font-size: var(--text-meta);
 	color: var(--muted);
+	white-space: nowrap;
+}
+.detail-row b,
+.detail-row em {
+	overflow: hidden;
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 .detail-row b {
@@ -3055,14 +3311,15 @@ button.detail-row:active {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-14);
-	max-width: 860px;
+	width: 100%;
 	margin: 0 auto;
-	padding: var(--space-88) var(--space-32) var(--space-160);
+	padding: var(--space-88) var(--space-30) var(--space-160);
 }
 .reader-body .preview-meta {
 	margin-bottom: 0;
 }
-.reader-body h1 {
+.reader-body h1,
+.reader-body .preview-title-row {
 	font-size: 34px;
 	line-height: 1.3;
 	font-weight: 600;
@@ -3085,13 +3342,13 @@ button.detail-row:active {
 }
 /* @design article-reading
    Article reading (balanced): the preview and the full reader share one type set. The text keeps a
-   600 column, centered, with 32 at the sides (20 on a phone); the page itself is never scaled. */
+   full-width column with 30 at the sides (20 on a phone); the page itself is never scaled. */
 :is(.preview-body, .reader-body).is-article {
 	gap: 0;
 	padding-inline: var(--article-gutter);
 }
 .reader-body.is-article {
-	max-width: calc(var(--article-measure) + 2 * var(--article-gutter));
+	max-width: var(--article-measure);
 }
 :is(.preview-body, .reader-body).is-article > * {
 	width: 100%;
@@ -3127,8 +3384,9 @@ button.detail-row:active {
 	line-height: 25px;
 	color: var(--ink);
 }
+/* Keep the centered column: paragraph spacing must not reset inline auto margins. */
 :is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points) {
-	margin: 0 0 var(--space-16);
+	margin-block: 0 var(--space-16);
 }
 :is(.preview-body, .reader-body).is-article .key-points {
 	gap: var(--space-6);
@@ -3345,13 +3603,14 @@ button.list-row:active {
 	gap: var(--space-10);
 }
 .list-row .row-side {
-	position: relative;
+	display: grid;
+	flex: none;
+	justify-items: end;
+}
+.list-row .row-side > * {
+	grid-area: 1 / 1;
 }
 .list-row .row-put {
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-4);
@@ -3385,7 +3644,7 @@ button.list-row:active {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-2);
-	padding: var(--space-12) var(--space-16) var(--space-28);
+	padding: var(--space-28) var(--space-16);
 	background: var(--canvas);
 	border-right: 1px solid var(--line);
 }
@@ -3842,6 +4101,38 @@ body:has(dialog.search[open]) #feed-grid {
 }
 .search-chips[hidden] {
 	display: none;
+}
+
+/* @design settings-sheet: group changes never resize the desktop frame. */
+@media (min-width: 651px) {
+	#modal.panel:not(.page) .settings-sheet {
+		display: flex;
+		flex-direction: column;
+		height: min(
+			calc(var(--settings-body-height) + var(--space-60) + var(--space-16)),
+			calc(100dvh - var(--space-32))
+		);
+		overflow: hidden;
+	}
+	#modal.panel:not(.page) .settings-head {
+		min-height: calc(var(--space-60) + var(--space-16));
+	}
+	#modal.panel:not(.page) .settings-layout {
+		flex: 1;
+		min-height: 0;
+		grid-template-rows: minmax(0, 1fr);
+	}
+	#modal.panel:not(.page) :is(.settings-nav, .settings-main) {
+		min-height: 0;
+		max-height: none;
+		overflow-y: auto;
+	}
+	#modal.panel:not(.page) .settings-nav button {
+		flex-shrink: 0;
+	}
+	#modal.panel:not(.page) .settings-main h2 {
+		line-height: var(--space-32);
+	}
 }
 
 /* More menu, popovers. */
@@ -4306,7 +4597,6 @@ body.is-pulling main {
 }
 /* One icon owns each phase. Text remains in accessible labels only. */
 .pull-ring:disabled {
-	opacity: 1;
 	cursor: default;
 }
 .pull-ring > svg {
@@ -4314,7 +4604,7 @@ body.is-pulling main {
 }
 .pull-ring .pull-check,
 .pull-ring .pull-retry {
-	display: none;
+	opacity: 0;
 	transform: none;
 	fill: none;
 	stroke: currentColor;
@@ -4324,11 +4614,11 @@ body.is-pulling main {
 }
 .pull-ring[data-state="success"] .pull-progress,
 .pull-ring[data-state="error"] .pull-progress {
-	display: none;
+	opacity: 0;
 }
 .pull-ring[data-state="success"] .pull-check,
 .pull-ring[data-state="error"] .pull-retry {
-	display: block;
+	opacity: 1;
 }
 .pull-ring[data-state="error"] {
 	pointer-events: auto;
@@ -4645,6 +4935,18 @@ body.is-pulling main {
 body:has(.home-top.is-tucked) .pull-ring.in-home-heading,
 body:has(#modal[open]) .pull-ring.in-home-heading {
 	visibility: hidden;
+}
+
+@media (min-width: 651px) {
+	.pull-ring.in-home-heading {
+		width: var(--space-40);
+		height: var(--space-40);
+		margin-left: calc(-1 * var(--space-20));
+	}
+	.pull-ring.in-home-heading svg {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
 }
 
 /* Preview frame: cards and fixed layers render in flow. */

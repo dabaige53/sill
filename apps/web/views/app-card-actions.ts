@@ -81,11 +81,6 @@ export const appCardActionsMethods = {
 		this.refreshCard(id);
 		if (this.dialog.open && this.currentId === id && this.modalKind === "preview")
 			this.replacePanelContent(Panels.preview(this, c));
-		if (after.length === c.tasks.length)
-			this.toast(copy("web.app.58d2aeefaa41"), () => {
-				Store.patch(id, { taskDone: before });
-				this.refreshCard(id);
-			});
 	},
 	closeMore(this: AppController, restoreFocus = false) {
 		const menu = document.querySelector<HTMLElement>(".card-more-menu");

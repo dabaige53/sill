@@ -252,7 +252,7 @@ export const panelSettings = {
 		};
 		return (
 			<>
-				<div className={"sheet"}>
+				<div className={"sheet settings-sheet"}>
 					<div className={"grabber"} aria-hidden={"true"}></div>
 					{/* @design settings-sheet */}
 					<header className={"settings-head"}>

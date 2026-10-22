@@ -64,7 +64,7 @@
 			{
 				"name": "col-min",
 				"value": "280px",
-				"usage": "卡片最小列宽。按理想列宽向下取整列数，受最小列宽和 col-limit 限制；窄屏保留单列。"
+				"usage": "卡片最小列宽。按理想列宽向下取整列数，受最小列宽限制，宽屏可继续增加列数；窄屏保留单列。"
 			},
 			{
 				"name": "col-ideal",
@@ -78,13 +78,13 @@
 			},
 			{
 				"name": "article-measure",
-				"value": "600px",
-				"usage": "资讯阅读的正文最大宽度，居中。预览与全屏相同。"
+				"value": "none",
+				"usage": "资讯正文不设置最大宽度，使用详情内边距以内的可用空间。"
 			},
 			{
 				"name": "article-gutter",
-				"value": "32px",
-				"usage": "资讯阅读的左右内边距（桌面）。容器总宽最大 664。"
+				"value": "30px",
+				"usage": "资讯阅读的左右内边距（桌面），与其他详情一致。"
 			},
 			{
 				"name": "article-gutter-sm",
@@ -290,6 +290,21 @@
 				"name": "preview-short-width",
 				"value": "560px",
 				"usage": "短待办、提醒与笔记详情的桌面宽度"
+			},
+			{
+				"name": "auth-login-width",
+				"value": "352px",
+				"usage": "独立登录页面内容宽度。"
+			},
+			{
+				"name": "auth-consent-width",
+				"value": "400px",
+				"usage": "独立授权页面内容宽度。"
+			},
+			{
+				"name": "settings-body-height",
+				"value": "560px",
+				"usage": "桌面设置分组区固定高度；低窗口随可用高度收缩。"
 			}
 		]
 	}

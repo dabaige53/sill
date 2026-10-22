@@ -26,13 +26,14 @@ Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`�
 
 ## 画板
 
-`design-system/boards/` 是设计画布「现行」页的本地副本。只有这里的画板是依据，分五组：
+`design-system/boards/` 是设计画布「现行」页的本地副本。只有这里的画板是依据，分六组：
 
 1. 手机：主页、搜索首页、结果页与 # 条件、AI 四块页面稿，手机顶行与搜索标签
 2. 网页与 Mac：主页、分栏菜单、在未读里搜索、拖入卡片、多选、AI 会话六块页面稿，Web 顶栏与 AI 框，Mac 顶栏与设置弹窗
 3. 卡片：A 字号与四列、卡片操作适用类型、量大与去重、下滑与等待
 4. 打开：卡片详情、资讯阅读、照片通用操作、退出交互
 5. 图标与品牌
+6. 账号：桌面与手机的登录、授权四块画板，保留居中布局、精简文案和明确权限范围
 
 各类卡片的实际样子看组件 FeedCard 的示例，它由产品代码生成。
 
@@ -94,3 +95,5 @@ node tests/e2e/browser.ts
 ```
 
 `index.html` 是构建产物，由 `npm run build` 生成，不手工修改。Web 使用 React、TypeScript 和 Motion。`interactions/motion.ts` 统一动效策略，`interactions/motion-playback.ts` 管理播放、取消与手势速度；CSS 只表达静止状态。
+
+登录与授权页面的设计印记位于 `server/cloud/`；检查覆盖 `apps/` 与 `server/`。设置画板由 `design-system/scripts/previews.ts` 直接生成，与产品设置组件共用布局和文案。

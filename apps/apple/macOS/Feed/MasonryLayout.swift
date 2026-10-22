@@ -1,7 +1,7 @@
 import SillKit
 import SwiftUI
 
-/// Web `columnGeometry`: the nearest ideal column count, at most `col-limit`, two while two minimum
+/// Web `columnGeometry`: the ideal column count, two while two minimum
 /// columns still fit; three or more columns only at their ideal width.
 /// @design feed-columns
 struct ColumnGeometry: Equatable {
@@ -9,13 +9,13 @@ struct ColumnGeometry: Equatable {
   var columnWidth: CGFloat = 0
   var gap: CGFloat = AppleMetrics.feedGap
   var inset: CGFloat = 0
-  /// Width of the feed area (the window less its margins, at most `feed-max`).
+  /// Width of the feed area (the window less its side margins).
   var width: CGFloat = 0
 
   init() {}
 
   init(width: CGFloat, preferences: Preferences) {
-    let (min, ideal, max) = preferences.columns
+    let (min, ideal, _) = preferences.columns
     let gap =
       width < min * 2 + AppleMetrics.feedGap
       ? AppleMetrics.feedGapSmall
@@ -24,10 +24,10 @@ struct ColumnGeometry: Equatable {
     let columns = Swift.max(
       1,
       Swift.min(
-        Int(AppleMetrics.columnLimit), fits,
+        fits,
         Swift.max(Swift.min(2, fits), Int(((width + gap) / (ideal + gap)).rounded(.down)))))
     let columnWidth =
-      columns == 1 ? width : Swift.min(max, (width - CGFloat(columns - 1) * gap) / CGFloat(columns))
+      columns == 1 ? width : (width - CGFloat(columns - 1) * gap) / CGFloat(columns)
     self.columns = columns
     self.columnWidth = Swift.max(0, columnWidth)
     self.gap = gap
@@ -35,9 +35,9 @@ struct ColumnGeometry: Equatable {
     self.width = width
   }
 
-  /// The window width less side margins, capped at `feed-max`.
+  /// The window width less the shared design margin on both sides.
   static func feedWidth(window: CGFloat) -> CGFloat {
-    Swift.max(0, Swift.min(AppleMetrics.feedMax, window - AppleMetrics.feedMargin * 2))
+    Swift.max(0, window - AppleMetrics.feedMargin * 2)
   }
 }
 
@@ -53,19 +53,26 @@ struct MasonryLayout: Layout {
   struct Cache {
     var frames: [CGRect] = []
     var height: CGFloat = 0
+    var geometry: ColumnGeometry?
   }
 
   func makeCache(subviews: Subviews) -> Cache { Cache() }
 
+  func updateCache(_ cache: inout Cache, subviews: Subviews) { cache = Cache() }
+
   func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
-    measure(subviews, &cache)
+    if cache.geometry != geometry || cache.frames.count != subviews.count {
+      measure(subviews, &cache)
+    }
     return CGSize(width: geometry.width, height: cache.height)
   }
 
   func placeSubviews(
     in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache
   ) {
-    if cache.frames.count != subviews.count { measure(subviews, &cache) }
+    if cache.geometry != geometry || cache.frames.count != subviews.count {
+      measure(subviews, &cache)
+    }
     for (index, subview) in subviews.enumerated() {
       let frame = cache.frames[index]
       subview.place(
@@ -91,6 +98,7 @@ struct MasonryLayout: Layout {
       heights[column] += height + geometry.gap + subview[StackSpacing.self]
     }
     cache.frames = frames
+    cache.geometry = geometry
     cache.height = Swift.max(0, (heights.max() ?? 0) - geometry.gap)
   }
 }

@@ -103,6 +103,55 @@ private final class Flag: @unchecked Sendable { var value = false }
   return flag.value
 }
 
+private let syntheticMail: JSONValue = .object([
+  "id": .string("m"), "type": .string("mail"), "title": .string("Synthetic mail"),
+  "time": .number(1), "tags": .array([.string("Work")]),
+])
+
+/// Desktop search: the tab token, # conditions and type chips share the home filter.
+@MainActor struct DesktopSearchTests {
+  @Test func hashFragmentNeverFiltersTheText() {
+    #expect(Feed.searchText("Synthetic #wo") == "Synthetic")
+    #expect(Feed.hashFragment("Synthetic #wo") == "wo")
+    #expect(Feed.hashFragment("Synthetic #") == "")
+    #expect(Feed.hashFragment("Synthetic") == nil)
+    #expect(Feed.hashFragment("a#b") == nil)
+  }
+
+  @Test func pickedHashOptionBecomesATokenAndLeavesTheText() async {
+    let (workspace, _) = await ready(["a"], extra: [syntheticMail])
+    let feed = Feed(workspace: workspace)
+    feed.search("Synthetic #")
+    #expect(feed.entries.count == 2)
+    let options = feed.hashOptions("")
+    #expect(
+      options.map(\.value) == [.mark(.unread), .mark(.saved), .mark(.later), .tag("Work")])
+    let rest = feed.pick(HashOption(value: .tag("Work")), in: "Synthetic #")
+    #expect(rest == "Synthetic")
+    #expect(feed.query == "Synthetic" && feed.tag == "Work")
+    #expect(feed.entries == [.card("m")])
+    #expect(!feed.hashOptions("").contains(HashOption(value: .tag("Work"))))
+    // The tab's own status is already a token, so the list leaves it out.
+    feed.select(.unread)
+    #expect(!feed.hashOptions("").contains(HashOption(value: .mark(.unread))))
+    feed.clearTokens()
+    #expect(feed.tag == nil && feed.mark == nil && feed.scope == .all)
+  }
+
+  @Test func typeChipsListTypesWithResultsAndLeaveWithTheText() async {
+    let (workspace, _) = await ready(["a"], extra: [syntheticMail])
+    let feed = Feed(workspace: workspace)
+    #expect(feed.kinds.isEmpty)
+    feed.search("Synthetic")
+    #expect(feed.kinds == [.article, .mail])
+    feed.selectKind(.mail)
+    #expect(feed.entries == [.card("m")])
+    #expect(feed.kinds == [.article, .mail])
+    feed.search("")
+    #expect(feed.kind == nil && feed.kinds.isEmpty)
+  }
+}
+
 private let syntheticTask: JSONValue = .object([
   "id": .string("task"), "type": .string("task"), "title": .string("Synthetic task"),
   "time": .number(1),
@@ -128,6 +177,155 @@ private let syntheticReminder: JSONValue = .object([
 }
 
 @MainActor struct WorkspaceTests {
+  @Test func measuredEntryAndCancelledReveal() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.open("a")
+    #expect(reader.matching && !reader.shown && !reader.toolsShown)
+    reader.geometryReady("b")
+    #expect(!reader.shown)
+    reader.geometryReady("a")
+    #expect(reader.shown && reader.toolsShown)
+    reader.closeAll()
+    try await Task.sleep(for: .milliseconds(350))
+    #expect(!reader.toolsShown && !reader.contentShown)
+  }
+
+  @Test func measuredEntryRevealsToolsWithSurfaceAndSurvivesReopening() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.open("a")
+    reader.geometryReady("a")
+    try await Task.sleep(for: .milliseconds(350))
+    #expect(reader.contentShown && reader.toolsShown && reader.shown)
+    reader.closeAll()
+    reader.open("a")
+    // Without a mounted view SwiftUI may complete closure synchronously; a new mount measures again.
+    if !reader.shown { reader.geometryReady("a") }
+    #expect(reader.shown)
+    try await Task.sleep(for: .milliseconds(350))
+    #expect(reader.presented && reader.toolsShown)
+  }
+
+  @Test func anotherCardOpensWhileThePreviousOneIsReturning() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.cardFrames["b"] = CGRect(x: 320, y: 100, width: 280, height: 200)
+    reader.open("a")
+    reader.geometryReady("a")
+    try await Task.sleep(for: .milliseconds(350))
+    reader.closeAll()
+    #expect(!reader.shown)
+    reader.open("b")
+    if !reader.shown { reader.geometryReady("b") }
+    #expect(reader.top?.card == "b")
+    #expect(reader.layers.count == 1)
+    #expect(!reader.returning)
+    #expect(reader.matchedCard == "b")
+  }
+
+  /// A related card stacks over the open one: the overlay stays shown, so the desktop bars stay
+  /// where they are, and the card below stays open under the new one.
+  @Test func relatedCardStacksWithoutReturningTheBars() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.cardFrames["a"] = CGRect(x: 24, y: 100, width: 280, height: 200)
+    reader.open("a")
+    reader.geometryReady("a")
+    try await Task.sleep(for: .milliseconds(350))
+    var changes: [Bool] = []
+    reader.onShown = { changes.append($0) }
+    let first = try #require(reader.top?.id)
+    reader.open("b")
+    #expect(reader.layers.count == 2 && reader.shown)
+    reader.close()
+    #expect(reader.layers.count == 1 && reader.top?.id == first)
+    #expect(changes.isEmpty)
+  }
+
+  /// A layer with no card to grow from mounts first and is shown on the next turn, so its
+  /// insertion and its fade never share one update.
+  @Test func unmatchedLayerShowsOnTheNextTurn() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.viewport = CGRect(x: 0, y: 0, width: 1200, height: 800)
+    reader.open("a")
+    #expect(reader.presented && !reader.matching && !reader.shown)
+    try await Task.sleep(for: .milliseconds(20))
+    #expect(reader.shown && reader.contentShown && reader.toolsShown)
+  }
+
+  @Test func articleAndPhotoHeadsNameTheirDay() async throws {
+    let (workspace, _) = await ready(
+      [],
+      extra: [
+        .object([
+          "id": .string("story"), "type": .string("article"), "title": .string("Story"),
+          "time": .number(1), "publishedAt": .string("2026-10-18"),
+          "sources": .array([.object(["name": .string("Feed"), "kind": .string("web")])]),
+        ]),
+        .object([
+          "id": .string("trip"), "type": .string("photo"), "title": .string("Trip"),
+          "time": .number(1), "takenAt": .string("2026-10-20"), "image": .string("coast"),
+        ]),
+      ])
+    let now = try #require(Format.localDay("2026-10-21"))
+    let story = try #require(workspace.model("story"))
+    #expect(story.sourceLine(day: story.articleDate, now: now) == "Feed · 10/18")
+    #expect(story.sourceLine == "Feed")
+    let trip = try #require(workspace.model("trip"))
+    let day = try #require(trip.takenDay)
+    #expect(Format.shortDay(day, now: now) == Copy.text("web.primitives.0c184871f658"))
+  }
+
+  @Test func escapeClosesOnlyTheTopLayerAndPreservesSearch() async {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    let panels = Panels()
+    let shell = Shell()
+    let interaction = DesktopInteraction(
+      panels: panels, reader: reader, shell: shell, menu: CardMenu(workspace: workspace),
+      drag: CardDrag())
+    let feed = Feed(workspace: workspace)
+    feed.search("Synthetic")
+    shell.searchFocused = true
+    reader.open("a")
+    reader.open("b")
+    for kind in [Panels.Kind.settings, .editor(["b"]), .archive, .capture] {
+      panels.open(kind)
+      #expect(interaction.dismiss())
+      #expect(panels.kind == nil)
+      #expect(reader.top?.card == "b")
+      #expect(feed.query == "Synthetic")
+    }
+    #expect(interaction.dismiss())
+    #expect(reader.top?.card == "a")
+    #expect(feed.query == "Synthetic")
+  }
+
+  @Test func escapeClosesScopeMenuBeforeSearch() {
+    let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
+    let shell = Shell()
+    let panels = Panels()
+    let reader = Reader(workspace: workspace)
+    let interaction = DesktopInteraction(
+      panels: panels, reader: reader, shell: shell, menu: CardMenu(workspace: workspace),
+      drag: CardDrag())
+    shell.searchFocused = true
+    #expect(!interaction.dismiss())
+    shell.menu.present()
+    #expect(interaction.dismiss())
+    #expect(!shell.menu.shown)
+    #expect(shell.searchFocused)
+  }
+
   @Test func writeOnOneCardDoesNotTouchOthers() async {
     let (workspace, _) = await ready()
     let a = workspace.state("a")
@@ -171,6 +369,8 @@ private let syntheticReminder: JSONValue = .object([
     await until { !workspace.state("a").isWriting }
     #expect(!workspace.state("a").bookmarked)
     #expect(workspace.notice?.text == Copy.appleWriteError)
+    #expect(workspace.notice?.isFailure == true)
+    #expect(workspace.notice?.persistent == false)
   }
 
   @Test func unknownResultIsCheckedNotRetried() async {
@@ -183,6 +383,7 @@ private let syntheticReminder: JSONValue = .object([
     #expect(await backend.writes == 1)
     #expect(await backend.reads > readsBefore)
     #expect(workspace.notice?.persistent == true)
+    #expect(workspace.notice?.isFailure == true)
   }
 
   @Test func changeMadeElsewhereSurfacesAsConflict() async {
@@ -253,6 +454,33 @@ private let syntheticReminder: JSONValue = .object([
     #expect(!feed.entries.contains(.card("a")))
   }
 
+  @Test func completionKeepsOrderUntilExplicitRefresh() async throws {
+    var task = try #require(syntheticTask.object)
+    task["due"] = .number(2)
+    let (workspace, _) = await ready(
+      (0..<45).map { "card\($0)" }, extra: [.object(task), syntheticReminder])
+    let feed = Feed(workspace: workspace)
+    feed.refreshMembership()
+    let before = feed.cardOrder
+    #expect(Array(before.prefix(2)) == ["task", "reminder"])
+    workspace.toggleTask("task", task: "t2")
+    workspace.changeReminder("reminder", .complete)
+    await until { workspace.queue.idle }
+    #expect(feed.cardOrder == before)
+    feed.loadMore()
+    #expect(Array(feed.cardOrder.prefix(before.count)) == before)
+    feed.select(.todo)
+    #expect(feed.cardOrder == ["task", "reminder"])
+    feed.select(.all)
+    #expect(Array(feed.cardOrder.prefix(2)) == ["task", "reminder"])
+    workspace.capture("A newly saved card")
+    await until { workspace.queue.idle && workspace.cards.count == 48 }
+    #expect(Array(feed.cardOrder.prefix(2)) == ["task", "reminder"])
+    feed.refreshMembership(reorder: true)
+    #expect(!feed.cardOrder.prefix(2).contains("task"))
+    #expect(!feed.cardOrder.prefix(2).contains("reminder"))
+  }
+
   @Test func pagesBy40() async {
     let (workspace, _) = await ready((0..<90).map { "card\($0)" })
     let feed = Feed(workspace: workspace)
@@ -300,7 +528,6 @@ struct LaunchOptionTests {
     #expect(workspace.capture("新的想法") == .sent)
     await until { workspace.cards.count == 4 }
     #expect(workspace.cards.contains { $0.title == "新的想法" })
-    #expect(workspace.notice?.text == Copy.text("web.app.4f060a8371c3"))
     #expect(workspace.capture("新的想法") == .duplicate)
   }
 
@@ -322,39 +549,32 @@ struct LaunchOptionTests {
   }
 }
 
-@MainActor struct UndoTests {
-  @Test func finishingTasksOffersUndo() async throws {
+@MainActor struct ActionFeedbackTests {
+  @Test func finishingTasksDoesNotShowNotice() async throws {
     let (workspace, _) = await ready(extra: [syntheticTask])
     let card = try #require(workspace.model("task"))
     workspace.toggleTask("task", task: "t2")
-    let notice = try #require(workspace.notice)
-    #expect(notice.text == Copy.text("web.app.58d2aeefaa41"))
-    #expect(workspace.state("task").completed(card))
-    notice.undo?()
     await until { workspace.queue.idle && !workspace.state("task").isWriting }
+    #expect(workspace.notice == nil)
+    #expect(workspace.state("task").completed(card))
+    workspace.toggleTask("task", task: "t2")
     #expect(!workspace.state("task").completed(card))
-    #expect(workspace.state("task").tasks(of: card).filter(\.done).map(\.id) == ["t1"])
   }
 
-  @Test func reminderUndoRestoresState() async throws {
+  @Test func reminderDoesNotShowNotice() async throws {
     let (workspace, _) = await ready(extra: [syntheticReminder])
     workspace.changeReminder("reminder", .dismiss)
-    #expect(workspace.state("reminder").dismissed)
-    let notice = try #require(workspace.notice)
-    #expect(notice.text == Copy.text("web.app.c9bb70bcaaa3"))
-    notice.undo?()
     await until { workspace.queue.idle && !workspace.state("reminder").isWriting }
-    #expect(!workspace.state("reminder").dismissed)
+    #expect(workspace.state("reminder").dismissed)
+    #expect(workspace.notice == nil)
   }
 
-  @Test func captureUndoRemovesTheCard() async throws {
+  @Test func captureDoesNotShowSuccessNotice() async throws {
     let (workspace, _) = await ready()
-    workspace.capture("撤销这一条")
-    await until { workspace.cards.count == 4 }
-    let notice = try #require(workspace.notice)
-    notice.undo?()
-    await until { workspace.cards.count == 3 }
-    #expect(!workspace.cards.contains { $0.title == "撤销这一条" })
+    workspace.capture("记下这一条")
+    await until { workspace.cards.count == 4 && workspace.queue.idle }
+    #expect(workspace.notice == nil)
+    #expect(workspace.cards.contains { $0.title == "记下这一条" })
   }
 }
 
@@ -374,24 +594,16 @@ struct LaunchOptionTests {
     #expect(selection.contains("c"))
   }
 
-  @Test func batchMarkUndoRestoresEachCard() async throws {
+  @Test func batchMarkDoesNotShowNotice() async throws {
     let (workspace, backend) = await ready()
     workspace.toggleBookmark("b")
     await until { workspace.queue.idle && !workspace.state("b").isWriting }
     let writes = await backend.writes
     workspace.mark(["a", "b", "c"], .bookmarked)
     #expect(["a", "b", "c"].allSatisfy { workspace.state($0).bookmarked })
-    let notice = try #require(workspace.notice)
-    #expect(
-      notice.text
-        == Copy.text("web.app.96e7ee93f3ba") + "3" + Copy.text("web.common.cardCountSuffix"))
     await until { workspace.queue.idle && !workspace.state("a").isWriting }
     #expect(await backend.writes == writes + 1)
-    notice.undo?()
-    await until { workspace.queue.idle && workspace.state("a").bookmarked == false }
-    #expect(!workspace.state("a").bookmarked)
-    #expect(workspace.state("b").bookmarked)
-    #expect(!workspace.state("c").bookmarked)
+    #expect(workspace.notice == nil)
   }
 
   @Test func dragHandsCardsOnlyWhenDroppedOnTarget() {
@@ -414,7 +626,7 @@ struct LaunchOptionTests {
 }
 
 @MainActor struct ArchiveTests {
-  @Test func restoreReturnsCardToDeskWithUndo() async throws {
+  @Test func restoreReturnsCardToDeskWithoutNotice() async throws {
     let (workspace, _) = await ready()
     let feed = Feed(workspace: workspace)
     workspace.change("b", ["archived": .bool(true)])
@@ -428,13 +640,8 @@ struct LaunchOptionTests {
     #expect(!workspace.state("b").archived)
     #expect(feed.cardOrder.contains("b"))
     #expect(feed.shelfCount == 0)
-    let notice = try #require(workspace.notice)
-    #expect(notice.text == Copy.text("web.app.fff336942d9b"))
     await until { workspace.queue.idle && !workspace.state("b").isWriting }
-    notice.undo?()
-    #expect(workspace.state("b").archived)
-    #expect(!feed.cardOrder.contains("b"))
-    #expect(feed.shelfCount == 1)
+    #expect(workspace.notice == nil)
   }
 }
 

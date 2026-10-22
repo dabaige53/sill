@@ -5,7 +5,7 @@
 	"description": "Local card workspace with shared UI and agent operations",
 	"scripts": {
 		"build": "node scripts/build.ts",
-		"test": "npm run files:check && npm run contracts:check && npm run build && npm run check && npm run typecheck && npm run test:contracts && npm run test:core && npm run test:server",
+		"test": "npm run files:check && npm run build && npm run check && npm run typecheck && npm run test:contracts && npm run test:core && npm run test:server && npm run test:performance-report",
 		"contracts:generate": "node design-system/scripts/export-data.ts && node scripts/export-preparation.ts && node scripts/export-contracts.ts && node scripts/export-design.ts",
 		"contracts:check": "node design-system/scripts/export-data.ts --check && node scripts/export-preparation.ts --check && node scripts/export-contracts.ts --check && node scripts/export-design.ts --check && node scripts/check-contracts.ts",
 		"test:contracts": "npm run contracts:check && node --import tsx --test tests/contracts/*.test.ts",
@@ -48,7 +48,9 @@
 		"test:motion-material": "node tests/e2e/motion-material-browser.ts",
 		"test:pwa-touch": "node tests/e2e/pwa-touch-browser.ts",
 		"dev": "node scripts/dev.ts",
-		"dev:cloud": "node scripts/dev.ts --cloud"
+		"dev:cloud": "node scripts/dev.ts --cloud",
+		"test:performance-report": "node --import tsx --test tests/apple/*.test.ts",
+		"perf:macos": "node scripts/performance-macos.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",

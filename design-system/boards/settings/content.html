@@ -1,0 +1,5859 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>设置</title><style>/* Sill · tokens · shared source (design-system/tokens.json v2) */
+:root {
+	--edge-blur-soft: blur(4px);
+	--edge-blur-mid: blur(8px);
+	--edge-blur-strong: blur(16px);
+	--summary-reading-lines: 4;
+	--settings-body-height: 560px;
+	--search-width: 280px;
+	--search-tagged-width: 360px;
+	--search-focused-width: 480px;
+	--dur-deck: 260ms;
+	--dur-show: 320ms;
+	--dur-reveal: 420ms;
+	--dur-lens: 0ms;
+	--delay-loading: 300ms;
+	--stagger: 30ms;
+	--dur-read: 220ms;
+	--dur-sheet: 260ms;
+	--dur-close: 220ms;
+	--dur-open: 280ms;
+	--dur-state: 220ms;
+	--dur-menu: 200ms;
+	--dur-menu-close: 160ms;
+	--dur-hover: 160ms;
+	--dur-press: 120ms;
+	--ease-spring: linear(
+		0,
+		0.03 2%,
+		0.11 4.4%,
+		0.24 7%,
+		0.51 12%,
+		0.75 17%,
+		0.91 22%,
+		1.01 27.4%,
+		1.05 31%,
+		1.065 35.5%,
+		1.06 40%,
+		1.03 49%,
+		1.007 59%,
+		0.997 70%,
+		1
+	);
+	--feed-max: 1640px;
+	--preview-short-width: 560px;
+	--canvas: #f5f5f7;
+	--card: #fff;
+	--ink: #1d1d1f;
+	--muted: #636366;
+	--secondary: #68686d;
+	--faint: #e8e8ed;
+	--surface: #f0f0f2;
+	--ai-composer: #eff3f4;
+	--ai-control: #e4e9eb;
+	--ai-ink: #0f1419;
+	--faint-row: #ececf0;
+	--line: rgba(0, 0, 0, 0.06);
+	--line-card: rgba(0, 0, 0, 0.08);
+	--line-hover: rgba(0, 0, 0, 0.14);
+	--accent: #0066cc;
+	--accent-fill: #0066cc;
+	--accent-soft: #edf4ff;
+	--accent-ink: #0057ad;
+	--success: #248a3d;
+	--alert: #b45309;
+	--card-read: #e9e9ee;
+	--line-read: rgba(0, 0, 0, 0.04);
+	--alert-soft: #fdf3e7;
+	--success-soft: #eaf5ec;
+	--highlight: #fff3c4;
+	--toggle-on: #0066cc;
+	--toggle-off: #e5e5ea;
+	--dim: rgba(18, 20, 26, 0.26);
+	--frost: rgba(245, 245, 247, 0.56);
+	--sky: #dfe9f3;
+	--sky-soft: #eef3f8;
+	--ledge: #e9e4dc;
+	--ledge-deep: #d8d1c5;
+	/* Existing fixed colors and internal spacing; identical in both themes. */
+	--fixed-white: #fff;
+	--fixed-ink: #1d1d1f;
+	--selection: #d8e9ff;
+	--fixed-podcast-light: #f4ede4;
+	--fixed-podcast-dark: #2a2622;
+	--fixed-podcast-cover-start: #d9cbbb;
+	--fixed-podcast-cover-mid: #efe6db;
+	--fixed-podcast-cover-end: #cdbcaa;
+	--fixed-photo-canvas: #0b0b0c;
+	--fixed-white-72: rgba(255, 255, 255, 0.72);
+	--fixed-white-82: rgba(255, 255, 255, 0.82);
+	--fixed-white-75: rgba(255, 255, 255, 0.75);
+	--fixed-white-12: rgba(255, 255, 255, 0.12);
+	--fixed-black-5: rgba(0, 0, 0, 0.05);
+	--fixed-black-6: rgba(0, 0, 0, 0.06);
+	--fixed-black-8: rgba(0, 0, 0, 0.08);
+	--fixed-black-10: rgba(0, 0, 0, 0.1);
+	--fixed-black-12: rgba(0, 0, 0, 0.12);
+	--fixed-black-14: rgba(0, 0, 0, 0.14);
+	--fixed-black-15: rgba(0, 0, 0, 0.15);
+	--fixed-black-16: rgba(0, 0, 0, 0.16);
+	--fixed-black-18: rgba(0, 0, 0, 0.18);
+	--fixed-black-55: rgba(0, 0, 0, 0.55);
+	--space-1: 1px;
+	--space-2: 2px;
+	--space-3: 3px;
+	--space-4: 4px;
+	--space-6: 6px;
+	--space-8: 8px;
+	--space-10: 10px;
+	--space-11: 11px;
+	--space-12: 12px;
+	--space-14: 14px;
+	--space-16: 16px;
+	--space-18: 18px;
+	--space-20: 20px;
+	--space-22: 22px;
+	--space-24: 24px;
+	--space-25: 25px;
+	--space-26: 26px;
+	--space-28: 28px;
+	--space-30: 30px;
+	--space-32: 32px;
+	--space-34: 34px;
+	--space-36: 36px;
+	--space-40: 40px;
+	--space-44: 44px;
+	--space-46: 46px;
+	--space-48: 48px;
+	--space-52: 52px;
+	--space-60: 60px;
+	--space-64: 64px;
+	--space-88: 88px;
+	--space-92: 92px;
+	--space-104: 104px;
+	--space-130: 130px;
+	--space-140: 140px;
+	--space-150: 150px;
+	--space-160: 160px;
+	--font:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+		"Microsoft YaHei", sans-serif;
+	--rounded:
+		ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+	--gap: 24px;
+	--gap-sm: 12px;
+	--margin-sm: 16px;
+	--gap-md: 20px;
+	--col-min: 280px;
+	--col-ideal: 340px;
+	--col-max: 380px;
+	--article-measure: none;
+	--article-gutter: 30px;
+	--article-gutter-sm: 20px;
+	--hit-target: 44px;
+	--summary-lines: 3;
+	--block-gap: 8px;
+	--card-padding: 18px;
+	--card-padding-sm: 16px;
+	--cover-inset: 8px;
+	--thumb: 76px;
+	--card-radius: 22px;
+	--card-radius-sm: 16px;
+	--cover-radius: 14px;
+	--panel-radius: 24px;
+	--sheet-radius: 28px;
+	--control-radius: 12px;
+	--pill-radius: 999px;
+	/* Type sizes follow the type styles in design-system/tokens.json as --text-<style>. */
+	--text-figure-xl: 44px;
+	--text-figure: 34px;
+	--text-reader-title: 30px;
+	--text-figure-route: 28px;
+	--text-detail-title: 26px;
+	--text-panel-title: 22px;
+	--text-quote: 21px;
+	--text-card-title: 16px;
+	--text-input: 17px;
+	--text-reader-body: 17px;
+	--text-article-title: 22px;
+	--text-article-section: 17px;
+	--text-article-body: 15px;
+	--text-article-meta: 12px;
+	--text-summary: 14px;
+	--text-body: 15px;
+	--text-control: 14px;
+	--text-meta: 13px;
+	--text-caption: 12px;
+	--text-card-meta: 12px;
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.025), 0 4px 16px rgba(0, 0, 0, 0.035);
+	--shadow-hover: 0 2px 5px rgba(0, 0, 0, 0.04), 0 10px 24px rgba(0, 0, 0, 0.07);
+	--shadow-glass: 0 2px 6px rgba(16, 24, 40, 0.05), 0 12px 32px rgba(16, 24, 40, 0.09);
+	--shadow-float: 0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 18px rgba(16, 24, 40, 0.07);
+	--shadow-sheet: 0 2px 8px rgba(0, 0, 0, 0.04), 0 30px 90px rgba(0, 0, 0, 0.18);
+	--glass: rgba(255, 255, 255, 0.38);
+	--glass-thick: rgba(255, 255, 255, 0.88);
+	--glass-edge: rgba(255, 255, 255, 0.9);
+	--glass-shade: rgba(255, 255, 255, 0.32);
+	--glass-rim: rgba(0, 0, 0, 0.07);
+	--glass-filter: blur(12px) saturate(1.9) brightness(1.06);
+	--glass-press: rgba(0, 0, 0, 0.06);
+	--ease: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-reveal: cubic-bezier(0.5, 1, 0.89, 1);
+	--fast: 140ms;
+	--base: 220ms;
+	--layout: 220ms;
+	--settle: 220ms;
+	--dur-reduced: 70ms;
+	--dur-tuck: 240ms;
+	--rest-show: 650ms;
+	color-scheme: light;
+}
+body[data-density="compact"] {
+	--col-min: 240px;
+	--col-ideal: 280px;
+	--col-max: 320px;
+	--summary-lines: 3;
+}
+body[data-density="roomy"] {
+	--col-min: 340px;
+	--col-ideal: 400px;
+	--col-max: 440px;
+}
+/* Dark: same hierarchy, lower light. Cards stay one step above the canvas. */
+/* Photos keep their black viewing context, including shared tools, in either theme (ADR 0041). */
+:root[data-theme="dark"],
+.lightbox .float-bar {
+	--canvas: #111113;
+	--card: #1c1c1f;
+	--ink: #f2f2f4;
+	--muted: #a1a1a8;
+	--secondary: #a1a1a8;
+	--faint: #2c2c31;
+	--surface: #26262a;
+	--ai-composer: #202327;
+	--ai-control: #2f3336;
+	--ai-ink: #e7e9ea;
+	--faint-row: #1f1f23;
+	--line: rgba(255, 255, 255, 0.07);
+	--line-card: rgba(255, 255, 255, 0.08);
+	--line-hover: rgba(255, 255, 255, 0.16);
+	--accent: #4c9bff;
+	--accent-fill: #0066cc;
+	--accent-soft: #16283f;
+	--accent-ink: #8fc0ff;
+	--success: #3fb25e;
+	--alert: #f0a04b;
+	--card-read: #121215;
+	--line-read: rgba(255, 255, 255, 0.04);
+	--alert-soft: #3a2a17;
+	--success-soft: #163021;
+	--highlight: #5a4a12;
+	--toggle-off: #3a3a3f;
+	--dim: rgba(0, 0, 0, 0.52);
+	--frost: rgba(17, 17, 19, 0.6);
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	--shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.45);
+	--shadow-glass: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.36);
+	--shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+	--shadow-sheet: 0 30px 90px rgba(0, 0, 0, 0.6);
+	--glass: rgba(40, 40, 46, 0.42);
+	--glass-thick: rgba(36, 36, 40, 0.9);
+	--glass-edge: rgba(255, 255, 255, 0.22);
+	--glass-shade: rgba(255, 255, 255, 0.06);
+	--glass-rim: rgba(0, 0, 0, 0.5);
+	--glass-filter: blur(12px) saturate(1.7) brightness(0.9);
+	--glass-press: rgba(255, 255, 255, 0.1);
+	color-scheme: dark;
+}
+
+/* Sill · base · shared source */
+* {
+	box-sizing: border-box;
+	/* A held card must not pass its motion state to its menu or other children. */
+	--motion-managed-transform: initial;
+}
+html {
+	-webkit-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
+	background: var(--canvas);
+	scroll-behavior: auto;
+	scrollbar-gutter: auto;
+	scrollbar-width: none;
+	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
+	overscroll-behavior-y: none;
+}
+/* Hide the page track without disabling wheel, touch or keyboard scrolling. */
+html::-webkit-scrollbar {
+	display: none;
+}
+body {
+	overscroll-behavior-y: none;
+	margin: 0;
+	font-family: var(--font);
+	color: var(--ink);
+	font-size: var(--text-control);
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	background: var(--canvas);
+	min-height: 100dvh;
+}
+button,
+input,
+textarea,
+select {
+	font: inherit;
+}
+button {
+	color: inherit;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	border: 0;
+	background: none;
+	padding: 0;
+}
+button:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+a {
+	color: inherit;
+	text-decoration: none;
+}
+img {
+	display: block;
+	max-width: 100%;
+}
+mark {
+	background: var(--highlight);
+	color: inherit;
+	border-radius: 3px;
+	padding: 0 var(--space-1);
+}
+button,
+input,
+textarea,
+a {
+	-webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
+}
+input,
+textarea {
+	border: 1px solid var(--line);
+	background: var(--surface);
+	outline: 0;
+	border-radius: var(--control-radius);
+	padding: var(--space-12) var(--space-14);
+	color: var(--ink);
+}
+textarea {
+	resize: vertical;
+}
+input::placeholder,
+textarea::placeholder {
+	color: var(--secondary);
+}
+::selection {
+	background: var(--selection);
+	color: var(--fixed-ink);
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: calc(-1 * var(--space-1));
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+.icon {
+	flex: 0 0 auto;
+	vertical-align: middle;
+	pointer-events: none;
+}
+main {
+	width: 100%;
+	padding: var(--space-40) var(--space-40) var(--space-140);
+	margin: 0 auto;
+	min-height: 100dvh;
+}
+.feed-grid {
+	position: relative;
+	width: 100%;
+	max-width: var(--feed-max);
+	margin: 0 auto;
+	min-height: 60dvh;
+}
+h1,
+h2,
+p {
+	margin: 0;
+}
+.empty-card {
+	position: relative;
+	max-width: 420px;
+	margin: 12dvh auto 0;
+	padding: var(--space-32) var(--space-28);
+	text-align: center;
+	color: var(--muted);
+}
+.empty-card h2 {
+	font-size: var(--text-body);
+	font-weight: 400;
+	color: var(--muted);
+}
+.empty-card p {
+	font-size: var(--text-meta);
+	margin-top: var(--space-8);
+}
+/* Layout writes inline width/left/top for every feed item; an empty desk stays in flow. */
+.feed-grid > .empty-card {
+	position: relative;
+	left: auto !important;
+	top: auto !important;
+	width: auto !important;
+}
+/* Drop links or text anywhere on the window to capture them. */
+body.is-dropping:after {
+	content: "";
+	position: fixed;
+	inset: 16px;
+	border: 2px dashed var(--accent);
+	border-radius: 24px;
+	background: color-mix(in srgb, var(--accent-soft) 70%, transparent);
+	pointer-events: none;
+	z-index: 300;
+}
+.drop-hint {
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 301;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-6);
+	pointer-events: none;
+	font-size: var(--text-input);
+	font-weight: 600;
+}
+.drop-hint small {
+	font-size: var(--text-meta);
+	font-weight: 500;
+	color: var(--accent);
+}
+.drop-hint[hidden] {
+	display: none;
+}
+/* The end of the desk is a short line, not a sentence. */
+.feed-end {
+	width: 28px;
+	height: 3px;
+	border-radius: 2px;
+	background: var(--line);
+	margin: var(--space-40) auto 0;
+}
+body.feed-more .feed-end,
+main:has(.welcome, .empty-card) .feed-end {
+	display: none;
+}
+/* Recovery lives in the top layer and never participates in the card layout. */
+#sync-status {
+	flex: none;
+	width: var(--hit-target);
+	margin: 0;
+}
+#sync-status[hidden] {
+	display: none;
+}
+#sync-status > .icon-button {
+	color: var(--alert);
+	background: transparent;
+}
+#sync-status > .icon-button::before {
+	content: "";
+	position: absolute;
+	inset: var(--space-2);
+	border-radius: 50%;
+	background: var(--alert-soft);
+}
+#sync-status > .icon-button > .icon {
+	position: relative;
+	width: var(--space-20);
+	height: var(--space-20);
+}
+body > #sync-status {
+	position: fixed;
+	top: var(--space-20);
+	right: var(--space-12);
+}
+#sync-status-panel {
+	position: fixed;
+	inset: auto var(--space-12) auto auto;
+	top: var(--sync-panel-top, var(--space-64));
+	width: min(var(--preview-short-width), calc(100vw - var(--space-24)));
+	max-height: calc(100dvh - var(--sync-panel-top, var(--space-64)) - var(--space-12));
+	margin: 0;
+	padding: var(--space-16);
+	overflow: auto;
+	overflow-wrap: anywhere;
+	border: 1px solid var(--line);
+	border-radius: var(--card-radius-sm);
+	background: var(--card);
+	color: var(--ink);
+	box-shadow: var(--shadow-float);
+}
+#sync-status-panel .sync-status-copy strong {
+	display: block;
+	font-size: var(--text-body);
+	font-weight: 600;
+}
+#sync-status-panel .sync-status-copy p {
+	margin: var(--space-6) 0 0;
+	font-size: var(--text-control);
+	line-height: 1.6;
+	color: var(--muted);
+}
+.sync-status-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+	margin-top: var(--space-16);
+}
+#sync-status-panel .sync-status-retry {
+	color: var(--accent);
+}
+#sync-status-panel .sync-status-discard {
+	margin-left: auto;
+	color: var(--muted);
+}
+/* @design nav-capsule — recovery actions replace the duplicate offline pill. */
+body:has(#sync-status:not([hidden])) #dock #offline {
+	display: none;
+}
+
+/* Controls suppress text selection; reading content keeps native copy/link menus. */
+button,
+[role="button"] {
+	touch-action: manipulation;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+a {
+	touch-action: manipulation;
+}
+
+/* Nested app panels follow the same hidden-track rule as the page. */
+.settings-main::-webkit-scrollbar,
+.search-results::-webkit-scrollbar,
+.ai-context::-webkit-scrollbar,
+.selection-context::-webkit-scrollbar,
+#selection-menu::-webkit-scrollbar,
+#modal.panel .sheet::-webkit-scrollbar,
+.cloud-compose-body::-webkit-scrollbar {
+	display: none;
+}
+
+/* Sill · controls · shared source */
+/* Liquid glass, for the functional layer only (bars, round buttons, menus floating over content).
+   A clear, lightly tinted lens: little fill, a short blur with lifted saturation so the content
+   beneath still shows its colour, a bright specular rim on the top-left, a softer one bottom-right,
+   and a hairline that separates it from white cards. The lens light is a highlight, not decoration. */
+.glass {
+	position: relative;
+	isolation: isolate;
+	background: var(--glass);
+	border: 0;
+	box-shadow:
+		inset 0 1px 0.5px var(--glass-edge),
+		inset 1px 0 0.5px var(--glass-shade),
+		inset 0 -1px 1px var(--glass-shade),
+		inset 0 0 0 0.5px var(--glass-shade),
+		0 0 0 0.5px var(--glass-rim),
+		var(--shadow-glass);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+}
+.glass::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	pointer-events: none;
+	background: radial-gradient(120% 90% at 20% 0%, var(--glass-shade), transparent 60%);
+}
+.icon-button {
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+	padding: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: transparent;
+	position: relative;
+	color: var(--ink);
+}
+@media (hover: hover) and (pointer: fine) {
+	.icon-button:hover {
+		background: var(--surface);
+	}
+}
+.icon-button:active {
+	background: var(--surface);
+}
+.icon-button.active {
+	color: var(--accent);
+}
+.icon-button.active svg {
+	fill: currentColor;
+	fill-opacity: 0.9;
+}
+
+/* The bottom rail: one navigation capsule, centred. Home, search, AI and settings; a glass lens
+   marks where you are and slides between places. Anything else that floats at the bottom
+   (selection, new content, offline) sits beside it on the same baseline. */
+:root {
+	--rail-edge: 28px;
+	--rail-bottom: 28px;
+	--rail-row: 60px;
+	--rail-gap: 8px;
+	--rail-tuck: var(--dur-tuck);
+	--nav-tab: 76px;
+}
+#dock {
+	position: fixed;
+	left: var(--rail-edge);
+	right: var(--rail-edge);
+	bottom: var(--rail-bottom);
+	z-index: 45;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: var(--rail-gap);
+	pointer-events: none;
+}
+body:has(#modal[open] .settings-layout) #dock {
+	display: none;
+}
+#dock > * {
+	pointer-events: auto;
+}
+#dock.is-tucked {
+	transform: var(--motion-toolbar-transform, translateY(20px));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+/* Descendants opt into hit testing normally, so suppress them throughout the fade. */
+#dock.is-tucked *,
+body:has(#modal[open]:not(.page)) #dock * {
+	pointer-events: none;
+}
+.nav-capsule {
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: var(--rail-row);
+	padding: var(--space-4);
+	border-radius: var(--pill-radius);
+}
+.nav-tab {
+	position: relative;
+	z-index: 1;
+	width: var(--nav-tab);
+	height: 100%;
+	padding: 0;
+	border: 0;
+	border-radius: var(--pill-radius);
+	background: none;
+	color: color-mix(in srgb, var(--ink) 62%, transparent);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	font: inherit;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+.nav-tab[aria-current="page"] {
+	color: var(--ink);
+}
+.nav-icon {
+	display: grid;
+	place-items: center;
+	height: 28px;
+}
+/* The current destination is immediate; the merged motion rules keep the lens stable. */
+.nav-lens {
+	position: absolute;
+	top: 4px;
+	bottom: 4px;
+	left: 0;
+	width: var(--lens-w, var(--nav-tab));
+	translate: var(--lens-x, 4px) 0;
+	border-radius: var(--pill-radius);
+	background: var(--glass-press);
+	box-shadow:
+		inset 0 1px 0.5px var(--glass-edge),
+		inset 0 -0.5px 0.5px var(--glass-shade);
+}
+/* A filter in effect: a small dot under the search icon, never a count. */
+#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after {
+	content: "";
+	position: absolute;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--ink);
+	translate: 11px -9px;
+}
+.nav-tab .nav-icon {
+	position: relative;
+}
+/* Settings uses the same line weight and color as the other navigation icons. */
+.account-wrap {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+}
+/* Scroll edge: where the feed meets the rail it softens and blurs a little, so the glass reads
+   against calm content. It belongs to the rail and leaves with it. */
+.scroll-edge {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: calc(var(--rail-bottom) + var(--rail-row) + 20px);
+	z-index: 44;
+	pointer-events: none;
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--canvas) 70%, transparent),
+		color-mix(in srgb, var(--canvas) 0%, transparent)
+	);
+}
+.scroll-edge.is-tucked {
+	opacity: 0;
+}
+/* New content and offline float just above the capsule, centred, so the capsule never shifts.
+   New content sits outside the dock so the phone can lift it to the top (ADR 0036). */
+#dock #offline {
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% + 10px);
+	translate: -50% 0;
+}
+#new-count {
+	position: fixed;
+	z-index: 46;
+	left: 50%;
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 10px);
+	translate: -50% 0;
+	height: 40px;
+	padding: 0 var(--space-16);
+	border-radius: var(--pill-radius);
+	font-size: var(--text-meta);
+	font-weight: 600;
+	color: var(--ink);
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+}
+#new-count:has(.new-sources) {
+	padding-left: var(--space-8);
+}
+.new-sources {
+	display: inline-flex;
+	margin-right: var(--space-2);
+}
+.new-sources > span {
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	margin-left: calc(-1 * var(--space-6));
+	border-radius: 50%;
+	background: var(--card);
+	border: 1px solid var(--line);
+	color: var(--secondary);
+}
+.new-sources > span:first-child {
+	margin-left: 0;
+}
+/* Desktop: the notice rides with the capsule and leaves with it. */
+body:has(#dock.is-tucked) #new-count,
+body:has(#modal[open]) #new-count {
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+#new-count[hidden] {
+	display: none;
+}
+/* Busy: one quiet arc travelling around the settings icon. No percentages, no spinner text. */
+.orb-arc {
+	position: absolute;
+	inset: -3px;
+	width: 34px;
+	height: 34px;
+	pointer-events: none;
+	opacity: 0;
+}
+.orb-arc circle {
+	fill: none;
+	stroke: var(--accent);
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-dasharray: 22 78;
+	transform-origin: center;
+}
+#dock.is-busy .orb-arc {
+	opacity: 0.9;
+}
+/* Done: the arc closes and a check shows over the settings icon, then both fade. */
+.orb-done {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	border-radius: 50%;
+	background: var(--glass-thick);
+	color: var(--accent);
+	opacity: 0;
+	scale: 0.8;
+	pointer-events: none;
+}
+#dock.is-done .orb-done {
+	opacity: 1;
+	scale: 1;
+}
+#dock.is-done .orb-arc {
+	opacity: 0.9;
+}
+#dock.is-done .orb-arc circle {
+	stroke-dasharray: 100 0;
+}
+/* Offline: a quiet pill above the rail; a tap retries. */
+#offline {
+	height: 40px;
+	padding: 0 var(--space-14);
+	border-radius: var(--pill-radius);
+	font-size: var(--text-meta);
+	font-weight: 500;
+	color: var(--alert);
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-8);
+}
+#offline:before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--alert);
+}
+#offline[hidden] {
+	display: none;
+}
+
+/* Selection takes the rail row; new-content and offline pills step aside. */
+:is(#selection-bar, #search-selection-bar) {
+	position: relative;
+	justify-content: safe center;
+	height: var(--rail-row);
+	border-radius: var(--pill-radius);
+	display: flex;
+	align-items: center;
+	padding: var(--space-4);
+	gap: var(--space-2);
+	max-width: calc(100vw - 2 * var(--rail-edge) - 3 * var(--nav-tab) - 8px - var(--rail-gap));
+	overflow: visible;
+	scrollbar-width: none;
+}
+#dock:has(#selection-bar:not([hidden])) #offline,
+body:has(#selection-bar:not([hidden])) #new-count {
+	display: none;
+}
+:is(#selection-bar, #search-selection-bar)[hidden] {
+	display: none;
+}
+.selection-count {
+	display: grid;
+	place-items: center;
+	min-width: 28px;
+	height: 28px;
+	margin: 0 var(--space-8);
+	padding: 0 var(--space-8);
+	border-radius: var(--pill-radius);
+	background: var(--accent-fill);
+	color: var(--fixed-white);
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+.toolbar-sep {
+	width: 1px;
+	height: 22px;
+	background: var(--line-hover);
+	margin: 0 var(--space-6);
+	flex: none;
+}
+/* A card's own verbs (reply, open the source, join, remind again) follow the rule in accent;
+   the shared verbs before it stay in ink (ADR 0037). */
+.float-bar .icon-button.is-own {
+	color: var(--accent);
+}
+.float-bar .icon-button,
+:where(#dock) button {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+/* One name for touch, pointer and keyboard; edge controls open their names inward. */
+.float-bar .icon-button::after {
+	--tip-x: -50%;
+	content: attr(aria-label);
+	position: absolute;
+	bottom: calc(100% + 10px);
+	left: 50%;
+	translate: var(--tip-x) 4px;
+	padding: var(--space-6) var(--space-10);
+	border-radius: 10px;
+	background: var(--ink);
+	color: var(--card);
+	font-size: var(--text-meta);
+	font-weight: 500;
+	line-height: 1.3;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+}
+.float-bar .icon-button:is(:first-child, :last-child)::after {
+	--tip-x: 0px;
+}
+.float-bar .icon-button:last-child::after {
+	left: auto;
+	right: 50%;
+}
+.float-bar .icon-button.is-tipping::after,
+.float-bar .icon-button.is-hover-tipping::after,
+.float-bar .icon-button:focus-visible::after {
+	opacity: 1;
+	translate: var(--tip-x) 0;
+}
+#toast {
+	position: fixed;
+	right: var(--rail-edge);
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
+	max-width: min(420px, calc(100vw - 2 * var(--rail-edge)));
+	min-height: 44px;
+	padding: 0 var(--space-6) 0 var(--space-18);
+	border-radius: var(--pill-radius);
+	z-index: 120;
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	font-size: var(--text-meta);
+}
+/* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
+#modal #toast {
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
+}
+#toast.is-alert {
+	color: var(--ink);
+}
+#toast.is-alert .icon-button {
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+}
+body.is-dragging #toast {
+	visibility: hidden;
+}
+#toast[hidden] {
+	display: none;
+}
+#toast-text {
+	white-space: normal;
+	padding: var(--space-10) 0;
+}
+#toast-text:only-child {
+	padding-right: var(--space-12);
+}
+#toast-action .text-link {
+	padding: var(--space-10) var(--space-12);
+}
+#toast-action:empty {
+	display: none;
+}
+
+/* Desktop bottom rail (ADR 0049): the AI box replaces the navigation capsule.
+   Selection takes the same 640 × 60 slot; a carried card brings the AI box back. */
+.ai-dock {
+	display: none;
+}
+@media (min-width: 651px) {
+	#dock .nav-capsule,
+	#dock .selection-ai-target {
+		display: none;
+	}
+	.ai-dock {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+		width: min(640px, 100%);
+		height: var(--rail-row);
+		padding: 0 var(--space-12);
+		border-radius: 30px;
+	}
+	#dock:has(#selection-bar:not([hidden])) .ai-dock {
+		display: none;
+	}
+	#dock.is-ai-drag #selection-bar {
+		display: none;
+	}
+	#dock.is-ai-drag:has(#selection-bar) .ai-dock {
+		display: flex;
+	}
+	.ai-dock.is-ready {
+		background: color-mix(in srgb, var(--accent) 7%, var(--card));
+		box-shadow:
+			0 0 0 2px var(--accent),
+			0 16px 40px -14px color-mix(in srgb, var(--accent) 45%, transparent);
+	}
+	/* While a card is carried, an accent ring keeps spreading out of the box. */
+	.ai-dock-pulse {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: var(--pill-radius);
+		box-shadow: 0 0 0 2px var(--accent);
+		opacity: 0;
+		pointer-events: none;
+	}
+	.ai-dock.is-ready .ai-dock-input::placeholder {
+		color: var(--accent);
+		font-weight: 600;
+		opacity: 1;
+	}
+	.ai-dock-button {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 36px;
+		height: 36px;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		color: var(--ink);
+	}
+	.ai-dock-button:disabled {
+		color: var(--secondary);
+		cursor: default;
+	}
+	.ai-dock-send > span {
+		display: grid;
+		place-items: center;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: var(--faint);
+		color: var(--card);
+	}
+	.ai-dock-send:not(:disabled) > span {
+		background: var(--ink);
+	}
+	.ai-dock-input {
+		flex: 1;
+		min-width: 0;
+		height: 36px;
+		padding: 0 var(--space-4);
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		color: var(--ink);
+		font-size: 16px;
+		line-height: 36px;
+	}
+	.ai-dock-input:focus-visible {
+		outline: 0;
+	}
+	.ai-dock-context:empty {
+		display: none;
+	}
+	.ai-dock-context {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: calc(100% + var(--space-8));
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-8);
+	}
+	.ai-dock-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-6);
+		max-width: 260px;
+		height: 30px;
+		padding: 0 var(--space-6) 0 var(--space-10);
+		border-radius: var(--space-10);
+		background: var(--card);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		font-size: var(--text-meta);
+	}
+	.ai-dock-chip-title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.ai-dock-chip button {
+		display: grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--muted);
+	}
+	/* New content and offline wait under the top bar, clear of the AI box and its context. */
+	#new-count,
+	#dock #offline {
+		position: fixed;
+		top: calc(var(--space-12) + var(--space-60) + var(--space-10));
+		bottom: auto;
+	}
+	body:has(#dock.is-tucked) #new-count {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+	#dock #selection-bar {
+		width: max-content;
+		max-width: 100%;
+		justify-content: center;
+	}
+	#dock #selection-bar .icon-button {
+		width: 44px;
+		height: 44px;
+	}
+}
+
+@media (min-width: 651px) {
+	/* One glass for the bottom rail: the AI box, the selection bars and detail tools all keep
+	   the `.glass` lens (clear tint, bright edge, strong blur), like Apple's Liquid Glass. */
+	.ai-dock,
+	#selection-bar,
+	#search-selection-bar,
+	dialog:not(.lightbox) > .float-bar {
+		background: var(--glass);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
+	}
+	/* The search field and the AI box take typing across the whole capsule. */
+	.ai-dock {
+		cursor: text;
+	}
+	.ai-dock-context {
+		cursor: default;
+	}
+	.ai-dock-send:disabled > span {
+		color: var(--secondary);
+	}
+	.ai-dock-send .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock-input::placeholder {
+		color: var(--secondary);
+		opacity: 1;
+	}
+	#search-selection-bar {
+		width: max-content;
+		margin-inline: auto;
+	}
+}
+
+/* Chips, segmented controls and switches. */
+.chips {
+	display: flex;
+	gap: var(--space-8);
+	flex-wrap: wrap;
+}
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: 36px;
+	padding: 0 var(--space-14);
+	border-radius: var(--pill-radius);
+	background: var(--card);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	white-space: nowrap;
+	box-shadow: 0 1px 3px var(--fixed-black-6);
+}
+.chip .icon {
+	color: var(--secondary);
+}
+@media (hover: hover) and (pointer: fine) {
+	.chip:hover {
+		background: var(--surface);
+	}
+}
+.chip:active {
+	background: var(--surface);
+}
+.chip.active {
+	background: var(--ink);
+	color: var(--card);
+}
+.chip.active .icon {
+	color: var(--card);
+}
+.chip.soft {
+	background: var(--surface);
+	box-shadow: none;
+}
+.chip.soft.active {
+	background: var(--ink);
+}
+.tag-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	height: 32px;
+	padding: 0 var(--space-4) 0 var(--space-12);
+	border-radius: var(--pill-radius);
+	background: var(--surface);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	font-weight: 500;
+}
+.tag-pill button {
+	width: 24px;
+	height: 24px;
+	display: grid;
+	place-items: center;
+	color: inherit;
+	opacity: 0.6;
+	border-radius: 50%;
+}
+@media (hover: hover) and (pointer: fine) {
+	.tag-pill button:hover {
+		opacity: 1;
+	}
+}
+.segmented {
+	display: inline-flex;
+	padding: var(--space-2);
+	border-radius: 10px;
+	background: var(--surface);
+	flex: none;
+}
+.segmented button {
+	min-height: 30px;
+	padding: 0 var(--space-12);
+	border-radius: 8px;
+	font-size: var(--text-meta);
+	color: var(--muted);
+	white-space: nowrap;
+}
+/* Touch has no hover: every control darkens a little while pressed. */
+.segmented button:not(.on):active {
+	background: var(--faint);
+}
+.segmented button.on {
+	background: var(--card);
+	color: var(--ink);
+	font-weight: 500;
+	box-shadow: 0 1px 3px var(--fixed-black-10);
+}
+.toggle {
+	width: 51px;
+	height: 31px;
+	border-radius: var(--pill-radius);
+	background: var(--toggle-off);
+	position: relative;
+	flex: none;
+}
+.toggle:before {
+	content: "";
+	position: absolute;
+	width: 27px;
+	height: 27px;
+	left: 2px;
+	top: 2px;
+	border-radius: 50%;
+	background: var(--fixed-white);
+	box-shadow: 0 2px 4px var(--fixed-black-15);
+}
+.toggle[aria-checked="true"] {
+	background: var(--toggle-on);
+}
+.toggle[aria-checked="true"]:before {
+	transform: translateX(20px);
+}
+.text-button {
+	background: transparent;
+	min-height: 44px;
+	padding: var(--space-8) var(--space-12);
+	font-size: var(--text-meta);
+	border-radius: var(--control-radius);
+	color: var(--ink);
+}
+@media (hover: hover) and (pointer: fine) {
+	.text-button:hover {
+		background: var(--surface);
+	}
+}
+.text-button:active {
+	background: var(--surface);
+}
+.solid-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	background: var(--accent-fill);
+	color: var(--fixed-white);
+	border-radius: var(--pill-radius);
+	padding: 0 var(--space-20);
+	font-size: var(--text-control);
+	font-weight: 500;
+	min-height: 44px;
+	white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+	.solid-button:hover {
+		filter: brightness(1.08);
+	}
+}
+.solid-button small {
+	font-size: var(--text-caption);
+	opacity: 1;
+	font-family: var(--rounded);
+}
+.soft-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	background: var(--surface);
+	color: var(--ink);
+	border-radius: var(--pill-radius);
+	padding: 0 var(--space-20);
+	font-size: var(--text-control);
+	font-weight: 500;
+	min-height: 44px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.soft-button:hover {
+		background: var(--faint);
+	}
+}
+.soft-button:active {
+	background: var(--faint);
+}
+
+#search-selection-bar {
+	flex: none;
+	align-self: center;
+	max-width: calc(100% - 2 * var(--rail-edge));
+	margin: 0 auto max(var(--rail-edge), env(safe-area-inset-bottom));
+}
+
+/* Local AI receiver shares the active selection rail, never a side drop palette. */
+.selection-ai-target {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: calc(100% + var(--rail-gap));
+	min-height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-10);
+	padding: var(--space-10) var(--space-14);
+	border: 1px solid var(--line-hover);
+	border-radius: var(--pill-radius);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	white-space: nowrap;
+}
+.selection-ai-target.is-ready {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 2px var(--accent);
+	background: var(--card);
+}
+.selection-ai-wave {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	height: 18px;
+}
+.selection-ai-wave i {
+	width: 3px;
+	height: 10px;
+	background: currentColor;
+	border-radius: 3px;
+}
+.selection-ai-wave i:nth-child(2) {
+	height: 18px;
+}
+.selection-drag-preview {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 100;
+	width: max-content;
+	pointer-events: none;
+	will-change: transform;
+}
+#search-selection-bar {
+	margin-top: var(--space-60);
+}
+
+/* Shared home filters. The phone head stays in responsive.css (ADR 0036). @design top-bar */
+.home-top {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	width: calc(100% - var(--feed-left, var(--margin-lg)) * 2);
+	margin: var(--space-12) auto 0;
+	background: var(--canvas);
+}
+.home-top.is-tucked {
+	transform: translateY(-100%);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+.home-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: var(--space-60);
+}
+.home-mark {
+	padding: 0;
+	min-height: var(--hit-target);
+	background: none;
+	color: var(--ink);
+	font-size: var(--text-figure);
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -0.04em;
+}
+.home-account {
+	display: grid;
+	place-items: center;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	padding: 0;
+	border-radius: 50%;
+}
+.home-account .account-wrap {
+	width: var(--space-36);
+	height: var(--space-36);
+	border-radius: 50%;
+	background: var(--faint);
+	color: var(--secondary);
+}
+/* Home tabs are the same solid pill as the search type chips (ADR 0048). */
+.home-tabs {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.home-tabs::-webkit-scrollbar {
+	display: none;
+}
+.home-tab {
+	flex: none;
+	height: var(--space-32);
+	padding: 0 var(--space-14);
+	border: 0;
+	border-radius: var(--pill-radius);
+	background: var(--card);
+	box-shadow: inset 0 0 0 1px var(--line-card);
+	color: var(--ink);
+	font: inherit;
+	font-size: var(--text-control);
+	white-space: nowrap;
+}
+.home-tab[aria-pressed="true"] {
+	background: var(--ink);
+	color: var(--card);
+	font-weight: 600;
+	box-shadow: none;
+}
+body:has(:is(#modal, #search-background)[open].page) .home-top {
+	visibility: hidden;
+}
+/* Desktop-only parts of the top bar stay out of the phone row. */
+.home-brand {
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+.home-logo,
+.home-menu-toggle,
+.home-edge-blur,
+.home-menu,
+.home-search,
+.home-kinds {
+	display: none;
+}
+@media (min-width: 651px) {
+	.home-top {
+		top: var(--space-10);
+		width: calc(100% - var(--space-12) * 2);
+		margin-top: var(--space-10);
+	}
+	.home-top {
+		opacity: 1;
+	}
+	.home-top.is-tucked,
+	.home-top.is-entering {
+		/* Include the sticky offset and glass feather in the shared travel. */
+		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
+		opacity: 1;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.home-top {
+			background: transparent;
+		}
+		.home-top > .home-heading,
+		.home-top > .home-kinds {
+			position: relative;
+			z-index: 1;
+		}
+		.home-top::before,
+		.home-top::after,
+		.home-edge-blur {
+			content: "";
+			display: block;
+			position: absolute;
+			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
+			z-index: 0;
+			pointer-events: none;
+		}
+		.home-top::before {
+			-webkit-backdrop-filter: var(--edge-blur-soft);
+			backdrop-filter: var(--edge-blur-soft);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+		}
+		.home-top::after {
+			-webkit-backdrop-filter: var(--edge-blur-mid);
+			backdrop-filter: var(--edge-blur-mid);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+		}
+		.home-edge-blur {
+			-webkit-backdrop-filter: var(--edge-blur-strong);
+			backdrop-filter: var(--edge-blur-strong);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+		}
+	}
+
+	#feed-grid {
+		max-width: none;
+	}
+	main {
+		padding-inline: var(--space-12);
+		padding-top: var(--space-10);
+		min-height: calc(100dvh - var(--space-130));
+	}
+	/* Brand and account align with the outer card edges. */
+	.home-heading {
+		height: var(--space-64);
+		gap: var(--space-8);
+	}
+	.home-brand {
+		gap: var(--space-2);
+		margin-right: auto;
+	}
+	.home-mark {
+		display: flex;
+		align-items: center;
+		gap: var(--space-10);
+		line-height: var(--space-40);
+		letter-spacing: -0.02em;
+	}
+	.home-logo {
+		display: flex;
+	}
+	.home-menu-toggle {
+		display: grid;
+		place-items: center;
+		width: var(--space-36);
+		height: var(--space-36);
+		padding: 0;
+		border: 0;
+		border-radius: var(--space-10);
+		background: none;
+		color: var(--muted);
+	}
+	.home-menu-toggle .icon {
+		rotate: 90deg;
+	}
+	.home-menu-toggle[aria-expanded="true"] {
+		background: var(--faint);
+		color: var(--ink);
+	}
+	.home-menu:not([hidden]) {
+		transform-origin: top right;
+		position: absolute;
+		z-index: 50;
+		top: calc(100% + var(--space-8));
+		left: calc(100% - var(--space-36) - var(--space-6));
+		display: flex;
+		flex-direction: column;
+		width: 220px;
+		padding: var(--space-6);
+		border-radius: var(--space-14);
+		background: var(--card);
+		box-shadow:
+			0 0 0 0.5px var(--line-hover),
+			var(--shadow-float);
+	}
+	.home-menu-item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-6);
+		height: 40px;
+		padding: 0 var(--space-12) 0 var(--space-6);
+		border: 0;
+		border-radius: 9px;
+		background: none;
+		color: var(--ink);
+		font: inherit;
+		font-size: var(--text-body);
+		text-align: left;
+	}
+	.home-menu-item[aria-checked="true"] {
+		font-weight: 600;
+		background: var(--faint);
+	}
+	.home-menu-check {
+		display: grid;
+		place-items: center;
+		width: 24px;
+		height: 24px;
+		visibility: hidden;
+	}
+	.home-menu-item[aria-checked="true"] .home-menu-check {
+		visibility: visible;
+	}
+	.home-menu-label {
+		flex: 1;
+	}
+	.home-menu-key {
+		font-size: var(--text-meta);
+		color: var(--muted);
+		font-weight: 400;
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-menu-item:hover {
+			background: var(--faint);
+		}
+	}
+	.home-search {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		align-items: center;
+		gap: var(--space-8);
+		width: var(--search-width);
+		min-width: 0;
+		flex-shrink: 1;
+		height: var(--space-40);
+		padding: 0 var(--space-8) 0 var(--space-14);
+		border-radius: 20px;
+		background: transparent;
+		color: var(--muted);
+		cursor: text;
+	}
+	.home-search::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: inherit;
+		background: color-mix(in srgb, var(--glass) 35%, transparent);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		transform-origin: right center;
+		pointer-events: none;
+	}
+	/* At rest a short capsule; a query or tab keeps it open, focus stretches it. No focus ring. */
+	.home-search:is(.has-text, .has-token) {
+		width: var(--search-tagged-width);
+	}
+	.home-search.is-open {
+		width: var(--search-focused-width);
+	}
+	.home-search > .icon {
+		flex: none;
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+	.home-search input {
+		flex: 1;
+		min-width: 0;
+		height: 100%;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		color: var(--ink);
+		font-size: var(--text-body);
+	}
+	.home-search input:focus-visible {
+		outline: 0;
+	}
+	.home-search input::-webkit-search-cancel-button {
+		display: none;
+	}
+	.home-search-key {
+		flex: none;
+		padding-right: var(--space-6);
+		font-size: var(--text-meta);
+		color: var(--muted);
+	}
+	.home-search.has-text .home-search-key {
+		display: none;
+	}
+	.home-search-token {
+		flex: none;
+		height: 24px;
+		padding: 0 9px;
+		border: 0;
+		border-radius: var(--pill-radius);
+		background: var(--ink);
+		color: var(--card);
+		font: inherit;
+		font-size: var(--text-meta);
+		font-weight: 600;
+	}
+	.home-search-token[hidden],
+	.home-search-clear[hidden] {
+		display: none;
+	}
+	/* # conditions follow the tab token: accent, like the phone search tokens. */
+	.home-search-marks {
+		display: flex;
+		flex: none;
+		gap: var(--space-6);
+	}
+	.home-search-marks:empty,
+	.home-hash-slot:empty {
+		display: none;
+	}
+	.home-search-token.is-hash {
+		background: var(--accent);
+		color: var(--fixed-white);
+	}
+	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
+	.home-search .search-hash {
+		z-index: 60;
+		top: calc(100% + var(--space-8));
+		left: 0;
+		right: 0;
+		cursor: default;
+	}
+	.home-search .search-hash-option:first-of-type {
+		background: none;
+	}
+	.home-search .search-hash-option.is-active,
+	.home-search .search-hash-option:focus-visible {
+		background: var(--faint);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-search .search-hash-option:hover {
+			background: var(--faint);
+		}
+	}
+	/* Type chips: one row under the top bar while there is text (web-interaction.md 搜索). */
+	.home-kinds {
+		display: flex;
+		align-items: center;
+		height: var(--space-32);
+		margin-bottom: var(--space-2);
+	}
+	.home-kinds[hidden] {
+		display: none;
+	}
+	.home-kinds .chip {
+		min-height: var(--space-32);
+		height: var(--space-32);
+		background: var(--surface);
+		box-shadow: none;
+		font-size: var(--text-control);
+	}
+	.home-kinds .chip.active {
+		background: var(--ink);
+		color: var(--card);
+		font-weight: 600;
+	}
+	.home-search-clear {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--card);
+	}
+	.home-search-clear .icon {
+		box-sizing: content-box;
+		padding: 3px;
+		border-radius: 50%;
+		background: var(--secondary);
+	}
+	.home-account {
+		margin-right: calc(-1 * var(--space-2));
+	}
+	.home-account .account-wrap > .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+	.home-account .account-wrap {
+		width: var(--space-40);
+		height: var(--space-40);
+		background: var(--card);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		color: var(--ink);
+	}
+	.home-tabs {
+		display: none;
+	}
+}
+
+/* Sill · cards · shared source
+ * Content stays on opaque white surfaces. Color communicates an action or state.
+ * Heights follow content; the layout engine owns column widths and placement.
+ */
+.feed-item {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 340px;
+}
+.feed-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	background: var(--card);
+	border: 1px solid var(--line-card);
+	border-radius: var(--card-radius);
+	box-shadow: var(--shadow);
+	isolation: isolate;
+	overflow: hidden;
+	cursor: pointer;
+	touch-action: pan-y;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+.feed-item.feed-card {
+	position: absolute;
+}
+@media (hover: hover) and (pointer: fine) {
+	.feed-card:hover {
+		border-color: var(--line-hover);
+		box-shadow: var(--shadow-hover);
+	}
+}
+.feed-card:focus-within {
+	border-color: var(--line-hover);
+	box-shadow: var(--shadow-hover);
+}
+.feed-card:focus {
+	outline: none;
+}
+.feed-card:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 4px;
+}
+/* Restored pointer focus must not masquerade as keyboard selection. */
+:root[data-input-modality="pointer"] .feed-card:focus-visible,
+:root[data-input-modality="pointer"] .feed-card .card-title-button:focus-visible {
+	outline: none;
+}
+.feed-card:after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	border: 2px solid transparent;
+	pointer-events: none;
+}
+.card-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--block-gap);
+	padding: var(--card-padding);
+	min-width: 0;
+}
+.card-title,
+.card-summary,
+.preview-full {
+	overflow-wrap: anywhere;
+}
+
+/* head: source icon · source · meta, with one timely value on the right. @design card-type */
+.card-head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: 20px;
+	font-size: var(--text-card-meta);
+	line-height: 18px;
+	color: var(--muted);
+}
+.has-cover .card-head-right {
+	opacity: 1;
+}
+.card-head > .icon,
+.card-head > .source-icons {
+	flex: none;
+	color: var(--secondary);
+}
+.card-src {
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.card-head-right {
+	margin-left: auto;
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-4);
+}
+.has-cover .card-head {
+	padding-right: 0;
+}
+.source-icons {
+	display: inline-flex;
+}
+.source-icons span {
+	display: grid;
+	place-items: center;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: var(--card);
+	border: 1px solid var(--line);
+	margin-left: calc(-1 * var(--space-6));
+}
+.source-icons span:first-child {
+	margin-left: 0;
+}
+.card-progress {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-4);
+	color: var(--accent);
+	font-weight: 500;
+}
+.event-relative {
+	color: var(--accent);
+	font-weight: 500;
+}
+/* A reminder shows the source's time: muted until it comes due, then amber. */
+.reminder-label {
+	color: var(--muted);
+	font-weight: 500;
+}
+.reminder-label.is-due {
+	color: var(--alert);
+}
+.task-count,
+.stack-count {
+	color: var(--ink);
+	font-weight: 600;
+}
+
+/* text: title 2 lines, summary 3 with or without a cover. Full text lives in the reader.
+   @design card-type @design card-summary */
+.card-title {
+	margin: 0;
+	font-size: var(--text-card-title);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 22px;
+	color: var(--ink);
+}
+.card-title-button {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	width: 100%;
+	padding: 0;
+	text-align: left;
+	background: none;
+	font: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	color: inherit;
+	border-radius: 4px;
+	white-space: pre-line;
+}
+.card-summary {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: var(--summary-lines);
+	overflow: hidden;
+	margin: 0;
+	font-size: var(--text-summary);
+	line-height: 22px;
+	color: var(--muted);
+}
+.card-summary.clamp-2 {
+	-webkit-line-clamp: 2;
+}
+.card-summary.reading-summary {
+	-webkit-line-clamp: var(--summary-reading-lines);
+}
+.card-summary.indent {
+	padding-left: var(--space-34);
+}
+.quote-body {
+	gap: var(--space-10);
+	padding-bottom: var(--space-22);
+}
+.quote-text {
+	font-size: var(--text-quote);
+	line-height: 1.55;
+	font-weight: 500;
+	letter-spacing: -0.01em;
+}
+.quote-text .card-title-button {
+	-webkit-line-clamp: 4;
+}
+.note-text {
+	font-size: var(--text-body);
+	line-height: 1.55;
+	font-weight: 400;
+	letter-spacing: 0;
+}
+.note-text .card-title-button {
+	-webkit-line-clamp: 6;
+}
+.key-points {
+	list-style: none;
+	margin: var(--space-2) 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+.key-points li {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-10);
+	font-size: var(--text-body);
+	line-height: 1.5;
+	color: var(--ink);
+}
+/* On a card, key points read at the summary size (A type: 14/22). */
+.feed-card .key-points li {
+	font-size: var(--text-summary);
+	line-height: 22px;
+}
+.key-points li span {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.feed-card .key-points li span {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.key-points i {
+	width: 10px;
+	flex: none;
+	font-style: normal;
+	font-size: var(--text-meta);
+	font-weight: 600;
+	color: var(--accent);
+	text-align: right;
+}
+.num {
+	font-family: var(--rounded);
+	font-variant-numeric: tabular-nums;
+}
+
+/* media: covers arrive from their dominant color, fading in once decoded; do not animate a blur over each large image. */
+.card-cover {
+	position: relative;
+	flex: none;
+	margin: var(--cover-inset) var(--cover-inset) 0;
+	aspect-ratio: 16 / 9;
+	border-radius: var(--cover-radius);
+	overflow: hidden;
+	background: var(--surface);
+}
+.card-image {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	opacity: 0;
+}
+.card-image.is-loaded {
+	opacity: 1;
+	filter: none;
+	transform: none;
+}
+.media-length {
+	position: absolute;
+	right: 12px;
+	bottom: 12px;
+	padding: var(--space-2) var(--space-8);
+	border-radius: 8px;
+	color: var(--fixed-white);
+	background: var(--fixed-black-55);
+	font-size: var(--text-caption);
+	line-height: 1.5;
+}
+.photo-grid {
+	display: grid;
+	gap: var(--space-2);
+}
+.photo-grid.n2 {
+	grid-template-columns: 1fr 1fr;
+}
+.photo-grid.n3 {
+	grid-template-columns: 2fr 1fr;
+	grid-template-rows: 1fr 1fr;
+}
+.photo-grid.n3 img:first-child {
+	grid-row: span 2;
+}
+.mini-player {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
+	margin-top: var(--space-4);
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.bar {
+	position: relative;
+	flex: 1;
+	height: 4px;
+	border-radius: 2px;
+	background: var(--faint);
+	overflow: hidden;
+}
+.bar i {
+	position: absolute;
+	inset: 0 auto 0 0;
+	background: var(--ink);
+	border-radius: 2px;
+}
+
+/* data and list blocks */
+.sender {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
+}
+.sender > span:last-child {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+.sender b {
+	font-size: var(--text-body);
+	font-weight: 600;
+	line-height: 1.3;
+}
+.sender small {
+	font-size: var(--text-caption);
+	line-height: 1.4;
+	color: var(--muted);
+}
+.avatar {
+	display: inline-grid;
+	place-items: center;
+	flex: none;
+	border-radius: 50%;
+	font-size: var(--text-caption);
+	font-weight: 600;
+	color: var(--fixed-white);
+}
+.avatars {
+	display: inline-flex;
+}
+.avatars .avatar {
+	border: 2px solid var(--card);
+	margin-left: calc(-1 * var(--space-6));
+	font-size: 10px;
+}
+.avatars .avatar:first-child {
+	margin-left: 0;
+}
+.people {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	padding-top: var(--space-4);
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.ref {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: 36px;
+	padding: 0 var(--space-10);
+	border-radius: 10px;
+	background: var(--canvas);
+	font-size: var(--text-meta);
+	color: var(--ink);
+	text-align: left;
+	width: 100%;
+}
+.ref > span {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.ref > .icon {
+	flex: none;
+	color: var(--secondary);
+}
+@media (hover: hover) and (pointer: fine) {
+	button.ref:hover {
+		background: var(--faint);
+	}
+}
+button.ref:active {
+	background: var(--faint);
+}
+.refs {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-8);
+	padding-top: var(--space-4);
+}
+.attachment {
+	align-self: flex-start;
+	width: auto;
+	margin-top: var(--space-4);
+	padding-right: var(--space-12);
+}
+.event-time {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: var(--space-12);
+	padding-top: var(--space-4);
+}
+.event-start {
+	font-size: var(--text-figure);
+	line-height: 1.1;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+.event-end {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	padding-bottom: var(--space-3);
+	font-size: var(--text-body);
+	line-height: 1.35;
+	font-weight: 500;
+}
+.event-end small {
+	font-size: var(--text-meta);
+	font-weight: 400;
+	color: var(--muted);
+}
+.stats-trio {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--space-8);
+	padding: var(--space-6) 0 var(--space-2);
+}
+.stats-trio div {
+	display: flex;
+	flex-direction: column;
+}
+.stats-trio b {
+	font-size: var(--text-figure-route);
+	line-height: 1.2;
+	font-weight: 600;
+}
+.stats-trio span {
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.checklist {
+	display: flex;
+	flex-direction: column;
+}
+.check-item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-10);
+	width: 100%;
+	min-height: 32px;
+	padding: var(--space-2) 0;
+	background: none;
+	text-align: left;
+	font-size: var(--text-control);
+	line-height: 1.5;
+	color: var(--ink);
+}
+/* @design card-type: the circle stays centered on the first text line. */
+.check-item > .check-dot {
+	margin-top: calc((1lh - 20px) / 2);
+}
+.check-item > span:last-child {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.feed-card .check-item > span:last-child {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.check-dot {
+	display: grid;
+	place-items: center;
+	width: 20px;
+	height: 20px;
+	flex: 0 0 20px;
+	border: 1.5px solid var(--accent);
+	border-radius: 50%;
+	color: var(--fixed-white);
+}
+@media (hover: hover) and (pointer: fine) {
+	.check-item:hover .check-dot {
+		border-color: var(--accent);
+	}
+}
+.check-item.is-done > span:last-child {
+	color: var(--muted);
+}
+.check-item.is-done .check-dot,
+.check-dot.is-done {
+	background: var(--accent-fill);
+	border-color: var(--accent);
+}
+.more-items {
+	padding-left: var(--space-30);
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.done-row {
+	flex-direction: row;
+	align-items: center;
+	gap: var(--space-12);
+	padding: var(--space-16) var(--card-padding);
+}
+.done-mark {
+	display: grid;
+	place-items: center;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: var(--success);
+	color: var(--fixed-white);
+	flex: none;
+}
+.done-copy {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+.done-copy small {
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.done-copy .card-title {
+	font-size: var(--text-body);
+	color: var(--muted);
+}
+.done-copy .card-title-button {
+	-webkit-line-clamp: 1;
+}
+.file-rows {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding-top: var(--space-2);
+}
+.file-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: 28px;
+	font-size: var(--text-meta);
+}
+.file-row > .icon {
+	color: var(--secondary);
+}
+.file-row span {
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+/* The reminder's circle sits before its title, on the card and in its detail alike. */
+.reminder-row {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-12);
+	font-size: var(--text-card-title);
+	line-height: 22px;
+}
+.reminder-row .card-title {
+	min-width: 0;
+}
+/* The circle is the reminder's only action: a 44px target around a 22px mark, Sill state only. */
+.reminder-check {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	margin: calc(-1 * var(--space-11)) calc(-1 * var(--space-11)) calc(-1 * var(--space-11))
+		calc(-1 * var(--space-11));
+	margin-top: calc((1lh - var(--hit-target)) / 2);
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	cursor: pointer;
+}
+.reminder-check .check-dot {
+	width: 22px;
+	height: 22px;
+	flex-basis: 22px;
+	border-width: 1.8px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.reminder-check:hover .check-dot:not(.is-done) {
+		background: var(--accent-soft);
+	}
+}
+.card-actions-row {
+	display: flex;
+	gap: var(--space-8);
+	padding-top: var(--space-8);
+}
+.pill {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-4);
+	min-height: 36px;
+	padding: 0 var(--space-14);
+	border-radius: var(--pill-radius);
+	font-size: var(--text-meta);
+	font-weight: 500;
+	white-space: nowrap;
+	background: var(--surface);
+	color: var(--ink);
+}
+.pill.grow {
+	flex: 1 1 auto;
+}
+@media (hover: hover) and (pointer: fine) {
+	.pill.soft:hover {
+		background: var(--faint);
+	}
+}
+.pill.soft:active {
+	background: var(--faint);
+}
+.pill.primary {
+	background: var(--accent-fill);
+	color: var(--fixed-white);
+	min-width: 72px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.pill.primary:hover {
+		filter: brightness(1.08);
+	}
+}
+.pill.primary:active {
+	filter: brightness(1.08);
+}
+.pill.primary .icon {
+	opacity: 0.85;
+}
+
+/* The more button: hidden at rest, a glass circle with bold dots on hover or focus.
+   It stays focusable; touch screens keep it visible (responsive.css). */
+.card-actions {
+	position: absolute;
+	right: 12px;
+	top: 12px;
+	display: flex;
+	z-index: 3;
+}
+.card-more-trigger {
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+	color: var(--ink);
+	background: var(--glass);
+	border: 1px solid var(--fixed-white-72);
+	box-shadow: 0 2px 8px var(--fixed-black-8);
+	opacity: 0;
+	pointer-events: none;
+}
+.card-more-trigger .icon {
+	width: 16px;
+	height: 16px;
+	stroke-width: 2.4;
+}
+.card-more-trigger:before {
+	content: "";
+	position: absolute;
+	inset: -6px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.feed-card:hover .card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
+.feed-card:focus-within .card-more-trigger,
+.feed-card.tools-open .card-more-trigger {
+	opacity: 1;
+	pointer-events: auto;
+}
+@media (hover: hover) and (pointer: fine) {
+	.card-more-trigger:hover {
+		background: var(--card);
+	}
+}
+.feed-card.tools-open .card-more-trigger {
+	background: var(--card);
+}
+.feed-card.tools-open {
+	overflow: visible;
+	z-index: 6;
+}
+/* Selection stays on the original card. No corner checkmark or lifted copy. */
+.selection-surface.is-selecting .feed-card .card-actions {
+	visibility: hidden;
+}
+.selection-surface.is-selecting .feed-card:not(.is-selected):after {
+	border-color: var(--line-hover);
+}
+.feed-card.is-selected:after {
+	border-color: var(--accent);
+}
+.feed-card.is-drag-source {
+	opacity: 0.32;
+	box-shadow: none;
+}
+
+/* Read, ended and completed keep their color even after pointer or keyboard focus. */
+.feed-card.is-read,
+.feed-card.is-ended,
+.feed-card.is-complete {
+	background: var(--card-read);
+	border-color: var(--line-read);
+	box-shadow: none;
+}
+.feed-card.is-read .card-title,
+.feed-card.is-ended .card-title,
+.feed-card.is-complete .card-title,
+.feed-card.is-ended .event-start {
+	color: var(--muted);
+}
+.feed-card.is-read .card-image.is-loaded {
+	filter: saturate(0.6);
+}
+@media (hover: hover) and (pointer: fine) {
+	.feed-card.is-read:hover,
+	.feed-card.is-ended:hover,
+	.feed-card.is-complete:hover {
+		border-color: var(--line-hover);
+	}
+}
+.feed-card.is-read:focus-within,
+.feed-card.is-ended:focus-within,
+.feed-card.is-complete:focus-within {
+	border-color: var(--line-hover);
+}
+
+/* Desktop density changes width only; text determines the card's height. */
+@media (min-width: 651px) {
+	.feed-card .card-title-button,
+	.feed-card .card-summary {
+		display: block;
+		-webkit-line-clamp: unset;
+		overflow: visible;
+	}
+	.feed-card .key-points li span {
+		white-space: normal;
+		overflow: visible;
+		text-overflow: clip;
+	}
+}
+
+/* Stacks: one place on the desk, layered edges, opened in place. */
+@media (hover: hover) and (pointer: fine) {
+	.stack-card:hover {
+		overflow: visible;
+		background: transparent;
+		border-color: transparent;
+		box-shadow: none;
+	}
+}
+.stack-card,
+.stack-card:focus-within {
+	overflow: visible;
+	background: transparent;
+	border-color: transparent;
+	box-shadow: none;
+}
+.deck-edge {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: -6px;
+	height: 24px;
+	border-radius: 0 0 18px 18px;
+	background: var(--card);
+	border: 1px solid var(--line-card);
+	border-top: 0;
+	box-shadow: var(--shadow);
+	z-index: 0;
+}
+.deck-edge.deep {
+	left: 20px;
+	right: 20px;
+	bottom: -11px;
+	opacity: 0.7;
+	z-index: -1;
+}
+/* The deck: every piece is a whole card in the same place. The top one moves with the hand; the next waits just beneath. */
+.deck {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	touch-action: pan-y;
+	user-select: none;
+	-webkit-user-select: none;
+}
+.deck-card {
+	grid-area: 1 / 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--card);
+	border: 1px solid var(--line-card);
+	border-radius: var(--card-radius);
+	box-shadow: var(--shadow);
+	transform-origin: 50% 100%;
+	visibility: hidden;
+	will-change: transform;
+}
+.deck-card.is-top {
+	visibility: visible;
+	z-index: 3;
+}
+@media (hover: hover) and (pointer: fine) {
+	.stack-card:hover .deck-card.is-top {
+		border-color: var(--line-hover);
+		box-shadow: var(--shadow-hover);
+	}
+}
+.stack-card:focus-within .deck-card.is-top {
+	border-color: var(--line-hover);
+	box-shadow: var(--shadow-hover);
+}
+.deck-card.is-next {
+	visibility: visible;
+	z-index: 2;
+	transform: translateY(6px);
+	box-shadow: none;
+}
+.deck-card.is-prev {
+	z-index: 4;
+}
+.deck.is-dragging {
+	cursor: grabbing;
+}
+/* While a card is in the hand or in flight it passes over the neighbouring columns. */
+.stack-card:has(.deck.is-dragging),
+.stack-card:has(.deck[data-busy]),
+.stack-card:has(.deck-card[style*="transform"]) {
+	z-index: 20;
+}
+.stack-count {
+	color: var(--muted);
+	font-weight: 500;
+}
+.stack-card .card-head-right {
+	opacity: 1;
+}
+.stack-pos {
+	color: var(--ink);
+	font-weight: 600;
+}
+.stack-open {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-10);
+}
+.stack-open-head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: 28px;
+	padding: 0 var(--space-4);
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.stack-open-head .icon {
+	color: var(--secondary);
+}
+.stack-open-head .text-link {
+	margin-left: auto;
+}
+.feed-card.is-compact .card-summary {
+	display: none;
+}
+.feed-card.is-compact .card-body {
+	padding: var(--space-14) var(--card-padding);
+}
+.text-link {
+	background: none;
+	padding: var(--space-6) var(--space-2);
+	font-size: var(--text-meta);
+	font-weight: 500;
+	color: var(--accent);
+	border-radius: 6px;
+}
+.text-link.warn {
+	color: var(--alert);
+}
+@media (hover: hover) and (pointer: fine) {
+	.text-link:hover {
+		text-decoration: underline;
+	}
+}
+.text-link:active {
+	opacity: 0.6;
+}
+
+/* The two shelf rows at the end of the desk. */
+.shelf-entry {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-10);
+}
+.shelf-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: 48px;
+	padding: 0 var(--space-18);
+	border-radius: 16px;
+	background: var(--faint-row);
+	font-size: var(--text-control);
+	color: var(--ink);
+	text-align: left;
+}
+@media (hover: hover) and (pointer: fine) {
+	.shelf-row:hover {
+		background: var(--faint);
+	}
+}
+.shelf-row > .icon {
+	color: var(--muted);
+}
+.shelf-row span {
+	color: var(--muted);
+	font-size: var(--text-meta);
+}
+.shelf-row .num {
+	margin-left: auto;
+	color: var(--muted);
+}
+/* Pressing a card gives a little, like the prototype: it is something you can pick up. */
+
+/* A menu's hit targets keep their size even while the touched parent settles. */
+@media (hover: hover) and (pointer: fine) {
+	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
+		--motion-managed-transform: none;
+		transform: none;
+	}
+}
+.feed-card.tools-open,
+.feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
+	--motion-managed-transform: none;
+	transform: none;
+}
+
+/* Desktop spacing groups metadata, content and supporting references. */
+@media (min-width: 651px) {
+	.card-body > :is(.card-head, .sender) + :is(.card-title, .quote-text) {
+		margin-top: var(--space-4);
+	}
+	.card-body > .card-title + .card-summary {
+		margin-top: calc(-1 * var(--space-2));
+	}
+	.card-body > :is(.checklist, .refs, .file-rows, .attachment) {
+		margin-top: var(--space-4);
+	}
+	.feed-card .check-item {
+		align-items: flex-start;
+	}
+	.feed-card .check-item > span:last-child {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		white-space: normal;
+	}
+}
+.related-more {
+	padding-left: 0;
+}
+
+/* Sill · overlays · shared source
+ * One dialog, several shapes: a lifted card (preview), a page (reader), a sheet (panels), a lightbox (photos).
+ */
+
+dialog {
+	color: var(--ink);
+	padding: 0;
+	border: 0;
+	background: transparent;
+	max-width: 100vw;
+	max-height: 100dvh;
+	overflow: visible;
+	outline: none;
+}
+/* Scrim: a clean dim, no fog. The page steps back in light, not in blur. */
+dialog::backdrop {
+	background: var(--dim);
+}
+.sheet {
+	position: relative;
+	background: var(--card);
+	border-radius: var(--sheet-radius);
+	box-shadow: var(--shadow-sheet);
+	overflow: hidden;
+}
+.sheet-scroll {
+	max-height: min(78dvh, 760px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+}
+.sheet-close {
+	position: absolute;
+	right: 14px;
+	top: 14px;
+	z-index: 5;
+}
+.sheet-close .icon-button {
+	width: 36px;
+	height: 36px;
+	min-width: 36px;
+	background: var(--card);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-float);
+}
+.grabber {
+	display: none;
+}
+
+/* The card toolbar: two to three verbs as icons in one glass capsule. Words live in the content. */
+.float-bar {
+	background: var(--glass-thick);
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	padding: var(--space-4);
+	height: var(--rail-row);
+	border-radius: var(--pill-radius);
+	width: max-content;
+	max-width: calc(100vw - 32px);
+}
+.float-bar .solid-button,
+.float-bar .pill {
+	margin-left: var(--space-6);
+}
+
+/* Preview: the card lifts and grows. Its head row holds the way out; the toolbar floats inside the
+   card's own bottom edge, over a scroll edge, and the text ends above it. Nothing hangs off the card. */
+#modal.preview {
+	width: min(760px, calc(100vw - 48px));
+	margin: auto;
+}
+#modal.preview[open] {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0;
+}
+.preview-sheet {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	max-height: min(88dvh, 900px);
+}
+/* The head floats over the content: no band of white above the text. Its round buttons tuck away with
+   the toolbar while reading on, and come back on a pause over a soft edge. */
+.preview-sheet.is-full {
+	height: 100dvh;
+	max-height: 100dvh;
+}
+.sheet-head {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index: 4;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	height: 60px;
+	padding: 0 var(--space-16);
+	pointer-events: none;
+}
+.sheet-head-tools {
+	display: flex;
+	gap: var(--space-8);
+	pointer-events: auto;
+}
+.sheet-head-tools.is-tucked {
+	transform: var(--motion-toolbar-transform, translateY(-12px));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+.preview-sheet:before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 76px;
+	z-index: 3;
+	pointer-events: none;
+	opacity: 0;
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, var(--card) 92%, transparent) 30%,
+		color-mix(in srgb, var(--card) 0%, transparent)
+	);
+}
+.preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
+	opacity: 1;
+}
+/* The close disc sits in the source row above the title, so the title keeps the whole width.
+   Without a source row it falls back to the first title line. */
+.preview-sheet .sheet-head {
+	top: var(--preview-title-top, 32px);
+	height: 44px;
+}
+.preview-sheet #modal-title,
+.preview-sheet .preview-body > :is(.preview-sender, .preview-meta) {
+	padding-right: var(--space-48);
+}
+.preview-sheet:has(.sheet-head [data-action="reader"]) #modal-title,
+.preview-sheet:has(.sheet-head [data-action="reader"])
+	.preview-body
+	> :is(.preview-sender, .preview-meta) {
+	padding-right: var(--space-92);
+}
+.preview-sheet:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
+	padding-right: 0;
+}
+.preview-title-row #modal-title {
+	min-width: 0;
+}
+.preview-sheet.is-scrolled .sheet-head {
+	top: 0;
+}
+.sheet-handle {
+	display: none;
+}
+/* Floating round buttons: a white disc lifted by a soft shadow, never a grey blot. */
+.sheet-head .icon-button {
+	width: 36px;
+	height: 36px;
+	min-width: 36px;
+	background: var(--card);
+	color: var(--ink);
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		var(--shadow-float);
+}
+/* The visible circle is 36; the hit area reaches the 44 minimum. */
+.sheet-head .icon-button:before {
+	content: "";
+	position: absolute;
+	inset: -4px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.sheet-head .icon-button:hover {
+		background: var(--surface);
+	}
+}
+.sheet-head .icon .icon,
+.sheet-head .icon-button .icon {
+	width: 18px;
+	height: 18px;
+}
+#modal.preview > .float-bar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 18px;
+	margin-inline: auto;
+	z-index: 3;
+}
+/* Scroll edge at the foot of the card: text fades and softens where the toolbar floats. */
+#modal.preview:has(> .float-bar) > .preview-sheet:after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: calc(var(--rail-row) + 18px + 44px);
+	pointer-events: none;
+	z-index: 2;
+	/* Under the capsule the text is only a faint texture; above it, it fades in over 44px. */
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--card) 94%, transparent) 0%,
+		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 18px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+}
+#modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
+	opacity: 0;
+}
+.preview-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8);
+	padding-top: var(--space-10);
+}
+.preview-foot .text-button {
+	color: var(--accent-ink);
+	font-size: var(--text-control);
+	padding-inline: var(--space-10);
+	margin-left: calc(-1 * var(--space-10));
+}
+/* Stacked previews: the card below shows as an edge above this one. */
+.sheet-peek {
+	flex: none;
+	width: 94%;
+	height: 44px;
+	margin-bottom: calc(-1 * var(--space-46));
+	border: 1px solid var(--line-card);
+	border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+	background: var(--card-read);
+	box-shadow: var(--shadow-sheet);
+	cursor: pointer;
+}
+.preview-sheet .sheet-scroll {
+	flex: 0 1 auto;
+	min-height: 0;
+	max-height: none;
+	padding-bottom: 0;
+	scroll-padding-bottom: var(--gap);
+}
+#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+	padding-bottom: calc(var(--rail-row) + var(--space-40));
+	scroll-padding-bottom: calc(var(--rail-row) + var(--space-40));
+}
+.preview-cover {
+	margin: var(--space-8) var(--space-8) 0;
+	aspect-ratio: 16 / 9;
+	border-radius: 22px;
+	overflow: hidden;
+	background: var(--surface);
+}
+.preview-cover img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.preview-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-14);
+	padding: var(--space-26) var(--space-30) var(--space-30);
+	overflow-wrap: anywhere;
+}
+.preview-body > .preview-cover,
+.reader-body > .preview-cover {
+	margin: 0;
+	width: 100%;
+	flex: none;
+}
+.preview-meta {
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: var(--space-6);
+	font-size: var(--text-meta);
+	color: var(--secondary);
+}
+.preview-meta > span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.preview-meta .icon {
+	flex: none;
+	color: var(--secondary);
+}
+.preview-body h1,
+.preview-body .preview-title-row {
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -0.03em;
+	line-height: 1.35;
+	white-space: pre-line;
+}
+.preview-lead {
+	font-size: 16px;
+	line-height: 1.7;
+	color: var(--ink);
+}
+.preview-full p {
+	font-size: 16px;
+	line-height: 1.85;
+	color: var(--ink);
+	white-space: pre-wrap;
+}
+.preview-full p + p {
+	margin-top: var(--space-16);
+}
+.preview-note {
+	border: 1px solid var(--line);
+	border-radius: var(--control-radius);
+	background: var(--surface);
+	padding: var(--space-16);
+	font-size: var(--text-control);
+	line-height: 1.75;
+	color: var(--secondary);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.preview-note-label {
+	display: block;
+	font-size: var(--text-caption);
+	font-weight: 600;
+	margin-bottom: var(--space-6);
+}
+.preview-body .preview-note p,
+.reader-body .preview-note p {
+	margin: 0;
+	font: inherit;
+	color: inherit;
+}
+.preview-sender {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
+}
+.preview-sender > span:last-child {
+	display: flex;
+	flex-direction: column;
+}
+.preview-sender b {
+	font-size: var(--text-body);
+}
+.preview-sender small {
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.detail-rows {
+	display: flex;
+	flex-direction: column;
+}
+.detail-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	min-height: 48px;
+	border-top: 1px solid var(--line);
+	font-size: var(--text-body);
+}
+.detail-row:first-child {
+	border-top: 0;
+}
+.detail-row > .row-icon {
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	background: var(--surface);
+	color: var(--muted);
+	flex: none;
+}
+.detail-row > span:nth-child(2) {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.detail-row small {
+	font-size: var(--text-meta);
+	color: var(--muted);
+	white-space: nowrap;
+}
+.detail-row b,
+.detail-row em {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.detail-row b {
+	display: block;
+	font-weight: 400;
+}
+.detail-row em {
+	display: block;
+	font-style: normal;
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+button.detail-row {
+	width: 100%;
+	text-align: left;
+}
+@media (hover: hover) and (pointer: fine) {
+	button.detail-row:hover {
+		background: var(--canvas);
+	}
+}
+button.detail-row:active {
+	background: var(--canvas);
+}
+.event-hero {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-12);
+	flex-wrap: wrap;
+}
+.event-hero .num:first-child {
+	font-size: 52px;
+	line-height: 1.05;
+	font-weight: 600;
+	letter-spacing: -0.03em;
+}
+.event-hero small {
+	font-size: var(--text-body);
+	color: var(--muted);
+}
+.why-line {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
+	font-size: var(--text-control);
+	color: var(--ink);
+}
+.why-line .icon {
+	color: var(--secondary);
+}
+.detail-task-list .check-item {
+	min-height: 44px;
+	font-size: var(--text-body);
+}
+.preview-tags {
+	display: flex;
+	gap: var(--space-6);
+	flex-wrap: wrap;
+}
+
+.preview-tags .chip {
+	font-size: var(--text-caption);
+	min-height: 0;
+	padding: var(--space-3) var(--space-8);
+	line-height: 1.5;
+	max-width: 100%;
+	overflow-wrap: anywhere;
+}
+.preview-published {
+	margin-top: 0;
+	display: grid;
+	gap: var(--space-6);
+	font-size: var(--text-caption);
+	line-height: 1.6;
+	color: var(--secondary);
+}
+.settings-hint {
+	margin: var(--space-8) var(--space-4) 0;
+	font-size: var(--text-meta);
+}
+
+/* Podcast facts: only a provided total duration is shown. Playback stays at the source. */
+.player {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-14);
+	padding: var(--space-28) var(--space-28) var(--space-30);
+	background: linear-gradient(180deg, var(--fixed-podcast-light), var(--card) 70%);
+}
+:root[data-theme="dark"] .player {
+	background: linear-gradient(180deg, var(--fixed-podcast-dark), var(--card) 70%);
+}
+.player-art {
+	width: 150px;
+	height: 150px;
+	border-radius: 22px;
+	background: linear-gradient(
+		140deg,
+		var(--fixed-podcast-cover-start),
+		var(--fixed-podcast-cover-mid) 55%,
+		var(--fixed-podcast-cover-end)
+	);
+	box-shadow: 0 12px 30px var(--fixed-black-12);
+}
+.player h1 {
+	font-size: 20px;
+	text-align: center;
+}
+.player .preview-meta {
+	justify-content: center;
+}
+.player-times {
+	display: flex;
+	justify-content: space-between;
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+/* Photos: black, large, left and right, Esc to leave. */
+#modal.lightbox {
+	width: 100vw;
+	height: 100dvh;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	background: var(--fixed-photo-canvas);
+	color: var(--fixed-white);
+}
+@supports (height: 100dvh) {
+	#modal.lightbox {
+		height: 100dvh;
+	}
+}
+#modal.lightbox[open] {
+	display: flex;
+	flex-direction: column;
+}
+/* Recovery stays in the photo layout so it cannot cover thumbnails or discussion controls. */
+#modal.lightbox #toast {
+	position: static;
+	flex: none;
+	align-self: center;
+	margin: 0 var(--rail-edge) max(var(--space-12), env(safe-area-inset-bottom));
+}
+#modal.lightbox::backdrop {
+	background: var(--fixed-photo-canvas);
+}
+.lightbox-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-16) var(--space-20);
+	font-size: var(--text-meta);
+	color: var(--fixed-white-75);
+}
+.lightbox-top .icon-button {
+	color: var(--fixed-white);
+}
+@media (hover: hover) and (pointer: fine) {
+	.lightbox-top .icon-button:hover {
+		background: var(--fixed-white-12);
+	}
+}
+.lightbox-stage {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-12);
+	padding: 0 var(--space-20);
+	min-height: 0;
+}
+.lightbox-stage img {
+	width: min(1100px, 100%);
+	height: 100%;
+	border-radius: 6px;
+	object-fit: contain;
+	min-width: 0;
+	flex: 1;
+}
+.lightbox-stage .icon-button {
+	color: var(--fixed-white);
+	flex: none;
+}
+@media (hover: hover) and (pointer: fine) {
+	.lightbox-stage .icon-button:hover {
+		background: var(--fixed-white-12);
+	}
+}
+.lightbox-thumbs {
+	display: flex;
+	justify-content: center;
+	gap: var(--space-8);
+	padding: var(--space-16);
+}
+.lightbox-thumbs button {
+	width: 48px;
+	height: 48px;
+	border-radius: 8px;
+	overflow: hidden;
+	opacity: 0.55;
+	border: 2px solid transparent;
+}
+.lightbox-thumbs button.on {
+	opacity: 1;
+	border-color: var(--fixed-white);
+}
+.lightbox-thumbs img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+#modal.lightbox > .float-bar {
+	position: static;
+	flex: none;
+	align-self: center;
+	margin: 0 auto max(var(--space-16), env(safe-area-inset-bottom));
+}
+.lightbox .preview-foot {
+	flex: none;
+	justify-content: center;
+	padding: 0 var(--space-20) max(var(--space-12), env(safe-area-inset-bottom));
+}
+.lightbox .preview-foot .text-button {
+	min-height: var(--hit-target);
+	margin-left: 0;
+	color: var(--fixed-white);
+}
+@media (hover: hover) and (pointer: fine) {
+	.lightbox .preview-foot .text-button:hover {
+		background: var(--fixed-white-12);
+	}
+}
+.lightbox .preview-foot :focus-visible {
+	outline-color: var(--fixed-white);
+}
+
+/* Reader: a page, not a box. A thin line on top shows how far you are. */
+#modal.reader {
+	width: 100vw;
+	height: 100dvh;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	background: var(--card);
+}
+#modal.reader::backdrop {
+	background: var(--card);
+}
+.reader-progress {
+	width: 100%;
+	transform-origin: left center;
+	position: fixed;
+	left: 0;
+	top: 0;
+	height: 2px;
+	background: var(--accent-fill);
+	z-index: 4;
+}
+.reader-scroll {
+	height: 100dvh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.reader-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-14);
+	width: 100%;
+	margin: 0 auto;
+	padding: var(--space-88) var(--space-30) var(--space-160);
+}
+.reader-body .preview-meta {
+	margin-bottom: 0;
+}
+.reader-body h1,
+.reader-body .preview-title-row {
+	font-size: 34px;
+	line-height: 1.3;
+	font-weight: 600;
+	letter-spacing: -0.035em;
+	margin: 0;
+	white-space: pre-line;
+}
+.reader-body p {
+	font-size: 18px;
+	line-height: 1.9;
+	margin: 0;
+	color: var(--ink);
+}
+.reader-body .reader-cover {
+	width: 100%;
+	border-radius: 18px;
+	margin: 0 0 var(--space-32);
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+}
+/* @design article-reading
+   Article reading (balanced): the preview and the full reader share one type set. The text keeps a
+   full-width column with 30 at the sides (20 on a phone); the page itself is never scaled. */
+:is(.preview-body, .reader-body).is-article {
+	gap: 0;
+	padding-inline: var(--article-gutter);
+}
+.reader-body.is-article {
+	max-width: var(--article-measure);
+}
+:is(.preview-body, .reader-body).is-article > * {
+	width: 100%;
+	max-width: var(--article-measure);
+	margin-inline: auto;
+}
+:is(.preview-body, .reader-body).is-article > .preview-meta {
+	margin-bottom: var(--space-14);
+	font-size: var(--text-article-meta);
+	line-height: 18px;
+}
+:is(.preview-body, .reader-body).is-article > h1 {
+	margin-bottom: var(--space-24);
+	font-size: var(--text-article-title);
+	font-weight: 600;
+	line-height: 30px;
+	letter-spacing: normal;
+}
+:is(.preview-body, .reader-body).is-article > :is(.preview-tags, .preview-published) {
+	margin-bottom: var(--space-16);
+}
+:is(.preview-body, .reader-body).is-article > .preview-published {
+	font-size: var(--text-article-meta);
+	line-height: 18px;
+}
+:is(.preview-body, .reader-body).is-article > .preview-cover {
+	margin-bottom: var(--space-24);
+	border-radius: var(--cover-radius);
+}
+:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points li) {
+	font-size: var(--text-article-body);
+	font-weight: 400;
+	line-height: 25px;
+	color: var(--ink);
+}
+/* Keep the centered column: paragraph spacing must not reset inline auto margins. */
+:is(.preview-body, .reader-body).is-article :is(.preview-lead, .preview-full p, .key-points) {
+	margin-block: 0 var(--space-16);
+}
+:is(.preview-body, .reader-body).is-article .key-points {
+	gap: var(--space-6);
+}
+@media (max-width: 650px) {
+	:is(.preview-body, .reader-body).is-article {
+		padding-inline: var(--article-gutter-sm);
+	}
+}
+.reader .float-bar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: max(24px, env(safe-area-inset-bottom));
+	margin-inline: auto;
+	z-index: 5;
+}
+.reader-head {
+	position: fixed;
+	top: max(14px, env(safe-area-inset-top));
+	right: max(16px, env(safe-area-inset-right));
+	z-index: 5;
+	display: flex;
+	gap: var(--space-2);
+	padding: var(--space-4);
+	border-radius: var(--pill-radius);
+}
+/* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
+dialog > .float-bar.is-tucked,
+dialog > .float-bar.is-hidden {
+	transform: var(--motion-toolbar-transform, translateY(calc(100% + 40px)));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+.reader-head.is-tucked {
+	transform: var(--motion-toolbar-transform, translateY(calc(-100% - 24px)));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+/* The read-end ring closes into a check when the last paragraph is reached. */
+.skeleton-lines {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-14);
+	margin-bottom: var(--space-28);
+}
+.skeleton-lines i {
+	height: 12px;
+	border-radius: 6px;
+	background: var(--surface);
+}
+.skeleton-lines i:last-child {
+	width: 62%;
+}
+
+.lightbox-caption {
+	flex: none;
+	text-align: center;
+	padding: var(--space-12) var(--space-20);
+	font-size: var(--text-control);
+	color: var(--fixed-white-75);
+}
+.lightbox > .preview-note {
+	flex: none;
+	margin: var(--space-12) var(--space-20);
+}
+
+/* Panels: a sheet with a title, rows and quiet actions. */
+#modal.panel {
+	width: min(560px, calc(100vw - 32px));
+	margin: auto;
+}
+#modal.panel.narrow {
+	width: min(440px, calc(100vw - 32px));
+}
+#modal.panel.wide {
+	width: min(840px, calc(100vw - 32px));
+}
+.panel-content {
+	padding: var(--space-28) var(--space-28) var(--space-28);
+}
+.panel-content h1 {
+	font-size: var(--text-panel-title);
+	font-weight: 600;
+	margin: 0 var(--space-48) var(--space-6) 0;
+	letter-spacing: -0.03em;
+}
+.panel-sub {
+	font-size: var(--text-meta);
+	color: var(--muted);
+	margin-bottom: var(--space-18);
+}
+.panel-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-12);
+	margin-bottom: var(--space-14);
+}
+.panel-head h1 {
+	margin: 0;
+}
+.panel-head .text-link,
+.panel-head .muted {
+	margin-right: var(--space-44);
+}
+.muted {
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.field-label {
+	display: block;
+	font-size: var(--text-caption);
+	font-weight: 500;
+	color: var(--muted);
+	margin: var(--space-20) 0 var(--space-8);
+}
+.group-label {
+	font-size: var(--text-caption);
+	color: var(--muted);
+	margin: var(--space-16) 0 var(--space-4);
+}
+.group-label:first-child {
+	margin-top: 0;
+}
+.panel-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-12);
+	margin-top: var(--space-22);
+}
+.panel-footer:empty {
+	display: none;
+}
+.row-list {
+	display: flex;
+	flex-direction: column;
+}
+.row-list > * + * {
+	border-top: 1px solid var(--line);
+}
+.list-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	min-height: 56px;
+	padding: var(--space-6) var(--space-10);
+	margin: 0 calc(-1 * var(--space-10));
+	border-radius: var(--control-radius);
+	width: calc(100% + 20px);
+	text-align: left;
+	position: relative;
+}
+.row-list > .list-row + .list-row {
+	border-top: 0;
+}
+.row-list > .list-row + .list-row:before {
+	content: "";
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	top: 0;
+	border-top: 1px solid var(--line);
+}
+@media (hover: hover) and (pointer: fine) {
+	button.list-row:hover,
+	.list-row.hoverable:hover {
+		background: var(--canvas);
+	}
+}
+button.list-row:active {
+	background: var(--canvas);
+}
+.list-row .row-icon {
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	background: var(--surface);
+	color: var(--muted);
+	flex: none;
+}
+.list-row .row-main {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+}
+.list-row .row-main b {
+	font-weight: 400;
+	font-size: var(--text-body);
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.list-row .row-main small {
+	font-size: var(--text-caption);
+	color: var(--muted);
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.list-row .row-side {
+	font-size: var(--text-meta);
+	color: var(--muted);
+	white-space: nowrap;
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
+}
+.list-row .row-side {
+	display: grid;
+	flex: none;
+	justify-items: end;
+}
+.list-row .row-side > * {
+	grid-area: 1 / 1;
+}
+.list-row .row-put {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-4);
+	white-space: nowrap;
+	opacity: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+	.list-row:hover .row-put {
+		opacity: 1;
+	}
+}
+.list-row:focus-within .row-put {
+	opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+	.list-row:hover .row-date {
+		opacity: 0;
+	}
+}
+.list-row:focus-within .row-date {
+	opacity: 0;
+}
+
+/* Settings: five groups, one screen each. */
+.settings-layout {
+	display: grid;
+	grid-template-columns: 200px minmax(0, 1fr);
+	min-height: min(560px, 78dvh);
+}
+.settings-nav {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding: var(--space-28) var(--space-16);
+	background: var(--canvas);
+	border-right: 1px solid var(--line);
+}
+.settings-nav button {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
+	min-height: var(--space-32);
+	padding: 0 var(--space-16);
+	border-radius: 9px;
+	font-size: var(--text-control);
+	color: var(--ink);
+	text-align: left;
+}
+@media (hover: hover) and (pointer: fine) {
+	.settings-nav button:hover {
+		background: var(--faint);
+	}
+}
+.settings-nav button:active {
+	background: var(--faint);
+}
+/* Selected is a quiet, raised row in the same ink; blue stays for the one action that commits. */
+.settings-nav button.on {
+	background: var(--card);
+	color: var(--ink);
+	font-weight: 600;
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		0 1px 3px var(--fixed-black-6);
+}
+.settings-main {
+	padding: var(--space-28) var(--space-32);
+	max-height: min(78dvh, 760px);
+	overflow-y: auto;
+	background: var(--canvas);
+	scrollbar-width: none;
+}
+.settings-main h2 {
+	font-size: var(--text-panel-title);
+	margin: 0 var(--space-40) var(--space-18) 0;
+}
+.settings-card {
+	background: var(--card);
+	border: 0;
+	box-shadow: 0 0 0 0.5px var(--line-card);
+	border-radius: 14px;
+	padding: 0 var(--space-16);
+}
+.settings-card + .settings-card {
+	margin-top: var(--space-16);
+}
+.setting-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-16);
+	min-height: 48px;
+	padding: var(--space-8) 0;
+	font-size: var(--text-control);
+}
+.setting-row + .setting-row {
+	border-top: 1px solid var(--line);
+}
+.setting-row > span:first-child {
+	flex: 1;
+	min-width: 0;
+}
+.setting-row small {
+	display: block;
+	font-size: var(--text-caption);
+	color: var(--muted);
+}
+.setting-row small.setting-example {
+	margin-top: var(--space-3);
+	line-height: 1.4;
+}
+.setting-side {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.setting-row .text-link {
+	padding: 0;
+}
+kbd {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	height: 24px;
+	padding: 0 var(--space-6);
+	border-radius: 6px;
+	background: var(--surface);
+	font: 500 12px var(--rounded);
+	color: var(--ink);
+}
+
+/* Search owns its page; the home feed keeps its own state underneath. */
+body:has(dialog.search[open]) #feed-grid {
+	visibility: hidden;
+}
+:is(#modal, #search-background).search {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	max-width: none;
+	height: 100dvh;
+	max-height: none;
+	margin: 0;
+	padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--margin-lg)
+		calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+	background: var(--canvas);
+	z-index: 40;
+	display: none;
+}
+:is(#modal, #search-background).search[open] {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+}
+/* Same top row as home and AI (ADR 0048). The results page has no top row. */
+.search-page-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex: none;
+	min-height: var(--space-60);
+}
+.search-page-heading h1 {
+	margin: 0;
+	font-size: var(--text-figure);
+	font-weight: 700;
+	letter-spacing: -0.04em;
+	line-height: 1.2;
+}
+.search-account {
+	width: var(--hit-target);
+	height: var(--hit-target);
+}
+.search-account .icon {
+	box-sizing: content-box;
+	padding: var(--space-8);
+	border-radius: 50%;
+	background: var(--surface);
+}
+.search:not(:has(.search-browse)) .search-page-heading {
+	display: none;
+}
+:is(#modal, #search-background).page.search {
+	background: var(--card);
+}
+.search-browse {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-12);
+}
+.search-category {
+	position: relative;
+	aspect-ratio: 16 / 10;
+	overflow: hidden;
+	border-radius: var(--control-radius);
+	text-align: left;
+	background: var(--surface);
+}
+.search-category img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.search-category span {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: flex-end;
+	padding: var(--space-12);
+	font-size: var(--text-input);
+	font-weight: 600;
+	color: var(--fixed-white);
+	background: var(--fixed-black-18);
+	text-shadow: 0 1px 3px var(--fixed-black-55);
+}
+.search-category:active {
+	opacity: 0.75;
+}
+.search-card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--col-ideal)), 1fr));
+	align-items: start;
+	gap: var(--gap);
+}
+.search-card-grid .feed-card {
+	position: relative;
+	width: auto;
+	transform: none;
+}
+.search-header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	flex: none;
+}
+.search-tokens {
+	display: flex;
+	flex: none;
+	gap: var(--space-6);
+	max-width: 60%;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.search-token {
+	flex: none;
+	height: 28px;
+	padding: 0 var(--space-10);
+	border-radius: var(--pill-radius);
+	background: var(--ink);
+	color: var(--card);
+	font-size: var(--text-body);
+	font-weight: 600;
+	white-space: nowrap;
+}
+.search-token.is-hash {
+	background: var(--accent);
+	color: var(--fixed-white);
+}
+/* The # list floats over the results instead of pushing them down. */
+.search-hash-slot:empty {
+	display: none;
+}
+.search-hash {
+	position: absolute;
+	z-index: 5;
+	top: calc(100% + var(--space-8));
+	left: 0;
+	right: calc(var(--hit-target) + var(--space-8));
+	max-height: 50vh;
+	overflow-y: auto;
+	padding: var(--space-6);
+	border-radius: var(--control-radius);
+	background: var(--card);
+	box-shadow: var(--shadow-float);
+}
+.search-hash-label {
+	padding: var(--space-8) var(--space-10) var(--space-4);
+	font-size: var(--text-caption);
+	font-weight: 600;
+	color: var(--muted);
+}
+.search-hash-option {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-height: 40px;
+	padding: 0 var(--space-10);
+	border-radius: var(--space-10);
+	font-size: var(--text-body);
+	text-align: left;
+}
+.search-hash-option:first-of-type,
+.search-hash-option:focus-visible {
+	background: var(--faint);
+}
+.search-header .search-pill {
+	flex: 1;
+	min-width: 0;
+}
+.search-header > .icon-button {
+	flex: none;
+}
+.search-pill {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	height: var(--space-44);
+	padding: 0 var(--space-10) 0 var(--space-12);
+	border-radius: var(--pill-radius);
+	background: var(--surface);
+}
+.search-pill > .icon {
+	color: var(--ink);
+	stroke-width: 2;
+}
+.search-pill input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	font-size: var(--text-input);
+	border-radius: 0;
+}
+.search-pill input:focus-visible {
+	outline: 0;
+}
+.search-count {
+	font-size: var(--text-meta);
+	color: var(--secondary);
+	white-space: nowrap;
+}
+.search-pill .icon-button {
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+	color: var(--secondary);
+}
+.search-chips {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--space-8);
+	padding-bottom: var(--space-4);
+}
+.search:has(.search-browse) .search-header > .icon-button {
+	display: none;
+}
+.search:has(.search-browse) .search-header:focus-within > .icon-button {
+	display: grid;
+}
+.search-clear[hidden] {
+	display: none;
+}
+.search-pill:has(.search-clear:not([hidden])) .search-dictate {
+	display: none;
+}
+.search-pill .search-dictate:disabled {
+	opacity: 1;
+	color: var(--ink);
+}
+.search-filter-items {
+	display: flex;
+	border: 0;
+	margin: 0;
+	gap: var(--space-8);
+	min-width: 0;
+	overflow-x: auto;
+	scrollbar-width: none;
+	padding: var(--space-2);
+}
+.search-filter-items::-webkit-scrollbar {
+	display: none;
+}
+.search-filter-items .chip {
+	flex: none;
+}
+.search-chips .divider {
+	width: 1px;
+	height: 20px;
+	align-self: center;
+	background: var(--line-hover);
+	margin: 0 var(--space-4);
+}
+.search-results {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: var(--space-2) var(--space-2) var(--space-24);
+	scrollbar-width: none;
+}
+.search-empty {
+	text-align: center;
+	font-size: var(--text-body);
+	color: var(--muted);
+	padding: var(--space-24) 0;
+}
+
+/* Pages share the application frame; cards still open in the existing dialog. */
+@media (min-width: 651px) {
+	#modal.page.panel {
+		position: fixed;
+		inset: 0;
+		z-index: 40;
+		width: 100%;
+		max-width: none;
+		height: 100dvh;
+		max-height: none;
+		margin: 0;
+		background: var(--canvas);
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		width: min(100%, 1040px);
+		margin-inline: auto;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0;
+	}
+	#modal.page .settings-layout {
+		flex: 1;
+		min-height: 0;
+	}
+	#modal.page .settings-main {
+		max-height: none;
+	}
+	#modal.page.panel .ai-conversation {
+		max-width: 720px;
+		padding: var(--space-24) var(--space-24)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16));
+	}
+	#modal.page.panel .ai-conversation > .sheet-close {
+		display: none;
+	}
+	:is(#modal, #search-background).page.search {
+		padding-inline: max(var(--margin-lg), calc((100vw - 1040px) / 2));
+	}
+	.search-browse {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+.settings-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--space-60);
+	padding: var(--space-16) var(--space-32) 0;
+	flex: none;
+}
+.settings-head h1 {
+	margin: 0;
+	font-size: var(--text-figure);
+	line-height: 1.2;
+	letter-spacing: -0.025em;
+}
+.settings-head .sheet-close {
+	position: static;
+}
+.settings-head .sheet-close .icon-button {
+	background: var(--faint);
+	box-shadow: none;
+	width: var(--hit-target);
+	height: var(--hit-target);
+}
+/* Type chips: the same pill as the home tabs; on search the idle ones are surface without a rim. */
+.search-chips .chip {
+	min-height: var(--space-32);
+	height: var(--space-32);
+	background: var(--surface);
+	box-shadow: none;
+	font-size: var(--text-control);
+}
+.search-chips .chip.active {
+	background: var(--ink);
+	color: var(--card);
+	font-weight: 600;
+}
+.search-chips[hidden] {
+	display: none;
+}
+
+/* @design settings-sheet: group changes never resize the desktop frame. */
+@media (min-width: 651px) {
+	#modal.panel:not(.page) .settings-sheet {
+		display: flex;
+		flex-direction: column;
+		height: min(
+			calc(var(--settings-body-height) + var(--space-60) + var(--space-16)),
+			calc(100dvh - var(--space-32))
+		);
+		overflow: hidden;
+	}
+	#modal.panel:not(.page) .settings-head {
+		min-height: calc(var(--space-60) + var(--space-16));
+	}
+	#modal.panel:not(.page) .settings-layout {
+		flex: 1;
+		min-height: 0;
+		grid-template-rows: minmax(0, 1fr);
+	}
+	#modal.panel:not(.page) :is(.settings-nav, .settings-main) {
+		min-height: 0;
+		max-height: none;
+		overflow-y: auto;
+	}
+	#modal.panel:not(.page) .settings-nav button {
+		flex-shrink: 0;
+	}
+	#modal.panel:not(.page) .settings-main h2 {
+		line-height: var(--space-32);
+	}
+}
+
+/* More menu, popovers. */
+.card-more-menu,
+.card-more-leaving {
+	position: absolute;
+	right: 8px;
+	top: 48px;
+	transform-origin: top right;
+	display: flex;
+	flex-direction: column;
+	width: min(220px, calc(100% - 16px));
+	padding: var(--space-6);
+	border-radius: 16px;
+	z-index: 5;
+	/* The menu sits over the card's own text, so it is solid, not glass. */
+	background: var(--card);
+	border: 1px solid var(--line);
+	box-shadow: var(--shadow-glass);
+}
+.card-menu-item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	min-height: 44px;
+	width: 100%;
+	padding: 0 var(--space-12);
+	border-radius: var(--control-radius);
+	text-align: left;
+	font-size: var(--text-control);
+	color: var(--ink);
+}
+.card-menu-item .icon {
+	flex: none;
+}
+@media (hover: hover) and (pointer: fine) {
+	.card-menu-item:hover {
+		background: var(--fixed-black-5);
+	}
+}
+.card-menu-item:active,
+.card-menu-item:focus-visible {
+	background: var(--fixed-black-5);
+}
+.why-actions {
+	display: flex;
+	gap: var(--space-16);
+	margin-top: var(--space-4);
+}
+
+/* Tags and notes. */
+.tag-editor {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-6);
+	padding-bottom: var(--space-12);
+	border-bottom: 1px solid var(--line);
+}
+.tag-editor input {
+	flex: 1;
+	min-width: 120px;
+	height: 32px;
+	padding: 0 var(--space-6);
+	border: 0;
+	background: transparent;
+	font-size: var(--text-meta);
+}
+.editor-note {
+	width: 100%;
+	min-height: 120px;
+	margin-top: var(--space-12);
+	padding: var(--space-4) 0;
+	border: 0;
+	background: transparent;
+	font-size: var(--text-body);
+	line-height: 1.7;
+	resize: none;
+	border-radius: 0;
+}
+.editor-note:focus-visible,
+.tag-editor input:focus-visible {
+	outline: 0;
+}
+.chip-suggest {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-6);
+	margin-top: var(--space-8);
+}
+
+/* First run: an empty sill, one sentence, one button. */
+.welcome {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: var(--space-10);
+	min-height: 70dvh;
+}
+.welcome h1 {
+	font-size: var(--text-detail-title);
+	letter-spacing: -0.02em;
+	margin-top: var(--space-10);
+}
+.welcome p {
+	font-size: var(--text-body);
+	color: var(--muted);
+}
+.welcome-actions {
+	display: flex;
+	gap: var(--space-12);
+	margin-top: var(--space-18);
+	align-items: center;
+}
+
+.chip.pick {
+	min-height: 40px;
+	padding: 0 var(--space-16);
+	font-size: var(--text-control);
+	box-shadow: none;
+	border: 1px solid var(--line-card);
+}
+.chip.pick.active {
+	border-color: var(--accent);
+}
+.permission {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-8);
+	text-align: center;
+	padding: var(--space-32) var(--space-28) var(--space-24);
+}
+.permission .row-icon {
+	display: grid;
+	place-items: center;
+	width: 48px;
+	height: 48px;
+	border-radius: 14px;
+	background: var(--accent-soft);
+	color: var(--accent);
+}
+.permission h1 {
+	margin: var(--space-6) 0 0;
+	font-size: 19px;
+}
+.permission-actions {
+	display: flex;
+	gap: var(--space-10);
+	width: 100%;
+	margin-top: var(--space-16);
+}
+.permission-actions > * {
+	flex: 1;
+}
+
+/* Capture: write one line, or paste a link. */
+.capture-field {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-10);
+	padding: var(--space-4) 0;
+}
+.capture-field > .icon {
+	margin-top: var(--space-12);
+	color: var(--secondary);
+}
+.capture-field textarea {
+	flex: 1;
+	min-height: 96px;
+	border: 0;
+	background: transparent;
+	padding: var(--space-10) 0;
+	font-size: 16px;
+	line-height: 1.6;
+	resize: none;
+	border-radius: 0;
+}
+.capture-field textarea:focus-visible {
+	outline: 0;
+}
+.next-event {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	padding: var(--space-12) var(--space-14);
+	border-radius: 14px;
+	background: var(--surface);
+	margin-top: var(--space-8);
+}
+.next-event .num {
+	font-size: 20px;
+	font-weight: 600;
+}
+.next-event span {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	font-size: var(--text-control);
+	font-weight: 500;
+}
+.next-event small {
+	color: var(--accent);
+	font-weight: 400;
+	font-size: var(--text-caption);
+}
+
+/* Inline note editing: the card itself becomes the field. */
+.feed-card.is-editing {
+	border: 2px solid var(--accent);
+	cursor: text;
+	z-index: 7;
+}
+.inline-editor {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-6);
+	padding: var(--space-14) var(--space-16) var(--space-12);
+}
+.inline-editor input {
+	border: 0;
+	background: transparent;
+	padding: 0;
+	font-size: 16px;
+	font-weight: 600;
+	border-radius: 0;
+}
+.inline-editor textarea {
+	border: 0;
+	background: transparent;
+	padding: 0;
+	min-height: 96px;
+	font-size: var(--text-body);
+	line-height: 1.6;
+	resize: none;
+	border-radius: 0;
+}
+.inline-editor input:focus-visible,
+.inline-editor textarea:focus-visible {
+	outline: 0;
+}
+.inline-editor small {
+	align-self: flex-end;
+	font-size: var(--text-caption);
+	color: var(--secondary);
+}
+
+/* Lifting never drops into an action. The separate dialog requires a button press. */
+.selection-lift {
+	position: fixed;
+	z-index: 200;
+	pointer-events: none;
+}
+.selection-stack {
+	position: relative;
+	width: 176px;
+	height: var(--stack-h, 140px);
+	isolation: isolate;
+	flex: none;
+}
+/* Real cards, fanned like a pile of photos: the first one chosen on top. */
+.selection-stack-face {
+	position: absolute;
+	inset: 0;
+	background: var(--card);
+	color: var(--ink);
+	border-radius: 16px;
+	box-shadow:
+		0 0 0 0.5px var(--line-card),
+		0 1px 2px var(--fixed-black-6),
+		0 10px 28px var(--fixed-black-14);
+	overflow: hidden;
+}
+.selection-stack-face[data-layer="1"] {
+	transform: translate(14px, -6px) rotate(6deg) scale(0.95);
+}
+.selection-stack-face[data-layer="2"] {
+	transform: translate(-14px, -2px) rotate(-6deg) scale(0.92);
+}
+.selection-stack-face > .feed-card {
+	opacity: 1;
+	border: 0;
+	box-shadow: none;
+}
+.selection-thumbnail-fallback {
+	padding: var(--space-14);
+	font-size: var(--text-meta);
+}
+.selection-stack-count {
+	position: absolute;
+	top: -10px;
+	right: -10px;
+	z-index: 4;
+	min-width: 28px;
+	height: 28px;
+	padding-inline: var(--space-8);
+	border-radius: var(--pill-radius);
+	background: var(--accent-fill);
+	color: var(--fixed-white);
+	display: grid;
+	place-items: center;
+	font-size: var(--text-control);
+	font-weight: 600;
+	box-shadow:
+		0 0 0 2px var(--card),
+		0 2px 6px var(--fixed-black-18);
+}
+.selection-lift .selection-stack {
+	transform: scale(1.03) rotate(-1deg);
+}
+body.is-carrying,
+body.is-dragging {
+	cursor: grabbing;
+	user-select: none;
+	-webkit-user-select: none;
+}
+body.is-dragging .card-actions,
+body.is-dragging #dock,
+body.is-dragging .scroll-edge {
+	visibility: hidden;
+}
+body.selection-menu-open {
+	overflow: hidden;
+}
+#selection-menu {
+	position: fixed;
+	inset: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--ink);
+	overflow: auto;
+	width: 100%;
+	height: 100%;
+	max-width: 100vw;
+	max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+	box-shadow: none;
+	scrollbar-width: none;
+}
+#selection-menu::backdrop {
+	background: var(--frost);
+	backdrop-filter: blur(28px) saturate(1.6);
+	-webkit-backdrop-filter: blur(28px) saturate(1.6);
+}
+.selection-context {
+	position: absolute;
+	width: 260px;
+	max-height: calc(100dvh - 32px);
+	overflow-y: auto;
+	padding: var(--space-20) var(--space-10) var(--space-12);
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-14);
+	scrollbar-width: none;
+}
+/* A compact menu: words first, a matching icon at the end, as in a system context menu. */
+.selection-options {
+	flex-shrink: 0;
+	width: 240px;
+	background: var(--glass-thick);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow:
+		inset 0 0 0 0.5px var(--glass-edge),
+		0 0 0 0.5px var(--glass-rim),
+		0 12px 36px var(--fixed-black-16);
+}
+.selection-options [role="group"] + [role="group"] {
+	border-top: 6px solid var(--glass-press);
+}
+.selection-options button {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-12);
+	width: 100%;
+	min-height: 44px;
+	padding: var(--space-11) var(--space-16);
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: var(--ink);
+	font: inherit;
+	font-size: var(--text-body);
+	text-align: start;
+}
+.selection-options button .icon {
+	color: var(--ink);
+	flex: none;
+}
+.selection-options button + button {
+	border-top: 0.5px solid var(--line-hover);
+}
+@media (hover: hover) and (pointer: fine) {
+	.selection-options button:hover {
+		background: var(--glass-press);
+	}
+}
+.selection-options button:focus-visible {
+	background: var(--glass-press);
+}
+.selection-options button:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: -4px;
+}
+.selection-context > .selection-stack {
+	flex-shrink: 0;
+}
+
+[tabindex="-1"]:focus {
+	outline: none;
+}
+input[type="search"]::-webkit-search-cancel-button {
+	-webkit-appearance: none;
+	display: none;
+}
+
+/* Gestures: sheets and pages follow the finger; the dim follows them. */
+.pull-ring {
+	position: fixed;
+	left: 50%;
+	top: env(safe-area-inset-top, 0px);
+	z-index: 50;
+	width: 36px;
+	height: 36px;
+	margin-left: calc(-1 * var(--space-18));
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	opacity: 0;
+	pointer-events: none;
+	color: var(--accent);
+}
+/* Under a finger the desk follows exactly; the glide is only for letting go. */
+body.is-pulling main {
+	will-change: translate;
+}
+.pull-ring svg {
+	width: 24px;
+	height: 24px;
+	transform: rotate(-90deg);
+}
+.pull-ring circle {
+	transform-origin: center;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.4;
+	stroke-linecap: round;
+	stroke-dasharray: 100;
+	stroke-dashoffset: 100;
+}
+/* Gesture progress is inline; spinning holds one fixed arc while the request is pending. */
+.pull-ring.is-spinning circle {
+	stroke-dashoffset: 30 !important;
+}
+/* One icon owns each phase. Text remains in accessible labels only. */
+.pull-ring:disabled {
+	cursor: default;
+}
+.pull-ring > svg {
+	grid-area: 1 / 1;
+}
+.pull-ring .pull-check,
+.pull-ring .pull-retry {
+	opacity: 0;
+	transform: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.pull-ring[data-state="success"] .pull-progress,
+.pull-ring[data-state="error"] .pull-progress {
+	opacity: 0;
+}
+.pull-ring[data-state="success"] .pull-check,
+.pull-ring[data-state="error"] .pull-retry {
+	opacity: 1;
+}
+.pull-ring[data-state="error"] {
+	pointer-events: auto;
+}
+.pull-ring:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 4px;
+}
+/* Read end: nothing at the end itself. Pushing on raises a small ring that fills with the push; full, it turns into a check. */
+.reader-end {
+	height: 24px;
+}
+.push-ring {
+	position: absolute;
+	left: 50%;
+	bottom: 24px;
+	z-index: 6;
+	width: 40px;
+	height: 40px;
+	margin-left: calc(-1 * var(--space-20));
+	border-radius: 20px;
+	display: grid;
+	place-items: center;
+	background: var(--card);
+	box-shadow: var(--shadow-glass);
+	color: var(--accent);
+	pointer-events: none;
+	opacity: 0;
+	transform: scale(0.6);
+}
+.push-ring > * {
+	grid-area: 1 / 1;
+}
+.push-ring svg.arc {
+	width: 22px;
+	height: 22px;
+	transform: rotate(-90deg);
+}
+.push-ring .arc circle {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.2;
+	stroke-linecap: round;
+}
+.push-ring .arc circle:first-child {
+	stroke-opacity: 0.15;
+}
+.push-ring .tick {
+	width: 20px;
+	height: 20px;
+	opacity: 0;
+	color: var(--fixed-white);
+}
+.push-ring.is-done {
+	background: var(--accent);
+}
+.push-ring.is-done .arc {
+	opacity: 0;
+}
+.push-ring.is-done .tick {
+	opacity: 1;
+}
+/* The read-end ring rises at the very foot of the page, where the toolbar was. */
+#modal.reader .push-ring {
+	position: fixed;
+	bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
+}
+/* The sheet's own pull and push replace the browser's elastic bounce; two springs at once read as a stutter. */
+.sheet-scroll,
+.reader-scroll {
+	overscroll-behavior-y: none;
+}
+.sheet-scroll::-webkit-scrollbar,
+.reader-scroll::-webkit-scrollbar {
+	display: none;
+}
+.sheet-scroll,
+.reader-scroll {
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+}
+/* Motion owns gesture offsets in translate, separate from surface transforms. */
+/* Nested content follows its dragged parent immediately. */
+
+/* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
+#modal.panel .sheet {
+	max-height: 100dvh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+}
+
+/* Focus stays visible but sits close to the field, in a soft ring instead of a second outline. */
+.search-pill:focus-within {
+	outline: 3px solid color-mix(in srgb, var(--accent) 36%, transparent);
+	outline-offset: 0;
+}
+#modal.panel .settings-layout {
+	min-height: 0;
+}
+/* Settings is one grouped page: the same grey ground from the head to the last row, white groups on it. */
+#modal.panel.wide .sheet {
+	background: var(--canvas);
+}
+#modal.panel.wide .settings-nav,
+#modal.panel.wide .settings-main {
+	background: transparent;
+}
+
+/* Reader: the same scroll edges at the top and the bottom, under the floating bars. */
+.reader-edge {
+	position: fixed;
+	left: 0;
+	right: 0;
+	z-index: 4;
+	pointer-events: none;
+}
+.reader-edge.is-bottom {
+	bottom: 0;
+	height: calc(var(--rail-row) + 24px + 48px + env(safe-area-inset-bottom));
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--card) 94%, transparent) 0%,
+		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 24px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+}
+.reader-edge.is-top {
+	top: 0;
+	height: calc(var(--rail-row) + 14px + 28px + env(safe-area-inset-top));
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, var(--card) 92%, transparent) 0%,
+		color-mix(in srgb, var(--card) 80%, transparent) calc(var(--rail-row) + 14px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+}
+.reader-edge.is-tucked {
+	opacity: 0;
+}
+/* Local AI conversation preview: no messages or connected send action. */
+#modal.panel.narrow:has(.ai-conversation) {
+	width: 100%;
+}
+.ai-conversation {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	max-height: calc(100dvh - 32px);
+}
+/* Same top row as home and search (ADR 0048): title left, round controls right. */
+.ai-conversation-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--space-60);
+	flex: none;
+}
+.ai-conversation h1 {
+	margin: 0;
+	font-size: var(--text-figure);
+	font-weight: 700;
+	letter-spacing: -0.04em;
+	line-height: 1.2;
+}
+.ai-head-actions {
+	display: flex;
+	gap: var(--space-4);
+}
+.ai-head-button {
+	width: var(--hit-target);
+	height: var(--hit-target);
+}
+.ai-head-button .icon {
+	box-sizing: content-box;
+	padding: var(--space-8);
+	border-radius: 50%;
+	background: var(--surface);
+}
+.ai-head-button:disabled {
+	opacity: 0.45;
+}
+.ai-conversation > p {
+	margin: 0;
+}
+.ai-context {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	scrollbar-width: none;
+}
+.ai-context-card {
+	padding: var(--card-padding);
+	border: 1px solid var(--line-card);
+	border-radius: var(--card-radius);
+	background: var(--card);
+}
+.ai-context-card h3 {
+	margin: 0;
+	font-size: var(--text-input);
+	overflow-wrap: anywhere;
+}
+.ai-context-card p {
+	margin: var(--space-8) 0 0;
+	font-size: var(--text-body);
+	color: var(--muted);
+	overflow-wrap: anywhere;
+}
+.ai-composer {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	border: 0;
+	border-radius: var(--panel-radius);
+	padding: var(--space-12);
+	flex: none;
+	background: var(--ai-composer);
+	color: var(--ai-ink);
+}
+.ai-composer textarea {
+	width: 100%;
+	min-width: 0;
+	min-height: var(--space-36);
+	height: var(--space-36);
+	padding: var(--space-2) var(--space-4);
+	resize: none;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: inherit;
+	font-size: var(--text-input);
+	line-height: var(--space-24);
+	outline: none;
+}
+.ai-composer-tools {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+}
+.ai-composer-tools .icon-button {
+	width: var(--space-32);
+	height: var(--space-32);
+	min-width: var(--space-32);
+}
+.ai-composer-tools .ai-attach {
+	margin-right: auto;
+	border-radius: var(--space-12);
+	background: var(--ai-control);
+}
+.ai-attach .icon {
+	transform: rotate(-45deg);
+}
+.ai-composer-tools .ai-send {
+	width: var(--space-24);
+	height: var(--space-24);
+	min-width: var(--space-24);
+	border-radius: var(--pill-radius);
+	border: var(--space-2) solid var(--ai-ink);
+}
+.ai-speak {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	min-width: calc(var(--space-60) + var(--space-24));
+	height: var(--space-32);
+	padding-inline: var(--space-12);
+	border-radius: var(--pill-radius);
+	background: var(--ai-ink);
+	color: var(--card);
+	font-size: var(--text-input);
+	font-weight: 500;
+}
+.ai-composer-tools button:disabled {
+	opacity: 1;
+}
+#modal.page.panel:has(.ai-conversation),
+#modal.page.panel .ai-conversation {
+	background: var(--card);
+}
+.soon-badge {
+	padding: var(--space-3) var(--space-10);
+	border-radius: var(--pill-radius);
+	background: var(--glass-press);
+	color: var(--secondary);
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+/* Settings › Add: the capture field inside a settings card. */
+.settings-add {
+	padding: var(--space-4) var(--space-16) var(--space-12);
+}
+.settings-add .panel-footer {
+	margin-top: var(--space-4);
+}
+
+@media (min-width: 651px) {
+	#modal.preview.is-short {
+		width: min(var(--preview-short-width), calc(100vw - var(--space-48)));
+	}
+	#modal.preview.is-short .preview-body {
+		padding-bottom: var(--space-16);
+	}
+	#modal.preview.is-short:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(var(--rail-row) + var(--space-24));
+	}
+}
+
+/* Refresh stays centered in the heading without replacing the Sill title. */
+body:has(.home-top.is-tucked) .pull-ring.in-home-heading,
+body:has(#modal[open]) .pull-ring.in-home-heading {
+	visibility: hidden;
+}
+
+@media (min-width: 651px) {
+	.pull-ring.in-home-heading {
+		width: var(--space-40);
+		height: var(--space-40);
+		margin-left: calc(-1 * var(--space-20));
+	}
+	.pull-ring.in-home-heading svg {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}
+
+/* Sill · responsive · shared source */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.glass,
+	.selection-options {
+		background: var(--card);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
+	:is(#modal, #search-background).search::backdrop,
+	#selection-menu::backdrop {
+		background: var(--canvas);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
+@media (max-width: 1000px) {
+	main {
+		padding: var(--space-24) var(--space-12) var(--space-140);
+	}
+}
+/* Phone: one column, bottom sheets, thumbs-first toolbars. */
+
+@media (max-width: 650px) {
+	/* Page frame */
+	html {
+		scrollbar-gutter: auto;
+	}
+	main {
+		padding: var(--space-8) var(--margin-sm) var(--space-130);
+	}
+	:root {
+		--rail-edge: 16px;
+		--rail-bottom: max(16px, env(safe-area-inset-bottom));
+	}
+	/* Three destinations share the same compact glass capsule. */
+	:root {
+		--nav-tab: 76px;
+	}
+	:root {
+		--home-top-h: 104px;
+	}
+	main {
+		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + var(--space-8));
+	}
+	/* Phone home (ADR 0036): X-like density, still cards. Desktop keeps its own spacing. */
+	.home-top {
+		position: fixed;
+		z-index: 44;
+		top: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		width: auto;
+		margin: 0;
+		padding: env(safe-area-inset-top) var(--margin-sm) 0;
+		background: color-mix(in srgb, var(--canvas) 92%, transparent);
+		-webkit-backdrop-filter: blur(28px) saturate(1.6);
+		backdrop-filter: blur(28px) saturate(1.6);
+	}
+	.home-top.is-tucked {
+		transform: translateY(calc(-100% + env(safe-area-inset-top)));
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	body:has(:is(#modal, #search-background)[open].page) .home-top {
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	/* New content waits at the top: under the tabs, or under the status bar once they tuck away. */
+	#new-count {
+		top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
+		bottom: auto;
+	}
+	body:has(.home-top.is-tucked) #new-count {
+		top: calc(env(safe-area-inset-top) + 8px);
+	}
+	body:has(#dock.is-tucked) #new-count {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+	/* Cards and touch targets */
+	.card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	/* Phone: the quiet ••• sits at the bottom right, clear of the time and count in the head. */
+	.card-actions,
+	.has-cover .card-actions {
+		top: auto;
+		right: 4px;
+		bottom: 4px;
+	}
+	.card-more-trigger,
+	.has-cover .card-more-trigger {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+		background: transparent;
+		border: 0;
+		box-shadow: none;
+		color: var(--secondary);
+	}
+	.card-more-trigger .icon {
+		width: 20px;
+		height: 20px;
+		stroke-width: 2.2;
+	}
+	.card-more-trigger:before {
+		inset: 0;
+	}
+	.card-head,
+	.sender,
+	.card-head:has(.card-head-right),
+	.has-cover .card-head {
+		padding-right: 0;
+	}
+	.feed-card .card-head-right {
+		opacity: 1;
+	}
+	.pill {
+		min-height: 44px;
+		border-radius: var(--pill-radius);
+	}
+	.check-item {
+		min-height: 44px;
+	}
+	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
+	.feed-item.feed-card {
+		border-radius: var(--card-radius-sm);
+	}
+	.feed-item .card-body {
+		padding: var(--card-padding-sm);
+	}
+	.feed-item .card-summary {
+		-webkit-line-clamp: 2;
+	}
+	.feed-item .card-summary.reading-summary {
+		-webkit-line-clamp: var(--summary-reading-lines);
+	}
+	.feed-item :is(.card-head, .sender) {
+		padding-right: 0;
+	}
+	/* A person's head reads on one line: small portrait, name, then mail and time. */
+	.feed-item .sender {
+		gap: var(--space-8);
+	}
+	/* avatar() emits inline desktop sizes; phone sender portraits stay 20px. */
+	.feed-item .sender .avatar {
+		width: 20px !important;
+		height: 20px !important;
+		font-size: 11px;
+	}
+	.feed-item .sender > span:last-child {
+		flex-direction: row;
+		align-items: baseline;
+		gap: var(--space-4);
+		overflow: hidden;
+		white-space: nowrap;
+	}
+	.feed-item .sender b {
+		font-size: var(--text-meta);
+	}
+	.feed-item .sender small {
+		font-size: var(--text-meta);
+	}
+	.feed-item .sender small::before {
+		content: "· ";
+	}
+	/* Articles: a thumbnail on the right. Video and photos keep a 2:1 picture. */
+	.feed-item.has-cover:not(.type-media, .type-photo) {
+		flex-direction: row-reverse;
+		align-items: flex-start;
+	}
+	.feed-item.has-cover:not(.type-media, .type-photo) .card-cover {
+		width: var(--thumb);
+		height: var(--thumb);
+		aspect-ratio: auto;
+		margin: var(--card-padding-sm) var(--card-padding-sm) var(--card-padding-sm) 0;
+		border-radius: var(--control-radius);
+	}
+	.feed-item.has-cover:not(.type-media, .type-photo) .card-body {
+		flex: 1;
+		min-width: 0;
+		padding-right: var(--space-12);
+	}
+	.feed-item:is(.type-media, .type-photo) .card-cover {
+		aspect-ratio: 2 / 1;
+	}
+	.feed-item .attachment {
+		align-self: stretch;
+		width: 100%;
+		margin-top: 0;
+	}
+	.feed-item .ref {
+		min-height: 32px;
+	}
+	/* Actions: a compact pill that still answers a 44px touch. */
+	.feed-item .pill {
+		position: relative;
+		min-height: 36px;
+	}
+	.feed-item .pill::after {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
+	}
+	/* Events: the start time is a column; title and span sit beside it; join shares the people row. */
+	.feed-item.type-event .card-body {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		column-gap: var(--space-12);
+		row-gap: var(--space-2);
+	}
+	.feed-item.type-event .card-head {
+		grid-column: 1 / -1;
+		margin-bottom: var(--space-6);
+	}
+	.feed-item.type-event .event-time {
+		display: contents;
+	}
+	.feed-item.type-event .event-start {
+		grid-column: 1;
+		grid-row: 2 / span 2;
+		font-size: var(--text-figure-route);
+		line-height: 1;
+	}
+	.feed-item.type-event .card-title {
+		grid-column: 2;
+		grid-row: 2;
+		font-size: var(--text-body);
+	}
+	.feed-item.type-event .event-end {
+		grid-column: 2;
+		grid-row: 3;
+		flex-direction: row;
+		align-items: baseline;
+		gap: var(--space-4);
+		padding-bottom: 0;
+		font-size: var(--text-meta);
+		font-weight: 400;
+		color: var(--muted);
+	}
+	.feed-item.type-event .event-end small::before {
+		content: "· ";
+	}
+	.feed-item.type-event .people {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		margin-top: var(--space-8);
+		padding-top: 0;
+	}
+	.feed-item.type-event .card-actions-row {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		justify-self: end;
+		margin-top: var(--space-8);
+		padding-top: 0;
+	}
+	.feed-item.type-event .card-actions-row .pill {
+		min-width: 96px;
+	}
+	/* To-dos: 28px rows; the head count already says how many there are. */
+	.feed-item.type-task .check-item {
+		min-height: 28px;
+		padding: 0;
+	}
+	.feed-item.type-task .check-dot {
+		width: 18px;
+		height: 18px;
+		flex-basis: 18px;
+	}
+	.feed-item.type-task .more-items {
+		display: none;
+	}
+	/* Navigation and selection */
+
+	.nav-icon {
+		height: 26px;
+	}
+	.nav-icon > .icon {
+		width: 24px;
+		height: 24px;
+	}
+	#dock:has(#selection-bar:not([hidden])) #selection-bar {
+		flex: 1;
+	}
+	/* Too narrow for both: while selecting, the bar takes the whole row. */
+	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
+		display: none;
+	}
+	#dock #selection-bar {
+		max-width: calc(100vw - 2 * var(--rail-edge));
+	}
+	/* Preview and bottom sheets (ADR 0037) */
+	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
+	#modal.preview {
+		position: fixed;
+		inset: 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+	}
+	#modal.preview .preview-sheet {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: auto;
+		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
+		transform: translateY(0);
+	}
+	#modal.preview .preview-sheet.is-full {
+		max-height: 100dvh;
+		transform: none;
+		border-radius: 0;
+	}
+	#modal.preview .preview-sheet.is-off {
+		transform: translateY(100%);
+	}
+	#modal.preview .sheet-peek {
+		position: absolute;
+		left: 14px;
+		right: 14px;
+		top: auto;
+		bottom: calc(var(--preview-height, 100dvh - 64px) - 10px);
+		width: auto;
+		height: 24px;
+		margin: 0;
+	}
+	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
+		opacity: 0;
+		pointer-events: none;
+	}
+	#modal.preview .preview-sheet .sheet-scroll {
+		flex: 1;
+		max-height: none;
+	}
+	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
+	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+		scroll-padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+	}
+	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
+		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
+	}
+	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
+		top: env(safe-area-inset-top);
+	}
+	#modal.preview #modal-title,
+	#modal.preview .preview-body > :is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-52);
+	}
+	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
+	#modal.preview:has(.sheet-head [data-action="reader"])
+		.preview-body
+		> :is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-104);
+	}
+	#modal.preview:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
+		padding-right: 0;
+	}
+	.sheet-head {
+		height: 60px;
+		padding: 0 var(--space-12);
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+	}
+	.sheet-handle {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		position: absolute;
+		z-index: 5;
+		top: 0;
+		left: calc(50% - 40px);
+		width: 80px;
+		height: 24px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		touch-action: none;
+		cursor: ns-resize;
+	}
+	.preview-sheet.is-full .sheet-handle {
+		top: env(safe-area-inset-top);
+	}
+	.sheet-handle .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 calc(-1 * var(--space-18));
+	}
+	#modal.preview[open] {
+		gap: 0;
+	}
+	.preview-sheet,
+	#modal.panel .sheet {
+		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+	.sheet-scroll {
+		max-height: 84dvh;
+	}
+	.grabber {
+		display: block;
+		width: 36px;
+		height: 5px;
+		border-radius: 3px;
+		background: var(--faint);
+		margin: var(--space-8) auto 0;
+	}
+	#modal.preview > .float-bar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: max(8px, env(safe-area-inset-bottom));
+		margin-inline: auto;
+		z-index: 3;
+	}
+	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
+	}
+	#modal.preview .push-ring {
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
+	}
+	.preview-body {
+		padding: var(--space-18) var(--space-20) var(--space-22);
+	}
+	.preview-body h1,
+	.preview-body .preview-title-row {
+		font-size: var(--text-panel-title);
+	}
+	/* Full-screen reader */
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
+	}
+	.reader-body {
+		padding: var(--space-64) var(--space-22) var(--space-150);
+	}
+	.reader-body h1,
+	.reader-body .preview-title-row {
+		font-size: 27px;
+	}
+	.reader-body p {
+		font-size: var(--text-reader-body);
+	}
+	/* Settings */
+	.settings-layout {
+		grid-template-columns: 1fr;
+		min-height: 0;
+		background: var(--canvas);
+	}
+	.settings-nav {
+		flex-direction: row;
+		overflow-x: auto;
+		padding: var(--space-16) var(--space-12) var(--space-12);
+		border-right: 0;
+		border-bottom: 0;
+		scrollbar-width: none;
+	}
+	.settings-nav::-webkit-scrollbar {
+		display: none;
+	}
+	.settings-nav button {
+		flex: none;
+	}
+	.settings-main {
+		padding: var(--space-20) var(--space-16);
+		max-height: 70dvh;
+	}
+	/* The settings page fills the screen behind the capsule: its groups scroll to the bottom edge, not to a box above it. */
+	#modal.page.panel.wide .sheet {
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0;
+	}
+	#modal.page .settings-layout {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+	#modal.page .settings-main {
+		flex: 1;
+		max-height: none;
+		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+	/* Search */
+	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
+	:is(#modal, #search-background).search {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100dvh;
+		max-height: none;
+		margin: 0;
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+		justify-content: flex-start;
+		gap: var(--space-10);
+	}
+	:is(#modal, #search-background).search .search-results {
+		flex: 1;
+		min-height: 0;
+		max-height: none;
+	}
+	:is(#modal, #search-background).search .search-chips {
+		flex: none;
+	}
+	:is(#modal, #search-background).page.search {
+		height: 100dvh;
+		max-height: none;
+		inset: 0;
+		/* The top row sits right under the safe area, like home and AI (ADR 0048). */
+		padding: env(safe-area-inset-top) var(--margin-sm)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+		gap: var(--space-16);
+	}
+	/* Keyboard, pages and photos */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		position: fixed;
+		inset: auto 0 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+	}
+	.panel-content {
+		padding: var(--space-22) var(--space-20) var(--space-26);
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	#modal.panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	body.keyboard-open #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
+	}
+	/* All three destinations are pages. The keyboard temporarily clears the capsule. */
+	#modal.page,
+	#modal.page.panel,
+	#modal.page.panel.wide,
+	#modal.page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	#modal.page .grabber {
+		display: none;
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		padding: calc(var(--space-12) + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+	/* The local AI preview keeps context and composer in one viewport. */
+	#modal.page.panel.narrow:has(.ai-conversation) {
+		width: 100%;
+	}
+	#modal.page.panel .ai-conversation {
+		padding: env(safe-area-inset-top) var(--space-12)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
+		background: var(--card);
+	}
+	.lightbox-stage > .icon-button {
+		display: none;
+	}
+	#modal.page .settings-head {
+		padding: 0 var(--margin-sm);
+	}
+	#modal.page.panel .ai-conversation > .sheet-close {
+		display: none;
+	}
+	/* Title and round controls line up with the home and search top rows (16px margin). */
+	#modal.page.panel .ai-conversation-head {
+		padding: 0 var(--space-4);
+	}
+	/* The results page has no top row: its search bar keeps a small gap under the safe area. */
+	:is(#modal, #search-background).page.search:not(:has(.search-browse)) {
+		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
+	}
+	body.keyboard-open #modal.page.panel .ai-conversation {
+		padding-bottom: var(--space-12);
+	}
+	body.keyboard-open :is(#modal, #search-background).page.search {
+		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
+	}
+	.search-card-grid {
+		gap: var(--gap-sm);
+	}
+}
+
+@media (hover: none) {
+	.card-more-trigger {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	.feed-card .card-head-right {
+		opacity: 1;
+	}
+}
+/* Tablets keep the ••• at the top right, so the head leaves room for it. */
+@media (hover: none) and (min-width: 651px) {
+	.card-head:has(.card-head-right) {
+		padding-right: var(--space-36);
+	}
+}
+@media (hover: hover) and (pointer: fine) {
+	body:not(.is-dragging) .feed-card.feed-item:hover {
+		transform: translateY(-2px);
+	}
+}
+
+/* The local AI window can return to the search that supplied its context. */
+#modal.page .ai-conversation .sheet-close {
+	display: block;
+}
+
+/* Safari focus zoom also affects touch devices with a trackpad attached. */
+@media (any-pointer: coarse) {
+	input,
+	textarea,
+	select,
+	.tag-editor input,
+	.editor-note,
+	.inline-editor textarea,
+	.ai-composer textarea {
+		font-size: max(16px, var(--text-control));
+	}
+}
+
+body{min-height:100svh;display:grid;place-items:center;padding:var(--space-24)}#modal{position:relative;margin:auto;max-height:calc(100svh - var(--space-48))}#modal::backdrop{display:none}@media(max-width:650px){body{padding:0;display:block}#modal{margin:0;max-height:100svh;height:100svh;width:100%;border-radius:0}}
+</style></head><body><dialog open id="modal" class="panel wide"><div class="sheet settings-sheet"><div class="grabber" aria-hidden="true"></div><header class="settings-head"><h1 id="modal-title">设置</h1><div class="sheet-close"><button type="button" class="icon-button " aria-label="关闭设置" data-action="close"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></header><div class="settings-layout"><nav class="settings-nav" aria-label="设置分组"><button type="button" class="" data-action="settings-group" data-extra="add" aria-current="false">添加</button><button type="button" class="on" data-action="settings-group" data-extra="desk" aria-current="true">桌面</button><button type="button" class="" data-action="settings-group" data-extra="look" aria-current="false">外观</button><button type="button" class="" data-action="settings-group" data-extra="keys" aria-current="false">快捷键</button><button type="button" class="" data-action="settings-group" data-extra="data" aria-current="false">数据与隐私</button></nav><div class="settings-main"><h2>桌面</h2><div class="settings-card"><div class="setting-row"><span>同一来源刷屏时叠起来</span><span class="setting-side"><span>超过 5 张</span><button class="toggle" type="button" role="switch" aria-label="同一来源刷屏时叠起来" aria-checked="true" data-action="pref-toggle" data-id="stack"></button></span></div><div class="setting-row"><span>读过的卡片慢慢变淡</span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="读过的卡片慢慢变淡" aria-checked="true" data-action="pref-toggle" data-id="fadeRead"></button></span></div><div class="setting-row"><span>会议和提醒到点浮上来</span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="会议和提醒到点浮上来" aria-checked="true" data-action="pref-toggle" data-id="floatTimely"></button></span></div></div>
+       <div class="group-label">卡片操作</div><div class="settings-card"><div class="setting-row"><span>收藏<small class="setting-example" id="action-example-bookmark">所有卡片</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="收藏" aria-describedby="action-example-bookmark" aria-checked="true" data-action="action-toggle" data-id="bookmark"></button></span></div><div class="setting-row"><span>标签<small class="setting-example" id="action-example-tag">所有卡片</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="标签" aria-describedby="action-example-tag" aria-checked="true" data-action="action-toggle" data-id="tag"></button></span></div><div class="setting-row"><span>稍后读<small class="setting-example" id="action-example-later">所有卡片</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="稍后读" aria-describedby="action-example-later" aria-checked="true" data-action="action-toggle" data-id="later"></button></span></div><div class="setting-row"><span>回复<small class="setting-example" id="action-example-reply">邮件</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="回复" aria-describedby="action-example-reply" aria-checked="true" data-action="action-toggle" data-id="reply"></button></span></div><div class="setting-row"><span>去原文<small class="setting-example" id="action-example-open">文章、视频等</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="去原文" aria-describedby="action-example-open" aria-checked="true" data-action="action-toggle" data-id="open"></button></span></div><div class="setting-row"><span>加入会议<small class="setting-example" id="action-example-join">日程</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="加入会议" aria-describedby="action-example-join" aria-checked="true" data-action="action-toggle" data-id="join"></button></span></div><div class="setting-row"><span>在 Sill 内再提醒<small class="setting-example" id="action-example-snooze">待办、日程、提醒</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="在 Sill 内再提醒" aria-describedby="action-example-snooze" aria-checked="true" data-action="action-toggle" data-id="snooze"></button></span></div><div class="setting-row"><span>下载日程<small class="setting-example" id="action-example-download">日程</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="下载日程" aria-describedby="action-example-download" aria-checked="true" data-action="action-toggle" data-id="download"></button></span></div><div class="setting-row"><span>忽略此提醒<small class="setting-example" id="action-example-dismiss">待办、日程、提醒</small></span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="忽略此提醒" aria-describedby="action-example-dismiss" aria-checked="true" data-action="action-toggle" data-id="dismiss"></button></span></div></div><p class="settings-hint muted">关掉的操作不出现在卡片详情底部，功能本身不删除。</p>
+       <div class="settings-card"><div class="setting-row"><span>读完上推收起</span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="读完上推收起" aria-checked="true" data-action="pref-toggle" data-id="collapseOnFinish"></button></span></div><div class="setting-row"><span>新内容提示</span><span class="setting-side"><span class="segmented" role="radiogroup" aria-label="新内容提示"><button type="button" role="radio" tabindex="0" aria-checked="true" class="on" data-action="pref" data-id="newHint" data-extra="away">离开顶部时</button><button type="button" role="radio" tabindex="-1" aria-checked="false" class="" data-action="pref" data-id="newHint" data-extra="off">不提示</button></span></span></div></div></div></div></div></dialog><script>const pages={"add":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"add\" aria-current=\"true\">添加\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>添加\u003c/h2>\u003cdiv class=\"settings-card settings-add\">\u003cdiv class=\"capture-field\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"M12 5v14M5 12h14\"/>\u003c/svg>\u003ctextarea id=\"capture-text\" aria-label=\"记一笔，或粘贴链接\" placeholder=\"记一笔，或粘贴链接\" maxLength=\"4000\">\u003c/textarea>\u003c/div>\u003cdiv class=\"panel-footer\">\u003cspan class=\"muted\">\u003ckbd>N\u003c/kbd> 随时记一笔\u003c/span>\u003cbutton type=\"button\" class=\"solid-button\" data-action=\"capture-save\">存\u003c/button>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","desk":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"add\" aria-current=\"false\">添加\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"true\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>桌面\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>同一来源刷屏时叠起来\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>超过 5 张\u003c/span>\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"同一来源刷屏时叠起来\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"stack\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>读过的卡片慢慢变淡\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"读过的卡片慢慢变淡\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"fadeRead\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>会议和提醒到点浮上来\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"会议和提醒到点浮上来\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"floatTimely\">\u003c/button>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"group-label\">卡片操作\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>收藏\u003csmall class=\"setting-example\" id=\"action-example-bookmark\">所有卡片\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"收藏\" aria-describedby=\"action-example-bookmark\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"bookmark\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>标签\u003csmall class=\"setting-example\" id=\"action-example-tag\">所有卡片\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"标签\" aria-describedby=\"action-example-tag\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"tag\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>稍后读\u003csmall class=\"setting-example\" id=\"action-example-later\">所有卡片\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"稍后读\" aria-describedby=\"action-example-later\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"later\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>回复\u003csmall class=\"setting-example\" id=\"action-example-reply\">邮件\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"回复\" aria-describedby=\"action-example-reply\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"reply\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>去原文\u003csmall class=\"setting-example\" id=\"action-example-open\">文章、视频等\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"去原文\" aria-describedby=\"action-example-open\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"open\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>加入会议\u003csmall class=\"setting-example\" id=\"action-example-join\">日程\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"加入会议\" aria-describedby=\"action-example-join\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"join\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>在 Sill 内再提醒\u003csmall class=\"setting-example\" id=\"action-example-snooze\">待办、日程、提醒\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"在 Sill 内再提醒\" aria-describedby=\"action-example-snooze\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"snooze\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>下载日程\u003csmall class=\"setting-example\" id=\"action-example-download\">日程\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"下载日程\" aria-describedby=\"action-example-download\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"download\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>忽略此提醒\u003csmall class=\"setting-example\" id=\"action-example-dismiss\">待办、日程、提醒\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"忽略此提醒\" aria-describedby=\"action-example-dismiss\" aria-checked=\"true\" data-action=\"action-toggle\" data-id=\"dismiss\">\u003c/button>\u003c/span>\u003c/div>\u003c/div>\u003cp class=\"settings-hint muted\">关掉的操作不出现在卡片详情底部，功能本身不删除。\u003c/p>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>读完上推收起\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"读完上推收起\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"collapseOnFinish\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>新内容提示\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"新内容提示\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"away\">离开顶部时\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"off\">不提示\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","look":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"add\" aria-current=\"false\">添加\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"true\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>外观\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>主题\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"主题\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"theme\" data-extra=\"system\">跟随系统\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"light\">浅色\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"dark\">深色\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"density\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","keys":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"add\" aria-current=\"false\">添加\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"true\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>快捷键\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>单键快捷键 N / R / T\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"单键快捷键 N / R / T\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"singleKeyShortcuts\">\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>搜索\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>⌘\u003c/kbd>\u003ckbd>K\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>记一笔\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>N\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>打开卡片\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Enter\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>关闭浮层\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Esc\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>刷新\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>R\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>回到顶部\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>T\u003c/kbd>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","data":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"add\" aria-current=\"false\">添加\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"true\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>数据与隐私\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>存放位置\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>这个浏览器\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>占用\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"num\">577 B\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>AI 只在本机处理\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"AI 只在本机处理\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"aiLocal\">\u003c/button>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link\" data-action=\"export-all\">导出全部卡片…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link warn\" data-action=\"clear-all\">清除全部数据…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>"};const modal=document.getElementById('modal');function size(){modal.classList.toggle('page',matchMedia('(max-width:650px)').matches)}size();window.addEventListener('resize',size);document.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button)return;if(button.dataset.action==='settings-group'){modal.innerHTML=pages[button.dataset.extra];size()}else event.preventDefault()});</script></body></html>

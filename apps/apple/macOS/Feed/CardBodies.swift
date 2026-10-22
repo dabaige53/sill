@@ -94,14 +94,17 @@ struct ArticleBody: View {
         CardCover(card: card, faded: faded) { EmptyView() }
       }
       BodyStack(compact: context.compact) {
-        CardHead(card: card, text: card.sourceLine) {
+        // The same head as the article preview: source · day · reading time.
+        CardHead(
+          card: card, text: card.sourceLine(day: card.articleDate, now: Format.date(context.now))
+        ) {
           ReadingProgress(card: card, state: state)
         }
         CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
         if !context.compact {
           SummaryBlock(
             summary: card.summary, points: card.points,
-            lines: context.summaryLines, query: context.query
+            query: context.query
           ).afterTitle()
         }
       }
@@ -140,8 +143,7 @@ struct MailBody: View {
       CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
       if !context.compact {
         SummaryBlock(
-          summary: card.summary, points: card.points, lines: context.summaryLines,
-          query: context.query
+          summary: card.summary, points: card.points, query: context.query
         ).afterTitle()
       }
       if let attachment = card.attachment {
@@ -171,7 +173,7 @@ struct NoteBody: View {
             tracking: AppleMetrics.quoteTracking
           )
           .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
-          .lineLimit(Int(AppleMetrics.quoteLines))
+          .lineLimit(nil)
           .fixedSize(horizontal: false, vertical: true)
           .afterHead()
       }
@@ -182,7 +184,7 @@ struct NoteBody: View {
         Highlighted(text: card.summary.isEmpty ? card.title : card.summary, query: context.query)
           .textStyle(AppleMetrics.font15, leading: AppleMetrics.noteLeading)
           .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
-          .lineLimit(Int(AppleMetrics.noteLines))
+          .lineLimit(nil)
           .frame(maxWidth: .infinity, alignment: .leading)
           .fixedSize(horizontal: false, vertical: true)
           .afterHead()
@@ -193,8 +195,7 @@ struct NoteBody: View {
         CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
         if !context.compact {
           SummaryBlock(
-            summary: card.summary, points: card.points, lines: context.summaryLines,
-            query: context.query
+            summary: card.summary, points: card.points, query: context.query
           ).afterTitle()
         }
       }
@@ -233,8 +234,7 @@ struct TaskBody: View {
         }
       } else if !context.compact {
         SummaryBlock(
-          summary: card.summary, points: card.points, lines: context.summaryLines,
-          query: context.query
+          summary: card.summary, points: card.points, query: context.query
         ).afterTitle()
       }
     }
@@ -250,9 +250,12 @@ struct TaskRow: View {
   @State private var hovered = false
   var body: some View {
     Button(action: toggle) {
-      HStack(alignment: large ? .center : .top, spacing: AppleMetrics.space10) {
+      HStack(alignment: .top, spacing: AppleMetrics.space10) {
         CheckDot(done: task.done, highlighted: hovered && !task.done)
-          .padding(.top, large ? 0 : AppleMetrics.space2)
+          .padding(
+            .top,
+            (LineHeight.height(size: large ? AppleMetrics.font15 : AppleMetrics.font14)
+              - AppleMetrics.taskDotSize) / 2)
         Text(task.text)
           .textStyle(
             large ? AppleMetrics.font15 : AppleMetrics.font14, leading: AppleMetrics.summaryLeading
@@ -266,7 +269,7 @@ struct TaskRow: View {
       .frame(minHeight: large ? AppleMetrics.hitTarget : AppleMetrics.checkRowHeight)
       .contentShape(Rectangle())
     }
-    .buttonStyle(.plain)
+    .buttonStyle(CheckPress())
     .disabled(locked)
     .onHover { hovered = $0 }
     .accessibilityLabel(task.text)
@@ -365,14 +368,17 @@ struct ReminderBody: View {
             .foregroundStyle(when.due ? AppleColors.warning : AppleColors.secondary)
         }
       }
-      HStack(spacing: AppleMetrics.space12) {
+      HStack(alignment: .top, spacing: AppleMetrics.space12) {
         ReminderCheck(card: card, state: state)
+          .padding(
+            .top,
+            (LineHeight.height(size: AppleMetrics.font16) - AppleMetrics.reminderDotSize) / 2)
         CardTitle(text: card.title, faded: faded, query: context.query)
       }
       .afterHead()
       if !card.summary.isEmpty, !context.compact {
         CardSummary(
-          text: card.summary, lines: context.summaryLines, query: context.query,
+          text: card.summary, query: context.query,
           indent: AppleMetrics.space34)
       }
     }
@@ -397,7 +403,7 @@ struct ReminderCheck: View {
       .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
       .contentShape(Circle())
     }
-    .buttonStyle(.plain)
+    .buttonStyle(CheckPress())
     .padding(-AppleMetrics.space11)
     .disabled(state.isWriting)
     .onHover { hovered = $0 }
@@ -417,7 +423,7 @@ struct MediaBody: View {
         CardHead(card: card, text: card.sourceLine) { ReadingProgress(card: card, state: state) }
         CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
         if !context.compact {
-          SummaryBlock(summary: card.summary, points: card.points, lines: 2, query: context.query)
+          SummaryBlock(summary: card.summary, points: card.points, query: context.query)
             .afterTitle()
         }
         if let duration = card.duration {
@@ -464,7 +470,7 @@ struct DigestBody: View {
         SummaryBlock(
           summary: card.summary.isEmpty && card.points.isEmpty
             ? card.body.first ?? "" : card.summary,
-          points: card.points, lines: context.summaryLines, query: context.query
+          points: card.points, query: context.query
         ).afterTitle()
       }
     }
@@ -484,8 +490,7 @@ struct SuggestionBody: View {
       CardTitle(text: card.title, faded: faded, query: context.query).afterHead()
       if !context.compact {
         SummaryBlock(
-          summary: card.summary, points: card.points, lines: context.summaryLines,
-          query: context.query
+          summary: card.summary, points: card.points, query: context.query
         ).afterTitle()
       }
       if !all.isEmpty {
@@ -544,8 +549,10 @@ struct PhotoBody: View {
       BodyStack(compact: context.compact) {
         CardHead(
           card: card,
-          text: [Copy.text("web.photo"), card.location ?? ""].filter { !$0.isEmpty }
-            .joined(separator: " · ")
+          text: [
+            Copy.text("web.photo"), card.location ?? "",
+            card.takenDay.map { Format.shortDay($0, now: Format.date(context.now)) } ?? "",
+          ].filter { !$0.isEmpty }.joined(separator: " · ")
         ) {
           if photos.count > 3 { Text("\(photos.count)").font(.number(AppleMetrics.font13)) }
         }

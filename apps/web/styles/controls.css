@@ -471,6 +471,16 @@ body.is-dragging #toast {
 			0 0 0 2px var(--accent),
 			0 16px 40px -14px color-mix(in srgb, var(--accent) 45%, transparent);
 	}
+	/* While a card is carried, an accent ring keeps spreading out of the box. */
+	.ai-dock-pulse {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: var(--pill-radius);
+		box-shadow: 0 0 0 2px var(--accent);
+		opacity: 0;
+		pointer-events: none;
+	}
 	.ai-dock.is-ready .ai-dock-input::placeholder {
 		color: var(--accent);
 		font-weight: 600;
@@ -489,7 +499,7 @@ body.is-dragging #toast {
 		color: var(--ink);
 	}
 	.ai-dock-button:disabled {
-		color: var(--muted);
+		color: var(--secondary);
 		cursor: default;
 	}
 	.ai-dock-send > span {
@@ -571,12 +581,50 @@ body.is-dragging #toast {
 		pointer-events: auto;
 	}
 	#dock #selection-bar {
-		width: min(640px, 100%);
-		max-width: none;
+		width: max-content;
+		max-width: 100%;
 		justify-content: center;
 	}
 	#dock #selection-bar .icon-button {
 		width: 44px;
 		height: 44px;
+	}
+}
+
+@media (min-width: 651px) {
+	/* One glass for the bottom rail: the AI box, the selection bars and detail tools all keep
+	   the `.glass` lens (clear tint, bright edge, strong blur), like Apple's Liquid Glass. */
+	.ai-dock,
+	#selection-bar,
+	#search-selection-bar,
+	dialog:not(.lightbox) > .float-bar {
+		background: var(--glass);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
+	}
+	/* The search field and the AI box take typing across the whole capsule. */
+	.ai-dock {
+		cursor: text;
+	}
+	.ai-dock-context {
+		cursor: default;
+	}
+	.ai-dock-send:disabled > span {
+		color: var(--secondary);
+	}
+	.ai-dock-send .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock-input::placeholder {
+		color: var(--secondary);
+		opacity: 1;
+	}
+	#search-selection-bar {
+		width: max-content;
+		margin-inline: auto;
 	}
 }

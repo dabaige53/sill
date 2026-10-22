@@ -1,6 +1,6 @@
 # Sill 的设计约束
 
-更新：2026-10-21。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
+更新：2026-10-22。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
 
 ## 依据
 
@@ -51,7 +51,7 @@
 1. 读手册对应的一节和现行画板；用 `trace` 找到相关的变量和代码。
 2. 改规则或数值：先改设计变量（`design-system/tokens/`）、手册和受影响的画板。数值有对应变量时用变量；没有对应变量的新数值，先判断它是不是一级新规则，是就加进变量，不是就改用已有的一级。
 3. 改代码。关键实现处写 `@design <编号>`；新编号登记到 `marks.json`。
-4. 运行 `build` 和 `check`。按变更范围选择静态检查、类型检查、构建和非浏览器测试。浏览器测试、视觉自动化和 e2e 须先取得用户明确授权；以 `AGENTS.md`「验证与测试授权」为准。
+4. 运行 `build` 和 `check`。检查选择、授权与未验证项按 [测试与验证](docs/guides/testing.md) 执行。
 5. 发布：在 Claude Code 里运行 `stage`，说「发布设计」，发布后 `record`。在其他 AI 产品里不发布，在 PR 的 Merge Danger 写「设计未发布到线上」。
 
 ## 版本更新
@@ -79,10 +79,12 @@
 
 ## Web 与 macOS 一致
 
-macOS 的视觉与动效以 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。不使用原生控件样式、SF Symbols、单层阴影或 Liquid Glass。
+修改任一端界面或审查跨端一致性时，按 [跨端对齐检查清单](docs/guides/cross-platform-checklist.md) 选择相关项并记录各端证据，并在同一提交更新 [界面对账表](docs/product/ui-alignment.md)。
+
+macOS 的视觉与动效以 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。不使用原生控件样式、SF Symbols 或单层阴影。浮动操作区在 macOS 26 及以上使用原生 Liquid Glass：顶部搜索与账户、AI 栏、阅读工具、预览按钮、多选栏、刷新圆环、新内容提示和 Toast；内容与设置保留实底。
 
 - 保留信息结构、内容顺序、文案和既有轻操作。SwiftUI 负责绘制，视觉、状态与动效参数对齐 Web。
-- macOS 顶栏只有一处与 Web 不同：品牌图标左缘对齐窗口关闭按钮。设置在两端桌面都是主窗口中央的弹窗。
+- macOS 顶栏顶部留白 18，控件在 64 高导航行内居中；品牌图标左缘和账户按钮右缘分别对齐卡片区两侧。设置在两端桌面都是主窗口中央的弹窗。
 - 设计变量维护于 design-system/tokens/foundation.json，导出 tokens.json 后由 CardGenerator 生成 AppleMetrics、AppleColors。组件不另写动画参数。
 - 保留已有 reduceMotion 分支；新增动效不加减少动态效果分支。此保留项与手册统一动效规则的差异须在交付中说明。
-- 保留键盘、焦点恢复及 VoiceOver 语义。按 AGENTS.md 运行非浏览器检查；真实窗口中未观察的效果须明确标明。
+- 保留键盘、焦点恢复及 VoiceOver 语义。验证范围和结果说明见 [测试与验证](docs/guides/testing.md)。

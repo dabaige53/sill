@@ -15,11 +15,28 @@ import SwiftUI
       AppleMetrics.easeSheetX1, AppleMetrics.easeSheetY1,
       AppleMetrics.easeSheetX2, AppleMetrics.easeSheetY2, duration: duration)
   }
+  /// `ease-reveal` over `dur-reveal`: the desktop bars coming back on their own.
+  static var reveal: Animation {
+    .timingCurve(
+      AppleMetrics.easeRevealX1, AppleMetrics.easeRevealY1,
+      AppleMetrics.easeRevealX2, AppleMetrics.easeRevealY2, duration: AppleMetrics.motionReveal)
+  }
   /// Release spring: mass 1, stiffness 600, damping 45; it inherits the release velocity.
   static func spring(velocity: Double = 0) -> Animation {
     .interpolatingSpring(
       mass: AppleMetrics.springMass, stiffness: AppleMetrics.springStiffness,
       damping: AppleMetrics.springDamping, initialVelocity: velocity)
+  }
+
+  /// The card spring: a card opens into its detail and returns to the feed with it.
+  static var card: Animation {
+    .interpolatingSpring(
+      mass: AppleMetrics.cardSpringMass, stiffness: AppleMetrics.cardSpringStiffness,
+      damping: AppleMetrics.cardSpringDamping)
+  }
+
+  static var cardHandoff: Animation {
+    .linear(duration: AppleMetrics.motionCardHandoffFade).delay(AppleMetrics.motionCardHandoffDelay)
   }
 
   static var press: Animation { ease(AppleMetrics.motionPress) }

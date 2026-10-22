@@ -15,11 +15,18 @@ import {
 	pill,
 	reminderClock,
 	ring,
+	shortDay,
 	timeString,
 } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardReadingTime, cardSource, cardSourceKind } from "../data/card-source.ts";
+import {
+	articleDate,
+	cardReadingTime,
+	cardSource,
+	cardSourceKind,
+	contentDay,
+} from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -32,11 +39,12 @@ const CardTemplates: Record<string, any> = {
 	head(c?: any, ctx?: any, text?: any, right: any = "") {
 		return `<div class="card-head">${CardPresentation.sourceIcon(c)}<span class="card-src">${esc(text)}</span>${right ? `<span class="card-head-right">${right}</span>` : ""}</div>`;
 	},
-	sourceLine(c?: any) {
+	sourceLine(c?: any, date: Date | null = null) {
 		return [
 			c.sources?.length > 1
 				? c.sources.map((s?: any) => s.name).join(" · ")
 				: cardSource(c) || (CardTypes[c.type] || CardTypes.note).label,
+			date ? shortDay(date.getTime()) : "",
 			// A relation lists its cards below; a count in the head would say it twice.
 			cardReadingTime(c),
 		]
@@ -64,7 +72,7 @@ const CardTemplates: Record<string, any> = {
 				.map((p?: any, i?: any) => `<li><i class="num">${i + 1}</i><span>${esc(p)}</span></li>`)
 				.join("")}</ol>`;
 		return c.summary
-			? `<p class="card-summary ${short ? "clamp-2" : ""}">${esc(c.summary)}</p>`
+			? `<p class="card-summary ${c.type === "article" || c.type === "mail" ? "reading-summary" : short ? "clamp-2" : ""}">${esc(c.summary)}</p>`
 			: "";
 	},
 	cover(c?: any, ctx?: any, inner: any = "") {
@@ -72,7 +80,7 @@ const CardTemplates: Record<string, any> = {
 		return `<div class="card-cover" style="background:${tone}"><img class="card-image" data-shared="image" src="${Assets[c.image]}" alt="" draggable="false" loading="lazy" decoding="async">${inner}</div>`;
 	},
 	article(c?: any, ctx?: any) {
-		return `${c.image ? this.cover(c, ctx) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c), this.progress(c, ctx))}${this.title(c, ctx)}${this.summary(c)}</div>`;
+		return `${c.image ? this.cover(c, ctx) : ""}<div class="card-body">${this.head(c, ctx, this.sourceLine(c, articleDate(c)), this.progress(c, ctx))}${this.title(c, ctx)}${this.summary(c)}</div>`;
 	},
 	mail(c?: any, ctx?: any) {
 		const sender = c.sender?.trim();
@@ -151,6 +159,7 @@ const CardTemplates: Record<string, any> = {
 	},
 	photo(c?: any, ctx?: any) {
 		const photos = c.photos?.length ? c.photos : [c.image];
+		const taken = contentDay(c.takenAt);
 		return `<div class="card-cover photo-grid n${Math.min(3, photos.length)}">${photos
 			.slice(0, 3)
 			.map(
@@ -159,7 +168,7 @@ const CardTemplates: Record<string, any> = {
 			)
 			.join(
 				"",
-			)}</div><div class="card-body">${this.head(c, ctx, [copy("web.photo"), c.location].filter(Boolean).join(" · "), photos.length > 3 ? `<span class="num">${photos.length}</span>` : "")}${this.title(c, ctx)}</div>`;
+			)}</div><div class="card-body">${this.head(c, ctx, [copy("web.photo"), c.location, taken ? shortDay(taken.getTime()) : ""].filter(Boolean).join(" · "), photos.length > 3 ? `<span class="num">${photos.length}</span>` : "")}${this.title(c, ctx)}</div>`;
 	},
 	file(c?: any, ctx?: any) {
 		const files = c.files || [];

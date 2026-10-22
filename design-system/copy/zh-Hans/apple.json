@@ -124,5 +124,13 @@
 	"apple.typePhoto": "照片",
 	"apple.typeFile": "文件",
 	"apple.sessionError": "无法安全保存登录会话，请检查系统钥匙串后重试。",
-	"apple.localClearUnavailable": "本地测试工作区暂不支持清空。"
+	"apple.localClearUnavailable": "本地测试工作区暂不支持清空。",
+	"apple.trace.menu": "性能追踪",
+	"apple.trace.active": "性能追踪 · 记录中",
+	"apple.trace.start": "开始性能追踪",
+	"apple.trace.mark": "标记此刻",
+	"apple.trace.stop": "停止并导出…",
+	"apple.trace.error": "性能日志无法写入，请检查磁盘空间和目录权限。",
+	"apple.refresh.success": "刷新完成",
+	"apple.refresh.loading": "正在刷新"
 }

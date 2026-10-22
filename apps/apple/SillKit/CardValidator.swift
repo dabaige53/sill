@@ -1,8 +1,11 @@
 import Foundation
 
 public enum CardValidator {
+  // The bundled contract is immutable. Decode it once instead of once per loaded card.
+  private static let schema = Result { try JSONValue.decode(Data(ContractSchema.json.utf8)) }
+
   public static func validate(_ value: JSONValue) throws {
-    let schema = try JSONValue.decode(Data(ContractSchema.json.utf8))
+    let schema = try Self.schema.get()
     try validate(value, schema: schema, root: schema, path: "card")
     guard let card = value.object, let type = card["type"]?.string else {
       throw CardValidationError("card")

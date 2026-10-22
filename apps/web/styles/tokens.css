@@ -1,16 +1,26 @@
 /* Sill · tokens · shared source (design-system/tokens.json v2) */
 :root {
+	--edge-blur-soft: blur(4px);
+	--edge-blur-mid: blur(8px);
+	--edge-blur-strong: blur(16px);
+	--summary-reading-lines: 4;
+	--settings-body-height: 560px;
+	--search-width: 280px;
+	--search-tagged-width: 360px;
+	--search-focused-width: 480px;
 	--dur-deck: 260ms;
 	--dur-show: 320ms;
+	--dur-reveal: 420ms;
 	--dur-lens: 0ms;
 	--delay-loading: 300ms;
 	--stagger: 30ms;
 	--dur-read: 220ms;
 	--dur-sheet: 260ms;
 	--dur-close: 220ms;
-	--dur-open: 220ms;
+	--dur-open: 280ms;
 	--dur-state: 220ms;
-	--dur-menu: 180ms;
+	--dur-menu: 200ms;
+	--dur-menu-close: 160ms;
 	--dur-hover: 160ms;
 	--dur-press: 120ms;
 	--ease-spring: linear(
@@ -137,10 +147,9 @@
 	--col-min: 280px;
 	--col-ideal: 340px;
 	--col-max: 380px;
-	--article-measure: 600px;
-	--article-gutter: 32px;
+	--article-measure: none;
+	--article-gutter: 30px;
 	--article-gutter-sm: 20px;
-	--col-limit: 4;
 	--hit-target: 44px;
 	--summary-lines: 3;
 	--block-gap: 8px;
@@ -190,6 +199,7 @@
 	--glass-press: rgba(0, 0, 0, 0.06);
 	--ease: cubic-bezier(0.23, 1, 0.32, 1);
 	--ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-reveal: cubic-bezier(0.5, 1, 0.89, 1);
 	--fast: 140ms;
 	--base: 220ms;
 	--layout: 220ms;
@@ -203,7 +213,7 @@ body[data-density="compact"] {
 	--col-min: 240px;
 	--col-ideal: 280px;
 	--col-max: 320px;
-	--summary-lines: 2;
+	--summary-lines: 3;
 }
 body[data-density="roomy"] {
 	--col-min: 340px;

@@ -315,7 +315,7 @@
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(#modal[open].page) .home-top {
+body:has(:is(#modal, #search-background)[open].page) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -327,17 +327,79 @@ body:has(#modal[open].page) .home-top {
 }
 .home-logo,
 .home-menu-toggle,
+.home-edge-blur,
 .home-menu,
-.home-search {
+.home-search,
+.home-kinds {
 	display: none;
 }
 @media (min-width: 651px) {
+	.home-top {
+		top: var(--space-10);
+		width: calc(100% - var(--space-12) * 2);
+		margin-top: var(--space-10);
+	}
+	.home-top {
+		opacity: 1;
+	}
+	.home-top.is-tucked,
+	.home-top.is-entering {
+		/* Include the sticky offset and glass feather in the shared travel. */
+		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
+		opacity: 1;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.home-top {
+			background: transparent;
+		}
+		.home-top > .home-heading,
+		.home-top > .home-kinds {
+			position: relative;
+			z-index: 1;
+		}
+		.home-top::before,
+		.home-top::after,
+		.home-edge-blur {
+			content: "";
+			display: block;
+			position: absolute;
+			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
+			z-index: 0;
+			pointer-events: none;
+		}
+		.home-top::before {
+			-webkit-backdrop-filter: var(--edge-blur-soft);
+			backdrop-filter: var(--edge-blur-soft);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+		}
+		.home-top::after {
+			-webkit-backdrop-filter: var(--edge-blur-mid);
+			backdrop-filter: var(--edge-blur-mid);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+		}
+		.home-edge-blur {
+			-webkit-backdrop-filter: var(--edge-blur-strong);
+			backdrop-filter: var(--edge-blur-strong);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+		}
+	}
+
+	#feed-grid {
+		max-width: none;
+	}
 	main {
-		padding-top: var(--space-16);
+		padding-inline: var(--space-12);
+		padding-top: var(--space-10);
 		min-height: calc(100dvh - var(--space-130));
 	}
-	/* ADR 0049: brand, ⌄, search and avatar share one 40px centerline. */
+	/* Brand and account align with the outer card edges. */
 	.home-heading {
+		height: var(--space-64);
 		gap: var(--space-8);
 	}
 	.home-brand {
@@ -348,7 +410,7 @@ body:has(#modal[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-10);
-		line-height: 40px;
+		line-height: var(--space-40);
 		letter-spacing: -0.02em;
 	}
 	.home-logo {
@@ -435,12 +497,15 @@ body:has(#modal[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-8);
-		width: 280px;
-		height: 40px;
+		width: var(--search-width);
+		min-width: 0;
+		flex-shrink: 1;
+		height: var(--space-40);
 		padding: 0 var(--space-8) 0 var(--space-14);
 		border-radius: 20px;
 		background: transparent;
 		color: var(--muted);
+		cursor: text;
 	}
 	.home-search::before {
 		content: "";
@@ -448,24 +513,24 @@ body:has(#modal[open].page) .home-top {
 		inset: 0;
 		z-index: -1;
 		border-radius: inherit;
-		background: var(--card);
+		background: color-mix(in srgb, var(--glass) 35%, transparent);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		transform-origin: right center;
 		pointer-events: none;
 	}
-	.home-search.has-token {
-		width: 360px;
+	/* At rest a short capsule; a query or tab keeps it open, focus stretches it. No focus ring. */
+	.home-search:is(.has-text, .has-token) {
+		width: var(--search-tagged-width);
 	}
-	.home-search:focus-within {
-		width: 480px;
-	}
-	.home-search:focus-within::before {
-		box-shadow:
-			inset 0 0 0 1px var(--accent),
-			0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+	.home-search.is-open {
+		width: var(--search-focused-width);
 	}
 	.home-search > .icon {
 		flex: none;
+		width: var(--space-20);
+		height: var(--space-20);
 	}
 	.home-search input {
 		flex: 1;
@@ -509,6 +574,62 @@ body:has(#modal[open].page) .home-top {
 	.home-search-clear[hidden] {
 		display: none;
 	}
+	/* # conditions follow the tab token: accent, like the phone search tokens. */
+	.home-search-marks {
+		display: flex;
+		flex: none;
+		gap: var(--space-6);
+	}
+	.home-search-marks:empty,
+	.home-hash-slot:empty {
+		display: none;
+	}
+	.home-search-token.is-hash {
+		background: var(--accent);
+		color: var(--fixed-white);
+	}
+	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
+	.home-search .search-hash {
+		z-index: 60;
+		top: calc(100% + var(--space-8));
+		left: 0;
+		right: 0;
+		cursor: default;
+	}
+	.home-search .search-hash-option:first-of-type {
+		background: none;
+	}
+	.home-search .search-hash-option.is-active,
+	.home-search .search-hash-option:focus-visible {
+		background: var(--faint);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-search .search-hash-option:hover {
+			background: var(--faint);
+		}
+	}
+	/* Type chips: one row under the top bar while there is text (web-interaction.md 搜索). */
+	.home-kinds {
+		display: flex;
+		align-items: center;
+		height: var(--space-32);
+		margin-bottom: var(--space-2);
+	}
+	.home-kinds[hidden] {
+		display: none;
+	}
+	.home-kinds .chip {
+		min-height: var(--space-32);
+		height: var(--space-32);
+		background: var(--surface);
+		box-shadow: none;
+		font-size: var(--text-control);
+	}
+	.home-kinds .chip.active {
+		background: var(--ink);
+		color: var(--card);
+		font-weight: 600;
+	}
 	.home-search-clear {
 		display: grid;
 		place-items: center;
@@ -529,9 +650,13 @@ body:has(#modal[open].page) .home-top {
 	.home-account {
 		margin-right: calc(-1 * var(--space-2));
 	}
+	.home-account .account-wrap > .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
 	.home-account .account-wrap {
-		width: 40px;
-		height: 40px;
+		width: var(--space-40);
+		height: var(--space-40);
 		background: var(--card);
 		box-shadow: inset 0 0 0 1px var(--line-card);
 		color: var(--ink);

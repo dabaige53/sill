@@ -262,3 +262,28 @@ test("valid media without body opens and prose never becomes media chapters or p
 		}
 	}
 });
+
+test("article and photo heads name their day like the preview head", () => {
+	const story = Card.parse({ ...article, id: "dated-article", publishedAt: "2024-03-05" });
+	const photo = Card.parse({
+		id: "dated-photo",
+		type: "photo",
+		title: "Trip",
+		image: "coast",
+		location: "Coast",
+		takenAt: "2024-03-06",
+	});
+	const head = (html: string) => {
+		const dom = new JSDOM(html);
+		try {
+			return dom.window.document.querySelector(".card-src, .preview-meta span")?.textContent;
+		} finally {
+			dom.window.close();
+		}
+	};
+	const feed = head(cardHTML(story));
+	assert.equal(feed, "Reader · 2024/3/5 · 约 6 分钟阅读");
+	assert.equal(head(CardTemplates.article(story, { state: CardPresentation.state(story) })), feed);
+	assert.equal(head(Panels.preview({}, story)), feed);
+	assert.equal(head(cardHTML(photo)), "照片 · Coast · 2024/3/6");
+});

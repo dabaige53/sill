@@ -15,6 +15,7 @@ import SwiftUI
         .environment(app.reader)
         .environment(app.chrome)
         .environment(app.shell)
+        .environment(app.interaction)
         .environment(app.ai)
         .environment(app.drag)
         .environment(app.menu)
@@ -35,6 +36,7 @@ import SwiftUI
 /// Everything the window shares. Created once; each object is observed only where it is drawn.
 @MainActor final class AppModel {
   let workspace: Workspace
+  let interaction: DesktopInteraction
   let feed: Feed
   let selection: Selection
   let reader: Reader
@@ -47,11 +49,16 @@ import SwiftUI
   let drag = CardDrag()
 
   init() {
+    if let root = ProcessInfo.processInfo.environment["SILL_PERF_OUTPUT"] {
+      try? PerformanceTrace.shared.start(directory: URL(fileURLWithPath: root))
+    }
     workspace = Workspace()
     feed = Feed(workspace: workspace)
     selection = Selection(workspace: workspace)
     reader = Reader(workspace: workspace)
     menu = CardMenu(workspace: workspace)
+    interaction = DesktopInteraction(
+      panels: panels, reader: reader, shell: shell, menu: menu, drag: drag)
   }
 }
 
@@ -88,6 +95,16 @@ private struct RootView: View {
 private struct DesktopCommands: Commands {
   let app: AppModel
   var body: some Commands {
+    CommandMenu(
+      Copy.text(PerformanceTrace.shared.recording ? "apple.trace.active" : "apple.trace.menu")
+    ) {
+      Button(Copy.text("apple.trace.start")) { PerformanceTrace.shared.startFromMenu() }
+        .disabled(PerformanceTrace.shared.recording || PerformanceTrace.shared.exporting)
+      Button(Copy.text("apple.trace.mark")) { PerformanceTrace.shared.mark() }
+        .disabled(!PerformanceTrace.shared.recording)
+      Button(Copy.text("apple.trace.stop")) { PerformanceTrace.shared.exportFromMenu() }
+        .disabled(!PerformanceTrace.shared.recording)
+    }
     // Settings opens as a sheet in the window (Web `#modal.panel.wide`), not a window of its own.
     CommandGroup(replacing: .appSettings) {
       Button(Copy.appleSettingsMenu) { app.panels.open(.settings) }
@@ -95,13 +112,14 @@ private struct DesktopCommands: Commands {
     }
     CommandGroup(after: .newItem) {
       Button(Copy.appleRefresh) {
-        app.workspace.refresh { done in if done { app.feed.refreshMembership() } }
+        app.workspace.refresh { done in if done { app.feed.refreshMembership(reorder: true) } }
       }
       .keyboardShortcut("r")
     }
     CommandGroup(after: .textEditing) {
-      Button(Copy.appleSearch) { app.shell.focusSearch() }
+      Button(Copy.appleSearch) { app.interaction.focusSearch() }
         .keyboardShortcut("k")
+        .disabled(!app.interaction.canSearch)
       Divider()
       ForEach(Scope.allCases, id: \.self) { scope in
         Button(scope.label) {
@@ -109,6 +127,7 @@ private struct DesktopCommands: Commands {
           app.feed.select(scope)
         }
         .keyboardShortcut(KeyEquivalent(scope.shortcut), modifiers: .command)
+        .disabled(!app.interaction.canSearch)
       }
     }
   }
@@ -123,6 +142,7 @@ private struct DesktopCommands: Commands {
   }
 
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+    guard PerformanceTrace.shared.stopForQuit() else { return .terminateCancel }
     guard let workspace, workspace.recorder.hasRecords || !workspace.queue.idle else {
       return .terminateNow
     }

@@ -145,13 +145,14 @@ button.list-row:active {
 	gap: var(--space-10);
 }
 .list-row .row-side {
-	position: relative;
+	display: grid;
+	flex: none;
+	justify-items: end;
+}
+.list-row .row-side > * {
+	grid-area: 1 / 1;
 }
 .list-row .row-put {
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-4);
@@ -185,7 +186,7 @@ button.list-row:active {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-2);
-	padding: var(--space-12) var(--space-16) var(--space-28);
+	padding: var(--space-28) var(--space-16);
 	background: var(--canvas);
 	border-right: 1px solid var(--line);
 }
@@ -642,4 +643,36 @@ body:has(dialog.search[open]) #feed-grid {
 }
 .search-chips[hidden] {
 	display: none;
+}
+
+/* @design settings-sheet: group changes never resize the desktop frame. */
+@media (min-width: 651px) {
+	#modal.panel:not(.page) .settings-sheet {
+		display: flex;
+		flex-direction: column;
+		height: min(
+			calc(var(--settings-body-height) + var(--space-60) + var(--space-16)),
+			calc(100dvh - var(--space-32))
+		);
+		overflow: hidden;
+	}
+	#modal.panel:not(.page) .settings-head {
+		min-height: calc(var(--space-60) + var(--space-16));
+	}
+	#modal.panel:not(.page) .settings-layout {
+		flex: 1;
+		min-height: 0;
+		grid-template-rows: minmax(0, 1fr);
+	}
+	#modal.panel:not(.page) :is(.settings-nav, .settings-main) {
+		min-height: 0;
+		max-height: none;
+		overflow-y: auto;
+	}
+	#modal.panel:not(.page) .settings-nav button {
+		flex-shrink: 0;
+	}
+	#modal.panel:not(.page) .settings-main h2 {
+		line-height: var(--space-32);
+	}
 }

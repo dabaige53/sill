@@ -300,24 +300,24 @@ test("toast pauses elapsed time and a replacement cannot inherit the old countdo
 			return id;
 		};
 		w.clearTimeout = (id: number) => timers.delete(id);
-		app.showToast("Undo", () => {}, "Undo", false);
-		assert.equal(timers.get(app.toastTimer).duration, 5500);
+		app.showToast("Notice", false);
+		assert.equal(timers.get(app.toastTimer).duration, 3200);
 		now = 1200;
 		app.toastHover = true;
 		app.updateToastClock();
-		assert.equal(app.toastRemaining, 4300);
+		assert.equal(app.toastRemaining, 2000);
 		assert.equal(timers.size, 0);
 		now = 9000;
 		app.updateToastClock();
-		assert.equal(app.toastRemaining, 4300);
+		assert.equal(app.toastRemaining, 2000);
 		app.toastHover = false;
 		app.updateToastClock();
-		assert.equal(timers.get(app.toastTimer).duration, 4300);
+		assert.equal(timers.get(app.toastTimer).duration, 2000);
 		now += 300;
 		active = false;
 		app.updateToastClock(true);
-		assert.equal(app.toastRemaining, 4000);
-		app.showToast("Replacement", null, "", false);
+		assert.equal(app.toastRemaining, 1700);
+		app.showToast("Replacement", false);
 		assert.equal(timers.size, 0);
 		active = true;
 		app.updateToastClock();
@@ -325,7 +325,7 @@ test("toast pauses elapsed time and a replacement cannot inherit the old countdo
 		app.hideToast();
 		assert.equal(timers.size, 0);
 		assert.equal(w.document.getElementById("toast").inert, true);
-		app.showToast("Failure", null, "", true);
+		app.showToast("Failure", true);
 		assert.equal(timers.size, 0);
 	} finally {
 		f.dom.window.close();
@@ -419,6 +419,46 @@ test("desktop card close keeps the dialog until its exit completes", async () =>
 		await Promise.resolve();
 		await Promise.resolve();
 		assert.equal(app.dialog.open, false);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("an open card below the feed top tucks the desktop top bar and AI box until its close begins", async () => {
+	const f = fixture();
+	try {
+		const { app, w } = f;
+		const calls: string[] = [];
+		app.railHide = {
+			hide: (force: boolean) => calls.push(`hide:${force}`),
+			show: (withCard: boolean) => calls.push(withCard ? "show" : "show:alone"),
+			atTop: () => atTop,
+			syncPosition() {},
+		};
+		let atTop = true;
+		app.desktop = () => true;
+		app.modalToken = 1;
+		app.closeMore = () => {};
+		app.dialog.showModal = () => app.dialog.setAttribute("open", "");
+		app.dialog.close = () => app.dialog.removeAttribute("open");
+		app.dialog.getAnimations = () => [];
+		app.openModal(null, "settings");
+		assert.deepEqual(calls, [], "a panel is not a card");
+		app.dialog.close();
+		app.openModal(null, "lightbox");
+		assert.deepEqual(calls, [], "at the top of the feed the bars stay");
+		app.dialog.close();
+		atTop = false;
+		app.openModal(null, "lightbox");
+		assert.deepEqual(calls, ["hide:true"], "even a focused search field gives way");
+		app.modalKind = "preview";
+		app.navKey = "home";
+		app.updateSelection = () => {};
+		w.document.body.insertAdjacentHTML("beforeend", '<button id="account">Account</button>');
+		w.__motionAnimations = [];
+		app.closeNative();
+		assert.equal(app.dialog.open, true, "the card is still leaving");
+		assert.deepEqual(calls, ["hide:true", "show"], "the bars return with the card's first frame");
 	} finally {
 		f.dom.window.close();
 	}

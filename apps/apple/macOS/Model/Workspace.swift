@@ -10,18 +10,18 @@ import SillKit
     case connecting, signedOut, ready
     case unavailable(String)
   }
-  /// Web `#toast`. An undoable notice stays 5.5s of unattended time, a plain one 3.2s; a
+  /// Web `#toast`. A plain notice stays 3.2s of unattended time; a
   /// persistent one (a failure or an unknown result) stays until closed.
   struct Notice: Equatable, Identifiable {
     let id = UUID()
     var text: String
     var persistent = false
-    var undo: (@MainActor () -> Void)?
+    var isFailure = false
     static func == (a: Notice, b: Notice) -> Bool { a.id == b.id }
   }
 
-  func toast(_ text: String, undo: (@MainActor () -> Void)? = nil) {
-    notice = Notice(text: text, undo: undo)
+  func toast(_ text: String) {
+    notice = Notice(text: text)
   }
 
   private(set) var phase: Phase = .connecting
@@ -123,17 +123,23 @@ import SillKit
         then?()
         return
       }
+      let trace = PerformanceTrace.shared.begin(.snapshotDiff, reason: .refresh)
       let baseline = self.baseline
       let diff = await Task.detached(priority: .userInitiated) {
         SnapshotDiff.make(snapshot, against: baseline)
       }.value
       guard token == self.generation else { return }
+      PerformanceTrace.shared.end(trace)
       self.apply(diff)
       then?()
     }
   }
 
   private func apply(_ diff: SnapshotDiff) {
+    let trace = PerformanceTrace.shared.begin(.snapshotApply, reason: .refresh)
+    defer {
+      PerformanceTrace.shared.end(trace, values: ["changed_cards": Double(diff.models.count)])
+    }
     revision = diff.revision
     seconds = diff.seconds
     for model in diff.models { models[model.id] = model }
@@ -236,39 +242,19 @@ import SillKit
 
   enum Flag { case bookmarked, later }
 
-  /// Web `applySelectionAction`: every card gets the flag in one write; undo puts back each
-  /// card's own value.
+  /// Web `applySelectionAction`: every card gets the flag in one write.
   func mark(_ ids: [String], _ flag: Flag) {
     let key = flag == .bookmarked ? "bookmarked" : "later"
     let kept = ids.filter { models[$0] != nil }
-    var before: [String: [String: JSONValue]] = [:]
-    for id in kept {
-      before[id] = [key: .bool(flag == .bookmarked ? state(id).bookmarked : state(id).later)]
-    }
     let after = Dictionary(uniqueKeysWithValues: kept.map { ($0, [key: JSONValue.bool(true)]) })
     guard change(after) else { return }
-    let text =
-      flag == .bookmarked
-      ? Copy.text("web.app.96e7ee93f3ba") + "\(kept.count)"
-        + Copy.text("web.common.cardCountSuffix")
-      : "\(kept.count)" + Copy.text("web.app.34d0636b70c8")
-    toast(text) { [weak self] in self?.change(before, queued: true) }
   }
 
-  /// Web `restoreCard`: back on the desk, with an undo that puts it away again. `then` runs after
-  /// the change and after an undo, so the feed can take the card in or out.
+  /// Web `restoreCard`: back on the desk; `then` refreshes the feed after the change.
   func restore(_ id: String, then: @escaping @MainActor () -> Void) {
-    let before: [String: JSONValue] = [
-      "archived": .bool(true),
-      "restoredAt": state(id).confirmed["restoredAt"] ?? .number(0),
-    ]
     guard change(id, ["archived": .bool(false), "restoredAt": .number(Format.milliseconds())])
     else { return }
     then()
-    toast(Copy.text("web.app.fff336942d9b")) { [weak self] in
-      guard let self, self.change(id, before, queued: true) else { return }
-      then()
-    }
   }
 
   /// The stored tags and note an edit started from (AGENTS.md: keep an edit baseline).
@@ -302,7 +288,7 @@ import SillKit
     guard let first = kept.first else { return completion(.failed) }
     let current = editBaseline(kept)
     guard kept.allSatisfy({ current[$0] == baseline[$0] }) else {
-      notice = Notice(text: Copy.appleConflict, persistent: false)
+      notice = Notice(text: Copy.appleConflict, isFailure: true)
       return completion(.conflict)
     }
     var patches: [String: [String: JSONValue]] = [:]
@@ -360,19 +346,13 @@ import SillKit
       ])
   }
 
-  /// Returns the task ids done before the change, for undo.
+  /// Returns the task ids done before the change.
   @discardableResult
   func toggleTask(_ id: String, task: String) -> [String]? {
     guard let card = models[id] else { return nil }
     let before = state(id).tasks(of: card).filter(\.done).map(\.id)
     let after = before.contains(task) ? before.filter { $0 != task } : before + [task]
     let changed = change(id, ["taskDone": .array(after.map(JSONValue.string))])
-    // Web: finishing the last task offers an undo that returns every check as it was.
-    if changed, !card.tasks.isEmpty, Set(after).isSuperset(of: card.tasks.map(\.id)) {
-      toast(Copy.text("web.app.58d2aeefaa41")) { [weak self] in
-        self?.change(id, ["taskDone": .array(before.map(JSONValue.string))], queued: true)
-      }
-    }
     return changed ? before : nil
   }
 
@@ -412,14 +392,6 @@ import SillKit
         ]
       }
     guard change(id, values) else { return nil }
-    let text =
-      switch action {
-      case .snooze: Copy.text("web.app.8b61908123ce")
-      case .dismiss: Copy.text("web.app.c9bb70bcaaa3")
-      case .complete: Copy.text("web.app.4203e358dee2")
-      case .restore: Copy.text("web.app.480719186cc8")
-      }
-    toast(text) { [weak self] in self?.change(id, before, queued: true) }
     return before
   }
 
@@ -438,13 +410,7 @@ import SillKit
     do {
       let card = try Card(json: json)
       let raw = try card.raw
-      write([.upsert(card: raw, before: .null)]) { [weak self] done in
-        if done {
-          self?.toast(Copy.text("web.app.4f060a8371c3")) { [weak self] in
-            guard let self else { return }
-            self.write([.delete(id: card.id, before: self.baseline.raw[card.id] ?? raw)])
-          }
-        }
+      write([.upsert(card: raw, before: .null)]) { done in
         completion?(done)
       }
       return .sent
@@ -510,7 +476,7 @@ import SillKit
     case is CardValidationError: text = Copy.appleInvalidCard
     default: text = Copy.appleWriteError
     }
-    notice = Notice(text: text, persistent: persistent)
+    notice = Notice(text: text, persistent: persistent, isFailure: true)
   }
 
   private static func signedOut(_ error: any Error) -> Bool {
@@ -524,7 +490,7 @@ import SillKit
   private func checkPendingCloudWrite() async {
     guard let cloud = (backend as? CloudBackend)?.cloud else { return }
     if await cloud.pendingWriteKey != nil {
-      notice = Notice(text: Copy.appleUnknownWrite, persistent: true)
+      notice = Notice(text: Copy.appleUnknownWrite, persistent: true, isFailure: true)
     } else if notice?.text == Copy.appleUnknownWrite {
       notice = nil
     }

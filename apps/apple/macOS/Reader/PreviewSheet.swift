@@ -12,7 +12,7 @@ struct PreviewSheet: View {
   let size: CGSize
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
-  @State private var scroll = ReaderScroll()
+  let scroll: ReaderScroll
   @State private var contentHeight: CGFloat = 0
   @State private var firstRow: CGFloat = 0
 
@@ -27,6 +27,10 @@ struct PreviewSheet: View {
       size.width - AppleMetrics.previewMargin)
     let maxHeight = min(
       size.height * AppleMetrics.previewHeightRatio, AppleMetrics.previewMaxHeight)
+    let target = CGRect(
+      x: (size.width - width) / 2,
+      y: (size.height - min(maxHeight, contentHeight)) / 2,
+      width: width, height: min(maxHeight, contentHeight))
     let tools = ReaderTools.actions(
       card: card, state: state, hidden: workspace.preferences.hiddenActions)
     let barRoom =
@@ -57,6 +61,7 @@ struct PreviewSheet: View {
       }
       ScrollView(.vertical) {
         ReaderContent(card: card, state: state, discRoom: discRoom)
+          .modifier(DetailReveal())
           .padding(.top, AppleMetrics.previewPaddingTop)
           .padding(
             .horizontal,
@@ -77,34 +82,45 @@ struct PreviewSheet: View {
       // short card gets a short sheet.
       .frame(height: max(1, min(maxHeight, contentHeight)))
       .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
+      .frame(width: width)
+      .background(AppleColors.card)
+      .overlay(alignment: .top) { TopFade(motion: scroll.motion) }
+      .overlay(alignment: .bottom) {
+        if !tools.isEmpty { BottomFade(motion: scroll.motion) }
+      }
       .overlay(alignment: .top) {
-        TopFade(motion: scroll.motion)
-        HeadDiscs(
-          motion: scroll.motion, firstRow: firstRow,
-          expand: expandable ? { reader.open(card.id, full: true) } : nil,
-          close: { reader.close() })
+        ZStack(alignment: .top) {
+          HeadDiscs(
+            motion: scroll.motion, firstRow: firstRow,
+            expand: expandable ? { reader.open(card.id, full: true) } : nil,
+            close: { reader.close() })
+        }
+        .modifier(DetailReveal(tools: true))
       }
       .overlay(alignment: .bottom) {
         ZStack(alignment: .bottom) {
           if !tools.isEmpty {
-            BottomFade(motion: scroll.motion)
             ReaderToolbar(card: card, state: state, actions: tools)
               .modifier(ReaderToolsTuck(motion: scroll.motion))
               .padding(.bottom, AppleMetrics.previewBarBottom)
+              .modifier(DetailReveal(tools: true))
           }
-          // Web `.push-ring`: 24 above the bottom edge, where the toolbar was.
+          // Web `.push-ring`: 24 above the bottom edge, where the toolbar was. The check returns
+          // with the surface and its spring instead of fading out ahead of it.
           FinishRing(motion: scroll.motion)
             .padding(.bottom, AppleMetrics.space24)
         }
       }
-      .frame(width: width)
-      .background(AppleColors.card)
-      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous))
-      .shadow(.sheet)
+      // Close, fullscreen and the toolbar belong to the surface that grows out of the card.
+      .modifier(CardGeometryDestination(id: card.id, target: target, ready: contentHeight > 0))
+
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .modifier(ReaderSurfaceOffset(motion: scroll.motion))
     .onAppear { configure() }
     .accessibilityElement(children: .contain)
+    .accessibilityIdentifier("reader-preview")
+    .onAppear { PerformanceTrace.shared.event(.viewAppeared) }
     .accessibilityLabel(card.title)
     .accessibilityAddTraits(.isModal)
   }
@@ -133,7 +149,7 @@ struct PreviewSheet: View {
   }
 }
 
-/// Close and fullscreen: white discs (36, hit 44) centered on the first row; at the top once scrolled.
+/// Close and fullscreen: glass discs (36, hit 44) centered on the first row; at the top once scrolled.
 struct HeadDiscs: View {
   let motion: ReaderMotion
   let firstRow: CGFloat
@@ -146,10 +162,14 @@ struct HeadDiscs: View {
       : AppleMetrics.previewPaddingTop + max(firstRow, AppleMetrics.cardHeadHeight) / 2
     HStack(spacing: AppleMetrics.space8) {
       Spacer(minLength: 0)
-      if let expand {
-        Disc(icon: "expand", label: Copy.text("web.preview.fullscreen"), action: expand)
+      DesktopGlassGroup {
+        HStack(spacing: AppleMetrics.space8) {
+          if let expand {
+            Disc(icon: "expand", label: Copy.text("web.preview.fullscreen"), action: expand)
+          }
+          Disc(icon: "x", label: Copy.text("web.preview.close"), action: close)
+        }
       }
-      Disc(icon: "x", label: Copy.text("web.preview.close"), action: close)
     }
     .padding(.horizontal, AppleMetrics.space16)
     .padding(.top, center - AppleMetrics.previewDisc / 2)
@@ -162,23 +182,17 @@ struct Disc: View {
   let icon: String
   let label: String
   let action: () -> Void
-  @State private var hovered = false
   var body: some View {
     Button(action: action) {
       Icon(icon, size: AppleMetrics.previewDiscIcon)
         .foregroundStyle(AppleColors.primary)
         .frame(width: AppleMetrics.previewDisc, height: AppleMetrics.previewDisc)
-        .background(Circle().fill(hovered ? AppleColors.surface : AppleColors.card))
-        .overlay(Circle().stroke(AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth / 2))
-        .shadow(.floating)
+        .desktopGlass(Circle())
         .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
         .contentShape(Circle())
     }
-    // `.sheet-head .icon-button`: its own white disc, the shared press scale.
     .buttonStyle(IconPress(highlight: false))
     .padding(-(AppleMetrics.hitTarget - AppleMetrics.previewDisc) / 2)
-    .onHover { hovered = $0 }
-    .animation(Motion.hover, value: hovered)
     .accessibilityLabel(label)
   }
 }
@@ -200,20 +214,17 @@ struct TopFade: View {
   }
 }
 
-/// Text fades where the toolbar floats: a faint texture under the capsule, then 44px of fade.
+/// A short edge fade inside the card mask; the native capsule supplies its own material.
 struct BottomFade: View {
   let motion: ReaderMotion
   var body: some View {
-    let bar = AppleMetrics.railRow + AppleMetrics.previewBarBottom
-    let height = bar + AppleMetrics.previewEdgeHeight
     LinearGradient(
-      stops: [
-        .init(color: AppleColors.card.opacity(0.94), location: 0),
-        .init(color: AppleColors.card.opacity(0.86), location: bar / height),
-        .init(color: AppleColors.card.opacity(0), location: 1),
-      ], startPoint: .bottom, endPoint: .top
+      colors: [
+        AppleColors.card.opacity(AppleMetrics.readerBottomFadeOpacity), AppleColors.card.opacity(0),
+      ],
+      startPoint: .bottom, endPoint: .top
     )
-    .frame(height: height)
+    .frame(height: AppleMetrics.readerBottomFadeHeight)
     .opacity(motion.toolsHidden ? 0 : 1)
     .allowsHitTesting(false)
   }

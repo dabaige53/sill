@@ -16,7 +16,7 @@ extension Font {
 /// CSS line-height as a ratio of the font size: the extra space SwiftUI adds between lines.
 @MainActor enum LineHeight {
   private static var natural: [CGFloat: CGFloat] = [:]
-  static func spacing(size: CGFloat, ratio: CGFloat) -> CGFloat {
+  static func height(size: CGFloat) -> CGFloat {
     let base =
       natural[size]
       ?? {
@@ -24,7 +24,10 @@ extension Font {
         natural[size] = value
         return value
       }()
-    return max(0, size * ratio - base)
+    return base
+  }
+  static func spacing(size: CGFloat, ratio: CGFloat) -> CGFloat {
+    max(0, size * ratio - height(size: size))
   }
 }
 

@@ -5,6 +5,7 @@ import { cardSourceKind } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { ChromeAutoHide } from "../interactions/chrome.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController } from "./app.ts";
@@ -16,6 +17,8 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	const source = (
 		this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
 	).querySelector(`[data-card="${CSS.escape(id)}"]`);
+	const sourceRect = source?.getBoundingClientRect();
+	const entryRect = !this.dialog.open || this.modalKind === "search" ? sourceRect : null;
 	// A quick note opens where it is: the card becomes its own editor.
 	if (
 		!reading &&
@@ -55,14 +58,15 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	}
 	if (reading) {
 		// Bodies are on this device, so the page opens complete. The skeleton is kept for bodies fetched from a source.
-		this.openModal(Panels.reader(this, c, false), "reader");
+		this.openModal(Panels.reader(this, c, false), "reader", entryRect);
+		MotionEngine.matchSource(this.dialog, source);
 		this.bindReader(id);
 		this.gestures.bindPullDown();
 		this.bindSheetChrome();
 		return;
 	}
 	// Opened from the desk, the preview grows out of its card; opened from another preview it stacks.
-	const origin = this.dialog.open ? null : this.cardRect(id);
+	const origin = entryRect;
 	const below = Store.card(this.previewTrail.at(-1));
 	this.openModal(
 		createElement(
@@ -81,6 +85,11 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		"preview",
 		origin,
 	);
+	if (origin)
+		MotionEngine.matchSource(
+			this.dialog,
+			(this.searchBackground || this.grid).querySelector(`[data-card="${CSS.escape(id)}"]`),
+		);
 	this.bindPreview(id);
 	this.gestures.bindPullDown();
 	this.bindSheetChrome();
@@ -97,11 +106,15 @@ export function bindSheetChrome(this: AppController) {
 	this.previewSizeObserver?.disconnect();
 	const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
 	if (!scroll) return;
-	this.sheetHide = new ChromeAutoHide(scroll, () => [
-		...this.dialog.querySelectorAll(
-			":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
-		),
-	]);
+	this.sheetHide = new ChromeAutoHide(
+		scroll,
+		() => [
+			...this.dialog.querySelectorAll(
+				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
+			),
+		],
+		() => this.sheetLeaving || !!this.dialog.querySelector("[data-card-flight]"),
+	);
 	// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 	const sheet = this.dialog.querySelector(".preview-sheet");
 	if (sheet) {

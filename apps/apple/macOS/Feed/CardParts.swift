@@ -7,7 +7,6 @@ struct CardContext: Equatable {
   var now: Double
   var query = ""
   var fadeRead = true
-  var summaryLines = 3
   /// Shown in an open stack: summary hidden, tighter padding.
   var compact = false
 }
@@ -95,7 +94,6 @@ struct CardTitle: View {
   let text: String
   var faded = false
   var query = ""
-  var lines = 2
   // @design card-type
   var body: some View {
     Highlighted(text: text, query: query)
@@ -104,7 +102,7 @@ struct CardTitle: View {
         tracking: AppleMetrics.cardTitleTracking
       )
       .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
-      .lineLimit(lines)
+      .lineLimit(nil)
       .frame(maxWidth: .infinity, alignment: .leading)
       .fixedSize(horizontal: false, vertical: true)
   }
@@ -112,7 +110,6 @@ struct CardTitle: View {
 
 struct CardSummary: View {
   let text: String
-  var lines: Int
   var query = ""
   var indent: CGFloat = 0
   var body: some View {
@@ -121,7 +118,7 @@ struct CardSummary: View {
         AppleMetrics.font14, leading: AppleMetrics.cardSummaryLineHeight / AppleMetrics.font14
       )
       .foregroundStyle(AppleColors.secondary)
-      .lineLimit(lines)
+      .lineLimit(nil)
       .frame(maxWidth: .infinity, alignment: .leading)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.leading, indent)
@@ -132,20 +129,19 @@ struct CardSummary: View {
 struct SummaryBlock: View {
   let summary: String
   let points: [String]
-  var lines: Int
   var query = ""
   var body: some View {
     if !points.isEmpty {
       VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-        if !summary.isEmpty { CardSummary(text: summary, lines: 2, query: query) }
+        if !summary.isEmpty { CardSummary(text: summary, query: query) }
         KeyPoints(
-          points: Array(points.prefix(3)), singleLine: true, size: AppleMetrics.font14,
+          points: Array(points.prefix(3)), singleLine: false, size: AppleMetrics.font14,
           lineHeight: AppleMetrics.cardSummaryLineHeight
         )
         .padding(.top, AppleMetrics.space2)
       }
     } else if !summary.isEmpty {
-      CardSummary(text: summary, lines: lines, query: query)
+      CardSummary(text: summary, query: query)
     }
   }
 }
@@ -199,6 +195,7 @@ struct Highlighted: View {
 
 /// The task and reminder circle: accent outline, filled with a white check when done.
 struct CheckDot: View {
+  @Environment(\.checkPressed) private var pressed
   var done: Bool
   var size: CGFloat = AppleMetrics.taskDotSize
   var line: CGFloat = AppleMetrics.taskDotLine
@@ -214,6 +211,8 @@ struct CheckDot: View {
     }
     .frame(width: size, height: size)
     .animation(Motion.state, value: done)
+    .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
+    .animation(Motion.press, value: pressed)
   }
 }
 

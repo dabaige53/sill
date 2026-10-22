@@ -33,7 +33,8 @@ test("local pull failure returns false without text or a second dock spinner", a
 	w.eval(bundle);
 	w.__QG_LOCAL__ = true;
 	let alerts = 0,
-		offline = 0;
+		offline = 0,
+		reorders = 0;
 	const app = {
 		refreshBusy: false,
 		pullRefreshFeedback: false,
@@ -42,6 +43,9 @@ test("local pull failure returns false without text or a second dock spinner", a
 		},
 		alert() {
 			alerts++;
+		},
+		refreshFeedOrder() {
+			reorders++;
 		},
 		paintPending() {},
 		announce() {},
@@ -61,9 +65,11 @@ test("local pull failure returns false without text or a second dock spinner", a
 		assert.equal(app.pullRefreshFeedback, false);
 		LocalSync.refresh = async () => false;
 		assert.equal(await AppController.prototype.refresh.call(app, { feedback: "pull" }), false);
+		assert.equal(reorders, 0);
 		LocalSync.refresh = async () => true;
 		assert.equal(await AppController.prototype.refresh.call(app, { feedback: "pull" }), true);
 		assert.equal(w.document.querySelector("#dock").className, "");
+		assert.equal(reorders, 1);
 	} finally {
 		dom.window.close();
 	}

@@ -19,6 +19,7 @@ import SillKit
     let kind: Kind
     var base: Int
     let priority: Priority
+    var trace: PerformanceTrace.Span? = nil
     let completion: (Result<Snapshot, any Error>?) -> Void
   }
 
@@ -67,10 +68,16 @@ import SillKit
     knownRevision = revision
     let dropped = jobs
     jobs = []
-    for job in dropped { job.completion(nil) }
+    for job in dropped {
+      PerformanceTrace.shared.end(job.trace, success: false)
+      job.completion(nil)
+    }
   }
 
   private func enqueue(_ job: Job) {
+    var job = job
+    job.trace = PerformanceTrace.shared.begin(
+      .queueWait, reason: job.priority == .background ? .backgroundActivity : .user)
     // Foreground work goes ahead of waiting background records.
     if job.priority == .foreground,
       let index = jobs.firstIndex(where: { $0.priority == .background })
@@ -85,6 +92,7 @@ import SillKit
   private func pump() {
     guard !running, !jobs.isEmpty, let backend else { return }
     let job = jobs.removeFirst()
+    PerformanceTrace.shared.end(job.trace, values: ["queue_depth": Double(jobs.count)])
     let operations: [WorkspaceOperation]?
     switch job.kind {
     case .read: operations = nil
@@ -98,11 +106,29 @@ import SillKit
       }
       operations = list
     }
+    let reason: PerformanceTrace.Reason
+    if operations == nil {
+      reason = .refresh
+    } else if job.priority == .background {
+      reason = .backgroundActivity
+    } else if let first = operations?.first {
+      switch first {
+      case .preferences: reason = .preferences
+      case .itemPatch: reason = .cardState
+      case .reading: reason = .backgroundActivity
+      case .upsert, .delete: reason = .content
+      }
+    } else {
+      reason = .unknown
+    }
     running = true
     let token = generation
     // Background records always use the newest drawn revision: they carry no user decision.
     let base = job.priority == .background ? knownRevision : job.base
     Task {
+      let trace = PerformanceTrace.shared.begin(
+        operations == nil ? .read : .write,
+        reason: reason, parent: job.trace)
       let result: Result<Snapshot, any Error>
       do {
         if let operations {
@@ -112,6 +138,12 @@ import SillKit
         }
       } catch {
         result = .failure(error)
+      }
+      if case .success = result {
+        PerformanceTrace.shared.end(
+          trace, values: ["operation_count": Double(operations?.count ?? 0)])
+      } else {
+        PerformanceTrace.shared.end(trace, success: false)
       }
       running = false
       guard token == generation else {

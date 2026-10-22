@@ -116,9 +116,6 @@ export const appFeedUpdatesMethods = {
 	changeReminder(this: AppController, id?: string, action?: string) {
 		const c = Store.card(id);
 		if (!c || !FeedPolicy.supports(c)) return;
-		const item = Store.item(id),
-			keys = ["snoozedUntil", "dismissed", "reminderDone", "lastReminderKey", "lastNotifiedAt"];
-		const before = Object.fromEntries(keys.map((k) => [k, item[k]]));
 		const now = Date.now();
 		const patch =
 			action === "snooze"
@@ -146,27 +143,6 @@ export const appFeedUpdatesMethods = {
 			this.grid.querySelector<HTMLElement>(".card-title-button") ||
 			document.getElementById("account")
 		).focus({ preventScroll: true });
-		const text =
-			action === "snooze"
-				? copy("web.app.8b61908123ce")
-				: action === "dismiss-reminder"
-					? copy("web.app.c9bb70bcaaa3")
-					: action === "complete-reminder"
-						? copy("web.app.4203e358dee2")
-						: copy("web.app.480719186cc8");
-		this.toast(text, () => {
-			Store.patch(id, before);
-			this.refreshCard(id);
-			this.checkReminders();
-			const back = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
-			(
-				back?.querySelector<HTMLElement>(".card-title-button") ||
-				back ||
-				document.getElementById("account")
-			).focus({
-				preventScroll: true,
-			});
-		});
 	},
 	applySelectionAction(this: AppController, ids?: string[], target?: string) {
 		if (!ids?.length || !["tag", "bookmark", "later"].includes(target)) return;
@@ -175,21 +151,10 @@ export const appFeedUpdatesMethods = {
 			this.openPanel("editor", ids[0]);
 			return;
 		}
-		const key = target === "bookmark" ? "bookmarked" : "later",
-			old = ids.map((id?: string): [string, boolean] => [id, Store.item(id)[key]]);
+		const key = target === "bookmark" ? "bookmarked" : "later";
 		ids.forEach((id?: string) => {
 			Store.patch(id, { [key]: true });
 			this.refreshCard(id);
 		});
-		this.toast(
-			target === "bookmark"
-				? `${copy("web.app.96e7ee93f3ba")}${ids.length}${copy("web.common.cardCountSuffix")}`
-				: `${ids.length}${copy("web.app.34d0636b70c8")}`,
-			() =>
-				old.forEach(([id, v]) => {
-					Store.patch(id, { [key]: v });
-					this.refreshCard(id);
-				}),
-		);
 	},
 };

@@ -84,8 +84,30 @@ struct Shadow: ViewModifier {
 }
 
 extension View {
+  /// Native material for floating controls; older systems keep the compatible Sill material.
+  @ViewBuilder func desktopGlass<S: InsettableShape>(_ shape: S, interactive: Bool = false)
+    -> some View
+  {
+    if #available(macOS 26.0, *) {
+      self.glassEffect(.regular.interactive(interactive), in: shape)
+    } else {
+      self.glass(shape)
+    }
+  }
+
   func shadow(_ kind: Shadow.Kind, visible: Bool = true) -> some View {
     modifier(Shadow(kind: kind, visible: visible))
+  }
+}
+
+struct DesktopGlassGroup<Content: View>: View {
+  @ViewBuilder var content: Content
+  var body: some View {
+    if #available(macOS 26.0, *) {
+      GlassEffectContainer(spacing: AppleMetrics.space8) { content }
+    } else {
+      content
+    }
   }
 }
 

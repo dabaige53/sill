@@ -116,6 +116,9 @@ export function webConfig({ cloud = false }: { cloud?: boolean } = {}): UserConf
 			emptyOutDir: false,
 			target: "es2022",
 			minify: true,
+			// Preserve both standard and WebKit backdrop-filter declarations with CSS variables.
+			// The default CSS minifier merges this pair and drops the standard declaration.
+			cssMinify: "esbuild",
 			modulePreload: false,
 			rolldownOptions: { output: { format: "iife" } },
 		},

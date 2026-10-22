@@ -21,3 +21,11 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 - 组件示例由 `scripts/previews.ts` 从产品代码生成，和页面实际渲染一致，不手改。组件脚本的全局名是 `Sill`（`window.Sill`）。
 - 产品代码里的 `@design <编号>` 是设计印记，编号登记在 `marks.json`，指向手册小节、变量、ADR 和现行画板。
 - 更新、检查、反查和发布准备都用 `scripts/design-init.sh`，见 [设计约束](../DESIGN.md)。
+
+## 登录与授权
+
+见[网页交互](handbook/web-interaction.md#登录与授权)；现行画板为 [Login](boards/Login.dc.html) 、[Authorization](boards/Authorization.dc.html)、[LoginMobile](boards/LoginMobile.dc.html) 和 [AuthorizationMobile](boards/AuthorizationMobile.dc.html)。
+
+## 设置
+
+[桌面设置](boards/SettingsDesktop.dc.html)与[手机设置](boards/SettingsMobile.dc.html)由产品组件生成，可切换分组。画板中的内容和开关只展示，不写入数据。

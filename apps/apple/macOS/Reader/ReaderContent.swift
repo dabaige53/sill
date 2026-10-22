@@ -97,7 +97,7 @@ struct ReaderContent: View {
   // MARK: Article reading
 
   /// Article reading (balanced; Web `.is-article`): one type set for the preview and the page.
-  /// A 600 column, centered: source and date, the title, then the text; 16 between paragraphs.
+  /// A full-width column with shared detail gutters: source and date, the title, then the text; 16 between paragraphs.
   private var articleReading: some View {
     VStack(alignment: .leading, spacing: 0) {
       MetaRow(
@@ -150,7 +150,7 @@ struct ReaderContent: View {
         NoteBox(note: state.note)
       }
     }
-    .frame(maxWidth: AppleMetrics.articleMeasure, alignment: .leading)
+    .frame(maxWidth: .infinity, alignment: .leading)
     .frame(maxWidth: .infinity)
   }
 
@@ -352,7 +352,7 @@ struct ReaderContent: View {
         ReminderCheck(card: card, state: state)
           .padding(
             .top,
-            (type.title * type.titleLeading - AppleMetrics.hitTarget) / 2 + AppleMetrics.space11)
+            (LineHeight.height(size: type.title) - AppleMetrics.reminderDotSize) / 2)
         title
       }
       ReaderTags(tags: state.tags(of: card))
@@ -481,6 +481,7 @@ struct DetailRow: View {
         Text(title).lineLimit(1).truncationMode(.tail)
         if !detail.isEmpty {
           Text(detail).font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+            .lineLimit(1).truncationMode(.tail)
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)

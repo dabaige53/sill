@@ -3,8 +3,8 @@ import SillKit
 import SwiftUI
 
 /// Web `#toast`: a glass capsule at the bottom right, one row above the AI box, over an open
-/// detail too. It rises 8px in 180ms and leaves the same way in 140ms. An undoable notice stays
-/// 5.5s and a plain one 3.2s of unattended time: the clock stops while the app is in the
+/// detail too. It rises 8px in 180ms and leaves the same way in 140ms. A plain notice stays
+/// 3.2s of unattended time: the clock stops while the app is in the
 /// background, the window is not key, the pointer is over it or focus is inside it. A persistent
 /// notice stays until closed.
 struct Toast: View {
@@ -13,7 +13,7 @@ struct Toast: View {
 
   var body: some View {
     ZStack(alignment: .bottomTrailing) {
-      if let notice = workspace.notice, !hidden {
+      if let notice = workspace.notice, !hidden, !notice.isFailure {
         ToastCapsule(notice: notice) { dismiss(notice) }
           .id(notice.id)
           .transition(
@@ -52,18 +52,8 @@ private struct ToastCapsule: View {
         .foregroundStyle(AppleColors.primary)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, AppleMetrics.space10)
-        .padding(.trailing, notice.undo == nil && !notice.persistent ? AppleMetrics.space12 : 0)
-      if let undo = notice.undo {
-        Button(Copy.text("web.app.926a50b98ece")) {
-          dismiss()
-          undo()
-        }
-        .buttonStyle(TextLinkStyle(padded: false))
-        .padding(.vertical, AppleMetrics.space10)
-        .padding(.horizontal, AppleMetrics.space12)
-        .focused($focused)
-        .accessibilityLabel(Copy.text("web.app.493c9056731b"))
-      } else if notice.persistent {
+        .padding(.trailing, !notice.persistent ? AppleMetrics.space12 : 0)
+      if notice.persistent {
         ToolButton(icon: "x", label: Copy.text("web.close"), action: dismiss)
           .focused($focused)
       }
@@ -72,7 +62,7 @@ private struct ToastCapsule: View {
     .padding(.trailing, AppleMetrics.space6)
     .frame(minHeight: AppleMetrics.hitTarget)
     .frame(maxWidth: AppleMetrics.toastMaxWidth, alignment: .leading)
-    .glass(Capsule())
+    .desktopGlass(Capsule())
     .onHover { hovered = $0 }
     .onChange(of: active, initial: true) { _, value in windowActive = value != .inactive }
     .task { await run() }
@@ -83,7 +73,7 @@ private struct ToastCapsule: View {
   /// Counts only unattended time, in 100ms steps.
   private func run() async {
     guard !notice.persistent else { return }
-    var remaining = notice.undo == nil ? AppleMetrics.toastDuration : AppleMetrics.toastUndoDuration
+    var remaining = AppleMetrics.toastDuration
     let step = 0.1
     while remaining > 0 {
       try? await Task.sleep(for: .seconds(step))
@@ -92,5 +82,53 @@ private struct ToastCapsule: View {
       if !paused { remaining -= step }
     }
     dismiss()
+  }
+}
+
+/// Recovery is anchored beside search; unknown writes start expanded.
+struct FailureNotice: View {
+  let notice: Workspace.Notice
+  let dismiss: () -> Void
+  @Environment(Workspace.self) private var workspace
+  @State private var expanded: Bool
+
+  init(notice: Workspace.Notice, dismiss: @escaping () -> Void) {
+    self.notice = notice
+    self.dismiss = dismiss
+    _expanded = State(initialValue: notice.persistent)
+  }
+
+  var body: some View {
+    Button {
+      expanded.toggle()
+    } label: {
+      Icon("info", size: AppleMetrics.space20)
+        .foregroundStyle(AppleColors.warning)
+        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
+        .desktopGlass(Circle())
+        .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+        .contentShape(Circle())
+    }
+    .buttonStyle(IconPress())
+    .accessibilityLabel(Copy.text(expanded ? "web.templates.afd4b783536b" : "auth.details"))
+    .accessibilityValue(notice.text)
+    .help(notice.text)
+    .popover(isPresented: $expanded, arrowEdge: .top) {
+      VStack(alignment: .leading, spacing: AppleMetrics.space12) {
+        Text(notice.text)
+          .font(.sans(AppleMetrics.font13))
+          .foregroundStyle(AppleColors.primary)
+          .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: AppleMetrics.space8) {
+          ToolButton(icon: "refresh", label: Copy.text("web.app.26b4905705d6"), accent: true) {
+            workspace.refresh()
+          }
+          Spacer(minLength: 0)
+          ToolButton(icon: "x", label: Copy.text("web.close"), action: dismiss)
+        }
+      }
+      .padding(AppleMetrics.space16)
+      .frame(width: AppleMetrics.toastMaxWidth, alignment: .leading)
+    }
   }
 }

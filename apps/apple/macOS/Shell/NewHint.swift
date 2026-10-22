@@ -52,7 +52,7 @@ struct NewHint: View {
           .padding(.leading, AppleMetrics.space8)
           .padding(.trailing, AppleMetrics.space16)
           .frame(height: AppleMetrics.newCountHeight)
-          .glass(Capsule())
+          .desktopGlass(Capsule())
           .contentShape(Capsule())
         }
         .buttonStyle(.plain)

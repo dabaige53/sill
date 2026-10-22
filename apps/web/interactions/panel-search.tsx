@@ -11,7 +11,7 @@ import type { AppController } from "../views/app.ts";
 import { type PanelRenderers, type SearchApp } from "./panel-contract.ts";
 import { button, icon, keyed } from "./panel-primitives.tsx";
 
-const searchTypes = [
+export const searchTypes = [
 	["article", "web.search.type.article", "architecture"],
 	["mail", "web.search.type.mail", "coast"],
 	["note", "web.note", "botanical"],
@@ -19,11 +19,23 @@ const searchTypes = [
 	["event", "web.event", "coast"],
 	["media", "web.media", "mountain"],
 ] as const;
-const searchStatuses = [
+export const searchStatuses = [
 	["unread", "web.unread"],
 	["saved", "web.bookmark"],
 	["later", "web.later"],
 ] as const;
+
+/** # options for a typed fragment: statuses first, then existing tags, minus the ones in use. */
+export function hashOptions(frag: string, used: string[], tag: string) {
+	const needle = frag.toLocaleLowerCase();
+	const statuses = searchStatuses.filter(
+		([key, label]) => !used.includes(key) && copy(label).toLocaleLowerCase().includes(needle),
+	);
+	const tags = [...new Set<string>(Store.state.cards.flatMap((c: Card) => Store.tags(c)))].filter(
+		(t) => t !== tag && t.toLocaleLowerCase().includes(needle),
+	);
+	return { statuses, tags };
+}
 
 export const panelSearch = {
 	editor(
@@ -269,13 +281,7 @@ export const panelSearch = {
 		const f = app.searchFilter;
 		const frag = app.searchHash(f.query);
 		if (frag === null) return null;
-		const needle = frag.toLocaleLowerCase();
-		const statuses = searchStatuses.filter(
-			([key, label]) => key !== f.status && copy(label).toLocaleLowerCase().includes(needle),
-		);
-		const tags = [...new Set<string>(Store.state.cards.flatMap((c: Card) => Store.tags(c)))].filter(
-			(tag) => tag !== f.tag && tag.toLocaleLowerCase().includes(needle),
-		);
+		const { statuses, tags } = hashOptions(frag, [f.status], f.tag);
 		if (!statuses.length && !tags.length) return null;
 		const option = (extra: string, label: string) => (
 			<button
