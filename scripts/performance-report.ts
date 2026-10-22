@@ -51,8 +51,10 @@ export function analyzeTrace(text: string) {
 		if (
 			typeof m.milliseconds === "number" &&
 			!["main_thread_delay", "main_probe_incomplete"].includes(row.event)
-		)
-			(groups[row.event] ||= []).push(m.milliseconds);
+		) {
+			groups[row.event] ??= [];
+			groups[row.event].push(m.milliseconds);
+		}
 	}
 	const stats = Object.fromEntries(
 		Object.entries(groups).map(([key, list]) => {

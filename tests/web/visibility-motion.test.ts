@@ -106,7 +106,8 @@ test("desktop header enters and retargets as one transform without opacity track
 		f.el.classList.add("is-entering");
 		f.w.matchMedia = () => ({ matches: true });
 		const style = f.w.document.createElement("style");
-		style.textContent = ":root { --dur-open:280ms; --dur-tuck:240ms } #home-top { opacity:1; transform:translateY(0px) } #home-top.is-entering, #home-top.is-tucked { transform:translateY(-86px); visibility:hidden }";
+		style.textContent =
+			":root { --dur-open:280ms; --dur-tuck:240ms } #home-top { opacity:1; transform:translateY(0px) } #home-top.is-entering, #home-top.is-tucked { transform:translateY(-86px); visibility:hidden }";
 		f.w.document.head.append(style);
 		f.motion.change(f.el, () => f.el.classList.remove("is-entering"));
 		assert.equal(f.animations.length, 1);

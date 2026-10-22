@@ -16,7 +16,7 @@
 | 动效 | 卡片收回改用展开的同一个弹簧；读完上推达到阈值后显示白勾，松手才关闭（Web 与 Mac） | [ADR 0062](../../adr/0062-card-close-spring-and-read-end-release.md) |
 | Mac | 打开关联卡片时下层保持绘制，只有最上层可操作，整叠只用一层遮罩 | 界面对账表 D07 |
 | 桌面 | 搜索类型标签与 `#` 条件；打开卡片时收起顶栏；信息流顺序保持到手动刷新；去掉撤销提示 | 界面对账表 |
-| 测试 | Mac 速记测试去掉已删除的撤销提示；Apple 文案快照从 126 改为 134（刷新与性能追踪 8 个键） | — |
+| 测试与格式 | Mac 速记测试去掉已删除的撤销提示；Apple 文案快照从 126 改为 134（刷新与性能追踪 8 个键）；4 个文件按 Biome 格式化，性能报告脚本去掉表达式中的赋值 | — |
 
 ## 线上设计
 
@@ -29,9 +29,10 @@
 
 ## 检查
 
-- 合并前 `origin/main`（fafaaaf）的 Verify Sill 和 Sill integration 两项 CI 失败。本机复现到两项失败：Apple 文案快照、Mac 速记测试。两项都已修正。
-- 本机通过：`files:check`、`build`、`check`、`typecheck`、`test:contracts` 51/51、`test:server` 110/110、`test:performance-report`、文案测试 9/9、`test:macos` 38 + 61 项。
-- `test:core` 修正前为 278/279，唯一失败项已修正；修正后整组结果以 PR #60 的 CI 为准。
+- 合并前 `origin/main`（fafaaaf）的 Verify Sill 和 Sill integration 两项 CI 失败。本机复现到三类问题：Apple 文案快照、Mac 速记测试、Biome 格式与 lint 6 项错误。都已修正。
+- 本机 Biome 遇到 `.claude/worktrees` 里的嵌套配置会直接退出，`npm run check` 因此没有报出格式错误。本次改为对 git 跟踪的 263 个文件单独运行，0 个错误。
+- 本机通过：`files:check`、`build`、`check`、`typecheck`、`design check`、`test:contracts` 51/51、`test:core` 279/279、`test:server` 110/110、`test:performance-report`、`test:macos` 38 + 61 项。
+- CI 结果以 PR #60 为准。
 - 未检查：浏览器端到端测试、真实窗口手感、真机与 Safari。界面对账表中相关行保持「未验证」或「待确认」。
 
 ## 未完成

@@ -1041,7 +1041,13 @@
 		]
 	},
 	"motion": {
-		"aiDrop": { "scale": 1.02, "readyScale": 1.05, "spread": 14, "duration": 1200, "opacity": 0.45 },
+		"aiDrop": {
+			"scale": 1.02,
+			"readyScale": 1.05,
+			"spread": 14,
+			"duration": 1200,
+			"opacity": 0.45
+		},
 		"detailContentDelay": 100,
 		"detailFade": 120,
 		"cardContentReturn": { "delay": 80, "duration": 140, "easing": "linear" },
