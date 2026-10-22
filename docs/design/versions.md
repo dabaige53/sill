@@ -13,3 +13,4 @@
 | 2026-10-21 | [ADR 0057](../adr/0057-desktop-card-spatial-transition.md) | 1792569916-80c3（第 57 版） | 1792569980-0075（第 75 版） | 同步近期 Web/macOS 界面变化：顶栏收起与材质、工具条与菜单时长、外边距、卡片列数与无更多按钮、Mac 顶栏与设置弹窗 |
 | 2026-10-21 | [ADR 0057](../adr/0057-desktop-card-spatial-transition.md) | 1792570761-b0a7 | 1792569980-0075 | 合入搜索失焦、卡片关闭工具先淡出、卡片头部日期，并去掉撤销文案 |
 | 2026-10-22 | [ADR 0059](../adr/0059-mac-search-ai-dock-rail-glass.md) | 1792630329-233a | 1792630366-d9ab | Desktop search type chips and # conditions; card motion, rail glass and pointer rules |
+| 2026-10-22 | [ADR 0059](../adr/0059-mac-search-ai-dock-rail-glass.md) | 1792631394-a95c | 1792631422-c5ff | Desktop bars tuck while a card is open; slower standalone reveal (dur-reveal, ease-reveal) |

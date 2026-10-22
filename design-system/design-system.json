@@ -506,10 +506,10 @@
     "Icons"
   ],
   "lastChange": {
-    "at": "2026-10-22T00:49:58Z",
+    "at": "2026-10-22T01:09:06Z",
     "by": "dabaige53",
     "via": "Claude Code · design-init",
-    "note": "Desktop search type chips and # conditions; card motion, rail glass and pointer rules"
+    "note": "Desktop bars tuck while a card is open; slower standalone reveal (dur-reveal, ease-reveal)"
   },
   "layout": "files",
   "libraries": [],
