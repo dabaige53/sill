@@ -7,7 +7,10 @@
 - [Agent 驱动与 MCP 连接](product/agent-mcp.md)
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
+- [真实功能完成清单](product/functional-readiness.md)
 - [界面对账表](product/ui-alignment.md)：Web 桌面、手机 Web 与 Mac 每项界面行为的当前状态、刻意差异与实测情况。
+- [卡片与阅读界面对账](product/ui-card-alignment.md)：卡片、详情、阅读和按类型核对。
+- [备份与提醒界面对账](product/ui-backup-reminders-alignment.md)：备份、系统通知和外链状态。
 - [设置界面对账](product/ui-settings-alignment.md)
 - [Sill 交互规范](product/interaction-spec.md)
 - [Sill · 窗台 — 产品需求文档](product/requirements.md)
@@ -33,6 +36,7 @@
 - [Web 代码工作包](guides/web-pwa-code-packages.md)
 - [Web 与 PWA 接手提示词](guides/web-pwa-agent-prompts.md)
 - [本地操作](guides/local-operations.md)
+- [外部备份与设备提醒](guides/backup-and-reminders.md)
 - [Sill 插件调试记录与使用规范](guides/plugin-runbook.md)
 
 ## 工程技能
@@ -80,6 +84,7 @@
 - [排版设置 PR 集成检查（2026-10-23）](records/2026-10-23-layout-pr-integration/README.md)
 - [界面备注与无效设置清理（2026-10-23）](records/2026-10-23-ui-copy-cleanup/README.md)
 - [内容排版偏好浏览器验收（2026-10-23）](records/2026-10-23-layout-preferences-browser/README.md)
+- [真实功能补齐与非界面验证](records/2026-10-23-functional-completion/README.md)
 
 - [卡片重建：本地界面接入与非界面检查](records/2026-10-22-card-rebuild-ui/README.md)
 
@@ -216,6 +221,7 @@
 - [视频与播客在 Sill 内播放，新增 PR 卡片类型](adr/0061-in-app-media-playback-and-pr-cards.md)
 - [卡片收回改用弹簧，读完确认后松手即关闭](adr/0062-card-close-spring-and-read-end-release.md)
 - [详情文字统一为一个 Markdown 正文字段](adr/0063-markdown-body.md)
+- [账号共用数据、外部备份与设备提醒](adr/0065-account-backups-and-device-reminders.md)
 
 - [2026-10-21 测试整理](records/2026-10-21-test-cleanup/README.md)：旧测试删除依据、恢复标签和运行入口分工。
 - [2026-10-22 卡片重建与 Markdown 正文暂停](records/2026-10-22-card-rebuild-pending/README.md)：暂停时已完成与未完成的事项、待用户决定的问题。

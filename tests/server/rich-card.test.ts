@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
+import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 import { changes, create } from "../../contracts/cloud.ts";
 import { identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
 
@@ -13,11 +14,50 @@ async function applyCardMigrations(db: PGlite) {
 		"20261023012829_sill_explicit_card_fields.sql",
 		"20261023012831_card_playback_and_pr.sql",
 		"20261023012833_sill_markdown_body.sql",
+		"20261023020000_https_images.sql",
 	])
 		await db.exec(
 			await readFile(new URL("../../supabase/migrations/" + file, import.meta.url), "utf8"),
 		);
 }
+
+test("HTTPS image migration preserves remote photos through cloud writes and reads", async () => {
+	const db = new PGlite();
+	try {
+		await setupBoundary(db);
+		await applyCardMigrations(db);
+		await identity(db);
+		const image = "https://images.example.org/" + "a".repeat(150) + ".jpg?size=800";
+		const body = { type: "photo", title: "Photo", image, photos: [image, "coast"] };
+		assert.equal(create.safeParse(body).success, true);
+		const saved = await rpc(db, "sill_write_v1", [
+			"create",
+			null,
+			JSON.stringify(body),
+			"https-image",
+		]);
+		const found = await rpc(db, "sill_get_content", [saved.body.id]);
+		assert.equal(found.image, image);
+		assert.deepEqual(found.photos, body.photos);
+		for (const image of [
+			"http://example.org/a",
+			"https://user:pass@example.org/a",
+			"https://example.org/" + "a".repeat(8192),
+		]) {
+			await assert.rejects(
+				rpc(db, "sill_write_v1", [
+					"create",
+					null,
+					JSON.stringify({ ...body, image }),
+					crypto.randomUUID(),
+				]),
+				/invalid_request/,
+			);
+		}
+	} finally {
+		await db.close();
+	}
+});
 
 test("rich cloud cards preserve fields, merge state, protect revisions and replay unknown writes", async () => {
 	const db = new PGlite();
@@ -75,7 +115,7 @@ test("rich cloud cards preserve fields, merge state, protect revisions and repla
 			{ sources: [{ name: "A" }] },
 			{ start: "tomorrow" },
 			{ form: "custom" },
-			{ image: "https://example.com/a.png" },
+			{ image: "http://example.com/a.png" },
 			{ meeting: { name: "M", url: "javascript:alert(1)" } },
 			{ revision: 999 },
 			{ owner_id: "other" },
@@ -119,9 +159,6 @@ test("rich cloud cards preserve fields, merge state, protect revisions and repla
 });
 
 test("all eleven card fixtures round-trip through cloud storage and skill examples match the contract", async () => {
-	const fixtures = JSON.parse(
-		await readFile(new URL("../../contracts/fixtures.json", import.meta.url), "utf8"),
-	);
 	const db = new PGlite();
 	try {
 		await setupBoundary(db);

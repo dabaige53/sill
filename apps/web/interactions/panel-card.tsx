@@ -4,7 +4,7 @@ import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
 import { DetailText } from "../cards/markdown.tsx";
 import { publicationName } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
-import { Assets } from "../data/assets.ts";
+import { assetURL } from "../data/assets.ts";
 import {
 	articleDate,
 	cardDate,
@@ -402,7 +402,7 @@ export const panelCard = {
 						? button("back", copy("web.photo.previous"), "photo-step", c.id, "-1")
 						: ""}
 					<img
-						src={Assets[photos[i]]}
+						src={assetURL(photos[i])}
 						alt={
 							"" +
 							c.title +
@@ -444,7 +444,17 @@ export const panelCard = {
 										""
 									}
 								>
-									<img src={Assets[p]} alt={""} />
+									<img
+										referrerPolicy="no-referrer"
+										onError={(event) => {
+											event.currentTarget.style.opacity = "0";
+										}}
+										onLoad={(event) => {
+											event.currentTarget.style.opacity = "1";
+										}}
+										src={assetURL(p)}
+										alt={""}
+									/>
 								</button>
 							</>
 						)),

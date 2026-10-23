@@ -499,12 +499,8 @@
     },
     "image": {
       "type": "string",
-      "enum": [
-        "architecture",
-        "coast",
-        "mountain",
-        "botanical"
-      ]
+      "maxLength": 8192,
+      "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
     },
     "tags": {
       "maxItems": 100,
@@ -656,12 +652,8 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": [
-          "architecture",
-          "coast",
-          "mountain",
-          "botanical"
-        ]
+        "maxLength": 8192,
+        "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
       }
     },
     "attachment": {
@@ -743,6 +735,6 @@
   ],
   "additionalProperties": {},
   "title": "Card",
-  "x-contract-version": "4.1.0",
+  "x-contract-version": "4.2.0",
   "x-status": "implemented"
 }

@@ -6,10 +6,8 @@ import { cardHTML } from "../../apps/web/cards/templates.ts";
 import { parseCard } from "../../apps/web/data/card-validation.ts";
 import { FreshCards, SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
+import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 
-const fixtures = JSON.parse(
-	readFileSync(new URL("../../contracts/fixtures.json", import.meta.url), "utf8"),
-);
 for (const sample of fixtures.valid)
 	test(`Web accepts and preserves ${sample.name}`, () =>
 		assert.deepEqual(parseCard(sample.card), sample.card));

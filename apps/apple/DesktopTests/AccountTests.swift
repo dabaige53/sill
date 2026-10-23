@@ -10,6 +10,7 @@ private actor AccountStub: CloudAccountService {
   var setup = false
   var restored = false
   var restoreDelay: Duration = .zero
+  var restoreFailure: CloudWorkspaceError?
   var pendingWriteKey: String?
   var logoutFailure: CloudWorkspaceError?
   var loginFailure: CloudWorkspaceError?
@@ -49,8 +50,10 @@ private actor AccountStub: CloudAccountService {
   }
   func restoreSession() async throws -> CloudWorkspaceState? {
     if restoreDelay != .zero { try await Task.sleep(for: restoreDelay) }
+    if let restoreFailure { throw restoreFailure }
     return restored ? state() : nil
   }
+  func failRestore(_ error: CloudWorkspaceError) { restoreFailure = error }
   func login(email: String, password: String) async throws -> CloudWorkspaceState {
     if let loginFailure { throw loginFailure }
     return state()
@@ -98,6 +101,21 @@ private actor AccountStub: CloudAccountService {
     #expect(workspace.seconds == 12)
     #expect(workspace.backend != nil)
     #expect(!account.busy)
+  }
+
+  @Test func transientSessionFailurePreservesNotificationsUntilIdentityIsKnown() async {
+    for failure in [
+      CloudWorkspaceError.service("unavailable", 503), .unauthenticated, .service("forbidden", 403),
+    ] {
+      let service = AccountStub()
+      await service.failRestore(failure)
+      let workspace = Workspace(autoload: false)
+      let account = Account(workspace: workspace, service: service)
+      await account.start()
+      #expect(account.owner == nil)
+      #expect(workspace.phase == .signedOut)
+      #expect(workspace.preservesUnresolvedReminders == (failure == .service("unavailable", 503)))
+    }
   }
 
   @Test func accountSwitchClearsWorkspaceActivityAndAllSurfaces() async throws {

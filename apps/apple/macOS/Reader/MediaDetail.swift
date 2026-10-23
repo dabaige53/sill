@@ -105,7 +105,12 @@ struct MediaDetail: View {
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
       }
       if playback.failed {
-        Text(Copy.text("web.media.playbackUnavailable")).foregroundStyle(AppleColors.secondary)
+        VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+          Text(Copy.text("web.media.playbackUnavailable")).foregroundStyle(AppleColors.secondary)
+          Button(Copy.text("web.retry")) {
+            if card.isPodcast { playback.toggle() } else { playback.retryVideo?() }
+          }.buttonStyle(TextLinkStyle(padded: false))
+        }
       }
       if full, !card.isPodcast {
         MediaChapters(

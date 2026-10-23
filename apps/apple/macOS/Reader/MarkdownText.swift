@@ -53,7 +53,8 @@ struct MarkdownText: View {
       \.openURL,
       OpenURLAction { url in
         guard let route = Self.cardRoute(url), workspace.model(route.id) != nil else {
-          return .systemAction
+          _ = ExternalLink.open(url, workspace: workspace)
+          return .handled
         }
         reader.open(route.id, full: route.full)
         return .handled

@@ -130,3 +130,109 @@ test("official iframe sets its own origin-only referrer policy before loading", 
 	close();
 	dom.window.close();
 });
+
+test("audio failure before metadata preserves resume position and can reload", async () => {
+	const f = fixture();
+	let loads = 0;
+	let error: object | null = {};
+	Object.defineProperty(f.media, "error", { get: () => error });
+	f.media.load = () => {
+		loads++;
+		error = null;
+	};
+	f.media.play = async () => {};
+	f.emit("error");
+	f.api.controls.current.toggle();
+	assert.equal(loads, 1);
+	f.emit("loadedmetadata");
+	assert.equal(f.media.currentTime, 12);
+	f.api.close();
+	assert.deepEqual(Array.from(f.saved.at(-1)), [12, false]);
+	f.close();
+});
+
+test("blocked YouTube API times out, releases its script and retries", async () => {
+	const js = buildSync({
+		stdin: {
+			contents: `export {loadAPI} from './apps/web/cards/youtube-player.tsx';`,
+			resolveDir: path.resolve(import.meta.dirname, "../.."),
+			loader: "tsx",
+		},
+		bundle: true,
+		write: false,
+		format: "iife",
+		platform: "browser",
+		globalName: "YTTest",
+	}).outputFiles[0].text;
+	const dom = new JSDOM("", { url: "https://sill.test", runScripts: "outside-only" });
+	const w = dom.window as any;
+	let timeout: () => void;
+	w.setTimeout = (fn: () => void) => {
+		timeout = fn;
+		return 1;
+	};
+	w.clearTimeout = () => {};
+	w.eval(js);
+	const first = w.YTTest.loadAPI();
+	const rejection = assert.rejects(first, /player unavailable/);
+	timeout!();
+	await rejection;
+	assert.equal(w.document.querySelectorAll("script").length, 0);
+	const second = w.YTTest.loadAPI();
+	assert.notEqual(first, second);
+	assert.equal(w.document.querySelectorAll("script").length, 1);
+	w.YT = { Player: class {} };
+	w.onYouTubeIframeAPIReady();
+	assert.equal(await second, w.YT);
+	dom.window.close();
+});
+
+test("YouTube readiness timeout exposes retry and rebuilding preserves resume", async () => {
+	const js = buildSync({
+		stdin: {
+			contents: `import {createElement} from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';import {YouTubePlayer} from './apps/web/cards/youtube-player.tsx';export function mount(host,states){const root=createRoot(host);flushSync(()=>root.render(createElement(YouTubePlayer,{id:'abcdefghijk',initialPosition:12,onSave:()=>{},onTime:s=>states.push(s),controls:{current:null}})));return {flush:fn=>flushSync(fn),close:()=>flushSync(()=>root.unmount())};}`,
+			resolveDir: path.resolve(import.meta.dirname, "../.."),
+			loader: "tsx",
+		},
+		bundle: true,
+		write: false,
+		format: "iife",
+		platform: "browser",
+		globalName: "YTTest",
+	}).outputFiles[0].text;
+	const dom = new JSDOM('<div id="root"></div>', {
+		url: "https://sill.test",
+		runScripts: "outside-only",
+	});
+	const w = dom.window as any;
+	let timeout: () => void;
+	w.setTimeout = (fn: () => void, delay: number) => {
+		if (delay === 20000) timeout = fn;
+		return 1;
+	};
+	w.clearTimeout = () => {};
+	let created = 0;
+	w.YT = {
+		Player: class {
+			constructor() {
+				created++;
+			}
+			pauseVideo() {}
+			destroy() {}
+		},
+	};
+	w.eval(js);
+	const states: any[] = [];
+	const api = w.YTTest.mount(w.document.querySelector("#root"), states);
+	await new Promise((resolve) => setImmediate(resolve));
+	api.flush(() => timeout!());
+	assert.ok(w.document.querySelector('[role="alert"]'));
+	assert.equal(states.at(-1).playing, false);
+	assert.equal(states.at(-1).position, 12);
+	api.flush(() => w.document.querySelector(".media-failure button").click());
+	await new Promise((resolve) => setImmediate(resolve));
+	assert.equal(created, 2);
+	assert.equal(new URL(w.document.querySelector("iframe").src).searchParams.get("start"), "12");
+	api.close();
+	dom.window.close();
+});

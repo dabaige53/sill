@@ -128,6 +128,7 @@ struct SettingsView: View {
     let preferences = workspace.preferences
     let hidden = hiddenActions
     return VStack(alignment: .leading, spacing: 0) {
+      SystemReminderSettingsView()
       SettingsCard {
         switchRow("web.settings.stackSameSource", "stack", preferences.stack, first: true) {
           Text(Copy.text("web.settings.stackThreshold"))

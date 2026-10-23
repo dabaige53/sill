@@ -12,7 +12,7 @@ import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
 import { PullRequest } from "../cards/pull-request.tsx";
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
-import { Assets } from "../data/assets.ts";
+import { assetURL } from "../data/assets.ts";
 import { cardReadingTime, cardSource, detailDate } from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -365,7 +365,19 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 				articleContent.call(this, c, false),
 				c.type === "article" && c.image ? (
 					<div className="preview-cover">
-						<img data-shared="image" src={Assets[c.image]} alt="" draggable={false} />
+						<img
+							referrerPolicy="no-referrer"
+							onError={(event) => {
+								event.currentTarget.style.opacity = "0";
+							}}
+							onLoad={(event) => {
+								event.currentTarget.style.opacity = "1";
+							}}
+							data-shared="image"
+							src={assetURL(c.image)}
+							alt=""
+							draggable={false}
+						/>
 					</div>
 				) : (
 					""
@@ -399,7 +411,19 @@ export function articleContent(this: PanelRenderers, c: PreviewCard, reading = t
 	const cover = c.image ? (
 		<>
 			<div className={"preview-cover"}>
-				<img data-shared={"image"} src={Assets[c.image]} alt={""} draggable={"false"} />
+				<img
+					referrerPolicy="no-referrer"
+					onError={(event) => {
+						event.currentTarget.style.opacity = "0";
+					}}
+					onLoad={(event) => {
+						event.currentTarget.style.opacity = "1";
+					}}
+					data-shared={"image"}
+					src={assetURL(c.image)}
+					alt={""}
+					draggable={"false"}
+				/>
 			</div>
 		</>
 	) : (

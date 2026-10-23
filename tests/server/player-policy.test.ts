@@ -25,11 +25,13 @@ function checkPlayer(response: Response, local: boolean) {
 		...(local ? ["'self'"] : []),
 		"'unsafe-inline'",
 		"https://www.youtube.com",
+		"https://s.ytimg.com",
 	]);
 	assert.deepEqual(csp["frame-src"], ["https://www.youtube-nocookie.com"]);
 	assert.deepEqual(csp["media-src"], ["https:", "http:"]);
 	assert.deepEqual(csp["connect-src"], ["'self'"]);
-	assert.deepEqual(csp["img-src"], ["'self'", "data:"]);
+	assert.deepEqual(csp["img-src"], ["'self'", "data:", "https:"]);
+	assert.deepEqual(csp["worker-src"], ["'self'"]);
 	for (const key of ["object-src", "base-uri", "frame-ancestors"])
 		assert.deepEqual(csp[key], ["'none'"]);
 	assert.deepEqual(csp["default-src"], [local ? "'self'" : "'none'"]);
@@ -43,6 +45,9 @@ test("local application pages allow only the implemented player origins", async 
 	try {
 		const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 		for (const path of ["/", "/index.html"]) checkPlayer(await fetch(origin + path), true);
+		const worker = await fetch(origin + "/reminders-worker.js");
+		assert.equal(worker.status, 200);
+		assert.match(await worker.text(), /notificationclick/);
 	} finally {
 		await new Promise<void>((resolve, reject) =>
 			server.close((error) => (error ? reject(error) : resolve())),
@@ -55,6 +60,10 @@ test("cloud application allows the same players without widening authentication 
 	const runtime = createSillRuntime(config, { html: "<html>Application</html>" });
 	const page = await runtime(new Request(config.appOrigin + "/"));
 	checkPlayer(page, false);
+	const worker = await runtime(new Request(config.appOrigin + "/reminders-worker.js"));
+	assert.equal(worker.status, 200);
+	assert.equal(worker.headers.get("Service-Worker-Allowed"), "/");
+	assert.match(await worker.text(), /notificationclick/);
 	assert.deepEqual(directives(page)["form-action"], ["'self'"]);
 	const recovery = directives(await runtime(new Request(config.appOrigin + "/auth/recovery")));
 	assert.deepEqual(recovery, {

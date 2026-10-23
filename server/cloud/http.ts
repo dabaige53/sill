@@ -1,9 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod/v4";
 import { create, event, revision, update, workspaceBatch } from "../../contracts/cloud.ts";
+import { remindersWorker } from "../../contracts/reminders-worker.ts";
 import { copy } from "../../design-system/copy.ts";
 import { callbackFailurePage } from "./auth-page.ts";
+import { backupHttp } from "./backup-http.ts";
 import { accessName as cookieName, createBrowserSessions, readCookie } from "./browser-session.ts";
+import { httpErrorResponse } from "./http-error.ts";
 import {
 	body,
 	cookie,
@@ -102,6 +105,15 @@ export function createSillRuntime(
 			if (request.headers.get("origin") && request.headers.get("origin") !== config.appOrigin)
 				throw serviceError("forbidden");
 			if (path.startsWith("/oauth/")) return oauth.handle(request);
+			if (request.method === "GET" && path === "/reminders-worker.js")
+				return new Response(remindersWorker, {
+					headers: {
+						...headers,
+						"Content-Type": "text/javascript; charset=utf-8",
+						"Cache-Control": "no-cache",
+						"Service-Worker-Allowed": "/",
+					},
+				});
 			if (
 				path === "/mcp" ||
 				path.startsWith("/mcp/") ||
@@ -400,6 +412,8 @@ export function createSillRuntime(
 					request.headers.get("X-Sill-Owner") !== principal.userId
 				)
 					throw serviceError("forbidden");
+				if (path === "/api/v1/backups" || path.startsWith("/api/v1/backups/"))
+					return await backupHttp(request, { client, principal }, repository, config);
 				const content = /^\/api\/v1\/contents\/([\w-]{1,100})$/.exec(path),
 					eventPath = /^\/api\/v1\/events\/([\w-]{1,100})$/.exec(path);
 				if (request.method === "GET") {
@@ -469,55 +483,12 @@ export function createSillRuntime(
 						...headers,
 						"Content-Type": "text/html; charset=utf-8",
 						"Content-Security-Policy":
-							"default-src 'none'; script-src 'unsafe-inline' https://www.youtube.com; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+							"default-src 'none'; script-src 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'unsafe-inline'; img-src 'self' data: https:; manifest-src 'self'; connect-src 'self'; worker-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 					},
 				});
 			throw serviceError("not_found");
 		} catch (error) {
-			// Browser recovery does not clear an existing session or accept a failed code.
-			const failedUrl = new URL(request.url);
-			if (
-				failedUrl.origin === config.appOrigin &&
-				failedUrl.pathname === "/auth/callback" &&
-				request.method === "GET" &&
-				request.headers.get("accept")?.includes("text/html")
-			) {
-				return new Response(null, {
-					status: 303,
-					headers: {
-						...headers,
-						Location:
-							config.appOrigin +
-							"/auth/recovery?reason=" +
-							(failedUrl.searchParams.get("error") === "access_denied"
-								? "cancelled"
-								: error.status === 403
-									? "forbidden"
-									: error.status >= 500
-										? "unavailable"
-										: "expired"),
-					},
-				});
-			}
-			const alias = {
-				idempotency_expired: "idempotency_conflict",
-				event_terminal_conflict: "revision_conflict",
-			};
-			const known = new Set<any>([
-				"invalid_request",
-				"unauthenticated",
-				"forbidden",
-				"not_found",
-				"revision_conflict",
-				"idempotency_conflict",
-				"cursor_expired",
-				"rate_limited",
-				"unavailable",
-			]);
-			const raw = error instanceof z.ZodError ? "invalid_request" : alias[error.code] || error.code;
-			const code = known.has(raw) ? raw : "unavailable";
-			const status = error instanceof z.ZodError ? 400 : known.has(raw) ? error.status || 503 : 503;
-			return json(status, { error: { code, message: code, request_id: crypto.randomUUID() } });
+			return httpErrorResponse(request, config.appOrigin, error);
 		}
 	};
 	return async (request?: any) => {

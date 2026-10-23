@@ -301,7 +301,39 @@ app.openPanel = (kind?: any, ...args: any[]) => {
 };
 app.cloudSavedAccount = true;
 Object.defineProperty(app, "cloudSettingsContent", {
-	get: () => createElement(CloudSettings, { user: !!Cloud.user, host: !!window.__SILL_HOST__ }),
+	get: () => {
+		const owner = Cloud.user;
+		return createElement(CloudSettings, {
+			user: !!owner,
+			host: !!window.__SILL_HOST__,
+			backupOwner: owner,
+			backupApi: async (path, options = {}) => {
+				if (!owner || owner !== Cloud.user)
+					throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+				if (options.method === "POST") {
+					await sync.flush();
+					if (sync.pending.length || Cloud.busy || Cloud.pending)
+						throw agentFailure("save_pending", copy("web.cloudentry.30298242da3c"));
+					Cloud.writeVersion++;
+				}
+				const value = await cloudApi(path, {
+					...options,
+					headers: { ...options.headers, "X-Sill-Owner": owner },
+				});
+				if (owner !== Cloud.user)
+					throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+				return value;
+			},
+			onBackupRestore: async () => {
+				if (Cloud.loadPromise) await Cloud.loadPromise;
+				if (owner !== Cloud.user || !(await loadCloud()))
+					throw Object.assign(new Error("backup_refresh_failed"), {
+						code: "backup_refresh_failed",
+						status: 503,
+					});
+			},
+		});
+	},
 });
 
 app.refresh = refreshWorkspace;

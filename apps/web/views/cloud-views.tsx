@@ -1,6 +1,7 @@
 import React from "react";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
+import { type BackupApi, BackupSettings } from "../interactions/backup-settings.tsx";
 import { WelcomeView } from "../interactions/panels-components.tsx";
 
 export function CloudWelcome({
@@ -108,7 +109,19 @@ export function CloudWelcome({
 		/>
 	);
 }
-export function CloudSettings({ user, host }: { user: boolean; host: boolean }) {
+export function CloudSettings({
+	user,
+	host,
+	backupApi,
+	backupOwner,
+	onBackupRestore,
+}: {
+	user: boolean;
+	host: boolean;
+	backupApi?: BackupApi;
+	backupOwner?: string;
+	onBackupRestore?: () => Promise<void> | void;
+}) {
 	return (
 		<>
 			<h2>{copy("web.cloudentry.ebdc835e8f87")}</h2>
@@ -131,6 +144,15 @@ export function CloudSettings({ user, host }: { user: boolean; host: boolean }) 
 					</button>
 				</div>
 			</div>
+			{user && backupApi && backupOwner && (
+				<BackupSettings
+					key={backupOwner}
+					api={backupApi}
+					owner={backupOwner}
+					host={host}
+					onRestore={onBackupRestore}
+				/>
+			)}
 			{user && (
 				<div className="settings-card">
 					<div className="setting-row">

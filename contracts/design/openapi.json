@@ -1082,12 +1082,8 @@
                     },
                     "image": {
                       "type": "string",
-                      "enum": [
-                        "architecture",
-                        "coast",
-                        "mountain",
-                        "botanical"
-                      ]
+                      "maxLength": 8192,
+                      "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                     },
                     "tags": {
                       "maxItems": 100,
@@ -1239,12 +1235,8 @@
                       "type": "array",
                       "items": {
                         "type": "string",
-                        "enum": [
-                          "architecture",
-                          "coast",
-                          "mountain",
-                          "botanical"
-                        ]
+                        "maxLength": 8192,
+                        "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                       }
                     },
                     "attachment": {
@@ -2112,12 +2104,8 @@
                         },
                         "image": {
                           "type": "string",
-                          "enum": [
-                            "architecture",
-                            "coast",
-                            "mountain",
-                            "botanical"
-                          ]
+                          "maxLength": 8192,
+                          "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                         },
                         "tags": {
                           "maxItems": 100,
@@ -2269,12 +2257,8 @@
                           "type": "array",
                           "items": {
                             "type": "string",
-                            "enum": [
-                              "architecture",
-                              "coast",
-                              "mountain",
-                              "botanical"
-                            ]
+                            "maxLength": 8192,
+                            "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                           }
                         },
                         "attachment": {
@@ -2858,12 +2842,8 @@
                             },
                             "image": {
                               "type": "string",
-                              "enum": [
-                                "architecture",
-                                "coast",
-                                "mountain",
-                                "botanical"
-                              ]
+                              "maxLength": 8192,
+                              "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                             },
                             "tags": {
                               "maxItems": 100,
@@ -3015,12 +2995,8 @@
                               "type": "array",
                               "items": {
                                 "type": "string",
-                                "enum": [
-                                  "architecture",
-                                  "coast",
-                                  "mountain",
-                                  "botanical"
-                                ]
+                                "maxLength": 8192,
+                                "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                               }
                             },
                             "attachment": {
@@ -3625,12 +3601,8 @@
                         },
                         "image": {
                           "type": "string",
-                          "enum": [
-                            "architecture",
-                            "coast",
-                            "mountain",
-                            "botanical"
-                          ]
+                          "maxLength": 8192,
+                          "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                         },
                         "tags": {
                           "maxItems": 100,
@@ -3782,12 +3754,8 @@
                           "type": "array",
                           "items": {
                             "type": "string",
-                            "enum": [
-                              "architecture",
-                              "coast",
-                              "mountain",
-                              "botanical"
-                            ]
+                            "maxLength": 8192,
+                            "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                           }
                         },
                         "attachment": {
@@ -4941,12 +4909,8 @@
           },
           "image": {
             "type": "string",
-            "enum": [
-              "architecture",
-              "coast",
-              "mountain",
-              "botanical"
-            ]
+            "maxLength": 8192,
+            "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
           },
           "tags": {
             "maxItems": 100,
@@ -5098,12 +5062,8 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "architecture",
-                "coast",
-                "mountain",
-                "botanical"
-              ]
+              "maxLength": 8192,
+              "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
             }
           },
           "attachment": {
@@ -5788,12 +5748,8 @@
           },
           "image": {
             "type": "string",
-            "enum": [
-              "architecture",
-              "coast",
-              "mountain",
-              "botanical"
-            ]
+            "maxLength": 8192,
+            "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
           },
           "tags": {
             "maxItems": 100,
@@ -5945,12 +5901,8 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "architecture",
-                "coast",
-                "mountain",
-                "botanical"
-              ]
+              "maxLength": 8192,
+              "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
             }
           },
           "attachment": {
@@ -6666,12 +6618,8 @@
               },
               "image": {
                 "type": "string",
-                "enum": [
-                  "architecture",
-                  "coast",
-                  "mountain",
-                  "botanical"
-                ]
+                "maxLength": 8192,
+                "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
               },
               "tags": {
                 "maxItems": 100,
@@ -6823,12 +6771,8 @@
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "enum": [
-                    "architecture",
-                    "coast",
-                    "mountain",
-                    "botanical"
-                  ]
+                  "maxLength": 8192,
+                  "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                 }
               },
               "attachment": {
@@ -7544,12 +7488,8 @@
           },
           "image": {
             "type": "string",
-            "enum": [
-              "architecture",
-              "coast",
-              "mountain",
-              "botanical"
-            ]
+            "maxLength": 8192,
+            "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
           },
           "tags": {
             "maxItems": 100,
@@ -7700,12 +7640,8 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "architecture",
-                "coast",
-                "mountain",
-                "botanical"
-              ]
+              "maxLength": 8192,
+              "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
             }
           },
           "attachment": {
@@ -8412,12 +8348,8 @@
                 },
                 "image": {
                   "type": "string",
-                  "enum": [
-                    "architecture",
-                    "coast",
-                    "mountain",
-                    "botanical"
-                  ]
+                  "maxLength": 8192,
+                  "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                 },
                 "tags": {
                   "maxItems": 100,
@@ -8568,12 +8500,8 @@
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": [
-                      "architecture",
-                      "coast",
-                      "mountain",
-                      "botanical"
-                    ]
+                    "maxLength": 8192,
+                    "pattern": "^(?:(?:architecture|coast|mountain|botanical)$|https:\\/\\/[^\\s/@?#]+(?:[/?#][^\\s]*)?$)"
                   }
                 },
                 "attachment": {

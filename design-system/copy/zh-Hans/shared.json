@@ -1,4 +1,13 @@
 {
+	"reminders.title": "系统提醒",
+	"reminders.webHint": "仅此设备生效。网页打开时，提醒会显示在系统通知中。",
+	"reminders.macHint": "仅此设备生效。已载入的提醒由系统按时通知，关闭窗口后仍有效。",
+	"reminders.capacityMac": "已安排 {scheduled} 条提醒，另有 {remaining} 条将在应用运行时补排。退出应用后，这些提醒暂不能发出。",
+	"reminders.body": "打开窗台查看",
+	"reminders.deniedWeb": "通知权限未开启。请在浏览器的网站设置中允许通知。",
+	"reminders.deniedMac": "通知权限未开启。请在系统设置的通知中允许窗台发送通知。",
+	"reminders.unsupported": "当前浏览器或嵌入页面不支持系统通知，请在独立网页中打开。",
+	"reminders.failed": "未能开启或发送系统提醒，请重试。",
 	"card.type.article": "文章",
 	"card.type.mail": "邮件",
 	"card.type.note": "笔记",

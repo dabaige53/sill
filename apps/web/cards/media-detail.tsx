@@ -3,7 +3,7 @@ import type { Card } from "../../../contracts/card.ts";
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { Assets } from "../data/assets.ts";
+import { assetURL } from "../data/assets.ts";
 import { detailDate } from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -121,7 +121,21 @@ export function MediaDetail({
 					</div>
 				)}
 				{card.media === "podcast" && (
-					<div className="player-art">{card.image && <img src={Assets[card.image]} alt="" />}</div>
+					<div className="player-art">
+						{card.image && (
+							<img
+								referrerPolicy="no-referrer"
+								onError={(event) => {
+									event.currentTarget.style.opacity = "0";
+								}}
+								onLoad={(event) => {
+									event.currentTarget.style.opacity = "1";
+								}}
+								src={assetURL(card.image)}
+								alt=""
+							/>
+						)}
+					</div>
 				)}
 				<h1 id="modal-title">{card.title}</h1>
 				{card.media === "podcast" && (
@@ -162,7 +176,7 @@ export function MediaDetail({
 					<YouTubePlayer
 						id={video}
 						initialPosition={initial.current}
-						cover={card.image ? Assets[card.image] : undefined}
+						cover={card.image ? assetURL(card.image) : undefined}
 						knownDuration={card.duration}
 						onSave={save}
 						onTime={setState}
@@ -170,7 +184,19 @@ export function MediaDetail({
 					/>
 				) : (
 					<div className="unavailable-video">
-						{card.image && <img src={Assets[card.image]} alt="" />}
+						{card.image && (
+							<img
+								referrerPolicy="no-referrer"
+								onError={(event) => {
+									event.currentTarget.style.opacity = "0";
+								}}
+								onLoad={(event) => {
+									event.currentTarget.style.opacity = "1";
+								}}
+								src={assetURL(card.image)}
+								alt=""
+							/>
+						)}
 						<div>
 							<button type="button" disabled aria-label={copy("web.media.play")}>
 								<Icon name="play" />
@@ -230,7 +256,19 @@ export function MediaDetail({
 						inert={!compact}
 						aria-hidden={!compact}
 					>
-						{card.image && <img src={Assets[card.image]} alt="" />}
+						{card.image && (
+							<img
+								referrerPolicy="no-referrer"
+								onError={(event) => {
+									event.currentTarget.style.opacity = "0";
+								}}
+								onLoad={(event) => {
+									event.currentTarget.style.opacity = "1";
+								}}
+								src={assetURL(card.image)}
+								alt=""
+							/>
+						)}
 						<button
 							type="button"
 							className="compact-title"

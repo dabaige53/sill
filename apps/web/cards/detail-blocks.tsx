@@ -78,7 +78,7 @@ export function FileList({
 							<small title={file.modifiedAt}>
 								{attachment ? fileDescription(file) : detailDate(file.modifiedAt)}
 							</small>
-							<Icon name="chevron" size={14} />
+							{file.url && /^https?:\/\//i.test(file.url) && <Icon name="chevron" size={14} />}
 						</>
 					);
 					return file.url && /^https?:\/\//i.test(file.url) ? (

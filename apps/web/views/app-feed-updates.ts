@@ -107,6 +107,7 @@ export const appFeedUpdatesMethods = {
 			this.baseMode = "feed";
 			history.replaceState({ glass: true, prev: null }, "", "#feed");
 		}, true);
+		this.checkReminders();
 		this.paintPending();
 		if (!quiet)
 			this.announce(

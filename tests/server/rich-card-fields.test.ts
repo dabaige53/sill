@@ -2,13 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import test from "node:test";
+import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 import { create } from "../../contracts/cloud.ts";
 import { identity, rpc } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 
-const fixtures = JSON.parse(
-	await readFile(new URL("../../contracts/fixtures.json", import.meta.url), "utf8"),
-);
 const rich = (card: any) =>
 	card.type === "pr" ||
 	["audioUrl", "chapters", "transcript", "attachments"].some((key) => Object.hasOwn(card, key));

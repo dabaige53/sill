@@ -25,6 +25,8 @@ import SillKit
   }
 
   private(set) var phase: Phase = .connecting
+  /// A transient session-restore failure has not established whether the saved account signed out.
+  private(set) var preservesUnresolvedReminders = false
   private(set) var catalogVersion = 0
   private(set) var preferences = Preferences()
   var notice: Notice?
@@ -44,6 +46,7 @@ import SillKit
   @ObservationIgnored lazy var recorder = ActivityRecorder(workspace: self)
   @ObservationIgnored var catalogChanged: (() -> Void)?
   @ObservationIgnored var sessionCleared: (() -> Void)?
+  @ObservationIgnored var remindersChanged: (() -> Void)?
   @ObservationIgnored var sessionInvalidated: ((any Error) -> Void)?
 
   init(launch: LaunchOptions = .current, autoload: Bool = true) {
@@ -84,13 +87,18 @@ import SillKit
   }
 
   func connect(_ backend: any WorkspaceBackend, initial: Snapshot? = nil) {
+    preservesUnresolvedReminders = false
     clearSnapshot()
     phase = .connecting
     self.backend = backend
     queue.backend = backend
     queue.reset()
+    remindersChanged?()
     if let initial {
-      accept(initial) { self.phase = .ready }
+      accept(initial) {
+        self.phase = .ready
+        self.remindersChanged?()
+      }
     } else {
       refresh()
     }
@@ -105,6 +113,7 @@ import SillKit
       case .success(let snapshot):
         self.accept(snapshot) {
           if self.phase != .ready { self.phase = .ready }
+          self.remindersChanged?()
           completion?(true)
         }
         Task { await self.checkPendingCloudWrite() }
@@ -169,6 +178,7 @@ import SillKit
       catalogVersion += 1
       catalogChanged?()
     }
+    remindersChanged?()
   }
 
   // MARK: Writes
@@ -197,6 +207,7 @@ import SillKit
       if lock { state.beginWrite() }
       state.apply(patches[state.id]!)
     }
+    remindersChanged?()
     let operations = patches.sorted { $0.key < $1.key }.map {
       WorkspaceOperation.itemPatch(id: $0.key, values: $0.value)
     }
@@ -207,6 +218,7 @@ import SillKit
           if lock { state.endWrite() }
           if !success { state.revert() }
         }
+        if !success { self.remindersChanged?() }
         completion?(success)
       }
       switch result {
@@ -507,7 +519,10 @@ import SillKit
     }
   }
 
-  func beginConnection() { phase = .connecting }
+  func beginConnection() {
+    phase = .connecting
+    remindersChanged?()
+  }
 
   private func clearSnapshot() {
     generation += 1
@@ -529,9 +544,11 @@ import SillKit
     catalogVersion += 1
   }
 
-  func signOutLocally() {
+  func signOutLocally(preservingReminders: Bool = false) {
+    preservesUnresolvedReminders = preservingReminders
     clearSnapshot()
     phase = .signedOut
+    remindersChanged?()
     sessionCleared?()
   }
 

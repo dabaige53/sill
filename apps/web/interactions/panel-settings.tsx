@@ -11,6 +11,7 @@ import type { AppController } from "../views/app.ts";
 import { actionTypeExamples, type PanelRenderers } from "./panel-contract.ts";
 import { icon, keyed, segmented, toggle } from "./panel-primitives.tsx";
 import { formatBytes } from "./panels-components.tsx";
+import { SystemReminderSettings } from "./system-reminder-settings.tsx";
 
 export const panelSettings = {
 	settingsGroups: [
@@ -98,6 +99,7 @@ export const panelSettings = {
 			desk: () => (
 				<>
 					<h2>{copy("web.common.desk")}</h2>
+					<SystemReminderSettings />
 					<div className={"settings-card"}>
 						{row(
 							copy("web.settings.stackSameSource"),

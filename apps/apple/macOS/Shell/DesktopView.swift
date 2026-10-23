@@ -111,6 +111,13 @@ struct DesktopView: View {
     } action: {
       reader.viewport = CGRect(origin: .zero, size: $0)
     }
+    .environment(
+      \.openURL,
+      OpenURLAction { url in
+        _ = ExternalLink.open(url, workspace: workspace)
+        return .handled
+      }
+    )
     .environment(\.cardIntents, cardIntents)
     // The feed, the card's transition face and the detail all list the same related cards.
     .environment(\.relatedCards, { [workspace] id in workspace.model(id) })
@@ -423,7 +430,9 @@ struct DesktopView: View {
     }
     cardIntents.reminder = reminder
     cardIntents.join = { id in
-      if let url = workspace.model(id)?.meeting?.url { NSWorkspace.shared.open(url) }
+      if let url = workspace.model(id)?.meeting?.url {
+        ExternalLink.open(url, workspace: workspace)
+      }
     }
     cardIntents.openStack = { [weak feed] key in
       withAnimation(Motion.layout) { feed?.openStack(key) }
@@ -441,11 +450,15 @@ struct DesktopView: View {
       case .open, .reply:
         guard let card = workspace.model(id), let url = card.url else { return }
         // Web `external`: an opened mail counts as read.
-        if NSWorkspace.shared.open(url), card.kind == .mail, !workspace.state(id).read {
+        if ExternalLink.open(url, workspace: workspace), card.kind == .mail,
+          !workspace.state(id).read
+        {
           workspace.setRead(id, true)
         }
       case .join:
-        if let url = workspace.model(id)?.meeting?.url { NSWorkspace.shared.open(url) }
+        if let url = workspace.model(id)?.meeting?.url {
+          ExternalLink.open(url, workspace: workspace)
+        }
       case .tag: panels.open(.editor([id]))
       case .download:
         if let card = workspace.model(id) { CalendarFile.save(card, workspace: workspace) }

@@ -51,6 +51,9 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | 手势布局与关闭性能 | `npm run build && node tests/e2e/gesture-performance-browser.ts` | 合成手机正文、CPU 4 倍限速；固定内容尺寸、关闭期间布局和绘制、返回后工具条与导航状态；不代表真机帧率 |
 | 单卡交给宿主助手 | `npm run test:core`、`npm run build:cloud && npm run test:cloud-app-browser` | 真实 SDK 协议的 sandbox 宿主模拟：能力协商、账号条件、单次发送、回执未知、手动复制回退、外链确认与明确拒绝的草稿恢复；不发送真实对话 |
 | 云端服务 | `npm run test:supabase`、`npm run test:cloud-app` | 本地检查不代替生产数据和账号验收 |
+| 外部备份与恢复 | `node --import tsx --test tests/server/backup*.test.ts tests/web/backup-transport.test.ts` | 合成 WebDAV/R2、MCP 权限、AES 绑定、不可变快照、原子恢复、版本冲突及未知回执，不连接真实网盘 |
+| 设备提醒 | `node --import tsx --test tests/web/system-reminders.test.ts`；`node tests/apple/run.ts --filter SystemReminderTests` | 模拟权限、通知事件、调度和账号生命周期，不投递系统通知 |
+| 图片与播放器策略 | `node --import tsx --test tests/web/image-assets.test.ts tests/server/media-policy.test.ts tests/server/player-policy.test.ts tests/server/cloud-app.test.ts` | HTTPS 图片与 MCP 资源策略，实际媒体及真实宿主另验 |
 | OAuth | `npm run test:oauth` | 真实授权另行验收 |
 | 云端页面 | `npm run test:cloud-browser`、`npm run test:cloud-app-browser`、`npm run test:cloud-operations` | 不默认访问生产 |
 | Mac | `npm run test:macos` | SillKit 数据层与桌面状态检查，再校验 `dist/macos/Sill.app` 签名；先运行 `npm run build:macos` |

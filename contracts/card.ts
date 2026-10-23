@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { richCardFields } from "./card-rich.ts";
 import { cardIssues } from "./card-rules.ts";
 
-export const contractVersion = "4.1.0";
+export const contractVersion = "4.2.0";
 export const cardTypes = [
 	"article",
 	"pr",
@@ -46,7 +46,19 @@ export const httpUrl = z
 	.url()
 	.regex(/^https?:\/\//);
 const strings = z.array(z.string().max(100)).max(100);
-const image = z.enum(["architecture", "coast", "mountain", "botanical"]);
+const image = z
+	.string()
+	.max(8192)
+	.regex(/^(?:(?:architecture|coast|mountain|botanical)$|https:\/\/[^\s/@?#]+(?:[/?#][^\s]*)?$)/)
+	.refine((value) => {
+		if (!value.startsWith("https://")) return true;
+		try {
+			const url = new URL(value);
+			return !!url.hostname && !url.username && !url.password;
+		} catch {
+			return false;
+		}
+	}, "invalid_image");
 export const SourceReference = z
 	.object({ name: z.string().min(1).max(300), kind: z.string().min(1).max(100) })
 	.passthrough();

@@ -1,13 +1,15 @@
 # 跨端数据约定
 
-更新：2026-10-23。现行约定为 4.1.0；产品版本独立管理。字段升级不兼容旧 `meta`。4.0.0 起详情文字只有一个 Markdown `body`（[ADR 0063](../docs/adr/0063-markdown-body.md)）；旧的 `body` 数组和 `points` 只在读取副本时转换，不改写存量数据。4.1.0 新增 PR 快照、媒体播放字段和邮件附件数组。
+更新：2026-10-23。现行约定为 4.2.0；产品版本独立管理。字段升级不兼容旧 `meta`。4.0.0 起详情文字只有一个 Markdown `body`（[ADR 0063](../docs/adr/0063-markdown-body.md)）；旧的 `body` 数组和 `points` 只在读取副本时转换，不改写存量数据。4.1.0 新增 PR 快照、媒体播放字段和邮件附件数组；4.2.0 允许 HTTPS 封面与照片。
 
 - `card.ts`：已实现的本地卡片结构和旧来源字段的纯内存转换；保留未知字段、未知卡片类型，不修改原输入。
 - `local.ts`：已实现的本地状态和批量操作。
+- `backup.ts`：已实现的账号备份快照、WebDAV/R2 配置、恢复确认及 8 个 MCP 输入；秘密设置只用于本人 HTTP，不注册成 MCP 输入。
+- `reminders-worker.ts`：Web 与本地服务共用的通知点击脚本；只联系已打开页面，不缓存内容或订阅推送。
 - `cloud.ts`：已实现的云端写入与 MCP 输入，从 `Card.shape` 复用任务、时间、来源及展示字段；外部 `/contents` 路径、工具名与权限名保持兼容。云端局部更新保留未修改字段，`state` 合并子字段，数组和嵌套对象整体替换。云端旧版最小卡片仍可编辑；新提交的结构字段按类型检查。数据库校验与返回规则见 `supabase/migrations/20261016052843_sill_rich_cards.sql`。
 - `schema.json`：从 zod 导出的本地卡片 JSON Schema，提交到 Git；`npm run contracts:check` 检查是否过期。
 - `migration-fixtures.json`：两端共用的旧来源迁移边界；保留 300 字发件人、10+1 个来源、显式空发件人与未知字段。
-- `fixtures.json`：合法与非法合成样例；每个写入端都必须执行同一批样例。
+- `fixtures.json` 与 `media-fixtures.json`：按核心字段、媒体与图片拆分的合法和非法合成样例；Node 通过 `card-fixtures.ts` 合并，Swift 读取两份文件，每个写入端执行同一批样例。
 - `design/`：从原 `docs/examples/v1/` 迁入的接口设计材料。类型名改为 Card，不表示未实现的接口已上线。
 - `design/openapi-source.json` 保存人工维护的接口说明与路由；Schema 仍来自 `cloud.ts`。`scripts/export-design.ts` 合成原路径的 `design/openapi.json`，不要直接修改生成文件。
 
@@ -37,6 +39,7 @@ JSON Schema 不能表达日程起止顺序、待办 ID 唯一等规则。业务�
 | takenAt / caption | 带精度拍摄时间、最多 2000 字图片说明 | 照片 |
 | coverageStart / coverageEnd | 毫秒时间戳，须成对，结束晚于开始 | 摘要 |
 | state.note / items[id].note | 沿用个人状态中的备注，不写入卡片事实 | 所有类型 |
+| image / photos[] | 4 个内置图片标识或最长 8192 字符的 HTTPS URL，不允许 URL 内带用户名密码 | 封面、照片 |
 | audioUrl | HTTP(S) 音频地址；只在播放时读取，不采集或同步 | 播客媒体 |
 | chapters | 最多 10000 个 {start, title}；start 为 0–86400 秒，严格递增，不超过已知 duration；条数不超过已知 chapterCount | 媒体 |
 | transcript | 最多 10000 个 {start, text}；start 规则同章节；text 最多 20000 字 | 媒体 |

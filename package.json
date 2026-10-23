@@ -79,6 +79,7 @@
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "1.32.1",
 		"@supabase/supabase-js": "2.117.3",
+		"aws4fetch": "1.0.20",
 		"markdown-it": "14.1.0",
 		"motion": "12.23.24",
 		"react": "19.3.1",

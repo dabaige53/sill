@@ -214,13 +214,21 @@ struct ProgressRing: View {
 struct CoverImage: View {
   let name: String?
   var faded = false
+  var fit = false
   @State private var shown = false
   var body: some View {
     let image = name.flatMap(Cover.image)
     ZStack {
       Cover.tone(name)
-      if let image {
-        Image(nsImage: image).resizable().scaledToFill()
+      if let name, name.hasPrefix("https://"), let url = URL(string: name), url.host != nil {
+        AsyncImage(url: url) { phase in
+          if let image = phase.image {
+            image.resizable().aspectRatio(contentMode: fit ? .fit : .fill)
+              .saturation(faded ? 0.6 : 1)
+          }
+        }
+      } else if let image {
+        Image(nsImage: image).resizable().aspectRatio(contentMode: fit ? .fit : .fill)
           .saturation(faded ? 0.6 : 1)
           .animation(Motion.read, value: faded)
       }

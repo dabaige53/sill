@@ -17,7 +17,7 @@ assert.ok(start >= 0 && end > start);
 const bundle = buildSync({
 	stdin: {
 		contents:
-			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {Panels} from './apps/web/interactions/panels.ts';",
+			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {systemReminders} from './apps/web/services/system-reminders.ts';",
 		resolveDir: root,
 		loader: "ts",
 	},
@@ -120,6 +120,7 @@ function fixture() {
 		app,
 		Cloud,
 		Store,
+		systemReminders: w.SessionViewTest.systemReminders,
 		sync: { pending: [], reset() {} },
 		stashCloudDraft() {},
 		accountView() {},

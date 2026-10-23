@@ -6,6 +6,7 @@ import { cloudCard } from "./data/cloud-card.ts";
 import { Store } from "./data/store.ts";
 import { PanelViews as Panels } from "./interactions/panels-components.tsx";
 import { clone } from "./services/cloud-sync.ts";
+import { systemReminders } from "./services/system-reminders.ts";
 import { RecoveryNotice } from "./views/cloud-views.tsx";
 import { renderView } from "./views/react-renderer.ts";
 export async function cloudApi(path?: any, options: any = {}) {
@@ -63,6 +64,7 @@ export function accountView() {
 	app.paintAccount?.();
 }
 export function clearCloud({ retainDrafts = false }: any = {}) {
+	systemReminders.bind(null);
 	app.drag?.cancel();
 	app.drag?.menu.replaceChildren();
 	app.modalToken++;
@@ -174,6 +176,7 @@ export function paintRecords() {
 	Store.state.cards = [...Cloud.records.values()]
 		.filter((c: any) => !c.deleted)
 		.map((c: any) => cloudCard(c));
+	app.checkReminders();
 	app.withFeedAnchor(() => {}, true);
 }
 export function adoptWorkspace(value: any) {

@@ -196,8 +196,8 @@ export const appCaptureMethods = {
 		window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 	},
 	tick(this: AppController) {
+		this.checkReminders();
 		if (!document.hidden) {
-			this.checkReminders();
 			const minute = Math.floor(Date.now() / 60000);
 			if (this.clockMinute !== minute) {
 				this.clockMinute = minute;

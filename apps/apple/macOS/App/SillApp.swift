@@ -23,17 +23,46 @@ import SwiftUI
         .environment(app.menu)
         .environment(app.panels)
         .environment(app.newContent)
+        .environment(\.backupRequest, app.account.backupRequest)
+        .environment(
+          \.backupRestored,
+          {
+            await withCheckedContinuation { continuation in
+              app.workspace.refresh { success in continuation.resume(returning: success) }
+            }
+          }
+        )
         .preferredColorScheme(app.workspace.preferences.colorScheme)
         .task { await app.account.start() }
         .onOpenURL { url in Task { await app.account.completeLogin(url) } }
-        .onAppear {
-          Keyboard.install()
-          delegate.workspace = app.workspace
-        }
+        .modifier(ReminderLifecycle(app: app, delegate: delegate))
     }
     .defaultSize(width: AppleMetrics.windowWidth, height: AppleMetrics.windowHeight)
     .windowStyle(.hiddenTitleBar)
     .commands { DesktopCommands(app: app) }
+  }
+}
+
+private struct ReminderLifecycle: ViewModifier {
+  let app: AppModel
+  let delegate: AppDelegate
+  @Environment(\.openWindow) private var openWindow
+
+  func body(content: Content) -> some View {
+    content.onAppear {
+      Keyboard.install()
+      delegate.workspace = app.workspace
+      SystemReminders.shared.start(
+        workspace: app.workspace,
+        account: {
+          app.account.owner ?? app.workspace.launch.dataDirectory?.absoluteString
+        },
+        open: { id in
+          openWindow(id: "desktop")
+          NSApplication.shared.activate(ignoringOtherApps: true)
+          app.reader.open(id, full: true)
+        })
+    }
   }
 }
 
@@ -174,13 +203,19 @@ private struct DesktopCommands: Commands {
 @MainActor final class AppDelegate: NSObject, NSApplicationDelegate {
   weak var workspace: Workspace?
 
+  func applicationWillFinishLaunching(_ notification: Notification) {
+    SystemReminders.shared.install()
+  }
+
   func applicationDidResignActive(_ notification: Notification) {
     workspace?.recorder.flush()
   }
 
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     guard PerformanceTrace.shared.stopForQuit() else { return .terminateCancel }
-    guard let workspace, workspace.recorder.hasRecords || !workspace.queue.idle else {
+    guard let workspace,
+      workspace.recorder.hasRecords || !workspace.queue.idle || SystemReminders.shared.scheduling
+    else {
       return .terminateNow
     }
     workspace.recorder.flush()
@@ -189,10 +224,13 @@ private struct DesktopCommands: Commands {
       for _ in 0..<40 where !workspace.queue.idle {
         try? await Task.sleep(for: .milliseconds(50))
       }
+      await SystemReminders.shared.finishScheduling()
       sender.reply(toApplicationShouldTerminate: true)
     }
     return .terminateLater
   }
 
-  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    !SystemReminders.shared.enabled
+  }
 }

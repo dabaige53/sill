@@ -54,6 +54,11 @@ export function createWorker({ runtimeFactory = createSillRuntime }: any = {}) {
 				mcpEnabled: env.MCP_ENABLE === "true",
 				oauthConsentEnabled: env.OAUTH_CONSENT_ENABLE === "true",
 				oauthClientIds,
+				backupEncryptionKey: env.BACKUP_ENCRYPTION_KEY,
+				backupWebdavHosts: (env.BACKUP_WEBDAV_HOSTS || "dav.jianguoyun.com")
+					.split(",")
+					.map((v: string) => v.trim())
+					.filter(Boolean),
 			};
 			const key = JSON.stringify(config);
 			if (key !== activeKey) {
