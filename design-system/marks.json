@@ -168,6 +168,25 @@
 				"CardTypeMobile",
 				"CardTypeReading"
 			]
+		},
+		"ai-conversation": {
+			"title": "AI 对话三种高度与结果行",
+			"rule": "handbook/ai-conversation.md#桌面一行展开完整",
+			"tokens": [
+				"ai-dock-width",
+				"ai-panel-inset",
+				"ai-full-width",
+				"ai-full-inset",
+				"ai-sessions-width",
+				"ai-bubble-radius"
+			],
+			"adr": "0064",
+			"boards": [
+				"AIConversation",
+				"ScreenWebAIPanel",
+				"ScreenWebAIFull",
+				"ScreenMobileAIChat"
+			]
 		}
 	}
 }

@@ -195,43 +195,59 @@ export function Navigation() {
 	);
 }
 /**
- * Desktop bottom rail (ADR 0049): one AI box in place of the navigation capsule.
+ * Desktop bottom rail (ADR 0049): one AI box in place of the navigation capsule. With a session it
+ * grows into the panel and the full view (ADR 0064); the controller paints those parts.
  * The built-in AI is not connected, so add, voice and send stay disabled.
  */
 export function AIDock() {
 	return (
-		<div id="ai-dock" className="ai-dock glass">
-			<div className="ai-dock-context" id="ai-dock-context" />
-			<button
-				type="button"
-				className="ai-dock-button"
-				disabled
-				aria-label={copy("web.ai.addUnavailable")}
-			>
-				<Icon name="plus" size={20} />
-			</button>
-			<input
-				type="text"
-				id="ai-dock-input"
-				className="ai-dock-input"
-				maxLength={4000}
-				autoComplete="off"
-				aria-label={copy("web.ai.dock")}
-				placeholder={copy("web.ai.dockPlaceholder")}
+		<div id="ai-dock" className="ai-dock glass" data-height="line">
+			<aside
+				className="ai-dock-sessions"
+				id="ai-dock-sessions"
+				aria-label={copy("ai.sessions")}
+				hidden
 			/>
-			<button type="button" className="ai-dock-button" disabled aria-label={copy("web.ai.speak")}>
-				<Icon name="mic" size={20} />
-			</button>
-			<button
-				type="button"
-				className="ai-dock-button ai-dock-send"
-				disabled
-				aria-label={copy("web.ai.sendUnavailable")}
-			>
-				<span>
-					<Icon name="up" size={20} />
-				</span>
-			</button>
+			<section
+				className="ai-dock-thread"
+				id="ai-dock-thread"
+				aria-label={copy("ai.thread")}
+				hidden
+			/>
+			<div className="ai-dock-context" id="ai-dock-context" />
+			<div className="ai-dock-row">
+				<span className="ai-dock-session-slot" id="ai-dock-session" />
+				<button
+					type="button"
+					className="ai-dock-button"
+					disabled
+					aria-label={copy("web.ai.addUnavailable")}
+				>
+					<Icon name="plus" size={20} />
+				</button>
+				<input
+					type="text"
+					id="ai-dock-input"
+					className="ai-dock-input"
+					maxLength={4000}
+					autoComplete="off"
+					aria-label={copy("web.ai.dock")}
+					placeholder={copy("web.ai.dockPlaceholder")}
+				/>
+				<button type="button" className="ai-dock-button" disabled aria-label={copy("web.ai.speak")}>
+					<Icon name="mic" size={20} />
+				</button>
+				<button
+					type="button"
+					className="ai-dock-button ai-dock-send"
+					disabled
+					aria-label={copy("web.ai.sendUnavailable")}
+				>
+					<span>
+						<Icon name="up" size={20} />
+					</span>
+				</button>
+			</div>
 		</div>
 	);
 }

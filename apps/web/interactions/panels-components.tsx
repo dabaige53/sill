@@ -1,13 +1,14 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { copy } from "../copy.ts";
+import { panelAI } from "./panel-ai.tsx";
 import { panelCard } from "./panel-card.tsx";
-import { type PanelRenderers } from "./panel-contract.ts";
+import type { PanelRenderers } from "./panel-contract.ts";
 import { sillIcon } from "./panel-primitives.tsx";
 import { panelSearch } from "./panel-search.tsx";
 import { panelSettings } from "./panel-settings.tsx";
 import { relativeTime } from "./previews-components.tsx";
 
-const PanelViews: PanelRenderers = { ...panelCard, ...panelSearch, ...panelSettings };
+const PanelViews: PanelRenderers = { ...panelCard, ...panelSearch, ...panelSettings, ...panelAI };
 
 function WelcomeView({
 	actions = null,

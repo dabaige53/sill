@@ -75,6 +75,8 @@ open -a "$PWD/dist/macos/Sill.app" --args --data-directory /tmp/sill-demo
 
 演示数据来自 Web 的 `SeedCards` 和 `SeedItems`（30 张卡片，覆盖 11 种类型）。脚本不覆盖已有的 cards.json。
 
+AI 对话的展开面板和完整视图需要会话；内置 AI 未接入，正式构建没有会话。检查界面时用调试构建并设 `SILL_AI_PREVIEW=1`，加载与 Web 相同的设计样例会话（`AIPreview`，只在 DEBUG 中编译）：`swift build --package-path apps/apple`，再以该环境变量运行 `apps/apple/.build/debug/Sill --data-directory /tmp/sill-demo`。样例不写入数据，发送、停止、重试仍禁用。
+
 ## 数据层
 
 - 云端使用既有密码登录、会话、工作区与原子批量接口。会话 Cookie 保存在系统钥匙串，密码不持久保存；固定可信 HTTPS 服务，不自动跟随重定向，不使用 service-role 凭据。

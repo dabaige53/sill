@@ -1,4 +1,5 @@
 import type { AppController } from "../app.ts";
+import { aiActions } from "./ai.ts";
 import { cardsActions } from "./cards.ts";
 import { externalActions } from "./external.ts";
 import { feedbackActions } from "./feedback.ts";
@@ -16,6 +17,7 @@ const handlers: Record<string, ActionHandler> = {
 	...externalActions,
 	...mediaReminderActions,
 	...feedbackActions,
+	...aiActions,
 };
 
 export function action(

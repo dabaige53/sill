@@ -147,6 +147,9 @@ export const appSelectionMethods = {
 		if (state.visible === selecting) return;
 		state.visible = selecting;
 		if (selecting) this.railHide?.show();
+		// Selecting folds the AI panel so the bar can take the rail; carrying a card does not.
+		if (selecting && !search)
+			queueMicrotask(() => !this.drag?.active && this.aiHeightEvent("select"));
 		// Resume from the currently drawn frame when selection reverses mid-transition.
 		const drawn = state.animation ? getComputedStyle(bar) : null;
 		const from = drawn

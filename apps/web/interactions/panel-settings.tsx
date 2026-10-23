@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { CardActions } from "../../../contracts/card-actions.ts";
-import { markdownText } from "../atoms/markdown.ts";
 import { eventRelative, eventTimely, timeString } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import type { Preferences } from "../data/store.ts";
@@ -296,95 +295,6 @@ export const panelSettings = {
 						<h1 id={"modal-title"}>{title}</h1>
 						<p className={"muted"}>{detail}</p>
 						<div className={"permission-actions"}>{actions}</div>
-					</div>
-				</div>
-			</>
-		);
-	},
-	ai(
-		this: PanelRenderers,
-		app?: Pick<AppController, "aiSelectionIds"> & Partial<Pick<AppController, "aiDraft">>,
-	) {
-		const cards = [...new Set<string>(app?.aiSelectionIds || [])]
-			.map((id) => Store.card(id))
-			.filter(Boolean);
-		const context = cards.map((card) => {
-			const excerpt = (card.summary || markdownText(card.body || "")).slice(0, 180);
-			return (
-				<>
-					<article key={card.id} className={"ai-context-card"} data-ai-context={card.id}>
-						<h3>{card.title}</h3>
-						{excerpt ? (
-							<>
-								<p>{excerpt}</p>
-							</>
-						) : (
-							""
-						)}
-					</article>
-				</>
-			);
-		});
-		return (
-			<>
-				<div className={"sheet ai-conversation"}>
-					<div className={"grabber"} aria-hidden={"true"}></div>
-					{this.close(copy("web.close"))}
-					<header className={"ai-conversation-head"}>
-						<h1 id={"modal-title"}>{copy("web.ai.title")}</h1>
-						<div className="ai-head-actions">
-							<button
-								type="button"
-								className="icon-button ai-head-button"
-								disabled
-								aria-label={copy("web.ai.history")}
-							>
-								{icon("clock", 20)}
-							</button>
-							<button
-								type="button"
-								className="icon-button ai-head-button"
-								disabled
-								aria-label={copy("web.ai.newChat")}
-							>
-								{icon("plus", 20)}
-							</button>
-						</div>
-					</header>
-					<section className={"ai-context"} aria-label={copy("web.ai.context")}>
-						{keyed(context)}
-					</section>
-					<div className={"ai-composer"}>
-						<textarea
-							id={"ai-local-draft"}
-							aria-label={copy("web.ai.composer")}
-							placeholder={copy("web.ai.placeholder")}
-							maxLength={4000}
-							rows={1}
-							defaultValue={app?.aiDraft || ""}
-						/>
-						<div className="ai-composer-tools">
-							<button
-								type="button"
-								className="icon-button ai-attach"
-								disabled
-								aria-label={copy("web.ai.attach")}
-							>
-								{icon("paperclip", 18)}
-							</button>
-							<button
-								type="button"
-								className="icon-button ai-send"
-								disabled
-								aria-label={copy("web.ai.sendUnavailable")}
-							>
-								{icon("up", 20)}
-							</button>
-							<button type="button" className="ai-speak" disabled>
-								{icon("audio-lines", 18)}
-								<span>{copy("web.ai.speak")}</span>
-							</button>
-						</div>
 					</div>
 				</div>
 			</>

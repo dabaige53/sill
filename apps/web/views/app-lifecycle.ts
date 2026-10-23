@@ -95,7 +95,7 @@ export const appLifecycleMethods = {
 		// The search field and the AI box show a text cursor across the capsule, so a press on
 		// its padding puts the caret in the input instead of dropping focus.
 		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
-			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock");
+			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock-row");
 			if (!capsule) return;
 			// Picking from the # list keeps the caret in the field.
 			if (e.target.closest?.(".home-hash")) {
@@ -142,6 +142,7 @@ export const appLifecycleMethods = {
 				this.drag?.menu?.open ||
 				(this.desktop() &&
 					(this.homeMenuOpen ||
+						this.aiHeight !== "line" ||
 						document.querySelector("#sync-status-panel:popover-open") ||
 						document.activeElement?.matches("#home-search, #ai-dock-input"))),
 			() => this.desktop(),
@@ -170,6 +171,7 @@ export const appLifecycleMethods = {
 			{ passive: true },
 		);
 		this.bindCaptureDrop();
+		this.bindAI();
 		this.themeQuery.addEventListener?.("change", () => this.applyPreferences());
 		this.readTicker = setInterval(() => this.tick(), 1000);
 		if (!location.hash) history.replaceState({ glass: true, prev: null }, "", "#" + this.mode);

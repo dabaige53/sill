@@ -25,7 +25,7 @@ Web 使用 React + TypeScript + Vite，决策见 [ADR 0047](../../docs/adr/0047-
 - `views/shell.tsx` 与 `views/feed.tsx` 组成页面；卡片在 `cards/components.tsx`，弹层和详情在 `interactions/*-components.tsx`，云端欢迎与速记在 `views/cloud-views.tsx`。
 - `views/react-renderer.ts` 管理 React 根与同步测量边界。信息流保留稳定 key；详情覆盖搜索时保留搜索容器及节点。控制器仍负责动作、手势、焦点和网络适配，新内容布局写成 TSX，不新增整页 HTML 模板。
 - `cards/templates.ts`、`interactions/panels.ts` 和 `interactions/previews.ts` 保留静态 HTML 兼容出口，供 Node 测试和画板使用。浏览器运行时直接导入组件，避免包含服务端渲染器。
-- 先运行 `npm start` 提供本地 API，再运行 `npm run dev`，打开 http://localhost:5173。Vite 提供 TSX Fast Refresh，`/api/local` 代理到 4318。开发服务只监听本机。
+- 先运行 `npm start` 提供本地 API，再运行 `npm run dev`，打开 http://localhost:5173。Vite 提供 TSX Fast Refresh，`/api/local` 代理到 4318。开发服务只监听本机。打开 http://localhost:5173/?ai-preview 加载 AI 对话的设计样例会话，用于检查展开面板、完整视图和手机 AI 页；只在开发服务生效，生产构建不含样例，发送仍禁用。
 - `apps/web/index.html` 是 Vite 页面入口，`vite.config.ts` 读取原有样式清单及文案。生产用 singlefile 插件输出单文件 HTML，保留云端 MCP 的宿主脚本注入顺序。
 - Node 的 Web 测试通过 tsx 加载 TSX。JSDOM 的浏览器 API 补充集中在 `tests/web/react-browser-fixture.ts`，不改变生产代码。
 

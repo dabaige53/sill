@@ -53,6 +53,7 @@ export const appPanelsMethods = {
 			null,
 			kind === "search" ? "search" : `panel${narrow ? " narrow" : wide ? " wide" : ""}`,
 		);
+		if (kind === "ai") this.paintAIPage();
 		if (kind === "search") {
 			this.dialog.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 			this.bindSearchResults();

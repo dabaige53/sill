@@ -315,6 +315,31 @@
 				"name": "media-player-min-height",
 				"value": "200px",
 				"usage": "官方嵌入视频播放器的最小高度。"
+			},
+			{
+				"name": "ai-dock-width",
+				"value": "640px",
+				"usage": "桌面 AI 框一行和展开时的宽度。"
+			},
+			{
+				"name": "ai-panel-inset",
+				"value": "260px",
+				"usage": "AI 展开面板的最高高度为可视高度减去此值。"
+			},
+			{
+				"name": "ai-full-width",
+				"value": "1040px",
+				"usage": "AI 完整视图的宽度。"
+			},
+			{
+				"name": "ai-full-inset",
+				"value": "120px",
+				"usage": "AI 完整视图的高度为可视高度减去此值，上下各留一半。"
+			},
+			{
+				"name": "ai-sessions-width",
+				"value": "260px",
+				"usage": "AI 完整视图左侧会话列表的宽度。"
 			}
 		]
 	}

@@ -1,9 +1,10 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import type { CardAction } from "../../../contracts/card-actions.ts";
-import { type CopyKey } from "../copy.ts";
+import type { CopyKey } from "../copy.ts";
 import type { CardItem } from "../data/store.ts";
 import type { AppController } from "../views/app.ts";
+import type { AIPageState } from "./panel-ai.tsx";
 
 export type ToolbarAction = [CardAction, ReactNode];
 export const actionTypeExamples = {
@@ -62,8 +63,6 @@ export interface PanelRenderers {
 		group?: string,
 	): ReactNode;
 	confirm(title?: string, detail?: string, actions?: ReactNode): ReactNode;
-	ai(
-		app?: Pick<AppController, "aiSelectionIds"> & Partial<Pick<AppController, "aiDraft">>,
-	): ReactNode;
+	ai(app?: AIPageState): ReactNode;
 	capture(app?: unknown): ReactNode;
 }

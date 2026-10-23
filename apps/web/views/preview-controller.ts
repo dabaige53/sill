@@ -13,6 +13,8 @@ import type { AppController } from "./app.ts";
 export function openCard(this: AppController, id?: any, reading: any = false) {
 	const c = Store.card(id);
 	if (!c) return;
+	// An open card folds the AI panel back to one line; the full view stays under the card.
+	this.aiHeightEvent?.("detail");
 	this.closingCardRoute = "";
 	const source = (
 		this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)

@@ -12,5 +12,6 @@
 	"apps/web/styles/overlay-gestures.css",
 	"apps/web/styles/responsive.css",
 	"apps/web/styles/phone.css",
-	"apps/web/styles/input-feedback.css"
+	"apps/web/styles/input-feedback.css",
+	"apps/web/styles/ai-conversation.css"
 ]

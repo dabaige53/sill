@@ -202,12 +202,14 @@ struct ScrollProbe: NSViewRepresentable {
 /// card through this modifier. A carried pile keeps them in view.
 struct RailTuck: ViewModifier {
   let carrying: Bool
+  /// The AI full view stays put while a card opens over it.
+  var held = false
   @Environment(Chrome.self) private var chrome
   func body(content: Content) -> some View {
     content
       .modifier(
         Tuck(
-          tucked: (chrome.tucked || chrome.yielding) && !carrying,
+          tucked: (chrome.tucked || chrome.yielding) && !carrying && !held,
           travel: AppleMetrics.motionRailTravel)
       )
       .animation(
