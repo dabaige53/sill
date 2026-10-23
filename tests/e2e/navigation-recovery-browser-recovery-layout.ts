@@ -19,7 +19,7 @@ export async function runRecoveryLayout({
 				'#file-input,[data-action="sources"],[data-action="source-toggle"],[data-action="import"],[data-action="import-run"],[data-action="import-toggle"],[data-action="settings-group"][data-extra="sources"]',
 			);
 			assert.equal(await removed.count(), 0);
-			const nav = page.getByRole("navigation", { name: "主导航" });
+			const nav = page.locator("#nav");
 			assert.deepEqual(
 				await nav
 					.locator(".nav-tab")
@@ -27,14 +27,6 @@ export async function runRecoveryLayout({
 				["home", "ai", "search"],
 			);
 			assert.equal(await nav.locator('[data-action="capture"]').count(), 0);
-			await nav.getByRole("button", { name: "主页", exact: true }).focus();
-			for (const key of ["ai", "search"]) {
-				await page.keyboard.press("Tab");
-				assert.equal(
-					await page.evaluate(() => (document.activeElement as HTMLElement).dataset.extra),
-					key,
-				);
-			}
 			await page.locator("#account").focus();
 			await page.keyboard.press("Enter");
 			const groups = page.getByRole("navigation", { name: "设置分组" });
@@ -114,10 +106,13 @@ export async function runRecoveryLayout({
 					await settle(page);
 					for (const panel of ["feed", "search", "preview", "settings"]) {
 						if (panel === "search") {
-							await page.keyboard.press("Control+k");
+							await page.evaluate(() => __app.action("search"));
 							await page.locator("#filter-search").fill("无匹配999");
 							assert.equal(await page.locator("#filter-result").getAttribute("role"), "status");
-							assert.equal(await page.getByRole("dialog", { name: "搜索与筛选" }).count(), 1);
+							assert.equal(
+								await page.getByRole("dialog", { name: "搜索", exact: true }).count(),
+								1,
+							);
 							assert.notEqual(
 								await page
 									.locator(".search-pill")

@@ -77,8 +77,10 @@ import PackagePlugin
     let metrics = tokens.apple.sorted(by: { $0.key < $1.key }).map { key, value in
       "  public static let \(key) = \(value)"
     }.joined(separator: "\n")
-    try "public enum AppleMetrics {\n\(metrics)\n}\n".write(
-      to: metricsOutput, atomically: true, encoding: .utf8)
+    try
+      "public enum AppleMetrics {\n\(metrics)\n  public static let authLoginWidth = \(tokens.loginWidth)\n}\n"
+      .write(
+        to: metricsOutput, atomically: true, encoding: .utf8)
     let colorsOutput = output.appending(path: "AppleColors.swift")
     let roles = [
       "windowBackgroundColor": "Color(nsColor: .windowBackgroundColor)",

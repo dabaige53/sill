@@ -408,6 +408,8 @@ private struct DataPage: View {
   let aiLocal: Bool
   let setAILocal: (Bool) -> Void
   @Environment(Workspace.self) private var workspace
+  @Environment(Account.self) private var account
+  @State private var signingOut = false
   @State private var usage: Int?
   @State private var confirming = false
   @State private var clearing = false
@@ -416,7 +418,10 @@ private struct DataPage: View {
     VStack(alignment: .leading, spacing: AppleMetrics.space16) {
       SettingsCard {
         SettingRow(label: Copy.text("web.settings.storage.location"), first: true) {
-          Text(Copy.text("web.settings.storage.localDirectory"))
+          Text(
+            Copy.text(
+              workspace.isLocal
+                ? "web.settings.storage.localDirectory" : "web.cloudentry.67c5f7479766"))
         }
         SettingRow(label: Copy.text("web.settings.storage.usage")) {
           Text(usage.map { Format.fileSize($0) } ?? "").font(.number(AppleMetrics.font13))
@@ -435,6 +440,24 @@ private struct DataPage: View {
             .disabled(clearing)
         }
       }
+      if !workspace.isLocal {
+        SettingsCard {
+          SettingLine(first: true) {
+            Button(Copy.text("web.cloudentry.3ab8cc15939f")) { signingOut = true }
+              .buttonStyle(TextLinkStyle(padded: false))
+              .disabled(account.busy)
+          }
+        }
+        if let error = account.error {
+          Text(error).font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.error)
+        }
+      }
+    }
+    .confirmationDialog(Copy.text("web.cloudentry.3ab8cc15939f"), isPresented: $signingOut) {
+      Button(Copy.text("web.cloudentry.3ab8cc15939f"), role: .destructive) {
+        Task { await account.logout() }
+      }
+      Button(Copy.text("web.cancel"), role: .cancel) {}
     }
     .task(id: workspace.catalogVersion) { await measure() }
     .alert(Copy.text("web.app.7f1a78cdb3f2"), isPresented: $confirming) {

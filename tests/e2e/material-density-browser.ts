@@ -385,7 +385,8 @@ try {
 				assert.equal(points.length, 2);
 				assert.ok(
 					points.every(
-						(point: any) => ["normal", "pre-wrap"].includes(point.whiteSpace) && point.scroll <= point.width + 1,
+						(point: any) =>
+							["normal", "pre-wrap"].includes(point.whiteSpace) && point.scroll <= point.width + 1,
 					),
 					JSON.stringify(points),
 				);

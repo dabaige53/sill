@@ -43,6 +43,8 @@ import SillKit
   @ObservationIgnored let launch: LaunchOptions
   @ObservationIgnored lazy var recorder = ActivityRecorder(workspace: self)
   @ObservationIgnored var catalogChanged: (() -> Void)?
+  @ObservationIgnored var sessionCleared: (() -> Void)?
+  @ObservationIgnored var sessionInvalidated: ((any Error) -> Void)?
 
   init(launch: LaunchOptions = .current, autoload: Bool = true) {
     self.launch = launch
@@ -81,12 +83,17 @@ import SillKit
     }
   }
 
-  func connect(_ backend: any WorkspaceBackend) {
-    generation += 1
+  func connect(_ backend: any WorkspaceBackend, initial: Snapshot? = nil) {
+    clearSnapshot()
+    phase = .connecting
     self.backend = backend
     queue.backend = backend
     queue.reset()
-    refresh()
+    if let initial {
+      accept(initial) { self.phase = .ready }
+    } else {
+      refresh()
+    }
   }
 
   /// Read the workspace again. Used by ⌘R, the periodic check and after a conflict or unknown
@@ -453,6 +460,7 @@ import SillKit
     case CloudWorkspaceError.unauthenticated:
       text = Copy.text("login.unauthenticated")
       signOutLocally()
+      sessionInvalidated?(failure)
     case CloudWorkspaceError.unknownWrite, StoreError.unknownWrite:
       text = Copy.appleUnknownWrite
       persistent = true
@@ -462,7 +470,10 @@ import SillKit
       case 409:
         text = Copy.appleConflict
         verify()
-      case 403: text = Copy.text("login.forbidden")
+      case 403:
+        text = Copy.text("login.forbidden")
+        signOutLocally()
+        sessionInvalidated?(failure)
       case 429: text = Copy.text("login.rateLimited")
       default:
         text = Copy.text(
@@ -496,17 +507,34 @@ import SillKit
     }
   }
 
-  func signOutLocally() {
+  func beginConnection() { phase = .connecting }
+
+  private func clearSnapshot() {
     generation += 1
+    queue.backend = nil
     queue.reset()
+    backend = nil
+    recorder.reset()
+    acceptChain?.cancel()
+    acceptChain = nil
     models = [:]
     order = []
     states = [:]
     baseline = .init()
     revision = 0
+    seconds = 0
+    storedPreferences = [:]
+    preferences = Preferences()
+    notice = nil
     catalogVersion += 1
-    phase = .signedOut
   }
+
+  func signOutLocally() {
+    clearSnapshot()
+    phase = .signedOut
+    sessionCleared?()
+  }
+
 }
 
 /// Launch arguments. `--data-directory <absolute path>` opens an independent local workspace.

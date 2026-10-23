@@ -58,9 +58,12 @@ export async function runDialogNavigation({
 				"更新的服务端备注",
 			);
 			assert.ok(await page.locator("#sync-status").isVisible());
-			const download = page.waitForEvent("download");
-			await page.locator("[data-action=sync-export]").click();
-			assert.match((await download).suggestedFilename(), /sill.*json/);
+			await page.locator("#sync-status [popovertarget]").click();
+			const [download] = await Promise.all([
+				page.waitForEvent("download"),
+				page.locator("[data-action=sync-export]").click(),
+			]);
+			assert.match(download.suggestedFilename(), /sill.*json/);
 		},
 	);
 	await scenario(
@@ -74,6 +77,7 @@ export async function runDialogNavigation({
 				});
 			await page.route("**/api/local/state", offline);
 			await page.reload();
+			await page.locator("#sync-status [popovertarget]").click();
 			await page.locator("[data-action=sync-retry]").waitFor();
 			await page.keyboard.press("n");
 			await page.locator("#capture-text").fill("读取离线期间的新草稿");
@@ -82,6 +86,8 @@ export async function runDialogNavigation({
 				localStorage.getItem("sill-unsynced")?.includes("读取离线期间的新草稿"),
 			);
 			await page.unroute("**/api/local/state");
+			if (!(await page.locator("[data-action=sync-retry]").isVisible()))
+				await page.locator("#sync-status [popovertarget]").click();
 			await page.locator("[data-action=sync-retry]").click();
 			await page.waitForFunction(
 				() =>
@@ -115,24 +121,15 @@ export async function runDialogNavigation({
 					body: '{"error":"fixture write outage"}',
 				}),
 			);
-			await page.locator("#inline-title").fill("本机离线修改");
+			await page.evaluate(() => __store.patch("offline-note", { note: "本机离线修改" }));
 			await page.waitForFunction(
 				() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "error",
 			);
 			await page.keyboard.press("Escape");
-			await apply([
-				{
-					op: "card.upsert",
-					card: {
-						id: "offline-note",
-						type: "note",
-						kind: "capture",
-						title: "另一会话的新稿",
-						body: "不能被旧稿覆盖",
-					},
-				},
-			]);
+			await apply([{ op: "item.patch", id: "offline-note", values: { note: "另一会话的新稿" } }]);
 			await page.unroute("**/api/local/operations");
+			if (!(await page.locator("[data-action=sync-retry]").isVisible()))
+				await page.locator("#sync-status [popovertarget]").click();
 			await page.locator("[data-action=sync-retry]").click();
 			await page.waitForFunction(
 				() =>
@@ -140,13 +137,13 @@ export async function runDialogNavigation({
 					(document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "error",
 			);
 			assert.equal(
-				(await fetch(`${origin}/api/local/state`).then((r?: any) => r.json())).state.cards.find(
-					(c?: any) => c.id === "offline-note",
-				).title,
+				(await fetch(`${origin}/api/local/state`).then((r?: any) => r.json())).state.items[
+					"offline-note"
+				].note,
 				"另一会话的新稿",
 			);
-			assert.equal(await page.evaluate(() => __store.card("offline-note").title), "本机离线修改");
-			assert.ok(await page.locator("[data-action=sync-export]").isVisible());
+			assert.equal(await page.evaluate(() => __store.item("offline-note").note), "本机离线修改");
+			assert.ok(await page.locator("[data-action=sync-export]").count());
 		},
 	);
 	await scenario(
@@ -247,6 +244,7 @@ export async function runDialogNavigation({
 			await settings.focus();
 			await page.keyboard.press("Enter");
 			const preference = page.getByRole("switch", { name: "读过的卡片慢慢变淡", exact: true });
+			await page.locator("[data-action=settings-group][data-extra=desk]").click();
 			await preference.waitFor();
 			await preference.focus();
 			const previous = await preference.getAttribute("aria-checked");
@@ -273,7 +271,10 @@ export async function runDialogNavigation({
 			await page.keyboard.press("n");
 			assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), false);
 			await page.keyboard.press("Control+k");
-			assert.equal(await page.getByRole("dialog", { name: "搜索与筛选" }).count(), 1);
+			assert.equal(
+				await page.locator("#home-search").evaluate((n) => n === document.activeElement),
+				true,
+			);
 		},
 	);
 }

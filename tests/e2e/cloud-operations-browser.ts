@@ -436,7 +436,14 @@ try {
 		await page.evaluate((id) => __app.select(id, { add: true }), ids[0]);
 		await page.evaluate(() => __app.openPanel("search"));
 		await page.waitForFunction(() => __app.modalKind === "search");
-		await page.locator("#filter-search").fill(await page.evaluate((id) => __store.state.cards.find(card => card.id === id).title, ids[1]));
+		await page
+			.locator("#filter-search")
+			.fill(
+				await page.evaluate(
+					(id) => __store.state.cards.find((card) => card.id === id).title,
+					ids[1],
+				),
+			);
 		await page.locator("#search-results [data-card]").first().waitFor();
 		await page.evaluate((id) => __app.select(id, { add: true }), ids[1]);
 		await page
@@ -446,7 +453,7 @@ try {
 		assert.ok((await page.locator("#selection-menu [data-card]").count()) === 0);
 		assert.ok((await page.locator("#selection-menu .selection-stack").count()) > 0);
 		if (view === "ai") {
-			await page.locator('#search-selection-bar [data-action="selected-ai"]').click();
+			await page.locator("#search-selection-bar .selection-ai-target").click();
 			await page.locator("#ai-local-draft").fill("Synthetic temporary account draft");
 			assert.equal(await page.locator("[data-ai-context]").count(), 1);
 		} else {

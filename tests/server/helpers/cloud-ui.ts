@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 export async function waitCloud(page?: any) {
 	await page.locator("body.cloud-signed-in").waitFor();
-	await page.waitForFunction(() => Math.abs(document.getElementById("home-top").getBoundingClientRect().top - (innerWidth > 650 ? 10 : 0)) < 0.1);
+	await page.waitForFunction(
+		() =>
+			Math.abs(
+				document.getElementById("home-top").getBoundingClientRect().top -
+					(innerWidth > 650 ? 10 : 0),
+			) < 0.1,
+	);
 	assert.equal(
 		await page.locator("#cloud-account").count(),
 		0,
@@ -15,7 +21,7 @@ export async function waitCloud(page?: any) {
 			desktop: matchMedia("(min-width: 651px)").matches,
 			mainTop: main.top + scrollY,
 			headerTop: Math.round(head.top + scrollY),
-			headerHeight: head.height,
+			headerHeight: Math.round(head.height),
 			headerPosition: getComputedStyle(header).position,
 		};
 	});

@@ -65,7 +65,8 @@ try {
 			await page.getByRole("button", { name: "登录并继续" }).click();
 			await page.getByRole("button", { name: "允许访问", exact: true }).waitFor();
 			assert.equal(await f.grant(), undefined);
-			assert.match(await page.locator("main").innerText(), /读取卡片、创建与修改卡片/);
+			assert.match(await page.locator("main").innerText(), /读取卡片\s+创建与修改卡片/);
+			await page.locator("details summary").click();
 			assert.match(await page.locator("main").innerText(), /openid/);
 			assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 			await page.getByRole("button", { name: "允许访问", exact: true }).focus();
@@ -74,7 +75,7 @@ try {
 				"approve",
 			);
 			await page.screenshot({ path: `tests/artifacts/oauth-${name}-review.png`, fullPage: true });
-			await page.getByRole("button", { name: "拒绝", exact: true }).click();
+			await page.getByRole("button", { name: "取消", exact: true }).click();
 			await page.waitForURL(callbackOrigin + "/**");
 			assert.equal(await f.grant(), undefined);
 			await page.goto(f.config.appOrigin + "/oauth/consent?authorization_id=" + AUTH);

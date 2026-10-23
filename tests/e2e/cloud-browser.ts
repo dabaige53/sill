@@ -233,6 +233,9 @@ try {
 	await mkdir("tests/artifacts", { recursive: true });
 	await page.screenshot({ path: "tests/artifacts/cloud-desktop.png", animations: "disabled" });
 	await page.setViewportSize({ width: 390, height: 844 });
+	await page.waitForFunction(
+		() => document.documentElement.scrollWidth <= innerWidth + 1 && !window.__app.layout.frame,
+	);
 	await cloudTool(page, "capture");
 	await page.locator("#cloud-title").fill("Mobile draft");
 	assert.ok(
@@ -241,6 +244,7 @@ try {
 	);
 	await page.screenshot({ path: "tests/artifacts/cloud-mobile.png", animations: "disabled" });
 	await page.locator("#cloud-editor [data-action=close]").click();
+	await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
 	await cloudTool(page, "capture");
 	for (const theme of ["light", "dark"])
 		for (const viewport of [
@@ -287,6 +291,7 @@ try {
 				overflow.scrollWidth <= viewport.width,
 				`editor does not overflow ${theme} ${JSON.stringify(viewport)} ${JSON.stringify(overflow)}`,
 			);
+			await page.locator("#cloud-save").scrollIntoViewIfNeeded();
 			const save = await page.locator("#cloud-save").boundingBox();
 			assert.ok(
 				save.y >= 0 && save.y + save.height <= viewport.height,
@@ -294,6 +299,7 @@ try {
 			);
 		}
 	await page.locator("#cloud-editor [data-action=close]").click();
+	await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
 	await page.setViewportSize({ width: 390, height: 844 });
 	assert.equal(
 		await page.evaluate(() => localStorage.length),

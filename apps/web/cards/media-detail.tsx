@@ -44,6 +44,7 @@ export function MediaDetail({
 	const primary = useRef<HTMLDivElement>(null);
 	const [compact, setCompact] = useState(false);
 	const compactPlayer = useRef<HTMLDivElement>(null);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Full-screen switches replace the scroll surface and must rebind its observer.
 	useEffect(() => {
 		const node = primary.current;
 		const scroll = node?.closest(".sheet-scroll");

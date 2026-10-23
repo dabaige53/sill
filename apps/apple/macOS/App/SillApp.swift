@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 import SillKit
 import SwiftUI
 
@@ -10,6 +11,7 @@ import SwiftUI
     Window(Copy.appleWindowTitle, id: "desktop") {
       RootView()
         .environment(app.workspace)
+        .environment(app.account)
         .environment(app.feed)
         .environment(app.selection)
         .environment(app.reader)
@@ -22,6 +24,8 @@ import SwiftUI
         .environment(app.panels)
         .environment(app.newContent)
         .preferredColorScheme(app.workspace.preferences.colorScheme)
+        .task { await app.account.start() }
+        .onOpenURL { url in Task { await app.account.completeLogin(url) } }
         .onAppear {
           Keyboard.install()
           delegate.workspace = app.workspace
@@ -34,29 +38,61 @@ import SwiftUI
 }
 
 /// Everything the window shares. Created once; each object is observed only where it is drawn.
-@MainActor final class AppModel {
+@MainActor @Observable final class AppModel {
   let workspace: Workspace
-  let interaction: DesktopInteraction
-  let feed: Feed
-  let selection: Selection
-  let reader: Reader
-  let menu: CardMenu
-  let chrome = Chrome()
-  let shell = Shell()
-  let ai = AIContext()
-  let panels = Panels()
-  let newContent = NewContent()
-  let drag = CardDrag()
+  let account: Account
+  var interaction: DesktopInteraction
+  var feed: Feed
+  var selection: Selection
+  var reader: Reader
+  var menu: CardMenu
+  var chrome = Chrome()
+  var shell = Shell()
+  var ai = AIContext()
+  var panels = Panels()
+  var newContent = NewContent()
+  var drag = CardDrag()
 
-  init() {
+  init(workspace supplied: Workspace? = nil, accountService: (any CloudAccountService)? = nil) {
     if let root = ProcessInfo.processInfo.environment["SILL_PERF_OUTPUT"] {
       try? PerformanceTrace.shared.start(directory: URL(fileURLWithPath: root))
     }
-    workspace = Workspace()
+    let workspace = supplied ?? Workspace(autoload: false)
+    self.workspace = workspace
+    account = Account(
+      workspace: workspace, service: accountService ?? CloudBackend(cloud: CloudWorkspace()))
+    let feed = Feed(workspace: workspace)
+    let selection = Selection(workspace: workspace)
+    let reader = Reader(workspace: workspace)
+    let menu = CardMenu(workspace: workspace)
+    let panels = Panels()
+    let shell = Shell()
+    let drag = CardDrag()
+    self.feed = feed
+    self.selection = selection
+    self.reader = reader
+    self.menu = menu
+    self.panels = panels
+    self.shell = shell
+    self.drag = drag
+    interaction = DesktopInteraction(
+      panels: panels, reader: reader, shell: shell, menu: menu, drag: drag)
+    workspace.sessionCleared = { [weak self] in self?.clearSurfaces() }
+  }
+
+  private func clearSurfaces() {
+    reader.invalidateSession()
+    drag.cancel()
     feed = Feed(workspace: workspace)
     selection = Selection(workspace: workspace)
     reader = Reader(workspace: workspace)
     menu = CardMenu(workspace: workspace)
+    chrome = Chrome()
+    shell = Shell()
+    ai = AIContext()
+    panels = Panels()
+    newContent = NewContent()
+    drag = CardDrag()
     interaction = DesktopInteraction(
       panels: panels, reader: reader, shell: shell, menu: menu, drag: drag)
   }
@@ -64,20 +100,15 @@ import SwiftUI
 
 private struct RootView: View {
   @Environment(Workspace.self) private var workspace
+  @Environment(Account.self) private var account
   var body: some View {
     switch workspace.phase {
     case .ready:
-      DesktopView()
+      if account.needsPasswordSetup { CloudLogin() } else { DesktopView() }
     case .connecting:
       AppleColors.canvas.ignoresSafeArea()
     case .signedOut:
-      // Cloud sign-in arrives with the account group; local mode needs `--data-directory`.
-      VStack(spacing: AppleMetrics.space16) {
-        BrandMark()
-        Text(verbatim: "Sill").font(.sans(AppleMetrics.font34, .bold))
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(AppleColors.canvas)
+      CloudLogin()
     case .unavailable(let message):
       VStack(spacing: AppleMetrics.space12) {
         Text(message).font(.sans(AppleMetrics.font15)).foregroundStyle(AppleColors.secondary)
@@ -109,17 +140,21 @@ private struct DesktopCommands: Commands {
     CommandGroup(replacing: .appSettings) {
       Button(Copy.appleSettingsMenu) { app.panels.open(.settings) }
         .keyboardShortcut(",")
+        .disabled(app.workspace.phase != .ready || app.account.needsPasswordSetup)
     }
     CommandGroup(after: .newItem) {
       Button(Copy.appleRefresh) {
         app.workspace.refresh { done in if done { app.feed.refreshMembership(reorder: true) } }
       }
       .keyboardShortcut("r")
+      .disabled(app.workspace.phase != .ready || app.account.needsPasswordSetup)
     }
     CommandGroup(after: .textEditing) {
       Button(Copy.appleSearch) { app.interaction.focusSearch() }
         .keyboardShortcut("k")
-        .disabled(!app.interaction.canSearch)
+        .disabled(
+          !app.interaction.canSearch || app.workspace.phase != .ready
+            || app.account.needsPasswordSetup)
       Divider()
       ForEach(Scope.allCases, id: \.self) { scope in
         Button(scope.label) {
@@ -127,7 +162,9 @@ private struct DesktopCommands: Commands {
           app.feed.select(scope)
         }
         .keyboardShortcut(KeyEquivalent(scope.shortcut), modifiers: .command)
-        .disabled(!app.interaction.canSearch)
+        .disabled(
+          !app.interaction.canSearch || app.workspace.phase != .ready
+            || app.account.needsPasswordSetup)
       }
     }
   }

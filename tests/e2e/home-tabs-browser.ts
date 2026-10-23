@@ -137,23 +137,23 @@ try {
 		await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 		// Desktop picks a view from the ⌄ menu (✓ is aria-checked); phones keep the pressed tab row
 		// (web-interaction handbook).
-		const clickVisible = async (locator) => {
-			const box = await locator.boundingBox();
-			assert.ok(box && box.y >= 0 && box.y + box.height <= page.viewportSize().height);
-			await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-		};
 		const pickTab = async (key: string) => {
 			if (width > 650) {
-				await clickVisible(page.locator("#home-menu-toggle"));
-				await head.locator(`.home-menu-item[data-extra="${key}"]`).waitFor();
-				await page.waitForFunction(() => document.getElementById("home-menu").getAnimations().every(a => a.playState === "finished"));
-				await clickVisible(head.locator(`.home-menu-item[data-extra="${key}"]`));
+				await page.locator("#home-menu-toggle").evaluate((n) => n.focus({ preventScroll: true }));
+				await page.keyboard.press("Enter");
+				await head
+					.locator(`.home-menu-item[data-extra="${key}"]`)
+					.evaluate((n) => n.focus({ preventScroll: true }));
+				await page.keyboard.press("Enter");
 			} else await head.locator(`.home-tab[data-extra="${key}"]`).click();
 		};
 		const assertTab = async (key: string) => {
 			const [selector, state] =
 				width > 650 ? [".home-menu-item", "aria-checked"] : [".home-tab", "aria-pressed"];
-			assert.equal(await head.locator(`${selector}[data-extra="${key}"]`).getAttribute(state), "true");
+			assert.equal(
+				await head.locator(`${selector}[data-extra="${key}"]`).getAttribute(state),
+				"true",
+			);
 			assert.equal(await head.locator(`${selector}[${state}="true"]`).count(), 1);
 		};
 		const source = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
@@ -345,7 +345,7 @@ try {
 		if (width === 1920) {
 			await page.keyboard.press("ControlOrMeta+k");
 			assert.equal(
-				await page.locator("#filter-search").evaluate((node) => node === document.activeElement),
+				await page.locator("#home-search").evaluate((node) => node === document.activeElement),
 				true,
 			);
 			assert.equal(await page.locator("#modal").evaluate((node) => node.getAnimations().length), 0);

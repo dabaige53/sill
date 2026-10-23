@@ -13,6 +13,7 @@ import SwiftUI
     var full: Bool
   }
 
+  private(set) var sessionActive = true
   private(set) var layers: [Layer] = []
   /// Drawn visibility of the whole overlay; the overlay stays mounted until its exit finishes.
   private(set) var shown = false {
@@ -62,6 +63,7 @@ import SwiftUI
   // MARK: Opening
 
   func open(_ id: String, full: Bool = false) {
+    guard sessionActive else { return }
     let trace = PerformanceTrace.shared.begin(.openCard)
     defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
@@ -130,6 +132,16 @@ import SwiftUI
     open(top.card, full: !top.full)
   }
 
+  /// Drop the old reading layer without returning focus or writing into the next account.
+  func invalidateSession() {
+    token += 1
+    sessionActive = false
+    layers = []
+    shown = false
+    positions = [:]
+    surfaces = [:]
+  }
+
   // MARK: Closing
 
   /// Leaves the top layer only.
@@ -190,6 +202,10 @@ import SwiftUI
 
   /// Reaching the end marks the card read at once; its feed color waits for the overlay to close.
   func reachedEnd(_ id: String, completion: ((Bool) -> Void)? = nil) {
+    guard sessionActive else {
+      completion?(false)
+      return
+    }
     guard let card = workspace.model(id), card.kind.readable else {
       completion?(true)
       return
@@ -279,6 +295,7 @@ import SwiftUI
   }
 
   private func finish() {
+    guard sessionActive else { return }
     let returning = origin
     layers = []
     self.returning = false

@@ -1,6 +1,6 @@
 {
 	"name": "sill",
-	"version": "1.2.6",
+	"version": "1.2.7",
 	"private": true,
 	"description": "Local card workspace with shared UI and agent operations",
 	"scripts": {

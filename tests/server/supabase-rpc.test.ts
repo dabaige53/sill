@@ -307,7 +307,7 @@ test("private V1 RPC local transactional preparation", async (t?: any) => {
 			},
 		);
 		await t.test("RPC success projections validate against checked-in V1 schemas", async () => {
-			// The V1 preparation predates ADR 0063; migration 20261022120000 turns body arrays into one Markdown string.
+			// The V1 preparation predates ADR 0063; migration 20261023012833 turns body arrays into one Markdown string.
 			const markdownBody = (value: any): any =>
 				Array.isArray(value)
 					? value.map(markdownBody)

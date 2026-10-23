@@ -255,7 +255,9 @@ export async function runMaterialFocus({
 				null,
 				{ timeout: 5000 },
 			);
-			await page.waitForFunction(() => !document.querySelector<HTMLElement>(".preview-sheet").style.translate);
+			await page.waitForFunction(
+				() => !document.querySelector<HTMLElement>(".preview-sheet").style.translate,
+			);
 			const state = await page.evaluate(() => ({
 				open: (document.getElementById("modal") as HTMLDialogElement).open,
 				drag: !!document.querySelector(".is-drag"),

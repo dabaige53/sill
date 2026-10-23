@@ -235,7 +235,9 @@ export async function runCaptureLayout({
 			assert.match(open[0][2], /scale\(1(, 1)?\)/, "ends at the preview's own size");
 			await page.waitForTimeout(700);
 			assert.equal(
-				await page.evaluate(() => getComputedStyle(document.getElementById("modal-title")).fontSize),
+				await page.evaluate(
+					() => getComputedStyle(document.getElementById("modal-title")).fontSize,
+				),
 				"26px",
 				"the settled preview keeps its text size",
 			);

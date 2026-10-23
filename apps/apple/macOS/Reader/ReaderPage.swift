@@ -95,7 +95,8 @@ struct ReaderPage: View {
     scroll.offsetChanged = { [weak reader] offset in
       if card.kind != .media { reader?.positions[layerID] = offset }
     }
-    scroll.progressChanged = { [weak workspace] value in
+    scroll.progressChanged = { [weak workspace, weak reader] value in
+      guard reader?.sessionActive == true else { return }
       if card.kind != .media { workspace?.recorder.read(id, progress: value) }
     }
     scroll.reachedEnd = { [weak reader] in
@@ -113,7 +114,7 @@ struct ReaderPage: View {
     let anyInput = CGEventType(rawValue: ~0)!
     while !Task.isCancelled {
       try? await Task.sleep(for: .seconds(1))
-      guard !Task.isCancelled else { return }
+      guard !Task.isCancelled, reader.sessionActive else { return }
       let idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: anyInput)
       if NSApp.isActive, idle < 60 { workspace.recorder.readingSecond() }
     }

@@ -2596,10 +2596,21 @@ a.detail-row:hover {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+/* Words and branch names wrap as whole pieces, never inside "合并到". */
 .pr-merge-intent {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-4);
 	min-width: 0;
 	font-size: 13px;
+	white-space: nowrap;
 	color: var(--muted);
+}
+.pr-merge-intent .pr-branch {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .pr-merge-intent .pr-branch {
 	font-family: "SF Mono", ui-monospace, Menlo, monospace;
@@ -4788,6 +4799,10 @@ button.list-row:active {
 .list-row .row-side > * {
 	grid-area: 1 / 1;
 }
+/* The date shares the cell with 放回桌面 and only fades; it must not take the click. */
+.list-row .row-date {
+	pointer-events: none;
+}
 .list-row .row-put {
 	display: inline-flex;
 	align-items: center;
@@ -5750,6 +5765,9 @@ input[type="search"]::-webkit-search-cancel-button {
 	opacity: 0;
 	pointer-events: none;
 	color: var(--accent);
+}
+.home-heading.has-refresh .home-mark {
+	visibility: hidden;
 }
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {

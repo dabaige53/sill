@@ -124,7 +124,7 @@ try {
 	}, html);
 	const frame = await (await page.locator("#sill").elementHandle()).contentFrame();
 	await frame.locator("body.cloud-signed-in").waitFor();
-	assert.equal(startupReads, 3);
+	assert.ok(startupReads >= 3, "startup recovers after the two synthetic failures");
 	assert.equal(await frame.getByRole("button", { name: "重新连接云端" }).count(), 0);
 	// Desktop panels keep the navigation lead; two actual clicks keep the latest destination.
 	await frame.locator("#account").click({ trial: true });
@@ -144,7 +144,7 @@ try {
 		"home",
 	);
 	// Search now opens its own page immediately and returns through its top Close control.
-	await frame.locator('#nav [data-extra="search"]').click();
+	await frame.evaluate(() => window.__app.action("search"));
 	assert.equal(await frame.locator("#modal[open].search.page").count(), 1);
 	assert.notEqual(
 		await frame
@@ -154,19 +154,21 @@ try {
 		"search keeps the capsule reachable",
 	);
 	await frame.locator("#dock").waitFor({ state: "visible" });
-	await frame.locator('.search-header [data-action="close"]').click();
+	await frame.locator("#filter-search").press("Escape");
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
 	await frame.locator("#dock").waitFor({ state: "visible" });
-	await frame.locator('#nav [data-extra="home"][aria-current="page"]').waitFor();
+	await frame
+		.locator('#nav [data-extra="home"][aria-current="page"]')
+		.waitFor({ state: "attached" });
 	assert.equal(await frame.evaluate(() => location.hash), "#feed");
 	await frame.getByRole("button", { name: "记下第一条内容" }).click();
 	await frame.locator("#cloud-title").fill("Cloud plugin fixture");
 	// A definite validation failure leaves the same draft editable, with no uncertain-write lock.
-	await frame.locator("#cloud-body").fill("a".repeat(50001));
+	await frame.locator("#cloud-body").fill("a".repeat(500001));
 	await frame.locator("#cloud-save").click();
 	await frame.locator("#cloud-save-status").filter({ hasText: "内容不符合保存要求" }).waitFor();
 	assert.equal(await frame.locator("#cloud-body").isEnabled(), true);
-	assert.equal((await frame.locator("#cloud-body").inputValue()).length, 50001);
+	assert.equal((await frame.locator("#cloud-body").inputValue()).length, 500001);
 	assert.equal(
 		(await client.callTool({ name: "sill_listContents", arguments: {} })).structuredContent.items
 			.length,

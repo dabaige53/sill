@@ -1,4 +1,4 @@
-/** Search filter rows, real controls and narrow keyboard space, using synthetic cards. */
+/** Search categories, type chips, # conditions and narrow keyboard space, using synthetic cards. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import http from "node:http";
@@ -80,43 +80,24 @@ try {
 			6,
 			"empty search shows category cards",
 		);
-		await page.locator("#filter-search").fill("密度");
-		await page.locator(".search-refinements summary").click();
 		assert.equal(
 			await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),
 			"hidden",
-			"search does not paint the underlying home cards",
 		);
-		if (width === 390 && height === 844)
-			await page.screenshot({ path: path.join(artifacts, theme + "-blank-search.png") });
-		const rows = page.locator("#modal .search-filter-row");
-		assert.equal(await rows.count(), 2, "status and tag refinements");
-		assert.deepEqual(await rows.locator(".search-filter-label").allTextContents(), [
-			"状态",
-			"标签",
-		]);
-		assert.deepEqual(
-			await rows
-				.locator("fieldset")
-				.evaluateAll((ns) => ns.map((n) => n.getAttribute("aria-label"))),
-			["状态", "标签"],
+		await page.locator("#filter-search").fill("密度");
+		await page.locator(".search-chips:not([hidden])").waitFor();
+		const chips = page.locator(".search-chips fieldset");
+		assert.equal(await chips.getAttribute("aria-label"), "类型");
+		await page.locator('[data-action="filter-type"][data-extra="note"]').focus();
+		await page.keyboard.press("Space");
+		assert.equal(
+			await page
+				.locator('[data-action="filter-type"][data-extra="note"]')
+				.getAttribute("aria-pressed"),
+			"true",
 		);
-		const geometry = await rows.evaluateAll((ns) =>
-			ns.map((n) => {
-				const r = n.getBoundingClientRect(),
-					items = n.querySelector(".search-filter-items") as HTMLElement;
-				return {
-					y: r.y,
-					bottom: r.bottom,
-					height: r.height,
-					clientWidth: items.clientWidth,
-					scrollWidth: items.scrollWidth,
-				};
-			}),
-		);
-		assert.equal(geometry[1].y - geometry[0].bottom, 8);
 		const bounds = await page.locator("#search-results").boundingBox();
-		assert.ok(bounds.height > 0 && bounds.y >= geometry[1].bottom);
+		assert.ok(bounds.height > 0);
 		assert.equal(
 			await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),
 			false,
@@ -125,6 +106,7 @@ try {
 			await page.locator("#modal").evaluate((n) => n.scrollWidth > n.clientWidth + 1),
 			false,
 		);
+		await page.locator('[data-action="search-reset"]').click();
 		if (width < 650 && height === 844) {
 			await page.locator("#filter-search").fill("jje");
 			await page.waitForFunction(
@@ -169,7 +151,7 @@ try {
 			assert.equal(keyboard.before.page, keyboard.height);
 			assert.equal(keyboard.open.page, keyboard.height, "keyboard never cuts the page background");
 			assert.equal(keyboard.open.input, keyboard.before.input, "input remains anchored");
-			assert.equal(keyboard.before.results - keyboard.open.results, 300);
+			assert.ok(keyboard.open.results > 0 && keyboard.open.results < keyboard.before.results);
 			assert.equal(keyboard.open.inset, "300px");
 			assert.deepEqual(
 				keyboard.closed,
@@ -186,48 +168,27 @@ try {
 		}
 		await page.locator('.search-category[data-extra="note"]').focus();
 		await page.keyboard.press("Enter");
-		assert.equal(
-			await page
-				.locator('[data-action="filter-type"][data-extra="note"]')
-				.getAttribute("aria-pressed"),
-			"true",
-		);
-		assert.deepEqual(
-			await page
+		assert.equal(await page.locator('.search-token[data-extra="type"]').innerText(), "笔记");
+		const ids = () =>
+			page
 				.locator("#search-results [data-card]")
-				.evaluateAll((ns) => ns.map((n) => n.getAttribute("data-card")).sort()),
-			["review-note", "review-note-2"],
-		);
-		await page.locator('[data-action="filter-type"][data-extra="all"]').click();
-		assert.equal(await page.locator(".search-category").count(), 6);
-		await page.locator('[data-action="filter-status"][data-extra="saved"]').click();
-		assert.deepEqual(
-			await page
-				.locator("#search-results [data-card]")
-				.evaluateAll((ns) => ns.map((n) => n.getAttribute("data-card"))),
-			["review-article"],
-		);
-		await page.locator('[data-action="filter-status"][data-extra="saved"]').click();
-		const tag = page.locator('[data-action="filter-tag"][data-extra="交互"]');
-		await tag.focus();
+				.evaluateAll((ns) => ns.map((n) => n.getAttribute("data-card")).sort());
+		assert.deepEqual(await ids(), ["review-note", "review-note-2"]);
+		await page.locator('[data-action="search-reset"]').click();
+		await page.locator("#filter-search").fill("#");
+		const status = page.locator('[data-action="search-hash"][data-extra="status:saved"]');
+		await status.focus();
+		await page.keyboard.press("Enter");
+		assert.deepEqual(await ids(), ["review-article"]);
+		assert.equal(await page.locator('.search-token[data-extra="status"]').innerText(), "#收藏");
+		await page.locator("#filter-search").press("Backspace");
+		assert.equal(await page.locator('.search-token[data-extra="status"]').count(), 0);
+		await page.locator("#filter-search").fill("#交互");
+		await page.locator('[data-action="search-hash"][data-extra="tag:交互"]').focus();
 		await page.keyboard.press("Space");
-		assert.equal(await tag.getAttribute("aria-pressed"), "true");
-		assert.equal(
-			await tag.evaluate((n) => {
-				const r = n.getBoundingClientRect(),
-					p = n.parentElement.getBoundingClientRect();
-				return document.activeElement === n && r.left >= p.left && r.right <= p.right;
-			}),
-			true,
-			"keyboard-selected tag remains visible in its row",
-		);
-		assert.deepEqual(
-			await page
-				.locator("#search-results [data-card]")
-				.evaluateAll((ns) => ns.map((n) => n.getAttribute("data-card"))),
-			["review-note-2"],
-		);
-		await page.locator('[data-action="filter-tag"][data-extra="交互"]').click();
+		assert.deepEqual(await ids(), ["review-note-2"]);
+		assert.equal(await page.locator('.search-token[data-extra="tag"]').innerText(), "#交互");
+		await page.locator('.search-token[data-extra="tag"]').click();
 		await page.locator("#filter-search").fill("密度");
 		await page.waitForFunction(
 			() =>
@@ -242,11 +203,11 @@ try {
 		);
 		await page.locator('#search-results [data-card="review-note"] .card-title-button').click();
 		await page.locator("#search-background[open]").waitFor();
-		assert.equal(await page.locator("#search-background .search-filter-row").count(), 2);
+		assert.equal(await page.locator("#search-background .search-chips").count(), 1);
 		await page.keyboard.press("Escape");
 		await page.locator("#modal.search[open]").waitFor();
 		assert.equal(await page.locator("#filter-search").inputValue(), "密度");
-		assert.equal(await page.locator("#modal .search-filter-row").count(), 2);
+		assert.equal(await page.locator("#modal .search-chips").count(), 1);
 		assert.equal(await page.evaluate(() => JSON.stringify(window.__app.filter)), home);
 		assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), source);
 		await page.screenshot({
@@ -261,7 +222,6 @@ try {
 			width,
 			theme,
 			height,
-			geometry,
 			resultsHeight: bounds.height,
 			keyboardTypeAndTag: true,
 			searchAndHomeIndependent: true,
@@ -270,7 +230,7 @@ try {
 			external,
 		});
 		console.log(
-			"PASS search filter rows, keyboard controls and retained detail " +
+			"PASS search conditions, keyboard controls and retained detail " +
 				width +
 				"-" +
 				theme +

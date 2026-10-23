@@ -163,7 +163,8 @@ struct PreviewSheet: View {
     let id = card.id
     let layerID = layer.id
     scroll.offsetChanged = { [weak reader] offset in reader?.positions[layerID] = offset }
-    scroll.progressChanged = { [weak workspace] value in
+    scroll.progressChanged = { [weak workspace, weak reader] value in
+      guard reader?.sessionActive == true else { return }
       if card.kind != .media { workspace?.recorder.read(id, progress: value) }
     }
     scroll.reachedEnd = { [weak reader] in

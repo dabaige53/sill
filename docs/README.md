@@ -221,3 +221,5 @@
 - [2026-10-22 卡片交互修复](records/2026-10-22-card-interaction-fixes/README.md)：卡片内跳转、详情尺寸过渡、播客吸顶切换、标题分隔线及审阅按钮。
 
 - [2026-10-22 测试与旧模板清理](records/2026-10-22-test-cleanup/README.md)：过时正文、媒体断言、旧模板与文案哈希清理及恢复标签。
+
+- [发布前清空测试数据与数据库准备](records/2026-10-23-pre-release-reset/README.md)
