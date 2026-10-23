@@ -72,14 +72,12 @@ document.addEventListener("keydown", (event) => {
 	}
 });
 new ResizeObserver(() => render(true)).observe(stage);
-document
-	.querySelectorAll<HTMLButtonElement>("[data-toggle]")
-	.forEach((button) =>
-		button.addEventListener("click", () =>
-			button.setAttribute("aria-pressed", String(button.getAttribute("aria-pressed") !== "true")),
-		),
+document.querySelectorAll<HTMLButtonElement>("[data-toggle]").forEach((button) => {
+	button.addEventListener("click", () =>
+		button.setAttribute("aria-pressed", String(button.getAttribute("aria-pressed") !== "true")),
 	);
-document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((button) =>
+});
+document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((button) => {
 	button.addEventListener("click", (event) => {
 		for (const tab of document.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
 			const selected = tab === button;
@@ -93,8 +91,8 @@ document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((button) =>
 				move(panel, { opacity: 1 }, event.detail === 0, true);
 			}
 		}
-	}),
-);
+	});
+});
 render(true);
 
 const articleScroll = document.querySelector<HTMLElement>("#article-scroll");

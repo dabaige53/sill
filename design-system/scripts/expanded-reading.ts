@@ -60,9 +60,9 @@ for (const [kind, label] of [
 		)!
 		.cloneNode(true) as Element;
 	for (const view of [full, mini]) {
-		view
-			.querySelectorAll(".fstop,.toolbar,.discs,.nphead,.rdfade")
-			.forEach((node) => node.remove());
+		view.querySelectorAll(".fstop,.toolbar,.discs,.nphead,.rdfade").forEach((node) => {
+			node.remove();
+		});
 		for (const node of view.querySelectorAll("[style]"))
 			node.setAttribute(
 				"style",
