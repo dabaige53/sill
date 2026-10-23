@@ -298,7 +298,7 @@ export const gesturePreviewMethods = {
 						);
 					else chip.remove();
 					// A stacked preview folds back to the card below it; reading returns to the desk.
-					if (app.modalKind === "preview") app.closeModal();
+					if (app.modalKind === "preview" || app.previewTrail?.length) app.closeModal();
 					else app.closeToDesk(true);
 				});
 			});

@@ -18,6 +18,7 @@ export const appSelectionMethods = {
 			this.aiSelectionIds = [...new Set([...this.aiSelectionIds, ...added])];
 			this.selected.clear();
 			this.updateSelection();
+			window.dispatchEvent(new Event("sill:expand-ai"));
 			this.renderAIDock();
 			// The selection bar leaves first (180ms); the AI box can take focus once it is back.
 			window.setTimeout(

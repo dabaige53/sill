@@ -37,6 +37,7 @@ struct DataPage: View {
         }
       }
       if !workspace.isLocal {
+        BackupSettingsView().id(account.owner)
         SettingsCard {
           SettingLine(first: true) {
             Button(Copy.text("web.cloudentry.3ab8cc15939f")) { signingOut = true }

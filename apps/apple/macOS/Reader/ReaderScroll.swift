@@ -459,11 +459,12 @@ struct ReaderToolsTuck: ViewModifier {
   @Environment(Reader.self) private var reader
   let motion: ReaderMotion
   var top = false
+  var enabled = true
   func body(content: Content) -> some View {
     // Web `bindPush`: while the finish ring is pulled, the bottom toolbar fades and drops 16px
     // so the ring has the place to itself.
-    let pushing = !top && (motion.finish > 0 || motion.confirmed)
-    let tucked = motion.toolsHidden && !reader.travelling
+    let pushing = enabled && !top && (motion.finish > 0 || motion.confirmed)
+    let tucked = enabled && motion.toolsHidden && !reader.travelling
     let hidden = tucked || pushing
     content
       .opacity(hidden ? 0 : 1)

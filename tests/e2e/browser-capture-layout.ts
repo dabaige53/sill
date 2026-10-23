@@ -125,20 +125,26 @@ export async function runCaptureLayout({
 					document.querySelector("dialog").open,
 				relation,
 			);
-			await page.locator('#modal .detail-related [data-action="card-open"]').first().click();
+			await page
+				.locator('css:light=#modal .detail-related [data-action="card-open"]')
+				.first()
+				.click();
 			await page.waitForFunction((id?: any) => window.__app.currentId !== id, relation);
-			assert.equal(await page.locator("#modal .sheet-peek").count(), 1);
-			await page.locator('#modal .sheet-head [data-action="close"]').click();
+			assert.equal(await page.locator("css:light=#modal .sheet-peek").count(), 1);
+			await page.locator('css:light=#modal .sheet-head [data-action="close"]').click();
 			await page.waitForFunction((id?: any) => window.__app.currentId === id, relation);
-			assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
-			assert.equal(await page.locator("#modal .sheet-peek").count(), 0);
-			await page.locator('#modal .detail-related [data-action="card-open"]').first().click();
+			assert.equal(await page.locator("css:light=#modal").evaluate((n?: any) => n.open), true);
+			assert.equal(await page.locator("css:light=#modal .sheet-peek").count(), 0);
+			await page
+				.locator('css:light=#modal .detail-related [data-action="card-open"]')
+				.first()
+				.click();
 			await page.waitForFunction(() => !!document.querySelector("dialog .sheet-peek"));
 			// The dim area closes one card at a time, like the close button.
 			await page.mouse.click(8, 8);
 			await page.waitForFunction((id?: any) => window.__app.currentId === id, relation);
-			assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
-			assert.equal(await page.locator("#modal .sheet-peek").count(), 0);
+			assert.equal(await page.locator("css:light=#modal").evaluate((n?: any) => n.open), true);
+			assert.equal(await page.locator("css:light=#modal .sheet-peek").count(), 0);
 			await page.waitForTimeout(400);
 			await page.mouse.click(8, 8);
 			await page.waitForFunction(() => !document.querySelector("dialog").open);

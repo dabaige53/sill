@@ -7,6 +7,7 @@ import { copy } from "../design-system/copy.ts";
 const directories = ["boards", "history"].map((name) =>
 	resolve(import.meta.dirname, "../design-system", name),
 );
+const generatedDesign = resolve(import.meta.dirname, "../dist/design/expanded-reading");
 const types = {
 	".html": "text/html; charset=utf-8",
 	".css": "text/css",
@@ -19,6 +20,21 @@ const types = {
 createServer(async (request, response) => {
 	try {
 		const path = decodeURIComponent(new URL(request.url, "http://127.0.0.1:4310").pathname);
+		if (path === "/assets/sill-icon.png") {
+			const content = await readFile(resolve(import.meta.dirname, "../assets/sill-icon.png"));
+			response.writeHead(200, { "Content-Type": types[".png"] });
+			response.end(request.method === "HEAD" ? undefined : content);
+			return;
+		}
+		if (path === "/dist/design/expanded-reading/interactions.js") {
+			const content = await readFile(resolve(generatedDesign, "interactions.js"));
+			response.writeHead(200, {
+				"Content-Type": types[".js"],
+				"X-Content-Type-Options": "nosniff",
+			});
+			response.end(request.method === "HEAD" ? undefined : content);
+			return;
+		}
 		const relative = "." + (path.endsWith("/") ? path + "index.html" : path);
 		const files = directories.map((directory) => resolve(directory, relative));
 		if (files.some((file, index) => !file.startsWith(directories[index] + sep))) {

@@ -4,6 +4,7 @@
 	"private": true,
 	"description": "Local card workspace with shared UI and agent operations",
 	"scripts": {
+		"release:prepare": "node scripts/prepare-release.ts",
 		"build": "node scripts/build.ts",
 		"test": "npm run files:check && npm run build && npm run check && npm run typecheck && npm run test:contracts && npm run test:core && npm run test:server && npm run test:performance-report",
 		"contracts:generate": "node design-system/scripts/export-data.ts && node scripts/export-preparation.ts && node scripts/export-contracts.ts && node scripts/export-design.ts",
@@ -79,6 +80,7 @@
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "1.32.1",
 		"@supabase/supabase-js": "2.117.3",
+		"aws4fetch": "1.0.20",
 		"markdown-it": "14.1.0",
 		"motion": "12.23.24",
 		"react": "19.3.1",

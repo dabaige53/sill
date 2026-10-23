@@ -1,11 +1,12 @@
 import { createElement } from "react";
 import { paintCloudDraft, stashCloudDraft } from "./cloud-compose.ts";
-import { app, Cloud, messages, sync } from "./cloud-entry.ts";
+import { app, Cloud, callbackFailed, messages, sync } from "./cloud-entry.ts";
 import { copy } from "./copy.ts";
 import { cloudCard } from "./data/cloud-card.ts";
 import { Store } from "./data/store.ts";
 import { PanelViews as Panels } from "./interactions/panels-components.tsx";
 import { clone } from "./services/cloud-sync.ts";
+import { systemReminders } from "./services/system-reminders.ts";
 import { RecoveryNotice } from "./views/cloud-views.tsx";
 import { renderView } from "./views/react-renderer.ts";
 export async function cloudApi(path?: any, options: any = {}) {
@@ -63,9 +64,13 @@ export function accountView() {
 	app.paintAccount?.();
 }
 export function clearCloud({ retainDrafts = false }: any = {}) {
+	systemReminders.bind(null);
 	app.drag?.cancel();
 	app.drag?.menu.replaceChildren();
 	app.modalToken++;
+	app.previewTrail = [];
+	app.detailPositions.clear();
+	app.detailScope = "";
 	app.panelReturn = null;
 	app.lastFocus = null;
 	clearTimeout(app.searchTimer);
@@ -174,6 +179,7 @@ export function paintRecords() {
 	Store.state.cards = [...Cloud.records.values()]
 		.filter((c: any) => !c.deleted)
 		.map((c: any) => cloudCard(c));
+	app.checkReminders();
 	app.withFeedAnchor(() => {}, true);
 }
 export function adoptWorkspace(value: any) {
@@ -265,6 +271,17 @@ export async function loadCloudOnce({ initial = false, quiet = false }: any = {}
 	} catch (error) {
 		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return false;
 		Cloud.connectionError = true;
+		if (
+			initial &&
+			checkingSession &&
+			error.status === 401 &&
+			!window.__SILL_HOST__ &&
+			!Cloud.drafts.size &&
+			!sync.pending.length
+		) {
+			location.replace("/auth/login" + (callbackFailed ? "?login_error=1" : ""));
+			return false;
+		}
 		if (!Cloud.user) app.renderCurrent(false);
 		if (error.status === 401 || error.status === 403) clearCloud({ retainDrafts: true });
 		if (!quiet && !Cloud.refreshFeedback && !(initial && checkingSession && error.status === 401))

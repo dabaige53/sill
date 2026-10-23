@@ -4,7 +4,7 @@ import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
 import { DetailText } from "../cards/markdown.tsx";
 import { publicationName } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
-import { Assets } from "../data/assets.ts";
+import { assetURL } from "../data/assets.ts";
 import {
 	articleDate,
 	cardDate,
@@ -29,6 +29,7 @@ import {
 	sourceIcon,
 } from "./panel-primitives.tsx";
 import { previewView as preview, readingContent } from "./previews-components.tsx";
+import { ReaderLayout } from "./reader-layout.tsx";
 
 export const panelCard = {
 	close(this: PanelRenderers, label?: string) {
@@ -336,7 +337,7 @@ export const panelCard = {
 											id={"reader-progress"}
 											style={{ transform: `scaleX(${Math.max(0, Math.min(1, s.progress))})` }}
 										></div>
-										<div className={"reader-scroll"} id={"reader-scroll"}>
+										<ReaderLayout key={c.id} kind={c.type} body={c.body}>
 											<article
 												className={c.type === "article" ? "reader-body is-article" : "reader-body"}
 											>
@@ -353,7 +354,7 @@ export const panelCard = {
 												{loading ? "" : this.foot(agentAction(app, c))}
 												<div className={"reader-end"} id={"reader-end"} aria-hidden={"true"}></div>
 											</article>
-										</div>
+										</ReaderLayout>
 									</>
 								}
 								{
@@ -371,7 +372,7 @@ export const panelCard = {
 									role={"toolbar"}
 									aria-label={copy("web.readerTools")}
 								>
-									{button("collapse", copy("web.reader.exitFullscreen"), "close")}
+									{button("collapse", copy("web.reader.exitFullscreen"), "preview", c.id)}
 									{button("x", copy("web.reader.close"), "close-all")}
 								</div>
 							</>
@@ -402,7 +403,7 @@ export const panelCard = {
 						? button("back", copy("web.photo.previous"), "photo-step", c.id, "-1")
 						: ""}
 					<img
-						src={Assets[photos[i]]}
+						src={assetURL(photos[i])}
 						alt={
 							"" +
 							c.title +
@@ -444,7 +445,17 @@ export const panelCard = {
 										""
 									}
 								>
-									<img src={Assets[p]} alt={""} />
+									<img
+										referrerPolicy="no-referrer"
+										onError={(event) => {
+											event.currentTarget.style.opacity = "0";
+										}}
+										onLoad={(event) => {
+											event.currentTarget.style.opacity = "1";
+										}}
+										src={assetURL(p)}
+										alt={""}
+									/>
 								</button>
 							</>
 						)),

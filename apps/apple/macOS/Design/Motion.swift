@@ -35,6 +35,12 @@ import SwiftUI
       damping: AppleMetrics.cardSpringDamping)
   }
 
+  static var expanded: Animation {
+    .interpolatingSpring(
+      mass: AppleMetrics.expandedSpringMass,
+      stiffness: AppleMetrics.expandedSpringStiffness, damping: AppleMetrics.expandedSpringDamping)
+  }
+
   static var cardHandoff: Animation {
     .linear(duration: AppleMetrics.motionCardHandoffFade).delay(AppleMetrics.motionCardHandoffDelay)
   }

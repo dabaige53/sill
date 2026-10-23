@@ -18,6 +18,7 @@ export async function runDetailGestures({
 				const sheet = page.locator(".preview-sheet");
 				const initial = await sheet.boundingBox();
 				const session = await context.newCDPSession(page);
+				let wheelSamples: { tops: number[]; following: { target: number; drawn: number }[] };
 				if (input === "text") {
 					await touch(session, "touchStart", 180, initial.y + 200);
 					for (const step of [40, 100, 200, 240])
@@ -26,30 +27,56 @@ export async function runDetailGestures({
 					await touch(session, "touchEnd");
 				} else {
 					await page.mouse.move(180, initial.y + 200);
-					for (let i = 0; i < 5; i++) {
-						await page.mouse.wheel(0, -35);
-						await page.waitForTimeout(20);
-					}
-					const drawn = await sheet.evaluate((n: HTMLElement) => ({
-						target: parseFloat(n.style.translate.split(" ")[1]),
-						drawn: parseFloat(getComputedStyle(n).translate.split(" ")[1]),
-					}));
-					assert.ok(drawn.target > 0, "wheel started pull");
+					// Record before input: the 120ms release timer can finish before a CI round trip.
+					await page.evaluate(() => {
+						const dialog = document.querySelector<HTMLDialogElement>("#modal");
+						const sheet = dialog.querySelector<HTMLElement>(".preview-sheet");
+						const samples = {
+							tops: [] as number[],
+							following: [] as { target: number; drawn: number }[],
+							closed: false,
+						};
+						(window as any).__mailWheelSamples = samples;
+						const deadline = performance.now() + 5000;
+						const sample = () => {
+							if (!dialog.open) {
+								samples.closed = true;
+								return;
+							}
+							const target = parseFloat(sheet.style.translate.split(" ")[1]);
+							if (target > 0 && !window.__app.sheetLeaving)
+								samples.following.push({
+									target,
+									drawn: parseFloat(getComputedStyle(sheet).translate.split(" ")[1]),
+								});
+							if (samples.following.length) samples.tops.push(sheet.getBoundingClientRect().top);
+							if (performance.now() < deadline) requestAnimationFrame(sample);
+						};
+						requestAnimationFrame(sample);
+					});
+					for (let i = 0; i < 5; i++) await page.mouse.wheel(0, -35);
+					await page.waitForFunction(() => (window as any).__mailWheelSamples.closed, null, {
+						timeout: 5000,
+					});
+					wheelSamples = await page.evaluate(() => (window as any).__mailWheelSamples);
+					assert.ok(wheelSamples.following.length > 0, "wheel started pull");
 					assert.ok(
-						Math.abs(drawn.target - drawn.drawn) < 1,
+						wheelSamples.following.every(({ target, drawn }) => Math.abs(target - drawn) < 1),
 						"trackpad must not lag behind a 360ms transition",
 					);
 				}
-				const tops = await page.evaluate(async () => {
-					const d = document.querySelector<HTMLDialogElement>("#modal");
-					const s = d.querySelector(".preview-sheet");
-					const result = [];
-					while (d.open && result.length < 45) {
-						result.push(s.getBoundingClientRect().top);
-						await new Promise(requestAnimationFrame);
-					}
-					return result;
-				});
+				const tops =
+					wheelSamples?.tops ??
+					(await page.evaluate(async () => {
+						const d = document.querySelector<HTMLDialogElement>("#modal");
+						const s = d.querySelector(".preview-sheet");
+						const result = [];
+						while (d.open && result.length < 45) {
+							result.push(s.getBoundingClientRect().top);
+							await new Promise(requestAnimationFrame);
+						}
+						return result;
+					}));
 				assert.ok(tops.length > 1);
 				assert.ok(
 					tops.every((top, i) => !i || top >= tops[i - 1] - 1),

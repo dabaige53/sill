@@ -11,6 +11,8 @@ const statuses = {
 	idempotency_conflict: 409,
 	cursor_expired: 410,
 	rate_limited: 429,
+	backup_auth_failed: 403,
+	backup_unknown: 503,
 };
 
 /** Preserve definite server rejections, so invalid input never becomes an unknown write. */
@@ -144,6 +146,42 @@ export function createCloudTransport(call?: any) {
 					body: JSON.parse(options.body),
 				},
 			});
+		if (path === "/api/v1/backups" || path.startsWith("/api/v1/backups/")) {
+			const method = options.method || "GET";
+			const expected_owner = new Headers(options.headers).get("X-Sill-Owner") || undefined;
+			const body = options.body ? JSON.parse(options.body) : {};
+			let name: string | undefined;
+			let args: Record<string, unknown> = {};
+			const item = /^\/api\/v1\/backups\/([\w-]+)\/(preview|download|check)$/.exec(path);
+			const target = /^\/api\/v1\/backups\/targets\/([\w-]+)\/check$/.exec(path);
+			if (path === "/api/v1/backups" && method === "GET") name = "sill_listBackups";
+			else if (path === "/api/v1/backups" && method === "POST") {
+				name = "sill_createBackup";
+				args = body;
+			} else if (path === "/api/v1/backups/restore" && method === "POST") {
+				name = "sill_restoreBackup";
+				args = body;
+			} else if (path === "/api/v1/backups/restore/status" && method === "POST") {
+				name = "sill_getRestoreStatus";
+				args = body;
+			} else if (item && method === "GET") {
+				name = {
+					preview: "sill_previewRestore",
+					download: "sill_getBackup",
+					check: "sill_checkBackup",
+				}[item[2]];
+				args = { backupId: item[1] };
+			} else if (target && method === "POST") {
+				name = "sill_checkBackupTarget";
+				args = { targetId: target[1] };
+			}
+			if (!name) throw agentFailure("forbidden", copy("web.agent.invalidRequest"));
+			const result = await call({
+				name,
+				arguments: { ...args, ...(expected_owner ? { expected_owner } : {}) },
+			});
+			return result;
+		}
 		const url = new URL(path, "https://sill.invalid"),
 			match = url.pathname.match(/^\/api\/v1\/contents(?:\/([\w-]+))?$/);
 		if (!match)

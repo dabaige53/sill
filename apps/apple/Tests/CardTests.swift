@@ -4,6 +4,21 @@ import Testing
 @testable import SillKit
 
 struct CardTests {
+  @Test func remotePhotosRoundTripAndRejectInsecureImages() throws {
+    let image = "https://images.example.org/photo.jpg?size=800"
+    let value: JSONValue = .object([
+      "id": .string("remote-photo"), "type": .string("photo"), "title": .string("Photo"),
+      "image": .string(image), "photos": .array([.string(image), .string("coast")]),
+    ])
+    let card = try Card(json: value)
+    #expect(try card.raw == value)
+    for invalid in ["http://example.org/a", "https://user:pass@example.org/a", "https://"] {
+      var changed = value
+      changed["image"] = .string(invalid)
+      #expect(throws: (any Error).self) { try Card(json: changed) }
+    }
+  }
+
   private var root: URL {
     URL(fileURLWithPath: #filePath).deletingLastPathComponent()
       .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -21,10 +36,16 @@ struct CardTests {
     #expect(try draft.submittedCard().raw["points"] == nil)
   }
 
+  private func fixtureCases(_ kind: String) throws -> [JSONValue] {
+    try ["fixtures.json", "media-fixtures.json"].flatMap { name in
+      let fixtures = try JSONValue.decode(
+        Data(contentsOf: root.appendingPathComponent("contracts/" + name)))
+      return try #require(fixtures[kind]?.array)
+    }
+  }
+
   @Test func allValidFixturesRoundTrip() throws {
-    let fixtures = try JSONValue.decode(
-      Data(contentsOf: root.appendingPathComponent("contracts/fixtures.json")))
-    for fixture in try #require(fixtures["valid"]?.array) {
+    for fixture in try fixtureCases("valid") {
       let json = try #require(fixture["card"])
       let card = try Card(json: json)
       #expect(
@@ -34,9 +55,7 @@ struct CardTests {
   }
 
   @Test func allInvalidFixturesAreRejected() throws {
-    let fixtures = try JSONValue.decode(
-      Data(contentsOf: root.appendingPathComponent("contracts/fixtures.json")))
-    for fixture in try #require(fixtures["invalid"]?.array) {
+    for fixture in try fixtureCases("invalid") {
       let json = try #require(fixture["card"])
       #expect(throws: (any Error).self, "\(fixture["name"]?.string ?? "")") { try Card(json: json) }
     }

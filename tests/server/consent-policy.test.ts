@@ -92,7 +92,10 @@ test("client-controlled presentation is escaped, with no remote logo or active f
 	a.details.client.logo_uri = "https://evil.example/track";
 	const html = consentSummary(reviewConsent(a));
 	assert.ok(html.includes("&lt;img"));
-	assert.ok(!html.includes("<img"));
+	assert.deepEqual(
+		[...html.matchAll(/<img src="([^"]+)"/g)].map((match) => match[1]),
+		["/assets/sill-icon.png"],
+	);
 	assert.ok(!html.includes("evil.example"));
 	assert.ok(!html.includes("<form"));
 });

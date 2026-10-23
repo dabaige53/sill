@@ -70,16 +70,17 @@ try {
 	await page.goto(
 		fixture.config.appOrigin + "/#access_token=synthetic-invitation&refresh_token=synthetic",
 	);
-	await page.locator("#cloud-login").waitFor();
+	await page.locator("#password-form").waitFor();
 	assert.ok(
 		!page.url().includes("token="),
 		"implicit invitation fragment is removed, never treated as a login",
 	);
 	assert.equal(await page.locator("[data-card]").count(), 0);
-	await page.locator("[name=email]").fill("synthetic@example.com");
-	await page.locator("#cloud-login button").click();
+	await page.locator("#email").fill("synthetic@example.com");
+	await page.locator("#email-login").click();
+	await page.locator("#email-submit").click();
 	await page.waitForFunction(() =>
-		document.querySelector("#cloud-login-status").textContent.includes("发送到邮箱"),
+		document.querySelector("#status").textContent.includes("发送到邮箱"),
 	);
 	const callback = new URL(fixture.redirect);
 	callback.searchParams.set("code", "synthetic-code");
@@ -110,7 +111,7 @@ try {
 			(c?: any) => c.name === "__Host-sill-refresh" && c.value === "synthetic-rotated-refresh",
 		),
 	);
-	assert.equal(await page.locator("#cloud-login").count(), 0);
+	assert.equal(await page.locator("#password-form").count(), 0);
 	await cloudTool(page, "capture");
 	assert.equal(
 		await page.locator("#cloud-title").evaluate((e?: any) => e === document.activeElement),
@@ -313,7 +314,7 @@ try {
 	);
 	await cloudLogout(page);
 	await page.locator("#cloud-confirm").click();
-	await page.locator("#cloud-login").waitFor();
+	await page.locator("#password-form").waitFor();
 	assert.equal(await page.locator("[data-card]").count(), 0);
 	assert.deepEqual(errors, []);
 	console.log(

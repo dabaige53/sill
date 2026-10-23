@@ -13,6 +13,16 @@ public enum CardValidator {
     try validateExplicitFields(card, type: type)
     try validateRichFields(card, type: type)
     try validateIDs(value)
+    for image in ([card["image"]?.string].compactMap { $0 })
+      + (card["photos"]?.array ?? []).compactMap(\.string)
+    {
+      if ["architecture", "coast", "mountain", "botanical"].contains(image) { continue }
+      guard image.hasPrefix("https://"), let url = URL(string: image),
+        let host = url.host, !host.isEmpty, url.user == nil, url.password == nil,
+        !image.contains(where: { $0.isWhitespace })
+      else { throw CardValidationError("card.image") }
+    }
+
     for url in [card["url"]?.string, card["meeting"]?["url"]?.string].compactMap({ $0 }) {
       guard let parsed = URL(string: url), ["http", "https"].contains(parsed.scheme ?? ""),
         let host = parsed.host, !host.isEmpty,

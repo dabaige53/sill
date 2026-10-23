@@ -14,7 +14,7 @@ const headers = {
 	"Referrer-Policy": "same-origin",
 	"X-Content-Type-Options": "nosniff",
 	"Content-Security-Policy":
-		"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+		"default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
 };
 const esc = (s?: any) =>
 	String(s).replace(
@@ -40,7 +40,7 @@ const hash = async (s?: any) =>
 	).join("");
 const page = (html?: any, status: any = 200, consent = false) =>
 	new Response(
-		`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${copy("server.oauthcontroller.1e12aceb3b8c")}</title><style>${authStyles}${consent ? consentStyles : ""}</style><main${consent ? ' class="consent-page"' : ""}>${consent ? "" : `<a href="/">${copy("server.oauthcontroller.6f07cd6b8efc")}</a>`}${html}</main></html>`,
+		`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${copy("server.oauthcontroller.1e12aceb3b8c")}</title><style>${authStyles}${consent ? consentStyles : ""}</style><main${consent ? ' class="consent-page"' : ""}>${consent ? "" : `<a href="/">${copy("server.oauthcontroller.6f07cd6b8efc")}</a>`}${html}</main></html>`,
 		{ status, headers: { ...headers, "Content-Type": "text/html; charset=utf-8" } },
 	);
 async function form(request?: any) {
@@ -373,5 +373,19 @@ export function createOAuthController(
 			return response;
 		}
 	}
-	return { handle, resumeLocation, clearReturn };
+	return {
+		handle: async (request: Request) => {
+			const response = await handle(request);
+			// Login return is consumed by the tab that resumes consent, not by the email tab.
+			if (
+				new URL(request.url).pathname === "/oauth/consent" &&
+				request.method === "GET" &&
+				[200, 303].includes(response.status)
+			)
+				response.headers.append("Set-Cookie", clearReturn());
+			return response;
+		},
+		resumeLocation,
+		clearReturn,
+	};
 }

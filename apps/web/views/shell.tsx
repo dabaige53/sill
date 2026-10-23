@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { SelectionBar } from "../atoms/selection.tsx";
 
 export { SelectionAI } from "../atoms/selection.tsx";
@@ -199,8 +199,155 @@ export function Navigation() {
  * The built-in AI is not connected, so add, voice and send stay disabled.
  */
 export function AIDock() {
+	const [collapsed, setCollapsed] = useState(false);
+	const positionRef = useRef(0);
+	const [, setPosition] = useState(0);
+	const dock = useRef<HTMLDivElement>(null);
+	const drag = useRef<{ x: number; position: number; moved: boolean } | null>(null);
+	const moved = useRef(false);
+	const before = useRef<DOMRect | null>(null);
+	const animation = useRef<Animation | null>(null);
+	const toggle = (value: boolean) => {
+		before.current = dock.current?.getBoundingClientRect() ?? null;
+		animation.current?.cancel();
+		setCollapsed(value);
+		if (value) {
+			positionRef.current = positionRef.current < 0 ? -1 : 1;
+			setPosition(positionRef.current);
+		}
+	};
+	const range = () =>
+		Math.max(
+			0,
+			((dock.current?.parentElement?.clientWidth ?? 0) - (dock.current?.offsetWidth ?? 0)) / 2,
+		);
+	const expand = () => {
+		toggle(false);
+		requestAnimationFrame(() => document.getElementById("ai-dock-input")?.focus());
+	};
+	useLayoutEffect(() => {
+		const node = dock.current;
+		if (!node) return;
+		const update = () => {
+			node.style.translate = positionRef.current * range() + "px 0";
+		};
+		update();
+		if (before.current) {
+			const old = before.current;
+			before.current = null;
+			const next = node.getBoundingClientRect();
+			const surface = node.querySelector<HTMLElement>(".ai-dock-surface")!;
+			const dx = old.left + old.width / 2 - next.left - next.width / 2;
+			const scale = old.width / next.width;
+			animation.current = surface.animate(
+				[
+					{ transform: "translateX(" + dx + "px) scaleX(" + scale + ")" },
+					{ transform: "translateX(0) scaleX(1)" },
+				],
+				{ duration: MotionEngine.time("dur-state"), easing: MotionEngine.curve("ease-reveal") },
+			);
+			for (const child of node.children) {
+				if (!(child instanceof HTMLElement) || child === surface) continue;
+				for (const active of child.getAnimations()) active.cancel();
+				child.animate(
+					[
+						{ opacity: 0, transform: "translateX(" + dx + "px)" },
+						{ opacity: 1, transform: "translateX(0)" },
+					],
+					{
+						duration: MotionEngine.time("dur-state"),
+						easing: MotionEngine.curve("ease-reveal"),
+					},
+				);
+			}
+		}
+		const observer = new ResizeObserver(update);
+		observer.observe(node);
+		if (node.parentElement) observer.observe(node.parentElement);
+		return () => observer.disconnect();
+	});
+	useLayoutEffect(() => {
+		const open = () => setCollapsed(false);
+		window.addEventListener("sill:expand-ai", open);
+		return () => window.removeEventListener("sill:expand-ai", open);
+	}, []);
+	const pointer = {
+		onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+			if (e.button !== 0) return;
+			const target = e.target as HTMLElement;
+			if (
+				target.closest(".ai-dock-tools, .ai-dock-context") ||
+				(target.closest("button") && !target.closest(".ai-dock-restore"))
+			)
+				return;
+			e.preventDefault();
+			e.stopPropagation();
+			moved.current = false;
+			animation.current?.finish();
+			drag.current = { x: e.clientX, position: positionRef.current, moved: false };
+			(target.closest<HTMLElement>(".ai-dock-restore") ?? e.currentTarget).setPointerCapture(
+				e.pointerId,
+			);
+		},
+		onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
+			if (!drag.current) return;
+			const delta = e.clientX - drag.current.x;
+			if (Math.abs(delta) > 4) drag.current.moved = true;
+			moved.current = drag.current.moved;
+			if (drag.current.moved) dock.current?.classList.add("is-moving");
+			if (drag.current.moved) {
+				const next = Math.max(-1, Math.min(1, drag.current.position + delta / (range() || 1)));
+				positionRef.current = next;
+				if (dock.current) dock.current.style.translate = next * range() + "px 0";
+				// Rebase at the boundary so reversing direction responds immediately.
+				drag.current.x = e.clientX;
+				drag.current.position = next;
+			}
+		},
+		onPointerUp: () => {
+			if (!drag.current) return;
+			dock.current?.classList.remove("is-moving");
+			if (!moved.current && !collapsed) document.getElementById("ai-dock-input")?.focus();
+			drag.current = null;
+		},
+		onPointerCancel: () => {
+			dock.current?.classList.remove("is-moving");
+			drag.current = null;
+		},
+		onLostPointerCapture: () => {
+			dock.current?.classList.remove("is-moving");
+			drag.current = null;
+		},
+		onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+			if (!collapsed && !e.altKey) return;
+			if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+			e.preventDefault();
+			positionRef.current = Math.max(
+				-1,
+				Math.min(1, positionRef.current + (e.key === "ArrowLeft" ? -0.1 : 0.1)),
+			);
+			setPosition(positionRef.current);
+		},
+	};
 	return (
-		<div id="ai-dock" className="ai-dock glass">
+		<div
+			{...pointer}
+			ref={dock}
+			id="ai-dock"
+			className={"ai-dock" + (collapsed ? " is-collapsed" : "")}
+		>
+			<div className="ai-dock-surface glass" aria-hidden="true" />
+			<button
+				type="button"
+				className="ai-dock-restore ai-dock-button"
+				aria-label={copy("web.ai.expand")}
+				title={copy("web.ai.expand")}
+				onClick={() => {
+					if (!moved.current) expand();
+				}}
+			>
+				<Icon name="chat" size={20} />
+			</button>
 			<div className="ai-dock-context" id="ai-dock-context" />
 			<button
 				type="button"
@@ -219,6 +366,22 @@ export function AIDock() {
 				aria-label={copy("web.ai.dock")}
 				placeholder={copy("web.ai.dockPlaceholder")}
 			/>
+			<div className="ai-dock-tools">
+				<button
+					type="button"
+					className="ai-dock-button glass"
+					aria-label={copy("web.ai.collapse")}
+					title={copy("web.ai.collapse")}
+					onClick={() => {
+						toggle(true);
+						requestAnimationFrame(() =>
+							dock.current?.querySelector<HTMLButtonElement>(".ai-dock-restore")?.focus(),
+						);
+					}}
+				>
+					<Icon name="ai-minimize" size={20} />
+				</button>
+			</div>
 			<button type="button" className="ai-dock-button" disabled aria-label={copy("web.ai.speak")}>
 				<Icon name="mic" size={20} />
 			</button>

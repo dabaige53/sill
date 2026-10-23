@@ -23,6 +23,9 @@ import { pushRingHTML } from "../../apps/web/interactions/gesture-preview.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 import { cardMenuHTML } from "../../apps/web/views/app-card-actions.ts";
 import { AIDock, HomeTop, Navigation } from "../../apps/web/views/shell.tsx";
+import { authStyles, consentStyles } from "../../server/cloud/auth-page.ts";
+import { consentSummary } from "../../server/cloud/consent-policy.ts";
+import { loginPage } from "../../server/cloud/login-page.ts";
 
 const check = process.argv.includes("--check");
 const root = resolve(import.meta.dirname, "../components");
@@ -234,4 +237,36 @@ if (check) {
 } else {
 	mkdirSync(settingsDir, { recursive: true });
 	writeFileSync(settingsFile, settingsHtml);
+}
+
+// Auth boards use the product HTML and CSS. Local responses cannot send credentials or grant access.
+const icon =
+	"data:image/png;base64," +
+	readFileSync(resolve(root, "../../assets/sill-icon.png")).toString("base64");
+const loginHtml = loginPage()
+	.replaceAll("/assets/sill-icon.png", icon)
+	.replace(
+		"<script>",
+		`<script>
+const fetch = async (path) => ({ok:true,json:async()=>({message:path==='/auth/login'?${JSON.stringify(copy("auth.previewEmail"))}:${JSON.stringify(copy("auth.previewLogin"))}})});
+`,
+	);
+const consentHtml =
+	`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>授权 · Sill</title><style>${authStyles}${consentStyles}</style></head><body><main class="consent-page">${consentSummary({ clientName: "Codex", userId: "you@example.com", clientId: "codex-preview", redirectUri: "https://example.com/callback", audience: "https://sill.example/mcp", resources: ["*"], contentScopes: ["content:read", "content:write", "content:delete"], identityScopes: [], canCreate: true, canList: true })}<form class="consent-actions"><button name="decision" value="deny">${copy("auth.cancel")}</button><button name="decision" value="approve">${copy("auth.allowAccess")}</button></form><p class="consent-revoke">${copy("auth.revokeHint")}</p><p id="status" role="status" aria-live="polite"></p></main><script>document.querySelector('form').addEventListener('submit',event=>{event.preventDefault();document.getElementById('status').textContent=${JSON.stringify(copy("auth.previewConsent"))};});</script></body></html>`.replaceAll(
+		"/assets/sill-icon.png",
+		icon,
+	);
+const authDir = resolve(root, "../boards/auth");
+for (const [name, source] of Object.entries({ login: loginHtml, authorization: consentHtml })) {
+	const html = source.replace(
+		/data:image\/png;base64,[A-Za-z0-9+/=]+/g,
+		"../../../assets/sill-icon.png",
+	);
+	const file = resolve(authDir, name + ".html");
+	if (check) {
+		if (readFileSync(file, "utf8") !== html) throw new Error(`${name} board is stale`);
+	} else {
+		mkdirSync(authDir, { recursive: true });
+		writeFileSync(file, html);
+	}
 }

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { markdownBlocks } from "../atoms/markdown.ts";
 import { shortDay } from "../atoms/primitives.ts";
 import { ProgressRing } from "../atoms/react-primitives.tsx";
-import { Assets } from "../data/assets.ts";
+import { assetURL } from "../data/assets.ts";
 import { cardReadingTime, cardSource } from "../data/card-source.ts";
 import { AssetTones, CardTypes } from "../data/cards.ts";
 
@@ -96,7 +96,7 @@ export function Cover({ card: c, children }: { card: Card; children?: ReactNode 
 				<img
 					className="card-image"
 					data-shared="image"
-					src={Assets[c.image]}
+					src={assetURL(c.image)}
 					alt=""
 					draggable={false}
 					loading="lazy"

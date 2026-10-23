@@ -11,10 +11,13 @@ import SwiftUI
   /// The official video player reported ready; until then the detail shows the cover.
   var videoReady = false
   var rate: Float = 1
+  var retryVideo: (() -> Void)?
   var seekVideo: ((Double) -> Void)?
   private var player: AVPlayer?
   private var pendingURL: URL?
   private var tick: Any?
+  private var itemStatus: NSKeyValueObservation?
+  private var playbackStatus: NSKeyValueObservation?
   private var ended: NSObjectProtocol?
   private var advanced = false
   private var previous: Double = 0
@@ -31,12 +34,23 @@ import SwiftUI
     advanced = false
     let player = AVPlayer()
     self.player = player
+    playbackStatus = player.observe(\.timeControlStatus, options: [.initial, .new]) {
+      [weak self] _, _ in
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        self.playing = self.player?.timeControlStatus == .playing
+      }
+    }
     tick = player.addPeriodicTimeObserver(
       forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main
     ) { [weak self] time in
       Task { @MainActor [weak self] in
         guard let self, let player = self.player else { return }
         self.failed = player.currentItem?.status == .failed
+        if self.failed {
+          self.playing = false
+          return
+        }
         let total = player.currentItem?.duration.seconds ?? 0
         if total.isFinite, total > 0 {
           self.duration = total
@@ -54,15 +68,27 @@ import SwiftUI
         }
         self.previous = current
         self.position = current
-        self.playing = player.rate > 0
+        self.playing = player.timeControlStatus == .playing
       }
     }
 
   }
   func toggle() {
     guard let player else { return }
-    if player.currentItem == nil, let pendingURL {
-      player.replaceCurrentItem(with: AVPlayerItem(url: pendingURL))
+    if player.currentItem == nil || player.currentItem?.status == .failed, let pendingURL {
+      if let ended { NotificationCenter.default.removeObserver(ended) }
+      failed = false
+      restored = false
+      advanced = false
+      let item = AVPlayerItem(url: pendingURL)
+      player.replaceCurrentItem(with: item)
+      itemStatus = item.observe(\.status, options: [.initial, .new]) { [weak self] _, _ in
+        Task { @MainActor [weak self] in
+          guard let self else { return }
+          self.failed = self.player?.currentItem?.status == .failed
+          if self.failed { self.playing = false }
+        }
+      }
       ended = NotificationCenter.default.addObserver(
         forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: .main
       ) { [weak self] _ in
@@ -82,7 +108,7 @@ import SwiftUI
       save?(position, false)
     } else {
       player.playImmediately(atRate: rate)
-      playing = true
+      playing = player.timeControlStatus == .playing
     }
   }
   func seek(_ value: Double) {
@@ -106,6 +132,8 @@ import SwiftUI
     if restored { save?(position, false) }
     if let tick { player?.removeTimeObserver(tick) }
     if let ended { NotificationCenter.default.removeObserver(ended) }
+    itemStatus = nil
+    playbackStatus = nil
     pendingURL = nil
     player = nil
     tick = nil

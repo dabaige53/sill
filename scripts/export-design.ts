@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { z } from "zod/v4";
+import { contractVersion } from "../contracts/card.ts";
 import { cloudSchemas, toolInputs } from "../contracts/cloud.ts";
+import { toolDescriptions } from "../contracts/mcp-guidance.ts";
 
 const directory = new URL("../contracts/design/", import.meta.url);
 const renamed = (value: string) =>
@@ -38,6 +40,27 @@ const normalize = (value: unknown): any =>
 				)
 			: value;
 const catalog = read("mcp-tools.json");
+catalog.status = "implemented";
+catalog.contractVersion = contractVersion;
+// Include only definitions reachable from this tool's response, not every HTTP schema.
+const responseDefinitions = (ref: string) => {
+	const definitions: Record<string, unknown> = {};
+	const visit = (value: unknown) => {
+		if (!value || typeof value !== "object") return;
+		if ("$ref" in value && typeof value.$ref === "string" && value.$ref.startsWith("#/$defs/")) {
+			const name = value.$ref.slice("#/$defs/".length);
+			if (!Object.hasOwn(definitions, name)) {
+				if (!Object.hasOwn(spec.components.schemas, name))
+					throw new Error(`unknown_schema:${name}`);
+				definitions[name] = normalize(spec.components.schemas[name]);
+				visit(definitions[name]);
+			}
+		}
+		for (const child of Object.values(value)) visit(child);
+	};
+	visit({ $ref: ref });
+	return definitions;
+};
 for (const name of ["sill_getWorkspace", "sill_applyOperations"]) {
 	if (!catalog.tools.some((tool: any) => tool.name === name))
 		catalog.tools.push({
@@ -99,6 +122,7 @@ for (const path of Object.values(spec.paths) as any[])
 		});
 	}
 for (const tool of catalog.tools) {
+	tool.description = toolDescriptions[tool.name];
 	if (["sill_getWorkspace", "sill_applyOperations"].includes(tool.name)) {
 		tool["x-operationId"] = tool.name.slice(5);
 		tool["x-required-scope"] = tool.name === "sill_getWorkspace" ? "content:read" : "content:write";
@@ -107,7 +131,7 @@ for (const tool of catalog.tools) {
 	tool.outputSchema = {
 		type: "object",
 		$ref: normalize(tool.outputSchema.$ref),
-		$defs: normalize(spec.components.schemas),
+		$defs: responseDefinitions(tool.outputSchema.$ref.replace("#/components/schemas/", "#/$defs/")),
 	};
 	tool.outputSchema.$ref = tool.outputSchema.$ref.replace("#/components/schemas/", "#/$defs/");
 }

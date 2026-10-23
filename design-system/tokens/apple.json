@@ -481,6 +481,12 @@
 		"layoutLineCompact": 0.9,
 		"layoutLineRoomy": 1.12,
 		"layoutReaderNarrow": 640,
-		"layoutReaderStandard": 800
+		"layoutReaderStandard": 800,
+		"readerMeasure": 920,
+		"readerOutlineWidth": 160,
+		"readerColumnsBreakpoint": 900,
+		"expandedSpringMass": 1,
+		"expandedSpringStiffness": 274,
+		"expandedSpringDamping": 27
 	}
 }

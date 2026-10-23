@@ -2,7 +2,9 @@
 
 卡片字段约定为 3.0.0。仓库工具定义已更新；未部署或宿主缓存未刷新时，须以当前连接实际发现的 inputSchema 为准，不声称新字段已在线可用。
 
-只使用当前连接发现的工具。本文说明已发布的接口；宿主缓存可能尚未包含新增工具。没有发现工具时报告缺少能力，不声称已经执行。
+只使用当前连接发现的工具。本文说明仓库当前接口；实际部署与宿主缓存可能尚未包含新工具或字段。没有发现工具时报告缺少能力，不声称已经执行。
+
+目录：[查询](#查询筛选与导出)、[更新](#单卡更新)、[批量](#原子批量操作)、[状态](#完整卡片状态)、[偏好](#偏好与阅读记录)、[账号](#账号条件)、[错误](#冲突权限与未知结果)。字段类型与制作格式见 [字段字典](fields.md)、[传输规则](transport.md)。
 
 ## 查询、筛选与导出
 
@@ -116,6 +118,7 @@
 | `bookmarked` | boolean | 收藏 |
 | `later` | boolean | 稍后看 |
 | `tagsEdited` | boolean | 标签已由用户或助手调整 |
+| `playbackPosition` | number，0–86400 秒，可含小数 | 实际播放位置；独立于阅读进度，保存位置不自动标记已读 |
 | `progress` | number，0–1 | 阅读进度 |
 | `note` | string，最多 4000 字符 | 备注 |
 | `tags` | string[]，最多 20 项，每项最多 30 字符 | 用户标签 |
@@ -150,9 +153,10 @@
 | `cardSpacing`、`cardPadding`、`readerSpacing` | `compact / standard / roomy`；分别调整卡片间距、内部留白、阅读行段间距，默认 `standard` |
 | `readerWidth` | `narrow / standard / full`；默认 `full` |
 | `textWeight` | `standard / strong`；默认 `standard`，作用于卡片与阅读内容 |
+| `hiddenActions` | 卡片动作 ID 数组；只影响界面显示，不撤销工具权限。有效值以当前工具定义为准 |
 | `hiddenActions` | 字符串数组，取值 `bookmark / tag / later / reply / open / join / snooze / download / dismiss`；列出的操作不出现在卡片详情底部，功能本身仍可用 |
 
-`aiLocal` 是保留的偏好字段，不能据此声称存在内置助手。`reading.add` 更新工作区累计阅读秒数，总值不能超过 10000000。读取快照核对结果，不重复累加未知结果。
+`aiLocal` 是保留的偏好字段，不能据此声称存在内置助手。`reduceMotion`、`reduceTransparency` 是保留的旧设置，客户端不再展示或应用；不要据此承诺界面变化。`reading.add` 更新工作区累计阅读秒数，总值不能超过 10000000。读取快照核对结果，不重复累加未知结果。
 
 ## 账号条件
 
@@ -179,14 +183,4 @@
 
 ## 明确卡片字段
 
-不要写 card.meta 或 files[].meta/time。来源 sources、作者 authors、发布方 publisher 分开。卡片内容日期 publishedAt / modifiedAt / savedAt 使用 YYYY-MM-DD 或带时区 ISO 时间；不以 Sill 系统 created_at / updated_at 替代。阅读估算不是 reading.add 实际计时。
-
-文章示例字段：
-
-```json
-{"type":"article","title":"文章","sources":[{"name":"某阅读器","kind":"readwise"}],"authors":[{"name":"作者"}],"publisher":{"name":"发布方"},"publishedAt":"2026-10-20","body":"正文","bodyCoverage":"full","readingEstimate":{"seconds":360,"origin":"provided","scope":"full"}}
-```
-
-readingEstimate 使用正整数秒；origin 为 provided（有外部明确估算）或 calculated（按已保存正文计算），scope 为 full 或 available。calculated 必填 method；全文估算要求 bodyCoverage=full。不按未知语言速度虚构估算。正文或覆盖范围改变时必须同时提供新的估算对象或 readingEstimate:null 清除；只有此字段允许 null。用户备注通过 changes.state.note 或 item.patch 写入，不能写到正文事实。
-
-专属字段：邮件 sentAt（必须有时区时刻）/ recipients；待办和提醒 project；日程 timeZone（IANA）；媒体 chapterCount 与既有秒数 duration；文件 files[].mimeType / sizeBytes / modifiedAt / url；照片 takenAt / caption；摘要 coverageStart / coverageEnd（毫秒，成对且结束晚于开始）。authors、publisher、bodyCoverage 与 readingEstimate 的适用类型见字段字典。数组与对象仍整体替换；先读原版本，保留不改字段。旧 meta 无推断、回退、双写或自动迁移。
+完整字段、适用类型与日期/时长规则见 [字段字典](fields.md)；制作各类卡片见 [卡片制作](cards.md)。正文与结构化内容按 [传输规则](transport.md) 传递。更新正文或覆盖程度时，已有计算阅读估算须重算或用 readingEstimate:null 清除。

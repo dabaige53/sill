@@ -5,6 +5,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { createCloudTransport, readWhenReady } from "../../apps/web/cloud-bridge.ts";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { workspaceUri } from "../../server/cloud/mcp.ts";
+import { restrictMediaScripts } from "../../server/cloud/media-policy.ts";
 import { A, resource } from "./helpers/boundary-fixture.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
@@ -74,7 +75,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 		await f.db.exec(
 			`insert into sill_private.caller_grants values('${A}','oauth:codex-test',array['content:read','content:write','content:delete','event:read','event:submit'],array['*'],'${resource}');`,
 		);
-		const html = "<!doctype html><html><title>Sill cloud app</title></html>";
+		const html = "<!doctype html><html><head><title>Sill cloud app</title></head></html>";
 		const runtime = createSillRuntime(
 			{ ...f.config, mcpEnabled: true },
 			{ clientFactory: f.factory, appHtml: html },
@@ -108,7 +109,32 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 		const opened = await client.callTool({ name: "sill_open_workspace", arguments: {} });
 		assert.equal(opened.structuredContent.connected, true);
 		assert.ok(!JSON.stringify(opened).includes("Bearer"));
-		assert.equal((await client.readResource({ uri: workspaceUri })).contents[0].text, html);
+		await client.callTool({
+			name: "sill_createContent",
+			arguments: {
+				idempotency_key: "media-csp-card",
+				body: {
+					type: "note",
+					title: "Remote cover",
+					image: "https://images.example.com/cover.jpg",
+				},
+			},
+		});
+		const page = (await client.readResource({ uri: workspaceUri })).contents[0];
+		assert.equal(page.text, restrictMediaScripts(html));
+		assert.ok(page._meta.ui.csp.resourceDomains.includes("https://images.example.com"));
+		assert.deepEqual(page._meta.ui.csp.frameDomains, ["https://www.youtube-nocookie.com"]);
+		// Installed hosts retain the resource URI discovered by an earlier release.
+		const resourceUris = [
+			workspaceUri,
+			"ui://sill/cloud-workspace-1.2.2.html",
+			"ui://sill/cloud-workspace-v3.html",
+		];
+		for (const uri of resourceUris) {
+			const resource = (await client.readResource({ uri })).contents[0];
+			assert.equal(resource.text, restrictMediaScripts(html));
+			assert.equal(resource.uri, uri);
+		}
 		await assert.rejects(client.readResource({ uri: "ui://sill/other" }));
 		await f.db.exec(
 			`reset role;update sill_private.caller_grants set resources=array['11111111-1111-4111-8111-111111111112'] where caller_id='oauth:codex-test';`,
@@ -118,7 +144,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 			(await client.callTool({ name: "sill_open_workspace", arguments: {} })).isError,
 			true,
 		);
-		await assert.rejects(client.readResource({ uri: workspaceUri }));
+		for (const uri of resourceUris) await assert.rejects(client.readResource({ uri }));
 		await f.db.exec(
 			`reset role;delete from sill_private.caller_grants where caller_id='oauth:codex-test';`,
 		);

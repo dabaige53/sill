@@ -213,15 +213,23 @@ export const appPanelsMethods = {
 	bindSheetChrome(this: AppController): undefined {
 		return bindSheetChrome.call(this);
 	},
-	bindReader(this: AppController, id?: string) {
+	bindReader(this: AppController, id?: string, restoreTop?: number) {
 		this.lastActivity = Date.now();
 		const scroll = this.dialog.querySelector<HTMLElement>("#reader-scroll");
 		if (!scroll) return;
 		const token = this.modalToken;
+		if (restoreTop !== undefined)
+			scroll.scrollTop = Math.min(
+				restoreTop,
+				Math.max(0, scroll.scrollHeight - scroll.clientHeight),
+			);
 		requestAnimationFrame(() => {
 			if (this.modalToken !== token || !scroll.isConnected) return;
-			const saved = Store.item(id).progress;
-			scroll.scrollTop = (scroll.scrollHeight - scroll.clientHeight) * (saved >= 0.98 ? 0 : saved);
+			if (restoreTop === undefined) {
+				const saved = Store.item(id).progress;
+				scroll.scrollTop =
+					(scroll.scrollHeight - scroll.clientHeight) * (saved >= 0.98 ? 0 : saved);
+			}
 			this.bindReading(id, scroll);
 		});
 	},

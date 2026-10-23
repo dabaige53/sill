@@ -116,7 +116,7 @@ function writeIndex() {
 	});
 	writeFileSync(
 		page,
-		`${head}<header><h1>Sill · 设计画板</h1><p>${current.length} 块现行画板，与线上设计画布「现行」页相同。历史画板在 <code>design-system/history/</code>，不作设计依据。用 <code>npm run boards</code> 打开，点任一块查看原尺寸；标「可交互」的可以直接点、滑。</p></header>\n<main>${sections.join("")}</main>${foot}`,
+		`${head}<header><h1>Sill · 设计画板</h1><p>${current.length} 块现行画板，与线上设计画布「现行」页相同。历史画板在 <code>design-system/history/</code>，不作设计依据。用 <code>npm run boards</code> 打开，点任一块查看原尺寸；标「可交互」的可以直接点、滑。</p><p><a href="expanded-reading.html">放大页探索 · 资讯、播客与视频</a></p></header>\n<main>${sections.join("")}</main>${foot}`,
 	);
 }
 

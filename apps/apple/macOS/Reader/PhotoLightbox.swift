@@ -87,13 +87,8 @@ struct PhotoLightbox: View {
         }
       }
       Group {
-        if let image = photos.isEmpty ? nil : Cover.image(photos[current]) {
-          Image(nsImage: image).resizable().scaledToFit()
-            .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.lightboxImageRadius))
-        } else {
-          Cover.tone(photos.isEmpty ? nil : photos[current])
-            .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.lightboxImageRadius))
-        }
+        CoverImage(name: photos.isEmpty ? nil : photos[current], fit: true)
+          .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.lightboxImageRadius))
       }
       // Web fades the new photo in (`fast`). Only a change of photo fades: a transition here
       // could leave the first photo at zero opacity when the page itself appears.

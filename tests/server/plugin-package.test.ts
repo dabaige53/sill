@@ -25,6 +25,14 @@ test("Sill builds only the original App with one skill and both sidebar tools", 
 	const skill = await readFile(resolve(dir, "skills/sill/SKILL.md"), "utf8");
 	for (const tool of ["sill_open_workspace", "sill_open_cards", "sill_updateContent"])
 		assert.ok(skill.includes(tool));
+	for (const name of ["cards", "fields", "transport", "operations"]) {
+		const path = `references/${name}.md`;
+		assert.ok(skill.includes(path));
+		assert.equal(
+			await readFile(resolve(dir, "skills/sill", path), "utf8"),
+			await readFile(resolve(root, "skills/sill", path), "utf8"),
+		);
+	}
 	const server = await readFile(resolve(root, "server/cloud/mcp.ts"), "utf8");
 	assert.match(server, /["']global["']/);
 	assert.match(server, /["']thread["']/);

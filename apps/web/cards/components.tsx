@@ -11,7 +11,7 @@ import {
 } from "../atoms/primitives.ts";
 import { Avatar, Avatars, CheckMark, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { Assets } from "../data/assets.ts";
+import { assetURL } from "../data/assets.ts";
 import {
 	articleDate,
 	cardReadingTime,
@@ -421,7 +421,7 @@ function Photo({ card: c, ctx }: BlockProps) {
 						// biome-ignore lint/suspicious/noArrayIndexKey: Photos may repeat; these preview images have no component state.
 						key={i}
 						className="card-image"
-						src={Assets[p]}
+						src={assetURL(p)}
 						alt=""
 						draggable={false}
 						loading="lazy"

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 import { create } from "../../contracts/cloud.ts";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { A, identity, resource, rpc } from "./helpers/boundary-fixture.ts";
@@ -297,9 +298,6 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 });
 
 test("shared invalid metadata fixtures are rejected by database full-card operations", async () => {
-	const fixtures = JSON.parse(
-		await readFile(new URL("../../contracts/fixtures.json", import.meta.url), "utf8"),
-	);
 	const f = await cloudFixture();
 	try {
 		await identity(f.db);

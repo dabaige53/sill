@@ -5,6 +5,7 @@ struct MediaDetail: View {
   let card: CardModel
   let state: CardState
   var full = false
+  var availableWidth: CGFloat?
   var availableHeight: CGFloat?
   var scrollOffset: CGFloat = 0
   var bottomRoom: CGFloat = 0
@@ -78,9 +79,6 @@ struct MediaDetail: View {
       }
       if card.isPodcast {
         audioControls.disabled(!available)
-        if !available {
-          Text(Copy.text("web.media.playbackUnavailable")).foregroundStyle(AppleColors.secondary)
-        }
       } else if !card.isPodcast, let id = OfficialVideoPlayer.videoID(card.url) {
         OfficialVideoPlayer(
           videoID: id, initialPosition: state.playbackPosition, playback: playback, save: save
@@ -105,7 +103,14 @@ struct MediaDetail: View {
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
       }
       if playback.failed {
-        Text(Copy.text("web.media.playbackUnavailable")).foregroundStyle(AppleColors.secondary)
+        VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+          Text(
+            Copy.text(card.isPodcast ? "web.media.playbackFailed" : "web.media.playbackUnavailable")
+          ).foregroundStyle(AppleColors.secondary)
+          Button(Copy.text("web.retry")) {
+            if card.isPodcast { playback.toggle() } else { playback.retryVideo?() }
+          }.buttonStyle(TextLinkStyle(padded: false))
+        }
       }
       if full, !card.isPodcast {
         MediaChapters(
@@ -113,7 +118,7 @@ struct MediaDetail: View {
           seek: playback.seek
         ).disabled(!available)
       }
-    }.padding(.horizontal, card.isPodcast && full ? AppleMetrics.space64 : 0)
+    }.padding(.horizontal, card.isPodcast && full ? AppleMetrics.space24 : 0)
       .padding(.top, card.isPodcast ? AppleMetrics.space32 : 0)
       .onGeometryChange(for: CGFloat.self) {
         $0.size.height
@@ -267,17 +272,31 @@ struct MediaDetail: View {
   }
 
   var body: some View {
-    let layout =
+    let split =
       full
-      ? AnyLayout(HStackLayout(alignment: .top, spacing: AppleMetrics.space32))
+      && (availableWidth ?? AppleMetrics.readerColumnsBreakpoint)
+        >= AppleMetrics.readerColumnsBreakpoint
+    let layout =
+      split
+      ? AnyLayout(HStackLayout(alignment: .top, spacing: AppleMetrics.space30))
       : AnyLayout(VStackLayout(alignment: .leading, spacing: AppleMetrics.space16))
     layout {
-      if full {
-        ScrollView { primary.padding(.bottom, AppleMetrics.space32) }
-          .frame(maxWidth: .infinity, maxHeight: availableHeight)
-          .background(card.isPodcast ? Cover.tone(card.image).opacity(0.25) : Color.clear)
+      if split {
+        ScrollView { primary.padding(.bottom, AppleMetrics.space24) }
+          .frame(
+            width: max(
+              0, (availableWidth ?? AppleMetrics.readerColumnsBreakpoint) - AppleMetrics.space30)
+              * (card.isPodcast ? 0.5 : 1.6 / 2.6)
+          )
+          .frame(height: availableHeight)
+          .background(card.isPodcast ? AppleColors.surface : Color.clear)
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
-        ScrollView { secondary }.frame(maxWidth: .infinity, maxHeight: availableHeight)
+        ScrollView { secondary }
+          .frame(maxWidth: .infinity)
+          .frame(height: availableHeight)
+      } else if full {
+        primary.frame(maxWidth: .infinity)
+        secondary.frame(maxWidth: .infinity, alignment: .topLeading)
       } else if card.isPodcast {
         // The pinned section owns space above the transcript. Its hidden player space overlaps
         // only the full player's last rows, then replaces them when the section reaches the top.

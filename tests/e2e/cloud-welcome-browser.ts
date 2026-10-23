@@ -3,6 +3,7 @@ import { mkdir, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { chromium, devices, type Route } from "playwright";
 import { workspaceBatch, workspaceSnapshot } from "../../contracts/cloud.ts";
+import { loginPage } from "../../server/cloud/login-page.ts";
 import { cloudLogout, cloudTool, waitCloud } from "../server/helpers/cloud-ui.ts";
 
 const html = await readFile("dist/cloud/index.html", "utf8");
@@ -51,11 +52,23 @@ try {
 		await page.route("**/auth/**", (route?: any) => {
 			const path = new URL(route.request().url()).pathname;
 			if (path === "/auth/login") {
-				loginRequests++;
+				assert.equal(route.request().method(), "GET", "email login is disabled");
 				return route.fulfill({
-					status: 202,
-					json: { message: "如果该账号可登录，登录链接将发送到邮箱。" },
+					contentType: "text/html",
+					body: loginPage({
+						failed: new URL(route.request().url()).searchParams.has("login_error"),
+					}),
 				});
+			}
+			if (path === "/auth/password") {
+				assert.equal(route.request().method(), "POST");
+				assert.deepEqual(route.request().postDataJSON(), {
+					email: "synthetic@example.com",
+					password: "synthetic-password",
+				});
+				loginRequests++;
+				signedIn = true;
+				return route.fulfill({ json: { location: "/" } });
 			}
 			if (path === "/auth/logout") {
 				signedIn = false;
@@ -86,6 +99,8 @@ try {
 			const request = route.request(),
 				path = new URL(request.url()).pathname;
 			assert.equal(request.headers()["x-sill-owner"], "synthetic-owner");
+			if (path === "/api/v1/backups" && request.method() === "GET")
+				return route.fulfill({ json: { targets: [], backups: [] } });
 			if (path === "/api/v1/workspace" && request.method() === "GET") {
 				if (holdWorkspace) {
 					holdRequest(route);
@@ -118,25 +133,25 @@ try {
 			return route.fulfill({ json: response });
 		});
 		await page.goto(base);
+		await page.locator("#password-form").waitFor();
 		assert.deepEqual(
 			await page.evaluate(() => [innerWidth, innerHeight]),
 			mobile ? [390, 844] : [1440, 1000],
 		);
-		await page.locator("#cloud-login").waitFor();
 		await page.waitForTimeout(150);
-		assert.equal(await page.locator(".welcome #welcome-title").textContent(), "Sill");
+		assert.equal(await page.locator("#title").textContent(), "登录窗台");
 		assert.equal(await page.locator("#cloud-account").count(), 0);
 		assert.equal(await page.locator("[data-card]").count(), 0);
-		assert.equal(await page.locator("#toast").isVisible(), false);
+		assert.equal(await page.locator("#toast").count(), 0);
 		if (mobile) {
 			await page.setViewportSize({ width: 320, height: 844 });
 			assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [320, 844]);
 			assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
 			for (const selector of [
-				".welcome-actions > a",
-				"#cloud-login",
-				"#cloud-email",
-				"#cloud-login button",
+				".login-page",
+				"#password-form",
+				"#email",
+				"#password-form button[type=submit]",
 			]) {
 				const bounds = await page.locator(selector).boundingBox();
 				assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 320, `${selector} fits 320px`);
@@ -155,25 +170,20 @@ try {
 			scale: "css",
 			path: `tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-welcome.png`,
 		});
-		await page.locator("#cloud-email").fill("synthetic@example.com");
-		await page.locator("#cloud-login button").click();
-		await page.waitForFunction(() =>
-			document.querySelector("#cloud-login-status").textContent.includes("发送到邮箱"),
-		);
-		assert.equal(await page.locator("#cloud-login button").isDisabled(), true);
-		await page
-			.locator("#cloud-login")
-			.evaluate((f?: any) =>
-				f.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })),
-			);
+		assert.equal(await page.locator("#email-login, #email-form").count(), 0);
+		await page.locator("#email").fill("synthetic@example.com");
+		await page.locator("#password").fill("synthetic-password");
+		await page.locator("#password-form button[type=submit]").click();
+		await waitCloud(page);
 		assert.equal(loginRequests, 1);
+		signedIn = false;
 		await page.goto(base + "/?login_error=1");
 		await page.waitForFunction(() =>
-			document.querySelector("#cloud-login-status")?.textContent.includes("未能完成验证"),
+			document.querySelector("#status")?.textContent.includes("链接无效或已过期"),
 		);
-		assert.ok(!page.url().includes("login_error"));
+		assert.ok(page.url().includes("/auth/login"));
 		signedIn = true;
-		await page.reload();
+		await page.goto(base);
 		await waitCloud(page);
 		await page.locator(".welcome [data-action=capture]").click();
 		await page.locator("#cloud-editor").waitFor();
@@ -297,29 +307,21 @@ try {
 		await cloudLogout(page);
 		await page.locator("#cloud-confirm").waitFor();
 		assert.match(await page.locator("#modal").textContent(), /放弃未保存的草稿/);
-		await page.locator("#cloud-confirm").click();
-		await page.locator("#cloud-login").waitFor();
-		assert.equal(await page.locator("[data-card]").count(), 0);
-		assert.ok(
-			await page.locator("#pull-ring").evaluate((ring) => ring.dataset.state === "loading"),
-			"logout retains the pending refresh indicator until its response is consumed",
-		);
+		const logout = page.locator("#cloud-confirm").click();
 		holdWorkspace = false;
 		await heldRoute.fulfill({ json: workspaceSnapshot.parse(workspace) });
-		await page.waitForFunction(
-			() => document.querySelector<HTMLElement>("#pull-ring").dataset.state !== "loading",
-		);
+		await logout;
+		await page.locator("#password-form").waitFor();
 		assert.equal(
 			await page.locator("[data-card]").count(),
 			0,
-			"late refresh cannot revive signed-out content",
+			"logout and refresh cannot revive signed-out content",
 		);
 		assert.equal(await page.locator("body.cloud-signed-in").count(), 0);
-		assert.equal(await page.evaluate(() => window.__store.state.cards.length), 0);
 		assert.equal(await page.evaluate(() => localStorage.length), 0);
 		for (const code of [403, 503]) {
 			sessionStatus = code;
-			await page.reload();
+			await page.goto(base);
 			await page.locator("#toast").waitFor({ state: "visible" });
 			assert.equal(await page.locator("[data-card]").count(), 0);
 			assert.match(await page.locator("#toast").textContent(), code === 403 ? /权限/ : /连接暂时/);
@@ -335,7 +337,7 @@ try {
 			.video()
 			.saveAs(`tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-walkthrough.webm`);
 		console.log(
-			`PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/cooldown/logout/late-response/retry ${mobile ? "iPhone12 390x844" : "desktop 1440x1000"}`,
+			`PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/logout/late-response/retry ${mobile ? "iPhone12 390x844" : "desktop 1440x1000"}`,
 		);
 	}
 } finally {

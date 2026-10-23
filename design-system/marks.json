@@ -59,11 +59,14 @@
 				"article-body",
 				"article-meta",
 				"article-measure",
-				"article-gutter"
+				"article-gutter",
+				"reader-measure",
+				"reader-outline-width"
 			],
-			"adr": "0051",
+			"adr": "0065",
 			"boards": [
-				"ArticleReading"
+				"expanded-article",
+				"CardTypeReading"
 			]
 		},
 		"settings-sheet": {
@@ -132,9 +135,10 @@
 			"tokens": [
 				"control-radius",
 				"hit-target",
-				"auth-login-width"
+				"auth-login-width",
+				"auth-title"
 			],
-			"adr": "0052",
+			"adr": "0064",
 			"boards": [
 				"Login",
 				"LoginMobile"
@@ -148,7 +152,7 @@
 				"hit-target",
 				"auth-consent-width"
 			],
-			"adr": "0052",
+			"adr": "0064",
 			"boards": [
 				"Authorization",
 				"AuthorizationMobile"

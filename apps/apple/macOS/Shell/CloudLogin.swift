@@ -2,13 +2,12 @@ import SillKit
 import SwiftUI
 
 /// The same narrow login form, labels and actions as the Web account page.
+// @design auth-login
 struct CloudLogin: View {
-  enum Mode { case password, email, recovery }
   @Environment(Account.self) private var account
   @State private var email = ""
   @State private var password = ""
   @State private var showPassword = false
-  @State private var mode = Mode.password
   @FocusState private var focused: Field?
   private enum Field { case email, password }
 
@@ -16,19 +15,20 @@ struct CloudLogin: View {
   var body: some View {
     GeometryReader { geometry in
       ScrollView {
-        VStack(spacing: AppleMetrics.space24) {
+        VStack(spacing: 0) {
           BrandMark()
+            .padding(.bottom, AppleMetrics.space24)
           Text(
             Copy.text(
               setup
                 ? "server.loginpage.53ae50023ff4"
-                : mode == .password
-                  ? "auth.loginTitle" : mode == .email ? "auth.emailLogin" : "auth.resetTitle")
+                : "auth.loginTitle")
           )
           .font(.sans(AppleMetrics.font30, .semibold))
           .foregroundStyle(AppleColors.primary)
           .accessibilityAddTraits(.isHeader)
-          VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+          .padding(.bottom, AppleMetrics.space30)
+          VStack(alignment: .leading, spacing: AppleMetrics.space8) {
             if !setup {
               fieldLabel("server.loginpage.73075237fd0f")
               TextField("", text: $email)
@@ -37,8 +37,9 @@ struct CloudLogin: View {
                 .accessibilityIdentifier("login-email")
                 .focused($focused, equals: .email)
                 .modifier(LoginField())
+                .padding(.bottom, AppleMetrics.space12)
             }
-            if setup || mode == .password {
+            Group {
               fieldLabel(setup ? "server.loginpage.566f6ab7157d" : "server.loginpage.a621ab606db2")
               HStack(spacing: AppleMetrics.space8) {
                 Group {
@@ -63,14 +64,13 @@ struct CloudLogin: View {
                   Copy.text(showPassword ? "auth.hidePassword" : "auth.showPassword"))
               }
               .modifier(LoginField())
+              .padding(.bottom, AppleMetrics.space8)
             }
             Button(
               Copy.text(
                 setup
                   ? "server.loginpage.68084c3895c1"
-                  : mode == .password
-                    ? "server.loginpage.a4e09c4c209d"
-                    : mode == .email ? "auth.sendLogin" : "auth.sendReset")
+                  : "server.loginpage.a4e09c4c209d")
             ) {
               submit()
             }
@@ -82,21 +82,11 @@ struct CloudLogin: View {
                 || (setup
                   ? password.count < 12
                   : email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    || (mode == .password && password.isEmpty))
+                    || password.isEmpty)
             )
             if setup {
               Button(Copy.text("web.cloudentry.3ab8cc15939f")) { Task { await account.logout() } }
                 .buttonStyle(TextLinkStyle(padded: false))
-            } else {
-              if mode == .password {
-                Button(Copy.text("auth.forgotPassword")) { switchMode(.recovery) }
-                  .buttonStyle(TextLinkStyle(padded: false))
-                Button(Copy.text("auth.emailLogin")) { switchMode(.email) }
-                  .buttonStyle(TextLinkStyle(padded: false))
-              } else {
-                Button(Copy.text("auth.backPassword")) { switchMode(.password) }
-                  .buttonStyle(TextLinkStyle(padded: false))
-              }
             }
           }
           .disabled(account.busy)
@@ -110,9 +100,11 @@ struct CloudLogin: View {
           .multilineTextAlignment(.center)
           .textSelection(.enabled)
           .accessibilityElement(children: .combine)
+          .padding(.top, AppleMetrics.space14)
         }
         .frame(maxWidth: AppleMetrics.authLoginWidth)
-        .padding(AppleMetrics.space24)
+        .padding(.horizontal, AppleMetrics.space24)
+        .padding(.vertical, AppleMetrics.space48)
         .frame(maxWidth: .infinity)
         .frame(minHeight: geometry.size.height)
       }
@@ -134,29 +126,20 @@ struct CloudLogin: View {
       .foregroundStyle(AppleColors.primary)
   }
 
-  private func switchMode(_ next: Mode) {
-    password = ""
-    mode = next
-    account.clearFeedback()
-    focused = .email
-  }
-
   private func submit() {
     guard !account.busy,
       setup
         ? password.count >= 12
         : !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-          && (mode != .password || !password.isEmpty)
+          && !password.isEmpty
     else { return }
     let secret = password
     password = ""
     Task {
       if setup {
         await account.setPassword(secret)
-      } else if mode == .password {
-        await account.login(email: email, password: secret)
       } else {
-        await account.requestLink(email: email, setupPassword: mode == .recovery)
+        await account.login(email: email, password: secret)
       }
     }
   }
@@ -178,12 +161,13 @@ private struct LoginField: ViewModifier {
 private struct LoginButton: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
-      .font(.sans(AppleMetrics.font16, .medium))
+      .font(.sans(AppleMetrics.font16, .semibold))
       .frame(maxWidth: .infinity, minHeight: AppleMetrics.hitTarget)
       .foregroundStyle(AppleColors.fixedWhite)
       .background(
         AppleColors.accentFill, in: RoundedRectangle(cornerRadius: AppleMetrics.controlRadius)
       )
       .opacity(configuration.isPressed ? AppleMetrics.disabledOpacity : 1)
+      .modifier(HandCursor())
   }
 }

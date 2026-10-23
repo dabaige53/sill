@@ -1,0 +1,270 @@
+/* Sill · tokens · shared source (design-system/tokens.json v2) */
+:root {
+	--edge-blur-soft: blur(4px);
+	--edge-blur-mid: blur(8px);
+	--edge-blur-strong: blur(16px);
+	--summary-reading-lines: 4;
+	--settings-body-height: 560px;
+	--search-width: 280px;
+	--search-tagged-width: 360px;
+	--search-focused-width: 480px;
+	--dur-deck: 260ms;
+	--dur-show: 320ms;
+	--dur-reveal: 420ms;
+	--dur-lens: 0ms;
+	--delay-loading: 300ms;
+	--stagger: 30ms;
+	--dur-read: 220ms;
+	--dur-sheet: 260ms;
+	--dur-close: 220ms;
+	--dur-open: 280ms;
+	--dur-state: 220ms;
+	--dur-menu: 200ms;
+	--dur-menu-close: 160ms;
+	--dur-hover: 160ms;
+	--dur-press: 120ms;
+	--ease-spring: linear(
+		0,
+		0.03 2%,
+		0.11 4.4%,
+		0.24 7%,
+		0.51 12%,
+		0.75 17%,
+		0.91 22%,
+		1.01 27.4%,
+		1.05 31%,
+		1.065 35.5%,
+		1.06 40%,
+		1.03 49%,
+		1.007 59%,
+		0.997 70%,
+		1
+	);
+	--feed-max: 1640px;
+	--preview-short-width: 560px;
+	--canvas: #f5f5f7;
+	--card: #fff;
+	--ink: #1d1d1f;
+	--muted: #636366;
+	--secondary: #68686d;
+	--faint: #e8e8ed;
+	--surface: #f0f0f2;
+	--ai-composer: #eff3f4;
+	--ai-control: #e4e9eb;
+	--ai-ink: #0f1419;
+	--faint-row: #ececf0;
+	--line: rgba(0, 0, 0, 0.06);
+	--line-card: rgba(0, 0, 0, 0.08);
+	--line-hover: rgba(0, 0, 0, 0.14);
+	--accent: #0066cc;
+	--accent-fill: #0066cc;
+	--accent-soft: #edf4ff;
+	--accent-ink: #0057ad;
+	--success: #248a3d;
+	--alert: #b45309;
+	--card-read: #e9e9ee;
+	--line-read: rgba(0, 0, 0, 0.04);
+	--alert-soft: #fdf3e7;
+	--success-soft: #eaf5ec;
+	--highlight: #fff3c4;
+	--toggle-on: #0066cc;
+	--toggle-off: #e5e5ea;
+	--dim: rgba(18, 20, 26, 0.26);
+	--frost: rgba(245, 245, 247, 0.56);
+	--sky: #dfe9f3;
+	--sky-soft: #eef3f8;
+	--ledge: #e9e4dc;
+	--ledge-deep: #d8d1c5;
+	/* Existing fixed colors and internal spacing; identical in both themes. */
+	--fixed-white: #fff;
+	--fixed-ink: #1d1d1f;
+	--selection: #d8e9ff;
+	--fixed-podcast-light: #f4ede4;
+	--fixed-podcast-dark: #2a2622;
+	--fixed-podcast-cover-start: #d9cbbb;
+	--fixed-podcast-cover-mid: #efe6db;
+	--fixed-podcast-cover-end: #cdbcaa;
+	--fixed-photo-canvas: #0b0b0c;
+	--fixed-white-72: rgba(255, 255, 255, 0.72);
+	--fixed-white-82: rgba(255, 255, 255, 0.82);
+	--fixed-white-75: rgba(255, 255, 255, 0.75);
+	--fixed-white-12: rgba(255, 255, 255, 0.12);
+	--fixed-black-5: rgba(0, 0, 0, 0.05);
+	--fixed-black-6: rgba(0, 0, 0, 0.06);
+	--fixed-black-8: rgba(0, 0, 0, 0.08);
+	--fixed-black-10: rgba(0, 0, 0, 0.1);
+	--fixed-black-12: rgba(0, 0, 0, 0.12);
+	--fixed-black-14: rgba(0, 0, 0, 0.14);
+	--fixed-black-15: rgba(0, 0, 0, 0.15);
+	--fixed-black-16: rgba(0, 0, 0, 0.16);
+	--fixed-black-18: rgba(0, 0, 0, 0.18);
+	--fixed-black-55: rgba(0, 0, 0, 0.55);
+	--space-1: 1px;
+	--space-2: 2px;
+	--space-3: 3px;
+	--space-4: 4px;
+	--space-6: 6px;
+	--space-8: 8px;
+	--space-10: 10px;
+	--space-11: 11px;
+	--space-12: 12px;
+	--space-14: 14px;
+	--space-16: 16px;
+	--space-18: 18px;
+	--space-20: 20px;
+	--space-22: 22px;
+	--space-24: 24px;
+	--space-25: 25px;
+	--space-26: 26px;
+	--space-28: 28px;
+	--space-30: 30px;
+	--space-32: 32px;
+	--space-34: 34px;
+	--space-36: 36px;
+	--space-40: 40px;
+	--space-44: 44px;
+	--space-46: 46px;
+	--space-48: 48px;
+	--space-52: 52px;
+	--space-56: 56px;
+	--space-60: 60px;
+	--space-64: 64px;
+	--space-88: 88px;
+	--space-92: 92px;
+	--space-104: 104px;
+	--space-130: 130px;
+	--space-140: 140px;
+	--space-150: 150px;
+	--space-160: 160px;
+	--font:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+		"Microsoft YaHei", sans-serif;
+	--rounded:
+		ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+	--gap: 24px;
+	--gap-sm: 12px;
+	--margin-sm: 16px;
+	--gap-md: 20px;
+	--col-min: 280px;
+	--col-ideal: 340px;
+	--col-max: 380px;
+	--article-measure: none;
+	--article-gutter: 30px;
+	--article-gutter-sm: 20px;
+	--hit-target: 44px;
+	--summary-lines: 3;
+	--block-gap: 8px;
+	--card-padding: 18px;
+	--card-padding-sm: 16px;
+	--cover-inset: 8px;
+	--thumb: 76px;
+	--card-radius: 22px;
+	--card-radius-sm: 16px;
+	--cover-radius: 14px;
+	--panel-radius: 24px;
+	--sheet-radius: 28px;
+	--control-radius: 12px;
+	--pill-radius: 999px;
+	/* Type sizes follow the type styles in design-system/tokens.json as --text-<style>. */
+	--text-figure-xl: 44px;
+	--text-figure: 34px;
+	--text-reader-title: 30px;
+	--text-figure-route: 28px;
+	--text-event-card-time: 28px;
+	--text-detail-title: 26px;
+	--text-panel-title: 22px;
+	--text-quote: 21px;
+	--text-card-title: 16px;
+	--text-input: 17px;
+	--text-reader-body: 17px;
+	--text-article-title: 22px;
+	--text-article-section: 17px;
+	--text-article-body: 15px;
+	--text-article-meta: 12px;
+	--text-summary: 14px;
+	--text-body: 15px;
+	--text-control: 14px;
+	--text-meta: 13px;
+	--text-caption: 12px;
+	--text-card-meta: 12px;
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.025), 0 4px 16px rgba(0, 0, 0, 0.035);
+	--shadow-hover: 0 2px 5px rgba(0, 0, 0, 0.04), 0 10px 24px rgba(0, 0, 0, 0.07);
+	--shadow-glass: 0 2px 6px rgba(16, 24, 40, 0.05), 0 12px 32px rgba(16, 24, 40, 0.09);
+	--shadow-float: 0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 18px rgba(16, 24, 40, 0.07);
+	--shadow-sheet: 0 2px 8px rgba(0, 0, 0, 0.04), 0 30px 90px rgba(0, 0, 0, 0.18);
+	--glass: rgba(255, 255, 255, 0.38);
+	--glass-thick: rgba(255, 255, 255, 0.88);
+	--glass-edge: rgba(255, 255, 255, 0.9);
+	--glass-shade: rgba(255, 255, 255, 0.32);
+	--glass-rim: rgba(0, 0, 0, 0.07);
+	--glass-filter: blur(12px) saturate(1.9) brightness(1.06);
+	--glass-press: rgba(0, 0, 0, 0.06);
+	--ease: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-reveal: cubic-bezier(0.5, 1, 0.89, 1);
+	--fast: 140ms;
+	--base: 220ms;
+	--layout: 220ms;
+	--settle: 220ms;
+	--dur-reduced: 70ms;
+	--dur-tuck: 240ms;
+	--rest-show: 650ms;
+	color-scheme: light;
+}
+body[data-density="compact"] {
+	--col-min: 240px;
+	--col-ideal: 280px;
+	--col-max: 320px;
+	--summary-lines: 3;
+}
+body[data-density="roomy"] {
+	--col-min: 340px;
+	--col-ideal: 400px;
+	--col-max: 440px;
+}
+/* Dark: same hierarchy, lower light. Cards stay one step above the canvas. */
+/* Photos keep their black viewing context, including shared tools, in either theme (ADR 0041). */
+:root[data-theme="dark"],
+.lightbox .float-bar {
+	--canvas: #111113;
+	--card: #1c1c1f;
+	--ink: #f2f2f4;
+	--muted: #a1a1a8;
+	--secondary: #a1a1a8;
+	--faint: #2c2c31;
+	--surface: #26262a;
+	--ai-composer: #202327;
+	--ai-control: #2f3336;
+	--ai-ink: #e7e9ea;
+	--faint-row: #1f1f23;
+	--line: rgba(255, 255, 255, 0.07);
+	--line-card: rgba(255, 255, 255, 0.08);
+	--line-hover: rgba(255, 255, 255, 0.16);
+	--accent: #4c9bff;
+	--accent-fill: #0066cc;
+	--accent-soft: #16283f;
+	--accent-ink: #8fc0ff;
+	--success: #3fb25e;
+	--alert: #f0a04b;
+	--card-read: #121215;
+	--line-read: rgba(255, 255, 255, 0.04);
+	--alert-soft: #3a2a17;
+	--success-soft: #163021;
+	--highlight: #5a4a12;
+	--toggle-off: #3a3a3f;
+	--dim: rgba(0, 0, 0, 0.52);
+	--frost: rgba(17, 17, 19, 0.6);
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	--shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.45);
+	--shadow-glass: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.36);
+	--shadow-float: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+	--shadow-sheet: 0 30px 90px rgba(0, 0, 0, 0.6);
+	--glass: rgba(40, 40, 46, 0.42);
+	--glass-thick: rgba(36, 36, 40, 0.9);
+	--glass-edge: rgba(255, 255, 255, 0.22);
+	--glass-shade: rgba(255, 255, 255, 0.06);
+	--glass-rim: rgba(0, 0, 0, 0.5);
+	--glass-filter: blur(12px) saturate(1.7) brightness(0.9);
+	--glass-press: rgba(255, 255, 255, 0.1);
+	color-scheme: dark;
+}

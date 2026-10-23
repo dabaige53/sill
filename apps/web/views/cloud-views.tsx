@@ -1,6 +1,7 @@
 import React from "react";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
+import { type BackupApi, BackupSettings } from "../interactions/backup-settings.tsx";
 import { WelcomeView } from "../interactions/panels-components.tsx";
 
 export function CloudWelcome({
@@ -70,29 +71,12 @@ export function CloudWelcome({
 						</>
 					) : (
 						<>
-							<a className="solid-button" href="/auth/login">
-								{copy("web.cloudentry.be4ece4b22aa")}
+							<a
+								className="solid-button"
+								href={callbackFailed ? "/auth/login?login_error=1" : "/auth/login"}
+							>
+								{copy("auth.loginTitle")}
 							</a>
-							<form id="cloud-login">
-								<label htmlFor="cloud-email">{copy("web.cloudentry.d261be8e9b91")}</label>
-								<input
-									id="cloud-email"
-									name="email"
-									type="email"
-									autoComplete="email"
-									required
-									placeholder={copy("web.cloudentry.27558ddc9803")}
-									aria-describedby="cloud-login-status"
-								/>
-								<button className="solid-button" type="submit">
-									{copy("web.cloudentry.92b193fad920")}
-								</button>
-								<p id="cloud-login-status" role="status">
-									{callbackFailed
-										? copy("web.cloudentry.83bf2b73aee3")
-										: copy("web.cloudentry.5eef9638100a")}
-								</p>
-							</form>
 						</>
 					)}
 					{recovery}
@@ -108,7 +92,19 @@ export function CloudWelcome({
 		/>
 	);
 }
-export function CloudSettings({ user, host }: { user: boolean; host: boolean }) {
+export function CloudSettings({
+	user,
+	host,
+	backupApi,
+	backupOwner,
+	onBackupRestore,
+}: {
+	user: boolean;
+	host: boolean;
+	backupApi?: BackupApi;
+	backupOwner?: string;
+	onBackupRestore?: () => Promise<void> | void;
+}) {
 	return (
 		<>
 			<h2>{copy("web.cloudentry.ebdc835e8f87")}</h2>
@@ -131,6 +127,15 @@ export function CloudSettings({ user, host }: { user: boolean; host: boolean }) 
 					</button>
 				</div>
 			</div>
+			{user && backupApi && backupOwner && (
+				<BackupSettings
+					key={backupOwner}
+					api={backupApi}
+					owner={backupOwner}
+					host={host}
+					onRestore={onBackupRestore}
+				/>
+			)}
 			{user && (
 				<div className="settings-card">
 					<div className="setting-row">

@@ -1,0 +1,98 @@
+✖ recovery checks an existing session before displaying a stale email-link failure (746.1415ms)
+✖ email completion stays out of the host callback tab and recovery recognizes the established session (527.744833ms)
+✖ email tab establishes only the session; the initiating tab resumes the existing OAuth grant (510.038625ms)
+✖ the original login tab verifies the session before continuing once, without a refresh (38.844791ms)
+✖ returning to the original tab works when cross-tab messaging is unavailable (11.779959ms)
+✔ email completion sends only a session hint and leaves host continuation to the original tab (10.89275ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 1
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2146.791125
+
+✖ failing tests:
+
+test at tests/server/login-completion.test.ts:1:351
+✖ recovery checks an existing session before displaying a stale email-link failure (746.1415ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  200 !== 303
+
+      at TestContext.<anonymous> (/private/tmp/sill-auth-commit/tests/server/login-completion.test.ts:11:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 303,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/server/login-completion.test.ts:1:839
+✖ email completion stays out of the host callback tab and recovery recognizes the established session (527.744833ms)
+  AssertionError [ERR_ASSERTION]: email tab must not consume the initiating tab's OAuth return
+  + actual - expected
+
+  + 'https://sill.example/'
+  - 'https://sill.example/auth/complete'
+                          ^
+
+      at TestContext.<anonymous> (/private/tmp/sill-auth-commit/tests/server/login-completion.test.ts:47:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'https://sill.example/',
+    expected: 'https://sill.example/auth/complete',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/server/login-completion.test.ts:1:2717
+✖ email tab establishes only the session; the initiating tab resumes the existing OAuth grant (510.038625ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(originalPage.includes(f.config.appOrigin + consent))
+
+      at TestContext.<anonymous> (/private/tmp/sill-auth-commit/tests/server/login-completion.test.ts:89:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/server/login-continuation-page.test.ts:1:441
+✖ the original login tab verifies the session before continuing once, without a refresh (38.844791ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'onmessage')
+      at TestContext.<anonymous> (/private/tmp/sill-auth-commit/tests/server/login-continuation-page.test.ts:43:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/server/login-continuation-page.test.ts:1:2013
+✖ returning to the original tab works when cross-tab messaging is unavailable (11.779959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + []
+  - [
+  -   '/'
+  - ]
+
+      at TestContext.<anonymous> (/private/tmp/sill-auth-commit/tests/server/login-continuation-page.test.ts:82:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ '/' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

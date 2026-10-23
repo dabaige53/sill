@@ -1,0 +1,129 @@
+{
+	"valid": [
+		{
+			"name": "media",
+			"card": {
+				"id": "valid-media",
+				"type": "media",
+				"title": "Synthetic media",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"media": "video",
+				"image": "coast"
+			}
+		},
+		{
+			"name": "photo",
+			"card": {
+				"id": "valid-photo",
+				"type": "photo",
+				"title": "Synthetic photo",
+				"sources": [
+					{
+						"name": "Synthetic",
+						"kind": "local"
+					}
+				],
+				"photos": [
+					"coast"
+				]
+			}
+		},
+		{
+			"name": "podcast with timestamped content",
+			"card": {
+				"id": "media-sample",
+				"type": "media",
+				"media": "podcast",
+				"title": "Episode",
+				"audioUrl": "https://example.com/audio.mp3",
+				"duration": 180,
+				"chapterCount": 2,
+				"chapters": [
+					{
+						"start": 0,
+						"title": "Start"
+					},
+					{
+						"start": 60,
+						"title": "Next"
+					}
+				],
+				"transcript": [
+					{
+						"start": 0,
+						"text": "Hello"
+					},
+					{
+						"start": 60,
+						"text": "Next paragraph"
+					}
+				]
+			}
+		},
+		{
+			"name": "https-cover",
+			"card": {
+				"id": "https-cover",
+				"type": "note",
+				"title": "Synthetic HTTPS cover",
+				"image": "https://images.example.org/cover.jpg"
+			}
+		},
+		{
+			"name": "https-photos",
+			"card": {
+				"id": "https-photos",
+				"type": "photo",
+				"title": "Synthetic HTTPS photos",
+				"photos": [
+					"coast",
+					"https://images.example.org/photo.jpg?size=large"
+				]
+			}
+		}
+	],
+	"invalid": [
+		{
+			"name": "video-missing-image",
+			"card": {
+				"id": "invalid",
+				"type": "media",
+				"title": "Synthetic",
+				"media": "video"
+			}
+		},
+		{
+			"name": "photo-empty",
+			"card": {
+				"id": "invalid",
+				"type": "photo",
+				"title": "Synthetic"
+			}
+		},
+		{
+			"name": "insecure-cover",
+			"card": {
+				"id": "insecure-cover",
+				"type": "note",
+				"title": "Synthetic insecure cover",
+				"image": "http://images.example.org/cover.jpg"
+			}
+		},
+		{
+			"name": "credential-photo",
+			"card": {
+				"id": "credential-photo",
+				"type": "photo",
+				"title": "Synthetic credential photo",
+				"photos": [
+					"https://user:password@images.example.org/photo.jpg"
+				]
+			}
+		}
+	]
+}

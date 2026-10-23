@@ -10,9 +10,10 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 | 颜色、玻璃、字体、卡片积木、文字长度、图标 | [基础与组件](handbook/foundation.md#颜色) |
 | 两端对照：移动（650px 及以下）与网页 | [页面与交互](handbook/interaction.md#两端对照) |
 | 手机主页、搜索与键盘、底部导航与反馈 | [页面与交互](handbook/interaction.md#移动650px-及以下) |
-| 预览与叠放、量大与时间 | [页面与交互](handbook/interaction.md#预览与叠放) |
+| 预览与叠放、量大与时间 | [页面与交互](handbook/card-interaction.md#预览与叠放) |
 | 桌面顶栏与 AI 框、网页键盘、设置弹窗、资讯阅读 | [网页交互](handbook/web-interaction.md) |
 | 间距、尺寸与排版偏好 | [内容布局](handbook/content-layout.md) |
+| 阅读、媒体与登录 | [网页阅读与系统页面](handbook/web-reading.md) |
 | 动效 | [动效](handbook/motion.md) |
 | 设计参考：Apple Music、X、Medium 的原图与采用范围 | [设计参考](references/README.md) |
 
@@ -30,3 +31,9 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 ## 设置
 
 [桌面设置](boards/SettingsDesktop.dc.html)与[手机设置](boards/SettingsMobile.dc.html)由产品组件生成，可切换分组。画板中的内容和开关只展示，不写入数据。
+
+## 放大页探索
+
+[放大页探索画布](boards/expanded-reading.html)包含「资讯阅读」「播客阅读」和「视频对照」三块独立画板，登记在 `boards/canvas.json` 的「放大页探索」页。内容、封面、播放器与图标从 `CardTypeDetails` 和 `CardTypeReading` 提取，生成入口为 `scripts/expanded-reading.ts`。媒体保留原画板的左右分栏。资讯采用左侧文章目录与右侧正文，目录可以收起进入专注阅读；小标题取自原文，正文不增写。目录标题为「目录」，只列实际章节，不列文章开头；同级章节左对齐；「目录」用 body 字号（15px）、中等字重和 ink 深色，章节用 control 字号（14px），非当前章节为 muted 灰色与常规字重，当前章节为 accent 蓝色与 600 字重。条目至少为 hit-target 高度（44px），当前位置保留细指示线，不加整行实底。点击以共用 base 时长和 ease 曲线平滑滚动，指示线同步移动；滚轮、触摸与键盘可中断，键盘跳转即时完成。预览保留底部操作胶囊，放大后通用操作移到左上角，缩小时回到底部；操作图标与胶囊背景直接显示在对应位置，不播放位移或淡入淡出；放大页收紧顶部与底部占位。原型默认从预览开始，右上角按钮演示预览与放大的切换，沿用 `motion.expandedSpring`，正文不缩放，键盘即时切换。阅读排版依据见 [ADR 0065](../docs/adr/0065-expanded-reading-layout.md)；播放控件仅展示，不播放媒体或写入卡片。画板未提供播客节目笔记正文，对应页签暂不可用。
+
+目录探索参考 [shadcn 的目录源码](https://github.com/shadcn-ui/ui/blob/main/apps/v4/components/docs-toc.tsx)中的次要文字、层级缩进与当前章节高亮，以及 [Notion 的目录说明](https://www.notion.com/help/columns-headings-and-dividers#table-of-contents)中的标题跳转与常驻目录。颜色与动效仍使用 Sill 变量。

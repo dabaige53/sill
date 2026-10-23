@@ -8,12 +8,85 @@ import { ChromeAutoHide } from "../interactions/chrome.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { agentKey } from "../services/agent-handoff.ts";
-import type { AppController } from "./app.ts";
+import type { AppController, DetailPosition } from "./app.ts";
 
 export function openCard(this: AppController, id?: any, reading: any = false) {
 	const c = Store.card(id);
 	if (!c) return;
 	this.closingCardRoute = "";
+	const scope = JSON.stringify(this.agentScope());
+	const scopeChanged = this.detailScope !== scope;
+	if (scopeChanged) {
+		this.previewTrail = [];
+		this.detailPositions.clear();
+		this.detailScope = scope;
+	}
+	const active =
+		!scopeChanged &&
+		!this.sheetLeaving &&
+		this.dialog.open &&
+		["preview", "reader", "lightbox"].includes(this.modalKind);
+	const linked = active && this.currentId !== id;
+	if (active) {
+		const scroll = this.dialog.querySelector<HTMLElement>(
+			"#reader-scroll, .preview-sheet .sheet-scroll",
+		);
+		const focus = document.activeElement as HTMLElement | null;
+		this.detailPositions.set(this.currentId, {
+			id: this.currentId,
+			kind: this.modalKind as DetailPosition["kind"],
+			scrollTop: scroll?.scrollTop || 0,
+			photoIndex: this.photoIndex,
+			focus,
+			link:
+				focus?.closest("[data-id], [href]")?.getAttribute("data-id") ||
+				focus?.closest("[href]")?.getAttribute("href") ||
+				null,
+		});
+	}
+	const back = linked ? this.previewTrail.lastIndexOf(id) : -1;
+	const returning = back >= 0;
+	const restore = active ? this.detailPositions.get(id) : undefined;
+	if (returning) reading = restore?.kind === "reader";
+	const previousId = this.currentId;
+	const visual = linked ? MotionEngine.captureDetail(this.dialog, id) : null;
+	// The old chrome resolves its tools dynamically; dispose it before the new DOM exists.
+	this.sheetHide?.destroy();
+	this.sheetHide = null;
+	this.previewSizeObserver?.disconnect();
+	if (!active) {
+		this.previewTrail = [];
+		this.detailPositions.clear();
+	} else if (linked) {
+		if (returning) this.previewTrail = this.previewTrail.slice(0, back);
+		else this.previewTrail.push(this.currentId);
+	}
+	const settle = () => {
+		const scroll = this.dialog.querySelector<HTMLElement>(
+			"#reader-scroll, .preview-sheet .sheet-scroll",
+		);
+		if (restore && scroll) {
+			scroll.scrollTop = Math.min(
+				restore.scrollTop,
+				Math.max(0, scroll.scrollHeight - scroll.clientHeight),
+			);
+			scroll.closest(".preview-sheet")?.classList.toggle("is-scrolled", scroll.scrollTop > 8);
+		}
+		if (returning && restore) {
+			const focus = restore.focus?.isConnected
+				? restore.focus
+				: restore.link
+					? [...this.dialog.querySelectorAll<HTMLElement>("[data-id], [href]")].find(
+							(node) =>
+								node.getAttribute("data-id") === restore.link ||
+								node.getAttribute("href") === restore.link,
+						)
+					: null;
+			if (!focus && scroll) scroll.tabIndex = -1;
+			(focus || scroll)?.focus({ preventScroll: true });
+		}
+		if (linked) MotionEngine.navigateDetail(this.dialog, visual, returning, previousId);
+	};
 	const source = (
 		this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
 	).querySelector(`[data-card="${CSS.escape(id)}"]`);
@@ -22,9 +95,14 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		this.dialog.open &&
 		this.currentId === id &&
 		((reading && this.modalKind === "preview") || (!reading && this.modalKind === "reader"));
+	this.dialog.dataset.readerResize =
+		resizing && ["article", "media"].includes(c.type) ? "true" : "";
 	const entryRect = resizing
-		? MotionEngine.surface(this.dialog).getBoundingClientRect()
-		: !this.dialog.open || this.modalKind === "search"
+		? (
+				this.dialog.querySelector("[data-reader-resize-surface]") ||
+				MotionEngine.surface(this.dialog)
+			).getBoundingClientRect()
+		: !active
 			? sourceRect
 			: null;
 	// A quick note opens where it is: the card becomes its own editor.
@@ -45,12 +123,6 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		try {
 			this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));
 		} catch {}
-	if (!this.dialog.open || this.modalKind !== "preview") this.previewTrail = [];
-	else if (!reading && this.currentId && this.currentId !== id) {
-		const back = this.previewTrail.lastIndexOf(id);
-		if (back >= 0) this.previewTrail = this.previewTrail.slice(0, back);
-		else this.previewTrail.push(this.currentId);
-	}
 	if (this.modalKind === "search") this.suspendSearch();
 	this.currentId = id;
 	if (!Store.item(id).seen) {
@@ -58,17 +130,19 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		this.refreshCard(id);
 	}
 	if (c.type === "photo" && !reading) {
-		this.photoIndex = 0;
-		this.openModal(Panels.lightbox(c, 0, this), "lightbox", null, "lightbox");
+		this.photoIndex = restore?.photoIndex || 0;
+		this.openModal(Panels.lightbox(c, this.photoIndex, this), "lightbox", null, "lightbox", linked);
+		settle();
 		Store.patch(id, { read: true, progress: 1 });
 		this.refreshCard(id);
 		return;
 	}
 	if (reading) {
 		// Bodies are on this device, so the page opens complete. The skeleton is kept for bodies fetched from a source.
-		this.openModal(Panels.reader(this, c, false), "reader", entryRect);
-		MotionEngine.matchSource(this.dialog, source);
-		this.bindReader(id);
+		this.openModal(Panels.reader(this, c, false), "reader", entryRect, "", linked);
+		if (!linked && !this.previewTrail.length) MotionEngine.matchSource(this.dialog, source);
+		settle();
+		this.bindReader(id, restore?.scrollTop);
 		this.gestures.bindPullDown();
 		this.bindSheetChrome();
 		return;
@@ -92,8 +166,11 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		),
 		"preview",
 		origin,
+		"",
+		linked,
 	);
-	if (origin)
+	settle();
+	if (origin && !this.previewTrail.length)
 		MotionEngine.matchSource(
 			this.dialog,
 			(this.searchBackground || this.grid).querySelector(`[data-card="${CSS.escape(id)}"]`),
@@ -114,6 +191,8 @@ export function bindSheetChrome(this: AppController) {
 	this.previewSizeObserver?.disconnect();
 	const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
 	if (!scroll) return;
+	// Expanded workspaces reserve a compact header; their controls remain stationary.
+	if (scroll.classList.contains("reader-workspace")) return;
 	this.sheetHide = new ChromeAutoHide(
 		scroll,
 		() => [
@@ -121,7 +200,8 @@ export function bindSheetChrome(this: AppController) {
 				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
 			),
 		],
-		() => this.sheetLeaving || !!this.dialog.querySelector("[data-card-flight]"),
+		() =>
+			this.sheetLeaving || !!this.dialog.querySelector("[data-card-flight], [data-detail-face]"),
 	);
 	// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 	const sheet = this.dialog.querySelector(".preview-sheet");
@@ -136,12 +216,14 @@ export function bindSheetChrome(this: AppController) {
 				return;
 			}
 			const title = sheet.querySelector("#modal-title");
+			if (sheet.querySelector(".is-podcast")) {
+				sheet.style.setProperty("--preview-title-top", "var(--space-8)");
+				return;
+			}
 			// The disc sits in the source row above the title, so the title keeps the full width.
-			const row =
-				sheet.querySelector(".now-playing-heading") ||
-				sheet.querySelector(
-					".preview-body .preview-sender, .preview-body .preview-meta, .pr-detail .card-head",
-				);
+			const row = sheet.querySelector(
+				".preview-body .preview-sender, .preview-body .preview-meta, .pr-detail .card-head",
+			);
 			const anchor = row || title;
 			if (anchor) {
 				// Layout offsets stay stable while the card's opening transform animates.
