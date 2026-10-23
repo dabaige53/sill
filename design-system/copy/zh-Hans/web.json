@@ -417,5 +417,8 @@
 	"web.card.attachments": "附件",
 	"web.card.files": "文件",
 	"web.card.agenda": "议程",
-	"web.card.related": "相关卡片"
+	"web.card.related": "相关卡片",
+	"web.ai.expand": "展开 AI 输入框",
+	"web.ai.collapse": "缩小 AI 输入框",
+	"web.ai.move": "左右拖动，或按左右方向键移动"
 }

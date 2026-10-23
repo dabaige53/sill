@@ -975,6 +975,76 @@ body.is-dragging #toast {
 	}
 }
 
+@media (min-width: 651px) {
+	.ai-dock-tools {
+		position: absolute;
+		bottom: 100%;
+		padding-bottom: var(--space-4);
+		right: var(--space-12);
+		display: flex;
+		gap: var(--space-4);
+	}
+	.ai-dock-tools button {
+		border-radius: 50%;
+	}
+	.ai-dock,
+	.ai-dock .ai-dock-input,
+	.ai-dock .ai-dock-restore {
+		touch-action: none;
+	}
+	.ai-dock-restore {
+		display: none;
+	}
+	.ai-dock.is-collapsed {
+		width: var(--rail-row);
+		padding: 0;
+		justify-content: center;
+	}
+	.ai-dock.is-collapsed > :not(.ai-dock-restore, .ai-dock-surface) {
+		display: none;
+	}
+	.ai-dock.is-collapsed > .ai-dock-restore {
+		display: grid;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock.is-moving,
+	.ai-dock.is-moving * {
+		user-select: none;
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock {
+		isolation: isolate;
+	}
+	.ai-dock-surface {
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		pointer-events: none;
+		z-index: -1;
+	}
+	.ai-dock .ai-dock-restore {
+		cursor: pointer;
+	}
+}
+
+@media (min-width: 651px) and (hover: hover) and (pointer: fine) {
+	.ai-dock-tools {
+		opacity: 0;
+		pointer-events: none;
+	}
+	.ai-dock:hover .ai-dock-tools,
+	.ai-dock:has(:focus-visible) .ai-dock-tools {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
+
 /* Chips, segmented controls and switches. */
 .chips {
 	display: flex;

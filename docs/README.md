@@ -223,3 +223,5 @@
 - [2026-10-22 测试与旧模板清理](records/2026-10-22-test-cleanup/README.md)：过时正文、媒体断言、旧模板与文案哈希清理及恢复标签。
 
 - [发布前清空测试数据与数据库准备](records/2026-10-23-pre-release-reset/README.md)
+
+- [AI 栏交互](product/ai-dock.md)：桌面缩小、拖动与跨端状态。
