@@ -11,12 +11,21 @@ import { backupDigest } from "./backup-service.ts";
 import { backupEncryptionKey, openBackupSecret, sealBackupSecret } from "./backup-vault.ts";
 import { type SupabaseRepository, serviceError } from "./supabase-repository.ts";
 export class BackupRuntime {
+	private owner: string;
+	private repo: SupabaseRepository;
+	private config: any;
+	private providerFactory: typeof backupProvider;
 	constructor(
-		private owner: string,
-		private repo: SupabaseRepository,
-		private config: any,
-		private providerFactory = backupProvider,
-	) {}
+		owner: string,
+		repo: SupabaseRepository,
+		config: any,
+		providerFactory = backupProvider,
+	) {
+		this.owner = owner;
+		this.repo = repo;
+		this.config = config;
+		this.providerFactory = providerFactory;
+	}
 	rpc(op: string, p: any = {}) {
 		return this.repo.rpc("sill_backup_operation", { op, p });
 	}

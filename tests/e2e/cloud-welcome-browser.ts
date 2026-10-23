@@ -86,6 +86,8 @@ try {
 			const request = route.request(),
 				path = new URL(request.url()).pathname;
 			assert.equal(request.headers()["x-sill-owner"], "synthetic-owner");
+			if (path === "/api/v1/backups" && request.method() === "GET")
+				return route.fulfill({ json: { targets: [], backups: [] } });
 			if (path === "/api/v1/workspace" && request.method() === "GET") {
 				if (holdWorkspace) {
 					holdRequest(route);
