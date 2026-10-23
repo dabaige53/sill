@@ -10,6 +10,7 @@ const Glyphs = {
 	forward30:
 		'<path d="M19 7a9 9 0 1 0 1 10M19 3v5h-5M7 11h2a1.7 1.7 0 0 1 0 3h-1m1 0a2 2 0 0 1 0 4H7"/><rect x="13" y="11" width="4" height="7" rx="2"/>',
 
+	"ai-minimize": '<path d="M5 12h14"/>',
 	// Lucide ISC icons; source and license are recorded in assets/Icons/README.md.
 	paperclip:
 		'<path d="m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"/>',

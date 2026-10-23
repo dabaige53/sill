@@ -41,6 +41,7 @@ var Sill = (() => {
     message: '<path d="M4 5.5h16v11H9l-4 3v-3H4Z"/>',
     rewind15: '<path d="M5 7a9 9 0 1 1-1 10M5 3v5h5M7 12l2-1v7m7-7h-4v3h2a2 2 0 0 1 0 4h-2"/>',
     forward30: '<path d="M19 7a9 9 0 1 0 1 10M19 3v5h-5M7 11h2a1.7 1.7 0 0 1 0 3h-1m1 0a2 2 0 0 1 0 4H7"/><rect x="13" y="11" width="4" height="7" rx="2"/>',
+    "ai-minimize": '<path d="M5 12h14"/>',
     // Lucide ISC icons; source and license are recorded in assets/Icons/README.md.
     paperclip: '<path d="m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"/>',
     "audio-lines": '<path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3"/>',
@@ -1015,6 +1016,9 @@ var Sill = (() => {
     "web.settings.layout.full": "\u94FA\u6EE1",
     "web.settings.layout.strong": "\u52A0\u91CD",
     "web.settings.layout.reset": "\u6062\u590D\u9ED8\u8BA4\u6392\u7248",
+    "web.ai.expand": "\u5C55\u5F00 AI \u8F93\u5165\u6846",
+    "web.ai.collapse": "\u7F29\u5C0F AI \u8F93\u5165\u6846",
+    "web.ai.move": "\u5DE6\u53F3\u62D6\u52A8\uFF0C\u6216\u6309\u5DE6\u53F3\u65B9\u5411\u952E\u79FB\u52A8",
     "reminders.title": "\u7CFB\u7EDF\u63D0\u9192",
     "reminders.webHint": "\u4EC5\u6B64\u8BBE\u5907\u751F\u6548\u3002\u7F51\u9875\u6253\u5F00\u65F6\uFF0C\u63D0\u9192\u4F1A\u663E\u793A\u5728\u7CFB\u7EDF\u901A\u77E5\u4E2D\u3002",
     "reminders.macHint": "\u4EC5\u6B64\u8BBE\u5907\u751F\u6548\u3002\u5DF2\u8F7D\u5165\u7684\u63D0\u9192\u7531\u7CFB\u7EDF\u6309\u65F6\u901A\u77E5\uFF0C\u5173\u95ED\u7A97\u53E3\u540E\u4ECD\u6709\u6548\u3002",

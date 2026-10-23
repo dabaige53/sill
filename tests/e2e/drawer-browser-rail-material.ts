@@ -76,17 +76,29 @@ export async function runRailMaterial({
 		"capsule fades during scrolling, pause and interruption",
 		async (page) => {
 			const dock = page.locator("#dock");
+			// Observe both fades in-page before scrolling, so CI round trips cannot miss them.
 			await page.evaluate(() => {
+				const dock = document.querySelector<HTMLElement>("#dock");
+				const samples: {
+					fading: { opacity: number; inert: boolean } | null;
+					returning: number | null;
+				} = { fading: null, returning: null };
+				(window as any).__railFadeSamples = samples;
+				const sample = () => {
+					const opacity = Number(getComputedStyle(dock).opacity);
+					const tucked = dock.classList.contains("is-tucked");
+					if (opacity > 0 && opacity < 1) {
+						if (tucked && !samples.fading) samples.fading = { opacity, inert: dock.inert };
+						if (!tucked && samples.fading) samples.returning = opacity;
+					}
+					if (!samples.returning && performance.now() < deadline) requestAnimationFrame(sample);
+				};
+				const deadline = performance.now() + 5000;
+				requestAnimationFrame(sample);
 				window.scrollTo(0, 400);
 			});
-			await page.waitForFunction(() =>
-				document.querySelector("#dock").classList.contains("is-tucked"),
-			);
-			await page.waitForTimeout(70);
-			const fading = await dock.evaluate((n: HTMLElement) => ({
-				opacity: Number(getComputedStyle(n).opacity),
-				inert: n.inert,
-			}));
+			await page.waitForFunction(() => (window as any).__railFadeSamples.fading);
+			const fading = await page.evaluate(() => (window as any).__railFadeSamples.fading);
 			assert.ok(fading.opacity > 0 && fading.opacity < 1);
 			assert.equal(fading.inert, true);
 			assert.equal(
@@ -98,10 +110,8 @@ export async function runRailMaterial({
 			await page.waitForFunction(
 				() => !document.querySelector("#dock").classList.contains("is-tucked"),
 			);
-			await page.waitForTimeout(70);
-			const returning = await dock.evaluate((n: HTMLElement) =>
-				Number(getComputedStyle(n).opacity),
-			);
+			await page.waitForFunction(() => (window as any).__railFadeSamples.returning);
+			const returning = await page.evaluate(() => (window as any).__railFadeSamples.returning);
 			assert.ok(returning > 0 && returning < 1);
 			await page.waitForTimeout(450);
 			assert.equal(await dock.evaluate((n: HTMLElement) => getComputedStyle(n).opacity), "1");

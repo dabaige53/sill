@@ -52,3 +52,15 @@
 | [Web 代码工作包](../guides/web-pwa-code-packages.md) | 追溯 C1–C6 工作包及当时的证据 | 按原任务维护 |
 | [Web 与 PWA 接手提示词](../guides/web-pwa-agent-prompts.md) | 查原阶段的接手安排 | 按原任务维护；新任务沿用现行规则 |
 
+
+## 产品规则
+
+| 文档 | 用途与查阅时机 | 更新时机 |
+| --- | --- | --- |
+| [产品需求](../product/requirements.md) | 判断需求是否符合产品目标与范围 | 已确认的目标或业务规则变化 |
+| [Agent 驱动与 MCP 连接](../product/agent-mcp.md) | 确认 AI 与界面分工、当前接口及 V1 边界 | 产品分工、接口能力或 V1 范围变化 |
+| [远期执行与能力边界](../product/agent-execution.md) | 讨论内置助手、委托与可靠执行方案 | 远期方案获得确认或能力边界变化 |
+| [功能矩阵](../product/feature-matrix.md) | 比较 Web、Mac、iOS 与云端支持范围 | 实现、发布或验证状态变化 |
+| [界面对账表](../product/ui-alignment.md) | 核对两端同一功能、刻意差异与实测状态 | 任一端界面变化或取得新验证结果 |
+| [Sill 交互规范](../product/interaction-spec.md) | 按交互场景找到设计手册对应规则 | 规则入口或章节位置变化 |
+
