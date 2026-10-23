@@ -30,7 +30,7 @@ struct MediaBody: View {
       if card.isPodcast {
         BodyStack(compact: context.compact) {
           CardHead(card: card, text: card.displaySourceLine) {
-            if let remaining { Text(remaining).font(.number(AppleMetrics.font12)) }
+            if let remaining { Text(remaining).textStyle(AppleMetrics.font12, number: true) }
           }
           CardTitle(text: card.title, faded: faded, query: context.query)
           if !context.compact {
@@ -46,8 +46,8 @@ struct MediaBody: View {
               .foregroundStyle(AppleColors.card)
               .background(Circle().fill(AppleColors.primary))
             timeline
-            Text(card.duration.map(Format.duration) ?? Copy.text("web.media.unknownDuration")).font(
-              .number(AppleMetrics.font12))
+            Text(card.duration.map(Format.duration) ?? Copy.text("web.media.unknownDuration"))
+              .textStyle(AppleMetrics.font12, number: true)
           }.foregroundStyle(AppleColors.secondary).padding(.top, AppleMetrics.space4)
 
         }
@@ -67,7 +67,9 @@ struct MediaBody: View {
                     Text(
                       card.duration.map(Format.duration) ?? Copy.text("web.media.unknownDuration")
                     )
-                    .font(.number(AppleMetrics.font12)).foregroundStyle(AppleColors.fixedWhite)
+                    .textStyle(AppleMetrics.font12, number: true).foregroundStyle(
+                      AppleColors.fixedWhite
+                    )
                     .padding(.horizontal, AppleMetrics.space8).padding(
                       .vertical, AppleMetrics.space2
                     )
@@ -82,7 +84,7 @@ struct MediaBody: View {
           }
           BodyStack(compact: context.compact) {
             CardHead(card: card, text: card.displaySourceLine) {
-              if let remaining { Text(remaining).font(.number(AppleMetrics.font12)) }
+              if let remaining { Text(remaining).textStyle(AppleMetrics.font12, number: true) }
             }
             CardTitle(text: card.title, faded: faded, query: context.query)
           }

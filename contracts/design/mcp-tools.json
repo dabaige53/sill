@@ -899,6 +899,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -3508,6 +3563,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -3598,6 +3708,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -9223,6 +9388,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -11832,6 +12052,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -11922,6 +12197,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -18395,6 +18725,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -21004,6 +21389,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -21094,6 +21534,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -27609,6 +28104,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -30218,6 +30768,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -30308,6 +30913,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -35954,6 +36614,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -38563,6 +39278,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -38653,6 +39423,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -44316,6 +45141,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -46925,6 +47805,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -47015,6 +47950,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -52640,6 +53630,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -55249,6 +56294,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -55339,6 +56439,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -60957,6 +62112,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -63566,6 +64776,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -63656,6 +64921,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -70908,6 +72228,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -70998,6 +72373,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -72000,6 +73430,61 @@
                   "preferences": {
                     "type": "object",
                     "properties": {
+                      "cardTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "cardSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "cardPadding": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerTextSize": {
+                        "type": "string",
+                        "enum": [
+                          "small",
+                          "standard",
+                          "large"
+                        ]
+                      },
+                      "readerSpacing": {
+                        "type": "string",
+                        "enum": [
+                          "compact",
+                          "standard",
+                          "roomy"
+                        ]
+                      },
+                      "readerWidth": {
+                        "type": "string",
+                        "enum": [
+                          "narrow",
+                          "standard",
+                          "full"
+                        ]
+                      },
+                      "textWeight": {
+                        "type": "string",
+                        "enum": [
+                          "standard",
+                          "strong"
+                        ]
+                      },
                       "singleKeyShortcuts": {
                         "type": "boolean"
                       },
@@ -74609,6 +76094,61 @@
                         "values": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },
@@ -74699,6 +76239,61 @@
                         "before": {
                           "type": "object",
                           "properties": {
+                            "cardTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "cardSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "cardPadding": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerTextSize": {
+                              "type": "string",
+                              "enum": [
+                                "small",
+                                "standard",
+                                "large"
+                              ]
+                            },
+                            "readerSpacing": {
+                              "type": "string",
+                              "enum": [
+                                "compact",
+                                "standard",
+                                "roomy"
+                              ]
+                            },
+                            "readerWidth": {
+                              "type": "string",
+                              "enum": [
+                                "narrow",
+                                "standard",
+                                "full"
+                              ]
+                            },
+                            "textWeight": {
+                              "type": "string",
+                              "enum": [
+                                "standard",
+                                "strong"
+                              ]
+                            },
                             "singleKeyShortcuts": {
                               "type": "boolean"
                             },

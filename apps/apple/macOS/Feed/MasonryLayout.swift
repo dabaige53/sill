@@ -5,6 +5,8 @@ import SwiftUI
 /// columns still fit; three or more columns only at their ideal width.
 /// @design feed-columns
 struct ColumnGeometry: Equatable {
+  var appearance = ContentAppearance()
+  var paddingScale: CGFloat = 1
   var columns = 1
   var columnWidth: CGFloat = 0
   var gap: CGFloat = AppleMetrics.feedGap
@@ -15,11 +17,14 @@ struct ColumnGeometry: Equatable {
   init() {}
 
   init(width: CGFloat, preferences: Preferences) {
+    appearance = preferences.cardAppearance
+    paddingScale = preferences.cardPadding.scale
     let (min, ideal, _) = preferences.columns
-    let gap =
+    let baseGap =
       width < min * 2 + AppleMetrics.feedGap
       ? AppleMetrics.feedGapSmall
       : width < AppleMetrics.feedGapBreak ? AppleMetrics.feedGapMedium : AppleMetrics.feedGap
+    let gap = baseGap * preferences.cardSpacing.scale
     let fits = Swift.max(1, Int(((width + gap) / (min + gap)).rounded(.down)))
     let columns = Swift.max(
       1,

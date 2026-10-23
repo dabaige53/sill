@@ -80,6 +80,8 @@ struct PreviewSheet: View {
           card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
         )
         .padding(.bottom, barRoom)
+        .frame(maxWidth: workspace.preferences.readerWidth.width)
+        .frame(maxWidth: .infinity)
         .background(
           GeometryReader { proxy in
             Color.clear.onAppear { contentHeight = proxy.size.height }

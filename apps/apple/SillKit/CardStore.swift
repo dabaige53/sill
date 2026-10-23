@@ -98,6 +98,13 @@ public actor CardStore {
       "sort": ["priority", "unread", "time"], "archiveAfter": ["3d", "7d", "never"],
       "newHint": ["away", "off"], "theme": ["system", "light", "dark"],
       "density": ["compact", "standard", "roomy"],
+      "cardTextSize": ["small", "standard", "large"],
+      "readerTextSize": ["small", "standard", "large"],
+      "cardSpacing": ["compact", "standard", "roomy"],
+      "cardPadding": ["compact", "standard", "roomy"],
+      "readerSpacing": ["compact", "standard", "roomy"],
+      "readerWidth": ["narrow", "standard", "full"],
+      "textWeight": ["standard", "strong"],
     ]
     let booleans = [
       "singleKeyShortcuts", "reduceTransparency", "stack", "fadeRead",

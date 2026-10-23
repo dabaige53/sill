@@ -146,6 +146,10 @@
 | `newHint` | `away / off` |
 | `theme` | `system / light / dark` |
 | `density` | `compact / standard / roomy` |
+| `cardTextSize`、`readerTextSize` | `small / standard / large`；分别调整卡片和阅读字号，默认 `standard` |
+| `cardSpacing`、`cardPadding`、`readerSpacing` | `compact / standard / roomy`；分别调整卡片间距、内部留白、阅读行段间距，默认 `standard` |
+| `readerWidth` | `narrow / standard / full`；默认 `full` |
+| `textWeight` | `standard / strong`；默认 `standard`，作用于卡片与阅读内容 |
 | `hiddenActions` | 字符串数组，取值 `bookmark / tag / later / reply / open / join / snooze / download / dismiss`；列出的操作不出现在卡片详情底部，功能本身仍可用 |
 
 `aiLocal` 是保留的偏好字段，不能据此声称存在内置助手。`reading.add` 更新工作区累计阅读秒数，总值不能超过 10000000。读取快照核对结果，不重复累加未知结果。

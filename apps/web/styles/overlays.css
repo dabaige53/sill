@@ -284,7 +284,7 @@ dialog::backdrop {
 	display: flex;
 	align-items: center;
 	gap: var(--space-6);
-	font-size: var(--text-meta);
+	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 	color: var(--secondary);
 }
 .preview-meta > span {
@@ -299,20 +299,20 @@ dialog::backdrop {
 }
 .preview-body h1,
 .preview-body .preview-title-row {
-	font-size: 24px;
-	font-weight: 600;
+	font-size: calc(24px * var(--content-text-scale, 1));
+	font-weight: calc(600 + var(--content-weight-add, 0));
 	letter-spacing: -0.03em;
-	line-height: 1.35;
+	line-height: calc(1.35 * var(--reader-line-scale, 1));
 	white-space: pre-line;
 }
 .preview-lead {
-	font-size: 16px;
-	line-height: 1.7;
+	font-size: calc(16px * var(--content-text-scale, 1));
+	line-height: calc(1.7 * var(--reader-line-scale, 1));
 	color: var(--ink);
 }
 .preview-full p {
-	font-size: 16px;
-	line-height: 1.85;
+	font-size: calc(16px * var(--content-text-scale, 1));
+	line-height: calc(1.85 * var(--reader-line-scale, 1));
 	color: var(--ink);
 	white-space: pre-wrap;
 }
@@ -321,14 +321,14 @@ dialog::backdrop {
 	margin-top: var(--space-16);
 }
 .preview-full :is(h1, h2, h3, h4, h5, h6) {
-	font-size: 18px;
-	font-weight: 600;
-	line-height: 1.5;
+	font-size: calc(18px * var(--content-text-scale, 1));
+	font-weight: calc(600 + var(--content-weight-add, 0));
+	line-height: calc(1.5 * var(--reader-line-scale, 1));
 	letter-spacing: -0.01em;
 	color: var(--ink);
 }
 .preview-full :is(h1, h2) {
-	font-size: 20px;
+	font-size: calc(20px * var(--content-text-scale, 1));
 }
 .preview-full :is(ul, ol) {
 	margin: 0;
@@ -338,13 +338,13 @@ dialog::backdrop {
 	gap: var(--space-4);
 }
 .preview-full li {
-	font-size: 16px;
-	line-height: 1.75;
+	font-size: calc(16px * var(--content-text-scale, 1));
+	line-height: calc(1.75 * var(--reader-line-scale, 1));
 	color: var(--ink);
 }
 .preview-full ol > li::marker {
 	color: var(--accent);
-	font-weight: 600;
+	font-weight: calc(600 + var(--content-weight-add, 0));
 }
 .preview-full li > :is(ul, ol) {
 	margin-top: var(--space-4);
@@ -386,16 +386,16 @@ dialog::backdrop {
 	border: 1px solid var(--line-card);
 	border-radius: var(--space-14);
 	padding: var(--space-12) var(--space-14);
-	font-size: var(--text-control);
-	line-height: 1.6;
+	font-size: calc(var(--text-control) * var(--content-text-scale, 1));
+	line-height: calc(1.6 * var(--reader-line-scale, 1));
 	color: var(--secondary);
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
 }
 .preview-note-label {
 	display: block;
-	font-size: var(--text-caption);
-	font-weight: 400;
+	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
+	font-weight: calc(400 + var(--content-weight-add, 0));
 	margin-bottom: var(--space-4);
 }
 .preview-body .preview-note p,
@@ -414,10 +414,10 @@ dialog::backdrop {
 	flex-direction: column;
 }
 .preview-sender b {
-	font-size: var(--text-body);
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 }
 .preview-sender small {
-	font-size: var(--text-caption);
+	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
 	color: var(--muted);
 }
 .detail-rows {
@@ -430,7 +430,7 @@ dialog::backdrop {
 	gap: var(--space-12);
 	min-height: 48px;
 	border-top: 1px solid var(--line);
-	font-size: var(--text-body);
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 }
 .detail-row:first-child {
 	border-top: 0;
@@ -453,7 +453,7 @@ dialog::backdrop {
 	text-overflow: ellipsis;
 }
 .detail-row small {
-	font-size: var(--text-meta);
+	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 	color: var(--muted);
 	white-space: nowrap;
 }
@@ -465,12 +465,12 @@ dialog::backdrop {
 }
 .detail-row b {
 	display: block;
-	font-weight: 400;
+	font-weight: calc(400 + var(--content-weight-add, 0));
 }
 .detail-row em {
 	display: block;
 	font-style: normal;
-	font-size: var(--text-caption);
+	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
 	color: var(--muted);
 }
 button.detail-row {
@@ -492,20 +492,20 @@ button.detail-row:active {
 	flex-wrap: wrap;
 }
 .event-hero .num:first-child {
-	font-size: 52px;
-	line-height: 1.05;
-	font-weight: 600;
+	font-size: calc(52px * var(--content-text-scale, 1));
+	line-height: calc(1.05 * var(--reader-line-scale, 1));
+	font-weight: calc(600 + var(--content-weight-add, 0));
 	letter-spacing: -0.03em;
 }
 .event-hero small {
-	font-size: var(--text-body);
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 	color: var(--muted);
 }
 .why-line {
 	display: flex;
 	align-items: center;
 	gap: var(--space-10);
-	font-size: var(--text-control);
+	font-size: calc(var(--text-control) * var(--content-text-scale, 1));
 	color: var(--ink);
 }
 .why-line .icon {
@@ -513,7 +513,7 @@ button.detail-row:active {
 }
 .detail-task-list .check-item {
 	min-height: 44px;
-	font-size: var(--text-body);
+	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
 }
 .preview-tags {
 	display: flex;
@@ -522,10 +522,10 @@ button.detail-row:active {
 }
 
 .preview-tags .chip {
-	font-size: var(--text-caption);
+	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
 	min-height: 0;
 	padding: var(--space-3) var(--space-8);
-	line-height: 1.5;
+	line-height: calc(1.5 * var(--reader-line-scale, 1));
 	max-width: 100%;
 	overflow-wrap: anywhere;
 }
@@ -533,11 +533,7 @@ button.detail-row:active {
 	margin-top: 0;
 	display: grid;
 	gap: var(--space-6);
-	font-size: var(--text-caption);
-	line-height: 1.6;
+	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
+	line-height: calc(1.6 * var(--reader-line-scale, 1));
 	color: var(--secondary);
-}
-.settings-hint {
-	margin: var(--space-8) var(--space-4) 0;
-	font-size: var(--text-meta);
 }

@@ -1,6 +1,6 @@
 # 跨端数据约定
 
-更新：2026-10-22。现行约定为 4.1.0；产品版本独立管理。字段升级不兼容旧 `meta`。4.0.0 起详情文字只有一个 Markdown `body`（[ADR 0063](../docs/adr/0063-markdown-body.md)）；旧的 `body` 数组和 `points` 只在读取副本时转换，不改写存量数据。4.1.0 新增 PR 快照、媒体播放字段和邮件附件数组。
+更新：2026-10-23。现行约定为 4.1.0；产品版本独立管理。字段升级不兼容旧 `meta`。4.0.0 起详情文字只有一个 Markdown `body`（[ADR 0063](../docs/adr/0063-markdown-body.md)）；旧的 `body` 数组和 `points` 只在读取副本时转换，不改写存量数据。4.1.0 新增 PR 快照、媒体播放字段和邮件附件数组。
 
 - `card.ts`：已实现的本地卡片结构和旧来源字段的纯内存转换；保留未知字段、未知卡片类型，不修改原输入。
 - `local.ts`：已实现的本地状态和批量操作。
@@ -55,3 +55,14 @@ PR 必填字段为 `repository`（owner/repo）、`number`（正安全整数）�
 计算全文阅读时长要求 bodyCoverage=full。bodyCoverage=none 不允许 calculated；available 仅针对已保存正文，不得称为全文。provided 不依赖本机是否保存全文；未知时长省略；`readingEstimate:null` 是唯一明确清除估算的写法，表示当前没有估算。其他新字段不接受 null。所有视图使用同一格式化规则，秒数仅在展示时转为分钟。计算结果须随正文变更更新，不构建自动抓取或按未知语言速度估算的引擎。
 
 Card 的 created_at / updated_at / revision 等仍由服务端控制，不接受写入。个人阅读计时 seconds、progress 和 readingEstimate 相互独立。外部保存日期 savedAt 不与个人状态 addedAt 混用。
+
+## 内容排版偏好
+
+`appearance.ts` 定义由 `local.ts` 和 `cloud.ts` 共用的偏好字段。通过 `preferences.patch` 更新，沿用工作区版本、原始值与幂等检查，不改变卡片内容。
+
+- `cardTextSize / readerTextSize`：small、standard、large，默认 standard。
+- `cardSpacing / cardPadding / readerSpacing`：compact、standard、roomy，默认 standard。
+- `readerWidth`：narrow、standard、full，默认 full。
+- `textWeight`：standard、strong，默认 standard。
+
+部署云端前先应用 `20261023111147_sill_layout_preferences.sql`，再发布支持新字段的 API 和客户端。迁移只扩展偏好校验，不改写现有卡片、偏好或权限。界面与 AI 使用同一组值。

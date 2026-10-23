@@ -98,6 +98,8 @@ struct CardFace: View {
       state.selected ? AppleColors.accent : selecting ? AppleColors.lineHover : .clear
     CardBody(card: card, state: state, context: context)
       .environment(\.cardFaded, faded)
+      .environment(\.contentAppearance, context.appearance)
+      .environment(\.cardPaddingScale, context.paddingScale)
       .background(shape.fill(faded ? AppleColors.readCard : AppleColors.card))
       .clipShape(shape)
       .overlay(shape.strokeBorder(border, lineWidth: AppleMetrics.lineWidth))

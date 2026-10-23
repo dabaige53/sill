@@ -1,3 +1,4 @@
+import { defaultAppearance } from "../../../contracts/appearance.ts";
 import type { Card } from "../../../contracts/card.ts";
 import { normalizeCard } from "../../../contracts/card-migration.ts";
 import type { CardState, State } from "../../../contracts/local.ts";
@@ -81,6 +82,7 @@ interface CardStore {
 
 /** Browser backup; local mode synchronizes it with the agent-readable repository. */
 const DefaultPreferences: Preferences = {
+	...defaultAppearance,
 	singleKeyShortcuts: true,
 	sort: "priority",
 	stack: true,

@@ -168,6 +168,21 @@
 				"CardTypeMobile",
 				"CardTypeReading"
 			]
+		},
+		"layout-preferences": {
+			"title": "内容排版偏好",
+			"rule": "handbook/content-layout.md#内容排版偏好",
+			"tokens": [
+				"card-padding",
+				"gap",
+				"card-title",
+				"article-body"
+			],
+			"adr": "0064",
+			"boards": [
+				"SettingsDesktop",
+				"SettingsMobile"
+			]
 		}
 	}
 }

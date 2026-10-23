@@ -37,7 +37,7 @@ struct DetailFiles: View {
   var body: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.space10) {
       if !files.isEmpty {
-        Text(label).font(.sans(AppleMetrics.font13, .semibold)).foregroundStyle(
+        Text(label).textStyle(AppleMetrics.font13, .semibold).foregroundStyle(
           AppleColors.secondary)
       }
       VStack(spacing: 0) {

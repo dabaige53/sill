@@ -16,7 +16,8 @@ struct FeedView: View {
     let preferences = workspace.preferences
     let context = CardContext(
       now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
-      fadeRead: preferences.fadeRead)
+      fadeRead: preferences.fadeRead, appearance: preferences.cardAppearance,
+      paddingScale: preferences.cardPadding.scale)
     ScrollView(.vertical) {
       VStack(spacing: 0) {
         Color.clear.frame(height: topInset)

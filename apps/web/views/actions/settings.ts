@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { defaultAppearance } from "../../../../contracts/appearance.ts";
 import { copy } from "../../copy.ts";
 import { Store } from "../../data/store.ts";
 import { PanelViews as Panels } from "../../interactions/panels-components.tsx";
@@ -76,7 +77,16 @@ function welcomeDemo(this: AppController) {
 	this.loadDemo();
 }
 
+function resetLayout(this: AppController) {
+	Object.assign(Store.state.preferences, defaultAppearance, { density: "standard" });
+	Store.save();
+	this.applyPreferences();
+	this.withFeedAnchor(() => {}, true);
+	this.repaintSettings();
+}
+
 export const settingsActions = {
+	"layout-reset": resetLayout,
 	settings: settings,
 	"settings-group": settingsGroup,
 	pref: pref,

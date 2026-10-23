@@ -37,9 +37,9 @@ extension View {
     _ size: CGFloat, _ weight: Font.Weight = .regular, leading: CGFloat? = nil,
     tracking: CGFloat = 0, number: Bool = false
   ) -> some View {
-    font(number ? .number(size, weight) : .sans(size, weight))
-      .tracking(size * tracking)
-      .lineSpacing(leading.map { LineHeight.spacing(size: size, ratio: $0) } ?? 0)
+    modifier(
+      ContentTextStyle(
+        size: size, weight: weight, leading: leading, tracking: tracking, number: number))
   }
 }
 

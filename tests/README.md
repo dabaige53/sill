@@ -1,6 +1,6 @@
 # 测试目录
 
-更新：2026-10-21。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
+更新：2026-10-23。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
 以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/guides/testing.md) 确认授权、范围和结果边界。
 
@@ -26,6 +26,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 
 | 改动 | 入口 | 边界 |
 | --- | --- | --- |
+| 排版偏好 | `node --import tsx --test tests/server/layout-preferences.test.ts tests/web/layout.test.ts`；`node tests/apple/run.ts --filter AppearanceTests` | 合成数据库：迁移保留数据、偏好批量写入、冲突、重放、非法值回滚；Mac 排版缓存与旧数据默认值，不启动界面 |
 | 文件归属、导航、忽略规则 | `npm run files:check` | 只读，不启动服务 |
 | Codex 提交前文件大小钩子 | `node --test tests/server/check-staged-file-tokens.test.ts` | 临时 Git 仓库与合成 hook 输入；字节边界、UTF-8、部分暂存、特殊文件名、豁免、改名、删除与 Codex 阻止结果 |
 | 完整 Node 检查 | `npm test` | 文件、Schema、构建、语法、类型、共享约定、Web 核心、全部服务端测试与性能报告解析 |

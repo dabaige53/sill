@@ -216,7 +216,8 @@ private struct CardTransitionFace: View {
       let state = workspace.state(id)
       let context = CardContext(
         now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
-        fadeRead: workspace.preferences.fadeRead)
+        fadeRead: workspace.preferences.fadeRead, appearance: workspace.preferences.cardAppearance,
+        paddingScale: workspace.preferences.cardPadding.scale)
       CardFace(card: card, state: state, context: context, faded: cardFaded(card, state, context))
         .allowsHitTesting(false).accessibilityHidden(true)
     }
