@@ -1,0 +1,24 @@
+[
+  {
+    "case": "held finger",
+    "full": false,
+    "top": 64
+  },
+  {
+    "case": "released after scroll",
+    "full": true,
+    "scroll": 80,
+    "top": 0
+  },
+  {
+    "case": "cancelled finger",
+    "full": false,
+    "top": 64
+  },
+  {
+    "case": "five rapid reversals",
+    "dialogs": 1,
+    "open": true,
+    "title": "跨团队全球发布与安全审查联席会议"
+  }
+]

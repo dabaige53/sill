@@ -45,6 +45,8 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | 内容保真与阅读密度 | `npm run build && npm run test:material-density` | 合成卡片：中等桌面列宽、紧凑五列上限、任务焦点、摘要原文、长要点与任务换行；1320px、390px、320px，截图在 `artifacts/material-density/` |
 | 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 真实 Tab、CDP touchCancel、迟到关闭、拖动层级、工具条延迟、菜单入场中断、提示替换与详情反向切换、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界；不代替 iPhone 系统菜单与主屏幕实测 |
+| PWA 极端内容交互预览 | `npm run build && node tests/e2e/pwa-stress-preview.ts` | 隔离随机端口；Demo／Worst case／Empty／One／1,000 rows，宽度、主题与文字切换；`pwa-stress-fixture.ts` 校验合成卡片，不读取本地产品数据，不自动启动浏览器；200% 仅为内容字号压力条件 |
+| 阅读展开与触摸归属 | `node --import tsx --test tests/web/gestures.test.ts tests/web/gesture-preview.test.ts tests/web/gesture-surfaces.test.ts` | 合成触摸、计时器和绘制帧：按住不展开、停稳展开、普通点击、取消、多指、旧面板回调、横向内容与控件、每帧合并；不代表真机性能 |
 | 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、隐藏偏好和生成组件包的固定深色环境；不代替真机 |
 | 卡片操作设置示例 | `npm run build && node tests/e2e/card-actions-settings-browser.ts` | 三宽度、浅深色；九个示例、读屏说明、开关名称与焦点、末项可滚动到达、仅修改指定偏好，文章三视图同一字段和末尾备注框，不修改来源卡片 |
 | 主页五分栏 | `npm run build && node tests/e2e/home-tabs-browser.ts` | 320/390/1440 浅深色与 1920 宽屏；桌面对齐、五个筛选结果、单个当前项、搜索条件隔离、切换后恢复阅读位置且导航保持可见、来源卡片不变 |

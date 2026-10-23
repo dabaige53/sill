@@ -7,6 +7,8 @@ import { MotionEngine } from "./motion.ts";
 /** Shared gesture release, interruption and surface exit rules. */
 class Gestures {
 	declare bindPreviewHandle: GesturesMethods["bindPreviewHandle"];
+	declare setPreviewFull: GesturesMethods["setPreviewFull"];
+	declare bindPreviewExpansion: GesturesMethods["bindPreviewExpansion"];
 	declare bindPreviewResistance: GesturesMethods["bindPreviewResistance"];
 	declare bindPush: GesturesMethods["bindPush"];
 	declare bindPull: GesturesMethods["bindPull"];
@@ -34,6 +36,21 @@ class Gestures {
 	}
 	fromField(e?: any) {
 		return !!e.target.closest?.('input,textarea,[contenteditable="true"]');
+	}
+	/** Native controls and horizontal scrollers own their entire touch sequence. */
+	fromHorizontalContent(event: TouchEvent) {
+		const target = event.target as Element;
+		if (
+			target.closest(
+				'button,a,input,textarea,select,audio,video,iframe,[role="slider"],[contenteditable="true"]',
+			)
+		)
+			return true;
+		for (let node = target; node && node !== this.app.dialog; node = node.parentElement) {
+			if (node.scrollWidth <= node.clientWidth + 1) continue;
+			if (/^(auto|scroll)$/.test(getComputedStyle(node).overflowX)) return true;
+		}
+		return false;
 	}
 	value(name: string, fallback: number) {
 		return MotionEngine.time(`gesture-${name}`) || fallback;

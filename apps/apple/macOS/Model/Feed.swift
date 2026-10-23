@@ -189,16 +189,18 @@ enum FeedEntry: Identifiable, Equatable {
   @ObservationIgnored private var pendingQuery: String?
 
   /// Text editing is immediate; only the last result calculation survives rapid typing.
-  func scheduleSearch(_ text: String) {
+  @discardableResult func scheduleSearch(_ text: String) -> Task<Void, Never> {
     searchTask?.cancel()
     pendingQuery = text
-    searchTask = Task { [weak self] in
+    let task = Task { [weak self] in
       do { try await Task.sleep(for: .milliseconds(Int(AppleMetrics.searchDelay))) } catch {
         return
       }
-      guard let self else { return }
+      guard !Task.isCancelled, let self else { return }
       self.search(text)
     }
+    searchTask = task
+    return task
   }
 
   func select(_ next: Scope) {

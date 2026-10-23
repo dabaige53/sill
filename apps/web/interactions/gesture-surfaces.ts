@@ -15,8 +15,9 @@ export const gestureSurfacesMethods = {
 			if (!drag) return;
 			cancelAnimationFrame(frame);
 			frame = 0;
-			const { sheet, bar, token } = drag;
+			const { sheet, bar, token, live } = drag;
 			drag = null;
+			if (!live) return;
 			sheet.classList.remove("is-drag");
 			this.settle(sheet);
 			if (bar) bar.style.opacity = "";
@@ -43,7 +44,7 @@ export const gestureSurfacesMethods = {
 					token: this.app.modalToken,
 					...this.point(e),
 					velocity: this.velocity(this.point(e).y),
-					base: this.capture(sheet),
+					base: 0,
 					dy: 0,
 					live: false,
 					bar: dialog.querySelector(":scope > .float-bar"),
@@ -66,6 +67,7 @@ export const gestureSurfacesMethods = {
 						return;
 					}
 					drag.live = true;
+					drag.base = this.capture(drag.sheet);
 					drag.sheet.classList.add("is-drag");
 					dialog.classList.add("is-drag");
 				}
@@ -109,11 +111,21 @@ export const gestureSurfacesMethods = {
 	bindReaderSwipe(this: Gestures) {
 		const dialog = this.app.dialog;
 		let swipe = null;
+		let frame = 0;
+		const paint = () => {
+			cancelAnimationFrame(frame);
+			frame = 0;
+			if (!swipe?.live || swipe.token !== this.app.modalToken) return;
+			MotionEngine.move(dialog, `${swipe.dx}px 0`, true);
+			this.dim(1 - Math.min(1, swipe.dx / innerWidth));
+		};
 		const cancel = () => {
 			if (!swipe) return;
-			const { token } = swipe;
+			cancelAnimationFrame(frame);
+			frame = 0;
+			const { token, live } = swipe;
 			swipe = null;
-			if (this.app.modalToken === token) {
+			if (live && this.app.modalToken === token) {
 				dialog.classList.remove("is-drag");
 				this.settle(dialog, 0, "x");
 				this.dim(null);
@@ -126,7 +138,7 @@ export const gestureSurfacesMethods = {
 				if (
 					!dialog.classList.contains("reader") ||
 					e.touches.length > 1 ||
-					this.fromField(e) ||
+					this.fromHorizontalContent(e) ||
 					e.target.closest(".float-bar")
 				)
 					return;
@@ -134,7 +146,7 @@ export const gestureSurfacesMethods = {
 					...this.point(e),
 					token: this.app.modalToken,
 					velocity: this.velocity(this.point(e).x),
-					base: this.capture(dialog, "x"),
+					base: 0,
 					dx: 0,
 					live: false,
 				};
@@ -156,19 +168,20 @@ export const gestureSurfacesMethods = {
 						return;
 					}
 					swipe.live = true;
+					swipe.base = this.capture(dialog, "x");
 					dialog.classList.add("is-drag");
 				}
 				if (e.cancelable) e.preventDefault();
 				swipe.velocity.feed(p.x);
 				swipe.dx = Math.max(0, swipe.base + dx);
-				MotionEngine.move(dialog, `${swipe.dx}px 0`, true);
-				this.dim(1 - Math.min(1, swipe.dx / innerWidth));
+				if (!frame) frame = requestAnimationFrame(paint);
 			},
 			{ passive: false },
 		);
 		dialog.addEventListener("touchend", () => {
 			if (swipe && swipe.token !== this.app.modalToken) return cancel();
 			if (!swipe?.live) return cancel();
+			paint();
 			const { dx } = swipe,
 				v = swipe.velocity.read();
 			swipe = null;

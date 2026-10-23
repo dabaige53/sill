@@ -175,12 +175,14 @@ for (const scenario of ["opened", "declined", "account-changed", "disconnected"]
 	});
 }
 
-for (const sourceRow of [true, false]) {
-	test(`preview chrome tracks height and close-disc position after resize (${sourceRow ? "source row" : "title fallback"})`, () => {
+for (const layout of ["source row", "title fallback", "podcast"]) {
+	test(`preview chrome tracks height and close-disc position after resize (${layout})`, () => {
 		const f = fixture();
 		try {
 			const { app, observers, w } = f;
-			app.dialog.innerHTML = `<div class="preview-sheet"><div class="sheet-scroll"><div class="preview-body">${sourceRow ? '<div class="preview-meta">Synthetic source</div>' : ""}<h1 id="modal-title" style="line-height:28px">Synthetic title</h1></div></div></div>`;
+			const sourceRow = layout === "source row",
+				podcast = layout === "podcast";
+			app.dialog.innerHTML = `<div class="preview-sheet"><div class="sheet-scroll"><div class="preview-body ${podcast ? "is-podcast" : ""}">${sourceRow ? '<div class="preview-meta">Synthetic source</div>' : ""}<h1 id="modal-title" style="line-height:28px">Synthetic title</h1></div></div></div>`;
 			const sheet = app.dialog.querySelector(".preview-sheet"),
 				scroll = sheet.querySelector(".sheet-scroll"),
 				anchor = sheet.querySelector(sourceRow ? ".preview-meta" : "#modal-title");
@@ -204,7 +206,7 @@ for (const sourceRow of [true, false]) {
 			assert.equal(app.dialog.style.getPropertyValue("--preview-height"), "400px");
 			assert.equal(
 				sheet.style.getPropertyValue("--preview-title-top"),
-				sourceRow ? "48px" : "52px",
+				podcast ? "var(--space-8)" : sourceRow ? "48px" : "52px",
 			);
 			assert.equal(observers[0].nodes.length, 2);
 			top = 100;
@@ -214,14 +216,17 @@ for (const sourceRow of [true, false]) {
 			assert.equal(app.dialog.style.getPropertyValue("--preview-height"), "500px");
 			assert.equal(
 				sheet.style.getPropertyValue("--preview-title-top"),
-				sourceRow ? "68px" : "72px",
+				podcast ? "var(--space-8)" : sourceRow ? "68px" : "72px",
 			);
 			scroll.dispatchEvent(new w.Event("scroll"));
 			assert.equal(sheet.classList.contains("is-scrolled"), true);
 			scroll.scrollTop = 0;
 			top = 0;
 			observers[0].callback();
-			assert.equal(sheet.style.getPropertyValue("--preview-title-top"), "4px");
+			assert.equal(
+				sheet.style.getPropertyValue("--preview-title-top"),
+				podcast ? "var(--space-8)" : "4px",
+			);
 			app.sheetHide.destroy();
 			app.previewSizeObserver.disconnect();
 		} finally {

@@ -301,11 +301,14 @@ a.detail-row:hover {
 }
 
 .type-file .file-rows {
+	/* @design content-boundaries */
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	justify-items: start;
 	gap: var(--space-6);
 }
 .type-file .file-row {
+	min-width: 0;
 	max-width: 100%;
 	border-radius: var(--space-10);
 	background: var(--surface);

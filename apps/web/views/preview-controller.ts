@@ -206,26 +206,22 @@ export function bindSheetChrome(this: AppController) {
 	// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 	const sheet = this.dialog.querySelector(".preview-sheet");
 	if (sheet) {
+		const token = this.modalToken;
 		const placeHead = () => {
+			if (token !== this.modalToken || !sheet.isConnected) return;
 			const expand = sheet.querySelector<HTMLElement>('[data-action="reader"]');
-			if (expand && Store.card(this.currentId)?.type !== "media")
-				expand.hidden = scroll.scrollHeight <= scroll.clientHeight + 2;
-			this.dialog.style.setProperty("--preview-height", `${sheet.offsetHeight}px`);
-			if (sheet.querySelector(".sheet-scroll > .preview-cover")) {
-				sheet.style.setProperty("--preview-title-top", "24px");
-				return;
-			}
+			const hideExpand = scroll.scrollHeight <= scroll.clientHeight + 2;
+			const height = `${sheet.offsetHeight}px`;
+			const cover = sheet.querySelector(".sheet-scroll > .preview-cover");
+			const podcast = sheet.querySelector(".is-podcast");
+			let titleTop = cover ? "24px" : podcast ? "var(--space-8)" : "";
 			const title = sheet.querySelector("#modal-title");
-			if (sheet.querySelector(".is-podcast")) {
-				sheet.style.setProperty("--preview-title-top", "var(--space-8)");
-				return;
-			}
 			// The disc sits in the source row above the title, so the title keeps the full width.
 			const row = sheet.querySelector(
 				".preview-body .preview-sender, .preview-body .preview-meta, .pr-detail .card-head",
 			);
 			const anchor = row || title;
-			if (anchor) {
+			if (anchor && !cover && !podcast) {
 				// Layout offsets stay stable while the card's opening transform animates.
 				let top = 0;
 				for (
@@ -237,8 +233,15 @@ export function bindSheetChrome(this: AppController) {
 				const line = row
 					? (anchor as HTMLElement).offsetHeight
 					: parseFloat(getComputedStyle(anchor).lineHeight) || 28;
-				sheet.style.setProperty("--preview-title-top", `${Math.max(4, top + line / 2 - 22)}px`);
+				titleTop = `${Math.max(4, top + line / 2 - 22)}px`;
 			}
+			// Read all geometry before writing; unchanged observations do no style work.
+			if (expand && Store.card(this.currentId)?.type !== "media" && expand.hidden !== hideExpand)
+				expand.hidden = hideExpand;
+			if (this.dialog.style.getPropertyValue("--preview-height") !== height)
+				this.dialog.style.setProperty("--preview-height", height);
+			if (titleTop && sheet.style.getPropertyValue("--preview-title-top") !== titleTop)
+				sheet.style.setProperty("--preview-title-top", titleTop);
 		};
 		this.previewSizeObserver = new ResizeObserver(placeHead);
 		this.previewSizeObserver.observe(sheet);

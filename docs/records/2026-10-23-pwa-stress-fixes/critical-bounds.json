@@ -1,0 +1,58 @@
+{
+  "related": [
+    {
+      "cls": "detail-related",
+      "paddingRight": "0px",
+      "scroll": 280,
+      "selector": ".detail-related,.detail-related .detail-row",
+      "width": 280
+    },
+    {
+      "cls": "detail-row",
+      "paddingRight": "0px",
+      "scroll": 280,
+      "selector": ".detail-related,.detail-related .detail-row",
+      "width": 280
+    },
+    {
+      "cls": "detail-row",
+      "paddingRight": "0px",
+      "scroll": 280,
+      "selector": ".detail-related,.detail-related .detail-row",
+      "width": 280
+    }
+  ],
+  "tags": [
+    {
+      "cls": "chip soft",
+      "paddingRight": "8px",
+      "scroll": 280,
+      "selector": ".preview-tags .chip",
+      "width": 280
+    },
+    {
+      "cls": "chip soft",
+      "paddingRight": "8px",
+      "scroll": 48,
+      "selector": ".preview-tags .chip",
+      "width": 48
+    },
+    {
+      "cls": "chip soft",
+      "paddingRight": "8px",
+      "scroll": 36,
+      "selector": ".preview-tags .chip",
+      "width": 36
+    }
+  ],
+  "title": [
+    {
+      "cls": "",
+      "paddingRight": "0px",
+      "scroll": 280,
+      "selector": "#modal-title",
+      "width": 280
+    }
+  ],
+  "viewport": 320
+}

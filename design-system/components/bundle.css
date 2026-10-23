@@ -3234,6 +3234,7 @@ button.detail-row:active {
 	padding: var(--space-3) var(--space-8);
 	line-height: calc(1.5 * var(--reader-line-scale, 1));
 	max-width: 100%;
+	white-space: normal;
 	overflow-wrap: anywhere;
 }
 .preview-published {
@@ -3706,6 +3707,8 @@ dialog > .float-bar.is-hidden {
 .compact-player small {
 	display: block;
 	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .compact-player progress {
 	position: absolute;

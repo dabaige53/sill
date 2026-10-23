@@ -1,0 +1,1052 @@
+[
+  {
+    "documentWidth": 320,
+    "id": "stress-mail",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 57.5,
+          "right": 101.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 105.5,
+          "right": 149.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 153.5,
+          "right": 197.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 218.5,
+          "right": 262.5,
+          "width": 44
+        }
+      ],
+      "left": 53.5,
+      "right": 266.5,
+      "width": 213
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-article",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 57.5,
+          "right": 101.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 105.5,
+          "right": 149.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 153.5,
+          "right": 197.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 218.5,
+          "right": 262.5,
+          "width": 44
+        }
+      ],
+      "left": 53.5,
+      "right": 266.5,
+      "width": 213
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-note",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 90,
+          "right": 134,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 138,
+          "right": 182,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 186,
+          "right": 230,
+          "width": 44
+        }
+      ],
+      "left": 86,
+      "right": 234,
+      "width": 148
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-task",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button is-own ",
+        "scroll": 77,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 33.5,
+          "right": 77.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 81.5,
+          "right": 125.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 129.5,
+          "right": 173.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 194.5,
+          "right": 238.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 242.5,
+          "right": 286.5,
+          "width": 44
+        }
+      ],
+      "left": 29.5,
+      "right": 290.5,
+      "width": 261
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-event",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button is-own ",
+        "scroll": 77,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button is-own ",
+        "scroll": 58,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 17.5,
+          "right": 61.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 63.5,
+          "right": 107.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 109.5,
+          "right": 153.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 166.5,
+          "right": 210.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 212.5,
+          "right": 256.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 258.5,
+          "right": 302.5,
+          "width": 44
+        }
+      ],
+      "left": 13.5,
+      "right": 306.5,
+      "width": 293
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-reminder",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button is-own ",
+        "scroll": 77,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 33.5,
+          "right": 77.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 81.5,
+          "right": 125.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 129.5,
+          "right": 173.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 194.5,
+          "right": 238.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 242.5,
+          "right": 286.5,
+          "width": 44
+        }
+      ],
+      "left": 29.5,
+      "right": 290.5,
+      "width": 261
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-file",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 57.5,
+          "right": 101.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 105.5,
+          "right": 149.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 153.5,
+          "right": 197.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 218.5,
+          "right": 262.5,
+          "width": 44
+        }
+      ],
+      "left": 53.5,
+      "right": 266.5,
+      "width": 213
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-video",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 57.5,
+          "right": 101.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 105.5,
+          "right": 149.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 153.5,
+          "right": 197.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 218.5,
+          "right": 262.5,
+          "width": 44
+        }
+      ],
+      "left": 53.5,
+      "right": 266.5,
+      "width": 213
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-podcast",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 57.5,
+          "right": 101.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 105.5,
+          "right": 149.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 153.5,
+          "right": 197.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 218.5,
+          "right": 262.5,
+          "width": 44
+        }
+      ],
+      "left": 53.5,
+      "right": 266.5,
+      "width": 213
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-digest",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 90,
+          "right": 134,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 138,
+          "right": 182,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 186,
+          "right": 230,
+          "width": 44
+        }
+      ],
+      "left": 86,
+      "right": 234,
+      "width": 148
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-suggestion",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 90,
+          "right": 134,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 138,
+          "right": 182,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 186,
+          "right": 230,
+          "width": 44
+        }
+      ],
+      "left": 86,
+      "right": 234,
+      "width": 148
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-photo",
+    "overflow": [
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 90,
+          "right": 134,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 138,
+          "right": 182,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 186,
+          "right": 230,
+          "width": 44
+        }
+      ],
+      "left": 86,
+      "right": 234,
+      "width": 148
+    },
+    "viewport": 320
+  },
+  {
+    "documentWidth": 320,
+    "id": "stress-pr",
+    "overflow": [
+      {
+        "cls": "sheet-head-tools",
+        "scroll": 48,
+        "tag": "DIV",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 48,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 68,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 78,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      },
+      {
+        "cls": "icon-button ",
+        "scroll": 52,
+        "tag": "BUTTON",
+        "text": "",
+        "width": 44,
+        "wrap": "normal"
+      }
+    ],
+    "root": {
+      "scrollWidth": 320,
+      "width": 320
+    },
+    "toolbar": {
+      "buttons": [
+        {
+          "height": 44,
+          "left": 57.5,
+          "right": 101.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 105.5,
+          "right": 149.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 153.5,
+          "right": 197.5,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "left": 218.5,
+          "right": 262.5,
+          "width": 44
+        }
+      ],
+      "left": 53.5,
+      "right": 266.5,
+      "width": 213
+    },
+    "viewport": 320
+  }
+]
