@@ -86,7 +86,7 @@
 | B06 | AI 框、多选条、详情工具条使用同一种玻璃 | [基础与组件](../../design-system/handbook/foundation.md#玻璃) | 基准 | 已接入 | 刻意不同 | 待确认（2026-10-21） | Mac 26+ 为原生 regular 玻璃；Web 为 `glass` 加 `glass-filter` |
 | B07 | 底部轨道随滚动收起 240ms、出现 320ms；桌面 AI 框单独出现 420ms `ease-reveal`，与顶栏同时到位；拖卡时显示 | [动效](../../design-system/handbook/motion.md#其他组件)；[网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框) | 基准 | 已接入 | 已接入 | 待确认（2026-10-22） | 手机导航胶囊仍为 320ms |
 | B08 | 拖动的卡片堆松手后淡出并缩到 0.95 | 同上 | 基准 | 不适用 | 已接入 | 待确认（2026-10-21） |  |
-| B09 | 会话列表与完整视图 | [网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框) | 不适用 | 不适用 | 不适用 | 未验证 | 内置 AI 接入后启用 |
+| B09 | 会话：一行的会话按钮、展开面板、完整视图、结果行（画板 49） | [网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框)；[ADR 0064](../adr/0064-ai-conversation-three-heights.md) | 不适用 | 不适用 | 不适用 | 未验证 | 内置 AI 接入后启用。2026-10-23 只改了手册与画板，Web 与 Mac 都没有代码；接入时两端一起实现 |
 
 ## 面板与设置
 
@@ -127,6 +127,7 @@
 | M03 | 独立 AI 页：输入框跟随软键盘，导航暂时隐藏 | [底部导航与反馈](../../design-system/handbook/interaction.md#底部导航与反馈) | 已接入 |
 | M04 | 详情抽屉、把手、滚动扩展至全屏 | [预览与叠放](../../design-system/handbook/interaction.md#预览与叠放) | 已接入 |
 | M05 | 软键盘、安全区、输入字号不小于 16px、长按显示工具名称 | [移动浏览器基础行为](../../design-system/handbook/web-interaction.md#移动浏览器基础行为) | 已接入 |
+| M06 | 有对话后的 AI 页：小顶行、消息、结果行、停止键、历史抽屉（画板 50；内置 AI 接入后启用，尚无代码） | [底部导航与反馈](../../design-system/handbook/interaction.md#底部导航与反馈) | 不适用 |
 
 ## 卡片重建设计与实现
 

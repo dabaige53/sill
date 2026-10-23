@@ -275,3 +275,5 @@
 - [账号共用数据、外部备份与设备提醒](adr/0065-account-backups-and-device-reminders.md)
 
 - [AI 栏交互](product/ai-dock.md)
+
+- [AI 对话的三种高度](adr/0064-ai-conversation-three-heights.md)

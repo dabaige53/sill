@@ -1,6 +1,6 @@
 # 设计参考
 
-更新：2026-10-20。此目录保存已采用的来源和原图；具体参数以[页面与交互](../handbook/interaction.md)、[基础与组件](../handbook/foundation.md)和[动效](../handbook/motion.md)为准。
+更新：2026-10-23。此目录保存已采用的来源和原图；具体参数以[页面与交互](../handbook/interaction.md)、[基础与组件](../handbook/foundation.md)和[动效](../handbook/motion.md)为准。
 
 ## 主要参考
 
@@ -23,6 +23,10 @@ AI 参考属于 **X 应用内页面**，不是独立 Grok 应用。原图展示�
 | [Apple Music 分类网格](https://mobbin.com/screens/38013fe5-6e15-4038-9c0f-039bf66715c7) | 两列分类卡片；不采用该图的底部搜索栏位置 |
 | [Apple Music 结果分类](https://mobbin.com/screens/6e9cc18e-6337-481f-91c5-d7ab3f09c247) | 搜索结果类型选项与列表层级 |
 | [Medium 阅读页](https://mobbin.com/screens/9659e74b-ceec-4bb5-a80d-5e975a5bdb4e) | 简洁日期行；具体位置与来源备注规则见页面与交互手册 |
+| [Linear 浮动 AI 面板](https://mobbin.com/screens/51c2bd60-f22d-4879-8c28-c5800ac1f4b6) | AI 面板浮在页面上、不加遮罩，可放大成完整视图；Sill 改为从底部 AI 框原地长高 |
+| [Voicenotes 问 AI 面板](https://mobbin.com/screens/67d70fbc-5b27-4bf4-ad71-57642585c132) | 上下文以小标签放在对话上方，你的话靠右成灰色气泡，回复不加头像 |
+| [ChatGPT 手机对话](https://mobbin.com/screens/10f190d9-afcf-456a-b86b-ceadedcc14ab) | 手机对话不加头像，AI 的话直接排在白底上；生成时发送键换成停止 |
+| [Manus 任务步骤](https://mobbin.com/screens/a122d298-fe12-4027-a567-a7ec866c8c01)、[Bevel 结果卡](https://mobbin.com/screens/190268cc-f8d8-4ad6-aa2f-af64e5fd7177) | 助手的动作和结果在回复下方逐条列出，可点开；Sill 只列被改动的卡与真实写入状态 |
 
 ## 对应组件
 

@@ -28,9 +28,17 @@ const walk = (dir: string): string[] =>
 		const path = resolve(dir, name);
 		return statSync(path).isDirectory() ? walk(path) : name === ".DS_Store" ? [] : [path];
 	});
-const published = existsSync(publishedFile)
+const publication = existsSync(publishedFile)
 	? JSON.parse(readFileSync(publishedFile, "utf8"))
 	: { ds: {}, canvas: {} };
+const published = Object.fromEntries(
+	["ds", "canvas"].map((name) => [
+		name,
+		typeof publication[name] === "string"
+			? JSON.parse(readFileSync(resolve(ds, publication[name]), "utf8"))
+			: publication[name],
+	]),
+);
 
 if (process.argv[2] === "record") record(process.argv[3], process.argv[4], process.argv[5]);
 else stage(process.argv.slice(2).join(" "));
@@ -166,10 +174,19 @@ function record(dsVersion?: string, canvasVersion?: string, adrNumber?: string) 
 		if (path.startsWith("project/assets/Icons/") && !next.ds[path]) next.ds[path] = value;
 	for (const f of walk(resolve(ds, "assets/Icons")))
 		next.ds["project/assets/Icons/" + relative(resolve(ds, "assets/Icons"), f)] = hash(f);
+	for (const name of ["ds", "canvas"])
+		writeFileSync(
+			resolve(ds, `published-${name}.json`),
+			JSON.stringify(next[name], null, 2) + "\n",
+		);
 	writeFileSync(
 		publishedFile,
 		JSON.stringify(
-			{ note: "上次发布到线上的文件指纹，由 design-init.sh record 写入。", ...next },
+			{
+				note: "上次发布到线上的文件指纹，由 design-init.sh record 写入。",
+				ds: "published-ds.json",
+				canvas: "published-canvas.json",
+			},
 			null,
 			2,
 		) + "\n",

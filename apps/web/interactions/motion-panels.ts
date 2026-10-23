@@ -166,7 +166,7 @@ export const panelMotion: Record<string, any> = {
 		for (const attribute of [...dialog.attributes])
 			root.setAttribute(attribute.name, attribute.value);
 		for (const child of [...dialog.childNodes]) root.append(child.cloneNode(true));
-		root.querySelectorAll("[data-detail-face]").forEach((node) => node.remove());
+		for (const node of root.querySelectorAll("[data-detail-face]")) node.remove();
 		shadow.append(root);
 		const drawn = getComputedStyle(dialog);
 		Object.assign(root.style, {

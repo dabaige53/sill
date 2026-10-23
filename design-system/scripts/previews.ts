@@ -258,7 +258,10 @@ const consentHtml =
 	);
 const authDir = resolve(root, "../boards/auth");
 for (const [name, source] of Object.entries({ login: loginHtml, authorization: consentHtml })) {
-	const html = source.replace(/data:image\/png;base64,[A-Za-z0-9+/=]+/g, "../../../assets/sill-icon.png");
+	const html = source.replace(
+		/data:image\/png;base64,[A-Za-z0-9+/=]+/g,
+		"../../../assets/sill-icon.png",
+	);
 	const file = resolve(authDir, name + ".html");
 	if (check) {
 		if (readFileSync(file, "utf8") !== html) throw new Error(`${name} board is stale`);

@@ -14,16 +14,25 @@ const readingDocument = new JSDOM(
 ).window.document;
 const styles = [...document.querySelectorAll("style")].map((node) => node.textContent).join("\n");
 // Keep tokens, reference artwork and prototype layout separate, in cascade order.
-writeFileSync(resolve(output, "tokens.css"), readFileSync(resolve(root, "../apps/web/styles/tokens.css"), "utf8"));
+writeFileSync(
+	resolve(output, "tokens.css"),
+	readFileSync(resolve(root, "../apps/web/styles/tokens.css"), "utf8"),
+);
 const referenceBoundary = styles.indexOf("/* detail sheet */");
 if (referenceBoundary < 0) throw new Error("Reference detail styles boundary missing");
 writeFileSync(resolve(output, "reference-cards.css"), styles.slice(0, referenceBoundary));
 const mediaBoundary = styles.indexOf("/* podcast fullscreen:");
 if (mediaBoundary < referenceBoundary) throw new Error("Reference media styles boundary missing");
-writeFileSync(resolve(output, "reference-details.css"), styles.slice(referenceBoundary, mediaBoundary));
+writeFileSync(
+	resolve(output, "reference-details.css"),
+	styles.slice(referenceBoundary, mediaBoundary),
+);
 writeFileSync(resolve(output, "reference-media.css"), styles.slice(mediaBoundary));
 writeFileSync(resolve(output, "samples.css"), "");
-writeFileSync(resolve(output, "styles.css"), '@import "tokens.css";\n@import "reference-cards.css";\n@import "reference-details.css";\n@import "reference-media.css";\n@import "layout.css";\n@import "samples.css";\n');
+writeFileSync(
+	resolve(output, "styles.css"),
+	'@import "tokens.css";\n@import "reference-cards.css";\n@import "reference-details.css";\n@import "reference-media.css";\n@import "layout.css";\n@import "samples.css";\n',
+);
 const actions = [
 	["bookmark", "收藏"],
 	["tag", "标签"],
@@ -154,7 +163,10 @@ for (const [kind, label] of [
 }
 const bundleDirectory = resolve(root, "../dist/design/expanded-reading");
 mkdirSync(bundleDirectory, { recursive: true });
-writeFileSync(resolve(output, "interactions.js"), '// Motion is built locally by expanded-reading.ts; boards load /dist/design/expanded-reading/interactions.js.\n');
+writeFileSync(
+	resolve(output, "interactions.js"),
+	"// Motion is built locally by expanded-reading.ts; boards load /dist/design/expanded-reading/interactions.js.\n",
+);
 await build({
 	entryPoints: [resolve(root, "scripts/expanded-reading-motion.ts")],
 	bundle: true,

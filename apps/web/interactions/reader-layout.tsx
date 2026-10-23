@@ -81,7 +81,9 @@ export function ReaderLayout({
 		};
 	}, [headings]);
 	useEffect(() => {
-		const item = nav.current?.querySelector<HTMLElement>('[aria-current="location"]');
+		const item = [...(nav.current?.querySelectorAll<HTMLElement>("a[href]") ?? [])].find(
+			(link) => link.getAttribute("href") === `#${current}`,
+		);
 		if (!item || !marker.current || hidden) return;
 		const element = marker.current;
 		const region = nav.current!;
