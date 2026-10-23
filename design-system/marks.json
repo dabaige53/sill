@@ -201,6 +201,13 @@
 				"SettingsDesktop",
 				"SettingsMobile"
 			]
+		},
+		"boot-skeleton": {
+			"title": "云端打开时的卡片占位",
+			"rule": "handbook/motion.md#其他组件",
+			"tokens": ["delay-loading", "fast", "space-16"],
+			"adr": "0066",
+			"boards": []
 		}
 	}
 }

@@ -332,9 +332,13 @@ export const panelMotion: Record<string, any> = {
 			? this.detailTools(el).map((tool: HTMLElement) => [tool, tool.style.opacity] as const)
 			: [];
 		for (const [tool] of tools) tool.style.opacity = "0";
+		// A phone sheet waits off screen for this frame; so does its dim.
+		const phone = this.phoneSheet(el) && !resume;
+		if (phone) this.dim(el, 0);
 		const restore = () => {
 			sheet.style.opacity = opacity;
 			for (const [tool, value] of tools) tool.style.opacity = value;
+			if (phone) this.dim(el, null);
 		};
 		sheet.style.opacity = resume?.opacity || "0";
 		const task = { frame: 0, restore };
@@ -415,12 +419,14 @@ export const panelMotion: Record<string, any> = {
 		}
 		if (this.phoneSheet(el)) {
 			sheet.classList.remove("is-off", "is-drag");
+			// The sheet rises opaque, like the drag that closes it; the dim arrives with it.
+			if (!this.keyboard) {
+				this.dim(el, 0);
+				this.dim(el, 1, this.time("dur-sheet"));
+			}
 			const animation = this.animate(
 				sheet,
-				[
-					{ opacity: 0, transform: "translateY(100%)" },
-					{ opacity: 1, transform: "translateY(0)" },
-				],
+				[{ transform: "translateY(100%)" }, { transform: "translateY(0)" }],
 				{ duration: this.time("dur-sheet"), easing: this.curve("ease-sheet") },
 			);
 			this.panelAnimations.set(el, [animation, ...(bar ? [this.enter(bar)] : [])]);

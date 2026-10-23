@@ -4,6 +4,22 @@ import { cancelMotion, dim, move, type Playback, play } from "./motion-playback.
 
 export { cardTransform } from "./motion-panels.ts";
 
+// Stylesheet tokens are fixed for the page. Reading the root's computed style on every
+// animation start forces a style recalc right after DOM writes; read each token once.
+const stylesheetTokens = new Map<string, string>();
+function tokenValue(name: string) {
+	const root = document.documentElement;
+	const inline = root.style.getPropertyValue(`--${name}`).trim();
+	if (inline) return inline;
+	let value = stylesheetTokens.get(name);
+	if (value === undefined) {
+		value = getComputedStyle(root).getPropertyValue(`--${name}`).trim();
+		// Before the stylesheet applies the value is empty; read it again next time.
+		if (value) stylesheetTokens.set(name, value);
+	}
+	return value;
+}
+
 const MotionEngine: Record<string, any> = {
 	...panelMotion,
 	detailTransitions: new WeakMap(),
@@ -16,14 +32,14 @@ const MotionEngine: Record<string, any> = {
 	exits: new Map(),
 	time(name: string) {
 		const value =
-			getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim() ||
+			tokenValue(name) ||
 			tokens.timing.tokens.find((token) => token.name === name)?.value ||
 			"220ms";
 		return parseFloat(value) * (value.endsWith("s") && !value.endsWith("ms") ? 1000 : 1);
 	},
 	curve(name = "ease") {
 		return (
-			getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim() ||
+			tokenValue(name) ||
 			tokens.timing.tokens.find((token) => token.name === name)?.value ||
 			"cubic-bezier(0.23,1,0.32,1)"
 		);

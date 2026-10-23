@@ -210,31 +210,37 @@ export const appSurfacesMethods = {
 			this.dialog.inert = true;
 			// The bars come back with the card, from its first frame and on the same spring.
 			if (CARD_KINDS.includes(this.modalKind)) this.railHide?.show(true);
+			// A phone sheet slides out opaque on the sheet curve, as a downward drag does.
+			const phoneSheet = MotionEngine.phoneSheet(this.dialog);
 			MotionEngine.dim(
 				this.dialog,
 				0,
-				destination ? tokens.motion.cardReturn.duration : MotionEngine.time("dur-close"),
+				destination
+					? tokens.motion.cardReturn.duration
+					: MotionEngine.time(phoneSheet ? "dur-sheet" : "dur-close"),
 			);
 			const animation = MotionEngine.animate(
 				sheet,
 				[
 					destination
 						? { transform, ...(face ? { borderRadius: getComputedStyle(sheet).borderRadius } : {}) }
-						: { opacity, transform },
+						: phoneSheet
+							? { transform }
+							: { opacity, transform },
 					{
-						...(destination ? {} : { opacity: 0 }),
+						...(destination || phoneSheet ? {} : { opacity: 0 }),
 						...(face ? { borderRadius: endRadius } : {}),
-						transform:
-							destination ||
-							(MotionEngine.phoneSheet(this.dialog) ? "translateY(100%)" : "translateY(10px)"),
+						transform: destination || (phoneSheet ? "translateY(100%)" : "translateY(10px)"),
 					},
 				],
 				{
-					duration: MotionEngine.phoneSheet(this.dialog)
-						? MotionEngine.time("dur-sheet")
-						: MotionEngine.time("dur-close"),
+					duration: phoneSheet ? MotionEngine.time("dur-sheet") : MotionEngine.time("dur-close"),
 					// The detail returns to its card with the same spring that opened it.
-					...(destination ? { spring: "card" } : {}),
+					...(destination
+						? { spring: "card" }
+						: phoneSheet
+							? { easing: MotionEngine.curve("ease-sheet") }
+							: {}),
 					fill: "forwards",
 				},
 			);

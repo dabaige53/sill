@@ -99,6 +99,7 @@
 - [详情文字统一为一个 Markdown 正文字段](adr/0063-markdown-body.md)
 - [统一登录与授权布局](adr/0064-unified-auth-layout.md)
 - [放大阅读页按内容排版](adr/0065-expanded-reading-layout.md)
+- [手机 PWA 打开、抽屉开合与下拉刷新](adr/0066-pwa-launch-and-sheet-motion.md)
 
 ## 记录
 
@@ -283,3 +284,4 @@
 
 - [2026-10-23 手机 PWA 极端条件检查](records/2026-10-23-pwa-stress-audit/README.md)：7 项已复现缺陷、尺寸与截图、动画风险和合成数据复现入口。
 - [2026-10-23 手机 PWA 优化](records/2026-10-23-pwa-stress-fixes/README.md)：长内容边界、工具栏、滚动展开与手势修复，窄屏及 CPU 限速验证。
+- [2026-10-23 手机 PWA 打开与抽屉动效](records/2026-10-23-pwa-launch-motion/README.md)：打开时不闪登录入口、卡片形状占位、抽屉不透明开合与遮罩同步、下拉与动效变量读取优化。

@@ -202,3 +202,19 @@
 .cloud-recovery button {
 	min-height: var(--hit-target);
 }
+/* @design boot-skeleton
+ * Launch placeholders: card shells with still lines. They take no input and leave the feed end hidden. */
+.feed-skeleton {
+	pointer-events: none;
+	box-shadow: none;
+}
+.feed-skeleton .skeleton-lines {
+	margin-bottom: 0;
+}
+.feed-skeleton .skeleton-lines i:first-child {
+	height: var(--space-16);
+	width: 72%;
+}
+main:has(.feed-boot, .feed-skeleton) .feed-end {
+	display: none;
+}
