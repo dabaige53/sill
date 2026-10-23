@@ -372,7 +372,7 @@ export const panelCard = {
 									role={"toolbar"}
 									aria-label={copy("web.readerTools")}
 								>
-									{button("collapse", copy("web.reader.exitFullscreen"), "close")}
+									{button("collapse", copy("web.reader.exitFullscreen"), "preview", c.id)}
 									{button("x", copy("web.reader.close"), "close-all")}
 								</div>
 							</>

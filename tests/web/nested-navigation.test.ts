@@ -215,6 +215,27 @@ test("a new account cannot recover another scope's parent or reading position", 
 	}
 });
 
+test("the shrink control restores the same card and preserves its parent history", () => {
+	const f = nestedFixture();
+	try {
+		for (const id of ["a", "b"]) {
+			f.app.navigate(`#card/${id}`);
+			const length = f.w.history.length;
+			const parent = f.w.history.state.prev;
+			f.app.navigate(`#read/${id}`);
+			const shrink = f.app.dialog.querySelector('.reader-head [aria-label="退出全屏"]');
+			f.app.action(shrink.dataset.action, shrink.dataset.id);
+			assert.equal(f.app.currentId, id);
+			assert.equal(f.app.modalKind, "preview");
+			assert.equal(f.w.location.hash, `#card/${id}`);
+			assert.equal(f.w.history.length, length);
+			assert.equal(f.w.history.state.prev, parent);
+		}
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("closing an expanded child returns straight to its parent without a second child history entry", async () => {
 	const f = nestedFixture();
 	try {
