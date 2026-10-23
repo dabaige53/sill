@@ -4,12 +4,12 @@
 
 | 检查 | 结果 |
 | --- | --- |
-| `npm test` | 完整流程通过；随后新增共享图片样例，按下列受影响套件补查 |
+| `npm test` | 整合 main 的排版设置改动并拆分文件后，完整流程通过，共 536 项 |
 | `npm run test:contracts` | 最终 69 项通过 |
 | `npm run test:core` | 最终 338 项通过 |
-| `npm run test:server` | 125 项通过；之后明确区分备份凭据拒绝与未知结果，相关 3 项重新通过 |
+| `npm run test:server` | 最终 126 项通过，包含备份凭据拒绝与未知结果区分 |
 | `npm run test:performance-report` | 3 项通过 |
-| `node tests/apple/run.ts` | 最终 SillKit 45 项、桌面 89 项通过，未启动应用窗口 |
+| `node tests/apple/run.ts` | 最终 SillKit 45 项、桌面 91 项通过，未启动应用窗口 |
 | `npm run build:release` | 云端网页、MCP 页面及压缩 Worker 构建通过 |
 | `npm run build:macos` | release 编译、应用打包及 ad-hoc 签名严格检查通过 |
 | `npm run typecheck` | 通过 |
