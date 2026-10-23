@@ -324,7 +324,10 @@ export const gesturePullMethods = {
 		if (!surface) return;
 		if (!reader) {
 			this.bindPreviewResistance(surface);
-			if (phone) this.bindPreviewHandle(surface);
+			if (phone) {
+				this.bindPreviewHandle(surface);
+				this.bindPreviewExpansion(surface);
+			}
 		}
 		if (!matchMedia("(max-width:650px)").matches) {
 			if (this.pullWheel) dialog.removeEventListener("wheel", this.pullWheel);
@@ -375,18 +378,6 @@ export const gesturePullMethods = {
 				else app.closeModal();
 			});
 		};
-		// Phone: reading on makes the sheet full screen. The bars follow the shared tuck rule (ChromeAutoHide).
-		if (phone || matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone)
-			scroll.addEventListener(
-				"scroll",
-				() => {
-					if (scroll.scrollTop > 4 && !surface.classList.contains("is-drag")) {
-						surface.classList.add("is-full");
-						surface.querySelector(".sheet-handle")?.setAttribute("aria-expanded", "true");
-					}
-				},
-				{ passive: true },
-			);
 		scroll.addEventListener(
 			"scroll",
 			() => {
@@ -442,13 +433,18 @@ export const gesturePullMethods = {
 		// Full screen reading by finger: pull down from the top, past a fifth or with a flick, and it slides away.
 		let touch = null;
 		const cancel = () => {
+			const live = touch?.live || pull > 0;
 			touch = null;
 			if (done || app.modalToken !== token) return;
+			cancelAnimationFrame(frame);
+			frame = 0;
 			clearTimeout(timer);
 			wheel.reset();
 			pull = 0;
-			this.settle(surface);
-			this.dim(null);
+			if (live) {
+				this.settle(surface);
+				this.dim(null);
+			}
 		};
 		scroll.addEventListener(
 			"touchstart",
@@ -456,7 +452,7 @@ export const gesturePullMethods = {
 				cancel();
 				if (
 					e.touches.length === 1 &&
-					!this.fromField(e) &&
+					!this.fromHorizontalContent(e) &&
 					atTop() &&
 					!done &&
 					app.modalToken === token
@@ -464,7 +460,7 @@ export const gesturePullMethods = {
 					touch = {
 						...this.point(e),
 						velocity: this.velocity(this.point(e).y),
-						base: this.capture(surface),
+						base: 0,
 						live: false,
 					};
 			},
@@ -476,7 +472,7 @@ export const gesturePullMethods = {
 				if (!touch) return;
 				if (e.touches.length !== 1 || app.modalToken !== token) return cancel();
 				const p = this.point(e),
-					dy = touch.base + p.y - touch.y,
+					dy = p.y - touch.y,
 					dx = Math.abs(p.x - touch.x);
 				if (!touch.live) {
 					if (dy < 6 && dx < 6) return;
@@ -485,18 +481,21 @@ export const gesturePullMethods = {
 						return;
 					}
 					touch.live = true;
+					touch.base = this.capture(surface);
 					dialog.classList.add("is-drag");
 				}
 				if (e.cancelable) e.preventDefault();
 				touch.velocity.feed(p.y);
-				pull = Math.max(0, dy);
-				paint();
+				pull = Math.max(0, touch.base + dy);
+				schedulePaint();
 			},
 			{ passive: false },
 		);
 		scroll.addEventListener("touchend", () => {
 			if (app.modalToken !== token) return cancel();
 			if (!touch?.live) return cancel();
+			cancelAnimationFrame(frame);
+			frame = 0;
 			const v = touch.velocity.read();
 			touch = null;
 			dialog.classList.remove("is-drag");

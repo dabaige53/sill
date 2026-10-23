@@ -527,6 +527,7 @@ button.detail-row:active {
 	padding: var(--space-3) var(--space-8);
 	line-height: calc(1.5 * var(--reader-line-scale, 1));
 	max-width: 100%;
+	white-space: normal;
 	overflow-wrap: anywhere;
 }
 .preview-published {

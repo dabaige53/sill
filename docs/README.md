@@ -11,6 +11,7 @@
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
 - [界面对账表](product/ui-alignment.md)
+- [极端内容与手机流畅度对账](product/ui-content-alignment.md)
 - [Sill 交互规范](product/interaction-spec.md)
 
 ## 设计规则
@@ -279,3 +280,6 @@
 - [AI 对话的三种高度](adr/0064-ai-conversation-three-heights.md)
 
 - [近期 PR 与本地修改整合验收](records/2026-10-23-pr-integration/README.md)
+
+- [2026-10-23 手机 PWA 极端条件检查](records/2026-10-23-pwa-stress-audit/README.md)：7 项已复现缺陷、尺寸与截图、动画风险和合成数据复现入口。
+- [2026-10-23 手机 PWA 优化](records/2026-10-23-pwa-stress-fixes/README.md)：长内容边界、工具栏、滚动展开与手势修复，窄屏及 CPU 限速验证。

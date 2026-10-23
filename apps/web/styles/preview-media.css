@@ -459,6 +459,8 @@ dialog > .float-bar.is-hidden {
 .compact-player small {
 	display: block;
 	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .compact-player progress {
 	position: absolute;

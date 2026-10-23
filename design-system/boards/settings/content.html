@@ -3020,11 +3020,14 @@ a.detail-row:hover {
 }
 
 .type-file .file-rows {
+	/* @design content-boundaries */
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	justify-items: start;
 	gap: var(--space-6);
 }
 .type-file .file-row {
+	min-width: 0;
 	max-width: 100%;
 	border-radius: var(--space-10);
 	background: var(--surface);
@@ -3806,6 +3809,7 @@ button.detail-row:active {
 	padding: var(--space-3) var(--space-8);
 	line-height: calc(1.5 * var(--reader-line-scale, 1));
 	max-width: 100%;
+	white-space: normal;
 	overflow-wrap: anywhere;
 }
 .preview-published {
@@ -4278,6 +4282,8 @@ dialog > .float-bar.is-hidden {
 .compact-player small {
 	display: block;
 	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .compact-player progress {
 	position: absolute;
@@ -4726,14 +4732,34 @@ dialog > .float-bar.is-hidden {
 
 .detail-related {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 }
 .detail-related .detail-row {
+	min-width: 0;
 	width: 100%;
 	text-align: left;
 	border-top: 1px solid var(--line-card);
 }
 .detail-related .detail-row > span {
 	flex: 1;
+}
+/* Meeting identifiers stay readable without taking the name's entire row. */
+.detail-row.meeting-row {
+	/* @design content-boundaries */
+	align-items: flex-start;
+}
+.meeting-row > .row-icon {
+	margin-top: var(--space-2);
+}
+.detail-row.meeting-row > .meeting-info {
+	display: grid;
+	gap: var(--space-4);
+	white-space: normal;
+}
+.meeting-info > .meeting-name,
+.meeting-info > .meeting-code {
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 .lightbox-top > div {
 	display: grid;
@@ -4807,6 +4833,21 @@ dialog > .float-bar.is-hidden {
 }
 .pr-detail .pr-stats {
 	margin-left: 0;
+}
+.pr-detail .detail-row > .pr-stats {
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	min-width: min-content;
+	max-width: 100%;
+	white-space: normal;
+	overflow: visible;
+}
+.pr-detail .pr-stats > span {
+	flex: none;
+	white-space: nowrap;
+}
+.pr-detail .detail-row:has(> .pr-stats) {
+	flex-wrap: wrap;
 }
 .pr-file-count {
 	flex: none;
@@ -6732,17 +6773,29 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		top: env(safe-area-inset-top);
 	}
 	#modal.preview #modal-title,
-	#modal.preview .preview-body > :is(.preview-sender, .preview-meta) {
+	#modal.preview .preview-body :is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-52);
 	}
 	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
 	#modal.preview:has(.sheet-head [data-action="reader"])
 		.preview-body
-		> :is(.preview-sender, .preview-meta) {
+		:is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-104);
 	}
-	#modal.preview:has(.preview-body > :is(.preview-sender, .preview-meta)) #modal-title {
+	#modal.preview:has(.preview-body :is(.preview-sender, .preview-meta)) #modal-title {
 		padding-right: 0;
+	}
+	/* Podcast controls sit beside the separate now-playing heading. */
+	#modal.preview:has(.is-podcast) .preview-body .preview-meta {
+		padding-right: 0;
+	}
+	/* @design content-boundaries — six actions keep their full touch targets. */
+	.float-bar:has(> .icon-button:nth-of-type(6)) {
+		max-width: calc(100vw - 2 * var(--space-8));
+		gap: var(--space-2);
+	}
+	.float-bar:has(> .icon-button:nth-of-type(6)) .toolbar-sep {
+		margin-inline: var(--space-4);
 	}
 	.sheet-head {
 		height: 60px;

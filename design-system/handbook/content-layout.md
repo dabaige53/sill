@@ -32,3 +32,7 @@
 数值维护于 `tokens/apple.json` 的 AppleMetrics：layoutTextSmall／Large、layoutSpaceCompact／Roomy、layoutLineCompact／Roomy、layoutReaderNarrow／Standard，Web 读取同一来源。默认文字、间距均为标准，正文宽度为铺满，旧数据缺少字段时采用默认值。
 
 设置仅显示配置项，不放排版示例或说明段落；修改应用到实际卡片与阅读正文，并沿用工作区保存后的更新。恢复默认排版以一次偏好写入重置以上选项和卡片宽度，保留主题及其他设置。偏好沿用工作区保存与冲突检查，可由 MCP 的 preferences.patch 调整。字体家族、圆角、颜色、玻璃和动效不提供新的配置项。
+
+## 手机操作胶囊
+
+手机胶囊出现六项操作时，按钮保持 44px（`hit-target`）点击区域，项间距使用 2px（`space-2`），分隔线两侧各 4px（`space-4`），整体距屏幕边缘至少 8px（`space-8`）。不通过缩小按钮适应窄屏。

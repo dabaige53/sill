@@ -185,10 +185,12 @@ function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCont
 	const rows = [
 		c.meeting ? (
 			<>
-				<div className={"detail-row"}>
+				<div className={"detail-row meeting-row"}>
 					<span className={"row-icon"}>{icon("video", 16)}</span>
-					<span>{c.meeting.name}</span>
-					<small className={"num"}>{c.meeting.code || ""}</small>
+					<span className="meeting-info">
+						<span className="meeting-name">{c.meeting.name}</span>
+						{c.meeting.code && <small className="meeting-code num">{c.meeting.code}</small>}
+					</span>
 				</div>
 			</>
 		) : (
