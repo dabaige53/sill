@@ -120,10 +120,7 @@ struct SettingsView: View {
     case .desk: desk
     case .look: look
     case .keys: keys
-    case .data:
-      DataPage(aiLocal: bool("aiLocal", workspace.preferences.aiLocal)) {
-        set("aiLocal", .bool($0))
-      }
+    case .data: DataPage()
     }
   }
 
@@ -157,11 +154,6 @@ struct SettingsView: View {
           }
         }
       }
-      Text(Copy.text("web.actions.hint"))
-        .font(.sans(AppleMetrics.font13))
-        .foregroundStyle(AppleColors.secondary)
-        .padding(.top, AppleMetrics.space8)
-        .padding(.horizontal, AppleMetrics.space4)
       SettingsCard {
         switchRow(
           "web.settings.collapseOnFinish", "collapseOnFinish", preferences.collapseOnFinish,
@@ -183,33 +175,97 @@ struct SettingsView: View {
   }
 
   private var look: some View {
-    let preferences = workspace.preferences
+    let preferences = layoutPreferences
     let theme = Copy.text("web.settings.theme.label")
     let width = Copy.text("web.settings.cardWidth.label")
-    return SettingsCard {
-      SettingRow(label: theme, first: true) {
-        SettingSegmented(
-          label: theme,
-          options: [
-            ("system", Copy.text("web.settings.theme.system")),
-            ("light", Copy.text("web.settings.theme.light")),
-            ("dark", Copy.text("web.settings.theme.dark")),
-          ],
-          selection: string("theme", preferences.theme.rawValue)
-        ) { set("theme", .string($0), announce: true) }
+    return VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+      SettingsCard {
+        SettingRow(label: theme, first: true) {
+          SettingSegmented(
+            label: theme,
+            options: [
+              ("system", Copy.text("web.settings.theme.system")),
+              ("light", Copy.text("web.settings.theme.light")),
+              ("dark", Copy.text("web.settings.theme.dark")),
+            ],
+            selection: string("theme", preferences.theme.rawValue)
+          ) { set("theme", .string($0), announce: true) }
+        }
+        SettingRow(label: width) {
+          SettingSegmented(
+            label: width,
+            options: [
+              ("compact", Copy.text("web.settings.cardWidth.compact")),
+              ("standard", Copy.text("web.settings.cardWidth.standard")),
+              ("roomy", Copy.text("web.settings.cardWidth.roomy")),
+            ],
+            selection: string("density", preferences.density.rawValue)
+          ) { set("density", .string($0), announce: true) }
+        }
+        layoutRow(
+          "textWeight", value: preferences.textWeight.rawValue, choices: ["standard", "strong"])
       }
-      SettingRow(label: width) {
-        SettingSegmented(
-          label: width,
-          options: [
-            ("compact", Copy.text("web.settings.cardWidth.compact")),
-            ("standard", Copy.text("web.settings.cardWidth.standard")),
-            ("roomy", Copy.text("web.settings.cardWidth.roomy")),
-          ],
-          selection: string("density", preferences.density.rawValue)
-        ) { set("density", .string($0), announce: true) }
+      layoutLabel("web.settings.layout.cards")
+      SettingsCard {
+        layoutRow(
+          "cardTextSize", value: preferences.cardTextSize.rawValue,
+          choices: ["small", "standard", "large"], first: true)
+        layoutRow(
+          "cardSpacing", value: preferences.cardSpacing.rawValue,
+          choices: ["compact", "standard", "roomy"])
+        layoutRow(
+          "cardPadding", value: preferences.cardPadding.rawValue,
+          choices: ["compact", "standard", "roomy"])
+      }
+      layoutLabel("web.settings.layout.reading")
+      SettingsCard {
+        layoutRow(
+          "readerTextSize", value: preferences.readerTextSize.rawValue,
+          choices: ["small", "standard", "large"], first: true)
+        layoutRow(
+          "readerSpacing", value: preferences.readerSpacing.rawValue,
+          choices: ["compact", "standard", "roomy"])
+        layoutRow(
+          "readerWidth", value: preferences.readerWidth.rawValue,
+          choices: ["narrow", "standard", "full"])
+      }
+      Button(Copy.text("web.settings.layout.reset")) { resetLayout() }
+        .buttonStyle(.plain).foregroundStyle(AppleColors.accent)
+    }
+  }
+
+  private var layoutPreferences: Preferences {
+    var values = workspace.storedPreferences
+    for (key, entry) in pending { values[key] = entry.value }
+    return Preferences(values)
+  }
+
+  private func layoutLabel(_ key: String) -> some View {
+    Text(Copy.text(key)).font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+  }
+
+  private func layoutRow(_ key: String, value: String, choices: [String], first: Bool = false)
+    -> some View
+  {
+    let label = Copy.text("web.settings.layout." + key)
+    return SettingRow(label: label, first: first) {
+      SettingSegmented(
+        label: label, options: choices.map { ($0, Copy.text("web.settings.layout." + $0)) },
+        selection: value
+      ) {
+        set(key, .string($0))
       }
     }
+  }
+
+  private func resetLayout() {
+    let keys = [
+      "density", "cardTextSize", "cardSpacing", "cardPadding", "readerTextSize", "readerSpacing",
+      "textWeight",
+    ]
+    var values = Dictionary(uniqueKeysWithValues: keys.map { ($0, JSONValue.string("standard")) })
+    values["readerWidth"] = .string("full")
+    setValues(values)
   }
 
   private var keys: some View {
@@ -276,13 +332,19 @@ struct SettingsView: View {
   /// Draw the new value now; the write runs behind it. Later changes of the same setting queue
   /// after it, so the last one wins; a failure returns the setting to what is stored.
   private func set(_ key: String, _ value: JSONValue, announce: Bool = false) {
-    pending[key] = (value, (pending[key]?.count ?? 0) + 1)
-    workspace.setPreference(key, value) { done in
-      guard let entry = pending[key] else { return }
-      if !done || entry.count <= 1 {
-        pending[key] = nil
-      } else {
-        pending[key] = (entry.value, entry.count - 1)
+    setValues([key: value], announce: announce)
+  }
+
+  private func setValues(_ values: [String: JSONValue], announce: Bool = false) {
+    for (key, value) in values { pending[key] = (value, (pending[key]?.count ?? 0) + 1) }
+    workspace.write([.preferences(values)]) { done in
+      for key in values.keys {
+        guard let entry = pending[key] else { continue }
+        if !done || entry.count <= 1 {
+          pending[key] = nil
+        } else {
+          pending[key] = (entry.value, entry.count - 1)
+        }
       }
       if done, announce {
         AccessibilityNotification.Announcement(Copy.text("web.app.434203a723b4")).post()
@@ -401,110 +463,4 @@ private struct AddPage: View {
     }
     sending = result == .sent
   }
-}
-
-/// Web `data`: where the workspace lives, how much it holds, export and clear.
-private struct DataPage: View {
-  let aiLocal: Bool
-  let setAILocal: (Bool) -> Void
-  @Environment(Workspace.self) private var workspace
-  @Environment(Account.self) private var account
-  @State private var signingOut = false
-  @State private var usage: Int?
-  @State private var confirming = false
-  @State private var clearing = false
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      SettingsCard {
-        SettingRow(label: Copy.text("web.settings.storage.location"), first: true) {
-          Text(
-            Copy.text(
-              workspace.isLocal
-                ? "web.settings.storage.localDirectory" : "web.cloudentry.67c5f7479766"))
-        }
-        SettingRow(label: Copy.text("web.settings.storage.usage")) {
-          Text(usage.map { Format.fileSize($0) } ?? "").font(.number(AppleMetrics.font13))
-        }
-        let label = Copy.text("web.settings.aiLocal")
-        SettingRow(label: label) { SettingSwitch(label: label, on: aiLocal, change: setAILocal) }
-      }
-      SettingsCard {
-        SettingLine(first: true) {
-          Button(Copy.text("web.settings.exportAllCards")) { export() }
-            .buttonStyle(TextLinkStyle(padded: false))
-        }
-        SettingLine {
-          Button(Copy.text("web.settings.clearAllData")) { confirming = true }
-            .buttonStyle(TextLinkStyle(warn: true, padded: false))
-            .disabled(clearing)
-        }
-      }
-      if !workspace.isLocal {
-        SettingsCard {
-          SettingLine(first: true) {
-            Button(Copy.text("web.cloudentry.3ab8cc15939f")) { signingOut = true }
-              .buttonStyle(TextLinkStyle(padded: false))
-              .disabled(account.busy)
-          }
-        }
-        if let error = account.error {
-          Text(error).font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.error)
-        }
-      }
-    }
-    .confirmationDialog(Copy.text("web.cloudentry.3ab8cc15939f"), isPresented: $signingOut) {
-      Button(Copy.text("web.cloudentry.3ab8cc15939f"), role: .destructive) {
-        Task { await account.logout() }
-      }
-      Button(Copy.text("web.cancel"), role: .cancel) {}
-    }
-    .task(id: workspace.catalogVersion) { await measure() }
-    .alert(Copy.text("web.app.7f1a78cdb3f2"), isPresented: $confirming) {
-      Button(Copy.text("web.cancel"), role: .cancel) {}
-      Button(Copy.text("web.app.bce2377283c2"), role: .destructive) {
-        clearing = true
-        workspace.clearAll { _ in clearing = false }
-      }
-    } message: {
-      Text(Copy.text("web.app.d008fc7f75ba"))
-    }
-  }
-
-  /// Web `Store.bytes`: the size of everything stored, as exported. Measured off the main thread.
-  private func measure() async {
-    let state = workspace.exportState()
-    usage = await Task.detached(priority: .utility) { (try? state.encoded())?.count ?? 0 }.value
-  }
-
-  private func export() {
-    let panel = NSSavePanel()
-    panel.nameFieldStringValue = "sill-\(Self.day.string(from: .now)).json"
-    panel.allowedContentTypes = [.json]
-    let state = workspace.exportState()
-    let write: (URL) -> Void = { [workspace] url in
-      do {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        try encoder.encode(state).write(to: url, options: .atomic)
-      } catch {
-        workspace.notice = .init(text: Copy.appleExportError)
-      }
-    }
-    if let window = NSApp.keyWindow {
-      panel.beginSheetModal(for: window) { response in
-        if response == .OK, let url = panel.url { write(url) }
-      }
-    } else if panel.runModal() == .OK, let url = panel.url {
-      write(url)
-    }
-  }
-
-  private static let day: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.timeZone = TimeZone(identifier: "UTC")
-    formatter.dateFormat = "yyyy-MM-dd"
-    return formatter
-  }()
 }

@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { appearanceShape } from "./appearance.ts";
 import { Card, id, timestamp } from "./card.ts";
 import { CardActions } from "./card-actions.ts";
 
@@ -33,6 +34,7 @@ export const CardState = z
 	.passthrough();
 export const Preferences = z
 	.object({
+		...appearanceShape,
 		singleKeyShortcuts: z.boolean().optional(),
 		// Legacy stored fields remain readable; clients no longer expose or apply them.
 		reduceMotion: z.boolean().optional(),

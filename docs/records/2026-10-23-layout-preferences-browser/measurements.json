@@ -1,0 +1,397 @@
+{
+  "defaultCards": {
+    "bodyWidth": 1440,
+    "cardWidth": 456,
+    "columnGap": 24,
+    "padding": "18px",
+    "sync": "saved",
+    "titleFont": "16px",
+    "titleWeight": "600",
+    "viewport": 1440
+  },
+  "largeCards": {
+    "bodyWidth": 1440,
+    "cardWidth": 452,
+    "columnGap": 30,
+    "padding": "22.5px",
+    "sync": "saved",
+    "titleFont": "17.92px",
+    "titleWeight": "700",
+    "viewport": 1440
+  },
+  "defaultReader": {
+    "body": {
+      "font": "14px",
+      "lineHeight": "22.4px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "weight": "500",
+      "width": 1440,
+      "x": 0
+    },
+    "p": {
+      "font": "15px",
+      "lineHeight": "25px",
+      "margin": "0px 0px 16px",
+      "maxWidth": "none",
+      "weight": "500",
+      "width": 1380,
+      "x": 30
+    },
+    "title": {
+      "font": "22px",
+      "lineHeight": "30px",
+      "margin": "0px 0px 24px",
+      "maxWidth": "none",
+      "weight": "700",
+      "width": 1380,
+      "x": 30
+    },
+    "viewport": 1440
+  },
+  "persistedCards": {
+    "bodyWidth": 1440,
+    "cardWidth": 452,
+    "columnGap": 30,
+    "padding": "22.5px",
+    "sync": "error",
+    "titleFont": "17.92px",
+    "titleWeight": "700",
+    "viewport": 1440
+  },
+  "afterRecovery": {
+    "bodyWidth": 1440,
+    "cardWidth": 452,
+    "columnGap": 30,
+    "padding": "22.5px",
+    "sync": "saved",
+    "titleFont": "17.92px",
+    "titleWeight": "700",
+    "viewport": 1440
+  },
+  "largeNarrowReader": {
+    "body": {
+      "font": "14px",
+      "lineHeight": "22.4px",
+      "margin": "0px 400px",
+      "maxWidth": "640px",
+      "weight": "500",
+      "width": 640,
+      "x": 400
+    },
+    "p": {
+      "font": "16.8px",
+      "lineHeight": "31.36px",
+      "margin": "0px 0px 20px",
+      "maxWidth": "640px",
+      "weight": "500",
+      "width": 580,
+      "x": 430
+    },
+    "title": {
+      "font": "24.64px",
+      "lineHeight": "37.632px",
+      "margin": "0px 0px 24px",
+      "maxWidth": "640px",
+      "weight": "700",
+      "width": 580,
+      "x": 430
+    },
+    "viewport": 1440
+  },
+  "smallCards": {
+    "bodyWidth": 1440,
+    "cardWidth": 340.5,
+    "columnGap": 18,
+    "padding": "13.5px",
+    "sync": "saved",
+    "titleFont": "15.04px",
+    "titleWeight": "600",
+    "viewport": 1440
+  },
+  "reloadSelections": [
+    {
+      "key": "theme",
+      "value": "dark"
+    },
+    {
+      "key": "density",
+      "value": "standard"
+    },
+    {
+      "key": "textWeight",
+      "value": "standard"
+    },
+    {
+      "key": "cardTextSize",
+      "value": "small"
+    },
+    {
+      "key": "cardSpacing",
+      "value": "compact"
+    },
+    {
+      "key": "cardPadding",
+      "value": "compact"
+    },
+    {
+      "key": "readerTextSize",
+      "value": "small"
+    },
+    {
+      "key": "readerSpacing",
+      "value": "compact"
+    },
+    {
+      "key": "readerWidth",
+      "value": "standard"
+    }
+  ],
+  "smallStandardReader": {
+    "body": {
+      "font": "14px",
+      "lineHeight": "22.4px",
+      "margin": "0px 320px",
+      "maxWidth": "800px",
+      "weight": "400",
+      "width": 800,
+      "x": 320
+    },
+    "p": {
+      "font": "14.1px",
+      "lineHeight": "21.15px",
+      "margin": "0px 0px 12px",
+      "maxWidth": "800px",
+      "weight": "400",
+      "width": 740,
+      "x": 350
+    },
+    "title": {
+      "font": "20.68px",
+      "lineHeight": "25.38px",
+      "margin": "0px 0px 24px",
+      "maxWidth": "800px",
+      "weight": "600",
+      "width": 740,
+      "x": 350
+    },
+    "viewport": 1440
+  },
+  "mobile390": {
+    "bodyWidth": 390,
+    "cardWidth": 358,
+    "columnGap": null,
+    "padding": "20px",
+    "sync": "saved",
+    "titleFont": "16.8px",
+    "titleWeight": "700",
+    "viewport": 390,
+    "geometry": {
+      "bodyWidth": 390,
+      "cards": 25,
+      "outside": [],
+      "overlaps": [],
+      "viewport": 390
+    }
+  },
+  "mobile320": {
+    "bodyWidth": 320,
+    "cardWidth": 288,
+    "columnGap": null,
+    "padding": "20px",
+    "sync": "saved",
+    "titleFont": "16.8px",
+    "titleWeight": "700",
+    "viewport": 320,
+    "geometry": {
+      "bodyWidth": 320,
+      "cards": 25,
+      "outside": [],
+      "overlaps": [],
+      "viewport": 320
+    }
+  },
+  "mobile320Settings": {
+    "modalWidth": 320,
+    "overflowRows": [],
+    "settingsScrollWidth": 320,
+    "settingsWidth": 320,
+    "viewport": 320
+  },
+  "mobilePreview": {
+    "body": {
+      "font": "14px",
+      "lineHeight": "22.4px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "weight": "500",
+      "width": 320,
+      "x": 0
+    },
+    "p": {
+      "font": "16.8px",
+      "lineHeight": "31.36px",
+      "margin": "0px 0px 20px",
+      "maxWidth": "none",
+      "weight": "500",
+      "width": 280,
+      "x": 20
+    },
+    "title": {
+      "font": "24.64px",
+      "lineHeight": "37.632px",
+      "margin": "0px 0px 24px",
+      "maxWidth": "none",
+      "weight": "700",
+      "width": 280,
+      "x": 20
+    },
+    "viewport": 320
+  },
+  "mobileReader": {
+    "body": {
+      "font": "14px",
+      "lineHeight": "22.4px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "weight": "500",
+      "width": 320,
+      "x": 0
+    },
+    "p": {
+      "font": "16.8px",
+      "lineHeight": "31.36px",
+      "margin": "0px 0px 20px",
+      "maxWidth": "none",
+      "weight": "500",
+      "width": 280,
+      "x": 20
+    },
+    "title": {
+      "font": "24.64px",
+      "lineHeight": "37.632px",
+      "margin": "0px 0px 24px",
+      "maxWidth": "none",
+      "weight": "700",
+      "width": 280,
+      "x": 20
+    },
+    "viewport": 320
+  },
+  "resetSelections": [
+    {
+      "key": "theme",
+      "value": "dark"
+    },
+    {
+      "key": "density",
+      "value": "standard"
+    },
+    {
+      "key": "textWeight",
+      "value": "standard"
+    },
+    {
+      "key": "cardTextSize",
+      "value": "standard"
+    },
+    {
+      "key": "cardSpacing",
+      "value": "standard"
+    },
+    {
+      "key": "cardPadding",
+      "value": "standard"
+    },
+    {
+      "key": "readerTextSize",
+      "value": "standard"
+    },
+    {
+      "key": "readerSpacing",
+      "value": "standard"
+    },
+    {
+      "key": "readerWidth",
+      "value": "full"
+    }
+  ],
+  "resetCards": {
+    "bodyWidth": 1440,
+    "cardWidth": 456,
+    "columnGap": 24,
+    "padding": "18px",
+    "sync": "saved",
+    "titleFont": "16px",
+    "titleWeight": "600",
+    "viewport": 1440
+  },
+  "desktopGeometry": {
+    "bodyWidth": 1440,
+    "cards": 25,
+    "outside": [],
+    "overlaps": [],
+    "viewport": 1440
+  },
+  "resetReader": {
+    "body": {
+      "font": "14px",
+      "lineHeight": "22.4px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "weight": "400",
+      "width": 1440,
+      "x": 0
+    },
+    "p": {
+      "font": "15px",
+      "lineHeight": "25px",
+      "margin": "0px 0px 16px",
+      "maxWidth": "none",
+      "weight": "400",
+      "width": 1380,
+      "x": 30
+    },
+    "title": {
+      "font": "22px",
+      "lineHeight": "30px",
+      "margin": "0px 0px 24px",
+      "maxWidth": "none",
+      "weight": "600",
+      "width": 1380,
+      "x": 30
+    },
+    "viewport": 1440
+  },
+  "mobileFullScreen": {
+    "body": {
+      "font": "14px",
+      "lineHeight": "22.4px",
+      "margin": "0px",
+      "maxWidth": "none",
+      "weight": "400",
+      "width": 320,
+      "x": 0
+    },
+    "p": {
+      "font": "15px",
+      "lineHeight": "25px",
+      "margin": "0px 0px 16px",
+      "maxWidth": "none",
+      "weight": "400",
+      "width": 280,
+      "x": 20
+    },
+    "title": {
+      "font": "22px",
+      "lineHeight": "30px",
+      "margin": "0px 0px 24px",
+      "maxWidth": "none",
+      "weight": "600",
+      "width": 280,
+      "x": 20
+    },
+    "viewport": 320
+  },
+  "assertions": "passed"
+}

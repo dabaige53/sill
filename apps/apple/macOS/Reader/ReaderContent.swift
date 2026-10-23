@@ -32,18 +32,21 @@ struct ReaderContent: View {
   var mediaOffset: CGFloat = 0
   var returnToPlayer: () -> Void = {}
   @Environment(\.cardIntents) private var intents
+  @Environment(Workspace.self) private var workspace
 
   var body: some View {
     // @design article-reading
-    if card.kind == .article {
-      articleReading
-    } else {
-      other
+    Group {
+      if card.kind == .article { articleReading } else { other }
     }
+    .environment(\.contentAppearance, workspace.preferences.readerAppearance)
   }
 
   private var other: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.previewBodyGap) {
+    VStack(
+      alignment: .leading,
+      spacing: AppleMetrics.previewBodyGap * workspace.preferences.readerSpacing.scale
+    ) {
       switch card.kind {
       case .mail: mail
       case .event: event
@@ -162,7 +165,7 @@ struct ReaderContent: View {
   @ViewBuilder private var article: some View {
     header(ruled: card.kind == .note) { meta }
     if card.kind == .media, let duration = card.duration {
-      Text(Format.duration(duration)).font(.number(AppleMetrics.font13))
+      Text(Format.duration(duration)).textStyle(AppleMetrics.font13, number: true)
         .foregroundStyle(AppleColors.secondary)
     }
     if card.image != nil {
@@ -174,7 +177,7 @@ struct ReaderContent: View {
     }
     if card.kind == .suggestion, let why = card.why {
       VStack(alignment: .leading, spacing: AppleMetrics.space10) {
-        Text(Copy.text("web.card.why")).font(.sans(AppleMetrics.font13, .semibold))
+        Text(Copy.text("web.card.why")).textStyle(AppleMetrics.font13, .semibold)
           .foregroundStyle(AppleColors.secondary)
         Text(why.reason).textStyle(AppleMetrics.font17, .medium, leading: 1.55)
         VStack(alignment: .leading, spacing: AppleMetrics.space4) {
@@ -186,7 +189,7 @@ struct ReaderContent: View {
     }
     if card.kind == .suggestion {
       if !card.related.isEmpty {
-        Text(Copy.text("web.card.related")).font(.sans(AppleMetrics.font13, .semibold))
+        Text(Copy.text("web.card.related")).textStyle(AppleMetrics.font13, .semibold)
           .foregroundStyle(AppleColors.secondary)
         related
       }
@@ -211,7 +214,7 @@ struct ReaderContent: View {
     }
     detailText
     if !card.related.isEmpty {
-      Text(Copy.text("web.card.digestRelated")).font(.sans(AppleMetrics.font13, .semibold))
+      Text(Copy.text("web.card.digestRelated")).textStyle(AppleMetrics.font13, .semibold)
         .foregroundStyle(AppleColors.secondary)
       related
     }
@@ -239,7 +242,7 @@ struct ReaderContent: View {
         HStack(spacing: AppleMetrics.space10) {
           Avatar(name: sender, size: AppleMetrics.space36)
           VStack(alignment: .leading, spacing: 0) {
-            Text(sender).font(.sans(AppleMetrics.font15, .bold)).foregroundStyle(
+            Text(sender).textStyle(AppleMetrics.font15, .bold).foregroundStyle(
               AppleColors.primary)
             HStack(spacing: AppleMetrics.space6) {
               SourceIcon(card: card, size: AppleMetrics.font12)
@@ -248,7 +251,7 @@ struct ReaderContent: View {
                 { !$0.isEmpty }
                 .joined(separator: " · ")
               )
-              .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+              .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
             }
           }
         }
@@ -287,7 +290,7 @@ struct ReaderContent: View {
           "\(Copy.text("web.templates.83532308ecca"))\(Format.time(end)) · \(Int(((end - start) / 60000).rounded()))\(Copy.text("web.templates.40de54344d22"))"
             + (card.raw["timeZone"]?.string.map { " · \($0)" } ?? "")
         )
-        .font(.number(AppleMetrics.font15)).foregroundStyle(AppleColors.secondary)
+        .textStyle(AppleMetrics.font15, number: true).foregroundStyle(AppleColors.secondary)
       }
       .padding(.bottom, AppleMetrics.space16)
       heading
@@ -301,7 +304,7 @@ struct ReaderContent: View {
       }
     }
     if !card.markdown.blocks.isEmpty {
-      Text(Copy.text("web.card.agenda")).font(.sans(AppleMetrics.font13, .semibold))
+      Text(Copy.text("web.card.agenda")).textStyle(AppleMetrics.font13, .semibold)
         .foregroundStyle(AppleColors.secondary)
       detailText
     }
@@ -354,7 +357,8 @@ struct ReaderContent: View {
           ReminderCheck(card: card, state: state, large: true)
             .padding(
               .top,
-              (LineHeight.height(size: type.title) - AppleMetrics.space24) / 2)
+              (LineHeight.height(size: type.title * workspace.preferences.readerTextSize.scale)
+                - AppleMetrics.space24) / 2)
           title
         }
         ReaderTags(tags: state.tags(of: card))
@@ -393,7 +397,7 @@ struct ReaderContent: View {
       MarkdownText(document: card.markdown, size: type.body, leading: type.bodyLeading)
     }
     if card.kind == .reminder, let project = card.project {
-      Text(Copy.text("web.metadata.project") + " · " + project).font(.sans(AppleMetrics.font13))
+      Text(Copy.text("web.metadata.project") + " · " + project).textStyle(AppleMetrics.font13)
         .foregroundStyle(AppleColors.secondary)
     }
   }
@@ -413,7 +417,7 @@ struct MetaRow<Label: View>: View {
       if let icon { icon.foregroundStyle(AppleColors.iconSecondary) }
       label.lineLimit(1).truncationMode(.tail)
     }
-    .font(.sans(size))
+    .textStyle(size)
     .foregroundStyle(AppleColors.iconSecondary)
   }
 }
@@ -426,7 +430,7 @@ struct ReaderTags: View {
       FlowRow(spacing: AppleMetrics.space6) {
         ForEach(tags, id: \.self) { tag in
           Text("#\(tag)")
-            .font(.sans(AppleMetrics.font12))
+            .textStyle(AppleMetrics.font12)
             .foregroundStyle(AppleColors.secondary)
             .padding(.vertical, AppleMetrics.space3).padding(.horizontal, AppleMetrics.space10)
             .background(Capsule().fill(AppleColors.surface))
@@ -452,7 +456,7 @@ struct PublicationRows: View {
           Text(row.label.isEmpty ? row.value : "\(row.label) · \(row.value)")
         }
       }
-      .font(.sans(AppleMetrics.font12))
+      .textStyle(AppleMetrics.font12)
       .foregroundStyle(AppleColors.iconSecondary)
     }
   }
@@ -464,7 +468,7 @@ struct NoteBox: View {
   var body: some View {
     if !note.isEmpty {
       VStack(alignment: .leading, spacing: AppleMetrics.space4) {
-        Text(Copy.text("web.metadata.note")).font(.sans(AppleMetrics.font12))
+        Text(Copy.text("web.metadata.note")).textStyle(AppleMetrics.font12)
         Text(note).textStyle(AppleMetrics.font14, leading: AppleMetrics.previewLeadLeading)
           .fixedSize(horizontal: false, vertical: true)
           .textSelection(.enabled)
@@ -497,20 +501,22 @@ struct DetailRow: View {
       VStack(alignment: .leading, spacing: 0) {
         Text(title).lineLimit(1).truncationMode(.tail)
         if !detail.isEmpty {
-          Text(detail).font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+          Text(detail).textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
             .lineLimit(1).truncationMode(.tail)
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       if !trailing.isEmpty {
-        Text(trailing).font(.number(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
-          .lineLimit(1)
+        Text(trailing).textStyle(AppleMetrics.font12, number: true).foregroundStyle(
+          AppleColors.secondary
+        )
+        .lineLimit(1)
       }
       if navigable {
         Icon("chevron", size: AppleMetrics.space14).foregroundStyle(AppleColors.secondary)
       }
     }
-    .font(.sans(AppleMetrics.font14))
+    .textStyle(AppleMetrics.font14)
     .foregroundStyle(tone ?? AppleColors.primary)
     .frame(minHeight: AppleMetrics.detailRowHeight)
     .overlay(alignment: .top) {

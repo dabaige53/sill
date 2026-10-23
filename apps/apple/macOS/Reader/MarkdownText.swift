@@ -6,11 +6,14 @@ struct MarkdownText: View {
   let document: MarkdownBody
   let size: CGFloat
   let leading: CGFloat
+  @Environment(\.contentAppearance) private var appearance
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
 
   var body: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+    VStack(
+      alignment: .leading, spacing: AppleMetrics.space16 * workspace.preferences.readerSpacing.scale
+    ) {
       ForEach(Array(document.blocks.enumerated()), id: \.offset) { _, block in
         if block.rule {
           Rectangle().fill(AppleColors.line).frame(height: AppleMetrics.lineWidth)
@@ -26,7 +29,7 @@ struct MarkdownText: View {
           }
         } else {
           HStack(alignment: .top, spacing: AppleMetrics.space8) {
-            if !block.marker.isEmpty { Text(block.marker).font(.sans(size)) }
+            if !block.marker.isEmpty { Text(block.marker).textStyle(size, leading: leading) }
             Text(attributed(block.runs, heading: block.heading))
               .textStyle(block.heading > 0 ? AppleMetrics.font17 : size, leading: leading)
               .frame(maxWidth: .infinity, alignment: .leading)
@@ -81,8 +84,9 @@ struct MarkdownText: View {
       var text = AttributedString(run.text)
       var font: Font =
         run.code
-        ? .system(size: size, design: .monospaced) : .sans(heading > 0 ? AppleMetrics.font17 : size)
-      if run.bold || heading > 0 { font = font.weight(.semibold) }
+        ? .system(size: size * appearance.scale, design: .monospaced)
+        : .sans((heading > 0 ? AppleMetrics.font17 : size) * appearance.scale)
+      font = font.weight(appearance.weight(run.bold || heading > 0 ? .semibold : .regular))
       if run.italic { font = font.italic() }
       text.font = font
       text.strikethroughStyle = run.strike ? .single : nil

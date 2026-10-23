@@ -7,11 +7,12 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 | 主题 | 位置 |
 | --- | --- |
 | 产品立场、主屏幕启动、文案 | [基础与组件](handbook/foundation.md#产品立场) |
-| 颜色、玻璃、字体、卡片积木、文字长度、间距与尺寸、图标 | [基础与组件](handbook/foundation.md#颜色) |
+| 颜色、玻璃、字体、卡片积木、文字长度、图标 | [基础与组件](handbook/foundation.md#颜色) |
 | 两端对照：移动（650px 及以下）与网页 | [页面与交互](handbook/interaction.md#两端对照) |
 | 手机主页、搜索与键盘、底部导航与反馈 | [页面与交互](handbook/interaction.md#移动650px-及以下) |
 | 预览与叠放、量大与时间 | [页面与交互](handbook/interaction.md#预览与叠放) |
 | 桌面顶栏与 AI 框、网页键盘、设置弹窗、资讯阅读 | [网页交互](handbook/web-interaction.md) |
+| 间距、尺寸与排版偏好 | [内容布局](handbook/content-layout.md) |
 | 动效 | [动效](handbook/motion.md) |
 | 设计参考：Apple Music、X、Medium 的原图与采用范围 | [设计参考](references/README.md) |
 

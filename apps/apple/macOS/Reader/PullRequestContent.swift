@@ -6,6 +6,7 @@ struct PullRequestContent: View {
   var detail = false
   var tags: [String]?
   @State private var checksExpanded = false
+  @Environment(\.contentAppearance) private var appearance
   @Environment(\.cardIntents) private var intents
   var body: some View {
     VStack(alignment: .leading, spacing: detail ? AppleMetrics.space20 : AppleMetrics.space8) {
@@ -23,7 +24,7 @@ struct PullRequestContent: View {
           .frame(minHeight: detail ? AppleMetrics.space36 : AppleMetrics.cardHeadHeight)
           .padding(.bottom, detail ? AppleMetrics.space6 : AppleMetrics.space8)
           Text(card.title)
-            .font(.sans(detail ? AppleMetrics.previewTitle : AppleMetrics.font16, .semibold))
+            .textStyle(detail ? AppleMetrics.previewTitle : AppleMetrics.font16, .semibold)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, detail ? AppleMetrics.space16 : AppleMetrics.space8)
           HStack(spacing: AppleMetrics.space8) {
@@ -41,7 +42,7 @@ struct PullRequestContent: View {
             if !detail {
               stats(additions: pr.additions, deletions: pr.deletions)
               if let count = pr.changedFiles {
-                Text("\(count) \(Copy.text("pr.fileCount"))").font(.sans(AppleMetrics.font12))
+                Text("\(count) \(Copy.text("pr.fileCount"))").textStyle(AppleMetrics.font12)
                   .foregroundStyle(AppleColors.secondary)
               }
             }
@@ -57,13 +58,16 @@ struct PullRequestContent: View {
       }
     }
     .foregroundStyle(AppleColors.primary)
-    .font(.sans(AppleMetrics.font14))
+    .textStyle(AppleMetrics.font14)
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   private func branchChip(_ text: String, size: CGFloat) -> some View {
     Text(text)
-      .font(.system(size: size, design: .monospaced))
+      .font(
+        .system(
+          size: size * appearance.scale, weight: appearance.weight(.regular), design: .monospaced)
+      )
       .lineLimit(1).truncationMode(.middle)
       .padding(.horizontal, AppleMetrics.space6).padding(.vertical, AppleMetrics.space2)
       .background(RoundedRectangle(cornerRadius: AppleMetrics.space6).fill(AppleColors.surface))
@@ -83,13 +87,13 @@ struct PullRequestContent: View {
         }
       }
     }
-    .font(.sans(AppleMetrics.font13))
+    .textStyle(AppleMetrics.font13)
     .foregroundStyle(AppleColors.secondary)
   }
 
   private func status(_ pr: CardRichFields.PullRequest) -> some View {
     Text(Copy.text(pr.reviewRequested == true ? "pr.reviewRequested" : "pr.state.\(pr.state)"))
-      .font(.sans(AppleMetrics.font11, .medium))
+      .textStyle(AppleMetrics.font11, .medium)
       .padding(.horizontal, AppleMetrics.space8).padding(.vertical, AppleMetrics.space3)
       .foregroundStyle(
         pr.state == "draft" || pr.state == "closed" ? AppleColors.secondary : AppleColors.accent
@@ -104,7 +108,7 @@ struct PullRequestContent: View {
     HStack(spacing: AppleMetrics.space8) {
       if let additions { Text("+\(additions)").foregroundStyle(AppleColors.success) }
       if let deletions { Text("−\(deletions)").foregroundStyle(AppleColors.warning) }
-    }.font(.number(AppleMetrics.font12))
+    }.textStyle(AppleMetrics.font12, number: true)
   }
 
   private func footer(_ pr: CardRichFields.PullRequest) -> some View {
@@ -119,7 +123,7 @@ struct PullRequestContent: View {
           Text(
             "\(Copy.text("pr.checks")) \(pr.checks.filter { $0.conclusion == "success" }.count)/\(pr.checks.count)"
           )
-        }.font(.sans(AppleMetrics.font12))
+        }.textStyle(AppleMetrics.font12)
           .foregroundStyle(passed ? AppleColors.success : AppleColors.secondary)
       }
       Spacer(minLength: 0)
@@ -140,7 +144,7 @@ struct PullRequestContent: View {
 
   private var reviewLabel: some View {
     Text(Copy.text("pr.review"))
-      .font(.sans(AppleMetrics.font14, .semibold))
+      .textStyle(AppleMetrics.font14, .semibold)
       .padding(.horizontal, AppleMetrics.space18).padding(.vertical, AppleMetrics.space8)
       .foregroundStyle(AppleColors.fixedWhite).background(Capsule().fill(AppleColors.accent))
   }
@@ -155,7 +159,7 @@ struct PullRequestContent: View {
               : reviewer.decision == "pending" || reviewer.decision == "changesRequested"
                 ? AppleColors.warning : AppleColors.secondary)
           if reviewer.decision == "approved" { Icon("check", size: AppleMetrics.space8) }
-          if reviewer.decision == "changesRequested" { Text("!").font(.sans(AppleMetrics.font10)) }
+          if reviewer.decision == "changesRequested" { Text("!").textStyle(AppleMetrics.font10) }
         }
         .foregroundStyle(AppleColors.fixedWhite)
         .frame(width: AppleMetrics.space12, height: AppleMetrics.space12)
@@ -217,7 +221,7 @@ struct PullRequestContent: View {
       )
     }
     if !pr.files.isEmpty {
-      Text(Copy.text("pr.files")).font(.sans(AppleMetrics.font13, .semibold)).foregroundStyle(
+      Text(Copy.text("pr.files")).textStyle(AppleMetrics.font13, .semibold).foregroundStyle(
         AppleColors.secondary)
       ForEach(Array(pr.files.enumerated()), id: \.offset) { _, file in
         HStack(spacing: AppleMetrics.space12) {

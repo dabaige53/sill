@@ -73,7 +73,11 @@ class FeedLayout {
 		const min = value("--col-min", 280),
 			ideal = value("--col-ideal", 340),
 			max = value("--col-max", 380);
-		const gap = value(width < min * 2 + 24 ? "--gap-sm" : width < 1000 ? "--gap-md" : "--gap", 24);
+		const gap =
+			value(
+				width < min * 2 + value("--gap", 24) ? "--gap-sm" : width < 1000 ? "--gap-md" : "--gap",
+				24,
+			) * value("--card-space-scale", 1);
 		const {
 			columns: cols,
 			columnWidth: col,

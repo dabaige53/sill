@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-22。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
+更新：2026-10-23。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
 
@@ -8,6 +8,7 @@
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
 - [界面对账表](product/ui-alignment.md)：Web 桌面、手机 Web 与 Mac 每项界面行为的当前状态、刻意差异与实测情况。
+- [设置界面对账](product/ui-settings-alignment.md)
 - [Sill 交互规范](product/interaction-spec.md)
 - [Sill · 窗台 — 产品需求文档](product/requirements.md)
 
@@ -42,6 +43,8 @@
 
 ## 架构决策
 
+- [内容排版偏好](adr/0064-content-layout-preferences.md)
+
 - [文档位置表示是否有效](adr/0022-docs-location-shows-validity.md)
 - [三端代码的顶层结构](adr/0023-three-clients-repo-layout.md)
 - [contracts 中的 zod 定义是契约唯一来源](adr/0024-contracts-zod-as-source.md)
@@ -73,6 +76,10 @@
 - [卡片 A 字号、资讯阅读与 Mac 设置弹窗](adr/0051-card-type-a-and-article-reading.md)
 
 ## 记录
+
+- [排版设置 PR 集成检查（2026-10-23）](records/2026-10-23-layout-pr-integration/README.md)
+- [界面备注与无效设置清理（2026-10-23）](records/2026-10-23-ui-copy-cleanup/README.md)
+- [内容排版偏好浏览器验收（2026-10-23）](records/2026-10-23-layout-preferences-browser/README.md)
 
 - [卡片重建：本地界面接入与非界面检查](records/2026-10-22-card-rebuild-ui/README.md)
 

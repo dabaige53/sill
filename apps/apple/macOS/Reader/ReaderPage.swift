@@ -35,6 +35,7 @@ struct ReaderPage: View {
             card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
           )
           .padding(.bottom, AppleMetrics.space160)
+          .frame(maxWidth: workspace.preferences.readerWidth.width)
           .frame(maxWidth: .infinity)
           .background(ReaderScrollProbe(scroll: scroll))
           .modifier(ReaderPullOffset(motion: scroll.motion))

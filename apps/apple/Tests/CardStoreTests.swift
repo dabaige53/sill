@@ -257,11 +257,19 @@ struct CardStoreTests {
     defer { try? FileManager.default.removeItem(at: directory) }
     let store = try CardStore(directory: directory)
     let preferences = try await store.patchPreferences(
-      .object(["sort": .string("time"), "theme": .string("dark")]), expectedRevision: 0)
+      .object([
+        "sort": .string("time"), "theme": .string("dark"), "cardTextSize": .string("large"),
+        "cardPadding": .string("roomy"),
+      ]), expectedRevision: 0)
     #expect(preferences.json["state"]?["preferences"]?["sort"] == .string("time"))
     await #expect(throws: StoreError.invalidSnapshot) {
       try await store.patchPreferences(
         .object(["density": .string("invalid")]), expectedRevision: 1)
+    }
+    #expect(preferences.json["state"]?["preferences"]?["cardTextSize"] == .string("large"))
+    await #expect(throws: StoreError.invalidSnapshot) {
+      try await store.patchPreferences(
+        .object(["readerTextSize": .string("huge")]), expectedRevision: 1)
     }
     let reading = try await store.addReading(seconds: 60, expectedRevision: 1)
     #expect(reading.json["state"]?["seconds"] == .number(60))

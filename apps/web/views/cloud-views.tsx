@@ -112,10 +112,12 @@ export function CloudSettings({ user, host }: { user: boolean; host: boolean }) 
 	return (
 		<>
 			<h2>{copy("web.cloudentry.ebdc835e8f87")}</h2>
-			<p className="panel-sub">{copy("web.cloudentry.67c5f7479766")}</p>
-			<p className="panel-sub">
-				{host ? copy("web.cloudentry.c360ffadc6df") : copy("web.cloudentry.adf4e8d0d4f0")}
-			</p>
+			<div className="settings-card">
+				<div className="setting-row">
+					<span>{copy("web.settings.storage.location")}</span>
+					<span className="setting-side">{copy("web.settings.storage.cloudAccount")}</span>
+				</div>
+			</div>
 			<div className="settings-card">
 				<div className="setting-row">
 					<button type="button" className="text-link" data-action="export-all">

@@ -266,12 +266,10 @@ try {
 			mobile,
 		);
 		await page.locator("[data-action=settings-group][data-extra=data]").click();
-		assert.match(
-			await page.locator(".settings-main").textContent(),
-			/卡片、阅读状态和偏好保存在云端账号/,
+		assert.equal(
+			await page.locator(".settings-main .setting-row").first().textContent(),
+			"存放位置云端账号",
 		);
-		assert.match(await page.locator(".settings-main").textContent(), /登录状态由安全 Cookie 保存/);
-		assert.doesNotMatch(await page.locator(".settings-main").textContent(), /不持久保存账号令牌/);
 		assert.equal(
 			await page.locator(".settings-main [data-action=export-all]").textContent(),
 			"导出",

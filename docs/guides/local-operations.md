@@ -1,6 +1,6 @@
 # 本地操作
 
-更新：2026-10-22。
+更新：2026-10-23。
 
 ## 页面入口与更新
 
@@ -41,7 +41,7 @@ npm start
 | 完成或恢复任务 | `item.patch` 的 `taskDone`，填写已完成任务的 ID 数组 |
 | 提醒延后、忽略、完成、恢复 | `item.patch` 的 `snoozedUntil / dismissed / reminderDone`；时间使用毫秒 |
 | 阅读计时 | `reading.add`，累加秒数 |
-| 排序与密度 | `preferences.patch` 的 `sort / density` |
+| 排序与排版 | `preferences.patch` 的 `sort / density`；排版字段见[跨端数据约定](../../contracts/README.md#内容排版偏好) |
 | 导出、备份、批量同步 | `state` 返回完整 JSON；`apply` 原子提交多个操作；数据文件可在服务停止后备份 |
 
 `card.upsert` 是完整替换。读取现有卡片后修改需要的字段，连同完整卡片写回；保留未要求修改的内容。任务 ID 必须唯一；任务完成状态只能使用卡片内的任务 ID。来源链接只接受 HTTP / HTTPS。

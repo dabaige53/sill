@@ -9,7 +9,10 @@ export function exportDesignData(check = false) {
 				(name) => `copy/zh-Hans/${name}.json`,
 			),
 		],
-		["tokens.json", ["foundation", "color", "spacing"].map((name) => `tokens/${name}.json`)],
+		[
+			"tokens.json",
+			["foundation", "color", "spacing", "apple"].map((name) => `tokens/${name}.json`),
+		],
 	] as [string, string[]][]) {
 		const merged: Record<string, unknown> = {};
 		for (const source of sources) {

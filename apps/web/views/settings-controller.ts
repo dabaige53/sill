@@ -4,11 +4,24 @@ import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import type { AppController } from "./app.ts";
 import { renderView } from "./react-renderer.ts";
 
+// @design layout-preferences
 export function setPref(this: AppController, key?: any, value?: any) {
 	const before = Store.pref(key);
 	Store.setPref(key, value);
 	this.applyPreferences();
-	if (["stack", "fadeRead", "archiveAfter", "floatTimely", "density"].includes(key))
+	if (
+		[
+			"stack",
+			"fadeRead",
+			"archiveAfter",
+			"floatTimely",
+			"density",
+			"cardTextSize",
+			"cardSpacing",
+			"cardPadding",
+			"textWeight",
+		].includes(key)
+	)
 		this.withFeedAnchor(() => {}, true);
 	if (this.modalKind === "settings") this.repaintSettings();
 	return before;

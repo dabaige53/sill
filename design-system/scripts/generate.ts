@@ -91,6 +91,7 @@ for (const f of [
 	"panels",
 	"overlay-actions",
 	"overlay-gestures",
+	"appearance",
 ]) {
 	let t = src(`apps/web/styles/${f}.css`);
 	for (const [k, v] of Object.entries(map)) t = t.split(k).join(v);

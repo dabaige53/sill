@@ -21,7 +21,6 @@ function WelcomeView({
 			<section className={"welcome"} aria-labelledby={"welcome-title"}>
 				{sillIcon(72)}
 				<h1 id={"welcome-title"}>{"Sill"}</h1>
-				<p>{copy("web.welcome.tagline")}</p>
 				{detail}
 				<div className={"welcome-actions"}>
 					{actions === null ? (
