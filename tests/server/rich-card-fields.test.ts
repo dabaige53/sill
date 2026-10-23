@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import test from "node:test";
 import { create } from "../../contracts/cloud.ts";
 import { identity, rpc } from "./helpers/boundary-fixture.ts";
@@ -155,7 +156,9 @@ test("HTTP and MCP expose PR snapshots and playback fields", async () => {
 test("local storage preserves playback independently of read and reading progress", async () => {
 	const { mkdtemp, rm } = await import("node:fs/promises");
 	const { LocalRepository } = await import("../../server/local/repository.ts");
-	const dir = await mkdtemp("/private/tmp/sill-rich-local-");
+	const dir = await mkdtemp(
+		(process.platform === "darwin" ? "/private/tmp" : tmpdir()) + "/sill-rich-local-",
+	);
 	try {
 		const file = dir + "/cards.json";
 		const repo = new LocalRepository(file);

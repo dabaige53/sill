@@ -1,6 +1,7 @@
 /** Real loopback writes feed the same snapshot adoption and rendering used by the Web app. */
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { JSDOM } from "jsdom";
@@ -12,7 +13,9 @@ import { appFeedMethods } from "../../apps/web/views/app-feed.ts";
 import { startLocal } from "../../server/local/index.ts";
 
 test("local API body reaches preview, reader, summary fallback and search after reload", async () => {
-	const dir = await mkdtemp("/private/tmp/sill-markdown-");
+	const dir = await mkdtemp(
+		(process.platform === "darwin" ? "/private/tmp" : tmpdir()) + "/sill-markdown-",
+	);
 	const server = await startLocal({ port: 0, file: join(dir, "cards.json") });
 	const origin = `http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}`;
 	const card = {

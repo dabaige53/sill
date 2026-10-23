@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import type { AddressInfo } from "node:net";
+import { tmpdir } from "node:os";
 import test from "node:test";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { startLocal } from "../../server/local/index.ts";
@@ -35,7 +36,9 @@ function checkPlayer(response: Response, local: boolean) {
 }
 
 test("local application pages allow only the implemented player origins", async () => {
-	const dir = await mkdtemp("/private/tmp/sill-player-policy-");
+	const dir = await mkdtemp(
+		(process.platform === "darwin" ? "/private/tmp" : tmpdir()) + "/sill-player-policy-",
+	);
 	const server = await startLocal({ port: 0, file: dir + "/cards.json" });
 	try {
 		const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
