@@ -31,7 +31,7 @@ try {
 				type: "note",
 				kind: "capture",
 				title: "让想法有处安放",
-				body: ["先记下来，再慢慢整理。"],
+				body: "先记下来，再慢慢整理。",
 				time: Date.now(),
 			},
 			{
@@ -39,7 +39,7 @@ try {
 				type: "note",
 				kind: "capture",
 				title: "留一点阅读的时间",
-				body: ["卡片保留内容，工具在需要时出现。"],
+				body: "卡片保留内容，工具在需要时出现。",
 				time: Date.now() - 1000,
 			},
 		],
@@ -105,7 +105,7 @@ try {
 				card: {
 					...before.state.cards.find((c?: any) => c.id === "note-polish"),
 					title: "另一处的新标题",
-					body: ["不能被旧页面覆盖。"],
+					body: "不能被旧页面覆盖。",
 				},
 			},
 		],

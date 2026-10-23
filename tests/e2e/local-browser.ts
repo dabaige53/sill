@@ -68,7 +68,7 @@ try {
 				id: "agent-test",
 				type: "note",
 				title: "AI 同步验收",
-				body: ["AI 写入本地"],
+				body: "AI 写入本地",
 				url: "https://example.com",
 			},
 		},

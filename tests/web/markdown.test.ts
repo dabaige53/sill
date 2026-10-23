@@ -2,10 +2,30 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
-import { markdownBlocks, markdownHtml, markdownText } from "../../apps/web/atoms/markdown.ts";
+import {
+	internalCardRoute,
+	markdownBlocks,
+	markdownHtml,
+	markdownText,
+} from "../../apps/web/atoms/markdown.ts";
 import { normalizeCard } from "../../contracts/card-migration.ts";
 
 const render = (text: string) => new JSDOM(markdownHtml(text)).window.document;
+
+test("card URLs stay in Sill while external articles retain their destination", () => {
+	const base = "http://localhost:5173/#feed";
+	assert.equal(internalCardRoute("http://127.0.0.1:4318/#card/demo-note", base), "#card/demo-note");
+	assert.equal(internalCardRoute("#read/demo-note", base), "#read/demo-note");
+	assert.equal(
+		internalCardRoute(
+			"https://sill-web-preview.scs1213-temp-email.workers.dev/#card/demo-note",
+			base,
+		),
+		"#card/demo-note",
+	);
+	assert.equal(internalCardRoute("https://example.com/#card/demo-note", base), null);
+	assert.equal(internalCardRoute("http://localhost:5173/article#card/demo-note", base), null);
+});
 
 test("common Markdown blocks render as structure", () => {
 	const doc = render(

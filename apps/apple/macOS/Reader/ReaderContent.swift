@@ -28,6 +28,7 @@ struct ReaderContent: View {
   /// Room kept on the right of the first row for the floating discs.
   var discRoom: CGFloat = 0
   var mediaHeight: CGFloat?
+  var mediaBottomRoom: CGFloat = 0
   var mediaOffset: CGFloat = 0
   var returnToPlayer: () -> Void = {}
   @Environment(\.cardIntents) private var intents
@@ -53,7 +54,7 @@ struct ReaderContent: View {
       case .media:
         MediaDetail(
           card: card, state: state, full: type.title == ReaderType.page.title,
-          availableHeight: mediaHeight, scrollOffset: mediaOffset,
+          availableHeight: mediaHeight, scrollOffset: mediaOffset, bottomRoom: mediaBottomRoom,
           returnToPlayer: returnToPlayer)
       default: article
       }
@@ -115,9 +116,7 @@ struct ReaderContent: View {
       }
     }
     .padding(.bottom, ruled ? AppleMetrics.space24 : 0)
-    .overlay(alignment: .bottom) {
-      if ruled { Rectangle().fill(AppleColors.lineCard).frame(height: AppleMetrics.lineWidth) }
-    }.padding(.bottom, AppleMetrics.space8)
+    .padding(.bottom, AppleMetrics.space8)
   }
 
   @ViewBuilder private var detailText: some View {
@@ -400,14 +399,7 @@ struct ReaderContent: View {
   }
 
   static func fullDate(_ value: String) -> String? {
-    guard let date = Format.parseDate(value) else { return nil }
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "zh_CN")
-    formatter.dateFormat =
-      Calendar.current.component(.year, from: date)
-        == Calendar.current.component(.year, from: Date())
-      ? "M月d日 HH:mm" : "yyyy年M月d日 HH:mm"
-    return formatter.string(from: date)
+    Format.publication(value, includeTime: true)
   }
 }
 

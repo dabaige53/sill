@@ -29,7 +29,7 @@ enum Format {
       + "\(Copy.text("web.primitives.453e841e7da3"))\(weekday)"
   }
 
-  /// Article reader dates (Web `shortDay`): 今天, 昨天, then 10/18; another year adds it.
+  /// Content dates on cards and details (Web `shortDay`): 今天, 昨天, then 10/18.
   static func shortDay(_ value: Date, now: Date = .now) -> String {
     if calendar.isDate(value, inSameDayAs: now) { return Copy.text("web.primitives.d5f5a7a01073") }
     if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
@@ -81,15 +81,11 @@ enum Format {
     return h > 0 ? String(format: "%d:%02d:%02d", h, m, r) : String(format: "%d:%02d", m, r)
   }
 
-  /// Publication date row (Medium-style): 10月1日, with the year when it is not this year.
-  static func publication(_ value: String, now: Date = .now) -> String? {
-    guard let parsed = parseDate(value) else { return nil }
-    let sameYear = calendar.component(.year, from: parsed) == calendar.component(.year, from: now)
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "zh_CN")
-    formatter.timeZone = value.count == 10 ? TimeZone(identifier: "UTC") : .current
-    formatter.setLocalizedDateFormatFromTemplate(sameYear ? "MMMMd" : "yMMMMd")
-    return formatter.string(from: parsed)
+  /// Shared source-row date. Add the local clock only when the original includes a time.
+  static func publication(_ value: String, includeTime: Bool = false, now: Date = .now) -> String? {
+    guard let parsed = localDay(value) else { return nil }
+    let day = shortDay(parsed, now: now)
+    return includeTime && value.count > 10 ? "\(day) \(time(milliseconds(parsed)))" : day
   }
 
   /// Web `cardDate`: ISO dates and offset timestamps only; offset-less times are ambiguous.

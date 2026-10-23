@@ -13,6 +13,7 @@ Web 动效由 Motion 统一控制；CSS 只表达静止状态。每个表面只�
 | 按压卡片 | `dur-press` 120ms，缩至0.97 |
 | 菜单 | `dur-menu` 200ms，从卡片右上角下方0.95倍浮出；关闭 `dur-menu-close` 160ms，从当前状态淡出。Mac 右键时从指针处向右下浮出，靠近窗口右缘向左、靠近底部或 AI 框向上，离窗口边缘不小于 8；没有指针时（VoiceOver）与 Web 相同 |
 | 桌面卡片详情 | 有可见来源卡片时，按位置和尺寸展开、收回；展开与收回用同一个弹簧 mass 1、stiffness 274、damping 30（`motion.cardSpring`）。无来源时保持 `dur-open` 280ms / `dur-close` 220ms 的10px淡入淡出 |
+| 详情放大与缩小 | 从当前绘制的详情外框接续到全屏或预览尺寸，使用 `motion.cardSpring`；保留同一阅读层与返回关系，键盘即时完成 |
 | 手机抽屉打开 | `ease-sheet`，`dur-sheet` 260ms，从底部升起，初始离顶64px |
 | 内容下拉关闭 | 位移达到 `gesture-dismiss-distance` 110px，或最近100ms向下速度超过0.5px/ms且位移超过40px；松手提交 |
 | 把手 | 上拉40px展开，短下拉40px收起；下拉160px关闭；取消恢复原尺寸 |

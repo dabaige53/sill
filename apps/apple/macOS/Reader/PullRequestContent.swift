@@ -6,6 +6,7 @@ struct PullRequestContent: View {
   var detail = false
   var tags: [String]?
   @State private var checksExpanded = false
+  @Environment(\.cardIntents) private var intents
   var body: some View {
     VStack(alignment: .leading, spacing: detail ? AppleMetrics.space20 : AppleMetrics.space8) {
       if let pr = card.pullRequest {
@@ -47,9 +48,6 @@ struct PullRequestContent: View {
           if detail { ReaderTags(tags: tags ?? card.tags).padding(.top, AppleMetrics.space12) }
         }
         .padding(.bottom, detail ? AppleMetrics.space24 : 0)
-        .overlay(alignment: .bottom) {
-          if detail { Rectangle().fill(AppleColors.lineCard).frame(height: AppleMetrics.lineWidth) }
-        }
         if detail {
           details(pr)
         } else {
@@ -103,10 +101,11 @@ struct PullRequestContent: View {
           Link(destination: url) { reviewLabel }.buttonStyle(.plain)
         } else {
           Button {
+            intents.open(card.id)
           } label: {
             reviewLabel
           }
-          .buttonStyle(.plain).disabled(true).opacity(AppleMetrics.disabledOpacity)
+          .buttonStyle(.plain)
         }
       }
     }.padding(.top, AppleMetrics.space4)

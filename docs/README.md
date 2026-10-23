@@ -218,3 +218,6 @@
 
 - [2026-10-22 卡片模块源码复核与界面复验](records/2026-10-22-card-ui-recheck/README.md)：原 HTML 与 Web、Mac 实现的逐模块核对和本轮验证。
 - [2026-10-22 Mac 卡片补修窗口复验](records/2026-10-22-card-macos-follow-up/README.md)：卡面日期、视频来源间距、播客收起条与返回播放器的检查结果。
+- [2026-10-22 卡片交互修复](records/2026-10-22-card-interaction-fixes/README.md)：卡片内跳转、详情尺寸过渡、播客吸顶切换、标题分隔线及审阅按钮。
+
+- [2026-10-22 测试与旧模板清理](records/2026-10-22-test-cleanup/README.md)：过时正文、媒体断言、旧模板与文案哈希清理及恢复标签。

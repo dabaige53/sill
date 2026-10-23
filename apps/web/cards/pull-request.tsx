@@ -137,7 +137,13 @@ export function PullRequest({
 								{copy("pr.review")}
 							</a>
 						) : (
-							<button type="button" className="pill pr-review" disabled>
+							<button
+								type="button"
+								className="pill pr-review"
+								disabled={passive}
+								data-action="card-open"
+								data-id={card.id}
+							>
 								{copy("pr.review")}
 							</button>
 						))}

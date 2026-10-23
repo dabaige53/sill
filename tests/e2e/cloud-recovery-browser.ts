@@ -15,7 +15,7 @@ const seed: Record<string, any> = {
 	revision: 1,
 	type: "note",
 	title: "保留原始正文",
-	body: ["第一段\n段内换行", "", "最后一段"],
+	body: ["第一段\n段内换行", "", "最后一段"].join("\n\n"),
 	state: { read: false },
 	updated_at: new Date().toISOString(),
 };

@@ -177,6 +177,34 @@ private let syntheticReminder: JSONValue = .object([
 }
 
 @MainActor struct WorkspaceTests {
+  @Test func internalMarkdownCardLinkUsesExistingReaderStack() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.open("a")
+    await Task.yield()
+    let route = try #require(MarkdownText.cardRoute(URL(string: "http://127.0.0.1:4318/#card/b")!))
+    reader.open(route.id, full: route.full)
+    #expect(reader.layers.map(\.card) == ["a", "b"])
+    reader.close()
+    #expect(reader.top?.card == "a")
+    #expect(MarkdownText.cardRoute(URL(string: "https://example.com/#card/b")!) == nil)
+  }
+
+  @Test func resizingKeepsTheLayerAndStartsAtItsDrawnSurface() async throws {
+    let (workspace, _) = await ready()
+    let reader = Reader(workspace: workspace)
+    reader.open("a")
+    await Task.yield()
+    let layer = try #require(reader.top)
+    let drawn = Reader.Surface(frame: CGRect(x: 300, y: 80, width: 560, height: 600), radius: 28)
+    reader.surfaces["a"] = drawn
+    reader.positions[layer.id] = 120
+    reader.open("a", full: true)
+    #expect(reader.top?.id == layer.id && reader.top?.full == true)
+    #expect(reader.resizeSource == drawn && !reader.resizeShown)
+    #expect(reader.positions[layer.id] == 120)
+  }
+
   @Test func measuredEntryAndCancelledReveal() async throws {
     let (workspace, _) = await ready()
     let reader = Reader(workspace: workspace)

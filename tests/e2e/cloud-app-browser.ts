@@ -310,7 +310,7 @@ try {
 				body: {
 					type: "mail",
 					title: "Synthetic linked mail",
-					body: ["Keep this mail unread until navigation is acknowledged."],
+					body: "Keep this mail unread until navigation is acknowledged.",
 					url: "https://mail.example/message/1",
 				},
 			},

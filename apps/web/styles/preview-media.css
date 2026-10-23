@@ -381,21 +381,26 @@ dialog > .float-bar.is-hidden {
 .compact-player-slot {
 	position: sticky;
 	top: 0;
-	height: 0;
+	flex: none;
+	height: calc(var(--space-44) + var(--space-24));
+	margin-top: calc(-1 * (var(--space-44) + var(--space-24) + var(--space-16)));
 	z-index: 2;
 }
 .compact-player {
-	position: absolute;
-	inset: 0 0 auto;
+	position: relative;
 	display: flex;
 	align-items: center;
 	gap: var(--space-12);
 	padding: var(--space-12);
 	background: var(--card);
 	border-radius: var(--control-radius);
+	visibility: hidden;
 }
-.compact-player[hidden] {
-	display: none;
+.is-compact .compact-player {
+	visibility: visible;
+}
+.is-compact .media-primary {
+	visibility: hidden;
 }
 .compact-player button:first-child {
 	flex: 1;
@@ -486,7 +491,6 @@ dialog > .float-bar.is-hidden {
 }
 .detail-header.ruled-header {
 	padding-bottom: 24px;
-	border-bottom: 1px solid var(--line-card);
 }
 .preview-body h1 {
 	font-size: 26px;
@@ -894,7 +898,6 @@ dialog > .float-bar.is-hidden {
 	margin-top: 4px;
 }
 .pr-detail > .detail-header {
-	border-bottom: 1px solid var(--line-card);
 	padding-bottom: 24px;
 }
 .pr-detail .pr-branch-row {
@@ -1011,14 +1014,21 @@ dialog > .float-bar.is-hidden {
 .preview-sheet .compact-player-slot {
 	top: var(--space-64);
 }
-.preview-sheet:has(.compact-player:not([hidden])) .now-playing-heading {
+.preview-sheet:has(.is-podcast.is-compact) .now-playing-heading {
 	inset: 0 0 auto;
 	height: var(--space-64);
 	padding: var(--space-24) var(--space-30);
 	background: var(--card);
 }
 
-.preview-sheet:has(.compact-player:not([hidden])) {
+.preview-sheet:has(.is-podcast.is-compact) {
+	background: var(--card);
+}
+.preview-sheet .is-podcast.is-compact .media-tab-header {
+	position: sticky;
+	top: calc(var(--space-64) + var(--space-44) + var(--space-24));
+	z-index: 1;
+	padding-top: var(--space-16);
 	background: var(--card);
 }
 

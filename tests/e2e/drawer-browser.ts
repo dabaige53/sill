@@ -30,7 +30,9 @@ const cards: any[] = Array.from({ length: 38 }, (_, index) => ({
 	type: "article",
 	title: `阅读卡片 ${index + 1}`,
 	summary: "保持简洁的摘要，点开查看完整正文。",
-	body: Array(30).fill("这段合成正文用于验证手势取消、工具条和键盘导航，不包含个人资料。"),
+	body: Array(30)
+		.fill("这段合成正文用于验证手势取消、工具条和键盘导航，不包含个人资料。")
+		.join("\n\n"),
 	time: Date.now() - index * 3600000,
 }));
 Object.assign(cards[0], {
@@ -53,7 +55,7 @@ cards.push(
 			"三种方向已经整理好了。比起增加功能，我们更想先确认什么应该留下。",
 			"附件里是三版对比，第二版我比较倾向，但想听听你的判断。",
 			"周四之前给我回个话就行。",
-		],
+		].join("\n\n"),
 		time: Date.now(),
 	},
 	{
@@ -70,7 +72,9 @@ cards.push(
 		type: "digest",
 		title: "正文末尾的交接动作",
 		summary: "这张摘要没有悬浮操作栏，末尾操作应该完整可见。",
-		body: Array(12).fill("这段合成摘要用于验证阅读到底部之后，完整正文和交接动作仍然清晰。"),
+		body: Array(12)
+			.fill("这段合成摘要用于验证阅读到底部之后，完整正文和交接动作仍然清晰。")
+			.join("\n\n"),
 		time: Date.now() - 7200000,
 	},
 	{

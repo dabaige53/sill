@@ -16,7 +16,7 @@ export function materialDensityCards(now = reviewTime) {
 			body: [
 				"这是一组用于界面验收的合成内容。摘要范围仅限本次产品评审，不代表当前工作区的阅读、收藏或完成数量。",
 				"详情需要保留全部要点与正文。长中文、连续英文以及更小的屏幕都不应造成文字被省略或页面横向溢出。",
-			],
+			].join("\n\n"),
 			tags: ["产品", "评审"],
 		},
 		{
@@ -46,7 +46,7 @@ export function materialDensityCards(now = reviewTime) {
 			image: "architecture",
 			form: "image",
 			summary: "信息卡片保持稳定的实色表面。玻璃承载导航和轻操作，让内容与工具之间有明确的层次。",
-			body: ["通过更合适的阅读宽度，标题与摘要能组成稳定的节奏。留白用于分组，操作在需要时出现。"],
+			body: "通过更合适的阅读宽度，标题与摘要能组成稳定的节奏。留白用于分组，操作在需要时出现。",
 			readingEstimate: { seconds: 240, origin: "provided", scope: "full" },
 			bodyCoverage: "full",
 			tags: ["设计"],
@@ -57,7 +57,7 @@ export function materialDensityCards(now = reviewTime) {
 			title: "密度也需要层次",
 			summary:
 				"卡片让人先看懂，再决定要不要打开。紧凑视图减少预览行数，标准视图保留上下文，详情负责承载完整内容。长一点的摘要能验证截断是否只发生在卡面。",
-			body: ["不同密度可以改变列宽与摘要行数，但不应该删除原始数据。"],
+			body: "不同密度可以改变列宽与摘要行数，但不应该删除原始数据。",
 			tags: ["想法"],
 		},
 		{
@@ -69,7 +69,7 @@ export function materialDensityCards(now = reviewTime) {
 			location: "线上评审室",
 			summary: "从打开一张卡片，到拖动取消、返回与继续阅读。",
 			people: ["小林", "小周"],
-			body: ["使用合成卡片检查，不访问真实日历或会议。"],
+			body: "使用合成卡片检查，不访问真实日历或会议。",
 			tags: ["评审"],
 		},
 		{
@@ -93,7 +93,7 @@ export function materialDensityCards(now = reviewTime) {
 			type: "note",
 			title: "收起之后，仍然能继续",
 			summary: "减少动态效果时保留清楚的状态转换；取消一个手势后，页面应该回到可操作的状态。",
-			body: ["动画不仅是进入时的一瞬间，也包括中断与恢复。"],
+			body: "动画不仅是进入时的一瞬间，也包括中断与恢复。",
 			tags: ["交互"],
 		},
 		{

@@ -30,7 +30,7 @@ struct PhotoLightbox: View {
           .padding(.horizontal, AppleMetrics.space20)
       }
       Text(
-        [card.location, card.takenAt.flatMap(ReaderContent.fullDate)].compactMap { $0 }.joined(
+        [card.location, card.takenAt.flatMap { Format.publication($0) }].compactMap { $0 }.joined(
           separator: " · ")
       )
       .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.fixedWhite75)

@@ -69,6 +69,7 @@ struct PreviewSheet: View {
       ScrollView(.vertical) {
         ReaderContent(
           card: card, state: state, discRoom: discRoom, mediaHeight: maxHeight,
+          mediaBottomRoom: barRoom,
           mediaOffset: scroll.motion.scrollOffset,
           returnToPlayer: { scroll.scrollView?.documentView?.scroll(.zero) }
         )

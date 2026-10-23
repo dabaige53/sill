@@ -122,7 +122,8 @@ export const appSurfacesMethods = {
 			else this.dialog.showModal();
 		}
 		// Frequent navigation changes in place; only sheets enter over the current page.
-		if (!MotionEngine.keyboard && !page) MotionEngine.queuePanel(this.dialog, origin, resume);
+		if (!MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
+			MotionEngine.queuePanel(this.dialog, origin, resume);
 		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
 				? "#filter-search"

@@ -30,7 +30,7 @@ export const capabilities = {
 				id: "my-note",
 				type: "note",
 				title: copy("server.repository.443cbad36d77"),
-				body: [copy("web.body")],
+				body: copy("web.body"),
 				url: "https://example.com",
 			},
 		},

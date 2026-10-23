@@ -98,7 +98,7 @@ try {
 	const note = await api("/api/v1/contents", {
 		type: "note",
 		title: "Synthetic note",
-		body: ["Body"],
+		body: "Body",
 		summary: "Summary",
 		sources: [{ name: "Synthetic", kind: "agent" }],
 	});

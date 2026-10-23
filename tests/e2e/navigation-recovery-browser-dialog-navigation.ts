@@ -103,7 +103,7 @@ export async function runDialogNavigation({
 						type: "note",
 						kind: "capture",
 						title: "合成原稿",
-						body: ["原文"],
+						body: "原文",
 					},
 				},
 			]);
@@ -128,7 +128,7 @@ export async function runDialogNavigation({
 						type: "note",
 						kind: "capture",
 						title: "另一会话的新稿",
-						body: ["不能被旧稿覆盖"],
+						body: "不能被旧稿覆盖",
 					},
 				},
 			]);

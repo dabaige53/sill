@@ -78,6 +78,25 @@ function fixture() {
 	return { dom, w, app, Store, Panels, observers };
 }
 
+test("opening a card from Markdown navigates the existing surface without opening the link", () => {
+	const f = fixture();
+	try {
+		f.app.dialog.innerHTML =
+			'<div class="markdown"><a href="http://127.0.0.1:4318/#card/mail-one" target="_blank">Mail</a></div>';
+		let destination = "";
+		f.app.navigate = (route: string) => {
+			destination = route;
+		};
+		const event = new f.w.MouseEvent("click", { bubbles: true, cancelable: true });
+		f.app.dialog.addEventListener("click", (e: MouseEvent) => f.app.click(e));
+		f.app.dialog.querySelector("a").dispatchEvent(event);
+		assert.equal(destination, "#card/mail-one");
+		assert.equal(event.defaultPrevented, true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("closing photo tags returns to the same photo index", () => {
 	const f = fixture();
 	try {
@@ -243,7 +262,11 @@ for (const sourceRow of [true, false]) {
 				height = 400;
 			sheet.getBoundingClientRect = () => ({ top: 20 });
 			anchor.getBoundingClientRect = () => ({ top: top * 0.9, height: 18 });
- Object.defineProperties(anchor, {offsetTop: {get: () => top - 20}, offsetHeight: {value: 20}, offsetParent: {value: sheet}});
+			Object.defineProperties(anchor, {
+				offsetTop: { get: () => top - 20 },
+				offsetHeight: { value: 20 },
+				offsetParent: { value: sheet },
+			});
 			Object.defineProperty(sheet, "offsetHeight", { get: () => height });
 			let destroyed = 0,
 				disconnected = 0;

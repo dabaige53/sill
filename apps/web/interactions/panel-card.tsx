@@ -7,12 +7,12 @@ import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import {
 	articleDate,
-	contentDay,
-	detailDate,
 	cardDate,
 	cardDates,
 	cardReadingTime,
 	cardSourceKind,
+	contentDay,
+	detailDate,
 	detailSource,
 } from "../data/card-source.ts";
 import { CardTypes, SourceKinds } from "../data/cards.ts";
@@ -99,13 +99,7 @@ export const panelCard = {
 		].includes(c.type)
 			? null
 			: cardDates(c).published;
-		const label = date
-			? new Intl.DateTimeFormat("zh-CN", {
-					year: Number(date.text.slice(0, 4)) === new Date().getFullYear() ? undefined : "numeric",
-					month: "long",
-					day: "numeric",
-				}).format(new Date(date.text.slice(0, 10) + "T00:00:00"))
-			: "";
+		const label = date ? detailDate(date.datetime) : "";
 		const rows = [
 			!["article", "media", "note", "file", "suggestion", "mail"].includes(c.type) &&
 			c.authors?.length

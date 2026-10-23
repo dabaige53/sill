@@ -199,7 +199,7 @@ try {
 			body: {
 				type: "note",
 				title: "Agent wrote this",
-				body: ["Visible in the same web workspace"],
+				body: "Visible in the same web workspace",
 			},
 		},
 	});
@@ -217,7 +217,7 @@ try {
 			idempotency_key: "browser_mcp_2",
 			body: {
 				expectedRevision: 1,
-				changes: { title: "Agent updated this", body: ["Updated in the same workspace"] },
+				changes: { title: "Agent updated this", body: "Updated in the same workspace" },
 			},
 		},
 	});

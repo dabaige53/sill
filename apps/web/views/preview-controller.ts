@@ -18,7 +18,15 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
 	).querySelector(`[data-card="${CSS.escape(id)}"]`);
 	const sourceRect = source?.getBoundingClientRect();
-	const entryRect = !this.dialog.open || this.modalKind === "search" ? sourceRect : null;
+	const resizing =
+		this.dialog.open &&
+		this.currentId === id &&
+		((reading && this.modalKind === "preview") || (!reading && this.modalKind === "reader"));
+	const entryRect = resizing
+		? MotionEngine.surface(this.dialog).getBoundingClientRect()
+		: !this.dialog.open || this.modalKind === "search"
+			? sourceRect
+			: null;
 	// A quick note opens where it is: the card becomes its own editor.
 	if (
 		!reading &&

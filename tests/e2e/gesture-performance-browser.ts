@@ -30,7 +30,7 @@ try {
 					id: `gesture-${index}`,
 					type: "article",
 					title: `合成阅读 ${index}`,
-					body: Array(60).fill("长正文用于检查拖动和关闭时的布局工作。"),
+					body: Array(60).fill("长正文用于检查拖动和关闭时的布局工作。").join("\n\n"),
 					time: Date.now() - index,
 				})),
 				items: {},

@@ -7,6 +7,7 @@ struct MediaDetail: View {
   var full = false
   var availableHeight: CGFloat?
   var scrollOffset: CGFloat = 0
+  var bottomRoom: CGFloat = 0
   var returnToPlayer: () -> Void = {}
   @State private var primaryHeight: CGFloat = 0
   @Environment(Workspace.self) private var workspace
@@ -144,34 +145,36 @@ struct MediaDetail: View {
     }.buttonStyle(.plain)
       .accessibilityAddTraits(tab == value ? .isSelected : [])
   }
+  private var tabHeader: some View {
+    HStack(spacing: AppleMetrics.space16) {
+      tabButton("transcript", "web.media.transcript")
+      tabButton("chapters", "web.media.chapters")
+      tabButton("summary", card.isPodcast ? "web.media.notes" : "web.media.summary")
+      Spacer(minLength: 0)
+      if tab == "transcript" {
+        Button {
+          follow.toggle()
+        } label: {
+          HStack(spacing: AppleMetrics.space4) {
+            Icon("clock", size: AppleMetrics.font14)
+            Text(Copy.text("web.media.follow"))
+          }.font(.sans(AppleMetrics.font12)).padding(.horizontal, AppleMetrics.space10).padding(
+            .vertical, AppleMetrics.space6
+          )
+          .foregroundStyle(AppleColors.accent).background(
+            Capsule().fill(AppleColors.accentSoft))
+        }.buttonStyle(.plain).disabled(!available || card.transcript.isEmpty)
+          .accessibilityAddTraits(follow ? .isSelected : [])
+      }
+    }.frame(maxWidth: .infinity, alignment: .leading)
+      .overlay(alignment: .bottom) {
+        Rectangle().fill(AppleColors.lineCard).frame(height: AppleMetrics.lineWidth)
+      }
+  }
+
   private var secondary: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      if full || card.isPodcast {
-        HStack(spacing: AppleMetrics.space16) {
-          tabButton("transcript", "web.media.transcript")
-          tabButton("chapters", "web.media.chapters")
-          tabButton("summary", card.isPodcast ? "web.media.notes" : "web.media.summary")
-          Spacer(minLength: 0)
-          if tab == "transcript" {
-            Button {
-              follow.toggle()
-            } label: {
-              HStack(spacing: AppleMetrics.space4) {
-                Icon("clock", size: AppleMetrics.font14)
-                Text(Copy.text("web.media.follow"))
-              }.font(.sans(AppleMetrics.font12)).padding(.horizontal, AppleMetrics.space10).padding(
-                .vertical, AppleMetrics.space6
-              )
-              .foregroundStyle(AppleColors.accent).background(
-                Capsule().fill(AppleColors.accentSoft))
-            }.buttonStyle(.plain).disabled(!available || card.transcript.isEmpty)
-              .accessibilityAddTraits(follow ? .isSelected : [])
-          }
-        }.frame(maxWidth: .infinity, alignment: .leading)
-          .overlay(alignment: .bottom) {
-            Rectangle().fill(AppleColors.lineCard).frame(height: AppleMetrics.lineWidth)
-          }
-      }
+      if full { tabHeader }
       if tab == "summary" {
         if !card.markdown.blocks.isEmpty {
           MarkdownText(
@@ -237,17 +240,36 @@ struct MediaDetail: View {
           .background(card.isPodcast ? Cover.tone(card.image).opacity(0.25) : Color.clear)
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
         ScrollView { secondary }.frame(maxWidth: .infinity, maxHeight: availableHeight)
+      } else if card.isPodcast {
+        // The pinned section owns space above the transcript. Its hidden player space overlaps
+        // only the full player's last rows, then replaces them when the section reaches the top.
+        LazyVStack(
+          alignment: .leading, spacing: AppleMetrics.space16, pinnedViews: [.sectionHeaders]
+        ) {
+          primary.frame(maxWidth: .infinity)
+            .opacity(compact ? 0 : 1).allowsHitTesting(!compact).accessibilityHidden(compact)
+            .padding(.bottom, -stickyPlayerHeight - AppleMetrics.space16)
+          Section {
+            secondary.frame(
+              maxWidth: .infinity,
+              minHeight: max(
+                0,
+                (availableHeight ?? 792) - stickyPlayerHeight
+                  - AppleMetrics.space44 - AppleMetrics.space32 - bottomRoom),
+              alignment: .topLeading)
+          } header: {
+            VStack(spacing: AppleMetrics.space16) {
+              compactControls
+                .padding(.top, AppleMetrics.space64)
+                .opacity(compact ? 1 : 0).allowsHitTesting(compact).accessibilityHidden(!compact)
+              tabHeader
+            }
+            .background(compact ? AppleColors.card : Color.clear)
+          }
+        }
       } else {
         primary.frame(maxWidth: .infinity)
-        secondary.frame(
-          maxWidth: .infinity,
-          minHeight: card.isPodcast ? max(0, (availableHeight ?? 792) - 144) : nil,
-          alignment: .topLeading)
-      }
-    }
-    .overlay(alignment: .top) {
-      if card.isPodcast, !full, primaryHeight > 0, scrollOffset > primaryHeight - 144 {
-        compactControls.offset(y: scrollOffset + AppleMetrics.space40)
+        secondary.frame(maxWidth: .infinity, alignment: .topLeading)
       }
     }
     .font(.sans(AppleMetrics.font15)).foregroundStyle(AppleColors.primary)
@@ -260,6 +282,14 @@ struct MediaDetail: View {
       }
     }
     .onDisappear { playback.stop() }
+  }
+  private var stickyPlayerHeight: CGFloat {
+    AppleMetrics.space64 + AppleMetrics.space44 + AppleMetrics.space24
+      + AppleMetrics.space4 + AppleMetrics.space3
+  }
+  private var compact: Bool {
+    primaryHeight > 0 && scrollOffset > 0
+      && scrollOffset >= primaryHeight + AppleMetrics.previewPaddingTop - stickyPlayerHeight - 1
   }
   private var compactControls: some View {
     VStack(spacing: AppleMetrics.space4) {

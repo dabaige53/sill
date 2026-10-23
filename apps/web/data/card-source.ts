@@ -1,4 +1,5 @@
 import type { Card } from "../../../contracts/card.ts";
+import { shortDay, timeString } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 
 export function cardSource(card: Pick<Card, "sources">): string {
@@ -40,20 +41,14 @@ export function cardDate(value: unknown): { datetime: string; text: string } | n
 }
 
 /** Compact, local-time label for the source row, retaining the timestamp in the data. */
-export function detailDate(value: unknown, includeTime = false): string {
+export function detailDate(value: unknown, includeTime = false, now = Date.now()): string {
 	const parsed = cardDate(value);
 	if (!parsed) return "";
 	const date = new Date(
 		parsed.datetime.length === 10 ? `${parsed.datetime}T00:00:00` : parsed.datetime,
 	);
-	return new Intl.DateTimeFormat("zh-CN", {
-		year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
-		month: "long",
-		day: "numeric",
-		...(includeTime && parsed.datetime.length > 10
-			? { hour: "2-digit" as const, minute: "2-digit" as const, hour12: false }
-			: {}),
-	}).format(date);
+	const day = shortDay(date.getTime(), now);
+	return includeTime && parsed.datetime.length > 10 ? `${day} ${timeString(date.getTime())}` : day;
 }
 
 export function cardDates(card: Record<string, any>) {

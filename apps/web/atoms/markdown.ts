@@ -14,6 +14,27 @@ export function markdownHtml(text: string): string {
 	return md.render(text);
 }
 
+/** Card links in authored text stay in the current workspace. External links keep their destination. */
+export function internalCardRoute(href: string, base: string): string | null {
+	try {
+		const url = new URL(href, base);
+		const local =
+			["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) &&
+			["4318", "5173"].includes(url.port);
+		if (
+			!/^https?:$/.test(url.protocol) ||
+			url.pathname !== "/" ||
+			(url.origin !== new URL(base).origin &&
+				!local &&
+				url.origin !== "https://sill-web-preview.scs1213-temp-email.workers.dev")
+		)
+			return null;
+		return /^#(?:card|read)\/[\w-]+$/.test(url.hash) ? url.hash : null;
+	} catch {
+		return null;
+	}
+}
+
 /** Plain text blocks of a Markdown string, for search, excerpts and the card face fallback. */
 export function markdownBlocks(text: string): string[] {
 	return md

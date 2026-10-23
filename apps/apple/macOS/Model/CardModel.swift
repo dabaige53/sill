@@ -26,11 +26,11 @@ struct CardModel: Identifiable, Equatable, Sendable {
     var url: URL? = nil
   }
   struct Publication: Equatable, Sendable {
-    var date: String?
+    var date: String? { dateTitle.flatMap { Format.publication($0) } }
     var dateTitle: String?
     var rows: [(label: String, value: String)]
     static func == (a: Publication, b: Publication) -> Bool {
-      a.date == b.date && a.rows.map(\.label) == b.rows.map(\.label)
+      a.dateTitle == b.dateTitle && a.rows.map(\.label) == b.rows.map(\.label)
         && a.rows.map(\.value) == b.rows.map(\.value)
     }
   }
@@ -198,7 +198,6 @@ struct CardModel: Identifiable, Equatable, Sendable {
         (Copy.text("web.metadata.coverage"), "\(Format.dateLabel(from)) – \(Format.dateLabel(to))"))
     }
     publication = Publication(
-      date: value.publishedAt.flatMap { Format.publication($0) },
       dateTitle: value.publishedAt, rows: rows)
     articleDate =
       value.publishedAt.flatMap(Format.localDay) ?? value.savedAt.flatMap(Format.localDay)

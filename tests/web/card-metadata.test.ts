@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
-import { CardPresentation, CardTemplates, cardHTML } from "../../apps/web/cards/templates.ts";
+import { cardHTML } from "../../apps/web/cards/templates.ts";
 import {
 	cardDate,
 	cardDates,
 	cardReadingTime,
+	detailDate,
 	detailSource,
 } from "../../apps/web/data/card-source.ts";
 import { Store } from "../../apps/web/data/store.ts";
@@ -159,11 +160,7 @@ test("mail identity never borrows sources or assumes the current user is a recip
 			...(sender === undefined ? {} : { sender }),
 			recipients: ["Actual recipient"],
 		});
-		for (const html of [
-			cardHTML(card),
-			CardTemplates.mail(card, { state: CardPresentation.state(card) }),
-			Panels.preview({}, card),
-		]) {
+		for (const html of [cardHTML(card), Panels.preview({}, card)]) {
 			const dom = new JSDOM(html);
 			try {
 				const doc = dom.window.document;
@@ -201,11 +198,7 @@ test("podcast duration stays unknown when absent and never derives playback from
 		});
 		Store.state.items[card.id] = { progress: 0.75, note: "Personal note" };
 		const expected = seconds === undefined ? "时长未知" : seconds === 0 ? "0:00" : "4:00";
-		for (const html of [
-			cardHTML(card),
-			CardTemplates.media(card, { state: Store.item(card.id) }),
-			Panels.preview({}, card),
-		]) {
+		for (const html of [cardHTML(card), Panels.preview({}, card)]) {
 			const dom = new JSDOM(html);
 			try {
 				const doc = dom.window.document;
@@ -294,12 +287,87 @@ test("article and photo heads name their day like the preview head", () => {
 	};
 	const feed = head(cardHTML(story));
 	assert.equal(feed, "Publisher · Writer · 2024/3/5 · 约 6 分钟阅读");
-	assert.equal(head(CardTemplates.article(story, { state: CardPresentation.state(story) })), feed);
 	assert.equal(head(Panels.preview({}, story)), feed);
 	assert.equal(head(cardHTML(photo)), "Coast · 2024/3/6");
 });
 
-test("PR has its own snapshot layout and never invents missing statistics", () => {
+test("content dates stay identical on card faces, previews and readers", (t) => {
+	t.mock.timers.enable({ apis: ["Date"], now: new Date(2026, 9, 22, 12) });
+	Store.state = Store.fresh();
+	for (const [publishedAt, label] of [
+		["2026-10-22", "今天"],
+		["2026-10-21", "昨天"],
+		["2026-10-18", "10/18"],
+		["2025-10-18", "2025/10/18"],
+		["2026-10-23", "10/23"],
+	]) {
+		for (const fields of [
+			{ type: "article" },
+			{ type: "note" },
+			{ type: "note", variant: "quote" },
+			{ type: "media", media: "video", image: "coast" },
+			{ type: "media", media: "podcast" },
+			{ type: "suggestion" },
+		]) {
+			const card = Card.parse({
+				...fields,
+				id: "dated-content",
+				title: "Title",
+				publishedAt,
+				publisher: { name: "Source" },
+				body: "Body",
+			});
+			for (const html of [cardHTML(card), Panels.preview({}, card), Panels.reader({}, card)]) {
+				const dom = new JSDOM(html);
+				try {
+					assert.equal(
+						dom.window.document.querySelector(".card-src, .preview-meta")?.textContent?.trim(),
+						`Source · ${label}`,
+						`${fields.type}/${fields.media || ""}: ${publishedAt}`,
+					);
+				} finally {
+					dom.window.close();
+				}
+			}
+		}
+		const photo = Card.parse({
+			id: "dated-photo",
+			type: "photo",
+			title: "Photo",
+			image: "coast",
+			takenAt: publishedAt,
+		});
+		const dom = new JSDOM(Panels.lightbox(photo));
+		try {
+			assert.equal(
+				dom.window.document.querySelector(".lightbox-caption small")?.textContent,
+				label,
+			);
+		} finally {
+			dom.window.close();
+		}
+	}
+	const sentAt = new Date(2026, 9, 22, 9, 30).toISOString();
+	const mail = Card.parse({
+		id: "dated-mail",
+		type: "mail",
+		title: "Mail",
+		sender: "Sender",
+		sentAt,
+	});
+	for (const html of [cardHTML(mail), Panels.preview({}, mail), Panels.reader({}, mail)]) {
+		const dom = new JSDOM(html);
+		try {
+			assert.match(dom.window.document.body.textContent!, /今天 09:30/);
+		} finally {
+			dom.window.close();
+		}
+	}
+	assert.equal(detailDate("2026-10-22", true), "今天");
+});
+
+test("PR has its own snapshot layout and never invents missing statistics", (t) => {
+	t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-22T12:00:00+08:00") });
 	Store.state = Store.fresh();
 	const card = Card.parse({
 		id: "pr-layout",
@@ -327,7 +395,7 @@ test("PR has its own snapshot layout and never invents missing statistics", () =
 	assert.match(face.body.textContent!, /审阅/);
 	assert.doesNotMatch(face.querySelector(".pr-stats")!.textContent!, /[+−]0/);
 	const detail = new JSDOM(Panels.preview({}, card)).window.document;
-	assert.match(detail.body.textContent!, /记录于.*10月22日/);
+	assert.match(detail.body.textContent!, /记录于.*今天/);
 	assert.match(detail.body.textContent!, /已通过/);
 	assert.match(detail.body.textContent!, /build/);
 	assert.equal(detail.querySelector('[data-action="reader"]'), null);

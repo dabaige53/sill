@@ -43,6 +43,7 @@ export function MediaDetail({
 	const transcript = useRef<HTMLDivElement>(null);
 	const primary = useRef<HTMLDivElement>(null);
 	const [compact, setCompact] = useState(false);
+	const compactPlayer = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		const node = primary.current;
 		const scroll = node?.closest(".sheet-scroll");
@@ -50,7 +51,8 @@ export function MediaDetail({
 		const update = () =>
 			setCompact(
 				scroll.scrollTop > 0 &&
-					node.getBoundingClientRect().bottom < scroll.getBoundingClientRect().top + 144,
+					node.getBoundingClientRect().bottom <
+						scroll.getBoundingClientRect().top + 64 + (compactPlayer.current?.offsetHeight || 0),
 			);
 		update();
 		const resize = new ResizeObserver(update);
@@ -61,7 +63,7 @@ export function MediaDetail({
 			resize.disconnect();
 			scroll.removeEventListener("scroll", update);
 		};
-	}, [card.media]);
+	}, [card.media, full]);
 	const chapterIndex = (card.chapters || []).findLastIndex(
 		(chapter) => chapter.start <= state.position,
 	);
@@ -90,53 +92,19 @@ export function MediaDetail({
 	const available = card.media === "podcast" ? !!card.audioUrl : !!video;
 	return (
 		<div
-			className={`media-detail ${card.media === "podcast" ? "is-podcast" : "is-video"}`}
+			className={`media-detail ${card.media === "podcast" ? "is-podcast" : "is-video"}${compact ? " is-compact" : ""}`}
 			style={
 				{
 					"--podcast-tone": AssetTones[card.image] || "var(--surface)",
 				} as import("react").CSSProperties
 			}
 		>
-			{card.media === "podcast" && (
-				<div className="compact-player-slot">
-					<div className="compact-player" hidden={!compact}>
-						{card.image && <img src={Assets[card.image]} alt="" />}
-						<button
-							type="button"
-							className="compact-title"
-							onClick={() => primary.current?.scrollIntoView({ block: "start" })}
-						>
-							{card.title}
-							<small>
-								{chapterIndex >= 0
-									? `${copy("web.media.chapterNumber").replace("{number}", String(chapterIndex + 1))} · `
-									: ""}
-								{duration(state.position)} /{" "}
-								{state.duration > 0 ? duration(state.duration) : copy("web.media.unknownDuration")}
-							</small>
-						</button>
-						<button
-							type="button"
-							disabled={!available}
-							aria-label={copy("web.preview.podcast.rewind15")}
-							onClick={() => controls.current?.seek(state.position - 15)}
-						>
-							<Icon name="rewind15" />
-						</button>
-						<button
-							type="button"
-							className="playback-primary"
-							disabled={!available}
-							aria-label={copy(state.playing ? "web.media.pause" : "web.media.play")}
-							onClick={() => controls.current?.toggle()}
-						>
-							<Icon name={state.playing ? "pause" : "play"} />
-						</button>
-						<progress max={state.duration || 1} value={state.position} />
-					</div>
-				</div>
-			)}
-			<div className="media-primary" ref={primary}>
+			<div
+				className="media-primary"
+				ref={primary}
+				inert={compact}
+				aria-hidden={compact || undefined}
+			>
 				{card.media !== "podcast" && (
 					<div className="preview-meta">
 						<SourceMark card={card} />
@@ -251,6 +219,50 @@ export function MediaDetail({
 					</div>
 				)}
 			</div>
+			{card.media === "podcast" && (
+				<div className="compact-player-slot">
+					<div
+						className="compact-player"
+						ref={compactPlayer}
+						inert={!compact}
+						aria-hidden={!compact}
+					>
+						{card.image && <img src={Assets[card.image]} alt="" />}
+						<button
+							type="button"
+							className="compact-title"
+							onClick={() => primary.current?.scrollIntoView({ block: "start" })}
+						>
+							{card.title}
+							<small>
+								{chapterIndex >= 0
+									? `${copy("web.media.chapterNumber").replace("{number}", String(chapterIndex + 1))} · `
+									: ""}
+								{duration(state.position)} /{" "}
+								{state.duration > 0 ? duration(state.duration) : copy("web.media.unknownDuration")}
+							</small>
+						</button>
+						<button
+							type="button"
+							disabled={!available}
+							aria-label={copy("web.preview.podcast.rewind15")}
+							onClick={() => controls.current?.seek(state.position - 15)}
+						>
+							<Icon name="rewind15" />
+						</button>
+						<button
+							type="button"
+							className="playback-primary"
+							disabled={!available}
+							aria-label={copy(state.playing ? "web.media.pause" : "web.media.play")}
+							onClick={() => controls.current?.toggle()}
+						>
+							<Icon name={state.playing ? "pause" : "play"} />
+						</button>
+						<progress max={state.duration || 1} value={state.position} />
+					</div>
+				</div>
+			)}
 			<div className="media-secondary">
 				{(full || card.media === "podcast") && (
 					<div className="media-tab-header">

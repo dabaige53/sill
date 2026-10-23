@@ -6,7 +6,7 @@ extension CardModel {
     [
       [.article, .media, .note, .suggestion].contains(kind) ? publicationName : sourceName,
       [.media, .note, .suggestion].contains(kind)
-        ? publication.dateTitle.flatMap(Format.localDay).map { Format.shortDay($0) } ?? "" : "",
+        ? publication.date ?? "" : "",
       readingTime,
     ]
     .filter { !$0.isEmpty }.joined(separator: " · ")
@@ -15,7 +15,6 @@ extension CardModel {
     var result = publication
     if [.article, .media, .mail, .event, .task, .reminder, .note, .file, .suggestion].contains(kind)
     {
-      result.date = nil
       result.dateTitle = nil
     }
     if [.article, .media, .note, .file, .suggestion, .mail].contains(kind) {

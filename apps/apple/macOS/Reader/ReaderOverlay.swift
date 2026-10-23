@@ -109,7 +109,7 @@ private struct LayerView: View {
       let state = workspace.state(layer.card)
       if layer.full {
         ReaderPage(card: card, state: state, size: size, layer: layer, scroll: scroll)
-          .transition(.opacity)
+          .transition(.identity)
       } else if card.kind == .photo {
         PhotoLightbox(card: card, state: state)
           .transition(.opacity)
@@ -118,7 +118,7 @@ private struct LayerView: View {
           card: card, state: state, layer: layer,
           below: below.flatMap { workspace.model($0.card) }, size: size, scroll: scroll
         )
-        .transition(.opacity)
+        .transition(.identity)
       }
     }
   }
@@ -163,18 +163,25 @@ struct CardGeometryDestination: ViewModifier {
   @Environment(Reader.self) private var reader
   func body(content: Content) -> some View {
     let origin = reader.overlayOrigin
+    let resize = reader.top?.card == id ? reader.resizeSource : nil
     let source =
       reader.matching && reader.matchedCard == id
       ? reader.matchedFrame?.offsetBy(dx: -origin.x, dy: -origin.y) : nil
     content
       .modifier(
         CardFlightSurface(
-          id: source == nil ? nil : id, source: source ?? target, target: target,
-          progress: source != nil && !reader.shown ? 0 : 1,
-          targetRadius: reader.top?.full == true ? 0 : AppleMetrics.sheetRadius)
+          id: resize != nil || source == nil ? nil : id,
+          source: resize?.frame ?? source ?? target, target: target,
+          progress: resize != nil
+            ? (reader.resizeShown ? 1 : 0) : (source != nil && !reader.shown ? 0 : 1),
+          targetRadius: reader.top?.full == true ? 0 : AppleMetrics.sheetRadius,
+          sourceRadius: resize?.radius ?? CGFloat(AppleMetrics.cardRadius),
+          frameChanged: { frame, radius in
+            reader.surfaces[id] = Reader.Surface(frame: frame, radius: radius)
+          })
       )
       .opacity(ready ? 1 : 0)
-      .task(id: ready) {
+      .task(id: ready ? target : .zero) {
         if ready { reader.geometryReady(id) }
       }
   }
@@ -225,6 +232,8 @@ struct CardFlightSurface: AnimatableModifier {
   let target: CGRect
   nonisolated var progress: CGFloat
   var targetRadius: CGFloat
+  var sourceRadius: CGFloat = AppleMetrics.cardRadius
+  var frameChanged: (CGRect, CGFloat) -> Void = { _, _ in }
   nonisolated var animatableData: CGFloat {
     get { progress }
     set { progress = newValue }
@@ -259,7 +268,7 @@ struct CardFlightSurface: AnimatableModifier {
     let rect = Self.rect(source: source, target: target, progress: progress)
     let blend = id == nil ? 1 : Self.detailOpacity(progress)
     let lift = Double(min(1, max(0, progress)))
-    let radius = AppleMetrics.cardRadius + (targetRadius - AppleMetrics.cardRadius) * lift
+    let radius = sourceRadius + (targetRadius - sourceRadius) * lift
     let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
     ZStack(alignment: .topLeading) {
       // The card's own shadow turns into the sheet's as it lifts, so nothing swaps at either end.
@@ -283,6 +292,9 @@ struct CardFlightSurface: AnimatableModifier {
     }
     .frame(width: target.width, height: target.height, alignment: .topLeading)
     .offset(x: rect.minX - target.minX, y: rect.minY - target.minY)
+    .onChange(of: Reader.Surface(frame: rect, radius: radius), initial: true) { _, surface in
+      frameChanged(surface.frame, surface.radius)
+    }
   }
 }
 
