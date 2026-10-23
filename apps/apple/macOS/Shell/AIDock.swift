@@ -106,7 +106,8 @@ struct AIDock: View {
       .frame(maxWidth: height == .line ? AppleMetrics.aiDockWidth : nil)
       .frame(
         width: height == .full ? fullWidth : height == .panel ? panelWidth : nil,
-        height: height == .full ? window.height - AppleMetrics.aiFullInset : nil)
+        height: height == .full ? window.height - AppleMetrics.aiFullInset : nil
+      )
       // Panel and full view: the glass turns into the solid card surface.
       .background { shape.fill(AppleColors.card).opacity(grown ? 1 : 0) }
       .clipShape(shape)
@@ -187,7 +188,8 @@ struct AIDock: View {
           .frame(width: column)
           .background(
             RoundedRectangle(cornerRadius: AppleMetrics.aiDockRadius, style: .continuous)
-              .fill(AppleColors.aiComposer))
+              .fill(AppleColors.aiComposer)
+          )
           .padding(.bottom, AppleMetrics.space20)
         }
         .frame(maxWidth: .infinity)
@@ -226,7 +228,8 @@ struct AIDock: View {
           .frame(height: AppleMetrics.space32)
           .background(
             RoundedRectangle(cornerRadius: AppleMetrics.space8)
-              .fill(context.listOpen ? AppleColors.glassPress : .clear))
+              .fill(context.listOpen ? AppleColors.glassPress : .clear)
+          )
           .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -237,8 +240,9 @@ struct AIDock: View {
         if others > 0 {
           Text(
             Copy.text("ai.othersRunning")
-              .replacingOccurrences(of: "{number}", with: String(others)))
-            .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary).lineLimit(1)
+              .replacingOccurrences(of: "{number}", with: String(others))
+          )
+          .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary).lineLimit(1)
         }
         Spacer(minLength: 0)
         headButton("expand", label: Copy.text("ai.full")) { context.event(.full) }
@@ -280,7 +284,11 @@ struct AIDock: View {
       .frame(width: width)
       .padding(.top, AppleMetrics.space8).padding(.bottom, AppleMetrics.space16)
       .frame(maxWidth: .infinity)
-      .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { threadHeight = $0 }
+      .onGeometryChange(for: CGFloat.self) {
+        $0.size.height
+      } action: {
+        threadHeight = $0
+      }
     }
     .defaultScrollAnchor(.bottom)
     .frame(height: height == .panel ? max(0, min(threadHeight, most)) : nil)
@@ -310,7 +318,8 @@ struct AIDock: View {
     .background(
       RoundedRectangle(cornerRadius: AppleMetrics.panelRadius, style: .continuous)
         .fill(AppleColors.card)
-        .shadow(.floating))
+        .shadow(.floating)
+    )
     .padding(.horizontal, AppleMetrics.space8)
     .padding(.top, AppleMetrics.aiHeadHeight)
     .transition(.opacity.combined(with: .offset(y: -AppleMetrics.space4)))
@@ -388,7 +397,8 @@ struct AIDock: View {
     .frame(width: AppleMetrics.space36, height: AppleMetrics.space36)
     .accessibilityElement()
     .accessibilityLabel(
-      stop ? Copy.text("ai.stopUnavailable") : Copy.text("web.ai.sendUnavailable"))
+      stop ? Copy.text("ai.stopUnavailable") : Copy.text("web.ai.sendUnavailable")
+    )
     .accessibilityAddTraits(.isButton)
     .accessibilityRespondsToUserInteraction(false)
     .modifier(ArrowCursor())

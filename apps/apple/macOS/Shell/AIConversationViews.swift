@@ -14,7 +14,8 @@ struct AISpinner: View {
       Circle().trim(from: 0, to: 0.25)
         .stroke(
           AppleColors.secondary,
-          style: StrokeStyle(lineWidth: AppleMetrics.space2, lineCap: .round))
+          style: StrokeStyle(lineWidth: AppleMetrics.space2, lineCap: .round)
+        )
         .rotationEffect(.degrees(turn ? 360 : 0))
     }
     .padding(size / 6)
@@ -121,7 +122,8 @@ struct AIResultRow: View {
           AppleColors.secondary,
           style: StrokeStyle(
             lineWidth: AppleMetrics.selectionLineWidth,
-            dash: [AppleMetrics.space3, AppleMetrics.space3]))
+            dash: [CGFloat(AppleMetrics.space3), CGFloat(AppleMetrics.space3)])
+        )
         .frame(width: AppleMetrics.space16, height: AppleMetrics.space16)
     case .written: Icon("check", size: AppleMetrics.font18).foregroundStyle(AppleColors.success)
     case .failed: Icon("x", size: AppleMetrics.font18).foregroundStyle(AppleColors.warning)
@@ -188,7 +190,8 @@ struct AIMessagesView: View {
         .padding(.horizontal, AppleMetrics.space14).padding(.vertical, AppleMetrics.space10)
         .background(
           RoundedRectangle(cornerRadius: AppleMetrics.aiBubbleRadius, style: .continuous)
-            .fill(AppleColors.aiComposer))
+            .fill(AppleColors.aiComposer)
+        )
         .frame(maxWidth: width * AppleMetrics.aiBubbleMaxRatio, alignment: .trailing)
     }
     .frame(maxWidth: .infinity, alignment: .trailing)
