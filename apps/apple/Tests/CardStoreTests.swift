@@ -16,7 +16,7 @@ struct CardStoreTests {
     try Card(
       json: .object([
         "id": .string("note"), "type": .string("note"), "title": .string(title),
-        "body": .array([.string("First\n\nstill first"), .string(""), .string("Last")]),
+        "body": .string("First\n\nstill first\n\nLast"),
         "extra": .object(["nested": .bool(true)]),
       ]))
   }

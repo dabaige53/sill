@@ -11,6 +11,7 @@ public enum CardValidator {
       throw CardValidationError("card")
     }
     try validateExplicitFields(card, type: type)
+    try validateRichFields(card, type: type)
     try validateIDs(value)
     for url in [card["url"]?.string, card["meeting"]?["url"]?.string].compactMap({ $0 }) {
       guard let parsed = URL(string: url), ["http", "https"].contains(parsed.scheme ?? ""),
@@ -98,15 +99,12 @@ public enum CardValidator {
       guard let method = estimate["method"]?.string,
         !method.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
         card["bodyCoverage"]?.string != nil, card["bodyCoverage"]?.string != "none",
-        (card["body"]?.strings ?? []).contains(where: {
-          !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        }), estimate["scope"]?.string != "full" || card["bodyCoverage"]?.string == "full"
+        !(card["body"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        estimate["scope"]?.string != "full" || card["bodyCoverage"]?.string == "full"
       else { throw CardValidationError("card.readingEstimate") }
     }
     if card["bodyCoverage"]?.string == "none",
-      (card["body"]?.strings ?? []).contains(where: {
-        !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      })
+      !(card["body"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     {
       throw CardValidationError("card.bodyCoverage")
     }
@@ -127,7 +125,7 @@ public enum CardValidator {
     }
   }
 
-  private static func validDate(_ text: String, dateOnly: Bool) -> Bool {
+  static func validDate(_ text: String, dateOnly: Bool) -> Bool {
     let day = String(text.prefix(10))
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")

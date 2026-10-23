@@ -76,3 +76,42 @@ test("desktop fill uses the whole width without changing the column-count rule",
 		);
 	}
 });
+
+test("resizing cards releases the height held for content updates", async () => {
+	const { JSDOM } = await import("jsdom");
+	const { FeedLayout } = await import("../../apps/web/interactions/layout.ts");
+	const dom = new JSDOM(
+		'<div id="feed-grid"><article class="feed-item" style="width:340px;min-height:229px"></article></div>',
+	);
+	const previous = Object.fromEntries(
+		["window", "document", "getComputedStyle"].map((key) => [
+			key,
+			Object.getOwnPropertyDescriptor(globalThis, key),
+		]),
+	);
+	for (const [key, value] of Object.entries({
+		window: dom.window,
+		document: dom.window.document,
+		getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
+	}))
+		Object.defineProperty(globalThis, key, { configurable: true, value });
+	try {
+		const grid = dom.window.document.querySelector("#feed-grid")!;
+		const card = grid.firstElementChild as HTMLElement;
+		let width = 340;
+		Object.defineProperty(grid, "clientWidth", { get: () => width });
+		const layout = Object.create(FeedLayout.prototype);
+		layout.container = grid;
+		layout.layout();
+		assert.equal(card.style.minHeight, "229px", "same-width updates retain their anchor");
+		width = 358;
+		layout.layout();
+		assert.equal(card.style.minHeight, "", "a new width must use the content's new height");
+	} finally {
+		for (const [key, descriptor] of Object.entries(previous)) {
+			if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+			else Reflect.deleteProperty(globalThis, key);
+		}
+		dom.window.close();
+	}
+});

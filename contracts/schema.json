@@ -2,6 +2,286 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
+    "audioUrl": {
+      "description": "Podcast audio URL, read only during playback. Not an acquisition or sync source.",
+      "type": "string",
+      "pattern": "^https?:\\/\\/"
+    },
+    "chapters": {
+      "maxItems": 10000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 86400
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "start",
+          "title"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "transcript": {
+      "maxItems": 10000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 86400
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          }
+        },
+        "required": [
+          "start",
+          "text"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "attachments": {
+      "description": "Mail attachments; when supplied, replaces the legacy single attachment label for display.",
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https?:\\/\\/"
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9!#$&^_.+-]+\\/[A-Za-z0-9!#$&^_.+-]+$"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "pullRequest": {
+      "description": "PR snapshot written by an assistant. observedAt is the observation time; never presented as live GitHub state.",
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^[A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+$"
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "open",
+            "merged",
+            "closed"
+          ]
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-]\\d{2}:\\d{2})))$"
+        },
+        "headBranch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "baseBranch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "author": {
+          "type": "object",
+          "properties": {
+            "login": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            "url": {
+              "type": "string",
+              "pattern": "^https?:\\/\\/"
+            }
+          },
+          "required": [
+            "login"
+          ],
+          "additionalProperties": {}
+        },
+        "reviewers": {
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "login": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              },
+              "decision": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "approved",
+                  "changesRequested",
+                  "commented",
+                  "dismissed"
+                ]
+              }
+            },
+            "required": [
+              "login",
+              "decision"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "checks": {
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "inProgress",
+                  "completed"
+                ]
+              },
+              "conclusion": {
+                "type": "string",
+                "enum": [
+                  "success",
+                  "failure",
+                  "neutral",
+                  "cancelled",
+                  "skipped",
+                  "timedOut",
+                  "actionRequired",
+                  "stale"
+                ]
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": [
+              "name",
+              "status"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "additions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "deletions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "changedFiles": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "comments": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "reviewRequested": {
+          "type": "boolean"
+        },
+        "files": {
+          "maxItems": 3000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "additions": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "deletions": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": {}
+          }
+        }
+      },
+      "required": [
+        "repository",
+        "number",
+        "state",
+        "observedAt"
+      ],
+      "additionalProperties": {}
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-zA-Z0-9_-]{1,100}$"
@@ -17,6 +297,7 @@
       "maxLength": 1000
     },
     "summary": {
+      "description": "Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
       "type": "string",
       "maxLength": 10000
     },
@@ -234,12 +515,9 @@
       }
     },
     "body": {
-      "maxItems": 100,
-      "type": "array",
-      "items": {
-        "type": "string",
-        "maxLength": 50000
-      }
+      "description": "Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+      "type": "string",
+      "maxLength": 500000
     },
     "url": {
       "type": "string",
@@ -267,15 +545,6 @@
           "kind"
         ],
         "additionalProperties": {}
-      }
-    },
-    "points": {
-      "maxItems": 3,
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 200
       }
     },
     "why": {
@@ -474,6 +743,6 @@
   ],
   "additionalProperties": {},
   "title": "Card",
-  "x-contract-version": "3.0.0",
+  "x-contract-version": "4.1.0",
   "x-status": "implemented"
 }

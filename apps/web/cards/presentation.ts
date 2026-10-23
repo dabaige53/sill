@@ -1,9 +1,8 @@
 import { icon } from "../atoms/icons.ts";
 import { button, esc } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
-import { cardSourceKind } from "../data/card-source.ts";
-import { CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
+import { sourceMarkHtml } from "./source-mark.tsx";
 
 /** One renderer for the live feed; design-system/ documents the same blocks. Rendering never mutates Store.
  * A card is a stack of blocks: head · media · text · data · list · act. Content is read here; actions go back to the source.
@@ -46,19 +45,7 @@ const CardPresentation: Record<string, any> = {
 			: button(glyph, label, action, id, extra, className);
 	},
 	sourceIcon(c?: any, size: any = 16) {
-		if (c.sources?.length > 1)
-			return `<span class="source-icons" aria-hidden="true">${c.sources
-				.slice(0, 3)
-				.map((s?: any) => `<span>${icon(SourceKinds[s.kind]?.icon || "book", 12)}</span>`)
-				.join("")}</span>`;
-		// Content shows where it came from; things to do show what they are.
-		const byType = ["task", "event", "reminder", "digest", "photo", "file"].includes(c.type);
-		return icon(
-			byType
-				? (CardTypes[c.type] || CardTypes.note).icon
-				: SourceKinds[cardSourceKind(c)]?.icon || (CardTypes[c.type] || CardTypes.note).icon,
-			size,
-		);
+		return sourceMarkHtml(c, size);
 	},
 };
 /** The reminder's circle: done in Sill only. The card and its detail use the same control. */

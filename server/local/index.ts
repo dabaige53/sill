@@ -95,7 +95,7 @@ export async function startLocal({
 					"Content-Type": "text/html; charset=utf-8",
 					"Cache-Control": "no-store",
 					"Content-Security-Policy":
-						"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+						"default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
 				});
 				res.end(page.replace("<head>", "<head><script>window.__QG_LOCAL__=true;</script>"));
 				return;

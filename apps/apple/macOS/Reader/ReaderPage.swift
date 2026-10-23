@@ -21,23 +21,31 @@ struct ReaderPage: View {
       ZStack {
         AppleColors.card
         ScrollView(.vertical) {
-          ReaderContent(card: card, state: state, type: .page)
-            .modifier(DetailReveal())
-            .frame(maxWidth: .infinity)
-            .padding(.top, AppleMetrics.space88)
-            .padding(
-              .horizontal,
-              card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
-            )
-            .padding(.bottom, AppleMetrics.space160)
-            .frame(maxWidth: .infinity)
-            .background(ReaderScrollProbe(scroll: scroll))
-            .modifier(ReaderPullOffset(motion: scroll.motion))
+          ReaderContent(
+            card: card, state: state, type: .page,
+            mediaHeight: max(
+              AppleMetrics.mediaPlayerMinHeight,
+              size.height - AppleMetrics.space88 - AppleMetrics.space40)
+          )
+          .modifier(DetailReveal())
+          .frame(maxWidth: .infinity)
+          .padding(.top, AppleMetrics.space88)
+          .padding(
+            .horizontal,
+            card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
+          )
+          .padding(.bottom, AppleMetrics.space160)
+          .frame(maxWidth: .infinity)
+          .background(ReaderScrollProbe(scroll: scroll))
+          .modifier(ReaderPullOffset(motion: scroll.motion))
         }
         .scrollIndicators(.automatic)
+        .coordinateSpace(name: "media-scroll")
       }
-      ReaderProgress(motion: scroll.motion)
-        .modifier(DetailReveal(tools: true))
+      if card.kind != .media {
+        ReaderProgress(motion: scroll.motion)
+          .modifier(DetailReveal(tools: true))
+      }
       HStack(spacing: AppleMetrics.space2) {
         ToolButton(icon: "collapse", label: Copy.text("web.reader.exitFullscreen")) {
           reader.open(card.id, full: false)
@@ -77,18 +85,22 @@ struct ReaderPage: View {
   }
 
   private func configure() {
-    scroll.initialOffset = reader.positions[layer.id] ?? 0
+    scroll.initialOffset = card.kind == .media ? 0 : reader.positions[layer.id] ?? 0
     scroll.trailing = AppleMetrics.space160
     scroll.finishEnabled =
-      card.kind.readable && !card.body.isEmpty && workspace.preferences.collapseOnFinish
+      card.kind != .media && card.kind.readable && !card.body.isEmpty
+      && workspace.preferences.collapseOnFinish
     let id = card.id
     let layerID = layer.id
-    scroll.offsetChanged = { [weak reader] offset in reader?.positions[layerID] = offset }
-    scroll.progressChanged = { [weak workspace] value in
-      workspace?.recorder.read(id, progress: value)
+    scroll.offsetChanged = { [weak reader] offset in
+      if card.kind != .media { reader?.positions[layerID] = offset }
+    }
+    scroll.progressChanged = { [weak workspace, weak reader] value in
+      guard reader?.sessionActive == true else { return }
+      if card.kind != .media { workspace?.recorder.read(id, progress: value) }
     }
     scroll.reachedEnd = { [weak reader] in
-      if card.kind.readable { reader?.reachedEnd(id) }
+      if card.kind != .media && card.kind.readable { reader?.reachedEnd(id) }
     }
     scroll.finished = { [weak reader] done in
       reader?.reachedEnd(id, completion: done) ?? done(false)
@@ -102,7 +114,7 @@ struct ReaderPage: View {
     let anyInput = CGEventType(rawValue: ~0)!
     while !Task.isCancelled {
       try? await Task.sleep(for: .seconds(1))
-      guard !Task.isCancelled else { return }
+      guard !Task.isCancelled, reader.sessionActive else { return }
       let idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: anyInput)
       if NSApp.isActive, idle < 60 { workspace.recorder.readingSecond() }
     }

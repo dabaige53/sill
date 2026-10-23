@@ -1,6 +1,8 @@
-import { type ReactElement, type ReactNode } from "react";
+import { cloneElement, type ReactElement, type ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
+import { DetailText } from "../cards/markdown.tsx";
+import { publicationName } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import {
@@ -9,18 +11,15 @@ import {
 	cardDates,
 	cardReadingTime,
 	cardSourceKind,
+	contentDay,
+	detailDate,
 	detailSource,
 } from "../data/card-source.ts";
 import { CardTypes, SourceKinds } from "../data/cards.ts";
 import type { CardItem } from "../data/store.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
-import {
-	type PanelRenderers,
-	type PreviewApp,
-	type PreviewCard,
-	type ToolbarAction,
-} from "./panel-contract.ts";
+import type { PanelRenderers, PreviewApp, PreviewCard, ToolbarAction } from "./panel-contract.ts";
 import {
 	agentAction,
 	button,
@@ -29,7 +28,7 @@ import {
 	personalNote,
 	sourceIcon,
 } from "./panel-primitives.tsx";
-import { articleContent, previewView as preview } from "./previews-components.tsx";
+import { previewView as preview, readingContent } from "./previews-components.tsx";
 
 export const panelCard = {
 	close(this: PanelRenderers, label?: string) {
@@ -41,14 +40,21 @@ export const panelCard = {
 	},
 	meta(this: PanelRenderers, c?: Card) {
 		// An article names its date here, short (昨天, 10/18), instead of in the publication line.
-		const date = c.type === "article" ? articleDate(c) : null;
+		const date =
+			c.type === "article"
+				? articleDate(c)
+				: ["note", "file", "suggestion"].includes(c.type)
+					? contentDay(c.publishedAt)
+					: null;
 		return (
 			<>
 				<div className={"preview-meta"}>
 					{sourceIcon(c, 15)}
 					<span>
 						{[
-							detailSource(c) || (CardTypes[c.type] || CardTypes.note).label,
+							(["article", "media", "note", "suggestion"].includes(c.type)
+								? publicationName(c)
+								: detailSource(c)) || (CardTypes[c.type] || CardTypes.note).label,
 							date ? shortDay(date.getTime()) : "",
 							cardReadingTime(c),
 						]
@@ -80,15 +86,22 @@ export const panelCard = {
 		);
 	},
 	publication(this: PanelRenderers, c?: Card) {
-		const date = c.type === "article" ? null : cardDates(c).published;
-		const label = date
-			? new Intl.DateTimeFormat("zh-CN", {
-					year: Number(date.text.slice(0, 4)) === new Date().getFullYear() ? undefined : "numeric",
-					month: "long",
-					day: "numeric",
-				}).format(new Date(date.text.slice(0, 10) + "T00:00:00"))
-			: "";
+		const date = [
+			"article",
+			"media",
+			"mail",
+			"event",
+			"task",
+			"reminder",
+			"note",
+			"file",
+			"suggestion",
+		].includes(c.type)
+			? null
+			: cardDates(c).published;
+		const label = date ? detailDate(date.datetime) : "";
 		const rows = [
+			!["article", "media", "note", "file", "suggestion", "mail"].includes(c.type) &&
 			c.authors?.length
 				? [
 						"authors",
@@ -96,17 +109,21 @@ export const panelCard = {
 						c.authors.map((author) => author.name).join(" / "),
 					]
 				: null,
-			c.publisher ? ["publisher", copy("web.metadata.publisher"), c.publisher.name] : null,
+			!["article", "media", "note", "file", "suggestion", "mail"].includes(c.type) && c.publisher
+				? ["publisher", copy("web.metadata.publisher"), c.publisher.name]
+				: null,
 			c.recipients?.length
 				? ["recipients", copy("web.metadata.recipients"), c.recipients.join(" / ")]
 				: null,
-			c.project ? ["project", copy("web.metadata.project"), c.project.name] : null,
-			c.sentAt ? ["sentAt", copy("web.metadata.sent"), c.sentAt] : null,
+			c.project && c.type !== "task"
+				? ["project", copy("web.metadata.project"), c.project.name]
+				: null,
+			c.type !== "mail" && c.sentAt ? ["sentAt", copy("web.metadata.sent"), c.sentAt] : null,
 			c.takenAt ? ["takenAt", copy("web.metadata.taken"), c.takenAt] : null,
 			c.chapterCount
 				? ["chapterCount", copy("web.metadata.chapters"), String(c.chapterCount)]
 				: null,
-			c.timeZone ? ["timeZone", "", c.timeZone] : null,
+			c.timeZone && c.type !== "event" ? ["timeZone", "", c.timeZone] : null,
 			c.caption ? ["caption", "", c.caption] : null,
 			c.coverageStart !== undefined && c.coverageEnd !== undefined
 				? [
@@ -191,7 +208,8 @@ export const panelCard = {
 	},
 	own(this: PanelRenderers, c?: Card): ToolbarAction[] {
 		const s = Store.item(c.id);
-		const open = c.url ? button("external", this.externalLabel(c), "external", c.id) : "";
+		const openButton = button("external", this.externalLabel(c), "external", c.id);
+		const open = c.url ? openButton : cloneElement(openButton, { disabled: true });
 		const reminder: ToolbarAction = FeedPolicy.supports(c)
 			? // A finished reminder is restored by its own circle, so the toolbar does not repeat it.
 				s.dismissed || s.snoozedUntil || (s.reminderDone && c.type !== "reminder")
@@ -200,7 +218,14 @@ export const panelCard = {
 			: ["snooze", ""];
 		const dismiss: ToolbarAction = ["dismiss", this.reminderTools(c)];
 		if (c.type === "mail")
-			return [["reply", c.url ? button("reply", copy("web.preview.reply"), "external", c.id) : ""]];
+			return [
+				[
+					"reply",
+					cloneElement(button("reply", copy("web.preview.reply"), "external", c.id), {
+						disabled: !c.url,
+					}),
+				],
+			];
 		if (c.type === "event") {
 			const join: ToolbarAction = [
 				"join",
@@ -215,7 +240,7 @@ export const panelCard = {
 			return join[1] ? [join, reminder, dismiss, download] : [join, reminder, download, dismiss];
 		}
 		if (c.type === "task" || c.type === "reminder") return [reminder, dismiss];
-		if (c.type === "file") return [];
+		if (["note", "suggestion", "digest", "photo"].includes(c.type) && !c.url) return [];
 		return [["open", open]];
 	},
 	head(this: PanelRenderers, ...tools: ReactNode[]) {
@@ -296,11 +321,7 @@ export const panelCard = {
 				</div>
 			</>
 		) : (
-			c.body.map((p) => (
-				<>
-					<p>{p}</p>
-				</>
-			))
+			<DetailText body={c.body} />
 		);
 		return (
 			<>
@@ -326,7 +347,7 @@ export const panelCard = {
 														{keyed(body)}
 													</>
 												) : (
-													articleContent.call(this, c)
+													readingContent.call(this, c, app)
 												)}
 												{personalNote(s.note)}
 												{loading ? "" : this.foot(agentAction(app, c))}
@@ -367,10 +388,12 @@ export const panelCard = {
 		return (
 			<>
 				<div className={"lightbox-top"}>
-					<span>{[c.location, cardDate(c.takenAt)?.text].filter(Boolean).join(" · ")}</span>
-					<span id={"modal-title"} className={"sr-only"}>
-						{c.title}
-					</span>
+					<div>
+						<span id="modal-title">{c.title}</span>
+						<small className="num">
+							{i + 1} / {photos.length}
+						</small>
+					</div>
 					{button("x", copy("web.photo.close"), "close")}
 				</div>
 				{"\n   "}
@@ -397,6 +420,10 @@ export const panelCard = {
 						: ""}
 				</div>
 				{"\n   "}
+				<div className="lightbox-caption">
+					{c.caption}
+					<small>{[c.location, detailDate(c.takenAt)].filter(Boolean).join(" · ")}</small>
+				</div>
 				<div className={"lightbox-thumbs"}>
 					{keyed(
 						photos.map((p, n) => (
@@ -423,7 +450,6 @@ export const panelCard = {
 						)),
 					)}
 				</div>
-				{c.caption ? <div className="lightbox-caption">{c.caption}</div> : null}
 				{personalNote(Store.item(c.id).note)}
 				{this.tools(c, Store.item(c.id))}
 				{this.foot(agentAction(app, c))}

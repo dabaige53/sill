@@ -1,17 +1,20 @@
-import type { ReactNode } from "react";
-import React from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
 	dateLabel,
-	duration,
 	eventRelative,
 	relativeDay,
 	reminderClock,
 	timeString,
 } from "../atoms/primitives.ts";
+import { FileList, RelatedCards, TaskFacts, WhyDetails } from "../cards/detail-blocks.tsx";
+import { DetailText } from "../cards/markdown.tsx";
+import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
+import { PullRequest } from "../cards/pull-request.tsx";
+import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
-import { cardDate, cardReadingTime, cardSource, fileDescription } from "../data/card-source.ts";
-import { CardTypes } from "../data/cards.ts";
+import { cardReadingTime, cardSource, detailDate } from "../data/card-source.ts";
+import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import {
@@ -27,7 +30,7 @@ import {
 import type { PanelRenderers } from "./panels-components.tsx";
 
 type PreviewCard = ReturnType<typeof Store.card>;
-type PreviewApp = {
+type PreviewApp = PlaybackApp & {
 	agentAction?: (card: PreviewCard) => string;
 	agentActionView?: (card: PreviewCard) => ReactNode;
 };
@@ -49,8 +52,19 @@ type PreviewRenderer = (
 const renderers = {
 	mail: mailPreview,
 	event: eventPreview,
-	media: contentPreview,
+	media: (c, { sheet, tools, app }) => (
+		<>
+			{sheet(<MediaDetail key={c.id} card={c} app={app} />)}
+			{tools}
+		</>
+	),
 	file: filePreview,
+	pr: (c, { sheet, tools }) => (
+		<>
+			{sheet(<PullRequest card={c} detail />)}
+			{tools}
+		</>
+	),
 	task: taskReminderPreview,
 	reminder: taskReminderPreview,
 } satisfies Record<string, PreviewRenderer>;
@@ -61,9 +75,10 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 	const tags = this.tags(c);
 	const closeButton = button("x", copy("web.preview.close"), "close");
 	const expand =
-		c.body?.length &&
-		!standaloneDisplay() &&
-		!["event", "mail", "media", "task", "reminder", "digest", "file"].includes(c.type)
+		(c.type === "media" && !standaloneDisplay()) ||
+		(c.body?.trim() &&
+			!standaloneDisplay() &&
+			["article", "note", "digest", "mail"].includes(c.type))
 			? button("expand", copy("web.preview.fullscreen"), "reader", c.id)
 			: "";
 	const sheet = (
@@ -73,8 +88,18 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 		end: ReactNode = "",
 	) => (
 		<>
-			<div className={"sheet preview-sheet"}>
+			<div
+				className={`sheet preview-sheet detail-${c.type}`}
+				style={
+					c.media === "podcast"
+						? ({ "--podcast-tone": AssetTones[c.image] || "var(--surface)" } as CSSProperties)
+						: undefined
+				}
+			>
 				{this.head(expand, closeButton)}
+				{c.type === "media" && c.media === "podcast" && (
+					<div className="now-playing-heading">{copy("web.media.nowPlaying")}</div>
+				)}
 				{/* biome-ignore lint/a11y/useSemanticElements: The existing named scroll region must receive keyboard focus for scrolling and focus restoration. */}
 				<div
 					className={"sheet-scroll"}
@@ -105,7 +130,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 		</>
 	);
 	const context: PreviewContext = { app, s, tags, closeButton, sheet, tools, h1 };
-	if (c.type === "media" && c.media === "podcast") return podcastPreview.call(this, c, context);
+
 	const render: PreviewRenderer =
 		typeof c.type === "string" && Object.hasOwn(renderers, c.type)
 			? renderers[c.type]
@@ -122,39 +147,31 @@ function mailPreview(this: PanelRenderers, c: PreviewCard, context: PreviewConte
 			{keyed(
 				sheet(
 					<>
-						{sender ? (
-							<div className={"preview-sender"}>
-								{avatar(sender, 36)}
-								<span>
-									<b>{sender}</b>
-									<small>
-										{[cardDate(c.sentAt)?.text, cardReadingTime(c)].filter(Boolean).join(" · ")}
-									</small>
-								</span>
-							</div>
-						) : (
-							this.meta(c)
-						)}
-						{h1}
-						<div className={"preview-full"}>
-							{keyed(
-								(c.body || [c.summary]).map((p?: any) => (
-									<>
-										<p>{p}</p>
-									</>
-								)),
+						<header className="detail-header">
+							{sender ? (
+								<div className={"preview-sender"}>
+									{avatar(sender, 36)}
+									<span>
+										<b>{sender}</b>
+										<small>
+											<SourceMark card={c} />
+											{[cardSource(c), detailDate(c.sentAt, true), cardReadingTime(c)]
+												.filter(Boolean)
+												.join(" · ")}
+										</small>
+									</span>
+								</div>
+							) : (
+								this.meta(c)
 							)}
-						</div>
-						{c.attachment ? (
-							<>
-								<span className={"ref attachment"}>
-									{icon("file", 15)}
-									<span>{c.attachment}</span>
-								</span>
-							</>
-						) : (
-							""
-						)}
+							{h1}
+						</header>
+						<DetailText body={c.body} />
+						<FileList
+							attachment
+							label={copy("web.card.attachments")}
+							files={c.attachments ?? (c.attachment ? [{ name: c.attachment }] : [])}
+						/>
 					</>,
 				),
 			)}
@@ -209,30 +226,34 @@ function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCont
 			{keyed(
 				sheet(
 					<>
-						<div className={"preview-meta"}>
-							{dateLabel(c.start)}
-							{eventRelative(c) ? (
-								<>
+						<header className="detail-header">
+							{this.meta(c)}
+							<div className={"preview-meta"}>
+								{dateLabel(c.start)}
+								{eventRelative(c) ? (
+									<>
+										{" · "}
+										<span style={{ color: "var(--accent)", fontWeight: "500" }}>
+											{eventRelative(c)}
+										</span>
+									</>
+								) : (
+									""
+								)}
+							</div>
+							<div className={"event-hero"}>
+								<span className={"num"}>{timeString(c.start)}</span>
+								<small className={"num"}>
+									{copy("web.templates.83532308ecca")}
+									{timeString(c.end)}
 									{" · "}
-									<span style={{ color: "var(--accent)", fontWeight: "500" }}>
-										{eventRelative(c)}
-									</span>
-								</>
-							) : (
-								""
-							)}
-						</div>
-						<div className={"event-hero"}>
-							<span className={"num"}>{timeString(c.start)}</span>
-							<small className={"num"}>
-								{copy("web.templates.83532308ecca")}
-								{timeString(c.end)}
-								{" · "}
-								{span}
-								{copy("web.templates.40de54344d22")}
-							</small>
-						</div>
-						{h1}
+									{span}
+									{copy("web.templates.40de54344d22")}
+									{c.timeZone ? ` · ${c.timeZone}` : ""}
+								</small>
+							</div>
+							{h1}
+						</header>
 						{rows.some(Boolean) ? (
 							<>
 								<div className={"detail-rows"}>{keyed(rows)}</div>
@@ -240,22 +261,11 @@ function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCont
 						) : (
 							""
 						)}
-						{keyed(
-							c.body?.length ? (
-								<>
-									<div className={"preview-full"}>
-										{keyed(
-											c.body.map((p?: any) => (
-												<>
-													<p>{p}</p>
-												</>
-											)),
-										)}
-									</div>
-								</>
-							) : (
-								""
-							),
+						{c.body?.trim() && (
+							<section className="detail-section">
+								<h2>{copy("web.card.agenda")}</h2>
+								<DetailText body={c.body} />
+							</section>
 						)}
 					</>,
 				),
@@ -265,82 +275,19 @@ function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCont
 	);
 }
 
-function podcastPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { app, s, h1, tools, closeButton } = context;
-
-	return (
-		<>
-			{
-				<>
-					<div className={"sheet preview-sheet"}>
-						{this.head(closeButton)}
-						{/* biome-ignore lint/a11y/noNoninteractiveTabindex: Keep the podcast scroll container keyboard-accessible and preserve restored focus. */}
-						<div className={"sheet-scroll"} tabIndex={0}>
-							<div className={"player"}>
-								<div className={"player-art"}></div>
-								{h1}
-								{this.meta(c)}
-								{c.duration !== undefined && (
-									<div className="player-times num">{duration(c.duration)}</div>
-								)}
-								{c.summary && <p className="preview-lead">{c.summary}</p>}
-								{c.body?.length ? (
-									<div className="preview-full">
-										{c.body.map((p, index) => (
-											// biome-ignore lint/suspicious/noArrayIndexKey: Paragraphs may repeat; these static text rows have no component state.
-											<p key={index}>{p}</p>
-										))}
-									</div>
-								) : null}
-								<p className="empty-description">{copy("web.media.playbackUnavailable")}</p>
-								{personalNote(s.note)}
-								{this.foot(agentAction(app, c))}
-							</div>
-						</div>
-					</div>
-				</>
-			}
-			{tools}
-		</>
-	);
-}
-
 function filePreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
 	const { sheet, h1, tools } = context;
-
 	return (
 		<>
-			{keyed(
-				sheet(
-					<>
-						<div className={"preview-meta"}>
-							{icon("folder", 15)}
-							<span>
-								{copy("web.preview.fileSourcePrefix")}
-								{[cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · ")}
-							</span>
-						</div>
+			{sheet(
+				<>
+					<header className="detail-header">
+						{this.meta(c)}
 						{h1}
-						<div className={"detail-rows"}>
-							{keyed(
-								(c.files || []).map((f?: any) => (
-									<>
-										<div className={"detail-row"}>
-											<span className={"row-icon"}>
-												{icon(/\.(png|jpe?g|gif|webp)$/i.test(f.name) ? "image" : "file", 16)}
-											</span>
-											<span>
-												<b>{f.name}</b>
-												<em>{fileDescription(f)}</em>
-											</span>
-											<small>{f.modifiedAt || ""}</small>
-										</div>
-									</>
-								)),
-							)}
-						</div>
-					</>,
-				),
+					</header>
+					<DetailText body={c.body} />
+					<FileList files={c.files} />
+				</>,
 			)}
 			{tools}
 		</>
@@ -371,36 +318,38 @@ function taskReminderPreview(this: PanelRenderers, c: PreviewCard, context: Prev
 				]
 					.filter(Boolean)
 					.join(" · ")
-			: c.project?.name || "";
+			: [cardSource(c), c.project?.name].filter(Boolean).join(" · ");
 	return (
 		<>
 			{sheet(
 				<>
-					<div className={"preview-meta"}>
-						{icon((CardTypes[c.type] || CardTypes.note).icon, 15)}
-						<span>{label}</span>
-					</div>
-					{c.type === "reminder" ? (
-						<>
-							<div className={"reminder-row preview-title-row"}>
-								{reminderMark(c, !!s.reminderDone)}
-								<h1 id={"modal-title"} data-shared={"title"}>
-									{c.title}
-								</h1>
-							</div>
-							{tags}
-						</>
-					) : (
-						h1
-					)}
-					{c.summary ? (
-						<>
-							<p className={"preview-lead"}>{c.summary}</p>
-						</>
-					) : (
-						""
-					)}
+					<header className="detail-header">
+						<div className={"preview-meta"}>
+							<SourceMark card={c} size={15} />
+							<span>{label}</span>
+						</div>
+						{c.type === "reminder" ? (
+							<>
+								<div className={"reminder-row preview-title-row"}>
+									{reminderMark(c, !!s.reminderDone)}
+									<h1 id={"modal-title"} data-shared={"title"}>
+										{c.title}
+									</h1>
+								</div>
+								{tags}
+							</>
+						) : (
+							h1
+						)}
+					</header>
+					{c.type === "task" && <TaskFacts card={c} />}
 					{keyed(list)}
+					<DetailText body={c.body} />
+					{c.type === "reminder" && c.project && (
+						<p className="preview-published">
+							{copy("web.metadata.project")} · {c.project.name}
+						</p>
+					)}
 				</>,
 			)}
 			{tools}
@@ -413,86 +362,40 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 	return (
 		<>
 			{sheet(
-				articleContent.call(this, c),
+				articleContent.call(this, c, false),
+				c.type === "article" && c.image ? (
+					<div className="preview-cover">
+						<img data-shared="image" src={Assets[c.image]} alt="" draggable={false} />
+					</div>
+				) : (
+					""
+				),
 				"",
-				"",
-				c.body?.length ? <div className="reader-end" id="reader-end" aria-hidden="true" /> : null,
+				c.body?.trim() ? <div className="reader-end" id="reader-end" aria-hidden="true" /> : null,
 			)}
 			{tools}
 		</>
 	);
 }
 
-export function articleContent(this: PanelRenderers, c: PreviewCard) {
-	const lead =
-		c.summary && c.form !== "quote" && c.summary !== c.body?.[0] ? (
-			<>
-				<p className={"preview-lead"}>{c.summary}</p>
-			</>
-		) : (
-			""
-		);
-	const points = c.points?.length ? (
-		<>
-			<ol className={"key-points"}>
-				{keyed(
-					c.points.map((p?: any, i?: any) => (
-						<>
-							<li>
-								<i className={"num"}>{i + 1}</i>
-								<span>{p}</span>
-							</li>
-						</>
-					)),
-				)}
-			</ol>
-		</>
-	) : (
-		""
-	);
-	const related =
-		c.type === "suggestion" ? (
-			<>
-				<div className={"refs"}>
-					{keyed(
-						(c.related || [])
-							.map((id?: any) => Store.card(id))
-							.filter(Boolean)
-							.map((r?: any) => (
-								<>
-									<button
-										type={"button"}
-										className={"ref"}
-										data-action={"card-open"}
-										data-id={r.id}
-									>
-										{icon(CardTypes[r.type].icon, 15)}
-										<span>{r.title}</span>
-										{icon("chevron", 14)}
-									</button>
-								</>
-							)),
-					)}
-				</div>
-			</>
-		) : (
-			""
-		);
-	const full = c.body?.length ? (
-		<>
-			<div className={"preview-full"}>
-				{keyed(
-					c.body.map((p?: any) => (
-						<>
-							<p>{p}</p>
-						</>
-					)),
-				)}
-			</div>
-		</>
-	) : (
-		""
-	);
+export function readingContent(this: PanelRenderers, c: PreviewCard, app?: PreviewApp) {
+	if (c.type === "media") return <MediaDetail key={c.id} card={c} app={app} full />;
+	if (c.type === "mail")
+		return mailPreview.call(this, c, {
+			sheet: (inner) => inner,
+			h1: (
+				<>
+					<h1 id="modal-title">{c.title}</h1>
+					{this.tags(c)}
+					{this.publication(c)}
+				</>
+			),
+			tools: null,
+		} as PreviewContext);
+	return articleContent.call(this, c);
+}
+
+export function articleContent(this: PanelRenderers, c: PreviewCard, reading = true) {
 	const cover = c.image ? (
 		<>
 			<div className={"preview-cover"}>
@@ -504,20 +407,34 @@ export function articleContent(this: PanelRenderers, c: PreviewCard) {
 	);
 	return (
 		<>
-			{this.meta(c)}
-			<h1 id="modal-title" data-shared="title">
-				{c.title}
-			</h1>
-			{this.tags(c)}
-			{this.publication(c)}
-			{c.type === "media" && c.duration !== undefined ? (
-				<div className="player-times num">{duration(c.duration)}</div>
-			) : null}
-			{cover}
-			{lead}
-			{points}
-			{related}
-			{full}
+			<header className={`detail-header ${c.type === "suggestion" ? "" : "ruled-header"}`}>
+				{c.type === "digest" ? (
+					<div className="preview-meta">
+						<SourceMark card={c} />
+						<span>
+							{[
+								c.coverageStart !== undefined && c.coverageEnd !== undefined
+									? `${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`
+									: cardSource(c),
+								c.related?.length ? `${c.related.length}${copy("web.card.relatedCount")}` : "",
+							]
+								.filter(Boolean)
+								.join(" · ")}
+						</span>
+					</div>
+				) : (
+					this.meta(c)
+				)}
+				<h1 id="modal-title" data-shared="title">
+					{c.title}
+				</h1>
+				{this.tags(c)}
+				{c.type !== "digest" && this.publication(c)}
+			</header>
+			{reading && cover}
+			{c.type === "suggestion" && <WhyDetails card={c} />}
+			{c.type !== "suggestion" && <DetailText body={c.body} />}
+			{["suggestion", "digest"].includes(c.type) && <RelatedCards card={c} />}
 		</>
 	);
 }
@@ -525,7 +442,8 @@ export function articleContent(this: PanelRenderers, c: PreviewCard) {
 function standaloneDisplay() {
 	return (
 		typeof window !== "undefined" &&
-		(window.matchMedia?.("(display-mode: standalone)").matches ||
+		(window.matchMedia?.("(max-width: 650px)").matches ||
+			window.matchMedia?.("(display-mode: standalone)").matches ||
 			(window.navigator as Navigator & { standalone?: boolean }).standalone === true)
 	);
 }

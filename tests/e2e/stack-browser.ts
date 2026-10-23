@@ -241,6 +241,10 @@ import { chromium } from "playwright";
 				assert.ok(box.width >= (width === 1440 ? 740 : width - 2));
 				assert.ok(box.x >= 0 && box.x + box.width <= width + 1);
 				await snapshot(page, "preview-width-" + width);
+				if (width <= 650) {
+					assert.equal(await page.locator('dialog [data-action="reader"]').count(), 0);
+					return;
+				}
 				await page.locator('dialog [data-action="reader"]').click();
 				await page.locator(".reader-body").evaluate(async (el?: any) =>
 					Promise.allSettled(

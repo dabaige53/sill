@@ -34,7 +34,7 @@ function fixture() {
 	w.eval(bundle);
 	const { Gestures, Store, MotionEngine } = w.ReleaseTest;
 	Store.state = Store.fresh();
-	Store.state.cards = [{ id: "a", type: "article", title: "标题", body: ["正文"] }];
+	Store.state.cards = [{ id: "a", type: "article", title: "标题", body: "正文" }];
 	const dialog = w.document.querySelector("dialog");
 	const app = {
 		dialog,

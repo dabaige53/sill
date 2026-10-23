@@ -24,6 +24,7 @@
 			".app.json",
 			"!!**/node_modules",
 			"!!**/.build",
+			"!!**/.claude",
 			"!!tests/artifacts"
 		]
 	},

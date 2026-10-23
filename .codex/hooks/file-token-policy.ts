@@ -1,6 +1,14 @@
+import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 
 export const maxBytes = 20_000;
+// User-approved baseline, 2026-10-23. Never refresh automatically.
+const baseline: Record<string, number> = JSON.parse(
+	readFileSync(new URL("./file-size-baseline.json", import.meta.url), "utf8"),
+);
+export function byteLimit(path: string): number {
+	return Math.max(maxBytes, baseline[path] ?? maxBytes);
+}
 const lockfiles = new Set([
 	"package-lock.json",
 	"npm-shrinkwrap.json",
@@ -17,6 +25,7 @@ const lockfiles = new Set([
 	"go.sum",
 ]);
 const outputs = new Set([
+	"design-system/boards/settings/content.html",
 	"contracts/schema.json",
 	"contracts/apple-openapi.json",
 	"contracts/design/openapi.json",

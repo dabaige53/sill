@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { lstatSync, readFileSync } from "node:fs";
-import { isExempt, maxBytes } from "./file-token-policy.ts";
+import { byteLimit, isExempt } from "./file-token-policy.ts";
 
 function git(args: string[]) {
 	return execFileSync("git", args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
@@ -25,8 +25,10 @@ try {
 		const path = entry.slice(entry.indexOf("\t", firstTab + 1) + 1);
 		if (entry.slice(0, firstTab) === "-" || isExempt(path)) continue;
 		const bytes = Number(git(["cat-file", "-s", `:${path}`]).trim());
-		if (bytes > maxBytes)
-			oversized.push(`  暂存 ${JSON.stringify(path)}: ${bytes} bytes = ${bytes / 4} tokens`);
+		if (bytes > byteLimit(path))
+			oversized.push(
+				`  暂存 ${JSON.stringify(path)}: ${bytes} bytes = ${bytes / 4} tokens; limit ${byteLimit(path)} bytes`,
+			);
 	}
 	if (process.argv.includes("--local")) {
 		const paths = new Set(
@@ -36,11 +38,11 @@ try {
 			if (!path || isExempt(path)) continue;
 			try {
 				const stat = lstatSync(path);
-				if (!stat.isFile() || stat.size <= maxBytes) continue;
+				if (!stat.isFile() || stat.size <= byteLimit(path)) continue;
 				const bytes = readFileSync(path);
 				if (bytes.subarray(0, 8000).includes(0)) continue;
 				oversized.push(
-					`  本地 ${JSON.stringify(path)}: ${stat.size} bytes = ${stat.size / 4} tokens`,
+					`  本地 ${JSON.stringify(path)}: ${stat.size} bytes = ${stat.size / 4} tokens; limit ${byteLimit(path)} bytes`,
 				);
 			} catch (error) {
 				if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
@@ -50,7 +52,7 @@ try {
 	if (oversized.length) {
 		console.error(
 			[
-				"提交已阻止：以下文件超过 5,000 tokens（tokens = bytes / 4；上限 20,000 bytes）：",
+				"提交已阻止：以下文件超过大小限制（tokens = bytes / 4；默认 20,000 bytes，既有大文件按已批准基线）：",
 				...oversized,
 				"",
 				"请按以下步骤拆分，再提交：",

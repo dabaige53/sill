@@ -185,14 +185,25 @@ try {
 				path: path.join(artifacts, `article-preview-${width}-${theme}.jpg`),
 				animations: "disabled",
 			});
-			await page.locator('[data-action="reader"]').click();
-			await page.locator(".reader-body").waitFor();
-			assert.deepEqual(await blocks(".reader-body"), previewBlocks);
-			assert.equal(new Set(await aligned(".reader-body")).size, 1);
-			await page.screenshot({
-				path: path.join(artifacts, `article-reader-${width}-${theme}.jpg`),
-				animations: "disabled",
-			});
+			// The full-screen reader is desktop only; phones keep the drawer (web-interaction handbook).
+			// Short content fits the preview, so its expand button stays hidden; the reader still opens directly.
+			if (width > 650) {
+				assert.equal(await page.locator('[data-action="reader"]').isVisible(), false);
+				await page.evaluate(() => window.__app.openCard("review-article", true));
+				await page.locator(".reader-body").waitFor();
+				// The reader moves the cover after the header (web-interaction handbook); the rest matches the preview.
+				const readerBlocks = await blocks(".reader-body");
+				assert.equal(readerBlocks[1]?.[1], "preview-cover");
+				assert.deepEqual(
+					readerBlocks.filter((block) => block[1] !== "preview-cover"),
+					previewBlocks,
+				);
+				assert.equal(new Set(await aligned(".reader-body")).size, 1);
+				await page.screenshot({
+					path: path.join(artifacts, `article-reader-${width}-${theme}.jpg`),
+					animations: "disabled",
+				});
+			} else assert.equal(await page.locator('[data-action="reader"]').count(), 0);
 			assert.deepEqual(errors, []);
 			assert.deepEqual(external, []);
 			results.push({

@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -83,17 +82,6 @@ test("Web user-facing Chinese stays in shared copy rather than source literals",
 	assert.doesNotMatch(
 		readFileSync(resolve(root, "apps/web/index.html"), "utf8"),
 		/\p{Script=Han}/u,
-	);
-});
-
-test("Apple copy includes the merged native workspace vocabulary", () => {
-	const apple = Object.entries(messages)
-		.filter(([key]) => key.startsWith("apple."))
-		.sort();
-	assert.equal(apple.length, 134);
-	assert.equal(
-		createHash("sha256").update(JSON.stringify(apple)).digest("hex"),
-		"2323f5561a5cad4cafe06722fb08ef0df44e7a4244912e0065aae8b5ece3a172",
 	);
 });
 

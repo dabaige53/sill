@@ -157,13 +157,13 @@ export async function runRailMaterial({
 					.locator(".sheet-scroll")
 					.evaluate((node) => ({ client: node.clientWidth, scroll: node.scrollWidth }));
 				assert.ok(dimensions.scroll <= dimensions.client + 1);
-				assert.equal(await page.locator(".preview-published").count(), 1);
+				assert.equal(await page.locator(".preview-meta").count(), 1);
 				await page.screenshot({ path: path.join(artifacts, `drawer-layout-${width}.png`) });
 				assert.equal(await page.locator(".preview-meta time").count(), 0);
-				const date = await page.locator(".preview-published").boundingBox();
+				const date = await page.locator(".preview-meta").boundingBox();
 				const title = await page.locator("#modal-title").boundingBox();
 				const body = await page.locator(".preview-full").boundingBox();
-				assert.ok(date.y > title.y + title.height);
+				assert.ok(date.y + date.height <= title.y);
 				assert.ok(date.y + date.height <= body.y);
 				assert.equal(await page.locator(".preview-source-details").count(), 0);
 			},
@@ -268,7 +268,7 @@ export async function runRailMaterial({
 			const before = await page.evaluate(() => scrollY);
 			await page.evaluate(() => window.__app.openCard("short-task"));
 			await page.waitForTimeout(500);
-			assert.equal(await page.locator("body.modal-scroll-locked").count(), 1);
+			assert.equal(await page.evaluate(() => window.__app.pageScrollLocked), true);
 			const session = await context.newCDPSession(page);
 			const box = await page.locator(".sheet-scroll").boundingBox();
 			const y = box.y + 150;
@@ -288,7 +288,7 @@ export async function runRailMaterial({
 			assert.equal(await page.locator("#modal").evaluate((node) => node.open), true);
 			await page.evaluate(() => window.__app.closeNative());
 			await page.waitForTimeout(450);
-			assert.equal(await page.locator("body.modal-scroll-locked").count(), 0);
+			assert.equal(await page.evaluate(() => window.__app.pageScrollLocked), false);
 			assert.equal(await page.evaluate(() => scrollY), before);
 		},
 		phone,
@@ -320,7 +320,7 @@ export async function runRailMaterial({
 			assert.ok((await page.locator(".preview-sheet").boundingBox()).height < 650);
 			// The close disc centres on the source row above the title (ADR 0037).
 			const alignment = await page.evaluate(() => {
-				const row = document.querySelector(".preview-body > .preview-meta");
+				const row = document.querySelector(".preview-meta");
 				const close = document.querySelector('.sheet-head [data-action="close"]');
 				const r = row.getBoundingClientRect();
 				return Math.abs(close.getBoundingClientRect().top + 22 - r.top - r.height / 2);

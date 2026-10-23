@@ -71,7 +71,7 @@ test("handoff includes only a bounded current-card reference and keeps local and
 		...card,
 		title: "标".repeat(1000),
 		summary: "要点".repeat(3000),
-		body: ["Private full body must stay in Sill"],
+		body: "Private full body must stay in Sill",
 		state: { note: "Private annotation", tags: ["Private tag"] },
 		owner_id: "untrusted-card-owner",
 		unknown: { secret: "never include this field" },
@@ -260,7 +260,7 @@ test("each card detail has one handoff in its content footer, including digests,
 	};
 	const cards = [
 		...SeedCards,
-		{ id: "future", type: "future", title: "Future card", body: ["Future detail"] },
+		{ id: "future", type: "future", title: "Future card", body: "Future detail" },
 	];
 	for (const card of cards) {
 		const html = card.type === "photo" ? Panels.lightbox(card, 0, app) : Panels.preview(app, card);
@@ -286,17 +286,15 @@ test("each card detail has one handoff in its content footer, including digests,
 		type: "digest",
 		title: "Review",
 		summary: "Actual summary",
-		points: ["Actual point"],
-		body: ["Full detail"],
+		body: "1. Actual point\n\n## Detail\n\nFull **detail**",
 	};
 	const detail = new JSDOM(Panels.preview(app, digest));
 	try {
-		assert.equal(detail.window.document.querySelector(".preview-lead").textContent, digest.summary);
-		assert.equal(
-			detail.window.document.querySelector(".key-points li span").textContent,
-			digest.points[0],
-		);
-		assert.equal(detail.window.document.querySelector(".preview-full").textContent, digest.body[0]);
+		const doc = detail.window.document;
+		assert.equal(doc.body.textContent.includes(digest.summary), false);
+		assert.equal(doc.querySelector(".preview-full ol li").textContent, "Actual point");
+		assert.equal(doc.querySelector(".preview-full h2").textContent, "Detail");
+		assert.equal(doc.querySelector(".preview-full strong").textContent, "detail");
 		assert.equal(detail.window.document.querySelector(".stats-trio"), null);
 	} finally {
 		detail.window.close();

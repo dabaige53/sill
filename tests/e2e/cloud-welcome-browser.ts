@@ -205,7 +205,7 @@ try {
 			id: "test-" + i,
 			type: "note",
 			title: "测试笔记 " + (i + 1),
-			body: ["隔离验收数据，不是真实账号内容。"],
+			body: "隔离验收数据，不是真实账号内容。",
 			state: { read: false },
 			revision: 1,
 			updated_at: new Date().toISOString(),
@@ -261,7 +261,10 @@ try {
 		await page.locator("[data-action=settings-group][data-extra=add]").click();
 		await page.locator(".settings-main #capture-text").waitFor();
 		assert.equal(await page.locator("#nav [data-action=capture]").count(), 0);
-		assert.equal(await page.locator("#modal").evaluate((e) => e.classList.contains("page")), true);
+		assert.equal(
+			await page.locator("#modal").evaluate((e) => e.classList.contains("page")),
+			mobile,
+		);
 		await page.locator("[data-action=settings-group][data-extra=data]").click();
 		assert.match(
 			await page.locator(".settings-main").textContent(),

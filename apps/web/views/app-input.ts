@@ -1,3 +1,4 @@
+import { internalCardRoute } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
@@ -8,6 +9,14 @@ import { renderContent, renderView } from "./react-renderer.ts";
 
 export const appInputMethods = {
 	click(this: AppController, e?: TargetEvent<MouseEvent>) {
+		const link = e.target.closest?.<HTMLAnchorElement>(".markdown a[href]");
+		const route = link && internalCardRoute(link.href, location.href);
+		if (route && Store.card(route.slice(route.indexOf("/") + 1))) {
+			e.preventDefault();
+			e.stopPropagation();
+			this.navigate(route);
+			return;
+		}
 		// The end of a sideways drag through a stack is not a tap.
 		if (this.stackDragUntil > Date.now() && e.target.closest?.<HTMLElement>("[data-stack]")) {
 			e.preventDefault();

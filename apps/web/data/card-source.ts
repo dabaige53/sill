@@ -1,4 +1,5 @@
 import type { Card } from "../../../contracts/card.ts";
+import { shortDay, timeString } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 
 export function cardSource(card: Pick<Card, "sources">): string {
@@ -37,6 +38,17 @@ export function cardDate(value: unknown): { datetime: string; text: string } | n
 		datetime: date.toISOString(),
 		text: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())} ${zone}`,
 	};
+}
+
+/** Compact, local-time label for the source row, retaining the timestamp in the data. */
+export function detailDate(value: unknown, includeTime = false, now = Date.now()): string {
+	const parsed = cardDate(value);
+	if (!parsed) return "";
+	const date = new Date(
+		parsed.datetime.length === 10 ? `${parsed.datetime}T00:00:00` : parsed.datetime,
+	);
+	const day = shortDay(date.getTime(), now);
+	return includeTime && parsed.datetime.length > 10 ? `${day} ${timeString(date.getTime())}` : day;
 }
 
 export function cardDates(card: Record<string, any>) {
@@ -86,5 +98,10 @@ export function fileDescription(file: NonNullable<Card["files"]>[number]): strin
 				: bytes < 1048576
 					? `${(bytes / 1024).toFixed(1)} KB`
 					: `${(bytes / 1048576).toFixed(1)} MB`;
-	return [file.mimeType, size].filter(Boolean).join(" · ");
+	const extension = file.name?.split(".").at(-1);
+	const kind =
+		extension && extension !== file.name
+			? extension.toUpperCase()
+			: file.mimeType?.split("/").at(-1);
+	return [kind, size].filter(Boolean).join(" · ");
 }

@@ -68,7 +68,7 @@ try {
 				id: "agent-test",
 				type: "note",
 				title: "AI 同步验收",
-				body: ["AI 写入本地"],
+				body: "AI 写入本地",
 				url: "https://example.com",
 			},
 		},
@@ -148,12 +148,10 @@ try {
 	assert.equal(value.state.cards.length, 31);
 	const box = await page.locator('[data-card="agent-test"]').boundingBox();
 	// Desktop columns share the spare width with no col-max cap, so check the card against the grid.
-	const grid = await page
-		.locator("#feed-grid")
-		.evaluate((el: HTMLElement) => ({
-			width: el.clientWidth,
-			columns: Number(el.dataset.columns),
-		}));
+	const grid = await page.locator("#feed-grid").evaluate((el: HTMLElement) => ({
+		width: el.clientWidth,
+		columns: Number(el.dataset.columns),
+	}));
 	const share = (grid.width - (grid.columns - 1) * 24) / grid.columns;
 	assert.ok(
 		box.width >= 280 && Math.abs(box.width - share) < 1,

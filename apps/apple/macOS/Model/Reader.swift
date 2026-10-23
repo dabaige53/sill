@@ -13,6 +13,7 @@ import SwiftUI
     var full: Bool
   }
 
+  private(set) var sessionActive = true
   private(set) var layers: [Layer] = []
   /// Drawn visibility of the whole overlay; the overlay stays mounted until its exit finishes.
   private(set) var shown = false {
@@ -24,6 +25,13 @@ import SwiftUI
   private(set) var matchedFrame: CGRect?
   private(set) var contentShown = false
   private(set) var toolsShown = false
+  struct Surface: Equatable {
+    var frame: CGRect
+    var radius: CGFloat
+  }
+  private(set) var resizeSource: Surface?
+  private(set) var resizeShown = false
+  @ObservationIgnored var surfaces: [String: Surface] = [:]
   @ObservationIgnored private var waitingForGeometry = false
   /// A layer is mounted and will be shown on the next turn; it already counts as open.
   @ObservationIgnored private var showPending = false
@@ -55,6 +63,7 @@ import SwiftUI
   // MARK: Opening
 
   func open(_ id: String, full: Bool = false) {
+    guard sessionActive else { return }
     let trace = PerformanceTrace.shared.begin(.openCard)
     defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
@@ -101,9 +110,15 @@ import SwiftUI
     contentShown = true
     toolsShown = true
     if layers.last?.card == id {
-      animate(full ? Motion.open : Motion.close) { layers[layers.count - 1].full = full }
+      guard layers.last?.full != full else { return }
+      // Mount the next layout at the currently drawn frame, then reveal its final bounds.
+      // The text is laid out once; only the surrounding frame moves.
+      resizeSource = Motion.keyboardDriven ? nil : surfaces[id]
+      resizeShown = false
+      Motion.instantly { layers[layers.count - 1].full = full }
       return
     }
+    resizeSource = nil
     // Opening a related card: it stacks; opening one already below returns to it.
     if let index = layers.lastIndex(where: { $0.card == id }) {
       animate(Motion.close) { layers.removeSubrange((index + 1)...) }
@@ -117,11 +132,22 @@ import SwiftUI
     open(top.card, full: !top.full)
   }
 
+  /// Drop the old reading layer without returning focus or writing into the next account.
+  func invalidateSession() {
+    token += 1
+    sessionActive = false
+    layers = []
+    shown = false
+    positions = [:]
+    surfaces = [:]
+  }
+
   // MARK: Closing
 
   /// Leaves the top layer only.
   func close() {
     guard presented else { return }
+    resizeSource = nil
     if layers.count > 1 {
       token += 1
       animate(Motion.close) { _ = layers.removeLast() }
@@ -133,6 +159,7 @@ import SwiftUI
   /// Leaves every layer; the overlay unmounts once its exit animation has finished.
   func closeAll() {
     guard presented else { return }
+    resizeSource = nil
     if let matchedCard, cardFrames[matchedCard].map({ $0.intersects(viewport) }) != true {
       self.matchedCard = nil
     }
@@ -175,6 +202,10 @@ import SwiftUI
 
   /// Reaching the end marks the card read at once; its feed color waits for the overlay to close.
   func reachedEnd(_ id: String, completion: ((Bool) -> Void)? = nil) {
+    guard sessionActive else {
+      completion?(false)
+      return
+    }
     guard let card = workspace.model(id), card.kind.readable else {
       completion?(true)
       return
@@ -216,6 +247,16 @@ import SwiftUI
 
   /// The destination calls this only after its final content height has been measured.
   func geometryReady(_ id: String) {
+    if top?.card == id, resizeSource != nil, !resizeShown {
+      let current = token
+      withAnimation(Motion.card, completionCriteria: .removed) {
+        resizeShown = true
+      } completion: { [weak self] in
+        guard let self, self.token == current else { return }
+        self.resizeSource = nil
+      }
+      return
+    }
     guard waitingForGeometry, top?.card == id else { return }
     waitingForGeometry = false
     present(true)
@@ -254,6 +295,7 @@ import SwiftUI
   }
 
   private func finish() {
+    guard sessionActive else { return }
     let returning = origin
     layers = []
     self.returning = false
@@ -263,6 +305,8 @@ import SwiftUI
     contentShown = false
     toolsShown = false
     positions = [:]
+    surfaces = [:]
+    resizeSource = nil
     origin = nil
     releaseHeld()
     workspace.recorder.flush()

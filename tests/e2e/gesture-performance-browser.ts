@@ -30,7 +30,7 @@ try {
 					id: `gesture-${index}`,
 					type: "article",
 					title: `合成阅读 ${index}`,
-					body: Array(60).fill("长正文用于检查拖动和关闭时的布局工作。"),
+					body: Array(60).fill("长正文用于检查拖动和关闭时的布局工作。").join("\n\n"),
 					time: Date.now() - index,
 				})),
 				items: {},
@@ -47,7 +47,9 @@ try {
 	await page.waitForFunction(() =>
 		document.querySelector("#home-top").classList.contains("is-tucked"),
 	);
-	await page.waitForTimeout(220);
+	await page.waitForFunction(
+		() => getComputedStyle(document.getElementById("home-top")).visibility === "hidden",
+	);
 	assert.equal(
 		await page.locator("#home-top").evaluate((el) => getComputedStyle(el).visibility),
 		"hidden",
@@ -292,7 +294,9 @@ try {
 	}
 	console.log("PASS read completion confirms first, then animates preview and reader exits");
 
+	await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
 	await page.evaluate(() => {
+		(document.activeElement as HTMLElement)?.blur();
 		window.scrollTo(0, 0);
 		window.__refreshCalls = 0;
 		window.__app.refresh = async () => {
@@ -300,7 +304,8 @@ try {
 			return true;
 		};
 	});
-	await page.waitForTimeout(300);
+	await page.waitForFunction(() => scrollY === 0 && !window.__app.sheetLeaving);
+	await page.waitForTimeout(700);
 	await page.mouse.move(180, 350);
 	for (const delta of [40, 40, 40, 40, 34, 28, 22, 16, 12]) {
 		await page.mouse.wheel(0, -delta);

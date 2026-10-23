@@ -1,6 +1,6 @@
 # 代码规范
 
-更新：2026-10-19。目录与语言迁移已完成，批次与验收边界见 [文件管理规范](file-management.md#9-迁移进度)。动态界面仍有显式 `any`，类型检查尚未使用 strict；Biome 默认规则保留警告，不把零错误说成零警告。
+更新：2026-10-22。目录与语言迁移已完成，批次与验收边界见 [文件管理规范](file-management.md#9-迁移进度)。动态界面仍有显式 `any`，类型检查尚未使用 strict；Biome 默认规则保留警告，不把零错误说成零警告。
 
 本规范适用于 Web、Mac、iOS、服务端和 `contracts/`。各端 README（`apps/web/`、`apps/apple/`、`server/`、`contracts/`）只写本端的补充规则，不重复本文。决策依据见 ADR [0023](../adr/0023-three-clients-repo-layout.md) 至 [0027](../adr/0027-native-apple-data-layer.md)。
 
@@ -14,7 +14,7 @@
 
 - 不引入其他语言。需要引入时先写 ADR。
 - TypeScript 使用 ES 模块。Node 24 直接运行 `.ts`；Web 使用 React 与 TSX，由 Vite 和官方 React 插件构建；CI 运行 `tsc --noEmit`。
-- Mac 与 iOS 完全原生：界面与数据层都用 Swift 实现，不使用 WebView，不随包运行 Node 或其他服务进程。
+- Mac 与 iOS 的界面与数据层用 Swift 实现，不随包运行 Node 或其他服务进程。Mac 唯一的 WebView 例外是视频区域的官方嵌入播放器；其他界面仍原生，见 [ADR 0061](../adr/0061-in-app-media-playback-and-pr-cards.md)。
 
 ## 2. 结构与依赖
 

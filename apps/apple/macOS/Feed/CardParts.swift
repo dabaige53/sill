@@ -47,20 +47,23 @@ extension EnvironmentValues {
 struct CardHead<Right: View>: View {
   let icon: AnyView
   let text: String
+  var detail: Text?
   @ViewBuilder var right: Right
 
   init(
-    card: CardModel, text: String, @ViewBuilder right: () -> Right = { EmptyView() }
+    card: CardModel, text: String, detail: Text? = nil,
+    @ViewBuilder right: () -> Right = { EmptyView() }
   ) {
     self.icon = AnyView(SourceIcon(card: card))
     self.text = text
+    self.detail = detail
     self.right = right()
   }
 
   var body: some View {
     HStack(spacing: AppleMetrics.space6) {
       icon.foregroundStyle(AppleColors.iconSecondary)
-      Text(text).lineLimit(1).truncationMode(.tail)
+      (Text(text) + (detail ?? Text(""))).lineLimit(1).truncationMode(.tail)
         .foregroundStyle(AppleColors.secondary)
       Spacer(minLength: 0)
       right
@@ -74,18 +77,16 @@ struct SourceIcon: View {
   let card: CardModel
   var size: CGFloat = AppleMetrics.space16
   var body: some View {
-    if card.sources.count > 1 {
-      HStack(spacing: -AppleMetrics.space6) {
-        ForEach(Array(card.sources.prefix(3).enumerated()), id: \.offset) { _, source in
-          Icon(SourceKind.icon(source.kind) ?? "book", size: AppleMetrics.font12)
-            .frame(width: AppleMetrics.sourceDisc, height: AppleMetrics.sourceDisc)
-            .background(Circle().fill(AppleColors.card))
-            .overlay(Circle().stroke(AppleColors.line, lineWidth: AppleMetrics.lineWidth))
-        }
-      }
-      .accessibilityHidden(true)
+    if card.sources.isEmpty || card.isCapture {
+      Icon(card.kind.icon, size: size)
     } else {
-      Icon(card.headIcon, size: size)
+      HStack(spacing: card.sources.count > 1 ? -AppleMetrics.space6 : 0) {
+        ForEach(Array(card.sources.prefix(3).enumerated()), id: \.offset) { _, source in
+          SourceMark(
+            name: source.name, kind: source.kind,
+            typeIcon: card.kind.headIconByType ? card.kind.icon : nil, size: size)
+        }
+      }.accessibilityHidden(true)
     }
   }
 }
@@ -125,48 +126,12 @@ struct CardSummary: View {
   }
 }
 
-/// Summary, or a one-line conclusion with up to three numbered points.
+/// Plain card-face text; body lists belong in the detail.
 struct SummaryBlock: View {
   let summary: String
-  let points: [String]
   var query = ""
   var body: some View {
-    if !points.isEmpty {
-      VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-        if !summary.isEmpty { CardSummary(text: summary, query: query) }
-        KeyPoints(
-          points: Array(points.prefix(3)), singleLine: false, size: AppleMetrics.font14,
-          lineHeight: AppleMetrics.cardSummaryLineHeight
-        )
-        .padding(.top, AppleMetrics.space2)
-      }
-    } else if !summary.isEmpty {
-      CardSummary(text: summary, query: query)
-    }
-  }
-}
-
-struct KeyPoints: View {
-  let points: [String]
-  var singleLine = false
-  /// Cards use the summary size (A type: 14/22); readers pass their own body size.
-  var size = AppleMetrics.font15
-  var lineHeight = AppleMetrics.font15 * AppleMetrics.summaryLeading
-  var spacing = AppleMetrics.space4
-  var body: some View {
-    VStack(alignment: .leading, spacing: spacing) {
-      ForEach(Array(points.enumerated()), id: \.offset) { index, point in
-        HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space10) {
-          Text("\(index + 1)").font(.number(AppleMetrics.font13, .semibold))
-            .foregroundStyle(AppleColors.accent)
-            .frame(width: AppleMetrics.keyPointWidth, alignment: .trailing)
-          Text(point).textStyle(size, leading: lineHeight / size)
-            .foregroundStyle(AppleColors.primary)
-            .lineLimit(singleLine ? 1 : nil)
-            .fixedSize(horizontal: false, vertical: !singleLine)
-        }
-      }
-    }
+    if !summary.isEmpty { CardSummary(text: summary, query: query) }
   }
 }
 
@@ -193,7 +158,7 @@ struct Highlighted: View {
   }
 }
 
-/// The task and reminder circle: accent outline, filled with a white check when done.
+/// Task and reminder state: grey outline, green fill with a white check when done.
 struct CheckDot: View {
   @Environment(\.checkPressed) private var pressed
   var done: Bool
@@ -203,8 +168,12 @@ struct CheckDot: View {
   var body: some View {
     ZStack {
       Circle().fill(
-        done ? AppleColors.accentFill : highlighted ? AppleColors.accentSoft : Color.clear)
-      Circle().strokeBorder(AppleColors.accent, lineWidth: line)
+        done
+          ? AppleColors.success
+          : highlighted ? AppleColors.accentSoft : Color.clear)
+      Circle().strokeBorder(
+        done ? AppleColors.success : AppleColors.lineHover,
+        lineWidth: line)
       if done {
         Icon("check", size: AppleMetrics.font12).foregroundStyle(AppleColors.fixedWhite)
       }
@@ -262,15 +231,20 @@ struct CoverImage: View {
 struct FileRow: View {
   let name: String
   var image = false
+  var pill = false
   var body: some View {
-    HStack(spacing: AppleMetrics.space8) {
+    HStack(spacing: AppleMetrics.space6) {
       Icon(image ? "image" : "file", size: AppleMetrics.font15)
         .foregroundStyle(AppleColors.iconSecondary)
       Text(name).lineLimit(1).truncationMode(.tail)
     }
     .font(.sans(AppleMetrics.font13))
     .foregroundStyle(AppleColors.primary)
-    .frame(minHeight: AppleMetrics.fileRowHeight, alignment: .leading)
+    .padding(.vertical, pill ? AppleMetrics.space6 : 0)
+    .padding(.horizontal, pill ? AppleMetrics.space10 : 0)
+    .background(
+      RoundedRectangle(cornerRadius: AppleMetrics.space10).fill(pill ? AppleColors.surface : .clear)
+    )
   }
 }
 
@@ -278,7 +252,7 @@ struct FileRow: View {
 struct MoreItems: View {
   let count: Int
   let suffix: String
-  var indent: CGFloat = AppleMetrics.space30
+  var indent: CGFloat = 0
   var body: some View {
     Text("\(Copy.text("web.templates.dff74742a6f0"))\(count)\(suffix)")
       .font(.sans(AppleMetrics.font13))

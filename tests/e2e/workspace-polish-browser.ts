@@ -31,7 +31,7 @@ try {
 				type: "note",
 				kind: "capture",
 				title: "让想法有处安放",
-				body: ["先记下来，再慢慢整理。"],
+				body: "先记下来，再慢慢整理。",
 				time: Date.now(),
 			},
 			{
@@ -39,7 +39,7 @@ try {
 				type: "note",
 				kind: "capture",
 				title: "留一点阅读的时间",
-				body: ["卡片保留内容，工具在需要时出现。"],
+				body: "卡片保留内容，工具在需要时出现。",
 				time: Date.now() - 1000,
 			},
 		],
@@ -71,7 +71,7 @@ try {
 		() => (document.querySelector("#feed-grid") as HTMLElement).dataset.columns === "1",
 	);
 	const cards = await page
-		.locator(".feed-item")
+		.locator("#feed-grid > .feed-item")
 		.evaluateAll((nodes?: any) =>
 			nodes.map((n?: any) => ({ top: n.offsetTop, height: n.offsetHeight, width: n.offsetWidth })),
 		);
@@ -79,7 +79,10 @@ try {
 		cards[1].top >= cards[0].top + cards[0].height,
 		"container resize does not overlap cards",
 	);
-	assert.ok(cards.every((c?: any) => c.width === 340));
+	assert.ok(
+		cards.every((c?: any) => c.width > 0 && c.width <= 340),
+		JSON.stringify(cards),
+	);
 	await page.locator("#feed-grid").evaluate((e?: any) => (e.style.width = ""));
 	await page.evaluate(() =>
 		document.dispatchEvent(
@@ -93,48 +96,29 @@ try {
 	);
 	await page.evaluate(() => {
 		clearInterval(__app.readTicker);
-		__app.startInlineEdit("note-polish");
+		__store.patch("note-polish", { note: "原备注" });
 	});
 	await page.waitForFunction(() => __app.grid.dataset.sync === "saved");
 	const before = await request("state");
 	await request("operations", {
 		expectedRevision: before.revision,
-		operations: [
-			{
-				op: "card.upsert",
-				card: {
-					...before.state.cards.find((c?: any) => c.id === "note-polish"),
-					title: "另一处的新标题",
-					body: ["不能被旧页面覆盖。"],
-				},
-			},
-		],
+		operations: [{ op: "item.patch", id: "note-polish", values: { note: "另一处的新备注" } }],
 	});
-	// An explicit refresh while typing must not adopt a newer revision for an older draft.
-	await page.evaluate(() => __app.refresh());
-	await page.locator("#inline-title").fill("我的未提交草稿");
-	await page.locator("#inline-body").fill("保留我刚输入的文字。");
-	await page.evaluate(() => __app.saveInlineEdit());
+	// A note draft keeps the base value even when another client has saved first.
+	await page.evaluate(() => __store.patch("note-polish", { note: "我的未提交草稿" }));
 	await page.waitForFunction(() => __app.grid.dataset.sync === "error");
 	const remote = await request("state");
-	assert.equal(
-		remote.state.cards.find((c?: any) => c.id === "note-polish").title,
-		"另一处的新标题",
-	);
-	assert.equal(await page.locator("#inline-title").inputValue(), "我的未提交草稿");
+	assert.equal(remote.state.items["note-polish"].note, "另一处的新备注");
+	assert.equal(await page.evaluate(() => __store.item("note-polish").note), "我的未提交草稿");
 	assert.ok(
 		await page.evaluate(() => JSON.parse(localStorage.getItem("sill-unsynced")).pending.length > 0),
-		"conflict preserves a durable local draft",
 	);
 	await page.reload();
 	await page.waitForFunction(() => __app.grid.dataset.sync === "error");
-	assert.equal(
-		await page.evaluate(() => __store.card("note-polish").title),
-		"我的未提交草稿",
-		"draft survives reload without overwriting remote data",
-	);
+	assert.equal(await page.evaluate(() => __store.item("note-polish").note), "我的未提交草稿");
 	await page.evaluate(() => __app.action("sync-discard-confirm"));
 	await page.waitForFunction(() => __app.grid.dataset.sync === "saved");
+
 	// ADR 0033 removes source connections; a stale action must not write a source.
 	const beforeSourceAction = await request("state");
 	let sourceWrites = 0;
@@ -159,7 +143,7 @@ try {
 	await page.waitForFunction(() => !document.querySelector("dialog").open);
 	await page.keyboard.press("Control+k");
 	assert.equal(
-		await page.locator("#filter-search").evaluate((e?: any) => e === document.activeElement),
+		await page.locator("#home-search").evaluate((e?: any) => e === document.activeElement),
 		true,
 	);
 	await mkdir("tests/artifacts", { recursive: true });

@@ -109,9 +109,11 @@ export const appSurfacesMethods = {
 		const card = kind === "preview" ? Store.card(this.currentId) : null;
 		if (
 			card &&
-			["task", "reminder", "note"].includes(card.type) &&
-			(card.body || []).join("\n").length < 500 &&
-			(card.summary || "").length < 280
+			(["reminder", "suggestion", "media"].includes(card.type) ||
+				(card.type === "note" &&
+					(card.body || "").length < 160 &&
+					!(card.body || "").includes("\n\n") &&
+					(card.summary || "").length < 280))
 		)
 			this.dialog.classList.add("is-short");
 		renderContent(this.dialog, html);
@@ -120,7 +122,8 @@ export const appSurfacesMethods = {
 			else this.dialog.showModal();
 		}
 		// Frequent navigation changes in place; only sheets enter over the current page.
-		if (!MotionEngine.keyboard && !page) MotionEngine.queuePanel(this.dialog, origin, resume);
+		if (!MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
+			MotionEngine.queuePanel(this.dialog, origin, resume);
 		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
 				? "#filter-search"

@@ -16,7 +16,7 @@ const cards = [
 		title: "Missing sender",
 		sources: [{ name: "Inbox source", kind: "mail" }],
 		recipients: ["Actual recipient"],
-		body: ["Mail body"],
+		body: "Mail body",
 	},
 	{
 		id: "mail-known",
@@ -25,14 +25,14 @@ const cards = [
 		sender: "Actual sender",
 		sources: [{ name: "Inbox source", kind: "mail" }],
 		recipients: ["Actual recipient"],
-		body: ["Mail body"],
+		body: "Mail body",
 	},
 	{
 		id: "podcast-missing",
 		type: "media",
 		media: "podcast",
 		title: "Unknown duration",
-		body: ["Podcast notes"],
+		body: "Podcast notes",
 	},
 	{
 		id: "podcast-zero",
@@ -40,7 +40,7 @@ const cards = [
 		media: "podcast",
 		title: "Zero duration",
 		duration: 0,
-		body: ["Podcast notes"],
+		body: "Podcast notes",
 	},
 	{
 		id: "podcast-known",
@@ -48,7 +48,7 @@ const cards = [
 		media: "podcast",
 		title: "Known duration",
 		duration: 240,
-		body: ["Podcast notes"],
+		body: "Podcast notes",
 	},
 	{
 		id: "video-missing",
@@ -67,7 +67,7 @@ const cards = [
 		chapterCount: 8,
 		duration: 125,
 		url: "https://example.com/video",
-		body: ["First paragraph. ".repeat(100), "Second paragraph. ".repeat(100)],
+		body: ["First paragraph. ".repeat(100), "Second paragraph. ".repeat(100)].join("\n\n"),
 	},
 ].map((card) => Card.parse(card));
 const server = createServer((_request, response) => {
@@ -130,7 +130,7 @@ try {
 				assert.equal(await page.locator('[data-card="mail-missing"] .sender').count(), 0);
 				assert.match(await page.locator('[data-card="mail-missing"]').innerText(), /Inbox source/);
 				for (const [id, expected] of [
-					["podcast-missing", ""],
+					["podcast-missing", "时长未知"],
 					["podcast-zero", "0:00"],
 					["podcast-known", "4:00"],
 				]) {
@@ -150,7 +150,10 @@ try {
 							card.sender || "",
 						);
 						assert.ok(!(await dialog.innerText()).includes("发给你"));
-						assert.match(await dialog.innerText(), /收件人 · Actual recipient/);
+						assert.deepEqual(
+							await page.evaluate((id) => window.__store.card(id).recipients, card.id),
+							["Actual recipient"],
+						);
 					} else {
 						assert.equal(
 							await dialog
@@ -160,26 +163,30 @@ try {
 								.count(),
 							0,
 						);
-						const time = dialog.locator(".player-times");
-						const expected =
-							card.duration === undefined
-								? ""
-								: card.duration === 0
-									? "0:00"
-									: card.duration === 240
-										? "4:00"
-										: "2:05";
-						assert.equal((await time.count()) ? await time.innerText() : "", expected);
+						if (card.media === "podcast") {
+							assert.equal(await dialog.locator(".player-times span").first().innerText(), "0:00");
+							assert.equal(
+								await dialog.locator(".player-times span").last().innerText(),
+								card.duration ? "−4:00" : "时长未知",
+							);
+							assert.ok(await dialog.locator(".audio-player input[type='range']").isDisabled());
+							await dialog.getByRole("tab", { name: "节目笔记", exact: true }).click();
+						} else {
+							assert.ok(await dialog.locator(".unavailable-video button").isDisabled());
+						}
 						assert.deepEqual(
 							await dialog.locator(".preview-full p").allTextContents(),
-							card.body || [],
+							card.body ? card.body.split("\n\n").map((paragraph) => paragraph.trim()) : [],
 						);
 					}
 					assert.equal(await dialog.locator("aside.preview-note p").innerText(), "Personal note");
 					if (card.id.startsWith("video"))
-						assert.match(await dialog.locator(".preview-published").innerText(), /章节 · 8/);
+						assert.equal(
+							await page.evaluate((id) => window.__store.card(id).chapterCount, card.id),
+							8,
+						);
 					if (card.id === "video-prose") {
-						assert.ok(await dialog.locator(".preview-cover img").isVisible());
+						assert.ok(await dialog.locator(".unavailable-video img").isVisible());
 						assert.ok(await dialog.locator("[data-action='external']").count());
 						await page.waitForTimeout(3000);
 						const state = await page.evaluate(

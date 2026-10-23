@@ -16,6 +16,7 @@ import SwiftUI
   var swipe: CGFloat = 0
   var confirmed = false
   var scrolled = false
+  var scrollOffset: CGFloat = 0
   var toolsHidden = false
   /// Drawn by the reader's 2px bar only.
   var progress: Double = 0
@@ -100,6 +101,7 @@ import SwiftUI
   func boundsChanged() {
     guard let view = scrollView, let document = view.documentView else { return }
     let offset = view.contentView.bounds.minY
+    motion.scrollOffset = offset
     let visible = view.contentView.bounds.height
     offsetChanged(offset)
     let end = document.bounds.height - trailing
@@ -184,6 +186,7 @@ import SwiftUI
     }
     if phase == .began { reset() }
     let offset = view.contentView.bounds.minY
+    motion.scrollOffset = offset
     let atBottom = offset >= available - 1
     let sideways = abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY)
     let edge: Edge? =

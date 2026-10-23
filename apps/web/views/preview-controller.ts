@@ -18,7 +18,15 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
 	).querySelector(`[data-card="${CSS.escape(id)}"]`);
 	const sourceRect = source?.getBoundingClientRect();
-	const entryRect = !this.dialog.open || this.modalKind === "search" ? sourceRect : null;
+	const resizing =
+		this.dialog.open &&
+		this.currentId === id &&
+		((reading && this.modalKind === "preview") || (!reading && this.modalKind === "reader"));
+	const entryRect = resizing
+		? MotionEngine.surface(this.dialog).getBoundingClientRect()
+		: !this.dialog.open || this.modalKind === "search"
+			? sourceRect
+			: null;
 	// A quick note opens where it is: the card becomes its own editor.
 	if (
 		!reading &&
@@ -119,18 +127,33 @@ export function bindSheetChrome(this: AppController) {
 	const sheet = this.dialog.querySelector(".preview-sheet");
 	if (sheet) {
 		const placeHead = () => {
+			const expand = sheet.querySelector<HTMLElement>('[data-action="reader"]');
+			if (expand && Store.card(this.currentId)?.type !== "media")
+				expand.hidden = scroll.scrollHeight <= scroll.clientHeight + 2;
 			this.dialog.style.setProperty("--preview-height", `${sheet.offsetHeight}px`);
+			if (sheet.querySelector(".sheet-scroll > .preview-cover")) {
+				sheet.style.setProperty("--preview-title-top", "24px");
+				return;
+			}
 			const title = sheet.querySelector("#modal-title");
 			// The disc sits in the source row above the title, so the title keeps the full width.
-			const row = sheet.querySelector(
-				".preview-body > .preview-sender, .preview-body > .preview-meta",
-			);
+			const row =
+				sheet.querySelector(".now-playing-heading") ||
+				sheet.querySelector(
+					".preview-body .preview-sender, .preview-body .preview-meta, .pr-detail .card-head",
+				);
 			const anchor = row || title;
 			if (anchor) {
-				const top =
-					anchor.getBoundingClientRect().top - sheet.getBoundingClientRect().top + scroll.scrollTop;
+				// Layout offsets stay stable while the card's opening transform animates.
+				let top = 0;
+				for (
+					let node = anchor as HTMLElement;
+					node && node !== sheet;
+					node = node.offsetParent as HTMLElement
+				)
+					top += node.offsetTop;
 				const line = row
-					? anchor.getBoundingClientRect().height
+					? (anchor as HTMLElement).offsetHeight
 					: parseFloat(getComputedStyle(anchor).lineHeight) || 28;
 				sheet.style.setProperty("--preview-title-top", `${Math.max(4, top + line / 2 - 22)}px`);
 			}

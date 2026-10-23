@@ -140,13 +140,21 @@ export async function runCardActions({
 			await action(page, "preview", "reminder-01");
 			await page.locator("#modal").getByRole("button", { name: "忽略此提醒", exact: true }).click();
 			assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
-			await page.getByRole("button", { name: "撤销操作", exact: true }).click();
+			// Reminder actions show no toast and no popup undo; the detail restores it (interaction handbook).
+			assert.equal(await page.getByRole("button", { name: "撤销操作", exact: true }).count(), 0);
+			assert.equal((await state(page, "reminder-01")).dismissed, true);
+			await action(page, "preview", "reminder-01");
+			await page.locator("#modal").getByRole("button", { name: "恢复提醒", exact: true }).click();
+			assert.equal((await state(page, "reminder-01")).dismissed, false);
 			assert.equal(await page.locator('[data-card="reminder-01"]').count(), 1);
 			await action(page, "preview", "reminder-01");
 			// The detail's circle completes the reminder in Sill, as on the card (ADR 0037).
 			await page.locator("#modal").getByRole("button", { name: "完成", exact: true }).click();
 			assert.equal((await state(page, "reminder-01")).reminderDone, true);
 			await filter(page, "all");
+			// Search lists results only for typed text or a tag; the type chips alone show nothing.
+			await page.locator("#filter-search").fill("小空档");
+			await page.locator('#search-results [data-card="reminder-01"]').waitFor();
 			assert.equal(await page.locator('#search-results [data-card="reminder-01"]').count(), 1);
 			await page.locator('#search-results [data-card="reminder-01"] .card-title-button').click();
 			await page.locator("#modal").getByRole("button", { name: "恢复", exact: true }).click();
@@ -172,13 +180,16 @@ export async function runCardActions({
 				true,
 				"updating the active card lost keyboard focus",
 			);
-			await page.getByRole("button", { name: "撤销操作", exact: true }).click();
+			// No popup undo: the same circle restores the reminder from the keyboard.
+			assert.equal(await page.getByRole("button", { name: "撤销操作", exact: true }).count(), 0);
+			await reminder.locator('[data-action="restore-reminder"]').focus();
+			await page.keyboard.press("Enter");
 			assert.equal((await state(page, "reminder-01")).reminderDone, false);
 			assert.equal(await reminder.count(), 1);
 			assert.equal(
 				await page.evaluate(() => document.activeElement !== document.body),
 				true,
-				"undo lost keyboard focus",
+				"restoring lost keyboard focus",
 			);
 			// The card only marks Sill's own state; snoozing lives in the detail (ADR 0036).
 			assert.equal(await reminder.locator('[data-action="snooze"]').count(), 0);

@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
-import { CardPresentation, CardTemplates, cardHTML } from "../../apps/web/cards/templates.ts";
+import { cardHTML } from "../../apps/web/cards/templates.ts";
 import {
 	cardDate,
 	cardDates,
 	cardReadingTime,
+	detailDate,
 	detailSource,
 } from "../../apps/web/data/card-source.ts";
 import { Store } from "../../apps/web/data/store.ts";
@@ -19,7 +20,7 @@ const article: Card = {
 	sources: [{ kind: "readwise", name: "Reader" }],
 	authors: [{ name: "Writer" }],
 	publisher: { name: "Publisher" },
-	body: ["Body"],
+	body: "Body",
 	bodyCoverage: "full",
 	readingEstimate: { seconds: 360, origin: "provided", scope: "full" },
 	tags: ["Tag"],
@@ -59,13 +60,16 @@ test("all reading surfaces use the same explicit estimate and never infer notes 
 	Store.state.items[article.id] = { note: "Personal <script> & note" };
 	const before = JSON.stringify(article);
 	const card = new JSDOM(cardHTML(article)).window.document;
-	assert.ok(card.body.textContent!.includes("Reader · 约 6 分钟阅读"));
+	assert.ok(card.body.textContent!.includes("Publisher · Writer · 约 6 分钟阅读"));
 	assert.ok(!card.body.textContent!.includes("Personal"));
 	const blocks = [Panels.preview({}, article), Panels.reader({}, article)].map((html) => {
 		const doc = new JSDOM(html).window.document;
-		assert.equal(doc.querySelector(".preview-meta")?.textContent, "Reader · 约 6 分钟阅读");
-		assert.ok(doc.querySelector(".preview-published")?.textContent.includes("作者 · Writer"));
-		assert.ok(doc.querySelector(".preview-published")?.textContent.includes("发布方 · Publisher"));
+		assert.equal(
+			doc.querySelector(".preview-meta")?.textContent,
+			"Publisher · Writer · 约 6 分钟阅读",
+		);
+		assert.equal(doc.querySelector(".preview-published"), null);
+		assert.equal(doc.querySelectorAll(".preview-meta").length, 1);
 		const note = doc.querySelector("aside.preview-note")!;
 		assert.equal(note.querySelector(".preview-note-label")?.textContent, "备注");
 		assert.equal(note.querySelector("p")?.textContent, "Personal <script> & note");
@@ -115,7 +119,7 @@ test("specialized mail and file views retain estimates; podcasts retain personal
 			id: "estimated-mail",
 			type: "mail",
 			title: "Mail",
-			body: ["Body"],
+			body: "Body",
 			readingEstimate: { seconds: 360, origin: "provided" as const, scope: "full" as const },
 		},
 		{
@@ -137,7 +141,7 @@ test("specialized mail and file views retain estimates; podcasts retain personal
 		type: "media",
 		media: "podcast",
 		title: "Podcast",
-		body: [],
+		body: "",
 	};
 	Store.state.items[podcast.id] = { note: "Personal podcast note" };
 	const doc = new JSDOM(Panels.preview({}, podcast)).window.document;
@@ -156,11 +160,7 @@ test("mail identity never borrows sources or assumes the current user is a recip
 			...(sender === undefined ? {} : { sender }),
 			recipients: ["Actual recipient"],
 		});
-		for (const html of [
-			cardHTML(card),
-			CardTemplates.mail(card, { state: CardPresentation.state(card) }),
-			Panels.preview({}, card),
-		]) {
+		for (const html of [cardHTML(card), Panels.preview({}, card)]) {
 			const dom = new JSDOM(html);
 			try {
 				const doc = dom.window.document;
@@ -193,20 +193,22 @@ test("podcast duration stays unknown when absent and never derives playback from
 			type: "media",
 			media: "podcast",
 			title: "Podcast",
-			body: ["Actual podcast notes"],
+			body: "Actual podcast notes",
 			...(seconds === undefined ? {} : { duration: seconds }),
 		});
 		Store.state.items[card.id] = { progress: 0.75, note: "Personal note" };
-		const expected = seconds === undefined ? undefined : seconds === 0 ? "0:00" : "4:00";
-		for (const html of [
-			cardHTML(card),
-			CardTemplates.media(card, { state: Store.item(card.id) }),
-			Panels.preview({}, card),
-		]) {
+		const expected = seconds === undefined ? "时长未知" : seconds === 0 ? "0:00" : "4:00";
+		for (const html of [cardHTML(card), Panels.preview({}, card)]) {
 			const dom = new JSDOM(html);
 			try {
 				const doc = dom.window.document;
-				assert.equal(doc.querySelector(".mini-player .num,.player-times")?.textContent, expected);
+				if (doc.querySelector(".mini-player")) {
+					assert.equal(doc.querySelector(".mini-player .num")?.textContent, expected);
+					assert.equal(doc.querySelector(".media-card-progress")?.getAttribute("value"), "0");
+				} else {
+					assert.equal(doc.querySelector(".player-times span")?.textContent, "0:00");
+					assert.ok(doc.querySelector(".audio-player input[disabled]"));
+				}
 				assert.equal(
 					doc.querySelector(".mini-play,.mini-player .bar,.player-bar,#podcast-played"),
 					null,
@@ -224,7 +226,7 @@ test("podcast duration stays unknown when absent and never derives playback from
 
 test("valid media without body opens and prose never becomes media chapters or playback steps", () => {
 	Store.state = Store.fresh();
-	for (const body of [undefined, [], ["First paragraph", "Second paragraph"]]) {
+	for (const body of [undefined, "", "First paragraph\n\nSecond paragraph"]) {
 		const card = Card.parse({
 			id: "video-facts",
 			type: "media",
@@ -247,13 +249,14 @@ test("valid media without body opens and prose never becomes media chapters or p
 				doc.querySelector(".media-step,.media-slide,.media-controls,[data-action='media-play']"),
 				null,
 			);
-			assert.match(doc.querySelector(".preview-published")!.textContent!, /章节 · 8/);
-			assert.equal(doc.querySelector(".player-times")?.textContent, "2:05");
+			assert.equal(doc.querySelector(".preview-published"), null);
+			assert.match(cardHTML(card), /剩 3 分钟/);
+			assert.ok(doc.querySelector(".unavailable-video button[disabled]"));
 			assert.deepEqual(
 				[...doc.querySelectorAll(".preview-full p")].map((p) => p.textContent),
-				body || [],
+				body ? body.split("\n\n") : [],
 			);
-			assert.ok(doc.querySelector(".preview-cover img"));
+			assert.ok(doc.querySelector(".unavailable-video img"));
 			assert.ok(doc.querySelector("[data-action='external']"));
 			assert.equal(doc.querySelector("aside.preview-note p")?.textContent, "Video note");
 			assert.equal(JSON.stringify(Store.state), before);
@@ -276,14 +279,147 @@ test("article and photo heads name their day like the preview head", () => {
 	const head = (html: string) => {
 		const dom = new JSDOM(html);
 		try {
-			return dom.window.document.querySelector(".card-src, .preview-meta span")?.textContent;
+			return dom.window.document.querySelector(".card-src, .preview-meta > span:last-child")
+				?.textContent;
 		} finally {
 			dom.window.close();
 		}
 	};
 	const feed = head(cardHTML(story));
-	assert.equal(feed, "Reader · 2024/3/5 · 约 6 分钟阅读");
-	assert.equal(head(CardTemplates.article(story, { state: CardPresentation.state(story) })), feed);
+	assert.equal(feed, "Publisher · Writer · 2024/3/5 · 约 6 分钟阅读");
 	assert.equal(head(Panels.preview({}, story)), feed);
-	assert.equal(head(cardHTML(photo)), "照片 · Coast · 2024/3/6");
+	assert.equal(head(cardHTML(photo)), "Coast · 2024/3/6");
+});
+
+test("content dates stay identical on card faces, previews and readers", (t) => {
+	t.mock.timers.enable({ apis: ["Date"], now: new Date(2026, 9, 22, 12) });
+	Store.state = Store.fresh();
+	for (const [publishedAt, label] of [
+		["2026-10-22", "今天"],
+		["2026-10-21", "昨天"],
+		["2026-10-18", "10/18"],
+		["2025-10-18", "2025/10/18"],
+		["2026-10-23", "10/23"],
+	]) {
+		for (const fields of [
+			{ type: "article" },
+			{ type: "note" },
+			{ type: "note", variant: "quote" },
+			{ type: "media", media: "video", image: "coast" },
+			{ type: "media", media: "podcast" },
+			{ type: "suggestion" },
+		]) {
+			const card = Card.parse({
+				...fields,
+				id: "dated-content",
+				title: "Title",
+				publishedAt,
+				publisher: { name: "Source" },
+				body: "Body",
+			});
+			for (const html of [cardHTML(card), Panels.preview({}, card), Panels.reader({}, card)]) {
+				const dom = new JSDOM(html);
+				try {
+					assert.equal(
+						dom.window.document.querySelector(".card-src, .preview-meta")?.textContent?.trim(),
+						`Source · ${label}`,
+						`${fields.type}/${fields.media || ""}: ${publishedAt}`,
+					);
+				} finally {
+					dom.window.close();
+				}
+			}
+		}
+		const photo = Card.parse({
+			id: "dated-photo",
+			type: "photo",
+			title: "Photo",
+			image: "coast",
+			takenAt: publishedAt,
+		});
+		const dom = new JSDOM(Panels.lightbox(photo));
+		try {
+			assert.equal(
+				dom.window.document.querySelector(".lightbox-caption small")?.textContent,
+				label,
+			);
+		} finally {
+			dom.window.close();
+		}
+	}
+	const sentAt = new Date(2026, 9, 22, 9, 30).toISOString();
+	const mail = Card.parse({
+		id: "dated-mail",
+		type: "mail",
+		title: "Mail",
+		sender: "Sender",
+		sentAt,
+	});
+	for (const html of [cardHTML(mail), Panels.preview({}, mail), Panels.reader({}, mail)]) {
+		const dom = new JSDOM(html);
+		try {
+			assert.match(dom.window.document.body.textContent!, /今天 09:30/);
+		} finally {
+			dom.window.close();
+		}
+	}
+	assert.equal(detailDate("2026-10-22", true), "今天");
+});
+
+test("PR has its own snapshot layout and never invents missing statistics", (t) => {
+	t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-22T12:00:00+08:00") });
+	Store.state = Store.fresh();
+	const card = Card.parse({
+		id: "pr-layout",
+		type: "pr",
+		title: "Review snapshot",
+		summary: "Small change",
+		sources: [{ name: "GitHub", kind: "github" }],
+		url: "https://github.com/owner/repo/pull/4",
+		pullRequest: {
+			repository: "owner/repo",
+			number: 4,
+			state: "open",
+			observedAt: "2026-10-22T10:00:00+08:00",
+			headBranch: "fix",
+			baseBranch: "main",
+			reviewRequested: true,
+			reviewers: [{ login: "reviewer", decision: "approved" }],
+			checks: [{ name: "build", status: "completed", conclusion: "success" }],
+		},
+	});
+	const face = new JSDOM(cardHTML(card)).window.document;
+	assert.match(face.body.textContent!, /owner\/repo #4/);
+	assert.match(face.body.textContent!, /待你审阅/);
+	assert.match(face.body.textContent!, /fix → main/);
+	assert.match(face.body.textContent!, /审阅/);
+	assert.doesNotMatch(face.querySelector(".pr-stats")!.textContent!, /[+−]0/);
+	const detail = new JSDOM(Panels.preview({}, card)).window.document;
+	assert.match(detail.body.textContent!, /记录于.*今天/);
+	assert.match(detail.body.textContent!, /已通过/);
+	assert.match(detail.body.textContent!, /build/);
+	assert.equal(detail.querySelector('[data-action="reader"]'), null);
+});
+
+test("mail multiple attachments render links and explicit empty clears the legacy label", () => {
+	Store.state = Store.fresh();
+	const card = Card.parse({
+		id: "mail-files",
+		type: "mail",
+		title: "Attachments",
+		body: "Text",
+		attachment: "old.pdf",
+		attachments: [
+			{ name: "first.pdf", url: "https://example.com/first.pdf" },
+			{ name: "second.txt" },
+		],
+	});
+	const detail = new JSDOM(Panels.preview({}, card)).window.document;
+	assert.equal(detail.querySelector(".detail-row a"), null);
+	assert.ok(detail.querySelector('a.detail-row[href="https://example.com/first.pdf"]'));
+	assert.match(detail.body.textContent!, /second.txt/);
+	assert.doesNotMatch(detail.body.textContent!, /old.pdf/);
+	const cleared = new JSDOM(Panels.preview({}, { ...card, attachments: [] })).window.document;
+	assert.doesNotMatch(cleared.body.textContent!, /old.pdf/);
+	assert.equal(cleared.querySelector(".detail-row"), null);
 });

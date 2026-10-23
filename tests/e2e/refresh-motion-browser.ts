@@ -30,7 +30,7 @@ try {
 						id: `pull-${i}`,
 						type: "note",
 						title: `合成测试 ${i}`,
-						body: ["隔离测试，无私人数据。"],
+						body: "隔离测试，无私人数据。",
 						time: Date.now() - i,
 					})),
 					items: {},

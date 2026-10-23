@@ -108,7 +108,7 @@ test("SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
 		const created = await call(
 			"/api/v1/contents",
 			"POST",
-			{ type: "note", title: "Saved", body: ["Cloud content"] },
+			{ type: "note", title: "Saved", body: "Cloud content" },
 			{ "Idempotency-Key": "create_001" },
 		);
 		assert.equal(created.status, 201);
@@ -116,7 +116,7 @@ test("SDK PKCE login/callback and authenticated HTTP CRUD use real private RPC S
 		const replay = await call(
 			"/api/v1/contents",
 			"POST",
-			{ type: "note", title: "Saved", body: ["Cloud content"] },
+			{ type: "note", title: "Saved", body: "Cloud content" },
 			{ "Idempotency-Key": "create_001" },
 		);
 		assert.equal((await replay.json()).id, one.id);

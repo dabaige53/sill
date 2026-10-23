@@ -210,7 +210,7 @@ struct CloudWorkspaceTests {
   @Test func newCardAndDeleteTimeoutsVerifyFullCardWithoutServerMetadata() async throws {
     let card: JSONValue = .object([
       "id": .string("created"), "type": .string("note"), "title": .string("Synthetic"),
-      "body": .array([]), "future": .object(["preserved": .bool(true)]),
+      "body": .string(""), "future": .object(["preserved": .bool(true)]),
     ])
     let item = try JSONValue.decode(
       Data(

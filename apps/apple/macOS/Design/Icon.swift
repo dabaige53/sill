@@ -6,11 +6,13 @@ struct Icon: View {
   let name: String
   var size: CGFloat = 18
   var weight: CGFloat? = nil
+  var filled = false
 
-  init(_ name: String, size: CGFloat = 18, weight: CGFloat? = nil) {
+  init(_ name: String, size: CGFloat = 18, weight: CGFloat? = nil, filled: Bool = false) {
     self.name = name
     self.size = size
     self.weight = weight
+    self.filled = filled
   }
 
   var body: some View {
@@ -20,9 +22,13 @@ struct Icon: View {
     ZStack {
       ForEach(glyph.layers.indices, id: \.self) { index in
         let layer = glyph.layers[index]
-        IconLayerShape(path: layer.path).stroke(
-          style: StrokeStyle(
-            lineWidth: layer.width.map { $0 * scale } ?? base, lineCap: .round, lineJoin: .round))
+        if filled {
+          IconLayerShape(path: layer.path).fill()
+        } else {
+          IconLayerShape(path: layer.path).stroke(
+            style: StrokeStyle(
+              lineWidth: layer.width.map { $0 * scale } ?? base, lineCap: .round, lineJoin: .round))
+        }
       }
     }
     .frame(width: size, height: size)

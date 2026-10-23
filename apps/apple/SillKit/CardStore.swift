@@ -135,8 +135,8 @@ public actor CardStore {
     for (key, value) in fields {
       if booleans.contains(key) {
         guard value.bool != nil else { throw StoreError.invalidSnapshot }
-      } else if timestamps.contains(key) || key == "progress" {
-        let maximum = key == "progress" ? 1 : 8.64e15
+      } else if timestamps.contains(key) || key == "progress" || key == "playbackPosition" {
+        let maximum = key == "progress" ? 1 : key == "playbackPosition" ? 86400 : 8.64e15
         guard let number = value.number, number.isFinite, number >= 0, number <= maximum else {
           throw StoreError.invalidSnapshot
         }

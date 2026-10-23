@@ -28,7 +28,9 @@ const cards: any[] = Array.from({ length: 38 }, (_, index) => ({
 	type: "article",
 	title: `阅读卡片 ${index + 1}`,
 	summary: "保持简洁的摘要，点开查看完整正文。",
-	body: Array(30).fill("这段合成正文用于验证手势取消、工具条和键盘导航，不包含个人资料。"),
+	body: Array(30)
+		.fill("这段合成正文用于验证手势取消、工具条和键盘导航，不包含个人资料。")
+		.join("\n\n"),
 	time: Date.now() - index * 3600000,
 }));
 Object.assign(cards[0], {
@@ -53,7 +55,9 @@ cards.push(
 		type: "digest",
 		title: "正文末尾的交接动作",
 		summary: "这张摘要没有悬浮操作栏，末尾操作应该完整可见。",
-		body: Array(12).fill("这段合成摘要用于验证阅读到底部之后，完整正文和交接动作仍然清晰。"),
+		body: Array(12)
+			.fill("这段合成摘要用于验证阅读到底部之后，完整正文和交接动作仍然清晰。")
+			.join("\n\n"),
 		time: Date.now() - 7200000,
 	},
 	{
@@ -155,7 +159,7 @@ try {
 						(n: HTMLElement) => n.dataset.card,
 					),
 				}));
-				await page.keyboard.press("Control+k");
+				await page.evaluate(() => window.__app.action("search"));
 				await page.locator("#filter-search").fill("阅读");
 				await page.waitForFunction(
 					() =>
@@ -200,7 +204,7 @@ try {
 				await page.goBack();
 				await page.waitForSelector("#modal.search[open]");
 				assert.equal(await page.locator("#search-results").evaluate((n) => n.scrollTop), searchY);
-				await page.locator('.search-header > [data-action="close"]').click();
+				await page.keyboard.press("Escape");
 				await page.waitForTimeout(150);
 				assert.equal(
 					await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),
@@ -216,7 +220,7 @@ try {
 					),
 					home.ids,
 				);
-				await page.keyboard.press("Control+k");
+				await page.evaluate(() => window.__app.action("search"));
 				await page.waitForSelector("#modal.search[open]");
 				assert.equal(await page.locator("#filter-search").inputValue(), "阅读");
 				assert.equal(await page.locator("#search-results").evaluate((n) => n.scrollTop), searchY);

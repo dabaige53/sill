@@ -68,9 +68,11 @@ export async function runTouchDrag({
 						return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width };
 					}),
 				);
-				// Sill columns are 280-380px; the first-screen entry (scale .985) may still be settling.
+				// Columns are at least 280px and share the spare width with no col-max cap;
+				// the first-screen entry (scale .985) may still be settling.
+				const widest = Math.max(...geometry.map((r?: any) => r.width));
 				assert.ok(
-					geometry.every((r?: any) => r.width >= 275 && r.width <= 380),
+					geometry.every((r?: any) => r.width >= 275 && widest - r.width < 8),
 					JSON.stringify(geometry),
 				);
 				assert.ok(
@@ -140,16 +142,23 @@ export async function runTouchDrag({
 		},
 	);
 	await scenario(
-		"Phone drawer waits for its CSS exit and cancels stale opening callbacks",
+		"Phone drawer waits for its exit motion and cancels stale opening callbacks",
 		async (page: any) => {
-			await page.addStyleTag({
-				content: "#modal.preview .preview-sheet { transition-duration: 800ms !important; }",
-			});
 			await page.evaluate(() => window.__app.openCard("article-01"));
 			await page.waitForTimeout(1000);
-			await page.evaluate(() => window.__app.closeNative());
-			await page.waitForTimeout(400);
-			assert.equal(await page.locator("#modal").evaluate((n: HTMLDialogElement) => n.open), true);
+			// The exit is a Motion animation on the sheet (motion handbook); the dialog stays open while it runs.
+			const leaving = await page.evaluate(async () => {
+				window.__app.closeNative();
+				await new Promise((resolve) => requestAnimationFrame(resolve));
+				return {
+					open: (document.getElementById("modal") as HTMLDialogElement).open,
+					running: document
+						.querySelector("#modal .preview-sheet")
+						.getAnimations()
+						.some((a) => a.playState === "running"),
+				};
+			});
+			assert.deepEqual(leaving, { open: true, running: true });
 			await page.waitForFunction(() => !document.querySelector("dialog").open);
 			await page.evaluate(async () => {
 				const app = window.__app;
@@ -202,7 +211,10 @@ export async function runTouchDrag({
 				assert.equal((await state(page, "reminder-01")).reminderDone, true);
 				assert.equal(await reminder.count(), 1);
 				await feedUnopened(page, "reminder-01");
-				await page.getByRole("button", { name: "撤销操作", exact: true }).tap();
+				// No popup undo (interaction handbook): the same circle restores it.
+				assert.equal(await page.getByRole("button", { name: "撤销操作", exact: true }).count(), 0);
+				await reminder.locator('[data-action="restore-reminder"]').tap();
+				assert.equal((await state(page, "reminder-01")).reminderDone, false);
 				assert.equal(await reminder.count(), 1);
 				await page.getByRole("button", { name: "搜索", exact: true }).tap();
 				await page.waitForFunction(() => window.__app.modalKind === "search");
@@ -236,6 +248,9 @@ export async function runTouchDrag({
 					(await state(page, "reminder-01")).snoozedUntil > (await page.evaluate(() => Date.now())),
 				);
 				await filter(page, "all");
+				// Search lists results only for typed text or a tag.
+				await page.locator("#filter-search").fill("小空档");
+				await page.locator('#search-results [data-card="reminder-01"]').waitFor();
 				assert.equal(await page.locator('#search-results [data-card="reminder-01"]').count(), 1);
 				await action(page, "clear-filter");
 				await page.keyboard.press("Escape");

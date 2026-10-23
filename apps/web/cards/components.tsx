@@ -1,7 +1,7 @@
-import React, { type ReactNode } from "react";
+import type React from "react";
+import { markdownBlocks } from "../atoms/markdown.ts";
 import {
 	dateLabel,
-	duration,
 	eventEnded,
 	eventRelative,
 	eventTimely,
@@ -9,7 +9,7 @@ import {
 	shortDay,
 	timeString,
 } from "../atoms/primitives.ts";
-import { Avatar, Avatars, CheckMark, Icon, ProgressRing } from "../atoms/react-primitives.tsx";
+import { Avatar, Avatars, CheckMark, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { Assets } from "../data/assets.ts";
 import {
@@ -18,140 +18,31 @@ import {
 	cardSource,
 	cardSourceKind,
 	contentDay,
+	detailDate,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
+import { Media } from "./media-card.tsx";
 import { CardPresentation } from "./presentation.ts";
+import { PullRequest } from "./pull-request.tsx";
+import { SourceMark } from "./source-mark.tsx";
 
-type Card = Record<string, any>;
-export interface CardViewOptions {
-	state?: Record<string, any>;
-	passive?: boolean;
-	compact?: boolean;
-	now?: number;
-	taskPreviewOrder?: string[];
-}
-interface Context {
-	state: Record<string, any>;
-	tasks: Card[];
-	taskPreviewOrder: string[];
-	passive: boolean;
-	now: number;
-}
-interface BlockProps {
-	card: Card;
-	ctx: Context;
-}
-function SourceIcon({ card: c, size = 16 }: { card: Card; size?: number }) {
-	if (c.sources?.length > 1)
-		return (
-			<span className="source-icons" aria-hidden="true">
-				{c.sources.slice(0, 3).map((s: Card, i: number) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Sources may repeat and these decorative icons have no component state.
-					<span key={i}>
-						<Icon name={SourceKinds[s.kind]?.icon || "book"} size={12} />
-					</span>
-				))}
-			</span>
-		);
-	const byType = ["task", "event", "reminder", "digest", "photo", "file"].includes(c.type);
-	return (
-		<Icon
-			name={
-				byType
-					? (CardTypes[c.type] || CardTypes.note).icon
-					: SourceKinds[cardSourceKind(c)]?.icon || (CardTypes[c.type] || CardTypes.note).icon
-			}
-			size={size}
-		/>
-	);
-}
-function sourceLine(c: Card, date: Date | null = null) {
-	return [
-		c.sources?.length > 1
-			? c.sources.map((s: Card) => s.name).join(" · ")
-			: cardSource(c) || (CardTypes[c.type] || CardTypes.note).label,
-		date ? shortDay(date.getTime()) : "",
-		cardReadingTime(c),
-	]
-		.filter(Boolean)
-		.join(" · ");
-}
-function Head({ card, text, right }: { card: Card; text: ReactNode; right?: ReactNode }) {
-	return (
-		<div className="card-head">
-			<SourceIcon card={card} />
-			<span className="card-src">{text}</span>
-			{right && <span className="card-head-right">{right}</span>}
-		</div>
-	);
-}
-function Progress({ card: c, ctx }: BlockProps) {
-	const s = ctx.state;
-	return (CardTypes[c.type] || CardTypes.note).readable && !s.read && s.progress > 0 ? (
-		<span className="card-progress num">
-			<ProgressRing progress={s.progress} size={14} />
-			{Math.round(s.progress * 100)}%
-		</span>
-	) : null;
-}
-function Title({ card: c, ctx, className = "" }: BlockProps & { className?: string }) {
-	return (
-		<h2 className={`card-title ${className}`}>
-			{ctx.passive ? (
-				<span className="card-title-button" data-shared="title">
-					{c.title}
-				</span>
-			) : (
-				<button
-					type="button"
-					data-action="card-open"
-					data-id={c.id}
-					className="card-title-button"
-					data-shared="title"
-				>
-					{c.title}
-				</button>
-			)}
-		</h2>
-	);
-}
-// @design card-summary
-function Summary({ card: c, short = false }: { card: Card; short?: boolean }) {
-	return c.points?.length ? (
-		<>
-			{c.summary && <p className="card-summary clamp-2">{c.summary}</p>}
-			<ol className="key-points">
-				{c.points.slice(0, 3).map((p: string, i: number) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Points may repeat; these numbered text rows have no component state.
-					<li key={i}>
-						<i className="num">{i + 1}</i>
-						<span>{p}</span>
-					</li>
-				))}
-			</ol>
-		</>
-	) : c.summary ? (
-		<p className={`card-summary ${short ? "clamp-2" : ""}`}>{c.summary}</p>
-	) : null;
-}
-function Cover({ card: c, children }: { card: Card; children?: ReactNode }) {
-	return (
-		<div className="card-cover" style={{ background: AssetTones[c.image] || "var(--surface)" }}>
-			<img
-				className="card-image"
-				data-shared="image"
-				src={Assets[c.image]}
-				alt=""
-				draggable={false}
-				loading="lazy"
-				decoding="async"
-			/>
-			{children}
-		</div>
-	);
-}
+export type { CardViewOptions } from "./card-blocks.tsx";
+
+import {
+	type BlockProps,
+	type Card,
+	type CardViewOptions,
+	type Context,
+	Cover,
+	Head,
+	Progress,
+	Summary,
+	sourceLine,
+	Title,
+} from "./card-blocks.tsx";
+
 function Article({ card: c, ctx }: BlockProps) {
 	return (
 		<>
@@ -167,16 +58,18 @@ function Article({ card: c, ctx }: BlockProps) {
 }
 function Mail({ card: c, ctx }: BlockProps) {
 	const sender = c.sender?.trim();
+	const attachments = c.attachments ?? (c.attachment ? [{ name: c.attachment }] : []);
 	return (
 		<div className="card-body">
 			{sender ? (
 				<div className="sender">
-					<Avatar name={sender} />
+					<Avatar name={sender} size={32} />
 					<span>
 						<b>{sender}</b>
 						<small>
-							{copy("web.mail")}
-							{c.sentAt ? ` · ${dateLabel(Date.parse(c.sentAt))}` : ""}
+							<SourceMark card={c} />
+							{cardSource(c) || copy("web.mail")}
+							{c.sentAt ? ` · ${detailDate(c.sentAt, true)}` : ""}
 							{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
 						</small>
 					</span>
@@ -184,22 +77,37 @@ function Mail({ card: c, ctx }: BlockProps) {
 			) : (
 				<Head
 					card={c}
-					text={[
-						cardSource(c) || copy("web.mail"),
-						c.sentAt ? dateLabel(Date.parse(c.sentAt)) : "",
-						cardReadingTime(c),
-					]
+					text={[cardSource(c) || copy("web.mail"), detailDate(c.sentAt, true), cardReadingTime(c)]
 						.filter(Boolean)
 						.join(" · ")}
 				/>
 			)}
 			<Title card={c} ctx={ctx} />
 			<Summary card={c} />
-			{c.attachment && (
-				<span className="file-row attachment">
-					<Icon name="file" size={15} />
-					<span>{c.attachment}</span>
-				</span>
+			{!!attachments.length && (
+				<div className="mail-attachments">
+					{attachments.slice(0, 3).map((file, index) => (
+						<span
+							className={`file-row attachment ${index === 2 ? "attachment-third" : ""}`}
+							key={file.name}
+						>
+							<Icon name="file" size={15} />
+							<span>{file.name}</span>
+						</span>
+					))}
+					{attachments.length > 2 && (
+						<span className="attachment-more-phone">
+							{copy("web.templates.dff74742a6f0")}
+							{attachments.length - 2}
+						</span>
+					)}
+					{attachments.length > 3 && (
+						<span className="attachment-more-desktop">
+							{copy("web.templates.dff74742a6f0")}
+							{attachments.length - 3}
+						</span>
+					)}
+				</div>
 			)}
 		</div>
 	);
@@ -208,7 +116,11 @@ function Note({ card: c, ctx }: BlockProps) {
 	if (cardSourceKind(c) !== "capture" && c.form !== "quote")
 		return (
 			<div className="card-body">
-				<Head card={c} text={sourceLine(c)} right={Progress({ card: c, ctx })} />
+				<Head
+					card={c}
+					text={sourceLine(c, contentDay(c.publishedAt))}
+					right={Progress({ card: c, ctx })}
+				/>
 				<Title card={c} ctx={ctx} />
 				<Summary card={c} />
 			</div>
@@ -216,13 +128,13 @@ function Note({ card: c, ctx }: BlockProps) {
 	if (c.form === "quote")
 		return (
 			<div className="card-body quote-body">
-				<Head card={c} text={sourceLine(c)} />
+				<Head card={c} text={sourceLine(c, contentDay(c.publishedAt))} />
 				<Title card={c} ctx={ctx} className="quote-text" />
 			</div>
 		);
 	return (
 		<div className="card-body">
-			<Head card={c} text={sourceLine(c)} />
+			<Head card={c} text={sourceLine(c, contentDay(c.publishedAt))} />
 			<h2 className="card-title note-text">
 				{ctx.passive ? (
 					<span className="card-title-button" data-shared="title">
@@ -257,7 +169,20 @@ function Task({ card: c, ctx }: BlockProps) {
 		<div className="card-body">
 			<Head
 				card={c}
-				text={c.project?.name || copy("web.task")}
+				text={
+					<>
+						{c.project?.name || copy("web.task")}
+						{c.due !== undefined && (
+							<>
+								{" "}
+								·{" "}
+								<span className="task-due">
+									{copy("web.card.dueShort")} {dateLabel(c.due)}
+								</span>
+							</>
+						)}
+					</>
+				}
 				right={
 					tasks.length ? (
 						<span className="num task-count">
@@ -313,9 +238,8 @@ function Task({ card: c, ctx }: BlockProps) {
 	);
 }
 function Event({ card: c, ctx }: BlockProps) {
-	const span = Math.round((c.end - c.start) / 60000),
-		timely = eventTimely(c, ctx.now) && c.meeting,
-		relative = eventRelative(c, ctx.now);
+	const timely = eventTimely(c, ctx.now) && c.meeting;
+	const relative = eventRelative(c, ctx.now);
 	return (
 		<div className="card-body">
 			<Head
@@ -323,38 +247,49 @@ function Event({ card: c, ctx }: BlockProps) {
 				text={dateLabel(c.start)}
 				right={relative ? <span className="event-relative">{relative}</span> : null}
 			/>
-			<div className="event-time">
-				<span className="num event-start">{timeString(c.start)}</span>
-				<span className="event-end">
-					<span className="num">
+			<div className="event-card-main">
+				<div className="event-card-times num">
+					<span className="event-start">{timeString(c.start)}</span>
+					<small>
 						{copy("web.templates.83532308ecca")}
 						{timeString(c.end)}
-					</span>
-					<small>
-						{copy("web.templates.2428420e407f")}
-						{span}
-						{copy("web.templates.40de54344d22")}
 					</small>
-				</span>
-			</div>
-			<Title card={c} ctx={ctx} />
-			{c.people?.length > 0 && (
-				<div className="people">
-					<Avatars names={c.people} />
-					<span>{c.people.join("、")}</span>
 				</div>
-			)}
-			{timely && !ctx.passive && (
-				<div className="card-actions-row">
-					<button
-						type="button"
-						className="pill primary"
-						data-action="join"
-						data-id={c.id || undefined}
-						aria-label={`${copy("web.templates.451755e3831f")}${c.meeting.name}`}
-					>
-						{copy("web.templates.451755e3831f")}
-					</button>
+				<div className="event-card-content">
+					<Title card={c} ctx={ctx} />
+					{c.meeting?.name && (
+						<span className="event-card-location">
+							<Icon name="video" size={15} />
+							{c.meeting.name}
+						</span>
+					)}
+					{c.location && (
+						<span className="event-card-location">
+							<Icon name="pin" size={15} />
+							{c.location}
+						</span>
+					)}
+				</div>
+			</div>
+			{(c.people?.length > 0 || timely) && (
+				<div className="event-card-footer">
+					{c.people?.length > 0 && (
+						<div className="people">
+							<Avatars names={c.people} />
+							<span>{c.people.join("、")}</span>
+						</div>
+					)}
+					{timely && !ctx.passive && (
+						<button
+							type="button"
+							className="pill primary"
+							data-action="join"
+							data-id={c.id}
+							aria-label={copy("web.templates.451755e3831f") + c.meeting.name}
+						>
+							{copy("web.templates.451755e3831f")}
+						</button>
+					)}
 				</div>
 			)}
 		</div>
@@ -413,43 +348,27 @@ function Reminder({ card: c, ctx }: BlockProps) {
 		</div>
 	);
 }
-function Media({ card: c, ctx }: BlockProps) {
-	if (c.media === "podcast") {
-		return (
-			<div className="card-body">
-				<Head card={c} text={sourceLine(c)} right={Progress({ card: c, ctx })} />
-				<Title card={c} ctx={ctx} />
-				<Summary card={c} short />
-				{c.duration !== undefined && (
-					<div className="mini-player">
-						<span className="num">{duration(c.duration)}</span>
-					</div>
-				)}
-			</div>
-		);
-	}
-	return (
-		<>
-			{c.image && (
-				<Cover card={c}>
-					{c.duration !== undefined && (
-						<span className="media-length num">{duration(c.duration)}</span>
-					)}
-				</Cover>
-			)}
-			<div className="card-body">
-				<Head card={c} text={sourceLine(c)} right={Progress({ card: c, ctx })} />
-				<Title card={c} ctx={ctx} />
-			</div>
-		</>
-	);
-}
 function Digest({ card: c, ctx }: BlockProps) {
 	return (
 		<div className="card-body">
-			<Head card={c} text={sourceLine(c)} />
+			<Head
+				card={c}
+				text={
+					c.coverageStart !== undefined && c.coverageEnd !== undefined
+						? `${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`
+						: sourceLine(c)
+				}
+				right={
+					c.related?.length ? (
+						<span className="num">
+							{c.related.length}
+							{copy("web.card.relatedCount")}
+						</span>
+					) : null
+				}
+			/>
 			<Title card={c} ctx={ctx} />
-			<Summary card={{ ...c, summary: c.summary || (c.points?.length ? "" : c.body?.[0] || "") }} />
+			<Summary card={{ ...c, summary: c.summary || markdownBlocks(c.body || "")[0] || "" }} />
 		</div>
 	);
 }
@@ -458,9 +377,9 @@ function Suggestion({ card: c, ctx }: BlockProps) {
 		related = all.slice(0, 2);
 	return (
 		<div className="card-body">
-			<Head card={c} text={sourceLine(c)} />
+			<Head card={c} text={sourceLine(c, contentDay(c.publishedAt))} />
 			<Title card={c} ctx={ctx} />
-			<Summary card={c} />
+			<Summary card={{ ...c, summary: c.why?.reason || c.summary }} />
 			<nav className="refs" aria-label={copy("web.templates.9f2ab3a03303")}>
 				{related.map((r: Card) => {
 					const children = (
@@ -514,12 +433,18 @@ function Photo({ card: c, ctx }: BlockProps) {
 			<div className="card-body">
 				<Head
 					card={c}
-					text={[copy("web.photo"), c.location, taken ? shortDay(taken.getTime()) : ""]
-						.filter(Boolean)
-						.join(" · ")}
-					right={photos.length > 3 ? <span className="num">{photos.length}</span> : null}
+					text={[c.location, taken ? shortDay(taken.getTime()) : ""].filter(Boolean).join(" · ")}
+					right={
+						photos.length ? (
+							<span className="num">
+								{photos.length}
+								{copy("web.common.cardCountSuffix")}
+							</span>
+						) : null
+					}
 				/>
 				<Title card={c} ctx={ctx} />
+				{c.caption && <p className="card-summary">{c.caption}</p>}
 			</div>
 		</>
 	);
@@ -531,9 +456,17 @@ function File({ card: c, ctx }: BlockProps) {
 			<Head
 				card={c}
 				text={[copy("web.file"), cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · ")}
-				right={null}
+				right={
+					files.length ? (
+						<span className="num">
+							{files.length}
+							{copy("web.card.fileCountSuffix")}
+						</span>
+					) : null
+				}
 			/>
 			<Title card={c} ctx={ctx} />
+			<Summary card={c} />
 			<div className="file-rows">
 				{files.slice(0, 3).map((f: Card, i: number) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: File names may repeat; these static preview rows have no component state.
@@ -565,6 +498,7 @@ const Bodies: Record<string, React.ComponentType<BlockProps>> = {
 	suggestion: Suggestion,
 	photo: Photo,
 	file: File,
+	pr: ({ card, ctx }) => <PullRequest card={card as any} passive={ctx.passive} />,
 };
 export function CardView({ card: c, options = {} }: { card: Card; options?: CardViewOptions }) {
 	options = options && typeof options === "object" ? options : {};

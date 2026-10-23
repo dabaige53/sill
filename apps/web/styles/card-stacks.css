@@ -196,15 +196,6 @@
 
 /* Desktop spacing groups metadata, content and supporting references. */
 @media (min-width: 651px) {
-	.card-body > :is(.card-head, .sender) + :is(.card-title, .quote-text) {
-		margin-top: var(--space-4);
-	}
-	.card-body > .card-title + .card-summary {
-		margin-top: calc(-1 * var(--space-2));
-	}
-	.card-body > :is(.checklist, .refs, .file-rows, .attachment) {
-		margin-top: var(--space-4);
-	}
 	.feed-card .check-item {
 		align-items: flex-start;
 	}

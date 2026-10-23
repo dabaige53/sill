@@ -85,7 +85,7 @@ async function run(
 			animations: "disabled",
 		});
 		results.push({ name, status: "FAIL", error: error.message });
-		console.error("FAIL", name, error.message);
+		console.error("FAIL", name, error.stack || error.message);
 	} finally {
 		await context.close();
 	}
@@ -228,7 +228,7 @@ try {
 			() =>
 				[...document.querySelectorAll('[data-card="review-task"] .checklist [data-action="task"]')]
 					.map((node: HTMLElement) => node.dataset.extra)
-					.join() === "next-b,done-a,done-b",
+					.join() === "next-a,next-b,done-a",
 		);
 		assert.equal(
 			await outside.evaluate((node: HTMLElement) => node === document.activeElement),
@@ -241,14 +241,14 @@ try {
 		await page.keyboard.press("Space");
 		assert.equal(await focusedTask(), "next-b", "feed reordering lost the last task's focus");
 		assert.equal(await task.locator(".task-count").innerText(), "5/5");
-		assert.deepEqual(await previewIds(), ["next-b", "done-a", "done-b"]);
+		assert.deepEqual(await previewIds(), ["next-a", "next-b", "done-a"]);
 		assert.equal(await task.locator(".done-row").count(), 0);
-		assert.notEqual(
+		assert.equal(
 			await task.evaluate((node: HTMLElement) =>
 				[...node.parentElement.querySelectorAll("[data-card]")].indexOf(node),
 			),
 			position,
-			"the regression must exercise a feed reorder",
+			"completion must retain the card position until refresh",
 		);
 		await assertFeed();
 		await page.keyboard.press("Space");
@@ -344,7 +344,7 @@ try {
 			() =>
 				[...document.querySelectorAll('[data-card="review-task"] .checklist [data-action="task"]')]
 					.map((node: HTMLElement) => node.dataset.extra)
-					.join() === "next-b,done-a,done-b",
+					.join() === "next-a,next-b,done-a",
 		);
 	});
 	await run("compact-density", { width: 1720, height: 900 }, async (page) => {
@@ -359,7 +359,7 @@ try {
 			await page
 				.locator('[data-card="review-note"] .card-summary')
 				.evaluate((node: HTMLElement) => getComputedStyle(node).webkitLineClamp),
-			"2",
+			"none",
 		);
 	});
 	for (const width of [390, 320])
@@ -373,7 +373,7 @@ try {
 				await page.locator('[data-card="review-digest"] .card-title-button').click();
 				await page.waitForFunction(() => window.__app.modalKind === "preview");
 				const points = await page
-					.locator("#modal .key-points li span")
+					.locator("#modal .markdown p")
 					.evaluateAll((nodes: HTMLElement[]) =>
 						nodes.map((node) => ({
 							text: node.textContent,
@@ -382,10 +382,11 @@ try {
 							scroll: node.scrollWidth,
 						})),
 					);
-				assert.equal(points.length, 3);
+				assert.equal(points.length, 2);
 				assert.ok(
 					points.every(
-						(point: any) => point.whiteSpace === "normal" && point.scroll <= point.width + 1,
+						(point: any) =>
+							["normal", "pre-wrap"].includes(point.whiteSpace) && point.scroll <= point.width + 1,
 					),
 					JSON.stringify(points),
 				);

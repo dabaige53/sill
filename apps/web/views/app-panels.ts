@@ -174,6 +174,7 @@ export const appPanelsMethods = {
 		return bindPreview.call(this, id);
 	},
 	bindReading(this: AppController, id: string, scroll: HTMLElement) {
+		if (Store.card(id)?.type === "media") return;
 		const token = this.modalToken;
 		const current = () =>
 			this.modalToken === token &&

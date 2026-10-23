@@ -47,7 +47,7 @@ try {
 				type: "note",
 				kind: "web",
 				title: "布局测量 " + i,
-				body: ["同一批合成卡片"],
+				body: "同一批合成卡片",
 				summary: "用于测量卡片排版的合成内容。".repeat((i % 3) + 1),
 				source: "性能验收",
 				time: Date.now() - i,

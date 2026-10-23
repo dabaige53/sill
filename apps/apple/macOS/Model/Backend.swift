@@ -93,3 +93,32 @@ final class CloudBackend: WorkspaceBackend {
     return try Snapshot(json: state.json)
   }
 }
+
+/// Account operations use the same session as workspace reads and writes.
+protocol CloudAccountService: WorkspaceBackend {
+  var pendingWriteKey: String? { get async }
+  func restoreSession() async throws -> CloudWorkspaceState?
+  func login(email: String, password: String) async throws -> CloudWorkspaceState
+  func requestLoginLink(email: String, setupPassword: Bool) async throws -> JSONValue
+  func completeLogin(url: URL) async throws -> CloudWorkspaceState
+  func setPassword(password: String) async throws -> CloudWorkspaceState
+  func logout() async throws
+}
+
+extension CloudBackend: CloudAccountService {
+  var pendingWriteKey: String? { get async { await cloud.pendingWriteKey } }
+  func restoreSession() async throws -> CloudWorkspaceState? { try await cloud.restoreSession() }
+  func login(email: String, password: String) async throws -> CloudWorkspaceState {
+    try await cloud.login(email: email, password: password)
+  }
+  func requestLoginLink(email: String, setupPassword: Bool) async throws -> JSONValue {
+    try await cloud.requestLoginLink(email: email, setupPassword: setupPassword)
+  }
+  func completeLogin(url: URL) async throws -> CloudWorkspaceState {
+    try await cloud.completeLogin(url: url)
+  }
+  func setPassword(password: String) async throws -> CloudWorkspaceState {
+    try await cloud.setPassword(password: password)
+  }
+  func logout() async throws { try await cloud.logout() }
+}

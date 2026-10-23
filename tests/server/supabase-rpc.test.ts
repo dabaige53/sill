@@ -307,10 +307,24 @@ test("private V1 RPC local transactional preparation", async (t?: any) => {
 			},
 		);
 		await t.test("RPC success projections validate against checked-in V1 schemas", async () => {
+			// The V1 preparation predates ADR 0063; migration 20261023012833 turns body arrays into one Markdown string.
+			const markdownBody = (value: any): any =>
+				Array.isArray(value)
+					? value.map(markdownBody)
+					: value && typeof value === "object"
+						? Object.fromEntries(
+								Object.entries(value).map(([key, entry]) => [
+									key,
+									key === "body" && Array.isArray(entry)
+										? entry.filter((part: string) => part.trim()).join("\n\n")
+										: markdownBody(entry),
+								]),
+							)
+						: value;
 			for (const output of outputs)
 				validateDesign(
 					output.schema.replace("ContentPage", "CardPage").replace("Content", "Card"),
-					output.value,
+					markdownBody(output.value),
 				);
 			assert.ok(outputs.length > 10);
 		});

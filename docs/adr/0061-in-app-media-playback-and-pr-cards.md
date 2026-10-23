@@ -22,6 +22,10 @@
 - 参考了播客与视频摘录类应用的布局，但不做 AI 摘录、波形、翻译和下载。
 - 文字稿需要新增带开始时间的段落字段；没有文字稿时不显示该页签。
 
+### Mac 官方播放器例外
+
+2026-10-22 用户确认：Mac 只在视频播放区域使用 WebView 嵌入来源平台的官方播放器。卡片、工具条、文字稿、章节与其他界面保持 SwiftUI 原生；播客使用原生音频播放器。此例外不允许把完整网页或卡片界面嵌入应用。
+
 ### 播放进度
 
 - 新增独立的个人状态字段记录播放位置（秒），与阅读进度 `progress` 分开；下次打开从上次位置继续。
@@ -33,12 +37,18 @@
 - Sill 不连接 GitHub，界面标明记录时间，不把记录说成实时状态。
 - 请求你审阅时卡面出现「审阅」按钮，打开 GitHub 上的该 PR；不在 Sill 内提交审阅。
 
-## 待定
+## 已确认的行为与约定
 
-- 关闭详情后音频是否继续播放；如继续，播放条放进底部轨道并遵守「一格一样」。
-- 播放到哪里算看完、听完并写入已读。
-- PR 的字段名与校验规则，在修改卡片约定时确定。
+- 2026-10-22 用户确认：关闭详情时暂停播放并保存播放位置，不保留后台播放条。
+- 2026-10-22 用户确认：只有真实播放结束才标为已读；拖动到结尾不算播放完成。
+- PR 与媒体字段已在 contract 4.1 中定义：`pullRequest`、`audioUrl`、`chapters`、`transcript`；个人状态使用 `playbackPosition`。
 
 ## 影响
 
 修改卡片约定（新增类型、媒体音频地址、章节时间、带时间点的文字稿、PR 字段）和个人状态（播放位置）；修改手册 motion、foundation、interaction 中媒体与卡片积木的规则，以及 FeedCard 组件说明；更新 [界面对账表](../product/ui-alignment.md) D14 与 [功能矩阵](../product/feature-matrix.md)。设计稿先在 `design-system/boards/CardTypeDetails.dc.html` 中给出，之后实现 Web 与 macOS。
+
+## 本地实现状态
+
+2026-10-22：Web 使用 HTML audio 与 YouTube IFrame API；Mac 使用 AVPlayer 与仅限官方视频区域的 WKWebView。两端接入章节、文字稿、播放位置、关闭暂停和结束事件；PR 使用独立布局。非界面检查与构建证据由交接记录维护，真实浏览器、手机与 Mac 窗口仍未验证。未部署，设计未发布到线上。
+
+官方播放器身份遵循 [YouTube 要求](https://developers.google.com/youtube/terms/required-minimum-functionality#embedded-player-api-client-identity)：Web 仅在嵌入 iframe 设置 `strict-origin-when-cross-origin`；Mac 本地 HTML 的 baseURL 使用应用 Bundle ID 的 HTTPS 地址。

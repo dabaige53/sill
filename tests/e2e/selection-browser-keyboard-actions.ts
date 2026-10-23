@@ -27,26 +27,25 @@ export async function runSelectionKeyboardActions({
 			async (page) => {
 				if (width === 1512)
 					assert.equal(await page.locator("#feed-grid").getAttribute("data-columns"), "4");
+				// The top bar slides up and the dock fades (dur-tuck 240ms); both end inert and invisible.
+				// Both come back together on dur-reveal 420ms.
+				const bars = (hidden: boolean) =>
+					page.waitForFunction(
+						(hidden: boolean) =>
+							["#home-top", "#dock"].every((selector) => {
+								const el = document.querySelector(selector) as HTMLElement,
+									style = getComputedStyle(el);
+								return hidden
+									? el.inert && (style.opacity === "0" || style.visibility === "hidden")
+									: !el.inert && style.opacity === "1" && style.visibility === "visible";
+							}),
+						hidden,
+						{ timeout: 1500 },
+					);
 				await page.evaluate(() => window.scrollTo(0, 160));
-				await page.waitForTimeout(250);
-				for (const selector of ["#home-top", "#dock"]) {
-					assert.equal(
-						await page
-							.locator(selector)
-							.evaluate((el) => el.inert && getComputedStyle(el).opacity === "0"),
-						true,
-					);
-				}
+				await bars(true);
 				await page.evaluate(() => window.scrollTo(0, 120));
-				await page.waitForTimeout(260);
-				for (const selector of ["#home-top", "#dock"]) {
-					assert.equal(
-						await page
-							.locator(selector)
-							.evaluate((el) => !el.inert && getComputedStyle(el).opacity === "1"),
-						true,
-					);
-				}
+				await bars(false);
 				await page.locator("#ai-dock-input").focus();
 				await page.evaluate(() => window.scrollTo(0, 200));
 				assert.equal(await page.locator("#dock.is-tucked").count(), 0);

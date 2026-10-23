@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
+import { Batch } from "../../contracts/local.ts";
 import { startLocal } from "../../server/local/index.ts";
 import { LocalRepository } from "../../server/local/repository.ts";
 
@@ -14,7 +15,7 @@ const card: Record<string, any> = {
 	id: "test-note",
 	type: "note",
 	title: "本地卡片",
-	body: ["正文"],
+	body: "正文",
 	url: "https://example.com",
 };
 
@@ -234,6 +235,7 @@ test("loopback HTTP and actual agent CLI share the same data without App/MCP log
 		assert.equal(response.status, 200);
 		const available = await cli("capabilities");
 		assert.ok(available.itemFields.includes("taskDone"));
+		Batch.parse({ operations: available.examples });
 		assert.ok(!available.operations.includes("source.upsert"));
 		assert.ok(!available.operations.includes("source.delete"));
 		assert.equal((await cli("get", card.id)).card.title, card.title);

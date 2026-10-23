@@ -10,7 +10,9 @@ async function applyCardMigrations(db: PGlite) {
 		"20261016052843_sill_rich_cards.sql",
 		"20261016092653_sill_workspace_operations.sql",
 		"20261019031622_sill_hidden_card_actions.sql",
-		"20261020034430_sill_explicit_card_fields.sql",
+		"20261023012829_sill_explicit_card_fields.sql",
+		"20261023012831_card_playback_and_pr.sql",
+		"20261023012833_sill_markdown_body.sql",
 	])
 		await db.exec(
 			await readFile(new URL("../../supabase/migrations/" + file, import.meta.url), "utf8"),
@@ -177,6 +179,7 @@ test("rich SQL rejects invalid structured values without changing existing rows"
 			{ type: "note", sources: [{ name: "A", kind: null }] },
 			{ type: "note", files: [{ name: "A", time: -1 }] },
 			{ type: "note", points: [""] },
+			{ type: "note", body: ["Legacy paragraph"] },
 			{ type: "note", related: ["__proto__"] },
 		];
 		for (const [index, body] of invalid.entries())

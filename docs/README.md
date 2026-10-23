@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-19。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
+更新：2026-10-22。本页是唯一文档导航。现行规则按用途分目录，记录只对当时日期与环境成立，归档不作为当前依据。启动方式见 [项目说明](../README.md)。
 
 ## 产品规则
 
@@ -73,6 +73,8 @@
 - [卡片 A 字号、资讯阅读与 Mac 设置弹窗](adr/0051-card-type-a-and-article-reading.md)
 
 ## 记录
+
+- [卡片重建：本地界面接入与非界面检查](records/2026-10-22-card-rebuild-ui/README.md)
 
 - [macOS 视觉与动效对齐 Web](records/2026-10-20-macos-web-alignment/README.md)
 - [设计材料精简与 design-init 工具](records/2026-10-21-design-streamlining/README.md)
@@ -206,7 +208,18 @@
 - [卡片与详情按 12 类专用重建，来源改用单色品牌圆标](adr/0060-card-rebuild-by-type-and-source-marks.md)
 - [视频与播客在 Sill 内播放，新增 PR 卡片类型](adr/0061-in-app-media-playback-and-pr-cards.md)
 - [卡片收回改用弹簧，读完确认后松手即关闭](adr/0062-card-close-spring-and-read-end-release.md)
+- [详情文字统一为一个 Markdown 正文字段](adr/0063-markdown-body.md)
 
 - [2026-10-21 测试整理](records/2026-10-21-test-cleanup/README.md)：旧测试删除依据、恢复标签和运行入口分工。
 - [2026-10-22 卡片重建与 Markdown 正文暂停](records/2026-10-22-card-rebuild-pending/README.md)：暂停时已完成与未完成的事项、待用户决定的问题。
 - [2026-10-22 卡片重建设计稿合并与版本标记](records/2026-10-22-card-rebuild-release/README.md)：PR #60 合并范围、标签、线上设计版本与检查结果。
+- [2026-10-22 Markdown 正文修复与两端接入](records/2026-10-22-markdown-repair/README.md)：本轮修复、检查证据与 D17 集成内容。
+- [2026-10-22 卡片 UI 逐项 check 稿](records/2026-10-22-card-ui-check/README.md)：13 类桌面与手机截图对照、未完成项及底部空白修复。
+
+- [2026-10-22 卡片模块源码复核与界面复验](records/2026-10-22-card-ui-recheck/README.md)：原 HTML 与 Web、Mac 实现的逐模块核对和本轮验证。
+- [2026-10-22 Mac 卡片补修窗口复验](records/2026-10-22-card-macos-follow-up/README.md)：卡面日期、视频来源间距、播客收起条与返回播放器的检查结果。
+- [2026-10-22 卡片交互修复](records/2026-10-22-card-interaction-fixes/README.md)：卡片内跳转、详情尺寸过渡、播客吸顶切换、标题分隔线及审阅按钮。
+
+- [2026-10-22 测试与旧模板清理](records/2026-10-22-test-cleanup/README.md)：过时正文、媒体断言、旧模板与文案哈希清理及恢复标签。
+
+- [发布前清空测试数据与数据库准备](records/2026-10-23-pre-release-reset/README.md)

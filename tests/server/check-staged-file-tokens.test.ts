@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
+import { byteLimit } from "../../.codex/hooks/file-token-policy.ts";
 
 const root = resolve(import.meta.dirname, "../..");
 
@@ -85,6 +86,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 			"design-system/tokens.json",
 			"design-system/boards/support.js",
 			"design-system/boards/Example.dc.html",
+			"design-system/boards/settings/content.html",
 			"docs/records/2026-10-19-example/audit.json",
 			"deploy/releases/example/worker.mjs",
 			".agents/skills/example/SKILL.md",
@@ -99,6 +101,25 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		assert.equal(check().status, 0);
 		assert.equal(check(["--local"]).status, 0);
 		git("commit", "--quiet", "-m", "Allowed staged files");
+	});
+	await t.test("approved baseline caps existing paths without allowing new large files", () => {
+		const path = "docs/product/ui-alignment.md";
+		const limit = byteLimit(path);
+		assert.ok(limit > 20_000);
+		write(path, "x".repeat(limit));
+		git("add", "--", path);
+		assert.equal(check(["--local"]).status, 0);
+		write(path, "x".repeat(limit + 1));
+		assert.equal(check().status, 0);
+		assert.equal(check(["--local"]).status, 1);
+		git("add", "--", path);
+		assert.equal(check().status, 1);
+		git("rm", "-f", "--", path);
+		const renamed = "docs/product/new-alignment.md";
+		write(renamed, "x".repeat(limit));
+		git("add", "--", renamed);
+		assert.equal(check().status, 1);
+		git("rm", "-f", "--", renamed);
 	});
 	await t.test(
 		"oversized staged UTF-8 file returns a Codex denial with splitting instructions",

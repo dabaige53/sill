@@ -80,13 +80,14 @@ function relativeDay(ts?: any, now: any = Date.now()) {
 	const d = new Date(ts);
 	return `${d.getMonth() + 1}${copy("web.primitives.1625179badc0")}${d.getDate()}${copy("web.primitives.85217f7aff77")}`;
 }
-/** Article reader dates: 今天, 昨天, then 10/18; another year adds it (2025/10/18). */
+/** Content dates on cards and details: 今天, 昨天, then 10/18; another year adds it. */
 function shortDay(ts: number, now: number = Date.now()) {
 	const start = new Date(now);
-	start.setHours(0, 0, 0, 0);
-	if (ts >= start.getTime()) return copy("web.primitives.d5f5a7a01073");
-	if (ts >= start.getTime() - 86400000) return copy("web.primitives.0c184871f658");
 	const d = new Date(ts);
+	if (d.toDateString() === start.toDateString()) return copy("web.primitives.d5f5a7a01073");
+	const yesterday = new Date(now);
+	yesterday.setDate(yesterday.getDate() - 1);
+	if (d.toDateString() === yesterday.toDateString()) return copy("web.primitives.0c184871f658");
 	const day = `${d.getMonth() + 1}/${d.getDate()}`;
 	return d.getFullYear() === start.getFullYear() ? day : `${d.getFullYear()}/${day}`;
 }

@@ -67,13 +67,20 @@ import PackagePlugin
     try "public enum IconSVG { public static let values: [String: String] = [\(iconValues)] }"
       .write(to: iconOutput, atomically: true, encoding: .utf8)
     let tokensURL = root.appending(path: "design-system/tokens.json")
+    let sourceMarksURL = root.appending(path: "design-system/assets/source-marks/marks.json")
+    let sourceMarksOutput = output.appending(path: "SourceMarkData.swift")
+    let sourceMarks = try String(contentsOf: sourceMarksURL, encoding: .utf8)
+    try "public enum SourceMarkData { public static let json = \(String(reflecting: sourceMarks)) }"
+      .write(to: sourceMarksOutput, atomically: true, encoding: .utf8)
     let tokens = try JSONDecoder().decode(DesignTokens.self, from: Data(contentsOf: tokensURL))
     let metricsOutput = output.appending(path: "AppleMetrics.swift")
     let metrics = tokens.apple.sorted(by: { $0.key < $1.key }).map { key, value in
       "  public static let \(key) = \(value)"
     }.joined(separator: "\n")
-    try "public enum AppleMetrics {\n\(metrics)\n}\n".write(
-      to: metricsOutput, atomically: true, encoding: .utf8)
+    try
+      "public enum AppleMetrics {\n\(metrics)\n  public static let authLoginWidth = \(tokens.loginWidth)\n}\n"
+      .write(
+        to: metricsOutput, atomically: true, encoding: .utf8)
     let colorsOutput = output.appending(path: "AppleColors.swift")
     let roles = [
       "windowBackgroundColor": "Color(nsColor: .windowBackgroundColor)",
@@ -116,10 +123,10 @@ import PackagePlugin
         arguments: [
           "generate", input.path, "--config", config.path, "--output-directory", output.path,
         ],
-        inputFiles: [input, config, schema, copyURL, tokensURL] + iconFiles,
+        inputFiles: [input, config, schema, copyURL, tokensURL, sourceMarksURL] + iconFiles,
         outputFiles: [
           output.appending(path: "Types.swift"), embedded, copyOutput, metricsOutput, colorsOutput,
-          iconOutput,
+          iconOutput, sourceMarksOutput,
         ])
     ]
   }

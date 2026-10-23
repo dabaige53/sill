@@ -3,6 +3,13 @@
  * Production replacement point: Lucide. No icon-font or SF Symbols files are distributed.
  */
 const Glyphs = {
+	flag: '<path d="M5 21V3m0 1c5-3 9 3 14 0v10c-5 3-9-3-14 0"/>',
+	list: '<path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1"/>',
+	message: '<path d="M4 5.5h16v11H9l-4 3v-3H4Z"/>',
+	rewind15: '<path d="M5 7a9 9 0 1 1-1 10M5 3v5h5M7 12l2-1v7m7-7h-4v3h2a2 2 0 0 1 0 4h-2"/>',
+	forward30:
+		'<path d="M19 7a9 9 0 1 0 1 10M19 3v5h-5M7 11h2a1.7 1.7 0 0 1 0 3h-1m1 0a2 2 0 0 1 0 4H7"/><rect x="13" y="11" width="4" height="7" rx="2"/>',
+
 	// Lucide ISC icons; source and license are recorded in assets/Icons/README.md.
 	paperclip:
 		'<path d="m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"/>',

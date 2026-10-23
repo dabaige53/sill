@@ -42,7 +42,7 @@ export async function runMaterialFocus({
 			visibility: getComputedStyle(document.getElementById("dock")).visibility,
 			hidden: window.__app.railHide.hidden,
 		}));
-		assert.equal(focus.extra, "home", JSON.stringify(focus));
+		assert.match(focus.active, /id="ai-dock-input"/, JSON.stringify(focus));
 		assert.equal(
 			await page.locator("#dock").evaluate((node: Element) => getComputedStyle(node).visibility),
 			"visible",
@@ -80,7 +80,8 @@ export async function runMaterialFocus({
 	);
 
 	await scenario("Head tools preserve immediate keyboard visibility", async (page) => {
-		await page.evaluate(() => window.__app.openCard("motion-0"));
+		await page.locator('[data-card="motion-0"] .card-title-button').focus();
+		await page.keyboard.press("Enter");
 		await page.evaluate(() => window.__app.sheetHide.hide());
 		await page.waitForTimeout(100);
 		await page.keyboard.press("Shift+Tab");
@@ -253,6 +254,9 @@ export async function runMaterialFocus({
 					"true",
 				null,
 				{ timeout: 5000 },
+			);
+			await page.waitForFunction(
+				() => !document.querySelector<HTMLElement>(".preview-sheet").style.translate,
 			);
 			const state = await page.evaluate(() => ({
 				open: (document.getElementById("modal") as HTMLDialogElement).open,

@@ -82,7 +82,7 @@
   "idempotency_key": "d6b99679-978f-4576-896c-4eb2fef6f398",
   "body": {
     "operations": [
-      {"op":"card.upsert", "card":{"id":"note-20261016-review","type":"note","title":"评审结论","body":["按已确认的计划推进。"]}, "before":null}
+      {"op":"card.upsert", "card":{"id":"note-20261016-review","type":"note","title":"评审结论","body":"按已确认的计划推进。"}, "before":null}
     ]
   }
 }
@@ -180,7 +180,7 @@
 文章示例字段：
 
 ```json
-{"type":"article","title":"文章","sources":[{"name":"某阅读器","kind":"readwise"}],"authors":[{"name":"作者"}],"publisher":{"name":"发布方"},"publishedAt":"2026-10-20","body":["正文"],"bodyCoverage":"full","readingEstimate":{"seconds":360,"origin":"provided","scope":"full"}}
+{"type":"article","title":"文章","sources":[{"name":"某阅读器","kind":"readwise"}],"authors":[{"name":"作者"}],"publisher":{"name":"发布方"},"publishedAt":"2026-10-20","body":"正文","bodyCoverage":"full","readingEstimate":{"seconds":360,"origin":"provided","scope":"full"}}
 ```
 
 readingEstimate 使用正整数秒；origin 为 provided（有外部明确估算）或 calculated（按已保存正文计算），scope 为 full 或 available。calculated 必填 method；全文估算要求 bodyCoverage=full。不按未知语言速度虚构估算。正文或覆盖范围改变时必须同时提供新的估算对象或 readingEstimate:null 清除；只有此字段允许 null。用户备注通过 changes.state.note 或 item.patch 写入，不能写到正文事实。

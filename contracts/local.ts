@@ -9,6 +9,14 @@ export const CardState = z
 		bookmarked: z.boolean().optional(),
 		later: z.boolean().optional(),
 		tagsEdited: z.boolean().optional(),
+		playbackPosition: z
+			.number()
+			.min(0)
+			.max(86400)
+			.optional()
+			.describe(
+				"Actual playback position in seconds, separate from reading progress; saving position does not mark read.",
+			),
 		progress: z.number().min(0).max(1).optional(),
 		note: z.string().max(4000).optional(),
 		tags: z.array(z.string().max(30)).max(20).optional(),

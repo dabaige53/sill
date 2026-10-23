@@ -54,27 +54,26 @@ test("unknown card types cannot inject attributes or call renderer helper method
 	}
 });
 
-test("digest preview preserves the agent's summary and points without invented week statistics", () => {
+test("digest face shows the summary or plain Markdown text without invented week statistics", () => {
 	Store.state = Store.fresh();
 	const card = {
 		id: "digest-project",
 		type: "digest",
 		title: "Project review",
 		summary: "The project is ready for review.",
-		points: ["Check the result", "Keep the source", "Agree the next step", "Detail only"],
-		body: ["Full detail remains available."],
+		body: "**Full detail** remains available.",
 	};
 	const before = structuredClone(card);
 	const document = new JSDOM(cardHTML(card)).window.document;
 	assert.equal(document.querySelector(".card-summary").textContent, card.summary);
 	assert.equal(document.querySelector(".stats-trio"), null);
-	assert.deepEqual(
-		[...document.querySelectorAll(".key-points li span")].map((node) => node.textContent),
-		card.points.slice(0, 3),
-	);
+	assert.equal(document.querySelector(".key-points"), null);
 	assert.deepEqual(card, before);
-	const fallback = new JSDOM(cardHTML({ ...card, summary: "", points: [] })).window.document;
-	assert.equal(fallback.querySelector(".card-summary").textContent, card.body[0]);
+	const fallback = new JSDOM(cardHTML({ ...card, summary: "" })).window.document;
+	assert.equal(
+		fallback.querySelector(".card-summary").textContent,
+		"Full detail remains available.",
+	);
 });
 
 test("task preview exposes unfinished work beyond the first three without reordering stored tasks", () => {

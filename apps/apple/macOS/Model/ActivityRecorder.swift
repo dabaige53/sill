@@ -14,6 +14,16 @@ import SillKit
 
   init(workspace: Workspace) { self.workspace = workspace }
 
+  /// A new account must never inherit a previous account's delayed activity.
+  func reset() {
+    flushTask?.cancel()
+    flushTask = nil
+    seen = []
+    progress = [:]
+    readingSeconds = 0
+    sending = ([], [:], 0)
+  }
+
   var hasRecords: Bool { !seen.isEmpty || !progress.isEmpty || readingSeconds > 0 }
 
   /// Opening a card marks it seen. The write waits until the opening animation is over.

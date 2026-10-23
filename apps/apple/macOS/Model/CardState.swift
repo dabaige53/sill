@@ -18,6 +18,7 @@ import SillKit
   private(set) var taskDone: [String]?
   /// Shown on the card head. Reading updates `liveProgress`; this follows when the reader closes.
   private(set) var progress: Double = 0
+  private(set) var playbackPosition: Double = 0
   private(set) var note = ""
   private(set) var personalTags: [String] = []
   private(set) var tagsEdited = false
@@ -62,7 +63,8 @@ import SillKit
   private static let defaults: [String: JSONValue] = [
     "read": .bool(false), "bookmarked": .bool(false), "later": .bool(false),
     "archived": .bool(false), "dismissed": .bool(false), "reminderDone": .bool(false),
-    "snoozedUntil": .number(0), "taskDone": .null, "progress": .number(0), "note": .string(""),
+    "snoozedUntil": .number(0), "taskDone": .null, "playbackPosition": .number(0),
+    "progress": .number(0), "note": .string(""),
     "tags": .array([]), "tagsEdited": .bool(false), "seen": .bool(false), "lessLike": .bool(false),
   ]
 
@@ -81,6 +83,7 @@ import SillKit
     if let value = values["note"]?.string { set(\.note, value) }
     if let value = values["tags"]?.strings { set(\.personalTags, value) }
     if let value = values["tagsEdited"]?.bool { set(\.tagsEdited, value) }
+    if let value = values["playbackPosition"]?.number { set(\.playbackPosition, value) }
     if let value = values["progress"]?.number {
       liveProgress = heldRead == nil ? value : max(liveProgress, value)
       // Reading position follows the stored value only when nothing is being read right now.

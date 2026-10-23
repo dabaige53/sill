@@ -10,7 +10,7 @@ import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 const bundle = buildSync({
 	stdin: {
 		contents:
-			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {Panels} from './apps/web/interactions/panels.ts';",
+			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {renderContent} from './apps/web/views/react-renderer.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -59,7 +59,7 @@ function fixture() {
 	w.eval(bundle);
 	const { AppController, Store, Panels } = w.ControllerTest;
 	Store.state = {
-		cards: [{ id: "mail-one", type: "mail", title: "Synthetic mail", body: [] }],
+		cards: [{ id: "mail-one", type: "mail", title: "Synthetic mail", body: "" }],
 		items: {},
 		preferences: {},
 	};
@@ -77,6 +77,25 @@ function fixture() {
 	});
 	return { dom, w, app, Store, Panels, observers };
 }
+
+test("opening a card from Markdown navigates the existing surface without opening the link", () => {
+	const f = fixture();
+	try {
+		f.app.dialog.innerHTML =
+			'<div class="markdown"><a href="http://127.0.0.1:4318/#card/mail-one" target="_blank">Mail</a></div>';
+		let destination = "";
+		f.app.navigate = (route: string) => {
+			destination = route;
+		};
+		const event = new f.w.MouseEvent("click", { bubbles: true, cancelable: true });
+		f.app.dialog.addEventListener("click", (e: MouseEvent) => f.app.click(e));
+		f.app.dialog.querySelector("a").dispatchEvent(event);
+		assert.equal(destination, "#card/mail-one");
+		assert.equal(event.defaultPrevented, true);
+	} finally {
+		f.dom.window.close();
+	}
+});
 
 test("closing photo tags returns to the same photo index", () => {
 	const f = fixture();
@@ -242,7 +261,12 @@ for (const sourceRow of [true, false]) {
 			let top = 80,
 				height = 400;
 			sheet.getBoundingClientRect = () => ({ top: 20 });
-			anchor.getBoundingClientRect = () => ({ top, height: 20 });
+			anchor.getBoundingClientRect = () => ({ top: top * 0.9, height: 18 });
+			Object.defineProperties(anchor, {
+				offsetTop: { get: () => top - 20 },
+				offsetHeight: { value: 20 },
+				offsetParent: { value: sheet },
+			});
 			Object.defineProperty(sheet, "offsetHeight", { get: () => height });
 			let destroyed = 0,
 				disconnected = 0;
@@ -264,7 +288,7 @@ for (const sourceRow of [true, false]) {
 			assert.equal(app.dialog.style.getPropertyValue("--preview-height"), "500px");
 			assert.equal(
 				sheet.style.getPropertyValue("--preview-title-top"),
-				sourceRow ? "88px" : "92px",
+				sourceRow ? "68px" : "72px",
 			);
 			scroll.dispatchEvent(new w.Event("scroll"));
 			assert.equal(sheet.classList.contains("is-scrolled"), true);
@@ -373,7 +397,7 @@ test("media opens without body or playback state and ignores obsolete playback a
 		app.bindSheetChrome = () => {};
 		app.gestures = { bindPullDown() {} };
 		app.openModal = (content, kind) => {
-			app.dialog.innerHTML = renderToStaticMarkup(content);
+			w.ControllerTest.renderContent(app.dialog, content);
 			app.modalKind = kind;
 		};
 		w.setInterval = () => {
@@ -382,7 +406,8 @@ test("media opens without body or playback state and ignores obsolete playback a
 		app.openCard("media");
 		assert.equal(app.dialog.querySelector("#modal-title").textContent, "Video");
 		assert.equal(app.dialog.querySelector(".media-step,.media-controls"), null);
-		assert.match(app.dialog.textContent, /章节 · 8/);
+		assert.ok(app.dialog.querySelector(".unavailable-video button[disabled]"));
+		assert.doesNotMatch(app.dialog.textContent, /章节 · 8/);
 		for (const name of ["media-play", "media-next", "media-prev", "podcast-play", "podcast-seek"]) {
 			app.action(name, "media");
 		}

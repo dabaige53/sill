@@ -1,9 +1,8 @@
 import React, { cloneElement, isValidElement, type ReactElement } from "react";
 import { sillIcon as sillIconHTML } from "../atoms/icons.ts";
 import { Avatar, Icon } from "../atoms/react-primitives.tsx";
+import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
-import { cardSourceKind } from "../data/card-source.ts";
-import { CardTypes, SourceKinds } from "../data/cards.ts";
 /** Only trusted, generated SVG/avatar fragments cross this boundary; panel content uses JSX. */
 export function TrustedFragment({ html }: { html: string }) {
 	// biome-ignore lint/security/noDangerouslySetInnerHtml: Compatibility callers supply trusted renderer output; user text is escaped before this boundary.
@@ -151,23 +150,7 @@ export function reminderMark(c: { id: string }, done: boolean) {
 }
 
 export function sourceIcon(c: any, size = 16): React.ReactNode {
-	if (c.sources?.length > 1)
-		return (
-			<span className="source-icons" aria-hidden="true">
-				{c.sources.slice(0, 3).map((source: any) => (
-					<span key={`${source.kind}:${source.name}`}>
-						{icon(SourceKinds[source.kind]?.icon || "book", 12)}
-					</span>
-				))}
-			</span>
-		);
-	const byType = ["task", "event", "reminder", "digest", "photo", "file"].includes(c.type);
-	return icon(
-		byType
-			? (CardTypes[c.type] || CardTypes.note).icon
-			: SourceKinds[cardSourceKind(c)]?.icon || (CardTypes[c.type] || CardTypes.note).icon,
-		size,
-	);
+	return <SourceMark card={c} size={size} />;
 }
 
 /** Preserve stable sibling identity for lists assembled by the panel recipe helpers. */

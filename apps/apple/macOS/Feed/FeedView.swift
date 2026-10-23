@@ -266,8 +266,8 @@ struct StackTile: View {
         }
         .font(.number(AppleMetrics.font13, .medium))
       }
-      CardTitle(text: card.title).afterHead()
-      if !card.summary.isEmpty { CardSummary(text: card.summary).afterTitle() }
+      CardTitle(text: card.title)
+      if !card.summary.isEmpty { CardSummary(text: card.summary) }
     }
     .background(shape.fill(AppleColors.card))
     .overlay(
