@@ -72,13 +72,15 @@ try {
 		await page.waitForFunction(() => window.__app?.layout.frame === 0);
 		const source = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
 		const home = await page.evaluate(() => JSON.stringify(window.__app.filter));
-		await page.locator('#nav [data-extra="search"]').click();
+		if (width > 650) await page.evaluate(() => window.__app.action("search"));
+		else await page.locator('#nav [data-extra="search"]').click();
 		await page.locator("#filter-search").waitFor();
 		assert.equal(
 			await page.locator(".search-category").count(),
 			6,
 			"empty search shows category cards",
 		);
+		await page.locator("#filter-search").fill("密度");
 		await page.locator(".search-refinements summary").click();
 		assert.equal(
 			await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),

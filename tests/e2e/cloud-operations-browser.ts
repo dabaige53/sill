@@ -436,6 +436,8 @@ try {
 		await page.evaluate((id) => __app.select(id, { add: true }), ids[0]);
 		await page.evaluate(() => __app.openPanel("search"));
 		await page.waitForFunction(() => __app.modalKind === "search");
+		await page.locator("#filter-search").fill(await page.evaluate((id) => __store.state.cards.find(card => card.id === id).title, ids[1]));
+		await page.locator("#search-results [data-card]").first().waitFor();
 		await page.evaluate((id) => __app.select(id, { add: true }), ids[1]);
 		await page
 			.locator('#search-selection-bar [data-action="selected-bookmark"]')

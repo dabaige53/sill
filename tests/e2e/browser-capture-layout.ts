@@ -59,7 +59,8 @@ export async function runCaptureLayout({
 			});
 			assert.equal(nav, "none", "desktop shows no navigation capsule");
 			assert.equal(aiDock, "none", "selection replaces the AI box in the rail");
-			assert.equal(Math.round(bar.width), 640, "selection bar is as wide as the AI box");
+			// The AI box is 640; the selection bar narrows to its buttons (web-interaction handbook).
+			assert.ok(bar.width > 200 && bar.width < 640, `selection bar hugs its buttons: ${bar.width}`);
 			assert.equal(Math.round(bar.height), 60, "rail rows differ");
 			assert.equal(Math.round(viewport.height - bar.bottom), 28, "selection sits on the rail");
 			assert.equal(
@@ -124,14 +125,14 @@ export async function runCaptureLayout({
 					document.querySelector("dialog").open,
 				relation,
 			);
-			await page.locator('#modal .refs [data-action="card-open"]').first().click();
+			await page.locator('#modal .detail-related [data-action="card-open"]').first().click();
 			await page.waitForFunction((id?: any) => window.__app.currentId !== id, relation);
 			assert.equal(await page.locator("#modal .sheet-peek").count(), 1);
 			await page.locator('#modal .sheet-head [data-action="close"]').click();
 			await page.waitForFunction((id?: any) => window.__app.currentId === id, relation);
 			assert.equal(await page.locator("#modal").evaluate((n?: any) => n.open), true);
 			assert.equal(await page.locator("#modal .sheet-peek").count(), 0);
-			await page.locator('#modal .refs [data-action="card-open"]').first().click();
+			await page.locator('#modal .detail-related [data-action="card-open"]').first().click();
 			await page.waitForFunction(() => !!document.querySelector("dialog .sheet-peek"));
 			// The dim area closes one card at a time, like the close button.
 			await page.mouse.click(8, 8);
@@ -210,8 +211,10 @@ export async function runCaptureLayout({
 		{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
 	);
 	await scenario(
-		"Desktop preview keeps text size while entering and leaving",
+		"Desktop preview grows from its card and returns on the same spring",
 		async (page?: any) => {
+			// A visible source card opens and closes on one spring (motion.cardSpring, ADR 0057 / 0062);
+			// the 220ms fade only applies when there is no source card.
 			const open = await page.evaluate(async () => {
 				(
 					document.querySelector('[data-card="article-01"] .card-title-button') as HTMLElement
@@ -223,29 +226,38 @@ export async function runCaptureLayout({
 					.map((a: any) => [
 						a.effect.getTiming().duration,
 						String(a.effect.getKeyframes()[0].transform),
-					]);
+						String(a.effect.getKeyframes().at(-1).transform),
+					])
+					.filter(([, from]) => from !== "undefined");
 			});
-			assert.equal(open[0][0], 220);
-			assert.match(open[0][1], /translateY\(10px\)/);
-			assert.doesNotMatch(open[0][1], /scale/);
-			await page.waitForTimeout(400);
+			assert.ok(open.length, "the preview has a transform animation");
+			assert.match(open[0][1], /translate\(.*scale\(/, "starts at the card's place and size");
+			assert.match(open[0][2], /scale\(1(, 1)?\)/, "ends at the preview's own size");
+			await page.waitForTimeout(700);
+			assert.equal(
+				await page.evaluate(() => getComputedStyle(document.getElementById("modal-title")).fontSize),
+				"26px",
+				"the settled preview keeps its text size",
+			);
 			const close = await page.evaluate(async () => {
 				const sheet = document.querySelector(".preview-sheet");
 				(document.querySelector('#modal [data-action="close"]') as HTMLElement).click();
 				for (let i = 0; i < 10; i++) {
 					await new Promise((resolve) => setTimeout(resolve, 16));
-					const running = sheet.getAnimations();
-					if (running.length)
-						return running.map((a: any) => [
+					const running = sheet
+						.getAnimations()
+						.map((a: any) => [
 							a.effect.getTiming().duration,
 							String(a.effect.getKeyframes().at(-1).transform),
-						]);
+						])
+						.filter(([, to]) => to !== "undefined");
+					if (running.length) return running;
 				}
 				return [];
 			});
-			assert.equal(close[0]?.[0], 160);
-			assert.match(close[0][1], /translateY\(4px\)/);
-			assert.doesNotMatch(close[0][1], /scale/);
+			assert.ok(close.length, "the preview animates back");
+			assert.equal(close[0][0], open[0][0], "open and close share one spring");
+			assert.match(close[0][1], /scale\(/, "returns to the card's size");
 			await page.waitForFunction(
 				() => !(document.getElementById("modal") as HTMLDialogElement).open,
 			);

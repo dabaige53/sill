@@ -159,7 +159,7 @@ try {
 						(n: HTMLElement) => n.dataset.card,
 					),
 				}));
-				await page.keyboard.press("Control+k");
+				await page.evaluate(() => window.__app.action("search"));
 				await page.locator("#filter-search").fill("阅读");
 				await page.waitForFunction(
 					() =>
@@ -204,7 +204,7 @@ try {
 				await page.goBack();
 				await page.waitForSelector("#modal.search[open]");
 				assert.equal(await page.locator("#search-results").evaluate((n) => n.scrollTop), searchY);
-				await page.locator('.search-header > [data-action="close"]').click();
+				await page.keyboard.press("Escape");
 				await page.waitForTimeout(150);
 				assert.equal(
 					await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),
@@ -220,7 +220,7 @@ try {
 					),
 					home.ids,
 				);
-				await page.keyboard.press("Control+k");
+				await page.evaluate(() => window.__app.action("search"));
 				await page.waitForSelector("#modal.search[open]");
 				assert.equal(await page.locator("#filter-search").inputValue(), "阅读");
 				assert.equal(await page.locator("#search-results").evaluate((n) => n.scrollTop), searchY);

@@ -156,15 +156,14 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 					const sheet = document.querySelector<HTMLElement>(".preview-sheet");
 					const handle = sheet.querySelector<HTMLButtonElement>(".sheet-handle");
 					sheet.classList.add("is-drag");
+					window.__app.gestures.capture(sheet);
 					sheet.style.translate = "0 90px";
+					// Feed the managed travel state as a real drag does.
+					window.__app.gestures.capture(sheet);
 					if (mode === "exit")
 						window.__app.gestures.exitSurface(sheet, () => window.__app.closeModal());
 					else window.__app.gestures.settle(sheet);
-					const rebound = sheet
-						.getAnimations()
-						.find((a) => (a.effect as KeyframeEffect).getKeyframes().some((k) => "translate" in k));
-					rebound.pause();
-					rebound.currentTime = 90;
+					await new Promise((resolve) => setTimeout(resolve, 90));
 					const before = sheet.getBoundingClientRect().top;
 					handle.setPointerCapture = () => {};
 					handle.dispatchEvent(
@@ -188,11 +187,11 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 					await new Promise(requestAnimationFrame);
 					const moved = sheet.getBoundingClientRect().top;
 					handle.dispatchEvent(new PointerEvent("pointercancel", { pointerId: 77 }));
-					return { before, grabbed, moved, state: rebound.playState };
+					return { before, grabbed, moved, leaving: window.__app.sheetLeaving };
 				}, mode);
 				assert.ok(Math.abs(result.grabbed - result.before) < 1);
 				assert.ok(Math.abs(result.moved - result.before - 10) < 1);
-				assert.equal(result.state, "idle");
+				assert.equal(result.leaving, false);
 			},
 			phone,
 		);

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 export async function waitCloud(page?: any) {
 	await page.locator("body.cloud-signed-in").waitFor();
+	await page.waitForFunction(() => Math.abs(document.getElementById("home-top").getBoundingClientRect().top - (innerWidth > 650 ? 10 : 0)) < 0.1);
 	assert.equal(
 		await page.locator("#cloud-account").count(),
 		0,
@@ -13,17 +14,17 @@ export async function waitCloud(page?: any) {
 		return {
 			desktop: matchMedia("(min-width: 651px)").matches,
 			mainTop: main.top + scrollY,
-			headerTop: head.top + scrollY,
+			headerTop: Math.round(head.top + scrollY),
 			headerHeight: head.height,
 			headerPosition: getComputedStyle(header).position,
 		};
 	});
 	if (layout.desktop) {
-		// ADR 0043 adds only the shared home filters, never an account toolbar.
-		assert.equal(layout.headerTop, 24, "desktop home filters start at 24px");
-		assert.equal(layout.headerHeight, 44, "desktop home filters remain 44px high");
-		assert.equal(layout.headerPosition, "relative", "desktop home filters stay in page flow");
-		assert.equal(layout.mainTop, 68, "desktop content follows the 24px margin and 44px filters");
+		// The desktop header is sticky with a 10px inset and a 64px navigation row.
+		assert.equal(layout.headerTop, 10, "desktop header starts at 10px");
+		assert.equal(layout.headerHeight, 64, "desktop header remains 64px high");
+		assert.equal(layout.headerPosition, "sticky", "desktop header stays sticky");
+		assert.equal(layout.mainTop, 74, "desktop content follows the 10px margin and 64px header");
 	} else {
 		assert.equal(layout.mainTop, 0, "phone content still starts at viewport top");
 		assert.equal(layout.headerPosition, "fixed", "phone home header stays fixed");

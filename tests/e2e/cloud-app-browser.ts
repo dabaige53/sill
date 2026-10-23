@@ -129,9 +129,9 @@ try {
 	// Desktop panels keep the navigation lead; two actual clicks keep the latest destination.
 	await frame.locator("#account").click({ trial: true });
 	const settings = await frame.locator("#account").boundingBox();
-	const home = await frame.locator('#nav [data-extra="home"]').boundingBox();
 	await page.mouse.click(settings.x + settings.width / 2, settings.y + settings.height / 2);
-	await page.mouse.click(home.x + home.width / 2, home.y + home.height / 2);
+	await frame.locator('#modal [data-action="close"]').first().waitFor();
+	await frame.locator('#modal [data-action="close"]').first().click();
 	// Wait for the actual close lifecycle; iframe frames can be delayed by the host compositor.
 	await frame.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal")?.open);
 	assert.equal(

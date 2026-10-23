@@ -63,12 +63,12 @@ try {
 			assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 			await page.screenshot({ path: `tests/artifacts/password-${name}.png`, fullPage: true });
 			await page.getByRole("button", { name: "登录并继续" }).click();
-			await page.getByRole("button", { name: "允许上述访问" }).waitFor();
+			await page.getByRole("button", { name: "允许访问", exact: true }).waitFor();
 			assert.equal(await f.grant(), undefined);
 			assert.match(await page.locator("main").innerText(), /读取卡片、创建与修改卡片/);
 			assert.match(await page.locator("main").innerText(), /openid/);
 			assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-			await page.getByRole("button", { name: "允许上述访问" }).focus();
+			await page.getByRole("button", { name: "允许访问", exact: true }).focus();
 			assert.equal(
 				await page.evaluate(() => (document.activeElement as HTMLInputElement).value),
 				"approve",
@@ -78,7 +78,7 @@ try {
 			await page.waitForURL(callbackOrigin + "/**");
 			assert.equal(await f.grant(), undefined);
 			await page.goto(f.config.appOrigin + "/oauth/consent?authorization_id=" + AUTH);
-			await page.getByRole("button", { name: "允许上述访问" }).click();
+			await page.getByRole("button", { name: "允许访问", exact: true }).click();
 			await page.waitForURL(callbackOrigin + "/**");
 			assert.ok(await f.grant());
 			await page.goto(f.config.appOrigin + "/oauth/grants");

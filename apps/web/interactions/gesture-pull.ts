@@ -85,6 +85,7 @@ export const gesturePullMethods = {
 				state === "pulling",
 			);
 			const opacity = feedback ? 1 : Math.min(1, pull / 18);
+			heading?.classList.toggle("has-refresh", this.phone.matches && opacity > 0);
 			if (state === "pulling") {
 				MotionEngine.cancel(ring);
 				ring.style.opacity = String(opacity);

@@ -77,14 +77,14 @@ try {
 		const head = page.locator("#home-top");
 		assert.equal(await head.isVisible(), true);
 		assert.equal(await head.locator(".home-mark").innerText(), "Sill");
-		assert.deepEqual(await page.locator("#nav .nav-label").allTextContents(), [
-			"主页",
-			"AI",
-			"搜索",
-		]);
-		for (const label of await page.locator("#nav .nav-label").all()) {
-			assert.equal(await label.isVisible(), true);
-		}
+		// The phone capsule shows icons only, named for assistive tech; desktop has no capsule (interaction handbook).
+		const tabs = page.locator("#nav [data-action=nav]");
+		assert.deepEqual(
+			await tabs.evaluateAll((nodes: HTMLElement[]) => nodes.map((n) => n.dataset.extra)),
+			["home", "ai", "search"],
+		);
+		assert.equal((await tabs.first().getAttribute("aria-label")) || "", "主页");
+		for (const tab of await tabs.all()) assert.equal(await tab.isVisible(), width <= 650);
 		assert.deepEqual(await head.locator(".home-tab").allTextContents(), [
 			"全部",
 			"未读",
@@ -92,6 +92,10 @@ try {
 			"稍后读",
 			"收藏",
 		]);
+		// The top bar slides in on first show; measure once it has settled.
+		await head.evaluate((n: HTMLElement) =>
+			Promise.all(n.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {}))),
+		);
 		const geometry = await head.evaluate((n) => {
 			const r = n.getBoundingClientRect(),
 				grid = document.getElementById("feed-grid").getBoundingClientRect();
@@ -108,7 +112,8 @@ try {
 		if (width > 650) {
 			assert.ok(geometry.width <= width);
 			assert.equal(geometry.left, geometry.gridLeft);
-			assert.equal(geometry.gridTop - geometry.bottom, 16);
+			// The 64 row sits 10 from the window top and 10 above the first cards (web-interaction handbook).
+			assert.equal(Math.round(geometry.gridTop - geometry.bottom), 10);
 			assert.notEqual(geometry.mark, "none");
 			assert.equal(geometry.position, "sticky");
 		} else {
@@ -130,6 +135,27 @@ try {
 			"home tabs return after scrolling pauses",
 		);
 		await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+		// Desktop picks a view from the ⌄ menu (✓ is aria-checked); phones keep the pressed tab row
+		// (web-interaction handbook).
+		const clickVisible = async (locator) => {
+			const box = await locator.boundingBox();
+			assert.ok(box && box.y >= 0 && box.y + box.height <= page.viewportSize().height);
+			await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+		};
+		const pickTab = async (key: string) => {
+			if (width > 650) {
+				await clickVisible(page.locator("#home-menu-toggle"));
+				await head.locator(`.home-menu-item[data-extra="${key}"]`).waitFor();
+				await page.waitForFunction(() => document.getElementById("home-menu").getAnimations().every(a => a.playState === "finished"));
+				await clickVisible(head.locator(`.home-menu-item[data-extra="${key}"]`));
+			} else await head.locator(`.home-tab[data-extra="${key}"]`).click();
+		};
+		const assertTab = async (key: string) => {
+			const [selector, state] =
+				width > 650 ? [".home-menu-item", "aria-checked"] : [".home-tab", "aria-pressed"];
+			assert.equal(await head.locator(`${selector}[data-extra="${key}"]`).getAttribute(state), "true");
+			assert.equal(await head.locator(`${selector}[${state}="true"]`).count(), 1);
+		};
 		const source = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
 		await page.evaluate(() => {
 			window.__app.searchFilter = { type: "note", status: "all", tag: "", query: "密度" };
@@ -137,11 +163,9 @@ try {
 		const search = await page.evaluate(() => ({ ...window.__app.searchFilter }));
 		const views: Record<string, string[]> = {};
 		for (const key of ["unread", "todo", "later", "saved", "all"]) {
-			const tab = head.locator(`[data-extra="${key}"]`);
-			await tab.click();
+			await pickTab(key);
 			await page.waitForFunction(() => window.__app.layout.frame === 0);
-			assert.equal(await tab.getAttribute("aria-pressed"), "true");
-			assert.equal(await head.locator('[aria-pressed="true"]').count(), 1);
+			await assertTab(key);
 			assert.deepEqual(await page.evaluate(() => ({ ...window.__app.searchFilter })), search);
 			views[key] = await page
 				.locator("#feed-grid [data-card]")
@@ -153,17 +177,19 @@ try {
 		assert.deepEqual(views.later, ["review-article"]);
 		assert.equal(views.all.length, materialDensityCards().length);
 		assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), source);
-		await page.locator('#nav [data-extra="search"]').click();
+		// Desktop has no navigation capsule; the search page still opens by action (ADR 0049).
+		if (width > 650) await page.evaluate(() => window.__app.action("search"));
+		else await page.locator('#nav [data-extra="search"]').click();
 		await page.locator("#filter-search").waitFor();
 		assert.equal(await page.locator("#filter-search").inputValue(), "密度");
 		await page.keyboard.press("Escape");
 		await page.waitForFunction(() => !document.getElementById("modal").hasAttribute("open"));
-		assert.equal(await head.locator('[data-extra="all"]').getAttribute("aria-pressed"), "true");
+		await assertTab("all");
 
 		await page.evaluate(() => {
 			window.__app.sort = "priority";
 		});
-		await head.locator('[data-extra="unread"]').click();
+		await pickTab("unread");
 		await page.waitForTimeout(400);
 		const positions = () =>
 			page.locator("#feed-grid [data-card]").evaluateAll((nodes) =>
@@ -198,14 +224,14 @@ try {
 				.evaluate((n) => n.classList.contains("is-complete")),
 			true,
 		);
-		await head.locator('[data-extra="all"]').click();
-		await head.locator('[data-extra="unread"]').click();
+		await pickTab("all");
+		await pickTab("unread");
 		assert.equal(
 			await page.locator('#feed-grid [data-card="review-article"]').count(),
 			0,
 			"explicit tab change applies latest filter",
 		);
-		await head.locator('[data-extra="all"]').click();
+		await pickTab("all");
 		{
 			await page.evaluate(() => {
 				const seed = window.__store.state.cards.find((card) => card.type === "article");
@@ -216,9 +242,15 @@ try {
 				window.scrollTo(0, 500);
 			});
 			await page.waitForFunction(() => scrollY === 500);
-			await page.waitForTimeout(1000);
-			assert.equal(await head.evaluate((node) => node.getBoundingClientRect().top), 0);
-			await head.locator('[data-extra="todo"]').click();
+			// The bar returns after a 650ms pause on dur-reveal 420ms; desktop rests 10 below the window top.
+			await page.waitForFunction(
+				(top: number) =>
+					Math.round(document.getElementById("home-top").getBoundingClientRect().top) === top,
+				width > 650 ? 10 : 0,
+				{ timeout: 3000 },
+			);
+			await pickTab("todo");
+			await page.waitForFunction(() => scrollY === 0, null, { timeout: 2000 }).catch(() => {});
 			assert.equal(await page.evaluate(() => scrollY), 0);
 			await page.evaluate(() => {
 				const frames: { opacity: number; visible: boolean; tucked: boolean }[][] = [];
@@ -240,7 +272,7 @@ try {
 				};
 				sample();
 			});
-			await head.locator('[data-extra="all"]').click();
+			await pickTab("all");
 			assert.equal(await page.evaluate(() => scrollY), 500);
 			await page.waitForTimeout(1050);
 			const frames = await page.evaluate(() => (window as any).navigationFrames);
@@ -249,9 +281,10 @@ try {
 				frames.flat().every((frame) => frame.opacity === 1 && frame.visible && !frame.tucked),
 				"restoring an offscreen reading position never hides or fades the navigation",
 			);
-			await head.locator('[data-extra="all"]').click();
+			await pickTab("all");
 			assert.equal(await page.evaluate(() => scrollY), 500);
-			await page.locator('#nav [data-extra="search"]').click();
+			if (width > 650) await page.evaluate(() => window.__app.action("search"));
+			else await page.locator('#nav [data-extra="search"]').click();
 			assert.equal(
 				await page.locator("#modal").evaluate((node) => getComputedStyle(node).opacity),
 				"1",
@@ -261,7 +294,7 @@ try {
 				0,
 				"pointer navigation never fades the page over the feed",
 			);
-			await page.locator('#modal .search-header > [data-action="close"]').click();
+			await page.keyboard.press("Escape");
 			assert.equal(
 				await page.locator('#nav [aria-current="page"]').getAttribute("data-extra"),
 				"home",
