@@ -52,18 +52,23 @@ try {
 		await page.route("**/auth/**", (route?: any) => {
 			const path = new URL(route.request().url()).pathname;
 			if (path === "/auth/login") {
-				if (route.request().method() === "GET")
-					return route.fulfill({
-						contentType: "text/html",
-						body: loginPage({
-							failed: new URL(route.request().url()).searchParams.has("login_error"),
-						}),
-					});
-				loginRequests++;
+				assert.equal(route.request().method(), "GET", "email login is disabled");
 				return route.fulfill({
-					status: 202,
-					json: { message: "如果该账号可登录，登录链接将发送到邮箱。" },
+					contentType: "text/html",
+					body: loginPage({
+						failed: new URL(route.request().url()).searchParams.has("login_error"),
+					}),
 				});
+			}
+			if (path === "/auth/password") {
+				assert.equal(route.request().method(), "POST");
+				assert.deepEqual(route.request().postDataJSON(), {
+					email: "synthetic@example.com",
+					password: "synthetic-password",
+				});
+				loginRequests++;
+				signedIn = true;
+				return route.fulfill({ json: { location: "/" } });
 			}
 			if (path === "/auth/logout") {
 				signedIn = false;
@@ -128,11 +133,11 @@ try {
 			return route.fulfill({ json: response });
 		});
 		await page.goto(base);
+		await page.locator("#password-form").waitFor();
 		assert.deepEqual(
 			await page.evaluate(() => [innerWidth, innerHeight]),
 			mobile ? [390, 844] : [1440, 1000],
 		);
-		await page.locator("#password-form").waitFor();
 		await page.waitForTimeout(150);
 		assert.equal(await page.locator("#title").textContent(), "登录窗台");
 		assert.equal(await page.locator("#cloud-account").count(), 0);
@@ -165,13 +170,13 @@ try {
 			scale: "css",
 			path: `tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-welcome.png`,
 		});
+		assert.equal(await page.locator("#email-login, #email-form").count(), 0);
 		await page.locator("#email").fill("synthetic@example.com");
-		await page.locator("#email-login").click();
-		await page.locator("#email-submit").click();
-		await page.waitForFunction(() =>
-			document.querySelector("#status").textContent.includes("发送到邮箱"),
-		);
+		await page.locator("#password").fill("synthetic-password");
+		await page.locator("#password-form button[type=submit]").click();
+		await waitCloud(page);
 		assert.equal(loginRequests, 1);
+		signedIn = false;
 		await page.goto(base + "/?login_error=1");
 		await page.waitForFunction(() =>
 			document.querySelector("#status")?.textContent.includes("链接无效或已过期"),

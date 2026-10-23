@@ -277,3 +277,5 @@
 - [AI 栏交互](product/ai-dock.md)
 
 - [AI 对话的三种高度](adr/0064-ai-conversation-three-heights.md)
+
+- [近期 PR 与本地修改整合验收](records/2026-10-23-pr-integration/README.md)
