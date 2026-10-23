@@ -15,3 +15,4 @@
 | 2026-10-22 | [ADR 0059](../adr/0059-mac-search-ai-dock-rail-glass.md) | 1792630329-233a | 1792630366-d9ab | Desktop search type chips and # conditions; card motion, rail glass and pointer rules |
 | 2026-10-22 | [ADR 0059](../adr/0059-mac-search-ai-dock-rail-glass.md) | 1792631394-a95c | 1792631422-c5ff | Desktop bars tuck while a card is open; slower standalone reveal (dur-reveal, ease-reveal) |
 | 2026-10-22 | [ADR 0061](../adr/0061-in-app-media-playback-and-pr-cards.md) | 1792640295-b21d | 1792640301-08a9 | 13 类卡片与详情草稿（卡面、手机 390、全屏阅读与深色、播客播放页）与卡片收回弹簧 |
+| 2026-10-23 | [ADR 0064](../adr/0064-ai-conversation-three-heights.md) | 1792757085-d0c0 | 1792757058-6298 | AI 对话三种高度与手机对话页（草稿） |
