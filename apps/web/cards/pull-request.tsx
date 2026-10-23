@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { Avatar, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
@@ -50,6 +51,24 @@ export function PullRequest({
 				{[pr.headBranch, pr.baseBranch].filter(Boolean).join(" → ")}
 			</span>
 		) : null;
+	// The detail reads the branches as a sentence when the author is known: "<author> 想把 <head> 合并到 <base>".
+	const intent =
+		detail && pr?.author?.login && pr.headBranch && pr.baseBranch ? (
+			<span className="pr-merge-intent">
+				{copy("pr.mergeIntent")
+					.split(/(\{\w+\})/)
+					.filter(Boolean)
+					.map((part) =>
+						part === "{head}" || part === "{base}" ? (
+							<code key={part} className="pr-branch">
+								{part === "{head}" ? pr.headBranch : pr.baseBranch}
+							</code>
+						) : (
+							<Fragment key={part}>{part === "{author}" ? pr.author?.login : part}</Fragment>
+						),
+					)}
+			</span>
+		) : null;
 	const status = pr && (
 		<span className={`pr-state pr-state-${pr.state}`}>
 			{copy(pr.reviewRequested ? "pr.reviewRequested" : `pr.state.${pr.state}`)}
@@ -94,7 +113,7 @@ export function PullRequest({
 				)}
 				<div className="pr-branch-row">
 					{detail && status}
-					{branch}
+					{intent || branch}
 					{!detail && (
 						<>
 							{stats}

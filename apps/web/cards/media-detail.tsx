@@ -161,6 +161,8 @@ export function MediaDetail({
 					<YouTubePlayer
 						id={video}
 						initialPosition={initial.current}
+						cover={card.image ? Assets[card.image] : undefined}
+						knownDuration={card.duration}
 						onSave={save}
 						onTime={setState}
 						controls={controls}

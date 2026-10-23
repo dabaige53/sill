@@ -85,6 +85,8 @@ struct MediaDetail: View {
           videoID: id, initialPosition: state.playbackPosition, playback: playback, save: save
         )
         .aspectRatio(16 / 9, contentMode: .fit).frame(minHeight: AppleMetrics.mediaPlayerMinHeight)
+        // The cover stands in until the official player is ready, so a slow or blocked embed never shows an empty box.
+        .overlay { if !playback.videoReady { videoPoster } }
         .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
       } else {
         ZStack {
@@ -228,6 +230,38 @@ struct MediaDetail: View {
       }
     }
   }
+  private var videoPoster: some View {
+    ZStack {
+      CoverImage(name: card.image)
+      AppleColors.fixedBlack18
+      Icon("play", size: AppleMetrics.space24, filled: true)
+        .foregroundStyle(AppleColors.primary)
+        .frame(width: AppleMetrics.space56, height: AppleMetrics.space56)
+        .background(Circle().fill(AppleColors.glassThick))
+      VStack {
+        Spacer(minLength: 0)
+        HStack {
+          Text(
+            card.duration.map {
+              "\(Format.duration(Int(state.playbackPosition))) / \(Format.duration($0))"
+            } ?? Copy.text("web.media.unknownDuration")
+          )
+          .font(.number(AppleMetrics.font12))
+          Spacer(minLength: AppleMetrics.space12)
+          Text(Copy.text("web.media.youtubePlayer")).font(.sans(AppleMetrics.font12)).opacity(0.7)
+        }
+        .foregroundStyle(AppleColors.fixedWhite)
+        .padding(.horizontal, AppleMetrics.space16).padding(.vertical, AppleMetrics.space12)
+        .background(
+          LinearGradient(
+            colors: [.clear, Color.black.opacity(0.45)], startPoint: .top,
+            endPoint: .bottom))
+      }
+    }
+    .background(AppleColors.surface)
+    .allowsHitTesting(false)
+  }
+
   var body: some View {
     let layout =
       full

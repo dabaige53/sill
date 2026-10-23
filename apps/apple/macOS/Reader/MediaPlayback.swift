@@ -8,6 +8,8 @@ import SwiftUI
   var duration: Double = 0
   var playing = false
   var failed = false
+  /// The official video player reported ready; until then the detail shows the cover.
+  var videoReady = false
   var rate: Float = 1
   var seekVideo: ((Double) -> Void)?
   private var player: AVPlayer?

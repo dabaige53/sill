@@ -951,6 +951,30 @@ a.detail-row:hover {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
+/* Words and branch names wrap as whole pieces, never inside "合并到". */
+.pr-merge-intent {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-4);
+	min-width: 0;
+	font-size: 13px;
+	white-space: nowrap;
+	color: var(--muted);
+}
+.pr-merge-intent .pr-branch {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.pr-merge-intent .pr-branch {
+	font-family: "SF Mono", ui-monospace, Menlo, monospace;
+	font-size: 13px;
+	padding: var(--space-2) var(--space-6);
+	color: var(--secondary);
+	background: var(--surface);
+	border-radius: 6px;
+}
 .pr-stats {
 	display: inline-flex;
 	align-items: center;

@@ -54,7 +54,7 @@ struct OfficialVideoPlayer: NSViewRepresentable {
       let player,previous=\(start),advanced=false,started=false;
       function sample(ended=false){if(!player||!player.getCurrentTime)return;const position=player.getCurrentTime(),playing=player.getPlayerState()===1,delta=position-previous;if(!started&&!playing&&position===0)return;if(playing)started=true;if(delta<0||delta>2)advanced=false;else if(playing&&delta>0.01)advanced=true;previous=position;window.webkit.messageHandlers.playback.postMessage({position,duration:player.getDuration(),playing,ended:ended&&advanced});}
       function seek(seconds){started=true;advanced=false;previous=seconds;player?.seekTo(seconds,true);}
-      function onYouTubeIframeAPIReady(){player=new YT.Player('player',{host:'https://www.youtube-nocookie.com',videoId:'\(videoID)',playerVars:{origin:'\(origin.absoluteString)',playsinline:1,start:\(start)},events:{onReady:()=>setInterval(()=>sample(),500),onStateChange:e=>{if([2,3,5].includes(e.data))advanced=false;sample(e.data===0)},onError:()=>window.webkit.messageHandlers.playback.postMessage({error:true})}});}
+      function onYouTubeIframeAPIReady(){player=new YT.Player('player',{host:'https://www.youtube-nocookie.com',videoId:'\(videoID)',playerVars:{origin:'\(origin.absoluteString)',playsinline:1,start:\(start)},events:{onReady:()=>{window.webkit.messageHandlers.playback.postMessage({ready:true});setInterval(()=>sample(),500)},onStateChange:e=>{if([2,3,5].includes(e.data))advanced=false;sample(e.data===0)},onError:()=>window.webkit.messageHandlers.playback.postMessage({error:true})}});}
       </script><script src="https://www.youtube.com/iframe_api"></script></body></html>
       """, baseURL: origin)
     return view
@@ -63,6 +63,7 @@ struct OfficialVideoPlayer: NSViewRepresentable {
   static func dismantleNSView(_ view: WKWebView, coordinator: Coordinator) {
     coordinator.save(coordinator.playback.position, false)
     coordinator.playback.seekVideo = nil
+    coordinator.playback.videoReady = false
     view.configuration.userContentController.removeScriptMessageHandler(forName: "playback")
     view.loadHTMLString("", baseURL: nil)
   }
@@ -82,6 +83,10 @@ struct OfficialVideoPlayer: NSViewRepresentable {
       }
       if value["error"] as? Bool == true {
         playback.failed = true
+        return
+      }
+      if value["ready"] as? Bool == true {
+        playback.videoReady = true
         return
       }
       guard let position = value["position"] as? Double, position.isFinite else { return }

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { duration } from "../atoms/primitives.ts";
+import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import type { PlaybackHandle, PlaybackSnapshot } from "./audio-player.tsx";
 
@@ -57,12 +59,16 @@ export function youtubeID(value?: string) {
 export function YouTubePlayer({
 	id,
 	initialPosition,
+	cover,
+	knownDuration,
 	onSave,
 	onTime,
 	controls,
 }: {
 	id: string;
 	initialPosition: number;
+	cover?: string;
+	knownDuration?: number;
 	onSave: (position: number, ended: boolean) => void;
 	onTime: (state: PlaybackSnapshot) => void;
 	controls: React.RefObject<PlaybackHandle | null>;
@@ -70,7 +76,9 @@ export function YouTubePlayer({
 	const host = useRef<HTMLDivElement>(null),
 		callbacks = useRef({ onSave, onTime });
 	callbacks.current = { onSave, onTime };
-	const [error, setError] = useState(false);
+	const [error, setError] = useState(false),
+		[ready, setReady] = useState(false),
+		wantsPlay = useRef(false);
 	useEffect(() => {
 		let disposed = false,
 			player: Player | undefined,
@@ -112,6 +120,8 @@ export function YouTubePlayer({
 						onReady: () => {
 							if (disposed) return;
 							ready = true;
+							setReady(true);
+							if (wantsPlay.current) player?.playVideo();
 							controls.current = {
 								seek(seconds) {
 									started = true;
@@ -150,11 +160,41 @@ export function YouTubePlayer({
 			}
 			player?.destroy();
 			controls.current = null;
+			setReady(false);
 		};
 	}, [id, controls, initialPosition]);
 	return (
 		<>
-			<div className="youtube-player" ref={host} />
+			<div className="youtube-frame">
+				<div className="youtube-player" ref={host} />
+				{/* The cover stands in until the official player is ready, so a slow or blocked embed never shows an empty box. */}
+				{!ready && (
+					<div
+						className="youtube-poster"
+						style={cover ? { backgroundImage: `url("${cover}")` } : undefined}
+					>
+						<button
+							type="button"
+							className="youtube-poster-play"
+							aria-label={copy("web.media.play")}
+							disabled={error}
+							onClick={() => {
+								wantsPlay.current = true;
+							}}
+						>
+							<Icon name="play" />
+						</button>
+						<div className="youtube-poster-bar">
+							<span className="num">
+								{knownDuration === undefined
+									? copy("web.media.unknownDuration")
+									: `${duration(initialPosition)} / ${duration(knownDuration)}`}
+							</span>
+							<span className="youtube-poster-tag">{copy("web.media.youtubePlayer")}</span>
+						</div>
+					</div>
+				)}
+			</div>
 			{error && <p role="alert">{copy("web.media.playbackUnavailable")}</p>}
 		</>
 	);

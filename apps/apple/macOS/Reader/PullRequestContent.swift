@@ -28,13 +28,14 @@ struct PullRequestContent: View {
             .padding(.bottom, detail ? AppleMetrics.space16 : AppleMetrics.space8)
           HStack(spacing: AppleMetrics.space8) {
             if detail { status(pr) }
-            if pr.headBranch != nil || pr.baseBranch != nil {
-              Text([pr.headBranch, pr.baseBranch].compactMap { $0 }.joined(separator: " → "))
-                .font(.system(size: AppleMetrics.font12, design: .monospaced))
-                .lineLimit(1).truncationMode(.middle)
-                .padding(.horizontal, AppleMetrics.space6).padding(.vertical, AppleMetrics.space2)
-                .background(
-                  RoundedRectangle(cornerRadius: AppleMetrics.space6).fill(AppleColors.surface))
+            if detail, let author = pr.author?.name, !author.isEmpty, let head = pr.headBranch,
+              let base = pr.baseBranch
+            {
+              mergeIntent(author: author, head: head, base: base)
+            } else if pr.headBranch != nil || pr.baseBranch != nil {
+              branchChip(
+                [pr.headBranch, pr.baseBranch].compactMap { $0 }.joined(separator: " → "),
+                size: AppleMetrics.font12)
             }
             Spacer(minLength: 0)
             if !detail {
@@ -58,6 +59,32 @@ struct PullRequestContent: View {
     .foregroundStyle(AppleColors.primary)
     .font(.sans(AppleMetrics.font14))
     .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private func branchChip(_ text: String, size: CGFloat) -> some View {
+    Text(text)
+      .font(.system(size: size, design: .monospaced))
+      .lineLimit(1).truncationMode(.middle)
+      .padding(.horizontal, AppleMetrics.space6).padding(.vertical, AppleMetrics.space2)
+      .background(RoundedRectangle(cornerRadius: AppleMetrics.space6).fill(AppleColors.surface))
+  }
+
+  /// "<author> 想把 <head> 合并到 <base>", matching the Web detail.
+  private func mergeIntent(author: String, head: String, base: String) -> some View {
+    let parts = Copy.text("pr.mergeIntent").components(separatedBy: " ")
+    return HStack(spacing: AppleMetrics.space4) {
+      ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
+        switch part {
+        case "{head}":
+          branchChip(head, size: AppleMetrics.font13).foregroundStyle(AppleColors.secondary)
+        case "{base}":
+          branchChip(base, size: AppleMetrics.font13).foregroundStyle(AppleColors.secondary)
+        default: Text(part == "{author}" ? author : part).lineLimit(1)
+        }
+      }
+    }
+    .font(.sans(AppleMetrics.font13))
+    .foregroundStyle(AppleColors.secondary)
   }
 
   private func status(_ pr: CardRichFields.PullRequest) -> some View {
