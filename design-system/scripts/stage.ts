@@ -36,7 +36,9 @@ if (process.argv[2] === "record") record(process.argv[3], process.argv[4], proce
 else stage(process.argv.slice(2).join(" "));
 
 function stage(note: string) {
-	rmSync(out, { recursive: true, force: true });
+	// Keep build outputs used by boards; only replace the publish staging directories.
+	for (const name of ["ds", "canvas", "tokens"])
+		rmSync(resolve(out, name), { recursive: true, force: true });
 	const index = JSON.parse(readFileSync(resolve(ds, "design-system.json"), "utf8"));
 	const uploaded = new Set(Object.keys(index.assetGroups?.Icons?.files || {}));
 	// Design System: the brand book, its sections, tokens, components and icons that are not uploads.
@@ -75,6 +77,15 @@ function stage(note: string) {
 			if (/^(index\.html|canvas\.json|README\.md|support\.js)$/.test(path)) continue;
 			canvasFiles.set("project/" + path, f);
 		}
+	// The local board loader resolves the generated bundle through serve-boards.
+	// Publishing carries the bundle at that loader's relative URL instead.
+	const readingBundle = resolve(out, "expanded-reading/interactions.js");
+	if (canvasFiles.has("project/expanded-reading/interactions.js")) {
+		if (!existsSync(readingBundle))
+			throw new Error("Run design-init.sh build before staging boards");
+		canvasFiles.set("project/expanded-reading/interactions.js", readingBundle);
+	}
+	canvasFiles.set("project/assets/sill-icon.png", resolve(repo, "assets/sill-icon.png"));
 	const plan = {
 		note,
 		ds: part("ds", dsFiles, DS_URL),
@@ -110,8 +121,17 @@ function part(name: "ds" | "canvas", files: Map<string, string>, url: string) {
 	const hashes: Record<string, string> = {};
 	const changed: string[] = [];
 	for (const [path, source] of files) {
-		hashes[path] = hash(source);
-		writeOut(name, path, readFileSync(source));
+		let content = readFileSync(source);
+		if (name === "canvas" && path.endsWith(".html")) {
+			content = Buffer.from(
+				content
+					.toString("utf8")
+					.replaceAll("/dist/design/expanded-reading/interactions.js", "interactions.js")
+					.replaceAll("../../../assets/sill-icon.png", "../assets/sill-icon.png"),
+			);
+		}
+		hashes[path] = createHash("sha1").update(content).digest("hex");
+		writeOut(name, path, content);
 		if (published[name][path] !== hashes[path]) changed.push(path);
 	}
 	writeFileSync(resolve(out, `${name}-hashes.json`), JSON.stringify(hashes, null, 2) + "\n");

@@ -445,15 +445,8 @@ dialog > .float-bar.is-hidden {
 	align-items: center;
 	gap: var(--space-12);
 	padding: var(--space-12);
-	background: var(--card);
-	border-radius: var(--control-radius);
-	visibility: hidden;
-}
-.is-compact .compact-player {
-	visibility: visible;
-}
-.is-compact .media-primary {
-	visibility: hidden;
+	background: transparent;
+	opacity: 0;
 }
 .compact-player button:first-child {
 	flex: 1;

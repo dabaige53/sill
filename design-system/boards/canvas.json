@@ -515,6 +515,33 @@
       "w": 1600,
       "x": 4640,
       "y": 16280
+    },
+    "expanded-podcast.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "x": 1520,
+      "y": 280,
+      "title": "播客阅读",
+      "is_interactive": true,
+      "page": "expanded-reading"
+    },
+    "expanded-video.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "x": 3040,
+      "y": 280,
+      "title": "视频对照",
+      "is_interactive": true,
+      "page": "expanded-reading"
+    },
+    "expanded-article.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "x": 0,
+      "y": 280,
+      "title": "资讯阅读 · 目录与专注阅读",
+      "is_interactive": true,
+      "page": "expanded-reading"
     }
   },
   "createdOnFiles": {
@@ -616,6 +643,14 @@
       "text": "账号 · 登录与授权",
       "x": 0,
       "y": 37864
+    },
+    "expanded-reading-title": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "放大页探索 · 资讯、播客与视频",
+      "x": 0,
+      "y": 0,
+      "page": "expanded-reading"
     }
   },
   "order": [
@@ -685,7 +720,10 @@
     "IconsNext.dc.html",
     "CardSystem.dc.html",
     "CardForms.dc.html",
-    "CardSizing.dc.html"
+    "CardSizing.dc.html",
+    "expanded-article.dc.html",
+    "expanded-podcast.dc.html",
+    "expanded-video.dc.html"
   ],
   "pages": [
     {
@@ -695,6 +733,10 @@
     {
       "id": "history",
       "name": "历史"
+    },
+    {
+      "id": "expanded-reading",
+      "name": "放大页探索"
     }
   ],
   "title": "Sill · 设计"

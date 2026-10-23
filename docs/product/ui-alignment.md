@@ -10,6 +10,8 @@
 
 ## 自动同步，不逐项对账
 
+放大页排版依据 [ADR 0065](../adr/0065-expanded-reading-layout.md) 与[探索画布](../../design-system/boards/expanded-reading.html)。Web、Mac 接入资讯与媒体放大布局：预览保留底部操作，放大操作位于左上角；视频 1.6:1、播客等宽分栏，窄屏上下排列；资讯目录来自真实 Markdown 标题，可收起，当前位置蓝色加粗，普通项灰色。手机 Web 保留预览底部胶囊，并提供可展开的目录。展开与收起使用 expandedSpring，正文不缩放，工具不跨页面移动。原生 iOS 只有数据层，阅读界面缺失。本次未部署，真实窗口和真机仍为未验证。新增动效沿用项目规则，不增加 reduceMotion 分支。
+
 以下内容由同一份源文件生成或读取，两端不各自维护数值。改动后运行 `npm run contracts:generate`。
 
 | 内容 | 源文件 | Web | Mac |

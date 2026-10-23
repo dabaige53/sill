@@ -178,7 +178,7 @@ try {
 				await page.keyboard.press("Control+Enter");
 				assert.equal(fixture.writes.length, 1, "blocked drafts cannot submit");
 				await page.locator("#cloud-editor [data-action=close]").click();
-				await page.locator("#cloud-login").waitFor();
+				await page.locator('.welcome a[href="/auth/login"]').waitFor();
 				await page.locator("[data-action=resume-draft]").click();
 				assert.equal(await page.locator("#cloud-body").inputValue(), "这段文字不能丢失。");
 				await page.locator("#cloud-editor [data-action=close]").click();

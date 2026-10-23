@@ -249,7 +249,7 @@ import SwiftUI
   func geometryReady(_ id: String) {
     if top?.card == id, resizeSource != nil, !resizeShown {
       let current = token
-      withAnimation(Motion.card, completionCriteria: .removed) {
+      withAnimation(Motion.expanded, completionCriteria: .removed) {
         resizeShown = true
       } completion: { [weak self] in
         guard let self, self.token == current else { return }

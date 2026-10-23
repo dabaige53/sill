@@ -54,7 +54,6 @@ const Cloud: Record<string, any> = {
 	writeVersion: 0,
 	loading: false,
 	connectionError: false,
-	loginUntil: 0,
 };
 const callbackFailed = new URL(location.href).searchParams.has("login_error");
 if (callbackFailed) history.replaceState(null, "", location.pathname + location.hash);
@@ -410,36 +409,6 @@ document.addEventListener("submit", async (e?: any) => {
 	if (e.target.id === "cloud-editor") {
 		e.preventDefault();
 		await saveCloud();
-	}
-	if (e.target.id === "cloud-login") {
-		e.preventDefault();
-		const button = e.target.querySelector("button"),
-			status = document.getElementById("cloud-login-status");
-		if (Date.now() < Cloud.loginUntil) return;
-		button.disabled = true;
-		Cloud.loginUntil = Date.now() + 60000;
-		const timer = setInterval(() => {
-			if (!button.isConnected) {
-				clearInterval(timer);
-				return;
-			}
-			const left = Math.ceil((Cloud.loginUntil - Date.now()) / 1000);
-			button.disabled = left > 0;
-			button.textContent =
-				left > 0
-					? `${left}${copy("web.cloudentry.e8e0419bd7bc")}`
-					: copy("web.cloudentry.92b193fad920");
-			if (left <= 0) clearInterval(timer);
-		}, 250);
-		try {
-			const result = await cloudApi("/auth/login", {
-				method: "POST",
-				body: JSON.stringify({ email: new FormData(e.target).get("email") }),
-			});
-			status.textContent = result.message + copy("web.cloudentry.bb809dc64a4b");
-		} catch (error) {
-			status.textContent = error.message;
-		}
 	}
 });
 document.addEventListener("input", (e?: any) => {

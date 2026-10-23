@@ -111,15 +111,6 @@
 	font-size: calc(14px * var(--content-text-scale, 1));
 	line-height: calc(1.6 * var(--reader-line-scale, 1));
 }
-.now-playing-heading {
-	position: absolute;
-	top: 24px;
-	left: 30px;
-	z-index: 3;
-	font-size: 13px;
-	color: var(--secondary);
-	pointer-events: none;
-}
 .detail-media:has(.is-podcast) {
 	background: linear-gradient(
 		145deg,
@@ -501,9 +492,6 @@
 	border-radius: var(--cover-radius);
 	padding-bottom: var(--space-32);
 }
-.compact-player {
-	box-shadow: 0 1px 0 var(--line);
-}
 .lightbox-top .icon-button,
 .lightbox-stage .icon-button {
 	background: var(--fixed-white-12);
@@ -544,24 +532,34 @@
 	min-height: calc(min(88dvh, 900px) - 144px);
 }
 .preview-sheet .compact-player-slot {
-	top: var(--space-64);
+	top: var(--space-56);
 }
-.preview-sheet:has(.is-podcast.is-compact) .now-playing-heading {
-	inset: 0 0 auto;
-	height: var(--space-64);
-	padding: var(--space-24) var(--space-30);
-	background: var(--card);
-}
-
-.preview-sheet:has(.is-podcast.is-compact) {
-	background: var(--card);
-}
-.preview-sheet .is-podcast.is-compact .media-tab-header {
+.preview-sheet .is-podcast .media-tab-header {
 	position: sticky;
-	top: calc(var(--space-64) + var(--space-44) + var(--space-24));
+	top: calc(var(--space-56) + var(--space-44) + var(--space-24));
 	z-index: 1;
-	padding-top: var(--space-16);
-	background: var(--card);
+}
+.compact-player-backdrop,
+.media-tab-backdrop {
+	position: absolute;
+	inset: 0;
+	background: color-mix(in srgb, var(--podcast-tone, var(--surface)) 42%, var(--card));
+	opacity: 0;
+	pointer-events: none;
+	z-index: -1;
+}
+.compact-player-backdrop {
+	inset: calc(-1 * var(--space-56)) calc(-1 * var(--space-30)) calc(-1 * var(--space-16));
+}
+.media-tab-backdrop {
+	inset: 0 calc(-1 * var(--space-30)) calc(-1 * var(--space-16));
+	mask-image: linear-gradient(to bottom, black calc(100% - var(--space-16)), transparent);
+}
+.preview-sheet .is-podcast .media-tab-header {
+	isolation: isolate;
+}
+.preview-sheet.is-scrolled:has(.is-podcast)::before {
+	display: none;
 }
 
 .detail-event .detail-header > .preview-meta {

@@ -315,6 +315,16 @@
 				"name": "media-player-min-height",
 				"value": "200px",
 				"usage": "官方嵌入视频播放器的最小高度。"
+			},
+			{
+				"name": "reader-measure",
+				"value": "920px",
+				"usage": "资讯放大页正文最大宽度，不影响预览。"
+			},
+			{
+				"name": "reader-outline-width",
+				"value": "160px",
+				"usage": "桌面资讯目录宽度。"
 			}
 		]
 	}

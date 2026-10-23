@@ -71,29 +71,12 @@ export function CloudWelcome({
 						</>
 					) : (
 						<>
-							<a className="solid-button" href="/auth/login">
-								{copy("web.cloudentry.be4ece4b22aa")}
+							<a
+								className="solid-button"
+								href={callbackFailed ? "/auth/login?login_error=1" : "/auth/login"}
+							>
+								{copy("auth.loginTitle")}
 							</a>
-							<form id="cloud-login">
-								<label htmlFor="cloud-email">{copy("web.cloudentry.d261be8e9b91")}</label>
-								<input
-									id="cloud-email"
-									name="email"
-									type="email"
-									autoComplete="email"
-									required
-									placeholder={copy("web.cloudentry.27558ddc9803")}
-									aria-describedby="cloud-login-status"
-								/>
-								<button className="solid-button" type="submit">
-									{copy("web.cloudentry.92b193fad920")}
-								</button>
-								<p id="cloud-login-status" role="status">
-									{callbackFailed
-										? copy("web.cloudentry.83bf2b73aee3")
-										: copy("web.cloudentry.5eef9638100a")}
-								</p>
-							</form>
 						</>
 					)}
 					{recovery}

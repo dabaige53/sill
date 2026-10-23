@@ -7,6 +7,7 @@
 - `backup.ts`：已实现的账号备份快照、WebDAV/R2 配置、恢复确认及 8 个 MCP 输入；秘密设置只用于本人 HTTP，不注册成 MCP 输入。
 - `reminders-worker.ts`：Web 与本地服务共用的通知点击脚本；只联系已打开页面，不缓存内容或订阅推送。
 - `cloud.ts`：已实现的云端写入与 MCP 输入，从 `Card.shape` 复用任务、时间、来源及展示字段；外部 `/contents` 路径、工具名与权限名保持兼容。云端局部更新保留未修改字段，`state` 合并子字段，数组和嵌套对象整体替换。云端旧版最小卡片仍可编辑；新提交的结构字段按类型检查。数据库校验与返回规则见 `supabase/migrations/20261016052843_sill_rich_cards.sql`。
+- `mcp-guidance.ts`：每个 MCP 工具的用途与传输规则；运行时工具发现和导出目录共用，版本取自 card.ts。导出响应只携带该工具用到的定义。
 - `schema.json`：从 zod 导出的本地卡片 JSON Schema，提交到 Git；`npm run contracts:check` 检查是否过期。
 - `migration-fixtures.json`：两端共用的旧来源迁移边界；保留 300 字发件人、10+1 个来源、显式空发件人与未知字段。
 - `fixtures.json` 与 `media-fixtures.json`：按核心字段、媒体与图片拆分的合法和非法合成样例；Node 通过 `card-fixtures.ts` 合并，Swift 读取两份文件，每个写入端执行同一批样例。
@@ -69,3 +70,7 @@ Card 的 created_at / updated_at / revision 等仍由服务端控制，不接受
 - `textWeight`：standard、strong，默认 standard。
 
 部署云端前先应用 `20261023111147_sill_layout_preferences.sql`，再发布支持新字段的 API 和客户端。迁移只扩展偏好校验，不改写现有卡片、偏好或权限。界面与 AI 使用同一组值。
+
+## 助手制作与传输
+
+随插件交付的 [卡片制作](../skills/sill/references/cards.md) 覆盖 12 种类型；[字段字典](../skills/sill/references/fields.md) 说明所有顶层字段与专属结构；[传输规则](../skills/sill/references/transport.md) 说明 Markdown、JSON、时间单位、请求大小和确认方式。MCP 参数直接复用本目录字段，不维护另一套数据结构。512 KiB 请求体上限与字段字数上限同时适用。构建插件或导出工具不代表线上部署或宿主刷新完成。

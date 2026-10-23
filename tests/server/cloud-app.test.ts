@@ -124,6 +124,17 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 		assert.equal(page.text, restrictMediaScripts(html));
 		assert.ok(page._meta.ui.csp.resourceDomains.includes("https://images.example.com"));
 		assert.deepEqual(page._meta.ui.csp.frameDomains, ["https://www.youtube-nocookie.com"]);
+		// Installed hosts retain the resource URI discovered by an earlier release.
+		const resourceUris = [
+			workspaceUri,
+			"ui://sill/cloud-workspace-1.2.2.html",
+			"ui://sill/cloud-workspace-v3.html",
+		];
+		for (const uri of resourceUris) {
+			const resource = (await client.readResource({ uri })).contents[0];
+			assert.equal(resource.text, restrictMediaScripts(html));
+			assert.equal(resource.uri, uri);
+		}
 		await assert.rejects(client.readResource({ uri: "ui://sill/other" }));
 		await f.db.exec(
 			`reset role;update sill_private.caller_grants set resources=array['11111111-1111-4111-8111-111111111112'] where caller_id='oauth:codex-test';`,
@@ -133,7 +144,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 			(await client.callTool({ name: "sill_open_workspace", arguments: {} })).isError,
 			true,
 		);
-		await assert.rejects(client.readResource({ uri: workspaceUri }));
+		for (const uri of resourceUris) await assert.rejects(client.readResource({ uri }));
 		await f.db.exec(
 			`reset role;delete from sill_private.caller_grants where caller_id='oauth:codex-test';`,
 		);

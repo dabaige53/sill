@@ -27,6 +27,7 @@ struct ReaderContent: View {
   var type = ReaderType.preview
   /// Room kept on the right of the first row for the floating discs.
   var discRoom: CGFloat = 0
+  var mediaWidth: CGFloat?
   var mediaHeight: CGFloat?
   var mediaBottomRoom: CGFloat = 0
   var mediaOffset: CGFloat = 0
@@ -57,7 +58,8 @@ struct ReaderContent: View {
       case .media:
         MediaDetail(
           card: card, state: state, full: type.title == ReaderType.page.title,
-          availableHeight: mediaHeight, scrollOffset: mediaOffset, bottomRoom: mediaBottomRoom,
+          availableWidth: mediaWidth, availableHeight: mediaHeight, scrollOffset: mediaOffset,
+          bottomRoom: mediaBottomRoom,
           returnToPlayer: returnToPlayer)
       default: article
       }
@@ -124,7 +126,9 @@ struct ReaderContent: View {
 
   @ViewBuilder private var detailText: some View {
     if !card.markdown.blocks.isEmpty {
-      MarkdownText(document: card.markdown, size: type.body, leading: type.bodyLeading)
+      MarkdownText(
+        document: card.markdown, size: type.body, leading: type.bodyLeading,
+        outline: card.kind == .article && type.title == ReaderType.page.title)
     }
   }
 
@@ -394,7 +398,9 @@ struct ReaderContent: View {
       }
     }
     if !card.markdown.blocks.isEmpty {
-      MarkdownText(document: card.markdown, size: type.body, leading: type.bodyLeading)
+      MarkdownText(
+        document: card.markdown, size: type.body, leading: type.bodyLeading,
+        outline: card.kind == .article && type.title == ReaderType.page.title)
     }
     if card.kind == .reminder, let project = card.project {
       Text(Copy.text("web.metadata.project") + " · " + project).textStyle(AppleMetrics.font13)

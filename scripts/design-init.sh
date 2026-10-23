@@ -25,6 +25,7 @@ build() {
 	npm run --silent contracts:generate
 	node design-system/scripts/generate.ts design-system .
 	node --import tsx design-system/scripts/previews.ts
+	node --import tsx design-system/scripts/expanded-reading.ts
 	node design-system/scripts/canvas.ts layout
 }
 

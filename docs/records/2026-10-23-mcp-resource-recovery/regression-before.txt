@@ -1,0 +1,28 @@
+
+> sill@1.2.7 test:cloud-app
+> node --import tsx --test tests/server/cloud-app.test.ts
+
+✔ initial host reads recover automatically, while denied reads and writes are not retried (0.823708ms)
+✔ cloud view preserves edit revision and idempotency when using host tools (8.079334ms)
+✖ sidebar and thread entries use scoped cloud resources and disappear on revocation (1278.490375ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1809.043917
+
+✖ failing tests:
+
+test at tests/server/cloud-app.test.ts:1:2132
+✖ sidebar and thread entries use scoped cloud resources and disappear on revocation (1278.490375ms)
+  Error [McpError]: MCP error -32603: Resource unavailable
+      at McpError.fromError (/Users/w/code/sill/node_modules/@modelcontextprotocol/sdk/src/types.ts:2330:16)
+      at Client._onresponse (/Users/w/code/sill/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:963:36)
+      at StreamableHTTPClientTransport._transport.onmessage (/Users/w/code/sill/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:636:22)
+      at StreamableHTTPClientTransport.send (/Users/w/code/sill/node_modules/@modelcontextprotocol/sdk/src/client/streamableHttp.ts:635:41) {
+    code: -32603,
+    data: undefined
+  }

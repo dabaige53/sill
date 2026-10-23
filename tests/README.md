@@ -31,6 +31,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | Codex 提交前文件大小钩子 | `node --test tests/server/check-staged-file-tokens.test.ts` | 临时 Git 仓库与合成 hook 输入；字节边界、UTF-8、部分暂存、特殊文件名、豁免、改名、删除与 Codex 阻止结果 |
 | 完整 Node 检查 | `npm test` | 文件、Schema、构建、语法、类型、共享约定、Web 核心、全部服务端测试与性能报告解析 |
 | 共享约定 | `npm run test:contracts` | 合法、非法与旧来源迁移样例；纯合成文件，验证读不改写和未知字段保留 |
+| 技能示例与 MCP 字段一致 | `node --import tsx --test tests/server/mcp-guidance.test.ts` | 直接读取技能 JSON 示例，通过隔离 MCP 创建、重读、更新、批量与重复请求；检查字段目录与实时工具定义一致，不访问线上 |
 | 明确字段、MCP 和数据库一致 | `npm test`（`server/explicit-card-fields.test.ts`） | 3.0.0 字段、完整与局部写入、未知扩展、旧 meta 拒绝、日期精度、时长清空及过期防护；隔离 PGlite / HTTP / MCP，不操作线上 |
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |
 | 浏览器交互与布局 | `npm run test:browser`、`npm run test:local-browser`、`npm run test:navigation-recovery` | 按改动选择；输出放被忽略的 `artifacts/` |
@@ -71,3 +72,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 浏览器入口保留服务启动、合成数据和结果汇总；相邻模块按卡片操作、阅读与选择、捕获与布局、触控与拖动、材质和抽屉场景分组，按原顺序执行。`web/selection.test.ts` 与 `server/oauth-consent.test.ts` 分别注册相邻模块中的全部测试；`server/supabase-postgres.ts` 在同一容器中依次运行权限与 OAuth 检查。拆分模块不单独启动浏览器、服务或数据库。
 
 `web/gesture-fixture.ts` 提供手势测试的合成页面、计时器和动画边界；`web/gestures.test.ts` 只保留行为断言。
+
+Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fixture.ts`；`search-state.test.ts` 与 `search-desktop.test.ts` 共用 `search-state-fixture.ts`；`visibility-motion.test.ts` 与 `detail-motion.test.ts` 共用 `visibility-motion-fixture.ts`。辅助文件只提供合成环境，由测试入口加载。
+
+`e2e/browser.ts` 将内置视频示例的精确封面地址替换为合成图片；其他意外外网请求仍中止并使场景失败。

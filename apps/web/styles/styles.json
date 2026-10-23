@@ -15,5 +15,6 @@
 	"apps/web/styles/responsive.css",
 	"apps/web/styles/phone.css",
 	"apps/web/styles/input-feedback.css",
-	"apps/web/styles/appearance.css"
+	"apps/web/styles/appearance.css",
+	"apps/web/styles/reader-layout.css"
 ]

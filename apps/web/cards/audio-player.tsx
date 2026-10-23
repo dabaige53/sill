@@ -200,9 +200,9 @@ export function AudioPlayer({
 					{copy("web.retry")}
 				</button>
 			)}
-			{(error || !url) && (
+			{error && (
 				<p className="empty-description" role="alert">
-					{copy("web.media.playbackUnavailable")}
+					{copy("web.media.playbackFailed")}
 				</p>
 			)}
 		</div>

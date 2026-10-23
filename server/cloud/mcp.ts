@@ -10,6 +10,7 @@ import { z } from "zod/v4";
 import { backupToolInputs } from "../../contracts/backup.ts";
 import { toolInputs as inputs } from "../../contracts/cloud.ts";
 import contract from "../../contracts/design/mcp-tools.json" with { type: "json" };
+import { toolDescriptions } from "../../contracts/mcp-guidance.ts";
 import { copy } from "../../design-system/copy.ts";
 import product from "../../package.json" with { type: "json" };
 import { BackupRuntime } from "./backup-runtime.ts";
@@ -57,6 +58,9 @@ const result = (value?: any) => ({
 	structuredContent: value,
 });
 export const workspaceUri = `ui://sill/cloud-workspace-${product.version}.html`;
+// The version busts host caches, but installed hosts can still request older URLs.
+// All aliases resolve to the current app under the same per-request authorization.
+const workspaceResource = /^ui:\/\/sill\/cloud-workspace-(?:v3|\d+\.\d+\.\d+)\.html$/;
 const workspaceMime = "text/html;profile=mcp-app";
 const workspaceMeta = {
 	ui: {
@@ -187,10 +191,7 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 					: [],
 			}));
 			server.setRequestHandler(ReadResourceRequestSchema, async (request?: any) => {
-				if (
-					!canOpen() ||
-					![workspaceUri, "ui://sill/cloud-workspace-v3.html"].includes(request.params.uri)
-				)
+				if (!canOpen() || !workspaceResource.test(request.params.uri))
 					throw new Error("Resource unavailable");
 				const snapshot = await repo.workspace();
 				const meta = {
@@ -206,7 +207,7 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 				return {
 					contents: [
 						{
-							uri: workspaceUri,
+							uri: request.params.uri,
 							mimeType: workspaceMime,
 							text: restrictMediaScripts(appHtml),
 							_meta: meta,
@@ -241,9 +242,7 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 						.filter((t?: any) => allowed(t.name))
 						.map((t?: any) => ({
 							...t,
-							description:
-								t.name +
-								" through the authorized Sill data layer. Card contract 3.0.0 uses explicit authors, publisher, dates, bodyCoverage and readingEstimate (seconds/origin/scope/method). Card and file meta are rejected. Personal notes belong to state.note. Preserve version and idempotency conditions.",
+							description: toolDescriptions[t.name],
 							annotations: {
 								readOnlyHint: [
 									"sill_getWorkspace",

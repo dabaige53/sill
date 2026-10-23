@@ -28,6 +28,7 @@ import {
 	reminderMark,
 } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
+import { PhoneArticleOutline } from "./reader-layout.tsx";
 
 type PreviewCard = ReturnType<typeof Store.card>;
 type PreviewApp = PlaybackApp & {
@@ -97,9 +98,6 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 				}
 			>
 				{this.head(expand, closeButton)}
-				{c.type === "media" && c.media === "podcast" && (
-					<div className="now-playing-heading">{copy("web.media.nowPlaying")}</div>
-				)}
 				{/* biome-ignore lint/a11y/useSemanticElements: The existing named scroll region must receive keyboard focus for scrolling and focus restoration. */}
 				<div
 					className={"sheet-scroll"}
@@ -457,7 +455,8 @@ export function articleContent(this: PanelRenderers, c: PreviewCard, reading = t
 			</header>
 			{reading && cover}
 			{c.type === "suggestion" && <WhyDetails card={c} />}
-			{c.type !== "suggestion" && <DetailText body={c.body} />}
+			{!reading && c.type === "article" && <PhoneArticleOutline body={c.body || ""} />}
+			{c.type !== "suggestion" && <DetailText body={c.body} outline={c.type === "article"} />}
 			{["suggestion", "digest"].includes(c.type) && <RelatedCards card={c} />}
 		</>
 	);

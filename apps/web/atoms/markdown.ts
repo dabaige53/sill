@@ -10,8 +10,39 @@ md.renderer.rules.link_open = (tokens, index, options, _env, self) => {
 	return self.renderToken(tokens, index, options);
 };
 
-export function markdownHtml(text: string): string {
-	return md.render(text);
+export function markdownHtml(text: string, headingPrefix?: string): string {
+	const tokens = md.parse(text, {});
+	let index = 0;
+	if (headingPrefix)
+		for (const token of tokens) {
+			if (token.type === "heading_open") token.attrSet("id", `${headingPrefix}-${index++}`);
+		}
+	return md.renderer.render(tokens, md.options, {});
+}
+
+/** Outline entries use the same parsed headings and IDs as the rendered body. */
+export function markdownHeadings(text: string, prefix = "reader-section") {
+	const tokens = md.parse(text, {});
+	return tokens
+		.flatMap((token, index) =>
+			token.type === "heading_open"
+				? [
+						{
+							depth: Number(token.tag.slice(1)),
+							title: (tokens[index + 1]?.children || [])
+								.map((child) =>
+									["text", "code_inline", "image"].includes(child.type)
+										? child.content
+										: ["softbreak", "hardbreak"].includes(child.type)
+											? " "
+											: "",
+								)
+								.join(""),
+						},
+					]
+				: [],
+		)
+		.map((heading, index) => ({ ...heading, id: `${prefix}-${index}` }));
 }
 
 /** Card links in authored text stay in the current workspace. External links keep their destination. */

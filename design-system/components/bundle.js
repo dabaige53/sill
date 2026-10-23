@@ -1193,6 +1193,7 @@ var Sill = (() => {
     "web.media.emptyTranscript": "\u6682\u65E0\u6587\u5B57\u7A3F",
     "web.media.emptyNotes": "\u6682\u65E0\u5185\u5BB9",
     "web.media.playbackUnavailable": "\u6682\u65F6\u65E0\u6CD5\u5728 Sill \u5185\u64AD\u653E\uFF0C\u53EF\u524D\u5F80\u6765\u6E90\u7EE7\u7EED\u3002",
+    "web.media.playbackFailed": "\u97F3\u9891\u64AD\u653E\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002",
     "web.media.youtubePlayer": "YouTube \u64AD\u653E\u5668",
     "auth.loginTitle": "\u767B\u5F55\u7A97\u53F0",
     "auth.emailLogin": "\u901A\u8FC7\u90AE\u4EF6\u767B\u5F55",
@@ -1208,6 +1209,9 @@ var Sill = (() => {
     "auth.allowAccess": "\u5141\u8BB8\u8BBF\u95EE",
     "auth.cancel": "\u53D6\u6D88",
     "auth.checkEmail": "\u67E5\u770B\u90AE\u4EF6",
+    "auth.completeTitle": "\u5DF2\u767B\u5F55",
+    "auth.completeReturn": "\u8BF7\u8FD4\u56DE\u53D1\u8D77\u767B\u5F55\u7684\u6807\u7B7E\u9875\uFF0C\u7EE7\u7EED\u672C\u6B21\u6388\u6743\u3002",
+    "auth.completeHome": "\u6B63\u5728\u6253\u5F00\u5DE5\u4F5C\u53F0\u3002",
     "auth.resendEmail": "\u91CD\u65B0\u53D1\u9001\u90AE\u4EF6",
     "card.type.pr": "PR",
     "pr.state.open": "\u5F85\u5408\u5E76",
@@ -1241,7 +1245,13 @@ var Sill = (() => {
     "pr.fileCount": "\u4E2A\u6587\u4EF6",
     "web.card.dueShort": "\u622A\u6B62",
     "web.card.fileCountSuffix": " \u4E2A\u6587\u4EF6",
-    "web.media.chapterNumber": "\u7B2C {number} \u7AE0"
+    "web.media.chapterNumber": "\u7B2C {number} \u7AE0",
+    "auth.previewLogin": "\u6F14\u793A\u72B6\u6001 \xB7 \u672A\u63D0\u4EA4\u767B\u5F55",
+    "auth.previewEmail": "\u6F14\u793A\u72B6\u6001 \xB7 \u672A\u53D1\u9001\u90AE\u4EF6",
+    "auth.previewConsent": "\u6F14\u793A\u72B6\u6001 \xB7 \u672A\u66F4\u6539\u5B9E\u9645\u6743\u9650",
+    "web.reader.outline": "\u76EE\u5F55",
+    "web.reader.showOutline": "\u663E\u793A\u76EE\u5F55",
+    "web.reader.hideOutline": "\u6536\u8D77\u76EE\u5F55"
   };
 
   // design-system/copy.ts

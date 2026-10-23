@@ -27,7 +27,7 @@ npm start
 
 ## 数据与 AI 操作
 
-当前页面和 AI 共用 `server/local/index.ts` 与 `.sill/local/cards.json`。当前外部应用由宿主 AI 使用，默认运行路径不提供桥接；目标中的内置助手（只用 Composio 连接器）和对外 MCP 见 [Agent与MCP](../product/agent-mcp.md)，尚未实现。
+本地页面和 CLI 共用 `server/local/index.ts` 与 `.sill/local/cards.json`。云端已有独立的内容与工作区 MCP，按账号操作云端数据，不共用此本地文件。外部应用由宿主 AI 使用；Webhook、内置助手与可靠执行器仍待实现，范围见 [Agent 与 MCP](../product/agent-mcp.md)。
 
 下表是当前本地状态操作，不是外部 MCP 执行回执；`taskDone` / `read` 的本地更新不证明外部任务或邮件状态已经改变。目标意图协议尚未实现，见 [Agent 与 MCP](../product/agent-mcp.md)。
 
@@ -50,7 +50,7 @@ HTTP 同源入口：`GET /api/local/state`、`GET /api/local/capabilities`、`GE
 
 同批操作先校验全部内容，成功后原子写入文件。提供 `expectedRevision` 或受支持字段的 `before` 才有相应冲突保护，冲突返回409。页面整卡保存和删除现在携带原卡片 `before`，新建携带 `before:null`；服务端比较当前卡片，不匹配则拒绝整批操作。行内编辑期间不吸收轮询的新卡片作为编辑基准；备注和批量标签编辑也保留原始字段，包括原本没有值的字段。其他保存请求返回时不能更新这些编辑基准，无关的阅读状态可以独立合并。CLI 旧调用保持兼容，未提供条件的调用仍没有并发保护。失败的页面修改会提示，并把草稿留在浏览器 `sill-unsynced` 中；重新读取最新版本后由 AI 协助合并。
 
-Sill 不接入外部来源，也不做导入（见 [ADR 0033](../adr/0033-ai-writes-composio-only.md)）；卡片由 AI 通过本协议写入。来源授权、RSS URL 订阅和文件导入入口已删除，本地协议不再支持 `source.upsert`、`source.delete`。用户可速记、编辑，或拖入链接和文字。旧数据中的顶层 `sources` 原样保留，不参与产品操作；卡片内的 `sources` 仍记录内容出处。
+Sill 不接入外部来源，也不做导入（见 [ADR 0033](../adr/0033-ai-writes-composio-only.md)）；卡片由 AI 通过本协议写入。来源授权、RSS URL 订阅和文件导入入口已删除，本地协议不再支持 `source.upsert`、`source.delete`。用户可通过既有新增卡片、速记入口或拖入链接和文字创建内容；已有卡片正文与结构字段由 AI 修改。旧数据中的顶层 `sources` 原样保留，不参与产品操作；卡片内的 `sources` 仍记录内容出处。
 
 页面的筛选条件、选中状态、播放位置和滚动位置只影响当前视图。AI 可以从完整卡片状态完成相同的查询、选择与阅读，使用返回链接在自己的宿主打开。当前没有为 Hermes 或 Claude 增加宿主专用按钮，也未声明它们已经完成宿主实测。
 

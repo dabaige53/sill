@@ -69,6 +69,14 @@ async function recordLayout(page?: any, width?: any) {
 			page.on("pageerror", (e?: any) => errors.push(e.message));
 			await context.route("**/*", (route?: any) => {
 				const url = route.request().url();
+				// The bundled video example uses this one cover; keep regressions offline.
+				if (url === "https://i.ytimg.com/vi/M7lc1UVf-VE/hqdefault.jpg") {
+					return route.fulfill({
+						status: 200,
+						contentType: "image/svg+xml",
+						body: '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><rect width="480" height="360" fill="#64748b"/></svg>',
+					});
+				}
 				if (url.startsWith(origin) || url.startsWith("data:")) return route.continue();
 				external.push(url);
 				return route.abort();

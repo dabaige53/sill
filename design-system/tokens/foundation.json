@@ -103,6 +103,14 @@
 				"family": "sans",
 				"styles": [
 					{
+						"name": "auth-title",
+						"fontSize": "30px",
+						"lineHeight": "1.3",
+						"fontWeight": 600,
+						"usage": "登录页面标题，Web、手机与 Mac 共用。",
+						"sample": "登录窗台"
+					},
+					{
 						"name": "reader-title",
 						"fontSize": "30px",
 						"lineHeight": "1.3",
@@ -619,6 +627,11 @@
 		"menuScale": 0.95,
 		"detailTravel": 10,
 		"toastTravel": 8,
-		"finishTravel": 0.6
+		"finishTravel": 0.6,
+		"expandedSpring": {
+			"mass": 1,
+			"stiffness": 274,
+			"damping": 27
+		}
 	}
 }

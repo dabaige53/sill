@@ -7,6 +7,7 @@ struct MarkdownText: View {
   let size: CGFloat
   let leading: CGFloat
   @Environment(\.contentAppearance) private var appearance
+  var outline = false
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
 
@@ -14,7 +15,7 @@ struct MarkdownText: View {
     VStack(
       alignment: .leading, spacing: AppleMetrics.space16 * workspace.preferences.readerSpacing.scale
     ) {
-      ForEach(Array(document.blocks.enumerated()), id: \.offset) { _, block in
+      ForEach(Array(document.blocks.enumerated()), id: \.offset) { index, block in
         if block.rule {
           Rectangle().fill(AppleColors.line).frame(height: AppleMetrics.lineWidth)
         } else if !block.cells.isEmpty {
@@ -36,6 +37,16 @@ struct MarkdownText: View {
               .fixedSize(horizontal: false, vertical: true)
               .textSelection(.enabled)
               .accessibilityAddTraits(block.heading > 0 ? .isHeader : [])
+          }
+          .id(outline && block.heading > 0 ? "reader-section-\(index)" : "reader-block-\(index)")
+          .background {
+            if outline && block.heading > 0 {
+              GeometryReader { geometry in
+                Color.clear.preference(
+                  key: ReaderHeadingPositions.self,
+                  value: [index: geometry.frame(in: .named("article-reading")).minY])
+              }
+            }
           }
           .padding(.leading, CGFloat(block.depth) * AppleMetrics.space16)
           .padding(.leading, block.quoteDepth > 0 ? AppleMetrics.space18 : 0)

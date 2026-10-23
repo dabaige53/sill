@@ -29,6 +29,7 @@ import {
 	sourceIcon,
 } from "./panel-primitives.tsx";
 import { previewView as preview, readingContent } from "./previews-components.tsx";
+import { ReaderLayout } from "./reader-layout.tsx";
 
 export const panelCard = {
 	close(this: PanelRenderers, label?: string) {
@@ -336,7 +337,7 @@ export const panelCard = {
 											id={"reader-progress"}
 											style={{ transform: `scaleX(${Math.max(0, Math.min(1, s.progress))})` }}
 										></div>
-										<div className={"reader-scroll"} id={"reader-scroll"}>
+										<ReaderLayout key={c.id} kind={c.type} body={c.body}>
 											<article
 												className={c.type === "article" ? "reader-body is-article" : "reader-body"}
 											>
@@ -353,7 +354,7 @@ export const panelCard = {
 												{loading ? "" : this.foot(agentAction(app, c))}
 												<div className={"reader-end"} id={"reader-end"} aria-hidden={"true"}></div>
 											</article>
-										</div>
+										</ReaderLayout>
 									</>
 								}
 								{

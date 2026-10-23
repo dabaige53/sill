@@ -163,7 +163,7 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 		get redirect() {
 			return redirect;
 		},
-		config: { ...config, agentAudience: resource },
+		config: { ...config, agentAudience: resource, emailLoginEnabled: true },
 		close: () => db.close(),
 	};
 }

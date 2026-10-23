@@ -108,15 +108,6 @@ struct PreviewSheet: View {
       }
       .overlay(alignment: .top) {
         ZStack(alignment: .top) {
-          if card.isPodcast {
-            Text(Copy.text("web.media.nowPlaying"))
-              .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .padding(.horizontal, AppleMetrics.space30).padding(.top, AppleMetrics.space24)
-              .frame(height: AppleMetrics.space64, alignment: .top)
-              .background(
-                scroll.motion.scrollOffset > AppleMetrics.space64 ? AppleColors.card : Color.clear)
-          }
           HeadDiscs(
             motion: scroll.motion,
             firstRow: card.kind == .article && card.image != nil ? AppleMetrics.space44 : firstRow,

@@ -13,7 +13,7 @@
 - 待办与提醒的圆圈对齐文字首行中心，卡片、预览和阅读页使用同一规则；文字换行不改变圆圈位置。头像与两行元信息仍按整组居中。
 - 归档列表的日期与恢复按钮共用位置，按两者较宽的内容预留空间；文件详情的名称与说明分别显示省略号。
 - 所有可点击元素不小于 `hit-target`。例外：手机待办预览每项高 28，满足 WCAG 2.2 的 24 最小值；其中的圆圈向外扩到 44 宽。
-- 资讯阅读：正文不限制最大宽度（`article-measure` none）；左右内边距 `article-gutter` 30（手机 `article-gutter-sm` 20），使用剩余可用宽度。段间距 16，标题下方 24，来源行下方 14，列表项间距 6，引用左侧 2px 细线、缩进 18。不缩放整页。
+- 资讯阅读：预览正文使用可用宽度（`article-measure` none）；放大正文最大宽度为 `reader-measure` 920，侧目录宽 `reader-outline-width` 160；左右内边距 `article-gutter` 30（手机 `article-gutter-sm` 20），使用剩余可用宽度。段间距 16，标题下方 24，来源行下方 14，列表项间距 6，引用左侧 2px 细线、缩进 18。不缩放整页。
 - 圆角：卡片 `card-radius` 22（手机 `card-radius-sm` 16）、封面 `cover-radius` 14、弹层 `sheet-radius` 28、面板 `panel-radius` 24、控件 `control-radius` 12、胶囊 `pill-radius` 999。CSS 变量与令牌同名，例如 `--cover-radius`。
 
 ## 内容排版偏好
