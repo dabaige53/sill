@@ -201,7 +201,7 @@ export function Navigation() {
 export function AIDock() {
 	const [collapsed, setCollapsed] = useState(false);
 	const positionRef = useRef(0);
-	const [position, setPosition] = useState(0);
+	const [, setPosition] = useState(0);
 	const dock = useRef<HTMLDivElement>(null);
 	const drag = useRef<{ x: number; position: number; moved: boolean } | null>(null);
 	const moved = useRef(false);
@@ -248,7 +248,7 @@ export function AIDock() {
 			);
 			for (const child of node.children) {
 				if (!(child instanceof HTMLElement) || child === surface) continue;
-				child.getAnimations().forEach((a) => a.cancel());
+				for (const active of child.getAnimations()) active.cancel();
 				child.animate(
 					[
 						{ opacity: 0, transform: "translateX(" + dx + "px)" },
@@ -265,7 +265,7 @@ export function AIDock() {
 		observer.observe(node);
 		if (node.parentElement) observer.observe(node.parentElement);
 		return () => observer.disconnect();
-	}, [position, collapsed]);
+	});
 	useLayoutEffect(() => {
 		const open = () => setCollapsed(false);
 		window.addEventListener("sill:expand-ai", open);
