@@ -14,11 +14,6 @@ import { AIDockSessionButton, AIDockSessions, AIDockThread } from "./ai-dock.tsx
 import type { AppController } from "./app.ts";
 import { renderView } from "./react-renderer.ts";
 
-/** Sample sessions only on the dev server with `?ai-preview`; production never has them. */
-const devPreview = () =>
-	Boolean((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV) &&
-	new URLSearchParams(location.search).has("ai-preview");
-
 // @design ai-conversation
 export const appAIMethods = {
 	aiSession(this: AppController) {
@@ -26,7 +21,12 @@ export const appAIMethods = {
 		return sessions.find((s) => s.id === this.aiSessionId) || sessions[0] || null;
 	},
 	bindAI(this: AppController) {
-		if (devPreview()) {
+		// Sample sessions only on the dev server with `?ai-preview`; the check stays inline so
+		// production builds drop the branch and the samples with it.
+		if (
+			(import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV &&
+			new URLSearchParams(location.search).has("ai-preview")
+		) {
 			this.aiSessions = previewSessions(Store.state.cards);
 			this.aiSessionId = this.aiSessions[0]?.id || null;
 		}
