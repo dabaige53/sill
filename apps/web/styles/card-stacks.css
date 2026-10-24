@@ -123,7 +123,8 @@
 	display: none;
 }
 .feed-card.is-compact .card-body {
-	padding: var(--space-14) var(--card-padding);
+	padding: calc(var(--space-14) * var(--card-padding-scale, 1))
+		calc(var(--card-padding) * var(--card-padding-scale, 1));
 }
 .text-link {
 	background: none;

@@ -35,6 +35,15 @@ import { appStacksMethods } from "./app-stacks.ts";
 import { appSurfacesMethods } from "./app-surfaces.ts";
 import type { Filter, ViewDialog, ViewElement } from "./app-types.ts";
 
+export type DetailPosition = {
+	id: string;
+	kind: "preview" | "reader" | "lightbox";
+	scrollTop: number;
+	photoIndex: number;
+	focus: HTMLElement | null;
+	link: string | null;
+};
+
 class AppController {
 	declare startInlineEdit: AppControllerMethods["startInlineEdit"];
 	declare saveInlineEdit: AppControllerMethods["saveInlineEdit"];
@@ -239,7 +248,9 @@ class AppController {
 	homePositions: Record<string, { scroll: number; limit: number }> = {};
 	declare toastSeq: number;
 	declare selectAnchor: string;
-	declare previewTrail: string[];
+	previewTrail: string[] = [];
+	detailPositions = new Map<string, DetailPosition>();
+	detailScope = "";
 	declare closingAll: boolean;
 	declare bulkEditIds: string[];
 	declare clockMinute: number;

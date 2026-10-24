@@ -8,6 +8,98 @@ export const pushRingHTML =
 	'<svg class="arc" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="8" stroke-dasharray="50.27" stroke-dashoffset="50.27"/></svg><svg class="tick" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 export const gesturePreviewMethods = {
+	setPreviewFull(this: Gestures, surface: HTMLElement, full: boolean) {
+		surface.classList.remove("is-drag");
+		if (surface.classList.contains("is-full") !== full) {
+			const top = surface.getBoundingClientRect().top;
+			MotionEngine.move(surface, "", true);
+			surface.classList.toggle("is-full", full);
+			MotionEngine.move(surface, `0 ${top - surface.getBoundingClientRect().top}px`, true);
+		}
+		surface.querySelector(".sheet-handle")?.setAttribute("aria-expanded", String(full));
+		MotionEngine.move(surface);
+	},
+	bindPreviewExpansion(this: Gestures, surface: HTMLElement) {
+		// @design preview-scroll-expansion
+		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
+		if (!scroll) return;
+		const token = this.app.modalToken;
+		let touching = false,
+			cancelled = false,
+			pending = false,
+			timer = 0;
+		const expand = () => {
+			clearTimeout(timer);
+			if (
+				!pending ||
+				touching ||
+				cancelled ||
+				token !== this.app.modalToken ||
+				!surface.isConnected ||
+				!this.app.dialog.open ||
+				this.app.sheetLeaving ||
+				surface.classList.contains("is-drag") ||
+				surface.classList.contains("is-full") ||
+				scroll.scrollTop <= 4
+			)
+				return;
+			pending = false;
+			this.setPreviewFull(surface, true);
+		};
+		const schedule = () => {
+			clearTimeout(timer);
+			if (pending && !touching && !cancelled && !surface.classList.contains("is-full"))
+				timer = window.setTimeout(expand, tokens.apple.gestureWheelRest * 1000);
+		};
+		// Keep native scrolling in charge; expand only after release and its inertial tail.
+		scroll.addEventListener(
+			"scroll",
+			() => {
+				pending = true;
+				schedule();
+			},
+			{ passive: true },
+		);
+		scroll.addEventListener("scrollend", expand, { passive: true });
+		surface.addEventListener(
+			"touchstart",
+			(event) => {
+				if (!touching) {
+					cancelled = false;
+					pending = false;
+				}
+				touching = true;
+				if (event.touches.length !== 1) cancelled = true;
+				clearTimeout(timer);
+			},
+			{ passive: true },
+		);
+		surface.addEventListener(
+			"touchend",
+			(event) => {
+				touching = event.touches.length > 0;
+				schedule();
+			},
+			{ passive: true },
+		);
+		surface.addEventListener(
+			"touchcancel",
+			() => {
+				touching = false;
+				cancelled = true;
+				clearTimeout(timer);
+			},
+			{ passive: true },
+		);
+		for (const event of ["wheel", "keydown"])
+			surface.addEventListener(
+				event,
+				() => {
+					cancelled = false;
+				},
+				{ passive: true },
+			);
+	},
 	bindPreviewHandle(this: Gestures, surface: HTMLElement) {
 		const handle = surface.querySelector<HTMLButtonElement>(".sheet-handle");
 		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
@@ -35,15 +127,7 @@ export const gesturePreviewMethods = {
 			if (!current()) return;
 			cancelAnimationFrame(frame);
 			frame = 0;
-			surface.classList.remove("is-drag");
-			if (surface.classList.contains("is-full") !== full) {
-				const top = surface.getBoundingClientRect().top;
-				MotionEngine.move(surface, "", true);
-				surface.classList.toggle("is-full", full);
-				MotionEngine.move(surface, `0 ${top - surface.getBoundingClientRect().top}px`, true);
-			}
-			handle.setAttribute("aria-expanded", String(full));
-			MotionEngine.move(surface);
+			this.setPreviewFull(surface, full);
 		};
 		const cancel = () => {
 			if (!drag) return;
@@ -298,7 +382,7 @@ export const gesturePreviewMethods = {
 						);
 					else chip.remove();
 					// A stacked preview folds back to the card below it; reading returns to the desk.
-					if (app.modalKind === "preview") app.closeModal();
+					if (app.modalKind === "preview" || app.previewTrail?.length) app.closeModal();
 					else app.closeToDesk(true);
 				});
 			});

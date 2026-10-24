@@ -1,6 +1,6 @@
 # 开发
 
-更新：2026-10-19。
+更新：2026-10-23。
 
 Web 使用 React + TypeScript + Vite 与官方 React 插件，macOS 保留 SwiftUI，决策见 [ADR 0047](../adr/0047-react-web.md)。本地构建预览为 `npm start` → `server/local/index.ts` → `dist/web/index.html`，默认端口 4318。修改 `apps/web/` 后运行 `npm run build` 并刷新页面，不直接修改产物。
 
@@ -16,7 +16,7 @@ Web 使用 React + TypeScript + Vite 与官方 React 插件，macOS 保留 Swift
 - `apps/web/cards/templates.ts` 等静态 HTML 导出仅供测试、设计画板与兼容调用；运行时直接渲染 TSX，不把服务端渲染器打入浏览器包。
 - `scripts/build-plugin.ts`：从根产品版本、`plugin.json`、`.app.json` 和现有 Skill 生成本地候选包。身份检查不代表云端对象仍存在，也不执行安装或发布。
 
-验证命令见 README。运行 `tests/e2e/local-browser.ts` 会使用独立临时数据，不修改正式卡片。响应式测试覆盖 320、390、810、1440、2048 像素。
+检查选择与授权见 [测试与验证](testing.md)，命令与覆盖范围见 [测试目录](../../tests/README.md)。本地浏览器测试使用独立临时数据；只在当前任务明确授权时运行。
 
 源码合入、构建更新、浏览器加载和行为验收分别确认。`node scripts/build.ts --check` 只证明产物与当前源码一致，不代替交互回归。动效整合后的行为与分阶段验证见 [本地整合记录](../records/2026-10-19-react-motion-integration/README.md)；后续重构不能直接沿用此前测试通过的结论。
 

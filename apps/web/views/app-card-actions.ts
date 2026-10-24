@@ -8,6 +8,7 @@ import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { FeedPolicy } from "../services/feed-policy.ts";
+import { systemReminders } from "../services/system-reminders.ts";
 import type { AppController } from "./app.ts";
 import type { CardFlag } from "./app-types.ts";
 
@@ -78,6 +79,7 @@ export const appCardActionsMethods = {
 			? before.filter((t) => t !== taskId)
 			: [...before, taskId];
 		Store.patch(id, { taskDone: after });
+		this.checkReminders();
 		this.refreshCard(id);
 		if (this.dialog.open && this.currentId === id && this.modalKind === "preview")
 			this.replacePanelContent(Panels.preview(this, c));
@@ -168,6 +170,18 @@ export const appCardActionsMethods = {
 		n.classList.remove("is-retrying");
 	},
 	checkReminders(this: AppController, now = Date.now()) {
+		try {
+			const scope = this.agentScope();
+			systemReminders.bind({
+				owner: scope.kind === "cloud" ? scope.owner : "local",
+				open: (id) => {
+					if (Store.card(id)) this.openCard(id, true);
+				},
+			});
+			systemReminders.check(Store.state.cards, Store.state.items, now);
+		} catch {
+			systemReminders.bind(null);
+		}
 		const next = Store.state.cards
 			.filter((c?: Card) => FeedPolicy.eligible(c, Store.item(c.id), now))
 			.map((c?: Card) => c.id);

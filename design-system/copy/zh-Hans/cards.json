@@ -171,5 +171,14 @@
 	"web.cards.4b9d5376f27e": "试着提起这张卡片。松手后，原卡片会留在这里。",
 	"web.cards.1db802421e1f": "这是刷新后出现的速记。",
 	"web.cards.98ba1f022f73": "从收藏到行动，中间还有一步",
-	"web.cards.691489bf374e": "把最想继续的两张卡片，一起放进对话。"
+	"web.cards.691489bf374e": "把最想继续的两张卡片，一起放进对话。",
+	"web.cards.videoTitle": "YouTube 官方播放器示例",
+	"web.cards.videoSummary": "示例：YouTube IFrame API 文档提供的公开视频。",
+	"web.cards.videoSource": "YouTube Developers",
+	"web.cards.sampleTag": "示例",
+	"web.cards.videoBody": "这是公开播放器示例，不是私人会议。来源：[YouTube IFrame API](https://developers.google.com/youtube/iframe_api_reference)。",
+	"web.cards.audioTitle": "MDN 音频播放示例",
+	"web.cards.audioSummary": "示例：MDN audio 文档中的恐龙吼声音效。",
+	"web.cards.audioSource": "MDN",
+	"web.cards.audioBody": "这是音效播放示例，不是播客访谈。来源为 MDN audio 元素文档。"
 }

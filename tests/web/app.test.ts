@@ -1,82 +1,8 @@
 /** Preserve public controller behavior while its responsibilities move into modules. */
 import assert from "node:assert/strict";
-import path from "node:path";
 import { test } from "node:test";
-import { buildSync } from "esbuild";
-import { JSDOM } from "jsdom";
 import { renderToStaticMarkup } from "react-dom/server";
-import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
-
-const bundle = buildSync({
-	stdin: {
-		contents:
-			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {renderContent} from './apps/web/views/react-renderer.ts';",
-		resolveDir: path.resolve(import.meta.dirname, "../.."),
-		loader: "ts",
-	},
-	bundle: true,
-	alias: {
-		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
-		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
-	},
-	write: false,
-	format: "iife",
-	platform: "browser",
-	globalName: "ControllerTest",
-}).outputFiles[0].text;
-function fixture() {
-	const dom = new JSDOM('<main id="feed-grid"></main><dialog id="modal" open></dialog>', {
-		url: "https://controller.test/",
-		runScripts: "outside-only",
-		pretendToBeVisual: true,
-	});
-	const w = dom.window as any;
-	w.matchMedia = () => ({ matches: false, addEventListener() {} });
-	w.structuredClone = structuredClone;
-	const computed = w.getComputedStyle.bind(w);
-	w.getComputedStyle = (el: Element, pseudo?: string) =>
-		pseudo === "::before"
-			? { transform: el.getAttribute("aria-checked") === "true" ? "translateX(20px)" : "none" }
-			: computed(el);
-	w.CSS = { escape: (value: string) => value };
-	const observers: any[] = [];
-	w.ResizeObserver = class {
-		nodes = [];
-		disconnected = false;
-		callback: () => void;
-		constructor(callback: () => void) {
-			this.callback = callback;
-			observers.push(this);
-		}
-		observe(node: any) {
-			this.nodes.push(node);
-		}
-		disconnect() {
-			this.disconnected = true;
-		}
-	};
-	installReactBrowserAPIs(w);
-	w.eval(bundle);
-	const { AppController, Store, Panels } = w.ControllerTest;
-	Store.state = {
-		cards: [{ id: "mail-one", type: "mail", title: "Synthetic mail", body: "" }],
-		items: {},
-		preferences: {},
-	};
-	Store.save = () => {};
-	const app = Object.assign(Object.create(AppController.prototype), {
-		dialog: w.document.getElementById("modal"),
-		grid: w.document.getElementById("feed-grid"),
-		modalKind: "",
-		settingsGroup: "desk",
-		homeSelected: new Set<string>(),
-		applyPreferences() {},
-		withFeedAnchor() {},
-		refreshCard() {},
-		announce() {},
-	});
-	return { dom, w, app, Store, Panels, observers };
-}
+import { fixture } from "./app-fixture.ts";
 
 test("opening a card from Markdown navigates the existing surface without opening the link", () => {
 	const f = fixture();
@@ -249,12 +175,14 @@ for (const scenario of ["opened", "declined", "account-changed", "disconnected"]
 	});
 }
 
-for (const sourceRow of [true, false]) {
-	test(`preview chrome tracks height and close-disc position after resize (${sourceRow ? "source row" : "title fallback"})`, () => {
+for (const layout of ["source row", "title fallback", "podcast"]) {
+	test(`preview chrome tracks height and close-disc position after resize (${layout})`, () => {
 		const f = fixture();
 		try {
 			const { app, observers, w } = f;
-			app.dialog.innerHTML = `<div class="preview-sheet"><div class="sheet-scroll"><div class="preview-body">${sourceRow ? '<div class="preview-meta">Synthetic source</div>' : ""}<h1 id="modal-title" style="line-height:28px">Synthetic title</h1></div></div></div>`;
+			const sourceRow = layout === "source row",
+				podcast = layout === "podcast";
+			app.dialog.innerHTML = `<div class="preview-sheet"><div class="sheet-scroll"><div class="preview-body ${podcast ? "is-podcast" : ""}">${sourceRow ? '<div class="preview-meta">Synthetic source</div>' : ""}<h1 id="modal-title" style="line-height:28px">Synthetic title</h1></div></div></div>`;
 			const sheet = app.dialog.querySelector(".preview-sheet"),
 				scroll = sheet.querySelector(".sheet-scroll"),
 				anchor = sheet.querySelector(sourceRow ? ".preview-meta" : "#modal-title");
@@ -278,7 +206,7 @@ for (const sourceRow of [true, false]) {
 			assert.equal(app.dialog.style.getPropertyValue("--preview-height"), "400px");
 			assert.equal(
 				sheet.style.getPropertyValue("--preview-title-top"),
-				sourceRow ? "48px" : "52px",
+				podcast ? "var(--space-8)" : sourceRow ? "48px" : "52px",
 			);
 			assert.equal(observers[0].nodes.length, 2);
 			top = 100;
@@ -288,14 +216,17 @@ for (const sourceRow of [true, false]) {
 			assert.equal(app.dialog.style.getPropertyValue("--preview-height"), "500px");
 			assert.equal(
 				sheet.style.getPropertyValue("--preview-title-top"),
-				sourceRow ? "68px" : "72px",
+				podcast ? "var(--space-8)" : sourceRow ? "68px" : "72px",
 			);
 			scroll.dispatchEvent(new w.Event("scroll"));
 			assert.equal(sheet.classList.contains("is-scrolled"), true);
 			scroll.scrollTop = 0;
 			top = 0;
 			observers[0].callback();
-			assert.equal(sheet.style.getPropertyValue("--preview-title-top"), "4px");
+			assert.equal(
+				sheet.style.getPropertyValue("--preview-title-top"),
+				podcast ? "var(--space-8)" : "4px",
+			);
 			app.sheetHide.destroy();
 			app.previewSizeObserver.disconnect();
 		} finally {

@@ -5,6 +5,7 @@ struct MediaDetail: View {
   let card: CardModel
   let state: CardState
   var full = false
+  var availableWidth: CGFloat?
   var availableHeight: CGFloat?
   var scrollOffset: CGFloat = 0
   var bottomRoom: CGFloat = 0
@@ -36,7 +37,9 @@ struct MediaDetail: View {
         ? Format.duration(Int(playback.duration)) : Copy.text("web.media.unknownDuration"))
   }
   private var primary: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+    VStack(
+      alignment: .leading, spacing: AppleMetrics.space16 * workspace.preferences.readerSpacing.scale
+    ) {
       if !card.isPodcast {
         source.frame(minHeight: AppleMetrics.space36, alignment: .leading)
           .padding(.bottom, -AppleMetrics.space10)
@@ -51,11 +54,10 @@ struct MediaDetail: View {
         )
         .frame(maxWidth: .infinity)
       }
-      Text(card.title).font(
-        .sans(
-          card.isPodcast
-            ? (full ? AppleMetrics.previewTitle : AppleMetrics.font22) : AppleMetrics.previewTitle,
-          .semibold)
+      Text(card.title).textStyle(
+        card.isPodcast
+          ? (full ? AppleMetrics.previewTitle : AppleMetrics.font22) : AppleMetrics.previewTitle,
+        .semibold
       )
       .multilineTextAlignment(card.isPodcast ? .center : .leading)
       .frame(maxWidth: .infinity, alignment: card.isPodcast ? .center : .leading)
@@ -77,9 +79,6 @@ struct MediaDetail: View {
       }
       if card.isPodcast {
         audioControls.disabled(!available)
-        if !available {
-          Text(Copy.text("web.media.playbackUnavailable")).foregroundStyle(AppleColors.secondary)
-        }
       } else if !card.isPodcast, let id = OfficialVideoPlayer.videoID(card.url) {
         OfficialVideoPlayer(
           videoID: id, initialPosition: state.playbackPosition, playback: playback, save: save
@@ -104,7 +103,14 @@ struct MediaDetail: View {
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
       }
       if playback.failed {
-        Text(Copy.text("web.media.playbackUnavailable")).foregroundStyle(AppleColors.secondary)
+        VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+          Text(
+            Copy.text(card.isPodcast ? "web.media.playbackFailed" : "web.media.playbackUnavailable")
+          ).foregroundStyle(AppleColors.secondary)
+          Button(Copy.text("web.retry")) {
+            if card.isPodcast { playback.toggle() } else { playback.retryVideo?() }
+          }.buttonStyle(TextLinkStyle(padded: false))
+        }
       }
       if full, !card.isPodcast {
         MediaChapters(
@@ -112,7 +118,7 @@ struct MediaDetail: View {
           seek: playback.seek
         ).disabled(!available)
       }
-    }.padding(.horizontal, card.isPodcast && full ? AppleMetrics.space64 : 0)
+    }.padding(.horizontal, card.isPodcast && full ? AppleMetrics.space24 : 0)
       .padding(.top, card.isPodcast ? AppleMetrics.space32 : 0)
       .onGeometryChange(for: CGFloat.self) {
         $0.size.height
@@ -214,8 +220,11 @@ struct MediaDetail: View {
                   playback.seek(line.start)
                 } label: {
                   HStack(alignment: .top, spacing: AppleMetrics.space12) {
-                    Text(Format.duration(Int(line.start))).font(.number(AppleMetrics.font13))
-                    Text(line.text).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(Format.duration(Int(line.start))).textStyle(
+                      AppleMetrics.font13, number: true)
+                    Text(line.text).textStyle(
+                      AppleMetrics.font14, leading: AppleMetrics.previewBodyLeading
+                    ).frame(maxWidth: .infinity, alignment: .leading)
                   }.padding(AppleMetrics.space8)
                     .background(index == active ? AppleColors.accentSoft : Color.clear)
                 }.buttonStyle(.plain).disabled(!available).id(index)
@@ -263,17 +272,31 @@ struct MediaDetail: View {
   }
 
   var body: some View {
-    let layout =
+    let split =
       full
-      ? AnyLayout(HStackLayout(alignment: .top, spacing: AppleMetrics.space32))
+      && (availableWidth ?? AppleMetrics.readerColumnsBreakpoint)
+        >= AppleMetrics.readerColumnsBreakpoint
+    let layout =
+      split
+      ? AnyLayout(HStackLayout(alignment: .top, spacing: AppleMetrics.space30))
       : AnyLayout(VStackLayout(alignment: .leading, spacing: AppleMetrics.space16))
     layout {
-      if full {
-        ScrollView { primary.padding(.bottom, AppleMetrics.space32) }
-          .frame(maxWidth: .infinity, maxHeight: availableHeight)
-          .background(card.isPodcast ? Cover.tone(card.image).opacity(0.25) : Color.clear)
+      if split {
+        ScrollView { primary.padding(.bottom, AppleMetrics.space24) }
+          .frame(
+            width: max(
+              0, (availableWidth ?? AppleMetrics.readerColumnsBreakpoint) - AppleMetrics.space30)
+              * (card.isPodcast ? 0.5 : 1.6 / 2.6)
+          )
+          .frame(height: availableHeight)
+          .background(card.isPodcast ? AppleColors.surface : Color.clear)
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
-        ScrollView { secondary }.frame(maxWidth: .infinity, maxHeight: availableHeight)
+        ScrollView { secondary }
+          .frame(maxWidth: .infinity)
+          .frame(height: availableHeight)
+      } else if full {
+        primary.frame(maxWidth: .infinity)
+        secondary.frame(maxWidth: .infinity, alignment: .topLeading)
       } else if card.isPodcast {
         // The pinned section owns space above the transcript. Its hidden player space overlaps
         // only the full player's last rows, then replaces them when the section reaches the top.
@@ -419,61 +442,5 @@ struct MediaDetail: View {
       values["readAt"] = .number(Format.milliseconds())
     }
     workspace.write([.itemPatch(id: card.id, values: values)])
-  }
-}
-
-/// The same flat progress track used by the HTML player, without a system bezel.
-private struct PlaybackTrack: View {
-  let position: Double
-  let duration: Double
-  var body: some View {
-    GeometryReader { geometry in
-      ZStack(alignment: .leading) {
-        Capsule().fill(AppleColors.lineHover)
-        Capsule().fill(AppleColors.primary)
-          .frame(width: geometry.size.width * min(1, max(0, position / max(1, duration))))
-      }
-    }
-  }
-}
-
-private struct PlaybackScrubber: View {
-  let position: Double
-  let duration: Double
-  let seek: (Double) -> Void
-  @Environment(\.isEnabled) private var enabled
-  var body: some View {
-    GeometryReader { geometry in
-      let trackWidth = max(1, geometry.size.width - AppleMetrics.space12)
-      ZStack(alignment: .leading) {
-        PlaybackTrack(position: position, duration: duration)
-          .frame(height: AppleMetrics.space4).padding(.horizontal, AppleMetrics.space6)
-        Circle().fill(AppleColors.primary).frame(
-          width: AppleMetrics.space12, height: AppleMetrics.space12
-        )
-        .offset(x: trackWidth * min(1, max(0, position / max(1, duration))))
-      }.frame(height: AppleMetrics.space44)
-        .contentShape(Rectangle())
-        .gesture(
-          DragGesture(minimumDistance: 0).onChanged { value in
-            if enabled {
-              seek(
-                min(
-                  duration, max(0, (value.location.x - AppleMetrics.space6) / trackWidth * duration)
-                ))
-            }
-          })
-    }.frame(height: AppleMetrics.space44)
-      .accessibilityElement()
-      .accessibilityLabel(Copy.text("web.media.position"))
-      .accessibilityValue(Format.duration(Int(position)))
-      .accessibilityAdjustableAction { direction in
-        guard enabled else { return }
-        switch direction {
-        case .increment: seek(min(duration, position + 15))
-        case .decrement: seek(max(0, position - 15))
-        @unknown default: break
-        }
-      }
   }
 }

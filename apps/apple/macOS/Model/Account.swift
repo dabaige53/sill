@@ -43,7 +43,14 @@ import SillKit
       }
     } catch {
       guard token == generation else { return }
-      workspace.signOutLocally()
+      let confirmedSignOut: Bool
+      switch error {
+      case CloudWorkspaceError.unauthenticated: confirmedSignOut = true
+      case CloudWorkspaceError.service(_, let status) where status == 401 || status == 403:
+        confirmedSignOut = true
+      default: confirmedSignOut = false
+      }
+      workspace.signOutLocally(preservingReminders: !confirmedSignOut)
       self.error = Self.message(error)
     }
   }
@@ -154,6 +161,14 @@ import SillKit
   func clearFeedback() {
     message = nil
     error = nil
+  }
+
+  var backupRequest: BackupRequest? {
+    guard let owner, !needsPasswordSetup, let cloud = (workspace.backend as? CloudBackend)?.cloud
+    else { return nil }
+    return { path, method, body in
+      try await cloud.backupRequest(path, method: method, body: body, expectedOwner: owner)
+    }
   }
 
   func expire(_ failure: any Error = CloudWorkspaceError.unauthenticated) {

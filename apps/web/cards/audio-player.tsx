@@ -45,26 +45,30 @@ export function AudioPlayer({
 			controls.current = null;
 			return;
 		}
+		setError(false);
 		const media = audio.current!;
+		let disposed = false;
 		media.src = url;
 		let previous = initialPosition;
 		let pendingSeek = initialPosition;
 		let advanced = false;
 		let ready = false;
 		const update = () => {
-			const position = Number.isFinite(media.currentTime) ? media.currentTime : 0;
+			const position =
+				ready && Number.isFinite(media.currentTime) ? media.currentTime : pendingSeek;
 			if (!media.seeking && !media.paused && position > previous + 0.01) advanced = true;
 			previous = position;
 			const next = {
 				position,
 				duration: Number.isFinite(media.duration) ? media.duration : 0,
-				playing: !media.paused,
+				playing: !media.paused && media.readyState >= 3 && !media.error,
 			};
 			setState(next);
 			callbacks.current.onTime(next);
 		};
 		const loaded = () => {
 			ready = true;
+			setError(false);
 			media.currentTime = Math.min(pendingSeek, Math.max(0, media.duration));
 			update();
 		};
@@ -81,7 +85,10 @@ export function AudioPlayer({
 			callbacks.current.onSave(media.currentTime, advanced);
 		};
 		const failed = () => {
+			if (disposed) return;
 			setError(true);
+			advanced = false;
+			media.pause();
 			update();
 		};
 		const seek = (position: number) => {
@@ -96,6 +103,13 @@ export function AudioPlayer({
 		};
 		const toggle = () => {
 			if (media.paused) {
+				setError(false);
+				if (media.error) {
+					pendingSeek = previous;
+					advanced = false;
+					ready = false;
+					media.load();
+				}
 				void media.play().catch(failed);
 			} else media.pause();
 		};
@@ -103,7 +117,8 @@ export function AudioPlayer({
 		const events = {
 			loadedmetadata: loaded,
 			timeupdate: update,
-			play: update,
+			playing: update,
+			waiting: update,
 			pause: paused,
 			seeking,
 			ended,
@@ -111,6 +126,7 @@ export function AudioPlayer({
 		};
 		for (const [name, listener] of Object.entries(events)) media.addEventListener(name, listener);
 		return () => {
+			disposed = true;
 			for (const [name, listener] of Object.entries(events))
 				media.removeEventListener(name, listener);
 			media.pause();
@@ -179,9 +195,14 @@ export function AudioPlayer({
 					<Icon name="forward30" />
 				</button>
 			</div>
-			{(error || !url) && (
+			{error && url && (
+				<button type="button" className="btn" onClick={() => controls.current?.toggle()}>
+					{copy("web.retry")}
+				</button>
+			)}
+			{error && (
 				<p className="empty-description" role="alert">
-					{copy("web.media.playbackUnavailable")}
+					{copy("web.media.playbackFailed")}
 				</p>
 			)}
 		</div>

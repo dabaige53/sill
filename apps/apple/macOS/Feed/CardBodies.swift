@@ -39,11 +39,14 @@ struct BodyStack<Content: View>: View {
   var bottom = AppleMetrics.cardPadding
   var compact = false
   @ViewBuilder var content: Content
+  @Environment(\.cardPaddingScale) private var paddingScale
   var body: some View {
-    VStack(alignment: .leading, spacing: spacing) { content }
-      .padding(.horizontal, AppleMetrics.cardPadding)
-      .padding(.top, compact ? AppleMetrics.compactCardPaddingY : AppleMetrics.cardPadding)
-      .padding(.bottom, compact ? AppleMetrics.compactCardPaddingY : bottom)
+    VStack(alignment: .leading, spacing: spacing * paddingScale) { content }
+      .padding(.horizontal, AppleMetrics.cardPadding * paddingScale)
+      .padding(
+        .top, (compact ? AppleMetrics.compactCardPaddingY : AppleMetrics.cardPadding) * paddingScale
+      )
+      .padding(.bottom, (compact ? AppleMetrics.compactCardPaddingY : bottom) * paddingScale)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
@@ -59,8 +62,8 @@ private struct ReadingProgress: View {
     if card.kind.readable, !state.read, progress > 0 {
       HStack(spacing: AppleMetrics.space4) {
         ProgressRing(progress: progress)
-        Text("\(Int((progress * 100).rounded()))%").font(
-          .number(AppleMetrics.font13, .medium))
+        Text("\(Int((progress * 100).rounded()))%").textStyle(
+          AppleMetrics.font13, .medium, number: true)
       }
       .foregroundStyle(AppleColors.accent)
     }
@@ -124,7 +127,7 @@ struct MailBody: View {
         HStack(spacing: AppleMetrics.space10) {
           Avatar(name: sender, size: AppleMetrics.space32)
           VStack(alignment: .leading, spacing: 0) {
-            Text(sender).font(.sans(AppleMetrics.font14, .semibold)).lineLimit(1)
+            Text(sender).textStyle(AppleMetrics.font14, .semibold).lineLimit(1)
               .foregroundStyle(AppleColors.primary)
             HStack(spacing: AppleMetrics.space4) {
               SourceIcon(card: card, size: AppleMetrics.font12)
@@ -132,7 +135,7 @@ struct MailBody: View {
                 [card.sourceName, card.sentAt.flatMap(Self.date) ?? "", card.readingTime]
                   .filter { !$0.isEmpty }.joined(separator: " · ")
               )
-              .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary).lineLimit(1)
+              .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
             }
           }
         }
@@ -238,7 +241,7 @@ struct TaskBody: View {
         }
       ) {
         if !tasks.isEmpty {
-          Text("\(done)/\(tasks.count)").font(.number(AppleMetrics.font13, .semibold))
+          Text("\(done)/\(tasks.count)").textStyle(AppleMetrics.font13, .semibold, number: true)
             .foregroundStyle(AppleColors.primary)
         }
       }
@@ -264,6 +267,7 @@ struct TaskBody: View {
 
 /// A task row is its own checkbox. It takes the click; the card never sees it.
 struct TaskRow: View {
+  @Environment(\.contentAppearance) private var appearance
   let task: CardModel.TaskItem
   var locked = false
   var large = false
@@ -278,7 +282,8 @@ struct TaskRow: View {
         )
         .padding(
           .top,
-          (LineHeight.height(size: large ? AppleMetrics.font15 : AppleMetrics.font14)
+          (LineHeight.height(
+            size: (large ? AppleMetrics.font15 : AppleMetrics.font14) * appearance.scale)
             - (large ? AppleMetrics.taskDotSize : AppleMetrics.space18)) / 2)
         Text(task.text)
           .strikethrough(task.done)
@@ -322,7 +327,7 @@ struct ReminderBody: View {
       ) {
         if let when {
           Text(Format.reminderClock(when.at, now: context.now))
-            .font(.number(AppleMetrics.font13, .medium))
+            .textStyle(AppleMetrics.font13, .medium, number: true)
             .foregroundStyle(when.due ? AppleColors.warning : AppleColors.secondary)
         }
       }
@@ -330,7 +335,8 @@ struct ReminderBody: View {
         ReminderCheck(card: card, state: state)
           .padding(
             .top,
-            (LineHeight.height(size: AppleMetrics.font16) - AppleMetrics.reminderDotSize) / 2)
+            (LineHeight.height(size: AppleMetrics.font16 * context.appearance.scale)
+              - AppleMetrics.reminderDotSize) / 2)
         CardTitle(text: card.title, faded: faded, query: context.query)
       }
 
@@ -417,7 +423,7 @@ struct RelatedRow: View {
           .frame(maxWidth: .infinity, alignment: .leading)
         Icon("chevron", size: AppleMetrics.font14).foregroundStyle(AppleColors.iconSecondary)
       }
-      .font(.sans(AppleMetrics.font13))
+      .textStyle(AppleMetrics.font13)
       .foregroundStyle(AppleColors.primary)
       .padding(.horizontal, AppleMetrics.space10)
       .padding(.vertical, AppleMetrics.space9)
@@ -449,8 +455,8 @@ struct PhotoBody: View {
           ].filter { !$0.isEmpty }.joined(separator: " · ")
         ) {
           if !photos.isEmpty {
-            Text("\(photos.count)" + Copy.text("web.common.cardCountSuffix")).font(
-              .number(AppleMetrics.font12))
+            Text("\(photos.count)" + Copy.text("web.common.cardCountSuffix")).textStyle(
+              AppleMetrics.font12, number: true)
           }
         }
         CardTitle(text: card.title, faded: faded, query: context.query)
@@ -500,8 +506,8 @@ struct FileBody: View {
           .joined(separator: " · ")
       ) {
         if !card.files.isEmpty {
-          Text(String(card.files.count) + Copy.text("web.card.fileCountSuffix")).font(
-            .number(AppleMetrics.font12))
+          Text(String(card.files.count) + Copy.text("web.card.fileCountSuffix")).textStyle(
+            AppleMetrics.font12, number: true)
         }
       }
       CardTitle(text: card.title, faded: faded, query: context.query)

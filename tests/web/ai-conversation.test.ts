@@ -118,6 +118,10 @@ function fixture(desktop = true) {
 		addEventListener() {},
 	});
 	w.structuredClone = structuredClone;
+	w.ResizeObserver = class {
+		observe() {}
+		disconnect() {}
+	};
 	installReactBrowserAPIs(w);
 	w.eval(bundle);
 	const { Store } = w.AITest;

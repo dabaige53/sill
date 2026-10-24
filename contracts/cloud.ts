@@ -81,10 +81,19 @@ export const changes = z
 	.partial()
 	.extend({
 		title: Card.shape.title.optional(),
-		type: z.enum(cardTypes).optional(),
+		type: z
+			.enum(cardTypes)
+			.optional()
+			.describe(
+				"Card kind, not a MIME type or source kind. media uses media=video/podcast; pr requires pullRequest. Choose the kind matching the user's purpose.",
+			),
 		body: Card.shape.body,
 		url: Card.shape.url,
-		state: cloudState.optional(),
+		state: cloudState
+			.optional()
+			.describe(
+				"Personal state, separate from card facts. Partial updates merge keys. progress is reading fraction; playbackPosition is media seconds. Neither means an external action completed.",
+			),
 	})
 	.strict();
 export const create = changes.required({ title: true, type: true }).superRefine((card, context) => {
@@ -119,8 +128,20 @@ export const event = z
 		destination_ref: id,
 	})
 	.strict();
-const expected_owner = z.string().min(1).max(100).optional();
-const key = z.string().regex(/^[\w-]{8,128}$/);
+const expected_owner = z
+	.string()
+	.min(1)
+	.max(100)
+	.optional()
+	.describe(
+		"Optional account guard from an authenticated host; grants no permissions. Keep it unchanged when retrying a request.",
+	);
+const key = z
+	.string()
+	.regex(/^[\w-]{8,128}$/)
+	.describe(
+		"New UUID per logical write. Reuse the exact key and arguments only when retrying that same write after checking an unknown result.",
+	);
 export const toolInputs = {
 	sill_getWorkspace: z.object({ expected_owner }).strict(),
 	sill_applyOperations: z

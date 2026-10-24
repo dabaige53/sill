@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { defaultAppearance } from "../../../contracts/appearance.ts";
 import type { Card } from "../../../contracts/card.ts";
 import { CardActions } from "../../../contracts/card-actions.ts";
 import { eventRelative, eventTimely, timeString } from "../atoms/primitives.ts";
@@ -9,6 +10,7 @@ import type { AppController } from "../views/app.ts";
 import { actionTypeExamples, type PanelRenderers } from "./panel-contract.ts";
 import { icon, keyed, segmented, toggle } from "./panel-primitives.tsx";
 import { formatBytes } from "./panels-components.tsx";
+import { SystemReminderSettings } from "./system-reminder-settings.tsx";
 
 export const panelSettings = {
 	settingsGroups: [
@@ -43,6 +45,28 @@ export const panelSettings = {
 					</div>
 				</>
 			);
+		const layoutRow = (
+			key: keyof typeof defaultAppearance,
+			options: (
+				| "small"
+				| "standard"
+				| "large"
+				| "compact"
+				| "roomy"
+				| "narrow"
+				| "full"
+				| "strong"
+			)[],
+		) =>
+			row(
+				copy(`web.settings.layout.${key}`),
+				segmented(
+					key,
+					options.map((value) => [value, copy(`web.settings.layout.${value}`)]),
+					p(key),
+					copy(`web.settings.layout.${key}`),
+				),
+			);
 		const pages: Record<string, () => ReactNode> = {
 			// Adding lives here now: the same one field as the capture sheet. N still opens the sheet directly.
 			add: () => (
@@ -74,6 +98,7 @@ export const panelSettings = {
 			desk: () => (
 				<>
 					<h2>{copy("web.common.desk")}</h2>
+					<SystemReminderSettings />
 					<div className={"settings-card"}>
 						{row(
 							copy("web.settings.stackSameSource"),
@@ -110,7 +135,6 @@ export const panelSettings = {
 							),
 						)}
 					</div>
-					<p className={"settings-hint muted"}>{copy("web.actions.hint")}</p>
 					{"\n       "}
 					<div className={"settings-card"}>
 						{row(
@@ -166,7 +190,23 @@ export const panelSettings = {
 								copy("web.settings.cardWidth.label"),
 							),
 						)}
+						{layoutRow("textWeight", ["standard", "strong"])}
 					</div>
+					<div className="group-label">{copy("web.settings.layout.cards")}</div>
+					<div className="settings-card">
+						{layoutRow("cardTextSize", ["small", "standard", "large"])}
+						{layoutRow("cardSpacing", ["compact", "standard", "roomy"])}
+						{layoutRow("cardPadding", ["compact", "standard", "roomy"])}
+					</div>
+					<div className="group-label">{copy("web.settings.layout.reading")}</div>
+					<div className="settings-card">
+						{layoutRow("readerTextSize", ["small", "standard", "large"])}
+						{layoutRow("readerSpacing", ["compact", "standard", "roomy"])}
+						{layoutRow("readerWidth", ["narrow", "standard", "full"])}
+					</div>
+					<button type="button" className="text-link" data-action="layout-reset">
+						{copy("web.settings.layout.reset")}
+					</button>
 				</>
 			),
 			keys: () => (
@@ -222,10 +262,6 @@ export const panelSettings = {
 							<>
 								<span className={"num"}>{formatBytes(Store.bytes())}</span>
 							</>,
-						)}
-						{row(
-							copy("web.settings.aiLocal"),
-							toggle("aiLocal", p("aiLocal"), copy("web.settings.aiLocal")),
 						)}
 					</div>
 					{"\n       "}

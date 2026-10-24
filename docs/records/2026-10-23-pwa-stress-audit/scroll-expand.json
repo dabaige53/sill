@@ -1,0 +1,16 @@
+{
+  "after": {
+    "animations": 0,
+    "full": true,
+    "scrollTop": 6,
+    "titleTop": 128.390625,
+    "top": 0
+  },
+  "before": {
+    "animations": 0,
+    "full": false,
+    "scrollTop": 0,
+    "titleTop": 198.390625,
+    "top": 64
+  }
+}

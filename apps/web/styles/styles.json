@@ -4,14 +4,18 @@
 	"apps/web/styles/controls.css",
 	"apps/web/styles/form-controls.css",
 	"apps/web/styles/cards.css",
+	"apps/web/styles/card-types.css",
 	"apps/web/styles/card-stacks.css",
 	"apps/web/styles/overlays.css",
 	"apps/web/styles/preview-media.css",
+	"apps/web/styles/detail-content.css",
 	"apps/web/styles/panels.css",
 	"apps/web/styles/overlay-actions.css",
 	"apps/web/styles/overlay-gestures.css",
 	"apps/web/styles/responsive.css",
 	"apps/web/styles/phone.css",
 	"apps/web/styles/input-feedback.css",
+	"apps/web/styles/appearance.css",
+	"apps/web/styles/reader-layout.css",
 	"apps/web/styles/ai-conversation.css"
 ]

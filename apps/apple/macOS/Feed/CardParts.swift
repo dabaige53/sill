@@ -9,6 +9,8 @@ struct CardContext: Equatable {
   var fadeRead = true
   /// Shown in an open stack: summary hidden, tighter padding.
   var compact = false
+  var appearance = ContentAppearance()
+  var paddingScale: CGFloat = 1
 }
 
 /// Intents a card can raise. Not observable: holding it never redraws anything.
@@ -68,7 +70,7 @@ struct CardHead<Right: View>: View {
       Spacer(minLength: 0)
       right
     }
-    .font(.sans(AppleMetrics.font12))
+    .textStyle(AppleMetrics.font12)
     .frame(minHeight: AppleMetrics.cardHeadHeight)
   }
 }
@@ -212,13 +214,21 @@ struct ProgressRing: View {
 struct CoverImage: View {
   let name: String?
   var faded = false
+  var fit = false
   @State private var shown = false
   var body: some View {
     let image = name.flatMap(Cover.image)
     ZStack {
       Cover.tone(name)
-      if let image {
-        Image(nsImage: image).resizable().scaledToFill()
+      if let name, name.hasPrefix("https://"), let url = URL(string: name), url.host != nil {
+        AsyncImage(url: url) { phase in
+          if let image = phase.image {
+            image.resizable().aspectRatio(contentMode: fit ? .fit : .fill)
+              .saturation(faded ? 0.6 : 1)
+          }
+        }
+      } else if let image {
+        Image(nsImage: image).resizable().aspectRatio(contentMode: fit ? .fit : .fill)
           .saturation(faded ? 0.6 : 1)
           .animation(Motion.read, value: faded)
       }
@@ -238,7 +248,7 @@ struct FileRow: View {
         .foregroundStyle(AppleColors.iconSecondary)
       Text(name).lineLimit(1).truncationMode(.tail)
     }
-    .font(.sans(AppleMetrics.font13))
+    .textStyle(AppleMetrics.font13)
     .foregroundStyle(AppleColors.primary)
     .padding(.vertical, pill ? AppleMetrics.space6 : 0)
     .padding(.horizontal, pill ? AppleMetrics.space10 : 0)
@@ -255,7 +265,7 @@ struct MoreItems: View {
   var indent: CGFloat = 0
   var body: some View {
     Text("\(Copy.text("web.templates.dff74742a6f0"))\(count)\(suffix)")
-      .font(.sans(AppleMetrics.font13))
+      .textStyle(AppleMetrics.font13)
       .foregroundStyle(AppleColors.secondary)
       .padding(.leading, indent)
   }

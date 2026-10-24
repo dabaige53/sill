@@ -78,17 +78,18 @@ import Testing
     scroll.disconnect()
   }
 
-  @Test func newestSearchWinsAndClearCancelsPendingWork() async throws {
+  @Test func newestSearchWinsAndClearCancelsPendingWork() async {
     let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
     let feed = Feed(workspace: workspace)
-    feed.scheduleSearch("first")
-    feed.scheduleSearch("latest")
+    let first = feed.scheduleSearch("first")
+    let latest = feed.scheduleSearch("latest")
     #expect(feed.query.isEmpty)
-    try await Task.sleep(for: .milliseconds(Int(AppleMetrics.searchDelay) + 80))
+    await latest.value
+    await first.value
     #expect(feed.query == "latest")
-    feed.scheduleSearch("stale")
+    let stale = feed.scheduleSearch("stale")
     feed.clearFilter()
-    try await Task.sleep(for: .milliseconds(Int(AppleMetrics.searchDelay) + 80))
+    await stale.value
     #expect(feed.query.isEmpty)
   }
 }

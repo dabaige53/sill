@@ -1,9 +1,10 @@
+import { animate } from "motion/mini";
 import { useEffect, useRef, useState } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { Assets } from "../data/assets.ts";
+import { assetURL } from "../data/assets.ts";
 import { detailDate } from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -44,25 +45,58 @@ export function MediaDetail({
 	const primary = useRef<HTMLDivElement>(null);
 	const [compact, setCompact] = useState(false);
 	const compactPlayer = useRef<HTMLDivElement>(null);
-	// biome-ignore lint/correctness/useExhaustiveDependencies: Full-screen switches replace the scroll surface and must rebind its observer.
+	const playerBackdrop = useRef<HTMLDivElement>(null);
+	const tabBackdrop = useRef<HTMLDivElement>(null);
 	useEffect(() => {
+		if (full) {
+			setCompact(false);
+			return;
+		}
 		const node = primary.current;
+		const player = compactPlayer.current;
+		const backdrop = playerBackdrop.current;
+		const tabs = tabBackdrop.current;
 		const scroll = node?.closest(".sheet-scroll");
-		if (!node || !scroll || card.media !== "podcast") return;
-		const update = () =>
-			setCompact(
-				scroll.scrollTop > 0 &&
-					node.getBoundingClientRect().bottom <
-						scroll.getBoundingClientRect().top + 64 + (compactPlayer.current?.offsetHeight || 0),
-			);
+		if (!node || !player || !backdrop || !tabs || !scroll || card.media !== "podcast") return;
+		// One paused Motion timeline per surface. Scroll owns progress, with no timed catch-up.
+		const options = { duration: 1, ease: "linear" as const, autoplay: false };
+		const timelines = [
+			animate(node, { opacity: [1, 0] }, options),
+			animate(
+				player,
+				{ opacity: [0, 1], transform: ["translateY(calc(-1 * var(--space-8)))", "none"] },
+				options,
+			),
+			animate(backdrop, { opacity: [0, 1] }, options),
+			animate(tabs, { opacity: [0, 1] }, options),
+		];
+		let frame = 0;
+		const update = () => {
+			frame = 0;
+			const top = Number.parseFloat(getComputedStyle(player.parentElement!).top) || 0;
+			const range = Math.max(1, player.offsetHeight);
+			const end = scroll.getBoundingClientRect().top + top + player.offsetHeight;
+			const progress =
+				scroll.scrollTop <= 0
+					? 0
+					: Math.max(0, Math.min(1, (end + range - node.getBoundingClientRect().bottom) / range));
+			for (const timeline of timelines) timeline.time = progress;
+			// Only the dominant player accepts focus and pointer input during the handoff.
+			setCompact(progress >= 0.5);
+		};
+		const schedule = () => {
+			if (!frame) frame = requestAnimationFrame(update);
+		};
 		update();
-		const resize = new ResizeObserver(update);
+		const resize = new ResizeObserver(schedule);
 		resize.observe(node);
 		resize.observe(scroll);
-		scroll.addEventListener("scroll", update, { passive: true });
+		scroll.addEventListener("scroll", schedule, { passive: true });
 		return () => {
+			cancelAnimationFrame(frame);
 			resize.disconnect();
-			scroll.removeEventListener("scroll", update);
+			scroll.removeEventListener("scroll", schedule);
+			for (const timeline of timelines) timeline.cancel();
 		};
 	}, [card.media, full]);
 	const chapterIndex = (card.chapters || []).findLastIndex(
@@ -121,7 +155,21 @@ export function MediaDetail({
 					</div>
 				)}
 				{card.media === "podcast" && (
-					<div className="player-art">{card.image && <img src={Assets[card.image]} alt="" />}</div>
+					<div className="player-art">
+						{card.image && (
+							<img
+								referrerPolicy="no-referrer"
+								onError={(event) => {
+									event.currentTarget.style.opacity = "0";
+								}}
+								onLoad={(event) => {
+									event.currentTarget.style.opacity = "1";
+								}}
+								src={assetURL(card.image)}
+								alt=""
+							/>
+						)}
+					</div>
 				)}
 				<h1 id="modal-title">{card.title}</h1>
 				{card.media === "podcast" && (
@@ -162,7 +210,7 @@ export function MediaDetail({
 					<YouTubePlayer
 						id={video}
 						initialPosition={initial.current}
-						cover={card.image ? Assets[card.image] : undefined}
+						cover={card.image ? assetURL(card.image) : undefined}
 						knownDuration={card.duration}
 						onSave={save}
 						onTime={setState}
@@ -170,7 +218,19 @@ export function MediaDetail({
 					/>
 				) : (
 					<div className="unavailable-video">
-						{card.image && <img src={Assets[card.image]} alt="" />}
+						{card.image && (
+							<img
+								referrerPolicy="no-referrer"
+								onError={(event) => {
+									event.currentTarget.style.opacity = "0";
+								}}
+								onLoad={(event) => {
+									event.currentTarget.style.opacity = "1";
+								}}
+								src={assetURL(card.image)}
+								alt=""
+							/>
+						)}
 						<div>
 							<button type="button" disabled aria-label={copy("web.media.play")}>
 								<Icon name="play" />
@@ -224,13 +284,26 @@ export function MediaDetail({
 			</div>
 			{card.media === "podcast" && (
 				<div className="compact-player-slot">
+					<div className="compact-player-backdrop" ref={playerBackdrop} aria-hidden="true" />
 					<div
 						className="compact-player"
 						ref={compactPlayer}
 						inert={!compact}
 						aria-hidden={!compact}
 					>
-						{card.image && <img src={Assets[card.image]} alt="" />}
+						{card.image && (
+							<img
+								referrerPolicy="no-referrer"
+								onError={(event) => {
+									event.currentTarget.style.opacity = "0";
+								}}
+								onLoad={(event) => {
+									event.currentTarget.style.opacity = "1";
+								}}
+								src={assetURL(card.image)}
+								alt=""
+							/>
+						)}
 						<button
 							type="button"
 							className="compact-title"
@@ -269,6 +342,7 @@ export function MediaDetail({
 			<div className="media-secondary">
 				{(full || card.media === "podcast") && (
 					<div className="media-tab-header">
+						<div className="media-tab-backdrop" ref={tabBackdrop} aria-hidden="true" />
 						<div className="media-tabs" role="tablist">
 							{["transcript", "chapters", "summary"].map((name) => (
 								<button

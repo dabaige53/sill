@@ -31,7 +31,10 @@ export const richCardFields = {
 				.passthrough(),
 		)
 		.max(10000)
-		.optional(),
+		.optional()
+		.describe(
+			"Media only: {start,title} chapters, with start in seconds, strictly increasing and within known duration. Count must not exceed chapterCount. Never invent timestamps.",
+		),
 	transcript: z
 		.array(
 			z
@@ -39,13 +42,16 @@ export const richCardFields = {
 				.passthrough(),
 		)
 		.max(10000)
-		.optional(),
+		.optional()
+		.describe(
+			"Media only: actual timestamped transcript {start,text}; start in seconds, strictly increasing and within known duration. Ordinary notes belong in body.",
+		),
 	attachments: z
 		.array(Attachment)
 		.max(200)
 		.optional()
 		.describe(
-			"Mail attachments; when supplied, replaces the legacy single attachment label for display.",
+			"Mail only: actual attachments {name,url?,mimeType?,sizeBytes?}; no binary or base64. An explicit [] clears the list and overrides the legacy attachment label.",
 		),
 	pullRequest: z
 		.object({
@@ -112,7 +118,7 @@ export const richCardFields = {
 		.passthrough()
 		.optional()
 		.describe(
-			"PR snapshot written by an assistant. observedAt is the observation time; never presented as live GitHub state.",
+			"Required for type=pr only: repository (owner/repo), positive number, state and observedAt (offset ISO datetime). Optional branches, author, reviewers, checks, statistics and files reflect observed evidence. Only completed checks may have conclusion; listed files cannot exceed known changedFiles. Omit unknown counts, retain known zeros. Never presented as live GitHub state.",
 		),
 };
 

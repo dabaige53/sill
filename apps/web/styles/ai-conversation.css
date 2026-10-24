@@ -557,3 +557,13 @@
 	height: var(--space-48);
 	font-size: var(--text-input);
 }
+
+@media (min-width: 651px) {
+	.ai-dock.is-collapsed {
+		height: var(--rail-row);
+	}
+	.ai-dock:is([data-height="panel"], [data-height="full"]) > .ai-dock-surface,
+	.ai-dock:is([data-height="panel"], [data-height="full"]) > .ai-dock-tools {
+		display: none;
+	}
+}

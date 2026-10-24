@@ -103,7 +103,7 @@ export async function openCardLink(
 	let url: URL;
 	try {
 		url = new URL(value);
-		if (!["https:", "http:"].includes(url.protocol)) throw new Error();
+		if (!["https:", "http:", "mailto:"].includes(url.protocol)) throw new Error();
 	} catch {
 		throw agentFailure("invalid_link", copy("web.agent.invalidLink"));
 	}

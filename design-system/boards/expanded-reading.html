@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sill · 放大页探索</title>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f5f5f7,#111113);--paper:light-dark(#fff,#1c1c1f);--ink:light-dark(#1d1d1f,#f5f5f7);--muted:light-dark(#636366,#a1a1a6);--line:light-dark(#dedee3,#38383d)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif}header{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:76px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--paper)}h1{font-size:18px;margin:0;font-weight:600}header p{font-size:12px;color:var(--muted);margin:3px 0 0}nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}button,a{font:inherit;color:inherit}button{border:1px solid var(--line);background:var(--paper);border-radius:8px;min-height:34px;padding:6px 12px;cursor:pointer}button:hover{background:var(--bg)}a{text-decoration:none}a:hover{text-decoration:underline}output{min-width:46px;text-align:center;font-variant-numeric:tabular-nums}#viewport{height:calc(100dvh - 76px);overflow:auto;padding:32px;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:20px 20px}#bounds{position:relative;margin:0 auto}#canvas{width:4480px;height:950px;transform-origin:0 0;display:flex;gap:80px;position:absolute;left:0;top:0}section{width:1440px;flex-shrink:0}section h2{font-size:18px;font-weight:500;margin:0 0 12px;height:28px;display:flex;align-items:center;justify-content:space-between}section h2 a{font-size:14px;color:var(--muted)}iframe{display:block;width:1440px;height:900px;border:1px solid var(--line);border-radius:22px;background:var(--paper);box-shadow:0 2px 5px #00000008,0 18px 40px #00000008}@media(max-width:700px){header{align-items:flex-start;flex-direction:column;gap:12px}#viewport{height:calc(100dvh - 126px);padding:20px}nav{gap:6px}}
+</style>
+</head>
+<body>
+<header><div><h1>放大页探索</h1><p>三块桌面原型 · 1440 × 900 · 示例内容，播放控件仅示意</p></div><nav aria-label="画布视图"><a href="index.html">设计目录</a><button type="button" id="zoom-out" aria-label="缩小画布">−</button><output id="zoom-value" aria-live="polite">50%</output><button type="button" id="zoom-in" aria-label="放大画布">＋</button><button type="button" id="fit">适合窗口</button><button type="button" id="actual">原尺寸</button></nav></header>
+<main id="viewport" aria-label="放大页设计画布"><div id="bounds"><div id="canvas">
+<section><h2><span>资讯阅读 · 目录与专注阅读</span><a href="expanded-article.dc.html" target="_blank" rel="noopener">单独打开</a></h2><iframe src="expanded-article.dc.html" title="资讯阅读原型"></iframe></section>
+<section><h2><span>播客阅读 · 原画板播放区与文字稿</span><a href="expanded-podcast.dc.html" target="_blank" rel="noopener">单独打开</a></h2><iframe src="expanded-podcast.dc.html" title="播客阅读原型"></iframe></section>
+<section><h2><span>视频对照 · 视频与文字稿并排</span><a href="expanded-video.dc.html" target="_blank" rel="noopener">单独打开</a></h2><iframe src="expanded-video.dc.html" title="视频对照原型"></iframe></section>
+</div></div></main>
+<script>
+const viewport=document.getElementById('viewport'),bounds=document.getElementById('bounds'),canvas=document.getElementById('canvas'),value=document.getElementById('zoom-value');
+let scale=.5,fitting=true;
+function draw(){canvas.style.transform=`scale(${scale})`;bounds.style.width=`${4480*scale}px`;bounds.style.height=`${950*scale}px`;value.value=`${Math.round(scale*100)}%`;}
+function fit(){fitting=true;const s=getComputedStyle(viewport);scale=Math.min(1,(viewport.clientWidth-parseFloat(s.paddingLeft)-parseFloat(s.paddingRight))/4480,(viewport.clientHeight-parseFloat(s.paddingTop)-parseFloat(s.paddingBottom))/950);draw();}
+document.getElementById('zoom-out').onclick=()=>{fitting=false;scale=Math.max(.1,scale-.1);draw();};
+document.getElementById('zoom-in').onclick=()=>{fitting=false;scale=Math.min(1.5,scale+.1);draw();};
+document.getElementById('fit').onclick=fit;
+document.getElementById('actual').onclick=()=>{fitting=false;scale=1;draw();};
+addEventListener('resize',()=>{if(fitting)fit();});fit();
+</script>
+</body></html>

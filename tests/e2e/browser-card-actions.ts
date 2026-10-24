@@ -55,8 +55,10 @@ export async function runCardActions({
 				el.dispatchEvent(new Event("scroll"));
 			});
 			assert.equal((await state(page, "article-01")).read, true);
-			await page.keyboard.press("Escape");
+			await page.locator('#modal .reader-head [data-action="preview"]').click();
 			await page.waitForFunction(() => window.__app.modalKind === "preview");
+			assert.equal(await page.evaluate(() => window.__app.currentId), "article-01");
+			await page.locator('#modal [data-action="reader"]').click();
 			await page.keyboard.press("Escape");
 			await page.waitForFunction(() => !document.querySelector("dialog").open);
 			await action(page, "edit", "note-01");

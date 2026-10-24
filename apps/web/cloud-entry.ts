@@ -54,7 +54,6 @@ const Cloud: Record<string, any> = {
 	writeVersion: 0,
 	loading: false,
 	connectionError: false,
-	loginUntil: 0,
 };
 const callbackFailed = new URL(location.href).searchParams.has("login_error");
 if (callbackFailed) history.replaceState(null, "", location.pathname + location.hash);
@@ -301,7 +300,39 @@ app.openPanel = (kind?: any, ...args: any[]) => {
 };
 app.cloudSavedAccount = true;
 Object.defineProperty(app, "cloudSettingsContent", {
-	get: () => createElement(CloudSettings, { user: !!Cloud.user, host: !!window.__SILL_HOST__ }),
+	get: () => {
+		const owner = Cloud.user;
+		return createElement(CloudSettings, {
+			user: !!owner,
+			host: !!window.__SILL_HOST__,
+			backupOwner: owner,
+			backupApi: async (path, options = {}) => {
+				if (!owner || owner !== Cloud.user)
+					throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+				if (options.method === "POST") {
+					await sync.flush();
+					if (sync.pending.length || Cloud.busy || Cloud.pending)
+						throw agentFailure("save_pending", copy("web.cloudentry.30298242da3c"));
+					Cloud.writeVersion++;
+				}
+				const value = await cloudApi(path, {
+					...options,
+					headers: { ...options.headers, "X-Sill-Owner": owner },
+				});
+				if (owner !== Cloud.user)
+					throw agentFailure("account_changed", copy("web.agent.accountChanged"));
+				return value;
+			},
+			onBackupRestore: async () => {
+				if (Cloud.loadPromise) await Cloud.loadPromise;
+				if (owner !== Cloud.user || !(await loadCloud()))
+					throw Object.assign(new Error("backup_refresh_failed"), {
+						code: "backup_refresh_failed",
+						status: 503,
+					});
+			},
+		});
+	},
 });
 
 app.refresh = refreshWorkspace;
@@ -378,36 +409,6 @@ document.addEventListener("submit", async (e?: any) => {
 	if (e.target.id === "cloud-editor") {
 		e.preventDefault();
 		await saveCloud();
-	}
-	if (e.target.id === "cloud-login") {
-		e.preventDefault();
-		const button = e.target.querySelector("button"),
-			status = document.getElementById("cloud-login-status");
-		if (Date.now() < Cloud.loginUntil) return;
-		button.disabled = true;
-		Cloud.loginUntil = Date.now() + 60000;
-		const timer = setInterval(() => {
-			if (!button.isConnected) {
-				clearInterval(timer);
-				return;
-			}
-			const left = Math.ceil((Cloud.loginUntil - Date.now()) / 1000);
-			button.disabled = left > 0;
-			button.textContent =
-				left > 0
-					? `${left}${copy("web.cloudentry.e8e0419bd7bc")}`
-					: copy("web.cloudentry.92b193fad920");
-			if (left <= 0) clearInterval(timer);
-		}, 250);
-		try {
-			const result = await cloudApi("/auth/login", {
-				method: "POST",
-				body: JSON.stringify({ email: new FormData(e.target).get("email") }),
-			});
-			status.textContent = result.message + copy("web.cloudentry.bb809dc64a4b");
-		} catch (error) {
-			status.textContent = error.message;
-		}
 	}
 });
 document.addEventListener("input", (e?: any) => {

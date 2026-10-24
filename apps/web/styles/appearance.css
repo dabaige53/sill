@@ -1,0 +1,28 @@
+/* @design layout-preferences */
+.feed-card {
+	--content-text-scale: var(--card-text-scale, 1);
+	font-size: calc(var(--text-control) * var(--content-text-scale));
+	font-weight: calc(400 + var(--content-weight-add, 0));
+}
+.preview-body,
+.reader-body {
+	--content-text-scale: var(--reader-text-scale, 1);
+	font-weight: calc(400 + var(--content-weight-add, 0));
+}
+.reader-body {
+	max-width: var(--reader-measure, none);
+}
+:is(.preview-body, .reader-body).is-article {
+	--article-measure: var(--reader-measure, none);
+}
+.preview-full > * + * {
+	margin-top: calc(var(--space-16) * var(--reader-space-scale, 1));
+}
+:is(.preview-body, .reader-body) :is(.preview-lead, .preview-full p) {
+	margin-block: 0 calc(var(--space-16) * var(--reader-space-scale, 1));
+}
+@media (max-width: 650px) {
+	.search-card-grid {
+		gap: calc(var(--gap-sm) * var(--card-space-scale, 1));
+	}
+}

@@ -174,6 +174,7 @@ struct CardGeometryDestination: ViewModifier {
           source: resize?.frame ?? source ?? target, target: target,
           progress: resize != nil
             ? (reader.resizeShown ? 1 : 0) : (source != nil && !reader.shown ? 0 : 1),
+          stationaryContent: resize != nil,
           targetRadius: reader.top?.full == true ? 0 : AppleMetrics.sheetRadius,
           sourceRadius: resize?.radius ?? CGFloat(AppleMetrics.cardRadius),
           frameChanged: { frame, radius in
@@ -216,7 +217,8 @@ private struct CardTransitionFace: View {
       let state = workspace.state(id)
       let context = CardContext(
         now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
-        fadeRead: workspace.preferences.fadeRead)
+        fadeRead: workspace.preferences.fadeRead, appearance: workspace.preferences.cardAppearance,
+        paddingScale: workspace.preferences.cardPadding.scale)
       CardFace(card: card, state: state, context: context, faded: cardFaded(card, state, context))
         .allowsHitTesting(false).accessibilityHidden(true)
     }
@@ -231,6 +233,7 @@ struct CardFlightSurface: AnimatableModifier {
   let source: CGRect
   let target: CGRect
   nonisolated var progress: CGFloat
+  var stationaryContent = false
   var targetRadius: CGFloat
   var sourceRadius: CGFloat = AppleMetrics.cardRadius
   var frameChanged: (CGRect, CGFloat) -> Void = { _, _ in }
@@ -281,6 +284,9 @@ struct CardFlightSurface: AnimatableModifier {
         content
           .frame(width: target.width, height: target.height, alignment: .topLeading)
           .opacity(id == nil ? 1 : Self.contentOpacity(progress))
+          .offset(
+            x: stationaryContent ? target.minX - rect.minX : 0,
+            y: stationaryContent ? target.minY - rect.minY : 0)
         if let id {
           CardTransitionFace(id: id)
             .frame(width: source.width, height: source.height, alignment: .topLeading)

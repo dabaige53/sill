@@ -20,7 +20,7 @@
 
 手势必须覆盖：开始、变化、零位移结束、取消、惯性、无阶段滚轮。用阶段结束真实触控板手势；超时只补充没有阶段的设备。异步完成回调要核对当前会话，取消和离场使旧回调失效。
 
-设计参数先改 design-system/tokens/foundation.json（macOS 专用尺寸在 apple.json），随后生成 AppleMetrics 与 Web 变量。菜单关闭不得复用按钮按压时长。容器与内部按钮不能同时控制整体缩放。
+设计参数先改 `design-system/tokens/` 中对应分类文件；AppleMetrics 的数值在 `apple.json`，随后生成 AppleMetrics 与 Web 变量。菜单关闭不得复用按钮按压时长。容器与内部按钮不能同时控制整体缩放。
 
 ## 验证
 

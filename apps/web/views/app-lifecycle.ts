@@ -9,6 +9,7 @@ import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
 import { PAGE_KINDS, type TargetEvent, type ViewDialog, type ViewElement } from "./app-types.ts";
+import { applyAppearance } from "./appearance.ts";
 import { renderView } from "./react-renderer.ts";
 import { AccountRing, WorkspaceShell } from "./shell.tsx";
 
@@ -202,6 +203,7 @@ export const appLifecycleMethods = {
 		});
 	},
 	applyPreferences(this: AppController) {
+		applyAppearance(Store.state.preferences);
 		const theme = Store.pref("theme"),
 			dark = theme === "dark" || (theme === "system" && this.themeQuery?.matches);
 		document.documentElement.dataset.theme = dark ? "dark" : "light";

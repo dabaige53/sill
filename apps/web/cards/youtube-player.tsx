@@ -21,20 +21,32 @@ declare global {
 	}
 }
 let api: Promise<API> | undefined;
-function loadAPI() {
+export function loadAPI() {
 	if (window.YT?.Player) return Promise.resolve(window.YT);
 	api ??= new Promise<API>((resolve, reject) => {
 		const previous = window.onYouTubeIframeAPIReady;
-		window.onYouTubeIframeAPIReady = () => {
-			previous?.();
-			if (window.YT) resolve(window.YT);
+		const cleanup = () => {
+			clearTimeout(timeout);
+			if (window.onYouTubeIframeAPIReady === loaded) window.onYouTubeIframeAPIReady = previous;
+			script.onerror = null;
 		};
-		const script = document.createElement("script");
-		script.src = "https://www.youtube.com/iframe_api";
-		script.onerror = () => {
+		const fail = () => {
+			cleanup();
+			script.remove();
 			api = undefined;
 			reject(new Error("player unavailable"));
 		};
+		const loaded = () => {
+			cleanup();
+			previous?.();
+			if (window.YT) resolve(window.YT);
+			else fail();
+		};
+		window.onYouTubeIframeAPIReady = loaded;
+		const script = document.createElement("script");
+		script.src = "https://www.youtube.com/iframe_api";
+		script.onerror = fail;
+		const timeout = setTimeout(fail, 15000);
 		document.head.append(script);
 	});
 	return api;
@@ -76,19 +88,47 @@ export function YouTubePlayer({
 	const host = useRef<HTMLDivElement>(null),
 		callbacks = useRef({ onSave, onTime });
 	callbacks.current = { onSave, onTime };
+	const [attempt, setAttempt] = useState(0);
+	const resume = useRef(initialPosition);
+	const source = useRef({ id, initialPosition });
 	const [error, setError] = useState(false),
 		[ready, setReady] = useState(false),
 		wantsPlay = useRef(false);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: attempt explicitly rebuilds a failed player; initialPosition starts a new playback session.
 	useEffect(() => {
+		if (source.current.id !== id || source.current.initialPosition !== initialPosition) {
+			resume.current = initialPosition;
+			source.current = { id, initialPosition };
+			wantsPlay.current = false;
+		}
+		setError(false);
+		setReady(false);
 		let disposed = false,
 			player: Player | undefined,
 			timer: ReturnType<typeof setInterval> | undefined,
-			previous = initialPosition,
+			previous = resume.current,
 			advanced = false,
 			started = false,
-			ready = false;
+			ready = false,
+			failed = false;
+		const fail = () => {
+			if (disposed || failed) return;
+			failed = true;
+			clearTimeout(deadline);
+			if (timer) clearInterval(timer);
+			player?.pauseVideo?.();
+			controls.current = null;
+			setError(true);
+			setReady(false);
+			callbacks.current.onTime({
+				position: previous,
+				duration: knownDuration || 0,
+				playing: false,
+			});
+		};
+		const deadline = setTimeout(fail, 20000);
 		const sample = () => {
-			if (disposed || !player || !ready) return;
+			if (disposed || failed || !player || !ready) return;
 			const position = player.getCurrentTime() || 0;
 			const playing = player.getPlayerState() === 1;
 			if (!started && !playing && position === 0) return;
@@ -97,17 +137,18 @@ export function YouTubePlayer({
 			if (delta < 0 || delta > 2) advanced = false;
 			else if (playing && delta > 0.01) advanced = true;
 			previous = position;
+			resume.current = position;
 			callbacks.current.onTime({ position, duration: player.getDuration() || 0, playing });
 		};
 		void loadAPI()
 			.then((YT) => {
-				if (disposed) return;
+				if (disposed || failed) return;
 				const mount = document.createElement("iframe");
 				const query = new URLSearchParams({
 					enablejsapi: "1",
 					origin: window.location.origin,
 					playsinline: "1",
-					start: String(Math.floor(initialPosition)),
+					start: String(Math.floor(resume.current)),
 				});
 				mount.referrerPolicy = "strict-origin-when-cross-origin";
 				mount.title = copy("card.type.media");
@@ -119,6 +160,7 @@ export function YouTubePlayer({
 					events: {
 						onReady: () => {
 							if (disposed) return;
+							clearTimeout(deadline);
 							ready = true;
 							setReady(true);
 							if (wantsPlay.current) player?.playVideo();
@@ -143,26 +185,27 @@ export function YouTubePlayer({
 							if (event.data === 0 || event.data === 2)
 								callbacks.current.onSave(previous, event.data === 0 && advanced);
 						},
-						onError: () => setError(true),
+						onError: fail,
 					},
 				});
 			})
-			.catch(() => {
-				if (!disposed) setError(true);
-			});
+			.catch(fail);
 		return () => {
 			disposed = true;
+			clearTimeout(deadline);
 			if (timer) clearInterval(timer);
 			if (ready && player) {
-				const position = started ? player.getCurrentTime() : previous;
+				const position = started && !failed ? player.getCurrentTime() : previous;
+				resume.current = position;
 				player.pauseVideo();
 				callbacks.current.onSave(position, false);
 			}
 			player?.destroy();
+			host.current?.replaceChildren();
 			controls.current = null;
 			setReady(false);
 		};
-	}, [id, controls, initialPosition]);
+	}, [id, controls, initialPosition, attempt, knownDuration]);
 	return (
 		<>
 			<div className="youtube-frame">
@@ -195,7 +238,21 @@ export function YouTubePlayer({
 					</div>
 				)}
 			</div>
-			{error && <p role="alert">{copy("web.media.playbackUnavailable")}</p>}
+			{error && (
+				<div className="media-failure">
+					<p role="alert">{copy("web.media.playbackUnavailable")}</p>
+					<button
+						type="button"
+						className="btn"
+						onClick={() => {
+							wantsPlay.current = false;
+							setAttempt((value) => value + 1);
+						}}
+					>
+						{copy("web.retry")}
+					</button>
+				</div>
+			)}
 		</>
 	);
 }

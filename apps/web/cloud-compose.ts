@@ -272,6 +272,10 @@ export async function logoutCloud() {
 	try {
 		const result = await cloudApi("/auth/logout", { method: "POST" });
 		clearCloud();
+		if (!window.__SILL_HOST__) {
+			location.assign("/auth/login");
+			return;
+		}
 		app.toast(
 			result.revoked ? copy("web.cloudentry.d0b8f27a7116") : copy("web.cloudentry.33d70a6c7e59"),
 		);

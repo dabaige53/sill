@@ -5,6 +5,7 @@ import { JSDOM } from "jsdom";
 import {
 	internalCardRoute,
 	markdownBlocks,
+	markdownHeadings,
 	markdownHtml,
 	markdownText,
 } from "../../apps/web/atoms/markdown.ts";
@@ -84,4 +85,24 @@ test("code blocks remain searchable and available as card text", () => {
 		"const result = 42;",
 		"indented",
 	]);
+});
+
+test("article outline targets actual headings including duplicate titles, not code or intro text", () => {
+	const source =
+		"Intro\n\n## **Chapter**\n\n### Detail `one`\n\n```md\n## Not a chapter\n```\n\n## **Chapter**";
+	const headings = markdownHeadings(source);
+	const doc = new JSDOM(markdownHtml(source, "reader-section")).window.document;
+	assert.deepEqual(
+		headings.map((h) => [h.title, h.depth]),
+		[
+			["Chapter", 2],
+			["Detail one", 3],
+			["Chapter", 2],
+		],
+	);
+	assert.equal(new Set(headings.map((h) => h.id)).size, 3);
+	for (const heading of headings)
+		assert.equal(doc.getElementById(heading.id)?.textContent, heading.title);
+	assert.deepEqual(markdownHeadings("Just a paragraph"), []);
+	assert.equal(new JSDOM(markdownHtml("## Preview")).window.document.querySelector("h2")?.id, "");
 });

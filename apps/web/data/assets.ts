@@ -10,3 +10,17 @@ const Assets: Record<string, any> = {
 };
 
 export { Assets };
+
+/** Resolve only bundled artwork or an absolute HTTPS image. */
+export function assetURL(value?: string): string | undefined {
+	if (!value) return undefined;
+	if (Object.hasOwn(Assets, value)) return Assets[value];
+	if (!/^https:\/\/[^\s/@?#]+(?:[/?#][^\s]*)?$/.test(value) || value.length > 8192)
+		return undefined;
+	try {
+		const url = new URL(value);
+		return url.hostname && !url.username && !url.password ? value : undefined;
+	} catch {
+		return undefined;
+	}
+}

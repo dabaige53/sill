@@ -1,9 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod/v4";
-import { create, event, revision, update, workspaceBatch } from "../../contracts/cloud.ts";
+import { remindersWorker } from "../../contracts/reminders-worker.ts";
 import { copy } from "../../design-system/copy.ts";
-import { callbackFailurePage } from "./auth-page.ts";
+import { callbackFailurePage, loginCompletePage } from "./auth-page.ts";
+import { backupHttp } from "./backup-http.ts";
 import { accessName as cookieName, createBrowserSessions, readCookie } from "./browser-session.ts";
+import { contentHttp } from "./content-http.ts";
+import { httpErrorResponse } from "./http-error.ts";
 import {
 	body,
 	cookie,
@@ -102,6 +105,15 @@ export function createSillRuntime(
 			if (request.headers.get("origin") && request.headers.get("origin") !== config.appOrigin)
 				throw serviceError("forbidden");
 			if (path.startsWith("/oauth/")) return oauth.handle(request);
+			if (request.method === "GET" && path === "/reminders-worker.js")
+				return new Response(remindersWorker, {
+					headers: {
+						...headers,
+						"Content-Type": "text/javascript; charset=utf-8",
+						"Cache-Control": "no-cache",
+						"Service-Worker-Allowed": "/",
+					},
+				});
 			if (
 				path === "/mcp" ||
 				path.startsWith("/mcp/") ||
@@ -118,6 +130,24 @@ export function createSillRuntime(
 			}
 			if (request.method === "GET" && path === "/auth/recovery") {
 				const reason = url.searchParams.get("reason");
+				// A single-use link can fail after another tab has already established the session.
+				// Probe the session without erasing cookies on a failed or interrupted recovery.
+				if (!reason || reason === "expired") {
+					const state = { cookies: [] };
+					try {
+						const identity = await sessions.authenticate(request, state);
+						if ((await repositoryFactory(identity.client).session()).workspaceRead) {
+							Object.assign(states.get(request), state);
+							const response = new Response(null, {
+								status: 303,
+								headers: { ...headers, Location: config.appOrigin + "/auth/complete" },
+							});
+							return response;
+						}
+					} catch {
+						/* The recovery page below retains the original failure. */
+					}
+				}
 				return new Response(
 					callbackFailurePage(
 						reason === "forbidden" || reason === "unavailable" || reason === "cancelled"
@@ -133,6 +163,19 @@ export function createSillRuntime(
 						},
 					},
 				);
+			}
+			if (request.method === "GET" && path === "/auth/complete") {
+				const identity = await sessions.authenticate(request, states.get(request));
+				if (!(await repositoryFactory(identity.client).session()).workspaceRead)
+					throw serviceError("forbidden");
+				return new Response(loginCompletePage({ authorizing: !!oauth.resumeLocation(request) }), {
+					headers: {
+						...headers,
+						"Content-Type": "text/html; charset=utf-8",
+						"Content-Security-Policy":
+							"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'",
+					},
+				});
 			}
 			if (request.method === "GET" && (path === "/auth/login" || path === "/auth/password/new")) {
 				if (path === "/auth/password/new") await authenticate(request);
@@ -152,9 +195,11 @@ export function createSillRuntime(
 				}
 				return new Response(
 					loginPage({
+						emailEnabled: config.emailLoginEnabled === true,
 						setup: path === "/auth/password/new",
 						failed: url.searchParams.has("login_error"),
 						authorizing: !!oauth.resumeLocation(request)?.includes("/oauth/consent?"),
+						returnLocation: oauth.resumeLocation(request) || "/",
 					}),
 					{
 						headers: {
@@ -235,6 +280,7 @@ export function createSillRuntime(
 			}
 			if (path === "/auth/login" && request.method === "POST") {
 				sameOrigin(request, config.appOrigin);
+				if (config.emailLoginEnabled !== true) throw serviceError("forbidden", 403);
 				const {
 					email,
 					setupPassword,
@@ -343,16 +389,21 @@ export function createSillRuntime(
 				const access = await repositoryFactory(identity.client).session();
 				if (!access.workspaceRead) throw serviceError("forbidden");
 				const setup = readCookie(request, setupName) === "1";
+				const browserCompletion =
+					request.headers.get("X-Sill-Client") !== "macos" &&
+					request.headers.get("accept")?.includes("text/html");
 				const response = new Response(null, {
 					status: 303,
 					headers: {
 						...headers,
 						Location: setup
 							? config.appOrigin + "/auth/password/new"
-							: oauth.resumeLocation(request) || config.appOrigin + "/",
+							: browserCompletion
+								? config.appOrigin + "/auth/complete"
+								: oauth.resumeLocation(request) || config.appOrigin + "/",
 					},
 				});
-				if (config.oauthConsentEnabled && !setup)
+				if (config.oauthConsentEnabled && !setup && !browserCompletion)
 					response.headers.append("Set-Cookie", oauth.clearReturn());
 				for (const value of sessions.cookies(data.session))
 					response.headers.append("Set-Cookie", value);
@@ -400,68 +451,9 @@ export function createSillRuntime(
 					request.headers.get("X-Sill-Owner") !== principal.userId
 				)
 					throw serviceError("forbidden");
-				const content = /^\/api\/v1\/contents\/([\w-]{1,100})$/.exec(path),
-					eventPath = /^\/api\/v1\/events\/([\w-]{1,100})$/.exec(path);
-				if (request.method === "GET") {
-					if (path === "/api/v1/workspace") {
-						if (url.search) throw serviceError("invalid_request");
-						return json(200, await repository.workspace());
-					}
-					if (path === "/api/v1/contents") {
-						const query = z
-							.object({
-								cursor: z.string().min(1).max(2048).optional(),
-								since: z.string().min(1).max(2048).optional(),
-								limit: z
-									.string()
-									.regex(/^(?:[1-9][0-9]?|100)$/)
-									.transform(Number)
-									.optional(),
-							})
-							.strict()
-							.parse(Object.fromEntries(url.searchParams));
-						return json(200, await repository.list(query));
-					}
-					if (url.search) throw serviceError("invalid_request");
-					if (content) return json(200, await repository.get(content[1]));
-					if (eventPath) return json(200, await repository.getEvent(eventPath[1]));
-				}
-				const key = request.headers.get("idempotency-key");
-				if (path === "/api/v1/workspace/operations" && request.method === "POST") {
-					if (url.search || !/^[\w-]{8,128}$/.test(key || ""))
-						throw serviceError("invalid_request");
-					return json(
-						200,
-						await repository.applyOperations(workspaceBatch.parse(await body(request)), key),
-					);
-				}
-				let op: any,
-					payload: any,
-					resource = null;
-				if (request.method === "POST" && path === "/api/v1/contents") {
-					op = "create";
-					payload = create.parse(await body(request));
-				} else if (request.method === "PATCH" && content) {
-					op = "update";
-					resource = content[1];
-					payload = update.parse(await body(request));
-				} else if (request.method === "DELETE" && content) {
-					op = "delete";
-					resource = content[1];
-					payload = z
-						.object({ expectedRevision: revision })
-						.strict()
-						.parse(await body(request));
-				} else if (request.method === "POST" && path === "/api/v1/events") {
-					op = "submit_event";
-					payload = event.parse(await body(request));
-				}
-				if (op) {
-					if (!/^[\w-]{8,128}$/.test(key || "")) throw serviceError("invalid_request");
-					const result = await repository.write(op, resource, payload, key);
-					return json(result.status_code, result.body);
-				}
-				throw serviceError("not_found");
+				if (path === "/api/v1/backups" || path.startsWith("/api/v1/backups/"))
+					return await backupHttp(request, { client, principal }, repository, config);
+				return await contentHttp(request, repository);
 			}
 			if (request.method === "GET" && path === "/")
 				return new Response(html, {
@@ -469,55 +461,12 @@ export function createSillRuntime(
 						...headers,
 						"Content-Type": "text/html; charset=utf-8",
 						"Content-Security-Policy":
-							"default-src 'none'; script-src 'unsafe-inline' https://www.youtube.com; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+							"default-src 'none'; script-src 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'unsafe-inline'; img-src 'self' data: https:; manifest-src 'self'; connect-src 'self'; worker-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 					},
 				});
 			throw serviceError("not_found");
 		} catch (error) {
-			// Browser recovery does not clear an existing session or accept a failed code.
-			const failedUrl = new URL(request.url);
-			if (
-				failedUrl.origin === config.appOrigin &&
-				failedUrl.pathname === "/auth/callback" &&
-				request.method === "GET" &&
-				request.headers.get("accept")?.includes("text/html")
-			) {
-				return new Response(null, {
-					status: 303,
-					headers: {
-						...headers,
-						Location:
-							config.appOrigin +
-							"/auth/recovery?reason=" +
-							(failedUrl.searchParams.get("error") === "access_denied"
-								? "cancelled"
-								: error.status === 403
-									? "forbidden"
-									: error.status >= 500
-										? "unavailable"
-										: "expired"),
-					},
-				});
-			}
-			const alias = {
-				idempotency_expired: "idempotency_conflict",
-				event_terminal_conflict: "revision_conflict",
-			};
-			const known = new Set<any>([
-				"invalid_request",
-				"unauthenticated",
-				"forbidden",
-				"not_found",
-				"revision_conflict",
-				"idempotency_conflict",
-				"cursor_expired",
-				"rate_limited",
-				"unavailable",
-			]);
-			const raw = error instanceof z.ZodError ? "invalid_request" : alias[error.code] || error.code;
-			const code = known.has(raw) ? raw : "unavailable";
-			const status = error instanceof z.ZodError ? 400 : known.has(raw) ? error.status || 503 : 503;
-			return json(status, { error: { code, message: code, request_id: crypto.randomUUID() } });
+			return httpErrorResponse(request, config.appOrigin, error);
 		}
 	};
 	return async (request?: any) => {

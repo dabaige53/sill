@@ -11,7 +11,10 @@ const CARD_KINDS = ["preview", "reader", "lightbox"];
 export const appSurfacesMethods = {
 	navigate(this: AppController, hash?: string) {
 		if (!this.pageScrollLocked) this.routeScroll[this.mode] = scrollY;
-		history.pushState({ glass: true, prev: location.hash }, "", hash);
+		const current = location.hash.match(/^#(?:card|read)\/(.+)$/)?.[1];
+		const target = hash?.match(/^#(?:card|read)\/(.+)$/)?.[1];
+		if (current && current === target) history.replaceState(history.state, "", hash);
+		else history.pushState({ glass: true, prev: location.hash }, "", hash);
 		this.route(true);
 	},
 	route(this: AppController, force = false) {
@@ -70,16 +73,21 @@ export const appSurfacesMethods = {
 		kind?: string,
 		origin: DOMRect | null = null,
 		shape: string = "",
+		nested = false,
 	) {
 		const reversing = this.dialog.open && this.sheetLeaving;
 		const drawn = reversing ? getComputedStyle(MotionEngine.surface(this.dialog)) : null;
 		const resume = drawn ? { opacity: drawn.opacity, transform: drawn.transform } : undefined;
-		if (kind !== "preview" && kind !== "reader") MotionEngine.releaseSource(this.dialog);
+		if (!nested && kind !== "preview" && kind !== "reader") MotionEngine.releaseSource(this.dialog);
 		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
 		this.modalToken++;
 		MotionEngine.cancelPanel(this.dialog);
+		if (nested) {
+			MotionEngine.cancel(this.dialog);
+			this.dialog.style.transform = "";
+		}
 		if (reversing) {
 			const source = MotionEngine.matchedSources.get(this.dialog)?.source;
 			if (source) source.style.visibility = "hidden";
@@ -122,7 +130,7 @@ export const appSurfacesMethods = {
 			else this.dialog.showModal();
 		}
 		// Frequent navigation changes in place; only sheets enter over the current page.
-		if (!MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
+		if (!nested && !MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
 			MotionEngine.queuePanel(this.dialog, origin, resume);
 		const focus = this.dialog.querySelector<HTMLElement>(
 			kind === "search"
@@ -178,7 +186,9 @@ export const appSurfacesMethods = {
 			MotionEngine.cancelPanel(this.dialog);
 			const returning =
 				!matchMedia("(max-width:650px)").matches && ["preview", "reader"].includes(this.modalKind)
-					? this.cardRect(this.currentId)
+					? this.cardRect(
+							MotionEngine.matchedSources.get(this.dialog)?.source?.dataset.card || this.currentId,
+						)
 					: null;
 			const destination = returning
 				? MotionEngine.cardTransform(returning, sheet.getBoundingClientRect())
@@ -273,6 +283,8 @@ export const appSurfacesMethods = {
 			return;
 		}
 		this.modalToken++;
+		this.previewTrail = [];
+		this.detailPositions.clear();
 		if (CARD_KINDS.includes(this.modalKind)) this.railHide?.show(true);
 		const toast = document.getElementById("toast");
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);
@@ -328,7 +340,7 @@ export const appSurfacesMethods = {
 	closeAll(this: AppController) {
 		const depth = this.previewTrail?.length || 0;
 		this.previewTrail = [];
-		if (depth && history.state?.prev !== undefined && /^#card\//.test(location.hash)) {
+		if (depth && history.state?.prev !== undefined && /^#(card|read)\//.test(location.hash)) {
 			this.closingAll = true;
 			history.go(-depth);
 		} else this.closeToDesk();

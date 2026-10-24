@@ -88,12 +88,26 @@ struct ReaderToolbar: View {
   let card: CardModel
   let state: CardState
   let actions: [ReaderAction]
+  var top = false
   @Environment(\.readerIntents) private var intents
   @State private var tips = ToolbarTips()
 
   var body: some View {
     let shared = actions.filter { !$0.own }
     let own = actions.filter(\.own)
+    Group {
+      if top {
+        buttons(shared: shared, own: own)
+      } else {
+        buttons(shared: shared, own: own).desktopGlass(Capsule())
+      }
+    }
+    .onHover { inside in if !inside { tips.leaveBar() } }
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel(Copy.text("web.preview.cardTools"))
+  }
+
+  private func buttons(shared: [ReaderAction], own: [ReaderAction]) -> some View {
     HStack(spacing: AppleMetrics.space4) {
       ForEach(shared) { action in button(action) }
       if !shared.isEmpty, !own.isEmpty {
@@ -106,11 +120,6 @@ struct ReaderToolbar: View {
     }
     .padding(AppleMetrics.railInset)
     .frame(height: AppleMetrics.railRow)
-    // One native glass for the bottom rail: detail tools, the selection bar and the AI box.
-    .desktopGlass(Capsule())
-    .onHover { inside in if !inside { tips.leaveBar() } }
-    .accessibilityElement(children: .contain)
-    .accessibilityLabel(Copy.text("web.preview.cardTools"))
   }
 
   private func button(_ action: ReaderAction) -> some View {
@@ -123,7 +132,7 @@ struct ReaderToolbar: View {
     ) {
       intents.perform(action.kind, card.id)
     }
-    .modifier(ToolbarTip(id: action.id, label: action.label, edge: edge, tips: tips))
+    .modifier(ToolbarTip(id: action.id, label: action.label, edge: edge, tips: tips, below: top))
     .disabled(
       (state.isWriting && action.kind != .open && action.kind != .reply && action.kind != .join)
         || (card.url == nil && (action.kind == .open || action.kind == .reply)))
@@ -200,11 +209,14 @@ struct ToolbarTip: ViewModifier {
   let label: String
   let edge: Edge
   let tips: ToolbarTips
+  var below = false
   @FocusState private var focused: Bool
 
   func body(content: Content) -> some View {
     let alignment: Alignment =
-      edge == .leading ? .topLeading : edge == .trailing ? .topTrailing : .top
+      below
+      ? (edge == .leading ? .bottomLeading : edge == .trailing ? .bottomTrailing : .bottom)
+      : (edge == .leading ? .topLeading : edge == .trailing ? .topTrailing : .top)
     content
       .focused($focused)
       .onHover { inside in inside ? tips.enter(id) : tips.leave(id) }
@@ -221,8 +233,8 @@ struct ToolbarTip: ViewModifier {
               RoundedRectangle(cornerRadius: AppleMetrics.tipRadius).fill(AppleColors.primary)
             )
             // Anchor the label's bottom above the button, independent of conditional alignment.
-            .frame(height: 0, alignment: .bottom)
-            .offset(y: -AppleMetrics.tipGap)
+            .frame(height: 0, alignment: below ? .top : .bottom)
+            .offset(y: below ? AppleMetrics.tipGap : -AppleMetrics.tipGap)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
         }

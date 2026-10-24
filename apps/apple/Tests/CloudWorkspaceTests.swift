@@ -278,6 +278,31 @@ struct CloudWorkspaceTests {
     await #expect(throws: CloudWorkspaceError.unauthenticated) { try await store.read() }
     #expect(requests == afterUnauthorized)
   }
+
+  @Test func backupCredentialFailureKeepsTheSillAccountAndRejectsAnotherOwner() async throws {
+    var calls = 0
+    let store = make { request in
+      if let result = auth(request) { return result }
+      if request.url?.path == "/api/v1/backups/targets" {
+        calls += 1
+        #expect(request.value(forHTTPHeaderField: "X-Sill-Owner") == "synthetic-owner")
+        return (403, [:], .object(["error": .object(["code": .string("backup_auth_failed")])]))
+      }
+      return (200, [:], empty)
+    }
+    _ = try await store.login(email: "synthetic@example.com", password: "synthetic")
+    await #expect(throws: CloudWorkspaceError.service("backup_auth_failed", 403)) {
+      try await store.backupRequest(
+        "/api/v1/backups/targets", method: "POST", body: .object([:]),
+        expectedOwner: "synthetic-owner")
+    }
+    #expect(try await store.read().owner == "synthetic-owner")
+    await #expect(throws: CloudWorkspaceError.unauthenticated) {
+      try await store.backupRequest(
+        "/api/v1/backups/targets", method: "POST", body: .object([:]), expectedOwner: "other-owner")
+    }
+    #expect(calls == 1)
+  }
   @Test func nativeEmailRetainsPKCEAndRedeemsOnlyFixedCallback() async throws {
     let vault = MemoryCloudVault()
     var redeemed = false

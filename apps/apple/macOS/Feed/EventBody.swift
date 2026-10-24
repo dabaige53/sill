@@ -14,7 +14,7 @@ struct EventBody: View {
     BodyStack(compact: context.compact) {
       CardHead(card: card, text: Format.dateLabel(start)) {
         if !relative.isEmpty {
-          Text(relative).font(.sans(AppleMetrics.font13, .medium)).foregroundStyle(
+          Text(relative).textStyle(AppleMetrics.font13, .medium).foregroundStyle(
             AppleColors.accent)
         }
       }
@@ -27,7 +27,7 @@ struct EventBody: View {
             )
             .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
           Text(Copy.text("web.templates.83532308ecca") + Format.time(end))
-            .font(.number(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+            .textStyle(AppleMetrics.font13, number: true).foregroundStyle(AppleColors.secondary)
         }
         .padding(.trailing, AppleMetrics.space14)
         .overlay(alignment: .trailing) {
@@ -44,7 +44,7 @@ struct EventBody: View {
           if !card.people.isEmpty {
             Avatars(names: card.people)
             Text(card.people.joined(separator: "、")).lineLimit(1)
-              .font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+              .textStyle(AppleMetrics.font13).foregroundStyle(AppleColors.secondary)
           }
           Spacer(minLength: 0)
           if timely {
@@ -66,6 +66,6 @@ struct EventBody: View {
     HStack(spacing: AppleMetrics.space6) {
       Icon(icon, size: AppleMetrics.font15)
       Text(text).lineLimit(1).truncationMode(.tail)
-    }.font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+    }.textStyle(AppleMetrics.font13).foregroundStyle(AppleColors.secondary)
   }
 }

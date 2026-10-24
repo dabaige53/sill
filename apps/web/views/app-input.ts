@@ -17,6 +17,13 @@ export const appInputMethods = {
 			this.navigate(route);
 			return;
 		}
+		const externalLink = e.target.closest?.<HTMLAnchorElement>("a[href]");
+		if (externalLink && window.__SILL_HOST__ && /^(https?:|mailto:)/.test(externalLink.href)) {
+			e.preventDefault();
+			e.stopPropagation();
+			void this.openExternal(undefined, externalLink.href);
+			return;
+		}
 		// The end of a sideways drag through a stack is not a tap.
 		if (this.stackDragUntil > Date.now() && e.target.closest?.<HTMLElement>("[data-stack]")) {
 			e.preventDefault();

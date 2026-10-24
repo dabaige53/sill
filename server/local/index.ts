@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod/v4";
+import { remindersWorker } from "../../contracts/reminders-worker.ts";
 import { copy } from "../../design-system/copy.ts";
 import { capabilities, LocalRepository } from "./repository.ts";
 
@@ -34,6 +35,15 @@ export async function startLocal({
 				return;
 			}
 			const url = new URL(req.url, origins[0]);
+			if (req.method === "GET" && url.pathname === "/reminders-worker.js") {
+				res.writeHead(200, {
+					"Content-Type": "application/javascript; charset=utf-8",
+					"Cache-Control": "no-cache",
+					"Service-Worker-Allowed": "/",
+				});
+				res.end(remindersWorker);
+				return;
+			}
 			if (req.method === "GET" && url.pathname === "/health") {
 				json(200, { ok: true, mode: "local" });
 				return;
@@ -95,7 +105,7 @@ export async function startLocal({
 					"Content-Type": "text/html; charset=utf-8",
 					"Cache-Control": "no-store",
 					"Content-Security-Policy":
-						"default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+						"default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; worker-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
 				});
 				res.end(page.replace("<head>", "<head><script>window.__QG_LOCAL__=true;</script>"));
 				return;

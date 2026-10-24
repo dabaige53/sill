@@ -301,15 +301,15 @@
       "h": 5100,
       "title": "44 定稿 · 手机顶行与搜索标签",
       "w": 1720,
-      "x": 3800,
+      "x": 1880,
       "y": 280
     },
     "WebChrome.dc.html": {
       "h": 6420,
       "title": "45 定稿 · Web 顶栏与 AI 框",
       "w": 1840,
-      "x": 0,
-      "y": 7940
+      "x": 7600,
+      "y": 6060
     },
     "IconSet.dc.html": {
       "h": 4960,
@@ -374,8 +374,8 @@
       "h": 2200,
       "title": "48 定稿 · Mac 顶栏与设置弹窗",
       "w": 1840,
-      "x": 1920,
-      "y": 7940
+      "x": 9520,
+      "y": 6060
     },
     "ScreenMobileHome.dc.html": {
       "h": 844,
@@ -517,33 +517,60 @@
       "x": 4640,
       "y": 18160
     },
+    "expanded-podcast.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "x": 1520,
+      "y": 280,
+      "title": "播客阅读",
+      "is_interactive": true,
+      "page": "expanded-reading"
+    },
+    "expanded-video.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "x": 3040,
+      "y": 280,
+      "title": "视频对照",
+      "is_interactive": true,
+      "page": "expanded-reading"
+    },
+    "expanded-article.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "x": 0,
+      "y": 280,
+      "title": "资讯阅读 · 目录与专注阅读",
+      "is_interactive": true,
+      "page": "expanded-reading"
+    },
     "ScreenMobileAIChat.dc.html": {
       "h": 1180,
       "title": "50 草稿 · 手机 AI 对话（接入后）",
       "w": 1840,
-      "x": 1880,
+      "x": 3680,
       "y": 280
     },
     "ScreenWebAIPanel.dc.html": {
       "h": 900,
       "title": "网页 · AI 展开（接入后）",
       "w": 1440,
-      "x": 7600,
+      "x": 11440,
       "y": 6060
     },
     "ScreenWebAIFull.dc.html": {
       "h": 900,
       "title": "网页 · AI 完整视图（接入后）",
       "w": 1440,
-      "x": 9120,
-      "y": 6060
+      "x": 0,
+      "y": 12640
     },
     "AIConversation.dc.html": {
       "h": 1720,
       "title": "49 草稿 · 网页 AI 对话规则（接入后）",
       "w": 1440,
-      "x": 10640,
-      "y": 6060
+      "x": 1520,
+      "y": 12640
     }
   },
   "createdOnFiles": {
@@ -573,7 +600,7 @@
     },
     "current2": {
       "kind": "title1",
-      "maxW": 12080,
+      "maxW": 12880,
       "text": "网页与 Mac · 页面、顶栏与 AI 框",
       "x": 0,
       "y": 5780
@@ -645,6 +672,14 @@
       "text": "账号 · 登录与授权",
       "x": 0,
       "y": 39744
+    },
+    "expanded-reading-title": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "放大页探索 · 资讯、播客与视频",
+      "x": 0,
+      "y": 0,
+      "page": "expanded-reading"
     }
   },
   "order": [
@@ -652,18 +687,18 @@
     "ScreenMobileSearch.dc.html",
     "ScreenMobileResults.dc.html",
     "ScreenMobileAI.dc.html",
-    "ScreenMobileAIChat.dc.html",
     "PhoneChrome.dc.html",
+    "ScreenMobileAIChat.dc.html",
     "ScreenWebHome.dc.html",
     "ScreenWebMenu.dc.html",
     "ScreenWebSearch.dc.html",
     "ScreenWebDrop.dc.html",
     "ScreenWebSelect.dc.html",
+    "WebChrome.dc.html",
+    "MacChrome.dc.html",
     "ScreenWebAIPanel.dc.html",
     "ScreenWebAIFull.dc.html",
     "AIConversation.dc.html",
-    "WebChrome.dc.html",
-    "MacChrome.dc.html",
     "CardTypeA.dc.html",
     "CardActionExamples.dc.html",
     "Volume.dc.html",
@@ -718,7 +753,10 @@
     "IconsNext.dc.html",
     "CardSystem.dc.html",
     "CardForms.dc.html",
-    "CardSizing.dc.html"
+    "CardSizing.dc.html",
+    "expanded-article.dc.html",
+    "expanded-podcast.dc.html",
+    "expanded-video.dc.html"
   ],
   "pages": [
     {
@@ -728,6 +766,10 @@
     {
       "id": "history",
       "name": "历史"
+    },
+    {
+      "id": "expanded-reading",
+      "name": "放大页探索"
     }
   ],
   "title": "Sill · 设计"

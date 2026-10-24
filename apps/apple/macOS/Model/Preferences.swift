@@ -8,6 +8,59 @@ struct Preferences: Equatable, Sendable {
   enum Sort: String, Sendable { case priority, unread, time }
   enum NewHint: String, Sendable { case away, off }
 
+  enum TextSize: String, Sendable {
+    case small, standard, large
+    var scale: CGFloat {
+      switch self {
+      case .small: AppleMetrics.layoutTextSmall
+      case .standard: 1
+      case .large: AppleMetrics.layoutTextLarge
+      }
+    }
+  }
+  enum Spacing: String, Sendable {
+    case compact, standard, roomy
+    var scale: CGFloat {
+      switch self {
+      case .compact: AppleMetrics.layoutSpaceCompact
+      case .standard: 1
+      case .roomy: AppleMetrics.layoutSpaceRoomy
+      }
+    }
+    var leading: CGFloat {
+      switch self {
+      case .compact: AppleMetrics.layoutLineCompact
+      case .standard: 1
+      case .roomy: AppleMetrics.layoutLineRoomy
+      }
+    }
+  }
+  enum ReadingWidth: String, Sendable {
+    case narrow, standard, full
+    var width: CGFloat {
+      switch self {
+      case .narrow: AppleMetrics.layoutReaderNarrow
+      case .standard: AppleMetrics.layoutReaderStandard
+      case .full: .infinity
+      }
+    }
+  }
+  enum TextWeight: String, Sendable { case standard, strong }
+  var cardTextSize = TextSize.standard
+  var cardSpacing = Spacing.standard
+  var cardPadding = Spacing.standard
+  var readerTextSize = TextSize.standard
+  var readerSpacing = Spacing.standard
+  var readerWidth = ReadingWidth.full
+  var textWeight = TextWeight.standard
+  var cardAppearance: ContentAppearance {
+    ContentAppearance(scale: cardTextSize.scale, strong: textWeight == .strong)
+  }
+  var readerAppearance: ContentAppearance {
+    ContentAppearance(
+      scale: readerTextSize.scale, leading: readerSpacing.leading, strong: textWeight == .strong)
+  }
+
   var theme = Theme.system
   var density = Density.standard
   var sort = Sort.priority
@@ -23,6 +76,13 @@ struct Preferences: Equatable, Sendable {
   init() {}
 
   init(_ json: [String: JSONValue]) {
+    cardTextSize = json["cardTextSize"]?.string.flatMap(TextSize.init) ?? .standard
+    cardSpacing = json["cardSpacing"]?.string.flatMap(Spacing.init) ?? .standard
+    cardPadding = json["cardPadding"]?.string.flatMap(Spacing.init) ?? .standard
+    readerTextSize = json["readerTextSize"]?.string.flatMap(TextSize.init) ?? .standard
+    readerSpacing = json["readerSpacing"]?.string.flatMap(Spacing.init) ?? .standard
+    readerWidth = json["readerWidth"]?.string.flatMap(ReadingWidth.init) ?? .full
+    textWeight = json["textWeight"]?.string.flatMap(TextWeight.init) ?? .standard
     theme = json["theme"]?.string.flatMap(Theme.init) ?? .system
     density = json["density"]?.string.flatMap(Density.init) ?? .standard
     sort = json["sort"]?.string.flatMap(Sort.init) ?? .priority
@@ -59,5 +119,4 @@ struct Preferences: Equatable, Sendable {
     }
   }
 
-  /// Compact summaries show two lines; the other densities three.
 }

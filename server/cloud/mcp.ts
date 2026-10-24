@@ -7,10 +7,14 @@ import {
 	ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod/v4";
+import { backupToolInputs } from "../../contracts/backup.ts";
 import { toolInputs as inputs } from "../../contracts/cloud.ts";
 import contract from "../../contracts/design/mcp-tools.json" with { type: "json" };
+import { toolDescriptions } from "../../contracts/mcp-guidance.ts";
 import { copy } from "../../design-system/copy.ts";
 import product from "../../package.json" with { type: "json" };
+import { BackupRuntime } from "./backup-runtime.ts";
+import { mediaFrameDomains, mediaResourceDomains, restrictMediaScripts } from "./media-policy.ts";
 import { authenticateSupabase } from "./supabase-auth.ts";
 import { SupabaseRepository } from "./supabase-repository.ts";
 
@@ -42,6 +46,8 @@ const safeError = (error?: any) => {
 		"idempotency_conflict",
 		"cursor_expired",
 		"rate_limited",
+		"backup_unknown",
+		"backup_auth_failed",
 	].includes(raw)
 		? raw
 		: "unavailable";
@@ -52,10 +58,18 @@ const result = (value?: any) => ({
 	structuredContent: value,
 });
 export const workspaceUri = `ui://sill/cloud-workspace-${product.version}.html`;
+// The version busts host caches, but installed hosts can still request older URLs.
+// All aliases resolve to the current app under the same per-request authorization.
+const workspaceResource = /^ui:\/\/sill\/cloud-workspace-(?:v3|\d+\.\d+\.\d+)\.html$/;
 const workspaceMime = "text/html;profile=mcp-app";
 const workspaceMeta = {
 	ui: {
-		csp: { connectDomains: [], resourceDomains: [], frameDomains: [], baseUriDomains: [] },
+		csp: {
+			connectDomains: [],
+			resourceDomains: mediaResourceDomains(),
+			frameDomains: mediaFrameDomains,
+			baseUriDomains: [],
+		},
 		permissions: {},
 	},
 	"openai/ui": { availableDisplayModes: ["fullscreen"], preferredDisplayMode: "fullscreen" },
@@ -131,6 +145,17 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 			);
 			const repo = new SupabaseRepository(client),
 				access = await repo.session();
+			const backup = new BackupRuntime(access.userId, repo, config);
+			const backupAllowed = (name: string) =>
+				!!config.backupEncryptionKey &&
+				access.workspaceRead &&
+				access.scopes.includes("content:read") &&
+				(["sill_listBackups", "sill_getBackup", "sill_checkBackupTarget"].includes(name) ||
+					name === "sill_previewRestore" ||
+					(access.workspaceWrite &&
+						access.scopes.includes("content:write") &&
+						(!["sill_restoreBackup", "sill_getRestoreStatus"].includes(name) ||
+							access.scopes.includes("content:delete"))));
 			const allowed = (name?: any) =>
 				access.scopes.includes(scopes[name]) &&
 				(!["sill_listContents", "sill_getWorkspace", "sill_applyOperations"].includes(name) ||
@@ -166,27 +191,58 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 					: [],
 			}));
 			server.setRequestHandler(ReadResourceRequestSchema, async (request?: any) => {
-				if (
-					!canOpen() ||
-					![workspaceUri, "ui://sill/cloud-workspace-v3.html"].includes(request.params.uri)
-				)
+				if (!canOpen() || !workspaceResource.test(request.params.uri))
 					throw new Error("Resource unavailable");
+				const snapshot = await repo.workspace();
+				const meta = {
+					...workspaceMeta,
+					ui: {
+						...workspaceMeta.ui,
+						csp: {
+							...workspaceMeta.ui.csp,
+							resourceDomains: mediaResourceDomains(snapshot.state.cards),
+						},
+					},
+				};
 				return {
 					contents: [
-						{ uri: workspaceUri, mimeType: workspaceMime, text: appHtml, _meta: workspaceMeta },
+						{
+							uri: request.params.uri,
+							mimeType: workspaceMime,
+							text: restrictMediaScripts(appHtml),
+							_meta: meta,
+						},
 					],
 				};
 			});
 			server.setRequestHandler(ListToolsRequestSchema, async () => ({
 				tools: [
+					...Object.entries(backupToolInputs)
+						.filter(([name]) => backupAllowed(name))
+						.map(([name, schema]) => ({
+							name,
+							description:
+								"Account-owned external backups. Credentials are configured only in Settings. Preview before restore; confirm explicit user intent and reuse the same idempotencyKey after unknown results.",
+							inputSchema: z.toJSONSchema(schema),
+							annotations: {
+								readOnlyHint: [
+									"sill_listBackups",
+									"sill_previewRestore",
+									"sill_getBackup",
+									"sill_checkBackupTarget",
+									"sill_getRestoreStatus",
+								].includes(name),
+								destructiveHint: name === "sill_restoreBackup",
+								idempotentHint: true,
+								openWorldHint: true,
+							},
+						})),
 					...(canOpen() ? workspaceTools.map((t?: any) => ({ ...t, icons: entrypointIcons })) : []),
 					...contract.tools
 						.filter((t?: any) => allowed(t.name))
 						.map((t?: any) => ({
 							...t,
-							description:
-								t.name +
-								" through the authorized Sill data layer. Card contract 3.0.0 uses explicit authors, publisher, dates, bodyCoverage and readingEstimate (seconds/origin/scope/method). Card and file meta are rejected. Personal notes belong to state.note. Preserve version and idempotency conditions.",
+							description: toolDescriptions[t.name],
 							annotations: {
 								readOnlyHint: [
 									"sill_getWorkspace",
@@ -221,6 +277,29 @@ export function createMcpHandler(config?: any, { clientFactory, appHtml = "" }: 
 							workspaceRead: access.workspaceRead,
 							workspaceWrite: access.workspaceWrite,
 						});
+					}
+					if (Object.hasOwn(backupToolInputs, name)) {
+						if (!backupAllowed(name))
+							throw Object.assign(new Error("forbidden"), { code: "forbidden" });
+						const a = (backupToolInputs as any)[name].parse(request.params.arguments || {});
+						if (a.expected_owner && a.expected_owner !== access.userId)
+							throw Object.assign(new Error("forbidden"), { code: "forbidden" });
+						const { expected_owner, ...p } = a;
+						if (name === "sill_getBackup") return result((await backup.read(p.backupId)).snapshot);
+						if (name === "sill_checkBackupTarget")
+							return result(await backup.checkTarget(p.targetId));
+						if (name === "sill_getRestoreStatus") return result({ result: await backup.status(p) });
+						return result(
+							name === "sill_listBackups"
+								? await backup.list()
+								: name === "sill_createBackup"
+									? await backup.create(p.targetId, p.idempotencyKey)
+									: name === "sill_previewRestore"
+										? await backup.preview(p.backupId)
+										: name === "sill_checkBackup"
+											? await backup.check(p.backupId)
+											: await backup.restore(p),
+						);
 					}
 					if (!Object.hasOwn(inputs, name) || !allowed(name))
 						throw Object.assign(new Error("forbidden"), { code: "forbidden" });

@@ -186,11 +186,12 @@ export async function runMaterialFocus({
 				delete (window as any).__fixtureToolbar;
 				window.__app.openCard("motion-0");
 			});
-			await page.locator("#modal > .float-bar").waitFor();
-			assert.equal(await page.locator("#modal > .float-bar").count(), 1);
+			// Transition snapshots live in Shadow DOM and cannot receive input.
+			await page.locator("css:light=#modal > .float-bar").waitFor();
+			assert.equal(await page.locator("css:light=#modal > .float-bar").count(), 1);
 			assert.equal(
 				await page
-					.locator(".preview-sheet")
+					.locator("css:light=.preview-sheet")
 					.evaluate((node: Element) => getComputedStyle(node, "::after").content),
 				'""',
 			);

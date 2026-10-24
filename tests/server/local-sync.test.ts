@@ -24,6 +24,7 @@ function fixture(t: any, items: any = { a: { note: "original" } }) {
 	t.after(() => rmSync(dir, { recursive: true, force: true }));
 	const data = new Map();
 	const context = vm.createContext({
+		queueMicrotask,
 		localStorage: {
 			getItem: (key: string) => data.get(key),
 			setItem: (key: string, value: string) => data.set(key, value),

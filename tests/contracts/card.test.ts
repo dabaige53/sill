@@ -4,11 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { Card, normalizeCard } from "../../contracts/card.ts";
+import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 import { LocalRepository } from "../../server/local/repository.ts";
 
-const fixtures = JSON.parse(
-	readFileSync(new URL("../../contracts/fixtures.json", import.meta.url), "utf8"),
-);
 const migrationFixtures = JSON.parse(
 	readFileSync(new URL("../../contracts/migration-fixtures.json", import.meta.url), "utf8"),
 ) as {

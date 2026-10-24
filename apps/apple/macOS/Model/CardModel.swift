@@ -132,8 +132,8 @@ struct CardModel: Identifiable, Equatable, Sendable {
       readingTime = ""
     }
     tags = value.tags ?? []
-    image = value.image?.rawValue
-    photos = (value.photos ?? []).map(\.rawValue)
+    image = raw["image"]?.string
+    photos = (raw["photos"]?.array ?? []).compactMap(\.string)
     url = value.url.flatMap(URL.init(string:))
     time = value.time ?? 0
     priority = value.priority ?? 0
