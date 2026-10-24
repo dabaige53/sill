@@ -1,6 +1,20 @@
 {
 	"note": "设计印记：代码里写 `@design <编号>`，编号在这里登记规则、变量、ADR 和现行画板。用 `scripts/design-init.sh trace <编号或变量名>` 反查。",
 	"marks": {
+		"vertical-rhythm": {
+			"title": "纵向间距六级",
+			"rule": "handbook/content-layout.md#纵向间距",
+			"tokens": [
+				"rhythm-tight",
+				"rhythm-close",
+				"rhythm-label",
+				"rhythm-item",
+				"rhythm-group",
+				"rhythm-section"
+			],
+			"adr": "0069",
+			"boards": ["CardTypeDetails", "CardTypeMobile", "CardTypeReading"]
+		},
 		"content-boundaries": {
 			"title": "长内容与窄屏边界",
 			"rule": "handbook/foundation.md#文字长度",

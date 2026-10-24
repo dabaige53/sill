@@ -6,11 +6,11 @@
 .discs{position:absolute;top:22px;right:22px;display:flex;gap:8px;z-index:2}
 .dcover~.discs{top:30px;right:30px}
 .disc{width:36px;height:36px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.1);display:grid;place-items:center;color:var(--ink)}
-.sb{padding:24px 30px 0;display:flex;flex-direction:column;gap:20px}
-.dh{display:flex;flex-direction:column;margin-bottom:8px}
-.dh>*{margin-bottom:12px}
+.sb{padding:24px 30px 0;display:flex;flex-direction:column;gap:24px}
+.dh{display:flex;flex-direction:column}
+.dh>*{margin-bottom:8px}
 .dh>*:last-child{margin-bottom:0}
-.dh>.srow{margin-bottom:6px}
+.dh>.srow{margin-bottom:8px}
 .dh>.dt,.dh>.rrow{margin-bottom:16px}
 .dh>.chips{margin-bottom:8px}
 .dh>.emeta{margin-bottom:8px}
@@ -31,10 +31,10 @@ div.nw:has(>.info),div.nw:has(>.chips){width:fit-content;max-width:100%}
 .notebox{border:1px solid var(--line-card);border-radius:14px;padding:12px 14px}
 .notebox small{font-size:12px;color:var(--muted)}
 .notebox p{font-size:14px;line-height:1.6;margin-top:4px}
-.sec{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.sec{display:flex;flex-direction:column;gap:12px;margin-top:8px}
 .sec h4{font-size:13px;font-weight:600;color:var(--muted)}
 .reason{font-size:17px;line-height:1.55;font-weight:500}
-.basis{padding-left:18px;display:grid;gap:4px;font-size:14px;line-height:1.6;color:var(--note)}
+.basis{padding-left:18px;display:grid;gap:6px;font-size:14px;line-height:1.6;color:var(--note)}
 .rows{display:flex;flex-direction:column}
 .drow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
 .drow>svg:first-child{color:var(--secondary)}
@@ -92,7 +92,9 @@ div.nw:has(>.pline){width:100%}
 .spd{font-size:13px;font-weight:600;color:var(--ink);width:44px;text-align:center}
 .spd.ghost{visibility:hidden}
 .mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px}
-.prmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.drow .dm.prstatus{flex-direction:row;align-items:center;flex-wrap:wrap;gap:8px}
+.prstatus b{font-weight:500;color:var(--accent)}
+.prstatus>span{font-size:13px;color:var(--muted)}
 .state{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
 .br{background:var(--surface);color:var(--note);padding:2px 6px;border-radius:6px}
 .prstat{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
@@ -106,7 +108,10 @@ div.nw:has(>.pline){width:100%}
 .rv.ok .rvb{background:var(--success);color:#fff}
 .rv.wait .rvb{background:var(--alert)}
 .drow .dm.mono{font-size:13px}
-.dh.rule{padding-bottom:24px}
+/* vertical rhythm: rows carry their own padding, so the gap beside them drops one level */
+.sb>:is(.rows,.checks,.nw:has(>.rows)),.sb>:is(.rows,.checks,.nw:has(>.rows))+*{margin-top:-8px}
+.sb>:is(.dh,.rows,.checks,.nw:has(>.rows))+.sec,.sb>:is(.dh,.rows,.checks,.nw:has(>.rows))+.nw>.sec{margin-top:0}
+.sec>.basis,.sec>.rows,.sec>.nw:has(>.rows){margin-top:-4px}
 .lab.second{margin-top:28px}
 .sheet.tab2{max-height:420px}
 .tab2 .tabs{padding-right:52px}

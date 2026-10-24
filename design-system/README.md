@@ -13,9 +13,9 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 | 预览与叠放、量大与时间 | [页面与交互](handbook/card-interaction.md#预览与叠放) |
 | 桌面顶栏与 AI 框、网页键盘、设置弹窗、资讯阅读 | [网页交互](handbook/web-interaction.md) |
 | AI 对话：一行、展开、完整，结果行，手机 AI 页 | [AI 对话](handbook/ai-conversation.md) |
-| 间距、尺寸与排版偏好 | [内容布局](handbook/content-layout.md) |
-| 阅读、媒体与登录 | [网页阅读与系统页面](handbook/web-reading.md) |
+| 间距（含纵向间距六级）、尺寸与排版偏好 | [内容布局](handbook/content-layout.md) |
 
+| 阅读、媒体与登录 | [网页阅读与系统页面](handbook/web-reading.md) |
 | 动效 | [动效](handbook/motion.md) |
 | 设计参考：Apple Music、X、Medium 的原图与采用范围 | [设计参考](references/README.md) |
 

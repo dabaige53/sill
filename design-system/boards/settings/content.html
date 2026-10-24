@@ -160,6 +160,13 @@
 	--summary-lines: 3;
 	--text-phone-scale: 1.07;
 	--block-gap: 8px;
+	/* Vertical rhythm: six levels by how closely two stacked pieces belong together. */
+	--rhythm-tight: 4px;
+	--rhythm-close: 8px;
+	--rhythm-label: 12px;
+	--rhythm-item: 16px;
+	--rhythm-group: 24px;
+	--rhythm-section: 32px;
 	--card-padding: 18px;
 	--card-padding-sm: 16px;
 	--cover-inset: 8px;
@@ -2807,14 +2814,14 @@ button.ref:active {
 	margin-left: auto;
 }
 .detail-section {
-	margin-top: var(--space-24);
 	color: var(--ink);
 }
 .detail-section h2 {
 	font-size: calc(var(--text-control) * var(--content-text-scale, 1));
-	margin-bottom: var(--space-12);
+	margin-bottom: var(--rhythm-label);
 }
 .why-details ul {
+	margin: var(--rhythm-close) 0 0;
 	padding-left: var(--space-18);
 }
 .why-details li {
@@ -3000,7 +3007,6 @@ a.detail-row:hover {
 .pr-detail {
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
 }
 .pr-detail .card-head {
 	min-height: 36px;
@@ -4354,30 +4360,45 @@ dialog > .float-bar.is-hidden {
 
 /* CardTypeDetails / CardTypeReading: headers and prose have different reading sizes. */
 .preview-body {
-	gap: 20px;
 	padding: 24px 30px 30px;
+}
+/* @design vertical-rhythm — blocks sit one group apart; the header adds no space of its own. */
+:is(.preview-body, .reader-body, .pr-detail) {
+	gap: calc(var(--rhythm-group) * var(--reader-space-scale, 1));
 }
 .detail-header {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	margin-bottom: 8px;
 }
 .detail-header > :is(.preview-meta, .preview-sender) {
 	min-height: 36px;
-	margin-bottom: 6px;
+	margin-bottom: var(--rhythm-close);
 }
 .detail-header h1 {
-	margin: 0 0 16px;
+	margin: 0 0 var(--rhythm-item);
 }
 .detail-header > :is(.preview-tags, .preview-published) {
-	margin-bottom: 8px;
+	margin-bottom: var(--rhythm-close);
 }
 .detail-header > :last-child {
 	margin-bottom: 0;
 }
-.detail-header.ruled-header {
-	padding-bottom: 24px;
+/* Rows carry their own padding, so the gap beside them drops one level. */
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list),
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list) + * {
+	margin-top: calc((var(--rhythm-item) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+.detail-section {
+	margin-top: calc((var(--rhythm-section) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+:is(.preview-body, .reader-body, .pr-detail)
+	> :is(.detail-header, .detail-rows, .detail-task-list)
+	+ .detail-section {
+	margin-top: 0;
+}
+.detail-section > h2:has(+ :is(.detail-rows, .detail-related, .detail-row)) {
+	margin-bottom: var(--rhythm-close);
 }
 .preview-body h1 {
 	font-size: calc(26px * var(--content-text-scale, 1));
@@ -4573,13 +4594,6 @@ dialog > .float-bar.is-hidden {
 .preview-sheet:has(.is-podcast) #modal-title {
 	padding-right: 0;
 }
-.reader-body {
-	gap: var(--space-20);
-}
-.detail-section {
-	margin-top: var(--space-8);
-}
-
 .preview-sheet:has(.pr-detail) #modal-title {
 	padding-right: 0;
 }
@@ -4756,7 +4770,7 @@ dialog > .float-bar.is-hidden {
 	text-align: left;
 	border-top: 1px solid var(--line-card);
 }
-.detail-related .detail-row > span {
+.detail-related .detail-row > span:not(.row-icon) {
 	flex: 1;
 }
 /* Meeting identifiers stay readable without taking the name's entire row. */
@@ -4795,15 +4809,6 @@ dialog > .float-bar.is-hidden {
 	color: var(--fixed-white-60);
 	margin-top: 4px;
 }
-.pr-detail > .detail-header {
-	padding-bottom: 24px;
-}
-.pr-detail .pr-branch-row {
-	order: 2;
-}
-.pr-detail .preview-tags {
-	order: 3;
-}
 .pr-check-details summary {
 	list-style: none;
 	cursor: pointer;
@@ -4811,8 +4816,40 @@ dialog > .float-bar.is-hidden {
 .pr-check-details summary::-webkit-details-marker {
 	display: none;
 }
+/* Check names start where the row text starts: icon box plus the row gap. */
 .pr-check-details > div.detail-row {
-	padding-left: 28px;
+	padding-left: calc(18px + var(--space-12));
+}
+.pr-check-details > div.detail-row > small {
+	margin-left: auto;
+}
+/* The summary sits inside <details>, so it draws the row divider itself. */
+.detail-rows > .pr-check-details:not(:first-child) > summary.detail-row {
+	border-top: 1px solid var(--line);
+}
+.pr-check-details[open] > summary > .icon:last-child {
+	transform: rotate(90deg);
+}
+/* The status row reads as a sentence; branch names may wrap as whole pieces. */
+.pr-detail .detail-row > .pr-status-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8);
+	white-space: normal;
+	overflow: visible;
+}
+.pr-status {
+	font-weight: calc(500 + var(--content-weight-add, 0));
+	color: var(--accent);
+	white-space: nowrap;
+}
+.pr-status-draft,
+.pr-status-closed {
+	color: var(--muted);
+}
+.pr-detail .detail-row > .pr-stats + small {
+	margin-left: auto;
 }
 .pr-reviewer-avatars {
 	display: inline-flex;
@@ -4951,11 +4988,13 @@ dialog > .float-bar.is-hidden {
 	display: none;
 }
 
-.detail-event .detail-header > .preview-meta {
-	margin-bottom: 8px;
+/* Event date line sits close to its time; the time is one item above the title. */
+.detail-header > .preview-meta:has(+ .event-hero) {
+	min-height: 0;
+	margin-bottom: var(--rhythm-close);
 }
-.detail-event .detail-header > .event-hero {
-	margin-bottom: 16px;
+.detail-header > .event-hero {
+	margin-bottom: var(--rhythm-item);
 }
 .event-hero .num:first-child {
 	font-size: 44px;
@@ -4965,10 +5004,7 @@ dialog > .float-bar.is-hidden {
 	font-size: var(--text-control);
 }
 .pr-detail .detail-header > .card-head {
-	margin-bottom: 6px;
-}
-.pr-detail .detail-header > .pr-branch-row {
-	margin-bottom: 12px;
+	margin-bottom: var(--rhythm-close);
 }
 .is-video .media-primary > .preview-meta {
 	min-height: 36px;
@@ -7166,6 +7202,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 :is(.preview-body, .reader-body) :is(.preview-lead, .preview-full p) {
 	margin-block: 0 calc(var(--space-16) * var(--reader-space-scale, 1));
 }
+/* @design vertical-rhythm — the last paragraph leaves the gap to the block spacing. */
+:is(.preview-body, .reader-body) .preview-full > :is(p, .preview-lead):last-child {
+	margin-bottom: 0;
+}
 @media (max-width: 650px) {
 	/* @design phone-text-scale
 	 * A phone is held closer than a desktop: content starts one step larger, and the
@@ -7218,10 +7258,6 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 }
 .is-article-reader > .reader-body {
 	max-width: var(--reader-measure);
-}
-.is-article-reader .ruled-header {
-	border: 0;
-	padding-bottom: 0;
 }
 .is-article-reader.has-outline {
 	left: calc(var(--reader-outline-width) + var(--space-40) + var(--space-30));

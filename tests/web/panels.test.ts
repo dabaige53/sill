@@ -75,7 +75,10 @@ test("quote and repeated summaries stay out of the preview lead; suggestions lin
 		const links = dom.window.document.querySelectorAll('.detail-related [data-action="card-open"]');
 		assert.equal(links.length, 1);
 		assert.equal(links[0].getAttribute("data-id"), related.id);
-		assert.equal(links[0].querySelector("span")?.textContent, related.title);
+		assert.equal(
+			links[0].querySelector(":scope > span:not(.row-icon)")?.textContent,
+			related.title,
+		);
 		assert.equal(links[0].querySelector("img"), null);
 	} finally {
 		dom.window.close();

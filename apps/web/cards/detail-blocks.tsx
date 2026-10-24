@@ -21,7 +21,9 @@ export function RelatedCards({ card }: { card: Card }) {
 						data-action="card-open"
 						data-id={item.id}
 					>
-						<Icon name={(CardTypes[item.type] || CardTypes.note).icon} size={15} />
+						<span className="row-icon">
+							<Icon name={(CardTypes[item.type] || CardTypes.note).icon} size={16} />
+						</span>
 						<span>{item.title}</span>
 						<small>{(CardTypes[item.type] || CardTypes.note).label}</small>
 						<Icon name="chevron" size={14} />

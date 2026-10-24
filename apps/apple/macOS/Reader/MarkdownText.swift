@@ -13,7 +13,8 @@ struct MarkdownText: View {
 
   var body: some View {
     VStack(
-      alignment: .leading, spacing: AppleMetrics.space16 * workspace.preferences.readerSpacing.scale
+      alignment: .leading,
+      spacing: AppleMetrics.rhythmItem * workspace.preferences.readerSpacing.scale
     ) {
       ForEach(Array(document.blocks.enumerated()), id: \.offset) { index, block in
         if block.rule {

@@ -5293,6 +5293,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 :is(.preview-body, .reader-body) :is(.preview-lead, .preview-full p) {
 	margin-block: 0 calc(var(--space-16) * var(--reader-space-scale, 1));
 }
+/* @design vertical-rhythm — the last paragraph leaves the gap to the block spacing. */
+:is(.preview-body, .reader-body) .preview-full > :is(p, .preview-lead):last-child {
+	margin-bottom: 0;
+}
 @media (max-width: 650px) {
 	/* @design phone-text-scale
 	 * A phone is held closer than a desktop: content starts one step larger, and the

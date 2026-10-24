@@ -5,11 +5,13 @@ struct PullRequestContent: View {
   let card: CardModel
   var detail = false
   var tags: [String]?
+  /// Detail spacing, scaled by the reader's spacing preference.
+  var rhythm = DetailRhythm(scale: 1)
   @State private var checksExpanded = false
   @Environment(\.contentAppearance) private var appearance
   @Environment(\.cardIntents) private var intents
   var body: some View {
-    VStack(alignment: .leading, spacing: detail ? AppleMetrics.space20 : AppleMetrics.space8) {
+    VStack(alignment: .leading, spacing: detail ? rhythm.group : AppleMetrics.space8) {
       if let pr = card.pullRequest {
         VStack(alignment: .leading, spacing: 0) {
           CardHead(
@@ -22,24 +24,24 @@ struct PullRequestContent: View {
             if !detail { status(pr) }
           }
           .frame(minHeight: detail ? AppleMetrics.space36 : AppleMetrics.cardHeadHeight)
-          .padding(.bottom, detail ? AppleMetrics.space6 : AppleMetrics.space8)
+          .padding(.bottom, detail ? AppleMetrics.rhythmClose : AppleMetrics.space8)
           Text(card.title)
             .textStyle(detail ? AppleMetrics.previewTitle : AppleMetrics.font16, .semibold)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(.bottom, detail ? AppleMetrics.space16 : AppleMetrics.space8)
-          HStack(spacing: AppleMetrics.space8) {
-            if detail { status(pr) }
-            if detail, let author = pr.author?.name, !author.isEmpty, let head = pr.headBranch,
-              let base = pr.baseBranch
-            {
-              mergeIntent(author: author, head: head, base: base)
-            } else if pr.headBranch != nil || pr.baseBranch != nil {
-              branchChip(
-                [pr.headBranch, pr.baseBranch].compactMap { $0 }.joined(separator: " → "),
-                size: AppleMetrics.font12)
+            .padding(.bottom, detail ? 0 : AppleMetrics.space8)
+          if detail {
+            // The state opens the detail rows instead of sitting among the tags.
+            if !(tags ?? card.tags).isEmpty {
+              ReaderTags(tags: tags ?? card.tags).padding(.top, AppleMetrics.rhythmItem)
             }
-            Spacer(minLength: 0)
-            if !detail {
+          } else {
+            HStack(spacing: AppleMetrics.space8) {
+              if pr.headBranch != nil || pr.baseBranch != nil {
+                branchChip(
+                  [pr.headBranch, pr.baseBranch].compactMap { $0 }.joined(separator: " → "),
+                  size: AppleMetrics.font12)
+              }
+              Spacer(minLength: 0)
               stats(additions: pr.additions, deletions: pr.deletions)
               if let count = pr.changedFiles {
                 Text("\(count) \(Copy.text("pr.fileCount"))").textStyle(AppleMetrics.font12)
@@ -47,9 +49,7 @@ struct PullRequestContent: View {
               }
             }
           }
-          if detail { ReaderTags(tags: tags ?? card.tags).padding(.top, AppleMetrics.space12) }
         }
-        .padding(.bottom, detail ? AppleMetrics.space24 : 0)
         if detail {
           details(pr)
         } else {
@@ -102,6 +102,43 @@ struct PullRequestContent: View {
         Capsule().fill(
           pr.state == "draft" || pr.state == "closed" ? AppleColors.surface : AppleColors.accentSoft
         ))
+  }
+
+  /// First detail row: the state in its colour, then who wants to merge which branch.
+  private func statusRow(_ pr: CardRichFields.PullRequest) -> some View {
+    HStack(spacing: AppleMetrics.space12) {
+      rowIcon("pull")
+      HStack(spacing: AppleMetrics.space8) {
+        Text(Copy.text(pr.reviewRequested == true ? "pr.reviewRequested" : "pr.state.\(pr.state)"))
+          .textStyle(AppleMetrics.font14, .medium)
+          .foregroundStyle(
+            pr.state == "draft" || pr.state == "closed" ? AppleColors.secondary : AppleColors.accent
+          )
+        if let author = pr.author?.name, !author.isEmpty, let head = pr.headBranch,
+          let base = pr.baseBranch
+        {
+          mergeIntent(author: author, head: head, base: base)
+        } else if pr.headBranch != nil || pr.baseBranch != nil {
+          branchChip(
+            [pr.headBranch, pr.baseBranch].compactMap { $0 }.joined(separator: " → "),
+            size: AppleMetrics.font12
+          )
+          .foregroundStyle(AppleColors.secondary)
+        }
+      }
+      Spacer(minLength: 0)
+    }
+    .frame(minHeight: AppleMetrics.detailRowHeight)
+  }
+
+  /// The same 18-point icon box as `DetailRow`, so every row's text starts at one edge.
+  private func rowIcon(_ name: String) -> some View {
+    Icon(name, size: AppleMetrics.space16).foregroundStyle(AppleColors.secondary)
+      .frame(width: AppleMetrics.space18, height: AppleMetrics.space18)
+  }
+
+  private var rowDivider: some View {
+    Rectangle().fill(AppleColors.line).frame(height: AppleMetrics.lineWidth)
   }
 
   private func stats(additions: Int?, deletions: Int?) -> some View {
@@ -170,67 +207,96 @@ struct PullRequestContent: View {
   }
 
   @ViewBuilder private func details(_ pr: CardRichFields.PullRequest) -> some View {
+    // Rows without data are left out rather than shown as "0/0" or "—".
+    let hasStats = pr.additions != nil || pr.deletions != nil
     VStack(spacing: 0) {
-      Button {
-        checksExpanded.toggle()
-      } label: {
-        HStack(spacing: AppleMetrics.space12) {
-          DetailRow(
-            icon: "check-circle",
-            title:
-              "\(Copy.text("pr.checks")) \(pr.checks.filter { $0.conclusion == "success" }.count)/\(pr.checks.count)"
-          )
-          Icon("chevron", size: AppleMetrics.space14).rotationEffect(
-            .degrees(checksExpanded ? 90 : 0))
-        }
-      }.buttonStyle(.plain)
-      if checksExpanded {
-        ForEach(Array(pr.checks.enumerated()), id: \.offset) { _, check in
-          let row = DetailRow(
-            icon: check.conclusion == "success" ? "check" : "clock", title: check.name,
-            trailing: Copy.text("pr.check.\(check.conclusion ?? check.status)"), divider: true)
-          if let url = check.url { Link(destination: url) { row }.buttonStyle(.plain) } else { row }
+      statusRow(pr)
+      if !pr.checks.isEmpty {
+        Button {
+          checksExpanded.toggle()
+        } label: {
+          HStack(spacing: AppleMetrics.space12) {
+            DetailRow(
+              icon: "check-circle",
+              title:
+                "\(Copy.text("pr.checks")) \(pr.checks.filter { $0.conclusion == "success" }.count)/\(pr.checks.count)"
+            )
+            Icon("chevron", size: AppleMetrics.space14).rotationEffect(
+              .degrees(checksExpanded ? 90 : 0))
+          }
+          .overlay(alignment: .top) { rowDivider }
+        }.buttonStyle(.plain)
+        if checksExpanded {
+          ForEach(Array(pr.checks.enumerated()), id: \.offset) { _, check in
+            let row = DetailRow(
+              icon: check.conclusion == "success" ? "check" : "clock", title: check.name,
+              trailing: Copy.text("pr.check.\(check.conclusion ?? check.status)"), divider: true)
+            if let url = check.url {
+              Link(destination: url) { row }.buttonStyle(.plain)
+            } else {
+              row
+            }
+          }
         }
       }
-      HStack(spacing: AppleMetrics.space12) {
-        Icon("at", size: AppleMetrics.font16)
-        Text(
-          pr.reviewers.map { "\($0.login) \(Copy.text("pr.decision.\($0.decision)"))" }.joined(
-            separator: " · ")
-        )
-        .frame(maxWidth: .infinity, alignment: .leading)
-        ForEach(Array(pr.reviewers.enumerated()), id: \.offset) { _, reviewer in
-          reviewerAvatar(reviewer)
+      if !pr.reviewers.isEmpty {
+        HStack(spacing: AppleMetrics.space12) {
+          rowIcon("at")
+          Text(
+            pr.reviewers.map { "\($0.login) \(Copy.text("pr.decision.\($0.decision)"))" }.joined(
+              separator: " · ")
+          )
+          .frame(maxWidth: .infinity, alignment: .leading)
+          ForEach(Array(pr.reviewers.enumerated()), id: \.offset) { _, reviewer in
+            reviewerAvatar(reviewer)
+          }
         }
-      }.padding(.vertical, AppleMetrics.space12)
-      HStack(spacing: AppleMetrics.space12) {
-        Icon("file", size: AppleMetrics.font16)
-        stats(additions: pr.additions, deletions: pr.deletions)
-        Spacer(minLength: 0)
-        if let count = pr.changedFiles {
-          Text("\(count) \(Copy.text("pr.fileCount"))").foregroundStyle(AppleColors.secondary)
+        .frame(minHeight: AppleMetrics.detailRowHeight)
+        .overlay(alignment: .top) { rowDivider }
+      }
+      if hasStats || pr.changedFiles != nil {
+        HStack(spacing: AppleMetrics.space12) {
+          rowIcon("file")
+          if hasStats {
+            stats(additions: pr.additions, deletions: pr.deletions)
+            Spacer(minLength: 0)
+          }
+          if let count = pr.changedFiles {
+            Text("\(count) \(Copy.text("pr.fileCount"))")
+              .foregroundStyle(hasStats ? AppleColors.secondary : AppleColors.primary)
+          }
+          if !hasStats { Spacer(minLength: 0) }
         }
-      }.padding(.vertical, AppleMetrics.space12)
+        .frame(minHeight: AppleMetrics.detailRowHeight)
+        .overlay(alignment: .top) { rowDivider }
+      }
       if let comments = pr.comments {
         DetailRow(icon: "message", title: "\(comments) \(Copy.text("pr.comments"))", divider: true)
       }
     }
+    .padding(.top, rhythm.rowLift)
     if !card.markdown.blocks.isEmpty {
       MarkdownText(
         document: card.markdown, size: AppleMetrics.font15, leading: AppleMetrics.previewBodyLeading
       )
+      .padding(.top, rhythm.rowLift)
     }
     if !pr.files.isEmpty {
-      Text(Copy.text("pr.files")).textStyle(AppleMetrics.font13, .semibold).foregroundStyle(
-        AppleColors.secondary)
-      ForEach(Array(pr.files.enumerated()), id: \.offset) { _, file in
-        HStack(spacing: AppleMetrics.space12) {
-          Icon("file", size: AppleMetrics.font16)
-          Text(file.path).lineLimit(1).truncationMode(.middle)
-          Spacer(minLength: 0)
-          stats(additions: file.additions, deletions: file.deletions)
-        }.padding(.vertical, AppleMetrics.space12)
+      VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
+        Text(Copy.text("pr.files")).textStyle(AppleMetrics.font13, .semibold).foregroundStyle(
+          AppleColors.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+          ForEach(Array(pr.files.enumerated()), id: \.offset) { _, file in
+            HStack(spacing: AppleMetrics.space12) {
+              rowIcon("file")
+              Text(file.path).lineLimit(1).truncationMode(.middle)
+              Spacer(minLength: 0)
+              stats(additions: file.additions, deletions: file.deletions)
+            }.padding(.vertical, AppleMetrics.space12)
+          }
+        }
       }
+      .padding(.top, card.markdown.blocks.isEmpty ? 0 : rhythm.sectionLead)
     }
   }
 }
