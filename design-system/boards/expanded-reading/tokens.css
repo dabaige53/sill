@@ -154,6 +154,13 @@
 	--hit-target: 44px;
 	--summary-lines: 3;
 	--block-gap: 8px;
+	/* Vertical rhythm: six levels by how closely two stacked pieces belong together. */
+	--rhythm-tight: 4px;
+	--rhythm-close: 8px;
+	--rhythm-label: 12px;
+	--rhythm-item: 16px;
+	--rhythm-group: 24px;
+	--rhythm-section: 32px;
 	--card-padding: 18px;
 	--card-padding-sm: 16px;
 	--cover-inset: 8px;

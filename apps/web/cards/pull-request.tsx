@@ -86,18 +86,7 @@ export function PullRequest({
 					{!detail && <span className="card-head-right">{status}</span>}
 				</div>
 				{detail ? (
-					<>
-						<h1 id="modal-title">{card.title}</h1>
-						{!!Store.tags(card).length && (
-							<div className="preview-tags">
-								{Store.tags(card).map((tag) => (
-									<span key={tag} className="chip soft">
-										#{tag}
-									</span>
-								))}
-							</div>
-						)}
-					</>
+					<h1 id="modal-title">{card.title}</h1>
 				) : (
 					<h2 className="card-title">
 						<button
@@ -125,6 +114,15 @@ export function PullRequest({
 						</>
 					)}
 				</div>
+				{detail && !!Store.tags(card).length && (
+					<div className="preview-tags">
+						{Store.tags(card).map((tag) => (
+							<span key={tag} className="chip soft">
+								#{tag}
+							</span>
+						))}
+					</div>
+				)}
 			</header>
 			{!detail && pr && (
 				<div className="pr-footer">

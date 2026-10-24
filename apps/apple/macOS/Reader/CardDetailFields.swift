@@ -35,7 +35,7 @@ struct DetailFiles: View {
   var label = Copy.text("web.card.files")
   var attachment = false
   var body: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space10) {
+    VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
       if !files.isEmpty {
         Text(label).textStyle(AppleMetrics.font13, .semibold).foregroundStyle(
           AppleColors.secondary)

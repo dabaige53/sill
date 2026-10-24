@@ -32,10 +32,6 @@
 .is-article-reader > .reader-body {
 	max-width: var(--reader-measure);
 }
-.is-article-reader .ruled-header {
-	border: 0;
-	padding-bottom: 0;
-}
 .is-article-reader.has-outline {
 	left: calc(var(--reader-outline-width) + var(--space-40) + var(--space-30));
 }

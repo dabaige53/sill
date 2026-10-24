@@ -99,6 +99,7 @@
 - [详情文字统一为一个 Markdown 正文字段](adr/0063-markdown-body.md)
 - [统一登录与授权布局](adr/0064-unified-auth-layout.md)
 - [放大阅读页按内容排版](adr/0065-expanded-reading-layout.md)
+- [纵向间距分六级](adr/0066-vertical-rhythm.md)
 
 ## 记录
 

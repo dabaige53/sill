@@ -1,29 +1,44 @@
 /* CardTypeDetails / CardTypeReading: headers and prose have different reading sizes. */
 .preview-body {
-	gap: 20px;
 	padding: 24px 30px 30px;
+}
+/* @design vertical-rhythm — blocks sit one group apart; the header adds no space of its own. */
+:is(.preview-body, .reader-body, .pr-detail) {
+	gap: calc(var(--rhythm-group) * var(--reader-space-scale, 1));
 }
 .detail-header {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	margin-bottom: 8px;
 }
 .detail-header > :is(.preview-meta, .preview-sender) {
 	min-height: 36px;
-	margin-bottom: 6px;
+	margin-bottom: var(--rhythm-close);
 }
 .detail-header h1 {
-	margin: 0 0 16px;
+	margin: 0 0 var(--rhythm-item);
 }
 .detail-header > :is(.preview-tags, .preview-published) {
-	margin-bottom: 8px;
+	margin-bottom: var(--rhythm-close);
 }
 .detail-header > :last-child {
 	margin-bottom: 0;
 }
-.detail-header.ruled-header {
-	padding-bottom: 24px;
+/* Rows carry their own padding, so the gap beside them drops one level. */
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list),
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list) + * {
+	margin-top: calc((var(--rhythm-item) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+.detail-section {
+	margin-top: calc((var(--rhythm-section) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+:is(.preview-body, .reader-body, .pr-detail)
+	> :is(.detail-header, .detail-rows, .detail-task-list)
+	+ .detail-section {
+	margin-top: 0;
+}
+.detail-section > h2:has(+ :is(.detail-rows, .detail-related, .detail-row)) {
+	margin-bottom: var(--rhythm-close);
 }
 .preview-body h1 {
 	font-size: calc(26px * var(--content-text-scale, 1));
@@ -219,13 +234,6 @@
 .preview-sheet:has(.is-podcast) #modal-title {
 	padding-right: 0;
 }
-.reader-body {
-	gap: var(--space-20);
-}
-.detail-section {
-	margin-top: var(--space-8);
-}
-
 .preview-sheet:has(.pr-detail) #modal-title {
 	padding-right: 0;
 }
@@ -441,15 +449,6 @@
 	color: var(--fixed-white-60);
 	margin-top: 4px;
 }
-.pr-detail > .detail-header {
-	padding-bottom: 24px;
-}
-.pr-detail .pr-branch-row {
-	order: 2;
-}
-.pr-detail .preview-tags {
-	order: 3;
-}
 .pr-check-details summary {
 	list-style: none;
 	cursor: pointer;
@@ -597,11 +596,13 @@
 	display: none;
 }
 
-.detail-event .detail-header > .preview-meta {
-	margin-bottom: 8px;
+/* Event date line sits close to its time; the time is one item above the title. */
+.detail-header > .preview-meta:has(+ .event-hero) {
+	min-height: 0;
+	margin-bottom: var(--rhythm-close);
 }
-.detail-event .detail-header > .event-hero {
-	margin-bottom: 16px;
+.detail-header > .event-hero {
+	margin-bottom: var(--rhythm-item);
 }
 .event-hero .num:first-child {
 	font-size: 44px;
@@ -611,10 +612,10 @@
 	font-size: var(--text-control);
 }
 .pr-detail .detail-header > .card-head {
-	margin-bottom: 6px;
+	margin-bottom: var(--rhythm-close);
 }
-.pr-detail .detail-header > .pr-branch-row {
-	margin-bottom: 12px;
+.pr-detail .detail-header > .pr-branch-row:not(:last-child) {
+	margin-bottom: var(--rhythm-close);
 }
 .is-video .media-primary > .preview-meta {
 	min-height: 36px;
