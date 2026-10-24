@@ -17,3 +17,4 @@
 | 2026-10-22 | [ADR 0061](../adr/0061-in-app-media-playback-and-pr-cards.md) | 1792640295-b21d | 1792640301-08a9 | 13 类卡片与详情草稿（卡面、手机 390、全屏阅读与深色、播客播放页）与卡片收回弹簧 |
 | 2026-10-23 | [ADR 0064](../adr/0064-ai-conversation-three-heights.md) | 1792757085-d0c0 | 1792757058-6298 | AI 对话三种高度与手机对话页（草稿） |
 | 2026-10-24 | [ADR 0066](../adr/0066-vertical-rhythm.md) | 未发布 | 1792803081-fcea | 纵向间距六级：只发布 CardTypeDetails、CardTypeMobile、CardTypeReading 三块画板。线上 Design System 为 design/ai-conversation 分支版本，手册与变量待该分支合入 main 后一并发布 |
+| 2026-10-24 | [ADR 0066](../adr/0066-vertical-rhythm.md) | 未发布 | 1792804245-1192 | PR 详情状态进入信息行，无数据的行不显示，信息行图标对齐：只发布三块详情画板，Design System 同上一行原因未发布 |
