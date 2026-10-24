@@ -135,7 +135,7 @@
 
 ## 手机 PWA 打开与抽屉开合
 
-依据 [ADR 0066](../adr/0066-pwa-launch-and-sheet-motion.md) 与 [ADR 0067](../adr/0067-detail-resize-media-and-progress-writes.md)。实测列均为未验证：本次没有浏览器、真机或 Mac 窗口检查。
+依据 [ADR 0066](../adr/0066-pwa-launch-and-sheet-motion.md) 、[ADR 0067](../adr/0067-detail-resize-media-and-progress-writes.md) 与 [ADR 0068](../adr/0068-phone-text-scale.md)。实测列均为未验证：本次没有浏览器、真机或 Mac 窗口检查。
 
 | 行为 | Web 桌面 | 手机 Web | Mac | 实测 | 说明 |
 | --- | --- | --- | --- | --- | --- |
@@ -145,6 +145,7 @@
 | 放大到阅读页时保留预览遮罩，外框铺满后换成页面底色 | 基准 | 基准 | 未核对 | 未验证 | [ADR 0067](../adr/0067-detail-resize-media-and-progress-writes.md)；Mac 放大由原生外框绘制，本次未改 |
 | 视频框架在详情动效结束后插入；播放更新只重绘当前行 | 基准 | 基准 | 未核对 | 未验证 | Mac 使用原生播放器视图，本次未改 |
 | 阅读进度最多每 500ms 保存，读完立即保存 | 基准 | 基准 | 未核对 | 未验证 | Mac 有自己的保存路径，下次改动阅读时核对 |
+| 手机内容文字乘 `text-phone-scale` 1.07，预览正文 17，控件不变 | 不适用 | 基准 | 不适用 | 未验证 | [ADR 0068](../adr/0068-phone-text-scale.md)；桌面 Web 与 Mac 字号不变，设置三端共用 |
 
 ## 极端内容与手机流畅度
 

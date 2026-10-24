@@ -101,6 +101,7 @@
 - [放大阅读页按内容排版](adr/0065-expanded-reading-layout.md)
 - [手机 PWA 打开、抽屉开合与下拉刷新](adr/0066-pwa-launch-and-sheet-motion.md)
 - [详情放大遮罩、媒体播放与阅读进度写入](adr/0067-detail-resize-media-and-progress-writes.md)
+- [手机内容文字起点](adr/0068-phone-text-scale.md)
 
 ## 记录
 
