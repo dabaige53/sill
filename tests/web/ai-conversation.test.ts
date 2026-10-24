@@ -207,6 +207,13 @@ test("the desktop box grows and folds back by the table, and stays one line with
 		const app = new AppController();
 		app.dialog = { open: false, querySelectorAll: () => [] };
 		const dock = w.document.getElementById("ai-dock");
+		assert.ok(
+			dock
+				.querySelector("#ai-dock-input")
+				.compareDocumentPosition(dock.querySelector(".ai-dock-tools button")) &
+				w.Node.DOCUMENT_POSITION_FOLLOWING,
+			"Tab reaches the input before the collapse control",
+		);
 		app.renderAIConversation();
 		assert.equal(w.document.querySelector("#ai-dock-session button"), null);
 		app.aiHeightEvent("open");

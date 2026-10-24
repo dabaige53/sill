@@ -364,22 +364,6 @@ export function AIDock() {
 				hidden
 			/>
 			<div className="ai-dock-context" id="ai-dock-context" />
-			<div className="ai-dock-tools">
-				<button
-					type="button"
-					className="ai-dock-button glass"
-					aria-label={copy("web.ai.collapse")}
-					title={copy("web.ai.collapse")}
-					onClick={() => {
-						toggle(true);
-						requestAnimationFrame(() =>
-							dock.current?.querySelector<HTMLButtonElement>(".ai-dock-restore")?.focus(),
-						);
-					}}
-				>
-					<Icon name="ai-minimize" size={20} />
-				</button>
-			</div>
 			<div className="ai-dock-row">
 				<span className="ai-dock-session-slot" id="ai-dock-session" />
 				<button
@@ -411,6 +395,22 @@ export function AIDock() {
 					<span>
 						<Icon name="up" size={20} />
 					</span>
+				</button>
+			</div>
+			<div className="ai-dock-tools">
+				<button
+					type="button"
+					className="ai-dock-button glass"
+					aria-label={copy("web.ai.collapse")}
+					title={copy("web.ai.collapse")}
+					onClick={() => {
+						toggle(true);
+						requestAnimationFrame(() =>
+							dock.current?.querySelector<HTMLButtonElement>(".ai-dock-restore")?.focus(),
+						);
+					}}
+				>
+					<Icon name="ai-minimize" size={20} />
 				</button>
 			</div>
 		</div>
