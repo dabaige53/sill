@@ -36,6 +36,7 @@ export const appInputMethods = {
 		if (
 			picked &&
 			this.selectionContext().grid?.contains(picked) &&
+			this.aiHeight !== "full" &&
 			!e.target.closest<HTMLElement>(".card-actions, .card-more-menu, .is-editing") &&
 			(e.metaKey || e.ctrlKey || e.shiftKey || this.selected.size)
 		) {
@@ -268,6 +269,7 @@ export const appInputMethods = {
 	key(this: AppController, e?: TargetEvent<KeyboardEvent>) {
 		if (e.isComposing) return;
 		if (this.homeKey(e)) return;
+		if (this.aiKey(e)) return;
 		if (
 			(!this.dialog.open || this.modalKind === "search") &&
 			!e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]") &&

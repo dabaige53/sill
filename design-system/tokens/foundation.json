@@ -334,6 +334,11 @@
 				"name": "pill-radius",
 				"value": "999px",
 				"usage": "胶囊、按钮、标签、入口球。"
+			},
+			{
+				"name": "ai-bubble-radius",
+				"value": "20px",
+				"usage": "AI 对话里你的话的气泡。"
 			}
 		]
 	},
@@ -587,6 +592,11 @@
 				"name": "summary-lines",
 				"value": "3",
 				"usage": "兼容窄屏摘要行数；桌面标题、摘要和要点自然换行，密度只改变列宽。"
+			},
+			{
+				"name": "text-phone-scale",
+				"value": "1.07",
+				"usage": "手机卡片与详情内容文字的起点倍数，与卡片、阅读文字大小设置相乘；桌面为 1。导航、控件与阅读页正文不乘。"
 			}
 		]
 	},

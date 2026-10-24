@@ -19,7 +19,7 @@
 | `Shell/` | 顶栏、页签菜单、搜索框、AI 框、多选栏、面板、提示条、桌面布局 |
 | `Settings/` | 设置窗口与设置控件（开关、分段、按键标记） |
 | `Feed/` | 瀑布流、卡片外壳、12 个类型的卡片正文（媒体分视频与播客）、堆叠 |
-| `Reader/` | 阅读浮层、预览、全屏页、工具栏、滚动与手势 |
+| `Reader/` | 阅读浮层、预览、全屏页、工具栏、滚动与手势；`ReaderContent.swift` 按卡片类型组装正文，`DetailRows.swift` 提供共用信息行 |
 | `Design/` | 图标、动效、阴影与玻璃、字体、格式化 |
 
 状态规则：
@@ -74,6 +74,8 @@ open -a "$PWD/dist/macos/Sill.app" --args --data-directory /tmp/sill-demo
 ```
 
 演示数据来自 Web 的 `SeedCards` 和 `SeedItems`（30 张卡片，覆盖 11 种类型）。脚本不覆盖已有的 cards.json。
+
+AI 对话的展开面板和完整视图需要会话；内置 AI 未接入，正式构建没有会话。检查界面时用调试构建并设 `SILL_AI_PREVIEW=1`，加载与 Web 相同的设计样例会话（`AIPreview`，只在 DEBUG 中编译）：`swift build --package-path apps/apple`，再以该环境变量运行 `apps/apple/.build/debug/Sill --data-directory /tmp/sill-demo`。样例不写入数据，发送、停止、重试仍禁用。
 
 ## 数据层
 

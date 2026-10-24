@@ -5,7 +5,7 @@ export function exportDesignData(check = false) {
 	for (const [output, sources] of [
 		[
 			"copy/zh-Hans.json",
-			["apple", "cards", "web-services", "web", "web-ai", "shared"].map(
+			["apple", "cards", "web-services", "web", "web-ai", "shared", "ai"].map(
 				(name) => `copy/zh-Hans/${name}.json`,
 			),
 		],

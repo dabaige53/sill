@@ -42,6 +42,11 @@
 	);
 	--feed-max: 1640px;
 	--preview-short-width: 560px;
+	--ai-dock-width: 640px;
+	--ai-panel-inset: 260px;
+	--ai-full-width: 1040px;
+	--ai-full-inset: 120px;
+	--ai-sessions-width: 260px;
 	--canvas: #f5f5f7;
 	--card: #fff;
 	--ink: #1d1d1f;
@@ -153,7 +158,15 @@
 	--article-gutter-sm: 20px;
 	--hit-target: 44px;
 	--summary-lines: 3;
+	--text-phone-scale: 1.07;
 	--block-gap: 8px;
+	/* Vertical rhythm: six levels by how closely two stacked pieces belong together. */
+	--rhythm-tight: 4px;
+	--rhythm-close: 8px;
+	--rhythm-label: 12px;
+	--rhythm-item: 16px;
+	--rhythm-group: 24px;
+	--rhythm-section: 32px;
 	--card-padding: 18px;
 	--card-padding-sm: 16px;
 	--cover-inset: 8px;
@@ -163,6 +176,7 @@
 	--cover-radius: 14px;
 	--panel-radius: 24px;
 	--sheet-radius: 28px;
+	--ai-bubble-radius: 20px;
 	--control-radius: 12px;
 	--pill-radius: 999px;
 	/* Type sizes follow the type styles in design-system/tokens.json as --text-<style>. */
@@ -1020,12 +1034,17 @@ body.is-dragging #toast {
 	.ai-dock {
 		position: relative;
 		display: flex;
+		flex-direction: column;
+		width: min(var(--ai-dock-width), 100%);
+		border-radius: 30px;
+	}
+	.ai-dock-row {
+		display: flex;
+		flex: none;
 		align-items: center;
 		gap: var(--space-4);
-		width: min(640px, 100%);
 		height: var(--rail-row);
 		padding: 0 var(--space-12);
-		border-radius: 30px;
 	}
 	#dock:has(#selection-bar:not([hidden])) .ai-dock {
 		display: none;
@@ -1174,7 +1193,7 @@ body.is-dragging #toast {
 		backdrop-filter: var(--glass-filter);
 	}
 	/* The search field and the AI box take typing across the whole capsule. */
-	.ai-dock {
+	.ai-dock-row {
 		cursor: text;
 	}
 	.ai-dock-context {
@@ -2795,14 +2814,14 @@ button.ref:active {
 	margin-left: auto;
 }
 .detail-section {
-	margin-top: var(--space-24);
 	color: var(--ink);
 }
 .detail-section h2 {
 	font-size: calc(var(--text-control) * var(--content-text-scale, 1));
-	margin-bottom: var(--space-12);
+	margin-bottom: var(--rhythm-label);
 }
 .why-details ul {
+	margin: var(--rhythm-close) 0 0;
 	padding-left: var(--space-18);
 }
 .why-details li {
@@ -2988,7 +3007,6 @@ a.detail-row:hover {
 .pr-detail {
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
 }
 .pr-detail .card-head {
 	min-height: 36px;
@@ -3989,6 +4007,10 @@ button.detail-row:active {
 #modal.reader::backdrop {
 	background: var(--card);
 }
+/* While it grows from the preview, the reader keeps the preview's dim behind its surface. */
+#modal.reader[data-reader-growing]::backdrop {
+	background: var(--dim);
+}
 .reader-progress {
 	width: 100%;
 	transform-origin: left center;
@@ -4338,30 +4360,45 @@ dialog > .float-bar.is-hidden {
 
 /* CardTypeDetails / CardTypeReading: headers and prose have different reading sizes. */
 .preview-body {
-	gap: 20px;
 	padding: 24px 30px 30px;
+}
+/* @design vertical-rhythm — blocks sit one group apart; the header adds no space of its own. */
+:is(.preview-body, .reader-body, .pr-detail) {
+	gap: calc(var(--rhythm-group) * var(--reader-space-scale, 1));
 }
 .detail-header {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	margin-bottom: 8px;
 }
 .detail-header > :is(.preview-meta, .preview-sender) {
 	min-height: 36px;
-	margin-bottom: 6px;
+	margin-bottom: var(--rhythm-close);
 }
 .detail-header h1 {
-	margin: 0 0 16px;
+	margin: 0 0 var(--rhythm-item);
 }
 .detail-header > :is(.preview-tags, .preview-published) {
-	margin-bottom: 8px;
+	margin-bottom: var(--rhythm-close);
 }
 .detail-header > :last-child {
 	margin-bottom: 0;
 }
-.detail-header.ruled-header {
-	padding-bottom: 24px;
+/* Rows carry their own padding, so the gap beside them drops one level. */
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list),
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list) + * {
+	margin-top: calc((var(--rhythm-item) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+.detail-section {
+	margin-top: calc((var(--rhythm-section) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+:is(.preview-body, .reader-body, .pr-detail)
+	> :is(.detail-header, .detail-rows, .detail-task-list)
+	+ .detail-section {
+	margin-top: 0;
+}
+.detail-section > h2:has(+ :is(.detail-rows, .detail-related, .detail-row)) {
+	margin-bottom: var(--rhythm-close);
 }
 .preview-body h1 {
 	font-size: calc(26px * var(--content-text-scale, 1));
@@ -4557,13 +4594,6 @@ dialog > .float-bar.is-hidden {
 .preview-sheet:has(.is-podcast) #modal-title {
 	padding-right: 0;
 }
-.reader-body {
-	gap: var(--space-20);
-}
-.detail-section {
-	margin-top: var(--space-8);
-}
-
 .preview-sheet:has(.pr-detail) #modal-title {
 	padding-right: 0;
 }
@@ -4740,7 +4770,7 @@ dialog > .float-bar.is-hidden {
 	text-align: left;
 	border-top: 1px solid var(--line-card);
 }
-.detail-related .detail-row > span {
+.detail-related .detail-row > span:not(.row-icon) {
 	flex: 1;
 }
 /* Meeting identifiers stay readable without taking the name's entire row. */
@@ -4779,15 +4809,6 @@ dialog > .float-bar.is-hidden {
 	color: var(--fixed-white-60);
 	margin-top: 4px;
 }
-.pr-detail > .detail-header {
-	padding-bottom: 24px;
-}
-.pr-detail .pr-branch-row {
-	order: 2;
-}
-.pr-detail .preview-tags {
-	order: 3;
-}
 .pr-check-details summary {
 	list-style: none;
 	cursor: pointer;
@@ -4795,8 +4816,40 @@ dialog > .float-bar.is-hidden {
 .pr-check-details summary::-webkit-details-marker {
 	display: none;
 }
+/* Check names start where the row text starts: icon box plus the row gap. */
 .pr-check-details > div.detail-row {
-	padding-left: 28px;
+	padding-left: calc(18px + var(--space-12));
+}
+.pr-check-details > div.detail-row > small {
+	margin-left: auto;
+}
+/* The summary sits inside <details>, so it draws the row divider itself. */
+.detail-rows > .pr-check-details:not(:first-child) > summary.detail-row {
+	border-top: 1px solid var(--line);
+}
+.pr-check-details[open] > summary > .icon:last-child {
+	transform: rotate(90deg);
+}
+/* The status row reads as a sentence; branch names may wrap as whole pieces. */
+.pr-detail .detail-row > .pr-status-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8);
+	white-space: normal;
+	overflow: visible;
+}
+.pr-status {
+	font-weight: calc(500 + var(--content-weight-add, 0));
+	color: var(--accent);
+	white-space: nowrap;
+}
+.pr-status-draft,
+.pr-status-closed {
+	color: var(--muted);
+}
+.pr-detail .detail-row > .pr-stats + small {
+	margin-left: auto;
 }
 .pr-reviewer-avatars {
 	display: inline-flex;
@@ -4935,11 +4988,13 @@ dialog > .float-bar.is-hidden {
 	display: none;
 }
 
-.detail-event .detail-header > .preview-meta {
-	margin-bottom: 8px;
+/* Event date line sits close to its time; the time is one item above the title. */
+.detail-header > .preview-meta:has(+ .event-hero) {
+	min-height: 0;
+	margin-bottom: var(--rhythm-close);
 }
-.detail-event .detail-header > .event-hero {
-	margin-bottom: 16px;
+.detail-header > .event-hero {
+	margin-bottom: var(--rhythm-item);
 }
 .event-hero .num:first-child {
 	font-size: 44px;
@@ -4949,10 +5004,7 @@ dialog > .float-bar.is-hidden {
 	font-size: var(--text-control);
 }
 .pr-detail .detail-header > .card-head {
-	margin-bottom: 6px;
-}
-.pr-detail .detail-header > .pr-branch-row {
-	margin-bottom: 12px;
+	margin-bottom: var(--rhythm-close);
 }
 .is-video .media-primary > .preview-meta {
 	min-height: 36px;
@@ -7150,7 +7202,24 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 :is(.preview-body, .reader-body) :is(.preview-lead, .preview-full p) {
 	margin-block: 0 calc(var(--space-16) * var(--reader-space-scale, 1));
 }
+/* @design vertical-rhythm — the last paragraph leaves the gap to the block spacing. */
+:is(.preview-body, .reader-body) .preview-full > :is(p, .preview-lead):last-child {
+	margin-bottom: 0;
+}
 @media (max-width: 650px) {
+	/* @design phone-text-scale
+	 * A phone is held closer than a desktop: content starts one step larger, and the
+	 * text size settings still multiply it. Navigation and controls keep their sizes. */
+	.feed-card {
+		--content-text-scale: calc(var(--card-text-scale, 1) * var(--text-phone-scale, 1));
+	}
+	.preview-body {
+		--content-text-scale: calc(var(--reader-text-scale, 1) * var(--text-phone-scale, 1));
+	}
+	/* Detail text reads at the reader's body size, so expanding does not change it. */
+	.preview-body .preview-full {
+		font-size: calc(var(--text-reader-body) * var(--reader-text-scale, 1));
+	}
 	.search-card-grid {
 		gap: calc(var(--gap-sm) * var(--card-space-scale, 1));
 	}
@@ -7189,10 +7258,6 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 }
 .is-article-reader > .reader-body {
 	max-width: var(--reader-measure);
-}
-.is-article-reader .ruled-header {
-	border: 0;
-	padding-bottom: 0;
 }
 .is-article-reader.has-outline {
 	left: calc(var(--reader-outline-width) + var(--space-40) + var(--space-30));
@@ -7412,6 +7477,576 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	}
 	.preview-sheet .preview-full [id^="reader-section-"] {
 		scroll-margin-top: var(--space-64);
+	}
+}
+
+/* AI conversation (handbook ai-conversation.md, ADR 0064): messages, result rows and the session
+   list are shared by the desktop box and the phone AI page; the three heights are desktop only. */
+
+.ai-spin {
+	flex: none;
+	fill: none;
+	stroke-width: 2;
+	stroke-linecap: round;
+}
+.ai-spin-track {
+	stroke: var(--line-hover);
+}
+.ai-spin-arc {
+	stroke: var(--muted);
+}
+
+.ai-messages {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-20);
+}
+.ai-you {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: var(--space-6);
+}
+.ai-attached {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: var(--space-6);
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.ai-attached li {
+	max-width: 100%;
+	height: var(--space-28);
+	padding: 0 var(--space-10);
+	overflow: hidden;
+	border-radius: var(--control-radius);
+	background: var(--surface);
+	color: var(--muted);
+	font-size: var(--text-meta);
+	line-height: var(--space-28);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.ai-bubble {
+	max-width: 78%;
+	margin: 0;
+	padding: var(--space-10) var(--space-14);
+	border-radius: var(--ai-bubble-radius);
+	background: var(--ai-composer);
+	color: var(--ai-ink);
+	font-size: var(--text-body);
+	line-height: var(--space-22);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.ai-says p {
+	margin: 0;
+	color: var(--ink);
+	font-size: var(--text-body);
+	line-height: var(--space-24);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.ai-stream-dot {
+	display: inline-block;
+	width: var(--space-8);
+	height: var(--space-8);
+	margin-left: var(--space-4);
+	border-radius: 50%;
+	background: var(--ink);
+	vertical-align: middle;
+}
+
+.ai-results {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-6);
+	margin: var(--space-14) 0 0;
+	padding: 0;
+	list-style: none;
+}
+.ai-result {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--space-56);
+	padding: var(--space-8) var(--space-12) var(--space-8) var(--space-8);
+	border-radius: var(--cover-radius);
+	background: var(--surface);
+}
+.ai-result-open {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: var(--space-12);
+	min-width: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+}
+.ai-result-tile {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: var(--space-40);
+	height: var(--space-40);
+	border-radius: var(--space-10);
+	background: var(--card);
+	box-shadow: inset 0 0 0 1px var(--line);
+	color: var(--muted);
+}
+.ai-result-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+.ai-result-text b {
+	overflow: hidden;
+	font-size: var(--text-body);
+	font-weight: 500;
+	line-height: var(--space-20);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.ai-result-text span {
+	color: var(--muted);
+	font-size: var(--text-meta);
+	line-height: var(--space-18);
+}
+.ai-result-text .is-warn {
+	color: var(--alert);
+}
+.ai-result-action {
+	flex: none;
+	height: var(--space-28);
+	padding: 0 var(--space-12);
+	border: 0;
+	border-radius: var(--pill-radius);
+	background: var(--accent-soft);
+	color: var(--accent-ink);
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+.ai-result-action:disabled {
+	background: var(--faint);
+	color: var(--secondary);
+	cursor: default;
+}
+.ai-result-state {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: var(--space-24);
+	height: var(--space-24);
+	color: var(--muted);
+}
+.ai-result.is-written .ai-result-state {
+	color: var(--success);
+}
+.ai-result.is-failed .ai-result-state,
+.ai-result.is-unknown .ai-result-state {
+	color: var(--alert);
+}
+.ai-result-pending {
+	width: var(--space-16);
+	height: var(--space-16);
+	border: 1.6px dashed var(--secondary);
+	border-radius: 50%;
+}
+
+.ai-session-group h3 {
+	margin: 0;
+	padding: var(--space-14) var(--space-10) var(--space-4);
+	color: var(--muted);
+	font-size: var(--text-caption);
+	font-weight: 600;
+}
+.ai-session-group ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.ai-session {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	width: 100%;
+	height: var(--space-40);
+	padding: 0 var(--space-10) 0 var(--space-6);
+	border: 0;
+	border-radius: var(--space-10);
+	background: none;
+	color: var(--ink);
+	font: inherit;
+	font-size: var(--text-body);
+	text-align: left;
+}
+.ai-session[aria-current="true"] {
+	background: var(--glass-press);
+}
+.ai-session:disabled {
+	color: var(--secondary);
+	cursor: default;
+}
+.ai-session-new {
+	font-weight: 600;
+}
+.ai-session-mark {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: var(--space-24);
+	color: var(--muted);
+}
+.ai-session-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.ai-session-time {
+	color: var(--muted);
+	font-size: var(--text-meta);
+}
+
+.ai-chevron-down {
+	display: grid;
+	rotate: 90deg;
+}
+
+@media (min-width: 651px) {
+	.ai-dock-session-slot:empty {
+		display: none;
+	}
+	.ai-dock-session {
+		position: relative;
+		background: var(--glass-press);
+	}
+	.ai-status-face {
+		position: relative;
+		display: grid;
+		place-items: center;
+	}
+	.ai-status-dot {
+		position: absolute;
+		top: calc(-1 * var(--space-2));
+		right: calc(-1 * var(--space-3));
+		width: var(--space-8);
+		height: var(--space-8);
+		border-radius: 50%;
+		background: var(--accent);
+		box-shadow: 0 0 0 2px var(--card);
+	}
+	.ai-status-attention {
+		display: grid;
+		color: var(--alert);
+	}
+	.ai-dock-send.is-stop > span {
+		background: var(--faint);
+	}
+	.ai-dock-send.is-stop > span .icon {
+		display: none;
+	}
+	.ai-dock-send.is-stop > span::after {
+		content: "";
+		width: var(--space-10);
+		height: var(--space-10);
+		border-radius: var(--space-2);
+		background: currentColor;
+	}
+
+	/* Panel and full view: the glass turns into the solid card surface. */
+	.ai-dock:is([data-height="panel"], [data-height="full"]) {
+		overflow: hidden;
+		border-radius: var(--sheet-radius);
+		background: var(--card);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		box-shadow:
+			0 0 0 0.5px var(--line-card),
+			var(--shadow-sheet);
+	}
+	.ai-dock:is([data-height="panel"], [data-height="full"])::before {
+		display: none;
+	}
+	.ai-dock[data-height="panel"] {
+		max-height: calc(100vh - var(--ai-panel-inset));
+	}
+	.ai-dock-thread:not([hidden]) {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-height: 0;
+	}
+	.ai-dock:is([data-height="panel"], [data-height="full"]) .ai-dock-context {
+		position: static;
+		padding: 0 var(--space-16);
+	}
+	.ai-thread-head {
+		display: flex;
+		flex: none;
+		align-items: center;
+		gap: var(--space-4);
+		height: var(--space-56);
+		padding: 0 var(--space-10) 0 var(--space-14);
+	}
+	.ai-thread-switch {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+		min-width: 0;
+		height: var(--space-32);
+		margin-left: calc(-1 * var(--space-8));
+		padding: 0 var(--space-8);
+		border: 0;
+		border-radius: var(--space-8);
+		background: none;
+		color: var(--ink);
+		font: inherit;
+	}
+	.ai-thread-switch[aria-expanded="true"] {
+		background: var(--glass-press);
+	}
+	.ai-thread-switch .ai-chevron-down {
+		color: var(--muted);
+	}
+	.ai-thread-title {
+		margin: 0;
+		overflow: hidden;
+		font-size: var(--text-body);
+		font-weight: 600;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.ai-thread-others {
+		color: var(--muted);
+		font-size: var(--text-meta);
+		white-space: nowrap;
+	}
+	.ai-thread-space {
+		flex: 1;
+	}
+	.ai-thread-scroll {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		min-height: 0;
+		padding: var(--space-8) var(--space-24) var(--space-16);
+		overflow-y: auto;
+		cursor: auto;
+		-webkit-mask-image: linear-gradient(to bottom, transparent, var(--ink) var(--space-28));
+		mask-image: linear-gradient(to bottom, transparent, var(--ink) var(--space-28));
+	}
+	.ai-thread-scroll > .ai-messages {
+		margin-top: auto;
+	}
+	/* The session list drops down inside the panel, under its head. */
+	.ai-dock[data-height="panel"] .ai-dock-sessions:not([hidden]) {
+		position: absolute;
+		top: var(--space-56);
+		left: var(--space-8);
+		right: var(--space-8);
+		z-index: 2;
+		max-height: calc(100% - var(--space-56) - var(--rail-row));
+		padding: var(--space-8);
+		overflow-y: auto;
+		border-radius: var(--panel-radius);
+		background: var(--card);
+		box-shadow:
+			0 0 0 0.5px var(--line-card),
+			var(--shadow-float);
+	}
+
+	/* Full view: centered, session column on the left, a 640 conversation column. */
+	.ai-dock[data-height="full"] {
+		position: fixed;
+		top: calc(var(--ai-full-inset) / 2);
+		left: 50%;
+		display: grid;
+		grid-template-columns: var(--ai-sessions-width) minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr) auto auto;
+		width: min(var(--ai-full-width), calc(100vw - 2 * var(--rail-edge)));
+		height: calc(100vh - var(--ai-full-inset));
+		translate: -50% 0;
+	}
+	.ai-dock[data-height="full"] .ai-dock-sessions {
+		grid-row: 1 / 4;
+		grid-column: 1;
+		padding: var(--space-12) var(--space-10);
+		overflow-y: auto;
+		background: var(--canvas);
+	}
+	.ai-dock[data-height="full"] .ai-dock-thread {
+		grid-row: 1;
+		grid-column: 2;
+	}
+	.ai-dock[data-height="full"] .ai-thread-head {
+		height: var(--rail-row);
+		padding-left: var(--space-24);
+	}
+	.ai-dock[data-height="full"] .ai-thread-title {
+		font-size: var(--text-input);
+	}
+	.ai-dock[data-height="full"] .ai-thread-scroll > .ai-messages,
+	.ai-dock[data-height="full"] .ai-dock-context,
+	.ai-dock[data-height="full"] .ai-dock-row {
+		justify-self: center;
+		align-self: center;
+		width: min(var(--ai-dock-width), 100%);
+	}
+	.ai-dock[data-height="full"] .ai-dock-context {
+		grid-row: 2;
+		grid-column: 2;
+		padding: var(--space-12) var(--space-16) 0;
+		border-radius: 30px 30px 0 0;
+		background: var(--ai-composer);
+	}
+	.ai-dock[data-height="full"] .ai-dock-row {
+		grid-row: 3;
+		grid-column: 2;
+		margin-bottom: var(--space-20);
+		border-radius: 30px;
+		background: var(--ai-composer);
+	}
+	.ai-dock[data-height="full"] .ai-dock-context:not(:empty) + .ai-dock-row {
+		border-radius: 0 0 30px 30px;
+	}
+}
+
+/* Phone AI page with a session: a small top row, the thread, chips above the composer. */
+.ai-conversation.has-session .ai-conversation-head {
+	gap: var(--space-8);
+	min-height: var(--space-56);
+}
+.ai-conversation h1.ai-conversation-title {
+	min-width: 0;
+	overflow: hidden;
+	font-size: var(--text-input);
+	font-weight: 600;
+	letter-spacing: normal;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.ai-conversation-thread {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+	padding: var(--space-8) var(--space-4) var(--space-16);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+	-webkit-mask-image: linear-gradient(to bottom, transparent, var(--ink) var(--space-28));
+	mask-image: linear-gradient(to bottom, transparent, var(--ink) var(--space-28));
+}
+.ai-conversation-thread > .ai-messages {
+	margin-top: auto;
+}
+.ai-conversation-thread .ai-bubble {
+	max-width: 82%;
+	font-size: var(--text-input);
+	line-height: var(--space-24);
+}
+.ai-conversation-thread .ai-says p {
+	font-size: var(--text-input);
+	line-height: var(--space-26);
+}
+.ai-context.is-compact {
+	flex: none;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: var(--space-8);
+}
+.ai-context.is-compact:empty {
+	display: none;
+}
+.ai-context.is-compact .ai-dock-chip {
+	display: inline-flex;
+	align-items: center;
+	max-width: 100%;
+	height: var(--space-30);
+	padding: 0 var(--space-10);
+	border-radius: var(--space-10);
+	background: var(--card);
+	box-shadow: inset 0 0 0 1px var(--line-card);
+	font-size: var(--text-meta);
+}
+.ai-context.is-compact .ai-dock-chip-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.ai-composer-tools .ai-stop {
+	display: grid;
+	place-items: center;
+	width: var(--space-32);
+	height: var(--space-32);
+	min-width: var(--space-32);
+	border-radius: 50%;
+	background: var(--ai-ink);
+}
+.ai-composer-tools .ai-stop::after {
+	content: "";
+	width: var(--space-10);
+	height: var(--space-10);
+	border-radius: var(--space-2);
+	background: var(--card);
+}
+.ai-history-scrim {
+	position: fixed;
+	inset: 0;
+	z-index: 5;
+	padding: 0;
+	border: 0;
+	background: var(--dim);
+}
+.ai-history {
+	position: fixed;
+	top: calc(env(safe-area-inset-top) + var(--space-64));
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 6;
+	padding: 0 var(--space-12) calc(var(--space-16) + env(safe-area-inset-bottom));
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+	background: var(--card);
+	box-shadow: var(--shadow-sheet);
+}
+.ai-history-grabber {
+	display: block;
+	width: var(--space-36);
+	height: var(--space-4);
+	margin: var(--space-8) auto var(--space-6);
+	border-radius: var(--pill-radius);
+	background: var(--line-hover);
+}
+.ai-history h2 {
+	margin: 0;
+	padding: var(--space-8) var(--space-4);
+	font-size: var(--text-panel-title);
+	font-weight: 700;
+}
+.ai-history .ai-session {
+	height: var(--space-48);
+	font-size: var(--text-input);
+}
+
+@media (min-width: 651px) {
+	.ai-dock.is-collapsed {
+		height: var(--rail-row);
+	}
+	.ai-dock:is([data-height="panel"], [data-height="full"]) > .ai-dock-surface,
+	.ai-dock:is([data-height="panel"], [data-height="full"]) > .ai-dock-tools {
+		display: none;
 	}
 }
 

@@ -51,6 +51,33 @@ export function loadAPI() {
 	});
 	return api;
 }
+/**
+ * A new embed loads a cross-origin page and its scripts. Inside a detail, start it after the
+ * open, close-up or resize motion has run, so the frame does not compete with that motion.
+ * The poster covers the wait, and a tap on it still plays once the player is ready.
+ */
+export function afterDetailMotion(node: Element | null, limit = 800): Promise<void> {
+	const dialog = node?.closest("dialog");
+	if (!dialog?.open || typeof requestAnimationFrame !== "function") return Promise.resolve();
+	return new Promise((resolve) => {
+		const timer = setTimeout(resolve, limit);
+		// The detail's motion starts on the next frame; read it after that frame.
+		requestAnimationFrame(() =>
+			requestAnimationFrame(() => {
+				const running = (dialog.getAnimations?.({ subtree: true }) || []).filter((animation) => {
+					const end = animation.effect?.getComputedTiming().endTime;
+					return (
+						animation.playState === "running" && typeof end === "number" && Number.isFinite(end)
+					);
+				});
+				void Promise.allSettled(running.map((animation) => animation.finished)).then(() => {
+					clearTimeout(timer);
+					resolve();
+				});
+			}),
+		);
+	});
+}
 export function youtubeID(value?: string) {
 	try {
 		const url = new URL(value || "");
@@ -140,8 +167,8 @@ export function YouTubePlayer({
 			resume.current = position;
 			callbacks.current.onTime({ position, duration: player.getDuration() || 0, playing });
 		};
-		void loadAPI()
-			.then((YT) => {
+		void Promise.all([loadAPI(), afterDetailMotion(host.current)])
+			.then(([YT]) => {
 				if (disposed || failed) return;
 				const mount = document.createElement("iframe");
 				const query = new URLSearchParams({

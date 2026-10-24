@@ -1,6 +1,6 @@
 # 界面对账表
 
-更新：2026-10-23。基准：本文件最近一次提交（`git log -1 -- docs/product/ui-alignment.md`），Web 与 Mac 在同一提交中。
+更新：2026-10-24。基准：本文件最近一次提交（`git log -1 -- docs/product/ui-alignment.md`），Web 与 Mac 在同一提交中。
 
 本表记录 Web 桌面、手机 Web 与 Mac 在每项界面行为上的当前状态。Mac 的视觉、状态与动效以 Web 和设计手册为准；本表回答「Mac 跟到了哪里」「哪些差异是刻意的」「哪些还没在真实窗口看过」。
 
@@ -72,13 +72,13 @@
 
 ## 详情与阅读
 
-见[卡片界面对账](ui-card-alignment.md#详情与阅读)。
+见[卡片界面对账](ui-card-alignment.md#详情与阅读)。Web 与 Mac 详情已接入六级纵向间距（ADR 0069），真实窗口未验证。
 
 ## 底部轨道：AI 框、多选条、详情工具条
 
 | 编号 | 行为 | 依据 | Web 桌面 | 手机 Web | Mac | 实测 | 说明 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| B01 | [AI 栏交互与跨端状态](ai-dock.md) | 同左 | 基准 | 刻意不同 | 部分缺失 | 未验证 | 缩小与拖动待同步 |
+| B01 | [AI 栏交互与跨端状态](ai-dock.md) | 同左 | 基准 | 刻意不同 | 部分缺失 | 未验证 | Web 合并后保留缩小与拖动；Mac 待同步；真实窗口未验证 |
 | B02 | 点 AI 框外失焦，草稿保留 | [动效](../../design-system/handbook/motion.md#其他组件) | 基准 | 不适用 | 已接入 | 待确认（2026-10-21） |  |
 | B03 | 拖卡：按住未移动不算拖动；拖动时放大 1.02 并有圆环外扩；到框上 1.05；松手成上下文卡 | [ADR 0059](../adr/0059-mac-search-ai-dock-rail-glass.md) | 基准 | 不适用 | 已接入 | 待确认（2026-10-21） | 手机先长按 |
 | B04 | 上下文卡加入 140ms 上移 4px，移除淡出，最后一张也淡出 | [动效](../../design-system/handbook/motion.md#其他组件) | 基准 | 已接入 | 已接入 | 待确认（2026-10-21） |  |
@@ -86,7 +86,7 @@
 | B06 | AI 框、多选条、详情工具条使用同一种玻璃 | [基础与组件](../../design-system/handbook/foundation.md#玻璃) | 基准 | 已接入 | 刻意不同 | 待确认（2026-10-21） | Mac 26+ 为原生 regular 玻璃；Web 为 `glass` 加 `glass-filter` |
 | B07 | 底部轨道随滚动收起 240ms、出现 320ms；桌面 AI 框单独出现 420ms `ease-reveal`，与顶栏同时到位；拖卡时显示 | [动效](../../design-system/handbook/motion.md#其他组件)；[网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框) | 基准 | 已接入 | 已接入 | 待确认（2026-10-22） | 手机导航胶囊仍为 320ms |
 | B08 | 拖动的卡片堆松手后淡出并缩到 0.95 | 同上 | 基准 | 不适用 | 已接入 | 待确认（2026-10-21） |  |
-| B09 | 会话：一行的会话按钮、展开面板、完整视图、结果行（画板 49） | [网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框)；[ADR 0064](../adr/0064-ai-conversation-three-heights.md) | 不适用 | 不适用 | 不适用 | 未验证 | 内置 AI 接入后启用。2026-10-23 只改了手册与画板，Web 与 Mac 都没有代码；接入时两端一起实现 |
+| B09 | AI 框展开、完整视图、结果行 | [AI 对话](../../design-system/handbook/ai-conversation.md) | 已接入 | 不适用 | 已接入 | 未验证 | 无会话时只有一行 |
 
 ## 面板与设置
 
@@ -124,14 +124,27 @@
 | --- | --- | --- | --- |
 | M01 | 顶行：页名 34/700 与右侧 36px 圆钮，分栏胶囊行，底部导航胶囊 | [移动](../../design-system/handbook/interaction.md#移动650px-及以下) | 已接入 |
 | M02 | 独立搜索页：分类卡、结果页、左右滑切换类型 | [搜索与键盘](../../design-system/handbook/interaction.md#搜索与键盘) | 已接入 |
-| M03 | 独立 AI 页：输入框跟随软键盘，导航暂时隐藏 | [底部导航与反馈](../../design-system/handbook/interaction.md#底部导航与反馈) | 已接入 |
+| M03 | AI 页：输入框随软键盘，导航隐藏；对话、历史抽屉（无下拉关闭） | [AI 对话](../../design-system/handbook/ai-conversation.md#手机) | 已接入 |
 | M04 | 详情抽屉、把手、滚动扩展至全屏 | [预览与叠放](../../design-system/handbook/interaction.md#预览与叠放) | 已接入 |
 | M05 | 软键盘、安全区、输入字号不小于 16px、长按显示工具名称 | [移动浏览器基础行为](../../design-system/handbook/web-interaction.md#移动浏览器基础行为) | 已接入 |
-| M06 | 有对话后的 AI 页：小顶行、消息、结果行、停止键、历史抽屉（画板 50；内置 AI 接入后启用，尚无代码） | [底部导航与反馈](../../design-system/handbook/interaction.md#底部导航与反馈) | 不适用 |
 
 ## 卡片重建设计与实现
 
 见[卡片界面对账](ui-card-alignment.md#卡片重建设计与实现)。
+
+## 手机 PWA 打开与抽屉开合
+
+依据 [ADR 0066](../adr/0066-pwa-launch-and-sheet-motion.md) 、[ADR 0067](../adr/0067-detail-resize-media-and-progress-writes.md) 与 [ADR 0068](../adr/0068-phone-text-scale.md)。实测列均为未验证：本次没有浏览器、真机或 Mac 窗口检查。
+
+| 行为 | Web 桌面 | 手机 Web | Mac | 实测 | 说明 |
+| --- | --- | --- | --- | --- | --- |
+| 云端打开在会话检查前不显示登录入口，慢时显示卡片形状占位 | 基准 | 基准 | 不适用 | 未验证 | Mac 不经过网页打开与登录跳转 |
+| 抽屉不透明升起与滑出，遮罩同一时长淡入淡出 | 不适用 | 基准 | 不适用 | 未验证 | 桌面与 Mac 没有手机抽屉（手册「详情下拉关闭」） |
+| 下拉刷新确认下拉后才读取尺寸 | 基准 | 基准 | 不适用 | 未验证 | 内部读取时机，不改变阈值与提交规则；Mac 主页刷新另有实现 |
+| 放大到阅读页时保留预览遮罩，外框铺满后换成页面底色 | 基准 | 基准 | 未核对 | 未验证 | [ADR 0067](../adr/0067-detail-resize-media-and-progress-writes.md)；Mac 放大由原生外框绘制，本次未改 |
+| 视频框架在详情动效结束后插入；播放更新只重绘当前行 | 基准 | 基准 | 未核对 | 未验证 | Mac 使用原生播放器视图，本次未改 |
+| 阅读进度最多每 500ms 保存，读完立即保存 | 基准 | 基准 | 未核对 | 未验证 | Mac 有自己的保存路径，下次改动阅读时核对 |
+| 手机内容文字乘 `text-phone-scale` 1.07，预览正文 17，控件不变 | 不适用 | 基准 | 不适用 | 未验证 | [ADR 0068](../adr/0068-phone-text-scale.md)；桌面 Web 与 Mac 字号不变，设置三端共用 |
 
 ## 极端内容与手机流畅度
 

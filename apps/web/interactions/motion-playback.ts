@@ -7,8 +7,25 @@ const active = new Map<Element, Set<Playback>>();
 const ownedProperties = new WeakMap<Playback, Set<string>>();
 const backdrops = new WeakMap<
 	HTMLElement,
-	{ controls: AnimationPlaybackControls; opacity: number }
+	{
+		controls: AnimationPlaybackControls;
+		opacity: number;
+		scrub?: boolean;
+		from?: number;
+		duration?: number;
+	}
 >();
+
+/** The backdrop opacity drawn now, so a new fade or scrub starts where the last one is. */
+function drawnBackdrop(el: HTMLElement) {
+	const state = backdrops.get(el);
+	if (!state) return 1;
+	if (state.scrub || !state.duration || state.from === undefined) return state.opacity;
+	const time = Number(state.controls.time);
+	if (!Number.isFinite(time)) return state.opacity;
+	const progress = Math.min(1, Math.max(0, time / state.duration));
+	return state.from + (state.opacity - state.from) * progress;
+}
 
 /** Scrub the backdrop itself, without invalidating the dialog's descendants. */
 export function dim(el: HTMLElement, opacity: number | null, duration = 0) {
@@ -19,16 +36,22 @@ export function dim(el: HTMLElement, opacity: number | null, duration = 0) {
 		return;
 	}
 	if (duration) {
+		const from = drawnBackdrop(el);
 		previous?.controls.cancel();
-		const controls = animateStyle(el, { opacity: [previous?.opacity ?? 1, opacity] }, {
+		const controls = animateStyle(el, { opacity: [from, opacity] }, {
 			pseudoElement: "::backdrop",
 			duration: duration / 1000,
 			ease: "linear",
 		} as any);
-		backdrops.set(el, { controls, opacity });
+		backdrops.set(el, { controls, opacity, from, duration: duration / 1000 });
 		return;
 	}
-	const state = previous || {
+	// A timed fade cannot be scrubbed; replace it with a paused one-second track.
+	if (previous && !previous.scrub) {
+		previous.controls.cancel();
+		backdrops.delete(el);
+	}
+	const state = (previous?.scrub && previous) || {
 		controls: animateStyle(el, { opacity: [1, 0] }, {
 			pseudoElement: "::backdrop",
 			duration: 1,
@@ -36,6 +59,7 @@ export function dim(el: HTMLElement, opacity: number | null, duration = 0) {
 			ease: "linear",
 		} as any),
 		opacity: 1,
+		scrub: true,
 	};
 	state.controls.time = 1 - opacity;
 	state.opacity = opacity;

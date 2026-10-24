@@ -21,7 +21,24 @@
 :is(.preview-body, .reader-body) :is(.preview-lead, .preview-full p) {
 	margin-block: 0 calc(var(--space-16) * var(--reader-space-scale, 1));
 }
+/* @design vertical-rhythm — the last paragraph leaves the gap to the block spacing. */
+:is(.preview-body, .reader-body) .preview-full > :is(p, .preview-lead):last-child {
+	margin-bottom: 0;
+}
 @media (max-width: 650px) {
+	/* @design phone-text-scale
+	 * A phone is held closer than a desktop: content starts one step larger, and the
+	 * text size settings still multiply it. Navigation and controls keep their sizes. */
+	.feed-card {
+		--content-text-scale: calc(var(--card-text-scale, 1) * var(--text-phone-scale, 1));
+	}
+	.preview-body {
+		--content-text-scale: calc(var(--reader-text-scale, 1) * var(--text-phone-scale, 1));
+	}
+	/* Detail text reads at the reader's body size, so expanding does not change it. */
+	.preview-body .preview-full {
+		font-size: calc(var(--text-reader-body) * var(--reader-text-scale, 1));
+	}
 	.search-card-grid {
 		gap: calc(var(--gap-sm) * var(--card-space-scale, 1));
 	}

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { copy } from "../copy.ts";
+import type { AIHeight, AISession } from "../data/ai-conversation.ts";
 import { FreshCards } from "../data/cards.ts";
 import type { Preferences } from "../data/store.ts";
 import { Store } from "../data/store.ts";
@@ -20,6 +21,7 @@ import {
 	openCardLink,
 } from "../services/agent-handoff.ts";
 import { LocalSync } from "../services/local-sync.ts";
+import { appAIMethods } from "./app-ai.ts";
 import { appCaptureMethods } from "./app-capture.ts";
 import { appCardActionsMethods } from "./app-card-actions.ts";
 import { appFeedMethods } from "./app-feed.ts";
@@ -80,6 +82,15 @@ class AppController {
 	declare syncHomeHash: AppControllerMethods["syncHomeHash"];
 	declare syncHomeKinds: AppControllerMethods["syncHomeKinds"];
 	declare renderAIDock: AppControllerMethods["renderAIDock"];
+	declare aiSession: AppControllerMethods["aiSession"];
+	declare bindAI: AppControllerMethods["bindAI"];
+	declare renderAIConversation: AppControllerMethods["renderAIConversation"];
+	declare setAIHeight: AppControllerMethods["setAIHeight"];
+	declare aiHeightEvent: AppControllerMethods["aiHeightEvent"];
+	declare aiKey: AppControllerMethods["aiKey"];
+	declare aiSelectSession: AppControllerMethods["aiSelectSession"];
+	declare repaintAIPage: AppControllerMethods["repaintAIPage"];
+	declare paintAIPage: AppControllerMethods["paintAIPage"];
 	declare desktop: AppControllerMethods["desktop"];
 	declare homeKey: AppControllerMethods["homeKey"];
 	declare filtering: AppControllerMethods["filtering"];
@@ -170,6 +181,13 @@ class AppController {
 	searchFocus?: HTMLElement;
 	aiSelectionIds: string[] = [];
 	aiDraft = "";
+	/** The built-in AI is not connected: no sessions arrive, nothing is sent. */
+	aiConnected = false;
+	aiSessions: AISession[] = [];
+	aiSessionId: string | null = null;
+	aiHeight: AIHeight = "line";
+	aiListOpen = false;
+	aiHistoryOpen = false;
 	closingCardRoute = "";
 	homeSelected = new Set<string>();
 	searchSelected = new Set<string>();
@@ -399,7 +417,8 @@ type AppControllerMethodImplementations = typeof appLifecycleMethods &
 	typeof appFeedUpdatesMethods &
 	typeof appCaptureMethods &
 	typeof appStacksMethods &
-	typeof appInputMethods;
+	typeof appInputMethods &
+	typeof appAIMethods;
 type AppControllerMethods = {
 	[K in keyof AppControllerMethodImplementations]: OmitThisParameter<
 		AppControllerMethodImplementations[K]
@@ -417,6 +436,7 @@ for (const methods of [
 	appCaptureMethods,
 	appStacksMethods,
 	appInputMethods,
+	appAIMethods,
 ]) {
 	for (const [name, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(methods))) {
 		Object.defineProperty(AppController.prototype, name, { ...descriptor, enumerable: false });

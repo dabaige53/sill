@@ -1,19 +1,44 @@
 {
 	"note": "设计印记：代码里写 `@design <编号>`，编号在这里登记规则、变量、ADR 和现行画板。用 `scripts/design-init.sh trace <编号或变量名>` 反查。",
 	"marks": {
+		"vertical-rhythm": {
+			"title": "纵向间距六级",
+			"rule": "handbook/content-layout.md#纵向间距",
+			"tokens": [
+				"rhythm-tight",
+				"rhythm-close",
+				"rhythm-label",
+				"rhythm-item",
+				"rhythm-group",
+				"rhythm-section"
+			],
+			"adr": "0069",
+			"boards": ["CardTypeDetails", "CardTypeMobile", "CardTypeReading"]
+		},
 		"content-boundaries": {
 			"title": "长内容与窄屏边界",
 			"rule": "handbook/foundation.md#文字长度",
-			"tokens": ["space-2", "space-4", "space-8", "hit-target"],
+			"tokens": [
+				"space-2",
+				"space-4",
+				"space-8",
+				"hit-target"
+			],
 			"adr": "0064",
-			"boards": ["CardTypeDetails", "CardTypeMobile", "CardTypeReading"]
+			"boards": [
+				"CardTypeDetails",
+				"CardTypeMobile",
+				"CardTypeReading"
+			]
 		},
 		"preview-scroll-expansion": {
 			"title": "手机阅读停稳后展开",
 			"rule": "handbook/motion.md#其他组件",
 			"tokens": [],
 			"adr": "0062",
-			"boards": ["CardTypeMobile"]
+			"boards": [
+				"CardTypeMobile"
+			]
 		},
 		"button-feedback": {
 			"title": "按钮与勾选按压反馈",
@@ -200,6 +225,48 @@
 			"boards": [
 				"SettingsDesktop",
 				"SettingsMobile"
+			]
+		},
+		"ai-conversation": {
+			"title": "AI 对话三种高度与结果行",
+			"rule": "handbook/ai-conversation.md#桌面一行展开完整",
+			"tokens": [
+				"ai-dock-width",
+				"ai-panel-inset",
+				"ai-full-width",
+				"ai-full-inset",
+				"ai-sessions-width",
+				"ai-bubble-radius"
+			],
+			"adr": "0064",
+			"boards": [
+				"AIConversation",
+				"ScreenWebAIPanel",
+				"ScreenWebAIFull",
+				"ScreenMobileAIChat"
+			]
+		},
+		"boot-skeleton": {
+			"title": "云端打开时的卡片占位",
+			"rule": "handbook/motion.md#其他组件",
+			"tokens": [
+				"delay-loading",
+				"fast",
+				"space-16"
+			],
+			"adr": "0066",
+			"boards": []
+		},
+		"phone-text-scale": {
+			"title": "手机内容文字起点",
+			"rule": "handbook/foundation.md#字体",
+			"tokens": [
+				"text-phone-scale",
+				"text-reader-body"
+			],
+			"adr": "0068",
+			"boards": [
+				"CardTypeMobile"
 			]
 		}
 	}

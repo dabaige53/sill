@@ -76,14 +76,14 @@
 	margin-left: auto;
 }
 .detail-section {
-	margin-top: var(--space-24);
 	color: var(--ink);
 }
 .detail-section h2 {
 	font-size: calc(var(--text-control) * var(--content-text-scale, 1));
-	margin-bottom: var(--space-12);
+	margin-bottom: var(--rhythm-label);
 }
 .why-details ul {
+	margin: var(--rhythm-close) 0 0;
 	padding-left: var(--space-18);
 }
 .why-details li {
@@ -269,7 +269,6 @@ a.detail-row:hover {
 .pr-detail {
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
 }
 .pr-detail .card-head {
 	min-height: 36px;

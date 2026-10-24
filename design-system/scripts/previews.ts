@@ -17,10 +17,12 @@ import {
 import { SelectionBar } from "../../apps/web/atoms/selection.tsx";
 import { cardHTML, stackHTML } from "../../apps/web/cards/templates.ts";
 import { copy } from "../../apps/web/copy.ts";
+import { previewSessions } from "../../apps/web/data/ai-preview.ts";
 import { SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { pushRingHTML } from "../../apps/web/interactions/gesture-preview.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
+import { AIDockSessionButton, AIDockThread } from "../../apps/web/views/ai-dock.tsx";
 import { cardMenuHTML } from "../../apps/web/views/app-card-actions.ts";
 import { AIDock, HomeTop, Navigation } from "../../apps/web/views/shell.tsx";
 import { authStyles, consentStyles } from "../../server/cloud/auth-page.ts";
@@ -60,6 +62,31 @@ const pick = (html: string, selector: string, count = 1) => {
 };
 const row = (html: string) =>
 	`<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">${html}</div>`;
+
+// Design sample sessions show the grown panel; the product has none until the built-in AI connects.
+const [aiSession, ...aiOthers] = previewSessions(SeedCards, Date.UTC(2026, 9, 23, 4));
+const aiPanel = react(AIDock)
+	.replace('data-height="line"', 'data-height="panel" style="height:640px"')
+	.replace(/<section([^>]*) hidden="">/, "<section$1>")
+	.replace(
+		/(<section[^>]*id="ai-dock-thread"[^>]*>)/,
+		(open) =>
+			open +
+			renderToStaticMarkup(
+				createElement(AIDockThread, {
+					session: aiSession,
+					height: "panel",
+					others: aiOthers.filter((s) => s.running).length,
+					listOpen: false,
+					connected: false,
+				}),
+			),
+	)
+	.replace(
+		/(<span class="ai-dock-session-slot" id="ai-dock-session">)/,
+		(slot) =>
+			slot + renderToStaticMarkup(createElement(AIDockSessionButton, { session: aiSession })),
+	);
 
 const previews: Record<
 	string,
@@ -142,8 +169,8 @@ const previews: Record<
 	Navigation: { group: "Navigation", height: 110, body: react(Navigation) },
 	AICompose: {
 		group: "Navigation",
-		height: 110,
-		body: `<div style="width:640px">${react(AIDock)}</div>`,
+		height: 860,
+		body: `<div style="width:640px;display:flex;flex-direction:column;gap:32px">${react(AIDock)}${aiPanel}</div>`,
 	},
 	SelectionBar: {
 		group: "Feedback",

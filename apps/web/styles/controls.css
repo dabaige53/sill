@@ -449,12 +449,17 @@ body.is-dragging #toast {
 	.ai-dock {
 		position: relative;
 		display: flex;
+		flex-direction: column;
+		width: min(var(--ai-dock-width), 100%);
+		border-radius: 30px;
+	}
+	.ai-dock-row {
+		display: flex;
+		flex: none;
 		align-items: center;
 		gap: var(--space-4);
-		width: min(640px, 100%);
 		height: var(--rail-row);
 		padding: 0 var(--space-12);
-		border-radius: 30px;
 	}
 	#dock:has(#selection-bar:not([hidden])) .ai-dock {
 		display: none;
@@ -603,7 +608,7 @@ body.is-dragging #toast {
 		backdrop-filter: var(--glass-filter);
 	}
 	/* The search field and the AI box take typing across the whole capsule. */
-	.ai-dock {
+	.ai-dock-row {
 		cursor: text;
 	}
 	.ai-dock-context {

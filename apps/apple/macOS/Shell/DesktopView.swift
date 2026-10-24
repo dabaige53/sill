@@ -61,7 +61,7 @@ struct DesktopView: View {
               (AppleMetrics.topBarInset / 2) + (AppleMetrics.space64 - AppleMetrics.hitTarget) / 2)
         }
         ZStack(alignment: .bottom) {
-          AIDock()
+          AIDock(window: proxy.size)
             .opacity(dockVisible ? 1 : 0)
             .allowsHitTesting(dockVisible)
           if barShown {
@@ -72,9 +72,11 @@ struct DesktopView: View {
         .animation(Motion.menuOpen, value: selection.active)
         .padding(.horizontal, AppleMetrics.railEdge)
         // An open card owns the desktop: the AI box steps aside with the top bar.
-        .modifier(RailTuck(carrying: carrying))
+        // The full view stays under an open card; the one line and the panel step aside.
+        .modifier(RailTuck(carrying: carrying, held: ai.height == .full))
         .frame(maxHeight: .infinity, alignment: .bottom)
-        .padding(.bottom, AppleMetrics.railEdge)
+        // The full view sits in the middle: half of `aiFullInset` above and below.
+        .padding(.bottom, ai.height == .full ? AppleMetrics.aiFullInset / 2 : AppleMetrics.railEdge)
         // The pile shrinks away when it is let go, onto the AI box or anywhere else.
         ZStack {
           if carrying {
@@ -149,6 +151,11 @@ struct DesktopView: View {
       pinChrome()
     }
     .onChange(of: drag.active) { pinChrome() }
+    .onChange(of: ai.height) { pinChrome() }
+    // Selecting folds the AI panel so the bar can take the rail; carrying a card does not.
+    .onChange(of: selection.active) { _, active in
+      if active, !drag.active { ai.event(.select) }
+    }
     .task(id: barShown) {
       if barShown {
         dockShown = false
@@ -165,9 +172,16 @@ struct DesktopView: View {
       selection.prune()
       reader.prune()
       ai.prune { workspace.model($0) != nil }
+      #if DEBUG
+        if AIPreview.enabled, ai.sessions.isEmpty, !workspace.cards.isEmpty {
+          ai.load(AIPreview.sessions(workspace.cards))
+        }
+      #endif
     }
     .onChange(of: reader.presented) { _, open in
       if open {
+        // An open card folds the AI panel to one line; the full view stays under the card.
+        ai.event(.detail)
         menu.close()
         shell.menu.close()
       }
@@ -221,7 +235,7 @@ struct DesktopView: View {
   }
 
   private func pinChrome() {
-    chrome.pinned = shell.searchFocused || shell.menu.open || drag.active
+    chrome.pinned = shell.searchFocused || shell.menu.open || drag.active || ai.height != .line
   }
 
   /// A pile is under the pointer. Holding a card to select it is not carrying yet.
@@ -249,6 +263,7 @@ struct DesktopView: View {
     let shell = shell
     let workspace = workspace
     let interaction = interaction
+    let ai = ai
     escape = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
       guard event.keyCode == 53, event.window === NSApp.mainWindow,
         event.window?.attachedSheet == nil
@@ -261,6 +276,7 @@ struct DesktopView: View {
           return true
         }
         guard !shell.searchFocused else { return false }
+        if ai.escape() { return true }
         if selection.active, !typing {
           selection.clear()
         } else {
@@ -339,6 +355,8 @@ struct DesktopView: View {
         }
         // `drag.target` is the AI box's frame, kept by the box itself.
         if ai.focused, !drag.target.contains(point) { ai.blur() }
+        // A click on the feed folds the panel back to one line; the full view stays.
+        if ai.height == .panel, !drag.active, !drag.target.contains(point) { ai.event(.outside) }
       }
       return event
     }
@@ -372,11 +390,12 @@ struct DesktopView: View {
         reader.open(id)
       }
     }
+    let ai = ai
     cardIntents.select = { [weak feed] id, range in
+      guard ai.height != .full else { return }
       selection.select(id, range: range, order: feed?.cardOrder ?? [])
     }
     let drag = drag
-    let ai = ai
     cardIntents.carry = CardCarry(
       begin: { id, point in
         selection.select(id, add: true)

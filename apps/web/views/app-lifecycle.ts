@@ -8,6 +8,7 @@ import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
+import { flushReadingProgress } from "./app-panels.ts";
 import { PAGE_KINDS, type TargetEvent, type ViewDialog, type ViewElement } from "./app-types.ts";
 import { applyAppearance } from "./appearance.ts";
 import { renderView } from "./react-renderer.ts";
@@ -96,7 +97,7 @@ export const appLifecycleMethods = {
 		// The search field and the AI box show a text cursor across the capsule, so a press on
 		// its padding puts the caret in the input instead of dropping focus.
 		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
-			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock");
+			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock-row");
 			if (!capsule) return;
 			// Picking from the # list keeps the caret in the field.
 			if (e.target.closest?.(".home-hash")) {
@@ -143,6 +144,7 @@ export const appLifecycleMethods = {
 				this.drag?.menu?.open ||
 				(this.desktop() &&
 					(this.homeMenuOpen ||
+						this.aiHeight !== "line" ||
 						document.querySelector("#sync-status-panel:popover-open") ||
 						document.activeElement?.matches("#home-search, #ai-dock-input"))),
 			() => this.desktop(),
@@ -151,10 +153,14 @@ export const appLifecycleMethods = {
 		window.addEventListener("hashchange", () => this.route());
 		document.addEventListener("visibilitychange", () => {
 			if (document.hidden) {
+				flushReadingProgress();
 				Store.save();
 			} else this.checkReminders();
 		});
-		window.addEventListener("pagehide", () => Store.save());
+		window.addEventListener("pagehide", () => {
+			flushReadingProgress();
+			Store.save();
+		});
 		window.addEventListener(
 			"scroll",
 			() => {
@@ -171,6 +177,7 @@ export const appLifecycleMethods = {
 			{ passive: true },
 		);
 		this.bindCaptureDrop();
+		this.bindAI();
 		this.themeQuery.addEventListener?.("change", () => this.applyPreferences());
 		this.readTicker = setInterval(() => this.tick(), 1000);
 		if (!location.hash) history.replaceState({ glass: true, prev: null }, "", "#" + this.mode);
