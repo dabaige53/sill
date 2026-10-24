@@ -190,7 +190,6 @@ export const gesturePullMethods = {
 				)
 			)
 				return;
-			measure();
 			mouse = { id: e.pointerId, x: e.clientX, y: e.clientY };
 		});
 		document.addEventListener("pointermove", (e: PointerEvent) => {
@@ -207,6 +206,7 @@ export const gesturePullMethods = {
 			}
 			e.preventDefault();
 			clearTimeout(timer);
+			if (state !== "pulling") measure();
 			status("pulling");
 			document.body.classList.add("is-pulling");
 			pull = Math.min(72, Math.min(dy, 80) * 0.65 + Math.max(0, dy - 80) * 0.18);
@@ -240,7 +240,7 @@ export const gesturePullMethods = {
 					e.target.closest?.("#dock,#toast,#pull-ring,.card-more-menu,.deck")
 				)
 					return;
-				measure();
+				// Every tap at the top passes here; measure only once a pull really starts.
 				start = { ...this.point(e) };
 			},
 			{ passive: true },
@@ -267,6 +267,7 @@ export const gesturePullMethods = {
 				e.preventDefault();
 				if (state !== "pulling") {
 					clearTimeout(timer);
+					measure();
 					status("pulling");
 				}
 				document.body.classList.add("is-pulling");

@@ -8,6 +8,26 @@ import type { ViewDialog } from "./app-types.ts";
 import { bindPreview, bindSheetChrome, openCard } from "./preview-controller.ts";
 import { releaseView, renderContent, renderView } from "./react-renderer.ts";
 
+// Progress changes on nearly every scroll event, and each Store write saves the whole workspace
+// (browser storage, or a cloud snapshot and diff). Completion is written at once; progress alone
+// is written at most every PROGRESS_WRITE_MS, and before the page is hidden or left.
+const PROGRESS_WRITE_MS = 500;
+const pendingProgress = new Map<string, number>();
+let progressTimer = 0;
+export function flushReadingProgress() {
+	clearTimeout(progressTimer);
+	progressTimer = 0;
+	const pending = [...pendingProgress];
+	pendingProgress.clear();
+	for (const [id, value] of pending)
+		if (Store.card(id) && value > (Store.item(id).progress || 0))
+			Store.patch(id, { progress: value });
+}
+function queueProgress(id: string, value: number) {
+	pendingProgress.set(id, value);
+	if (!progressTimer) progressTimer = window.setTimeout(flushReadingProgress, PROGRESS_WRITE_MS);
+}
+
 export const appPanelsMethods = {
 	openPanel(this: AppController, kind?: string, id: string = "") {
 		if (kind === "search" && location.hash !== "#search") {
@@ -249,9 +269,13 @@ export const appPanelsMethods = {
 				endBox.bottom <= viewport.bottom + 2);
 		const actual = reachedEnd ? 1 : Math.max(0, Math.min(1, scroll.scrollTop / available));
 		const before = Store.item(id);
-		const p = Math.max(before.progress, actual);
+		const stored = Math.max(before.progress || 0, pendingProgress.get(id) || 0);
+		const p = Math.max(stored, actual);
 		const read = before.read || reachedEnd;
-		if (p !== before.progress || read !== before.read) Store.patch(id, { progress: p, read });
+		if (read !== before.read) {
+			pendingProgress.delete(id);
+			Store.patch(id, { progress: p, read });
+		} else if (p > (before.progress || 0) && p !== stored) queueProgress(id, p);
 		const bar = document.getElementById("reader-progress");
 		if (bar) bar.style.transform = `scaleX(${actual})`;
 		document.getElementById("reader-end")?.classList.toggle("is-done", Store.item(id).read);

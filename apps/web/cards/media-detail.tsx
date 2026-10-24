@@ -1,5 +1,5 @@
 import { animate } from "motion/mini";
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
@@ -14,6 +14,37 @@ import { DetailText } from "./markdown.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
 import { YouTubePlayer, youtubeID } from "./youtube-player.tsx";
 
+type Line = { start: number; title?: string; text?: string };
+/**
+ * Playback reports its position several times a second. Transcripts hold up to 10,000 lines,
+ * so the lists re-render only when the current line, availability or the lines change.
+ */
+export const MediaLines = memo(function MediaLines({
+	lines,
+	current,
+	available,
+	label,
+	onSeek,
+}: {
+	lines: Line[];
+	current: number;
+	available: boolean;
+	label: "title" | "text";
+	onSeek: (seconds: number) => void;
+}) {
+	return lines.map((line, i) => (
+		<button
+			type="button"
+			key={line.start}
+			disabled={!available}
+			aria-current={i === current}
+			onClick={() => onSeek(line.start)}
+		>
+			<time className="num">{duration(line.start)}</time>
+			<span>{line[label]}</span>
+		</button>
+	));
+});
 export type PlaybackApp = { agentScope?: () => AgentScope; refreshCard?: (id: string) => void };
 export function MediaDetail({
 	card,
@@ -123,6 +154,7 @@ export function MediaDetail({
 		});
 		app?.refreshCard?.(card.id);
 	};
+	const seek = useCallback((seconds: number) => controls.current?.seek(seconds), []);
 	const video = youtubeID(card.url);
 	const available = card.media === "podcast" ? !!card.audioUrl : !!video;
 	return (
@@ -159,6 +191,7 @@ export function MediaDetail({
 						{card.image && (
 							<img
 								referrerPolicy="no-referrer"
+								decoding="async"
 								onError={(event) => {
 									event.currentTarget.style.opacity = "0";
 								}}
@@ -221,6 +254,7 @@ export function MediaDetail({
 						{card.image && (
 							<img
 								referrerPolicy="no-referrer"
+								decoding="async"
 								onError={(event) => {
 									event.currentTarget.style.opacity = "0";
 								}}
@@ -294,6 +328,7 @@ export function MediaDetail({
 						{card.image && (
 							<img
 								referrerPolicy="no-referrer"
+								decoding="async"
 								onError={(event) => {
 									event.currentTarget.style.opacity = "0";
 								}}
@@ -389,21 +424,15 @@ export function MediaDetail({
 						{!card.chapters?.length && (
 							<p className="media-empty">{copy("web.media.emptyChapters")}</p>
 						)}
-						{card.chapters?.map((chapter, i) => (
-							<button
-								type="button"
-								key={chapter.start}
-								disabled={!available}
-								aria-current={
-									state.position >= chapter.start &&
-									state.position < (card.chapters?.[i + 1]?.start ?? Infinity)
-								}
-								onClick={() => controls.current?.seek(chapter.start)}
-							>
-								<time className="num">{duration(chapter.start)}</time>
-								<span>{chapter.title}</span>
-							</button>
-						))}
+						{card.chapters?.length ? (
+							<MediaLines
+								lines={card.chapters}
+								current={chapterIndex}
+								available={available}
+								label="title"
+								onSeek={seek}
+							/>
+						) : null}
 					</div>
 				)}
 				{tab === "transcript" && (
@@ -417,18 +446,15 @@ export function MediaDetail({
 							{!card.transcript?.length && (
 								<p className="media-empty">{copy("web.media.emptyTranscript")}</p>
 							)}
-							{card.transcript?.map((line, i) => (
-								<button
-									type="button"
-									key={line.start}
-									disabled={!available}
-									aria-current={i === active}
-									onClick={() => controls.current?.seek(line.start)}
-								>
-									<time className="num">{duration(line.start)}</time>
-									<span>{line.text}</span>
-								</button>
-							))}
+							{card.transcript?.length ? (
+								<MediaLines
+									lines={card.transcript}
+									current={active}
+									available={available}
+									label="text"
+									onSeek={seek}
+								/>
+							) : null}
 						</div>
 					</>
 				)}

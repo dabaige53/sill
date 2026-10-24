@@ -175,12 +175,22 @@ export function syncStatus() {
 	bar.hidden = !sync.failed;
 	if (sync.failed) renderView(bar, createElement(RecoveryNotice, { message: sync.failed.message }));
 }
+/** The first session check answered; returns whether this call ended the boot state. */
+export function endBoot() {
+	if (!Cloud.booting) return false;
+	Cloud.booting = false;
+	Cloud.bootVisible = false;
+	app.grid.removeAttribute("aria-busy");
+	return true;
+}
 export function paintRecords() {
 	Store.state.cards = [...Cloud.records.values()]
 		.filter((c: any) => !c.deleted)
 		.map((c: any) => cloudCard(c));
 	app.checkReminders();
-	app.withFeedAnchor(() => {}, true);
+	// The first cards of a launch use the first-screen entrance, not the arrival drop.
+	if (endBoot()) app.renderCurrent(true);
+	else app.withFeedAnchor(() => {}, true);
 }
 export function adoptWorkspace(value: any) {
 	const editingItems = new Map<string, any>(
@@ -279,9 +289,11 @@ export async function loadCloudOnce({ initial = false, quiet = false }: any = {}
 			!Cloud.drafts.size &&
 			!sync.pending.length
 		) {
+			Cloud.redirecting = true;
 			location.replace("/auth/login" + (callbackFailed ? "?login_error=1" : ""));
 			return false;
 		}
+		endBoot();
 		if (!Cloud.user) app.renderCurrent(false);
 		if (error.status === 401 || error.status === 403) clearCloud({ retainDrafts: true });
 		if (!quiet && !Cloud.refreshFeedback && !(initial && checkingSession && error.status === 401))

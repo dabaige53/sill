@@ -231,6 +231,29 @@
 				"ScreenWebAIFull",
 				"ScreenMobileAIChat"
 			]
+		},
+		"boot-skeleton": {
+			"title": "云端打开时的卡片占位",
+			"rule": "handbook/motion.md#其他组件",
+			"tokens": [
+				"delay-loading",
+				"fast",
+				"space-16"
+			],
+			"adr": "0066",
+			"boards": []
+		},
+		"phone-text-scale": {
+			"title": "手机内容文字起点",
+			"rule": "handbook/foundation.md#字体",
+			"tokens": [
+				"text-phone-scale",
+				"text-reader-body"
+			],
+			"adr": "0068",
+			"boards": [
+				"CardTypeMobile"
+			]
 		}
 	}
 }

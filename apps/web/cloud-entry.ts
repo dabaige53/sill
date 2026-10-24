@@ -16,6 +16,7 @@ import {
 	clearCloud,
 	cloudApi,
 	cloudConnection,
+	endBoot,
 	loadCloud,
 	paintRecords,
 	syncStatus,
@@ -24,10 +25,11 @@ import {
 import { copy } from "./copy.ts";
 import { demoBase, SeedCards, SeedItems } from "./data/cards.ts";
 import { Store } from "./data/store.ts";
+import { MotionEngine } from "./interactions/motion.ts";
 import { agentFailure } from "./services/agent-handoff.ts";
 import { CloudSync, clone } from "./services/cloud-sync.ts";
 import { AppController } from "./views/app.ts";
-import { CloudSettings, CloudWelcome } from "./views/cloud-views.tsx";
+import { CloudBoot, CloudSettings, CloudWelcome } from "./views/cloud-views.tsx";
 
 /* Cloud build: cards stay in memory; browser login uses server-set HttpOnly cookies. */
 // Invitation/legacy implicit fragments are never accepted as app sessions.
@@ -54,6 +56,9 @@ const Cloud: Record<string, any> = {
 	writeVersion: 0,
 	loading: false,
 	connectionError: false,
+	// The first session check has not answered yet; see endBoot().
+	booting: true,
+	bootVisible: false,
 };
 const callbackFailed = new URL(location.href).searchParams.has("login_error");
 if (callbackFailed) history.replaceState(null, "", location.pathname + location.hash);
@@ -83,6 +88,8 @@ app.readAgentCard = async (id, scope) => {
 };
 const originalDeskView = app.deskView.bind(app);
 app.deskView = () => {
+	if (!Cloud.user && Cloud.booting && !window.__SILL_HOST__)
+		return createElement(CloudBoot, { visible: Cloud.bootVisible });
 	if (!Cloud.user || !Store.state.cards.length) return cloudWelcome();
 	return originalDeskView();
 };
@@ -437,7 +444,22 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("online", () => loadCloud());
 accountView();
-loadCloud({ initial: true });
+// Short checks show nothing; a slow one shows placeholders, never a login prompt.
+const bootTimer = window.setTimeout(() => {
+	if (!Cloud.booting || Cloud.user || window.__SILL_HOST__) return;
+	Cloud.bootVisible = true;
+	app.renderCurrent(false);
+	for (const node of app.grid.querySelectorAll<HTMLElement>(".feed-skeleton"))
+		MotionEngine.animate(node, [{ opacity: 0 }, { opacity: 1 }], {
+			duration: MotionEngine.time("fast"),
+		});
+}, MotionEngine.time("delay-loading"));
+if (!window.__SILL_HOST__) app.grid.setAttribute("aria-busy", "true");
+void loadCloud({ initial: true }).finally(() => {
+	clearTimeout(bootTimer);
+	// A redirect to login keeps the placeholders until the page leaves.
+	if (!Cloud.redirecting && endBoot()) app.renderCurrent(false);
+});
 setInterval(() => {
 	if (!document.hidden && Cloud.user && !sync.failed) void loadCloud();
 }, 5000);

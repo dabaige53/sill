@@ -166,6 +166,10 @@
 #modal.reader::backdrop {
 	background: var(--card);
 }
+/* While it grows from the preview, the reader keeps the preview's dim behind its surface. */
+#modal.reader[data-reader-growing]::backdrop {
+	background: var(--dim);
+}
 .reader-progress {
 	width: 100%;
 	transform-origin: left center;

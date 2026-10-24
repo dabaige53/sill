@@ -51,11 +51,11 @@ span.nw{display:inline-flex;align-items:center;gap:6px}
 .cover{margin:8px 8px 0;border-radius:14px;background-size:cover;background-position:center;position:relative}
 .cover .len,.dcover .len{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;font-weight:600;padding:2px 7px;border-radius:7px}
 .cb{padding:18px;display:flex;flex-direction:column;gap:8px}
-.head{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);min-height:20px;white-space:nowrap}
+.head{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);min-height:20px;white-space:nowrap}
 .head .r{margin-left:auto;display:inline-flex;align-items:center;gap:4px}
 .prog{display:inline-flex;align-items:center;gap:4px}
-.ct{font-size:16px;font-weight:600;line-height:1.38;letter-spacing:-.01em}
-.cs{font-size:14px;line-height:1.5;color:var(--muted)}
+.ct{font-size:17px;font-weight:600;line-height:1.38;letter-spacing:-.01em}
+.cs{font-size:15px;line-height:1.5;color:var(--muted)}
 .cs.why{color:var(--note)}
 .cs.indent{padding-left:28px}
 .refs{display:grid;gap:6px}
@@ -122,7 +122,7 @@ div.nw:has(>.info),div.nw:has(>.chips){width:fit-content;max-width:100%}
 .chip{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--surface);color:var(--muted)}
 .info{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .lead{font-size:16px;line-height:1.65;color:var(--note)}
-.body p,.body ol{font-size:15px;line-height:1.75;margin-bottom:16px}
+.body p,.body ol{font-size:17px;line-height:1.75;margin-bottom:16px}
 .body ol{padding-left:18px}
 .body li+li{margin-top:6px}
 .body p:last-child{margin-bottom:0}
@@ -470,7 +470,7 @@ div.nw:has(>.vplayer.inl),div.nw:has(>.pcard){width:100%}
 <div class="board">
 <header>
 <h1>13 类卡片与详情 · 手机 390</h1>
-<p>见 ADR 0060、0061 与画板 CardTypeDetails。左列为手机信息流卡面（358），中列为打开后的详情抽屉，右列为手机专属规则。示例内容为虚构。</p>
+<p>见 ADR 0060、0061、0068 与画板 CardTypeDetails。左列为手机信息流卡面（358），中列为打开后的详情抽屉，右列为手机专属规则。手机内容文字乘 text-phone-scale 1.07：卡片标题 17、摘要 15、头部 13，详情正文 17；导航与控件不变。示例内容为虚构。</p>
 </header>
 <div class="intro"><div class="panel"><h3>手机规则</h3><ul>
 <li>信息流两侧留 16，卡片圆角 16、内边距 16；资讯和邮件摘要最多 4 行，其他最多 2 行。</li>

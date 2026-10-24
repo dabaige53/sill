@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { markdownHtml } from "../atoms/markdown.ts";
 
 /** Detail surfaces render the authored body; summary belongs to cards and search. */
@@ -20,11 +21,13 @@ export function Markdown({
 	className?: string;
 	headingPrefix?: string;
 }) {
+	// Media details re-render on every playback tick; parse the body only when it changes.
+	const html = useMemo(() => markdownHtml(text, headingPrefix), [text, headingPrefix]);
 	return (
 		<div
 			className={`markdown ${className}`.trim()}
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: markdown-it escapes raw HTML and filters link protocols.
-			dangerouslySetInnerHTML={{ __html: markdownHtml(text, headingPrefix) }}
+			dangerouslySetInnerHTML={{ __html: html }}
 		/>
 	);
 }

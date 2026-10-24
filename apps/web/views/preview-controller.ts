@@ -195,6 +195,9 @@ export function bindSheetChrome(this: AppController) {
 	if (!scroll) return;
 	// Expanded workspaces reserve a compact header; their controls remain stationary.
 	if (scroll.classList.contains("reader-workspace")) return;
+	// Checked on every scroll event: a long transcript makes a whole-detail query costly.
+	// Detail faces are direct children; the capsule in flight is the first float bar, and the
+	// browser keeps that class list live instead of searching the detail again.
 	this.sheetHide = new ChromeAutoHide(
 		scroll,
 		() => [
@@ -203,7 +206,10 @@ export function bindSheetChrome(this: AppController) {
 			),
 		],
 		() =>
-			this.sheetLeaving || !!this.dialog.querySelector("[data-card-flight], [data-detail-face]"),
+			this.sheetLeaving ||
+			(this.dialog.getElementsByClassName("float-bar")[0] as HTMLElement | undefined)?.dataset
+				.cardFlight !== undefined ||
+			[...this.dialog.children].some((node) => node.hasAttribute("data-detail-face")),
 	);
 	// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 	const sheet = this.dialog.querySelector(".preview-sheet");
