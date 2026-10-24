@@ -69,6 +69,8 @@ export function PullRequest({
 					)}
 			</span>
 		) : null;
+	const hasStats = pr?.additions !== undefined || pr?.deletions !== undefined;
+	const fileCount = `${pr?.changedFiles} ${copy("pr.fileCount")}`;
 	const status = pr && (
 		<span className={`pr-state pr-state-${pr.state}`}>
 			{copy(pr.reviewRequested ? "pr.reviewRequested" : `pr.state.${pr.state}`)}
@@ -100,20 +102,17 @@ export function PullRequest({
 						</button>
 					</h2>
 				)}
-				<div className="pr-branch-row">
-					{detail && status}
-					{intent || branch}
-					{!detail && (
-						<>
-							{stats}
-							{pr?.changedFiles !== undefined && (
-								<small className="pr-file-count">
-									{pr.changedFiles} {copy("pr.fileCount")}
-								</small>
-							)}
-						</>
-					)}
-				</div>
+				{!detail && (
+					<div className="pr-branch-row">
+						{branch}
+						{stats}
+						{pr?.changedFiles !== undefined && (
+							<small className="pr-file-count">
+								{pr.changedFiles} {copy("pr.fileCount")}
+							</small>
+						)}
+					</div>
+				)}
 				{detail && !!Store.tags(card).length && (
 					<div className="preview-tags">
 						{Store.tags(card).map((tag) => (
@@ -170,18 +169,32 @@ export function PullRequest({
 				<>
 					{pr && (
 						<div className="detail-rows">
-							{
+							{/* State is a fact about the PR, not a tag: it opens the rows instead of the header. */}
+							<div className="detail-row pr-status-row">
+								<span className="row-icon">
+									<Icon name="pull" size={16} />
+								</span>
+								<span className="pr-status-line">
+									<span className={`pr-status pr-status-${pr.state}`}>
+										{copy(pr.reviewRequested ? "pr.reviewRequested" : `pr.state.${pr.state}`)}
+									</span>
+									{intent || branch}
+								</span>
+							</div>
+							{!!pr.checks?.length && (
 								<details className="pr-check-details">
 									<summary className="detail-row">
-										<Icon name="check-circle" size={16} />
+										<span className="row-icon">
+											<Icon name="check-circle" size={16} />
+										</span>
 										<span>
 											{copy("pr.checks")}{" "}
-											{pr.checks?.filter((c) => c.conclusion === "success").length || 0}/
-											{pr.checks?.length || 0}
+											{pr.checks.filter((c) => c.conclusion === "success").length}/
+											{pr.checks.length}
 										</span>
 										<Icon name="chevron" size={14} />
 									</summary>
-									{pr.checks?.map((c) => (
+									{pr.checks.map((c) => (
 										<div className="detail-row" key={c.name}>
 											<span>
 												{c.url ? (
@@ -196,30 +209,38 @@ export function PullRequest({
 										</div>
 									))}
 								</details>
-							}
-							<div className="detail-row">
-								<Icon name="at" size={16} />
-								<span>
-									{pr.reviewers
-										?.map((r) => `${r.login} ${copy(`pr.decision.${r.decision}`)}`)
-										.join(" · ") || "—"}
-								</span>
-								<span className="pr-reviewer-avatars">
-									{pr.reviewers?.map((r) => (
-										<Reviewer key={r.login} reviewer={r} />
-									))}
-								</span>
-							</div>
-							<div className="detail-row">
-								<Icon name="file" size={16} />
-								{stats}
-								<small>
-									{pr.changedFiles ?? "—"} {copy("pr.fileCount")}
-								</small>
-							</div>
+							)}
+							{!!pr.reviewers?.length && (
+								<div className="detail-row">
+									<span className="row-icon">
+										<Icon name="at" size={16} />
+									</span>
+									<span>
+										{pr.reviewers
+											.map((r) => `${r.login} ${copy(`pr.decision.${r.decision}`)}`)
+											.join(" · ")}
+									</span>
+									<span className="pr-reviewer-avatars">
+										{pr.reviewers.map((r) => (
+											<Reviewer key={r.login} reviewer={r} />
+										))}
+									</span>
+								</div>
+							)}
+							{(hasStats || pr.changedFiles !== undefined) && (
+								<div className="detail-row">
+									<span className="row-icon">
+										<Icon name="file" size={16} />
+									</span>
+									{hasStats ? stats : <span>{fileCount}</span>}
+									{hasStats && pr.changedFiles !== undefined && <small>{fileCount}</small>}
+								</div>
+							)}
 							{pr.comments !== undefined && (
 								<div className="detail-row">
-									<Icon name="message" size={16} />
+									<span className="row-icon">
+										<Icon name="message" size={16} />
+									</span>
 									<span>
 										{pr.comments} {copy("pr.comments")}
 									</span>
@@ -233,7 +254,9 @@ export function PullRequest({
 							<h2>{copy("pr.files")}</h2>
 							{pr.files.map((f) => (
 								<div className="detail-row pr-file" key={f.path}>
-									<Icon name="file" size={16} />
+									<span className="row-icon">
+										<Icon name="file" size={16} />
+									</span>
 									<span title={f.path}>{f.path}</span>
 									<small className="pr-stats num">
 										{f.additions !== undefined && (

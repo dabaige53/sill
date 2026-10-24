@@ -92,7 +92,9 @@ div.nw:has(>.pline){width:100%}
 .spd{font-size:13px;font-weight:600;color:var(--ink);width:44px;text-align:center}
 .spd.ghost{visibility:hidden}
 .mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px}
-.prmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.drow .dm.prstatus{flex-direction:row;align-items:center;flex-wrap:wrap;gap:8px}
+.prstatus b{font-weight:500;color:var(--accent)}
+.prstatus>span{font-size:13px;color:var(--muted)}
 .state{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
 .br{background:var(--surface);color:var(--note);padding:2px 6px;border-radius:6px}
 .prstat{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}

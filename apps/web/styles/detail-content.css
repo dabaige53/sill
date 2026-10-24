@@ -410,7 +410,7 @@
 	text-align: left;
 	border-top: 1px solid var(--line-card);
 }
-.detail-related .detail-row > span {
+.detail-related .detail-row > span:not(.row-icon) {
 	flex: 1;
 }
 /* Meeting identifiers stay readable without taking the name's entire row. */
@@ -456,8 +456,40 @@
 .pr-check-details summary::-webkit-details-marker {
 	display: none;
 }
+/* Check names start where the row text starts: icon box plus the row gap. */
 .pr-check-details > div.detail-row {
-	padding-left: 28px;
+	padding-left: calc(18px + var(--space-12));
+}
+.pr-check-details > div.detail-row > small {
+	margin-left: auto;
+}
+/* The summary sits inside <details>, so it draws the row divider itself. */
+.detail-rows > .pr-check-details:not(:first-child) > summary.detail-row {
+	border-top: 1px solid var(--line);
+}
+.pr-check-details[open] > summary > .icon:last-child {
+	transform: rotate(90deg);
+}
+/* The status row reads as a sentence; branch names may wrap as whole pieces. */
+.pr-detail .detail-row > .pr-status-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8);
+	white-space: normal;
+	overflow: visible;
+}
+.pr-status {
+	font-weight: calc(500 + var(--content-weight-add, 0));
+	color: var(--accent);
+	white-space: nowrap;
+}
+.pr-status-draft,
+.pr-status-closed {
+	color: var(--muted);
+}
+.pr-detail .detail-row > .pr-stats + small {
+	margin-left: auto;
 }
 .pr-reviewer-avatars {
 	display: inline-flex;
@@ -612,9 +644,6 @@
 	font-size: var(--text-control);
 }
 .pr-detail .detail-header > .card-head {
-	margin-bottom: var(--rhythm-close);
-}
-.pr-detail .detail-header > .pr-branch-row:not(:last-child) {
 	margin-bottom: var(--rhythm-close);
 }
 .is-video .media-primary > .preview-meta {

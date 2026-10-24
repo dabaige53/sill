@@ -401,6 +401,35 @@ test("PR has its own snapshot layout and never invents missing statistics", (t) 
 	assert.equal(detail.querySelector('[data-action="reader"]'), null);
 });
 
+test("PR detail opens its rows with the state and leaves rows without data out", () => {
+	Store.state = Store.fresh();
+	const sparse = Card.parse({
+		id: "pr-sparse",
+		type: "pr",
+		title: "Sparse snapshot",
+		sources: [{ name: "GitHub", kind: "github" }],
+		tags: ["work"],
+		pullRequest: {
+			repository: "owner/repo",
+			number: 5,
+			state: "open",
+			observedAt: "2026-10-22T10:00:00+08:00",
+			changedFiles: 3,
+		},
+	});
+	const detail = new JSDOM(Panels.preview({}, sparse)).window.document;
+	const header = detail.querySelector(".pr-detail > .detail-header")!;
+	assert.equal(header.querySelector(".pr-state, .pr-status"), null);
+	const rows = [...detail.querySelectorAll(".pr-detail > .detail-rows > .detail-row")];
+	assert.match(rows[0].textContent!, /^待合并$/);
+	assert.equal(detail.querySelector(".pr-check-details"), null);
+	assert.doesNotMatch(detail.body.textContent!, /0\/0|—/);
+	// Without line counts the file count is the row's main text, not a trailing note.
+	const files = rows.find((row) => /个文件/.test(row.textContent!))!;
+	assert.equal(files.querySelector(":scope > .row-icon + span")?.textContent, "3 个文件");
+	assert.ok(rows.every((row) => row.firstElementChild?.classList.contains("row-icon")));
+});
+
 test("mail multiple attachments render links and explicit empty clears the legacy label", () => {
 	Store.state = Store.fresh();
 	const card = Card.parse({
