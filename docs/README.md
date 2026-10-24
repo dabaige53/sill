@@ -99,7 +99,7 @@
 - [详情文字统一为一个 Markdown 正文字段](adr/0063-markdown-body.md)
 - [统一登录与授权布局](adr/0064-unified-auth-layout.md)
 - [放大阅读页按内容排版](adr/0065-expanded-reading-layout.md)
-- [纵向间距分六级](adr/0066-vertical-rhythm.md)
+- [纵向间距分六级](adr/0069-vertical-rhythm.md)
 
 ## 记录
 
@@ -114,15 +114,15 @@
 
 ### 2026-10-22
 
-- [2026-10-22 卡片交互修复](records/2026-10-22-card-interaction-fixes/README.md)：卡片内跳转、详情尺寸过渡、播客吸顶切换、标题分隔线及审阅按钮。
-- [2026-10-22 Mac 卡片补修窗口复验](records/2026-10-22-card-macos-follow-up/README.md)：卡面日期、视频来源间距、播客收起条与返回播放器的检查结果。
-- [2026-10-22 卡片重建与 Markdown 正文暂停](records/2026-10-22-card-rebuild-pending/README.md)：暂停时已完成与未完成的事项、待用户决定的问题。
-- [2026-10-22 卡片重建设计稿合并与版本标记](records/2026-10-22-card-rebuild-release/README.md)：PR #60 合并范围、标签、线上设计版本与检查结果。
+- [2026-10-22 卡片交互修复](records/2026-10-22-card-interaction-fixes/README.md)
+- [2026-10-22 Mac 卡片补修窗口复验](records/2026-10-22-card-macos-follow-up/README.md)
+- [2026-10-22 卡片重建与 Markdown 正文暂停](records/2026-10-22-card-rebuild-pending/README.md)
+- [2026-10-22 卡片重建设计稿合并与版本标记](records/2026-10-22-card-rebuild-release/README.md)
 - [卡片重建：本地界面接入与非界面检查](records/2026-10-22-card-rebuild-ui/README.md)
-- [2026-10-22 卡片 UI 逐项 check 稿](records/2026-10-22-card-ui-check/README.md)：13 类桌面与手机截图对照、未完成项及底部空白修复。
-- [2026-10-22 卡片模块源码复核与界面复验](records/2026-10-22-card-ui-recheck/README.md)：原 HTML 与 Web、Mac 实现的逐模块核对和本轮验证。
-- [2026-10-22 Markdown 正文修复与两端接入](records/2026-10-22-markdown-repair/README.md)：本轮修复、检查证据与 D17 集成内容。
-- [2026-10-22 测试与旧模板清理](records/2026-10-22-test-cleanup/README.md)：过时正文、媒体断言、旧模板与文案哈希清理及恢复标签。
+- [2026-10-22 卡片 UI 逐项 check 稿](records/2026-10-22-card-ui-check/README.md)
+- [2026-10-22 卡片模块源码复核与界面复验](records/2026-10-22-card-ui-recheck/README.md)
+- [2026-10-22 Markdown 正文修复与两端接入](records/2026-10-22-markdown-repair/README.md)
+- [2026-10-22 测试与旧模板清理](records/2026-10-22-test-cleanup/README.md)
 
 ### 2026-10-21
 

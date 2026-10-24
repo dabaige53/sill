@@ -12,7 +12,7 @@
 				"rhythm-group",
 				"rhythm-section"
 			],
-			"adr": "0066",
+			"adr": "0069",
 			"boards": ["CardTypeDetails", "CardTypeMobile", "CardTypeReading"]
 		},
 		"content-boundaries": {
