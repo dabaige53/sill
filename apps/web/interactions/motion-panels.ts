@@ -332,13 +332,17 @@ export const panelMotion: Record<string, any> = {
 			? this.detailTools(el).map((tool: HTMLElement) => [tool, tool.style.opacity] as const)
 			: [];
 		for (const [tool] of tools) tool.style.opacity = "0";
+		const resizing = el.dataset.readerResize === "true";
 		// A phone sheet waits off screen for this frame; so does its dim.
-		const phone = this.phoneSheet(el) && !resume;
+		const phone = this.phoneSheet(el) && !resume && !resizing;
 		if (phone) this.dim(el, 0);
+		// A reader growing out of its preview keeps the preview's dim until it covers the screen.
+		if (resizing && el.classList.contains("reader")) el.dataset.readerGrowing = "";
 		const restore = () => {
 			sheet.style.opacity = opacity;
 			for (const [tool, value] of tools) tool.style.opacity = value;
 			if (phone) this.dim(el, null);
+			delete el.dataset.readerGrowing;
 		};
 		sheet.style.opacity = resume?.opacity || "0";
 		const task = { frame: 0, restore };
@@ -376,6 +380,8 @@ export const panelMotion: Record<string, any> = {
 			sheet.style.background = "transparent";
 			sheet.style.boxShadow = "none";
 			el.style.isolation = "isolate";
+			// The reader's own backdrop is the page colour; showing it now would cover the growth.
+			if (el.classList.contains("reader")) el.dataset.readerGrowing = "";
 			el.append(background);
 			const animation = this.animate(
 				background,
@@ -388,6 +394,7 @@ export const panelMotion: Record<string, any> = {
 				if (!active) return;
 				active = false;
 				background.remove();
+				delete el.dataset.readerGrowing;
 				[sheet.style.background, sheet.style.boxShadow, el.style.isolation] = previous;
 			};
 			animation?.finished.then(cleanup, cleanup);

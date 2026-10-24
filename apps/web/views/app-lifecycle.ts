@@ -8,6 +8,7 @@ import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
+import { flushReadingProgress } from "./app-panels.ts";
 import { PAGE_KINDS, type TargetEvent, type ViewDialog, type ViewElement } from "./app-types.ts";
 import { applyAppearance } from "./appearance.ts";
 import { renderView } from "./react-renderer.ts";
@@ -151,10 +152,14 @@ export const appLifecycleMethods = {
 		window.addEventListener("hashchange", () => this.route());
 		document.addEventListener("visibilitychange", () => {
 			if (document.hidden) {
+				flushReadingProgress();
 				Store.save();
 			} else this.checkReminders();
 		});
-		window.addEventListener("pagehide", () => Store.save());
+		window.addEventListener("pagehide", () => {
+			flushReadingProgress();
+			Store.save();
+		});
 		window.addEventListener(
 			"scroll",
 			() => {

@@ -3,6 +3,7 @@ import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
+import { flushReadingProgress } from "./app-panels.ts";
 import { renderContent } from "./react-renderer.ts";
 
 /** Surfaces that show one card; the desktop bars step aside while one is open. */
@@ -158,6 +159,8 @@ export const appSurfacesMethods = {
 	closeNative(this: AppController, animate = true) {
 		if (MotionEngine.keyboard) animate = false;
 		if (!this.dialog.open) return;
+		// The card on the desk shows the progress reached in the detail that is leaving.
+		flushReadingProgress();
 		// A sheet already dragged off screen closes as it is: no return motion.
 		if (this.skipReturnMotion) {
 			animate = false;
