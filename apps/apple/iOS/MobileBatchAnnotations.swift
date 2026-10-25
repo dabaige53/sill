@@ -37,9 +37,9 @@
             .font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
             .lineLimit(2)
             .padding(.bottom, AppleMetrics.space6)
-          tagEditor
-          suggestions
-          noteEditor
+          tagEditor.disabled(workspace.busy)
+          suggestions.disabled(workspace.busy)
+          noteEditor.disabled(workspace.busy)
           if note.count > 4000 {
             Text(Copy.text("mobile.capture.limit")).font(.system(size: AppleMetrics.font13))
               .foregroundStyle(AppleColors.error)
@@ -70,6 +70,7 @@
         Copy.text("apple.discardConfirm"), isPresented: $discard, titleVisibility: .visible
       ) {
         Button(Copy.text("apple.discard"), role: .destructive, action: close)
+          .disabled(workspace.busy)
         Button(Copy.text("apple.continueEditing"), role: .cancel) {}
       }
       .task {
@@ -173,6 +174,7 @@
       if tags.contains(value) { draft = "" }
     }
     private func save() {
+      guard !workspace.busy, !workspace.unresolvedWrite else { return }
       addTag()
       guard draft.isEmpty, note.count <= 4000 else { return }
       let submittedTags = tags

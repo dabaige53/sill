@@ -4,7 +4,7 @@
 
 桌面测试用内存中的模拟工作区，不读写真实数据，不打开窗口。`npm run test:macos` 在测试后校验 `dist/macos/Sill.app` 的签名，需要先运行 `npm run build:macos`。真实窗口中的视觉、动效与 iOS 设备检查不包含在自动测试中，见 [Apple 说明](../../apps/apple/README.md)。
 
-`npm run build:ios` 在 Mac 上通过 Xcode 为 iPhone/iPad 模拟器编译，不启动模拟器或应用。`.github/workflows/ios.yml` 配置该构建及 `node tests/apple/run.ts --filter SillMobileTests`；远端工作流实际执行前，不能将配置完成写成编译通过。Linux 可运行 `node --test tests/apple/ios-project.test.ts` 检查打包文件和路径，不替代 Swift 编译。
+`npm run build:ios` 在 Mac 上通过 Xcode 为 iPhone/iPad 模拟器编译，不启动模拟器或应用。`.github/workflows/ios.yml` 负责该构建；`.github/workflows/macos.yml` 通过 `node tests/apple/run.ts` 运行全部 Swift 测试，包含 `SillMobileTests`，不在 iOS 工作流中重复编译同一批后台测试。远端工作流实际执行前，不能将配置完成写成编译通过。Linux 可运行 `node --test tests/apple/ios-project.test.ts` 检查打包文件和路径，不替代 Swift 编译。
 
 ## 性能
 

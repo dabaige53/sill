@@ -9,11 +9,11 @@
 | 范围 | 参考与 iOS 接入 | 验证状态 |
 | --- | --- | --- |
 | 手机外壳 | PWA `Navigation`、`phone.css`；`SillMobileRootView`、`MobileNavigation`，主页、AI、搜索、独立设置页、底部胶囊 | 原生构建待本次 CI；窗口未验收 |
-| 信息流 | `feed-policy.ts`；`MobileFeedState`、`MobileFeed`，每页 40 张、同源一小时超过 5 张未读叠卡、阅读和勾选不重排 | 状态单测与构建待本次 CI |
+| 信息流 | `feed-policy.ts`；`MobileFeedState`、`MobileFeed`，每页 40 张、同源一小时超过 5 张未读叠卡、阅读和勾选不重排、离开顶部时暂存普通新卡并提示、逐卡恢复归档 | 状态单测与构建待本次 CI |
 | 信息流动画 | `motion.md`；`MobileMotion`、`MobileChromeState`、`MobileStack`，共享曲线、前十张错开、移出补位、叠卡平移、滚动隐藏和恢复工具 | 连续动画帧未验收 |
 | 下拉刷新 | PWA `pull-refresh`；`MobileRefresh`、`MobileScrollObserver`，48pt 阈值、只在松手提交、慢请求释放内容、成功反馈 | 手势窗口未验收 |
 | 卡面 | PWA `cards/`、手机 CSS；`MobileCardTile`、`MobileCardBodies`、`MobileSpecialCardBodies`，12 类型、13 展示形态、独立来源与日期行 | 逐卡截图未验收 |
-| 已读与图片 | PWA 颜色与阴影；`MobileCardPresentation`、`MobileImages`，已读底边/文字色、无阴影、封面饱和度 0.6、缓存图片即时显示 | 图片失败及深色窗口未验收 |
+| 已读与图片 | PWA 颜色与阴影；`MobileCardPresentation`、`MobileImages`，已读底边/文字色、无阴影、封面饱和度 0.6、缓存图片即时显示、阅读层退出后才释放源卡已读外观 | 图片失败及深色窗口未验收 |
 | 搜索 | 手机搜索面板；`MobileSearchState`、`MobileSearchInput`、`MobileSearch`，分类封面、类型和标签条件、归档分组、输入法组合、独立滚动位置 | 状态单测与构建待本次 CI |
 | 预览与层叠 | 手机抽屉；`MobileReaderHost`、`MobileReaderPresentation`，顶部 64pt、短内容自然高度、相关卡叠放、每次只退出顶层、保留父层位置 | 会话单测待本次 CI；窗口未验收 |
 | 阅读手势 | `gesture-preview.ts`、`motion.md`；`MobileReaderPolicy`、`MobileReaderScroll`、`MobileReaderGestures`，下拉/右滑关闭、把手展开收起、滚动停稳后展开、取消不提交 | 阈值及会话单测待本次 CI；触摸未验收 |

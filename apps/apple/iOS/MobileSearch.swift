@@ -21,7 +21,7 @@
     }
     private var availableTypes: [String] {
       let found = Set(state.results(workspace, anyType: true).map(\.type))
-      return ["all"] + MobileSearchState.kinds.map(\.id).filter { found.contains($0) }
+      return state.availableTypes(matching: found)
     }
     private var options: [String] { state.options(workspace) }
 
@@ -45,7 +45,11 @@
                     .foregroundStyle(AppleColors.secondary)
                     .padding(.top, AppleMetrics.space16)
                 }
-                tile(card).modifier(MobileCardMenuElevation())
+                if card.archived {
+                  MobileArchiveRow(workspace: workspace, card: card, query: state.text, open: open)
+                } else {
+                  tile(card).modifier(MobileCardMenuElevation())
+                }
               }
               if ordered.count > state.limit {
                 Color.clear.frame(height: AppleMetrics.space4)

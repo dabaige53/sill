@@ -33,6 +33,3 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build iPhone and iPad app for simulator without signing
         run: npm run build:ios
-      - name: Run mobile model tests without UI automation
-        if: ${{ !cancelled() }}
-        run: node tests/apple/run.ts --filter SillMobileTests

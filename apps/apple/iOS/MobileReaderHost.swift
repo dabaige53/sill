@@ -21,12 +21,30 @@
             ForEach(presentation.layers) { layer in
               surface(layer, geometry: geometry)
             }
+            Button(Copy.text("web.reader.close")) {
+              guard presentation.layers.last?.active == true else { return }
+              presentation.closeTop()
+            }
+            .keyboardShortcut(.cancelAction)
+            .disabled(!top.active || top.leaving)
+            .hidden()
+            .accessibilityHidden(true)
           }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
       .ignoresSafeArea()
       .allowsHitTesting(!presentation.layers.isEmpty)
+      .onChange(of: presentation.layers.map(\.cardID)) { before, after in
+        let previous = Set(before)
+        let current = Set(after)
+        for id in current.subtracting(previous) {
+          if let card = workspace.card(id) { workspace.readAppearance.hold(card) }
+        }
+        withAnimation(MobileMotion.read) {
+          for id in previous.subtracting(current) { workspace.readAppearance.release(id) }
+        }
+      }
       .onChange(of: selection, initial: true) { _, id in
         presentation.didClose = { selection = nil }
         if let id, let card = workspace.card(id) {
@@ -40,6 +58,13 @@
       .onChange(of: workspace.owner) { _, _ in
         presentation.clear()
         selection = nil
+      }
+      .onDisappear {
+        let held = Set(presentation.layers.map(\.cardID))
+        presentation.clear()
+        withAnimation(MobileMotion.read) {
+          for id in held { workspace.readAppearance.release(id) }
+        }
       }
     }
 

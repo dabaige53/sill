@@ -65,6 +65,12 @@
       openedCardID != nil || settings || capture || annotations || errorDetails
     }
     private var railHidden: Bool { chrome.hidden || keyboardVisible }
+    private var homeTopHeight: CGFloat { AppleMetrics.railRow + AppleMetrics.hitTarget }
+    private var pendingHintVisible: Bool {
+      feed.showsPendingHint(
+        preference: workspace.preferences["newHint"]?.string, reminders: reminderHint.count)
+        && selected.isEmpty && !blocked
+    }
 
     var body: some View {
       NavigationStack {
@@ -142,32 +148,18 @@
 
     private var pages: some View {
       ZStack(alignment: .top) {
-        VStack(spacing: 0) {
-          MobilePageHeader(
-            title: "Sill", settings: { settings = true },
-            onTitle: {
-              topRequest += 1
-              chrome.show()
-            }, refresh: refresh, error: workspace.error == nil ? nil : { errorDetails.toggle() })
-          ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: AppleMetrics.space8) {
-              ForEach(scopes, id: \.self) { key in
-                MobilePill(title: scopeTitle(key), selected: scope == key) {
-                  MobileMotion.instantly { scope = key }
-                  chrome.show()
-                }
-              }
-            }.padding(.horizontal, AppleMetrics.space16)
-          }.frame(height: AppleMetrics.hitTarget)
-          MobileFeed(
-            workspace: workspace, state: feed, chrome: chrome, refresh: refresh,
-            scope: $scope, selected: $selected, active: tab == "home", blocked: blocked,
-            topRequest: topRequest, open: open, capture: { capture = true }
-          )
-          .overlay(alignment: .top) {
-            if !reminderHint.isEmpty && selected.isEmpty && !blocked {
-              reminderPrompt
-            }
+        MobileFeed(
+          workspace: workspace, state: feed, chrome: chrome, refresh: refresh,
+          scope: $scope, selected: $selected, active: tab == "home", blocked: blocked,
+          topRequest: topRequest, topInset: homeTopHeight, open: open, capture: { capture = true }
+        )
+        .overlay(alignment: .top) { homeTop }
+        .overlay(alignment: .top) {
+          if pendingHintVisible {
+            pendingPrompt
+              .padding(.top, (chrome.hidden ? 0 : homeTopHeight) + AppleMetrics.space8)
+              .animation(
+                chrome.hidden ? MobileMotion.tuck : MobileMotion.show, value: chrome.hidden)
           }
         }.opacity(tab == "home" ? 1 : 0).allowsHitTesting(tab == "home").accessibilityHidden(
           tab != "home")
@@ -183,6 +175,36 @@
         }.opacity(tab == "ai" ? 1 : 0).allowsHitTesting(tab == "ai").accessibilityHidden(
           tab != "ai")
       }
+    }
+
+    private var homeTop: some View {
+      VStack(spacing: 0) {
+        MobilePageHeader(
+          title: "Sill", settings: { settings = true },
+          onTitle: {
+            topRequest += 1
+            chrome.show()
+          }, refresh: refresh, error: workspace.error == nil ? nil : { errorDetails.toggle() })
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: AppleMetrics.space8) {
+            ForEach(scopes, id: \.self) { key in
+              MobilePill(title: scopeTitle(key), selected: scope == key) {
+                MobileMotion.instantly { scope = key }
+                chrome.show()
+              }
+            }
+          }.padding(.horizontal, AppleMetrics.space16)
+        }.frame(height: AppleMetrics.hitTarget)
+      }
+      .background {
+        AppleColors.canvas.opacity(AppleMetrics.headerEdgeOpacity)
+          .background(.ultraThinMaterial).ignoresSafeArea(edges: .top)
+      }
+      .offset(y: chrome.hidden ? -homeTopHeight : 0)
+      .opacity(chrome.hidden ? 0 : 1)
+      .allowsHitTesting(!chrome.hidden && !blocked)
+      .accessibilityHidden(chrome.hidden || blocked)
+      .animation(chrome.hidden ? MobileMotion.tuck : MobileMotion.show, value: chrome.hidden)
     }
 
     private var rail: some View {
@@ -234,31 +256,56 @@
       }
     }
 
-    private var reminderPrompt: some View {
+    private var pendingPrompt: some View {
       Button {
         let cards = reminderHint
         Task {
-          if await workspace.acknowledgeReminders(cards) {
-            reminderHint = []
-            scope = "all"
+          if !cards.isEmpty {
+            guard await workspace.acknowledgeReminders(cards) else { return }
+          }
+          reminderHint = []
+          scope = "all"
+          withAnimation(MobileMotion.layout) {
             feed.rebuild(
               scope: scope, cards: workspace.filtered(scope: scope), catalog: workspace.cards,
               stack: workspace.preferences["stack"]?.bool ?? true)
-            topRequest += 1
           }
+          feed.offsets[scope] = 0
+          topRequest += 1
+          chrome.show()
         }
       } label: {
         HStack(spacing: AppleMetrics.space8) {
-          MobileIcon("bell", size: AppleMetrics.space16)
-          Text(reminderHint.first?.title ?? "").lineLimit(1)
+          if !reminderHint.isEmpty { MobileIcon("bell", size: AppleMetrics.font12) }
+          ForEach(pendingSources) { card in MobileSourceMark(card: card, size: AppleMetrics.font12)
+          }
+          MobileIcon("up", size: AppleMetrics.font14)
+          Text(String(pendingCardIDs.count + reminderHint.count)).monospacedDigit()
+          Text(Copy.text("web.newContent"))
         }
         .font(.system(size: AppleMetrics.font13, weight: .medium))
         .padding(.horizontal, AppleMetrics.space16).frame(height: AppleMetrics.newCountHeight)
         .mobileGlass(Capsule())
       }
-      .buttonStyle(MobilePressStyle()).padding(.vertical, AppleMetrics.space4)
+      .buttonStyle(MobilePressStyle())
       .disabled(workspace.busy || workspace.unresolvedWrite)
+      .accessibilityLabel(
+        Copy.text("web.app.9ae8f7e3040d") + String(pendingCardIDs.count)
+          + Copy.text("web.app.5b2f6ba24e42") + String(reminderHint.count)
+          + Copy.text("web.app.099a1047b74a")
+      )
       .transition(.opacity)
+    }
+    private var pendingCardIDs: Set<String> {
+      feed.pendingIDs.subtracting(reminderHint.map(\.id))
+    }
+    private var pendingSources: [MobileCard] {
+      var seen = Set<String>()
+      return Array(
+        workspace.cards.filter {
+          pendingCardIDs.contains($0.id)
+            && seen.insert($0.sourceKind + ":" + $0.sourceName).inserted
+        }.prefix(reminderHint.isEmpty ? 3 : 2))
     }
     private func updateReminderHint() {
       withAnimation(MobileMotion.fast) { reminderHint = workspace.dueReminders() }

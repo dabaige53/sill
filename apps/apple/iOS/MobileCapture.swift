@@ -15,7 +15,7 @@
           Spacer()
           MobileIconButton("x", label: Copy.text("web.close")) {
             if hasDraft { discard = true } else { dismiss() }
-          }
+          }.disabled(workspace.busy)
         }
         MobileCaptureEditor(
           workspace: workspace, onSaved: { dismiss() }, onDraftChange: { hasDraft = $0 })
@@ -28,6 +28,7 @@
         Copy.text("apple.discardConfirm"), isPresented: $discard, titleVisibility: .visible
       ) {
         Button(Copy.text("apple.discard"), role: .destructive) { dismiss() }
+          .disabled(workspace.busy)
         Button(Copy.text("apple.continueEditing"), role: .cancel) {}
       }
     }
@@ -55,6 +56,7 @@
                 minHeight: AppleMetrics.captureMinHeight, maxHeight: AppleMetrics.captureHeight
               )
               .focused($focused)
+              .disabled(workspace.busy)
               .accessibilityLabel(Copy.text("web.capture.placeholder"))
               .overlay(alignment: .topLeading) {
                 if text.isEmpty {

@@ -16,6 +16,7 @@
     @Environment(\.scenePhase) var scenePhase
     @Environment(\.openURL) var openURL
     @State var annotations = false
+    @State private var photoAnnotations = false
     @State var relatedID: String?
     @State var relatedFull = false
     @State var owner: String?
@@ -31,7 +32,9 @@
       Group {
         if let card = workspace.card(cardID) {
           if card.type == "photo" {
-            MobilePhotoLightbox(workspace: workspace, card: card, close: close)
+            MobilePhotoLightbox(
+              workspace: workspace, card: card, safeArea: safeArea, close: close,
+              annotationsChanged: { photoAnnotations = $0 })
           } else {
             reader(card)
           }
@@ -101,17 +104,21 @@
           anchors: anchors, reachedEnd: reachedEnd
         ) {
           VStack(alignment: .leading, spacing: AppleMetrics.rhythmGroup * readerSpacing) {
-            Color.clear.frame(height: 0).mobileReaderAnchor("reader-top")
             readerContent(card)
           }
           .font(contentFont(AppleMetrics.font17))
           .foregroundStyle(AppleColors.primary)
           .padding(.horizontal, AppleMetrics.space20)
-          .padding(.top, layer.full ? safeArea.top + AppleMetrics.space64 : AppleMetrics.space32)
+          .padding(
+            .top,
+            layer.full
+              ? safeArea.top + AppleMetrics.space64 + AppleMetrics.space16 : AppleMetrics.space18
+          )
           .padding(.bottom, footerRoom(card))
           .frame(maxWidth: readerWidth)
           .frame(maxWidth: .infinity)
           .fixedSize(horizontal: false, vertical: true)
+          .mobileReaderAnchor("reader-top")
           .coordinateSpace(name: "mobile-reader-content")
           .onPreferenceChange(MobileReaderAnchors.self) { anchors = $0 }
           .offset(y: layer.contentShift)
@@ -158,7 +165,7 @@
         .mobileGlass(Capsule())
       }
       .padding(.horizontal, AppleMetrics.space12)
-      .padding(.top, layer.full ? safeArea.top + AppleMetrics.space8 : AppleMetrics.space32)
+      .padding(.top, toolsTop(card))
       .opacity(layer.toolsVisible ? 1 : 0)
       .offset(y: layer.toolsVisible ? 0 : -AppleMetrics.space12)
       .allowsHitTesting(layer.toolsVisible && isActive)
@@ -178,13 +185,28 @@
     }
 
     private func footerRoom(_ card: MobileCard) -> CGFloat {
-      max(safeArea.bottom, AppleMetrics.space8) + AppleMetrics.space26
-        + (layer.full || toolbarActions(card).isEmpty
-          ? 0 : AppleMetrics.hitTarget + AppleMetrics.railInset * 2)
+      if layer.full { return AppleMetrics.space24 }
+      return AppleMetrics.space22
+        + (toolbarActions(card).isEmpty
+          ? 0
+          : AppleMetrics.railRow + AppleMetrics.space4 + max(safeArea.bottom, AppleMetrics.space8))
     }
 
-    var isActive: Bool { isTop && scenePhase == .active && !annotations && !exportingCalendar }
+    private func toolsTop(_ card: MobileCard) -> CGFloat {
+      if layer.full { return max(safeArea.top, AppleMetrics.space10) }
+      if layer.scrollOffset > AppleMetrics.space8 { return 0 }
+      if card.type == "article", card.raw["image"]?.string != nil { return AppleMetrics.space24 }
+      if card.type == "media", card.raw["media"]?.string == "podcast" { return AppleMetrics.space8 }
+      return AppleMetrics.space14
+    }
+
+    var isActive: Bool {
+      isTop && scenePhase == .active && !annotations && !photoAnnotations && !exportingCalendar
+    }
     var readerScale: CGFloat {
+      (layer.full ? 1 : AppleMetrics.mobileTextScale) * readerBodyScale
+    }
+    var readerBodyScale: CGFloat {
       MobileContentStyle.text(workspace.preferences["readerTextSize"]?.string)
     }
     var readerSpacing: CGFloat {

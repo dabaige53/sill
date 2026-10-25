@@ -6,8 +6,9 @@
     func media(_ card: MobileCard) -> some View {
       MobileReaderMediaView(
         card: card, layer: layer, playback: playback, active: isActive,
-        topInset: layer.full ? safeArea.top + AppleMetrics.space64 : AppleMetrics.space88,
-        textScale: readerScale, strong: strongText, spacing: readerSpacing,
+        topInset: layer.full ? safeArea.top + AppleMetrics.space64 : AppleMetrics.space56,
+        textScale: readerScale, bodyScale: readerBodyScale, strong: strongText,
+        spacing: readerSpacing,
         openRelated: { id, full in
           relatedFull = full
           relatedID = id
@@ -31,6 +32,7 @@
     let active: Bool
     let topInset: CGFloat
     let textScale: CGFloat
+    let bodyScale: CGFloat
     let strong: Bool
     let spacing: CGFloat
     let openRelated: (String, Bool) -> Void
@@ -47,14 +49,15 @@
       podcast ? card.audioURL != nil : MobileOfficialVideoPlayer.videoID(card.url) != nil
     }
     private var blend: CGFloat {
-      guard podcast, primaryBottom > 0 else { return 0 }
+      guard podcast, !layer.full, primaryBottom > 0, layer.scrollOffset > 0 else { return 0 }
       return min(
         1,
         max(
           0,
-          (layer.scrollOffset + topInset - primaryBottom + AppleMetrics.space56)
-            / AppleMetrics.space56))
+          (layer.scrollOffset + topInset - primaryBottom + compactHeight * 2)
+            / compactHeight))
     }
+    private var compactHeight: CGFloat { AppleMetrics.space44 + AppleMetrics.space24 }
     private var duration: Double {
       playback.duration > 0 ? playback.duration : card.raw["duration"]?.number ?? 0
     }
@@ -73,6 +76,9 @@
     var body: some View {
       VStack(alignment: .leading, spacing: AppleMetrics.space16 * spacing) {
         primary
+          .opacity(1 - blend)
+          .allowsHitTesting(blend < 0.5)
+          .accessibilityHidden(blend >= 0.5)
           .background {
             GeometryReader { geometry in
               Color.clear.preference(
@@ -87,13 +93,13 @@
           card: card, playback: playback, available: available,
           height: max(
             AppleMetrics.space220,
-            layer.viewport - topInset - AppleMetrics.space56 - AppleMetrics.space44),
-          textScale: textScale, strong: strong, spacing: spacing, openRelated: openRelated,
+            layer.viewport - topInset - compactHeight - AppleMetrics.space44),
+          textScale: bodyScale, strong: strong, spacing: spacing, openRelated: openRelated,
           cardExists: cardExists,
-          headerOffset: podcast
+          headerOffset: podcast && !layer.full
             ? max(
               0,
-              layer.scrollOffset + topInset + AppleMetrics.space56 - primaryBottom - AppleMetrics
+              layer.scrollOffset + topInset + compactHeight - primaryBottom - AppleMetrics
                 .space16 * spacing) : 0)
         if let url = card.url {
           Link(Copy.text("web.media.sourceOpen"), destination: url)
@@ -105,10 +111,13 @@
         mediaTop = value["top"] ?? 0
       }
       .overlay(alignment: .top) {
-        if podcast {
+        if podcast && !layer.full {
           compact
             .padding(.horizontal, -AppleMetrics.space20)
-            .offset(y: max(0, layer.scrollOffset + topInset - mediaTop))
+            .offset(
+              y: max(0, layer.scrollOffset + topInset - mediaTop) - AppleMetrics.space8
+                * (1 - blend)
+            )
             .opacity(blend)
             .allowsHitTesting(blend > 0.5 && active)
             .accessibilityHidden(blend < 0.5)
@@ -161,7 +170,7 @@
           MobileAudioControls(
             playback: playback, duration: duration, available: available,
             large: layer.full
-          ).opacity(1 - blend)
+          )
         } else {
           if !card.tags.isEmpty {
             MobileReaderTags(tags: card.tags, scale: textScale, strong: strong)
@@ -282,7 +291,7 @@
               .background(AppleColors.accent, in: Circle())
           }.buttonStyle(MobilePressStyle()).disabled(!available)
             .accessibilityLabel(Copy.text(playback.playing ? "web.media.pause" : "web.media.play"))
-        }.frame(height: AppleMetrics.space56 - AppleMetrics.space3).padding(
+        }.frame(height: compactHeight - AppleMetrics.space3).padding(
           .horizontal, AppleMetrics.space20)
         GeometryReader { geometry in
           Rectangle().fill(AppleColors.accent)

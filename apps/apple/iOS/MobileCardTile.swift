@@ -24,7 +24,7 @@
     var body: some View {
       let faded = card.faded(
         fadeRead: workspace.preferences["fadeRead"]?.bool ?? true,
-        now: MobileFormat.milliseconds())
+        now: MobileFormat.milliseconds(), drawnRead: workspace.readAppearance.value(card).read)
       let shape = RoundedRectangle(cornerRadius: AppleMetrics.mobileCardRadius)
       MobileCardBody(
         workspace: workspace, card: card, query: query, faded: faded,

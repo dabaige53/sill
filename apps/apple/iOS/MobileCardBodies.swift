@@ -62,7 +62,8 @@
         MobileCardHeader(
           card: card, text: text ?? card.presentationSourceLine,
           trailing: stackLabel ?? trailing, trailingColor: color,
-          progress: stackLabel == nil && progress && !card.read ? card.progress : 0,
+          progress: stackLabel == nil && progress && !workspace.readAppearance.value(card).read
+            ? workspace.readAppearance.value(card).progress : 0,
           scale: scale, strong: strong)
       }
     }

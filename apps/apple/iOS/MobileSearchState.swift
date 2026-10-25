@@ -16,7 +16,11 @@ import SillKit
     Kind(id: "event", label: "web.event", artwork: "coast"),
     Kind(id: "media", label: "web.media", artwork: "mountain"),
   ]
-  var query = ""
+  var query = "" {
+    didSet {
+      if text.isEmpty && category == nil { type = nil }
+    }
+  }
   var category: String?
   var type: String?
   var conditions: [String] = []
@@ -46,6 +50,10 @@ import SillKit
     (category ?? type ?? "all") + "|" + text + "|" + conditions.joined(separator: "|")
   }
   var limit: Int { limits[positionKey] ?? 40 }
+
+  func availableTypes(matching found: Set<String>) -> [String] {
+    ["all"] + Self.kinds.map(\.id).filter { found.contains($0) || $0 == type }
+  }
 
   func results(_ workspace: MobileWorkspace, anyType: Bool = false) -> [MobileCard] {
     guard !browsing else { return [] }

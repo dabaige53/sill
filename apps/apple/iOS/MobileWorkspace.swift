@@ -25,6 +25,7 @@ import SillKit
   @ObservationIgnored private let cloud: CloudWorkspace
   @ObservationIgnored private var snapshot: Snapshot?
   @ObservationIgnored private var activityWaiters: [CheckedContinuation<Void, Never>] = []
+  let readAppearance = MobileReadAppearance()
 
   init(cloud: CloudWorkspace = CloudWorkspace()) { self.cloud = cloud }
 
@@ -199,7 +200,8 @@ import SillKit
     var values: [String: JSONValue] = [field: .bool(value)]
     if field == "read" {
       values["readAt"] = .number(value ? Date().timeIntervalSince1970 * 1000 : 0)
-      if value { values["progress"] = .number(1) }
+      values["seen"] = .bool(value)
+      values["progress"] = .number(value ? 1 : 0)
     }
     if field == "reminderDone" {
       values["done"] = .bool(value)
@@ -248,7 +250,8 @@ import SillKit
     var values: [String: JSONValue] = [field: .bool(value)]
     if field == "read" {
       values["readAt"] = .number(value ? Date().timeIntervalSince1970 * 1000 : 0)
-      if value { values["progress"] = .number(1) }
+      values["seen"] = .bool(value)
+      values["progress"] = .number(value ? 1 : 0)
     }
     if field == "archived", !value {
       values["restoredAt"] = .number(Date().timeIntervalSince1970 * 1000)
@@ -452,6 +455,7 @@ import SillKit
   }
 
   private func reset(preservingUnknown: Bool = false) {
+    readAppearance.clear()
     sessionChecked = true
     owner = nil
     snapshot = nil

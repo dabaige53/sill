@@ -47,7 +47,7 @@ struct MobileCard: Identifiable, Sendable {
   let note: String
 
   var completed: Bool {
-    type == "reminder" ? reminderDone : type == "task" && !tasks.isEmpty && tasks.allSatisfy(\.done)
+    reminderDone || (type == "task" && !tasks.isEmpty && tasks.allSatisfy(\.done))
   }
 
   init(card: Card, item: JSONValue = .object([:]), owner: String? = nil) throws {

@@ -66,8 +66,9 @@ extension MobileCard {
   var isReadable: Bool {
     ["article", "mail", "note", "media", "suggestion", "photo"].contains(type)
   }
-  func faded(fadeRead: Bool, now: Double) -> Bool {
-    (isReadable && read && fadeRead) || completed || (type == "event" && (end ?? .infinity) <= now)
+  func faded(fadeRead: Bool, now: Double, drawnRead: Bool? = nil) -> Bool {
+    (isReadable && (drawnRead ?? read) && fadeRead) || completed
+      || (type == "event" && (end ?? .infinity) <= now)
   }
   /// Held rows keep their place when toggled; missing rows release their slot to the next task.
   func previewTasks(holding order: [String], limit: Int = 3) -> [TaskItem] {

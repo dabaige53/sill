@@ -53,4 +53,24 @@ import Testing
     #expect(search.browsing)
     #expect(search.offsets.isEmpty)
   }
+
+  @Test func currentTypeRemainsAvailableWithNoMatchesAndClearingTextResetsOnlyUnpinnedType() {
+    let state = MobileSearchState()
+    state.query = "report"
+    state.type = "article"
+    state.query = "note-only match"
+    #expect(state.availableTypes(matching: ["note"]) == ["all", "article", "note"])
+    #expect(state.type == "article")
+    state.query = ""
+    #expect(state.type == nil)
+    #expect(state.browsing)
+
+    state.category = "article"
+    state.query = "report"
+    state.conditions = ["bookmarks"]
+    state.query = ""
+    #expect(state.category == "article")
+    #expect(state.conditions == ["bookmarks"])
+    #expect(!state.browsing)
+  }
 }

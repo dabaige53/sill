@@ -58,6 +58,17 @@ private final class MobileFixture: @unchecked Sendable {
   var lastBody: JSONValue? { lock.withLock { body } }
   func setMode(_ mode: Mode) { lock.withLock { self.mode = mode } }
   func setOwner(_ owner: String) { lock.withLock { self.owner = owner } }
+  func markRead() {
+    lock.withLock {
+      var workspace = state["state"]!
+      workspace["items"] = .object([
+        "note": .object([
+          "read": .bool(true), "seen": .bool(true), "progress": .number(1),
+        ])
+      ])
+      state["state"] = workspace
+    }
+  }
   func holdNextOperation() -> DispatchSemaphore {
     let gate = DispatchSemaphore(value: 0)
     lock.withLock { operationGate = gate }
@@ -341,6 +352,24 @@ struct MobileWorkspaceTests {
     #expect(values?["progress"] == .number(1))
     #expect(values?["playbackPosition"] == .number(30))
     #expect(fixture.lastBody?["expectedRevision"] == .number(5))
+  }
+
+  @Test func markingUnreadClearsProgressAndSeenInBothActionPaths() async throws {
+    let fixture = MobileFixture()
+    fixture.markRead()
+    let workspace = make(fixture)
+    await workspace.login(email: "synthetic@example.com", password: "synthetic")
+    let source = try #require(workspace.cards.first)
+    fixture.setMode(.success)
+    #expect(await workspace.toggle(source, field: "read"))
+    var values = fixture.lastBody?["operations"]?.array?.first?["values"]
+    #expect(values?["read"] == .bool(false))
+    #expect(values?["seen"] == .bool(false))
+    #expect(values?["progress"] == .number(0))
+    #expect(await workspace.batch(ids: [source.id], field: "read", value: false))
+    values = fixture.lastBody?["operations"]?.array?.first?["values"]
+    #expect(values?["seen"] == .bool(false))
+    #expect(values?["progress"] == .number(0))
   }
 
   @Test func offlineStartupDoesNotConfirmSignOut() async throws {

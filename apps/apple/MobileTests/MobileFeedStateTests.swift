@@ -63,4 +63,64 @@ import Testing
     #expect(state.entries.first?.id == incoming.id)
     #expect(state.entrance(incoming.id) == .added)
   }
+
+  @Test func incomingCardsWaitWithoutMovingExistingCardsAndReleaseOnExplicitRefresh() throws {
+    let state = MobileFeedState()
+    let first = try card(1)
+    let incoming = try card(2)
+    let catalog = [incoming, first]
+    state.rebuild(scope: "all", cards: [first], catalog: [first], stack: false)
+    state.offsets["all"] = 480
+    state.synchronize(catalog: catalog, eligible: catalog, deferNewCards: true)
+    state.synchronize(catalog: catalog, eligible: catalog, deferNewCards: true)
+    #expect(state.entries.flatMap(\.cards) == [first.id])
+    #expect(state.pendingIDs == [incoming.id])
+    #expect(state.offsets["all"] == 480)
+    #expect(state.showsPendingHint(preference: "away", reminders: 0))
+    #expect(!state.showsPendingHint(preference: "off", reminders: 0))
+    #expect(state.showsPendingHint(preference: "off", reminders: 1))
+
+    // Changing layout preferences must not unexpectedly release cards above the reader.
+    state.rebuild(
+      scope: "all", cards: catalog, catalog: catalog, stack: true, preservingPending: true)
+    #expect(state.entries.flatMap(\.cards) == [first.id])
+    #expect(state.pendingIDs == [incoming.id])
+    state.rebuild(scope: "all", cards: catalog, catalog: catalog, stack: false)
+    #expect(state.entries.flatMap(\.cards) == [incoming.id, first.id])
+    #expect(state.pendingIDs.isEmpty)
+    #expect(state.entrance(incoming.id) == .added)
+    state.synchronize(catalog: catalog, eligible: catalog, deferNewCards: true)
+    #expect(state.pendingIDs.isEmpty)
+  }
+
+  @Test func pendingCardsTrackTheWholeCatalogAndDropDeletedOrArchivedCards() throws {
+    let state = MobileFeedState()
+    let first = try card(1)
+    let incoming = try card(2, read: true)
+    let deleted = try card(3)
+    state.rebuild(scope: "unread", cards: [first], catalog: [first], stack: false)
+    state.synchronize(
+      catalog: [incoming, deleted, first], eligible: [deleted, first], deferNewCards: true)
+    #expect(state.pendingIDs == [incoming.id, deleted.id])
+    let archived = try card(2, read: true, archived: true)
+    state.synchronize(catalog: [archived, first], eligible: [first], deferNewCards: true)
+    #expect(state.pendingIDs.isEmpty)
+    #expect(state.entries.flatMap(\.cards) == [first.id])
+  }
+
+  @Test func restoringAnArchivedCardIsImmediateEvenWhenNewCardsWait() throws {
+    let state = MobileFeedState()
+    let first = try card(1)
+    let archived = try card(2, archived: true)
+    state.rebuild(scope: "all", cards: [first], catalog: [archived, first], stack: false)
+    let restored = try card(2)
+    state.synchronize(
+      catalog: [restored, first], eligible: [restored, first], deferNewCards: true)
+    #expect(state.entries.flatMap(\.cards) == [restored.id, first.id])
+    #expect(state.pendingIDs.isEmpty)
+
+    state.rebuild(scope: "archive", cards: [archived], catalog: [archived, first], stack: false)
+    state.synchronize(catalog: [restored, first], eligible: [], deferNewCards: true)
+    #expect(state.entries.isEmpty)
+  }
 }

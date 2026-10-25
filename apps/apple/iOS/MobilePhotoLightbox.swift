@@ -6,10 +6,12 @@
   struct MobilePhotoLightbox: View {
     let workspace: MobileWorkspace
     let card: MobileCard
+    let safeArea: EdgeInsets
     let close: () -> Void
+    let annotationsChanged: (Bool) -> Void
+    @FocusState private var focused: Bool
     @State private var index = 0
     @State private var annotations = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var current: MobileCard { workspace.card(card.id) ?? card }
     private var photos: [String] {
       let values = current.raw["photos"]?.strings ?? []
@@ -56,11 +58,22 @@
         }
         toolbar.padding(.bottom, AppleMetrics.space16)
       }
+      .padding(.top, safeArea.top)
+      .padding(.bottom, safeArea.bottom)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .background(AppleColors.fixedPhotoCanvas.ignoresSafeArea())
       .foregroundStyle(AppleColors.fixedWhite)
       .environment(\.colorScheme, .dark)
       .accessibilityElement(children: .contain).accessibilityAddTraits(.isModal)
+      .focusable().focusEffectDisabled().focused($focused)
+      .onAppear { focused = true }
+      .task(id: card.id) {
+        guard let owner = card.owner, owner == workspace.owner,
+          let current = workspace.card(card.id), !current.read || current.progress < 1
+        else { return }
+        _ = await workspace.recordReading(current, seconds: 0, progress: 1)
+      }
+      .onChange(of: annotations, initial: true) { _, value in annotationsChanged(value) }
       .sheet(isPresented: $annotations) {
         MobileAnnotations(workspace: workspace, baseline: current)
       }
@@ -138,7 +151,7 @@
           }.padding(AppleMetrics.space16)
         }.scrollIndicators(.hidden)
           .onChange(of: selection) { _, value in
-            withAnimation(reduceMotion ? nil : MobileMotion.fast) {
+            withAnimation(MobileMotion.fast) {
               proxy.scrollTo(value, anchor: .center)
             }
           }
@@ -157,7 +170,7 @@
           commonButton("tag", label: "apple.organize") { annotations = true }
         }
         if !hidden.contains("later") {
-          commonButton("clock", label: "apple.toggleLaterMenu", active: current.later) {
+          commonButton("glasses", label: "apple.toggleLaterMenu", active: current.later) {
             Task { await workspace.toggle(current, field: "later") }
           }
         }
@@ -174,7 +187,7 @@
         MobileIcon(icon, size: AppleMetrics.space18)
           .foregroundStyle(active ? AppleColors.accent : AppleColors.fixedWhite)
           .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-      }.buttonStyle(MobilePressStyle()).accessibilityLabel(Copy.text(label))
+      }.buttonStyle(MobileToolStyle(label: Copy.text(label))).accessibilityLabel(Copy.text(label))
         .accessibilityAddTraits(active ? .isSelected : [])
     }
     private func photoButton(_ icon: String, label: String, action: @escaping () -> Void)
@@ -184,14 +197,15 @@
         MobileIcon(icon, size: AppleMetrics.space18)
           .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
           .background(AppleColors.fixedWhite12, in: Circle())
-      }.buttonStyle(MobilePressStyle()).accessibilityLabel(Copy.text(label))
+      }.buttonStyle(MobileToolStyle(label: Copy.text(label), below: icon == "x"))
+        .accessibilityLabel(Copy.text(label))
     }
     private func step(_ delta: Int) {
       guard photos.count > 1, !annotations else { return }
       select((selection + delta + photos.count) % photos.count)
     }
     private func select(_ number: Int) {
-      withAnimation(reduceMotion ? nil : MobileMotion.fast) { index = number }
+      withAnimation(MobileMotion.fast) { index = number }
     }
   }
 #endif

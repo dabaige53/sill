@@ -78,7 +78,6 @@
     var headerOffset: CGFloat = 0
     @State private var tab = "transcript"
     @State private var follow = true
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var transcript: [JSONValue] { card.raw["transcript"]?.array ?? [] }
     private var chapters: [JSONValue] { card.raw["chapters"]?.array ?? [] }
     private var active: Int? {
@@ -135,7 +134,7 @@
     }
     private func tabButton(_ value: String, _ label: String) -> some View {
       Button {
-        withAnimation(reduceMotion ? nil : MobileMotion.fast) { tab = value }
+        withAnimation(MobileMotion.fast) { tab = value }
       } label: {
         Text(Copy.text(label)).font(.system(size: AppleMetrics.font13, weight: .medium))
           .foregroundStyle(tab == value ? AppleColors.primary : AppleColors.secondary)
@@ -169,13 +168,13 @@
             )
             .onChange(of: active) { _, index in
               guard follow, let index else { return }
-              withAnimation(reduceMotion ? nil : MobileMotion.base) {
+              withAnimation(MobileMotion.base) {
                 proxy.scrollTo(index, anchor: .center)
               }
             }
             .onChange(of: follow) { _, value in
               guard value, let active else { return }
-              withAnimation(reduceMotion ? nil : MobileMotion.base) {
+              withAnimation(MobileMotion.base) {
                 proxy.scrollTo(active, anchor: .center)
               }
             }
@@ -218,7 +217,7 @@
     let selected: Bool
     let enabled: Bool
     let seek: () -> Void
-    static func == (lhs: Self, rhs: Self) -> Bool {
+    nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
       lhs.line == rhs.line && lhs.selected == rhs.selected && lhs.enabled == rhs.enabled
     }
     var body: some View {

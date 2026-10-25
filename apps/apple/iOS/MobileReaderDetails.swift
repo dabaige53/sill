@@ -8,8 +8,10 @@
       switch card.type {
       case "article":
         if !layer.full {
-          cover(card).padding(.horizontal, -AppleMetrics.space12).padding(
-            .top, -AppleMetrics.space24)
+          cover(card)
+            .padding(.horizontal, -AppleMetrics.space12)
+            .padding(.top, -AppleMetrics.space10)
+            .padding(.bottom, AppleMetrics.space18 - AppleMetrics.rhythmGroup * readerSpacing)
         }
         header(card)
         if layer.full { cover(card) }
@@ -273,7 +275,7 @@
     @ViewBuilder private func detailText(_ card: MobileCard) -> some View {
       if !card.markdown.blocks.isEmpty {
         MobileMarkdown(
-          document: card.markdown, textScale: readerScale, strong: strongText,
+          document: card.markdown, textScale: readerBodyScale, strong: strongText,
           spacing: readerSpacing,
           openCard: { id, full in
             relatedFull = full

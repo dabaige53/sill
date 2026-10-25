@@ -12,6 +12,7 @@
     let active: Bool
     let blocked: Bool
     let topRequest: Int
+    let topInset: CGFloat
     let open: (String) -> Void
     let capture: () -> Void
     @State private var proxy = MobileScrollProxy()
@@ -51,7 +52,13 @@
                         .frame(minHeight: AppleMetrics.stackOpenHeadHeight)
                       }
                       ForEach(entry.cards, id: \.self) { id in
-                        if let card = workspace.card(id) { tile(card) }
+                        if let card = workspace.card(id) {
+                          if card.archived {
+                            MobileArchiveRow(workspace: workspace, card: card, open: open)
+                          } else {
+                            tile(card)
+                          }
+                        }
                       }
                     }
                   }
@@ -68,13 +75,13 @@
               Color.clear.frame(height: AppleMetrics.space4).onAppear { state.nextPage() }
             }
             if state.entries.isEmpty { MobileEmpty(capture: capture) }
-            Button(Copy.text(scope == "archive" ? "apple.restore" : "mobile.archive")) {
+            Button(Copy.text(scope == "archive" ? "web.nav.home" : "mobile.archive")) {
               scope = scope == "archive" ? "all" : "archive"
             }
             .foregroundStyle(AppleColors.secondary).padding(AppleMetrics.space24)
           }
           .padding(.horizontal, AppleMetrics.space16)
-          .padding(.top, AppleMetrics.space12)
+          .padding(.top, topInset + AppleMetrics.space8)
           .padding(.bottom, AppleMetrics.feedBottom)
           .frame(maxWidth: AppleMetrics.feedMax)
           .frame(maxWidth: .infinity)
@@ -99,12 +106,18 @@
       }
       .onChange(of: workspace.revision) { _, _ in
         withAnimation(MobileMotion.layout) {
-          state.synchronize(catalog: workspace.cards, eligible: workspace.filtered(scope: scope))
+          state.synchronize(
+            catalog: workspace.cards, eligible: workspace.filtered(scope: scope),
+            deferNewCards: !active || blocked || !selected.isEmpty
+              || scope == "archive" || !workspace.dueReminders().isEmpty
+              || (state.offsets[scope] ?? 0) >= AppleMetrics.space40
+              || workspace.preferences["newHint"]?.string == "off")
         }
       }
-      .onChange(of: workspace.preferences["sort"]) { _, _ in rebuild() }
-      .onChange(of: workspace.preferences["stack"]) { _, _ in rebuild() }
-      .onChange(of: workspace.preferences["floatTimely"]) { _, _ in rebuild() }
+      .onChange(of: workspace.preferences["sort"]) { _, _ in rebuild(preservingPending: true) }
+      .onChange(of: workspace.preferences["stack"]) { _, _ in rebuild(preservingPending: true) }
+      .onChange(of: workspace.preferences["floatTimely"]) { _, _ in rebuild(preservingPending: true)
+      }
       .onChange(of: refresh.retry) { _, _ in
         Task { await refresh.run(proxy: proxy, action: reload) }
       }
@@ -153,10 +166,10 @@
       if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
       chrome.show()
     }
-    private func rebuild() {
+    private func rebuild(preservingPending: Bool = false) {
       state.rebuild(
         scope: scope, cards: workspace.filtered(scope: scope), catalog: workspace.cards,
-        stack: workspace.preferences["stack"]?.bool ?? true)
+        stack: workspace.preferences["stack"]?.bool ?? true, preservingPending: preservingPending)
     }
     private func restore() {
       restoring = true

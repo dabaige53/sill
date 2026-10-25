@@ -16,6 +16,7 @@ import Observation
   private(set) var scope = "all"
   private(set) var limit = 40
   private(set) var entrances: [String: Entrance] = [:]
+  private(set) var pendingIDs: Set<String> = []
   var offsets: [String: Double] = [:]
   var stackPositions: [String: Int] = [:]
   var expanded: Set<String> = []
@@ -27,11 +28,16 @@ import Observation
   var visible: [Entry] { Array(entries.prefix(limit)) }
   var hasMore: Bool { entries.count > limit }
 
-  func rebuild(scope: String, cards: [MobileCard], catalog: [MobileCard], stack: Bool) {
+  func rebuild(
+    scope: String, cards: [MobileCard], catalog: [MobileCard], stack: Bool,
+    preservingPending: Bool = false
+  ) {
     let previous = Set(entries.map(\.id))
     self.scope = scope
     limit = pageLimits[scope] ?? 40
-    entries = Self.entries(cards, stack: stack && scope != "archive")
+    if !preservingPending { pendingIDs = [] }
+    entries = Self.entries(
+      cards.filter { !pendingIDs.contains($0.id) }, stack: stack && scope != "archive")
     shelves = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id, $0.archived) })
     entrances = [:]
     for (index, entry) in visible.enumerated() {
@@ -45,9 +51,15 @@ import Observation
     initialized = true
   }
 
-  /// State changes leave the members in place; archive, deletion and new cards are structural.
-  func synchronize(catalog: [MobileCard], eligible: [MobileCard]) {
+  /// New cards wait away from the top; explicit refresh or navigation releases them.
+  func synchronize(
+    catalog: [MobileCard], eligible: [MobileCard], deferNewCards: Bool = false
+  ) {
     let current = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id, $0) })
+    pendingIDs = pendingIDs.filter { current[$0].map { !$0.archived } ?? false }
+    if deferNewCards {
+      pendingIDs.formUnion(catalog.filter { shelves[$0.id] == nil && !$0.archived }.map(\.id))
+    }
     entries = entries.compactMap { entry in
       var entry = entry
       entry.cards = entry.cards.filter {
@@ -57,7 +69,8 @@ import Observation
     }
     let present = Set(entries.flatMap(\.cards))
     let additions = eligible.filter {
-      !present.contains($0.id) && (shelves[$0.id] == nil || shelves[$0.id] != $0.archived)
+      !present.contains($0.id) && !pendingIDs.contains($0.id)
+        && (shelves[$0.id] == nil || shelves[$0.id] != $0.archived)
     }
     for card in additions.reversed() {
       entries.insert(Entry(id: card.id, cards: [card.id]), at: 0)
@@ -65,6 +78,10 @@ import Observation
       shown.remove(card.id)
     }
     shelves = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id, $0.archived) })
+  }
+
+  func showsPendingHint(preference: String?, reminders: Int) -> Bool {
+    reminders > 0 || (!pendingIDs.isEmpty && preference != "off")
   }
 
   func nextPage() {
