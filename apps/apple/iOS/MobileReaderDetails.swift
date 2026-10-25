@@ -316,18 +316,22 @@
             )
             .monospacedDigit()
             if let end = card.end {
-              Text(
-                Copy.text("web.templates.83532308ecca") + MobileFormat.time(end) + " · "
-                  + "\(Int(((end - start) / 60_000).rounded()))"
-                  + Copy.text("web.templates.40de54344d22")
-                  + (card.raw["timeZone"]?.string.map { " · " + $0 } ?? "")
-              )
-              .font(contentFont(AppleMetrics.font15)).foregroundStyle(AppleColors.secondary)
+              Text(eventEndLabel(card, start: start, end: end))
+                .font(contentFont(AppleMetrics.font15)).foregroundStyle(AppleColors.secondary)
             }
           }.padding(.bottom, AppleMetrics.rhythmClose)
         }
         heading(card)
       }
+    }
+
+    private func eventEndLabel(_ card: MobileCard, start: Double, end: Double) -> String {
+      let minutes = Int(((end - start) / 60_000).rounded())
+      let until = Copy.text("web.templates.83532308ecca") + MobileFormat.time(end)
+      let duration = String(minutes) + Copy.text("web.templates.40de54344d22")
+      var parts = [until, duration]
+      if let zone = card.raw["timeZone"]?.string { parts.append(zone) }
+      return parts.joined(separator: " · ")
     }
 
     private func eventRows(_ card: MobileCard) -> some View {

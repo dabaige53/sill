@@ -31,10 +31,20 @@ import Testing
 
   @Test func completedReminderStateAlsoStopsEventAndTaskNotifications() throws {
     for type in ["event", "task", "reminder"] {
-      let card = try Card(
-        json: .object([
-          "id": .string(type), "type": .string(type), "title": .string("Synthetic completion"),
-        ]))
+      var raw: JSONValue = .object([
+        "id": .string(type), "type": .string(type), "title": .string("Synthetic completion"),
+      ])
+      if type == "event" {
+        raw["start"] = .number(1_000)
+        raw["end"] = .number(2_000)
+      } else if type == "task" {
+        raw["tasks"] = .array([
+          .object([
+            "id": .string("unfinished"), "text": .string("Open task"), "done": .bool(false),
+          ])
+        ])
+      }
+      let card = try Card(json: raw)
       let completed = try MobileCard(card: card, item: .object(["reminderDone": .bool(true)]))
       #expect(completed.completed)
     }
