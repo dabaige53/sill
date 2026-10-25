@@ -1,25 +1,30 @@
-import AppKit
+import CoreGraphics
+import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
 // Build-time packaging: App Store icons must have an opaque background.
 let input = URL(fileURLWithPath: CommandLine.arguments[1])
 let output = URL(fileURLWithPath: CommandLine.arguments[2])
-guard let image = NSImage(contentsOf: input),
-  let bitmap = NSBitmapImageRep(
-    bitmapDataPlanes: nil, pixelsWide: 1024, pixelsHigh: 1024, bitsPerSample: 8,
-    samplesPerPixel: 3, hasAlpha: false, isPlanar: false, colorSpaceName: .deviceRGB,
-    bytesPerRow: 0, bitsPerPixel: 0),
-  let context = NSGraphicsContext(bitmapImageRep: bitmap)
-else { fatalError("Unable to read the Sill icon") }
-NSGraphicsContext.saveGraphicsState()
-NSGraphicsContext.current = context
-context.imageInterpolation = .high
-let bounds = NSRect(x: 0, y: 0, width: 1024, height: 1024)
-NSColor.white.setFill()
-bounds.fill()
-image.draw(in: bounds, from: .zero, operation: .sourceOver, fraction: 1)
-context.flushGraphics()
-NSGraphicsContext.restoreGraphicsState()
-guard let png = bitmap.representation(using: .png, properties: [:]) else {
-  fatalError("Unable to encode the Sill icon")
+let data = try Data(contentsOf: input)
+guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+  let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+else { fatalError("Unable to decode the Sill icon PNG") }
+guard
+  let context = CGContext(
+    data: nil, width: 1024, height: 1024, bitsPerComponent: 8, bytesPerRow: 1024 * 4,
+    space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)
+else { fatalError("Unable to create the opaque icon bitmap") }
+let bounds = CGRect(x: 0, y: 0, width: 1024, height: 1024)
+context.setFillColor(CGColor(gray: 1, alpha: 1))
+context.fill(bounds)
+context.interpolationQuality = .high
+context.draw(image, in: bounds)
+guard let rendered = context.makeImage(),
+  let destination = CGImageDestinationCreateWithURL(
+    output as CFURL, UTType.png.identifier as CFString, 1, nil)
+else { fatalError("Unable to create the icon PNG destination") }
+CGImageDestinationAddImage(destination, rendered, nil)
+guard CGImageDestinationFinalize(destination) else {
+  fatalError("Unable to write the Sill icon PNG")
 }
-try png.write(to: output)
