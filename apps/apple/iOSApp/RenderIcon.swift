@@ -20,11 +20,14 @@ context.setFillColor(CGColor(gray: 1, alpha: 1))
 context.fill(bounds)
 context.interpolationQuality = .high
 context.draw(image, in: bounds)
+let png = NSMutableData()
 guard let rendered = context.makeImage(),
-  let destination = CGImageDestinationCreateWithURL(
-    output as CFURL, UTType.png.identifier as CFString, 1, nil)
+  let destination = CGImageDestinationCreateWithData(
+    png as CFMutableData, UTType.png.identifier as CFString, 1, nil)
 else { fatalError("Unable to create the icon PNG destination") }
 CGImageDestinationAddImage(destination, rendered, nil)
 guard CGImageDestinationFinalize(destination) else {
-  fatalError("Unable to write the Sill icon PNG")
+  fatalError("Unable to encode the Sill icon PNG")
 }
+// Write only Xcode's declared output; ImageIO's URL writer may use sibling temporary files.
+try (png as Data).write(to: output, options: [])
