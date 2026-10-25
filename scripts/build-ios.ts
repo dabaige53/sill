@@ -28,6 +28,7 @@ execFileSync(
 		"SillMobile",
 		// The checked-in CardGenerator plugin is required by SillKit on CI too.
 		"-skipPackagePluginValidation",
+		"-onlyUsePackageVersionsFromResolvedFile",
 		"-configuration",
 		archive ? "Release" : "Debug",
 		"-destination",
