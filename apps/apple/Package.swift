@@ -30,6 +30,8 @@ let package = Package(
       name: "SillKitTests", dependencies: ["SillKit", "SillStoreProbe"], path: "Tests",
       exclude: ["Probe"]),
     .testTarget(name: "SillDesktopTests", dependencies: ["Sill", "SillKit"], path: "DesktopTests"),
+    .testTarget(
+      name: "SillMobileTests", dependencies: ["SillMobile", "SillKit"], path: "MobileTests"),
     .plugin(
       name: "CardGenerator", capability: .buildTool(),
       dependencies: [.product(name: "swift-openapi-generator", package: "swift-openapi-generator")]),

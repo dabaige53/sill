@@ -1,0 +1,37 @@
+name: Verify Sill iOS
+on:
+  push:
+    branches: [main]
+    paths: &ios-inputs
+      - 'apps/apple/**'
+      - 'contracts/**'
+      - 'design-system/**'
+      - 'assets/**'
+      - 'tests/apple/**'
+      - 'scripts/build-ios.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ios.yml'
+  pull_request:
+    paths: *ios-inputs
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Show Apple toolchain
+        run: xcodebuild -version
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build iPhone and iPad app for simulator without signing
+        run: npm run build:ios
+      - name: Run mobile model tests without UI automation
+        run: node tests/apple/run.ts --filter SillMobileTests

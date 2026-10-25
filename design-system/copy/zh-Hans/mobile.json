@@ -1,0 +1,22 @@
+{
+	"mobile.login.hint": "登录后，查看和整理你的窗台卡片。",
+	"mobile.empty.body": "记下一段文字，或让助手把内容放到窗台。",
+	"mobile.error.title": "暂时未能完成",
+	"mobile.refresh": "刷新",
+	"mobile.retrySession": "重新连接",
+	"mobile.share": "分享",
+	"ios.share": "分享",
+	"ios.photoUnavailable": "照片暂时无法显示",
+	"mobile.reminders.hint": "仅此设备生效。已载入的提醒由系统按时通知。打开应用后会更新提醒安排。",
+	"mobile.reminders.capacity": "已安排 {scheduled} 条提醒，另有 {remaining} 条将在下次打开应用时补排。",
+	"mobile.exportFailed": "未能导出，请重试。",
+	"mobile.archive": "读过的",
+	"mobile.selection": "已选 {count} 张",
+	"mobile.account": "账号",
+	"mobile.confirmPassword": "再次输入密码",
+	"mobile.passwordMismatch": "两次输入的密码不一致。",
+	"mobile.capture.limit": "最多输入 4,000 个字符。",
+	"mobile.resolveUnknown": "已核对当前内容",
+	"mobile.resolveUnknownDetail": "请先刷新并核对原操作是否生效。确认后将解除写入锁定，不会重新发送原请求。",
+	"mobile.resolveExpiredWrite": "请先在网页版或另一台已登录设备上核对原操作是否生效。确认后将解除写入锁定，再重新登录；不会重新发送原请求。"
+}

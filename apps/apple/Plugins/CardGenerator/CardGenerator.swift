@@ -16,12 +16,13 @@ import PackagePlugin
     let copyURL = root.appending(path: "design-system/copy/zh-Hans.json")
     let copy = try JSONDecoder().decode([String: String].self, from: Data(contentsOf: copyURL))
     // Reject stale literal references before they can surface as raw keys in the native UI.
-    let sourceDirectory = context.package.directoryURL.appending(path: "macOS")
-    let copyPattern = try NSRegularExpression(pattern: #""(web\.[A-Za-z0-9_.]+)""#)
-    let macSources =
-      FileManager.default.enumerator(at: sourceDirectory, includingPropertiesForKeys: nil)?
-      .compactMap { $0 as? URL } ?? []
-    for source in macSources where source.pathExtension == "swift" {
+    let copyPattern = try NSRegularExpression(pattern: #""((?:web|mobile|ios)\.[A-Za-z0-9_.]+)""#)
+    let sources = ["macOS", "iOS"].flatMap { directory in
+      FileManager.default.enumerator(
+        at: context.package.directoryURL.appending(path: directory),
+        includingPropertiesForKeys: nil)?.compactMap { $0 as? URL } ?? []
+    }
+    for source in sources where source.pathExtension == "swift" {
       let text = try String(contentsOf: source, encoding: .utf8)
       let matches = copyPattern.matches(in: text, range: NSRange(text.startIndex..., in: text))
       for match in matches {
@@ -112,8 +113,27 @@ import PackagePlugin
           })
         }
       """
+    let mobileColors = colors
+      .replacingOccurrences(
+        of: "Color(nsColor: .windowBackgroundColor)", with: "Color(uiColor: .systemBackground)")
+      .replacingOccurrences(
+        of: "Color(nsColor: .textBackgroundColor)", with: "Color(uiColor: .systemBackground)")
+      .replacingOccurrences(
+        of: "Color(nsColor: .controlBackgroundColor)",
+        with: "Color(uiColor: .secondarySystemBackground)")
+    let mobileAdaptive = """
+        private static func adaptive(_ light: UInt32, _ dark: UInt32, alpha: Bool) -> Color {
+          Color(uiColor: UIColor { traits in
+            let value = traits.userInterfaceStyle == .dark ? dark : light
+            let hex = alpha ? value >> 8 : value
+            return UIColor(red: Double((hex >> 16) & 255) / 255,
+              green: Double((hex >> 8) & 255) / 255, blue: Double(hex & 255) / 255,
+              alpha: alpha ? Double(value & 255) / 255 : 1)
+          })
+        }
+      """
     try
-      "#if os(macOS)\nimport SwiftUI\n\npublic enum AppleColors {\n\(colors)\n\(adaptive)\n}\n#endif\n"
+      "#if os(macOS)\nimport SwiftUI\n\npublic enum AppleColors {\n\(colors)\n\(adaptive)\n}\n#elseif canImport(UIKit)\nimport SwiftUI\nimport UIKit\n\npublic enum AppleColors {\n\(mobileColors)\n\(mobileAdaptive)\n}\n#endif\n"
       .write(
         to: colorsOutput, atomically: true, encoding: .utf8)
     return [

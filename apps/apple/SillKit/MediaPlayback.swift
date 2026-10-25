@@ -1,18 +1,18 @@
 import AVFoundation
-import SillKit
 import SwiftUI
 
 /// One detail owns one player. Its observers and playback stop when that detail closes.
-@MainActor @Observable final class MediaPlayback {
-  var position: Double = 0
-  var duration: Double = 0
-  var playing = false
-  var failed = false
+@MainActor @Observable public final class MediaPlayback {
+  public init() {}
+  public var position: Double = 0
+  public var duration: Double = 0
+  public var playing = false
+  public var failed = false
   /// The official video player reported ready; until then the detail shows the cover.
-  var videoReady = false
-  var rate: Float = 1
-  var retryVideo: (() -> Void)?
-  var seekVideo: ((Double) -> Void)?
+  public var videoReady = false
+  public var rate: Float = 1
+  public var retryVideo: (() -> Void)?
+  public var seekVideo: ((Double) -> Void)?
   private var player: AVPlayer?
   private var pendingURL: URL?
   private var tick: Any?
@@ -24,7 +24,7 @@ import SwiftUI
   private var restored = false
   private var save: ((Double, Bool) -> Void)?
 
-  func start(url: URL, position: Double, save: @escaping (Double, Bool) -> Void) {
+  public func start(url: URL, position: Double, save: @escaping (Double, Bool) -> Void) {
     guard player == nil else { return }
     self.save = save
     self.position = position
@@ -73,7 +73,7 @@ import SwiftUI
     }
 
   }
-  func toggle() {
+  public func toggle() {
     guard let player else { return }
     if player.currentItem == nil || player.currentItem?.status == .failed, let pendingURL {
       if let ended { NotificationCenter.default.removeObserver(ended) }
@@ -111,7 +111,7 @@ import SwiftUI
       playing = player.timeControlStatus == .playing
     }
   }
-  func seek(_ value: Double) {
+  public func seek(_ value: Double) {
     advanced = false
     position = max(0, duration > 0 ? min(value, duration) : value)
     previous = position
@@ -123,11 +123,11 @@ import SwiftUI
         toleranceAfter: .zero)
     }
   }
-  func changeRate() {
+  public func changeRate() {
     rate = rate >= 2 ? 0.75 : rate == 0.75 ? 1 : rate + 0.25
     if playing { player?.rate = rate }
   }
-  func stop() {
+  public func stop() {
     player?.pause()
     if restored { save?(position, false) }
     if let tick { player?.removeTimeObserver(tick) }

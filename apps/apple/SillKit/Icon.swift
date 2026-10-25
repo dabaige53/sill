@@ -1,21 +1,20 @@
-import SillKit
 import SwiftUI
 
 /// The Web Mono24 line icons, drawn from the same SVG files. Color follows the foreground style.
-struct Icon: View {
+public struct Icon: View {
   let name: String
   var size: CGFloat = 18
   var weight: CGFloat? = nil
   var filled = false
 
-  init(_ name: String, size: CGFloat = 18, weight: CGFloat? = nil, filled: Bool = false) {
+  public init(_ name: String, size: CGFloat = 18, weight: CGFloat? = nil, filled: Bool = false) {
     self.name = name
     self.size = size
     self.weight = weight
     self.filled = filled
   }
 
-  var body: some View {
+  public var body: some View {
     let glyph = IconGlyph.named(name)
     let scale = size / 24
     let base = (weight ?? IconGlyph.stroke(for: size)) * scale
@@ -43,17 +42,17 @@ private struct IconLayerShape: Shape {
   }
 }
 
-struct IconGlyph: Sendable {
-  struct Layer: Sendable {
-    var path: Path
-    var width: CGFloat?
+public struct IconGlyph: Sendable {
+  public struct Layer: Sendable {
+    public var path: Path
+    public var width: CGFloat?
   }
-  var layers: [Layer]
+  public var layers: [Layer]
 
   /// Stroke follows the size tier in the design manual: S16 2.0, M20 1.8, L24 1.65.
   static func stroke(for size: CGFloat) -> CGFloat { size <= 17 ? 2 : size <= 21 ? 1.8 : 1.65 }
 
-  static func named(_ name: String) -> IconGlyph {
+  public static func named(_ name: String) -> IconGlyph {
     all[name] ?? all["file"] ?? IconGlyph(layers: [])
   }
 
@@ -109,13 +108,13 @@ extension [String: String] {
 }
 
 /// SVG path data → SwiftUI Path. Covers the commands the icon set uses, arcs included.
-struct SVGPathParser {
+public struct SVGPathParser {
   private let characters: [Character]
   private var index = 0
 
-  init(_ data: String) { characters = Array(data) }
+  public init(_ data: String) { characters = Array(data) }
 
-  func path() -> Path {
+  public func path() -> Path {
     var copy = self
     return copy.parse()
   }

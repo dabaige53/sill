@@ -1,8 +1,43 @@
 # Sill Apple
 
-更新：2026-10-23。
+更新：2026-10-25。
 
-一个 Swift Package。`SillKit` 提供卡片校验、本地存储与云端客户端；`macOS/` 是 Mac 应用 `Sill`；`iOS/` 只有共享数据层。
+一个 Swift Package。`SillKit` 提供卡片校验、本地存储、云端客户端、Mono24 图标和媒体播放；`macOS/` 是 Mac 应用 `Sill`；`iOS/` 是原生手机和平板界面与状态层，`iOSApp/` 提供应用入口和打包资源。
+
+## iOS 应用
+
+使用支持 Swift 6 的 Xcode，打开 `apps/apple/SillMobile.xcodeproj`，选择 `SillMobile` scheme 与 iPhone/iPad 模拟器，再运行。最低系统为 iOS 17。首次打开按 Xcode 提示启用仓库内的 CardGenerator 插件。工程引用相邻 Swift Package，无需生成工程或安装额外项目工具。
+
+在仓库根目录执行：
+
+```sh
+npm ci
+npm run build:ios
+node tests/apple/run.ts --filter SillMobileTests
+```
+
+模拟器构建关闭签名，输出位于 `dist/ios/`。安装到自己的设备时，在 Xcode 的 Signing & Capabilities 中选择开发团队，并按账号权限配置 Bundle ID。归档使用 `SILL_APPLE_TEAM=<团队ID> SILL_BUILD_NUMBER=<构建号> npm run build:ios -- --archive`；签名证书和描述文件由本机 Xcode 管理。归档不自动上传 TestFlight 或 App Store。
+
+版本取根目录 `package.json`，图标取 `assets/sill-icon.png`；Xcode 构建步骤生成 Info.plist 和不透明 AppIcon。原始图标保持原样，产物不提交。
+
+### 已接入的代码
+
+- 邮箱密码登录、钥匙串会话恢复、退出、同账号云端数据；不提供邮件登录入口。
+- 主页、AI、搜索三项导航；分类、状态、标签搜索；iPad 自适应卡片网格；归档与多选收藏、稍后读、归档。
+- 12 种卡片（含 PR）、Markdown 正文及目录、照片翻页、任务与提醒、日程导出、标签备注、分享与安全外链。
+- AVPlayer 音频、官方 YouTube 嵌入播放器、播放位置及真实结束状态；未提供可播放地址时显示原因。
+- 速记、主题和排版偏好、导出与确认清空、WebDAV/R2 备份及恢复；后端是否部署这些能力仍以功能矩阵为准。
+- 可选设备通知：只安排已载入的未来提醒，最多 64 条；后续内容在打开应用时更新，不是远程推送。
+
+已有内容修改交给助手；AI 页明确不可发送，不提供内置模型、来源同步或导入。敏感会话使用 SillKit 钥匙串；备份凭据只用于本人设置请求，不写卡片或设备偏好。
+
+### 写入与验证边界
+
+写入携带工作区版本。冲突保留输入；结果未知时保留原请求并锁定后续修改，刷新只核对，不自动重发。只有用户核对当前内容并明确确认后才解除锁定。账号过期且有未知写入时，先在其他已登录客户端核对，再确认并重新登录。未知请求仅保存在当前进程中；没有离线写入队列或跨重启草稿。
+
+当前完成源码、工程配置与 Linux 静态检查；**未执行 Xcode 编译、Swift 单元测试、签名、模拟器或真机验收**。新增 iOS CI 只有在远端运行后才构成构建证据。手势、转场、搜索分类封面和 Web 视觉的逐项对齐仍有差异，见 [界面对账表](../../docs/product/ui-alignment.md)。设计未发布到线上。
+
+`MobileTests/` 覆盖版本冲突、未知写入、跨账号延迟操作、离线会话恢复和备份幂等键保留；只使用合成数据与模拟 HTTP。本地未执行界面自动化。
 
 ## macOS 应用
 
