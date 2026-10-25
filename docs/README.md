@@ -11,6 +11,7 @@
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
 - [界面对账表](product/ui-alignment.md)
+- [原生 iOS 对账](product/ios-alignment.md)：功能、动画接入与构建及窗口验证边界。
 - [极端内容与手机流畅度对账](product/ui-content-alignment.md)
 - [Sill 交互规范](product/interaction-spec.md)
 

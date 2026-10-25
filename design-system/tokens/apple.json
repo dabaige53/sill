@@ -1,5 +1,21 @@
 {
 	"apple": {
+		"mobileInactiveIconOpacity": 0.62,
+		"mobileArticleCoverHeight": 180,
+		"mobileMediaAspect": 1.7777777777777777,
+		"articleFullCoverHeight": 340,
+		"readCoverSaturation": 0.6,
+		"mobileTooltipDelay": 0.45,
+		"mobilePreviewTop": 64,
+		"mobileHandleDistance": 160,
+		"mobileHandleToggle": 40,
+		"mobileHandleWidth": 36,
+		"mobileHandleHeight": 5,
+		"mobileHandleResistance": 0.25,
+		"mobileBackdropOpacity": 0.32,
+		"mobileGestureDirectionRatio": 1.2,
+		"mobileFinishTouchScale": 0.7,
+		"mobileScrollExpandThreshold": 4,
 		"mobileCardRadius": 16,
 		"mobilePillHeight": 32,
 		"mobileAvatarSize": 36,
@@ -513,6 +529,8 @@
 		"aiThreadWidth": 640,
 		"aiStreamDot": 8,
 		"aiUnseenDot": 8,
-		"aiSpinTurn": 1.1
+		"aiSpinTurn": 1.1,
+		"mobileReaderTitle": 27,
+		"mobileArticlePreviewCoverHeight": 200
 	}
 }

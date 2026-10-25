@@ -6,7 +6,15 @@ import SillKit
 @MainActor @Observable final class MobileWorkspace {
   private(set) var cards: [MobileCard] = []
   private(set) var owner: String?
-  private(set) var busy = false
+  private(set) var busy = false {
+    didSet {
+      if !busy {
+        let waiting = activityWaiters
+        activityWaiters = []
+        for waiter in waiting { waiter.resume() }
+      }
+    }
+  }
   private(set) var started = false
   private(set) var sessionChecked = false
   private(set) var needsPasswordSetup = false
@@ -16,6 +24,7 @@ import SillKit
   var error: String?
   @ObservationIgnored private let cloud: CloudWorkspace
   @ObservationIgnored private var snapshot: Snapshot?
+  @ObservationIgnored private var activityWaiters: [CheckedContinuation<Void, Never>] = []
 
   init(cloud: CloudWorkspace = CloudWorkspace()) { self.cloud = cloud }
 
@@ -30,7 +39,10 @@ import SillKit
   func start() async {
     guard !started, !busy else { return }
     busy = true
-    defer { busy = false; started = true }
+    defer {
+      busy = false
+      started = true
+    }
     do {
       if let state = try await cloud.restoreSession() { try accept(state) }
       sessionChecked = true
@@ -39,10 +51,14 @@ import SillKit
 
   func login(email: String, password: String) async {
     guard owner == nil, begin() else { return }
-    defer { busy = false; started = true }
+    defer {
+      busy = false
+      started = true
+    }
     do {
-      try accept(await cloud.login(
-        email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password))
+      try accept(
+        await cloud.login(
+          email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password))
     } catch { report(error) }
   }
 
@@ -102,11 +118,41 @@ import SillKit
 
   func card(_ id: String) -> MobileCard? { cards.first { $0.id == id } }
 
+  func dueReminders(now: Double = Date().timeIntervalSince1970 * 1000) -> [MobileCard] {
+    cards.filter { MobileReminderPolicy.eligible($0, now: now) }
+  }
+
+  @discardableResult
+  func acknowledgeReminders(_ baselines: [MobileCard]) async -> Bool {
+    guard !baselines.isEmpty,
+      baselines.allSatisfy({ baseline in
+        guard baseline.owner == owner, let current = card(baseline.id) else { return false }
+        return current.raw == baseline.raw && current.item == baseline.item
+      })
+    else {
+      error = Copy.appleConflict
+      return false
+    }
+    let now = Date().timeIntervalSince1970 * 1000
+    return await write(
+      baselines.map { card in
+        Self.itemPatch(
+          id: card.id,
+          values: [
+            "snoozedUntil": .number(0),
+            "lastReminderKey": .string(MobileReminderPolicy.key(card, snoozedUntil: 0)),
+            "lastNotifiedAt": .number(now),
+          ])
+      })
+  }
+
   func filtered(scope: String = "all", query: String = "", type: String? = nil) -> [MobileCard] {
     let selected = cards.filter { card in
       if scope == "archive" {
         guard card.archived else { return false }
-      } else if scope != "search", card.archived { return false }
+      } else if scope != "search", card.archived {
+        return false
+      }
       switch scope {
       case "bookmarks": if !card.bookmarked { return false }
       case "later": if !card.later { return false }
@@ -116,7 +162,8 @@ import SillKit
       }
       return (type == nil || type == card.type) && card.matches(query)
     }
-    let sort = preferences["floatTimely"]?.bool == false
+    let sort =
+      preferences["floatTimely"]?.bool == false
       ? "time" : preferences["sort"]?.string ?? "priority"
     let now = Date().timeIntervalSince1970 * 1000
     return selected.enumerated().sorted { lhs, rhs in
@@ -169,16 +216,22 @@ import SillKit
   func toggleTask(_ card: MobileCard, taskID: String) async -> Bool {
     guard card.type == "task", card.tasks.contains(where: { $0.id == taskID }) else { return false }
     let done = card.tasks.filter { $0.id == taskID ? !$0.done : $0.done }.map(\.id)
-    return await patch(card, values: [
-      "taskDone": .array(done.map(JSONValue.string)), "done": .bool(done.count == card.tasks.count),
-    ])
+    return await patch(
+      card,
+      values: [
+        "taskDone": .array(done.map(JSONValue.string)),
+        "done": .bool(done.count == card.tasks.count),
+      ])
   }
 
   @discardableResult
   func patch(_ baseline: MobileCard, values: [String: JSONValue]) async -> Bool {
     guard baseline.owner == owner, let current = card(baseline.id), current.raw == baseline.raw,
       current.item == baseline.item
-    else { error = Copy.appleConflict; return false }
+    else {
+      error = Copy.appleConflict
+      return false
+    }
     return await write([Self.itemPatch(id: baseline.id, values: values)])
   }
 
@@ -188,7 +241,10 @@ import SillKit
       return false
     }
     let selected = cards.filter { ids.contains($0.id) }
-    guard selected.count == ids.count else { error = Copy.appleConflict; return false }
+    guard selected.count == ids.count else {
+      error = Copy.appleConflict
+      return false
+    }
     var values: [String: JSONValue] = [field: .bool(value)]
     if field == "read" {
       values["readAt"] = .number(value ? Date().timeIntervalSince1970 * 1000 : 0)
@@ -202,10 +258,24 @@ import SillKit
 
   @discardableResult
   func saveAnnotations(_ baseline: MobileCard, tags: [String], note: String) async -> Bool {
-    guard baseline.owner == owner, let current = card(baseline.id), current.tags == baseline.tags,
-      current.note == baseline.note,
-      current.item["tagsEdited"] == baseline.item["tagsEdited"]
-    else { error = Copy.appleConflict; return false }
+    await saveBatchAnnotations(baselines: [baseline], tags: tags, note: note)
+  }
+
+  /// Tags replace the selected cards' tags; the note belongs only to the first card.
+  /// Every editor baseline is checked before sending a single atomic operation batch.
+  @discardableResult
+  func saveBatchAnnotations(baselines: [MobileCard], tags: [String], note: String) async -> Bool {
+    guard !baselines.isEmpty,
+      Set(baselines.map(\.id)).count == baselines.count,
+      baselines.allSatisfy({ baseline in
+        guard baseline.owner == owner, let current = card(baseline.id) else { return false }
+        return current.tags == baseline.tags && current.note == baseline.note
+          && current.item["tagsEdited"] == baseline.item["tagsEdited"]
+      })
+    else {
+      error = Copy.appleConflict
+      return false
+    }
     var seen = Set<String>()
     let cleanTags = tags.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .filter { !$0.isEmpty && seen.insert($0).inserted }
@@ -213,10 +283,14 @@ import SillKit
       error = Copy.appleInvalidCard
       return false
     }
-    return await write([Self.itemPatch(id: current.id, values: [
-      "tags": .array(cleanTags.map(JSONValue.string)), "tagsEdited": .bool(true),
-      "note": .string(note),
-    ])])
+    return await write(
+      baselines.enumerated().map { index, card in
+        var values: [String: JSONValue] = [
+          "tags": .array(cleanTags.map(JSONValue.string)), "tagsEdited": .bool(true),
+        ]
+        if index == 0 { values["note"] = .string(note) }
+        return Self.itemPatch(id: card.id, values: values)
+      })
   }
 
   @discardableResult
@@ -226,26 +300,34 @@ import SillKit
     let first = value.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? ""
     let link = MobileCard.safeURL(first)
     let rest = String(value.dropFirst(first.count)).trimmingCharacters(in: .whitespacesAndNewlines)
-    let title = link == nil
+    let title =
+      link == nil
       ? String((value.components(separatedBy: "\n").first ?? value).prefix(60))
       : String((rest.isEmpty ? (link?.host ?? first) + (link?.path ?? "") : rest).prefix(200))
     let body = link == nil ? value : rest
     if cards.contains(where: {
       if let link { return $0.url == link }
       return $0.type == "note" && $0.title == title && $0.body == body
-    }) { return true }
+    }) {
+      return true
+    }
     var raw: JSONValue = .object([
       "id": .string("capture-" + UUID().uuidString.lowercased()),
       "type": .string(link == nil ? "note" : "article"), "title": .string(title),
       "body": .string(body), "summary": .string(link == nil ? String(value.prefix(300)) : ""),
       "time": .number(Date().timeIntervalSince1970 * 1000), "tags": .array([]),
-      "sources": .array([.object([
-        "name": .string(link?.host ?? Copy.text("web.cards.e727b8cc2df0")),
-        "kind": .string(link == nil ? "capture" : "web"),
-      ])]),
+      "sources": .array([
+        .object([
+          "name": .string(link?.host ?? Copy.text("web.cards.e727b8cc2df0")),
+          "kind": .string(link == nil ? "capture" : "web"),
+        ])
+      ]),
     ])
     raw["url"] = link.map { .string($0.absoluteString) }
-    do { _ = try Card(json: raw) } catch { self.error = Copy.appleInvalidCard; return false }
+    do { _ = try Card(json: raw) } catch {
+      self.error = Copy.appleInvalidCard
+      return false
+    }
     return await write([.object(["op": .string("card.upsert"), "card": raw, "before": .null])])
   }
 
@@ -256,8 +338,14 @@ import SillKit
 
   @discardableResult
   func recordReading(_ card: MobileCard, seconds: Int, progress: Double) async -> Bool {
-    guard !busy, !unresolvedWrite, card.owner == owner,
-      let current = self.card(card.id), progress.isFinite else {
+    // Background activity waits for an in-flight operation, then uses its confirmed revision.
+    // This never retries an ambiguous write and cannot transfer activity across accounts.
+    while busy && !Task.isCancelled {
+      await withCheckedContinuation { activityWaiters.append($0) }
+    }
+    guard !Task.isCancelled, !unresolvedWrite, card.owner == owner,
+      let current = self.card(card.id), progress.isFinite
+    else {
       return false
     }
     let progress = max(current.progress, min(1, max(0, progress)))
@@ -272,11 +360,30 @@ import SillKit
     }
     var operations = [Self.itemPatch(id: card.id, values: values)]
     if seconds > 0 {
-      operations.append(.object([
-        "op": .string("reading.add"), "seconds": .number(Double(min(86400, seconds))),
-      ]))
+      operations.append(
+        .object([
+          "op": .string("reading.add"), "seconds": .number(Double(min(86400, seconds))),
+        ]))
     }
     return await write(operations)
+  }
+
+  @discardableResult
+  func recordPlayback(_ baseline: MobileCard, position: Double, ended: Bool) async -> Bool {
+    guard position.isFinite else { return false }
+    while busy && !Task.isCancelled {
+      await withCheckedContinuation { activityWaiters.append($0) }
+    }
+    guard !Task.isCancelled, !unresolvedWrite, baseline.owner == owner,
+      let current = card(baseline.id), current.raw == baseline.raw
+    else { return false }
+    var values: [String: JSONValue] = ["playbackPosition": .number(max(0, position))]
+    if ended {
+      values["read"] = .bool(true)
+      values["progress"] = .number(1)
+      if !current.read { values["readAt"] = .number(Date().timeIntervalSince1970 * 1000) }
+    }
+    return await write([Self.itemPatch(id: baseline.id, values: values)])
   }
 
   func exportData() throws -> Data {
@@ -289,11 +396,15 @@ import SillKit
   /// The confirmation dialog must keep the revision that was shown when it opened.
   @discardableResult
   func clearAll(expectedRevision: Int) async -> Bool {
-    guard expectedRevision == revision else { error = Copy.appleConflict; return false }
+    guard expectedRevision == revision else {
+      error = Copy.appleConflict
+      return false
+    }
     guard !cards.isEmpty else { return true }
-    return await write(cards.map {
-      .object(["op": .string("card.delete"), "id": .string($0.id), "before": $0.raw])
-    })
+    return await write(
+      cards.map {
+        .object(["op": .string("card.delete"), "id": .string($0.id), "before": $0.raw])
+      })
   }
 
   private func write(_ operations: [JSONValue]) async -> Bool {
@@ -301,8 +412,9 @@ import SillKit
     let baseline = revision
     defer { busy = false }
     do {
-      try accept(await cloud.apply(
-        operations: operations, expectedRevision: .number(Double(baseline))))
+      try accept(
+        await cloud.apply(
+          operations: operations, expectedRevision: .number(Double(baseline))))
       return true
     } catch {
       unresolvedWrite = await cloud.pendingWriteKey != nil
@@ -312,8 +424,14 @@ import SillKit
   }
 
   private func begin() -> Bool {
-    guard !busy else { error = Copy.text("login.processing"); return false }
-    guard !unresolvedWrite else { error = Copy.appleUnknownWrite; return false }
+    guard !busy else {
+      error = Copy.text("login.processing")
+      return false
+    }
+    guard !unresolvedWrite else {
+      error = Copy.appleUnknownWrite
+      return false
+    }
     busy = true
     error = nil
     return true
@@ -358,8 +476,10 @@ import SillKit
       error = Copy.appleUnknownWrite
     case CloudWorkspaceError.sessionStorage: error = Copy.appleSessionError
     case CloudWorkspaceError.service(let code, let status):
-      error = Copy.text(status == 429 ? "login.rateLimited"
-        : code == "logout_unconfirmed" ? "auth.logoutUnconfirmed" : "login.unavailable")
+      error = Copy.text(
+        status == 429
+          ? "login.rateLimited"
+          : code == "logout_unconfirmed" ? "auth.logoutUnconfirmed" : "login.unavailable")
     default: error = Copy.text("login.network")
     }
   }
@@ -372,17 +492,24 @@ import SillKit
     if card.dismissed || card.completed { return -1 }
     let snooze = card.item["snoozedUntil"]?.number ?? 0
     let trigger: Double?
-    if snooze > 0 { trigger = snooze }
-    else if card.type == "event" { trigger = card.start.map { $0 - 15 * 60000 } }
-    else if card.type == "task" { trigger = card.due.map { $0 - 30 * 60000 } }
-    else if card.type == "reminder" { trigger = card.due }
-    else { trigger = nil }
+    if snooze > 0 {
+      trigger = snooze
+    } else if card.type == "event" {
+      trigger = card.start.map { $0 - 15 * 60000 }
+    } else if card.type == "task" {
+      trigger = card.due.map { $0 - 30 * 60000 }
+    } else if card.type == "reminder" {
+      trigger = card.due
+    } else {
+      trigger = nil
+    }
     let ended = card.type == "event" && (card.end ?? .infinity) <= now
     let urgent = trigger.map { $0 <= now && !ended } ?? false
     let start = card.type == "event" ? card.start : trigger
-    let soon = start.map {
-      $0 > now && $0 - now <= (card.type == "event" ? 30 : 15) * 60000
-    } ?? false
+    let soon =
+      start.map {
+        $0 > now && $0 - now <= (card.type == "event" ? 30 : 15) * 60000
+      } ?? false
     return (urgent ? 100 : soon ? 50 : 0) + max(0, min(10, card.priority))
   }
 }

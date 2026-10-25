@@ -38,14 +38,17 @@ private final class MobileFixture: @unchecked Sendable {
   private var mode = Mode.read
   private var writes = 0
   private var body: JSONValue?
+  private var operationGate: DispatchSemaphore?
   private var owner = "synthetic-owner"
   private var state: JSONValue = .object([
     "revision": .number(4),
     "state": .object([
-      "cards": .array([.object([
-        "id": .string("note"), "type": .string("note"), "title": .string("Synthetic note"),
-        "body": .string("Only test content"), "tags": .array([.string("work")]),
-      ])]),
+      "cards": .array([
+        .object([
+          "id": .string("note"), "type": .string("note"), "title": .string("Synthetic note"),
+          "body": .string("Only test content"), "tags": .array([.string("work")]),
+        ])
+      ]),
       "items": .object(["note": .object(["note": .string("Original annotation")])]),
       "preferences": .object(["theme": .string("dark")]), "seconds": .number(0),
     ]),
@@ -55,6 +58,27 @@ private final class MobileFixture: @unchecked Sendable {
   var lastBody: JSONValue? { lock.withLock { body } }
   func setMode(_ mode: Mode) { lock.withLock { self.mode = mode } }
   func setOwner(_ owner: String) { lock.withLock { self.owner = owner } }
+  func holdNextOperation() -> DispatchSemaphore {
+    let gate = DispatchSemaphore(value: 0)
+    lock.withLock { operationGate = gate }
+    return gate
+  }
+  func addSecondCard() {
+    lock.withLock {
+      var workspace = state["state"]!
+      var cards = workspace["cards"]!.array!
+      cards.append(
+        .object([
+          "id": .string("second"), "type": .string("note"), "title": .string("Second note"),
+          "tags": .array([.string("other")]),
+        ]))
+      workspace["cards"] = .array(cards)
+      var items = workspace["items"]!.object!
+      items["second"] = .object(["note": .string("Keep this note")])
+      workspace["items"] = .object(items)
+      state["state"] = workspace
+    }
+  }
   func changeAnnotation() {
     lock.withLock {
       state["revision"] = .number(5)
@@ -71,12 +95,19 @@ private final class MobileFixture: @unchecked Sendable {
       case "/auth/password":
         return (200, ["Set-Cookie": "__Host-sill-access=synthetic; Secure; Path=/"], .object([:]))
       case "/auth/session":
-        return (200, [:], .object([
-          "userId": .string(owner), "workspaceRead": .bool(true),
-        ]))
+        return (
+          200, [:],
+          .object([
+            "userId": .string(owner), "workspaceRead": .bool(true),
+          ])
+        )
       case "/auth/logout": return (200, [:], .object(["revoked": .bool(true)]))
       case "/api/v1/workspace/operations":
         writes += 1
+        if let gate = operationGate {
+          operationGate = nil
+          _ = gate.wait(timeout: .now() + 2)
+        }
         #expect(request.value(forHTTPHeaderField: "Idempotency-Key") != nil)
         var bytes = request.httpBody ?? Data()
         if let stream = request.httpBodyStream {
@@ -92,11 +123,13 @@ private final class MobileFixture: @unchecked Sendable {
         body = try JSONValue.decode(bytes)
         if mode == .timeout { throw URLError(.timedOut) }
         if mode == .success {
-          state["revision"] = .number(5)
+          state["revision"] = .number((state["revision"]?.number ?? 0) + 1)
           var workspace = state["state"]!
-          workspace["items"] = .object(["note": .object([
-            "note": .string("Original annotation"), "bookmarked": .bool(true),
-          ])])
+          workspace["items"] = .object([
+            "note": .object([
+              "note": .string("Original annotation"), "bookmarked": .bool(true),
+            ])
+          ])
           state["state"] = workspace
           return (200, [:], state)
         }
@@ -117,8 +150,9 @@ struct MobileWorkspaceTests {
     MobileTestHTTP.lock.withLock { MobileTestHTTP.handler = fixture.response }
     let configuration = URLSessionConfiguration.ephemeral
     configuration.protocolClasses = [MobileTestHTTP.self]
-    return MobileWorkspace(cloud: CloudWorkspace(
-      vault: vault, configuration: configuration))
+    return MobileWorkspace(
+      cloud: CloudWorkspace(
+        vault: vault, configuration: configuration))
   }
 
   @Test func conflictDoesNotRetryOrChangeConfirmedState() async throws {
@@ -230,7 +264,83 @@ struct MobileWorkspaceTests {
     #expect(await workspace.toggle(previous, field: "bookmarked") == false)
     #expect(await workspace.saveAnnotations(previous, tags: [], note: "First account") == false)
     #expect(await workspace.recordReading(previous, seconds: 10, progress: 1) == false)
+    #expect(await workspace.recordPlayback(previous, position: 10, ended: true) == false)
     #expect(fixture.writeCount == 0)
+  }
+
+  @Test func batchAnnotationsReplaceTagsAtomicallyAndOnlyEditTheFirstNote() async throws {
+    let fixture = MobileFixture()
+    fixture.addSecondCard()
+    let workspace = make(fixture)
+    await workspace.login(email: "synthetic@example.com", password: "synthetic")
+    let baselines = workspace.cards
+    fixture.setMode(.success)
+    #expect(
+      await workspace.saveBatchAnnotations(
+        baselines: baselines, tags: [" new ", "new", ""], note: "First note edited"))
+    #expect(fixture.writeCount == 1)
+    #expect(fixture.lastBody?["expectedRevision"] == .number(4))
+    let operations = try #require(fixture.lastBody?["operations"]?.array)
+    #expect(operations.count == 2)
+    #expect(operations.allSatisfy { $0["values"]?["tags"] == .array([.string("new")]) })
+    #expect(operations.allSatisfy { $0["values"]?["tagsEdited"] == .bool(true) })
+    #expect(operations[0]["values"]?["note"] == .string("First note edited"))
+    #expect(operations[1]["values"]?["note"] == nil)
+  }
+
+  @Test func batchAnnotationConflictRejectsTheWholeSelection() async throws {
+    let fixture = MobileFixture()
+    fixture.addSecondCard()
+    let workspace = make(fixture)
+    await workspace.login(email: "synthetic@example.com", password: "synthetic")
+    let baselines = workspace.cards.reversed().map { $0 }
+    fixture.changeAnnotation()
+    await workspace.refresh()
+    #expect(
+      await workspace.saveBatchAnnotations(
+        baselines: baselines, tags: [], note: "Draft") == false)
+    #expect(fixture.writeCount == 0)
+    #expect(workspace.error == Copy.appleConflict)
+    #expect(
+      await workspace.saveBatchAnnotations(
+        baselines: [], tags: [], note: "") == false)
+  }
+
+  @Test func backgroundReadingWaitsForTheConfirmedWriteRevision() async throws {
+    let fixture = MobileFixture()
+    let workspace = make(fixture)
+    await workspace.login(email: "synthetic@example.com", password: "synthetic")
+    let card = try #require(workspace.cards.first)
+    fixture.setMode(.success)
+    let gate = fixture.holdNextOperation()
+    let saving = Task { await workspace.toggle(card, field: "bookmarked") }
+    while !workspace.busy { await Task.yield() }
+    let reading = Task { await workspace.recordReading(card, seconds: 12, progress: 0.5) }
+    await Task.yield()
+    gate.signal()
+    #expect(await saving.value)
+    #expect(await reading.value)
+    #expect(fixture.writeCount == 2)
+    #expect(fixture.lastBody?["expectedRevision"] == .number(5))
+    #expect(fixture.lastBody?["operations"]?.array?.last?["seconds"] == .number(12))
+  }
+
+  @Test func playbackMarksReadOnlyOnARealEndAndRejectsInvalidPositions() async throws {
+    let fixture = MobileFixture()
+    let workspace = make(fixture)
+    await workspace.login(email: "synthetic@example.com", password: "synthetic")
+    let card = try #require(workspace.cards.first)
+    fixture.setMode(.success)
+    #expect(await workspace.recordPlayback(card, position: .nan, ended: false) == false)
+    #expect(fixture.writeCount == 0)
+    #expect(await workspace.recordPlayback(card, position: 20, ended: false))
+    #expect(fixture.lastBody?["operations"]?.array?.first?["values"]?["read"] == nil)
+    #expect(await workspace.recordPlayback(card, position: 30, ended: true))
+    let values = fixture.lastBody?["operations"]?.array?.first?["values"]
+    #expect(values?["read"] == .bool(true))
+    #expect(values?["progress"] == .number(1))
+    #expect(values?["playbackPosition"] == .number(30))
+    #expect(fixture.lastBody?["expectedRevision"] == .number(5))
   }
 
   @Test func offlineStartupDoesNotConfirmSignOut() async throws {
@@ -250,18 +360,21 @@ struct MobileWorkspaceTests {
   }
 
   @Test func taskStateTagsAndSafeLinksUseTheStoredPersonalState() throws {
-    let card = try Card(json: .object([
-      "id": .string("task"), "type": .string("task"), "title": .string("Task"),
-      "tasks": .array([
-        .object(["id": .string("a"), "text": .string("One"), "done": .bool(true)]),
-        .object(["id": .string("b"), "text": .string("Two")]),
-      ]),
-      "tags": .array([.string("source")]),
-    ]))
-    let mobile = try MobileCard(card: card, item: .object([
-      "taskDone": .array([.string("b")]), "tagsEdited": .bool(true),
-      "tags": .array([.string("Personal")]),
-    ]))
+    let card = try Card(
+      json: .object([
+        "id": .string("task"), "type": .string("task"), "title": .string("Task"),
+        "tasks": .array([
+          .object(["id": .string("a"), "text": .string("One"), "done": .bool(true)]),
+          .object(["id": .string("b"), "text": .string("Two")]),
+        ]),
+        "tags": .array([.string("source")]),
+      ]))
+    let mobile = try MobileCard(
+      card: card,
+      item: .object([
+        "taskDone": .array([.string("b")]), "tagsEdited": .bool(true),
+        "tags": .array([.string("Personal")]),
+      ]))
     #expect(mobile.tasks.map(\.done) == [false, true])
     #expect(!mobile.completed)
     #expect(mobile.matches("task #personal"))

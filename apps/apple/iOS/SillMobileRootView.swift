@@ -1,289 +1,313 @@
 #if os(iOS)
-import SillKit
-import SwiftUI
-import UIKit
+  import SillKit
+  import SwiftUI
+  import UIKit
 
-/// Native iPhone and iPad entry. Session cookies remain in SillKit's Keychain vault.
-public struct SillMobileRootView: View {
-  @State private var workspace = MobileWorkspace()
-  @State private var reminders = MobileReminders.shared
-  @Environment(\.scenePhase) private var scenePhase
+  public struct SillMobileRootView: View {
+    @State private var workspace = MobileWorkspace()
+    @State private var reminders = MobileReminders.shared
+    @Environment(\.scenePhase) private var scenePhase
+    public init() {}
 
-  public init() {}
-
-  public var body: some View {
-    Group {
-      if !workspace.started {
-        ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(AppleColors.canvas)
-      } else if workspace.owner == nil || workspace.needsPasswordSetup {
-        MobileLogin(workspace: workspace)
-      } else {
-        MobileShell(workspace: workspace, reminders: reminders).id(workspace.owner)
-      }
-    }
-    .tint(AppleColors.accent)
-    .foregroundStyle(AppleColors.primary)
-    .preferredColorScheme(colorScheme)
-    .task { await workspace.start() }
-    .task(id: "\(workspace.owner ?? ""):\(workspace.revision):\(workspace.sessionChecked)") {
-      await reminders.reconcile(workspace)
-    }
-    .onChange(of: scenePhase) { _, phase in
-      if phase == .active, workspace.started { Task { await workspace.refresh() } }
-    }
-  }
-
-  private var colorScheme: ColorScheme? {
-    switch workspace.preferences["theme"]?.string {
-    case "light": .light
-    case "dark": .dark
-    default: nil
-    }
-  }
-}
-
-private struct MobileShell: View {
-  let workspace: MobileWorkspace
-  let reminders: MobileReminders
-  @State private var tab = "home"
-  @State private var scope = "all"
-  @State private var selected: Set<String> = []
-  @State private var cardID: CardDestination?
-  @State private var settings = false
-  @State private var capture = false
-  @State private var errorDetails = false
-  @State private var scrollPositions: [String: String] = [:]
-  @State private var feedIDs: [String] = []
-  @State private var aiDraft = ""
-  @State private var searchQuery = ""
-  @State private var searchType: String?
-  @State private var searchConditions: Set<String> = []
-  @State private var keyboardVisible = false
-  @FocusState private var aiFocused: Bool
-
-  private let scopes = ["all", "unread", "tasks", "later", "bookmarks"]
-
-  var body: some View {
-    VStack(spacing: 0) {
-      if tab != "search" { header }
-      if tab == "home" {
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: AppleMetrics.space8) {
-            ForEach(scopes, id: \.self) { key in
-              MobilePill(title: scopeTitle(key), selected: scope == key) { scope = key }
-            }
-          }.padding(.horizontal, AppleMetrics.space16)
+    public var body: some View {
+      Group {
+        if !workspace.started {
+          MobileLaunch()
+        } else if workspace.owner == nil || workspace.needsPasswordSetup {
+          MobileLogin(workspace: workspace)
+        } else {
+          MobileShell(workspace: workspace, reminders: reminders).id(workspace.owner)
         }
-        home
-      } else if tab == "search" {
-        MobileSearch(workspace: workspace, settings: { settings = true }, open: open,
-          query: $searchQuery, type: $searchType, conditions: $searchConditions)
-      } else {
-        assistant
+      }
+      .tint(AppleColors.accent).foregroundStyle(AppleColors.primary)
+      .preferredColorScheme(colorScheme)
+      .task { await workspace.start() }
+      .task(id: "\(workspace.owner ?? ""):\(workspace.revision):\(workspace.sessionChecked)") {
+        await reminders.reconcile(workspace)
+      }
+      .onChange(of: scenePhase) { _, phase in
+        if phase == .active, workspace.started { Task { await workspace.refresh() } }
       }
     }
-    .background(AppleColors.canvas)
-    .safeAreaInset(edge: .bottom) {
-      if !aiFocused && !keyboardVisible {
-        if selected.isEmpty { navigation } else { selectionBar }
+    private var colorScheme: ColorScheme? {
+      switch workspace.preferences["theme"]?.string {
+      case "light": .light
+      case "dark": .dark
+      default: nil
       }
     }
-    .sheet(item: $cardID) { destination in
-      MobileReader(workspace: workspace, cardID: destination.id)
-        .presentationDetents([.large]).presentationDragIndicator(.visible)
+  }
+
+  private struct MobileShell: View {
+    let workspace: MobileWorkspace
+    let reminders: MobileReminders
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var feed = MobileFeedState()
+    @State private var search = MobileSearchState()
+    @State private var chrome = MobileChromeState()
+    @State private var refresh = MobileRefresh()
+    @State private var tab = "home"
+    @State private var scope = "all"
+    @State private var selected: Set<String> = []
+    @State private var openedCardID: String?
+    @State private var settings = false
+    @State private var capture = false
+    @State private var errorDetails = false
+    @State private var annotations = false
+    @State private var annotationBaselines: [MobileCard] = []
+    @State private var aiContext: [String] = []
+    @State private var aiDraft = ""
+    @State private var keyboardVisible = false
+    @State private var topRequest = 0
+    @State private var reminderHint: [MobileCard] = []
+    private let scopes = ["all", "unread", "tasks", "later", "bookmarks"]
+    private var blocked: Bool {
+      openedCardID != nil || settings || capture || annotations || errorDetails
     }
-    .sheet(isPresented: $settings) {
-      NavigationStack { MobileSettings(workspace: workspace) }
-    }
-    .sheet(isPresented: $capture) { NavigationStack { MobileCapture(workspace: workspace) } }
-    .sheet(isPresented: $errorDetails) {
+    private var railHidden: Bool { chrome.hidden || keyboardVisible }
+
+    var body: some View {
       NavigationStack {
-        MobileError(workspace: workspace)
-          .navigationTitle(Copy.text("mobile.error.title"))
-          .navigationBarTitleDisplayMode(.inline)
-          .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-              Button(Copy.text("apple.cancel")) { errorDetails = false }
+        ZStack(alignment: .bottom) {
+          pages
+          rail
+        }
+        .background(AppleColors.canvas)
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(isPresented: $settings) { MobileSettings(workspace: workspace) }
+        .allowsHitTesting(openedCardID == nil)
+        .accessibilityHidden(openedCardID != nil)
+        .overlay { MobileReaderHost(workspace: workspace, selection: $openedCardID) }
+        .overlay(alignment: .topTrailing) { errorPopover }
+        .sheet(isPresented: $capture) { NavigationStack { MobileCapture(workspace: workspace) } }
+        .sheet(isPresented: $annotations) {
+          NavigationStack {
+            MobileBatchAnnotations(workspace: workspace, baselines: annotationBaselines) {
+              annotations = false
             }
           }
-      }.presentationDetents([.medium, .large])
-    }
-    .onAppear {
-      reloadFeed()
-      reminders.onOpen = open
-    }
-    .onDisappear { reminders.onOpen = nil }
-    .onChange(of: scope) { _, _ in reloadFeed() }
-    .onChange(of: workspace.cards.map(\.id)) { _, _ in
-      reloadFeed()
-      selected.formIntersection(workspace.cards.map(\.id))
-    }
-    .onChange(of: workspace.error) { _, error in
-      if error != nil, workspace.unresolvedWrite { errorDetails = true }
-    }
-    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-      keyboardVisible = true
-    }
-    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-      keyboardVisible = false
-    }
-  }
-
-  private var header: some View {
-    HStack(spacing: AppleMetrics.space8) {
-      Button(tab == "home" ? "Sill" : Copy.text("web.ai.title")) {
-        if tab == "home" { scrollPositions[scope] = feedIDs.first }
-      }
-      .font(.system(size: AppleMetrics.font34, weight: .bold))
-      .buttonStyle(.plain).accessibilityAddTraits(.isHeader)
-      Spacer()
-      if workspace.error != nil {
-        MobileIconButton("info", label: Copy.text("mobile.error.title")) { errorDetails = true }
-      }
-      if tab == "ai" {
-        MobileIconButton("clock", label: Copy.text("web.ai.history")) {}.disabled(true)
-        MobileIconButton("plus", label: Copy.text("web.ai.newChat")) {}.disabled(true)
-      } else {
-        MobileIconButton("person", label: Copy.text("apple.settings")) { settings = true }
-      }
-    }
-    .frame(minHeight: AppleMetrics.railRow)
-    .padding(.horizontal, AppleMetrics.space16)
-  }
-
-  private var home: some View {
-    ScrollView {
-      LazyVGrid(
-        columns: [GridItem(.adaptive(minimum: AppleMetrics.cardMinWidth), spacing: cardGap)],
-        spacing: cardGap
-      ) {
-        ForEach(feedIDs, id: \.self) { id in
-          if let card = workspace.card(id), card.archived == (scope == "archive") {
-            MobileCardTile(workspace: workspace, card: card) {
-              if selected.isEmpty { open(id) } else { toggleSelection(id) }
-            }
-            .overlay(alignment: .topTrailing) {
-              if selected.contains(id) {
-                MobileIcon("check", size: AppleMetrics.space20)
-                  .padding(AppleMetrics.space8)
-                  .foregroundStyle(AppleColors.card)
-                  .background(AppleColors.accent, in: Circle())
-              }
-            }
-            .contextMenu {
-              Button(Copy.text("apple.select")) { toggleSelection(id) }
-              Button(Copy.text("apple.toggleBookmarkMenu")) {
-                Task { await workspace.toggle(card, field: "bookmarked") }
-              }
-              Button(Copy.text("apple.toggleLaterMenu")) {
-                Task { await workspace.toggle(card, field: "later") }
-              }
-              Button(Copy.text("apple.archive")) {
-                Task { if await workspace.toggle(card, field: "archived") { reloadFeed() } }
-              }
-            }
-            .id(id)
+        }
+        .background(
+          MobileKeyboardCommands(
+            enabled: !blocked,
+            singleKeys: workspace.preferences["singleKeyShortcuts"]?.bool ?? true, action: shortcut)
+        )
+        .onAppear { reminders.onOpen = open }
+        .onDisappear { reminders.onOpen = nil }
+        .onChange(of: tab) { _, tab in
+          if tab != "search" { search.focused = false }
+          chrome.sync(0)
+        }
+        .onChange(of: blocked) { _, value in
+          chrome.paused = value
+          if value { refresh.cancel() }
+        }
+        .onChange(of: selected) { _, _ in chrome.show() }
+        .onChange(of: workspace.cards.map(\.id)) { _, ids in
+          selected.formIntersection(ids)
+          aiContext.removeAll { !ids.contains($0) }
+        }
+        .onChange(of: workspace.error) { _, error in
+          if error != nil && workspace.unresolvedWrite { errorDetails = true }
+        }
+        .onChange(of: scenePhase) { _, phase in
+          if phase != .active {
+            refresh.cancel()
+            chrome.paused = true
+          } else {
+            chrome.paused = blocked
+            chrome.show()
+          }
+        }
+        .onReceive(
+          NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
+        ) { _ in
+          keyboardVisible = true
+        }
+        .onReceive(
+          NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+        ) { _ in
+          keyboardVisible = false
+          chrome.show()
+        }
+        .task(id: workspace.revision) { updateReminderHint() }
+        .task {
+          while !Task.isCancelled {
+            do { try await Task.sleep(for: .seconds(60)) } catch { return }
+            if scenePhase == .active { updateReminderHint() }
           }
         }
       }
-      .scrollTargetLayout()
-      .padding(AppleMetrics.space16)
-      if feedIDs.isEmpty { MobileEmpty(capture: { capture = true }) }
-      Button(Copy.text(scope == "archive" ? "apple.restore" : "mobile.archive")) {
-        scope = scope == "archive" ? "all" : "archive"
-      }
-      .foregroundStyle(AppleColors.secondary)
-      .padding(AppleMetrics.space24)
     }
-    .scrollPosition(id: Binding(
-      get: { scrollPositions[scope] }, set: { scrollPositions[scope] = $0 }))
-    .refreshable { await workspace.refresh(); reloadFeed() }
-  }
 
-  private var cardGap: CGFloat {
-    switch workspace.preferences["cardSpacing"]?.string {
-    case "compact": AppleMetrics.space8
-    case "roomy": AppleMetrics.space20
-    default: AppleMetrics.space12
-    }
-  }
-
-  // @design nav-capsule Fixed three destinations; settings remains in the account button.
-  private var navigation: some View {
-    HStack(spacing: 0) {
-      navButton("home", icon: "home", title: Copy.text("web.nav.home"))
-      navButton("ai", icon: "sparkles", title: Copy.text("web.nav.ai"))
-      navButton("search", icon: "search", title: Copy.text("web.nav.search"))
-    }
-    .padding(AppleMetrics.railInset)
-    .background(.regularMaterial, in: Capsule())
-    .padding(.bottom, AppleMetrics.space16)
-  }
-
-  private func navButton(_ key: String, icon: String, title: String) -> some View {
-    Button { tab = key } label: {
-      VStack(spacing: AppleMetrics.space4) {
-        MobileIcon(icon, size: AppleMetrics.space20)
-        Text(title).font(.system(size: AppleMetrics.font12, weight: .medium))
-      }
-      .frame(width: AppleMetrics.navTab, height: AppleMetrics.railRow)
-      .background(tab == key ? AppleColors.card : .clear, in: Capsule())
-    }
-    .buttonStyle(.plain)
-    .accessibilityAddTraits(tab == key ? .isSelected : [])
-  }
-
-  private var selectionBar: some View {
-    HStack(spacing: AppleMetrics.space4) {
-      Text(Copy.text("mobile.selection").replacingOccurrences(of: "{count}", with: String(selected.count)))
-        .font(.system(size: AppleMetrics.font12))
-        .padding(.leading, AppleMetrics.space12)
-      MobileIconButton("bookmark", label: Copy.text("apple.bookmarks")) { batch("bookmarked") }
-      MobileIconButton("clock", label: Copy.text("apple.later")) { batch("later") }
-      MobileIconButton("folder", label: Copy.text("apple.archive")) { batch("archived") }
-      MobileIconButton("x", label: Copy.text("apple.clearSelection")) { selected = [] }
-    }
-    .disabled(workspace.busy || workspace.unresolvedWrite)
-    .padding(AppleMetrics.railInset).background(.regularMaterial, in: Capsule())
-    .padding(.bottom, AppleMetrics.space16)
-  }
-
-  private var assistant: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.space16) {
-      Spacer()
-      Text(Copy.text("web.ai.body")).foregroundStyle(AppleColors.secondary)
-      TextField(Copy.text("web.ai.composer"), text: $aiDraft, axis: .vertical)
-        .font(.system(size: AppleMetrics.font17)).focused($aiFocused)
-        .padding(AppleMetrics.space16)
-        .background(AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.mobileCardRadius))
-      HStack {
-        Text(Copy.text("web.ai.localOnly")).foregroundStyle(AppleColors.secondary)
-        Spacer()
-        MobileIconButton("send", label: Copy.text("web.ai.sendUnavailable")) {}.disabled(true)
+    private var pages: some View {
+      ZStack(alignment: .top) {
+        VStack(spacing: 0) {
+          MobilePageHeader(
+            title: "Sill", settings: { settings = true },
+            onTitle: {
+              topRequest += 1
+              chrome.show()
+            }, refresh: refresh, error: workspace.error == nil ? nil : { errorDetails.toggle() })
+          ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: AppleMetrics.space8) {
+              ForEach(scopes, id: \.self) { key in
+                MobilePill(title: scopeTitle(key), selected: scope == key) {
+                  MobileMotion.instantly { scope = key }
+                  chrome.show()
+                }
+              }
+            }.padding(.horizontal, AppleMetrics.space16)
+          }.frame(height: AppleMetrics.hitTarget)
+          MobileFeed(
+            workspace: workspace, state: feed, chrome: chrome, refresh: refresh,
+            scope: $scope, selected: $selected, active: tab == "home", blocked: blocked,
+            topRequest: topRequest, open: open, capture: { capture = true }
+          )
+          .overlay(alignment: .top) {
+            if !reminderHint.isEmpty && selected.isEmpty && !blocked {
+              reminderPrompt
+            }
+          }
+        }.opacity(tab == "home" ? 1 : 0).allowsHitTesting(tab == "home").accessibilityHidden(
+          tab != "home")
+        MobileSearch(
+          workspace: workspace, state: search, chrome: chrome, selected: $selected,
+          active: tab == "search", blocked: blocked, settings: { settings = true }, open: open
+        )
+        .opacity(tab == "search" ? 1 : 0).allowsHitTesting(tab == "search").accessibilityHidden(
+          tab != "search")
+        VStack(spacing: 0) {
+          MobilePageHeader(title: Copy.text("web.ai.title"), assistant: true)
+          MobileAssistant(workspace: workspace, context: $aiContext, draft: $aiDraft, open: open)
+        }.opacity(tab == "ai" ? 1 : 0).allowsHitTesting(tab == "ai").accessibilityHidden(
+          tab != "ai")
       }
     }
-    .padding(AppleMetrics.space16)
-  }
 
-  private func scopeTitle(_ key: String) -> String {
-    Copy.text(key == "tasks" ? "card.type.task" : "apple." + key)
-  }
-  private func open(_ id: String) { cardID = CardDestination(id: id) }
-  private func reloadFeed() { feedIDs = workspace.filtered(scope: scope).map(\.id) }
-  private func toggleSelection(_ id: String) {
-    if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
-  }
-  private func batch(_ field: String) {
-    let ids = selected
-    Task {
-      if await workspace.batch(ids: ids, field: field, value: true) {
-        selected = []
-        if field == "archived" { reloadFeed() }
+    private var rail: some View {
+      Group {
+        if selected.isEmpty {
+          MobileNavigation(tab: $tab, filtered: search.hasTokens)
+        } else {
+          MobileSelectionBar(
+            workspace: workspace, selected: $selected,
+            annotations: {
+              annotationBaselines = workspace.cards.filter { selected.contains($0.id) }
+              annotations = true
+            },
+            discuss: {
+              for card in workspace.cards
+              where selected.contains(card.id) && !aiContext.contains(card.id) {
+                aiContext.append(card.id)
+              }
+              selected = []
+              tab = "ai"
+              chrome.show()
+            })
+        }
+      }
+      .padding(.bottom, AppleMetrics.space16)
+      .offset(y: railHidden ? AppleMetrics.motionRailTravel : 0)
+      .opacity(railHidden ? 0 : 1)
+      .allowsHitTesting(!railHidden && !blocked)
+      .accessibilityHidden(railHidden || blocked)
+      .animation(railHidden ? MobileMotion.tuck : MobileMotion.show, value: railHidden)
+      .animation(MobileMotion.fast, value: selected.isEmpty)
+    }
+
+    @ViewBuilder private var errorPopover: some View {
+      if errorDetails {
+        ZStack(alignment: .topTrailing) {
+          Color.clear.contentShape(Rectangle()).onTapGesture { errorDetails = false }
+          VStack(alignment: .trailing, spacing: 0) {
+            MobileIconButton("x", label: Copy.text("apple.close")) { errorDetails = false }
+            MobileError(workspace: workspace)
+          }
+          .frame(maxWidth: AppleMetrics.panelNarrowWidth)
+          .background(
+            AppleColors.card, in: RoundedRectangle(cornerRadius: AppleMetrics.panelRadius)
+          )
+          .mobileShadow(.floating)
+          .padding(AppleMetrics.space16)
+        }
+      }
+    }
+
+    private var reminderPrompt: some View {
+      Button {
+        let cards = reminderHint
+        Task {
+          if await workspace.acknowledgeReminders(cards) {
+            reminderHint = []
+            scope = "all"
+            feed.rebuild(
+              scope: scope, cards: workspace.filtered(scope: scope), catalog: workspace.cards,
+              stack: workspace.preferences["stack"]?.bool ?? true)
+            topRequest += 1
+          }
+        }
+      } label: {
+        HStack(spacing: AppleMetrics.space8) {
+          MobileIcon("bell", size: AppleMetrics.space16)
+          Text(reminderHint.first?.title ?? "").lineLimit(1)
+        }
+        .font(.system(size: AppleMetrics.font13, weight: .medium))
+        .padding(.horizontal, AppleMetrics.space16).frame(height: AppleMetrics.newCountHeight)
+        .mobileGlass(Capsule())
+      }
+      .buttonStyle(MobilePressStyle()).padding(.vertical, AppleMetrics.space4)
+      .disabled(workspace.busy || workspace.unresolvedWrite)
+      .transition(.opacity)
+    }
+    private func updateReminderHint() {
+      withAnimation(MobileMotion.fast) { reminderHint = workspace.dueReminders() }
+    }
+    private func scopeTitle(_ key: String) -> String {
+      Copy.text(key == "tasks" ? "web.home.todo" : "apple." + key)
+    }
+    private func open(_ id: String) {
+      search.focused = false
+      refresh.cancel()
+      openedCardID = id
+    }
+    private func shortcut(_ key: String) {
+      switch key {
+      case "search":
+        tab = "search"
+        search.focused = true
+        chrome.show()
+      case "capture": capture = true
+      case "refresh": if tab == "home" { refresh.retry += 1 }
+      case "top":
+        tab = "home"
+        topRequest += 1
+        chrome.show()
+      case "escape": if !selected.isEmpty { selected = [] }
+      default: break
       }
     }
   }
-}
 
-private struct CardDestination: Identifiable { let id: String }
+  private struct MobileLaunch: View {
+    @State private var visible = false
+    var body: some View {
+      VStack(spacing: AppleMetrics.space12) {
+        Color.clear.frame(height: AppleMetrics.railRow + AppleMetrics.hitTarget)
+        if visible {
+          ForEach(0..<3) { _ in
+            RoundedRectangle(cornerRadius: AppleMetrics.mobileCardRadius)
+              .fill(AppleColors.card).frame(height: AppleMetrics.cardMinHeight)
+          }.transition(.opacity)
+        }
+        Spacer(minLength: 0)
+      }
+      .padding(.horizontal, AppleMetrics.space16).background(AppleColors.canvas)
+      .accessibilityHidden(true).allowsHitTesting(false)
+      .task {
+        do { try await Task.sleep(for: .seconds(AppleMetrics.loadingDelay)) } catch { return }
+        withAnimation(MobileMotion.fast) { visible = true }
+      }
+    }
+  }
 #endif

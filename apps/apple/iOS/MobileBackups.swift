@@ -16,7 +16,9 @@ import SillKit
   var pendingCreation: Bool { creation != nil }
   var request: BackupRequest?
 
-  func call(_ path: String = "", _ method: String = "GET", _ body: JSONValue? = nil) async throws -> JSONValue {
+  func call(_ path: String = "", _ method: String = "GET", _ body: JSONValue? = nil) async throws
+    -> JSONValue
+  {
     guard let request else { throw CloudWorkspaceError.unauthenticated }
     return try await request("/api/v1/backups" + path, method, body)
   }
@@ -33,12 +35,13 @@ import SillKit
     busy = true
     message = ""
     defer { busy = false }
-    do { try await operation() }
-    catch CloudWorkspaceError.service(let code, _) {
+    do { try await operation() } catch CloudWorkspaceError.service(let code, _) {
       message = Self.text(
-        code == "revision_conflict" || code == "idempotency_conflict" ? "conflict"
-          : code == "backup_auth_failed" ? "authFailed"
-          : code == "backup_unknown" ? "unknown" : "failed")
+        code == "revision_conflict" || code == "idempotency_conflict"
+          ? "conflict"
+          : code == "backup_auth_failed"
+            ? "authFailed"
+            : code == "backup_unknown" ? "unknown" : "failed")
     } catch { message = Self.text("unknown") }
   }
 
@@ -84,7 +87,9 @@ import SillKit
     let response = try await call("/restore/status", "POST", restore.body)
     if response["result"]?.object != nil {
       await finishRestore(workspace)
-    } else { message = Self.text("notRestored") }
+    } else {
+      message = Self.text("notRestored")
+    }
   }
 
   private func finishRestore(_ workspace: MobileWorkspace) async {
@@ -105,58 +110,129 @@ import SillKit
 }
 
 #if os(iOS)
-import SwiftUI
+  import SwiftUI
 
-struct MobileBackupSettings: View {
-  let workspace: MobileWorkspace
-  @State var model: MobileBackups
-  @State private var provider = "webdav"
-  @State private var endpoint = ""
-  @State private var username = ""
-  @State private var password = ""
-  @State private var accountID = ""
-  @State private var bucket = ""
-  @State private var accessKey = ""
-  @State private var secretKey = ""
-  @State private var confirmingRestore = false
-  @State private var exporting = false
-  @State private var document = MobileJSONDocument(data: Data())
-  @Environment(\.scenePhase) private var scenePhase
-  private func text(_ key: String) -> String { MobileBackups.text(key) }
+  struct MobileBackupSettings: View {
+    let workspace: MobileWorkspace
+    @State var model: MobileBackups
+    @State private var provider = "webdav"
+    @State private var endpoint = ""
+    @State private var username = ""
+    @State private var password = ""
+    @State private var accountID = ""
+    @State private var bucket = ""
+    @State private var accessKey = ""
+    @State private var secretKey = ""
+    @State private var confirmingRestore = false
+    @State private var exporting = false
+    @State private var document = MobileJSONDocument(data: Data())
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
+    private func text(_ key: String) -> String { MobileBackups.text(key) }
 
-  var body: some View {
-    Form {
-      Section {
-        Picker(text("provider"), selection: $provider) {
-          Text(text("webdav")).tag("webdav")
-          Text(text("r2")).tag("r2")
+    var body: some View {
+      VStack(spacing: 0) {
+        MobileSettingsHeader(title: text("title"), disabled: model.busy || model.pending) {
+          dismiss()
+        }
+        ScrollView {
+          VStack(alignment: .leading, spacing: AppleMetrics.space16) {
+            Text(text("hint")).font(.system(size: AppleMetrics.font13)).foregroundStyle(
+              AppleColors.secondary)
+            configuration
+            targets
+            if !model.message.isEmpty {
+              Text(model.message).font(.system(size: AppleMetrics.font13))
+                .accessibilityAddTraits(.updatesFrequently).textSelection(.enabled)
+            }
+            Text(text("history")).font(.system(size: AppleMetrics.font14, weight: .semibold))
+            if model.backups.isEmpty {
+              Text(text("empty")).font(.system(size: AppleMetrics.font13))
+            }
+            ForEach(model.backups.indices, id: \.self) { index in history(model.backups[index]) }
+            if let preview = model.preview { restorePreview(preview) }
+          }
+          .padding(AppleMetrics.space16)
+          .frame(maxWidth: AppleMetrics.readerWidth)
+          .frame(maxWidth: .infinity)
+        }.scrollIndicators(.hidden)
+      }
+      .background(AppleColors.canvas)
+      .foregroundStyle(AppleColors.primary)
+      .tint(AppleColors.accent)
+      .toolbar(.hidden, for: .navigationBar)
+      .interactiveDismissDisabled(model.busy || model.pending)
+      .confirmationDialog(
+        text("confirm"), isPresented: $confirmingRestore, titleVisibility: .visible
+      ) {
+        Button(text(model.restore == nil ? "confirm" : "retryRestore"), role: .destructive) {
+          Task { await model.run { try await model.confirm(workspace: workspace) } }
+        }
+        Button(Copy.text("web.cancel"), role: .cancel) {}
+      } message: {
+        Text(text("replaceWarning"))
+      }
+      .fileExporter(
+        isPresented: $exporting, document: document, contentType: .json,
+        defaultFilename: "sill-backup.json"
+      ) { result in
+        if case .failure = result { model.message = Copy.text("mobile.exportFailed") }
+        document = MobileJSONDocument(data: Data())
+      }
+      .task {
+        model.request = workspace.backupRequest
+        await model.run { try await model.refresh() }
+      }
+      .onChange(of: scenePhase) { _, phase in if phase != .active { clearSecrets() } }
+      .onDisappear { clearSecrets() }
+    }
+
+    private var configuration: some View {
+      MobileSettingCard {
+        MobileSettingRow(label: text("provider"), first: true) {
+          MobileSettingSegmented(
+            label: text("provider"),
+            options: [("webdav", text("webdav")), ("r2", text("r2"))], selection: provider
+          ) {
+            provider = $0
+          }
         }
         if provider == "webdav" {
           field("endpoint", $endpoint).keyboardType(.URL)
           field("username", $username)
-          SecureField(text("password"), text: $password)
+          secret("password", $password)
         } else {
           field("accountId", $accountID)
           field("bucket", $bucket)
           field("accessKeyId", $accessKey)
-          SecureField(text("secretAccessKey"), text: $secretKey)
+          secret("secretAccessKey", $secretKey)
         }
-        Button(text("save")) { Task { await model.run { try await save(update: false) } } }
-        Button(text("updateSecret")) { Task { await model.run { try await save(update: true) } } }
-          .disabled(model.selected.isEmpty)
-      } footer: { Text(text("hint")) }
-      .disabled(model.busy || model.pending)
+        MobileSettingAction(title: text("save")) {
+          Task { await model.run { try await save(update: false) } }
+        }
+        MobileSettingAction(title: text("updateSecret")) {
+          Task { await model.run { try await save(update: true) } }
+        }.disabled(model.selected.isEmpty)
+      }.disabled(model.busy || model.pending)
+    }
 
-      Section(text("target")) {
-        Picker(text("choose"), selection: $model.selected) {
-          Text(text("choose")).tag("")
-          ForEach(model.targets.indices, id: \.self) { index in
-            let target = model.targets[index]
-            Text(target["config"]?["endpoint"]?.string ?? target["config"]?["bucket"]?.string ?? "")
-              .tag(target["id"]?.string ?? "")
-          }
-        }.disabled(model.pending)
-        Button(text("check")) {
+    private var targets: some View {
+      MobileSettingCard {
+        ForEach(model.targets.indices, id: \.self) { index in
+          let target = model.targets[index]
+          let id = target["id"]?.string ?? ""
+          Button {
+            model.selected = id
+          } label: {
+            MobileSettingRow(
+              label: target["config"]?["endpoint"]?.string
+                ?? target["config"]?["bucket"]?.string ?? "", first: index == 0
+            ) {
+              if model.selected == id { MobileIcon("check", size: AppleMetrics.font16) }
+            }
+          }.buttonStyle(.plain).disabled(model.pending)
+        }
+        MobileSettingAction(title: text("check"), first: model.targets.isEmpty) {
           Task {
             await model.run {
               _ = try await model.call("/targets/\(model.selected)/check", "POST", .object([:]))
@@ -164,114 +240,120 @@ struct MobileBackupSettings: View {
             }
           }
         }.disabled(model.selected.isEmpty || model.pending)
-        Button(text(model.pendingCreation ? "retry" : "create")) {
+        MobileSettingAction(title: text(model.pendingCreation ? "retry" : "create")) {
           Task { await model.run { try await model.create() } }
         }.disabled(model.selected.isEmpty || model.restore != nil)
-        Button(text("refresh")) { Task { await model.run { try await model.refresh() } } }
-      }.disabled(model.busy)
-
-      if !model.message.isEmpty { Section { Text(model.message).accessibilityAddTraits(.updatesFrequently) } }
-      Section(text("history")) {
-        if model.backups.isEmpty { Text(text("empty")) }
-        ForEach(model.backups.indices, id: \.self) { index in
-          let backup = model.backups[index]
-          let id = backup["id"]?.string ?? ""
-          VStack(alignment: .leading, spacing: AppleMetrics.space8) {
-            Text(backup["createdAt"]?.string ?? "")
-            Text(text(backup["status"]?.string ?? "pending")).foregroundStyle(AppleColors.secondary)
-            HStack(spacing: AppleMetrics.space16) {
-              Button(text("preview")) {
-                Task { await model.run { model.preview = try await model.call("/\(id)/preview") } }
-              }.disabled(model.pending)
-              Button(text("verify")) {
-                Task {
-                  await model.run {
-                    _ = try await model.call("/\(id)/check")
-                    try await model.refresh()
-                    model.message = text("verified")
-                  }
-                }
-              }
-              Button(text("download")) {
-                Task {
-                  await model.run {
-                    let value = try await model.call("/\(id)/download")
-                    document = MobileJSONDocument(data: try value.encoded())
-                    exporting = true
-                  }
-                }
-              }
-            }.buttonStyle(.borderless)
-          }
+        MobileSettingAction(title: text("refresh")) {
+          Task { await model.run { try await model.refresh() } }
         }
       }.disabled(model.busy)
-      if let preview = model.preview {
-        Section {
-          Text(text("replaceWarning"))
-          LabeledContent(text("cards"), value: String(Int(preview["cards"]?.number ?? 0)))
-          LabeledContent(text("added"), value: String(Int(preview["added"]?.number ?? 0)))
-          LabeledContent(text("removed"), value: String(Int(preview["removed"]?.number ?? 0)))
+    }
+
+    private func history(_ backup: JSONValue) -> some View {
+      let id = backup["id"]?.string ?? ""
+      return MobileSettingCard {
+        MobileSettingRow(label: backup["createdAt"]?.string ?? "", first: true) {
+          Text(text(backup["status"]?.string ?? "pending"))
+            .font(.system(size: AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+        }
+        HStack(spacing: AppleMetrics.space16) {
+          Button(text("preview")) {
+            Task { await model.run { model.preview = try await model.call("/\(id)/preview") } }
+          }.disabled(model.pending)
+          Button(text("verify")) {
+            Task {
+              await model.run {
+                _ = try await model.call("/\(id)/check")
+                try await model.refresh()
+                model.message = text("verified")
+              }
+            }
+          }
+          Button(text("download")) {
+            Task {
+              await model.run {
+                let value = try await model.call("/\(id)/download")
+                document = MobileJSONDocument(data: try value.encoded())
+                exporting = true
+              }
+            }
+          }
+        }
+        .font(.system(size: AppleMetrics.font14)).foregroundStyle(AppleColors.accent)
+        .buttonStyle(.plain).frame(
+          maxWidth: .infinity, minHeight: AppleMetrics.hitTarget, alignment: .leading)
+      }.disabled(model.busy)
+    }
+
+    private func restorePreview(_ preview: JSONValue) -> some View {
+      VStack(alignment: .leading, spacing: AppleMetrics.space12) {
+        Text(text("replaceWarning")).font(.system(size: AppleMetrics.font13))
+        MobileSettingCard {
+          ForEach(["cards", "added", "removed"], id: \.self) { key in
+            MobileSettingRow(label: text(key), first: key == "cards") {
+              Text(String(Int(preview[key]?.number ?? 0)))
+                .font(.system(size: AppleMetrics.font13, design: .rounded)).monospacedDigit()
+            }
+          }
           if model.restore != nil {
-            Button(text("verifyRestore")) {
+            MobileSettingAction(title: text("verifyRestore")) {
               Task { await model.run { try await model.verifyRestore(workspace: workspace) } }
             }
           }
-          Button(text(model.restore == nil ? "confirm" : "retryRestore"), role: .destructive) {
+          MobileSettingAction(
+            title: text(model.restore == nil ? "confirm" : "retryRestore"), destructive: true
+          ) {
             confirmingRestore = true
           }
           if model.restore == nil {
-            Button(Copy.text("web.cancel")) { model.preview = nil }
+            MobileSettingAction(title: Copy.text("web.cancel")) { model.preview = nil }
           }
-        }.disabled(model.busy || model.pendingCreation)
-      }
+        }
+      }.disabled(model.busy || model.pendingCreation)
     }
-    .scrollContentBackground(.hidden)
-    .background(AppleColors.canvas)
-    .tint(AppleColors.accent)
-    .navigationTitle(text("title"))
-    .navigationBarTitleDisplayMode(.inline)
-    .navigationBarBackButtonHidden(model.busy || model.pending)
-    .interactiveDismissDisabled(model.busy || model.pending)
-    .confirmationDialog(text("confirm"), isPresented: $confirmingRestore, titleVisibility: .visible) {
-      Button(text(model.restore == nil ? "confirm" : "retryRestore"), role: .destructive) {
-        Task { await model.run { try await model.confirm(workspace: workspace) } }
-      }
-      Button(Copy.text("web.cancel"), role: .cancel) {}
-    } message: { Text(text("replaceWarning")) }
-    .fileExporter(isPresented: $exporting, document: document, contentType: .json, defaultFilename: "sill-backup.json") { result in
-      if case .failure = result { model.message = Copy.text("mobile.exportFailed") }
-      document = MobileJSONDocument(data: Data())
+
+    private func field(_ key: String, _ value: Binding<String>) -> some View {
+      VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+        Text(text(key)).font(.system(size: AppleMetrics.font13)).foregroundStyle(
+          AppleColors.secondary)
+        TextField("", text: value).textInputAutocapitalization(.never).autocorrectionDisabled()
+          .font(.system(size: AppleMetrics.font16)).accessibilityLabel(text(key))
+          .frame(minHeight: AppleMetrics.hitTarget)
+      }.padding(.vertical, AppleMetrics.space8)
     }
-    .task {
-      model.request = workspace.backupRequest
-      await model.run { try await model.refresh() }
+    private func secret(_ key: String, _ value: Binding<String>) -> some View {
+      VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+        Text(text(key)).font(.system(size: AppleMetrics.font13)).foregroundStyle(
+          AppleColors.secondary)
+        SecureField("", text: value).textContentType(.password)
+          .font(.system(size: AppleMetrics.font16)).accessibilityLabel(text(key))
+          .frame(minHeight: AppleMetrics.hitTarget)
+      }.padding(.vertical, AppleMetrics.space8)
     }
-    .onChange(of: scenePhase) { _, phase in if phase != .active { clearSecrets() } }
-    .onDisappear { clearSecrets() }
-  }
 
-  private func field(_ key: String, _ value: Binding<String>) -> some View {
-    TextField(text(key), text: value).textInputAutocapitalization(.never).autocorrectionDisabled()
-  }
+    private func clearSecrets() {
+      password = ""
+      secretKey = ""
+      accessKey = ""
+    }
 
-  private func clearSecrets() {
-    password = ""
-    secretKey = ""
-    accessKey = ""
+    private func save(update: Bool) async throws {
+      var fields: [String: JSONValue] =
+        provider == "webdav"
+        ? [
+          "provider": .string(provider), "endpoint": .string(endpoint),
+          "username": .string(username), "password": .string(password),
+        ]
+        : [
+          "provider": .string(provider), "accountId": .string(accountID),
+          "bucket": .string(bucket), "accessKeyId": .string(accessKey),
+          "secretAccessKey": .string(secretKey),
+        ]
+      if update { fields["id"] = .string(model.selected) }
+      _ = try await model.call("/targets", "POST", .object(fields))
+      clearSecrets()
+      try await model.refresh()
+      model.message = text("connected")
+    }
   }
-
-  private func save(update: Bool) async throws {
-    var fields: [String: JSONValue] = provider == "webdav"
-      ? ["provider": .string(provider), "endpoint": .string(endpoint),
-         "username": .string(username), "password": .string(password)]
-      : ["provider": .string(provider), "accountId": .string(accountID),
-         "bucket": .string(bucket), "accessKeyId": .string(accessKey),
-         "secretAccessKey": .string(secretKey)]
-    if update { fields["id"] = .string(model.selected) }
-    _ = try await model.call("/targets", "POST", .object(fields))
-    clearSecrets()
-    try await model.refresh()
-    model.message = text("connected")
-  }
-}
 #endif

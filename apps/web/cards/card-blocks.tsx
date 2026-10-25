@@ -87,7 +87,12 @@ export function Title({ card: c, ctx, className = "" }: BlockProps & { className
 // @design card-summary
 export function Summary({ card: c, short = false }: { card: Card; short?: boolean }) {
 	const summary = c.summary || markdownBlocks(c.body || "")[0] || "";
-	return summary ? <p className={`card-summary ${short ? "clamp-2" : ""}`}>{summary}</p> : null;
+	const reading = c.type === "article" || c.type === "mail";
+	return summary ? (
+		<p className={`card-summary ${reading ? "reading-summary" : short ? "clamp-2" : ""}`}>
+			{summary}
+		</p>
+	) : null;
 }
 export function Cover({ card: c, children }: { card: Card; children?: ReactNode }) {
 	return (

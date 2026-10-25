@@ -22,6 +22,7 @@ if (archive && !/^[A-Z0-9]{10}$/.test(team ?? "")) {
 execFileSync(
 	"xcodebuild",
 	[
+		"-quiet",
 		"-project",
 		resolve(root, "apps/apple/SillMobile.xcodeproj"),
 		"-scheme",

@@ -21,6 +21,7 @@ public struct MarkdownBody: Equatable, Sendable {
     public var marker = ""
     public var rule = false
     public var cells: [[Run]] = []
+    public var tableAlignments: [String] = []
     public var text: String { runs.map(\.text).joined() }
   }
 
@@ -32,6 +33,11 @@ public struct MarkdownBody: Equatable, Sendable {
   }
 
   public static func safeURL(_ destination: String?) -> URL? {
+    if let destination,
+      destination.range(of: "^#(?:card|read)/[A-Za-z0-9_-]+$", options: .regularExpression) != nil
+    {
+      return URL(string: destination)
+    }
     guard let destination, let url = URL(string: destination),
       let scheme = url.scheme?.lowercased(), ["http", "https", "mailto"].contains(scheme)
     else { return nil }
@@ -87,6 +93,20 @@ public struct MarkdownBody: Equatable, Sendable {
           runs: [Run(text: html.rawHTML.trimmingCharacters(in: .newlines))], quoteDepth: quote,
           depth: depth)
       ]
+    }
+    if let table = node as? Table {
+      let alignments = table.columnAlignments.map { alignment -> String in
+        switch alignment {
+        case .center: "center"
+        case .right: "right"
+        default: "left"
+        }
+      }
+      return table.children.flatMap { blocks(in: $0, depth: depth, quote: quote) }.map { block in
+        var block = block
+        block.tableAlignments = alignments
+        return block
+      }
     }
     if node is Table.Head || node is Table.Row {
       let cells = node.children.map { runs(in: $0) }
