@@ -1,12 +1,12 @@
 import { createElement, Fragment } from "react";
 import { esc } from "../atoms/primitives.ts";
-import { copy } from "../copy.ts";
 import { cardSourceKind } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { ChromeAutoHide } from "../interactions/chrome.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
+import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController, DetailPosition } from "./app.ts";
 
@@ -29,6 +29,11 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		this.dialog.open &&
 		["preview", "reader", "lightbox"].includes(this.modalKind);
 	const linked = active && this.currentId !== id;
+	const phoneLinked = linked && !this.desktop();
+	const currentSheet = this.dialog.querySelector<HTMLElement>(".preview-sheet");
+	const inheritFull = phoneLinked &&
+		(this.modalKind === "reader" || currentSheet?.classList.contains("is-full"));
+	const inheritHeight = phoneLinked && !inheritFull ? currentSheet?.offsetHeight : 0;
 	if (active) {
 		const scroll = this.dialog.querySelector<HTMLElement>(
 			"#reader-scroll, .preview-sheet .sheet-scroll",
@@ -50,6 +55,8 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	const returning = back >= 0;
 	const restore = active ? this.detailPositions.get(id) : undefined;
 	if (returning) reading = restore?.kind === "reader";
+	// Phone links keep the current presentation in both directions, including after expansion.
+	if (phoneLinked) reading = this.modalKind === "reader";
 	const previousId = this.currentId;
 	const visual = linked ? MotionEngine.captureDetail(this.dialog, id) : null;
 	// The old chrome resolves its tools dynamically; dispose it before the new DOM exists.
@@ -64,6 +71,11 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		else this.previewTrail.push(this.currentId);
 	}
 	const settle = () => {
+		const sheet = this.dialog.querySelector<HTMLElement>(".preview-sheet");
+		if (sheet && phoneLinked) {
+			sheet.classList.toggle("is-full", !!inheritFull);
+			if (inheritHeight) sheet.style.setProperty("--nested-sheet-height", `${inheritHeight}px`);
+		}
 		const scroll = this.dialog.querySelector<HTMLElement>(
 			"#reader-scroll, .preview-sheet .sheet-scroll",
 		);
@@ -129,7 +141,8 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	this.currentId = id;
 	if (!Store.item(id).seen) {
 		Store.patch(id, { seen: true });
-		this.refreshCard(id);
+		if (matchMedia("(max-width:650px)").matches) deferReadingRefresh(this, id);
+		else this.refreshCard(id);
 	}
 	if (c.type === "photo" && !reading) {
 		this.photoIndex = restore?.photoIndex || 0;
@@ -157,11 +170,9 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 			Fragment,
 			null,
 			below
-				? createElement("button", {
-						type: "button",
+				? createElement("div", {
 						className: "sheet-peek",
-						"data-action": "close",
-						"aria-label": copy("web.peekBack") + below.title,
+						"aria-hidden": true,
 					})
 				: null,
 			Panels.preview(this, c),

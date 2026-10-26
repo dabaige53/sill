@@ -19,6 +19,7 @@ export const gesturePreviewMethods = {
 		if (!scroll) return;
 		const token = this.app.modalToken;
 		let touching = false,
+			touchInput = false,
 			cancelled = false,
 			pending = false,
 			timer = 0;
@@ -26,7 +27,6 @@ export const gesturePreviewMethods = {
 			clearTimeout(timer);
 			if (
 				!pending ||
-				touching ||
 				cancelled ||
 				token !== this.app.modalToken ||
 				!surface.isConnected ||
@@ -42,10 +42,12 @@ export const gesturePreviewMethods = {
 		};
 		const schedule = () => {
 			clearTimeout(timer);
-			if (pending && !touching && !cancelled && !surface.classList.contains("is-full"))
-				timer = window.setTimeout(expand, tokens.apple.gestureWheelRest * 1000);
+			if (pending && !cancelled && !surface.classList.contains("is-full")) {
+				if (touchInput) expand();
+				else timer = window.setTimeout(expand, tokens.apple.gestureWheelRest * 1000);
+			}
 		};
-		// Keep finger scrolling native; release starts the frame transition without waiting for inertia.
+		// Native scrolling starts the expansion while the finger is still moving.
 		scroll.addEventListener(
 			"scroll",
 			() => {
@@ -58,6 +60,7 @@ export const gesturePreviewMethods = {
 		surface.addEventListener(
 			"touchstart",
 			(event) => {
+				touchInput = true;
 				if (!touching) {
 					cancelled = false;
 					pending = false;
@@ -89,6 +92,7 @@ export const gesturePreviewMethods = {
 			surface.addEventListener(
 				event,
 				() => {
+					touchInput = false;
 					cancelled = false;
 				},
 				{ passive: true },

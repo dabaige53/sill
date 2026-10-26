@@ -67,8 +67,8 @@ test("phone expansion animates the visible frame and safe-area controls without 
 		assert.equal(frame.frames[0].clipPath, "inset(0px 0px 64px 0px round 24px 24px 0px 0px)");
 		assert.equal(frame.frames[1].transform, "translateY(0px)");
 		assert.equal(frame.frames[1].clipPath, "inset(0px 0px 0px 0px round 0px)");
-		assert.equal(frame.options.stiffness, 600);
-		assert.equal(frame.options.damping, 45);
+		assert.equal(frame.options.stiffness, 274);
+		assert.equal(frame.options.damping, 27);
 		assert.equal(f.scroll.scrollTop, 80, "native scrolling must keep ownership of its position");
 		assert.ok(f.animations.slice(1).every((a) => a.frames[0].transform === "translateY(-44px)"));
 		assert.ok(

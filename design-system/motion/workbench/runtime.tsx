@@ -1,22 +1,22 @@
-import { ToastSurface } from "../atoms/feedback.tsx";
-import { SelectionBar } from "../atoms/selection.tsx";
-import { CardView, OpenStackView, StackView } from "../cards/components.tsx";
-import { copy } from "../copy.ts";
-import { Store } from "../data/store.ts";
-import { toolbarTips } from "../interactions/chrome.ts";
-import { DragManager } from "../interactions/drag.ts";
-import { Gestures } from "../interactions/gestures.ts";
-import { FeedLayout } from "../interactions/layout.ts";
-import { MotionEngine } from "../interactions/motion.ts";
-import { toggle } from "../interactions/panel-primitives.tsx";
-import { PanelViews } from "../interactions/panels-components.tsx";
-import { SettingRow } from "../interactions/setting-row.tsx";
-import { animateToggle, captureToggle } from "../interactions/toggle-motion.ts";
-import { FeedPolicy } from "../services/feed-policy.ts";
-import { AppController } from "../views/app.ts";
-import type { TargetEvent } from "../views/app-types.ts";
-import { renderView } from "../views/react-renderer.ts";
-import { AIDock } from "../views/shell.tsx";
+import { ToastSurface } from "../../../apps/web/atoms/feedback.tsx";
+import { SelectionBar } from "../../../apps/web/atoms/selection.tsx";
+import { CardView, OpenStackView, StackView } from "../../../apps/web/cards/components.tsx";
+import { copy } from "../../../apps/web/copy.ts";
+import { Store } from "../../../apps/web/data/store.ts";
+import { toolbarTips } from "../../../apps/web/interactions/chrome.ts";
+import { DragManager } from "../../../apps/web/interactions/drag.ts";
+import { Gestures } from "../../../apps/web/interactions/gestures.ts";
+import { FeedLayout } from "../../../apps/web/interactions/layout.ts";
+import { MotionEngine } from "../../../apps/web/interactions/motion.ts";
+import { toggle } from "../../../apps/web/interactions/panel-primitives.tsx";
+import { PanelViews } from "../../../apps/web/interactions/panels-components.tsx";
+import { SettingRow } from "../../../apps/web/interactions/setting-row.tsx";
+import { animateToggle, captureToggle } from "../../../apps/web/interactions/toggle-motion.ts";
+import { FeedPolicy } from "../../../apps/web/services/feed-policy.ts";
+import { AppController } from "../../../apps/web/views/app.ts";
+import type { TargetEvent } from "../../../apps/web/views/app-types.ts";
+import { renderView } from "../../../apps/web/views/react-renderer.ts";
+import { AIDock } from "../../../apps/web/views/shell.tsx";
 import { type AnimationEntry, t } from "./catalog.ts";
 import { ExampleCover } from "./covers.tsx";
 
@@ -456,7 +456,10 @@ export function mountExample(
 		document.documentElement.dataset.inputModality = previous;
 	}
 	const event = (name: string) => {
-		if (name === "mount") {
+		if (name === "context") {
+			app.aiSelectionIds = app.aiSelectionIds.length ? [] : [card.id];
+			app.renderAIDock();
+		} else if (name === "mount") {
 			if (list.length) return;
 			list = Store.state.cards.slice(0, 3);
 			paintCards();

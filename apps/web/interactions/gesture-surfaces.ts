@@ -137,6 +137,7 @@ export const gestureSurfacesMethods = {
 				cancel();
 				if (
 					!dialog.classList.contains("reader") ||
+					dialog.querySelector(".is-podcast") ||
 					e.touches.length > 1 ||
 					this.fromHorizontalContent(e) ||
 					e.target.closest(".float-bar")

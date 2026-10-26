@@ -1,16 +1,20 @@
-import { NewContentNotice, OfflineNotice, ToastSurface } from "../atoms/feedback.tsx";
-import { CheckItem } from "../atoms/react-primitives.tsx";
-import { SelectionBar } from "../atoms/selection.tsx";
-import { Title } from "../cards/card-blocks.tsx";
-import { CardView, StackView } from "../cards/components.tsx";
-import { copy } from "../copy.ts";
-import { Store } from "../data/store.ts";
-import { toggle } from "../interactions/panel-primitives.tsx";
-import { PanelViews } from "../interactions/panels-components.tsx";
-import { SettingRow } from "../interactions/setting-row.tsx";
-import { HomeScopeMenu } from "../views/home-scope-menu.tsx";
-import { HomeSearchField } from "../views/home-search-field.tsx";
-import { AIDock } from "../views/shell.tsx";
+import {
+	NewContentNotice,
+	OfflineNotice,
+	ToastSurface,
+} from "../../../apps/web/atoms/feedback.tsx";
+import { CheckItem } from "../../../apps/web/atoms/react-primitives.tsx";
+import { SelectionBar } from "../../../apps/web/atoms/selection.tsx";
+import { Title } from "../../../apps/web/cards/card-blocks.tsx";
+import { CardView, StackView } from "../../../apps/web/cards/components.tsx";
+import { copy } from "../../../apps/web/copy.ts";
+import { Store } from "../../../apps/web/data/store.ts";
+import { toggle } from "../../../apps/web/interactions/panel-primitives.tsx";
+import { PanelViews } from "../../../apps/web/interactions/panels-components.tsx";
+import { SettingRow } from "../../../apps/web/interactions/setting-row.tsx";
+import { HomeScopeMenu } from "../../../apps/web/views/home-scope-menu.tsx";
+import { HomeSearchField } from "../../../apps/web/views/home-search-field.tsx";
+import { AIDock } from "../../../apps/web/views/shell.tsx";
 
 export function TaskExample() {
 	const card = Store.card("motion-task");

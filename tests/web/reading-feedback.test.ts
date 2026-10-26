@@ -80,6 +80,28 @@ test("reaching bottom updates immediately and does not repeatedly patch or redra
 		f.dom.window.close();
 	}
 });
+test("mail without an end marker stays unread while scrolling and completes at bottom", () => {
+	const f = fixture();
+	try {
+		f.Store.state.cards[0].type = "mail";
+		f.scroll.querySelector("#reader-end").remove();
+		f.scroll.getBoundingClientRect = () => ({ top: 0, bottom: 600, height: 600 });
+		let writes = 0;
+		f.Store.save = () => writes++;
+		for (let i = 0; i < 5; i++) {
+			f.scroll.scrollTop = 70;
+			f.app.updateReading("read-test", f.scroll);
+			assert.equal(f.Store.item("read-test").read, false);
+		}
+		assert.equal(writes, 0);
+		f.scroll.scrollTop = 1400;
+		f.app.updateReading("read-test", f.scroll);
+		assert.equal(f.Store.item("read-test").read, true);
+		assert.equal(writes, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
 test("visible content end completes before trailing padding", () => {
 	const f = fixture();
 	try {

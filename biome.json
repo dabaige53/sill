@@ -25,7 +25,10 @@
 			"!!**/node_modules",
 			"!!**/.build",
 			"!!**/.claude",
-			"!!tests/artifacts"
+			"!!tests/artifacts",
+			"design-system/motion/workbench/**/*.ts",
+			"design-system/motion/workbench/**/*.tsx",
+			"design-system/motion/workbench/**/*.json"
 		]
 	},
 	"formatter": {

@@ -99,9 +99,12 @@ export const appSurfacesMethods = {
 		this.dialog.inert = false;
 		MotionEngine.dim(this.dialog, null);
 		this.dialog.style.translate = "";
-		// A phone page is not a modal: switching between a page and a sheet reopens the dialog in the other mode.
+		// Card pages also own input: the feed behind them must remain inert.
 		const page = this.isPage(kind);
-		if (this.dialog.open && this.dialog.classList.contains("page") !== page) this.dialog.close();
+		const modal = !page || CARD_KINDS.includes(kind);
+		const wasModal = !this.isPage(this.modalKind) || CARD_KINDS.includes(this.modalKind);
+		if (this.dialog.open && (this.dialog.classList.contains("page") !== page || modal !== wasModal))
+			this.dialog.close();
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement as HTMLElement;
 			this.lockPageScroll();
@@ -128,8 +131,8 @@ export const appSurfacesMethods = {
 			this.dialog.classList.add("is-short");
 		renderContent(this.dialog, html);
 		if (!this.dialog.open) {
-			if (page) this.dialog.show();
-			else this.dialog.showModal();
+			if (modal) this.dialog.showModal();
+			else this.dialog.show();
 		}
 		// Frequent navigation changes in place; only sheets enter over the current page.
 		if (!nested && !MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
@@ -292,7 +295,14 @@ export const appSurfacesMethods = {
 					this.closeNative(false);
 				}
 			};
-			if (animation) animation.finished.then(finish, () => {});
+			if (animation)
+				animation.finished.then(finish, () => {
+					if (this.modalToken !== token || !this.dialog.open) return;
+					this.sheetLeaving = false;
+					this.dialog.inert = false;
+					MotionEngine.dim(this.dialog, null);
+					if (bar) bar.style.opacity = "";
+				});
 			else finish();
 			return;
 		}

@@ -1,6 +1,6 @@
-import type { Card } from "../../../contracts/card.ts";
-import { SeedCards } from "../data/cards.ts";
-import { Store } from "../data/store.ts";
+import type { Card } from "../../../apps/web/../../contracts/card.ts";
+import { SeedCards } from "../../../apps/web/data/cards.ts";
+import { Store } from "../../../apps/web/data/store.ts";
 import { t } from "./catalog.ts";
 
 const now = Date.UTC(2026, 9, 25, 4);

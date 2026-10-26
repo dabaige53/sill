@@ -21,6 +21,8 @@
 		"scripts/**/*.ts",
 		"tests/**/*.ts",
 		"design-system/scripts/**/*.ts",
-		"design-system/copy.ts"
+		"design-system/copy.ts",
+		"design-system/motion/**/*.ts",
+		"design-system/motion/**/*.tsx"
 	]
 }

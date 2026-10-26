@@ -1,7 +1,7 @@
-import { MotionEngine } from "../interactions/motion.ts";
 import { availabilityLabel, catalog, describe, type Platform, t } from "./catalog.ts";
 import { initializeExampleStore } from "./fixtures.ts";
-import { mountExample } from "./runtime.tsx";
+import { canPlay, playExample } from "./play-example.ts";
+import { applyPreviewOverrides } from "./tuning.ts";
 import "./example.css";
 
 const segments = location.pathname.split("/").filter(Boolean);
@@ -32,6 +32,13 @@ else {
 		frame.src = location.href;
 		root.append(frame);
 	} else {
+		let tuning: unknown = {};
+		try {
+			tuning = JSON.parse(params.get("tuning") || "{}");
+		} catch {}
+		applyPreviewOverrides(entry, tuning, document.documentElement.style);
+		const { MotionEngine } = await import("../../../apps/web/interactions/motion.ts");
+		const { mountExample } = await import("./runtime.tsx");
 		initializeExampleStore();
 		document.documentElement.dataset.inputModality = "pointer";
 		for (const name of ["pointerdown", "wheel"])
@@ -59,11 +66,14 @@ else {
 		root.append(tools, canvas);
 		const runtime = mountExample(entry, canvas, cover);
 		if (!cover) {
-			if (!embedded) {
-				const instruction = document.createElement("p");
-				instruction.textContent = describe(entry, "trigger");
-				tools.append(instruction);
-			}
+			window.addEventListener("message", (event) => {
+				if (
+					event.origin === location.origin &&
+					event.source === window.parent &&
+					event.data?.type === "sill-motion-play"
+				)
+					playExample(entry.id, runtime);
+			});
 			const actions = document.createElement("div");
 			actions.className = "motion-example-actions";
 			if (!embedded) {
@@ -73,6 +83,14 @@ else {
 				reset.textContent = t("reset");
 				reset.onclick = () => location.reload();
 				actions.append(reset);
+			}
+			if (!embedded && canPlay(entry.id)) {
+				const play = document.createElement("button");
+				play.type = "button";
+				play.className = "text-button";
+				play.textContent = t("playAnimation");
+				play.onclick = () => playExample(entry.id, runtime);
+				actions.append(play);
 			}
 			const events: Record<string, string[]> = {
 				"feed.first-entry": ["mount"],

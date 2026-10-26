@@ -296,3 +296,5 @@
 - [2026-10-24 详情开合、滑动与放大检查](records/2026-10-24-detail-motion-audit/README.md)
 - [手机详情连续展开与阅读关闭](adr/0070-phone-detail-expansion-and-reading.md)
 - [2026-10-24 手机详情动效修复](records/2026-10-24-phone-detail-motion-fixes/README.md)
+
+- [设置开关使用轻弹簧](adr/0071-settings-toggle-spring.md)

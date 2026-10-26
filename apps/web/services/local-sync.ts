@@ -225,7 +225,7 @@ const LocalSync: Record<string, any> = {
 		const values: Record<string, any> = {},
 			previous: Record<string, any> = {};
 		for (const [key, value] of Object.entries(next.preferences))
-			if (value !== before.preferences[key]) {
+			if (JSON.stringify(value) !== JSON.stringify(before.preferences[key])) {
 				values[key] = value;
 				if (before.preferences[key] !== undefined) previous[key] = before.preferences[key];
 			}

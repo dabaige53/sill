@@ -297,14 +297,17 @@ test("settings toggles animate their knob without fading the panel", () => {
 		const animations: any[] = [];
 		w.__motionAnimations = animations;
 		app.setPref("stack", false);
-		assert.equal(animations.length, 1);
+		assert.equal(animations.length, 2);
 		assert.equal(animations[0].options.pseudoElement, "::before");
-		assert.equal(animations[0].options.duration, 120);
+		assert.equal(animations[0].options.visualDuration, 0.2);
+		assert.equal(animations[0].options.bounce, 0.2);
+		assert.ok("backgroundColor" in animations[1].frames[0]);
+		assert.equal(animations[1].options.visualDuration, 0.2);
 		assert.equal(animations[0].frames[0].transform, "translateX(20px)");
 		assert.equal(animations[0].frames[1].transform, "none");
 		w.document.documentElement.dataset.inputModality = "keyboard";
 		app.setPref("stack", true);
-		assert.equal(animations.length, 1);
+		assert.equal(animations.length, 2);
 	} finally {
 		f.dom.window.close();
 	}

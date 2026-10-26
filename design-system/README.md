@@ -28,7 +28,7 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 
 ## 动画库
 
-`motion/catalog.json` 集中登记产品已有动画。运行 `npm run design -- build` 和 `npm run boards` 后，访问 [动画库](http://127.0.0.1:4310/motion/)。目录与独立 iframe 示例均复用产品局部组件；使用、登记规则和未验证范围见[动画库指南](../docs/guides/motion-library.md)。macOS 尚未接入真实原生组件，不能标为可预览。
+`motion/catalog.json` 集中登记产品已有动画。运行 `npm run design -- build` 和 `npm run boards` 后，访问 [动画库](http://127.0.0.1:4310/motion/)。目录、shadcn 工作台与独立示例适配位于 `motion/workbench/`；示例复用真实产品局部 UI，数据与参数仅在 iframe 内生效；使用、登记规则和未验证范围见[动画库指南](../docs/guides/motion-library.md)。macOS 尚未接入真实原生组件，不能标为可预览。
 
 ## 登录与授权
 

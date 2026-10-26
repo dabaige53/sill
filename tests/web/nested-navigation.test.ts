@@ -276,3 +276,41 @@ test("reopening the exiting child restores its exact content position before mot
 		f.dom.window.close();
 	}
 });
+
+test("phone nested cards share drawer height and carry expansion back to their parent", () => {
+	const f = nestedFixture();
+	try {
+		f.app.desktop = () => false;
+		f.app.navigate("#card/a");
+		const parent = f.app.dialog.querySelector(".preview-sheet");
+		Object.defineProperty(parent, "offsetHeight", { value: 620 });
+		f.app.navigate("#card/b");
+		const child = f.app.dialog.querySelector(".preview-sheet");
+		assert.equal(child.classList.contains("is-full"), false);
+		assert.equal(child.style.getPropertyValue("--nested-sheet-height"), "620px");
+		child.classList.add("is-full");
+		f.app.navigate("#card/a");
+		assert.equal(f.app.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
+		f.app.navigate("#card/b");
+		assert.equal(f.app.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("reader cards use a modal dialog and keep full-page mode for phone links", () => {
+	const f = nestedFixture();
+	try {
+		f.app.desktop = () => false;
+		f.app.dialog.close();
+		let modalOpens = 0;
+		f.app.dialog.showModal = function () { this.open = true; modalOpens++; };
+		f.app.navigate("#read/a");
+		assert.equal(modalOpens, 1);
+		f.app.navigate("#card/b");
+		assert.equal(f.app.modalKind, "reader");
+		assert.equal(modalOpens, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});

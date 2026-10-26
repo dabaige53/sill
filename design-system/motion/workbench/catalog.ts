@@ -1,5 +1,5 @@
-import entries from "../../../design-system/motion/catalog.json" with { type: "json" };
-import { type CopyKey, copy } from "../copy.ts";
+import entries from "../catalog.json" with { type: "json" };
+import messages from "./messages.json" with { type: "json" };
 
 export type Platform = "web" | "phone";
 export type Availability =
@@ -20,7 +20,7 @@ export type AnimationEntry = {
 };
 export const catalog = entries as AnimationEntry[];
 export const platforms: Platform[] = ["web", "phone"];
-export const t = (key: string) => copy(`motion.${key}` as CopyKey);
+export const t = (key: string) => messages[`motion.${key}`] || key;
 export const describe = (entry: AnimationEntry, field: string) => t(`${entry.id}.${field}`);
 export const availabilityLabel = (availability: Availability) =>
 	t(

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
-test("reading expands on touch release without waiting for inertia, preserving the scroll offset", () => {
+test("reading expands during finger scrolling, preserving the scroll offset", () => {
 	const f = fixture({ phone: true });
 	try {
 		f.gestures.bindPullDown();
@@ -19,8 +19,8 @@ test("reading expands on touch release without waiting for inertia, preserving t
 		f.flush();
 		assert.equal(
 			sheet.classList.contains("is-full"),
-			false,
-			"holding a finger keeps geometry stable",
+			true,
+			"scrolling starts expansion before finger release",
 		);
 		f.fire(f.scroll, "touchend");
 		assert.equal(sheet.classList.contains("is-full"), true);
@@ -40,7 +40,6 @@ test("cancelled, multi-touch, stale and closing previews cannot expand later", (
 			f.scroll.scrollTop = 10;
 			f.fire(f.scroll, "touchstart");
 			f.scroll.scrollTop = 80;
-			f.scroll.dispatchEvent(new f.w.Event("scroll"));
 			if (interruption === "cancel") f.fire(f.scroll, "touchcancel");
 			if (interruption === "multi") {
 				const event = new f.w.Event("touchstart", { bubbles: true });
@@ -54,6 +53,7 @@ test("cancelled, multi-touch, stale and closing previews cannot expand later", (
 			}
 			if (interruption === "replacement") f.app.modalToken++;
 			if (interruption === "closing") f.app.sheetLeaving = true;
+			f.scroll.dispatchEvent(new f.w.Event("scroll"));
 			f.fire(f.scroll, "touchend");
 			f.scroll.dispatchEvent(new f.w.Event("scrollend"));
 			f.flush();
@@ -62,5 +62,20 @@ test("cancelled, multi-touch, stale and closing previews cannot expand later", (
 		} finally {
 			f.dom.window.close();
 		}
+	}
+});
+
+test("a scroll event delivered after finger release expands without waiting for inertia", () => {
+	const f = fixture({ phone: true });
+	try {
+		f.gestures.bindPullDown();
+		f.fire(f.scroll, "touchstart");
+		f.fire(f.scroll, "touchend");
+		f.scroll.scrollTop = 80;
+		f.scroll.dispatchEvent(new f.w.Event("scroll"));
+		assert.equal(f.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
+		assert.equal(f.scroll.scrollTop, 80);
+	} finally {
+		f.dom.window.close();
 	}
 });

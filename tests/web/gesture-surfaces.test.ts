@@ -59,3 +59,38 @@ test("horizontal content and player buttons do not start reader dismissal", () =
 		f.dom.window.close();
 	}
 });
+
+test("podcast reader stays fixed during a horizontal swipe", () => {
+	const f = fixture({ kind: "reader", phone: true });
+	try {
+		const text = f.scroll.querySelector("p");
+		text.classList.add("is-podcast");
+		f.fire(text, "touchstart", 120, 200);
+		f.fire(text, "touchmove", 480, 200);
+		f.flush(f.frames);
+		f.fire(text, "touchend", 480, 200);
+		assert.equal(f.dialog.style.translate, "");
+		assert.equal(f.app.closed, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("cancelled phone exit unlocks the current detail instead of leaving it inert", async () => {
+	const f = fixture({ phone: true });
+	try {
+		f.w.__motionAnimations = [];
+		const sheet = f.dialog.querySelector(".preview-sheet");
+		f.gestures.exitSurface(sheet, () => f.app.closeModal());
+		assert.equal(f.dialog.inert, true);
+		f.MotionEngine.cancelPanel(f.dialog);
+		await Promise.resolve();
+		assert.equal(f.dialog.inert, false);
+		assert.equal(f.app.sheetLeaving, false);
+		assert.equal(f.app.closed, 0);
+		assert.equal(sheet.classList.contains("is-drag"), false);
+		assert.equal(f.dialog.querySelector(".float-bar").style.opacity, "");
+	} finally {
+		f.dom.window.close();
+	}
+});

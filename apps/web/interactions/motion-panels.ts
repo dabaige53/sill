@@ -283,18 +283,27 @@ export const panelMotion: Record<string, any> = {
 		const animations = targets.map((node) =>
 			this.animate(
 				node,
-				returning
+				phone
 					? [
 							{
-								opacity: getComputedStyle(node).opacity,
-								transform: getComputedStyle(node).transform,
+								transform: returning
+									? getComputedStyle(node).transform
+									: captured.resume?.transform || travel,
 							},
-							{ opacity: phone ? 1 : 0, transform: travel },
+							{ transform: returning ? travel : "translateY(0)" },
 						]
-					: [
-							captured.resume || { opacity: phone ? 1 : 0, transform: travel },
-							{ opacity: 1, transform: "translateY(0)" },
-						],
+					: returning
+						? [
+								{
+									opacity: getComputedStyle(node).opacity,
+									transform: getComputedStyle(node).transform,
+								},
+								{ opacity: phone ? 1 : 0, transform: travel },
+							]
+						: [
+								captured.resume || { opacity: phone ? 1 : 0, transform: travel },
+								{ opacity: 1, transform: "translateY(0)" },
+							],
 				{
 					duration: this.time(phone ? "dur-sheet" : returning ? "dur-close" : "dur-open"),
 					easing: this.curve(phone ? "ease-sheet" : "ease"),

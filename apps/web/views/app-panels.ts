@@ -265,7 +265,7 @@ export const appPanelsMethods = {
 			available <= 2 ||
 			available - scroll.scrollTop <= 8 ||
 			(viewport.height > 0 &&
-				endBox &&
+				!!endBox &&
 				endBox.top >= viewport.top &&
 				endBox.bottom <= viewport.bottom + 2);
 		const actual = reachedEnd ? 1 : Math.max(0, Math.min(1, scroll.scrollTop / available));

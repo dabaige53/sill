@@ -227,7 +227,7 @@ test("phone nested entry moves the sheet and tools by the same distance", () => 
 		f.motion.navigateDetail(dialog, captured, false);
 		assert.equal(f.animations.length, 2);
 		assert.ok(f.animations.every((a) => a.frames[0].transform === "translateY(600px)"));
-		assert.ok(f.animations.every((a) => a.frames.every((frame: any) => frame.opacity === 1)));
+		assert.ok(f.animations.every((a) => a.frames.every((frame: any) => !("opacity" in frame))));
 		assert.ok(f.animations.every((a) => a.options.duration === 260));
 		f.motion.cancelPanel(dialog);
 	} finally {

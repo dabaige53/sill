@@ -8,7 +8,7 @@ type SheetMotion = {
 	animate(
 		surface: HTMLElement,
 		frames: Record<string, string>[],
-		options: { spring: boolean },
+		options: { spring: "expanded" },
 	): Playback | null;
 	panelAnimations: WeakMap<
 		HTMLElement,
@@ -79,7 +79,7 @@ export function resizeSheet(this: SheetMotion, surface: HTMLElement, full: boole
 			},
 			{ transform: "translateY(0px)", clipPath: clip(target.height, targetRadius) },
 		],
-		{ spring: true },
+		{ spring: "expanded" },
 	);
 	const animations: (Playback | null)[] = [
 		animation,
@@ -88,7 +88,7 @@ export function resizeSheet(this: SheetMotion, surface: HTMLElement, full: boole
 				? this.animate(
 						node,
 						[{ transform: `translateY(${offsets[i]}px)` }, { transform: "translateY(0px)" }],
-						{ spring: true },
+						{ spring: "expanded" },
 					)
 				: null,
 		),

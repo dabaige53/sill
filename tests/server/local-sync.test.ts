@@ -62,6 +62,14 @@ function fixture(t: any, items: any = { a: { note: "original" } }) {
 	return { sync, store, repo, data };
 }
 
+test("unchanged array preferences do not enqueue another write after adopting a response", (t) => {
+	const { sync, store } = fixture(t);
+	store.state.preferences.hiddenActions = [];
+	sync.baseline = sync.snapshot();
+	sync.capture();
+	assert.equal(sync.pending.length, 0);
+});
+
 for (const items of [{ a: { note: "original" } }, {}]) {
 	test("open note editor retains original or absent baseline across save responses", async (t) => {
 		const { sync, store, repo, data } = fixture(t, items);

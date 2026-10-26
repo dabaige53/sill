@@ -1,94 +1,127 @@
-# 动画库
+# 动画工作台
 
-更新：2026-10-26。动画库用于查找、操作和检查产品已有的动画，登记入口为 [catalog.json](../../design-system/motion/catalog.json)。
-
-动画库只提供 Web 桌面与手机 Web / PWA，不显示 macOS 选项或原生预览占位。登记文件保留跨端源码与能力信息，不实施原生示例，也不增加 App 或构建要求。
+更新：2026-10-26。画廊只属于设计体系。所有界面、演示、参数、文案和 shadcn 组件保存在 `design-system/motion/workbench/`，只读复用产品局部组件、样式和动画。示例使用独立内存数据，不启动产品加载、保存或同步。
 
 ## 启动与使用
 
-```sh
-npm run design -- build
-npm run boards
-```
+`npm run design -- build` 构建设计，`npm run boards` 提供 [本地工作台](http://127.0.0.1:4310/motion/)。
 
-访问 [本地动画库](http://127.0.0.1:4310/motion/)。首页按产品功能和交互类型分类，可搜索动画 ID、名称、产品位置与源码路径。平台筛选移除不适用的场景，保留尚未接入预览或产品未实现的项目。
+左边是动画目录和配置面板，右边是预览。配置面板用「参数 / 检查 / 源码」页签切换；各区独立滚动，参数与预览之间可拖动调整宽度。窄窗口保留横向工作区，不把配置叠到预览下方。
 
-点击封面进入单个效果。直接操作真实组件；接收内容、首屏加载、网络提示和刷新结果由画布外的示例事件触发。首屏加载只发生一次，再次操作前重置。拖动和滚动直接跟随输入，没有播放按钮或计时慢放。
+30 个稳定 ID 对应真实产品局部 UI。Web 可预览 29 项，手机可预览 24 项；不适用的视口显示占位。列表使用真实卡片，详情使用真实抽屉与阅读层，媒体使用真实播放器。只挂载当前动画所需范围，不加载整个应用。支持按钮触发的效果提供「播放动画」；拖动、刷新和滑动直接手动操作。
 
-「重置」重载示例，恢复示例卡片、偏好、选择、阅读位置和局部状态，不清除收藏、检查记录与备注。「单独打开」进入该 ID 的独立页面。手机 Web 使用真实的窄视口；在宽窗口单独打开时，页面提供 390px 的 iframe。
+参数立即更新，短暂合并连续输入后重载独立 iframe。调试值按动画 ID 和视口保存在本机 `sill-motion-preview-drafts-v3`。切换「默认 / 调试」可比较；「恢复默认」只清除此项调试值。「重置示例」保留参数、恢复示例状态。导出文件标记 `design-preview-only`，不写回共享设计变量或生产源码。
 
-收藏按动画 ID 保存。检查项、问题标记和备注按 ID 与平台保存，只存在当前浏览器的 `sill-motion-review-v1`，不写入产品工作区。五项检查全部勾选后显示「已检查」；标记问题后优先显示「有问题」。初始记录均为「未检查」。来源、设计变量、规则和检查备注默认收起。
+收藏和检查仍保存在独立的 `sill-motion-review-v1`。检查结果针对设计演示，不代表产品已通过。源码页只展示设计演示代码。产品组件作为只读依赖参与示例构建，画廊代码不接入产品入口。
 
-## 组件与数据
+## Motion 参考
 
-- 产品与示例共用 `CheckItem`、`SettingRow`、`HomeScopeMenu`、`HomeSearchField` 和通知组件。卡片、堆叠卡片、阅读层、菜单、多选条与 AI 输入框直接引用产品组件。
-- 示例调用产品的 `MotionEngine`、`withFeedAnchor`、详情控制器、`DragManager`、`Gestures` 和工具条滚动控制器。画布只定义尺寸、留白和摆放；不嵌入或裁切完整产品页面。
-- 每个效果生成独立的 `/motion/examples/<id>/` 页面，动画库通过 iframe 嵌入。封面也来自相同的局部组件，显示静止状态，点击后进入可操作示例。
-- 每个 iframe 使用独立的合成卡片和内存状态。入口不启动产品生命周期、不加载工作区，也不启动同步；保存函数仅在该示例中替换为空操作。媒体示例没有音源，不伪造播放或完成。
-- 阅读工具收起使用真实的邮件阅读组件。资讯与媒体放大页目前使用固定工具栏，不能拿来演示滚动收起。
-- AI 框高度示例放入一条合成的用户消息，只操作已有的会话界面，不生成助手回复或执行结果。产品的未连接提示与禁用发送状态保持可见。
+已映射的模式在预览底部附上具体官方预览页，链接集中在 `references.ts`。这些是模式参考，不表示复制了官方源码，也不表示与产品实现完全相同。部分官方示例源码需 Motion+，公开预览入口仍在对应页面。
 
-## 登记与维护
+- [Sheet Modal](https://motion.dev/examples/react-sheet-modal)
+- [Shared layout animation](https://motion.dev/examples/js-shared-layout-animation)
+- [Drag](https://motion.dev/examples/js-drag)
+- [Base UI: Switch](https://motion.dev/examples/react-base-switch)
+- [Scroll Direction: Hide Header](https://motion.dev/examples/react-scroll-hide-header)
+- [Toast: Stacked notifications](https://motion.dev/examples/react-toast-stack)
+- [Reorder items](https://motion.dev/examples/js-reorder-items)
+
+## 维护与验证边界
 
 | 位置 | 用途 |
 | --- | --- |
-| `design-system/motion/catalog.json` | 稳定 ID、功能与交互分类、组件和实现源码、设计变量、平台能力 |
-| `design-system/copy/zh-Hans/motion.json` | 名称、产品位置、触发方式、结束状态、跨端差异与示例文案 |
-| `apps/web/motion-library/` | 目录页面、局部状态适配、合成数据与画布尺寸 |
-| `design-system/scripts/motion-library.ts` | 构建独立页面、共享资源和源码索引到 `dist/design/motion/` |
+| `design-system/motion/catalog.json` | 稳定 ID 与产品实现盘点 |
+| `design-system/motion/workbench/` | 设计工作台、真实局部 UI 的示例适配、参数与文案 |
+| `design-system/scripts/motion-library.ts` | 只构建设计资源到 `dist/design/motion/`；工作台与产品样式分开加载 |
 
-新增效果时先找产品实现。缺少可复用组件时，从产品提取后由两处共同使用。不要复制一份外观或动画。ID 一经使用就保持稳定；产品位置或源码变化时更新登记。
+新增动画复用相关产品 UI，只展示必要的卡片或控件。参数默认值读取产品设计变量；调整值只在独立 iframe 内覆盖，不修改文件，不接回产品。抽象演示的旧调试记录保留在 v2 存储键，真实 UI 参数另存在 v3。
 
-平台能力区分 `preview`（真实组件可操作）、`missing-native`（尚未接入真实原生组件）、`missing-preview`（已有产品实现，缺少局部示例）、`not-implemented`（产品未实现）和 `not-applicable`（没有该平台场景）。macOS 原生不能用 Web iframe 代替。
+画廊不维护自动测试代码。维护时只做类型检查、设计构建和文件检查；页面内的人工检查记录仍保留。
 
-## 逐项核对与验证边界
+本次浏览器视觉、指针/触摸、Safari 和 PWA 真机未验证；静态渲染和构建不能证明稳定帧率。设计只更新仓库，未发布到线上。
 
-30 个 ID 的组件路径、实现路径、原生源码路径、局部范围和调用链已核对。下表列出自动检查覆盖；「挂载」只证明封面和示例可创建局部组件、不含全局导航、不访问产品存储或网络，不证明真实浏览器中的视觉效果。
+以下为 PR #71 合并时的产品源码盘点与旧画廊接入记录，保留历史基准。其中“可预览”与数量描述属于当时的产品组件画廊，不代表本次浏览器验收结果。
 
-| ID | 局部真实组件 | 非浏览器检查 |
-| --- | --- | --- |
-| `control.press` | 一个收藏按钮 | 挂载、收藏状态 |
-| `task.mark` | 一行任务 | 挂载、双向勾选、重置数据 |
-| `settings.toggle` | 一行设置与开关 | 挂载、双向切换 |
-| `menu.scope` | 分栏触发按钮与菜单 | 挂载、选项、关闭、焦点返回 |
-| `menu.card` | 卡片标题与右键菜单 | 挂载、真实菜单、收藏 |
-| `search.resize` | 主页搜索框 | 挂载、聚焦、输入、失焦保留、清空 |
-| `feed.reorder` | 到点浮上来设置与三张卡片 | 挂载、实际排序、恢复原序 |
-| `feed.first-entry` | 三张首次加载的卡片 | 挂载、空状态到首屏、禁止重复加载 |
-| `feed.arrival` | 少量卡片 | 挂载、接收后增加卡片 |
-| `feed.departure` | 少量卡片 | 挂载、移出后减少卡片 |
-| `content.fade` | 一张卡片的正文 | 挂载；更新调用产品内容过渡 |
-| `reader.tools` | 邮件正文与工具栏 | 挂载、向下收起、向上恢复、交互禁用状态 |
-| `detail.card-flight` | 来源卡片与详情 | 挂载；展开和收回沿用产品控制器 |
-| `detail.navigate` | 摘要详情与关联卡片 | 挂载、关联进入、返回上一详情 |
-| `detail.sheet` | 手机详情抽屉 | 窄视口挂载；真实触摸未验证 |
-| `reader.gesture` | 阅读正文与工具 | 挂载；右滑、上推读完沿用产品手势 |
-| `feedback.toast` | Toast | 挂载；显示、时钟与关闭沿用产品控制器 |
-| `notice.offline` | 离线提示 | 挂载；显隐沿用产品控制器 |
-| `notice.new-content` | 新内容数量提示 | 挂载；显隐沿用产品控制器 |
-| `drag.selection` | 三张卡片与多选条 | 挂载、拖动选择、结束与取消 |
-| `drag.ai-target` | 卡片与 AI 输入框 | 挂载、拖入后加入示例上下文 |
-| `refresh.pull` | 卡片与刷新圆环 | 挂载、按住拖动、松手等待、失败重试、成功 |
-| `deck.swipe` | 三张堆叠卡片 | 挂载；跟手与松手沿用产品控制器 |
-| `media.scroll-collapse` | 播客详情与播放区 | 挂载；时间线沿用真实滚动实现 |
-| `detail.resize` | 同一卡片的预览与阅读层 | 挂载、放大、缩小、完全关闭；桌面与窄视口 |
-| `reader.outline` | 正文与真实目录 | 挂载、章节定位、目录显隐；手机目录展开与收起 |
-| `selection.bar` | 三张卡片与多选条 | 挂载、选择后出现、清空后禁用与退出 |
-| `ai.dock-collapse` | 桌面 AI 框 | 挂载、折叠与恢复、草稿保留、禁用发送 |
-| `ai.dock-height` | 桌面 AI 框与一条用户消息 | 挂载、三档高度、Esc 退回、禁用发送、无助手结果 |
-| `ai.context-entry` | 一张卡片与 AI 框上下文 | 挂载、拖入后加入条目、移除最后一条 |
+## 合并后的逐项盘点
 
-Web 桌面有 29 个可预览项目，手机 Web 有 24 个。手机没有桌面分栏菜单、卡片右键入口、伸缩搜索和桌面 AI 框；桌面没有手机抽屉。macOS 原生预览尚未接入；Mac 云端离线提示记为产品缺失，其余保留各自源码和跨端差异。
+### 范围与结论
 
-```sh
-node --import tsx --test tests/web/motion-library.test.ts
-npm run typecheck
-npm run build
-npm run check
-npm run lint:web
-npm run test:core
-npm run design -- check
-npm run files:check
-```
+PR [#71](https://github.com/dabaige53/sill/pull/71) 已合并，主分支合并提交为 `e95bd3506a722916d9b0b65f047c23e77055d1e1`。本表核对该版本的 30 个稳定 ID，并注明当前工作区尚未提交的手机修复。画廊数量不等于所有独立动画调用数量；此前按交互归并的 28 类不能与这里直接加减。
 
-JSDOM 检查使用动画边界替身，只验证状态与调用后的 DOM。浏览器视觉、iframe 内浮层边界、真实指针与触摸、Safari、手机真机和 macOS 原生组件均未验证，按[测试与验证](testing.md)另行执行。设计材料只更新仓库，尚未发布到线上。
+- 30 个目录条目：Web 桌面可预览 29 项，手机 Web 可预览 24 项。交集 23 项，桌面独有 6 项，手机独有 1 项。
+- 按条目的主要播放路径：27 项经过项目自建 MotionEngine；2 项直接调用 Motion；1 项直接调用浏览器 Web Animations API。分类不把跟手更新和原生滚动误算成另一套动画库。
+- 手机 Web 与安装后的 PWA 共用代码；手机 iframe 没有真实设备安全区、浏览器栏、系统键盘和触摸惯性的完整条件，不能据此认定 PWA 真机通过。
+- 此次完成源码与调用链盘点，没有对 30 项逐一执行浏览器视觉或性能测试；没有 FPS、掉帧率或响应延迟实测数据。
+
+### 30 项清单
+
+“可预览”表示画廊接入了局部产品组件，不表示视觉验收通过。源码列为目录登记的入口，补充路径见备注。
+
+| ID / 名称 | Web | 手机/PWA | 播放路径 | 产品实现入口 | 核对结果与关注点 |
+| --- | --- | --- | --- | --- | --- |
+| `control.press` · 按压反馈 | 可预览 | 可预览 | MotionEngine | [motion.ts](../../apps/web/interactions/motion.ts) | 按下缩至 0.97，松手恢复；共用参数。 |
+| `task.mark` · 任务勾选 | 可预览 | 可预览 | MotionEngine | [motion.ts](../../apps/web/interactions/motion.ts) | 勾选状态即时更新，按压反馈只作用于标记；不是整行翻转动画。 |
+| `settings.toggle` · 设置开关 | 可预览 | 可预览 | MotionEngine | [toggle-motion.ts](../../apps/web/interactions/toggle-motion.ts) | toggle-motion 复用 MotionEngine，滑块使用伪元素位移。 |
+| `menu.scope` · 分栏菜单 | 可预览 | 不适用 | MotionEngine | [motion.ts](../../apps/web/interactions/motion.ts) | 桌面分栏菜单；显隐、焦点返回使用产品逻辑。 |
+| `menu.card` · 卡片菜单 | 可预览 | 不适用 | MotionEngine | [app-card-actions.ts](../../apps/web/views/app-card-actions.ts) | 桌面卡片右键菜单；手机画廊不提供该入口。 |
+| `search.resize` · 搜索框伸缩 | 可预览 | 不适用 | MotionEngine | [motion.ts](../../apps/web/interactions/motion.ts) | 桌面搜索框背景伸缩，输入文字不缩放。 |
+| `feed.reorder` · 卡片排序 | 可预览 | 可预览 | MotionEngine | [layout.ts](../../apps/web/interactions/layout.ts) | FLIP 平移；宽度改变时正文淡入，布局计算仍在主线程。 |
+| `feed.first-entry` · 首屏进入 | 可预览 | 可预览 | MotionEngine | [app-feed.ts](../../apps/web/views/app-feed.ts) | 首批卡片按 30ms 间隔入场；需重置示例才能再次触发。 |
+| `feed.arrival` · 接收卡片 | 可预览 | 可预览 | MotionEngine | [app-feed-updates.ts](../../apps/web/views/app-feed-updates.ts) | 新卡片下落与现有卡片重排；示例用合成事件接收。 |
+| `feed.departure` · 移出卡片 | 可预览 | 可预览 | MotionEngine | [app-feed-updates.ts](../../apps/web/views/app-feed-updates.ts) | 退出副本淡出，剩余卡片重排。 |
+| `content.fade` · 内容更新 | 可预览 | 可预览 | MotionEngine | [motion.ts](../../apps/web/interactions/motion.ts) | 正文短淡入；连续更新接续当前透明度。 |
+| `reader.tools` · 阅读工具收起 | 可预览 | 可预览 | MotionEngine | [chrome.ts](../../apps/web/interactions/chrome.ts) | 邮件阅读工具收起与恢复；停顿等待 650ms，显示 320ms，可能被感知为迟缓。 |
+| `detail.card-flight` · 卡片展开与收回 | 可预览 | 可预览 | MotionEngine | [motion-panels.ts](../../apps/web/interactions/motion-panels.ts) | 桌面来源卡片展开；手机底部抽屉。来源副本及胶囊跟随有额外逐帧计算。 |
+| `detail.navigate` · 关联详情进入与返回 | 可预览 | 可预览 | MotionEngine | [motion-panels.ts](../../apps/web/interactions/motion-panels.ts) | 复制旧详情再过渡；长正文的复制成本待测。本地修复让手机继承抽屉高度或全屏。 |
+| `detail.sheet` · 手机详情抽屉 | 不适用 | 可预览 | MotionEngine | [gesture-surfaces.ts](../../apps/web/interactions/gesture-surfaces.ts) | 手机抽屉进入、跟手及退出；登记只指 gesture-surfaces，实际还经过 gesture-pull、gesture-preview、motion-sheet。 |
+| `reader.gesture` · 阅读右滑与读完上推 | 可预览 | 可预览 | MotionEngine | [gesture-preview.ts](../../apps/web/interactions/gesture-preview.ts) | 读完上推与阅读返回；跟手更新不应强制变成定时动画。播客已排除右滑关闭。 |
+| `feedback.toast` · 提示出现与关闭 | 可预览 | 可预览 | MotionEngine | [app-feedback.ts](../../apps/web/views/app-feedback.ts) | 显示、进度与退出；手势可滑走，时钟暂停行为独立于运动。 |
+| `notice.offline` · 离线提示 | 可预览 | 可预览 | MotionEngine | [app-card-actions.ts](../../apps/web/views/app-card-actions.ts) | 状态驱动的提示显隐；示例事件不证明真实网络恢复。 |
+| `notice.new-content` · 新内容提示 | 可预览 | 可预览 | MotionEngine | [app-card-actions.ts](../../apps/web/views/app-card-actions.ts) | 新内容提示显隐；不代表来源同步功能。 |
+| `drag.selection` · 长按选择与拖动 | 可预览 | 可预览 | MotionEngine | [drag.ts](../../apps/web/interactions/drag.ts) | 选择拖动逐帧跟手，选择反馈走共用动画。 |
+| `drag.ai-target` · 卡片放入 AI 上下文 | 可预览 | 可预览 | MotionEngine | [drag.ts](../../apps/web/interactions/drag.ts) | 目标弹簧缩放走 Motion；循环脉冲动画化 inset，有绘制成本风险。仅加入上下文，不执行 AI。 |
+| `refresh.pull` · 下拉刷新 | 可预览 | 可预览 | MotionEngine | [gesture-pull.ts](../../apps/web/interactions/gesture-pull.ts) | 原生输入归属、拖动阈值与请求状态决定反馈；转圈走 Motion，跟手逐帧更新。 |
+| `deck.swipe` · 叠卡翻动 | 可预览 | 可预览 | MotionEngine | [app-stacks.ts](../../apps/web/views/app-stacks.ts) | 叠卡左右跟手，松手切换或回弹；键盘即时。 |
+| `media.scroll-collapse` · 播客播放区收合 | 可预览 | 可预览 | 直接 Motion | [media-detail.tsx](../../apps/web/cards/media-detail.tsx) | 直接使用 Motion 暂停时间线，滚动设置进度；需要共用时间线接口，不能简单换成定时淡入。 |
+| `detail.resize` · 预览与放大切换 | 可预览 | 可预览 | MotionEngine | [motion-panels.ts](../../apps/web/interactions/motion-panels.ts) | 阅读层与预览切换；手机滚动全屏另经过 motion-sheet。本地修复正文不缩放、滑动中展开。 |
+| `reader.outline` · 阅读目录 | 可预览 | 可预览 | 直接 Motion | [reader-layout.tsx](../../apps/web/interactions/reader-layout.tsx) | 直接使用 Motion；章节滚动写 scrollTop，目录指示线位移。键盘即时，滚动可中断。 |
+| `selection.bar` · 多选条显隐 | 可预览 | 可预览 | MotionEngine | [app-selection.ts](../../apps/web/views/app-selection.ts) | 选择数量控制工具条显隐与缩放；取消后禁用旧操作。 |
+| `ai.dock-collapse` · AI 框折叠 | 可预览 | 不适用 | 浏览器 animate() | [shell.tsx](../../apps/web/views/shell.tsx) | 直接调用 surface.animate / child.animate；是现有明确绕过 Motion 播放的过渡入口。 |
+| `ai.dock-height` · AI 框高度切换 | 可预览 | 不适用 | MotionEngine | [app-ai.ts](../../apps/web/views/app-ai.ts) | 共用 MotionEngine 改变背景与内容位置；示例只有用户消息，无真实助手。 |
+| `ai.context-entry` · 上下文条目进入与移除 | 可预览 | 不适用 | MotionEngine | [app-selection.ts](../../apps/web/views/app-selection.ts) | 上下文条目入场与退出；示例不调用模型。 |
+
+### 统一入口的后续清单
+
+1. `ai.dock-collapse`：将浏览器原生播放调用接入共用封装，保留当前几何计算、取消与草稿状态。这是把过渡播放统一到 Motion 的直接缺口。
+2. `media.scroll-collapse`：为 MotionEngine 增加可暂停、由滚动设置进度的时间线能力后再接入；保持同一时刻只有一组播放器可操作。
+3. `reader.outline`：如需统一入口，应覆盖数值滚动和完成/取消回调；不把滚动强行改成元素位移。
+4. `drag.ai-target`：核验脉冲的 inset 绘制开销，再决定是否改为独立图层缩放。
+5. `detail.navigate`：优先测长正文与图片详情复制、快速连续进退的首帧耗时；不能只调短动画时长。
+
+以上为盘点后的待办，本次没有实施全量动画迁移。
+
+### 目录覆盖缺口
+
+目录目前没有单列封面加载淡入、主页顶栏收起/恢复、通用加载旋转、Toast 滑走、把手展开/收起、滚动展开全屏及动作中断。部分包含在现有综合示例中，部分只在产品生命周期中触发。后续应先补充现有示例的检查步骤，再判断是否需要新 ID，避免同一动画重复登记。
+
+`detail.sheet` 和 `detail.resize` 的单一 implementation 字段不足以表达当前全部调用路径。关键补充入口：
+
+- [gesture-preview.ts](../../apps/web/interactions/gesture-preview.ts)：滚动展开与把手手势。
+- [gesture-pull.ts](../../apps/web/interactions/gesture-pull.ts)：顶部下拉关闭。
+- [motion-sheet.ts](../../apps/web/interactions/motion-sheet.ts)：手机抽屉尺寸过渡。
+- [preview-controller.ts](../../apps/web/views/preview-controller.ts)：内嵌卡片尺寸继承与返回。
+- [motion-playback.ts](../../apps/web/interactions/motion-playback.ts)：共用播放、属性占用与取消。
+
+### 验证证据
+
+- #71 合并前：`npm test` 通过，69 项约定、409 项 Web、138 项服务端、3 项性能报告解析，共 619 项；设计 build/check、构建、类型与文件检查通过。
+- 为满足提交文件大小约束，将刷新用例从 gestures.test.ts 原样移到 gesture-refresh.test.ts；拆分后 25 项手势测试通过。没有删减用例。
+- 恢复本轮手机修复后，动画库、内嵌导航、阅读反馈与本地同步共 43 项通过；构建、类型与设计检查通过。
+- 合并后 CI 报告测试文件末尾多余空行，已用提交 `8fe1de0f` 修正并推送；该文件格式检查通过，远端后续检查以 GitHub 当前状态为准。
+- PR 的动画库专项 20 项通过，覆盖目录、局部组件挂载、状态、隔离与交互调用；使用动画替身，不证明流畅度。
+- 本会话此前局部浏览器证据：WebKit 邮件滚动卡死修复；Chromium 手机抽屉滑动中展开、关闭；播客顶部布局；内嵌卡片 780px 抽屉尺寸继承、844px 全屏返回和模态焦点阻止。上述证据只适用于对应场景，不扩展为 30 项全通过。
+- iPhone 安装版 PWA、Safari 真机、全部桌面场景、性能时间线与 macOS 原生窗口仍未完整验证。设计未发布到线上。
+
+### 查看动画库
+
+运行 `npm run design -- build` 和 `npm run boards`，访问 [本地动画库](http://127.0.0.1:4310/motion/)。使用说明见 [动画库使用与维护](motion-library.md)。该服务默认只监听本机，手机不能直接访问电脑的 127.0.0.1。

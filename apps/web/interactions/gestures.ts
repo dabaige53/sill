@@ -174,15 +174,14 @@ class Gestures {
 		const bar = dialog.querySelector(":scope > .float-bar");
 		if (bar) bar.style.opacity = "0";
 		MotionEngine.dim(dialog, 0, duration);
-		surface.inert = true;
 		const base = transform === "none" ? "" : transform;
 		const translate = (value: number) =>
 			`${axis === "x" ? "translateX" : "translateY"}(${value}px) ${base}`;
 		const animation = MotionEngine.animate(
 			surface,
 			[
-				{ transform: translate(offset), opacity },
-				{ transform: translate(destination), opacity: desktopPreview ? 0 : opacity },
+				{ transform: translate(offset), ...(desktopPreview ? { opacity } : {}) },
+				{ transform: translate(destination), ...(desktopPreview ? { opacity: 0 } : {}) },
 			],
 			{
 				duration,
@@ -193,6 +192,7 @@ class Gestures {
 		const finish = () => {
 			if (this.app.modalToken !== token || !dialog.open) return;
 			this.app.sheetLeaving = false;
+			dialog.inert = false;
 			this.app.skipReturnMotion = true;
 			close();
 		};
@@ -201,7 +201,16 @@ class Gestures {
 			...(MotionEngine.panelAnimations.get(dialog) || []),
 			animation,
 		]);
-		if (animation) animation.finished.then(finish, () => {});
+		if (animation)
+			animation.finished.then(finish, () => {
+				if (this.app.modalToken !== token || !dialog.open) return;
+				this.app.sheetLeaving = false;
+				dialog.inert = false;
+				surface.classList.remove("is-drag");
+				this.settle(surface);
+				this.dim(1, duration);
+				if (bar) bar.style.opacity = "";
+			});
 		else finish();
 	}
 	// After a pull or push closes something, the trackpad keeps coasting. Those leftover wheel events must not scroll the desk:

@@ -6676,7 +6676,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	.feed-item :is(.card-head, .sender) {
 		padding-right: 0;
 	}
-	/* A person's head reads on one line: small portrait, name, then mail and time. */
+	/* Keep sender and source on separate lines, aligned beside the portrait. */
 	.feed-item .sender {
 		gap: var(--space-8);
 	}
@@ -6687,20 +6687,20 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		font-size: calc(11px * var(--content-text-scale, 1));
 	}
 	.feed-item .sender > span:last-child {
-		flex-direction: row;
-		align-items: baseline;
+		flex: 1;
+		flex-direction: column;
+		align-items: stretch;
 		gap: var(--space-4);
-		overflow: hidden;
-		white-space: nowrap;
+		min-width: 0;
+		white-space: normal;
+		overflow-wrap: anywhere;
 	}
 	.feed-item .sender b {
 		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 	}
 	.feed-item .sender small {
 		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
-	}
-	.feed-item .sender small::before {
-		content: "· ";
+		display: block;
 	}
 	/* Article covers remain above the card body on phones. */
 	.feed-item.type-article .card-cover {
@@ -6780,9 +6780,13 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		transform: translateY(0);
 	}
 	#modal.preview .preview-sheet.is-full {
-		max-height: 100dvh;
+		height: 100%;
+		max-height: 100%;
 		transform: none;
 		border-radius: 0;
+	}
+	#modal.preview .preview-sheet:not(.is-full) {
+		height: var(--nested-sheet-height, auto);
 	}
 	#modal.preview .preview-sheet.is-off {
 		transform: translateY(100%);
@@ -6805,6 +6809,26 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	#modal.preview .preview-sheet .sheet-scroll {
 		flex: 1;
 		max-height: none;
+		overflow-x: hidden;
+	}
+	#modal.reader:has(.is-podcast) .reader-scroll {
+		overflow-x: hidden;
+	}
+	#modal :is(.is-podcast .media-primary, .is-podcast .media-secondary) {
+		min-width: 0;
+		max-width: 100%;
+	}
+	/* The close disc floats beside the player; it does not reserve a header row. */
+	#modal.preview .preview-sheet .compact-player-slot {
+		top: max(var(--space-8), env(safe-area-inset-top));
+	}
+	#modal.preview .preview-sheet .compact-player {
+		padding-left: 0;
+		padding-right: var(--space-56);
+		gap: var(--space-8);
+	}
+	#modal.preview .preview-sheet .is-podcast .media-tab-header {
+		top: calc(max(var(--space-8), env(safe-area-inset-top)) + var(--space-44) + var(--space-24));
 	}
 	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
 	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
@@ -7115,14 +7139,6 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	}
 	.feed-item.type-suggestion .card-summary {
 		-webkit-line-clamp: 1;
-	}
-	.feed-item .sender > span {
-		display: flex;
-		flex-direction: column;
-		align-items: start;
-	}
-	.feed-item .sender small::before {
-		content: none;
 	}
 }
 
