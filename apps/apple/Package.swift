@@ -21,17 +21,23 @@ let package = Package(
         .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
         .product(name: "Markdown", package: "swift-markdown"),
       ],
-      path: "SillKit", plugins: ["CardGenerator"]),
+      path: "SillKit",
+      plugins: [
+        "CardGenerator",
+        .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator"),
+      ]),
     .executableTarget(
       name: "Sill", dependencies: ["SillKit"], path: "macOS", resources: [.process("Resources")]),
-    .target(name: "SillMobile", dependencies: ["SillKit"], path: "iOS"),
+    .target(
+      name: "SillMobile", dependencies: ["SillKit"], path: "iOS",
+      resources: [.process("Resources")]),
     .executableTarget(name: "SillStoreProbe", dependencies: ["SillKit"], path: "Tests/Probe"),
     .testTarget(
       name: "SillKitTests", dependencies: ["SillKit", "SillStoreProbe"], path: "Tests",
       exclude: ["Probe"]),
     .testTarget(name: "SillDesktopTests", dependencies: ["Sill", "SillKit"], path: "DesktopTests"),
-    .plugin(
-      name: "CardGenerator", capability: .buildTool(),
-      dependencies: [.product(name: "swift-openapi-generator", package: "swift-openapi-generator")]),
+    .testTarget(
+      name: "SillMobileTests", dependencies: ["SillMobile", "SillKit"], path: "MobileTests"),
+    .plugin(name: "CardGenerator", capability: .buildTool()),
   ]
 )

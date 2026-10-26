@@ -43,4 +43,21 @@ struct MarkdownBodyTests {
     #expect(body.blocks[1].depth == 2)
     #expect(body.blocks[1].runs.last?.code == true)
   }
+
+  @Test func authoredCardLinksStayLocalAndRejectOtherFragments() {
+    let body = MarkdownBody(
+      "[Card](#card/a_1-b) [Read](#read/c2) [Empty](#card/) [Nested](#card/a/b) [Other](#heading) [Scheme](sill://card/a)"
+    )
+    #expect(
+      body.blocks.flatMap(\.runs).compactMap(\.link).map(\.absoluteString) == [
+        "#card/a_1-b", "#read/c2",
+      ])
+  }
+
+  @Test func tablesPreserveColumnAlignment() {
+    let body = MarkdownBody("| Left | Center | Right |\n| :--- | :---: | ---: |\n| A | B | C |")
+    #expect(body.blocks.count == 2)
+    #expect(body.blocks.allSatisfy { $0.tableAlignments == ["left", "center", "right"] })
+  }
+
 }

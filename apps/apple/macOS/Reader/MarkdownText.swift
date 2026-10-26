@@ -81,7 +81,8 @@ struct MarkdownText: View {
       url.scheme == "https"
       && url.host == "sill-web-preview.scs1213-temp-email.workers.dev"
       && (url.port == nil || url.port == 443)
-    guard ["http", "https"].contains(url.scheme ?? ""), local || cloud,
+    let relative = url.scheme == nil && url.host == nil && url.path.isEmpty
+    guard relative || (["http", "https"].contains(url.scheme ?? "") && (local || cloud)),
       url.path.isEmpty || url.path == "/", let fragment = url.fragment
     else { return nil }
     let parts = fragment.split(separator: "/", omittingEmptySubsequences: false)

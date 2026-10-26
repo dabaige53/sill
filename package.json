@@ -31,6 +31,7 @@
 		"test:cloud-app": "node --import tsx --test tests/server/cloud-app.test.ts",
 		"test:cloud-app-browser": "node tests/e2e/cloud-app-browser.ts",
 		"build:macos": "node scripts/build-macos.ts",
+		"build:ios": "node scripts/build-ios.ts",
 		"test:macos": "node tests/apple/run.ts && codesign --verify --deep --strict dist/macos/Sill.app",
 		"test:workspace-polish": "node tests/e2e/workspace-polish-browser.ts",
 		"test:cloud-recovery": "node tests/e2e/cloud-recovery-browser.ts",

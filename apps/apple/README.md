@@ -1,8 +1,45 @@
 # Sill Apple
 
-更新：2026-10-23。
+更新：2026-10-25。
 
-一个 Swift Package。`SillKit` 提供卡片校验、本地存储与云端客户端；`macOS/` 是 Mac 应用 `Sill`；`iOS/` 只有共享数据层。
+一个 Swift Package。`SillKit` 提供卡片校验、本地存储、云端客户端、Mono24 图标和媒体播放；`macOS/` 是 Mac 应用 `Sill`；`iOS/` 是原生手机和平板界面与状态层，`iOSApp/` 提供应用入口和打包资源。
+
+## iOS 应用
+
+使用支持 Swift 6 的 Xcode，打开 `apps/apple/SillMobile.xcodeproj`，选择 `SillMobile` scheme 与 iPhone/iPad 模拟器，再运行。最低系统为 iOS 17。首次打开按 Xcode 提示启用 CardGenerator 与官方 OpenAPIGenerator 插件。工程引用相邻 Swift Package，无需生成工程或安装额外项目工具。
+
+在仓库根目录执行：
+
+```sh
+npm ci
+npm run build:ios
+node tests/apple/run.ts --filter SillMobileTests
+```
+
+模拟器构建关闭签名，输出位于 `dist/ios/`。安装到自己的设备时，在 Xcode 的 Signing & Capabilities 中选择开发团队，并按账号权限配置 Bundle ID。归档使用 `SILL_APPLE_TEAM=<团队ID> SILL_BUILD_NUMBER=<构建号> npm run build:ios -- --archive`；签名证书和描述文件由本机 Xcode 管理。归档不自动上传 TestFlight 或 App Store。
+
+版本取根目录 `package.json`，图标取 `assets/sill-icon.png`；Xcode 构建步骤生成 Info.plist 和不透明 AppIcon。原始图标保持原样，产物不提交。
+
+### 已接入的代码
+
+- 邮箱密码登录、钥匙串会话恢复、退出、同账号云端数据；不提供邮件登录入口。
+- 主页、AI、搜索三项导航；分类封面、类型和标签条件、归档分组、横滑切换、独立滚动位置；iPad 自适应网格；稳定信息流、40 张分页、同源未读叠卡。
+- 多选收藏、稍后读、标签备注和 AI 上下文；标签全批替换、备注只写首卡，校验所有编辑基准后原子保存。
+- 12 种卡片、13 种展示形态；Markdown 表格/目录/内链、独立黑底照片页、任务提醒、PR 与附件、日程导出、安全外链。
+- 自定义阅读抽屉、逐层返回和位置保留、下拉/右滑关闭、把手展开收起、读完上推确认；共享按压、玻璃、阴影、入场、刷新及工具显隐动画。
+- AVPlayer 音频、官方 YouTube 嵌入播放器、播放位置及真实结束状态；转场稳定后挂载视频、播放器就绪前保留封面、播客吸顶和文字稿跟随；无音源禁用控件，实际失败才显示错误。
+- 速记、主题和排版偏好、导出与确认清空、WebDAV/R2 备份及恢复；后端是否部署这些能力仍以功能矩阵为准。
+- 可选设备通知：只安排已载入的未来提醒，最多 64 条；后续内容在打开应用时更新，不是远程推送。
+
+已有内容修改交给助手；AI 页明确不可发送，不提供内置模型、来源同步或导入。敏感会话使用 SillKit 钥匙串；备份凭据只用于本人设置请求，不写卡片或设备偏好。
+
+### 写入与验证边界
+
+写入携带工作区版本。冲突保留输入；结果未知时保留原请求并锁定后续修改，刷新只核对，不自动重发。只有用户核对当前内容并明确确认后才解除锁定。账号过期且有未知写入时，先在其他已登录客户端核对，再确认并重新登录。未知请求仅保存在当前进程中；没有离线写入队列或跨重启草稿。
+
+代码提交 `546a619` 已在远端 CI 通过 iPhone/iPad 模拟器构建、Apple 格式检查和 192 项 Swift 测试，产物为 `Debug-iphonesimulator/Sill.app`。**未执行签名、模拟器界面、真机或连续动画验收**；代码实现不能直接宣称 1:1 视觉通过。逐项证据见 [iOS 对账](../../docs/product/ios-alignment.md)。设计未发布到线上。
+
+`MobileTests/` 覆盖版本冲突、未知写入、跨账号延迟操作、离线会话恢复、备份幂等键、批量注释、阅读手势/会话、搜索/信息流状态和提醒边界；只使用合成数据与模拟 HTTP。本地未执行界面自动化。
 
 ## macOS 应用
 
@@ -100,7 +137,7 @@ node tests/apple/run.ts
 
 测试使用临时目录与模拟 HTTP 响应，不访问真实卡片或账号。`DesktopTests/` 用内存中的模拟工作区检查桌面状态：单卡写入不影响其他卡片、写入只锁本卡、失败回到已存值、未知结果只核对不重发、外部修改表现为冲突、后台记录不触发重绘、信息流成员与分页。
 
-类型、文案、图标和设计变量（`AppleMetrics`、`AppleColors`）在构建时由 `Plugins/CardGenerator` 从 `contracts/` 与 `design-system/` 生成。生成器递归检查 `macOS/` 中的文案键，失效引用会阻止构建。新增设计值必须回到设计系统维护。
+类型、文案、图标和设计变量（`AppleMetrics`、`AppleColors`）在构建时由官方 OpenAPIGenerator 与 `Plugins/CardGenerator` 从 `contracts/` 与 `design-system/` 生成。生成器递归检查 `macOS/` 中的文案键，失效引用会阻止构建。新增设计值必须回到设计系统维护。
 
 ### 媒体播放边界
 
