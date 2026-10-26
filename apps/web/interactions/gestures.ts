@@ -113,8 +113,8 @@ class Gestures {
 		surface.classList.remove("is-drag");
 		MotionEngine.move(surface);
 	}
-	dim(v?: any) {
-		MotionEngine.dim(this.app.dialog, v ?? null);
+	dim(v?: any, duration = 0) {
+		MotionEngine.dim(this.app.dialog, v ?? null, duration);
 	}
 	// Momentum guard: a wheel stream that is still coasting into an edge is not a new gesture.
 	// It counts after a pause, or once the deltas hold steady or grow again (momentum only ever weakens).

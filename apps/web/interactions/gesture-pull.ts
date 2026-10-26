@@ -444,7 +444,7 @@ export const gesturePullMethods = {
 			pull = 0;
 			if (live) {
 				this.settle(surface);
-				this.dim(null);
+				this.dim(1, MotionEngine.time("dur-sheet"));
 			}
 		};
 		scroll.addEventListener(
@@ -504,7 +504,7 @@ export const gesturePullMethods = {
 			else {
 				pull = 0;
 				this.settle(surface, v);
-				this.dim(null);
+				this.dim(1, MotionEngine.time("dur-sheet"));
 			}
 		});
 		scroll.addEventListener("touchcancel", cancel, { passive: true });

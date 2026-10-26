@@ -32,10 +32,10 @@
 			]
 		},
 		"preview-scroll-expansion": {
-			"title": "手机阅读停稳后展开",
+			"title": "手机阅读松手后连续展开",
 			"rule": "handbook/motion.md#其他组件",
 			"tokens": [],
-			"adr": "0062",
+			"adr": "0070",
 			"boards": [
 				"CardTypeMobile"
 			]

@@ -191,6 +191,11 @@ export function bindPreview(this: AppController, id?: any) {
 export function bindSheetChrome(this: AppController) {
 	this.sheetHide?.destroy();
 	this.previewSizeObserver?.disconnect();
+	const completed = this.dialog.querySelector<HTMLElement>("[data-read-complete]");
+	if (completed) {
+		completed.style.visibility = "";
+		delete completed.dataset.readComplete;
+	}
 	const scroll = this.dialog.querySelector("#reader-scroll, .preview-sheet .sheet-scroll");
 	if (!scroll) return;
 	// Expanded workspaces reserve a compact header; their controls remain stationary.
@@ -207,6 +212,8 @@ export function bindSheetChrome(this: AppController) {
 		],
 		() =>
 			this.sheetLeaving ||
+			this.dialog.hasAttribute("data-sheet-resizing") ||
+			this.dialog.getElementsByClassName("float-bar")[0]?.hasAttribute("data-read-complete") ||
 			(this.dialog.getElementsByClassName("float-bar")[0] as HTMLElement | undefined)?.dataset
 				.cardFlight !== undefined ||
 			[...this.dialog.children].some((node) => node.hasAttribute("data-detail-face")),

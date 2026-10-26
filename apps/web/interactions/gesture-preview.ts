@@ -2,6 +2,7 @@ import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import type { Gestures } from "./gestures.ts";
 import { MotionEngine } from "./motion.ts";
+import { deferReadingRefresh } from "./reading-feedback.ts";
 
 /** The read-end ring; shared by the reader and the design-system previews. */
 export const pushRingHTML =
@@ -10,14 +11,7 @@ export const pushRingHTML =
 export const gesturePreviewMethods = {
 	setPreviewFull(this: Gestures, surface: HTMLElement, full: boolean) {
 		surface.classList.remove("is-drag");
-		if (surface.classList.contains("is-full") !== full) {
-			const top = surface.getBoundingClientRect().top;
-			MotionEngine.move(surface, "", true);
-			surface.classList.toggle("is-full", full);
-			MotionEngine.move(surface, `0 ${top - surface.getBoundingClientRect().top}px`, true);
-		}
-		surface.querySelector(".sheet-handle")?.setAttribute("aria-expanded", String(full));
-		MotionEngine.move(surface);
+		MotionEngine.resizeSheet(surface, full);
 	},
 	bindPreviewExpansion(this: Gestures, surface: HTMLElement) {
 		// @design preview-scroll-expansion
@@ -51,7 +45,7 @@ export const gesturePreviewMethods = {
 			if (pending && !touching && !cancelled && !surface.classList.contains("is-full"))
 				timer = window.setTimeout(expand, tokens.apple.gestureWheelRest * 1000);
 		};
-		// Keep native scrolling in charge; expand only after release and its inertial tail.
+		// Keep finger scrolling native; release starts the frame transition without waiting for inertia.
 		scroll.addEventListener(
 			"scroll",
 			() => {
@@ -78,7 +72,7 @@ export const gesturePreviewMethods = {
 			"touchend",
 			(event) => {
 				touching = event.touches.length > 0;
-				schedule();
+				if (!touching) expand();
 			},
 			{ passive: true },
 		);
@@ -330,7 +324,7 @@ export const gesturePreviewMethods = {
 			paint();
 			chip.classList.add("is-done");
 			// Completion owns the toolbar until this detail leaves, including pending reveal animations.
-			if (desktop && bar) {
+			if (bar) {
 				bar.dataset.readComplete = String(token);
 				bar.style.visibility = "hidden";
 			}
@@ -359,16 +353,14 @@ export const gesturePreviewMethods = {
 					}
 					return;
 				}
-				if (changed) app.refreshCard(id);
+				if (changed) {
+					if (desktop) app.refreshCard(id);
+					else deferReadingRefresh(app, id);
+				}
 				requestAnimationFrame(() => {
 					if (app.modalToken !== token) {
 						chip.remove();
 						return;
-					}
-					if (!desktop) MotionEngine.move(scroll);
-					if (bar && !desktop) {
-						bar.style.opacity = "";
-						MotionEngine.move(bar);
 					}
 					// The check leaves with the detail, on the same spring as the close.
 					const fade = MotionEngine.animate(chip, [{ opacity: 1 }, { opacity: 0 }], {

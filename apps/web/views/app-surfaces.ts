@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { flushReadingRefresh } from "../interactions/reading-feedback.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
 import { renderContent } from "./react-renderer.ts";
@@ -249,11 +250,15 @@ export const appSurfacesMethods = {
 			);
 			const bar = this.dialog.querySelector<HTMLElement>(":scope > .float-bar");
 			const barAnimation =
-				!desktop && bar
-					? MotionEngine.animate(bar, [{ opacity: 1 }, { opacity: 0 }], {
-							duration: 100,
-							fill: "forwards",
-						})
+				!desktop && bar && !bar.hasAttribute("data-read-complete")
+					? MotionEngine.animate(
+							bar,
+							[{ opacity: getComputedStyle(bar).opacity }, { opacity: 0 }],
+							{
+								duration: 100,
+								fill: "forwards",
+							},
+						)
 					: null;
 			MotionEngine.panelAnimations.set(this.dialog, [
 				animation,
@@ -291,6 +296,7 @@ export const appSurfacesMethods = {
 			else finish();
 			return;
 		}
+		flushReadingRefresh(this);
 		this.modalToken++;
 		this.previewTrail = [];
 		this.detailPositions.clear();

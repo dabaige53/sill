@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
-test("reading expands only after touch release and scroll rest, preserving the scroll offset", () => {
+test("reading expands on touch release without waiting for inertia, preserving the scroll offset", () => {
 	const f = fixture({ phone: true });
 	try {
 		f.gestures.bindPullDown();
@@ -23,8 +23,6 @@ test("reading expands only after touch release and scroll rest, preserving the s
 			"holding a finger keeps geometry stable",
 		);
 		f.fire(f.scroll, "touchend");
-		assert.equal(sheet.classList.contains("is-full"), false);
-		f.flush();
 		assert.equal(sheet.classList.contains("is-full"), true);
 		assert.equal(f.scroll.scrollTop, 80);
 		assert.equal(f.app.closed, 0);
@@ -54,9 +52,9 @@ test("cancelled, multi-touch, stale and closing previews cannot expand later", (
 				});
 				f.scroll.dispatchEvent(event);
 			}
-			f.fire(f.scroll, "touchend");
 			if (interruption === "replacement") f.app.modalToken++;
 			if (interruption === "closing") f.app.sheetLeaving = true;
+			f.fire(f.scroll, "touchend");
 			f.scroll.dispatchEvent(new f.w.Event("scrollend"));
 			f.flush();
 			assert.equal(sheet.classList.contains("is-full"), false, interruption);

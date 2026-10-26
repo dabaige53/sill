@@ -23,7 +23,7 @@ export const gestureSurfacesMethods = {
 			if (bar) bar.style.opacity = "";
 			if (this.app.modalToken === token) {
 				dialog.classList.remove("is-drag");
-				this.dim(null);
+				this.dim(1, MotionEngine.time("dur-sheet"));
 			}
 		};
 		dialog.addEventListener(
@@ -104,7 +104,7 @@ export const gestureSurfacesMethods = {
 			dialog.classList.remove("is-drag");
 			if (bar) bar.style.opacity = "";
 			this.settle(sheet, v);
-			this.dim(null);
+			this.dim(1, MotionEngine.time("dur-sheet"));
 		});
 		dialog.addEventListener("touchcancel", cancel, { passive: true });
 	},
@@ -128,7 +128,7 @@ export const gestureSurfacesMethods = {
 			if (live && this.app.modalToken === token) {
 				dialog.classList.remove("is-drag");
 				this.settle(dialog, 0, "x");
-				this.dim(null);
+				this.dim(1, MotionEngine.time("dur-sheet"));
 			}
 		};
 		dialog.addEventListener(
@@ -190,7 +190,7 @@ export const gestureSurfacesMethods = {
 				this.exitSurface(dialog, () => this.app.closeToDesk(false), "x");
 			} else {
 				this.settle(dialog, v, "x");
-				this.dim(null);
+				this.dim(1, MotionEngine.time("dur-sheet"));
 			}
 		});
 		dialog.addEventListener("touchcancel", cancel, { passive: true });
