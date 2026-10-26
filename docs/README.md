@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-24。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](guides/file-management.md)。
+更新：2026-10-26。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](guides/file-management.md)。
 
 查阅顺序与排查入口见[文档查阅指南](guides/document-navigation.md)。
 
@@ -34,6 +34,7 @@
 - [插件使用与排查](guides/plugin-runbook.md)
 - [Mac 性能追踪与自动化测试](guides/macos-performance.md)
 - [桌面交互架构与验证](guides/desktop-interaction.md)
+- [动画库使用与维护](guides/motion-library.md)
 - [V1 三端接口与交接包](guides/handoff.md)
 - [Web 与 PWA 界面优化交接](guides/web-pwa-ui-handoff.md)
 - [Web 与 PWA 界面工作包](guides/web-pwa-ui-packages.md)

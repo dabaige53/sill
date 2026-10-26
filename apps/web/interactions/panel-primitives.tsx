@@ -1,6 +1,6 @@
 import React, { cloneElement, isValidElement, type ReactElement } from "react";
 import { sillIcon as sillIconHTML } from "../atoms/icons.ts";
-import { Avatar, Icon } from "../atoms/react-primitives.tsx";
+import { Avatar, CheckItem, Icon } from "../atoms/react-primitives.tsx";
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 /** Only trusted, generated SVG/avatar fragments cross this boundary; panel content uses JSX. */
@@ -101,22 +101,7 @@ export function segmented(name: string, options: string[][], value: string, labe
 	);
 }
 export function checkItem(c: { id: string }, t: { id: string; done?: boolean; text: string }) {
-	return (
-		// biome-ignore lint/a11y/useSemanticElements: The full task row is the existing checkbox button and delegated action target.
-		<button
-			className={`check-item ${t.done ? "is-done" : ""}`}
-			data-action="task"
-			data-id={c.id}
-			data-extra={t.id}
-			type="button"
-			role="checkbox"
-			aria-checked={!!t.done}
-			aria-label={t.text}
-		>
-			<span className="check-dot">{t.done ? icon("check", 12) : null}</span>
-			<span>{t.text}</span>
-		</button>
-	);
+	return <CheckItem cardId={c.id} task={t} />;
 }
 
 export function agentAction(

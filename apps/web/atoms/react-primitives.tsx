@@ -51,6 +51,31 @@ export function Avatars({ names }: { names: string[] }) {
 export function CheckMark({ done }: { done: boolean }) {
 	return <span className="check-dot">{done && <Icon name="check" size={12} />}</span>;
 }
+/** The same task row in cards, details and isolated component examples. */
+export function CheckItem({
+	cardId,
+	task,
+}: {
+	cardId: string;
+	task: { id: string; text: string; done?: boolean };
+}) {
+	return (
+		// biome-ignore lint/a11y/useSemanticElements: Preserve the product's delegated button checkbox.
+		<button
+			type="button"
+			className={`check-item ${task.done ? "is-done" : ""}`}
+			data-action="task"
+			data-id={cardId}
+			data-extra={task.id}
+			role="checkbox"
+			aria-checked={!!task.done}
+			aria-label={task.text}
+		>
+			<CheckMark done={!!task.done} />
+			<span>{task.text}</span>
+		</button>
+	);
+}
 export function ProgressRing({ progress = 0, size = 22 }: { progress?: number; size?: number }) {
 	const p = Math.max(0, Math.min(1, Number(progress) || 0)),
 		c = 50.265;

@@ -1,6 +1,6 @@
 import { Store } from "../data/store.ts";
-import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
+import { animateToggle, captureToggle } from "../interactions/toggle-motion.ts";
 import type { AppController } from "./app.ts";
 import { renderView } from "./react-renderer.ts";
 
@@ -32,11 +32,7 @@ export function repaintSettings(this: AppController) {
 		[node.dataset.action, node.dataset.id, node.dataset.extra].join("|");
 	const toggles = new Map(
 		[...this.dialog.querySelectorAll<HTMLElement>(".toggle")].map((node) => {
-			const state = {
-				checked: node.getAttribute("aria-checked"),
-				transform: getComputedStyle(node, "::before").transform,
-			};
-			MotionEngine.cancel(node);
+			const state = captureToggle(node);
 			return [toggleKey(node), state] as const;
 		}),
 	);
@@ -52,15 +48,7 @@ export function repaintSettings(this: AppController) {
 	renderView(this.dialog, Panels.settings(this, this.settingsGroup));
 	for (const node of this.dialog.querySelectorAll<HTMLElement>(".toggle")) {
 		const previous = toggles.get(toggleKey(node));
-		if (!previous || previous.checked === node.getAttribute("aria-checked")) continue;
-		MotionEngine.animate(
-			node,
-			[
-				{ transform: previous.transform },
-				{ transform: getComputedStyle(node, "::before").transform },
-			],
-			{ duration: MotionEngine.time("dur-press"), pseudoElement: "::before" },
-		);
+		animateToggle(node, previous);
 	}
 	const next = this.dialog.querySelector(".settings-main");
 	if (next) next.scrollTop = y;
