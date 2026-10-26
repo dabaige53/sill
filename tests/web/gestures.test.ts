@@ -414,4 +414,3 @@ test("completed reading keeps tools hidden through the close handoff on phone an
 			}
 		}
 });
-
