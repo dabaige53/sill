@@ -12,17 +12,6 @@ function nav(this: AppController, { extra }: ActionContext) {
 	this.goTo(extra);
 }
 
-function capture(this: AppController) {
-	this.openPanel("capture");
-}
-
-function captureSave(this: AppController) {
-	const text = (document.getElementById("capture-text") as HTMLInputElement)?.value;
-	if (!text?.trim()) return;
-	this.closeNative();
-	this.capture(text);
-}
-
 function top(this: AppController) {
 	window.scrollTo({ top: 0, behavior: "instant" });
 	this.railHide?.syncPosition();
@@ -258,8 +247,6 @@ export const navigationActions = {
 	filter: filter,
 	search: filter,
 	nav: nav,
-	capture: capture,
-	"capture-save": captureSave,
 	top: top,
 	"home-tab": homeTab,
 	"home-menu": homeMenu,

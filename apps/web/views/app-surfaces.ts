@@ -81,7 +81,6 @@ export const appSurfacesMethods = {
 		const drawn = reversing ? getComputedStyle(MotionEngine.surface(this.dialog)) : null;
 		const resume = drawn ? { opacity: drawn.opacity, transform: drawn.transform } : undefined;
 		if (!nested && kind !== "preview" && kind !== "reader") MotionEngine.releaseSource(this.dialog);
-		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
 		this.modalToken++;
@@ -138,13 +137,7 @@ export const appSurfacesMethods = {
 		if (!nested && !MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
 			MotionEngine.queuePanel(this.dialog, origin, resume);
 		const focus = this.dialog.querySelector<HTMLElement>(
-			kind === "search"
-				? "#filter-search"
-				: kind === "capture"
-					? "#capture-text"
-					: kind === "editor"
-						? "#tag-new"
-						: "#modal-title",
+			kind === "search" ? "#filter-search" : kind === "editor" ? "#tag-new" : "#modal-title",
 		);
 		if (focus) {
 			if (!/INPUT|TEXTAREA|BUTTON/.test(focus.tagName)) focus.tabIndex = -1;

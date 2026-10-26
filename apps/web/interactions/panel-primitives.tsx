@@ -75,7 +75,9 @@ export function toggle(
 			aria-checked={!!on}
 			data-action={action}
 			data-id={name}
-		/>
+		>
+			<span className="toggle-knob" aria-hidden="true" />
+		</button>
 	);
 }
 export function segmented(name: string, options: string[][], value: string, label: string) {

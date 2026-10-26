@@ -26,9 +26,6 @@ function WelcomeView({
 				<div className={"welcome-actions"}>
 					{actions === null ? (
 						<>
-							<button type={"button"} className={"solid-button"} data-action={"capture"}>
-								{copy("web.capture.title")}
-							</button>
 							<button type={"button"} className={"text-link"} data-action={"welcome-demo"}>
 								{copy("web.welcome.viewDemo")}
 							</button>

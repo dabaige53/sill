@@ -37,7 +37,7 @@ export const appAIMethods = {
 				if (this.aiHeight !== "panel" || this.drag?.active) return;
 				if ((this.drag?.suppressedClick?.until || 0) > Date.now()) return;
 				const target = e.target as Element;
-				if (target.closest?.("#ai-dock, dialog, .card-more-menu, #home-menu, [popover]")) return;
+				if (target.closest?.("#ai-dock, dialog, #home-menu, [popover]")) return;
 				this.aiHeightEvent("outside");
 			},
 			true,

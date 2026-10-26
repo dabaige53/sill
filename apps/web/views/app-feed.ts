@@ -141,7 +141,6 @@ export const appFeedMethods = {
 						(node) => node.dataset.extra,
 					)
 				: [];
-		this.closeMore();
 		// An anchored reflow may temporarily need extra room below the final row.
 		this.grid.style.removeProperty("min-height");
 		document.body.dataset.view = this.mode;
@@ -194,6 +193,7 @@ export const appFeedMethods = {
 	},
 	revealImages(this: AppController, root?: ParentNode) {
 		root.querySelectorAll<HTMLImageElement>("img.card-image").forEach((img) => {
+			const initial = this.initializing;
 			if (this.loadedImages.has(img.src)) {
 				img.classList.add("is-loaded");
 				return;
@@ -205,9 +205,10 @@ export const appFeedMethods = {
 				}
 				this.loadedImages.add(img.src);
 				img.classList.add("is-loaded");
-				MotionEngine.animate(img, [{ opacity: 0 }, { opacity: getComputedStyle(img).opacity }], {
-					duration: MotionEngine.time("fast"),
-				});
+				if (!initial)
+					MotionEngine.animate(img, [{ opacity: 0 }, { opacity: getComputedStyle(img).opacity }], {
+						duration: MotionEngine.time("fast"),
+					});
 				this.layout.schedule(false);
 			};
 			if (img.complete && img.naturalWidth) requestAnimationFrame(done);

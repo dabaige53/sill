@@ -190,6 +190,53 @@ for (const action of ["snooze", "dismiss-reminder", "complete-reminder", "restor
 		}
 	});
 
+test("completing a reminder retains its detail and search until the user closes it", () => {
+	const f = fixture();
+	try {
+		const reminder = { id: "b", type: "reminder", title: "Beta", body: "Reminder detail" };
+		f.Store.state.cards[1] = reminder;
+		f.app.searchFilter.query = "Beta";
+		f.app.dialog.innerHTML = f.Panels.search(f.app);
+		const results = f.app.dialog.querySelector("#search-results");
+		results.scrollTop = 120;
+		f.app.suspendSearch();
+		const background = f.app.searchBackground;
+		f.app.dialog.innerHTML = f.Panels.preview(f.app, reminder);
+		f.app.modalKind = "preview";
+		f.app.currentId = "b";
+		f.app.dialog.show();
+		f.w.history.replaceState({ glass: true, prev: "#search" }, "", "#card/b");
+		f.app.lastRouteHash = "#card/b";
+		f.w.HTMLElement.prototype.getAnimations = () => [];
+		f.app.withFeedAnchor = () => {};
+		f.app.checkReminders = () => {};
+		const button = f.app.dialog.querySelector(".reminder-check");
+		button.focus();
+
+		f.app.action("complete-reminder", "b");
+
+		assert.equal(f.Store.item("b").reminderDone, true);
+		assert.equal(f.app.modalKind, "preview");
+		assert.equal(f.app.dialog.open, true);
+		assert.equal(f.w.location.hash, "#card/b");
+		assert.equal(f.app.lastRouteHash, "#card/b");
+		assert.equal(f.app.searchBackground, background);
+		assert.equal(background.querySelector("#search-results"), results);
+		assert.equal(results.scrollTop, 120);
+		assert.equal(f.w.document.activeElement, button);
+
+		f.app.closeToDesk(false);
+
+		assert.equal(f.w.location.hash, "#search");
+		assert.equal(f.app.modalKind, "search");
+		assert.equal(f.app.dialog.querySelector("#search-results"), results);
+		assert.equal(results.scrollTop, 120);
+		assert.equal(f.app.dialog.querySelector("#filter-search").value, "Beta");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("home and search render the same shared completion and reading state", () => {
 	const f = fixture();
 	try {

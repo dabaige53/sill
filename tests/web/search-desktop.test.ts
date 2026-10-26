@@ -136,7 +136,6 @@ test("nested card return keeps retained search nodes, position and focus through
 		});
 		app.gestures = { bindPullDown() {}, bindPush() {} };
 		f.Store.state.items = { a: { seen: true }, b: { seen: true } };
-		app.closeMore = () => {};
 		app.searchFilter.query = "Alpha";
 		app.dialog.innerHTML = f.Panels.search(app);
 		const results = app.dialog.querySelector("#search-results");

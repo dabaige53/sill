@@ -1,4 +1,6 @@
 import { createElement, Fragment } from "react";
+import { icon } from "../atoms/icons.ts";
+import { esc } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
@@ -8,7 +10,7 @@ import { renderView } from "./react-renderer.ts";
 
 export const appSelectionMethods = {
 	selectionAIHTML(this: AppController) {
-		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-wave" aria-hidden="true"><i></i><i></i><i></i></span><span data-ai-label>${copy("web.selection.aiDrop")}</span></button>`;
+		return `<div class="selection-ai-target glass" hidden role="region" aria-label="${esc(copy("web.ai.dock"))}">${icon("chat", 20)}<input class="selection-ai-input" readonly tabindex="-1" aria-label="${esc(copy("web.ai.dock"))}" placeholder="${esc(copy("web.ai.dockPlaceholder"))}">${icon("up", 20)}</div>`;
 	},
 	openSelectionAI(this: AppController, ids: string[]) {
 		// Desktop: the cards join the bottom AI box as context; nothing is sent (ADR 0049).
@@ -96,18 +98,6 @@ export const appSelectionMethods = {
 		};
 	},
 	bindSearchSelection(this: AppController) {
-		const bar = this.dialog.querySelector<HTMLElement>("#search-selection-bar");
-		if (bar && !bar.dataset.bound) {
-			bar.dataset.bound = "true";
-			bar.addEventListener("contextmenu", (e: MouseEvent) => {
-				if (!this.searchSelected.size) return;
-				e.preventDefault();
-				this.drag.openMenu([...this.searchSelected], e.target as HTMLElement, {
-					x: e.clientX,
-					y: e.clientY,
-				});
-			});
-		}
 		this.updateSelection();
 	},
 	select(this: AppController, id?: string, options: { add?: boolean; range?: boolean } = {}) {
@@ -145,6 +135,17 @@ export const appSelectionMethods = {
 		if (!selecting && bar.contains(document.activeElement as HTMLElement))
 			grid.querySelector<HTMLElement>(".card-title-button")?.focus({ preventScroll: true });
 		bar.querySelector<HTMLElement>(".selection-count").textContent = String(this.selected.size);
+		const ids = [...selection].filter((id) => Store.card(id));
+		const allBookmarked = ids.length > 0 && ids.every((id) => Store.item(id).bookmarked);
+		const bookmark = bar.querySelector<HTMLElement>('[data-action="selected-bookmark"]');
+		bookmark?.classList.toggle("active", allBookmarked);
+		bookmark?.setAttribute("aria-pressed", String(allBookmarked));
+		bookmark?.setAttribute(
+			"aria-label",
+			allBookmarked ? copy("web.preview.removeBookmark") : copy("web.app.87aeb7040c82"),
+		);
+		const receiver = bar.querySelector<HTMLElement>(".selection-ai-target");
+		if (receiver) receiver.hidden = !selecting || !this.drag?.active?.moved;
 		if (state.visible === selecting) return;
 		state.visible = selecting;
 		if (selecting) this.railHide?.show();

@@ -4,29 +4,8 @@ import { copy } from "../copy.ts";
 import { type BackupApi, BackupSettings } from "../interactions/backup-settings.tsx";
 import { WelcomeView } from "../interactions/panels-components.tsx";
 
-// Lines per placeholder card; mixed heights keep the masonry columns uneven like a real desk.
-const bootLines = [3, 2, 4, 2, 3, 2];
+export { FeedBoot as CloudBoot } from "../atoms/feed-boot.tsx";
 
-/**
- * Opening the app waits for the session check. Until it answers, the desk stays empty
- * instead of offering a login; after `delay-loading` it shows card-shaped placeholders.
- */
-export function CloudBoot({ visible }: { visible: boolean }) {
-	if (!visible) return <div className="feed-boot" aria-hidden="true" />;
-	return bootLines.map((lines, index) => (
-		// biome-ignore lint/suspicious/noArrayIndexKey: Placeholders are fixed and stateless.
-		<div key={index} className="feed-item feed-card feed-skeleton" aria-hidden="true">
-			<div className="card-body">
-				<div className="skeleton-lines">
-					{Array.from({ length: lines }, (_, line) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: Lines are fixed and stateless.
-						<i key={line} />
-					))}
-				</div>
-			</div>
-		</div>
-	));
-}
 export function CloudWelcome({
 	user,
 	host,
@@ -85,9 +64,6 @@ export function CloudWelcome({
 				<>
 					{user ? (
 						<>
-							<button type="button" className="solid-button" data-action="capture">
-								{copy("web.cloudentry.21dfdf7a86e7")}
-							</button>
 							<button type="button" className="text-link" data-action="welcome-demo">
 								{copy("web.welcome.viewDemo")}
 							</button>

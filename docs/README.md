@@ -36,6 +36,7 @@
 - [Mac 性能追踪与自动化测试](guides/macos-performance.md)
 - [桌面交互架构与验证](guides/desktop-interaction.md)
 - [动画库使用与维护](guides/motion-library.md)
+- [滚动、完成与回弹优化方案](guides/scroll-motion-optimization.md)
 - [V1 三端接口与交接包](guides/handoff.md)
 - [Web 与 PWA 界面优化交接](guides/web-pwa-ui-handoff.md)
 - [Web 与 PWA 界面工作包](guides/web-pwa-ui-packages.md)
@@ -298,3 +299,5 @@
 - [2026-10-24 手机详情动效修复](records/2026-10-24-phone-detail-motion-fixes/README.md)
 
 - [设置开关使用轻弹簧](adr/0071-settings-toggle-spring.md)
+
+- [动画复核后的加载与操作反馈](adr/0072-web-animation-review-refinements.md)

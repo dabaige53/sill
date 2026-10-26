@@ -182,17 +182,7 @@ try {
 	value = await fetch(origin + "/api/local/state").then((r?: any) => r.json());
 	assert.equal(value.state.cards.length, 30);
 	assert.equal(value.state.items["note-01"].note, "旧备注");
-	// Captured links reach the shared repository while retired source metadata stays unchanged.
-	await page.evaluate(() => window.__app.capture("https://example.com/sync 页面收集的链接"));
-	await page.waitForFunction(
-		() => (document.querySelector("#feed-grid") as HTMLElement).dataset.sync === "saved",
-	);
-	value = await fetch(origin + "/api/local/state").then((r?: any) => r.json());
-	assert.ok(
-		value.state.cards.some(
-			(c?: any) => c.url === "https://example.com/sync" && c.title === "页面收集的链接",
-		),
-	);
+	// Retired manual capture does not affect preserved source metadata.
 	assert.deepEqual(value.state.sources, [{ id: "legacy-source", status: "ok", syncedAt: 123 }]);
 	assert.equal(await page.locator('input[type="file"],#import-rings').count(), 0);
 	assert.deepEqual(errors, []);

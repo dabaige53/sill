@@ -136,3 +136,15 @@ test("lost write response keeps the draft and retry cannot overwrite a newer not
 	assert.equal(repo.snapshot().state.items.a.note, "new agent note");
 	assert.equal(sync.pending.length, 1);
 });
+
+test("initial snapshot appears without arrival motion; later snapshots retain update motion", (t) => {
+	const { sync, repo } = fixture(t);
+	sync.app.modalKind = "";
+	const animations: boolean[] = [];
+	sync.app.withFeedAnchor = (_change: () => void, animate: boolean) => animations.push(animate);
+	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: true } }] }));
+	assert.deepEqual(animations, [false]);
+	sync.ready = true;
+	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: false } }] }));
+	assert.deepEqual(animations, [false, true]);
+});

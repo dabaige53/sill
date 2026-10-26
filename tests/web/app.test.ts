@@ -101,6 +101,84 @@ test("action visibility toggles hide and restore only the requested verb", () =>
 	}
 });
 
+for (const phone of [false, true]) {
+	test(`reminder completion and restore retain the open ${phone ? "phone" : "desktop"} preview`, () => {
+		const f = fixture();
+		try {
+			const { app, Store, Panels, w } = f;
+			w.matchMedia = () => ({ matches: phone, addEventListener() {} });
+			const reminder = {
+				id: "reminder-one",
+				type: "reminder",
+				title: "Synthetic reminder",
+				body: "Keep this detail open",
+			};
+			Store.state.cards = [reminder];
+			Store.patch(reminder.id, { bookmarked: true, note: "Keep this note" });
+			app.currentId = reminder.id;
+			app.modalKind = "preview";
+			app.dialog.innerHTML = Panels.preview(app, reminder);
+			w.history.replaceState({ glass: true, prev: "#feed" }, "", "#card/reminder-one");
+			const sheet = app.dialog.querySelector(".preview-sheet");
+			const scroll = app.dialog.querySelector(".sheet-scroll");
+			const button = app.dialog.querySelector(".reminder-check");
+			sheet.classList.add("is-full");
+			scroll.scrollTop = 170;
+			button.focus();
+			let closes = 0;
+			let refreshes = 0;
+			app.closeToDesk = () => closes++;
+			app.refreshCard = () => refreshes++;
+			app.checkReminders = () => {};
+			w.document.body.insertAdjacentHTML("beforeend", '<button id="account">Account</button>');
+
+			for (const done of [true, false]) {
+				app.action(button.dataset.action, reminder.id);
+				assert.equal(Store.item(reminder.id).reminderDone, done);
+				assert.equal(button.dataset.action, done ? "restore-reminder" : "complete-reminder");
+				assert.equal(button.getAttribute("aria-pressed"), String(done));
+				assert.equal(button.querySelector(".check-dot").classList.contains("is-done"), done);
+				assert.equal(!!button.querySelector("svg"), done);
+				assert.equal(app.dialog.open, true);
+				assert.equal(app.dialog.querySelector(".preview-sheet"), sheet);
+				assert.equal(sheet.classList.contains("is-full"), true);
+				assert.equal(scroll.scrollTop, 170);
+				assert.equal(w.document.activeElement, button);
+				assert.equal(w.location.hash, "#card/reminder-one");
+			}
+			assert.equal(closes, 0);
+			assert.equal(refreshes, 2);
+			assert.equal(Store.item(reminder.id).bookmarked, true);
+			assert.equal(Store.item(reminder.id).note, "Keep this note");
+			app.action("dismiss-reminder", reminder.id);
+			assert.equal(closes, 1, "dismiss keeps its existing close behavior");
+		} finally {
+			f.dom.window.close();
+		}
+	});
+}
+
+test("manual capture actions, shortcut and panel no longer create a note", () => {
+	const f = fixture();
+	try {
+		const before = JSON.stringify(f.Store.state.cards);
+		const dialog = f.app.dialog.innerHTML;
+		f.app.action("capture");
+		f.app.action("capture-save");
+		f.app.openPanel("capture");
+		assert.equal(f.app.dialog.innerHTML, dialog);
+		f.app.dialog.open = false;
+		const event = new f.w.KeyboardEvent("keydown", { key: "n", cancelable: true, bubbles: true });
+		f.w.document.addEventListener("keydown", (e) => f.app.key(e));
+		f.app.grid.dispatchEvent(event);
+		assert.equal(event.defaultPrevented, false);
+		assert.equal(f.app.dialog.open, false);
+		assert.equal(JSON.stringify(f.Store.state.cards), before);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("public action routes refresh, reminder aliases, detail navigation and unknown names", () => {
 	const f = fixture();
 	try {
@@ -287,32 +365,6 @@ test("toast pauses elapsed time and a replacement cannot inherit the old countdo
 	}
 });
 
-test("settings toggles animate their knob without fading the panel", () => {
-	const f = fixture();
-	try {
-		const { app, w, Store, Panels } = f;
-		Store.setPref("stack", true);
-		app.modalKind = "settings";
-		app.dialog.innerHTML = Panels.settings(app, "desk");
-		const animations: any[] = [];
-		w.__motionAnimations = animations;
-		app.setPref("stack", false);
-		assert.equal(animations.length, 2);
-		assert.equal(animations[0].options.pseudoElement, "::before");
-		assert.equal(animations[0].options.visualDuration, 0.2);
-		assert.equal(animations[0].options.bounce, 0.2);
-		assert.ok("backgroundColor" in animations[1].frames[0]);
-		assert.equal(animations[1].options.visualDuration, 0.2);
-		assert.equal(animations[0].frames[0].transform, "translateX(20px)");
-		assert.equal(animations[0].frames[1].transform, "none");
-		w.document.documentElement.dataset.inputModality = "keyboard";
-		app.setPref("stack", true);
-		assert.equal(animations.length, 2);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
 test("media opens without body or playback state and ignores obsolete playback actions", () => {
 	const f = fixture();
 	try {
@@ -397,7 +449,6 @@ test("an open card below the feed top tucks the desktop top bar and AI box until
 		let atTop = true;
 		app.desktop = () => true;
 		app.modalToken = 1;
-		app.closeMore = () => {};
 		app.dialog.showModal = () => app.dialog.setAttribute("open", "");
 		app.dialog.close = () => app.dialog.removeAttribute("open");
 		app.dialog.getAnimations = () => [];

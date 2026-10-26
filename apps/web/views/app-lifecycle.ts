@@ -59,37 +59,15 @@ export const appLifecycleMethods = {
 		this.gestures = new Gestures(this);
 		document.addEventListener("click", (e?: TargetEvent<MouseEvent>) => this.click(e));
 		toolbarTips(document);
-		this.grid.addEventListener("contextmenu", (e: MouseEvent) => {
-			const card = (e.target as Element).closest<HTMLElement>("[data-card]");
-			if (!card || this.drag.active || this.drag.pending) return;
-			e.preventDefault();
-			this.more(card.dataset.card);
-		});
-		document.getElementById("selection-bar").addEventListener("contextmenu", (e: MouseEvent) => {
-			if (!this.selected.size || this.drag.active || this.drag.pending) return;
-			e.preventDefault();
-			const trigger =
-				(e.target as Element).closest<HTMLElement>("button") ||
-				document.querySelector<HTMLElement>('[data-action="selected-bookmark"]');
-			this.drag.openMenu([...this.selected], trigger, { x: e.clientX, y: e.clientY });
-		});
 		this.bindStacks();
 		document.addEventListener("input", (e?: TargetEvent<Event>) => this.input(e));
 		document.addEventListener("compositionend", (e?: TargetEvent<Event>) => this.input(e));
 		this.bindKeyboard();
 		document.addEventListener("keydown", (e?: TargetEvent<KeyboardEvent>) => this.key(e));
-		document.addEventListener("paste", (e?: TargetEvent<ClipboardEvent>) => this.paste(e));
 		["pointerdown", "keydown", "wheel", "touchstart"].forEach((type?: string) => {
 			document.addEventListener(type, () => (this.lastActivity = Date.now()), { passive: true });
 		});
 		document.addEventListener("focusin", (e?: TargetEvent<Event>) => {
-			const menu = document.querySelector<HTMLElement>(".card-more-menu");
-			if (
-				menu &&
-				!menu.contains(e.target) &&
-				!e.target.closest?.<HTMLElement>('[data-action="card-more"]')
-			)
-				this.closeMore();
 			if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing"))
 				this.finishInlineEdit();
 			if (e.target.closest?.("#home-search-field")) this.openHomeSearch(true);
@@ -141,7 +119,6 @@ export const appLifecycleMethods = {
 			() =>
 				this.dialog.open ||
 				this.drag?.active ||
-				this.drag?.menu?.open ||
 				(this.desktop() &&
 					(this.homeMenuOpen ||
 						this.aiHeight !== "line" ||
@@ -176,13 +153,12 @@ export const appLifecycleMethods = {
 			},
 			{ passive: true },
 		);
-		this.bindCaptureDrop();
 		this.bindAI();
 		this.themeQuery.addEventListener?.("change", () => this.applyPreferences());
 		this.readTicker = setInterval(() => this.tick(), 1000);
 		if (!location.hash) history.replaceState({ glass: true, prev: null }, "", "#" + this.mode);
-		this.renderCurrent(true);
-		this.route();
+		this.renderCurrent(false);
+		if (!this.initializing) this.route();
 		this.checkReminders();
 		window.__app = this;
 		window.__store = Store; // Deliberate test hooks, no network credentials or private data.
@@ -212,6 +188,10 @@ export const appLifecycleMethods = {
 		const theme = Store.pref("theme"),
 			dark = theme === "dark" || (theme === "system" && this.themeQuery?.matches);
 		document.documentElement.dataset.theme = dark ? "dark" : "light";
+		document.documentElement.style.colorScheme = dark ? "dark" : "light";
+		try {
+			localStorage.setItem("sill-theme", theme);
+		} catch {}
 		const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
 		for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
 			meta.content = canvas;

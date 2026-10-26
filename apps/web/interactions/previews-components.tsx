@@ -28,7 +28,6 @@ import {
 	reminderMark,
 } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
-import { PhoneArticleOutline } from "./reader-layout.tsx";
 
 type PreviewCard = ReturnType<typeof Store.card>;
 type PreviewApp = PlaybackApp & {
@@ -457,7 +456,6 @@ export function articleContent(this: PanelRenderers, c: PreviewCard, reading = t
 			</header>
 			{reading && cover}
 			{c.type === "suggestion" && <WhyDetails card={c} />}
-			{!reading && c.type === "article" && <PhoneArticleOutline body={c.body || ""} />}
 			{c.type !== "suggestion" && <DetailText body={c.body} outline={c.type === "article"} />}
 			{["suggestion", "digest"].includes(c.type) && <RelatedCards card={c} />}
 		</>

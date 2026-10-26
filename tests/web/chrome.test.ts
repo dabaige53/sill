@@ -405,11 +405,13 @@ test("three destinations share the capsule; the home avatar opens settings", () 
 		assert.deepEqual(opened, ["settings"]);
 		assert.equal(app.navKey, "settings");
 		assert.equal(w.document.querySelector("#nav [aria-current=page]").dataset.extra, "home");
-		assert.equal(Panels.settingsGroups[0][0], "add");
+		assert.equal(
+			Panels.settingsGroups.some(([id]) => id === "add"),
+			false,
+		);
 		const page = w.document.createElement("div");
-		page.innerHTML = Panels.settings(app, "add");
-		assert.ok(page.querySelector("#capture-text"));
-		assert.ok(page.querySelector('[data-action="capture-save"]'));
+		page.innerHTML = Panels.settings(app, "desk");
+		assert.equal(page.querySelector('#capture-text,[data-action="capture-save"]'), null);
 		const ai = w.document.createElement("div");
 		ai.innerHTML = Panels.ai();
 		assert.doesNotMatch(ai.textContent, /尚未连接 AI|输入不保存/);

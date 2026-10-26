@@ -3,6 +3,30 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
+test("page startup keeps the disabled refresh ring invisible until a pull begins", () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		const style = f.document.createElement("style");
+		// Reproduce the generic disabled-button rule overriding the ring class.
+		style.textContent = "button:disabled { opacity: 0.4 } .pull-ring { opacity: 0 }";
+		f.document.head.append(style);
+		const ring = f.document.querySelector("#pull-ring");
+		assert.equal(ring.dataset.state, "idle");
+		assert.equal(f.w.getComputedStyle(ring).opacity, "0");
+		f.flush(f.frames);
+		assert.equal(f.w.getComputedStyle(ring).opacity, "0");
+		assert.equal(f.app.refreshes, 0);
+		const target = f.document.querySelector("main p");
+		f.fire(target, "touchstart");
+		f.fire(target, "touchmove", 120, 250);
+		f.flush(f.frames);
+		assert.equal(ring.dataset.state, "pulling");
+		assert.ok(Number(f.w.getComputedStyle(ring).opacity) > 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("desk pull coalesces moves into one frame and measures only at gesture start", () => {
 	const f = fixture({ kind: "desk" });
 	try {

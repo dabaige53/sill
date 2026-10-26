@@ -135,10 +135,11 @@ const MotionEngine: Record<string, any> = {
 			});
 		};
 		document.addEventListener("pointerdown", (event: PointerEvent) => {
+			document.documentElement.dataset.inputModality = "pointer";
 			release();
 			if (event.button !== 0 || !event.isPrimary) return;
 			const target = (event.target as Element).closest<HTMLElement>(
-				".icon-button,.solid-button,.soft-button,.text-button,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring",
+				".icon-button,.solid-button,.soft-button,.text-button,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring,#account.home-account",
 			);
 			if (!target || target.matches(":disabled") || target.closest("[inert]")) return;
 			// Keep task text and the surrounding card still; only the mark acknowledges the press.
@@ -362,6 +363,7 @@ const MotionEngine: Record<string, any> = {
 	flip(el?: any, oldRect?: any, newRect?: any) {
 		this.layoutAnimations.get(el)?.cancel();
 		this.layoutAnimations.delete(el);
+		if (window.innerWidth <= 650) return;
 		const now = newRect || el.getBoundingClientRect(),
 			x = oldRect.left - now.left,
 			y = oldRect.top - now.top;

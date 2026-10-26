@@ -20,29 +20,22 @@ function clearSelection(this: AppController) {
 	this.updateSelection();
 }
 
-function selectionMenu(this: AppController, { el }: ActionContext) {
-	this.drag.openMenu([...this.selected], el);
-}
-
 function selectedAi(this: AppController) {
 	this.openSelectionAI([...this.selected]);
 }
 
 function selectedBookmark(this: AppController) {
 	this.applySelectionAction([...this.selected], "bookmark");
-	this.selected.clear();
 	this.updateSelection();
 }
 
 function selectedLater(this: AppController) {
 	this.applySelectionAction([...this.selected], "later");
-	this.selected.clear();
 	this.updateSelection();
 }
 
 function selectedTag(this: AppController) {
 	const ids = [...this.selected];
-	this.selected.clear();
 	this.updateSelection();
 	this.applySelectionAction(ids, "tag");
 }
@@ -78,7 +71,6 @@ export const selectionActions = {
 	select: select,
 	"select-all": selectAll,
 	"clear-selection": clearSelection,
-	"selection-menu": selectionMenu,
 	"selected-ai": selectedAi,
 	"ai-context-remove": aiContextRemove,
 	"selected-bookmark": selectedBookmark,

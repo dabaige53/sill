@@ -63,7 +63,6 @@ function fixture() {
 	const app = new AppController();
 	app.grid = document.getElementById("feed-grid");
 	app.dialog = document.getElementById("modal");
-	app.closeMore = () => {};
 	app.announce = () => {};
 	app.refreshCard = () => {};
 	app.toast = () => {};
@@ -108,10 +107,6 @@ function fixture() {
 	const move = () => fire("touchmove", source(), { touches: [{ clientX: 150, clientY: 270 }] });
 	const release = () =>
 		fire("touchend", source(), { touches: [], changedTouches: [{ clientX: 150, clientY: 270 }] });
-	const open = () => {
-		selectTwo();
-		app.drag.openMenu(["one", "two"], document.querySelector('[data-action="selected-bookmark"]'));
-	};
 	const key = (value: string, shiftKey = false) =>
 		document.activeElement.dispatchEvent(
 			new w.KeyboardEvent("keydown", { key: value, shiftKey, bubbles: true, cancelable: true }),
@@ -132,7 +127,6 @@ function fixture() {
 		hold,
 		move,
 		release,
-		open,
 		key,
 	};
 }

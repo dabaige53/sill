@@ -32,8 +32,15 @@ export function fixture() {
 	w.structuredClone = structuredClone;
 	const computed = w.getComputedStyle.bind(w);
 	w.getComputedStyle = (el: Element, pseudo?: string) =>
-		pseudo === "::before"
-			? { transform: el.getAttribute("aria-checked") === "true" ? "translateX(20px)" : "none" }
+		pseudo === "::before" || el.classList.contains("toggle-knob")
+			? {
+					transform:
+						(el.classList.contains("toggle-knob") ? el.parentElement : el).getAttribute(
+							"aria-checked",
+						) === "true"
+							? "translateX(20px)"
+							: "none",
+				}
 			: computed(el);
 	w.CSS = { escape: (value: string) => value };
 	const observers: any[] = [];

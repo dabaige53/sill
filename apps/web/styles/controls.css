@@ -703,3 +703,29 @@ body.is-dragging #toast {
 		pointer-events: auto;
 	}
 }
+
+/* Settings switches expose a real thumb for interruptible spring playback. */
+.toggle:has(> .toggle-knob):before {
+	content: none;
+}
+.toggle > .toggle-knob {
+	position: absolute;
+	width: 27px;
+	height: 27px;
+	left: 2px;
+	top: 2px;
+	border-radius: 50%;
+	background: var(--fixed-white);
+	box-shadow: 0 2px 4px var(--fixed-black-15);
+}
+.toggle[aria-checked="true"] > .toggle-knob {
+	transform: translateX(20px);
+}
+#selection-bar [data-action="selected-bookmark"].active,
+#search-selection-bar [data-action="selected-bookmark"].active {
+	color: var(--accent);
+}
+
+.selection-ai-target[hidden] {
+	display: none;
+}

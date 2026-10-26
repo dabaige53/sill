@@ -95,9 +95,10 @@ class FeedLayout {
 				header.style.setProperty("--feed-left", `${el.getBoundingClientRect().left + inset}px`);
 			}
 		}
-		const old = animate
-			? new Map<any, any>(items.map((n?: any) => [n, n.getBoundingClientRect()]))
-			: null;
+		const old =
+			animate && window.innerWidth > 650
+				? new Map<any, any>(items.map((n?: any) => [n, n.getBoundingClientRect()]))
+				: null;
 		// Measure the visible positions first, then remove old transforms before final layout.
 		items.forEach((n: HTMLElement) => {
 			MotionEngine.layoutAnimations.get(n)?.cancel();

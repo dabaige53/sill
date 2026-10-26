@@ -247,7 +247,7 @@
 			]
 		},
 		"boot-skeleton": {
-			"title": "云端打开时的卡片占位",
+			"title": "首次数据读取时的卡片占位",
 			"rule": "handbook/motion.md#其他组件",
 			"tokens": [
 				"delay-loading",

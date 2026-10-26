@@ -23,7 +23,6 @@ import { Store } from "../../apps/web/data/store.ts";
 import { pushRingHTML } from "../../apps/web/interactions/gesture-preview.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 import { AIDockSessionButton, AIDockThread } from "../../apps/web/views/ai-dock.tsx";
-import { cardMenuHTML } from "../../apps/web/views/app-card-actions.ts";
 import { AIDock, HomeTop, Navigation } from "../../apps/web/views/shell.tsx";
 import { authStyles, consentStyles } from "../../server/cloud/auth-page.ts";
 import { consentSummary } from "../../server/cloud/consent-policy.ts";
@@ -110,11 +109,6 @@ const previews: Record<
 			"preview",
 			SeedCards.filter((card) => card.type === "article").slice(0, 3),
 		)}</div>`,
-	},
-	CardMenu: {
-		group: "Cards",
-		height: 280,
-		body: `<div class="card-more-menu" role="group" style="position:relative;inset:auto">${cardMenuHTML(article, Store.item(article.id), false)}</div>`,
 	},
 	IconButton: {
 		group: "Atoms",

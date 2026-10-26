@@ -54,6 +54,7 @@ export function animate(el: any, values: any, options: any = {}) {
 		resolve();
 	};
 	const control = {
+		target: el,
 		frames,
 		options: { ...options, duration: options.duration * 1000 },
 		finished,

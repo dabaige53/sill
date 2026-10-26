@@ -81,12 +81,6 @@
 	background: var(--accent);
 	pointer-events: none;
 }
-.reader-outline-toggle {
-	position: absolute;
-	top: max(var(--space-18), env(safe-area-inset-top));
-	right: calc(var(--space-16) + 2 * var(--hit-target) + var(--space-12));
-	z-index: 5;
-}
 @media (hover: hover) and (pointer: fine) {
 	.reader-outline a:hover {
 		color: var(--ink);
@@ -176,27 +170,9 @@
 	}
 	.is-article-reader.has-outline {
 		left: 0;
-		top: calc(var(--space-64) + var(--hit-target) + var(--space-12) + env(safe-area-inset-top));
 	}
 	.reader-outline {
-		top: calc(var(--space-64) + env(safe-area-inset-top));
-		left: var(--space-20);
-		right: var(--space-20);
-		bottom: auto;
-		width: auto;
-	}
-	.reader-outline h2,
-	.reader-outline-marker {
 		display: none;
-	}
-	.reader-outline-links {
-		display: flex;
-		overflow-x: auto;
-		border: 0;
-	}
-	.reader-outline a {
-		flex-shrink: 0;
-		white-space: nowrap;
 	}
 	#modal.reader:has(.reader-workspace) > .float-bar {
 		left: var(--space-4);
@@ -204,13 +180,6 @@
 	}
 	#modal.reader:has(.reader-workspace) > .float-bar .bar-divider {
 		display: none;
-	}
-	.reader-outline-toggle {
-		top: auto;
-		bottom: max(var(--space-16), env(safe-area-inset-bottom));
-		right: var(--space-16);
-		background: var(--card);
-		box-shadow: var(--shadow-float);
 	}
 	.media-tab-header {
 		flex-wrap: wrap;
@@ -221,34 +190,5 @@
 	}
 	.media-lines button {
 		overflow-wrap: anywhere;
-	}
-}
-.phone-article-outline {
-	display: none;
-}
-@media (max-width: 650px) {
-	.phone-article-outline {
-		display: block;
-	}
-	.phone-article-outline summary {
-		cursor: pointer;
-		min-height: var(--hit-target);
-		align-content: center;
-		font-size: var(--text-body);
-		font-weight: 500;
-	}
-	.phone-article-outline nav {
-		display: flex;
-		flex-direction: column;
-	}
-	.phone-article-outline a {
-		min-height: var(--hit-target);
-		align-content: center;
-		color: var(--muted);
-		font-size: var(--text-control);
-		text-decoration: none;
-	}
-	.preview-sheet .preview-full [id^="reader-section-"] {
-		scroll-margin-top: var(--space-64);
 	}
 }

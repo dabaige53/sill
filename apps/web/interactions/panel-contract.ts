@@ -64,5 +64,4 @@ export interface PanelRenderers {
 	): ReactNode;
 	confirm(title?: string, detail?: string, actions?: ReactNode): ReactNode;
 	ai(app?: AIPageState): ReactNode;
-	capture(app?: unknown): ReactNode;
 }

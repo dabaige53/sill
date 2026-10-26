@@ -17,27 +17,8 @@ import { HomeSearchField } from "./home-search-field.tsx";
  * Desktop: brand, a ⌄ tab menu, the search field and the avatar on one 40px line (ADR 0049).
  */
 export function HomeTop() {
-	const header = useRef<HTMLElement>(null);
-	useLayoutEffect(() => {
-		const node = header.current;
-		if (!node) return;
-		if (matchMedia("(min-width: 651px)").matches) {
-			MotionEngine.change(
-				node,
-				() => node.classList.remove("is-entering"),
-				MotionEngine.time("dur-reveal"),
-				{ easing: MotionEngine.curve("ease-reveal") },
-			);
-		} else {
-			node.classList.remove("is-entering");
-		}
-		return () => {
-			MotionEngine.cancel(node);
-			node.style.visibility = "";
-		};
-	}, []);
 	return (
-		<header ref={header} id="home-top" className="home-top is-entering">
+		<header id="home-top" className="home-top">
 			<span className="home-edge-blur" aria-hidden="true" />
 			<div className="home-heading">
 				<div className="home-brand">
@@ -367,10 +348,6 @@ export function WorkspaceShell() {
 			</div>
 			<NewContentNotice />
 			<div className="scroll-edge" id="scroll-edge" aria-hidden="true" />
-			<div className="drop-hint" id="drop-hint" hidden>
-				<span>{copy("web.app.2c8fe7be9774")}</span>
-				<small>{copy("web.app.4cb50c8338fe")}</small>
-			</div>
 			<dialog id="modal" aria-labelledby="modal-title" />
 			<ToastSurface />
 			<div className="sr-only" id="announcer" aria-live="polite" />

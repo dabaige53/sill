@@ -9,6 +9,8 @@ export const gesturePullMethods = {
 		ring.id = "pull-ring";
 		ring.className = "pull-ring glass";
 		ring.disabled = true;
+		// Disabled button styling must not reveal the idle ring during page startup.
+		ring.style.opacity = "0";
 		ring.setAttribute("aria-hidden", "true");
 		ring.innerHTML =
 			'<svg class="pull-progress" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" pathLength="100"/></svg><svg class="pull-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><svg class="pull-retry" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 6"/></svg>';
@@ -237,7 +239,7 @@ export const gesturePullMethods = {
 					this.app.dialog.open ||
 					e.touches.length > 1 ||
 					this.fromField(e) ||
-					e.target.closest?.("#dock,#toast,#pull-ring,.card-more-menu,.deck")
+					e.target.closest?.("#dock,#toast,#pull-ring,.deck")
 				)
 					return;
 				// Every tap at the top passes here; measure only once a pull really starts.

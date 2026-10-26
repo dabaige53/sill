@@ -1,3 +1,4 @@
+import { animate, type AnimationPlaybackControls } from "motion";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import type { Gestures } from "./gestures.ts";
@@ -7,6 +8,95 @@ import { deferReadingRefresh } from "./reading-feedback.ts";
 /** The read-end ring; shared by the reader and the design-system previews. */
 export const pushRingHTML =
 	'<svg class="arc" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="8" stroke-dasharray="50.27" stroke-dashoffset="50.27"/></svg><svg class="tick" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/** Physics and displacement from motion-rebound-demo.html's balanced preset. */
+function bindDesktopRebound(
+	scroll: HTMLElement,
+	current: () => boolean,
+	fromField: (event: WheelEvent) => boolean,
+	readEnd: () => boolean,
+) {
+	let animation: AnimationPlaybackControls | null = null;
+	let offset = 0,
+		distance = 0,
+		timer = 0,
+		previous = 0,
+		lastAt = 0;
+	let released = false;
+	const setOffset = (y: number) => {
+		offset = y;
+		scroll.style.transform = y ? `translate3d(0,${y.toFixed(3)}px,0)` : "";
+	};
+	const stop = () => {
+		if (!animation) return;
+		const drawn = getComputedStyle(scroll).transform;
+		animation.stop();
+		animation = null;
+		// Capture the actual drawn frame only when a new gesture takes over.
+		const parts = drawn.match(/matrix(3d)?\(([^)]+)\)/);
+		if (parts) offset = Number(parts[2].split(",")[parts[1] ? 13 : 5]) || 0;
+		setOffset(offset);
+	};
+	const release = () => {
+		clearTimeout(timer);
+		if (released || !current()) return;
+		released = true;
+		if (Math.abs(offset) < 0.25) return setOffset(0);
+		// Exactly one spring owns the return; no CSS transition or drag bounce.
+		const playback = animate(
+			scroll,
+			{ y: [offset, 0] },
+			{
+				type: "spring",
+				stiffness: 300,
+				damping: 34,
+				mass: 0.9,
+				velocity: 0,
+				restSpeed: 0.5,
+				restDelta: 0.5,
+				onComplete: () => {
+					if (animation !== playback) return;
+					animation = null;
+					setOffset(0);
+				},
+			},
+		);
+		animation = playback;
+	};
+	scroll.addEventListener(
+		"wheel",
+		(event: WheelEvent) => {
+			if (!current() || fromField(event) || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+			const delta = event.deltaY * (event.deltaMode === 1 ? 16 : 1);
+			if (
+				delta <= 0 ||
+				scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop > 2 ||
+				readEnd()
+			) {
+				release();
+				previous = 0;
+				return;
+			}
+			if (event.cancelable) event.preventDefault();
+			const fresh = !previous || event.timeStamp - lastAt > 160 || delta > previous * 1.25 + 2;
+			const slowing = previous > 0 && delta < previous * 0.9;
+			previous = delta;
+			lastAt = event.timeStamp;
+			if (fresh) {
+				stop();
+				released = false;
+				distance = (-160 / 0.15) * Math.log(1 - Math.min(Math.abs(offset) / 160, 0.999));
+			} else if (released) return;
+			else if (slowing) return release();
+			distance += delta;
+			// Mirror the reference's downward pull at the bottom edge.
+			setOffset(-160 * (1 - Math.exp((-distance * 0.15) / 160)));
+			clearTimeout(timer);
+			timer = window.setTimeout(release, 32);
+		},
+		{ passive: false },
+	);
+}
 
 export const gesturePreviewMethods = {
 	setPreviewFull(this: Gestures, surface: HTMLElement, full: boolean) {
@@ -194,11 +284,19 @@ export const gesturePreviewMethods = {
 		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
 		if (!scroll) return;
 		const token = this.app.modalToken;
+		if (!this.phone.matches) {
+			bindDesktopRebound(
+				scroll,
+				() => token === this.app.modalToken && surface.isConnected,
+				(event) => this.fromField(event),
+				() => !!surface.querySelector(".push-ring"),
+			);
+			return;
+		}
 		let touch: { x: number; y: number } | null = null;
 		let distance = 0,
 			timer = 0;
 		const current = () => token === this.app.modalToken && surface.isConnected;
-		// Pulling down at the top moves the sheet; pushing on at the end belongs to the read-end ring when it is on.
 		const edge = (delta: number) =>
 			delta < 0 &&
 			!surface.querySelector(".push-ring") &&

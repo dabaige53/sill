@@ -64,20 +64,17 @@ async function openSelection(page: any) {
 	await page.evaluate(() => {
 		window.__app.select("motion-0", { add: true });
 		window.__app.select("motion-1", { add: true });
-		window.__app.drag.openMenu(["motion-0", "motion-1"]);
 	});
 }
 async function material(page: any) {
 	return page.evaluate(() => {
-		const menu = document.querySelector(".selection-options"),
-			dialog = document.querySelector("#selection-menu"),
+		const menu = document.querySelector("#selection-bar"),
 			style = getComputedStyle(menu),
 			lens = getComputedStyle(document.querySelector(".nav-lens"));
 		return {
 			background: style.backgroundColor,
 			blur: style.backdropFilter,
 			shadow: style.boxShadow,
-			backdrop: getComputedStyle(dialog, "::backdrop").backdropFilter,
 			lensBackground: lens.backgroundColor,
 			lensShadow: lens.boxShadow,
 		};

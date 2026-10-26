@@ -73,7 +73,6 @@ export async function runMaterialFocus({
 			const result = await material(page);
 			assert.equal(result.background, "rgb(255, 255, 255)");
 			assert.equal(result.blur, "none");
-			assert.equal(result.backdrop, "none");
 			assert.match(result.shadow, /0px 0px 0px 1px/);
 			assert.equal(result.lensBackground, "rgb(240, 240, 242)");
 		},

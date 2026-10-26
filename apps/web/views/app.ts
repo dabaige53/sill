@@ -45,11 +45,10 @@ export type DetailPosition = {
 };
 
 class AppController {
+	initializing = false;
 	declare startInlineEdit: AppControllerMethods["startInlineEdit"];
 	declare saveInlineEdit: AppControllerMethods["saveInlineEdit"];
 	declare finishInlineEdit: AppControllerMethods["finishInlineEdit"];
-	declare capture: AppControllerMethods["capture"];
-	declare bindCaptureDrop: AppControllerMethods["bindCaptureDrop"];
 	declare loadDemo: AppControllerMethods["loadDemo"];
 	declare setPref: AppControllerMethods["setPref"];
 	declare replacePanelContent: AppControllerMethods["replacePanelContent"];
@@ -60,8 +59,6 @@ class AppController {
 	declare setFlag: AppControllerMethods["setFlag"];
 	declare syncPreviewButtons: AppControllerMethods["syncPreviewButtons"];
 	declare toggleTask: AppControllerMethods["toggleTask"];
-	declare closeMore: AppControllerMethods["closeMore"];
-	declare more: AppControllerMethods["more"];
 	declare setOffline: AppControllerMethods["setOffline"];
 	declare checkReminders: AppControllerMethods["checkReminders"];
 	declare paintPending: AppControllerMethods["paintPending"];
@@ -117,7 +114,6 @@ class AppController {
 	declare action: AppControllerMethods["action"];
 	declare repaintSearch: AppControllerMethods["repaintSearch"];
 	declare input: AppControllerMethods["input"];
-	declare paste: AppControllerMethods["paste"];
 	declare key: AppControllerMethods["key"];
 	declare init: AppControllerMethods["init"];
 	declare bindDialog: AppControllerMethods["bindDialog"];

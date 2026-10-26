@@ -79,3 +79,13 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fixture.ts`；`search-state.test.ts` 与 `search-desktop.test.ts` 共用 `search-state-fixture.ts`；`visibility-motion.test.ts` 与 `detail-motion.test.ts` 共用 `visibility-motion-fixture.ts`。辅助文件只提供合成环境，由测试入口加载。
 
 `e2e/browser.ts` 将内置视频示例的精确封面地址替换为合成图片；其他意外外网请求仍中止并使场景失败。
+
+`web/reader-outline.test.ts` 使用合成 DOM 检查鼠标与键盘目录立即定位、目录常显且无切换按钮；`web/layout.test.ts` 和 `web/visibility-motion.test.ts` 检查手机卡片重排与顶部栏首次显示。均为非浏览器检查，不代替真实页面验收。
+
+动画第一、第二批：`app.test.ts` 覆盖提醒详情保留、头像按压、开关滑块和手动记录入口移除；`selection.test.ts` 及其辅助文件覆盖菜单移除、批量取消收藏、拖动目标显隐；`gesture-preview.test.ts` 覆盖桌面边缘复位时长。已有浏览器脚本已同步删除入口的预期，本轮未运行。
+
+动画复核调整：`toggle-motion.test.ts` 覆盖未变化开关重绘与反向接续；`gesture-preview.test.ts` 覆盖可中断回弹；`tests/server/local-sync.test.ts` 区分首次数据无入场与后续更新；多选测试覆盖操作后保留胶囊及拖动时原位 AI 接收框切换。
+
+`web/local-launch.test.ts` 检查快慢本地启动均保留页面框架、只在卡片区等待数据、定时占位清理和首次卡片只显示一次，并检查 HTML 启动前的主题恢复。合成 DOM 不代替真实网页刷新验收。
+
+设置按钮按压与开关反馈的控制器检查位于 `web/control-feedback.test.ts`，共用 `web/app-fixture.ts`；公共操作路由继续由 `web/app.test.ts` 覆盖。

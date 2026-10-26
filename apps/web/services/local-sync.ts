@@ -376,7 +376,7 @@ const LocalSync: Record<string, any> = {
 		if (!changed) return;
 		app.feedNow = Date.now();
 		app.applyPreferences();
-		if (!app.editingId) app.withFeedAnchor(() => {}, true);
+		if (!app.editingId) app.withFeedAnchor(() => {}, this.ready && !app.initializing);
 		if (app.modalKind === "settings") app.repaintSettings();
 		if (app.modalKind === "preview" && !app.sheetLeaving) {
 			const card = Store.card(app.currentId);

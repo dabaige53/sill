@@ -29,7 +29,6 @@ const names = [
 	"SearchField",
 	"Navigation",
 	"AICompose",
-	"CardMenu",
 	"FeedCard",
 	"StackCard",
 	"Dialog",

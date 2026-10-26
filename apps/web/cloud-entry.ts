@@ -40,6 +40,7 @@ window.__QG_RUNTIME__ = false;
 Store.load = function () {
 	this.state = this.fresh();
 	this.state.preferences.onboarded = true;
+	this.state.preferences.theme = document.documentElement.dataset.themePreference || "system";
 	return this.state;
 };
 Store.save = () => {};
@@ -177,10 +178,7 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
 	}
-	if (name === "capture") {
-		editCloud();
-		return;
-	}
+	if (name === "capture" || name === "capture-save") return;
 	if (name === "resume-draft") {
 		editCloud(id === "new" ? null : id);
 		return;
@@ -223,7 +221,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 		"pref-toggle",
 		"demo",
 		"welcome-demo",
-		"capture-save",
 	];
 	if (
 		writes.includes(name) &&
@@ -299,10 +296,7 @@ app.openPanel = (kind?: any, ...args: any[]) => {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
 	}
-	if (kind === "capture") {
-		editCloud();
-		return;
-	}
+	if (kind === "capture") return;
 	return localOpenPanel(kind, ...args);
 };
 app.cloudSavedAccount = true;
@@ -449,10 +443,6 @@ const bootTimer = window.setTimeout(() => {
 	if (!Cloud.booting || Cloud.user || window.__SILL_HOST__) return;
 	Cloud.bootVisible = true;
 	app.renderCurrent(false);
-	for (const node of app.grid.querySelectorAll<HTMLElement>(".feed-skeleton"))
-		MotionEngine.animate(node, [{ opacity: 0 }, { opacity: 1 }], {
-			duration: MotionEngine.time("fast"),
-		});
 }, MotionEngine.time("delay-loading"));
 if (!window.__SILL_HOST__) app.grid.setAttribute("aria-busy", "true");
 void loadCloud({ initial: true }).finally(() => {

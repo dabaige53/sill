@@ -11,19 +11,22 @@ function Action({ glyph, label, action }: { glyph: string; label: string; action
 }
 export function SelectionAI() {
 	return (
-		<button
-			type="button"
+		<div
 			className="selection-ai-target glass"
-			data-action="selected-ai"
-			aria-label={copy("web.selection.aiOpen")}
+			hidden
+			role="region"
+			aria-label={copy("web.ai.dock")}
 		>
-			<span className="selection-ai-wave" aria-hidden="true">
-				<i />
-				<i />
-				<i />
-			</span>
-			<span data-ai-label="">{copy("web.selection.aiDrop")}</span>
-		</button>
+			<Icon name="chat" size={20} />
+			<input
+				className="selection-ai-input"
+				readOnly
+				tabIndex={-1}
+				aria-label={copy("web.ai.dock")}
+				placeholder={copy("web.ai.dockPlaceholder")}
+			/>
+			<Icon name="up" size={20} />
+		</div>
 	);
 }
 // @design selection-bar

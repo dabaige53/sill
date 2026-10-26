@@ -664,58 +664,13 @@ button.ref:active {
 	opacity: 0.85;
 }
 
-/* The more button: hidden at rest, a glass circle with bold dots on hover or focus.
-   It stays focusable; touch screens keep it visible (responsive.css). */
+/* Card-level actions share the top-right corner. */
 .card-actions {
 	position: absolute;
 	right: 12px;
 	top: 12px;
 	display: flex;
 	z-index: 3;
-}
-.card-more-trigger {
-	width: 32px;
-	height: 32px;
-	min-width: 32px;
-	color: var(--ink);
-	background: var(--glass);
-	border: 1px solid var(--fixed-white-72);
-	box-shadow: 0 2px 8px var(--fixed-black-8);
-	opacity: 0;
-	pointer-events: none;
-}
-.card-more-trigger .icon {
-	width: 16px;
-	height: 16px;
-	stroke-width: 2.4;
-}
-.card-more-trigger:before {
-	content: "";
-	position: absolute;
-	inset: -6px;
-}
-@media (hover: hover) and (pointer: fine) {
-	.feed-card:hover .card-more-trigger {
-		opacity: 1;
-		pointer-events: auto;
-	}
-}
-.feed-card:focus-within .card-more-trigger,
-.feed-card.tools-open .card-more-trigger {
-	opacity: 1;
-	pointer-events: auto;
-}
-@media (hover: hover) and (pointer: fine) {
-	.card-more-trigger:hover {
-		background: var(--card);
-	}
-}
-.feed-card.tools-open .card-more-trigger {
-	background: var(--card);
-}
-.feed-card.tools-open {
-	overflow: visible;
-	z-index: 6;
 }
 /* Selection stays on the original card. No corner checkmark or lifted copy. */
 .selection-surface.is-selecting .feed-card .card-actions {
@@ -775,4 +730,21 @@ button.ref:active {
 		overflow: visible;
 		text-overflow: clip;
 	}
+}
+
+/* @design boot-skeleton
+ * Launch placeholders: card shells with still lines. They take no input and leave the feed end hidden. */
+.feed-skeleton {
+	pointer-events: none;
+	box-shadow: none;
+}
+.feed-skeleton .skeleton-lines {
+	margin-bottom: 0;
+}
+.feed-skeleton .skeleton-lines i:first-child {
+	height: var(--space-16);
+	width: 72%;
+}
+main:has(.feed-boot, .feed-skeleton) .feed-end {
+	display: none;
 }

@@ -410,6 +410,10 @@
 	text-align: left;
 	border-top: 1px solid var(--line-card);
 }
+.detail-related .detail-row:is(:hover, :active) {
+	background: transparent;
+	box-shadow: none;
+}
 .detail-related .detail-row > span:not(.row-icon) {
 	flex: 1;
 }

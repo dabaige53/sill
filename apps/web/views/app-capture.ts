@@ -7,10 +7,8 @@ import { copy } from "../copy.ts";
 import { demoBase, SeedCards, SeedItems } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
-import { Capture } from "../services/capture.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
-import type { TargetEvent } from "./app-types.ts";
 import { renderContent } from "./react-renderer.ts";
 import { repaintSettings, setPref } from "./settings-controller.ts";
 
@@ -59,51 +57,6 @@ export const appCaptureMethods = {
 		node?.classList.remove("is-editing");
 		this.refreshCard(id);
 		this.layout.schedule(false);
-	},
-	capture(this: AppController, text?: string): Card | null {
-		const card = Capture.capture(text);
-		if (!card) return null;
-		const { fresh } = Capture.dedupe([card]);
-		if (!fresh.length) {
-			this.toast(copy("web.app.17ebeb500554"));
-			return null;
-		}
-		this.withFeedAnchor(() => {
-			Store.insert(fresh);
-		}, true);
-		return card;
-	},
-	bindCaptureDrop(this: AppController) {
-		let depth = 0;
-		const hint = document.getElementById("drop-hint");
-		const isCapture = (e?: DragEvent) =>
-			!e.dataTransfer?.types?.includes("Files") &&
-			[...(e.dataTransfer?.types || [])].some((t) => t === "text/uri-list" || t === "text/plain");
-		document.addEventListener("dragenter", (e?: TargetEvent<DragEvent>) => {
-			if (!isCapture(e) || this.drag.active) return;
-			depth++;
-			document.body.classList.add("is-dropping");
-			hint.hidden = false;
-		});
-		document.addEventListener("dragleave", () => {
-			depth = Math.max(0, depth - 1);
-			if (!depth) {
-				document.body.classList.remove("is-dropping");
-				hint.hidden = true;
-			}
-		});
-		document.addEventListener("dragover", (e?: TargetEvent<DragEvent>) => {
-			if (isCapture(e)) e.preventDefault();
-		});
-		document.addEventListener("drop", (e?: TargetEvent<DragEvent>) => {
-			if (!isCapture(e)) return;
-			e.preventDefault();
-			depth = 0;
-			document.body.classList.remove("is-dropping");
-			hint.hidden = true;
-			const text = e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
-			if (text) this.capture(text);
-		});
 	},
 	loadDemo(this: AppController) {
 		Store.state.preferences.onboarded = true;
