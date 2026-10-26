@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>播客详情 · 桌面</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0066cc;text-decoration:none}a:hover{color:#0057ad}
+</style>
+</helmet>
+<div style="width: 1280px; height: 1640px; box-sizing: border-box; background: #e4e4e8; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; color: #1d1d1f; display: flex; justify-content: center; align-items: flex-start; padding: 40px 0; position: relative">
+  <article style="width: 860px; box-sizing: border-box; background: #ffffff; border-radius: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 30px 90px rgba(0,0,0,0.18); padding: 20px 20px 120px; display: flex; flex-direction: column">
+
+    <div style="display: flex; justify-content: flex-end; align-items: center">
+      <button type="button" aria-label="关闭" title="关闭" style="width: 44px; height: 44px; border: 0; border-radius: 22px; background: #f0f0f2; color: #1d1d1f; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></button>
+    </div>
+
+    <div style="padding: 20px 60px 0; display: flex; flex-direction: column">
+      <header style="display: flex; gap: 32px; align-items: stretch">
+        <div style="width: 232px; height: 232px; flex-shrink: 0; border-radius: 22px; background: #d6dde5; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; box-shadow: 0 2px 5px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.07)">
+          <span style="font-size: 12px; font-weight: 600; color: #3f4b57; letter-spacing: 0.04em">不明白播客</span>
+          <span style="font-size: 34px; line-height: 1.12; font-weight: 800; color: #26313c">慢下来<br>的工具</span>
+          <span style="font-size: 12px; color: #3f4b57; font-variant-numeric: tabular-nums">EP 212</span>
+        </div>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; padding-bottom: 4px">
+          <div style="font-size: 13px; font-weight: 600; color: #636366; font-variant-numeric: tabular-nums">10月20日 · 第 212 期</div>
+          <h1 style="margin: 8px 0 0; font-size: 34px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em">慢下来的工具：通知越少，用得越久</h1>
+          <a href="https://example.com" style="margin-top: 16px; display: flex; align-items: center; gap: 10px; font-size: 15px">
+            <span style="width: 28px; height: 28px; border-radius: 7px; background: #d6dde5; display: flex; align-items: center; justify-content: center; color: #3f4b57"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="2.4" fill="currentColor"></circle><path d="M8 15.5a6 6 0 1 1 8 0M12 13.5v6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></span>
+            <span style="color: #636366">不明白播客 · 袁一</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>
+          </a>
+          <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px">
+            <span style="padding: 6px 12px; border-radius: 999px; background: #f0f0f2; font-size: 13px">#产品设计</span>
+            <span style="padding: 6px 12px; border-radius: 999px; background: #f0f0f2; font-size: 13px">#注意力</span>
+            <span style="padding: 6px 12px; border-radius: 999px; background: #f0f0f2; font-size: 13px">#工具</span>
+          </div>
+        </div>
+      </header>
+
+      <div aria-label="时长记录" style="margin-top: 28px; display: flex; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 14px; color: #636366; font-variant-numeric: tabular-nums">
+        <span style="display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"></path><rect x="3" y="14" width="4" height="6" rx="1.5"></rect><rect x="17" y="14" width="4" height="6" rx="1.5"></rect></svg>收听 <b style="color: #1d1d1f; font-weight: 600">30:41</b> / 72:30</span>
+      </div>
+
+      <div style="max-width: 640px; display: flex; flex-direction: column">
+        <p style="margin: 24px 0 0; font-size: 17px; line-height: 1.75">从一个只让你一次写一张卡的笔记应用说起，聊通知、留存和注意力：为什么提醒越少，人反而越愿意主动回来；把所有提醒关掉一周之后，打开次数和停留时间各自发生了什么变化。</p>
+
+        <h2 style="margin: 44px 0 6px; font-size: 22px; font-weight: 800">章节</h2>
+        <div style="display: flex; gap: 20px; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 16px"><span style="width: 48px; flex-shrink: 0; color: #636366; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">00:00</span><span>开场：为什么想聊「慢」</span></div>
+        <div style="display: flex; gap: 20px; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 16px"><span style="width: 48px; flex-shrink: 0; color: #636366; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">08:12</span><span>一次只写一张卡</span></div>
+        <div style="display: flex; gap: 20px; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 16px"><span style="width: 48px; flex-shrink: 0; color: #636366; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">21:40</span><span>通知越少，用得越久</span></div>
+        <div style="display: flex; gap: 20px; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 16px"><span style="width: 48px; flex-shrink: 0; color: #636366; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">44:05</span><span>把提醒关掉一周</span></div>
+        <div style="display: flex; gap: 20px; padding: 13px 0; font-size: 16px"><span style="width: 48px; flex-shrink: 0; color: #636366; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">61:20</span><span>听众来信</span></div>
+
+        <h2 style="margin: 44px 0 0; font-size: 22px; font-weight: 800">文字稿</h2>
+        <div style="margin-top: 4px; font-size: 13px; color: #636366">节选</div>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 16px; font-family: 'Noto Serif SC', 'Songti SC', serif; font-size: 18px; line-height: 1.85">
+          <p style="margin: 0">我一开始用它的时候其实很不习惯，因为它一次只让你写一张卡。</p>
+          <p style="margin: 0">后来我发现，正是因为通知少了，我才愿意每天打开它。它不催你，你反而会自己回来。</p>
+          <p style="margin: 0">很多产品把通知当成留存的手段，但通知其实是在花你的注意力。注意力花多了，人就会想关掉它，甚至卸载它。</p>
+        </div>
+
+        <h2 style="margin: 44px 0 6px; font-size: 22px; font-weight: 800">信息</h2>
+        <div style="display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px"><span style="color: #636366">节目</span><span>不明白播客</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px"><span style="color: #636366">主持人</span><span>袁一</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 15px"><span style="color: #636366">发布</span><span style="font-variant-numeric: tabular-nums">2026年10月20日</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 13px 0; font-size: 15px"><span style="color: #636366">时长</span><span>72 分钟</span></div>
+      </div>
+    </div>
+  </article>
+  <div role="group" aria-label="卡片操作" style="position: absolute; left: 50%; bottom: 98px; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 4px 6px; border-radius: 28px; background: rgba(255,255,255,0.82); box-shadow: 0 2px 6px rgba(16,24,40,0.05), 0 12px 32px rgba(16,24,40,0.09)">
+    <button type="button" aria-label="收藏" title="收藏" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: transparent; color: #1d1d1f; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 20.5v-15a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v15L12 16.5Z"></path><path d="M10.5 8h3"></path></svg></button>
+    <button type="button" aria-label="标签" title="标签" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: transparent; color: #1d1d1f; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h9l6 6.5-6 6.5h-9a2 2 0 0 1-2-2Z"></path><path d="M7.5 12h2"></path></svg></button>
+    <button type="button" aria-label="稍后读" title="稍后读" style="width: 40px; height: 40px; border: 0; border-radius: 20px; background: transparent; color: #1d1d1f; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="8" width="8" height="8.5" rx="2.5"></rect><rect x="13.5" y="8" width="8" height="8.5" rx="2.5"></rect><path d="M10.5 11.5h3M2.5 10 4 5.5M21.5 10 20 5.5"></path></svg></button>
+    <span style="width: 1px; height: 20px; margin: 0 6px; background: rgba(0,0,0,0.12)"></span>
+    <a href="https://example.com" aria-label="去原文" title="去原文" style="width: 40px; height: 40px; border-radius: 20px; color: #0066cc; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 4.5h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-4M14 4.5h5.5V10M19.5 4.5l-8 8"></path></svg></a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1640}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
