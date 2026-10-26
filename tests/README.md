@@ -33,6 +33,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | 共享约定 | `npm run test:contracts` | 合法、非法与旧来源迁移样例；纯合成文件，验证读不改写和未知字段保留 |
 | 技能示例与 MCP 字段一致 | `node --import tsx --test tests/server/mcp-guidance.test.ts` | 直接读取技能 JSON 示例，通过隔离 MCP 创建、重读、更新、批量与重复请求；检查字段目录与实时工具定义一致，不访问线上 |
 | 明确字段、MCP 和数据库一致 | `npm test`（`server/explicit-card-fields.test.ts`） | 3.0.0 字段、完整与局部写入、未知扩展、旧 meta 拒绝、日期精度、时长清空及过期防护；隔离 PGlite / HTTP / MCP，不操作线上 |
+| 刷新手势 | `node --import tsx --test tests/web/gesture-refresh.test.ts` | 合成输入：刷新触发、取消、忙碌锁和输入归属；从通用手势测试独立拆分 |
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |
 | 动画库局部组件 | `node --import tsx --test tests/web/motion-library.test.ts`；已纳入 `test:core` | 登记来源、30 个示例与封面挂载、合成状态与存储隔离、任务/设置/菜单/排序/搜索/阅读/拖动/刷新/AI 框；使用动画边界替身，不代替浏览器与原生视觉验收 |
 | 浏览器交互与布局 | `npm run test:browser`、`npm run test:local-browser`、`npm run test:navigation-recovery` | 按改动选择；输出放被忽略的 `artifacts/` |
@@ -47,7 +48,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 真实 Tab、CDP touchCancel、迟到关闭、拖动层级、工具条延迟、菜单入场中断、提示替换与详情反向切换、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界；不代替 iPhone 系统菜单与主屏幕实测 |
 | PWA 极端内容交互预览 | `npm run build && node tests/e2e/pwa-stress-preview.ts` | 隔离随机端口；Demo／Worst case／Empty／One／1,000 rows，宽度、主题与文字切换；`pwa-stress-fixture.ts` 校验合成卡片，不读取本地产品数据，不自动启动浏览器；200% 仅为内容字号压力条件 |
-| 阅读展开与触摸归属 | `node --import tsx --test tests/web/gestures.test.ts tests/web/gesture-preview.test.ts tests/web/gesture-surfaces.test.ts` | 合成触摸、计时器和绘制帧：按住不展开、停稳展开、普通点击、取消、多指、旧面板回调、横向内容与控件、每帧合并；不代表真机性能 |
+| 阅读展开与触摸归属 | `node --import tsx --test tests/web/motion-sheet.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts tests/web/gesture-surfaces.test.ts` | 合成尺寸、触摸、计时器和绘制帧：按住不展开、松手展开、圆角裁剪与安全区衔接、反向中断、普通点击、取消、多指、旧面板回调、横向内容与控件、每帧合并；不代表真机性能 |
 | 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、隐藏偏好和生成组件包的固定深色环境；不代替真机 |
 | 卡片操作设置示例 | `npm run build && node tests/e2e/card-actions-settings-browser.ts` | 三宽度、浅深色；九个示例、读屏说明、开关名称与焦点、末项可滚动到达、仅修改指定偏好，文章三视图同一字段和末尾备注框，不修改来源卡片 |
 | 主页五分栏 | `npm run build && node tests/e2e/home-tabs-browser.ts` | 320/390/1440 浅深色与 1920 宽屏；桌面对齐、五个筛选结果、单个当前项、搜索条件隔离、切换后恢复阅读位置且导航保持可见、来源卡片不变 |

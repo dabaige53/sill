@@ -242,247 +242,6 @@ test("a toast swipe completion cannot hide a newer result", async () => {
 	}
 });
 
-test("desk pull coalesces moves into one frame and measures only at gesture start", () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		let reads = 0;
-		const original = f.w.getComputedStyle;
-		f.w.getComputedStyle = (...args: any[]) => {
-			reads++;
-			return original(...args);
-		};
-		const target = f.document.querySelector("main p");
-		f.fire(target, "touchstart");
-		for (let i = 1; i <= 20; i++) f.fire(target, "touchmove", 120, 200 + i * 3);
-		assert.equal(reads, 1);
-		assert.equal(f.frames.size, 1);
-		assert.equal(f.document.querySelector("main").style.translate, "");
-		f.flush(f.frames);
-		assert.equal(f.document.querySelector("main").style.translate, "0 29px");
-		assert.equal(reads, 1, "paint must not read layout after writing translate");
-		f.fire(target, "touchcancel");
-		assert.equal(f.frames.size, 0);
-		assert.equal(f.document.querySelector("main").style.translate, "");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("wheel pull claims only a vertical top-edge gesture", () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		const wheel = (deltaY: number, deltaX = 0) => {
-			const event = new f.w.WheelEvent("wheel", { deltaY, deltaX, cancelable: true });
-			f.w.dispatchEvent(event);
-			return event.defaultPrevented;
-		};
-		assert.equal(wheel(30), false);
-		assert.equal(wheel(-30, 50), false);
-		assert.equal(wheel(-30), true);
-		f.dialog.open = true;
-		assert.equal(wheel(-30), false);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-function mousePull(
-	f: ReturnType<typeof fixture>,
-	type: string,
-	y = 200,
-	target = f.document.querySelector("main p"),
-) {
-	const event = new f.w.MouseEvent(type, {
-		bubbles: true,
-		cancelable: true,
-		clientX: 120,
-		clientY: y,
-		button: 0,
-		buttons: type === "pointerup" ? 0 : 1,
-	});
-	Object.assign(event, { pointerType: "mouse", pointerId: 7 });
-	target.dispatchEvent(event);
-}
-
-test("mouse refresh follows the next frame, holds without loading, and commits once on release", () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		mousePull(f, "pointerdown");
-		mousePull(f, "pointermove", 280);
-		f.flush(f.frames);
-		assert.equal(f.document.querySelector("main").style.translate, "0 39px");
-		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
-		f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY: -180, buttons: 1, cancelable: true }));
-		f.flush();
-		assert.equal(f.app.refreshes, 0, "a stationary held mouse must never load");
-		mousePull(f, "pointerup", 280);
-		assert.equal(f.app.refreshes, 1);
-		mousePull(f, "pointerup", 280);
-		assert.equal(f.app.refreshes, 1);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("mouse refresh cancels short pulls, interruptions, and movement back below threshold", () => {
-	for (const interruption of ["short", "reverse", "pointercancel", "blur", "dialog"]) {
-		const f = fixture({ kind: "desk" });
-		try {
-			mousePull(f, "pointerdown");
-			mousePull(f, "pointermove", interruption === "short" ? 220 : 280);
-			if (interruption === "reverse") mousePull(f, "pointermove", 220);
-			if (interruption === "pointercancel") mousePull(f, "pointercancel");
-			if (interruption === "blur") f.w.dispatchEvent(new f.w.Event("blur"));
-			if (interruption === "dialog") f.dialog.open = true;
-			mousePull(f, "pointerup", 280);
-			f.flush(f.frames);
-			f.flush();
-			assert.equal(f.app.refreshes, 0, interruption);
-			assert.equal(f.document.querySelector("main").style.translate, "", interruption);
-		} finally {
-			f.dom.window.close();
-		}
-	}
-});
-
-test("mouse refresh leaves cards, controls and phone input to their existing handlers", () => {
-	for (const excluded of ["card", "button", "phone"]) {
-		const f = fixture({ kind: "desk", phone: excluded === "phone" });
-		try {
-			const target = f.document.querySelector("main p");
-			if (excluded === "card") target.dataset.card = "article";
-			if (excluded === "button") target.setAttribute("role", "button");
-			mousePull(f, "pointerdown");
-			mousePull(f, "pointermove", 280);
-			mousePull(f, "pointerup", 280);
-			f.flush(f.frames);
-			f.flush();
-			assert.equal(f.app.refreshes, 0, excluded);
-		} finally {
-			f.dom.window.close();
-		}
-	}
-});
-
-test("a slow refresh keeps feedback and its lock until completion, then offers retry on rejection", async () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		let reject: (reason?: any) => void;
-		f.app.refresh = () => {
-			f.app.refreshes++;
-			return new Promise((_resolve, no) => {
-				reject = no;
-			});
-		};
-		const target = f.document.querySelector("main p");
-		const pull = () => {
-			f.fire(target, "touchstart");
-			f.fire(target, "touchmove", 120, 360);
-			f.fire(target, "touchend", 120, 360);
-		};
-		const settle = async () => {
-			for (let i = 0; i < 8; i++) await Promise.resolve();
-		};
-		pull();
-		await settle();
-		f.flush();
-		await settle();
-		f.flush();
-		await settle();
-		assert.ok(f.document.querySelector(".is-spinning"));
-		assert.equal(
-			f.document.querySelector("main").style.translate,
-			"",
-			"a slow request lets the cards back after the hold",
-		);
-		pull();
-		await settle();
-		assert.equal(f.app.refreshes, 1);
-		reject!(new Error("synthetic refresh failure"));
-		await settle();
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "error");
-		assert.equal(f.document.querySelector("#pull-ring").disabled, false);
-		assert.equal(f.document.querySelector("main").style.translate, "");
-		f.app.refresh = () => {
-			f.app.refreshes++;
-			return Promise.resolve();
-		};
-		f.document.querySelector("#pull-ring").click();
-		assert.equal(f.document.querySelector("main").style.translate, "", "retry never moves cards");
-		f.flush(undefined, 300);
-		await settle();
-		assert.equal(f.app.refreshes, 2);
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
-		f.flush();
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("browser-owned noncancelable touch does not start a second refresh animation", () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		const target = f.document.querySelector("main p");
-		f.fire(target, "touchstart");
-		const event = new f.w.Event("touchmove", { bubbles: true, cancelable: false });
-		Object.assign(event, { touches: [{ clientX: 120, clientY: 360 }] });
-		target.dispatchEvent(event);
-		f.fire(target, "touchend", 120, 360);
-		f.flush(f.frames);
-		assert.equal(f.app.refreshes, 0);
-		assert.equal(f.document.querySelector("main").style.translate, "");
-		assert.equal(f.document.querySelector(".is-pulling"), null);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("short pull cancels, light threshold commits once on release, and long travel is bounded", async () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		const target = f.document.querySelector("main p");
-		f.fire(target, "touchstart");
-		f.fire(target, "touchmove", 120, 250);
-		f.fire(target, "touchend", 120, 250);
-		assert.equal(f.app.refreshes, 0);
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
-		f.fire(target, "touchstart");
-		f.fire(target, "touchmove", 120, 274);
-		f.flush(f.frames);
-		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
-		assert.equal(f.app.refreshes, 0, "crossing threshold is not itself a refresh");
-		f.fire(target, "touchmove", 120, 900);
-		f.flush(f.frames);
-		assert.equal(f.document.querySelector("main").style.translate, "0 54px");
-		f.fire(target, "touchend", 120, 900);
-		assert.equal(f.app.refreshes, 1);
-		assert.equal(f.document.querySelector("main").style.translate, "0 36px", "held while loading");
-		assert.equal(f.document.querySelector("#pull-ring").textContent, "");
-		assert.equal(
-			f.document.querySelector("#pull-ring").dataset.state,
-			"loading",
-			"fast requests retain visible feedback",
-		);
-		f.flush(undefined, 300);
-		for (let i = 0; i < 8; i++) await Promise.resolve();
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
-		assert.equal(
-			f.document.querySelector("main").style.translate,
-			"",
-			"cards return while the success check remains visible",
-		);
-		f.flush();
-		assert.equal(
-			f.document.querySelector("main").style.translate,
-			"",
-			"glides back after the result",
-		);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
 test("read-end touch progress coalesces frames and commits once before release", () => {
 	const f = fixture({ end: true });
 	try {
@@ -615,59 +374,44 @@ test("desktop downward wheel and touch never close previews or readers", () => {
 	}
 });
 
-test("desktop completed reading keeps tools hidden through the close handoff", () => {
-	for (const kind of ["preview", "reader"]) {
-		const f = fixture({ kind, end: true });
-		try {
-			const bar = f.dialog.querySelector(".float-bar") as HTMLElement;
-			let closed = false;
-			const close = () => {
-				assert.equal(bar.style.opacity, "0");
+test("completed reading keeps tools hidden through the close handoff on phone and desktop", () => {
+	for (const kind of ["preview", "reader"])
+		for (const phone of [false, true]) {
+			const f = fixture({ kind, phone, end: true });
+			try {
+				const bar = f.dialog.querySelector(".float-bar") as HTMLElement;
+				let closed = false;
+				const close = () => {
+					assert.equal(bar.style.opacity, "0");
+					assert.equal(bar.style.visibility, "hidden");
+					assert.equal(
+						f.scroll.style.translate,
+						"0 -72px",
+						"completion closes from its current position without rebounding",
+					);
+					closed = true;
+				};
+				Object.assign(f.app, { modalKind: kind, closeModal: close, closeToDesk: close });
+				const target = f.scroll.querySelector("p");
+				f.fire(target, "touchstart", 120, 500);
+				f.fire(target, "touchmove", 120, 300);
 				assert.equal(bar.style.visibility, "hidden");
-				assert.equal(
-					f.scroll.style.translate,
-					"0 -72px",
-					"completion closes from its current position without rebounding",
-				);
-				closed = true;
-			};
-			Object.assign(f.app, { modalKind: kind, closeModal: close, closeToDesk: close });
-			const target = f.scroll.querySelector("p");
-			f.fire(target, "touchstart", 120, 500);
-			f.fire(target, "touchmove", 120, 300);
-			assert.equal(bar.style.visibility, "hidden");
-			// A pending toolbar animation cannot reveal a completion-owned surface.
-			bar.style.opacity = "1";
-			assert.equal(f.w.getComputedStyle(bar).visibility, "hidden");
-			bar.style.opacity = "0";
-			f.flush();
-			f.flush(f.frames);
-			f.flush(f.frames);
-			assert.equal(closed, false, "the check waits for the hand to let go");
-			f.fire(target, "touchend", 120, 300);
-			f.flush(f.frames);
-			f.flush(f.frames);
-			assert.equal(closed, true);
-			assert.equal(bar.style.visibility, "hidden");
-		} finally {
-			f.dom.window.close();
+				// A pending toolbar animation cannot reveal a completion-owned surface.
+				bar.style.opacity = "1";
+				assert.equal(f.w.getComputedStyle(bar).visibility, "hidden");
+				bar.style.opacity = "0";
+				f.flush();
+				f.flush(f.frames);
+				f.flush(f.frames);
+				assert.equal(closed, false, "the check waits for the hand to let go");
+				f.fire(target, "touchend", 120, 300);
+				f.flush(f.frames);
+				f.flush(f.frames);
+				assert.equal(closed, true);
+				assert.equal(bar.style.visibility, "hidden");
+			} finally {
+				f.dom.window.close();
+			}
 		}
-	}
 });
 
-test("direct refresh leaves cards in place and ignores repeat activation while busy", () => {
-	const f = fixture({ kind: "desk" });
-	try {
-		f.app.refresh = () => {
-			f.app.refreshes++;
-			return new Promise(() => {});
-		};
-		f.gestures.refresh();
-		assert.equal(f.document.querySelector("main").style.translate, "");
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "loading");
-		f.gestures.refresh();
-		assert.equal(f.app.refreshes, 1);
-	} finally {
-		f.dom.window.close();
-	}
-});

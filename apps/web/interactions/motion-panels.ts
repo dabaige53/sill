@@ -289,10 +289,10 @@ export const panelMotion: Record<string, any> = {
 								opacity: getComputedStyle(node).opacity,
 								transform: getComputedStyle(node).transform,
 							},
-							{ opacity: 0, transform: travel },
+							{ opacity: phone ? 1 : 0, transform: travel },
 						]
 					: [
-							captured.resume || { opacity: 0, transform: travel },
+							captured.resume || { opacity: phone ? 1 : 0, transform: travel },
 							{ opacity: 1, transform: "translateY(0)" },
 						],
 				{

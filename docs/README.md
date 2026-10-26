@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-25。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](guides/file-management.md)。
+更新：2026-10-26。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](guides/file-management.md)。
 
 查阅顺序与排查入口见[文档查阅指南](guides/document-navigation.md)。
 
@@ -293,3 +293,5 @@
 - [2026-10-23 手机 PWA 优化](records/2026-10-23-pwa-stress-fixes/README.md)
 - [2026-10-23 手机 PWA 打开与抽屉动效](records/2026-10-23-pwa-launch-motion/README.md)
 - [2026-10-24 详情开合、滑动与放大检查](records/2026-10-24-detail-motion-audit/README.md)
+- [手机详情连续展开与阅读关闭](adr/0070-phone-detail-expansion-and-reading.md)
+- [2026-10-24 手机详情动效修复](records/2026-10-24-phone-detail-motion-fixes/README.md)
