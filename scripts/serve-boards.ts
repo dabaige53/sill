@@ -8,6 +8,7 @@ const directories = ["boards", "history"].map((name) =>
 	resolve(import.meta.dirname, "../design-system", name),
 );
 const generatedDesign = resolve(import.meta.dirname, "../dist/design/expanded-reading");
+const motionLibrary = resolve(import.meta.dirname, "../dist/design/motion");
 const types = {
 	".html": "text/html; charset=utf-8",
 	".css": "text/css",
@@ -20,6 +21,27 @@ const types = {
 createServer(async (request, response) => {
 	try {
 		const path = decodeURIComponent(new URL(request.url, "http://127.0.0.1:4310").pathname);
+		if (path === "/motion") {
+			response.writeHead(302, { Location: "/motion/" });
+			response.end();
+			return;
+		}
+		if (path.startsWith("/motion/")) {
+			const relative = path.slice("/motion/".length) + (path.endsWith("/") ? "index.html" : "");
+			const file = resolve(motionLibrary, relative);
+			if (!file.startsWith(motionLibrary + sep)) {
+				response.writeHead(403);
+				response.end();
+				return;
+			}
+			const content = await readFile(file);
+			response.writeHead(200, {
+				"Content-Type": types[extname(file)] || "application/octet-stream",
+				"X-Content-Type-Options": "nosniff",
+			});
+			response.end(request.method === "HEAD" ? undefined : content);
+			return;
+		}
 		if (path === "/assets/sill-icon.png") {
 			const content = await readFile(resolve(import.meta.dirname, "../assets/sill-icon.png"));
 			response.writeHead(200, { "Content-Type": types[".png"] });

@@ -15,3 +15,4 @@ interface Window {
 }
 declare const __app: any;
 declare const __store: any;
+declare module "*.css";

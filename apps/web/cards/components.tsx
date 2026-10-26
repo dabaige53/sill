@@ -9,7 +9,7 @@ import {
 	shortDay,
 	timeString,
 } from "../atoms/primitives.ts";
-import { Avatar, Avatars, CheckMark, Icon } from "../atoms/react-primitives.tsx";
+import { Avatar, Avatars, CheckItem, CheckMark, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
 import {
@@ -206,21 +206,11 @@ function Task({ card: c, ctx }: BlockProps) {
 								<span>{t.text}</span>
 							</div>
 						) : (
-							// biome-ignore lint/a11y/useSemanticElements: The existing button checkbox keeps delegated click and keyboard task actions.
-							<button
+							<CheckItem
 								key={t.id}
-								className={`check-item ${t.done ? "is-done" : ""}`}
-								data-action="task"
-								data-id={c.id}
-								data-extra={t.id}
-								type="button"
-								role="checkbox"
-								aria-checked={!!t.done}
-								aria-label={t.text}
-							>
-								<CheckMark done={!!t.done} />
-								<span>{t.text}</span>
-							</button>
+								cardId={c.id}
+								task={t as { id: string; text: string; done?: boolean }}
+							/>
 						),
 					)}
 				</div>

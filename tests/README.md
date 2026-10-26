@@ -34,6 +34,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | 技能示例与 MCP 字段一致 | `node --import tsx --test tests/server/mcp-guidance.test.ts` | 直接读取技能 JSON 示例，通过隔离 MCP 创建、重读、更新、批量与重复请求；检查字段目录与实时工具定义一致，不访问线上 |
 | 明确字段、MCP 和数据库一致 | `npm test`（`server/explicit-card-fields.test.ts`） | 3.0.0 字段、完整与局部写入、未知扩展、旧 meta 拒绝、日期精度、时长清空及过期防护；隔离 PGlite / HTTP / MCP，不操作线上 |
 | Web 核心 | `npm run test:core` | Node/JSDOM 与字符串打包，不代替浏览器视觉验收 |
+| 动画库局部组件 | `node --import tsx --test tests/web/motion-library.test.ts`；已纳入 `test:core` | 登记来源、30 个示例与封面挂载、合成状态与存储隔离、任务/设置/菜单/排序/搜索/阅读/拖动/刷新/AI 框；使用动画边界替身，不代替浏览器与原生视觉验收 |
 | 浏览器交互与布局 | `npm run test:browser`、`npm run test:local-browser`、`npm run test:navigation-recovery` | 按改动选择；输出放被忽略的 `artifacts/` |
 | 卡片字段显示边界 | `npm run build && node tests/e2e/card-fields-browser.ts` | 隔离合成卡片，390/1440 浅深色；缺发件人、未知与零时长、缺正文、段落和章节数分别显示，媒体没有模拟播放或进度写入 |
 | 内容自适应抽屉、边界阻尼与背景锁定 | `npm run build && node tests/e2e/drawer-browser.ts` | 合成卡片：短内容高度、长文上限及滚动扩展、PWA 按钮、边界阻尼与位置还原；不代替 iPhone 实测 |

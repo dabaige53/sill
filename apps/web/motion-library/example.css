@@ -1,0 +1,113 @@
+/* The canvas owns geometry only. Product components retain their own CSS and motion. */
+.motion-example-page {
+	min-height: 100dvh;
+	background: var(--canvas);
+}
+.motion-phone-window {
+	display: grid;
+	justify-content: center;
+	padding: var(--space-32);
+}
+.motion-phone-window iframe {
+	border: 0;
+	max-width: 100%;
+}
+.motion-example-tools {
+	padding: var(--space-20) var(--space-24);
+	border-bottom: var(--space-1) solid var(--line-card);
+}
+.motion-example-tools p {
+	margin: 0 0 var(--space-12);
+	color: var(--muted);
+}
+.motion-example-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-12);
+}
+main.motion-canvas {
+	min-height: calc(100dvh - var(--space-130));
+	padding: var(--space-64) var(--space-40) var(--space-104);
+	position: relative;
+}
+.motion-island {
+	width: 100%;
+	max-width: var(--feed-max);
+	margin: 0 auto;
+}
+.motion-feed {
+	width: 100%;
+	position: relative;
+}
+.motion-sort-control {
+	margin-bottom: var(--space-32);
+	max-width: var(--preview-short-width);
+}
+.effect-control-press .motion-island {
+	display: grid;
+	place-items: center;
+	padding-block: var(--space-104);
+}
+.effect-task-mark .motion-island,
+.effect-settings-toggle .motion-island {
+	max-width: var(--preview-short-width);
+	padding-block: var(--space-64);
+}
+.effect-menu-scope .motion-island {
+	max-width: var(--col-ideal);
+	padding-block: var(--space-40) var(--space-160);
+}
+.effect-menu-card .motion-island {
+	max-width: var(--col-ideal);
+	position: relative;
+	padding-bottom: calc(var(--space-160) * 2);
+}
+.effect-search-resize .motion-island {
+	display: flex;
+	justify-content: center;
+	padding-block: var(--space-64);
+}
+.effect-deck-swipe .motion-island {
+	max-width: var(--col-ideal);
+}
+.motion-deck {
+	position: relative;
+}
+.motion-deck > .feed-item {
+	position: relative;
+}
+.motion-example-page.is-cover .motion-example-tools {
+	display: none;
+}
+.motion-example-page.is-cover main.motion-canvas {
+	min-height: 100dvh;
+	display: grid;
+	align-content: center;
+	padding: var(--space-64);
+}
+.motion-example-page.is-cover .effect-menu-card .motion-island {
+	padding-bottom: 0;
+}
+.motion-example-page.is-cover .effect-menu-scope .motion-island {
+	padding-bottom: var(--space-40);
+}
+.motion-example-page.is-cover #toast {
+	position: relative;
+	inset: auto;
+	margin: auto;
+	transform: none;
+}
+.motion-example-page.is-cover #selection-bar {
+	position: relative;
+	inset: auto;
+	margin: auto;
+	transform: none;
+}
+@media (max-width: 650px) {
+	main.motion-canvas {
+		padding: var(--space-48) var(--space-24) var(--space-104);
+	}
+	.motion-example-tools {
+		padding: var(--space-16);
+	}
+}

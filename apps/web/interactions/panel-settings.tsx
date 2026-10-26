@@ -10,6 +10,7 @@ import type { AppController } from "../views/app.ts";
 import { actionTypeExamples, type PanelRenderers } from "./panel-contract.ts";
 import { icon, keyed, segmented, toggle } from "./panel-primitives.tsx";
 import { formatBytes } from "./panels-components.tsx";
+import { SettingRow } from "./setting-row.tsx";
 import { SystemReminderSettings } from "./system-reminder-settings.tsx";
 
 export const panelSettings = {
@@ -27,23 +28,7 @@ export const panelSettings = {
 	) {
 		const p = <K extends keyof Preferences>(k?: K) => Store.pref(k),
 			row = (label?: ReactNode, side?: ReactNode, example?: { text: string; id: string }) => (
-				<>
-					<div className={"setting-row"}>
-						<span>
-							{label}
-							{example ? (
-								<>
-									<small className={"setting-example"} id={example.id}>
-										{example.text}
-									</small>
-								</>
-							) : (
-								""
-							)}
-						</span>
-						<span className={"setting-side"}>{side}</span>
-					</div>
-				</>
+				<SettingRow label={label} side={side} example={example} />
 			);
 		const layoutRow = (
 			key: keyof typeof defaultAppearance,
@@ -232,11 +217,7 @@ export const panelSettings = {
 							].map(([a, k]) =>
 								row(
 									a,
-									k.split(" ").map((x) => (
-										<>
-											<kbd>{x}</kbd>
-										</>
-									)),
+									k.split(" ").map((x) => <kbd key={x}>{x}</kbd>),
 								),
 							),
 						)}

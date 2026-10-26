@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
+import { NewContentNotice, OfflineNotice, ToastSurface } from "../atoms/feedback.tsx";
 import { SelectionBar } from "../atoms/selection.tsx";
 
 export { SelectionAI } from "../atoms/selection.tsx";
@@ -8,13 +9,8 @@ import { copy } from "../copy.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { sillIcon } from "../interactions/panel-primitives.tsx";
 
-const homeTabs = [
-	["all", "web.all"],
-	["unread", "web.unread"],
-	["todo", "web.home.todo"],
-	["later", "web.later"],
-	["saved", "web.bookmark"],
-] as const;
+import { HomeScopeMenu, homeTabs } from "./home-scope-menu.tsx";
+import { HomeSearchField } from "./home-search-field.tsx";
 
 /**
  * Phone: title, avatar and a row of solid tabs (ADR 0048).
@@ -54,73 +50,9 @@ export function HomeTop() {
 						<span className="home-logo">{sillIcon(40)}</span>
 						Sill
 					</button>
-					<button
-						type="button"
-						className="home-menu-toggle"
-						id="home-menu-toggle"
-						data-action="home-menu"
-						aria-haspopup="menu"
-						aria-expanded="false"
-						aria-controls="home-menu"
-						aria-label={copy("web.home.filterMenu")}
-					>
-						<Icon name="chevron" size={20} />
-					</button>
-					<div className="home-menu" id="home-menu" role="menu" hidden>
-						{homeTabs.map(([key, label], i) => (
-							<button
-								key={key}
-								type="button"
-								role="menuitemradio"
-								className="home-menu-item"
-								data-action="home-tab"
-								data-extra={key}
-								aria-checked={key === "all"}
-							>
-								<span className="home-menu-check" aria-hidden="true">
-									<Icon name="check" size={16} />
-								</span>
-								<span className="home-menu-label">{copy(label)}</span>
-								<span className="home-menu-key" aria-hidden="true">
-									⌘{i + 1}
-								</span>
-							</button>
-						))}
-					</div>
+					<HomeScopeMenu />
 				</div>
-				<div className="home-search" id="home-search-field">
-					<Icon name="search" size={16} />
-					<button
-						type="button"
-						className="home-search-token"
-						id="home-search-token"
-						data-action="home-tab"
-						data-extra="all"
-						hidden
-					/>
-					<span className="home-search-marks" id="home-search-marks" />
-					<input
-						type="search"
-						id="home-search"
-						data-input="home-search"
-						autoComplete="off"
-						aria-label={copy("web.search.inputLabel")}
-						placeholder={copy("web.home.searchPlaceholder")}
-					/>
-					<span className="home-search-key" aria-hidden="true">
-						⌘K
-					</span>
-					<button
-						type="button"
-						className="home-search-clear"
-						data-action="home-search-clear"
-						aria-label={copy("web.search.clear")}
-						hidden
-					>
-						<Icon name="x" size={12} />
-					</button>
-					<div className="home-hash-slot" id="home-hash-slot" />
-				</div>
+				<HomeSearchField />
 				<button
 					type="button"
 					className="home-account"
@@ -428,31 +360,19 @@ export function WorkspaceShell() {
 				<div className="feed-end" aria-hidden="true" />
 			</main>
 			<div id="dock">
-				<button type="button" id="offline" className="glass" data-action="retry" hidden>
-					{copy("web.app.3d52574ce150")}
-				</button>
+				<OfflineNotice />
 				<SelectionBar />
 				<AIDock />
 				<Navigation />
 			</div>
-			<button
-				type="button"
-				id="new-count"
-				className="glass"
-				data-action="show-new"
-				hidden
-				aria-label={copy("web.app.3fa133e511d1")}
-			/>
+			<NewContentNotice />
 			<div className="scroll-edge" id="scroll-edge" aria-hidden="true" />
 			<div className="drop-hint" id="drop-hint" hidden>
 				<span>{copy("web.app.2c8fe7be9774")}</span>
 				<small>{copy("web.app.4cb50c8338fe")}</small>
 			</div>
 			<dialog id="modal" aria-labelledby="modal-title" />
-			<div id="toast" className="glass" role="status" aria-live="polite" hidden>
-				<span id="toast-text" />
-				<span id="toast-action" />
-			</div>
+			<ToastSurface />
 			<div className="sr-only" id="announcer" aria-live="polite" />
 		</>
 	);
