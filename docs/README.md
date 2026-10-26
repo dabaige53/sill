@@ -301,3 +301,5 @@
 - [设置开关使用轻弹簧](adr/0071-settings-toggle-spring.md)
 
 - [动画复核后的加载与操作反馈](adr/0072-web-animation-review-refinements.md)
+
+- [滚动、完成与回弹的交接](adr/0073-scroll-completion-and-rebound.md)

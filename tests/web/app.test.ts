@@ -147,7 +147,7 @@ for (const phone of [false, true]) {
 				assert.equal(w.location.hash, "#card/reminder-one");
 			}
 			assert.equal(closes, 0);
-			assert.equal(refreshes, 2);
+			assert.equal(refreshes, 0, "background refresh waits until the preview closes");
 			assert.equal(Store.item(reminder.id).bookmarked, true);
 			assert.equal(Store.item(reminder.id).note, "Keep this note");
 			app.action("dismiss-reminder", reminder.id);

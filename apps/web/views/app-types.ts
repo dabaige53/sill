@@ -29,8 +29,6 @@ export type ViewDialog = ViewQueries & HTMLDialogElement;
 export type Deck = ViewElement & {
 	_finish?: () => void;
 	_wheel?: { dx: number; t?: number };
-	_hold?: number;
-	_wheelDirection?: number;
 	_cancelGesture?: () => void;
 };
 export type DeckGesture = {

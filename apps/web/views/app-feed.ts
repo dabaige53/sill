@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
-import { icon } from "../atoms/icons.ts";
 import { markdownText } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { cardSource } from "../data/card-source.ts";

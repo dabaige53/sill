@@ -31,8 +31,8 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	const linked = active && this.currentId !== id;
 	const phoneLinked = linked && !this.desktop();
 	const currentSheet = this.dialog.querySelector<HTMLElement>(".preview-sheet");
-	const inheritFull = phoneLinked &&
-		(this.modalKind === "reader" || currentSheet?.classList.contains("is-full"));
+	const inheritFull =
+		phoneLinked && (this.modalKind === "reader" || currentSheet?.classList.contains("is-full"));
 	const inheritHeight = phoneLinked && !inheritFull ? currentSheet?.offsetHeight : 0;
 	if (active) {
 		const scroll = this.dialog.querySelector<HTMLElement>(
@@ -141,8 +141,7 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	this.currentId = id;
 	if (!Store.item(id).seen) {
 		Store.patch(id, { seen: true });
-		if (matchMedia("(max-width:650px)").matches) deferReadingRefresh(this, id);
-		else this.refreshCard(id);
+		deferReadingRefresh(this, id);
 	}
 	if (c.type === "photo" && !reading) {
 		this.photoIndex = restore?.photoIndex || 0;
@@ -238,7 +237,7 @@ export function bindSheetChrome(this: AppController) {
 			const expand = sheet.querySelector<HTMLElement>('[data-action="reader"]');
 			const hideExpand = scroll.scrollHeight <= scroll.clientHeight + 2;
 			const height = `${sheet.offsetHeight}px`;
-			const cover = sheet.querySelector(".sheet-scroll > .preview-cover");
+			const cover = sheet.querySelector(".sheet-scroll > .gesture-content > .preview-cover");
 			const podcast = sheet.querySelector(".is-podcast");
 			let titleTop = cover ? "24px" : podcast ? "var(--space-8)" : "";
 			const title = sheet.querySelector("#modal-title");

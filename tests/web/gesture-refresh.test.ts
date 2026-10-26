@@ -89,7 +89,7 @@ function mousePull(
 	target.dispatchEvent(event);
 }
 
-test("mouse refresh follows the next frame, holds without loading, and commits once on release", () => {
+test("mouse refresh follows the next frame, holds without loading, and commits once on release", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
 		mousePull(f, "pointerdown");
@@ -104,6 +104,7 @@ test("mouse refresh follows the next frame, holds without loading, and commits o
 		assert.equal(f.app.refreshes, 1);
 		mousePull(f, "pointerup", 280);
 		assert.equal(f.app.refreshes, 1);
+		for (let i = 0; i < 8; i++) await Promise.resolve();
 	} finally {
 		f.dom.window.close();
 	}
@@ -194,10 +195,8 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 		};
 		f.document.querySelector("#pull-ring").click();
 		assert.equal(f.document.querySelector("main").style.translate, "", "retry never moves cards");
-		f.flush(undefined, 300);
 		await settle();
 		assert.equal(f.app.refreshes, 2);
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
 		f.flush();
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
 	} finally {
@@ -242,7 +241,11 @@ test("short pull cancels, light threshold commits once on release, and long trav
 		assert.equal(f.document.querySelector("main").style.translate, "0 54px");
 		f.fire(target, "touchend", 120, 900);
 		assert.equal(f.app.refreshes, 1);
-		assert.equal(f.document.querySelector("main").style.translate, "0 36px", "held while loading");
+		assert.equal(
+			f.document.querySelector("main").style.translate,
+			"",
+			"released content does not wait for the request",
+		);
 		assert.equal(f.document.querySelector("#pull-ring").textContent, "");
 		assert.equal(
 			f.document.querySelector("#pull-ring").dataset.state,
@@ -251,11 +254,11 @@ test("short pull cancels, light threshold commits once on release, and long trav
 		);
 		f.flush(undefined, 300);
 		for (let i = 0; i < 8; i++) await Promise.resolve();
-		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "success");
+		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
 		assert.equal(
 			f.document.querySelector("main").style.translate,
 			"",
-			"cards return while the success check remains visible",
+			"cards return without a fixed success hold",
 		);
 		f.flush();
 		assert.equal(
@@ -280,6 +283,69 @@ test("direct refresh leaves cards in place and ignores repeat activation while b
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "loading");
 		f.gestures.refresh();
 		assert.equal(f.app.refreshes, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("wheel threshold starts one real refresh immediately and leaves Sill visible on phone", async () => {
+	for (const phone of [false, true]) {
+		const f = fixture({ kind: "desk", phone });
+		try {
+			const heading = f.document.createElement("div");
+			heading.className = "home-heading";
+			heading.innerHTML = '<span class="home-mark">Sill</span>';
+			f.document.body.append(heading);
+			let resolve: () => void;
+			f.app.refresh = () => {
+				f.app.refreshes++;
+				return new Promise<void>((done) => (resolve = done));
+			};
+			const wheel = (deltaY) =>
+				f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY, cancelable: true }));
+			wheel(-100);
+			assert.equal(
+				f.app.refreshes,
+				1,
+				"request begins in the threshold event, without flushing timers",
+			);
+			assert.equal(f.document.querySelector("#pull-ring").dataset.state, "loading");
+			assert.equal(heading.classList.contains("has-refresh"), false);
+			for (const d of [-80, -40, -10]) wheel(d);
+			assert.equal(f.app.refreshes, 1);
+			resolve();
+			for (let i = 0; i < 8; i++) await Promise.resolve();
+			assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("a new touch takes the ring over from an unfinished success fade", async () => {
+	const f = fixture({ kind: "desk", phone: true });
+	try {
+		const animations: any[] = [];
+		f.w.__motionAnimations = animations;
+		await f.gestures.refresh();
+		const ring = f.document.querySelector("#pull-ring");
+		assert.equal(ring.dataset.state, "success");
+		const fading = animations.findLast(
+			(animation) => animation.target === ring && animation.frames.at(-1)?.opacity === 0,
+		);
+		assert.ok(fading);
+		const target = f.document.querySelector("main p");
+		f.fire(target, "touchstart");
+		f.fire(target, "touchmove", 120, 212);
+		f.flush(f.frames);
+		const opacity = ring.style.opacity;
+		assert.equal(ring.dataset.state, "pulling");
+		assert.ok(Number(opacity) > 0 && Number(opacity) < 1);
+		fading.finish();
+		for (let i = 0; i < 4; i++) await Promise.resolve();
+		assert.equal(ring.dataset.state, "pulling");
+		assert.equal(ring.style.opacity, opacity, "old exit cannot overwrite new tracking");
+		f.fire(target, "touchcancel");
 	} finally {
 		f.dom.window.close();
 	}

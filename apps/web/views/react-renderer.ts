@@ -1,8 +1,8 @@
 import { createElement, Fragment, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
-
 import { cancelMotion } from "../interactions/motion-playback.ts";
+import { restoreCompletionChildren } from "./card-state-feedback.ts";
 
 const roots = new Map<Element, { root: Root; revision: number }>();
 
@@ -19,6 +19,7 @@ export function releaseView(container: Element) {
 
 /** Imperative geometry and focus code needs the committed DOM before it measures. */
 export function renderView(container: Element, content: ReactNode, replace = false) {
+	restoreCompletionChildren(container);
 	for (const element of [...roots.keys()].reverse()) {
 		if (element !== container && container.contains(element)) releaseView(element);
 	}
@@ -30,6 +31,7 @@ export function renderView(container: Element, content: ReactNode, replace = fal
 	const current = entry;
 	// A panel opening resets its uncontrolled inputs. Feed updates retain keyed cards.
 	if (replace) {
+		cancelMotion(container, true);
 		// Media cleanup saves its position; the next surface must read that saved value.
 		flushSync(() => current.root.render(null));
 		current.revision++;

@@ -288,8 +288,7 @@ export const appPanelsMethods = {
 		});
 		// Do not replace the feed card and disturb focus/layout for every fractional progress update.
 		if (Store.item(id).read !== before.read) {
-			if (this.dialog.open && matchMedia("(max-width:650px)").matches)
-				deferReadingRefresh(this, id);
+			if (this.dialog.open) deferReadingRefresh(this, id);
 			else this.refreshCard(id);
 		}
 	},

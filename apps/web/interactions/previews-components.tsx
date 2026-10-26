@@ -105,12 +105,14 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 					role={"region"}
 					aria-label={copy("web.preview.contentRegion")}
 				>
-					{cover}
-					<div className={c.type === "article" ? "preview-body is-article" : "preview-body"}>
-						{inner}
-						{note}
-						{this.foot(action, agentAction(app, c))}
-						{end}
+					<div className="gesture-content">
+						{cover}
+						<div className={c.type === "article" ? "preview-body is-article" : "preview-body"}>
+							{inner}
+							{note}
+							{this.foot(action, agentAction(app, c))}
+							{end}
+						</div>
 					</div>
 				</div>
 			</div>

@@ -4422,7 +4422,7 @@ dialog > .float-bar.is-hidden {
 .preview-full li + li {
 	margin-top: 6px;
 }
-.sheet-scroll > .preview-cover {
+.sheet-scroll > .gesture-content > .preview-cover {
 	margin: 8px 8px 0;
 	border-radius: 22px;
 	height: 220px;
@@ -4925,7 +4925,7 @@ dialog > .float-bar.is-hidden {
 	border-radius: 50%;
 }
 @media (max-width: 650px) {
-	.sheet-scroll > .preview-cover {
+	.sheet-scroll > .gesture-content > .preview-cover {
 		height: 200px;
 	}
 	.event-hero {
@@ -5958,9 +5958,6 @@ input[type="search"]::-webkit-search-cancel-button {
 	pointer-events: none;
 	color: var(--accent);
 }
-.home-heading.has-refresh .home-mark {
-	visibility: hidden;
-}
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {
 	will-change: translate;
@@ -6337,6 +6334,12 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	}
 }
 
+/* The viewport stays fixed; only its inner content yields at an edge. */
+.gesture-content {
+	display: flow-root;
+	min-width: 0;
+}
+
 /* Sill · responsive · shared source */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
 	.glass {
@@ -6634,7 +6637,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 			max(var(--space-8), env(safe-area-inset-bottom))
 		);
 	}
-	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
+	#modal.preview .preview-sheet.is-full .sheet-scroll > .gesture-content > .preview-body:first-child {
 		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
 	}
 	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
@@ -7057,10 +7060,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	inset: var(--space-64) 0 0;
 	height: auto;
 }
-.reader-workspace > .reader-body {
+.reader-workspace > .gesture-content > .reader-body {
 	padding: var(--space-16) var(--space-30) var(--space-24);
 }
-.is-article-reader > .reader-body {
+.is-article-reader > .gesture-content > .reader-body {
 	max-width: var(--reader-measure);
 }
 .is-article-reader.has-outline {
@@ -7196,7 +7199,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	.reader-workspace {
 		top: calc(var(--space-64) + env(safe-area-inset-top));
 	}
-	.reader-workspace > .reader-body {
+	.reader-workspace > .gesture-content > .reader-body {
 		padding-inline: var(--space-20);
 	}
 	.is-article-reader.has-outline {

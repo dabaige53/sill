@@ -10,7 +10,7 @@ import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 const bundle = buildSync({
 	stdin: {
 		contents:
-			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {cardHTML} from './apps/web/cards/templates.ts';",
+			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {flushReadingRefresh} from './apps/web/interactions/reading-feedback.ts'; export {cardHTML} from './apps/web/cards/templates.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -73,9 +73,12 @@ test("reaching bottom updates immediately and does not repeatedly patch or redra
 		f.app.updateReading("read-test", f.scroll);
 		assert.equal(f.Store.item("read-test").read, true);
 		assert.equal(f.Store.item("read-test").progress, 1);
-		assert.equal(f.refreshes(), 1);
+		assert.equal(f.refreshes(), 0, "the mounted detail keeps background membership stable");
 		f.app.updateReading("read-test", f.scroll);
+		f.w.ReadingTest.flushReadingRefresh(f.app);
 		assert.equal(f.refreshes(), 1);
+		f.w.ReadingTest.flushReadingRefresh(f.app);
+		assert.equal(f.refreshes(), 1, "closing applies the pending list update only once");
 	} finally {
 		f.dom.window.close();
 	}

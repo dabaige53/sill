@@ -26,10 +26,10 @@
 	inset: var(--space-64) 0 0;
 	height: auto;
 }
-.reader-workspace > .reader-body {
+.reader-workspace > .gesture-content > .reader-body {
 	padding: var(--space-16) var(--space-30) var(--space-24);
 }
-.is-article-reader > .reader-body {
+.is-article-reader > .gesture-content > .reader-body {
 	max-width: var(--reader-measure);
 }
 .is-article-reader.has-outline {
@@ -165,7 +165,7 @@
 	.reader-workspace {
 		top: calc(var(--space-64) + env(safe-area-inset-top));
 	}
-	.reader-workspace > .reader-body {
+	.reader-workspace > .gesture-content > .reader-body {
 		padding-inline: var(--space-20);
 	}
 	.is-article-reader.has-outline {

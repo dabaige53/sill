@@ -267,7 +267,7 @@
 			max(var(--space-8), env(safe-area-inset-bottom))
 		);
 	}
-	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
+	#modal.preview .preview-sheet.is-full .sheet-scroll > .gesture-content > .preview-body:first-child {
 		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
 	}
 	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {

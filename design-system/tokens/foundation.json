@@ -78,9 +78,16 @@
 		"repo": "dabaige53/sill",
 		"ref": "main@a27ae2a",
 		"paths": {
-			"tokens": ["apps/web/styles/tokens.css"],
-			"assets": ["apps/web/atoms/icons.ts"],
-			"docs": ["design-system/README.md", "docs/design/system.md"]
+			"tokens": [
+				"apps/web/styles/tokens.css"
+			],
+			"assets": [
+				"apps/web/atoms/icons.ts"
+			],
+			"docs": [
+				"design-system/README.md",
+				"docs/design/system.md"
+			]
 		},
 		"components": {
 			"*": "apps/web/atoms/primitives.ts, apps/web/cards/templates.ts, apps/web/styles/*.css"
@@ -646,6 +653,28 @@
 		"toggleSpring": {
 			"visualDuration": 0.32,
 			"bounce": 0.2
+		},
+		"edgeSpring": {
+			"stiffness": 300,
+			"damping": 34,
+			"mass": 0.9,
+			"restSpeed": 0.5,
+			"restDelta": 0.5
+		},
+		"edgeDrag": {
+			"resistance": 0.15,
+			"scale": 160,
+			"minSampleSeconds": 0.008,
+			"maxVelocity": 750,
+			"zeroDistance": 0.25
+		},
+		"wheelInput": {
+			"linePixels": 16,
+			"releaseIdleMs": 40,
+			"sessionGapMs": 80,
+			"rearmGain": 1.25,
+			"rearmDeltaPixels": 2,
+			"maxShieldMs": 240
 		}
 	}
 }

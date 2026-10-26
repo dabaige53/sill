@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 const bundle = buildSync({
 	stdin: {
 		contents:
-			"export {Gestures} from './apps/web/interactions/gestures.ts'; export {MotionEngine} from './apps/web/interactions/motion.ts'; export {Store} from './apps/web/data/store.ts';",
+			"export {Gestures} from './apps/web/interactions/gestures.ts'; export {MotionEngine} from './apps/web/interactions/motion.ts'; export {Store} from './apps/web/data/store.ts'; export {shieldWheelTail} from './apps/web/interactions/gesture-input.ts'; export {flushReadingRefresh} from './apps/web/interactions/reading-feedback.ts'; export {resistedDistance,reboundTrack} from './apps/web/interactions/gesture-rebound.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -87,6 +87,7 @@ export function fixture({ kind = "preview", phone = false, end = false } = {}) {
 		closeModal() {
 			this.closed++;
 			dialog.open = false;
+			w.GestureTest.flushReadingRefresh(this);
 		},
 		closeToDesk() {
 			this.closeModal();

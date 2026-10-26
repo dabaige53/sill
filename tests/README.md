@@ -89,3 +89,5 @@ Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fix
 `web/local-launch.test.ts` 检查快慢本地启动均保留页面框架、只在卡片区等待数据、定时占位清理和首次卡片只显示一次，并检查 HTML 启动前的主题恢复。合成 DOM 不代替真实网页刷新验收。
 
 设置按钮按压与开关反馈的控制器检查位于 `web/control-feedback.test.ts`，共用 `web/app-fixture.ts`；公共操作路由继续由 `web/app.test.ts` 覆盖。
+
+滚动输入与释放检查位于 `web/gesture-input.test.ts`；参考回弹、内容层与尾段接手在 `web/gesture-rebound.test.ts`；任务／提醒原位更新在 `web/completion-state.test.ts`。均为非浏览器检查，不证明实际帧率。

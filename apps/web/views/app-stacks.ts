@@ -1,3 +1,4 @@
+import { wheelInput, wheelIntent } from "../interactions/gesture-input.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { Playback } from "../interactions/motion-playback.ts";
 import type { AppController } from "./app.ts";
@@ -14,7 +15,6 @@ export const appStacksMethods = {
 			deck._finish?.();
 			clearTimeout(deck._wheel?.t);
 			deck._wheel = null;
-			deck._hold = 0;
 			this.stackDragUntil = 0;
 			deck._cancelGesture = () => {
 				g = null;
@@ -66,6 +66,7 @@ export const appStacksMethods = {
 		window.addEventListener("blur", () => {
 			if (g) release({ pointerId: g.id }, true);
 		});
+		const sequences = new WeakMap<HTMLElement, ReturnType<typeof wheelIntent>>();
 		// Trackpad: a sideways swipe drags the top card too. Its coasting momentum is ignored until the hand stops.
 		this.grid.addEventListener(
 			"wheel",
@@ -73,14 +74,12 @@ export const appStacksMethods = {
 				const deck = e.target.closest?.<Deck>(".deck");
 				if (!deck || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
 				e.preventDefault();
-				const now = Date.now();
-				const direction = Math.sign(e.deltaX);
-				if (deck._hold && direction === deck._wheelDirection && now - deck._hold < 160) {
-					deck._hold = now;
-					return;
+				let sequence = sequences.get(deck);
+				if (!sequence) {
+					sequence = wheelIntent();
+					sequences.set(deck, sequence);
 				}
-				deck._hold = 0;
-				deck._wheelDirection = direction;
+				if (!sequence.feed(e.deltaX)) return;
 				deck._finish?.();
 				deck._wheel ||= { dx: 0 };
 				const s = deck._wheel,
@@ -93,14 +92,14 @@ export const appStacksMethods = {
 				this.deckFollow(deck, s.dx);
 				if (Math.abs(s.dx) > w * 0.35) {
 					deck._wheel = null;
-					deck._hold = now;
+					sequence.reset();
 					this.deckSettle(deck, s.dx < 0 ? 1 : -1);
 					return;
 				}
 				s.t = window.setTimeout(() => {
 					deck._wheel = null;
 					this.deckSettle(deck, 0);
-				}, 140);
+				}, wheelInput.releaseIdleMs);
 			},
 			{ passive: false },
 		);

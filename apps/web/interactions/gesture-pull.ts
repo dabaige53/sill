@@ -1,6 +1,9 @@
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { copy } from "../copy.ts";
+import { wheelInput, wheelPixels } from "./gesture-input.ts";
 import type { Gestures } from "./gestures.ts";
 import { MotionEngine } from "./motion.ts";
+import type { Playback } from "./motion-playback.ts";
 
 export const gesturePullMethods = {
 	bindPull(this: Gestures) {
@@ -22,7 +25,6 @@ export const gesturePullMethods = {
 			pull = 0,
 			busy = false,
 			timer = 0,
-			holdTimer = 0,
 			frame = 0,
 			inset = 16,
 			headingTop: number | null = null,
@@ -30,6 +32,7 @@ export const gesturePullMethods = {
 			visibleOpacity = 0;
 		const heading = document.querySelector<HTMLElement>(".home-heading");
 		const wheel = this.intent();
+		let resultFade: Playback | null = null;
 		let mouse: { id: number; x: number; y: number } | null = null;
 		const labels = {
 			idle: copy("web.refresh.pull"),
@@ -73,7 +76,9 @@ export const gesturePullMethods = {
 			frame = 0;
 			const shift = Math.round(pull * 0.75),
 				feedback = state === "loading" || state === "success" || state === "error";
-			MotionEngine.move(main, pull ? `0 ${shift}px` : "", state === "pulling");
+			MotionEngine.move(main, pull ? `0 ${shift}px` : "", state === "pulling", {
+				spring: tokens.motion.edgeSpring,
+			});
 			// While loading the desk stays open and the ring turns in the gap it made.
 			MotionEngine.move(
 				ring,
@@ -87,9 +92,7 @@ export const gesturePullMethods = {
 				state === "pulling",
 			);
 			const opacity = feedback ? 1 : Math.min(1, pull / 18);
-			heading?.classList.toggle("has-refresh", this.phone.matches && opacity > 0);
 			if (state === "pulling") {
-				MotionEngine.cancel(ring);
 				ring.style.opacity = String(opacity);
 			} else if (opacity !== visibleOpacity) {
 				MotionEngine.change(
@@ -107,6 +110,13 @@ export const gesturePullMethods = {
 		const schedulePaint = () => {
 			if (!frame) frame = requestAnimationFrame(paint);
 		};
+		const beginPull = () => {
+			if (state === "pulling") return;
+			resultFade?.cancel();
+			resultFade = null;
+			measure();
+			status("pulling");
+		};
 		const cancel = () => {
 			mouse = null;
 			start = null;
@@ -119,47 +129,44 @@ export const gesturePullMethods = {
 				paint();
 			}
 		};
-		const refresh = async (fromPull = false) => {
+		const refresh = async (_fromPull = false) => {
 			if (busy) return;
+			resultFade?.cancel();
+			resultFade = null;
 			busy = true;
-			const feedbackReady = new Promise<void>((resolve) =>
-				window.setTimeout(resolve, MotionEngine.time("delay-loading")),
-			);
 			measure();
 			start = null;
 			wheel.reset();
 			clearTimeout(timer);
-			// Only a released pull holds the cards; buttons and shortcuts leave them in place.
-			pull = fromPull ? need : 0;
+			// The request owns the ring; released content returns without a separate hold.
+			pull = 0;
 			document.body.classList.remove("is-pulling");
 			status("loading");
 			paint();
-			clearTimeout(holdTimer);
-			holdTimer = window.setTimeout(() => {
-				if (state !== "loading") return;
-				pull = 0;
-				paint();
-			}, 1000);
 			try {
 				const result = await this.app.refresh({ feedback: "pull" });
 				if (result === false) throw new Error("Refresh did not complete");
-				await feedbackReady;
-				clearTimeout(holdTimer);
 				pull = 0;
 				status("success");
-				timer = window.setTimeout(() => {
-					pull = 0;
-					status("idle");
-					paint();
-				}, 480);
+				const fading = MotionEngine.animate(ring, [{ opacity: visibleOpacity }, { opacity: 0 }], {
+					duration: MotionEngine.time("fast"),
+				});
+				const idle = () => {
+					if (resultFade === fading && state === "success") {
+						resultFade = null;
+						status("idle");
+						paint();
+					}
+				};
+				resultFade = fading;
+				if (fading) fading.finished.then(idle, () => {});
+				else idle();
 			} catch {
-				await feedbackReady;
-				clearTimeout(holdTimer);
 				pull = 0;
 				status("error");
 			} finally {
 				busy = false;
-				paint();
+				if (state !== "success") paint();
 			}
 		};
 		const release = () => {
@@ -180,7 +187,6 @@ export const gesturePullMethods = {
 			const target = e.target as Element;
 			if (
 				busy ||
-				state === "success" ||
 				scrollY > 0 ||
 				this.app.dialog.open ||
 				this.app.selected.size ||
@@ -208,8 +214,7 @@ export const gesturePullMethods = {
 			}
 			e.preventDefault();
 			clearTimeout(timer);
-			if (state !== "pulling") measure();
-			status("pulling");
+			beginPull();
 			document.body.classList.add("is-pulling");
 			pull = Math.min(72, Math.min(dy, 80) * 0.65 + Math.max(0, dy - 80) * 0.18);
 			schedulePaint();
@@ -269,8 +274,7 @@ export const gesturePullMethods = {
 				e.preventDefault();
 				if (state !== "pulling") {
 					clearTimeout(timer);
-					measure();
-					status("pulling");
+					beginPull();
 				}
 				document.body.classList.add("is-pulling");
 				// Light initial travel, then progressively stronger resistance beyond threshold.
@@ -285,35 +289,38 @@ export const gesturePullMethods = {
 		document.addEventListener("touchcancel", cancel, { passive: true });
 		window.addEventListener(
 			"wheel",
-			(e?: any) => {
-				// A held mouse owns its pointer stream; wheel timers cannot commit it.
+			(e: WheelEvent) => {
 				if (mouse || e.buttons) return;
-				if (
-					busy ||
-					state === "success" ||
-					this.app.selected.size > 0 ||
-					this.app.drag?.menu?.open ||
-					this.app.dialog.open ||
-					scrollY > 0 ||
-					e.deltaY >= 0 ||
-					Math.abs(e.deltaX) > Math.abs(e.deltaY)
-				) {
-					cancel();
+				if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || this.fromField(e)) {
+					wheel.reset(false);
+					return;
+				}
+				const delta = -wheelPixels(e, innerHeight);
+				const eligible =
+					!busy &&
+					!this.app.selected.size &&
+					!this.app.dialog.open &&
+					!this.app.drag?.active &&
+					scrollY <= 0 &&
+					delta > 0 &&
+					Math.abs(e.deltaX) <= Math.abs(e.deltaY) &&
+					!this.fromField(e);
+				if (!wheel.feed(delta, eligible)) {
+					if (!eligible) cancel();
 					return;
 				}
 				if (!e.cancelable) return cancel();
 				e.preventDefault();
-				if (!wheel.feed(-e.deltaY)) return;
-				if (!pull) measure();
-				status("pulling");
-				pull = Math.min(need, pull + -e.deltaY * 0.5);
-				schedulePaint();
+				beginPull();
+				pull = Math.min(need, pull + delta * 0.5);
 				clearTimeout(timer);
-				// Commit after the trackpad input stream stops.
-				timer = window.setTimeout(() => {
+				if (pull >= need) {
+					paint();
 					release();
-					wheel.reset(false);
-				}, 180);
+				} else {
+					schedulePaint();
+					timer = window.setTimeout(cancel, wheelInput.releaseIdleMs);
+				}
 			},
 			{ passive: false },
 		);
@@ -402,9 +409,9 @@ export const gesturePullMethods = {
 				paint();
 				return;
 			}
-			const d = -e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+			const d = -wheelPixels(e, innerHeight);
 			if (d <= 0 || !atTop()) {
-				wheel.reset();
+				wheel.feed(d, false);
 				if (pull && d < 0) {
 					pull = 0;
 					paint();
@@ -419,8 +426,7 @@ export const gesturePullMethods = {
 			);
 			schedulePaint();
 			clearTimeout(timer);
-			// Commit after the trackpad input stream stops.
-			timer = window.setTimeout(() => {
+			const settle = () => {
 				if (app.modalToken !== token) return;
 				if (pull >= need()) {
 					close();
@@ -429,7 +435,9 @@ export const gesturePullMethods = {
 				pull = 0;
 				paint();
 				wheel.reset(false);
-			}, 120);
+			};
+			if (pull >= need()) settle();
+			else timer = window.setTimeout(settle, wheelInput.releaseIdleMs);
 		};
 		dialog.addEventListener("wheel", this.pullWheel, { passive: true });
 		if (!reader) return;

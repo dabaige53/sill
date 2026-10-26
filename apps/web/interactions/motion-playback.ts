@@ -13,6 +13,7 @@ const backdrops = new WeakMap<
 		scrub?: boolean;
 		from?: number;
 		duration?: number;
+		progress?: ReturnType<typeof spring>;
 	}
 >();
 
@@ -23,12 +24,18 @@ function drawnBackdrop(el: HTMLElement) {
 	if (state.scrub || !state.duration || state.from === undefined) return state.opacity;
 	const time = Number(state.controls.time);
 	if (!Number.isFinite(time)) return state.opacity;
-	const progress = Math.min(1, Math.max(0, time / state.duration));
+	const progress = Math.min(
+		1,
+		Math.max(
+			0,
+			state.progress ? state.progress.next(time * 1000).value / 100 : time / state.duration,
+		),
+	);
 	return state.from + (state.opacity - state.from) * progress;
 }
 
 /** Scrub the backdrop itself, without invalidating the dialog's descendants. */
-export function dim(el: HTMLElement, opacity: number | null, duration = 0) {
+export function dim(el: HTMLElement, opacity: number | null, duration = 0, cardSpring = false) {
 	const previous = backdrops.get(el);
 	if (opacity === null) {
 		previous?.controls.cancel();
@@ -40,10 +47,19 @@ export function dim(el: HTMLElement, opacity: number | null, duration = 0) {
 		previous?.controls.cancel();
 		const controls = animateStyle(el, { opacity: [from, opacity] }, {
 			pseudoElement: "::backdrop",
-			duration: duration / 1000,
-			ease: "linear",
+			...(cardSpring
+				? { type: spring, ...tokens.motion.cardSpring }
+				: { duration: duration / 1000, ease: "linear" }),
 		} as any);
-		backdrops.set(el, { controls, opacity, from, duration: duration / 1000 });
+		backdrops.set(el, {
+			controls,
+			opacity,
+			from,
+			duration: duration / 1000,
+			...(cardSpring
+				? { progress: spring({ keyframes: [0, 100], ...tokens.motion.cardSpring }) }
+				: {}),
+		});
 		return;
 	}
 	// A timed fade cannot be scrubbed; replace it with a paused one-second track.
@@ -204,7 +220,15 @@ export function cancelMotion(el: Element, subtree = false) {
 	if (el instanceof HTMLElement) clearTravel(el);
 }
 
-export function move(el: HTMLElement, destination: string, direct: boolean): Playback {
+export function move(
+	el: HTMLElement,
+	destination: string,
+	direct: boolean,
+	options: {
+		spring?: typeof tokens.motion.spring;
+		velocity?: { x?: number; y?: number };
+	} = {},
+): Playback {
 	let state = travel.get(el);
 	if (!state) {
 		const initial = getComputedStyle(el).translate.split(" ").map(Number.parseFloat);
@@ -274,8 +298,16 @@ export function move(el: HTMLElement, destination: string, direct: boolean): Pla
 	current.playback = handle;
 	moving.add(el);
 	controls.push(
-		animate(current.x, x, { type: "spring", ...tokens.motion.spring }),
-		animate(current.y, y, { type: "spring", ...tokens.motion.spring }),
+		animate(current.x, x, {
+			type: "spring",
+			...(options.spring || tokens.motion.spring),
+			...(options.velocity?.x === undefined ? {} : { velocity: options.velocity.x }),
+		}),
+		animate(current.y, y, {
+			type: "spring",
+			...(options.spring || tokens.motion.spring),
+			...(options.velocity?.y === undefined ? {} : { velocity: options.velocity.y }),
+		}),
 	);
 	Promise.all(controls.map((control) => control.finished)).then(finish, () => handle.cancel());
 	return handle;

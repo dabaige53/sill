@@ -83,6 +83,7 @@ class ChromeAutoHide {
 		// Background controls keep their state while a modal or a gesture owns input.
 		if (this.paused()) {
 			clearTimeout(this.timer);
+			this.down = this.up = 0;
 			return;
 		}
 		const y = this.position(),
