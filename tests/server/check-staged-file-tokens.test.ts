@@ -68,6 +68,16 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 	await t.test("locks, generated outputs and binary assets pass", () => {
 		for (const path of [
 			"nested/package-lock.json",
+			"docs/large.md",
+			"README.MD",
+			"notes/reference.rst",
+			"notes/manual.adoc",
+			"notes/guide.txt",
+			"notes/page.mdx",
+			"notes/book.tex",
+			"notes/report.docx",
+			"notes/deck.pptx",
+			"notes/sheet.xlsx",
 			"Package.resolved",
 			"contracts/schema.json",
 			"contracts/apple-openapi.json",
@@ -103,7 +113,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		git("commit", "--quiet", "-m", "Allowed staged files");
 	});
 	await t.test("approved baseline caps existing paths without allowing new large files", () => {
-		const path = "docs/product/ui-alignment.md";
+		const path = "apps/web/styles/cards.css";
 		const limit = byteLimit(path);
 		assert.ok(limit > 20_000);
 		write(path, "x".repeat(limit));
@@ -115,7 +125,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 		git("add", "--", path);
 		assert.equal(check().status, 1);
 		git("rm", "-f", "--", path);
-		const renamed = "docs/product/new-alignment.md";
+		const renamed = "apps/web/styles/new-cards.css";
 		write(renamed, "x".repeat(limit));
 		git("add", "--", renamed);
 		assert.equal(check().status, 1);
@@ -135,7 +145,7 @@ test("Codex pre-commit hook enforces the byte limit against index and local file
 			assert.match(reason, /20001 bytes = 5000\.25 tokens/);
 			assert.ok(reason.includes(JSON.stringify(path)));
 			assert.match(reason, /import\/export/);
-			assert.match(reason, /相对链接/);
+			assert.match(reason, /文档类型不受此限制/);
 			assert.match(reason, /git add --/);
 			assert.match(reason, /暂存版本/);
 			assert.equal(hook("git add -- file.ts"), undefined);

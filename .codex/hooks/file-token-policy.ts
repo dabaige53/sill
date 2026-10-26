@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { basename } from "node:path";
+import { basename, extname } from "node:path";
 
 export const maxBytes = 20_000;
 // User-approved baseline, 2026-10-23. Never refresh automatically.
@@ -9,6 +9,13 @@ const baseline: Record<string, number> = JSON.parse(
 export function byteLimit(path: string): number {
 	return Math.max(maxBytes, baseline[path] ?? maxBytes);
 }
+// Documents are exempt regardless of directory; source and data files remain checked.
+const documentExtensions = new Set([
+	".md", ".markdown", ".mdown", ".mkd", ".mdx", ".rst", ".txt",
+	".adoc", ".asciidoc", ".org", ".tex", ".bib", ".typ", ".rtf",
+	".pdf", ".doc", ".docx", ".odt", ".ppt", ".pptx", ".odp",
+	".xls", ".xlsx", ".ods", ".epub",
+]);
 const lockfiles = new Set([
 	"package-lock.json",
 	"npm-shrinkwrap.json",
@@ -42,6 +49,7 @@ const outputs = new Set([
 
 export function isExempt(path: string): boolean {
 	return (
+		documentExtensions.has(extname(path).toLowerCase()) ||
 		lockfiles.has(basename(path)) ||
 		outputs.has(path) ||
 		path.startsWith("design-system/assets/Icons/") ||

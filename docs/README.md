@@ -11,6 +11,7 @@
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
 - [界面对账表](product/ui-alignment.md)
+- [动画元素对应与确认清单](product/animation-checklist.md)
 - [极端内容与手机流畅度对账](product/ui-content-alignment.md)
 - [Sill 交互规范](product/interaction-spec.md)
 

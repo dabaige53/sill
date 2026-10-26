@@ -8,14 +8,16 @@
 
 上限为每文件 20,000 bytes，按 bytes / 4 计为 5,000 tokens；恰好达到上限可提交。暂存检查读取新增、修改、复制、改名或类型变化的索引内容；本地检查读取所有 Git 跟踪的文件和未被忽略的新文件，覆盖未暂存修改与未变更的旧文件。缺失文件、符号链接和二进制文件不参与本地大小检查。无法可靠识别作者身份，除明确豁免外均检查。
 
-两种检查共用 `hooks/file-token-policy.ts`：豁免锁文件、生成目录及命名、Schema、组件包、生成图标；也豁免第三方 `support.js`、已导入的 `.agents/skills/`、设计画布导出的 `*.dc.html`、发布快照及验收记录中的 JSON/HTML/log 自动产物。已执行的 `20261016092653_sill_workspace_operations.sql` 保留原样作为历史迁移，后续新迁移仍受限，不按整个迁移目录豁免。
+两种检查共用 `hooks/file-token-policy.ts`：文档类型不受大小限制，按扩展名、不区分大小写识别，覆盖 Markdown/MDX、纯文本、reStructuredText、AsciiDoc、Org、TeX/BibTeX/Typst、RTF、PDF、Word、OpenDocument、演示文稿、电子表格及 EPUB；目录位置不限。JSON、HTML、CSV、脚本和代码不因放在文档目录就自动豁免。其他规则：豁免锁文件、生成目录及命名、Schema、组件包、生成图标；也豁免第三方 `support.js`、已导入的 `.agents/skills/`、设计画布导出的 `*.dc.html`、发布快照及验收记录中的 JSON/HTML/log 自动产物。已执行的 `20261016092653_sill_workspace_operations.sql` 保留原样作为历史迁移，后续新迁移仍受限，不按整个迁移目录豁免。
 
 文案与设计变量源文件为 `design-system/copy/zh-Hans/*.json` 和 `design-system/tokens/*.json`；接口说明源文件为 `contracts/design/openapi-source.json`；SQL 准备脚本源文件为 `supabase/drafts/rpc/*.sql`。这些小源文件正常检查。它们生成的原路径兼容文件只作输出，允许超限。修改后运行 `npm run contracts:generate`；`contracts:check` 会核对输出是否过期。
 
-超限时向 Codex 返回阻止结果，列出文件、bytes、tokens，并要求按职责拆代码、按主题拆文档、更新引用、检查与重新暂存。
+超限时向 Codex 返回阻止结果，列出文件、bytes、tokens，并要求按职责拆代码、更新引用、检查与重新暂存。
 
 手动检查暂存版本：`node .codex/hooks/check-staged-file-tokens.ts`。同时检查本地文件：`node .codex/hooks/check-staged-file-tokens.ts --local`。报错分别标记「暂存」和「本地」，两者都要修复。
 
 验证：`node --test tests/server/check-staged-file-tokens.test.ts`；测试只使用临时 Git 仓库和合成 hook 输入。
 
 2026-10-23 经用户批准，`hooks/file-size-baseline.json` 记录当前既有超限文件的字节上限；新增文件仍限 20,000 bytes，已有文件不得超过记录的基线。清单不自动刷新，改名后的新路径不继承旧上限。后续拆小文件时可降低或移除对应基线。`design-system/boards/settings/content.html` 为生成页面，补入输出豁免。
+
+2026-10-26 经用户批准，文档类型豁免大小限制；`design-system/motion/workbench/messages.json` 无需拆分，按当前 24,703 bytes 加入单文件基线。其他 JSON 源文件仍按原规则检查，该文件继续增长时仍受基线上限约束。
