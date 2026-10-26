@@ -100,11 +100,12 @@ test("the growing reader backdrop uses the preview dim in the stylesheet", () =>
 const reading = buildSync({
 	stdin: {
 		contents:
-			"export {AppController} from './apps/web/views/app.ts'; export {flushReadingProgress} from './apps/web/views/app-panels.ts'; export {Store} from './apps/web/data/store.ts';",
+			"export {AppController} from './apps/web/views/app.ts'; export {flushReadingProgress} from './apps/web/views/app-panels.ts'; export {flushReadingRefresh} from './apps/web/interactions/reading-feedback.ts'; export {Store} from './apps/web/data/store.ts';",
 		resolveDir: root,
 		loader: "ts",
 	},
 	bundle: true,
+	alias: motionAlias,
 	write: false,
 	format: "iife",
 	platform: "browser",
@@ -124,7 +125,7 @@ function readingFixture() {
 	w.setTimeout = (fn: () => void) => timers.push(fn);
 	w.clearTimeout = () => {};
 	w.eval(reading);
-	const { AppController, Store, flushReadingProgress } = w.ProgressTest;
+	const { AppController, Store, flushReadingProgress, flushReadingRefresh } = w.ProgressTest;
 	Store.state = {
 		cards: [{ id: "long-read", type: "article", title: "Synthetic text", body: "Text" }],
 		items: {},
@@ -136,11 +137,22 @@ function readingFixture() {
 	};
 	const app = Object.create(AppController.prototype);
 	app.dialog = w.document.querySelector("dialog");
-	app.refreshCard = () => {};
+	let refreshes = 0;
+	app.refreshCard = () => refreshes++;
 	const scroll = app.dialog.querySelector(".sheet-scroll");
 	Object.defineProperty(scroll, "scrollHeight", { get: () => 10600 });
 	Object.defineProperty(scroll, "clientHeight", { get: () => 600 });
-	return { dom, app, Store, scroll, flushReadingProgress, timers, saves: () => saves };
+	return {
+		dom,
+		app,
+		Store,
+		scroll,
+		flushReadingProgress,
+		flushReadingRefresh,
+		timers,
+		saves: () => saves,
+		refreshes: () => refreshes,
+	};
 }
 
 test("scrolling a long read saves progress once per interval, keeping the furthest point", () => {
@@ -177,6 +189,53 @@ test("reaching the end saves completion at once and leaving flushes pending prog
 		assert.equal(f.saves(), 2, "completion is written immediately");
 		assert.equal(f.Store.item("long-read").read, true);
 		assert.equal(f.Store.item("long-read").progress, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("phone completion saves immediately and redraws the background only after its exit finishes", async () => {
+	const f = readingFixture();
+	try {
+		const w = f.dom.window as any;
+		w.matchMedia = (query: string) => ({ matches: query.includes("max-width") });
+		w.CSS = { escape: (value: string) => value };
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		f.app.dialog.className = "preview";
+		f.app.dialog.close = () => {
+			f.app.dialog.open = false;
+		};
+		f.app.dialog.getAnimations = () => [];
+		w.document.body.append(w.document.createElement("button"));
+		w.document.body.lastElementChild.id = "account";
+		Object.assign(f.app, {
+			grid: w.document.createElement("main"),
+			modalToken: 1,
+			modalKind: "preview",
+			currentId: "long-read",
+			navKey: "home",
+			detailPositions: new Map(),
+			updateSelection() {},
+		});
+		f.scroll.scrollTop = 10000;
+		f.app.updateReading("long-read", f.scroll);
+		f.app.updateReading("long-read", f.scroll);
+		assert.equal(f.Store.item("long-read").read, true);
+		assert.equal(f.saves(), 1);
+		assert.equal(f.refreshes(), 0, "the feed cannot redraw inside the reading scroll event");
+		f.app.closeNative();
+		assert.equal(f.refreshes(), 0, "starting the exit must not redraw the feed");
+		assert.equal(f.app.dialog.open, true);
+		const exit = animations.find((a: any) => a.frames.at(-1)?.transform === "translateY(100%)");
+		assert.ok(exit);
+		exit.finish();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.equal(f.refreshes(), 1);
+		assert.equal(f.app.dialog.open, false);
+		f.flushReadingRefresh(f.app);
+		assert.equal(f.refreshes(), 1, "closing a later layer cannot repeat an old refresh");
 	} finally {
 		f.dom.window.close();
 	}

@@ -1,6 +1,7 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { panelMotion } from "./motion-panels.ts";
 import { cancelMotion, dim, move, type Playback, play } from "./motion-playback.ts";
+import { resizeSheet } from "./motion-sheet.ts";
 
 export { cardTransform } from "./motion-panels.ts";
 
@@ -22,6 +23,7 @@ function tokenValue(name: string) {
 
 const MotionEngine: Record<string, any> = {
 	...panelMotion,
+	resizeSheet,
 	detailTransitions: new WeakMap(),
 	panelTasks: new WeakMap(),
 	layoutAnimations: new WeakMap(),

@@ -615,44 +615,45 @@ test("desktop downward wheel and touch never close previews or readers", () => {
 	}
 });
 
-test("desktop completed reading keeps tools hidden through the close handoff", () => {
-	for (const kind of ["preview", "reader"]) {
-		const f = fixture({ kind, end: true });
-		try {
-			const bar = f.dialog.querySelector(".float-bar") as HTMLElement;
-			let closed = false;
-			const close = () => {
-				assert.equal(bar.style.opacity, "0");
+test("completed reading keeps tools hidden through the close handoff on phone and desktop", () => {
+	for (const kind of ["preview", "reader"])
+		for (const phone of [false, true]) {
+			const f = fixture({ kind, phone, end: true });
+			try {
+				const bar = f.dialog.querySelector(".float-bar") as HTMLElement;
+				let closed = false;
+				const close = () => {
+					assert.equal(bar.style.opacity, "0");
+					assert.equal(bar.style.visibility, "hidden");
+					assert.equal(
+						f.scroll.style.translate,
+						"0 -72px",
+						"completion closes from its current position without rebounding",
+					);
+					closed = true;
+				};
+				Object.assign(f.app, { modalKind: kind, closeModal: close, closeToDesk: close });
+				const target = f.scroll.querySelector("p");
+				f.fire(target, "touchstart", 120, 500);
+				f.fire(target, "touchmove", 120, 300);
 				assert.equal(bar.style.visibility, "hidden");
-				assert.equal(
-					f.scroll.style.translate,
-					"0 -72px",
-					"completion closes from its current position without rebounding",
-				);
-				closed = true;
-			};
-			Object.assign(f.app, { modalKind: kind, closeModal: close, closeToDesk: close });
-			const target = f.scroll.querySelector("p");
-			f.fire(target, "touchstart", 120, 500);
-			f.fire(target, "touchmove", 120, 300);
-			assert.equal(bar.style.visibility, "hidden");
-			// A pending toolbar animation cannot reveal a completion-owned surface.
-			bar.style.opacity = "1";
-			assert.equal(f.w.getComputedStyle(bar).visibility, "hidden");
-			bar.style.opacity = "0";
-			f.flush();
-			f.flush(f.frames);
-			f.flush(f.frames);
-			assert.equal(closed, false, "the check waits for the hand to let go");
-			f.fire(target, "touchend", 120, 300);
-			f.flush(f.frames);
-			f.flush(f.frames);
-			assert.equal(closed, true);
-			assert.equal(bar.style.visibility, "hidden");
-		} finally {
-			f.dom.window.close();
+				// A pending toolbar animation cannot reveal a completion-owned surface.
+				bar.style.opacity = "1";
+				assert.equal(f.w.getComputedStyle(bar).visibility, "hidden");
+				bar.style.opacity = "0";
+				f.flush();
+				f.flush(f.frames);
+				f.flush(f.frames);
+				assert.equal(closed, false, "the check waits for the hand to let go");
+				f.fire(target, "touchend", 120, 300);
+				f.flush(f.frames);
+				f.flush(f.frames);
+				assert.equal(closed, true);
+				assert.equal(bar.style.visibility, "hidden");
+			} finally {
+				f.dom.window.close();
+			}
 		}
-	}
 });
 
 test("direct refresh leaves cards in place and ignores repeat activation while busy", () => {
