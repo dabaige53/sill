@@ -95,7 +95,15 @@ export function Navigation() {
 	];
 	return (
 		<nav className="nav-capsule glass" id="nav" aria-label={copy("web.nav.label")}>
-			<span className="nav-lens" aria-hidden="true" />
+			<span className="nav-lens" aria-hidden="true">
+				{tabs.map(([key, glyph]) => (
+					<span key={key} className="nav-lens-tab">
+						<span className="nav-icon">
+							<Icon name={glyph} size={22} />
+						</span>
+					</span>
+				))}
+			</span>
 			{tabs.map(([key, glyph, label]) => (
 				<button
 					key={key}

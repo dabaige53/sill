@@ -1,3 +1,4 @@
+import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { panelMotion } from "./motion-panels.ts";
 import { cancelMotion, dim, move, type Playback, play } from "./motion-playback.ts";
@@ -123,37 +124,53 @@ const MotionEngine: Record<string, any> = {
 	},
 	// @design button-feedback
 	bind() {
-		let pressed: HTMLElement | null = null;
+		let pressed: HTMLElement[] = [];
+		let target: HTMLElement | null = null;
+		let pointer = -1;
 		const release = () => {
-			if (!pressed) return;
-			const el = pressed;
-			pressed = null;
-			const from = getComputedStyle(el).transform;
-			this.cancel(el);
-			this.animate(el, [{ transform: from }, { transform: "scale(1)" }], {
-				duration: this.time("dur-press"),
-			});
+			for (const el of pressed) {
+				const from = getComputedStyle(el).transform;
+				this.cancel(el);
+				this.animate(el, [{ transform: from }, { transform: "scale(1)" }], {
+					duration: this.time("dur-press"),
+				});
+			}
+			pressed = [];
+			target = null;
+			pointer = -1;
 		};
 		document.addEventListener("pointerdown", (event: PointerEvent) => {
+			if (event.button !== 0 || !event.isPrimary) return;
 			document.documentElement.dataset.inputModality = "pointer";
 			release();
-			if (event.button !== 0 || !event.isPrimary) return;
-			const target = (event.target as Element).closest<HTMLElement>(
-				".icon-button,.solid-button,.soft-button,.text-button,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring,#account.home-account",
+			target = (event.target as Element).closest<HTMLElement>(
+				".icon-button,.solid-button,.soft-button,.text-button,.text-link,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring,#account.home-account",
 			);
-			if (!target || target.matches(":disabled") || target.closest("[inert]")) return;
-			// Keep task text and the surrounding card still; only the mark acknowledges the press.
-			pressed = target.querySelector<HTMLElement>(".nav-icon,.check-dot") || target;
-			const from = getComputedStyle(pressed).transform;
-			this.cancel(pressed);
-			this.animate(
-				pressed,
-				[{ transform: from }, { transform: `scale(${tokens.motion.pressScale})` }],
-				{ duration: this.time("dur-press"), fill: "forwards" },
-			);
+			if (!target || target.matches(":disabled,[aria-disabled=true]") || target.closest("[inert]")) { target = null; return; }
+			pointer = event.pointerId;
+			pressed = [target.querySelector<HTMLElement>(".nav-icon,.check-dot") || target];
+			if (target.matches(".nav-tab")) {
+				const nav = target.parentElement;
+				const index = [...nav.querySelectorAll(".nav-tab")].indexOf(target);
+				const duplicate = nav.querySelectorAll<HTMLElement>(".nav-lens-tab .nav-icon")[index];
+				if (duplicate) pressed.push(duplicate);
+			}
+			for (const el of pressed) {
+				const from = getComputedStyle(el).transform;
+				this.cancel(el);
+				this.animate(el, [{ transform: from }, { transform: `scale(${tokens.motion.pressScale})` }], {
+					duration: this.time("dur-press"), fill: "forwards",
+				});
+			}
 		});
-		document.addEventListener("pointerup", release);
-		document.addEventListener("pointercancel", release);
+		document.addEventListener("pointermove", (event: PointerEvent) => {
+			if (!target || event.pointerId !== pointer) return;
+			const rect = target.getBoundingClientRect();
+			if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) release();
+		});
+		const finish = (event: PointerEvent) => { if (event.pointerId === pointer) release(); };
+		document.addEventListener("pointerup", finish);
+		document.addEventListener("pointercancel", finish);
 		window.addEventListener("blur", release);
 	},
 	popover(el: HTMLElement, visible: boolean) {
@@ -174,10 +191,10 @@ const MotionEngine: Record<string, any> = {
 				from,
 				visible
 					? { opacity: 1, transform: "none" }
-					: { opacity: 0, transform: "translateY(-4px) scale(.95)" },
+					: { opacity: 0, transform: `translateY(-2px) scale(${foundation.motion.webInteraction.menuExitScale})` },
 			],
 			{
-				duration: this.time(visible ? "dur-menu" : "dur-menu-close"),
+				duration: visible ? foundation.motion.webInteraction.menuOpen : foundation.motion.webInteraction.menuClose,
 			},
 		);
 		const finish = () => {

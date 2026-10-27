@@ -1,3 +1,4 @@
+import { ToggleControl } from "./toggle-control.tsx";
 import React, { cloneElement, isValidElement, type ReactElement } from "react";
 import { sillIcon as sillIconHTML } from "../atoms/icons.ts";
 import { Avatar, CheckItem, Icon } from "../atoms/react-primitives.tsx";
@@ -65,21 +66,9 @@ export function toggle(
 	action = "pref-toggle",
 	descriptionId = "",
 ) {
-	return (
-		<button
-			className="toggle"
-			type="button"
-			role="switch"
-			aria-label={label}
-			aria-describedby={descriptionId || undefined}
-			aria-checked={!!on}
-			data-action={action}
-			data-id={name}
-		>
-			<span className="toggle-knob" aria-hidden="true" />
-		</button>
-	);
+	return <ToggleControl name={name} on={!!on} label={label} action={action} descriptionId={descriptionId} />;
 }
+
 export function segmented(name: string, options: string[][], value: string, label: string) {
 	return (
 		<span className="segmented" role="radiogroup" aria-label={label}>
