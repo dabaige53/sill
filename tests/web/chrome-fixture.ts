@@ -2,7 +2,7 @@
 import path from "node:path";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
-import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
+import { installReactBrowserAPIs, installTimers } from "./react-browser-fixture.ts";
 
 export const bundle = buildSync({
 	stdin: {
@@ -31,6 +31,7 @@ export function fixture() {
 	w.matchMedia = () => ({ matches: false, addEventListener() {} });
 	w.structuredClone = structuredClone;
 	installReactBrowserAPIs(w);
+	const clock = installTimers(w);
 	w.eval(bundle);
 	const scroll = w.document.getElementById("scroll");
 	let top = 0;
@@ -52,9 +53,9 @@ export function fixture() {
 		to,
 		tucked,
 		bar,
+		clock,
 		position: (y: number) => {
 			top = y;
 		},
 	};
 }
-

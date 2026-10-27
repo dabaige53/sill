@@ -207,14 +207,15 @@ struct CloudWorkspaceTests {
     #expect(writes == 1)
     #expect(await store.pendingWriteKey == nil)
   }
-  @Test func newCardAndDeleteTimeoutsVerifyFullCardWithoutServerMetadata() async throws {
+  @Test func createReplaceAndDeleteTimeoutsVerifyFullCardWithoutServerMetadata() async throws {
     let card: JSONValue = .object([
       "id": .string("created"), "type": .string("note"), "title": .string("Synthetic"),
       "body": .string(""), "future": .object(["preserved": .bool(true)]),
+      "url": .string("https://example.com/old"), "summary": .string("Old summary"),
     ])
     let item = try JSONValue.decode(
       Data(
-        #"{"seen":false,"read":false,"bookmarked":false,"later":false,"tagsEdited":false,"progress":0,"note":"","tags":[],"addedAt":0,"snoozedUntil":0,"dismissed":false,"reminderDone":false,"lastReminderKey":"","lastNotifiedAt":0,"readAt":0,"restoredAt":0,"done":false,"archived":false,"lessLike":false,"taskDone":[]}"#
+        #"{"seen":false,"read":false,"bookmarked":false,"later":false,"tagsEdited":false,"playbackPosition":0,"progress":0,"note":"","tags":[],"addedAt":0,"snoozedUntil":0,"dismissed":false,"reminderDone":false,"lastReminderKey":"","lastNotifiedAt":0,"readAt":0,"restoredAt":0,"done":false,"archived":false,"lessLike":false,"taskDone":[]}"#
           .utf8))
     var server = empty
     var writes = 0
@@ -224,9 +225,14 @@ struct CloudWorkspaceTests {
         writes += 1
         server["revision"] = .number(Double(writes))
         var state = server["state"]!
-        if writes == 1 {
+        if writes <= 2 {
           var stored = card
-          stored["revision"] = .number(1)
+          if writes == 2 {
+            stored["url"] = nil
+            stored["summary"] = nil
+            stored["body"] = .string("Replacement")
+          }
+          stored["revision"] = .number(Double(writes))
           stored["state"] = .object([:])
           stored["created_at"] = .string("synthetic-timestamp")
           state["cards"] = .array([stored])
@@ -245,10 +251,20 @@ struct CloudWorkspaceTests {
       .object(["op": .string("card.upsert"), "card": card, "before": .null])
     ])
     #expect(created.json["state"]?["cards"]?.array?.count == 1)
-    _ = try await store.apply(operations: [
-      .object(["op": .string("card.delete"), "id": .string("created"), "before": card])
+    let replacement: JSONValue = .object([
+      "id": .string("created"), "type": .string("note"), "title": .string("Synthetic"),
+      "body": .string("Replacement"),
     ])
-    #expect(writes == 2)
+    let replaced = try await store.apply(operations: [
+      .object(["op": .string("card.upsert"), "card": replacement, "before": card])
+    ])
+    let actual = try #require(replaced.json["state"]?["cards"]?.array?.first)
+    #expect(actual["url"] == nil && actual["summary"] == nil)
+    #expect(actual["future"] == card["future"])
+    _ = try await store.apply(operations: [
+      .object(["op": .string("card.delete"), "id": .string("created"), "before": actual])
+    ])
+    #expect(writes == 3)
     #expect(await store.pendingWriteKey == nil)
   }
 

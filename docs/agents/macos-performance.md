@@ -1,6 +1,6 @@
 # Mac 性能追踪与自动化测试
 
-更新：2026-10-21。
+更新：2026-10-27。
 
 状态：本地诊断与测试工作流。默认关闭，不上传；自动化不操作真实工作区。
 
@@ -117,7 +117,7 @@ npm run perf:macos -- report /绝对路径/新会话 --baseline /绝对路径/�
 - 写入队列最多 2048 条待处理事件，单会话正文日志上限 100MiB；丢弃事件会计数。磁盘错误在导出时报告。文件保留至手动删除。
 - 录制会增加开销。比较必须使用相同采集模式；深度 Instruments 录制与未录制时的结果不能直接混用。
 
-相关实现与操作命令见 [Apple 检查](../../tests/apple/README.md)、[本地操作](local-operations.md)。
+相关实现与操作命令见 [Apple 检查](../../tests/apple/README.md)、[本地操作](../guides/local-operations.md)。
 
 ## 官方参考
 
@@ -130,6 +130,6 @@ npm run perf:macos -- report /绝对路径/新会话 --baseline /绝对路径/�
 
 1. 保存手头工作，关闭 Xcode 文件选择窗口和 Codex Computer Use 浮层；运行期间暂停鼠标键盘操作。原生 XCUITest 会实际操作桌面，不能与另一套桌面控制同时运行。
 2. `xcodebuild -checkFirstLaunchStatus` 核对 Xcode 初始化；出现系统认证错误时，先打开 Xcode 并完成系统界面的认证，再复跑最小场景。不要把密码输入到日志或聊天。
-3. `DevToolsSecurity -status` 只读检查开发工具策略；disabled 本身不能证明 UI 测试不可用，本次在该状态下已能启动测试。不自动修改全局认证策略。
+3. `DevToolsSecurity -status` 只读检查开发工具策略；disabled 本身不能证明 UI 测试不可用，实际可用性以本次获准检查为准。不自动修改全局认证策略。
 4. 测试日志若出现 `Invoking UI interruption monitors`，先核对是否有其他窗口遮挡；不要把等待窗口的时间当成 Sill 处理耗时。
 5. 失败证据留在 `.xcresult`，用 `xcrun xcresulttool export attachments --path <结果> --output-path <新目录>` 导出；这些附件可能含桌面截图与窗口标题，分享前检查内容。App 自身日志仍只记录固定事件与数字。

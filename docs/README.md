@@ -1,8 +1,8 @@
 # 文档目录
 
-更新：2026-10-27。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](guides/file-management.md)。
+更新：2026-10-27。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](agents/file-management.md)。
 
-查阅顺序与排查入口见[文档查阅指南](guides/document-navigation.md)。
+长期工作规则、查阅顺序和维护要求见 [Agent 长期参考](agents/README.md)。
 
 ## 产品规则
 
@@ -24,17 +24,25 @@
 | [早期设计决策 ADR-01 至 ADR-21](design/decisions.md) | 追溯已有设计取舍 | 保留原决策；后续决定写入 ADR |
 | [设计版本记录](design/versions.md) | 查设计发布版本及对应提交 | 完成设计发布与版本登记 |
 
-## 操作与规范
+## Agent 长期参考
 
-- [开发](guides/development.md)
-- [代码规范](guides/code-standards.md)
-- [测试与验证](guides/testing.md)
-- [跨端对齐检查清单](guides/cross-platform-checklist.md)
-- [文件管理规范](guides/file-management.md)
+- [长期参考入口与维护规则](agents/README.md)
+- [设计工作规则](agents/design.md)
+- [开发](agents/development.md)
+- [代码规范](agents/code-standards.md)
+- [测试与验证](agents/test.md)
+- [跨端对齐检查清单](agents/cross-platform-checklist.md)
+- [文件管理规范](agents/file-management.md)
+- [Mac 性能追踪与自动化测试](agents/macos-performance.md)
+- [桌面交互架构与验证](agents/desktop-interaction.md)
+- [动效开发与排查](agents/motion-development.md)
+- [PR 编写指南](agents/pr.md)
+- [快速发布](agents/release.md)
+
+## 使用与阶段交接
+
 - [本地操作](guides/local-operations.md)
 - [插件使用与排查](guides/plugin-runbook.md)
-- [Mac 性能追踪与自动化测试](guides/macos-performance.md)
-- [桌面交互架构与验证](guides/desktop-interaction.md)
 - [动画库历史说明](archive/motion-library.md)
 - [滚动、完成与回弹优化方案](guides/scroll-motion-optimization.md)
 - [V1 三端接口与交接包](guides/handoff.md)
@@ -42,7 +50,6 @@
 - [Web 与 PWA 界面工作包](guides/web-pwa-ui-packages.md)
 - [Web 代码工作包](guides/web-pwa-code-packages.md)
 - [Web 与 PWA 接手提示词](guides/web-pwa-agent-prompts.md)
-- [快速发布](guides/release.md)
 
 ## 工程技能
 
@@ -109,6 +116,16 @@
 
 
 ## 记录
+
+- [过渡测试与迁移重复检查清理](records/2026-10-27-transition-test-cleanup/README.md)：删除退役入口检查、合并重复文件读写，净减少 9 个测试。
+
+- [审计问题修复](records/2026-10-27-audit-fixes/README.md)：7 项修复、验证结果与上线依赖。
+
+- [测试精简与等待优化](records/2026-10-27-test-reduction/README.md)：减少两个独立测试、保留断言及移除固定等待。
+
+- [测试重复断言与说明清理](records/2026-10-27-test-cleanup/README.md)：删除依据、保留的 MCP 保护、恢复标签和本地验证。
+
+- [10 月 25—27 日 Codex 动效开发复盘](records/2026-10-27-codex-motion-retro/README.md)：43 个历史线程的覆盖、返工证据、最终决定与环境改进。
 
 - [滚动与动量设计专项：问题记录日志及后续检查](records/2026-10-27-scroll-momentum/README.md)
 
@@ -272,10 +289,10 @@
 - [脚本目录](../scripts/README.md)
 - [测试目录](../tests/README.md)
 - [Mac 原生说明](../apps/apple/README.md)
-- [PR 编写指南](../pr.md)与[PR 模板](../.github/pull_request_template.md)
+- [PR 编写指南](agents/pr.md)与[PR 模板](../.github/pull_request_template.md)
 - [接口准备示例](../contracts/design/)：保留准备材料，不表示新增 API 已实现。
 - [跨端数据约定](../contracts/README.md)：字段含义、校验来源与读写边界。
-- [设计约束](../DESIGN.md)：设计依据、更新顺序与发布分工。
+- [设计约束](agents/design.md)：设计依据、更新顺序与发布分工。
 
 ## 已整合专题
 

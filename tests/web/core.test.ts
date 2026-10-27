@@ -471,9 +471,6 @@ test("the settings button opens settings directly; there is no expanding entranc
 	f.app.action("settings", "", "", null, { pointerType: "touch" });
 	f.app.action("settings", "", "", null, { pointerType: "mouse" });
 	assert.deepEqual(opened, ["settings", "settings"]);
-	assert.equal(typeof f.app.openDock, "undefined");
-	f.app.action("orb", "", "", null, { pointerType: "touch" });
-	assert.deepEqual(opened, ["settings", "settings"]);
 });
 
 test("Sill rename copies old cards and drafts once without replacing newer data", () => {

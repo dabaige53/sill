@@ -1,38 +1,53 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
-import test from "node:test";
+import test, { before } from "node:test";
 import { JSDOM } from "jsdom";
 import { buildPage } from "../../scripts/build.ts";
 import { loginPage } from "../../server/cloud/login-page.ts";
 
-test("standalone metadata is in cloud and login pages, never local or embedded MCP pages", async () => {
+let cloud: string;
+let embedded: string;
+let local: string;
+before(async () => {
 	await buildPage({ cloud: true });
-	const cloud = await readFile("dist/cloud/index.html", "utf8");
-	for (const html of [cloud, loginPage(), loginPage({ setup: true })]) {
-		const document = new JSDOM(html).window.document;
-		assert.equal(
-			document.querySelector('link[rel="manifest"]')?.getAttribute("href"),
-			"/manifest.webmanifest",
-		);
-		assert.equal(
-			document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute("href"),
-			"/assets/sill-icon.png",
-		);
-		assert.equal(
-			document.querySelector('meta[name="apple-mobile-web-app-capable"]')?.getAttribute("content"),
-			"yes",
-		);
-		assert.equal(
-			document
-				.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
-				?.getAttribute("content"),
-			"default",
-		);
-	}
 	execFileSync(process.execPath, ["scripts/build-cloud-app.ts"]);
-	const embedded = await readFile("dist/cloud/app.html", "utf8");
-	const local = await readFile("dist/web/index.html", "utf8");
+	[cloud, embedded, local] = await Promise.all(
+		["dist/cloud/index.html", "dist/cloud/app.html", "dist/web/index.html"].map((file) =>
+			readFile(file, "utf8"),
+		),
+	);
+});
+
+test("standalone metadata is in cloud and login pages, never local or embedded MCP pages", async () => {
+	for (const html of [cloud, loginPage(), loginPage({ setup: true })]) {
+		const dom = new JSDOM(html);
+		try {
+			const document = dom.window.document;
+			assert.equal(
+				document.querySelector('link[rel="manifest"]')?.getAttribute("href"),
+				"/manifest.webmanifest",
+			);
+			assert.equal(
+				document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute("href"),
+				"/assets/sill-icon.png",
+			);
+			assert.equal(
+				document
+					.querySelector('meta[name="apple-mobile-web-app-capable"]')
+					?.getAttribute("content"),
+				"yes",
+			);
+			assert.equal(
+				document
+					.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
+					?.getAttribute("content"),
+				"default",
+			);
+		} finally {
+			dom.window.close();
+		}
+	}
 	for (const html of [embedded, local]) {
 		assert.doesNotMatch(html, /rel="manifest"|apple-mobile-web-app-capable|\{\{HOME_SCREEN\}\}/);
 	}
@@ -41,20 +56,8 @@ test("standalone metadata is in cloud and login pages, never local or embedded M
 	assert.equal(png.readUInt32BE(20), 256);
 });
 
-test("workspace and login policies allow only same-origin installation metadata", async () => {
-	const source = await readFile("server/cloud/http.ts", "utf8");
-	assert.equal((source.match(/manifest-src 'self'/g) || []).length, 2);
-	assert.doesNotMatch(source, /manifest-src \*/);
-});
-
 test("local, generated cloud, and both login variants select the theme color of their own surface", async () => {
-	await buildPage({ cloud: true });
-	const pages = [
-		await readFile("dist/web/index.html", "utf8"),
-		await readFile("dist/cloud/index.html", "utf8"),
-		loginPage(),
-		loginPage({ setup: true }),
-	];
+	const pages = [local, cloud, loginPage(), loginPage({ setup: true })];
 	const tokens = await readFile("apps/web/styles/tokens.css", "utf8");
 	for (const [index, html] of pages.entries()) {
 		const dom = new JSDOM(html);

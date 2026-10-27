@@ -1,5 +1,12 @@
 import { z } from "zod/v4";
 
+// Keep minute precision accepted before the Zod update, without changing stored timestamps.
+const minuteTime = z.regexes.datetime({ offset: true, precision: -1 });
+const secondTime = z.regexes.datetime({ offset: true });
+const offsetDateTime = z
+	.string()
+	.regex(new RegExp(`(?:${minuteTime.source})|(?:${secondTime.source})`));
+
 const url = z
 	.string()
 	.url()
@@ -61,7 +68,7 @@ export const richCardFields = {
 				.max(300),
 			number: count.min(1),
 			state: z.enum(["draft", "open", "merged", "closed"]),
-			observedAt: z.string().datetime({ offset: true }),
+			observedAt: offsetDateTime,
 			headBranch: label.optional(),
 			baseBranch: label.optional(),
 			author: person.optional(),

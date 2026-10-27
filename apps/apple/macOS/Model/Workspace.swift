@@ -211,7 +211,7 @@ import SillKit
     let operations = patches.sorted { $0.key < $1.key }.map {
       WorkspaceOperation.itemPatch(id: $0.key, values: $0.value)
     }
-    queue.write(operations) { [weak self] result in
+    queue.write(operations, expectedRevision: revision) { [weak self] result in
       guard let self else { return }
       let finish = { (success: Bool) in
         for state in touched {
@@ -238,7 +238,7 @@ import SillKit
       completion?(false)
       return
     }
-    queue.write(operations) { [weak self] result in
+    queue.write(operations, expectedRevision: revision) { [weak self] result in
       guard let self else { return }
       switch result {
       case .success(let snapshot): self.accept(snapshot) { completion?(true) }

@@ -5,11 +5,17 @@ import SillKit
 /// background after the opening animation, coalesce while they wait, change no observed
 /// property and never lock a card.
 @MainActor final class ActivityRecorder {
+  private struct ReadingProgress {
+    var value: Double
+    var baseline: Double
+  }
+
   private unowned let workspace: Workspace
   private var seen: Set<String> = []
-  private var progress: [String: Double] = [:]
+  private var progress: [String: ReadingProgress] = [:]
   private var readingSeconds = 0
-  private var sending: (seen: Set<String>, progress: [String: Double], seconds: Int) = ([], [:], 0)
+  private var sending: (seen: Set<String>, progress: [String: ReadingProgress], seconds: Int) =
+    ([], [:], 0)
   private var flushTask: Task<Void, Never>?
 
   init(workspace: Workspace) { self.workspace = workspace }
@@ -41,7 +47,8 @@ import SillKit
     let next = max(state.liveProgress, min(1, max(0, value)))
     guard next > state.liveProgress else { return }
     state.liveProgress = next
-    progress[id] = next
+    progress[id] = ReadingProgress(
+      value: next, baseline: state.confirmed["progress"]?.number ?? 0)
   }
 
   func readingSecond() { readingSeconds += 1 }
@@ -50,25 +57,37 @@ import SillKit
   func flush() {
     flushTask?.cancel()
     flushTask = nil
-    guard hasRecords else { return }
+    guard hasRecords, sending.seen.isEmpty, sending.progress.isEmpty, sending.seconds == 0 else {
+      return
+    }
     let build: () -> [WorkspaceOperation] = { [weak self] in self?.drain() ?? [] }
-    workspace.queue.background(build) { [weak self] result in
+    workspace.queue.background(expectedRevision: workspace.revision, build) { [weak self] result in
       guard let self else { return }
       switch result {
       case .success(let snapshot):
-        self.sending = ([], [:], 0)
-        self.workspace.accept(snapshot)
-        if self.hasRecords { self.flush() }
+        self.workspace.accept(snapshot) {
+          for (id, sent) in self.sending.progress {
+            if self.progress[id]?.baseline == sent.baseline,
+              snapshot.items[id]?["progress"]?.number == sent.value
+            {
+              self.progress[id]?.baseline = sent.value
+            }
+          }
+          self.sending = ([], [:], 0)
+          if self.hasRecords { self.flush() }
+        }
       case .failure(let error):
         // Seen and position are idempotent and wait for the next flush after the check.
-        // Reading time adds up, so it returns only when nothing was written (a conflict).
+        // Reading time returns only when the error confirms that nothing was written.
         self.seen.formUnion(self.sending.seen)
-        self.progress.merge(self.sending.progress) { max($0, $1) }
+        self.progress.merge(self.sending.progress) { current, sent in
+          current.baseline == sent.baseline && sent.value > current.value ? sent : current
+        }
         let seconds = self.sending.seconds
         self.sending = ([], [:], 0)
+        if Self.definitelyNotWritten(error) { self.readingSeconds += seconds }
         if Self.isConflict(error) {
           // The user did nothing here: check quietly instead of showing a conflict.
-          self.readingSeconds += seconds
           self.workspace.refresh()
         } else {
           self.workspace.report(error)
@@ -94,13 +113,19 @@ import SillKit
     if !seen.isEmpty || !progress.isEmpty {
       var patches: [String: [String: JSONValue]] = [:]
       for id in seen { patches[id, default: [:]]["seen"] = .bool(true) }
-      for (id, value) in progress { patches[id, default: [:]]["progress"] = .number(value) }
+      for (id, record) in progress
+      where (workspace.state(id).confirmed["progress"]?.number ?? 0) == record.baseline {
+        patches[id, default: [:]]["progress"] = .number(record.value)
+      }
       sending = (seen, progress, 0)
       seen = []
       progress = [:]
-      return patches.filter { workspace.model($0.key) != nil }.sorted { $0.key < $1.key }.map {
-        .itemPatch(id: $0.key, values: $0.value)
-      }
+      let operations: [WorkspaceOperation] = patches.filter { workspace.model($0.key) != nil }
+        .sorted { $0.key < $1.key }.map {
+          .itemPatch(id: $0.key, values: $0.value)
+        }
+      if !operations.isEmpty { return operations }
+      sending = ([], [:], 0)
     }
     guard readingSeconds > 0 else { return [] }
     let amount = min(86400, readingSeconds)
@@ -112,6 +137,13 @@ import SillKit
   private static func isConflict(_ error: any Error) -> Bool {
     if case StoreError.conflict = error { return true }
     if case CloudWorkspaceError.service(_, 409) = error { return true }
+    return false
+  }
+
+  private static func definitelyNotWritten(_ error: any Error) -> Bool {
+    if let error = error as? StoreError { return error != .unknownWrite }
+    // apply() reports uncertain POST failures as unknownWrite. Service errors confirm no write.
+    if case CloudWorkspaceError.service = error { return true }
     return false
   }
 }

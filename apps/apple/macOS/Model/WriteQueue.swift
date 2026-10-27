@@ -5,8 +5,8 @@ import SillKit
 /// or control that started a write.
 ///
 /// Each write carries the revision its author saw. When one of our own writes moves the revision
-/// from r to r', queued writes based on r move to r'. A refresh does not rebase them, so a change
-/// made elsewhere still surfaces as a version conflict instead of being overwritten.
+/// from r to r', queued foreground writes based on r move to r'. Deferred records keep their
+/// original version until the screen has applied and checked the saved state.
 @MainActor final class WriteQueue {
   enum Priority { case foreground, background }
   enum Kind {
@@ -44,22 +44,27 @@ import SillKit
 
   func write(
     _ operations: [WorkspaceOperation], priority: Priority = .foreground,
+    expectedRevision: Int? = nil,
     _ completion: @escaping (Result<Snapshot, any Error>?) -> Void
   ) {
     enqueue(
-      Job(kind: .write(operations), base: knownRevision, priority: priority, completion: completion)
+      Job(
+        kind: .write(operations), base: expectedRevision ?? knownRevision, priority: priority,
+        completion: completion)
     )
   }
 
   /// One waiting background job at most; later records join it.
   func background(
+    expectedRevision: Int,
     _ build: @escaping () -> [WorkspaceOperation],
     _ completion: @escaping (Result<Snapshot, any Error>?) -> Void
   ) {
     guard !hasQueuedBackgroundWork else { return }
     enqueue(
       Job(
-        kind: .deferred(build), base: knownRevision, priority: .background, completion: completion))
+        kind: .deferred(build), base: expectedRevision, priority: .background,
+        completion: completion))
   }
 
   /// Drop queued work (account change). The running request finishes but its result is ignored.
@@ -123,8 +128,8 @@ import SillKit
     }
     running = true
     let token = generation
-    // Background records always use the newest drawn revision: they carry no user decision.
-    let base = job.priority == .background ? knownRevision : job.base
+    // A newer network response may not be drawn yet. Never upgrade stale input to its revision.
+    let base = job.base
     Task {
       let trace = PerformanceTrace.shared.begin(
         operations == nil ? .read : .write,
@@ -154,7 +159,8 @@ import SillKit
       if case .success(let snapshot) = result {
         knownRevision = snapshot.revision
         if operations != nil, snapshot.revision != base {
-          for index in jobs.indices where jobs[index].base == base {
+          for index in jobs.indices
+          where jobs[index].base == base && jobs[index].priority == .foreground {
             jobs[index].base = snapshot.revision
           }
         }

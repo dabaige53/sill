@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
@@ -174,10 +173,8 @@ test("local storage preserves playback independently of read and reading progres
 		assert.equal(saved.items[card.id].playbackPosition, 55.25);
 		assert.equal(saved.items[card.id].progress, 0.3);
 		assert.notEqual(saved.items[card.id].read, true);
-		assert.deepEqual(
-			saved.cards.find((v: any) => v.type === "pr").pullRequest,
-			cards.find((v: any) => v.type === "pr").pullRequest,
-		);
+		for (const pr of cards.filter((v: any) => v.type === "pr"))
+			assert.deepEqual(saved.cards.find((v: any) => v.id === pr.id).pullRequest, pr.pullRequest);
 	} finally {
 		await rm(dir, { recursive: true, force: true });
 	}

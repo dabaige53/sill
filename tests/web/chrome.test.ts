@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
+import { bundle, fixture } from "./chrome-fixture.ts";
 import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
-import { fixture, bundle } from "./chrome-fixture.ts";
 
 test("all bars coming back on their own use the shared reveal; with a closing card they share its spring", () => {
 	const f = fixture();
@@ -59,7 +59,7 @@ test("bars tuck away completely after steady downward reading, not on a jitter",
 	}
 });
 
-test("bars come back at the top, at the end, and after a pause", async () => {
+test("bars come back at the top, at the end, and after a pause", () => {
 	const f = fixture();
 	try {
 		f.to(400);
@@ -75,7 +75,9 @@ test("bars come back at the top, at the end, and after a pause", async () => {
 		f.to(1000);
 		f.to(1100);
 		assert.equal(f.tucked(), true);
-		await new Promise((resolve) => setTimeout(resolve, 520));
+		f.clock.advance(449);
+		assert.equal(f.tucked(), true, "the reveal waits for the full pause");
+		f.clock.advance(1);
 		assert.equal(f.tucked(), false, "a pause brings the bars back");
 	} finally {
 		f.hide.destroy();
@@ -83,7 +85,7 @@ test("bars come back at the top, at the end, and after a pause", async () => {
 	}
 });
 
-test("a waiting read-end push keeps the end clear: neither the end nor a pause near it brings the bars", async () => {
+test("a waiting read-end push keeps the end clear: neither the end nor a pause near it brings the bars", () => {
 	const f = fixture();
 	f.hide.destroy();
 	let owned = true;
@@ -101,14 +103,14 @@ test("a waiting read-end push keeps the end clear: neither the end nor a pause n
 		assert.equal(f.tucked(), true, "short of the end, the capsule does not cover the check");
 		f.to(3200);
 		assert.equal(f.tucked(), true, "the end belongs to the push");
-		await new Promise((resolve) => setTimeout(resolve, 520));
+		f.clock.advance(500);
 		assert.equal(f.tucked(), true, "a pause before pushing keeps the capsule away");
 		f.to(3180);
 		assert.equal(f.tucked(), false, "turning back still brings the bars");
 		f.to(1000);
 		f.to(1100);
 		assert.equal(f.tucked(), true);
-		await new Promise((resolve) => setTimeout(resolve, 520));
+		f.clock.advance(500);
 		assert.equal(f.tucked(), false, "away from the end a pause still brings them back");
 		owned = false;
 		f.to(1200);
@@ -170,12 +172,12 @@ test("restoring a tab's scroll position does not tuck the navigation", () => {
 	}
 });
 
-test("a modal keeps hidden background bars tucked after the rest timer and Tab", async () => {
+test("a modal keeps hidden background bars tucked after the rest timer and Tab", () => {
 	const f = fixture();
 	try {
 		f.to(500);
 		f.hide.paused = () => true;
-		await new Promise((resolve) => setTimeout(resolve, 760));
+		f.clock.advance(760);
 		assert.equal(f.tucked(), true, "the pending rest timer respects the active modal");
 		f.w.document.body.dispatchEvent(
 			new f.w.KeyboardEvent("keydown", { key: "Tab", bubbles: true }),

@@ -5,12 +5,12 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
-import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
+import { installReactBrowserAPIs, installTimers } from "./react-browser-fixture.ts";
 
 const bundle = buildSync({
 	stdin: {
 		contents:
-			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {flushReadingRefresh} from './apps/web/interactions/reading-feedback.ts'; export {cardHTML} from './apps/web/cards/templates.ts';",
+			"export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts'; export {flushReadingRefresh} from './apps/web/interactions/reading-feedback.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -29,6 +29,7 @@ function fixture() {
 	w.structuredClone = structuredClone;
 	w.matchMedia = () => ({ matches: false, addEventListener() {} });
 	installReactBrowserAPIs(w);
+	const clock = installTimers(w);
 	w.eval(bundle);
 	const { AppController, Store } = w.ReadingTest;
 	Store.state = {
@@ -56,6 +57,7 @@ function fixture() {
 		app,
 		Store,
 		scroll,
+		clock,
 		height(value: number) {
 			height = value;
 		},
@@ -131,23 +133,25 @@ test("initially short preview still tracks scrolling after content grows", () =>
 		f.dom.window.close();
 	}
 });
-test("short content needs dwell, and closing or switching cancels completion", async () => {
+test("short content needs 1200ms of dwell, and switching cancels the old completion", () => {
 	const f = fixture();
 	try {
 		f.height(600);
 		f.app.bindPreview("read-test");
 		assert.equal(f.Store.item("read-test").read, false);
 		f.app.modalToken++;
-		await new Promise((r) => setTimeout(r, 1300));
+		f.clock.advance(1200);
 		assert.equal(f.Store.item("read-test").read, false);
 		f.app.bindPreview("read-test");
-		await new Promise((r) => setTimeout(r, 1300));
+		f.clock.advance(1199);
+		assert.equal(f.Store.item("read-test").read, false);
+		f.clock.advance(1);
 		assert.equal(f.Store.item("read-test").read, true);
 	} finally {
 		f.dom.window.close();
 	}
 });
-test("hidden short content does not count as visible dwell", async () => {
+test("hidden short content does not count as visible dwell", () => {
 	const f = fixture();
 	try {
 		f.height(600);
@@ -155,19 +159,8 @@ test("hidden short content does not count as visible dwell", async () => {
 		Object.defineProperty(f.w.document, "hidden", { value: true, configurable: true });
 		f.w.document.dispatchEvent(new f.w.Event("visibilitychange"));
 		Object.defineProperty(f.w.document, "hidden", { value: false, configurable: true });
-		await new Promise((r) => setTimeout(r, 1300));
+		f.clock.advance(1200);
 		assert.equal(f.Store.item("read-test").read, false);
-	} finally {
-		f.dom.window.close();
-	}
-});
-test("completed reminders receive the completed color class", () => {
-	const f = fixture();
-	try {
-		const card = { id: "done-reminder", type: "reminder", title: "Synthetic reminder", body: "" };
-		f.Store.state.cards.push(card);
-		f.Store.patch(card.id, { reminderDone: true });
-		assert.match(f.w.ReadingTest.cardHTML(card), /is-complete/);
 	} finally {
 		f.dom.window.close();
 	}

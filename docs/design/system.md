@@ -2,7 +2,7 @@
 
 更新：2026-10-21。
 
-改界面前先读根目录的 [设计约束](../../DESIGN.md)，其中写明改动顺序和线上同步要求。
+改界面前先读根目录的 [设计约束](../agents/design.md)，其中写明改动顺序和线上同步要求。
 
 Sill（窗台）的设计规范统一放在仓库根目录的 `design-system/`。线上版本是 [Sill Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb)，画板在 [Sill · 设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) 的「现行」页，本地副本见下文「画板」。
 
@@ -49,7 +49,7 @@ npm run boards
 
 然后在浏览器打开 `http://127.0.0.1:4310/`。目录页只列现行画板；历史画板按文件名访问。不能直接双击打开 HTML 文件：画板的运行脚本 `support.js` 要读取画板文件本身，浏览器不允许本地文件这样读。
 
-移走或重排画板用 `scripts/design-init.sh retire` 和 `layout`，发布顺序见 [设计约束](../../DESIGN.md)。
+移走或重排画板用 `scripts/design-init.sh retire` 和 `layout`，发布顺序见 [设计约束](../agents/design.md)。
 
 ## 单一来源
 
@@ -68,7 +68,7 @@ npm run boards
 | 卡片交接、宿主消息与外链 | `apps/web/services/agent-handoff.ts`、`apps/web/cloud-bridge.ts` | 手册「立场」、产品「当前卡片交给助手」；按宿主能力提供，AI 导航页仍为内置助手说明 |
 | 信息流排序、叠卡、收起 | `apps/web/services/feed-policy.ts` | 手册「量大与时间」，`Volume` 画板 |
 
-改了 `apps/web/` 里的变量、图标或组件样式，运行下面的命令重新生成并检查，再按 [设计约束](../../DESIGN.md) 发布：
+改了 `apps/web/` 里的变量、图标或组件样式，运行下面的命令重新生成并检查，再按 [设计约束](../agents/design.md) 发布：
 
 ```sh
 scripts/design-init.sh build

@@ -54,7 +54,7 @@
 
 ## 动效基线
 
-动效规则统一维护在 [动效](../../design-system/handbook/motion.md)，数值来源为 [设计变量](../../design-system/tokens/)。已有系统偏好分支的保留范围见 [设计约束](../../DESIGN.md#web-与-macos-一致)。新增或修改动效时按该入口更新规则、变量与实现，本文不另存参数表。
+动效规则统一维护在 [动效](../../design-system/handbook/motion.md)，数值来源为 [设计变量](../../design-system/tokens/)。已有系统偏好分支的保留范围见 [设计约束](../agents/design.md#web-与-macos-一致)。新增或修改动效时按该入口更新规则、变量与实现，本文不另存参数表。
 
 ## 提醒
 
@@ -62,4 +62,4 @@
 
 ## 验证
 
-检查选择与授权统一见 [测试与验证](../guides/testing.md)，命令见 [测试目录](../../tests/README.md)。改任一端界面时按 [跨端对齐检查清单](../guides/cross-platform-checklist.md)选择项目，并在 [界面对账表](ui-alignment.md)记录实现差异与真实验证结果。
+检查选择与授权统一见 [测试与验证](../agents/test.md)，命令见 [测试目录](../../tests/README.md)。改任一端界面时按 [跨端对齐检查清单](../agents/cross-platform-checklist.md)选择项目，并在 [界面对账表](ui-alignment.md)记录实现差异与真实验证结果。

@@ -60,6 +60,7 @@ test("cloud application allows the same players without widening authentication 
 	const runtime = createSillRuntime(config, { html: "<html>Application</html>" });
 	const page = await runtime(new Request(config.appOrigin + "/"));
 	checkPlayer(page, false);
+	assert.deepEqual(directives(page)["manifest-src"], ["'self'"]);
 	const worker = await runtime(new Request(config.appOrigin + "/reminders-worker.js"));
 	assert.equal(worker.status, 200);
 	assert.equal(worker.headers.get("Service-Worker-Allowed"), "/");
@@ -73,6 +74,7 @@ test("cloud application allows the same players without widening authentication 
 		"frame-ancestors": ["'none'"],
 	});
 	const login = directives(await runtime(new Request(config.appOrigin + "/auth/login")));
+	assert.deepEqual(login["manifest-src"], ["'self'"]);
 	assert.deepEqual(login["script-src"], ["'unsafe-inline'"]);
 	assert.equal(login["media-src"], undefined);
 	assert.equal(login["frame-src"], undefined);

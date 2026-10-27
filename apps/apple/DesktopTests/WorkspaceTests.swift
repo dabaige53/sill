@@ -454,6 +454,94 @@ private let syntheticReminder: JSONValue = .object([
     #expect(workspace.seconds == 1)
   }
 
+  @Test func delayedProgressDoesNotReplaceARefreshedValue() async throws {
+    for newProgress in [1.0, 0.0] {
+      let (workspace, backend) = await ready()
+      await backend.externalChange("a", ["progress": .number(0.2)])
+      workspace.refresh()
+      await until { workspace.revision == 2 && workspace.queue.idle }
+      workspace.recorder.read("a", progress: 0.4)
+      await backend.externalChange(
+        "a", ["progress": .number(newProgress), "read": .bool(newProgress == 1)])
+      workspace.refresh()
+      await until { workspace.revision == 3 && workspace.queue.idle }
+      workspace.recorder.flush()
+      await until { workspace.queue.idle }
+      #expect(try await backend.read().items["a"]?["progress"] == .number(newProgress))
+      #expect(!workspace.recorder.hasRecords)
+    }
+  }
+
+  @Test func progressRecordedDuringItsOwnSaveStillFlushes() async throws {
+    let (workspace, backend) = await ready()
+    await backend.slowWrites(.milliseconds(20))
+    workspace.recorder.read("a", progress: 0.4)
+    workspace.recorder.flush()
+    workspace.recorder.read("a", progress: 0.6)
+    workspace.recorder.flush()
+    await until { workspace.queue.idle && !workspace.recorder.hasRecords }
+    #expect(try await backend.read().items["a"]?["progress"] == .number(0.6))
+    #expect(await backend.writes == 2)
+  }
+
+  @Test func queuedProgressCannotReplaceAForegroundReadDecision() async throws {
+    let (workspace, backend) = await ready()
+    await backend.slowWrites(.milliseconds(20))
+    workspace.recorder.read("a", progress: 0.4)
+    workspace.setRead("a", true)
+    workspace.recorder.flush()
+    await until { workspace.queue.idle && workspace.revision == 2 }
+    #expect(try await backend.read().items["a"]?["progress"] == .number(1))
+    workspace.recorder.flush()
+    await until { workspace.queue.idle }
+    #expect(!workspace.recorder.hasRecords)
+  }
+
+  @Test func definiteReadingTimeFailureKeepsTheUnwrittenSeconds() async throws {
+    let errors: [any Error] = [
+      StoreError.unavailable(5), CloudWorkspaceError.service("rate_limited", 429),
+      CloudWorkspaceError.service("unavailable", 503),
+    ]
+    for error in errors {
+      let (workspace, backend) = await ready()
+      for _ in 0..<5 { workspace.recorder.readingSecond() }
+      await backend.failNextWrite(error)
+      workspace.recorder.flush()
+      await until { workspace.queue.idle }
+      #expect(workspace.recorder.hasRecords)
+      #expect(try await backend.read().json["state"]?["seconds"] == .number(0))
+      workspace.recorder.flush()
+      await until { workspace.seconds == 5 && workspace.queue.idle }
+      #expect(!workspace.recorder.hasRecords)
+      #expect(await backend.writes == 2)
+    }
+  }
+
+  @Test func unknownReadingTimeResultIsCheckedWithoutSendingItAgain() async {
+    let (workspace, backend) = await ready()
+    workspace.recorder.readingSecond()
+    await backend.failNextWrite(StoreError.unknownWrite)
+    workspace.recorder.flush()
+    await until { workspace.queue.idle }
+    workspace.recorder.flush()
+    #expect(await backend.writes == 1)
+    #expect(await backend.reads > 1)
+  }
+
+  @Test func aReadResponseCannotAuthorizeAWritingDecisionFromTheOldScreen() async throws {
+    let (workspace, backend) = await ready([], extra: [syntheticTask])
+    await backend.externalChange("task", ["taskDone": .array([.string("t1"), .string("t2")])])
+    workspace.queue.read { result in
+      guard case .success(let snapshot) = result else { return }
+      workspace.accept(snapshot)
+      // The network version has advanced, but the queued diff has not reached the screen.
+      workspace.toggleTask("task", task: "t1")
+    }
+    await until { workspace.queue.idle && !workspace.state("task").isWriting }
+    #expect(try await backend.read().items["task"]?["taskDone"]?.strings == ["t1", "t2"])
+    #expect(workspace.notice?.text == Copy.appleConflict)
+  }
+
   @Test func readStaysHeldUntilReleased() async {
     let (workspace, _) = await ready()
     let a = workspace.state("a")

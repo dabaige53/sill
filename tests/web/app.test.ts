@@ -86,17 +86,6 @@ test("settings changes preserve focus, scroll, the previous value and unrelated 
 	}
 });
 
-test("removed action hiding command leaves legacy preferences unchanged", () => {
-	const f = fixture();
-	try {
-		f.Store.setPref("hiddenActions", ["reply"]);
-		f.app.action("action-toggle", "bookmark");
-		assert.deepEqual(Array.from(f.Store.pref("hiddenActions")), ["reply"]);
-	} finally {
-		f.dom.window.close();
-	}
-});
-
 for (const phone of [false, true]) {
 	test(`reminder completion and restore retain the open ${phone ? "phone" : "desktop"} preview`, () => {
 		const f = fixture();

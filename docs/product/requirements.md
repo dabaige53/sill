@@ -2,7 +2,7 @@
 
 更新：2026-10-23。
 
-本文保存稳定的产品目标与业务规则；各端实际支持范围见 [功能矩阵](feature-matrix.md)，V1 与远期范围见 [Agent 与 MCP](agent-mcp.md)。设计材料以仓库 [设计手册](../../design-system/README.md) 与现行画板为准，更新流程见 [设计约束](../../DESIGN.md)。
+本文保存稳定的产品目标与业务规则；各端实际支持范围见 [功能矩阵](feature-matrix.md)，V1 与远期范围见 [Agent 与 MCP](agent-mcp.md)。设计材料以仓库 [设计手册](../../design-system/README.md) 与现行画板为准，更新流程见 [设计约束](../agents/design.md)。
 
 ## 1. 产品是什么
 

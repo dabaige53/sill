@@ -75,6 +75,20 @@
 			}
 		},
 		{
+			"name": "pr-minute-precision",
+			"card": {
+				"id": "pr-minute-precision",
+				"type": "pr",
+				"title": "Synthetic PR",
+				"pullRequest": {
+					"repository": "example/project",
+					"number": 1,
+					"state": "open",
+					"observedAt": "2026-10-22T13:00+08:00"
+				}
+			}
+		},
+		{
 			"name": "https-photos",
 			"card": {
 				"id": "https-photos",
@@ -88,6 +102,20 @@
 		}
 	],
 	"invalid": [
+		{
+			"name": "pr-invalid-time-offset",
+			"card": {
+				"id": "pr-invalid-time-offset",
+				"type": "pr",
+				"title": "Synthetic PR",
+				"pullRequest": {
+					"repository": "example/project",
+					"number": 1,
+					"state": "open",
+					"observedAt": "2026-10-22T13:00:00+08:99"
+				}
+			}
+		},
 		{
 			"name": "video-missing-image",
 			"card": {

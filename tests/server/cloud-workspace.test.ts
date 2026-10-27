@@ -278,6 +278,18 @@ test("workspace request schemas reject forged server metadata and unknown state"
 	);
 });
 
+test("oversized workspace batches stop before validating every operation", () => {
+	const result = workspaceBatch.safeParse({
+		operations: Array.from({ length: 10000 }, () => ({})),
+	});
+	assert.equal(result.success, false);
+	if (!result.success) {
+		assert.equal(result.error.issues.length, 1);
+		assert.equal(result.error.issues[0].code, "too_big");
+		assert.deepEqual(result.error.issues[0].path, ["operations"]);
+	}
+});
+
 test("workspace HTTP uses the same validation, session and receipt boundary", async () => {
 	const { cloudFixture } = await import("./helpers/cloud-fixture.ts");
 	const { createSillRuntime } = await import("../../server/cloud/http.ts");

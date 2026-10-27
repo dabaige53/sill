@@ -63,7 +63,7 @@ console.log(ids.join(" "));
 	for id in $ids; do git grep -n "@design.*\b$id\b" -- apps || true; done
 	git grep -n -F -e "var(--$1)" -e "var(--text-$1)" -e "--$1:" -- 'apps/web/styles/*.css' | head -20 || true
 	echo "-- 手册与组件说明"
-	git grep -n -F -- "\`$1\`" -- design-system/handbook design-system/components DESIGN.md | head -20 || true
+	git grep -n -F -- "\`$1\`" -- design-system/handbook design-system/components docs/agents/design.md | head -20 || true
 }
 
 status() {

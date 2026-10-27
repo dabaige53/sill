@@ -1,6 +1,6 @@
 # 浏览器端
 
-更新：2026-10-19。现行运行代码；通用规则见 [代码规范](../../docs/guides/code-standards.md)。
+更新：2026-10-19。现行运行代码；通用规则见 [代码规范](../../docs/agents/code-standards.md)。
 
 `index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
 

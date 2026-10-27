@@ -12,4 +12,4 @@
 - Mac 版现在依赖随包 Node 本地服务，iOS 无法采用这种方式。Apple 端数据层改为 Swift 原生实现，见 ADR 0027。
 - 文件结构与文档不按产品版本号划分。版本范围由 GitHub milestones 管理，实际发生的事写入 `docs/records/`。
 - 没有现行入口使用的旧代码（`server/` 旧入口及其模块、`web/` 宿主页面、WASM 脚本功能等）及只测试它们的测试直接删除。删除前在最后一次可运行的提交上打 tag `legacy-final`，并在 `docs/records/<日期>-legacy-removal/` 记录删除的功能、文件、对应的归档文档和取回方法。保留的测试按端分到 `tests/web/`、`tests/apple/`、`tests/server/`、`tests/contracts/`、`tests/e2e/`。
-- 迁移按端分批，每端一个 PR，并运行完整测试；各端 README 只写本端补充规则，通用规则在 `docs/guides/code-standards.md`。
+- 迁移按端分批，每端一个 PR，并运行完整测试；各端 README 只写本端补充规则，通用规则在 `docs/agents/code-standards.md`。

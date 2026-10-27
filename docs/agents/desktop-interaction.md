@@ -1,6 +1,8 @@
 # 桌面交互架构与验证
 
-更新：2026-10-21。
+更新：2026-10-27。
+
+本文的 `DesktopInteraction`、`WheelPhase` 和系统结束／惯性阶段属于 Mac 原生实现。Web 的 wheel 输入和手机 Vaul 抽屉按[动效开发与排查](motion-development.md)及当前实现分别处理，不套用 NSEvent 阶段。
 
 ## 职责
 
@@ -24,7 +26,7 @@
 
 ## 验证
 
-非浏览器回归：
+以下是可选的非浏览器检查入口，按 [测试与验证](test.md) 和本次影响范围选择，不默认逐条执行；设计生成只在相关源文件变化时运行：
 
 ```sh
 node tests/apple/run.ts --filter 'DesktopInteractionTests|WorkspaceTests|MotionFlowTests'

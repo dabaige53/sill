@@ -8,6 +8,7 @@ export function itemDefaults(card: any) {
 		bookmarked: false,
 		later: false,
 		tagsEdited: false,
+		playbackPosition: 0,
 		progress: 0,
 		note: "",
 		tags: [],

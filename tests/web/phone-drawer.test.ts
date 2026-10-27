@@ -4,6 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
+import { installTimers } from "./react-browser-fixture.ts";
 
 const bundle = buildSync({
 	stdin: {
@@ -40,6 +41,7 @@ function fixture() {
 		observe() {}
 		disconnect() {}
 	};
+	const clock = installTimers(w);
 	w.eval(bundle);
 	const api = w.DrawerTest;
 	const dialog = w.document.getElementById("modal");
@@ -75,6 +77,7 @@ function fixture() {
 		dialog,
 		app,
 		body,
+		clock,
 		dispose() {
 			api.releaseView(dialog);
 			dom.window.close();
@@ -104,7 +107,7 @@ test("Vaul opens without snap points and retains card DOM, scroll and focus", as
 	}
 });
 
-test("unmount cancels a pending close so it cannot close the next card", async () => {
+test("unmount cancels a pending close so it cannot close the next card", () => {
 	const f = fixture();
 	try {
 		let closed = 0;
@@ -117,7 +120,7 @@ test("unmount cancels a pending close so it cannot close the next card", async (
 		// JSDOM does not run CSS exit animations; Presence may remove the content immediately.
 		assert.notEqual(f.dialog.querySelector("[data-vaul-drawer]")?.dataset.state, "open");
 		f.api.renderContent(f.dialog, f.body);
-		await new Promise((resolve) => setTimeout(resolve, 550));
+		f.api.flushSync(() => f.clock.advance(550));
 		assert.equal(closed, 0);
 		assert.equal(f.dialog.querySelector("[data-vaul-drawer]").dataset.state, "open");
 	} finally {
@@ -125,7 +128,7 @@ test("unmount cancels a pending close so it cannot close the next card", async (
 	}
 });
 
-test("native close waits for Vaul and old pull gestures do not bind", async () => {
+test("native close waits for Vaul and old pull gestures do not bind", () => {
 	const f = fixture();
 	try {
 		let bound = 0;
@@ -145,7 +148,7 @@ test("native close waits for Vaul and old pull gestures do not bind", async () =
 		let closed = 0;
 		f.api.flushSync(() => f.api.closePhoneDrawer(f.dialog, () => closed++));
 		assert.equal(closed, 0);
-		await new Promise((resolve) => setTimeout(resolve, 550));
+		f.api.flushSync(() => f.clock.advance(550));
 		assert.equal(closed, 1);
 	} finally {
 		f.dispose();
@@ -169,7 +172,7 @@ test("the scale target includes the page chrome and restores page geometry on un
 	}
 });
 
-test("linked phone previews retain the mounted parent and restore its scroll on close", async () => {
+test("linked phone previews retain the mounted parent and restore its scroll on close", () => {
 	const f = fixture();
 	try {
 		const parent = f.dialog;
@@ -188,7 +191,7 @@ test("linked phone previews retain the mounted parent and restore its scroll on 
 		);
 		assert.match(parent.querySelector("[data-vaul-drawer]").style.transform, /scale.*-16px/);
 		f.api.flushSync(() => assert.equal(f.api.restorePhonePreview(f.app, "parent"), true));
-		await new Promise((resolve) => setTimeout(resolve, 550));
+		f.api.flushSync(() => f.clock.advance(550));
 		assert.equal(f.app.dialog, parent);
 		assert.equal(child.isConnected, false);
 		assert.equal(parent.querySelector(".sheet-scroll"), scroll);
@@ -210,9 +213,11 @@ test("wheel at the top does not move or close the Vaul drawer", () => {
 		const background = f.w.document.querySelector("#workspace-background");
 		const transform = background.style.transform;
 		const scroll = f.dialog.querySelector(".sheet-scroll");
-		f.api.flushSync(() => scroll.dispatchEvent(
-			new f.w.WheelEvent("wheel", { deltaY: -400, bubbles: true, cancelable: true }),
-		));
+		f.api.flushSync(() =>
+			scroll.dispatchEvent(
+				new f.w.WheelEvent("wheel", { deltaY: -400, bubbles: true, cancelable: true }),
+			),
+		);
 		assert.equal(f.app.closed, 0);
 		assert.equal(drawer.dataset.state, "open");
 		assert.equal(drawer.style.transform, "");

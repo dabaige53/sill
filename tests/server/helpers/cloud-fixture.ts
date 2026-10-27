@@ -14,6 +14,8 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 		"20261023012831_card_playback_and_pr.sql",
 		"20261023012833_sill_markdown_body.sql",
 		"20261023020000_https_images.sql",
+		"20261023111147_sill_layout_preferences.sql",
+		"20261027132655_workspace_save_consistency.sql",
 	])
 		await db.exec(
 			await (await import("node:fs/promises")).readFile(

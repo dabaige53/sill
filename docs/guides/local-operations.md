@@ -68,4 +68,4 @@ PR 使用独立的 `pullRequest` 快照；播客音频地址、带时间点的�
 
 日志保存在 `~/Library/Logs/Sill/Performance/<会话编号>/`。包含事件、环境信息、汇总与可打开的 HTML 报告。独立队列每秒采样 CPU／驻留内存，每 100ms 探测主线程应答，超过 50ms 记录延迟；这不是 FPS。搜索、分栏、队列等待、后端读写和快照应用分别记录阶段。
 
-使用官方 XCTest、XCUITest 与 Instruments 的自动化／人工流程、采集上限、指标口径和基线比较见 [Mac 性能追踪与自动化测试](macos-performance.md)。默认关闭，不上传，不记录正文、搜索词或凭据。
+使用官方 XCTest、XCUITest 与 Instruments 的自动化／人工流程、采集上限、指标口径和基线比较见 [Mac 性能追踪与自动化测试](../agents/macos-performance.md)。默认关闭，不上传，不记录正文、搜索词或凭据。

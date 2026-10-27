@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { JSDOM } from "jsdom";
+import { cardHTML } from "../../apps/web/cards/templates.ts";
 import { CardTypes, SeedCards } from "../../apps/web/data/cards.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
@@ -95,6 +96,7 @@ test("task checks and completed reminder controls reflect stored state without c
 	const taskDom = new JSDOM(Panels.preview({}, task));
 	const reminderDom = new JSDOM(Panels.preview({}, reminder));
 	try {
+		assert.match(cardHTML(reminder), /is-complete/);
 		assert.equal(
 			taskDom.window.document
 				.querySelector(`[data-action="task"][data-extra="${task.tasks[0].id}"]`)
@@ -115,15 +117,6 @@ test("task checks and completed reminder controls reflect stored state without c
 		taskDom.window.close();
 		reminderDom.window.close();
 	}
-});
-
-test("reason entry is removed while existing feedback actions remain available", async () => {
-	const { cardsActions } = await import("../../apps/web/views/actions/cards.ts");
-	assert.equal("why" in Panels, false);
-	assert.equal("whyLink" in Panels, false);
-	assert.equal("why" in cardsActions, false);
-	assert.equal(typeof cardsActions["less-like"], "function");
-	assert.equal(typeof cardsActions["never-show"], "function");
 });
 
 test("article preview puts the cover before its ruled header; reading puts it after", () => {

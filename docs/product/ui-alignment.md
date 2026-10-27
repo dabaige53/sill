@@ -4,7 +4,7 @@
 
 本表记录 Web 桌面、手机 Web 与 Mac 在每项界面行为上的当前状态。Mac 的视觉、状态与动效以 Web 和设计手册为准；本表回答「Mac 跟到了哪里」「哪些差异是刻意的」「哪些还没在真实窗口看过」。
 
-- 本表记录现状。检查方法与每次 PR 的结果格式见[跨端对齐检查清单](../guides/cross-platform-checklist.md)。
+- 本表记录现状。检查方法与每次 PR 的结果格式见[跨端对齐检查清单](../agents/cross-platform-checklist.md)。
 - 产品能力（登录、MCP、云端）见[功能矩阵](feature-matrix.md)，本表只记界面与交互。
 - 2026-10-20 的[逐行清单](../records/2026-10-20-macos-web-alignment/rule-checklist.md)是重建 Mac 界面时的记录，按手册行号对应，现已错位，只作历史参考，由本表替代。
 

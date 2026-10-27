@@ -1,8 +1,8 @@
 # 文件管理规范
 
-已被 [文件管理规范](../guides/file-management.md) 替代。
+已被 [文件管理规范](../agents/file-management.md) 替代。
 
-状态：现行文件管理规则。更新：2026-10-16。适用于仓库内容与本地工作文件，不改变产品范围、业务实现或发布状态。新规范已确认，见 [文件管理规范（新）](../guides/file-management.md) 与 [代码规范](../guides/code-standards.md)；仓库迁移完成后，本文移入归档。
+状态：现行文件管理规则。更新：2026-10-16。适用于仓库内容与本地工作文件，不改变产品范围、业务实现或发布状态。新规范已确认，见 [文件管理规范（新）](../agents/file-management.md) 与 [代码规范](../agents/code-standards.md)；仓库迁移完成后，本文移入归档。
 
 ## 入口与职责
 
@@ -79,7 +79,7 @@
 
 GitHub Issues 使用 `dabaige53/sill`。技能配置集中在 `docs/agents/`，从 `AGENTS.md` 和文档目录进入。项目采用 single-context：根目录 `GLOSSARY.md` 与 `docs/adr/` 按需建立。已有设计决策保留原路径；新决策需说明与旧决策的关系。当前配置不创建空目录或空术语表。
 
-PR 正文使用 [PR 模板](../../.github/pull_request_template.md)，当前正文保存为根目录 [pr.md](../../pr.md)。这两个文件遵循 PR 技能的固定结构，不增加状态前言。模板中的说明在提交时替换为具体内容；本次正文不得含占位文字。后续创建 PR 可通过 `--body-file pr.md` 读取正文；保存文件不等于创建或发布 PR。
+PR 正文使用 [PR 模板](../../.github/pull_request_template.md)，当前正文保存为根目录 [pr.md](../agents/pr.md)。这两个文件遵循 PR 技能的固定结构，不增加状态前言。模板中的说明在提交时替换为具体内容；本次正文不得含占位文字。后续创建 PR 可通过 `--body-file pr.md` 读取正文；保存文件不等于创建或发布 PR。
 
 ## 源文件与产物
 

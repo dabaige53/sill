@@ -21,7 +21,7 @@
 4. **手册**：去掉重复的跳转小节、日期叙述和画板编号引用；零散规则移回所属主题；手机卡片字号改为 A 字号。README 改为入口表。
 5. **画板**：9 块与产品不一致的画板移到历史（CardBlocks、CardRecipes、TextLimits、Settings、MobileProto、NavCapsule、NavigationState、SearchFilters、MobileHome），现行画板 23 块。13 块现行画板的卡片摘要补到 50–60 字；页面稿摘要按网页 3 行、手机 2 行截断；资讯阅读画板在标题与正文之间补上摘要。
 6. **线上变量**：`stage` 从 `tokens.json` 编译 `tokens.css` 一起发布，不再需要在页面里保存。
-7. **规则**：AGENTS.md 与 [设计约束](../../../DESIGN.md)「两种工作环境」改为：仓库是来源，线上是发布副本；Claude Code 改完同一次任务内发布；其他 AI 产品只改仓库，在 PR 的 Merge Danger 写「设计未发布到线上」。
+7. **规则**：AGENTS.md 与 [设计约束](../../agents/design.md)「两种工作环境」改为：仓库是来源，线上是发布副本；Claude Code 改完同一次任务内发布；其他 AI 产品只改仓库，在 PR 的 Merge Danger 写「设计未发布到线上」。
 8. **产品代码**：只做两处不改行为的抽取，供示例复用：`cardMenuHTML`（`apps/web/views/app-card-actions.ts`）、`pushRingHTML`（`apps/web/interactions/gesture-preview.ts`）。另将有封面卡片的摘要改为与无封面相同的 3 行（Web 与 macOS）。
 
 ## 验证

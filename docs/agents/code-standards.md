@@ -1,6 +1,8 @@
 # 代码规范
 
-更新：2026-10-22。目录与语言迁移已完成，批次与验收边界见 [文件管理规范](file-management.md#9-迁移进度)。动态界面仍有显式 `any`，类型检查尚未使用 strict；Biome 默认规则保留警告，不把零错误说成零警告。
+更新：2026-10-27。目录与语言迁移已完成，批次与验收边界见 [文件管理规范](file-management.md#9-迁移进度)。动态界面仍有显式 `any`，类型检查尚未使用 strict；Biome 默认规则保留警告，不把零错误说成零警告。
+
+下文是维护和审查的目标，不表示存量代码已全部符合。存量差异及其验证状态见 [2026-10-27 长期参考核对](../records/2026-10-27-agent-reference-audit/README.md)；发现差异时按当前任务处理，不为了符合本文扩大改动。
 
 本规范适用于 Web、Mac、iOS、服务端和 `contracts/`。各端 README（`apps/web/`、`apps/apple/`、`server/`、`contracts/`）只写本端的补充规则，不重复本文。决策依据见 ADR [0023](../adr/0023-three-clients-repo-layout.md) 至 [0027](../adr/0027-native-apple-data-layer.md)。
 
@@ -27,7 +29,7 @@
 ## 3. 命名
 
 - 代码标识符、文件名和代码注释使用英文。用户可见文字放在文案文件中（见第 6 节）。
-- 业务概念使用 [GLOSSARY](../../GLOSSARY.md) 中的名称：卡片写作 `Card`，来源写作 `sources`，不使用 `Item`、`Content`、`AI 整理` 等已弃用的说法。
+- 新增业务概念使用 [GLOSSARY](../../GLOSSARY.md) 中的名称：卡片写作 `Card`，来源写作 `sources`，不引入 `Item`、`Content`、`AI 整理` 等旧称呼。已有对外字段和工具名（如 `contents`、`item.patch`）按兼容约定保留，不因统一称呼改名。
 - TypeScript：普通模块用 `kebab-case.ts`，React 组件用 `kebab-case.tsx`；类型和类用 `PascalCase`；函数和变量用 `camelCase`；常量对象也用 `camelCase`，不使用全局变量。
 - Swift：一个主要类型一个文件，文件名与类型名相同，使用 `UpperCamelCase`。
 - 测试文件与被测文件同名：`card-store.ts` 对应 `card-store.test.ts`；`CardStore.swift` 对应 `CardStoreTests.swift`。
@@ -52,6 +54,7 @@
 
 ## 6. 设计 tokens 与文案
 
+- 修改或审查动画、滚动、抽屉和手势时，按[动效开发与排查](motion-development.md)核对真实入口、参考差异、输入与运动归属、状态保持和验收证据。
 - 颜色、间距、圆角、字号和动效只引用共享设计变量生成的 CSS 变量或 Swift 常量，不在代码中直接写数值。设计变量源文件按类别放在 `design-system/tokens/*.json`，生成兼容文件 `tokens.json`。
 - 用户可见文字按职责放在 `design-system/copy/zh-Hans/*.json`，生成供各端读取的 `design-system/copy/zh-Hans.json`。key 使用英文点分格式，例如 `card.type.article`。运行 `npm run contracts:generate` 更新生成文件，`contracts:check` 检查是否过期。
 - Web 端在构建时读取文案文件。Apple 端在构建时生成 String Catalog，并通过生成的常量引用，key 写错时编译失败。
@@ -76,7 +79,7 @@
 - 测试按端放在 `tests/web/`、`tests/apple/`、`tests/server/`、`tests/contracts/`；跨端流程放 `tests/e2e/`。Apple 端也可以把单元测试放在 Swift Package 的测试 target 中，由 `swift test` 运行。
 - 修改契约时，必须同时更新合法与非法样例，并通过每一端的契约测试。
 - 修改写入逻辑时，必须覆盖版本冲突和结果未知两种情况。
-- 修改界面时，按 [测试与验证](testing.md) 选择获准的检查；未获授权的界面验证标为未验证。证据保存位置见文件管理规范第 5 节。
+- 修改界面时，按 [测试与验证](test.md) 选择获准的检查；未获授权的界面验证标为未验证。证据保存位置见文件管理规范第 5 节。
 - 测试只使用合成数据，不读取真实卡片、真实账号或秘密。
 - 测试跟着被测代码走：代码删除时，测试一起删除。
 
@@ -109,4 +112,4 @@
 
 - PR 正文使用 [PR 模板](../../.github/pull_request_template.md)，按 Summary、Evidence、Merge Danger 填写；只把实际运行过的检查写为通过。
 - 一个 PR 只做一类改动。移动文件、修改行为和整体格式化分开提交。
-- 迁移按端分批，每批运行完整测试。
+- 迁移按端分批；每批按 [测试与验证](test.md) 选择直接受影响的检查，不默认运行完整测试。

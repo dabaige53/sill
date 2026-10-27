@@ -33,10 +33,10 @@ node scripts/sill.ts apply --file /tmp/operations.json
 
 ## 开发与文档
 
-- [快速发布](docs/guides/release.md)：`npm run release:prepare` 完成检查并保存候选包，再按指南部署与验收。
+- [快速发布](docs/agents/release.md)：`npm run release:prepare` 完成检查并保存候选包，再按指南部署与验收。
 - [文档目录](docs/README.md)：现行规则、设计决策、历史记录与归档的唯一导航。
-- [文件管理规范](docs/guides/file-management.md)与[代码规范](docs/guides/code-standards.md)：目录、命名、迁移和验证要求。
+- [文件管理规范](docs/agents/file-management.md)与[代码规范](docs/agents/code-standards.md)：目录、命名、迁移和验证要求。
 - [脚本目录](scripts/README.md)与[测试目录](tests/README.md)：构建输入、输出和检查命令。
-- [设计约束](DESIGN.md)、[设计系统](design-system/README.md)与[Mac 原生应用](apps/apple/README.md)：改界面前先读，组件与平台说明。
+- [设计约束](docs/agents/design.md)、[设计系统](design-system/README.md)与[Mac 原生应用](apps/apple/README.md)：改界面前先读，组件与平台说明。
 
 `npm test` 检查当前本地实现；`npm run files:check` 检查目录与文档。构建只产生本地文件，不表示安装、发布或线上验收。

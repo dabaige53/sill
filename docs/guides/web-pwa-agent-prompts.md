@@ -23,7 +23,7 @@
 ### 7.2 代码优化（C1–C6）
 
 ```text
-你在 Sill 仓库（dabaige53/sill）工作。先完整阅读 docs/guides/web-pwa-ui-handoff.md、AGENTS.md、docs/guides/code-standards.md、docs/guides/file-management.md 和 tests/README.md。
+你在 Sill 仓库（dabaige53/sill）工作。先完整阅读 docs/guides/web-pwa-ui-handoff.md、AGENTS.md、docs/agents/code-standards.md、docs/agents/file-management.md 和 tests/README.md。
 
 任务：完成交接文档中的工作包 [C1]（只做这一个）。目标是行为不变的代码优化，不改界面设计。
 - C1：逐个找出列出的浏览器测试失败的根因并修复。先在基础提交上复现，再修，再证明同一测试通过。不跳过、不禁用、不放宽断言。
@@ -65,7 +65,7 @@
 3. DESIGN.md 和 design-system/README.md（「手机主页」「预览与叠放」「图标」「底部导航与反馈」「动效」）
 4. docs/adr/0032、0035、0036、0037
 5. docs/records/2026-10-18-phone-home-x-density/README.md 和 docs/records/2026-10-18-card-detail-capsule/README.md
-6. docs/guides/code-standards.md、docs/guides/file-management.md、tests/README.md、pr.md、.github/pull_request_template.md
+6. docs/agents/code-standards.md、docs/agents/file-management.md、tests/README.md、pr.md、.github/pull_request_template.md
 读完后，用 10 行以内向我复述：已完成什么、你准备的执行顺序、哪些项需要我确认。然后直接开始，不等我回复（除非你发现文档和代码有冲突）。
 
 # 执行顺序

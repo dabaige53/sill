@@ -1,8 +1,8 @@
 # 测试目录
 
-更新：2026-10-23。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
+更新：2026-10-27。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
-以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/guides/testing.md) 确认授权、范围和结果边界。
+以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/agents/test.md) 确认授权、范围和结果边界。
 
 ## 目录与默认范围
 
@@ -18,7 +18,7 @@
 
 `npm test` 负责静态检查、构建、数据约定、Web、服务端和性能报告解析；不启动浏览器或 Mac 窗口，不执行 Swift 测试、性能基准及 Docker Postgres。报告解析不需要 Xcode。构建产物断言统一由 `scripts/check.ts` 管理。
 
-CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留独立的快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint、Swift 非界面测试和 Mac 构建与签名检查。性能基准仍按需运行。
+CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verify.yml` 负责 Web 格式、构建一致性和专项浏览器流程；`supabase.yml` 负责真实 Postgres 和云端浏览器流程。`consent-policy.yml` 保留独立的快速授权策略反馈，因此这项安全检查与默认 Node 检查有意重叠。`macos.yml` 在相关输入变更时执行 Apple lint 与 Swift 非界面测试，Mac 构建及签名检查仅在 tag 推送时执行。性能基准仍按需运行。
 
 旧数据迁移、未知字段保留、已移除入口不可见等测试属于当前兼容性检查，不按文件年龄删除。辅助模块由对应入口加载，不逐文件独立执行。删除记录见 [2026-10-21 测试整理](../docs/records/2026-10-21-test-cleanup/README.md)。
 
@@ -55,7 +55,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | 主页五分栏 | `npm run build && node tests/e2e/home-tabs-browser.ts` | 320/390/1440 浅深色与 1920 宽屏；桌面对齐、五个筛选结果、单个当前项、搜索条件隔离、切换后恢复阅读位置且导航保持可见、来源卡片不变 |
 | 下拉刷新图标反馈与请求锁 | `npm run build && node tests/e2e/refresh-motion-browser.ts` | 合成卡片、Chromium 触屏事件、轻阈值与取消、快速请求保留反馈、真实等待、成功勾与失败重试、慢请求防重复、正常滚动；云端错误不弹文字反馈；不代替 Safari/iPhone 实测 |
 | 手势布局与关闭性能 | `npm run build && node tests/e2e/gesture-performance-browser.ts` | 合成手机正文、CPU 4 倍限速；固定内容尺寸、关闭期间布局和绘制、返回后工具条与导航状态；不代表真机帧率 |
-| 单卡交给宿主助手 | `npm run test:core`、`npm run build:cloud && npm run test:cloud-app-browser` | 真实 SDK 协议的 sandbox 宿主模拟：能力协商、账号条件、单次发送、回执未知、手动复制回退、外链确认与明确拒绝的草稿恢复；不发送真实对话 |
+| 单卡交给宿主助手 | `npm run test:core`、`npm run build:cloud && npm run test:cloud-app-browser` | 真实 SDK 协议的 sandbox 宿主模拟：能力协商、账号条件、单次发送、回执未知、无复制回退、外链确认与明确拒绝后的草稿恢复；不发送真实对话 |
 | 云端服务 | `npm run test:supabase`、`npm run test:cloud-app` | 本地检查不代替生产数据和账号验收 |
 | 外部备份与恢复 | `node --import tsx --test tests/server/backup*.test.ts tests/web/backup-transport.test.ts` | 合成 WebDAV/R2、MCP 权限、AES 绑定、不可变快照、原子恢复、版本冲突及未知回执，不连接真实网盘 |
 | 设备提醒 | `node --import tsx --test tests/web/system-reminders.test.ts`；`node tests/apple/run.ts --filter SystemReminderTests` | 模拟权限、通知事件、调度和账号生命周期，不投递系统通知 |
@@ -68,44 +68,12 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 
 `hiddenActions` 的迁移前拒绝、迁移后保存、非法批量回滚由 `server/helpers/hidden-actions-migration.ts` 共用断言验证。`server/cloud-workspace.test.ts` 在 PGlite 运行，Postgres 入口加载相同迁移并调用同一断言。本机没有 Docker 时写明「未执行」；CI 结果另记，不代替生产迁移部署。
 
-`server/` 的云端迁移检查之外，`web/app.test.ts` 验证控制器拆分前后的设置焦点、滚动、动作开关、外链账号边界和详情尺寸定位。完整 Node 检查会自动运行；真实抽屉、键盘与云端保存仍由相关浏览器专项覆盖。
+非 Linux 环境运行 `test:cloud-welcome` 时，通过 `CHROMIUM_PATH` 指定已安装的 Chromium，不安装新浏览器或修改断言。
 
-`web/panels.test.ts` 覆盖 11 类卡片、播客、转义、助手动作位置、关联卡片、任务与提醒状态。C3 的完整 HTML 比较仅在本机运行，摘要保存在检查记录。非 Linux 环境运行 `test:cloud-welcome` 时，通过 `CHROMIUM_PATH` 指定已安装的 Chromium，不安装新浏览器或修改断言。
-
-专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/guides/file-management.md)。
+专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/agents/file-management.md)。
 
 浏览器入口保留服务启动、合成数据和结果汇总；相邻模块按卡片操作、阅读与选择、捕获与布局、触控与拖动、材质和抽屉场景分组，按原顺序执行。`web/selection.test.ts` 与 `server/oauth-consent.test.ts` 分别注册相邻模块中的全部测试；`server/supabase-postgres.ts` 在同一容器中依次运行权限与 OAuth 检查。拆分模块不单独启动浏览器、服务或数据库。
 
 `web/gesture-fixture.ts` 提供手势测试的合成页面、计时器和动画边界；`web/gestures.test.ts` 只保留行为断言。计时器和绘制帧都不会自己运行：`f.flush()` 运行全部计时器，`f.flush(undefined, ms)` 只运行延迟不超过 ms 的计时器（用来模拟「过了 ms 毫秒」），`f.flush(f.frames)` 推进一帧。测间隔、停顿类规则时必须这样推进，否则旧实现也会通过。
 
-Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fixture.ts`；`search-state.test.ts` 与 `search-desktop.test.ts` 共用 `search-state-fixture.ts`；`visibility-motion.test.ts` 与 `detail-motion.test.ts` 共用 `visibility-motion-fixture.ts`。辅助文件只提供合成环境，由测试入口加载。
-
 `e2e/browser.ts` 将内置视频示例的精确封面地址替换为合成图片；其他意外外网请求仍中止并使场景失败。
-
-`web/reader-outline.test.ts` 使用合成 DOM 检查鼠标与键盘目录立即定位、目录常显且无切换按钮；`web/layout.test.ts` 和 `web/visibility-motion.test.ts` 检查手机卡片重排与顶部栏首次显示。均为非浏览器检查，不代替真实页面验收。
-
-动画第一、第二批：`app.test.ts` 覆盖提醒详情保留、头像按压、开关滑块和手动记录入口移除；`selection.test.ts` 及其辅助文件覆盖菜单移除、批量取消收藏、拖动目标显隐；`gesture-preview.test.ts` 覆盖桌面边缘复位时长。已有浏览器脚本已同步删除入口的预期，本轮未运行。
-
-动画复核调整：`toggle-motion.test.ts` 覆盖未变化开关重绘与反向接续；`gesture-preview.test.ts` 覆盖可中断回弹；`tests/server/local-sync.test.ts` 区分首次数据无入场与后续更新；多选测试覆盖操作后保留胶囊及拖动时原位 AI 接收框切换。
-
-第三批动效的非浏览器检查：`search-desktop.test.ts` 检查焦点、会话历史、真实标签和筛选；`reader-outline.test.ts` 检查即时定位；`photo-carousel.test.ts` 使用合成指针检查横向吸附、纵向滚动保留、首尾边界与节点保留；`panels.test.ts` 检查播客只读介绍；`chrome.test.ts` 检查共用工具节奏。均不代替实际窗口观感。
-
-第四批非浏览器检查：`app.test.ts` 检查任务勾选保留详情、工具、焦点与滚动；`search-state.test.ts` 检查手机搜索输入节点、取消和会话历史，以及收藏来源移出但详情保留；`detail-motion.test.ts` 检查外框完成前内容隐藏、完成后才淡入与取消恢复；`gesture-refresh.test.ts` 检查请求开始即释放内容、慢请求锁与失败重试。均使用合成数据，不调用浏览器或修改用户数据。
-
-第三阶段复核：`home-search-motion.test.ts` 检查条件图标从候选位置移入、参考参数与键盘即时完成；`search-desktop.test.ts` 覆盖保留查询的复聚焦与 Combobox 键盘行为；`photo-carousel.test.ts` 检查近期释放速度、取消、停顿及反向吸附。均使用隔离合成数据与指针，不执行浏览器或真实卡片写入。
-
-第四阶段最新复核：`stage-four-motion.test.ts`用合成几何检查AI锚点裁切、反向采样、引用分离时长与手机搜索附件编排；`media-playback.test.ts`与`app.test.ts`检查视频预览/全屏保留同一iframe和一次播放器实例；`detail-motion.test.ts`检查旧内容保留、无iframe副本、同时交叉淡化及取消恢复；`panels.test.ts`和`detail-toolbar.test.ts`检查旧隐藏偏好不移除任何动作且设置无隐藏开关。均不使用浏览器、真实媒体或账号数据。
-
-`web/local-launch.test.ts` 检查快慢本地启动均保留页面框架、只在卡片区等待数据、定时占位清理和首次卡片只显示一次，并检查 HTML 启动前的主题恢复。合成 DOM 不代替真实网页刷新验收。
-
-设置按钮按压与开关反馈的控制器检查位于 `web/control-feedback.test.ts`，共用 `web/app-fixture.ts`；公共操作路由继续由 `web/app.test.ts` 覆盖。
-
-滚动输入与释放检查位于 `web/gesture-input.test.ts`；首页刷新曲线、可见阈值与wheel连续衰减在 `web/refresh-input.test.ts`，同一位移驱动圆环、速度交接和回位中重抓在 `web/gesture-refresh-continuity.test.ts`；参考回弹、内容层与尾段接手在 `web/gesture-rebound.test.ts`；任务／提醒原位更新在 `web/completion-state.test.ts`。均为非浏览器检查，不证明实际帧率。
-
-`web/gesture-refresh-feedback.test.ts`覆盖快速请求立即生效、300ms加载反馈、400ms完成勾及新手势中断旧反馈，不代替真实页面观感验收。
-
-`web/gesture-rebound.test.ts`检查Web桌面普通详情不拦截滚轮、不叠加自定义位移或延时回位；手机继续检查600／48／1参数、速度上限和停住后速度归零。共享100ms采样器沿用既有算法，首页刷新与甩动释放由各自检查覆盖；非浏览器检查不证明系统原生回弹的实际观感。
-
-Web桌面普通滚动保留原生反馈；`web/gesture-refresh.test.ts`覆盖明确下拉刷新时接手wheel并单次提交。`web/gesture-refresh-continuity.test.ts`新增回归：刷新卡片必须跟手位移，is-pulling保留到内容回位结束后再释放原生边缘反馈。手机与桌面共用加载和完成反馈检查，组合观感由用户确认。
-
-`web/chrome-fixture.ts` 提供顶栏与工具栏测试的合成页面及构建包；行为用例保留在 `web/chrome.test.ts`。

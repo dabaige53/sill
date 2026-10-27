@@ -20,7 +20,8 @@ enum CloudWriteReconciliation {
       .compactMap { $0["id"] }
     var item: JSONValue = .object([
       "seen": .bool(false), "read": .bool(false), "bookmarked": .bool(false),
-      "later": .bool(false), "tagsEdited": .bool(false), "progress": .number(0),
+      "later": .bool(false), "tagsEdited": .bool(false), "playbackPosition": .number(0),
+      "progress": .number(0),
       "note": .string(""), "tags": .array([]), "addedAt": .number(0),
       "snoozedUntil": .number(0), "dismissed": .bool(false), "reminderDone": .bool(false),
       "lastReminderKey": .string(""), "lastNotifiedAt": .number(0), "readAt": .number(0),
@@ -66,7 +67,10 @@ enum CloudWriteReconciliation {
             return false
           }
         }
-        var card = cards[id] ?? .object([:])
+        var card = JSONValue.object(
+          (cards[id]?.object ?? [:]).filter {
+            !CardValidator.knownFields.contains($0.key) && $0.key != "points"
+          })
         for (key, value) in submitted { card[key] = value }
         cards[id] = rawCard(card)
         items[id] = defaultItem(card, stored: storedStates[id] ?? .object([:]))

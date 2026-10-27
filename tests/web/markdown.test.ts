@@ -87,6 +87,16 @@ test("code blocks remain searchable and available as card text", () => {
 	]);
 });
 
+test("an unclosed multiline reference does not stall card text parsing", () => {
+	const source = '[a]: https://example.com "' + "x\n".repeat(240000);
+	const start = process.cpuUsage();
+	const html = markdownHtml(source);
+	const usage = process.cpuUsage(start);
+	const cpuMs = (usage.user + usage.system) / 1000;
+	assert.ok(cpuMs < 2000, `480 KB malformed reference used ${cpuMs} ms of CPU`);
+	assert.match(html, /example\.com/);
+});
+
 test("article outline targets actual headings including duplicate titles, not code or intro text", () => {
 	const source =
 		"Intro\n\n## **Chapter**\n\n### Detail `one`\n\n```md\n## Not a chapter\n```\n\n## **Chapter**";

@@ -2,6 +2,8 @@
 
 更新：2026-10-27。
 
+本文保留五阶段交接当时的目录、端口、实施与检查记录。继续工作前，以[动画清单](../product/animation-checklist.md)最新反馈、[设计变量](../../design-system/tokens/foundation.json)和当前服务为准；按[动效开发与排查](../agents/motion-development.md)确认入口。后续已采用浏览器原生回弹与 Vaul，早期 40ms／140ms 自定义回位不再作为 Web 普通滚动基线。
+
 ## 工作位置与目标
 
 用户最新确认：创建新线程继续工作，复用当前工作树，不再创建 worktree。当前 worktree：`/Users/w/.codex/worktrees/animation-stages/sill`。原 worktree：`/Users/w/.codex/worktrees/6b13/sill`，原分支 `codex/ui`，基准提交 `c9c0c7077f1890f357cf55d954d860e56ae1c4db`。新 worktree 从同一提交建立，已逐字节核对迁入全部 tracked diff 和 3 个新增文件。改动仍未提交；原目录保留，不清理或回退。
@@ -44,7 +46,7 @@
 
 页面继续使用 http://localhost:5173/#feed，须运行新 worktree 的 npm run dev。数据服务在 /Users/w/code/sill，4318，仅提供既有数据。它停服时 Vite 代理返回502空响应，会出现 JSON 解析错误；先恢复服务，不清空浏览器草稿，不点“放弃本机修改”。5173 与4318不同源；不要以4318旧静态前端验收新worktree。不得复制或覆盖真实本地数据。
 
-构建/检查按 docs/guides/testing.md 选用。用户未授权浏览器自动操作、截图自动验证或 e2e；由用户手动验收。仅打开网页不构成测试授权。代码可继续修改；未经请求不提交、推送、部署。
+构建/检查按 docs/agents/test.md 选用。用户未授权浏览器自动操作、截图自动验证或 e2e；由用户手动验收。仅打开网页不构成测试授权。代码可继续修改；未经请求不提交、推送、部署。
 
 ## 协作与交付
 

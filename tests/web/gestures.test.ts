@@ -293,8 +293,7 @@ test("read-end wheel threshold completes without waiting for the stream to stop"
 	}
 });
 
-test("read-end wheel push fills from spaced mouse notches and an uneven trackpad hand", async () => {
-	const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+test("read-end wheel push fills from spaced mouse notches and an uneven trackpad hand", () => {
 	const arc = (f: any) =>
 		Number(
 			f.dialog.querySelector(".push-ring .arc circle:last-child").getAttribute("stroke-dashoffset"),
@@ -307,6 +306,8 @@ test("read-end wheel push fills from spaced mouse notches and an uneven trackpad
 	]) {
 		const f = fixture({ end: true });
 		try {
+			let now = 0;
+			f.w.performance.now = () => now;
 			const gap = deltas[0] === 100 ? 120 : 16;
 			let last = arc(f);
 			for (const deltaY of deltas) {
@@ -315,7 +316,7 @@ test("read-end wheel push fills from spaced mouse notches and an uneven trackpad
 				f.flush(f.frames);
 				assert.ok(arc(f) <= last, "the ring never falls back while the hand keeps pushing");
 				last = arc(f);
-				await wait(gap);
+				now += gap;
 				// Timers that would have run within the gap run now.
 				f.flush(undefined, gap);
 				f.flush(f.frames);

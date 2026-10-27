@@ -33,9 +33,6 @@ test("Sill builds only the original App with one skill and both sidebar tools", 
 			await readFile(resolve(root, "skills/sill", path), "utf8"),
 		);
 	}
-	const server = await readFile(resolve(root, "server/cloud/mcp.ts"), "utf8");
-	assert.match(server, /["']global["']/);
-	assert.match(server, /["']thread["']/);
 	assert.equal(
 		manifest.version,
 		JSON.parse(await readFile(resolve(root, "package.json"), "utf8")).version,

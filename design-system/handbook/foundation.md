@@ -141,5 +141,5 @@
 ## 使用组件
 
 - 组件示例由产品代码生成，加载顺序为 `tokens.css`、`components/bundle.css`、`components/bundle.js`（`window.Sill`）。
-- macOS 原生端使用 SwiftUI 与 AppKit，不嵌入网页。视觉、状态与动效对齐 Web，见 [设计约束](../../DESIGN.md)「Web 与 macOS 一致」。原生实现的视觉与交互须在实际窗口验收，不能以源码合并或构建通过代替。
+- macOS 原生端使用 SwiftUI 与 AppKit，不嵌入网页。视觉、状态与动效对齐 Web，见 [设计约束](../../docs/agents/design.md)「Web 与 macOS 一致」。原生实现的视觉与交互须在实际窗口验收，不能以源码合并或构建通过代替。
 - 专门的无障碍设置与系统偏好适配不在项目范围内。
