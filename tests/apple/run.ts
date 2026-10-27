@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const apple = resolve(root, "apps/apple");
 const cache = resolve(apple, ".build");
+const jobs = process.env.SILL_BUILD_JOBS ?? "2";
+if (!/^[1-9]\d*$/.test(jobs)) throw new Error("SILL_BUILD_JOBS must be a positive integer.");
 execFileSync(
 	"swiftc",
 	[
@@ -16,9 +18,14 @@ execFileSync(
 	{ cwd: root, stdio: "inherit" },
 );
 execFileSync(
-	"swift",
+	"nice",
 	[
+		"-n",
+		"10",
+		"swift",
 		"test",
+		"--jobs",
+		jobs,
 		"--disable-sandbox",
 		"--package-path",
 		apple,

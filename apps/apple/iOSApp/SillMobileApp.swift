@@ -1,3 +1,4 @@
+import SillKit
 import SillMobile
 import SwiftUI
 
@@ -5,7 +6,11 @@ import SwiftUI
 struct SillMobileApp: App {
   var body: some Scene {
     WindowGroup {
-      SillMobileRootView()
+      #if DEBUG
+        SillMobileRootView(cloud: MobileUITestFixture.cloud() ?? CloudWorkspace())
+      #else
+        SillMobileRootView()
+      #endif
     }
   }
 }

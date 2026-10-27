@@ -81,6 +81,7 @@
         Button(Copy.text("web.cloud.clear"), role: .destructive) {
           Task { _ = await workspace.clearAll(expectedRevision: clearRevision) }
         }
+        .accessibilityIdentifier("confirm-clear-cards")
         Button(Copy.text("web.cancel"), role: .cancel) {}
       } message: {
         Text(Copy.text("web.cloud.clearDetail"))
@@ -131,6 +132,7 @@
         .padding(.bottom, AppleMetrics.space12)
       }
       .scrollIndicators(.hidden)
+      .accessibilityElement(children: .contain)
       .accessibilityLabel(Copy.text("web.settings.groupsLabel"))
     }
 

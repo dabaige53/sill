@@ -71,38 +71,35 @@
     private func surface(_ layer: MobileReaderLayer, geometry: GeometryProxy) -> some View {
       let isTop = presentation.layers.last?.id == layer.id
       let height =
-        layer.full
+        layer.isPhoto
         ? geometry.size.height
         : min(
           max(AppleMetrics.space160, layer.contentHeight),
           geometry.size.height - AppleMetrics.mobilePreviewTop)
       let resolvedHeight =
-        layer.contentHeight == 0 && !layer.full
+        layer.contentHeight == 0 && !layer.isPhoto
         ? geometry.size.height - AppleMetrics.mobilePreviewTop : height
       return MobileReader(
         workspace: workspace, cardID: layer.cardID, layer: layer,
         safeArea: geometry.safeAreaInsets, isTop: isTop, close: { presentation.closeTop() },
-        openRelated: { id, full in
-          if let card = workspace.card(id) { presentation.push(card, full: full) }
+        openRelated: { id in
+          if let card = workspace.card(id) { presentation.push(card) }
         }
       )
       .frame(width: geometry.size.width, height: resolvedHeight, alignment: .top)
       .background(AppleColors.card)
       .clipShape(
         UnevenRoundedRectangle(
-          topLeadingRadius: layer.full ? 0 : AppleMetrics.sheetRadius,
-          topTrailingRadius: layer.full ? 0 : AppleMetrics.sheetRadius)
+          topLeadingRadius: layer.isPhoto ? 0 : AppleMetrics.sheetRadius,
+          topTrailingRadius: layer.isPhoto ? 0 : AppleMetrics.sheetRadius)
       )
       .mobileShadow(.sheet)
-      .offset(
-        x: layer.drag.width,
-        y: layer.shown ? layer.drag.height : geometry.size.height
-      )
       .allowsHitTesting(isTop && !layer.leaving)
-      .accessibilityHidden(!isTop || layer.leaving)
+      .accessibilityHidden(!isTop || layer.leaving || !layer.settled)
+      .accessibilityElement(children: .contain)
       .accessibilityAddTraits(.isModal)
       .overlay(alignment: .top) {
-        if isTop, presentation.layers.count > 1, !layer.full, !layer.leaving {
+        if isTop, presentation.layers.count > 1, !layer.isPhoto, !layer.leaving {
           Button {
             presentation.closeTop()
           } label: {
@@ -126,6 +123,11 @@
         await Task.yield()
         presentation.reveal(layer)
       }
+      .position(
+        x: geometry.size.width / 2 + layer.drag.width,
+        y: geometry.size.height - resolvedHeight / 2
+          + (layer.shown ? layer.drag.height : geometry.size.height)
+      )
     }
 
     private func backdrop(_ layer: MobileReaderLayer, width: CGFloat) -> Double {

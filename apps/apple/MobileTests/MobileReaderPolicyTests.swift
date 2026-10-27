@@ -9,39 +9,39 @@ import Testing
       #expect(
         MobileReaderPolicy.release(
           drag, distance: 500, velocity: 2, width: 390,
-          cancelled: true, canExpand: true, committed: false) == .restore)
+          cancelled: true, committed: false) == .restore)
     }
     #expect(
       MobileReaderPolicy.release(
         .finish, distance: 120, velocity: 1, width: 390,
-        cancelled: false, canExpand: true, committed: true) == .awaitFinish)
+        cancelled: false, committed: true) == .awaitFinish)
   }
 
   @Test func handleContentAndSidewaysHaveDifferentThresholds() {
     #expect(
       MobileReaderPolicy.release(
         .handle, distance: 110, velocity: 0, width: 390,
-        cancelled: false, canExpand: true, committed: false) == .collapse)
+        cancelled: false, committed: false) == .restore)
     #expect(
       MobileReaderPolicy.release(
         .down, distance: 110, velocity: 0, width: 390,
-        cancelled: false, canExpand: true, committed: false) == .close)
+        cancelled: false, committed: false) == .close)
     #expect(
       MobileReaderPolicy.release(
         .handle, distance: -41, velocity: 0, width: 390,
-        cancelled: false, canExpand: false, committed: false) == .restore)
+        cancelled: false, committed: false) == .restore)
     #expect(
       MobileReaderPolicy.release(
         .handle, distance: 160, velocity: 0, width: 390,
-        cancelled: false, canExpand: false, committed: false) == .close)
+        cancelled: false, committed: false) == .close)
     #expect(
       MobileReaderPolicy.release(
         .right, distance: 80, velocity: 0.6, width: 390,
-        cancelled: false, canExpand: true, committed: false) == .close)
+        cancelled: false, committed: false) == .close)
     #expect(
       MobileReaderPolicy.direction(
         x: 30, y: 28, atTop: true, atBottom: false,
-        full: true, finishEnabled: true) == .none)
+        finishEnabled: true) == .none)
   }
 
   @Test func actionFilteringPrecedesTheThreeItemLimit() {

@@ -3,13 +3,12 @@
   import SwiftUI
   import UIKit
 
-  /// A distinct handle prevents content scrolling from becoming a resize gesture.
+  /// The handle only drags the drawer down to close; tapping or pulling up does not resize it.
   struct MobileReaderHandle: UIViewRepresentable {
     let layer: MobileReaderLayer
     func makeCoordinator() -> Coordinator { Coordinator(layer: layer) }
-    func makeUIView(context: Context) -> UIButton {
-      let button = UIButton(type: .custom)
-      button.accessibilityLabel = Copy.text("web.panels.resizeSheet")
+    func makeUIView(context: Context) -> UIView {
+      let button = UIView()
       let mark = UIView()
       mark.backgroundColor = .tertiaryLabel
       mark.layer.cornerRadius = AppleMetrics.mobileHandleHeight / 2
@@ -22,31 +21,25 @@
         mark.centerXAnchor.constraint(equalTo: button.centerXAnchor),
         mark.centerYAnchor.constraint(equalTo: button.centerYAnchor),
       ])
-      button.addTarget(
-        context.coordinator, action: #selector(Coordinator.toggle), for: .touchUpInside)
       let pan = UIPanGestureRecognizer(
         target: context.coordinator, action: #selector(Coordinator.dragged(_:)))
       pan.maximumNumberOfTouches = 1
       button.addGestureRecognizer(pan)
       return button
     }
-    func updateUIView(_ button: UIButton, context: Context) {
+    func updateUIView(_ button: UIView, context: Context) {
       button.isUserInteractionEnabled = layer.active && !layer.leaving
-      button.accessibilityValue = Copy.text(
-        layer.full ? "web.reader.exitFullscreen" : "web.preview.fullscreen")
+
     }
     @MainActor final class Coordinator: NSObject {
       let layer: MobileReaderLayer
-      private var originalFull = false
       init(layer: MobileReaderLayer) { self.layer = layer }
-      @objc func toggle() { layer.resize(!layer.full) }
       @objc func dragged(_ pan: UIPanGestureRecognizer) {
         guard layer.active, !layer.leaving else { return }
         let distance = pan.translation(in: pan.view?.window).y
         switch pan.state {
         case .began:
           layer.generation += 1
-          originalFull = layer.full
           fallthrough
         case .changed:
           layer.drag.height =
@@ -54,13 +47,10 @@
         case .ended, .cancelled, .failed:
           let decision = MobileReaderPolicy.release(
             .handle, distance: Double(distance), velocity: 0,
-            width: 0, cancelled: pan.state != .ended, canExpand: layer.canExpand, committed: false)
+            width: 0, cancelled: pan.state != .ended, committed: false)
           switch decision {
           case .close: layer.close()
-          case .expand: layer.resize(true)
-          case .collapse: layer.resize(false)
           default:
-            layer.full = originalFull
             layer.rebound()
           }
         default: break

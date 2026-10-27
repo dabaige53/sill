@@ -1,12 +1,12 @@
 # Sill Apple
 
-更新：2026-10-25。
+更新：2026-10-26。
 
 一个 Swift Package。`SillKit` 提供卡片校验、本地存储、云端客户端、Mono24 图标和媒体播放；`macOS/` 是 Mac 应用 `Sill`；`iOS/` 是原生手机和平板界面与状态层，`iOSApp/` 提供应用入口和打包资源。
 
 ## iOS 应用
 
-使用支持 Swift 6 的 Xcode，打开 `apps/apple/SillMobile.xcodeproj`，选择 `SillMobile` scheme 与 iPhone/iPad 模拟器，再运行。最低系统为 iOS 17。首次打开按 Xcode 提示启用 CardGenerator 与官方 OpenAPIGenerator 插件。工程引用相邻 Swift Package，无需生成工程或安装额外项目工具。
+使用支持 Swift 6 的 Xcode，打开 `apps/apple/SillMobile.xcodeproj`，选择 `SillMobile` scheme 与已连接的真实 iPhone，再运行。最低系统为 iOS 17。首次打开按 Xcode 提示启用 CardGenerator 与官方 OpenAPIGenerator 插件。工程引用相邻 Swift Package，无需生成工程或安装额外项目工具。
 
 在仓库根目录执行：
 
@@ -14,9 +14,24 @@
 npm ci
 npm run build:ios
 node tests/apple/run.ts --filter SillMobileTests
+npm run test:ios -- --device <iPhone-UDID>
 ```
 
-模拟器构建关闭签名，输出位于 `dist/ios/`。安装到自己的设备时，在 Xcode 的 Signing & Capabilities 中选择开发团队，并按账号权限配置 Bundle ID。归档使用 `SILL_APPLE_TEAM=<团队ID> SILL_BUILD_NUMBER=<构建号> npm run build:ios -- --archive`；签名证书和描述文件由本机 Xcode 管理。归档不自动上传 TestFlight 或 App Store。
+本地默认使用真实 iPhone，不安装或启动模拟器。`build:ios` 生成未签名的真机 Debug App，位于 `dist/ios/DerivedData/Build/Products/Debug-iphoneos/Sill.app`，安装前需签名。`test:ios -- --device <UDID>` 在已连接的设备运行 `MobileTests/` 与 `iOSUITests/`；追加 `--unit` 或 `--ui` 可只运行一类。设备标识由 `xcrun devicectl list devices` 查看，报告保存在 `tests/artifacts/ios-*.xcresult`。远端 CI 显式追加 `--simulator` 使用其宿主已有的模拟器，不影响本机。
+
+界面测试只使用 Debug 专用的内存 HTTP 数据，不读钥匙串或真实账号。`SILL_UI_TESTING=1` 启用两张合成卡片，适用于真机测试和 CI；Release 构建不编译这个入口。日常运行不设置该变量，继续使用正常登录。
+
+真机测试前，在 Xcode 登录 Apple 账号、创建 Apple Development 证书并选择 Team；iPhone 需信任电脑并开启开发者模式。脚本允许 Xcode 自动生成描述文件、注册当前设备。测试目标可通过 `SILL_APPLE_TEAM=<团队ID>` 使用同一团队，团队 ID 不必写入共享工程。
+
+`npm run build:ios -- --archive --unsigned` 生成 `dist/ios/Sill-unsigned.xcarchive`，用于检查真机 Release 编译与资源，不能直接安装或分发。签名归档使用 `SILL_APPLE_TEAM=<团队ID> npm run build:ios -- --archive`；本机需先有 Apple 开发证书、私钥和描述文件。安装到自己的设备时，在 Xcode 的 Signing & Capabilities 中选择开发团队，并按账号权限配置 Bundle ID。归档不自动上传 TestFlight 或 App Store。
+
+构建脚本自动生成递增的构建号，可用 `SILL_BUILD_NUMBER=<构建号>` 显式指定，格式为最多 `4.2.2` 位数字。产品版本仍只取根目录 `package.json`。
+
+### 测试时保留电脑资源
+
+Apple 构建与测试脚本默认最多同时编译 2 个任务，并降低调度优先级。可用 `SILL_BUILD_JOBS=1` 进一步减少编译并发。一次只运行一类检查，不同时运行 Xcode 和 Swift Package 构建。共享 scheme 使用自动依赖排序，并关闭并行测试；编译并发由 `-jobs` 限制。失败报告保留断言和截图，不收集大型系统诊断。
+
+日常只检查 iOS 状态和数据规则时，使用 `SILL_BUILD_JOBS=1 node tests/apple/run.ts --filter SillMobileTests`，不连接真机、不启动模拟器。检查 iOS 平台或界面时，再运行带 `--device <UDID>` 的 `test:ios`。并发数与优先级不能保证整机 CPU 固定在某个百分比。
 
 版本取根目录 `package.json`，图标取 `assets/sill-icon.png`；Xcode 构建步骤生成 Info.plist 和不透明 AppIcon。原始图标保持原样，产物不提交。
 
@@ -26,7 +41,7 @@ node tests/apple/run.ts --filter SillMobileTests
 - 主页、AI、搜索三项导航；分类封面、类型和标签条件、归档分组、横滑切换、独立滚动位置；iPad 自适应网格；稳定信息流、40 张分页、同源未读叠卡。
 - 多选收藏、稍后读、标签备注和 AI 上下文；标签全批替换、备注只写首卡，校验所有编辑基准后原子保存。
 - 12 种卡片、13 种展示形态；Markdown 表格/目录/内链、独立黑底照片页、任务提醒、PR 与附件、日程导出、安全外链。
-- 自定义阅读抽屉、逐层返回和位置保留、下拉/右滑关闭、把手展开收起、读完上推确认；共享按压、玻璃、阴影、入场、刷新及工具显隐动画。
+- 自定义阅读抽屉、逐层返回和位置保留、下拉/右滑关闭、把手下拉关闭，不提供全屏切换或滚动自动展开、读完上推确认；共享按压、玻璃、阴影、入场、刷新及工具显隐动画。
 - AVPlayer 音频、官方 YouTube 嵌入播放器、播放位置及真实结束状态；转场稳定后挂载视频、播放器就绪前保留封面、播客吸顶和文字稿跟随；无音源禁用控件，实际失败才显示错误。
 - 速记、主题和排版偏好、导出与确认清空、WebDAV/R2 备份及恢复；后端是否部署这些能力仍以功能矩阵为准。
 - 可选设备通知：只安排已载入的未来提醒，最多 64 条；后续内容在打开应用时更新，不是远程推送。
@@ -37,9 +52,9 @@ node tests/apple/run.ts --filter SillMobileTests
 
 写入携带工作区版本。冲突保留输入；结果未知时保留原请求并锁定后续修改，刷新只核对，不自动重发。只有用户核对当前内容并明确确认后才解除锁定。账号过期且有未知写入时，先在其他已登录客户端核对，再确认并重新登录。未知请求仅保存在当前进程中；没有离线写入队列或跨重启草稿。
 
-代码提交 `546a619` 已在远端 CI 通过 iPhone/iPad 模拟器构建、Apple 格式检查和 192 项 Swift 测试，产物为 `Debug-iphonesimulator/Sill.app`。**未执行签名、模拟器界面、真机或连续动画验收**；代码实现不能直接宣称 1:1 视觉通过。逐项证据见 [iOS 对账](../../docs/product/ios-alignment.md)。设计未发布到线上。
+代码提交 `546a619` 已在远端 CI 通过 iPhone/iPad 模拟器构建、Apple 格式检查和 192 项 Swift 测试，产物为 `Debug-iphonesimulator/Sill.app`。该 CI 未执行界面验收；本地补修曾通过 198 项 Swift Package 测试，最终代码在 iPhone 12（iOS 18.6.2）通过 55 项原生单元测试和 2 项阅读/设置界面测试。代码实现不能直接宣称 1:1 视觉通过。逐项证据见 [iOS 对账](../../docs/product/ios-alignment.md)。设计未发布到线上。
 
-`MobileTests/` 覆盖版本冲突、未知写入、跨账号延迟操作、离线会话恢复、备份幂等键、批量注释、阅读手势/会话、搜索/信息流状态和提醒边界；只使用合成数据与模拟 HTTP。本地未执行界面自动化。
+`MobileTests/` 覆盖版本冲突、未知写入、跨账号延迟操作、离线会话恢复、备份幂等键、批量注释、阅读手势/会话、搜索/信息流状态和提醒边界；只使用合成数据与模拟 HTTP。本地阅读与设置界面测试使用两张内存合成卡片，已通过；其他类型与连续动画仍未验收。
 
 ## macOS 应用
 

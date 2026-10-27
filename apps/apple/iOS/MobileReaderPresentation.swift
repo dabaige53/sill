@@ -7,8 +7,7 @@
   @MainActor @Observable final class MobileReaderLayer: Identifiable {
     let id = UUID()
     let cardID: String
-    let canExpand: Bool
-    var full = false
+    let isPhoto: Bool
     var shown = false
     var settled = false
     var leaving = false
@@ -37,9 +36,7 @@
 
     init(card: MobileCard) {
       cardID = card.id
-      canExpand =
-        MobileReaderPolicy.expandable(card.type) && (card.type == "media" || !card.body.isEmpty)
-      full = card.type == "photo"
+      isPhoto = card.type == "photo"
     }
 
     var toolsVisible: Bool { !toolsHidden && finish == 0 && !pending && !confirmed && !leaving }
@@ -89,27 +86,6 @@
     func showTools(_ shown: Bool) {
       guard !confirmed, !pending, toolsHidden == shown else { return }
       withAnimation(shown ? MobileMotion.show : MobileMotion.tuck) { toolsHidden = !shown }
-    }
-
-    func resize(_ full: Bool) {
-      guard active, !leaving, canExpand || !full else {
-        rebound()
-        return
-      }
-      guard self.full != full else {
-        rebound()
-        return
-      }
-      generation += 1
-      let token = generation
-      settled = false
-      withAnimation(MobileMotion.expanded, completionCriteria: .logicallyComplete) {
-        self.full = full
-        drag = .zero
-      } completion: { [weak self] in
-        guard let self, self.generation == token, !self.leaving else { return }
-        self.settled = true
-      }
     }
 
     func rebound(velocity: Double = 0) {
@@ -181,12 +157,11 @@
       layers = [makeLayer(card)]
     }
 
-    func push(_ card: MobileCard, full: Bool = false) {
+    func push(_ card: MobileCard) {
       guard layers.last?.cardID != card.id else { return }
       generation += 1
       layers.last?.suspend()
       let layer = makeLayer(card)
-      if full && layer.canExpand { layer.full = true }
       layers.append(layer)
     }
 

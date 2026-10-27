@@ -4,10 +4,12 @@
   import UIKit
 
   public struct SillMobileRootView: View {
-    @State private var workspace = MobileWorkspace()
+    @State private var workspace: MobileWorkspace
     @State private var reminders = MobileReminders.shared
     @Environment(\.scenePhase) private var scenePhase
-    public init() {}
+    public init(cloud: CloudWorkspace = CloudWorkspace()) {
+      _workspace = State(initialValue: MobileWorkspace(cloud: cloud))
+    }
 
     public var body: some View {
       Group {

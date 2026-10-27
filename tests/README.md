@@ -60,6 +60,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | OAuth | `npm run test:oauth` | 真实授权另行验收 |
 | 云端页面 | `npm run test:cloud-browser`、`npm run test:cloud-app-browser`、`npm run test:cloud-operations` | 不默认访问生产 |
 | Mac | `npm run test:macos` | SillKit 数据层与桌面状态检查，再校验 `dist/macos/Sill.app` 签名；先运行 `npm run build:macos` |
+| iOS | `npm run test:ios -- --unit`；获授权后 `npm run test:ios -- --ui` | 指定 `--device <UDID>` 后在真实 iPhone 运行状态单测与阅读、设置界面流程；只使用合成数据，结果在 `tests/artifacts/ios-*.xcresult` |
 | 格式与类型 | `npm run lint`、`npm run typecheck` | 只读；默认规则警告不代表已实现全仓 strict |
 | Postgres | `npm run test:supabase:postgres` | 需要可用 Docker；使用合成容器数据，不连接生产 |
 

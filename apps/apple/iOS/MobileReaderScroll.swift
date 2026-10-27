@@ -26,6 +26,7 @@
   struct MobileReaderScroll<Content: View>: UIViewControllerRepresentable {
     let layer: MobileReaderLayer
     let active: Bool
+    let accessible: Bool
     let finishEnabled: Bool
     let anchors: [String: CGFloat]
     let reachedEnd: () -> Void
@@ -36,7 +37,12 @@
     }
 
     func updateUIViewController(_ controller: Controller, context: Context) {
-      controller.host.rootView = content
+      if accessible && !controller.accessibilityReady {
+        controller.rebuildHost(content)
+      } else {
+        controller.host.rootView = content
+      }
+      controller.view.accessibilityElementsHidden = !accessible
       let resuming = active && !controller.active
       controller.active = active
       controller.finishEnabled = finishEnabled
@@ -63,7 +69,8 @@
     @MainActor
     final class Controller: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate {
       let scroll = UIScrollView()
-      let host: UIHostingController<Content>
+      var host: UIHostingController<Content>
+      var accessibilityReady = false
       let layer: MobileReaderLayer
       let edgePan = UIPanGestureRecognizer()
       var active = true
@@ -78,7 +85,6 @@
       private var cancelled = false
       private var reportedEnd = false
       private var dwell: Task<Void, Never>?
-      private var expansion: Task<Void, Never>?
       private var navigation: UIViewPropertyAnimator?
       private var correcting = false
       private weak var touchedView: UIView?
@@ -104,6 +110,22 @@
         scroll.panGestureRecognizer.addTarget(self, action: #selector(nativePanChanged))
         scroll.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scroll)
+        NSLayoutConstraint.activate([
+          scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+          scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+          scroll.topAnchor.constraint(equalTo: view.topAnchor),
+          scroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        installHost()
+        edgePan.maximumNumberOfTouches = 1
+        edgePan.cancelsTouchesInView = true
+        edgePan.delegate = self
+        edgePan.addTarget(self, action: #selector(edgeChanged))
+        scroll.addGestureRecognizer(edgePan)
+        scroll.panGestureRecognizer.require(toFail: edgePan)
+      }
+
+      private func installHost() {
         addChild(host)
         host.view.backgroundColor = .clear
         host.sizingOptions = [.intrinsicContentSize]
@@ -111,22 +133,26 @@
         scroll.addSubview(host.view)
         host.didMove(toParent: self)
         NSLayoutConstraint.activate([
-          scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-          scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-          scroll.topAnchor.constraint(equalTo: view.topAnchor),
-          scroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
           host.view.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
           host.view.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor),
           host.view.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor),
           host.view.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor),
           host.view.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor),
         ])
-        edgePan.maximumNumberOfTouches = 1
-        edgePan.cancelsTouchesInView = true
-        edgePan.delegate = self
-        edgePan.addTarget(self, action: #selector(edgeChanged))
-        scroll.addGestureRecognizer(edgePan)
-        scroll.panGestureRecognizer.require(toFail: edgePan)
+      }
+
+      // UIKit caches hosted accessibility frames before the drawer's entry animation.
+      // Replace only the content host once at rest; retain the scroll view and its position.
+      func rebuildHost(_ content: Content) {
+        let offset = scroll.contentOffset
+        host.willMove(toParent: nil)
+        host.view.removeFromSuperview()
+        host.removeFromParent()
+        host = UIHostingController(rootView: content)
+        installHost()
+        view.layoutIfNeeded()
+        scroll.setContentOffset(offset, animated: false)
+        accessibilityReady = true
       }
 
       override func viewDidLayoutSubviews() {
@@ -158,7 +184,6 @@
       }
 
       func cancelInput() {
-        expansion?.cancel()
         dwell?.cancel()
         dwell = nil
         navigation?.stopAnimation(true)
@@ -189,7 +214,7 @@
           x: Double(x), y: Double(y),
           atTop: scroll.contentOffset.y <= AppleMetrics.space2,
           atBottom: scroll.contentOffset.y >= maximum - AppleMetrics.space2,
-          full: layer.full, finishEnabled: finishEnabled)
+          finishEnabled: finishEnabled)
         return mode != .none
       }
 
@@ -217,7 +242,6 @@
         switch edgePan.state {
         case .began:
           navigation?.stopAnimation(true)
-          expansion?.cancel()
           dwell?.cancel()
           dwell = nil
           cancelled = false
@@ -261,7 +285,7 @@
       private func release(cancelled: Bool) {
         let resolution = MobileReaderPolicy.release(
           mode, distance: Double(distance), velocity: velocity.value,
-          width: Double(scroll.bounds.width), cancelled: cancelled, canExpand: layer.canExpand,
+          width: Double(scroll.bounds.width), cancelled: cancelled,
           committed: layer.pending || layer.confirmed)
         mode = .none
         self.cancelled = cancelled
@@ -277,13 +301,11 @@
           || scroll.panGestureRecognizer.state == .failed
         {
           cancelled = true
-          expansion?.cancel()
         }
       }
 
       func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         cancelled = false
-        expansion?.cancel()
         navigation?.stopAnimation(true)
       }
 
@@ -320,26 +342,6 @@
         }
       }
 
-      func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if !decelerate { scheduleExpansion() }
-      }
-      func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) { scheduleExpansion() }
-
-      private func scheduleExpansion() {
-        expansion?.cancel()
-        guard active, !cancelled, !layer.full, layer.canExpand,
-          scroll.contentOffset.y > AppleMetrics.mobileScrollExpandThreshold
-        else { return }
-        let token = layer.generation
-        expansion = Task { [weak self] in
-          do { try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest)) } catch { return }
-          guard let self, self.active, !self.cancelled, !self.scroll.isTracking,
-            !self.scroll.isDragging, !self.scroll.isDecelerating,
-            self.layer.generation == token
-          else { return }
-          self.layer.resize(true)
-        }
-      }
     }
   }
 #endif

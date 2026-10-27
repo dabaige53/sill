@@ -9,6 +9,7 @@ on:
       - 'assets/**'
       - 'tests/apple/**'
       - 'scripts/build-ios.ts'
+      - 'scripts/test-ios.ts'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/ios.yml'
@@ -32,4 +33,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build iPhone and iPad app for simulator without signing
-        run: npm run build:ios
+        run: npm run build:ios -- --simulator
+      - name: Run native iOS unit tests on an available iPhone simulator
+        run: npm run test:ios -- --unit --simulator
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ios-test-results
+          path: tests/artifacts/*.xcresult

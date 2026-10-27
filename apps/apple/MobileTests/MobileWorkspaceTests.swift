@@ -90,6 +90,19 @@ private final class MobileFixture: @unchecked Sendable {
       state["state"] = workspace
     }
   }
+  func addLongArticles() {
+    lock.withLock {
+      var workspace = state["state"]!
+      workspace["cards"] = .array(
+        ["first", "second"].map { id in
+          .object([
+            "id": .string(id), "type": .string("article"), "title": .string(id),
+            "body": .string(String(repeating: "合成正文", count: 25000)),
+          ])
+        })
+      state["state"] = workspace
+    }
+  }
   func changeAnnotation() {
     lock.withLock {
       state["revision"] = .number(5)
@@ -136,6 +149,9 @@ private final class MobileFixture: @unchecked Sendable {
         if mode == .success {
           state["revision"] = .number((state["revision"]?.number ?? 0) + 1)
           var workspace = state["state"]!
+          if body?["operations"]?.array?.allSatisfy({ $0["op"]?.string == "card.delete" }) == true {
+            workspace["cards"] = .array([])
+          }
           workspace["items"] = .object([
             "note": .object([
               "note": .string("Original annotation"), "bookmarked": .bool(true),
@@ -211,6 +227,22 @@ struct MobileWorkspaceTests {
     #expect(workspace.error == Copy.appleConflict)
     #expect(await workspace.clearAll(expectedRevision: 4) == false)
     #expect(fixture.writeCount == 0)
+  }
+
+  @Test func clearLongArticlesUsesTheConfirmedRevisionWithoutSendingTheirBodies() async throws {
+    let fixture = MobileFixture()
+    fixture.addLongArticles()
+    let workspace = make(fixture)
+    await workspace.login(email: "synthetic@example.com", password: "synthetic")
+    #expect(try workspace.exportData().count > 524288)
+    fixture.setMode(.success)
+    #expect(await workspace.clearAll(expectedRevision: 4))
+    let body = try #require(fixture.lastBody)
+    #expect(body["expectedRevision"] == .number(4))
+    #expect(try body.encoded().count < 1024)
+    #expect(body["operations"]?.array?.count == 2)
+    #expect(body["operations"]?.array?.allSatisfy { $0["before"] == nil } == true)
+    #expect(workspace.cards.isEmpty)
   }
 
   @Test func expiredSessionKeepsUnknownWriteUntilExplicitConfirmation() async throws {

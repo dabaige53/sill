@@ -80,7 +80,7 @@
             }
             MobileReaderTool(
               icon: action.icon, label: action.label, active: action.active, own: action.own,
-              belowTip: layer.full
+              belowTip: false
             ) {
               perform(action.key, card: card)
             }

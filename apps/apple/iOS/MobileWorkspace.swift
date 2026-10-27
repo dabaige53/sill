@@ -406,7 +406,9 @@ import SillKit
     guard !cards.isEmpty else { return true }
     return await write(
       cards.map {
-        .object(["op": .string("card.delete"), "id": .string($0.id), "before": $0.raw])
+        // The confirmed workspace revision protects the whole deletion. Sending card bodies
+        // here can exceed the API request limit even for a small library of long articles.
+        .object(["op": .string("card.delete"), "id": .string($0.id)])
       })
   }
 

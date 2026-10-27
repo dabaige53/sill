@@ -7,15 +7,12 @@
     @ViewBuilder func readerContent(_ card: MobileCard) -> some View {
       switch card.type {
       case "article":
-        if !layer.full {
-          cover(card)
-            .padding(.horizontal, -AppleMetrics.space12)
-            .padding(.top, -AppleMetrics.space10)
-            .padding(.bottom, AppleMetrics.space18 - AppleMetrics.rhythmGroup * readerSpacing)
-        }
+        cover(card)
+          .padding(.horizontal, -AppleMetrics.space12)
+          .padding(.top, -AppleMetrics.space10)
+          .padding(.bottom, AppleMetrics.space18 - AppleMetrics.rhythmGroup * readerSpacing)
         header(card)
-        if layer.full { cover(card) }
-        if layer.full { outline(card) }
+        outline(card)
         detailText(card)
       case "mail":
         header(card)
@@ -109,10 +106,7 @@
         source(card).frame(minHeight: AppleMetrics.space36, alignment: .leading)
           .padding(
             .trailing,
-            layer.full
-              ? 0
-              : (layer.canExpand ? AppleMetrics.hitTarget * 2 : AppleMetrics.hitTarget)
-                + AppleMetrics.railInset * 2)
+            AppleMetrics.hitTarget + AppleMetrics.railInset * 2)
         heading(card)
       }
     }
@@ -198,7 +192,7 @@
           Text(card.title)
             .font(
               contentFont(
-                layer.full ? AppleMetrics.mobileReaderTitle : AppleMetrics.space24,
+                AppleMetrics.space24,
                 weight: .semibold)
             )
             .tracking(AppleMetrics.previewTitleTracking * AppleMetrics.previewTitle)
@@ -261,14 +255,12 @@
         MobileCoverImage(source: source)
           .frame(
             height: card.type == "article"
-              ? (layer.full
-                ? AppleMetrics.articleFullCoverHeight
-                : AppleMetrics.mobileArticlePreviewCoverHeight)
+              ? AppleMetrics.mobileArticlePreviewCoverHeight
               : AppleMetrics.space220
           )
           .clipShape(
             RoundedRectangle(
-              cornerRadius: layer.full ? AppleMetrics.space14 : AppleMetrics.previewCoverRadius))
+              cornerRadius: AppleMetrics.previewCoverRadius))
       }
     }
 
@@ -277,8 +269,7 @@
         MobileMarkdown(
           document: card.markdown, textScale: readerBodyScale, strong: strongText,
           spacing: readerSpacing,
-          openCard: { id, full in
-            relatedFull = full
+          openCard: { id, _ in
             relatedID = id
           }, cardExists: { workspace.card($0) != nil })
       }
@@ -304,7 +295,7 @@
     private func eventHeader(_ card: MobileCard) -> some View {
       VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
         meta(card, label: card.sourceName).frame(minHeight: AppleMetrics.space36)
-          .padding(.trailing, layer.full ? 0 : AppleMetrics.hitTarget + AppleMetrics.railInset * 2)
+          .padding(.trailing, AppleMetrics.hitTarget + AppleMetrics.railInset * 2)
         if let start = card.start {
           let relative = MobileFormat.eventRelative(
             start: start, end: card.end ?? start, now: Date().timeIntervalSince1970 * 1000)

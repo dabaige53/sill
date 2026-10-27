@@ -6,11 +6,10 @@
     func media(_ card: MobileCard) -> some View {
       MobileReaderMediaView(
         card: card, layer: layer, playback: playback, active: isActive,
-        topInset: layer.full ? safeArea.top + AppleMetrics.space64 : AppleMetrics.space56,
+        topInset: AppleMetrics.space56,
         textScale: readerScale, bodyScale: readerBodyScale, strong: strongText,
         spacing: readerSpacing,
-        openRelated: { id, full in
-          relatedFull = full
+        openRelated: { id, _ in
           relatedID = id
         }, cardExists: { workspace.card($0) != nil },
         save: { position, ended in savePlayback(position, ended: ended) })
@@ -49,7 +48,7 @@
       podcast ? card.audioURL != nil : MobileOfficialVideoPlayer.videoID(card.url) != nil
     }
     private var blend: CGFloat {
-      guard podcast, !layer.full, primaryBottom > 0, layer.scrollOffset > 0 else { return 0 }
+      guard podcast, primaryBottom > 0, layer.scrollOffset > 0 else { return 0 }
       return min(
         1,
         max(
@@ -96,7 +95,7 @@
             layer.viewport - topInset - compactHeight - AppleMetrics.space44),
           textScale: bodyScale, strong: strong, spacing: spacing, openRelated: openRelated,
           cardExists: cardExists,
-          headerOffset: podcast && !layer.full
+          headerOffset: podcast
             ? max(
               0,
               layer.scrollOffset + topInset + compactHeight - primaryBottom - AppleMetrics
@@ -111,7 +110,7 @@
         mediaTop = value["top"] ?? 0
       }
       .overlay(alignment: .top) {
-        if podcast && !layer.full {
+        if podcast {
           compact
             .padding(.horizontal, -AppleMetrics.space20)
             .offset(
@@ -139,13 +138,13 @@
         if !podcast {
           source.frame(minHeight: AppleMetrics.space36, alignment: .leading)
             .padding(
-              .trailing, layer.full ? 0 : AppleMetrics.hitTarget * 2 + AppleMetrics.railInset * 2)
+              .trailing, AppleMetrics.hitTarget + AppleMetrics.railInset * 2)
         }
         if podcast {
           MobileCoverImage(source: card.raw["image"]?.string)
             .frame(
-              width: layer.full ? AppleMetrics.playerArtSize : AppleMetrics.compactMinWidth,
-              height: layer.full ? AppleMetrics.playerArtSize : AppleMetrics.compactMinWidth
+              width: AppleMetrics.compactMinWidth,
+              height: AppleMetrics.compactMinWidth
             )
             .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
             .frame(maxWidth: .infinity)
@@ -153,7 +152,7 @@
         Text(card.title)
           .font(
             MobileContentStyle.font(
-              layer.full ? AppleMetrics.mobileReaderTitle : AppleMetrics.space24,
+              AppleMetrics.space24,
               weight: .semibold, scale: textScale * dynamicScale, strong: strong)
           )
           .multilineTextAlignment(podcast ? .center : .leading)
@@ -169,7 +168,7 @@
             .background(AppleColors.surface, in: Capsule()).frame(maxWidth: .infinity)
           MobileAudioControls(
             playback: playback, duration: duration, available: available,
-            large: layer.full
+            large: false
           )
         } else {
           if !card.tags.isEmpty {

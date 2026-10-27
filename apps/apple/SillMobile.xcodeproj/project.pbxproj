@@ -1,36 +1,557 @@
 // !$*UTF8*$!
 {
-  archiveVersion = 1;
-  classes = {};
-  objectVersion = 56;
-  objects = {
-    B00000000000000000000001 = { isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 1600; TargetAttributes = {B00000000000000000000005 = {CreatedOnToolsVersion = 16.0; }; }; }; buildConfigurationList = B00000000000000000000002; compatibilityVersion = "Xcode 14.0"; developmentRegion = "zh-Hans"; hasScannedForEncodings = 0; knownRegions = ("zh-Hans", en, Base); mainGroup = B00000000000000000000003; packageReferences = (B0000000000000000000001A); productRefGroup = B00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (B00000000000000000000005); };
-    B00000000000000000000002 = { isa = XCConfigurationList; buildConfigurations = (B00000000000000000000006, B00000000000000000000007); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-    B00000000000000000000003 = { isa = PBXGroup; children = (B00000000000000000000008, B00000000000000000000004, B00000000000000000000011); sourceTree = "<group>"; };
-    B00000000000000000000004 = { isa = PBXGroup; children = (B00000000000000000000009); name = Products; sourceTree = "<group>"; };
-    B00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = B0000000000000000000000A; buildPhases = (B0000000000000000000000B, B0000000000000000000000C, B0000000000000000000000D, B0000000000000000000000E); buildRules = (); dependencies = (); name = SillMobile; packageProductDependencies = (B0000000000000000000001B); productName = Sill; productReference = B00000000000000000000009; productType = "com.apple.product-type.application"; };
-    B00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 6.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; }; name = Debug; };
-    B00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 6.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; VALIDATE_PRODUCT = YES; }; name = Release; };
-    B00000000000000000000008 = { isa = PBXGroup; children = (B0000000000000000000000F, B00000000000000000000010, B00000000000000000000012, B00000000000000000000013); path = iOSApp; sourceTree = "<group>"; };
-    B00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sill.app; sourceTree = BUILT_PRODUCTS_DIR; };
-    B0000000000000000000000A = { isa = XCConfigurationList; buildConfigurations = (B00000000000000000000014, B00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-    B0000000000000000000000B = { isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = ("$(SRCROOT)/../../package.json", "$(SRCROOT)/../../assets/sill-icon.png", "$(SRCROOT)/iOSApp/Info.plist", "$(SRCROOT)/iOSApp/prepare-resources.sh", "$(SRCROOT)/iOSApp/RenderIcon.swift"); name = "Prepare product version and icons"; outputPaths = ("$(DERIVED_FILE_DIR)/Sill-Info.plist", "$(DERIVED_FILE_DIR)/SillAssets.xcassets", "$(DERIVED_FILE_DIR)/SillAssets.xcassets/Contents.json", "$(DERIVED_FILE_DIR)/SillAssets.xcassets/AppIcon.appiconset", "$(DERIVED_FILE_DIR)/SillAssets.xcassets/AppIcon.appiconset/Contents.json", "$(DERIVED_FILE_DIR)/SillAssets.xcassets/AppIcon.appiconset/icon.png"); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/sh; shellScript = "/bin/sh \"$SRCROOT/iOSApp/prepare-resources.sh\""; };
-    B0000000000000000000000C = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000016); runOnlyForDeploymentPostprocessing = 0; };
-    B0000000000000000000000D = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000017); runOnlyForDeploymentPostprocessing = 0; };
-    B0000000000000000000000E = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000018, B00000000000000000000019); runOnlyForDeploymentPostprocessing = 0; };
-    B0000000000000000000000F = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SillMobileApp.swift; sourceTree = "<group>"; };
-    B00000000000000000000010 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-    B00000000000000000000011 = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SillAssets.xcassets; sourceTree = DERIVED_FILE_DIR; };
-    B00000000000000000000012 = { isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-    B00000000000000000000013 = { isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "prepare-resources.sh"; sourceTree = "<group>"; };
-    B00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/Sill-Info.plist"; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile; PRODUCT_NAME = Sill; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
-    B00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/Sill-Info.plist"; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile; PRODUCT_NAME = Sill; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
-    B00000000000000000000016 = { isa = PBXBuildFile; fileRef = B0000000000000000000000F; };
-    B00000000000000000000017 = { isa = PBXBuildFile; productRef = B0000000000000000000001B; };
-    B00000000000000000000018 = { isa = PBXBuildFile; fileRef = B00000000000000000000012; };
-    B00000000000000000000019 = { isa = PBXBuildFile; fileRef = B00000000000000000000011; };
-    B0000000000000000000001A = { isa = XCLocalSwiftPackageReference; relativePath = .; };
-    B0000000000000000000001B = { isa = XCSwiftPackageProductDependency; package = B0000000000000000000001A; productName = SillMobile; };
-  };
-  rootObject = B00000000000000000000001;
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B00000000000000000000016 /* SillMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000000F /* SillMobileApp.swift */; };
+		B00000000000000000000017 /* SillMobile in Frameworks */ = {isa = PBXBuildFile; productRef = B0000000000000000000001B /* SillMobile */; };
+		B00000000000000000000018 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000012 /* PrivacyInfo.xcprivacy */; };
+		B00000000000000000000019 /* SillAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000011 /* SillAssets.xcassets */; };
+		C00000000000000000000014 /* SillMobile in Frameworks */ = {isa = PBXBuildFile; productRef = C00000000000000000000009 /* SillMobile */; };
+		C000000000000000000000C8 /* MobileBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000064 /* MobileBackupTests.swift */; };
+		C000000000000000000000C9 /* MobileCardPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000065 /* MobileCardPresentationTests.swift */; };
+		C000000000000000000000CA /* MobileFeedStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000066 /* MobileFeedStateTests.swift */; };
+		C000000000000000000000CB /* MobileReadAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000067 /* MobileReadAppearanceTests.swift */; };
+		C000000000000000000000CC /* MobileReaderPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000068 /* MobileReaderPolicyTests.swift */; };
+		C000000000000000000000CD /* MobileReaderSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000069 /* MobileReaderSessionTests.swift */; };
+		C000000000000000000000CE /* MobileReadingSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000006A /* MobileReadingSessionTests.swift */; };
+		C000000000000000000000CF /* MobileReminderPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000006B /* MobileReminderPolicyTests.swift */; };
+		C000000000000000000000D0 /* MobileSearchStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000006C /* MobileSearchStateTests.swift */; };
+		C000000000000000000000D1 /* MobileWorkspaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000006D /* MobileWorkspaceTests.swift */; };
+		D000000000000000000000C8 /* MobileUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00000000000000000000064 /* MobileUITests.swift */; };
+		E00000000000000000000002 /* MobileUITestFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000001 /* MobileUITestFixture.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C0000000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B00000000000000000000005;
+			remoteInfo = SillMobile;
+		};
+		D0000000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B00000000000000000000005;
+			remoteInfo = SillMobile;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B00000000000000000000009 /* Sill.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sill.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0000000000000000000000F /* SillMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SillMobileApp.swift; sourceTree = "<group>"; };
+		B00000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B00000000000000000000011 /* SillAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SillAssets.xcassets; sourceTree = DERIVED_FILE_DIR; };
+		B00000000000000000000012 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B00000000000000000000013 /* prepare-resources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "prepare-resources.sh"; sourceTree = "<group>"; };
+		C00000000000000000000006 /* SillMobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SillMobileTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C00000000000000000000064 /* MobileBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBackupTests.swift; sourceTree = "<group>"; };
+		C00000000000000000000065 /* MobileCardPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileCardPresentationTests.swift; sourceTree = "<group>"; };
+		C00000000000000000000066 /* MobileFeedStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileFeedStateTests.swift; sourceTree = "<group>"; };
+		C00000000000000000000067 /* MobileReadAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileReadAppearanceTests.swift; sourceTree = "<group>"; };
+		C00000000000000000000068 /* MobileReaderPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileReaderPolicyTests.swift; sourceTree = "<group>"; };
+		C00000000000000000000069 /* MobileReaderSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileReaderSessionTests.swift; sourceTree = "<group>"; };
+		C0000000000000000000006A /* MobileReadingSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileReadingSessionTests.swift; sourceTree = "<group>"; };
+		C0000000000000000000006B /* MobileReminderPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileReminderPolicyTests.swift; sourceTree = "<group>"; };
+		C0000000000000000000006C /* MobileSearchStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSearchStateTests.swift; sourceTree = "<group>"; };
+		C0000000000000000000006D /* MobileWorkspaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWorkspaceTests.swift; sourceTree = "<group>"; };
+		D00000000000000000000006 /* SillMobileUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SillMobileUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D00000000000000000000064 /* MobileUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileUITests.swift; sourceTree = "<group>"; };
+		E00000000000000000000001 /* MobileUITestFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileUITestFixture.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B0000000000000000000000D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000017 /* SillMobile in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C00000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C00000000000000000000014 /* SillMobile in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D00000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B00000000000000000000003 = {
+			isa = PBXGroup;
+			children = (
+				B00000000000000000000008 /* iOSApp */,
+				B00000000000000000000004 /* Products */,
+				B00000000000000000000011 /* SillAssets.xcassets */,
+				C0000000000000000000000B /* MobileTests */,
+				D0000000000000000000000B /* iOSUITests */,
+			);
+			sourceTree = "<group>";
+		};
+		B00000000000000000000004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B00000000000000000000009 /* Sill.app */,
+				C00000000000000000000006 /* SillMobileTests.xctest */,
+				D00000000000000000000006 /* SillMobileUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B00000000000000000000008 /* iOSApp */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000000000000000000F /* SillMobileApp.swift */,
+				B00000000000000000000010 /* Info.plist */,
+				B00000000000000000000012 /* PrivacyInfo.xcprivacy */,
+				B00000000000000000000013 /* prepare-resources.sh */,
+				E00000000000000000000001 /* MobileUITestFixture.swift */,
+			);
+			path = iOSApp;
+			sourceTree = "<group>";
+		};
+		C0000000000000000000000B /* MobileTests */ = {
+			isa = PBXGroup;
+			children = (
+				C00000000000000000000064 /* MobileBackupTests.swift */,
+				C00000000000000000000065 /* MobileCardPresentationTests.swift */,
+				C00000000000000000000066 /* MobileFeedStateTests.swift */,
+				C00000000000000000000067 /* MobileReadAppearanceTests.swift */,
+				C00000000000000000000068 /* MobileReaderPolicyTests.swift */,
+				C00000000000000000000069 /* MobileReaderSessionTests.swift */,
+				C0000000000000000000006A /* MobileReadingSessionTests.swift */,
+				C0000000000000000000006B /* MobileReminderPolicyTests.swift */,
+				C0000000000000000000006C /* MobileSearchStateTests.swift */,
+				C0000000000000000000006D /* MobileWorkspaceTests.swift */,
+			);
+			path = MobileTests;
+			sourceTree = "<group>";
+		};
+		D0000000000000000000000B /* iOSUITests */ = {
+			isa = PBXGroup;
+			children = (
+				D00000000000000000000064 /* MobileUITests.swift */,
+			);
+			path = iOSUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B00000000000000000000005 /* SillIOSApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0000000000000000000000A /* Build configuration list for PBXNativeTarget "SillIOSApp" */;
+			buildPhases = (
+				B0000000000000000000000B /* Prepare product version and icons */,
+				B0000000000000000000000C /* Sources */,
+				B0000000000000000000000D /* Frameworks */,
+				B0000000000000000000000E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SillIOSApp;
+			packageProductDependencies = (
+				B0000000000000000000001B /* SillMobile */,
+			);
+			productName = Sill;
+			productReference = B00000000000000000000009 /* Sill.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C00000000000000000000001 /* SillMobileTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C00000000000000000000002 /* Build configuration list for PBXNativeTarget "SillMobileTests" */;
+			buildPhases = (
+				C00000000000000000000003 /* Sources */,
+				C00000000000000000000004 /* Frameworks */,
+				C00000000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C0000000000000000000000C /* PBXTargetDependency */,
+			);
+			name = SillMobileTests;
+			packageProductDependencies = (
+				C00000000000000000000009 /* SillMobile */,
+			);
+			productName = SillMobileTests;
+			productReference = C00000000000000000000006 /* SillMobileTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D00000000000000000000001 /* SillMobileUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D00000000000000000000002 /* Build configuration list for PBXNativeTarget "SillMobileUITests" */;
+			buildPhases = (
+				D00000000000000000000003 /* Sources */,
+				D00000000000000000000004 /* Frameworks */,
+				D00000000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D0000000000000000000000C /* PBXTargetDependency */,
+			);
+			name = SillMobileUITests;
+			packageProductDependencies = (
+			);
+			productName = SillMobileUITests;
+			productReference = D00000000000000000000006 /* SillMobileUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B00000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = NO;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					B00000000000000000000005 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					C00000000000000000000001 = {
+						TestTargetID = B00000000000000000000005;
+					};
+					D00000000000000000000001 = {
+						TestTargetID = B00000000000000000000005;
+					};
+				};
+			};
+			buildConfigurationList = B00000000000000000000002 /* Build configuration list for PBXProject "SillMobile" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				"zh-Hans",
+				en,
+				Base,
+			);
+			mainGroup = B00000000000000000000003;
+			packageReferences = (
+				B0000000000000000000001A /* XCLocalSwiftPackageReference "." */,
+			);
+			productRefGroup = B00000000000000000000004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B00000000000000000000005 /* SillIOSApp */,
+				C00000000000000000000001 /* SillMobileTests */,
+				D00000000000000000000001 /* SillMobileUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B0000000000000000000000E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000018 /* PrivacyInfo.xcprivacy in Resources */,
+				B00000000000000000000019 /* SillAssets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C00000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D00000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B0000000000000000000000B /* Prepare product version and icons */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/../../package.json",
+				"$(SRCROOT)/../../assets/sill-icon.png",
+				"$(SRCROOT)/iOSApp/Info.plist",
+				"$(SRCROOT)/iOSApp/prepare-resources.sh",
+				"$(SRCROOT)/iOSApp/RenderIcon.swift",
+			);
+			name = "Prepare product version and icons";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Sill-Info.plist",
+				"$(DERIVED_FILE_DIR)/SillAssets.xcassets",
+				"$(DERIVED_FILE_DIR)/SillAssets.xcassets/Contents.json",
+				"$(DERIVED_FILE_DIR)/SillAssets.xcassets/AppIcon.appiconset",
+				"$(DERIVED_FILE_DIR)/SillAssets.xcassets/AppIcon.appiconset/Contents.json",
+				"$(DERIVED_FILE_DIR)/SillAssets.xcassets/AppIcon.appiconset/icon.png",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \"$SRCROOT/iOSApp/prepare-resources.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B0000000000000000000000C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000016 /* SillMobileApp.swift in Sources */,
+				E00000000000000000000002 /* MobileUITestFixture.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C00000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C000000000000000000000C8 /* MobileBackupTests.swift in Sources */,
+				C000000000000000000000C9 /* MobileCardPresentationTests.swift in Sources */,
+				C000000000000000000000CA /* MobileFeedStateTests.swift in Sources */,
+				C000000000000000000000CB /* MobileReadAppearanceTests.swift in Sources */,
+				C000000000000000000000CC /* MobileReaderPolicyTests.swift in Sources */,
+				C000000000000000000000CD /* MobileReaderSessionTests.swift in Sources */,
+				C000000000000000000000CE /* MobileReadingSessionTests.swift in Sources */,
+				C000000000000000000000CF /* MobileReminderPolicyTests.swift in Sources */,
+				C000000000000000000000D0 /* MobileSearchStateTests.swift in Sources */,
+				C000000000000000000000D1 /* MobileWorkspaceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D00000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D000000000000000000000C8 /* MobileUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C0000000000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B00000000000000000000005 /* SillIOSApp */;
+			targetProxy = C0000000000000000000000D /* PBXContainerItemProxy */;
+		};
+		D0000000000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B00000000000000000000005 /* SillIOSApp */;
+			targetProxy = D0000000000000000000000D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		B00000000000000000000006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		B00000000000000000000007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B00000000000000000000014 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6X7LHW28CM;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/Sill-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile;
+				PRODUCT_NAME = Sill;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B00000000000000000000015 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6X7LHW28CM;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/Sill-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile;
+				PRODUCT_NAME = Sill;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C00000000000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile.SillMobileTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sill.app/Sill";
+				TEST_TARGET_NAME = SillIOSApp;
+			};
+			name = Debug;
+		};
+		C00000000000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile.SillMobileTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sill.app/Sill";
+				TEST_TARGET_NAME = SillIOSApp;
+			};
+			name = Release;
+		};
+		D00000000000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile.SillMobileUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SillIOSApp;
+			};
+			name = Debug;
+		};
+		D00000000000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = app.sill.mobile.SillMobileUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SillIOSApp;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B00000000000000000000002 /* Build configuration list for PBXProject "SillMobile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B00000000000000000000006 /* Debug */,
+				B00000000000000000000007 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B0000000000000000000000A /* Build configuration list for PBXNativeTarget "SillIOSApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B00000000000000000000014 /* Debug */,
+				B00000000000000000000015 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C00000000000000000000002 /* Build configuration list for PBXNativeTarget "SillMobileTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00000000000000000000007 /* Debug */,
+				C00000000000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D00000000000000000000002 /* Build configuration list for PBXNativeTarget "SillMobileUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D00000000000000000000007 /* Debug */,
+				D00000000000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		B0000000000000000000001A /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B0000000000000000000001B /* SillMobile */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B0000000000000000000001A /* XCLocalSwiftPackageReference "." */;
+			productName = SillMobile;
+		};
+		C00000000000000000000009 /* SillMobile */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B0000000000000000000001A /* XCLocalSwiftPackageReference "." */;
+			productName = SillMobile;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = B00000000000000000000001 /* Project object */;
 }

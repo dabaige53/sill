@@ -30,6 +30,7 @@
           circle("plus", label: "web.ai.newChat") {}.disabled(true)
         } else if let settings {
           circle("person", label: "apple.settings", action: settings)
+            .accessibilityIdentifier("settings-\(title)")
         }
       }
       .frame(height: AppleMetrics.railRow)
@@ -61,6 +62,7 @@
       .padding(AppleMetrics.railInset)
       .frame(height: AppleMetrics.railRow)
       .mobileGlass(Capsule())
+      .accessibilityElement(children: .contain)
       .accessibilityLabel(Copy.text("web.nav.label"))
     }
     private func destination(_ key: String, icon: String, label: String) -> some View {

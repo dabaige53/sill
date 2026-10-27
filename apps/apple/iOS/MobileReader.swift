@@ -1,6 +1,7 @@
 #if os(iOS)
   import SillKit
   import SwiftUI
+  import UIKit
   import UniformTypeIdentifiers
 
   /// One retained reading layer. The host owns presentation; this view owns its content session.
@@ -11,19 +12,18 @@
     let safeArea: EdgeInsets
     let isTop: Bool
     let close: () -> Void
-    let openRelated: (String, Bool) -> Void
+    let openRelated: (String) -> Void
     @ScaledMetric(relativeTo: .body) private var dynamicScale: CGFloat = 1
     @Environment(\.scenePhase) var scenePhase
     @Environment(\.openURL) var openURL
     @State var annotations = false
     @State private var photoAnnotations = false
     @State var relatedID: String?
-    @State var relatedFull = false
     @State var owner: String?
     @State var playback = MediaPlayback()
     @State var calendarDocument: MobileCalendarDocument?
     @State var exportingCalendar = false
-    @State private var seconds = 0
+    @State private var reading: MobileReadingSession?
     @State private var anchors: [String: CGFloat] = [:]
     @State private var readReported = false
     @State private var readTask: Task<Bool, Never>?
@@ -50,10 +50,18 @@
       .tint(AppleColors.accent)
       .task {
         owner = workspace.owner
+        if reading == nil, let card = workspace.card(cardID) {
+          reading = MobileReadingSession(progress: card.progress) { seconds, progress in
+            if await workspace.recordReading(card, seconds: seconds, progress: progress) {
+              return .saved
+            }
+            return workspace.unresolvedWrite ? .unknown : .rejected
+          }
+        }
         layer.complete = { await confirmRead() }
         while !Task.isCancelled {
           do { try await Task.sleep(for: .seconds(1)) } catch { return }
-          if isActive { seconds += 1 }
+          if isActive { reading?.tick() }
         }
       }
       .onChange(of: isActive, initial: true) { _, active in
@@ -61,25 +69,22 @@
           layer.active = true
           layer.complete = { await confirmRead() }
         } else {
+          flushReading()
           playback.stop()
           layer.suspend()
         }
       }
+      .onChange(of: layer.progress) { _, progress in
+        if isActive { reading?.advance(progress) }
+      }
       .onChange(of: relatedID) { _, id in
         guard let id else { return }
-        let full = relatedFull
         relatedID = nil
-        relatedFull = false
-        openRelated(id, full)
+        openRelated(id)
       }
       .onDisappear {
         playback.stop()
-        guard owner == workspace.owner, let card = workspace.card(cardID), seconds > 0 else {
-          return
-        }
-        let elapsed = seconds
-        let progress = max(card.progress, min(layer.progress, 0.99))
-        Task { _ = await workspace.recordReading(card, seconds: elapsed, progress: progress) }
+        flushReading()
       }
       .sheet(isPresented: $annotations) {
         if let card = workspace.card(cardID) {
@@ -98,7 +103,7 @@
     private func reader(_ card: MobileCard) -> some View {
       ZStack(alignment: .top) {
         MobileReaderScroll(
-          layer: layer, active: isActive,
+          layer: layer, active: isActive, accessible: isTop && layer.settled,
           finishEnabled: (workspace.preferences["collapseOnFinish"]?.bool ?? true)
             && MobileReaderPolicy.readable(card.type),
           anchors: anchors, reachedEnd: reachedEnd
@@ -109,11 +114,7 @@
           .font(contentFont(AppleMetrics.font17))
           .foregroundStyle(AppleColors.primary)
           .padding(.horizontal, AppleMetrics.space20)
-          .padding(
-            .top,
-            layer.full
-              ? safeArea.top + AppleMetrics.space64 + AppleMetrics.space16 : AppleMetrics.space18
-          )
+          .padding(.top, AppleMetrics.space18)
           .padding(.bottom, footerRoom(card))
           .frame(maxWidth: readerWidth)
           .frame(maxWidth: .infinity)
@@ -132,7 +133,6 @@
         }
         MobileReaderHandle(layer: layer)
           .frame(width: AppleMetrics.space88, height: AppleMetrics.space32)
-          .padding(.top, layer.full ? safeArea.top : 0)
           .opacity(layer.toolsVisible ? 1 : 0)
           .allowsHitTesting(layer.toolsVisible && isActive)
       }
@@ -142,22 +142,8 @@
 
     private func topTools(_ card: MobileCard) -> some View {
       HStack(spacing: AppleMetrics.space4) {
-        if layer.full {
-          toolbar(card)
-          Spacer(minLength: AppleMetrics.space8)
-        } else {
-          Spacer(minLength: AppleMetrics.space8)
-        }
+        Spacer(minLength: AppleMetrics.space8)
         HStack(spacing: AppleMetrics.space4) {
-          if layer.canExpand && (layer.full || layer.scrollMaximum > AppleMetrics.space2) {
-            MobileReaderTool(
-              icon: layer.full ? "collapse" : "expand",
-              label: Copy.text(layer.full ? "web.reader.exitFullscreen" : "web.preview.fullscreen"),
-              belowTip: true
-            ) {
-              layer.resize(!layer.full)
-            }
-          }
           MobileReaderTool(
             icon: "x", label: Copy.text("web.reader.close"), belowTip: true, action: close)
         }
@@ -173,19 +159,16 @@
     }
 
     @ViewBuilder private func bottomTools(_ card: MobileCard) -> some View {
-      if !layer.full {
-        toolbar(card)
-          .padding(.horizontal, AppleMetrics.space8)
-          .padding(.bottom, max(safeArea.bottom, AppleMetrics.space8))
-          .opacity(layer.toolsVisible ? 1 : 0)
-          .offset(y: layer.toolsVisible ? 0 : AppleMetrics.motionRailTravel)
-          .allowsHitTesting(layer.toolsVisible && isActive)
-          .accessibilityHidden(!layer.toolsVisible)
-      }
+      toolbar(card)
+        .padding(.horizontal, AppleMetrics.space8)
+        .padding(.bottom, max(safeArea.bottom, AppleMetrics.space8))
+        .opacity(layer.toolsVisible ? 1 : 0)
+        .offset(y: layer.toolsVisible ? 0 : AppleMetrics.motionRailTravel)
+        .allowsHitTesting(layer.toolsVisible && isActive)
+        .accessibilityHidden(!layer.toolsVisible)
     }
 
     private func footerRoom(_ card: MobileCard) -> CGFloat {
-      if layer.full { return AppleMetrics.space24 }
       return AppleMetrics.space22
         + (toolbarActions(card).isEmpty
           ? 0
@@ -193,7 +176,6 @@
     }
 
     private func toolsTop(_ card: MobileCard) -> CGFloat {
-      if layer.full { return max(safeArea.top, AppleMetrics.space10) }
       if layer.scrollOffset > AppleMetrics.space8 { return 0 }
       if card.type == "article", card.raw["image"]?.string != nil { return AppleMetrics.space24 }
       if card.type == "media", card.raw["media"]?.string == "podcast" { return AppleMetrics.space8 }
@@ -204,7 +186,7 @@
       isTop && scenePhase == .active && !annotations && !photoAnnotations && !exportingCalendar
     }
     var readerScale: CGFloat {
-      (layer.full ? 1 : AppleMetrics.mobileTextScale) * readerBodyScale
+      AppleMetrics.mobileTextScale * readerBodyScale
     }
     var readerBodyScale: CGFloat {
       MobileContentStyle.text(workspace.preferences["readerTextSize"]?.string)
@@ -235,6 +217,17 @@
       Task { readReported = await confirmRead() }
     }
 
+    private func flushReading() {
+      guard owner == workspace.owner, let reading else { return }
+      // Give an already-open reader time to finish its save when iOS suspends the app.
+      let application = UIApplication.shared
+      let background = application.beginBackgroundTask(withName: "Save reading")
+      Task {
+        _ = await reading.flush()
+        if background != .invalid { application.endBackgroundTask(background) }
+      }
+    }
+
     private func confirmRead() async -> Bool {
       guard owner == workspace.owner, isActive, let card = workspace.card(cardID) else {
         return false
@@ -243,7 +236,8 @@
       // Reaching the end and then pushing belong to the same write, even if its response is slow.
       if let readTask { return await readTask.value }
       let token = layer.generation
-      let task = Task { await workspace.recordReading(card, seconds: 0, progress: 1) }
+      guard let reading else { return false }
+      let task = Task { await reading.flush(completed: true) }
       readTask = task
       let saved = await task.value
       readTask = nil

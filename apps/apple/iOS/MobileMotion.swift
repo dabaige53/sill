@@ -28,11 +28,6 @@ enum MobileMotion {
       mass: AppleMetrics.cardSpringMass,
       stiffness: AppleMetrics.cardSpringStiffness, damping: AppleMetrics.cardSpringDamping)
   }
-  static var expanded: Animation {
-    .interpolatingSpring(
-      mass: AppleMetrics.expandedSpringMass,
-      stiffness: AppleMetrics.expandedSpringStiffness, damping: AppleMetrics.expandedSpringDamping)
-  }
   static var press: Animation { ease(AppleMetrics.motionPress) }
   static var base: Animation { ease(AppleMetrics.motionBase) }
   static var fast: Animation { ease(AppleMetrics.motionFast) }

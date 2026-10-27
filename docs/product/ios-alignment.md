@@ -1,8 +1,8 @@
 # iOS 与现有界面对账
 
-更新：2026-10-25。对应 [PR #69](https://github.com/dabaige53/sill/pull/69)。
+更新：2026-10-26。对应 [PR #69](https://github.com/dabaige53/sill/pull/69)。
 
-用户本次要求构建原生 iOS 应用，并继续补齐与 macOS、手机 PWA 的功能及动画。此前卡片对账中的「iOS 不开发」属于 2026-10-22 的范围记录，不再适用于本次工作。手机布局以当前 PWA 源码为准，共享内容、状态、文案、Mono24 图标和设计变量沿用 macOS 与设计系统；不把桌面的窗口行为直接套在手机上。
+用户本次要求构建原生 iOS 应用，并继续补齐与 macOS、手机 PWA 的功能及动画。此前卡片对账中的「iOS 不开发」属于 2026-10-22 的范围记录，不再适用于本次工作。手机布局以当前 PWA 源码为参考。iOS 阅读只使用抽屉，不提供放大、缩小或滚动自动展开；这是用户在 2026-10-26 确定的原生端规则。共享内容、状态、文案、Mono24 图标和设计变量沿用 macOS 与设计系统；不把桌面的窗口行为直接套在手机上。
 
 下表记录代码接入点，**不代表真机或模拟器中已经完成 1:1 视觉验收**。原有 macOS、Web 的历史截图和通过记录也不能替代原生 iOS 验收。
 
@@ -16,9 +16,9 @@
 | 已读与图片 | PWA 颜色与阴影；`MobileCardPresentation`、`MobileImages`，已读底边/文字色、无阴影、封面饱和度 0.6、缓存图片即时显示、阅读层退出后才释放源卡已读外观 | 图片失败及深色窗口未验收 |
 | 搜索 | 手机搜索面板；`MobileSearchState`、`MobileSearchInput`、`MobileSearch`，分类封面、类型和标签条件、归档分组、输入法组合、独立滚动位置 | 状态单测与模拟器构建通过；窗口未验收 |
 | 预览与层叠 | 手机抽屉；`MobileReaderHost`、`MobileReaderPresentation`，顶部 64pt、短内容自然高度、相关卡叠放、每次只退出顶层、保留父层位置 | 会话单测通过；窗口未验收 |
-| 阅读手势 | `gesture-preview.ts`、`motion.md`；`MobileReaderPolicy`、`MobileReaderScroll`、`MobileReaderGestures`，下拉/右滑关闭、把手展开收起、滚动停稳后展开、取消不提交 | 阈值及会话单测通过；触摸未验收 |
+| 阅读手势 | `gesture-preview.ts`、`motion.md`；`MobileReaderPolicy`、`MobileReaderScroll`、`MobileReaderGestures`，下拉/右滑关闭、把手下拉关闭、上拉不足确认时回弹、取消不提交；无全屏状态与切换 | 阈值及会话单测通过；触摸未验收 |
 | 读完与动作 | `MobileReader`、`MobileReaderToolbar`；短文停留、阅读进度、120pt 上推；完成写入确认且松手后关闭；通用及最多三个专属操作、隐藏偏好、450ms 工具名称长按 | 写入/阈值单测通过；长按与动画未验收 |
-| 详情 | macOS `Reader/` 与 PWA 详情；`MobileReaderDetails`、`MobileDetailRows`，类型专用头部/字段、资讯预览和阅读封面顺序、日程/任务/附件/PR、正文不重复摘要 | 逐卡截图未验收 |
+| 详情 | macOS `Reader/` 与 PWA 详情；`MobileReaderDetails`、`MobileDetailRows`，类型专用头部/字段、资讯抽屉封面位于头部之前、日程/任务/附件/PR、正文不重复摘要 | 逐卡截图未验收 |
 | Markdown 与关联 | 共享 `MarkdownBody`，`MobileReaderComponents`；表格对齐、标题目录、`#card/` 与 `#read/` 内链在阅读栈打开 | 解析单测通过 |
 | 媒体 | `MobileMedia`、`MobileReaderMedia`、`MobileMediaControls`；音频、官方视频、封面就绪层、转场稳定后挂载、播放进度、章节/文字稿/笔记、无音源禁用 | 真实网络播放与吸顶连续切换未验收 |
 | 照片 | 手机 PWA 黑底照片页；`MobilePhotoLightbox`，剩余高度居中、说明/缩略图/操作贴底 | 真机及窗口未验收 |
@@ -39,4 +39,8 @@
 
 同一代码提交的 [iOS CI](https://github.com/dabaige53/sill/actions/runs/40169209614) 已通过，成功生成 `dist/ios/DerivedData/Build/Products/Debug-iphonesimulator/Sill.app`。这是无签名的 iPhone/iPad 模拟器构建，不启动应用界面。已修复 OpenAPI 主机工具依赖、资源输出沙盒、无窗口图标编码、Swift 并发隔离和日程/信息流视图的类型推导问题。
 
-当前环境为 Linux。[测试授权规则](../guides/testing.md)没有把功能开发视作浏览器或 Apple 界面自动化授权，本次未运行此类自动化。签名、TestFlight/App Store 发布、真实账号和实际媒体播放均未执行。
+上述远端 CI 不含界面验收。2026-10-26 已在本地 macOS 获得原生界面测试授权；本次修复阅读进度后台保存、清空长正文请求过大和预览目录入口，并加入原生测试目标及内存合成数据。此前完整 Swift Package 检查共 198 项测试通过；移除全屏后，55 项 iOS 状态测试再次通过。最终在 iPhone 12（iOS 18.6.2）上通过 55 项原生单元测试和 2 项界面测试，覆盖目录、后台返回后的进度保存、关闭、长按不执行动作及确认清空。其他卡片类型、连续动画、媒体播放与 iPad 布局仍未验收。
+
+按用户要求，本地 iOS 模拟器设备与运行时已卸载，后续本地验证改用真实 iPhone；CI 保留显式模拟器构建和单元测试。真机证书、Team 与开发者模式已配置；Debug 真机构建、签名校验与安装完成。开发证书已在手机确认信任，真机启动与上述测试已通过。Release arm64 未签名归档也已生成；它只用于编译和资源检查，不能直接分发。TestFlight/App Store 发布、真实账号和实际媒体播放均未执行。
+
+本次真机证据、构建编号与验证范围见 [2026-10-26 记录](../records/2026-10-26-ios-device-readiness/README.md)。

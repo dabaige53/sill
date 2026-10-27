@@ -293,3 +293,5 @@
 - [2026-10-23 手机 PWA 优化](records/2026-10-23-pwa-stress-fixes/README.md)
 - [2026-10-23 手机 PWA 打开与抽屉动效](records/2026-10-23-pwa-launch-motion/README.md)
 - [2026-10-24 详情开合、滑动与放大检查](records/2026-10-24-detail-motion-audit/README.md)
+
+- [2026-10-26 iOS 真机准备与阅读抽屉补修](records/2026-10-26-ios-device-readiness/README.md)
