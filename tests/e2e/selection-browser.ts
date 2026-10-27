@@ -47,11 +47,10 @@ const selectTwo = (page: any) =>
 		firstIds,
 	);
 const isMenuOpen = (page: any) =>
-	page.locator("#selection-menu").evaluate((node: HTMLDialogElement) => node.open);
-const waitClosed = (page: any) =>
-	page.waitForFunction(
-		() => !(document.querySelector("#selection-menu") as HTMLDialogElement).open,
-	);
+	page
+		.locator("#selection-menu")
+		.count()
+		.then((count: number) => count > 0);
 const unchanged = async (page: any, before: any) => {
 	assert.deepEqual(await snapshot(page), before, "a gesture or dismissal changed card data");
 	assert.deepEqual(await selection(page), firstIds, "dismissal lost the selected cards");
@@ -83,6 +82,7 @@ async function beginLift(page: any, mobile: boolean) {
 	const moved = { x: p.x + 30, y: p.y + 65 };
 	if (mobile) await touch(session, "touchMove", moved);
 	else await page.mouse.move(moved.x, moved.y, { steps: 3 });
+	await checkThumbnail(page, ".selection-drag-preview");
 	return {
 		moveTo: async (next: { x: number; y: number }) => {
 			if (mobile) await touch(session, "touchMove", next);
@@ -100,14 +100,6 @@ async function beginLift(page: any, mobile: boolean) {
 			}
 		},
 	};
-}
-async function openFromKeyboard(page: any) {
-	const trigger = page.locator('[data-action="selected-bookmark"]');
-	await trigger.focus();
-	await page.keyboard.press("Shift+F10");
-	await page.waitForFunction(
-		() => (document.querySelector("#selection-menu") as HTMLDialogElement).open,
-	);
 }
 async function checkThumbnail(page: any, container: string) {
 	// Like Photos: each chosen card (up to three) is a real clone in the pile; the first one chosen lies on top.
@@ -141,52 +133,6 @@ async function checkThumbnail(page: any, container: string) {
 			.locator(`${container} .selection-stack`)
 			.evaluate((node: HTMLElement) => node.inert && node.getAttribute("aria-hidden") === "true"),
 		true,
-	);
-}
-async function checkMenu(page: any, width: number, height: number) {
-	assert.equal(await isMenuOpen(page), true);
-	assert.deepEqual(
-		await page
-			.locator("#selection-menu [data-selection-action]")
-			.evaluateAll((buttons: HTMLElement[]) =>
-				buttons.map((button) => button.dataset.selectionAction),
-			),
-		["bookmark", "later", "tag", "cancel"],
-	);
-	assert.equal(await page.locator("#selection-menu [role=group]").count(), 3);
-	assert.equal(await page.locator("#selection-menu .selection-options svg").count(), 3);
-	const options = await page.locator("#selection-menu .selection-options").boundingBox();
-	assert.ok(
-		Math.abs(options.width - 240) < 1,
-		"the action menu should retain its compact 240px width",
-	);
-	await checkThumbnail(page, "#selection-menu");
-	assert.equal(await page.locator("#selection-menu .selection-stack-count").textContent(), "2");
-	assert.equal(
-		await page.evaluate(() => (document.activeElement as HTMLElement).dataset.selectionAction),
-		"bookmark",
-		"the first action must receive focus",
-	);
-	const boxes = await page
-		.locator("#selection-menu [data-selection-action]")
-		.evaluateAll((nodes: HTMLElement[]) =>
-			nodes.map((node) => node.getBoundingClientRect().toJSON()),
-		);
-	assert.ok(
-		boxes.every(
-			(r: any) =>
-				r.width >= 44 &&
-				r.height >= 44 &&
-				r.left >= 0 &&
-				r.top >= 0 &&
-				r.right <= width &&
-				r.bottom <= height,
-		),
-		`menu actions must fit the viewport and meet the touch target: ${JSON.stringify(boxes)}`,
-	);
-	assert.equal(
-		await page.locator('#drop-targets,[data-drop],[data-selection-action="ai"]').count(),
-		0,
 	);
 }
 
@@ -267,11 +213,9 @@ try {
 	}
 	await runSelectionPressMenu({
 		beginLift,
-		checkMenu,
 		desktop,
 		firstIds,
 		isMenuOpen,
-		openFromKeyboard,
 		phone,
 		point,
 		scenario,
@@ -280,7 +224,6 @@ try {
 		snapshot,
 		touch,
 		unchanged,
-		waitClosed,
 	});
 
 	await runSelectionKeyboardActions({

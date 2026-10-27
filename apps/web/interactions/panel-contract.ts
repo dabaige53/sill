@@ -1,31 +1,21 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import type { CardAction } from "../../../contracts/card-actions.ts";
-import type { CopyKey } from "../copy.ts";
 import type { CardItem } from "../data/store.ts";
 import type { AppController } from "../views/app.ts";
 import type { AIPageState } from "./panel-ai.tsx";
 
 export type ToolbarAction = [CardAction, ReactNode];
-export const actionTypeExamples = {
-	bookmark: "web.actions.example.all",
-	tag: "web.actions.example.all",
-	later: "web.actions.example.all",
-	reply: "web.actions.example.mail",
-	open: "web.actions.example.source",
-	join: "web.actions.example.event",
-	snooze: "web.actions.example.reminder",
-	download: "web.actions.example.event",
-	dismiss: "web.actions.example.reminder",
-} satisfies Record<CardAction, CopyKey>;
 export type PreviewApp = {
+	action?: AppController["action"];
 	agentAction?: (card: Card) => string;
 	agentActionView?: (card: Card) => ReactNode;
 };
 export type SearchApp = Pick<
 	AppController,
 	"searchFilter" | "searchAll" | "searchText" | "searchHash" | "searchLimit" | "feedNow"
->;
+> &
+	Partial<Pick<AppController, "searchHistory">>;
 /** Legacy callers may retain an unrecognized display form; the renderer keeps its fallback. */
 export type PreviewCard = { [K in keyof Card]: K extends "form" ? string : Card[K] };
 
@@ -64,5 +54,4 @@ export interface PanelRenderers {
 	): ReactNode;
 	confirm(title?: string, detail?: string, actions?: ReactNode): ReactNode;
 	ai(app?: AIPageState): ReactNode;
-	capture(app?: unknown): ReactNode;
 }

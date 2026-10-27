@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Sill","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"TagChip"},{"name":"Toggle"},{"name":"SearchField"},{"name":"Navigation"},{"name":"AICompose"},{"name":"CardMenu"},{"name":"FeedCard"},{"name":"StackCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"ReadEndRing"},{"name":"SelectionBar"},{"name":"EmptyState"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Sill","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"TagChip"},{"name":"Toggle"},{"name":"SearchField"},{"name":"Navigation"},{"name":"AICompose"},{"name":"FeedCard"},{"name":"StackCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"ReadEndRing"},{"name":"SelectionBar"},{"name":"EmptyState"}]} */
 var Sill = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -998,6 +998,14 @@ var Sill = (() => {
     "web.settings.layout.full": "\u94FA\u6EE1",
     "web.settings.layout.strong": "\u52A0\u91CD",
     "web.settings.layout.reset": "\u6062\u590D\u9ED8\u8BA4\u6392\u7248",
+    "web.search.history": "\u641C\u7D22\u5386\u53F2",
+    "web.search.recommendedTags": "\u63A8\u8350\u6807\u7B7E",
+    "web.media.listening": "\u6536\u542C",
+    "web.media.introduction": "\u7B80\u4ECB",
+    "web.media.transcriptExcerpt": "\u6587\u5B57\u7A3F\u8282\u9009",
+    "web.media.program": "\u8282\u76EE",
+    "web.media.published": "\u53D1\u5E03",
+    "web.media.duration": "\u65F6\u957F",
     "web.ai.title": "AI",
     "web.ai.soon": "\u5373\u5C06\u63A8\u51FA",
     "web.ai.body": "\u4EE5\u540E\u53EF\u4EE5\u5728\u8FD9\u91CC\u8BA9 AI \u67E5\u627E\u3001\u6574\u7406\u548C\u5904\u7406\u5361\u7247\u3002\u73B0\u5728\u8FD8\u4E0D\u80FD\u4F7F\u7528\u3002",
@@ -1437,11 +1445,11 @@ var Sill = (() => {
     "motion.menu.card.end": "\u83DC\u5355\u72EC\u7ACB\u5C55\u5F00\uFF0C\u9009\u62E9\u6536\u85CF\u6216\u5173\u95ED\u540E\u56DE\u5230\u6807\u9898\u3002",
     "motion.menu.card.location": "\u5361\u7247\u6807\u9898 / \u53F3\u952E\u83DC\u5355",
     "motion.menu.card.differences": "\u684C\u9762\u4F7F\u7528\u53F3\u952E\u6216\u952E\u76D8\u6253\u5F00\uFF1B\u624B\u673A\u89E6\u5C4F\u4F7F\u7528\u957F\u6309\u9009\u62E9\uFF0C\u6CA1\u6709\u8FD9\u4E2A\u53F3\u952E\u5165\u53E3\u3002Mac \u539F\u751F\u83DC\u5355\u5C1A\u672A\u63A5\u5165\u9884\u89C8\u3002",
-    "motion.search.resize.title": "\u641C\u7D22\u6846\u4F38\u7F29",
-    "motion.search.resize.trigger": "\u70B9\u5165\u641C\u7D22\u6846\u5E76\u8F93\u5165\uFF0C\u518D\u70B9\u51FB\u753B\u5E03\u7A7A\u767D\u5904\u3002",
-    "motion.search.resize.end": "\u805A\u7126\u65F6\u73BB\u7483\u5E95\u4F38\u957F\uFF1B\u8F93\u5165\u5185\u5BB9\u5728\u5931\u7126\u540E\u4FDD\u7559\u3002",
+    "motion.search.resize.title": "\u641C\u7D22\u5EFA\u8BAE",
+    "motion.search.resize.trigger": "\u70B9\u5165\u7A7A\u641C\u7D22\u6846\u67E5\u770B\u5386\u53F2\u4E0E\u63A8\u8350\u6807\u7B7E\uFF0C\u518D\u70B9\u51FB\u7A7A\u767D\u5904\u3002",
+    "motion.search.resize.end": "\u641C\u7D22\u6846\u4FDD\u6301\u5BBD\u5EA6\uFF1B\u5EFA\u8BAE\u5217\u8868\u76F4\u63A5\u663E\u793A\uFF0C\u5931\u7126\u540E\u5173\u95ED\u3002",
     "motion.search.resize.location": "\u4E3B\u9875 / \u684C\u9762\u641C\u7D22\u6846",
-    "motion.search.resize.differences": "\u624B\u673A Web \u4F7F\u7528\u72EC\u7ACB\u641C\u7D22\u9875\uFF0C\u6CA1\u6709\u684C\u9762\u641C\u7D22\u6846\u4F38\u7F29\u3002",
+    "motion.search.resize.differences": "\u624B\u673A Web \u4F7F\u7528\u72EC\u7ACB\u641C\u7D22\u9875\uFF1B\u684C\u9762\u641C\u7D22\u4E0D\u64AD\u653E\u4F38\u7F29\u3002",
     "motion.feed.reorder.title": "\u5361\u7247\u6392\u5E8F",
     "motion.feed.reorder.trigger": "\u5207\u6362\u201C\u4F1A\u8BAE\u548C\u63D0\u9192\u5230\u70B9\u6D6E\u4E0A\u6765\u201D\u8BBE\u7F6E\uFF0C\u89C2\u5BDF\u4E09\u5F20\u5361\u7247\u7684\u4F4D\u7F6E\u3002",
     "motion.feed.reorder.end": "\u5361\u7247\u6309\u5B9E\u9645\u6392\u5E8F\u89C4\u5219\u6392\u5217\uFF0C\u539F\u6709\u5361\u7247\u79FB\u52A8\u5230\u65B0\u4F4D\u7F6E\u3002",

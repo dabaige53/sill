@@ -6,7 +6,12 @@ import type { ActionContext, ActionHandler } from "./types.ts";
 function photoStep(this: AppController, { id, extra, name }: ActionContext) {
 	const c = Store.card(id),
 		n = (c.photos || [c.image]).length;
-	this.photoIndex = name === "photo-go" ? Number(extra) : (this.photoIndex + Number(extra) + n) % n;
+	const next = Math.max(
+		0,
+		Math.min(n - 1, name === "photo-go" ? Number(extra) : this.photoIndex + Number(extra)),
+	);
+	if (next === this.photoIndex) return;
+	this.photoIndex = next;
 	// Photo navigation replaces the content; retain the shared recovery notice and its state.
 	const toast = this.dialog.querySelector("#toast");
 	if (toast) document.body.appendChild(toast);

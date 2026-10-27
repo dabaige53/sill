@@ -41,6 +41,51 @@ export function cardTransform(
 
 export const panelMotion: Record<string, any> = {
 	panelAnimations: new WeakMap(),
+	resizeFaces: new WeakMap(),
+	prepareResize(dialog: HTMLElement) {
+		if (this.keyboard) return;
+		const previous = this.resizeFaces.get(dialog) as HTMLElement | undefined;
+		// Detach the existing visual before cancelling its owner on a quick reversal.
+		const face = (previous || this.captureDetail(dialog)?.face) as HTMLElement | undefined;
+		if (!face) return;
+		face.remove();
+		face.style.opacity = "1";
+		const root = face.shadowRoot;
+		// Visual references use the cover only; they never mount a second media frame.
+		for (const poster of root?.querySelectorAll<HTMLElement>(".youtube-poster") || []) {
+			poster.hidden = false;
+			poster.style.opacity = "1";
+		}
+		for (const frame of root?.querySelectorAll<HTMLElement>(".youtube-frame[data-video-cover]") ||
+			[]) {
+			const player = frame.querySelector<HTMLElement>(".youtube-player");
+			if (player) {
+				player.style.backgroundImage = `url("${frame.dataset.videoCover}")`;
+				player.style.backgroundSize = "cover";
+				player.style.backgroundPosition = "center";
+			}
+		}
+		this.resizeFaces.set(dialog, face);
+	},
+	resizeHost(dialog: HTMLElement) {
+		const face = this.resizeFaces.get(dialog) as HTMLElement | undefined;
+		if (!face) return null;
+		const existing = face.parentElement;
+		if (existing?.hasAttribute("data-resize-visual")) return existing;
+		const host = document.createElement("div");
+		host.dataset.resizeVisual = "";
+		host.inert = true;
+		host.setAttribute("aria-hidden", "true");
+		Object.assign(host.style, {
+			position: "fixed",
+			inset: "0",
+			zIndex: "8",
+			pointerEvents: "none",
+		});
+		host.append(face);
+		dialog.append(host);
+		return host;
+	},
 	matchedSources: new WeakMap(),
 	matchSource(dialog: HTMLElement, source: HTMLElement | null) {
 		this.releaseSource(dialog);
@@ -262,7 +307,9 @@ export const panelMotion: Record<string, any> = {
 			(node) => [node, node.style.position, node.style.zIndex, node.style.background] as const,
 		);
 		// A reader's opaque page belongs to the moving content, not to the dialog behind it.
-		const page = dialog.querySelector<HTMLElement>(":scope > .reader-scroll");
+		const page = dialog.querySelector<HTMLElement>(
+			":scope > .reader-scroll, :scope > .reader-layout",
+		);
 		if (page) page.style.background = getComputedStyle(dialog).background;
 		for (const [node] of styles) {
 			if (getComputedStyle(node).position === "static") node.style.position = "relative";
@@ -347,19 +394,34 @@ export const panelMotion: Record<string, any> = {
 		if (phone) this.dim(el, 0);
 		// A reader growing out of its preview keeps the preview's dim until it covers the screen.
 		if (resizing && el.classList.contains("reader")) el.dataset.readerGrowing = "";
-		const restore = () => {
+		const host = resizing ? this.resizeHost(el) : null;
+		const waiting = host
+			? [
+					...sheet.children,
+					...(sheet === el ? [] : [...el.children].filter((node) => node !== sheet)),
+				]
+					.filter((node) => node !== host)
+					.map((node: HTMLElement) => [node, node.style.opacity] as const)
+			: [];
+		const restore = (keepVisual = false) => {
 			sheet.style.opacity = opacity;
+			for (const [node, value] of waiting) node.style.opacity = value;
+			if (host && !keepVisual) {
+				if (host.contains(this.resizeFaces.get(el))) this.resizeFaces.delete(el);
+				host.remove();
+			}
 			for (const [tool, value] of tools) tool.style.opacity = value;
 			if (phone) this.dim(el, null);
 			delete el.dataset.readerGrowing;
 		};
-		sheet.style.opacity = resume?.opacity || "0";
+		if (host) for (const [node] of waiting) node.style.opacity = "0";
+		else sheet.style.opacity = resume?.opacity || "0";
 		const task = { frame: 0, restore };
 		this.panelTasks.set(el, task);
 		task.frame = requestAnimationFrame(() => {
 			if (this.panelTasks.get(el) !== task) return;
 			this.panelTasks.delete(el);
-			restore();
+			restore(true);
 			if ((el as HTMLDialogElement).open) this.openPanel(el, origin, resume);
 		});
 	},
@@ -397,21 +459,67 @@ export const panelMotion: Record<string, any> = {
 				[{ transform: cardTransform(origin, target) }, { transform: "none" }],
 				{ duration: this.time("dur-open"), spring: "expanded" },
 			);
-			const body = sheet.querySelector(".reader-body, .preview-body");
+			const host = this.resizeHost(el);
+			const face = this.resizeFaces.get(el) as HTMLElement | undefined;
+			const content = [
+				...sheet.children,
+				...(sheet === el ? [] : [...el.children].filter((node) => node !== sheet)),
+			].filter((node) => node !== background && node !== host) as HTMLElement[];
+			const states = content.map((node) => ({
+				node,
+				opacity: node.style.opacity,
+				inert: node.inert,
+			}));
+			if (host)
+				for (const { node } of states) {
+					node.style.opacity = "0";
+					node.inert = true;
+				}
+			const clip = (rect: DOMRect) =>
+				`inset(${rect.top}px ${innerWidth - rect.left - rect.width}px ${innerHeight - rect.top - rect.height}px ${rect.left}px round ${style.borderRadius || "0px"})`;
+			const clipped = host
+				? this.animate(host, [{ clipPath: clip(origin) }, { clipPath: clip(target) }], {
+						spring: "expanded",
+					})
+				: null;
 			let active = true;
+			const restoreContent = () => {
+				for (const { node, opacity, inert } of states) {
+					node.style.opacity = opacity;
+					node.inert = inert;
+				}
+			};
 			const cleanup = () => {
 				if (!active) return;
 				active = false;
+				if (host?.contains(face)) this.resizeFaces.delete(el);
+				host?.remove();
 				background.remove();
 				delete el.dataset.readerGrowing;
 				[sheet.style.background, sheet.style.boxShadow, el.style.isolation] = previous;
+				restoreContent();
 			};
-			animation?.finished.then(cleanup, cleanup);
-			this.panelAnimations.set(el, [
-				animation,
-				...(body ? [this.revealDetail(body, 0)] : []),
-				{ cancel: cleanup, complete: cleanup },
-			]);
+			const animations = [animation, clipped, { cancel: cleanup, complete: cleanup }];
+			const reveal = () => {
+				if (!active) return;
+				if (!host) {
+					cleanup();
+					return;
+				}
+				// Both surfaces crossfade in the same task after the frame reaches its target.
+				restoreContent();
+				const fades = states.map(({ node }) => this.revealDetail(node, 0));
+				fades.push(
+					this.animate(host, [{ opacity: 1 }, { opacity: 0 }], {
+						duration: tokens.motion.detailFade,
+					}),
+				);
+				animations.push(...fades);
+				Promise.all(fades.map((fade) => fade?.finished)).then(cleanup, () => {});
+			};
+			this.panelAnimations.set(el, animations);
+			if (animation) animation.finished.then(reveal, () => {});
+			else reveal();
 			return;
 		}
 		if (resume) {

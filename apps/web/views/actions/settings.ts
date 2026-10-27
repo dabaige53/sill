@@ -30,12 +30,6 @@ function prefToggle(this: AppController, { id }: ActionContext) {
 	this.setPref(id, !Store.pref(id));
 }
 
-function actionToggle(this: AppController, { id }: ActionContext) {
-	const hidden = new Set<string>(Store.pref("hiddenActions") || []);
-	if (!hidden.delete(id)) hidden.add(id);
-	this.setPref("hiddenActions", [...hidden]);
-}
-
 function exportAll(this: AppController) {
 	this.exportAll();
 }
@@ -91,7 +85,6 @@ export const settingsActions = {
 	"settings-group": settingsGroup,
 	pref: pref,
 	"pref-toggle": prefToggle,
-	"action-toggle": actionToggle,
 	"export-all": exportAll,
 	"clear-all": clearAll,
 	"clear-confirm": clearConfirm,

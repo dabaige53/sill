@@ -206,14 +206,20 @@ test("podcast duration stays unknown when absent and never derives playback from
 					assert.equal(doc.querySelector(".mini-player .num")?.textContent, expected);
 					assert.equal(doc.querySelector(".media-card-progress")?.getAttribute("value"), "0");
 				} else {
-					assert.equal(doc.querySelector(".player-times span")?.textContent, "0:00");
-					assert.ok(doc.querySelector(".audio-player input[disabled]"));
+					assert.equal(
+						doc.querySelector(".podcast-listening")?.textContent,
+						`收听 0:00 / ${expected}`,
+					);
+					assert.equal(
+						doc.querySelector("audio, .audio-player, [role=tablist], [data-action=reader]"),
+						null,
+					);
 				}
 				assert.equal(
 					doc.querySelector(".mini-play,.mini-player .bar,.player-bar,#podcast-played"),
 					null,
 				);
-				if (doc.querySelector(".player")) {
+				if (doc.querySelector(".podcast-detail")) {
 					assert.match(doc.body.textContent!, /Actual podcast notes/);
 					assert.equal(doc.querySelector("aside.preview-note p")?.textContent, "Personal note");
 				}
@@ -320,6 +326,14 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 			for (const html of [cardHTML(card), Panels.preview({}, card), Panels.reader({}, card)]) {
 				const dom = new JSDOM(html);
 				try {
+					if (dom.window.document.querySelector(".podcast-detail")) {
+						assert.equal(
+							dom.window.document.querySelector(".preview-published")?.textContent,
+							label,
+						);
+						assert.equal(dom.window.document.querySelector(".preview-meta")?.textContent, "Source");
+						continue;
+					}
 					assert.equal(
 						dom.window.document.querySelector(".card-src, .preview-meta")?.textContent?.trim(),
 						`Source · ${label}`,

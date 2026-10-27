@@ -11,7 +11,6 @@ function nestedFixture(keyboard = true) {
 		dialog: f.app.dialog,
 		grid: f.app.grid,
 		refreshCard() {},
-		closeMore() {},
 		gestures: { bindPullDown() {}, bindPush() {} },
 		updateSelection() {},
 		railHide: { atTop: () => true, hide() {}, show() {}, syncPosition() {} },
@@ -304,7 +303,10 @@ test("reader cards use a modal dialog and keep full-page mode for phone links", 
 		f.app.desktop = () => false;
 		f.app.dialog.close();
 		let modalOpens = 0;
-		f.app.dialog.showModal = function () { this.open = true; modalOpens++; };
+		f.app.dialog.showModal = function () {
+			this.open = true;
+			modalOpens++;
+		};
 		f.app.navigate("#read/a");
 		assert.equal(modalOpens, 1);
 		f.app.navigate("#card/b");

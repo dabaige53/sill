@@ -34,6 +34,10 @@ export function mountExample(
 ): ExampleRuntime {
 	const app = new AppController();
 	const id = entry.id;
+	if (id === "menu.card" || id === "selection.context") {
+		canvas.textContent = "此菜单交互已取消";
+		return { event() {}, pending: () => false, canTrigger: () => false };
+	}
 	const card = Store.card("motion-card-1");
 	let list = Store.state.cards.slice(0, 3);
 	if (id === "feed.first-entry" && !cover) list = [];
@@ -71,7 +75,7 @@ export function mountExample(
 	};
 	app.refreshCard = () => {
 		if (id === "task.mark" || id === "control.press") renderView(island, <ExampleCover id={id} />);
-		else if (id !== "menu.card" && !app.dialog.open) paintCards();
+		else if (!app.dialog.open) paintCards();
 	};
 	app.refresh = async () =>
 		new Promise<boolean>((resolve) => {
@@ -235,7 +239,6 @@ export function mountExample(
 			app.dialog.inert = true;
 		}
 		if (id === "menu.scope") document.getElementById("home-menu").hidden = false;
-		if (id === "menu.card") app.more(card.id);
 		if (id === "refresh.pull") {
 			app.gestures = new Gestures(app);
 			const ring = document.getElementById("pull-ring");
@@ -265,12 +268,7 @@ export function mountExample(
 	}
 
 	app.bindDialog();
-	if (
-		modalExamples.includes(id) ||
-		id === "menu.card" ||
-		id === "feedback.toast" ||
-		id === "refresh.pull"
-	)
+	if (modalExamples.includes(id) || id === "feedback.toast" || id === "refresh.pull")
 		app.gestures = new Gestures(app);
 	if (dragging) app.drag = new DragManager(app);
 	if (id === "deck.swipe") app.bindStacks();
@@ -301,18 +299,8 @@ export function mountExample(
 	};
 	document.addEventListener("keydown", (event) => {
 		if (id === "ai.dock-height" && app.aiKey(event)) return;
-		if (
-			(event.target as HTMLElement).closest(".card-more-menu") &&
-			["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
-		)
-			app.key(event as TargetEvent<KeyboardEvent>);
 		if (event.key === "Escape") {
-			app.closeMore(true);
 			closeScope(true);
-		}
-		if (id === "menu.card" && event.shiftKey && event.key === "F10") {
-			event.preventDefault();
-			app.more(card.id);
 		}
 		if (id === "menu.scope" && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
 			const menu = document.getElementById("home-menu");
@@ -333,11 +321,6 @@ export function mountExample(
 			buttons[index]?.focus();
 		}
 	});
-	if (id === "menu.card")
-		island.addEventListener("contextmenu", (event) => {
-			event.preventDefault();
-			app.more(card.id);
-		});
 	if (id === "search.resize") {
 		const field = document.getElementById("home-search-field");
 		field.addEventListener("focusin", () => app.openHomeSearch(true));
@@ -347,6 +330,7 @@ export function mountExample(
 		field.querySelector<HTMLInputElement>("input").addEventListener("input", (event) => {
 			const value = (event.target as HTMLInputElement).value;
 			app.filter.query = value;
+			app.syncHomeHash();
 			field.classList.toggle("has-text", !!value);
 			field.querySelector<HTMLElement>(".home-search-clear").hidden = !value;
 		});
@@ -361,7 +345,6 @@ export function mountExample(
 		if (id === "search.resize" && !target.closest("#home-search-field"))
 			(document.activeElement as HTMLElement)?.blur();
 		if (!target.closest(".home-brand")) closeScope();
-		if (!target.closest(".card-more-menu")) app.closeMore();
 		const node = target.closest<HTMLElement>("[data-action]");
 		if (!node || (node as HTMLButtonElement).disabled) return;
 		const action = node.dataset.action;
@@ -385,7 +368,6 @@ export function mountExample(
 		} else if (action === "bookmark" || action === "later") {
 			const key = action === "bookmark" ? "bookmarked" : "later";
 			app.setFlag(cardId, key, !Store.item(cardId)[key]);
-			app.closeMore(true);
 		} else if (
 			[
 				"toggle-read",
@@ -438,6 +420,8 @@ export function mountExample(
 			app.action("home-menu");
 		} else if (action === "home-tab") {
 			app.action("home-tab", cardId, node.dataset.extra, node);
+		} else if (action === "home-hash" || action === "home-untoken") {
+			app.action(action, cardId, node.dataset.extra, node);
 		} else if (action === "home-search-clear") {
 			const input = document.getElementById("home-search") as HTMLInputElement;
 			input.value = "";

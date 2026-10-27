@@ -48,8 +48,8 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界；不代替 iPhone 系统菜单与主屏幕实测 |
 | PWA 极端内容交互预览 | `npm run build && node tests/e2e/pwa-stress-preview.ts` | 隔离随机端口；Demo／Worst case／Empty／One／1,000 rows，宽度、主题与文字切换；`pwa-stress-fixture.ts` 校验合成卡片，不读取本地产品数据，不自动启动浏览器；200% 仅为内容字号压力条件 |
 | 阅读展开与触摸归属 | `node --import tsx --test tests/web/motion-sheet.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts tests/web/gesture-surfaces.test.ts` | 合成尺寸、触摸、计时器和绘制帧：按住不展开、松手展开、圆角裁剪与安全区衔接、反向中断、普通点击、取消、多指、旧面板回调、横向内容与控件、每帧合并；不代表真机性能 |
-| 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、隐藏偏好和生成组件包的固定深色环境；不代替真机 |
-| 卡片操作设置示例 | `npm run build && node tests/e2e/card-actions-settings-browser.ts` | 三宽度、浅深色；九个示例、读屏说明、开关名称与焦点、末项可滚动到达、仅修改指定偏好，文章三视图同一字段和末尾备注框，不修改来源卡片 |
+| 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、旧隐藏偏好兼容和生成组件包的主题环境；不代替真机 |
+| 卡片操作显示兼容 | `npm run build && node tests/e2e/card-actions-settings-browser.ts` | 三宽度、浅深色；设置中无动作隐藏开关，旧隐藏偏好不影响工具栏；文章三视图同一字段和末尾备注框，不修改来源卡片 |
 | 主页五分栏 | `npm run build && node tests/e2e/home-tabs-browser.ts` | 320/390/1440 浅深色与 1920 宽屏；桌面对齐、五个筛选结果、单个当前项、搜索条件隔离、切换后恢复阅读位置且导航保持可见、来源卡片不变 |
 | 下拉刷新图标反馈与请求锁 | `npm run build && node tests/e2e/refresh-motion-browser.ts` | 合成卡片、Chromium 触屏事件、轻阈值与取消、快速请求保留反馈、真实等待、成功勾与失败重试、慢请求防重复、正常滚动；云端错误不弹文字反馈；不代替 Safari/iPhone 实测 |
 | 手势布局与关闭性能 | `npm run build && node tests/e2e/gesture-performance-browser.ts` | 合成手机正文、CPU 4 倍限速；固定内容尺寸、关闭期间布局和绘制、返回后工具条与导航状态；不代表真机帧率 |
@@ -79,3 +79,17 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fixture.ts`；`search-state.test.ts` 与 `search-desktop.test.ts` 共用 `search-state-fixture.ts`；`visibility-motion.test.ts` 与 `detail-motion.test.ts` 共用 `visibility-motion-fixture.ts`。辅助文件只提供合成环境，由测试入口加载。
 
 `e2e/browser.ts` 将内置视频示例的精确封面地址替换为合成图片；其他意外外网请求仍中止并使场景失败。
+
+`web/reader-outline.test.ts` 使用合成 DOM 检查鼠标与键盘目录立即定位、目录常显且无切换按钮；`web/layout.test.ts` 和 `web/visibility-motion.test.ts` 检查手机卡片重排与顶部栏首次显示。均为非浏览器检查，不代替真实页面验收。
+
+动画第一、第二批：`app.test.ts` 覆盖提醒详情保留、头像按压、开关滑块和手动记录入口移除；`selection.test.ts` 及其辅助文件覆盖菜单移除、批量取消收藏、拖动目标显隐；`gesture-preview.test.ts` 覆盖桌面边缘复位时长。已有浏览器脚本已同步删除入口的预期，本轮未运行。
+
+动画复核调整：`toggle-motion.test.ts` 覆盖未变化开关重绘与反向接续；`gesture-preview.test.ts` 覆盖可中断回弹；`tests/server/local-sync.test.ts` 区分首次数据无入场与后续更新；多选测试覆盖操作后保留胶囊及拖动时原位 AI 接收框切换。
+
+第三批动效的非浏览器检查：`search-desktop.test.ts` 检查焦点、会话历史、真实标签和筛选；`reader-outline.test.ts` 检查即时定位；`photo-carousel.test.ts` 使用合成指针检查横向吸附、纵向滚动保留、首尾边界与节点保留；`panels.test.ts` 检查播客只读介绍；`chrome.test.ts` 检查共用工具节奏。均不代替实际窗口观感。
+
+第四批非浏览器检查：`app.test.ts` 检查任务勾选保留详情、工具、焦点与滚动；`search-state.test.ts` 检查手机搜索输入节点、取消和会话历史，以及收藏来源移出但详情保留；`detail-motion.test.ts` 检查外框完成前内容隐藏、完成后才淡入与取消恢复；`gesture-refresh.test.ts` 检查请求开始即释放内容、慢请求锁与失败重试。均使用合成数据，不调用浏览器或修改用户数据。
+
+第三阶段复核：`home-search-motion.test.ts` 检查条件图标从候选位置移入、参考参数与键盘即时完成；`search-desktop.test.ts` 覆盖保留查询的复聚焦与 Combobox 键盘行为；`photo-carousel.test.ts` 检查近期释放速度、取消、停顿及反向吸附。均使用隔离合成数据与指针，不执行浏览器或真实卡片写入。
+
+第四阶段最新复核：`stage-four-motion.test.ts`用合成几何检查AI锚点裁切、反向采样、引用分离时长与手机搜索附件编排；`media-playback.test.ts`与`app.test.ts`检查视频预览/全屏保留同一iframe和一次播放器实例；`detail-motion.test.ts`检查旧内容保留、无iframe副本、同时交叉淡化及取消恢复；`panels.test.ts`和`detail-toolbar.test.ts`检查旧隐藏偏好不移除任何动作且设置无隐藏开关。均不使用浏览器、真实媒体或账号数据。

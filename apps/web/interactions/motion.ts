@@ -135,10 +135,11 @@ const MotionEngine: Record<string, any> = {
 			});
 		};
 		document.addEventListener("pointerdown", (event: PointerEvent) => {
+			document.documentElement.dataset.inputModality = "pointer";
 			release();
 			if (event.button !== 0 || !event.isPrimary) return;
 			const target = (event.target as Element).closest<HTMLElement>(
-				".icon-button,.solid-button,.soft-button,.text-button,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring",
+				".icon-button,.solid-button,.soft-button,.text-button,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring,#account.home-account",
 			);
 			if (!target || target.matches(":disabled") || target.closest("[inert]")) return;
 			// Keep task text and the surrounding card still; only the mark acknowledges the press.
@@ -225,30 +226,6 @@ const MotionEngine: Record<string, any> = {
 				{ duration: drop.duration, easing: this.curve(), repeat: Infinity },
 			),
 		);
-	},
-	/** Layout settles once. Only the background stretches; text and caret keep their size. */
-	searchResize(el: HTMLElement, previousWidth: number) {
-		const width = el.getBoundingClientRect().width;
-		if (!width || !previousWidth || width === previousWidth) return;
-		const transform = getComputedStyle(el, "::before").transform;
-		const scale = transform.startsWith("matrix(") ? Number(transform.slice(7).split(",")[0]) : 1;
-		const visualWidth = previousWidth * (Number.isFinite(scale) ? scale : 1);
-		this.cancel(el);
-		this.animate(
-			el,
-			[{ transform: `scaleX(${visualWidth / width})` }, { transform: "scaleX(1)" }],
-			{ duration: this.time("dur-state"), pseudoElement: "::before" },
-		);
-		for (const child of el.querySelectorAll<HTMLElement>(
-			":scope > .icon, #home-search-token, #home-search-marks, #home-search",
-		)) {
-			this.cancel(child);
-			this.animate(
-				child,
-				[{ transform: `translateX(${width - visualWidth}px)` }, { transform: "none" }],
-				{ duration: this.time("dur-state") },
-			);
-		}
 	},
 	/** Absolute rail notices fade without moving the navigation or leaving clickable ghosts. */
 	visibility(el: HTMLElement, visible: boolean) {
@@ -362,6 +339,7 @@ const MotionEngine: Record<string, any> = {
 	flip(el?: any, oldRect?: any, newRect?: any) {
 		this.layoutAnimations.get(el)?.cancel();
 		this.layoutAnimations.delete(el);
+		if (window.innerWidth <= 650) return;
 		const now = newRect || el.getBoundingClientRect(),
 			x = oldRect.left - now.left,
 			y = oldRect.top - now.top;

@@ -680,3 +680,91 @@ body:has(dialog.search[open]) #feed-grid {
 		line-height: var(--space-32);
 	}
 }
+
+.search-history {
+	display: none;
+}
+.search-cancel {
+	flex: none;
+	min-height: var(--hit-target);
+	padding-inline: var(--space-8);
+	color: var(--accent);
+	font-size: var(--text-input);
+}
+
+.search-results-region {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+@media (max-width: 650px) {
+	:is(#modal, #search-background).search .search-page-heading {
+		display: flex;
+		position: absolute;
+		top: env(safe-area-inset-top, 0px);
+		left: var(--margin-sm);
+		right: var(--margin-sm);
+	}
+	.search .search-header {
+		margin-top: calc(var(--space-60) + var(--space-16));
+	}
+	.search.search-editing .search-header {
+		margin-top: var(--space-12);
+	}
+	.search .search-cancel {
+		display: block;
+		position: absolute;
+		right: 0;
+		top: 50%;
+		translate: 0 -50%;
+		opacity: 0;
+		clip-path: inset(0 100% 0 0);
+		pointer-events: none;
+	}
+	.search.search-editing .search-cancel {
+		opacity: 1;
+		clip-path: inset(0 0% 0 0);
+		pointer-events: auto;
+	}
+	.search .search-pill {
+		width: 100%;
+		flex: none;
+		clip-path: inset(0 0px 0 0 round var(--pill-radius));
+	}
+	.search.search-editing .search-pill {
+		padding-right: calc(var(--space-10) + var(--search-cancel-space, var(--space-60)));
+		clip-path: inset(0 var(--search-cancel-space, var(--space-60)) 0 0 round var(--pill-radius));
+	}
+	.search.search-editing .search-page-heading,
+	.search.search-editing .search-browse {
+		opacity: 0;
+		transform: translateY(calc(-1 * var(--space-12)));
+		pointer-events: none;
+	}
+	.search .search-history {
+		display: block;
+		position: absolute;
+		inset: 0;
+		overflow: auto;
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	.search .search-history[hidden] {
+		display: none;
+	}
+	.search.search-editing .search-history:not([hidden]) {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+	.search-history .search-hash-option {
+		gap: var(--space-12);
+	}
+	body:has(#modal.search.search-editing) #dock {
+		opacity: 0;
+		transform: translateY(var(--space-30));
+	}
+}

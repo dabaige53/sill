@@ -137,7 +137,7 @@ export async function runSelectionKeyboardActions({
 				"selection-02",
 			]);
 			await page.waitForTimeout(420);
-			await page.locator("#search-selection-bar .selection-ai-target").focus();
+			await page.locator('#search-selection-bar .icon-button[data-action="selected-ai"]').focus();
 			await page.keyboard.press("Enter");
 			await page.locator(".ai-conversation").waitFor();
 			assert.equal(await page.locator("[data-ai-context]").count(), 1);

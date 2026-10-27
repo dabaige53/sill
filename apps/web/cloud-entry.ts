@@ -177,10 +177,7 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
 	}
-	if (name === "capture") {
-		editCloud();
-		return;
-	}
+	if (name === "capture" || name === "capture-save") return;
 	if (name === "resume-draft") {
 		editCloud(id === "new" ? null : id);
 		return;
@@ -223,7 +220,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 		"pref-toggle",
 		"demo",
 		"welcome-demo",
-		"capture-save",
 	];
 	if (
 		writes.includes(name) &&
@@ -299,10 +295,7 @@ app.openPanel = (kind?: any, ...args: any[]) => {
 		app.toast(copy("web.cloudentry.30298242da3c"));
 		return;
 	}
-	if (kind === "capture") {
-		editCloud();
-		return;
-	}
+	if (kind === "capture") return;
 	return localOpenPanel(kind, ...args);
 };
 app.cloudSavedAccount = true;

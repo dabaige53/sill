@@ -1,4 +1,4 @@
-/** Synthetic settings examples: layout, accessible descriptions and unchanged visibility preferences. */
+/** Synthetic settings layout and legacy action visibility compatibility. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import http from "node:http";
@@ -50,7 +50,13 @@ try {
 							version: 4,
 							cards,
 							items: { "review-article": { note: "对照现有流程，再确认适用范围。" } },
-							preferences: { onboarded: true, stack: false, theme, archiveAfter: "never" },
+							preferences: {
+								onboarded: true,
+								stack: false,
+								theme,
+								archiveAfter: "never",
+								hiddenActions: ["bookmark", "tag", "later", "open"],
+							},
 						}),
 					);
 				},
@@ -77,86 +83,26 @@ try {
 			if (width > 650)
 				assert.ok(Math.abs(homeLines.right - homeLines.gridRight) < 1, JSON.stringify(homeLines));
 			await page.locator("#account").click();
-			await page.locator('[data-action="action-toggle"]').first().waitFor();
-			await page.locator("#modal").evaluate(async (modal) => {
-				await document.fonts.ready;
-				await Promise.all(
-					modal.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
-				);
-			});
-			await page
-				.locator('[data-action="action-toggle"]')
-				.first()
-				.evaluate((node) =>
-					node.closest(".settings-card").previousElementSibling.scrollIntoView({ block: "start" }),
-				);
-			const rows = await page.locator('[data-action="action-toggle"]').evaluateAll((nodes) =>
-				nodes.map((toggle) => {
-					const row = toggle.closest(".setting-row"),
-						example = row.querySelector("small"),
-						side = row.querySelector(".setting-side");
-					return {
-						key: toggle.getAttribute("data-id"),
-						label: toggle.getAttribute("aria-label"),
-						name: row.firstElementChild.firstChild.textContent,
-						text: example?.textContent,
-						describedBy: toggle.getAttribute("aria-describedby"),
-						exampleId: example?.id,
-						overflow: row.scrollWidth > row.clientWidth + 1,
-						muted: example && getComputedStyle(example).color === getComputedStyle(side).color,
-					};
-				}),
-			);
-			assert.equal(rows.length, 9);
-			for (const row of rows) {
-				assert.ok(row.text);
-				assert.equal(row.label, row.name);
-				assert.equal(row.describedBy, row.exampleId);
-				assert.ok(row.muted);
-				assert.equal(row.overflow, false);
-			}
-			await page.screenshot({
-				path: path.join(artifacts, `${width}-${theme}.jpg`),
-				type: "jpeg",
-				quality: 88,
-				animations: "disabled",
-			});
+			await page.locator('.settings-main [data-action="pref-toggle"]').first().waitFor();
+			assert.equal(await page.locator('[data-action="action-toggle"]').count(), 0);
 			const before = await page.evaluate(() => JSON.stringify(window.__store.state.cards));
-			const reply = page.locator('[data-action="action-toggle"][data-id="reply"]');
-			assert.equal(await page.locator("#dock").isVisible(), false);
-			const originalToggle = await reply.elementHandle();
-			await reply.focus();
-			await reply.click();
-			assert.deepEqual(await page.evaluate(() => window.__store.pref("hiddenActions")), ["reply"]);
-			assert.equal(await reply.getAttribute("aria-checked"), "false");
-			assert.equal(await originalToggle.evaluate((n) => n.isConnected), true);
-			assert.equal(
-				await page
-					.locator(".settings-layout")
-					.evaluate(
-						(n) =>
-							n
-								.getAnimations({ subtree: true })
-								.filter(
-									(animation) => (animation.effect as KeyframeEffect)?.pseudoElement !== "::before",
-								).length,
-					),
-				0,
-			);
-			assert.equal(await reply.evaluate((n) => document.activeElement === n), true);
-			const last = page.locator('[data-action="action-toggle"][data-id="dismiss"]');
-			await last.scrollIntoViewIfNeeded();
-			await last.click();
 			assert.deepEqual(await page.evaluate(() => window.__store.pref("hiddenActions")), [
-				"reply",
-				"dismiss",
+				"bookmark",
+				"tag",
+				"later",
+				"open",
 			]);
-			assert.equal(await page.evaluate(() => window.__store.pref("stack")), false);
-			assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), before);
 			await page.evaluate(() => {
 				window.__app.closeNative(false);
 				window.__app.openCard("review-article");
 			});
+			assert.deepEqual(
+				await page
+					.locator(".float-bar button")
+					.evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-action"))),
+				["bookmark", "edit", "later", "external"],
+			);
+			assert.equal(await page.evaluate(() => JSON.stringify(window.__store.state.cards)), before);
 			const blocks = async (selector: string) =>
 				page.locator(selector).evaluate((body) =>
 					Array.from(body.children)
@@ -209,17 +155,13 @@ try {
 			results.push({
 				width,
 				theme,
-				rows,
-				focusPreserved: true,
-				lastSwitchReachable: true,
-				onlyRequestedPreferencesChanged: true,
+				actionHidingControlsAbsent: true,
+				legacyPreferencesIgnored: true,
 				sourceCardsUnchanged: true,
 				errors,
 				external,
 			});
-			console.log(
-				`PASS action examples, descriptions, toggle focus and scrolling ${width}-${theme}`,
-			);
+			console.log(`PASS settings without action hiding controls ${width}-${theme}`);
 			await context.close();
 		}
 	fs.writeFileSync(

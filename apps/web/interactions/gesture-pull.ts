@@ -20,7 +20,6 @@ export const gesturePullMethods = {
 			pull = 0,
 			busy = false,
 			timer = 0,
-			holdTimer = 0,
 			frame = 0,
 			inset = 16,
 			headingTop: number | null = null,
@@ -64,7 +63,13 @@ export const gesturePullMethods = {
 			ring.classList.toggle("in-home-heading", !!rect?.height);
 			headingTop = rect?.height ? rect.top + (rect.height - ring.offsetHeight) / 2 : null;
 			ring.style.top = headingTop === null ? "" : `${headingTop}px`;
-			ring.style.left = headingTop === null ? "" : `${rect.left + rect.width / 2}px`;
+			const mark = heading?.querySelector(".home-mark")?.getBoundingClientRect();
+			ring.style.left =
+				headingTop === null
+					? ""
+					: this.phone.matches && mark
+						? `${mark.right + 8 + ring.offsetWidth / 2}px`
+						: `${rect.left + rect.width / 2}px`;
 		};
 		const paint = () => {
 			cancelAnimationFrame(frame);
@@ -72,7 +77,7 @@ export const gesturePullMethods = {
 			const shift = Math.round(pull * 0.75),
 				feedback = state === "loading" || state === "success" || state === "error";
 			MotionEngine.move(main, pull ? `0 ${shift}px` : "", state === "pulling");
-			// While loading the desk stays open and the ring turns in the gap it made.
+			// The ring stays in the heading while the content returns to its resting position.
 			MotionEngine.move(
 				ring,
 				headingTop !== null
@@ -85,7 +90,6 @@ export const gesturePullMethods = {
 				state === "pulling",
 			);
 			const opacity = feedback ? 1 : Math.min(1, pull / 18);
-			heading?.classList.toggle("has-refresh", this.phone.matches && opacity > 0);
 			if (state === "pulling") {
 				MotionEngine.cancel(ring);
 				ring.style.opacity = String(opacity);
@@ -117,32 +121,21 @@ export const gesturePullMethods = {
 				paint();
 			}
 		};
-		const refresh = async (fromPull = false) => {
+		const refresh = async () => {
 			if (busy) return;
 			busy = true;
-			const feedbackReady = new Promise<void>((resolve) =>
-				window.setTimeout(resolve, MotionEngine.time("delay-loading")),
-			);
 			measure();
 			start = null;
 			wheel.reset();
 			clearTimeout(timer);
-			// Only a released pull holds the cards; buttons and shortcuts leave them in place.
-			pull = fromPull ? need : 0;
+			// Release content immediately; only the ring waits for the request.
+			pull = 0;
 			document.body.classList.remove("is-pulling");
 			status("loading");
 			paint();
-			clearTimeout(holdTimer);
-			holdTimer = window.setTimeout(() => {
-				if (state !== "loading") return;
-				pull = 0;
-				paint();
-			}, 1000);
 			try {
 				const result = await this.app.refresh({ feedback: "pull" });
 				if (result === false) throw new Error("Refresh did not complete");
-				await feedbackReady;
-				clearTimeout(holdTimer);
 				pull = 0;
 				status("success");
 				timer = window.setTimeout(() => {
@@ -151,8 +144,6 @@ export const gesturePullMethods = {
 					paint();
 				}, 480);
 			} catch {
-				await feedbackReady;
-				clearTimeout(holdTimer);
 				pull = 0;
 				status("error");
 			} finally {
@@ -168,7 +159,7 @@ export const gesturePullMethods = {
 			if (state !== "pulling") return;
 			if (this.app.dialog.open || this.app.selected.size || this.app.drag?.active || scrollY > 0)
 				return cancel();
-			if (pull >= need) refresh(true);
+			if (pull >= need) refresh();
 			else cancel();
 		};
 		// Mouse dragging has a real release event. Never substitute wheel silence for it.
@@ -237,7 +228,7 @@ export const gesturePullMethods = {
 					this.app.dialog.open ||
 					e.touches.length > 1 ||
 					this.fromField(e) ||
-					e.target.closest?.("#dock,#toast,#pull-ring,.card-more-menu,.deck")
+					e.target.closest?.("#dock,#toast,#pull-ring,.deck")
 				)
 					return;
 				// Every tap at the top passes here; measure only once a pull really starts.

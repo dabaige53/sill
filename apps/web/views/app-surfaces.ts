@@ -2,10 +2,11 @@ import type { ReactNode } from "react";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
 import { flushReadingRefresh } from "../interactions/reading-feedback.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
-import { renderContent } from "./react-renderer.ts";
+import { renderContent, renderView } from "./react-renderer.ts";
 
 /** Surfaces that show one card; the desktop bars step aside while one is open. */
 const CARD_KINDS = ["preview", "reader", "lightbox"];
@@ -81,7 +82,6 @@ export const appSurfacesMethods = {
 		const drawn = reversing ? getComputedStyle(MotionEngine.surface(this.dialog)) : null;
 		const resume = drawn ? { opacity: drawn.opacity, transform: drawn.transform } : undefined;
 		if (!nested && kind !== "preview" && kind !== "reader") MotionEngine.releaseSource(this.dialog);
-		this.closeMore(true);
 		if (this.modalKind === "search" && kind !== "search" && !this.searchBackground)
 			this.suspendSearch();
 		this.modalToken++;
@@ -129,7 +129,13 @@ export const appSurfacesMethods = {
 					(card.summary || "").length < 280))
 		)
 			this.dialog.classList.add("is-short");
-		renderContent(this.dialog, html);
+		// Resizing one video changes layout props, not the player's mount lifecycle.
+		if (
+			this.dialog.dataset.readerResize === "true" &&
+			this.dialog.querySelector("[data-video-surface]")
+		)
+			renderView(this.dialog, html);
+		else renderContent(this.dialog, html);
 		if (!this.dialog.open) {
 			if (modal) this.dialog.showModal();
 			else this.dialog.show();
@@ -138,13 +144,11 @@ export const appSurfacesMethods = {
 		if (!nested && !MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
 			MotionEngine.queuePanel(this.dialog, origin, resume);
 		const focus = this.dialog.querySelector<HTMLElement>(
-			kind === "search"
+			kind === "search" && this.desktop()
 				? "#filter-search"
-				: kind === "capture"
-					? "#capture-text"
-					: kind === "editor"
-						? "#tag-new"
-						: "#modal-title",
+				: kind === "editor"
+					? "#tag-new"
+					: "#modal-title",
 		);
 		if (focus) {
 			if (!/INPUT|TEXTAREA|BUTTON/.test(focus.tagName)) focus.tabIndex = -1;
@@ -163,6 +167,7 @@ export const appSurfacesMethods = {
 	closeNative(this: AppController, animate = true) {
 		if (MotionEngine.keyboard) animate = false;
 		if (!this.dialog.open) return;
+		if (this.modalKind === "search") resetPhoneSearch(this.dialog);
 		// The card on the desk shows the progress reached in the detail that is leaving.
 		flushReadingProgress();
 		// A sheet already dragged off screen closes as it is: no return motion.

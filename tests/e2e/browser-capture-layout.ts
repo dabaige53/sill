@@ -193,26 +193,6 @@ export async function runCaptureLayout({
 			await page.waitForFunction(
 				() => !(document.getElementById("modal") as HTMLDialogElement).open,
 			);
-			const placed = await page.evaluate(async () => {
-				const cards = [...document.querySelectorAll<HTMLElement>("#feed-grid [data-card]")];
-				const low = cards.find((n) => n.getBoundingClientRect().top > innerHeight * 0.55);
-				window.__app.more(low.dataset.card);
-				await new Promise((resolve) => setTimeout(resolve, 250));
-				const menu = low.querySelector(".card-more-menu");
-				const rail = Math.min(
-					...[...document.getElementById("dock").children]
-						.map((n) => n.getBoundingClientRect())
-						.filter((r) => r.height)
-						.map((r) => r.top),
-				);
-				return {
-					bottom: menu.getBoundingClientRect().bottom,
-					rail,
-					icons: [...menu.querySelectorAll(".card-menu-item")].every((b) => b.querySelector("svg")),
-				};
-			});
-			assert.equal(placed.icons, true, "every menu item has its icon");
-			assert.ok(placed.bottom <= placed.rail, JSON.stringify(placed));
 		},
 		{ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
 	);
@@ -271,34 +251,17 @@ export async function runCaptureLayout({
 			);
 		},
 	);
-	await scenario("Capture and dropped text add cards; files are ignored", async (page?: any) => {
+	await scenario("Manual capture, paste and text drop do not create cards", async (page?: any) => {
+		const count = await page.locator(".feed-card").count();
 		await page.keyboard.press("n");
-		await page.waitForFunction(() => window.__app.modalKind === "capture");
-		await page.locator("#capture-text").fill("明天把叠卡阈值再看一遍");
-		await page.locator('[data-action="capture-save"]').click();
-		await page.getByText("明天把叠卡阈值再看一遍").first().waitFor();
-		await page.evaluate(() => window.__app.capture("https://example.com/post 一篇想读的文章"));
-		assert.equal(await page.locator(".feed-card", { hasText: "一篇想读的文章" }).count(), 1);
-		await page.evaluate(() => window.__app.capture("https://example.com/post 一篇想读的文章"));
-		assert.equal(
-			await page.locator(".feed-card", { hasText: "一篇想读的文章" }).count(),
-			1,
-			"the same link must merge",
-		);
-		assert.equal(await page.locator('input[type="file"],#import-rings').count(), 0);
+		assert.equal(await page.locator("#capture-text,[data-action=capture-save]").count(), 0);
 		await page.evaluate(() => {
 			const dataTransfer = new DataTransfer();
-			dataTransfer.setData("text/uri-list", "https://example.com/drop");
+			dataTransfer.setData("text/plain", "Do not create a manual note");
 			document.dispatchEvent(new DragEvent("dragenter", { bubbles: true, dataTransfer }));
-		});
-		assert.equal(await page.locator("#drop-hint").isVisible(), true);
-		await page.evaluate(() => {
-			const dataTransfer = new DataTransfer();
-			dataTransfer.setData("text/uri-list", "https://example.com/drop");
 			document.dispatchEvent(new DragEvent("drop", { bubbles: true, dataTransfer }));
 		});
-		assert.equal(await page.locator(".feed-card", { hasText: "example.com/drop" }).count(), 1);
-		const count = await page.locator(".feed-card").count();
+
 		await page.evaluate(() => {
 			const dataTransfer = new DataTransfer();
 			dataTransfer.items.add(new File(["# Do not import"], "note.md", { type: "text/markdown" }));
@@ -309,6 +272,6 @@ export async function runCaptureLayout({
 		assert.equal(await page.locator("#drop-hint").isVisible(), false);
 		assert.equal(await page.locator(".feed-card").count(), count);
 		await page.reload();
-		assert.equal(await page.locator(".feed-card", { hasText: "example.com/drop" }).count(), 1);
+		assert.equal(await page.locator(".feed-card", { hasText: "example.com/drop" }).count(), 0);
 	});
 }

@@ -4,6 +4,9 @@ import { resolve } from "node:path";
 import { build } from "esbuild";
 import { JSDOM } from "jsdom";
 import { icon } from "../../apps/web/atoms/icons.ts";
+import { SeedCards } from "../../apps/web/data/cards.ts";
+import { Store } from "../../apps/web/data/store.ts";
+import { Panels } from "../../apps/web/interactions/panels.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const output = resolve(root, "boards/expanded-reading");
@@ -44,6 +47,26 @@ for (const [kind, label] of [
 	["video", "视频"],
 	["article", "资讯"],
 ]) {
+	if (kind === "podcast") {
+		const card = SeedCards.find((card) => card.type === "media" && card.media === "podcast")!;
+		Store.state = Store.fresh();
+		Store.state.items[card.id] = { playbackPosition: 1841 };
+		const stylesheets = JSON.parse(
+			readFileSync(resolve(root, "../apps/web/styles/styles.json"), "utf8"),
+		) as string[];
+		const productCSS = stylesheets
+			.map((file) => readFileSync(resolve(root, "..", file), "utf8"))
+			.join("\n");
+		writeFileSync(
+			resolve(output, "podcast.html"),
+			'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>播客介绍</title><style>' +
+				productCSS +
+				'</style></head><body><dialog id="modal" class="preview" open>' +
+				Panels.preview({}, card) +
+				"</dialog></body></html>\n",
+		);
+		continue;
+	}
 	const row = [...document.querySelectorAll("section.row")].find((node) =>
 		(node.querySelector("h2")?.textContent || "").includes(label),
 	)!;
@@ -176,5 +199,5 @@ await build({
 	outfile: resolve(bundleDirectory, "interactions.js"),
 });
 console.log(
-	"expanded reading: three boards from CardTypeDetails and CardTypeReading, shared Motion tokens",
+	"expanded reading: article/video from reference boards, podcast from the product introduction component",
 );

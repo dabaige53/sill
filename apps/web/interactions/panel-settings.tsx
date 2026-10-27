@@ -1,13 +1,10 @@
 import type { ReactNode } from "react";
 import type { defaultAppearance } from "../../../contracts/appearance.ts";
-import type { Card } from "../../../contracts/card.ts";
-import { CardActions } from "../../../contracts/card-actions.ts";
-import { eventRelative, eventTimely, timeString } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import type { Preferences } from "../data/store.ts";
 import { Store } from "../data/store.ts";
 import type { AppController } from "../views/app.ts";
-import { actionTypeExamples, type PanelRenderers } from "./panel-contract.ts";
+import type { PanelRenderers } from "./panel-contract.ts";
 import { icon, keyed, segmented, toggle } from "./panel-primitives.tsx";
 import { formatBytes } from "./panels-components.tsx";
 import { SettingRow } from "./setting-row.tsx";
@@ -15,7 +12,6 @@ import { SystemReminderSettings } from "./system-reminder-settings.tsx";
 
 export const panelSettings = {
 	settingsGroups: [
-		["add", copy("web.settings.add"), "plus"],
 		["desk", copy("web.common.desk"), "monitor"],
 		["look", copy("web.settings.appearance"), "eye"],
 		["keys", copy("web.settings.shortcuts"), "keyboard"],
@@ -53,33 +49,6 @@ export const panelSettings = {
 				),
 			);
 		const pages: Record<string, () => ReactNode> = {
-			// Adding lives here now: the same one field as the capture sheet. N still opens the sheet directly.
-			add: () => (
-				<>
-					<h2>{copy("web.settings.add")}</h2>
-					<div className={"settings-card settings-add"}>
-						<div className={"capture-field"}>
-							{icon("plus", 18)}
-							<textarea
-								id={"capture-text"}
-								aria-label={copy("web.capture.placeholder")}
-								placeholder={copy("web.capture.placeholder")}
-								maxLength={4000}
-								defaultValue={""}
-							/>
-						</div>
-						<div className={"panel-footer"}>
-							<span className={"muted"}>
-								<kbd>{"N"}</kbd>
-								{copy("web.capture.shortcutHint")}
-							</span>
-							<button type={"button"} className={"solid-button"} data-action={"capture-save"}>
-								{copy("web.capture.save")}
-							</button>
-						</div>
-					</div>
-				</>
-			),
 			desk: () => (
 				<>
 					<h2>{copy("web.common.desk")}</h2>
@@ -99,25 +68,6 @@ export const panelSettings = {
 						{row(
 							copy("web.settings.floatTimely"),
 							toggle("floatTimely", p("floatTimely"), copy("web.settings.floatTimely")),
-						)}
-					</div>
-					{"\n       "}
-					<div className={"group-label"}>{copy("web.actions.title")}</div>
-					<div className={"settings-card"}>
-						{keyed(
-							CardActions.map((key) =>
-								row(
-									copy(`web.actions.${key}`),
-									toggle(
-										key,
-										!(p("hiddenActions") || []).includes(key),
-										copy(`web.actions.${key}`),
-										"action-toggle",
-										`action-example-${key}`,
-									),
-									{ text: copy(actionTypeExamples[key]), id: `action-example-${key}` },
-								),
-							),
 						)}
 					</div>
 					{"\n       "}
@@ -209,7 +159,6 @@ export const panelSettings = {
 						{keyed(
 							[
 								[copy("web.search"), "⌘ K"],
-								[copy("web.capture.title"), "N"],
 								[copy("web.settings.shortcuts.openCard"), "Enter"],
 								[copy("web.settings.shortcuts.closeOverlay"), "Esc"],
 								[copy("web.settings.shortcuts.refresh"), "R"],
@@ -312,75 +261,6 @@ export const panelSettings = {
 						<h1 id={"modal-title"}>{title}</h1>
 						<p className={"muted"}>{detail}</p>
 						<div className={"permission-actions"}>{actions}</div>
-					</div>
-				</div>
-			</>
-		);
-	},
-	capture(this: PanelRenderers, app?: unknown) {
-		const next = Store.state.cards
-			.filter(
-				(c?: Card) =>
-					c.type === "event" && c.end > Date.now() && c.start - Date.now() < 3 * 3600000,
-			)
-			.sort((a, b) => a.start - b.start)[0];
-		return (
-			<>
-				<div className={"sheet"}>
-					<div className={"grabber"} aria-hidden={"true"}></div>
-					{this.close(copy("web.close"))}
-					<div className={"panel-content"}>
-						<h1 id={"modal-title"} className={"sr-only"}>
-							{copy("web.capture.title")}
-						</h1>
-						<div className={"capture-field"}>
-							{icon("plus", 18)}
-							<textarea
-								id={"capture-text"}
-								aria-label={copy("web.capture.placeholder")}
-								placeholder={copy("web.capture.placeholder")}
-								maxLength={4000}
-								defaultValue={""}
-							/>
-						</div>
-						{"\n   "}
-						{next ? (
-							<>
-								<div className={"next-event"}>
-									<span className={"num"}>{timeString(next.start)}</span>
-									<span>
-										{next.title}
-										<small>{eventRelative(next)}</small>
-									</span>
-									{eventTimely(next) && next.meeting ? (
-										<>
-											<button
-												type={"button"}
-												className={"solid-button"}
-												data-action={"join"}
-												data-id={next.id}
-											>
-												{copy("web.templates.451755e3831f")}
-											</button>
-										</>
-									) : (
-										""
-									)}
-								</div>
-							</>
-						) : (
-							""
-						)}
-						{"\n   "}
-						<div className={"panel-footer"}>
-							<span className={"muted"}>
-								<kbd>{"N"}</kbd>
-								{copy("web.capture.shortcutHint")}
-							</span>
-							<button type={"button"} className={"solid-button"} data-action={"capture-save"}>
-								{copy("web.capture.save")}
-							</button>
-						</div>
 					</div>
 				</div>
 			</>

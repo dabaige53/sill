@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import type { PlaybackHandle, PlaybackSnapshot } from "./audio-player.tsx";
+import type { PlaybackHandle, PlaybackSnapshot } from "./playback.ts";
 
 type Player = {
 	getCurrentTime(): number;
@@ -235,7 +235,7 @@ export function YouTubePlayer({
 	}, [id, controls, initialPosition, attempt, knownDuration]);
 	return (
 		<>
-			<div className="youtube-frame">
+			<div className="youtube-frame" data-video-cover={cover}>
 				<div className="youtube-player" ref={host} />
 				{/* The cover stands in until the official player is ready, so a slow or blocked embed never shows an empty box. */}
 				{!ready && (

@@ -6,167 +6,12 @@ import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
 import { youtubeID } from "../../apps/web/cards/youtube-player.tsx";
 
-const bundle = buildSync({
-	stdin: {
-		contents: `import {createElement} from 'react'; import {createRoot} from 'react-dom/client'; import {flushSync} from 'react-dom'; import {AudioPlayer} from './apps/web/cards/audio-player.tsx'; export function mount(host,saved){ const controls={current:null}; const root=createRoot(host);flushSync(()=>root.render(createElement(AudioPlayer,{url:'https://media.test/audio.mp3',initialPosition:12,onSave:(...v)=>saved.push(v),onTime:()=>{},controls})));return {controls,close:()=>flushSync(()=>root.unmount())};}`,
-		resolveDir: path.resolve(import.meta.dirname, "../.."),
-		loader: "tsx",
-	},
-	bundle: true,
-	write: false,
-	format: "iife",
-	platform: "browser",
-	globalName: "PlaybackTest",
-}).outputFiles[0].text;
-function fixture() {
-	const dom = new JSDOM('<div id="root"></div>', {
-		url: "https://sill.test",
-		runScripts: "outside-only",
-	});
-	const w = dom.window as any;
-	let pauses = 0;
-	w.HTMLMediaElement.prototype.pause = function () {
-		pauses++;
-	};
-	w.eval(bundle);
-	const saved: any[] = [];
-	const api = w.PlaybackTest.mount(w.document.querySelector("#root"), saved);
-	const media = w.document.querySelector("audio");
-	let paused = true;
-	Object.defineProperties(media, {
-		duration: { value: 100 },
-		paused: { get: () => paused },
-		seeking: { value: false },
-	});
-	return {
-		w,
-		media,
-		saved,
-		api,
-		pauses: () => pauses,
-		play: () => {
-			paused = false;
-		},
-		emit: (event: string) => media.dispatchEvent(new w.Event(event)),
-		close: () => dom.window.close(),
-	};
-}
-test("closing before media loads keeps the saved position", () => {
-	const f = fixture();
-	f.api.close();
-	assert.deepEqual(f.saved, []);
-	assert.equal(f.pauses(), 1);
-	f.close();
-});
-test("resume, seek-to-end and close never mark read", () => {
-	const f = fixture();
-	f.emit("loadedmetadata");
-	assert.equal(f.media.currentTime, 12);
-	f.api.controls.current.seek(100);
-	f.emit("seeking");
-	f.emit("ended");
-	assert.equal(f.saved.at(-1)[1], false);
-	f.api.close();
-	assert.equal(f.saved.at(-1)[0], 100);
-	assert.equal(f.saved.at(-1)[1], false);
-	f.close();
-});
-test("only actual advancement followed by ended completes playback", () => {
-	const f = fixture();
-	f.emit("loadedmetadata");
-	f.play();
-	f.media.currentTime = 13;
-	f.emit("timeupdate");
-	f.media.currentTime = 100;
-	f.emit("ended");
-	assert.equal(f.saved.at(-1)[1], true);
-	f.api.close();
-	f.close();
-});
 test("YouTube parsing accepts official videos, not lookalike domains or arbitrary pages", () => {
 	assert.equal(youtubeID("https://youtu.be/abcdefghijk"), "abcdefghijk");
 	assert.equal(youtubeID("https://www.youtube.com/watch?v=abcdefghijk"), "abcdefghijk");
 	assert.equal(youtubeID("https://youtube.com.evil.test/watch?v=abcdefghijk"), null);
 	assert.equal(youtubeID("https://www.youtube.com/"), null);
 	assert.equal(youtubeID("javascript:alert(1)"), null);
-});
-
-test("podcast scroll scrubs all surfaces together and reverses without remounting audio", async () => {
-	const js = buildSync({
-		stdin: {
-			contents: `import {createElement} from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';import {MediaDetail} from './apps/web/cards/media-detail.tsx';import {Store} from './apps/web/data/store.ts';export function mount(host){Store.state=Store.fresh();const root=createRoot(host);flushSync(()=>root.render(createElement(MediaDetail,{card:{id:'podcast-motion',type:'media',media:'podcast',title:'Podcast',sources:[],tags:[],transcript:[]}})));return {scroll:el=>flushSync(()=>el.dispatchEvent(new Event('scroll'))),frame:callback=>flushSync(callback),close:()=>flushSync(()=>root.unmount())};}`,
-			resolveDir: path.resolve(import.meta.dirname, "../.."),
-			loader: "tsx",
-		},
-		bundle: true,
-		alias: {
-			"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
-			motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
-		},
-		write: false,
-		format: "iife",
-		platform: "browser",
-		globalName: "PodcastTest",
-	}).outputFiles[0].text;
-	const dom = new JSDOM('<div class="sheet-scroll"><div id="root"></div></div>', {
-		url: "https://sill.test",
-		runScripts: "outside-only",
-		pretendToBeVisual: true,
-	});
-	const w = dom.window as any;
-	w.ResizeObserver = class {
-		observe() {}
-		disconnect() {}
-	};
-	let frame: FrameRequestCallback;
-	w.requestAnimationFrame = (callback: FrameRequestCallback) => {
-		frame = callback;
-		return 1;
-	};
-	w.cancelAnimationFrame = () => {};
-	w.eval(js);
-	const animations: any[] = [];
-	w.__motionAnimations = animations;
-	const api = w.PodcastTest.mount(w.document.querySelector("#root"));
-	try {
-		const scroll = w.document.querySelector(".sheet-scroll");
-		const primary = w.document.querySelector(".media-primary");
-		const compact = w.document.querySelector(".compact-player");
-		const audio = w.document.querySelector("audio");
-		assert.equal(w.document.querySelector('[role="alert"]'), null);
-		assert.equal(animations.length, 4, "one paused timeline for each player and background");
-		Object.defineProperty(compact, "offsetHeight", { value: 68 });
-		compact.parentElement.style.top = "64px";
-		let bottom = 166;
-		primary.getBoundingClientRect = () => ({ bottom });
-		const scrollTo = async (value: number) => {
-			scroll.scrollTop = value;
-			api.scroll(scroll);
-			api.frame(() => frame(0));
-		};
-		await scrollTo(400);
-		assert.equal(primary.hasAttribute("inert"), true);
-		assert.equal(compact.hasAttribute("inert"), false);
-		for (const animation of animations) {
-			assert.equal(animation.options.autoplay, false);
-			assert.equal(animation.time, 0.5);
-		}
-		bottom = 183;
-		await scrollTo(383);
-		for (const animation of animations) assert.equal(animation.time, 0.25);
-		assert.equal(compact.hasAttribute("inert"), true);
-		bottom = 132;
-		await scrollTo(434);
-		for (const animation of animations) assert.equal(animation.time, 1);
-		await scrollTo(0);
-		for (const animation of animations) assert.equal(animation.time, 0);
-		assert.equal(animations.length, 4, "scroll reuses the timelines instead of restarting them");
-		assert.equal(compact.hasAttribute("inert"), true);
-		assert.equal(w.document.querySelector("audio"), audio);
-	} finally {
-		api.close();
-		dom.window.close();
-	}
 });
 
 test("official iframe sets its own origin-only referrer policy before loading", async () => {
@@ -207,26 +52,6 @@ test("official iframe sets its own origin-only referrer policy before loading", 
 	assert.equal(url.searchParams.get("start"), "12");
 	close();
 	dom.window.close();
-});
-
-test("audio failure before metadata preserves resume position and can reload", async () => {
-	const f = fixture();
-	let loads = 0;
-	let error: object | null = {};
-	Object.defineProperty(f.media, "error", { get: () => error });
-	f.media.load = () => {
-		loads++;
-		error = null;
-	};
-	f.media.play = async () => {};
-	f.emit("error");
-	f.api.controls.current.toggle();
-	assert.equal(loads, 1);
-	f.emit("loadedmetadata");
-	assert.equal(f.media.currentTime, 12);
-	f.api.close();
-	assert.deepEqual(Array.from(f.saved.at(-1)), [12, false]);
-	f.close();
 });
 
 test("blocked YouTube API times out, releases its script and retries", async () => {
@@ -313,4 +138,56 @@ test("YouTube readiness timeout exposes retry and rebuilding preserves resume", 
 	assert.equal(new URL(w.document.querySelector("iframe").src).searchParams.get("start"), "12");
 	api.close();
 	dom.window.close();
+});
+
+test("video preview and full reading retain the actual iframe and one player instance", async () => {
+	const js = buildSync({
+		stdin: {
+			contents: `import {createElement,Fragment} from 'react';import {PanelViews} from './apps/web/interactions/panels-components.tsx';import {renderView,releaseView} from './apps/web/views/react-renderer.ts';import {Store} from './apps/web/data/store.ts';const card={id:'v',type:'media',media:'video',title:'Video',url:'https://youtu.be/abcdefghijk',duration:120,body:'Notes'};Store.state=Store.fresh();Store.state.cards=[card];Store.save=()=>{};export function show(host,full){renderView(host,createElement(Fragment,null,null,full?PanelViews.reader({},card):PanelViews.preview({},card)));}export function close(host){releaseView(host);}`,
+			resolveDir: path.resolve(import.meta.dirname, "../.."),
+			loader: "tsx",
+		},
+		bundle: true,
+		write: false,
+		format: "iife",
+		platform: "browser",
+		globalName: "VideoTest",
+	}).outputFiles[0].text;
+	const dom = new JSDOM('<div id="root"></div>', {
+		url: "https://sill.test",
+		runScripts: "outside-only",
+	});
+	const w = dom.window as any;
+	let created = 0,
+		destroyed = 0;
+	w.YT = {
+		Player: class {
+			constructor() {
+				created++;
+			}
+			destroy() {
+				destroyed++;
+			}
+		},
+	};
+	w.matchMedia = () => ({ matches: false });
+	w.eval(js);
+	const host = w.document.querySelector("#root");
+	try {
+		w.VideoTest.show(host, false);
+		await new Promise((resolve) => setImmediate(resolve));
+		const frame = host.querySelector("iframe");
+		assert.ok(frame);
+		w.VideoTest.show(host, true);
+		assert.equal(host.querySelector("iframe") === frame, true);
+		w.VideoTest.show(host, false);
+		assert.equal(host.querySelector("iframe") === frame, true);
+		assert.equal(created, 1);
+		assert.equal(destroyed, 0);
+		assert.equal(host.querySelectorAll("iframe").length, 1);
+	} finally {
+		w.VideoTest.close(host);
+		dom.window.close();
+	}
+	assert.equal(destroyed, 1);
 });

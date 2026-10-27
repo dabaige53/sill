@@ -190,6 +190,53 @@ for (const action of ["snooze", "dismiss-reminder", "complete-reminder", "restor
 		}
 	});
 
+test("completing a reminder retains its detail and search until the user closes it", () => {
+	const f = fixture();
+	try {
+		const reminder = { id: "b", type: "reminder", title: "Beta", body: "Reminder detail" };
+		f.Store.state.cards[1] = reminder;
+		f.app.searchFilter.query = "Beta";
+		f.app.dialog.innerHTML = f.Panels.search(f.app);
+		const results = f.app.dialog.querySelector("#search-results");
+		results.scrollTop = 120;
+		f.app.suspendSearch();
+		const background = f.app.searchBackground;
+		f.app.dialog.innerHTML = f.Panels.preview(f.app, reminder);
+		f.app.modalKind = "preview";
+		f.app.currentId = "b";
+		f.app.dialog.show();
+		f.w.history.replaceState({ glass: true, prev: "#search" }, "", "#card/b");
+		f.app.lastRouteHash = "#card/b";
+		f.w.HTMLElement.prototype.getAnimations = () => [];
+		f.app.withFeedAnchor = () => {};
+		f.app.checkReminders = () => {};
+		const button = f.app.dialog.querySelector(".reminder-check");
+		button.focus();
+
+		f.app.action("complete-reminder", "b");
+
+		assert.equal(f.Store.item("b").reminderDone, true);
+		assert.equal(f.app.modalKind, "preview");
+		assert.equal(f.app.dialog.open, true);
+		assert.equal(f.w.location.hash, "#card/b");
+		assert.equal(f.app.lastRouteHash, "#card/b");
+		assert.equal(f.app.searchBackground, background);
+		assert.equal(background.querySelector("#search-results"), results);
+		assert.equal(results.scrollTop, 120);
+		assert.equal(f.w.document.activeElement, button);
+
+		f.app.closeToDesk(false);
+
+		assert.equal(f.w.location.hash, "#search");
+		assert.equal(f.app.modalKind, "search");
+		assert.equal(f.app.dialog.querySelector("#search-results"), results);
+		assert.equal(results.scrollTop, 120);
+		assert.equal(f.app.dialog.querySelector("#filter-search").value, "Beta");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("home and search render the same shared completion and reading state", () => {
 	const f = fixture();
 	try {
@@ -429,3 +476,59 @@ test("open panels keep home menu and search shortcuts from consuming keys", () =
 });
 
 /** Desktop top-bar search: tab token, # conditions and type chips share the home filter. */
+
+test("phone search retains its field on filter updates and returns to browse with session history", () => {
+	const f = fixture();
+	try {
+		f.app.desktop = () => false;
+		f.w.document.documentElement.dataset.inputModality = "keyboard";
+		f.app.repaintSearch();
+		const input = f.app.dialog.querySelector("#filter-search");
+		input.focus();
+		f.app.setSearchEditing(true);
+		assert.equal(f.app.dialog.classList.contains("search-editing"), true);
+		f.app.searchFilter.query = "Alpha";
+		f.app.repaintSearch();
+		assert.equal(f.app.dialog.querySelector("#filter-search"), input);
+		assert.equal(f.w.document.activeElement, input);
+		assert.equal(input.value, "Alpha");
+		f.app.action("search-reset");
+		assert.equal(f.app.dialog.classList.contains("search-editing"), false);
+		assert.equal(input.value, "");
+		assert.equal(f.app.dialog.querySelector(".search-cancel").textContent, "取消");
+		assert.equal(f.app.dialog.querySelector('[data-action="search-history"]').textContent, "Alpha");
+		f.app.action("search-history", "", "Alpha");
+		assert.equal(input.value, "Alpha");
+		assert.equal(f.app.dialog.classList.contains("search-editing"), true);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("unbookmarking an open favorite removes its source while retaining the detail and close fallback", () => {
+	const f = fixture();
+	try {
+		f.app.searchBackground = null;
+		f.app.modalKind = "preview";
+		f.app.currentId = "a";
+		f.app.filter.status = "saved";
+		f.Store.patch("a", { bookmarked: true });
+		f.Store.patch("b", { bookmarked: true });
+		f.app.renderCurrent();
+		f.app.dialog.innerHTML =
+			'<div class="preview-sheet"><button data-id="a" data-action="bookmark">Saved</button></div><div class="float-bar"></div>';
+		const sheet = f.app.dialog.querySelector(".preview-sheet");
+		const tools = f.app.dialog.querySelector(".float-bar");
+		assert.ok(f.app.grid.querySelector('[data-card="a"]'));
+		f.app.setFlag("a", "bookmarked", false);
+		assert.equal(f.app.grid.querySelector('[data-card="a"]'), null);
+		assert.ok(f.app.grid.querySelector('[data-card="b"]'));
+		assert.equal(f.app.dialog.querySelector(".preview-sheet"), sheet);
+		assert.equal(f.app.dialog.querySelector(".float-bar"), tools);
+		assert.equal(f.app.dialog.open, true);
+		assert.equal(f.app.cardRect("a"), null);
+		assert.ok(f.Store.card("a"), "only its membership in favorites changes");
+	} finally {
+		f.dom.window.close();
+	}
+});

@@ -35,7 +35,16 @@ const LocalSync: Record<string, any> = {
 					}
 				: {}),
 		});
-		const value = await response.json();
+		// The dev proxy returns an empty 502 when the local service is stopped.
+		// Keep failed reads/writes on the existing recovery path, without exposing a JSON parser error.
+		if ([502, 503, 504].includes(response.status))
+			throw new Error(errorMessage("local_service_unavailable"));
+		let value: any;
+		try {
+			value = await response.json();
+		} catch {
+			throw new Error(errorMessage("local_response_invalid"));
+		}
 		if (!response.ok) throw new Error(errorMessage(value.error));
 		return value;
 	},
@@ -376,7 +385,7 @@ const LocalSync: Record<string, any> = {
 		if (!changed) return;
 		app.feedNow = Date.now();
 		app.applyPreferences();
-		if (!app.editingId) app.withFeedAnchor(() => {}, true);
+		if (!app.editingId) app.withFeedAnchor(() => {}, this.ready && !app.initializing);
 		if (app.modalKind === "settings") app.repaintSettings();
 		if (app.modalKind === "preview" && !app.sheetLeaving) {
 			const card = Store.card(app.currentId);

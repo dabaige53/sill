@@ -40,7 +40,6 @@ interface PanelRenderers {
 	settings(app?: unknown, group?: string): string;
 	confirm(title?: string, detail?: string, actions?: string): string;
 	ai(app?: Pick<AppController, "aiSelectionIds"> & Partial<Pick<AppController, "aiDraft">>): string;
-	capture(app?: unknown): string;
 }
 
 /** Static compatibility API for tests, boards and integrations that still consume HTML. */

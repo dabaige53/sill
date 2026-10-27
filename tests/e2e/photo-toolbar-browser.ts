@@ -151,7 +151,13 @@ try {
 				window.__app.setPref("hiddenActions", ["bookmark", "tag", "later"]);
 				window.__app.openCard("photo-tools");
 			});
-			assert.equal(await bar.count(), 0);
+			assert.equal(await bar.count(), 1);
+			assert.deepEqual(
+				await bar
+					.locator("button")
+					.evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-action"))),
+				["bookmark", "edit", "later"],
+			);
 			assert.equal(await page.locator(".lightbox-thumbs button").count(), 2);
 			assert.deepEqual(errors, []);
 			assert.deepEqual(external, []);

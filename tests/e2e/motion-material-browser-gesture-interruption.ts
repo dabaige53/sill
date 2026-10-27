@@ -1,29 +1,10 @@
 import assert from "node:assert/strict";
 
 export async function runGestureInterruption({ phone, scenario }: { phone: any; scenario: any }) {
-	await scenario(
-		"Opening a menu settles card travel and animates the anchored menu",
-		async (page) => {
-			await page.evaluate(() => window.__app.renderCurrent(true));
-			await page.waitForTimeout(50);
-			await page.evaluate(() => window.__app.more("motion-0"));
-			await page.waitForTimeout(40);
-			const state = await page.evaluate(() => {
-				const card = document.querySelector<HTMLElement>('[data-card="motion-0"]');
-				const menu = card.querySelector<HTMLElement>(".card-more-menu");
-				return {
-					card: getComputedStyle(card).transform,
-					menu: getComputedStyle(menu).transform,
-					origin: getComputedStyle(menu).transformOrigin,
-				};
-			});
-			assert.equal(state.card, "none");
-			assert.notEqual(state.menu, "none");
-			await page.evaluate(() => window.__app.closeMore());
-			await page.waitForFunction(() => !document.querySelector(".card-more-leaving"));
-		},
-	);
-
+	await scenario("Card right-click does not create a product menu", async (page) => {
+		await page.locator('[data-card="motion-0"] .card-title-button').click({ button: "right" });
+		assert.equal(await page.locator(".card-more-menu,#selection-menu").count(), 0);
+	});
 	await scenario(
 		"Reader progress scales from the left without changing layout width",
 		async (page) => {

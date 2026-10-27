@@ -163,6 +163,9 @@ export const panelSearch = {
 			...searchTypes.map(([key, label]) => [key, copy(label)]),
 		];
 		const text = app.searchText(f.query);
+		const recommendedTags = [
+			...new Set(Store.state.cards.flatMap((card: Card) => Store.tags(card))),
+		].slice(0, 6);
 		const category =
 			f.pinned && f.type !== "all" ? searchTypes.find(([key]) => key === f.type) : null;
 		const status = searchStatuses.find(([key]) => key === f.status);
@@ -213,6 +216,7 @@ export const panelSearch = {
 							placeholder={tokens.length ? "" : copy("web.search.inputPlaceholder")}
 							defaultValue={f.query}
 							data-input="search"
+							enterKeyHint="search"
 							autoComplete="off"
 						/>
 						<span
@@ -243,7 +247,9 @@ export const panelSearch = {
 							{icon("mic", 22)}
 						</button>
 					</div>
-					{button("x", copy("web.search.reset"), "search-reset")}
+					<button type="button" className="search-cancel" data-action="search-reset">
+						{copy("web.cancel")}
+					</button>
 					<div className="search-hash-slot" id="search-hash-slot">
 						{this.searchHashList(app)}
 					</div>
@@ -269,8 +275,46 @@ export const panelSearch = {
 						</fieldset>
 					</div>
 				)}
-				<div className="search-results" id="search-results">
-					{this.searchResults(app)}
+				<div className="search-results-region">
+					<section
+						className="search-history"
+						hidden={!!f.query || f.type !== "all" || f.status !== "all" || !!f.tag}
+						aria-label={copy("web.search.history")}
+					>
+						<h2 className="search-hash-label">{copy("web.search.history")}</h2>
+						{(app.searchHistory || []).map((query) => (
+							<button
+								key={query}
+								type="button"
+								className="search-hash-option"
+								data-action="search-history"
+								data-extra={query}
+							>
+								{icon("clock", 16)}
+								<span>{query}</span>
+							</button>
+						))}
+						{recommendedTags.length > 0 ? (
+							<>
+								<h2 className="search-hash-label">{copy("web.search.recommendedTags")}</h2>
+								{recommendedTags.map((tag) => (
+									<button
+										key={tag}
+										type="button"
+										className="search-hash-option"
+										data-action="filter-tag"
+										data-extra={tag}
+									>
+										{icon("tag", 16)}
+										<span>#{tag}</span>
+									</button>
+								))}
+							</>
+						) : null}
+					</section>
+					<div className="search-results" id="search-results">
+						{this.searchResults(app)}
+					</div>
 				</div>
 				<SelectionBar id="search-selection-bar" />
 			</>

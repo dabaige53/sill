@@ -196,3 +196,53 @@ test("video and PR details respect edited tags instead of source tags", () => {
 		dom.window.close();
 	}
 });
+
+test("podcast introductions preserve the external listening record without players, tabs or seeking", () => {
+	Store.state = Store.fresh();
+	const card = {
+		...cards.at(-1),
+		id: "podcast-readonly",
+		chapters: [{ start: 10, title: "Authored chapter" }],
+		transcript: [{ start: 10, text: "Authored transcript" }],
+	};
+	Store.state.items[card.id] = { playbackPosition: 45, progress: 0.9 };
+	Store.item(card.id);
+	const before = JSON.stringify(Store.state);
+	const dom = new JSDOM(Panels.preview({}, card));
+	try {
+		const doc = dom.window.document;
+		assert.match(doc.querySelector(".podcast-listening")?.textContent || "", /0:45/);
+		assert.equal(
+			doc.querySelector(
+				"audio, .compact-player, [role=tablist], .podcast-chapters button, [data-action=reader]",
+			),
+			null,
+		);
+		assert.match(doc.querySelector(".podcast-chapters")?.textContent || "", /Authored chapter/);
+		assert.match(
+			doc.querySelector(".podcast-transcript")?.textContent || "",
+			/Authored transcript/,
+		);
+		assert.equal(JSON.stringify(Store.state), before);
+	} finally {
+		dom.window.close();
+	}
+});
+
+test("detail actions stay available despite legacy hidden preferences, including saved bookmark state", () => {
+	Store.state = Store.fresh();
+	const card = SeedCards.find((card) => card.type === "article");
+	Store.state.preferences.hiddenActions = ["bookmark", "tag"];
+	Store.item(card.id).bookmarked = true;
+	const dom = new JSDOM(Panels.preview({}, card));
+	try {
+		const button = dom.window.document.querySelector('.float-bar [data-action="bookmark"]');
+		assert.ok(button);
+		assert.equal(button.classList.contains("active"), true);
+		assert.equal(button.getAttribute("aria-pressed"), "true");
+		assert.match(button.getAttribute("aria-label"), /取消收藏/);
+		assert.ok(dom.window.document.querySelector('.float-bar [data-action="edit"]'));
+	} finally {
+		dom.window.close();
+	}
+});

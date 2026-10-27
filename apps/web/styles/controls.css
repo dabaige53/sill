@@ -461,14 +461,13 @@ body.is-dragging #toast {
 		height: var(--rail-row);
 		padding: 0 var(--space-12);
 	}
-	#dock:has(#selection-bar:not([hidden])) .ai-dock {
-		display: none;
-	}
 	#dock.is-ai-drag #selection-bar {
 		display: none;
 	}
 	#dock.is-ai-drag:has(#selection-bar) .ai-dock {
 		display: flex;
+		visibility: visible !important;
+		opacity: 1 !important;
 	}
 	.ai-dock.is-ready {
 		background: color-mix(in srgb, var(--accent) 7%, var(--card));
@@ -702,4 +701,47 @@ body.is-dragging #toast {
 		opacity: 1;
 		pointer-events: auto;
 	}
+}
+
+/* Settings switches expose a real thumb for interruptible spring playback. */
+.toggle:has(> .toggle-knob):before {
+	content: none;
+}
+.toggle > .toggle-knob {
+	position: absolute;
+	width: 27px;
+	height: 27px;
+	left: 2px;
+	top: 2px;
+	border-radius: 50%;
+	background: var(--fixed-white);
+	box-shadow: 0 2px 4px var(--fixed-black-15);
+}
+.toggle[aria-checked="true"] > .toggle-knob {
+	transform: translateX(20px);
+}
+#selection-bar [data-action="selected-bookmark"].active,
+#search-selection-bar [data-action="selected-bookmark"].active {
+	color: var(--accent);
+}
+
+.selection-ai-target[hidden] {
+	display: none;
+}
+
+/* Selection shares the existing rail position without reflowing the outgoing surface. */
+#dock #selection-bar {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	translate: -50% 0;
+	width: max-content;
+	max-width: 100%;
+}
+
+.ai-dock.has-collapse-visual {
+	background: transparent;
+	box-shadow: none;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }

@@ -1,4 +1,4 @@
-import { MotionEngine } from "../../interactions/motion.ts";
+import { contextMotion, reflowContext } from "../../interactions/ai-context-motion.ts";
 import type { AppController } from "../app.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
@@ -20,29 +20,22 @@ function clearSelection(this: AppController) {
 	this.updateSelection();
 }
 
-function selectionMenu(this: AppController, { el }: ActionContext) {
-	this.drag.openMenu([...this.selected], el);
-}
-
 function selectedAi(this: AppController) {
 	this.openSelectionAI([...this.selected]);
 }
 
 function selectedBookmark(this: AppController) {
 	this.applySelectionAction([...this.selected], "bookmark");
-	this.selected.clear();
 	this.updateSelection();
 }
 
 function selectedLater(this: AppController) {
 	this.applySelectionAction([...this.selected], "later");
-	this.selected.clear();
 	this.updateSelection();
 }
 
 function selectedTag(this: AppController) {
 	const ids = [...this.selected];
-	this.selected.clear();
 	this.updateSelection();
 	this.applySelectionAction(ids, "tag");
 }
@@ -56,21 +49,25 @@ function aiContextRemove(this: AppController, { id }: ActionContext) {
 	const finish = () => {
 		if (node && !node.isConnected) return;
 		this.aiSelectionIds = this.aiSelectionIds.filter((n) => n !== id);
+		const box = document.getElementById("ai-dock-context");
+		const positions = new Map(
+			[...(box?.querySelectorAll<HTMLElement>("[data-ai-context]") || [])].map((chip) => [
+				chip.dataset.aiContext,
+				chip.getBoundingClientRect(),
+			]),
+		);
 		this.renderAIDock();
+		for (const chip of box?.querySelectorAll<HTMLElement>("[data-ai-context]") || []) {
+			const before = positions.get(chip.dataset.aiContext);
+			if (before) reflowContext(chip, before);
+		}
 		document.getElementById("ai-dock-input")?.focus({ preventScroll: true });
 	};
-	const style = node && getComputedStyle(node);
-	const animation =
-		node &&
-		MotionEngine.animate(
-			node,
-			[
-				{ opacity: style.opacity, transform: style.transform },
-				{ opacity: 0, transform: "translateY(4px)" },
-			],
-			{ duration: MotionEngine.time("dur-press") },
-		);
-	if (animation) animation.finished.then(finish, () => {});
+	const animation = node && contextMotion(node, false);
+	if (animation)
+		animation.finished.then(finish, () => {
+			if (node.isConnected) node.inert = false;
+		});
 	else finish();
 }
 
@@ -78,7 +75,6 @@ export const selectionActions = {
 	select: select,
 	"select-all": selectAll,
 	"clear-selection": clearSelection,
-	"selection-menu": selectionMenu,
 	"selected-ai": selectedAi,
 	"ai-context-remove": aiContextRemove,
 	"selected-bookmark": selectedBookmark,

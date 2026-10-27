@@ -1,13 +1,9 @@
 @media (hover: none) {
-	.card-more-trigger {
-		opacity: 1;
-		pointer-events: auto;
-	}
 	.feed-card .card-head-right {
 		opacity: 1;
 	}
 }
-/* Tablets keep the ••• at the top right, so the head leaves room for it. */
+/* Tablet source details retain the existing head spacing. */
 @media (hover: none) and (min-width: 651px) {
 	.card-head:has(.card-head-right) {
 		padding-right: var(--space-36);

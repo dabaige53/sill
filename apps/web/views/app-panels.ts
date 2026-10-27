@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import type { AppController } from "./app.ts";
@@ -31,6 +32,7 @@ function queueProgress(id: string, value: number) {
 
 export const appPanelsMethods = {
 	openPanel(this: AppController, kind?: string, id: string = "") {
+		if (kind === "capture") return;
 		if (kind === "search" && location.hash !== "#search") {
 			this.navigate("#search");
 			return;
@@ -52,7 +54,7 @@ export const appPanelsMethods = {
 		this.editId = id;
 		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);
 		if (kind === "editor") this.editTags = new Set<string>(Store.tags(Store.card(id)));
-		const narrow = ["editor", "capture", "confirm", "ai"].includes(kind),
+		const narrow = ["editor", "confirm", "ai"].includes(kind),
 			wide = kind === "settings";
 		const html =
 			kind === "search"
@@ -61,13 +63,11 @@ export const appPanelsMethods = {
 					? Panels.editor(this, id)
 					: kind === "settings"
 						? Panels.settings(this, this.settingsGroup)
-						: kind === "capture"
-							? Panels.capture(this)
-							: kind === "ai"
-								? Panels.ai(this)
-								: kind === "archive"
-									? Panels.archive(this, id)
-									: "";
+						: kind === "ai"
+							? Panels.ai(this)
+							: kind === "archive"
+								? Panels.archive(this, id)
+								: "";
 		this.openModal(
 			html,
 			kind,
@@ -102,6 +102,7 @@ export const appPanelsMethods = {
 		);
 	},
 	suspendSearch(this: AppController) {
+		resetPhoneSearch(this.dialog);
 		if (this.searchTimer) {
 			clearTimeout(this.searchTimer);
 			this.searchTimer = 0;

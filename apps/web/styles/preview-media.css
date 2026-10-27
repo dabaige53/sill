@@ -35,15 +35,15 @@
 	font-size: var(--text-caption);
 	color: var(--muted);
 }
-/* Photos: black, large, left and right, Esc to leave. */
+/* Photos follow the page palette; the carousel owns horizontal movement. */
 #modal.lightbox {
 	width: 100vw;
 	height: 100dvh;
 	max-width: none;
 	max-height: none;
 	margin: 0;
-	background: var(--fixed-photo-canvas);
-	color: var(--fixed-white);
+	background: var(--canvas);
+	color: var(--ink);
 }
 @supports (height: 100dvh) {
 	#modal.lightbox {
@@ -62,7 +62,7 @@
 	margin: 0 var(--rail-edge) max(var(--space-12), env(safe-area-inset-bottom));
 }
 #modal.lightbox::backdrop {
-	background: var(--fixed-photo-canvas);
+	background: var(--canvas);
 }
 .lightbox-top {
 	display: flex;
@@ -70,14 +70,14 @@
 	justify-content: space-between;
 	padding: var(--space-16) var(--space-20);
 	font-size: var(--text-meta);
-	color: var(--fixed-white-75);
+	color: var(--ink);
 }
 .lightbox-top .icon-button {
-	color: var(--fixed-white);
+	color: var(--ink);
 }
 @media (hover: hover) and (pointer: fine) {
 	.lightbox-top .icon-button:hover {
-		background: var(--fixed-white-12);
+		background: var(--faint);
 	}
 }
 .lightbox-stage {
@@ -98,12 +98,12 @@
 	flex: 1;
 }
 .lightbox-stage .icon-button {
-	color: var(--fixed-white);
+	color: var(--ink);
 	flex: none;
 }
 @media (hover: hover) and (pointer: fine) {
 	.lightbox-stage .icon-button:hover {
-		background: var(--fixed-white-12);
+		background: var(--faint);
 	}
 }
 .lightbox-thumbs {
@@ -122,7 +122,7 @@
 }
 .lightbox-thumbs button.on {
 	opacity: 1;
-	border-color: var(--fixed-white);
+	border-color: var(--ink);
 }
 .lightbox-thumbs img {
 	width: 100%;
@@ -143,15 +143,15 @@
 .lightbox .preview-foot .text-button {
 	min-height: var(--hit-target);
 	margin-left: 0;
-	color: var(--fixed-white);
+	color: var(--ink);
 }
 @media (hover: hover) and (pointer: fine) {
 	.lightbox .preview-foot .text-button:hover {
-		background: var(--fixed-white-12);
+		background: var(--faint);
 	}
 }
 .lightbox .preview-foot :focus-visible {
-	outline-color: var(--fixed-white);
+	outline-color: var(--ink);
 }
 
 /* Reader: a page, not a box. A thin line on top shows how far you are. */
@@ -275,7 +275,7 @@ dialog > .float-bar.is-hidden {
 	text-align: center;
 	padding: var(--space-12) var(--space-20);
 	font-size: var(--text-control);
-	color: var(--fixed-white-75);
+	color: var(--muted);
 }
 .lightbox > .preview-note {
 	flex: none;
@@ -515,4 +515,34 @@ dialog > .float-bar.is-hidden {
 	.reader-body .media-secondary {
 		overflow-y: auto;
 	}
+}
+
+.photo-carousel {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	overflow: hidden;
+	touch-action: pan-y pinch-zoom;
+	user-select: none;
+	cursor: grab;
+}
+.photo-carousel:active {
+	cursor: grabbing;
+}
+.photo-carousel-track {
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+.photo-carousel-page {
+	flex: 0 0 100%;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.photo-carousel-page img {
+	flex: none;
+	max-width: 100%;
+	pointer-events: none;
 }

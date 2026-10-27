@@ -66,7 +66,6 @@ export function accountView() {
 export function clearCloud({ retainDrafts = false }: any = {}) {
 	systemReminders.bind(null);
 	app.drag?.cancel();
-	app.drag?.menu.replaceChildren();
 	app.modalToken++;
 	app.previewTrail = [];
 	app.detailPositions.clear();
@@ -188,9 +187,15 @@ export function paintRecords() {
 		.filter((c: any) => !c.deleted)
 		.map((c: any) => cloudCard(c));
 	app.checkReminders();
-	// The first cards of a launch use the first-screen entrance, not the arrival drop.
-	if (endBoot()) app.renderCurrent(true);
-	else app.withFeedAnchor(() => {}, true);
+	// Initial records appear together; only later updates use the arrival transition.
+	if (endBoot()) {
+		app.initializing = true;
+		try {
+			app.renderCurrent(false);
+		} finally {
+			app.initializing = false;
+		}
+	} else app.withFeedAnchor(() => {}, true);
 }
 export function adoptWorkspace(value: any) {
 	const editingItems = new Map<string, any>(

@@ -31,8 +31,8 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	const linked = active && this.currentId !== id;
 	const phoneLinked = linked && !this.desktop();
 	const currentSheet = this.dialog.querySelector<HTMLElement>(".preview-sheet");
-	const inheritFull = phoneLinked &&
-		(this.modalKind === "reader" || currentSheet?.classList.contains("is-full"));
+	const inheritFull =
+		phoneLinked && (this.modalKind === "reader" || currentSheet?.classList.contains("is-full"));
 	const inheritHeight = phoneLinked && !inheritFull ? currentSheet?.offsetHeight : 0;
 	if (active) {
 		const scroll = this.dialog.querySelector<HTMLElement>(
@@ -111,6 +111,7 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		((reading && this.modalKind === "preview") || (!reading && this.modalKind === "reader"));
 	this.dialog.dataset.readerResize =
 		resizing && ["article", "media"].includes(c.type) ? "true" : "";
+	if (this.dialog.dataset.readerResize === "true") MotionEngine.prepareResize(this.dialog);
 	const entryRect = resizing
 		? (
 				this.dialog.querySelector("[data-reader-resize-surface]") ||
@@ -154,7 +155,13 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	}
 	if (reading) {
 		// Bodies are on this device, so the page opens complete. The skeleton is kept for bodies fetched from a source.
-		this.openModal(Panels.reader(this, c, false), "reader", entryRect, "", linked);
+		this.openModal(
+			createElement(Fragment, null, null, Panels.reader(this, c, false)),
+			"reader",
+			entryRect,
+			"",
+			linked,
+		);
 		if (!linked && !this.previewTrail.length) MotionEngine.matchSource(this.dialog, source);
 		settle();
 		this.bindReader(id, restore?.scrollTop);

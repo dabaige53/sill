@@ -11,6 +11,7 @@ import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
 import { feedView } from "./feed.tsx";
 import { HomeHashList, HomeKinds, HomeSearchMarks, homeHashOptions } from "./home-search.tsx";
+import { syncSearchHighlight, syncSearchIcon } from "./home-search-motion.ts";
 import { renderView } from "./react-renderer.ts";
 
 export const appFeedMethods = {
@@ -141,7 +142,6 @@ export const appFeedMethods = {
 						(node) => node.dataset.extra,
 					)
 				: [];
-		this.closeMore();
 		// An anchored reflow may temporarily need extra room below the final row.
 		this.grid.style.removeProperty("min-height");
 		document.body.dataset.view = this.mode;
@@ -194,6 +194,7 @@ export const appFeedMethods = {
 	},
 	revealImages(this: AppController, root?: ParentNode) {
 		root.querySelectorAll<HTMLImageElement>("img.card-image").forEach((img) => {
+			const initial = this.initializing;
 			if (this.loadedImages.has(img.src)) {
 				img.classList.add("is-loaded");
 				return;
@@ -205,9 +206,10 @@ export const appFeedMethods = {
 				}
 				this.loadedImages.add(img.src);
 				img.classList.add("is-loaded");
-				MotionEngine.animate(img, [{ opacity: 0 }, { opacity: getComputedStyle(img).opacity }], {
-					duration: MotionEngine.time("fast"),
-				});
+				if (!initial)
+					MotionEngine.animate(img, [{ opacity: 0 }, { opacity: getComputedStyle(img).opacity }], {
+						duration: MotionEngine.time("fast"),
+					});
 				this.layout.schedule(false);
 			};
 			if (img.complete && img.naturalWidth) requestAnimationFrame(done);
@@ -263,13 +265,19 @@ export const appFeedMethods = {
 	desktop(this: AppController) {
 		return matchMedia("(min-width: 651px)").matches;
 	},
-	/** The top-bar search stretches while focus is inside it and rests short otherwise. */
+	/** Focus reveals search suggestions without resizing the field. */
 	openHomeSearch(this: AppController, open: boolean) {
 		const field = document.getElementById("home-search-field");
-		if (!field || field.classList.contains("is-open") === open) return;
-		const width = field.getBoundingClientRect().width;
+		if (!field) return;
+		if (!open && !field.classList.contains("is-open")) return;
+		field.classList.remove("suggestion-engaged");
+		if (!open) {
+			const query = this.searchText(this.filter.query);
+			if (query)
+				this.searchHistory = [query, ...this.searchHistory.filter((q) => q !== query)].slice(0, 8);
+		}
 		field.classList.toggle("is-open", open);
-		MotionEngine.searchResize(field, width);
+		field.classList.toggle("show-suggestions", open);
 		this.syncHomeHash();
 	},
 	/** The chosen tab is a token in the top-bar search; home filter and search share one state. */
@@ -301,28 +309,63 @@ export const appFeedMethods = {
 		if (marks) renderView(marks, HomeSearchMarks({ filter: this.filter }));
 		this.syncHomeHash();
 		this.syncHomeKinds();
-		const width = field.getBoundingClientRect().width;
 		field.classList.toggle("has-token", !!label || marked);
+		syncSearchIcon(field, !!label || marked);
 		field.classList.toggle("has-text", !!this.filter.query);
-		MotionEngine.searchResize(field, width);
 		field.querySelector<HTMLElement>(".home-search-clear").hidden = !this.filter.query;
 		document.querySelectorAll<HTMLElement>(".home-menu-item").forEach((n) => {
 			n.setAttribute("aria-checked", String(n.dataset.extra === tab));
 		});
 	},
-	/** The # list shows while the field has focus and the text ends in a # fragment. */
+	/** Focus shows session history without clearing the query; # shows condition completions. */
 	homeHashOptions(this: AppController) {
 		const input = document.getElementById("home-search") as HTMLInputElement | null;
 		const frag = this.searchHash(this.filter.query);
-		if (!input || document.activeElement !== input || frag === null) return [];
-		return homeHashOptions(frag, this.filter, this.homeTabFilter(this.homeTab() || "all").status);
+		const field = document.getElementById("home-search-field");
+		if (!input || !field?.classList.contains("is-open")) return [];
+		if (frag !== null)
+			return homeHashOptions(frag, this.filter, this.homeTabFilter(this.homeTab() || "all").status);
+		if (this.filter.query.trim() && !field.classList.contains("show-suggestions")) return [];
+		return [
+			...this.searchHistory.map((query) => ({
+				extra: `query:${query}`,
+				label: query,
+				group: "history" as const,
+			})),
+			...homeHashOptions("", this.filter, "all")
+				.filter((option) => option.group === "tag")
+				.slice(0, 6),
+		];
 	},
 	syncHomeHash(this: AppController) {
 		const slot = document.getElementById("home-hash-slot");
 		if (!slot) return;
 		const options = this.homeHashOptions();
 		this.homeHashIndex = Math.min(this.homeHashIndex, Math.max(0, options.length - 1));
-		renderView(slot, HomeHashList({ options, active: this.homeHashIndex }));
+		renderView(
+			slot,
+			HomeHashList({
+				options,
+				active: this.homeHashIndex,
+				onHighlight: (index) => {
+					this.homeHashIndex = index;
+					document.getElementById("home-search-field")?.classList.add("suggestion-engaged");
+					this.syncHomeHash();
+				},
+			}),
+		);
+		const input = document.getElementById("home-search");
+		input?.setAttribute("aria-expanded", String(options.length > 0));
+		if (options.length)
+			input?.setAttribute("aria-activedescendant", `home-option-${this.homeHashIndex}`);
+		else input?.removeAttribute("aria-activedescendant");
+		const list = slot.querySelector<HTMLElement>("#home-hash");
+		if (list)
+			syncSearchHighlight(
+				list,
+				JSON.stringify(options.map((option) => option.extra)),
+				this.homeHashIndex,
+			);
 	},
 	/** Type chips appear under the top bar only while there is text to search. */
 	syncHomeKinds(this: AppController) {

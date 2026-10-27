@@ -61,34 +61,12 @@
 		pointer-events: auto;
 	}
 	/* Cards and touch targets */
-	.card-more-trigger {
-		opacity: 1;
-		pointer-events: auto;
-	}
-	/* Phone: the quiet ••• sits at the bottom right, clear of the time and count in the head. */
+	/* Phone card actions stay clear of the time and count in the head. */
 	.card-actions,
 	.has-cover .card-actions {
 		top: auto;
 		right: 4px;
 		bottom: 4px;
-	}
-	.card-more-trigger,
-	.has-cover .card-more-trigger {
-		width: 44px;
-		height: 44px;
-		min-width: 44px;
-		background: transparent;
-		border: 0;
-		box-shadow: none;
-		color: var(--secondary);
-	}
-	.card-more-trigger .icon {
-		width: 20px;
-		height: 20px;
-		stroke-width: 2.2;
-	}
-	.card-more-trigger:before {
-		inset: 0;
 	}
 	.card-head,
 	.sender,
@@ -197,9 +175,6 @@
 		flex: 1;
 	}
 	/* Too narrow for both: while selecting, the bar takes the whole row. */
-	#dock:has(#selection-bar:not([hidden])) .nav-capsule {
-		display: none;
-	}
 	#dock #selection-bar {
 		max-width: calc(100vw - 2 * var(--rail-edge));
 	}
@@ -600,5 +575,17 @@
 		display: inline;
 		font-size: var(--text-meta);
 		color: var(--secondary);
+	}
+}
+
+@media (max-width: 650px) {
+	#modal.search #search-selection-bar {
+		position: fixed;
+		bottom: var(--rail-bottom);
+		left: 50%;
+		translate: -50% 0;
+		margin: 0;
+		width: max-content;
+		max-width: calc(100vw - 2 * var(--rail-edge));
 	}
 }

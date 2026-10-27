@@ -192,8 +192,9 @@
 	position: absolute;
 	left: 0;
 	right: 0;
-	bottom: calc(100% + var(--rail-gap));
-	min-height: 48px;
+	top: 0;
+	bottom: 0;
+	min-height: var(--rail-row);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -342,8 +343,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	.home-top {
 		opacity: 1;
 	}
-	.home-top.is-tucked,
-	.home-top.is-entering {
+	.home-top.is-tucked {
 		/* Include the sticky offset and glass feather in the shared travel. */
 		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
 		opacity: 1;
@@ -451,10 +451,12 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 			var(--shadow-float);
 	}
 	.home-menu-item {
+		position: relative;
+		isolation: isolate;
 		display: flex;
 		align-items: center;
 		gap: var(--space-6);
-		height: 40px;
+		height: var(--space-40);
 		padding: 0 var(--space-12) 0 var(--space-6);
 		border: 0;
 		border-radius: 9px;
@@ -464,8 +466,18 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		font-size: var(--text-body);
 		text-align: left;
 	}
+	.home-menu-item::before {
+		content: "";
+		position: absolute;
+		inset: var(--space-1) 0;
+		z-index: -1;
+		border-radius: inherit;
+		pointer-events: none;
+	}
 	.home-menu-item[aria-checked="true"] {
 		font-weight: 600;
+	}
+	.home-menu-item[aria-checked="true"]::before {
 		background: var(--faint);
 	}
 	.home-menu-check {
@@ -487,7 +499,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		font-weight: 400;
 	}
 	@media (hover: hover) and (pointer: fine) {
-		.home-menu-item:hover {
+		.home-menu-item:hover::before {
 			background: var(--faint);
 		}
 	}
@@ -497,7 +509,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		display: flex;
 		align-items: center;
 		gap: var(--space-8);
-		width: var(--search-width);
+		width: var(--search-focused-width);
 		min-width: 0;
 		flex-shrink: 1;
 		height: var(--space-40);
@@ -520,13 +532,7 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 		transform-origin: right center;
 		pointer-events: none;
 	}
-	/* At rest a short capsule; a query or tab keeps it open, focus stretches it. No focus ring. */
-	.home-search:is(.has-text, .has-token) {
-		width: var(--search-tagged-width);
-	}
-	.home-search.is-open {
-		width: var(--search-focused-width);
-	}
+	/* Search keeps the same width through focus, queries and conditions. */
 	.home-search > .icon {
 		flex: none;
 		width: var(--space-20);
@@ -601,11 +607,11 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	}
 	.home-search .search-hash-option.is-active,
 	.home-search .search-hash-option:focus-visible {
-		background: var(--faint);
+		background: transparent;
 	}
 	@media (hover: hover) and (pointer: fine) {
 		.home-search .search-hash-option:hover {
-			background: var(--faint);
+			background: transparent;
 		}
 	}
 	/* Type chips: one row under the top bar while there is text (web-interaction.md 搜索). */
@@ -663,5 +669,78 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	}
 	.home-tabs {
 		display: none;
+	}
+}
+
+/* A carried card replaces the selection capsule with the AI input receiver. */
+:is(#selection-bar, #search-selection-bar).is-ai-receiving > :not(.selection-ai-target) {
+	visibility: hidden;
+	pointer-events: none;
+}
+.selection-ai-input {
+	width: 100%;
+	min-width: 0;
+	border: 0;
+	outline: 0;
+	background: transparent;
+	color: var(--ink);
+	font: inherit;
+	pointer-events: none;
+}
+.selection-ai-input::placeholder {
+	color: var(--muted);
+}
+.selection-ai-target.is-ready .selection-ai-input::placeholder {
+	color: var(--accent);
+}
+
+@media (min-width: 651px) {
+	.home-search-leading {
+		display: grid;
+		width: var(--space-20);
+		height: var(--space-20);
+		flex: none;
+	}
+	.home-search-leading > span {
+		grid-area: 1 / 1;
+		display: grid;
+		place-items: center;
+	}
+	.home-search-leading [data-search-icon="condition"] {
+		opacity: 0;
+		transform: scale(0.25);
+	}
+	.home-search-token.is-hash {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.home-condition-icon,
+	.home-option-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+	}
+	.home-hash .search-hash-option {
+		position: relative;
+		z-index: 1;
+		height: var(--space-48);
+		gap: var(--space-12);
+	}
+	.home-option-label {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.home-hash-highlight {
+		position: absolute;
+		top: 0;
+		left: var(--space-6);
+		right: var(--space-6);
+		height: var(--space-48);
+		border-radius: var(--space-10);
+		background: var(--faint);
+		pointer-events: none;
 	}
 }

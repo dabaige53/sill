@@ -65,7 +65,7 @@ function mousePull(
 	target.dispatchEvent(event);
 }
 
-test("mouse refresh follows the next frame, holds without loading, and commits once on release", () => {
+test("mouse refresh follows the next frame, holds without loading, and commits once on release", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
 		mousePull(f, "pointerdown");
@@ -80,6 +80,7 @@ test("mouse refresh follows the next frame, holds without loading, and commits o
 		assert.equal(f.app.refreshes, 1);
 		mousePull(f, "pointerup", 280);
 		assert.equal(f.app.refreshes, 1);
+		for (let i = 0; i < 8; i++) await Promise.resolve();
 	} finally {
 		f.dom.window.close();
 	}
@@ -218,7 +219,11 @@ test("short pull cancels, light threshold commits once on release, and long trav
 		assert.equal(f.document.querySelector("main").style.translate, "0 54px");
 		f.fire(target, "touchend", 120, 900);
 		assert.equal(f.app.refreshes, 1);
-		assert.equal(f.document.querySelector("main").style.translate, "0 36px", "held while loading");
+		assert.equal(
+			f.document.querySelector("main").style.translate,
+			"",
+			"content returns immediately while the request remains visible",
+		);
 		assert.equal(f.document.querySelector("#pull-ring").textContent, "");
 		assert.equal(
 			f.document.querySelector("#pull-ring").dataset.state,

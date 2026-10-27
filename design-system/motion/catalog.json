@@ -86,11 +86,9 @@
 		"feature": "navigation",
 		"interaction": "focus",
 		"component": "apps/web/views/home-search-field.tsx",
-		"implementation": "apps/web/interactions/motion.ts",
+		"implementation": "apps/web/views/app-feed.ts",
 		"native": "apps/apple/macOS/Shell/SearchField.swift",
-		"parameters": [
-			"dur-state"
-		],
+		"parameters": [],
 		"platforms": {
 			"web": "preview",
 			"phone": "not-applicable",
@@ -453,6 +451,7 @@
 		"implementation": "apps/web/views/shell.tsx",
 		"native": "apps/apple/macOS/Shell/AIDock.swift",
 		"parameters": [
+			"fast",
 			"dur-state",
 			"ease-reveal"
 		],

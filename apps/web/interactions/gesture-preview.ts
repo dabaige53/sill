@@ -2,6 +2,7 @@ import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import type { Gestures } from "./gestures.ts";
 import { MotionEngine } from "./motion.ts";
+import type { Playback } from "./motion-playback.ts";
 import { deferReadingRefresh } from "./reading-feedback.ts";
 
 /** The read-end ring; shared by the reader and the design-system previews. */
@@ -196,24 +197,59 @@ export const gesturePreviewMethods = {
 		const token = this.app.modalToken;
 		let touch: { x: number; y: number } | null = null;
 		let distance = 0,
-			timer = 0;
+			timer = 0,
+			offset = 0;
+		let returning: Playback | null = null;
 		const current = () => token === this.app.modalToken && surface.isConnected;
 		// Pulling down at the top moves the sheet; pushing on at the end belongs to the read-end ring when it is on.
 		const edge = (delta: number) =>
 			delta < 0 &&
 			!surface.querySelector(".push-ring") &&
 			scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
+		const resume = () => {
+			if (!returning) return;
+			// Read once when a new gesture interrupts the return, never on every wheel tick.
+			const drawn = getComputedStyle(scroll).translate;
+			offset = Number.parseFloat(drawn.split(" ")[1]) || 0;
+			returning.cancel();
+			returning = null;
+			const ratio = Math.min(Math.abs(offset) / 14, 1 - Number.EPSILON);
+			distance = Math.sign(offset) * -100 * Math.log(1 - ratio);
+			scroll.style.translate = offset ? `0 ${offset}px` : "";
+		};
 		const paint = (delta: number) => {
 			if (!current()) return;
-			const offset = Math.sign(delta) * 14 * (1 - Math.exp(-Math.abs(delta) / 100));
-			MotionEngine.move(scroll, `0 ${offset.toFixed(2)}px`, !!touch);
+			offset = Math.sign(delta) * 14 * (1 - Math.exp(-Math.abs(delta) / 100));
+			if (this.phone.matches) MotionEngine.move(scroll, `0 ${offset.toFixed(2)}px`, !!touch);
+			// Desktop resistance is a direct compositor write: no motion-value allocation or style read per tick.
+			else scroll.style.translate = `0 ${offset.toFixed(2)}px`;
 		};
 		const reset = () => {
 			clearTimeout(timer);
 			touch = null;
 			distance = 0;
 			scroll.classList.remove("is-drag");
-			if (current()) MotionEngine.move(scroll);
+			if (!current()) return;
+			if (this.phone.matches) {
+				MotionEngine.move(scroll);
+				return;
+			}
+			// Repeated end events must not restart a return that is already running.
+			if (returning || !offset) return;
+			scroll.style.translate = "";
+			const animation: Playback | null = MotionEngine.animate(
+				scroll,
+				[{ translate: `0 ${offset.toFixed(2)}px` }, { translate: "0 0" }],
+				{ duration: MotionEngine.time("fast") },
+			);
+			returning = animation;
+			const finish = () => {
+				if (returning !== animation) return;
+				returning = null;
+				offset = 0;
+			};
+			if (animation) animation.finished.then(finish, () => {});
+			else finish();
 		};
 		scroll.addEventListener(
 			"wheel",
@@ -223,10 +259,12 @@ export const gesturePreviewMethods = {
 				const delta = -event.deltaY * (event.deltaMode === 1 ? 16 : 1);
 				if (!delta || !edge(delta)) return reset();
 				if (event.cancelable) event.preventDefault();
+				if (!this.phone.matches) resume();
 				distance = Math.sign(distance) === Math.sign(delta) ? distance + delta : delta;
 				paint(distance);
 				clearTimeout(timer);
-				timer = window.setTimeout(reset, 120);
+				// A short quiet window detects wheel release; phone behavior keeps its original delay.
+				timer = window.setTimeout(reset, this.phone.matches ? 120 : 40);
 			},
 			{ passive: false },
 		);

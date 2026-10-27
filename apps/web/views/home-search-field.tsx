@@ -4,7 +4,14 @@ import { copy } from "../copy.ts";
 export function HomeSearchField() {
 	return (
 		<div className="home-search" id="home-search-field">
-			<Icon name="search" size={16} />
+			<span className="home-search-leading" aria-hidden="true">
+				<span data-search-icon="search">
+					<Icon name="search" size={16} />
+				</span>
+				<span data-search-icon="condition">
+					<Icon name="tag" size={16} />
+				</span>
+			</span>
 			<button
 				type="button"
 				className="home-search-token"
@@ -16,6 +23,10 @@ export function HomeSearchField() {
 			<span className="home-search-marks" id="home-search-marks" />
 			<input
 				type="search"
+				role="combobox"
+				aria-expanded="false"
+				aria-controls="home-hash"
+				aria-autocomplete="list"
 				id="home-search"
 				data-input="home-search"
 				autoComplete="off"

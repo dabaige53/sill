@@ -85,9 +85,6 @@ export function CloudWelcome({
 				<>
 					{user ? (
 						<>
-							<button type="button" className="solid-button" data-action="capture">
-								{copy("web.cloudentry.21dfdf7a86e7")}
-							</button>
 							<button type="button" className="text-link" data-action="welcome-demo">
 								{copy("web.welcome.viewDemo")}
 							</button>

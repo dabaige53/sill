@@ -3,11 +3,9 @@ import { icon } from "../../apps/web/atoms/icons.ts";
 
 export async function runSelectionPressMenu({
 	beginLift,
-	checkMenu,
 	desktop,
 	firstIds,
 	isMenuOpen,
-	openFromKeyboard,
 	phone,
 	point,
 	scenario,
@@ -16,14 +14,11 @@ export async function runSelectionPressMenu({
 	snapshot,
 	touch,
 	unchanged,
-	waitClosed,
 }: {
 	beginLift: any;
-	checkMenu: any;
 	desktop: any;
 	firstIds: any;
 	isMenuOpen: any;
-	openFromKeyboard: any;
 	phone: any;
 	point: any;
 	scenario: any;
@@ -32,7 +27,6 @@ export async function runSelectionPressMenu({
 	snapshot: any;
 	touch: any;
 	unchanged: any;
-	waitClosed: any;
 }) {
 	for (const options of [desktop, phone]) {
 		await scenario(
@@ -81,15 +75,7 @@ export async function runSelectionPressMenu({
 					assert.ok(await button.getAttribute("aria-label"));
 				}
 				await page.locator('[data-action="selected-later"]').click({ button: "right" });
-				await checkMenu(page, options.viewport.width, options.viewport.height);
-				await page.keyboard.press("Escape");
-				await waitClosed(page);
-				assert.equal(
-					await page
-						.locator('[data-action="selected-later"]')
-						.evaluate((node: HTMLElement) => node === document.activeElement),
-					true,
-				);
+				assert.equal(await page.locator("#selection-menu,.card-more-menu").count(), 0);
 				await unchanged(page, before);
 			},
 			options,
@@ -195,73 +181,6 @@ export async function runSelectionPressMenu({
 			mobile ? phone : desktop,
 		);
 	}
-	await scenario("Keyboard menu traps focus and returns to its trigger", async (page) => {
-		await selectTwo(page);
-		const before = await snapshot(page);
-		await openFromKeyboard(page);
-		await checkMenu(page, desktop.viewport.width, desktop.viewport.height);
-		const trigger = await page.locator('[data-action="selected-bookmark"]').boundingBox();
-		const context = await page.locator("#selection-menu .selection-context").boundingBox();
-		assert.equal(
-			await page.locator("#selection-menu .selection-context").getAttribute("data-placement"),
-			"above",
-		);
-		assert.ok(
-			Math.abs(context.x + context.width / 2 - (trigger.x + trigger.width / 2)) < 1,
-			"keyboard opening should anchor to its trigger",
-		);
-		await page.keyboard.press("Shift+Tab");
-		assert.equal(
-			await page.evaluate(() => (document.activeElement as HTMLElement).dataset.selectionAction),
-			"cancel",
-		);
-		await page.keyboard.press("Tab");
-		assert.equal(
-			await page.evaluate(() => (document.activeElement as HTMLElement).dataset.selectionAction),
-			"bookmark",
-		);
-		await page.keyboard.press("ArrowDown");
-		assert.equal(
-			await page.evaluate(() => (document.activeElement as HTMLElement).dataset.selectionAction),
-			"later",
-		);
-		await page.keyboard.press("n");
-		assert.equal(
-			await page.locator("#modal").evaluate((node: HTMLDialogElement) => node.open),
-			false,
-			"global shortcuts leaked through the menu",
-		);
-		await page.keyboard.press("Escape");
-		await waitClosed(page);
-		await unchanged(page, before);
-		assert.equal(
-			await page
-				.locator('[data-action="selected-bookmark"]')
-				.evaluate((node: HTMLElement) => node === document.activeElement),
-			true,
-		);
-	});
-	for (const dismissal of ["cancel", "backdrop", "touchcancel", "blur", "resize"]) {
-		await scenario(
-			`Menu ${dismissal} preserves selection and card data`,
-			async (page) => {
-				await selectTwo(page);
-				const before = await snapshot(page);
-				await openFromKeyboard(page);
-				if (dismissal === "cancel") await page.locator('[data-selection-action="cancel"]').click();
-				if (dismissal === "backdrop") await page.mouse.click(4, 4);
-				if (dismissal === "touchcancel")
-					await page.evaluate(() =>
-						document.dispatchEvent(new TouchEvent("touchcancel", { bubbles: true })),
-					);
-				if (["blur", "resize"].includes(dismissal))
-					await page.evaluate((type: string) => window.dispatchEvent(new Event(type)), dismissal);
-				await waitClosed(page);
-				await unchanged(page, before);
-			},
-			phone,
-		);
-	}
 	for (const dismissal of ["Escape", "touchcancel", "blur", "resize"]) {
 		await scenario(
 			`Active phone lift ${dismissal} leaves no menu or stuck visual`,
@@ -289,10 +208,8 @@ export async function runSelectionPressMenu({
 			async (page) => {
 				await selectTwo(page);
 				const before = await snapshot(page);
-				await openFromKeyboard(page);
 				await unchanged(page, before);
-				await page.locator(`[data-selection-action="${action}"]`).click();
-				await waitClosed(page);
+				await page.locator(`[data-action="selected-${action}"]`).click();
 				const after = await snapshot(page),
 					key = action === "bookmark" ? "bookmarked" : "later";
 				assert.deepEqual(after.cards, before.cards);
@@ -302,7 +219,7 @@ export async function runSelectionPressMenu({
 				}
 				assert.deepEqual(after.items["selection-03"], before.items["selection-03"]);
 				assert.equal(await page.evaluate(() => window.__selectionProbe.patches), 2);
-				assert.deepEqual(await selection(page), []);
+				assert.deepEqual(await selection(page), firstIds);
 			},
 			phone,
 		);
@@ -312,8 +229,7 @@ export async function runSelectionPressMenu({
 		async (page) => {
 			await selectTwo(page);
 			const before = await snapshot(page);
-			await openFromKeyboard(page);
-			await page.locator('[data-selection-action="tag"]').click();
+			await page.locator('[data-action="selected-tag"]').click();
 			await page.locator("#tag-new").waitFor();
 			assert.equal(await isMenuOpen(page), false);
 			assert.deepEqual(await snapshot(page), before, "opening tags must not write");

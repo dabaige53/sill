@@ -54,6 +54,7 @@ export function animate(el: any, values: any, options: any = {}) {
 		resolve();
 	};
 	const control = {
+		target: el,
 		frames,
 		options: { ...options, duration: options.duration * 1000 },
 		finished,
@@ -67,8 +68,10 @@ export function animate(el: any, values: any, options: any = {}) {
 		},
 	};
 	const queue = (globalThis as any).__motionAnimations;
-	if (isValue) finish();
-	else if (queue) queue.push(control);
+	if (isValue) {
+		if (queue && (globalThis as any).__recordMotionValues) queue.push(control);
+		finish();
+	} else if (queue) queue.push(control);
 	else if (options.autoplay !== false) queueMicrotask(finish);
 	return control;
 }

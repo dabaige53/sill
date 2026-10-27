@@ -222,7 +222,7 @@
 	--settle: 220ms;
 	--dur-reduced: 70ms;
 	--dur-tuck: 240ms;
-	--rest-show: 650ms;
+	--rest-show: 450ms;
 	color-scheme: light;
 }
 body[data-density="compact"] {
@@ -237,9 +237,8 @@ body[data-density="roomy"] {
 	--col-max: 440px;
 }
 /* Dark: same hierarchy, lower light. Cards stay one step above the canvas. */
-/* Photos keep their black viewing context, including shared tools, in either theme (ADR 0041). */
-:root[data-theme="dark"],
-.lightbox .float-bar {
+/* Dark theme, including photo viewing and shared tools. */
+:root[data-theme="dark"] {
 	--canvas: #111113;
 	--card: #1c1c1f;
 	--ink: #f2f2f4;

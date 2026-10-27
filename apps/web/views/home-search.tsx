@@ -1,9 +1,10 @@
+import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { hashOptions, searchStatuses, searchTypes } from "../interactions/panel-search.tsx";
 import type { Filter } from "./app-types.ts";
 
 /** One # option, flattened in list order for arrow keys and Enter. */
-export type HomeHashOption = { extra: string; label: string; group: "status" | "tag" };
+export type HomeHashOption = { extra: string; label: string; group: "status" | "tag" | "history" };
 
 /** # options for the desktop top-bar search: the tab's own status is already a token. */
 export function homeHashOptions(frag: string, filter: Filter, tabStatus: string): HomeHashOption[] {
@@ -36,7 +37,10 @@ export function HomeSearchMarks({ filter }: { filter: Filter }) {
 					data-extra={mark.key}
 					aria-label={`${copy("web.search.removeCondition")} ${mark.label}`}
 				>
-					{mark.label}
+					<span className="home-condition-icon" aria-hidden="true">
+						<Icon name={mark.key === "tag" ? "tag" : "filter"} size={12} />
+					</span>
+					<span>{mark.label}</span>
 				</button>
 			))}
 		</>
@@ -44,9 +48,17 @@ export function HomeSearchMarks({ filter }: { filter: Filter }) {
 }
 
 /** Typing # lists statuses, then existing tags; it floats under the field and pushes nothing. */
-export function HomeHashList({ options, active }: { options: HomeHashOption[]; active: number }) {
+export function HomeHashList({
+	options,
+	active,
+	onHighlight,
+}: {
+	options: HomeHashOption[];
+	active: number;
+	onHighlight?: (index: number) => void;
+}) {
 	if (!options.length) return null;
-	const group = (name: "status" | "tag", label: string) => {
+	const group = (name: HomeHashOption["group"], label: string) => {
 		const items = options.filter((option) => option.group === name);
 		if (!items.length) return null;
 		return (
@@ -58,13 +70,25 @@ export function HomeHashList({ options, active }: { options: HomeHashOption[]; a
 						<button
 							key={option.extra}
 							type="button"
+							id={`home-option-${index}`}
 							role="option"
+							onPointerMove={(event) => {
+								if (event.pointerType !== "touch" && index !== active) onHighlight?.(index);
+							}}
 							aria-selected={index === active}
 							className={`search-hash-option${index === active ? " is-active" : ""}`}
 							data-action="home-hash"
 							data-extra={option.extra}
 						>
-							{option.label}
+							<span className="home-option-icon" aria-hidden="true">
+								<Icon
+									name={
+										option.group === "history" ? "clock" : option.group === "tag" ? "tag" : "filter"
+									}
+									size={16}
+								/>
+							</span>
+							<span className="home-option-label">{option.label}</span>
 						</button>
 					);
 				})}
@@ -78,8 +102,17 @@ export function HomeHashList({ options, active }: { options: HomeHashOption[]; a
 			role="listbox"
 			aria-label={copy("web.search.hashList")}
 		>
+			<span className="home-hash-highlight" aria-hidden="true" />
+			{group("history", copy("web.search.history"))}
 			{group("status", copy("web.search.hashStatus"))}
-			{group("tag", copy("web.search.hashTag"))}
+			{group(
+				"tag",
+				copy(
+					options.some((option) => option.group === "status")
+						? "web.search.hashTag"
+						: "web.search.recommendedTags",
+				),
+			)}
 		</div>
 	);
 }

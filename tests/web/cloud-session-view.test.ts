@@ -56,7 +56,7 @@ const navigationGuards = buildSync({
 
 function fixture() {
 	const dom = new JSDOM(
-		'<!doctype html><div id="feed-grid"></div><button id="account">Settings</button><dialog id="modal"></dialog><dialog id="selection-menu"></dialog>',
+		'<!doctype html><div id="feed-grid"></div><button id="account">Settings</button><dialog id="modal"></dialog>',
 		{ url: "https://session.test/#search", runScripts: "outside-only", pretendToBeVisual: true },
 	);
 	const w = dom.window as any;
@@ -100,14 +100,7 @@ function fixture() {
 	app.setNav = () => {};
 	app.updateSelection = () => {};
 	app.renderCurrent = () => app.grid.replaceChildren();
-	const menu = w.document.getElementById("selection-menu");
-	menu.innerHTML = '<article data-card="session-card">Synthetic menu clone</article>';
-	app.drag = {
-		menu,
-		cancel() {
-			menu.close();
-		},
-	};
+	app.drag = { cancel() {} };
 	const Cloud = {
 		user: "synthetic-owner",
 		epoch: 0,

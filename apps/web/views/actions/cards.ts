@@ -33,10 +33,6 @@ function neverShow(this: AppController, { id }: ActionContext) {
 	this.withFeedAnchor(() => {}, true);
 }
 
-function cardMore(this: AppController, { id }: ActionContext) {
-	this.more(id);
-}
-
 function toggleRead(this: AppController, { id }: ActionContext) {
 	const before: Record<string, any> = { ...Store.item(id) },
 		read = !before.read;
@@ -122,7 +118,6 @@ export const cardsActions = {
 	edit: edit,
 	"less-like": lessLike,
 	"never-show": neverShow,
-	"card-more": cardMore,
 	"toggle-read": toggleRead,
 	archive: archive,
 	"restore-card": restoreCard,

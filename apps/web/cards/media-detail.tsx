@@ -1,4 +1,3 @@
-import { animate } from "motion/mini";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { duration } from "../atoms/primitives.ts";
@@ -6,11 +5,11 @@ import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
 import { detailDate } from "../data/card-source.ts";
-import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { type AgentScope, agentKey } from "../services/agent-handoff.ts";
-import { AudioPlayer, type PlaybackHandle, type PlaybackSnapshot } from "./audio-player.tsx";
 import { DetailText } from "./markdown.tsx";
+import type { PlaybackHandle, PlaybackSnapshot } from "./playback.ts";
+import { PodcastDetail } from "./podcast-detail.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
 import { YouTubePlayer, youtubeID } from "./youtube-player.tsx";
 
@@ -46,7 +45,14 @@ export const MediaLines = memo(function MediaLines({
 	));
 });
 export type PlaybackApp = { agentScope?: () => AgentScope; refreshCard?: (id: string) => void };
-export function MediaDetail({
+export function MediaDetail(props: { card: Card; app?: PlaybackApp; full?: boolean }) {
+	return props.card.media === "podcast" ? (
+		<PodcastDetail card={props.card} />
+	) : (
+		<VideoDetail {...props} />
+	);
+}
+function VideoDetail({
 	card,
 	app,
 	full = false,
@@ -70,66 +76,9 @@ export function MediaDetail({
 		duration: card.duration || 0,
 		playing: false,
 	});
-	const [tab, setTab] = useState(full || card.media === "podcast" ? "transcript" : "summary"),
+	const [tab, setTab] = useState(full && card.transcript?.length ? "transcript" : "summary"),
 		[follow, setFollow] = useState(true);
 	const transcript = useRef<HTMLDivElement>(null);
-	const primary = useRef<HTMLDivElement>(null);
-	const [compact, setCompact] = useState(false);
-	const compactPlayer = useRef<HTMLDivElement>(null);
-	const playerBackdrop = useRef<HTMLDivElement>(null);
-	const tabBackdrop = useRef<HTMLDivElement>(null);
-	useEffect(() => {
-		if (full) {
-			setCompact(false);
-			return;
-		}
-		const node = primary.current;
-		const player = compactPlayer.current;
-		const backdrop = playerBackdrop.current;
-		const tabs = tabBackdrop.current;
-		const scroll = node?.closest(".sheet-scroll");
-		if (!node || !player || !backdrop || !tabs || !scroll || card.media !== "podcast") return;
-		// One paused Motion timeline per surface. Scroll owns progress, with no timed catch-up.
-		const options = { duration: 1, ease: "linear" as const, autoplay: false };
-		const timelines = [
-			animate(node, { opacity: [1, 0] }, options),
-			animate(
-				player,
-				{ opacity: [0, 1], transform: ["translateY(calc(-1 * var(--space-8)))", "none"] },
-				options,
-			),
-			animate(backdrop, { opacity: [0, 1] }, options),
-			animate(tabs, { opacity: [0, 1] }, options),
-		];
-		let frame = 0;
-		const update = () => {
-			frame = 0;
-			const top = Number.parseFloat(getComputedStyle(player.parentElement!).top) || 0;
-			const range = Math.max(1, player.offsetHeight);
-			const end = scroll.getBoundingClientRect().top + top + player.offsetHeight;
-			const progress =
-				scroll.scrollTop <= 0
-					? 0
-					: Math.max(0, Math.min(1, (end + range - node.getBoundingClientRect().bottom) / range));
-			for (const timeline of timelines) timeline.time = progress;
-			// Only the dominant player accepts focus and pointer input during the handoff.
-			setCompact(progress >= 0.5);
-		};
-		const schedule = () => {
-			if (!frame) frame = requestAnimationFrame(update);
-		};
-		update();
-		const resize = new ResizeObserver(schedule);
-		resize.observe(node);
-		resize.observe(scroll);
-		scroll.addEventListener("scroll", schedule, { passive: true });
-		return () => {
-			cancelAnimationFrame(frame);
-			resize.disconnect();
-			scroll.removeEventListener("scroll", schedule);
-			for (const timeline of timelines) timeline.cancel();
-		};
-	}, [card.media, full]);
 	const chapterIndex = (card.chapters || []).findLastIndex(
 		(chapter) => chapter.start <= state.position,
 	);
@@ -156,22 +105,10 @@ export function MediaDetail({
 	};
 	const seek = useCallback((seconds: number) => controls.current?.seek(seconds), []);
 	const video = youtubeID(card.url);
-	const available = card.media === "podcast" ? !!card.audioUrl : !!video;
+	const available = !!video;
 	return (
-		<div
-			className={`media-detail ${card.media === "podcast" ? "is-podcast" : "is-video"}${compact ? " is-compact" : ""}`}
-			style={
-				{
-					"--podcast-tone": AssetTones[card.image] || "var(--surface)",
-				} as import("react").CSSProperties
-			}
-		>
-			<div
-				className="media-primary"
-				ref={primary}
-				inert={compact}
-				aria-hidden={compact || undefined}
-			>
+		<div className="media-detail is-video">
+			<div className="media-primary">
 				{card.media !== "podcast" && (
 					<div className="preview-meta">
 						<SourceMark card={card} />
@@ -186,33 +123,7 @@ export function MediaDetail({
 						</span>
 					</div>
 				)}
-				{card.media === "podcast" && (
-					<div className="player-art">
-						{card.image && (
-							<img
-								referrerPolicy="no-referrer"
-								decoding="async"
-								onError={(event) => {
-									event.currentTarget.style.opacity = "0";
-								}}
-								onLoad={(event) => {
-									event.currentTarget.style.opacity = "1";
-								}}
-								src={assetURL(card.image)}
-								alt=""
-							/>
-						)}
-					</div>
-				)}
 				<h1 id="modal-title">{card.title}</h1>
-				{card.media === "podcast" && (
-					<div className="preview-meta">
-						<SourceMark card={card} />
-						<span>
-							{[publicationName(card), detailDate(card.publishedAt)].filter(Boolean).join(" · ")}
-						</span>
-					</div>
-				)}
 				{card.media !== "podcast" && !!Store.tags(card).length && (
 					<div className="preview-tags">
 						{Store.tags(card).map((tag) => (
@@ -222,24 +133,7 @@ export function MediaDetail({
 						))}
 					</div>
 				)}
-				{card.media === "podcast" ? (
-					<p className="current-chapter">
-						<Icon name="list" size={14} />{" "}
-						{chapterIndex >= 0
-							? `${copy("web.media.chapterNumber").replace("{number}", String(chapterIndex + 1))} · ${card.chapters[chapterIndex].title}`
-							: copy("web.media.emptyChapters")}
-					</p>
-				) : null}
-				{card.media === "podcast" ? (
-					<AudioPlayer
-						url={card.audioUrl}
-						knownDuration={card.duration}
-						initialPosition={initial.current}
-						onSave={save}
-						onTime={setState}
-						controls={controls}
-					/>
-				) : video ? (
+				{video ? (
 					<YouTubePlayer
 						id={video}
 						initialPosition={initial.current}
@@ -316,68 +210,9 @@ export function MediaDetail({
 					</div>
 				)}
 			</div>
-			{card.media === "podcast" && (
-				<div className="compact-player-slot">
-					<div className="compact-player-backdrop" ref={playerBackdrop} aria-hidden="true" />
-					<div
-						className="compact-player"
-						ref={compactPlayer}
-						inert={!compact}
-						aria-hidden={!compact}
-					>
-						{card.image && (
-							<img
-								referrerPolicy="no-referrer"
-								decoding="async"
-								onError={(event) => {
-									event.currentTarget.style.opacity = "0";
-								}}
-								onLoad={(event) => {
-									event.currentTarget.style.opacity = "1";
-								}}
-								src={assetURL(card.image)}
-								alt=""
-							/>
-						)}
-						<button
-							type="button"
-							className="compact-title"
-							onClick={() => primary.current?.scrollIntoView({ block: "start" })}
-						>
-							{card.title}
-							<small>
-								{chapterIndex >= 0
-									? `${copy("web.media.chapterNumber").replace("{number}", String(chapterIndex + 1))} · `
-									: ""}
-								{duration(state.position)} /{" "}
-								{state.duration > 0 ? duration(state.duration) : copy("web.media.unknownDuration")}
-							</small>
-						</button>
-						<button
-							type="button"
-							disabled={!available}
-							aria-label={copy("web.preview.podcast.rewind15")}
-							onClick={() => controls.current?.seek(state.position - 15)}
-						>
-							<Icon name="rewind15" />
-						</button>
-						<button
-							type="button"
-							className="playback-primary"
-							disabled={!available}
-							aria-label={copy(state.playing ? "web.media.pause" : "web.media.play")}
-							onClick={() => controls.current?.toggle()}
-						>
-							<Icon name={state.playing ? "pause" : "play"} />
-						</button>
-						<progress max={state.duration || 1} value={state.position} />
-					</div>
-				</div>
-			)}
 			<div className="media-secondary">
-				{(full || card.media === "podcast") && (
+				{full && (
 					<div className="media-tab-header">
-						<div className="media-tab-backdrop" ref={tabBackdrop} aria-hidden="true" />
 						<div className="media-tabs" role="tablist">
 							{["transcript", "chapters", "summary"].map((name) => (
 								<button
@@ -392,9 +227,7 @@ export function MediaDetail({
 											? "web.media.chapters"
 											: name === "transcript"
 												? "web.media.transcript"
-												: card.media === "podcast"
-													? "web.media.notes"
-													: "web.media.summary",
+												: "web.media.summary",
 									)}
 								</button>
 							))}

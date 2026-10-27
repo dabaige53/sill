@@ -1,6 +1,6 @@
 # 界面对账表
 
-更新：2026-10-25。基准：本文件最近一次提交（`git log -1 -- docs/product/ui-alignment.md`），Web 与 Mac 在同一提交中。
+更新：2026-10-27。基准：本文件最近一次提交（`git log -1 -- docs/product/ui-alignment.md`），Web 与 Mac 在同一提交中。
 
 本表记录 Web 桌面、手机 Web 与 Mac 在每项界面行为上的当前状态。Mac 的视觉、状态与动效以 Web 和设计手册为准；本表回答「Mac 跟到了哪里」「哪些差异是刻意的」「哪些还没在真实窗口看过」。
 
@@ -8,9 +8,52 @@
 - 产品能力（登录、MCP、云端）见[功能矩阵](feature-matrix.md)，本表只记界面与交互。
 - 2026-10-20 的[逐行清单](../records/2026-10-20-macos-web-alignment/rule-checklist.md)是重建 Mac 界面时的记录，按手册行号对应，现已错位，只作历史参考，由本表替代。
 
+## 2026-10-27 第三批复核，待用户确认
+
+- Web 搜索按 Combobox 公开源码接入候选图标移入（280ms）、前置图标弹簧（300ms、bounce 0）、48px 候选行与共享高亮；保留查询再次聚焦时显示历史/标签，补 Home/End、Esc 及有明确选择时的 Tab 接受。固定 480px、不伸缩。Mac `SearchField.swift` 仍为原伸缩与 # 列表：该候选交互缺失，待同步；真实窗口未验证。
+- Web/PWA 共用工具栏停顿恢复等待改为 rest-show 450ms；收起 240ms、恢复 420ms 及 28/14px 阈值保持。Mac 仍读取 AppleMetrics.chromeRest 0.65 秒：新等待规则缺失，待同步；实测未验证。
+- Web/PWA 照片标题、说明、图标与按钮改为 ink/muted/canvas 主题角色；释放时继承最近指针速度，暂停/取消清除旧速度，按释放方向弹簧吸附，首尾不循环。项目试验弹簧 300/32/mass1 仍待视觉确认，不称为 Motion 原始参数或还原成功。Mac PhotoLightbox 仍固定黑底及 ContentFade：缺失，待同步；窗口未验证。
+- 播客由用户明确改为待定，本轮没有继续重做或标为通过。PWA 的 Apple Music 搜索原型归第四批，不在此轮实施。
+
+本轮没有浏览器、e2e、视觉自动化或真机验收；原生 iOS 界面缺失。设计未发布到线上。
+
+## 最新复核调整
+
+Web/PWA 网页刷新改为首次数据直接显示；批量收藏、稍后读、标签保留选择；拖动时在底部原位置切换 AI 接收框。Web 回弹和 Web/PWA 开关再次优化，实际观感待用户复核。本轮不运行浏览器或真机自动验收。Mac 这些最新规则尚未接入，登记缺失、待处理；iOS 原生缺失。
+
+## 第三批实现，待用户复核
+
+- Web 搜索固定 480px，受可用宽度限制；直接显示会话历史与真实标签。Mac `SearchField.swift` 仍用 280/360/480 伸缩，没有历史与推荐标签：缺失，待同步。PWA 手机搜索交互仍属第四批。
+- Web 文章目录与正文采用独立 Grid 列，各自滚动，标题和封面都在正文列；点击仍即时定位。Mac `ReaderPage.swift` 保留独立原生布局，目录切换和定位规则仍缺失；真实窗口未验证。
+- Web/PWA 首页、AI 与详情工具统一 240ms 收起、420ms 恢复，使用 ease-reveal。Mac `Chrome.swift` 顶栏已有 reveal，`ReaderScroll.swift` 仍有独立工具时序：统一规则缺失，待同步。
+- Web/PWA 播客介绍页已接入，无播放、吸顶、Tab、跳转及全屏入口；收听记录只读现有 playbackPosition，由现有 MCP/工作区同步。Mac `Reader/MediaDetail.swift` 仍有播放器和 Tab：缺失，待同步。
+- Web/PWA 照片为横向拖动与按页吸附（260ms），首尾不循环，背景跟随主题。Mac `PhotoLightbox.swift` 仍为固定黑底、按钮循环和 ContentFade：缺失，待同步。
+
+以上 Web/PWA/Mac 均未进行本轮真实窗口或真机视觉验收；原生 iOS 界面缺失。设计未发布到线上。
+
+## 第四批实现，待用户复核
+
+- Web/PWA 任务勾选保留详情节点，收藏详情来源退出后使用无来源关闭；提醒完成仍保持抽屉。Mac 独立阅读控制流程未接入该处理：缺失，待处理；实际窗口未验证。
+- Web/PWA 下拉刷新请求开始即回位，不增加最短等待；PWA Sill 始终保留。Mac `Model/FeedRefresh.swift` 仍有最短反馈与慢请求停留：缺失，待同步。两端均未进行本轮窗口实测。
+- Web 文章/视频等外框 expandedSpring 完成后再以120ms显示内容布局和工具；视频 Grid 1.6:1 双栏分别滚动，无文字稿默认介绍。Mac `Reader/MediaDetail.swift` 与独立阅读过渡未同步这一完成事件时序：缺失，待处理，未验证。手机/PWA 不增加放大入口，播客不恢复全屏。
+- Web 多选条与 AI 框、PWA 多选条与导航采用140ms退出、随后420ms进入。上下文进入沿用交接，Web移除140ms并对剩余条目补位。Mac `Shell/AIDock.swift` 仍用原生 Motion.context，接力交接缺失、待处理；窗口未验证。动作名和状态语义不变，批量轻操作保留选择。
+- Web AI折叠改为固定尺寸表面先淡出、再淡入（140ms＋220ms，4px，0.97），不拉伸、不强制吸边。Mac 独立 AIDock 未同步：缺失，待处理，未验证。手机独立AI页不适用。
+- PWA搜索框聚焦上移420ms，右侧“取消”，会话历史最多8条；条件更新保留输入节点，键盘由用户点击触发。Mac 不使用手机布局；Web固定480px规则继续保留，Mac桌面历史规则缺失已在第三批登记。
+
+本批沿用 fast、dur-reveal、ease-reveal、detailFade、expandedSpring 和既有颜色角色，没有引入另一套变量。浏览器、系统键盘、真机和Mac窗口均未验证；iOS原生界面缺失。第五批未实施，设计未发布到线上。
+
+## 本轮动画修正
+
+- 提醒详情完成/恢复：Web 与手机 Web/PWA 共用处理已修改，保留抽屉、滚动、焦点及展开状态；非浏览器检查通过，实测未验证。Mac `DesktopView.swift` 仍调用 `reader.closeAll()`，此项缺失，待同步，实测未验证。原生 iOS 界面缺失。
+- 分栏菜单灰底内缩见 T09；已有菜单动画确认不代表新灰底样式已验收。
+- Web/PWA 本轮已删除卡片/多选条产品菜单及“记一笔”入口。Mac `SelectionBar.swift` 仍有 contextMenu，`DesktopView.swift` 仍有 N → capture 与手动记录处理：删除规则缺失，待处理，未验证。
+- Web/PWA 多选全部已收藏的按钮变蓝并支持批量取消；Mac `SelectionBar` 没有全选收藏状态输入，`DesktopView` 批量调用 mark(.bookmarked)，此项缺失，待处理，未验证。
+- Web 已去除关联行悬停方形底色、顶栏首次入场，接入头像按压、真实开关滑块和 140ms 边缘复位；手机 Web 已禁用卡片重排，多选 AI 区仅拖动时展示。Mac 对这些本轮规则尚未逐项完成代码核对，记为未核对、待处理；真实窗口均未验证。PWA 取消目录已实现，原生 iOS 无对应界面。
+
+
 ## 自动同步，不逐项对账
 
-放大页排版依据 [ADR 0065](../adr/0065-expanded-reading-layout.md) 与[探索画布](../../design-system/boards/expanded-reading.html)。Web、Mac 接入资讯与媒体放大布局：预览保留底部操作，放大操作位于左上角；视频 1.6:1、播客等宽分栏，窄屏上下排列；资讯目录来自真实 Markdown 标题，可收起，当前位置蓝色加粗，普通项灰色。手机 Web 保留预览底部胶囊，并提供可展开的目录。展开与收起使用 expandedSpring，正文不缩放，工具不跨页面移动。原生 iOS 只有数据层，阅读界面缺失。本次未部署，真实窗口和真机仍为未验证。新增动效沿用项目规则，不增加 reduceMotion 分支。
+放大页排版依据 [ADR 0065](../adr/0065-expanded-reading-layout.md) 与[探索画布](../../design-system/boards/expanded-reading.html)。Web、Mac 接入资讯与媒体放大布局：预览保留底部操作，放大操作位于左上角；视频 1.6:1、播客等宽分栏，窄屏上下排列；资讯目录来自真实 Markdown 标题，当前位置蓝色加粗，普通项灰色。Web 有章节时目录常显且点击即时定位；Mac 仍可收起且平滑滚动，缺失本轮规则。手机 Web 保留预览底部胶囊，已移除目录。展开与收起使用 expandedSpring，正文不缩放，工具不跨页面移动。原生 iOS 只有数据层，阅读界面缺失。本次未部署，真实窗口和真机仍为未验证。新增动效沿用项目规则，不增加 reduceMotion 分支。
 
 以下内容由同一份源文件生成或读取，两端不各自维护数值。改动后运行 `npm run contracts:generate`。
 
@@ -57,7 +100,7 @@
 | T06 | 点搜索框以外失焦，保留搜索词与标签 | [动效](../../design-system/handbook/motion.md#其他组件) | 基准 | 不适用 | 已接入 | 待确认（2026-10-21） |  |
 | T07 | ⌘K 聚焦；有文字时 ⌘K 提示换成清除按钮 | [网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框) | 基准 | 不适用 | 已接入 | 未验证 |  |
 | T08 | Esc 逐层：菜单、文字、全部标签、焦点；光标在最前按删除键从后往前删标签 | [网页键盘](../../design-system/handbook/web-interaction.md#网页键盘) | 基准 | 已接入 | 已接入 | 未验证 |  |
-| T09 | 分栏菜单：宽 220，200ms 打开、160ms 关闭，✓ 与 ⌘1–⌘5，方向键与回车 | 同上 | 基准 | 刻意不同 | 已接入 | 未验证 | 手机为常驻胶囊行 |
+| T09 | 分栏菜单：宽 220，200ms 打开、160ms 关闭，✓ 与 ⌘1–⌘5，方向键与回车 | 同上 | 基准 | 刻意不同 | 缺失（灰底内缩） | 未验证 | 手机为常驻胶囊行；Web 菜单行点击高度 40px，灰底上下各内缩 space-1，相邻底色总间隔 2px；Mac 仍为整行灰底，待同步 |
 | T10 | 分栏成为搜索栏标签，可继续输入并在该分栏搜索 | 同上 | 基准 | 刻意不同 | 已接入 | 未验证 | 手机主页与搜索分别保存状态 |
 | T11 | 每个分栏保留各自滚动位置 | 同上 | 基准 | 已接入 | 已接入 | 未验证 |  |
 | T12 | 输入法组词时不筛选；Mac 连续输入 180ms 合并计算 | [动效](../../design-system/handbook/motion.md#其他组件) | 基准 | 已接入 | 已接入 | 未验证 | 2026-10-23 补 Mac 延时结束后的取消检查，清空或新输入后旧查询不再写回；Web 仍取消旧定时器并使用当前查询。真实窗口未复验 |
@@ -84,7 +127,7 @@
 | B04 | 上下文卡加入 140ms 上移 4px，移除淡出，最后一张也淡出 | [动效](../../design-system/handbook/motion.md#其他组件) | 基准 | 已接入 | 已接入 | 待确认（2026-10-21） |  |
 | B05 | 多选条：数量、收藏、稍后读、标签、交给 AI、取消；与 AI 框同位交换，AI 框不闪现 | [网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框) | 基准 | 刻意不同 | 已接入 | 待确认（2026-10-21） | 手机与导航胶囊同轨 |
 | B06 | AI 框、多选条、详情工具条使用同一种玻璃 | [基础与组件](../../design-system/handbook/foundation.md#玻璃) | 基准 | 已接入 | 刻意不同 | 待确认（2026-10-21） | Mac 26+ 为原生 regular 玻璃；Web 为 `glass` 加 `glass-filter` |
-| B07 | 底部轨道随滚动收起 240ms、出现 320ms；桌面 AI 框单独出现 420ms `ease-reveal`，与顶栏同时到位；拖卡时显示 | [动效](../../design-system/handbook/motion.md#其他组件)；[网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框) | 基准 | 已接入 | 已接入 | 待确认（2026-10-22） | 手机导航胶囊仍为 320ms |
+| B07 | 底部轨道随滚动收起 240ms、出现 420ms；桌面 AI 框出现 420ms `ease-reveal`，与顶栏同时到位；拖卡时显示 | [动效](../../design-system/handbook/motion.md#其他组件)；[网页交互](../../design-system/handbook/web-interaction.md#桌面顶栏与-ai-框) | 基准 | 已接入 | 已接入 | 待确认（2026-10-22） | 手机导航胶囊恢复同步为 420ms |
 | B08 | 拖动的卡片堆松手后淡出并缩到 0.95 | 同上 | 基准 | 不适用 | 已接入 | 待确认（2026-10-21） |  |
 | B09 | AI 框展开、完整视图、结果行 | [AI 对话](../../design-system/handbook/ai-conversation.md) | 已接入 | 不适用 | 已接入 | 未验证 | 无会话时只有一行 |
 
@@ -220,3 +263,16 @@
 ## 设置开关弹簧
 
 2026-10-26：Web 与手机/PWA 设置开关接入 `motion.toggleSpring`（visualDuration 0.2 秒、bounce 0.2），圆点平移20px，底色同步过渡。Mac SettingSwitch 仍使用 Motion.press（120ms），新弹簧与底色过渡缺失，待同步。Web、PWA、Mac 真实窗口均未验证；iOS 原生界面缺失。设计未发布到线上。
+
+
+2026-10-27 Web 搜索复核：用户反馈点击未显示预期内容，本项未通过。已修正已有查询再次聚焦时不显示历史/推荐标签的问题，保留查询，继续输入或选择候选时收起；非浏览器回归按不清空查询的实际步骤检查。Mac 未同步，真实窗口待用户复核。
+
+## 2026-10-27 第四阶段复核
+
+- 卡片操作：Web/PWA删除整组动作隐藏设置与hiddenActions过滤；所有动作按类型和可用条件显示，保留排列和最多三个专属动作规则。已收藏蓝色、语义“取消收藏”。Mac ReaderToolbar.actions仍按旧偏好过滤，取消隐藏规则缺失、待同步；窗口未验证。
+- 全屏承接：Web文章/视频旧视觉层随外框裁切，完成后新旧120ms同时交叉淡化；视频共用VideoSurface及同一iframe。Mac ReaderOverlay、ReaderPage和MediaDetail仍为独立原生层，本轮内容承接与实例保留规则缺失、待同步，窗口未验证。手机/PWA不提供放大入口，播客待定。
+- AI引用：Web进入移动500ms/透明180ms，删除220/140ms、补位280ms；手机AI上下文整体移动8px，桌面4px。Mac AIDock沿用Motion.context，本轮分离的时间缺失，待同步；实测未验证。
+- AI锚点收缩：Web气泡中心对应原缩小按钮，外壳裁切260ms收起、300ms展开、(.32,.72,0,1)，内容与图标不拉扯；Mac AIDock独立实现缺失，待同步，未验证。手机独立AI页不适用，宽屏PWA同Web。
+- PWA搜索以用户附件/Users/w/Downloads/apple_music_search_transition.html为编排依据：410ms栏位移，取消280/200ms，头部200/350ms，分类180/350ms，结果130ms延迟＋200/400ms，导航200/300ms。实际安全区、真实键盘、三项导航和Sill颜色角色保留。手机专属；Mac不使用此布局，Web Combobox规则不变。系统键盘及真实窗口未验证。
+
+以上只改指定animation-stages工作树的Web/PWA；没有改Mac源文件，不能将共享词语或变量视为Mac已跟进。设计未发布到线上，播客继续待定。原因、附件来源和实际参数见ADR0076。

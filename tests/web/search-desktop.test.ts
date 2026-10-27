@@ -36,6 +36,8 @@ function desktopFixture() {
 	f.app.railHide = { syncPosition() {}, show() {} };
 	f.w.scrollTo = () => {};
 	const input = f.w.document.getElementById("home-search");
+	input.addEventListener("focus", () => f.app.openHomeSearch(true));
+	input.addEventListener("blur", () => f.app.openHomeSearch(false));
 	const type = (value: string) => {
 		input.value = value;
 		f.app.input({ target: input });
@@ -136,7 +138,6 @@ test("nested card return keeps retained search nodes, position and focus through
 		});
 		app.gestures = { bindPullDown() {}, bindPush() {} };
 		f.Store.state.items = { a: { seen: true }, b: { seen: true } };
-		app.closeMore = () => {};
 		app.searchFilter.query = "Alpha";
 		app.dialog.innerHTML = f.Panels.search(app);
 		const results = app.dialog.querySelector("#search-results");
@@ -156,6 +157,75 @@ test("nested card return keeps retained search nodes, position and focus through
 		assert.equal(w.document.activeElement, title);
 		assert.equal(app.previewTrail.length, 0);
 		assert.equal(app.detailPositions.size, 0);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("desktop search opens session history and real tags immediately, and closes on blur", () => {
+	const f = desktopFixture();
+	try {
+		f.input.focus();
+		f.type("Alpha");
+		f.input.blur();
+		f.input.focus();
+		assert.equal(f.input.value, "Alpha", "reopening preserves the query while showing suggestions");
+		const options = [...f.w.document.querySelectorAll("#home-hash [role=option]")];
+		assert.deepEqual(
+			options.map((n: any) => n.dataset.extra),
+			["query:Alpha", "tag:Work"],
+		);
+		f.app.action("home-hash", "", "query:Alpha");
+		assert.equal(f.input.value, "Alpha");
+		assert.equal(f.w.document.querySelector("#home-hash"), null);
+		f.type("");
+		f.input.blur();
+		assert.equal(f.w.document.querySelector("#home-hash"), null);
+		assert.deepEqual([...f.app.searchHistory], ["Alpha"]);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("combobox keys close without clearing, jump to endpoints and accept an engaged condition on Tab", () => {
+	const f = desktopFixture();
+	try {
+		f.w.document.documentElement.dataset.inputModality = "keyboard";
+		f.input.focus();
+		f.type("Alpha");
+		f.input.blur();
+		f.input.focus();
+		assert.equal(f.input.getAttribute("aria-expanded"), "true");
+		f.key("Escape");
+		assert.equal(f.input.value, "Alpha");
+		assert.equal(f.input.getAttribute("aria-expanded"), "false");
+		f.key("ArrowUp");
+		assert.equal(f.input.getAttribute("aria-activedescendant"), "home-option-1");
+		f.key("Home");
+		assert.equal(f.app.homeHashIndex, 0);
+		f.key("End");
+		assert.equal(f.app.homeHashIndex, 1);
+		f.key("Tab");
+		assert.equal(f.app.filter.tag, "Work");
+		assert.equal(f.input.value, "Alpha");
+		assert.equal(f.w.document.querySelector("#home-hash"), null);
+		assert.equal(
+			f.w.document.querySelector(".home-search-token[data-extra=tag]")?.textContent,
+			"#Work",
+		);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("tabbing past an opened combobox does not pick an untouched first suggestion", () => {
+	const f = desktopFixture();
+	try {
+		f.input.focus();
+		f.key("Tab");
+		assert.equal(f.app.filter.tag, "");
+		assert.equal(f.app.filter.query, "");
+		assert.equal(f.input.getAttribute("aria-expanded"), "false");
 	} finally {
 		f.dom.window.close();
 	}

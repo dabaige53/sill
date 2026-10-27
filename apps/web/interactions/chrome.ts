@@ -1,3 +1,4 @@
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { MotionEngine } from "./motion.ts";
 
 /**
@@ -10,7 +11,9 @@ type Source = Window | HTMLElement;
 
 const HIDE_AFTER = 28; // px of steady downward travel before the bars leave
 const SHOW_AFTER = 14; // px of upward travel before they return
-const REST_MS = 650; // a pause this long brings them back
+const REST_MS = Number.parseFloat(
+	tokens.timing.tokens.find((token) => token.name === "rest-show")!.value,
+); // a pause this long brings them back
 const EDGE = 24; // near the top or the end, the bars always show
 
 class ChromeAutoHide {
@@ -22,22 +25,15 @@ class ChromeAutoHide {
 	declare timer: number;
 	declare hidden: boolean;
 	declare paused: () => boolean;
-	declare reveal: () => boolean;
 	declare onScroll: () => void;
 	declare onFocus: (e: FocusEvent) => void;
 	declare onKeyDown: (e: KeyboardEvent) => void;
 
-	/** `reveal`: bars coming back on their own use the slower `dur-reveal` entrance. */
-	constructor(
-		source: Source,
-		targets: () => Element[],
-		paused: () => boolean = () => false,
-		reveal: () => boolean = () => false,
-	) {
+	/** Every toolbar uses the same reveal timing; keyboard changes remain immediate. */
+	constructor(source: Source, targets: () => Element[], paused: () => boolean = () => false) {
 		this.source = source;
 		this.targets = targets;
 		this.paused = paused;
-		this.reveal = reveal;
 		this.last = this.position();
 		this.down = 0;
 		this.up = 0;
@@ -135,7 +131,7 @@ class ChromeAutoHide {
 		this.down = this.up = 0;
 		if (!this.hidden) return;
 		this.hidden = false;
-		const reveal = !withCard && this.reveal();
+		const reveal = !withCard;
 		for (const t of this.targets()) {
 			(t as HTMLElement).inert = false;
 			MotionEngine.change(

@@ -123,30 +123,30 @@ try {
 		);
 	const action = async (name: string, id?: string, extra?: string) =>
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
-	const selectionMenu = async () => {
+	const selectCards = async () => {
 		await page.evaluate(
 			(ids) => {
 				for (const id of ids) __app.select(id, { add: true });
 			},
 			[note.id, task.id],
 		);
-		await page.locator('[data-action="selected-bookmark"]').press("Shift+F10");
-		await page.locator("#selection-menu").waitFor();
+		await page.locator("#selection-bar").waitFor();
+		assert.equal(await page.locator("#selection-menu").count(), 0);
 	};
-	const requestsBeforeMenu = batchRequests.length;
-	await selectionMenu();
+	const requestsBeforeSelection = batchRequests.length;
+	await selectCards();
 	await page.waitForTimeout(300);
-	assert.equal(batchRequests.length, requestsBeforeMenu, "opening a selection menu must not write");
-	await page.locator('[data-selection-action="cancel"]').click();
+	assert.equal(batchRequests.length, requestsBeforeSelection, "selecting cards must not write");
+	await action("clear-selection");
 	await page.waitForTimeout(300);
 	assert.equal(
 		batchRequests.length,
-		requestsBeforeMenu,
-		"cancelling a selection menu must not write",
+		requestsBeforeSelection,
+		"clearing a selection must not write",
 	);
-	assert.equal(await page.evaluate(() => __app.selected.size), 2);
-	await selectionMenu();
-	await page.locator('[data-selection-action="bookmark"]').click();
+	assert.equal(await page.evaluate(() => __app.selected.size), 0);
+	await selectCards();
+	await page.locator('[data-action="selected-bookmark"]').click();
 	await saved();
 	let state = await api("/api/v1/workspace");
 	assert.equal(state.state.items[note.id].bookmarked, true);
@@ -156,24 +156,16 @@ try {
 		2,
 		"bulk gesture is one atomic batch",
 	);
-	await page.locator(`[data-card="${note.id}"] .card-title-button`).press("Shift+F10");
-	await page.waitForTimeout(5500);
-	assert.equal(
-		await page.locator(`#card-menu-${note.id}`).count(),
-		1,
-		"unchanged polling keeps the menu open",
-	);
-	await page.evaluate(() => __app.closeMore());
-	await selectionMenu();
-	await page.locator('[data-selection-action="later"]').click();
+	await selectCards();
+	await page.locator('[data-action="selected-later"]').click();
 	await saved();
 	state = await api("/api/v1/workspace");
 	assert.equal(state.state.items[note.id].later, true);
 	assert.equal(state.state.items[task.id].later, true);
 	assert.equal(JSON.parse(batchRequests.at(-1).body).operations.length, 2);
-	await selectionMenu();
+	await selectCards();
 	const requestsBeforeTags = batchRequests.length;
-	await page.locator('[data-selection-action="tag"]').click();
+	await page.locator('[data-action="selected-tag"]').click();
 	await page.locator("#tag-new").waitFor();
 	assert.equal(
 		batchRequests.length,

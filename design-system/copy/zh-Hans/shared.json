@@ -43,6 +43,8 @@
 	"error.invalid_request": "输入内容不符合要求",
 	"error.invalid_json": "JSON 格式无效",
 	"error.unavailable": "暂时无法完成，请稍后重试",
+	"error.local_service_unavailable": "本地数据服务暂时不可用，请恢复服务后重试。",
+	"error.local_response_invalid": "本地数据服务返回了不完整的响应，请稍后重试。",
 	"error.field_conflict": "同一字段已被修改，请读取最新状态再操作",
 	"error.duplicate_card_id": "卡片 ID 重复",
 	"error.revision_conflict": "版本已变化，请重新读取",

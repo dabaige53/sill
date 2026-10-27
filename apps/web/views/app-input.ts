@@ -2,12 +2,21 @@ import { internalCardRoute } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
+import {
+	revealPhoneSearchResults,
+	type SearchPose,
+	transitionPhoneSearch,
+} from "../interactions/phone-search-motion.ts";
 import { action as dispatchAction } from "./actions/index.ts";
 import type { AppController } from "./app.ts";
 import type { Deck, TargetEvent } from "./app-types.ts";
-import { renderContent, renderView } from "./react-renderer.ts";
+import { renderView } from "./react-renderer.ts";
 
 export const appInputMethods = {
+	setSearchEditing(this: AppController, editing: boolean, captured?: SearchPose) {
+		if (this.desktop() || this.modalKind !== "search") return;
+		transitionPhoneSearch(this.dialog, editing, captured);
+	},
 	click(this: AppController, e?: TargetEvent<MouseEvent>) {
 		const link = e.target.closest?.<HTMLAnchorElement>(".markdown a[href]");
 		const route = link && internalCardRoute(link.href, location.href);
@@ -37,22 +46,15 @@ export const appInputMethods = {
 			picked &&
 			this.selectionContext().grid?.contains(picked) &&
 			this.aiHeight !== "full" &&
-			!e.target.closest<HTMLElement>(".card-actions, .card-more-menu, .is-editing") &&
+			!e.target.closest<HTMLElement>(".card-actions, .is-editing") &&
 			(e.metaKey || e.ctrlKey || e.shiftKey || this.selected.size)
 		) {
 			e.preventDefault();
 			e.stopPropagation();
-			this.closeMore();
 			this.select(picked.dataset.card, { range: e.shiftKey });
 			return;
 		}
 		const el = e.target.closest?.<HTMLElement & { disabled?: boolean }>("[data-action]");
-		if (el?.closest<HTMLElement>(".card-more-menu")) this.closeMore(true);
-		else if (
-			!el?.matches('[data-action="card-more"]') &&
-			!e.target.closest?.<HTMLElement>(".card-more-menu")
-		)
-			this.closeMore();
 		if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing")) this.finishInlineEdit();
 		if (el) {
 			if (el.disabled) return;
@@ -90,6 +92,7 @@ export const appInputMethods = {
 		if (this.modalKind !== "search") {
 			return;
 		}
+		const wasBrowse = !!this.dialog.querySelector(".search-browse");
 		const active = document.activeElement as HTMLElement,
 			searchFocused = active?.id === "filter-search",
 			pos = (active as HTMLInputElement)?.selectionStart;
@@ -100,7 +103,11 @@ export const appInputMethods = {
 		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
 			(row) => row.scrollLeft,
 		);
-		renderContent(this.dialog, Panels.search(this));
+		renderView(this.dialog, Panels.search(this));
+		const field = this.dialog.querySelector<HTMLInputElement>("#filter-search");
+		if (field && field.value !== this.searchFilter.query) field.value = this.searchFilter.query;
+		if (!this.desktop() && wasBrowse && !this.dialog.querySelector(".search-browse"))
+			revealPhoneSearchResults(this.dialog);
 		this.bindSearchResults();
 		this.dialog.querySelectorAll<HTMLElement>(".search-filter-items").forEach((row, index) => {
 			row.scrollLeft = filterScroll[index] ?? 0;
@@ -158,12 +165,39 @@ export const appInputMethods = {
 			return true;
 		}
 		if (e.target !== input) return false;
-		// The # list takes arrows and Enter while it is open.
+		// Arrows open the list; active candidates then follow the reference combobox keys.
+		const field = document.getElementById("home-search-field");
+		const opening =
+			!field?.classList.contains("is-open") && ["ArrowDown", "ArrowUp"].includes(e.key);
+		if (opening) this.openHomeSearch(true);
 		const options = this.homeHashOptions();
+		if (options.length && (e.key === "Home" || e.key === "End")) {
+			e.preventDefault();
+			field?.classList.add("suggestion-engaged");
+			this.homeHashIndex = e.key === "Home" ? 0 : options.length - 1;
+			this.syncHomeHash();
+			return true;
+		}
+		if (e.key === "Escape" && options.length) {
+			e.preventDefault();
+			this.openHomeSearch(false);
+			return true;
+		}
+		if (e.key === "Tab" && options.length) {
+			if (field?.classList.contains("suggestion-engaged"))
+				this.action("home-hash", "", options[this.homeHashIndex].extra);
+			this.openHomeSearch(false);
+			return false;
+		}
 		if (options.length && ["ArrowDown", "ArrowUp"].includes(e.key)) {
 			e.preventDefault();
 			const step = e.key === "ArrowDown" ? 1 : -1;
-			this.homeHashIndex = (this.homeHashIndex + step + options.length) % options.length;
+			field?.classList.add("suggestion-engaged");
+			this.homeHashIndex = opening
+				? e.key === "ArrowUp"
+					? options.length - 1
+					: 0
+				: (this.homeHashIndex + step + options.length) % options.length;
 			this.syncHomeHash();
 			return true;
 		}
@@ -211,6 +245,9 @@ export const appInputMethods = {
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "home-search") {
+			const field = document.getElementById("home-search-field");
+			field?.classList.add("is-open", "suggestion-engaged");
+			field?.classList.remove("show-suggestions");
 			const value = (e.target as HTMLInputElement).value;
 			// The type chips leave with the text; a hidden chip never keeps filtering.
 			const kind = this.searchText(value) ? this.filter.kind : "all";
@@ -229,6 +266,13 @@ export const appInputMethods = {
 		}
 		if (e.target.dataset.input === "search") {
 			this.searchFilter.query = e.target.value;
+			const history = document.querySelector<HTMLElement>(".search-history");
+			if (history)
+				history.hidden =
+					!!e.target.value ||
+					this.searchFilter.type !== "all" ||
+					this.searchFilter.status !== "all" ||
+					!!this.searchFilter.tag;
 			const clear = document.querySelector<HTMLButtonElement>(".search-clear");
 			if (clear) clear.hidden = !e.target.value;
 			const chips = document.querySelector<HTMLElement>(".search-chips");
@@ -243,7 +287,10 @@ export const appInputMethods = {
 				this.searchTimer = 0;
 				const results = document.getElementById("search-results");
 				if (results) {
+					const firstResults = !!results.querySelector(".search-browse");
 					renderView(results, Panels.searchResults(this));
+					if (!this.desktop() && firstResults && !results.querySelector(".search-browse"))
+						revealPhoneSearchResults(this.dialog);
 					results.scrollTop = 0;
 					this.revealImages(results);
 					this.updateSelection();
@@ -257,51 +304,22 @@ export const appInputMethods = {
 			this.inlineTimer = window.setTimeout(() => this.saveInlineEdit(), 500);
 		}
 	},
-	paste(this: AppController, e?: TargetEvent<ClipboardEvent>) {
-		// Paste a link or a line anywhere on the desk to keep it.
-		if (this.dialog.open || e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]"))
-			return;
-		const text = e.clipboardData?.getData("text/plain");
-		if (!text?.trim()) return;
-		e.preventDefault();
-		this.capture(text);
-	},
 	key(this: AppController, e?: TargetEvent<KeyboardEvent>) {
 		if (e.isComposing) return;
 		if (this.homeKey(e)) return;
 		if (this.aiKey(e)) return;
-		if (
-			(!this.dialog.open || this.modalKind === "search") &&
-			!e.target.closest?.<HTMLElement>("input,textarea,[contenteditable]") &&
-			(e.key === "ContextMenu" || (e.shiftKey && e.key === "F10"))
-		) {
-			if (
-				e.target.closest?.<HTMLElement>("#selection-bar, #search-selection-bar") &&
-				this.selected.size
-			) {
-				e.preventDefault();
-				this.drag.openMenu([...this.selected], e.target);
-				return;
-			}
-			const card = e.target.closest?.<HTMLElement>("[data-card]");
-			if (card) {
-				e.preventDefault();
-				this.more(card.dataset.card);
-				return;
-			}
+		if (e.key === "Escape" && this.modalKind === "search" && this.selected.size) {
+			e.preventDefault();
+			this.action("clear-selection");
+			return;
 		}
 		if (
 			e.key === "Escape" &&
 			this.modalKind === "search" &&
-			this.dialog.querySelector<HTMLElement>(".card-more-menu")
+			this.dialog.classList.contains("search-editing")
 		) {
 			e.preventDefault();
-			this.closeMore(true);
-			return;
-		}
-		if (e.key === "Escape" && this.modalKind === "search" && this.selected.size) {
-			e.preventDefault();
-			this.action("clear-selection");
+			this.action("search-reset");
 			return;
 		}
 		// Search selection gets the first Escape; only then does a page return home.
@@ -334,25 +352,6 @@ export const appInputMethods = {
 			e.preventDefault();
 			radios[index].focus();
 			radios[index].click();
-			return;
-		}
-		const menu = e.target.closest?.<HTMLElement>(".card-more-menu");
-		if (menu && ["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) {
-			const items = [...menu.querySelectorAll<HTMLElement>("button")],
-				index = items.indexOf(document.activeElement as HTMLElement);
-			const next =
-				e.key === "Home"
-					? 0
-					: e.key === "End"
-						? items.length - 1
-						: (index + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
-			e.preventDefault();
-			items[next]?.focus();
-			return;
-		}
-		if (e.key === "Escape" && this.grid.querySelector<HTMLElement>(".card-more-menu")) {
-			e.preventDefault();
-			this.closeMore(true);
 			return;
 		}
 		if (e.key === "Escape" && this.editingId) {
@@ -439,11 +438,6 @@ export const appInputMethods = {
 			if (first) first.click();
 			return;
 		}
-		if (e.target.id === "capture-text" && e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
-			this.action("capture-save");
-			return;
-		}
 		if (e.key === "Escape" && !this.dialog.open) {
 			if (this.selected.size) {
 				this.selected.clear();
@@ -460,11 +454,6 @@ export const appInputMethods = {
 			!e.ctrlKey &&
 			!e.altKey
 		) {
-			if (e.key === "n" || e.key === "N") {
-				e.preventDefault();
-				this.openPanel("capture");
-				return;
-			}
 			if (e.key === "r" || e.key === "R") {
 				e.preventDefault();
 				this.gestures.refresh();

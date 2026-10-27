@@ -415,5 +415,13 @@
 	"web.settings.layout.narrow": "窄",
 	"web.settings.layout.full": "铺满",
 	"web.settings.layout.strong": "加重",
-	"web.settings.layout.reset": "恢复默认排版"
+	"web.settings.layout.reset": "恢复默认排版",
+	"web.search.history": "搜索历史",
+	"web.search.recommendedTags": "推荐标签",
+	"web.media.listening": "收听",
+	"web.media.introduction": "简介",
+	"web.media.transcriptExcerpt": "文字稿节选",
+	"web.media.program": "节目",
+	"web.media.published": "发布",
+	"web.media.duration": "时长"
 }

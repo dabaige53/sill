@@ -14,9 +14,6 @@
 	pointer-events: none;
 	color: var(--accent);
 }
-.home-heading.has-refresh .home-mark {
-	visibility: hidden;
-}
 /* Under a finger the desk follows exactly; the glide is only for letting go. */
 body.is-pulling main {
 	will-change: translate;

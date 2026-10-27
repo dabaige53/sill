@@ -11,7 +11,7 @@
 - 待办：卡上最多 3 项 CheckItem，未完成在前；计数按全部事项算。提醒是带到期时间的单项待办，勾选圈与待办相同，只改 Sill 的状态，不改来源。
 - 汇总：卡面显示短摘要；详情中的列表属于正文，按正文的字号与颜色显示，不使用带圆底的独立编号。见画板 CardTypeDetails、CardTypeMobile 与 CardTypeReading。
 - 摘录：引用只改字号层级，不改表面颜色，不加左侧色条。
-- 卡面没有省略号入口。长按或 ⌘/Ctrl 点选进入多选；桌面右键与 Shift+F10 打开 CardMenu。
+- 卡面没有省略号入口。长按或 ⌘/Ctrl 点选进入多选；Web/PWA 不提供卡片右键菜单与 Shift+F10 产品菜单。
 - 点卡片：能在站内看完的在站内打开；要在原处操作的直接跳到原应用。
 
 实现：`apps/web/cards/components.tsx`、`apps/web/cards/templates.ts`、`apps/web/styles/cards.css`；macOS `Feed/CardBodies.swift`、`Feed/CardParts.swift`。示例由 `design-system/scripts/previews.ts` 从产品代码生成，不手改。

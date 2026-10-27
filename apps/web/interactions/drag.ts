@@ -1,4 +1,3 @@
-import { icon } from "../atoms/icons.ts";
 import { esc } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
@@ -12,9 +11,6 @@ class DragManager {
 	declare timer: any;
 	declare suppressedClick: { element: HTMLElement; until: number } | null;
 	declare ghost: HTMLElement | null;
-	declare menu: HTMLDialogElement;
-	declare returnFocus: HTMLElement | null;
-	declare menuIds: string[];
 
 	constructor(app?: any) {
 		this.app = app;
@@ -23,28 +19,6 @@ class DragManager {
 		this.timer = 0;
 		this.suppressedClick = null;
 		this.ghost = null;
-		this.menuIds = [];
-		this.menu = document.createElement("dialog");
-		this.menu.id = "selection-menu";
-		this.menu.setAttribute("aria-labelledby", "selection-menu-title");
-		document.body.appendChild(this.menu);
-		this.menu.addEventListener("cancel", (e) => {
-			e.preventDefault();
-			this.closeMenu();
-		});
-		this.menu.addEventListener("click", (e) => {
-			e.stopPropagation();
-			const button = (e.target as Element).closest<HTMLButtonElement>("[data-selection-action]");
-			if (button) {
-				const action = button.dataset.selectionAction;
-				const ids = this.menuIds.filter((id) => Store.card(id));
-				this.closeMenu();
-				if (action !== "cancel" && ids.length) {
-					this.app.selected = new Set(ids);
-					this.app.action(`selected-${action}`);
-				}
-			} else if (e.target === this.menu) this.closeMenu();
-		});
 		document.addEventListener(
 			"click",
 			(e) => {
@@ -129,31 +103,11 @@ class DragManager {
 		document.addEventListener(
 			"keydown",
 			(e) => {
-				if (e.key === "Escape" && (this.active || this.pending || this.menu.open)) {
+				if (e.key === "Escape" && (this.active || this.pending)) {
 					e.preventDefault();
 					e.stopImmediatePropagation();
 					this.cancel();
 					return;
-				}
-				if (!this.menu.open) return;
-				// Keep global app shortcuts out of this modal, while preserving native activation.
-				e.stopImmediatePropagation();
-				const buttons = [
-					...this.menu.querySelectorAll<HTMLButtonElement>(".selection-options button"),
-				];
-				const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
-				if (["ArrowDown", "ArrowUp", "Home", "End", "Tab"].includes(e.key)) {
-					e.preventDefault();
-					const next =
-						e.key === "Home"
-							? 0
-							: e.key === "End"
-								? buttons.length - 1
-								: (index +
-										(e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey) ? -1 : 1) +
-										buttons.length) %
-									buttons.length;
-					buttons[next]?.focus();
 				}
 			},
 			true,
@@ -171,16 +125,11 @@ class DragManager {
 		this.suppressedClick = null;
 		if (
 			(this.app.dialog.open && this.app.modalKind !== "search") ||
-			this.menu.open ||
 			this.active ||
 			!(target instanceof Element)
 		)
 			return;
-		if (
-			target.closest(
-				"input,textarea,a,.card-actions,.card-more-menu,.deck,button:not(.card-title-button)",
-			)
-		)
+		if (target.closest("input,textarea,a,.card-actions,.deck,button:not(.card-title-button)"))
 			return;
 		const element = target.closest<HTMLElement>(
 			"#feed-grid [data-card], #search-results [data-card]",
@@ -197,7 +146,6 @@ class DragManager {
 	}
 	start(p: any) {
 		if (this.active || !p.element.isConnected || !Store.card(p.id)) return;
-		this.app.closeMore();
 		this.app.select(p.id, { add: true });
 		const ids = [...this.app.selected].filter((id) => Store.card(id));
 		this.active = {
@@ -209,10 +157,6 @@ class DragManager {
 					? document.getElementById("ai-dock")
 					: this.app.selectionContext().bar?.querySelector(".selection-ai-target"),
 		};
-		// Desktop: the AI box takes the rail back while a card is carried to it.
-		document
-			.getElementById("dock")
-			?.classList.toggle("is-ai-drag", this.active.target?.id === "ai-dock");
 		this.app.railHide?.show();
 		this.clearPending();
 		this.app.announce(
@@ -237,7 +181,7 @@ class DragManager {
 		clone.classList.remove("selected", "is-selected", "is-drag-source");
 		clone
 			.querySelectorAll(
-				"script,iframe,object,embed,audio,video,.card-actions,.card-more-menu,.selection-circle,.selected-tick",
+				"script,iframe,object,embed,audio,video,.card-actions,.selection-circle,.selected-tick",
 			)
 			.forEach((node) => {
 				node.remove();
@@ -304,6 +248,19 @@ class DragManager {
 	move(x: number, y: number) {
 		if (!this.active?.moved) return;
 		const target = this.active.target as HTMLElement | null;
+		if (!this.ghost) {
+			if (target?.classList.contains("selection-ai-target")) {
+				target.hidden = false;
+				target.parentElement?.classList.add("is-ai-receiving");
+			} else if (target?.id === "ai-dock") {
+				window.dispatchEvent(new Event("sill:expand-ai"));
+				document.getElementById("dock")?.classList.add("is-ai-drag");
+			}
+			if (target)
+				MotionEngine.animate(target, [{ opacity: 0 }, { opacity: 1 }], {
+					duration: MotionEngine.time("fast"),
+				});
+		}
 		const rect = target?.getBoundingClientRect();
 		const ready =
 			!!rect &&
@@ -318,7 +275,9 @@ class DragManager {
 			if (target?.id === "ai-dock") MotionEngine.dropTarget(target, ready ? "ready" : "carrying");
 			const label = target?.querySelector("[data-ai-label]");
 			if (label) label.textContent = copy(ready ? "web.selection.aiReady" : "web.selection.aiDrop");
-			const dockInput = target?.querySelector<HTMLInputElement>("#ai-dock-input");
+			const dockInput = target?.querySelector<HTMLInputElement>(
+				"#ai-dock-input,.selection-ai-input",
+			);
 			if (dockInput)
 				dockInput.placeholder = copy(ready ? "web.ai.dockReady" : "web.ai.dockPlaceholder");
 		}
@@ -349,72 +308,25 @@ class DragManager {
 		// A local preview only; no model call, transmission or card mutation.
 		if (moved && ready) this.app.openSelectionAI(ids);
 	}
-	openMenu(ids: string[], trigger?: HTMLElement, point?: { x: number; y: number }) {
-		ids = ids.filter((id) => Store.card(id));
-		if (!ids.length || (this.app.dialog.open && this.app.modalKind !== "search") || this.menu.open)
-			return;
-		this.returnFocus = trigger || (document.activeElement as HTMLElement);
-		this.menuIds = ids;
-		this.app.closeMore();
-		this.menu.innerHTML = `<div class="selection-context"><h2 class="sr-only" id="selection-menu-title">${copy("web.selection.countPrefix")}${ids.length}${copy("web.selection.countSuffix")}</h2><div class="selection-options"><div role="group" aria-label="${copy("web.selection.actions")}"><button type="button" data-selection-action="bookmark">${copy("web.selection.bookmark")}${icon("bookmark", 18)}</button><button type="button" data-selection-action="later">${copy("web.selection.later")}${icon("clock", 18)}</button></div><div role="group" aria-label="${copy("web.selection.organize")}"><button type="button" data-selection-action="tag">${copy("web.selection.tag")}${icon("tag", 18)}</button></div><div role="group"><button type="button" data-selection-action="cancel">${copy("web.selection.cancel")}</button></div></div></div>`;
-		this.menu.querySelector(".selection-context")?.appendChild(this.createStack(ids));
-		document.body.classList.add("selection-menu-open");
-		this.menu.showModal();
-		const rect = trigger?.getBoundingClientRect();
-		this.positionMenu(
-			point || {
-				x: rect ? rect.left + rect.width / 2 : innerWidth / 2,
-				y: rect ? rect.top : innerHeight / 2,
-			},
-		);
-		this.menu.querySelector("button")?.focus({ preventScroll: true });
-		MotionEngine.enter(this.menu.querySelector(".selection-context"));
-	}
-	positionMenu(point: { x: number; y: number }) {
-		const context = this.menu.querySelector<HTMLElement>(".selection-context")!;
-		const options = this.menu.querySelector<HTMLElement>(".selection-options")!;
-		const stack = this.menu.querySelector<HTMLElement>(".selection-stack")!;
-		const gap = 12,
-			edge = 16;
-		const stackH = stack.offsetHeight,
-			optionsH = options.offsetHeight;
-		// The pile stays where it was let go; the menu opens below it, or above when the space below is short.
-		const below = point.y + stackH / 2 + gap + optionsH + edge <= innerHeight;
-		context.dataset.placement = below ? "below" : "above";
-		stack.style.order = below ? "-1" : "1";
-		const height = context.offsetHeight;
-		const top = below ? point.y - stackH / 2 : point.y + stackH / 2 - height;
-		const left = point.x - context.offsetWidth / 2;
-		context.style.left = `${Math.max(edge, Math.min(innerWidth - context.offsetWidth - edge, left))}px`;
-		context.style.top = `${Math.max(edge, Math.min(innerHeight - height - edge, top))}px`;
-	}
-
-	closeMenu() {
-		if (!this.menu.open) return;
-		this.menu.close();
-		document.body.classList.remove("selection-menu-open");
-		this.menuIds = [];
-		const focus = this.returnFocus?.isConnected
-			? this.returnFocus
-			: document.querySelector<HTMLElement>('[data-action="selection-menu"]');
-		focus?.focus({ preventScroll: true });
-		this.returnFocus = null;
-	}
 	cancel() {
 		this.clearPending();
 		if (this.active) this.cleanup();
-		this.closeMenu();
 	}
 	cleanup() {
 		if (this.active) {
 			this.suppressedClick = { element: this.active.element, until: Date.now() + 400 };
 		}
 		this.active?.target?.classList.remove("is-ready");
+		if (this.active?.target?.classList.contains("selection-ai-target")) {
+			MotionEngine.cancel(this.active.target);
+			this.active.target.hidden = true;
+			this.active.target.parentElement?.classList.remove("is-ai-receiving");
+		}
 		const label = this.active?.target?.querySelector("[data-ai-label]");
 		if (label) label.textContent = copy("web.selection.aiDrop");
 		const dockInput = (
 			this.active?.target as HTMLElement | undefined
-		)?.querySelector<HTMLInputElement>("#ai-dock-input");
+		)?.querySelector<HTMLInputElement>("#ai-dock-input,.selection-ai-input");
 		if (dockInput) dockInput.placeholder = copy("web.ai.dockPlaceholder");
 		document.getElementById("dock")?.classList.remove("is-ai-drag");
 		MotionEngine.dropTarget(document.getElementById("ai-dock"), "idle");

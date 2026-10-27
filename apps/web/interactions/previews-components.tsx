@@ -28,7 +28,8 @@ import {
 	reminderMark,
 } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
-import { PhoneArticleOutline } from "./reader-layout.tsx";
+
+import { VideoSurface } from "./video-surface.tsx";
 
 type PreviewCard = ReturnType<typeof Store.card>;
 type PreviewApp = PlaybackApp & {
@@ -71,12 +72,22 @@ const renderers = {
 } satisfies Record<string, PreviewRenderer>;
 
 export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewCard) {
+	if (c.type === "media" && c.media !== "podcast")
+		return (
+			<VideoSurface
+				key={c.id}
+				card={c}
+				app={app}
+				expandable={!standaloneDisplay()}
+				renderers={this}
+			/>
+		);
 	const s = Store.item(c.id),
 		note = personalNote(s.note);
 	const tags = this.tags(c);
 	const closeButton = button("x", copy("web.preview.close"), "close");
 	const expand =
-		(c.type === "media" && !standaloneDisplay()) ||
+		(c.type === "media" && c.media !== "podcast" && !standaloneDisplay()) ||
 		(c.body?.trim() &&
 			!standaloneDisplay() &&
 			["article", "note", "digest", "mail"].includes(c.type))
@@ -457,7 +468,6 @@ export function articleContent(this: PanelRenderers, c: PreviewCard, reading = t
 			</header>
 			{reading && cover}
 			{c.type === "suggestion" && <WhyDetails card={c} />}
-			{!reading && c.type === "article" && <PhoneArticleOutline body={c.body || ""} />}
 			{c.type !== "suggestion" && <DetailText body={c.body} outline={c.type === "article"} />}
 			{["suggestion", "digest"].includes(c.type) && <RelatedCards card={c} />}
 		</>

@@ -115,3 +115,53 @@ test("resizing cards releases the height held for content updates", async () => 
 		dom.window.close();
 	}
 });
+
+test("phone reflow lays out immediately and cancels a running desktop FLIP", async () => {
+	const { JSDOM } = await import("jsdom");
+	const { FeedLayout } = await import("../../apps/web/interactions/layout.ts");
+	const { MotionEngine } = await import("../../apps/web/interactions/motion.ts");
+	const dom = new JSDOM('<div id="feed-grid"><article class="feed-item"></article></div>');
+	const previous = Object.fromEntries(
+		["window", "document", "getComputedStyle"].map((key) => [
+			key,
+			Object.getOwnPropertyDescriptor(globalThis, key),
+		]),
+	);
+	for (const [key, value] of Object.entries({
+		window: dom.window,
+		document: dom.window.document,
+		getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
+	}))
+		Object.defineProperty(globalThis, key, { configurable: true, value });
+	const originalFlip = MotionEngine.flip;
+	let flips = 0;
+	MotionEngine.flip = () => flips++;
+	try {
+		const grid = dom.window.document.querySelector("#feed-grid")!;
+		const card = grid.firstElementChild as HTMLElement;
+		Object.defineProperty(grid, "clientWidth", { value: 358 });
+		Object.defineProperty(card, "offsetHeight", { value: 120 });
+		const layout = Object.create(FeedLayout.prototype);
+		layout.container = grid;
+		dom.window.innerWidth = 651;
+		layout.layout(true);
+		assert.equal(flips, 1, "desktop layout still animates");
+		let cancelled = false;
+		MotionEngine.layoutAnimations.set(card, { cancel: () => (cancelled = true) });
+		dom.window.innerWidth = 650;
+		layout.layout(true);
+		assert.equal(flips, 1, "phone layout must not start a new FLIP");
+		assert.equal(cancelled, true);
+		assert.equal(MotionEngine.layoutAnimations.has(card), false);
+		assert.equal(card.style.top, "0px");
+		assert.equal(card.style.width, "358px");
+		assert.equal(grid.style.height, "120px");
+	} finally {
+		MotionEngine.flip = originalFlip;
+		for (const [key, descriptor] of Object.entries(previous)) {
+			if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+			else Reflect.deleteProperty(globalThis, key);
+		}
+		dom.window.close();
+	}
+});

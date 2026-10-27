@@ -67,64 +67,40 @@ test("mail replies, the event downloads and reminders remind again from the tool
 	}
 });
 
-test("settings can hide any toolbar verb; the rule goes when one side is empty", () => {
+test("legacy hidden preferences do not remove shared or own detail actions", () => {
 	Store.state = Store.fresh();
 	Store.setPref("hiddenActions", ["bookmark", "tag", "later"]);
 	const mail = toolbar(seed("mail"));
 	try {
-		assert.deepEqual(mail.shared, []);
+		assert.deepEqual(mail.shared, ["bookmark", "edit", "later"]);
 		assert.deepEqual(mail.own, ["external"]);
-		assert.equal(mail.rule, 0);
+		assert.equal(mail.rule, 1);
 	} finally {
 		mail.close();
 	}
 	Store.setPref("hiddenActions", [...CardActions]);
 	const note = new JSDOM(Panels.preview({}, seed("note")));
 	try {
-		assert.equal(note.window.document.querySelector(".float-bar"), null);
+		assert.ok(note.window.document.querySelector('.float-bar [data-action="bookmark"]'));
+		assert.equal(note.window.document.querySelector(".toolbar-sep"), null);
 	} finally {
 		note.window.close();
 	}
 	Store.state = Store.fresh();
 });
 
-test("hiddenActions is a closed list in the shared preference contract", () => {
+test("legacy hiddenActions remains readable in the shared preference contract", () => {
 	assert.ok(Preferences.safeParse({ hiddenActions: ["reply", "download"] }).success);
 	assert.ok(!Preferences.safeParse({ hiddenActions: ["delete"] }).success);
 });
 
-test("card action examples describe types without changing switch names or preferences", () => {
+test("settings omit action hiding controls and preserve saved legacy preferences", () => {
 	Store.state = Store.fresh();
 	Store.setPref("hiddenActions", ["tag"]);
 	const dom = new JSDOM(Panels.settings({}, "desk"));
-	const examples = [
-		"所有卡片",
-		"所有卡片",
-		"所有卡片",
-		"邮件",
-		"文章、视频等",
-		"日程",
-		"待办、日程、提醒",
-		"日程",
-		"待办、日程、提醒",
-	];
 	try {
-		const switches = [...dom.window.document.querySelectorAll('[data-action="action-toggle"]')];
-		assert.equal(switches.length, 9);
-		for (const [index, toggle] of switches.entries()) {
-			assert.equal(toggle.getAttribute("data-id"), CardActions[index]);
-			const row = toggle.closest(".setting-row");
-			assert.equal(row?.querySelector("small")?.textContent, examples[index]);
-			assert.equal(toggle.getAttribute("aria-describedby"), row?.querySelector("small")?.id);
-			assert.equal(
-				row?.firstElementChild?.firstChild?.textContent,
-				toggle.getAttribute("aria-label"),
-			);
-			assert.equal(
-				toggle.getAttribute("aria-checked"),
-				CardActions[index] === "tag" ? "false" : "true",
-			);
-		}
+		assert.equal(dom.window.document.querySelectorAll('[data-action="action-toggle"]').length, 0);
+		assert.ok(dom.window.document.querySelector('[data-action="pref-toggle"][data-id="stack"]'));
 		assert.deepEqual(Store.pref("hiddenActions"), ["tag"]);
 	} finally {
 		dom.window.close();
@@ -132,7 +108,7 @@ test("card action examples describe types without changing switch names or prefe
 	}
 });
 
-test("photo lightbox shares toolbar state and hides empty tools without hiding thumbnails", () => {
+test("photo lightbox shows every shared tool despite legacy hidden preferences", () => {
 	const photo: Card = { ...seed("photo"), photos: ["architecture", "coast"] };
 	for (const hidden of [[], ["tag"], ["bookmark", "tag", "later"]] as CardAction[][]) {
 		Store.state = Store.fresh();
@@ -141,9 +117,7 @@ test("photo lightbox shares toolbar state and hides empty tools without hiding t
 		const dom = new JSDOM(Panels.lightbox(photo, 1));
 		try {
 			const document = dom.window.document;
-			const expected = ["bookmark", "edit", "later"].filter(
-				(action) => !hidden.includes(action === "edit" ? "tag" : (action as CardAction)),
-			);
+			const expected = ["bookmark", "edit", "later"];
 			assert.deepEqual(
 				[...document.querySelectorAll(".float-bar button")].map((n) =>
 					n.getAttribute("data-action"),
@@ -154,13 +128,11 @@ test("photo lightbox shares toolbar state and hides empty tools without hiding t
 			assert.equal(document.querySelectorAll(".toolbar-sep,.is-own").length, 0);
 			assert.equal(document.querySelectorAll(".lightbox-thumbs button").length, 2);
 			assert.equal(document.querySelector(".lightbox-thumbs .on")?.getAttribute("data-extra"), "1");
-			if (!hidden.includes("bookmark")) {
-				assert.equal(
-					document.querySelector('[data-action="bookmark"]')?.getAttribute("aria-label"),
-					"取消收藏",
-				);
-				assert.ok(document.querySelector('[data-action="bookmark"]')?.classList.contains("active"));
-			}
+			assert.equal(
+				document.querySelector('[data-action="bookmark"]')?.getAttribute("aria-label"),
+				"取消收藏",
+			);
+			assert.ok(document.querySelector('[data-action="bookmark"]')?.classList.contains("active"));
 		} finally {
 			dom.window.close();
 		}
@@ -188,11 +160,11 @@ test("imminent event prioritizes dismiss over download only when join is availab
 			hidden: [],
 			expected: ["snooze", "download-calendar", "dismiss-reminder"],
 		},
-		{ card: event, hidden: ["dismiss"], expected: ["join", "snooze", "download-calendar"] },
+		{ card: event, hidden: ["dismiss"], expected: ["join", "snooze", "dismiss-reminder"] },
 		{
 			card: event,
 			hidden: ["snooze"],
-			expected: ["join", "dismiss-reminder", "download-calendar"],
+			expected: ["join", "snooze", "dismiss-reminder"],
 		},
 	];
 	for (const { card, hidden, expected } of cases) {

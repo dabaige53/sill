@@ -2,6 +2,7 @@ import { cloneElement, type ReactElement, type ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { dateLabel, eventTimely, shortDay } from "../atoms/primitives.ts";
 import { DetailText } from "../cards/markdown.tsx";
+import { PhotoCarousel } from "../cards/photo-carousel.tsx";
 import { publicationName } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
@@ -23,6 +24,7 @@ import type { PanelRenderers, PreviewApp, PreviewCard, ToolbarAction } from "./p
 import {
 	agentAction,
 	button,
+	icon,
 	keyed,
 	ownButton,
 	personalNote,
@@ -30,6 +32,8 @@ import {
 } from "./panel-primitives.tsx";
 import { previewView as preview, readingContent } from "./previews-components.tsx";
 import { ReaderLayout } from "./reader-layout.tsx";
+
+import { VideoSurface } from "./video-surface.tsx";
 
 export const panelCard = {
 	close(this: PanelRenderers, label?: string) {
@@ -152,13 +156,16 @@ export const panelCard = {
 		);
 	},
 	bookmark(this: PanelRenderers, c?: Card, s?: CardItem) {
-		return button(
-			"bookmark",
-			s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
-			"bookmark",
-			c.id,
-			"",
-			s.bookmarked ? "active" : "",
+		return cloneElement(
+			button(
+				"bookmark",
+				s.bookmarked ? copy("web.preview.removeBookmark") : copy("web.bookmark"),
+				"bookmark",
+				c.id,
+				"",
+				s.bookmarked ? "active" : "",
+			),
+			{ "aria-pressed": !!s.bookmarked },
 		);
 	},
 	later(this: PanelRenderers, c?: Card, s?: CardItem) {
@@ -190,18 +197,15 @@ export const panelCard = {
 		</>
 	),
 	tools(this: PanelRenderers, c?: Card, s?: CardItem, own: ToolbarAction[] = []): ReactNode {
-		const hidden = new Set(Store.pref("hiddenActions") || []);
 		const shared = (
 			[
 				["bookmark", this.bookmark(c, s)],
 				["tag", button("tag", copy("web.editor.openTagsAndNote"), "edit", c.id)],
 				["later", this.later(c, s)],
 			] satisfies ToolbarAction[]
-		)
-			.filter(([key]) => !hidden.has(key))
-			.map(([, html]) => html);
+		).map(([, html]) => html);
 		const mine = own
-			.filter(([key, html]) => html && !hidden.has(key))
+			.filter(([, html]) => html)
 			.slice(0, 3)
 			.map(([, html]) => ownButton(html as ReactElement));
 		if (!shared.length && !mine.length) return "";
@@ -311,6 +315,8 @@ export const panelCard = {
 		return preview.call(this, app, c);
 	},
 	reader(this: PanelRenderers, app?: PreviewApp, c?: Card, loading = false) {
+		if (c.type === "media" && c.media !== "podcast" && !loading)
+			return <VideoSurface key={c.id} card={c} app={app} full renderers={this} />;
 		const s = Store.item(c.id);
 		const body = loading ? (
 			<>
@@ -399,26 +405,40 @@ export const panelCard = {
 				</div>
 				{"\n   "}
 				<div className={"lightbox-stage"}>
-					{photos.length > 1
-						? button("back", copy("web.photo.previous"), "photo-step", c.id, "-1")
-						: ""}
-					<img
-						src={assetURL(photos[i])}
-						alt={
-							"" +
-							c.title +
-							"" +
-							copy("web.photo.altIndexPrefix") +
-							"" +
-							(i + 1) +
-							"" +
-							copy("web.common.cardCountSuffix") +
-							""
+					{photos.length > 1 && (
+						<button
+							type="button"
+							className="icon-button"
+							data-action="photo-step"
+							data-id={c.id}
+							data-extra="-1"
+							aria-label={copy("web.photo.previous")}
+							disabled={i === 0}
+						>
+							{icon("back", 20)}
+						</button>
+					)}
+					<PhotoCarousel
+						key={c.id}
+						card={c}
+						index={i}
+						onSelect={
+							app?.action ? (next) => app.action("photo-go", c.id, String(next)) : undefined
 						}
 					/>
-					{photos.length > 1
-						? button("arrow", copy("web.photo.next"), "photo-step", c.id, "1")
-						: ""}
+					{photos.length > 1 && (
+						<button
+							type="button"
+							className="icon-button"
+							data-action="photo-step"
+							data-id={c.id}
+							data-extra="1"
+							aria-label={copy("web.photo.next")}
+							disabled={i === photos.length - 1}
+						>
+							{icon("arrow", 20)}
+						</button>
+					)}
 				</div>
 				{"\n   "}
 				<div className="lightbox-caption">

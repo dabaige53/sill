@@ -1,14 +1,17 @@
 import { createElement, Fragment } from "react";
+import { icon } from "../atoms/icons.ts";
+import { esc } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { contextMotion } from "../interactions/ai-context-motion.ts";
 import type { AppController } from "./app.ts";
 import { renderView } from "./react-renderer.ts";
 
 export const appSelectionMethods = {
 	selectionAIHTML(this: AppController) {
-		return `<button type="button" class="selection-ai-target glass" data-action="selected-ai" aria-label="${copy("web.selection.aiOpen")}"><span class="selection-ai-wave" aria-hidden="true"><i></i><i></i><i></i></span><span data-ai-label>${copy("web.selection.aiDrop")}</span></button>`;
+		return `<div class="selection-ai-target glass" hidden role="region" aria-label="${esc(copy("web.ai.dock"))}">${icon("chat", 20)}<input class="selection-ai-input" readonly tabindex="-1" aria-label="${esc(copy("web.ai.dock"))}" placeholder="${esc(copy("web.ai.dockPlaceholder"))}">${icon("up", 20)}</div>`;
 	},
 	openSelectionAI(this: AppController, ids: string[]) {
 		// Desktop: the cards join the bottom AI box as context; nothing is sent (ADR 0049).
@@ -20,16 +23,23 @@ export const appSelectionMethods = {
 			this.updateSelection();
 			window.dispatchEvent(new Event("sill:expand-ai"));
 			this.renderAIDock();
-			// The selection bar leaves first (180ms); the AI box can take focus once it is back.
+			// Focus only after the rail handoff has restored the AI box.
 			window.setTimeout(
-				() => document.getElementById("ai-dock-input")?.focus({ preventScroll: true }),
-				200,
+				() => {
+					if (!this.dialog.open && !this.selected.size)
+						document.getElementById("ai-dock-input")?.focus({ preventScroll: true });
+				},
+				MotionEngine.keyboard ? 0 : MotionEngine.time("fast") + MotionEngine.time("dur-reveal"),
 			);
 			return;
 		}
 		this.aiSelectionIds = [...new Set(ids)].filter((id) => Store.card(id));
 		if (!this.aiSelectionIds.length) return;
+		this.selected.clear();
+		this.updateSelection();
 		this.openPanel("ai");
+		const context = this.dialog.querySelector<HTMLElement>(".ai-context");
+		if (context) contextMotion(context, true, true, MotionEngine.time("fast"));
 	},
 	/** Context cards above the AI box: the card title and a remove button, nothing more. */
 	renderAIDock(this: AppController) {
@@ -67,14 +77,7 @@ export const appSelectionMethods = {
 		);
 		for (const node of box.querySelectorAll<HTMLElement>("[data-ai-context]")) {
 			if (!previousIds.has(node.dataset.aiContext))
-				MotionEngine.animate(
-					node,
-					[
-						{ opacity: 0, transform: "translateY(4px)" },
-						{ opacity: 1, transform: "none" },
-					],
-					{ duration: MotionEngine.time("fast") },
-				);
+				contextMotion(node, true, false, MotionEngine.time("fast"));
 		}
 		const input = document.getElementById("ai-dock-input") as HTMLInputElement | null;
 		if (input && input.value !== this.aiDraft) input.value = this.aiDraft;
@@ -96,18 +99,6 @@ export const appSelectionMethods = {
 		};
 	},
 	bindSearchSelection(this: AppController) {
-		const bar = this.dialog.querySelector<HTMLElement>("#search-selection-bar");
-		if (bar && !bar.dataset.bound) {
-			bar.dataset.bound = "true";
-			bar.addEventListener("contextmenu", (e: MouseEvent) => {
-				if (!this.searchSelected.size) return;
-				e.preventDefault();
-				this.drag.openMenu([...this.searchSelected], e.target as HTMLElement, {
-					x: e.clientX,
-					y: e.clientY,
-				});
-			});
-		}
 		this.updateSelection();
 	},
 	select(this: AppController, id?: string, options: { add?: boolean; range?: boolean } = {}) {
@@ -145,6 +136,57 @@ export const appSelectionMethods = {
 		if (!selecting && bar.contains(document.activeElement as HTMLElement))
 			grid.querySelector<HTMLElement>(".card-title-button")?.focus({ preventScroll: true });
 		bar.querySelector<HTMLElement>(".selection-count").textContent = String(this.selected.size);
+		const ids = [...selection].filter((id) => Store.card(id));
+		const allBookmarked = ids.length > 0 && ids.every((id) => Store.item(id).bookmarked);
+		const bookmark = bar.querySelector<HTMLElement>('[data-action="selected-bookmark"]');
+		bookmark?.classList.toggle("active", allBookmarked);
+		bookmark?.setAttribute("aria-pressed", String(allBookmarked));
+		bookmark?.setAttribute(
+			"aria-label",
+			allBookmarked ? copy("web.preview.removeBookmark") : copy("web.app.87aeb7040c82"),
+		);
+		const receiver = bar.querySelector<HTMLElement>(".selection-ai-target");
+		if (receiver) receiver.hidden = !selecting || !this.drag?.active?.moved;
+		if (!search || !this.desktop()) {
+			const counterpart = document.querySelector<HTMLElement>(this.desktop() ? "#ai-dock" : "#nav");
+			if (
+				counterpart &&
+				counterpart.dataset.selecting !== String(selecting) &&
+				(selecting || counterpart.dataset.selecting !== undefined)
+			) {
+				counterpart.dataset.selecting = String(selecting);
+				const drawn = getComputedStyle(counterpart);
+				const from = {
+					opacity: drawn.visibility === "hidden" ? "0" : drawn.opacity,
+					transform: drawn.transform,
+				};
+				MotionEngine.cancel(counterpart);
+				counterpart.style.visibility = "visible";
+				counterpart.inert = selecting;
+				counterpart.style.pointerEvents = selecting ? "none" : "";
+				const handoff = MotionEngine.animate(
+					counterpart,
+					[
+						from,
+						selecting
+							? { opacity: 0, transform: "translateY(8px)" }
+							: { opacity: 1, transform: "none" },
+					],
+					{
+						duration: MotionEngine.time(selecting ? "fast" : "dur-reveal"),
+						delay: selecting ? 0 : MotionEngine.time("fast"),
+						easing: MotionEngine.curve("ease-reveal"),
+						fill: "forwards",
+					},
+				);
+				const finishHandoff = () => {
+					if (counterpart.dataset.selecting === String(selecting))
+						counterpart.style.visibility = selecting ? "hidden" : "visible";
+				};
+				if (handoff) handoff.finished.then(finishHandoff, () => {});
+				else finishHandoff();
+			}
+		}
 		if (state.visible === selecting) return;
 		state.visible = selecting;
 		if (selecting) this.railHide?.show();
@@ -168,7 +210,11 @@ export const appSelectionMethods = {
 					? { opacity: 1, transform: "none" }
 					: { opacity: 0, transform: "translateY(8px)" },
 			],
-			{ duration: 180 },
+			{
+				duration: MotionEngine.time(selecting ? "dur-reveal" : "fast"),
+				delay: selecting ? MotionEngine.time("fast") : 0,
+				easing: MotionEngine.curve("ease-reveal"),
+			},
 		);
 		state.animation = animation;
 		const finish = () => {

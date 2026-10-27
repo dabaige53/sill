@@ -58,9 +58,33 @@ function fixture(t: any, items: any = { a: { note: "original" } }) {
 	sync.status = () => {};
 	sync.baseline = sync.snapshot();
 	sync.revision = initial.revision;
+	const request = sync.request.bind(sync);
 	sync.request = async (_path: string, batch: any) => repo.apply(JSON.parse(JSON.stringify(batch)));
-	return { sync, store, repo, data };
+	return { sync, store, repo, data, context, request };
 }
+
+test("empty proxy failure reports service unavailable and retains an unconfirmed write", async (t) => {
+	const { sync, context, request, data } = fixture(t);
+	context.AbortSignal = AbortSignal;
+	context.fetch = async () => new Response(null, { status: 502 });
+	sync.request = request;
+	const batch = { operations: [{ kind: "item.patch", id: "a", values: { note: "draft" } }] };
+	sync.pending.push(batch);
+	let message = "";
+	sync.status = (value: string) => { message = value; };
+	await sync.flush();
+	assert.match(message, /本地数据服务暂时不可用/);
+	assert.equal(sync.pending[0], batch);
+	assert.equal(sync.failed, true);
+	assert.ok(data.has("sill-unsynced"));
+});
+
+test("incomplete local response is not reported as a successful read", async (t) => {
+	const { context, request } = fixture(t);
+	context.AbortSignal = AbortSignal;
+	context.fetch = async () => new Response("", { status: 200 });
+	await assert.rejects(request("state"), /不完整的响应/);
+});
 
 test("unchanged array preferences do not enqueue another write after adopting a response", (t) => {
 	const { sync, store } = fixture(t);
@@ -135,4 +159,16 @@ test("lost write response keeps the draft and retry cannot overwrite a newer not
 	await sync.flush();
 	assert.equal(repo.snapshot().state.items.a.note, "new agent note");
 	assert.equal(sync.pending.length, 1);
+});
+
+test("initial snapshot appears without arrival motion; later snapshots retain update motion", (t) => {
+	const { sync, repo } = fixture(t);
+	sync.app.modalKind = "";
+	const animations: boolean[] = [];
+	sync.app.withFeedAnchor = (_change: () => void, animate: boolean) => animations.push(animate);
+	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: true } }] }));
+	assert.deepEqual(animations, [false]);
+	sync.ready = true;
+	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: false } }] }));
+	assert.deepEqual(animations, [false, true]);
 });

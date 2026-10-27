@@ -60,7 +60,7 @@ function fixture() {
 	};
 }
 
-test("desktop bars coming back on their own use the slower reveal; with a closing card they share its spring", () => {
+test("all bars coming back on their own use the shared reveal; with a closing card they share its spring", () => {
 	const f = fixture();
 	try {
 		const bar = f.w.document.getElementById("bar");
@@ -70,7 +70,6 @@ test("desktop bars coming back on their own use the slower reveal; with a closin
 			f.w.document.getElementById("scroll"),
 			() => [bar],
 			() => false,
-			() => true,
 		);
 		// The tucked state must change something drawn, or no animation is recorded.
 		const css = f.w.document.createElement("style");
@@ -132,7 +131,7 @@ test("bars come back at the top, at the end, and after a pause", async () => {
 		f.to(1000);
 		f.to(1100);
 		assert.equal(f.tucked(), true);
-		await new Promise((resolve) => setTimeout(resolve, 760));
+		await new Promise((resolve) => setTimeout(resolve, 520));
 		assert.equal(f.tucked(), false, "a pause brings the bars back");
 	} finally {
 		f.hide.destroy();
@@ -405,11 +404,13 @@ test("three destinations share the capsule; the home avatar opens settings", () 
 		assert.deepEqual(opened, ["settings"]);
 		assert.equal(app.navKey, "settings");
 		assert.equal(w.document.querySelector("#nav [aria-current=page]").dataset.extra, "home");
-		assert.equal(Panels.settingsGroups[0][0], "add");
+		assert.equal(
+			Panels.settingsGroups.some(([id]) => id === "add"),
+			false,
+		);
 		const page = w.document.createElement("div");
-		page.innerHTML = Panels.settings(app, "add");
-		assert.ok(page.querySelector("#capture-text"));
-		assert.ok(page.querySelector('[data-action="capture-save"]'));
+		page.innerHTML = Panels.settings(app, "desk");
+		assert.equal(page.querySelector('#capture-text,[data-action="capture-save"]'), null);
 		const ai = w.document.createElement("div");
 		ai.innerHTML = Panels.ai();
 		assert.doesNotMatch(ai.textContent, /尚未连接 AI|输入不保存/);

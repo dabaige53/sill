@@ -298,3 +298,13 @@
 - [2026-10-24 手机详情动效修复](records/2026-10-24-phone-detail-motion-fixes/README.md)
 
 - [设置开关使用轻弹簧](adr/0071-settings-toggle-spring.md)
+
+- [动画复核后的加载与操作反馈](adr/0072-web-animation-review-refinements.md)
+
+- [动画五阶段任务交接](guides/animation-worktree-handoff.md)
+
+- [详情承接、AI锚点收缩与手机搜索复核](adr/0076-review-detail-ai-and-phone-search.md)
+- [搜索、阅读与照片的第三批调整](adr/0073-web-search-reading-carousel.md)
+- [第四批状态与动画交接](adr/0074-stage-four-motion-handoffs.md)
+
+- [第三批复核：搜索候选、工具栏等待与照片吸附](adr/0075-search-combobox-photo-snap-review.md)

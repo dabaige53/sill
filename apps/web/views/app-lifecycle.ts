@@ -59,51 +59,43 @@ export const appLifecycleMethods = {
 		this.gestures = new Gestures(this);
 		document.addEventListener("click", (e?: TargetEvent<MouseEvent>) => this.click(e));
 		toolbarTips(document);
-		this.grid.addEventListener("contextmenu", (e: MouseEvent) => {
-			const card = (e.target as Element).closest<HTMLElement>("[data-card]");
-			if (!card || this.drag.active || this.drag.pending) return;
-			e.preventDefault();
-			this.more(card.dataset.card);
-		});
-		document.getElementById("selection-bar").addEventListener("contextmenu", (e: MouseEvent) => {
-			if (!this.selected.size || this.drag.active || this.drag.pending) return;
-			e.preventDefault();
-			const trigger =
-				(e.target as Element).closest<HTMLElement>("button") ||
-				document.querySelector<HTMLElement>('[data-action="selected-bookmark"]');
-			this.drag.openMenu([...this.selected], trigger, { x: e.clientX, y: e.clientY });
-		});
 		this.bindStacks();
 		document.addEventListener("input", (e?: TargetEvent<Event>) => this.input(e));
 		document.addEventListener("compositionend", (e?: TargetEvent<Event>) => this.input(e));
 		this.bindKeyboard();
 		document.addEventListener("keydown", (e?: TargetEvent<KeyboardEvent>) => this.key(e));
-		document.addEventListener("paste", (e?: TargetEvent<ClipboardEvent>) => this.paste(e));
 		["pointerdown", "keydown", "wheel", "touchstart"].forEach((type?: string) => {
 			document.addEventListener(type, () => (this.lastActivity = Date.now()), { passive: true });
 		});
 		document.addEventListener("focusin", (e?: TargetEvent<Event>) => {
-			const menu = document.querySelector<HTMLElement>(".card-more-menu");
-			if (
-				menu &&
-				!menu.contains(e.target) &&
-				!e.target.closest?.<HTMLElement>('[data-action="card-more"]')
-			)
-				this.closeMore();
 			if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing"))
 				this.finishInlineEdit();
 			if (e.target.closest?.("#home-search-field")) this.openHomeSearch(true);
+			if (e.target.id === "filter-search") this.setSearchEditing(true);
 		});
 		// The search field and the AI box show a text cursor across the capsule, so a press on
 		// its padding puts the caret in the input instead of dropping focus.
 		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
+			const phoneSearch = e.target.closest?.<HTMLElement>(".search-header .search-pill");
+			if (phoneSearch && !this.desktop() && !e.target.closest?.("button,input")) {
+				e.preventDefault();
+				phoneSearch
+					.querySelector<HTMLInputElement>("#filter-search")
+					?.focus({ preventScroll: true });
+				return;
+			}
 			const capsule = e.target.closest?.<HTMLElement>("#home-search-field, .ai-dock-row");
-			if (!capsule) return;
+			if (!capsule) {
+				this.openHomeSearch(false);
+				return;
+			}
 			// Picking from the # list keeps the caret in the field.
 			if (e.target.closest?.(".home-hash")) {
 				e.preventDefault();
 				return;
 			}
+			if (capsule.id === "home-search-field" && !e.target.closest?.("button"))
+				this.openHomeSearch(true);
 			if (e.target.closest?.("button, input, .ai-dock-context")) return;
 			const input = capsule.querySelector<HTMLInputElement>("#home-search, #ai-dock-input");
 			if (!input || input.disabled) return;
@@ -141,13 +133,11 @@ export const appLifecycleMethods = {
 			() =>
 				this.dialog.open ||
 				this.drag?.active ||
-				this.drag?.menu?.open ||
 				(this.desktop() &&
 					(this.homeMenuOpen ||
 						this.aiHeight !== "line" ||
 						document.querySelector("#sync-status-panel:popover-open") ||
 						document.activeElement?.matches("#home-search, #ai-dock-input"))),
-			() => this.desktop(),
 		);
 		window.addEventListener("popstate", () => this.route());
 		window.addEventListener("hashchange", () => this.route());
@@ -176,13 +166,12 @@ export const appLifecycleMethods = {
 			},
 			{ passive: true },
 		);
-		this.bindCaptureDrop();
 		this.bindAI();
 		this.themeQuery.addEventListener?.("change", () => this.applyPreferences());
 		this.readTicker = setInterval(() => this.tick(), 1000);
 		if (!location.hash) history.replaceState({ glass: true, prev: null }, "", "#" + this.mode);
-		this.renderCurrent(true);
-		this.route();
+		this.renderCurrent(false);
+		if (!this.initializing) this.route();
 		this.checkReminders();
 		window.__app = this;
 		window.__store = Store; // Deliberate test hooks, no network credentials or private data.
@@ -273,6 +262,14 @@ export const appLifecycleMethods = {
 		return PAGE_KINDS.includes(kind);
 	},
 	goTo(this: AppController, key: string) {
+		if (this.modalKind === "search" && key !== "search") {
+			const query = this.searchText(this.searchFilter.query);
+			if (query)
+				this.searchHistory = [query, ...this.searchHistory.filter((item) => item !== query)].slice(
+					0,
+					8,
+				);
+		}
 		clearTimeout(this.navOpenTimer);
 		this.navOpenTimer = 0;
 		if (key === "home") {

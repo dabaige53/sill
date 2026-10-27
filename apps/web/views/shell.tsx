@@ -1,4 +1,5 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import type React from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { NewContentNotice, OfflineNotice, ToastSurface } from "../atoms/feedback.tsx";
 import { SelectionBar } from "../atoms/selection.tsx";
 
@@ -6,7 +7,13 @@ export { SelectionAI } from "../atoms/selection.tsx";
 
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { MotionEngine } from "../interactions/motion.ts";
+import {
+	anchoredBubble,
+	animateAIDock,
+	type CollapseCapture,
+	type CollapseVisual,
+	captureAIDock,
+} from "../interactions/ai-collapse.ts";
 import { sillIcon } from "../interactions/panel-primitives.tsx";
 
 import { HomeScopeMenu, homeTabs } from "./home-scope-menu.tsx";
@@ -17,27 +24,8 @@ import { HomeSearchField } from "./home-search-field.tsx";
  * Desktop: brand, a ⌄ tab menu, the search field and the avatar on one 40px line (ADR 0049).
  */
 export function HomeTop() {
-	const header = useRef<HTMLElement>(null);
-	useLayoutEffect(() => {
-		const node = header.current;
-		if (!node) return;
-		if (matchMedia("(min-width: 651px)").matches) {
-			MotionEngine.change(
-				node,
-				() => node.classList.remove("is-entering"),
-				MotionEngine.time("dur-reveal"),
-				{ easing: MotionEngine.curve("ease-reveal") },
-			);
-		} else {
-			node.classList.remove("is-entering");
-		}
-		return () => {
-			MotionEngine.cancel(node);
-			node.style.visibility = "";
-		};
-	}, []);
 	return (
-		<header ref={header} id="home-top" className="home-top is-entering">
+		<header id="home-top" className="home-top">
 			<span className="home-edge-blur" aria-hidden="true" />
 			<div className="home-heading">
 				<div className="home-brand">
@@ -138,17 +126,23 @@ export function AIDock() {
 	const dock = useRef<HTMLDivElement>(null);
 	const drag = useRef<{ x: number; position: number; moved: boolean } | null>(null);
 	const moved = useRef(false);
-	const before = useRef<DOMRect | null>(null);
-	const animation = useRef<Animation | null>(null);
-	const toggle = (value: boolean) => {
-		before.current = dock.current?.getBoundingClientRect() ?? null;
-		animation.current?.cancel();
-		setCollapsed(value);
+	const before = useRef<CollapseCapture | null>(null);
+	const animation = useRef<CollapseVisual | null>(null);
+	const anchor = useRef<DOMRect | null>(null);
+	const expandedPosition = useRef(0);
+	const bubbleY = useRef(0);
+	const toggle = useCallback((value: boolean) => {
+		const node = dock.current;
+		if (!node || node.classList.contains("is-collapsed") === value) return;
+		before.current = captureAIDock(node, animation.current);
 		if (value) {
-			positionRef.current = positionRef.current < 0 ? -1 : 1;
-			setPosition(positionRef.current);
-		}
-	};
+			expandedPosition.current = positionRef.current;
+			anchor.current = node.querySelector(".ai-dock-tools button")?.getBoundingClientRect() || null;
+		} else positionRef.current = expandedPosition.current;
+		animation.current?.cancel();
+		animation.current = null;
+		setCollapsed(value);
+	}, []);
 	const range = () =>
 		Math.max(
 			0,
@@ -162,37 +156,21 @@ export function AIDock() {
 		const node = dock.current;
 		if (!node) return;
 		const update = () => {
-			node.style.translate = positionRef.current * range() + "px 0";
+			if (collapsed && anchor.current) {
+				node.style.translate = "none";
+				const natural = node.getBoundingClientRect();
+				const target = anchoredBubble(anchor.current, natural.width);
+				positionRef.current = (target.left - natural.left) / (range() || 1);
+				bubbleY.current = target.top - natural.top;
+				anchor.current = null;
+			}
+			node.style.translate = `${positionRef.current * range()}px ${collapsed ? bubbleY.current : 0}px`;
 		};
 		update();
 		if (before.current) {
-			const old = before.current;
+			const captured = before.current;
 			before.current = null;
-			const next = node.getBoundingClientRect();
-			const surface = node.querySelector<HTMLElement>(".ai-dock-surface")!;
-			const dx = old.left + old.width / 2 - next.left - next.width / 2;
-			const scale = old.width / next.width;
-			animation.current = surface.animate(
-				[
-					{ transform: "translateX(" + dx + "px) scaleX(" + scale + ")" },
-					{ transform: "translateX(0) scaleX(1)" },
-				],
-				{ duration: MotionEngine.time("dur-state"), easing: MotionEngine.curve("ease-reveal") },
-			);
-			for (const child of node.children) {
-				if (!(child instanceof HTMLElement) || child === surface) continue;
-				for (const active of child.getAnimations()) active.cancel();
-				child.animate(
-					[
-						{ opacity: 0, transform: "translateX(" + dx + "px)" },
-						{ opacity: 1, transform: "translateX(0)" },
-					],
-					{
-						duration: MotionEngine.time("dur-state"),
-						easing: MotionEngine.curve("ease-reveal"),
-					},
-				);
-			}
+			animation.current = animateAIDock(node, captured, collapsed);
 		}
 		const observer = new ResizeObserver(update);
 		observer.observe(node);
@@ -200,10 +178,13 @@ export function AIDock() {
 		return () => observer.disconnect();
 	});
 	useLayoutEffect(() => {
-		const open = () => setCollapsed(false);
+		const open = () => {
+			if (dock.current?.classList.contains("is-collapsed")) toggle(false);
+		};
 		window.addEventListener("sill:expand-ai", open);
 		return () => window.removeEventListener("sill:expand-ai", open);
-	}, []);
+	}, [toggle]);
+	useLayoutEffect(() => () => animation.current?.cancel(), []);
 	const pointer = {
 		onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
 			if (e.button !== 0 || dock.current?.dataset.height !== "line") return;
@@ -216,7 +197,7 @@ export function AIDock() {
 			e.preventDefault();
 			e.stopPropagation();
 			moved.current = false;
-			animation.current?.finish();
+			animation.current?.complete();
 			drag.current = { x: e.clientX, position: positionRef.current, moved: false };
 			(target.closest<HTMLElement>(".ai-dock-restore") ?? e.currentTarget).setPointerCapture(
 				e.pointerId,
@@ -231,7 +212,8 @@ export function AIDock() {
 			if (drag.current.moved) {
 				const next = Math.max(-1, Math.min(1, drag.current.position + delta / (range() || 1)));
 				positionRef.current = next;
-				if (dock.current) dock.current.style.translate = next * range() + "px 0";
+				if (dock.current)
+					dock.current.style.translate = `${next * range()}px ${collapsed ? bubbleY.current : 0}px`;
 				// Rebase at the boundary so reversing direction responds immediately.
 				drag.current.x = e.clientX;
 				drag.current.position = next;
@@ -367,10 +349,6 @@ export function WorkspaceShell() {
 			</div>
 			<NewContentNotice />
 			<div className="scroll-edge" id="scroll-edge" aria-hidden="true" />
-			<div className="drop-hint" id="drop-hint" hidden>
-				<span>{copy("web.app.2c8fe7be9774")}</span>
-				<small>{copy("web.app.4cb50c8338fe")}</small>
-			</div>
 			<dialog id="modal" aria-labelledby="modal-title" />
 			<ToastSurface />
 			<div className="sr-only" id="announcer" aria-live="polite" />

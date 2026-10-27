@@ -86,16 +86,120 @@ test("settings changes preserve focus, scroll, the previous value and unrelated 
 	}
 });
 
-test("action visibility toggles hide and restore only the requested verb", () => {
+test("removed action hiding command leaves legacy preferences unchanged", () => {
 	const f = fixture();
 	try {
 		f.Store.setPref("hiddenActions", ["reply"]);
 		f.app.action("action-toggle", "bookmark");
-		assert.deepEqual(Array.from(f.Store.pref("hiddenActions")), ["reply", "bookmark"]);
-		f.app.action("action-toggle", "reply");
-		assert.deepEqual(Array.from(f.Store.pref("hiddenActions")), ["bookmark"]);
-		f.app.action("action-toggle", "bookmark");
-		assert.deepEqual(Array.from(f.Store.pref("hiddenActions")), []);
+		assert.deepEqual(Array.from(f.Store.pref("hiddenActions")), ["reply"]);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+for (const phone of [false, true]) {
+	test(`reminder completion and restore retain the open ${phone ? "phone" : "desktop"} preview`, () => {
+		const f = fixture();
+		try {
+			const { app, Store, Panels, w } = f;
+			w.matchMedia = () => ({ matches: phone, addEventListener() {} });
+			const reminder = {
+				id: "reminder-one",
+				type: "reminder",
+				title: "Synthetic reminder",
+				body: "Keep this detail open",
+			};
+			Store.state.cards = [reminder];
+			Store.patch(reminder.id, { bookmarked: true, note: "Keep this note" });
+			app.currentId = reminder.id;
+			app.modalKind = "preview";
+			app.dialog.innerHTML = Panels.preview(app, reminder);
+			w.history.replaceState({ glass: true, prev: "#feed" }, "", "#card/reminder-one");
+			const sheet = app.dialog.querySelector(".preview-sheet");
+			const scroll = app.dialog.querySelector(".sheet-scroll");
+			const button = app.dialog.querySelector(".reminder-check");
+			sheet.classList.add("is-full");
+			scroll.scrollTop = 170;
+			button.focus();
+			let closes = 0;
+			let refreshes = 0;
+			app.closeToDesk = () => closes++;
+			app.refreshCard = () => refreshes++;
+			app.checkReminders = () => {};
+			w.document.body.insertAdjacentHTML("beforeend", '<button id="account">Account</button>');
+
+			for (const done of [true, false]) {
+				app.action(button.dataset.action, reminder.id);
+				assert.equal(Store.item(reminder.id).reminderDone, done);
+				assert.equal(button.dataset.action, done ? "restore-reminder" : "complete-reminder");
+				assert.equal(button.getAttribute("aria-pressed"), String(done));
+				assert.equal(button.querySelector(".check-dot").classList.contains("is-done"), done);
+				assert.equal(!!button.querySelector("svg"), done);
+				assert.equal(app.dialog.open, true);
+				assert.equal(app.dialog.querySelector(".preview-sheet"), sheet);
+				assert.equal(sheet.classList.contains("is-full"), true);
+				assert.equal(scroll.scrollTop, 170);
+				assert.equal(w.document.activeElement, button);
+				assert.equal(w.location.hash, "#card/reminder-one");
+			}
+			assert.equal(closes, 0);
+			assert.equal(refreshes, 2);
+			assert.equal(Store.item(reminder.id).bookmarked, true);
+			assert.equal(Store.item(reminder.id).note, "Keep this note");
+			app.action("dismiss-reminder", reminder.id);
+			assert.equal(closes, 1, "dismiss keeps its existing close behavior");
+		} finally {
+			f.dom.window.close();
+		}
+	});
+}
+
+test("manual capture actions, shortcut and panel no longer create a note", () => {
+	const f = fixture();
+	try {
+		const before = JSON.stringify(f.Store.state.cards);
+		const dialog = f.app.dialog.innerHTML;
+		f.app.action("capture");
+		f.app.action("capture-save");
+		f.app.openPanel("capture");
+		assert.equal(f.app.dialog.innerHTML, dialog);
+		f.app.dialog.open = false;
+		const event = new f.w.KeyboardEvent("keydown", { key: "n", cancelable: true, bubbles: true });
+		f.w.document.addEventListener("keydown", (e) => f.app.key(e));
+		f.app.grid.dispatchEvent(event);
+		assert.equal(event.defaultPrevented, false);
+		assert.equal(f.app.dialog.open, false);
+		assert.equal(JSON.stringify(f.Store.state.cards), before);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("the settings button receives press feedback after keyboard use", async () => {
+	const f = fixture();
+	try {
+		const { w } = f;
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		const button = w.document.createElement("button");
+		button.id = "account";
+		button.className = "home-account";
+		w.document.body.append(button);
+		w.document.documentElement.dataset.inputModality = "keyboard";
+		w.ControllerTest.MotionEngine.bind();
+		const press = new w.MouseEvent("pointerdown", { button: 0, bubbles: true });
+		Object.defineProperty(press, "isPrimary", { value: true });
+		button.dispatchEvent(press);
+		assert.equal(w.document.documentElement.dataset.inputModality, "pointer");
+		assert.equal(animations.length, 1);
+		assert.equal(animations[0].target, button);
+		animations[0].finish();
+		await Promise.resolve();
+		assert.equal(button.style.transform, "scale(0.97)");
+		w.document.dispatchEvent(new w.Event("pointerup"));
+		animations.at(-1).finish();
+		await Promise.resolve();
+		assert.equal(button.style.transform, "");
 	} finally {
 		f.dom.window.close();
 	}
@@ -298,11 +402,12 @@ test("settings toggles animate their knob without fading the panel", () => {
 		w.__motionAnimations = animations;
 		app.setPref("stack", false);
 		assert.equal(animations.length, 2);
-		assert.equal(animations[0].options.pseudoElement, "::before");
-		assert.equal(animations[0].options.visualDuration, 0.2);
+		assert.equal(animations[0].target.classList.contains("toggle-knob"), true);
+		assert.equal(animations[0].options.pseudoElement, undefined);
+		assert.equal(animations[0].options.visualDuration, 0.32);
 		assert.equal(animations[0].options.bounce, 0.2);
 		assert.ok("backgroundColor" in animations[1].frames[0]);
-		assert.equal(animations[1].options.visualDuration, 0.2);
+		assert.equal(animations[1].options.visualDuration, 0.32);
 		assert.equal(animations[0].frames[0].transform, "translateX(20px)");
 		assert.equal(animations[0].frames[1].transform, "none");
 		w.document.documentElement.dataset.inputModality = "keyboard";
@@ -397,7 +502,6 @@ test("an open card below the feed top tucks the desktop top bar and AI box until
 		let atTop = true;
 		app.desktop = () => true;
 		app.modalToken = 1;
-		app.closeMore = () => {};
 		app.dialog.showModal = () => app.dialog.setAttribute("open", "");
 		app.dialog.close = () => app.dialog.removeAttribute("open");
 		app.dialog.getAnimations = () => [];
@@ -436,16 +540,26 @@ test("AI references enter once and stay inert until their removal finishes", asy
 		const animations: any[] = [];
 		w.__motionAnimations = animations;
 		app.renderAIDock();
-		assert.equal(animations.length, 1);
+		assert.equal(animations.length, 2);
 		app.renderAIDock();
-		assert.equal(animations.length, 1);
+		assert.equal(animations.length, 2);
 		app.action("ai-context-remove", "mail-one");
 		const node = w.document.querySelector("[data-ai-context]");
 		assert.equal(node.inert, true);
 		assert.equal(w.document.querySelectorAll("[data-ai-context]").length, 1);
+		assert.equal(animations[0].options.duration, 500);
+		assert.equal(animations[1].options.duration, 180);
+		assert.equal(animations.at(-2).options.duration, 220);
+		assert.equal(animations.at(-1).options.duration, 140);
 		animations.at(-1).finish();
 		await Promise.resolve();
-		await Promise.resolve();
+		assert.equal(
+			w.document.querySelectorAll("[data-ai-context]").length,
+			1,
+			"fade alone cannot remove a traveling reference",
+		);
+		animations.at(-2).finish();
+		for (let i = 0; i < 5; i++) await Promise.resolve();
 		assert.equal(w.document.querySelectorAll("[data-ai-context]").length, 0);
 	} finally {
 		f.dom.window.close();
@@ -475,6 +589,108 @@ test("new cover fades to its read-state opacity and cached covers do not replay"
 		app.revealImages(app.grid);
 		assert.equal(animations.length, 1);
 	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("task completion retains the detail, toolbar, checklist focus and scroll", () => {
+	const f = fixture();
+	try {
+		const card = {
+			id: "task-one",
+			type: "task",
+			title: "Tasks",
+			tasks: [
+				{ id: "first", text: "First" },
+				{ id: "second", text: "Second" },
+			],
+		};
+		f.Store.state.cards = [card];
+		f.app.currentId = card.id;
+		f.app.modalKind = "preview";
+		f.app.checkReminders = () => {};
+		const { PanelViews, renderContent } = f.w.ControllerTest;
+		renderContent(f.app.dialog, PanelViews.preview(f.app, card));
+		const sheet = f.app.dialog.querySelector(".preview-sheet");
+		const bar = f.app.dialog.querySelector(".float-bar");
+		const scroll = f.app.dialog.querySelector(".sheet-scroll");
+		const button = f.app.dialog.querySelector('[data-action="task"]');
+		scroll.scrollTop = 80;
+		button.focus();
+		f.app.toggleTask(card.id, "first");
+		assert.equal(f.app.dialog.querySelector(".preview-sheet"), sheet);
+		assert.equal(f.app.dialog.querySelector(".float-bar"), bar);
+		assert.equal(f.w.document.activeElement, button);
+		assert.equal(scroll.scrollTop, 80);
+		assert.equal(button.getAttribute("aria-checked"), "true");
+		f.app.toggleTask(card.id, "first");
+		assert.equal(button.getAttribute("aria-checked"), "false");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("the controller keeps the video iframe through preview/fullscreen in both directions", async () => {
+	const f = fixture();
+	const { w, Store } = f;
+	const app = new w.ControllerTest.AppController();
+	try {
+		const card = {
+			id: "video-one",
+			type: "media",
+			media: "video",
+			title: "Video",
+			url: "https://youtu.be/abcdefghijk",
+			duration: 120,
+		};
+		Store.state.cards = [card];
+		Store.item(card.id).seen = true;
+		const dialog = f.app.dialog;
+		dialog.open = false;
+		dialog.showModal = () => {
+			dialog.open = true;
+		};
+		dialog.close = () => {
+			dialog.open = false;
+		};
+		app.dialog = dialog;
+		app.grid = f.app.grid;
+		app.desktop = () => true;
+		app.refreshCard = () => {};
+		app.bindReader = () => {};
+		app.bindPreview = () => {};
+		app.bindSheetChrome = () => {};
+		app.railHide = { atTop: () => true };
+		app.gestures = { bindPullDown() {} };
+		w.document.documentElement.dataset.inputModality = "keyboard";
+		w.requestAnimationFrame = (fn: () => void) => {
+			fn();
+			return 1;
+		};
+		let created = 0,
+			destroyed = 0;
+		w.YT = {
+			Player: class {
+				constructor() {
+					created++;
+				}
+				destroy() {
+					destroyed++;
+				}
+			},
+		};
+		app.openCard(card.id);
+		await new Promise((resolve) => setImmediate(resolve));
+		const frame = dialog.querySelector("iframe");
+		assert.ok(frame);
+		app.openCard(card.id, true);
+		assert.equal(dialog.querySelector("iframe") === frame, true);
+		app.openCard(card.id, false);
+		assert.equal(dialog.querySelector("iframe") === frame, true);
+		assert.equal(created, 1);
+		assert.equal(destroyed, 0);
+	} finally {
+		w.ControllerTest.renderContent(f.app.dialog, null);
 		f.dom.window.close();
 	}
 });

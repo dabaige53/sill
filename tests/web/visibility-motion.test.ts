@@ -68,22 +68,22 @@ test("sliding glass chrome does not start an opacity animation and restores visi
 		f.dom.window.close();
 	}
 });
-test("desktop header enters and retargets as one transform without opacity tracks", async () => {
+test("desktop header restores and retargets after scrolling without opacity tracks", async () => {
 	const f = fixture();
 	try {
 		f.el.hidden = false;
 		f.el.id = "home-top";
-		f.el.classList.add("is-entering");
+		f.el.classList.add("is-tucked");
 		f.w.matchMedia = () => ({ matches: true });
 		const style = f.w.document.createElement("style");
 		style.textContent =
-			":root { --dur-open:280ms; --dur-tuck:240ms } #home-top { opacity:1; transform:translateY(0px) } #home-top.is-entering, #home-top.is-tucked { transform:translateY(-86px); visibility:hidden }";
+			":root { --dur-open:280ms; --dur-tuck:240ms } #home-top { opacity:1; transform:translateY(0px) } #home-top.is-tucked { transform:translateY(-86px); visibility:hidden }";
 		f.w.document.head.append(style);
-		f.motion.change(f.el, () => f.el.classList.remove("is-entering"));
+		f.motion.change(f.el, () => f.el.classList.remove("is-tucked"));
 		assert.equal(f.animations.length, 1);
 		assert.equal(f.animations[0].frames[0].transform, "translateY(-86px)");
 		assert.equal(f.animations[0].options.duration, 280);
-		// Reverse before entrance completes; the old completion must not hide the header.
+		// Reverse before restoration completes; the old completion must not hide the header.
 		f.motion.change(f.el, () => f.el.classList.add("is-tucked"));
 		assert.equal(f.animations.at(-1).options.duration, 240);
 		f.motion.change(f.el, () => f.el.classList.remove("is-tucked"));
@@ -183,6 +183,25 @@ test("layout retargeting animates position without changing width or scaling tex
 	}
 });
 
+test("direct phone FLIP cancels old layout motion without starting reflow or width fades", () => {
+	const f = fixture();
+	try {
+		for (const width of [650, 390]) {
+			f.w.innerWidth = width;
+			let cancelled = false;
+			f.motion.layoutAnimations.set(f.el, { cancel: () => (cancelled = true) });
+			f.motion.flip(f.el, { left: 120, top: 40, width: 200 }, { left: 20, top: 10, width: 300 });
+			assert.equal(cancelled, true);
+			assert.equal(f.motion.layoutAnimations.has(f.el), false);
+			assert.equal(f.animations.length, 0);
+		}
+		f.motion.drop(f.el);
+		assert.equal(f.animations.length, 1, "independent arrival motion remains available on phones");
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("motion durations accept both milliseconds and Vite-minified seconds", () => {
 	const f = fixture();
 	try {
@@ -232,34 +251,6 @@ test("pseudo-element animation neither cancels nor writes the host transform", a
 		f.animations[0].finish();
 		await Promise.resolve();
 		assert.equal(f.el.style.transform, "scale(.97)");
-	} finally {
-		f.dom.window.close();
-	}
-});
-
-test("search expansion scales only its background and translates text at fixed size", () => {
-	const f = fixture();
-	try {
-		f.el.innerHTML = '<span class="icon"></span><input id="home-search">';
-		f.el.getBoundingClientRect = () => ({ width: 480 });
-		const computed = f.w.getComputedStyle.bind(f.w);
-		f.w.getComputedStyle = (el: Element, pseudo?: string) =>
-			pseudo ? { transform: "none" } : computed(el);
-		f.motion.searchResize(f.el, 280);
-		assert.equal(f.animations.length, 3);
-		assert.equal(f.animations[0].options.pseudoElement, "::before");
-		assert.match(f.animations[0].frames[0].transform, /scaleX\(0\.583/);
-		for (const animation of f.animations.slice(1)) {
-			assert.equal(animation.frames[0].transform, "translateX(200px)");
-			assert.ok(
-				animation.frames.every(
-					(frame: any) => !("width" in frame) && !String(frame.transform).includes("scale"),
-				),
-			);
-		}
-		f.w.document.documentElement.dataset.inputModality = "keyboard";
-		f.motion.searchResize(f.el, 480);
-		assert.equal(f.animations.length, 3);
 	} finally {
 		f.dom.window.close();
 	}

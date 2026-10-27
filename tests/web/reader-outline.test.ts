@@ -1,0 +1,73 @@
+/** Outline clicks jump immediately in a synthetic DOM; no browser or workspace data. */
+import assert from "node:assert/strict";
+import path from "node:path";
+import test from "node:test";
+import { buildSync } from "esbuild";
+import { JSDOM } from "jsdom";
+
+const bundle = buildSync({
+	stdin: {
+		contents: `import {createElement as h} from 'react';
+import {createRoot} from 'react-dom/client';
+import {flushSync} from 'react-dom';
+import {ReaderLayout} from './apps/web/interactions/reader-layout.tsx';
+import {markdownHeadings} from './apps/web/atoms/markdown.ts';
+export function mount(host) {
+ const body = '## First\\nFirst text\\n## Second\\nSecond text';
+ const headings = markdownHeadings(body);
+ const root = createRoot(host);
+ flushSync(() => root.render(h(ReaderLayout, {kind:'article', body},
+  h('article', null, headings.map(item => h('h2', {key:item.id, id:item.id}, item.title))))));
+ return {flush:fn => flushSync(fn), close:() => flushSync(() => root.unmount())};
+}`,
+		resolveDir: path.resolve(import.meta.dirname, "../.."),
+		loader: "tsx",
+	},
+	bundle: true,
+	write: false,
+	format: "iife",
+	platform: "browser",
+	globalName: "OutlineTest",
+}).outputFiles[0].text;
+
+test("mouse and keyboard outline navigation finish before the handler returns", () => {
+	const dom = new JSDOM('<div id="root"></div>', {
+		url: "https://sill.test/#read/example",
+		runScripts: "outside-only",
+	});
+	const w = dom.window as any;
+	w.ResizeObserver = class {
+		observe() {}
+		disconnect() {}
+	};
+	w.eval(bundle);
+	const api = w.OutlineTest.mount(w.document.querySelector("#root"));
+	try {
+		const region = w.document.querySelector("#reader-scroll");
+		const links = w.document.querySelectorAll(".reader-outline a");
+		Object.defineProperties(region, {
+			scrollHeight: { value: 1400 },
+			clientHeight: { value: 400 },
+		});
+		region.getBoundingClientRect = () => ({ top: 100 });
+		const sections = region.querySelectorAll("h2");
+		sections[0].getBoundingClientRect = () => ({ top: 116 - region.scrollTop });
+		sections[1].getBoundingClientRect = () => ({ top: 716 - region.scrollTop });
+		for (const detail of [1, 0]) {
+			region.scrollTop = 0;
+			api.flush(() => {
+				links[1].dispatchEvent(
+					new w.MouseEvent("click", { bubbles: true, cancelable: true, detail }),
+				);
+				assert.equal(region.scrollTop, 600);
+			});
+			assert.equal(links[1].getAttribute("aria-current"), "location");
+			assert.equal(w.location.hash, "#read/example");
+		}
+		assert.equal(w.document.querySelector(".reader-outline-toggle"), null);
+		assert.equal(w.document.querySelector(".reader-outline").hidden, false);
+	} finally {
+		api.close();
+		dom.window.close();
+	}
+});
