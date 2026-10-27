@@ -1,0 +1,27 @@
+/* Sill · responsive · shared source */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.glass {
+		background: var(--card);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		box-shadow:
+			0 0 0 1px var(--line-hover),
+			var(--shadow-glass);
+	}
+	.nav-lens {
+		--lens-highlight: var(--surface);
+		background: var(--surface);
+		box-shadow: inset 0 0 0 1px var(--line-hover);
+	}
+	:is(#modal, #search-background).search::backdrop {
+		background: var(--canvas);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
+@media (max-width: 1000px) {
+	main {
+		padding: var(--space-24) var(--space-12) var(--space-140);
+	}
+}
+/* Phone: one column, bottom sheets, thumbs-first toolbars. */

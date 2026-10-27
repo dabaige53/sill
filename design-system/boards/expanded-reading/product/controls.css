@@ -1,0 +1,747 @@
+/* Sill · controls · shared source */
+/* Liquid glass, for the functional layer only (bars, round buttons, menus floating over content).
+   A clear, lightly tinted lens: little fill, a short blur with lifted saturation so the content
+   beneath still shows its colour, a bright specular rim on the top-left, a softer one bottom-right,
+   and a hairline that separates it from white cards. The lens light is a highlight, not decoration. */
+.glass {
+	position: relative;
+	isolation: isolate;
+	background: var(--glass);
+	border: 0;
+	box-shadow:
+		inset 0 1px 0.5px var(--glass-edge),
+		inset 1px 0 0.5px var(--glass-shade),
+		inset 0 -1px 1px var(--glass-shade),
+		inset 0 0 0 0.5px var(--glass-shade),
+		0 0 0 0.5px var(--glass-rim),
+		var(--shadow-glass);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+}
+.glass::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	pointer-events: none;
+	background: radial-gradient(120% 90% at 20% 0%, var(--glass-shade), transparent 60%);
+}
+.icon-button {
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+	padding: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: transparent;
+	position: relative;
+	color: var(--ink);
+}
+@media (hover: hover) and (pointer: fine) {
+	.icon-button:hover {
+		background: var(--surface);
+	}
+}
+.icon-button:active {
+	background: var(--surface);
+}
+.icon-button.active {
+	color: var(--accent);
+}
+.icon-button.active svg {
+	fill: currentColor;
+	fill-opacity: 0.9;
+}
+
+/* The bottom rail: one navigation capsule, centred. Home, search, AI and settings; a glass lens
+   marks where you are and slides between places. Anything else that floats at the bottom
+   (selection, new content, offline) sits beside it on the same baseline. */
+:root {
+	--rail-edge: 28px;
+	--rail-bottom: 28px;
+	--rail-row: 60px;
+	--rail-gap: 8px;
+	--rail-tuck: var(--dur-tuck);
+	--nav-tab: 76px;
+}
+#dock {
+	position: fixed;
+	left: var(--rail-edge);
+	right: var(--rail-edge);
+	bottom: var(--rail-bottom);
+	z-index: 45;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: var(--rail-gap);
+	pointer-events: none;
+}
+body:has(#modal[open] .settings-layout) #dock {
+	display: none;
+}
+#dock > * {
+	pointer-events: auto;
+}
+#dock.is-tucked {
+	transform: var(--motion-toolbar-transform, translateY(20px));
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+/* Descendants opt into hit testing normally, so suppress them throughout the fade. */
+#dock.is-tucked *,
+body:has(#modal[open]:not(.page)) #dock * {
+	pointer-events: none;
+}
+.nav-capsule {
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: var(--rail-row);
+	padding: var(--space-4);
+	border-radius: var(--pill-radius);
+}
+.nav-tab {
+	position: relative;
+	z-index: 1;
+	width: var(--nav-tab);
+	height: 100%;
+	padding: 0;
+	border: 0;
+	border-radius: var(--pill-radius);
+	background: none;
+	color: color-mix(in srgb, var(--ink) 62%, transparent);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	font: inherit;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+.nav-tab[aria-current="page"] {
+	color: var(--ink);
+}
+.nav-icon {
+	display: grid;
+	place-items: center;
+	height: 28px;
+}
+/* The current destination is immediate; the merged motion rules keep the lens stable. */
+.nav-lens {
+	position: absolute;
+	top: 4px;
+	bottom: 4px;
+	left: 0;
+	width: var(--lens-w, var(--nav-tab));
+	translate: var(--lens-x, 4px) 0;
+	border-radius: var(--pill-radius);
+	background: var(--glass-press);
+	box-shadow:
+		inset 0 1px 0.5px var(--glass-edge),
+		inset 0 -0.5px 0.5px var(--glass-shade);
+}
+/* A filter in effect: a small dot under the search icon, never a count. */
+#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after {
+	content: "";
+	position: absolute;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--ink);
+	translate: 11px -9px;
+}
+.nav-tab .nav-icon {
+	position: relative;
+}
+/* Settings uses the same line weight and color as the other navigation icons. */
+.account-wrap {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+}
+/* Scroll edge: where the feed meets the rail it softens and blurs a little, so the glass reads
+   against calm content. It belongs to the rail and leaves with it. */
+.scroll-edge {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: calc(var(--rail-bottom) + var(--rail-row) + 20px);
+	z-index: 44;
+	pointer-events: none;
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--canvas) 70%, transparent),
+		color-mix(in srgb, var(--canvas) 0%, transparent)
+	);
+}
+.scroll-edge.is-tucked {
+	opacity: 0;
+}
+/* New content and offline float just above the capsule, centred, so the capsule never shifts.
+   New content sits outside the dock so the phone can lift it to the top (ADR 0036). */
+#dock #offline {
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% + 10px);
+	translate: -50% 0;
+}
+#new-count {
+	position: fixed;
+	z-index: 46;
+	left: 50%;
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 10px);
+	translate: -50% 0;
+	height: 40px;
+	padding: 0 var(--space-16);
+	border-radius: var(--pill-radius);
+	font-size: var(--text-meta);
+	font-weight: 600;
+	color: var(--ink);
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+}
+#new-count:has(.new-sources) {
+	padding-left: var(--space-8);
+}
+.new-sources {
+	display: inline-flex;
+	margin-right: var(--space-2);
+}
+.new-sources > span {
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	margin-left: calc(-1 * var(--space-6));
+	border-radius: 50%;
+	background: var(--card);
+	border: 1px solid var(--line);
+	color: var(--secondary);
+}
+.new-sources > span:first-child {
+	margin-left: 0;
+}
+/* Desktop: the notice rides with the capsule and leaves with it. */
+body:has(#dock.is-tucked) #new-count,
+body:has(#modal[open]) #new-count {
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+#new-count[hidden] {
+	display: none;
+}
+/* Busy: one quiet arc travelling around the settings icon. No percentages, no spinner text. */
+.orb-arc {
+	position: absolute;
+	inset: -3px;
+	width: 34px;
+	height: 34px;
+	pointer-events: none;
+	opacity: 0;
+}
+.orb-arc circle {
+	fill: none;
+	stroke: var(--accent);
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-dasharray: 22 78;
+	transform-origin: center;
+}
+#dock.is-busy .orb-arc {
+	opacity: 0.9;
+}
+/* Done: the arc closes and a check shows over the settings icon, then both fade. */
+.orb-done {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	border-radius: 50%;
+	background: var(--glass-thick);
+	color: var(--accent);
+	opacity: 0;
+	scale: 0.8;
+	pointer-events: none;
+}
+#dock.is-done .orb-done {
+	opacity: 1;
+	scale: 1;
+}
+#dock.is-done .orb-arc {
+	opacity: 0.9;
+}
+#dock.is-done .orb-arc circle {
+	stroke-dasharray: 100 0;
+}
+/* Offline: a quiet pill above the rail; a tap retries. */
+#offline {
+	height: 40px;
+	padding: 0 var(--space-14);
+	border-radius: var(--pill-radius);
+	font-size: var(--text-meta);
+	font-weight: 500;
+	color: var(--alert);
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-8);
+}
+#offline:before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--alert);
+}
+#offline[hidden] {
+	display: none;
+}
+
+/* Selection takes the rail row; new-content and offline pills step aside. */
+:is(#selection-bar, #search-selection-bar) {
+	position: relative;
+	justify-content: safe center;
+	height: var(--rail-row);
+	border-radius: var(--pill-radius);
+	display: flex;
+	align-items: center;
+	padding: var(--space-4);
+	gap: var(--space-2);
+	max-width: calc(100vw - 2 * var(--rail-edge) - 3 * var(--nav-tab) - 8px - var(--rail-gap));
+	overflow: visible;
+	scrollbar-width: none;
+}
+#dock:has(#selection-bar:not([hidden])) #offline,
+body:has(#selection-bar:not([hidden])) #new-count {
+	display: none;
+}
+:is(#selection-bar, #search-selection-bar)[hidden] {
+	display: none;
+}
+.selection-count {
+	display: grid;
+	place-items: center;
+	min-width: 28px;
+	height: 28px;
+	margin: 0 var(--space-8);
+	padding: 0 var(--space-8);
+	border-radius: var(--pill-radius);
+	background: var(--accent-fill);
+	color: var(--fixed-white);
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+.toolbar-sep {
+	width: 1px;
+	height: 22px;
+	background: var(--line-hover);
+	margin: 0 var(--space-6);
+	flex: none;
+}
+/* A card's own verbs (reply, open the source, join, remind again) follow the rule in accent;
+   the shared verbs before it stay in ink (ADR 0037). */
+.float-bar .icon-button.is-own {
+	color: var(--accent);
+}
+.float-bar .icon-button,
+:where(#dock) button {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+/* One name for touch, pointer and keyboard; edge controls open their names inward. */
+.float-bar .icon-button::after {
+	--tip-x: -50%;
+	content: attr(aria-label);
+	position: absolute;
+	bottom: calc(100% + 10px);
+	left: 50%;
+	translate: var(--tip-x) 4px;
+	padding: var(--space-6) var(--space-10);
+	border-radius: 10px;
+	background: var(--ink);
+	color: var(--card);
+	font-size: var(--text-meta);
+	font-weight: 500;
+	line-height: 1.3;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+}
+.float-bar .icon-button:is(:first-child, :last-child)::after {
+	--tip-x: 0px;
+}
+.float-bar .icon-button:last-child::after {
+	left: auto;
+	right: 50%;
+}
+.float-bar .icon-button.is-tipping::after,
+.float-bar .icon-button.is-hover-tipping::after,
+.float-bar .icon-button:focus-visible::after {
+	opacity: 1;
+	translate: var(--tip-x) 0;
+}
+#toast {
+	position: fixed;
+	right: var(--rail-edge);
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
+	max-width: min(420px, calc(100vw - 2 * var(--rail-edge)));
+	min-height: 44px;
+	padding: 0 var(--space-6) 0 var(--space-18);
+	border-radius: var(--pill-radius);
+	z-index: 120;
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	font-size: var(--text-meta);
+}
+/* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
+#modal #toast {
+	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
+}
+#toast.is-alert {
+	color: var(--ink);
+}
+#toast.is-alert .icon-button {
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
+}
+body.is-dragging #toast {
+	visibility: hidden;
+}
+#toast[hidden] {
+	display: none;
+}
+#toast-text {
+	white-space: normal;
+	padding: var(--space-10) 0;
+}
+#toast-text:only-child {
+	padding-right: var(--space-12);
+}
+#toast-action .text-link {
+	padding: var(--space-10) var(--space-12);
+}
+#toast-action:empty {
+	display: none;
+}
+
+/* Desktop bottom rail (ADR 0049): the AI box replaces the navigation capsule.
+   Selection takes the same 640 × 60 slot; a carried card brings the AI box back. */
+.ai-dock {
+	display: none;
+}
+@media (min-width: 651px) {
+	#dock .nav-capsule,
+	#dock .selection-ai-target {
+		display: none;
+	}
+	.ai-dock {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		width: min(var(--ai-dock-width), 100%);
+		border-radius: 30px;
+	}
+	.ai-dock-row {
+		display: flex;
+		flex: none;
+		align-items: center;
+		gap: var(--space-4);
+		height: var(--rail-row);
+		padding: 0 var(--space-12);
+	}
+	#dock.is-ai-drag #selection-bar {
+		display: none;
+	}
+	#dock.is-ai-drag:has(#selection-bar) .ai-dock {
+		display: flex;
+		visibility: visible !important;
+		opacity: 1 !important;
+	}
+	.ai-dock.is-ready {
+		background: color-mix(in srgb, var(--accent) 7%, var(--card));
+		box-shadow:
+			0 0 0 2px var(--accent),
+			0 16px 40px -14px color-mix(in srgb, var(--accent) 45%, transparent);
+	}
+	/* While a card is carried, an accent ring keeps spreading out of the box. */
+	.ai-dock-pulse {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: var(--pill-radius);
+		box-shadow: 0 0 0 2px var(--accent);
+		opacity: 0;
+		pointer-events: none;
+	}
+	.ai-dock.is-ready .ai-dock-input::placeholder {
+		color: var(--accent);
+		font-weight: 600;
+		opacity: 1;
+	}
+	.ai-dock-button {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 36px;
+		height: 36px;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		color: var(--ink);
+	}
+	.ai-dock-button:disabled {
+		color: var(--secondary);
+		cursor: default;
+	}
+	.ai-dock-send > span {
+		display: grid;
+		place-items: center;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: var(--faint);
+		color: var(--card);
+	}
+	.ai-dock-send:not(:disabled) > span {
+		background: var(--ink);
+	}
+	.ai-dock-input {
+		flex: 1;
+		min-width: 0;
+		height: 36px;
+		padding: 0 var(--space-4);
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		color: var(--ink);
+		font-size: 16px;
+		line-height: 36px;
+	}
+	.ai-dock-input:focus-visible {
+		outline: 0;
+	}
+	.ai-dock-context:empty {
+		display: none;
+	}
+	.ai-dock-context {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: calc(100% + var(--space-8));
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-8);
+	}
+	.ai-dock-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-6);
+		max-width: 260px;
+		height: 30px;
+		padding: 0 var(--space-6) 0 var(--space-10);
+		border-radius: var(--space-10);
+		background: var(--card);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		font-size: var(--text-meta);
+	}
+	.ai-dock-chip-title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.ai-dock-chip button {
+		display: grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--muted);
+	}
+	/* New content and offline wait under the top bar, clear of the AI box and its context. */
+	#new-count,
+	#dock #offline {
+		position: fixed;
+		top: calc(var(--space-12) + var(--space-60) + var(--space-10));
+		bottom: auto;
+	}
+	body:has(#dock.is-tucked) #new-count {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+	#dock #selection-bar {
+		width: max-content;
+		max-width: 100%;
+		justify-content: center;
+	}
+	#dock #selection-bar .icon-button {
+		width: 44px;
+		height: 44px;
+	}
+}
+
+@media (min-width: 651px) {
+	/* One glass for the bottom rail: the AI box, the selection bars and detail tools all keep
+	   the `.glass` lens (clear tint, bright edge, strong blur), like Apple's Liquid Glass. */
+	.ai-dock,
+	#selection-bar,
+	#search-selection-bar,
+	dialog:not(.lightbox) > .float-bar {
+		background: var(--glass);
+		-webkit-backdrop-filter: var(--glass-filter);
+		backdrop-filter: var(--glass-filter);
+	}
+	/* The search field and the AI box take typing across the whole capsule. */
+	.ai-dock-row {
+		cursor: text;
+	}
+	.ai-dock-context {
+		cursor: default;
+	}
+	.ai-dock-send:disabled > span {
+		color: var(--secondary);
+	}
+	.ai-dock-send .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock-input::placeholder {
+		color: var(--secondary);
+		opacity: 1;
+	}
+	#search-selection-bar {
+		width: max-content;
+		margin-inline: auto;
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock-tools {
+		position: absolute;
+		bottom: 100%;
+		padding-bottom: var(--space-4);
+		right: var(--space-12);
+		display: flex;
+		gap: var(--space-4);
+	}
+	.ai-dock-tools button {
+		border-radius: 50%;
+	}
+	.ai-dock,
+	.ai-dock .ai-dock-input,
+	.ai-dock .ai-dock-restore {
+		touch-action: none;
+	}
+	.ai-dock-restore {
+		display: none;
+	}
+	.ai-dock.is-collapsed {
+		width: var(--rail-row);
+		padding: 0;
+		justify-content: center;
+	}
+	.ai-dock.is-collapsed > :not(.ai-dock-restore, .ai-dock-surface) {
+		display: none;
+	}
+	.ai-dock.is-collapsed > .ai-dock-restore {
+		display: grid;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock.is-moving,
+	.ai-dock.is-moving * {
+		user-select: none;
+	}
+}
+
+@media (min-width: 651px) {
+	.ai-dock {
+		isolation: isolate;
+	}
+	.ai-dock-surface {
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		pointer-events: none;
+		z-index: -1;
+	}
+	.ai-dock .ai-dock-restore {
+		cursor: pointer;
+	}
+}
+
+@media (min-width: 651px) and (hover: hover) and (pointer: fine) {
+	.ai-dock-tools {
+		opacity: 0;
+		pointer-events: none;
+	}
+	.ai-dock:hover .ai-dock-tools,
+	.ai-dock:has(:focus-visible) .ai-dock-tools {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
+
+/* Settings switches expose a real thumb for interruptible spring playback. */
+.toggle:has(> .toggle-knob):before {
+	content: none;
+}
+.toggle > .toggle-knob {
+	position: absolute;
+	width: 27px;
+	height: 27px;
+	left: 2px;
+	top: 2px;
+	border-radius: 50%;
+	background: var(--fixed-white);
+	box-shadow: 0 2px 4px var(--fixed-black-15);
+}
+.toggle[aria-checked="true"] > .toggle-knob {
+	transform: translateX(20px);
+}
+#selection-bar [data-action="selected-bookmark"].active,
+#search-selection-bar [data-action="selected-bookmark"].active {
+	color: var(--accent);
+}
+
+.selection-ai-target[hidden] {
+	display: none;
+}
+
+/* Selection shares the existing rail position without reflowing the outgoing surface. */
+#dock #selection-bar {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	translate: -50% 0;
+	width: max-content;
+	max-width: 100%;
+}
+
+.ai-dock.has-collapse-visual {
+	background: transparent;
+	box-shadow: none;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}

@@ -54,14 +54,20 @@ for (const [kind, label] of [
 		const stylesheets = JSON.parse(
 			readFileSync(resolve(root, "../apps/web/styles/styles.json"), "utf8"),
 		) as string[];
-		const productCSS = stylesheets
-			.map((file) => readFileSync(resolve(root, "..", file), "utf8"))
-			.join("\n");
+		const productDir = resolve(output, "product");
+		mkdirSync(productDir, { recursive: true });
+		const productStyles = stylesheets
+			.map((file) => {
+				const name = file.split("/").at(-1)!;
+				writeFileSync(resolve(productDir, name), readFileSync(resolve(root, "..", file)));
+				return `<link rel="stylesheet" href="product/${name}">`;
+			})
+			.join("");
 		writeFileSync(
 			resolve(output, "podcast.html"),
-			'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>播客介绍</title><style>' +
-				productCSS +
-				'</style></head><body><dialog id="modal" class="preview" open>' +
+			'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>播客介绍</title>' +
+				productStyles +
+				'</head><body><dialog id="modal" class="preview" open>' +
 				Panels.preview({}, card) +
 				"</dialog></body></html>\n",
 		);

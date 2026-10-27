@@ -1,0 +1,746 @@
+/* Chips, segmented controls and switches. */
+.chips {
+	display: flex;
+	gap: var(--space-8);
+	flex-wrap: wrap;
+}
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-6);
+	min-height: 36px;
+	padding: 0 var(--space-14);
+	border-radius: var(--pill-radius);
+	background: var(--card);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	white-space: nowrap;
+	box-shadow: 0 1px 3px var(--fixed-black-6);
+}
+.chip .icon {
+	color: var(--secondary);
+}
+@media (hover: hover) and (pointer: fine) {
+	.chip:hover {
+		background: var(--surface);
+	}
+}
+.chip:active {
+	background: var(--surface);
+}
+.chip.active {
+	background: var(--ink);
+	color: var(--card);
+}
+.chip.active .icon {
+	color: var(--card);
+}
+.chip.soft {
+	background: var(--surface);
+	box-shadow: none;
+}
+.chip.soft.active {
+	background: var(--ink);
+}
+.tag-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	height: 32px;
+	padding: 0 var(--space-4) 0 var(--space-12);
+	border-radius: var(--pill-radius);
+	background: var(--surface);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	font-weight: 500;
+}
+.tag-pill button {
+	width: 24px;
+	height: 24px;
+	display: grid;
+	place-items: center;
+	color: inherit;
+	opacity: 0.6;
+	border-radius: 50%;
+}
+@media (hover: hover) and (pointer: fine) {
+	.tag-pill button:hover {
+		opacity: 1;
+	}
+}
+.segmented {
+	display: inline-flex;
+	padding: var(--space-2);
+	border-radius: 10px;
+	background: var(--surface);
+	flex: none;
+}
+.segmented button {
+	min-height: 30px;
+	padding: 0 var(--space-12);
+	border-radius: 8px;
+	font-size: var(--text-meta);
+	color: var(--muted);
+	white-space: nowrap;
+}
+/* Touch has no hover: every control darkens a little while pressed. */
+.segmented button:not(.on):active {
+	background: var(--faint);
+}
+.segmented button.on {
+	background: var(--card);
+	color: var(--ink);
+	font-weight: 500;
+	box-shadow: 0 1px 3px var(--fixed-black-10);
+}
+.toggle {
+	width: 51px;
+	height: 31px;
+	border-radius: var(--pill-radius);
+	background: var(--toggle-off);
+	position: relative;
+	flex: none;
+}
+.toggle:before {
+	content: "";
+	position: absolute;
+	width: 27px;
+	height: 27px;
+	left: 2px;
+	top: 2px;
+	border-radius: 50%;
+	background: var(--fixed-white);
+	box-shadow: 0 2px 4px var(--fixed-black-15);
+}
+.toggle[aria-checked="true"] {
+	background: var(--toggle-on);
+}
+.toggle[aria-checked="true"]:before {
+	transform: translateX(20px);
+}
+.text-button {
+	background: transparent;
+	min-height: 44px;
+	padding: var(--space-8) var(--space-12);
+	font-size: var(--text-meta);
+	border-radius: var(--control-radius);
+	color: var(--ink);
+}
+@media (hover: hover) and (pointer: fine) {
+	.text-button:hover {
+		background: var(--surface);
+	}
+}
+.text-button:active {
+	background: var(--surface);
+}
+.solid-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	background: var(--accent-fill);
+	color: var(--fixed-white);
+	border-radius: var(--pill-radius);
+	padding: 0 var(--space-20);
+	font-size: var(--text-control);
+	font-weight: 500;
+	min-height: 44px;
+	white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+	.solid-button:hover {
+		filter: brightness(1.08);
+	}
+}
+.solid-button small {
+	font-size: var(--text-caption);
+	opacity: 1;
+	font-family: var(--rounded);
+}
+.soft-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	background: var(--surface);
+	color: var(--ink);
+	border-radius: var(--pill-radius);
+	padding: 0 var(--space-20);
+	font-size: var(--text-control);
+	font-weight: 500;
+	min-height: 44px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.soft-button:hover {
+		background: var(--faint);
+	}
+}
+.soft-button:active {
+	background: var(--faint);
+}
+
+#search-selection-bar {
+	flex: none;
+	align-self: center;
+	max-width: calc(100% - 2 * var(--rail-edge));
+	margin: 0 auto max(var(--rail-edge), env(safe-area-inset-bottom));
+}
+
+/* Local AI receiver shares the active selection rail, never a side drop palette. */
+.selection-ai-target {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	min-height: var(--rail-row);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-10);
+	padding: var(--space-10) var(--space-14);
+	border: 1px solid var(--line-hover);
+	border-radius: var(--pill-radius);
+	color: var(--ink);
+	font-size: var(--text-meta);
+	white-space: nowrap;
+}
+.selection-ai-target.is-ready {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 2px var(--accent);
+	background: var(--card);
+}
+.selection-ai-wave {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	height: 18px;
+}
+.selection-ai-wave i {
+	width: 3px;
+	height: 10px;
+	background: currentColor;
+	border-radius: 3px;
+}
+.selection-ai-wave i:nth-child(2) {
+	height: 18px;
+}
+.selection-drag-preview {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 100;
+	width: max-content;
+	pointer-events: none;
+	will-change: transform;
+}
+#search-selection-bar {
+	margin-top: var(--space-60);
+}
+
+/* Shared home filters. The phone head stays in responsive.css (ADR 0036). @design top-bar */
+.home-top {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	width: calc(100% - var(--feed-left, var(--margin-lg)) * 2);
+	margin: var(--space-12) auto 0;
+	background: var(--canvas);
+}
+.home-top.is-tucked {
+	transform: translateY(-100%);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+.home-heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: var(--space-60);
+}
+.home-mark {
+	padding: 0;
+	min-height: var(--hit-target);
+	background: none;
+	color: var(--ink);
+	font-size: var(--text-figure);
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -0.04em;
+}
+.home-account {
+	display: grid;
+	place-items: center;
+	width: var(--hit-target);
+	height: var(--hit-target);
+	padding: 0;
+	border-radius: 50%;
+}
+.home-account .account-wrap {
+	width: var(--space-36);
+	height: var(--space-36);
+	border-radius: 50%;
+	background: var(--faint);
+	color: var(--secondary);
+}
+/* Home tabs are the same solid pill as the search type chips (ADR 0048). */
+.home-tabs {
+	display: flex;
+	align-items: center;
+	gap: var(--space-8);
+	min-height: var(--hit-target);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.home-tabs::-webkit-scrollbar {
+	display: none;
+}
+.home-tab {
+	flex: none;
+	height: var(--space-32);
+	padding: 0 var(--space-14);
+	border: 0;
+	border-radius: var(--pill-radius);
+	background: var(--card);
+	box-shadow: inset 0 0 0 1px var(--line-card);
+	color: var(--ink);
+	font: inherit;
+	font-size: var(--text-control);
+	white-space: nowrap;
+}
+.home-tab[aria-pressed="true"] {
+	background: var(--ink);
+	color: var(--card);
+	font-weight: 600;
+	box-shadow: none;
+}
+body:has(:is(#modal, #search-background)[open].page) .home-top {
+	visibility: hidden;
+}
+/* Desktop-only parts of the top bar stay out of the phone row. */
+.home-brand {
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+.home-logo,
+.home-menu-toggle,
+.home-edge-blur,
+.home-menu,
+.home-search,
+.home-kinds {
+	display: none;
+}
+@media (min-width: 651px) {
+	.home-top {
+		top: var(--space-10);
+		width: calc(100% - var(--space-12) * 2);
+		margin-top: var(--space-10);
+	}
+	.home-top {
+		opacity: 1;
+	}
+	.home-top.is-tucked {
+		/* Include the sticky offset and glass feather in the shared travel. */
+		transform: translateY(calc(-100% - var(--space-10) - var(--space-12)));
+		opacity: 1;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.home-top {
+			background: transparent;
+		}
+		.home-top > .home-heading,
+		.home-top > .home-kinds {
+			position: relative;
+			z-index: 1;
+		}
+		.home-top::before,
+		.home-top::after,
+		.home-edge-blur {
+			content: "";
+			display: block;
+			position: absolute;
+			inset: calc(-1 * var(--space-10)) calc(-1 * var(--space-12)) calc(-1 * var(--space-12));
+			z-index: 0;
+			pointer-events: none;
+		}
+		.home-top::before {
+			-webkit-backdrop-filter: var(--edge-blur-soft);
+			backdrop-filter: var(--edge-blur-soft);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+		}
+		.home-top::after {
+			-webkit-backdrop-filter: var(--edge-blur-mid);
+			backdrop-filter: var(--edge-blur-mid);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+			mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+		}
+		.home-edge-blur {
+			-webkit-backdrop-filter: var(--edge-blur-strong);
+			backdrop-filter: var(--edge-blur-strong);
+			-webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+			mask-image: linear-gradient(to bottom, #000 0%, transparent 65%);
+		}
+	}
+
+	#feed-grid {
+		max-width: none;
+	}
+	main {
+		padding-inline: var(--space-12);
+		padding-top: var(--space-10);
+		min-height: calc(100dvh - var(--space-130));
+	}
+	/* Brand and account align with the outer card edges. */
+	.home-heading {
+		height: var(--space-64);
+		gap: var(--space-8);
+	}
+	.home-brand {
+		gap: var(--space-2);
+		margin-right: auto;
+	}
+	.home-mark {
+		display: flex;
+		align-items: center;
+		gap: var(--space-10);
+		line-height: var(--space-40);
+		letter-spacing: -0.02em;
+	}
+	.home-logo {
+		display: flex;
+	}
+	.home-menu-toggle {
+		display: grid;
+		place-items: center;
+		width: var(--space-36);
+		height: var(--space-36);
+		padding: 0;
+		border: 0;
+		border-radius: var(--space-10);
+		background: none;
+		color: var(--muted);
+	}
+	.home-menu-toggle .icon {
+		rotate: 90deg;
+	}
+	.home-menu-toggle[aria-expanded="true"] {
+		background: var(--faint);
+		color: var(--ink);
+	}
+	.home-menu:not([hidden]) {
+		transform-origin: top right;
+		position: absolute;
+		z-index: 50;
+		top: calc(100% + var(--space-8));
+		left: calc(100% - var(--space-36) - var(--space-6));
+		display: flex;
+		flex-direction: column;
+		width: 220px;
+		padding: var(--space-6);
+		border-radius: var(--space-14);
+		background: var(--card);
+		box-shadow:
+			0 0 0 0.5px var(--line-hover),
+			var(--shadow-float);
+	}
+	.home-menu-item {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		align-items: center;
+		gap: var(--space-6);
+		height: var(--space-40);
+		padding: 0 var(--space-12) 0 var(--space-6);
+		border: 0;
+		border-radius: 9px;
+		background: none;
+		color: var(--ink);
+		font: inherit;
+		font-size: var(--text-body);
+		text-align: left;
+	}
+	.home-menu-item::before {
+		content: "";
+		position: absolute;
+		inset: var(--space-1) 0;
+		z-index: -1;
+		border-radius: inherit;
+		pointer-events: none;
+	}
+	.home-menu-item[aria-checked="true"] {
+		font-weight: 600;
+	}
+	.home-menu-item[aria-checked="true"]::before {
+		background: var(--faint);
+	}
+	.home-menu-check {
+		display: grid;
+		place-items: center;
+		width: 24px;
+		height: 24px;
+		visibility: hidden;
+	}
+	.home-menu-item[aria-checked="true"] .home-menu-check {
+		visibility: visible;
+	}
+	.home-menu-label {
+		flex: 1;
+	}
+	.home-menu-key {
+		font-size: var(--text-meta);
+		color: var(--muted);
+		font-weight: 400;
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-menu-item:hover::before {
+			background: var(--faint);
+		}
+	}
+	.home-search {
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		align-items: center;
+		gap: var(--space-8);
+		width: var(--search-focused-width);
+		min-width: 0;
+		flex-shrink: 1;
+		height: var(--space-40);
+		padding: 0 var(--space-8) 0 var(--space-14);
+		border-radius: 20px;
+		background: transparent;
+		color: var(--muted);
+		cursor: text;
+	}
+	.home-search::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: inherit;
+		background: color-mix(in srgb, var(--glass) 35%, transparent);
+		backdrop-filter: var(--glass-filter);
+		-webkit-backdrop-filter: var(--glass-filter);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		transform-origin: right center;
+		pointer-events: none;
+	}
+	/* Search keeps the same width through focus, queries and conditions. */
+	.home-search > .icon {
+		flex: none;
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+	.home-search input {
+		flex: 1;
+		min-width: 0;
+		height: 100%;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		color: var(--ink);
+		font-size: var(--text-body);
+	}
+	.home-search input:focus-visible {
+		outline: 0;
+	}
+	.home-search input::-webkit-search-cancel-button {
+		display: none;
+	}
+	.home-search-key {
+		flex: none;
+		padding-right: var(--space-6);
+		font-size: var(--text-meta);
+		color: var(--muted);
+	}
+	.home-search.has-text .home-search-key {
+		display: none;
+	}
+	.home-search-token {
+		flex: none;
+		height: 24px;
+		padding: 0 9px;
+		border: 0;
+		border-radius: var(--pill-radius);
+		background: var(--ink);
+		color: var(--card);
+		font: inherit;
+		font-size: var(--text-meta);
+		font-weight: 600;
+	}
+	.home-search-token[hidden],
+	.home-search-clear[hidden] {
+		display: none;
+	}
+	/* # conditions follow the tab token: accent, like the phone search tokens. */
+	.home-search-marks {
+		display: flex;
+		flex: none;
+		gap: var(--space-6);
+	}
+	.home-search-marks:empty,
+	.home-hash-slot:empty {
+		display: none;
+	}
+	.home-search-token.is-hash {
+		background: var(--accent);
+		color: var(--fixed-white);
+	}
+	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
+	.home-search .search-hash {
+		z-index: 60;
+		top: calc(100% + var(--space-8));
+		left: 0;
+		right: 0;
+		cursor: default;
+	}
+	.home-search .search-hash-option:first-of-type {
+		background: none;
+	}
+	.home-search .search-hash-option.is-active,
+	.home-search .search-hash-option:focus-visible {
+		background: transparent;
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.home-search .search-hash-option:hover {
+			background: transparent;
+		}
+	}
+	/* Type chips: one row under the top bar while there is text (web-interaction.md 搜索). */
+	.home-kinds {
+		display: flex;
+		align-items: center;
+		height: var(--space-32);
+		margin-bottom: var(--space-2);
+	}
+	.home-kinds[hidden] {
+		display: none;
+	}
+	.home-kinds .chip {
+		min-height: var(--space-32);
+		height: var(--space-32);
+		background: var(--surface);
+		box-shadow: none;
+		font-size: var(--text-control);
+	}
+	.home-kinds .chip.active {
+		background: var(--ink);
+		color: var(--card);
+		font-weight: 600;
+	}
+	.home-search-clear {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--card);
+	}
+	.home-search-clear .icon {
+		box-sizing: content-box;
+		padding: 3px;
+		border-radius: 50%;
+		background: var(--secondary);
+	}
+	.home-account {
+		margin-right: calc(-1 * var(--space-2));
+	}
+	.home-account .account-wrap > .icon {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+	.home-account .account-wrap {
+		width: var(--space-40);
+		height: var(--space-40);
+		background: var(--card);
+		box-shadow: inset 0 0 0 1px var(--line-card);
+		color: var(--ink);
+	}
+	.home-tabs {
+		display: none;
+	}
+}
+
+/* A carried card replaces the selection capsule with the AI input receiver. */
+:is(#selection-bar, #search-selection-bar).is-ai-receiving > :not(.selection-ai-target) {
+	visibility: hidden;
+	pointer-events: none;
+}
+.selection-ai-input {
+	width: 100%;
+	min-width: 0;
+	border: 0;
+	outline: 0;
+	background: transparent;
+	color: var(--ink);
+	font: inherit;
+	pointer-events: none;
+}
+.selection-ai-input::placeholder {
+	color: var(--muted);
+}
+.selection-ai-target.is-ready .selection-ai-input::placeholder {
+	color: var(--accent);
+}
+
+@media (min-width: 651px) {
+	.home-search-leading {
+		display: grid;
+		width: var(--space-20);
+		height: var(--space-20);
+		flex: none;
+	}
+	.home-search-leading > span {
+		grid-area: 1 / 1;
+		display: grid;
+		place-items: center;
+	}
+	.home-search-leading [data-search-icon="condition"] {
+		opacity: 0;
+		transform: scale(0.25);
+	}
+	.home-search-token.is-hash {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-4);
+	}
+	.home-condition-icon,
+	.home-option-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+	}
+	.home-hash .search-hash-option {
+		position: relative;
+		z-index: 1;
+		height: var(--space-48);
+		gap: var(--space-12);
+	}
+	.home-option-label {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.home-hash-highlight {
+		position: absolute;
+		top: 0;
+		left: var(--space-6);
+		right: var(--space-6);
+		height: var(--space-48);
+		border-radius: var(--space-10);
+		background: var(--faint);
+		pointer-events: none;
+	}
+}

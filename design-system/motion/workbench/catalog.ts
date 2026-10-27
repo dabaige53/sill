@@ -1,5 +1,6 @@
 import entries from "../catalog.json" with { type: "json" };
 import messages from "./messages.json" with { type: "json" };
+import parameterMessages from "./parameter-messages.json" with { type: "json" };
 
 export type Platform = "web" | "phone";
 export type Availability =
@@ -20,7 +21,10 @@ export type AnimationEntry = {
 };
 export const catalog = entries as AnimationEntry[];
 export const platforms: Platform[] = ["web", "phone"];
-export const t = (key: string) => messages[`motion.${key}`] || key;
+export const t = (key: string) =>
+	(messages as Record<string, string>)[`motion.${key}`] ||
+	(parameterMessages as Record<string, string>)[`motion.${key}`] ||
+	key;
 export const describe = (entry: AnimationEntry, field: string) => t(`${entry.id}.${field}`);
 export const availabilityLabel = (availability: Availability) =>
 	t(

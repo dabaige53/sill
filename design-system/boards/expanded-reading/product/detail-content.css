@@ -1,0 +1,747 @@
+/* CardTypeDetails / CardTypeReading: headers and prose have different reading sizes. */
+.preview-body {
+	padding: 24px 30px 30px;
+}
+/* @design vertical-rhythm — blocks sit one group apart; the header adds no space of its own. */
+:is(.preview-body, .reader-body, .pr-detail) {
+	gap: calc(var(--rhythm-group) * var(--reader-space-scale, 1));
+}
+.detail-header {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+.detail-header > :is(.preview-meta, .preview-sender) {
+	min-height: 36px;
+	margin-bottom: var(--rhythm-close);
+}
+.detail-header h1 {
+	margin: 0 0 var(--rhythm-item);
+}
+.detail-header > :is(.preview-tags, .preview-published) {
+	margin-bottom: var(--rhythm-close);
+}
+.detail-header > :last-child {
+	margin-bottom: 0;
+}
+/* Rows carry their own padding, so the gap beside them drops one level. */
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list),
+:is(.preview-body, .reader-body, .pr-detail) > :is(.detail-rows, .detail-task-list) + * {
+	margin-top: calc((var(--rhythm-item) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+.detail-section {
+	margin-top: calc((var(--rhythm-section) - var(--rhythm-group)) * var(--reader-space-scale, 1));
+}
+:is(.preview-body, .reader-body, .pr-detail)
+	> :is(.detail-header, .detail-rows, .detail-task-list)
+	+ .detail-section {
+	margin-top: 0;
+}
+.detail-section > h2:has(+ :is(.detail-rows, .detail-related, .detail-row)) {
+	margin-bottom: var(--rhythm-close);
+}
+.preview-body h1 {
+	font-size: calc(26px * var(--content-text-scale, 1));
+	font-weight: calc(600 + var(--content-weight-add, 0));
+	line-height: calc(1.3 * var(--reader-line-scale, 1));
+	letter-spacing: -0.02em;
+}
+.preview-body .preview-full {
+	font-size: calc(15px * var(--content-text-scale, 1));
+	line-height: calc(1.75 * var(--reader-line-scale, 1));
+}
+.preview-body .preview-full :is(p, li) {
+	font-size: inherit;
+	line-height: inherit;
+}
+.preview-body .preview-lead {
+	margin: 0;
+	font-size: calc(16px * var(--content-text-scale, 1));
+	line-height: calc(1.65 * var(--reader-line-scale, 1));
+}
+.preview-full p {
+	margin: 0 0 16px;
+}
+.preview-full li + li {
+	margin-top: 6px;
+}
+.sheet-scroll > .preview-cover {
+	margin: 8px 8px 0;
+	border-radius: 22px;
+	height: 220px;
+	aspect-ratio: auto;
+}
+.preview-cover img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.reader-body {
+	max-width: none;
+	padding-inline: 30px;
+}
+.reader-body h1 {
+	font-size: calc(30px * var(--content-text-scale, 1));
+	line-height: calc(1.3 * var(--reader-line-scale, 1));
+	letter-spacing: -0.02em;
+}
+.reader-body .preview-full :is(p, li),
+.reader-body .preview-lead {
+	font-size: calc(17px * var(--content-text-scale, 1));
+	line-height: calc(1.75 * var(--reader-line-scale, 1));
+}
+.reader-body > .preview-cover {
+	margin: 0 0 24px;
+}
+.preview-sender small {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.detail-section h2 {
+	font-size: calc(13px * var(--content-text-scale, 1));
+	color: var(--secondary);
+}
+.detail-row {
+	padding-block: 11px;
+	font-size: calc(14px * var(--content-text-scale, 1));
+}
+.detail-row .row-icon {
+	background: none;
+	width: 18px;
+	height: 18px;
+	border-radius: 0;
+}
+.detail-row > span:not(.row-icon, .pr-reviewer-avatars) {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.why-details > p {
+	font-size: calc(17px * var(--content-text-scale, 1));
+	font-weight: calc(500 + var(--content-weight-add, 0));
+	line-height: calc(1.55 * var(--reader-line-scale, 1));
+}
+.why-details li {
+	font-size: calc(14px * var(--content-text-scale, 1));
+	line-height: calc(1.6 * var(--reader-line-scale, 1));
+}
+.detail-media:has(.is-podcast) {
+	background: linear-gradient(
+		145deg,
+		color-mix(in srgb, var(--podcast-tone, var(--surface)) 22%, var(--card)),
+		var(--card) 70%
+	);
+}
+.is-podcast .media-primary {
+	align-items: center;
+	padding: 32px 10px 8px;
+	gap: 18px;
+}
+.is-podcast .player-art {
+	width: min(240px, 100%);
+	height: auto;
+	aspect-ratio: 1;
+	border-radius: 18px;
+}
+.is-podcast .media-primary h1 {
+	font-size: calc(22px * var(--content-text-scale, 1));
+	text-align: center;
+}
+.is-podcast .media-primary > .preview-meta {
+	justify-content: center;
+	padding: 0;
+}
+.is-podcast .current-chapter {
+	padding: 5px 12px;
+	border-radius: 100px;
+	background: var(--surface);
+	font-size: calc(12px * var(--content-text-scale, 1));
+}
+.is-podcast .audio-player {
+	align-self: stretch;
+}
+.playback-controls {
+	display: grid;
+	grid-template-columns: 44px 44px 60px 44px 44px;
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+}
+.playback-controls button {
+	width: 44px;
+	height: 44px;
+}
+.playback-controls .playback-primary {
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	background: var(--accent);
+	color: white;
+}
+.compact-player img {
+	width: 44px;
+	height: 44px;
+	border-radius: 8px;
+	object-fit: cover;
+}
+.compact-player .compact-title {
+	flex: 1;
+	min-width: 0;
+	text-align: start;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.compact-player .playback-primary {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: var(--accent);
+	color: white;
+}
+.compact-player progress {
+	accent-color: var(--ink);
+}
+@media (min-width: 900px) {
+	.reader-body .is-podcast .media-primary {
+		padding: 32px 64px;
+	}
+	.reader-body .is-podcast .media-primary h1 {
+		font-size: calc(26px * var(--content-text-scale, 1));
+	}
+	.reader-body .playback-controls {
+		grid-template-columns: 44px 44px 72px 44px 44px;
+	}
+	.reader-body .playback-primary {
+		width: 72px;
+		height: 72px;
+	}
+}
+@media (max-width: 650px) {
+	.preview-body,
+	.reader-body {
+		padding-inline: 20px;
+	}
+	.is-podcast .media-primary {
+		padding-inline: 0;
+	}
+	.playback-controls {
+		gap: 8px;
+	}
+}
+
+.preview-sheet:has(.is-podcast) #modal-title {
+	padding-right: 0;
+}
+.preview-sheet:has(.pr-detail) #modal-title {
+	padding-right: 0;
+}
+
+.unavailable-video {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border-radius: var(--cover-radius);
+	background: var(--surface);
+}
+.unavailable-video > img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.unavailable-video > div {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: var(--card);
+	opacity: 0.85;
+	text-align: center;
+}
+.unavailable-video button {
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+}
+.media-empty {
+	min-height: 96px;
+	padding-block: 24px;
+	color: var(--secondary);
+}
+
+.media-card-progress::-webkit-progress-bar {
+	background: var(--media-progress-track, var(--surface));
+}
+.media-card-progress::-webkit-progress-value {
+	background: var(--media-progress-fill, var(--ink));
+}
+.media-card-progress::-moz-progress-bar {
+	background: var(--media-progress-fill, var(--ink));
+}
+.mini-player .media-card-progress {
+	flex: 1;
+	width: 0;
+}
+.mini-play-mark {
+	display: grid;
+	place-items: center;
+	width: var(--space-20);
+	height: var(--space-20);
+	border-radius: 50%;
+	background: var(--ink);
+	color: var(--card);
+}
+
+.reader-body .is-podcast .player-art {
+	width: min(300px, 100%);
+}
+.media-tab-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	border-bottom: 1px solid var(--line);
+}
+.media-tab-header .media-tabs {
+	flex: 1;
+	border-bottom: none;
+	gap: 16px;
+}
+.media-tabs [aria-selected="true"] {
+	color: var(--ink);
+}
+.media-follow {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	background: var(--accent-soft);
+	color: var(--accent);
+	white-space: nowrap;
+}
+.media-lines [aria-current="true"] {
+	background: var(--accent-soft);
+	color: var(--ink);
+}
+.media-lines button:disabled {
+	opacity: 1;
+	cursor: default;
+}
+.audio-player input {
+	accent-color: var(--ink);
+}
+.audio-player button:disabled {
+	opacity: 0.55;
+}
+.video-chapters {
+	display: grid;
+	gap: 8px;
+}
+.chapter-segments button {
+	position: relative;
+	flex: 1;
+	height: 4px;
+	padding: 0;
+	overflow: hidden;
+	opacity: 1;
+}
+.chapter-segments button i {
+	position: absolute;
+	inset: 0 auto 0 0;
+	background: var(--accent);
+}
+.video-current-chapter {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--secondary);
+	font-size: calc(12px * var(--content-text-scale, 1));
+}
+.video-current-chapter span {
+	flex: 1;
+}
+/* Podcast source does not share the top-right window controls row. */
+.preview-sheet:has(.is-podcast) .preview-body .preview-meta {
+	padding-right: 0;
+}
+.is-podcast .media-primary {
+	padding-top: 18px;
+	gap: 14px;
+}
+.is-podcast .audio-player {
+	gap: 4px;
+	padding-inline: 12px;
+}
+.audio-player input[type="range"] {
+	height: 16px;
+	min-height: 0;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background: transparent;
+}
+.audio-player .playback-controls {
+	margin-top: 12px;
+}
+.audio-player .empty-description {
+	margin-top: 8px;
+	font-size: 12px;
+}
+.detail-media:has(.is-podcast) {
+	background: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--podcast-tone, var(--surface)) 42%, var(--card)),
+		color-mix(in srgb, var(--podcast-tone, var(--surface)) 12%, var(--card))
+	);
+}
+
+.detail-related {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+}
+.detail-related .detail-row {
+	min-width: 0;
+	width: 100%;
+	text-align: left;
+	border-top: 1px solid var(--line-card);
+}
+.detail-related .detail-row:is(:hover, :active) {
+	background: transparent;
+	box-shadow: none;
+}
+.detail-related .detail-row > span:not(.row-icon) {
+	flex: 1;
+}
+/* Meeting identifiers stay readable without taking the name's entire row. */
+.detail-row.meeting-row {
+	/* @design content-boundaries */
+	align-items: flex-start;
+}
+.meeting-row > .row-icon {
+	margin-top: var(--space-2);
+}
+.detail-row.meeting-row > .meeting-info {
+	display: grid;
+	gap: var(--space-4);
+	white-space: normal;
+}
+.meeting-info > .meeting-name,
+.meeting-info > .meeting-code {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+.lightbox-top > div {
+	display: grid;
+	gap: 2px;
+}
+.lightbox-top #modal-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--ink);
+}
+.lightbox-caption {
+	order: 0;
+	text-align: left;
+}
+.lightbox-caption small {
+	display: block;
+	color: var(--muted);
+	margin-top: 4px;
+}
+.pr-check-details summary {
+	list-style: none;
+	cursor: pointer;
+}
+.pr-check-details summary::-webkit-details-marker {
+	display: none;
+}
+/* Check names start where the row text starts: icon box plus the row gap. */
+.pr-check-details > div.detail-row {
+	padding-left: calc(18px + var(--space-12));
+}
+.pr-check-details > div.detail-row > small {
+	margin-left: auto;
+}
+/* The summary sits inside <details>, so it draws the row divider itself. */
+.detail-rows > .pr-check-details:not(:first-child) > summary.detail-row {
+	border-top: 1px solid var(--line);
+}
+.pr-check-details[open] > summary > .icon:last-child {
+	transform: rotate(90deg);
+}
+/* The status row reads as a sentence; branch names may wrap as whole pieces. */
+.pr-detail .detail-row > .pr-status-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-8);
+	white-space: normal;
+	overflow: visible;
+}
+.pr-status {
+	font-weight: calc(500 + var(--content-weight-add, 0));
+	color: var(--accent);
+	white-space: nowrap;
+}
+.pr-status-draft,
+.pr-status-closed {
+	color: var(--muted);
+}
+.pr-detail .detail-row > .pr-stats + small {
+	margin-left: auto;
+}
+.pr-reviewer-avatars {
+	display: inline-flex;
+	flex: none;
+	gap: 4px;
+}
+.pr-review.pill {
+	padding: 8px 18px;
+	color: var(--fixed-white);
+	background: var(--accent);
+	border-radius: 999px;
+}
+
+/* Reference boards: content keeps its designed height and control hierarchy. */
+.reader-body > .preview-cover {
+	height: 340px;
+	aspect-ratio: auto;
+	flex: none;
+	border-radius: var(--space-14);
+}
+.task-due {
+	color: var(--alert);
+}
+.detail-task-list .check-dot {
+	border-color: color-mix(in srgb, var(--secondary) 35%, transparent);
+}
+.detail-task-list .check-item.is-done .check-dot {
+	background: var(--success);
+	border-color: var(--success);
+}
+.pr-reviewer-avatars > span {
+	position: relative;
+	flex: none;
+}
+.pr-detail .pr-stats {
+	margin-left: 0;
+}
+.pr-detail .detail-row > .pr-stats {
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	min-width: min-content;
+	max-width: 100%;
+	white-space: normal;
+	overflow: visible;
+}
+.pr-detail .pr-stats > span {
+	flex: none;
+	white-space: nowrap;
+}
+.pr-detail .detail-row:has(> .pr-stats) {
+	flex-wrap: wrap;
+}
+.pr-file-count {
+	flex: none;
+	color: var(--secondary);
+	font-size: var(--text-caption);
+	white-space: nowrap;
+}
+.is-podcast .current-chapter {
+	display: flex;
+	align-items: center;
+	gap: var(--space-6);
+}
+.reader-body .is-podcast .media-primary {
+	background: color-mix(in srgb, var(--podcast-tone) 25%, var(--card));
+	border-radius: var(--cover-radius);
+	padding-bottom: var(--space-32);
+}
+.lightbox-top .icon-button,
+.lightbox-stage .icon-button {
+	background: var(--surface);
+	border-radius: 50%;
+}
+@media (max-width: 650px) {
+	.sheet-scroll > .preview-cover {
+		height: 200px;
+	}
+	.event-hero {
+		flex-wrap: nowrap;
+		gap: var(--space-12);
+	}
+	.event-hero > .num:first-child {
+		font-size: var(--space-40);
+		flex: none;
+	}
+	.event-hero small {
+		font-size: var(--text-caption);
+	}
+	/* The stage takes the spare height and centres a 340px photo; caption, thumbnails and the bar sit at the bottom. */
+	.lightbox-stage {
+		padding-inline: var(--space-8);
+	}
+	.lightbox-stage img {
+		height: min(340px, 100%);
+		object-fit: cover;
+	}
+	.lightbox-top {
+		padding-inline: var(--space-16);
+	}
+	.lightbox-caption {
+		padding-inline: var(--space-20);
+	}
+}
+
+.preview-sheet .is-podcast .media-secondary {
+	min-height: calc(min(88dvh, 900px) - 144px);
+}
+.preview-sheet .compact-player-slot {
+	top: var(--space-56);
+}
+.preview-sheet .is-podcast .media-tab-header {
+	position: sticky;
+	top: calc(var(--space-56) + var(--space-44) + var(--space-24));
+	z-index: 1;
+}
+.compact-player-backdrop,
+.media-tab-backdrop {
+	position: absolute;
+	inset: 0;
+	background: color-mix(in srgb, var(--podcast-tone, var(--surface)) 42%, var(--card));
+	opacity: 0;
+	pointer-events: none;
+	z-index: -1;
+}
+.compact-player-backdrop {
+	inset: calc(-1 * var(--space-56)) calc(-1 * var(--space-30)) calc(-1 * var(--space-16));
+}
+.media-tab-backdrop {
+	inset: 0 calc(-1 * var(--space-30)) calc(-1 * var(--space-16));
+	mask-image: linear-gradient(to bottom, black calc(100% - var(--space-16)), transparent);
+}
+.preview-sheet .is-podcast .media-tab-header {
+	isolation: isolate;
+}
+.preview-sheet.is-scrolled:has(.is-podcast)::before {
+	display: none;
+}
+
+/* Event date line sits close to its time; the time is one item above the title. */
+.detail-header > .preview-meta:has(+ .event-hero) {
+	min-height: 0;
+	margin-bottom: var(--rhythm-close);
+}
+.detail-header > .event-hero {
+	margin-bottom: var(--rhythm-item);
+}
+.event-hero .num:first-child {
+	font-size: 44px;
+	line-height: 1;
+}
+.event-hero small {
+	font-size: var(--text-control);
+}
+.pr-detail .detail-header > .card-head {
+	margin-bottom: var(--rhythm-close);
+}
+.is-video .media-primary > .preview-meta {
+	min-height: 36px;
+	margin-bottom: -10px;
+}
+@media (max-width: 650px) {
+	.preview-sheet .is-podcast .media-secondary {
+		min-height: calc(100dvh - 144px);
+	}
+	.event-hero > .num:first-child {
+		font-size: 40px;
+	}
+	.lightbox-thumbs {
+		justify-content: flex-start;
+	}
+}
+
+/* Podcast introductions share the normal sheet, without a player or sticky media header. */
+.podcast-detail {
+	display: flex;
+	flex-direction: column;
+	gap: var(--rhythm-group);
+}
+.podcast-cover {
+	width: min(100%, var(--col-min));
+	aspect-ratio: 1;
+	object-fit: cover;
+	border-radius: var(--cover-radius);
+}
+.podcast-detail h2 {
+	font-size: var(--text-body);
+	margin: 0 0 var(--rhythm-item);
+}
+.podcast-listening {
+	margin: 0;
+	color: var(--muted);
+	font-size: var(--text-control);
+}
+.podcast-chapters {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.podcast-chapters li,
+.podcast-facts > div {
+	display: flex;
+	gap: var(--space-16);
+	padding-block: var(--space-12);
+	border-bottom: 1px solid var(--line-card);
+}
+.podcast-chapters time {
+	flex: none;
+	color: var(--muted);
+}
+.podcast-facts {
+	margin: 0;
+}
+.podcast-facts dt {
+	color: var(--muted);
+	min-width: var(--space-64);
+}
+.podcast-facts dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+.podcast-transcript {
+	font-family: var(--font);
+}
+#modal.preview:has(.podcast-detail) .preview-body {
+	padding-top: var(--space-16);
+}
+
+#modal.preview:has(.podcast-detail) .sheet-head {
+	top: var(--space-16);
+}
+@media (min-width: 651px) {
+	.podcast-detail {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+		gap: var(--rhythm-group);
+	}
+	.podcast-detail > .podcast-cover {
+		grid-column: 1;
+		grid-row: 1;
+		width: 100%;
+	}
+	.podcast-detail > .detail-header {
+		grid-column: 2;
+		grid-row: 1;
+		align-self: end;
+		padding-right: var(--space-44);
+	}
+	.podcast-detail > :is(section, dl, .podcast-listening) {
+		grid-column: 1 / -1;
+	}
+}

@@ -1,0 +1,591 @@
+@media (max-width: 650px) {
+	/* Page frame */
+	html {
+		scrollbar-gutter: auto;
+	}
+	main {
+		padding: var(--space-8) var(--margin-sm) var(--space-130);
+	}
+	:root {
+		--rail-edge: 16px;
+		--rail-bottom: max(16px, env(safe-area-inset-bottom));
+	}
+	/* Three destinations share the same compact glass capsule. */
+	:root {
+		--nav-tab: 76px;
+	}
+	:root {
+		--home-top-h: 104px;
+	}
+	main {
+		padding-top: calc(env(safe-area-inset-top) + var(--home-top-h) + var(--space-8));
+	}
+	/* Phone home (ADR 0036): X-like density, still cards. Desktop keeps its own spacing. */
+	.home-top {
+		position: fixed;
+		z-index: 44;
+		top: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		width: auto;
+		margin: 0;
+		padding: env(safe-area-inset-top) var(--margin-sm) 0;
+		background: color-mix(in srgb, var(--canvas) 92%, transparent);
+		-webkit-backdrop-filter: blur(28px) saturate(1.6);
+		backdrop-filter: blur(28px) saturate(1.6);
+	}
+	.home-top.is-tucked {
+		transform: translateY(calc(-100% + env(safe-area-inset-top)));
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	body:has(:is(#modal, #search-background)[open].page) .home-top {
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	/* New content waits at the top: under the tabs, or under the status bar once they tuck away. */
+	#new-count {
+		top: calc(env(safe-area-inset-top) + var(--home-top-h) + 8px);
+		bottom: auto;
+	}
+	body:has(.home-top.is-tucked) #new-count {
+		top: calc(env(safe-area-inset-top) + 8px);
+	}
+	body:has(#dock.is-tucked) #new-count {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+	/* Cards and touch targets */
+	/* Phone card actions stay clear of the time and count in the head. */
+	.card-actions,
+	.has-cover .card-actions {
+		top: auto;
+		right: 4px;
+		bottom: 4px;
+	}
+	.card-head,
+	.sender,
+	.card-head:has(.card-head-right),
+	.has-cover .card-head {
+		padding-right: 0;
+	}
+	.feed-card .card-head-right {
+		opacity: 1;
+	}
+	.pill {
+		min-height: 44px;
+		border-radius: var(--pill-radius);
+	}
+	.check-item {
+		min-height: 44px;
+	}
+	/* Cards: tighter frame, two-line summaries, no blank space kept for a more button. */
+	.feed-item.feed-card {
+		border-radius: var(--card-radius-sm);
+	}
+	.feed-item .card-body {
+		padding: calc(var(--card-padding-sm) * var(--card-padding-scale, 1));
+	}
+	.feed-item .card-summary {
+		-webkit-line-clamp: 2;
+	}
+	.feed-item .card-summary.reading-summary {
+		-webkit-line-clamp: var(--summary-reading-lines);
+	}
+	.feed-item :is(.card-head, .sender) {
+		padding-right: 0;
+	}
+	/* Keep sender and source on separate lines, aligned beside the portrait. */
+	.feed-item .sender {
+		gap: var(--space-8);
+	}
+	/* avatar() emits inline desktop sizes; phone sender portraits stay 20px. */
+	.feed-item .sender .avatar {
+		width: 20px !important;
+		height: 20px !important;
+		font-size: calc(11px * var(--content-text-scale, 1));
+	}
+	.feed-item .sender > span:last-child {
+		flex: 1;
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--space-4);
+		min-width: 0;
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+	.feed-item .sender b {
+		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
+	}
+	.feed-item .sender small {
+		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
+		display: block;
+	}
+	/* Article covers remain above the card body on phones. */
+	.feed-item.type-article .card-cover {
+		height: 180px;
+		aspect-ratio: auto;
+	}
+	.feed-item.type-media .card-cover {
+		aspect-ratio: 16 / 9;
+	}
+	.feed-item .attachment {
+		align-self: stretch;
+		width: 100%;
+		margin-top: 0;
+	}
+	.feed-item .ref {
+		min-height: 32px;
+	}
+	/* Actions: a compact pill that still answers a 44px touch. */
+	.feed-item .pill {
+		position: relative;
+		min-height: 36px;
+	}
+	.feed-item .pill::after {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
+	}
+	/* To-dos: compact rows keep the remaining-item count visible. */
+	.feed-item.type-task .check-item {
+		min-height: 28px;
+		padding: 0;
+	}
+	.feed-item.type-task .check-dot {
+		width: 18px;
+		height: 18px;
+		flex-basis: 18px;
+	}
+	/* Navigation and selection */
+
+	.nav-icon {
+		height: 26px;
+	}
+	.nav-icon > .icon {
+		width: 24px;
+		height: 24px;
+	}
+	#dock:has(#selection-bar:not([hidden])) #selection-bar {
+		flex: 1;
+	}
+	/* Too narrow for both: while selecting, the bar takes the whole row. */
+	#dock #selection-bar {
+		max-width: calc(100vw - 2 * var(--rail-edge));
+	}
+	/* Preview and bottom sheets (ADR 0037) */
+	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
+	#modal.preview {
+		position: fixed;
+		inset: 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+	}
+	#modal.preview .preview-sheet {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: auto;
+		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
+		transform: translateY(0);
+	}
+	#modal.preview .preview-sheet.is-full {
+		height: 100%;
+		max-height: 100%;
+		transform: none;
+		border-radius: 0;
+	}
+	#modal.preview .preview-sheet:not(.is-full) {
+		height: var(--nested-sheet-height, auto);
+	}
+	#modal.preview .preview-sheet.is-off {
+		transform: translateY(100%);
+	}
+	#modal.preview .sheet-peek {
+		position: absolute;
+		left: 14px;
+		right: 14px;
+		top: auto;
+		bottom: calc(var(--preview-height, 100dvh - 64px) - 10px);
+		width: auto;
+		height: 24px;
+		margin: 0;
+	}
+	#modal.preview[data-sheet-resizing] .sheet-peek,
+	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
+		opacity: 0;
+		pointer-events: none;
+	}
+	#modal.preview .preview-sheet .sheet-scroll {
+		flex: 1;
+		max-height: none;
+		overflow-x: hidden;
+	}
+	#modal.reader:has(.is-podcast) .reader-scroll {
+		overflow-x: hidden;
+	}
+	#modal :is(.is-podcast .media-primary, .is-podcast .media-secondary) {
+		min-width: 0;
+		max-width: 100%;
+	}
+	/* The close disc floats beside the player; it does not reserve a header row. */
+	#modal.preview .preview-sheet .compact-player-slot {
+		top: max(var(--space-8), env(safe-area-inset-top));
+	}
+	#modal.preview .preview-sheet .compact-player {
+		padding-left: 0;
+		padding-right: var(--space-56);
+		gap: var(--space-8);
+	}
+	#modal.preview .preview-sheet .is-podcast .media-tab-header {
+		top: calc(max(var(--space-8), env(safe-area-inset-top)) + var(--space-44) + var(--space-24));
+	}
+	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
+	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+		scroll-padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+	}
+	#modal.preview .preview-sheet.is-full .sheet-scroll > .preview-body:first-child {
+		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
+	}
+	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
+		top: env(safe-area-inset-top);
+	}
+	#modal.preview #modal-title,
+	#modal.preview .preview-body :is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-52);
+	}
+	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
+	#modal.preview:has(.sheet-head [data-action="reader"])
+		.preview-body
+		:is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-104);
+	}
+	#modal.preview:has(.preview-body :is(.preview-sender, .preview-meta)) #modal-title {
+		padding-right: 0;
+	}
+	/* Podcast controls sit beside the separate now-playing heading. */
+	#modal.preview:has(.is-podcast) .preview-body .preview-meta {
+		padding-right: 0;
+	}
+	/* @design content-boundaries — six actions keep their full touch targets. */
+	.float-bar:has(> .icon-button:nth-of-type(6)) {
+		max-width: calc(100vw - 2 * var(--space-8));
+		gap: var(--space-2);
+	}
+	.float-bar:has(> .icon-button:nth-of-type(6)) .toolbar-sep {
+		margin-inline: var(--space-4);
+	}
+	.sheet-head {
+		height: 60px;
+		padding: 0 var(--space-12);
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+	}
+	.sheet-handle {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		position: absolute;
+		z-index: 5;
+		top: 0;
+		left: calc(50% - 40px);
+		width: 80px;
+		height: 24px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		touch-action: none;
+		cursor: ns-resize;
+	}
+	.preview-sheet.is-full .sheet-handle {
+		top: env(safe-area-inset-top);
+	}
+	.sheet-handle .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 calc(-1 * var(--space-18));
+	}
+	#modal.preview[open] {
+		gap: 0;
+	}
+	.preview-sheet,
+	#modal.panel .sheet {
+		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+	.sheet-scroll {
+		max-height: 84dvh;
+	}
+	.grabber {
+		display: block;
+		width: 36px;
+		height: 5px;
+		border-radius: 3px;
+		background: var(--faint);
+		margin: var(--space-8) auto 0;
+	}
+	#modal.preview > .float-bar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: max(8px, env(safe-area-inset-bottom));
+		margin-inline: auto;
+		z-index: 3;
+	}
+	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
+	}
+	#modal.preview .push-ring {
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
+	}
+	.preview-body {
+		padding: var(--space-18) var(--space-20) var(--space-22);
+	}
+	.preview-body h1,
+	.preview-body .preview-title-row {
+		font-size: calc(var(--space-24) * var(--content-text-scale, 1));
+	}
+	/* Full-screen reader */
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
+	}
+	.reader-body {
+		padding: var(--space-64) var(--space-22) var(--space-150);
+	}
+	.reader-body h1,
+	.reader-body .preview-title-row {
+		font-size: calc(27px * var(--content-text-scale, 1));
+	}
+	.reader-body p {
+		font-size: calc(var(--text-reader-body) * var(--content-text-scale, 1));
+	}
+	/* Settings */
+	.settings-layout {
+		grid-template-columns: 1fr;
+		min-height: 0;
+		background: var(--canvas);
+	}
+	.settings-nav {
+		flex-direction: row;
+		overflow-x: auto;
+		padding: var(--space-16) var(--space-12) var(--space-12);
+		border-right: 0;
+		border-bottom: 0;
+		scrollbar-width: none;
+	}
+	.settings-nav::-webkit-scrollbar {
+		display: none;
+	}
+	.settings-nav button {
+		flex: none;
+	}
+	.settings-main {
+		padding: var(--space-20) var(--space-16);
+		max-height: 70dvh;
+	}
+	/* The settings page fills the screen behind the capsule: its groups scroll to the bottom edge, not to a box above it. */
+	#modal.page.panel.wide .sheet {
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0;
+	}
+	#modal.page .settings-layout {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+	#modal.page .settings-main {
+		flex: 1;
+		max-height: none;
+		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+	/* Search */
+	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
+	:is(#modal, #search-background).search {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100dvh;
+		max-height: none;
+		margin: 0;
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+		justify-content: flex-start;
+		gap: var(--space-10);
+	}
+	:is(#modal, #search-background).search .search-results {
+		flex: 1;
+		min-height: 0;
+		max-height: none;
+	}
+	:is(#modal, #search-background).search .search-chips {
+		flex: none;
+	}
+	:is(#modal, #search-background).page.search {
+		height: 100dvh;
+		max-height: none;
+		inset: 0;
+		/* The top row sits right under the safe area, like home and AI (ADR 0048). */
+		padding: env(safe-area-inset-top) var(--margin-sm)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+		gap: var(--space-16);
+	}
+	/* Keyboard, pages and photos */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		position: fixed;
+		inset: auto 0 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+	}
+	.panel-content {
+		padding: var(--space-22) var(--space-20) var(--space-26);
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	#modal.panel,
+	#modal.panel.narrow,
+	#modal.panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	#modal.panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	body.keyboard-open #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
+	}
+	/* All three destinations are pages. The keyboard temporarily clears the capsule. */
+	#modal.page,
+	#modal.page.panel,
+	#modal.page.panel.wide,
+	#modal.page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	#modal.page .grabber {
+		display: none;
+	}
+	#modal.page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		padding: calc(var(--space-12) + env(safe-area-inset-top)) 0
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+	/* The local AI preview keeps context and composer in one viewport. */
+	#modal.page.panel.narrow:has(.ai-conversation) {
+		width: 100%;
+	}
+	#modal.page.panel .ai-conversation {
+		padding: env(safe-area-inset-top) var(--space-12)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
+		background: var(--card);
+	}
+	.lightbox-stage > .icon-button {
+		display: none;
+	}
+	#modal.page .settings-head {
+		padding: 0 var(--margin-sm);
+	}
+	#modal.page.panel .ai-conversation > .sheet-close {
+		display: none;
+	}
+	/* Title and round controls line up with the home and search top rows (16px margin). */
+	#modal.page.panel .ai-conversation-head {
+		padding: 0 var(--space-4);
+	}
+	/* The results page has no top row: its search bar keeps a small gap under the safe area. */
+	:is(#modal, #search-background).page.search:not(:has(.search-browse)) {
+		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
+	}
+	body.keyboard-open #modal.page.panel .ai-conversation {
+		padding-bottom: var(--space-12);
+	}
+	body.keyboard-open :is(#modal, #search-background).page.search {
+		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
+	}
+	.search-card-grid {
+		gap: var(--gap-sm);
+	}
+}
+
+@media (max-width: 650px) {
+	.feed-item:is(.type-article, .type-mail) .card-summary {
+		-webkit-line-clamp: 4;
+	}
+	.feed-item:is(.type-note, .type-digest) .card-summary {
+		-webkit-line-clamp: 2;
+	}
+	.feed-item.type-suggestion .card-summary {
+		-webkit-line-clamp: 1;
+	}
+}
+
+@media (max-width: 650px) {
+	.mail-attachments .attachment {
+		width: auto;
+	}
+	.mail-attachments .attachment-third,
+	.attachment-more-desktop {
+		display: none;
+	}
+	.attachment-more-phone {
+		display: inline;
+		font-size: var(--text-meta);
+		color: var(--secondary);
+	}
+}
+
+@media (max-width: 650px) {
+	#modal.search #search-selection-bar {
+		position: fixed;
+		bottom: var(--rail-bottom);
+		left: 50%;
+		translate: -50% 0;
+		margin: 0;
+		width: max-content;
+		max-width: calc(100vw - 2 * var(--rail-edge));
+	}
+}

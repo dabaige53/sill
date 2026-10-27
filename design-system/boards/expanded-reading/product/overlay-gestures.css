@@ -1,0 +1,391 @@
+/* Gestures: sheets and pages follow the finger; the dim follows them. */
+.pull-ring {
+	position: fixed;
+	left: 50%;
+	top: env(safe-area-inset-top, 0px);
+	z-index: 50;
+	width: 36px;
+	height: 36px;
+	margin-left: calc(-1 * var(--space-18));
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	opacity: 0;
+	pointer-events: none;
+	color: var(--accent);
+}
+/* Under a finger the desk follows exactly; the glide is only for letting go. */
+body.is-pulling main {
+	will-change: translate;
+}
+.pull-ring svg {
+	width: 24px;
+	height: 24px;
+	transform: rotate(-90deg);
+}
+.pull-ring circle {
+	transform-origin: center;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.4;
+	stroke-linecap: round;
+	stroke-dasharray: 100;
+	stroke-dashoffset: 100;
+}
+/* Gesture progress is inline; spinning holds one fixed arc while the request is pending. */
+.pull-ring.is-spinning circle {
+	stroke-dashoffset: 30 !important;
+}
+/* One icon owns each phase. Text remains in accessible labels only. */
+.pull-ring:disabled {
+	cursor: default;
+}
+.pull-ring > svg {
+	grid-area: 1 / 1;
+}
+.pull-ring .pull-check,
+.pull-ring .pull-retry {
+	opacity: 0;
+	transform: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.pull-ring[data-state="success"] .pull-progress,
+.pull-ring[data-state="error"] .pull-progress {
+	opacity: 0;
+}
+.pull-ring[data-state="success"] .pull-check,
+.pull-ring[data-state="error"] .pull-retry {
+	opacity: 1;
+}
+.pull-ring[data-state="error"] {
+	pointer-events: auto;
+}
+.pull-ring:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 4px;
+}
+/* Read end: nothing at the end itself. Pushing on raises a small ring that fills with the push; full, it turns into a check. */
+.reader-end {
+	height: 24px;
+}
+.push-ring {
+	position: absolute;
+	left: 50%;
+	bottom: 24px;
+	z-index: 6;
+	width: 40px;
+	height: 40px;
+	margin-left: calc(-1 * var(--space-20));
+	border-radius: 20px;
+	display: grid;
+	place-items: center;
+	background: var(--card);
+	box-shadow: var(--shadow-glass);
+	color: var(--accent);
+	pointer-events: none;
+	opacity: 0;
+	transform: scale(0.6);
+}
+.push-ring > * {
+	grid-area: 1 / 1;
+}
+.push-ring svg.arc {
+	width: 22px;
+	height: 22px;
+	transform: rotate(-90deg);
+}
+.push-ring .arc circle {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.2;
+	stroke-linecap: round;
+}
+.push-ring .arc circle:first-child {
+	stroke-opacity: 0.15;
+}
+.push-ring .tick {
+	width: 20px;
+	height: 20px;
+	opacity: 0;
+	color: var(--fixed-white);
+}
+.push-ring.is-done {
+	background: var(--accent);
+}
+.push-ring.is-done .arc {
+	opacity: 0;
+}
+.push-ring.is-done .tick {
+	opacity: 1;
+}
+/* The read-end ring rises at the very foot of the page, where the toolbar was. */
+#modal.reader .push-ring {
+	position: fixed;
+	bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
+}
+/* The sheet's own pull and push replace the browser's elastic bounce; two springs at once read as a stutter. */
+.sheet-scroll,
+.reader-scroll {
+	overscroll-behavior-y: none;
+}
+.sheet-scroll::-webkit-scrollbar,
+.reader-scroll::-webkit-scrollbar {
+	display: none;
+}
+.sheet-scroll,
+.reader-scroll {
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+}
+/* Motion owns gesture offsets in translate, separate from surface transforms. */
+/* Nested content follows its dragged parent immediately. */
+
+/* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
+#modal.panel .sheet {
+	max-height: 100dvh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+}
+
+/* Focus stays visible but sits close to the field, in a soft ring instead of a second outline. */
+.search-pill:focus-within {
+	outline: 3px solid color-mix(in srgb, var(--accent) 36%, transparent);
+	outline-offset: 0;
+}
+#modal.panel .settings-layout {
+	min-height: 0;
+}
+/* Settings is one grouped page: the same grey ground from the head to the last row, white groups on it. */
+#modal.panel.wide .sheet {
+	background: var(--canvas);
+}
+#modal.panel.wide .settings-nav,
+#modal.panel.wide .settings-main {
+	background: transparent;
+}
+
+/* Reader: the same scroll edges at the top and the bottom, under the floating bars. */
+.reader-edge {
+	position: fixed;
+	left: 0;
+	right: 0;
+	z-index: 4;
+	pointer-events: none;
+}
+.reader-edge.is-bottom {
+	bottom: 0;
+	height: calc(var(--rail-row) + 24px + 48px + env(safe-area-inset-bottom));
+	background: linear-gradient(
+		to top,
+		color-mix(in srgb, var(--card) 94%, transparent) 0%,
+		color-mix(in srgb, var(--card) 86%, transparent) calc(var(--rail-row) + 24px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+}
+.reader-edge.is-top {
+	top: 0;
+	height: calc(var(--rail-row) + 14px + 28px + env(safe-area-inset-top));
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, var(--card) 92%, transparent) 0%,
+		color-mix(in srgb, var(--card) 80%, transparent) calc(var(--rail-row) + 14px),
+		color-mix(in srgb, var(--card) 0%, transparent) 100%
+	);
+}
+.reader-edge.is-tucked {
+	opacity: 0;
+}
+/* Local AI conversation preview: no messages or connected send action. */
+#modal.panel.narrow:has(.ai-conversation) {
+	width: 100%;
+}
+.ai-conversation {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	max-height: calc(100dvh - 32px);
+}
+/* Same top row as home and search (ADR 0048): title left, round controls right. */
+.ai-conversation-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: var(--space-60);
+	flex: none;
+}
+.ai-conversation h1 {
+	margin: 0;
+	font-size: var(--text-figure);
+	font-weight: 700;
+	letter-spacing: -0.04em;
+	line-height: 1.2;
+}
+.ai-head-actions {
+	display: flex;
+	gap: var(--space-4);
+}
+.ai-head-button {
+	width: var(--hit-target);
+	height: var(--hit-target);
+}
+.ai-head-button .icon {
+	box-sizing: content-box;
+	padding: var(--space-8);
+	border-radius: 50%;
+	background: var(--surface);
+}
+.ai-head-button:disabled {
+	opacity: 0.45;
+}
+.ai-conversation > p {
+	margin: 0;
+}
+.ai-context {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-12);
+	scrollbar-width: none;
+}
+.ai-context-card {
+	padding: var(--card-padding);
+	border: 1px solid var(--line-card);
+	border-radius: var(--card-radius);
+	background: var(--card);
+}
+.ai-context-card h3 {
+	margin: 0;
+	font-size: var(--text-input);
+	overflow-wrap: anywhere;
+}
+.ai-context-card p {
+	margin: var(--space-8) 0 0;
+	font-size: var(--text-body);
+	color: var(--muted);
+	overflow-wrap: anywhere;
+}
+.ai-composer {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	border: 0;
+	border-radius: var(--panel-radius);
+	padding: var(--space-12);
+	flex: none;
+	background: var(--ai-composer);
+	color: var(--ai-ink);
+}
+.ai-composer textarea {
+	width: 100%;
+	min-width: 0;
+	min-height: var(--space-36);
+	height: var(--space-36);
+	padding: var(--space-2) var(--space-4);
+	resize: none;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: inherit;
+	font-size: var(--text-input);
+	line-height: var(--space-24);
+	outline: none;
+}
+.ai-composer-tools {
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+}
+.ai-composer-tools .icon-button {
+	width: var(--space-32);
+	height: var(--space-32);
+	min-width: var(--space-32);
+}
+.ai-composer-tools .ai-attach {
+	margin-right: auto;
+	border-radius: var(--space-12);
+	background: var(--ai-control);
+}
+.ai-attach .icon {
+	transform: rotate(-45deg);
+}
+.ai-composer-tools .ai-send {
+	width: var(--space-24);
+	height: var(--space-24);
+	min-width: var(--space-24);
+	border-radius: var(--pill-radius);
+	border: var(--space-2) solid var(--ai-ink);
+}
+.ai-speak {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-6);
+	min-width: calc(var(--space-60) + var(--space-24));
+	height: var(--space-32);
+	padding-inline: var(--space-12);
+	border-radius: var(--pill-radius);
+	background: var(--ai-ink);
+	color: var(--card);
+	font-size: var(--text-input);
+	font-weight: 500;
+}
+.ai-composer-tools button:disabled {
+	opacity: 1;
+}
+#modal.page.panel:has(.ai-conversation),
+#modal.page.panel .ai-conversation {
+	background: var(--card);
+}
+.soon-badge {
+	padding: var(--space-3) var(--space-10);
+	border-radius: var(--pill-radius);
+	background: var(--glass-press);
+	color: var(--secondary);
+	font-size: var(--text-meta);
+	font-weight: 600;
+}
+/* Settings › Add: the capture field inside a settings card. */
+.settings-add {
+	padding: var(--space-4) var(--space-16) var(--space-12);
+}
+.settings-add .panel-footer {
+	margin-top: var(--space-4);
+}
+
+@media (min-width: 651px) {
+	#modal.preview.is-short {
+		width: min(var(--preview-short-width), calc(100vw - var(--space-48)));
+	}
+	#modal.preview.is-short .preview-body {
+		padding-bottom: var(--space-16);
+	}
+	#modal.preview.is-short:has(> .float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(var(--rail-row) + var(--space-24));
+	}
+}
+
+/* Refresh stays centered in the heading without replacing the Sill title. */
+body:has(.home-top.is-tucked) .pull-ring.in-home-heading,
+body:has(#modal[open]) .pull-ring.in-home-heading {
+	visibility: hidden;
+}
+
+@media (min-width: 651px) {
+	.pull-ring.in-home-heading {
+		width: var(--space-40);
+		height: var(--space-40);
+		margin-left: calc(-1 * var(--space-20));
+	}
+	.pull-ring.in-home-heading svg {
+		width: var(--space-20);
+		height: var(--space-20);
+	}
+}
