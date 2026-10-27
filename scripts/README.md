@@ -5,7 +5,6 @@
 | 用途 | 命令或脚本 | 主要输入 → 输出 |
 | --- | --- | --- |
 | 设计材料 | `scripts/design-init.sh` / `npm run design` | 变量、产品代码、画板 → 组件示例、画布索引、`dist/design/` 发布准备；命令见 [设计约束](../DESIGN.md#工具) |
-| 动画库 | `node design-system/scripts/motion-library.ts`；已纳入设计 `build` | 登记表、设计专用 shadcn 工作台与真实产品局部 UI 示例 → `dist/design/motion/`；`npm run boards` 提供 `/motion/`，见[使用与维护](../docs/guides/motion-library.md) |
 | 文件管理检查 | `npm run files:check` | 根目录、导航、Git 文件清单 → 终端结果；只读 |
 | React 开发服务 | `npm run dev` / `scripts/dev.ts` | Vite + React Fast Refresh，5173；本地 API 代理到 4318 |
 | 本地页面 | `npm run build` | Vite、`apps/web/`、共享文案与样式清单 → `dist/web/index.html` |

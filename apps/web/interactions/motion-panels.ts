@@ -43,51 +43,6 @@ export function cardTransform(
 export const panelMotion: Record<string, any> = {
 	...detailNavigationMotion,
 	panelAnimations: new WeakMap(),
-	resizeFaces: new WeakMap(),
-	prepareResize(dialog: HTMLElement) {
-		if (this.keyboard) return;
-		const previous = this.resizeFaces.get(dialog) as HTMLElement | undefined;
-		// Detach the existing visual before cancelling its owner on a quick reversal.
-		const face = (previous || this.captureDetail(dialog)?.face) as HTMLElement | undefined;
-		if (!face) return;
-		face.remove();
-		face.style.opacity = "1";
-		const root = face.shadowRoot;
-		// Visual references use the cover only; they never mount a second media frame.
-		for (const poster of root?.querySelectorAll<HTMLElement>(".youtube-poster") || []) {
-			poster.hidden = false;
-			poster.style.opacity = "1";
-		}
-		for (const frame of root?.querySelectorAll<HTMLElement>(".youtube-frame[data-video-cover]") ||
-			[]) {
-			const player = frame.querySelector<HTMLElement>(".youtube-player");
-			if (player) {
-				player.style.backgroundImage = `url("${frame.dataset.videoCover}")`;
-				player.style.backgroundSize = "cover";
-				player.style.backgroundPosition = "center";
-			}
-		}
-		this.resizeFaces.set(dialog, face);
-	},
-	resizeHost(dialog: HTMLElement) {
-		const face = this.resizeFaces.get(dialog) as HTMLElement | undefined;
-		if (!face) return null;
-		const existing = face.parentElement;
-		if (existing?.hasAttribute("data-resize-visual")) return existing;
-		const host = document.createElement("div");
-		host.dataset.resizeVisual = "";
-		host.inert = true;
-		host.setAttribute("aria-hidden", "true");
-		Object.assign(host.style, {
-			position: "fixed",
-			inset: "0",
-			zIndex: "8",
-			pointerEvents: "none",
-		});
-		host.append(face);
-		dialog.append(host);
-		return host;
-	},
 	matchedSources: new WeakMap(),
 	matchSource(dialog: HTMLElement, source: HTMLElement | null) {
 		this.releaseSource(dialog);
@@ -307,7 +262,7 @@ export const panelMotion: Record<string, any> = {
 		if (el.hasAttribute("data-phone-drawer") || this.keyboard) return;
 		const sheet = this.surface(el);
 		const opacity = sheet.style.opacity;
-		const desktop = !matchMedia("(max-width:650px)").matches && el.dataset.readerResize !== "true";
+		const desktop = !matchMedia("(max-width:650px)").matches;
 		const tools = desktop
 			? this.detailTools(el).map((tool: HTMLElement) => [tool, tool.style.opacity] as const)
 			: [];
@@ -315,31 +270,18 @@ export const panelMotion: Record<string, any> = {
 		const resizing = el.dataset.readerResize === "true";
 		// A phone sheet waits off screen for this frame; so does its dim.
 		const phone = this.phoneSheet(el) && !resume && !resizing;
-		if (phone) this.dim(el, 0);
+		// A desktop detail growing out of its card brings its dim with it, not one frame ahead.
+		const growing = !phone && !resume && !resizing && !!origin?.width && desktop;
+		if (phone || growing) this.dim(el, 0);
 		// A reader growing out of its preview keeps the preview's dim until it covers the screen.
 		if (resizing && el.classList.contains("reader")) el.dataset.readerGrowing = "";
-		const host = resizing ? this.resizeHost(el) : null;
-		const waiting = host
-			? [
-					...sheet.children,
-					...(sheet === el ? [] : [...el.children].filter((node) => node !== sheet)),
-				]
-					.filter((node) => node !== host)
-					.map((node: HTMLElement) => [node, node.style.opacity] as const)
-			: [];
 		const restore = (keepVisual = false) => {
 			sheet.style.opacity = opacity;
-			for (const [node, value] of waiting) node.style.opacity = value;
-			if (host && !keepVisual) {
-				if (host.contains(this.resizeFaces.get(el))) this.resizeFaces.delete(el);
-				host.remove();
-			}
 			for (const [tool, value] of tools) tool.style.opacity = value;
-			if (phone) this.dim(el, null);
+			if (phone || (growing && !keepVisual)) this.dim(el, null);
 			delete el.dataset.readerGrowing;
 		};
-		if (host) for (const [node] of waiting) node.style.opacity = "0";
-		else sheet.style.opacity = resume?.opacity || "0";
+		sheet.style.opacity = resume?.opacity || "0";
 		const task = { frame: 0, restore };
 		this.panelTasks.set(el, task);
 		task.frame = requestAnimationFrame(() => {
@@ -358,94 +300,30 @@ export const panelMotion: Record<string, any> = {
 		if (el.dataset.readerResize === "true" && origin) {
 			delete el.dataset.readerResize;
 			const target = sheet.getBoundingClientRect();
-			const background = document.createElement("div");
-			background.dataset.readerResizeSurface = "";
-			const style = getComputedStyle(sheet);
-			Object.assign(background.style, {
-				position: "fixed",
-				left: `${target.left}px`,
-				top: `${target.top}px`,
-				width: `${target.width}px`,
-				height: `${target.height}px`,
-				background: style.backgroundColor,
-				borderRadius: style.borderRadius,
-				boxShadow: style.boxShadow,
-				pointerEvents: "none",
-				zIndex: "-1",
-			});
-			const previous = [sheet.style.background, sheet.style.boxShadow, el.style.isolation];
-			sheet.style.background = "transparent";
-			sheet.style.boxShadow = "none";
-			el.style.isolation = "isolate";
-			// The reader's own backdrop is the page colour; showing it now would cover the growth.
-			if (el.classList.contains("reader")) el.dataset.readerGrowing = "";
-			el.append(background);
+			if (!target.width || !target.height) return;
+			const from = cardTransform(origin, target);
+			// The same surface flight as card opening, in either resize direction.
+			// New content hands over during travel instead of waiting for a second phase.
+			const carried = this.carryCapsule(el, sheet, from, "none", true);
 			const animation = this.animate(
-				background,
-				[{ transform: cardTransform(origin, target) }, { transform: "none" }],
-				{ duration: this.time("dur-open"), spring: "expanded" },
+				sheet,
+				[{ opacity: 1, transform: from }, { opacity: 1, transform: "translate(0px,0px) scale(1,1)" }],
+				{ duration: this.time("dur-open"), spring: "card" },
 			);
-			const host = this.resizeHost(el);
-			const face = this.resizeFaces.get(el) as HTMLElement | undefined;
-			const content = [
-				...sheet.children,
-				...(sheet === el ? [] : [...el.children].filter((node) => node !== sheet)),
-			].filter((node) => node !== background && node !== host) as HTMLElement[];
-			const states = content.map((node) => ({
-				node,
-				opacity: node.style.opacity,
-				inert: node.inert,
-			}));
-			if (host)
-				for (const { node } of states) {
-					node.style.opacity = "0";
-					node.inert = true;
-				}
-			const clip = (rect: DOMRect) =>
-				`inset(${rect.top}px ${innerWidth - rect.left - rect.width}px ${innerHeight - rect.top - rect.height}px ${rect.left}px round ${style.borderRadius || "0px"})`;
-			const clipped = host
-				? this.animate(host, [{ clipPath: clip(origin) }, { clipPath: clip(target) }], {
-						spring: "expanded",
-					})
-				: null;
-			let active = true;
-			const restoreContent = () => {
-				for (const { node, opacity, inert } of states) {
-					node.style.opacity = opacity;
-					node.inert = inert;
-				}
-			};
-			const cleanup = () => {
-				if (!active) return;
-				active = false;
-				if (host?.contains(face)) this.resizeFaces.delete(el);
-				host?.remove();
-				background.remove();
-				delete el.dataset.readerGrowing;
-				[sheet.style.background, sheet.style.boxShadow, el.style.isolation] = previous;
-				restoreContent();
-			};
-			const animations = [animation, clipped, { cancel: cleanup, complete: cleanup }];
-			const reveal = () => {
-				if (!active) return;
-				if (!host) {
-					cleanup();
-					return;
-				}
-				// Both surfaces crossfade in the same task after the frame reaches its target.
-				restoreContent();
-				const fades = states.map(({ node }) => this.revealDetail(node, 0));
-				fades.push(
-					this.animate(host, [{ opacity: 1 }, { opacity: 0 }], {
-						duration: tokens.motion.detailFade,
-					}),
-				);
-				animations.push(...fades);
-				Promise.all(fades.map((fade) => fade?.finished)).then(cleanup, () => {});
-			};
-			this.panelAnimations.set(el, animations);
-			if (animation) animation.finished.then(reveal, () => {});
-			else reveal();
+			if (el.classList.contains("reader")) el.dataset.readerGrowing = "";
+			const cleanup = () => { delete el.dataset.readerGrowing; };
+			const body = sheet.querySelector(".preview-body, .reader-body") as HTMLElement | null;
+			const outline = sheet.querySelector(".reader-outline") as HTMLElement | null;
+			this.panelAnimations.set(el, [
+				animation,
+				carried,
+				...(body ? [this.revealDetail(body, tokens.motion.detailContentDelay)] : []),
+				...(outline ? [this.revealDetail(outline, tokens.motion.detailContentDelay)] : []),
+				...this.detailEntry(el),
+				{ cancel: cleanup, complete: cleanup },
+			]);
+			if (animation) animation.finished.then(cleanup, () => {});
+			else cleanup();
 			return;
 		}
 		if (resume) {
@@ -500,6 +378,8 @@ export const panelMotion: Record<string, any> = {
 					],
 					{ duration: this.time("dur-open"), spring: "card" },
 				);
+				// The dim follows the card on the same spring, as it does when the card returns.
+				this.dim(el, 1, this.time("dur-open"), true);
 				const body = sheet.querySelector(".preview-body, .reader-body") as HTMLElement | null;
 				this.panelAnimations.set(el, [
 					animation,
@@ -511,6 +391,7 @@ export const panelMotion: Record<string, any> = {
 			}
 		}
 		// Without a source, fade the surface in and retain the same tool sequence.
+		this.dim(el, null);
 		const animations = [this.enter(sheet)];
 		if (!matchMedia("(max-width:650px)").matches && el.matches(".preview, .reader"))
 			animations.push(...this.detailEntry(el));

@@ -110,12 +110,8 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		((reading && this.modalKind === "preview") || (!reading && this.modalKind === "reader"));
 	this.dialog.dataset.readerResize =
 		resizing && ["article", "media"].includes(c.type) ? "true" : "";
-	if (this.dialog.dataset.readerResize === "true") MotionEngine.prepareResize(this.dialog);
 	const entryRect = resizing
-		? (
-				this.dialog.querySelector("[data-reader-resize-surface]") ||
-				MotionEngine.surface(this.dialog)
-			).getBoundingClientRect()
+		? MotionEngine.surface(this.dialog).getBoundingClientRect()
 		: !active
 			? sourceRect
 			: null;

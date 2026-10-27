@@ -1,8 +1,12 @@
+import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 import { wheelInput, wheelIntent } from "../interactions/gesture-input.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { Playback } from "../interactions/motion-playback.ts";
 import type { AppController } from "./app.ts";
 import type { Deck, DeckGesture, TargetEvent } from "./app-types.ts";
+
+const deckMotion = foundation.motion.webInteraction;
+const tilt = (x: number, width: number) => Math.max(-1, Math.min(1, x / width)) * deckMotion.deckTilt;
 
 export const appStacksMethods = {
 	bindStacks(this: AppController) {
@@ -122,8 +126,8 @@ export const appStacksMethods = {
 			// At either end the card stays still; only a real neighbor can be revealed.
 			const x = dx < 0 && next ? dx : 0,
 				f = next ? Math.min(1, -Math.min(0, dx) / w) : 0;
-			top.style.transform = `translateX(${x}px)`;
-			if (next) next.style.transform = `translateY(${6 * (1 - f)}px)`;
+			top.style.transform = `translateX(${x}px) rotate(${tilt(x, w)}deg)`;
+			if (next) next.style.transform = `translateY(${deckMotion.deckStep * (1 - f)}px) scale(${deckMotion.deckScale + (1 - deckMotion.deckScale) * f})`;
 			if (prev) {
 				prev.classList.remove("is-prev");
 				prev.style.transform = "";
@@ -134,7 +138,7 @@ export const appStacksMethods = {
 			prev.classList.add("is-prev");
 			prev.style.visibility = "visible";
 			const x = -w - 24 + dx;
-			prev.style.transform = `translateX(${x}px)`;
+			prev.style.transform = `translateX(${x}px) rotate(${tilt(x, w)}deg)`;
 		}
 	},
 	deckSettle(this: AppController, deck?: Deck, dir?: number) {
@@ -156,15 +160,15 @@ export const appStacksMethods = {
 			el.style.transform = to;
 		};
 		if (dir === 1) {
-			run(top, `translateX(${-w * 1.15}px)`);
+			run(top, `translate(${-w * 1.15}px, ${deckMotion.deckDrop}px) rotate(${-deckMotion.deckExitTilt}deg) scale(${deckMotion.deckScale})`);
 			run(next, "none");
 		} else if (dir === -1) {
 			if (!prev.classList.contains("is-prev")) this.deckFollow(deck, 1);
 			run(prev, "none");
 		} else {
 			run(top, "none");
-			if (next) run(next, "translateY(6px)");
-			if (prev?.classList.contains("is-prev")) run(prev, `translateX(${-w - 24}px)`);
+			if (next) run(next, `translateY(${deckMotion.deckStep}px) scale(${deckMotion.deckScale})`);
+			if (prev?.classList.contains("is-prev")) run(prev, `translateX(${-w - 24}px) rotate(${-deckMotion.deckTilt}deg)`);
 		}
 		deck.dataset.busy = "1";
 		let finished = false;

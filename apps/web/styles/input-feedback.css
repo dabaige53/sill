@@ -9,12 +9,6 @@
 		padding-right: var(--space-36);
 	}
 }
-@media (hover: hover) and (pointer: fine) {
-	body:not(.is-dragging) .feed-card.feed-item:hover {
-		transform: translateY(-2px);
-	}
-}
-
 /* The local AI window can return to the search that supplied its context. */
 :is(#modal, .phone-layer).page .ai-conversation .sheet-close {
 	display: block;

@@ -1,9 +1,39 @@
 import { icon } from "../atoms/icons.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
 
 const originalDots = new Map<HTMLElement, Node[]>();
+const READ_STATES = ["is-read", "is-ended", "is-complete"];
+
+function readSurface(node: HTMLElement) {
+	const style = getComputedStyle(node);
+	return {
+		states: READ_STATES.filter((name) => node.classList.contains(name)).join(" "),
+		frame: {
+			backgroundColor: style.backgroundColor,
+			borderColor: style.borderColor,
+			boxShadow: style.boxShadow,
+		},
+	};
+}
+
+/** Read, ended and completed colors settle over dur-read instead of switching in one frame. */
+export function settleReadColors(root: ParentNode, change: () => void) {
+	const cards = () => root.querySelectorAll<HTMLElement>(".feed-card[data-card]");
+	const before = new Map([...cards()].map((node) => [node.dataset.card, readSurface(node)]));
+	change();
+	for (const node of cards()) {
+		const old = before.get(node.dataset.card);
+		if (!old) continue;
+		const next = readSurface(node);
+		if (old.states !== next.states)
+			MotionEngine.animate(node, [old.frame, next.frame], {
+				duration: MotionEngine.time("dur-read"),
+			});
+	}
+}
 
 function paintDot(dot: HTMLElement, done: boolean) {
 	if (!originalDots.has(dot)) originalDots.set(dot, [...dot.childNodes]);
@@ -54,15 +84,17 @@ export function updateCompletionState(root: ParentNode, id: string) {
 			paintDot(dot, reminderDone);
 		}
 	}
-	for (const node of root.querySelectorAll<HTMLElement>(`[data-card="${CSS.escape(id)}"]`)) {
-		const done = tasks.filter((task) => task.done).length;
-		node.classList.toggle(
-			"is-complete",
-			card.type === "reminder" ? reminderDone : !!tasks.length && done === tasks.length,
-		);
-		for (const count of node.querySelectorAll<HTMLElement>(".task-count"))
-			count.textContent = `${done}/${tasks.length}`;
-	}
+	settleReadColors(root, () => {
+		for (const node of root.querySelectorAll<HTMLElement>(`[data-card="${CSS.escape(id)}"]`)) {
+			const done = tasks.filter((task) => task.done).length;
+			node.classList.toggle(
+				"is-complete",
+				card.type === "reminder" ? reminderDone : !!tasks.length && done === tasks.length,
+			);
+			for (const count of node.querySelectorAll<HTMLElement>(".task-count"))
+				count.textContent = `${done}/${tasks.length}`;
+		}
+	});
 }
 
 /** Task and reminder controls change in place; other edits retain the full refresh path. */
