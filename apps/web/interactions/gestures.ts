@@ -1,5 +1,5 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
-import { shieldWheelTail, wheelIntent } from "./gesture-input.ts";
+import { recentVelocity, shieldWheelTail, wheelIntent } from "./gesture-input.ts";
 import { gesturePreviewMethods } from "./gesture-preview.ts";
 import { gesturePullMethods } from "./gesture-pull.ts";
 import { gestureSurfacesMethods } from "./gesture-surfaces.ts";
@@ -57,23 +57,7 @@ class Gestures {
 		return MotionEngine.time(`gesture-${name}`) || fallback;
 	}
 	velocity(position: number) {
-		const windowMs = this.value("velocity-window", 100);
-		let samples = [{ position, time: performance.now() }];
-		return {
-			feed(position: number) {
-				const time = performance.now();
-				// A stationary hold must not dilute the final flick. Retain a boundary sample.
-				const cutoff = time - windowMs;
-				while (samples.length > 1 && samples[1].time <= cutoff) samples.shift();
-				if (samples[0].time < cutoff) samples[0] = { ...samples[0], time: cutoff };
-				samples.push({ position, time });
-			},
-			read() {
-				const last = samples[samples.length - 1];
-				if (performance.now() - last.time > windowMs) return 0;
-				return (last.position - samples[0].position) / Math.max(1, last.time - samples[0].time);
-			},
-		};
+		return recentVelocity(position, this.value("velocity-window", 100));
 	}
 	flick(distance: number, velocity: number) {
 		return distance > this.value("flick-distance", 40) && velocity > this.value("flick-speed", 0.5);

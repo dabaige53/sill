@@ -1,5 +1,5 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
-import { wheelInput, wheelIntent, wheelPixels } from "./gesture-input.ts";
+import { recentVelocity, wheelInput, wheelIntent, wheelPixels } from "./gesture-input.ts";
 import { MotionEngine } from "./motion.ts";
 
 const config = tokens.motion.edgeDrag;
@@ -15,13 +15,13 @@ export function gestureContent(scroll: HTMLElement) {
 	return scroll.querySelector<HTMLElement>(":scope > .gesture-content") || scroll;
 }
 
-/** The reference's displacement and measured px/s velocity, owned by MotionEngine. */
+/** Retain the current edge travel; the release spring follows the ui-lab reference. */
+// @design content-edge-rebound
 export function reboundTrack(element: HTMLElement) {
 	let distance = 0,
 		base = 0,
 		offset = 0,
-		velocity = 0,
-		last = 0;
+		velocity: ReturnType<typeof recentVelocity> | null = null;
 	return {
 		begin() {
 			const drawn = getComputedStyle(element).translate.split(" ");
@@ -31,22 +31,20 @@ export function reboundTrack(element: HTMLElement) {
 			base = distance =
 				((-Math.sign(offset) * config.scale) / config.resistance) *
 				Math.log(1 - Math.min(Math.abs(offset) / config.scale, 0.999));
-			velocity = 0;
-			last = performance.now();
+			velocity = recentVelocity(offset, MotionEngine.time("gesture-velocity-window") || 100);
 		},
 		pull(value: number, incremental = false) {
 			distance = incremental ? distance + value : base + value;
-			const next = resistedDistance(distance),
-				now = performance.now();
-			velocity = (next - offset) / Math.max(config.minSampleSeconds, (now - last) / 1000);
-			last = now;
+			const next = resistedDistance(distance);
 			offset = next;
+			velocity?.feed(next);
 			MotionEngine.move(element, next ? `0 ${next}px` : "", true);
 		},
 		release() {
+			const speed = (velocity?.read(config.minSampleSeconds * 1000) || 0) * 1000;
 			return MotionEngine.move(element, "", false, {
-				spring: tokens.motion.edgeSpring,
-				velocity: { y: Math.max(-config.maxVelocity, Math.min(config.maxVelocity, velocity)) },
+				spring: tokens.motion.contentReboundSpring,
+				velocity: { y: Math.max(-config.maxVelocity, Math.min(config.maxVelocity, speed)) },
 			});
 		},
 	};

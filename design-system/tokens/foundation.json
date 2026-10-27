@@ -654,6 +654,13 @@
 			"restSpeed": 0.5,
 			"restDelta": 0.5
 		},
+		"contentReboundSpring": {
+			"stiffness": 600,
+			"damping": 48,
+			"mass": 1,
+			"restSpeed": 2,
+			"restDelta": 0.5
+		},
 		"edgeDrag": {
 			"resistance": 0.15,
 			"scale": 160,

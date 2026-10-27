@@ -304,3 +304,4 @@
 
 - [滚动、完成与回弹的交接](adr/0073-scroll-completion-and-rebound.md)
 - [下拉刷新的连续阻力与释放](adr/0074-pull-refresh-resistance-and-release.md)
+- [正文边缘回位的速度与参数](adr/0075-content-edge-rebound.md)

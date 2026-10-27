@@ -184,6 +184,8 @@ export const gesturePreviewMethods = {
 		});
 	},
 	bindPreviewResistance(this: Gestures, surface: HTMLElement) {
+		// Desktop edges belong to native scrolling; only phone sheets retain custom travel.
+		if (!this.phone.matches) return;
 		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
 		if (!scroll) return;
 		const token = this.app.modalToken;

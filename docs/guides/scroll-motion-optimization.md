@@ -2,7 +2,7 @@
 
 更新：2026-10-27。
 
-状态：Web/PWA第一轮已实施。Web下拉刷新手感已获用户确认，其余链路与PWA观感待复核；Mac尚未同步。用户最新明确：“全部优化”指本方案中滚动、完成与回弹链路涉及的全部动画组件。下文先按组件列出本次范围，第1至9节给出详细措施、参数、文件归属和构建路径；第10、11节的42项盘点保留为额外参考，不作为本次整套产品改造的执行范围。源码盘点不表示改进已经实现或用户已经确认观感。最初方案编写时的 HEAD 为 `c9c0c707`；当前实现和确认状态以最新提交及下方实施记录为准。
+状态：Web/PWA第一轮已实施。当前Web主页与普通详情原生回弹手感已获用户确认，其余链路与PWA观感待复核；Mac尚未同步。用户最新明确：“全部优化”指本方案中滚动、完成与回弹链路涉及的全部动画组件。下文先按组件列出本次范围，第1至9节给出详细措施、参数、文件归属和构建路径；第10、11节的42项盘点保留为额外参考，不作为本次整套产品改造的执行范围。源码盘点不表示改进已经实现或用户已经确认观感。最初方案编写时的 HEAD 为 `c9c0c707`；当前实现和确认状态以最新提交及下方实施记录为准。
 
 ## 本次范围：链路中的全部动画组件
 
@@ -18,7 +18,7 @@
 ### 正文边缘回弹与读完完成
 
 5. 正文滚动视口 `.sheet-scroll/#reader-scroll`：保持尺寸与裁切边界稳定，普通滚动继续原生处理。接近边缘不等于确认新手势，惯性抵达底部不能自动标记完成。
-6. 正文内部运动层：单独承接边缘位移，使用参考案例160／0.15阻力与300／34／0.9弹簧，继承释放速度。取消现有移动整个滚动容器和固定零初速度的做法；内部层不得与完成上推同时运行两套位移。[gesture-preview.ts](../../apps/web/interactions/gesture-preview.ts)、[previews-components.tsx](../../apps/web/interactions/previews-components.tsx)
+6. 正文内部运动层：Web桌面普通详情改试浏览器原生边缘反馈，取消该处自定义输入和位移；PWA继续600／48／1回位、160／0.15阻力与100ms速度窗口，停住后速度归零。读完上推独立处理，不与原生或普通回位叠加。[gesture-preview.ts](../../apps/web/interactions/gesture-preview.ts)、[gesture-rebound.ts](../../apps/web/interactions/gesture-rebound.ts)、[previews-components.tsx](../../apps/web/interactions/previews-components.tsx)
 7. 读完进度／勾选圆片 `.push-ring`：120阈值、正文0.6跟随；进度转勾选不重播透明度，不先回位再关闭；取消、提交失败、关闭、切换详情都只有一个收尾路径。wheel达标何时关闭仍按第2节的待选输入约定处理。
 8. 详情工具栏 `.float-bar/.reader-head/.reader-edge/.sheet-head-tools`：上推期间按既定规则退出，完成后保持退出，不被650ms自动恢复唤回；取消时从当前帧恢复。工具栏不自行等待另一个固定毫秒数。[preview-controller.ts](../../apps/web/views/preview-controller.ts)、[chrome.ts](../../apps/web/interactions/chrome.ts)
 
@@ -50,7 +50,7 @@
 
 ### 本次的参数和执行边界
 
-- 参考案例弹簧300／34／0.9、阻力0.15、位移尺度160、速度上限±750px/s保持；详细定义见4.1。
+- Web桌面普通详情用浏览器原生回弹，无产品自定弹簧或回位计时；PWA普通回位保留600／48／1、阻力0.15、尺度160和±750px/s上限。其他手势的300／34／0.9不整体替换，见4.1及ADR 0075。
 - 首页刷新使用motion.pullRefresh独立参数：64px可见阈值、480／0.7连续阻力、0.35秒无弹跳回位；120完成阈值、正文0.6跟随保持。
 - 刷新wheel使用连续3次衰减且幅度降至峰值50%，或80ms静默估计释放；其他回弹的40ms、共享80ms序列判断与240ms尾段保护保持。真实pointer／touch释放不套这些等待，观感仍待实测。
 - 650ms工具栏停顿恢复是独立显示规则；当前240ms收起、320／420ms恢复先保留，统一恢复节奏另按用户确认选择。完成或关闭时的同步恢复不走650ms。
@@ -132,15 +132,17 @@ pointer / touch / wheel
 
 实施时把参数写入 `design-system/tokens/foundation.json` 的 motion 节，再通过现有导出生成 `design-system/tokens.json`；不要手改生成文件。当前只有部分参数存在。下列新增名称为建议名称，不表示已经导出。
 
-### 4.1 普通边缘回弹：用户案例参数
+### 4.1 普通边缘回弹：桌面原生反馈与手机参数
+
+Web桌面大于650px时根html／body使用auto；首页wheel改为被动观察刷新意图，只更新圆环和释放后的刷新请求，不阻止滚动或平移main。鼠标拖动与PWA继续原位移方案。普通详情无push-ring时，sheet-scroll／reader-scroll使用overflow-y: scroll与contain，不叠加自定义边缘位移并阻止背景滚动。读完上推继续自定义处理，PWA根部none及抽屉不变。原生回弹由浏览器和系统决定，不承诺固定刚度、阻尼或时长。以下物理参数只用于手机普通正文回位。
 
 ```ts
 const edgeRebound = {
   type: "spring",
-  stiffness: 300,
-  damping: 34,
-  mass: 0.9,
-  restSpeed: 0.5,
+  stiffness: 600,
+  damping: 48,
+  mass: 1,
+  restSpeed: 2,
   restDelta: 0.5,
 };
 
@@ -155,7 +157,7 @@ const edgeDrag = {
 
 - 位移公式：`y = sign × 160 × (1 − exp(−abs(d) × 0.15 / 160))`。下拉 sign 为正，底部上推反馈为负。
 - 160是阻力曲线的渐近尺度，不是“拖动到160px后突然停止”的硬阈值。拖动100px约位移14.3px；拖动300px约39.2px。
-- 保留案例的速度计算：`velocity = (当前显示位移 − 上次显示位移) / max(0.008, 样本间隔秒数)`，单位px/s，再限制到±750。
+- 速度按最近100ms可见位移计算：`velocity = (窗口末位移 − 窗口首位移) / max(0.008, 窗口间隔秒数)`，单位px/s，再限制到±750。超过100ms没有新样本则归零，避免停住后仍使用旧速度。
 - 动画从当前绘制位移回到0，传入测得的释放速度；只有模拟释放或确实没有有效速度时使用0。
 - 物理弹簧不同时设置固定 duration、visualDuration、bounce 或另一条 CSS 位移过渡。
 - restSpeed / restDelta 是停止条件，不是额外等待。
@@ -163,6 +165,8 @@ const edgeDrag = {
 Motion 官方支持物理弹簧与初速度；设置刚度、阻尼、质量的弹簧能接续速度。[Motion animate](https://motion.dev/docs/animate#velocity)、[Motion spring](https://motion.dev/docs/spring)
 
 参考的 pointer 输入可逐行对齐上述案例。wheel 的 d 是事件增量累计，不能当成手指真实移动距离；估计的位移速度只用于视觉连续性，不对外声称恢复了原生手指速度。
+
+手机保留的弹簧起点参考[dabaige53/ui-lab的stacked-drawer](https://github.com/dabaige53/ui-lab/blob/main/src/lab/components/stacked-drawer.tsx)的380／38／1，随后调为600／48／1；用户仍反馈偏慢，不能视为通过，约快20%只是参数推算。Web当前试用参考改为[ui-lab网站](https://lab.xevrion.dev/)整页原生边缘反馈，不继续提高刚度。原motion.edgeSpring继续用于其他手势。详见[ADR 0075](../adr/0075-content-edge-rebound.md)。
 
 ### 4.2 wheel 适配：需真实设备验证的起始参数
 

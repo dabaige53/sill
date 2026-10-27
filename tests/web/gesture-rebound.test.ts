@@ -29,10 +29,10 @@ test("the reference curve moves inner content and preserves the measured release
 		assert.equal(destination, "");
 		assert.equal(direct, false);
 		assert.deepEqual(JSON.parse(JSON.stringify(options.spring)), {
-			stiffness: 300,
-			damping: 34,
-			mass: 0.9,
-			restSpeed: 0.5,
+			stiffness: 600,
+			damping: 48,
+			mass: 1,
+			restSpeed: 2,
 			restDelta: 0.5,
 		});
 		assert.equal(options.velocity.y, -750, "fast release keeps velocity with the reference cap");
@@ -41,36 +41,28 @@ test("the reference curve moves inner content and preserves the measured release
 	}
 });
 
-test("one return starts on wheel deceleration and old tail events cannot pull it again", () => {
+test("desktop preview edges leave wheel input to native scrolling without a custom return", () => {
 	const f = fixture();
 	try {
 		const content = f.document.createElement("div");
 		content.className = "gesture-content";
 		content.append(...f.scroll.childNodes);
 		f.scroll.append(content);
-		const returns: any[] = [];
-		f.MotionEngine.move = (
-			node: HTMLElement,
-			destination: string,
-			direct: boolean,
-			options: any,
-		) => {
-			if (!direct) returns.push(options);
-			node.style.translate = destination;
-		};
-		f.gestures.bindPreviewResistance(f.dialog.querySelector(".preview-sheet"));
+		const moves: any[] = [];
+		f.MotionEngine.move = (...args: any[]) => moves.push(args);
+		f.gestures.bindPullDown();
 		f.scroll.scrollTop = 1000;
-		const wheel = (deltaY: number) =>
-			f.scroll.dispatchEvent(
-				new f.w.WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true }),
-			);
-		wheel(100);
-		wheel(80);
-		assert.equal(returns.length, 1, "deceleration releases without waiting for an idle timer");
-		f.flush(undefined, 40);
-		for (const d of [40, 15, 5, 1]) wheel(d);
+		for (const deltaY of [100, 80, 40, 15, 5, 1, -100]) {
+			const event = new f.w.WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true });
+			f.scroll.dispatchEvent(event);
+			assert.equal(event.defaultPrevented, false, "the browser keeps the entire wheel sequence");
+		}
 		f.flush();
-		assert.equal(returns.length, 1);
+		assert.equal(
+			moves.length,
+			0,
+			"no custom offset or delayed return competes with native scrolling",
+		);
 		assert.equal(content.style.translate, "");
 		assert.equal(f.scroll.style.translate, "");
 	} finally {
@@ -116,7 +108,34 @@ test("phone content follows a real touch and releases immediately at touchend", 
 		assert.ok(Number.parseFloat(f.scroll.style.translate.split(" ")[1]) < -39);
 		f.fire(f.scroll, "touchend", 120, 200);
 		assert.equal(calls.at(-1)[1], "");
-		assert.equal(calls.at(-1)[3].spring.stiffness, 300);
+		assert.equal(calls.at(-1)[3].spring.stiffness, 600);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
+test("holding still at the content edge expires release velocity instead of replaying the last movement", () => {
+	const f = fixture();
+	try {
+		let now = 0;
+		Object.defineProperty(f.w.performance, "now", { value: () => now });
+		const calls: any[] = [];
+		f.MotionEngine.move = (...args: any[]) => {
+			calls.push(args);
+			args[0].style.translate = args[1];
+		};
+		const track = f.w.GestureTest.reboundTrack(f.scroll);
+		track.begin();
+		now = 16;
+		track.pull(-300);
+		now = 200;
+		track.release();
+		assert.equal(
+			calls.at(-1)[3].velocity.y,
+			0,
+			"a stationary release must not add another outward push",
+		);
+		assert.equal(calls.at(-1)[1], "");
 	} finally {
 		f.dom.window.close();
 	}

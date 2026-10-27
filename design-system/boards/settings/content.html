@@ -296,7 +296,7 @@ html {
 	scroll-behavior: auto;
 	scrollbar-gutter: auto;
 	scrollbar-width: none;
-	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
+	/* Phone pull-to-refresh owns the boundary; desktop scrolling is released below. */
 	overscroll-behavior-y: none;
 }
 /* Hide the page track without disabling wheel, touch or keyboard scrolling. */
@@ -313,6 +313,13 @@ body {
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
 	min-height: 100dvh;
+}
+@media (min-width: 651px) {
+	/* @design content-edge-rebound */
+	html,
+	body {
+		overscroll-behavior-y: auto;
+	}
 }
 button,
 input,
@@ -6071,10 +6078,19 @@ body.is-pulling main {
 	position: fixed;
 	bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 }
-/* The sheet's own pull and push replace the browser's elastic bounce; two springs at once read as a stutter. */
+/* Custom phone-sheet and read-end gestures own their edges without a second native spring. */
 .sheet-scroll,
 .reader-scroll {
 	overscroll-behavior-y: none;
+}
+/* @design content-edge-rebound */
+@media (min-width: 651px) {
+	/* Keep local native bounce while preventing the page behind the preview from scrolling. */
+	.preview-sheet:not(:has(.push-ring)) > .sheet-scroll,
+	#modal.reader:not(:has(.push-ring)) .reader-scroll {
+		overflow-y: scroll;
+		overscroll-behavior-y: contain;
+	}
 }
 .sheet-scroll::-webkit-scrollbar,
 .reader-scroll::-webkit-scrollbar {

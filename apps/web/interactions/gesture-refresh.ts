@@ -34,7 +34,8 @@ export function bindRefresh(this: Gestures) {
 		resultFade: Playback | null = null,
 		start: { x: number; y: number } | null = null,
 		mouse: { id: number; x: number; y: number; live: boolean } | null = null,
-		gesture: { base: number; velocity: ReturnType<Gestures["velocity"]> } | null = null;
+		gesture: { base: number; velocity: ReturnType<Gestures["velocity"]>; native: boolean } | null =
+			null;
 	const labels = {
 		idle: copy("web.refresh.pull"),
 		pulling: copy("web.refresh.pull"),
@@ -74,7 +75,7 @@ export function bindRefresh(this: Gestures) {
 		ring.style.left = headingTop === null ? "" : `${rect.left + rect.width / 2}px`;
 	};
 	const follow = ({ y }: { y: number }) => {
-		drawn = y;
+		if (!gesture?.native) drawn = y;
 		const progress = Math.min(1, Math.max(0, y) / need),
 			feedback = state === "loading" || state === "success" || state === "error";
 		// Preserve the product's original indicator anchor and reveal; only motion is retuned.
@@ -96,6 +97,7 @@ export function bindRefresh(this: Gestures) {
 	const drive = (direct = false, velocity?: number) => {
 		cancelAnimationFrame(frame);
 		frame = 0;
+		if (gesture?.native) return follow({ y: pull });
 		return MotionEngine.move(main, pull ? `0 ${pull}px` : "", direct, {
 			spring: refreshConfig.settle,
 			...(velocity === undefined ? {} : { velocity: { y: velocity } }),
@@ -111,15 +113,15 @@ export function bindRefresh(this: Gestures) {
 		resultFade?.cancel();
 		resultFade = null;
 	};
-	const begin = () => {
+	const begin = (native = false) => {
 		stopFeedback();
 		suppressRing = false;
-		pull = drawn;
-		gesture = { base: refreshUnband(Math.max(0, drawn)), velocity: this.velocity(drawn) };
+		pull = native ? 0 : drawn;
+		gesture = { base: refreshUnband(Math.max(0, pull)), velocity: this.velocity(pull), native };
 		measure();
 		status("pulling");
 		drive(true);
-		document.body.classList.add("is-pulling");
+		if (!native) document.body.classList.add("is-pulling");
 	};
 	const track = (distance: number) => {
 		if (!gesture) return;
@@ -279,33 +281,34 @@ export function bindRefresh(this: Gestures) {
 		if (start) release();
 	});
 	document.addEventListener("touchcancel", cancel, { passive: true });
-	window.addEventListener(
-		"wheel",
-		(event: WheelEvent) => {
-			if (mouse || start || event.buttons) return;
-			if (
-				event.ctrlKey ||
-				Math.abs(event.deltaX) > Math.abs(event.deltaY) ||
-				this.fromField(event)
-			) {
-				cancel();
-				wheel.reset(false);
-				return;
-			}
-			const delta = -wheelPixels(event, innerHeight),
-				eligible = !unavailable() && delta > 0,
-				next = wheel.feed(delta, eligible);
-			if (!eligible || !event.cancelable) return cancel();
-			if (next.phase === "ignore") return;
-			event.preventDefault();
-			if (next.phase === "start") begin();
-			if (next.phase === "release") return release();
-			track(next.distance);
-			clearTimeout(timer);
-			timer = window.setTimeout(release, refreshConfig.wheel.releaseIdleMs);
-		},
-		{ passive: false },
-	);
+	const onWheel = (event: WheelEvent) => {
+		if (mouse || start || event.buttons) return;
+		if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || this.fromField(event)) {
+			cancel();
+			wheel.reset(false);
+			return;
+		}
+		const delta = -wheelPixels(event, innerHeight),
+			eligible = !unavailable() && delta > 0,
+			next = wheel.feed(delta, eligible),
+			native = !this.phone.matches;
+		if (!eligible || (!native && !event.cancelable)) return cancel();
+		if (next.phase === "ignore") return;
+		if (!native) event.preventDefault();
+		if (next.phase === "start") begin(native);
+		if (next.phase === "release") return release();
+		track(next.distance);
+		clearTimeout(timer);
+		timer = window.setTimeout(release, refreshConfig.wheel.releaseIdleMs);
+	};
+	const bindWheel = () => {
+		cancel();
+		wheel.reset(false);
+		window.removeEventListener("wheel", onWheel);
+		window.addEventListener("wheel", onWheel, { passive: !this.phone.matches });
+	};
+	bindWheel();
+	this.phone.addEventListener("change", bindWheel);
 	ring.addEventListener("click", () => {
 		if (state === "error") void refresh();
 	});

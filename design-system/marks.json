@@ -1,6 +1,13 @@
 {
 	"note": "设计印记：代码里写 `@design <编号>`，编号在这里登记规则、变量、ADR 和现行画板。用 `scripts/design-init.sh trace <编号或变量名>` 反查。",
 	"marks": {
+		"content-edge-rebound": {
+			"title": "正文边缘回位",
+			"rule": "handbook/motion.md#正文边缘回位",
+			"tokens": ["gesture-velocity-window"],
+			"adr": "0075",
+			"boards": []
+		},
 		"pull-refresh": {
 			"title": "下拉刷新连续阻力与释放",
 			"rule": "handbook/motion.md#首页下拉刷新",

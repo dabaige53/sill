@@ -2,6 +2,27 @@ import tokens from "../../../design-system/tokens.json" with { type: "json" };
 
 export const wheelInput = tokens.motion.wheelInput;
 
+/** Recent displayed movement in px/ms; an expired sample must not revive a stopped gesture. */
+export function recentVelocity(position: number, windowMs: number, now = () => performance.now()) {
+	const samples = [{ position, time: now() }];
+	return {
+		feed(position: number) {
+			const time = now(),
+				cutoff = time - windowMs;
+			while (samples.length > 1 && samples[1].time <= cutoff) samples.shift();
+			if (samples[0].time < cutoff) samples[0] = { ...samples[0], time: cutoff };
+			samples.push({ position, time });
+		},
+		read(minSampleMs = 1) {
+			const last = samples[samples.length - 1];
+			if (now() - last.time > windowMs) return 0;
+			return (
+				(last.position - samples[0].position) / Math.max(minSampleMs, last.time - samples[0].time)
+			);
+		},
+	};
+}
+
 export function wheelPixels(event: Pick<WheelEvent, "deltaY" | "deltaMode">, pageHeight: number) {
 	return (
 		event.deltaY *
