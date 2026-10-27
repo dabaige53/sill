@@ -10,9 +10,12 @@ import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController, DetailPosition } from "./app.ts";
 
+import { pushPhonePreview, restorePhonePreview } from "./phone-preview-stack.ts";
+
 export function openCard(this: AppController, id?: any, reading: any = false) {
 	const c = Store.card(id);
 	if (!c) return;
+	if (!this.desktop() && !reading && restorePhonePreview(this, id)) return;
 	// An open card folds the AI panel back to one line; the full view stays under the card.
 	this.aiHeightEvent?.("detail");
 	this.closingCardRoute = "";
@@ -30,10 +33,6 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		["preview", "reader", "lightbox"].includes(this.modalKind);
 	const linked = active && this.currentId !== id;
 	const phoneLinked = linked && !this.desktop();
-	const currentSheet = this.dialog.querySelector<HTMLElement>(".preview-sheet");
-	const inheritFull =
-		phoneLinked && (this.modalKind === "reader" || currentSheet?.classList.contains("is-full"));
-	const inheritHeight = phoneLinked && !inheritFull ? currentSheet?.offsetHeight : 0;
 	if (active) {
 		const scroll = this.dialog.querySelector<HTMLElement>(
 			"#reader-scroll, .preview-sheet .sheet-scroll",
@@ -58,7 +57,7 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	// Phone links keep the current presentation in both directions, including after expansion.
 	if (phoneLinked) reading = this.modalKind === "reader";
 	const previousId = this.currentId;
-	const visual = linked ? MotionEngine.captureDetail(this.dialog, id) : null;
+	const visual = linked && this.desktop() ? MotionEngine.captureDetail(this.dialog, id) : null;
 	// The old chrome resolves its tools dynamically; dispose it before the new DOM exists.
 	this.sheetHide?.destroy();
 	this.sheetHide = null;
@@ -73,8 +72,7 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	const settle = () => {
 		const sheet = this.dialog.querySelector<HTMLElement>(".preview-sheet");
 		if (sheet && phoneLinked) {
-			sheet.classList.toggle("is-full", !!inheritFull);
-			if (inheritHeight) sheet.style.setProperty("--nested-sheet-height", `${inheritHeight}px`);
+			sheet.classList.add("is-full");
 		}
 		const scroll = this.dialog.querySelector<HTMLElement>(
 			"#reader-scroll, .preview-sheet .sheet-scroll",
@@ -99,7 +97,8 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 			if (!focus && scroll) scroll.tabIndex = -1;
 			(focus || scroll)?.focus({ preventScroll: true });
 		}
-		if (linked) MotionEngine.navigateDetail(this.dialog, visual, returning, previousId);
+		if (linked && this.desktop())
+			MotionEngine.navigateDetail(this.dialog, visual, returning, previousId);
 	};
 	const source = (
 		this.searchBackground || (this.modalKind === "search" ? this.dialog : this.grid)
@@ -139,6 +138,9 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 			this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));
 		} catch {}
 	if (this.modalKind === "search") this.suspendSearch();
+	if (phoneLinked && this.modalKind === "preview" && !reading && c.type !== "photo") {
+		pushPhonePreview(this);
+	}
 	this.currentId = id;
 	if (!Store.item(id).seen) {
 		Store.patch(id, { seen: true });
@@ -224,7 +226,7 @@ export function bindSheetChrome(this: AppController) {
 		scroll,
 		() => [
 			...this.dialog.querySelectorAll(
-				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
+				":scope > .phone-drawer > .float-bar, :scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
 			),
 		],
 		() =>

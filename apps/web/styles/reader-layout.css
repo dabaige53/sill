@@ -1,8 +1,8 @@
 /* @design article-reading — expanded workspaces; previews keep their bottom tools. */
-#modal.reader:has(.reader-workspace) > .reader-edge {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .reader-edge {
 	display: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar {
 	top: max(var(--space-4), env(safe-area-inset-top));
 	left: max(var(--space-16), env(safe-area-inset-left));
 	right: auto;
@@ -13,11 +13,11 @@
 	-webkit-backdrop-filter: none;
 	box-shadow: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar::before,
-#modal.reader:has(.reader-workspace) > .float-bar::after {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar::before,
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar::after {
 	display: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar .icon-button::after {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar .icon-button::after {
 	bottom: auto;
 	top: calc(100% + var(--space-8));
 }
@@ -208,11 +208,11 @@
 	.reader-outline {
 		display: none;
 	}
-	#modal.reader:has(.reader-workspace) > .float-bar {
+	:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar {
 		left: var(--space-4);
 		padding-inline: var(--space-4);
 	}
-	#modal.reader:has(.reader-workspace) > .float-bar .bar-divider {
+	:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar .bar-divider {
 		display: none;
 	}
 	.media-tab-header {

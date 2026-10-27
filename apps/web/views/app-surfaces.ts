@@ -2,10 +2,12 @@ import type { ReactNode } from "react";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { closePhoneDrawer, configurePhoneDrawer } from "../interactions/phone-drawer.tsx";
 import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
 import { flushReadingRefresh } from "../interactions/reading-feedback.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
+import { clearPhonePreviews } from "./phone-preview-stack.ts";
 import { renderContent, renderView } from "./react-renderer.ts";
 
 /** Surfaces that show one card; the desktop bars step aside while one is open. */
@@ -78,6 +80,7 @@ export const appSurfacesMethods = {
 		shape: string = "",
 		nested = false,
 	) {
+		const phoneDrawer = kind === "preview" && !this.desktop();
 		const reversing = this.dialog.open && this.sheetLeaving;
 		const drawn = reversing ? getComputedStyle(MotionEngine.surface(this.dialog)) : null;
 		const resume = drawn ? { opacity: drawn.opacity, transform: drawn.transform } : undefined;
@@ -107,7 +110,7 @@ export const appSurfacesMethods = {
 			this.dialog.close();
 		if (!this.dialog.open) {
 			this.lastFocus = document.activeElement as HTMLElement;
-			this.lockPageScroll();
+			if (!phoneDrawer) this.lockPageScroll();
 		}
 		const liveToast = document.getElementById("toast");
 		if (liveToast && this.dialog.contains(liveToast)) document.body.appendChild(liveToast);
@@ -129,6 +132,11 @@ export const appSurfacesMethods = {
 					(card.summary || "").length < 280))
 		)
 			this.dialog.classList.add("is-short");
+		// @design phone-detail-drawer
+		configurePhoneDrawer(this, phoneDrawer);
+		// Vaul must measure its initial offscreen frame in a visible host. Mounting it
+		// inside a closed native dialog consumes the entry transition before showModal.
+		if (phoneDrawer && !this.dialog.open) this.dialog.show();
 		// Resizing one video changes layout props, not the player's mount lifecycle.
 		if (
 			this.dialog.dataset.readerResize === "true" &&
@@ -150,7 +158,7 @@ export const appSurfacesMethods = {
 					? "#tag-new"
 					: "#modal-title",
 		);
-		if (focus) {
+		if (focus && !phoneDrawer) {
 			if (!/INPUT|TEXTAREA|BUTTON/.test(focus.tagName)) focus.tabIndex = -1;
 			focus.focus({ preventScroll: true });
 		}
@@ -176,6 +184,16 @@ export const appSurfacesMethods = {
 			this.skipReturnMotion = false;
 		}
 		if (this.sheetLeaving) return;
+		if (
+			animate &&
+			closePhoneDrawer(this.dialog, () => {
+				this.sheetLeaving = false;
+				this.closeNative(false);
+			})
+		) {
+			this.sheetLeaving = true;
+			return;
+		}
 		if (
 			animate &&
 			(!this.isPage(this.modalKind) || ["reader", "lightbox"].includes(this.modalKind))
@@ -257,7 +275,9 @@ export const appSurfacesMethods = {
 					fill: "forwards",
 				},
 			);
-			const bar = this.dialog.querySelector<HTMLElement>(":scope > .float-bar");
+			const bar = this.dialog.querySelector<HTMLElement>(
+				":scope > .phone-drawer > .float-bar, :scope > .float-bar",
+			);
 			const barAnimation =
 				!desktop && bar && !bar.hasAttribute("data-read-complete")
 					? MotionEngine.animate(
@@ -330,6 +350,11 @@ export const appSurfacesMethods = {
 			this.searchScroll = this.dialog.querySelector<HTMLElement>("#search-results")?.scrollTop || 0;
 		MotionEngine.cancel(this.dialog, true);
 		this.dialog.close();
+		if (this.dialog.hasAttribute("data-phone-drawer")) {
+			configurePhoneDrawer(this, false);
+			renderContent(this.dialog, null);
+		}
+		clearPhonePreviews(this);
 		MotionEngine.releaseSource(this.dialog);
 		if (this.searchBackground) {
 			this.restoreSearch();

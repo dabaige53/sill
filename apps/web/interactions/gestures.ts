@@ -83,7 +83,9 @@ class Gestures {
 			surface.classList.remove("is-off");
 			if (surface !== this.app.dialog) surface.style.transform = "";
 			this.dim(null);
-			const bar = this.app.dialog.querySelector(":scope > .float-bar");
+			const bar = this.app.dialog.querySelector(
+				":scope > .phone-drawer > .float-bar, :scope > .float-bar",
+			);
 			if (bar) {
 				bar.classList.remove("is-hidden");
 				bar.style.opacity = "";
@@ -134,7 +136,7 @@ class Gestures {
 		MotionEngine.move(surface, "", true);
 		surface.classList.add("is-drag");
 		dialog.classList.remove("is-drag");
-		const bar = dialog.querySelector(":scope > .float-bar");
+		const bar = dialog.querySelector(":scope > .phone-drawer > .float-bar, :scope > .float-bar");
 		if (bar) bar.style.opacity = "0";
 		MotionEngine.dim(dialog, 0, duration);
 		const base = transform === "none" ? "" : transform;

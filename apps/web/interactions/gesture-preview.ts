@@ -212,7 +212,9 @@ export const gesturePreviewMethods = {
 		chip.innerHTML = pushRingHTML;
 		host.appendChild(chip);
 		const arc = chip.querySelector(".arc circle:last-child"),
-			bar = dialog.querySelector(":scope > .float-bar, .reader .float-bar") as HTMLElement | null;
+			bar = dialog.querySelector(
+				":scope > .phone-drawer > .float-bar, :scope > .float-bar, .reader .float-bar",
+			) as HTMLElement | null;
 		const desktop = !matchMedia("(max-width:650px)").matches;
 		// React may reuse the toolbar node for the next card.
 		if (bar?.dataset.readComplete) {
@@ -237,7 +239,9 @@ export const gesturePreviewMethods = {
 			clearTimeout(timer);
 			leave();
 		};
-		const atEnd = () => scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
+		const atEnd = () =>
+			(!dialog.hasAttribute("data-phone-drawer") || host.classList.contains("is-full")) &&
+			scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
 		const paint = () => {
 			if (app.modalToken !== token) return;
 			chip.style.opacity = String(Math.min(1, pull / 30));

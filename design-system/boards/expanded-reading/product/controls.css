@@ -79,7 +79,7 @@
 	gap: var(--rail-gap);
 	pointer-events: none;
 }
-body:has(#modal[open] .settings-layout) #dock {
+body:has(:is(#modal, .phone-layer)[open] .settings-layout) #dock {
 	display: none;
 }
 #dock > * {
@@ -93,7 +93,7 @@ body:has(#modal[open] .settings-layout) #dock {
 }
 /* Descendants opt into hit testing normally, so suppress them throughout the fade. */
 #dock.is-tucked *,
-body:has(#modal[open]:not(.page)) #dock * {
+body:has(:is(#modal, .phone-layer)[open]:not(.page)) #dock * {
 	pointer-events: none;
 }
 .nav-capsule {
@@ -232,7 +232,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 }
 /* Desktop: the notice rides with the capsule and leaves with it. */
 body:has(#dock.is-tucked) #new-count,
-body:has(#modal[open]) #new-count {
+body:has(:is(#modal, .phone-layer)[open]) #new-count {
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
@@ -405,7 +405,7 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	font-size: var(--text-meta);
 }
 /* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
-#modal #toast {
+:is(#modal, .phone-layer) #toast {
 	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
 }
 #toast.is-alert {

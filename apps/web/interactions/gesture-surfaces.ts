@@ -32,7 +32,7 @@ export const gestureSurfacesMethods = {
 				cancel();
 				if (e.touches.length > 1 || !matchMedia("(max-width:650px)").matches) return;
 				const sheet = sheetOf(e.target);
-				if (!sheet) return;
+				if (!sheet || dialog.hasAttribute("data-phone-drawer")) return;
 				const scroll = sheet.querySelector(".sheet-scroll");
 				// The handle resizes the sheet itself; text already at its top pulls the whole sheet down.
 				if (e.target.closest(".sheet-handle")) return;
@@ -47,7 +47,7 @@ export const gestureSurfacesMethods = {
 					base: 0,
 					dy: 0,
 					live: false,
-					bar: dialog.querySelector(":scope > .float-bar"),
+					bar: dialog.querySelector(":scope > .phone-drawer > .float-bar, :scope > .float-bar"),
 				};
 			},
 			{ passive: true },
