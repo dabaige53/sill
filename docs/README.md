@@ -1,6 +1,6 @@
 # 文档目录
 
-更新：2026-10-26。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](guides/file-management.md)。
+更新：2026-10-27。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](guides/file-management.md)。
 
 查阅顺序与排查入口见[文档查阅指南](guides/document-navigation.md)。
 
@@ -303,3 +303,4 @@
 - [动画复核后的加载与操作反馈](adr/0072-web-animation-review-refinements.md)
 
 - [滚动、完成与回弹的交接](adr/0073-scroll-completion-and-rebound.md)
+- [下拉刷新的连续阻力与释放](adr/0074-pull-refresh-resistance-and-release.md)

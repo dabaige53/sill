@@ -22,24 +22,28 @@ assert.match(
 if (/<script\b[^>]*\bsrc=/i.test(markup) || /<link\b[^>]*rel=["']stylesheet/i.test(markup))
 	throw new Error("external_runtime_asset");
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
-if (scripts.length !== 2 || scripts.some(([, code]) => !code.trim()))
+if (scripts.length !== 3 || scripts.some(([, code]) => !code.trim()))
 	throw new Error("missing_standalone_scripts");
 for (const [, code] of scripts) new Script(code);
-if (html.indexOf(scripts[1][0]) < html.indexOf("<body>")) throw new Error("bundle_before_body");
+assert.match(scripts[0][0], /id="sill-theme-bootstrap"/, "missing_theme_bootstrap");
+assert.ok(html.indexOf(scripts[0][0]) < html.indexOf("<body>"), "theme_bootstrap_after_body");
+if (html.indexOf(scripts[2][0]) < html.indexOf("<body>")) throw new Error("bundle_before_body");
 // Keep the local bundle assertions formerly owned by tests/web/build.test.ts.
 if (!process.argv.includes("--cloud")) {
 	const dom = new JSDOM(html);
 	try {
 		const document = dom.window.document;
 		const elements = [...document.querySelectorAll("script")];
-		assert.equal(elements.length, 2);
+		assert.equal(elements.length, 3);
 		for (const script of elements) {
 			assert.equal(script.type, "");
 			assert.equal(script.hasAttribute("src"), false);
 			assert.ok(script.textContent.trim());
 		}
-		assert.ok(elements[0].textContent.includes('window.__PAGE__="feed"'));
-		assert.equal(elements[1].parentElement, document.body);
+		assert.equal(elements[0].id, "sill-theme-bootstrap");
+		assert.equal(elements[0].parentElement, document.head);
+		assert.ok(elements[1].textContent.includes('window.__PAGE__="feed"'));
+		assert.equal(elements[2].parentElement, document.body);
 		for (const image of document.querySelectorAll("img[src]"))
 			assert.doesNotMatch(image.getAttribute("src"), /^https?:/i);
 	} finally {

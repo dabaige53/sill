@@ -78,16 +78,9 @@
 		"repo": "dabaige53/sill",
 		"ref": "main@a27ae2a",
 		"paths": {
-			"tokens": [
-				"apps/web/styles/tokens.css"
-			],
-			"assets": [
-				"apps/web/atoms/icons.ts"
-			],
-			"docs": [
-				"design-system/README.md",
-				"docs/design/system.md"
-			]
+			"tokens": ["apps/web/styles/tokens.css"],
+			"assets": ["apps/web/atoms/icons.ts"],
+			"docs": ["design-system/README.md", "docs/design/system.md"]
 		},
 		"components": {
 			"*": "apps/web/atoms/primitives.ts, apps/web/cards/templates.ts, apps/web/styles/*.css"
@@ -667,6 +660,25 @@
 			"minSampleSeconds": 0.008,
 			"maxVelocity": 750,
 			"zeroDistance": 0.25
+		},
+		"pullRefresh": {
+			"threshold": 64,
+			"rubberDimension": 480,
+			"rubber": 0.7,
+			"dragSlop": 4,
+			"settle": {
+				"visualDuration": 0.35,
+				"bounce": 0
+			},
+			"feedback": {
+				"loadingMinMs": 300,
+				"successHoldMs": 400
+			},
+			"wheel": {
+				"releaseIdleMs": 80,
+				"decaySamples": 3,
+				"decayRatio": 0.5
+			}
 		},
 		"wheelInput": {
 			"linePixels": 16,

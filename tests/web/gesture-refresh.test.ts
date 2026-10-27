@@ -3,6 +3,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
+async function finishFeedback(f: ReturnType<typeof fixture>) {
+	for (let i = 0; i < 8; i++) await Promise.resolve();
+	f.flush(undefined, 300);
+	f.flush(undefined, 400);
+	for (let i = 0; i < 8; i++) await Promise.resolve();
+}
+
 test("page startup keeps the disabled refresh ring invisible until a pull begins", () => {
 	const f = fixture({ kind: "desk" });
 	try {
@@ -38,13 +45,15 @@ test("desk pull coalesces moves into one frame and measures only at gesture star
 		};
 		const target = f.document.querySelector("main p");
 		f.fire(target, "touchstart");
-		for (let i = 1; i <= 20; i++) f.fire(target, "touchmove", 120, 200 + i * 3);
-		assert.equal(reads, 1);
+		f.fire(target, "touchmove", 120, 203);
+		const initialReads = reads;
+		for (let i = 2; i <= 20; i++) f.fire(target, "touchmove", 120, 200 + i * 3);
+		assert.equal(reads, initialReads, "layout is read only when the pull starts");
 		assert.equal(f.frames.size, 1);
 		assert.equal(f.document.querySelector("main").style.translate, "");
 		f.flush(f.frames);
-		assert.equal(f.document.querySelector("main").style.translate, "0 29px");
-		assert.equal(reads, 1, "paint must not read layout after writing translate");
+		assert.ok(parseFloat(f.document.querySelector("main").style.translate.split(" ")[1]) > 38);
+		assert.equal(reads, initialReads, "paint must not read layout after writing translate");
 		f.fire(target, "touchcancel");
 		assert.equal(f.frames.size, 0);
 		assert.equal(f.document.querySelector("main").style.translate, "");
@@ -93,16 +102,17 @@ test("mouse refresh follows the next frame, holds without loading, and commits o
 	const f = fixture({ kind: "desk" });
 	try {
 		mousePull(f, "pointerdown");
-		mousePull(f, "pointermove", 280);
+		mousePull(f, "pointermove", 205);
+		mousePull(f, "pointermove", 320);
 		f.flush(f.frames);
-		assert.equal(f.document.querySelector("main").style.translate, "0 39px");
+		assert.ok(parseFloat(f.document.querySelector("main").style.translate.split(" ")[1]) >= 64);
 		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
 		f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY: -180, buttons: 1, cancelable: true }));
 		f.flush();
 		assert.equal(f.app.refreshes, 0, "a stationary held mouse must never load");
-		mousePull(f, "pointerup", 280);
+		mousePull(f, "pointerup", 320);
 		assert.equal(f.app.refreshes, 1);
-		mousePull(f, "pointerup", 280);
+		mousePull(f, "pointerup", 320);
 		assert.equal(f.app.refreshes, 1);
 		for (let i = 0; i < 8; i++) await Promise.resolve();
 	} finally {
@@ -115,12 +125,13 @@ test("mouse refresh cancels short pulls, interruptions, and movement back below 
 		const f = fixture({ kind: "desk" });
 		try {
 			mousePull(f, "pointerdown");
-			mousePull(f, "pointermove", interruption === "short" ? 220 : 280);
+			mousePull(f, "pointermove", 205);
+			mousePull(f, "pointermove", interruption === "short" ? 220 : 320);
 			if (interruption === "reverse") mousePull(f, "pointermove", 220);
 			if (interruption === "pointercancel") mousePull(f, "pointercancel");
 			if (interruption === "blur") f.w.dispatchEvent(new f.w.Event("blur"));
 			if (interruption === "dialog") f.dialog.open = true;
-			mousePull(f, "pointerup", 280);
+			mousePull(f, "pointerup", 320);
 			f.flush(f.frames);
 			f.flush();
 			assert.equal(f.app.refreshes, 0, interruption);
@@ -179,7 +190,7 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 		assert.equal(
 			f.document.querySelector("main").style.translate,
 			"",
-			"a slow request lets the cards back after the hold",
+			"the original content position is restored while the ring owns the real request",
 		);
 		pull();
 		await settle();
@@ -197,7 +208,7 @@ test("a slow refresh keeps feedback and its lock until completion, then offers r
 		assert.equal(f.document.querySelector("main").style.translate, "", "retry never moves cards");
 		await settle();
 		assert.equal(f.app.refreshes, 2);
-		f.flush();
+		await finishFeedback(f);
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
 	} finally {
 		f.dom.window.close();
@@ -222,7 +233,7 @@ test("browser-owned noncancelable touch does not start a second refresh animatio
 	}
 });
 
-test("short pull cancels, light threshold commits once on release, and long travel is bounded", async () => {
+test("a 64px visible threshold commits on release and long travel keeps yielding smoothly", async () => {
 	const f = fixture({ kind: "desk" });
 	try {
 		const target = f.document.querySelector("main p");
@@ -234,17 +245,24 @@ test("short pull cancels, light threshold commits once on release, and long trav
 		f.fire(target, "touchstart");
 		f.fire(target, "touchmove", 120, 274);
 		f.flush(f.frames);
+		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), false);
+		f.fire(target, "touchmove", 120, 310);
+		f.flush(f.frames);
 		assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
 		assert.equal(f.app.refreshes, 0, "crossing threshold is not itself a refresh");
 		f.fire(target, "touchmove", 120, 900);
 		f.flush(f.frames);
-		assert.equal(f.document.querySelector("main").style.translate, "0 54px");
+		const longOffset = parseFloat(f.document.querySelector("main").style.translate.split(" ")[1]);
+		assert.ok(
+			longOffset > 200 && longOffset < 480,
+			"resistance increases without a 54px hard stop",
+		);
 		f.fire(target, "touchend", 120, 900);
 		assert.equal(f.app.refreshes, 1);
 		assert.equal(
 			f.document.querySelector("main").style.translate,
 			"",
-			"released content does not wait for the request",
+			"released content returns immediately without adding a loading gap",
 		);
 		assert.equal(f.document.querySelector("#pull-ring").textContent, "");
 		assert.equal(
@@ -252,8 +270,7 @@ test("short pull cancels, light threshold commits once on release, and long trav
 			"loading",
 			"fast requests retain visible feedback",
 		);
-		f.flush(undefined, 300);
-		for (let i = 0; i < 8; i++) await Promise.resolve();
+		await finishFeedback(f);
 		assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
 		assert.equal(
 			f.document.querySelector("main").style.translate,
@@ -288,7 +305,7 @@ test("direct refresh leaves cards in place and ignores repeat activation while b
 	}
 });
 
-test("wheel threshold starts one real refresh immediately and leaves Sill visible on phone", async () => {
+test("wheel threshold arms refresh, release commits once, and Sill stays visible on phone", async () => {
 	for (const phone of [false, true]) {
 		const f = fixture({ kind: "desk", phone });
 		try {
@@ -303,19 +320,74 @@ test("wheel threshold starts one real refresh immediately and leaves Sill visibl
 			};
 			const wheel = (deltaY) =>
 				f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY, cancelable: true }));
-			wheel(-100);
-			assert.equal(
-				f.app.refreshes,
-				1,
-				"request begins in the threshold event, without flushing timers",
-			);
+			for (const delta of [-40, -48, -60]) wheel(delta);
+			f.flush(f.frames);
+			const ring = f.document.querySelector("#pull-ring");
+			assert.equal(ring.hasAttribute("data-ready"), true);
+			assert.equal(ring.dataset.state, "pulling");
+			assert.equal(f.app.refreshes, 0, "filling the ring must not refresh while pulling");
+			wheel(-60);
+			assert.equal(f.app.refreshes, 0, "continued active input keeps the action armed");
+			wheel(-30);
+			assert.equal(f.app.refreshes, 0, "one smaller event must not be treated as release");
+			wheel(-20);
+			assert.equal(f.app.refreshes, 0, "release needs sustained decay");
+			wheel(-10);
+			assert.equal(f.app.refreshes, 1, "clear decay releases without waiting for the full tail");
 			assert.equal(f.document.querySelector("#pull-ring").dataset.state, "loading");
 			assert.equal(heading.classList.contains("has-refresh"), false);
-			for (const d of [-80, -40, -10]) wheel(d);
+			for (const d of [-20, -10, -4]) wheel(d);
 			assert.equal(f.app.refreshes, 1);
 			resolve();
-			for (let i = 0; i < 8; i++) await Promise.resolve();
+			await finishFeedback(f);
 			assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("one large wheel tick or a short pull returns without refreshing", () => {
+	for (const deltas of [[-240], [-12, -18, -24]]) {
+		const f = fixture({ kind: "desk" });
+		try {
+			for (const deltaY of deltas)
+				f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY, cancelable: true }));
+			f.flush(f.frames);
+			assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), false);
+			f.flush(undefined, 80);
+			assert.equal(f.app.refreshes, 0);
+			assert.equal(f.document.querySelector("#pull-ring").dataset.state, "idle");
+			assert.equal(f.document.querySelector("main").style.translate, "");
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("armed wheel refresh uses the short release fallback and cancels on reversal or interruption", async () => {
+	for (const interruption of ["none", "reverse", "dialog", "selection", "blur", "browser"]) {
+		const f = fixture({ kind: "desk" });
+		try {
+			const wheel = (deltaY: number) =>
+				f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY, cancelable: true }));
+			for (const delta of [-40, -48, -60]) wheel(delta);
+			f.flush(f.frames);
+			assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
+			assert.equal(f.app.refreshes, 0);
+			if (interruption === "reverse") wheel(20);
+			if (interruption === "dialog") f.dialog.open = true;
+			if (interruption === "selection") f.app.selected.add("article");
+			if (interruption === "blur") f.w.dispatchEvent(new f.w.Event("blur"));
+			if (interruption === "browser")
+				f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY: -20, cancelable: false }));
+			f.flush(undefined, 79);
+			assert.equal(f.app.refreshes, 0, "no commit while release is still unknown");
+			f.flush(undefined, 80);
+			assert.equal(f.app.refreshes, interruption === "none" ? 1 : 0, interruption);
+			f.flush(undefined, 80);
+			assert.equal(f.app.refreshes, interruption === "none" ? 1 : 0, "commit is single shot");
+			for (let i = 0; i < 8; i++) await Promise.resolve();
 		} finally {
 			f.dom.window.close();
 		}
@@ -329,7 +401,9 @@ test("a new touch takes the ring over from an unfinished success fade", async ()
 		f.w.__motionAnimations = animations;
 		await f.gestures.refresh();
 		const ring = f.document.querySelector("#pull-ring");
+		f.flush(undefined, 300);
 		assert.equal(ring.dataset.state, "success");
+		f.flush(undefined, 400);
 		const fading = animations.findLast(
 			(animation) => animation.target === ring && animation.frames.at(-1)?.opacity === 0,
 		);

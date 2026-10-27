@@ -90,4 +90,6 @@ Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fix
 
 设置按钮按压与开关反馈的控制器检查位于 `web/control-feedback.test.ts`，共用 `web/app-fixture.ts`；公共操作路由继续由 `web/app.test.ts` 覆盖。
 
-滚动输入与释放检查位于 `web/gesture-input.test.ts`；参考回弹、内容层与尾段接手在 `web/gesture-rebound.test.ts`；任务／提醒原位更新在 `web/completion-state.test.ts`。均为非浏览器检查，不证明实际帧率。
+滚动输入与释放检查位于 `web/gesture-input.test.ts`；首页刷新曲线、可见阈值与wheel连续衰减在 `web/refresh-input.test.ts`，同一位移驱动圆环、速度交接和回位中重抓在 `web/gesture-refresh-continuity.test.ts`；参考回弹、内容层与尾段接手在 `web/gesture-rebound.test.ts`；任务／提醒原位更新在 `web/completion-state.test.ts`。均为非浏览器检查，不证明实际帧率。
+
+`web/gesture-refresh-feedback.test.ts`覆盖快速请求立即生效、300ms加载反馈、400ms完成勾及新手势中断旧反馈，不代替真实页面观感验收。

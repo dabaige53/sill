@@ -194,6 +194,7 @@ type Travel = {
 	y: ReturnType<typeof motionValue<number>>;
 	target: string;
 	playback?: Playback;
+	onUpdate?: (point: { x: number; y: number }) => void;
 };
 const travel = new WeakMap<HTMLElement, Travel>();
 const moving = new Set<HTMLElement>();
@@ -225,8 +226,9 @@ export function move(
 	destination: string,
 	direct: boolean,
 	options: {
-		spring?: typeof tokens.motion.spring;
+		spring?: typeof tokens.motion.spring | typeof tokens.motion.pullRefresh.settle;
 		velocity?: { x?: number; y?: number };
+		onUpdate?: Travel["onUpdate"];
 	} = {},
 ): Playback {
 	let state = travel.get(el);
@@ -239,11 +241,13 @@ export function move(
 				!current.x.get() && !current.y.get()
 					? ""
 					: `${current.x.get() ? `${current.x.get()}px` : "0"} ${current.y.get() ? `${current.y.get()}px` : "0"}`;
+			current.onUpdate?.({ x: current.x.get(), y: current.y.get() });
 		};
 		state.x.on("change", render);
 		state.y.on("change", render);
 		travel.set(el, state);
 	}
+	state.onUpdate = options.onUpdate;
 	const [x = 0, y = 0] = destination
 		? destination.split(" ").map((value) => Number.parseFloat(value) || 0)
 		: [0, 0];
@@ -252,6 +256,7 @@ export function move(
 		state.x.set(x);
 		state.y.set(y);
 		el.style.translate = !x && !y ? "" : destination;
+		state.onUpdate?.({ x, y });
 		if (direct) moving.add(el);
 		else moving.delete(el);
 		return { finished: Promise.resolve(), cancel() {}, complete() {} };
