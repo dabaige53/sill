@@ -95,7 +95,15 @@ export function Navigation() {
 	];
 	return (
 		<nav className="nav-capsule glass" id="nav" aria-label={copy("web.nav.label")}>
-			<span className="nav-lens" aria-hidden="true" />
+			<span className="nav-lens" aria-hidden="true">
+				{tabs.map(([key, glyph]) => (
+					<span key={key} className="nav-lens-tab">
+						<span className="nav-icon">
+							<Icon name={glyph} size={22} />
+						</span>
+					</span>
+				))}
+			</span>
 			{tabs.map(([key, glyph, label]) => (
 				<button
 					key={key}
@@ -131,13 +139,17 @@ export function AIDock() {
 	const anchor = useRef<DOMRect | null>(null);
 	const expandedPosition = useRef(0);
 	const bubbleY = useRef(0);
-	const toggle = useCallback((value: boolean) => {
+	// The bubble's place before a card drag opened the box without animation.
+	const dragBubble = useRef<{ position: number; y: number } | null>(null);
+	const toggle = useCallback((value: boolean, instant = false) => {
 		const node = dock.current;
 		if (!node || node.classList.contains("is-collapsed") === value) return;
-		before.current = captureAIDock(node, animation.current);
+		before.current = instant ? null : captureAIDock(node, animation.current);
 		if (value) {
 			expandedPosition.current = positionRef.current;
-			anchor.current = node.querySelector(".ai-dock-tools button")?.getBoundingClientRect() || null;
+			anchor.current = instant
+				? null
+				: node.querySelector(".ai-dock-tools button")?.getBoundingClientRect() || null;
 		} else positionRef.current = expandedPosition.current;
 		animation.current?.cancel();
 		animation.current = null;
@@ -178,11 +190,26 @@ export function AIDock() {
 		return () => observer.disconnect();
 	});
 	useLayoutEffect(() => {
-		const open = () => {
-			if (dock.current?.classList.contains("is-collapsed")) toggle(false);
+		const open = (e: Event) => {
+			if (!dock.current?.classList.contains("is-collapsed")) return;
+			const instant = !!(e as CustomEvent<{ instant?: boolean }>).detail?.instant;
+			dragBubble.current = instant ? { position: positionRef.current, y: bubbleY.current } : null;
+			toggle(false, instant);
+		};
+		const close = () => {
+			const bubble = dragBubble.current;
+			dragBubble.current = null;
+			if (!bubble) return;
+			toggle(true, true);
+			positionRef.current = bubble.position;
+			bubbleY.current = bubble.y;
 		};
 		window.addEventListener("sill:expand-ai", open);
-		return () => window.removeEventListener("sill:expand-ai", open);
+		window.addEventListener("sill:collapse-ai", close);
+		return () => {
+			window.removeEventListener("sill:expand-ai", open);
+			window.removeEventListener("sill:collapse-ai", close);
+		};
 	}, [toggle]);
 	useLayoutEffect(() => () => animation.current?.cancel(), []);
 	const pointer = {

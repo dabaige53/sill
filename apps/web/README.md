@@ -31,7 +31,6 @@ Web 使用 React + TypeScript + Vite，决策见 [ADR 0047](../../docs/adr/0047-
 
 动效由 Motion 统一控制：`interactions/motion.ts` 管理按压、进出场和键盘立即响应；`interactions/motion-playback.ts` 管理取消、播放完成与手势速度；`interactions/motion-sheet.ts` 管理手机抽屉的固定正文与连续外框。`interactions/reading-feedback.ts` 将手机阅读中的背景主页更新合并到关闭后。CSS 只描述静止状态。控制器测试用 `tests/web/motion-fixture.ts`，浏览器回归运行真实 Motion。
 
-动画画廊属于 `design-system/motion/workbench/`，不在产品目录内；示例只读复用产品 UI，使用隔离数据，不接入产品入口。见[动画库指南](../../docs/guides/motion-library.md)。
 
 ## 添加到 iPhone／iPad 主屏幕
 

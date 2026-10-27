@@ -6,6 +6,7 @@ import { ChromeAutoHide, toolbarTips } from "../interactions/chrome.ts";
 import { DragManager } from "../interactions/drag.ts";
 import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
+import { placeNavigationLens } from "../interactions/navigation-lens.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
@@ -243,7 +244,7 @@ export const appLifecycleMethods = {
 	navHTML(this: AppController) {
 		const tab = (key: string, face: string, label: string, aria = label) =>
 			`<button type="button" class="nav-tab" data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span></button>`;
-		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("search", icon("search", 22), copy("web.nav.search"))}</nav>`;
+		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true">${["home", "chat", "search"].map((glyph) => `<span class="nav-lens-tab"><span class="nav-icon">${icon(glyph, 22)}</span></span>`).join("")}</span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("search", icon("search", 22), copy("web.nav.search"))}</nav>`;
 	},
 	setNav(this: AppController, key: string) {
 		const nav = document.getElementById("nav");
@@ -257,8 +258,7 @@ export const appLifecycleMethods = {
 			if (n === tab) n.setAttribute("aria-current", "page");
 			else n.removeAttribute("aria-current");
 		});
-		nav.style.setProperty("--lens-x", `${tab.offsetLeft}px`);
-		nav.style.setProperty("--lens-w", `${tab.offsetWidth}px`);
+		placeNavigationLens(nav, tab);
 	},
 	isPage(this: AppController, kind: string) {
 		// Settings is a centered sheet in a desktop window and a page on a phone.

@@ -1,6 +1,7 @@
 import { icon } from "../atoms/icons.ts";
 import { esc } from "../atoms/primitives.ts";
 import { copy, errorMessage } from "../copy.ts";
+import { sameData } from "../data/same-data.ts";
 import { Store } from "../data/store.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 
@@ -335,13 +336,14 @@ const LocalSync: Record<string, any> = {
 	adopt(value?: any, { draft = false }: any = {}) {
 		if (!value.state) return;
 		const app = this.app;
-		const previewBefore = JSON.stringify([
-			Store.card(app.currentId),
-			Store.state.items[app.currentId],
-		]);
-		const changed =
-			JSON.stringify([Store.state.cards, Store.state.items, Store.state.preferences]) !==
-			JSON.stringify([value.state.cards, value.state.items, value.state.preferences]);
+		const previewBefore = JSON.parse(
+			JSON.stringify([Store.card(app.currentId) ?? null, Store.state.items[app.currentId] ?? null]),
+		);
+		// A save response that only reorders fields must not redraw the feed or the open detail.
+		const changed = !sameData(
+			[Store.state.cards, Store.state.items, Store.state.preferences],
+			[value.state.cards, value.state.items, value.state.preferences],
+		);
 		this.revision = value.revision;
 		if (!draft)
 			try {
@@ -392,7 +394,7 @@ const LocalSync: Record<string, any> = {
 			if (!card) {
 				app.closeNative();
 				history.replaceState({ glass: true, prev: null }, "", "#feed");
-			} else if (previewBefore !== JSON.stringify([card, Store.state.items[app.currentId]])) {
+			} else if (!sameData(previewBefore, [card, Store.state.items[app.currentId] ?? null])) {
 				app.modalToken++;
 				app.replacePanelContent(Panels.preview(app, card));
 				app.bindPreview(card.id);
