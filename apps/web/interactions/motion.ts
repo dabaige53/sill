@@ -59,8 +59,8 @@ const MotionEngine: Record<string, any> = {
 	},
 	cancel: cancelMotion,
 	dim,
-	move(el: HTMLElement, destination = "", direct = false) {
-		return move(el, destination, direct || this.keyboard);
+	move(el: HTMLElement, destination = "", direct = false, options?: Parameters<typeof move>[3]) {
+		return move(el, destination, direct || this.keyboard, options);
 	},
 	loading(el: HTMLElement | null, busy: boolean, duration = 800) {
 		if (!el) return;

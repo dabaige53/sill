@@ -11,7 +11,7 @@ html {
 	scroll-behavior: auto;
 	scrollbar-gutter: auto;
 	scrollbar-width: none;
-	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
+	/* Phone pull-to-refresh owns the boundary; desktop scrolling is released below. */
 	overscroll-behavior-y: none;
 }
 /* Hide the page track without disabling wheel, touch or keyboard scrolling. */
@@ -28,6 +28,18 @@ body {
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
 	min-height: 100dvh;
+}
+@media (min-width: 651px) {
+	/* @design content-edge-rebound */
+	html,
+	body {
+		overscroll-behavior-y: auto;
+	}
+	/* Refresh tracking and its return own one displacement; native edges resume afterward. */
+	html:has(body.is-pulling),
+	body.is-pulling {
+		overscroll-behavior-y: none;
+	}
 }
 button,
 input,

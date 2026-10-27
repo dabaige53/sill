@@ -187,11 +187,11 @@ export function paintRecords() {
 		.filter((c: any) => !c.deleted)
 		.map((c: any) => cloudCard(c));
 	app.checkReminders();
-	// Initial records appear together; only later updates use the arrival transition.
+	// First cards enter after layout; later updates keep their own arrival transition.
 	if (endBoot()) {
 		app.initializing = true;
 		try {
-			app.renderCurrent(false);
+			app.renderCurrent(true);
 		} finally {
 			app.initializing = false;
 		}
@@ -217,9 +217,9 @@ export function adoptWorkspace(value: any) {
 		}
 		Store.state.items[id] = item;
 	}
+	app.applyPreferences();
 	paintRecords();
 	sync.rebase(workspaceState(), value.revision, Cloud.user);
-	app.applyPreferences();
 	app.grid.dataset.revision = value.revision;
 	syncStatus();
 	if (app.modalKind === "settings") app.repaintSettings();

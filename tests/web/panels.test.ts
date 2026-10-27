@@ -136,7 +136,8 @@ test("article preview puts the cover before its ruled header; reading puts it af
 	const dom = new JSDOM(Panels.preview({}, card));
 	const doc = dom.window.document;
 	const scroll = doc.querySelector(".sheet-scroll")!;
-	assert.ok(scroll.firstElementChild?.matches(".preview-cover"));
+	assert.ok(scroll.firstElementChild?.matches(".gesture-content"));
+	assert.ok(scroll.firstElementChild?.firstElementChild?.matches(".preview-cover"));
 	assert.ok(doc.querySelector(".detail-header.ruled-header h1"));
 	assert.equal(doc.querySelector(".preview-lead"), null);
 	assert.equal(doc.querySelector(".preview-full")?.textContent, "Full body\n");

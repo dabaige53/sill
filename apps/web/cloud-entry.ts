@@ -40,6 +40,7 @@ window.__QG_RUNTIME__ = false;
 Store.load = function () {
 	this.state = this.fresh();
 	this.state.preferences.onboarded = true;
+	this.state.preferences.theme = document.documentElement.dataset.themePreference || "system";
 	return this.state;
 };
 Store.save = () => {};
@@ -442,10 +443,6 @@ const bootTimer = window.setTimeout(() => {
 	if (!Cloud.booting || Cloud.user || window.__SILL_HOST__) return;
 	Cloud.bootVisible = true;
 	app.renderCurrent(false);
-	for (const node of app.grid.querySelectorAll<HTMLElement>(".feed-skeleton"))
-		MotionEngine.animate(node, [{ opacity: 0 }, { opacity: 1 }], {
-			duration: MotionEngine.time("fast"),
-		});
 }, MotionEngine.time("delay-loading"));
 if (!window.__SILL_HOST__) app.grid.setAttribute("aria-busy", "true");
 void loadCloud({ initial: true }).finally(() => {

@@ -1,7 +1,7 @@
-import { detailNavigationMotion } from "./motion-detail-navigation.ts";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { carryCapsule, returnFace } from "./card-transition.ts";
-import { type Playback } from "./motion-playback.ts";
+import { detailNavigationMotion } from "./motion-detail-navigation.ts";
+import type { Playback } from "./motion-playback.ts";
 
 // Snapshots share the product stylesheet, including pseudo-elements, without copying
 // computed styles for every paragraph. Shadow DOM keeps their IDs and controls isolated.

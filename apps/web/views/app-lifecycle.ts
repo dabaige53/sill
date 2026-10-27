@@ -201,6 +201,10 @@ export const appLifecycleMethods = {
 		const theme = Store.pref("theme"),
 			dark = theme === "dark" || (theme === "system" && this.themeQuery?.matches);
 		document.documentElement.dataset.theme = dark ? "dark" : "light";
+		document.documentElement.style.colorScheme = dark ? "dark" : "light";
+		try {
+			localStorage.setItem("sill-theme", theme);
+		} catch {}
 		const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
 		for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
 			meta.content = canvas;

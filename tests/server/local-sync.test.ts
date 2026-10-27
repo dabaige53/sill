@@ -71,7 +71,9 @@ test("empty proxy failure reports service unavailable and retains an unconfirmed
 	const batch = { operations: [{ kind: "item.patch", id: "a", values: { note: "draft" } }] };
 	sync.pending.push(batch);
 	let message = "";
-	sync.status = (value: string) => { message = value; };
+	sync.status = (value: string) => {
+		message = value;
+	};
 	await sync.flush();
 	assert.match(message, /本地数据服务暂时不可用/);
 	assert.equal(sync.pending[0], batch);

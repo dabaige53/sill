@@ -55,6 +55,7 @@ export function animate(el: any, values: any, options: any = {}) {
 	};
 	const control = {
 		target: el,
+		destination: values,
 		frames,
 		options: { ...options, duration: options.duration * 1000 },
 		finished,
@@ -68,7 +69,9 @@ export function animate(el: any, values: any, options: any = {}) {
 		},
 	};
 	const queue = (globalThis as any).__motionAnimations;
-	if (isValue) {
+	const valueQueue = (globalThis as any).__motionValueAnimations;
+	if (isValue && valueQueue) valueQueue.push(control);
+	else if (isValue) {
 		if (queue && (globalThis as any).__recordMotionValues) queue.push(control);
 		finish();
 	} else if (queue) queue.push(control);

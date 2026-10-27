@@ -69,7 +69,11 @@ test("local pull failure returns false without text or a second dock spinner", a
 		LocalSync.refresh = async () => true;
 		assert.equal(await AppController.prototype.refresh.call(app, { feedback: "pull" }), true);
 		assert.equal(w.document.querySelector("#dock").className, "");
-		assert.equal(reorders, 1);
+		assert.equal(
+			reorders,
+			0,
+			"pull reads let LocalSync apply actual changes without a second full redraw",
+		);
 	} finally {
 		dom.window.close();
 	}

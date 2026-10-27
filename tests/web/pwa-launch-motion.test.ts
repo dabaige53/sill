@@ -146,7 +146,7 @@ test("cloud launch keeps the boot view until the first session check settles", (
 	assert.match(entry, /!Cloud\.redirecting && endBoot\(\)/);
 	const redirect = workspace.indexOf('location.replace("/auth/login"');
 	assert.ok(workspace.lastIndexOf("Cloud.redirecting = true", redirect) > redirect - 200);
-	// First cards appear together; later data updates retain their own motion.
+	// First cards enter after layout; later data updates retain their own motion.
 	assert.match(workspace, /if \(endBoot\(\)\) \{\s*app\.initializing = true;/);
-	assert.match(workspace, /app\.renderCurrent\(false\);/);
+	assert.match(workspace, /app\.renderCurrent\(true\);/);
 });

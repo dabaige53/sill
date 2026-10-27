@@ -4,14 +4,14 @@ import { esc } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
-import { MotionEngine } from "../interactions/motion.ts";
 import { contextMotion } from "../interactions/ai-context-motion.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 import type { AppController } from "./app.ts";
 import { renderView } from "./react-renderer.ts";
 
 export const appSelectionMethods = {
 	selectionAIHTML(this: AppController) {
-		return `<div class="selection-ai-target glass" hidden role="region" aria-label="${esc(copy("web.ai.dock"))}">${icon("chat", 20)}<input class="selection-ai-input" readonly tabindex="-1" aria-label="${esc(copy("web.ai.dock"))}" placeholder="${esc(copy("web.ai.dockPlaceholder"))}">${icon("up", 20)}</div>`;
+		return `<section class="selection-ai-target glass" hidden aria-label="${esc(copy("web.ai.dock"))}">${icon("chat", 20)}<input class="selection-ai-input" readonly tabindex="-1" aria-label="${esc(copy("web.ai.dock"))}" placeholder="${esc(copy("web.ai.dockPlaceholder"))}">${icon("up", 20)}</section>`;
 	},
 	openSelectionAI(this: AppController, ids: string[]) {
 		// Desktop: the cards join the bottom AI box as context; nothing is sent (ADR 0049).

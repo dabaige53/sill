@@ -2,8 +2,10 @@ import { icon } from "../atoms/icons.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
+import { refreshCompletion, updateCompletionState } from "./card-state-feedback.ts";
 
 export const appFeedUpdatesMethods = {
 	withFeedAnchor(this: AppController, change?: () => void, animate = false) {
@@ -141,29 +143,18 @@ export const appFeedUpdatesMethods = {
 			this.currentId === id &&
 			c.type === "reminder" &&
 			["complete-reminder", "restore-reminder"].includes(action);
-		if (this.dialog.open && !keepPreview) this.closeToDesk(false);
-		this.refreshCard(id);
+		const closedPreview = this.dialog.open && !keepPreview;
+		if (closedPreview) this.closeToDesk(false);
+		if (keepPreview) deferReadingRefresh(this, id);
+		else if (["complete-reminder", "restore-reminder"].includes(action))
+			refreshCompletion(this, id);
+		else this.refreshCard(id);
 		this.checkReminders();
 		if (keepPreview) {
-			// Update the existing circle without replacing the sheet or moving focus to the feed.
-			const done = !!Store.item(id).reminderDone;
-			this.dialog
-				.querySelectorAll<HTMLElement>(`.reminder-check[data-id="${CSS.escape(id)}"]`)
-				.forEach((button) => {
-					button.dataset.action = done ? "restore-reminder" : "complete-reminder";
-					button.setAttribute("aria-pressed", String(done));
-					button.setAttribute(
-						"aria-label",
-						done ? copy("web.reminder.restore") : copy("web.reminder.complete"),
-					);
-					const dot = button.querySelector<HTMLElement>(".check-dot");
-					if (dot) {
-						dot.classList.toggle("is-done", done);
-						dot.innerHTML = done ? icon("check", 12) : "";
-					}
-				});
+			updateCompletionState(this.dialog, id);
 			return;
 		}
+		if (!closedPreview && ["complete-reminder", "restore-reminder"].includes(action)) return;
 		const card = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
 		(
 			card?.querySelector<HTMLElement>(".card-title-button") ||

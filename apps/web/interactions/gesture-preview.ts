@@ -1,5 +1,7 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Store } from "../data/store.ts";
+import { wheelInput, wheelPixels } from "./gesture-input.ts";
+import { bindEdgeRebound, gestureContent } from "./gesture-rebound.ts";
 import type { Gestures } from "./gestures.ts";
 import { MotionEngine } from "./motion.ts";
 import type { Playback } from "./motion-playback.ts";
@@ -20,12 +22,9 @@ export const gesturePreviewMethods = {
 		if (!scroll) return;
 		const token = this.app.modalToken;
 		let touching = false,
-			touchInput = false,
 			cancelled = false,
-			pending = false,
-			timer = 0;
+			pending = false;
 		const expand = () => {
-			clearTimeout(timer);
 			if (
 				!pending ||
 				cancelled ||
@@ -42,10 +41,8 @@ export const gesturePreviewMethods = {
 			this.setPreviewFull(surface, true);
 		};
 		const schedule = () => {
-			clearTimeout(timer);
 			if (pending && !cancelled && !surface.classList.contains("is-full")) {
-				if (touchInput) expand();
-				else timer = window.setTimeout(expand, tokens.apple.gestureWheelRest * 1000);
+				expand();
 			}
 		};
 		// Native scrolling starts the expansion while the finger is still moving.
@@ -61,14 +58,12 @@ export const gesturePreviewMethods = {
 		surface.addEventListener(
 			"touchstart",
 			(event) => {
-				touchInput = true;
 				if (!touching) {
 					cancelled = false;
 					pending = false;
 				}
 				touching = true;
 				if (event.touches.length !== 1) cancelled = true;
-				clearTimeout(timer);
 			},
 			{ passive: true },
 		);
@@ -85,7 +80,6 @@ export const gesturePreviewMethods = {
 			() => {
 				touching = false;
 				cancelled = true;
-				clearTimeout(timer);
 			},
 			{ passive: true },
 		);
@@ -93,7 +87,6 @@ export const gesturePreviewMethods = {
 			surface.addEventListener(
 				event,
 				() => {
-					touchInput = false;
 					cancelled = false;
 				},
 				{ passive: true },
@@ -192,111 +185,19 @@ export const gesturePreviewMethods = {
 		});
 	},
 	bindPreviewResistance(this: Gestures, surface: HTMLElement) {
+		// Desktop edges belong to native scrolling; only phone sheets retain custom travel.
+		if (!this.phone.matches) return;
 		const scroll = surface.querySelector<HTMLElement>(".sheet-scroll");
 		if (!scroll) return;
 		const token = this.app.modalToken;
-		let touch: { x: number; y: number } | null = null;
-		let distance = 0,
-			timer = 0,
-			offset = 0;
-		let returning: Playback | null = null;
-		const current = () => token === this.app.modalToken && surface.isConnected;
-		// Pulling down at the top moves the sheet; pushing on at the end belongs to the read-end ring when it is on.
-		const edge = (delta: number) =>
-			delta < 0 &&
-			!surface.querySelector(".push-ring") &&
-			scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
-		const resume = () => {
-			if (!returning) return;
-			// Read once when a new gesture interrupts the return, never on every wheel tick.
-			const drawn = getComputedStyle(scroll).translate;
-			offset = Number.parseFloat(drawn.split(" ")[1]) || 0;
-			returning.cancel();
-			returning = null;
-			const ratio = Math.min(Math.abs(offset) / 14, 1 - Number.EPSILON);
-			distance = Math.sign(offset) * -100 * Math.log(1 - ratio);
-			scroll.style.translate = offset ? `0 ${offset}px` : "";
-		};
-		const paint = (delta: number) => {
-			if (!current()) return;
-			offset = Math.sign(delta) * 14 * (1 - Math.exp(-Math.abs(delta) / 100));
-			if (this.phone.matches) MotionEngine.move(scroll, `0 ${offset.toFixed(2)}px`, !!touch);
-			// Desktop resistance is a direct compositor write: no motion-value allocation or style read per tick.
-			else scroll.style.translate = `0 ${offset.toFixed(2)}px`;
-		};
-		const reset = () => {
-			clearTimeout(timer);
-			touch = null;
-			distance = 0;
-			scroll.classList.remove("is-drag");
-			if (!current()) return;
-			if (this.phone.matches) {
-				MotionEngine.move(scroll);
-				return;
-			}
-			// Repeated end events must not restart a return that is already running.
-			if (returning || !offset) return;
-			scroll.style.translate = "";
-			const animation: Playback | null = MotionEngine.animate(
-				scroll,
-				[{ translate: `0 ${offset.toFixed(2)}px` }, { translate: "0 0" }],
-				{ duration: MotionEngine.time("fast") },
-			);
-			returning = animation;
-			const finish = () => {
-				if (returning !== animation) return;
-				returning = null;
-				offset = 0;
-			};
-			if (animation) animation.finished.then(finish, () => {});
-			else finish();
-		};
-		scroll.addEventListener(
-			"wheel",
-			(event: WheelEvent) => {
-				if (!current() || this.fromField(event) || Math.abs(event.deltaX) > Math.abs(event.deltaY))
-					return;
-				const delta = -event.deltaY * (event.deltaMode === 1 ? 16 : 1);
-				if (!delta || !edge(delta)) return reset();
-				if (event.cancelable) event.preventDefault();
-				if (!this.phone.matches) resume();
-				distance = Math.sign(distance) === Math.sign(delta) ? distance + delta : delta;
-				paint(distance);
-				clearTimeout(timer);
-				// A short quiet window detects wheel release; phone behavior keeps its original delay.
-				timer = window.setTimeout(reset, this.phone.matches ? 120 : 40);
-			},
-			{ passive: false },
+		bindEdgeRebound(
+			scroll,
+			() => token === this.app.modalToken && surface.isConnected,
+			(event) => this.fromField(event),
+			() => !!surface.querySelector(".push-ring"),
 		);
-		scroll.addEventListener(
-			"touchstart",
-			(event: TouchEvent) => {
-				reset();
-				if (event.touches.length === 1 && !this.fromField(event)) touch = this.point(event);
-			},
-			{ passive: true },
-		);
-		scroll.addEventListener(
-			"touchmove",
-			(event: TouchEvent) => {
-				if (!touch || !current()) return;
-				if (event.touches.length !== 1) return reset();
-				const point = this.point(event),
-					delta = point.y - touch.y;
-				if (Math.abs(point.x - touch.x) > Math.abs(delta)) return reset();
-				if (!edge(delta)) {
-					touch = point;
-					return;
-				}
-				if (event.cancelable) event.preventDefault();
-				scroll.classList.add("is-drag");
-				paint(delta);
-			},
-			{ passive: false },
-		);
-		scroll.addEventListener("touchend", reset, { passive: true });
-		scroll.addEventListener("touchcancel", reset, { passive: true });
 	},
+
 	bindPush(this: Gestures, id?: any, scroll?: any) {
 		const app = this.app,
 			dialog = app.dialog;
@@ -329,9 +230,7 @@ export const gesturePreviewMethods = {
 			done = false,
 			released = false,
 			leaving = false,
-			changedOnFinish = false,
-			coast = 0,
-			lastDelta = 0;
+			changedOnFinish = false;
 		const release = () => {
 			if (!done || released) return;
 			released = true;
@@ -345,9 +244,10 @@ export const gesturePreviewMethods = {
 			chip.style.transform = "none";
 			arc.setAttribute("stroke-dashoffset", String(50.27 * (1 - Math.min(1, pull / need))));
 			MotionEngine.move(
-				scroll,
+				gestureContent(scroll),
 				pull ? `0 ${-Math.round(pull * tokens.motion.finishTravel)}px` : "",
 				pull > 0,
+				{ spring: tokens.motion.edgeSpring },
 			);
 			if (bar) {
 				bar.style.opacity = pull ? "0" : "";
@@ -375,11 +275,9 @@ export const gesturePreviewMethods = {
 			if (changedOnFinish) {
 				Store.patch(id, { read: true, progress: 1 });
 			}
-			this.swallowMomentum();
 		};
-		// The check stays until the hand lets go: a lifted touch, or a wheel stream that stops or
-		// starts to coast. Then the card is redrawn on the next frame, out of the frame that shows
-		// the check, and the close starts on the frame after that.
+		// A touch keeps the check until release; wheel completion starts the exit immediately.
+		// Give the check a paint opportunity without rebuilding the background in those frames.
 		const leave = () => {
 			// A stale route still clears the badge in the frame below.
 			if (!done || leaving) return;
@@ -396,8 +294,7 @@ export const gesturePreviewMethods = {
 					return;
 				}
 				if (changed) {
-					if (desktop) app.refreshCard(id);
-					else deferReadingRefresh(app, id);
+					deferReadingRefresh(app, id);
 				}
 				requestAnimationFrame(() => {
 					if (app.modalToken !== token) {
@@ -434,14 +331,6 @@ export const gesturePreviewMethods = {
 					paint();
 				});
 		};
-		// A wheel stream lets go when it pauses, or when its deltas start to shrink (momentum).
-		const letGo = (d: number) => {
-			coast = d > 0 && lastDelta > 0 && d < lastDelta ? coast + 1 : 0;
-			lastDelta = d;
-			if (coast >= 3) return release();
-			clearTimeout(timer);
-			timer = window.setTimeout(release, 120);
-		};
 		const cancel = () => {
 			touch = null;
 			if (done || app.modalToken !== token) return;
@@ -465,33 +354,37 @@ export const gesturePreviewMethods = {
 		);
 		scroll.addEventListener(
 			"wheel",
-			(e?: any) => {
-				if (app.modalToken !== token) return;
-				if (done) return letGo(e.deltaY * (e.deltaMode === 1 ? 16 : 1));
-				if (this.fromField(e)) return cancel();
-				const d = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
-				if (d <= 0 || !atEnd()) {
-					wheel.reset();
-					if (pull) {
+			(e: WheelEvent) => {
+				if (app.modalToken !== token || done) return;
+				if (this.fromField(e) || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return cancel();
+				const d = wheelPixels(e, scroll.clientHeight);
+				const eligible = d > 0 && atEnd();
+				if (!wheel.feed(d, eligible)) {
+					if (!eligible && pull) {
 						pull = 0;
 						paint();
 					}
 					return;
 				}
-				if (!wheel.feed(d)) return;
+				if (e.cancelable) e.preventDefault();
 				set(pull + Math.min(40, d) * 0.5);
-				if (done) return letGo(d);
+				if (done) {
+					this.swallowMomentum(d);
+					release();
+					return;
+				}
 				clearTimeout(timer);
 				timer = window.setTimeout(() => {
 					if (!done && app.modalToken === token) {
 						pull = 0;
 						paint();
-						wheel.reset(false);
+						wheel.reset();
 					}
-				}, 180);
+				}, wheelInput.releaseIdleMs);
 			},
-			{ passive: true },
+			{ passive: false },
 		);
+
 		scroll.addEventListener(
 			"touchstart",
 			(e?: any) => {

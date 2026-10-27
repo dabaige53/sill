@@ -78,16 +78,9 @@
 		"repo": "dabaige53/sill",
 		"ref": "main@a27ae2a",
 		"paths": {
-			"tokens": [
-				"apps/web/styles/tokens.css"
-			],
-			"assets": [
-				"apps/web/atoms/icons.ts"
-			],
-			"docs": [
-				"design-system/README.md",
-				"docs/design/system.md"
-			]
+			"tokens": ["apps/web/styles/tokens.css"],
+			"assets": ["apps/web/atoms/icons.ts"],
+			"docs": ["design-system/README.md", "docs/design/system.md"]
 		},
 		"components": {
 			"*": "apps/web/atoms/primitives.ts, apps/web/cards/templates.ts, apps/web/styles/*.css"
@@ -703,6 +696,58 @@
 			"navFade": 200,
 			"navMove": 300,
 			"navTravel": 30
+		},
+		"edgeSpring": {
+			"stiffness": 300,
+			"damping": 34,
+			"mass": 0.9,
+			"restSpeed": 0.5,
+			"restDelta": 0.5
+		},
+		"contentReboundSpring": {
+			"stiffness": 600,
+			"damping": 48,
+			"mass": 1,
+			"restSpeed": 2,
+			"restDelta": 0.5
+		},
+		"edgeDrag": {
+			"resistance": 0.15,
+			"scale": 160,
+			"minSampleSeconds": 0.008,
+			"maxVelocity": 750,
+			"zeroDistance": 0.25
+		},
+		"pullRefresh": {
+			"threshold": 64,
+			"rubberDimension": 100,
+			"maxDownwardVelocity": 60,
+			"rubber": 0.7,
+			"dragSlop": 4,
+			"settle": {
+				"stiffness": 300,
+				"damping": 34,
+				"mass": 0.9,
+				"restDelta": 0.1,
+				"restSpeed": 1
+			},
+			"feedback": {
+				"loadingMinMs": 300,
+				"successHoldMs": 400
+			},
+			"wheel": {
+				"releaseIdleMs": 80,
+				"decaySamples": 3,
+				"decayRatio": 0.5
+			}
+		},
+		"wheelInput": {
+			"linePixels": 16,
+			"releaseIdleMs": 40,
+			"sessionGapMs": 80,
+			"rearmGain": 1.25,
+			"rearmDeltaPixels": 2,
+			"maxShieldMs": 240
 		}
 	}
 }

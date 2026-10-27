@@ -65,7 +65,7 @@
 .preview-full li + li {
 	margin-top: 6px;
 }
-.sheet-scroll > .preview-cover {
+.sheet-scroll > .gesture-content > .preview-cover {
 	margin: 8px 8px 0;
 	border-radius: 22px;
 	height: 220px;
@@ -568,7 +568,7 @@
 	border-radius: 50%;
 }
 @media (max-width: 650px) {
-	.sheet-scroll > .preview-cover {
+	.sheet-scroll > .gesture-content > .preview-cover {
 		height: 200px;
 	}
 	.event-hero {

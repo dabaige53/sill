@@ -113,7 +113,7 @@ export function ReaderLayout({
 				className={`reader-scroll${workspace ? " reader-workspace" : ""}${kind === "media" ? " is-media-reader" : ""}${kind === "article" ? " is-article-reader" : ""}${headings.length ? " has-outline" : ""}`}
 				id="reader-scroll"
 			>
-				{children}
+				<div className="gesture-content">{children}</div>
 			</div>
 			{!!headings.length && (
 				<nav

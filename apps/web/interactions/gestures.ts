@@ -1,4 +1,5 @@
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
+import { recentVelocity, shieldWheelTail, wheelIntent } from "./gesture-input.ts";
 import { gesturePreviewMethods } from "./gesture-preview.ts";
 import { gesturePullMethods } from "./gesture-pull.ts";
 import { gestureSurfacesMethods } from "./gesture-surfaces.ts";
@@ -56,23 +57,7 @@ class Gestures {
 		return MotionEngine.time(`gesture-${name}`) || fallback;
 	}
 	velocity(position: number) {
-		const windowMs = this.value("velocity-window", 100);
-		let samples = [{ position, time: performance.now() }];
-		return {
-			feed(position: number) {
-				const time = performance.now();
-				// A stationary hold must not dilute the final flick. Retain a boundary sample.
-				const cutoff = time - windowMs;
-				while (samples.length > 1 && samples[1].time <= cutoff) samples.shift();
-				if (samples[0].time < cutoff) samples[0] = { ...samples[0], time: cutoff };
-				samples.push({ position, time });
-			},
-			read() {
-				const last = samples[samples.length - 1];
-				if (performance.now() - last.time > windowMs) return 0;
-				return (last.position - samples[0].position) / Math.max(1, last.time - samples[0].time);
-			},
-		};
+		return recentVelocity(position, this.value("velocity-window", 100));
 	}
 	flick(distance: number, velocity: number) {
 		return distance > this.value("flick-distance", 40) && velocity > this.value("flick-speed", 0.5);
@@ -109,43 +94,21 @@ class Gestures {
 		MotionEngine.move(surface, axis === "x" ? `${offset}px 0` : `0 ${offset}px`, true);
 		return offset;
 	}
-	settle(surface: HTMLElement, _velocity = 0, _axis: "x" | "y" = "y") {
+	settle(surface: HTMLElement, velocity = 0, axis: "x" | "y" = "y") {
 		surface.classList.remove("is-drag");
-		MotionEngine.move(surface);
+		MotionEngine.move(surface, "", false, {
+			spring: tokens.motion.edgeSpring,
+			velocity: { [axis]: velocity * 1000 },
+		});
 	}
 	dim(v?: any, duration = 0) {
 		MotionEngine.dim(this.app.dialog, v ?? null, duration);
 	}
-	// Momentum guard: a wheel stream that is still coasting into an edge is not a new gesture.
-	// It counts after a pause, or once the deltas hold steady or grow again (momentum only ever weakens).
+	// Shared edge intent observes native scrolling and recognizes a fresh sequence or renewed effort.
 	intent() {
-		let armed = false,
-			last = 0,
-			prev = 0,
-			steady = 0;
-		return {
-			feed(d?: any) {
-				const now = Date.now(),
-					gap = now - last;
-				last = now;
-				if (!armed) {
-					steady = d >= prev && d >= 3 ? steady + 1 : 0;
-					if (gap > 140 || steady >= 4) armed = true;
-				}
-				prev = d;
-				return armed;
-			},
-			// Every wheel event counts as activity, even the ones that do not qualify, so a coasting tail never looks like a pause.
-			reset(seen: any = true) {
-				armed = false;
-				steady = 0;
-				if (seen) last = Date.now();
-			},
-			get armed() {
-				return armed;
-			},
-		};
+		return wheelIntent();
 	}
+
 	/** Keep the drawn offset until the exit finishes; no reset between hand and dismissal. */
 	exitSurface(surface: HTMLElement, close: () => void, axis: "x" | "y" = "y") {
 		if (this.app.sheetLeaving) return;
@@ -213,21 +176,8 @@ class Gestures {
 			});
 		else finish();
 	}
-	// After a pull or push closes something, the trackpad keeps coasting. Those leftover wheel events must not scroll the desk:
-	// they are held until the hand has really stopped (no wheel for 200ms, at most 2.5s).
-	swallowMomentum() {
-		let last = Date.now();
-		const started = last;
-		const hold = (e?: any) => {
-			const now = Date.now();
-			if (now - last > 200 || now - started > 2500) {
-				window.removeEventListener("wheel", hold, { capture: true });
-				return;
-			}
-			last = now;
-			e.preventDefault();
-		};
-		window.addEventListener("wheel", hold, { capture: true, passive: false });
+	swallowMomentum(delta = 0) {
+		shieldWheelTail(delta);
 	}
 }
 

@@ -8,6 +8,19 @@
 <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)">
 <meta name="referrer" content="no-referrer">
 <title>Sill · {{TITLE}}</title>
+<script id="sill-theme-bootstrap">
+(() => {
+  let preference = "system";
+  try {
+    const saved = localStorage.getItem("sill-theme");
+    if (saved === "light" || saved === "dark") preference = saved;
+  } catch {}
+  const theme = preference === "dark" || (preference === "system" && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  document.documentElement.dataset.themePreference = preference;
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+})();
+</script>
 </head>
 <body>
 <noscript>{{COPY:web.javascriptRequired}}</noscript>

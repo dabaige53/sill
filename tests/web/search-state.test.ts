@@ -505,7 +505,7 @@ test("phone search retains its field on filter updates and returns to browse wit
 	}
 });
 
-test("unbookmarking an open favorite removes its source while retaining the detail and close fallback", () => {
+test("unbookmarking an open favorite retains its source until the detail closes", () => {
 	const f = fixture();
 	try {
 		f.app.searchBackground = null;
@@ -521,13 +521,24 @@ test("unbookmarking an open favorite removes its source while retaining the deta
 		const tools = f.app.dialog.querySelector(".float-bar");
 		assert.ok(f.app.grid.querySelector('[data-card="a"]'));
 		f.app.setFlag("a", "bookmarked", false);
-		assert.equal(f.app.grid.querySelector('[data-card="a"]'), null);
+		assert.ok(
+			f.app.grid.querySelector('[data-card="a"]'),
+			"background stays stable while detail is open",
+		);
 		assert.ok(f.app.grid.querySelector('[data-card="b"]'));
 		assert.equal(f.app.dialog.querySelector(".preview-sheet"), sheet);
 		assert.equal(f.app.dialog.querySelector(".float-bar"), tools);
 		assert.equal(f.app.dialog.open, true);
-		assert.equal(f.app.cardRect("a"), null);
 		assert.ok(f.Store.card("a"), "only its membership in favorites changes");
+		f.app.dialog.getAnimations = () => [];
+		f.w.document.body.insertAdjacentHTML("beforeend", '<button id="account">Account</button>');
+		f.app.closeToDesk(false);
+		assert.equal(
+			!!f.app.grid.querySelector('[data-card="a"]'),
+			false,
+			"the background updates after close",
+		);
+		assert.ok(f.app.grid.querySelector('[data-card="b"]'));
 	} finally {
 		f.dom.window.close();
 	}

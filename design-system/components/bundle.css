@@ -56,7 +56,7 @@ html {
 	scroll-behavior: auto;
 	scrollbar-gutter: auto;
 	scrollbar-width: none;
-	/* The app owns pull-to-refresh; do not also start the browser refresh/bounce. */
+	/* Phone pull-to-refresh owns the boundary; desktop scrolling is released below. */
 	overscroll-behavior-y: none;
 }
 /* Hide the page track without disabling wheel, touch or keyboard scrolling. */
@@ -73,6 +73,18 @@ body {
 	-webkit-font-smoothing: antialiased;
 	background: var(--canvas);
 	min-height: 100dvh;
+}
+@media (min-width: 651px) {
+	/* @design content-edge-rebound */
+	html,
+	body {
+		overscroll-behavior-y: auto;
+	}
+	/* Refresh tracking and its return own one displacement; native edges resume afterward. */
+	html:has(body.is-pulling),
+	body.is-pulling {
+		overscroll-behavior-y: none;
+	}
 }
 button,
 input,
@@ -2537,6 +2549,23 @@ button.ref:active {
 	}
 }
 
+/* @design boot-skeleton
+ * Launch placeholders: card shells with still lines. They take no input and leave the feed end hidden. */
+.feed-skeleton {
+	pointer-events: none;
+	box-shadow: none;
+}
+.feed-skeleton .skeleton-lines {
+	margin-bottom: 0;
+}
+.feed-skeleton .skeleton-lines i:first-child {
+	height: var(--space-16);
+	width: 72%;
+}
+main:has(.feed-boot, .feed-skeleton) .feed-end {
+	display: none;
+}
+
 /* Stacks: one place on the desk, layered edges, opened in place. */
 @media (hover: hover) and (pointer: fine) {
 	.stack-card:hover {
@@ -4976,10 +5005,19 @@ body.is-pulling main {
 	position: fixed;
 	bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 }
-/* The sheet's own pull and push replace the browser's elastic bounce; two springs at once read as a stutter. */
+/* Custom phone-sheet and read-end gestures own their edges without a second native spring. */
 .sheet-scroll,
 .reader-scroll {
 	overscroll-behavior-y: none;
+}
+/* @design content-edge-rebound */
+@media (min-width: 651px) {
+	/* Keep local native bounce while preventing the page behind the preview from scrolling. */
+	.preview-sheet:not(:has(.push-ring)) > .sheet-scroll,
+	#modal.reader:not(:has(.push-ring)) .reader-scroll {
+		overflow-y: scroll;
+		overscroll-behavior-y: contain;
+	}
 }
 .sheet-scroll::-webkit-scrollbar,
 .reader-scroll::-webkit-scrollbar {
@@ -5237,6 +5275,12 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		width: var(--space-20);
 		height: var(--space-20);
 	}
+}
+
+/* The viewport stays fixed; only its inner content yields at an edge. */
+.gesture-content {
+	display: flow-root;
+	min-width: 0;
 }
 
 /* @design layout-preferences */

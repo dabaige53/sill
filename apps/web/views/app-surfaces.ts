@@ -230,6 +230,7 @@ export const appSurfacesMethods = {
 				destination
 					? tokens.motion.cardReturn.duration
 					: MotionEngine.time(phoneSheet ? "dur-sheet" : "dur-close"),
+				!!destination,
 			);
 			const animation = MotionEngine.animate(
 				sheet,
@@ -327,6 +328,7 @@ export const appSurfacesMethods = {
 		this.previewSizeObserver?.disconnect();
 		if (this.modalKind === "search")
 			this.searchScroll = this.dialog.querySelector<HTMLElement>("#search-results")?.scrollTop || 0;
+		MotionEngine.cancel(this.dialog, true);
 		this.dialog.close();
 		MotionEngine.releaseSource(this.dialog);
 		if (this.searchBackground) {

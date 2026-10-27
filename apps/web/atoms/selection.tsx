@@ -11,12 +11,7 @@ function Action({ glyph, label, action }: { glyph: string; label: string; action
 }
 export function SelectionAI() {
 	return (
-		<div
-			className="selection-ai-target glass"
-			hidden
-			role="region"
-			aria-label={copy("web.ai.dock")}
-		>
+		<section className="selection-ai-target glass" hidden aria-label={copy("web.ai.dock")}>
 			<Icon name="chat" size={20} />
 			<input
 				className="selection-ai-input"
@@ -26,7 +21,7 @@ export function SelectionAI() {
 				placeholder={copy("web.ai.dockPlaceholder")}
 			/>
 			<Icon name="up" size={20} />
-		</div>
+		</section>
 	);
 }
 // @design selection-bar

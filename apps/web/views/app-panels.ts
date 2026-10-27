@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
-import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
+import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
 import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import type { AppController } from "./app.ts";
 import type { ViewDialog } from "./app-types.ts";
@@ -290,8 +290,7 @@ export const appPanelsMethods = {
 		});
 		// Do not replace the feed card and disturb focus/layout for every fractional progress update.
 		if (Store.item(id).read !== before.read) {
-			if (this.dialog.open && matchMedia("(max-width:650px)").matches)
-				deferReadingRefresh(this, id);
+			if (this.dialog.open) deferReadingRefresh(this, id);
 			else this.refreshCard(id);
 		}
 	},

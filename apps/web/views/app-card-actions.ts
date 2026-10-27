@@ -4,21 +4,23 @@ import { CardPresentation } from "../cards/presentation.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
-import { PanelViews as Panels } from "../interactions/panels-components.tsx";
+import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { systemReminders } from "../services/system-reminders.ts";
 import type { AppController } from "./app.ts";
 import type { CardFlag } from "./app-types.ts";
-import { renderView } from "./react-renderer.ts";
+import { refreshCompletion, updateCompletionState } from "./card-state-feedback.ts";
 
 export const appCardActionsMethods = {
 	setFlag(this: AppController, id?: string, key?: CardFlag, value?: boolean) {
 		Store.patch(id, { [key]: value });
-		// Re-evaluate filtered membership while retaining the open detail surface.
-		// A detached source cannot be a return target; closeNative then uses its fade path.
-		this.refreshCard(id);
-		if (this.dialog.open && ["preview", "reader"].includes(this.modalKind))
-			this.withFeedAnchor(() => {}, false);
+		if (
+			this.dialog.open &&
+			this.currentId === id &&
+			["preview", "reader", "lightbox"].includes(this.modalKind)
+		)
+			deferReadingRefresh(this, id);
+		else this.refreshCard(id);
 		this.syncPreviewButtons(id);
 	},
 	syncPreviewButtons(this: AppController, id?: string) {
@@ -50,15 +52,14 @@ export const appCardActionsMethods = {
 			: [...before, taskId];
 		Store.patch(id, { taskDone: after });
 		this.checkReminders();
-		this.refreshCard(id);
-		if (this.dialog.open && this.currentId === id && this.modalKind === "preview") {
-			const scroll = this.dialog.querySelector<HTMLElement>(".sheet-scroll");
-			const top = scroll?.scrollTop || 0;
-			// Reconcile the keyed task rows; do not restart the sheet or toolbar lifecycle.
-			renderView(this.dialog, Panels.preview(this, c));
-			const next = this.dialog.querySelector<HTMLElement>(".sheet-scroll");
-			if (next) next.scrollTop = top;
-		}
+		if (
+			this.dialog.open &&
+			this.currentId === id &&
+			["preview", "reader", "lightbox"].includes(this.modalKind)
+		) {
+			updateCompletionState(this.dialog, id);
+			deferReadingRefresh(this, id);
+		} else refreshCompletion(this, id);
 	},
 	setOffline(this: AppController, on?: boolean) {
 		const n = document.getElementById("offline");

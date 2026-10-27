@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
-import { icon } from "../atoms/icons.ts";
 import { markdownText } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { cardSource } from "../data/card-source.ts";
@@ -216,7 +215,7 @@ export const appFeedMethods = {
 			else img.addEventListener("load", done, { once: true });
 		});
 	},
-	refreshCard(this: AppController, id?: string) {
+	refreshCard(this: AppController, id?: string, preserve = true) {
 		const active = document.activeElement as HTMLElement;
 		const search = this.searchBackground || (this.modalKind === "search" ? this.dialog : null);
 		const results = search?.querySelector<HTMLElement>("#search-results");
@@ -240,7 +239,7 @@ export const appFeedMethods = {
 			this.revealImages(results);
 		}
 		const oldY = scrollY;
-		this.preserveFeed = true;
+		this.preserveFeed = preserve;
 		try {
 			this.renderCurrent(false);
 		} finally {

@@ -360,9 +360,15 @@ class AppController {
 		}
 		try {
 			if (window.__QG_LOCAL__) {
+				if (quiet) {
+					// A changed snapshot renders through LocalSync.adopt; an unchanged read does not.
+					this.feedOrder = null;
+					this.feedNow = Date.now();
+				}
 				const result = await LocalSync.refresh(true);
 				if (result === false) return false;
-				this.refreshFeedOrder();
+				if (!quiet) this.refreshFeedOrder();
+				else this.checkReminders?.();
 			} else {
 				// Demo: the next unseen sample arrives as new content; nothing jumps into the desk.
 				const next = FreshCards.find(

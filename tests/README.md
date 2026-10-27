@@ -93,3 +93,15 @@ Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fix
 第三阶段复核：`home-search-motion.test.ts` 检查条件图标从候选位置移入、参考参数与键盘即时完成；`search-desktop.test.ts` 覆盖保留查询的复聚焦与 Combobox 键盘行为；`photo-carousel.test.ts` 检查近期释放速度、取消、停顿及反向吸附。均使用隔离合成数据与指针，不执行浏览器或真实卡片写入。
 
 第四阶段最新复核：`stage-four-motion.test.ts`用合成几何检查AI锚点裁切、反向采样、引用分离时长与手机搜索附件编排；`media-playback.test.ts`与`app.test.ts`检查视频预览/全屏保留同一iframe和一次播放器实例；`detail-motion.test.ts`检查旧内容保留、无iframe副本、同时交叉淡化及取消恢复；`panels.test.ts`和`detail-toolbar.test.ts`检查旧隐藏偏好不移除任何动作且设置无隐藏开关。均不使用浏览器、真实媒体或账号数据。
+
+`web/local-launch.test.ts` 检查快慢本地启动均保留页面框架、只在卡片区等待数据、定时占位清理和首次卡片只显示一次，并检查 HTML 启动前的主题恢复。合成 DOM 不代替真实网页刷新验收。
+
+设置按钮按压与开关反馈的控制器检查位于 `web/control-feedback.test.ts`，共用 `web/app-fixture.ts`；公共操作路由继续由 `web/app.test.ts` 覆盖。
+
+滚动输入与释放检查位于 `web/gesture-input.test.ts`；首页刷新曲线、可见阈值与wheel连续衰减在 `web/refresh-input.test.ts`，同一位移驱动圆环、速度交接和回位中重抓在 `web/gesture-refresh-continuity.test.ts`；参考回弹、内容层与尾段接手在 `web/gesture-rebound.test.ts`；任务／提醒原位更新在 `web/completion-state.test.ts`。均为非浏览器检查，不证明实际帧率。
+
+`web/gesture-refresh-feedback.test.ts`覆盖快速请求立即生效、300ms加载反馈、400ms完成勾及新手势中断旧反馈，不代替真实页面观感验收。
+
+`web/gesture-rebound.test.ts`检查Web桌面普通详情不拦截滚轮、不叠加自定义位移或延时回位；手机继续检查600／48／1参数、速度上限和停住后速度归零。共享100ms采样器沿用既有算法，首页刷新与甩动释放由各自检查覆盖；非浏览器检查不证明系统原生回弹的实际观感。
+
+Web桌面普通滚动保留原生反馈；`web/gesture-refresh.test.ts`覆盖明确下拉刷新时接手wheel并单次提交。`web/gesture-refresh-continuity.test.ts`新增回归：刷新卡片必须跟手位移，is-pulling保留到内容回位结束后再释放原生边缘反馈。手机与桌面共用加载和完成反馈检查，组合观感由用户确认。
