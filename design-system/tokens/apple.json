@@ -324,7 +324,7 @@
 		"shadowMoreOpacity": 0.08,
 		"searchWidth": 280,
 		"searchTaggedWidth": 360,
-		"searchFocusedWidth": 480,
+		"searchFocusedWidth": 315,
 		"searchHeight": 40,
 		"scopeMenuWidth": 220,
 		"gestureRefreshTravel": 0.75,

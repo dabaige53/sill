@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { markdownText } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { cardSource } from "../data/card-source.ts";
@@ -14,11 +15,12 @@ import {
 	HomeHashList,
 	HomeKinds,
 	HomeSearchMarks,
+	homeCardOptions,
 	homeHashOptions,
 	selectedHomeChoice,
 } from "./home-search.tsx";
 import { renderSearchList } from "./home-search-list.ts";
-import { syncSearchClear, syncSearchHighlight, syncSearchIcon } from "./home-search-motion.ts";
+import { syncSearchClear, syncSearchHighlight } from "./home-search-motion.ts";
 import { renderView } from "./react-renderer.ts";
 
 export const appFeedMethods = {
@@ -44,11 +46,11 @@ export const appFeedMethods = {
 	},
 	/** Text to match, without a trailing # condition that is still being typed. */
 	searchText(this: AppController, q = "") {
-		return q.replace(/(^|\s)#\S*$/, "").trim();
+		return q.replace(/#[^\s#]*$/, "").trim();
 	},
 	/** The # fragment at the end of the query, or null when none is being typed. */
 	searchHash(this: AppController, q = "") {
-		const m = q.match(/(?:^|\s)#(\S*)$/);
+		const m = q.match(/#([^\s#]*)$/);
 		return m ? m[1] : null;
 	},
 	searchAll(this: AppController, q?: string) {
@@ -72,6 +74,17 @@ export const appFeedMethods = {
 			desk: all.filter((c?: Card) => this.shelfOf(c) === "desk"),
 			shelved: all.filter((c?: Card) => this.shelfOf(c) !== "desk"),
 		};
+	},
+	/** Phone card suggestions: the matches, or the newest desk cards while the field is empty. */
+	searchSuggestions(this: AppController): Card[] {
+		const f = this.searchFilter;
+		const open = !this.searchText(f.query) && f.type === "all" && f.status === "all" && !f.tag;
+		const cards = open
+			? Store.state.cards
+					.filter((c: Card) => this.shelfOf(c) === "desk")
+					.sort((a: Card, b: Card) => (b.time || 0) - (a.time || 0))
+			: Object.values(this.searchAll(f.query)).flat();
+		return cards.slice(0, tokens.motion.searchChoice.suggestions);
 	},
 	filtering(this: AppController) {
 		const f = this.filter;
@@ -278,15 +291,9 @@ export const appFeedMethods = {
 		if (!field) return;
 		if (!open && !field.classList.contains("is-open")) return;
 		field.classList.remove("suggestion-engaged");
-		if (!open) {
-			const query = this.searchText(this.filter.query);
-			if (query)
-				this.searchHistory = [query, ...this.searchHistory.filter((q) => q !== query)].slice(0, 8);
-		}
 		field.classList.toggle("is-open", open);
-		field.classList.toggle("show-suggestions", open);
 		if (open) {
-			const selected = selectedHomeChoice(this.filter, this.homeSearchChoice);
+			const selected = selectedHomeChoice(this.filter);
 			this.homeHashIndex = Math.max(
 				0,
 				this.homeHashOptions().findIndex((option) => option.extra === selected),
@@ -324,17 +331,13 @@ export const appFeedMethods = {
 		this.syncHomeHash();
 		this.syncHomeKinds();
 		field.classList.toggle("has-token", !!label || marked);
-		syncSearchIcon(
-			field,
-			selectedHomeChoice(this.filter, this.homeSearchChoice) || (label ? `tab:${tab}` : ""),
-		);
 		field.classList.toggle("has-text", !!this.filter.query);
 		syncSearchClear(field, !!this.filter.query);
 		document.querySelectorAll<HTMLElement>(".home-menu-item").forEach((n) => {
 			n.setAttribute("aria-checked", String(n.dataset.extra === tab));
 		});
 	},
-	/** Focus shows session history without clearing the query; # shows condition completions. */
+	/** Typing suggests the cards the field finds; # suggests statuses and tags instead. */
 	homeHashOptions(this: AppController) {
 		const input = document.getElementById("home-search") as HTMLInputElement | null;
 		const frag = this.searchHash(this.filter.query);
@@ -342,21 +345,7 @@ export const appFeedMethods = {
 		if (!input || !field?.classList.contains("is-open")) return [];
 		if (frag !== null)
 			return homeHashOptions(frag, this.homeTabFilter(this.homeTab() || "all").status);
-		const needle = field.classList.contains("show-suggestions")
-			? ""
-			: this.filter.query.trim().toLocaleLowerCase();
-		return [
-			...this.searchHistory.map((query) => ({
-				extra: `query:${query}`,
-				label: query,
-				group: "history" as const,
-			})),
-			...homeHashOptions("", "all").filter(
-				(option) =>
-					option.group === "tag" ||
-					option.extra === selectedHomeChoice(this.filter, this.homeSearchChoice),
-			),
-		].filter((option) => !needle || option.label.toLocaleLowerCase().includes(needle));
+		return homeCardOptions(this.filtered());
 	},
 	syncHomeHash(this: AppController, scroll = false) {
 		const slot = document.getElementById("home-hash-slot");
@@ -365,9 +354,7 @@ export const appFeedMethods = {
 		const field = document.getElementById("home-search-field");
 		const open =
 			!!field?.classList.contains("is-open") && (!!options.length || !!this.filter.query.trim());
-		const needle =
-			this.searchHash(this.filter.query) ??
-			(field?.classList.contains("show-suggestions") ? "" : this.filter.query.trim());
+		const needle = this.searchHash(this.filter.query) ?? this.searchText(this.filter.query);
 		this.homeHashIndex = Math.min(this.homeHashIndex, Math.max(0, options.length - 1));
 		const list = renderSearchList(
 			slot,
@@ -375,7 +362,7 @@ export const appFeedMethods = {
 			HomeHashList({
 				options,
 				active: this.homeHashIndex,
-				selected: selectedHomeChoice(this.filter, this.homeSearchChoice),
+				selected: selectedHomeChoice(this.filter),
 				needle,
 				onHighlight: (index) => {
 					this.homeHashIndex = index;

@@ -224,7 +224,7 @@ export function bindSheetChrome(this: AppController) {
 		scroll,
 		() => [
 			...this.dialog.querySelectorAll(
-				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
+				":scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools, .preview-sheet > .sheet-edge",
 			),
 		],
 		() =>
@@ -234,6 +234,8 @@ export function bindSheetChrome(this: AppController) {
 			(this.dialog.getElementsByClassName("float-bar")[0] as HTMLElement | undefined)?.dataset
 				.cardFlight !== undefined ||
 			[...this.dialog.children].some((node) => node.hasAttribute("data-detail-face")),
+		// With 读完上推收起 on, the end of an unfinished detail belongs to the check, not the capsule.
+		() => !!this.dialog.querySelector(".push-ring:not(.is-done)"),
 	);
 	// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 	const sheet = this.dialog.querySelector(".preview-sheet");
@@ -245,7 +247,7 @@ export function bindSheetChrome(this: AppController) {
 			const hideExpand = scroll.scrollHeight <= scroll.clientHeight + 2;
 			const height = `${sheet.offsetHeight}px`;
 			const cover = sheet.querySelector(".sheet-scroll > .gesture-content > .preview-cover");
-			const podcast = sheet.querySelector(".is-podcast");
+			const podcast = sheet.querySelector(".podcast-detail");
 			let titleTop = cover ? "24px" : podcast ? "var(--space-8)" : "";
 			const title = sheet.querySelector("#modal-title");
 			// The disc sits in the source row above the title, so the title keeps the full width.

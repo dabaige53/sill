@@ -5,17 +5,22 @@ import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import {
 	revealPhoneSearchResults,
 	type SearchPose,
+	syncPhoneSearchKeyboard,
 	transitionPhoneSearch,
 } from "../interactions/phone-search-motion.ts";
+import { armedTag, armLastTag } from "../interactions/tag-input-motion.ts";
 import { action as dispatchAction } from "./actions/index.ts";
 import type { AppController } from "./app.ts";
 import type { Deck, TargetEvent } from "./app-types.ts";
 import { renderView } from "./react-renderer.ts";
 
 export const appInputMethods = {
-	setSearchEditing(this: AppController, editing: boolean, captured?: SearchPose) {
+	setSearchEditing(this: AppController, editing: boolean, captured?: SearchPose, typing = editing) {
 		if (this.desktop() || this.modalKind !== "search") return;
-		transitionPhoneSearch(this.dialog, editing, captured);
+		// Back in a field that is still searching: only the keyboard returns, so only the tab bar leaves.
+		if (editing && this.dialog.classList.contains("search-editing"))
+			syncPhoneSearchKeyboard(this.dialog, typing);
+		else transitionPhoneSearch(this.dialog, editing, captured, typing);
 	},
 	click(this: AppController, e?: TargetEvent<MouseEvent>) {
 		const link = e.target.closest?.<HTMLAnchorElement>(".markdown a[href]");
@@ -153,6 +158,8 @@ export const appInputMethods = {
 		}
 		if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") {
 			e.preventDefault();
+			// Holding ⌘K repeats the key; only the first press focuses, so nothing redraws while held.
+			if (e.repeat) return true;
 			this.railHide?.show();
 			input.focus();
 			input.select();
@@ -244,11 +251,15 @@ export const appInputMethods = {
 		}
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
+		if (e.target.id === "tag-new") {
+			// Typing disarms the last chip; a phone keyboard's comma arrives here, not as a key.
+			armLastTag(document.getElementById("editor-tags"), false);
+			if (/[,，]/.test((e.target as HTMLInputElement).value)) this.action("add-tag", this.editId);
+			return;
+		}
 		if (e.target.dataset.input === "home-search") {
-			this.homeSearchChoice = "";
 			const field = document.getElementById("home-search-field");
 			field?.classList.add("is-open", "suggestion-engaged");
-			field?.classList.remove("show-suggestions");
 			const value = (e.target as HTMLInputElement).value;
 			// The type chips leave with the text; a hidden chip never keeps filtering.
 			const kind = this.searchText(value) ? this.filter.kind : "all";
@@ -267,13 +278,8 @@ export const appInputMethods = {
 		}
 		if (e.target.dataset.input === "search") {
 			this.searchFilter.query = e.target.value;
-			const history = document.querySelector<HTMLElement>(".search-history");
-			if (history)
-				history.hidden =
-					!!e.target.value ||
-					this.searchFilter.type !== "all" ||
-					this.searchFilter.status !== "all" ||
-					!!this.searchFilter.tag;
+			const suggest = document.getElementById("search-suggest");
+			if (suggest) renderView(suggest, Panels.searchSuggest(this));
 			const clear = document.querySelector<HTMLButtonElement>(".search-clear");
 			if (clear) clear.hidden = !e.target.value;
 			const chips = document.querySelector<HTMLElement>(".search-chips");
@@ -409,10 +415,27 @@ export const appInputMethods = {
 			if (this.modalKind !== "search") this.openPanel("search");
 			return;
 		}
-		if (e.target.id === "tag-new" && e.key === "Enter") {
-			e.preventDefault();
-			this.action("add-tag", this.editId);
-			return;
+		if (e.target.id === "tag-new") {
+			const input = e.target as HTMLInputElement;
+			const list = document.getElementById("editor-tags");
+			if (e.key === "Enter" || e.key === "," || e.key === "，") {
+				e.preventDefault();
+				this.action("add-tag", this.editId);
+				return;
+			}
+			// Backspace on an empty field: the first press arms the last chip, the second removes it.
+			if (e.key === "Backspace" && !input.value && input.selectionEnd === 0) {
+				const armed = armedTag(list);
+				if (armed === undefined) armLastTag(list, true);
+				else this.action("editor-tag", this.editId, armed);
+				e.preventDefault();
+				return;
+			}
+			if (e.key === "Escape" && armedTag(list) !== undefined) {
+				e.preventDefault();
+				armLastTag(list, false);
+				return;
+			}
 		}
 		if (e.target.id === "filter-search" && e.key === "Backspace") {
 			const input = e.target as HTMLInputElement;
@@ -431,6 +454,11 @@ export const appInputMethods = {
 			const option = this.dialog.querySelector<HTMLElement>(".search-hash-option");
 			if (option) {
 				option.click();
+				return;
+			}
+			// The phone keyboard's Search key closes the keyboard and leaves the results to browse.
+			if (!this.desktop()) {
+				(e.target as HTMLElement).blur();
 				return;
 			}
 			const first = this.dialog.querySelector<HTMLElement>(

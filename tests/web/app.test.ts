@@ -286,7 +286,7 @@ for (const layout of ["source row", "title fallback", "podcast"]) {
 			const { app, observers, w } = f;
 			const sourceRow = layout === "source row",
 				podcast = layout === "podcast";
-			app.dialog.innerHTML = `<div class="preview-sheet"><div class="sheet-scroll"><div class="preview-body ${podcast ? "is-podcast" : ""}">${sourceRow ? '<div class="preview-meta">Synthetic source</div>' : ""}<h1 id="modal-title" style="line-height:28px">Synthetic title</h1></div></div></div>`;
+			app.dialog.innerHTML = `<div class="preview-sheet"><div class="sheet-scroll"><div class="preview-body">${podcast ? '<div class="podcast-detail"></div>' : ""}${sourceRow ? '<div class="preview-meta">Synthetic source</div>' : ""}<h1 id="modal-title" style="line-height:28px">Synthetic title</h1></div></div></div>`;
 			const sheet = app.dialog.querySelector(".preview-sheet"),
 				scroll = sheet.querySelector(".sheet-scroll"),
 				anchor = sheet.querySelector(sourceRow ? ".preview-meta" : "#modal-title");

@@ -401,8 +401,11 @@ a {
 	gap: var(--rail-gap);
 	pointer-events: none;
 }
-body:has(#modal[open] .settings-layout) #dock {
-	display: none;
+/* The desktop settings sheet hides the AI box; the phone settings page covers the capsule instead. */
+@media (min-width: 651px) {
+	body:has(#modal[open] .settings-layout) #dock {
+		display: none;
+	}
 }
 #dock > * {
 	pointer-events: auto;
@@ -445,30 +448,37 @@ body:has(#modal[open]:not(.page)) #dock * {
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
 }
-.nav-tab[aria-current="page"] {
-	color: var(--ink);
-}
 .nav-icon {
 	display: grid;
 	place-items: center;
 	height: 28px;
 }
-/* The current destination is immediate; the merged motion rules keep the lens stable. */
+/* The clipped duplicate row recolors each icon exactly where the stretched pill reaches it. */
 .nav-lens {
 	position: absolute;
-	top: 4px;
-	bottom: 4px;
-	left: 0;
-	width: var(--lens-w, var(--nav-tab));
-	translate: var(--lens-x, 4px) 0;
+	inset: 0;
+	z-index: 2;
+	display: flex;
+	padding: var(--space-4);
 	border-radius: var(--pill-radius);
 	background: var(--glass-press);
-	box-shadow:
-		inset 0 1px 0.5px var(--glass-edge),
-		inset 0 -0.5px 0.5px var(--glass-shade);
+	color: var(--ink);
+	pointer-events: none;
+	clip-path: inset(
+		var(--space-4) calc(100% - var(--space-4) - var(--nav-tab)) var(--space-4) var(--space-4) round
+			var(--pill-radius)
+	);
+}
+.nav-lens-tab {
+	width: var(--nav-tab);
+	height: 100%;
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
 }
 /* A filter in effect: a small dot under the search icon, never a count. */
-#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after {
+#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after,
+#dock.filter-active .nav-lens-tab:last-child .nav-icon::after {
 	content: "";
 	position: absolute;
 	width: 5px;
@@ -477,7 +487,8 @@ body:has(#modal[open]:not(.page)) #dock * {
 	background: var(--ink);
 	translate: 11px -9px;
 }
-.nav-tab .nav-icon {
+.nav-tab .nav-icon,
+.nav-lens-tab .nav-icon {
 	position: relative;
 }
 /* Settings uses the same line weight and color as the other navigation icons. */
@@ -1112,26 +1123,54 @@ body.is-dragging #toast {
 .chip.soft.active {
 	background: var(--ink);
 }
+/* A chip's body is its own layer, so a typed tag can pop its body while the letters stay put. */
 .tag-pill {
+	position: relative;
+	isolation: isolate;
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-2);
 	height: 32px;
-	padding: 0 var(--space-4) 0 var(--space-12);
-	border-radius: var(--pill-radius);
-	background: var(--surface);
+	padding: 0 var(--space-4) 0 var(--space-10);
 	color: var(--ink);
 	font-size: var(--text-meta);
 	font-weight: 500;
 }
+.tag-pill-body {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: 8px;
+	background: var(--card);
+	box-shadow: var(--shadow);
+}
+.tag-pill-text {
+	display: inline-block;
+}
+.tag-pill.is-armed {
+	color: var(--card);
+}
+.tag-pill.is-armed .tag-pill-body {
+	background: var(--ink);
+}
 .tag-pill button {
+	position: relative;
 	width: 24px;
 	height: 24px;
 	display: grid;
 	place-items: center;
 	color: inherit;
 	opacity: 0.6;
-	border-radius: 50%;
+	border-radius: 6px;
+}
+/* The × is 24px to the eye and 32px to the finger. */
+.tag-pill button::after {
+	content: "";
+	position: absolute;
+	inset: -4px;
+}
+.tag-pill button .icon {
+	stroke-width: 1.5;
 }
 @media (hover: hover) and (pointer: fine) {
 	.tag-pill button:hover {
@@ -1386,7 +1425,7 @@ body.is-dragging #toast {
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(:is(#modal, #search-background)[open].page) .home-top {
+body:has(:is(#modal, #search-background)[open].page:not(:has(.settings-layout))) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -1669,6 +1708,10 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	.home-hash-slot:empty {
 		display: none;
 	}
+	/* The list floats under the field; its slot takes no place in the row, so opening never shifts ⌘K. */
+	.home-hash-slot:not(:empty) {
+		display: contents;
+	}
 	.home-search-token.is-hash {
 		background: var(--accent);
 		color: var(--fixed-white);
@@ -1676,13 +1719,15 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
 	.home-search .search-hash {
 		z-index: 60;
+		padding: var(--space-4);
 		top: calc(100% + var(--space-8));
 		left: 0;
 		right: 0;
 		cursor: default;
 		transform-origin: top center;
 		overscroll-behavior: contain;
-		max-height: min(50vh, calc(var(--space-48) * 5 - var(--space-8)));
+		/* Combobox reference: the list stops at 232px and scrolls inside. */
+		max-height: min(50vh, calc(232px + 2 * var(--space-4)));
 	}
 	.home-search .search-hash-option:first-of-type {
 		background: none;
@@ -1779,83 +1824,67 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 @media (min-width: 651px) {
 	.home-search-leading {
 		display: grid;
+		place-items: center;
 		width: var(--space-24);
 		height: var(--space-24);
 		flex: none;
-		position: relative;
-		z-index: 61;
 		pointer-events: none;
 	}
-	.home-search-leading > span {
-		grid-area: 1 / 1;
-		display: grid;
-		place-items: center;
-	}
-	.home-search-leading [data-search-icon="condition"] {
-		opacity: 0;
-		transform: scale(0.25);
-	}
-	.home-search-token.is-hash {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--space-4);
-	}
-	.home-condition-icon,
-	.home-option-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		flex: none;
-	}
-	.home-option-icon {
-		width: var(--space-32);
-		height: var(--space-32);
-		border-radius: var(--pill-radius);
-		background: var(--faint);
-	}
-	.home-search-choice {
-		display: grid;
-		place-items: center;
-		width: var(--space-24);
-		height: var(--space-24);
-		border-radius: var(--pill-radius);
-		background: var(--faint);
-		transform-origin: top left;
-	}
+	/* Combobox rows: the card title on the left; its source mark and name on the right, one line. */
 	.home-hash .search-hash-option {
 		position: relative;
 		z-index: 1;
-		height: var(--space-48);
+		height: var(--space-40);
+		min-height: var(--space-40);
 		gap: var(--space-12);
+		border-radius: var(--space-8);
+		font-size: var(--text-control);
 	}
 	.home-option-label {
 		flex: 1;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.home-option-match {
+	.home-option-meta {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		gap: var(--space-6);
+		/* A fixed column puts every kind icon on one vertical line. */
+		width: var(--space-48);
+		font-size: var(--text-caption);
 		color: var(--muted);
 	}
-	.home-option-match mark {
-		background: none;
-		color: var(--ink);
+	.home-option-meta > span:last-child {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.home-option-check {
+		display: inline-flex;
+		margin-left: auto;
 	}
 	.home-option-check[hidden] {
 		visibility: hidden;
-		display: inline-flex;
 	}
 	.home-search-empty {
-		padding: var(--space-14) var(--space-10);
+		display: flex;
+		align-items: center;
+		height: var(--space-40);
+		padding: 0 var(--space-10);
+		font-size: var(--text-control);
 		color: var(--muted);
 	}
 	.home-hash-highlight {
 		position: absolute;
 		top: 0;
-		left: var(--space-6);
-		right: var(--space-6);
-		height: var(--space-48);
-		border-radius: var(--space-10);
+		left: var(--space-4);
+		right: var(--space-4);
+		height: var(--space-40);
+		border-radius: var(--space-8);
 		background: var(--faint);
 		pointer-events: none;
 	}
@@ -2797,12 +2826,6 @@ main:has(.feed-boot, .feed-skeleton) .feed-end {
 /* Pressing a card gives a little, like the prototype: it is something you can pick up. */
 
 /* A menu's hit targets keep their size even while the touched parent settles. */
-@media (hover: hover) and (pointer: fine) {
-	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
-		--motion-managed-transform: none;
-		transform: none;
-	}
-}
 .feed-card.tools-open,
 .feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
 	--motion-managed-transform: none;
@@ -2936,21 +2959,23 @@ dialog::backdrop {
 	gap: var(--space-8);
 	pointer-events: auto;
 }
+/* The round buttons stay where they are and only fade; nothing beside the title moves. */
 .sheet-head-tools.is-tucked {
-	transform: var(--motion-toolbar-transform, translateY(-12px));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
 }
-.preview-sheet:before {
-	content: "";
+/* Scroll edges are real layers, so they tuck and return with the bars on the same timing. */
+.preview-sheet > .sheet-edge {
 	position: absolute;
 	left: 0;
 	right: 0;
+	pointer-events: none;
+}
+.preview-sheet > .sheet-edge.is-top {
 	top: 0;
 	height: 76px;
 	z-index: 3;
-	pointer-events: none;
 	opacity: 0;
 	background: linear-gradient(
 		to bottom,
@@ -2958,7 +2983,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent)
 	);
 }
-.preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
+.preview-sheet.is-scrolled > .sheet-edge.is-top {
 	opacity: 1;
 }
 /* The close disc sits in the source row above the title, so the title keeps the whole width.
@@ -2982,9 +3007,6 @@ dialog::backdrop {
 }
 .preview-title-row #modal-title {
 	min-width: 0;
-}
-.preview-sheet.is-scrolled .sheet-head {
-	top: 0;
 }
 .sheet-handle {
 	display: none;
@@ -3025,14 +3047,13 @@ dialog::backdrop {
 	z-index: 3;
 }
 /* Scroll edge at the foot of the card: text fades and softens where the toolbar floats. */
-#modal.preview:has(> .float-bar) > .preview-sheet:after {
-	content: "";
-	position: absolute;
-	left: 0;
-	right: 0;
+.preview-sheet > .sheet-edge.is-bottom {
+	display: none;
+}
+#modal.preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
+	display: block;
 	bottom: 0;
 	height: calc(var(--rail-row) + 18px + 44px);
-	pointer-events: none;
 	z-index: 2;
 	/* Under the capsule the text is only a faint texture; above it, it fades in over 44px. */
 	background: linear-gradient(
@@ -3042,7 +3063,8 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-#modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
+.preview-sheet > .sheet-edge.is-top.is-tucked,
+.preview-sheet > .sheet-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
 .preview-foot {
@@ -3609,15 +3631,16 @@ button.detail-row:active {
 	border-radius: var(--pill-radius);
 }
 /* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
+/* The detail capsule sinks 20px and fades inside the detail, as the desk's AI bar does. */
 dialog > .float-bar.is-tucked,
 dialog > .float-bar.is-hidden {
-	transform: var(--motion-toolbar-transform, translateY(calc(100% + 40px)));
+	transform: var(--motion-toolbar-transform, translateY(20px));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
 }
+/* The reader's round buttons stay where they are and only fade, like the preview's. */
 .reader-head.is-tucked {
-	transform: var(--motion-toolbar-transform, translateY(calc(-100% - 24px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
@@ -4356,6 +4379,7 @@ body:has(dialog.search[open]) #feed-grid {
 	right: calc(var(--hit-target) + var(--space-8));
 	max-height: 50vh;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	padding: var(--space-6);
 	border-radius: var(--control-radius);
 	background: var(--card);
@@ -4380,6 +4404,14 @@ body:has(dialog.search[open]) #feed-grid {
 .search-hash-option:first-of-type,
 .search-hash-option:focus-visible {
 	background: var(--faint);
+}
+/* Combobox highlight, shared by Web and phone suggestions: muted text, the match in ink, no bold. */
+.search-match {
+	color: var(--muted);
+}
+.search-match mark {
+	background: none;
+	color: var(--ink);
 }
 .search-header .search-pill {
 	flex: 1;
@@ -4606,8 +4638,70 @@ body:has(dialog.search[open]) #feed-grid {
 	}
 }
 
-.search-history {
+/* Phone card suggestions: one-line rows like the Web Combobox, shown only while the keyboard is up. */
+.search-suggest {
 	display: none;
+}
+.search-suggest-option {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	width: 100%;
+	height: var(--space-48);
+	padding: 0 var(--space-8);
+	border-radius: var(--space-10);
+	font-size: var(--text-body);
+	text-align: left;
+}
+/* A hairline between rows, from the text start to the kind column end; a pressed row hides its own. */
+.search-suggest-option + .search-suggest-option::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: var(--space-8);
+	right: var(--space-8);
+	height: 0.5px;
+	background: var(--line);
+}
+.search-suggest-option:active::before,
+.search-suggest-option:active + .search-suggest-option::before {
+	opacity: 0;
+}
+.search-suggest-option:active {
+	background: var(--faint);
+}
+.search-suggest-label {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.search-suggest-meta {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--space-6);
+	/* A fixed column puts every kind icon on one vertical line. */
+	width: var(--space-48);
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.search-suggest-meta > span:last-child {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.search-suggest-empty {
+	display: flex;
+	align-items: center;
+	height: var(--space-48);
+	margin: 0;
+	padding: 0 var(--space-8);
+	font-size: var(--text-control);
+	color: var(--muted);
 }
 .search-cancel {
 	flex: none;
@@ -4668,27 +4762,30 @@ body:has(dialog.search[open]) #feed-grid {
 		transform: translateY(calc(-1 * var(--space-12)));
 		pointer-events: none;
 	}
-	.search .search-history {
+	.search .search-suggest {
 		display: block;
 		position: absolute;
-		inset: 0;
+		/* The list is the page itself: page colour, rows run 8 past the margins so text meets the field edge. */
+		inset: 0 calc(-1 * var(--space-8));
+		z-index: 1;
 		overflow: auto;
+		overscroll-behavior: contain;
+		padding: var(--space-4) 0;
+		background: var(--card);
+		transform-origin: top center;
 		opacity: 0;
+		transform: scale(0.97);
 		visibility: hidden;
 		pointer-events: none;
 	}
-	.search .search-history[hidden] {
-		display: none;
-	}
-	.search.search-editing .search-history:not([hidden]) {
+	.search.search-keyboard .search-suggest {
 		opacity: 1;
+		transform: none;
 		visibility: visible;
 		pointer-events: auto;
 	}
-	.search-history .search-hash-option {
-		gap: var(--space-12);
-	}
-	body:has(#modal.search.search-editing) #dock {
+	/* The tab bar leaves with the keyboard only; a submitted search shows it again (search-keyboard). */
+	body:has(#modal.search.search-keyboard) #dock {
 		opacity: 0;
 		transform: translateY(var(--space-30));
 	}
@@ -4700,23 +4797,36 @@ body:has(dialog.search[open]) #feed-grid {
 	margin-top: var(--space-4);
 }
 
-/* Tags and notes. */
+/* Tags and notes. The tag field follows the tag-input reference: chips sit in a well and wrap. */
 .tag-editor {
+	position: relative;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--space-6);
-	padding-bottom: var(--space-12);
-	border-bottom: 1px solid var(--line);
+	margin: 0;
+	padding: var(--space-6);
+	list-style: none;
+	border-radius: 14px;
+	background: var(--surface);
 }
-.tag-editor input {
+.tag-input-slot {
 	flex: 1;
 	min-width: 120px;
+}
+.tag-editor input {
+	width: 100%;
+	min-width: 0;
 	height: 32px;
-	padding: 0 var(--space-6);
+	padding: 0 var(--space-8) 0 var(--space-10);
 	border: 0;
 	background: transparent;
 	font-size: var(--text-meta);
+}
+.tag-hint {
+	margin: var(--space-8) 0 0;
+	font-size: var(--text-caption);
+	color: var(--muted);
 }
 .editor-note {
 	width: 100%;

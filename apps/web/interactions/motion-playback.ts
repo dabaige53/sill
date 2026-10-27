@@ -91,7 +91,7 @@ export function play(
 		delay?: number;
 		easing?: string;
 		fill?: string;
-		spring?: boolean | "card" | "expanded" | "toggle" | "search-icon";
+		spring?: boolean | "card" | "expanded" | "toggle" | "search-icon" | "tag-pop" | "tag-slide";
 		repeat?: number;
 		pseudoElement?: string;
 	},
@@ -166,13 +166,17 @@ export function play(
 					type: spring,
 					...(options.spring === "search-icon"
 						? tokens.motion.searchIconSpring
-						: options.spring === "toggle"
-							? tokens.motion.toggleSpring
-							: options.spring === "expanded"
-								? tokens.motion.expandedSpring
-								: options.spring === "card"
-									? tokens.motion.cardSpring
-									: tokens.motion.spring),
+						: options.spring === "tag-pop"
+							? tokens.motion.tagInput.pop
+							: options.spring === "tag-slide"
+								? tokens.motion.tagInput.slide
+								: options.spring === "toggle"
+									? tokens.motion.toggleSpring
+									: options.spring === "expanded"
+										? tokens.motion.expandedSpring
+										: options.spring === "card"
+											? tokens.motion.cardSpring
+											: tokens.motion.spring),
 				}
 			: { duration: options.duration / 1000, ease }),
 		delay: (options.delay || 0) / 1000,

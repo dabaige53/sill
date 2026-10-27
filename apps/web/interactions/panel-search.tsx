@@ -19,6 +19,12 @@ export const searchTypes = [
 	["event", "web.event", "coast"],
 	["media", "web.media", "mountain"],
 ] as const;
+/** A suggestion row's kind: the search category name where one exists (资讯, 待办), else the card type. */
+export function cardKind(card: Pick<Card, "type">): { icon: string; label: string } {
+	const type = (CardTypes[card.type] || CardTypes.note) as { icon: string; label: string };
+	const category = searchTypes.find(([key]) => key === card.type);
+	return { icon: type.icon, label: category ? copy(category[1]) : type.label };
+}
 export const searchStatuses = [
 	["unread", "web.unread"],
 	["saved", "web.bookmark"],
@@ -35,6 +41,19 @@ export function hashOptions(frag: string, used: string[], tag: string) {
 		(t) => t !== tag && t.toLocaleLowerCase().includes(needle),
 	);
 	return { statuses, tags };
+}
+
+/** Combobox highlight: the whole text is muted and the matched part is ink, with no bold, so nothing reflows. */
+export function SearchMatch({ text, needle }: { text: string; needle: string }) {
+	const at = needle ? text.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) : -1;
+	if (at < 0) return <>{text}</>;
+	return (
+		<span className="search-match">
+			{text.slice(0, at)}
+			<mark>{text.slice(at, at + needle.length)}</mark>
+			{text.slice(at + needle.length)}
+		</span>
+	);
 }
 
 export const panelSearch = {
@@ -69,31 +88,38 @@ export const panelSearch = {
 							{c.title}
 						</div>
 						{"\n   "}
-						<div className={"tag-editor"} id={"editor-tags"}>
-							{keyed(
-								current.map((t) => (
-									<>
-										<span className={"tag-pill"}>
-											{t}
-											<button
-												type={"button"}
-												data-action={"editor-tag"}
-												data-extra={t}
-												aria-label={"" + copy("web.editor.removeTagPrefix") + "" + t + ""}
-											>
-												{icon("x", 12)}
-											</button>
-										</span>
-									</>
-								)),
-							)}
-							<input
-								id={"tag-new"}
-								aria-label={copy("web.editor.newTagLabel")}
-								placeholder={copy("web.editor.addTagPlaceholder")}
-								maxLength={30}
-							/>
-						</div>
+						<ul
+							className="tag-editor"
+							id="editor-tags"
+							aria-label={`${copy("web.editor.newTagLabel")}, ${current.length}${copy("web.editor.tagsAddedSuffix")}`}
+						>
+							{current.map((t) => (
+								<li key={t} className="tag-pill" data-tag={t}>
+									<span className="tag-pill-body" aria-hidden="true" />
+									<span className="tag-pill-text">{t}</span>
+									<button
+										type="button"
+										data-action="editor-tag"
+										data-extra={t}
+										aria-label={`${copy("web.editor.removeTagPrefix")}${t}`}
+									>
+										{icon("x", 14)}
+									</button>
+								</li>
+							))}
+							<li className="tag-input-slot">
+								<input
+									id="tag-new"
+									aria-label={copy("web.editor.newTagLabel")}
+									placeholder={copy("web.editor.addTagPlaceholder")}
+									maxLength={30}
+									autoComplete="off"
+									enterKeyHint="enter"
+								/>
+							</li>
+						</ul>
+						<p className="tag-hint">{copy("web.editor.tagHint")}</p>
+						<span className="sr-only" id="tag-live" role="status" aria-live="polite" />
 						{"\n   "}
 						{keyed(
 							suggest.length ? (
@@ -163,9 +189,6 @@ export const panelSearch = {
 			...searchTypes.map(([key, label]) => [key, copy(label)]),
 		];
 		const text = app.searchText(f.query);
-		const recommendedTags = [
-			...new Set(Store.state.cards.flatMap((card: Card) => Store.tags(card))),
-		].slice(0, 6);
 		const category =
 			f.pinned && f.type !== "all" ? searchTypes.find(([key]) => key === f.type) : null;
 		const status = searchStatuses.find(([key]) => key === f.status);
@@ -276,42 +299,14 @@ export const panelSearch = {
 					</div>
 				)}
 				<div className="search-results-region">
-					<section
-						className="search-history"
-						hidden={!!f.query || f.type !== "all" || f.status !== "all" || !!f.tag}
-						aria-label={copy("web.search.history")}
+					<div
+						className="search-suggest"
+						id="search-suggest"
+						role="listbox"
+						aria-label={copy("web.search.cardSuggestions")}
 					>
-						<h2 className="search-hash-label">{copy("web.search.history")}</h2>
-						{(app.searchHistory || []).map((query) => (
-							<button
-								key={query}
-								type="button"
-								className="search-hash-option"
-								data-action="search-history"
-								data-extra={query}
-							>
-								{icon("clock", 16)}
-								<span>{query}</span>
-							</button>
-						))}
-						{recommendedTags.length > 0 ? (
-							<>
-								<h2 className="search-hash-label">{copy("web.search.recommendedTags")}</h2>
-								{recommendedTags.map((tag) => (
-									<button
-										key={tag}
-										type="button"
-										className="search-hash-option"
-										data-action="filter-tag"
-										data-extra={tag}
-									>
-										{icon("tag", 16)}
-										<span>#{tag}</span>
-									</button>
-								))}
-							</>
-						) : null}
-					</section>
+						{this.searchSuggest(app)}
+					</div>
 					<div className="search-results" id="search-results">
 						{this.searchResults(app)}
 					</div>
@@ -319,6 +314,37 @@ export const panelSearch = {
 				<SelectionBar id="search-selection-bar" />
 			</>
 		);
+	},
+	/** While the keyboard is up the phone suggests cards, one text row each (Combobox, no images). */
+	searchSuggest(this: PanelRenderers, app?: SearchApp) {
+		const needle = app.searchText(app.searchFilter.query);
+		const cards = app.searchSuggestions();
+		if (!cards.length)
+			return needle ? (
+				<p className="search-suggest-empty">{`${copy("web.search.noResultsPrefix")}${needle}」`}</p>
+			) : null;
+		return cards.map((card) => {
+			const kind = cardKind(card);
+			return (
+				<button
+					key={card.id}
+					type="button"
+					role="option"
+					aria-selected="false"
+					className="search-suggest-option"
+					data-action="card-open"
+					data-id={card.id}
+				>
+					<span className="search-suggest-label">
+						<SearchMatch text={card.title || cardSource(card)} needle={needle} />
+					</span>
+					<span className="search-suggest-meta">
+						{icon(kind.icon, 14)}
+						<span>{kind.label}</span>
+					</span>
+				</button>
+			);
+		});
 	},
 	/** Typing # lists the existing statuses, then the existing tags; picking one makes an accent token. */
 	searchHashList(this: PanelRenderers, app?: SearchApp) {

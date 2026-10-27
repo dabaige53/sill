@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { icon } from "../atoms/icons.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
@@ -7,6 +8,9 @@ import { DragManager } from "../interactions/drag.ts";
 import { Gestures } from "../interactions/gestures.ts";
 import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { placeNavigationLens } from "../interactions/navigation-lens.ts";
+import { syncPhoneSearchKeyboard } from "../interactions/phone-search-motion.ts";
+import { armLastTag } from "../interactions/tag-input-motion.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
 import { PAGE_KINDS, type TargetEvent, type ViewDialog, type ViewElement } from "./app-types.ts";
@@ -64,6 +68,34 @@ export const appLifecycleMethods = {
 		document.addEventListener("compositionend", (e?: TargetEvent<Event>) => this.input(e));
 		this.bindKeyboard();
 		document.addEventListener("keydown", (e?: TargetEvent<KeyboardEvent>) => this.key(e));
+		// While suggestions are open, scrolling over the field or its list never moves the cards behind.
+		document.addEventListener(
+			"wheel",
+			(e: WheelEvent) => {
+				const target = e.target as Element;
+				if (e.ctrlKey) return;
+				const list = target.closest?.<HTMLElement>(".home-hash, .search-suggest");
+				if (!list) {
+					// The field, the gap under it and the list read as one surface.
+					const field = document.querySelector<HTMLElement>(".home-search.is-open");
+					const below = field?.querySelector<HTMLElement>("#home-hash") || field;
+					if (!field || !below) return;
+					const top = field.getBoundingClientRect(),
+						end = below.getBoundingClientRect();
+					if (
+						e.clientX >= top.left &&
+						e.clientX <= top.right &&
+						e.clientY >= top.top &&
+						e.clientY <= Math.max(top.bottom, end.bottom)
+					)
+						e.preventDefault();
+					return;
+				}
+				const room = list.scrollHeight - list.clientHeight;
+				if (e.deltaY < 0 ? list.scrollTop <= 0 : list.scrollTop >= room - 1) e.preventDefault();
+			},
+			{ passive: false },
+		);
 		["pointerdown", "keydown", "wheel", "touchstart"].forEach((type?: string) => {
 			document.addEventListener(type, () => (this.lastActivity = Date.now()), { passive: true });
 		});
@@ -73,9 +105,31 @@ export const appLifecycleMethods = {
 			if (e.target.closest?.("#home-search-field")) this.openHomeSearch(true);
 			if (e.target.id === "filter-search") this.setSearchEditing(true);
 		});
+		// A paste with commas or lines becomes several tags; a plain paste stays a draft.
+		document.addEventListener("paste", (e?: TargetEvent<ClipboardEvent>) => {
+			if (e.target.id !== "tag-new") return;
+			const text = e.clipboardData?.getData("text") || "";
+			if (!/[,，\n]/.test(text)) return;
+			e.preventDefault();
+			const input = e.target as HTMLInputElement;
+			this.action("add-tag", this.editId, `${input.value},${text}`);
+		});
+		// The keyboard went away but the search stays: the tab bar comes back and takes taps again.
+		// A tap that refocuses the field (a history row, a token) lands within the settle delay.
+		document.addEventListener("focusout", (e?: TargetEvent<FocusEvent>) => {
+			if (e.target.id === "tag-new") armLastTag(document.getElementById("editor-tags"), false);
+			if (e.target.id !== "filter-search" || this.desktop()) return;
+			window.setTimeout(() => {
+				if (this.modalKind !== "search" || document.activeElement?.id === "filter-search") return;
+				if (this.dialog.classList.contains("search-editing"))
+					syncPhoneSearchKeyboard(this.dialog, false);
+			}, tokens.motion.phoneSearch.dockReturnDelay);
+		});
 		// The search field and the AI box show a text cursor across the capsule, so a press on
 		// its padding puts the caret in the input instead of dropping focus.
 		document.addEventListener("pointerdown", (e?: TargetEvent<PointerEvent>) => {
+			// A chip's × removes it without taking the caret out of the tag field.
+			if (e.target.closest?.("#editor-tags .tag-pill button")) e.preventDefault();
 			const phoneSearch = e.target.closest?.<HTMLElement>(".search-header .search-pill");
 			if (phoneSearch && !this.desktop() && !e.target.closest?.("button,input")) {
 				e.preventDefault();
@@ -243,7 +297,7 @@ export const appLifecycleMethods = {
 	navHTML(this: AppController) {
 		const tab = (key: string, face: string, label: string, aria = label) =>
 			`<button type="button" class="nav-tab" data-action="nav" data-extra="${key}" aria-label="${aria}"${key === "home" ? ' aria-current="page"' : ""}><span class="nav-icon">${face}</span></button>`;
-		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true"></span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("search", icon("search", 22), copy("web.nav.search"))}</nav>`;
+		return `<nav class="nav-capsule glass" id="nav" aria-label="${copy("web.nav.label")}"><span class="nav-lens" aria-hidden="true">${["home", "chat", "search"].map((glyph) => `<span class="nav-lens-tab"><span class="nav-icon">${icon(glyph, 22)}</span></span>`).join("")}</span>${tab("home", icon("home", 22), copy("web.nav.home"))}${tab("ai", icon("chat", 22), copy("web.nav.ai"), copy("web.nav.aiLabel"))}${tab("search", icon("search", 22), copy("web.nav.search"))}</nav>`;
 	},
 	setNav(this: AppController, key: string) {
 		const nav = document.getElementById("nav");
@@ -257,8 +311,7 @@ export const appLifecycleMethods = {
 			if (n === tab) n.setAttribute("aria-current", "page");
 			else n.removeAttribute("aria-current");
 		});
-		nav.style.setProperty("--lens-x", `${tab.offsetLeft}px`);
-		nav.style.setProperty("--lens-w", `${tab.offsetWidth}px`);
+		placeNavigationLens(nav, tab);
 	},
 	isPage(this: AppController, kind: string) {
 		// Settings is a centered sheet in a desktop window and a page on a phone.
@@ -266,14 +319,6 @@ export const appLifecycleMethods = {
 		return PAGE_KINDS.includes(kind);
 	},
 	goTo(this: AppController, key: string) {
-		if (this.modalKind === "search" && key !== "search") {
-			const query = this.searchText(this.searchFilter.query);
-			if (query)
-				this.searchHistory = [query, ...this.searchHistory.filter((item) => item !== query)].slice(
-					0,
-					8,
-				);
-		}
 		clearTimeout(this.navOpenTimer);
 		this.navOpenTimer = 0;
 		if (key === "home") {

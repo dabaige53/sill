@@ -431,6 +431,7 @@ body:has(dialog.search[open]) #feed-grid {
 	right: calc(var(--hit-target) + var(--space-8));
 	max-height: 50vh;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	padding: var(--space-6);
 	border-radius: var(--control-radius);
 	background: var(--card);
@@ -455,6 +456,14 @@ body:has(dialog.search[open]) #feed-grid {
 .search-hash-option:first-of-type,
 .search-hash-option:focus-visible {
 	background: var(--faint);
+}
+/* Combobox highlight, shared by Web and phone suggestions: muted text, the match in ink, no bold. */
+.search-match {
+	color: var(--muted);
+}
+.search-match mark {
+	background: none;
+	color: var(--ink);
 }
 .search-header .search-pill {
 	flex: 1;
@@ -681,8 +690,70 @@ body:has(dialog.search[open]) #feed-grid {
 	}
 }
 
-.search-history {
+/* Phone card suggestions: one-line rows like the Web Combobox, shown only while the keyboard is up. */
+.search-suggest {
 	display: none;
+}
+.search-suggest-option {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: var(--space-12);
+	width: 100%;
+	height: var(--space-48);
+	padding: 0 var(--space-8);
+	border-radius: var(--space-10);
+	font-size: var(--text-body);
+	text-align: left;
+}
+/* A hairline between rows, from the text start to the kind column end; a pressed row hides its own. */
+.search-suggest-option + .search-suggest-option::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: var(--space-8);
+	right: var(--space-8);
+	height: 0.5px;
+	background: var(--line);
+}
+.search-suggest-option:active::before,
+.search-suggest-option:active + .search-suggest-option::before {
+	opacity: 0;
+}
+.search-suggest-option:active {
+	background: var(--faint);
+}
+.search-suggest-label {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.search-suggest-meta {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--space-6);
+	/* A fixed column puts every kind icon on one vertical line. */
+	width: var(--space-48);
+	font-size: var(--text-meta);
+	color: var(--muted);
+}
+.search-suggest-meta > span:last-child {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.search-suggest-empty {
+	display: flex;
+	align-items: center;
+	height: var(--space-48);
+	margin: 0;
+	padding: 0 var(--space-8);
+	font-size: var(--text-control);
+	color: var(--muted);
 }
 .search-cancel {
 	flex: none;
@@ -743,27 +814,30 @@ body:has(dialog.search[open]) #feed-grid {
 		transform: translateY(calc(-1 * var(--space-12)));
 		pointer-events: none;
 	}
-	.search .search-history {
+	.search .search-suggest {
 		display: block;
 		position: absolute;
-		inset: 0;
+		/* The list is the page itself: page colour, rows run 8 past the margins so text meets the field edge. */
+		inset: 0 calc(-1 * var(--space-8));
+		z-index: 1;
 		overflow: auto;
+		overscroll-behavior: contain;
+		padding: var(--space-4) 0;
+		background: var(--card);
+		transform-origin: top center;
 		opacity: 0;
+		transform: scale(0.97);
 		visibility: hidden;
 		pointer-events: none;
 	}
-	.search .search-history[hidden] {
-		display: none;
-	}
-	.search.search-editing .search-history:not([hidden]) {
+	.search.search-keyboard .search-suggest {
 		opacity: 1;
+		transform: none;
 		visibility: visible;
 		pointer-events: auto;
 	}
-	.search-history .search-hash-option {
-		gap: var(--space-12);
-	}
-	body:has(#modal.search.search-editing) #dock {
+	/* The tab bar leaves with the keyboard only; a submitted search shows it again (search-keyboard). */
+	body:has(#modal.search.search-keyboard) #dock {
 		opacity: 0;
 		transform: translateY(var(--space-30));
 	}

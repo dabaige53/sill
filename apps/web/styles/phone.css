@@ -42,7 +42,8 @@
 		visibility: hidden;
 		pointer-events: none;
 	}
-	body:has(:is(#modal, #search-background)[open].page) .home-top {
+	/* Settings covers the top row instead (below), so the glass never hides and reappears. */
+	body:has(:is(#modal, #search-background)[open].page:not(:has(.settings-layout))) .home-top {
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
@@ -271,9 +272,6 @@
 		> .preview-body:first-child {
 		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
 	}
-	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
-		top: env(safe-area-inset-top);
-	}
 	#modal.preview #modal-title,
 	#modal.preview .preview-body :is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-52);
@@ -361,7 +359,7 @@
 		margin-inline: auto;
 		z-index: 3;
 	}
-	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+	#modal.preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
 		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
 	}
 	#modal.preview .push-ring {
@@ -398,7 +396,8 @@
 	.settings-nav {
 		flex-direction: row;
 		overflow-x: auto;
-		padding: var(--space-16) var(--space-12) var(--space-12);
+		/* The group pills sit where the home tabs sit: 6 under the title row, at the 16 margin. */
+		padding: var(--space-6) var(--margin-sm) var(--space-12);
 		border-right: 0;
 		border-bottom: 0;
 		scrollbar-width: none;
@@ -515,8 +514,8 @@
 		border-radius: 0;
 		box-shadow: none;
 		background: var(--canvas);
-		padding: calc(var(--space-12) + env(safe-area-inset-top)) 0
-			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+		/* The settings title row starts at the safe area, like the home, AI and search rows. */
+		padding: env(safe-area-inset-top) 0 calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 	}
 	/* The local AI preview keeps context and composer in one viewport. */
 	#modal.page.panel.narrow:has(.ai-conversation) {
@@ -532,6 +531,25 @@
 	}
 	#modal.page .settings-head {
 		padding: 0 var(--margin-sm);
+	}
+	/* Settings lies over the top row and the capsule: their glass stays put while it opens and closes. */
+	#modal.page.panel.wide:has(.settings-layout) {
+		z-index: 47;
+	}
+	body:has(#modal[open].page .settings-layout) #dock * {
+		pointer-events: none;
+	}
+	/* Every page title in the top row uses one size, line height and letter spacing. */
+	:is(
+		.home-mark,
+		.search-page-heading h1,
+		.ai-conversation h1:not(.ai-conversation-title),
+		.settings-head h1
+	) {
+		font-size: var(--text-figure);
+		font-weight: 700;
+		line-height: 1.2;
+		letter-spacing: -0.04em;
 	}
 	#modal.page.panel .ai-conversation > .sheet-close {
 		display: none;

@@ -139,6 +139,44 @@ test("bars come back at the top, at the end, and after a pause", async () => {
 	}
 });
 
+test("a waiting read-end push keeps the end clear: neither the end nor a pause near it brings the bars", async () => {
+	const f = fixture();
+	f.hide.destroy();
+	let owned = true;
+	const hide = new f.w.ChromeTest.ChromeAutoHide(
+		f.w.document.getElementById("scroll"),
+		() => [f.bar, f.w.document.getElementById("edge")],
+		() => false,
+		() => owned,
+	);
+	try {
+		f.to(2900);
+		f.to(3000);
+		assert.equal(f.tucked(), true);
+		f.to(3180);
+		assert.equal(f.tucked(), true, "short of the end, the capsule does not cover the check");
+		f.to(3200);
+		assert.equal(f.tucked(), true, "the end belongs to the push");
+		await new Promise((resolve) => setTimeout(resolve, 520));
+		assert.equal(f.tucked(), true, "a pause before pushing keeps the capsule away");
+		f.to(3180);
+		assert.equal(f.tucked(), false, "turning back still brings the bars");
+		f.to(1000);
+		f.to(1100);
+		assert.equal(f.tucked(), true);
+		await new Promise((resolve) => setTimeout(resolve, 520));
+		assert.equal(f.tucked(), false, "away from the end a pause still brings them back");
+		owned = false;
+		f.to(1200);
+		f.to(1300);
+		f.to(3190);
+		assert.equal(f.tucked(), false, "once finished, the end shows the bars again");
+	} finally {
+		hide.destroy();
+		f.dom.window.close();
+	}
+});
+
 test("locking and restoring the background preserves the bars' reading state", () => {
 	const f = fixture();
 	try {
@@ -316,6 +354,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 			searchAll: () => ({ desk: [card], shelved: [card] }),
 			searchText: (q: string) => q,
 			searchHash: () => null,
+			searchSuggestions: () => [card],
 		};
 		const field = f.w.document.createElement("div");
 		field.innerHTML = Panels.search(app);

@@ -14,10 +14,14 @@ test("desktop card entry matches its source rect and phone entry keeps its sheet
 		sheet.getBoundingClientRect = () => ({ left: 400, top: 200, width: 600, height: 400 });
 		const source = { left: 100, top: 80, width: 300, height: 200 };
 		f.motion.openPanel(dialog, source);
-		const entry = f.animations.at(-1);
+		const entry = f.animations.find((a: any) => a.frames[0].transform?.startsWith("translate("));
 		assert.equal(entry.frames[0].transform, "translate(-450px,-220px) scale(0.5,0.5)");
 		assert.equal(entry.options.stiffness, 274);
 		assert.equal(entry.options.damping, 30);
+		const dim = f.animations.find((a: any) => a.options.pseudoElement === "::backdrop");
+		assert.ok(dim, "the dim grows with the card, not one frame ahead");
+		assert.equal(dim.options.stiffness, entry.options.stiffness);
+		assert.equal(dim.options.damping, entry.options.damping);
 		assert.ok(entry.frames.every((frame: any) => !("width" in frame) && !("height" in frame)));
 		f.motion.matchSource(dialog, f.el);
 		assert.equal(f.el.style.visibility, "hidden");
@@ -61,8 +65,10 @@ test("desktop detail tools start with the surface after layout and cancel togeth
 		f.motion.queuePanel(dialog, { left: 100, top: 80, width: 300, height: 200 });
 		assert.equal(bar.style.opacity, "0");
 		frame();
-		assert.equal(f.animations[0].options.delay, 0);
-		const reveals = f.animations.filter((a: any) => !("transform" in a.frames[0]));
+		// The dim has its own rule (it follows the card's spring); the tools are checked here.
+		const motions = f.animations.filter((a: any) => a.options.pseudoElement !== "::backdrop");
+		assert.equal(motions[0].options.delay, 0);
+		const reveals = motions.filter((a: any) => !("transform" in a.frames[0]));
 		assert.deepEqual(
 			reveals.map((a: any) => a.options.delay),
 			[0.1, 0, 0],

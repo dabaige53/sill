@@ -62,7 +62,7 @@ export function playExample(id: string, runtime: ExampleRuntime) {
 					? '.detail-related [data-id="motion-card-2"]'
 					: '[data-action="close"]',
 		);
-	else if (id === "reader.outline") click(".reader-outline-toggle, .phone-article-outline summary");
+	else if (id === "reader.outline") click(".reader-outline a:last-child");
 	else if (id === "reader.tools" || id === "media.scroll-collapse") {
 		if (!document.querySelector("dialog[open]")) click(".card-title-button");
 		requestAnimationFrame(() => {

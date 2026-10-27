@@ -71,6 +71,7 @@ class AppController {
 	declare shelved: AppControllerMethods["shelved"];
 	declare matches: AppControllerMethods["matches"];
 	declare searchAll: AppControllerMethods["searchAll"];
+	declare searchSuggestions: AppControllerMethods["searchSuggestions"];
 	declare searchText: AppControllerMethods["searchText"];
 	declare searchHash: AppControllerMethods["searchHash"];
 	declare repaintSearchHash: AppControllerMethods["repaintSearchHash"];
@@ -172,8 +173,6 @@ class AppController {
 	homeSearchTimer = 0;
 	/** Highlighted row of the top-bar # list. */
 	homeHashIndex = 0;
-	homeSearchChoice = "";
-	searchHistory: string[] = [];
 	searchScroll = 0;
 	searchLimit = 40;
 	searchBackground?: HTMLDialogElement;

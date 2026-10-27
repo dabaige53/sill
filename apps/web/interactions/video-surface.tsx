@@ -4,7 +4,7 @@ import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
 import type { PanelRenderers, PreviewApp } from "./panel-contract.ts";
-import { agentAction, button, personalNote } from "./panel-primitives.tsx";
+import { agentAction, button, personalNote, SheetEdges } from "./panel-primitives.tsx";
 
 /** The player stays at the same React position while only its surrounding layout changes. */
 export function VideoSurface({
@@ -35,6 +35,7 @@ export function VideoSurface({
 							button("x", copy("web.preview.close"), "close"),
 						)
 					: null}
+				{!full ? <SheetEdges /> : null}
 				{/* biome-ignore lint/a11y/useSemanticElements: Keep the named, focusable scroll region shared with the existing detail surface. */}
 				<div
 					key="scroll"

@@ -79,8 +79,11 @@
 	gap: var(--rail-gap);
 	pointer-events: none;
 }
-body:has(#modal[open] .settings-layout) #dock {
-	display: none;
+/* The desktop settings sheet hides the AI box; the phone settings page covers the capsule instead. */
+@media (min-width: 651px) {
+	body:has(#modal[open] .settings-layout) #dock {
+		display: none;
+	}
 }
 #dock > * {
 	pointer-events: auto;
@@ -123,30 +126,37 @@ body:has(#modal[open]:not(.page)) #dock * {
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
 }
-.nav-tab[aria-current="page"] {
-	color: var(--ink);
-}
 .nav-icon {
 	display: grid;
 	place-items: center;
 	height: 28px;
 }
-/* The current destination is immediate; the merged motion rules keep the lens stable. */
+/* The clipped duplicate row recolors each icon exactly where the stretched pill reaches it. */
 .nav-lens {
 	position: absolute;
-	top: 4px;
-	bottom: 4px;
-	left: 0;
-	width: var(--lens-w, var(--nav-tab));
-	translate: var(--lens-x, 4px) 0;
+	inset: 0;
+	z-index: 2;
+	display: flex;
+	padding: var(--space-4);
 	border-radius: var(--pill-radius);
 	background: var(--glass-press);
-	box-shadow:
-		inset 0 1px 0.5px var(--glass-edge),
-		inset 0 -0.5px 0.5px var(--glass-shade);
+	color: var(--ink);
+	pointer-events: none;
+	clip-path: inset(
+		var(--space-4) calc(100% - var(--space-4) - var(--nav-tab)) var(--space-4) var(--space-4) round
+			var(--pill-radius)
+	);
+}
+.nav-lens-tab {
+	width: var(--nav-tab);
+	height: 100%;
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
 }
 /* A filter in effect: a small dot under the search icon, never a count. */
-#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after {
+#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after,
+#dock.filter-active .nav-lens-tab:last-child .nav-icon::after {
 	content: "";
 	position: absolute;
 	width: 5px;
@@ -155,7 +165,8 @@ body:has(#modal[open]:not(.page)) #dock * {
 	background: var(--ink);
 	translate: 11px -9px;
 }
-.nav-tab .nav-icon {
+.nav-tab .nav-icon,
+.nav-lens-tab .nav-icon {
 	position: relative;
 }
 /* Settings uses the same line weight and color as the other navigation icons. */

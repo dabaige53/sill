@@ -653,14 +653,25 @@
 			"bounce": 0.2
 		},
 		"searchChoice": {
-			"duration": 280,
-			"easing": "cubic-bezier(0.32,0.72,0,1)",
 			"highlightDuration": 180,
 			"listOpen": 150,
 			"listClose": 100,
 			"listScale": 0.97,
 			"listEase": "cubic-bezier(0.23,1,0.32,1)",
-			"iconBlur": 4
+			"iconBlur": 4,
+			"suggestions": 8
+		},
+		"tagInput": {
+			"pop": { "visualDuration": 0.25, "bounce": 0.15 },
+			"slide": { "visualDuration": 0.25, "bounce": 0 },
+			"leave": 150,
+			"leaveEase": "cubic-bezier(0.23,1,0.32,1)",
+			"enterScale": 0.9,
+			"enterBlur": 4,
+			"leaveBlur": 2,
+			"removeDelay": 60,
+			"shake": 300,
+			"shakeEase": "cubic-bezier(0.23,1,0.32,1)"
 		},
 		"searchIconSpring": {
 			"duration": 0.3,
@@ -709,7 +720,8 @@
 			"resultTravel": 14,
 			"navFade": 200,
 			"navMove": 300,
-			"navTravel": 30
+			"navTravel": 30,
+			"dockReturnDelay": 120
 		},
 		"edgeSpring": {
 			"stiffness": 300,
@@ -761,7 +773,33 @@
 			"sessionGapMs": 80,
 			"rearmGain": 1.25,
 			"rearmDeltaPixels": 2,
-			"maxShieldMs": 240
+			"maxShieldMs": 240,
+			"pushHoldMs": 320
+		},
+		"scrollSpine": {
+			"lead": {
+				"visualDuration": 0.24,
+				"bounce": 0
+			},
+			"trail": {
+				"visualDuration": 0.42,
+				"bounce": 0
+			},
+			"height": 320,
+			"gap": 8,
+			"readLine": 0.3,
+			"endSlack": 4,
+			"jumpOffset": 16
+		},
+		"segmentedControl": {
+			"lead": {
+				"visualDuration": 0.18,
+				"bounce": 0
+			},
+			"trail": {
+				"visualDuration": 0.36,
+				"bounce": 0.15
+			}
 		}
 	}
 }

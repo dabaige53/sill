@@ -301,7 +301,7 @@
       "h": 5100,
       "title": "44 定稿 · 手机顶行与搜索标签",
       "w": 1720,
-      "x": 1880,
+      "x": 2350,
       "y": 280
     },
     "WebChrome.dc.html": {
@@ -393,7 +393,7 @@
     },
     "ScreenMobileResults.dc.html": {
       "h": 844,
-      "title": "手机 · 结果页与 # 条件",
+      "title": "手机 · 结果页（键盘收起，底栏可点）",
       "w": 390,
       "x": 940,
       "y": 280
@@ -402,7 +402,7 @@
       "h": 844,
       "title": "手机 · AI",
       "w": 390,
-      "x": 1410,
+      "x": 1880,
       "y": 280
     },
     "ScreenWebHome.dc.html": {
@@ -421,7 +421,7 @@
     },
     "ScreenWebSearch.dc.html": {
       "h": 900,
-      "title": "网页 · 在未读里搜索",
+      "title": "网页 · 在未读里搜索与卡片建议",
       "w": 1440,
       "x": 3040,
       "y": 6060
@@ -548,7 +548,7 @@
       "h": 1180,
       "title": "50 草稿 · 手机 AI 对话（接入后）",
       "w": 1840,
-      "x": 3680,
+      "x": 4150,
       "y": 280
     },
     "ScreenWebAIPanel.dc.html": {
@@ -571,6 +571,13 @@
       "w": 1440,
       "x": 1520,
       "y": 12640
+    },
+    "ScreenMobileSuggest.dc.html": {
+      "h": 844,
+      "title": "手机 · 输入时的卡片建议",
+      "w": 390,
+      "x": 1410,
+      "y": 280
     }
   },
   "createdOnFiles": {
@@ -593,7 +600,7 @@
   "notes": {
     "current1": {
       "kind": "title1",
-      "maxW": 5520,
+      "maxW": 5990,
       "text": "手机 · 页面与顶行",
       "x": 0,
       "y": 0
@@ -686,6 +693,7 @@
     "ScreenMobileHome.dc.html",
     "ScreenMobileSearch.dc.html",
     "ScreenMobileResults.dc.html",
+    "ScreenMobileSuggest.dc.html",
     "ScreenMobileAI.dc.html",
     "PhoneChrome.dc.html",
     "ScreenMobileAIChat.dc.html",

@@ -417,11 +417,10 @@
 		"feature": "reader",
 		"interaction": "scroll",
 		"component": "apps/web/interactions/reader-layout.tsx",
-		"implementation": "apps/web/interactions/reader-layout.tsx",
+		"implementation": "apps/web/interactions/scroll-spine.ts",
 		"native": "apps/apple/macOS/Reader/ReaderPage.swift",
 		"parameters": [
-			"base",
-			"ease"
+			"motion.scrollSpine"
 		],
 		"platforms": {
 			"web": "preview",

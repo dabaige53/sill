@@ -5,12 +5,7 @@ export function HomeSearchField() {
 	return (
 		<div className="home-search" id="home-search-field">
 			<span className="home-search-leading" aria-hidden="true">
-				<span data-search-icon="search">
-					<Icon name="search" size={16} />
-				</span>
-				<span data-search-icon="condition">
-					<span className="home-search-choice" />
-				</span>
+				<Icon name="search" size={16} />
 			</span>
 			<button
 				type="button"

@@ -180,8 +180,13 @@ export const appSurfacesMethods = {
 			animate &&
 			(!this.isPage(this.modalKind) || ["reader", "lightbox"].includes(this.modalKind))
 		) {
-			// The card takes its read colour now, so the detail returns to the card it will remain.
-			flushReadingRefresh(this);
+			// A desktop detail returns into its card, so the card takes its read colour now. A phone
+			// sheet slides away instead; the feed redraws only once it has gone.
+			if (
+				!matchMedia("(max-width:650px)").matches &&
+				["preview", "reader"].includes(this.modalKind)
+			)
+				flushReadingRefresh(this);
 			const token = this.modalToken,
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;

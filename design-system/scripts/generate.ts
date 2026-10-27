@@ -25,6 +25,7 @@ const names = [
 	"CheckItem",
 	"Avatars",
 	"TagChip",
+	"TagInput",
 	"Toggle",
 	"SearchField",
 	"Navigation",

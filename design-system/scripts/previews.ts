@@ -23,6 +23,7 @@ import { Store } from "../../apps/web/data/store.ts";
 import { pushRingHTML } from "../../apps/web/interactions/gesture-preview.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 import { AIDockSessionButton, AIDockThread } from "../../apps/web/views/ai-dock.tsx";
+import { HomeHashList, homeCardOptions } from "../../apps/web/views/home-search.tsx";
 import { AIDock, HomeTop, Navigation } from "../../apps/web/views/shell.tsx";
 import { authStyles, consentStyles } from "../../server/cloud/auth-page.ts";
 import { consentSummary } from "../../server/cloud/consent-policy.ts";
@@ -155,10 +156,46 @@ const previews: Record<
 		background: "var(--card)",
 		body: `<div style="width:420px">${pick(Panels.settings({}, "desk"), ".setting-row:has(.toggle)", 2)}</div>`,
 	},
+	// Combobox: typing suggests cards, title then source; the first row carries the shared highlight.
 	SearchField: {
 		group: "Forms",
-		height: 100,
-		body: `<div style="width:420px">${pick(react(HomeTop), ".home-search")}</div>`,
+		height: 340,
+		width: 720,
+		body: `<div style="width:480px">${pick(react(HomeTop), ".home-search")
+			.replace(/(<input[^>]*?)>/, '$1 value="设计">')
+			.replace(
+				'<div class="home-hash-slot" id="home-hash-slot"></div>',
+				`<div class="home-hash-slot" id="home-hash-slot">${renderToStaticMarkup(
+					createElement(HomeHashList, {
+						options: homeCardOptions(
+							SeedCards.filter((card) => `${card.title}${card.summary}`.includes("设计")),
+						),
+						active: 0,
+						needle: "设计",
+					}),
+				).replace(
+					'<span class="home-hash-highlight" aria-hidden="true"></span>',
+					'<span class="home-hash-highlight" aria-hidden="true" style="transform:translateY(4px)"></span>',
+				)}</div>`,
+			)}</div>`,
+	},
+	// The tag field from the tags-and-note panel; the second copy shows the last chip armed by Backspace.
+	TagInput: {
+		group: "Forms",
+		height: 330,
+		background: "var(--card)",
+		body: (() => {
+			// The panel reads its card from the store; lend it the sample card for this one render.
+			const cards = Store.state.cards;
+			Store.state.cards = [article];
+			const editor = Panels.editor({ editTags: new Set(["设计", "阅读", "AI"]) }, article.id);
+			Store.state.cards = cards;
+			const field = pick(editor, ".tag-editor, .tag-hint, .chip-suggest", 3);
+			const plain = pick(editor, ".tag-editor");
+			const at = plain.lastIndexOf('class="tag-pill"');
+			const armed = `${plain.slice(0, at)}class="tag-pill is-armed"${plain.slice(at + 16)}`;
+			return `<div style="width:440px;display:flex;flex-direction:column;gap:24px"><div>${field}</div>${armed}</div>`;
+		})(),
 	},
 	Navigation: { group: "Navigation", height: 110, body: react(Navigation) },
 	AICompose: {

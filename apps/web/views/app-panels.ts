@@ -15,6 +15,7 @@ import { releaseView, renderContent, renderView } from "./react-renderer.ts";
 // is written at most every PROGRESS_WRITE_MS, and before the page is hidden or left.
 const PROGRESS_WRITE_MS = 500;
 const pendingProgress = new Map<string, number>();
+const pagedResults = new WeakSet<HTMLElement>();
 let progressTimer = 0;
 export function flushReadingProgress() {
 	clearTimeout(progressTimer);
@@ -84,7 +85,10 @@ export const appPanelsMethods = {
 	bindSearchResults(this: AppController) {
 		this.bindSearchSelection();
 		const results = this.dialog.querySelector<HTMLElement>("#search-results");
-		results?.addEventListener(
+		// Repaints keep the same results node; a second listener would page and render twice per scroll.
+		if (!results || pagedResults.has(results)) return;
+		pagedResults.add(results);
+		results.addEventListener(
 			"scroll",
 			() => {
 				if (this.modalKind !== "search" || this.searchBackground) return;

@@ -155,6 +155,16 @@ export function keyed(nodes: React.ReactNode): React.ReactNode {
 	);
 }
 
+/** Scroll edges under the floating bars: real layers, so they tuck and return with the bars. */
+export function SheetEdges() {
+	return (
+		<>
+			<div className="sheet-edge is-top" aria-hidden="true" />
+			<div className="sheet-edge is-bottom" aria-hidden="true" />
+		</>
+	);
+}
+
 export function personalNote(note?: string) {
 	return note ? (
 		<aside className="preview-note" aria-label={copy("web.metadata.note")}>

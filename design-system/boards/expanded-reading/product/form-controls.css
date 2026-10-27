@@ -42,26 +42,54 @@
 .chip.soft.active {
 	background: var(--ink);
 }
+/* A chip's body is its own layer, so a typed tag can pop its body while the letters stay put. */
 .tag-pill {
+	position: relative;
+	isolation: isolate;
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-2);
 	height: 32px;
-	padding: 0 var(--space-4) 0 var(--space-12);
-	border-radius: var(--pill-radius);
-	background: var(--surface);
+	padding: 0 var(--space-4) 0 var(--space-10);
 	color: var(--ink);
 	font-size: var(--text-meta);
 	font-weight: 500;
 }
+.tag-pill-body {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: 8px;
+	background: var(--card);
+	box-shadow: var(--shadow);
+}
+.tag-pill-text {
+	display: inline-block;
+}
+.tag-pill.is-armed {
+	color: var(--card);
+}
+.tag-pill.is-armed .tag-pill-body {
+	background: var(--ink);
+}
 .tag-pill button {
+	position: relative;
 	width: 24px;
 	height: 24px;
 	display: grid;
 	place-items: center;
 	color: inherit;
 	opacity: 0.6;
-	border-radius: 50%;
+	border-radius: 6px;
+}
+/* The × is 24px to the eye and 32px to the finger. */
+.tag-pill button::after {
+	content: "";
+	position: absolute;
+	inset: -4px;
+}
+.tag-pill button .icon {
+	stroke-width: 1.5;
 }
 @media (hover: hover) and (pointer: fine) {
 	.tag-pill button:hover {
@@ -316,7 +344,7 @@
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(:is(#modal, #search-background)[open].page) .home-top {
+body:has(:is(#modal, #search-background)[open].page:not(:has(.settings-layout))) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -599,6 +627,10 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	.home-hash-slot:empty {
 		display: none;
 	}
+	/* The list floats under the field; its slot takes no place in the row, so opening never shifts ⌘K. */
+	.home-hash-slot:not(:empty) {
+		display: contents;
+	}
 	.home-search-token.is-hash {
 		background: var(--accent);
 		color: var(--fixed-white);
@@ -606,13 +638,15 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 	/* The # list floats under the field; arrows move the highlight, Enter picks it. */
 	.home-search .search-hash {
 		z-index: 60;
+		padding: var(--space-4);
 		top: calc(100% + var(--space-8));
 		left: 0;
 		right: 0;
 		cursor: default;
 		transform-origin: top center;
 		overscroll-behavior: contain;
-		max-height: min(50vh, calc(var(--space-48) * 5 - var(--space-8)));
+		/* Combobox reference: the list stops at 232px and scrolls inside. */
+		max-height: min(50vh, calc(232px + 2 * var(--space-4)));
 	}
 	.home-search .search-hash-option:first-of-type {
 		background: none;
@@ -709,83 +743,67 @@ body:has(:is(#modal, #search-background)[open].page) .home-top {
 @media (min-width: 651px) {
 	.home-search-leading {
 		display: grid;
+		place-items: center;
 		width: var(--space-24);
 		height: var(--space-24);
 		flex: none;
-		position: relative;
-		z-index: 61;
 		pointer-events: none;
 	}
-	.home-search-leading > span {
-		grid-area: 1 / 1;
-		display: grid;
-		place-items: center;
-	}
-	.home-search-leading [data-search-icon="condition"] {
-		opacity: 0;
-		transform: scale(0.25);
-	}
-	.home-search-token.is-hash {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--space-4);
-	}
-	.home-condition-icon,
-	.home-option-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		flex: none;
-	}
-	.home-option-icon {
-		width: var(--space-32);
-		height: var(--space-32);
-		border-radius: var(--pill-radius);
-		background: var(--faint);
-	}
-	.home-search-choice {
-		display: grid;
-		place-items: center;
-		width: var(--space-24);
-		height: var(--space-24);
-		border-radius: var(--pill-radius);
-		background: var(--faint);
-		transform-origin: top left;
-	}
+	/* Combobox rows: the card title on the left; its source mark and name on the right, one line. */
 	.home-hash .search-hash-option {
 		position: relative;
 		z-index: 1;
-		height: var(--space-48);
+		height: var(--space-40);
+		min-height: var(--space-40);
 		gap: var(--space-12);
+		border-radius: var(--space-8);
+		font-size: var(--text-control);
 	}
 	.home-option-label {
 		flex: 1;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.home-option-match {
+	.home-option-meta {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		gap: var(--space-6);
+		/* A fixed column puts every kind icon on one vertical line. */
+		width: var(--space-48);
+		font-size: var(--text-caption);
 		color: var(--muted);
 	}
-	.home-option-match mark {
-		background: none;
-		color: var(--ink);
+	.home-option-meta > span:last-child {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.home-option-check {
+		display: inline-flex;
+		margin-left: auto;
 	}
 	.home-option-check[hidden] {
 		visibility: hidden;
-		display: inline-flex;
 	}
 	.home-search-empty {
-		padding: var(--space-14) var(--space-10);
+		display: flex;
+		align-items: center;
+		height: var(--space-40);
+		padding: 0 var(--space-10);
+		font-size: var(--text-control);
 		color: var(--muted);
 	}
 	.home-hash-highlight {
 		position: absolute;
 		top: 0;
-		left: var(--space-6);
-		right: var(--space-6);
-		height: var(--space-48);
-		border-radius: var(--space-10);
+		left: var(--space-4);
+		right: var(--space-4);
+		height: var(--space-40);
+		border-radius: var(--space-8);
 		background: var(--faint);
 		pointer-events: none;
 	}

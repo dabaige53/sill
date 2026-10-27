@@ -113,7 +113,7 @@ test("AI reference fade and travel use independent durations and removal waits f
 
 test("phone search follows the supplied choreography and reverses from the drawn header", () => {
 	const f = fixture(
-		'<div id="dock"><nav><button>Home</button><button>AI</button><button>Search</button></nav></div><dialog class="search"><div class="search-page-heading">Search</div><div class="search-header"><div class="search-pill"><input id="filter-search"><button class="search-clear"></button><button class="search-dictate"></button></div><button class="search-cancel">取消</button></div><div class="search-results-region"><section class="search-history">History</section><div id="search-results"><div class="search-browse">Categories</div></div></div></dialog>',
+		'<div id="dock"><nav><button>Home</button><button>AI</button><button>Search</button></nav></div><dialog class="search"><div class="search-page-heading">Search</div><div class="search-header"><div class="search-pill"><input id="filter-search"><button class="search-clear"></button><button class="search-dictate"></button></div><button class="search-cancel">取消</button></div><div class="search-results-region"><section class="search-suggest"></section><div id="search-results"><div class="search-browse">Categories</div></div></div></dialog>',
 	);
 	try {
 		const dialog = f.document.querySelector("dialog"),
@@ -132,16 +132,12 @@ test("phone search follows the supplied choreography and reverses from the drawn
 		assert.equal(shift.options.duration, 410);
 		assert.equal(shift.frames[0].transform, "translate(0px, 76px)");
 		assert.deepEqual(Array.from(shift.options.ease), [0.2, 0.85, 0.22, 1]);
-		const history = f.document.querySelector(".search-history");
-		const resultFade = f.animations.find(
-			(animation) => animation.target === history && "opacity" in animation.frames[0],
+		assert.ok(
+			!f.animations.some(
+				(animation) => animation.target === f.document.querySelector(".search-suggest"),
+			),
+			"card suggestions wait for the keyboard; the header move does not carry them",
 		);
-		const resultMove = f.animations.find(
-			(animation) => animation.target === history && "transform" in animation.frames[0],
-		);
-		assert.equal(resultFade.options.duration, 200);
-		assert.equal(resultFade.options.delay, 0.13);
-		assert.equal(resultMove.options.duration, 400);
 		const nav = f.document.querySelector("#dock");
 		for (const actor of [nav, f.document.querySelector(".search-browse")]) {
 			const travel = f.animations.find(

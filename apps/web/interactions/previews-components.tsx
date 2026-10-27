@@ -26,6 +26,7 @@ import {
 	keyed,
 	personalNote,
 	reminderMark,
+	SheetEdges,
 } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
 
@@ -109,6 +110,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 				}
 			>
 				{this.head(expand, closeButton)}
+				<SheetEdges />
 				{/* biome-ignore lint/a11y/useSemanticElements: The existing named scroll region must receive keyboard focus for scrolling and focus restoration. */}
 				<div
 					className={"sheet-scroll"}
