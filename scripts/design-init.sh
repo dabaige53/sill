@@ -26,7 +26,6 @@ build() {
 	node design-system/scripts/generate.ts design-system .
 	node --import tsx design-system/scripts/previews.ts
 	node --import tsx design-system/scripts/expanded-reading.ts
-	node design-system/scripts/motion-library.ts
 	node design-system/scripts/canvas.ts layout
 }
 

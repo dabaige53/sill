@@ -55,7 +55,10 @@ export function bindEdgeRebound(
 	current: () => boolean,
 	fromField: (event: WheelEvent | TouchEvent) => boolean,
 	readEnd: () => boolean,
+	continuous = false,
 ) {
+	const controller = new AbortController();
+	const signal = controller.signal;
 	const track = reboundTrack(gestureContent(scroll)),
 		wheel = wheelIntent();
 	let active = false,
@@ -79,7 +82,7 @@ export function bindEdgeRebound(
 				delta > 0 &&
 				!readEnd() &&
 				scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop <= 2;
-			const accepted = wheel.feed(delta, eligible);
+			const accepted = continuous ? eligible : wheel.feed(delta, eligible);
 			if (!eligible) {
 				previous = delta;
 				return release();
@@ -99,7 +102,7 @@ export function bindEdgeRebound(
 			clearTimeout(timer);
 			timer = window.setTimeout(release, wheelInput.releaseIdleMs);
 		},
-		{ passive: false },
+		{ passive: false, signal },
 	);
 	scroll.addEventListener(
 		"touchstart",
@@ -110,7 +113,7 @@ export function bindEdgeRebound(
 					? { x: event.touches[0].clientX, y: event.touches[0].clientY }
 					: null;
 		},
-		{ passive: true },
+		{ passive: true, signal },
 	);
 	scroll.addEventListener(
 		"touchmove",
@@ -145,7 +148,7 @@ export function bindEdgeRebound(
 			}
 			track.pull(delta);
 		},
-		{ passive: false },
+		{ passive: false, signal },
 	);
 	for (const type of ["touchend", "touchcancel"])
 		scroll.addEventListener(
@@ -154,6 +157,11 @@ export function bindEdgeRebound(
 				touch = null;
 				release();
 			},
-			{ passive: true },
+			{ passive: true, signal },
 		);
+	return () => {
+		clearTimeout(timer);
+		controller.abort();
+		MotionEngine.cancel(gestureContent(scroll));
+	};
 }

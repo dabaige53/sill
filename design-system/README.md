@@ -26,10 +26,6 @@ Sill（窗台）是一个本地优先的卡片工作台：文章、消息、笔�
 - 产品代码里的 `@design <编号>` 是设计印记，编号登记在 `marks.json`，指向手册小节、变量、ADR 和现行画板。
 - 更新、检查、反查和发布准备都用 `scripts/design-init.sh`，见 [设计约束](../DESIGN.md)。
 
-## 动画库
-
-`motion/catalog.json` 集中登记产品已有动画。运行 `npm run design -- build` 和 `npm run boards` 后，访问 [动画库](http://127.0.0.1:4310/motion/)。目录、shadcn 工作台与独立示例适配位于 `motion/workbench/`；示例复用真实产品局部 UI，数据与参数仅在 iframe 内生效；使用、登记规则和未验证范围见[动画库指南](../docs/guides/motion-library.md)。macOS 尚未接入真实原生组件，不能标为可预览。
-
 ## 登录与授权
 
 见[网页交互](handbook/web-interaction.md#登录与授权)；现行画板为 [Login](boards/Login.dc.html) 、[Authorization](boards/Authorization.dc.html)、[LoginMobile](boards/LoginMobile.dc.html) 和 [AuthorizationMobile](boards/AuthorizationMobile.dc.html)。

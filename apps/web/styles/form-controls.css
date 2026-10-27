@@ -344,7 +344,7 @@
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(:is(#modal, #search-background)[open].page:not(:has(.settings-layout))) .home-top {
+body:has(:is(:is(#modal, .phone-layer), #search-background)[open].page:not(:has(.settings-layout))) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */

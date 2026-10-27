@@ -231,10 +231,10 @@
 	}
 }
 
-.preview-sheet:has(.is-podcast) #modal-title {
+.preview-sheet:has(.is-podcast) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
-.preview-sheet:has(.pr-detail) #modal-title {
+.preview-sheet:has(.pr-detail) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
 
@@ -439,7 +439,7 @@
 	display: grid;
 	gap: 2px;
 }
-.lightbox-top #modal-title {
+.lightbox-top :is(#modal-title, .phone-layer-title) {
 	font-size: 15px;
 	font-weight: 600;
 	color: var(--ink);

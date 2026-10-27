@@ -1,24 +1,31 @@
-import tokens from "../../../design-system/tokens.json" with { type: "json" };
-import { stretchEdges } from "./stretch-edges.ts";
+import { animate, motionValue } from "motion";
+import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 
 // @design article-reading
-// Interaction reference: https://lab.xevrion.dev/lab/scroll-spine
+// Adapted from ui-lab sidebar-highlight (MIT, copyright 2026 Yash Bavadiya).
+// License: docs/adr/0082-web-ui-lab-motion.md
 export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
-	const config = tokens.motion.scrollSpine;
+	const config = foundation.motion.scrollSpine;
+	const highlight = foundation.motion.sidebarHighlight;
+	nav.style.setProperty("--outline-dot", `${highlight.dot}px`);
+	nav.style.setProperty("--outline-shift", `${highlight.shift}px`);
+	nav.style.setProperty("--outline-step", `${highlight.step}ms`);
+	nav.style.setProperty("--outline-wipe-in", `${highlight.wipeIn}ms`);
+	nav.style.setProperty("--outline-wipe-out", `${highlight.wipeOut}ms`);
+	nav.style.setProperty("--outline-ease", highlight.ease);
 	const links = [...nav.querySelectorAll<HTMLAnchorElement>("a[href]")];
 	const track = nav.querySelector<HTMLElement>(".reader-outline-links")!;
-	const marker = nav.querySelector<HTMLElement>(".reader-outline-marker")!;
-	const notch = nav.querySelector<HTMLElement>(".reader-outline-notch")!;
-	const fills = links.map((link) => link.querySelector<HTMLElement>(".reader-spine-fill")!);
+	const dot = nav.querySelector<HTMLElement>(".reader-outline-dot")!;
 	const sections = links.map((link) => region.querySelector<HTMLElement>(link.hash));
-	const edges = stretchEdges((top, bottom) => {
-		marker.style.clipPath = `inset(${top}px 0 calc(100% - ${Math.max(top, bottom)}px) 0 round var(--control-radius))`;
-	}, config);
+	const y = motionValue(0);
+	const offY = y.on("change", (value) => {
+		dot.style.transform = `translateY(${value}px)`;
+	});
 	let offsets: number[] = [];
 	let bands: { top: number; height: number }[] = [];
-	let end = 0;
 	let current = -1;
 	let frame = 0;
+	let clicked: { index: number; scrollTop: number } | null = null;
 	const update = (instant = false) => {
 		if (!bands.length) return;
 		const maximum = Math.max(0, region.scrollHeight - region.clientHeight);
@@ -27,36 +34,22 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 		let selected = 0;
 		while (selected < offsets.length - 1 && offsets[selected + 1] <= line) selected++;
 		if (atEnd) selected = offsets.length - 1;
-		const within = atEnd
-			? 1
-			: Math.max(
-					0,
-					Math.min(
-						1,
-						(line - offsets[selected]) /
-							Math.max(1, (offsets[selected + 1] ?? end) - offsets[selected]),
-					),
-				);
-		fills.forEach((fill, index) => {
-			fill.style.transform = `scaleY(${index < selected ? 1 : index === selected ? within : 0})`;
-		});
+		if (clicked && Math.abs(region.scrollTop - clicked.scrollTop) < 1) selected = clicked.index;
+		else clicked = null;
 		const band = bands[selected];
-		notch.style.transform = `translateY(${band.top + within * band.height}px)`;
 		if (current !== selected || instant) {
 			current = selected;
 			links.forEach((link, index) => {
 				if (index === selected) link.setAttribute("aria-current", "location");
 				else link.removeAttribute("aria-current");
 			});
-			edges.move(
-				band.top,
-				band.top + band.height,
-				instant || document.documentElement.dataset.inputModality === "keyboard",
-			);
-			const y = track.offsetTop + band.top;
-			if (y < nav.scrollTop) nav.scrollTop = y;
-			else if (y + band.height > nav.scrollTop + nav.clientHeight)
-				nav.scrollTop = y + band.height - nav.clientHeight;
+			const target = band.top + band.height / 2 - highlight.dot / 2;
+			if (instant || document.documentElement.dataset.inputModality === "keyboard") y.jump(target);
+			else animate(y, target, { type: "spring", ...highlight.travel });
+			const rowTop = track.offsetTop + band.top;
+			if (rowTop < nav.scrollTop) nav.scrollTop = rowTop;
+			else if (rowTop + band.height > nav.scrollTop + nav.clientHeight)
+				nav.scrollTop = rowTop + band.height - nav.clientHeight;
 		}
 	};
 	const measure = () => {
@@ -64,27 +57,7 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 		offsets = sections.map((section) =>
 			section ? section.getBoundingClientRect().top - top + region.scrollTop : 0,
 		);
-		end = region.scrollHeight;
-		// Reset before measuring wrapped labels; each remains at least a full hit target.
-		links.forEach((link) => {
-			link.style.height = "auto";
-		});
-		const minimums = links.map((link) => link.offsetHeight);
-		const lengths = offsets.map((offset, i) => Math.max(1, (offsets[i + 1] ?? end) - offset));
-		const total = lengths.reduce((sum, length) => sum + length, 0);
-		const free = Math.max(
-			0,
-			Math.min(config.height, nav.clientHeight - track.offsetTop) -
-				config.gap * (links.length - 1) -
-				minimums.reduce((sum, value) => sum + value, 0),
-		);
-		let y = 0;
-		bands = lengths.map((length, i) => {
-			const band = { top: y, height: minimums[i] + (free * length) / total };
-			links[i].style.height = `${band.height}px`;
-			y += band.height + config.gap;
-			return band;
-		});
+		bands = links.map((link) => ({ top: link.offsetTop, height: link.offsetHeight }));
 		update(true);
 	};
 	const schedule = () => {
@@ -100,11 +73,13 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 		if (index < 0) return;
 		event.preventDefault();
 		region.scrollTop = Math.max(0, offsets[index] - config.jumpOffset);
+		clicked = { index, scrollTop: region.scrollTop };
 		update(event.detail === 0);
 	};
 	const resize = new ResizeObserver(measure);
 	resize.observe(region);
 	resize.observe(nav);
+	resize.observe(track);
 	if (region.firstElementChild) resize.observe(region.firstElementChild);
 	region.addEventListener("scroll", schedule, { passive: true });
 	region.addEventListener("load", measure, true);
@@ -113,7 +88,9 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 	return () => {
 		cancelAnimationFrame(frame);
 		resize.disconnect();
-		edges.destroy();
+		y.stop();
+		offY();
+		y.destroy();
 		region.removeEventListener("scroll", schedule);
 		region.removeEventListener("load", measure, true);
 		nav.removeEventListener("click", jump);

@@ -43,7 +43,7 @@
 		pointer-events: none;
 	}
 	/* Settings covers the top row instead (below), so the glass never hides and reappears. */
-	body:has(:is(#modal, #search-background)[open].page:not(:has(.settings-layout))) .home-top {
+	body:has(:is(:is(#modal, .phone-layer), #search-background)[open].page:not(:has(.settings-layout))) .home-top {
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
@@ -181,7 +181,7 @@
 	}
 	/* Preview and bottom sheets (ADR 0037) */
 	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
-	#modal.preview {
+	:is(#modal, .phone-layer).preview {
 		position: fixed;
 		inset: 0;
 		margin: 0;
@@ -190,7 +190,7 @@
 		height: 100%;
 		max-height: 100%;
 	}
-	#modal.preview .preview-sheet {
+	:is(#modal, .phone-layer).preview .preview-sheet {
 		position: absolute;
 		left: 0;
 		right: 0;
@@ -201,19 +201,19 @@
 		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
 		transform: translateY(0);
 	}
-	#modal.preview .preview-sheet.is-full {
+	:is(#modal, .phone-layer).preview .preview-sheet.is-full {
 		height: 100%;
 		max-height: 100%;
 		transform: none;
 		border-radius: 0;
 	}
-	#modal.preview .preview-sheet:not(.is-full) {
+	:is(#modal, .phone-layer).preview .preview-sheet:not(.is-full) {
 		height: var(--nested-sheet-height, auto);
 	}
-	#modal.preview .preview-sheet.is-off {
+	:is(#modal, .phone-layer).preview .preview-sheet.is-off {
 		transform: translateY(100%);
 	}
-	#modal.preview .sheet-peek {
+	:is(#modal, .phone-layer).preview .sheet-peek {
 		position: absolute;
 		left: 14px;
 		right: 14px;
@@ -223,37 +223,37 @@
 		height: 24px;
 		margin: 0;
 	}
-	#modal.preview[data-sheet-resizing] .sheet-peek,
-	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
+	:is(#modal, .phone-layer).preview[data-sheet-resizing] .sheet-peek,
+	:is(#modal, .phone-layer).preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
 		opacity: 0;
 		pointer-events: none;
 	}
-	#modal.preview .preview-sheet .sheet-scroll {
+	:is(#modal, .phone-layer).preview .preview-sheet .sheet-scroll {
 		flex: 1;
 		max-height: none;
 		overflow-x: hidden;
 	}
-	#modal.reader:has(.is-podcast) .reader-scroll {
+	:is(#modal, .phone-layer).reader:has(.is-podcast) .reader-scroll {
 		overflow-x: hidden;
 	}
-	#modal :is(.is-podcast .media-primary, .is-podcast .media-secondary) {
+	:is(#modal, .phone-layer) :is(.is-podcast .media-primary, .is-podcast .media-secondary) {
 		min-width: 0;
 		max-width: 100%;
 	}
 	/* The close disc floats beside the player; it does not reserve a header row. */
-	#modal.preview .preview-sheet .compact-player-slot {
+	:is(#modal, .phone-layer).preview .preview-sheet .compact-player-slot {
 		top: max(var(--space-8), env(safe-area-inset-top));
 	}
-	#modal.preview .preview-sheet .compact-player {
+	:is(#modal, .phone-layer).preview .preview-sheet .compact-player {
 		padding-left: 0;
 		padding-right: var(--space-56);
 		gap: var(--space-8);
 	}
-	#modal.preview .preview-sheet .is-podcast .media-tab-header {
+	:is(#modal, .phone-layer).preview .preview-sheet .is-podcast .media-tab-header {
 		top: calc(max(var(--space-8), env(safe-area-inset-top)) + var(--space-44) + var(--space-24));
 	}
 	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
-	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+	:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet .sheet-scroll {
 		padding-bottom: calc(
 			var(--rail-row) +
 			var(--space-4) +
@@ -265,28 +265,33 @@
 			max(var(--space-8), env(safe-area-inset-bottom))
 		);
 	}
-	#modal.preview
+	:is(#modal, .phone-layer).preview
 		.preview-sheet.is-full
 		.sheet-scroll
 		> .gesture-content
 		> .preview-body:first-child {
 		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
 	}
-	#modal.preview #modal-title,
-	#modal.preview .preview-body :is(.preview-sender, .preview-meta) {
+	:is(#modal, .phone-layer).preview .preview-sheet.is-full.is-scrolled .sheet-head {
+		top: env(safe-area-inset-top);
+	}
+	:is(#modal, .phone-layer).preview :is(#modal-title, .phone-layer-title),
+	:is(#modal, .phone-layer).preview .preview-body :is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-52);
 	}
-	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
-	#modal.preview:has(.sheet-head [data-action="reader"])
+	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
+		:is(#modal-title, .phone-layer-title),
+	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
 		.preview-body
 		:is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-104);
 	}
-	#modal.preview:has(.preview-body :is(.preview-sender, .preview-meta)) #modal-title {
+	:is(#modal, .phone-layer).preview:has(.preview-body :is(.preview-sender, .preview-meta))
+		:is(#modal-title, .phone-layer-title) {
 		padding-right: 0;
 	}
 	/* Podcast controls sit beside the separate now-playing heading. */
-	#modal.preview:has(.is-podcast) .preview-body .preview-meta {
+	:is(#modal, .phone-layer).preview:has(.is-podcast) .preview-body .preview-meta {
 		padding-right: 0;
 	}
 	/* @design content-boundaries — six actions keep their full touch targets. */
@@ -332,11 +337,11 @@
 		top: 6px;
 		margin: 0 0 0 calc(-1 * var(--space-18));
 	}
-	#modal.preview[open] {
+	:is(#modal, .phone-layer).preview[open] {
 		gap: 0;
 	}
 	.preview-sheet,
-	#modal.panel .sheet {
+	:is(#modal, .phone-layer).panel .sheet {
 		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
 		padding-bottom: env(safe-area-inset-bottom);
 	}
@@ -351,7 +356,7 @@
 		background: var(--faint);
 		margin: var(--space-8) auto 0;
 	}
-	#modal.preview > .float-bar {
+	:is(#modal, .phone-layer).preview .float-bar {
 		position: fixed;
 		left: 0;
 		right: 0;
@@ -359,10 +364,10 @@
 		margin-inline: auto;
 		z-index: 3;
 	}
-	#modal.preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
+	:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
 		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
 	}
-	#modal.preview .push-ring {
+	:is(#modal, .phone-layer).preview .push-ring {
 		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 	}
 	.preview-body {
@@ -413,25 +418,25 @@
 		max-height: 70dvh;
 	}
 	/* The settings page fills the screen behind the capsule: its groups scroll to the bottom edge, not to a box above it. */
-	#modal.page.panel.wide .sheet {
+	:is(#modal, .phone-layer).page.panel.wide .sheet {
 		display: flex;
 		flex-direction: column;
 		padding-bottom: 0;
 	}
-	#modal.page .settings-layout {
+	:is(#modal, .phone-layer).page .settings-layout {
 		display: flex;
 		flex-direction: column;
 		flex: 1;
 		min-height: 0;
 	}
-	#modal.page .settings-main {
+	:is(#modal, .phone-layer).page .settings-main {
 		flex: 1;
 		max-height: none;
 		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 	}
 	/* Search */
 	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
-	:is(#modal, #search-background).search {
+	:is(:is(#modal, .phone-layer), #search-background).search {
 		position: fixed;
 		inset: 0;
 		width: 100%;
@@ -444,15 +449,15 @@
 		justify-content: flex-start;
 		gap: var(--space-10);
 	}
-	:is(#modal, #search-background).search .search-results {
+	:is(:is(#modal, .phone-layer), #search-background).search .search-results {
 		flex: 1;
 		min-height: 0;
 		max-height: none;
 	}
-	:is(#modal, #search-background).search .search-chips {
+	:is(:is(#modal, .phone-layer), #search-background).search .search-chips {
 		flex: none;
 	}
-	:is(#modal, #search-background).page.search {
+	:is(:is(#modal, .phone-layer), #search-background).page.search {
 		height: 100dvh;
 		max-height: none;
 		inset: 0;
@@ -462,9 +467,9 @@
 		gap: var(--space-16);
 	}
 	/* Keyboard, pages and photos */
-	#modal.panel,
-	#modal.panel.narrow,
-	#modal.panel.wide {
+	:is(#modal, .phone-layer).panel,
+	:is(#modal, .phone-layer).panel.narrow,
+	:is(#modal, .phone-layer).panel.wide {
 		position: fixed;
 		inset: auto 0 0;
 		margin: 0;
@@ -475,12 +480,12 @@
 		padding: var(--space-22) var(--space-20) var(--space-26);
 	}
 	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
-	#modal.panel,
-	#modal.panel.narrow,
-	#modal.panel.wide {
+	:is(#modal, .phone-layer).panel,
+	:is(#modal, .phone-layer).panel.narrow,
+	:is(#modal, .phone-layer).panel.wide {
 		bottom: var(--kb, 0px);
 	}
-	#modal.panel .sheet {
+	:is(#modal, .phone-layer).panel .sheet {
 		max-height: calc(100dvh - var(--kb, 0px));
 	}
 	body.keyboard-open #dock,
@@ -489,10 +494,10 @@
 		visibility: hidden;
 	}
 	/* All three destinations are pages. The keyboard temporarily clears the capsule. */
-	#modal.page,
-	#modal.page.panel,
-	#modal.page.panel.wide,
-	#modal.page.panel.narrow {
+	:is(#modal, .phone-layer).page,
+	:is(#modal, .phone-layer).page.panel,
+	:is(#modal, .phone-layer).page.panel.wide,
+	:is(#modal, .phone-layer).page.panel.narrow {
 		position: fixed;
 		inset: 0 0 var(--kb, 0px);
 		z-index: 40;
@@ -505,10 +510,10 @@
 		padding: 0;
 		background: var(--canvas);
 	}
-	#modal.page .grabber {
+	:is(#modal, .phone-layer).page .grabber {
 		display: none;
 	}
-	#modal.page.panel .sheet {
+	:is(#modal, .phone-layer).page.panel .sheet {
 		height: 100%;
 		max-height: none;
 		border-radius: 0;
@@ -518,10 +523,10 @@
 		padding: env(safe-area-inset-top) 0 calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 	}
 	/* The local AI preview keeps context and composer in one viewport. */
-	#modal.page.panel.narrow:has(.ai-conversation) {
+	:is(#modal, .phone-layer).page.panel.narrow:has(.ai-conversation) {
 		width: 100%;
 	}
-	#modal.page.panel .ai-conversation {
+	:is(#modal, .phone-layer).page.panel .ai-conversation {
 		padding: env(safe-area-inset-top) var(--space-12)
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
 		background: var(--card);
@@ -529,14 +534,14 @@
 	.lightbox-stage > .icon-button {
 		display: none;
 	}
-	#modal.page .settings-head {
+	:is(#modal, .phone-layer).page .settings-head {
 		padding: 0 var(--margin-sm);
 	}
 	/* Settings lies over the top row and the capsule: their glass stays put while it opens and closes. */
-	#modal.page.panel.wide:has(.settings-layout) {
+	:is(#modal, .phone-layer).page.panel.wide:has(.settings-layout) {
 		z-index: 47;
 	}
-	body:has(#modal[open].page .settings-layout) #dock * {
+	body:has(:is(#modal, .phone-layer)[open].page .settings-layout) #dock * {
 		pointer-events: none;
 	}
 	/* Every page title in the top row uses one size, line height and letter spacing. */
@@ -551,21 +556,21 @@
 		line-height: 1.2;
 		letter-spacing: -0.04em;
 	}
-	#modal.page.panel .ai-conversation > .sheet-close {
+	:is(#modal, .phone-layer).page.panel .ai-conversation > .sheet-close {
 		display: none;
 	}
 	/* Title and round controls line up with the home and search top rows (16px margin). */
-	#modal.page.panel .ai-conversation-head {
+	:is(#modal, .phone-layer).page.panel .ai-conversation-head {
 		padding: 0 var(--space-4);
 	}
 	/* The results page has no top row: its search bar keeps a small gap under the safe area. */
-	:is(#modal, #search-background).page.search:not(:has(.search-browse)) {
+	:is(:is(#modal, .phone-layer), #search-background).page.search:not(:has(.search-browse)) {
 		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
 	}
-	body.keyboard-open #modal.page.panel .ai-conversation {
+	body.keyboard-open :is(#modal, .phone-layer).page.panel .ai-conversation {
 		padding-bottom: var(--space-12);
 	}
-	body.keyboard-open :is(#modal, #search-background).page.search {
+	body.keyboard-open :is(:is(#modal, .phone-layer), #search-background).page.search {
 		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
 	}
 	.search-card-grid {
@@ -601,7 +606,7 @@
 }
 
 @media (max-width: 650px) {
-	#modal.search #search-selection-bar {
+	:is(#modal, .phone-layer).search #search-selection-bar {
 		position: fixed;
 		bottom: var(--rail-bottom);
 		left: 50%;
@@ -609,5 +614,72 @@
 		margin: 0;
 		width: max-content;
 		max-width: calc(100vw - 2 * var(--rail-edge));
+	}
+}
+
+@media (max-width: 650px) {
+	[data-vaul-drawer-wrapper] {
+		/* Keep Sill's surface radius while following Vaul's open/drag/release progress. */
+		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness, 0)) !important;
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer]::backdrop {
+		background: transparent;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer-overlay {
+		position: absolute;
+		inset: 0;
+		background: var(--dim);
+	}
+	/* Content and every bottom control share Vaul's moving surface. */
+	:is(#modal, .phone-layer).preview[data-phone-drawer] {
+		background: linear-gradient(to top, var(--shadow) 12px, transparent 12px);
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer {
+		position: absolute;
+		inset: auto 0 12px;
+		display: flex;
+		flex-direction: column;
+		height: auto;
+		min-height: 70dvh;
+		max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - 12px);
+		background: var(--card);
+		border-radius: var(--sheet-radius);
+		outline: none;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer::after {
+		/* Keep Vaul’s scroll boundary without painting over the black bottom inset. */
+		background: transparent;
+		pointer-events: none;
+	}
+	.phone-drawer .sheet-handle {
+		display: none;
+	}
+	.phone-drawer [data-vaul-handle] {
+		position: absolute;
+		top: 8px;
+		left: calc(50% - 16px);
+		z-index: 5;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer .preview-sheet {
+		position: relative;
+		flex: 1 1 auto;
+		min-height: 0;
+		height: auto;
+		max-height: inherit;
+		border-radius: inherit;
+		transform: none;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer .sheet-scroll {
+		flex: 1 1 auto;
+		height: auto;
+		max-height: calc(
+			100dvh -
+			max(24px, env(safe-area-inset-top)) -
+			12px -
+			env(safe-area-inset-bottom)
+		);
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
+		position: absolute;
 	}
 }

@@ -118,12 +118,13 @@ test("notice fades before hiding and disables clicks from the first frame", asyn
 	}
 });
 
-test("Web styles leave all animation playback to Motion", () => {
+test("Web styles use Motion except the documented outline CSS transitions", () => {
 	const directory = path.resolve(import.meta.dirname, "../../apps/web/styles");
 	for (const name of fs.readdirSync(directory).filter((name) => name.endsWith(".css"))) {
 		const css = fs
 			.readFileSync(path.join(directory, name), "utf8")
 			.replace(/\/\*[\s\S]*?\*\//g, "");
+		if (name === "reader-layout.css") continue;
 		assert.doesNotMatch(
 			css,
 			/@(?:-webkit-)?keyframes\b|(?:^|[;{])\s*(?:animation|transition)(?:-[\w-]+)?\s*:/m,

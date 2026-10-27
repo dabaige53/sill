@@ -14,7 +14,8 @@ export function placeNavigationLens(nav: HTMLElement, tab: HTMLElement) {
 	let state = lenses.get(nav);
 	if (!state) {
 		const edges = stretchEdges((left, right) => {
-			lens.style.clipPath = `inset(${tab.offsetTop}px ${Math.max(0, nav.clientWidth - right)}px ${tab.offsetTop}px ${Math.max(0, left)}px round ${nav.clientHeight}px)`;
+			const current = nav.querySelector<HTMLElement>('.nav-tab[aria-current="page"]') || tab;
+			lens.style.clipPath = `inset(${current.offsetTop}px ${Math.max(0, nav.clientWidth - right)}px ${current.offsetTop}px ${Math.max(0, left)}px round ${nav.clientHeight}px)`;
 		}, tokens.motion.segmentedControl);
 		state = { edges, key: "", width: nav.clientWidth };
 		lenses.set(nav, state);

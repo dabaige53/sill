@@ -29,9 +29,8 @@ Web 使用 React + TypeScript + Vite，决策见 [ADR 0047](../../docs/adr/0047-
 - `apps/web/index.html` 是 Vite 页面入口，`vite.config.ts` 读取原有样式清单及文案。生产用 singlefile 插件输出单文件 HTML，保留云端 MCP 的宿主脚本注入顺序。
 - Node 的 Web 测试通过 tsx 加载 TSX。JSDOM 的浏览器 API 补充集中在 `tests/web/react-browser-fixture.ts`，不改变生产代码。
 
-动效由 Motion 统一控制：`interactions/motion.ts` 管理按压、进出场和键盘立即响应；`interactions/motion-playback.ts` 管理取消、播放完成与手势速度；`interactions/motion-sheet.ts` 管理手机抽屉的固定正文与连续外框。`interactions/reading-feedback.ts` 将手机阅读中的背景主页更新合并到关闭后。CSS 只描述静止状态。控制器测试用 `tests/web/motion-fixture.ts`，浏览器回归运行真实 Motion。
+动效由 Motion 统一控制：`interactions/motion.ts` 管理按压、进出场和键盘立即响应；`interactions/motion-playback.ts` 管理取消、播放完成与手势速度；`interactions/phone-drawer.tsx` 用 Vaul Root / NestedRoot、Portal 和 Handle 管理手机产品详情的嵌套、拖动、滚动锁定和退出；`interactions/motion-sheet.ts` 保留独立示例的旧尺寸动画。`interactions/reading-feedback.ts` 将手机阅读中的背景主页更新合并到关闭后。CSS 只描述静止状态。控制器测试用 `tests/web/motion-fixture.ts`，浏览器回归运行真实 Motion。
 
-动画画廊属于 `design-system/motion/workbench/`，不在产品目录内；示例只读复用产品 UI，使用隔离数据，不接入产品入口。见[动画库指南](../../docs/guides/motion-library.md)。
 
 ## 添加到 iPhone／iPad 主屏幕
 
@@ -44,3 +43,5 @@ Worker 直接提供 /manifest.webmanifest 和现有品牌 PNG。manifest 的 id�
 发布后设备验收：从主屏幕冷启动，检查没有 Safari 底部地址栏；检查登录、重新打开、卡片详情、搜索键盘开关、横竖屏及底部安全区。自动构建与浏览器模拟不等于真实 iPhone 验收。
 
 依据：[WebKit Safari 26](https://webkit.org/blog/17333/webkit-features-in-safari-26-0/#every-site-can-be-a-web-app-on-ios-and-ipados)、[Apple Web App 配置](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)。
+
+播客介绍样式位于 `styles/detail-podcast.css`，通用详情样式位于 `styles/detail-content.css`；两者按 `styles/styles.json` 顺序加载。

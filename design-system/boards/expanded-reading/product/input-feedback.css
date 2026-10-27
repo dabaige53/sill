@@ -10,7 +10,7 @@
 	}
 }
 /* The local AI window can return to the search that supplied its context. */
-#modal.page .ai-conversation .sheet-close {
+:is(#modal, .phone-layer).page .ai-conversation .sheet-close {
 	display: block;
 }
 

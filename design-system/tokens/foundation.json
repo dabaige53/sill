@@ -78,9 +78,16 @@
 		"repo": "dabaige53/sill",
 		"ref": "main@a27ae2a",
 		"paths": {
-			"tokens": ["apps/web/styles/tokens.css"],
-			"assets": ["apps/web/atoms/icons.ts"],
-			"docs": ["design-system/README.md", "docs/design/system.md"]
+			"tokens": [
+				"apps/web/styles/tokens.css"
+			],
+			"assets": [
+				"apps/web/atoms/icons.ts"
+			],
+			"docs": [
+				"design-system/README.md",
+				"docs/design/system.md"
+			]
 		},
 		"components": {
 			"*": "apps/web/atoms/primitives.ts, apps/web/cards/templates.ts, apps/web/styles/*.css"
@@ -776,6 +783,10 @@
 			"maxShieldMs": 240,
 			"pushHoldMs": 320
 		},
+		"phoneDrawer": {
+			"duration": 500,
+			"easing": "cubic-bezier(0.32,0.72,0,1)"
+		},
 		"scrollSpine": {
 			"lead": {
 				"visualDuration": 0.24,
@@ -791,6 +802,15 @@
 			"endSlack": 4,
 			"jumpOffset": 16
 		},
+		"sidebarHighlight": {
+			"travel": { "visualDuration": 0.35, "bounce": 0.15 },
+			"dot": 6,
+			"shift": 14,
+			"step": 300,
+			"wipeIn": 450,
+			"wipeOut": 200,
+			"ease": "cubic-bezier(0.23, 1, 0.32, 1)"
+		},
 		"segmentedControl": {
 			"lead": {
 				"visualDuration": 0.18,
@@ -800,6 +820,29 @@
 				"visualDuration": 0.36,
 				"bounce": 0.15
 			}
+		},
+		"webInteraction": {
+			"menuOpen": 180,
+			"menuClose": 100,
+			"menuExitScale": 0.98,
+			"toggleTravel": 20,
+			"toggleWidth": 27,
+			"toggleStretch": 7,
+			"toggleSquash": 5,
+			"toggleSlop": 3,
+			"toggleSpring": {
+				"visualDuration": 0.3,
+				"bounce": 0.25
+			},
+			"toggleLean": {
+				"duration": 0.2,
+				"bounce": 0
+			},
+			"deckTilt": 18,
+			"deckStep": 12,
+			"deckScale": 0.95,
+			"deckExitTilt": 22,
+			"deckDrop": 40
 		}
 	}
 }

@@ -4,7 +4,7 @@ import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
 import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 
-const bundle = buildSync({
+export const bundle = buildSync({
 	stdin: {
 		contents:
 			"export {ChromeAutoHide, toolbarTips} from './apps/web/interactions/chrome.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts';",

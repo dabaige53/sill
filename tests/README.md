@@ -107,3 +107,5 @@ Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fix
 `web/gesture-rebound.test.ts`检查Web桌面普通详情不拦截滚轮、不叠加自定义位移或延时回位；手机继续检查600／48／1参数、速度上限和停住后速度归零。共享100ms采样器沿用既有算法，首页刷新与甩动释放由各自检查覆盖；非浏览器检查不证明系统原生回弹的实际观感。
 
 Web桌面普通滚动保留原生反馈；`web/gesture-refresh.test.ts`覆盖明确下拉刷新时接手wheel并单次提交。`web/gesture-refresh-continuity.test.ts`新增回归：刷新卡片必须跟手位移，is-pulling保留到内容回位结束后再释放原生边缘反馈。手机与桌面共用加载和完成反馈检查，组合观感由用户确认。
+
+`web/chrome-fixture.ts` 提供顶栏与工具栏测试的合成页面及构建包；行为用例保留在 `web/chrome.test.ts`。

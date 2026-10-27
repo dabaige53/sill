@@ -35,7 +35,7 @@
 - [插件使用与排查](guides/plugin-runbook.md)
 - [Mac 性能追踪与自动化测试](guides/macos-performance.md)
 - [桌面交互架构与验证](guides/desktop-interaction.md)
-- [动画库使用与维护](guides/motion-library.md)
+- [动画库历史说明](archive/motion-library.md)
 - [滚动、完成与回弹优化方案](guides/scroll-motion-optimization.md)
 - [V1 三端接口与交接包](guides/handoff.md)
 - [Web 与 PWA 界面优化交接](guides/web-pwa-ui-handoff.md)
@@ -320,5 +320,12 @@
 - [下拉刷新的连续阻力与释放](adr/0078-pull-refresh-resistance-and-release.md)
 - [正文边缘回位的速度与参数](adr/0079-content-edge-rebound.md)
 - [补齐搜索与第三、第四批动画交接](adr/0080-animation-reference-completion.md)
+- [手机详情抽屉使用 Vaul](adr/0081-phone-drawer-vaul.md)
+
+- [2026-10-27 抽屉滚轮与背景恢复研究](records/2026-10-27-drawer-wheel-research/README.md)
+
 
 - [ADR 0081：右侧章节进度与底部胶囊切换](adr/0081-reading-spine-and-segmented-navigation.md)
+
+- [ADR 0082：Web/PWA 采用 ui-lab 交互效果](adr/0082-web-ui-lab-motion.md)
+- [删除动画工作台记录](records/2026-10-27-motion-workbench-removal/README.md)

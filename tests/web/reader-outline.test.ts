@@ -62,10 +62,8 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 		Object.defineProperty(nav, "clientHeight", { value: 400 });
 		for (const link of links) Object.defineProperty(link, "offsetHeight", { value: 44 });
 		measure();
-		assert.ok(
-			parseFloat(links[1].style.height) > parseFloat(links[0].style.height),
-			"the longer section receives the taller band",
-		);
+		assert.ok(nav.querySelector(".reader-outline-dot"));
+		assert.equal(links[0].style.height, "", "outline rows keep natural height");
 		for (const detail of [1, 0]) {
 			region.scrollTop = 0;
 			api.flush(() => {
@@ -79,19 +77,10 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 		}
 		region.scrollTop = 1000;
 		measure();
-		assert.ok(
-			[...nav.querySelectorAll(".reader-spine-fill")].every(
-				(fill: any) => fill.style.transform === "scaleY(1)",
-			),
-			"the end fills every section",
-		);
+		assert.equal(links[1].getAttribute("aria-current"), "location");
 		region.scrollTop = 0;
 		measure();
-		assert.equal(
-			links[1].querySelector(".reader-spine-fill").style.transform,
-			"scaleY(0)",
-			"returning to the start clears unread sections",
-		);
+		assert.equal(links[0].getAttribute("aria-current"), "location");
 		assert.equal(w.document.querySelector(".reader-outline-toggle"), null);
 		assert.equal(w.document.querySelector(".reader-outline").hidden, false);
 	} finally {

@@ -316,10 +316,22 @@ const consentHtml =
 	);
 const authDir = resolve(root, "../boards/auth");
 for (const [name, source] of Object.entries({ login: loginHtml, authorization: consentHtml })) {
-	const html = source.replace(
+	let html = source.replace(
 		/data:image\/png;base64,[A-Za-z0-9+/=]+/g,
 		"../../../assets/sill-icon.png",
 	);
+	if (name === "login") {
+		const styles = html.match(/<style>([\s\S]*?)<\/style>/);
+		if (!styles) throw new Error("Login board styles are missing");
+		const stylesheet = resolve(authDir, "login.css");
+		if (check) {
+			if (readFileSync(stylesheet, "utf8") !== styles[1]) throw new Error("Login board styles are stale");
+		} else {
+			mkdirSync(authDir, { recursive: true });
+			writeFileSync(stylesheet, styles[1]);
+		}
+		html = html.replace(styles[0], '<link rel="stylesheet" href="login.css">');
+	}
 	const file = resolve(authDir, name + ".html");
 	if (check) {
 		if (readFileSync(file, "utf8") !== html) throw new Error(`${name} board is stale`);

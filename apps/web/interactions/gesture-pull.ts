@@ -12,7 +12,7 @@ export const gesturePullMethods = {
 			reader = dialog.classList.contains("reader"),
 			phone = MotionEngine.phoneSheet(dialog);
 		const surface = reader ? dialog : dialog.querySelector(".preview-sheet");
-		if (!surface) return;
+		if (!surface || dialog.hasAttribute("data-phone-drawer")) return;
 		if (!reader) {
 			this.bindPreviewResistance(surface);
 			if (phone) {
@@ -27,7 +27,9 @@ export const gesturePullMethods = {
 		const scroll = reader
 			? dialog.querySelector("#reader-scroll")
 			: surface.querySelector(".sheet-scroll") || surface;
-		const bar = reader ? null : dialog.querySelector(":scope > .float-bar"),
+		const bar = reader
+				? null
+				: dialog.querySelector(":scope > .phone-drawer > .float-bar, :scope > .float-bar"),
 			token = app.modalToken,
 			wheel = this.intent();
 		let threshold = this.value("dismiss-distance", 110);

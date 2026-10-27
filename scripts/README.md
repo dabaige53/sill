@@ -5,7 +5,6 @@
 | 用途 | 命令或脚本 | 主要输入 → 输出 |
 | --- | --- | --- |
 | 设计材料 | `scripts/design-init.sh` / `npm run design` | 变量、产品代码、画板 → 组件示例、画布索引、`dist/design/` 发布准备；命令见 [设计约束](../DESIGN.md#工具) |
-| 动画库 | `node design-system/scripts/motion-library.ts`；已纳入设计 `build` | 登记表、设计专用 shadcn 工作台与真实产品局部 UI 示例 → `dist/design/motion/`；`npm run boards` 提供 `/motion/`，见[使用与维护](../docs/guides/motion-library.md) |
 | 文件管理检查 | `npm run files:check` | 根目录、导航、Git 文件清单 → 终端结果；只读 |
 | React 开发服务 | `npm run dev` / `scripts/dev.ts` | Vite + React Fast Refresh，5173；本地 API 代理到 4318 |
 | 本地页面 | `npm run build` | Vite、`apps/web/`、共享文案与样式清单 → `dist/web/index.html` |
@@ -28,3 +27,5 @@
 `build-cloud-worker.ts` 由云端构建调用。脚本使用 Node 24+ 直接运行 TypeScript，不再依赖 Python。`build-plugin.ts` 会替换候选产物目录，不要在产物目录保存唯一副本。候选构建保留既有 App 身份，但不能证明该云端对象当前存在；发布前仍需核对平台。
 
 Codex 的提交前文件大小检查位于 [.codex](../.codex/README.md)，同时检查暂存版本与本地文件，不通过 npm 安装 Git hook。
+
+设计发布索引的画布部分拆为 `design-system/published-canvas.json` 与 `design-system/published-canvas-reading.json`，后者保留放大阅读画板的文件记录。`published.json` 引用两者；`stage.ts` 兼容旧单文件引用，记录发布时按相同职责拆分。本地拆分不代表重新发布线上设计。

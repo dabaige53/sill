@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fixture } from "./chrome-fixture.ts";
+import { JSDOM } from "jsdom";
+import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
+import { fixture, bundle } from "./chrome-fixture.ts";
 
 test("all bars coming back on their own use the shared reveal; with a closing card they share its spring", () => {
 	const f = fixture();
