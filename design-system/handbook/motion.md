@@ -48,8 +48,8 @@ Web桌面（宽度大于650px）html／body采用overscroll-behavior-y: auto，�
 
 ## 首页下拉刷新
 
-- Web桌面触控板／滚轮使用被动监听，只观察拉动意图、更新圆环并在释放后提交刷新；不preventDefault、不平移main、不启动自定义内容回位。圆环进度沿用threshold 64与参考阻力换算，不代表浏览器原生内容实际移动64px；实际边缘位移与回位由浏览器处理。宽度跨过650px时重新绑定监听归属。
-- Web鼠标按住空白拖动和PWA触摸／滚轮继续使用下列自定义位移、释放与反馈。圆环原UI、实际刷新请求与加载／完成展示规则共用。
+- Web桌面普通滚动保留根auto的原生边缘反馈；明确进入下拉刷新时，wheel接手该序列并恢复main随动。body.is-pulling从拉动持续到卡片回位结束，期间根html／body暂为none，避免浏览器与Motion叠加位移。松手后按原刷新规则提交，卡片回位完成后恢复普通滚动的原生反馈。
+- Web触控板刷新、鼠标按住空白拖动和PWA触摸／滚轮共用下列自定义位移、释放与反馈。圆环原UI、实际刷新请求与加载／完成展示规则共用；普通详情原生反馈保持独立。
 - Web/PWA使用 `motion.pullRefresh`：内容位移为 `d × rubberDimension × rubber / (rubberDimension + rubber × d)`，rubberDimension 480、rubber 0.7。内容和进度共用可见位移，threshold 64px才就绪，不再额外乘0.75，也不在80px处切换阻力。鼠标dragSlop为4px，启动后重设起点，触摸保持真实松手提交。
 - 回位使用该参数的settle：visualDuration 0.35秒、bounce 0；接续100ms窗口的释放速度。回位中再次拉动，从当前绘制位移反算输入基准。圆环保留原样式和标题区域锚点；无标题区域时沿用原回退位置，不迁移到卡片上方。
 - wheel首个主动边缘事件只建立起点，后续增量完整累计后走同一阻力。wheel.decaySamples为3、decayRatio为0.5：连续3次衰减且幅度不大于本序列峰值50%时估计释放；否则以wheel.releaseIdleMs 80ms静默判断。单次减速不提交，重新发力重置衰减计数。该规则估计输入阶段，不等同于系统松手事件；惯性抵达顶部不能启动新下拉。

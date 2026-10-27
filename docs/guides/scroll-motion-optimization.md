@@ -134,7 +134,7 @@ pointer / touch / wheel
 
 ### 4.1 普通边缘回弹：桌面原生反馈与手机参数
 
-Web桌面大于650px时根html／body使用auto；首页wheel改为被动观察刷新意图，只更新圆环和释放后的刷新请求，不阻止滚动或平移main。鼠标拖动与PWA继续原位移方案。普通详情无push-ring时，sheet-scroll／reader-scroll使用overflow-y: scroll与contain，不叠加自定义边缘位移并阻止背景滚动。读完上推继续自定义处理，PWA根部none及抽屉不变。原生回弹由浏览器和系统决定，不承诺固定刚度、阻尼或时长。以下物理参数只用于手机普通正文回位。
+Web桌面大于650px时，普通滚动根html／body使用auto；进入下拉刷新后恢复wheel接手、main随动和原回位方案。body.is-pulling覆盖拉动和回位，期间根部暂为none，避免原生与自定义位移叠加，结束后恢复auto。此前只观察圆环而停用main随动的方案已因用户反馈撤回。普通详情无push-ring时，sheet-scroll／reader-scroll仍使用scroll与contain；读完上推、PWA根部none和抽屉不变。原生效果由浏览器与系统决定，以下物理参数只用于手机普通正文回位。
 
 ```ts
 const edgeRebound = {

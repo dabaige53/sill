@@ -81,6 +81,11 @@ body {
 	body {
 		overscroll-behavior-y: auto;
 	}
+	/* Refresh tracking and its return own one displacement; native edges resume afterward. */
+	html:has(body.is-pulling),
+	body.is-pulling {
+		overscroll-behavior-y: none;
+	}
 }
 button,
 input,

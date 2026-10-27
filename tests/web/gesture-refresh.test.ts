@@ -62,29 +62,21 @@ test("desk pull coalesces moves into one frame and measures only at gesture star
 	}
 });
 
-test("desktop wheel remains native while phone refresh claims only a vertical top-edge gesture", () => {
-	for (const phone of [false, true]) {
-		const f = fixture({ kind: "desk", phone });
-		try {
-			const wheel = (deltaY: number, deltaX = 0) => {
-				const event = new f.w.WheelEvent("wheel", { deltaY, deltaX, cancelable: true });
-				f.w.dispatchEvent(event);
-				return event.defaultPrevented;
-			};
-			assert.equal(wheel(30), false);
-			assert.equal(wheel(-30, 50), false);
-			assert.equal(wheel(-30), phone);
-			f.flush(f.frames);
-			if (!phone) {
-				assert.equal(f.document.querySelector("main").style.translate, "");
-				assert.equal(f.document.body.classList.contains("is-pulling"), false);
-				assert.equal(f.document.querySelector("#pull-ring").dataset.state, "pulling");
-			}
-			f.dialog.open = true;
-			assert.equal(wheel(-30), false);
-		} finally {
-			f.dom.window.close();
-		}
+test("wheel pull claims only a vertical top-edge gesture", () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		const wheel = (deltaY: number, deltaX = 0) => {
+			const event = new f.w.WheelEvent("wheel", { deltaY, deltaX, cancelable: true });
+			f.w.dispatchEvent(event);
+			return event.defaultPrevented;
+		};
+		assert.equal(wheel(30), false);
+		assert.equal(wheel(-30, 50), false);
+		assert.equal(wheel(-30), true);
+		f.dialog.open = true;
+		assert.equal(wheel(-30), false);
+	} finally {
+		f.dom.window.close();
 	}
 });
 
@@ -333,12 +325,6 @@ test("wheel threshold arms refresh, release commits once, and Sill stays visible
 			const ring = f.document.querySelector("#pull-ring");
 			assert.equal(ring.hasAttribute("data-ready"), true);
 			assert.equal(ring.dataset.state, "pulling");
-			if (!phone)
-				assert.equal(
-					f.document.querySelector("main").style.translate,
-					"",
-					"native wheel progress never translates the feed",
-				);
 			assert.equal(f.app.refreshes, 0, "filling the ring must not refresh while pulling");
 			wheel(-60);
 			assert.equal(f.app.refreshes, 0, "continued active input keeps the action armed");
@@ -379,34 +365,31 @@ test("one large wheel tick or a short pull returns without refreshing", () => {
 	}
 });
 
-test("armed wheel refresh cancels interruptions but desktop native input can remain noncancelable", async () => {
-	for (const phone of [false, true]) {
-		for (const interruption of ["none", "reverse", "dialog", "selection", "blur", "browser"]) {
-			const f = fixture({ kind: "desk", phone });
-			try {
-				const wheel = (deltaY: number) =>
-					f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY, cancelable: true }));
-				for (const delta of [-40, -48, -60]) wheel(delta);
-				f.flush(f.frames);
-				assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
-				assert.equal(f.app.refreshes, 0);
-				if (interruption === "reverse") wheel(20);
-				if (interruption === "dialog") f.dialog.open = true;
-				if (interruption === "selection") f.app.selected.add("article");
-				if (interruption === "blur") f.w.dispatchEvent(new f.w.Event("blur"));
-				if (interruption === "browser")
-					f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY: -20, cancelable: false }));
-				f.flush(undefined, 79);
-				assert.equal(f.app.refreshes, 0, "no commit while release is still unknown");
-				f.flush(undefined, 80);
-				const expected = interruption === "none" || (!phone && interruption === "browser") ? 1 : 0;
-				assert.equal(f.app.refreshes, expected, interruption);
-				f.flush(undefined, 80);
-				assert.equal(f.app.refreshes, expected, "commit is single shot");
-				for (let i = 0; i < 8; i++) await Promise.resolve();
-			} finally {
-				f.dom.window.close();
-			}
+test("armed wheel refresh uses the short release fallback and cancels on reversal or interruption", async () => {
+	for (const interruption of ["none", "reverse", "dialog", "selection", "blur", "browser"]) {
+		const f = fixture({ kind: "desk" });
+		try {
+			const wheel = (deltaY: number) =>
+				f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY, cancelable: true }));
+			for (const delta of [-40, -48, -60]) wheel(delta);
+			f.flush(f.frames);
+			assert.equal(f.document.querySelector("#pull-ring").hasAttribute("data-ready"), true);
+			assert.equal(f.app.refreshes, 0);
+			if (interruption === "reverse") wheel(20);
+			if (interruption === "dialog") f.dialog.open = true;
+			if (interruption === "selection") f.app.selected.add("article");
+			if (interruption === "blur") f.w.dispatchEvent(new f.w.Event("blur"));
+			if (interruption === "browser")
+				f.w.dispatchEvent(new f.w.WheelEvent("wheel", { deltaY: -20, cancelable: false }));
+			f.flush(undefined, 79);
+			assert.equal(f.app.refreshes, 0, "no commit while release is still unknown");
+			f.flush(undefined, 80);
+			assert.equal(f.app.refreshes, interruption === "none" ? 1 : 0, interruption);
+			f.flush(undefined, 80);
+			assert.equal(f.app.refreshes, interruption === "none" ? 1 : 0, "commit is single shot");
+			for (let i = 0; i < 8; i++) await Promise.resolve();
+		} finally {
+			f.dom.window.close();
 		}
 	}
 });

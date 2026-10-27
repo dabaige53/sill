@@ -2,6 +2,37 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixture } from "./gesture-fixture.ts";
 
+test("desktop wheel refresh keeps cards following and owns the edge until their return finishes", async () => {
+	const f = fixture({ kind: "desk" });
+	try {
+		f.w.__motionValueAnimations = [];
+		const main = f.document.querySelector("main");
+		const wheel = (deltaY: number) => {
+			const event = new f.w.WheelEvent("wheel", { deltaY, cancelable: true });
+			f.w.dispatchEvent(event);
+			return event;
+		};
+		for (const delta of [-40, -48, -60]) assert.equal(wheel(delta).defaultPrevented, true);
+		f.flush(f.frames);
+		assert.ok(Number.parseFloat(main.style.translate.split(" ")[1]) >= 64);
+		assert.equal(f.document.body.classList.contains("is-pulling"), true);
+		for (const delta of [-30, -20, -10]) wheel(delta);
+		assert.equal(f.app.refreshes, 1);
+		const returning = f.w.__motionValueAnimations.find(
+			(animation) => animation.destination === 0 && animation.target.get() > 0,
+		);
+		assert.ok(returning, "the cards return through the approved refresh motion");
+		assert.equal(f.document.body.classList.contains("is-pulling"), true);
+		for (const control of f.w.__motionValueAnimations)
+			if (control.destination === 0) control.finish();
+		for (let i = 0; i < 8; i++) await Promise.resolve();
+		assert.equal(main.style.translate, "");
+		assert.equal(f.document.body.classList.contains("is-pulling"), false);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("regrabbing preserves the drawn offset while the indicator retains its original heading anchor", () => {
 	const f = fixture({ kind: "desk" });
 	try {

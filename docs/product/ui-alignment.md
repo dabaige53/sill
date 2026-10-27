@@ -259,6 +259,6 @@ Mac：仍沿用系统ended／momentum及原48阈值；缺失：新连续阻力�
 
 ## 2026-10-27 · 正文边缘回位
 
-Web桌面按用户继续配置的要求开放根html／body的auto；首页wheel只被动观察刷新进度，不preventDefault或平移main。圆环、请求和加载／完成反馈保留。无读完上推圆环的普通详情sheet-scroll／reader-scroll使用overflow-y: scroll与contain，不再绑定边缘位移；保留UI、工具栏、读完完成和抽屉布局。PWA根部仍为none，普通正文保留600／48／1与100ms速度窗口，Vaul迁移未扩入本次。用户已确认当前Web主页与普通详情的原生边缘手感；PWA真机、安装模式和Mac不因此通过。
+Web桌面普通滚动根部auto，用户已确认原生边缘手感；随后指出刷新卡片随动回归，现恢复明确下拉刷新时的wheel接手与main跟随，拉动到内容回位结束期间用body.is-pulling将根部暂设none，结束后恢复auto。圆环、请求和加载／完成反馈保留，修复后的组合手感待复核。普通详情的sheet-scroll／reader-scroll在无push-ring时仍为scroll与contain，不绑定普通边缘位移；读完完成与抽屉布局保持。PWA根部none、600／48／1与100ms速度窗口不变；PWA真机、安装模式和Mac不因此通过。
 
 Mac缺失：新回位参数与速度窗口未同步，保留原生手势阶段。原生iOS无对应界面。Web/PWA真实手感待用户确认；Mac窗口未验证，设计未发布到线上。参考与范围见[ADR 0075](../adr/0075-content-edge-rebound.md)。
