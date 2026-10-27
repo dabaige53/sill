@@ -183,12 +183,6 @@
 /* Pressing a card gives a little, like the prototype: it is something you can pick up. */
 
 /* A menu's hit targets keep their size even while the touched parent settles. */
-@media (hover: hover) and (pointer: fine) {
-	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
-		--motion-managed-transform: none;
-		transform: none;
-	}
-}
 .feed-card.tools-open,
 .feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
 	--motion-managed-transform: none;

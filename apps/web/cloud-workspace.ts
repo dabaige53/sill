@@ -3,9 +3,10 @@ import { paintCloudDraft, stashCloudDraft } from "./cloud-compose.ts";
 import { app, Cloud, callbackFailed, messages, sync } from "./cloud-entry.ts";
 import { copy } from "./copy.ts";
 import { cloudCard } from "./data/cloud-card.ts";
+import { sameData } from "./data/same-data.ts";
 import { Store } from "./data/store.ts";
 import { PanelViews as Panels } from "./interactions/panels-components.tsx";
-import { clone } from "./services/cloud-sync.ts";
+import { clone, itemDefaults } from "./services/cloud-sync.ts";
 import { systemReminders } from "./services/system-reminders.ts";
 import { RecoveryNotice } from "./views/cloud-views.tsx";
 import { renderView } from "./views/react-renderer.ts";
@@ -197,7 +198,24 @@ export function paintRecords() {
 		}
 	} else app.withFeedAnchor(() => {}, true);
 }
+/** What the page draws: absent item fields read as their defaults, field order is ignored. */
+function drawnState(cards: any[], items: any, preferences: any) {
+	return {
+		cards,
+		items: Object.fromEntries(
+			cards.map((card: any) => [card.id, { ...itemDefaults(card), ...items?.[card.id] }]),
+		),
+		preferences: { ...Store.fresh().preferences, ...preferences },
+	};
+}
 export function adoptWorkspace(value: any) {
+	// A save response that confirms the page's optimistic state keeps the mounted cards and detail.
+	const changed =
+		Cloud.booting ||
+		!sameData(
+			drawnState([...Cloud.records.values()], Store.state.items, Store.state.preferences),
+			drawnState(value.state.cards, value.state.items, value.state.preferences),
+		);
 	const editingItems = new Map<string, any>(
 		(app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : []).map((id: string) => [
 			id,
@@ -218,10 +236,11 @@ export function adoptWorkspace(value: any) {
 		Store.state.items[id] = item;
 	}
 	app.applyPreferences();
-	paintRecords();
+	if (changed) paintRecords();
 	sync.rebase(workspaceState(), value.revision, Cloud.user);
 	app.grid.dataset.revision = value.revision;
 	syncStatus();
+	if (!changed) return;
 	if (app.modalKind === "settings") app.repaintSettings();
 	if (app.modalKind === "preview" && !app.sheetLeaving) {
 		const card = Store.card(app.currentId);

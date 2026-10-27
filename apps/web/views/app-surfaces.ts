@@ -180,6 +180,8 @@ export const appSurfacesMethods = {
 			animate &&
 			(!this.isPage(this.modalKind) || ["reader", "lightbox"].includes(this.modalKind))
 		) {
+			// The card takes its read colour now, so the detail returns to the card it will remain.
+			flushReadingRefresh(this);
 			const token = this.modalToken,
 				sheet = MotionEngine.surface(this.dialog),
 				opacity = getComputedStyle(sheet).opacity;

@@ -315,7 +315,9 @@ export const panelMotion: Record<string, any> = {
 		const resizing = el.dataset.readerResize === "true";
 		// A phone sheet waits off screen for this frame; so does its dim.
 		const phone = this.phoneSheet(el) && !resume && !resizing;
-		if (phone) this.dim(el, 0);
+		// A desktop detail growing out of its card brings its dim with it, not one frame ahead.
+		const growing = !phone && !resume && !resizing && !!origin?.width && desktop;
+		if (phone || growing) this.dim(el, 0);
 		// A reader growing out of its preview keeps the preview's dim until it covers the screen.
 		if (resizing && el.classList.contains("reader")) el.dataset.readerGrowing = "";
 		const host = resizing ? this.resizeHost(el) : null;
@@ -335,7 +337,8 @@ export const panelMotion: Record<string, any> = {
 				host.remove();
 			}
 			for (const [tool, value] of tools) tool.style.opacity = value;
-			if (phone) this.dim(el, null);
+			// A growing detail keeps its clear dim for openPanel to fade in on the same frame.
+			if (phone || (growing && !keepVisual)) this.dim(el, null);
 			delete el.dataset.readerGrowing;
 		};
 		if (host) for (const [node] of waiting) node.style.opacity = "0";
@@ -498,6 +501,8 @@ export const panelMotion: Record<string, any> = {
 					],
 					{ duration: this.time("dur-open"), spring: "card" },
 				);
+				// The dim follows the card on the same spring, as it does when the card returns.
+				this.dim(el, 1, this.time("dur-open"), true);
 				const body = sheet.querySelector(".preview-body, .reader-body") as HTMLElement | null;
 				this.panelAnimations.set(el, [
 					animation,
@@ -509,6 +514,7 @@ export const panelMotion: Record<string, any> = {
 			}
 		}
 		// Without a source, fade the surface in and retain the same tool sequence.
+		this.dim(el, null);
 		const animations = [this.enter(sheet)];
 		if (!matchMedia("(max-width:650px)").matches && el.matches(".preview, .reader"))
 			animations.push(...this.detailEntry(el));

@@ -8,6 +8,7 @@ import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
+import { settleReadColors } from "./card-state-feedback.ts";
 import { feedView } from "./feed.tsx";
 import {
 	HomeHashList,
@@ -248,7 +249,7 @@ export const appFeedMethods = {
 		const oldY = scrollY;
 		this.preserveFeed = preserve;
 		try {
-			this.renderCurrent(false);
+			settleReadColors(this.grid, () => this.renderCurrent(false));
 		} finally {
 			this.preserveFeed = false;
 		}

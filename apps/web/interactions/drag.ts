@@ -253,10 +253,14 @@ class DragManager {
 				target.hidden = false;
 				target.parentElement?.classList.add("is-ai-receiving");
 			} else if (target?.id === "ai-dock") {
-				window.dispatchEvent(new Event("sill:expand-ai"));
+				// A collapsed bubble switches to the full box at once: carrying a card is not a reveal.
+				this.active.restoreCollapsed = target.classList.contains("is-collapsed");
+				window.dispatchEvent(
+					new CustomEvent("sill:expand-ai", { detail: { instant: this.active.restoreCollapsed } }),
+				);
 				document.getElementById("dock")?.classList.add("is-ai-drag");
 			}
-			if (target)
+			if (target && !this.active.restoreCollapsed)
 				MotionEngine.animate(target, [{ opacity: 0 }, { opacity: 1 }], {
 					duration: MotionEngine.time("fast"),
 				});
@@ -304,6 +308,7 @@ class DragManager {
 		if (!this.active) return;
 		if (releasePoint) this.move(releasePoint.x, releasePoint.y);
 		const { ids, moved, ready } = this.active;
+		this.active.dropped = moved && ready;
 		this.cleanup();
 		// A local preview only; no model call, transmission or card mutation.
 		if (moved && ready) this.app.openSelectionAI(ids);
@@ -330,6 +335,9 @@ class DragManager {
 		if (dockInput) dockInput.placeholder = copy("web.ai.dockPlaceholder");
 		document.getElementById("dock")?.classList.remove("is-ai-drag");
 		MotionEngine.dropTarget(document.getElementById("ai-dock"), "idle");
+		// A drop keeps the box open with its new context; otherwise the bubble returns at once.
+		if (this.active?.restoreCollapsed && !this.active.dropped)
+			window.dispatchEvent(new Event("sill:collapse-ai"));
 		document.body.classList.remove("is-dragging");
 		document.body.classList.remove("is-carrying");
 		document.querySelectorAll(".is-drag-source").forEach((n) => {
