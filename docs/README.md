@@ -117,6 +117,8 @@
 
 ## 记录
 
+- [Agent 长期参考核对](records/2026-10-27-agent-reference-audit/README.md)：15 份长期文档的最新决定、当前实现、验证范围与存量差异。
+
 - [过渡测试与迁移重复检查清理](records/2026-10-27-transition-test-cleanup/README.md)：删除退役入口检查、合并重复文件读写，净减少 9 个测试。
 
 - [审计问题修复](records/2026-10-27-audit-fixes/README.md)：7 项修复、验证结果与上线依赖。
