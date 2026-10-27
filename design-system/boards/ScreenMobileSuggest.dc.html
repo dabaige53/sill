@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>移动 · 输入时的卡片建议</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased">
+  <div style="height: 54px"></div>
+  <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px 0">
+    <div style="flex: 1; min-width: 0; height: 44px; border-radius: 22px; background: #f0f0f2; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; color: #1d1d1f">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 22px; height: 22px; flex: none"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg>
+      <span style="font-size: 17px; white-space: nowrap">设计</span>
+      <span aria-hidden="true" style="width: 2px; height: 22px; margin-left: -6px; background: #0066cc; border-radius: 1px"></span>
+      <span style="flex: 1"></span>
+      <button type="button" aria-label="清空搜索" style="width: 32px; height: 32px; display: grid; place-items: center"><span style="width: 18px; height: 18px; border-radius: 50%; background: #aeaeb2; display: grid; place-items: center; color: #fff"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 10px; height: 10px; stroke-width: 2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></span></button>
+    </div>
+    <button type="button" style="min-height: 44px; padding: 0 8px; color: #0066cc; font-size: 17px; flex: none">取消</button>
+  </div>
+  <div role="listbox" aria-label="卡片建议" style="padding: 8px 8px 0">
+    <div role="option" aria-selected="false" style="height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 8px; border-radius: 10px; font-size: 15px; white-space: nowrap"><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis"><span style="color: #636366"><span style="color: #1d1d1f">设计</span>之外：慢一点的信息流</span></span><span style="flex: none; width: 48px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #636366"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; flex: none"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg><span>资讯</span></span></div>
+    <div role="option" aria-selected="false" style="height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 8px; border-radius: 10px; font-size: 15px; white-space: nowrap; background: linear-gradient(rgba(0,0,0,.06), rgba(0,0,0,.06)) 8px 0 / calc(100% - 16px) 0.5px no-repeat"><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis"><span style="color: #636366">播客推荐：<span style="color: #1d1d1f">设计</span>之外</span></span><span style="flex: none; width: 48px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #636366"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; flex: none"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg><span>媒体</span></span></div>
+    <div role="option" aria-selected="false" style="height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 8px; border-radius: 10px; font-size: 15px; white-space: nowrap; background: linear-gradient(rgba(0,0,0,.06), rgba(0,0,0,.06)) 8px 0 / calc(100% - 16px) 0.5px no-repeat"><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis">卡片积木 v3</span><span style="flex: none; width: 48px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #636366"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; flex: none"><path d="M5 19h4L19 9l-4-4L5 15z"/><path d="m13 7 4 4"/></svg><span>笔记</span></span></div>
+  </div>
+  <div aria-label="系统键盘" style="position: absolute; left: 0; right: 0; bottom: 0; height: 291px; background: #d1d3d9; padding: 8px 3px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; gap: 6px"><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span></div>
+    <div style="display: flex; gap: 6px; padding: 0 18px"><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span></div>
+    <div style="display: flex; gap: 6px; padding: 0 48px"><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span></div>
+    <div style="display: flex; gap: 6px"><span style="width: 90px; height: 42px; border-radius: 5px; background: #abb0ba"></span><span style="flex: 1; height: 42px; border-radius: 5px; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.3)"></span><span style="width: 90px; height: 42px; border-radius: 5px; background: #0066cc; color: #fff; font-size: 16px; display: grid; place-items: center">搜索</span></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

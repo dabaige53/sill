@@ -14,10 +14,14 @@ test("desktop card entry matches its source rect and phone entry keeps its sheet
 		sheet.getBoundingClientRect = () => ({ left: 400, top: 200, width: 600, height: 400 });
 		const source = { left: 100, top: 80, width: 300, height: 200 };
 		f.motion.openPanel(dialog, source);
-		const entry = f.animations.at(-1);
+		const entry = f.animations.find((a: any) => a.frames[0].transform?.startsWith("translate("));
 		assert.equal(entry.frames[0].transform, "translate(-450px,-220px) scale(0.5,0.5)");
 		assert.equal(entry.options.stiffness, 274);
 		assert.equal(entry.options.damping, 30);
+		const dim = f.animations.find((a: any) => a.options.pseudoElement === "::backdrop");
+		assert.ok(dim, "the dim grows with the card, not one frame ahead");
+		assert.equal(dim.options.stiffness, entry.options.stiffness);
+		assert.equal(dim.options.damping, entry.options.damping);
 		assert.ok(entry.frames.every((frame: any) => !("width" in frame) && !("height" in frame)));
 		f.motion.matchSource(dialog, f.el);
 		assert.equal(f.el.style.visibility, "hidden");
@@ -61,8 +65,10 @@ test("desktop detail tools start with the surface after layout and cancel togeth
 		f.motion.queuePanel(dialog, { left: 100, top: 80, width: 300, height: 200 });
 		assert.equal(bar.style.opacity, "0");
 		frame();
-		assert.equal(f.animations[0].options.delay, 0);
-		const reveals = f.animations.filter((a: any) => !("transform" in a.frames[0]));
+		// The dim has its own rule (it follows the card's spring); the tools are checked here.
+		const motions = f.animations.filter((a: any) => a.options.pseudoElement !== "::backdrop");
+		assert.equal(motions[0].options.delay, 0);
+		const reveals = motions.filter((a: any) => !("transform" in a.frames[0]));
 		assert.deepEqual(
 			reveals.map((a: any) => a.options.delay),
 			[0.1, 0, 0],
@@ -284,82 +290,43 @@ test("reopening the exiting child resumes its drawn opacity and position without
 	}
 });
 
-test("expanded resize retains the previous content until simultaneous crossfade, with no media clone", async () => {
-	const f = fixture();
-	try {
-		const dialog = f.w.document.createElement("dialog");
-		dialog.className = "preview";
-		dialog.open = true;
-		dialog.style.background = "white";
-		dialog.innerHTML =
-			'<div class="preview-sheet"><div class="sheet-scroll">Previous content<div class="youtube-frame" data-video-cover="cover.png"><div class="youtube-player"><iframe src="https://example.test"></iframe></div></div></div></div>';
-		f.w.document.body.append(dialog);
-		dialog.getBoundingClientRect = () => ({ left: 300, top: 100, width: 600, height: 600 });
-		f.motion.prepareResize(dialog);
-		dialog.className = "reader";
-		dialog.innerHTML =
-			'<div class="reader-scroll"><article class="reader-body">Target content</article></div><div class="float-bar">Tools</div><div class="reader-head">Close</div>';
-		dialog.dataset.readerResize = "true";
-		dialog.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1200, height: 800 });
-		f.motion.openPanel(dialog, { left: 300, top: 100, width: 600, height: 600 });
-		assert.equal(f.animations.length, 2, "outer geometry and visual crop move together");
-		const old = dialog.querySelector("[data-resize-visual]");
-		const face = old.firstElementChild;
-		assert.ok(face.shadowRoot.textContent.includes("Previous content"));
-		assert.equal(face.shadowRoot.querySelector("iframe"), null);
-		assert.ok(
-			face.shadowRoot.querySelector(".youtube-player").style.backgroundImage.includes("cover.png"),
-		);
-		assert.equal(dialog.querySelector(".reader-scroll").style.opacity, "0");
-		assert.equal(dialog.querySelector(".reader-scroll").inert, true);
-		f.animations[0].finish();
-		f.animations[1].finish();
-		for (let i = 0; i < 3; i++) await Promise.resolve();
-		assert.equal(
-			old.isConnected,
-			true,
-			"the previous visual survives until the crossfade finishes",
-		);
-		const fades = f.animations.slice(2);
-		assert.equal(fades.length, 4);
-		for (const fade of fades) {
-			assert.equal(fade.options.duration, 120);
-			assert.equal("transform" in fade.frames[0], false, "text and tools do not stretch");
-		}
-		assert.equal(fades.at(-1).frames[1].opacity, 0);
-		f.motion.cancelPanel(dialog);
-		assert.equal(dialog.querySelector("[data-resize-visual]"), null);
-		assert.equal(dialog.querySelector("[data-reader-resize-surface]"), null);
-		assert.equal(dialog.querySelector(".reader-scroll").style.opacity, "");
-		assert.equal(dialog.querySelector(".reader-scroll").inert, undefined);
-		assert.equal(dialog.style.background, "white");
-	} finally {
-		f.dom.window.close();
-	}
+test("expanded resize uses card geometry and reveals content during travel without cloning media", () => {
+ const f = fixture();
+ try {
+  const dialog = f.w.document.createElement("dialog");
+  dialog.className = "reader"; dialog.open = true;
+  dialog.innerHTML = '<div class="reader-scroll"><article class="reader-body">Target<iframe src="https://example.test"></iframe></article></div><div class="reader-head">Close</div>';
+  f.w.document.body.append(dialog);
+  dialog.dataset.readerResize = "true";
+  dialog.getBoundingClientRect = () => ({left:0, top:0, width:1200, height:800});
+  f.motion.openPanel(dialog, {left:300, top:100, width:600, height:600});
+  const surface = f.animations.find(a => a.target === dialog);
+  assert.ok(surface);
+  assert.equal(surface.frames[0].transform, 'translate(0px,0px) scale(0.5,0.75)');
+  assert.equal(surface.options.stiffness, 274);
+  assert.equal(surface.options.damping, 30);
+  assert.ok(f.animations.some(a => a.target === dialog.querySelector('.reader-body')));
+  assert.equal(dialog.querySelectorAll('iframe').length, 1);
+  assert.equal(dialog.querySelector('[data-resize-visual]'), null);
+  f.motion.cancelPanel(dialog);
+  assert.equal(dialog.hasAttribute('data-reader-growing'), false);
+ } finally { f.dom.window.close(); }
 });
 
-test("queued resize has visible old content in its waiting frame and cancellation restores the target", () => {
-	const f = fixture();
-	try {
-		const dialog = f.w.document.createElement("dialog");
-		dialog.className = "preview";
-		dialog.open = true;
-		dialog.innerHTML = '<div class="preview-sheet">Previous content</div>';
-		f.w.document.body.append(dialog);
-		dialog.getBoundingClientRect = () => ({ left: 300, top: 100, width: 600, height: 600 });
-		f.motion.prepareResize(dialog);
-		dialog.innerHTML = '<div class="reader-body">New content</div>';
-		dialog.className = "reader";
-		dialog.dataset.readerResize = "true";
-		f.w.requestAnimationFrame = () => 1;
-		f.w.cancelAnimationFrame = () => {};
-		f.motion.queuePanel(dialog, { left: 300, top: 100, width: 600, height: 600 });
-		assert.equal(dialog.style.opacity, "", "the reader root must not hide the old visual");
-		assert.ok(dialog.querySelector("[data-resize-visual]"));
-		f.motion.cancelPanel(dialog);
-		assert.equal(dialog.querySelector("[data-resize-visual]"), null);
-		assert.equal(dialog.querySelector(".reader-body").style.opacity, "");
-	} finally {
-		f.dom.window.close();
-	}
+test("queued resize cancellation leaves target content available", () => {
+ const f = fixture();
+ try {
+  const dialog = f.w.document.createElement("dialog");
+  dialog.className = "reader"; dialog.open = true;
+  dialog.innerHTML = '<div class="reader-body">New content</div>';
+  f.w.document.body.append(dialog);
+  dialog.dataset.readerResize = 'true';
+  f.w.requestAnimationFrame = () => 1;
+  f.w.cancelAnimationFrame = () => {};
+  f.motion.queuePanel(dialog, {left:300, top:100, width:600, height:600});
+  f.motion.cancelPanel(dialog);
+  assert.equal(dialog.querySelector('[data-resize-visual]'), null);
+  assert.equal(dialog.querySelector('.reader-body').textContent, 'New content');
+  assert.equal(dialog.querySelector('.reader-body').inert, undefined);
+ } finally { f.dom.window.close(); }
 });

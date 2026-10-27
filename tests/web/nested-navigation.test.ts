@@ -9,6 +9,7 @@ function nestedFixture(keyboard = true) {
 	const app = new w.ControllerTest.AppController();
 	Object.assign(app, {
 		dialog: f.app.dialog,
+		desktop: () => true,
 		grid: f.app.grid,
 		refreshCard() {},
 		gestures: { bindPullDown() {}, bindPush() {} },
@@ -201,6 +202,7 @@ test("returning starts an exit over the restored parent and canceled completion 
 test("a new account cannot recover another scope's parent or reading position", () => {
 	const f = nestedFixture();
 	try {
+		f.app.desktop = () => false;
 		f.app.navigate("#card/a");
 		f.scroll().scrollTop = 480;
 		f.app.navigate("#card/b");
@@ -276,25 +278,20 @@ test("reopening the exiting child restores its exact content position before mot
 	}
 });
 
-test("phone nested cards share drawer height and carry expansion back to their parent", () => {
+test("phone nested previews retain the mounted parent and its scroll position", () => {
 	const f = nestedFixture();
 	try {
 		f.app.desktop = () => false;
 		f.app.navigate("#card/a");
-		const parent = f.app.dialog.querySelector(".preview-sheet");
-		Object.defineProperty(parent, "offsetHeight", { value: 620 });
+		const parent = f.app.dialog;
+		f.scroll().scrollTop = 260;
 		f.app.navigate("#card/b");
-		const child = f.app.dialog.querySelector(".preview-sheet");
-		assert.equal(child.classList.contains("is-full"), false);
-		assert.equal(child.style.getPropertyValue("--nested-sheet-height"), "620px");
-		child.classList.add("is-full");
-		f.app.navigate("#card/a");
+		assert.notEqual(f.app.dialog, parent);
+		assert.equal(parent.inert, true);
+		assert.equal(parent.querySelector(".sheet-scroll").scrollTop, 260);
 		assert.equal(f.app.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
-		f.app.navigate("#card/b");
-		assert.equal(f.app.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
-	} finally {
-		f.dom.window.close();
-	}
+		assert.equal(f.app.dialog.querySelector(".preview-sheet").style.getPropertyValue("--nested-sheet-height"), "");
+	} finally { f.dom.window.close(); }
 });
 
 test("reader cards use a modal dialog and keep full-page mode for phone links", () => {

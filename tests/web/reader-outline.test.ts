@@ -34,9 +34,14 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 	const dom = new JSDOM('<div id="root"></div>', {
 		url: "https://sill.test/#read/example",
 		runScripts: "outside-only",
+		pretendToBeVisual: true,
 	});
 	const w = dom.window as any;
+	let measure = () => {};
 	w.ResizeObserver = class {
+		constructor(callback) {
+			measure = callback;
+		}
 		observe() {}
 		disconnect() {}
 	};
@@ -53,6 +58,12 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 		const sections = region.querySelectorAll("h2");
 		sections[0].getBoundingClientRect = () => ({ top: 116 - region.scrollTop });
 		sections[1].getBoundingClientRect = () => ({ top: 716 - region.scrollTop });
+		const nav = w.document.querySelector(".reader-outline");
+		Object.defineProperty(nav, "clientHeight", { value: 400 });
+		for (const link of links) Object.defineProperty(link, "offsetHeight", { value: 44 });
+		measure();
+		assert.ok(nav.querySelector(".reader-outline-dot"));
+		assert.equal(links[0].style.height, "", "outline rows keep natural height");
 		for (const detail of [1, 0]) {
 			region.scrollTop = 0;
 			api.flush(() => {
@@ -64,6 +75,12 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 			assert.equal(links[1].getAttribute("aria-current"), "location");
 			assert.equal(w.location.hash, "#read/example");
 		}
+		region.scrollTop = 1000;
+		measure();
+		assert.equal(links[1].getAttribute("aria-current"), "location");
+		region.scrollTop = 0;
+		measure();
+		assert.equal(links[0].getAttribute("aria-current"), "location");
 		assert.equal(w.document.querySelector(".reader-outline-toggle"), null);
 		assert.equal(w.document.querySelector(".reader-outline").hidden, false);
 	} finally {

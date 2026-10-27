@@ -293,6 +293,65 @@ test("read-end wheel threshold completes without waiting for the stream to stop"
 	}
 });
 
+test("read-end wheel push fills from spaced mouse notches and an uneven trackpad hand", async () => {
+	const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+	const arc = (f: any) =>
+		Number(
+			f.dialog.querySelector(".push-ring .arc circle:last-child").getAttribute("stroke-dashoffset"),
+		);
+	for (const deltas of [
+		// Mouse: one notch every 120ms, far apart for a 40ms idle.
+		[100, 100, 100, 100, 100, 100, 100],
+		// Trackpad: a steady push whose size wobbles by more than 10%.
+		[30, 24, 30, 20, 28, 18, 26, 22, 30, 20, 28, 24, 30, 26, 22, 30],
+	]) {
+		const f = fixture({ end: true });
+		try {
+			const gap = deltas[0] === 100 ? 120 : 16;
+			let last = arc(f);
+			for (const deltaY of deltas) {
+				f.scroll.dispatchEvent(new f.w.WheelEvent("wheel", { bubbles: true, deltaY }));
+				if (f.dialog.querySelector(".push-ring.is-done")) break;
+				f.flush(f.frames);
+				assert.ok(arc(f) <= last, "the ring never falls back while the hand keeps pushing");
+				last = arc(f);
+				await wait(gap);
+				// Timers that would have run within the gap run now.
+				f.flush(undefined, gap);
+				f.flush(f.frames);
+			}
+			assert.equal(f.dialog.querySelectorAll(".push-ring.is-done").length, 1);
+			assert.equal(f.Store.item("article").read, true);
+		} finally {
+			f.dom.window.close();
+		}
+	}
+});
+
+test("read-end wheel push returns once the hand stops; arriving momentum cannot start one", async () => {
+	const f = fixture({ end: true });
+	try {
+		f.scroll.dispatchEvent(new f.w.WheelEvent("wheel", { bubbles: true, deltaY: 40 }));
+		f.flush(f.frames);
+		const ring = f.dialog.querySelector(".push-ring");
+		assert.ok(Number(ring.style.opacity) > 0);
+		f.flush(undefined, 120);
+		assert.ok(Number(ring.style.opacity) > 0, "the ring holds between notches");
+		f.flush();
+		f.flush(f.frames);
+		assert.equal(Number(ring.style.opacity), 0, "a stopped hand lets the ring go");
+		// Momentum: a decaying tail with no fresh effort.
+		for (const deltaY of [20, 16, 12]) {
+			f.scroll.dispatchEvent(new f.w.WheelEvent("wheel", { bubbles: true, deltaY }));
+			f.flush(f.frames);
+		}
+		assert.equal(Number(ring.style.opacity), 0, "a shrinking tail does not begin a push");
+		assert.equal(Boolean(f.Store.item("article").read), false);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("desktop pull fades from the release position; phone keeps its downward slide", async () => {
 	for (const phone of [false, true]) {
 		const f = fixture({ phone });

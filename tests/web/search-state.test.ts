@@ -477,7 +477,7 @@ test("open panels keep home menu and search shortcuts from consuming keys", () =
 
 /** Desktop top-bar search: tab token, # conditions and type chips share the home filter. */
 
-test("phone search retains its field on filter updates and returns to browse with session history", () => {
+test("phone search retains its field on filter updates, suggests the cards it finds, and returns to browse", () => {
 	const f = fixture();
 	try {
 		f.app.desktop = () => false;
@@ -492,14 +492,21 @@ test("phone search retains its field on filter updates and returns to browse wit
 		assert.equal(f.app.dialog.querySelector("#filter-search"), input);
 		assert.equal(f.w.document.activeElement, input);
 		assert.equal(input.value, "Alpha");
+		const suggested = [...f.app.dialog.querySelectorAll("#search-suggest [role=option]")];
+		assert.ok(suggested.length, "while typing, the phone suggests cards");
+		assert.ok(
+			suggested.every((n: any) => n.dataset.action === "card-open" && n.dataset.id),
+			"each suggestion opens its card",
+		);
+		assert.equal(
+			f.app.dialog.querySelector('[data-action="search-history"]'),
+			null,
+			"no search history",
+		);
+		assert.equal(f.app.dialog.querySelector(".search-cancel").textContent, "取消");
 		f.app.action("search-reset");
 		assert.equal(f.app.dialog.classList.contains("search-editing"), false);
 		assert.equal(input.value, "");
-		assert.equal(f.app.dialog.querySelector(".search-cancel").textContent, "取消");
-		assert.equal(f.app.dialog.querySelector('[data-action="search-history"]').textContent, "Alpha");
-		f.app.action("search-history", "", "Alpha");
-		assert.equal(input.value, "Alpha");
-		assert.equal(f.app.dialog.classList.contains("search-editing"), true);
 	} finally {
 		f.dom.window.close();
 	}

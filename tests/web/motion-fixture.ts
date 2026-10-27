@@ -8,6 +8,8 @@ export function motionValue<T>(initial: T) {
 	};
 	return {
 		get: () => value,
+		getVelocity: () => 0,
+		stop() {},
 		set,
 		jump: set,
 		destroy: () => listeners.clear(),

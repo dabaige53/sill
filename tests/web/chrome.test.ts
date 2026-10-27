@@ -1,64 +1,8 @@
-/** Bars that tuck away while reading, IME-safe search and quiet search results. */
 import assert from "node:assert/strict";
-import path from "node:path";
 import { test } from "node:test";
-import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
 import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
-
-const bundle = buildSync({
-	stdin: {
-		contents:
-			"export {ChromeAutoHide, toolbarTips} from './apps/web/interactions/chrome.ts'; export {Panels} from './apps/web/interactions/panels.ts'; export {AppController} from './apps/web/views/app.ts'; export {Store} from './apps/web/data/store.ts';",
-		resolveDir: path.resolve(import.meta.dirname, "../.."),
-		loader: "ts",
-	},
-	bundle: true,
-	alias: {
-		"motion/mini": path.resolve(import.meta.dirname, "motion-fixture.ts"),
-		motion: path.resolve(import.meta.dirname, "motion-fixture.ts"),
-	},
-	write: false,
-	format: "iife",
-	platform: "browser",
-	globalName: "ChromeTest",
-}).outputFiles[0].text;
-
-function fixture() {
-	const dom = new JSDOM(
-		`<!doctype html><div id="scroll"></div><div id="bar"><button id="bar-button">收藏</button></div><div id="edge"></div><span id="filter-result"></span><div id="search-results"></div>`,
-		{ url: "http://chrome.test/", runScripts: "outside-only", pretendToBeVisual: true },
-	);
-	const w = dom.window as any;
-	w.matchMedia = () => ({ matches: false, addEventListener() {} });
-	w.structuredClone = structuredClone;
-	installReactBrowserAPIs(w);
-	w.eval(bundle);
-	const scroll = w.document.getElementById("scroll");
-	let top = 0;
-	Object.defineProperty(scroll, "scrollTop", { get: () => top, configurable: true });
-	Object.defineProperty(scroll, "scrollHeight", { get: () => 4000, configurable: true });
-	Object.defineProperty(scroll, "clientHeight", { get: () => 800, configurable: true });
-	const bar = w.document.getElementById("bar"),
-		edge = w.document.getElementById("edge");
-	const hide = new w.ChromeTest.ChromeAutoHide(scroll, () => [bar, edge]);
-	const to = (y: number) => {
-		top = y;
-		scroll.dispatchEvent(new w.Event("scroll"));
-	};
-	const tucked = () => bar.classList.contains("is-tucked") && edge.classList.contains("is-tucked");
-	return {
-		dom,
-		w,
-		hide,
-		to,
-		tucked,
-		bar,
-		position: (y: number) => {
-			top = y;
-		},
-	};
-}
+import { fixture, bundle } from "./chrome-fixture.ts";
 
 test("all bars coming back on their own use the shared reveal; with a closing card they share its spring", () => {
 	const f = fixture();
@@ -135,6 +79,44 @@ test("bars come back at the top, at the end, and after a pause", async () => {
 		assert.equal(f.tucked(), false, "a pause brings the bars back");
 	} finally {
 		f.hide.destroy();
+		f.dom.window.close();
+	}
+});
+
+test("a waiting read-end push keeps the end clear: neither the end nor a pause near it brings the bars", async () => {
+	const f = fixture();
+	f.hide.destroy();
+	let owned = true;
+	const hide = new f.w.ChromeTest.ChromeAutoHide(
+		f.w.document.getElementById("scroll"),
+		() => [f.bar, f.w.document.getElementById("edge")],
+		() => false,
+		() => owned,
+	);
+	try {
+		f.to(2900);
+		f.to(3000);
+		assert.equal(f.tucked(), true);
+		f.to(3180);
+		assert.equal(f.tucked(), true, "short of the end, the capsule does not cover the check");
+		f.to(3200);
+		assert.equal(f.tucked(), true, "the end belongs to the push");
+		await new Promise((resolve) => setTimeout(resolve, 520));
+		assert.equal(f.tucked(), true, "a pause before pushing keeps the capsule away");
+		f.to(3180);
+		assert.equal(f.tucked(), false, "turning back still brings the bars");
+		f.to(1000);
+		f.to(1100);
+		assert.equal(f.tucked(), true);
+		await new Promise((resolve) => setTimeout(resolve, 520));
+		assert.equal(f.tucked(), false, "away from the end a pause still brings them back");
+		owned = false;
+		f.to(1200);
+		f.to(1300);
+		f.to(3190);
+		assert.equal(f.tucked(), false, "once finished, the end shows the bars again");
+	} finally {
+		hide.destroy();
 		f.dom.window.close();
 	}
 });
@@ -316,6 +298,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 			searchAll: () => ({ desk: [card], shelved: [card] }),
 			searchText: (q: string) => q,
 			searchHash: () => null,
+			searchSuggestions: () => [card],
 		};
 		const field = f.w.document.createElement("div");
 		field.innerHTML = Panels.search(app);

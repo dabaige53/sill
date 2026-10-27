@@ -47,6 +47,8 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 | 动效中断与材质回退 | `npm run build && npm run test:motion-material` | 真实 Tab、CDP touchCancel、迟到关闭、拖动层级、工具条延迟、菜单入场中断、提示替换与详情反向切换、无 blur 分支演练、引用区内滚动；不代替 Safari 或原生端验收 |
 | PWA 触控与名称提示 | `npm run build && npm run test:pwa-touch` | 合成卡片，320/390/1440、深浅色、触摸长按后不执行、真实 Tab 显示名称、提示边界；不代替 iPhone 系统菜单与主屏幕实测 |
 | PWA 极端内容交互预览 | `npm run build && node tests/e2e/pwa-stress-preview.ts` | 隔离随机端口；Demo／Worst case／Empty／One／1,000 rows，宽度、主题与文字切换；`pwa-stress-fixture.ts` 校验合成卡片，不读取本地产品数据，不自动启动浏览器；200% 仅为内容字号压力条件 |
+| 搜索框、卡片建议与 # 条件（`panel-search.tsx`、`home-search*.ts(x)`） | `node --import tsx --test tests/web/chrome.test.ts tests/web/search-state.test.ts tests/web/search-desktop.test.ts tests/web/home-search-motion.test.ts` | 四个文件都用合成面板对象；面板新增 `app.xxx()` 调用时，同步补齐各测试里的假对象，否则只在这里失败 |
+| 读完上推、详情工具胶囊收起 | `node --import tsx --test tests/web/chrome.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts` | wheel 节奏、停顿回位、到底与胶囊归属；合成计时器，不代表触控板真机手感 |
 | 阅读展开与触摸归属 | `node --import tsx --test tests/web/motion-sheet.test.ts tests/web/gestures.test.ts tests/web/gesture-preview.test.ts tests/web/gesture-surfaces.test.ts` | 合成尺寸、触摸、计时器和绘制帧：按住不展开、松手展开、圆角裁剪与安全区衔接、反向中断、普通点击、取消、多指、旧面板回调、横向内容与控件、每帧合并；不代表真机性能 |
 | 照片通用操作 | `npm run build && node tests/e2e/photo-toolbar-browser.ts` | 合成照片，320/390/1440 与浅深色；收藏、稍后读、保存或取消标签回到原照片、旧隐藏偏好兼容和生成组件包的主题环境；不代替真机 |
 | 卡片操作显示兼容 | `npm run build && node tests/e2e/card-actions-settings-browser.ts` | 三宽度、浅深色；设置中无动作隐藏开关，旧隐藏偏好不影响工具栏；文章三视图同一字段和末尾备注框，不修改来源卡片 |
@@ -74,7 +76,7 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 
 浏览器入口保留服务启动、合成数据和结果汇总；相邻模块按卡片操作、阅读与选择、捕获与布局、触控与拖动、材质和抽屉场景分组，按原顺序执行。`web/selection.test.ts` 与 `server/oauth-consent.test.ts` 分别注册相邻模块中的全部测试；`server/supabase-postgres.ts` 在同一容器中依次运行权限与 OAuth 检查。拆分模块不单独启动浏览器、服务或数据库。
 
-`web/gesture-fixture.ts` 提供手势测试的合成页面、计时器和动画边界；`web/gestures.test.ts` 只保留行为断言。
+`web/gesture-fixture.ts` 提供手势测试的合成页面、计时器和动画边界；`web/gestures.test.ts` 只保留行为断言。计时器和绘制帧都不会自己运行：`f.flush()` 运行全部计时器，`f.flush(undefined, ms)` 只运行延迟不超过 ms 的计时器（用来模拟「过了 ms 毫秒」），`f.flush(f.frames)` 推进一帧。测间隔、停顿类规则时必须这样推进，否则旧实现也会通过。
 
 Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fixture.ts`；`search-state.test.ts` 与 `search-desktop.test.ts` 共用 `search-state-fixture.ts`；`visibility-motion.test.ts` 与 `detail-motion.test.ts` 共用 `visibility-motion-fixture.ts`。辅助文件只提供合成环境，由测试入口加载。
 
@@ -105,3 +107,5 @@ Web 拆分入口：`app.test.ts` 与 `nested-navigation.test.ts` 共用 `app-fix
 `web/gesture-rebound.test.ts`检查Web桌面普通详情不拦截滚轮、不叠加自定义位移或延时回位；手机继续检查600／48／1参数、速度上限和停住后速度归零。共享100ms采样器沿用既有算法，首页刷新与甩动释放由各自检查覆盖；非浏览器检查不证明系统原生回弹的实际观感。
 
 Web桌面普通滚动保留原生反馈；`web/gesture-refresh.test.ts`覆盖明确下拉刷新时接手wheel并单次提交。`web/gesture-refresh-continuity.test.ts`新增回归：刷新卡片必须跟手位移，is-pulling保留到内容回位结束后再释放原生边缘反馈。手机与桌面共用加载和完成反馈检查，组合观感由用户确认。
+
+`web/chrome-fixture.ts` 提供顶栏与工具栏测试的合成页面及构建包；行为用例保留在 `web/chrome.test.ts`。

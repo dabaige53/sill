@@ -13,10 +13,11 @@ const states = new WeakMap<
 	{ animations: (Playback | null)[]; openedAt: number; ghost?: HTMLElement }
 >();
 const timing = tokens.motion.phoneSearch;
+const list = tokens.motion.searchChoice;
 const actors = (dialog: HTMLElement) =>
 	[
 		...dialog.querySelectorAll<HTMLElement>(
-			".search-header, .search-page-heading, .search-browse, .search-cancel, .search-pill, .search-clear, .search-dictate, .search-history, #search-results, .search-chips",
+			".search-header, .search-page-heading, .search-browse, .search-cancel, .search-pill, .search-clear, .search-dictate, #search-results, .search-chips",
 		),
 		document.getElementById("dock"),
 	].filter(Boolean) as HTMLElement[];
@@ -99,7 +100,7 @@ export function revealPhoneSearchResults(dialog: HTMLElement) {
 	);
 	const nodes = [
 		...dialog.querySelectorAll<HTMLElement>(
-			".search-history:not([hidden]), #search-results:not(:has(.search-browse)), .search-chips:not([hidden])",
+			"#search-results:not(:has(.search-browse)), .search-chips:not([hidden])",
 		),
 	];
 	for (const node of nodes) {
@@ -109,10 +110,53 @@ export function revealPhoneSearchResults(dialog: HTMLElement) {
 		);
 	}
 }
+const docks = new WeakMap<HTMLElement, (Playback | null)[]>();
+/**
+ * The keyboard decides two things: while it is up, card suggestions cover the results (opening
+ * and closing like the Web Combobox list) and the tab bar steps aside. A submitted search, or a
+ * tap on the results, puts the keyboard away: the full results show and the tab bar takes taps.
+ */
+export function syncPhoneSearchKeyboard(dialog: HTMLElement, typing: boolean, pose?: SearchPose) {
+	if (dialog.classList.contains("search-keyboard") === typing) return;
+	const dock = document.getElementById("dock");
+	const drawn = dock && getComputedStyle(dock);
+	const before =
+		dock && (pose?.nodes.get(dock) || { opacity: drawn.opacity, transform: drawn.transform });
+	const toggle = () => dialog.classList.toggle("search-keyboard", typing);
+	const suggest = dialog.querySelector<HTMLElement>(".search-suggest");
+	if (suggest)
+		MotionEngine.change(suggest, toggle, typing ? list.listOpen : list.listClose, {
+			easing: list.listEase,
+		});
+	else toggle();
+	if (!dock || !before) return;
+	for (const animation of docks.get(dock) || []) animation?.cancel();
+	dock.inert = typing;
+	dock.style.visibility = "visible";
+	const movement = travel(
+		dock,
+		before.transform || "none",
+		typing ? `translateY(${timing.navTravel}px)` : "none",
+		timing.navMove,
+		0,
+		timing.navEase,
+	);
+	const animations = [
+		fade(dock, before.opacity || (typing ? "1" : "0"), typing ? 0 : 1, timing.navFade),
+		movement,
+	];
+	docks.set(dock, animations);
+	const finish = () => {
+		if (docks.get(dock) === animations) dock.style.visibility = typing ? "hidden" : "";
+	};
+	if (movement) movement.finished.then(finish, () => {});
+	else finish();
+}
 export function transitionPhoneSearch(
 	dialog: HTMLElement,
 	editing: boolean,
 	captured?: SearchPose,
+	typing = editing,
 ) {
 	if (dialog.classList.contains("search-editing") === editing) return;
 	const pose = captured || capturePhoneSearch(dialog);
@@ -218,33 +262,9 @@ export function transitionPhoneSearch(
 			),
 		);
 	}
-	const dock = document.getElementById("dock");
-	if (dock) {
-		const before = draw(dock, pose);
-		dock.inert = editing;
-		dock.style.visibility = "visible";
-		state.animations.push(
-			fade(dock, before.opacity || (editing ? "1" : "0"), editing ? 0 : 1, timing.navFade),
-		);
-		const movement = travel(
-			dock,
-			before.transform || "none",
-			editing ? `translateY(${timing.navTravel}px)` : "none",
-			timing.navMove,
-			0,
-			timing.navEase,
-		);
-		state.animations.push(movement);
-		const finish = () => {
-			if (states.get(dialog) === state) dock.style.visibility = editing ? "hidden" : "";
-		};
-		if (movement) movement.finished.then(finish, () => {});
-		else finish();
-	}
+	syncPhoneSearchKeyboard(dialog, typing, pose);
 	if (editing) revealPhoneSearchResults(dialog);
 	else {
-		for (const node of dialog.querySelectorAll<HTMLElement>(".search-history"))
-			state.animations.push(fade(node, draw(node, pose).opacity || "1", 0, timing.resultFade));
 		if (pose.result) {
 			const { node, rect, opacity } = pose.result;
 			node.removeAttribute("id");
@@ -280,8 +300,11 @@ export function resetPhoneSearch(dialog: HTMLElement) {
 	for (const animation of state?.animations || []) animation?.cancel();
 	state?.ghost?.remove();
 	states.delete(dialog);
+	dialog.classList.remove("search-keyboard");
 	const dock = document.getElementById("dock");
 	if (dock) {
+		for (const animation of docks.get(dock) || []) animation?.cancel();
+		docks.delete(dock);
 		dock.inert = false;
 		dock.style.visibility = "";
 	}

@@ -13,9 +13,14 @@ export type PreviewApp = {
 };
 export type SearchApp = Pick<
 	AppController,
-	"searchFilter" | "searchAll" | "searchText" | "searchHash" | "searchLimit" | "feedNow"
-> &
-	Partial<Pick<AppController, "searchHistory">>;
+	| "searchFilter"
+	| "searchAll"
+	| "searchSuggestions"
+	| "searchText"
+	| "searchHash"
+	| "searchLimit"
+	| "feedNow"
+>;
 /** Legacy callers may retain an unrecognized display form; the renderer keeps its fallback. */
 export type PreviewCard = { [K in keyof Card]: K extends "form" ? string : Card[K] };
 
@@ -46,6 +51,7 @@ export interface PanelRenderers {
 	search(app?: SearchApp): ReactNode;
 	searchResults(app?: SearchApp): ReactNode;
 	searchHashList(app?: SearchApp): ReactNode;
+	searchSuggest(app?: SearchApp): ReactNode;
 	archive(app?: Pick<AppController, "shelved">, which?: string): ReactNode;
 	settingsGroups: string[][];
 	settings(

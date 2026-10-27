@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>网页 · 在未读里搜索</title>
+<title>网页 · 在未读里搜索与卡片建议</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -27,15 +27,24 @@ button:disabled{cursor:default}
     </button>
     <button type="button" aria-label="分栏" aria-expanded="false" style="width: 36px; height: 36px; display: grid; place-items: center; color: #636366; border-radius: 10px; margin-left: -6px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     <span style="flex: 1"></span>
-    <label style="width: 480px; height: 40px; border-radius: 20px; background: #fff; box-shadow: 0 0 0 3px rgba(0,102,204,.25), 0 0 0 1px #0066cc; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; color: #636366">
+    <label style="position: relative; width: 315px; height: 40px; border-radius: 20px; background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; color: #636366">
       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; flex: none"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg>
       <span style="height: 24px; padding: 0 9px; border-radius: 12px; background: #1d1d1f; color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; flex: none">未读</span>
-      <input type="search" value="注意力" placeholder="在未读里搜索" aria-label="在未读里搜索" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 15px; color: #1d1d1f; outline: none">
+      <input type="search" value="注意力" placeholder="在未读里搜索" aria-label="在未读里搜索" role="combobox" aria-expanded="true" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 15px; color: #1d1d1f; outline: none">
       <button type="button" aria-label="清除" style="width: 28px; height: 28px; display: grid; place-items: center; flex: none"><span style="width: 18px; height: 18px; border-radius: 50%; background: #aeaeb2; color: #fff; display: grid; place-items: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 10px; height: 10px; stroke-width: 2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></span></button>
+      <div role="listbox" aria-label="卡片建议" style="position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 5; max-height: 240px; overflow-y: auto; padding: 4px; border-radius: 12px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 6px 18px rgba(16,24,40,.07); cursor: default">
+        <div role="option" aria-selected="false" style="height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 10px; border-radius: 8px; background: #e8e8ed; font-size: 14px; white-space: nowrap"><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis"><span style="color: #636366"><span style="color: #1d1d1f">注意力</span>，也需要一点留白</span></span><span style="flex: none; width: 48px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #636366"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; flex: none"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg><span>资讯</span></span></div>
+        <div role="option" aria-selected="false" style="height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 10px; border-radius: 8px; font-size: 14px; white-space: nowrap"><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis"><span style="color: #1d1d1f">把通知收起来的一周</span></span><span style="flex: none; width: 48px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #636366"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; flex: none"><path d="M5 19h4L19 9l-4-4L5 15z"/><path d="m13 7 4 4"/></svg><span>笔记</span></span></div>
+      </div>
     </label>
     <button type="button" aria-label="设置" style="width: 44px; height: 44px; display: grid; place-items: center; margin-right: -2px"><span style="width: 40px; height: 40px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); display: grid; place-items: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></span></button>
   </header>
-  <main style="margin: 22px 126px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start">
+  <fieldset aria-label="类型" style="margin: 12px 126px 0; padding: 0; border: 0; display: flex; gap: 8px">
+    <button type="button" aria-pressed="true" style="height: 32px; padding: 0 14px; border-radius: 16px; background: #1d1d1f; color: #fff; font-size: 14px; font-weight: 600">全部</button>
+    <button type="button" aria-pressed="false" style="height: 32px; padding: 0 14px; border-radius: 16px; background: #f0f0f2; font-size: 14px">资讯</button>
+    <button type="button" aria-pressed="false" style="height: 32px; padding: 0 14px; border-radius: 16px; background: #f0f0f2; font-size: 14px">笔记</button>
+  </fieldset>
+  <main style="margin: 16px 126px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start">
     <article style="background: #fff; border-radius: 22px; padding: 18px; box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 2px 8px -4px rgba(0,0,0,.08)">
       <div class="cv-coast" style="height: 200px; margin: -10px -10px 14px; border-radius: 14px"></div>
       <div style="font-size: 12px; line-height: 18px; color: #636366">阅读手记 · 4 分钟阅读</div>

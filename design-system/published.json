@@ -1,5 +1,8 @@
 {
   "note": "上次发布到线上的文件指纹，由 design-init.sh record 写入。",
   "ds": "published-ds.json",
-  "canvas": "published-canvas.json"
+  "canvas": [
+    "published-canvas.json",
+    "published-canvas-reading.json"
+  ]
 }

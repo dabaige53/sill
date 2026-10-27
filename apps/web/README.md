@@ -43,3 +43,5 @@ Worker 直接提供 /manifest.webmanifest 和现有品牌 PNG。manifest 的 id�
 发布后设备验收：从主屏幕冷启动，检查没有 Safari 底部地址栏；检查登录、重新打开、卡片详情、搜索键盘开关、横竖屏及底部安全区。自动构建与浏览器模拟不等于真实 iPhone 验收。
 
 依据：[WebKit Safari 26](https://webkit.org/blog/17333/webkit-features-in-safari-26-0/#every-site-can-be-a-web-app-on-ios-and-ipados)、[Apple Web App 配置](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)。
+
+播客介绍样式位于 `styles/detail-podcast.css`，通用详情样式位于 `styles/detail-content.css`；两者按 `styles/styles.json` 顺序加载。

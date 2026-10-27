@@ -19,3 +19,14 @@
 | 2026-10-24 | [ADR 0064](../adr/0064-ai-conversation-three-heights.md) | 1792771727-9161 | 1792771728-b67d | AI 对话实现：三种高度、结果行、手机对话页 |
 | 2026-10-24 | [ADR 0069](../adr/0069-vertical-rhythm.md) | 未发布 | 1792803081-fcea | 纵向间距六级：只发布 CardTypeDetails、CardTypeMobile、CardTypeReading 三块画板。线上 Design System 为 design/ai-conversation 分支版本，手册与变量待该分支合入 main 后一并发布 |
 | 2026-10-24 | [ADR 0069](../adr/0069-vertical-rhythm.md) | 未发布 | 1792804245-1192 | PR 详情状态进入信息行，无数据的行不显示，信息行图标对齐：只发布三块详情画板，Design System 同上一行原因未发布 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793088338-ddd6 | 1793088430-b6dd | 06 搜索改为卡片建议（Combobox）、新增 TagInput、搜索画板更新 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793088918-5a2e | 1793088905-0897 | 06 搜索建议按参考样例：宽 360、两行候选、列表最高 232 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793089131-00e5 | 1793089120-839f | 06 搜索建议改为一行：来源标志与来源名在右侧 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793089528-dedf | 1793089520-5e19 | 06 Web 搜索栏固定 280；手机点分类卡后搜索栏上移 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793089982-f6ea | 1793089973-388f | 06 搜索建议右侧改为类型列：图标对齐一条竖线 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793091157-8a3a | 1793091165-ac1c | 06 Web 搜索栏 315、建议列表不带动卡片页；24 播客介绍页按原型重排 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793102117-7f10 | 1793102104-2f50 | 06 搜索 ⌘K 不再移动、建议打开时滚动不带动卡片；24 播客与视频预览放宽到 860，播客画板换成介绍页 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793102748-a5fb | 1793102751-1f3c | 手机四页页名统一：字号、行高、字距与顶边一致；设置分组胶囊对齐主页分栏 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793103679-d94a | 1793103685-586f | PWA 设置页盖住顶栏与导航消除闪色；读完上推前到底不叫回工具胶囊；手机卡片建议同底色、行高 48、细线分隔 |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793104008-be29 | 1793104013-7cf7 | 读完上推 wheel 持续累计、停止 320ms 后回位（pushHoldMs） |
+| 2026-10-27 | [ADR 0081](../adr/0081-reading-spine-and-segmented-navigation.md) | 1793104423-4ae7 | 1793104013-7cf7 | 动效手册新增「实现要点」：玻璃层、浮层、按键重复、滚动隔离、边缘归属、滚轮手势、关闭路径、共用规则、计时验证 |

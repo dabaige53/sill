@@ -327,11 +327,11 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 				const dom = new JSDOM(html);
 				try {
 					if (dom.window.document.querySelector(".podcast-detail")) {
+						assert.equal(dom.window.document.querySelector(".podcast-date")?.textContent, label);
 						assert.equal(
-							dom.window.document.querySelector(".preview-published")?.textContent,
-							label,
+							dom.window.document.querySelector(".podcast-byline")?.textContent,
+							"Source",
 						);
-						assert.equal(dom.window.document.querySelector(".preview-meta")?.textContent, "Source");
 						continue;
 					}
 					assert.equal(

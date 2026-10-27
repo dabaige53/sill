@@ -76,8 +76,9 @@ Mono24 图标，71 个，从 `apps/web/atoms/icons.ts` 的 `Glyphs` 原样导出
 | `send.svg` | 发送 | 明确发送用户已准备好的消息。 |
 | `paperclip.svg` | 附件 | AI 输入框的附件入口。 |
 | `audio-lines.svg` | 语音 | AI 输入框的语音入口。 |
+| `headphones.svg` | 收听 | 播客详情的收听记录。 |
 
-`paperclip` 和 `audio-lines` 路径来自 [Lucide](https://github.com/lucide-icons/lucide)，使用 ISC 许可；原始许可见 [lucide-license.txt](lucide-license.txt)。导出沿用 Mono24 的线宽与颜色。
+`paperclip`、`audio-lines` 和 `headphones` 路径来自 [Lucide](https://github.com/lucide-icons/lucide)，使用 ISC 许可；原始许可见 [lucide-license.txt](lucide-license.txt)。导出沿用 Mono24 的线宽与颜色。
 
 ## 尚未写明用途
 

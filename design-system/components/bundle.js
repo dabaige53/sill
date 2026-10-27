@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Sill","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"TagChip"},{"name":"Toggle"},{"name":"SearchField"},{"name":"Navigation"},{"name":"AICompose"},{"name":"FeedCard"},{"name":"StackCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"ReadEndRing"},{"name":"SelectionBar"},{"name":"EmptyState"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Sill","components":[{"name":"IconButton"},{"name":"ActionButton"},{"name":"ProgressRing"},{"name":"CheckItem"},{"name":"Avatars"},{"name":"TagChip"},{"name":"TagInput"},{"name":"Toggle"},{"name":"SearchField"},{"name":"Navigation"},{"name":"AICompose"},{"name":"FeedCard"},{"name":"StackCard"},{"name":"Dialog"},{"name":"Toast"},{"name":"ReadEndRing"},{"name":"SelectionBar"},{"name":"EmptyState"}]} */
 var Sill = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -45,6 +45,7 @@ var Sill = (() => {
     // Lucide ISC icons; source and license are recorded in assets/Icons/README.md.
     paperclip: '<path d="m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"/>',
     "audio-lines": '<path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3"/>',
+    headphones: '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
     "bell-off": '<path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5M3.5 16.5h17M10.5 20h3"/><path d="M4.5 3.5l15 17"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
     glasses: '<rect x="2.5" y="8" width="8" height="8.5" rx="2.5"/><rect x="13.5" y="8" width="8" height="8.5" rx="2.5"/><path d="M10.5 11.5h3M2.5 10 4 5.5M21.5 10 20 5.5"/>',
@@ -699,6 +700,11 @@ var Sill = (() => {
     "web.editor.removeTagPrefix": "\u79FB\u9664\u6807\u7B7E ",
     "web.editor.newTagLabel": "\u65B0\u7684\u6807\u7B7E",
     "web.editor.addTagPlaceholder": "\u6DFB\u52A0\u6807\u7B7E",
+    "web.editor.tagHint": "\u56DE\u8F66\u6216\u9017\u53F7\u6DFB\u52A0\uFF0C\u8FDE\u6309\u4E24\u6B21\u9000\u683C\u5220\u9664\u6700\u540E\u4E00\u4E2A",
+    "web.editor.tagAdded": "\u5DF2\u6DFB\u52A0 ",
+    "web.editor.tagRemoved": "\u5DF2\u79FB\u9664 ",
+    "web.editor.tagExistsSuffix": " \u5DF2\u7ECF\u6DFB\u52A0\u8FC7",
+    "web.editor.tagsAddedSuffix": " \u4E2A\u6807\u7B7E",
     "web.editor.noteLabel": "\u5907\u6CE8",
     "web.editor.notePlaceholder": "\u5199\u4E00\u53E5\u5907\u6CE8\u2026",
     "web.editor.deviceStorageHint": " \u5B58\u5728\u8FD9\u53F0\u8BBE\u5907",
@@ -716,7 +722,9 @@ var Sill = (() => {
     "web.search.clear": "\u6E05\u7A7A\u641C\u7D22",
     "web.search.filtersLabel": "\u7B5B\u9009",
     "web.search.noResultsPrefix": "\u6CA1\u6709\u627E\u5230\u300C",
-    "web.search.noSuggestions": "\u6CA1\u6709\u5339\u914D\u7684\u641C\u7D22\u5386\u53F2\u6216\u6807\u7B7E",
+    "web.search.noSuggestions": "\u6CA1\u6709\u5339\u914D\u7684\u72B6\u6001\u6216\u6807\u7B7E",
+    "web.search.cardSuggestions": "\u5361\u7247\u5EFA\u8BAE",
+    "web.search.suggestionCountSuffix": " \u4E2A\u5019\u9009",
     "web.photo.carousel": "\u7167\u7247\u8F6E\u64AD",
     "web.search.deskGroupPrefix": "\u684C\u9762 \xB7 ",
     "web.search.shelvedGroupPrefix": "\u5DF2\u6536\u8D77 \xB7 ",
@@ -1000,14 +1008,15 @@ var Sill = (() => {
     "web.settings.layout.full": "\u94FA\u6EE1",
     "web.settings.layout.strong": "\u52A0\u91CD",
     "web.settings.layout.reset": "\u6062\u590D\u9ED8\u8BA4\u6392\u7248",
-    "web.search.history": "\u641C\u7D22\u5386\u53F2",
-    "web.search.recommendedTags": "\u63A8\u8350\u6807\u7B7E",
     "web.media.listening": "\u6536\u542C",
     "web.media.introduction": "\u7B80\u4ECB",
     "web.media.transcriptExcerpt": "\u6587\u5B57\u7A3F\u8282\u9009",
     "web.media.program": "\u8282\u76EE",
     "web.media.published": "\u53D1\u5E03",
     "web.media.duration": "\u65F6\u957F",
+    "web.media.host": "\u4E3B\u6301\u4EBA",
+    "web.media.excerpt": "\u8282\u9009",
+    "web.media.information": "\u4FE1\u606F",
     "web.ai.title": "AI",
     "web.ai.soon": "\u5373\u5C06\u63A8\u51FA",
     "web.ai.body": "\u4EE5\u540E\u53EF\u4EE5\u5728\u8FD9\u91CC\u8BA9 AI \u67E5\u627E\u3001\u6574\u7406\u548C\u5904\u7406\u5361\u7247\u3002\u73B0\u5728\u8FD8\u4E0D\u80FD\u4F7F\u7528\u3002",

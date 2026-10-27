@@ -34,7 +34,7 @@ writeFileSync(resolve(output, "reference-media.css"), styles.slice(mediaBoundary
 writeFileSync(resolve(output, "samples.css"), "");
 writeFileSync(
 	resolve(output, "styles.css"),
-	'@import "tokens.css";\n@import "reference-cards.css";\n@import "reference-details.css";\n@import "reference-media.css";\n@import "layout.css";\n@import "samples.css";\n',
+	'@import "tokens.css";\n@import "reference-cards.css";\n@import "reference-details.css";\n@import "reference-media.css";\n@import "product/reader-layout.css";\n@import "layout.css";\n@import "samples.css";\n',
 );
 const actions = [
 	["bookmark", "收藏"],
@@ -120,13 +120,13 @@ for (const [kind, label] of [
 		const layout = document.createElement("div");
 		layout.className = "article-layout";
 		const nav = document.createElement("nav");
-		nav.className = "article-outline";
+		nav.className = "article-outline reader-outline";
 		nav.id = "article-outline";
 		nav.setAttribute("aria-label", "文章目录");
 		nav.innerHTML =
-			'<h2>目录</h2><div class="toc-links"><span class="toc-indicator" aria-hidden="true"></span><a href="#article-section-1" aria-current="location">少开窗口</a><a href="#article-section-2">给内容留白</a></div>';
+			'<h2>目录</h2><div class="reader-outline-links"><span class="reader-outline-marker" aria-hidden="true"></span><span class="reader-outline-notch" aria-hidden="true"></span><a href="#article-section-1" aria-current="location"><span class="reader-spine-band" aria-hidden="true"><span class="reader-spine-fill"></span></span>少开窗口</a><a href="#article-section-2"><span class="reader-spine-band" aria-hidden="true"><span class="reader-spine-fill"></span></span>给内容留白</a></div>';
 		article.replaceWith(layout);
-		layout.append(nav, article);
+		layout.append(article, nav);
 		const progress = full.querySelector(".rprog")!;
 		progress.removeAttribute("style");
 		progress.setAttribute("aria-hidden", "true");

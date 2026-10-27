@@ -1,5 +1,6 @@
 import { type AnimationPlaybackControls, animate, spring } from "motion";
 import { icon } from "../../apps/web/atoms/icons.ts";
+import { bindScrollSpine } from "../../apps/web/interactions/scroll-spine.ts";
 import tokens from "../tokens.json" with { type: "json" };
 
 const stage = document.querySelector<HTMLElement>(".stage")!;
@@ -48,7 +49,7 @@ function render(direct: boolean) {
 	move(left, { transform: `translate(${toolsX}px,${toolsY}px)` }, true);
 	move(toolsSurface, { opacity: expanded ? 0 : 1 }, true);
 	const outlineToggle = document.getElementById("outline-toggle");
-	if (outlineToggle) outlineToggle.hidden = !expanded;
+	if (outlineToggle) outlineToggle.hidden = true;
 	move(right, { transform: `translate(${x + cw - right.offsetWidth - 16}px,${y + 8}px)` }, true);
 	full.inert = !expanded;
 	mini.inert = expanded;
@@ -98,115 +99,14 @@ render(true);
 const articleScroll = document.querySelector<HTMLElement>("#article-scroll");
 const outline = document.querySelector<HTMLElement>(".article-outline");
 if (articleScroll && outline) {
-	const links = [...outline.querySelectorAll<HTMLAnchorElement>("a")];
-	const marker = outline.querySelector<HTMLElement>(".toc-indicator")!;
+	bindScrollSpine(articleScroll, outline);
 	const progress = document.querySelector<HTMLElement>(".rprog")!;
-	const duration =
-		Number.parseFloat(tokens.timing.tokens.find((token) => token.name === "base")!.value) / 1000;
-	const curve = tokens.timing.tokens
-		.find((token) => token.name === "ease")!
-		.value.match(/[\d.]+/g)!
-		.map(Number) as [number, number, number, number];
-	let scrolling: AnimationPlaybackControls | undefined;
-	let selected: HTMLAnchorElement | undefined;
-	let intended: HTMLAnchorElement | undefined;
-	let revision = 0;
-	function select(link: HTMLAnchorElement, direct = false) {
-		if (selected === link && !direct) return;
-		selected = link;
-		for (const item of links)
-			item.setAttribute("aria-current", item === link ? "location" : "false");
-		const position = link.offsetTop + (link.offsetHeight - marker.offsetHeight) / 2;
-		active.get(marker)?.stop();
-		if (direct) marker.style.transform = `translateY(${position}px)`;
-		else
-			active.set(
-				marker,
-				animate(marker, { transform: `translateY(${position}px)` }, { duration, ease: curve }),
-			);
-	}
-	function updateReading(direct = false) {
-		const max = articleScroll!.scrollHeight - articleScroll!.clientHeight;
-		progress.style.transform = `scaleX(${max > 0 ? articleScroll!.scrollTop / max : 1})`;
-		if (intended) {
-			select(intended, direct);
-			return;
-		}
-		let current = links[0];
-		for (const link of links) {
-			const section = document.querySelector<HTMLElement>(link.hash)!;
-			if (section.getBoundingClientRect().top <= articleScroll!.getBoundingClientRect().top + 40)
-				current = link;
-		}
-		if (max > 0 && articleScroll!.scrollTop >= max - 1) current = links[links.length - 1];
-		select(current, direct);
-	}
-	function interrupt() {
-		revision++;
-		scrolling?.stop();
-		scrolling = undefined;
-		intended = undefined;
-		updateReading(true);
-	}
-	for (const link of links)
-		link.addEventListener("click", (event) => {
-			event.preventDefault();
-			scrolling?.stop();
-			const ownRevision = ++revision;
-			const section = document.querySelector<HTMLElement>(link.hash)!;
-			const maximum = Math.max(0, articleScroll.scrollHeight - articleScroll.clientHeight);
-			const target = Math.max(
-				0,
-				Math.min(
-					maximum,
-					articleScroll.scrollTop +
-						section.getBoundingClientRect().top -
-						articleScroll.getBoundingClientRect().top -
-						16,
-				),
-			);
-			intended = link;
-			select(link, event.detail === 0);
-			if (event.detail === 0) {
-				articleScroll.scrollTop = target;
-				intended = undefined;
-				return;
-			}
-			scrolling = animate(articleScroll.scrollTop, target, {
-				duration,
-				ease: curve,
-				onUpdate: (value) => {
-					articleScroll.scrollTop = value;
-				},
-				onComplete: () => {
-					if (revision === ownRevision) {
-						scrolling = undefined;
-						intended = undefined;
-					}
-				},
-			});
-		});
-	articleScroll.addEventListener("wheel", interrupt, { passive: true });
-	articleScroll.addEventListener("touchstart", interrupt, { passive: true });
-	articleScroll.addEventListener("pointerdown", interrupt, { passive: true });
-	articleScroll.addEventListener("keydown", (event) => {
-		if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(event.key))
-			interrupt();
-	});
-	toggle.addEventListener("click", interrupt);
-	document.getElementById("outline-toggle")!.addEventListener("click", (event) => {
-		interrupt();
-		outline.hidden = !outline.hidden;
-		outline.parentElement!.classList.toggle("focus-reading", outline.hidden);
-		const button = event.currentTarget as HTMLButtonElement;
-		button.setAttribute("aria-expanded", String(!outline.hidden));
-		button.setAttribute("aria-label", outline.hidden ? "显示目录" : "收起目录");
-		button.title = outline.hidden ? "显示目录" : "收起目录，专注阅读";
-		updateReading(true);
-	});
-	articleScroll.addEventListener("scroll", () => updateReading(), { passive: true });
-	new ResizeObserver(() => {
-		interrupt();
-	}).observe(articleScroll);
-	updateReading(true);
+	articleScroll.addEventListener(
+		"scroll",
+		() => {
+			const maximum = articleScroll.scrollHeight - articleScroll.clientHeight;
+			progress.style.transform = `scaleX(${maximum > 0 ? articleScroll.scrollTop / maximum : 1})`;
+		},
+		{ passive: true },
+	);
 }

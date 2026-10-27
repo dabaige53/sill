@@ -1,10 +1,24 @@
+import type { Card } from "../../../contracts/card.ts";
+import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { hashOptions, searchStatuses, searchTypes } from "../interactions/panel-search.tsx";
+import { cardSource } from "../data/card-source.ts";
+import {
+	cardKind,
+	hashOptions,
+	SearchMatch,
+	searchStatuses,
+	searchTypes,
+} from "../interactions/panel-search.tsx";
 import type { Filter } from "./app-types.ts";
 
-/** One # option, flattened in list order for arrow keys and Enter. */
-export type HomeHashOption = { extra: string; label: string; group: "status" | "tag" | "history" };
+/** One suggestion, flattened in list order for arrow keys and Enter. */
+export type HomeHashOption = {
+	extra: string;
+	label: string;
+	group: "card" | "status" | "tag";
+	kind?: { icon: string; label: string };
+};
 
 /** # options for the desktop top-bar search: the tab's own status is already a token. */
 export function homeHashOptions(frag: string, tabStatus: string): HomeHashOption[] {
@@ -19,30 +33,19 @@ export function homeHashOptions(frag: string, tabStatus: string): HomeHashOption
 	];
 }
 
-/** A stored choice is valid only while its corresponding filter still matches. */
-export function selectedHomeChoice(filter: Filter, choice: string) {
-	const at = choice.indexOf(":"),
-		kind = choice.slice(0, at),
-		value = choice.slice(at + 1);
-	if (
-		(kind === "query" && value === filter.query) ||
-		(kind === "tag" && value === filter.tag) ||
-		(kind === "status" && value === filter.mark)
-	)
-		return choice;
-	return filter.tag ? `tag:${filter.tag}` : filter.mark !== "all" ? `status:${filter.mark}` : "";
+/** Without #, the field suggests cards: the ones it would find, title first, its kind after. */
+export function homeCardOptions(cards: Card[]): HomeHashOption[] {
+	return cards.slice(0, tokens.motion.searchChoice.suggestions).map((card) => ({
+		extra: `card:${card.id}`,
+		label: card.title || cardSource(card) || "",
+		group: "card" as const,
+		kind: cardKind(card),
+	}));
 }
 
-function SearchMatch({ text, needle }: { text: string; needle: string }) {
-	const at = needle ? text.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) : -1;
-	if (at < 0) return <>{text}</>;
-	return (
-		<span className="home-option-match">
-			{text.slice(0, at)}
-			<mark>{text.slice(at, at + needle.length)}</mark>
-			{text.slice(at + needle.length)}
-		</span>
-	);
+/** The # condition in effect is the one marked as chosen in the list. */
+export function selectedHomeChoice(filter: Filter) {
+	return filter.tag ? `tag:${filter.tag}` : filter.mark !== "all" ? `status:${filter.mark}` : "";
 }
 
 /** # conditions after the tab token: accent, removed by a click or by Delete from the end. */
@@ -63,17 +66,17 @@ export function HomeSearchMarks({ filter }: { filter: Filter }) {
 					data-extra={mark.key}
 					aria-label={`${copy("web.search.removeCondition")} ${mark.label}`}
 				>
-					<span className="home-condition-icon" aria-hidden="true">
-						<Icon name={mark.key === "tag" ? "tag" : "filter"} size={12} />
-					</span>
-					<span>{mark.label}</span>
+					{mark.label}
 				</button>
 			))}
 		</>
 	);
 }
 
-/** Typing # lists statuses, then existing tags; it floats under the field and pushes nothing. */
+/**
+ * The suggestion list floats under the field and pushes nothing (Combobox): cards while typing,
+ * statuses and tags after #. Rows carry text only; a chosen # condition shows a check.
+ */
 export function HomeHashList({
 	options,
 	active,
@@ -87,50 +90,48 @@ export function HomeHashList({
 	needle?: string;
 	onHighlight?: (index: number) => void;
 }) {
+	const row = (option: HomeHashOption) => {
+		const index = options.indexOf(option);
+		const condition = option.group !== "card";
+		return (
+			<button
+				key={option.extra}
+				type="button"
+				id={`home-option-${index}`}
+				role="option"
+				onPointerMove={(event) => {
+					if (event.pointerType !== "touch" && index !== active) onHighlight?.(index);
+				}}
+				aria-selected={option.extra === selected}
+				tabIndex={-1}
+				className={`search-hash-option${index === active ? " is-active" : ""}`}
+				data-action="home-hash"
+				data-extra={option.extra}
+			>
+				<span className="home-option-label">
+					<SearchMatch text={option.label} needle={needle} />
+				</span>
+				{option.kind ? (
+					<span className="home-option-meta">
+						<Icon name={option.kind.icon} size={14} />
+						<span>{option.kind.label}</span>
+					</span>
+				) : null}
+				{condition ? (
+					<span className="home-option-check" aria-hidden="true" hidden={option.extra !== selected}>
+						<Icon name="check" size={16} />
+					</span>
+				) : null}
+			</button>
+		);
+	};
 	const group = (name: HomeHashOption["group"], label: string) => {
 		const items = options.filter((option) => option.group === name);
 		if (!items.length) return null;
 		return (
 			<>
 				<div className="search-hash-label">{label}</div>
-				{items.map((option) => {
-					const index = options.indexOf(option);
-					return (
-						<button
-							key={option.extra}
-							type="button"
-							id={`home-option-${index}`}
-							role="option"
-							onPointerMove={(event) => {
-								if (event.pointerType !== "touch" && index !== active) onHighlight?.(index);
-							}}
-							aria-selected={option.extra === selected}
-							tabIndex={-1}
-							className={`search-hash-option${index === active ? " is-active" : ""}`}
-							data-action="home-hash"
-							data-extra={option.extra}
-						>
-							<span className="home-option-icon" aria-hidden="true">
-								<Icon
-									name={
-										option.group === "history" ? "clock" : option.group === "tag" ? "tag" : "filter"
-									}
-									size={16}
-								/>
-							</span>
-							<span className="home-option-label">
-								<SearchMatch text={option.label} needle={needle} />
-							</span>
-							<span
-								className="home-option-check"
-								aria-hidden="true"
-								hidden={option.extra !== selected}
-							>
-								<Icon name="check" size={16} />
-							</span>
-						</button>
-					);
-				})}
+				{items.map(row)}
 			</>
 		);
 	};
@@ -142,19 +143,21 @@ export function HomeHashList({
 			aria-label={copy("web.search.hashList")}
 		>
 			<span className="home-hash-highlight" aria-hidden="true" />
+			<span className="sr-only" role="status" aria-live="polite">
+				{options.length
+					? `${options.length}${copy("web.search.suggestionCountSuffix")}`
+					: copy("web.search.noSuggestions")}
+			</span>
 			{!options.length && (
-				<div className="home-search-empty">{copy("web.search.noSuggestions")}</div>
+				<div className="home-search-empty">
+					{needle
+						? `${copy("web.search.noResultsPrefix")}${needle}」`
+						: copy("web.search.noSuggestions")}
+				</div>
 			)}
-			{group("history", copy("web.search.history"))}
+			{options.filter((option) => option.group === "card").map(row)}
 			{group("status", copy("web.search.hashStatus"))}
-			{group(
-				"tag",
-				copy(
-					options.some((option) => option.group === "status")
-						? "web.search.hashTag"
-						: "web.search.recommendedTags",
-				),
-			)}
+			{group("tag", copy("web.search.hashTag"))}
 		</div>
 	);
 }

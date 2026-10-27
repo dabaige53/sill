@@ -109,21 +109,23 @@ dialog::backdrop {
 	gap: var(--space-8);
 	pointer-events: auto;
 }
+/* The round buttons stay where they are and only fade; nothing beside the title moves. */
 .sheet-head-tools.is-tucked {
-	transform: var(--motion-toolbar-transform, translateY(-12px));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
 }
-.preview-sheet:before {
-	content: "";
+/* Scroll edges are real layers, so they tuck and return with the bars on the same timing. */
+.preview-sheet > .sheet-edge {
 	position: absolute;
 	left: 0;
 	right: 0;
+	pointer-events: none;
+}
+.preview-sheet > .sheet-edge.is-top {
 	top: 0;
 	height: 76px;
 	z-index: 3;
-	pointer-events: none;
 	opacity: 0;
 	background: linear-gradient(
 		to bottom,
@@ -131,7 +133,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent)
 	);
 }
-.preview-sheet.is-scrolled:not(:has(.sheet-head-tools.is-tucked)):before {
+.preview-sheet.is-scrolled > .sheet-edge.is-top {
 	opacity: 1;
 }
 /* The close disc sits in the source row above the title, so the title keeps the whole width.
@@ -155,9 +157,6 @@ dialog::backdrop {
 }
 .preview-title-row :is(#modal-title, .phone-layer-title) {
 	min-width: 0;
-}
-.preview-sheet.is-scrolled .sheet-head {
-	top: 0;
 }
 .sheet-handle {
 	display: none;
@@ -198,14 +197,13 @@ dialog::backdrop {
 	z-index: 3;
 }
 /* Scroll edge at the foot of the card: text fades and softens where the toolbar floats. */
-:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet:after {
-	content: "";
-	position: absolute;
-	left: 0;
-	right: 0;
+.preview-sheet > .sheet-edge.is-bottom {
+	display: none;
+}
+:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
+	display: block;
 	bottom: 0;
 	height: calc(var(--rail-row) + 18px + 44px);
-	pointer-events: none;
 	z-index: 2;
 	/* Under the capsule the text is only a faint texture; above it, it fades in over 44px. */
 	background: linear-gradient(
@@ -215,7 +213,8 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-:is(#modal, .phone-layer).preview:has(.float-bar.is-tucked) .preview-sheet:after {
+.preview-sheet > .sheet-edge.is-top.is-tucked,
+.preview-sheet > .sheet-edge.is-bottom.is-tucked {
 	opacity: 0;
 }
 .preview-foot {

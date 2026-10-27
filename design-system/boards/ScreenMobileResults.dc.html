@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>移动 · 结果页与 # 条件</title>
+<title>移动 · 结果页（键盘收起，底栏可点）</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -17,25 +17,16 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 </helmet>
 <div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased">
   <div style="height: 54px"></div>
-  <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px 0; position: relative">
-    <div style="flex: 1; min-width: 0; height: 44px; border-radius: 22px; background: #f0f0f2; box-shadow: inset 0 0 0 1px rgba(0,0,0,.04); display: flex; align-items: center; gap: 6px; padding: 0 8px 0 14px; color: #636366">
-      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px; flex: none"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg>
+  <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px 0">
+    <div style="flex: 1; min-width: 0; height: 44px; border-radius: 22px; background: #f0f0f2; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 12px; color: #1d1d1f">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 22px; height: 22px; flex: none"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg>
       <span style="height: 28px; padding: 0 10px; border-radius: 14px; background: #1d1d1f; color: #fff; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; flex: none">资讯</span>
       <span style="height: 28px; padding: 0 10px; border-radius: 14px; background: #0066cc; color: #fff; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; flex: none">#未读</span>
-      <span style="font-size: 17px; color: #1d1d1f; white-space: nowrap">#</span>
-      <span aria-hidden="true" style="width: 2px; height: 22px; background: #0066cc; border-radius: 1px"></span>
+      <span style="font-size: 17px; white-space: nowrap">AI</span>
       <span style="flex: 1"></span>
-      <button type="button" aria-label="清除" style="width: 28px; height: 28px; display: grid; place-items: center"><span style="width: 18px; height: 18px; border-radius: 50%; background: #aeaeb2; display: grid; place-items: center; color: #fff"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 10px; height: 10px; stroke-width: 2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></span></button>
+      <button type="button" aria-label="清空搜索" style="width: 32px; height: 32px; display: grid; place-items: center"><span style="width: 18px; height: 18px; border-radius: 50%; background: #aeaeb2; display: grid; place-items: center; color: #fff"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 10px; height: 10px; stroke-width: 2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></span></button>
     </div>
-    <button type="button" aria-label="关闭搜索" style="width: 44px; height: 44px; border-radius: 50%; background: #f0f0f2; display: grid; place-items: center; flex: none"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    <div role="listbox" aria-label="# 条件" style="position: absolute; left: 16px; right: 68px; top: 60px; background: #fff; border-radius: 16px; box-shadow: 0 0 0 .5px rgba(0,0,0,.1), 0 20px 50px -16px rgba(0,0,0,.35); padding: 6px; z-index: 3">
-      <div style="font-size: 12px; color: #636366; font-weight: 600; padding: 8px 10px 4px">状态</div>
-      <div role="option" aria-selected="true" style="height: 40px; display: flex; align-items: center; padding: 0 10px; border-radius: 10px; font-size: 15px; background: rgba(0,0,0,.05)">收藏</div>
-      <div role="option" aria-selected="false" style="height: 40px; display: flex; align-items: center; padding: 0 10px; border-radius: 10px; font-size: 15px">稍后读</div>
-      <div style="font-size: 12px; color: #636366; font-weight: 600; padding: 8px 10px 4px">标签</div>
-      <div role="option" aria-selected="false" style="height: 40px; display: flex; align-items: center; padding: 0 10px; border-radius: 10px; font-size: 15px">#产品</div>
-      <div role="option" aria-selected="false" style="height: 40px; display: flex; align-items: center; padding: 0 10px; border-radius: 10px; font-size: 15px">#阅读</div>
-    </div>
+    <button type="button" style="min-height: 44px; padding: 0 8px; color: #0066cc; font-size: 17px; flex: none">取消</button>
   </div>
   <main style="padding: 16px 16px 0; display: flex; flex-direction: column; gap: 12px">
     <article style="background: #fff; border-radius: 16px; padding: 16px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); display: flex; gap: 12px">

@@ -628,7 +628,7 @@
 .preview-sheet .is-podcast .media-tab-header {
 	isolation: isolate;
 }
-.preview-sheet.is-scrolled:has(.is-podcast)::before {
+.preview-sheet.is-scrolled:has(.is-podcast) > .sheet-edge.is-top {
 	display: none;
 }
 
@@ -663,85 +663,5 @@
 	}
 	.lightbox-thumbs {
 		justify-content: flex-start;
-	}
-}
-
-/* Podcast introductions share the normal sheet, without a player or sticky media header. */
-.podcast-detail {
-	display: flex;
-	flex-direction: column;
-	gap: var(--rhythm-group);
-}
-.podcast-cover {
-	width: min(100%, var(--col-min));
-	aspect-ratio: 1;
-	object-fit: cover;
-	border-radius: var(--cover-radius);
-}
-.podcast-detail h2 {
-	font-size: var(--text-body);
-	margin: 0 0 var(--rhythm-item);
-}
-.podcast-listening {
-	margin: 0;
-	color: var(--muted);
-	font-size: var(--text-control);
-}
-.podcast-chapters {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-.podcast-chapters li,
-.podcast-facts > div {
-	display: flex;
-	gap: var(--space-16);
-	padding-block: var(--space-12);
-	border-bottom: 1px solid var(--line-card);
-}
-.podcast-chapters time {
-	flex: none;
-	color: var(--muted);
-}
-.podcast-facts {
-	margin: 0;
-}
-.podcast-facts dt {
-	color: var(--muted);
-	min-width: var(--space-64);
-}
-.podcast-facts dd {
-	margin: 0;
-	overflow-wrap: anywhere;
-}
-.podcast-transcript {
-	font-family: var(--font);
-}
-:is(#modal, .phone-layer).preview:has(.podcast-detail) .preview-body {
-	padding-top: var(--space-16);
-}
-
-:is(#modal, .phone-layer).preview:has(.podcast-detail) .sheet-head {
-	top: var(--space-16);
-}
-@media (min-width: 651px) {
-	.podcast-detail {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
-		gap: var(--rhythm-group);
-	}
-	.podcast-detail > .podcast-cover {
-		grid-column: 1;
-		grid-row: 1;
-		width: 100%;
-	}
-	.podcast-detail > .detail-header {
-		grid-column: 2;
-		grid-row: 1;
-		align-self: end;
-		padding-right: var(--space-44);
-	}
-	.podcast-detail > :is(section, dl, .podcast-listening) {
-		grid-column: 1 / -1;
 	}
 }

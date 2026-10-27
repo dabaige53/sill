@@ -1,6 +1,12 @@
 import { copy } from "../../copy.ts";
 import { Store } from "../../data/store.ts";
 import { PanelViews as Panels } from "../../interactions/panels-components.tsx";
+import {
+	announceTags,
+	captureTags,
+	settleTags,
+	shakeTag,
+} from "../../interactions/tag-input-motion.ts";
 import type { AppController } from "../app.ts";
 import { renderView } from "../react-renderer.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
@@ -64,27 +70,69 @@ function archiveAll(this: AppController) {
 	this.withFeedAnchor(() => {}, true);
 }
 
-function editorTag(this: AppController, { extra }: ActionContext) {
-	this.editTags.has(extra) ? this.editTags.delete(extra) : this.editTags.add(extra);
+const MAX_TAGS = 20;
+
+/** Repaint the editor in place; only the chips that change or move animate (tag-input-motion). */
+function paintTags(this: AppController, added: string[], typed: boolean, removed?: string) {
+	const before = captureTags(document.getElementById("editor-tags"), removed);
 	const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
 	renderView(this.dialog, Panels.editor(this, this.editId));
 	if (note !== undefined) (document.getElementById("note-editor") as HTMLInputElement).value = note;
-	document.getElementById("tag-new")?.focus();
+	settleTags(document.getElementById("editor-tags"), before, added, typed);
 }
 
-function addTag(this: AppController) {
-	const field = document.getElementById("tag-new"),
-		value = (field as HTMLInputElement).value.trim().replace(/^#/, "").slice(0, 30);
-	if (!value) return;
-	if (this.editTags.size >= 20) {
+/** A suggestion adds its tag; a chip's × removes it. Focus stays in the field. */
+function editorTag(this: AppController, { extra }: ActionContext) {
+	const removing = this.editTags.has(extra);
+	if (!removing && this.editTags.size >= MAX_TAGS) {
 		this.alert(copy("web.app.1859bc867672"));
 		return;
 	}
-	this.editTags.add(value);
-	const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
-	renderView(this.dialog, Panels.editor(this, this.editId));
-	(document.getElementById("note-editor") as HTMLInputElement).value = note || "";
-	document.getElementById("tag-new").focus();
+	if (removing) this.editTags.delete(extra);
+	else this.editTags.add(extra);
+	paintTags.call(this, removing ? [] : [extra], false, removing ? extra : undefined);
+	announceTags(`${copy(removing ? "web.editor.tagRemoved" : "web.editor.tagAdded")}${extra}`);
+	document.getElementById("tag-new")?.focus({ preventScroll: true });
+}
+
+/**
+ * Enter or a comma adds the draft; a paste or a phone keyboard may bring several, split on
+ * commas and new lines. A tag already there, in any case, shakes instead of doubling.
+ */
+function addTag(this: AppController, { extra }: ActionContext) {
+	const field = document.getElementById("tag-new") as HTMLInputElement | null;
+	const parts = (extra || field?.value || "")
+		.split(/[,，\n]/)
+		.map((part) => part.trim().replace(/^#/, "").slice(0, 30))
+		.filter(Boolean);
+	if (field) field.value = "";
+	if (!parts.length) return;
+	const added: string[] = [],
+		repeated: string[] = [];
+	for (const part of parts) {
+		const lower = part.toLocaleLowerCase();
+		const existing = [...this.editTags].find((tag) => tag.toLocaleLowerCase() === lower);
+		if (existing) {
+			if (!repeated.includes(existing)) repeated.push(existing);
+			continue;
+		}
+		if (this.editTags.size >= MAX_TAGS) {
+			this.alert(copy("web.app.1859bc867672"));
+			break;
+		}
+		this.editTags.add(part);
+		added.push(part);
+	}
+	if (added.length) paintTags.call(this, added, true);
+	const list = document.getElementById("editor-tags");
+	for (const tag of repeated) shakeTag(list, tag);
+	announceTags(
+		[
+			...added.map((tag) => `${copy("web.editor.tagAdded")}${tag}`),
+			...repeated.map((tag) => `${tag}${copy("web.editor.tagExistsSuffix")}`),
+		].join("，"),
+	);
+	document.getElementById("tag-new")?.focus({ preventScroll: true });
 }
 
 function saveNote(this: AppController, { id }: ActionContext) {

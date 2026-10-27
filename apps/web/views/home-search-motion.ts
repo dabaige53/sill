@@ -21,13 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-import { createElement } from "react";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
-import { Icon } from "../atoms/react-primitives.tsx";
 import { MotionEngine } from "../interactions/motion.ts";
-import { renderView } from "./react-renderer.ts";
-
-const flights = new WeakMap<HTMLElement, DOMRect>();
 
 const iconPose = (visible: boolean) => ({
 	transform: visible ? "scale(1)" : "scale(0.25)",
@@ -61,76 +56,6 @@ export function syncSearchClear(field: HTMLElement, visible: boolean) {
 				fill: "forwards",
 			},
 		);
-	}
-}
-
-/** Capture the selected icon while its row is still mounted. */
-export function searchChoiceOrigin(field: HTMLElement | null, extra: string) {
-	const option = [
-		...(field?.querySelectorAll<HTMLElement>('[data-action="home-hash"]') || []),
-	].find((node) => node.dataset.extra === extra);
-	const rect = option?.querySelector<HTMLElement>(".home-option-icon")?.getBoundingClientRect();
-	if (field && rect?.width && field.dataset.choice !== extra && !MotionEngine.keyboard)
-		flights.set(field, rect);
-	return rect;
-}
-
-/** Like the reference avatar, every selected kind lands in the field's leading slot. */
-export function flySearchChoice(field: HTMLElement | null) {
-	if (!field) return;
-	const from = flights.get(field);
-	flights.delete(field);
-	const target = field.querySelector<HTMLElement>(".home-search-choice");
-	if (!target || !from || MotionEngine.keyboard) return;
-	MotionEngine.cancel(target);
-	const to = target.getBoundingClientRect();
-	if (!to.width) return;
-	MotionEngine.animate(
-		target,
-		[
-			{
-				transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width})`,
-			},
-			{ transform: "none" },
-		],
-		{ duration: tokens.motion.searchChoice.duration, easing: tokens.motion.searchChoice.easing },
-	);
-}
-
-export function syncSearchIcon(field: HTMLElement, choice: string) {
-	const slot = field.querySelector<HTMLElement>(".home-search-leading");
-	if (!slot) return;
-	const old = field.dataset.choice;
-	field.dataset.choice = choice;
-	const target = slot.querySelector<HTMLElement>(".home-search-choice");
-	if (target && old !== choice) {
-		const name = choice.startsWith("query:")
-			? "clock"
-			: choice.startsWith("tag:")
-				? "tag"
-				: "filter";
-		renderView(target, createElement(Icon, { name, size: 16 }));
-	}
-	if (old === choice) return;
-	for (const node of slot.querySelectorAll<HTMLElement>("[data-search-icon]")) {
-		const visible = (node.dataset.searchIcon === "condition") === !!choice;
-		const to = iconPose(visible);
-		const instant = visible && flights.has(field);
-		if (old === undefined || MotionEngine.keyboard || instant) {
-			MotionEngine.cancel(node);
-			Object.assign(node.style, to);
-		} else {
-			const drawn = getComputedStyle(node);
-			MotionEngine.animate(
-				node,
-				[{ transform: drawn.transform, opacity: drawn.opacity, filter: drawn.filter }, to],
-				{
-					spring: "search-icon",
-					duration: tokens.motion.searchIconSpring.duration * 1000,
-					fill: "forwards",
-				},
-			);
-		}
 	}
 }
 

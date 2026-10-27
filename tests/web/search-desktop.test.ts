@@ -162,7 +162,7 @@ test("nested card return keeps retained search nodes, position and focus through
 	}
 });
 
-test("desktop search opens session history and real tags immediately, and closes on blur", () => {
+test("desktop search suggests the cards it finds, keeps the query on reopen, and closes on blur", () => {
 	const f = desktopFixture();
 	try {
 		f.input.focus();
@@ -170,18 +170,33 @@ test("desktop search opens session history and real tags immediately, and closes
 		f.input.blur();
 		f.input.focus();
 		assert.equal(f.input.value, "Alpha", "reopening preserves the query while showing suggestions");
-		const options = [...f.w.document.querySelectorAll("#home-hash [role=option]")];
+		const extras = () =>
+			[...f.w.document.querySelectorAll("#home-hash [role=option]")].map(
+				(n: any) => n.dataset.extra,
+			);
 		assert.deepEqual(
-			options.map((n: any) => n.dataset.extra),
-			["query:Alpha", "tag:Work"],
+			extras(),
+			["card:a", "card:old", "card:m"],
+			"without # the field suggests cards only",
 		);
-		f.app.action("home-hash", "", "query:Alpha");
-		assert.equal(f.input.value, "Alpha");
+		f.type("Alpha #");
+		assert.ok(extras().includes("tag:Work"), "# lists the existing tags");
+		assert.ok(
+			!extras().some((extra: string) => extra.startsWith("card:")),
+			"# lists conditions, not cards",
+		);
+		f.type("Alpha");
+		let opened = "";
+		f.app.navigate = (hash: string) => {
+			opened = hash;
+		};
+		f.app.action("home-hash", "", "card:m");
+		assert.equal(opened, "#card/m", "picking a card suggestion opens that card");
 		assert.equal(f.w.document.querySelector("#home-hash"), null);
+		f.input.focus();
 		f.type("");
 		f.input.blur();
 		assert.equal(f.w.document.querySelector("#home-hash"), null);
-		assert.deepEqual([...f.app.searchHistory], ["Alpha"]);
 	} finally {
 		f.dom.window.close();
 	}
@@ -192,22 +207,27 @@ test("combobox keys close without clearing, jump to endpoints and accept an enga
 	try {
 		f.w.document.documentElement.dataset.inputModality = "keyboard";
 		f.input.focus();
-		f.type("Alpha");
+		f.type("Alpha #");
 		f.input.blur();
 		f.input.focus();
 		assert.equal(f.input.getAttribute("aria-expanded"), "true");
+		const options = f.app.homeHashOptions();
+		assert.equal(options.at(-1).extra, "tag:Work", "tags follow the statuses");
 		f.key("Escape");
-		assert.equal(f.input.value, "Alpha");
+		assert.equal(f.input.value, "Alpha #");
 		assert.equal(f.input.getAttribute("aria-expanded"), "false");
 		f.key("ArrowUp");
-		assert.equal(f.input.getAttribute("aria-activedescendant"), "home-option-1");
+		assert.equal(
+			f.input.getAttribute("aria-activedescendant"),
+			`home-option-${options.length - 1}`,
+		);
 		f.key("Home");
 		assert.equal(f.app.homeHashIndex, 0);
 		f.key("End");
-		assert.equal(f.app.homeHashIndex, 1);
+		assert.equal(f.app.homeHashIndex, options.length - 1);
 		f.key("Tab");
 		assert.equal(f.app.filter.tag, "Work");
-		assert.equal(f.input.value, "Alpha");
+		assert.equal(f.input.value, "Alpha", "the # fragment leaves; the words stay");
 		assert.equal(f.w.document.querySelector("#home-hash"), null);
 		assert.equal(
 			f.w.document.querySelector(".home-search-token[data-extra=tag]")?.textContent,
@@ -231,22 +251,27 @@ test("tabbing past an opened combobox does not pick an untouched first suggestio
 	}
 });
 
-test("typing filters history and tags, empty candidates close with Escape, and reopening highlights the chosen history", () => {
+test("typing narrows cards and # conditions, empty candidates close with Escape, and # marks the chosen condition", () => {
 	const f = desktopFixture();
 	try {
-		f.app.searchHistory = ["Alpha", "Gamma"];
 		f.input.focus();
-		f.type("Al");
+		f.type("Gam");
 		assert.deepEqual(
 			[...f.app.homeHashOptions()].map((option: any) => option.extra),
-			["query:Alpha"],
+			["card:n"],
 		);
-		assert.equal(f.w.document.querySelector(".home-option-match mark").textContent, "Al");
-		f.app.action("home-hash", "", "query:Alpha");
-		assert.equal(f.app.homeSearchChoice, "query:Alpha");
+		assert.equal(f.w.document.querySelector(".home-option-label mark").textContent, "Gam");
+		f.type("#Wo");
+		assert.deepEqual(
+			[...f.app.homeHashOptions()].map((option: any) => option.extra),
+			["tag:Work"],
+		);
+		f.app.action("home-hash", "", "tag:Work");
+		assert.equal(f.app.filter.tag, "Work");
 		assert.equal(f.input.getAttribute("aria-expanded"), "false");
 		f.app.openHomeSearch(true);
-		assert.equal(f.w.document.querySelector('[aria-selected="true"]').dataset.extra, "query:Alpha");
+		f.type("#");
+		assert.equal(f.w.document.querySelector('[aria-selected="true"]').dataset.extra, "tag:Work");
 		f.type("no match");
 		assert.equal(f.input.getAttribute("aria-expanded"), "true");
 		assert.ok(f.w.document.querySelector(".home-search-empty"));

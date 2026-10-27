@@ -4,23 +4,36 @@
 	margin-top: var(--space-4);
 }
 
-/* Tags and notes. */
+/* Tags and notes. The tag field follows the tag-input reference: chips sit in a well and wrap. */
 .tag-editor {
+	position: relative;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--space-6);
-	padding-bottom: var(--space-12);
-	border-bottom: 1px solid var(--line);
+	margin: 0;
+	padding: var(--space-6);
+	list-style: none;
+	border-radius: 14px;
+	background: var(--surface);
 }
-.tag-editor input {
+.tag-input-slot {
 	flex: 1;
 	min-width: 120px;
+}
+.tag-editor input {
+	width: 100%;
+	min-width: 0;
 	height: 32px;
-	padding: 0 var(--space-6);
+	padding: 0 var(--space-8) 0 var(--space-10);
 	border: 0;
 	background: transparent;
 	font-size: var(--text-meta);
+}
+.tag-hint {
+	margin: var(--space-8) 0 0;
+	font-size: var(--text-caption);
+	color: var(--muted);
 }
 .editor-note {
 	width: 100%;

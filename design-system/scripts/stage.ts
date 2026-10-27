@@ -34,7 +34,9 @@ const publication = existsSync(publishedFile)
 const published = Object.fromEntries(
 	["ds", "canvas"].map((name) => [
 		name,
-		typeof publication[name] === "string"
+		Array.isArray(publication[name])
+			? Object.assign({}, ...publication[name].map((file: string) => JSON.parse(readFileSync(resolve(ds, file), "utf8"))))
+			: typeof publication[name] === "string"
 			? JSON.parse(readFileSync(resolve(ds, publication[name]), "utf8"))
 			: publication[name],
 	]),
@@ -174,10 +176,12 @@ function record(dsVersion?: string, canvasVersion?: string, adrNumber?: string) 
 		if (path.startsWith("project/assets/Icons/") && !next.ds[path]) next.ds[path] = value;
 	for (const f of walk(resolve(ds, "assets/Icons")))
 		next.ds["project/assets/Icons/" + relative(resolve(ds, "assets/Icons"), f)] = hash(f);
-	for (const name of ["ds", "canvas"])
+	const reading = Object.fromEntries(Object.entries(next.canvas).filter(([path]) => path.startsWith("project/expanded-reading/")));
+	const canvas = Object.fromEntries(Object.entries(next.canvas).filter(([path]) => !path.startsWith("project/expanded-reading/")));
+	for (const [name, entries] of Object.entries({ ds: next.ds, canvas, "canvas-reading": reading }))
 		writeFileSync(
 			resolve(ds, `published-${name}.json`),
-			JSON.stringify(next[name], null, 2) + "\n",
+			JSON.stringify(entries, null, 2) + "\n",
 		);
 	writeFileSync(
 		publishedFile,
@@ -185,7 +189,7 @@ function record(dsVersion?: string, canvasVersion?: string, adrNumber?: string) 
 			{
 				note: "上次发布到线上的文件指纹，由 design-init.sh record 写入。",
 				ds: "published-ds.json",
-				canvas: "published-canvas.json",
+				canvas: ["published-canvas.json", "published-canvas-reading.json"],
 			},
 			null,
 			2,

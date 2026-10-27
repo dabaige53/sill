@@ -15,6 +15,7 @@ const REST_MS = Number.parseFloat(
 	tokens.timing.tokens.find((token) => token.name === "rest-show")!.value,
 ); // a pause this long brings them back
 const EDGE = 24; // near the top or the end, the bars always show
+const FINISH_ZONE = 120; // the last stretch before a read-end push, kept clear for the check
 
 class ChromeAutoHide {
 	declare source: Source;
@@ -25,15 +26,25 @@ class ChromeAutoHide {
 	declare timer: number;
 	declare hidden: boolean;
 	declare paused: () => boolean;
+	declare endOwned: () => boolean;
 	declare onScroll: () => void;
 	declare onFocus: (e: FocusEvent) => void;
 	declare onKeyDown: (e: KeyboardEvent) => void;
 
-	/** Scroll rules are shared; the desktop header has a gentler independent reveal. */
-	constructor(source: Source, targets: () => Element[], paused: () => boolean = () => false) {
+	/**
+	 * Scroll rules are shared; the desktop header has a gentler independent reveal.
+	 * `endOwned`: a read-end push waits at the end, so reaching it or pausing near it keeps the bars away.
+	 */
+	constructor(
+		source: Source,
+		targets: () => Element[],
+		paused: () => boolean = () => false,
+		endOwned: () => boolean = () => false,
+	) {
 		this.source = source;
 		this.targets = targets;
 		this.paused = paused;
+		this.endOwned = endOwned;
 		this.last = this.position();
 		this.down = 0;
 		this.up = 0;
@@ -88,7 +99,8 @@ class ChromeAutoHide {
 		this.last = y;
 		if (!dy) return;
 		clearTimeout(this.timer);
-		if (y <= EDGE || y >= max - EDGE) {
+		const finishing = y >= max - FINISH_ZONE && this.endOwned();
+		if (y <= EDGE || (y >= max - EDGE && !finishing)) {
 			this.down = this.up = 0;
 			this.show();
 			return;
@@ -102,7 +114,7 @@ class ChromeAutoHide {
 			this.down = 0;
 			if (this.up > SHOW_AFTER) this.show();
 		}
-		if (this.hidden)
+		if (this.hidden && !finishing)
 			this.timer = window.setTimeout(() => {
 				if (!this.paused()) this.show();
 			}, REST_MS);
@@ -135,8 +147,11 @@ class ChromeAutoHide {
 		const reveal = !withCard;
 		for (const t of this.targets()) {
 			(t as HTMLElement).inert = false;
+			// Top bars, on the desk and in a detail alike, return at the gentler desktop pace.
 			const duration =
-				t.id === "home-top" && matchMedia("(min-width: 651px)").matches
+				t.matches(
+					"#home-top, .reader-head, .sheet-head-tools, :is(.reader-edge, .sheet-edge).is-top",
+				) && matchMedia("(min-width: 651px)").matches
 					? "dur-top-reveal"
 					: "dur-reveal";
 			MotionEngine.change(

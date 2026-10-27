@@ -33,29 +33,27 @@ test("the settings button receives press feedback after keyboard use", async () 
 	}
 });
 
-test("settings toggles animate their knob without fading the panel", () => {
+test("settings toggles share one progress animation without fading the panel", () => {
 	const f = fixture();
 	try {
-		const { app, w, Store, Panels } = f;
+		const { app, w, Store } = f;
 		Store.setPref("stack", true);
 		app.modalKind = "settings";
-		app.dialog.innerHTML = Panels.settings(app, "desk");
+		app.repaintSettings();
 		const animations: any[] = [];
-		w.__motionAnimations = animations;
+		w.__motionValueAnimations = animations;
 		app.setPref("stack", false);
-		assert.equal(animations.length, 2);
-		assert.equal(animations[0].target.classList.contains("toggle-knob"), true);
-		assert.equal(animations[0].options.pseudoElement, undefined);
-		assert.equal(animations[0].options.visualDuration, 0.32);
-		assert.equal(animations[0].options.bounce, 0.2);
-		assert.ok("backgroundColor" in animations[1].frames[0]);
-		assert.equal(animations[1].options.visualDuration, 0.32);
-		assert.equal(animations[0].frames[0].transform, "translateX(20px)");
-		assert.equal(animations[0].frames[1].transform, "none");
+		assert.equal(animations.length, 1);
+		assert.equal(animations[0].destination, 0);
+		assert.equal(animations[0].options.visualDuration, 0.3);
+		assert.equal(animations[0].options.bounce, 0.25);
+		animations[0].finish();
+		const toggle = app.dialog.querySelector('[data-id="stack"]');
+		assert.equal(toggle.querySelector('.toggle-fill').style.opacity, '0');
+		assert.equal(toggle.querySelector('.toggle-knob').style.transform, 'translateX(0px) scaleX(1)');
 		w.document.documentElement.dataset.inputModality = "keyboard";
 		app.setPref("stack", true);
-		assert.equal(animations.length, 2);
-	} finally {
-		f.dom.window.close();
-	}
+		assert.equal(animations.length, 1);
+		assert.equal(toggle.querySelector('.toggle-fill').style.opacity, '1');
+	} finally { f.dom.window.close(); }
 });

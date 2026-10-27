@@ -363,7 +363,10 @@ export const gesturePreviewMethods = {
 				if (this.fromField(e) || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return cancel();
 				const d = wheelPixels(e, scroll.clientHeight);
 				const eligible = d > 0 && atEnd();
-				if (!wheel.feed(d, eligible)) {
+				// A push that has begun keeps counting: wheel notches and an uneven trackpad hand both
+				// reach the check. Momentum that merely arrives at the end still cannot begin one.
+				const pushing = eligible && pull > 0;
+				if (!wheel.feed(d, eligible) && !pushing) {
 					if (!eligible && pull) {
 						pull = 0;
 						paint();
@@ -378,13 +381,14 @@ export const gesturePreviewMethods = {
 					return;
 				}
 				clearTimeout(timer);
+				// The ring holds between notches and returns only once the hand has really stopped.
 				timer = window.setTimeout(() => {
 					if (!done && app.modalToken === token) {
 						pull = 0;
 						paint();
 						wheel.reset();
 					}
-				}, wheelInput.releaseIdleMs);
+				}, wheelInput.pushHoldMs);
 			},
 			{ passive: false },
 		);

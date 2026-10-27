@@ -10,22 +10,23 @@ import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController, DetailPosition } from "./app.ts";
 
-import { pushPhonePreview, restorePhonePreview } from "./phone-preview-stack.ts";
+import { pushPhonePreview, restorePhonePreview, clearPhonePreviews } from "./phone-preview-stack.ts";
 
 export function openCard(this: AppController, id?: any, reading: any = false) {
 	const c = Store.card(id);
 	if (!c) return;
-	if (!this.desktop() && !reading && restorePhonePreview(this, id)) return;
 	// An open card folds the AI panel back to one line; the full view stays under the card.
 	this.aiHeightEvent?.("detail");
 	this.closingCardRoute = "";
 	const scope = JSON.stringify(this.agentScope());
 	const scopeChanged = this.detailScope !== scope;
 	if (scopeChanged) {
+		clearPhonePreviews(this);
 		this.previewTrail = [];
 		this.detailPositions.clear();
 		this.detailScope = scope;
 	}
+	if (!scopeChanged && !this.desktop() && !reading && restorePhonePreview(this, id)) return;
 	const active =
 		!scopeChanged &&
 		!this.sheetLeaving &&
@@ -222,7 +223,7 @@ export function bindSheetChrome(this: AppController) {
 		scroll,
 		() => [
 			...this.dialog.querySelectorAll(
-				":scope > .phone-drawer > .float-bar, :scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools",
+				":scope > .phone-drawer > .float-bar, :scope > .float-bar, :scope > .reader-head, :scope > .reader-edge, .sheet-head-tools, .preview-sheet > .sheet-edge",
 			),
 		],
 		() =>
@@ -232,6 +233,8 @@ export function bindSheetChrome(this: AppController) {
 			(this.dialog.getElementsByClassName("float-bar")[0] as HTMLElement | undefined)?.dataset
 				.cardFlight !== undefined ||
 			[...this.dialog.children].some((node) => node.hasAttribute("data-detail-face")),
+		// With 读完上推收起 on, the end of an unfinished detail belongs to the check, not the capsule.
+		() => !!this.dialog.querySelector(".push-ring:not(.is-done)"),
 	);
 	// The head floats over the content; once the text has moved under it, a soft edge keeps the two apart.
 	const sheet = this.dialog.querySelector(".preview-sheet");
@@ -243,7 +246,7 @@ export function bindSheetChrome(this: AppController) {
 			const hideExpand = scroll.scrollHeight <= scroll.clientHeight + 2;
 			const height = `${sheet.offsetHeight}px`;
 			const cover = sheet.querySelector(".sheet-scroll > .gesture-content > .preview-cover");
-			const podcast = sheet.querySelector(".is-podcast");
+			const podcast = sheet.querySelector(".podcast-detail");
 			let titleTop = cover ? "24px" : podcast ? "var(--space-8)" : "";
 			const title = sheet.querySelector("#modal-title");
 			// The disc sits in the source row above the title, so the title keeps the full width.

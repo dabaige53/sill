@@ -93,7 +93,7 @@ test("the growing reader backdrop uses the preview dim in the stylesheet", () =>
 	const css = readFileSync(path.join(root, "apps/web/styles/preview-media.css"), "utf8");
 	assert.match(
 		css,
-		/#modal\.reader\[data-reader-growing\]::backdrop\s*\{\s*background:\s*var\(--dim\);/,
+		/:is\(#modal, \.phone-layer\)\.reader\[data-reader-growing\]::backdrop\s*\{\s*background:\s*var\(--dim\);/,
 	);
 });
 

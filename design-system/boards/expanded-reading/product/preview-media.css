@@ -241,15 +241,16 @@
 	border-radius: var(--pill-radius);
 }
 /* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
+/* The detail capsule sinks 20px and fades inside the detail, as the desk's AI bar does. */
 dialog > .float-bar.is-tucked,
 dialog > .float-bar.is-hidden {
-	transform: var(--motion-toolbar-transform, translateY(calc(100% + 40px)));
+	transform: var(--motion-toolbar-transform, translateY(20px));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
 }
+/* The reader's round buttons stay where they are and only fade, like the preview's. */
 .reader-head.is-tucked {
-	transform: var(--motion-toolbar-transform, translateY(calc(-100% - 24px)));
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;

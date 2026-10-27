@@ -79,8 +79,11 @@
 	gap: var(--rail-gap);
 	pointer-events: none;
 }
-body:has(:is(#modal, .phone-layer)[open] .settings-layout) #dock {
-	display: none;
+/* The desktop settings sheet hides the AI box; the phone settings page covers the capsule instead. */
+@media (min-width: 651px) {
+	body:has(:is(#modal, .phone-layer)[open] .settings-layout) #dock {
+		display: none;
+	}
 }
 #dock > * {
 	pointer-events: auto;

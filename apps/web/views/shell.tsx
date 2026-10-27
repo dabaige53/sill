@@ -136,8 +136,9 @@ export function AIDock() {
 	const moved = useRef(false);
 	const before = useRef<CollapseCapture | null>(null);
 	const animation = useRef<CollapseVisual | null>(null);
-	const anchor = useRef<DOMRect | null>(null);
-	const expandedPosition = useRef(0);
+	const anchor = useRef<Pick<DOMRect, "left" | "top" | "width" | "height"> | null>(null);
+	// The bubble's right edge: the box grows back from there, not from the rail's centre.
+	const expandFrom = useRef<number | null>(null);
 	const bubbleY = useRef(0);
 	// The bubble's place before a card drag opened the box without animation.
 	const dragBubble = useRef<{ position: number; y: number } | null>(null);
@@ -145,12 +146,13 @@ export function AIDock() {
 		const node = dock.current;
 		if (!node || node.classList.contains("is-collapsed") === value) return;
 		before.current = instant ? null : captureAIDock(node, animation.current);
+		const box = node.getBoundingClientRect();
 		if (value) {
-			expandedPosition.current = positionRef.current;
+			// The bubble lands in the bottom rail at the box's right end, not at the floating button.
 			anchor.current = instant
 				? null
-				: node.querySelector(".ai-dock-tools button")?.getBoundingClientRect() || null;
-		} else positionRef.current = expandedPosition.current;
+				: { left: box.right - box.height, top: box.top, width: box.height, height: box.height };
+		} else expandFrom.current = box.right;
 		animation.current?.cancel();
 		animation.current = null;
 		setCollapsed(value);
@@ -175,6 +177,15 @@ export function AIDock() {
 				positionRef.current = (target.left - natural.left) / (range() || 1);
 				bubbleY.current = target.top - natural.top;
 				anchor.current = null;
+			}
+			if (!collapsed && expandFrom.current !== null) {
+				node.style.translate = "none";
+				const natural = node.getBoundingClientRect();
+				positionRef.current = Math.max(
+					-1,
+					Math.min(1, (expandFrom.current - natural.right) / (range() || 1)),
+				);
+				expandFrom.current = null;
 			}
 			node.style.translate = `${positionRef.current * range()}px ${collapsed ? bubbleY.current : 0}px`;
 		};

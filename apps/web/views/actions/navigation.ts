@@ -3,7 +3,6 @@ import { MotionEngine } from "../../interactions/motion.ts";
 import { capturePhoneSearch } from "../../interactions/phone-search-motion.ts";
 import { FeedPolicy } from "../../services/feed-policy.ts";
 import type { AppController } from "../app.ts";
-import { flySearchChoice, searchChoiceOrigin } from "../home-search-motion.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
 function filter(this: AppController) {
@@ -72,7 +71,6 @@ function homeSearchClear(this: AppController) {
 	const input = document.getElementById("home-search") as HTMLInputElement | null;
 	if (input) input.value = "";
 	this.filter = { ...this.filter, query: "", kind: "all" };
-	this.homeSearchChoice = "";
 	this.renderCurrent(false);
 	input?.focus({ preventScroll: true });
 	this.openHomeSearch(true);
@@ -101,26 +99,18 @@ function homeKind(this: AppController, { extra }: ActionContext) {
 }
 
 /** A picked # option becomes an accent token; the typed #fragment leaves the text. */
+/** A card suggestion opens that card; a # option becomes an accent token and leaves the text. */
 function homeHash(this: AppController, { extra }: ActionContext) {
-	const field = document.getElementById("home-search-field");
 	const at = extra.indexOf(":");
 	const kind = extra.slice(0, at),
 		value = extra.slice(at + 1);
-	if (!["query", "status", "tag"].includes(kind)) return;
-	searchChoiceOrigin(field, extra);
-	this.homeSearchChoice = extra;
-	if (kind === "query") {
-		this.filter = { ...this.filter, query: value };
-		const input = document.getElementById("home-search") as HTMLInputElement | null;
-		if (input) input.value = value;
+	if (kind === "card") {
 		this.openHomeSearch(false);
-		renderHomeSearch.call(this);
-		flySearchChoice(field);
-		focusHomeSearch();
+		this.navigate("#card/" + value);
 		return;
 	}
 	if (kind !== "status" && kind !== "tag") return;
-	const query = this.filter.query.replace(/(^|\s)#\S*$/, "$1").trimEnd();
+	const query = this.filter.query.replace(/#[^\s#]*$/, "").trimEnd();
 	this.filter = {
 		...this.filter,
 		query,
@@ -131,7 +121,6 @@ function homeHash(this: AppController, { extra }: ActionContext) {
 	this.homeHashIndex = 0;
 	this.openHomeSearch(false);
 	renderHomeSearch.call(this);
-	flySearchChoice(field);
 	focusHomeSearch();
 }
 
@@ -174,16 +163,19 @@ function stackClose(this: AppController, { extra }: ActionContext) {
 }
 
 function filterType(this: AppController, { extra }: ActionContext) {
+	if (this.searchFilter.type === extra && !this.searchFilter.pinned) return;
 	this.searchFilter.type = extra;
 	this.searchFilter.pinned = false;
 	this.repaintSearch();
 }
 
-/** A category card becomes an ink token in the search bar (ADR 0048). */
+/** A category card becomes an ink token in the search bar (ADR 0048); the bar moves up like typing, without the keyboard. */
 function searchCategory(this: AppController, { extra }: ActionContext) {
+	const pose = !this.desktop() ? capturePhoneSearch(this.dialog) : undefined;
 	this.searchFilter.type = extra;
 	this.searchFilter.pinned = true;
 	this.repaintSearch();
+	this.setSearchEditing(true, pose, false);
 }
 
 function focusSearchInput() {
@@ -201,7 +193,7 @@ function searchHash(this: AppController, { extra }: ActionContext) {
 	if (kind === "status") this.searchFilter.status = value;
 	else if (kind === "tag") this.searchFilter.tag = value;
 	else return;
-	this.searchFilter.query = this.searchFilter.query.replace(/(^|\s)#\S*$/, "$1").trimEnd();
+	this.searchFilter.query = this.searchFilter.query.replace(/#[^\s#]*$/, "").trimEnd();
 	this.repaintSearch();
 	focusSearchInput();
 }
@@ -218,24 +210,11 @@ function searchUntoken(this: AppController, { extra }: ActionContext) {
 
 /** The results page's close returns to the search home with no conditions. */
 function searchReset(this: AppController) {
-	const query = this.searchText(this.searchFilter.query);
-	if (query)
-		this.searchHistory = [query, ...this.searchHistory.filter((item) => item !== query)].slice(
-			0,
-			8,
-		);
 	const pose = !this.desktop() ? capturePhoneSearch(this.dialog, true) : undefined;
 	(document.activeElement as HTMLElement)?.blur?.();
 	this.searchFilter = { type: "all", status: "all", tag: "", query: "", pinned: false };
 	this.repaintSearch();
 	this.setSearchEditing(false, pose);
-}
-
-function searchHistory(this: AppController, { extra }: ActionContext) {
-	this.searchFilter.query = extra;
-	this.repaintSearch();
-	this.setSearchEditing(true);
-	document.getElementById("filter-search")?.focus({ preventScroll: true });
 }
 
 function filterStatus(this: AppController, { extra }: ActionContext) {
@@ -301,7 +280,6 @@ export const navigationActions = {
 	"search-hash": searchHash,
 	"search-untoken": searchUntoken,
 	"search-reset": searchReset,
-	"search-history": searchHistory,
 	"filter-status": filterStatus,
 	"filter-tag": filterTag,
 	"clear-query": clearQuery,
