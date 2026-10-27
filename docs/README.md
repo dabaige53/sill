@@ -321,3 +321,5 @@
 - [正文边缘回位的速度与参数](adr/0079-content-edge-rebound.md)
 - [补齐搜索与第三、第四批动画交接](adr/0080-animation-reference-completion.md)
 - [手机详情抽屉使用 Vaul](adr/0081-phone-drawer-vaul.md)
+
+- [2026-10-27 抽屉滚轮与背景恢复研究](records/2026-10-27-drawer-wheel-research/README.md)

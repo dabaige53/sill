@@ -46,6 +46,8 @@ body {
 	background: var(--canvas);
 }
 #workspace-background.is-drawer-background {
+	/* Vaul releases its inline overflow when closing; keep the frozen viewport clipped. */
+	overflow: clip;
 	position: fixed;
 	inset: 0;
 	height: 100dvh;

@@ -1,4 +1,4 @@
-import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import { type PointerEvent, type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Drawer } from "vaul";
 import { copy } from "../copy.ts";
@@ -61,7 +61,12 @@ function prepareBackground(app: AppController) {
 	const background = app.searchBackground || document.getElementById("workspace-background");
 	if (!background) return () => {};
 	background.setAttribute("data-vaul-drawer-wrapper", "");
-	if (app.searchBackground) return () => background.removeAttribute("data-vaul-drawer-wrapper");
+	const clearRadius = () => background.style.removeProperty("--phone-drawer-roundness");
+	if (app.searchBackground)
+		return () => {
+			background.removeAttribute("data-vaul-drawer-wrapper");
+			clearRadius();
+		};
 	const main = background.querySelector<HTMLElement>("main");
 	const translate = main?.style.translate || "";
 	const minHeight = document.body.style.minHeight;
@@ -71,6 +76,7 @@ function prepareBackground(app: AppController) {
 	if (main) main.style.translate = `0 ${-scroll}px`;
 	return () => {
 		background.removeAttribute("data-vaul-drawer-wrapper");
+		clearRadius();
 		background.classList.remove("is-drawer-background");
 		if (main) main.style.translate = translate;
 		document.body.style.minHeight = minHeight;
@@ -98,6 +104,14 @@ function PhoneDrawer({
 	const content = useRef<HTMLDivElement>(null);
 	const finish = useRef<(() => void) | null>(null);
 	const Root = nested ? Drawer.NestedRoot : Drawer.Root;
+	const roundBackground = (progress: number) => {
+		if (nested) return;
+		const background = app.searchBackground || document.getElementById("workspace-background");
+		background?.style.setProperty(
+			"--phone-drawer-roundness",
+			String(Math.max(0, Math.min(1, progress))),
+		);
+	};
 	useLayoutEffect(() => {
 		const restore = nested ? () => {} : prepareBackground(app);
 		dialog.dataset.phoneDrawer = "";
@@ -127,8 +141,13 @@ function PhoneDrawer({
 	return (
 		<Root
 			shouldScaleBackground={!nested}
+			{...(!nested ? {
+				onDrag: (_event: PointerEvent<HTMLDivElement>, percentage: number) => roundBackground(1 - percentage),
+				onRelease: (_event: PointerEvent<HTMLDivElement>, isOpen: boolean) => roundBackground(isOpen ? 1 : 0),
+			} : {})}
 			onOpenChange={(value) => {
 				setOpen(value);
+				roundBackground(value ? 1 : 0);
 				if (!value && !finish.current && app.dialog === dialog && app.currentId === ownerId)
 					app.closeModal();
 			}}

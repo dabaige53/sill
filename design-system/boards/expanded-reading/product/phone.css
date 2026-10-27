@@ -278,13 +278,15 @@
 	:is(#modal, .phone-layer).preview .preview-body :is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-52);
 	}
-	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"]) :is(#modal-title, .phone-layer-title),
+	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
+		:is(#modal-title, .phone-layer-title),
 	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
 		.preview-body
 		:is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-104);
 	}
-	:is(#modal, .phone-layer).preview:has(.preview-body :is(.preview-sender, .preview-meta)) :is(#modal-title, .phone-layer-title) {
+	:is(#modal, .phone-layer).preview:has(.preview-body :is(.preview-sender, .preview-meta))
+		:is(#modal-title, .phone-layer-title) {
 		padding-right: 0;
 	}
 	/* Podcast controls sit beside the separate now-playing heading. */
@@ -595,6 +597,10 @@
 }
 
 @media (max-width: 650px) {
+	[data-vaul-drawer-wrapper] {
+		/* Keep Sill's surface radius while following Vaul's open/drag/release progress. */
+		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness, 0)) !important;
+	}
 	:is(#modal, .phone-layer).preview[data-phone-drawer]::backdrop {
 		background: transparent;
 	}
@@ -624,9 +630,14 @@
 		background: transparent;
 		pointer-events: none;
 	}
-	:is(#modal, .phone-layer).preview .phone-drawer[data-drawer-instant] {
-		animation-duration: 0s;
-		transition-duration: 0s;
+	.phone-drawer .sheet-handle {
+		display: none;
+	}
+	.phone-drawer [data-vaul-handle] {
+		position: absolute;
+		top: 8px;
+		left: calc(50% - 16px);
+		z-index: 5;
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer .preview-sheet {
 		position: relative;

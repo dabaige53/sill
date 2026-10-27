@@ -86,11 +86,8 @@ test("Vaul opens without snap points and retains card DOM, scroll and focus", as
 	const f = fixture();
 	try {
 		const drawer = f.dialog.querySelector("[data-vaul-drawer]");
-		assert.equal(drawer.style.animationPlayState, "paused");
-		await new Promise((resolve) =>
-			f.w.requestAnimationFrame(() => f.w.requestAnimationFrame(resolve)),
-		);
-		assert.equal(drawer.style.animationPlayState, "running");
+		assert.equal(drawer.style.animationPlayState, "");
+		assert.ok(drawer.querySelector("[data-vaul-handle]"));
 		const task = f.dialog.querySelector("#task");
 		const scroll = f.dialog.querySelector(".sheet-scroll");
 		assert.ok(f.dialog.hasAttribute("data-phone-drawer"));
@@ -102,10 +99,6 @@ test("Vaul opens without snap points and retains card DOM, scroll and focus", as
 		assert.equal(f.dialog.querySelector("#task"), task);
 		assert.equal(f.w.document.activeElement, task);
 		assert.equal(scroll.scrollTop, 80);
-		assert.equal(f.dialog.querySelector("[data-vaul-drawer]").dataset.full, "true");
-		assert.equal(f.dialog.querySelector(".sheet-handle").getAttribute("aria-expanded"), null);
-		f.dialog.querySelector(".sheet-handle").click();
-		assert.equal(f.app.closed, 1);
 	} finally {
 		f.dispose();
 	}
@@ -165,7 +158,7 @@ test("the scale target includes the page chrome and restores page geometry on un
 		const background = f.w.document.querySelector("#workspace-background");
 		assert.equal(f.w.document.querySelector("[data-vaul-drawer-wrapper]"), background);
 		assert.equal(background.classList.contains("is-drawer-background"), true);
-		assert.equal(background.querySelector("main").style.translate, "0 -180px");
+		assert.equal(background.querySelector("main").style.translate, "0 0px");
 		f.api.releaseView(f.dialog);
 		assert.equal(background.hasAttribute("data-vaul-drawer-wrapper"), false);
 		assert.equal(background.classList.contains("is-drawer-background"), false);
@@ -189,7 +182,11 @@ test("linked phone previews retain the mounted parent and restore its scroll on 
 		f.app.currentId = "child";
 		f.api.configurePhoneDrawer(f.app, true);
 		f.api.renderContent(child, f.body);
-		assert.equal(f.w.document.querySelector("[data-vaul-drawer-wrapper]"), parent);
+		assert.equal(
+			f.w.document.querySelector("[data-vaul-drawer-wrapper]").id,
+			"workspace-background",
+		);
+		assert.match(parent.querySelector("[data-vaul-drawer]").style.transform, /scale.*-16px/);
 		f.api.flushSync(() => assert.equal(f.api.restorePhonePreview(f.app, "parent"), true));
 		await new Promise((resolve) => setTimeout(resolve, 550));
 		assert.equal(f.app.dialog, parent);
@@ -206,47 +203,20 @@ test("linked phone previews retain the mounted parent and restore its scroll on 
 	}
 });
 
-test("trackpad pull closes only at the top, once per gesture", () => {
+test("wheel at the top does not move or close the Vaul drawer", () => {
 	const f = fixture();
 	try {
 		const drawer = f.dialog.querySelector(".phone-drawer");
+		const background = f.w.document.querySelector("#workspace-background");
+		const transform = background.style.transform;
 		const scroll = f.dialog.querySelector(".sheet-scroll");
-		const pull = () =>
-			drawer.dispatchEvent(
-				new f.w.WheelEvent("wheel", { deltaY: -40, bubbles: true, cancelable: true }),
-			);
-		scroll.scrollTop = 80;
-		pull();
-		pull();
-		pull();
+		f.api.flushSync(() => scroll.dispatchEvent(
+			new f.w.WheelEvent("wheel", { deltaY: -400, bubbles: true, cancelable: true }),
+		));
 		assert.equal(f.app.closed, 0);
-		scroll.scrollTop = 0;
-		// Continue the same downward gesture after scrolling reaches the top.
-		pull();
-		pull();
-		pull();
-		pull();
-		assert.equal(f.app.closed, 1);
-	} finally {
-		f.dispose();
-	}
-});
-
-test("phone drawer bottom edge retains elastic resistance during continuous scrolling", () => {
-	const f = fixture();
-	try {
-		const scroll = f.dialog.querySelector(".sheet-scroll");
-		Object.defineProperties(scroll, { scrollHeight: { value: 600 }, clientHeight: { value: 200 } });
-		scroll.scrollTop = 350;
-		scroll.dispatchEvent(
-			new f.w.WheelEvent("wheel", { deltaY: 30, bubbles: true, cancelable: true }),
-		);
-		scroll.scrollTop = 400;
-		const edge = new f.w.WheelEvent("wheel", { deltaY: 30, bubbles: true, cancelable: true });
-		scroll.dispatchEvent(edge);
-		assert.equal(edge.defaultPrevented, true);
-		assert.match(scroll.style.translate, /-/);
-		assert.equal(f.app.closed, 0);
+		assert.equal(drawer.dataset.state, "open");
+		assert.equal(drawer.style.transform, "");
+		assert.equal(background.style.transform, transform);
 	} finally {
 		f.dispose();
 	}

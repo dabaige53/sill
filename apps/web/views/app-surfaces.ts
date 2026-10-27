@@ -173,7 +173,7 @@ export const appSurfacesMethods = {
 		return r?.width && r.bottom > 0 && r.top < innerHeight ? r : null;
 	},
 	closeNative(this: AppController, animate = true) {
-		if (MotionEngine.keyboard) animate = false;
+		if (MotionEngine.keyboard && !this.dialog.hasAttribute("data-phone-drawer")) animate = false;
 		if (!this.dialog.open) return;
 		if (this.modalKind === "search") resetPhoneSearch(this.dialog);
 		// The card on the desk shows the progress reached in the detail that is leaving.
@@ -332,7 +332,6 @@ export const appSurfacesMethods = {
 			else finish();
 			return;
 		}
-		flushReadingRefresh(this);
 		this.modalToken++;
 		this.previewTrail = [];
 		this.detailPositions.clear();
@@ -357,6 +356,7 @@ export const appSurfacesMethods = {
 		clearPhonePreviews(this);
 		MotionEngine.releaseSource(this.dialog);
 		if (this.searchBackground) {
+			flushReadingRefresh(this);
 			this.restoreSearch();
 			return;
 		}
@@ -368,6 +368,8 @@ export const appSurfacesMethods = {
 			}
 		}
 		this.unlockPageScroll();
+		// Measure refreshed cards only after the drawer restores normal page geometry.
+		flushReadingRefresh(this);
 		this.modalKind = "";
 		this.panelReturn = null;
 		this.updateSelection();
