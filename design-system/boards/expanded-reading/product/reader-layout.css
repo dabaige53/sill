@@ -1,8 +1,8 @@
 /* @design article-reading — expanded workspaces; previews keep their bottom tools. */
-#modal.reader:has(.reader-workspace) > .reader-edge {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .reader-edge {
 	display: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar {
 	top: max(var(--space-4), env(safe-area-inset-top));
 	left: max(var(--space-16), env(safe-area-inset-left));
 	right: auto;
@@ -13,11 +13,11 @@
 	-webkit-backdrop-filter: none;
 	box-shadow: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar::before,
-#modal.reader:has(.reader-workspace) > .float-bar::after {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar::before,
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar::after {
 	display: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar .icon-button::after {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar .icon-button::after {
 	bottom: auto;
 	top: calc(100% + var(--space-8));
 }
@@ -33,7 +33,7 @@
 }
 .reader-layout.is-workspace.has-outline {
 	grid-template-columns: var(--reader-outline-width) minmax(0, 1fr);
-	gap: var(--space-40);
+	gap: var(--space-24);
 	padding-left: var(--space-30);
 }
 .reader-layout > .reader-workspace {
@@ -51,6 +51,7 @@
 	max-width: var(--reader-measure);
 }
 .reader-outline {
+	position: relative;
 	grid-column: 1;
 	grid-row: 1;
 	min-width: 0;
@@ -64,48 +65,75 @@
 	grid-row: 1;
 }
 .reader-outline h2 {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
 	font-size: var(--text-body);
 	font-weight: 500;
 	color: var(--ink);
 	line-height: 1.5;
-	margin: 0 0 var(--space-12);
+	margin: 0 0 var(--space-6);
 }
 .reader-outline-links {
 	position: relative;
-	border-left: 1px solid var(--line-card);
+	display: flex;
+	flex-direction: column;
+	gap: 0;
 }
 .reader-outline a {
+	position: relative;
+	flex-shrink: 0;
+	box-sizing: border-box;
 	display: flex;
 	align-items: center;
-	min-height: var(--hit-target);
-	padding: var(--space-8) var(--space-12);
-	font-size: var(--text-control);
+	min-height: var(--space-32);
+	padding: var(--space-4) 0;
+	font-size: var(--text-body);
 	font-weight: 400;
 	line-height: 1.6;
 	color: var(--muted);
 	text-decoration: none;
 	overflow-wrap: anywhere;
 }
-.reader-outline a[aria-current="location"] {
-	color: var(--accent);
-	font-weight: 600;
+.reader-outline-label {
+	position: relative;
+	min-width: 0;
+	transition: transform var(--outline-step) var(--outline-ease);
 }
-.reader-outline-marker {
+.reader-outline a[aria-current="location"] .reader-outline-label {
+	transform: translateX(var(--outline-shift));
+}
+.reader-outline-color {
+	position: absolute;
+	inset: 0;
+	color: var(--accent);
+	clip-path: inset(0 100% 0 0);
+	transition: clip-path var(--outline-wipe-out) var(--outline-ease);
+}
+.reader-outline a[aria-current="location"] .reader-outline-color {
+	clip-path: inset(0 0 0 0);
+	transition-duration: var(--outline-wipe-in);
+}
+.reader-outline-dot {
 	position: absolute;
 	top: 0;
-	left: -1px;
-	width: 2px;
-	height: var(--space-20);
-	border-radius: var(--space-2);
+	left: 0;
+	width: var(--outline-dot);
+	height: var(--outline-dot);
+	border-radius: var(--pill-radius);
 	background: var(--accent);
 	pointer-events: none;
+}
+.reader-outline a {
+	padding-inline-end: var(--outline-shift);
+}
+html[data-input-modality="keyboard"] .reader-outline-label,
+html[data-input-modality="keyboard"] .reader-outline-color {
+	transition: none;
 }
 @media (hover: hover) and (pointer: fine) {
 	.reader-outline a:hover {
 		color: var(--ink);
-	}
-	.reader-outline a[aria-current="location"]:hover {
-		color: var(--accent);
 	}
 }
 .is-media-reader .media-detail {
@@ -208,11 +236,11 @@
 	.reader-outline {
 		display: none;
 	}
-	#modal.reader:has(.reader-workspace) > .float-bar {
+	:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar {
 		left: var(--space-4);
 		padding-inline: var(--space-4);
 	}
-	#modal.reader:has(.reader-workspace) > .float-bar .bar-divider {
+	:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar .bar-divider {
 		display: none;
 	}
 	.media-tab-header {

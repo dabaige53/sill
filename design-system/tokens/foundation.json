@@ -798,6 +798,10 @@
 			"rearmDeltaPixels": 2,
 			"maxShieldMs": 240
 		},
+		"phoneDrawer": {
+			"duration": 500,
+			"easing": "cubic-bezier(0.32,0.72,0,1)"
+		},
 		"scrollSpine": {
 			"lead": {
 				"visualDuration": 0.24,

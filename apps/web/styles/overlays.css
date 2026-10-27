@@ -67,11 +67,11 @@ dialog::backdrop {
 
 /* Preview: the card lifts and grows. Its head row holds the way out; the toolbar floats inside the
    card's own bottom edge, over a scroll edge, and the text ends above it. Nothing hangs off the card. */
-#modal.preview {
+:is(#modal, .phone-layer).preview {
 	width: min(760px, calc(100vw - 48px));
 	margin: auto;
 }
-#modal.preview[open] {
+:is(#modal, .phone-layer).preview[open] {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -140,20 +140,20 @@ dialog::backdrop {
 	top: var(--preview-title-top, 32px);
 	height: 44px;
 }
-.preview-sheet #modal-title,
+.preview-sheet :is(#modal-title, .phone-layer-title),
 .preview-sheet .preview-body :is(.preview-sender, .preview-meta) {
 	padding-right: var(--space-48);
 }
-.preview-sheet:has(.sheet-head [data-action="reader"]) #modal-title,
+.preview-sheet:has(.sheet-head [data-action="reader"]) :is(#modal-title, .phone-layer-title),
 .preview-sheet:has(.sheet-head [data-action="reader"])
 	.preview-body
 	:is(.preview-sender, .preview-meta) {
 	padding-right: var(--space-92);
 }
-.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta)) #modal-title {
+.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta)) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
-.preview-title-row #modal-title {
+.preview-title-row :is(#modal-title, .phone-layer-title) {
 	min-width: 0;
 }
 .preview-sheet.is-scrolled .sheet-head {
@@ -189,7 +189,7 @@ dialog::backdrop {
 	width: 18px;
 	height: 18px;
 }
-#modal.preview > .float-bar {
+:is(#modal, .phone-layer).preview .float-bar {
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -198,7 +198,7 @@ dialog::backdrop {
 	z-index: 3;
 }
 /* Scroll edge at the foot of the card: text fades and softens where the toolbar floats. */
-#modal.preview:has(> .float-bar) > .preview-sheet:after {
+:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet:after {
 	content: "";
 	position: absolute;
 	left: 0;
@@ -215,7 +215,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-#modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
+:is(#modal, .phone-layer).preview:has(.float-bar.is-tucked) .preview-sheet:after {
 	opacity: 0;
 }
 .preview-foot {
@@ -250,7 +250,7 @@ dialog::backdrop {
 	padding-bottom: 0;
 	scroll-padding-bottom: var(--gap);
 }
-#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet .sheet-scroll {
 	padding-bottom: calc(var(--rail-row) + var(--space-40));
 	scroll-padding-bottom: calc(var(--rail-row) + var(--space-40));
 }

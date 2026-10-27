@@ -1,12 +1,12 @@
 /* Panels: a sheet with a title, rows and quiet actions. */
-#modal.panel {
+:is(#modal, .phone-layer).panel {
 	width: min(560px, calc(100vw - 32px));
 	margin: auto;
 }
-#modal.panel.narrow {
+:is(#modal, .phone-layer).panel.narrow {
 	width: min(440px, calc(100vw - 32px));
 }
-#modal.panel.wide {
+:is(#modal, .phone-layer).panel.wide {
 	width: min(840px, calc(100vw - 32px));
 }
 .panel-content {
@@ -295,7 +295,7 @@ kbd {
 body:has(dialog.search[open]) #feed-grid {
 	visibility: hidden;
 }
-:is(#modal, #search-background).search {
+:is(:is(#modal, .phone-layer), #search-background).search {
 	position: fixed;
 	inset: 0;
 	width: 100%;
@@ -309,7 +309,7 @@ body:has(dialog.search[open]) #feed-grid {
 	z-index: 40;
 	display: none;
 }
-:is(#modal, #search-background).search[open] {
+:is(:is(#modal, .phone-layer), #search-background).search[open] {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-12);
@@ -342,7 +342,7 @@ body:has(dialog.search[open]) #feed-grid {
 .search:not(:has(.search-browse)) .search-page-heading {
 	display: none;
 }
-:is(#modal, #search-background).page.search {
+:is(:is(#modal, .phone-layer), #search-background).page.search {
 	background: var(--card);
 }
 .search-browse {
@@ -564,7 +564,7 @@ body:has(dialog.search[open]) #feed-grid {
 
 /* Pages share the application frame; cards still open in the existing dialog. */
 @media (min-width: 651px) {
-	#modal.page.panel {
+	:is(#modal, .phone-layer).page.panel {
 		position: fixed;
 		inset: 0;
 		z-index: 40;
@@ -575,7 +575,7 @@ body:has(dialog.search[open]) #feed-grid {
 		margin: 0;
 		background: var(--canvas);
 	}
-	#modal.page.panel .sheet {
+	:is(#modal, .phone-layer).page.panel .sheet {
 		height: 100%;
 		max-height: none;
 		width: min(100%, 1040px);
@@ -587,22 +587,22 @@ body:has(dialog.search[open]) #feed-grid {
 		flex-direction: column;
 		padding-bottom: 0;
 	}
-	#modal.page .settings-layout {
+	:is(#modal, .phone-layer).page .settings-layout {
 		flex: 1;
 		min-height: 0;
 	}
-	#modal.page .settings-main {
+	:is(#modal, .phone-layer).page .settings-main {
 		max-height: none;
 	}
-	#modal.page.panel .ai-conversation {
+	:is(#modal, .phone-layer).page.panel .ai-conversation {
 		max-width: 720px;
 		padding: var(--space-24) var(--space-24)
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16));
 	}
-	#modal.page.panel .ai-conversation > .sheet-close {
+	:is(#modal, .phone-layer).page.panel .ai-conversation > .sheet-close {
 		display: none;
 	}
-	:is(#modal, #search-background).page.search {
+	:is(:is(#modal, .phone-layer), #search-background).page.search {
 		padding-inline: max(var(--margin-lg), calc((100vw - 1040px) / 2));
 	}
 	.search-browse {
@@ -651,7 +651,7 @@ body:has(dialog.search[open]) #feed-grid {
 
 /* @design settings-sheet: group changes never resize the desktop frame. */
 @media (min-width: 651px) {
-	#modal.panel:not(.page) .settings-sheet {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-sheet {
 		display: flex;
 		flex-direction: column;
 		height: min(
@@ -660,23 +660,23 @@ body:has(dialog.search[open]) #feed-grid {
 		);
 		overflow: hidden;
 	}
-	#modal.panel:not(.page) .settings-head {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-head {
 		min-height: calc(var(--space-60) + var(--space-16));
 	}
-	#modal.panel:not(.page) .settings-layout {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-layout {
 		flex: 1;
 		min-height: 0;
 		grid-template-rows: minmax(0, 1fr);
 	}
-	#modal.panel:not(.page) :is(.settings-nav, .settings-main) {
+	:is(#modal, .phone-layer).panel:not(.page) :is(.settings-nav, .settings-main) {
 		min-height: 0;
 		max-height: none;
 		overflow-y: auto;
 	}
-	#modal.panel:not(.page) .settings-nav button {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-nav button {
 		flex-shrink: 0;
 	}
-	#modal.panel:not(.page) .settings-main h2 {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-main h2 {
 		line-height: var(--space-32);
 	}
 }
@@ -700,7 +700,7 @@ body:has(dialog.search[open]) #feed-grid {
 	flex-direction: column;
 }
 @media (max-width: 650px) {
-	:is(#modal, #search-background).search .search-page-heading {
+	:is(:is(#modal, .phone-layer), #search-background).search .search-page-heading {
 		display: flex;
 		position: absolute;
 		top: env(safe-area-inset-top, 0px);
@@ -763,7 +763,7 @@ body:has(dialog.search[open]) #feed-grid {
 	.search-history .search-hash-option {
 		gap: var(--space-12);
 	}
-	body:has(#modal.search.search-editing) #dock {
+	body:has(:is(#modal, .phone-layer).search.search-editing) #dock {
 		opacity: 0;
 		transform: translateY(var(--space-30));
 	}

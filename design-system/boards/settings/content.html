@@ -326,6 +326,18 @@ body {
 		overscroll-behavior-y: none;
 	}
 }
+#workspace-background {
+	min-height: 100dvh;
+	background: var(--canvas);
+}
+#workspace-background.is-drawer-background {
+	/* Vaul releases its inline overflow when closing; keep the frozen viewport clipped. */
+	overflow: clip;
+	position: fixed;
+	inset: 0;
+	height: 100dvh;
+	width: 100%;
+}
 button,
 input,
 textarea,
@@ -555,7 +567,7 @@ a {
 .settings-main::-webkit-scrollbar,
 .search-results::-webkit-scrollbar,
 .ai-context::-webkit-scrollbar,
-#modal.panel .sheet::-webkit-scrollbar,
+:is(#modal, .phone-layer).panel .sheet::-webkit-scrollbar,
 .cloud-compose-body::-webkit-scrollbar {
 	display: none;
 }
@@ -641,7 +653,7 @@ a {
 	gap: var(--rail-gap);
 	pointer-events: none;
 }
-body:has(#modal[open] .settings-layout) #dock {
+body:has(:is(#modal, .phone-layer)[open] .settings-layout) #dock {
 	display: none;
 }
 #dock > * {
@@ -655,7 +667,7 @@ body:has(#modal[open] .settings-layout) #dock {
 }
 /* Descendants opt into hit testing normally, so suppress them throughout the fade. */
 #dock.is-tucked *,
-body:has(#modal[open]:not(.page)) #dock * {
+body:has(:is(#modal, .phone-layer)[open]:not(.page)) #dock * {
 	pointer-events: none;
 }
 .nav-capsule {
@@ -685,30 +697,37 @@ body:has(#modal[open]:not(.page)) #dock * {
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
 }
-.nav-tab[aria-current="page"] {
-	color: var(--ink);
-}
 .nav-icon {
 	display: grid;
 	place-items: center;
 	height: 28px;
 }
-/* The current destination is immediate; the merged motion rules keep the lens stable. */
+/* The clipped duplicate row recolors each icon exactly where the stretched pill reaches it. */
 .nav-lens {
 	position: absolute;
-	top: 4px;
-	bottom: 4px;
-	left: 0;
-	width: var(--lens-w, var(--nav-tab));
-	translate: var(--lens-x, 4px) 0;
+	inset: 0;
+	z-index: 2;
+	display: flex;
+	padding: var(--space-4);
 	border-radius: var(--pill-radius);
 	background: var(--glass-press);
-	box-shadow:
-		inset 0 1px 0.5px var(--glass-edge),
-		inset 0 -0.5px 0.5px var(--glass-shade);
+	color: var(--ink);
+	pointer-events: none;
+	clip-path: inset(
+		var(--space-4) calc(100% - var(--space-4) - var(--nav-tab)) var(--space-4) var(--space-4) round
+			var(--pill-radius)
+	);
+}
+.nav-lens-tab {
+	width: var(--nav-tab);
+	height: 100%;
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
 }
 /* A filter in effect: a small dot under the search icon, never a count. */
-#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after {
+#dock.filter-active .nav-tab[data-extra="search"] .nav-icon::after,
+#dock.filter-active .nav-lens-tab:last-child .nav-icon::after {
 	content: "";
 	position: absolute;
 	width: 5px;
@@ -717,7 +736,8 @@ body:has(#modal[open]:not(.page)) #dock * {
 	background: var(--ink);
 	translate: 11px -9px;
 }
-.nav-tab .nav-icon {
+.nav-tab .nav-icon,
+.nav-lens-tab .nav-icon {
 	position: relative;
 }
 /* Settings uses the same line weight and color as the other navigation icons. */
@@ -794,7 +814,7 @@ body:has(#modal[open]:not(.page)) #dock * {
 }
 /* Desktop: the notice rides with the capsule and leaves with it. */
 body:has(#dock.is-tucked) #new-count,
-body:has(#modal[open]) #new-count {
+body:has(:is(#modal, .phone-layer)[open]) #new-count {
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
@@ -967,7 +987,7 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	font-size: var(--text-meta);
 }
 /* The row is taken (selection, new content, offline) or a sheet is open: rise one row. */
-#modal #toast {
+:is(#modal, .phone-layer) #toast {
 	bottom: calc(var(--rail-bottom) + var(--rail-row) + 12px);
 }
 #toast.is-alert {
@@ -1265,11 +1285,22 @@ body.is-dragging #toast {
 	}
 }
 
+.toggle { touch-action: none; }
+.toggle[data-live-toggle] { background: var(--toggle-off); }
+.toggle-fill {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: var(--toggle-on);
+	pointer-events: none;
+}
+
 /* Settings switches expose a real thumb for interruptible spring playback. */
 .toggle:has(> .toggle-knob):before {
 	content: none;
 }
 .toggle > .toggle-knob {
+	transform-origin: left center;
 	position: absolute;
 	width: 27px;
 	height: 27px;
@@ -1626,7 +1657,7 @@ body.is-dragging #toast {
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(:is(#modal, #search-background)[open].page) .home-top {
+body:has(:is(:is(#modal, .phone-layer), #search-background)[open].page) .home-top {
 	visibility: hidden;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
@@ -3276,7 +3307,7 @@ a.detail-row:hover {
 .deck-card.is-next {
 	visibility: visible;
 	z-index: 2;
-	transform: translateY(6px);
+	transform: translateY(var(--space-12)) scale(0.95);
 	box-shadow: none;
 }
 .deck-card.is-prev {
@@ -3386,12 +3417,6 @@ a.detail-row:hover {
 /* Pressing a card gives a little, like the prototype: it is something you can pick up. */
 
 /* A menu's hit targets keep their size even while the touched parent settles. */
-@media (hover: hover) and (pointer: fine) {
-	body:not(.is-dragging) .feed-card.feed-item.tools-open:hover {
-		--motion-managed-transform: none;
-		transform: none;
-	}
-}
 .feed-card.tools-open,
 .feed-card.tools-open:not(.stack-card):active:not(:has(button:active)) {
 	--motion-managed-transform: none;
@@ -3483,11 +3508,11 @@ dialog::backdrop {
 
 /* Preview: the card lifts and grows. Its head row holds the way out; the toolbar floats inside the
    card's own bottom edge, over a scroll edge, and the text ends above it. Nothing hangs off the card. */
-#modal.preview {
+:is(#modal, .phone-layer).preview {
 	width: min(760px, calc(100vw - 48px));
 	margin: auto;
 }
-#modal.preview[open] {
+:is(#modal, .phone-layer).preview[open] {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -3556,20 +3581,20 @@ dialog::backdrop {
 	top: var(--preview-title-top, 32px);
 	height: 44px;
 }
-.preview-sheet #modal-title,
+.preview-sheet :is(#modal-title, .phone-layer-title),
 .preview-sheet .preview-body :is(.preview-sender, .preview-meta) {
 	padding-right: var(--space-48);
 }
-.preview-sheet:has(.sheet-head [data-action="reader"]) #modal-title,
+.preview-sheet:has(.sheet-head [data-action="reader"]) :is(#modal-title, .phone-layer-title),
 .preview-sheet:has(.sheet-head [data-action="reader"])
 	.preview-body
 	:is(.preview-sender, .preview-meta) {
 	padding-right: var(--space-92);
 }
-.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta)) #modal-title {
+.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta)) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
-.preview-title-row #modal-title {
+.preview-title-row :is(#modal-title, .phone-layer-title) {
 	min-width: 0;
 }
 .preview-sheet.is-scrolled .sheet-head {
@@ -3605,7 +3630,7 @@ dialog::backdrop {
 	width: 18px;
 	height: 18px;
 }
-#modal.preview > .float-bar {
+:is(#modal, .phone-layer).preview .float-bar {
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -3614,7 +3639,7 @@ dialog::backdrop {
 	z-index: 3;
 }
 /* Scroll edge at the foot of the card: text fades and softens where the toolbar floats. */
-#modal.preview:has(> .float-bar) > .preview-sheet:after {
+:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet:after {
 	content: "";
 	position: absolute;
 	left: 0;
@@ -3631,7 +3656,7 @@ dialog::backdrop {
 		color-mix(in srgb, var(--card) 0%, transparent) 100%
 	);
 }
-#modal.preview:has(> .float-bar.is-tucked) .preview-sheet:after {
+:is(#modal, .phone-layer).preview:has(.float-bar.is-tucked) .preview-sheet:after {
 	opacity: 0;
 }
 .preview-foot {
@@ -3666,7 +3691,7 @@ dialog::backdrop {
 	padding-bottom: 0;
 	scroll-padding-bottom: var(--gap);
 }
-#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet .sheet-scroll {
 	padding-bottom: calc(var(--rail-row) + var(--space-40));
 	scroll-padding-bottom: calc(var(--rail-row) + var(--space-40));
 }
@@ -3993,7 +4018,7 @@ button.detail-row:active {
 	color: var(--muted);
 }
 /* Photos follow the page palette; the carousel owns horizontal movement. */
-#modal.lightbox {
+:is(#modal, .phone-layer).lightbox {
 	width: 100vw;
 	height: 100dvh;
 	max-width: none;
@@ -4003,22 +4028,22 @@ button.detail-row:active {
 	color: var(--ink);
 }
 @supports (height: 100dvh) {
-	#modal.lightbox {
+	:is(#modal, .phone-layer).lightbox {
 		height: 100dvh;
 	}
 }
-#modal.lightbox[open] {
+:is(#modal, .phone-layer).lightbox[open] {
 	display: flex;
 	flex-direction: column;
 }
 /* Recovery stays in the photo layout so it cannot cover thumbnails or discussion controls. */
-#modal.lightbox #toast {
+:is(#modal, .phone-layer).lightbox #toast {
 	position: static;
 	flex: none;
 	align-self: center;
 	margin: 0 var(--rail-edge) max(var(--space-12), env(safe-area-inset-bottom));
 }
-#modal.lightbox::backdrop {
+:is(#modal, .phone-layer).lightbox::backdrop {
 	background: var(--canvas);
 }
 .lightbox-top {
@@ -4086,7 +4111,7 @@ button.detail-row:active {
 	height: 100%;
 	object-fit: cover;
 }
-#modal.lightbox > .float-bar {
+:is(#modal, .phone-layer).lightbox > .float-bar {
 	position: static;
 	flex: none;
 	align-self: center;
@@ -4112,7 +4137,7 @@ button.detail-row:active {
 }
 
 /* Reader: a page, not a box. A thin line on top shows how far you are. */
-#modal.reader {
+:is(#modal, .phone-layer).reader {
 	width: 100vw;
 	height: 100dvh;
 	max-width: none;
@@ -4120,11 +4145,11 @@ button.detail-row:active {
 	margin: 0;
 	background: var(--card);
 }
-#modal.reader::backdrop {
+:is(#modal, .phone-layer).reader::backdrop {
 	background: var(--card);
 }
 /* While it grows from the preview, the reader keeps the preview's dim behind its surface. */
-#modal.reader[data-reader-growing]::backdrop {
+:is(#modal, .phone-layer).reader[data-reader-growing]::backdrop {
 	background: var(--dim);
 }
 .reader-progress {
@@ -4745,10 +4770,10 @@ dialog > .float-bar.is-hidden {
 	}
 }
 
-.preview-sheet:has(.is-podcast) #modal-title {
+.preview-sheet:has(.is-podcast) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
-.preview-sheet:has(.pr-detail) #modal-title {
+.preview-sheet:has(.pr-detail) :is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
 
@@ -4953,7 +4978,7 @@ dialog > .float-bar.is-hidden {
 	display: grid;
 	gap: 2px;
 }
-.lightbox-top #modal-title {
+.lightbox-top :is(#modal-title, .phone-layer-title) {
 	font-size: 15px;
 	font-weight: 600;
 	color: var(--ink);
@@ -5231,11 +5256,11 @@ dialog > .float-bar.is-hidden {
 .podcast-transcript {
 	font-family: var(--font);
 }
-#modal.preview:has(.podcast-detail) .preview-body {
+:is(#modal, .phone-layer).preview:has(.podcast-detail) .preview-body {
 	padding-top: var(--space-16);
 }
 
-#modal.preview:has(.podcast-detail) .sheet-head {
+:is(#modal, .phone-layer).preview:has(.podcast-detail) .sheet-head {
 	top: var(--space-16);
 }
 @media (min-width: 651px) {
@@ -5261,14 +5286,14 @@ dialog > .float-bar.is-hidden {
 }
 
 /* Panels: a sheet with a title, rows and quiet actions. */
-#modal.panel {
+:is(#modal, .phone-layer).panel {
 	width: min(560px, calc(100vw - 32px));
 	margin: auto;
 }
-#modal.panel.narrow {
+:is(#modal, .phone-layer).panel.narrow {
 	width: min(440px, calc(100vw - 32px));
 }
-#modal.panel.wide {
+:is(#modal, .phone-layer).panel.wide {
 	width: min(840px, calc(100vw - 32px));
 }
 .panel-content {
@@ -5557,7 +5582,7 @@ kbd {
 body:has(dialog.search[open]) #feed-grid {
 	visibility: hidden;
 }
-:is(#modal, #search-background).search {
+:is(:is(#modal, .phone-layer), #search-background).search {
 	position: fixed;
 	inset: 0;
 	width: 100%;
@@ -5571,7 +5596,7 @@ body:has(dialog.search[open]) #feed-grid {
 	z-index: 40;
 	display: none;
 }
-:is(#modal, #search-background).search[open] {
+:is(:is(#modal, .phone-layer), #search-background).search[open] {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-12);
@@ -5604,7 +5629,7 @@ body:has(dialog.search[open]) #feed-grid {
 .search:not(:has(.search-browse)) .search-page-heading {
 	display: none;
 }
-:is(#modal, #search-background).page.search {
+:is(:is(#modal, .phone-layer), #search-background).page.search {
 	background: var(--card);
 }
 .search-browse {
@@ -5826,7 +5851,7 @@ body:has(dialog.search[open]) #feed-grid {
 
 /* Pages share the application frame; cards still open in the existing dialog. */
 @media (min-width: 651px) {
-	#modal.page.panel {
+	:is(#modal, .phone-layer).page.panel {
 		position: fixed;
 		inset: 0;
 		z-index: 40;
@@ -5837,7 +5862,7 @@ body:has(dialog.search[open]) #feed-grid {
 		margin: 0;
 		background: var(--canvas);
 	}
-	#modal.page.panel .sheet {
+	:is(#modal, .phone-layer).page.panel .sheet {
 		height: 100%;
 		max-height: none;
 		width: min(100%, 1040px);
@@ -5849,22 +5874,22 @@ body:has(dialog.search[open]) #feed-grid {
 		flex-direction: column;
 		padding-bottom: 0;
 	}
-	#modal.page .settings-layout {
+	:is(#modal, .phone-layer).page .settings-layout {
 		flex: 1;
 		min-height: 0;
 	}
-	#modal.page .settings-main {
+	:is(#modal, .phone-layer).page .settings-main {
 		max-height: none;
 	}
-	#modal.page.panel .ai-conversation {
+	:is(#modal, .phone-layer).page.panel .ai-conversation {
 		max-width: 720px;
 		padding: var(--space-24) var(--space-24)
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16));
 	}
-	#modal.page.panel .ai-conversation > .sheet-close {
+	:is(#modal, .phone-layer).page.panel .ai-conversation > .sheet-close {
 		display: none;
 	}
-	:is(#modal, #search-background).page.search {
+	:is(:is(#modal, .phone-layer), #search-background).page.search {
 		padding-inline: max(var(--margin-lg), calc((100vw - 1040px) / 2));
 	}
 	.search-browse {
@@ -5913,7 +5938,7 @@ body:has(dialog.search[open]) #feed-grid {
 
 /* @design settings-sheet: group changes never resize the desktop frame. */
 @media (min-width: 651px) {
-	#modal.panel:not(.page) .settings-sheet {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-sheet {
 		display: flex;
 		flex-direction: column;
 		height: min(
@@ -5922,23 +5947,23 @@ body:has(dialog.search[open]) #feed-grid {
 		);
 		overflow: hidden;
 	}
-	#modal.panel:not(.page) .settings-head {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-head {
 		min-height: calc(var(--space-60) + var(--space-16));
 	}
-	#modal.panel:not(.page) .settings-layout {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-layout {
 		flex: 1;
 		min-height: 0;
 		grid-template-rows: minmax(0, 1fr);
 	}
-	#modal.panel:not(.page) :is(.settings-nav, .settings-main) {
+	:is(#modal, .phone-layer).panel:not(.page) :is(.settings-nav, .settings-main) {
 		min-height: 0;
 		max-height: none;
 		overflow-y: auto;
 	}
-	#modal.panel:not(.page) .settings-nav button {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-nav button {
 		flex-shrink: 0;
 	}
-	#modal.panel:not(.page) .settings-main h2 {
+	:is(#modal, .phone-layer).panel:not(.page) .settings-main h2 {
 		line-height: var(--space-32);
 	}
 }
@@ -5962,7 +5987,7 @@ body:has(dialog.search[open]) #feed-grid {
 	flex-direction: column;
 }
 @media (max-width: 650px) {
-	:is(#modal, #search-background).search .search-page-heading {
+	:is(:is(#modal, .phone-layer), #search-background).search .search-page-heading {
 		display: flex;
 		position: absolute;
 		top: env(safe-area-inset-top, 0px);
@@ -6025,7 +6050,7 @@ body:has(dialog.search[open]) #feed-grid {
 	.search-history .search-hash-option {
 		gap: var(--space-12);
 	}
-	body:has(#modal.search.search-editing) #dock {
+	body:has(:is(#modal, .phone-layer).search.search-editing) #dock {
 		opacity: 0;
 		transform: translateY(var(--space-30));
 	}
@@ -6392,7 +6417,7 @@ body.is-pulling main {
 	opacity: 1;
 }
 /* The read-end ring rises at the very foot of the page, where the toolbar was. */
-#modal.reader .push-ring {
+:is(#modal, .phone-layer).reader .push-ring {
 	position: fixed;
 	bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 }
@@ -6405,7 +6430,7 @@ body.is-pulling main {
 @media (min-width: 651px) {
 	/* Keep local native bounce while preventing the page behind the preview from scrolling. */
 	.preview-sheet:not(:has(.push-ring)) > .sheet-scroll,
-	#modal.reader:not(:has(.push-ring)) .reader-scroll {
+	:is(#modal, .phone-layer).reader:not(:has(.push-ring)) .reader-scroll {
 		overflow-y: scroll;
 		overscroll-behavior-y: contain;
 	}
@@ -6423,7 +6448,7 @@ body.is-pulling main {
 /* Nested content follows its dragged parent immediately. */
 
 /* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
-#modal.panel .sheet {
+:is(#modal, .phone-layer).panel .sheet {
 	max-height: 100dvh;
 	overflow-y: auto;
 	overscroll-behavior: contain;
@@ -6435,15 +6460,15 @@ body.is-pulling main {
 	outline: 3px solid color-mix(in srgb, var(--accent) 36%, transparent);
 	outline-offset: 0;
 }
-#modal.panel .settings-layout {
+:is(#modal, .phone-layer).panel .settings-layout {
 	min-height: 0;
 }
 /* Settings is one grouped page: the same grey ground from the head to the last row, white groups on it. */
-#modal.panel.wide .sheet {
+:is(#modal, .phone-layer).panel.wide .sheet {
 	background: var(--canvas);
 }
-#modal.panel.wide .settings-nav,
-#modal.panel.wide .settings-main {
+:is(#modal, .phone-layer).panel.wide .settings-nav,
+:is(#modal, .phone-layer).panel.wide .settings-main {
 	background: transparent;
 }
 
@@ -6479,7 +6504,7 @@ body.is-pulling main {
 	opacity: 0;
 }
 /* Local AI conversation preview: no messages or connected send action. */
-#modal.panel.narrow:has(.ai-conversation) {
+:is(#modal, .phone-layer).panel.narrow:has(.ai-conversation) {
 	width: 100%;
 }
 .ai-conversation {
@@ -6618,8 +6643,8 @@ body.is-pulling main {
 .ai-composer-tools button:disabled {
 	opacity: 1;
 }
-#modal.page.panel:has(.ai-conversation),
-#modal.page.panel .ai-conversation {
+:is(#modal, .phone-layer).page.panel:has(.ai-conversation),
+:is(#modal, .phone-layer).page.panel .ai-conversation {
 	background: var(--card);
 }
 .soon-badge {
@@ -6639,20 +6664,20 @@ body.is-pulling main {
 }
 
 @media (min-width: 651px) {
-	#modal.preview.is-short {
+	:is(#modal, .phone-layer).preview.is-short {
 		width: min(var(--preview-short-width), calc(100vw - var(--space-48)));
 	}
-	#modal.preview.is-short .preview-body {
+	:is(#modal, .phone-layer).preview.is-short .preview-body {
 		padding-bottom: var(--space-16);
 	}
-	#modal.preview.is-short:has(> .float-bar) .preview-sheet .sheet-scroll {
+	:is(#modal, .phone-layer).preview.is-short:has(.float-bar) .preview-sheet .sheet-scroll {
 		padding-bottom: calc(var(--rail-row) + var(--space-24));
 	}
 }
 
 /* Refresh stays centered in the heading without replacing the Sill title. */
 body:has(.home-top.is-tucked) .pull-ring.in-home-heading,
-body:has(#modal[open]) .pull-ring.in-home-heading {
+body:has(:is(#modal, .phone-layer)[open]) .pull-ring.in-home-heading {
 	visibility: hidden;
 }
 
@@ -6689,7 +6714,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		background: var(--surface);
 		box-shadow: inset 0 0 0 1px var(--line-hover);
 	}
-	:is(#modal, #search-background).search::backdrop {
+	:is(:is(#modal, .phone-layer), #search-background).search::backdrop {
 		background: var(--canvas);
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
@@ -6746,7 +6771,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		visibility: hidden;
 		pointer-events: none;
 	}
-	body:has(:is(#modal, #search-background)[open].page) .home-top {
+	body:has(:is(:is(#modal, .phone-layer), #search-background)[open].page) .home-top {
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
@@ -6884,7 +6909,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	}
 	/* Preview and bottom sheets (ADR 0037) */
 	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
-	#modal.preview {
+	:is(#modal, .phone-layer).preview {
 		position: fixed;
 		inset: 0;
 		margin: 0;
@@ -6893,7 +6918,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		height: 100%;
 		max-height: 100%;
 	}
-	#modal.preview .preview-sheet {
+	:is(#modal, .phone-layer).preview .preview-sheet {
 		position: absolute;
 		left: 0;
 		right: 0;
@@ -6904,19 +6929,19 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
 		transform: translateY(0);
 	}
-	#modal.preview .preview-sheet.is-full {
+	:is(#modal, .phone-layer).preview .preview-sheet.is-full {
 		height: 100%;
 		max-height: 100%;
 		transform: none;
 		border-radius: 0;
 	}
-	#modal.preview .preview-sheet:not(.is-full) {
+	:is(#modal, .phone-layer).preview .preview-sheet:not(.is-full) {
 		height: var(--nested-sheet-height, auto);
 	}
-	#modal.preview .preview-sheet.is-off {
+	:is(#modal, .phone-layer).preview .preview-sheet.is-off {
 		transform: translateY(100%);
 	}
-	#modal.preview .sheet-peek {
+	:is(#modal, .phone-layer).preview .sheet-peek {
 		position: absolute;
 		left: 14px;
 		right: 14px;
@@ -6926,37 +6951,37 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		height: 24px;
 		margin: 0;
 	}
-	#modal.preview[data-sheet-resizing] .sheet-peek,
-	#modal.preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
+	:is(#modal, .phone-layer).preview[data-sheet-resizing] .sheet-peek,
+	:is(#modal, .phone-layer).preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
 		opacity: 0;
 		pointer-events: none;
 	}
-	#modal.preview .preview-sheet .sheet-scroll {
+	:is(#modal, .phone-layer).preview .preview-sheet .sheet-scroll {
 		flex: 1;
 		max-height: none;
 		overflow-x: hidden;
 	}
-	#modal.reader:has(.is-podcast) .reader-scroll {
+	:is(#modal, .phone-layer).reader:has(.is-podcast) .reader-scroll {
 		overflow-x: hidden;
 	}
-	#modal :is(.is-podcast .media-primary, .is-podcast .media-secondary) {
+	:is(#modal, .phone-layer) :is(.is-podcast .media-primary, .is-podcast .media-secondary) {
 		min-width: 0;
 		max-width: 100%;
 	}
 	/* The close disc floats beside the player; it does not reserve a header row. */
-	#modal.preview .preview-sheet .compact-player-slot {
+	:is(#modal, .phone-layer).preview .preview-sheet .compact-player-slot {
 		top: max(var(--space-8), env(safe-area-inset-top));
 	}
-	#modal.preview .preview-sheet .compact-player {
+	:is(#modal, .phone-layer).preview .preview-sheet .compact-player {
 		padding-left: 0;
 		padding-right: var(--space-56);
 		gap: var(--space-8);
 	}
-	#modal.preview .preview-sheet .is-podcast .media-tab-header {
+	:is(#modal, .phone-layer).preview .preview-sheet .is-podcast .media-tab-header {
 		top: calc(max(var(--space-8), env(safe-area-inset-top)) + var(--space-44) + var(--space-24));
 	}
 	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
-	#modal.preview:has(> .float-bar) .preview-sheet .sheet-scroll {
+	:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet .sheet-scroll {
 		padding-bottom: calc(
 			var(--rail-row) +
 			var(--space-4) +
@@ -6968,31 +6993,33 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 			max(var(--space-8), env(safe-area-inset-bottom))
 		);
 	}
-	#modal.preview
+	:is(#modal, .phone-layer).preview
 		.preview-sheet.is-full
 		.sheet-scroll
 		> .gesture-content
 		> .preview-body:first-child {
 		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
 	}
-	#modal.preview .preview-sheet.is-full.is-scrolled .sheet-head {
+	:is(#modal, .phone-layer).preview .preview-sheet.is-full.is-scrolled .sheet-head {
 		top: env(safe-area-inset-top);
 	}
-	#modal.preview #modal-title,
-	#modal.preview .preview-body :is(.preview-sender, .preview-meta) {
+	:is(#modal, .phone-layer).preview :is(#modal-title, .phone-layer-title),
+	:is(#modal, .phone-layer).preview .preview-body :is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-52);
 	}
-	#modal.preview:has(.sheet-head [data-action="reader"]) #modal-title,
-	#modal.preview:has(.sheet-head [data-action="reader"])
+	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
+		:is(#modal-title, .phone-layer-title),
+	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
 		.preview-body
 		:is(.preview-sender, .preview-meta) {
 		padding-right: var(--space-104);
 	}
-	#modal.preview:has(.preview-body :is(.preview-sender, .preview-meta)) #modal-title {
+	:is(#modal, .phone-layer).preview:has(.preview-body :is(.preview-sender, .preview-meta))
+		:is(#modal-title, .phone-layer-title) {
 		padding-right: 0;
 	}
 	/* Podcast controls sit beside the separate now-playing heading. */
-	#modal.preview:has(.is-podcast) .preview-body .preview-meta {
+	:is(#modal, .phone-layer).preview:has(.is-podcast) .preview-body .preview-meta {
 		padding-right: 0;
 	}
 	/* @design content-boundaries — six actions keep their full touch targets. */
@@ -7038,11 +7065,11 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		top: 6px;
 		margin: 0 0 0 calc(-1 * var(--space-18));
 	}
-	#modal.preview[open] {
+	:is(#modal, .phone-layer).preview[open] {
 		gap: 0;
 	}
 	.preview-sheet,
-	#modal.panel .sheet {
+	:is(#modal, .phone-layer).panel .sheet {
 		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
 		padding-bottom: env(safe-area-inset-bottom);
 	}
@@ -7057,7 +7084,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		background: var(--faint);
 		margin: var(--space-8) auto 0;
 	}
-	#modal.preview > .float-bar {
+	:is(#modal, .phone-layer).preview .float-bar {
 		position: fixed;
 		left: 0;
 		right: 0;
@@ -7065,10 +7092,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		margin-inline: auto;
 		z-index: 3;
 	}
-	#modal.preview:has(> .float-bar) > .preview-sheet:after {
+	:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet:after {
 		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
 	}
-	#modal.preview .push-ring {
+	:is(#modal, .phone-layer).preview .push-ring {
 		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
 	}
 	.preview-body {
@@ -7118,25 +7145,25 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		max-height: 70dvh;
 	}
 	/* The settings page fills the screen behind the capsule: its groups scroll to the bottom edge, not to a box above it. */
-	#modal.page.panel.wide .sheet {
+	:is(#modal, .phone-layer).page.panel.wide .sheet {
 		display: flex;
 		flex-direction: column;
 		padding-bottom: 0;
 	}
-	#modal.page .settings-layout {
+	:is(#modal, .phone-layer).page .settings-layout {
 		display: flex;
 		flex-direction: column;
 		flex: 1;
 		min-height: 0;
 	}
-	#modal.page .settings-main {
+	:is(#modal, .phone-layer).page .settings-main {
 		flex: 1;
 		max-height: none;
 		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 	}
 	/* Search */
 	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
-	:is(#modal, #search-background).search {
+	:is(:is(#modal, .phone-layer), #search-background).search {
 		position: fixed;
 		inset: 0;
 		width: 100%;
@@ -7149,15 +7176,15 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		justify-content: flex-start;
 		gap: var(--space-10);
 	}
-	:is(#modal, #search-background).search .search-results {
+	:is(:is(#modal, .phone-layer), #search-background).search .search-results {
 		flex: 1;
 		min-height: 0;
 		max-height: none;
 	}
-	:is(#modal, #search-background).search .search-chips {
+	:is(:is(#modal, .phone-layer), #search-background).search .search-chips {
 		flex: none;
 	}
-	:is(#modal, #search-background).page.search {
+	:is(:is(#modal, .phone-layer), #search-background).page.search {
 		height: 100dvh;
 		max-height: none;
 		inset: 0;
@@ -7167,9 +7194,9 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		gap: var(--space-16);
 	}
 	/* Keyboard, pages and photos */
-	#modal.panel,
-	#modal.panel.narrow,
-	#modal.panel.wide {
+	:is(#modal, .phone-layer).panel,
+	:is(#modal, .phone-layer).panel.narrow,
+	:is(#modal, .phone-layer).panel.wide {
 		position: fixed;
 		inset: auto 0 0;
 		margin: 0;
@@ -7180,12 +7207,12 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		padding: var(--space-22) var(--space-20) var(--space-26);
 	}
 	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
-	#modal.panel,
-	#modal.panel.narrow,
-	#modal.panel.wide {
+	:is(#modal, .phone-layer).panel,
+	:is(#modal, .phone-layer).panel.narrow,
+	:is(#modal, .phone-layer).panel.wide {
 		bottom: var(--kb, 0px);
 	}
-	#modal.panel .sheet {
+	:is(#modal, .phone-layer).panel .sheet {
 		max-height: calc(100dvh - var(--kb, 0px));
 	}
 	body.keyboard-open #dock,
@@ -7194,10 +7221,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		visibility: hidden;
 	}
 	/* All three destinations are pages. The keyboard temporarily clears the capsule. */
-	#modal.page,
-	#modal.page.panel,
-	#modal.page.panel.wide,
-	#modal.page.panel.narrow {
+	:is(#modal, .phone-layer).page,
+	:is(#modal, .phone-layer).page.panel,
+	:is(#modal, .phone-layer).page.panel.wide,
+	:is(#modal, .phone-layer).page.panel.narrow {
 		position: fixed;
 		inset: 0 0 var(--kb, 0px);
 		z-index: 40;
@@ -7210,10 +7237,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		padding: 0;
 		background: var(--canvas);
 	}
-	#modal.page .grabber {
+	:is(#modal, .phone-layer).page .grabber {
 		display: none;
 	}
-	#modal.page.panel .sheet {
+	:is(#modal, .phone-layer).page.panel .sheet {
 		height: 100%;
 		max-height: none;
 		border-radius: 0;
@@ -7223,10 +7250,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
 	}
 	/* The local AI preview keeps context and composer in one viewport. */
-	#modal.page.panel.narrow:has(.ai-conversation) {
+	:is(#modal, .phone-layer).page.panel.narrow:has(.ai-conversation) {
 		width: 100%;
 	}
-	#modal.page.panel .ai-conversation {
+	:is(#modal, .phone-layer).page.panel .ai-conversation {
 		padding: env(safe-area-inset-top) var(--space-12)
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
 		background: var(--card);
@@ -7234,24 +7261,24 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	.lightbox-stage > .icon-button {
 		display: none;
 	}
-	#modal.page .settings-head {
+	:is(#modal, .phone-layer).page .settings-head {
 		padding: 0 var(--margin-sm);
 	}
-	#modal.page.panel .ai-conversation > .sheet-close {
+	:is(#modal, .phone-layer).page.panel .ai-conversation > .sheet-close {
 		display: none;
 	}
 	/* Title and round controls line up with the home and search top rows (16px margin). */
-	#modal.page.panel .ai-conversation-head {
+	:is(#modal, .phone-layer).page.panel .ai-conversation-head {
 		padding: 0 var(--space-4);
 	}
 	/* The results page has no top row: its search bar keeps a small gap under the safe area. */
-	:is(#modal, #search-background).page.search:not(:has(.search-browse)) {
+	:is(:is(#modal, .phone-layer), #search-background).page.search:not(:has(.search-browse)) {
 		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
 	}
-	body.keyboard-open #modal.page.panel .ai-conversation {
+	body.keyboard-open :is(#modal, .phone-layer).page.panel .ai-conversation {
 		padding-bottom: var(--space-12);
 	}
-	body.keyboard-open :is(#modal, #search-background).page.search {
+	body.keyboard-open :is(:is(#modal, .phone-layer), #search-background).page.search {
 		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
 	}
 	.search-card-grid {
@@ -7287,7 +7314,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 }
 
 @media (max-width: 650px) {
-	#modal.search #search-selection-bar {
+	:is(#modal, .phone-layer).search #search-selection-bar {
 		position: fixed;
 		bottom: var(--rail-bottom);
 		left: 50%;
@@ -7295,6 +7322,73 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		margin: 0;
 		width: max-content;
 		max-width: calc(100vw - 2 * var(--rail-edge));
+	}
+}
+
+@media (max-width: 650px) {
+	[data-vaul-drawer-wrapper] {
+		/* Keep Sill's surface radius while following Vaul's open/drag/release progress. */
+		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness, 0)) !important;
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer]::backdrop {
+		background: transparent;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer-overlay {
+		position: absolute;
+		inset: 0;
+		background: var(--dim);
+	}
+	/* Content and every bottom control share Vaul's moving surface. */
+	:is(#modal, .phone-layer).preview[data-phone-drawer] {
+		background: linear-gradient(to top, var(--shadow) 12px, transparent 12px);
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer {
+		position: absolute;
+		inset: auto 0 12px;
+		display: flex;
+		flex-direction: column;
+		height: auto;
+		min-height: 70dvh;
+		max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - 12px);
+		background: var(--card);
+		border-radius: var(--sheet-radius);
+		outline: none;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer::after {
+		/* Keep Vaul’s scroll boundary without painting over the black bottom inset. */
+		background: transparent;
+		pointer-events: none;
+	}
+	.phone-drawer .sheet-handle {
+		display: none;
+	}
+	.phone-drawer [data-vaul-handle] {
+		position: absolute;
+		top: 8px;
+		left: calc(50% - 16px);
+		z-index: 5;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer .preview-sheet {
+		position: relative;
+		flex: 1 1 auto;
+		min-height: 0;
+		height: auto;
+		max-height: inherit;
+		border-radius: inherit;
+		transform: none;
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer .sheet-scroll {
+		flex: 1 1 auto;
+		height: auto;
+		max-height: calc(
+			100dvh -
+			max(24px, env(safe-area-inset-top)) -
+			12px -
+			env(safe-area-inset-bottom)
+		);
+	}
+	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
+		position: absolute;
 	}
 }
 
@@ -7309,14 +7403,8 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 		padding-right: var(--space-36);
 	}
 }
-@media (hover: hover) and (pointer: fine) {
-	body:not(.is-dragging) .feed-card.feed-item:hover {
-		transform: translateY(-2px);
-	}
-}
-
 /* The local AI window can return to the search that supplied its context. */
-#modal.page .ai-conversation .sheet-close {
+:is(#modal, .phone-layer).page .ai-conversation .sheet-close {
 	display: block;
 }
 
@@ -7380,10 +7468,10 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 }
 
 /* @design article-reading — expanded workspaces; previews keep their bottom tools. */
-#modal.reader:has(.reader-workspace) > .reader-edge {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .reader-edge {
 	display: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar {
 	top: max(var(--space-4), env(safe-area-inset-top));
 	left: max(var(--space-16), env(safe-area-inset-left));
 	right: auto;
@@ -7394,11 +7482,11 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	-webkit-backdrop-filter: none;
 	box-shadow: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar::before,
-#modal.reader:has(.reader-workspace) > .float-bar::after {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar::before,
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar::after {
 	display: none;
 }
-#modal.reader:has(.reader-workspace) > .float-bar .icon-button::after {
+:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar .icon-button::after {
 	bottom: auto;
 	top: calc(100% + var(--space-8));
 }
@@ -7414,7 +7502,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 }
 .reader-layout.is-workspace.has-outline {
 	grid-template-columns: var(--reader-outline-width) minmax(0, 1fr);
-	gap: var(--space-40);
+	gap: var(--space-24);
 	padding-left: var(--space-30);
 }
 .reader-layout > .reader-workspace {
@@ -7432,6 +7520,7 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	max-width: var(--reader-measure);
 }
 .reader-outline {
+	position: relative;
 	grid-column: 1;
 	grid-row: 1;
 	min-width: 0;
@@ -7445,48 +7534,75 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	grid-row: 1;
 }
 .reader-outline h2 {
+	display: flex;
+	align-items: center;
+	gap: var(--space-10);
 	font-size: var(--text-body);
 	font-weight: 500;
 	color: var(--ink);
 	line-height: 1.5;
-	margin: 0 0 var(--space-12);
+	margin: 0 0 var(--space-6);
 }
 .reader-outline-links {
 	position: relative;
-	border-left: 1px solid var(--line-card);
+	display: flex;
+	flex-direction: column;
+	gap: 0;
 }
 .reader-outline a {
+	position: relative;
+	flex-shrink: 0;
+	box-sizing: border-box;
 	display: flex;
 	align-items: center;
-	min-height: var(--hit-target);
-	padding: var(--space-8) var(--space-12);
-	font-size: var(--text-control);
+	min-height: var(--space-32);
+	padding: var(--space-4) 0;
+	font-size: var(--text-body);
 	font-weight: 400;
 	line-height: 1.6;
 	color: var(--muted);
 	text-decoration: none;
 	overflow-wrap: anywhere;
 }
-.reader-outline a[aria-current="location"] {
-	color: var(--accent);
-	font-weight: 600;
+.reader-outline-label {
+	position: relative;
+	min-width: 0;
+	transition: transform var(--outline-step) var(--outline-ease);
 }
-.reader-outline-marker {
+.reader-outline a[aria-current="location"] .reader-outline-label {
+	transform: translateX(var(--outline-shift));
+}
+.reader-outline-color {
+	position: absolute;
+	inset: 0;
+	color: var(--accent);
+	clip-path: inset(0 100% 0 0);
+	transition: clip-path var(--outline-wipe-out) var(--outline-ease);
+}
+.reader-outline a[aria-current="location"] .reader-outline-color {
+	clip-path: inset(0 0 0 0);
+	transition-duration: var(--outline-wipe-in);
+}
+.reader-outline-dot {
 	position: absolute;
 	top: 0;
-	left: -1px;
-	width: 2px;
-	height: var(--space-20);
-	border-radius: var(--space-2);
+	left: 0;
+	width: var(--outline-dot);
+	height: var(--outline-dot);
+	border-radius: var(--pill-radius);
 	background: var(--accent);
 	pointer-events: none;
+}
+.reader-outline a {
+	padding-inline-end: var(--outline-shift);
+}
+html[data-input-modality="keyboard"] .reader-outline-label,
+html[data-input-modality="keyboard"] .reader-outline-color {
+	transition: none;
 }
 @media (hover: hover) and (pointer: fine) {
 	.reader-outline a:hover {
 		color: var(--ink);
-	}
-	.reader-outline a[aria-current="location"]:hover {
-		color: var(--accent);
 	}
 }
 .is-media-reader .media-detail {
@@ -7589,11 +7705,11 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 	.reader-outline {
 		display: none;
 	}
-	#modal.reader:has(.reader-workspace) > .float-bar {
+	:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar {
 		left: var(--space-4);
 		padding-inline: var(--space-4);
 	}
-	#modal.reader:has(.reader-workspace) > .float-bar .bar-divider {
+	:is(#modal, .phone-layer).reader:has(.reader-workspace) > .float-bar .bar-divider {
 		display: none;
 	}
 	.media-tab-header {
@@ -8179,5 +8295,5 @@ body:has(#modal[open]) .pull-ring.in-home-heading {
 }
 
 body{min-height:100svh;display:grid;place-items:center;padding:var(--space-24)}#modal{position:relative;margin:auto;max-height:calc(100svh - var(--space-48))}#modal::backdrop{display:none}@media(max-width:650px){body{padding:0;display:block}#modal{margin:0;max-height:100svh;height:100svh;width:100%;border-radius:0}}
-</style></head><body><dialog open id="modal" class="panel wide"><div class="sheet settings-sheet"><div class="grabber" aria-hidden="true"></div><header class="settings-head"><h1 id="modal-title">设置</h1><div class="sheet-close"><button type="button" class="icon-button " aria-label="关闭设置" data-action="close"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></header><div class="settings-layout"><nav class="settings-nav" aria-label="设置分组"><button type="button" class="on" data-action="settings-group" data-extra="desk" aria-current="true">桌面</button><button type="button" class="" data-action="settings-group" data-extra="look" aria-current="false">外观</button><button type="button" class="" data-action="settings-group" data-extra="keys" aria-current="false">快捷键</button><button type="button" class="" data-action="settings-group" data-extra="data" aria-current="false">数据与隐私</button></nav><div class="settings-main"><h2>桌面</h2><div class="settings-card"><div class="setting-row"><span>系统提醒<small class="setting-example">仅此设备生效。网页打开时，提醒会显示在系统通知中。</small></span><span class="setting-side"><button type="button" class="toggle" role="switch" aria-label="系统提醒" aria-checked="false" disabled=""></button></span></div></div><p class="settings-hint muted" role="status">当前浏览器或嵌入页面不支持系统通知，请在独立网页中打开。</p><div class="settings-card"><div class="setting-row"><span>同一来源刷屏时叠起来</span><span class="setting-side"><span>超过 5 张</span><button class="toggle" type="button" role="switch" aria-label="同一来源刷屏时叠起来" aria-checked="true" data-action="pref-toggle" data-id="stack"><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>读过的卡片慢慢变淡</span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="读过的卡片慢慢变淡" aria-checked="true" data-action="pref-toggle" data-id="fadeRead"><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>会议和提醒到点浮上来</span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="会议和提醒到点浮上来" aria-checked="true" data-action="pref-toggle" data-id="floatTimely"><span class="toggle-knob" aria-hidden="true"></span></button></span></div></div>
-       <div class="settings-card"><div class="setting-row"><span>读完上推收起</span><span class="setting-side"><button class="toggle" type="button" role="switch" aria-label="读完上推收起" aria-checked="true" data-action="pref-toggle" data-id="collapseOnFinish"><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>新内容提示</span><span class="setting-side"><span class="segmented" role="radiogroup" aria-label="新内容提示"><button type="button" role="radio" tabindex="0" aria-checked="true" class="on" data-action="pref" data-id="newHint" data-extra="away">离开顶部时</button><button type="button" role="radio" tabindex="-1" aria-checked="false" class="" data-action="pref" data-id="newHint" data-extra="off">不提示</button></span></span></div></div></div></div></div></dialog><script>const pages={"desk":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"true\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>桌面\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>系统提醒\u003csmall class=\"setting-example\">仅此设备生效。网页打开时，提醒会显示在系统通知中。\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton type=\"button\" class=\"toggle\" role=\"switch\" aria-label=\"系统提醒\" aria-checked=\"false\" disabled=\"\">\u003c/button>\u003c/span>\u003c/div>\u003c/div>\u003cp class=\"settings-hint muted\" role=\"status\">当前浏览器或嵌入页面不支持系统通知，请在独立网页中打开。\u003c/p>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>同一来源刷屏时叠起来\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>超过 5 张\u003c/span>\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"同一来源刷屏时叠起来\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"stack\">\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>读过的卡片慢慢变淡\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"读过的卡片慢慢变淡\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"fadeRead\">\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>会议和提醒到点浮上来\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"会议和提醒到点浮上来\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"floatTimely\">\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>读完上推收起\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"读完上推收起\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"collapseOnFinish\">\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>新内容提示\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"新内容提示\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"away\">离开顶部时\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"off\">不提示\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","look":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"true\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>外观\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>主题\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"主题\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"theme\" data-extra=\"system\">跟随系统\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"light\">浅色\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"dark\">深色\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"density\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>文字加重\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字加重\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"strong\">加重\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">卡片\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>内部留白\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"内部留白\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">阅读\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>行段间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"行段间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>正文宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"正文宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"narrow\">窄\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"full\">铺满\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cbutton type=\"button\" class=\"text-link\" data-action=\"layout-reset\">恢复默认排版\u003c/button>\u003c/div>\u003c/div>\u003c/div>","keys":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"true\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>快捷键\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>单键快捷键 N / R / T\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" type=\"button\" role=\"switch\" aria-label=\"单键快捷键 N / R / T\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"singleKeyShortcuts\">\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>搜索\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>⌘\u003c/kbd>\u003ckbd>K\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>打开卡片\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Enter\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>关闭浮层\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Esc\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>刷新\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>R\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>回到顶部\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>T\u003c/kbd>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","data":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"true\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>数据与隐私\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>存放位置\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>这个浏览器\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>占用\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"num\">525 B\u003c/span>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link\" data-action=\"export-all\">导出全部卡片…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link warn\" data-action=\"clear-all\">清除全部数据…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>"};const modal=document.getElementById('modal');function size(){modal.classList.toggle('page',matchMedia('(max-width:650px)').matches)}size();window.addEventListener('resize',size);document.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button)return;if(button.dataset.action==='settings-group'){modal.innerHTML=pages[button.dataset.extra];size()}else event.preventDefault()});</script></body></html>
+</style></head><body><dialog open id="modal" class="panel wide"><div class="sheet settings-sheet"><div class="grabber" aria-hidden="true"></div><header class="settings-head"><h1 id="modal-title">设置</h1><div class="sheet-close"><button type="button" class="icon-button " aria-label="关闭设置" data-action="close"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></header><div class="settings-layout"><nav class="settings-nav" aria-label="设置分组"><button type="button" class="on" data-action="settings-group" data-extra="desk" aria-current="true">桌面</button><button type="button" class="" data-action="settings-group" data-extra="look" aria-current="false">外观</button><button type="button" class="" data-action="settings-group" data-extra="keys" aria-current="false">快捷键</button><button type="button" class="" data-action="settings-group" data-extra="data" aria-current="false">数据与隐私</button></nav><div class="settings-main"><h2>桌面</h2><div class="settings-card"><div class="setting-row"><span>系统提醒<small class="setting-example">仅此设备生效。网页打开时，提醒会显示在系统通知中。</small></span><span class="setting-side"><button type="button" class="toggle" role="switch" aria-label="系统提醒" aria-checked="false" disabled=""></button></span></div></div><p class="settings-hint muted" role="status">当前浏览器或嵌入页面不支持系统通知，请在独立网页中打开。</p><div class="settings-card"><div class="setting-row"><span>同一来源刷屏时叠起来</span><span class="setting-side"><span>超过 5 张</span><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="同一来源刷屏时叠起来" aria-checked="true" data-action="pref-toggle" data-id="stack"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>读过的卡片慢慢变淡</span><span class="setting-side"><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="读过的卡片慢慢变淡" aria-checked="true" data-action="pref-toggle" data-id="fadeRead"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>会议和提醒到点浮上来</span><span class="setting-side"><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="会议和提醒到点浮上来" aria-checked="true" data-action="pref-toggle" data-id="floatTimely"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div></div>
+       <div class="settings-card"><div class="setting-row"><span>读完上推收起</span><span class="setting-side"><button class="toggle" data-live-toggle="" type="button" role="switch" aria-label="读完上推收起" aria-checked="true" data-action="pref-toggle" data-id="collapseOnFinish"><span class="toggle-fill" aria-hidden="true" style="opacity:1"></span><span class="toggle-knob" aria-hidden="true"></span></button></span></div><div class="setting-row"><span>新内容提示</span><span class="setting-side"><span class="segmented" role="radiogroup" aria-label="新内容提示"><button type="button" role="radio" tabindex="0" aria-checked="true" class="on" data-action="pref" data-id="newHint" data-extra="away">离开顶部时</button><button type="button" role="radio" tabindex="-1" aria-checked="false" class="" data-action="pref" data-id="newHint" data-extra="off">不提示</button></span></span></div></div></div></div></div></dialog><script>const pages={"desk":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"true\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>桌面\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>系统提醒\u003csmall class=\"setting-example\">仅此设备生效。网页打开时，提醒会显示在系统通知中。\u003c/small>\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton type=\"button\" class=\"toggle\" role=\"switch\" aria-label=\"系统提醒\" aria-checked=\"false\" disabled=\"\">\u003c/button>\u003c/span>\u003c/div>\u003c/div>\u003cp class=\"settings-hint muted\" role=\"status\">当前浏览器或嵌入页面不支持系统通知，请在独立网页中打开。\u003c/p>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>同一来源刷屏时叠起来\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>超过 5 张\u003c/span>\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"同一来源刷屏时叠起来\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"stack\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>读过的卡片慢慢变淡\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"读过的卡片慢慢变淡\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"fadeRead\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>会议和提醒到点浮上来\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"会议和提醒到点浮上来\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"floatTimely\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>读完上推收起\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"读完上推收起\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"collapseOnFinish\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>新内容提示\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"新内容提示\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"away\">离开顶部时\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"newHint\" data-extra=\"off\">不提示\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","look":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"true\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>外观\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>主题\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"主题\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"theme\" data-extra=\"system\">跟随系统\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"light\">浅色\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"theme\" data-extra=\"dark\">深色\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"density\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"density\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>文字加重\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字加重\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"textWeight\" data-extra=\"strong\">加重\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">卡片\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>卡片间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"卡片间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>内部留白\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"内部留白\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"cardPadding\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cdiv class=\"group-label\">阅读\u003c/div>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>文字大小\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"文字大小\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"small\">小\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerTextSize\" data-extra=\"large\">大\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>行段间距\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"行段间距\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"compact\">紧凑\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerSpacing\" data-extra=\"roomy\">宽松\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>正文宽度\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"segmented\" role=\"radiogroup\" aria-label=\"正文宽度\">\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"narrow\">窄\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"-1\" aria-checked=\"false\" class=\"\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"standard\">标准\u003c/button>\u003cbutton type=\"button\" role=\"radio\" tabindex=\"0\" aria-checked=\"true\" class=\"on\" data-action=\"pref\" data-id=\"readerWidth\" data-extra=\"full\">铺满\u003c/button>\u003c/span>\u003c/span>\u003c/div>\u003c/div>\u003cbutton type=\"button\" class=\"text-link\" data-action=\"layout-reset\">恢复默认排版\u003c/button>\u003c/div>\u003c/div>\u003c/div>","keys":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"true\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"false\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>快捷键\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>单键快捷键 N / R / T\u003c/span>\u003cspan class=\"setting-side\">\u003cbutton class=\"toggle\" data-live-toggle=\"\" type=\"button\" role=\"switch\" aria-label=\"单键快捷键 N / R / T\" aria-checked=\"true\" data-action=\"pref-toggle\" data-id=\"singleKeyShortcuts\">\u003cspan class=\"toggle-fill\" aria-hidden=\"true\" style=\"opacity:1\">\u003c/span>\u003cspan class=\"toggle-knob\" aria-hidden=\"true\">\u003c/span>\u003c/button>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>搜索\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>⌘\u003c/kbd>\u003ckbd>K\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>打开卡片\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Enter\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>关闭浮层\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>Esc\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>刷新\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>R\u003c/kbd>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>回到顶部\u003c/span>\u003cspan class=\"setting-side\">\u003ckbd>T\u003c/kbd>\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>","data":"\u003cdiv class=\"sheet settings-sheet\">\u003cdiv class=\"grabber\" aria-hidden=\"true\">\u003c/div>\u003cheader class=\"settings-head\">\u003ch1 id=\"modal-title\">设置\u003c/h1>\u003cdiv class=\"sheet-close\">\u003cbutton type=\"button\" class=\"icon-button \" aria-label=\"关闭设置\" data-action=\"close\">\u003csvg class=\"icon\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\">\u003cpath d=\"m6 6 12 12M18 6 6 18\"/>\u003c/svg>\u003c/button>\u003c/div>\u003c/header>\u003cdiv class=\"settings-layout\">\u003cnav class=\"settings-nav\" aria-label=\"设置分组\">\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"desk\" aria-current=\"false\">桌面\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"look\" aria-current=\"false\">外观\u003c/button>\u003cbutton type=\"button\" class=\"\" data-action=\"settings-group\" data-extra=\"keys\" aria-current=\"false\">快捷键\u003c/button>\u003cbutton type=\"button\" class=\"on\" data-action=\"settings-group\" data-extra=\"data\" aria-current=\"true\">数据与隐私\u003c/button>\u003c/nav>\u003cdiv class=\"settings-main\">\u003ch2>数据与隐私\u003c/h2>\u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>存放位置\u003c/span>\u003cspan class=\"setting-side\">\u003cspan>这个浏览器\u003c/span>\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>占用\u003c/span>\u003cspan class=\"setting-side\">\u003cspan class=\"num\">525 B\u003c/span>\u003c/span>\u003c/div>\u003c/div>\n       \u003cdiv class=\"settings-card\">\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link\" data-action=\"export-all\">导出全部卡片…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003cdiv class=\"setting-row\">\u003cspan>\u003cbutton type=\"button\" class=\"text-link warn\" data-action=\"clear-all\">清除全部数据…\u003c/button>\u003c/span>\u003cspan class=\"setting-side\">\u003c/span>\u003c/div>\u003c/div>\u003c/div>\u003c/div>\u003c/div>"};const modal=document.getElementById('modal');function size(){modal.classList.toggle('page',matchMedia('(max-width:650px)').matches)}size();window.addEventListener('resize',size);document.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button)return;if(button.dataset.action==='settings-group'){modal.innerHTML=pages[button.dataset.extra];size()}else event.preventDefault()});</script></body></html>

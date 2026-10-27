@@ -364,22 +364,24 @@ export function AIDock() {
 export function WorkspaceShell() {
 	return (
 		<>
-			<HomeTop />
-			<main aria-label={copy("web.app.75db60dcb6ad")}>
-				<h1 className="sr-only" id="page-title">
-					{copy("web.common.desk")}
-				</h1>
-				<div className="feed-grid" id="feed-grid" />
-				<div className="feed-end" aria-hidden="true" />
-			</main>
-			<div id="dock">
-				<OfflineNotice />
-				<SelectionBar />
-				<AIDock />
-				<Navigation />
+			<div id="workspace-background">
+				<HomeTop />
+				<main aria-label={copy("web.app.75db60dcb6ad")}>
+					<h1 className="sr-only" id="page-title">
+						{copy("web.common.desk")}
+					</h1>
+					<div className="feed-grid" id="feed-grid" />
+					<div className="feed-end" aria-hidden="true" />
+				</main>
+				<div id="dock">
+					<OfflineNotice />
+					<SelectionBar />
+					<AIDock />
+					<Navigation />
+				</div>
+				<NewContentNotice />
+				<div className="scroll-edge" id="scroll-edge" aria-hidden="true" />
 			</div>
-			<NewContentNotice />
-			<div className="scroll-edge" id="scroll-edge" aria-hidden="true" />
 			<dialog id="modal" aria-labelledby="modal-title" />
 			<ToastSurface />
 			<div className="sr-only" id="announcer" aria-live="polite" />

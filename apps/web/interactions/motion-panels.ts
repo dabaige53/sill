@@ -259,7 +259,7 @@ export const panelMotion: Record<string, any> = {
 		resume?: { opacity: string; transform: string },
 	) {
 		this.cancelPanel(el);
-		if (this.keyboard) return;
+		if (el.hasAttribute("data-phone-drawer") || this.keyboard) return;
 		const sheet = this.surface(el);
 		const opacity = sheet.style.opacity;
 		const desktop = !matchMedia("(max-width:650px)").matches;
@@ -294,7 +294,9 @@ export const panelMotion: Record<string, any> = {
 	openPanel(el?: any, origin?: DOMRect | null, resume?: { opacity: string; transform: string }) {
 		this.cancelPanel(el);
 		const sheet = this.surface(el),
-			bar = el.querySelector(":scope > .float-bar, .reader .float-bar");
+			bar = el.querySelector(
+				":scope > .phone-drawer > .float-bar, :scope > .float-bar, .reader .float-bar",
+			);
 		if (el.dataset.readerResize === "true" && origin) {
 			delete el.dataset.readerResize;
 			const target = sheet.getBoundingClientRect();

@@ -27,7 +27,11 @@
 				"rhythm-section"
 			],
 			"adr": "0069",
-			"boards": ["CardTypeDetails", "CardTypeMobile", "CardTypeReading"]
+			"boards": [
+				"CardTypeDetails",
+				"CardTypeMobile",
+				"CardTypeReading"
+			]
 		},
 		"content-boundaries": {
 			"title": "长内容与窄屏边界",
@@ -279,6 +283,15 @@
 				"text-reader-body"
 			],
 			"adr": "0068",
+			"boards": [
+				"CardTypeMobile"
+			]
+		},
+		"phone-detail-drawer": {
+			"title": "手机详情 Vaul 抽屉",
+			"rule": "handbook/card-interaction.md#预览与叠放",
+			"tokens": [],
+			"adr": "0081",
 			"boards": [
 				"CardTypeMobile"
 			]

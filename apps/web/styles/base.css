@@ -41,6 +41,18 @@ body {
 		overscroll-behavior-y: none;
 	}
 }
+#workspace-background {
+	min-height: 100dvh;
+	background: var(--canvas);
+}
+#workspace-background.is-drawer-background {
+	/* Vaul releases its inline overflow when closing; keep the frozen viewport clipped. */
+	overflow: clip;
+	position: fixed;
+	inset: 0;
+	height: 100dvh;
+	width: 100%;
+}
 button,
 input,
 textarea,
@@ -270,7 +282,7 @@ a {
 .settings-main::-webkit-scrollbar,
 .search-results::-webkit-scrollbar,
 .ai-context::-webkit-scrollbar,
-#modal.panel .sheet::-webkit-scrollbar,
+:is(#modal, .phone-layer).panel .sheet::-webkit-scrollbar,
 .cloud-compose-body::-webkit-scrollbar {
 	display: none;
 }
