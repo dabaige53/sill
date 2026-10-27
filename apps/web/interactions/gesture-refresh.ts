@@ -101,7 +101,10 @@ export function bindRefresh(this: Gestures) {
 		if (returning) body.classList.add("is-pulling");
 		const playback = MotionEngine.move(main, pull ? `0 ${pull}px` : "", direct, {
 			spring: refreshConfig.settle,
-			...(velocity === undefined ? {} : { velocity: { y: velocity } }),
+			// Preserve the upward handoff; limit downward travel before the spring returns.
+			...(velocity === undefined
+				? {}
+				: { velocity: { y: Math.min(velocity, refreshConfig.maxDownwardVelocity) } }),
 			onUpdate: follow,
 		});
 		if (returning)

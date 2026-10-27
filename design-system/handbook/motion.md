@@ -50,8 +50,8 @@ Web桌面（宽度大于650px）html／body采用overscroll-behavior-y: auto，�
 
 - Web桌面普通滚动保留根auto的原生边缘反馈；明确进入下拉刷新时，wheel接手该序列并恢复main随动。body.is-pulling从拉动持续到卡片回位结束，期间根html／body暂为none，避免浏览器与Motion叠加位移。松手后按原刷新规则提交，卡片回位完成后恢复普通滚动的原生反馈。
 - Web触控板刷新、鼠标按住空白拖动和PWA触摸／滚轮共用下列自定义位移、释放与反馈。圆环原UI、实际刷新请求与加载／完成展示规则共用；普通详情原生反馈保持独立。
-- Web/PWA使用 `motion.pullRefresh`：内容位移为 `d × rubberDimension × rubber / (rubberDimension + rubber × d)`，rubberDimension 480、rubber 0.7。内容和进度共用可见位移，threshold 64px才就绪，不再额外乘0.75，也不在80px处切换阻力。鼠标dragSlop为4px，启动后重设起点，触摸保持真实松手提交。
-- 回位使用该参数的settle：visualDuration 0.35秒、bounce 0；接续100ms窗口的释放速度。回位中再次拉动，从当前绘制位移反算输入基准。圆环保留原样式和标题区域锚点；无标题区域时沿用原回退位置，不迁移到卡片上方。
+- Web/PWA使用 `motion.pullRefresh`：内容位移为 `d × rubberDimension × rubber / (rubberDimension + rubber × d)`，rubberDimension 100（可见位移渐近上限100px）、rubber 0.7。内容和进度共用可见位移，threshold 64px才就绪，不再额外乘0.75，也不在80px处切换阻力。鼠标dragSlop为4px，启动后重设起点，触摸保持真实松手提交。
+- 回位使用该参数的settle：stiffness 300、damping 34、mass 0.9、restDelta 0.1px、restSpeed 1px/s；保留向上释放速度，向下释放速度上限60px/s，不混用visualDuration。回位中再次拉动，从当前绘制位移反算输入基准。圆环保留原样式和标题区域锚点；无标题区域时沿用原回退位置，不迁移到卡片上方。
 - wheel首个主动边缘事件只建立起点，后续增量完整累计后走同一阻力。wheel.decaySamples为3、decayRatio为0.5：连续3次衰减且幅度不大于本序列峰值50%时估计释放；否则以wheel.releaseIdleMs 80ms静默判断。单次减速不提交，重新发力重置衰减计数。该规则估计输入阶段，不等同于系统松手事件；惯性抵达顶部不能启动新下拉。
 - 释放后内容立即回位，圆环单独表示刷新，不增加加载留白。motion.pullRefresh.feedback规定loadingMinMs 300ms、successHoldMs 400ms：先让加载旋转可见，再显示完成勾，最后以fast 140ms淡出；完成勾淡入期间不同时淡出整个圆环。请求立即开始，数据结果立即合入，展示计时不延后业务；实际请求未结束时继续加载，失败直接保留原位置重试，新下拉可中断已结束请求的反馈。按钮刷新保持内容原位，不复制演示布局或1200ms模拟请求；Sill始终可见。见[ADR 0074](../../docs/adr/0074-pull-refresh-resistance-and-release.md)。
 
