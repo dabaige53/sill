@@ -72,8 +72,10 @@ function homeSearchClear(this: AppController) {
 	const input = document.getElementById("home-search") as HTMLInputElement | null;
 	if (input) input.value = "";
 	this.filter = { ...this.filter, query: "", kind: "all" };
+	this.homeSearchChoice = "";
 	this.renderCurrent(false);
 	input?.focus({ preventScroll: true });
+	this.openHomeSearch(true);
 }
 
 /** Desktop search conditions change the card area in place, from the top. */
@@ -101,16 +103,19 @@ function homeKind(this: AppController, { extra }: ActionContext) {
 /** A picked # option becomes an accent token; the typed #fragment leaves the text. */
 function homeHash(this: AppController, { extra }: ActionContext) {
 	const field = document.getElementById("home-search-field");
-	const from = searchChoiceOrigin(field, extra);
-	document.getElementById("home-search-field")?.classList.remove("show-suggestions");
 	const at = extra.indexOf(":");
 	const kind = extra.slice(0, at),
 		value = extra.slice(at + 1);
+	if (!["query", "status", "tag"].includes(kind)) return;
+	searchChoiceOrigin(field, extra);
+	this.homeSearchChoice = extra;
 	if (kind === "query") {
 		this.filter = { ...this.filter, query: value };
 		const input = document.getElementById("home-search") as HTMLInputElement | null;
 		if (input) input.value = value;
+		this.openHomeSearch(false);
 		renderHomeSearch.call(this);
+		flySearchChoice(field);
 		focusHomeSearch();
 		return;
 	}
@@ -124,8 +129,9 @@ function homeHash(this: AppController, { extra }: ActionContext) {
 	const input = document.getElementById("home-search") as HTMLInputElement | null;
 	if (input) input.value = query;
 	this.homeHashIndex = 0;
+	this.openHomeSearch(false);
 	renderHomeSearch.call(this);
-	flySearchChoice(field, kind === "tag" ? "tag" : "mark", from);
+	flySearchChoice(field);
 	focusHomeSearch();
 }
 

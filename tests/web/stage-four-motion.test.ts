@@ -143,6 +143,16 @@ test("phone search follows the supplied choreography and reverses from the drawn
 		assert.equal(resultFade.options.delay, 0.13);
 		assert.equal(resultMove.options.duration, 400);
 		const nav = f.document.querySelector("#dock");
+		for (const actor of [nav, f.document.querySelector(".search-browse")]) {
+			const travel = f.animations.find(
+				(animation) => animation.target === actor && "transform" in animation.frames[0],
+			);
+			assert.equal(
+				travel.options.ease,
+				"ease",
+				"browse and navigation use the attachment's CSS default curve",
+			);
+		}
 		assert.equal(nav.inert, true);
 		assert.equal(f.document.querySelectorAll("nav button").length, 3);
 		assert.equal(f.document.querySelector(".keyboard"), null);

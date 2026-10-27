@@ -82,7 +82,11 @@ for (const slow of [false, true]) {
 			assert.equal(grid.hasAttribute("aria-busy"), false);
 			assert.equal(cleared, true);
 			assert.equal(routes, 1);
-			assert.deepEqual(renders, slow ? [false, false, true] : [false, true]);
+			assert.deepEqual(
+				renders,
+				slow ? [false, false, false] : [false, false],
+				"all first cards appear together without stagger",
+			);
 		} finally {
 			api.releaseView(grid);
 			dom.window.close();

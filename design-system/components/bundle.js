@@ -716,6 +716,8 @@ var Sill = (() => {
     "web.search.clear": "\u6E05\u7A7A\u641C\u7D22",
     "web.search.filtersLabel": "\u7B5B\u9009",
     "web.search.noResultsPrefix": "\u6CA1\u6709\u627E\u5230\u300C",
+    "web.search.noSuggestions": "\u6CA1\u6709\u5339\u914D\u7684\u641C\u7D22\u5386\u53F2\u6216\u6807\u7B7E",
+    "web.photo.carousel": "\u7167\u7247\u8F6E\u64AD",
     "web.search.deskGroupPrefix": "\u684C\u9762 \xB7 ",
     "web.search.shelvedGroupPrefix": "\u5DF2\u6536\u8D77 \xB7 ",
     "web.archive.thisWeek": "\u672C\u5468",

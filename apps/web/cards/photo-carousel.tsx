@@ -1,14 +1,41 @@
-import { type AnimationPlaybackControls, animate, motionValue } from "motion";
-import { type PointerEvent, useCallback, useEffect, useRef, useState } from "react";
+/*! Interaction adapted from https://github.com/xevrion/ui-lab.
+MIT License
+
+Copyright (c) 2026 Yash Bavadiya
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+import { type PointerEvent, useEffect, useRef } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
 
-/** The project spring is a trial setting, not a parameter copied from Motion+. */
-const snap = tokens.motion.photoSnapSpring;
+const timing = tokens.motion.photoCarousel;
+type Drag = {
+	id: number;
+	x: number;
+	start: number;
+	samples: { x: number; time: number }[];
+};
 
-/** Page snapping retains pointer velocity without re-rendering React on every frame. */
+/** Native snapping owns touch and trackpad motion; mouse dragging follows ui-lab's release sampling. */
 export function PhotoCarousel({
 	card,
 	index,
@@ -19,151 +46,165 @@ export function PhotoCarousel({
 	onSelect?: (index: number) => void;
 }) {
 	const photos = card.photos?.length ? card.photos : [card.image];
-	const viewport = useRef<HTMLDivElement>(null),
-		track = useRef<HTMLDivElement>(null);
-	const [position] = useState(() => motionValue(0));
-	const animation = useRef<AnimationPlaybackControls | null>(null);
-	const initial = useRef(index),
-		current = useRef(index),
-		mounted = useRef(false),
-		releaseVelocity = useRef(0);
+	const viewport = useRef<HTMLElement>(null);
+	const current = useRef(index),
+		reported = useRef(index),
+		mounted = useRef(false);
+	const count = useRef(photos.length),
+		select = useRef(onSelect);
 	current.current = index;
-	const drag = useRef<{
-		id: number;
-		x: number;
-		y: number;
-		offset: number;
-		active: boolean;
-		base: number;
-		lastOffset: number;
-		lastTime: number;
-		velocity: number;
-	} | null>(null);
-	const drawnPosition = useCallback(() => {
-		const transform = track.current && getComputedStyle(track.current).transform;
-		if (transform?.startsWith("matrix(")) return Number(transform.slice(7).split(",")[4]);
-		if (transform?.startsWith("matrix3d(")) return Number(transform.slice(9).split(",")[12]);
-		return position.get();
-	}, [position]);
-	const settle = useCallback(
-		(instant = false, target = current.current, velocity = 0) => {
-			const width = viewport.current?.clientWidth;
-			if (!width || !track.current) return;
-			const from = drawnPosition();
-			animation.current?.stop();
-			position.jump(from);
-			const destination = -target * width;
-			if (instant || document.documentElement.dataset.inputModality === "keyboard")
-				position.jump(destination);
-			else
-				animation.current = animate(position, destination, { type: "spring", ...snap, velocity });
-		},
-		[position, drawnPosition],
-	);
+	count.current = photos.length;
+	select.current = onSelect;
+	const drag = useRef<Drag | null>(null);
+	const suppressClick = useRef(false);
+	const command = useRef<number | null>(null);
+	const settle = useRef<((report?: boolean) => void) | null>(null);
+	const nearest = (left: number) =>
+		Math.max(
+			0,
+			Math.min(count.current - 1, Math.round(left / (viewport.current?.clientWidth || 1))),
+		);
+	const sync = () => {
+		const el = viewport.current;
+		if (!el || drag.current) return;
+		if (command.current !== null) {
+			if (Math.abs(el.scrollLeft - command.current * el.clientWidth) > 1) return;
+			command.current = null;
+		}
+		const next = nearest(el.scrollLeft);
+		if (next !== current.current) {
+			reported.current = next;
+			select.current?.(next);
+		}
+	};
 	useEffect(() => {
-		const unsubscribe = position.on("change", (value) => {
-			if (track.current) track.current.style.transform = `translateX(${value}px)`;
-		});
-		settle(true);
+		const el = viewport.current;
+		if (!el) return;
+		let width = el.clientWidth;
+		el.scrollLeft = current.current * width;
 		const resize = new ResizeObserver(() => {
+			if (el.clientWidth === width) return;
+			width = el.clientWidth;
 			drag.current = null;
-			settle(true);
+			settle.current?.();
+			command.current = null;
+			el.scrollTo({ left: current.current * width, behavior: "instant" });
 		});
-		if (viewport.current) resize.observe(viewport.current);
+		resize.observe(el);
 		return () => {
 			resize.disconnect();
-			animation.current?.stop();
-			unsubscribe();
+			settle.current?.(false);
 		};
-	}, [position, settle]);
+	}, []);
 	useEffect(() => {
 		if (!mounted.current) {
 			mounted.current = true;
 			return;
 		}
-		const velocity = releaseVelocity.current;
-		releaseVelocity.current = 0;
-		settle(false, index, velocity);
-	}, [index, settle]);
-	const down = (event: PointerEvent<HTMLDivElement>) => {
-		if (event.button !== 0 || photos.length < 2 || !onSelect) return;
-		document.documentElement.dataset.inputModality =
-			event.pointerType === "touch" ? "touch" : "pointer";
+		if (reported.current === index) return;
+		reported.current = index;
+		const el = viewport.current;
+		if (!el) return;
+		settle.current?.();
+		command.current = index;
+		el.scrollTo({
+			left: index * el.clientWidth,
+			behavior:
+				document.documentElement.dataset.inputModality === "keyboard" ? "instant" : "smooth",
+		});
+	}, [index]);
+	const down = (event: PointerEvent<HTMLElement>) => {
+		settle.current?.(false);
+		command.current = null;
+		if (event.pointerType !== "mouse" || event.button !== 0 || photos.length < 2 || !onSelect)
+			return;
+		const el = event.currentTarget;
+		el.style.scrollSnapType = "none";
+		el.scrollTo({ left: el.scrollLeft, behavior: "instant" });
+		el.setPointerCapture(event.pointerId);
+		el.dataset.dragging = "";
+		suppressClick.current = false;
 		drag.current = {
 			id: event.pointerId,
 			x: event.clientX,
-			y: event.clientY,
-			offset: 0,
-			active: false,
-			base: 0,
-			lastOffset: 0,
-			lastTime: event.timeStamp,
-			velocity: 0,
+			start: el.scrollLeft,
+			samples: [{ x: event.clientX, time: event.timeStamp }],
 		};
 	};
-	const move = (event: PointerEvent<HTMLDivElement>) => {
-		const state = drag.current,
-			width = viewport.current?.clientWidth;
-		if (!state || state.id !== event.pointerId || !width) return;
-		const dx = event.clientX - state.x,
-			dy = event.clientY - state.y;
-		if (!state.active) {
-			if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) {
-				drag.current = null;
-				return;
-			}
-			if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
-			state.active = true;
-			state.base = drawnPosition();
-			animation.current?.stop();
-			event.currentTarget.setPointerCapture(event.pointerId);
-		}
-		event.preventDefault();
-		const elapsed = event.timeStamp - state.lastTime;
-		if (elapsed > 0) state.velocity = ((dx - state.lastOffset) / elapsed) * 1000;
-		state.offset = dx;
-		state.lastOffset = dx;
-		state.lastTime = event.timeStamp;
-		const beyond = (index === 0 && dx > 0) || (index === photos.length - 1 && dx < 0);
-		position.jump(state.base + dx * (beyond ? 0.2 : 1));
+	const move = (event: PointerEvent<HTMLElement>) => {
+		const state = drag.current;
+		if (!state || state.id !== event.pointerId) return;
+		const dx = event.clientX - state.x;
+		if (Math.abs(dx) > timing.dragSlop) suppressClick.current = true;
+		event.currentTarget.scrollLeft = state.start - dx;
+		state.samples.push({ x: event.clientX, time: event.timeStamp });
+		while (
+			state.samples.length > 2 &&
+			event.timeStamp - state.samples[0].time > timing.velocityWindow
+		)
+			state.samples.shift();
 	};
-	const release = (event: PointerEvent<HTMLDivElement>, cancelled = false) => {
+	const release = (event: PointerEvent<HTMLElement>, cancelled = false) => {
 		const state = drag.current;
 		if (!state || state.id !== event.pointerId) return;
 		drag.current = null;
-		if (!state.active) return;
-		const width = viewport.current?.clientWidth || 1;
-		const velocity = cancelled || event.timeStamp - state.lastTime > 80 ? 0 : state.velocity;
-		const intent = Math.abs(velocity) > 500 ? velocity : state.offset;
-		const direction =
-			!cancelled && (Math.abs(state.offset) > width * 0.25 || Math.abs(velocity) > 500)
-				? intent < 0
-					? 1
-					: -1
+		const el = event.currentTarget;
+		delete el.dataset.dragging;
+		if (el.hasPointerCapture?.(event.pointerId)) el.releasePointerCapture(event.pointerId);
+		const first = state.samples[0],
+			last = state.samples[state.samples.length - 1];
+		const velocity =
+			!cancelled && event.timeStamp - last.time < timing.velocityWindow && last.time > first.time
+				? -(last.x - first.x) / (last.time - first.time)
 				: 0;
-		const next = Math.max(0, Math.min(photos.length - 1, index + direction));
-		if (next !== index) {
-			releaseVelocity.current = velocity;
-			onSelect?.(next);
-		} else settle(false, index, velocity);
+		const from = nearest(state.start);
+		let next = cancelled ? from : nearest(el.scrollLeft + velocity * timing.coast);
+		if (!cancelled && next === from && Math.abs(velocity) > timing.flickVelocity)
+			next = Math.max(0, Math.min(photos.length - 1, from + Math.sign(velocity)));
+		command.current = next;
+		const restore = (report = true) => {
+			window.clearTimeout(fallback);
+			el.removeEventListener("scrollend", finish);
+			el.style.scrollSnapType = "";
+			settle.current = null;
+			command.current = null;
+			if (report) sync();
+		};
+		const finish = () => restore();
+		const fallback = window.setTimeout(finish, timing.settleFallback);
+		el.addEventListener("scrollend", finish);
+		settle.current = restore;
+		el.scrollTo({ left: next * el.clientWidth, behavior: "smooth" });
 	};
 	return (
-		<div
+		<section
 			ref={viewport}
 			className="photo-carousel"
+			aria-roledescription={copy("web.photo.carousel")}
+			aria-label={card.title}
+			// biome-ignore lint/a11y/noNoninteractiveTabindex: The native horizontal scroller needs keyboard focus for navigation.
+			tabIndex={0}
+			onScroll={sync}
+			onWheel={() => {
+				settle.current?.(false);
+				command.current = null;
+			}}
 			onPointerDown={down}
 			onPointerMove={move}
 			onPointerUp={(event) => release(event)}
 			onPointerCancel={(event) => release(event, true)}
 			onLostPointerCapture={(event) => release(event, true)}
+			onClickCapture={(event) => {
+				if (!suppressClick.current) return;
+				suppressClick.current = false;
+				event.preventDefault();
+				event.stopPropagation();
+			}}
+			onDragStart={(event) => event.preventDefault()}
 		>
-			<div
-				ref={track}
-				className="photo-carousel-track"
-				style={{ transform: `translateX(${-initial.current * 100}%)` }}
-			>
+			<div className="photo-carousel-track">
 				{photos.map((photo, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: Authored photo sequences can contain repeated images.
+					// biome-ignore lint/suspicious/noArrayIndexKey: Authored sequences can repeat images.
 					<div className="photo-carousel-page" key={`${i}:${photo}`} aria-hidden={i !== index}>
 						<img
 							src={assetURL(photo)}
@@ -173,6 +214,6 @@ export function PhotoCarousel({
 					</div>
 				))}
 			</div>
-		</div>
+		</section>
 	);
 }

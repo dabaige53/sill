@@ -21,8 +21,8 @@ export async function startLocalWorkspace(app: AppController, connect: () => Pro
 		window.clearTimeout(timer);
 		app.deskView = deskView;
 		try {
-			// Still initializing: images do not start a second fade after card entry.
-			app.renderCurrent(true);
+			// The first snapshot appears together after layout, without a second image fade.
+			app.renderCurrent(false);
 		} finally {
 			app.initializing = false;
 			app.grid.removeAttribute("aria-busy");

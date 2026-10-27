@@ -175,10 +175,10 @@ export const appInputMethods = {
 			e.preventDefault();
 			field?.classList.add("suggestion-engaged");
 			this.homeHashIndex = e.key === "Home" ? 0 : options.length - 1;
-			this.syncHomeHash();
+			this.syncHomeHash(true);
 			return true;
 		}
-		if (e.key === "Escape" && options.length) {
+		if (e.key === "Escape" && input.getAttribute("aria-expanded") === "true") {
 			e.preventDefault();
 			this.openHomeSearch(false);
 			return true;
@@ -198,7 +198,7 @@ export const appInputMethods = {
 					? options.length - 1
 					: 0
 				: (this.homeHashIndex + step + options.length) % options.length;
-			this.syncHomeHash();
+			this.syncHomeHash(true);
 			return true;
 		}
 		if (options.length && e.key === "Enter" && !e.isComposing) {
@@ -245,13 +245,14 @@ export const appInputMethods = {
 		// While an input method is composing (pinyin, kana), the text is not final: wait for compositionend.
 		if (e.isComposing) return;
 		if (e.target.dataset.input === "home-search") {
+			this.homeSearchChoice = "";
 			const field = document.getElementById("home-search-field");
 			field?.classList.add("is-open", "suggestion-engaged");
 			field?.classList.remove("show-suggestions");
 			const value = (e.target as HTMLInputElement).value;
 			// The type chips leave with the text; a hidden chip never keeps filtering.
 			const kind = this.searchText(value) ? this.filter.kind : "all";
-			if (this.searchHash(value) !== this.searchHash(this.filter.query)) this.homeHashIndex = 0;
+			this.homeHashIndex = 0;
 			this.filter = { ...this.filter, query: value, kind };
 			this.syncHomeSearch();
 			clearTimeout(this.homeSearchTimer);

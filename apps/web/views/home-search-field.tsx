@@ -9,7 +9,7 @@ export function HomeSearchField() {
 					<Icon name="search" size={16} />
 				</span>
 				<span data-search-icon="condition">
-					<Icon name="tag" size={16} />
+					<span className="home-search-choice" />
 				</span>
 			</span>
 			<button
@@ -33,18 +33,20 @@ export function HomeSearchField() {
 				aria-label={copy("web.search.inputLabel")}
 				placeholder={copy("web.home.searchPlaceholder")}
 			/>
-			<span className="home-search-key" aria-hidden="true">
-				⌘K
+			<span className="home-search-trailing">
+				<span className="home-search-key" aria-hidden="true">
+					⌘K
+				</span>
+				<button
+					type="button"
+					className="home-search-clear"
+					data-action="home-search-clear"
+					aria-label={copy("web.search.clear")}
+					hidden
+				>
+					<Icon name="x" size={12} />
+				</button>
 			</span>
-			<button
-				type="button"
-				className="home-search-clear"
-				data-action="home-search-clear"
-				aria-label={copy("web.search.clear")}
-				hidden
-			>
-				<Icon name="x" size={12} />
-			</button>
 			<div className="home-hash-slot" id="home-hash-slot" />
 		</div>
 	);

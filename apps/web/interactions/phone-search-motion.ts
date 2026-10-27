@@ -75,11 +75,18 @@ function fade(
 		fill: "backwards",
 	});
 }
-function travel(node: HTMLElement, from: string, to: string, duration: number, delay = 0) {
+function travel(
+	node: HTMLElement,
+	from: string,
+	to: string,
+	duration: number,
+	delay = 0,
+	easing = timing.supportEase,
+) {
 	return MotionEngine.animate(node, [{ transform: from }, { transform: to }], {
 		duration,
 		delay,
-		easing: timing.supportEase,
+		easing,
 		fill: "backwards",
 	});
 }
@@ -206,6 +213,8 @@ export function transitionPhoneSearch(
 				before.transform || "none",
 				editing ? `translateY(-${timing.headTravel}px)` : "none",
 				head ? timing.headMove : timing.browseMove,
+				0,
+				head ? timing.supportEase : timing.browseEase,
 			),
 		);
 	}
@@ -222,6 +231,8 @@ export function transitionPhoneSearch(
 			before.transform || "none",
 			editing ? `translateY(${timing.navTravel}px)` : "none",
 			timing.navMove,
+			0,
+			timing.navEase,
 		);
 		state.animations.push(movement);
 		const finish = () => {

@@ -591,6 +591,8 @@
 	"web.search.clear": "清空搜索",
 	"web.search.filtersLabel": "筛选",
 	"web.search.noResultsPrefix": "没有找到「",
+	"web.search.noSuggestions": "没有匹配的搜索历史或标签",
+	"web.photo.carousel": "照片轮播",
 	"web.search.deskGroupPrefix": "桌面 · ",
 	"web.search.shelvedGroupPrefix": "已收起 · ",
 	"web.archive.thisWeek": "本周",

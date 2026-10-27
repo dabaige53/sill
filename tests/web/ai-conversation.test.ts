@@ -267,3 +267,63 @@ test("the desktop box grows and folds back by the table, and stays one line with
 		f.dom.window.close();
 	}
 });
+
+test("tapping restore during collapse keeps the drawn shell until reversal and preserves the draft", async () => {
+	const f = fixture();
+	try {
+		const { w } = f;
+		w.__motionAnimations = [];
+		w.HTMLElement.prototype.setPointerCapture = () => {};
+		w.HTMLElement.prototype.getBoundingClientRect = function () {
+			const box = this.matches?.("[data-ai-collapse-visual]")
+				? [
+						parseFloat(this.style.left),
+						parseFloat(this.style.top),
+						parseFloat(this.style.width),
+						parseFloat(this.style.height),
+					]
+				: this.matches?.(".ai-dock-tools button")
+					? [810, 710, 36, 36]
+					: this.matches?.(".ai-dock.is-collapsed")
+						? [798, 698, 60, 60]
+						: [200, 700, 640, 60];
+			return {
+				left: box[0],
+				top: box[1],
+				width: box[2],
+				height: box[3],
+				right: box[0] + box[2],
+				bottom: box[1] + box[3],
+			};
+		};
+		const host = w.document.getElementById("dock");
+		w.AITest.renderView(host, w.AITest.createElement(w.AITest.AIDock));
+		const input = w.document.querySelector("#ai-dock-input");
+		input.value = "Keep my draft";
+		w.document.querySelector(".ai-dock-tools button").click();
+		await Promise.resolve();
+		const visual = w.document.querySelector("[data-ai-collapse-visual]");
+		assert.ok(visual);
+		visual.style.clipPath = "inset(0px 300px 0px 0px round 30px)";
+		const restore = w.document.querySelector("#ai-dock .ai-dock-restore");
+		const down = new w.MouseEvent("pointerdown", { bubbles: true, button: 0, clientX: 820 });
+		Object.defineProperty(down, "pointerId", { value: 1 });
+		restore.dispatchEvent(down);
+		assert.equal(
+			visual.isConnected,
+			true,
+			"a tap must not complete the collapse before reversing it",
+		);
+		restore.dispatchEvent(new w.MouseEvent("pointerup", { bubbles: true, button: 0 }));
+		restore.click();
+		await Promise.resolve();
+		assert.equal(visual.isConnected, false);
+		assert.ok(w.document.querySelector("[data-ai-collapse-visual]"));
+		assert.equal(w.document.querySelector("#ai-dock-input"), input);
+		assert.equal(input.value, "Keep my draft");
+		assert.equal(w.document.querySelector("#ai-dock").classList.contains("is-collapsed"), false);
+		w.AITest.renderView(host, null);
+	} finally {
+		f.dom.window.close();
+	}
+});

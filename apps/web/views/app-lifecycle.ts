@@ -90,7 +90,7 @@ export const appLifecycleMethods = {
 				return;
 			}
 			// Picking from the # list keeps the caret in the field.
-			if (e.target.closest?.(".home-hash")) {
+			if (e.target.closest?.(".home-hash, .home-search-clear")) {
 				e.preventDefault();
 				return;
 			}

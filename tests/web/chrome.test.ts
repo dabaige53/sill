@@ -509,3 +509,35 @@ test("adjacent toolbar names skip the first hover delay only after a tooltip was
 		f.dom.window.close();
 	}
 });
+
+test("desktop top recovery is gentler while bottom bars and closing-card timing remain independent", () => {
+	const f = fixture();
+	try {
+		f.w.matchMedia = () => ({ matches: true });
+		const top = f.w.document.createElement("div");
+		top.id = "home-top";
+		f.w.document.body.append(top);
+		const css = f.w.document.createElement("style");
+		css.textContent = ".is-tucked{opacity:0}";
+		f.w.document.head.append(css);
+		const animations: any[] = [];
+		f.w.__motionAnimations = animations;
+		const hide = new f.w.ChromeTest.ChromeAutoHide(f.w.document.getElementById("scroll"), () => [
+			top,
+			f.bar,
+		]);
+		hide.hide(true);
+		animations.length = 0;
+		hide.show();
+		assert.equal(animations.find((animation) => animation.target === top).options.duration, 560);
+		assert.equal(animations.find((animation) => animation.target === f.bar).options.duration, 420);
+		hide.hide(true);
+		animations.length = 0;
+		hide.show(true);
+		assert.equal(animations.find((animation) => animation.target === top).options.stiffness, 274);
+		hide.destroy();
+	} finally {
+		f.hide.destroy();
+		f.dom.window.close();
+	}
+});

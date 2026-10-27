@@ -7,8 +7,8 @@ import type { Filter } from "./app-types.ts";
 export type HomeHashOption = { extra: string; label: string; group: "status" | "tag" | "history" };
 
 /** # options for the desktop top-bar search: the tab's own status is already a token. */
-export function homeHashOptions(frag: string, filter: Filter, tabStatus: string): HomeHashOption[] {
-	const { statuses, tags } = hashOptions(frag, [filter.mark, tabStatus], filter.tag);
+export function homeHashOptions(frag: string, tabStatus: string): HomeHashOption[] {
+	const { statuses, tags } = hashOptions(frag, [tabStatus], "");
 	return [
 		...statuses.map(([key, label]) => ({
 			extra: `status:${key}`,
@@ -17,6 +17,32 @@ export function homeHashOptions(frag: string, filter: Filter, tabStatus: string)
 		})),
 		...tags.map((tag) => ({ extra: `tag:${tag}`, label: `#${tag}`, group: "tag" as const })),
 	];
+}
+
+/** A stored choice is valid only while its corresponding filter still matches. */
+export function selectedHomeChoice(filter: Filter, choice: string) {
+	const at = choice.indexOf(":"),
+		kind = choice.slice(0, at),
+		value = choice.slice(at + 1);
+	if (
+		(kind === "query" && value === filter.query) ||
+		(kind === "tag" && value === filter.tag) ||
+		(kind === "status" && value === filter.mark)
+	)
+		return choice;
+	return filter.tag ? `tag:${filter.tag}` : filter.mark !== "all" ? `status:${filter.mark}` : "";
+}
+
+function SearchMatch({ text, needle }: { text: string; needle: string }) {
+	const at = needle ? text.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase()) : -1;
+	if (at < 0) return <>{text}</>;
+	return (
+		<span className="home-option-match">
+			{text.slice(0, at)}
+			<mark>{text.slice(at, at + needle.length)}</mark>
+			{text.slice(at + needle.length)}
+		</span>
+	);
 }
 
 /** # conditions after the tab token: accent, removed by a click or by Delete from the end. */
@@ -51,13 +77,16 @@ export function HomeSearchMarks({ filter }: { filter: Filter }) {
 export function HomeHashList({
 	options,
 	active,
+	selected = "",
+	needle = "",
 	onHighlight,
 }: {
 	options: HomeHashOption[];
 	active: number;
+	selected?: string;
+	needle?: string;
 	onHighlight?: (index: number) => void;
 }) {
-	if (!options.length) return null;
 	const group = (name: HomeHashOption["group"], label: string) => {
 		const items = options.filter((option) => option.group === name);
 		if (!items.length) return null;
@@ -75,7 +104,8 @@ export function HomeHashList({
 							onPointerMove={(event) => {
 								if (event.pointerType !== "touch" && index !== active) onHighlight?.(index);
 							}}
-							aria-selected={index === active}
+							aria-selected={option.extra === selected}
+							tabIndex={-1}
 							className={`search-hash-option${index === active ? " is-active" : ""}`}
 							data-action="home-hash"
 							data-extra={option.extra}
@@ -88,7 +118,16 @@ export function HomeHashList({
 									size={16}
 								/>
 							</span>
-							<span className="home-option-label">{option.label}</span>
+							<span className="home-option-label">
+								<SearchMatch text={option.label} needle={needle} />
+							</span>
+							<span
+								className="home-option-check"
+								aria-hidden="true"
+								hidden={option.extra !== selected}
+							>
+								<Icon name="check" size={16} />
+							</span>
 						</button>
 					);
 				})}
@@ -103,6 +142,9 @@ export function HomeHashList({
 			aria-label={copy("web.search.hashList")}
 		>
 			<span className="home-hash-highlight" aria-hidden="true" />
+			{!options.length && (
+				<div className="home-search-empty">{copy("web.search.noSuggestions")}</div>
+			)}
 			{group("history", copy("web.search.history"))}
 			{group("status", copy("web.search.hashStatus"))}
 			{group(

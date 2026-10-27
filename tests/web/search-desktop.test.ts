@@ -230,3 +230,34 @@ test("tabbing past an opened combobox does not pick an untouched first suggestio
 		f.dom.window.close();
 	}
 });
+
+test("typing filters history and tags, empty candidates close with Escape, and reopening highlights the chosen history", () => {
+	const f = desktopFixture();
+	try {
+		f.app.searchHistory = ["Alpha", "Gamma"];
+		f.input.focus();
+		f.type("Al");
+		assert.deepEqual(
+			[...f.app.homeHashOptions()].map((option: any) => option.extra),
+			["query:Alpha"],
+		);
+		assert.equal(f.w.document.querySelector(".home-option-match mark").textContent, "Al");
+		f.app.action("home-hash", "", "query:Alpha");
+		assert.equal(f.app.homeSearchChoice, "query:Alpha");
+		assert.equal(f.input.getAttribute("aria-expanded"), "false");
+		f.app.openHomeSearch(true);
+		assert.equal(f.w.document.querySelector('[aria-selected="true"]').dataset.extra, "query:Alpha");
+		f.type("no match");
+		assert.equal(f.input.getAttribute("aria-expanded"), "true");
+		assert.ok(f.w.document.querySelector(".home-search-empty"));
+		f.key("Escape");
+		assert.equal(
+			f.input.value,
+			"no match",
+			"first Escape closes candidates without losing the query",
+		);
+		assert.equal(f.input.getAttribute("aria-expanded"), "false");
+	} finally {
+		f.dom.window.close();
+	}
+});

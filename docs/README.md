@@ -315,3 +315,4 @@
 - [滚动、完成与回弹的交接](adr/0077-scroll-completion-and-rebound.md)
 - [下拉刷新的连续阻力与释放](adr/0078-pull-refresh-resistance-and-release.md)
 - [正文边缘回位的速度与参数](adr/0079-content-edge-rebound.md)
+- [补齐搜索与第三、第四批动画交接](adr/0080-animation-reference-completion.md)

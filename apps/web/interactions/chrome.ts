@@ -29,7 +29,7 @@ class ChromeAutoHide {
 	declare onFocus: (e: FocusEvent) => void;
 	declare onKeyDown: (e: KeyboardEvent) => void;
 
-	/** Every toolbar uses the same reveal timing; keyboard changes remain immediate. */
+	/** Scroll rules are shared; the desktop header has a gentler independent reveal. */
 	constructor(source: Source, targets: () => Element[], paused: () => boolean = () => false) {
 		this.source = source;
 		this.targets = targets;
@@ -135,10 +135,14 @@ class ChromeAutoHide {
 		const reveal = !withCard;
 		for (const t of this.targets()) {
 			(t as HTMLElement).inert = false;
+			const duration =
+				t.id === "home-top" && matchMedia("(min-width: 651px)").matches
+					? "dur-top-reveal"
+					: "dur-reveal";
 			MotionEngine.change(
 				t as HTMLElement,
 				() => t.classList.remove("is-tucked"),
-				reveal ? MotionEngine.time("dur-reveal") : MotionEngine.time("dur-show"),
+				reveal ? MotionEngine.time(duration) : MotionEngine.time("dur-show"),
 				withCard ? { spring: "card" } : reveal ? { easing: MotionEngine.curve("ease-reveal") } : {},
 			);
 		}

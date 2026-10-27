@@ -172,6 +172,7 @@ class AppController {
 	homeSearchTimer = 0;
 	/** Highlighted row of the top-bar # list. */
 	homeHashIndex = 0;
+	homeSearchChoice = "";
 	searchHistory: string[] = [];
 	searchScroll = 0;
 	searchLimit = 40;

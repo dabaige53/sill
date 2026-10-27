@@ -187,11 +187,11 @@ export function paintRecords() {
 		.filter((c: any) => !c.deleted)
 		.map((c: any) => cloudCard(c));
 	app.checkReminders();
-	// First cards enter after layout; later updates keep their own arrival transition.
+	// The first snapshot appears together; later updates keep their arrival transition.
 	if (endBoot()) {
 		app.initializing = true;
 		try {
-			app.renderCurrent(true);
+			app.renderCurrent(false);
 		} finally {
 			app.initializing = false;
 		}

@@ -521,12 +521,19 @@ dialog > .float-bar.is-hidden {
 	flex: 1;
 	min-width: 0;
 	height: 100%;
-	overflow: hidden;
-	touch-action: pan-y pinch-zoom;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scroll-snap-type: x mandatory;
+	overscroll-behavior-x: contain;
+	scrollbar-width: none;
+	touch-action: auto;
 	user-select: none;
 	cursor: grab;
 }
-.photo-carousel:active {
+.photo-carousel::-webkit-scrollbar {
+	display: none;
+}
+.photo-carousel[data-dragging] {
 	cursor: grabbing;
 }
 .photo-carousel-track {
@@ -536,6 +543,7 @@ dialog > .float-bar.is-hidden {
 }
 .photo-carousel-page {
 	flex: 0 0 100%;
+	scroll-snap-align: start;
 	min-width: 0;
 	display: flex;
 	align-items: center;

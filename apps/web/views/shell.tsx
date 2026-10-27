@@ -197,7 +197,6 @@ export function AIDock() {
 			e.preventDefault();
 			e.stopPropagation();
 			moved.current = false;
-			animation.current?.complete();
 			drag.current = { x: e.clientX, position: positionRef.current, moved: false };
 			(target.closest<HTMLElement>(".ai-dock-restore") ?? e.currentTarget).setPointerCapture(
 				e.pointerId,
@@ -206,7 +205,12 @@ export function AIDock() {
 		onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
 			if (!drag.current) return;
 			const delta = e.clientX - drag.current.x;
-			if (Math.abs(delta) > 4) drag.current.moved = true;
+			if (!drag.current.moved && Math.abs(delta) > 4) {
+				// A tap may reverse the current collapse. Finish it only when an actual drag takes over.
+				animation.current?.complete();
+				animation.current = null;
+				drag.current.moved = true;
+			}
 			moved.current = drag.current.moved;
 			if (drag.current.moved) dock.current?.classList.add("is-moving");
 			if (drag.current.moved) {
