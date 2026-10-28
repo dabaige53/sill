@@ -365,4 +365,5 @@
 - [ADR 0083：Mac 全量对齐与原生交互边界](adr/0083-macos-parity-and-native-interaction.md)
 - [ADR 0084：Mac 布局回退、搜索与阅读切换](adr/0084-macos-feedback-layout-and-reader.md)
 - [ADR 0085：资讯正文排版与目录](adr/0085-article-typeset-and-toc.md)
+- [ADR 0086：卡片字段精简与积木配方表](adr/0086-card-fields-and-block-recipes.md)
 - [删除动画工作台记录](records/2026-10-27-motion-workbench-removal/README.md)
