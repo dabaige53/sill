@@ -81,6 +81,14 @@ private actor AccountStub: CloudAccountService {
 }
 
 @MainActor @Suite struct AccountTests {
+  @Test func loginValidatesEmailBeforeSubmitting() {
+    #expect(CloudLogin.validEmail("user@example.com"))
+    #expect(CloudLogin.validEmail("  a+b@example.com  "))
+    #expect(!CloudLogin.validEmail("invalid"))
+    #expect(!CloudLogin.validEmail("a b@example.com"))
+    #expect(!CloudLogin.validEmail(String(repeating: "a", count: 250) + "@example.com"))
+  }
+
   private func ready(_ workspace: Workspace) async throws {
     for _ in 0..<100 {
       if workspace.phase == .ready { return }
@@ -129,7 +137,7 @@ private actor AccountStub: CloudAccountService {
     app.selection.select("shared-id")
     app.ai.draft = "private draft"
     app.ai.add(["shared-id"])
-    app.panels.open(.capture)
+    app.panels.open(.settings)
     let oldReader = app.reader
     oldReader.open("shared-id")
     workspace.recorder.readingSecond()

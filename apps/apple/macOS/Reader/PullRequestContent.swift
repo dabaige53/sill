@@ -114,7 +114,7 @@ struct PullRequestContent: View {
           .foregroundStyle(
             pr.state == "draft" || pr.state == "closed" ? AppleColors.secondary : AppleColors.accent
           )
-        if let author = pr.author?.name, !author.isEmpty, let head = pr.headBranch,
+        if let author = pr.author?.login, !author.isEmpty, let head = pr.headBranch,
           let base = pr.baseBranch
         {
           mergeIntent(author: author, head: head, base: base)
@@ -289,7 +289,7 @@ struct PullRequestContent: View {
           ForEach(Array(pr.files.enumerated()), id: \.offset) { _, file in
             HStack(spacing: AppleMetrics.space12) {
               rowIcon("file")
-              Text(file.path).lineLimit(1).truncationMode(.middle)
+              Text(file.path).lineLimit(1).truncationMode(.tail)
               Spacer(minLength: 0)
               stats(additions: file.additions, deletions: file.deletions)
             }.padding(.vertical, AppleMetrics.space12)

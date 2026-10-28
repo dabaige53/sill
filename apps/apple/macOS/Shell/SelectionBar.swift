@@ -28,7 +28,12 @@ struct SelectionBar: View {
         .padding(.horizontal, AppleMetrics.space8)
         .accessibilityLabel("\(selection.count)\(Copy.text("web.common.cardCountSuffix"))")
       ToolButton(
-        icon: "bookmark", label: Copy.text("web.app.87aeb7040c82"), action: intents.bookmark)
+        icon: "bookmark",
+        label: Copy.text(
+          selection.allBookmarked ? "web.preview.removeBookmark" : "web.app.87aeb7040c82"),
+        active: selection.allBookmarked, action: intents.bookmark
+      )
+      .disabled(selection.writing)
       ToolButton(icon: "glasses", label: Copy.text("web.app.d108c0a7e2c3"), action: intents.later)
       ToolButton(icon: "tag", label: Copy.text("web.app.b5816e5fd0be"), action: intents.tag)
       ToolButton(icon: "chat", label: Copy.text("web.selection.toAI"), action: intents.toAI)
@@ -42,13 +47,6 @@ struct SelectionBar: View {
     .fixedSize(horizontal: true, vertical: false)
     .frame(height: AppleMetrics.railRow)
     .desktopGlass(Capsule())
-    .contextMenu {
-      Button(Copy.text("web.app.87aeb7040c82"), action: intents.bookmark)
-      Button(Copy.text("web.app.d108c0a7e2c3"), action: intents.later)
-      Button(Copy.text("web.app.b5816e5fd0be"), action: intents.tag)
-      Divider()
-      Button(Copy.text("web.app.74966e20df2e"), action: intents.cancel)
-    }
     .accessibilityElement(children: .contain)
     .accessibilityLabel(Copy.text("web.app.461e085d5ca2"))
   }

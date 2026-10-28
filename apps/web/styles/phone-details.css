@@ -1,0 +1,296 @@
+/* Phone detail sheets and settings; loaded after phone chrome. */
+@media (max-width: 650px) {
+	/* Preview and bottom sheets (ADR 0037) */
+	/* Content-sized bottom sheet: long content is capped, reading on expands it. */
+	:is(#modal, .phone-layer).preview {
+		position: fixed;
+		inset: 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+	}
+	:is(#modal, .phone-layer).preview .preview-sheet {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: auto;
+		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		max-height: calc(100dvh - max(64px, env(safe-area-inset-top)));
+		transform: translateY(0);
+	}
+	:is(#modal, .phone-layer).preview .preview-sheet.is-full {
+		height: 100%;
+		max-height: 100%;
+		transform: none;
+		border-radius: 0;
+	}
+	:is(#modal, .phone-layer).preview .preview-sheet:not(.is-full) {
+		height: var(--nested-sheet-height, auto);
+	}
+	:is(#modal, .phone-layer).preview .preview-sheet.is-off {
+		transform: translateY(100%);
+	}
+	:is(#modal, .phone-layer).preview .sheet-peek {
+		position: absolute;
+		left: 14px;
+		right: 14px;
+		top: auto;
+		bottom: calc(var(--preview-height, 100dvh - 64px) - 10px);
+		width: auto;
+		height: 24px;
+		margin: 0;
+	}
+	:is(#modal, .phone-layer).preview[data-sheet-resizing] .sheet-peek,
+	:is(#modal, .phone-layer).preview:has(.preview-sheet:is(.is-full, .is-off)) .sheet-peek {
+		opacity: 0;
+		pointer-events: none;
+	}
+	:is(#modal, .phone-layer).preview .preview-sheet .sheet-scroll {
+		flex: 1;
+		max-height: none;
+		overflow-x: hidden;
+	}
+	:is(#modal, .phone-layer).reader:has(.is-podcast) .reader-scroll {
+		overflow-x: hidden;
+	}
+	:is(#modal, .phone-layer) :is(.is-podcast .media-primary, .is-podcast .media-secondary) {
+		min-width: 0;
+		max-width: 100%;
+	}
+	/* The close disc floats beside the player; it does not reserve a header row. */
+	:is(#modal, .phone-layer).preview .preview-sheet .compact-player-slot {
+		top: max(var(--space-8), env(safe-area-inset-top));
+	}
+	:is(#modal, .phone-layer).preview .preview-sheet .compact-player {
+		padding-left: 0;
+		padding-right: var(--space-56);
+		gap: var(--space-8);
+	}
+	:is(#modal, .phone-layer).preview .preview-sheet .is-podcast .media-tab-header {
+		top: calc(max(var(--space-8), env(safe-area-inset-top)) + var(--space-44) + var(--space-24));
+	}
+	/* Half the old white: 26px from the last line to the toolbar, 8px under it (ADR 0037). */
+	:is(#modal, .phone-layer).preview:has(.float-bar) .preview-sheet .sheet-scroll {
+		padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+		scroll-padding-bottom: calc(
+			var(--rail-row) +
+			var(--space-4) +
+			max(var(--space-8), env(safe-area-inset-bottom))
+		);
+	}
+	:is(#modal, .phone-layer).preview
+		.preview-sheet.is-full
+		.sheet-scroll
+		> .gesture-content
+		> .preview-body:first-child {
+		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
+	}
+	/* In the drawer the close disc stays put while the text scrolls, as on the Web. */
+	:is(#modal, .phone-layer).preview:not([data-phone-drawer])
+		.preview-sheet.is-full.is-scrolled
+		.sheet-head {
+		top: env(safe-area-inset-top);
+	}
+	/* The drawer already sits below the status bar. A home-screen app reports its ~59px as the top
+	   safe area (a Safari tab reports 0), so inside the drawer that inset would only leave a gap. */
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.preview-sheet.is-full
+		.sheet-scroll
+		> .gesture-content
+		> .preview-body:first-child {
+		padding-top: var(--space-18);
+	}
+	/* The drawer handle sits 8px from the top, where the cover began; the cover and its close disc
+	   move down together, the disc keeping its 16px inset on the image. */
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.sheet-scroll
+		> .gesture-content
+		> .preview-cover {
+		margin-top: var(--space-24);
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.preview-sheet:has(.sheet-scroll > .gesture-content > .preview-cover)
+		.sheet-head {
+		top: 40px;
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer] .preview-sheet .compact-player-slot {
+		top: var(--space-8);
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.preview-sheet
+		.is-podcast
+		.media-tab-header {
+		top: calc(var(--space-8) + var(--space-44) + var(--space-24));
+	}
+	:is(#modal, .phone-layer).preview :is(#modal-title, .phone-layer-title),
+	:is(#modal, .phone-layer).preview .preview-body :is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-52);
+	}
+	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
+		:is(#modal-title, .phone-layer-title),
+	:is(#modal, .phone-layer).preview:has(.sheet-head [data-action="reader"])
+		.preview-body
+		:is(.preview-sender, .preview-meta) {
+		padding-right: var(--space-104);
+	}
+	:is(#modal, .phone-layer).preview:has(.preview-body :is(.preview-sender, .preview-meta))
+		:is(#modal-title, .phone-layer-title) {
+		padding-right: 0;
+	}
+	/* Podcast controls sit beside the separate now-playing heading. */
+	:is(#modal, .phone-layer).preview:has(.is-podcast) .preview-body .preview-meta {
+		padding-right: 0;
+	}
+	/* @design content-boundaries — six actions keep their full touch targets. */
+	.float-bar:has(> .icon-button:nth-of-type(6)) {
+		max-width: calc(100vw - 2 * var(--space-8));
+		gap: var(--space-2);
+	}
+	.float-bar:has(> .icon-button:nth-of-type(6)) .toolbar-sep {
+		margin-inline: var(--space-4);
+	}
+	.sheet-head {
+		height: 60px;
+		padding: 0 var(--space-12);
+	}
+	/* Fingers need the full 44px disc; desktop keeps the lighter 36px. */
+	.sheet-head .icon-button {
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+	}
+	.sheet-handle {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		position: absolute;
+		z-index: 5;
+		top: 0;
+		left: calc(50% - 40px);
+		width: 80px;
+		height: 24px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		touch-action: none;
+		cursor: ns-resize;
+	}
+	.preview-sheet.is-full .sheet-handle {
+		top: env(safe-area-inset-top);
+	}
+	.sheet-handle .grabber {
+		position: absolute;
+		left: 50%;
+		top: 6px;
+		margin: 0 0 0 calc(-1 * var(--space-18));
+	}
+	:is(#modal, .phone-layer).preview[open] {
+		gap: 0;
+	}
+	.preview-sheet,
+	:is(#modal, .phone-layer).panel .sheet {
+		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+	.sheet-scroll {
+		max-height: 84dvh;
+	}
+	.grabber {
+		display: block;
+		width: 36px;
+		height: 5px;
+		border-radius: 3px;
+		background: var(--faint);
+		margin: var(--space-8) auto 0;
+	}
+	:is(#modal, .phone-layer).preview .float-bar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: max(8px, env(safe-area-inset-bottom));
+		margin-inline: auto;
+		z-index: 3;
+	}
+	:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom,
+	:is(#modal, .phone-layer).preview
+		> .phone-drawer:has(> .float-bar)
+		> .preview-sheet
+		> .sheet-edge.is-bottom {
+		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
+	}
+	:is(#modal, .phone-layer).preview .push-ring {
+		bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px));
+	}
+	.preview-body {
+		padding: var(--space-18) var(--space-20) var(--space-22);
+	}
+	.preview-body h1,
+	.preview-body .preview-title-row {
+		font-size: calc(var(--space-24) * var(--content-text-scale, 1));
+	}
+	/* Full-screen reader */
+	.reader-head {
+		top: max(10px, env(safe-area-inset-top));
+		right: 12px;
+	}
+	.reader-body {
+		padding: var(--space-64) var(--space-22) var(--space-150);
+	}
+	.reader-body h1,
+	.reader-body .preview-title-row {
+		font-size: calc(27px * var(--content-text-scale, 1));
+	}
+	.reader-body p {
+		font-size: calc(var(--text-reader-body) * var(--content-text-scale, 1));
+	}
+	/* Settings */
+	.settings-layout {
+		grid-template-columns: 1fr;
+		min-height: 0;
+		background: var(--canvas);
+	}
+	.settings-nav {
+		flex-direction: row;
+		overflow-x: auto;
+		/* The group pills sit where the home tabs sit: 6 under the title row, at the 16 margin. */
+		padding: var(--space-6) var(--margin-sm) var(--space-12);
+		border-right: 0;
+		border-bottom: 0;
+		scrollbar-width: none;
+	}
+	.settings-nav::-webkit-scrollbar {
+		display: none;
+	}
+	.settings-nav button {
+		flex: none;
+	}
+	.settings-main {
+		padding: var(--space-20) var(--space-16);
+		max-height: 70dvh;
+	}
+	/* The settings page fills the screen behind the capsule: its groups scroll to the bottom edge, not to a box above it. */
+	:is(#modal, .phone-layer).page.panel.wide .sheet {
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0;
+	}
+	:is(#modal, .phone-layer).page .settings-layout {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+	:is(#modal, .phone-layer).page .settings-main {
+		flex: 1;
+		max-height: none;
+		padding-bottom: calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+}

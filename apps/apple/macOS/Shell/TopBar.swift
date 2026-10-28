@@ -93,11 +93,10 @@ struct TopBar: View {
 /// Scrolling takes its animation from `Chrome`; an open card and the first entrance set their own.
 private struct TopBarReveal: ViewModifier {
   @Environment(Chrome.self) private var chrome
-  @State private var entered = false
 
   func body(content: Content) -> some View {
     let card = chrome.yielding
-    let hidden = !entered || chrome.tucked || card
+    let hidden = chrome.tucked || card
     let travel = AppleMetrics.topBarInset / 2 + AppleMetrics.space64 + AppleMetrics.space12
     content
       .offset(y: hidden ? -travel : 0)
@@ -110,30 +109,33 @@ private struct TopBarReveal: ViewModifier {
           : card ? Motion.ease(AppleMetrics.motionRailHide) : Motion.card,
         value: card
       )
-      .animation(Motion.keyboardDriven ? nil : Motion.reveal, value: entered)
-      .task {
-        guard !entered else { return }
-        // Commit the initial offscreen state before starting the entrance.
-        await Task.yield()
-        guard !Task.isCancelled else { return }
-        entered = true
-      }
+      .animation(
+        Motion.keyboardDriven
+          ? nil : chrome.tucked ? Motion.ease(AppleMetrics.motionRailHide) : Motion.topReveal,
+        value: chrome.tucked)
   }
 }
 
 /// The avatar: settings. No real photo exists, so the existing person icon.
 struct AccountButton: View {
+  @Environment(Account.self) private var account
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      Icon("person", size: AppleMetrics.space20)
-        .foregroundStyle(AppleColors.primary)
-        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
-        .desktopGlass(Circle(), interactive: true)
-        .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-        .contentShape(Circle())
+      Group {
+        if let initial = account.displayName.trimmingCharacters(in: .whitespacesAndNewlines).first {
+          Text(String(initial).uppercased()).font(.sans(AppleMetrics.font16, .semibold))
+        } else {
+          Icon("person", size: AppleMetrics.space22)
+        }
+      }
+      .foregroundStyle(AppleColors.primary)
+      .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
+      .desktopGlass(Circle(), interactive: true)
+      .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+      .contentShape(Circle())
     }
-    .buttonStyle(.plain)
+    .buttonStyle(IconPress(highlight: false))
     .modifier(HandCursor())
     .accessibilityIdentifier("settings-open")
     .accessibilityLabel(Copy.text("web.nav.settings"))

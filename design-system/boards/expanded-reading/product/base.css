@@ -45,13 +45,26 @@ body {
 	min-height: 100dvh;
 	background: var(--canvas);
 }
-#workspace-background.is-drawer-background {
-	/* Vaul releases its inline overflow when closing; keep the frozen viewport clipped. */
-	overflow: clip;
+/* app-surfaces.ts freezes the desk under a phone page the same way. */
+#workspace-background:is(.is-drawer-background, .is-page-frozen) {
 	position: fixed;
 	inset: 0;
 	height: 100dvh;
 	width: 100%;
+}
+#workspace-background.is-page-frozen {
+	overflow: clip;
+}
+/* Under a drawer only the cards are clipped to the screen, not the whole page: iOS drew a clipped
+   page differently, and the card shadows and the dock's glass changed in one frame as the drawer
+   finished closing. phone-drawer.tsx measures the visible part. */
+#workspace-background.is-drawer-background > main {
+	--phone-drawer-roundness: inherit;
+	clip-path: inset(
+		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round 0 0
+			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
+			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
+	);
 }
 button,
 input,

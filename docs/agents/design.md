@@ -1,6 +1,6 @@
 # Sill 的设计约束
 
-更新：2026-10-27。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](../../design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
+更新：2026-10-28。改界面、样式、文案、图标或交互之前先读本文。规则正文在 [设计手册](../../design-system/README.md)，本文只说明依据在哪里、改动按什么顺序做、Web 和 macOS 怎样保持一致。
 
 ## 依据
 
@@ -83,9 +83,9 @@
 
 修改任一端界面或审查跨端一致性时，按 [跨端对齐检查清单](cross-platform-checklist.md) 选择相关项并记录各端证据，并在同一提交更新 [界面对账表](../product/ui-alignment.md)。
 
-macOS 的视觉与动效以 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为准。不使用原生控件样式、SF Symbols 或单层阴影。浮动操作区在 macOS 26 及以上使用原生 Liquid Glass：顶部搜索与账户、AI 栏、阅读工具、预览按钮、多选栏、刷新圆环、新内容提示和 Toast；内容与设置保留实底。
+共同界面的视觉与动效以当前 Web 的 styles/*.css、styles/tokens.css、interactions/motion*.ts，以及手册 motion.md、interaction.md 为对照。Mac 的窗口、快捷键、焦点、原生滚动、通知及相应动效允许按平台优化；具体边界见[两端共用](../../design-system/handbook/interaction.md#两端共用)，差异写入界面对账表。其余共同内容与行为按清单逐步对齐。不使用原生控件样式、SF Symbols 或单层阴影。浮动操作区在 macOS 26 及以上使用原生 Liquid Glass：顶部搜索与账户、AI 栏、阅读工具、预览按钮、多选栏、刷新圆环、新内容提示和 Toast；内容与设置保留实底。
 
-- 保留信息结构、内容顺序、文案和既有轻操作。SwiftUI 负责绘制，视觉、状态与动效参数对齐 Web。
+- 保留信息结构、内容顺序、文案和既有轻操作。SwiftUI 负责绘制；共同状态与操作结果对齐 Web，平台适配项独立记录。
 - macOS 顶栏顶部留白 18，控件在 64 高导航行内居中；品牌图标左缘和账户按钮右缘分别对齐卡片区两侧。设置在两端桌面都是主窗口中央的弹窗。
 - 设计变量维护于 design-system/tokens/；macOS 专用尺寸与颜色角色在 apple.json。导出 tokens.json 后由 CardGenerator 生成 AppleMetrics、AppleColors。组件不另写动画参数。
 - 保留已有 reduceMotion 分支；新增动效不加减少动态效果分支。此保留项与手册统一动效规则的差异须在交付中说明。

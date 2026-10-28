@@ -1,0 +1,151 @@
+/* Phone search page and keyboard layout. */
+@media (max-width: 650px) {
+	/* Search */
+	/* Phone search starts below the top safe area. Only results shrink for the keyboard. */
+	:is(:is(#modal, .phone-layer), #search-background).search {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		max-width: 100%;
+		height: 100dvh;
+		max-height: none;
+		margin: 0;
+		padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--rail-edge)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+		justify-content: flex-start;
+		gap: var(--space-10);
+	}
+	:is(:is(#modal, .phone-layer), #search-background).search .search-results {
+		flex: 1;
+		min-height: 0;
+		max-height: none;
+	}
+	:is(:is(#modal, .phone-layer), #search-background).search .search-chips {
+		flex: none;
+	}
+	:is(:is(#modal, .phone-layer), #search-background).page.search {
+		height: 100dvh;
+		max-height: none;
+		inset: 0;
+		/* The top row sits right under the safe area, like home and AI (ADR 0048). */
+		padding: env(safe-area-inset-top) var(--margin-sm)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
+		gap: var(--space-16);
+	}
+	/* Keyboard, pages and photos */
+	:is(#modal, .phone-layer).panel,
+	:is(#modal, .phone-layer).panel.narrow,
+	:is(#modal, .phone-layer).panel.wide {
+		position: fixed;
+		inset: auto 0 0;
+		margin: 0;
+		width: 100%;
+		max-width: 100%;
+	}
+	.panel-content {
+		padding: var(--space-22) var(--space-20) var(--space-26);
+	}
+	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
+	:is(#modal, .phone-layer).panel,
+	:is(#modal, .phone-layer).panel.narrow,
+	:is(#modal, .phone-layer).panel.wide {
+		bottom: var(--kb, 0px);
+	}
+	:is(#modal, .phone-layer).panel .sheet {
+		max-height: calc(100dvh - var(--kb, 0px));
+	}
+	/* Phone search moves the capsule itself (phone-search-motion.ts); a second writer here hid it
+	   again after that motion and popped it back once the keyboard crossed 120px. */
+	body.keyboard-open:not(:has(:is(#modal, .phone-layer).search[open])) #dock,
+	body.keyboard-open .scroll-edge {
+		opacity: 0;
+		visibility: hidden;
+	}
+	/* All three destinations are pages. The keyboard temporarily clears the capsule. */
+	:is(#modal, .phone-layer).page,
+	:is(#modal, .phone-layer).page.panel,
+	:is(#modal, .phone-layer).page.panel.wide,
+	:is(#modal, .phone-layer).page.panel.narrow {
+		position: fixed;
+		inset: 0 0 var(--kb, 0px);
+		z-index: 40;
+		width: 100%;
+		max-width: 100%;
+		height: auto;
+		max-height: none;
+		margin: 0;
+		border: 0;
+		padding: 0;
+		background: var(--canvas);
+	}
+	:is(#modal, .phone-layer).page .grabber {
+		display: none;
+	}
+	:is(#modal, .phone-layer).page.panel .sheet {
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+		background: var(--canvas);
+		/* The settings title row starts at the safe area, like the home, AI and search rows. */
+		padding: env(safe-area-inset-top) 0 calc(var(--rail-bottom) + var(--rail-row) + var(--space-24));
+	}
+	/* The local AI preview keeps context and composer in one viewport. */
+	:is(#modal, .phone-layer).page.panel.narrow:has(.ai-conversation) {
+		width: 100%;
+	}
+	:is(#modal, .phone-layer).page.panel .ai-conversation {
+		padding: env(safe-area-inset-top) var(--space-12)
+			calc(var(--rail-bottom) + var(--rail-row) + var(--space-12));
+		background: var(--card);
+	}
+	.lightbox-stage > .icon-button {
+		display: none;
+	}
+	:is(#modal, .phone-layer).page .settings-head {
+		padding: 0 var(--margin-sm);
+	}
+	/* Settings lies over the top row and the capsule: their glass stays put while it opens and closes. */
+	:is(#modal, .phone-layer).page.panel.wide:has(.settings-layout) {
+		z-index: 47;
+	}
+	body:has(:is(#modal, .phone-layer)[open].page .settings-layout) #dock * {
+		pointer-events: none;
+	}
+	/* Every page title in the top row uses one size, line height and letter spacing. */
+	:is(
+		.home-mark,
+		.search-page-heading h1,
+		.ai-conversation h1:not(.ai-conversation-title),
+		.settings-head h1
+	) {
+		font-size: var(--text-figure);
+		font-weight: 700;
+		line-height: 1.2;
+		letter-spacing: -0.04em;
+	}
+	:is(#modal, .phone-layer).page.panel .ai-conversation > .sheet-close {
+		display: none;
+	}
+	/* Title and round controls line up with the home and search top rows (16px margin). */
+	:is(#modal, .phone-layer).page.panel .ai-conversation-head {
+		padding: 0 var(--space-4);
+	}
+	/* The results page has no top row: its search bar keeps a small gap under the safe area. While
+	   editing the gap holds with or without results, so typing the first letter does not move the bar. */
+	:is(:is(#modal, .phone-layer), #search-background).page.search:is(
+		.search-editing,
+		:not(:has(.search-browse))
+	) {
+		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
+	}
+	body.keyboard-open :is(#modal, .phone-layer).page.panel .ai-conversation {
+		padding-bottom: var(--space-12);
+	}
+	body.keyboard-open :is(:is(#modal, .phone-layer), #search-background).page.search {
+		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
+	}
+	.search-card-grid {
+		gap: var(--gap-sm);
+	}
+}

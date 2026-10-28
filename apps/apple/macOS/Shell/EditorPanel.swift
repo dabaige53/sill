@@ -1,3 +1,4 @@
+import AppKit
 import SillKit
 import SwiftUI
 
@@ -15,6 +16,9 @@ struct EditorPanel: View {
   @State private var baseline: [String: Workspace.EditBaseline] = [:]
   @State private var saving = false
   @State private var loaded = false
+  @State private var armed: String?
+  @State private var duplicate: String?
+  @State private var duplicateGeneration = 0
   @FocusState private var field: Field?
   private enum Field { case tag, note }
 
@@ -43,6 +47,7 @@ struct EditorPanel: View {
   private var tagEditor: some View {
     FlowRow(spacing: AppleMetrics.space6) {
       ForEach(tags, id: \.self) { tag in
+        let shaking = duplicate == tag && !Motion.keyboardDriven
         HStack(spacing: AppleMetrics.space2) {
           Text(tag)
           Button {
@@ -53,6 +58,7 @@ struct EditorPanel: View {
               .contentShape(Circle())
           }
           .buttonStyle(TagRemoveStyle())
+          .modifier(TagRemoveEntrance())
           .accessibilityLabel(Copy.text("web.editor.removeTagPrefix") + tag)
         }
         .font(.sans(AppleMetrics.font13, .medium))
@@ -60,7 +66,27 @@ struct EditorPanel: View {
         .padding(.leading, AppleMetrics.space12)
         .padding(.trailing, AppleMetrics.space4)
         .frame(height: AppleMetrics.tagPillHeight)
-        .background(Capsule().fill(AppleColors.surface))
+        .background(Capsule().fill(armed == tag ? AppleColors.accentSoft : AppleColors.surface))
+        .transition(
+          Motion.keyboardDriven
+            ? .identity
+            : .asymmetric(
+              insertion: .opacity.combined(with: .scale(scale: AppleMetrics.tagEnterScale))
+                .combined(with: Motion.blur(AppleMetrics.space4)).animation(
+                  .spring(
+                    duration: AppleMetrics.tagEnterDuration, bounce: AppleMetrics.tagEnterBounce)),
+              removal: .opacity.combined(with: Motion.blur(AppleMetrics.space2)).animation(
+                Motion.ease(AppleMetrics.tagExitDuration)))
+        )
+        .keyframeAnimator(initialValue: CGFloat(0), trigger: duplicateGeneration) { content, x in
+          content.offset(x: shaking ? x : 0)
+        } keyframes: { _ in
+          LinearKeyframe(4, duration: AppleMetrics.tagDuplicateDuration / 5)
+          LinearKeyframe(-4, duration: AppleMetrics.tagDuplicateDuration / 5)
+          LinearKeyframe(3, duration: AppleMetrics.tagDuplicateDuration / 5)
+          LinearKeyframe(-3, duration: AppleMetrics.tagDuplicateDuration / 5)
+          LinearKeyframe(0, duration: AppleMetrics.tagDuplicateDuration / 5)
+        }
       }
       TextField(
         "", text: $draft,
@@ -74,10 +100,30 @@ struct EditorPanel: View {
       .focused($field, equals: .tag)
       .accessibilityLabel(Copy.text("web.editor.newTagLabel"))
       .onChange(of: draft) { _, value in
-        if value.count > Self.tagLimit { draft = String(value.prefix(Self.tagLimit)) }
+        armed = nil
+        guard (NSApp?.keyWindow?.firstResponder as? NSTextView)?.hasMarkedText() != true else {
+          return
+        }
+        if value.contains(where: { ",，\n".contains($0) }) { addDraft() }
+      }
+      .onKeyPress(.delete) {
+        guard (NSApp?.keyWindow?.firstResponder as? NSTextView)?.hasMarkedText() != true,
+          draft.isEmpty, let last = tags.last
+        else { return .ignored }
+        if armed == last {
+          toggle(last)
+          armed = nil
+        } else {
+          armed = last
+        }
+        return .handled
       }
       .onSubmit(addDraft)
     }
+    .animation(
+      Motion.keyboardDriven ? nil : .spring(duration: AppleMetrics.tagEnterDuration, bounce: 0),
+      value: tags
+    )
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.bottom, AppleMetrics.space12)
     .overlay(alignment: .bottom) {
@@ -156,7 +202,7 @@ struct EditorPanel: View {
 
   /// Web `editor-tag`: a chosen tag goes, a suggested one joins.
   private func toggle(_ tag: String) {
-    if let index = tags.firstIndex(of: tag) {
+    if let index = tags.firstIndex(where: { $0.caseInsensitiveCompare(tag) == .orderedSame }) {
       tags.remove(at: index)
     } else if tags.count >= Self.tagCount {
       workspace.toast(Copy.text("web.app.1859bc867672"))
@@ -168,13 +214,19 @@ struct EditorPanel: View {
 
   /// Web `add-tag`: trimmed, a leading # dropped, at most 30 characters.
   private func addDraft() {
-    let value = Self.clean(draft)
-    guard !value.isEmpty else { return }
-    if tags.count >= Self.tagCount {
-      workspace.toast(Copy.text("web.app.1859bc867672"))
-      return
+    let values = Self.split(draft)
+    guard !values.isEmpty else { return }
+    for value in values {
+      if let existing = tags.first(where: { $0.caseInsensitiveCompare(value) == .orderedSame }) {
+        duplicate = existing
+        duplicateGeneration += 1
+      } else if tags.count < Self.tagCount {
+        tags.append(value)
+      } else {
+        workspace.toast(Copy.text("web.app.1859bc867672"))
+        break
+      }
     }
-    if !tags.contains(value) { tags.append(value) }
     draft = ""
     field = .tag
   }
@@ -182,9 +234,10 @@ struct EditorPanel: View {
   private func save() {
     guard !saving else { return }
     var final = tags
-    let pending = Self.clean(draft)
-    if !pending.isEmpty, !final.contains(pending), final.count < Self.tagCount {
-      final.append(pending)
+    for pending in Self.split(draft) where final.count < Self.tagCount {
+      if !final.contains(where: { $0.caseInsensitiveCompare(pending) == .orderedSame }) {
+        final.append(pending)
+      }
     }
     saving = true
     workspace.saveEdits(ids, tags: final, note: note, baseline: baseline) { result in
@@ -197,6 +250,12 @@ struct EditorPanel: View {
       case .failed, .busy: break
       }
     }
+  }
+
+  static func split(_ text: String) -> [String] {
+    var seen: Set<String> = []
+    return text.components(separatedBy: CharacterSet(charactersIn: ",，\n")).map(clean)
+      .filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
   }
 
   static func clean(_ text: String) -> String {
@@ -214,7 +273,10 @@ struct EditorPanel: View {
     ]
     var seen: Set<String> = []
     return ((card?.tags ?? []) + standard)
-      .filter { seen.insert($0).inserted && !chosen.contains($0) }
+      .filter { tag in
+        seen.insert(tag.lowercased()).inserted
+          && !chosen.contains(where: { $0.caseInsensitiveCompare(tag) == .orderedSame })
+      }
       .prefix(6).map { $0 }
   }
 }
@@ -251,5 +313,16 @@ private struct TagRemoveBody: View {
       .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
       .animation(Motion.press, value: pressed)
       .onHover { hovered = $0 }
+  }
+}
+
+private struct TagRemoveEntrance: ViewModifier {
+  @State private var shown = false
+  func body(content: Content) -> some View {
+    content.opacity(shown ? 1 : 0).onAppear {
+      withAnimation(Motion.keyboardDriven ? nil : Motion.fast.delay(AppleMetrics.tagRemoveDelay)) {
+        shown = true
+      }
+    }
   }
 }

@@ -19,6 +19,15 @@ struct MarkdownText: View {
       ForEach(Array(document.blocks.enumerated()), id: \.offset) { index, block in
         if block.rule {
           Rectangle().fill(AppleColors.line).frame(height: AppleMetrics.lineWidth)
+        } else if block.code {
+          ScrollView(.horizontal) {
+            Text(attributed(block.runs, heading: 0))
+              .fixedSize(horizontal: true, vertical: true)
+              .textSelection(.enabled)
+              .padding(AppleMetrics.space12)
+          }
+          .background(AppleColors.surface)
+          .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.space8))
         } else if !block.cells.isEmpty {
           HStack(alignment: .top, spacing: AppleMetrics.space16) {
             ForEach(Array(block.cells.enumerated()), id: \.offset) { _, runs in
@@ -33,7 +42,7 @@ struct MarkdownText: View {
           HStack(alignment: .top, spacing: AppleMetrics.space8) {
             if !block.marker.isEmpty { Text(block.marker).textStyle(size, leading: leading) }
             Text(attributed(block.runs, heading: block.heading))
-              .textStyle(block.heading > 0 ? AppleMetrics.font17 : size, leading: leading)
+              .textStyle(headingSize(block.heading), leading: leading)
               .frame(maxWidth: .infinity, alignment: .leading)
               .fixedSize(horizontal: false, vertical: true)
               .textSelection(.enabled)
@@ -98,7 +107,7 @@ struct MarkdownText: View {
       var font: Font =
         run.code
         ? .system(size: size * appearance.scale, design: .monospaced)
-        : .sans((heading > 0 ? AppleMetrics.font17 : size) * appearance.scale)
+        : .sans(headingSize(heading) * appearance.scale)
       font = font.weight(appearance.weight(run.bold || heading > 0 ? .semibold : .regular))
       if run.italic { font = font.italic() }
       text.font = font
@@ -106,5 +115,9 @@ struct MarkdownText: View {
       text.link = run.link
       result.append(text)
     }
+  }
+
+  private func headingSize(_ level: Int) -> CGFloat {
+    level == 0 ? size : level <= 2 ? AppleMetrics.space20 : AppleMetrics.space18
   }
 }

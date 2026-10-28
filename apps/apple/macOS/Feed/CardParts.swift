@@ -11,6 +11,7 @@ struct CardContext: Equatable {
   var compact = false
   var appearance = ContentAppearance()
   var paddingScale: CGFloat = 1
+  var columnWidth: CGFloat = 0
 }
 
 /// Intents a card can raise. Not observable: holding it never redraws anything.

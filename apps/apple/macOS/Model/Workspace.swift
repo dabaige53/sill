@@ -132,7 +132,10 @@ import SillKit
   func accept(_ snapshot: Snapshot, then: (() -> Void)? = nil) {
     let previous = acceptChain
     let token = generation
+    let queue = queue
+    queue.beginApplying()
     acceptChain = Task { [weak self] in
+      defer { queue.endApplying() }
       await previous?.value
       guard let self, token == self.generation else { return }
       guard snapshot.revision >= self.revision || self.order.isEmpty else {
@@ -262,10 +265,10 @@ import SillKit
   enum Flag { case bookmarked, later }
 
   /// Web `applySelectionAction`: every card gets the flag in one write.
-  func mark(_ ids: [String], _ flag: Flag) {
+  func mark(_ ids: [String], _ flag: Flag, value: Bool = true) {
     let key = flag == .bookmarked ? "bookmarked" : "later"
     let kept = ids.filter { models[$0] != nil }
-    let after = Dictionary(uniqueKeysWithValues: kept.map { ($0, [key: JSONValue.bool(true)]) })
+    let after = Dictionary(uniqueKeysWithValues: kept.map { ($0, [key: JSONValue.bool(value)]) })
     guard change(after) else { return }
   }
 
@@ -414,30 +417,7 @@ import SillKit
     return before
   }
 
-  // MARK: Workspace actions (settings, capture)
-
-  enum CaptureResult { case saved, empty, duplicate, sent }
-
-  /// A note or link the person typed. Only the control that asked waits for the store.
-  @discardableResult
-  func capture(_ text: String, completion: ((Bool) -> Void)? = nil) -> CaptureResult {
-    guard let json = Capture.card(from: String(text.prefix(Capture.limit))) else { return .empty }
-    if Capture.duplicate(json, in: cards) {
-      notice = Notice(text: Copy.text("web.app.17ebeb500554"))
-      return .duplicate
-    }
-    do {
-      let card = try Card(json: json)
-      let raw = try card.raw
-      write([.upsert(card: raw, before: .null)]) { done in
-        completion?(done)
-      }
-      return .sent
-    } catch {
-      report(error)
-      return .empty
-    }
-  }
+  // MARK: Workspace actions
 
   /// Everything stored, in the Web export shape (`app`, `exportedAt` and the state).
   func exportState() -> JSONValue {

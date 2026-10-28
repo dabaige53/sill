@@ -59,9 +59,9 @@ struct BackupSettingsView: View {
           }
           SettingLine {
             Button(text("save")) { Task { await model.run { try await save(false) } } }
-              .buttonStyle(TextLinkStyle(padded: false))
+              .buttonStyle(TextLinkStyle(padded: false)).disabled(!valid)
             Button(text("updateSecret")) { Task { await model.run { try await save(true) } } }
-              .buttonStyle(TextLinkStyle(padded: false)).disabled(model.selected.isEmpty)
+              .buttonStyle(TextLinkStyle(padded: false)).disabled(model.selected.isEmpty || !valid)
           }
         }
         SettingsCard {
@@ -171,7 +171,15 @@ struct BackupSettingsView: View {
       }
     }
   }
+  private var valid: Bool {
+    let fields =
+      provider == "webdav"
+      ? [endpoint, username, password] : [accountID, bucket, accessKey, secretKey]
+    return fields.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+  }
+
   private func save(_ update: Bool) async throws {
+    guard valid else { return }
     var fields: [String: JSONValue] =
       provider == "webdav"
       ? [
@@ -184,7 +192,12 @@ struct BackupSettingsView: View {
       ]
     if update { fields["id"] = .string(model.selected) }
     _ = try await model.call("/targets", "POST", .object(fields))
+    endpoint = ""
+    username = ""
     password = ""
+    accountID = ""
+    bucket = ""
+    accessKey = ""
     secretKey = ""
     try await model.refresh()
     model.message = text("connected")

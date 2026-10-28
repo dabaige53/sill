@@ -69,6 +69,8 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: var(--space-16) var(--space-20);
+	/* A home-screen app draws the photo page under the status bar; a Safari tab reports 0. */
+	padding-top: calc(var(--space-16) + env(safe-area-inset-top));
 	font-size: var(--text-meta);
 	color: var(--ink);
 }
@@ -241,9 +243,10 @@
 	border-radius: var(--pill-radius);
 }
 /* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
-/* The detail capsule sinks 20px and fades inside the detail, as the desk's AI bar does. */
-dialog > .float-bar.is-tucked,
-dialog > .float-bar.is-hidden {
+/* The detail capsule sinks 20px and fades inside the detail, as the desk's AI bar does.
+   On phone the capsule sits in the Vaul drawer, one level below the dialog. */
+:is(dialog, .phone-drawer) > .float-bar.is-tucked,
+:is(dialog, .phone-drawer) > .float-bar.is-hidden {
 	transform: var(--motion-toolbar-transform, translateY(20px));
 	opacity: 0;
 	visibility: hidden;

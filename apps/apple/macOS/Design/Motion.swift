@@ -16,10 +16,16 @@ import SwiftUI
       AppleMetrics.easeSheetX2, AppleMetrics.easeSheetY2, duration: duration)
   }
   /// `ease-reveal` over `dur-reveal`: the desktop bars coming back on their own.
-  static var reveal: Animation {
+  static var reveal: Animation { reveal(AppleMetrics.motionReveal) }
+  static func reveal(_ duration: Double) -> Animation {
     .timingCurve(
       AppleMetrics.easeRevealX1, AppleMetrics.easeRevealY1,
-      AppleMetrics.easeRevealX2, AppleMetrics.easeRevealY2, duration: AppleMetrics.motionReveal)
+      AppleMetrics.easeRevealX2, AppleMetrics.easeRevealY2, duration: duration)
+  }
+  static var topReveal: Animation {
+    .timingCurve(
+      AppleMetrics.easeRevealX1, AppleMetrics.easeRevealY1,
+      AppleMetrics.easeRevealX2, AppleMetrics.easeRevealY2, duration: AppleMetrics.motionTopReveal)
   }
   /// Release spring: mass 1, stiffness 600, damping 45; it inherits the release velocity.
   static func spring(velocity: Double = 0) -> Animation {
@@ -56,9 +62,12 @@ import SwiftUI
   static var menuOpen: Animation { ease(AppleMetrics.motionMenuOpen) }
   static var menuClose: Animation { ease(AppleMetrics.motionMenuClose) }
   static var deck: Animation { ease(AppleMetrics.motionDeckDuration) }
+  static func blur(_ radius: CGFloat) -> AnyTransition {
+    .modifier(active: TransitionBlur(radius: radius), identity: TransitionBlur(radius: 0))
+  }
 
   /// Keyboard opens and closes menus, search and details at once (motion.md).
-  static var keyboardDriven: Bool { NSApp?.currentEvent?.type == .keyDown }
+  static var keyboardDriven: Bool { Keyboard.focusVisible || NSApp?.currentEvent?.type == .keyDown }
 
   /// Runs `changes` without any animation, including ones inherited from a parent transaction.
   static func instantly(_ changes: () -> Void) {
@@ -67,11 +76,23 @@ import SwiftUI
     withTransaction(transaction, changes)
   }
 
-  /// AI context reference: 140ms fade and 4px rise in, 120ms fade out.
+  /// Context chips move and fade independently; the remaining chips reflow in place.
+  static var contextReveal: Animation { reveal(AppleMetrics.aiContextReflow) }
   static let context = AnyTransition.asymmetric(
-    insertion: .opacity.combined(with: .offset(y: AppleMetrics.motionContextY))
-      .animation(ease(AppleMetrics.motionFast)),
-    removal: .opacity.animation(ease(AppleMetrics.motionPress)))
+    insertion: .opacity.animation(reveal(AppleMetrics.aiContextEnterFade))
+      .combined(
+        with: .offset(y: AppleMetrics.motionContextY).animation(
+          reveal(AppleMetrics.aiContextEnterMove))),
+    removal: .opacity.animation(reveal(AppleMetrics.aiContextExitFade))
+      .combined(
+        with: .offset(y: AppleMetrics.motionContextY).animation(
+          reveal(AppleMetrics.aiContextExitMove))))
+
+}
+
+private struct TransitionBlur: ViewModifier {
+  let radius: CGFloat
+  func body(content: Content) -> some View { content.blur(radius: radius) }
 }
 
 /// Short content updates fade in with `fast`; a running fade continues from its current opacity.
@@ -80,8 +101,30 @@ struct ContentFade<Value: Equatable>: ViewModifier {
   @State private var opacity = 1.0
   func body(content: Content) -> some View {
     content.opacity(opacity).onChange(of: value) {
+      guard !Motion.keyboardDriven else {
+        Motion.instantly { opacity = 1 }
+        return
+      }
       if opacity >= 1 { Motion.instantly { opacity = 0 } }
       withAnimation(Motion.fast) { opacity = 1 }
     }
   }
+}
+
+/// Samples presentation values without publishing view state on every frame. A new gesture
+/// takes this value before replacing the old animation, so it cannot jump to its old target.
+@MainActor final class DrawnValue { var value: CGFloat = 0 }
+
+struct TrackDrawnValue: AnimatableModifier {
+  nonisolated var value: CGFloat
+  let drawn: DrawnValue
+  nonisolated var animatableData: CGFloat {
+    get { value }
+    set { value = newValue }
+  }
+  func body(content: Content) -> some View {
+    let _ = store()
+    return content
+  }
+  private func store() { drawn.value = value }
 }

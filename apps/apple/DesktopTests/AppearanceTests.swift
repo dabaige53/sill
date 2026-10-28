@@ -4,6 +4,19 @@ import Testing
 @testable import SillKit
 
 @MainActor struct AppearanceTests {
+  @Test func collapsingAnExpandedStackReleasesItsHeightWithoutShrinkingReadCards() {
+    let closed = FeedEntry.stack(key: "source", cards: ["a", "b", "c"])
+    let opened = FeedEntry.openStack(key: "source", cards: ["a", "b", "c"])
+    var cache = MasonryLayout.Cache()
+    #expect(closed.id == opened.id, "opening keeps the feed entry identity")
+    #expect(cache.height(240, for: closed.measurementID) == 240)
+    #expect(cache.height(900, for: opened.measurementID) == 900)
+    #expect(cache.height(240, for: closed.measurementID) == 240)
+    let card = FeedEntry.card("a")
+    #expect(cache.height(300, for: card.measurementID) == 300)
+    #expect(cache.height(260, for: card.measurementID) == 300)
+  }
+
   @Test func missingFieldsKeepExistingLayoutAndTypeChangesInvalidateMeasurement() {
     let defaults = Preferences([:])
     #expect(defaults.cardTextSize == .standard)

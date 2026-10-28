@@ -1,3 +1,4 @@
+import AppKit
 import SillKit
 import SwiftUI
 
@@ -11,26 +12,31 @@ import SwiftUI
   /// The text as typed, before the search delay; the # list follows it.
   var searchText = ""
   /// Highlighted row of the # list.
-  var hashIndex = 0
+  var hashIndex = -1
+  var hashScrollRequest = 0
+  var suggestionsDismissed = false
   /// The field's frame in window coordinates (top-left origin); a click outside it blurs search.
   var searchFrame: CGRect = .zero
   /// The # list's frame; a click on it keeps the field focused.
   @ObservationIgnored var hashFrame: CGRect = .zero
   let menu = ScopeMenuState()
 
-  func focusSearch() { searchRequest += 1 }
+  func focusSearch() {
+    suggestionsDismissed = false
+    guard !searchFocused else { return }
+    searchRequest += 1
+  }
   func blurSearch() { blurRequest += 1 }
 
 }
 
 /// The search field in the top bar. The tab is a token in the field; home filter and search share
-/// one state. At rest it is a short capsule; focus stretches it, and a query or token keeps it
-/// open. No focus ring: the longer field and the caret show where typing goes.
+/// one state. The capsule keeps its width while focus and suggestions change.
 struct SearchField: View {
   @Environment(DesktopInteraction.self) private var interaction
+  @Environment(Reader.self) private var reader
   @Environment(Feed.self) private var feed
   @Environment(Shell.self) private var shell
-  @State private var hovered = false
   @FocusState private var focused: Bool
 
   private var text: String {
@@ -47,20 +53,11 @@ struct SearchField: View {
         + Copy.text("web.home.searchInSuffix")
       : marked ? "" : Copy.text("web.home.searchPlaceholder")
     HStack(spacing: AppleMetrics.space8) {
-      Icon("search", size: AppleMetrics.space20).foregroundStyle(AppleColors.secondary)
+      Icon("search", size: AppleMetrics.space16).foregroundStyle(AppleColors.secondary)
       if feed.scope != .all {
-        Button {
+        HashToken(label: feed.scope.label, tint: AppleColors.primary) {
           feed.select(.all)
-        } label: {
-          Text(feed.scope.label)
-            .font(.sans(AppleMetrics.font13, .semibold))
-            .foregroundStyle(AppleColors.card)
-            .padding(.horizontal, AppleMetrics.searchTokenPaddingX)
-            .frame(height: AppleMetrics.searchTokenHeight)
-            .background(Capsule().fill(AppleColors.primary))
         }
-        .buttonStyle(.plain)
-        .modifier(HandCursor())
         .accessibilityLabel("\(Copy.text("web.home.removeTab")) \(feed.scope.label)")
       }
       // # conditions follow the tab token in accent (web-interaction.md 搜索).
@@ -78,11 +75,14 @@ struct SearchField: View {
       .font(.sans(AppleMetrics.font15))
       .foregroundStyle(AppleColors.primary)
       .focused($focused)
+      // Focus feedback belongs to the capsule; never animate the AppKit field editor's layout.
+      .transaction { $0.animation = nil }
+      .simultaneousGesture(TapGesture().onEnded { shell.suggestionsDismissed = false })
       .accessibilityIdentifier("home-search")
       .accessibilityLabel(Copy.text("web.search.inputLabel"))
       .onKeyPress(.delete) {
         // Delete at the start removes the last token: the # tag, the # status, then the tab.
-        guard text.isEmpty else { return .ignored }
+        guard text.isEmpty, !composing else { return .ignored }
         if feed.tag != nil {
           feed.removeTag()
         } else if feed.mark != nil {
@@ -98,61 +98,95 @@ struct SearchField: View {
       // The # list takes arrows and Return while it is open.
       .onKeyPress(.downArrow) { moveHash(1) }
       .onKeyPress(.upArrow) { moveHash(-1) }
-      .onKeyPress(.return) { pickHash() }
-      if text.isEmpty {
-        Text(verbatim: "⌘K").font(.sans(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
+      .onKeyPress(.return) {
+        guard !composing else { return .ignored }
+        feed.search(text)
+        if !hashOptions.isEmpty {
+          shell.hashIndex = max(0, shell.hashIndex)
+          return pickHash()
+        }
+        shell.suggestionsDismissed = true
+        return .handled
+      }
+      .onKeyPress(.tab) { !composing && shell.hashIndex >= 0 ? pickHash() : .ignored }
+      .onKeyPress(.home) { selectEdge(last: false) }
+      .onKeyPress(.end) { selectEdge(last: true) }
+      ZStack {
+        if text.isEmpty {
+          Text(verbatim: "⌘K").font(.sans(AppleMetrics.font13)).foregroundStyle(
+            AppleColors.secondary
+          )
           .padding(.trailing, AppleMetrics.space6)
           .accessibilityHidden(true)
-      } else {
-        Button {
-          clear()
-        } label: {
-          Icon("x", size: AppleMetrics.font12)
-            .foregroundStyle(AppleColors.card)
-            .padding(AppleMetrics.space3)
-            .background(Circle().fill(AppleColors.secondary))
-            .frame(width: AppleMetrics.searchClearSize, height: AppleMetrics.searchClearSize)
-            .contentShape(Rectangle())
+        } else {
+          Button {
+            clear()
+          } label: {
+            Icon("x", size: AppleMetrics.font12)
+              .foregroundStyle(AppleColors.card)
+              .padding(AppleMetrics.space3)
+              .background(Circle().fill(AppleColors.secondary))
+              .frame(width: AppleMetrics.searchClearSize, height: AppleMetrics.searchClearSize)
+              .contentShape(Rectangle())
+          }
+          .buttonStyle(SearchPress())
+          .modifier(HandCursor())
+          .accessibilityLabel(Copy.text("web.search.clear"))
+          .transition(
+            .opacity.combined(with: .scale(scale: 0.25)).combined(
+              with: Motion.blur(AppleMetrics.space4)))
         }
-        .buttonStyle(.plain)
-        .modifier(HandCursor())
-        .accessibilityLabel(Copy.text("web.search.clear"))
-      }
+      }.frame(width: AppleMetrics.space32, height: AppleMetrics.space32)
+        .animation(
+          Motion.keyboardDriven
+            ? nil : .spring(duration: AppleMetrics.searchIconDuration, bounce: 0),
+          value: text.isEmpty)
     }
     .padding(.leading, AppleMetrics.space14)
     .padding(.trailing, AppleMetrics.space8)
     // The whole capsule takes typing, so the I-beam covers it, not only the text.
     .modifier(TextCursor())
     .modifier(SearchSurface(width: width))
-    .animation(Motion.keyboardDriven ? nil : Motion.state, value: width)
+    .overlay {
+      Capsule().strokeBorder(
+        AppleColors.accent.opacity(focused ? AppleMetrics.searchFocusOpacity : 0),
+        lineWidth: AppleMetrics.searchFocusRing
+      ).animation(Motion.keyboardDriven ? nil : Motion.fast, value: focused)
+        .allowsHitTesting(false)
+    }
+    // Only empty space focuses the field. A parent tap gesture competes with token removal.
+    .background {
+      Color.clear.contentShape(Capsule()).onTapGesture { interaction.focusSearch() }
+    }
     .onGeometryChange(for: CGRect.self) {
       $0.frame(in: .global)
     } action: {
       shell.searchFrame = $0
     }
     .disabled(!interaction.canSearch)
-    .onHover { hovered = $0 }
-    .onTapGesture { interaction.focusSearch() }
     .onChange(of: shell.searchText) { old, value in
-      if Feed.hashFragment(old) != Feed.hashFragment(value) { shell.hashIndex = 0 }
-      feed.scheduleSearch(value)
+      shell.hashIndex = -1
+      shell.suggestionsDismissed = false
+      if (NSApp.keyWindow?.firstResponder as? NSTextView)?.hasMarkedText() != true {
+        feed.scheduleSearch(value)
+      }
     }
     .onChange(of: feed.query) { _, value in if value != text { text = value } }
-    .onChange(of: focused) { _, value in shell.searchFocused = value }
+    .onChange(of: focused) { _, value in
+      shell.searchFocused = value
+      shell.suggestionsDismissed = false
+      shell.hashIndex = value ? feed.suggestions(text).firstIndex(where: feed.selected) ?? -1 : -1
+      if value { shell.hashScrollRequest += 1 }
+    }
     .onChange(of: shell.searchRequest) {
-      Motion.instantly { focused = true }
+      if Motion.keyboardDriven { Motion.instantly { focused = true } } else { focused = true }
     }
     .onChange(of: shell.blurRequest) { focused = false }
     // Losing focus elsewhere (a click, the reader, a panel) must not leave the field marked focused.
     .onChange(of: interaction.canSearch) { _, allowed in if !allowed { focused = false } }
   }
 
-  /// Rest, holding a query or token, focused.
-  private var width: CGFloat {
-    if focused { return AppleMetrics.searchFocusedWidth }
-    return text.isEmpty && feed.scope == .all && feed.mark == nil && feed.tag == nil
-      ? AppleMetrics.searchWidth : AppleMetrics.searchTaggedWidth
-  }
+  private var width: CGFloat { AppleMetrics.searchFocusedWidth }
 
   private func clear() {
     text = ""
@@ -160,8 +194,16 @@ struct SearchField: View {
   }
 
   /// Esc steps back one layer at a time: text → tokens → focus.
+  private var composing: Bool {
+    (NSApp.keyWindow?.firstResponder as? NSTextView)?.hasMarkedText() == true
+  }
+
   private func escape() -> KeyPress.Result {
-    if !text.isEmpty {
+    guard !composing else { return .ignored }
+    if !hashOptions.isEmpty {
+      shell.suggestionsDismissed = true
+      shell.hashIndex = -1
+    } else if !text.isEmpty {
       clear()
     } else if feed.scope != .all || feed.mark != nil || feed.tag != nil {
       feed.clearTokens()
@@ -172,22 +214,42 @@ struct SearchField: View {
   }
 
   private var hashOptions: [HashOption] {
-    guard focused, let fragment = Feed.hashFragment(text) else { return [] }
-    return feed.hashOptions(fragment)
+    guard focused, !shell.suggestionsDismissed else { return [] }
+    return feed.suggestions(text)
   }
 
   private func moveHash(_ step: Int) -> KeyPress.Result {
+    guard !composing else { return .ignored }
+    shell.suggestionsDismissed = false
     let options = hashOptions
     guard !options.isEmpty else { return .ignored }
-    shell.hashIndex = (shell.hashIndex + step + options.count) % options.count
+    shell.hashIndex =
+      shell.hashIndex < 0
+      ? (step > 0 ? 0 : options.count - 1)
+      : (shell.hashIndex + step + options.count) % options.count
+    shell.hashScrollRequest += 1
+    return .handled
+  }
+
+  private func selectEdge(last: Bool) -> KeyPress.Result {
+    guard !composing, !hashOptions.isEmpty else { return .ignored }
+    shell.hashIndex = last ? hashOptions.count - 1 : 0
+    shell.hashScrollRequest += 1
     return .handled
   }
 
   private func pickHash() -> KeyPress.Result {
     let options = hashOptions
-    guard !options.isEmpty else { return .ignored }
-    text = feed.pick(options[min(shell.hashIndex, options.count - 1)], in: text)
-    shell.hashIndex = 0
+    guard !composing, !options.isEmpty, shell.hashIndex >= 0 else { return .ignored }
+    let option = options[min(shell.hashIndex, options.count - 1)]
+    if case .card(let id, _, _) = option.value {
+      focused = false
+      reader.open(id)
+    } else {
+      text = feed.pick(option, in: text)
+    }
+    shell.hashIndex = -1
+    shell.suggestionsDismissed = true
     return .handled
   }
 }
@@ -195,104 +257,172 @@ struct SearchField: View {
 /// A # condition in the field: accent, removed with a click.
 private struct HashToken: View {
   let label: String
+  var tint = AppleColors.accent
   let remove: () -> Void
+  @State private var hovered = false
   var body: some View {
     Button(action: remove) {
-      Text(label)
-        .font(.sans(AppleMetrics.font13, .semibold))
-        .foregroundStyle(AppleColors.fixedWhite)
-        .lineLimit(1)
-        .padding(.horizontal, AppleMetrics.searchTokenPaddingX)
-        .frame(height: AppleMetrics.searchTokenHeight)
-        .background(Capsule().fill(AppleColors.accent))
+      HStack(spacing: AppleMetrics.space4) {
+        Text(label).lineLimit(1)
+        Icon("x", size: AppleMetrics.font12)
+          .opacity(hovered ? 1 : 0.6)
+          .animation(Motion.hover, value: hovered)
+      }
+      .font(.sans(AppleMetrics.font13, .semibold))
+      .foregroundStyle(AppleColors.fixedWhite)
+      .padding(.horizontal, AppleMetrics.searchTokenPaddingX)
+      .frame(height: AppleMetrics.searchTokenHeight)
+      .background(Capsule().fill(tint))
+      .frame(height: AppleMetrics.space32)
+      .contentShape(Rectangle())
     }
-    .buttonStyle(.plain)
-    .modifier(HandCursor())
+    .buttonStyle(SearchPress())
+    .onHover { hovered = $0 }
     .accessibilityLabel("\(Copy.text("web.search.removeCondition")) \(label)")
   }
 }
 
-/// Typing # lists the statuses, then the existing tags, under the field (Web `searchHashList`).
-/// It floats in the window layer over the cards and pushes nothing; arrows move the highlight.
-struct HashList: View {
-  @Environment(Feed.self) private var feed
-  @Environment(Shell.self) private var shell
-
-  var body: some View {
-    let options =
-      shell.searchFocused ? Feed.hashFragment(shell.searchText).map(feed.hashOptions) ?? [] : []
-    if !options.isEmpty {
-      let active = min(shell.hashIndex, options.count - 1)
-      VStack(alignment: .leading, spacing: 0) {
-        group(options, marks: true, title: Copy.text("web.search.hashStatus"), active: active)
-        group(options, marks: false, title: Copy.text("web.search.hashTag"), active: active)
-      }
-      .padding(AppleMetrics.space6)
-      .frame(width: shell.searchFrame.width, alignment: .leading)
-      .background(
-        RoundedRectangle(cornerRadius: AppleMetrics.scopeMenuRadius, style: .continuous)
-          .fill(AppleColors.card)
-          .shadow(.floating)
-      )
-      .onGeometryChange(for: CGRect.self) {
-        $0.frame(in: .global)
-      } action: {
-        shell.hashFrame = $0
-      }
-      .onDisappear { shell.hashFrame = .zero }
-      .accessibilityElement(children: .contain)
-      .accessibilityLabel(Copy.text("web.search.hashList"))
-    }
-  }
-
-  @ViewBuilder private func group(
-    _ options: [HashOption], marks: Bool, title: String, active: Int
-  ) -> some View {
-    let rows = options.enumerated().filter {
-      if case .mark = $0.element.value { return marks }
-      return !marks
-    }
-    if !rows.isEmpty {
-      Text(title)
-        .font(.sans(AppleMetrics.font12, .semibold))
-        .foregroundStyle(AppleColors.secondary)
-        .padding(.horizontal, AppleMetrics.space10)
-        .padding(.top, AppleMetrics.space8)
-        .padding(.bottom, AppleMetrics.space4)
-      ForEach(rows, id: \.element) { index, option in
-        HashRow(label: option.label, active: index == active) {
-          shell.searchText = feed.pick(option, in: shell.searchText)
-          shell.hashIndex = 0
-        }
-      }
-    }
+/// Search controls respond without scaling or shifting their text.
+private struct SearchPress: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .opacity(configuration.isPressed ? AppleMetrics.textLinkPressOpacity : 1)
+      .animation(Motion.keyboardDriven ? nil : Motion.press, value: configuration.isPressed)
+      .modifier(HandCursor())
   }
 }
 
-private struct HashRow: View {
-  let label: String
-  let active: Bool
-  let action: () -> Void
-  @State private var hovered = false
+/// Matching cards and # conditions share the same keyboard-driven suggestion list.
+struct HashList: View {
+  @Environment(Reader.self) private var reader
+  @Environment(Feed.self) private var feed
+  @Environment(Shell.self) private var shell
+
+  @Namespace private var highlight
+
   var body: some View {
-    Button(action: action) {
-      Text(label)
-        .font(.sans(AppleMetrics.font15))
-        .foregroundStyle(AppleColors.primary)
-        .lineLimit(1)
-        .padding(.horizontal, AppleMetrics.space10)
-        .frame(maxWidth: .infinity, minHeight: AppleMetrics.scopeMenuRow, alignment: .leading)
+    let options =
+      shell.searchFocused && !shell.suggestionsDismissed ? feed.suggestions(shell.searchText) : []
+    let visible = shell.searchFocused && !shell.suggestionsDismissed
+    ZStack {
+      if visible {
+        ScrollViewReader { proxy in
+          ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+              if options.isEmpty {
+                Text(
+                  Feed.searchText(shell.searchText).isEmpty
+                    ? Copy.text("web.search.noSuggestions")
+                    : Copy.text("web.search.noResultsPrefix") + Feed.searchText(shell.searchText)
+                      + "」"
+                )
+                .font(.sans(AppleMetrics.font14)).foregroundStyle(AppleColors.secondary)
+                .padding(AppleMetrics.space12)
+              }
+              ForEach(Array(options.enumerated()), id: \.element) { index, option in
+                if option.group != "card", index == 0 || options[index - 1].group != option.group {
+                  Text(
+                    Copy.text(
+                      option.group == "status" ? "web.search.hashStatus" : "web.search.hashTag")
+                  )
+                  .font(.sans(AppleMetrics.font12)).foregroundStyle(AppleColors.secondary)
+                  .padding(.horizontal, AppleMetrics.space10).frame(height: AppleMetrics.space28)
+                }
+                Button {
+                  if case .card(let id, _, _) = option.value {
+                    shell.blurSearch()
+                    reader.open(id)
+                  } else {
+                    shell.searchText = feed.pick(option, in: shell.searchText)
+                  }
+                  shell.hashIndex = -1
+                  shell.suggestionsDismissed = true
+                } label: {
+                  HStack(spacing: AppleMetrics.space12) {
+                    Text(matched(option.label)).font(.sans(AppleMetrics.font14)).lineLimit(1)
+                    Spacer(minLength: 0)
+                    if let kind = feed.suggestionKind(option) {
+                      HStack(spacing: AppleMetrics.space4) {
+                        Icon(option.icon, size: AppleMetrics.space14)
+                        Text(kind).font(.sans(AppleMetrics.font12))
+                      }.foregroundStyle(AppleColors.secondary).frame(
+                        width: AppleMetrics.space48, alignment: .trailing)
+                    }
+                    if feed.selected(option) { Icon("check", size: AppleMetrics.space16) }
+                  }
+                  .foregroundStyle(AppleColors.primary)
+                  .padding(.horizontal, AppleMetrics.space10)
+                  .frame(height: AppleMetrics.space40)
+                  .background {
+                    if shell.hashIndex == index {
+                      RoundedRectangle(cornerRadius: AppleMetrics.space10).fill(AppleColors.faint)
+                        .matchedGeometryEffect(id: "highlight", in: highlight)
+                    }
+                  }
+                  .contentShape(Rectangle())
+                }
+                .buttonStyle(SearchPress())
+                .modifier(HandCursor())
+                .onHover { if $0 { shell.hashIndex = index } }
+                .accessibilityAddTraits(shell.hashIndex == index ? .isSelected : [])
+                .id(index)
+              }
+            }.padding(AppleMetrics.space4)
+              .animation(
+                Motion.keyboardDriven ? nil : Motion.ease(AppleMetrics.searchHighlightDuration),
+                value: shell.hashIndex)
+          }
+          .scrollIndicators(.hidden)
+          .frame(
+            height: min(
+              CGFloat(max(1, options.count)) * AppleMetrics.space40 + AppleMetrics.space8
+                + CGFloat(Set(options.map(\.group)).subtracting(["card"]).count)
+                * AppleMetrics.space28,
+              AppleMetrics.searchSuggestionsHeight)
+          )
+          .onChange(of: shell.hashScrollRequest) {
+            if options.indices.contains(shell.hashIndex) {
+              Motion.instantly { proxy.scrollTo(shell.hashIndex) }
+            }
+          }
+          .onAppear {
+            if options.indices.contains(shell.hashIndex) {
+              Motion.instantly { proxy.scrollTo(shell.hashIndex) }
+            }
+          }
+        }
+        .frame(width: shell.searchFrame.width)
         .background(
-          RoundedRectangle(cornerRadius: AppleMetrics.space10)
-            .fill(active || hovered ? AppleColors.faint : .clear)
+          RoundedRectangle(cornerRadius: AppleMetrics.scopeMenuRadius)
+            .fill(AppleColors.card).shadow(.floating)
         )
-        .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .modifier(HandCursor())
-    .onHover { hovered = $0 }
-    .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)
+        .onGeometryChange(for: CGRect.self) {
+          $0.frame(in: .global)
+        } action: {
+          shell.hashFrame = $0
+        }
+        .onDisappear { shell.hashFrame = .zero }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Copy.text("web.search.hashList"))
+        .accessibilityValue("\(options.count)" + Copy.text("web.search.suggestionCountSuffix"))
+        .transition(
+          .opacity.combined(with: .scale(scale: AppleMetrics.searchListScale, anchor: .top)))
+      }
+    }.animation(
+      Motion.keyboardDriven
+        ? nil
+        : Motion.ease(visible ? AppleMetrics.searchAnimation : AppleMetrics.searchExitDuration),
+      value: visible)
   }
+  private func matched(_ label: String) -> AttributedString {
+    var result = AttributedString(label)
+    let needle = Feed.hashFragment(shell.searchText) ?? Feed.searchText(shell.searchText)
+    if !needle.isEmpty, let range = result.range(of: needle, options: .caseInsensitive) {
+      result[range].font = .sans(AppleMetrics.font14, .semibold)
+    }
+    return result
+  }
+
 }
 
 /// Type chips under the top bar while there is text; types without results stay out.
@@ -322,14 +452,14 @@ struct KindChips: View {
       feed.selectKind(kind)
     } label: {
       Text(label)
-        .font(.sans(AppleMetrics.font14, active ? .semibold : .regular))
+        .font(.sans(AppleMetrics.font14, .medium))
         .foregroundStyle(active ? AppleColors.card : AppleColors.primary)
         .padding(.horizontal, AppleMetrics.space14)
         .frame(height: AppleMetrics.space32)
         .background(Capsule().fill(active ? AppleColors.primary : AppleColors.surface))
     }
-    .buttonStyle(.plain)
-    .modifier(HandCursor())
+    .buttonStyle(SearchPress())
+    .animation(Motion.keyboardDriven ? nil : Motion.fast, value: active)
     .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)
   }
 }

@@ -87,16 +87,19 @@ struct DetailRow: View {
   var divider = false
   var navigable = false
   var tone: Color? = nil
+  var wrapping = false
   var body: some View {
     HStack(spacing: AppleMetrics.space12) {
       Icon(icon, size: AppleMetrics.space16)
         .foregroundStyle(tone ?? AppleColors.secondary)
         .frame(width: AppleMetrics.space18, height: AppleMetrics.space18)
       VStack(alignment: .leading, spacing: 0) {
-        Text(title).lineLimit(1).truncationMode(.tail)
+        Text(title).lineLimit(wrapping ? nil : 1).fixedSize(horizontal: false, vertical: true)
+          .truncationMode(.tail)
         if !detail.isEmpty {
           Text(detail).textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
-            .lineLimit(1).truncationMode(.tail)
+            .lineLimit(wrapping ? nil : 1).fixedSize(horizontal: false, vertical: true)
+            .truncationMode(.tail)
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)

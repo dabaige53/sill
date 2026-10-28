@@ -5,7 +5,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { buildSync } from "esbuild";
 import { JSDOM } from "jsdom";
-import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
+import { installReactBrowserAPIs, installTimers } from "./react-browser-fixture.ts";
 import { fixture } from "./visibility-motion-fixture.ts";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -198,6 +198,7 @@ test("phone completion saves immediately and redraws the background only after i
 	const f = readingFixture();
 	try {
 		const w = f.dom.window as any;
+		const clock = installTimers(w);
 		w.matchMedia = (query: string) => ({ matches: query.includes("max-width") });
 		w.CSS = { escape: (value: string) => value };
 		const animations: any[] = [];
@@ -234,7 +235,9 @@ test("phone completion saves immediately and redraws the background only after i
 		await Promise.resolve();
 		assert.equal(f.app.dialog.open, false);
 		assert.equal(f.refreshes(), 0, "the redraw waits until the restored page has settled");
-		await new Promise((resolve) => w.setTimeout(resolve, 400));
+		clock.advance(119);
+		assert.equal(f.refreshes(), 0, "the pending refresh keeps its 120ms delay");
+		clock.advance(1);
 		assert.equal(f.refreshes(), 1);
 		f.flushReadingRefresh(f.app);
 		assert.equal(f.refreshes(), 1, "closing a later layer cannot repeat an old refresh");

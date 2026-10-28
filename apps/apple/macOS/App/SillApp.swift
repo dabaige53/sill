@@ -173,7 +173,7 @@ private struct DesktopCommands: Commands {
     }
     CommandGroup(after: .newItem) {
       Button(Copy.appleRefresh) {
-        app.workspace.refresh { done in if done { app.feed.refreshMembership(reorder: true) } }
+        app.feed.requestRefresh()
       }
       .keyboardShortcut("r")
       .disabled(app.workspace.phase != .ready || app.account.needsPasswordSetup)

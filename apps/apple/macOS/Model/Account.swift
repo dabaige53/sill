@@ -6,6 +6,7 @@ import SillKit
 @MainActor @Observable final class Account {
   private(set) var busy = false
   private(set) var owner: String?
+  private(set) var displayName = ""
   private(set) var needsPasswordSetup = false
   private(set) var message: String?
   private(set) var error: String?
@@ -119,6 +120,7 @@ import SillKit
     } catch { self.error = Self.message(error) }
     guard token == generation else { return }
     owner = nil
+    displayName = ""
     needsPasswordSetup = false
     message = nil
     workspace.signOutLocally()
@@ -139,10 +141,12 @@ import SillKit
       guard token == generation else { return }
       if case CloudWorkspaceError.unauthenticated = error {
         owner = nil
+        displayName = ""
         needsPasswordSetup = false
         workspace.signOutLocally()
       } else if case CloudWorkspaceError.service(_, 403) = error {
         owner = nil
+        displayName = ""
         needsPasswordSetup = false
         workspace.signOutLocally()
       }
@@ -154,6 +158,7 @@ import SillKit
     let snapshot = try Snapshot(json: state.json)
     if owner != nil && owner != state.owner { workspace.signOutLocally() }
     owner = state.owner
+    displayName = state.displayName
     needsPasswordSetup = state.needsPasswordSetup
     workspace.connect(service, initial: snapshot)
   }
@@ -175,6 +180,7 @@ import SillKit
     generation += 1
     busy = false
     owner = nil
+    displayName = ""
     needsPasswordSetup = false
     callback = nil
     error = Self.message(failure)

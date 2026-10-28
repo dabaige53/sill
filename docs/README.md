@@ -117,6 +117,15 @@
 
 ## 记录
 
+- [2026-10-28 Mac 合并前文件拆分](records/2026-10-28-macos-merge-file-split/README.md)：提交大小限制处理、Swift职责拆分及生成素材分离。
+- [2026-10-28 Mac 用户反馈修复](records/2026-10-28-macos-feedback-fixes/README.md)：叠卡收起、搜索点击和标签、全屏阅读、照片留白与AI关闭区；功能与动效分开核对。
+- [2026-10-28 Mac 全量对齐实施](records/2026-10-28-macos-parity-implementation/README.md)：62项功能状态、41项动效状态、18组流程及检查结果；原生差异和未验证项单列。
+- [2026-10-28 Mac 输入栏与信息流位置对齐](records/2026-10-28-macos-navigation-alignment/README.md)：平台优化原则、AI引用布局、分类位置和分页恢复、筛选后回顶及验证边界。
+
+- [2026-10-28 Web 与 Mac 逐项对齐核对](records/2026-10-28-macos-parity-audit/README.md)：独立动效清单、功能验证清单、12类卡片及完整功能流程；明确差异与未验证项。
+
+- [2026-10-28 Web 改动分析与 Mac 适配](records/2026-10-28-macos-web-adaptation/README.md)
+
 - [Cloudflare 旧部署与版本清理](records/2026-10-28-cloud-version-cleanup/README.md)：清理范围、当前版本及线上检查结果。
 
 - [Web 云端发布](records/2026-10-28-web-cloud-release/README.md)：生产迁移、Worker 版本和线上检查结果。
@@ -353,4 +362,6 @@
 - [ADR 0081：右侧章节进度与底部胶囊切换](adr/0081-reading-spine-and-segmented-navigation.md)
 
 - [ADR 0082：Web/PWA 采用 ui-lab 交互效果](adr/0082-web-ui-lab-motion.md)
+- [ADR 0083：Mac 全量对齐与原生交互边界](adr/0083-macos-parity-and-native-interaction.md)
+- [ADR 0084：Mac 布局回退、搜索与阅读切换](adr/0084-macos-feedback-layout-and-reader.md)
 - [删除动画工作台记录](records/2026-10-27-motion-workbench-removal/README.md)

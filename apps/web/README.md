@@ -1,8 +1,10 @@
 # 浏览器端
 
-更新：2026-10-19。现行运行代码；通用规则见 [代码规范](../../docs/agents/code-standards.md)。
+更新：2026-10-28。现行运行代码；通用规则见 [代码规范](../../docs/agents/code-standards.md)。
 
 `index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
+
+`data/assets.ts` 统一解析图片地址，四份 `data/artwork-*.ts` 分别保存原有 WebP 素材。手机样式按 `phone.css`（页面与导航）、`phone-details.css`（详情与设置）、`phone-search.css`（搜索）和 `phone-overrides.css`（最终覆盖）依次加载；顺序只在 `styles/styles.json` 维护。
 
 `views/app.ts` 保留状态和公开入口，`views/app-*.ts` 按启动、信息流、选择、弹层、反馈、卡片动作、采集、堆叠与输入拆分方法；`app-types.ts` 保存共用类型。方法仍安装到原控制器的原型上。设置保存与重绘位于 `views/settings-controller.ts`，详情打开和定位位于 `views/preview-controller.ts`。`views/actions/` 按导航筛选、卡片、多选、设置、外链交接、提醒媒体、反馈恢复分组；`action()` 只按原名称分发。
 

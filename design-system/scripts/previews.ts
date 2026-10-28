@@ -28,8 +28,10 @@ import { AIDock, HomeTop, Navigation } from "../../apps/web/views/shell.tsx";
 import { authStyles, consentStyles } from "../../server/cloud/auth-page.ts";
 import { consentSummary } from "../../server/cloud/consent-policy.ts";
 import { loginPage } from "../../server/cloud/login-page.ts";
+import { preparePreviewArtwork } from "./preview-artwork.ts";
 
 const check = process.argv.includes("--check");
+const previewArtwork = preparePreviewArtwork(check);
 const root = resolve(import.meta.dirname, "../components");
 Store.state = Store.fresh();
 const first = new Map<string, (typeof SeedCards)[number]>();
@@ -248,7 +250,7 @@ for (const [name, p] of Object.entries(previews)) {
 <!doctype html>
 <html><head><meta charset="utf-8"></head>
 <body class="ds-flow" style="margin:0;min-height:0;padding:16px;background:${p.background || "var(--canvas)"};font-family:var(--font-sans)">
-<div id="root">${p.body}</div>
+<div id="root">${previewArtwork(p.body)}</div>
 </body></html>
 `;
 	if (html.length > 256 * 1024) throw new Error(`${name} preview is over 256 KB`);
@@ -325,7 +327,8 @@ for (const [name, source] of Object.entries({ login: loginHtml, authorization: c
 		if (!styles) throw new Error("Login board styles are missing");
 		const stylesheet = resolve(authDir, "login.css");
 		if (check) {
-			if (readFileSync(stylesheet, "utf8") !== styles[1]) throw new Error("Login board styles are stale");
+			if (readFileSync(stylesheet, "utf8") !== styles[1])
+				throw new Error("Login board styles are stale");
 		} else {
 			mkdirSync(authDir, { recursive: true });
 			writeFileSync(stylesheet, styles[1]);

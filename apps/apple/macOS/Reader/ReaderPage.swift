@@ -2,19 +2,20 @@ import AppKit
 import SillKit
 import SwiftUI
 
-/// The fullscreen page: the whole window, card background, a 2px progress line at the top,
-/// collapse and close in one glass group top right, all content fills the page with the same preview gutters.
-struct ReaderPage: View {
+/// The page chrome wraps the same scroll view in preview and full modes. Resizing never
+/// replaces the document, field selection, or the media player's host view.
+struct ReaderPage<Content: View>: View {
   let card: CardModel
   let state: CardState
-  let size: CGSize
   let layer: Reader.Layer
   @Environment(Reader.self) private var reader
   @Environment(Workspace.self) private var workspace
+  @Environment(Panels.self) private var panels
   let scroll: ReaderScroll
-  @State private var outlineHidden = false
+  let content: Content
   @State private var currentHeading: Int?
   @Namespace private var outlineIndicator
+  private var full: Bool { layer.full }
   private var expandedWorkspace: Bool { card.kind == .media || card.kind == .article }
   private var headings: [(index: Int, block: MarkdownBody.Block)] {
     card.kind == .article
@@ -24,178 +25,123 @@ struct ReaderPage: View {
   }
 
   var body: some View {
-    let target = CGRect(origin: .zero, size: size)
     let tools = ReaderTools.actions(
       card: card, state: state, hidden: workspace.preferences.hiddenActions)
     ZStack(alignment: .top) {
-      AppleColors.card
       ScrollViewReader { proxy in
-        HStack(alignment: .top, spacing: AppleMetrics.space40) {
-          if !headings.isEmpty && !outlineHidden {
+        HStack(alignment: .top, spacing: full ? AppleMetrics.space40 : 0) {
+          if full, !headings.isEmpty {
             outline(proxy: proxy)
               .frame(width: AppleMetrics.readerOutlineWidth)
               .padding(.top, AppleMetrics.space24)
           }
-          ScrollView(.vertical) {
-            ReaderContent(
-              card: card, state: state, type: .page,
-              mediaWidth: size.width - 2 * AppleMetrics.previewPaddingX,
-              mediaHeight: max(
-                AppleMetrics.mediaPlayerMinHeight,
-                size.height - AppleMetrics.space64 - AppleMetrics.space40)
-            )
-            .modifier(DetailReveal())
-            .frame(maxWidth: workspace.preferences.readerWidth.width)
-            .padding(.top, expandedWorkspace ? AppleMetrics.space16 : 0)
-            .padding(.bottom, expandedWorkspace ? AppleMetrics.space24 : AppleMetrics.space160)
-            .frame(maxWidth: .infinity)
-            .background(ReaderScrollProbe(scroll: scroll))
-            .modifier(ReaderPullOffset(motion: scroll.motion))
-          }
-          .scrollIndicators(.automatic)
-          .coordinateSpace(name: "media-scroll")
-          .coordinateSpace(name: "article-reading")
-          .onPreferenceChange(ReaderHeadingPositions.self) { positions in
-            let passed = headings.last {
-              (positions[$0.index] ?? .infinity) <= AppleMetrics.space40
+          content
+            .onPreferenceChange(ReaderHeadingPositions.self) { positions in
+              let passed = headings.last {
+                (positions[$0.index] ?? .infinity) <= AppleMetrics.space40
+              }
+              let view = scroll.scrollView
+              let documentHeight = view?.documentView?.bounds.height ?? 0
+              let viewport = view?.contentView.bounds ?? .zero
+              let atEnd = documentHeight > viewport.height && viewport.maxY >= documentHeight - 1
+              let selected = atEnd ? headings.last?.index : passed?.index ?? headings.first?.index
+              if selected != currentHeading { currentHeading = selected }
             }
-            let view = scroll.scrollView
-            let documentHeight = view?.documentView?.bounds.height ?? 0
-            let viewport = view?.contentView.bounds ?? .zero
-            let atEnd = documentHeight > viewport.height && viewport.maxY >= documentHeight - 1
-            let selected = atEnd ? headings.last?.index : passed?.index ?? headings.first?.index
-            if selected != currentHeading { currentHeading = selected }
-          }
         }
-        .padding(.horizontal, AppleMetrics.previewPaddingX)
-        .padding(.top, expandedWorkspace ? AppleMetrics.space64 : AppleMetrics.space88)
+        .padding(.horizontal, full ? AppleMetrics.readerPageGutter : 0)
+        .padding(.top, full ? (expandedWorkspace ? AppleMetrics.space64 : AppleMetrics.space88) : 0)
       }
-      if card.kind != .media {
+      if full, card.kind != .media {
         ReaderProgress(motion: scroll.motion)
           .modifier(DetailReveal(tools: true))
       }
-      HStack(spacing: AppleMetrics.space2) {
-        if !headings.isEmpty {
-          ToolButton(
-            icon: "list",
-            label: Copy.text(outlineHidden ? "web.reader.showOutline" : "web.reader.hideOutline")
-          ) {
-            Motion.instantly { outlineHidden.toggle() }
+      if full {
+        HStack(spacing: AppleMetrics.space2) {
+          ToolButton(icon: "collapse", label: Copy.text("web.reader.exitFullscreen")) {
+            reader.open(card.id, full: false)
           }
+          ToolButton(icon: "x", label: Copy.text("web.reader.close")) { reader.close() }
         }
-        ToolButton(icon: "collapse", label: Copy.text("web.reader.exitFullscreen")) {
-          reader.open(card.id, full: false)
-        }
-        ToolButton(icon: "x", label: Copy.text("web.reader.close")) { reader.closeAll() }
+        .padding(AppleMetrics.space4)
+        .desktopGlass(Capsule())
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Copy.text("web.readerTools"))
+        .modifier(ReaderToolsTuck(motion: scroll.motion, top: true, enabled: !expandedWorkspace))
+        .padding(.top, AppleMetrics.readerToolsTop)
+        .padding(.trailing, AppleMetrics.readerToolsRight)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .modifier(DetailReveal(tools: true))
       }
-      .padding(AppleMetrics.space4)
-      .desktopGlass(Capsule())
-      .accessibilityElement(children: .contain)
-      .accessibilityLabel(Copy.text("web.readerTools"))
-      .modifier(ReaderToolsTuck(motion: scroll.motion, top: true, enabled: !expandedWorkspace))
-      .padding(.top, AppleMetrics.readerToolsTop)
-      .padding(.trailing, AppleMetrics.readerToolsRight)
-      .frame(maxWidth: .infinity, alignment: .trailing)
-      .modifier(DetailReveal(tools: true))
-      if expandedWorkspace && !tools.isEmpty {
+      if full && expandedWorkspace && !tools.isEmpty {
         ReaderToolbar(card: card, state: state, actions: tools, top: true)
           .padding(.leading, AppleMetrics.space16)
           .padding(.top, AppleMetrics.space4)
           .frame(maxWidth: .infinity, alignment: .leading)
       }
-      VStack(spacing: AppleMetrics.space12) {
-        Spacer(minLength: 0)
-        // The check returns with the surface and its spring instead of fading out ahead of it.
-        FinishRing(motion: scroll.motion)
-        if !expandedWorkspace && !tools.isEmpty {
-          ReaderToolbar(card: card, state: state, actions: tools)
-            .modifier(ReaderToolsTuck(motion: scroll.motion))
-            .modifier(DetailReveal(tools: true))
+      if full {
+        VStack(spacing: AppleMetrics.space12) {
+          Spacer(minLength: 0)
+          // The check returns with the surface and its spring instead of fading out ahead of it.
+          FinishRing(motion: scroll.motion)
+          if !expandedWorkspace && !tools.isEmpty {
+            ReaderToolbar(card: card, state: state, actions: tools)
+              .modifier(ReaderToolsTuck(motion: scroll.motion))
+              .modifier(DetailReveal(tools: true))
+          }
         }
+        .padding(.bottom, AppleMetrics.readerBarBottom)
       }
-      .padding(.bottom, AppleMetrics.readerBarBottom)
     }
-    // The page and its tools grow out of the card as one surface.
-    .modifier(CardGeometryDestination(id: card.id, target: target))
-    .ignoresSafeArea()
-    .modifier(ReaderSurfaceOffset(motion: scroll.motion))
-    .onAppear { configure() }
-    .task { await countReadingTime() }
-    .accessibilityElement(children: .contain)
-    .accessibilityLabel(card.title)
-    .accessibilityAddTraits(.isModal)
+    .task(id: full) { if full { await countReadingTime() } }
   }
 
   private func outline(proxy: ScrollViewProxy) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
-        Text(Copy.text("web.reader.outline"))
-          .font(.sans(AppleMetrics.font15, .medium))
-          .foregroundStyle(AppleColors.primary)
-          .padding(.bottom, AppleMetrics.space12)
+        HStack(spacing: AppleMetrics.space8) {
+          Icon("list", size: AppleMetrics.space16)
+          Text(Copy.text("web.reader.outline"))
+        }
+        .font(.sans(AppleMetrics.font15, .medium))
+        .foregroundStyle(AppleColors.primary)
+        .padding(.bottom, AppleMetrics.space6)
         ForEach(headings, id: \.index) { heading in
           let selected = (currentHeading ?? headings.first?.index) == heading.index
           Button {
-            let jump = { proxy.scrollTo("reader-section-\(heading.index)", anchor: .top) }
-            if Motion.keyboardDriven {
-              Motion.instantly(jump)
-            } else {
-              withAnimation(Motion.layout, jump)
-            }
+            Motion.instantly { proxy.scrollTo("reader-section-\(heading.index)", anchor: .top) }
           } label: {
-            Text(heading.block.text)
-              .font(.sans(AppleMetrics.font14, selected ? .semibold : .regular))
-              .foregroundStyle(selected ? AppleColors.accent : AppleColors.secondary)
+            OutlineTitle(text: heading.block.text, selected: selected)
               .multilineTextAlignment(.leading)
               .fixedSize(horizontal: false, vertical: true)
               .padding(
                 .leading,
-                AppleMetrics.space12
-                  * CGFloat(
-                    1
-                      + min(
-                        2, heading.block.heading - (headings.map { $0.block.heading }.min() ?? 1)))
+                CGFloat(
+                  min(
+                    2,
+                    max(0, heading.block.heading - (headings.map { $0.block.heading }.min() ?? 1))))
+                  * AppleMetrics.space12
               )
               .padding(.trailing, AppleMetrics.space12)
-              .padding(.vertical, AppleMetrics.space8)
-              .frame(maxWidth: .infinity, minHeight: AppleMetrics.space44, alignment: .leading)
+              .padding(.vertical, AppleMetrics.space4)
+              .frame(maxWidth: .infinity, minHeight: AppleMetrics.space32, alignment: .leading)
               .overlay(alignment: .leading) {
                 if selected {
-                  Capsule().fill(AppleColors.accent)
-                    .frame(width: AppleMetrics.space2, height: AppleMetrics.space20)
+                  Circle().fill(AppleColors.accent)
+                    .frame(width: AppleMetrics.space6, height: AppleMetrics.space6)
                     .matchedGeometryEffect(id: "outline", in: outlineIndicator)
+                    .animation(
+                      Motion.keyboardDriven
+                        ? nil
+                        : .spring(
+                          duration: AppleMetrics.outlineTravelDuration,
+                          bounce: AppleMetrics.outlineTravelBounce), value: currentHeading)
                 }
               }
           }.buttonStyle(.plain)
             .accessibilityAddTraits(selected ? .isSelected : [])
         }
       }
-      .animation(Motion.keyboardDriven ? nil : Motion.layout, value: currentHeading)
-    }.accessibilityLabel(Copy.text("web.reader.outline"))
-  }
-
-  private func configure() {
-    scroll.initialOffset = card.kind == .media ? 0 : reader.positions[layer.id] ?? 0
-    scroll.trailing = expandedWorkspace ? AppleMetrics.space24 : AppleMetrics.space160
-    scroll.finishEnabled =
-      card.kind != .media && card.kind.readable && !card.body.isEmpty
-      && workspace.preferences.collapseOnFinish
-    let id = card.id
-    let layerID = layer.id
-    scroll.offsetChanged = { [weak reader] offset in
-      if card.kind != .media { reader?.positions[layerID] = offset }
-    }
-    scroll.progressChanged = { [weak workspace, weak reader] value in
-      guard reader?.sessionActive == true else { return }
-      if card.kind != .media { workspace?.recorder.read(id, progress: value) }
-    }
-    scroll.reachedEnd = { [weak reader] in
-      if card.kind != .media && card.kind.readable { reader?.reachedEnd(id) }
-    }
-    scroll.finished = { [weak reader] done in
-      reader?.reachedEnd(id, completion: done) ?? done(false)
-    }
-    scroll.close = { [weak reader] in reader?.close() }
+    }.scrollIndicators(.hidden).accessibilityLabel(Copy.text("web.reader.outline"))
   }
 
   /// Web: one second per second while the page is open, the app is in front and there was input
@@ -206,8 +152,36 @@ struct ReaderPage: View {
       try? await Task.sleep(for: .seconds(1))
       guard !Task.isCancelled, reader.sessionActive else { return }
       let idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: anyInput)
-      if NSApp.isActive, idle < 60 { workspace.recorder.readingSecond() }
+      if NSApp.isActive, idle < 60, reader.top?.id == layer.id, reader.shown, panels.kind == nil {
+        workspace.recorder.readingSecond()
+      }
     }
+  }
+}
+
+private struct OutlineTitle: View {
+  let text: String
+  let selected: Bool
+  var body: some View {
+    Text(text).foregroundStyle(AppleColors.secondary)
+      .overlay(alignment: .leading) {
+        Text(text).foregroundStyle(AppleColors.accent)
+          .mask {
+            Rectangle().scaleEffect(x: selected ? 1 : 0, anchor: .leading)
+              .animation(
+                Motion.keyboardDriven
+                  ? nil
+                  : Motion.ease(
+                    selected ? AppleMetrics.outlineWipeIn : AppleMetrics.outlineWipeOut),
+                value: selected)
+          }.accessibilityHidden(true)
+      }
+      .font(.sans(AppleMetrics.font15))
+      .offset(x: selected ? AppleMetrics.space14 : 0)
+      .padding(.trailing, AppleMetrics.space14)
+      .animation(
+        Motion.keyboardDriven ? nil : Motion.ease(AppleMetrics.outlineShiftDuration),
+        value: selected)
   }
 }
 

@@ -39,6 +39,17 @@ import SillKit
   @ObservationIgnored private(set) var confirmed: [String: JSONValue] = CardState.defaults
   /// While set, `read` keeps its drawn value until the reader's confirmation finishes.
   @ObservationIgnored private var heldRead: Bool?
+  @ObservationIgnored private var taskOrder: [String] = []
+
+  func previewTasks(of card: CardModel) -> [CardModel.TaskItem] {
+    let tasks = tasks(of: card)
+    let ids = Set(tasks.map(\.id))
+    taskOrder.removeAll { !ids.contains($0) }
+    for task in tasks.filter({ !$0.done }) + tasks.filter(\.done)
+    where !taskOrder.contains(task.id) { taskOrder.append(task.id) }
+    let byID = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0) })
+    return taskOrder.prefix(3).compactMap { byID[$0] }
+  }
 
   init(id: String) { self.id = id }
 

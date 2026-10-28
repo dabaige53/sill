@@ -1,3 +1,4 @@
+import AppKit
 import SillKit
 import SwiftUI
 
@@ -17,7 +18,7 @@ struct FeedView: View {
     let context = CardContext(
       now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
       fadeRead: preferences.fadeRead, appearance: preferences.cardAppearance,
-      paddingScale: preferences.cardPadding.scale)
+      paddingScale: preferences.cardPadding.scale, columnWidth: geometry.columnWidth)
     ScrollView(.vertical) {
       VStack(spacing: 0) {
         Color.clear.frame(height: topInset)
@@ -27,13 +28,11 @@ struct FeedView: View {
             ShelfEntry(count: feed.shelfCount).frame(width: geometry.columnWidth)
           }
         } else {
-          let entering = !feed.entered
           MasonryLayout(geometry: geometry) {
             ForEach(Array(feed.entries.enumerated()), id: \.element.id) { index, entry in
               FeedEntryView(entry: entry, context: context)
-                .modifier(ContentFade(value: geometry.columnWidth))
-                .modifier(Entrance(delay: entering ? Entrance.delay(index) : nil))
-                .transition(FeedMotion.arrival)
+                .transition(feed.animateChanges ? FeedMotion.arrival : .identity)
+                .layoutValue(key: FeedItemID.self, value: entry.measurementID)
                 .layoutValue(
                   key: StackSpacing.self, value: entry.isStack ? AppleMetrics.stackLayoutExtra : 0)
             }
@@ -41,8 +40,16 @@ struct FeedView: View {
             if shelf { ShelfEntry(count: feed.shelfCount).transition(.opacity) }
           }
           .frame(width: geometry.width)
-          .animation(Motion.layout, value: feed.entries)
-          .animation(Motion.layout, value: geometry.columns)
+          .animation(
+            feed.animateChanges && !Motion.keyboardDriven ? Motion.layout : nil, value: feed.entries
+          )
+          .animation(Motion.keyboardDriven ? nil : Motion.layout, value: geometry)
+          .transaction { transaction in
+            if feed.scrollRequest != nil {
+              transaction.animation = nil
+              transaction.disablesAnimations = true
+            }
+          }
           .onAppear { feed.entered = true }
         }
         Color.clear.frame(height: AppleMetrics.feedBottom)
@@ -79,7 +86,11 @@ struct FeedView: View {
               }
           )
       }
-      .background(ScrollProbe(scroll: scroll))
+      .background(
+        ScrollProbe(
+          scroll: scroll, request: feed.scrollRequest,
+          restored: { feed.restoredScroll($0, at: $1) })
+      )
       .modifier(FeedPullOffset(refresh: scroll.refresh))
     }
     .scrollIndicators(.hidden)
@@ -100,31 +111,6 @@ struct FeedView: View {
   static let arrival = AnyTransition.asymmetric(
     insertion: .opacity.combined(with: .offset(y: -AppleMetrics.motionDetailEnterY)),
     removal: .opacity.animation(Motion.fast))
-}
-
-/// Only the first screen enters: 10px up and in over 220ms, the first ten 30ms apart.
-struct Entrance: ViewModifier {
-  let delay: Double?
-  @State private var shown: Bool
-
-  init(delay: Double?) {
-    self.delay = delay
-    _shown = State(initialValue: delay == nil)
-  }
-
-  static func delay(_ index: Int) -> Double {
-    index < Int(AppleMetrics.motionFirstCount) ? Double(index) * AppleMetrics.motionStagger : 0
-  }
-
-  func body(content: Content) -> some View {
-    content
-      .opacity(shown ? 1 : 0)
-      .offset(y: shown ? 0 : AppleMetrics.motionDetailEnterY)
-      .onAppear {
-        guard !shown, let delay else { return }
-        withAnimation(Motion.open.delay(delay)) { shown = true }
-      }
-  }
 }
 
 extension FeedEntry {
@@ -198,6 +184,10 @@ struct StackTile: View {
   @State private var pressed = false
   @State private var width: CGFloat = 1
   @State private var settling = false
+  @State private var settlement = 0
+  @State private var axis: Bool?
+  @State private var dragOrigin: CGFloat = 0
+  @State private var drawn = DrawnValue()
   @State private var wheelIdle: Task<Void, Never>?
   @FocusState private var focused: Bool
 
@@ -223,7 +213,12 @@ struct StackTile: View {
       }
     }
     .background(alignment: .bottom) { edges }
-    .background(GeometryReader { proxy in Color.clear.onAppear { width = proxy.size.width } })
+    .onGeometryChange(for: CGFloat.self) {
+      $0.size.width
+    } action: {
+      width = $0
+    }
+    .modifier(TrackDrawnValue(value: dragX, drawn: drawn))
     .scaleEffect(pressed ? AppleMetrics.motionPressScale : 1)
     .animation(Motion.press, value: pressed)
     .zIndex(dragX != 0 || settling ? 20 : 0)
@@ -233,6 +228,15 @@ struct StackTile: View {
       StackWheel.shared.hover(key, inside: inside, scroll: wheel)
     }
     .gesture(deckGesture)
+    .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification))
+    { _ in
+      guard axis != nil || settling || dragX != 0 else { return }
+      interrupt()
+      axis = nil
+      pressed = false
+      dragOrigin = 0
+      withAnimation(Motion.deck) { dragX = 0 }
+    }
     .focusable()
     .focusEffectDisabled()
     .focused($focused)
@@ -240,12 +244,16 @@ struct StackTile: View {
       intents.openStack(key)
       return .handled
     }
+    .onKeyPress(.space) {
+      intents.openStack(key)
+      return .handled
+    }
     .onKeyPress(.leftArrow) {
-      settle(-1)
+      settle(-1, keyboard: true)
       return .handled
     }
     .onKeyPress(.rightArrow) {
-      settle(1)
+      settle(1, keyboard: true)
       return .handled
     }
     .accessibilityElement(children: .ignore)
@@ -304,21 +312,36 @@ struct StackTile: View {
       .onChanged { value in
         let dx = value.translation.width
         let dy = value.translation.height
-        if dragX == 0 && !pressed && abs(dx) < AppleMetrics.space6 && abs(dy) < AppleMetrics.space6
-        {
-          pressed = true
-          return
+        if axis == nil {
+          guard max(abs(dx), abs(dy)) >= AppleMetrics.space6 else {
+            pressed = true
+            return
+          }
+          axis = abs(dx) > abs(dy)
+          guard axis == true else {
+            pressed = false
+            return
+          }
+          interrupt()
+          dragOrigin = dragX - dx
         }
-        guard abs(dx) >= AppleMetrics.space6 || dragX != 0 else { return }
+        guard axis == true else { return }
         pressed = false
         // Horizontal only: the hand follows directly, one draw per frame.
         let index = position.index
-        dragX = dx < 0 ? (index + 1 < cards.count ? dx : 0) : (index > 0 ? dx : 0)
+        let travel = dragOrigin + dx
+        dragX = travel < 0 ? (index + 1 < cards.count ? travel : 0) : (index > 0 ? travel : 0)
       }
       .onEnded { value in
-        defer { pressed = false }
+        defer {
+          pressed = false
+          axis = nil
+          dragOrigin = 0
+        }
+        guard axis != false else { return }
         if dragX == 0 {
-          if abs(value.translation.width) < AppleMetrics.space6 {
+          if max(abs(value.translation.width), abs(value.translation.height)) < AppleMetrics.space6
+          {
             intents.openStack(key)
           }
           return
@@ -335,7 +358,7 @@ struct StackTile: View {
   /// the next card, and a hand that stops for 140ms short of that lets the card settle back.
   /// Coasting after the hand lifts does nothing.
   private func wheel(_ delta: CGFloat) {
-    guard !settling else { return }
+    if settling { interrupt() }
     wheelIdle?.cancel()
     let index = position.index
     let next = max(-width, min(width, dragX + delta))
@@ -352,10 +375,28 @@ struct StackTile: View {
   }
 
   /// 260ms settle without bounce; at either end the card stays.
-  private func settle(_ direction: Int) {
+  private func interrupt() {
+    settlement += 1
+    wheelIdle?.cancel()
+    Motion.instantly { dragX = drawn.value }
+    settling = false
+  }
+
+  private func settle(_ direction: Int, keyboard: Bool = false) {
+    settlement += 1
+    let generation = settlement
+    wheelIdle?.cancel()
     let target = position.index + direction
     guard direction == 0 || cards.indices.contains(target) else {
       withAnimation(Motion.deck) { dragX = 0 }
+      return
+    }
+    if keyboard {
+      Motion.instantly {
+        position.index = target
+        dragX = 0
+      }
+      settling = false
       return
     }
     settling = true
@@ -366,6 +407,7 @@ struct StackTile: View {
     withAnimation(Motion.deck, completionCriteria: .logicallyComplete) {
       dragX = exit
     } completion: {
+      guard generation == settlement else { return }
       Motion.instantly {
         if direction != 0 { position.index = target }
         dragX = 0

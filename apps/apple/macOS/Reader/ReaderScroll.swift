@@ -40,6 +40,7 @@ import SwiftUI
   /// Space after the end marker (toolbar room and bottom padding).
   var trailing: CGFloat = 0
   var initialOffset: CGFloat = 0
+  var initialProgress: Double?
   var progressChanged: (Double) -> Void = { _ in }
   var reachedEnd: () -> Void = {}
   /// The finish ring reached its distance: write read, then call `done` to confirm or not.
@@ -62,6 +63,10 @@ import SwiftUI
   private var dwell: Task<Void, Never>?
   private var connected = true
   private var completionGeneration = 0
+  private var dwellGeneration = 0
+  private var visibilityObservers: [NSObjectProtocol] = []
+
+  func interruptDwell() { dwellGeneration += 1 }
 
   private enum Edge { case bottom, right }
 
@@ -70,17 +75,45 @@ import SwiftUI
   func connected(_ view: NSScrollView) {
     connected = true
     scrollView = view
-    view.contentView.scroll(to: NSPoint(x: 0, y: initialOffset))
+    for observer in visibilityObservers { NotificationCenter.default.removeObserver(observer) }
+    visibilityObservers = [
+      NSApplication.didResignActiveNotification, NSWindow.didResignKeyNotification,
+    ].map { name in
+      NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) {
+        [weak self] _ in
+        MainActor.assumeIsolated { self?.interruptDwell() }
+      }
+    }
+    view.documentView?.layoutSubtreeIfNeeded()
+    let offset = initialProgress.map { CGFloat($0) * max(0, available) } ?? initialOffset
+    view.contentView.scroll(to: NSPoint(x: 0, y: offset))
     view.reflectScrolledClipView(view.contentView)
     boundsChanged()
     // Short text has nothing to scroll: an uninterrupted visible dwell counts as reading it.
     if available <= 2 {
+      dwell?.cancel()
       dwell = Task { [weak self] in
-        try? await Task.sleep(for: .seconds(AppleMetrics.readDwell))
-        guard !Task.isCancelled, let self, NSApp.isActive, self.scrollView?.window != nil else {
-          return
+        var visibleSince: TimeInterval?
+        var generation = self?.dwellGeneration
+        while !Task.isCancelled {
+          guard let self, self.connected else { return }
+          if generation != self.dwellGeneration {
+            visibleSince = nil
+            generation = self.dwellGeneration
+          }
+          let visible =
+            NSApp.isActive && self.scrollView?.window?.isKeyWindow == true && self.inputAllowed()
+          let now = ProcessInfo.processInfo.systemUptime
+          if !visible {
+            visibleSince = nil
+          } else if let since = visibleSince, now - since >= AppleMetrics.readDwell {
+            self.report()
+            return
+          } else if visibleSince == nil {
+            visibleSince = now
+          }
+          do { try await Task.sleep(for: .milliseconds(50)) } catch { return }
         }
-        self.report()
       }
     }
   }
@@ -89,6 +122,8 @@ import SwiftUI
     connected = false
     completionGeneration += 1
     dwell?.cancel()
+    for observer in visibilityObservers { NotificationCenter.default.removeObserver(observer) }
+    visibilityObservers = []
     rest?.cancel()
     toolsRest?.cancel()
   }
@@ -112,7 +147,10 @@ import SwiftUI
     if reached, available > 2 { report() }
     let scrolled = offset > AppleMetrics.scrolledThreshold
     if motion.scrolled != scrolled { motion.scrolled = scrolled }
-    tools(offset: offset, atEdge: offset <= AppleMetrics.space24 || reached)
+    tools(
+      offset: offset, atEdge: offset <= AppleMetrics.space24 || reached,
+      nearFinish: finishEnabled && !motion.confirmed
+        && available - offset <= AppleMetrics.readerFinishZone)
   }
 
   private func report() {
@@ -122,10 +160,14 @@ import SwiftUI
   }
 
   /// Toolbar and head discs: hide after 28 down, return after 14 up, a 650ms rest or an edge.
-  private func tools(offset: CGFloat, atEdge: Bool) {
+  private func tools(offset: CGFloat, atEdge: Bool, nearFinish: Bool) {
     let delta = offset - last
     last = offset
     toolsRest?.cancel()
+    if nearFinish && delta > 0 {
+      setTools(hidden: true)
+      return
+    }
     if atEdge {
       down = 0
       up = 0
@@ -151,11 +193,9 @@ import SwiftUI
   }
 
   func setTools(hidden: Bool) {
+    let hidden = hidden && !Keyboard.focusVisible
     guard motion.toolsHidden != hidden else { return }
-    withAnimation(Motion.sheet(hidden ? AppleMetrics.motionRailHide : AppleMetrics.motionRailShow))
-    {
-      motion.toolsHidden = hidden
-    }
+    motion.toolsHidden = hidden
   }
 
   // MARK: Edge pulls
@@ -203,14 +243,18 @@ import SwiftUI
       case .bottom: -event.scrollingDeltaY
       case .right: event.scrollingDeltaX
       }
-    distance = max(0, distance + delta)
+    let travel = edge == .bottom && finishEnabled ? min(AppleMetrics.space40, delta) * 0.5 : delta
+    distance = max(0, distance + travel)
     samples.append((event.timestamp, distance))
     samples.removeAll { event.timestamp - $0.0 > AppleMetrics.gestureVelocityWindow }
     follow(edge)
     rest?.cancel()
     if phase == .discrete {
       rest = Task { [weak self] in
-        try? await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest))
+        try? await Task.sleep(
+          for: .seconds(
+            self?.finishEnabled == true
+              ? AppleMetrics.finishWheelRest : AppleMetrics.gestureWheelRest))
         guard !Task.isCancelled, let self else { return }
         if self.committed { self.releaseFinish() } else { self.release(cancelled: false) }
       }
@@ -471,7 +515,14 @@ struct ReaderToolsTuck: ViewModifier {
       .offset(
         y: pushing
           ? AppleMetrics.space16
-          : tucked ? (top ? -AppleMetrics.space12 : AppleMetrics.motionRailTravel) : 0
+          : tucked && !top ? AppleMetrics.motionRailTravel : 0
+      )
+      .animation(
+        Motion.keyboardDriven
+          ? nil
+          : hidden
+            ? Motion.ease(AppleMetrics.motionRailHide) : top ? Motion.topReveal : Motion.reveal,
+        value: hidden
       )
       .allowsHitTesting(!hidden)
       .accessibilityHidden(hidden)

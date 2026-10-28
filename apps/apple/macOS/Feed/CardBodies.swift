@@ -127,15 +127,18 @@ struct MailBody: View {
         HStack(spacing: AppleMetrics.space10) {
           Avatar(name: sender, size: AppleMetrics.space32)
           VStack(alignment: .leading, spacing: 0) {
-            Text(sender).textStyle(AppleMetrics.font14, .semibold).lineLimit(1)
-              .foregroundStyle(AppleColors.primary)
+            Text(sender).textStyle(AppleMetrics.font14, .semibold).fixedSize(
+              horizontal: false, vertical: true
+            )
+            .foregroundStyle(AppleColors.primary)
             HStack(spacing: AppleMetrics.space4) {
               SourceIcon(card: card, size: AppleMetrics.font12)
               Text(
                 [card.sourceName, card.sentAt.flatMap(Self.date) ?? "", card.readingTime]
                   .filter { !$0.isEmpty }.joined(separator: " · ")
               )
-              .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
+              .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).fixedSize(
+                horizontal: false, vertical: true)
             }
           }
         }
@@ -230,7 +233,7 @@ struct TaskBody: View {
     let tasks = state.tasks(of: card)
     let done = tasks.filter(\.done).count
     // Unfinished first, then finished; at most three.
-    let visible = Array((tasks.filter { !$0.done } + tasks.filter(\.done)).prefix(3))
+    let visible = state.previewTasks(of: card)
     BodyStack(compact: context.compact) {
       CardHead(
         card: card,

@@ -3,16 +3,15 @@ import SillKit
 import SwiftUI
 
 /// The settings sheet (⌘, or the avatar). Web `panelSettings` in a desktop window: a centered wide
-/// sheet with 设置 and a close button on top, five groups on the left, one screen each.
+/// sheet with 设置 and a close button on top, four groups on the left, one screen each.
 /// A changed setting draws at once and writes in the background; only that setting waits for
 /// the store, and a failed write returns it to the stored value.
 /// @design settings-sheet
 struct SettingsView: View {
   enum Group: String, CaseIterable {
-    case add, desk, look, keys, data
+    case desk, look, keys, data
     var title: String {
       switch self {
-      case .add: Copy.text("web.settings.add")
       case .desk: Copy.text("web.common.desk")
       case .look: Copy.text("web.settings.appearance")
       case .keys: Copy.text("web.settings.shortcuts")
@@ -27,39 +26,44 @@ struct SettingsView: View {
   @State private var pending: [String: (value: JSONValue, count: Int)] = [:]
 
   var body: some View {
-    let shape = RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous)
-    VStack(spacing: 0) {
-      head
-      HStack(spacing: 0) {
-        nav
-        ScrollView(.vertical) {
-          VStack(alignment: .leading, spacing: 0) {
-            Text(group.title)
-              .font(.sans(AppleMetrics.font22, .bold))
-              .foregroundStyle(AppleColors.primary)
-              .padding(.trailing, AppleMetrics.space40)
-              .padding(.bottom, AppleMetrics.space18)
-              .accessibilityAddTraits(.isHeader)
-            page
+    GeometryReader { bounds in
+      let shape = RoundedRectangle(cornerRadius: AppleMetrics.sheetRadius, style: .continuous)
+      VStack(spacing: 0) {
+        head
+        HStack(spacing: 0) {
+          nav
+          ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 0) {
+              Text(group.title)
+                .font(.sans(AppleMetrics.font22, .bold))
+                .foregroundStyle(AppleColors.primary)
+                .padding(.trailing, AppleMetrics.space40)
+                .padding(.bottom, AppleMetrics.space18)
+                .accessibilityAddTraits(.isHeader)
+              page
+            }
+            .padding(.vertical, AppleMetrics.space28)
+            .padding(.horizontal, AppleMetrics.space32)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .disabled(workspace.phase != .ready)
+            .opacity(workspace.phase == .ready ? 1 : AppleMetrics.disabledOpacity)
           }
-          .padding(.vertical, AppleMetrics.space28)
-          .padding(.horizontal, AppleMetrics.space32)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .disabled(workspace.phase != .ready)
-          .opacity(workspace.phase == .ready ? 1 : AppleMetrics.disabledOpacity)
+          .scrollIndicators(.hidden)
         }
-        .scrollIndicators(.hidden)
       }
+      .frame(
+        width: min(bounds.size.width, AppleMetrics.settingsWidth),
+        height: min(
+          bounds.size.height,
+          AppleMetrics.settingsHeight + AppleMetrics.space60 + AppleMetrics.space16)
+      )
+      .background(shape.fill(AppleColors.canvas))
+      .clipShape(shape)
+      .shadow(.sheet)
+      .accessibilityElement(children: .contain)
+      .accessibilityAddTraits(.isModal)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    .frame(
-      maxWidth: AppleMetrics.settingsWidth,
-      maxHeight: AppleMetrics.settingsHeight + AppleMetrics.space60 + AppleMetrics.space16
-    )
-    .background(shape.fill(AppleColors.canvas))
-    .clipShape(shape)
-    .shadow(.sheet)
-    .accessibilityElement(children: .contain)
-    .accessibilityAddTraits(.isModal)
   }
 
   /// Web `.settings-head`: 设置 at the figure size on the left, the quiet close on the right.
@@ -116,7 +120,6 @@ struct SettingsView: View {
 
   @ViewBuilder private var page: some View {
     switch group {
-    case .add: AddPage()
     case .desk: desk
     case .look: look
     case .keys: keys
@@ -126,7 +129,6 @@ struct SettingsView: View {
 
   private var desk: some View {
     let preferences = workspace.preferences
-    let hidden = hiddenActions
     return VStack(alignment: .leading, spacing: 0) {
       SystemReminderSettingsView()
       SettingsCard {
@@ -135,25 +137,6 @@ struct SettingsView: View {
         }
         switchRow("web.settings.fadeRead", "fadeRead", preferences.fadeRead)
         switchRow("web.settings.floatTimely", "floatTimely", preferences.floatTimely)
-      }
-      Text(Copy.text("web.actions.title"))
-        .font(.sans(AppleMetrics.font12))
-        .foregroundStyle(AppleColors.secondary)
-        .padding(.top, AppleMetrics.space16)
-        .padding(.bottom, AppleMetrics.space4)
-      SettingsCard {
-        ForEach(Self.actions.indices, id: \.self) { index in
-          let action = Self.actions[index]
-          let label = Copy.text("web.actions." + action.key)
-          SettingRow(label: label, example: Copy.text(action.example), first: index == 0) {
-            SettingSwitch(label: label, on: !hidden.contains(action.key)) { visible in
-              var next = hidden
-              if visible { next.remove(action.key) } else { next.insert(action.key) }
-              let ordered = Self.actions.map { $0.key }.filter(next.contains)
-              set("hiddenActions", .array(ordered.map(JSONValue.string)))
-            }
-          }
-        }
       }
       SettingsCard {
         switchRow(
@@ -272,7 +255,6 @@ struct SettingsView: View {
   private var keys: some View {
     let rows: [(String, [String])] = [
       ("web.search", ["⌘", "K"]),
-      ("web.capture.title", ["N"]),
       ("web.settings.shortcuts.openCard", ["Enter"]),
       ("web.settings.shortcuts.closeOverlay", ["Esc"]),
       ("web.settings.shortcuts.refresh", ["R"]),
@@ -293,20 +275,6 @@ struct SettingsView: View {
   }
 
   // MARK: Values
-
-  /// Web `CardActions` and the card types each one appears on.
-  static let actions: [(key: String, example: String)] = [
-    ("bookmark", "web.actions.example.all"), ("tag", "web.actions.example.all"),
-    ("later", "web.actions.example.all"), ("reply", "web.actions.example.mail"),
-    ("open", "web.actions.example.source"), ("join", "web.actions.example.event"),
-    ("snooze", "web.actions.example.reminder"), ("download", "web.actions.example.event"),
-    ("dismiss", "web.actions.example.reminder"),
-  ]
-
-  private var hiddenActions: Set<String> {
-    if let value = pending["hiddenActions"]?.value.strings { return Set(value) }
-    return workspace.preferences.hiddenActions
-  }
 
   private func bool(_ key: String, _ stored: Bool) -> Bool { pending[key]?.value.bool ?? stored }
   private func string(_ key: String, _ stored: String) -> String {
@@ -384,84 +352,5 @@ private struct NavRowBody: View {
       }
       .contentShape(shape)
       .onHover { hovered = $0 }
-  }
-}
-
-/// Web `settings-add`: the same one field as the capture sheet. ⌘↩ or 存 saves.
-private struct AddPage: View {
-  @Environment(Workspace.self) private var workspace
-  @State private var text = ""
-  @State private var sending = false
-  @FocusState private var focused: Bool
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      HStack(alignment: .top, spacing: AppleMetrics.space10) {
-        Icon("plus", size: AppleMetrics.font18)
-          .foregroundStyle(AppleColors.secondary)
-          .padding(.top, AppleMetrics.space12)
-        ZStack(alignment: .topLeading) {
-          if text.isEmpty {
-            Text(Copy.text("web.capture.placeholder"))
-              .textStyle(AppleMetrics.font16, leading: AppleMetrics.captureLeading)
-              .foregroundStyle(AppleColors.iconSecondary)
-              .padding(.vertical, AppleMetrics.space10)
-              .allowsHitTesting(false)
-          }
-          TextEditor(text: $text)
-            .scrollContentBackground(.hidden)
-            .textStyle(AppleMetrics.font16, leading: AppleMetrics.captureLeading)
-            .foregroundStyle(AppleColors.primary)
-            .padding(.vertical, AppleMetrics.space10)
-            .padding(.horizontal, -AppleMetrics.space4)
-            .frame(minHeight: AppleMetrics.captureMinHeight)
-            .focused($focused)
-            .accessibilityLabel(Copy.text("web.capture.placeholder"))
-            .onChange(of: text) { _, value in
-              if value.count > Capture.limit { text = String(value.prefix(Capture.limit)) }
-            }
-            .onKeyPress(.return, phases: .down) { press in
-              guard press.modifiers.contains(.command) else { return .ignored }
-              save()
-              return .handled
-            }
-        }
-      }
-      .padding(.vertical, AppleMetrics.space4)
-      HStack(spacing: AppleMetrics.space12) {
-        HStack(spacing: 0) {
-          Kbd(key: "N")
-          Text(Copy.text("web.capture.shortcutHint"))
-        }
-        .font(.sans(AppleMetrics.font13))
-        .foregroundStyle(AppleColors.secondary)
-        Spacer(minLength: 0)
-        Button(Copy.text("web.capture.save")) { save() }
-          .buttonStyle(SolidButtonStyle())
-          .disabled(sending)
-      }
-      .padding(.top, AppleMetrics.space4)
-    }
-    .padding(.top, AppleMetrics.space4)
-    .padding(.horizontal, AppleMetrics.space16)
-    .padding(.bottom, AppleMetrics.space12)
-    .background(
-      RoundedRectangle(cornerRadius: AppleMetrics.settingsRadius, style: .continuous)
-        .fill(AppleColors.card)
-        .overlay(
-          RoundedRectangle(cornerRadius: AppleMetrics.settingsRadius, style: .continuous)
-            .strokeBorder(AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth / 2))
-    )
-    .onAppear { focused = true }
-  }
-
-  /// The text stays until the store has the card; a failed write keeps it for another try.
-  private func save() {
-    guard !sending, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-    let result = workspace.capture(text) { done in
-      sending = false
-      if done { text = "" }
-    }
-    sending = result == .sent
   }
 }

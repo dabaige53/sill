@@ -612,7 +612,8 @@ body.is-dragging #toast {
 	.ai-dock,
 	#selection-bar,
 	#search-selection-bar,
-	dialog:not(.lightbox) > .float-bar {
+	dialog:not(.lightbox) > .float-bar,
+	.phone-drawer > .float-bar {
 		background: var(--glass);
 		-webkit-backdrop-filter: var(--glass-filter);
 		backdrop-filter: var(--glass-filter);

@@ -29,6 +29,7 @@ struct ReaderOverlay: View {
               scroll: scrolls[layer.id]
             )
             .allowsHitTesting(top)
+            .disabled(!top || panels.kind != nil)
             .accessibilityHidden(!top)
             .transition(
               .asymmetric(
@@ -84,6 +85,8 @@ private struct LayerView: View {
   let below: Reader.Layer?
   let size: CGSize
   let scroll: ReaderScroll
+  @State private var playback = MediaPlayback()
+  @FocusState private var focused: Bool
   @Environment(Workspace.self) private var workspace
   @Environment(Reader.self) private var reader
 
@@ -91,26 +94,34 @@ private struct LayerView: View {
 
   var body: some View {
     content
+      .focusable()
+      .focusEffectDisabled()
+      .focused($focused)
+      .environment(playback)
       .onAppear {
         // Only the top layer reads the wheel; the cards below it stay still.
+        focused = true
         let id = layer.id
+        let reader = reader
         scroll.inputAllowed = { [interaction, weak reader] in
           interaction.canScrollReader && reader?.top?.id == id
         }
       }
+      .onChange(of: reader.top?.id) { scroll.interruptDwell() }
       .onChange(of: interaction.layer) { _, layer in
+        scroll.interruptDwell()
         if layer != .reader { scroll.cancelGesture() }
       }
-      .onDisappear { scroll.disconnect() }
+      .onDisappear {
+        scroll.disconnect()
+        playback.stop()
+      }
   }
 
   @ViewBuilder private var content: some View {
     if let card = workspace.model(layer.card) {
       let state = workspace.state(layer.card)
-      if layer.full {
-        ReaderPage(card: card, state: state, size: size, layer: layer, scroll: scroll)
-          .transition(.identity)
-      } else if card.kind == .photo {
+      if card.kind == .photo {
         PhotoLightbox(card: card, state: state)
           .transition(.opacity)
       } else {
@@ -181,7 +192,7 @@ struct CardGeometryDestination: ViewModifier {
             reader.surfaces[id] = Reader.Surface(frame: frame, radius: radius)
           })
       )
-      .opacity(ready ? 1 : 0)
+      .opacity(ready || reader.shown ? 1 : 0)
       .task(id: ready ? target : .zero) {
         if ready { reader.geometryReady(id) }
       }
@@ -197,7 +208,8 @@ struct DetailReveal: ViewModifier {
     // Returning to the card: the tools leave first instead of riding the edge back; the text
     // stays in the surface until the handoff.
     let leaving = tools && reader.returning
-    let opacity: Double = leaving ? 0 : reader.matching || visible ? 1 : 0
+    let opacity: Double =
+      leaving ? 0 : reader.matching || visible ? 1 : 0
     content.opacity(opacity)
       .allowsHitTesting(visible && !leaving)
       .accessibilityHidden(!visible || leaving)

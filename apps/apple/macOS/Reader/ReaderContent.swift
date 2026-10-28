@@ -70,11 +70,13 @@ struct ReaderContent: View {
       case .task, .reminder: taskReminder
       case .digest: digest
       case .media:
-        MediaDetail(
-          card: card, state: state, full: type.title == ReaderType.page.title,
-          availableWidth: mediaWidth, availableHeight: mediaHeight, scrollOffset: mediaOffset,
-          bottomRoom: mediaBottomRoom,
-          returnToPlayer: returnToPlayer)
+        if card.isPodcast {
+          PodcastDetail(card: card, state: state)
+        } else {
+          MediaDetail(
+            card: card, state: state, full: type.title == ReaderType.page.title,
+            availableWidth: mediaWidth, availableHeight: mediaHeight)
+        }
       default: article
       }
       NoteBox(note: state.note)
@@ -207,7 +209,7 @@ struct ReaderContent: View {
         VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
           Text(why.reason).textStyle(AppleMetrics.font17, .medium, leading: 1.55)
           VStack(alignment: .leading, spacing: AppleMetrics.space6) {
-            ForEach(Array(why.basis.prefix(5).enumerated()), id: \.offset) { _, line in
+            ForEach(Array(why.basis.enumerated()), id: \.offset) { _, line in
               Text("• \(line)").textStyle(AppleMetrics.font14, leading: 1.6)
             }
           }
@@ -215,7 +217,7 @@ struct ReaderContent: View {
       }
     }
     if card.kind == .suggestion {
-      if !card.related.isEmpty {
+      if !card.related.compactMap(lookup).isEmpty {
         section(Copy.text("web.card.related"), rows: true) { related }
           .padding(.top, card.why == nil ? 0 : rhythm.sectionLead)
       }
@@ -231,7 +233,7 @@ struct ReaderContent: View {
           [
             card.coverageStart.flatMap { start in
               card.coverageEnd.map { "\(Format.dateLabel(start)) – \(Format.dateLabel($0))" }
-            },
+            } ?? card.sourceName.nilIfEmpty,
             card.related.isEmpty
               ? nil : "\(card.related.count)\(Copy.text("web.card.relatedCount"))",
           ]
@@ -239,7 +241,7 @@ struct ReaderContent: View {
       }.padding(.trailing, discRoom).firstRow()
     }
     detailText
-    if !card.related.isEmpty {
+    if !card.related.compactMap(lookup).isEmpty {
       section(Copy.text("web.card.digestRelated"), rows: true) { related }
         .padding(.top, card.markdown.blocks.isEmpty ? 0 : rhythm.sectionLead)
     }
@@ -328,7 +330,13 @@ struct ReaderContent: View {
     if !rows.isEmpty {
       VStack(spacing: 0) {
         ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-          DetailRow(icon: row.icon, title: row.title, trailing: row.trailing, divider: index > 0)
+          if row.icon == "video" {
+            DetailRow(
+              icon: row.icon, title: row.title, detail: row.trailing, divider: index > 0,
+              wrapping: true)
+          } else {
+            DetailRow(icon: row.icon, title: row.title, trailing: row.trailing, divider: index > 0)
+          }
         }
       }
       .padding(.top, rhythm.rowLift)

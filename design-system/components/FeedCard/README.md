@@ -2,6 +2,8 @@
 
 内容卡片：信息流里唯一的载体。各类卡片使用专用布局，共用卡片积木，积木与限额见手册[卡片积木](../../handbook/foundation.md#卡片积木)，行数与字数见[文字长度](../../handbook/foundation.md#文字长度)。
 
+预览由产品渲染器生成。图片通过 `scripts/preview-artwork.ts` 原样导出到共享 `assets/artwork/raster/`，HTML 只保留相对引用；设计构建和检查同时维护这些文件。
+
 - 桌面标题、摘要、金句、速记和要点自然换行，不限制行数。密度仅改变列宽，卡片高度随内容增长。
 - 字号用 `card-title`、`summary`、`card-meta`；列宽用 `col-min`、`col-ideal`、`col-max`，按可用宽度自动增减列数，宽屏可显示五列、六列或更多。表面用 `card`、`line`、`card-radius`、`shadow`，悬停只换描边色（lineHover）与 `shadow-hover`，卡片不位移。
 - 手机用 `card-radius-sm`、`card-padding-sm`、`gap-sm`、`margin-sm`；资讯、邮件纯文字摘要最多 4 行，其他摘要最多 2 行。见手册[手机主页](../../handbook/interaction.md#手机主页)。

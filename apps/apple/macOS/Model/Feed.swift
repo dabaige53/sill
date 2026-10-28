@@ -47,14 +47,32 @@ struct HashOption: Hashable {
   enum Value: Hashable {
     case mark(Mark)
     case tag(String)
+    case card(String, String, String)
   }
   let value: Value
   var label: String {
     switch value {
     case .mark(let mark): mark.label
     case .tag(let tag): "#" + tag
+    case .card(_, let title, _): title
     }
   }
+  var group: String {
+    switch value {
+    case .card: "card"
+    case .mark: "status"
+    case .tag: "tag"
+    }
+  }
+
+  var icon: String {
+    switch value {
+    case .card(_, _, let icon): icon
+    case .tag: "tag"
+    case .mark(let mark): mark == .saved ? "bookmark" : mark == .later ? "glasses" : "circle"
+    }
+  }
+
 }
 
 /// A type chip under the top bar (Web `searchTypes`).
@@ -83,6 +101,13 @@ enum FeedEntry: Identifiable, Equatable {
     case .stack(let key, _), .openStack(let key, _): "stack:" + key
     }
   }
+
+  /// Expanded stacks keep their view identity, but must not retain their expanded height
+  /// after collapsing. Ordinary card state changes still keep the existing height floor.
+  var measurementID: String {
+    if case .openStack = self { return id + ":expanded" }
+    return id
+  }
 }
 
 /// What the card area lists. Entries are recomputed when cards arrive, the scope or the query
@@ -106,18 +131,31 @@ enum FeedEntry: Identifiable, Equatable {
   private(set) var kinds: Set<CardKind> = []
   private(set) var entries: [FeedEntry] = []
   private(set) var hasMore = false
+  private(set) var animateChanges = false
+  @ObservationIgnored var requestRefresh: () -> Void = {}
   /// Cards put away, for the shelf row at the end of the desk.
   private(set) var shelfCount = 0
   private(set) var empty = Empty.none
-  /// Increments when the entries are rebuilt for a new scope, so the card area can restore its place.
-  private(set) var scopeVersion = 0
+  struct ScrollRequest: Equatable {
+    let id: Int
+    let offset: CGFloat
+  }
+
+  /// Applied by the scroll view after the new entries have been laid out.
+  private(set) var scrollRequest: ScrollRequest?
 
   @ObservationIgnored private unowned let workspace: Workspace
   @ObservationIgnored private(set) var now = Format.milliseconds()
   @ObservationIgnored private var pageLimit = Feed.page
   @ObservationIgnored private(set) var openStacks: Set<String> = []
   @ObservationIgnored private var stackPositions: [String: StackPosition] = [:]
-  @ObservationIgnored var scrollOffsets: [Scope: CGFloat] = [:]
+  private struct Position {
+    let offset: CGFloat
+    let limit: Int
+  }
+  @ObservationIgnored private var positions: [Scope: Position] = [:]
+  @ObservationIgnored private var scrollOffset: CGFloat = 0
+  @ObservationIgnored private var scrollSequence = 0
   /// The first screen has played its entrance; later cards arrive with the drop instead.
   @ObservationIgnored var entered = false
   @ObservationIgnored private var lastPreferences = Preferences()
@@ -176,6 +214,37 @@ enum FeedEntry: Identifiable, Equatable {
     return marks.map { HashOption(value: .mark($0)) } + tags.map { HashOption(value: .tag($0)) }
   }
 
+  func suggestions(_ text: String) -> [HashOption] {
+    if let fragment = Self.hashFragment(text) {
+      var options = hashOptions(fragment)
+      if let mark, mark.scope != scope,
+        fragment.isEmpty || mark.label.localizedCaseInsensitiveContains(fragment)
+      {
+        options.insert(HashOption(value: .mark(mark)), at: 0)
+      }
+      if let tag, fragment.isEmpty || tag.localizedCaseInsensitiveContains(fragment) {
+        options.append(HashOption(value: .tag(tag)))
+      }
+      return options
+    }
+    return cardOrder.prefix(8).compactMap { id in
+      workspace.model(id).map { HashOption(value: .card(id, $0.title, $0.kind.icon)) }
+    }
+  }
+
+  func selected(_ option: HashOption) -> Bool {
+    switch option.value {
+    case .mark(let value): mark == value
+    case .tag(let value): tag == value
+    case .card: false
+    }
+  }
+
+  func suggestionKind(_ option: HashOption) -> String? {
+    guard case .card(let id, _, _) = option.value else { return nil }
+    return workspace.model(id)?.kind.label
+  }
+
   func stackPosition(_ key: String) -> StackPosition {
     if let position = stackPositions[key] { return position }
     let position = StackPosition()
@@ -207,12 +276,14 @@ enum FeedEntry: Identifiable, Equatable {
     let trace = PerformanceTrace.shared.begin(.selectScope)
     defer { PerformanceTrace.shared.end(trace) }
     guard next != scope else { return }
+    positions[scope] = Position(offset: scrollOffset, limit: pageLimit)
     searchTask?.cancel()
     if let pendingQuery { query = pendingQuery }
     pendingQuery = nil
     scope = next
-    pageLimit = Feed.page
-    scopeVersion += 1
+    let saved = positions[next]
+    pageLimit = saved?.limit ?? Feed.page
+    requestScroll(to: saved?.offset ?? 0)
     rebuild()
   }
 
@@ -225,15 +296,13 @@ enum FeedEntry: Identifiable, Equatable {
     query = text
     // The chip row leaves with the text; a hidden chip never keeps filtering.
     if Feed.searchText(text).isEmpty { kind = nil }
-    pageLimit = Feed.page
-    rebuild()
+    applyFilter()
   }
 
   func selectKind(_ next: CardKind?) {
     guard next != kind else { return }
     kind = next
-    pageLimit = Feed.page
-    rebuild()
+    applyFilter()
   }
 
   /// A picked # option becomes a token; returns the text without the typed fragment.
@@ -241,6 +310,7 @@ enum FeedEntry: Identifiable, Equatable {
     switch option.value {
     case .mark(let next): mark = next
     case .tag(let next): tag = next
+    case .card: return text
     }
     let rest =
       text.range(of: #"(^|\s)#\S*$"#, options: .regularExpression).map {
@@ -249,33 +319,28 @@ enum FeedEntry: Identifiable, Equatable {
     searchTask?.cancel()
     pendingQuery = nil
     query = rest.trimmingCharacters(in: .whitespaces)
-    pageLimit = Feed.page
-    rebuild()
+    applyFilter()
     return query
   }
 
   func removeMark() {
     guard mark != nil else { return }
     mark = nil
-    rebuild()
+    applyFilter()
   }
 
   func removeTag() {
     guard tag != nil else { return }
     tag = nil
-    rebuild()
+    applyFilter()
   }
 
   /// Esc with only tokens left: the # conditions and the tab go at once.
   func clearTokens() {
     mark = nil
     tag = nil
-    if scope != .all {
-      scope = .all
-      scopeVersion += 1
-    }
-    pageLimit = Feed.page
-    rebuild()
+    scope = .all
+    applyFilter()
   }
 
   func clearFilter() {
@@ -285,17 +350,41 @@ enum FeedEntry: Identifiable, Equatable {
     kind = nil
     mark = nil
     tag = nil
-    if scope != .all {
-      scope = .all
-      scopeVersion += 1
-    }
+    scope = .all
+    applyFilter()
+  }
+
+  /// Returning to the top keeps the user's scope, query and conditions intact.
+  func scrollToTop() { requestScroll(to: 0) }
+
+  func recordScroll(_ offset: CGFloat) {
+    // Shrinking the old document can send bounds changes before the new scope is laid out.
+    guard scrollRequest == nil else { return }
+    scrollOffset = max(0, offset)
+  }
+
+  func restoredScroll(_ request: ScrollRequest, at offset: CGFloat) {
+    guard scrollRequest == request else { return }
+    scrollOffset = max(0, offset)
+    scrollRequest = nil
+  }
+
+  private func requestScroll(to offset: CGFloat) {
+    scrollSequence += 1
+    scrollOffset = offset
+    scrollRequest = ScrollRequest(id: scrollSequence, offset: offset)
+  }
+
+  private func applyFilter() {
+    pageLimit = Feed.page
+    requestScroll(to: 0)
     rebuild()
   }
 
   func loadMore() {
     guard hasMore else { return }
     pageLimit += Feed.page
-    rebuild(keepClock: true)
+    rebuild(keepClock: true, animate: false)
   }
 
   func openStack(_ key: String) {
@@ -325,7 +414,8 @@ enum FeedEntry: Identifiable, Equatable {
 
   // MARK: Building
 
-  private func rebuild(keepClock: Bool = false) {
+  private func rebuild(keepClock: Bool = false, animate: Bool = true) {
+    animateChanges = animate && entered && scrollRequest == nil
     let trace = PerformanceTrace.shared.begin(.feedRebuild)
     defer {
       PerformanceTrace.shared.end(

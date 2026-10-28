@@ -51,6 +51,8 @@ struct StackSpacing: LayoutValueKey {
   static let defaultValue: CGFloat = 0
 }
 
+struct FeedItemID: LayoutValueKey { static let defaultValue = "" }
+
 /// Shortest-column placement in feed order. Widths are fixed once; moving cards only translate.
 struct MasonryLayout: Layout {
   let geometry: ColumnGeometry
@@ -59,11 +61,19 @@ struct MasonryLayout: Layout {
     var frames: [CGRect] = []
     var height: CGFloat = 0
     var geometry: ColumnGeometry?
+    var minimums: [String: CGFloat] = [:]
+    var measuredWidth: CGFloat = 0
+
+    mutating func height(_ measured: CGFloat, for id: String) -> CGFloat {
+      let height = max(measured, minimums[id] ?? 0)
+      if !id.isEmpty { minimums[id] = height }
+      return height
+    }
   }
 
   func makeCache(subviews: Subviews) -> Cache { Cache() }
 
-  func updateCache(_ cache: inout Cache, subviews: Subviews) { cache = Cache() }
+  func updateCache(_ cache: inout Cache, subviews: Subviews) { cache.geometry = nil }
 
   func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
     if cache.geometry != geometry || cache.frames.count != subviews.count {
@@ -87,6 +97,12 @@ struct MasonryLayout: Layout {
   }
 
   private func measure(_ subviews: Subviews, _ cache: inout Cache) {
+    if cache.measuredWidth != geometry.columnWidth {
+      cache.minimums.removeAll()
+      cache.measuredWidth = geometry.columnWidth
+    }
+    let ids = Set(subviews.map { $0[FeedItemID.self] })
+    cache.minimums = cache.minimums.filter { ids.contains($0.key) }
     let columns = Swift.max(1, geometry.columns)
     var heights = Array(repeating: CGFloat(0), count: columns)
     var frames: [CGRect] = []
@@ -95,7 +111,8 @@ struct MasonryLayout: Layout {
     for subview in subviews {
       var column = 0
       for index in 1..<columns where heights[index] < heights[column] - 1 { column = index }
-      let height = subview.sizeThatFits(proposal).height
+      let id = subview[FeedItemID.self]
+      let height = cache.height(subview.sizeThatFits(proposal).height, for: id)
       frames.append(
         CGRect(
           x: geometry.inset + CGFloat(column) * (geometry.columnWidth + geometry.gap),

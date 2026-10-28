@@ -21,25 +21,36 @@ struct DataPage: View {
               workspace.isLocal
                 ? "web.settings.storage.localDirectory" : "web.settings.storage.cloudAccount"))
         }
-        SettingRow(label: Copy.text("web.settings.storage.usage")) {
-          Text(usage.map { Format.fileSize($0) } ?? "").font(.number(AppleMetrics.font13))
+        if workspace.isLocal {
+          SettingRow(label: Copy.text("web.settings.storage.usage")) {
+            Text(usage.map { Format.fileSize($0) } ?? "").font(.number(AppleMetrics.font13))
+          }
         }
       }
       SettingsCard {
         SettingLine(first: true) {
-          Button(Copy.text("web.settings.exportAllCards")) { export() }
-            .buttonStyle(TextLinkStyle(padded: false))
+          Button(Copy.text(workspace.isLocal ? "web.settings.exportAllCards" : "web.cloud.export"))
+          { export() }
+          .buttonStyle(TextLinkStyle(padded: false))
         }
         SettingLine {
-          Button(Copy.text("web.settings.clearAllData")) { confirming = true }
-            .buttonStyle(TextLinkStyle(warn: true, padded: false))
-            .disabled(clearing)
+          if !workspace.isLocal {
+            Text(Copy.text("web.cloud.clear"))
+            Spacer(minLength: 0)
+          }
+          Button(Copy.text(workspace.isLocal ? "web.settings.clearAllData" : "web.cloud.clear")) {
+            confirming = true
+          }
+          .buttonStyle(TextLinkStyle(warn: true, padded: false))
+          .disabled(clearing)
         }
       }
       if !workspace.isLocal {
         BackupSettingsView().id(account.owner)
         SettingsCard {
           SettingLine(first: true) {
+            Text(Copy.text("web.cloudentry.4cc5be794516"))
+            Spacer(minLength: 0)
             Button(Copy.text("web.cloudentry.3ab8cc15939f")) { signingOut = true }
               .buttonStyle(TextLinkStyle(padded: false))
               .disabled(account.busy)
@@ -56,7 +67,7 @@ struct DataPage: View {
       }
       Button(Copy.text("web.cancel"), role: .cancel) {}
     }
-    .task(id: workspace.catalogVersion) { await measure() }
+    .task(id: workspace.catalogVersion) { if workspace.isLocal { await measure() } }
     .alert(Copy.text("web.app.7f1a78cdb3f2"), isPresented: $confirming) {
       Button(Copy.text("web.cancel"), role: .cancel) {}
       Button(Copy.text("web.app.bce2377283c2"), role: .destructive) {

@@ -41,19 +41,20 @@ import SwiftUI
     }
   }
   func hide() {
-    guard !pinned, !tucked else { return }
+    guard !pinned, !tucked, !Keyboard.focusVisible else { return }
     withAnimation(Motion.keyboardDriven ? nil : Motion.ease(AppleMetrics.motionRailHide)) {
       tucked = true
     }
   }
 }
 
-/// Reads the feed's scroll position from AppKit: tucks the chrome (down 28, up 14, rest 650ms,
+/// Reads the feed's scroll position from AppKit: tucks the chrome (down 28, up 14, rest 450ms,
 /// edges), loads the next page near the end, and keeps each scope's position.
 @MainActor final class FeedScroll {
   weak var scrollView: NSScrollView?
   let chrome: Chrome
   var nearEnd: () -> Void = {}
+  var didScroll: (CGFloat) -> Void = { _ in }
   let refresh = FeedRefresh()
   var refreshAllowed: () -> Bool = { true }
   private var last: CGFloat = 0
@@ -73,11 +74,12 @@ import SwiftUI
 
   func scrolled(offset raw: CGFloat, top: CGFloat = 0, visible: CGFloat, content: CGFloat) {
     let offset = raw + top
+    didScroll(offset)
     let delta = offset - last
     last = offset
     rest?.cancel()
     chrome.rest(atTop: offset <= 0)
-    let atEdge = offset <= 0 || raw + visible >= content - 1
+    let atEdge = offset <= AppleMetrics.space24 || raw + visible >= content - AppleMetrics.space24
     if content - (raw + visible) < visible * 2 { nearEnd() }
     if atEdge {
       down = 0
@@ -117,39 +119,44 @@ import SwiftUI
     return consumed
   }
 
-  func scroll(to y: CGFloat, animated: Bool = false) {
+  func scroll(to y: CGFloat) {
     guard let scrollView else { return }
+    rest?.cancel()
+    down = 0
+    up = 0
+    last = max(0, y)
     let top = scrollView.contentView.contentInsets.top
     let point = NSPoint(x: 0, y: max(0, y) - top)
-    if animated {
-      NSAnimationContext.runAnimationGroup { context in
-        context.duration = AppleMetrics.motionSheet
-        context.timingFunction = CAMediaTimingFunction(
-          controlPoints: Float(AppleMetrics.easeSheetX1), Float(AppleMetrics.easeSheetY1),
-          Float(AppleMetrics.easeSheetX2), Float(AppleMetrics.easeSheetY2))
-        scrollView.contentView.animator().setBoundsOrigin(point)
-      }
-    } else {
-      scrollView.contentView.scroll(to: point)
-    }
+    scrollView.contentView.scroll(to: point)
     scrollView.reflectScrolledClipView(scrollView.contentView)
+    last = offset
+    chrome.rest(atTop: offset <= 0)
+    chrome.show()
   }
 }
 
 /// Finds the enclosing NSScrollView and forwards bounds changes to `FeedScroll`.
 struct ScrollProbe: NSViewRepresentable {
   let scroll: FeedScroll
+  let request: Feed.ScrollRequest?
+  let restored: (Feed.ScrollRequest, CGFloat) -> Void
 
   func makeNSView(context: Context) -> Probe {
     let probe = Probe()
     probe.scroll = scroll
     return probe
   }
-  func updateNSView(_ view: Probe, context: Context) { view.scroll = scroll }
+  func updateNSView(_ view: Probe, context: Context) {
+    view.scroll = scroll
+    view.restored = restored
+    view.restore(request)
+  }
   static func dismantleNSView(_ view: Probe, coordinator: ()) { view.disconnect() }
 
   final class Probe: NSView {
     var scroll: FeedScroll?
+    var restored: (Feed.ScrollRequest, CGFloat) -> Void = { _, _ in }
+    private var request: Feed.ScrollRequest?
     private var observer: NSObjectProtocol?
     private var monitor: Any?
     private var elasticity: NSScrollView.Elasticity?
@@ -184,6 +191,24 @@ struct ScrollProbe: NSViewRepresentable {
             visible: view.contentView.bounds.height, content: document.bounds.height)
         }
       }
+      applyScroll()
+    }
+
+    func restore(_ next: Feed.ScrollRequest?) {
+      guard request != next else { return }
+      request = next
+      // SwiftUI first updates the entries and their document size; AppKit then restores the clip.
+      DispatchQueue.main.async { [weak self] in self?.applyScroll() }
+    }
+
+    private func applyScroll() {
+      guard let request, let scroll, let view = scroll.scrollView,
+        let document = view.documentView
+      else { return }
+      document.layoutSubtreeIfNeeded()
+      scroll.scroll(to: request.offset)
+      self.request = nil
+      restored(request, scroll.offset)
     }
 
     func disconnect() {
@@ -194,6 +219,7 @@ struct ScrollProbe: NSViewRepresentable {
       monitor = nil
       if let observer { NotificationCenter.default.removeObserver(observer) }
       observer = nil
+      scroll?.scrollView = nil
     }
   }
 }

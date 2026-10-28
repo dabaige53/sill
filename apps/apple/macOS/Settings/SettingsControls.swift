@@ -58,40 +58,118 @@ struct SettingRow<Side: View>: View {
   }
 }
 
-/// Web `.toggle`: 51 × 31; only the knob moves (20px, 120ms), the track color changes at once.
+/// Web `.toggle`: 51 × 31, with one owner for pointer clicks and drags.
 struct SettingSwitch: View {
   let label: String
   let on: Bool
   var describedBy: String?
+  @State private var drag: CGFloat?
+  @State private var start: CGFloat = 0
+  @State private var stretch: CGFloat = 0
+  @State private var drawn = DrawnValue()
   let change: (Bool) -> Void
   @Environment(\.isEnabled) private var enabled
+  @Environment(\.controlActiveState) private var active
 
   var body: some View {
+    let progress =
+      drag.map { min(1, max(0, start + $0 / max(1, AppleMetrics.toggleTravel - stretch))) }
+      ?? (on ? 1.0 : 0.0)
     Button {
-      change(!on)
+      if Motion.keyboardDriven {
+        Motion.instantly { change(!on) }
+      } else {
+        withAnimation(
+          .spring(
+            duration: AppleMetrics.toggleSpringDuration, bounce: AppleMetrics.toggleSpringBounce)
+        ) { change(!on) }
+      }
     } label: {
-      Capsule()
-        .fill(on ? AppleColors.accentFill : AppleColors.toggleOff)
-        .frame(width: AppleMetrics.toggleWidth, height: AppleMetrics.toggleHeight)
-        .overlay(alignment: .leading) {
-          Circle().fill(AppleColors.fixedWhite)
-            .frame(width: AppleMetrics.toggleKnob, height: AppleMetrics.toggleKnob)
-            .shadow(
-              color: AppleColors.fixedBlack15, radius: AppleMetrics.toggleShadowBlur / 2,
-              y: AppleMetrics.toggleShadowY
-            )
-            .padding(.leading, AppleMetrics.toggleInset)
-            .offset(x: on ? AppleMetrics.toggleTravel : 0)
-            .animation(Motion.press, value: on)
-        }
-        .contentShape(Capsule())
+      ToggleTrack(progress: progress, stretch: stretch, drawn: drawn)
     }
     .buttonStyle(.plain)
+    .highPriorityGesture(
+      DragGesture(minimumDistance: 0)
+        .onChanged { value in
+          guard enabled, active != .inactive else { return }
+          if drag == nil {
+            start = min(1, max(0, drawn.value))
+            withAnimation(.spring(duration: AppleMetrics.toggleLeanDuration, bounce: 0)) {
+              stretch = AppleMetrics.toggleStretch
+            }
+          }
+          Motion.instantly {
+            drag =
+              abs(value.translation.width) < AppleMetrics.toggleSlop ? 0 : value.translation.width
+          }
+        }
+        .onEnded { value in
+          guard enabled, active != .inactive, drag != nil else { return }
+          let next =
+            abs(value.translation.width) < AppleMetrics.toggleSlop
+            ? !on : progress >= 0.5
+          withAnimation(
+            .interpolatingSpring(
+              duration: AppleMetrics.toggleSpringDuration, bounce: AppleMetrics.toggleSpringBounce,
+              initialVelocity: value.velocity.width / AppleMetrics.toggleTravel)
+          ) {
+            drag = nil
+            stretch = 0
+            change(next)
+          }
+        }
+    )
+    .onChange(of: active) { _, value in
+      if value == .inactive, drag != nil {
+        withAnimation(
+          .spring(
+            duration: AppleMetrics.toggleSpringDuration, bounce: AppleMetrics.toggleSpringBounce)
+        ) {
+          drag = nil
+          stretch = 0
+        }
+      }
+    }
     .opacity(enabled ? 1 : AppleMetrics.disabledOpacity)
     .accessibilityLabel(label)
     .accessibilityAddTraits(on ? [.isToggle, .isSelected] : .isToggle)
     .accessibilityHint(describedBy ?? "")
   }
+}
+
+/// Interpolate progress before computing the knob shape, including spring overshoot.
+private struct ToggleTrack: View, Animatable {
+  nonisolated var progress: CGFloat
+  nonisolated var stretch: CGFloat
+  let drawn: DrawnValue
+  nonisolated var animatableData: AnimatablePair<CGFloat, CGFloat> {
+    get { .init(progress, stretch) }
+    set {
+      progress = newValue.first
+      stretch = newValue.second
+    }
+  }
+  var body: some View {
+    let _ = capture()
+    let clamped = min(1, max(0, progress))
+    let squash = min(
+      max(-progress, progress - 1, 0) * AppleMetrics.toggleTravel, AppleMetrics.toggleSquash)
+    let width = AppleMetrics.toggleKnob + stretch - squash
+    Capsule().fill(AppleColors.toggleOff)
+      .overlay(Capsule().fill(AppleColors.accentFill).opacity(clamped))
+      .frame(width: AppleMetrics.toggleWidth, height: AppleMetrics.toggleHeight)
+      .overlay(alignment: .leading) {
+        Capsule().fill(AppleColors.fixedWhite)
+          .frame(width: width, height: AppleMetrics.toggleKnob)
+          .shadow(
+            color: AppleColors.fixedBlack15, radius: AppleMetrics.toggleShadowBlur / 2,
+            y: AppleMetrics.toggleShadowY
+          )
+          .padding(.leading, AppleMetrics.toggleInset)
+          .offset(x: clamped * (AppleMetrics.toggleTravel - width + AppleMetrics.toggleKnob))
+      }.contentShape(Capsule())
+  }
+  private func capture() { drawn.value = progress }
 }
 
 /// Web `.segmented`: a surface track; the chosen one is a raised card, the others darken while
@@ -175,7 +253,7 @@ private struct SolidButtonBody: View {
   @Environment(\.isEnabled) private var enabled
   @State private var hovered = false
   var body: some View {
-    let pressed = configuration.isPressed && enabled
+    let pressed = configuration.isPressed && enabled && !Motion.keyboardDriven
     configuration.label
       .font(.sans(AppleMetrics.font14, .medium))
       .foregroundStyle(AppleColors.fixedWhite)

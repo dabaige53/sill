@@ -13,6 +13,7 @@ public struct CloudWorkspaceState: Sendable {
   public let owner: String
   public let json: JSONValue
   public let needsPasswordSetup: Bool
+  public var displayName: String = ""
   public var revision: JSONValue? { json["revision"] }
 }
 
@@ -35,6 +36,7 @@ public actor CloudWorkspace {
   private var cookies: [String: String] = [:]
   private var expirations: [String: Double] = [:]
   private var owner: String?
+  private var displayName = ""
   private var needsPasswordSetup = false
   private var busy = false
   private var pending: (key: String, body: JSONValue, baseline: JSONValue)?
@@ -104,6 +106,7 @@ public actor CloudWorkspace {
       URLQueryItem(name: "client", value: "macos"), URLQueryItem(name: "code", value: code),
     ]
     owner = nil
+    displayName = ""
     _ = try await request(
       callback.url!.path + "?" + callback.percentEncodedQuery!, nativeCallback: true)
     try await identify()
@@ -249,6 +252,7 @@ public actor CloudWorkspace {
       pending = nil
     }
     owner = id
+    displayName = identity["name"]?.string ?? identity["email"]?.string ?? ""
     needsPasswordSetup = cookies["__Host-sill-password-setup"] == "1"
   }
   private func fetchWorkspace() async throws -> CloudWorkspaceState {
@@ -259,12 +263,14 @@ public actor CloudWorkspace {
   private func state(_ json: JSONValue) throws -> CloudWorkspaceState {
     guard let owner else { throw CloudWorkspaceError.unauthenticated }
     _ = try Snapshot(json: json)
-    return CloudWorkspaceState(owner: owner, json: json, needsPasswordSetup: needsPasswordSetup)
+    return CloudWorkspaceState(
+      owner: owner, json: json, needsPasswordSetup: needsPasswordSetup, displayName: displayName)
   }
   private func clearSession() throws {
     cookies = [:]
     expirations = [:]
     owner = nil
+    displayName = ""
     needsPasswordSetup = false
     pending = nil
     try vault.clear()
@@ -353,6 +359,7 @@ public actor CloudWorkspace {
     }
     if response.statusCode == 401 {
       owner = nil
+      displayName = ""
       for name in ["__Host-sill-access", "__Host-sill-refresh"] {
         cookies[name] = nil
         expirations[name] = nil
@@ -363,6 +370,7 @@ public actor CloudWorkspace {
     let json = try JSONValue.decode(data)
     if response.statusCode == 403 && json["error"]?["code"]?.string != "backup_auth_failed" {
       owner = nil
+      displayName = ""
     }
     guard (200...299).contains(response.statusCode) else {
       throw CloudWorkspaceError.service(

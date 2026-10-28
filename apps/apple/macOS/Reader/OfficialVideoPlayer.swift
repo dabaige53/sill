@@ -34,12 +34,19 @@ struct OfficialVideoPlayer: NSViewRepresentable {
     }
     return id
   }
-  func makeCoordinator() -> Coordinator { Coordinator(playback: playback, save: save) }
+  func makeCoordinator() -> Coordinator {
+    if let coordinator = playback.videoCoordinator { return coordinator }
+    let coordinator = Coordinator(playback: playback, save: save)
+    playback.videoCoordinator = coordinator
+    return coordinator
+  }
   func makeNSView(context: Context) -> WKWebView {
+    if let view = playback.videoView { return view }
     let config = WKWebViewConfiguration()
     config.websiteDataStore = .nonPersistent()
     config.userContentController.add(context.coordinator, name: "playback")
     let view = WKWebView(frame: .zero, configuration: config)
+    playback.videoView = view
     context.coordinator.view = view
     view.navigationDelegate = context.coordinator
     playback.seekVideo = { [weak view] seconds in
@@ -72,19 +79,10 @@ struct OfficialVideoPlayer: NSViewRepresentable {
   }
   func updateNSView(_ nsView: WKWebView, context: Context) {}
   static func dismantleNSView(_ view: WKWebView, coordinator: Coordinator) {
-    coordinator.timeout?.cancel()
-    view.navigationDelegate = nil
-    view.evaluateJavaScript("player?.pauseVideo()", completionHandler: nil)
-    coordinator.save(coordinator.playback.position, false)
-    coordinator.playback.playing = false
-    coordinator.playback.retryVideo = nil
-    coordinator.playback.seekVideo = nil
-    coordinator.playback.videoReady = false
-    view.configuration.userContentController.removeScriptMessageHandler(forName: "playback")
-    view.loadHTMLString("", baseURL: nil)
+    // The layer owns disposal; SwiftUI can detach this view during a layout change.
   }
   @MainActor final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
-    let playback: MediaPlayback
+    unowned let playback: MediaPlayback
     let save: (Double, Bool) -> Void
     weak var view: WKWebView?
     var timeout: Task<Void, Never>?

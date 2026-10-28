@@ -5,8 +5,10 @@ import SillKit
 struct CardRichFields: Equatable, Sendable {
   struct Party: Equatable, Sendable {
     let name: String
+    let login: String
     let url: URL?
     init(_ value: JSONValue) {
+      login = value["login"]?.string ?? value["name"]?.string ?? ""
       name = value["name"]?.string ?? value["login"]?.string ?? ""
       url = value["url"]?.string.flatMap(URL.init(string:))
     }

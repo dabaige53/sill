@@ -25,12 +25,15 @@ import SillKit
 
   private var jobs: [Job] = []
   private var running = false
+  private var applying = 0
   private var generation = 0
   var backend: (any WorkspaceBackend)?
   /// The newest revision any read or write has returned.
   private(set) var knownRevision = 0
 
-  var idle: Bool { !running && jobs.isEmpty }
+  var idle: Bool { !running && jobs.isEmpty && applying == 0 }
+  func beginApplying() { applying += 1 }
+  func endApplying() { applying -= 1 }
   var hasQueuedBackgroundWork: Bool {
     jobs.contains {
       if case .deferred = $0.kind { return true }

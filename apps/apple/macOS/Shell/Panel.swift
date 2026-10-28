@@ -8,7 +8,6 @@ import SwiftUI
     case archive
     /// Tags and note for these cards; the note belongs to the first.
     case editor([String])
-    case capture
     case settings
   }
 
@@ -66,7 +65,6 @@ struct PanelOverlay: View {
     case .settings: SettingsView().padding(AppleMetrics.space16)
     case .archive: PanelSheet(narrow: false) { ArchivePanel() }
     case .editor(let ids): PanelSheet(narrow: true) { EditorPanel(ids: ids) }
-    case .capture: PanelSheet(narrow: true) { CapturePanel() }
     }
   }
 }

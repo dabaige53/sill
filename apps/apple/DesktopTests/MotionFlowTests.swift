@@ -74,6 +74,31 @@ import Testing
     #expect(motion.dimOpacity == 1)
   }
 
+  @Test func refreshRegrabsTheVisibleReboundAndFailureIsImmediate() async throws {
+    let refresh = FeedRefresh()
+    refresh.drawn.value = 30
+    refresh.drag(4)
+    #expect(abs(refresh.distance - 30) < 0.001)
+    refresh.drag(24)
+    #expect(refresh.distance > 30)
+    refresh.release(cancelled: true)
+    refresh.request = { $0(false) }
+    refresh.refresh()
+    try await Task.sleep(for: .milliseconds(30))
+    #expect(refresh.phase == .error)
+    refresh.cancel()
+  }
+
+  @Test func savedReaderProgressRestoresAgainstDocumentHeight() {
+    let view = NSScrollView(frame: NSRect(x: 0, y: 0, width: 400, height: 600))
+    view.documentView = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 2000))
+    let scroll = ReaderScroll()
+    scroll.initialProgress = 0.5
+    scroll.connected(view)
+    #expect(abs(view.contentView.bounds.minY - 700) < 1)
+    scroll.disconnect()
+  }
+
   @Test func buttonRefreshAndRetryKeepCardsInPlace() async throws {
     let refresh = FeedRefresh()
     var calls = 0
@@ -107,9 +132,10 @@ import Testing
     refresh.release()
     #expect(refresh.phase == .idle)
     #expect(calls == 0)
-    refresh.pull(AppleMetrics.gestureRefreshDistance)
+    refresh.pull(300)
     refresh.release()
     #expect(refresh.phase == .loading)
+    #expect(refresh.distance == 0, "content returns immediately while the request is in flight")
     #expect(calls == 1)
     refresh.refresh()
     #expect(calls == 1)
@@ -124,9 +150,10 @@ import Testing
     let refresh = FeedRefresh()
     var calls = 0
     refresh.request = { _ in calls += 1 }
-    refresh.drag(80)
-    #expect(refresh.distance == 52)
-    #expect(refresh.offset == 39)
+    refresh.drag(4)
+    refresh.drag(84)
+    #expect(abs(refresh.distance - 35.8974358974) < 0.001)
+    #expect(refresh.offset == refresh.distance)
     try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest + 0.1))
     #expect(refresh.phase == .pulling)
     #expect(calls == 0)
@@ -134,10 +161,12 @@ import Testing
     refresh.release()
     #expect(refresh.phase == .idle)
     #expect(calls == 0)
-    refresh.drag(100)
+    refresh.drag(4)
+    refresh.drag(104)
     refresh.release(cancelled: true)
     #expect(calls == 0)
-    refresh.drag(80)
+    refresh.drag(4)
+    refresh.drag(304)
     refresh.release()
     refresh.release()
     #expect(calls == 1)
@@ -199,6 +228,32 @@ import Testing
     // Cards still partly under the bar are not at the top, so a pull scrolls instead of refreshing.
     view.contentView.scroll(to: NSPoint(x: 0, y: -60))
     #expect(scroll.offset == 40)
+  }
+
+  @Test func feedRestorationAppliesOnlyTheLatestRequestAfterLayout() async {
+    let view = NSScrollView(frame: NSRect(x: 0, y: 0, width: 400, height: 600))
+    view.automaticallyAdjustsContentInsets = false
+    view.contentInsets = NSEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
+    view.documentView = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 2400))
+    let chrome = Chrome()
+    let scroll = FeedScroll(chrome: chrome)
+    scroll.scrollView = view
+    let probe = ScrollProbe.Probe()
+    probe.scroll = scroll
+    chrome.hide()
+    let latest = Feed.ScrollRequest(id: 2, offset: 640)
+    await withCheckedContinuation { done in
+      probe.restored = { request, offset in
+        #expect(request == latest)
+        #expect(offset == 640)
+        #expect(view.contentView.bounds.minY == 540)
+        #expect(!chrome.tucked)
+        done.resume()
+      }
+      probe.restore(Feed.ScrollRequest(id: 1, offset: 0))
+      probe.restore(latest)
+    }
+    probe.disconnect()
   }
 
   @Test func openCardTucksTheBarsOnlyBelowTheFeedTop() {

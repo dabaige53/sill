@@ -1,10 +1,11 @@
 import SillKit
 import SwiftUI
 
-/// The ⌄ tab menu: collapsed by default, opened under the toggle (180ms in, 120ms out; keyboard instant).
+/// The ⌄ tab menu: collapsed by default, opened under the toggle (180ms in, 100ms out; keyboard instant).
 @MainActor @Observable final class ScopeMenuState {
   private(set) var open = false
   private(set) var shown = false
+  private(set) var closing = false
   var highlighted: Scope?
   /// x of the toggle inside the brand row.
   var anchor: CGFloat = 0
@@ -15,12 +16,17 @@ import SwiftUI
   func present() {
     PerformanceTrace.shared.event(.menuOpened)
     token += 1
+    let current = token
     open = true
+    closing = false
     highlighted = nil
     if Motion.keyboardDriven {
       Motion.instantly { shown = true }
     } else {
-      withAnimation(Motion.menuOpen) { shown = true }
+      Task { @MainActor [weak self] in
+        guard let self, self.open, self.token == current else { return }
+        withAnimation(Motion.menuOpen) { self.shown = true }
+      }
     }
   }
 
@@ -30,6 +36,7 @@ import SwiftUI
     PerformanceTrace.shared.event(.menuClosed)
     token += 1
     let current = token
+    closing = true
     if Motion.keyboardDriven {
       Motion.instantly { shown = false }
       open = false
@@ -51,6 +58,7 @@ import SwiftUI
 }
 
 struct ScopeToggle: View {
+  @Environment(Feed.self) private var feed
   let menu: ScopeMenuState
   @State private var hovered = false
   var body: some View {
@@ -78,6 +86,27 @@ struct ScopeToggle: View {
           .onChange(of: proxy.frame(in: .named(TopBarSpace.name)).minX) { _, x in menu.anchor = x }
       }
     )
+    .onKeyPress(.downArrow) {
+      if !menu.open { menu.present() }
+      menu.move(1, from: feed.scope)
+      return .handled
+    }
+    .onKeyPress(.upArrow) {
+      if !menu.open { menu.present() }
+      menu.move(-1, from: feed.scope)
+      return .handled
+    }
+    .onKeyPress(.return) {
+      guard menu.open else { return .ignored }
+      feed.select(menu.highlighted ?? feed.scope)
+      menu.close()
+      return .handled
+    }
+    .onKeyPress(.escape) {
+      guard menu.open else { return .ignored }
+      menu.close()
+      return .handled
+    }
     .accessibilityIdentifier("scope-toggle")
     .accessibilityLabel(Copy.text("web.home.filterMenu"))
     .accessibilityValue(menu.open ? Copy.text("web.templates.afd4b783536b") : "")
@@ -116,7 +145,11 @@ struct ScopeMenu: View {
           .shadow(.floating)
       )
       .opacity(menu.shown ? 1 : 0)
-      .scaleEffect(menu.shown ? 1 : AppleMetrics.motionMenuScale, anchor: .topLeading)
+      .scaleEffect(
+        menu.shown
+          ? 1 : menu.closing ? AppleMetrics.motionMenuExitScale : AppleMetrics.motionMenuScale,
+        anchor: .topLeading
+      )
       .allowsHitTesting(menu.shown)
       .accessibilityElement(children: .contain)
       .accessibilityLabel(Copy.text("web.home.tabs"))
@@ -148,6 +181,7 @@ private struct ScopeMenuRow: View {
       .background(
         RoundedRectangle(cornerRadius: AppleMetrics.scopeMenuRowRadius)
           .fill(checked || hovered || highlighted ? AppleColors.faint : .clear)
+          .padding(.vertical, AppleMetrics.lineWidth)
       )
       .contentShape(Rectangle())
     }

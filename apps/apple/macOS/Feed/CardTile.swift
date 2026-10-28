@@ -97,6 +97,7 @@ struct CardFace: View {
     let selection: Color =
       state.selected ? AppleColors.accent : selecting ? AppleColors.lineHover : .clear
     CardBody(card: card, state: state, context: context)
+      .modifier(ContentFade(value: context.columnWidth))
       .environment(\.cardFaded, faded)
       .environment(\.contentAppearance, context.appearance)
       .environment(\.cardPaddingScale, context.paddingScale)
@@ -245,7 +246,9 @@ struct CardCarry {
   private static var monitor: Any?
   static func install() {
     guard monitor == nil else { return }
-    monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown]) { event in
+    monitor = NSEvent.addLocalMonitorForEvents(matching: [
+      .keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown, .mouseMoved, .scrollWheel,
+    ]) { event in
       let key = event.type == .keyDown
       MainActor.assumeIsolated { focusVisible = key }
       return event

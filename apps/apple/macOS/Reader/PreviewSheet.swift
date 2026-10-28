@@ -20,24 +20,33 @@ struct PreviewSheet: View {
     [.media, .suggestion, .reminder].contains(card.kind) || (card.kind == .note && card.shortDetail)
   }
 
-  private var expandable: Bool {
-    card.kind == .media
-      || (!card.body.isEmpty
-        && [.article, .note, .digest, .mail].contains(card.kind)
-        && contentHeight
-          > min(size.height * AppleMetrics.previewHeightRatio, AppleMetrics.previewMaxHeight))
+  private var expandable: Bool { Reader.canExpand(card) }
+  private var expandedWorkspace: Bool { card.kind == .media || card.kind == .article }
+  private var bottomRoom: CGFloat {
+    layer.full
+      ? (expandedWorkspace ? AppleMetrics.space24 : AppleMetrics.space160)
+      : AppleMetrics.railRow + AppleMetrics.space40
   }
 
   var body: some View {
-    let width = min(
-      narrowDetail ? AppleMetrics.compactReaderWidth : AppleMetrics.previewWidth,
-      size.width - AppleMetrics.previewMargin)
+    let width =
+      layer.full
+      ? size.width
+      : min(
+        card.kind == .media
+          ? AppleMetrics.mediaPreviewWidth
+          : narrowDetail ? AppleMetrics.compactReaderWidth : AppleMetrics.previewWidth,
+        size.width - AppleMetrics.previewMargin)
     let maxHeight = min(
       size.height * AppleMetrics.previewHeightRatio, AppleMetrics.previewMaxHeight)
+    // A card may open directly in full mode. Its first preview measurement must not
+    // collapse the already visible surface to one point or hide it for a frame.
+    let height =
+      layer.full ? size.height : (contentHeight > 0 ? min(maxHeight, contentHeight) : maxHeight)
     let target = CGRect(
       x: (size.width - width) / 2,
-      y: (size.height - min(maxHeight, contentHeight)) / 2,
-      width: width, height: min(maxHeight, contentHeight))
+      y: (size.height - height) / 2,
+      width: width, height: height)
     let tools = ReaderTools.actions(
       card: card, state: state, hidden: workspace.preferences.hiddenActions)
     let barRoom =
@@ -45,7 +54,7 @@ struct PreviewSheet: View {
       ? AppleMetrics.previewPaddingX
       : AppleMetrics.railRow + (narrowDetail ? AppleMetrics.space24 : AppleMetrics.space40)
     VStack(spacing: 0) {
-      if let below {
+      if let below, !layer.full {
         Button {
           reader.close()
         } label: {
@@ -66,79 +75,105 @@ struct PreviewSheet: View {
         .padding(.bottom, -AppleMetrics.space46)
         .accessibilityLabel(Copy.text("web.peekBack") + below.title)
       }
-      ScrollView(.vertical) {
-        ReaderContent(
-          card: card, state: state, discRoom: discRoom, mediaHeight: maxHeight,
-          mediaBottomRoom: barRoom,
-          mediaOffset: scroll.motion.scrollOffset,
-          returnToPlayer: { scroll.scrollView?.documentView?.scroll(.zero) }
-        )
-        .modifier(DetailReveal())
-        .padding(.top, AppleMetrics.previewPaddingTop)
-        .padding(
-          .horizontal,
-          card.kind == .article ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX
-        )
-        .padding(.bottom, barRoom)
-        .frame(maxWidth: workspace.preferences.readerWidth.width)
-        .frame(maxWidth: .infinity)
-        .background(
-          GeometryReader { proxy in
-            Color.clear.onAppear { contentHeight = proxy.size.height }
-              .onChange(of: proxy.size.height) { _, value in contentHeight = value }
+      ReaderPage(
+        card: card, state: state, layer: layer, scroll: scroll,
+        content:
+          ScrollView(.vertical) {
+            ReaderContent(
+              card: card, state: state, type: layer.full ? .page : .preview,
+              discRoom: layer.full ? 0 : discRoom,
+              mediaWidth: layer.full ? size.width - 2 * AppleMetrics.readerPageGutter : nil,
+              mediaHeight: layer.full
+                ? max(
+                  AppleMetrics.mediaPlayerMinHeight,
+                  size.height - AppleMetrics.space64 - AppleMetrics.space40)
+                : maxHeight,
+              mediaBottomRoom: barRoom,
+              mediaOffset: scroll.motion.scrollOffset,
+              returnToPlayer: { scroll.scrollView?.documentView?.scroll(.zero) }
+            )
+            .modifier(DetailReveal())
+            .padding(
+              .top,
+              layer.full
+                ? (expandedWorkspace ? AppleMetrics.space16 : 0) : AppleMetrics.previewPaddingTop
+            )
+            .padding(
+              .horizontal,
+              layer.full
+                ? 0
+                : (card.kind == .article
+                  ? AppleMetrics.articleGutter : AppleMetrics.previewPaddingX)
+            )
+            .padding(.bottom, layer.full ? bottomRoom : barRoom)
+            .frame(maxWidth: workspace.preferences.readerWidth.width)
+            .frame(maxWidth: .infinity)
+            .onGeometryChange(for: CGFloat.self) {
+              $0.size.height
+            } action: { value in
+              if !layer.full { contentHeight = value }
+            }
+            .background(ReaderScrollProbe(scroll: scroll))
+            .modifier(ReaderPullOffset(motion: scroll.motion))
           }
-        )
-        .background(ReaderScrollProbe(scroll: scroll))
-        .modifier(ReaderPullOffset(motion: scroll.motion))
-      }
-      .scrollIndicators(.hidden)
-      .coordinateSpace(name: "media-scroll")
-      // The text decides the height (up to `maxHeight`); everything else lies over it, so a
-      // short card gets a short sheet.
-      .frame(height: max(1, min(maxHeight, contentHeight)))
-      .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
-      .frame(width: width)
+          .scrollIndicators(.hidden)
+          .coordinateSpace(name: "media-scroll")
+          .coordinateSpace(name: "article-reading")
+          .onPreferenceChange(FirstRowHeight.self) { firstRow = $0 }
+      )
+      .frame(width: width, height: height)
       .background {
         AppleColors.card.overlay(
           card.isPodcast ? Cover.tone(card.image).opacity(0.15) : Color.clear)
       }
-      .overlay(alignment: .top) { TopFade(motion: scroll.motion) }
+      .overlay(alignment: .top) { if !layer.full { TopFade(motion: scroll.motion) } }
       .overlay(alignment: .bottom) {
-        if !tools.isEmpty { BottomFade(motion: scroll.motion) }
+        if !layer.full, !tools.isEmpty { BottomFade(motion: scroll.motion) }
       }
       .overlay(alignment: .top) {
-        ZStack(alignment: .top) {
+        if !layer.full {
           HeadDiscs(
             motion: scroll.motion,
             firstRow: card.kind == .article && card.image != nil ? AppleMetrics.space44 : firstRow,
             expand: expandable ? { reader.open(card.id, full: true) } : nil,
-            close: { reader.close() })
+            close: { reader.close() }
+          )
+          .modifier(DetailReveal(tools: true))
         }
-        .modifier(DetailReveal(tools: true))
       }
       .overlay(alignment: .bottom) {
-        ZStack(alignment: .bottom) {
-          if !tools.isEmpty {
-            ReaderToolbar(card: card, state: state, actions: tools)
-              .modifier(ReaderToolsTuck(motion: scroll.motion))
-              .padding(.bottom, AppleMetrics.previewBarBottom)
-              .modifier(DetailReveal(tools: true))
+        if !layer.full {
+          ZStack(alignment: .bottom) {
+            if !tools.isEmpty {
+              ReaderToolbar(card: card, state: state, actions: tools)
+                .modifier(ReaderToolsTuck(motion: scroll.motion))
+                .padding(.bottom, AppleMetrics.previewBarBottom)
+                .modifier(DetailReveal(tools: true))
+            }
+            // Web `.push-ring`: 24 above the bottom edge, where the toolbar was. The check returns
+            // with the surface and its spring instead of fading out ahead of it.
+            FinishRing(motion: scroll.motion)
+              .padding(.bottom, AppleMetrics.space24)
           }
-          // Web `.push-ring`: 24 above the bottom edge, where the toolbar was. The check returns
-          // with the surface and its spring instead of fading out ahead of it.
-          FinishRing(motion: scroll.motion)
-            .padding(.bottom, AppleMetrics.space24)
         }
       }
       // Close, fullscreen and the toolbar belong to the surface that grows out of the card.
-      .modifier(CardGeometryDestination(id: card.id, target: target, ready: contentHeight > 0))
+      .modifier(
+        CardGeometryDestination(
+          id: card.id, target: target, ready: layer.full || contentHeight > 0)
+      )
 
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .modifier(ReaderSurfaceOffset(motion: scroll.motion))
     .onAppear { configure() }
+    .onChange(of: layer.full) {
+      scroll.cancelGesture()
+      scroll.interruptDwell()
+      scroll.trailing = bottomRoom
+    }
     .accessibilityElement(children: .contain)
-    .accessibilityIdentifier("reader-preview")
+    .accessibilityIdentifier(layer.full ? "reader-full" : "reader-preview")
     .onAppear { PerformanceTrace.shared.event(.viewAppeared) }
     .accessibilityLabel(card.title)
     .accessibilityAddTraits(.isModal)
@@ -149,7 +184,10 @@ struct PreviewSheet: View {
 
   private func configure() {
     scroll.initialOffset = reader.positions[layer.id] ?? 0
-    scroll.trailing = AppleMetrics.railRow + AppleMetrics.space40
+    scroll.initialProgress =
+      layer.full && reader.positions[layer.id] == nil && state.progress < 0.98
+      ? state.progress : nil
+    scroll.trailing = bottomRoom
     scroll.finishEnabled =
       card.kind != .media && card.kind.readable && !card.body.isEmpty
       && workspace.preferences.collapseOnFinish
@@ -177,10 +215,7 @@ struct HeadDiscs: View {
   var expand: (() -> Void)?
   let close: () -> Void
   var body: some View {
-    let center =
-      motion.scrolled
-      ? AppleMetrics.previewHeadHeight / 2
-      : AppleMetrics.previewPaddingTop + max(firstRow, AppleMetrics.cardHeadHeight) / 2
+    let center = AppleMetrics.previewPaddingTop + max(firstRow, AppleMetrics.cardHeadHeight) / 2
     HStack(spacing: AppleMetrics.space8) {
       Spacer(minLength: 0)
       DesktopGlassGroup {
@@ -195,7 +230,6 @@ struct HeadDiscs: View {
     .padding(.horizontal, AppleMetrics.space16)
     .padding(.top, center - AppleMetrics.previewDisc / 2)
     .modifier(ReaderToolsTuck(motion: motion, top: true))
-    .animation(Motion.state, value: motion.scrolled)
   }
 }
 

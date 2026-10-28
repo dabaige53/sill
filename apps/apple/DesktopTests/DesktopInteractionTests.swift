@@ -5,6 +5,17 @@ import Testing
 @testable import SillKit
 
 @MainActor struct DesktopInteractionTests {
+  @Test func clickingFocusedSearchReopensDismissedSuggestionsWithoutRefocusingText() {
+    let shell = Shell()
+    shell.focusSearch()
+    shell.searchFocused = true
+    shell.suggestionsDismissed = true
+    let request = shell.searchRequest
+    shell.focusSearch()
+    #expect(!shell.suggestionsDismissed)
+    #expect(shell.searchRequest == request)
+  }
+
   @Test func ownershipAndSearchAreMutuallyExclusive() {
     let workspace = Workspace(launch: LaunchOptions(dataDirectory: nil), autoload: false)
     let shell = Shell()
@@ -35,7 +46,9 @@ import Testing
     let refresh = FeedRefresh()
     var calls = 0
     refresh.request = { _ in calls += 1 }
-    #expect(refresh.receive(delta: AppleMetrics.gestureRefreshDistance, input: .began, atTop: true))
+    #expect(refresh.receive(delta: 300, input: .began, atTop: true))
+    #expect(refresh.distance == 0, "the first edge event establishes the input origin")
+    #expect(refresh.receive(delta: 300, input: .changed, atTop: true))
     try await Task.sleep(for: .seconds(AppleMetrics.gestureWheelRest + 0.05))
     #expect(refresh.phase == .pulling)
     #expect(calls == 0)

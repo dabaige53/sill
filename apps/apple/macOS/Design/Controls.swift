@@ -19,7 +19,7 @@ private struct IconPressBody: View {
   @Environment(\.isEnabled) private var enabled
   @State private var hovered = false
   var body: some View {
-    let pressed = configuration.isPressed && enabled
+    let pressed = configuration.isPressed && enabled && !Motion.keyboardDriven
     configuration.label
       .background {
         Circle().fill(highlight && enabled && (hovered || pressed) ? AppleColors.surface : .clear)

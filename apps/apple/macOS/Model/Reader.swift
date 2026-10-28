@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 import SillKit
@@ -49,6 +50,12 @@ import SwiftUI
   /// Cards whose read color waits until the overlay has closed.
   @ObservationIgnored private var held: Set<String> = []
   @ObservationIgnored var positions: [UUID: CGFloat] = [:]
+  private final class FocusOrigin {
+    weak var responder: NSResponder?
+    init(_ responder: NSResponder?) { self.responder = responder }
+  }
+  @ObservationIgnored private var focusOrigins: [UUID: FocusOrigin] = [:]
+
   /// Where focus returns after the overlay closes.
   @ObservationIgnored var origin: String?
   @ObservationIgnored var onClosed: (String?) -> Void = { _ in }
@@ -60,6 +67,13 @@ import SwiftUI
   var presented: Bool { !layers.isEmpty }
   var top: Layer? { layers.last }
 
+  /// Matches the Web entrance rule: a short body is still eligible for full reading.
+  static func canExpand(_ card: CardModel) -> Bool {
+    (card.kind == .media && !card.isPodcast)
+      || ([.article, .note, .digest, .mail].contains(card.kind)
+        && card.body.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+  }
+
   // MARK: Opening
 
   func open(_ id: String, full: Bool = false) {
@@ -67,6 +81,7 @@ import SwiftUI
     let trace = PerformanceTrace.shared.begin(.openCard)
     defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
+    let full = full && !card.isPodcast
     token += 1
     // A click on another card while the previous one is still flying home starts over at once.
     let interrupted = returning
@@ -119,9 +134,11 @@ import SwiftUI
       return
     }
     resizeSource = nil
+    if let top { focusOrigins[top.id] = FocusOrigin(NSApp?.keyWindow?.firstResponder) }
     // Opening a related card: it stacks; opening one already below returns to it.
     if let index = layers.lastIndex(where: { $0.card == id }) {
       animate(Motion.close) { layers.removeSubrange((index + 1)...) }
+      restoreLayerFocus()
     } else {
       animate(Motion.open) { layers.append(Layer(card: id, full: full)) }
     }
@@ -139,6 +156,7 @@ import SwiftUI
     layers = []
     shown = false
     positions = [:]
+    focusOrigins = [:]
     surfaces = [:]
   }
 
@@ -151,6 +169,7 @@ import SwiftUI
     if layers.count > 1 {
       token += 1
       animate(Motion.close) { _ = layers.removeLast() }
+      restoreLayerFocus()
     } else {
       closeAll()
     }
@@ -249,7 +268,7 @@ import SwiftUI
   func geometryReady(_ id: String) {
     if top?.card == id, resizeSource != nil, !resizeShown {
       let current = token
-      withAnimation(Motion.expanded, completionCriteria: .removed) {
+      withAnimation(Motion.card, completionCriteria: .removed) {
         resizeShown = true
       } completion: { [weak self] in
         guard let self, self.token == current else { return }
@@ -294,6 +313,17 @@ import SwiftUI
     }
   }
 
+  private func restoreLayerFocus() {
+    guard let top else { return }
+    let id = top.id
+    DispatchQueue.main.async { [weak self] in
+      guard let self, self.top?.id == id, let responder = self.focusOrigins[id]?.responder else {
+        return
+      }
+      NSApp?.keyWindow?.makeFirstResponder(responder)
+    }
+  }
+
   private func finish() {
     guard sessionActive else { return }
     let returning = origin
@@ -305,6 +335,7 @@ import SwiftUI
     contentShown = false
     toolsShown = false
     positions = [:]
+    focusOrigins = [:]
     surfaces = [:]
     resizeSource = nil
     origin = nil

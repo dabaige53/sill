@@ -30,9 +30,9 @@ struct ReaderAction: Identifiable, Equatable {
         kind: .later, key: "later", icon: "glasses",
         label: Copy.text(state.later ? "web.preview.removeLater" : "web.later"), active: state.later
       ),
-    ].filter { !hidden.contains($0.key) }
+    ]
     let own = Array(
-      ownActions(card: card, state: state).filter { !hidden.contains($0.key) }.prefix(3))
+      ownActions(card: card, state: state).prefix(3))
     return shared + own
   }
 

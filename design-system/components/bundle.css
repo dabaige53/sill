@@ -90,13 +90,26 @@ body {
 	min-height: 100dvh;
 	background: var(--canvas);
 }
-#workspace-background.is-drawer-background {
-	/* Vaul releases its inline overflow when closing; keep the frozen viewport clipped. */
-	overflow: clip;
+/* app-surfaces.ts freezes the desk under a phone page the same way. */
+#workspace-background:is(.is-drawer-background, .is-page-frozen) {
 	position: fixed;
 	inset: 0;
 	height: 100dvh;
 	width: 100%;
+}
+#workspace-background.is-page-frozen {
+	overflow: clip;
+}
+/* Under a drawer only the cards are clipped to the screen, not the whole page: iOS drew a clipped
+   page differently, and the card shadows and the dock's glass changed in one frame as the drawer
+   finished closing. phone-drawer.tsx measures the visible part. */
+#workspace-background.is-drawer-background > main {
+	--phone-drawer-roundness: inherit;
+	clip-path: inset(
+		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round 0 0
+			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
+			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
+	);
 }
 button,
 input,
@@ -946,7 +959,8 @@ body.is-dragging #toast {
 	.ai-dock,
 	#selection-bar,
 	#search-selection-bar,
-	dialog:not(.lightbox) > .float-bar {
+	dialog:not(.lightbox) > .float-bar,
+	.phone-drawer > .float-bar {
 		background: var(--glass);
 		-webkit-backdrop-filter: var(--glass-filter);
 		backdrop-filter: var(--glass-filter);
@@ -1448,8 +1462,13 @@ body.is-dragging #toast {
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(:is(:is(#modal, .phone-layer), #search-background)[open].page:not(:has(.settings-layout))) .home-top {
+/* status-bar.ts marks an open page; WebKit missed :has() on the dialog and left the row over search.
+   Settings restores the row in its own, more specific rule. */
+body.has-open-page .home-top {
 	visibility: hidden;
+}
+body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.is-tucked) {
+	visibility: visible;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
 .home-brand {
@@ -3073,7 +3092,8 @@ dialog::backdrop {
 .preview-sheet > .sheet-edge.is-bottom {
 	display: none;
 }
-:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
+:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom,
+:is(#modal, .phone-layer).preview > .phone-drawer:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
 	display: block;
 	bottom: 0;
 	height: calc(var(--rail-row) + 18px + 44px);
@@ -3482,6 +3502,8 @@ button.detail-row:active {
 	align-items: center;
 	justify-content: space-between;
 	padding: var(--space-16) var(--space-20);
+	/* A home-screen app draws the photo page under the status bar; a Safari tab reports 0. */
+	padding-top: calc(var(--space-16) + env(safe-area-inset-top));
 	font-size: var(--text-meta);
 	color: var(--ink);
 }
@@ -3654,9 +3676,10 @@ button.detail-row:active {
 	border-radius: var(--pill-radius);
 }
 /* Bars tuck away completely while reading on; a pause or a turn back brings them back. */
-/* The detail capsule sinks 20px and fades inside the detail, as the desk's AI bar does. */
-dialog > .float-bar.is-tucked,
-dialog > .float-bar.is-hidden {
+/* The detail capsule sinks 20px and fades inside the detail, as the desk's AI bar does.
+   On phone the capsule sits in the Vaul drawer, one level below the dialog. */
+:is(dialog, .phone-drawer) > .float-bar.is-tucked,
+:is(dialog, .phone-drawer) > .float-bar.is-hidden {
 	transform: var(--motion-toolbar-transform, translateY(20px));
 	opacity: 0;
 	visibility: hidden;
@@ -4263,7 +4286,8 @@ kbd {
 }
 
 /* Search owns its page; the home feed keeps its own state underneath. */
-body:has(dialog.search[open]) #feed-grid {
+/* status-bar.ts marks the open search; WebKit missed :has() on the dialog and showed the desk. */
+body.has-open-search #feed-grid {
 	visibility: hidden;
 }
 :is(:is(#modal, .phone-layer), #search-background).search {
@@ -4717,13 +4741,12 @@ body:has(dialog.search[open]) #feed-grid {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+/* Matches .search-empty, so the message stays put when the keyboard closes and results replace suggestions. */
 .search-suggest-empty {
-	display: flex;
-	align-items: center;
-	height: var(--space-48);
 	margin: 0;
-	padding: 0 var(--space-8);
-	font-size: var(--text-control);
+	padding: var(--space-24) 0;
+	text-align: center;
+	font-size: var(--text-body);
 	color: var(--muted);
 }
 .search-cancel {

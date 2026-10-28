@@ -7,79 +7,24 @@ struct MediaDetail: View {
   var full = false
   var availableWidth: CGFloat?
   var availableHeight: CGFloat?
-  var scrollOffset: CGFloat = 0
-  var bottomRoom: CGFloat = 0
-  var returnToPlayer: () -> Void = {}
-  @State private var primaryHeight: CGFloat = 0
   @Environment(Workspace.self) private var workspace
-  @State private var playback = MediaPlayback()
+  @Environment(MediaPlayback.self) private var playback
   @State private var tab = "summary"
   @State private var follow = true
   private var available: Bool {
-    card.isPodcast ? card.audioURL != nil : OfficialVideoPlayer.videoID(card.url) != nil
+    OfficialVideoPlayer.videoID(card.url) != nil
   }
   private var active: Int? { card.transcript.lastIndex { $0.start <= playback.position } }
-  private var chapterLabel: String {
-    guard let index = card.chapters.lastIndex(where: { $0.start <= playback.position }) else {
-      return Copy.text("web.media.emptyChapters")
-    }
-    return Copy.text("web.media.chapterNumber").replacingOccurrences(
-      of: "{number}", with: String(index + 1)) + " · " + card.chapters[index].title
-  }
-  private var compactPosition: String {
-    let chapter =
-      card.chapters.lastIndex(where: { $0.start <= playback.position }).map {
-        Copy.text("web.media.chapterNumber").replacingOccurrences(
-          of: "{number}", with: String($0 + 1)) + " · "
-      } ?? ""
-    return chapter + Format.duration(Int(playback.position)) + " / "
-      + (playback.duration > 0
-        ? Format.duration(Int(playback.duration)) : Copy.text("web.media.unknownDuration"))
-  }
   private var primary: some View {
     VStack(
       alignment: .leading, spacing: AppleMetrics.space16 * workspace.preferences.readerSpacing.scale
     ) {
-      if !card.isPodcast {
-        source.frame(minHeight: AppleMetrics.space36, alignment: .leading)
-          .padding(.bottom, -AppleMetrics.space10)
-      }
-      if card.isPodcast {
-        CoverImage(name: card.image).frame(
-          width: full ? AppleMetrics.playerArtSize : AppleMetrics.playerArtSize * 0.8,
-          height: full ? AppleMetrics.playerArtSize : AppleMetrics.playerArtSize * 0.8
-        )
-        .background(AppleColors.surface).clipShape(
-          RoundedRectangle(cornerRadius: AppleMetrics.coverRadius)
-        )
-        .frame(maxWidth: .infinity)
-      }
-      Text(card.title).textStyle(
-        card.isPodcast
-          ? (full ? AppleMetrics.previewTitle : AppleMetrics.font22) : AppleMetrics.previewTitle,
-        .semibold
-      )
-      .multilineTextAlignment(card.isPodcast ? .center : .leading)
-      .frame(maxWidth: .infinity, alignment: card.isPodcast ? .center : .leading)
-      if card.isPodcast {
-        source.frame(maxWidth: .infinity)
-      } else {
-        ReaderTags(tags: state.tags(of: card))
-      }
-      if card.isPodcast {
-        HStack(spacing: AppleMetrics.space6) {
-          Icon("list", size: AppleMetrics.font14)
-          Text(
-            chapterLabel
-          )
-        }.foregroundStyle(AppleColors.secondary)
-          .font(.sans(AppleMetrics.font12))
-          .padding(.horizontal, AppleMetrics.space12).padding(.vertical, AppleMetrics.space6)
-          .background(Capsule().fill(AppleColors.surface)).frame(maxWidth: .infinity)
-      }
-      if card.isPodcast {
-        audioControls.disabled(!available)
-      } else if !card.isPodcast, let id = OfficialVideoPlayer.videoID(card.url) {
+      source.frame(minHeight: AppleMetrics.space36, alignment: .leading)
+        .padding(.bottom, -AppleMetrics.space10)
+      Text(card.title).textStyle(AppleMetrics.previewTitle, .semibold)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      ReaderTags(tags: state.tags(of: card))
+      if let id = OfficialVideoPlayer.videoID(card.url) {
         OfficialVideoPlayer(
           videoID: id, initialPosition: state.playbackPosition, playback: playback, save: save
         )
@@ -105,26 +50,20 @@ struct MediaDetail: View {
       if playback.failed {
         VStack(alignment: .leading, spacing: AppleMetrics.space8) {
           Text(
-            Copy.text(card.isPodcast ? "web.media.playbackFailed" : "web.media.playbackUnavailable")
+            Copy.text("web.media.playbackUnavailable")
           ).foregroundStyle(AppleColors.secondary)
           Button(Copy.text("web.retry")) {
-            if card.isPodcast { playback.toggle() } else { playback.retryVideo?() }
+            playback.retryVideo?()
           }.buttonStyle(TextLinkStyle(padded: false))
         }
       }
-      if full, !card.isPodcast {
+      if full {
         MediaChapters(
           chapters: card.chapters, duration: playback.duration, position: playback.position,
           seek: playback.seek
         ).disabled(!available)
       }
-    }.padding(.horizontal, card.isPodcast && full ? AppleMetrics.space24 : 0)
-      .padding(.top, card.isPodcast ? AppleMetrics.space32 : 0)
-      .onGeometryChange(for: CGFloat.self) {
-        $0.size.height
-      } action: {
-        primaryHeight = $0
-      }
+    }
   }
 
   private var source: some View {
@@ -132,7 +71,7 @@ struct MediaDetail: View {
       Text(
         [
           card.publicationName, card.publication.date ?? "",
-          card.isPodcast ? "" : card.duration.map(Format.duration) ?? "",
+          card.duration.map(Format.duration) ?? "",
         ].filter { !$0.isEmpty }.joined(
           separator: " · "))
     }.firstRow()
@@ -157,7 +96,7 @@ struct MediaDetail: View {
     HStack(spacing: AppleMetrics.space16) {
       tabButton("transcript", "web.media.transcript")
       tabButton("chapters", "web.media.chapters")
-      tabButton("summary", card.isPodcast ? "web.media.notes" : "web.media.summary")
+      tabButton("summary", "web.media.summary")
       Spacer(minLength: 0)
       if tab == "transcript" {
         Button {
@@ -233,7 +172,7 @@ struct MediaDetail: View {
           }.frame(maxHeight: AppleMetrics.previewMaxHeight / 2)
             .background(TranscriptScrollIntent { follow = false })
             .onChange(of: active) { _, index in
-              if follow, let index { proxy.scrollTo(index, anchor: .center) }
+              if follow, playback.playing, let index { proxy.scrollTo(index) }
             }
         }
       }
@@ -286,10 +225,9 @@ struct MediaDetail: View {
           .frame(
             width: max(
               0, (availableWidth ?? AppleMetrics.readerColumnsBreakpoint) - AppleMetrics.space30)
-              * (card.isPodcast ? 0.5 : 1.6 / 2.6)
+              * (1.6 / 2.6)
           )
           .frame(height: availableHeight)
-          .background(card.isPodcast ? AppleColors.surface : Color.clear)
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
         ScrollView { secondary }
           .frame(maxWidth: .infinity)
@@ -297,33 +235,6 @@ struct MediaDetail: View {
       } else if full {
         primary.frame(maxWidth: .infinity)
         secondary.frame(maxWidth: .infinity, alignment: .topLeading)
-      } else if card.isPodcast {
-        // The pinned section owns space above the transcript. Its hidden player space overlaps
-        // only the full player's last rows, then replaces them when the section reaches the top.
-        LazyVStack(
-          alignment: .leading, spacing: AppleMetrics.space16, pinnedViews: [.sectionHeaders]
-        ) {
-          primary.frame(maxWidth: .infinity)
-            .opacity(compact ? 0 : 1).allowsHitTesting(!compact).accessibilityHidden(compact)
-            .padding(.bottom, -stickyPlayerHeight - AppleMetrics.space16)
-          Section {
-            secondary.frame(
-              maxWidth: .infinity,
-              minHeight: max(
-                0,
-                (availableHeight ?? 792) - stickyPlayerHeight
-                  - AppleMetrics.space44 - AppleMetrics.space32 - bottomRoom),
-              alignment: .topLeading)
-          } header: {
-            VStack(spacing: AppleMetrics.space16) {
-              compactControls
-                .padding(.top, AppleMetrics.space64)
-                .opacity(compact ? 1 : 0).allowsHitTesting(compact).accessibilityHidden(!compact)
-              tabHeader
-            }
-            .background(compact ? AppleColors.card : Color.clear)
-          }
-        }
       } else {
         primary.frame(maxWidth: .infinity)
         secondary.frame(maxWidth: .infinity, alignment: .topLeading)
@@ -331,106 +242,11 @@ struct MediaDetail: View {
     }
     .font(.sans(AppleMetrics.font15)).foregroundStyle(AppleColors.primary)
     .onAppear {
-      if card.isPodcast || full { tab = "transcript" }
-      playback.position = state.playbackPosition
-      playback.duration = Double(card.duration ?? 0)
-      if card.isPodcast, let url = card.audioURL {
-        playback.start(url: url, position: state.playbackPosition, save: save)
+      if full && !card.transcript.isEmpty { tab = "transcript" }
+      if playback.videoView == nil {
+        playback.position = state.playbackPosition
+        playback.duration = Double(card.duration ?? 0)
       }
-    }
-    .onDisappear { playback.stop() }
-  }
-  private var stickyPlayerHeight: CGFloat {
-    AppleMetrics.space64 + AppleMetrics.space44 + AppleMetrics.space24
-      + AppleMetrics.space4 + AppleMetrics.space3
-  }
-  private var compact: Bool {
-    primaryHeight > 0 && scrollOffset > 0
-      && scrollOffset >= primaryHeight + AppleMetrics.previewPaddingTop - stickyPlayerHeight - 1
-  }
-  private var compactControls: some View {
-    VStack(spacing: AppleMetrics.space4) {
-      HStack(spacing: AppleMetrics.space12) {
-        CoverImage(name: card.image).frame(
-          width: AppleMetrics.space44, height: AppleMetrics.space44
-        )
-        .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.space8))
-        Button(action: returnToPlayer) {
-          VStack(alignment: .leading, spacing: AppleMetrics.space4) {
-            Text(card.title).lineLimit(1)
-            Text(compactPosition).font(.number(AppleMetrics.font12)).foregroundStyle(
-              AppleColors.secondary
-            ).lineLimit(1)
-          }.frame(maxWidth: .infinity, alignment: .leading)
-        }
-        Button {
-          playback.seek(playback.position - 15)
-        } label: {
-          Icon("rewind15")
-        }.disabled(!available).frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
-          .accessibilityLabel(Copy.text("web.preview.podcast.rewind15"))
-        Button {
-          playback.toggle()
-        } label: {
-          Icon(playback.playing ? "pause" : "play")
-            .frame(
-              width: AppleMetrics.space40,
-              height: AppleMetrics.space40
-            )
-            .foregroundStyle(AppleColors.fixedWhite).background(Circle().fill(AppleColors.accent))
-        }.disabled(!available).accessibilityLabel(
-          Copy.text(playback.playing ? "web.media.pause" : "web.media.play"))
-      }.padding(AppleMetrics.space12)
-      PlaybackTrack(position: playback.position, duration: playback.duration)
-        .frame(height: AppleMetrics.space3)
-    }.buttonStyle(.plain).background(AppleColors.card)
-      .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.space14))
-  }
-  private var audioControls: some View {
-    VStack(spacing: AppleMetrics.space12) {
-      PlaybackScrubber(
-        position: playback.position, duration: playback.duration, seek: playback.seek
-      )
-      .disabled(playback.duration <= 0)
-      HStack {
-        Text(Format.duration(Int(playback.position)))
-        Spacer()
-        Text(
-          playback.duration > 0
-            ? "−" + Format.duration(Int(max(0, playback.duration - playback.position)))
-            : Copy.text("web.media.unknownDuration"))
-      }
-      .font(.number(AppleMetrics.font13))
-      HStack(spacing: AppleMetrics.space12) {
-        Button("\(playback.rate.formatted(.number.precision(.fractionLength(1...2))))×") {
-          playback.changeRate()
-        }.accessibilityLabel(
-          Copy.text("web.media.rate")
-        ).frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
-        Button {
-          playback.seek(playback.position - 15)
-        } label: {
-          Icon("rewind15")
-        }.frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
-          .accessibilityLabel(Copy.text("web.preview.podcast.rewind15"))
-        Button {
-          playback.toggle()
-        } label: {
-          Icon(playback.playing ? "pause" : "play")
-            .frame(
-              width: full ? AppleMetrics.space72 : AppleMetrics.space60,
-              height: full ? AppleMetrics.space72 : AppleMetrics.space60
-            )
-            .foregroundStyle(AppleColors.fixedWhite).background(Circle().fill(AppleColors.accent))
-        }.accessibilityLabel(Copy.text(playback.playing ? "web.media.pause" : "web.media.play"))
-        Button {
-          playback.seek(playback.position + 30)
-        } label: {
-          Icon("forward30")
-        }.frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
-          .accessibilityLabel(Copy.text("web.preview.podcast.forward30"))
-        Color.clear.frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
-      }.buttonStyle(.plain).frame(maxWidth: .infinity)
     }
   }
   private func save(_ position: Double, _ ended: Bool) {

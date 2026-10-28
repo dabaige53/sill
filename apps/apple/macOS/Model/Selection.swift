@@ -6,7 +6,7 @@ import Observation
   private(set) var active = false
   /// Shown in the selection bar.
   private(set) var count = 0
-  @ObservationIgnored private(set) var ids: [String] = []
+  private(set) var ids: [String] = []
   /// Where a shift-click range starts (Web `selectAnchor`).
   @ObservationIgnored private var anchor: String?
   @ObservationIgnored private unowned let workspace: Workspace
@@ -14,6 +14,9 @@ import Observation
   init(workspace: Workspace) { self.workspace = workspace }
 
   func contains(_ id: String) -> Bool { ids.contains(id) }
+
+  var allBookmarked: Bool { !ids.isEmpty && ids.allSatisfy { workspace.state($0).bookmarked } }
+  var writing: Bool { ids.contains { workspace.state($0).isWriting } }
 
   /// Web `select`: shift extends from the anchor over the cards in feed order; `add` only adds;
   /// otherwise the card toggles. The card becomes the new anchor.

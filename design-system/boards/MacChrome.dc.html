@@ -29,16 +29,16 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke
 .win{width:1100px;border-radius:12px;background:#111113;color:#f5f5f7;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 30px 60px -20px rgba(0,0,0,.5);position:relative;overflow:hidden}
 .win.light{background:var(--canvas);color:var(--ink)}
 .lights{position:absolute;left:8px;top:8px;display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
-.tb{height:64px;margin-top:18px;display:flex;align-items:center;gap:8px;padding:0 12px}
+.tb{height:64px;margin-top:18px;display:flex;align-items:center;gap:8px;padding:0 18px}
 .brand{display:flex;align-items:center;gap:10px}.brand img{width:40px;height:40px;border-radius:9px}.brand b{font-size:34px;font-weight:700;letter-spacing:-.02em}
 .chev{width:36px;height:36px;display:grid;place-items:center;color:#a1a1a6}
 .sp{flex:1}
-.sf{width:360px;height:40px;border-radius:20px;background:#1c1c1e;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);display:flex;align-items:center;gap:8px;padding:0 14px;color:#a1a1a6;font-size:15px}.sf svg{width:16px;height:16px}.sf .k{margin-left:auto;font-size:13px}
+.sf{width:315px;height:40px;border-radius:20px;background:#1c1c1e;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);display:flex;align-items:center;gap:8px;padding:0 14px;color:#a1a1a6;font-size:15px}.sf svg{width:16px;height:16px}.sf .k{margin-left:auto;font-size:13px}
 .acct{width:40px;height:40px;border-radius:50%;background:#1c1c1e;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);display:grid;place-items:center}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:18px 12px 40px}.grid i{display:block;height:120px;border-radius:22px;background:#1c1c1e}
-.mark-v{position:absolute;left:12px;top:0;bottom:0;border-left:1px dashed rgba(76,155,255,.8)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding:18px 18px 40px}.grid i{display:block;height:120px;border-radius:22px;background:#1c1c1e}
+.mark-v{position:absolute;left:18px;top:0;bottom:0;border-left:1px dashed rgba(76,155,255,.8)}
 .note{position:absolute;left:16px;top:100px;font-size:11px;color:#4c9bff}
-.mark-r{position:absolute;right:12px;top:0;bottom:0;border-right:1px dashed rgba(76,155,255,.5)}
+.mark-r{position:absolute;right:18px;top:0;bottom:0;border-right:1px dashed rgba(76,155,255,.5)}
 .dim{position:absolute;inset:0;background:rgba(0,0,0,.28)}
 .settings{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:840px;height:600px;background:var(--canvas);border-radius:28px;box-shadow:0 30px 80px -30px rgba(0,0,0,.45);overflow:hidden;display:flex;flex-direction:column;color:var(--ink)}
 .shead{min-height:60px;padding:16px 32px 0;display:flex;align-items:center;justify-content:space-between}.shead b{font-size:34px;font-weight:700;letter-spacing:-.025em}
@@ -54,13 +54,14 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke
 .sw{width:42px;height:26px;border-radius:13px;background:#d1d1d6;position:relative}.sw.on{background:var(--accent)}.sw i{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}.sw.on i{left:18px}
 .glabel{font-size:12px;color:var(--muted);margin:16px 0 4px}
 
+.sf>span:not(.k){min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sf,.acct{background:rgba(100,100,110,.16);backdrop-filter:blur(12px) saturate(1.9);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.28)}
 </style>
 </helmet>
 <div class="doc">
-<header><h1>Mac 顶栏与设置弹窗</h1><p>Mac 顶栏顶部留白 18，产品导航行高 64，控件高 40 在行内居中；导航行到首排卡片同样留 18。桌面两侧留白 12，品牌左缘和头像右缘分别对齐卡片区两侧。设置不再另开窗口：点头像或按 ⌘, 在窗口中央打开设置弹窗，和 Web 桌面相同；手机仍是整页。</p></header>
+<header><h1>Mac 顶栏与设置弹窗</h1><p>Mac 顶栏顶部留白 18，产品导航行高 64，控件高 40 在行内居中；导航行到首排卡片同样留 18。桌面两侧留白 18，品牌左缘和头像右缘分别对齐卡片区两侧。设置不再另开窗口：点头像或按 ⌘, 在窗口中央打开设置弹窗，和 Web 桌面相同；手机仍是整页。</p></header>
 <section><h2><span class="n">01</span>顶栏：品牌与卡片两侧对齐</h2><div class="row"><figure><div class="win"><span class="lights"><i></i><i></i><i></i></span><div class="tb"><span class="brand"><img src="web-chrome/sill-icon.svg" alt=""><b>Sill</b></span><span class="chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span><span class="sp"></span><span class="sf"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span>搜索卡片、备注、来源</span><span class="k">⌘K</span></span><span class="acct"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></span></div><div class="grid"><i></i><i></i><i></i><i></i></div><span class="mark-v"></span><span class="mark-r"></span><span class="note">品牌左缘 = 首列卡片左缘</span></div>
-<figcaption><ul><li>只在 macOS 生效。Web 没有红绿灯，图标左缘仍对齐卡片区。</li><li>导航行上下留白均为 18（topBarInset / 2），控件上下间距 30；品牌字号与 ⌄ 菜单不变。</li><li>向下阅读时顶栏与系统材质一起向上收起 240ms，停顿、反向滚动或到达边缘时从上向下进入 280ms，ease 曲线、不回弹；键盘触发立即显示。</li><li>全屏时保留同一内容边距和导航排列。搜索栏用原生 clear 玻璃，账户用 regular 交互玻璃，底部 AI 栏用原生玻璃叠加 card 底色；此 HTML 只示意布局与半透明层，系统折射以 Mac 应用为准。</li></ul></figcaption></figure></div></section>
+<figcaption><ul><li>只在 macOS 生效。Web 没有红绿灯，图标左缘仍对齐卡片区。</li><li>导航行上下留白均为 18（topBarInset / 2），控件上下间距 30；品牌字号与 ⌄ 菜单不变。</li><li>向下阅读时顶栏与系统材质一起向上收起 240ms，停顿、反向滚动或到达边缘时从上向下进入 560ms，ease-reveal 曲线；键盘触发立即显示。</li><li>全屏时保留同一内容边距和导航排列。搜索栏用原生 clear 玻璃，账户用 regular 交互玻璃，底部 AI 栏用原生 regular 玻璃；此 HTML 只示意布局与半透明层，系统折射以 Mac 应用为准。</li></ul></figcaption></figure></div></section>
 <section><h2><span class="n">02</span>设置弹窗</h2><div class="row"><figure><div class="win" style="height:720px"><div class="tb"><span class="brand"><img src="web-chrome/sill-icon.svg" alt=""><b>Sill</b></span><span class="chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span><span class="sp"></span><span class="sf"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.6-4.6"/></svg><span>搜索卡片、备注、来源</span><span class="k">⌘K</span></span><span class="acct"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></span></div><div class="grid"><i></i><i></i><i></i><i></i></div><span class="dim"></span><div class="settings"><div class="shead"><b>设置</b><span class="close"><svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div><div class="slay"><div class="snav"><span>添加</span><span class="on">桌面</span><span>外观</span><span>快捷键</span><span>数据与隐私</span></div><div class="smain"><h3>桌面</h3><div class="scard"><div class="srow"><div><b>同一来源刷屏时叠起来</b></div><span class="sw on"><i></i></span></div><div class="srow"><div><b>读过的卡片慢慢变淡</b></div><span class="sw on"><i></i></span></div></div><div class="glabel">卡片操作</div><div class="scard"><div class="srow"><div><b>收藏</b><small>所有卡片</small></div><span class="sw on"><i></i></span></div><div class="srow"><div><b>标签</b><small>所有卡片</small></div><span class="sw on"><i></i></span></div><div class="srow"><div><b>稍后读</b><small>所有卡片</small></div><span class="sw on"><i></i></span></div><div class="srow"><div><b>回复</b><small>邮件</small></div><span class="sw on"><i></i></span></div></div></div></div></div></div>
 <figcaption><b>规则</b><ul><li>宽 840；分组区固定高 560（settings-body-height），切换分组不改变弹窗大小；内容更多时右侧滚动，窗口不够高时一起缩小；画布底色，顶角 28，sheet 阴影。</li><li>顶部「设置」34 粗体，右侧 44 浅灰圆形关闭钮（无描边、无阴影）。</li><li>左侧 200 宽分组，选中项是白色浮起行；左右栏顶部留白同为 28；右侧分组标题 22。</li><li>Esc、点遮罩或关闭钮关闭，焦点回到头像。设置内容、即时生效和失败回退不变。</li></ul></figcaption></figure></div></section>
 <section><h2><span class="n">03</span>改动对照</h2>

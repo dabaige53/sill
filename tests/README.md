@@ -22,6 +22,8 @@ CI 分工：`test.yml` 执行默认 Node 检查和本地浏览器流程；`verif
 
 旧数据迁移、未知字段保留、已移除入口不可见等测试属于当前兼容性检查，不按文件年龄删除。辅助模块由对应入口加载，不逐文件独立执行。删除记录见 [2026-10-21 测试整理](../docs/records/2026-10-21-test-cleanup/README.md)。
 
+Mac 的工作区、搜索、信息流、选择、设置、归档等测试分别在同名 Swift 文件中；共用合成后端、样例与观察辅助在 `apps/apple/DesktopTests/WorkspaceTestSupport.swift`。套件名和测试入口保持。
+
 ## 按改动选择检查
 
 | 改动 | 入口 | 边界 |

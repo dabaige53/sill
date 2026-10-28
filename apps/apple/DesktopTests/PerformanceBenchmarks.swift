@@ -104,12 +104,12 @@ import XCTest
       ])
     }
     feed.refreshMembership()
-    let version = feed.scopeVersion
+    let version = feed.scrollRequest?.id ?? 0
     measureWork {
       for scope in [Scope.unread, .saved, .later, .todo, .all] { feed.select(scope) }
     }
     XCTAssertEqual(feed.scope, .all)
-    XCTAssertGreaterThan(feed.scopeVersion, version)
+    XCTAssertGreaterThan(feed.scrollRequest?.id ?? 0, version)
     XCTAssertEqual(feed.entries.count, Feed.page)
     feed.select(.saved)
     XCTAssertFalse(feed.entries.isEmpty)

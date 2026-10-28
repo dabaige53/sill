@@ -1,92 +1,45 @@
 import SillKit
 import SwiftUI
 
-// @design ai-conversation
-/// The desktop AI box: bottom center, 28 from the bottom, 640×60 glass. With a session it grows
-/// into the panel and the full view (ADR 0064). The built-in AI is not connected, so add, voice
-/// and send stay disabled; nothing is sent and no reply is invented. Input and context cards live
-/// only in this window's session.
-@MainActor @Observable final class AIContext {
-  var draft = ""
-  private(set) var cards: [String] = []
-  /// Bumped to put focus in the input.
-  private(set) var focusRequest = 0
-  /// Bumped when a click lands outside the box; the input gives up focus.
-  private(set) var blurRequest = 0
-  /// Whether the input has focus. Read only by the window's click monitor.
-  @ObservationIgnored var focused = false
-  /// The built-in AI is not connected: no sessions arrive and nothing is sent.
-  let connected = false
-  private(set) var sessions: [AISession] = []
-  private(set) var sessionId: String?
-  private(set) var height: AIHeight = .line
-  private(set) var listOpen = false
-
-  var session: AISession? { sessions.first { $0.id == sessionId } ?? sessions.first }
-
-  func requestFocus() { focusRequest += 1 }
-  func blur() { blurRequest += 1 }
-
-  func add(_ ids: [String]) {
-    for id in ids where !cards.contains(id) {
-      withAnimation(Motion.fast) { cards.append(id) }
-    }
-  }
-  func remove(_ id: String) { withAnimation(Motion.fast) { cards.removeAll { $0 == id } } }
-  func prune(_ exists: (String) -> Bool) {
-    let kept = cards.filter(exists)
-    if kept != cards { cards = kept }
-  }
-
-  /// The handbook's height table, with the card spring; keyboard changes land at once.
-  func event(_ event: AIHeightEvent) {
-    let next = AIRules.next(height, event, hasSession: session != nil)
-    guard next != height else { return }
-    let change = {
-      self.height = next
-      if next != .panel { self.listOpen = false }
-    }
-    if Motion.keyboardDriven {
-      Motion.instantly(change)
-    } else {
-      withAnimation(Motion.card, change)
-    }
-  }
-  /// Escape steps back one level: the session list, then full → panel → one line.
-  func escape() -> Bool {
-    if listOpen {
-      withAnimation(Motion.menuClose) { listOpen = false }
-      return true
-    }
-    guard height != .line else { return false }
-    event(.escape)
-    return true
-  }
-  func toggleList() {
-    withAnimation(listOpen ? Motion.menuClose : Motion.menuOpen) { listOpen.toggle() }
-  }
-  func pick(_ id: String) {
-    guard let index = sessions.firstIndex(where: { $0.id == id }) else { return }
-    sessions[index].unseen = false
-    sessionId = id
-    withAnimation(Motion.menuClose) { listOpen = false }
-  }
-  /// Sessions come only from the built-in AI, or from debug design samples.
-  func load(_ sessions: [AISession]) {
-    self.sessions = sessions
-    sessionId = sessions.first?.id
-  }
-}
-
 struct AIDock: View {
   /// The window, for the panel's and the full view's height.
   let window: CGSize
   @Environment(AIContext.self) private var context
-  @Environment(Workspace.self) private var workspace
   @Environment(CardDrag.self) private var drag
   @Environment(Reader.self) private var reader
   @FocusState private var focused: Bool
   @State private var threadHeight: CGFloat = 0
+  @State private var hovered = false
+  @State private var shrinkHovered = false
+  @State private var lastDrag: CGFloat = 0
+  @FocusState private var bubbleFocused: Bool
+
+  private var minimized: Bool { context.minimized && !carrying && !grown }
+  private func bounds(_ width: CGFloat) -> ClosedRange<CGFloat> {
+    let panel = min(AppleMetrics.aiDockWidth, max(0, width - 2 * AppleMetrics.railEdge))
+    let drawnWidth =
+      minimized
+      ? AppleMetrics.railRow
+      : (height == .full ? min(AppleMetrics.aiFullWidth, width - 2 * AppleMetrics.railEdge) : panel)
+    let base = minimized ? (panel - drawnWidth) / 2 : 0
+    let half = max(0, (width - drawnWidth) / 2 - AppleMetrics.railEdge)
+    return (-half - base)...(half - base)
+  }
+  private var offset: CGFloat {
+    let range = bounds(window.width)
+    return min(range.upperBound, max(range.lowerBound, context.horizontalOffset))
+  }
+  private var moveGesture: some Gesture {
+    DragGesture(minimumDistance: AppleMetrics.space4)
+      .onChanged { value in
+        guard abs(value.translation.width) > abs(value.translation.height) else { return }
+        let range = bounds(window.width)
+        let next = offset + value.translation.width - lastDrag
+        context.horizontalOffset = min(range.upperBound, max(range.lowerBound, next))
+        lastDrag = value.translation.width
+      }
+      .onEnded { _ in lastDrag = 0 }
+  }
 
   private var session: AISession? { context.session }
   private var height: AIHeight { session == nil ? .line : context.height }
@@ -99,10 +52,50 @@ struct AIDock: View {
   }
 
   var body: some View {
+    VStack(alignment: .leading, spacing: AppleMetrics.space8) {
+      if !grown && !minimized {
+        // The shrink button occupies the upper-right corner; it must not cover a chip's X.
+        AIContextCards().padding(.trailing, AppleMetrics.hitTarget + AppleMetrics.space8)
+      }
+      surface
+    }
+    .frame(width: height == .full ? fullWidth : panelWidth)
+    .offset(x: offset)
+    .onChange(of: window.width) { old, new in
+      let previous = bounds(old)
+      let next = bounds(new)
+      let fraction =
+        previous.upperBound > previous.lowerBound
+        ? (context.horizontalOffset - previous.lowerBound)
+          / (previous.upperBound - previous.lowerBound) : 0.5
+      context.horizontalOffset =
+        next.lowerBound + min(1, max(0, fraction)) * (next.upperBound - next.lowerBound)
+    }
+    .onChange(of: minimized) { context.horizontalOffset = offset }
+    .animation(
+      Motion.keyboardDriven
+        ? nil
+        : Motion.sheet(minimized ? AppleMetrics.aiCollapseDuration : AppleMetrics.aiExpandDuration),
+      value: minimized)
+  }
+
+  private var surface: some View {
     let shape = RoundedRectangle(
       cornerRadius: grown ? AppleMetrics.sheetRadius : AppleMetrics.aiDockRadius,
       style: .continuous)
-    layout
+    return
+      layout
+      .opacity(minimized ? 0 : 1)
+      .animation(
+        Motion.keyboardDriven
+          ? nil
+          : Motion.ease(
+            minimized
+              ? AppleMetrics.aiCollapseContentDuration : AppleMetrics.aiExpandContentDuration
+          ).delay(minimized ? 0 : AppleMetrics.aiBubbleDuration), value: minimized
+      )
+      .allowsHitTesting(!minimized)
+      .accessibilityHidden(minimized)
       .frame(maxWidth: height == .line ? AppleMetrics.aiDockWidth : nil)
       .frame(
         width: height == .full ? fullWidth : height == .panel ? panelWidth : nil,
@@ -117,6 +110,60 @@ struct AIDock: View {
       }
       .desktopGlass(shape)
       .shadow(.sheet, visible: grown)
+      .mask(alignment: .topTrailing) {
+        RoundedRectangle(cornerRadius: AppleMetrics.aiDockRadius)
+          .frame(
+            width: minimized ? AppleMetrics.railRow : (height == .full ? fullWidth : panelWidth),
+            height: minimized ? AppleMetrics.railRow : nil)
+      }
+      .overlay(alignment: .topTrailing) {
+        if minimized {
+          Button {
+            withAnimation(Motion.keyboardDriven ? nil : Motion.sheet(AppleMetrics.aiExpandDuration))
+            { context.minimized = false }
+            context.requestFocus()
+          } label: {
+            Icon("chat", size: AppleMetrics.space20)
+              .frame(width: AppleMetrics.railRow, height: AppleMetrics.railRow)
+          }.buttonStyle(IconPress(highlight: false))
+            .focused($bubbleFocused)
+            .highPriorityGesture(moveGesture)
+            .onKeyPress(.leftArrow) {
+              move(-1)
+              return .handled
+            }
+            .onKeyPress(.rightArrow) {
+              move(1)
+              return .handled
+            }
+            .accessibilityLabel(Copy.text("web.ai.dock"))
+            .transition(
+              Motion.keyboardDriven
+                ? .identity
+                : .opacity.animation(
+                  Motion.ease(AppleMetrics.aiBubbleDuration).delay(
+                    minimized ? AppleMetrics.aiCollapseContentDuration : 0)))
+        } else if !grown {
+          Button {
+            focused = false
+            withAnimation(
+              Motion.keyboardDriven ? nil : Motion.sheet(AppleMetrics.aiCollapseDuration)
+            ) {
+              context.minimized = true
+            }
+            bubbleFocused = true
+          } label: {
+            Icon("ai-minimize", size: AppleMetrics.space16)
+              .frame(width: AppleMetrics.space44, height: AppleMetrics.space44)
+          }.buttonStyle(IconPress(highlight: false))
+            .opacity(hovered || shrinkHovered || focused ? 1 : 0)
+            .allowsHitTesting(hovered || shrinkHovered || focused)
+            .onHover { shrinkHovered = $0 }
+            .accessibilityLabel(Copy.text("ai.shrink"))
+            .offset(y: -AppleMetrics.space44)
+        }
+      }
+      .onHover { hovered = $0 }
       // Web `.ai-dock.is-ready`: a carried card over the box tints it and draws a 2px accent ring.
       .overlay {
         if drag.ready {
@@ -142,11 +189,6 @@ struct AIDock: View {
       )
       .animation(Motion.spring(), value: carrying)
       .animation(Motion.spring(), value: drag.ready)
-      .overlay(alignment: .top) {
-        if !grown {
-          contextCards.alignmentGuide(.top) { $0[.bottom] + AppleMetrics.space8 }
-        }
-      }
       .onGeometryChange(for: CGRect.self) {
         $0.frame(in: .global)
       } action: {
@@ -155,6 +197,13 @@ struct AIDock: View {
       .onChange(of: context.focusRequest) { focused = true }
       .onChange(of: context.blurRequest) { focused = false }
       .onChange(of: focused) { _, value in context.focused = value }
+  }
+
+  private func move(_ direction: CGFloat) {
+    let range = bounds(window.width)
+    context.horizontalOffset = min(
+      range.upperBound,
+      max(range.lowerBound, offset + direction * (range.upperBound - range.lowerBound) * 0.1))
   }
 
   private var carrying: Bool { drag.active && drag.moved }
@@ -179,7 +228,7 @@ struct AIDock: View {
           thread(session, width: column)
           VStack(spacing: 0) {
             if !context.cards.isEmpty {
-              contextCards
+              AIContextCards()
                 .padding(.horizontal, AppleMetrics.space16)
                 .padding(.top, AppleMetrics.space12)
             }
@@ -199,7 +248,7 @@ struct AIDock: View {
         if grown, let session {
           head(session)
           thread(session, width: panelWidth - 2 * AppleMetrics.space24)
-          if !context.cards.isEmpty { contextCards.padding(.horizontal, AppleMetrics.space16) }
+          if !context.cards.isEmpty { AIContextCards().padding(.horizontal, AppleMetrics.space16) }
         }
         row
       }
@@ -214,7 +263,7 @@ struct AIDock: View {
       if height == .full {
         Text(session.title).font(.sans(AppleMetrics.font17, .semibold)).lineLimit(1)
         Spacer(minLength: 0)
-        headButton("collapse", label: Copy.text("ai.shrink")) { context.event(.shrink) }
+        headButton("ai-minimize", label: Copy.text("ai.shrink")) { context.event(.shrink) }
       } else {
         Button {
           context.toggleList()
@@ -246,7 +295,7 @@ struct AIDock: View {
         }
         Spacer(minLength: 0)
         headButton("expand", label: Copy.text("ai.full")) { context.event(.full) }
-        headButton("chevron", turned: true, label: Copy.text("ai.collapse")) {
+        headButton("ai-minimize", label: Copy.text("ai.collapse")) {
           context.event(.collapse)
           focused = true
         }
@@ -370,6 +419,17 @@ struct AIDock: View {
     // The I-beam covers the row, so a click on its padding puts the caret in the input.
     .contentShape(Rectangle())
     .onTapGesture { focused = true }
+    .simultaneousGesture(moveGesture)
+    .onKeyPress(.leftArrow, phases: .down) { press in
+      guard press.modifiers.contains(.option) else { return .ignored }
+      move(-1)
+      return .handled
+    }
+    .onKeyPress(.rightArrow, phases: .down) { press in
+      guard press.modifiers.contains(.option) else { return .ignored }
+      move(1)
+      return .handled
+    }
   }
 
   private var placeholder: String {
@@ -415,41 +475,6 @@ struct AIDock: View {
       .modifier(ArrowCursor())
   }
 
-  /// The row stays mounted even when empty, so the last card fades out like the others.
-  private var contextCards: some View {
-    FlowRow(spacing: AppleMetrics.space8) {
-      ForEach(context.cards, id: \.self) { id in
-        if let card = workspace.model(id) {
-          HStack(spacing: AppleMetrics.space6) {
-            Text(card.title).lineLimit(1).truncationMode(.tail)
-            Button {
-              context.remove(id)
-            } label: {
-              Icon("x", size: AppleMetrics.font12)
-                .foregroundStyle(AppleColors.secondary)
-                .frame(width: AppleMetrics.aiChipClose, height: AppleMetrics.aiChipClose)
-            }
-            .buttonStyle(.plain)
-            .modifier(HandCursor())
-            .accessibilityLabel("\(Copy.text("web.ai.removeContext")) \(card.title)")
-          }
-          .font(.sans(AppleMetrics.font13))
-          .foregroundStyle(AppleColors.primary)
-          .padding(.leading, AppleMetrics.space10).padding(.trailing, AppleMetrics.space6)
-          .frame(maxWidth: AppleMetrics.aiChipMaxWidth)
-          .frame(height: AppleMetrics.aiChipHeight)
-          .background(
-            RoundedRectangle(cornerRadius: AppleMetrics.space10).fill(AppleColors.card)
-              .overlay(
-                RoundedRectangle(cornerRadius: AppleMetrics.space10).strokeBorder(
-                  AppleColors.lineCard, lineWidth: AppleMetrics.lineWidth))
-          )
-          .transition(Motion.context)
-        }
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-  }
 }
 
 /// An accent ring that keeps spreading out of the AI box and fading, like a ripple.
