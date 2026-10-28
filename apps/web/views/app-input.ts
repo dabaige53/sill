@@ -12,7 +12,7 @@ import { armedTag, armLastTag } from "../interactions/tag-input-motion.ts";
 import { action as dispatchAction } from "./actions/index.ts";
 import type { AppController } from "./app.ts";
 import type { Deck, TargetEvent } from "./app-types.ts";
-import { renderView } from "./react-renderer.ts";
+import { hasNestedViews, renderView } from "./react-renderer.ts";
 
 export const appInputMethods = {
 	setSearchEditing(this: AppController, editing: boolean, captured?: SearchPose, typing = editing) {
@@ -108,7 +108,9 @@ export const appInputMethods = {
 		const filterScroll = [...this.dialog.querySelectorAll<HTMLElement>(".search-filter-items")].map(
 			(row) => row.scrollLeft,
 		);
-		renderView(this.dialog, Panels.search(this));
+		// Typing repaints the suggestion and result lists on their own roots; updating the page in
+		// place then removed nodes already gone, and a type chip left a blank page. Render afresh.
+		renderView(this.dialog, Panels.search(this), hasNestedViews(this.dialog));
 		const field = this.dialog.querySelector<HTMLInputElement>("#filter-search");
 		if (field && field.value !== this.searchFilter.query) field.value = this.searchFilter.query;
 		if (!this.desktop() && wasBrowse && !this.dialog.querySelector(".search-browse"))

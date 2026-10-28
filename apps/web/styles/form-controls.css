@@ -344,8 +344,13 @@
 	font-weight: 600;
 	box-shadow: none;
 }
-body:has(:is(:is(#modal, .phone-layer), #search-background)[open].page:not(:has(.settings-layout))) .home-top {
+/* status-bar.ts marks an open page; WebKit missed :has() on the dialog and left the row over search.
+   Settings restores the row in its own, more specific rule. */
+body.has-open-page .home-top {
 	visibility: hidden;
+}
+body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.is-tucked) {
+	visibility: visible;
 }
 /* Desktop-only parts of the top bar stay out of the phone row. */
 .home-brand {

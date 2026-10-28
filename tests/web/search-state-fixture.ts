@@ -7,7 +7,7 @@ import { installReactBrowserAPIs } from "./react-browser-fixture.ts";
 export const bundle = buildSync({
 	stdin: {
 		contents:
-			"export { AppController } from './apps/web/views/app.ts'; export { Store } from './apps/web/data/store.ts'; export { Panels } from './apps/web/interactions/panels.ts'; export { cardHTML } from './apps/web/cards/templates.ts';",
+			"export { AppController } from './apps/web/views/app.ts'; export { Store } from './apps/web/data/store.ts'; export { Panels } from './apps/web/interactions/panels.ts'; export { cardHTML } from './apps/web/cards/templates.ts'; export { markOpenPage } from './apps/web/interactions/status-bar.ts';",
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "ts",
 	},
@@ -40,7 +40,7 @@ export function fixture() {
 	};
 	installReactBrowserAPIs(w);
 	w.eval(bundle);
-	const { AppController, Store, Panels, cardHTML } = w.SearchTest;
+	const { AppController, Store, Panels, cardHTML, markOpenPage } = w.SearchTest;
 	Store.state = {
 		cards: [
 			{ id: "a", type: "article", title: "Alpha", body: "Article", time: Date.now() },
@@ -71,5 +71,5 @@ export function fixture() {
 	app.pageLimit = 40;
 	app.updateSelection = () => {};
 	app.grid.innerHTML = Store.state.cards.map((c) => cardHTML(c)).join("");
-	return { dom, w, app, Store, Panels };
+	return { dom, w, app, Store, Panels, markOpenPage };
 }

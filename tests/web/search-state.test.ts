@@ -107,9 +107,11 @@ test("the home heading stays hidden while a search detail is open", () => {
 		f.w.document.body.prepend(heading);
 		const selectors = ["form-controls.css", "phone.css"].map((file) => {
 			const css = readFileSync(`apps/web/styles/${file}`, "utf8");
-			return css.match(/body:has\([^\n]+\) \.home-top(?= \{)/)?.[0];
+			return css.match(/body\.has-open-page \.home-top(?= \{)/)?.[0];
 		});
+		// The app's dialog observer marks the page; the test marks after each step instead.
 		const hidden = () => {
+			f.markOpenPage();
 			for (const selector of selectors) {
 				assert.ok(selector);
 				assert.ok(heading.matches(selector));
@@ -123,6 +125,7 @@ test("the home heading stays hidden while a search detail is open", () => {
 		f.app.restoreSearch();
 		hidden();
 		f.app.dialog.close();
+		f.markOpenPage();
 		for (const selector of selectors) assert.equal(heading.matches(selector), false);
 	} finally {
 		f.dom.window.close();
@@ -512,7 +515,7 @@ test("phone search retains its field on filter updates, suggests the cards it fi
 	}
 });
 
-test("unbookmarking an open favorite retains its source until the detail closes", () => {
+test("unbookmarking an open favorite retains its source until the detail closes", async () => {
 	const f = fixture();
 	try {
 		f.app.searchBackground = null;
@@ -540,6 +543,8 @@ test("unbookmarking an open favorite retains its source until the detail closes"
 		f.app.dialog.getAnimations = () => [];
 		f.w.document.body.insertAdjacentHTML("beforeend", '<button id="account">Account</button>');
 		f.app.closeToDesk(false);
+		// The redraw waits until the restored page has settled.
+		await new Promise((resolve) => f.w.setTimeout(resolve, 400));
 		assert.equal(
 			!!f.app.grid.querySelector('[data-card="a"]'),
 			false,

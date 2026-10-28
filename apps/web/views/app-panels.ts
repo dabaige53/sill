@@ -123,8 +123,10 @@ export const appPanelsMethods = {
 		background.removeAttribute("aria-labelledby");
 		background.setAttribute("aria-label", copy("web.search"));
 		background.querySelector<HTMLElement>("#modal-title")?.removeAttribute("id");
-		background.show();
+		// Inert first: show() focuses the first field, and the search field then raised the keyboard
+		// and laid its suggestions over the results that the closing card returns to.
 		background.inert = true;
+		background.show();
 		background.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 		this.searchBackground = background;
 		const dialog = document.createElement("dialog");
@@ -140,7 +142,8 @@ export const appPanelsMethods = {
 		releaseView(this.dialog);
 		this.dialog.close();
 		this.dialog.remove();
-		background.close();
+		// The page stays open (non-modal) under the card; closing and reopening it made iOS redraw it
+		// from scratch, and the search page flashed as the card closed.
 		this.dialog = background as ViewDialog;
 		this.dialog.id = "modal";
 		this.dialog.inert = false;
@@ -150,6 +153,7 @@ export const appPanelsMethods = {
 		this.searchBackground = undefined;
 		this.modalKind = "search";
 		this.panelReturn = null;
+		const opened = this.currentId;
 		this.currentId = "";
 		MotionEngine.dim(this.dialog, null);
 		this.dialog.style.translate = "";
@@ -158,10 +162,24 @@ export const appPanelsMethods = {
 		this.dialog.querySelector<HTMLElement>("#search-results").scrollTop = this.searchScroll;
 		this.setNav("search");
 		this.updateSelection();
-		(this.searchFocus?.isConnected
-			? this.searchFocus
-			: this.dialog.querySelector<HTMLElement>("#filter-search")
-		)?.focus({ preventScroll: true });
+		// On a phone the field raises the keyboard and lays suggestions over the results the card
+		// returned to, so focus goes back to the opened card (or the results) instead.
+		const field = this.dialog.querySelector<HTMLElement>("#filter-search");
+		let focus =
+			this.searchFocus?.isConnected && (this.desktop() || this.searchFocus !== field)
+				? this.searchFocus
+				: this.desktop()
+					? field
+					: null;
+		if (!focus) {
+			const results = this.dialog.querySelector<HTMLElement>("#search-results");
+			focus =
+				results?.querySelector<HTMLElement>(
+					`[data-card="${CSS.escape(opened)}"] :is(button, a[href])`,
+				) || results;
+			if (focus === results && results) results.tabIndex = -1;
+		}
+		focus?.focus({ preventScroll: true });
 	},
 	discardSearchBackground(this: AppController) {
 		this.searchBackground?.close();

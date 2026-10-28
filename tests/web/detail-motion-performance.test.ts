@@ -232,8 +232,10 @@ test("phone completion saves immediately and redraws the background only after i
 		exit.finish();
 		await Promise.resolve();
 		await Promise.resolve();
-		assert.equal(f.refreshes(), 1);
 		assert.equal(f.app.dialog.open, false);
+		assert.equal(f.refreshes(), 0, "the redraw waits until the restored page has settled");
+		await new Promise((resolve) => w.setTimeout(resolve, 400));
+		assert.equal(f.refreshes(), 1);
 		f.flushReadingRefresh(f.app);
 		assert.equal(f.refreshes(), 1, "closing a later layer cannot repeat an old refresh");
 	} finally {

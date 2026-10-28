@@ -28,16 +28,15 @@ function pageMetadata(cloud: boolean): Plugin {
 					(path) => `<link rel="stylesheet" href="/${path.replace(/^apps\/web\//, "")}">`,
 				);
 				if (cloud) links.push('<link rel="stylesheet" href="/cloud.css">');
-				const homeScreen = cloud
-					? `<!-- home-screen:start -->
+				// Local and cloud pages install alike; only the embedded MCP page strips this block.
+				const homeScreen = `<!-- home-screen:start -->
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="256x256" href="/assets/sill-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Sill">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<!-- home-screen:end -->`
-					: "";
+<!-- home-screen:end -->`;
 				return html
 					.replace(/\{\{COPY:([^}]+)\}\}/g, (_match, key: string) => {
 						if (!Object.hasOwn(copy, key)) throw new Error(`missing_copy:${key}`);

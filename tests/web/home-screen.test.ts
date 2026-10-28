@@ -19,8 +19,8 @@ before(async () => {
 	);
 });
 
-test("standalone metadata is in cloud and login pages, never local or embedded MCP pages", async () => {
-	for (const html of [cloud, loginPage(), loginPage({ setup: true })]) {
+test("standalone metadata is in local, cloud and login pages, never the embedded MCP page", async () => {
+	for (const html of [local, cloud, loginPage(), loginPage({ setup: true })]) {
 		const dom = new JSDOM(html);
 		try {
 			const document = dom.window.document;
@@ -48,7 +48,7 @@ test("standalone metadata is in cloud and login pages, never local or embedded M
 			dom.window.close();
 		}
 	}
-	for (const html of [embedded, local]) {
+	for (const html of [embedded]) {
 		assert.doesNotMatch(html, /rel="manifest"|apple-mobile-web-app-capable|\{\{HOME_SCREEN\}\}/);
 	}
 	const png = await readFile("assets/sill-icon.png");

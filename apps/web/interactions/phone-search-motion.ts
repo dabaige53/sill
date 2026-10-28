@@ -281,6 +281,9 @@ export function transitionPhoneSearch(
 				height: `${rect.height}px`,
 				pointerEvents: "none",
 				zIndex: "2",
+				// The fade ends before the slide; without an end opacity the copy came back whole
+				// for the rest of the slide, and the results flashed over the returning search page.
+				opacity: "0",
 			});
 			dialog.append(node);
 			state.ghost = node;

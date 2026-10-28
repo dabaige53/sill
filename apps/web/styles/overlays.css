@@ -200,7 +200,8 @@ dialog::backdrop {
 .preview-sheet > .sheet-edge.is-bottom {
 	display: none;
 }
-:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
+:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom,
+:is(#modal, .phone-layer).preview > .phone-drawer:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
 	display: block;
 	bottom: 0;
 	height: calc(var(--rail-row) + 18px + 44px);

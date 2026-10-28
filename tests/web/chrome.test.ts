@@ -198,18 +198,22 @@ test("keyboard bounds use the next frame and update on a window resize", () => {
 		Object.defineProperty(f.w, "visualViewport", { value: viewport });
 		const frames: (() => void)[] = [];
 		f.w.requestAnimationFrame = (callback: () => void) => frames.push(callback);
+		const dialog = f.w.document.createElement("dialog");
+		f.w.document.body.append(dialog);
 		f.w.ChromeTest.AppController.prototype.bindKeyboard.call({});
 		viewport.dispatchEvent(new f.w.Event("resize"));
 		viewport.dispatchEvent(new f.w.Event("scroll"));
 		viewport.height -= 300;
 		assert.equal(frames.length, 1, "viewport events share one measurement");
 		frames.shift()();
-		assert.equal(f.w.document.documentElement.style.getPropertyValue("--kb"), "300px");
+		// Only dialogs read the height; the root stays untouched so the feed is not restyled.
+		assert.equal(dialog.style.getPropertyValue("--kb"), "300px");
+		assert.equal(f.w.document.documentElement.style.getPropertyValue("--kb"), "");
 		assert.equal(f.w.document.body.classList.contains("keyboard-open"), true);
 		f.w.dispatchEvent(new f.w.Event("resize"));
 		viewport.height = f.w.innerHeight;
 		frames.shift()();
-		assert.equal(f.w.document.documentElement.style.getPropertyValue("--kb"), "0px");
+		assert.equal(dialog.style.getPropertyValue("--kb"), "0px");
 		assert.equal(f.w.document.body.classList.contains("keyboard-open"), false);
 	} finally {
 		f.hide.destroy();

@@ -23,6 +23,13 @@ export function releaseView(container: Element) {
 	}
 }
 
+/** A nested root clears the DOM its owner last rendered there, so the owner can no longer update in place. */
+export function hasNestedViews(container: Element) {
+	for (const element of roots.keys())
+		if (element !== container && container.contains(element)) return true;
+	return false;
+}
+
 /** Imperative geometry and focus code needs the committed DOM before it measures. */
 export function renderView(container: Element, content: ReactNode, replace = false) {
 	if (renderPhoneDrawerChild(container, content)) return;

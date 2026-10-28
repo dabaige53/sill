@@ -236,6 +236,7 @@ class AppController {
 	declare lockedScroll: number;
 	pageScrollLocked = false;
 	pageOverflow = "";
+	frozenTranslate = "";
 	previewSizeObserver?: ResizeObserver;
 	declare editId: string;
 	declare editTags: Set<string>;

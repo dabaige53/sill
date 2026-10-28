@@ -4,7 +4,7 @@ import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { closePhoneDrawer, configurePhoneDrawer } from "../interactions/phone-drawer.tsx";
 import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
-import { flushReadingRefresh } from "../interactions/reading-feedback.ts";
+import { flushReadingRefresh, flushReadingRefreshLater } from "../interactions/reading-feedback.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
 import { clearPhonePreviews } from "./phone-preview-stack.ts";
@@ -64,10 +64,25 @@ export const appSurfacesMethods = {
 		this.lockedScroll = scrollY;
 		this.pageOverflow = document.documentElement.style.overflow;
 		document.documentElement.style.overflow = "hidden";
+		// iOS scrolls a scrolled document when a field in a fixed page takes focus, and the search bar
+		// slid down instead of up. The desk keeps its picture while the document rests at the top.
+		const desk = document.getElementById("workspace-background");
+		const main = desk?.querySelector<HTMLElement>("main");
+		if (!this.desktop() && desk && main && this.lockedScroll) {
+			this.frozenTranslate = main.style.translate;
+			main.style.translate = `0 ${-this.lockedScroll}px`;
+			desk.classList.add("is-page-frozen");
+		}
 	},
 	unlockPageScroll(this: AppController) {
 		if (!this.pageScrollLocked) return;
 		this.pageScrollLocked = false;
+		const desk = document.getElementById("workspace-background");
+		if (desk?.classList.contains("is-page-frozen")) {
+			desk.classList.remove("is-page-frozen");
+			const main = desk.querySelector<HTMLElement>("main");
+			if (main) main.style.translate = this.frozenTranslate;
+		}
 		document.documentElement.style.overflow = this.pageOverflow;
 		window.scrollTo({ top: this.lockedScroll, behavior: "instant" });
 		this.railHide?.syncPosition();
@@ -362,9 +377,11 @@ export const appSurfacesMethods = {
 		}
 		clearPhonePreviews(this);
 		MotionEngine.releaseSource(this.dialog);
+		const settled = () =>
+			!this.searchBackground && (!this.dialog.open || this.modalKind === "search");
 		if (this.searchBackground) {
-			flushReadingRefresh(this);
 			this.restoreSearch();
+			flushReadingRefreshLater(this, settled);
 			return;
 		}
 		if (this.modalKind === "search") {
@@ -376,7 +393,7 @@ export const appSurfacesMethods = {
 		}
 		this.unlockPageScroll();
 		// Measure refreshed cards only after the drawer restores normal page geometry.
-		flushReadingRefresh(this);
+		flushReadingRefreshLater(this, settled);
 		this.modalKind = "";
 		this.panelReturn = null;
 		this.updateSelection();

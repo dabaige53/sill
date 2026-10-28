@@ -155,7 +155,7 @@ test("native close waits for Vaul and old pull gestures do not bind", () => {
 	}
 });
 
-test("the scale target includes the page chrome and restores page geometry on unmount", () => {
+test("the scale target includes the page chrome and restores page geometry on unmount", async () => {
 	const f = fixture();
 	try {
 		const background = f.w.document.querySelector("#workspace-background");
@@ -163,8 +163,11 @@ test("the scale target includes the page chrome and restores page geometry on un
 		assert.equal(background.classList.contains("is-drawer-background"), true);
 		assert.equal(background.querySelector("main").style.translate, "0 0px");
 		f.api.releaseView(f.dialog);
-		assert.equal(background.hasAttribute("data-vaul-drawer-wrapper"), false);
 		assert.equal(background.classList.contains("is-drawer-background"), false);
+		// The glass returns a frame after the page geometry, never in the same frame.
+		assert.equal(background.hasAttribute("data-vaul-drawer-wrapper"), true);
+		await new Promise((resolve) => f.w.requestAnimationFrame(resolve));
+		assert.equal(background.hasAttribute("data-vaul-drawer-wrapper"), false);
 		assert.equal(f.w.document.body.style.minHeight, "");
 		assert.equal(f.w.document.documentElement.scrollTop, 180);
 	} finally {

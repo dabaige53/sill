@@ -10,6 +10,7 @@ import { FeedLayout } from "../interactions/layout.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { placeNavigationLens } from "../interactions/navigation-lens.ts";
 import { syncPhoneSearchKeyboard } from "../interactions/phone-search-motion.ts";
+import { paintStatusBar, watchStatusBar } from "../interactions/status-bar.ts";
 import { armLastTag } from "../interactions/tag-input-motion.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
@@ -67,6 +68,7 @@ export const appLifecycleMethods = {
 		document.addEventListener("input", (e?: TargetEvent<Event>) => this.input(e));
 		document.addEventListener("compositionend", (e?: TargetEvent<Event>) => this.input(e));
 		this.bindKeyboard();
+		watchStatusBar();
 		document.addEventListener("keydown", (e?: TargetEvent<KeyboardEvent>) => this.key(e));
 		// While suggestions are open, scrolling over the field or its list never moves the cards behind.
 		document.addEventListener(
@@ -259,10 +261,7 @@ export const appLifecycleMethods = {
 		try {
 			localStorage.setItem("sill-theme", theme);
 		} catch {}
-		const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
-		for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
-			meta.content = canvas;
-		}
+		paintStatusBar();
 		document.body.dataset.density = Store.pref("density");
 		this.sort = Store.pref("floatTimely") ? Store.pref("sort") : "time";
 	},
@@ -273,10 +272,18 @@ export const appLifecycleMethods = {
 		const vv = window.visualViewport;
 		if (!vv) return;
 		let frame = 0;
+		let last = -1;
 		const sync = () => {
 			frame = 0;
 			const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
-			document.documentElement.style.setProperty("--kb", `${kb}px`);
+			// Only the dialogs read the height. Set on the root, the inherited value restyled the
+			// whole feed behind search on every frame of the keyboard's motion.
+			const value = `${kb}px`;
+			for (const dialog of document.querySelectorAll<HTMLElement>("dialog"))
+				if (dialog.style.getPropertyValue("--kb") !== value)
+					dialog.style.setProperty("--kb", value);
+			if (kb === last) return;
+			last = kb;
 			document.body.classList.toggle("keyboard-open", kb > 120);
 		};
 		const schedule = () => {

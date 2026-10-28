@@ -3,6 +3,9 @@ import { flushSync } from "react-dom";
 import { Drawer } from "vaul";
 import { copy } from "../copy.ts";
 import type { AppController } from "../views/app.ts";
+import { MotionEngine } from "./motion.ts";
+import type { Playback } from "./motion-playback.ts";
+import { paintStatusBar } from "./status-bar.ts";
 
 const hosts = new WeakMap<Element, AppController>();
 type Child = { dialog: HTMLDialogElement; children: ReactNode };
@@ -14,6 +17,28 @@ const controls = new WeakMap<
 	}
 >();
 const childParents = new WeakMap<Element, Element>();
+/** The root drawer's fade of the dark behind the page; one root drawer is open at a time. */
+let behind: Playback | null = null;
+/** The page last prepared and a count, so a late glass restore never undoes a drawer opened on it since. */
+let preparations = 0;
+let prepared: Element | null = null;
+
+/**
+ * Vaul's open offset is the top safe area plus 14px, but its drag frames drop the safe area. In a
+ * home-screen app (~59px) the page jumped up on the first drag frame. After Vaul writes a frame,
+ * the safe area returns in step with the drag.
+ */
+function keepSafeArea(percentage: number) {
+	const wrapper = document.querySelector<HTMLElement>("[data-vaul-drawer-wrapper]");
+	const transform = wrapper?.style.transform;
+	const offset = transform?.match(/translate3d\(0(?:px)?, (-?[\d.]+)px, 0(?:px)?\)/);
+	if (!wrapper || !offset) return;
+	const share = Math.max(0, 1 - percentage);
+	wrapper.style.transform = transform.replace(
+		offset[0],
+		`translate3d(0px, calc(${share} * env(safe-area-inset-top) + ${offset[1]}px), 0px)`,
+	);
+}
 
 export function configurePhoneDrawer(app: AppController, enabled: boolean) {
 	if (enabled) hosts.set(app.dialog, app);
@@ -56,15 +81,32 @@ export function closePhoneDrawer(dialog: Element, done: () => void) {
 	return true;
 }
 
-/** Freeze the visible page geometry; Vaul owns its scale and the body/keyboard handling. */
+/** Freeze the visible page geometry and restore its scroll; Vaul owns the scale and keyboard. */
 function prepareBackground(app: AppController) {
 	const background = app.searchBackground || document.getElementById("workspace-background");
 	if (!background) return () => {};
+	const preparation = ++preparations;
+	prepared = background;
 	background.setAttribute("data-vaul-drawer-wrapper", "");
-	const clearRadius = () => background.style.removeProperty("--phone-drawer-roundness");
-	if (app.searchBackground)
+	// The glass and the top bar fill change one frame after the page settles, so iOS does not
+	// rebuild the page layers and the glass in the same frame (the dock and card shadows lagged).
+	const releaseGlass = () =>
+		requestAnimationFrame(() => {
+			if (preparation === preparations || prepared !== background)
+				background.removeAttribute("data-vaul-drawer-wrapper");
+		});
+	const clearRadius = () => {
+		background.style.removeProperty("--phone-drawer-roundness");
+		behind?.cancel();
+		behind = null;
+		document.body.classList.remove("is-drawer-scaled");
+		document.body.style.removeProperty("background-color");
+		paintStatusBar();
+	};
+	// Under search the page is its own layer; under another page the desk is already frozen.
+	if (app.searchBackground || background.classList.contains("is-page-frozen"))
 		return () => {
-			background.removeAttribute("data-vaul-drawer-wrapper");
+			releaseGlass();
 			clearRadius();
 		};
 	const main = background.querySelector<HTMLElement>("main");
@@ -73,13 +115,34 @@ function prepareBackground(app: AppController) {
 	document.body.style.minHeight = `${document.documentElement.scrollHeight}px`;
 	const scroll = window.scrollY;
 	background.classList.add("is-drawer-background");
-	if (main) main.style.translate = `0 ${-scroll}px`;
+	if (main) {
+		main.style.translate = `0 ${-scroll}px`;
+		// The cards clip to the screen (base.css); the rest of the page stays unclipped.
+		const rect = main.getBoundingClientRect();
+		main.style.setProperty("--drawer-clip-top", `${Math.max(0, -rect.top)}px`);
+		main.style.setProperty(
+			"--drawer-clip-bottom",
+			`${Math.max(0, rect.bottom - window.innerHeight)}px`,
+		);
+	}
+	// The document stays as tall as the page so its offset survives, so it must not scroll. Vaul
+	// locks it only when the user agent says Safari, and a home-screen app's does not: a finger on
+	// the drawer then scrolled the hidden document and iOS dropped the tap as a scroll.
+	const overflow = document.documentElement.style.overflow;
+	document.documentElement.style.overflow = "hidden";
 	return () => {
-		background.removeAttribute("data-vaul-drawer-wrapper");
+		releaseGlass();
 		clearRadius();
 		background.classList.remove("is-drawer-background");
-		if (main) main.style.translate = translate;
+		if (main) {
+			main.style.translate = translate;
+			main.style.removeProperty("--drawer-clip-top");
+			main.style.removeProperty("--drawer-clip-bottom");
+		}
 		document.body.style.minHeight = minHeight;
+		document.documentElement.style.overflow = overflow;
+		// The page is visible again in this frame; put the document back where the reader left it.
+		if (window.scrollY !== scroll) window.scrollTo({ top: scroll, behavior: "instant" });
 	};
 }
 
@@ -107,9 +170,40 @@ function PhoneDrawer({
 	const roundBackground = (progress: number) => {
 		if (nested) return;
 		const background = app.searchBackground || document.getElementById("workspace-background");
+		// phone.css registers the variable as not inherited, so a drag frame restyles only this element.
 		background?.style.setProperty(
 			"--phone-drawer-roundness",
 			String(Math.max(0, Math.min(1, progress))),
+		);
+	};
+	// Sill fades the dark behind the scaled page on Vaul's 0.5s curve; Vaul's own color switches in
+	// one frame. It starts from the drawn color, so a drag or an interrupted fade continues smoothly.
+	const darkenBehind = (dark: boolean) => {
+		if (nested) return;
+		const body = document.body;
+		if (body.classList.contains("is-drawer-scaled") === dark && !body.style.backgroundColor) return;
+		const from = getComputedStyle(body).backgroundColor;
+		behind?.cancel();
+		body.style.removeProperty("background-color");
+		body.classList.toggle("is-drawer-scaled", dark);
+		paintStatusBar();
+		const to = getComputedStyle(body).backgroundColor;
+		behind =
+			from === to
+				? null
+				: MotionEngine.animate(body, [{ backgroundColor: from }, { backgroundColor: to }], {
+						duration: 500,
+						easing: "cubic-bezier(0.32, 0.72, 0, 1)",
+					});
+	};
+	// A finger drives the dark frame by frame; the release hands it back to darkenBehind.
+	const shadeBehind = (progress: number) => {
+		if (nested) return;
+		behind?.cancel();
+		behind = null;
+		document.body.style.setProperty(
+			"background-color",
+			`color-mix(in srgb, #000 ${Math.round(Math.max(0, Math.min(1, progress)) * 100)}%, var(--canvas))`,
 		);
 	};
 	useLayoutEffect(() => {
@@ -118,8 +212,18 @@ function PhoneDrawer({
 		controls.set(dialog, {
 			close(done) {
 				if (finish.current) return;
-				finish.current = done;
+				// Vaul reports the end only while this drawer stays mounted and its state changes. If the
+				// content remounts mid-close, its report is lost and Sill would wait forever, ignoring every
+				// later close; a timer just past Vaul's 0.5s finishes the close once either way.
+				let finished = false;
+				const once = () => {
+					if (finished) return;
+					finished = true;
+					done();
+				};
+				finish.current = once;
 				close.current?.click();
+				window.setTimeout(once, 650);
 			},
 			child: setChild,
 		});
@@ -141,13 +245,33 @@ function PhoneDrawer({
 	return (
 		<Root
 			shouldScaleBackground={!nested}
-			{...(!nested ? {
-				onDrag: (_event: PointerEvent<HTMLDivElement>, percentage: number) => roundBackground(1 - percentage),
-				onRelease: (_event: PointerEvent<HTMLDivElement>, isOpen: boolean) => roundBackground(isOpen ? 1 : 0),
-			} : {})}
+			setBackgroundColorOnScale={false}
+			// prepareBackground already freezes the page. Vaul's iOS body `position: fixed` shifts the
+			// page under a home-screen app's status bar, so taps land on the page behind the drawer.
+			noBodyStyles
+			// Inverted name: false turns off Vaul's iOS window lock, which scrolled the page away and
+			// back on every press and release, so iOS read a tap on the close button as a scroll and
+			// dropped it. prepareBackground already locks the frozen page.
+			disablePreventScroll={false}
+			{...(!nested
+				? {
+						onDrag: (_event: PointerEvent<HTMLDivElement>, percentage: number) => {
+							roundBackground(1 - percentage);
+							shadeBehind(1 - percentage);
+							// Vaul writes the page offset right after this callback.
+							queueMicrotask(() => keepSafeArea(percentage));
+						},
+						onRelease: (_event: PointerEvent<HTMLDivElement>, isOpen: boolean) => {
+							roundBackground(isOpen ? 1 : 0);
+							// A closing release fades on toward the page color, never back to dark first.
+							darkenBehind(isOpen);
+						},
+					}
+				: {})}
 			onOpenChange={(value) => {
 				setOpen(value);
 				roundBackground(value ? 1 : 0);
+				darkenBehind(value);
 				if (!value && !finish.current && app.dialog === dialog && app.currentId === ownerId)
 					app.closeModal();
 			}}

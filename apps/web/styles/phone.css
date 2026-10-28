@@ -1,3 +1,9 @@
+/* Not inherited: a drag frame that writes it restyles only the page wrapper, not every card. */
+@property --phone-drawer-roundness {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
 @media (max-width: 650px) {
 	/* Page frame */
 	html {
@@ -43,10 +49,17 @@
 		pointer-events: none;
 	}
 	/* Settings covers the top row instead (below), so the glass never hides and reappears. */
-	body:has(:is(:is(#modal, .phone-layer), #search-background)[open].page:not(:has(.settings-layout))) .home-top {
+	/* status-bar.ts marks an open page (WebKit missed :has() on the dialog). Settings restores the
+	   row in its own, more specific rule. */
+	body.has-open-page .home-top {
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
+	}
+	body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.is-tucked) {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
 	}
 	/* New content waits at the top: under the tabs, or under the status bar once they tuck away. */
 	#new-count {
@@ -272,8 +285,42 @@
 		> .preview-body:first-child {
 		padding-top: calc(var(--space-18) + env(safe-area-inset-top));
 	}
-	:is(#modal, .phone-layer).preview .preview-sheet.is-full.is-scrolled .sheet-head {
+	/* In the drawer the close disc stays put while the text scrolls, as on the Web. */
+	:is(#modal, .phone-layer).preview:not([data-phone-drawer])
+		.preview-sheet.is-full.is-scrolled
+		.sheet-head {
 		top: env(safe-area-inset-top);
+	}
+	/* The drawer already sits below the status bar. A home-screen app reports its ~59px as the top
+	   safe area (a Safari tab reports 0), so inside the drawer that inset would only leave a gap. */
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.preview-sheet.is-full
+		.sheet-scroll
+		> .gesture-content
+		> .preview-body:first-child {
+		padding-top: var(--space-18);
+	}
+	/* The drawer handle sits 8px from the top, where the cover began; the cover and its close disc
+	   move down together, the disc keeping its 16px inset on the image. */
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.sheet-scroll
+		> .gesture-content
+		> .preview-cover {
+		margin-top: var(--space-24);
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.preview-sheet:has(.sheet-scroll > .gesture-content > .preview-cover)
+		.sheet-head {
+		top: 40px;
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer] .preview-sheet .compact-player-slot {
+		top: var(--space-8);
+	}
+	:is(#modal, .phone-layer).preview[data-phone-drawer]
+		.preview-sheet
+		.is-podcast
+		.media-tab-header {
+		top: calc(var(--space-8) + var(--space-44) + var(--space-24));
 	}
 	:is(#modal, .phone-layer).preview :is(#modal-title, .phone-layer-title),
 	:is(#modal, .phone-layer).preview .preview-body :is(.preview-sender, .preview-meta) {
@@ -364,7 +411,11 @@
 		margin-inline: auto;
 		z-index: 3;
 	}
-	:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
+	:is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom,
+	:is(#modal, .phone-layer).preview
+		> .phone-drawer:has(> .float-bar)
+		> .preview-sheet
+		> .sheet-edge.is-bottom {
 		height: calc(var(--rail-row) + 24px + max(8px, env(safe-area-inset-bottom)));
 	}
 	:is(#modal, .phone-layer).preview .push-ring {
@@ -488,7 +539,9 @@
 	:is(#modal, .phone-layer).panel .sheet {
 		max-height: calc(100dvh - var(--kb, 0px));
 	}
-	body.keyboard-open #dock,
+	/* Phone search moves the capsule itself (phone-search-motion.ts); a second writer here hid it
+	   again after that motion and popped it back once the keyboard crossed 120px. */
+	body.keyboard-open:not(:has(:is(#modal, .phone-layer).search[open])) #dock,
 	body.keyboard-open .scroll-edge {
 		opacity: 0;
 		visibility: hidden;
@@ -563,8 +616,12 @@
 	:is(#modal, .phone-layer).page.panel .ai-conversation-head {
 		padding: 0 var(--space-4);
 	}
-	/* The results page has no top row: its search bar keeps a small gap under the safe area. */
-	:is(:is(#modal, .phone-layer), #search-background).page.search:not(:has(.search-browse)) {
+	/* The results page has no top row: its search bar keeps a small gap under the safe area. While
+	   editing the gap holds with or without results, so typing the first letter does not move the bar. */
+	:is(:is(#modal, .phone-layer), #search-background).page.search:is(
+		.search-editing,
+		:not(:has(.search-browse))
+	) {
 		padding-top: calc(env(safe-area-inset-top) + var(--space-8));
 	}
 	body.keyboard-open :is(#modal, .phone-layer).page.panel .ai-conversation {
@@ -620,7 +677,46 @@
 @media (max-width: 650px) {
 	[data-vaul-drawer-wrapper] {
 		/* Keep Sill's surface radius while following Vaul's open/drag/release progress. */
-		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness, 0)) !important;
+		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness)) !important;
+		/* Vaul clips the page; the cards clip themselves instead (base.css), so glass and shadows
+		   draw the same way during and after the drawer. */
+		overflow: visible !important;
+	}
+	/* The top bar carries the page's top corners now that the page itself is not clipped. */
+	[data-vaul-drawer-wrapper] .home-top {
+		--phone-drawer-roundness: inherit;
+		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness))
+			calc(var(--sheet-radius) * var(--phone-drawer-roundness)) 0 0;
+	}
+	/* Safari redraws every blur under the scaled, rounded page on each frame. The page is dimmed
+	   under the detail, so its glass stays flat while the drawer is open. A zero blur, not none:
+	   iOS builds a new glass layer when the filter comes back, and the top bar and the dock
+	   vanished for a frame as the drawer finished closing. The dock keeps its glass: it is small,
+	   and turning it clear changed its colour in one frame as the drawer opened and closed. */
+	[data-vaul-drawer-wrapper] > :not(#dock) {
+		--glass-filter: blur(0);
+		--edge-blur-soft: blur(0);
+		--edge-blur-mid: blur(0);
+		--edge-blur-strong: blur(0);
+	}
+	[data-vaul-drawer-wrapper] :is(.home-top, .media-play-mark, .youtube-poster-play) {
+		-webkit-backdrop-filter: blur(0) !important;
+		backdrop-filter: blur(0) !important;
+	}
+	/* The top bar is clear and only its blur hides the cards under it; a solid fill keeps the
+	   page looking as it did when the drawer opened. */
+	[data-vaul-drawer-wrapper] .home-top {
+		background: var(--canvas) !important;
+	}
+	/* The cards keep one layer of their own. When a closing drawer returns the frozen page to normal
+	   scrolling, iOS then moves that layer instead of repainting every card, and the card shadows
+	   no longer appear a beat after the page. */
+	#feed-grid {
+		will-change: transform;
+	}
+	/* The dark around the scaled page; phone-drawer.tsx fades it with Vaul's scale and drag. */
+	body.is-drawer-scaled {
+		background-color: #000;
 	}
 	:is(#modal, .phone-layer).preview[data-phone-drawer]::backdrop {
 		background: transparent;
@@ -629,6 +725,10 @@
 		position: absolute;
 		inset: 0;
 		background: var(--dim);
+	}
+	/* The drawer opens above search too: its page sits at z-index 40 beside the dialog. */
+	:is(#modal, .phone-layer).preview[data-phone-drawer] {
+		z-index: 46;
 	}
 	/* Content and every bottom control share Vaul's moving surface. */
 	:is(#modal, .phone-layer).preview[data-phone-drawer] {
@@ -641,7 +741,9 @@
 		flex-direction: column;
 		height: auto;
 		min-height: 70dvh;
-		max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - 12px);
+		/* 24px under the status bar, as Vaul shifts the page by the bar plus 14px. A home-screen app
+		   reports the bar as ~59px and a Safari tab as 0; max() let the drawer meet the bar in the app. */
+		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - 12px);
 		background: var(--card);
 		border-radius: var(--sheet-radius);
 		outline: none;
@@ -671,13 +773,10 @@
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer .sheet-scroll {
 		flex: 1 1 auto;
+		/* A scroll that reaches the end stays in the drawer instead of moving the page behind it. */
+		overscroll-behavior: contain;
 		height: auto;
-		max-height: calc(
-			100dvh -
-			max(24px, env(safe-area-inset-top)) -
-			12px -
-			env(safe-area-inset-bottom)
-		);
+		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - 12px - env(safe-area-inset-bottom));
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
 		position: absolute;

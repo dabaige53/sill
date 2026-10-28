@@ -117,6 +117,12 @@
 
 ## 记录
 
+- [Cloudflare 旧部署与版本清理](records/2026-10-28-cloud-version-cleanup/README.md)：清理范围、当前版本及线上检查结果。
+
+- [Web 云端发布](records/2026-10-28-web-cloud-release/README.md)：生产迁移、Worker 版本和线上检查结果。
+
+- [Web 发布准备](records/2026-10-27-web-release-preparation/README.md)：候选检查、生产状态与数据库迁移待确认事项。
+
 - [Agent 长期参考核对](records/2026-10-27-agent-reference-audit/README.md)：15 份长期文档的最新决定、当前实现、验证范围与存量差异。
 
 - [过渡测试与迁移重复检查清理](records/2026-10-27-transition-test-cleanup/README.md)：删除退役入口检查、合并重复文件读写，净减少 9 个测试。

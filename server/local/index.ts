@@ -44,6 +44,20 @@ export async function startLocal({
 				res.end(remindersWorker);
 				return;
 			}
+			// The same home-screen manifest and icon as the cloud Worker.
+			if (req.method === "GET" && url.pathname === "/manifest.webmanifest") {
+				res.writeHead(200, {
+					"Content-Type": "application/manifest+json; charset=utf-8",
+					"Cache-Control": "no-cache",
+				});
+				res.end(await readFile(resolve(root, "deploy/web-manifest.json"), "utf8"));
+				return;
+			}
+			if (req.method === "GET" && url.pathname === "/assets/sill-icon.png") {
+				res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-cache" });
+				res.end(await readFile(resolve(root, "assets/sill-icon.png")));
+				return;
+			}
 			if (req.method === "GET" && url.pathname === "/health") {
 				json(200, { ok: true, mode: "local" });
 				return;

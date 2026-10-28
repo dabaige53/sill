@@ -292,7 +292,8 @@ kbd {
 }
 
 /* Search owns its page; the home feed keeps its own state underneath. */
-body:has(dialog.search[open]) #feed-grid {
+/* status-bar.ts marks the open search; WebKit missed :has() on the dialog and showed the desk. */
+body.has-open-search #feed-grid {
 	visibility: hidden;
 }
 :is(:is(#modal, .phone-layer), #search-background).search {
@@ -746,13 +747,12 @@ body:has(dialog.search[open]) #feed-grid {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+/* Matches .search-empty, so the message stays put when the keyboard closes and results replace suggestions. */
 .search-suggest-empty {
-	display: flex;
-	align-items: center;
-	height: var(--space-48);
 	margin: 0;
-	padding: 0 var(--space-8);
-	font-size: var(--text-control);
+	padding: var(--space-24) 0;
+	text-align: center;
+	font-size: var(--text-body);
 	color: var(--muted);
 }
 .search-cancel {
