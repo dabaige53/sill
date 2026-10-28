@@ -62,9 +62,6 @@
 .preview-full p {
 	margin: 0 0 16px;
 }
-.preview-full li + li {
-	margin-top: 6px;
-}
 .sheet-scroll > .gesture-content > .preview-cover {
 	margin: 8px 8px 0;
 	border-radius: 22px;

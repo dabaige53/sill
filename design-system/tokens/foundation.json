@@ -843,6 +843,22 @@
 			"deckScale": 0.95,
 			"deckExitTilt": 22,
 			"deckDrop": 40
+		},
+		"videoTabs": {
+			"lead": {
+				"visualDuration": 0.2,
+				"bounce": 0
+			},
+			"tail": {
+				"visualDuration": 0.34,
+				"bounce": 0
+			},
+			"hover": {
+				"visualDuration": 0.15,
+				"bounce": 0
+			},
+			"panelEnter": 0.25,
+			"panelExit": 0.15
 		}
 	}
 }

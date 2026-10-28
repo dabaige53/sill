@@ -1,4 +1,6 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { animate } from "motion";
+import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 import type { Card } from "../../../contracts/card.ts";
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
@@ -11,6 +13,7 @@ import { DetailText } from "./markdown.tsx";
 import type { PlaybackHandle, PlaybackSnapshot } from "./playback.ts";
 import { PodcastDetail } from "./podcast-detail.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
+import { VideoTabs, type VideoTab, videoTabNames } from "./video-tabs.tsx";
 import { YouTubePlayer, youtubeID } from "./youtube-player.tsx";
 
 type Line = { start: number; title?: string; text?: string };
@@ -76,9 +79,29 @@ function VideoDetail({
 		duration: card.duration || 0,
 		playing: false,
 	});
-	const [tab, setTab] = useState(full && card.transcript?.length ? "transcript" : "summary"),
+	const tabId = useId();
+	const direction = useRef(1);
+	const panel = useRef<HTMLDivElement>(null);
+	const switched = useRef(false);
+	const [tab, setTab] = useState<VideoTab>(
+			full && card.transcript?.length ? "transcript" : "summary",
+		),
 		[follow, setFollow] = useState(true);
 	const transcript = useRef<HTMLDivElement>(null);
+	useLayoutEffect(() => {
+		if (!switched.current || !panel.current) return;
+		switched.current = false;
+		const run = animate(
+			panel.current,
+			{
+				opacity: [0, 1],
+				transform: [`translateX(${direction.current * 8}px)`, "translateX(0px)"],
+				filter: ["blur(4px)", "blur(0px)"],
+			},
+			{ duration: foundation.motion.videoTabs.panelEnter, ease: [0.23, 1, 0.32, 1] },
+		);
+		return () => run.stop();
+	}, [tab]);
 	const chapterIndex = (card.chapters || []).findLastIndex(
 		(chapter) => chapter.start <= state.position,
 	);
@@ -213,25 +236,37 @@ function VideoDetail({
 			<div className="media-secondary">
 				{full && (
 					<div className="media-tab-header">
-						<div className="media-tabs" role="tablist">
-							{["transcript", "chapters", "summary"].map((name) => (
-								<button
-									type="button"
-									key={name}
-									role="tab"
-									aria-selected={tab === name}
-									onClick={() => setTab(name)}
-								>
-									{copy(
-										name === "chapters"
-											? "web.media.chapters"
-											: name === "transcript"
-												? "web.media.transcript"
-												: "web.media.summary",
-									)}
-								</button>
-							))}
-						</div>
+						<VideoTabs
+							id={tabId}
+							value={tab}
+							onChange={(next) => {
+								if (next === tab) return;
+								const current = panel.current;
+								direction.current =
+									videoTabNames.indexOf(next) > videoTabNames.indexOf(tab) ? 1 : -1;
+								if (current && document.documentElement.dataset.inputModality !== "keyboard") {
+									const old = current.cloneNode(true) as HTMLDivElement;
+									old.removeAttribute("id");
+									old.setAttribute("aria-hidden", "true");
+									old.setAttribute("inert", "");
+									current.parentElement
+										?.querySelectorAll(".video-tab-exit")
+										.forEach((node) => node.remove());
+									old.classList.add("video-tab-exit");
+									current.parentElement?.append(old);
+									animate(
+										old,
+										{
+											opacity: [1, 0],
+											transform: ["translateX(0px)", `translateX(${direction.current * -6}px)`],
+										},
+										{ duration: foundation.motion.videoTabs.panelExit, ease: [0.23, 1, 0.32, 1] },
+									).finished.then(() => old.remove());
+									switched.current = true;
+								}
+								setTab(next);
+							}}
+						/>
 						{tab === "transcript" && (
 							<button
 								className="media-follow"
@@ -246,51 +281,61 @@ function VideoDetail({
 						)}
 					</div>
 				)}
-				{tab === "summary" &&
-					(card.body?.trim() ? (
-						<DetailText body={card.body} />
-					) : (
-						<p className="media-empty">{copy("web.media.emptyNotes")}</p>
-					))}
-				{tab === "chapters" && (
-					<div className="media-lines">
-						{!card.chapters?.length && (
-							<p className="media-empty">{copy("web.media.emptyChapters")}</p>
+				<div className="video-tab-panels">
+					<div
+						ref={panel}
+						className="video-tab-panel"
+						role={full ? "tabpanel" : undefined}
+						id={`${tabId}-panel-${tab}`}
+						aria-labelledby={full ? `${tabId}-${tab}` : undefined}
+					>
+						{tab === "summary" &&
+							(card.body?.trim() ? (
+								<DetailText body={card.body} />
+							) : (
+								<p className="media-empty">{copy("web.media.emptyNotes")}</p>
+							))}
+						{tab === "chapters" && (
+							<div className="media-lines">
+								{!card.chapters?.length && (
+									<p className="media-empty">{copy("web.media.emptyChapters")}</p>
+								)}
+								{card.chapters?.length ? (
+									<MediaLines
+										lines={card.chapters}
+										current={chapterIndex}
+										available={available}
+										label="title"
+										onSeek={seek}
+									/>
+								) : null}
+							</div>
 						)}
-						{card.chapters?.length ? (
-							<MediaLines
-								lines={card.chapters}
-								current={chapterIndex}
-								available={available}
-								label="title"
-								onSeek={seek}
-							/>
-						) : null}
+						{tab === "transcript" && (
+							<>
+								<div
+									className="media-lines"
+									ref={transcript}
+									onWheel={() => setFollow(false)}
+									onTouchMove={() => setFollow(false)}
+								>
+									{!card.transcript?.length && (
+										<p className="media-empty">{copy("web.media.emptyTranscript")}</p>
+									)}
+									{card.transcript?.length ? (
+										<MediaLines
+											lines={card.transcript}
+											current={active}
+											available={available}
+											label="text"
+											onSeek={seek}
+										/>
+									) : null}
+								</div>
+							</>
+						)}
 					</div>
-				)}
-				{tab === "transcript" && (
-					<>
-						<div
-							className="media-lines"
-							ref={transcript}
-							onWheel={() => setFollow(false)}
-							onTouchMove={() => setFollow(false)}
-						>
-							{!card.transcript?.length && (
-								<p className="media-empty">{copy("web.media.emptyTranscript")}</p>
-							)}
-							{card.transcript?.length ? (
-								<MediaLines
-									lines={card.transcript}
-									current={active}
-									available={available}
-									label="text"
-									onSeek={seek}
-								/>
-							) : null}
-						</div>
-					</>
-				)}
+				</div>
 			</div>
 		</div>
 	);
