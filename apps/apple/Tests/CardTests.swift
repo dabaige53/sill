@@ -8,13 +8,13 @@ struct CardTests {
     let image = "https://images.example.org/photo.jpg?size=800"
     let value: JSONValue = .object([
       "id": .string("remote-photo"), "type": .string("photo"), "title": .string("Photo"),
-      "image": .string(image), "photos": .array([.string(image), .string("coast")]),
+      "images": .array([.string(image), .string("coast")]),
     ])
     let card = try Card(json: value)
     #expect(try card.raw == value)
     for invalid in ["http://example.org/a", "https://user:pass@example.org/a", "https://"] {
       var changed = value
-      changed["image"] = .string(invalid)
+      changed["images"] = .array([.string(invalid)])
       #expect(throws: (any Error).self) { try Card(json: changed) }
     }
   }
@@ -24,16 +24,17 @@ struct CardTests {
       .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
   }
 
-  @Test func editingLegacyDraftReplacesConvertedBodyWithoutDuplicatingPoints() throws {
+  @Test func editingDraftReplacesBody() throws {
     let original: JSONValue = .object([
-      "id": .string("legacy-draft"), "type": .string("note"), "title": .string("Legacy"),
-      "body": .array([.string("Old text")]), "points": .array([.string("Old point")]),
+      "id": .string("draft"), "type": .string("note"), "title": .string("Draft"),
+      "body": .string("Old text"), "tags": .array([.string("kept")]),
     ])
     let draft = Draft(
-      id: "legacy-draft", title: "Legacy", body: "## Replacement",
+      id: "draft", title: "Draft", body: "## Replacement",
       revision: 1, original: try original.encoded())
     #expect(try draft.submittedCard().body == "## Replacement")
-    #expect(try draft.submittedCard().raw["points"] == nil)
+    #expect(try draft.submittedCard().raw["tags"] == original["tags"])
+    #expect(!draft.isDirty || draft.body != "Old text")
   }
 
   private func fixtureCases(_ kind: String) throws -> [JSONValue] {
@@ -68,21 +69,26 @@ struct CardTests {
     let cases: [(String, JSONValue)] = [
       ("id", .string("constructor")), ("title", .string(String(repeating: "x", count: 1001))),
       ("summary", .string(String(repeating: "x", count: 10001))), ("meta", .number(1)),
-      ("form", .string("future")), ("image", .string("future")),
+      ("form", .string("future")), ("form", .string("compact")), ("images", .array([])),
+      ("images", .array([.string("future")])), ("future", .bool(true)),
       ("tags", .array([.number(1)])),
       ("body", .string(String(repeating: "x", count: 500001))), ("body", .array([.string("A")])),
       ("url", .string("https://")), ("url", .string("https://host with spaces")),
       ("sources", .array([.object(["name": .string(""), "kind": .string("local")])])),
-      ("why", .object(["reason": .string("")])),
-      ("sender", .string(String(repeating: "x", count: 301))),
+      ("why", .object(["reason": .string("Removed")])),
+      ("sender", .string("Removed")), ("image", .string("coast")),
       ("location", .string(String(repeating: "x", count: 301))),
       ("meeting", .object(["name": .string("Call"), "url": .string("https://")])),
       ("media", .string("audio")), ("duration", .number(1.5)), ("duration", .number(86401)),
       ("files", .array([.object(["name": .string("")])])),
-      ("photos", .array([.string("future")])), ("attachment", .number(0)),
+      ("photos", .array([.string("coast")])), ("attachment", .string("Removed")),
       ("tasks", .array([.object(["id": .string("prototype"), "text": .string("Task")])])),
+      (
+        "tasks",
+        .array([.object(["id": .string("a"), "text": .string("Task"), "done": .bool(true)])])
+      ),
       ("start", .number(-1)), ("end", .number(8.64e15 + 1)), ("due", .null),
-      ("time", .number(-1)), ("people", .array([.bool(false)])),
+      ("time", .number(-1)), ("people", .array([.string("Not an event")])),
       ("related", .array([.string("__proto__")])), ("priority", .number(11)),
     ]
     for (field, invalid) in cases {
@@ -92,14 +98,10 @@ struct CardTests {
     }
   }
 
-  @Test func explicitFieldsRejectDeprecatedAndInvalidSemantics() throws {
+  @Test func explicitFieldsRejectRemovedAndInvalidSemantics() throws {
     let base: JSONValue = .object([
       "id": .string("explicit"), "type": .string("article"), "title": .string("Explicit"),
-      "body": .string("Body"), "bodyCoverage": .string("full"),
-      "readingEstimate": .object([
-        "seconds": .number(61), "origin": .string("calculated"),
-        "scope": .string("full"), "method": .string("editor estimate"),
-      ]),
+      "body": .string("Body"), "authors": .array([.object(["name": .string("Writer")])]),
     ])
     _ = try Card(json: base)
     for text in ["2026-02-30", "2026-10-20T12:00:00", "2026-10-20T25:00:00Z"] {
@@ -116,17 +118,16 @@ struct CardTests {
       _ = try Card(json: json)
     }
     for (key, value) in [
-      ("meta", JSONValue.string("old")), ("bodyCoverage", .string("excerpt")),
-      ("bodyCoverage", .string("none")), ("body", .string(" ")),
-      ("project", .object(["name": .string("Wrong type")])),
+      ("meta", JSONValue.string("old")), ("bodyCoverage", .string("full")),
+      ("readingEstimate", .object(["seconds": .number(60)])),
+      ("publisher", .object(["name": .string("Removed")])), ("section", .string("Removed")),
+      ("authors", .array([.object(["name": .string(" ")])])),
+      ("project", .object(["name": .string("Wrong type")])), ("form", .string("quote")),
     ] {
       var json = base
       json[key] = value
-      #expect(throws: (any Error).self) { try Card(json: json) }
+      #expect(throws: (any Error).self, "\(key)") { try Card(json: json) }
     }
-    var cleared = base
-    cleared["readingEstimate"] = .null
-    _ = try Card(json: cleared)
     for key in ["meta", "time"] {
       let json: JSONValue = .object([
         "id": .string("file"), "title": .string("File"),
@@ -137,88 +138,24 @@ struct CardTests {
     }
   }
 
-  @Test func eventTimeZoneRequiresIANAIdentifier() throws {
-    let base: JSONValue = .object([
-      "id": .string("zone"), "type": .string("event"), "title": .string("Event"),
-      "start": .number(1000), "end": .number(2000),
+  @Test func cloudCardsLoadWithoutServerFields() throws {
+    let card: JSONValue = .object([
+      "id": .string("cloud"), "type": .string("note"), "title": .string("Cloud"),
+      "body": .string(""), "revision": .number(2), "state": .object([:]),
+      "created_at": .string("2026-10-28T00:00:00.000000Z"),
+      "updated_at": .string("2026-10-28T00:00:00.000000Z"), "deleted": .bool(false),
     ])
-    for zone in ["+03:00", "GMT+0300", "UTC+3"] {
-      var json = base
-      json["timeZone"] = .string(zone)
-      #expect(throws: (any Error).self) { try Card(json: json) }
-    }
-    for zone in ["Asia/Shanghai", "asia/shanghai", "US/Eastern", "Etc/GMT+3", "UTC", "GMT"] {
-      var json = base
-      json["timeZone"] = .string(zone)
-      _ = try Card(json: json)
-    }
-  }
-
-  @Test func migrationPreservesUnknownTypesAndFields() throws {
-    let json: JSONValue = .object([
-      "id": .string("old"), "type": .string("insight"), "title": .string("Legacy"),
-      "source": .string("Legacy agent"), "kind": .string("ai"),
-      "extra": .object(["future": .array([.null, .bool(true)])]),
-    ])
-    let card = try Card(json: json, normalize: true)
-    let raw = try card.raw
-    #expect(card.type == "insight")
-    #expect(raw["source"] == nil)
-    #expect(raw["kind"] == nil)
-    #expect(raw["sources"]?.array?.first?["kind"]?.string == "agent")
-    #expect(raw["extra"] == json["extra"])
-    var mail = json
-    mail["type"] = .string("mail")
-    let migrated = try Card(json: mail, normalize: true).raw
-    #expect(migrated["sender"]?.string == "Legacy agent")
-  }
-
-  @Test func sharedLegacyMigrationFixturesPreserveJSON() throws {
-    let fixtures = try JSONValue.decode(
-      Data(contentsOf: root.appendingPathComponent("contracts/migration-fixtures.json")))
-    for fixture in try #require(fixtures["cases"]?.array) {
-      let input = try #require(fixture["input"])
-      let expected = try #require(fixture["expected"])
-      let name = fixture["name"]?.string ?? ""
-      #expect(Card.normalize(input) == expected, "\(name)")
-      let card = try Card(json: input, normalize: true)
-      #expect(try card.raw == expected, "\(name)")
-      #expect(try JSONValue.decode(JSONEncoder().encode(card)) == expected, "\(name)")
-    }
-  }
-
-  @Test func sharedLegacyFilesReadWithoutRewritingAndSaveUnknownFields() async throws {
-    let fixtures = try JSONValue.decode(
-      Data(contentsOf: root.appendingPathComponent("contracts/migration-fixtures.json")))
-    for fixture in try #require(fixtures["cases"]?.array) {
-      let directory = FileManager.default.temporaryDirectory
-        .appendingPathComponent("sill-migration-" + UUID().uuidString)
-      defer { try? FileManager.default.removeItem(at: directory) }
-      try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-      let input = try #require(fixture["input"])
-      var expected = try #require(fixture["expected"])
-      let file = directory.appendingPathComponent("cards.json")
-      let snapshot: JSONValue = .object([
-        "revision": .number(3),
+    let snapshot = try Snapshot(
+      json: .object([
+        "revision": .number(2),
         "state": .object([
-          "cards": .array([input]), "items": .object([:]), "seconds": .number(0),
+          "cards": .array([card]), "items": .object([:]), "seconds": .number(0),
           "preferences": .object([:]),
         ]),
-      ])
-      let encoder = JSONEncoder()
-      encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-      let original = try encoder.encode(snapshot)
-      try original.write(to: file)
-      let store = try CardStore(directory: directory)
-      let loaded = try await store.read()
-      #expect(try Data(contentsOf: file) == original)
-      let card = try #require(loaded.cards.first)
-      #expect(try card.raw == expected)
-      expected["title"] = .string(card.title + " edited")
-      _ = try await store.upsert(Card(json: expected), expectedRevision: 3)
-      let restarted = try CardStore(directory: directory)
-      let saved = try await restarted.read()
-      #expect(try saved.cards.first?.raw == expected)
-    }
+      ]))
+    let raw = try #require(try snapshot.cards.first?.raw)
+    #expect(raw["revision"] == nil)
+    #expect(raw["state"] == nil)
+    #expect(raw["title"]?.string == "Cloud")
   }
 }

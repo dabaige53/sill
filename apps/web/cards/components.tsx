@@ -28,7 +28,7 @@ export function CardView({ card: c, options = {} }: { card: Card; options?: Card
 		},
 		read = (CardTypes[c.type] || CardTypes.note).readable && s.read && Store.pref("fadeRead"),
 		ended = c.type === "event" && eventEnded(c, ctx.now),
-		covered = (c.image && ["article", "media"].includes(c.type)) || c.type === "photo";
+		covered = (!!c.images?.length && ["article", "media"].includes(c.type)) || c.type === "photo";
 	return (
 		<article
 			className={`feed-card ${options.compact ? "" : "feed-item"} type-${c.type} ${covered ? "has-cover" : ""} ${options.compact ? "is-compact" : ""} ${read ? "is-read" : ""} ${ended ? "is-ended" : ""} ${s.bookmarked ? "is-bookmarked" : ""} ${s.selected ? "is-selected" : ""} ${s.snoozedUntil > 0 ? "is-snoozed" : ""} ${isDone ? "is-complete" : ""}`}

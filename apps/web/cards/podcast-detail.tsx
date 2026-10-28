@@ -15,7 +15,7 @@ import { publicationName, SourceMark } from "./source-mark.tsx";
  */
 export function PodcastDetail({ card }: { card: Card }) {
 	const position = Store.item(card.id).playbackPosition ?? 0;
-	const program = card.publisher?.name || card.sources?.[0]?.name || "";
+	const program = card.sources?.[0]?.name || "";
 	const hosts = (card.authors || []).map((author) => author.name).filter(Boolean);
 	const byline = publicationName(card);
 	const tags = Store.tags(card);
@@ -33,10 +33,10 @@ export function PodcastDetail({ card }: { card: Card }) {
 	return (
 		<div className="podcast-detail">
 			<header className="podcast-head">
-				{card.image ? (
+				{card.images?.[0] ? (
 					<img
 						className="podcast-cover"
-						src={assetURL(card.image)}
+						src={assetURL(card.images[0])}
 						alt=""
 						referrerPolicy="no-referrer"
 					/>

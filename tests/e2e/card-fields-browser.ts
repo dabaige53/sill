@@ -15,16 +15,14 @@ const cards = [
 		type: "mail",
 		title: "Missing sender",
 		sources: [{ name: "Inbox source", kind: "mail" }],
-		recipients: ["Actual recipient"],
 		body: "Mail body",
 	},
 	{
 		id: "mail-known",
 		type: "mail",
 		title: "Known sender",
-		sender: "Actual sender",
+		authors: [{ name: "Actual sender" }],
 		sources: [{ name: "Inbox source", kind: "mail" }],
-		recipients: ["Actual recipient"],
 		body: "Mail body",
 	},
 	{
@@ -55,16 +53,14 @@ const cards = [
 		type: "media",
 		media: "video",
 		title: "Missing body",
-		image: "coast",
-		chapterCount: 8,
+		images: ["coast"],
 	},
 	{
 		id: "video-prose",
 		type: "media",
 		media: "video",
 		title: "Body is prose",
-		image: "mountain",
-		chapterCount: 8,
+		images: ["mountain"],
 		duration: 125,
 		url: "https://example.com/video",
 		body: ["First paragraph. ".repeat(100), "Second paragraph. ".repeat(100)].join("\n\n"),
@@ -147,13 +143,9 @@ try {
 							(await dialog.locator(".preview-sender b").count())
 								? await dialog.locator(".preview-sender b").innerText()
 								: "",
-							card.sender || "",
+							card.authors?.[0]?.name || "",
 						);
 						assert.ok(!(await dialog.innerText()).includes("发给你"));
-						assert.deepEqual(
-							await page.evaluate((id) => window.__store.card(id).recipients, card.id),
-							["Actual recipient"],
-						);
 					} else {
 						assert.equal(
 							await dialog
@@ -180,11 +172,6 @@ try {
 						);
 					}
 					assert.equal(await dialog.locator("aside.preview-note p").innerText(), "Personal note");
-					if (card.id.startsWith("video"))
-						assert.equal(
-							await page.evaluate((id) => window.__store.card(id).chapterCount, card.id),
-							8,
-						);
 					if (card.id === "video-prose") {
 						assert.ok(await dialog.locator(".unavailable-video img").isVisible());
 						assert.ok(await dialog.locator("[data-action='external']").count());

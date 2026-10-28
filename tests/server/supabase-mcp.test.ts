@@ -60,7 +60,7 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 				title: "MCP same database",
 				body: "Synthetic MCP content",
 				summary: "Rich preview",
-				form: "compact",
+				form: "quote",
 				sources: [{ name: "Test agent", kind: "agent" }],
 			},
 		};
@@ -68,7 +68,7 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 		assert.ok(!created.isError, JSON.stringify(created));
 		const one = created.structuredContent;
 		assert.equal(one.summary, "Rich preview");
-		assert.equal(one.form, "compact");
+		assert.equal(one.form, "quote");
 		assert.deepEqual(one.sources, args.body.sources);
 		assert.equal(
 			(await client.callTool({ name: "sill_createContent", arguments: args })).structuredContent.id,

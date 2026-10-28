@@ -26,7 +26,11 @@
 						"kind": "local"
 					}
 				],
-				"sender": "Sender"
+				"authors": [
+					{
+						"name": "Sender"
+					}
+				]
 			}
 		},
 		{
@@ -40,10 +44,7 @@
 						"name": "Synthetic",
 						"kind": "local"
 					}
-				],
-				"extra": {
-					"future": true
-				}
+				]
 			}
 		},
 		{
@@ -61,9 +62,7 @@
 				"tasks": [
 					{
 						"id": "task-1",
-						"text": "Check",
-						"done": false,
-						"extra": 1
+						"text": "Check"
 					}
 				]
 			}
@@ -125,11 +124,7 @@
 						"name": "Synthetic",
 						"kind": "local"
 					}
-				],
-				"why": {
-					"reason": "Reason",
-					"basis": ["A"]
-				}
+				]
 			}
 		},
 		{
@@ -152,23 +147,6 @@
 			}
 		},
 		{
-			"name": "future-card",
-			"card": {
-				"id": "valid-future-card",
-				"type": "future-card",
-				"title": "Synthetic future-card",
-				"sources": [
-					{
-						"name": "Synthetic",
-						"kind": "local"
-					}
-				],
-				"custom": {
-					"nested": ["preserve"]
-				}
-			}
-		},
-		{
 			"name": "explicit article metadata",
 			"card": {
 				"id": "explicit-article",
@@ -178,11 +156,11 @@
 					{
 						"name": "Author",
 						"url": "https://example.com/author"
+					},
+					{
+						"name": "Publisher"
 					}
 				],
-				"publisher": {
-					"name": "Publisher"
-				},
 				"sources": [
 					{
 						"name": "Reader",
@@ -190,47 +168,7 @@
 					}
 				],
 				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": {
-					"seconds": 360,
-					"origin": "calculated",
-					"scope": "full",
-					"method": "words-v1"
-				},
-				"section": "Technology"
-			}
-		},
-		{
-			"name": "cleared reading estimate",
-			"card": {
-				"id": "cleared",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": null,
-				"section": "Technology"
+				"body": "Body"
 			}
 		},
 		{
@@ -239,8 +177,7 @@
 				"id": "mail-v3",
 				"type": "mail",
 				"title": "Mail",
-				"sentAt": "2026-10-01T12:30Z",
-				"recipients": ["Recipient"]
+				"publishedAt": "2026-10-01T12:30Z"
 			}
 		},
 		{
@@ -273,9 +210,6 @@
 					"observedAt": "2026-10-22T13:00:00+08:00",
 					"headBranch": "feature",
 					"baseBranch": "main",
-					"author": {
-						"login": "writer"
-					},
 					"reviewers": [
 						{
 							"login": "reader",
@@ -292,15 +226,7 @@
 					"additions": 42,
 					"deletions": 3,
 					"changedFiles": 1,
-					"comments": 0,
-					"reviewRequested": true,
-					"files": [
-						{
-							"path": "src/main.ts",
-							"additions": 42,
-							"deletions": 3
-						}
-					]
+					"reviewRequested": true
 				}
 			}
 		},
@@ -310,7 +236,7 @@
 				"id": "mail-attachments",
 				"type": "mail",
 				"title": "Files",
-				"attachments": [
+				"files": [
 					{
 						"name": "report.pdf",
 						"url": "https://example.com/report.pdf",
@@ -411,184 +337,6 @@
 			}
 		},
 		{
-			"name": "legacy-body-array",
-			"card": {
-				"id": "invalid",
-				"type": "note",
-				"title": "Synthetic",
-				"body": ["A"]
-			}
-		},
-		{
-			"name": "deprecated metadata",
-			"card": {
-				"id": "explicit-article",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": {
-					"seconds": 360,
-					"origin": "calculated",
-					"scope": "full",
-					"method": "words-v1"
-				},
-				"section": "Technology",
-				"meta": "6 min"
-			}
-		},
-		{
-			"name": "reading time string",
-			"card": {
-				"id": "explicit-article",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": "6 min",
-				"section": "Technology"
-			}
-		},
-		{
-			"name": "reading time no unit",
-			"card": {
-				"id": "explicit-article",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": {
-					"seconds": 0,
-					"origin": "provided",
-					"scope": "full"
-				},
-				"section": "Technology"
-			}
-		},
-		{
-			"name": "calculation no method",
-			"card": {
-				"id": "explicit-article",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": {
-					"seconds": 60,
-					"origin": "calculated",
-					"scope": "full"
-				},
-				"section": "Technology"
-			}
-		},
-		{
-			"name": "excerpt estimated as full",
-			"card": {
-				"id": "explicit-article",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "excerpt",
-				"readingEstimate": {
-					"seconds": 360,
-					"origin": "calculated",
-					"scope": "full",
-					"method": "words-v1"
-				},
-				"section": "Technology"
-			}
-		},
-		{
 			"name": "invalid publication date",
 			"card": {
 				"id": "explicit-article",
@@ -598,11 +346,11 @@
 					{
 						"name": "Author",
 						"url": "https://example.com/author"
+					},
+					{
+						"name": "Publisher"
 					}
 				],
-				"publisher": {
-					"name": "Publisher"
-				},
 				"sources": [
 					{
 						"name": "Reader",
@@ -610,52 +358,7 @@
 					}
 				],
 				"publishedAt": "2026-02-30",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": {
-					"seconds": 360,
-					"origin": "calculated",
-					"scope": "full",
-					"method": "words-v1"
-				},
-				"section": "Technology"
-			}
-		},
-		{
-			"name": "date without timezone",
-			"card": {
-				"id": "explicit-article",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01T12:00:00",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": {
-					"seconds": 360,
-					"origin": "calculated",
-					"scope": "full",
-					"method": "words-v1"
-				},
-				"section": "Technology"
+				"body": "Body"
 			}
 		},
 		{
@@ -668,11 +371,11 @@
 					{
 						"name": "Author",
 						"url": "https://example.com/author"
+					},
+					{
+						"name": "Publisher"
 					}
 				],
-				"publisher": {
-					"name": "Publisher"
-				},
 				"sources": [
 					{
 						"name": "Reader",
@@ -680,53 +383,8 @@
 					}
 				],
 				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
 				"body": "Body",
-				"bodyCoverage": "full",
-				"readingEstimate": {
-					"seconds": 360,
-					"origin": "calculated",
-					"scope": "full",
-					"method": "words-v1"
-				},
-				"section": "Technology",
-				"image": "coast"
-			}
-		},
-		{
-			"name": "unexpected missing body",
-			"card": {
-				"id": "explicit-article",
-				"type": "article",
-				"title": "Article",
-				"authors": [
-					{
-						"name": "Author",
-						"url": "https://example.com/author"
-					}
-				],
-				"publisher": {
-					"name": "Publisher"
-				},
-				"sources": [
-					{
-						"name": "Reader",
-						"kind": "readwise"
-					}
-				],
-				"publishedAt": "2026-10-01",
-				"modifiedAt": "2026-10-02T12:00:00+08:00",
-				"savedAt": "2026-10-03",
-				"body": "Body",
-				"bodyCoverage": "none",
-				"readingEstimate": {
-					"seconds": 360,
-					"origin": "calculated",
-					"scope": "full",
-					"method": "words-v1"
-				},
-				"section": "Technology"
+				"images": ["coast"]
 			}
 		},
 		{
@@ -739,20 +397,6 @@
 					{
 						"name": "file",
 						"meta": "PDF"
-					}
-				]
-			}
-		},
-		{
-			"name": "deprecated file time",
-			"card": {
-				"id": "file-time",
-				"type": "file",
-				"title": "File",
-				"files": [
-					{
-						"name": "file",
-						"time": 1
 					}
 				]
 			}
@@ -780,9 +424,6 @@
 					"observedAt": "2026-10-22T13:00:00+08:00",
 					"headBranch": "feature",
 					"baseBranch": "main",
-					"author": {
-						"login": "writer"
-					},
 					"reviewers": [
 						{
 							"login": "reader",
@@ -799,15 +440,7 @@
 					"additions": 42,
 					"deletions": 3,
 					"changedFiles": 1,
-					"comments": 0,
-					"reviewRequested": true,
-					"files": [
-						{
-							"path": "src/main.ts",
-							"additions": 42,
-							"deletions": 3
-						}
-					]
+					"reviewRequested": true
 				}
 			}
 		},
@@ -824,9 +457,6 @@
 					"state": "open",
 					"headBranch": "feature",
 					"baseBranch": "main",
-					"author": {
-						"login": "writer"
-					},
 					"reviewers": [
 						{
 							"login": "reader",
@@ -843,15 +473,7 @@
 					"additions": 42,
 					"deletions": 3,
 					"changedFiles": 1,
-					"comments": 0,
-					"reviewRequested": true,
-					"files": [
-						{
-							"path": "src/main.ts",
-							"additions": 42,
-							"deletions": 3
-						}
-					]
+					"reviewRequested": true
 				}
 			}
 		},
@@ -869,9 +491,6 @@
 					"observedAt": "2026-10-22T13:00:00+08:00",
 					"headBranch": "feature",
 					"baseBranch": "main",
-					"author": {
-						"login": "writer"
-					},
 					"reviewers": [
 						{
 							"login": "reader",
@@ -888,15 +507,7 @@
 					"additions": 42,
 					"deletions": 3,
 					"changedFiles": 1,
-					"comments": 0,
-					"reviewRequested": true,
-					"files": [
-						{
-							"path": "src/main.ts",
-							"additions": 42,
-							"deletions": 3
-						}
-					]
+					"reviewRequested": true
 				}
 			}
 		},
@@ -909,7 +520,6 @@
 				"title": "Episode",
 				"audioUrl": "https://example.com/audio.mp3",
 				"duration": 180,
-				"chapterCount": 2,
 				"chapters": [
 					{
 						"start": 0,
@@ -941,7 +551,6 @@
 				"title": "Episode",
 				"audioUrl": "https://example.com/audio.mp3",
 				"duration": 180,
-				"chapterCount": 2,
 				"chapters": [
 					{
 						"start": 60,
@@ -973,7 +582,6 @@
 				"title": "Episode",
 				"audioUrl": "https://example.com/audio.mp3",
 				"duration": 180,
-				"chapterCount": 2,
 				"chapters": [
 					{
 						"start": 0,
@@ -993,22 +601,6 @@
 			}
 		},
 		{
-			"name": "attachments wrong type",
-			"card": {
-				"id": "mail-attachments",
-				"type": "note",
-				"title": "Files",
-				"attachments": [
-					{
-						"name": "report.pdf",
-						"url": "https://example.com/report.pdf",
-						"mimeType": "application/pdf",
-						"sizeBytes": 1024
-					}
-				]
-			}
-		},
-		{
 			"name": "unsafe audio url",
 			"card": {
 				"id": "media-sample",
@@ -1017,7 +609,6 @@
 				"title": "Episode",
 				"audioUrl": "file:///tmp/a.mp3",
 				"duration": 180,
-				"chapterCount": 2,
 				"chapters": [
 					{
 						"start": 0,
@@ -1038,6 +629,74 @@
 						"text": "Next paragraph"
 					}
 				]
+			}
+		},
+		{
+			"name": "unknown field",
+			"card": {
+				"id": "invalid",
+				"type": "note",
+				"title": "Synthetic",
+				"extra": {
+					"future": true
+				}
+			}
+		},
+		{
+			"name": "removed field",
+			"card": {
+				"id": "invalid",
+				"type": "mail",
+				"title": "Synthetic",
+				"sender": "Sender"
+			}
+		},
+		{
+			"name": "task completion on card",
+			"card": {
+				"id": "invalid",
+				"type": "task",
+				"title": "Synthetic",
+				"tasks": [
+					{
+						"id": "t1",
+						"text": "A",
+						"done": true
+					}
+				]
+			}
+		},
+		{
+			"name": "people outside event",
+			"card": {
+				"id": "invalid",
+				"type": "task",
+				"title": "Synthetic",
+				"tasks": [
+					{
+						"id": "t1",
+						"text": "A"
+					}
+				],
+				"people": ["A"]
+			}
+		},
+		{
+			"name": "layout form",
+			"card": {
+				"id": "invalid",
+				"type": "note",
+				"title": "Synthetic",
+				"form": "image"
+			}
+		},
+		{
+			"name": "empty images",
+			"card": {
+				"id": "invalid",
+				"type": "note",
+				"title": "Synthetic",
+				"images": []
 			}
 		}
 	]

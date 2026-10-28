@@ -148,11 +148,6 @@
 	.feed-item.type-media .card-cover {
 		aspect-ratio: 16 / 9;
 	}
-	.feed-item .attachment {
-		align-self: stretch;
-		width: 100%;
-		margin-top: 0;
-	}
 	.feed-item .ref {
 		min-height: 32px;
 	}

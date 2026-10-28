@@ -50,7 +50,7 @@ struct CardCover<Overlay: View>: View {
   var faded = false
   @ViewBuilder var overlay: Overlay
   var body: some View {
-    CoverImage(name: card.image, faded: faded)
+    CoverImage(name: card.cover, faded: faded)
       .aspectRatio(16 / 9, contentMode: .fit)
       .frame(maxWidth: .infinity)
       .overlay(alignment: .bottomTrailing) { overlay }

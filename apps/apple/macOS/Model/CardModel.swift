@@ -25,15 +25,6 @@ struct CardModel: Identifiable, Equatable, Sendable {
     var isImage: Bool
     var url: URL? = nil
   }
-  struct Publication: Equatable, Sendable {
-    var date: String? { dateTitle.flatMap { Format.publication($0) } }
-    var dateTitle: String?
-    var rows: [(label: String, value: String)]
-    static func == (a: Publication, b: Publication) -> Bool {
-      a.dateTitle == b.dateTitle && a.rows.map(\.label) == b.rows.map(\.label)
-        && a.rows.map(\.value) == b.rows.map(\.value)
-    }
-  }
 
   let rich: CardRichFields
   let id: String
@@ -47,17 +38,14 @@ struct CardModel: Identifiable, Equatable, Sendable {
   let sourceName: String
   /// First source kind, `local` when missing (Web `cardSourceKind`).
   let sourceKind: String
-  /// 约 N 分钟阅读 / 当前内容约 N 分钟阅读, empty when unknown.
+  /// 约 N 分钟阅读, calculated from the body for reading kinds; empty otherwise.
   let readingTime: String
   let tags: [String]
-  let image: String?
-  let photos: [String]
+  /// Built-in asset IDs or HTTPS images; the first is the cover.
+  let images: [String]
   let url: URL?
   let time: Double
   let priority: Double
-  let sender: String?
-  let sentAt: String?
-  let attachment: String?
   let isQuote: Bool
   let project: String?
   let tasks: [TaskItem]
@@ -71,12 +59,11 @@ struct CardModel: Identifiable, Equatable, Sendable {
   let duration: Int?
   let related: [String]
   let files: [FileItem]
-  let takenAt: String?
-  /// The local day a photo was taken, for the card head.
-  let takenDay: Date?
-  let caption: String?
-  let publication: Publication
-  /// The day an article belongs to: published, else saved, else the card's own time.
+  /// Original publication, send or capture date as written.
+  let publishedAt: String?
+  /// The local day of `publishedAt`.
+  let publishedDay: Date?
+  /// The day an article belongs to: published, else the card's own time.
   let articleDate: Date?
   /// Lowercased title, summary, source and body for search (Web `matches`, without state fields).
   let searchText: String
@@ -87,7 +74,9 @@ struct CardModel: Identifiable, Equatable, Sendable {
 
   /// A quick note is its own text: the card shows the summary in place of a title.
   var isCapture: Bool { kind == .note && sourceKind == "capture" && !isQuote }
-  var hasCover: Bool { (image != nil && (kind == .article || kind == .media)) || kind == .photo }
+  var cover: String? { images.first }
+  var hasCover: Bool { (cover != nil && (kind == .article || kind == .media)) || kind == .photo }
+  var publicationDate: String? { publishedAt.flatMap { Format.publication($0) } }
   var headIcon: String {
     kind.headIconByType ? kind.icon : SourceKind.icon(sourceKind) ?? kind.icon
   }
@@ -122,27 +111,19 @@ struct CardModel: Identifiable, Equatable, Sendable {
     sources = (value.sources ?? []).map { Source(name: $0.name, kind: $0.kind) }
     sourceName = sources.map(\.name).joined(separator: " · ")
     sourceKind = sources.first?.kind ?? "local"
-    if let estimate = raw["readingEstimate"], let seconds = estimate["seconds"]?.number {
-      let prefix = Copy.text(
-        estimate["scope"]?.string == "full"
-          ? "web.metadata.readingFull" : "web.metadata.readingAvailable")
-      readingTime =
-        "\(prefix) \(Int(ceil(seconds / 60))) \(Copy.text("web.metadata.readingSuffix"))"
-    } else {
-      readingTime = ""
-    }
+    let minutes = Self.readingMinutes(body.joined(separator: "\n"))
+    readingTime =
+      Self.readingKinds.contains(kind) && minutes > 0
+      ? "\(Copy.text("web.metadata.readingFull")) \(minutes) \(Copy.text("web.metadata.readingSuffix"))"
+      : ""
     tags = value.tags ?? []
-    image = raw["image"]?.string
-    photos = (raw["photos"]?.array ?? []).compactMap(\.string)
+    images = value.images ?? []
     url = value.url.flatMap(URL.init(string:))
     time = value.time ?? 0
     priority = value.priority ?? 0
-    sender = value.sender?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
-    sentAt = value.sentAt
-    attachment = value.attachment
     isQuote = value.form == .quote
     project = value.project?.name
-    tasks = (value.tasks ?? []).map { TaskItem(id: $0.id, text: $0.text, done: $0.done ?? false) }
+    tasks = (value.tasks ?? []).map { TaskItem(id: $0.id, text: $0.text, done: false) }
     start = value.start
     end = value.end
     due = value.due
@@ -169,44 +150,37 @@ struct CardModel: Identifiable, Equatable, Sendable {
             .regularExpression, .caseInsensitive,
           ]) != nil, url: file.url.flatMap(URL.init(string:)))
     }
-    takenAt = value.takenAt
-    takenDay = value.takenAt.flatMap(Format.localDay)
-    caption = value.caption
-    var rows: [(String, String)] = []
-    if let authors = value.authors, !authors.isEmpty {
-      rows.append(
-        (Copy.text("web.metadata.authors"), authors.map(\.name).joined(separator: " / ")))
-    }
-    if let publisher = value.publisher {
-      rows.append((Copy.text("web.metadata.publisher"), publisher.name))
-    }
-    if let recipients = value.recipients, !recipients.isEmpty {
-      rows.append((Copy.text("web.metadata.recipients"), recipients.joined(separator: " / ")))
-    }
-    if let project = value.project {
-      rows.append((Copy.text("web.metadata.project"), project.name))
-    }
-    if let sentAt = value.sentAt { rows.append((Copy.text("web.metadata.sent"), sentAt)) }
-    if let takenAt = value.takenAt { rows.append((Copy.text("web.metadata.taken"), takenAt)) }
-    if let chapters = value.chapterCount, chapters > 0 {
-      rows.append((Copy.text("web.metadata.chapters"), String(chapters)))
-    }
-    if let zone = value.timeZone { rows.append(("", zone)) }
-    if let caption = value.caption { rows.append(("", caption)) }
-    if let from = value.coverageStart, let to = value.coverageEnd {
-      rows.append(
-        (Copy.text("web.metadata.coverage"), "\(Format.dateLabel(from)) – \(Format.dateLabel(to))"))
-    }
-    publication = Publication(
-      dateTitle: value.publishedAt, rows: rows)
-    articleDate =
-      value.publishedAt.flatMap(Format.localDay) ?? value.savedAt.flatMap(Format.localDay)
-      ?? (time > 0 ? Format.date(time) : nil)
+    publishedAt = value.publishedAt
+    publishedDay = value.publishedAt.flatMap(Format.localDay)
+    articleDate = publishedDay ?? (time > 0 ? Format.date(time) : nil)
     searchText = ([title, summary, sourceName] + body).joined(separator: " ").lowercased()
     self.raw = raw
     let encoder = JSONEncoder()
     encoder.outputFormatting = .sortedKeys
     fingerprint = (try? encoder.encode(raw))?.hashValue ?? 0
+  }
+
+  private static let readingKinds: Set<CardKind> = [
+    .article, .note, .mail, .digest, .suggestion, .file,
+  ]
+
+  /// 400 Chinese characters or 200 words per minute, rounded up (ADR 0086, Web `readingMinutes`).
+  static func readingMinutes(_ text: String) -> Int {
+    let han = #"\p{Script=Han}"#
+    let rest = text.replacingOccurrences(of: han, with: " ", options: .regularExpression)
+    let hanCount =
+      text.unicodeScalars.count
+      - text.replacingOccurrences(of: han, with: "", options: .regularExpression).unicodeScalars
+      .count
+    var words = 0
+    var range = rest.startIndex..<rest.endIndex
+    while let found = rest.range(
+      of: #"[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*"#, options: .regularExpression, range: range)
+    {
+      words += 1
+      range = found.upperBound..<rest.endIndex
+    }
+    return Int(ceil(Double(hanCount) / 400 + Double(words) / 200))
   }
 
   static func == (a: CardModel, b: CardModel) -> Bool {

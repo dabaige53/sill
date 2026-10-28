@@ -141,11 +141,8 @@ function saveNote(this: AppController, { id }: ActionContext) {
 	const note = (document.getElementById("note-editor") as HTMLInputElement).value.slice(0, 4000);
 	const ids = this.bulkEditIds || [id];
 	ids.forEach((cardId?: any, i?: any) => {
-		Store.patch(cardId, {
-			tags: [...this.editTags],
-			tagsEdited: true,
-			...(i === 0 ? { note } : {}),
-		});
+		Store.setTags(cardId, [...this.editTags]);
+		if (i === 0) Store.patch(cardId, { note });
 		this.refreshCard(cardId);
 	});
 	this.bulkEditIds = null;

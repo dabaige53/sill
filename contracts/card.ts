@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { richCardFields } from "./card-rich.ts";
 import { cardIssues } from "./card-rules.ts";
 
-export const contractVersion = "4.2.0";
+export const contractVersion = "5.0.0";
 export const cardTypes = [
 	"article",
 	"pr",
@@ -61,10 +61,10 @@ const image = z
 	}, "invalid_image");
 export const SourceReference = z
 	.object({ name: z.string().min(1).max(300), kind: z.string().min(1).max(100) })
-	.passthrough();
+	.strict();
 const namedParty = z
 	.object({ name: z.string().trim().min(1).max(300), url: httpUrl.optional() })
-	.passthrough();
+	.strict();
 const contentDate = z
 	.string()
 	.min(10)
@@ -72,6 +72,20 @@ const contentDate = z
 	.regex(
 		/^\d{4}-\d{2}-\d{2}(?:T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d))?$/,
 	);
+export const FileReference = z
+	.object({
+		name: z.string().trim().min(1).max(300),
+		mimeType: z
+			.string()
+			.min(3)
+			.max(200)
+			.regex(/^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/)
+			.optional(),
+		sizeBytes: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
+		modifiedAt: contentDate.optional(),
+		url: httpUrl.optional(),
+	})
+	.strict();
 export const Card = z
 	.object({
 		...richCardFields,
@@ -95,120 +109,42 @@ export const Card = z
 			.max(10000)
 			.optional()
 			.describe(
-				"Card face summary: one or two plain-text sentences for the feed card and search results. Not shown in the detail; put all detail text in body.",
+				"Card face summary: one or two plain-text sentences for the feed card and search results; for photos, the factual image description. Not shown in the detail; put all detail text in body.",
 			),
 		authors: z
 			.array(namedParty)
 			.max(20)
 			.optional()
 			.describe(
-				"Original content authors, not sources or the writing agent. Applies to article, note, mail, media, digest, suggestion and file.",
-			),
-		publisher: namedParty
-			.optional()
-			.describe(
-				"Article, note, mail, media, digest, suggestion or file only: original publisher, separate from authors and sources.",
+				"Original authors, publisher or mail sender, not sources or the writing agent. The first author is shown as the mail sender. Applies to article, note, mail, media, digest, suggestion and file.",
 			),
 		publishedAt: contentDate
 			.optional()
-			.describe("Original publication date or offset datetime. Preserve date-only precision."),
-		modifiedAt: contentDate
-			.optional()
-			.describe("Original content modification date, not the Sill updated_at timestamp."),
-		savedAt: contentDate
-			.optional()
-			.describe("Save date in the external source, not Sill created_at or personal addedAt."),
-		bodyCoverage: z
-			.enum(["full", "excerpt", "summary", "none"])
-			.optional()
 			.describe(
-				"Article, note, mail, digest, suggestion or file only: saved body coverage. full=complete, excerpt=partial, summary=summary only, none=no body. Never label an excerpt as full.",
-			),
-		readingEstimate: z
-			.object({
-				seconds: z.number().int().min(1).max(31536000),
-				origin: z.enum(["provided", "calculated"]),
-				scope: z.enum(["full", "available"]),
-				method: z.string().trim().min(1).max(100).optional(),
-			})
-			.passthrough()
-			.nullable()
-			.optional()
-			.describe(
-				"Article, note, mail, digest, suggestion or file only: estimated reading seconds, not actual reading time. provided requires a known external estimate; calculated requires method and saved bodyCoverage. full calculations require bodyCoverage=full. Recompute or set null when body changes; null explicitly clears the estimate.",
-			),
-		section: z
-			.string()
-			.trim()
-			.min(1)
-			.max(100)
-			.optional()
-			.describe("Article section name, separate from tags."),
-		sentAt: contentDate
-			.optional()
-			.describe("Mail only: actual send datetime with timezone; date-only values are invalid."),
-		recipients: z
-			.array(z.string().trim().min(1).max(300))
-			.max(100)
-			.optional()
-			.describe(
-				"Mail only: actual recipient names or addresses. Do not assume the current user is a recipient.",
+				"Original publication, send or capture date, or offset datetime. Preserve date-only precision.",
 			),
 		project: namedParty
 			.optional()
 			.describe("Task or reminder only: existing project name and optional HTTP(S) link."),
-		timeZone: z
-			.string()
-			.trim()
-			.min(1)
-			.max(100)
-			.optional()
-			.describe(
-				"Event only: IANA timezone identifier such as Asia/Shanghai; numeric offsets are not timezone identifiers.",
-			),
-		chapterCount: z
-			.number()
-			.int()
-			.min(1)
-			.max(10000)
-			.optional()
-			.describe(
-				"Media only: known total chapter count, at least chapters.length; omit when unknown.",
-			),
-		takenAt: contentDate
-			.optional()
-			.describe("Photo only: actual capture date or offset datetime; retain date-only precision."),
-		caption: z
-			.string()
-			.max(2000)
-			.optional()
-			.describe("Photo only: factual image description, not a personal note."),
-		coverageStart: timestamp
-			.optional()
-			.describe("Digest only: coverage start in Unix milliseconds; supply with coverageEnd."),
-		coverageEnd: timestamp
-			.optional()
-			.describe("Digest only: coverage end in Unix milliseconds, strictly after coverageStart."),
 		form: z
-			.enum(["standard", "image", "quote", "compact", "data"])
+			.enum(["quote"])
+			.optional()
+			.describe("Note only: quote shows the title as a quotation. Omit for the default layout."),
+		images: z
+			.array(image)
+			.min(1)
+			.max(50)
 			.optional()
 			.describe(
-				"Optional existing template hint, not HTML/CSS or a content type. Omit for the default layout.",
+				"Built-in illustrative asset IDs or HTTPS image URLs, not uploads. The first image is the cover; photo cards show all. Required for video and photo cards; never substitute for a real user photo.",
 			),
-		image: image
-			.optional()
-			.describe(
-				"Built-in illustrative asset ID only, not an image URL or upload. Required for video; never substitute for a real user photo.",
-			),
-		tags: strings
-			.optional()
-			.describe("Content tags. Personal edited tags use state.tags plus state.tagsEdited."),
+		tags: strings.optional().describe("Content tags. Editing tags edits the card."),
 		body: z
 			.string()
 			.max(500000)
 			.optional()
 			.describe(
-				"Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Use actual newline characters; serialize JSON once. Do not send an array, a JSON document string, or an enclosing Markdown fence. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto.",
+				"Detail text as one Markdown (CommonMark) string: headings, lists, quotes, emphasis, links and code. Use actual newline characters; serialize JSON once. Do not send an array, a JSON document string, or an enclosing Markdown fence. Raw HTML is shown as text, images are not loaded, and links must use http, https or mailto. Reading time is calculated from it.",
 			),
 		url: httpUrl
 			.optional()
@@ -220,31 +156,20 @@ export const Card = z
 			.max(11)
 			.optional()
 			.describe(
-				"Acquisition sources as {name,kind}; not authors, publisher or sender. Records provenance without connecting to the source.",
+				"Acquisition sources as {name,kind}; not authors. Records provenance without connecting to the source.",
 			),
-		why: z
-			.object({
-				reason: z.string().min(1).max(300),
-				basis: z.array(z.string().max(200)).max(5).optional(),
-			})
-			.passthrough()
-			.optional()
-			.describe(
-				"Suggestion rationale: reason plus optional factual basis. Keep recommendation distinct from evidence and do not execute it automatically.",
-			),
-		sender: z
+		location: z
 			.string()
 			.max(300)
 			.optional()
-			.describe("Actual mail sender; never infer from acquisition source."),
-		location: z.string().max(300).optional().describe("Known event location; omit if unavailable."),
+			.describe("Known event or photo location; omit if unavailable."),
 		meeting: z
 			.object({
 				name: z.string().min(1).max(100),
 				url: httpUrl,
 				code: z.string().max(100).optional(),
 			})
-			.passthrough()
+			.strict()
 			.optional()
 			.describe(
 				"Existing meeting reference {name,url,code?}, not a request to create a meeting. Never store credentials in the URL or code.",
@@ -261,49 +186,18 @@ export const Card = z
 			.optional()
 			.describe("Known media duration in integer seconds. Unknown is omitted, not zero."),
 		files: z
-			.array(
-				z
-					.object({
-						name: z.string().min(1).max(300),
-						mimeType: z
-							.string()
-							.min(3)
-							.max(200)
-							.regex(/^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/)
-							.optional(),
-						sizeBytes: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
-						modifiedAt: contentDate.optional(),
-						url: httpUrl.optional(),
-					})
-					.passthrough(),
-			)
+			.array(FileReference)
 			.max(200)
 			.optional()
 			.describe(
-				"File descriptions: name, optional MIME type, integer sizeBytes, original modifiedAt and HTTP(S) url. No binary/base64 upload; no meta/time. File cards require a nonempty list.",
-			),
-		photos: z
-			.array(image)
-			.max(50)
-			.optional()
-			.describe("Photo card built-in illustrative asset IDs only; not real photo uploads or URLs."),
-		attachment: z
-			.string()
-			.max(300)
-			.optional()
-			.describe(
-				"Legacy single mail attachment label. Prefer structured attachments for new cards; no uploaded file data.",
+				"Files or mail attachments: name, optional MIME type, integer sizeBytes, original modifiedAt and HTTP(S) url. No binary/base64 upload. File cards require a nonempty list.",
 			),
 		tasks: z
-			.array(
-				z
-					.object({ id, text: z.string().min(1).max(2000), done: z.boolean().optional() })
-					.passthrough(),
-			)
+			.array(z.object({ id, text: z.string().min(1).max(2000) }).strict())
 			.max(100)
 			.optional()
 			.describe(
-				"Task card actionable subtasks as {id,text,done?}; use nonempty tasks with unique stable IDs. Markdown checkboxes do not create interactive tasks.",
+				"Task card actionable subtasks as {id,text}; use nonempty tasks with unique stable IDs. Completion is personal state taskDone. Markdown checkboxes do not create interactive tasks.",
 			),
 		start: timestamp
 			.optional()
@@ -318,14 +212,8 @@ export const Card = z
 			),
 		time: timestamp
 			.optional()
-			.describe(
-				"Card timeline time in Unix milliseconds; separate from original publication, send and save dates.",
-			),
-		people: strings
-			.optional()
-			.describe(
-				"Known people involved, such as task participants or event attendees; do not invent assignments.",
-			),
+			.describe("Card timeline time in Unix milliseconds; separate from publishedAt."),
+		people: strings.optional().describe("Event only: known attendees; do not invent participants."),
 		related: z
 			.array(id)
 			.max(100)
@@ -338,11 +226,9 @@ export const Card = z
 			.optional()
 			.describe("Priority from 0 to 10, only when requested or supported by source facts."),
 	})
-	.passthrough()
+	.strict()
 	.superRefine((card, context) => {
 		for (const message of cardIssues(card)) context.addIssue({ code: "custom", message });
 	});
 export type Card = z.infer<typeof Card>;
 export type SourceReference = z.infer<typeof SourceReference>;
-
-export { normalizeCard } from "./card-migration.ts";

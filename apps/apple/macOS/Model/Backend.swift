@@ -47,6 +47,7 @@ final class LocalBackend: WorkspaceBackend {
   func apply(_ operations: [WorkspaceOperation], expectedRevision: Int) async throws -> Snapshot {
     var patches: [String: [String: JSONValue]] = [:]
     var deletions: [String] = []
+    var replacements: [Card] = []
     for operation in operations {
       switch operation {
       case .itemPatch(let id, let values):
@@ -59,10 +60,17 @@ final class LocalBackend: WorkspaceBackend {
         return try await store.addReading(seconds: seconds, expectedRevision: expectedRevision)
       case .upsert(let card, _) where operations.count == 1:
         return try await store.upsert(Card(json: card), expectedRevision: expectedRevision)
+      case .upsert(let card, let before) where before != .null:
+        replacements.append(try Card(json: card))
       default:
         // The local store writes one kind of change atomically; mixed batches are not split.
         throw StoreError.invalidSnapshot
       }
+    }
+    if !replacements.isEmpty, deletions.isEmpty {
+      return try await store.edit(
+        cards: replacements, patches: patches.mapValues(JSONValue.object),
+        expectedRevision: expectedRevision)
     }
     if !patches.isEmpty, deletions.isEmpty {
       return try await store.patchItems(

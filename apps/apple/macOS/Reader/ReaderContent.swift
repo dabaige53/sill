@@ -61,7 +61,7 @@ struct ReaderContent: View {
           card: card, state: state, full: page, availableWidth: mediaWidth,
           availableHeight: mediaHeight)
       default:
-        if !page, card.image != nil,
+        if !page, card.cover != nil,
           recipe.body.contains(where: { $0.name == "cover" && $0.string("preview") == "hoist" })
         {
           articleCover.padding(.horizontal, -AppleMetrics.articleGutter + AppleMetrics.space8)
@@ -128,12 +128,10 @@ struct ReaderContent: View {
           title
           if entry.flag("publication") == false {
             ReaderTags(tags: state.tags(of: card))
-          } else if !state.tags(of: card).isEmpty || card.detailPublication.date != nil
-            || !card.detailPublication.rows.isEmpty
-          {
+          } else if !state.tags(of: card).isEmpty || card.detailDate != nil {
             VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
               ReaderTags(tags: state.tags(of: card))
-              PublicationRows(publication: card.detailPublication)
+              PublicationRows(card: card)
             }
           }
         }
@@ -171,9 +169,7 @@ struct ReaderContent: View {
     switch entry.string("line") {
     case "digest":
       [
-        card.coverageStart.flatMap { start in
-          card.coverageEnd.map { "\(Format.dateLabel(start)) – \(Format.dateLabel($0))" }
-        } ?? card.sourceName.nilIfEmpty,
+        card.sourceName.nilIfEmpty,
         card.related.isEmpty ? nil : "\(card.related.count)\(Copy.text("web.card.relatedCount"))",
       ].compactMap { $0 }.joined(separator: " · ")
     case "task":
@@ -199,7 +195,7 @@ struct ReaderContent: View {
       default:
         [
           [.note, .suggestion].contains(card.kind) ? card.publicationName : card.sourceName,
-          [.note, .suggestion].contains(card.kind) ? card.publication.date ?? "" : "",
+          [.note, .suggestion].contains(card.kind) ? card.publicationDate ?? "" : "",
           card.readingTime,
         ].filter { !$0.isEmpty }.joined(separator: " · ")
       }
@@ -215,10 +211,11 @@ struct ReaderContent: View {
           HStack(spacing: AppleMetrics.space6) {
             SourceIcon(card: card, size: AppleMetrics.font12)
             Text(
-              [card.sourceName, card.sentAt.flatMap(Self.fullDate) ?? "", card.readingTime].filter {
-                !$0.isEmpty
-              }
-              .joined(separator: " · ")
+              [card.sourceName, card.publishedAt.flatMap(Self.fullDate) ?? "", card.readingTime]
+                .filter {
+                  !$0.isEmpty
+                }
+                .joined(separator: " · ")
             )
             .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
           }
@@ -253,7 +250,6 @@ struct ReaderContent: View {
         .foregroundStyle(AppleColors.primary)
       Text(
         "\(Copy.text("web.templates.83532308ecca"))\(Format.time(end)) · \(Int(((end - start) / 60000).rounded()))\(Copy.text("web.templates.40de54344d22"))"
-          + (card.raw["timeZone"]?.string.map { " · \($0)" } ?? "")
       )
       .textStyle(AppleMetrics.font15, number: true).foregroundStyle(AppleColors.secondary)
     }
@@ -269,11 +265,11 @@ struct ReaderContent: View {
     let lead = previous.map(renders) == true ? rhythm.sectionLead : 0
     switch entry.name {
     case "cover":
-      if page, card.image != nil {
+      if page, card.cover != nil {
         if entry.string("preview") == "hoist" {
           articleCover
         } else {
-          CoverImage(name: card.image)
+          CoverImage(name: card.cover)
             .aspectRatio(16 / 9, contentMode: .fit)
             .frame(maxWidth: .infinity)
             .clipShape(
@@ -289,28 +285,18 @@ struct ReaderContent: View {
         }
       }
     case "files":
-      if entry.string("label") == "attachments" {
-        if !card.attachments.isEmpty {
-          DetailFiles(
-            files: card.attachments, label: Copy.text("web.card.attachments"), attachment: true
-          )
-          .padding(.top, lead)
-        }
-      } else if !card.files.isEmpty {
+      if !card.files.isEmpty {
         DetailFiles(files: card.files).padding(.top, lead)
       }
-    case "why":
-      if let why = card.why {
-        section(Copy.text("web.card.why")) {
-          VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-            Text(why.reason).textStyle(AppleMetrics.font17, .medium, leading: 1.55)
-            VStack(alignment: .leading, spacing: AppleMetrics.space6) {
-              ForEach(Array(why.basis.enumerated()), id: \.offset) { _, line in
-                Text("• \(line)").textStyle(AppleMetrics.font14, leading: 1.6)
-              }
-            }
-          }
+    case "participants":
+      if !card.people.isEmpty {
+        HStack(spacing: AppleMetrics.space10) {
+          Avatars(names: card.people)
+          Text(card.people.joined(separator: "、")).textStyle(AppleMetrics.font15)
+            .foregroundStyle(AppleColors.primary)
+            .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(.top, rhythm.rowLift)
       }
     case "references":
       if !card.related.compactMap(lookup).isEmpty {
@@ -327,11 +313,6 @@ struct ReaderContent: View {
             DetailRow(
               icon: "clock", title: Copy.text("web.card.due") + " " + Format.dateLabel(due),
               tone: AppleColors.warning)
-          }
-          if !card.people.isEmpty {
-            DetailRow(
-              icon: "at", title: card.people.joined(separator: "、"),
-              trailing: "\(card.people.count)\(Copy.text("web.preview.peopleCountSuffix"))")
           }
           if card.raw["priority"]?.number != nil {
             DetailRow(
@@ -381,16 +362,14 @@ struct ReaderContent: View {
   private func renders(_ entry: RecipeEntry) -> Bool {
     switch entry.name {
     case "body": !card.markdown.blocks.isEmpty
-    case "why": card.why != nil
     case "references": !card.related.compactMap(lookup).isEmpty
-    case "files":
-      entry.string("label") == "attachments" ? !card.attachments.isEmpty : !card.files.isEmpty
+    case "files": !card.files.isEmpty
     default: false
     }
   }
 
   private var hasFacts: Bool {
-    card.due != nil || !card.people.isEmpty || card.raw["priority"]?.number != nil
+    card.due != nil || card.raw["priority"]?.number != nil
   }
 
   /// A small grey section title over its content (Web `.detail-section`).
@@ -413,7 +392,7 @@ struct ReaderContent: View {
   }
 
   private var articleCover: some View {
-    CoverImage(name: card.image)
+    CoverImage(name: card.cover)
       .frame(height: page ? 340 : AppleMetrics.space220)
       .frame(maxWidth: .infinity)
       .clipped()
@@ -437,13 +416,6 @@ struct ReaderContent: View {
     var rows: [(String, String, String)] = []
     if let meeting = card.meeting { rows.append(("video", meeting.name, meeting.code ?? "")) }
     if let location = card.location { rows.append(("pin", location, "")) }
-    if !card.people.isEmpty {
-      rows.append(
-        (
-          "at", card.people.joined(separator: "、"),
-          "\(card.people.count)\(Copy.text("web.preview.peopleCountSuffix"))"
-        ))
-    }
     return rows
   }
 

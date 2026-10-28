@@ -210,12 +210,12 @@ struct CloudWorkspaceTests {
   @Test func createReplaceAndDeleteTimeoutsVerifyFullCardWithoutServerMetadata() async throws {
     let card: JSONValue = .object([
       "id": .string("created"), "type": .string("note"), "title": .string("Synthetic"),
-      "body": .string(""), "future": .object(["preserved": .bool(true)]),
+      "body": .string(""),
       "url": .string("https://example.com/old"), "summary": .string("Old summary"),
     ])
     let item = try JSONValue.decode(
       Data(
-        #"{"seen":false,"read":false,"bookmarked":false,"later":false,"tagsEdited":false,"playbackPosition":0,"progress":0,"note":"","tags":[],"addedAt":0,"snoozedUntil":0,"dismissed":false,"reminderDone":false,"lastReminderKey":"","lastNotifiedAt":0,"readAt":0,"restoredAt":0,"done":false,"archived":false,"lessLike":false,"taskDone":[]}"#
+        #"{"seen":false,"read":false,"bookmarked":false,"later":false,"playbackPosition":0,"progress":0,"note":"","addedAt":0,"snoozedUntil":0,"dismissed":false,"reminderDone":false,"lastReminderKey":"","lastNotifiedAt":0,"readAt":0,"restoredAt":0,"done":false,"archived":false,"lessLike":false,"taskDone":[]}"#
           .utf8))
     var server = empty
     var writes = 0
@@ -260,7 +260,6 @@ struct CloudWorkspaceTests {
     ])
     let actual = try #require(replaced.json["state"]?["cards"]?.array?.first)
     #expect(actual["url"] == nil && actual["summary"] == nil)
-    #expect(actual["future"] == card["future"])
     _ = try await store.apply(operations: [
       .object(["op": .string("card.delete"), "id": .string("created"), "before": actual])
     ])

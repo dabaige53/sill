@@ -6,8 +6,9 @@ import {
 	reminderClock,
 	timeString,
 } from "../atoms/primitives.ts";
+import { Avatars } from "../atoms/react-primitives.tsx";
 import { ReminderMark } from "../cards/card-face.tsx";
-import { FileList, RelatedCards, TaskFacts, WhyDetails } from "../cards/detail-blocks.tsx";
+import { FileList, RelatedCards, TaskFacts } from "../cards/detail-blocks.tsx";
 import { DetailText } from "../cards/markdown.tsx";
 import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
 import { PullRequest } from "../cards/pull-request.tsx";
@@ -22,7 +23,13 @@ import {
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import { cardReadingTime, cardSource, detailDate } from "../data/card-source.ts";
+import {
+	cardCover,
+	cardReadingTime,
+	cardSender,
+	cardSource,
+	detailDate,
+} from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -98,7 +105,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 				className={`sheet preview-sheet detail-${c.type}`}
 				style={
 					c.media === "podcast"
-						? ({ "--podcast-tone": AssetTones[c.image] || "var(--surface)" } as CSSProperties)
+						? ({ "--podcast-tone": AssetTones[cardCover(c)] || "var(--surface)" } as CSSProperties)
 						: undefined
 				}
 			>
@@ -152,7 +159,7 @@ function coverImage(c: PreviewCard) {
 					event.currentTarget.style.opacity = "1";
 				}}
 				data-shared={"image"}
-				src={assetURL(c.image)}
+				src={assetURL(cardCover(c))}
 				alt={""}
 				draggable={false}
 			/>
@@ -178,9 +185,7 @@ const detailLines: Record<string, DetailBlock> = {
 		previewMeta(
 			c,
 			[
-				c.coverageStart !== undefined && c.coverageEnd !== undefined
-					? `${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`
-					: cardSource(c),
+				cardSource(c),
 				c.related?.length ? `${c.related.length}${copy("web.card.relatedCount")}` : "",
 			]
 				.filter(Boolean)
@@ -204,7 +209,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 		return (detailLines[o.line] || detailLines.meta).call(this, c, o, scope);
 	},
 	sender(c) {
-		const sender = c.sender?.trim();
+		const sender = cardSender(c);
 		return sender ? (
 			<div className={"preview-sender"}>
 				{avatar(sender, 36)}
@@ -212,7 +217,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 					<b>{sender}</b>
 					<small>
 						<SourceMark card={c} />
-						{[cardSource(c), detailDate(c.sentAt, true), cardReadingTime(c)]
+						{[cardSource(c), detailDate(c.publishedAt, true), cardReadingTime(c)]
 							.filter(Boolean)
 							.join(" · ")}
 					</small>
@@ -244,7 +249,6 @@ const detailBlocks: Record<string, DetailBlock> = {
 				{" · "}
 				{Math.round((c.end - c.start) / 60000)}
 				{copy("web.templates.40de54344d22")}
-				{c.timeZone ? ` · ${c.timeZone}` : ""}
 			</small>
 		</div>
 	),
@@ -267,7 +271,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 		return this.tags(c);
 	},
 	reminderMark: (c, _o, { s }) => <ReminderMark card={c} done={!!s.reminderDone} />,
-	cover: (c, _o, { mode }) => (c.image && mode === "reader" ? coverImage(c) : null),
+	cover: (c, _o, { mode }) => (cardCover(c) && mode === "reader" ? coverImage(c) : null),
 	body: (c, o) =>
 		o.section === "agenda" ? (
 			c.body?.trim() && (
@@ -279,17 +283,14 @@ const detailBlocks: Record<string, DetailBlock> = {
 		) : (
 			<DetailText body={c.body} outline={!!o.outline && c.type === "article"} />
 		),
-	files: (c, o) =>
-		o.label === "attachments" ? (
-			<FileList
-				attachment
-				label={copy("web.card.attachments")}
-				files={c.attachments ?? (c.attachment ? [{ name: c.attachment }] : [])}
-			/>
-		) : (
-			<FileList files={c.files} />
-		),
-	why: (c) => <WhyDetails card={c} />,
+	files: (c) => <FileList files={c.files} />,
+	participants: (c) =>
+		c.people?.length ? (
+			<div className="detail-row detail-people">
+				<Avatars names={c.people} />
+				<span>{c.people.join("、")}</span>
+			</div>
+		) : null,
 	references: (c) => <RelatedCards card={c} />,
 	facts: (c) => <TaskFacts card={c} />,
 	checklist: (c) => (
@@ -316,16 +317,6 @@ const detailBlocks: Record<string, DetailBlock> = {
 				<div className={"detail-row"} key="location">
 					<span className={"row-icon"}>{icon("pin", 16)}</span>
 					<span>{c.location}</span>
-				</div>
-			) : null,
-			c.people?.length ? (
-				<div className={"detail-row"} key="people">
-					<span className={"row-icon"}>{icon("at", 16)}</span>
-					<span>{c.people.join("、")}</span>
-					<small>
-						{c.people.length}
-						{copy("web.preview.peopleCountSuffix")}
-					</small>
 				</div>
 			) : null,
 		].filter(Boolean);
@@ -405,7 +396,7 @@ function detailPreview(
 		<>
 			{sheet(
 				detailContent.call(this, c, recipe, "preview", s),
-				hoisted && c.image ? coverImage(c) : "",
+				hoisted && cardCover(c) ? coverImage(c) : "",
 				"",
 				recipe.end && c.body?.trim() ? (
 					<div className="reader-end" id="reader-end" aria-hidden="true" />

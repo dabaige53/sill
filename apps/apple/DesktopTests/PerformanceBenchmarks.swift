@@ -12,7 +12,7 @@ import XCTest
       .object([
         "id": .string("perf-\(i)"), "type": .string("article"),
         "title": .string("Synthetic \(i)"),
-        "body": .array([.string(String(repeating: "Synthetic text ", count: 50))]),
+        "body": .string(String(repeating: "Synthetic text ", count: 50)),
         "time": .number(Double(count - i)),
       ])
     }

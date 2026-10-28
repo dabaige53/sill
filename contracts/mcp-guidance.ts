@@ -12,12 +12,12 @@ export const toolDescriptions = {
 		"Read one authorized card by its real ID before editing. Preserve its revision, structured facts and personal state. " +
 		cardFormat,
 	sill_createContent:
-		"Create one card with body:{type,title,...fields}; its nested body is Markdown. Prefer typed fields for tasks, meetings, files, mail attachments, media chapters/transcript and PR snapshots. PR requires pullRequest with repository, number, state and observedAt. Read the returned ID to verify saved fields. " +
+		"Create one card with body:{type,title,...fields}; its nested body is Markdown. Prefer typed fields for tasks, meetings, files (including mail attachments), images, media chapters/transcript and PR snapshots. Unknown or removed fields are rejected. PR requires pullRequest with repository, number, state and observedAt. Read the returned ID to verify saved fields. " +
 		cardFormat +
 		" " +
 		writeRules,
 	sill_updateContent:
-		"Patch a card using body:{expectedRevision,changes}; use the revision just read. Omitted fields stay unchanged; state merges by key, arrays/objects/Markdown replace as a whole. Merge preserved elements first. When changing body or bodyCoverage with an existing calculated readingEstimate, recompute it or explicitly clear with readingEstimate:null. Other fields do not accept null. Read the ID again after success. " +
+		"Patch a card using body:{expectedRevision,changes}; use the revision just read. Omitted fields stay unchanged; state merges by key, arrays/objects/Markdown replace as a whole. Merge preserved elements first. Fields do not accept null. Task completion and other personal state go in state, for example state.taskDone. Read the ID again after success. " +
 		cardFormat +
 		" " +
 		writeRules,

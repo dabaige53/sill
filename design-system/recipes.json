@@ -78,17 +78,6 @@
 			],
 			"detail": "note"
 		},
-		"note.capture": {
-			"card": [
-				{
-					"block": "source",
-					"line": "publication",
-					"date": "published"
-				},
-				"captureText"
-			],
-			"detail": "note"
-		},
 		"mail": {
 			"card": [
 				"sender",
@@ -96,8 +85,7 @@
 				"summary",
 				{
 					"block": "files",
-					"style": "attachment",
-					"limit": 3
+					"limit": 1
 				}
 			],
 			"detail": {
@@ -108,10 +96,7 @@
 				],
 				"body": [
 					"body",
-					{
-						"block": "files",
-						"label": "attachments"
-					}
+					"files"
 				]
 			}
 		},
@@ -236,10 +221,10 @@
 						"block": "info",
 						"fields": [
 							"meeting",
-							"location",
-							"people"
+							"location"
 						]
 					},
+					"participants",
 					{
 						"block": "body",
 						"section": "agenda"
@@ -287,7 +272,8 @@
 			"card": [
 				{
 					"block": "source",
-					"line": "coverage",
+					"line": "publication",
+					"date": "published",
 					"status": "relatedCount"
 				},
 				"title",
@@ -325,10 +311,7 @@
 					"date": "published"
 				},
 				"title",
-				{
-					"block": "summary",
-					"from": "why"
-				},
+				"summary",
 				{
 					"block": "references",
 					"limit": 2
@@ -349,7 +332,7 @@
 						"block": "cover",
 						"preview": "hide"
 					},
-					"why",
+					"body",
 					"references"
 				]
 			}
@@ -365,7 +348,6 @@
 				"title",
 				{
 					"block": "summary",
-					"from": "caption",
 					"fallback": false
 				}
 			],
@@ -382,7 +364,6 @@
 				"summary",
 				{
 					"block": "files",
-					"style": "file",
 					"limit": 3
 				}
 			],

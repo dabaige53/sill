@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -14,23 +13,17 @@ const article = {
 	type: "article",
 	title: "Explicit facts",
 	body: "Full synthetic text",
-	bodyCoverage: "full",
-	authors: [{ name: "Writer", url: "https://example.com/author", future: true }],
-	publisher: { name: "Publisher" },
+	authors: [{ name: "Writer", url: "https://example.com/author" }],
 	publishedAt: "2026-10-20",
-	modifiedAt: "2026-10-20T10:30Z",
-	savedAt: "2026-10-20T12:30:00+08:00",
-	section: "Research",
-	readingEstimate: { seconds: 120, origin: "calculated", scope: "full", method: "explicit-count" },
 };
 
 const otherCards = [
 	{
 		type: "mail",
 		title: "Email facts",
-		sentAt: "2026-10-20T10:20Z",
-		recipients: ["Reader"],
+		publishedAt: "2026-10-20T10:20Z",
 		authors: [{ name: "Sender" }],
+		files: [{ name: "brief.pdf", mimeType: "application/pdf", sizeBytes: 1024 }],
 	},
 	{
 		type: "task",
@@ -39,16 +32,22 @@ const otherCards = [
 		project: { name: "Project", url: "https://example.com/project" },
 	},
 	{ type: "reminder", title: "Project reminder", project: { name: "Project" } },
-	{ type: "event", title: "Zoned event", start: 1000, end: 2000, timeZone: "Asia/Shanghai" },
-	{ type: "media", title: "Chapters", media: "podcast", chapterCount: 4, duration: 240 },
+	{ type: "event", title: "Meeting", start: 1000, end: 2000, people: ["Reader"] },
+	{
+		type: "media",
+		title: "Chapters",
+		media: "podcast",
+		duration: 240,
+		chapters: [{ start: 0, title: "Intro" }],
+	},
 	{
 		type: "photo",
 		title: "Photo facts",
-		image: "coast",
-		takenAt: "2026-10-20",
-		caption: "Synthetic coast",
+		images: ["coast"],
+		publishedAt: "2026-10-20",
+		summary: "Synthetic coast",
 	},
-	{ type: "digest", title: "Coverage", coverageStart: 1000, coverageEnd: 2000 },
+	{ type: "note", title: "Quote", form: "quote", body: "Quoted text" },
 	{
 		type: "file",
 		title: "File facts",
@@ -64,7 +63,7 @@ const otherCards = [
 	},
 ];
 
-test("explicit metadata SQL matches contract validation and checks merged partial updates", async () => {
+test("card SQL matches contract validation and checks merged partial updates", async () => {
 	const f = await cloudFixture();
 	try {
 		await identity(f.db);
@@ -82,31 +81,41 @@ test("explicit metadata SQL matches contract validation and checks merged partia
 
 		for (const bad of [
 			{ ...article, meta: "legacy" },
-			{ ...article, readingEstimate: { seconds: 0, origin: "provided", scope: "full" } },
+			{ ...article, future: true },
+			{ ...article, readingEstimate: { seconds: 120 } },
+			{ ...article, bodyCoverage: "full" },
+			{ ...article, sender: { name: "Sender" } },
 			{ ...article, publishedAt: "2026-02-30" },
-			{ ...article, bodyCoverage: "none" },
-			{ ...article, body: "" },
-			{ ...article, body: "\n\t " },
 			{ ...article, authors: [{ name: "\t " }] },
+			{ ...article, authors: [{ name: "Writer", future: true }] },
+			{ ...article, summary: null },
 			{
-				...article,
-				readingEstimate: { seconds: 2, origin: "calculated", scope: "full", method: "\n" },
+				type: "task",
+				title: "Unrelated",
+				tasks: [{ id: "a", text: "A" }],
+				authors: [{ name: "A" }],
 			},
-			{ ...article, readingEstimate: { seconds: 2, origin: "calculated", scope: "full" } },
-			{ type: "task", title: "Unrelated", authors: [{ name: "A" }] },
-			{ type: "note", title: "Not email", sentAt: "2026-10-20T10:00:00Z" },
+			{ type: "task", title: "Completed", tasks: [{ id: "a", text: "A", done: true }] },
+			{ type: "note", title: "Not an event", people: ["A"] },
+			{ type: "note", title: "Layout", form: "capture" },
+			{ type: "photo", title: "No image" },
 			{ type: "file", title: "File", files: [{ name: "A", meta: "legacy" }] },
 			{ type: "file", title: "File", files: [{ name: "A", time: 100 }] },
 			{ type: "file", title: "File", files: [{ name: "A", sizeBytes: 1.5 }] },
 			{ type: "file", title: "File", files: [{ name: "" }] },
 			{ type: "file", title: "File", files: Array.from({ length: 201 }, () => ({ name: "A" })) },
-			{ type: "event", title: "Event", timeZone: "Made/Up" },
-			{ type: "digest", title: "Digest", coverageStart: 20, coverageEnd: 10 },
+			{ type: "event", title: "Event", start: 1000, end: 2000, timeZone: "Asia/Shanghai" },
+			{ type: "digest", title: "Digest", coverageStart: 10, coverageEnd: 20 },
 		]) {
 			assert.equal(create.safeParse(bad).success, false, JSON.stringify(bad));
-			await assert.rejects(write("create", null, bad), /invalid_request/);
+			await assert.rejects(write("create", null, bad), /invalid_request/, JSON.stringify(bad));
 		}
-		for (const changes of [{ body: "Changed" }, { bodyCoverage: "excerpt" }, { type: "task" }])
+		for (const changes of [
+			{ type: "task" },
+			{ people: ["A"] },
+			{ summary: null },
+			{ section: "Research" },
+		])
 			await assert.rejects(
 				write("update", saved.id, { expectedRevision: 1, changes }),
 				/invalid_request/,
@@ -116,56 +125,37 @@ test("explicit metadata SQL matches contract validation and checks merged partia
 		const updated = (
 			await write("update", saved.id, {
 				expectedRevision: 1,
-				changes: { body: "Changed", readingEstimate: null, state: { note: "Personal note" } },
+				changes: { body: "Changed", state: { note: "Personal note" } },
 			})
 		).body;
-		assert.equal(updated.readingEstimate, null);
+		assert.equal(updated.body, "Changed");
 		assert.equal(updated.state.note, "Personal note");
-		assert.equal(updated.meta, undefined);
-		// Full-card edits clear omitted metadata while keeping unknown extensions.
-		await f.db.exec("reset role");
-		await f.db.query(
-			"update sill_private.contents set card=card||'{\"futureField\":true}'::jsonb where id=$1",
-			[saved.id],
-		);
-		await identity(f.db);
+		assert.deepEqual(updated.authors, article.authors);
+		// A full-card edit replaces the card: omitted fields are removed and unknown fields are rejected.
 		const workspace = await rpc(f.db, "sill_get_workspace", []);
-		await rpc(f.db, "sill_apply_operations", [
-			JSON.stringify({
-				expectedRevision: workspace.revision,
-				operations: [
-					{
-						op: "card.upsert",
-						card: {
-							id: saved.id,
-							type: "article",
-							title: "Full replacement",
-							body: "Replacement text",
-						},
-					},
-				],
-			}),
-			"explicit_replace_01",
-		]);
-		const replaced = await rpc(f.db, "sill_get_content", [saved.id]);
-		assert.equal(replaced.readingEstimate, undefined);
-		assert.equal(replaced.authors, undefined);
-		assert.equal(replaced.futureField, true);
-		const file = {
-			type: "file",
-			title: "File",
-			files: [
-				{
-					name: "A",
-					mimeType: "application/pdf",
-					sizeBytes: 0,
-					modifiedAt: "2026-10-20",
-					url: "https://example.com/a",
-				},
-			],
+		const upsert = (card: unknown, key: string) =>
+			rpc(f.db, "sill_apply_operations", [
+				JSON.stringify({
+					expectedRevision: workspace.revision,
+					operations: [{ op: "card.upsert", card }],
+				}),
+				key,
+			]);
+		const replacement = {
+			id: saved.id,
+			type: "article",
+			title: "Full replacement",
+			body: "Replacement text",
 		};
-		assert.equal(create.safeParse(file).success, true);
-		assert.deepEqual((await write("create", null, file)).body.files, file.files);
+		await assert.rejects(
+			upsert({ ...replacement, futureField: true }, "explicit_replace_bad"),
+			/invalid_request/,
+		);
+		await upsert(replacement, "explicit_replace_01");
+		const replaced = await rpc(f.db, "sill_get_content", [saved.id]);
+		assert.equal(replaced.title, "Full replacement");
+		assert.equal(replaced.authors, undefined);
+		assert.equal(replaced.publishedAt, undefined);
 	} finally {
 		await f.db.close();
 	}
@@ -209,16 +199,16 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 					body: JSON.stringify({ expectedRevision: 1, changes }),
 				}),
 			);
-		assert.equal((await patch({ body: "Updated text" }, "explicit_http_stale")).status, 400);
-		const cleared = await patch(
-			{ body: "Updated text", readingEstimate: null, state: { note: "Private reader note" } },
-			"explicit_http_clear",
+		assert.equal((await patch({ summary: null }, "explicit_http_null")).status, 400);
+		const changed = await patch(
+			{ body: "Updated text", state: { note: "Private reader note" } },
+			"explicit_http_change",
 		);
-		assert.equal(cleared.status, 200);
-		const clearedCard = await cleared.json();
-		assert.equal(clearedCard.readingEstimate, null);
-		assert.equal(clearedCard.state.note, "Private reader note");
-		assert.deepEqual(clearedCard.authors, article.authors);
+		assert.equal(changed.status, 200);
+		const changedCard = await changed.json();
+		assert.equal(changedCard.body, "Updated text");
+		assert.equal(changedCard.state.note, "Private reader note");
+		assert.deepEqual(changedCard.authors, article.authors);
 
 		for (const [index, sample] of otherCards.entries()) {
 			const result = await call(sample, "explicit_http_more_" + index);
@@ -231,6 +221,7 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 		for (const bad of [
 			{ ...article, meta: "old" },
 			{ type: "note", title: "Wrong", chapterCount: 2 },
+			{ type: "mail", title: "Wrong", recipients: ["Reader"] },
 		])
 			assert.equal((await call(bad, crypto.randomUUID())).status, 400);
 		await f.db.exec(
@@ -249,15 +240,15 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 		);
 		const discovered = await client.listTools();
 		const creationTool = discovered.tools.find((tool) => tool.name === "sill_createContent");
-		assert.match(JSON.stringify(creationTool?.inputSchema), /readingEstimate/);
-		assert.match(JSON.stringify(creationTool?.inputSchema), /bodyCoverage/);
-		assert.match(JSON.stringify(creationTool?.inputSchema), /Original content authors/);
+		const schema = JSON.stringify(creationTool?.inputSchema);
+		assert.match(schema, /publishedAt/);
+		assert.match(schema, /The first author is shown as the mail sender/);
+		assert.doesNotMatch(schema, /readingEstimate|bodyCoverage|"sender"|"attachments"/);
 		const result = await client.callTool({
 			name: "sill_createContent",
 			arguments: { idempotency_key: "explicit_mcp_01", body: article },
 		});
 		assert.equal(result.isError, undefined);
-		assert.match(JSON.stringify(result), /explicit-count/);
 		const savedMCP = result.structuredContent as { id: string; revision: number };
 		const changedMCP = await client.callTool({
 			name: "sill_updateContent",
@@ -268,7 +259,6 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 					expectedRevision: savedMCP.revision,
 					changes: {
 						body: "Updated through MCP",
-						readingEstimate: null,
 						state: { note: "MCP personal note" },
 					},
 				},
@@ -280,7 +270,7 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 			arguments: { id: savedMCP.id },
 		});
 		const fetchedValue = fetchedMCP.structuredContent as Record<string, unknown>;
-		assert.equal(fetchedValue.readingEstimate, null);
+		assert.equal(fetchedValue.body, "Updated through MCP");
 		assert.deepEqual(fetchedValue.authors, article.authors);
 		assert.match(JSON.stringify(fetchedMCP), /MCP personal note/);
 		const invalid = await client.callTool({
@@ -297,38 +287,11 @@ test("HTTP and MCP preserve explicit facts and reject legacy or unrelated fields
 	}
 });
 
-test("shared invalid metadata fixtures are rejected by database full-card operations", async () => {
+test("shared invalid card fixtures are rejected by database full-card operations", async () => {
 	const f = await cloudFixture();
 	try {
 		await identity(f.db);
-		const fields = [
-			"meta",
-			"authors",
-			"publisher",
-			"publishedAt",
-			"modifiedAt",
-			"savedAt",
-			"bodyCoverage",
-			"readingEstimate",
-			"section",
-			"sentAt",
-			"recipients",
-			"project",
-			"timeZone",
-			"chapterCount",
-			"takenAt",
-			"caption",
-			"coverageStart",
-			"coverageEnd",
-		];
-		const invalidMetadata = fixtures.invalid.filter(
-			(sample) =>
-				fields.some((field) => Object.hasOwn(sample.card, field)) ||
-				sample.card.files?.some(
-					(file) => Object.hasOwn(file, "meta") || Object.hasOwn(file, "time"),
-				),
-		);
-		for (const [index, sample] of invalidMetadata.entries()) {
+		for (const [index, sample] of fixtures.invalid.entries()) {
 			const payload = {
 				expectedRevision: 0,
 				operations: [{ op: "card.upsert", before: null, card: sample.card }],

@@ -1,5 +1,4 @@
 import recipes from "../../../design-system/recipes.json" with { type: "json" };
-import { cardSourceKind } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 
 /** A recipe entry: a block, a block with options, a group of entries, or a composite surface. */
@@ -23,12 +22,11 @@ interface Recipe {
 
 const types = recipes.types as Record<string, Recipe>;
 
-/** The recipe key: the card type, or a variant for media subtypes and quote or capture notes. */
+/** The recipe key: the card type, or a variant for media subtypes and quote notes. */
 export function recipeKey(card: Record<string, any>): string {
 	const type = Object.hasOwn(CardTypes, card.type) ? card.type : "default";
 	if (type === "media") return card.media === "podcast" ? "media.podcast" : "media.video";
 	if (type === "note" && card.form === "quote") return "note.quote";
-	if (type === "note" && cardSourceKind(card) === "capture") return "note.capture";
 	return Object.hasOwn(types, type) ? type : "default";
 }
 

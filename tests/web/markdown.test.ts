@@ -9,7 +9,6 @@ import {
 	markdownHtml,
 	markdownText,
 } from "../../apps/web/atoms/markdown.ts";
-import { normalizeCard } from "../../contracts/card-migration.ts";
 
 const render = (text: string) => new JSDOM(markdownHtml(text)).window.document;
 
@@ -62,22 +61,6 @@ test("plain text drops markup for search, excerpts and the card face", () => {
 	const text = "## Title\n\n1. **One** point\n2. Two\n\nA [link](https://example.com)\nwraps";
 	assert.deepEqual(markdownBlocks(text), ["Title", "One point", "Two", "A link wraps"]);
 	assert.equal(markdownText(text), "Title\nOne point\nTwo\nA link wraps");
-});
-
-test("legacy body arrays and points become one Markdown body when read", () => {
-	const card = normalizeCard({
-		id: "legacy",
-		type: "digest",
-		title: "Legacy",
-		points: ["A", "B"],
-		body: ["First", " ", "Second"],
-	} as unknown as Parameters<typeof normalizeCard>[0]);
-	assert.equal(card.body, "1. A\n2. B\n\nFirst\n\nSecond");
-	assert.equal("points" in card, false);
-	const empty = normalizeCard({ id: "e", type: "note", title: "E", body: [] } as never);
-	assert.equal("body" in empty, false);
-	const current = normalizeCard({ id: "c", type: "note", title: "C", body: "Kept" });
-	assert.equal(current.body, "Kept");
 });
 
 test("code blocks remain searchable and available as card text", () => {

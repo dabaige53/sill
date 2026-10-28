@@ -73,23 +73,46 @@ public actor CardStore {
 
   public func patchItems(_ patches: [String: JSONValue], expectedRevision: Int) throws -> Snapshot {
     guard !patches.isEmpty, patches.count <= 500 else { throw StoreError.invalidSnapshot }
-    return try update(expectedRevision: expectedRevision) { state in
-      var items = state["items"]?.object ?? [:]
-      for (id, values) in patches {
-        guard let card = state["cards"]?.array?.first(where: { $0["id"]?.string == id }),
-          let fields = values.object
-        else { throw StoreError.invalidSnapshot }
-        try Self.validateItem(fields)
-        if let done = fields["taskDone"]?.strings {
-          let ids = Set((card["tasks"]?.array ?? []).compactMap { $0["id"]?.string })
-          guard done.allSatisfy(ids.contains) else { throw StoreError.invalidSnapshot }
-        }
-        var item = items[id] ?? .object([:])
-        for (key, value) in fields { item[key] = value }
-        items[id] = item
-      }
-      state["items"] = .object(items)
+    return try update(expectedRevision: expectedRevision) { state in try Self.patch(&state, patches)
     }
+  }
+
+  /// Replace existing cards and patch items in one write, as a tag and note edit needs.
+  public func edit(cards: [Card], patches: [String: JSONValue], expectedRevision: Int) throws
+    -> Snapshot
+  {
+    guard !cards.isEmpty, cards.count <= 500, patches.count <= 500 else {
+      throw StoreError.invalidSnapshot
+    }
+    return try update(expectedRevision: expectedRevision) { state in
+      var stored = state["cards"]?.array ?? []
+      for card in cards {
+        guard let index = stored.firstIndex(where: { $0["id"]?.string == card.id }) else {
+          throw StoreError.invalidSnapshot
+        }
+        stored[index] = try card.raw
+      }
+      state["cards"] = .array(stored)
+      try Self.patch(&state, patches)
+    }
+  }
+
+  private static func patch(_ state: inout JSONValue, _ patches: [String: JSONValue]) throws {
+    var items = state["items"]?.object ?? [:]
+    for (id, values) in patches {
+      guard let card = state["cards"]?.array?.first(where: { $0["id"]?.string == id }),
+        let fields = values.object
+      else { throw StoreError.invalidSnapshot }
+      try Self.validateItem(fields)
+      if let done = fields["taskDone"]?.strings {
+        let ids = Set((card["tasks"]?.array ?? []).compactMap { $0["id"]?.string })
+        guard done.allSatisfy(ids.contains) else { throw StoreError.invalidSnapshot }
+      }
+      var item = items[id] ?? .object([:])
+      for (key, value) in fields { item[key] = value }
+      items[id] = item
+    }
+    state["items"] = .object(items)
   }
 
   public func patchPreferences(_ values: JSONValue, expectedRevision: Int) throws -> Snapshot {
@@ -135,8 +158,8 @@ public actor CardStore {
 
   private static func validateItem(_ fields: [String: JSONValue]) throws {
     let booleans = [
-      "seen", "read", "archived", "bookmarked", "later", "tagsEdited",
-      "dismissed", "reminderDone",
+      "seen", "read", "archived", "bookmarked", "later",
+      "dismissed", "reminderDone", "done", "lessLike",
     ]
     let timestamps = ["addedAt", "snoozedUntil", "lastNotifiedAt", "readAt", "restoredAt"]
     for (key, value) in fields {
@@ -151,15 +174,16 @@ public actor CardStore {
         guard let string = value.string,
           string.utf16.count <= (key == "note" ? 4000 : 200)
         else { throw StoreError.invalidSnapshot }
-      } else if key == "tags" || key == "taskDone" {
-        guard let array = value.array, array.count <= (key == "tags" ? 20 : 100),
+      } else if key == "taskDone" {
+        guard let array = value.array, array.count <= 100,
           array.allSatisfy({ element in
             guard let string = element.string else { return false }
-            if key == "tags" { return string.utf16.count <= 30 }
             return string.range(of: "^[a-zA-Z0-9_-]{1,100}$", options: .regularExpression) != nil
               && !["__proto__", "constructor", "prototype"].contains(string)
           })
         else { throw StoreError.invalidSnapshot }
+      } else {
+        throw StoreError.invalidSnapshot
       }
     }
   }

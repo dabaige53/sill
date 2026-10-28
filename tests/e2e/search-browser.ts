@@ -65,8 +65,7 @@ cards.push(
 		type: "photo",
 		title: "照片详情",
 		summary: "独立网页只展示照片，不提供复制给助手功能。",
-		image: "architecture",
-		photos: ["architecture", "architecture"],
+		images: ["architecture", "architecture"],
 		time: Date.now() - 10800000,
 	},
 );

@@ -114,15 +114,6 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-.why-details > p {
-	font-size: calc(17px * var(--content-text-scale, 1));
-	font-weight: calc(500 + var(--content-weight-add, 0));
-	line-height: calc(1.55 * var(--reader-line-scale, 1));
-}
-.why-details li {
-	font-size: calc(14px * var(--content-text-scale, 1));
-	line-height: calc(1.6 * var(--reader-line-scale, 1));
-}
 .detail-media:has(.is-podcast) {
 	background: linear-gradient(
 		145deg,

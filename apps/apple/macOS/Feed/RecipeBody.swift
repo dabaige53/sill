@@ -2,13 +2,11 @@ import SillKit
 import SwiftUI
 
 extension CardModel {
-  /// The recipe for this card: its type, or a variant for media and quote or capture notes
-  /// (Web `recipeKey`).
+  /// The recipe for this card: its type, or a variant for media and quote notes (Web `recipeKey`).
   var recipeKey: String {
     switch kind {
     case .media: isPodcast ? "media.podcast" : "media.video"
     case .note where isQuote: "note.quote"
-    case .note where isCapture: "note.capture"
     default: CardRecipes.has(kind.rawValue) ? kind.rawValue : "default"
     }
   }
@@ -131,14 +129,14 @@ struct CardBlock: View {
   @ViewBuilder private var block: some View {
     switch entry.name {
     case "cover":
-      if card.image != nil, !context.compact {
+      if card.cover != nil, !context.compact {
         CardCover(card: card, faded: faded) { EmptyView() }
       }
     case "videoCover":
       if !context.compact { videoCover }
     case "mosaic":
       if !context.compact {
-        PhotoGrid(photos: Array(photos.prefix(3)), faded: faded)
+        PhotoGrid(photos: Array(card.images.prefix(3)), faded: faded)
           .aspectRatio(16 / 9, contentMode: .fit)
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius, style: .continuous))
           .padding([.horizontal, .top], AppleMetrics.coverInset)
@@ -156,14 +154,6 @@ struct CardBlock: View {
         )
         .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
         .lineLimit(nil)
-        .fixedSize(horizontal: false, vertical: true)
-    case "captureText":
-      // A quick note is its own text; the title only names it in search and archives.
-      Highlighted(text: card.summary.isEmpty ? card.title : card.summary, query: context.query)
-        .textStyle(AppleMetrics.font15, leading: AppleMetrics.noteLeading)
-        .foregroundStyle(faded ? AppleColors.secondary : AppleColors.primary)
-        .lineLimit(nil)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
     case "summary": summary
     case "checklist": checklist
@@ -210,10 +200,6 @@ struct CardBlock: View {
     }
   }
 
-  private var photos: [String] {
-    card.photos.isEmpty ? [card.image].compactMap { $0 } : card.photos
-  }
-
   private var sourceText: String {
     switch entry.string("line") {
     case "publication" where entry.string("date") == "article":
@@ -221,10 +207,6 @@ struct CardBlock: View {
         card.publicationName, card.articleDate.map { Format.shortDay($0) } ?? "",
         card.readingTime,
       ].filter { !$0.isEmpty }.joined(separator: " · ")
-    case "coverage":
-      card.coverageStart.flatMap { from in
-        card.coverageEnd.map { "\(Format.dateLabel(from)) – \(Format.dateLabel($0))" }
-      } ?? card.displaySourceLine
     case "task": card.project ?? Copy.text("web.task")
     case "reminder":
       Array(
@@ -235,7 +217,7 @@ struct CardBlock: View {
     case "photo":
       [
         card.location ?? "",
-        card.takenDay.map { Format.shortDay($0, now: Format.date(context.now)) } ?? "",
+        card.publishedDay.map { Format.shortDay($0, now: Format.date(context.now)) } ?? "",
       ].filter { !$0.isEmpty }.joined(separator: " · ")
     case "file":
       [Copy.text("web.file"), card.sourceName, card.readingTime].filter { !$0.isEmpty }
@@ -287,8 +269,8 @@ struct CardBlock: View {
         Text("\(card.related.count)\(Copy.text("web.card.relatedCount"))")
       }
     case "photoCount":
-      if !photos.isEmpty {
-        Text("\(photos.count)" + Copy.text("web.common.cardCountSuffix")).textStyle(
+      if !card.images.isEmpty {
+        Text("\(card.images.count)" + Copy.text("web.common.cardCountSuffix")).textStyle(
           AppleMetrics.font12, number: true)
       }
     case "fileCount":
@@ -301,7 +283,7 @@ struct CardBlock: View {
   }
 
   @ViewBuilder private var sender: some View {
-    let date = card.sentAt.flatMap(ReaderContent.fullDate) ?? ""
+    let date = card.publishedAt.flatMap(ReaderContent.fullDate) ?? ""
     if let sender = card.sender {
       HStack(spacing: AppleMetrics.space10) {
         Avatar(name: sender, size: AppleMetrics.space32)
@@ -333,23 +315,14 @@ struct CardBlock: View {
   }
 
   @ViewBuilder private var summary: some View {
-    switch entry.string("from") {
-    case "caption":
-      if let caption = card.caption { CardSummary(text: caption, query: context.query) }
-    case "why":
-      if !context.compact {
-        SummaryBlock(summary: card.why?.reason ?? fallbackSummary, query: context.query)
+    if entry.flag("fallback") == false {
+      if !card.summary.isEmpty, !context.compact {
+        CardSummary(
+          text: card.summary, query: context.query,
+          indent: entry.flag("indent") == true ? AppleMetrics.space28 : 0)
       }
-    default:
-      if entry.flag("fallback") == false {
-        if !card.summary.isEmpty, !context.compact {
-          CardSummary(
-            text: card.summary, query: context.query,
-            indent: entry.flag("indent") == true ? AppleMetrics.space28 : 0)
-        }
-      } else if !context.compact {
-        SummaryBlock(summary: fallbackSummary, query: context.query)
-      }
+    } else if !context.compact {
+      SummaryBlock(summary: fallbackSummary, query: context.query)
     }
   }
 
@@ -399,17 +372,7 @@ struct CardBlock: View {
 
   @ViewBuilder private var files: some View {
     let limit = entry.number("limit") ?? Int.max
-    if entry.string("style") == "attachment" {
-      FlowRow(spacing: AppleMetrics.space6) {
-        ForEach(Array(card.attachments.prefix(limit).enumerated()), id: \.offset) { _, file in
-          FileRow(name: file.name, image: file.isImage, pill: true)
-        }
-      }
-      if card.attachments.count > limit {
-        MoreItems(
-          count: card.attachments.count - limit, suffix: Copy.text("web.templates.7aaf96ad52e0"))
-      }
-    } else {
+    if !card.files.isEmpty {
       VStack(alignment: .leading, spacing: AppleMetrics.space6) {
         ForEach(Array(card.files.prefix(limit).enumerated()), id: \.offset) { _, file in
           FileRow(name: file.name, image: file.isImage, pill: true)

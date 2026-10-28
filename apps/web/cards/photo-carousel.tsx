@@ -45,7 +45,7 @@ export function PhotoCarousel({
 	index: number;
 	onSelect?: (index: number) => void;
 }) {
-	const photos = card.photos?.length ? card.photos : [card.image];
+	const photos = card.images || [];
 	const viewport = useRef<HTMLElement>(null);
 	const current = useRef(index),
 		reported = useRef(index),

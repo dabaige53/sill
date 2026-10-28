@@ -16,9 +16,9 @@ for (const sample of fixtures.invalid)
 test("demo cards use the shared schema and unknown card types render generically", () => {
 	for (const card of [...SeedCards, ...FreshCards]) assert.deepEqual(parseCard(card), card);
 	Store.state = Store.fresh();
-	const card = fixtures.valid.find((sample) => sample.name === "future-card").card;
-	assert.match(cardHTML(card), /Synthetic future-card/);
-	assert.deepEqual(parseCard(card).custom, { nested: ["preserve"] });
+	const card = parseCard({ id: "future", type: "future", title: "Synthetic future card" });
+	assert.match(cardHTML(card), /Synthetic future card/);
+	assert.throws(() => parseCard({ ...card, custom: { nested: ["preserve"] } }));
 });
 test("feed cards keep a keyboard title without a visible ellipsis control", () => {
 	Store.state = Store.fresh();
@@ -39,7 +39,7 @@ test("feed cards keep a keyboard title without a visible ellipsis control", () =
 });
 test("keys holding undefined count as absent, as they do once saved as JSON", () => {
 	for (const card of SeedCards) parseCard({ ...card, tasks: card.tasks?.map((t) => ({ ...t })) });
-	assert.doesNotThrow(() => parseCard({ id: "a", type: "article", title: "A", image: undefined }));
+	assert.doesNotThrow(() => parseCard({ id: "a", type: "article", title: "A", images: undefined }));
 	assert.throws(() => parseCard({ id: "a", type: "article", title: undefined }));
 });
 test("unknown card types cannot inject attributes or call renderer helper methods", () => {
@@ -77,15 +77,17 @@ test("digest face shows the summary or plain Markdown text without invented week
 test("task preview exposes unfinished work beyond the first three without reordering stored tasks", () => {
 	Store.state = Store.fresh();
 	const tasks = [
-		{ id: "done-1", text: "Completed one", done: true },
-		{ id: "done-2", text: "Completed two", done: true },
-		{ id: "done-3", text: "Completed three", done: true },
-		{ id: "next-1", text: "Review the draft", done: false },
-		{ id: "next-2", text: "Check the evidence", done: false },
+		{ id: "done-1", text: "Completed one" },
+		{ id: "done-2", text: "Completed two" },
+		{ id: "done-3", text: "Completed three" },
+		{ id: "next-1", text: "Review the draft" },
+		{ id: "next-2", text: "Check the evidence" },
 	];
 	const card = { id: "task-next", type: "task", title: "Next actions", tasks };
 	const before = structuredClone(card);
-	const document = new JSDOM(cardHTML(card)).window.document;
+	const document = new JSDOM(
+		cardHTML(card, { state: { taskDone: ["done-1", "done-2", "done-3"] } }),
+	).window.document;
 	assert.deepEqual(
 		[...document.querySelectorAll(".check-item")].map((node) => node.getAttribute("data-extra")),
 		["next-1", "next-2", "done-1"],
@@ -97,7 +99,7 @@ test("task preview exposes unfinished work beyond the first three without reorde
 	assert.equal(overridden.querySelector(".check-item").getAttribute("data-extra"), "done-1");
 });
 
-test("an empty task list is not presented as completed", () => {
+test("an empty task list is not presented as completed or replaced by the summary", () => {
 	Store.state = Store.fresh();
 	const document = new JSDOM(
 		cardHTML({
@@ -110,7 +112,7 @@ test("an empty task list is not presented as completed", () => {
 	).window.document;
 	assert.equal(document.querySelector(".done-row"), null);
 	assert.equal(document.querySelector(".task-count"), null);
-	assert.equal(document.querySelector(".card-summary").textContent, "Define the work first.");
+	assert.equal(document.querySelector(".card-summary"), null);
 });
 
 test("keyboard task previews keep their positions without changing the stored order", () => {
@@ -173,7 +175,7 @@ test("completed tasks retain their checkboxes after focus leaves and in passive 
 	assert.equal(passive.querySelectorAll(".check-item").length, 2);
 });
 
-test("suggestions disclose hidden references and mail attachments remain static file rows", () => {
+test("suggestions disclose hidden references and mail files remain static file rows", () => {
 	Store.state = Store.fresh();
 	Store.state.cards = ["one", "two", "three"].map((id) => ({ id, type: "note", title: id }));
 	const suggestion = new JSDOM(
@@ -187,9 +189,8 @@ test("suggestions disclose hidden references and mail attachments remain static 
 	assert.equal(suggestion.querySelectorAll(".refs button").length, 2);
 	assert.match(suggestion.querySelector(".related-more").textContent, /1.*关联内容/);
 	const mail = new JSDOM(
-		cardHTML({ id: "mail", type: "mail", title: "Mail", attachment: "report.txt" }),
+		cardHTML({ id: "mail", type: "mail", title: "Mail", files: [{ name: "report.txt" }] }),
 	).window.document;
-	assert.equal(mail.querySelector(".attachment").tagName, "SPAN");
-	assert.ok(mail.querySelector(".attachment.file-row"));
-	assert.equal(mail.querySelector(".attachment.ref"), null);
+	assert.equal(mail.querySelector(".file-row").tagName, "SPAN");
+	assert.equal(mail.querySelector(".file-row.ref"), null);
 });

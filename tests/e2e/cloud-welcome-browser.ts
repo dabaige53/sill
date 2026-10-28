@@ -218,7 +218,9 @@ try {
 			body: "隔离验收数据，不是真实账号内容。",
 			state: { read: false },
 			revision: 1,
+			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
+			deleted: false,
 		}));
 		workspace.state.items = Object.fromEntries(
 			workspace.state.cards.map((card) => [card.id, { read: false }]),

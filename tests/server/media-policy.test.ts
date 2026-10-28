@@ -5,14 +5,16 @@ import { mediaResourceDomains, restrictMediaScripts } from "../../server/cloud/m
 test("MCP media policy uses authorized card origins without allowing those origins to run scripts", () => {
 	const origins = mediaResourceDomains([
 		{
-			image: "https://images.example.org/a.jpg?private=1",
-			photos: ["coast", "https://images.example.org/b.jpg"],
+			images: [
+				"https://images.example.org/a.jpg?private=1",
+				"coast",
+				"https://images.example.org/b.jpg",
+			],
 			audioUrl: "https://audio.example.org/sample.mp3",
 		},
 		{
-			image: "https://user:password@secret.example.org/a",
+			images: ["https://user:password@secret.example.org/a", "javascript:alert(1)"],
 			audioUrl: "http://insecure.example.org/a.mp3",
-			photos: ["javascript:alert(1)"],
 		},
 	]);
 	assert.ok(origins.includes("https://images.example.org"));

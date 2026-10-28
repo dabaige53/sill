@@ -20,12 +20,19 @@ public struct Snapshot: Sendable {
     else {
       throw StoreError.invalidSnapshot
     }
-    cards = try values.map { try Card(json: $0, normalize: true) }
+    // Cloud cards carry server fields beside the card facts; the card keeps only its facts.
+    cards = try values.map { value in
+      var card = value
+      for key in Self.serverFields { card[key] = nil }
+      return try Card(json: card)
+    }
     guard Set(cards.map(\.id)).count == cards.count else { throw StoreError.invalidSnapshot }
     state["cards"] = .array(try cards.map { try $0.raw })
     json["state"] = state
     self.json = json
   }
+
+  static let serverFields = ["revision", "state", "created_at", "updated_at", "deleted"]
 
   static var emptyState: JSONValue {
     .object([

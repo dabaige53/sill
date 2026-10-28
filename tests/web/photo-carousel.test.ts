@@ -8,7 +8,7 @@ import { JSDOM } from "jsdom";
 const source = buildSync({
 	stdin: {
 		contents: `import {createElement as h} from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';import {PhotoCarousel} from './apps/web/cards/photo-carousel.tsx';
-export function mount(host, selected) {const root=createRoot(host);let index=0;const render=()=>flushSync(()=>root.render(h(PhotoCarousel,{card:{id:'photo',type:'photo',title:'Photo',photos:['coast','mountain','city']},index,onSelect:next=>{selected.push(next);index=next;render()}})));render();return {choose:next=>{index=next;render()},close:()=>flushSync(()=>root.unmount())};}`,
+export function mount(host, selected) {const root=createRoot(host);let index=0;const render=()=>flushSync(()=>root.render(h(PhotoCarousel,{card:{id:'photo',type:'photo',title:'Photo',images:['coast','mountain','city']},index,onSelect:next=>{selected.push(next);index=next;render()}})));render();return {choose:next=>{index=next;render()},close:()=>flushSync(()=>root.unmount())};}`,
 		resolveDir: path.resolve(import.meta.dirname, "../.."),
 		loader: "tsx",
 	},

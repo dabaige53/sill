@@ -14,20 +14,20 @@ export function stressCards(mode = "worst"): Card[] {
 			id: "stress-mail",
 			type: "mail",
 			title: "跨地区产品发布：请确认合规审阅与最终交付文件",
-			sender: email,
-			recipients: [email, "Jo"],
+			authors: [{ name: email }],
 			body: prose,
-			attachments: [{ name: filename, sizeBytes: 123456789, mimeType: "image/heic" }],
+			files: [{ name: filename, sizeBytes: 123456789, mimeType: "image/heic" }],
 		},
 		{
 			id: "stress-article",
 			type: "article",
 			title: "Benachrichtigungseinstellungen",
-			authors: [{ name: "Aleksandra Wiśniewska-Kowalczyk" }],
-			publisher: { name: "Northwind Industries International Research and Engineering" },
+			authors: [
+				{ name: "Aleksandra Wiśniewska-Kowalczyk" },
+				{ name: "Northwind Industries International Research and Engineering" },
+			],
 			body: prose,
-			image: "architecture",
-			form: "image",
+			images: ["architecture"],
 		},
 		{
 			id: "stress-task",
@@ -39,7 +39,6 @@ export function stressCards(mode = "worst"): Card[] {
 					i % 3 === 0
 						? `核对 ${url}`
 						: `第 ${i + 1} 项：请确认移动设备与桌面端的显示、操作结果及最终版本一致`,
-				done: i % 4 === 0,
 			})),
 			body: prose,
 		},
@@ -81,7 +80,7 @@ export function stressCards(mode = "worst"): Card[] {
 			media: "podcast",
 			title: "Platform Engineering: Designing Reliable Cross-Regional Infrastructure",
 			duration: 86400,
-			image: "coast",
+			images: ["coast"],
 			chapters: [
 				{ start: 0, title: "跨地区工程团队与发布准备" },
 				{ start: 120, title: "Benachrichtigungseinstellungen" },
@@ -94,15 +93,14 @@ export function stressCards(mode = "worst"): Card[] {
 			type: "media",
 			media: "video",
 			title: "移动设备上的布局与手势",
-			image: "mountain",
+			images: ["mountain"],
 			body: prose,
 		},
 		{
 			id: "stress-digest",
 			type: "digest",
 			title: "发布摘要",
-			points: [email, "对照每个环境的发布记录与评审结论", "Jo"],
-			body: prose,
+			body: `1. ${email}\n2. 对照每个环境的发布记录与评审结论\n3. Jo\n\n${prose}`,
 		},
 		{
 			id: "stress-suggestion",
@@ -122,8 +120,8 @@ export function stressCards(mode = "worst"): Card[] {
 			id: "stress-photo",
 			type: "photo",
 			title: "现场照片",
-			photos: ["coast", "mountain", "architecture"],
-			caption: "👩🏽‍💻 Priya 与团队的工作记录",
+			images: ["coast", "mountain", "architecture"],
+			summary: "👩🏽‍💻 Priya 与团队的工作记录",
 			body: prose,
 		},
 		{
@@ -140,13 +138,6 @@ export function stressCards(mode = "worst"): Card[] {
 				additions: 123456,
 				deletions: 98765,
 				changedFiles: 1284,
-				files: [
-					{
-						path: "packages/platform-infrastructure/src/customer-onboarding/notification-preferences.ts",
-						additions: 123456,
-						deletions: 98765,
-					},
-				],
 			},
 			body: prose,
 		},
@@ -183,13 +174,12 @@ export function stressCards(mode = "worst"): Card[] {
 			Card.parse({
 				...card,
 				title: `演示 ${card.type}`,
-				sender: card.sender ? "Jo" : undefined,
+				...(card.authors ? { authors: [{ name: "Jo" }] } : {}),
 				summary: "一条简短的摘要。",
 				tags: ["评审"],
 				body: "简短的正文。",
 				tasks: card.tasks?.slice(0, 3).map((task) => ({ ...task, text: "核对发布材料" })),
 				location: card.location ? "会议室" : undefined,
-				recipients: card.recipients ? ["Jo"] : undefined,
 			}),
 		);
 	return worst;

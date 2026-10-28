@@ -12,8 +12,7 @@ const photo = {
 	id: "photo-tools",
 	type: "photo",
 	title: "合成照片工具检查",
-	image: "architecture",
-	photos: ["architecture", "coast"],
+	images: ["architecture", "coast"],
 	location: "合成展厅",
 	time: Date.parse("2026-10-19T01:00:00Z"),
 };

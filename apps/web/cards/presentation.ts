@@ -28,7 +28,7 @@ const CardPresentation: Record<string, any> = {
 	tasks(c?: any, state?: any) {
 		return (c.tasks || []).map((t?: any) => ({
 			...t,
-			done: Array.isArray(state.taskDone) ? state.taskDone.includes(t.id) : t.done,
+			done: Array.isArray(state.taskDone) && state.taskDone.includes(t.id),
 		}));
 	},
 	action(

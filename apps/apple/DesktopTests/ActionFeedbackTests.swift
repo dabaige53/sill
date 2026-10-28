@@ -9,6 +9,8 @@ import Testing
   @Test func finishingTasksDoesNotShowNotice() async throws {
     let (workspace, _) = await ready(extra: [syntheticTask])
     let card = try #require(workspace.model("task"))
+    workspace.toggleTask("task", task: "t1")
+    await until { workspace.queue.idle && !workspace.state("task").isWriting }
     workspace.toggleTask("task", task: "t2")
     await until { workspace.queue.idle && !workspace.state("task").isWriting }
     #expect(workspace.notice == nil)

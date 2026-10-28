@@ -9,12 +9,12 @@ struct PodcastDetail: View {
   var body: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.rhythmSection) {
       HStack(alignment: .top, spacing: AppleMetrics.space32) {
-        CoverImage(name: card.image)
+        CoverImage(name: card.cover)
           .frame(width: AppleMetrics.podcastCoverSize, height: AppleMetrics.podcastCoverSize)
           .background(AppleColors.surface)
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
         VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
-          if let date = card.publication.date {
+          if let date = card.publicationDate {
             Text(date).font(.number(AppleMetrics.font13)).foregroundStyle(AppleColors.secondary)
           }
           Text(card.title).textStyle(AppleMetrics.previewTitle, .semibold)
@@ -67,15 +67,15 @@ struct PodcastDetail: View {
           }
         }
       }
-      if !(card.publisher?.name ?? card.sourceName).isEmpty || !card.authors.isEmpty
-        || card.publication.date != nil || card.duration != nil
+      if !(card.sources.first?.name ?? "").isEmpty || !card.authors.isEmpty
+        || card.publicationDate != nil || card.duration != nil
       {
         section("web.media.information") {
-          fact("web.media.program", card.publisher?.name ?? card.sourceName)
+          fact("web.media.program", card.sources.first?.name ?? "")
           fact(
             "web.media.host",
             card.authors.map(\.name).joined(separator: "、"))
-          fact("web.media.published", card.publication.date ?? "")
+          fact("web.media.published", card.publicationDate ?? "")
           if let duration = card.duration {
             fact(
               "web.media.duration",

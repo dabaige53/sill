@@ -21,8 +21,8 @@ struct PhotoLightbox: View {
     VStack(spacing: 0) {
       top
       stage(photos, current: current)
-      if let caption = card.caption, !caption.isEmpty {
-        Text(caption)
+      if !card.summary.isEmpty {
+        Text(card.summary)
           .font(.sans(AppleMetrics.font14))
           .foregroundStyle(AppleColors.secondary)
           .multilineTextAlignment(.leading)
@@ -31,7 +31,7 @@ struct PhotoLightbox: View {
           .padding(.bottom, AppleMetrics.space4)
           .padding(.horizontal, AppleMetrics.photoPageGutter)
       }
-      let metadata = [card.location, card.takenAt.flatMap { Format.publication($0) }]
+      let metadata = [card.location, card.publicationDate]
         .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
       if !metadata.isEmpty {
         Text(metadata)
@@ -189,7 +189,7 @@ struct PhotoLightbox: View {
   }
 
   static func photos(_ card: CardModel) -> [String] {
-    card.photos.isEmpty ? [card.image].compactMap { $0 } : card.photos
+    card.images
   }
 }
 

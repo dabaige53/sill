@@ -16,17 +16,15 @@ enum CloudWriteReconciliation {
 
   private static func defaultItem(_ card: JSONValue, stored: JSONValue = .object([:])) -> JSONValue
   {
-    let done = (card["tasks"]?.array ?? []).filter { $0["done"]?.bool == true }
-      .compactMap { $0["id"] }
     var item: JSONValue = .object([
       "seen": .bool(false), "read": .bool(false), "bookmarked": .bool(false),
-      "later": .bool(false), "tagsEdited": .bool(false), "playbackPosition": .number(0),
+      "later": .bool(false), "playbackPosition": .number(0),
       "progress": .number(0),
-      "note": .string(""), "tags": .array([]), "addedAt": .number(0),
+      "note": .string(""), "addedAt": .number(0),
       "snoozedUntil": .number(0), "dismissed": .bool(false), "reminderDone": .bool(false),
       "lastReminderKey": .string(""), "lastNotifiedAt": .number(0), "readAt": .number(0),
       "restoredAt": .number(0), "done": .bool(false), "archived": .bool(false),
-      "lessLike": .bool(false), "taskDone": .array(done),
+      "lessLike": .bool(false), "taskDone": .array([]),
     ])
     if card["type"]?.string == "task", let completed = stored["done"]?.bool {
       item["taskDone"] = .array(
@@ -67,11 +65,8 @@ enum CloudWriteReconciliation {
             return false
           }
         }
-        var card = JSONValue.object(
-          (cards[id]?.object ?? [:]).filter {
-            !CardValidator.knownFields.contains($0.key) && $0.key != "points"
-          })
-        for (key, value) in submitted { card[key] = value }
+        // A card upsert replaces the whole card.
+        let card = JSONValue.object(submitted)
         cards[id] = rawCard(card)
         items[id] = defaultItem(card, stored: storedStates[id] ?? .object([:]))
       case "card.delete":

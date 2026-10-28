@@ -34,24 +34,14 @@ struct ReaderTags: View {
   }
 }
 
-/// Publication date and author rows: small grey text, no box (Medium-style).
+/// The publication date where the source line does not carry it: small grey text, no box.
 struct PublicationRows: View {
-  let publication: CardModel.Publication
-  /// Off in article reading, where the date sits in the source line instead.
-  var showsDate = true
+  let card: CardModel
   var body: some View {
-    let date = showsDate ? publication.date : nil
-    if date != nil || !publication.rows.isEmpty {
-      VStack(alignment: .leading, spacing: AppleMetrics.space6) {
-        if let date {
-          Text(date).help(publication.dateTitle ?? "")
-        }
-        ForEach(Array(publication.rows.enumerated()), id: \.offset) { _, row in
-          Text(row.label.isEmpty ? row.value : "\(row.label) · \(row.value)")
-        }
-      }
-      .textStyle(AppleMetrics.font12)
-      .foregroundStyle(AppleColors.iconSecondary)
+    if let date = card.detailDate {
+      Text(date).help(card.publishedAt ?? "")
+        .textStyle(AppleMetrics.font12)
+        .foregroundStyle(AppleColors.iconSecondary)
     }
   }
 }

@@ -350,12 +350,11 @@ const LocalSync: Record<string, any> = {
 				localStorage.setItem("sill-sync-revision", JSON.stringify(value.revision));
 			} catch {}
 		const editingCard = app.editingId ? Store.card(app.editingId) : null;
+		const editingIds: string[] = app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : [];
 		const editingItems = new Map<string, Record<string, any>>(
-			(app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : []).map((id: string) => [
-				id,
-				{ ...Store.state.items[id] },
-			]),
+			editingIds.map((id) => [id, { ...Store.state.items[id] }]),
 		);
+		const editingTags = new Map(editingIds.map((id) => [id, Store.card(id)?.tags]));
 		const { sources, ...state } = value.state;
 		Object.assign(Store.state, state);
 		Store.legacyFields = Object.hasOwn(value.state, "sources") ? { sources } : {};
@@ -367,15 +366,18 @@ const LocalSync: Record<string, any> = {
 			if (index >= 0) Store.state.cards[index] = editingCard;
 			else Store.state.cards.push(editingCard);
 		}
-		// Keep the note/tag editor's original fields, including absent values.
+		// Keep the note/tag editor's original note and card tags, including absent values.
 		// Unrelated save responses must not turn stale input into a valid overwrite.
 		for (const [id, original] of editingItems) {
 			const item = { ...Store.state.items[id] };
-			for (const key of ["note", "tags", "tagsEdited"]) {
-				if (Object.hasOwn(original, key)) item[key] = original[key];
-				else delete item[key];
-			}
+			if (Object.hasOwn(original, "note")) item.note = original.note;
+			else delete item.note;
 			Store.state.items[id] = item;
+			const index = Store.state.cards.findIndex((c?: any) => c.id === id);
+			if (index < 0) continue;
+			const { tags: _remote, ...card } = Store.state.cards[index];
+			const tags = editingTags.get(id);
+			Store.state.cards[index] = tags ? { ...card, tags } : card;
 		}
 		this.baseline = this.snapshot();
 		// Write the browser backup without enqueueing another remote operation.

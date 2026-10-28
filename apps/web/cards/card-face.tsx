@@ -13,7 +13,9 @@ import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
 import {
 	articleDate,
+	cardCover,
 	cardReadingTime,
+	cardSender,
 	cardSource,
 	contentDay,
 	detailDate,
@@ -99,10 +101,6 @@ const lines: Record<string, (c: Card, ctx: Context, options: Options) => ReactNo
 					? contentDay(c.publishedAt)
 					: null,
 		),
-	coverage: (c) =>
-		c.coverageStart !== undefined && c.coverageEnd !== undefined
-			? `${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`
-			: sourceLine(c),
 	task: (c) => (
 		<>
 			{c.project?.name || copy("web.task")}
@@ -120,7 +118,7 @@ const lines: Record<string, (c: Card, ctx: Context, options: Options) => ReactNo
 	reminder: (c) => [...new Set([copy("web.reminder"), cardSource(c)].filter(Boolean))].join(" · "),
 	eventDate: (c) => dateLabel(c.start),
 	photo: (c) => {
-		const taken = contentDay(c.takenAt);
+		const taken = contentDay(c.publishedAt);
 		return [c.location, taken ? shortDay(taken.getTime()) : ""].filter(Boolean).join(" · ");
 	},
 	file: (c) => [copy("web.file"), cardSource(c), cardReadingTime(c)].filter(Boolean).join(" · "),
@@ -164,7 +162,7 @@ const statuses: Record<string, (c: Card, ctx: Context) => ReactNode> = {
 			</span>
 		) : null,
 	photoCount: (c) => {
-		const photos = c.photos?.length ? c.photos : [c.image];
+		const photos = c.images || [];
 		return photos.length ? (
 			<span className="num">
 				{photos.length}
@@ -199,7 +197,7 @@ function fileIcon(name: string, size: number) {
 const topMedia = new Set(["cover", "videoCover", "mosaic"]);
 
 const blocks: Record<string, Block> = {
-	cover: (c) => (c.image ? <Cover card={c} /> : null),
+	cover: (c) => (cardCover(c) ? <Cover card={c} /> : null),
 	videoCover: (c, ctx) => (
 		<Cover card={c}>
 			<span className="media-play-mark" aria-hidden="true">
@@ -214,7 +212,7 @@ const blocks: Record<string, Block> = {
 		</Cover>
 	),
 	mosaic: (c) => {
-		const photos = c.photos?.length ? c.photos : [c.image];
+		const photos = c.images || [];
 		return (
 			<div className={`card-cover photo-grid n${Math.min(3, photos.length)}`}>
 				{photos.slice(0, 3).map((p: string, i: number) => (
@@ -241,7 +239,7 @@ const blocks: Record<string, Block> = {
 		/>
 	),
 	sender: (c) => {
-		const sender = c.sender?.trim();
+		const sender = cardSender(c);
 		return sender ? (
 			<div className="sender">
 				<Avatar name={sender} size={32} />
@@ -250,7 +248,7 @@ const blocks: Record<string, Block> = {
 					<small>
 						<SourceMark card={c} />
 						{cardSource(c) || copy("web.mail")}
-						{c.sentAt ? ` · ${detailDate(c.sentAt, true)}` : ""}
+						{c.publishedAt ? ` · ${detailDate(c.publishedAt, true)}` : ""}
 						{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
 					</small>
 				</span>
@@ -258,7 +256,11 @@ const blocks: Record<string, Block> = {
 		) : (
 			<Head
 				card={c}
-				text={[cardSource(c) || copy("web.mail"), detailDate(c.sentAt, true), cardReadingTime(c)]
+				text={[
+					cardSource(c) || copy("web.mail"),
+					detailDate(c.publishedAt, true),
+					cardReadingTime(c),
+				]
 					.filter(Boolean)
 					.join(" · ")}
 			/>
@@ -266,36 +268,16 @@ const blocks: Record<string, Block> = {
 	},
 	title: (c, ctx) => <Title card={c} ctx={ctx} />,
 	quote: (c, ctx) => <Title card={c} ctx={ctx} className="quote-text" />,
-	captureText: (c, ctx) => (
-		<h2 className="card-title note-text">
-			{ctx.passive ? (
-				<span className="card-title-button" data-shared="title">
-					{c.summary || c.title}
-				</span>
-			) : (
-				<button
-					type="button"
-					data-action="card-open"
-					data-id={c.id}
-					aria-label={c.title}
-					className="card-title-button"
-					data-shared="title"
-				>
-					{c.summary || c.title}
-				</button>
-			)}
-		</h2>
-	),
 	summary: (c, _ctx, o) => {
-		const text =
-			o.from === "why" ? c.why?.reason || c.summary : o.from === "caption" ? c.caption : c.summary;
 		if (o.fallback === false)
-			return text ? <p className={`card-summary ${o.indent ? "indent" : ""}`}>{text}</p> : null;
-		return <Summary card={{ ...c, summary: text }} short={!!o.short} />;
+			return c.summary ? (
+				<p className={`card-summary ${o.indent ? "indent" : ""}`}>{c.summary}</p>
+			) : null;
+		return <Summary card={c} short={!!o.short} />;
 	},
 	checklist: (c, ctx, o) => {
 		const tasks = ctx.tasks;
-		if (!tasks.length) return <Summary card={c} />;
+		if (!tasks.length) return null;
 		const limit = o.limit ?? tasks.length,
 			byId = new Map(tasks.map((t) => [t.id, t])),
 			held = [...new Set(ctx.taskPreviewOrder)]
@@ -379,38 +361,6 @@ const blocks: Record<string, Block> = {
 		) : null,
 	files: (c, _ctx, o) => {
 		const limit = o.limit ?? Infinity;
-		if (o.style === "attachment") {
-			const attachments = c.attachments ?? (c.attachment ? [{ name: c.attachment }] : []);
-			return attachments.length ? (
-				<div className="mail-attachments">
-					{attachments.slice(0, limit).map((file: Card, index: number) => (
-						<span
-							className={`file-row attachment ${index === 2 ? "attachment-third" : ""}`}
-							key={file.name}
-						>
-							{fileIcon(file.name, 16)}
-							<span className="file-copy">
-								<b>{file.name}</b>
-								<em>{fileDescription(file as never)}</em>
-							</span>
-							<small>{detailDate(file.modifiedAt)}</small>
-						</span>
-					))}
-					{attachments.length > 2 && (
-						<span className="attachment-more-phone">
-							{copy("web.templates.dff74742a6f0")}
-							{attachments.length - 2}
-						</span>
-					)}
-					{attachments.length > 3 && (
-						<span className="attachment-more-desktop">
-							{copy("web.templates.dff74742a6f0")}
-							{attachments.length - 3}
-						</span>
-					)}
-				</div>
-			) : null;
-		}
 		const files = c.files || [];
 		return (
 			<>

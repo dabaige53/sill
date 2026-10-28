@@ -88,7 +88,7 @@ function fixture(raw: any = null, at: any = 1800000000000) {
 }
 const ids = (cards?: any) => Array.from(cards, (c?: any) => c.id);
 
-test("v1 state migrates without losing independent reading, tags, tasks or notes", () => {
+test("v1 state migrates without losing independent reading, tasks or notes", () => {
 	const { Store, data } = fixture({
 		version: 1,
 		items: {
@@ -97,8 +97,6 @@ test("v1 state migrates without losing independent reading, tags, tasks or notes
 				read: false,
 				progress: 0.4,
 				bookmarked: true,
-				tagsEdited: true,
-				tags: ["自定义"],
 				note: "保留备注",
 			},
 			"task-01": { taskDone: ["t2"] },
@@ -107,7 +105,7 @@ test("v1 state migrates without losing independent reading, tags, tasks or notes
 	});
 	assert.equal(Store.item("article-01").progress, 0.4);
 	assert.equal(Store.item("article-01").read, false);
-	assert.deepEqual(Array.from(Store.tags(Store.card("article-01"))), ["自定义"]);
+	assert.deepEqual(Store.tags(Store.card("article-01")), Store.card("article-01").tags);
 	assert.equal(Store.item("article-01").note, "保留备注");
 	assert.equal(Store.item("article-01").bookmarked, true);
 	assert.deepEqual(
@@ -162,7 +160,7 @@ test("malformed persisted fields are bounded and unknown card IDs are discarded"
 	assert.equal(s.snoozedUntil, 0);
 	assert.equal(s.progress, 0);
 	assert.equal(s.note, "");
-	assert.deepEqual(Array.from(s.tags), ["safe"]);
+	assert.equal("tags" in s, false);
 	assert.equal(Store.state.items.unknown, undefined);
 	assert.equal(Store.state.preferences.sort, "priority");
 	assert.equal(Store.state.cards.length, f.SeedCards.length + 1);
@@ -189,7 +187,7 @@ test("home retains read, completed and old cards for every legacy age preference
 	const { FeedPolicy: p, now } = fixture();
 	const old = now() - 365 * 86400000;
 	for (const type of ["article", "media", "note", "mail", "task", "event", "reminder"]) {
-		const c = { id: type, type, time: old, tasks: [{ id: "step", done: true }] };
+		const c = { id: type, type, time: old, tasks: [{ id: "step", text: "Step" }] };
 		for (const pref of ["3d", "7d", "never"]) {
 			for (const state of [
 				{},
@@ -320,7 +318,7 @@ test("event and task notification thresholds exclude ended and completed work", 
 		id: "t",
 		type: "task",
 		due: n + 30 * 60000,
-		tasks: [{ id: "1", done: false }],
+		tasks: [{ id: "1", text: "Step" }],
 	};
 	assert.equal(p.eligible(task, {}, n), true);
 	assert.equal(p.eligible(task, { taskDone: ["1"] }, n), false);

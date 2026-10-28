@@ -17,7 +17,7 @@ struct CardStoreTests {
       json: .object([
         "id": .string("note"), "type": .string("note"), "title": .string(title),
         "body": .string("First\n\nstill first\n\nLast"),
-        "extra": .object(["nested": .bool(true)]),
+        "summary": .string("Kept summary"),
       ]))
   }
 
@@ -26,15 +26,14 @@ struct CardStoreTests {
       .appendingPathComponent(".build/debug/SillStoreProbe")
   }
 
-  @Test func readsLegacyWithoutWritingAndPreservesSnapshot() async throws {
+  @Test func readsWithoutWritingAndPreservesSnapshot() async throws {
     let directory = try temporary()
     defer { try? FileManager.default.removeItem(at: directory) }
     let file = directory.appendingPathComponent("cards.json")
     var json = try Snapshot.empty().json
     var state = json["state"]!
     var original = try card().raw
-    original["source"] = .string("Legacy")
-    original["kind"] = .string("ai")
+    original["sources"] = .array([.object(["name": .string("Origin"), "kind": .string("web")])])
     state["cards"] = .array([original])
     state["futureState"] = .array([.number(1)])
     json["state"] = state
@@ -43,7 +42,7 @@ struct CardStoreTests {
     try bytes.write(to: file)
     let store = try CardStore(directory: directory)
     let loaded = try await store.read()
-    #expect(loaded.cards.first?.source == "Legacy")
+    #expect(loaded.cards.first?.source == "Origin")
     #expect(try Data(contentsOf: file) == bytes)
     let changed = try await store.toggle(id: "note", key: "bookmarked", expectedRevision: 0)
     #expect(changed.json["futureRoot"] == .bool(true))
@@ -203,7 +202,7 @@ struct CardStoreTests {
     #expect(restored?.isDirty == true)
     let saved = try await store.save(try #require(restored))
     #expect(try saved.cards.first?.raw["body"] == value.raw["body"])
-    #expect(try saved.cards.first?.raw["extra"] == value.raw["extra"])
+    #expect(try saved.cards.first?.raw["summary"] == value.raw["summary"])
     #expect(try store.drafts.restore() == nil)
     store.drafts.enqueue(draft) { Issue.record("Draft write failed") }
     try store.drafts.discard()
@@ -232,7 +231,7 @@ struct CardStoreTests {
       [
         "note": .object([
           "archived": .bool(true), "note": .string("Retained"),
-          "future": .object(["enabled": .bool(true)]),
+          "seen": .bool(true),
         ])
       ], expectedRevision: 1)
     #expect(changed.items["note"]?["archived"] == .bool(true))
@@ -249,7 +248,7 @@ struct CardStoreTests {
     let unchanged = try await store.read()
     #expect(unchanged.revision == 2)
     #expect(unchanged.items["note"]?["note"] == .string("Retained"))
-    #expect(unchanged.items["note"]?["future"] == .object(["enabled": .bool(true)]))
+    #expect(unchanged.items["note"]?["seen"] == .bool(true))
   }
 
   @Test func preferencesReadingAndValidation() async throws {
@@ -338,7 +337,7 @@ struct CardStoreTests {
         "id": .string("tasks"), "type": .string("task"), "title": .string("Tasks"),
         "tasks": .array([
           .object([
-            "id": .string("step"), "text": .string("Synthetic task"), "done": .bool(false),
+            "id": .string("step"), "text": .string("Synthetic task"),
           ])
         ]),
       ]))
@@ -349,10 +348,9 @@ struct CardStoreTests {
           "taskDone": .array([.string("step")]), "reminderDone": .bool(true),
           "dismissed": .bool(false), "snoozedUntil": .number(0),
           "bookmarked": .bool(true), "later": .bool(true), "read": .bool(true),
-          "tags": .array([.string("Synthetic")]), "tagsEdited": .bool(true),
         ])
       ], expectedRevision: 1)
     #expect(saved.items["tasks"]?["taskDone"] == .array([.string("step")]))
-    #expect(try saved.cards.first?.raw["tasks"]?.array?.first?["done"] == .bool(false))
+    #expect(try saved.cards.first?.raw["tasks"]?.array?.first?["done"] == nil)
   }
 }
