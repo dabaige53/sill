@@ -38,6 +38,8 @@ import SwiftUI
 
   @ObservationIgnored var viewport: CGRect = .zero
   @ObservationIgnored var cardFrames: [String: CGRect] = [:]
+  @ObservationIgnored var nativeCardFrames: [String: FeedCardFrame] = [:]
+  func cardFrame(_ id: String) -> CGRect? { nativeCardFrames[id]?.frame ?? cardFrames[id] }
   /// Where the overlay's own origin lies in the space cards are measured in. The feed's space
   /// starts below the title bar while the overlay covers the whole window, so a card's frame is
   /// moved by this before the overlay draws it; otherwise the flight lands off the card.
@@ -82,8 +84,8 @@ import SwiftUI
         origin = origin ?? id
         matchedCard =
           !Motion.keyboardDriven && card.kind != .photo
-            && cardFrames[id].map { $0.intersects(viewport) } == true ? id : nil
-        matchedFrame = matchedCard.flatMap { cardFrames[$0] }
+            && cardFrame(id).map { $0.intersects(viewport) } == true ? id : nil
+        matchedFrame = matchedCard.flatMap { cardFrame($0) }
         contentShown = false
         toolsShown = false
         layers = [Layer(card: id, full: full)]
@@ -160,7 +162,7 @@ import SwiftUI
   func closeAll() {
     guard presented else { return }
     resizeSource = nil
-    if let matchedCard, cardFrames[matchedCard].map({ $0.intersects(viewport) }) != true {
+    if let matchedCard, cardFrame(matchedCard).map({ $0.intersects(viewport) }) != true {
       self.matchedCard = nil
     }
     token += 1
@@ -171,7 +173,7 @@ import SwiftUI
       finish()
       return
     }
-    matchedFrame = matchedCard.flatMap { cardFrames[$0] }
+    matchedFrame = matchedCard.flatMap { cardFrame($0) }
     returning = matching
     toolsShown = false
     // Keep the content in the returning surface until the source-card handoff.

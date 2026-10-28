@@ -136,68 +136,6 @@ import SwiftUI
   }
 }
 
-/// Finds the enclosing NSScrollView and forwards bounds changes to `FeedScroll`.
-struct ScrollProbe: NSViewRepresentable {
-  let scroll: FeedScroll
-
-  func makeNSView(context: Context) -> Probe {
-    let probe = Probe()
-    probe.scroll = scroll
-    return probe
-  }
-  func updateNSView(_ view: Probe, context: Context) { view.scroll = scroll }
-  static func dismantleNSView(_ view: Probe, coordinator: ()) { view.disconnect() }
-
-  final class Probe: NSView {
-    var scroll: FeedScroll?
-    private var observer: NSObjectProtocol?
-    private var monitor: Any?
-    private var elasticity: NSScrollView.Elasticity?
-
-    override func viewDidMoveToWindow() {
-      super.viewDidMoveToWindow()
-      disconnect()
-      guard window != nil else { return }
-      DispatchQueue.main.async { [weak self] in self?.connect() }
-    }
-
-    private func connect() {
-      guard observer == nil, let view = enclosingScrollView else { return }
-      scroll?.scrollView = view
-      elasticity = view.verticalScrollElasticity
-      view.verticalScrollElasticity = .none
-      monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
-        nonisolated(unsafe) let event = event
-        return MainActor.assumeIsolated { self?.scroll?.receive(event) == true } ? nil : event
-      }
-      view.contentView.postsBoundsChangedNotifications = true
-      observer = NotificationCenter.default.addObserver(
-        forName: NSView.boundsDidChangeNotification, object: view.contentView, queue: .main
-      ) { [weak self] _ in
-        MainActor.assumeIsolated {
-          guard let self, let view = self.scroll?.scrollView, let document = view.documentView
-          else {
-            return
-          }
-          self.scroll?.scrolled(
-            offset: view.contentView.bounds.minY, top: view.contentView.contentInsets.top,
-            visible: view.contentView.bounds.height, content: document.bounds.height)
-        }
-      }
-    }
-
-    func disconnect() {
-      scroll?.refresh.cancel()
-      if let elasticity { scroll?.scrollView?.verticalScrollElasticity = elasticity }
-      elasticity = nil
-      if let monitor { NSEvent.removeMonitor(monitor) }
-      monitor = nil
-      if let observer { NotificationCenter.default.removeObserver(observer) }
-      observer = nil
-    }
-  }
-}
-
 /// The AI box and selection bar follow the chrome: scrolling animates through `Chrome`, an open
 /// card through this modifier. A carried pile keeps them in view.
 struct RailTuck: ViewModifier {

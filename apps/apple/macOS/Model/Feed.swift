@@ -115,6 +115,8 @@ enum FeedEntry: Identifiable, Equatable {
   @ObservationIgnored private unowned let workspace: Workspace
   @ObservationIgnored private(set) var now = Format.milliseconds()
   @ObservationIgnored private var pageLimit = Feed.page
+  /// The current membership, order and stacks. Pagination only reveals its next slice.
+  @ObservationIgnored private var resolvedEntries: [FeedEntry] = []
   @ObservationIgnored private(set) var openStacks: Set<String> = []
   @ObservationIgnored private var stackPositions: [String: StackPosition] = [:]
   @ObservationIgnored var scrollOffsets: [Scope: CGFloat] = [:]
@@ -295,7 +297,12 @@ enum FeedEntry: Identifiable, Equatable {
   func loadMore() {
     guard hasMore else { return }
     pageLimit += Feed.page
-    rebuild(keepClock: true)
+    let end = min(pageLimit, resolvedEntries.count)
+    // Scrolling must not replay arrival/layout animations or recalculate membership.
+    Motion.instantly {
+      entries.append(contentsOf: resolvedEntries[entries.count..<end])
+      hasMore = end < resolvedEntries.count
+    }
   }
 
   func openStack(_ key: String) {
@@ -370,6 +377,7 @@ enum FeedEntry: Identifiable, Equatable {
       .sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
 
     if cards.isEmpty {
+      resolvedEntries = []
       set(entries: [], more: false)
       let next: Empty = !filtering ? .clean : query.isEmpty ? .filtered : .noMatch(query)
       if empty != next { empty = next }
@@ -394,6 +402,7 @@ enum FeedEntry: Identifiable, Equatable {
       result.append(
         openStacks.contains(key) ? .openStack(key: key, cards: ids) : .stack(key: key, cards: ids))
     }
+    resolvedEntries = result
     let more = result.count > pageLimit
     set(entries: more ? Array(result.prefix(pageLimit)) : result, more: more)
   }

@@ -139,19 +139,25 @@ private struct ReaderBackdrop: View {
 struct CardGeometrySource: ViewModifier {
   let id: String
   @Environment(Reader.self) private var reader
+  @Environment(\.feedCellSpace) private var space
   func body(content: Content) -> some View {
-    content
-      .onGeometryChange(for: CGRect.self) {
-        $0.frame(in: .named("card-workspace"))
-      } action: {
-        reader.cardFrames[id] = $0
+    Group {
+      if let space {
+        content.background(FeedCardAnchor(id: id, reader: reader, space: space))
+      } else {
+        content.onGeometryChange(for: CGRect.self) {
+          $0.frame(in: .named("card-workspace"))
+        } action: {
+          reader.cardFrames[id] = $0
+        }
+        .onDisappear { reader.cardFrames.removeValue(forKey: id) }
       }
-      .opacity((reader.shown || reader.returning) && reader.matchedCard == id ? 0 : 1)
-      .animation(
-        reader.shown ? Motion.ease(AppleMetrics.motionDetailFade) : nil,
-        value: reader.shown
-      )
-      .onDisappear { reader.cardFrames.removeValue(forKey: id) }
+    }
+    .opacity((reader.shown || reader.returning) && reader.matchedCard == id ? 0 : 1)
+    .animation(
+      reader.shown ? Motion.ease(AppleMetrics.motionDetailFade) : nil,
+      value: reader.shown
+    )
   }
 }
 

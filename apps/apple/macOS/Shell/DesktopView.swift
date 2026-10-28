@@ -100,6 +100,7 @@ struct DesktopView: View {
           .padding(.leading, shell.searchFrame.minX)
           .padding(.top, shell.searchFrame.maxY + AppleMetrics.space8)
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        FeedMenuOverlay()
         ReaderOverlay()
         PanelOverlay()
         // Over an open detail too (Web moves `#toast` into the dialog).

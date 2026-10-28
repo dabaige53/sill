@@ -9,6 +9,7 @@ import SwiftUI
 struct CardMenuLayer: View {
   let card: CardModel
   let state: CardState
+  var sourceFrame: CGRect?
   @Environment(\.cardIntents) private var intents
   @Environment(CardMenu.self) private var menu
   @Environment(CardDrag.self) private var drag
@@ -18,12 +19,13 @@ struct CardMenuLayer: View {
 
   var body: some View {
     GeometryReader { proxy in
-      let box = proxy.frame(in: .global)
-      let place = placement(box, cardWidth: proxy.size.width)
+      let container = proxy.frame(in: .global)
+      let box = sourceFrame ?? container
+      let place = placement(box, cardWidth: box.width)
       // Hidden until measured, so the first frame is already in the right place.
       let open = appeared && size != .zero && menu.id == card.id
       items
-        .frame(width: width(proxy.size.width))
+        .frame(width: width(box.width))
         // Layout size (the scale is only drawn); the window frame for outside clicks.
         .onGeometryChange(for: CGSize.self) {
           $0.size
@@ -39,7 +41,10 @@ struct CardMenuLayer: View {
         .offset(y: open ? 0 : (place.up ? AppleMetrics.motionMenuY : -AppleMetrics.motionMenuY))
         .opacity(open ? 1 : 0)
         .animation(open ? Motion.menuOpen : Motion.menuClose, value: open)
-        .offset(x: place.origin.x, y: place.origin.y)
+        .offset(
+          x: place.origin.x + box.minX - container.minX,
+          y: place.origin.y + box.minY - container.minY
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
     .onAppear {
@@ -137,5 +142,33 @@ struct CardMenuLayer: View {
       .frame(minHeight: AppleMetrics.hitTarget)
     }
     .buttonStyle(RowStyle(highlight: AppleColors.fixedBlack5, radius: AppleMetrics.controlRadius))
+  }
+}
+
+/// A reused collection item cannot own a menu that extends across its neighbors.
+/// Keep the same SwiftUI menu in the window layer, including its delayed close.
+struct FeedMenuOverlay: View {
+  @Environment(CardMenu.self) private var menu
+  @Environment(Workspace.self) private var workspace
+  @Environment(Reader.self) private var reader
+  @State private var retainedID: String?
+
+  var body: some View {
+    GeometryReader { proxy in
+      if let id = retainedID, workspace.state(id).menuOpen,
+        let card = workspace.model(id), let frame = reader.cardFrame(id)
+      {
+        let local = proxy.frame(in: .named("card-workspace"))
+        let global = proxy.frame(in: .global)
+        CardMenuLayer(
+          card: card, state: workspace.state(id),
+          sourceFrame: frame.offsetBy(dx: global.minX - local.minX, dy: global.minY - local.minY)
+        )
+        .id(id)
+      }
+    }
+    .onChange(of: menu.id, initial: true) { _, id in
+      if let id { retainedID = id }
+    }
   }
 }

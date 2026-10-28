@@ -6,7 +6,7 @@ import SwiftUI
 struct FeedView: View {
   let geometry: ColumnGeometry
   let scroll: FeedScroll
-  @State private var mousePull: Bool?
+  @State private var workspaceOrigin: CGPoint = .zero
   let topInset: CGFloat
   @Environment(Workspace.self) private var workspace
   @Environment(Feed.self) private var feed
@@ -18,113 +18,23 @@ struct FeedView: View {
       now: feed.now, query: feed.query.trimmingCharacters(in: .whitespaces),
       fadeRead: preferences.fadeRead, appearance: preferences.cardAppearance,
       paddingScale: preferences.cardPadding.scale)
-    ScrollView(.vertical) {
-      VStack(spacing: 0) {
-        Color.clear.frame(height: topInset)
-        if feed.empty != .none {
-          EmptyFeed(empty: feed.empty)
-          if shelf {
-            ShelfEntry(count: feed.shelfCount).frame(width: geometry.columnWidth)
-          }
-        } else {
-          let entering = !feed.entered
-          MasonryLayout(geometry: geometry) {
-            ForEach(Array(feed.entries.enumerated()), id: \.element.id) { index, entry in
-              FeedEntryView(entry: entry, context: context)
-                .modifier(ContentFade(value: geometry.columnWidth))
-                .modifier(Entrance(delay: entering ? Entrance.delay(index) : nil))
-                .transition(FeedMotion.arrival)
-                .layoutValue(
-                  key: StackSpacing.self, value: entry.isStack ? AppleMetrics.stackLayoutExtra : 0)
-            }
-            // Web `ShelfView`: one more item after the last page of the desk.
-            if shelf { ShelfEntry(count: feed.shelfCount).transition(.opacity) }
-          }
-          .frame(width: geometry.width)
-          .animation(Motion.layout, value: feed.entries)
-          .animation(Motion.layout, value: geometry.columns)
-          .onAppear { feed.entered = true }
-        }
-        Color.clear.frame(height: AppleMetrics.feedBottom)
-      }
-      .frame(maxWidth: .infinity)
-      .background {
-        // Only empty feed space owns this gesture; cards and controls keep their own input.
-        Color.clear.contentShape(Rectangle())
-          .gesture(
-            DragGesture(minimumDistance: 4, coordinateSpace: .named("card-workspace"))
-              .onChanged { value in
-                if mousePull == nil {
-                  mousePull =
-                    scroll.refreshAllowed() && scroll.offset <= 0
-                    && value.translation.height > abs(value.translation.width)
-                }
-                guard mousePull == true else { return }
-                guard scroll.refreshAllowed(), scroll.offset <= 0,
-                  value.translation.height >= -4,
-                  abs(value.translation.width) <= max(12, value.translation.height)
-                else {
-                  scroll.refresh.release(cancelled: true)
-                  mousePull = false
-                  return
-                }
-                scroll.chrome.show()
-                scroll.refresh.drag(value.translation.height)
-              }
-              .onEnded { _ in
-                if mousePull == true {
-                  scroll.refresh.release(cancelled: !scroll.refreshAllowed())
-                }
-                mousePull = nil
-              }
-          )
-      }
-      .background(ScrollProbe(scroll: scroll))
-      .modifier(FeedPullOffset(refresh: scroll.refresh))
+    NativeFeed(
+      entries: feed.entries, empty: feed.empty, shelfCount: shelf ? feed.shelfCount : 0,
+      geometry: geometry, cardContext: context, catalogVersion: workspace.catalogVersion,
+      topInset: topInset, workspaceOrigin: workspaceOrigin, scroll: scroll
+    )
+    .onGeometryChange(for: CGPoint.self) {
+      $0.frame(in: .named("card-workspace")).origin
+    } action: {
+      workspaceOrigin = $0
     }
-    .scrollIndicators(.hidden)
-    .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in
-      if mousePull == true { scroll.refresh.release(cancelled: true) }
-      mousePull = nil
-    }
+    .modifier(FeedPullOffset(refresh: scroll.refresh))
+    .animation(Motion.layout, value: feed.entries)
+    .onAppear { feed.entered = true }
   }
 
   /// Browsing only, after the last page, and only with something on the shelf.
   private var shelf: Bool { !feed.filtering && !feed.hasMore && feed.shelfCount > 0 }
-}
-
-/// Feed motion (motion.md): cards that stay move to their new place in `layout` 220ms; new cards
-/// drop 10px from above in 220ms; leaving cards stop taking input and fade out where they were
-/// in `fast` 140ms while the others close the gap.
-@MainActor enum FeedMotion {
-  static let arrival = AnyTransition.asymmetric(
-    insertion: .opacity.combined(with: .offset(y: -AppleMetrics.motionDetailEnterY)),
-    removal: .opacity.animation(Motion.fast))
-}
-
-/// Only the first screen enters: 10px up and in over 220ms, the first ten 30ms apart.
-struct Entrance: ViewModifier {
-  let delay: Double?
-  @State private var shown: Bool
-
-  init(delay: Double?) {
-    self.delay = delay
-    _shown = State(initialValue: delay == nil)
-  }
-
-  static func delay(_ index: Int) -> Double {
-    index < Int(AppleMetrics.motionFirstCount) ? Double(index) * AppleMetrics.motionStagger : 0
-  }
-
-  func body(content: Content) -> some View {
-    content
-      .opacity(shown ? 1 : 0)
-      .offset(y: shown ? 0 : AppleMetrics.motionDetailEnterY)
-      .onAppear {
-        guard !shown, let delay else { return }
-        withAnimation(Motion.open.delay(delay)) { shown = true }
-      }
-  }
 }
 
 extension FeedEntry {
@@ -134,7 +44,7 @@ extension FeedEntry {
   }
 }
 
-private struct FeedEntryView: View {
+struct FeedEntryView: View {
   let entry: FeedEntry
   let context: CardContext
   @Environment(Workspace.self) private var workspace

@@ -10,6 +10,7 @@ struct CardTile: View {
   let context: CardContext
   var selecting = false
   @Environment(\.cardIntents) private var intents
+  @Environment(\.feedCellSpace) private var space
   @State private var hovered = false
   @State private var pressed = false
   @FocusState private var focused: Bool
@@ -39,7 +40,7 @@ struct CardTile: View {
           carry: intents.carry, secondary: { point in intents.menu(card.id, point) })
       )
       .overlay {
-        if state.menuOpen { CardMenuLayer(card: card, state: state) }
+        if state.menuOpen && space == nil { CardMenuLayer(card: card, state: state) }
       }
       .focusable()
       .focusEffectDisabled()
@@ -136,6 +137,7 @@ private struct CardAccessibility: ViewModifier {
 /// the pointer until released. Right-click opens the card menu. Buttons inside the card take
 /// their own clicks first.
 struct CardPointer: ViewModifier {
+  @Environment(\.feedCellSpace) private var space
   let id: String
   @Binding var pressed: Bool
   @Binding var hovered: Bool
@@ -159,7 +161,7 @@ struct CardPointer: ViewModifier {
             case .idle:
               phase = .pressing
               pressed = true
-              let start = value.startLocation
+              let start = windowPoint(value.startLocation)
               hold = Task {
                 try? await Task.sleep(for: .seconds(AppleMetrics.holdToSelect))
                 guard !Task.isCancelled, phase == .pressing else { return }
@@ -168,11 +170,11 @@ struct CardPointer: ViewModifier {
             case .pressing:
               let moved = hypot(value.translation.width, value.translation.height)
               if moved > AppleMetrics.dragStartDistance {
-                pickUp(at: value.startLocation)
-                carry.move(value.location)
+                pickUp(at: windowPoint(value.startLocation))
+                carry.move(windowPoint(value.location))
               }
             case .carrying:
-              carry.move(value.location)
+              carry.move(windowPoint(value.location))
             }
           }
           .onEnded { value in
@@ -182,7 +184,7 @@ struct CardPointer: ViewModifier {
             pressed = false
             switch ended {
             case .pressing: click(NSEvent.modifierFlags)
-            case .carrying: carry.end(value.location)
+            case .carrying: carry.end(windowPoint(value.location))
             case .idle: break
             }
           }
@@ -195,6 +197,8 @@ struct CardPointer: ViewModifier {
     pressed = false
     carry.begin(id, point)
   }
+
+  private func windowPoint(_ point: CGPoint) -> CGPoint { space?.windowPoint(point) ?? point }
 }
 
 /// What picking a card up does. Not observable.
