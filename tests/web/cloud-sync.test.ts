@@ -6,6 +6,7 @@ import {
 	itemDefaults,
 	workspaceDiff,
 } from "../../apps/web/services/cloud-sync.ts";
+import { workspaceBatch } from "../../contracts/cloud.ts";
 
 const initial = () => ({
 	cards: [
@@ -26,6 +27,10 @@ test("cloud captures one bulk gesture atomically and strips server metadata from
 	assert.equal(operations.length, 3);
 	assert.equal(operations[0].card.revision, undefined);
 	assert.equal(operations[0].card.state, undefined);
+	assert.doesNotThrow(() => workspaceBatch.parse({ operations }));
+	const removed = clone(before);
+	removed.cards = [];
+	assert.doesNotThrow(() => workspaceBatch.parse({ operations: workspaceDiff(before, removed) }));
 	assert.deepEqual(
 		operations.slice(1).map((o) => o.before),
 		[{ bookmarked: false }, { bookmarked: false }],

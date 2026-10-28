@@ -84,7 +84,10 @@ import Testing
     refresh.release(cancelled: true)
     refresh.request = { $0(false) }
     refresh.refresh()
-    try await Task.sleep(for: .milliseconds(30))
+    let deadline = ContinuousClock.now + .seconds(1)
+    while refresh.phase == .loading && ContinuousClock.now < deadline {
+      try await Task.sleep(for: .milliseconds(5))
+    }
     #expect(refresh.phase == .error)
     refresh.cancel()
   }

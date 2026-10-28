@@ -11,6 +11,13 @@ export const cloudState = CardState.extend({
 	lessLike: z.boolean().optional(),
 }).strict();
 export const cloudPreferences = Preferences.strict();
+const cardBaseline = Card.safeExtend({
+	revision: revision.optional(),
+	state: cloudState.optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+	deleted: z.boolean().optional(),
+});
 const rawCard = Card.refine(
 	(value) =>
 		![
@@ -33,10 +40,10 @@ export const workspaceBatch = z
 						.object({
 							op: z.literal("card.upsert"),
 							card: rawCard,
-							before: Card.nullable().optional(),
+							before: cardBaseline.nullable().optional(),
 						})
 						.strict(),
-					z.object({ op: z.literal("card.delete"), id, before: Card.optional() }).strict(),
+					z.object({ op: z.literal("card.delete"), id, before: cardBaseline.optional() }).strict(),
 					z
 						.object({
 							op: z.literal("item.patch"),

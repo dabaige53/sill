@@ -67,6 +67,9 @@ AI 栏的会话与引用状态在 `Shell/AIContext.swift`，引用条在 `Shell/
 
 ### 本地运行
 
+Web 与 Mac 的隔离启动、验收和停止步骤见 [本地测试方案](../../docs/guides/local-testing.md)。
+
+
 ```sh
 node scripts/macos-demo-data.ts /tmp/sill-demo
 npm run build:macos

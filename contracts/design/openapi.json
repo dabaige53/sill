@@ -2441,6 +2441,105 @@
                               "type": "number",
                               "minimum": 0,
                               "maximum": 10
+                            },
+                            "revision": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            "state": {
+                              "type": "object",
+                              "properties": {
+                                "seen": {
+                                  "type": "boolean"
+                                },
+                                "read": {
+                                  "type": "boolean"
+                                },
+                                "bookmarked": {
+                                  "type": "boolean"
+                                },
+                                "later": {
+                                  "type": "boolean"
+                                },
+                                "playbackPosition": {
+                                  "description": "Actual playback position in seconds, separate from reading progress; saving position does not mark read.",
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 86400
+                                },
+                                "progress": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "note": {
+                                  "type": "string",
+                                  "maxLength": 4000
+                                },
+                                "taskDone": {
+                                  "maxItems": 100,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                                  }
+                                },
+                                "addedAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "snoozedUntil": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "dismissed": {
+                                  "type": "boolean"
+                                },
+                                "reminderDone": {
+                                  "type": "boolean"
+                                },
+                                "lastReminderKey": {
+                                  "type": "string",
+                                  "maxLength": 200
+                                },
+                                "lastNotifiedAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "readAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "restoredAt": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 8640000000000000
+                                },
+                                "done": {
+                                  "type": "boolean"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                },
+                                "lessLike": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "created_at": {
+                              "type": "string"
+                            },
+                            "updated_at": {
+                              "type": "string"
+                            },
+                            "deleted": {
+                              "type": "boolean"
                             }
                           },
                           "required": [
@@ -2959,6 +3058,105 @@
                           "type": "number",
                           "minimum": 0,
                           "maximum": 10
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9007199254740991
+                        },
+                        "state": {
+                          "type": "object",
+                          "properties": {
+                            "seen": {
+                              "type": "boolean"
+                            },
+                            "read": {
+                              "type": "boolean"
+                            },
+                            "bookmarked": {
+                              "type": "boolean"
+                            },
+                            "later": {
+                              "type": "boolean"
+                            },
+                            "playbackPosition": {
+                              "description": "Actual playback position in seconds, separate from reading progress; saving position does not mark read.",
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 86400
+                            },
+                            "progress": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "note": {
+                              "type": "string",
+                              "maxLength": 4000
+                            },
+                            "taskDone": {
+                              "maxItems": 100,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                              }
+                            },
+                            "addedAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "snoozedUntil": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "dismissed": {
+                              "type": "boolean"
+                            },
+                            "reminderDone": {
+                              "type": "boolean"
+                            },
+                            "lastReminderKey": {
+                              "type": "string",
+                              "maxLength": 200
+                            },
+                            "lastNotifiedAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "readAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "restoredAt": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 8640000000000000
+                            },
+                            "done": {
+                              "type": "boolean"
+                            },
+                            "archived": {
+                              "type": "boolean"
+                            },
+                            "lessLike": {
+                              "type": "boolean"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
