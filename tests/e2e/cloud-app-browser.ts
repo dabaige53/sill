@@ -357,8 +357,7 @@ try {
 				body: {
 					type: "photo",
 					title: "Synthetic photo recovery",
-					image: "coast",
-					photos: ["coast", "mountain"],
+					images: ["coast", "mountain"],
 				},
 			},
 		})

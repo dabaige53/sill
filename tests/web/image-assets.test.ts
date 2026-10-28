@@ -12,7 +12,9 @@ test("images accept HTTPS and retain bundled artwork", () => {
 		"https://images.example.org/photo.jpg?size=800",
 	]) {
 		assert.ok(assetURL(image));
-		assert.ok(Card.safeParse({ id: "photo", type: "photo", title: "Photo", image }).success);
+		assert.ok(
+			Card.safeParse({ id: "photo", type: "photo", title: "Photo", images: [image] }).success,
+		);
 	}
 });
 test("images reject non HTTPS and credentials", () => {
@@ -26,7 +28,7 @@ test("images reject non HTTPS and credentials", () => {
 	]) {
 		assert.equal(assetURL(image), undefined);
 		assert.equal(
-			Card.safeParse({ id: "photo", type: "photo", title: "Photo", image }).success,
+			Card.safeParse({ id: "photo", type: "photo", title: "Photo", images: [image] }).success,
 			false,
 		);
 	}

@@ -13,7 +13,9 @@
 					}
 				],
 				"media": "video",
-				"image": "coast"
+				"images": [
+					"coast"
+				]
 			}
 		},
 		{
@@ -28,7 +30,7 @@
 						"kind": "local"
 					}
 				],
-				"photos": [
+				"images": [
 					"coast"
 				]
 			}
@@ -42,7 +44,6 @@
 				"title": "Episode",
 				"audioUrl": "https://example.com/audio.mp3",
 				"duration": 180,
-				"chapterCount": 2,
 				"chapters": [
 					{
 						"start": 0,
@@ -71,7 +72,9 @@
 				"id": "https-cover",
 				"type": "note",
 				"title": "Synthetic HTTPS cover",
-				"image": "https://images.example.org/cover.jpg"
+				"images": [
+					"https://images.example.org/cover.jpg"
+				]
 			}
 		},
 		{
@@ -94,7 +97,7 @@
 				"id": "https-photos",
 				"type": "photo",
 				"title": "Synthetic HTTPS photos",
-				"photos": [
+				"images": [
 					"coast",
 					"https://images.example.org/photo.jpg?size=large"
 				]
@@ -139,7 +142,9 @@
 				"id": "insecure-cover",
 				"type": "note",
 				"title": "Synthetic insecure cover",
-				"image": "http://images.example.org/cover.jpg"
+				"images": [
+					"http://images.example.org/cover.jpg"
+				]
 			}
 		},
 		{
@@ -148,7 +153,7 @@
 				"id": "credential-photo",
 				"type": "photo",
 				"title": "Synthetic credential photo",
-				"photos": [
+				"images": [
 					"https://user:password@images.example.org/photo.jpg"
 				]
 			}

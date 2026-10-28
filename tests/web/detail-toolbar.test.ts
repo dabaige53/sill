@@ -109,7 +109,7 @@ test("settings omit action hiding controls and preserve saved legacy preferences
 });
 
 test("photo lightbox shows every shared tool despite legacy hidden preferences", () => {
-	const photo: Card = { ...seed("photo"), photos: ["architecture", "coast"] };
+	const photo: Card = { ...seed("photo"), images: ["architecture", "coast"] };
 	for (const hidden of [[], ["tag"], ["bookmark", "tag", "later"]] as CardAction[][]) {
 		Store.state = Store.fresh();
 		Store.setPref("hiddenActions", hidden);

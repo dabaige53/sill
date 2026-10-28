@@ -111,8 +111,8 @@ test("translated HTML keeps dynamic values, escaping and nested expressions", ()
 		id: "copy-safe",
 		type: "mail",
 		title,
-		sender: title,
-		attachment: title,
+		authors: [{ name: title }],
+		files: [{ name: title }],
 		summary: title,
 	};
 	const document = new JSDOM(cardHTML(card)).window.document;

@@ -19,7 +19,6 @@ for (const [index, seed] of cards.entries()) {
 			tags: [text],
 			body: text,
 			summary: text,
-			why: { reason: "Synthetic reason", basis: ["Keep evidence"] },
 		};
 		const before = JSON.stringify(card);
 		const dom = new JSDOM(
@@ -34,7 +33,6 @@ for (const [index, seed] of cards.entries()) {
 			assert.ok(document.querySelector(".sheet-scroll[tabindex='0']"));
 			assert.equal(document.querySelectorAll("input:not([type=range]),textarea").length, 0);
 			assert.equal(document.querySelector('[data-action="why"]'), null);
-			assert.deepEqual(card.why, { reason: "Synthetic reason", basis: ["Keep evidence"] });
 			assert.equal(JSON.stringify(card), before);
 		} finally {
 			dom.window.close();
@@ -122,7 +120,7 @@ test("task checks and completed reminder controls reflect stored state without c
 test("article preview puts the cover before its ruled header; reading puts it after", () => {
 	Store.state = Store.fresh();
 	const card = {
-		...SeedCards.find((c) => c.type === "article" && c.image),
+		...SeedCards.find((c) => c.type === "article" && c.images?.length),
 		summary: "Distinct lead",
 		body: "Full body",
 	};
@@ -176,7 +174,7 @@ test("all detail types keep card summaries out of the authored body", () => {
 	}
 });
 
-test("video and PR details respect edited tags instead of source tags", () => {
+test("video and PR details show the card tags after an edit", () => {
 	Store.state = Store.fresh();
 	for (const type of ["media", "pr"]) {
 		const card = {
@@ -185,10 +183,9 @@ test("video and PR details respect edited tags instead of source tags", () => {
 			tags: ["source-tag"],
 		};
 		Store.state.cards.push(card);
-		Store.item(card.id).tagsEdited = true;
-		Store.item(card.id).tags = ["personal-tag"];
-		const dom = new JSDOM(Panels.preview({}, card));
-		assert.equal(dom.window.document.querySelector(".preview-tags")?.textContent, "#personal-tag");
+		Store.setTags(card.id, ["edited-tag"]);
+		const dom = new JSDOM(Panels.preview({}, Store.card(card.id)));
+		assert.equal(dom.window.document.querySelector(".preview-tags")?.textContent, "#edited-tag");
 		assert.equal(dom.window.document.body.textContent?.includes("#source-tag"), false);
 		dom.window.close();
 	}

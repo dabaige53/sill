@@ -7,11 +7,9 @@ export function itemDefaults(card: any) {
 		read: false,
 		bookmarked: false,
 		later: false,
-		tagsEdited: false,
 		playbackPosition: 0,
 		progress: 0,
 		note: "",
-		tags: [],
 		addedAt: 0,
 		snoozedUntil: 0,
 		dismissed: false,
@@ -23,7 +21,7 @@ export function itemDefaults(card: any) {
 		done: false,
 		archived: false,
 		lessLike: false,
-		taskDone: (card.tasks || []).filter((t: any) => t.done).map((t: any) => t.id),
+		taskDone: [],
 	};
 }
 export function workspaceDiff(before: any, next: any) {

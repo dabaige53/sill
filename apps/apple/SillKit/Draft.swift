@@ -20,23 +20,19 @@ public struct Draft: Identifiable, Codable, Sendable {
       try original.map(JSONValue.decode)
       ?? .object([
         "id": .string(id), "type": .string("note"), "summary": .string(""),
-        "tags": .array([]), "form": .string("standard"),
         "time": .number(Date().timeIntervalSince1970 * 1000),
         "sources": .array([
           .object(["name": .string(Copy.appleLocalSource), "kind": .string("local")])
         ]),
       ])
     json["title"] = .string(title)
-    if Card.normalize(json)["body"]?.string ?? "" != body {
-      json["body"] = .string(body)
-      json["points"] = nil
-    }
-    return try Card(json: json, normalize: true)
+    json["body"] = body.isEmpty ? nil : .string(body)
+    return try Card(json: json)
   }
 
   public var isDirty: Bool {
     let json = original.flatMap { try? JSONValue.decode($0) }
     return title != (json?["title"]?.string ?? "")
-      || body != (json.map(Card.normalize)?["body"]?.string ?? "")
+      || body != (json?["body"]?.string ?? "")
   }
 }

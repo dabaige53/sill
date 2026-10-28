@@ -93,7 +93,7 @@ test("first media and layout saves use database field baselines and do not block
 	}
 });
 
-test("full replacement clears omitted known fields and preserves extensions, state and replay", async () => {
+test("full replacement clears omitted fields, rejects unknown fields and keeps state and replay", async () => {
 	const f = await cloudFixture();
 	try {
 		await identity(f.db);
@@ -113,7 +113,6 @@ test("full replacement clears omitted known fields and preserves extensions, sta
 							url: "https://example.com/old",
 							summary: "Old summary",
 							tags: ["old"],
-							futureField: { keep: true },
 						},
 					},
 					{
@@ -138,10 +137,13 @@ test("full replacement clears omitted known fields and preserves extensions, sta
 		const saved = await apply(body, "replacement-save");
 		const actual = saved.state.cards[0];
 		for (const field of ["url", "summary", "tags"]) assert.equal(field in actual, false, field);
-		assert.deepEqual(actual.futureField, { keep: true });
 		assert.equal(saved.state.items[actual.id].bookmarked, true);
 		assert.deepEqual(await apply(body, "replacement-save"), saved);
 		await assert.rejects(apply(body, "replacement-stale"), /revision_conflict/);
+		const unknown = structuredClone(body);
+		Object.assign(unknown.operations[0], { before: actual });
+		Object.assign(unknown.operations[0].card, { futureField: { keep: true } });
+		await assert.rejects(apply(unknown, "replacement-unknown"), /invalid_request/);
 	} finally {
 		await f.close();
 	}

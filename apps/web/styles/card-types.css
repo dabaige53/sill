@@ -82,13 +82,6 @@
 	font-size: calc(var(--text-control) * var(--content-text-scale, 1));
 	margin-bottom: var(--rhythm-label);
 }
-.why-details ul {
-	margin: var(--rhythm-close) 0 0;
-	padding-left: var(--space-18);
-}
-.why-details li {
-	margin-top: var(--space-6);
-}
 a.detail-row {
 	text-decoration: none;
 	color: inherit;
@@ -172,30 +165,6 @@ a.detail-row:hover {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-}
-/* Words and branch names wrap as whole pieces, never inside "合并到". */
-.pr-merge-intent {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--space-4);
-	min-width: 0;
-	font-size: calc(13px * var(--content-text-scale, 1));
-	white-space: nowrap;
-	color: var(--muted);
-}
-.pr-merge-intent .pr-branch {
-	max-width: 100%;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.pr-merge-intent .pr-branch {
-	font-family: "SF Mono", ui-monospace, Menlo, monospace;
-	font-size: calc(13px * var(--content-text-scale, 1));
-	padding: var(--space-2) var(--space-6);
-	color: var(--secondary);
-	background: var(--surface);
-	border-radius: 6px;
 }
 .pr-stats {
 	display: inline-flex;
@@ -281,14 +250,12 @@ a.detail-row:hover {
 }
 
 /* @design content-boundaries */
-.mail-attachments,
-.type-file .file-rows {
+:is(.type-file, .type-mail) .file-rows {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
 }
-.mail-attachments .attachment,
-.type-file .file-row {
+:is(.type-file, .type-mail) .file-row {
 	margin-top: 0;
 	padding: var(--space-12) 0;
 	border-radius: 0;
@@ -298,8 +265,7 @@ a.detail-row:hover {
 	min-width: 0;
 	max-width: 100%;
 }
-.mail-attachments .attachment + .attachment,
-.type-file .file-row + .file-row {
+:is(.type-file, .type-mail) .file-row + .file-row {
 	border-top: 1px solid var(--line);
 }
 .file-row .file-copy {
@@ -326,9 +292,6 @@ a.detail-row:hover {
 .file-row small,
 .file-row > .icon {
 	flex-shrink: 0;
-}
-.attachment-more-phone {
-	display: none;
 }
 
 /* CardTypeDetails: compact grey task circles; detail circles keep their larger size. */

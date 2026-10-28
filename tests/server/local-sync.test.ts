@@ -19,7 +19,7 @@ const bundle = buildSync({
 	globalName: "API",
 }).outputFiles[0].text;
 
-function fixture(t: any, items: any = { a: { note: "original" } }) {
+function fixture(t: any, items: any = { a: { note: "original" } }, tags: any = {}) {
 	const dir = mkdtempSync(join(tmpdir(), "sill-sync-test-"));
 	t.after(() => rmSync(dir, { recursive: true, force: true }));
 	const data = new Map();
@@ -37,7 +37,13 @@ function fixture(t: any, items: any = { a: { note: "original" } }) {
 	const { LocalSync: sync, Store: store } = context.API;
 	const repo = new LocalRepository(join(dir, "cards.json"));
 	const initial = repo.initialize({
-		cards: ["a", "b"].map((id) => ({ id, type: "note", title: id, body: ["original"] })),
+		cards: ["a", "b"].map((id) => ({
+			id,
+			type: "note",
+			title: id,
+			body: "original",
+			...(tags[id] ? { tags: tags[id] } : {}),
+		})),
 		items,
 		preferences: {},
 		sources: [],
@@ -116,20 +122,23 @@ for (const items of [{ a: { note: "original" } }, {}]) {
 }
 
 test("bulk tags retain each card baseline and reject the whole conflicting batch", async (t) => {
-	const { sync, store, repo } = fixture(t, { a: { tags: ["old"], tagsEdited: true }, b: {} });
+	const { sync, store, repo } = fixture(t, { a: {}, b: {} }, { a: ["old"] });
 	sync.app.bulkEditIds = ["a", "b"];
+	const card = (id: string) => repo.snapshot().state.cards.find((c: any) => c.id === id);
 	sync.adopt(
 		repo.apply({
-			operations: [{ op: "item.patch", id: "b", values: { tags: ["agent"], tagsEdited: true } }],
+			operations: [
+				{ op: "card.upsert", card: { ...card("b"), tags: ["agent"] }, before: card("b") },
+			],
 		}),
 	);
-	for (const id of ["a", "b"])
-		Object.assign(store.state.items[id], { tags: ["user"], tagsEdited: true });
+	assert.equal(store.card("b").tags, undefined);
+	for (const id of ["a", "b"]) store.setTags(id, ["user"]);
 	sync.capture();
 	await sync.flush();
 	assert.equal(sync.failed, true);
-	assert.deepEqual(repo.snapshot().state.items.a.tags, ["old"]);
-	assert.deepEqual(repo.snapshot().state.items.b.tags, ["agent"]);
+	assert.deepEqual(card("a").tags, ["old"]);
+	assert.deepEqual(card("b").tags, ["agent"]);
 });
 
 test("unrelated remote reading state merges while a note save succeeds", async (t) => {

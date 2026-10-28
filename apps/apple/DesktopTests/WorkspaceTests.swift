@@ -144,7 +144,8 @@ import Testing
         ]),
         .object([
           "id": .string("trip"), "type": .string("photo"), "title": .string("Trip"),
-          "time": .number(1), "takenAt": .string("2026-10-20"), "image": .string("coast"),
+          "time": .number(1), "publishedAt": .string("2026-10-20"),
+          "images": .array([.string("coast")]),
         ]),
       ])
     let now = try #require(Format.localDay("2026-10-21"))
@@ -152,7 +153,7 @@ import Testing
     #expect(story.sourceLine(day: story.articleDate, now: now) == "Feed · 10/18")
     #expect(story.sourceLine == "Feed")
     let trip = try #require(workspace.model("trip"))
-    let day = try #require(trip.takenDay)
+    let day = try #require(trip.publishedDay)
     #expect(Format.shortDay(day, now: now) == Copy.text("web.primitives.0c184871f658"))
   }
 

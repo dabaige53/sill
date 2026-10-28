@@ -216,12 +216,11 @@ export function adoptWorkspace(value: any) {
 			drawnState([...Cloud.records.values()], Store.state.items, Store.state.preferences),
 			drawnState(value.state.cards, value.state.items, value.state.preferences),
 		);
+	const editingIds: string[] = app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : [];
 	const editingItems = new Map<string, any>(
-		(app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : []).map((id: string) => [
-			id,
-			clone(Store.state.items[id] || {}),
-		]),
+		editingIds.map((id) => [id, clone(Store.state.items[id] || {})]),
 	);
+	const editingTags = new Map(editingIds.map((id) => [id, Cloud.records.get(id)?.tags]));
 	Cloud.records = new Map(value.state.cards.map((c: any) => [c.id, c]));
 	Store.state.items = clone(value.state.items);
 	Store.state.preferences = { ...Store.fresh().preferences, ...value.state.preferences };
@@ -229,11 +228,14 @@ export function adoptWorkspace(value: any) {
 	Store.state.storageAvailable = true;
 	for (const [id, original] of editingItems) {
 		const item = Store.state.items[id] || {};
-		for (const key of ["note", "tags", "tagsEdited"]) {
-			if (key in original) item[key] = original[key];
-			else delete item[key];
-		}
+		if ("note" in original) item.note = original.note;
+		else delete item.note;
 		Store.state.items[id] = item;
+		const record = Cloud.records.get(id);
+		if (!record) continue;
+		const { tags: _remote, ...card } = record;
+		const tags = editingTags.get(id);
+		Cloud.records.set(id, tags ? { ...card, tags } : card);
 	}
 	app.applyPreferences();
 	if (changed) paintRecords();

@@ -1,6 +1,5 @@
 import { defaultAppearance } from "../../../contracts/appearance.ts";
 import type { Card } from "../../../contracts/card.ts";
-import { normalizeCard } from "../../../contracts/card-migration.ts";
 import type { CardState, State } from "../../../contracts/local.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import { parseCard } from "./card-validation.ts";
@@ -24,7 +23,6 @@ export type CardItem = CardState &
 			| "later"
 			| "progress"
 			| "note"
-			| "tags"
 			| "snoozedUntil"
 			| "dismissed"
 			| "reminderDone"
@@ -71,7 +69,8 @@ interface CardStore {
 		value?: V & (V extends Preferences[K] ? unknown : string extends V ? unknown : never),
 	): void;
 	tags(card?: Card): string[];
-	tasks(card?: Card): NonNullable<Card["tasks"]>;
+	setTags(id?: string, tags?: string[]): void;
+	tasks(card?: Card): { id: string; text: string; done: boolean }[];
 	insert(cards?: unknown[]): number;
 	remove(ids?: Iterable<string>): void;
 	serialized(): Snapshot;
@@ -121,15 +120,8 @@ const Store: CardStore = {
 			archived: !!x.archived,
 			bookmarked: !!x.bookmarked,
 			later: !!x.later,
-			tagsEdited: !!x.tagsEdited,
 			progress: Math.max(0, Math.min(1, Number(x.progress) || 0)),
 			note: typeof x.note === "string" ? x.note.slice(0, 4000) : "",
-			tags: Array.isArray(x.tags)
-				? x.tags
-						.filter((s: unknown) => typeof s === "string")
-						.map((s: string) => s.slice(0, 30))
-						.slice(0, 20)
-				: [],
 			taskDone: Array.isArray(x.taskDone)
 				? x.taskDone.filter((s: unknown) => typeof s === "string")
 				: undefined,
@@ -209,7 +201,6 @@ const Store: CardStore = {
 			}),
 		);
 		if (valid && raw.version >= 3 && Array.isArray(raw.cards)) this.state.cards = raw.cards;
-		this.state.cards = this.state.cards.map(normalizeCard);
 		const items = valid
 			? raw.items
 			: Object.fromEntries(
@@ -240,7 +231,6 @@ const Store: CardStore = {
 			later: false,
 			progress: 0,
 			note: "",
-			tags: [],
 			snoozedUntil: 0,
 			dismissed: false,
 			reminderDone: false,
@@ -276,15 +266,22 @@ const Store: CardStore = {
 		this.save();
 	},
 	tags(this: CardStore, c?: Card): string[] {
-		const s = this.item(c.id);
-		return s.tagsEdited ? [...s.tags] : [...new Set<string>([...(c.tags || []), ...s.tags])];
+		return [...(c.tags || [])];
 	},
-	tasks(this: CardStore, c?: Card): NonNullable<Card["tasks"]> {
+	/** Tags are card facts; the sync diff saves the whole card against its baseline. */
+	setTags(this: CardStore, id?: string, tags?: string[]) {
+		const index = this.state.cards.findIndex((c) => c.id === id);
+		if (index < 0) return;
+		const { tags: _old, ...card } = this.state.cards[index];
+		this.state.cards[index] = tags.length ? { ...card, tags } : card;
+		this.save();
+	},
+	tasks(this: CardStore, c?: Card): { id: string; text: string; done: boolean }[] {
 		const done = this.item(c.id).taskDone;
-		return (c.tasks || []).map((t) => ({ ...t, done: done ? done.includes(t.id) : t.done }));
+		return (c.tasks || []).map((t) => ({ ...t, done: !!done?.includes(t.id) }));
 	},
 	insert(this: CardStore, cards?: unknown[]) {
-		cards = cards.map((card) => parseCard(normalizeCard(card as Card)));
+		cards = cards.map((card) => parseCard(card as Card));
 		const known = new Set<string>(this.state.cards.map((c) => c.id));
 		const additions = (cards as Card[]).filter((c) => {
 			if (known.has(c.id)) return false;

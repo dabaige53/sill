@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, Fragment, type ReactNode } from "react";
 import {
 	dateLabel,
 	eventRelative,
@@ -6,14 +6,30 @@ import {
 	reminderClock,
 	timeString,
 } from "../atoms/primitives.ts";
-import { FileList, RelatedCards, TaskFacts, WhyDetails } from "../cards/detail-blocks.tsx";
+import { Avatars } from "../atoms/react-primitives.tsx";
+import { ReminderMark } from "../cards/card-face.tsx";
+import { FileList, RelatedCards, TaskFacts } from "../cards/detail-blocks.tsx";
 import { DetailText } from "../cards/markdown.tsx";
 import { MediaDetail, type PlaybackApp } from "../cards/media-detail.tsx";
 import { PullRequest } from "../cards/pull-request.tsx";
+import {
+	type DetailRecipe,
+	detailRecipe,
+	type Entry,
+	entryName,
+	entryOptions,
+	readerRecipe,
+} from "../cards/recipes.ts";
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
 import { assetURL } from "../data/assets.ts";
-import { cardReadingTime, cardSource, detailDate } from "../data/card-source.ts";
+import {
+	cardCover,
+	cardReadingTime,
+	cardSender,
+	cardSource,
+	detailDate,
+} from "../data/card-source.ts";
 import { AssetTones } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -25,7 +41,6 @@ import {
 	icon,
 	keyed,
 	personalNote,
-	reminderMark,
 	SheetEdges,
 } from "./panel-primitives.tsx";
 import type { PanelRenderers } from "./panels-components.tsx";
@@ -46,34 +61,19 @@ type PreviewContext = {
 	tools: ReactNode;
 	h1: ReactNode;
 };
-type PreviewRenderer = (
+/** Preview is the detail sheet; reader is the full-screen reading page. */
+type Mode = "preview" | "reader";
+type Scope = { mode: Mode; recipe: DetailRecipe; s: ReturnType<typeof Store.item> };
+type DetailBlock = (
 	this: PanelRenderers,
 	card: PreviewCard,
-	context: PreviewContext,
+	options: Record<string, any>,
+	scope: Scope,
 ) => ReactNode;
 
-const renderers = {
-	mail: mailPreview,
-	event: eventPreview,
-	media: (c, { sheet, tools, app }) => (
-		<>
-			{sheet(<MediaDetail key={c.id} card={c} app={app} />)}
-			{tools}
-		</>
-	),
-	file: filePreview,
-	pr: (c, { sheet, tools }) => (
-		<>
-			{sheet(<PullRequest card={c} detail />)}
-			{tools}
-		</>
-	),
-	task: taskReminderPreview,
-	reminder: taskReminderPreview,
-} satisfies Record<string, PreviewRenderer>;
-
 export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewCard) {
-	if (c.type === "media" && c.media !== "podcast")
+	const recipe = detailRecipe(c);
+	if (recipe.composite === "videoPlayer")
 		return (
 			<VideoSurface
 				key={c.id}
@@ -105,7 +105,7 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 				className={`sheet preview-sheet detail-${c.type}`}
 				style={
 					c.media === "podcast"
-						? ({ "--podcast-tone": AssetTones[c.image] || "var(--surface)" } as CSSProperties)
+						? ({ "--podcast-tone": AssetTones[cardCover(c)] || "var(--surface)" } as CSSProperties)
 						: undefined
 				}
 			>
@@ -144,261 +144,263 @@ export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewC
 	);
 	const context: PreviewContext = { app, s, tags, closeButton, sheet, tools, h1 };
 
-	const render: PreviewRenderer =
-		typeof c.type === "string" && Object.hasOwn(renderers, c.type)
-			? renderers[c.type]
-			: contentPreview;
-	return render.call(this, c, context);
+	return detailPreview.call(this, c, context, recipe);
 }
 
-function mailPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { sheet, h1, tools } = context;
-
-	const sender = c.sender?.trim();
+function coverImage(c: PreviewCard) {
 	return (
-		<>
-			{keyed(
-				sheet(
-					<>
-						<header className="detail-header">
-							{sender ? (
-								<div className={"preview-sender"}>
-									{avatar(sender, 36)}
-									<span>
-										<b>{sender}</b>
-										<small>
-											<SourceMark card={c} />
-											{[cardSource(c), detailDate(c.sentAt, true), cardReadingTime(c)]
-												.filter(Boolean)
-												.join(" · ")}
-										</small>
-									</span>
-								</div>
-							) : (
-								this.meta(c)
-							)}
-							{h1}
-						</header>
-						<DetailText body={c.body} />
-						<FileList
-							attachment
-							label={copy("web.card.attachments")}
-							files={c.attachments ?? (c.attachment ? [{ name: c.attachment }] : [])}
-						/>
-					</>,
-				),
-			)}
-			{tools}
-		</>
+		<div className={"preview-cover"}>
+			<img
+				referrerPolicy="no-referrer"
+				onError={(event) => {
+					event.currentTarget.style.opacity = "0";
+				}}
+				onLoad={(event) => {
+					event.currentTarget.style.opacity = "1";
+				}}
+				data-shared={"image"}
+				src={assetURL(cardCover(c))}
+				alt={""}
+				draggable={false}
+			/>
+		</div>
 	);
 }
 
-function eventPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { sheet, h1, tools } = context;
+function previewMeta(c: PreviewCard, label: ReactNode, size?: number) {
+	return (
+		<div className={"preview-meta"}>
+			<SourceMark card={c} size={size} />
+			<span>{label}</span>
+		</div>
+	);
+}
 
-	const span = Math.round((c.end - c.start) / 60000);
-	const rows = [
-		c.meeting ? (
+/** Detail source lines, by the recipe's `line` option. */
+const detailLines: Record<string, DetailBlock> = {
+	meta(c) {
+		return this.meta(c);
+	},
+	digest: (c) =>
+		previewMeta(
+			c,
+			[
+				cardSource(c),
+				c.related?.length ? `${c.related.length}${copy("web.card.relatedCount")}` : "",
+			]
+				.filter(Boolean)
+				.join(" · "),
+		),
+	task: (c) => previewMeta(c, [cardSource(c), c.project?.name].filter(Boolean).join(" · "), 15),
+	reminder: (c, _o, { s }) => {
+		const when = FeedPolicy.reminderTime(c, s);
+		return previewMeta(
+			c,
+			[...new Set([copy("web.reminder"), cardSource(c), when ? reminderClock(when.at) : ""])]
+				.filter(Boolean)
+				.join(" · "),
+			15,
+		);
+	},
+};
+
+const detailBlocks: Record<string, DetailBlock> = {
+	source(c, o, scope) {
+		return (detailLines[o.line] || detailLines.meta).call(this, c, o, scope);
+	},
+	sender(c) {
+		const sender = cardSender(c);
+		return sender ? (
+			<div className={"preview-sender"}>
+				{avatar(sender, 36)}
+				<span>
+					<b>{sender}</b>
+					<small>
+						<SourceMark card={c} />
+						{[cardSource(c), detailDate(c.publishedAt, true), cardReadingTime(c)]
+							.filter(Boolean)
+							.join(" · ")}
+					</small>
+				</span>
+			</div>
+		) : (
+			this.meta(c)
+		);
+	},
+	eventDate: (c) => (
+		<div className={"preview-meta"}>
+			{dateLabel(c.start)}
+			{eventRelative(c) ? (
+				<>
+					{" · "}
+					<span style={{ color: "var(--accent)", fontWeight: "500" }}>{eventRelative(c)}</span>
+				</>
+			) : (
+				""
+			)}
+		</div>
+	),
+	timeSpan: (c) => (
+		<div className={"event-hero"}>
+			<span className={"num"}>{timeString(c.start)}</span>
+			<small className={"num"}>
+				{copy("web.templates.83532308ecca")}
+				{timeString(c.end)}
+				{" · "}
+				{Math.round((c.end - c.start) / 60000)}
+				{copy("web.templates.40de54344d22")}
+			</small>
+		</div>
+	),
+	title(c, o, { mode, recipe }) {
+		const h1 = (
+			<h1 id="modal-title" data-shared={mode === "preview" || recipe.end ? "title" : undefined}>
+				{c.title}
+			</h1>
+		);
+		if (o.bare) return h1;
+		return (
 			<>
-				<div className={"detail-row meeting-row"}>
+				{h1}
+				{this.tags(c)}
+				{o.publication === false ? null : this.publication(c)}
+			</>
+		);
+	},
+	tags(c) {
+		return this.tags(c);
+	},
+	reminderMark: (c, _o, { s }) => <ReminderMark card={c} done={!!s.reminderDone} />,
+	cover: (c, _o, { mode }) => (cardCover(c) && mode === "reader" ? coverImage(c) : null),
+	body: (c, o) =>
+		o.section === "agenda" ? (
+			c.body?.trim() && (
+				<section className="detail-section">
+					<h2>{copy("web.card.agenda")}</h2>
+					<DetailText body={c.body} />
+				</section>
+			)
+		) : (
+			<DetailText body={c.body} outline={!!o.outline && c.type === "article"} />
+		),
+	files: (c) => <FileList files={c.files} />,
+	participants: (c) =>
+		c.people?.length ? (
+			<div className="detail-row detail-people">
+				<Avatars names={c.people} />
+				<span>{c.people.join("、")}</span>
+			</div>
+		) : null,
+	references: (c) => <RelatedCards card={c} />,
+	facts: (c) => <TaskFacts card={c} />,
+	checklist: (c) => (
+		<div className={"detail-task-list"}>{keyed(Store.tasks(c).map((t) => checkItem(c, t)))}</div>
+	),
+	info(c, o) {
+		if (o.style === "line")
+			return c.project ? (
+				<p className="preview-published">
+					{copy("web.metadata.project")} · {c.project.name}
+				</p>
+			) : null;
+		const rows = [
+			c.meeting ? (
+				<div className={"detail-row meeting-row"} key="meeting">
 					<span className={"row-icon"}>{icon("video", 16)}</span>
 					<span className="meeting-info">
 						<span className="meeting-name">{c.meeting.name}</span>
 						{c.meeting.code && <small className="meeting-code num">{c.meeting.code}</small>}
 					</span>
 				</div>
-			</>
-		) : (
-			""
-		),
-		c.location ? (
-			<>
-				<div className={"detail-row"}>
+			) : null,
+			c.location ? (
+				<div className={"detail-row"} key="location">
 					<span className={"row-icon"}>{icon("pin", 16)}</span>
 					<span>{c.location}</span>
 				</div>
-			</>
-		) : (
-			""
-		),
-		c.people?.length ? (
-			<>
-				<div className={"detail-row"}>
-					<span className={"row-icon"}>{icon("at", 16)}</span>
-					<span>{c.people.join("、")}</span>
-					<small>
-						{c.people.length}
-						{copy("web.preview.peopleCountSuffix")}
-					</small>
+			) : null,
+		].filter(Boolean);
+		return rows.length ? <div className={"detail-rows"}>{keyed(rows)}</div> : null;
+	},
+};
+
+const detailGroups: Record<string, string> = {
+	reminderRow: "reminder-row preview-title-row",
+};
+
+function renderDetail(
+	this: PanelRenderers,
+	entries: Entry[] | undefined,
+	c: PreviewCard,
+	scope: Scope,
+): ReactNode[] {
+	return (entries || []).map((entry, key) => {
+		if (typeof entry !== "string" && "group" in entry)
+			return (
+				// biome-ignore lint/suspicious/noArrayIndexKey: Recipe entries are fixed per card type.
+				<div className={detailGroups[entry.group]} key={key}>
+					{renderDetail.call(this, entry.blocks, c, scope)}
 				</div>
-			</>
-		) : (
-			""
-		),
-	];
-	return (
-		<>
-			{keyed(
-				sheet(
-					<>
-						<header className="detail-header">
-							{this.meta(c)}
-							<div className={"preview-meta"}>
-								{dateLabel(c.start)}
-								{eventRelative(c) ? (
-									<>
-										{" · "}
-										<span style={{ color: "var(--accent)", fontWeight: "500" }}>
-											{eventRelative(c)}
-										</span>
-									</>
-								) : (
-									""
-								)}
-							</div>
-							<div className={"event-hero"}>
-								<span className={"num"}>{timeString(c.start)}</span>
-								<small className={"num"}>
-									{copy("web.templates.83532308ecca")}
-									{timeString(c.end)}
-									{" · "}
-									{span}
-									{copy("web.templates.40de54344d22")}
-									{c.timeZone ? ` · ${c.timeZone}` : ""}
-								</small>
-							</div>
-							{h1}
-						</header>
-						{rows.some(Boolean) ? (
-							<>
-								<div className={"detail-rows"}>{keyed(rows)}</div>
-							</>
-						) : (
-							""
-						)}
-						{c.body?.trim() && (
-							<section className="detail-section">
-								<h2>{copy("web.card.agenda")}</h2>
-								<DetailText body={c.body} />
-							</section>
-						)}
-					</>,
-				),
-			)}
-			{tools}
-		</>
-	);
-}
-
-function filePreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { sheet, h1, tools } = context;
-	return (
-		<>
-			{sheet(
-				<>
-					<header className="detail-header">
-						{this.meta(c)}
-						{h1}
-					</header>
-					<DetailText body={c.body} />
-					<FileList files={c.files} />
-				</>,
-			)}
-			{tools}
-		</>
-	);
-}
-
-function taskReminderPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { s, sheet, h1, tools, tags } = context;
-
-	const list =
-		c.type === "task" ? (
-			<>
-				<div className={"detail-task-list"}>
-					{keyed(Store.tasks(c).map((t?: any) => checkItem(c, t)))}
-				</div>
-			</>
-		) : (
-			""
+			);
+		const block = detailBlocks[entryName(entry)];
+		return (
+			// biome-ignore lint/suspicious/noArrayIndexKey: Recipe entries are fixed per card type.
+			<Fragment key={key}>{block?.call(this, c, entryOptions(entry), scope)}</Fragment>
 		);
-	const label =
-		c.type === "reminder"
-			? [
-					...new Set([
-						copy("web.reminder"),
-						cardSource(c),
-						FeedPolicy.reminderTime(c, s) ? reminderClock(FeedPolicy.reminderTime(c, s).at) : "",
-					]),
-				]
-					.filter(Boolean)
-					.join(" · ")
-			: [cardSource(c), c.project?.name].filter(Boolean).join(" · ");
+	});
+}
+
+/** One detail surface: the recipe's head inside the header, then its body blocks. */
+function detailContent(
+	this: PanelRenderers,
+	c: PreviewCard,
+	recipe: DetailRecipe,
+	mode: Mode,
+	s: ReturnType<typeof Store.item>,
+) {
+	const scope = { mode, recipe, s };
 	return (
 		<>
-			{sheet(
-				<>
-					<header className="detail-header">
-						<div className={"preview-meta"}>
-							<SourceMark card={c} size={15} />
-							<span>{label}</span>
-						</div>
-						{c.type === "reminder" ? (
-							<>
-								<div className={"reminder-row preview-title-row"}>
-									{reminderMark(c, !!s.reminderDone)}
-									<h1 id={"modal-title"} data-shared={"title"}>
-										{c.title}
-									</h1>
-								</div>
-								{tags}
-							</>
-						) : (
-							h1
-						)}
-					</header>
-					{c.type === "task" && <TaskFacts card={c} />}
-					{keyed(list)}
-					<DetailText body={c.body} />
-					{c.type === "reminder" && c.project && (
-						<p className="preview-published">
-							{copy("web.metadata.project")} · {c.project.name}
-						</p>
-					)}
-				</>,
-			)}
-			{tools}
+			<header className={`detail-header ${recipe.ruled ? "ruled-header" : ""}`}>
+				{renderDetail.call(this, recipe.head, c, scope)}
+			</header>
+			{renderDetail.call(this, recipe.body, c, scope)}
 		</>
 	);
 }
 
-function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewContext) {
-	const { sheet, tools } = context;
+function detailPreview(
+	this: PanelRenderers,
+	c: PreviewCard,
+	{ app, s, sheet, tools }: PreviewContext,
+	recipe: DetailRecipe,
+) {
+	if (recipe.composite === "podcastDetail")
+		return (
+			<>
+				{sheet(<MediaDetail key={c.id} card={c} app={app} />)}
+				{tools}
+			</>
+		);
+	if (recipe.composite === "pullRequest")
+		return (
+			<>
+				{sheet(<PullRequest card={c} detail />)}
+				{tools}
+			</>
+		);
+	const hoisted = recipe.body?.some(
+		(entry) => entryName(entry) === "cover" && entryOptions(entry).preview === "hoist",
+	);
 	return (
 		<>
 			{sheet(
-				articleContent.call(this, c, false),
-				c.type === "article" && c.image ? (
-					<div className="preview-cover">
-						<img
-							referrerPolicy="no-referrer"
-							onError={(event) => {
-								event.currentTarget.style.opacity = "0";
-							}}
-							onLoad={(event) => {
-								event.currentTarget.style.opacity = "1";
-							}}
-							data-shared="image"
-							src={assetURL(c.image)}
-							alt=""
-							draggable={false}
-						/>
-					</div>
-				) : (
-					""
-				),
+				detailContent.call(this, c, recipe, "preview", s),
+				hoisted && cardCover(c) ? coverImage(c) : "",
 				"",
-				c.body?.trim() ? <div className="reader-end" id="reader-end" aria-hidden="true" /> : null,
+				recipe.end && c.body?.trim() ? (
+					<div className="reader-end" id="reader-end" aria-hidden="true" />
+				) : null,
 			)}
 			{tools}
 		</>
@@ -406,76 +408,10 @@ function contentPreview(this: PanelRenderers, c: PreviewCard, context: PreviewCo
 }
 
 export function readingContent(this: PanelRenderers, c: PreviewCard, app?: PreviewApp) {
-	if (c.type === "media") return <MediaDetail key={c.id} card={c} app={app} full />;
-	if (c.type === "mail")
-		return mailPreview.call(this, c, {
-			sheet: (inner) => inner,
-			h1: (
-				<>
-					<h1 id="modal-title">{c.title}</h1>
-					{this.tags(c)}
-					{this.publication(c)}
-				</>
-			),
-			tools: null,
-		} as PreviewContext);
-	return articleContent.call(this, c);
-}
-
-export function articleContent(this: PanelRenderers, c: PreviewCard, reading = true) {
-	const cover = c.image ? (
-		<>
-			<div className={"preview-cover"}>
-				<img
-					referrerPolicy="no-referrer"
-					onError={(event) => {
-						event.currentTarget.style.opacity = "0";
-					}}
-					onLoad={(event) => {
-						event.currentTarget.style.opacity = "1";
-					}}
-					data-shared={"image"}
-					src={assetURL(c.image)}
-					alt={""}
-					draggable={"false"}
-				/>
-			</div>
-		</>
-	) : (
-		""
-	);
-	return (
-		<>
-			<header className={`detail-header ${c.type === "suggestion" ? "" : "ruled-header"}`}>
-				{c.type === "digest" ? (
-					<div className="preview-meta">
-						<SourceMark card={c} />
-						<span>
-							{[
-								c.coverageStart !== undefined && c.coverageEnd !== undefined
-									? `${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`
-									: cardSource(c),
-								c.related?.length ? `${c.related.length}${copy("web.card.relatedCount")}` : "",
-							]
-								.filter(Boolean)
-								.join(" · ")}
-						</span>
-					</div>
-				) : (
-					this.meta(c)
-				)}
-				<h1 id="modal-title" data-shared="title">
-					{c.title}
-				</h1>
-				{this.tags(c)}
-				{c.type !== "digest" && this.publication(c)}
-			</header>
-			{reading && cover}
-			{c.type === "suggestion" && <WhyDetails card={c} />}
-			{c.type !== "suggestion" && <DetailText body={c.body} outline={c.type === "article"} />}
-			{["suggestion", "digest"].includes(c.type) && <RelatedCards card={c} />}
-		</>
-	);
+	const recipe = readerRecipe(c);
+	if (recipe.composite === "videoPlayer" || recipe.composite === "podcastDetail")
+		return <MediaDetail key={c.id} card={c} app={app} full />;
+	return detailContent.call(this, c, recipe, "reader", Store.item(c.id));
 }
 
 function standaloneDisplay() {

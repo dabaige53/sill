@@ -47,9 +47,8 @@ cards.push(
 		id: "motion-mail",
 		type: "mail",
 		title: "这周的方案，只差最后一个决定",
-		sender: "林舟",
-		meta: "14:32",
-		attachment: "方案对比.txt",
+		authors: [{ name: "林舟" }],
+		files: [{ name: "方案对比.txt" }],
 		tags: ["工作", "设计"],
 		body: [
 			"三种方向已经整理好了。比起增加功能，我们更想先确认什么应该留下。",
@@ -82,8 +81,7 @@ cards.push(
 		type: "photo",
 		title: "照片详情",
 		summary: "独立网页只展示照片，不提供复制给助手功能。",
-		image: "architecture",
-		photos: ["architecture", "architecture"],
+		images: ["architecture", "architecture"],
 		time: Date.now() - 10800000,
 	},
 );

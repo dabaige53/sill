@@ -45,9 +45,9 @@
 }
 ```
 
-示例 ID、版本、幂等键须换成实际值。`changes` 只发送修改字段；`state` 合并子字段。数组整体替换，先保留不需改动的元素；嵌套对象也整体替换，例如改 `why.reason` 时保留 `why.basis`。没有变化就不写入。除 `readingEstimate:null` 明确清除估算外，不接受 `null` 清空；空数组、空文本还须满足卡片规则。
+示例 ID、版本、幂等键须换成实际值。`changes` 只发送修改字段；`state` 合并子字段。数组整体替换，先保留不需改动的元素；嵌套对象也整体替换，例如改 `pullRequest.checks` 时保留其他快照字段。没有变化就不写入。字段不接受 `null`；要移除字段时用 `card.upsert` 整卡替换。空数组、空文本还须满足卡片规则。
 
-不要把读取结果中的 `id`、`revision`、`created_at`、`updated_at`、`deleted` 等服务端字段塞进 `changes`。未知卡片字段由服务端保留。
+不要把读取结果中的 `id`、`revision`、`created_at`、`updated_at`、`deleted` 等服务端字段塞进 `changes`。未知卡片字段会被拒绝。
 
 ## 原子批量操作
 
@@ -117,11 +117,9 @@
 | `read` | boolean | 已读 |
 | `bookmarked` | boolean | 收藏 |
 | `later` | boolean | 稍后看 |
-| `tagsEdited` | boolean | 标签已由用户或助手调整 |
 | `playbackPosition` | number，0–86400 秒，可含小数 | 实际播放位置；独立于阅读进度，保存位置不自动标记已读 |
 | `progress` | number，0–1 | 阅读进度 |
 | `note` | string，最多 4000 字符 | 备注 |
-| `tags` | string[]，最多 20 项，每项最多 30 字符 | 用户标签 |
 | `taskDone` | ID[]，最多 100 项 | 已完成子任务；每个 ID 必须属于该卡片的 `tasks` |
 | `addedAt` | number，0–8.64e15 | 加入时间，毫秒时间戳；0 表示未设置 |
 | `snoozedUntil` | 同上 | 稍后显示的截止时间 |
@@ -135,7 +133,7 @@
 | `archived` | boolean | 已归档；工作区快照仍包含卡片 |
 | `lessLike` | boolean | 减少同类内容偏好，供当前页面排序和助手读取 |
 
-任务卡设 `done:true` 会完成所有子任务；设 `false` 会清空完成列表。修改 `taskDone` 时，`done` 随全部任务是否完成变化。不要同时提交互相矛盾的完成字段。缺失状态采用服务端默认值：布尔值为 false，数字为 0，文本为空，标签为空；未单独设置 `taskDone` 时从卡片任务的 `done` 派生。
+任务卡设 `done:true` 会完成所有子任务；设 `false` 会清空完成列表。修改 `taskDone` 时，`done` 随全部任务是否完成变化。不要同时提交互相矛盾的完成字段。缺失状态采用服务端默认值：布尔值为 false，数字为 0，文本为空；未设置 `taskDone` 时为空列表。标签是卡片字段 `tags`，用户或助手编辑标签就是修改卡片。
 
 ## 偏好与阅读记录
 
@@ -183,4 +181,4 @@
 
 ## 明确卡片字段
 
-完整字段、适用类型与日期/时长规则见 [字段字典](fields.md)；制作各类卡片见 [卡片制作](cards.md)。正文与结构化内容按 [传输规则](transport.md) 传递。更新正文或覆盖程度时，已有计算阅读估算须重算或用 readingEstimate:null 清除。
+完整字段、适用类型与日期/时长规则见 [字段字典](fields.md)；制作各类卡片见 [卡片制作](cards.md)。正文与结构化内容按 [传输规则](transport.md) 传递。阅读时长由客户端按正文计算，不另外写入。

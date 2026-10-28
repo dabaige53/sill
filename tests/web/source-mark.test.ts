@@ -11,10 +11,9 @@ test("source brands use explicit identity without treating a generic mailbox as 
 	assert.equal(
 		publicationName({
 			type: "article",
-			publisher: { name: "Publisher" },
-			authors: [{ name: "Writer" }, { name: "Publisher" }],
+			authors: [{ name: "Writer" }, { name: "Publisher" }, { name: "Writer" }],
 		}),
-		"Publisher · Writer",
+		"Writer · Publisher",
 	);
 });
 

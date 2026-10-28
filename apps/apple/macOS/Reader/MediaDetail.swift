@@ -34,7 +34,7 @@ struct MediaDetail: View {
         .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
       } else {
         ZStack {
-          CoverImage(name: card.image)
+          CoverImage(name: card.cover)
           VStack(spacing: AppleMetrics.space16) {
             Button {
             } label: {
@@ -70,7 +70,7 @@ struct MediaDetail: View {
     MetaRow(icon: AnyView(SourceIcon(card: card))) {
       Text(
         [
-          card.publicationName, card.publication.date ?? "",
+          card.publicationName, card.publicationDate ?? "",
           card.duration.map(Format.duration) ?? "",
         ].filter { !$0.isEmpty }.joined(
           separator: " · "))
@@ -180,7 +180,7 @@ struct MediaDetail: View {
   }
   private var videoPoster: some View {
     ZStack {
-      CoverImage(name: card.image)
+      CoverImage(name: card.cover)
       AppleColors.fixedBlack18
       Icon("play", size: AppleMetrics.space24, filled: true)
         .foregroundStyle(AppleColors.primary)

@@ -116,7 +116,7 @@ test("sidebar and thread entries use scoped cloud resources and disappear on rev
 				body: {
 					type: "note",
 					title: "Remote cover",
-					image: "https://images.example.com/cover.jpg",
+					images: ["https://images.example.com/cover.jpg"],
 				},
 			},
 		});

@@ -42,6 +42,8 @@
 ## 使用与阶段交接
 
 - [本地操作](guides/local-operations.md)
+
+- [Web 与 Mac 本地测试](guides/local-testing.md)
 - [插件使用与排查](guides/plugin-runbook.md)
 - [动画库历史说明](archive/motion-library.md)
 - [滚动、完成与回弹优化方案](guides/scroll-motion-optimization.md)

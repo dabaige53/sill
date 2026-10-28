@@ -17,9 +17,9 @@ export function cardIssues(card: Card): string[] {
 		(!card.tasks?.length || new Set(card.tasks.map((task) => task.id)).size !== card.tasks.length)
 	)
 		issues.push("invalid_task_ids");
-	if (card.type === "media" && !card.image && card.media !== "podcast")
+	if (card.type === "media" && card.media !== "podcast" && !card.images?.length)
 		issues.push("missing_video_image");
-	if (card.type === "photo" && !card.photos?.length && !card.image) issues.push("missing_photos");
+	if (card.type === "photo" && !card.images?.length) issues.push("missing_images");
 	if (card.type === "file" && !card.files?.length) issues.push("missing_files");
 	return issues;
 }

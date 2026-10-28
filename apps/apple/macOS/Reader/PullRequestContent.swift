@@ -73,24 +73,6 @@ struct PullRequestContent: View {
       .background(RoundedRectangle(cornerRadius: AppleMetrics.space6).fill(AppleColors.surface))
   }
 
-  /// "<author> 想把 <head> 合并到 <base>", matching the Web detail.
-  private func mergeIntent(author: String, head: String, base: String) -> some View {
-    let parts = Copy.text("pr.mergeIntent").components(separatedBy: " ")
-    return HStack(spacing: AppleMetrics.space4) {
-      ForEach(Array(parts.enumerated()), id: \.offset) { _, part in
-        switch part {
-        case "{head}":
-          branchChip(head, size: AppleMetrics.font13).foregroundStyle(AppleColors.secondary)
-        case "{base}":
-          branchChip(base, size: AppleMetrics.font13).foregroundStyle(AppleColors.secondary)
-        default: Text(part == "{author}" ? author : part).lineLimit(1)
-        }
-      }
-    }
-    .textStyle(AppleMetrics.font13)
-    .foregroundStyle(AppleColors.secondary)
-  }
-
   private func status(_ pr: CardRichFields.PullRequest) -> some View {
     Text(Copy.text(pr.reviewRequested == true ? "pr.reviewRequested" : "pr.state.\(pr.state)"))
       .textStyle(AppleMetrics.font11, .medium)
@@ -104,7 +86,7 @@ struct PullRequestContent: View {
         ))
   }
 
-  /// First detail row: the state in its colour, then who wants to merge which branch.
+  /// First detail row: the state in its colour, then the branches.
   private func statusRow(_ pr: CardRichFields.PullRequest) -> some View {
     HStack(spacing: AppleMetrics.space12) {
       rowIcon("pull")
@@ -114,11 +96,7 @@ struct PullRequestContent: View {
           .foregroundStyle(
             pr.state == "draft" || pr.state == "closed" ? AppleColors.secondary : AppleColors.accent
           )
-        if let author = pr.author?.login, !author.isEmpty, let head = pr.headBranch,
-          let base = pr.baseBranch
-        {
-          mergeIntent(author: author, head: head, base: base)
-        } else if pr.headBranch != nil || pr.baseBranch != nil {
+        if pr.headBranch != nil || pr.baseBranch != nil {
           branchChip(
             [pr.headBranch, pr.baseBranch].compactMap { $0 }.joined(separator: " → "),
             size: AppleMetrics.font12
@@ -270,9 +248,6 @@ struct PullRequestContent: View {
         .frame(minHeight: AppleMetrics.detailRowHeight)
         .overlay(alignment: .top) { rowDivider }
       }
-      if let comments = pr.comments {
-        DetailRow(icon: "message", title: "\(comments) \(Copy.text("pr.comments"))", divider: true)
-      }
     }
     .padding(.top, rhythm.rowLift)
     if !card.markdown.blocks.isEmpty {
@@ -280,23 +255,6 @@ struct PullRequestContent: View {
         document: card.markdown, size: AppleMetrics.font15, leading: AppleMetrics.previewBodyLeading
       )
       .padding(.top, rhythm.rowLift)
-    }
-    if !pr.files.isEmpty {
-      VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-        Text(Copy.text("pr.files")).textStyle(AppleMetrics.font13, .semibold).foregroundStyle(
-          AppleColors.secondary)
-        VStack(alignment: .leading, spacing: 0) {
-          ForEach(Array(pr.files.enumerated()), id: \.offset) { _, file in
-            HStack(spacing: AppleMetrics.space12) {
-              rowIcon("file")
-              Text(file.path).lineLimit(1).truncationMode(.tail)
-              Spacer(minLength: 0)
-              stats(additions: file.additions, deletions: file.deletions)
-            }.padding(.vertical, AppleMetrics.space12)
-          }
-        }
-      }
-      .padding(.top, card.markdown.blocks.isEmpty ? 0 : rhythm.sectionLead)
     }
   }
 }

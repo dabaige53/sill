@@ -30,12 +30,12 @@ import Testing
       let raw = try JSONValue.decode(
         Data(
           """
-          {"id":"dated-content","type":"\(kind)","title":"Title","image":"coast","publisher":{"name":"Source"},"publishedAt":"\(today)"}
+          {"id":"dated-content","type":"\(kind)","title":"Title","images":["coast"],"authors":[{"name":"Source"}],"publishedAt":"\(today)"}
           """.utf8))
       let model = try CardModel(card: Card(json: raw))
       #expect(model.displaySourceLine == "Source · 今天")
-      #expect(model.publication.date == "今天")
-      #expect(model.publication.dateTitle == today)
+      #expect(model.publicationDate == "今天")
+      #expect(model.publishedAt == today)
       #expect(ReaderContent.fullDate(today) == "今天")
     }
   }
@@ -44,38 +44,54 @@ import Testing
     let raw = try JSONValue.decode(
       Data(
         """
-        {"id":"pr-model","type":"pr","title":"Review","pullRequest":{"repository":"example/repo","number":7,"state":"open","observedAt":"2026-10-22T13:00:00+08:00","comments":0,"author":{"login":"writer"}}}
+        {"id":"pr-model","type":"pr","title":"Review","pullRequest":{"repository":"example/repo","number":7,"state":"open","observedAt":"2026-10-22T13:00:00+08:00","changedFiles":0}}
         """.utf8))
     let model = try CardModel(card: Card(json: raw))
     let pr = try #require(model.pullRequest)
-    #expect(pr.comments == 0)
+    #expect(pr.changedFiles == 0)
     #expect(pr.additions == nil)
     #expect(pr.reviewRequested == nil)
     #expect(pr.observedAt == "2026-10-22T13:00:00+08:00")
-    #expect(pr.author?.name == "writer")
   }
 
-  @Test func explicitEmptyAttachmentsClearLegacyLabel() throws {
+  @Test func mailSenderIsTheFirstAuthorAndAttachmentsAreFiles() throws {
     let raw = try JSONValue.decode(
       Data(
         """
-        {"id":"mail-model","type":"mail","title":"Mail","attachment":"legacy.pdf"}
+        {"id":"mail-model","type":"mail","title":"Mail","authors":[{"name":" Sender "},{"name":"Team"}],"files":[{"name":"brief.pdf"}]}
         """.utf8))
-    let legacy = try CardModel(card: Card(json: raw))
-    #expect(legacy.attachments.map(\.name) == ["legacy.pdf"])
-    var cleared = try #require(raw.object)
-    cleared["attachments"] = .array([])
-    #expect(try CardModel(card: Card(json: .object(cleared))).attachments.isEmpty)
+    let model = try CardModel(card: Card(json: raw))
+    #expect(model.sender == "Sender")
+    #expect(model.files.map(\.name) == ["brief.pdf"])
+  }
+
+  @Test func readingTimeIsCalculatedFromTheBody() throws {
+    #expect(CardModel.readingMinutes(String(repeating: "字", count: 400)) == 1)
+    #expect(CardModel.readingMinutes(String(repeating: "字", count: 401)) == 2)
+    #expect(
+      CardModel.readingMinutes(Array(repeating: "don't", count: 200).joined(separator: " ")) == 1)
+    #expect(CardModel.readingMinutes("") == 0)
+    let raw = try JSONValue.decode(
+      Data(
+        """
+        {"id":"article-model","type":"article","title":"Article","body":"\(String(repeating: "字", count: 800))"}
+        """.utf8))
+    #expect(try CardModel(card: Card(json: raw)).readingTime == "约 2 分钟阅读")
+    var event = try #require(raw.object)
+    event["type"] = .string("event")
+    event["start"] = .number(1000)
+    event["end"] = .number(2000)
+    #expect(try CardModel(card: Card(json: .object(event))).readingTime.isEmpty)
   }
 
   @Test func publicationAndFileURLAreReadyForViews() throws {
     let raw = try JSONValue.decode(
       Data(
         """
-        {"id":"file-model","type":"file","title":"File","publisher":{"name":"Journal"},"authors":[{"name":"Writer"},{"name":"Journal"}],"files":[{"name":"A","url":"https://example.com/a"}]}
+        {"id":"file-model","type":"file","title":"File","authors":[{"name":"Writer"},{"name":"Journal"}],"files":[{"name":"A","url":"https://example.com/a"}]}
         """.utf8))
     let model = try CardModel(card: Card(json: raw))
-    #expect(model.publicationName == "Journal · Writer")
+    #expect(model.publicationName == "Writer · Journal")
     #expect(model.files.first?.url?.absoluteString == "https://example.com/a")
   }
 }

@@ -12,21 +12,6 @@
 }
 
 @media (max-width: 650px) {
-	.mail-attachments .attachment {
-		width: auto;
-	}
-	.mail-attachments .attachment-third,
-	.attachment-more-desktop {
-		display: none;
-	}
-	.attachment-more-phone {
-		display: inline;
-		font-size: var(--text-meta);
-		color: var(--secondary);
-	}
-}
-
-@media (max-width: 650px) {
 	:is(#modal, .phone-layer).search #search-selection-bar {
 		position: fixed;
 		bottom: var(--rail-bottom);

@@ -1,4 +1,5 @@
 import type { Card } from "../../../contracts/card.ts";
+import { markdownText } from "../atoms/markdown.ts";
 import { shortDay, timeString } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 
@@ -54,7 +55,6 @@ export function detailDate(value: unknown, includeTime = false, now = Date.now()
 export function cardDates(card: Record<string, any>) {
 	return {
 		published: cardDate(card.publishedAt),
-		saved: cardDate(card.savedAt),
 		created: cardDate(card.created_at),
 		updated: cardDate(card.updated_at),
 	};
@@ -67,9 +67,9 @@ export function contentDay(value: unknown): Date | null {
 	return new Date(date.datetime.length === 10 ? `${date.datetime}T00:00:00` : date.datetime);
 }
 
-/** The day an article belongs to: published, else saved, else the card's own time. */
+/** The day an article belongs to: published, else the card's own time. */
 export function articleDate(card: Record<string, any>): Date | null {
-	const day = contentDay(card.publishedAt) || contentDay(card.savedAt);
+	const day = contentDay(card.publishedAt);
 	if (day) return day;
 	return typeof card.time === "number" ? new Date(card.time) : null;
 }
@@ -80,12 +80,34 @@ export function detailSource(card: Pick<Card, "sources">): string {
 	].join(" · ");
 }
 
-/** All surfaces format explicit estimates identically; no text inference. */
-export function cardReadingTime(card: Pick<Card, "readingEstimate">): string {
-	const estimate = card.readingEstimate;
-	return estimate
-		? `${copy(estimate.scope === "full" ? "web.metadata.readingFull" : "web.metadata.readingAvailable")} ${Math.ceil(estimate.seconds / 60)} ${copy("web.metadata.readingSuffix")}`
+const readingTypes = ["article", "note", "mail", "digest", "suggestion", "file"];
+
+/** Minutes to read a Markdown body: 400 Chinese characters or 200 English words per minute (ADR 0086). */
+export function readingMinutes(body: string | undefined): number {
+	const text = markdownText(body || "");
+	const han = text.match(/\p{Script=Han}/gu)?.length || 0;
+	const words =
+		text.replace(/\p{Script=Han}/gu, " ").match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu)?.length ||
+		0;
+	return Math.ceil(han / 400 + words / 200);
+}
+
+/** Every surface shows the same estimate, calculated from the body. */
+export function cardReadingTime(card: { type?: string; body?: string }): string {
+	const minutes = readingTypes.includes(card.type) ? readingMinutes(card.body) : 0;
+	return minutes
+		? `${copy("web.metadata.readingFull")} ${minutes} ${copy("web.metadata.readingSuffix")}`
 		: "";
+}
+
+/** The cover is the first image; photo cards show all of them. */
+export function cardCover(card: { images?: string[] }): string | undefined {
+	return card.images?.[0];
+}
+
+/** Mail shows its first author as the sender. */
+export function cardSender(card: { authors?: { name: string }[] }): string {
+	return card.authors?.[0]?.name.trim() || "";
 }
 
 export function fileDescription(file: NonNullable<Card["files"]>[number]): string {

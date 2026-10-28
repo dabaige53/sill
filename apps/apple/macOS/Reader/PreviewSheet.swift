@@ -124,7 +124,7 @@ struct PreviewSheet: View {
       .frame(width: width, height: height)
       .background {
         AppleColors.card.overlay(
-          card.isPodcast ? Cover.tone(card.image).opacity(0.15) : Color.clear)
+          card.isPodcast ? Cover.tone(card.cover).opacity(0.15) : Color.clear)
       }
       .overlay(alignment: .top) { if !layer.full { TopFade(motion: scroll.motion) } }
       .overlay(alignment: .bottom) {
@@ -134,7 +134,7 @@ struct PreviewSheet: View {
         if !layer.full {
           HeadDiscs(
             motion: scroll.motion,
-            firstRow: card.kind == .article && card.image != nil ? AppleMetrics.space44 : firstRow,
+            firstRow: card.kind == .article && card.cover != nil ? AppleMetrics.space44 : firstRow,
             expand: expandable ? { reader.open(card.id, full: true) } : nil,
             close: { reader.close() }
           )

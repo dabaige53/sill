@@ -23,7 +23,7 @@ actor FakeBackend: WorkspaceBackend {
       ids.map {
         .object([
           "id": .string($0), "type": .string("article"), "title": .string("Synthetic " + $0),
-          "body": .array([.string("One"), .string("Two")]), "time": .number(1),
+          "body": .string("One\n\nTwo"), "time": .number(1),
         ])
       } + extra
   }
@@ -54,7 +54,12 @@ actor FakeBackend: WorkspaceBackend {
       switch operation {
       case .itemPatch(let id, let values): merge(id, values)
       case .reading(let amount): seconds += Double(amount)
-      case .upsert(let card, _): cards.append(card)
+      case .upsert(let card, _):
+        if let index = cards.firstIndex(where: { $0["id"] == card["id"] }) {
+          cards[index] = card
+        } else {
+          cards.append(card)
+        }
       case .delete(let id, _):
         cards.removeAll { $0["id"]?.string == id }
         items[id] = nil
@@ -112,8 +117,8 @@ let syntheticTask: JSONValue = .object([
   "id": .string("task"), "type": .string("task"), "title": .string("Synthetic task"),
   "time": .number(1),
   "tasks": .array([
-    .object(["id": .string("t1"), "text": .string("One"), "done": .bool(true)]),
-    .object(["id": .string("t2"), "text": .string("Two"), "done": .bool(false)]),
+    .object(["id": .string("t1"), "text": .string("One")]),
+    .object(["id": .string("t2"), "text": .string("Two")]),
   ]),
 ])
 

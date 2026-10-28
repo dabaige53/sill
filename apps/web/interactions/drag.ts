@@ -174,7 +174,7 @@ class DragManager {
 		].find((node) => node.dataset.card === id);
 		if (!source) {
 			const card = Store.card(id);
-			face.innerHTML = `<div class="selection-thumbnail-fallback"><strong>${esc(card?.title || "")}</strong><p>${esc(card?.summary || card?.excerpt || "")}</p></div>`;
+			face.innerHTML = `<div class="selection-thumbnail-fallback"><strong>${esc(card?.title || "")}</strong><p>${esc(card?.summary || "")}</p></div>`;
 			return { face, height: 120 };
 		}
 		const clone = source.cloneNode(true) as HTMLElement;

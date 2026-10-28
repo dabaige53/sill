@@ -4,9 +4,6 @@ public enum CardValidator {
   // The bundled contract is immutable. Decode it once instead of once per loaded card.
   private static let schema = Result { try JSONValue.decode(Data(ContractSchema.json.utf8)) }
 
-  static let knownFields = Set(
-    (try? schema.get()["properties"]?.object)?.keys.map { $0 } ?? [])
-
   public static func validate(_ value: JSONValue) throws {
     let schema = try Self.schema.get()
     try validate(value, schema: schema, root: schema, path: "card")
@@ -16,14 +13,12 @@ public enum CardValidator {
     try validateExplicitFields(card, type: type)
     try validateRichFields(card, type: type)
     try validateIDs(value)
-    for image in ([card["image"]?.string].compactMap { $0 })
-      + (card["photos"]?.array ?? []).compactMap(\.string)
-    {
+    for image in card["images"]?.array?.compactMap(\.string) ?? [] {
       if ["architecture", "coast", "mountain", "botanical"].contains(image) { continue }
       guard image.hasPrefix("https://"), let url = URL(string: image),
         let host = url.host, !host.isEmpty, url.user == nil, url.password == nil,
         !image.contains(where: { $0.isWhitespace })
-      else { throw CardValidationError("card.image") }
+      else { throw CardValidationError("card.images") }
     }
 
     for url in [card["url"]?.string, card["meeting"]?["url"]?.string].compactMap({ $0 }) {
@@ -48,12 +43,12 @@ public enum CardValidator {
         throw CardValidationError("card.tasks.ids")
       }
     case "media":
-      guard card["image"] != nil || card["media"]?.string == "podcast" else {
-        throw CardValidationError("card.media.image")
+      guard !(card["images"]?.array ?? []).isEmpty || card["media"]?.string == "podcast" else {
+        throw CardValidationError("card.media.images")
       }
     case "photo":
-      guard card["image"] != nil || !(card["photos"]?.array ?? []).isEmpty else {
-        throw CardValidationError("card.photos")
+      guard !(card["images"]?.array ?? []).isEmpty else {
+        throw CardValidationError("card.images")
       }
     case "file":
       guard !(card["files"]?.array ?? []).isEmpty else {
@@ -64,77 +59,30 @@ public enum CardValidator {
   }
 
   private static func validateExplicitFields(_ card: [String: JSONValue], type: String) throws {
-    guard card["meta"] == nil else { throw CardValidationError("card.meta") }
-    let readable = ["article", "note", "mail", "digest", "suggestion", "file"]
-    let attributed = readable + ["media"]
     let restricted: [String: [String]] = [
-      "authors": attributed, "publisher": attributed, "bodyCoverage": readable,
-      "readingEstimate": readable, "section": ["article"], "sentAt": ["mail"],
-      "recipients": ["mail"], "project": ["task", "reminder"], "timeZone": ["event"],
-      "chapterCount": ["media"], "takenAt": ["photo"], "caption": ["photo"],
-      "coverageStart": ["digest"], "coverageEnd": ["digest"],
+      "authors": ["article", "note", "mail", "media", "digest", "suggestion", "file"],
+      "project": ["task", "reminder"], "people": ["event"], "form": ["note"],
     ]
     for (field, types) in restricted where card[field] != nil && !types.contains(type) {
       throw CardValidationError("card." + field)
     }
-    for field in ["publishedAt", "modifiedAt", "savedAt", "takenAt", "sentAt"] {
-      if let value = card[field] {
-        guard let text = value.string,
-          validDate(text, dateOnly: field != "sentAt")
-        else { throw CardValidationError("card." + field) }
-      }
-    }
-    if let zone = card["timeZone"]?.string {
-      let fixedOffset =
-        zone.range(
-          of: #"^(?:[+-]|(?:GMT|UTC)[+-])"#,
-          options: [.regularExpression, .caseInsensitive]) != nil
-      let known =
-        ["UTC", "GMT"].contains { $0.caseInsensitiveCompare(zone) == .orderedSame }
-        || TimeZone.knownTimeZoneIdentifiers.contains {
-          $0.caseInsensitiveCompare(zone) == .orderedSame
-        }
-      guard !fixedOffset, known || TimeZone(identifier: zone) != nil else {
-        throw CardValidationError("card.timeZone")
+    if let value = card["publishedAt"] {
+      guard let text = value.string, validDate(text, dateOnly: true) else {
+        throw CardValidationError("card.publishedAt")
       }
     }
     for file in card["files"]?.array ?? [] {
-      guard file["meta"] == nil, file["time"] == nil else {
-        throw CardValidationError("card.files.deprecated")
-      }
       if let date = file["modifiedAt"] {
         guard let text = date.string, validDate(text, dateOnly: true) else {
           throw CardValidationError("card.files.modifiedAt")
         }
       }
     }
-    if let estimate = card["readingEstimate"]?.object, estimate["origin"]?.string == "calculated" {
-      guard let method = estimate["method"]?.string,
-        !method.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-        card["bodyCoverage"]?.string != nil, card["bodyCoverage"]?.string != "none",
-        !(card["body"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-        estimate["scope"]?.string != "full" || card["bodyCoverage"]?.string == "full"
-      else { throw CardValidationError("card.readingEstimate") }
-    }
-    if card["bodyCoverage"]?.string == "none",
-      !(card["body"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    {
-      throw CardValidationError("card.bodyCoverage")
-    }
     var trimmed = (card["authors"]?.array ?? []).compactMap { $0["name"]?.string }
-    trimmed += [
-      card["publisher"]?["name"]?.string, card["project"]?["name"]?.string,
-      card["section"]?.string, card["timeZone"]?.string,
-      card["readingEstimate"]?["method"]?.string,
-    ].compactMap { $0 }
-    trimmed += card["recipients"]?.strings ?? []
+    trimmed += (card["files"]?.array ?? []).compactMap { $0["name"]?.string }
+    trimmed += [card["project"]?["name"]?.string].compactMap { $0 }
     if trimmed.contains(where: { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
       throw CardValidationError("card.emptyMetadata")
-    }
-    if card["coverageStart"] != nil || card["coverageEnd"] != nil {
-      guard let start = card["coverageStart"]?.number, let end = card["coverageEnd"]?.number,
-        end > start
-      else { throw CardValidationError("card.coverage") }
     }
   }
 

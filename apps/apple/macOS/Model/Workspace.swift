@@ -279,28 +279,26 @@ import SillKit
     then()
   }
 
-  /// The stored tags and note an edit started from (AGENTS.md: keep an edit baseline).
+  /// The stored card tags and note an edit started from (AGENTS.md: keep an edit baseline).
   struct EditBaseline: Equatable {
-    var tags: [String]
-    var tagsEdited: Bool
+    var card: JSONValue
     var note: String
   }
 
   func editBaseline(_ ids: [String]) -> [String: EditBaseline] {
     var result: [String: EditBaseline] = [:]
-    for id in ids where models[id] != nil {
-      let stored = state(id).confirmed
+    for id in ids {
+      guard let card = models[id] else { continue }
       result[id] = EditBaseline(
-        tags: stored["tags"]?.strings ?? [], tagsEdited: stored["tagsEdited"]?.bool ?? false,
-        note: stored["note"]?.string ?? "")
+        card: card.raw, note: state(id).confirmed["note"]?.string ?? "")
     }
     return result
   }
 
   enum EditResult { case saved, conflict, failed, busy }
 
-  /// Web `saveNote`: every card gets the tags and `tagsEdited`; only the first gets the note.
-  /// When a card's stored tags or note changed after the editor opened, nothing is written: the
+  /// Web `saveNote`: every card gets the tags, which edits the card; only the first gets the
+  /// note. When a card or its note changed after the editor opened, nothing is written: the
   /// editor keeps its input and shows the conflict.
   func saveEdits(
     _ ids: [String], tags: [String], note: String, baseline: [String: EditBaseline],
@@ -308,20 +306,29 @@ import SillKit
   ) {
     let kept = ids.filter { models[$0] != nil }
     guard let first = kept.first else { return completion(.failed) }
+    guard phase == .ready, !kept.contains(where: { state($0).isWriting }) else {
+      return completion(.busy)
+    }
     let current = editBaseline(kept)
     guard kept.allSatisfy({ current[$0] == baseline[$0] }) else {
       notice = Notice(text: Copy.appleConflict, isFailure: true)
       return completion(.conflict)
     }
-    var patches: [String: [String: JSONValue]] = [:]
+    var operations: [WorkspaceOperation] = []
     for id in kept {
-      var values: [String: JSONValue] = [
-        "tags": .array(tags.map(JSONValue.string)), "tagsEdited": .bool(true),
-      ]
-      if id == first { values["note"] = .string(String(note.prefix(4000))) }
-      patches[id] = values
+      guard let before = current[id]?.card, (before["tags"]?.strings ?? []) != tags else {
+        continue
+      }
+      var card = before
+      card["tags"] = tags.isEmpty ? nil : .array(tags.map(JSONValue.string))
+      operations.append(.upsert(card: card, before: before))
     }
-    let started = change(patches) { [weak self] done in
+    let text = String(note.prefix(4000))
+    if text != current[first]?.note {
+      operations.append(.itemPatch(id: first, values: ["note": .string(text)]))
+    }
+    guard !operations.isEmpty else { return completion(.saved) }
+    write(operations) { [weak self] done in
       guard let self else { return }
       if done {
         self.toast(
@@ -330,7 +337,6 @@ import SillKit
       }
       completion(done ? .saved : .failed)
     }
-    if !started { completion(.busy) }
   }
 
   /// Web `checkReminders`: reminders that are due and not yet shown.

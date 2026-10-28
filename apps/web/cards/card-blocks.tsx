@@ -3,7 +3,7 @@ import { markdownBlocks } from "../atoms/markdown.ts";
 import { shortDay } from "../atoms/primitives.ts";
 import { ProgressRing } from "../atoms/react-primitives.tsx";
 import { assetURL } from "../data/assets.ts";
-import { cardReadingTime, cardSource } from "../data/card-source.ts";
+import { cardCover, cardReadingTime, cardSource } from "../data/card-source.ts";
 import { AssetTones, CardTypes } from "../data/cards.ts";
 
 import { publicationName, SourceMark } from "./source-mark.tsx";
@@ -90,13 +90,14 @@ export function Summary({ card: c, short = false }: { card: Card; short?: boolea
 	return summary ? <p className={`card-summary ${short ? "clamp-2" : ""}`}>{summary}</p> : null;
 }
 export function Cover({ card: c, children }: { card: Card; children?: ReactNode }) {
+	const image = cardCover(c);
 	return (
-		<div className="card-cover" style={{ background: AssetTones[c.image] || "var(--surface)" }}>
-			{c.image && (
+		<div className="card-cover" style={{ background: AssetTones[image] || "var(--surface)" }}>
+			{image && (
 				<img
 					className="card-image"
 					data-shared="image"
-					src={assetURL(c.image)}
+					src={assetURL(image)}
 					alt=""
 					draggable={false}
 					loading="lazy"

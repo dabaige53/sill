@@ -14,14 +14,12 @@ import SillKit
   private(set) var dismissed = false
   private(set) var reminderDone = false
   private(set) var snoozedUntil: Double = 0
-  /// Explicit task completion; nil keeps each task's own `done`.
-  private(set) var taskDone: [String]?
+  /// Completed task IDs; task completion is personal state only.
+  private(set) var taskDone: [String] = []
   /// Shown on the card head. Reading updates `liveProgress`; this follows when the reader closes.
   private(set) var progress: Double = 0
   private(set) var playbackPosition: Double = 0
   private(set) var note = ""
-  private(set) var personalTags: [String] = []
-  private(set) var tagsEdited = false
   /// Interface only, never stored: part of the current multi-selection.
   var selected = false
   /// Incremented to move keyboard focus back to this card (after the reader closes).
@@ -74,9 +72,8 @@ import SillKit
   private static let defaults: [String: JSONValue] = [
     "read": .bool(false), "bookmarked": .bool(false), "later": .bool(false),
     "archived": .bool(false), "dismissed": .bool(false), "reminderDone": .bool(false),
-    "snoozedUntil": .number(0), "taskDone": .null, "playbackPosition": .number(0),
-    "progress": .number(0), "note": .string(""),
-    "tags": .array([]), "tagsEdited": .bool(false), "seen": .bool(false), "lessLike": .bool(false),
+    "snoozedUntil": .number(0), "taskDone": .array([]), "playbackPosition": .number(0),
+    "progress": .number(0), "note": .string(""), "seen": .bool(false), "lessLike": .bool(false),
   ]
 
   /// Optimistic local values for a pending write.
@@ -90,10 +87,8 @@ import SillKit
     if let value = values["dismissed"]?.bool { set(\.dismissed, value) }
     if let value = values["reminderDone"]?.bool { set(\.reminderDone, value) }
     if let value = values["snoozedUntil"]?.number { set(\.snoozedUntil, value) }
-    if values.keys.contains("taskDone") { set(\.taskDone, values["taskDone"]?.strings) }
+    if let value = values["taskDone"]?.strings { set(\.taskDone, value) }
     if let value = values["note"]?.string { set(\.note, value) }
-    if let value = values["tags"]?.strings { set(\.personalTags, value) }
-    if let value = values["tagsEdited"]?.bool { set(\.tagsEdited, value) }
     if let value = values["playbackPosition"]?.number { set(\.playbackPosition, value) }
     if let value = values["progress"]?.number {
       liveProgress = heldRead == nil ? value : max(liveProgress, value)
@@ -126,14 +121,11 @@ import SillKit
   // MARK: Derived
 
   func tasks(of card: CardModel) -> [CardModel.TaskItem] {
-    guard let done = taskDone else { return card.tasks }
-    return card.tasks.map { .init(id: $0.id, text: $0.text, done: done.contains($0.id)) }
+    card.tasks.map { .init(id: $0.id, text: $0.text, done: taskDone.contains($0.id)) }
   }
 
-  /// Personal tags replace the card's tags once edited; otherwise both show (Web `Store.tags`).
-  func tags(of card: CardModel) -> [String] {
-    tagsEdited ? personalTags : Array(NSOrderedSet(array: card.tags + personalTags)) as! [String]
-  }
+  /// Tags belong to the card; editing tags edits the card (Web `Store.tags`).
+  func tags(of card: CardModel) -> [String] { card.tags }
 
   func completed(_ card: CardModel) -> Bool {
     if reminderDone { return true }

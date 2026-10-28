@@ -5,7 +5,7 @@ import type { ActionContext, ActionHandler } from "./types.ts";
 
 function photoStep(this: AppController, { id, extra, name }: ActionContext) {
 	const c = Store.card(id),
-		n = (c.photos || [c.image]).length;
+		n = (c.images || []).length;
 	const next = Math.max(
 		0,
 		Math.min(n - 1, name === "photo-go" ? Number(extra) : this.photoIndex + Number(extra)),

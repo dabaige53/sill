@@ -34,34 +34,10 @@ export function RelatedCards({ card }: { card: Card }) {
 	);
 }
 
-export function WhyDetails({ card }: { card: Card }) {
-	if (!card.why) return null;
-	return (
-		<section className="detail-section why-details">
-			<h2>{copy("web.card.why")}</h2>
-			<p>{card.why.reason}</p>
-			{card.why.basis?.length ? (
-				<ul>
-					{card.why.basis.map((text) => (
-						<li key={text}>{text}</li>
-					))}
-				</ul>
-			) : null}
-		</section>
-	);
-}
-
-export function FileList({
-	files = [],
-	label = copy("web.card.files"),
-}: {
-	files?: Card["files"];
-	label?: string;
-	attachment?: boolean;
-}) {
+export function FileList({ files = [] }: { files?: Card["files"] }) {
 	return files.length ? (
 		<section className="detail-section">
-			<h2>{label}</h2>
+			<h2>{copy("web.card.files")}</h2>
 			<div className="detail-rows">
 				{files.map((file) => {
 					const content = (
@@ -104,7 +80,6 @@ export function FileList({
 export function TaskFacts({ card }: { card: Card }) {
 	const rows = [
 		card.due !== undefined ? ["clock", copy("web.card.due"), dateLabel(card.due)] : null,
-		card.people?.length ? ["at", copy("web.card.people"), card.people.join("、")] : null,
 		card.priority !== undefined ? ["flag", copy("web.card.priority"), String(card.priority)] : null,
 	].filter(Boolean);
 	return rows.length ? (
@@ -114,13 +89,7 @@ export function TaskFacts({ card }: { card: Card }) {
 					<span className="row-icon">
 						<Icon name={icon} size={16} />
 					</span>
-					<span>{icon === "at" ? value : `${label} ${value}`}</span>
-					{icon === "at" && (
-						<small>
-							{card.people.length}
-							{copy("web.preview.peopleCountSuffix")}
-						</small>
-					)}
+					<span>{`${label} ${value}`}</span>
 				</div>
 			))}
 		</div>

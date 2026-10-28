@@ -13,28 +13,26 @@ import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
 import { Card } from "../../contracts/card.ts";
 
+/** About six minutes at 400 Chinese characters per minute (ADR 0086). */
+const sixMinutes = `Body ${"字".repeat(2396)}`;
+
 const article: Card = {
 	id: "explicit-article",
 	type: "article",
 	title: "Article",
 	sources: [{ kind: "readwise", name: "Reader" }],
 	authors: [{ name: "Writer" }],
-	publisher: { name: "Publisher" },
-	body: "Body",
-	bodyCoverage: "full",
-	readingEstimate: { seconds: 360, origin: "provided", scope: "full" },
+	body: sixMinutes,
 	tags: ["Tag"],
 };
 
-test("publication, source save and system times stay distinct without aliases", () => {
+test("publication and system times stay distinct without aliases", () => {
 	const dates = cardDates({
 		publishedAt: "2026-10-01",
-		savedAt: "2026-10-13",
 		created_at: "2026-10-16T01:00:00Z",
 		updated_at: "2026-10-17T01:00:00Z",
 	});
 	assert.equal(dates.published?.text, "2026-10-01");
-	assert.equal(dates.saved?.text, "2026-10-13");
 	assert.equal(dates.created?.datetime, "2026-10-16T01:00:00.000Z");
 	assert.equal(cardDates({ published_at: "2026-10-01" }).published, null);
 });
@@ -55,19 +53,16 @@ test("invalid and ambiguous content dates never become invented timestamps", () 
 	assert.equal(cardDate("2024-02-29")?.text, "2024-02-29");
 });
 
-test("all reading surfaces use the same explicit estimate and never infer notes or legacy metadata", () => {
+test("all reading surfaces use the same calculated estimate and never show notes on the face", () => {
 	Store.state = Store.fresh();
 	Store.state.items[article.id] = { note: "Personal <script> & note" };
 	const before = JSON.stringify(article);
 	const card = new JSDOM(cardHTML(article)).window.document;
-	assert.ok(card.body.textContent!.includes("Publisher · Writer · 约 6 分钟阅读"));
+	assert.ok(card.body.textContent!.includes("Writer · 约 6 分钟阅读"));
 	assert.ok(!card.body.textContent!.includes("Personal"));
 	const blocks = [Panels.preview({}, article), Panels.reader({}, article)].map((html) => {
 		const doc = new JSDOM(html).window.document;
-		assert.equal(
-			doc.querySelector(".preview-meta")?.textContent,
-			"Publisher · Writer · 约 6 分钟阅读",
-		);
+		assert.equal(doc.querySelector(".preview-meta")?.textContent, "Writer · 约 6 分钟阅读");
 		assert.equal(doc.querySelector(".preview-published"), null);
 		assert.equal(doc.querySelectorAll(".preview-meta").length, 1);
 		const note = doc.querySelector("aside.preview-note")!;
@@ -86,16 +81,15 @@ test("all reading surfaces use the same explicit estimate and never infer notes 
 	assert.equal(Card.safeParse({ ...article, meta: "6min" }).success, false);
 });
 
-test("scope, missing estimates and explicit clears keep their distinct meaning", () => {
-	assert.equal(cardReadingTime({ ...article, readingEstimate: null }), "");
-	assert.equal(cardReadingTime({ readingEstimate: undefined }), "");
+test("reading time counts Chinese characters and English words from the Markdown body", () => {
+	assert.equal(cardReadingTime({ type: "article", body: "" }), "");
+	assert.equal(cardReadingTime({ type: "article", body: "字".repeat(401) }), "约 2 分钟阅读");
+	assert.equal(cardReadingTime({ type: "article", body: "word ".repeat(200) }), "约 1 分钟阅读");
 	assert.equal(
-		cardReadingTime({
-			...article,
-			readingEstimate: { seconds: 61, origin: "provided", scope: "available" },
-		}),
-		"当前内容约 2 分钟阅读",
+		cardReadingTime({ type: "note", body: `## ${"字".repeat(400)}\n\n${"**word** ".repeat(201)}` }),
+		"约 3 分钟阅读",
 	);
+	assert.equal(cardReadingTime({ type: "task", body: "字".repeat(4000) }), "");
 });
 
 test("date-only precision stays unchanged across device zones", () => {
@@ -112,22 +106,21 @@ test("date-only precision stays unchanged across device zones", () => {
 	}
 });
 
-test("specialized mail and file views retain estimates; podcasts retain personal notes", () => {
+test("specialized mail and file views show reading time; podcasts retain personal notes", () => {
 	Store.state = Store.fresh();
 	for (const card of [
 		{
 			id: "estimated-mail",
 			type: "mail",
 			title: "Mail",
-			body: "Body",
-			readingEstimate: { seconds: 360, origin: "provided" as const, scope: "full" as const },
+			body: sixMinutes,
 		},
 		{
 			id: "estimated-file",
 			type: "file",
 			title: "File",
 			files: [{ name: "report.pdf" }],
-			readingEstimate: { seconds: 360, origin: "provided" as const, scope: "full" as const },
+			body: sixMinutes,
 		},
 	]) {
 		assert.match(
@@ -149,7 +142,7 @@ test("specialized mail and file views retain estimates; podcasts retain personal
 	assert.equal(doc.querySelector(".preview-note-label")?.textContent, "备注");
 });
 
-test("mail identity never borrows sources or assumes the current user is a recipient", () => {
+test("mail identity never borrows sources", () => {
 	Store.state = Store.fresh();
 	for (const sender of [undefined, "", "Real sender"]) {
 		const card = Card.parse({
@@ -157,8 +150,7 @@ test("mail identity never borrows sources or assumes the current user is a recip
 			type: "mail",
 			title: "Mail",
 			sources: [{ name: "InboxSource", kind: "mail" }],
-			...(sender === undefined ? {} : { sender }),
-			recipients: ["Actual recipient"],
+			...(sender ? { authors: [{ name: sender }] } : {}),
 		});
 		for (const html of [cardHTML(card), Panels.preview({}, card)]) {
 			const dom = new JSDOM(html);
@@ -170,8 +162,6 @@ test("mail identity never borrows sources or assumes the current user is a recip
 				);
 				assert.ok(!doc.body.textContent!.includes("发给你"));
 				if (!sender) assert.match(doc.body.textContent!, /InboxSource/);
-				if (doc.querySelector(".preview-published"))
-					assert.match(doc.body.textContent!, /收件人 · Actual recipient/);
 			} finally {
 				dom.window.close();
 			}
@@ -238,8 +228,7 @@ test("valid media without body opens and prose never becomes media chapters or p
 			type: "media",
 			media: "video",
 			title: "Video",
-			image: "coast",
-			chapterCount: 8,
+			images: ["coast"],
 			duration: 125,
 			url: "https://example.com/video",
 			...(body === undefined ? {} : { body }),
@@ -278,9 +267,9 @@ test("article and photo heads name their day like the preview head", () => {
 		id: "dated-photo",
 		type: "photo",
 		title: "Trip",
-		image: "coast",
+		images: ["coast"],
 		location: "Coast",
-		takenAt: "2024-03-06",
+		publishedAt: "2024-03-06",
 	});
 	const head = (html: string) => {
 		const dom = new JSDOM(html);
@@ -292,7 +281,7 @@ test("article and photo heads name their day like the preview head", () => {
 		}
 	};
 	const feed = head(cardHTML(story));
-	assert.equal(feed, "Publisher · Writer · 2024/3/5 · 约 6 分钟阅读");
+	assert.equal(feed, "Writer · 2024/3/5 · 约 6 分钟阅读");
 	assert.equal(head(Panels.preview({}, story)), feed);
 	assert.equal(head(cardHTML(photo)), "Coast · 2024/3/6");
 });
@@ -310,8 +299,8 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 		for (const fields of [
 			{ type: "article" },
 			{ type: "note" },
-			{ type: "note", variant: "quote" },
-			{ type: "media", media: "video", image: "coast" },
+			{ type: "note", form: "quote" as const },
+			{ type: "media", media: "video", images: ["coast"] },
 			{ type: "media", media: "podcast" },
 			{ type: "suggestion" },
 		]) {
@@ -320,8 +309,8 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 				id: "dated-content",
 				title: "Title",
 				publishedAt,
-				publisher: { name: "Source" },
-				body: "Body",
+				authors: [{ name: "Source" }],
+				body: "",
 			});
 			for (const html of [cardHTML(card), Panels.preview({}, card), Panels.reader({}, card)]) {
 				const dom = new JSDOM(html);
@@ -348,8 +337,8 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 			id: "dated-photo",
 			type: "photo",
 			title: "Photo",
-			image: "coast",
-			takenAt: publishedAt,
+			images: ["coast"],
+			publishedAt,
 		});
 		const dom = new JSDOM(Panels.lightbox(photo));
 		try {
@@ -366,8 +355,8 @@ test("content dates stay identical on card faces, previews and readers", (t) => 
 		id: "dated-mail",
 		type: "mail",
 		title: "Mail",
-		sender: "Sender",
-		sentAt,
+		authors: [{ name: "Sender" }],
+		publishedAt: sentAt,
 	});
 	for (const html of [cardHTML(mail), Panels.preview({}, mail), Panels.reader({}, mail)]) {
 		const dom = new JSDOM(html);
@@ -444,25 +433,22 @@ test("PR detail opens its rows with the state and leaves rows without data out",
 	assert.ok(rows.every((row) => row.firstElementChild?.classList.contains("row-icon")));
 });
 
-test("mail multiple attachments render links and explicit empty clears the legacy label", () => {
+test("mail files render links and an empty list shows no file rows", () => {
 	Store.state = Store.fresh();
 	const card = Card.parse({
 		id: "mail-files",
 		type: "mail",
 		title: "Attachments",
 		body: "Text",
-		attachment: "old.pdf",
-		attachments: [
-			{ name: "first.pdf", url: "https://example.com/first.pdf" },
-			{ name: "second.txt" },
-		],
+		files: [{ name: "first.pdf", url: "https://example.com/first.pdf" }, { name: "second.txt" }],
 	});
 	const detail = new JSDOM(Panels.preview({}, card)).window.document;
 	assert.equal(detail.querySelector(".detail-row a"), null);
 	assert.ok(detail.querySelector('a.detail-row[href="https://example.com/first.pdf"]'));
 	assert.match(detail.body.textContent!, /second.txt/);
-	assert.doesNotMatch(detail.body.textContent!, /old.pdf/);
-	const cleared = new JSDOM(Panels.preview({}, { ...card, attachments: [] })).window.document;
-	assert.doesNotMatch(cleared.body.textContent!, /old.pdf/);
+	const face = new JSDOM(cardHTML(card)).window.document;
+	assert.match(face.body.textContent!, /first.pdf/);
+	assert.doesNotMatch(face.body.textContent!, /second.txt/);
+	const cleared = new JSDOM(Panels.preview({}, { ...card, files: [] })).window.document;
 	assert.equal(cleared.querySelector(".detail-row"), null);
 });

@@ -1,7 +1,7 @@
-import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { animate } from "motion";
-import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { Card } from "../../../contracts/card.ts";
+import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
@@ -13,7 +13,7 @@ import { DetailText } from "./markdown.tsx";
 import type { PlaybackHandle, PlaybackSnapshot } from "./playback.ts";
 import { PodcastDetail } from "./podcast-detail.tsx";
 import { publicationName, SourceMark } from "./source-mark.tsx";
-import { VideoTabs, type VideoTab, videoTabNames } from "./video-tabs.tsx";
+import { type VideoTab, VideoTabs, videoTabNames } from "./video-tabs.tsx";
 import { YouTubePlayer, youtubeID } from "./youtube-player.tsx";
 
 type Line = { start: number; title?: string; text?: string };
@@ -160,7 +160,7 @@ function VideoDetail({
 					<YouTubePlayer
 						id={video}
 						initialPosition={initial.current}
-						cover={card.image ? assetURL(card.image) : undefined}
+						cover={card.images?.[0] ? assetURL(card.images[0]) : undefined}
 						knownDuration={card.duration}
 						onSave={save}
 						onTime={setState}
@@ -168,7 +168,7 @@ function VideoDetail({
 					/>
 				) : (
 					<div className="unavailable-video">
-						{card.image && (
+						{card.images?.[0] && (
 							<img
 								referrerPolicy="no-referrer"
 								decoding="async"
@@ -178,7 +178,7 @@ function VideoDetail({
 								onLoad={(event) => {
 									event.currentTarget.style.opacity = "1";
 								}}
-								src={assetURL(card.image)}
+								src={assetURL(card.images[0])}
 								alt=""
 							/>
 						)}

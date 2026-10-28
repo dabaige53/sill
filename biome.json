@@ -9,7 +9,6 @@
 			"server/**/*.ts",
 			"contracts/**/*.ts",
 			"contracts/fixtures.json",
-			"contracts/migration-fixtures.json",
 			"scripts/**/*.ts",
 			"tests/**/*.ts",
 			"design-system/scripts/**/*.ts",

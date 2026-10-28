@@ -38,6 +38,8 @@ import Testing
     feed.refreshMembership()
     let before = feed.cardOrder
     #expect(Array(before.prefix(2)) == ["task", "reminder"])
+    workspace.toggleTask("task", task: "t1")
+    await until { workspace.queue.idle }
     workspace.toggleTask("task", task: "t2")
     workspace.changeReminder("reminder", .complete)
     await until { workspace.queue.idle }

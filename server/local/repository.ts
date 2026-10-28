@@ -2,13 +2,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { z } from "zod/v4";
-import {
-	Card,
-	contractVersion,
-	normalizeCard,
-	sourceKinds,
-	cardTypes as types,
-} from "../../contracts/card.ts";
+import { Card, contractVersion, sourceKinds, cardTypes as types } from "../../contracts/card.ts";
 import { Batch, CardState, Preferences, State } from "../../contracts/local.ts";
 import { copy } from "../../design-system/copy.ts";
 export const capabilities = {
@@ -32,6 +26,7 @@ export const capabilities = {
 				title: copy("server.repository.443cbad36d77"),
 				body: copy("web.body"),
 				url: "https://example.com",
+				tags: [copy("server.repository.bc62d1b6b936")],
 			},
 		},
 		{
@@ -40,8 +35,6 @@ export const capabilities = {
 			values: {
 				bookmarked: true,
 				note: copy("server.repository.daede9881787"),
-				tags: [copy("server.repository.bc62d1b6b936")],
-				tagsEdited: true,
 			},
 		},
 		{ op: "preferences.patch", values: { sort: "time" } },
@@ -62,8 +55,6 @@ export class LocalRepository {
 	constructor(file?: any) {
 		this.file = file;
 		this.value = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null;
-		if (this.value?.state?.cards)
-			this.value.state.cards = this.value.state.cards.map(normalizeCard);
 		if (this.value) {
 			State.parse(this.value.state);
 			z.number().int().nonnegative().parse(this.value.revision);
@@ -71,7 +62,7 @@ export class LocalRepository {
 	}
 	initialize(state?: any) {
 		if (this.value) return this.snapshot();
-		const parsed = State.parse({ ...state, cards: state.cards?.map(normalizeCard) });
+		const parsed = State.parse(state);
 		if (new Set<any>(parsed.cards.map((card?: any) => card.id)).size !== parsed.cards.length)
 			throw new Error("duplicate_card_id");
 		for (const key of Object.keys(parsed.items))
@@ -91,11 +82,6 @@ export class LocalRepository {
 	}
 	apply(input?: any) {
 		const { operations, expectedRevision } = Batch.parse(input);
-		for (const operation of operations) {
-			if (operation.op === "card.upsert") operation.card = normalizeCard(operation.card);
-			if ((operation.op === "card.upsert" || operation.op === "card.delete") && operation.before)
-				operation.before = normalizeCard(operation.before);
-		}
 		if (expectedRevision !== undefined && expectedRevision !== (this.value?.revision || 0))
 			conflict("revision_conflict");
 		const state = this.value

@@ -1,0 +1,417 @@
+{
+	"$comment": "Card recipes: which blocks each card type shows on the card face and in the detail, in order. See docs/adr/0086-card-fields-and-block-recipes.md. A string is a block; an object names a block with options, a group of blocks, or a composite that renders the whole surface.",
+	"types": {
+		"article": {
+			"card": [
+				"cover",
+				{
+					"block": "source",
+					"line": "publication",
+					"date": "article",
+					"status": "progress"
+				},
+				"title",
+				"summary"
+			],
+			"detail": {
+				"end": true,
+				"ruled": true,
+				"reader": true,
+				"head": [
+					{
+						"block": "source",
+						"line": "meta"
+					},
+					"title"
+				],
+				"body": [
+					{
+						"block": "cover",
+						"preview": "hoist"
+					},
+					{
+						"block": "body",
+						"outline": true
+					}
+				]
+			}
+		},
+		"note": {
+			"card": [
+				{
+					"block": "source",
+					"line": "publication",
+					"date": "published",
+					"status": "progress"
+				},
+				"title",
+				"summary"
+			],
+			"detail": {
+				"end": true,
+				"ruled": true,
+				"reader": true,
+				"head": [
+					{
+						"block": "source",
+						"line": "meta"
+					},
+					"title"
+				],
+				"body": [
+					{
+						"block": "cover",
+						"preview": "hide"
+					},
+					"body"
+				]
+			}
+		},
+		"note.quote": {
+			"card": [
+				{
+					"block": "source",
+					"line": "publication",
+					"date": "published"
+				},
+				"quote"
+			],
+			"detail": "note"
+		},
+		"mail": {
+			"card": [
+				"sender",
+				"title",
+				"summary",
+				{
+					"block": "files",
+					"limit": 1
+				}
+			],
+			"detail": {
+				"reader": true,
+				"head": [
+					"sender",
+					"title"
+				],
+				"body": [
+					"body",
+					"files"
+				]
+			}
+		},
+		"task": {
+			"card": [
+				{
+					"block": "source",
+					"line": "task",
+					"status": "taskCount"
+				},
+				"title",
+				{
+					"block": "checklist",
+					"limit": 3
+				}
+			],
+			"detail": {
+				"head": [
+					{
+						"block": "source",
+						"line": "task"
+					},
+					"title"
+				],
+				"body": [
+					"facts",
+					"checklist",
+					"body"
+				]
+			}
+		},
+		"reminder": {
+			"card": [
+				{
+					"block": "source",
+					"line": "reminder",
+					"status": "reminderClock"
+				},
+				{
+					"group": "reminderRow",
+					"blocks": [
+						"reminderMark",
+						"title"
+					]
+				},
+				{
+					"block": "summary",
+					"fallback": false,
+					"indent": true
+				}
+			],
+			"detail": {
+				"head": [
+					{
+						"block": "source",
+						"line": "reminder"
+					},
+					{
+						"group": "reminderRow",
+						"blocks": [
+							"reminderMark",
+							{
+								"block": "title",
+								"bare": true
+							}
+						]
+					},
+					"tags"
+				],
+				"body": [
+					"body",
+					{
+						"block": "info",
+						"fields": [
+							"project"
+						],
+						"style": "line"
+					}
+				]
+			}
+		},
+		"event": {
+			"card": [
+				{
+					"block": "source",
+					"line": "eventDate",
+					"status": "relative"
+				},
+				{
+					"group": "eventMain",
+					"blocks": [
+						"timeSpan",
+						{
+							"group": "eventContent",
+							"blocks": [
+								"title",
+								"info"
+							]
+						}
+					]
+				},
+				{
+					"group": "eventFooter",
+					"blocks": [
+						"participants",
+						"join"
+					]
+				}
+			],
+			"detail": {
+				"head": [
+					{
+						"block": "source",
+						"line": "meta"
+					},
+					"eventDate",
+					"timeSpan",
+					"title"
+				],
+				"body": [
+					{
+						"block": "info",
+						"fields": [
+							"meeting",
+							"location"
+						]
+					},
+					"participants",
+					{
+						"block": "body",
+						"section": "agenda"
+					}
+				]
+			}
+		},
+		"media.video": {
+			"card": [
+				"videoCover",
+				{
+					"block": "source",
+					"line": "publication",
+					"date": "published",
+					"status": "remaining"
+				},
+				"title"
+			],
+			"detail": {
+				"reader": true,
+				"composite": "videoPlayer"
+			}
+		},
+		"media.podcast": {
+			"card": [
+				{
+					"block": "source",
+					"line": "publication",
+					"date": "published",
+					"status": "remaining"
+				},
+				"title",
+				{
+					"block": "summary",
+					"short": true
+				},
+				"programBar"
+			],
+			"detail": {
+				"reader": true,
+				"composite": "podcastDetail"
+			}
+		},
+		"digest": {
+			"card": [
+				{
+					"block": "source",
+					"line": "publication",
+					"date": "published",
+					"status": "relatedCount"
+				},
+				"title",
+				"summary"
+			],
+			"detail": {
+				"end": true,
+				"ruled": true,
+				"reader": true,
+				"head": [
+					{
+						"block": "source",
+						"line": "digest"
+					},
+					{
+						"block": "title",
+						"publication": false
+					}
+				],
+				"body": [
+					{
+						"block": "cover",
+						"preview": "hide"
+					},
+					"body",
+					"references"
+				]
+			}
+		},
+		"suggestion": {
+			"card": [
+				{
+					"block": "source",
+					"line": "publication",
+					"date": "published"
+				},
+				"title",
+				"summary",
+				{
+					"block": "references",
+					"limit": 2
+				}
+			],
+			"detail": {
+				"end": true,
+				"reader": true,
+				"head": [
+					{
+						"block": "source",
+						"line": "meta"
+					},
+					"title"
+				],
+				"body": [
+					{
+						"block": "cover",
+						"preview": "hide"
+					},
+					"body",
+					"references"
+				]
+			}
+		},
+		"photo": {
+			"card": [
+				"mosaic",
+				{
+					"block": "source",
+					"line": "photo",
+					"status": "photoCount"
+				},
+				"title",
+				{
+					"block": "summary",
+					"fallback": false
+				}
+			],
+			"detail": "default"
+		},
+		"file": {
+			"card": [
+				{
+					"block": "source",
+					"line": "file",
+					"status": "fileCount"
+				},
+				"title",
+				"summary",
+				{
+					"block": "files",
+					"limit": 3
+				}
+			],
+			"detail": {
+				"head": [
+					{
+						"block": "source",
+						"line": "meta"
+					},
+					"title"
+				],
+				"body": [
+					"body",
+					"files"
+				]
+			}
+		},
+		"pr": {
+			"card": [
+				{
+					"composite": "pullRequest"
+				}
+			],
+			"detail": {
+				"composite": "pullRequest"
+			}
+		},
+		"default": {
+			"card": "article",
+			"detail": {
+				"end": true,
+				"ruled": true,
+				"reader": true,
+				"head": [
+					{
+						"block": "source",
+						"line": "meta"
+					},
+					"title"
+				],
+				"body": [
+					{
+						"block": "cover",
+						"preview": "hide"
+					},
+					"body"
+				]
+			}
+		}
+	}
+}

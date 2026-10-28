@@ -4,22 +4,7 @@ import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import { cardFixtures as fixtures } from "../../contracts/card-fixtures.ts";
 import { changes, create } from "../../contracts/cloud.ts";
-import { identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
-
-async function applyCardMigrations(db: PGlite) {
-	for (const file of [
-		"20261016052843_sill_rich_cards.sql",
-		"20261016092653_sill_workspace_operations.sql",
-		"20261019031622_sill_hidden_card_actions.sql",
-		"20261023012829_sill_explicit_card_fields.sql",
-		"20261023012831_card_playback_and_pr.sql",
-		"20261023012833_sill_markdown_body.sql",
-		"20261023020000_https_images.sql",
-	])
-		await db.exec(
-			await readFile(new URL("../../supabase/migrations/" + file, import.meta.url), "utf8"),
-		);
-}
+import { applyCardMigrations, identity, rpc, setupBoundary } from "./helpers/boundary-fixture.ts";
 
 test("HTTPS image migration preserves remote photos through cloud writes and reads", async () => {
 	const db = new PGlite();
@@ -28,7 +13,7 @@ test("HTTPS image migration preserves remote photos through cloud writes and rea
 		await applyCardMigrations(db);
 		await identity(db);
 		const image = "https://images.example.org/" + "a".repeat(150) + ".jpg?size=800";
-		const body = { type: "photo", title: "Photo", image, photos: [image, "coast"] };
+		const body = { type: "photo", title: "Photo", images: [image, "coast"] };
 		assert.equal(create.safeParse(body).success, true);
 		const saved = await rpc(db, "sill_write_v1", [
 			"create",
@@ -37,8 +22,7 @@ test("HTTPS image migration preserves remote photos through cloud writes and rea
 			"https-image",
 		]);
 		const found = await rpc(db, "sill_get_content", [saved.body.id]);
-		assert.equal(found.image, image);
-		assert.deepEqual(found.photos, body.photos);
+		assert.deepEqual(found.images, body.images);
 		for (const image of [
 			"http://example.org/a",
 			"https://user:pass@example.org/a",
@@ -48,7 +32,7 @@ test("HTTPS image migration preserves remote photos through cloud writes and rea
 				rpc(db, "sill_write_v1", [
 					"create",
 					null,
-					JSON.stringify({ ...body, image }),
+					JSON.stringify({ ...body, images: [image] }),
 					crypto.randomUUID(),
 				]),
 				/invalid_request/,
@@ -59,7 +43,7 @@ test("HTTPS image migration preserves remote photos through cloud writes and rea
 	}
 });
 
-test("rich cloud cards preserve fields, merge state, protect revisions and replay unknown writes", async () => {
+test("rich cloud cards preserve fields, merge state, protect revisions and reject unknown fields", async () => {
 	const db = new PGlite();
 	try {
 		await setupBoundary(db);
@@ -69,9 +53,8 @@ test("rich cloud cards preserve fields, merge state, protect revisions and repla
 			type: "task",
 			title: "Synthetic rich card",
 			summary: "Preview",
-			form: "compact",
-			sources: [{ name: "Assistant", kind: "agent", future: true }],
-			tasks: [{ id: "step1", text: "Check", done: false }],
+			sources: [{ name: "Assistant", kind: "agent" }],
+			tasks: [{ id: "step1", text: "Check" }],
 			due: 1800000000000,
 			tags: ["test"],
 			state: { read: false, done: false, archived: false },
@@ -82,7 +65,6 @@ test("rich cloud cards preserve fields, merge state, protect revisions and repla
 		const saved = await write("create", null, body, "rich_create_01");
 		assert.deepEqual(saved.body.tasks, body.tasks);
 		assert.deepEqual(saved.body.sources, body.sources);
-		assert.equal(saved.body.form, "compact");
 		assert.deepEqual(await write("create", null, body, "rich_create_01"), saved);
 		const id = saved.body.id;
 		const updated = await write(
@@ -103,7 +85,9 @@ test("rich cloud cards preserve fields, merge state, protect revisions and repla
 			/revision_conflict/,
 		);
 		assert.deepEqual((await rpc(db, "sill_get_content", [id])).tasks, body.tasks);
-		assert.equal((await rpc(db, "sill_list_contents", [null, null, 100])).items[0].form, "compact");
+		assert.deepEqual((await rpc(db, "sill_list_contents", [null, null, 100])).items[0].tags, [
+			"test",
+		]);
 		for (const invalid of [
 			{
 				tasks: [
@@ -115,11 +99,17 @@ test("rich cloud cards preserve fields, merge state, protect revisions and repla
 			{ sources: [{ name: "A" }] },
 			{ start: "tomorrow" },
 			{ form: "custom" },
-			{ image: "http://example.com/a.png" },
+			{ images: ["http://example.com/a.png"] },
+			{ images: [] },
+			{ tasks: [{ id: "a", text: "a", done: true }] },
+			{ sources: [{ name: "A", kind: "agent", future: true }] },
+			{ sender: { name: "A" } },
+			{ future: true },
+			{ summary: null },
 			{ meeting: { name: "M", url: "javascript:alert(1)" } },
 			{ revision: 999 },
 			{ owner_id: "other" },
-			{ why: { reason: "R", basis: [4] } },
+			{ why: { reason: "R" } },
 		]) {
 			if (!("tasks" in invalid && invalid.tasks?.length === 2))
 				assert.equal(changes.safeParse(invalid).success, false, JSON.stringify(invalid));
@@ -209,12 +199,16 @@ test("rich SQL rejects invalid structured values without changing existing rows"
 			{ type: "event", start: 1 },
 			{ type: "event", start: 10, end: 5 },
 			{ type: "media", media: "video" },
-			{ type: "photo", photos: [] },
+			{ type: "photo" },
+			{ type: "photo", images: [] },
+			{ type: "note", people: [{ name: "A" }] },
+			{ type: "note", form: "capture" },
+			{ type: "article", project: "Sill" },
 			{ type: "file", files: [] },
 			{ type: "note", priority: 11 },
 			{ type: "note", duration: 1.5 },
 			{ type: "note", sources: [{ name: "A", kind: null }] },
-			{ type: "note", files: [{ name: "A", time: -1 }] },
+			{ type: "note", files: [{ name: "A", sizeBytes: -1 }] },
 			{ type: "note", points: [""] },
 			{ type: "note", body: ["Legacy paragraph"] },
 			{ type: "note", related: ["__proto__"] },

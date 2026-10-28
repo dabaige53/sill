@@ -31,8 +31,9 @@ struct DetailRhythm {
   var sectionLead: CGFloat { (AppleMetrics.rhythmSection - AppleMetrics.rhythmGroup) * scale }
 }
 
-/// The content of a detail, by card type (Web `previews-components.tsx`). The first row reports
-/// its height so the floating discs can center on it.
+/// The content of a detail, by its recipe in design-system/recipes.json (Web
+/// `previews-components.tsx`). The first row reports its height so the floating discs can
+/// center on it.
 struct ReaderContent: View {
   let card: CardModel
   let state: CardState
@@ -45,58 +46,187 @@ struct ReaderContent: View {
   var mediaOffset: CGFloat = 0
   var returnToPlayer: () -> Void = {}
   @Environment(\.cardIntents) private var intents
+  @Environment(\.relatedCards) private var lookup
   @Environment(Workspace.self) private var workspace
 
   var body: some View {
     // @design article-reading
-    Group {
-      if card.kind == .article { articleReading } else { other }
+    VStack(alignment: .leading, spacing: rhythm.group) {
+      switch recipe.composite {
+      case "pullRequest":
+        PullRequestContent(card: card, detail: true, tags: state.tags(of: card), rhythm: rhythm)
+      case "podcastDetail": PodcastDetail(card: card, state: state)
+      case "videoPlayer":
+        MediaDetail(
+          card: card, state: state, full: page, availableWidth: mediaWidth,
+          availableHeight: mediaHeight)
+      default:
+        if !page, card.cover != nil,
+          recipe.body.contains(where: { $0.name == "cover" && $0.string("preview") == "hoist" })
+        {
+          articleCover.padding(.horizontal, -AppleMetrics.articleGutter + AppleMetrics.space8)
+            .padding(.top, -AppleMetrics.space16)
+        }
+        head
+        ForEach(Array(recipe.body.enumerated()), id: \.offset) { index, entry in
+          bodyBlock(entry, after: index > 0 ? recipe.body[index - 1] : nil)
+        }
+      }
+      NoteBox(note: state.note)
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .environment(\.contentAppearance, workspace.preferences.readerAppearance)
+  }
+
+  private var page: Bool { type.title == ReaderType.page.title }
+
+  /// The fullscreen page uses the reading recipe; types that cannot be read use the default.
+  private var recipe: DetailRecipe {
+    page ? CardRecipes.reader(card.recipeKey) : CardRecipes.detail(card.recipeKey)
   }
 
   private var rhythm: DetailRhythm {
     DetailRhythm(scale: workspace.preferences.readerSpacing.scale)
   }
 
-  private var other: some View {
-    VStack(alignment: .leading, spacing: rhythm.group) {
-      switch card.kind {
-      case .mail: mail
-      case .event: event
-      case .file: file
-      case .pr:
-        PullRequestContent(card: card, detail: true, tags: state.tags(of: card), rhythm: rhythm)
-      case .task, .reminder: taskReminder
-      case .digest: digest
-      case .media:
-        if card.isPodcast {
-          PodcastDetail(card: card, state: state)
-        } else {
-          MediaDetail(
-            card: card, state: state, full: type.title == ReaderType.page.title,
-            availableWidth: mediaWidth, availableHeight: mediaHeight)
-        }
-      default: article
+  // MARK: Head
+
+  /// Head blocks sit one level apart; the lines under the source and date sit closer.
+  private var head: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      ForEach(Array(recipe.head.enumerated()), id: \.offset) { index, entry in
+        headBlock(entry)
+          .padding(
+            .top,
+            index == 0
+              ? 0
+              : ["source", "sender", "eventDate"].contains(recipe.head[index - 1].name)
+                ? AppleMetrics.rhythmClose : AppleMetrics.rhythmItem)
       }
-      NoteBox(note: state.note)
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
-  // MARK: Shared rows
+  @ViewBuilder private func headBlock(_ entry: RecipeEntry) -> some View {
+    switch entry.name {
+    case "source": source(entry)
+    case "sender": sender
+    case "eventDate":
+      let start = card.start ?? 0
+      let relative = Format.eventRelative(
+        start: start, end: card.end ?? start, now: Format.milliseconds())
+      MetaRow(icon: nil) {
+        Text(Format.dateLabel(start))
+          + Text(relative.isEmpty ? "" : " · ")
+          + Text(relative).foregroundColor(AppleColors.accent).fontWeight(.medium)
+      }
+    case "timeSpan": timeSpan
+    case "title":
+      if entry.flag("bare") == true {
+        title
+      } else {
+        VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
+          title
+          if entry.flag("publication") == false {
+            ReaderTags(tags: state.tags(of: card))
+          } else if !state.tags(of: card).isEmpty || card.detailDate != nil {
+            VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
+              ReaderTags(tags: state.tags(of: card))
+              PublicationRows(card: card)
+            }
+          }
+        }
+      }
+    case "tags": ReaderTags(tags: state.tags(of: card))
+    case "reminderRow":
+      HStack(alignment: .top, spacing: AppleMetrics.space12) {
+        ReminderCheck(card: card, state: state, large: true)
+          .padding(
+            .top,
+            (LineHeight.height(size: type.title * workspace.preferences.readerTextSize.scale)
+              - AppleMetrics.space24) / 2)
+        title
+      }
+    default: EmptyView()
+    }
+  }
 
-  private var meta: some View {
-    MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) {
-      Text(
-        [
-          [.note, .suggestion, .file].contains(card.kind) ? card.publicationName : card.sourceName,
-          [.note, .suggestion, .file].contains(card.kind) ? card.publication.date ?? "" : "",
-          card.readingTime,
-        ].filter { !$0.isEmpty }.joined(separator: " · "))
+  private func source(_ entry: RecipeEntry) -> some View {
+    MetaRow(icon: AnyView(SourceIcon(card: card, size: sourceIconSize(entry)))) {
+      Text(sourceLine(entry))
     }
     .padding(.trailing, discRoom)
     .firstRow()
+    .frame(minHeight: AppleMetrics.space36, alignment: .leading)
+  }
+
+  private func sourceIconSize(_ entry: RecipeEntry) -> CGFloat {
+    entry.string("line") == "meta" && card.kind != .article && card.kind != .event
+      || ["task", "reminder"].contains(entry.string("line") ?? "")
+      ? AppleMetrics.font15 : AppleMetrics.space16
+  }
+
+  private func sourceLine(_ entry: RecipeEntry) -> String {
+    switch entry.string("line") {
+    case "digest":
+      [
+        card.sourceName.nilIfEmpty,
+        card.related.isEmpty ? nil : "\(card.related.count)\(Copy.text("web.card.relatedCount"))",
+      ].compactMap { $0 }.joined(separator: " · ")
+    case "task":
+      [card.sourceName, card.project ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")
+    case "reminder":
+      [
+        Copy.text("web.reminder"), card.sourceName,
+        FeedPolicy.reminderTime(card, state: state, now: Format.milliseconds()).map {
+          Format.reminderClock($0.at, now: Format.milliseconds())
+        } ?? "",
+      ].filter { !$0.isEmpty }.uniqued().joined(separator: " · ")
+    default:
+      switch card.kind {
+      case .article:
+        [
+          card.publicationName.nilIfEmpty ?? card.kind.label,
+          card.articleDate.map { Format.shortDay($0) } ?? "", card.readingTime,
+        ].filter { !$0.isEmpty }.joined(separator: " · ")
+      case .event: card.sourceName
+      case .file:
+        Copy.text("web.preview.fileSourcePrefix")
+          + [card.sourceName, card.readingTime].filter { !$0.isEmpty }.joined(separator: " · ")
+      default:
+        [
+          [.note, .suggestion].contains(card.kind) ? card.publicationName : card.sourceName,
+          [.note, .suggestion].contains(card.kind) ? card.publicationDate ?? "" : "",
+          card.readingTime,
+        ].filter { !$0.isEmpty }.joined(separator: " · ")
+      }
+    }
+  }
+
+  @ViewBuilder private var sender: some View {
+    if let sender = card.sender {
+      HStack(spacing: AppleMetrics.space10) {
+        Avatar(name: sender, size: AppleMetrics.space36)
+        VStack(alignment: .leading, spacing: 0) {
+          Text(sender).textStyle(AppleMetrics.font15, .bold).foregroundStyle(AppleColors.primary)
+          HStack(spacing: AppleMetrics.space6) {
+            SourceIcon(card: card, size: AppleMetrics.font12)
+            Text(
+              [card.sourceName, card.publishedAt.flatMap(Self.fullDate) ?? "", card.readingTime]
+                .filter {
+                  !$0.isEmpty
+                }
+                .joined(separator: " · ")
+            )
+            .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
+          }
+        }
+      }
+      .padding(.trailing, discRoom)
+      .firstRow()
+      .frame(minHeight: AppleMetrics.space36, alignment: .leading)
+    } else {
+      source(.block("source", ["line": .string("meta")]))
+    }
   }
 
   private var title: some View {
@@ -108,32 +238,138 @@ struct ReaderContent: View {
       .accessibilityAddTraits(.isHeader)
   }
 
-  private var heading: some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
-      title
-      if !state.tags(of: card).isEmpty || card.detailPublication.date != nil
-        || !card.detailPublication.rows.isEmpty
-      {
-        VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-          ReaderTags(tags: state.tags(of: card))
-          PublicationRows(publication: card.detailPublication)
-        }
-      }
+  private var timeSpan: some View {
+    let start = card.start ?? 0
+    let end = card.end ?? start
+    return HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space12) {
+      Text(Format.time(start))
+        .textStyle(
+          AppleMetrics.eventHeroSize, .semibold, leading: AppleMetrics.eventHeroLeading,
+          tracking: AppleMetrics.previewTitleTracking, number: true
+        )
+        .foregroundStyle(AppleColors.primary)
+      Text(
+        "\(Copy.text("web.templates.83532308ecca"))\(Format.time(end)) · \(Int(((end - start) / 60000).rounded()))\(Copy.text("web.templates.40de54344d22"))"
+      )
+      .textStyle(AppleMetrics.font15, number: true).foregroundStyle(AppleColors.secondary)
     }
   }
 
-  private func header<Source: View>(@ViewBuilder source: () -> Source) -> some View {
-    VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-      source().frame(minHeight: AppleMetrics.space36, alignment: .leading)
-      if card.kind == .digest {
-        VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
-          title
-          ReaderTags(tags: state.tags(of: card))
+  // MARK: Body
+
+  /// Lists that carry their own row padding sit one level closer; titled sections and file
+  /// lists sit one level further from the block before them.
+  @ViewBuilder private func bodyBlock(_ entry: RecipeEntry, after previous: RecipeEntry?)
+    -> some View
+  {
+    let lead = previous.map(renders) == true ? rhythm.sectionLead : 0
+    switch entry.name {
+    case "cover":
+      if page, card.cover != nil {
+        if entry.string("preview") == "hoist" {
+          articleCover
+        } else {
+          CoverImage(name: card.cover)
+            .aspectRatio(16 / 9, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .clipShape(
+              RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius, style: .continuous))
+        }
+      }
+    case "body":
+      if !card.markdown.blocks.isEmpty {
+        if entry.string("section") == "agenda" {
+          section(Copy.text("web.card.agenda")) { detailText(entry) }
+        } else {
+          detailText(entry).padding(.top, previous?.name == "checklist" ? rhythm.rowLift : 0)
+        }
+      }
+    case "files":
+      if !card.files.isEmpty {
+        DetailFiles(files: card.files).padding(.top, lead)
+      }
+    case "participants":
+      if !card.people.isEmpty {
+        HStack(spacing: AppleMetrics.space10) {
+          Avatars(names: card.people)
+          Text(card.people.joined(separator: "、")).textStyle(AppleMetrics.font15)
+            .foregroundStyle(AppleColors.primary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.top, rhythm.rowLift)
+      }
+    case "references":
+      if !card.related.compactMap(lookup).isEmpty {
+        section(
+          Copy.text(card.kind == .digest ? "web.card.digestRelated" : "web.card.related"),
+          rows: true
+        ) { related }
+        .padding(.top, lead)
+      }
+    case "facts":
+      if hasFacts {
+        VStack(alignment: .leading, spacing: 0) {
+          if let due = card.due {
+            DetailRow(
+              icon: "clock", title: Copy.text("web.card.due") + " " + Format.dateLabel(due),
+              tone: AppleColors.warning)
+          }
+          if card.raw["priority"]?.number != nil {
+            DetailRow(
+              icon: "flag", title: Copy.text("web.card.priority") + " " + card.priority.formatted())
+          }
+        }
+        .padding(.top, rhythm.rowLift)
+      }
+    case "checklist":
+      VStack(alignment: .leading, spacing: 0) {
+        ForEach(state.tasks(of: card)) { task in
+          TaskRow(task: task, locked: state.isWriting, large: true) {
+            intents.toggleTask(card.id, task.id)
+          }
+        }
+      }
+      .padding(.top, rhythm.rowLift)
+    case "info":
+      if entry.string("style") == "line" {
+        if let project = card.project {
+          Text(Copy.text("web.metadata.project") + " · " + project).textStyle(AppleMetrics.font13)
+            .foregroundStyle(AppleColors.secondary)
         }
       } else {
-        heading
+        let rows = infoRows
+        if !rows.isEmpty {
+          VStack(spacing: 0) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+              if row.icon == "video" {
+                DetailRow(
+                  icon: row.icon, title: row.title, detail: row.trailing, divider: index > 0,
+                  wrapping: true)
+              } else {
+                DetailRow(
+                  icon: row.icon, title: row.title, trailing: row.trailing, divider: index > 0)
+              }
+            }
+          }
+          .padding(.top, rhythm.rowLift)
+        }
       }
+    default: EmptyView()
     }
+  }
+
+  /// Whether a body block shows anything, so the next titled block knows its gap.
+  private func renders(_ entry: RecipeEntry) -> Bool {
+    switch entry.name {
+    case "body": !card.markdown.blocks.isEmpty
+    case "references": !card.related.compactMap(lookup).isEmpty
+    case "files": !card.files.isEmpty
+    default: false
+    }
+  }
+
+  private var hasFacts: Bool {
+    card.due != nil || card.raw["priority"]?.number != nil
   }
 
   /// A small grey section title over its content (Web `.detail-section`).
@@ -149,105 +385,19 @@ struct ReaderContent: View {
     }
   }
 
-  @ViewBuilder private var detailText: some View {
-    if !card.markdown.blocks.isEmpty {
-      MarkdownText(
-        document: card.markdown, size: type.body, leading: type.bodyLeading,
-        outline: card.kind == .article && type.title == ReaderType.page.title)
-    }
+  private func detailText(_ entry: RecipeEntry) -> some View {
+    MarkdownText(
+      document: card.markdown, size: type.body, leading: type.bodyLeading,
+      outline: entry.flag("outline") == true && card.kind == .article && page)
   }
 
-  // MARK: Article reading
-
   private var articleCover: some View {
-    CoverImage(name: card.image)
-      .frame(height: type.title == ReaderType.page.title ? 340 : AppleMetrics.space220)
+    CoverImage(name: card.cover)
+      .frame(height: page ? 340 : AppleMetrics.space220)
       .frame(maxWidth: .infinity)
       .clipped()
       .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius))
   }
-
-  private var articleReading: some View {
-    VStack(alignment: .leading, spacing: rhythm.group) {
-      if card.image != nil, type.title == ReaderType.preview.title {
-        articleCover.padding(.horizontal, -AppleMetrics.articleGutter + AppleMetrics.space8)
-          .padding(.top, -AppleMetrics.space16)
-      }
-      header {
-        MetaRow(icon: AnyView(SourceIcon(card: card))) {
-          Text(
-            [
-              card.publicationName.nilIfEmpty ?? card.kind.label,
-              card.articleDate.map { Format.shortDay($0) } ?? "", card.readingTime,
-            ]
-            .filter { !$0.isEmpty }.joined(separator: " · "))
-        }.padding(.trailing, discRoom).firstRow()
-      }
-      if card.image != nil, type.title == ReaderType.page.title { articleCover }
-      detailText
-      NoteBox(note: state.note)
-    }.frame(maxWidth: .infinity, alignment: .leading)
-  }
-
-  // MARK: Types
-
-  @ViewBuilder private var article: some View {
-    header { meta }
-    if card.kind == .media, let duration = card.duration {
-      Text(Format.duration(duration)).textStyle(AppleMetrics.font13, number: true)
-        .foregroundStyle(AppleColors.secondary)
-    }
-    if card.image != nil {
-      CoverImage(name: card.image)
-        .aspectRatio(16 / 9, contentMode: .fit)
-        .frame(maxWidth: .infinity)
-        .clipShape(
-          RoundedRectangle(cornerRadius: AppleMetrics.previewCoverRadius, style: .continuous))
-    }
-    if card.kind == .suggestion, let why = card.why {
-      section(Copy.text("web.card.why")) {
-        VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-          Text(why.reason).textStyle(AppleMetrics.font17, .medium, leading: 1.55)
-          VStack(alignment: .leading, spacing: AppleMetrics.space6) {
-            ForEach(Array(why.basis.enumerated()), id: \.offset) { _, line in
-              Text("• \(line)").textStyle(AppleMetrics.font14, leading: 1.6)
-            }
-          }
-        }
-      }
-    }
-    if card.kind == .suggestion {
-      if !card.related.compactMap(lookup).isEmpty {
-        section(Copy.text("web.card.related"), rows: true) { related }
-          .padding(.top, card.why == nil ? 0 : rhythm.sectionLead)
-      }
-    } else {
-      detailText
-    }
-  }
-
-  @ViewBuilder private var digest: some View {
-    header {
-      MetaRow(icon: AnyView(SourceIcon(card: card))) {
-        Text(
-          [
-            card.coverageStart.flatMap { start in
-              card.coverageEnd.map { "\(Format.dateLabel(start)) – \(Format.dateLabel($0))" }
-            } ?? card.sourceName.nilIfEmpty,
-            card.related.isEmpty
-              ? nil : "\(card.related.count)\(Copy.text("web.card.relatedCount"))",
-          ]
-          .compactMap { $0 }.joined(separator: " · "))
-      }.padding(.trailing, discRoom).firstRow()
-    }
-    detailText
-    if !card.related.compactMap(lookup).isEmpty {
-      section(Copy.text("web.card.digestRelated"), rows: true) { related }
-        .padding(.top, card.markdown.blocks.isEmpty ? 0 : rhythm.sectionLead)
-    }
-  }
-
-  @Environment(\.relatedCards) private var lookup
 
   private var related: some View {
     VStack(spacing: 0) {
@@ -262,195 +412,11 @@ struct ReaderContent: View {
     }
   }
 
-  @ViewBuilder private var mail: some View {
-    header {
-      if let sender = card.sender {
-        HStack(spacing: AppleMetrics.space10) {
-          Avatar(name: sender, size: AppleMetrics.space36)
-          VStack(alignment: .leading, spacing: 0) {
-            Text(sender).textStyle(AppleMetrics.font15, .bold).foregroundStyle(
-              AppleColors.primary)
-            HStack(spacing: AppleMetrics.space6) {
-              SourceIcon(card: card, size: AppleMetrics.font12)
-              Text(
-                [card.sourceName, card.sentAt.flatMap(Self.fullDate) ?? "", card.readingTime].filter
-                { !$0.isEmpty }
-                .joined(separator: " · ")
-              )
-              .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
-            }
-          }
-        }
-        .padding(.trailing, discRoom)
-        .firstRow()
-      } else {
-        meta
-      }
-    }
-    detailText
-    if !card.attachments.isEmpty {
-      DetailFiles(
-        files: card.attachments, label: Copy.text("web.card.attachments"), attachment: true
-      )
-      .padding(.top, card.markdown.blocks.isEmpty ? 0 : rhythm.sectionLead)
-    }
-  }
-
-  @ViewBuilder private var event: some View {
-    let start = card.start ?? 0
-    let end = card.end ?? start
-    let relative = Format.eventRelative(start: start, end: end, now: Format.milliseconds())
-    VStack(alignment: .leading, spacing: 0) {
-      MetaRow(icon: AnyView(SourceIcon(card: card))) { Text(card.sourceName) }
-        .padding(.trailing, discRoom).frame(minHeight: AppleMetrics.space36).firstRow()
-        .padding(.bottom, AppleMetrics.rhythmClose)
-      MetaRow(icon: nil) {
-        Text(Format.dateLabel(start))
-          + Text(relative.isEmpty ? "" : " · ")
-          + Text(relative).foregroundColor(AppleColors.accent).fontWeight(.medium)
-      }
-      .padding(.bottom, AppleMetrics.rhythmClose)
-      HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space12) {
-        Text(Format.time(start))
-          .textStyle(
-            AppleMetrics.eventHeroSize, .semibold, leading: AppleMetrics.eventHeroLeading,
-            tracking: AppleMetrics.previewTitleTracking, number: true
-          )
-          .foregroundStyle(AppleColors.primary)
-        Text(
-          "\(Copy.text("web.templates.83532308ecca"))\(Format.time(end)) · \(Int(((end - start) / 60000).rounded()))\(Copy.text("web.templates.40de54344d22"))"
-            + (card.raw["timeZone"]?.string.map { " · \($0)" } ?? "")
-        )
-        .textStyle(AppleMetrics.font15, number: true).foregroundStyle(AppleColors.secondary)
-      }
-      .padding(.bottom, AppleMetrics.rhythmItem)
-      heading
-    }
-    let rows = eventRows
-    if !rows.isEmpty {
-      VStack(spacing: 0) {
-        ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-          if row.icon == "video" {
-            DetailRow(
-              icon: row.icon, title: row.title, detail: row.trailing, divider: index > 0,
-              wrapping: true)
-          } else {
-            DetailRow(icon: row.icon, title: row.title, trailing: row.trailing, divider: index > 0)
-          }
-        }
-      }
-      .padding(.top, rhythm.rowLift)
-    }
-    if !card.markdown.blocks.isEmpty {
-      section(Copy.text("web.card.agenda")) { detailText }
-    }
-  }
-
-  private var eventRows: [(icon: String, title: String, trailing: String)] {
+  private var infoRows: [(icon: String, title: String, trailing: String)] {
     var rows: [(String, String, String)] = []
     if let meeting = card.meeting { rows.append(("video", meeting.name, meeting.code ?? "")) }
     if let location = card.location { rows.append(("pin", location, "")) }
-    if !card.people.isEmpty {
-      rows.append(
-        (
-          "at", card.people.joined(separator: "、"),
-          "\(card.people.count)\(Copy.text("web.preview.peopleCountSuffix"))"
-        ))
-    }
     return rows
-  }
-
-  @ViewBuilder private var file: some View {
-    header {
-      MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) {
-        Text(
-          Copy.text("web.preview.fileSourcePrefix")
-            + [card.sourceName, card.readingTime].filter { !$0.isEmpty }.joined(separator: " · "))
-      }
-      .padding(.trailing, discRoom)
-      .firstRow()
-    }
-    detailText
-    if !card.files.isEmpty {
-      DetailFiles(files: card.files)
-        .padding(.top, card.markdown.blocks.isEmpty ? 0 : rhythm.sectionLead)
-    }
-  }
-
-  @ViewBuilder private var taskReminder: some View {
-    let label: String =
-      card.kind == .reminder
-      ? [
-        Copy.text("web.reminder"), card.sourceName,
-        FeedPolicy.reminderTime(card, state: state, now: Format.milliseconds()).map {
-          Format.reminderClock($0.at, now: Format.milliseconds())
-        } ?? "",
-      ].filter { !$0.isEmpty }.uniqued().joined(separator: " · ")
-      : [card.sourceName, card.project ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")
-    VStack(alignment: .leading, spacing: AppleMetrics.rhythmClose) {
-      MetaRow(icon: AnyView(SourceIcon(card: card, size: AppleMetrics.font15))) { Text(label) }
-        .padding(.trailing, discRoom)
-        .firstRow()
-        .frame(minHeight: AppleMetrics.space36, alignment: .leading)
-      if card.kind == .reminder {
-        VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
-          HStack(alignment: .top, spacing: AppleMetrics.space12) {
-            ReminderCheck(card: card, state: state, large: true)
-              .padding(
-                .top,
-                (LineHeight.height(size: type.title * workspace.preferences.readerTextSize.scale)
-                  - AppleMetrics.space24) / 2)
-            title
-          }
-          ReaderTags(tags: state.tags(of: card))
-        }
-      } else {
-        heading
-      }
-    }
-    if card.kind == .task,
-      card.due != nil || !card.people.isEmpty
-        || card.raw["priority"]?.number != nil
-    {
-      VStack(alignment: .leading, spacing: 0) {
-        if let due = card.due {
-          DetailRow(
-            icon: "clock", title: Copy.text("web.card.due") + " " + Format.dateLabel(due),
-            tone: AppleColors.warning)
-        }
-        if !card.people.isEmpty {
-          DetailRow(
-            icon: "at", title: card.people.joined(separator: "、"),
-            trailing: "\(card.people.count)\(Copy.text("web.preview.peopleCountSuffix"))")
-        }
-        if card.raw["priority"]?.number != nil {
-          DetailRow(
-            icon: "flag", title: Copy.text("web.card.priority") + " " + card.priority.formatted())
-        }
-      }
-      .padding(.top, rhythm.rowLift)
-    }
-    if card.kind == .task {
-      VStack(alignment: .leading, spacing: 0) {
-        ForEach(state.tasks(of: card)) { task in
-          TaskRow(task: task, locked: state.isWriting, large: true) {
-            intents.toggleTask(card.id, task.id)
-          }
-        }
-      }
-      .padding(.top, rhythm.rowLift)
-    }
-    if !card.markdown.blocks.isEmpty {
-      MarkdownText(
-        document: card.markdown, size: type.body, leading: type.bodyLeading,
-        outline: card.kind == .article && type.title == ReaderType.page.title
-      )
-      .padding(.top, card.kind == .task ? rhythm.rowLift : 0)
-    }
-    if card.kind == .reminder, let project = card.project {
-      Text(Copy.text("web.metadata.project") + " · " + project).textStyle(AppleMetrics.font13)
-        .foregroundStyle(AppleColors.secondary)
-    }
   }
 
   static func fullDate(_ value: String) -> String? {

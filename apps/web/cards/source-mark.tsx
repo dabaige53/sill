@@ -7,7 +7,6 @@ type Source = { name: string; kind: string };
 type SourceCard = {
 	type?: string;
 	sources?: Source[];
-	publisher?: { name: string };
 	authors?: { name: string }[];
 };
 
@@ -27,7 +26,8 @@ export function sourceBrand(source: Source): keyof typeof marks | undefined {
 
 /** Acquisition source stays in the mark; publication identity stays in the text. */
 export function publicationName(card: SourceCard): string {
-	const names = [card.publisher?.name, ...(card.authors || []).map((author) => author.name)]
+	const names = (card.authors || [])
+		.map((author) => author.name)
 		.map((name) => name?.trim())
 		.filter((name): name is string => !!name);
 	return (

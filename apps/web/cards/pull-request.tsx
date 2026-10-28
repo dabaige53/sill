@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import { Avatar, Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
@@ -49,24 +48,6 @@ export function PullRequest({
 				title={[pr.headBranch, pr.baseBranch].filter(Boolean).join(" → ")}
 			>
 				{[pr.headBranch, pr.baseBranch].filter(Boolean).join(" → ")}
-			</span>
-		) : null;
-	// The detail reads the branches as a sentence when the author is known: "<author> 想把 <head> 合并到 <base>".
-	const intent =
-		detail && pr?.author?.login && pr.headBranch && pr.baseBranch ? (
-			<span className="pr-merge-intent">
-				{copy("pr.mergeIntent")
-					.split(/(\{\w+\})/)
-					.filter(Boolean)
-					.map((part) =>
-						part === "{head}" || part === "{base}" ? (
-							<code key={part} className="pr-branch">
-								{part === "{head}" ? pr.headBranch : pr.baseBranch}
-							</code>
-						) : (
-							<Fragment key={part}>{part === "{author}" ? pr.author?.login : part}</Fragment>
-						),
-					)}
 			</span>
 		) : null;
 	const hasStats = pr?.additions !== undefined || pr?.deletions !== undefined;
@@ -178,7 +159,7 @@ export function PullRequest({
 									<span className={`pr-status pr-status-${pr.state}`}>
 										{copy(pr.reviewRequested ? "pr.reviewRequested" : `pr.state.${pr.state}`)}
 									</span>
-									{intent || branch}
+									{branch}
 								</span>
 							</div>
 							{!!pr.checks?.length && (
@@ -236,40 +217,9 @@ export function PullRequest({
 									{hasStats && pr.changedFiles !== undefined && <small>{fileCount}</small>}
 								</div>
 							)}
-							{pr.comments !== undefined && (
-								<div className="detail-row">
-									<span className="row-icon">
-										<Icon name="message" size={16} />
-									</span>
-									<span>
-										{pr.comments} {copy("pr.comments")}
-									</span>
-								</div>
-							)}
 						</div>
 					)}
 					<DetailText body={card.body} />
-					{!!pr?.files?.length && (
-						<section className="detail-section">
-							<h2>{copy("pr.files")}</h2>
-							{pr.files.map((f) => (
-								<div className="detail-row pr-file" key={f.path}>
-									<span className="row-icon">
-										<Icon name="file" size={16} />
-									</span>
-									<span title={f.path}>{f.path}</span>
-									<small className="pr-stats num">
-										{f.additions !== undefined && (
-											<span className="pr-additions">+{f.additions}</span>
-										)}
-										{f.deletions !== undefined && (
-											<span className="pr-deletions">−{f.deletions}</span>
-										)}
-									</small>
-								</div>
-							))}
-						</section>
-					)}
 				</>
 			)}
 		</div>

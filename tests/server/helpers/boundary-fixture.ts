@@ -20,6 +20,25 @@ export async function setupBoundary(db?: any) {
  ('${A}','user:${A}',array['content:read','content:write','content:delete','event:submit','event:read'],array['*'],'authenticated'),
  ('${B}','user:${B}',array['content:read','content:write','content:delete'],array['*'],'authenticated');`);
 }
+/** Cloud card migrations after the boundary drafts, in deployment order. */
+export const cardMigrations = [
+	"20261016052843_sill_rich_cards.sql",
+	"20261016092653_sill_workspace_operations.sql",
+	"20261019031622_sill_hidden_card_actions.sql",
+	"20261023012829_sill_explicit_card_fields.sql",
+	"20261023012831_card_playback_and_pr.sql",
+	"20261023012833_sill_markdown_body.sql",
+	"20261023020000_https_images.sql",
+	"20261023111147_sill_layout_preferences.sql",
+	"20261027132655_workspace_save_consistency.sql",
+	"20261028120000_sill_card_fields_v5.sql",
+];
+export async function applyCardMigrations(db?: any) {
+	for (const file of cardMigrations)
+		await db.exec(
+			await readFile(new URL("../../../supabase/migrations/" + file, import.meta.url), "utf8"),
+		);
+}
 export const claims = (sub: any = A, extra: any = {}) => ({
 	sub,
 	role: "authenticated",

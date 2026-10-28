@@ -15,9 +15,9 @@ import Testing
     }
     await until { result.value != nil }
     #expect(result.value == .saved)
-    #expect(workspace.state("a").personalTags == ["工作"])
-    #expect(workspace.state("b").personalTags == ["工作"])
-    #expect(workspace.state("a").tagsEdited && workspace.state("b").tagsEdited)
+    #expect(workspace.models["a"]?.tags == ["工作"])
+    #expect(workspace.models["b"]?.tags == ["工作"])
+    #expect(workspace.state("a").tags(of: workspace.models["a"]!) == ["工作"])
     #expect(workspace.state("a").note == "只给第一张")
     #expect(workspace.state("b").note.isEmpty)
     #expect(workspace.notice?.text == Copy.text("web.app.5fa0ce52b47e") || !workspace.isLocal)

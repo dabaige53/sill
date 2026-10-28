@@ -178,9 +178,9 @@ try {
 	await saved();
 	state = await api("/api/v1/workspace");
 	assert.equal(state.state.items[note.id].note, "Cloud note");
-	assert.deepEqual(state.state.items[note.id].tags, ["标签"]);
-	assert.deepEqual(state.state.items[task.id].tags, ["标签"]);
-	assert.equal(JSON.parse(batchRequests.at(-1).body).operations.length, 2);
+	assert.deepEqual(state.state.cards.find((card) => card.id === note.id).tags, ["标签"]);
+	assert.deepEqual(state.state.cards.find((card) => card.id === task.id).tags, ["标签"]);
+	assert.equal(JSON.parse(batchRequests.at(-1).body).operations.length, 3);
 	await action("task", task.id, "step1");
 	await saved();
 	assert.deepEqual((await api("/api/v1/workspace")).state.items[task.id].taskDone, ["step1"]);
@@ -257,7 +257,7 @@ try {
 	});
 	await saved();
 	state = await api("/api/v1/workspace");
-	assert.ok(state.state.cards.some((c) => c.url === "https://example.com/cloud-capture"));
+	assert.ok(!state.state.cards.some((c) => c.url === "https://example.com/cloud-capture"));
 	const count = state.state.cards.length;
 	await page.evaluate(() => {
 		const dt = new DataTransfer();
@@ -298,8 +298,8 @@ try {
 	await mkdir("tests/artifacts", { recursive: true });
 	await page.screenshot({ path: "tests/artifacts/cloud-operations-desktop.png" });
 	await page.setViewportSize({ width: 390, height: 844 });
-	await action("capture");
-	await page.locator("#cloud-title").fill("手机速记");
+	await action("edit", note.id);
+	await page.locator("#note-editor").fill("手机备注");
 	assert.equal(await page.locator("[data-cloud-field]").count(), 0);
 	await page.evaluate(() =>
 		Promise.allSettled(
@@ -309,7 +309,7 @@ try {
 				.map((a) => a.finished),
 		),
 	);
-	assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+	await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
 	await page.screenshot({ path: "tests/artifacts/cloud-operations-mobile.png" });
 	await page.keyboard.press("Escape");
 	const exportDownload = page.waitForEvent("download");
@@ -394,8 +394,7 @@ try {
 	await page.evaluate(() => {
 		for (const card of __store.state.cards.slice(0, 2)) __app.select(card.id, { add: true });
 	});
-	await page.locator('[data-action="selected-bookmark"]').press("Shift+F10");
-	assert.equal(await page.locator("#selection-menu").isVisible(), true);
+	assert.equal(await page.locator('[data-action="selected-bookmark"]').isVisible(), true);
 	const requestsBeforeExpiry = batchRequests.length;
 	await page.route("**/auth/session", (route) =>
 		route.fulfill({
@@ -416,7 +415,10 @@ try {
 		requestsBeforeExpiry,
 		"session expiry must not dispatch an action",
 	);
-	assert.equal(await page.evaluate(() => localStorage.length), 0);
+	assert.deepEqual(
+		await page.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
+		[],
+	);
 	// Retained search snapshots and local AI drafts are account-bound, including hidden menu clones.
 	for (const view of ["preview", "ai"]) {
 		await page.unroute("**/auth/session");
@@ -438,14 +440,8 @@ try {
 			);
 		await page.locator("#search-results [data-card]").first().waitFor();
 		await page.evaluate((id) => __app.select(id, { add: true }), ids[1]);
-		await page
-			.locator('#search-selection-bar [data-action="selected-bookmark"]')
-			.press("Shift+F10");
-		await page.keyboard.press("Escape");
-		assert.ok((await page.locator("#selection-menu [data-card]").count()) === 0);
-		assert.ok((await page.locator("#selection-menu .selection-stack").count()) > 0);
 		if (view === "ai") {
-			await page.locator("#search-selection-bar .selection-ai-target").click();
+			await action("selected-ai");
 			await page.locator("#ai-local-draft").fill("Synthetic temporary account draft");
 			assert.equal(await page.locator("[data-ai-context]").count(), 1);
 		} else {
@@ -490,7 +486,10 @@ try {
 			{ home: 0, search: 0, ai: 0, query: "", scroll: 0, cards: 0 },
 		);
 		assert.equal(batchRequests.length, before, `${view}: expiry must not write`);
-		assert.equal(await page.evaluate(() => localStorage.length), 0);
+		assert.deepEqual(
+			await page.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
+			[],
+		);
 	}
 	assert.deepEqual(errors, []);
 	console.log(

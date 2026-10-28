@@ -10,11 +10,7 @@ export function mediaResourceDomains(cards: any[] = []) {
 		"https://developer.mozilla.org",
 	]);
 	for (const card of cards) {
-		for (const value of [
-			card.image,
-			...(Array.isArray(card.photos) ? card.photos : []),
-			card.audioUrl,
-		]) {
+		for (const value of [...(Array.isArray(card.images) ? card.images : []), card.audioUrl]) {
 			if (typeof value !== "string") continue;
 			try {
 				const url = new URL(value);

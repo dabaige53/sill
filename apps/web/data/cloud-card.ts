@@ -1,10 +1,12 @@
 import type { Card } from "../../../contracts/card.ts";
-import { normalizeCard } from "../../../contracts/card-migration.ts";
 import { markdownBlocks } from "../atoms/markdown.ts";
 
-/** Project cloud records without dropping fields added by agents or future clients. */
-export function cloudCard(record: Card) {
-	const card = normalizeCard(record);
+/** A cloud record: card facts plus server metadata and personal state. */
+type CloudRecord = Card & { updated_at?: string; state?: unknown };
+
+/** Project cloud records into cards; nested values are copied, not shared. */
+export function cloudCard(record: CloudRecord) {
+	const card = structuredClone(record);
 	card.summary ??= markdownBlocks(card.body || "")[0] || "";
 	if (card.time === undefined && typeof card.updated_at === "string") {
 		const time = Date.parse(card.updated_at);
@@ -13,7 +15,7 @@ export function cloudCard(record: Card) {
 	return card;
 }
 
-export function cloudCardState(record: Card) {
+export function cloudCardState(record: CloudRecord) {
 	const state = record.state as { read?: boolean; done?: boolean } | undefined;
 	return {
 		read: !!state?.read,
@@ -26,7 +28,7 @@ export function cloudCardState(record: Card) {
 
 /** The editor owns only these fields; omitted fields remain owned by the stored record. */
 export function cloudCardChanges(
-	record: Card,
+	record: CloudRecord,
 	values: { title: string; body: string; read: boolean },
 ) {
 	const changes: Record<string, unknown> = {};

@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { Card, cardTypes, id } from "./card.ts";
-import { metadataIssues } from "./card-metadata.ts";
+import { cardIssues } from "./card-rules.ts";
 import { CardState, Preferences } from "./local.ts";
 
 export { id };
@@ -11,6 +11,13 @@ export const cloudState = CardState.extend({
 	lessLike: z.boolean().optional(),
 }).strict();
 export const cloudPreferences = Preferences.strict();
+const cardBaseline = Card.safeExtend({
+	revision: revision.optional(),
+	state: cloudState.optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+	deleted: z.boolean().optional(),
+});
 const rawCard = Card.refine(
 	(value) =>
 		![
@@ -33,10 +40,10 @@ export const workspaceBatch = z
 						.object({
 							op: z.literal("card.upsert"),
 							card: rawCard,
-							before: Card.nullable().optional(),
+							before: cardBaseline.nullable().optional(),
 						})
 						.strict(),
-					z.object({ op: z.literal("card.delete"), id, before: Card.optional() }).strict(),
+					z.object({ op: z.literal("card.delete"), id, before: cardBaseline.optional() }).strict(),
 					z
 						.object({
 							op: z.literal("item.patch"),
@@ -62,19 +69,6 @@ export const workspaceBatch = z
 		expectedRevision: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
 	})
 	.strict();
-export const workspaceSnapshot = z
-	.object({
-		revision: z.number().int().nonnegative(),
-		state: z
-			.object({
-				cards: z.array(Card),
-				items: z.record(id, cloudState),
-				preferences: cloudPreferences,
-				seconds: z.number().min(0).max(1e7),
-			})
-			.strict(),
-	})
-	.strict();
 const { id: cardId, ...cardFields } = Card.shape;
 export const changes = z
 	.object(cardFields)
@@ -97,7 +91,7 @@ export const changes = z
 	})
 	.strict();
 export const create = changes.required({ title: true, type: true }).superRefine((card, context) => {
-	for (const message of metadataIssues({
+	for (const message of cardIssues({
 		...card,
 		id: "new",
 		type: card.type!,
@@ -185,7 +179,20 @@ export const cloudCard = z
 		updated_at: dateTime,
 		deleted: z.boolean(),
 	})
-	.passthrough();
+	.strict();
+export const workspaceSnapshot = z
+	.object({
+		revision: z.number().int().nonnegative(),
+		state: z
+			.object({
+				cards: z.array(cloudCard),
+				items: z.record(id, cloudState),
+				preferences: cloudPreferences,
+				seconds: z.number().min(0).max(1e7),
+			})
+			.strict(),
+	})
+	.strict();
 export const cloudSchemas = {
 	Workspace: workspaceSnapshot,
 	WorkspaceBatch: workspaceBatch,

@@ -105,53 +105,12 @@ export const panelCard = {
 			? null
 			: cardDates(c).published;
 		const label = date ? detailDate(date.datetime) : "";
-		const rows = [
-			!["article", "media", "note", "file", "suggestion", "mail"].includes(c.type) &&
-			c.authors?.length
-				? [
-						"authors",
-						copy("web.metadata.authors"),
-						c.authors.map((author) => author.name).join(" / "),
-					]
-				: null,
-			!["article", "media", "note", "file", "suggestion", "mail"].includes(c.type) && c.publisher
-				? ["publisher", copy("web.metadata.publisher"), c.publisher.name]
-				: null,
-			c.recipients?.length
-				? ["recipients", copy("web.metadata.recipients"), c.recipients.join(" / ")]
-				: null,
-			c.project && c.type !== "task"
-				? ["project", copy("web.metadata.project"), c.project.name]
-				: null,
-			c.type !== "mail" && c.sentAt ? ["sentAt", copy("web.metadata.sent"), c.sentAt] : null,
-			c.takenAt ? ["takenAt", copy("web.metadata.taken"), c.takenAt] : null,
-			c.chapterCount
-				? ["chapterCount", copy("web.metadata.chapters"), String(c.chapterCount)]
-				: null,
-			c.timeZone && c.type !== "event" ? ["timeZone", "", c.timeZone] : null,
-			c.caption ? ["caption", "", c.caption] : null,
-			c.coverageStart !== undefined && c.coverageEnd !== undefined
-				? [
-						"coverage",
-						copy("web.metadata.coverage"),
-						`${dateLabel(c.coverageStart)} – ${dateLabel(c.coverageEnd)}`,
-					]
-				: null,
-		].filter(Boolean);
-		if (!date && !rows.length) return null;
+		if (!date) return null;
 		return (
 			<div className="preview-published">
-				{date ? (
-					<time dateTime={date.datetime} title={date.text}>
-						{label}
-					</time>
-				) : null}
-				{rows.map(([field, label, value]) => (
-					<span key={field}>
-						{label ? `${label} · ` : ""}
-						{value}
-					</span>
-				))}
+				<time dateTime={date.datetime} title={date.text}>
+					{label}
+				</time>
 			</div>
 		);
 	},
@@ -390,7 +349,7 @@ export const panelCard = {
 		);
 	},
 	lightbox(this: PanelRenderers, c?: Card, index = 0, app?: PreviewApp) {
-		const photos = c.photos?.length ? c.photos : [c.image];
+		const photos = c.images || [];
 		const i = Math.max(0, Math.min(photos.length - 1, index));
 		return (
 			<>
@@ -442,8 +401,8 @@ export const panelCard = {
 				</div>
 				{"\n   "}
 				<div className="lightbox-caption">
-					{c.caption}
-					<small>{[c.location, detailDate(c.takenAt)].filter(Boolean).join(" · ")}</small>
+					{c.summary}
+					<small>{[c.location, detailDate(c.publishedAt)].filter(Boolean).join(" · ")}</small>
 				</div>
 				<div className={"lightbox-thumbs"}>
 					{keyed(

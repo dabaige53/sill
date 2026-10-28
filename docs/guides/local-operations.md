@@ -1,6 +1,6 @@
 # 本地操作
 
-更新：2026-10-23。
+更新：2026-10-28。
 
 ## 页面入口与更新
 
@@ -56,11 +56,11 @@ Sill 不接入外部来源，也不做导入（见 [ADR 0033](../adr/0033-ai-wri
 
 网页关闭后不执行后台提醒或采集。需要定时操作时，由用户正在使用的 AI 环境安排本地命令。
 
-## 卡片字段 4.1.0
+## 卡片字段 5.0.0
 
-字段字典见 [跨端数据约定](../../contracts/README.md)。本地协议和云端 MCP 共用具名字段，拒绝卡片 meta、文件 meta/time；不解析旧文案。旧正文数组与要点在读取副本时转成 Markdown，不改写存量文件；新写入使用字符串正文。`capabilities` 返回 contractVersion、可写字段和废弃字段清单。阅读估算与 reading.add 的实际阅读计时分开，个人备注仍使用 item.patch.note。更换此版前先确认使用的数据已符合新约定；本轮构建和测试不修改真实数据。
+字段字典见 [跨端数据约定](../../contracts/README.md)。本地协议和云端 MCP 共用 30 个具名字段，拒绝未知字段和已删除字段，不读取旧结构的数据（[ADR 0086](../adr/0086-card-fields-and-block-recipes.md)）。正文是 Markdown 字符串。`capabilities` 返回 contractVersion、可写字段和废弃字段清单。阅读时长由客户端按正文计算，与 reading.add 的实际阅读计时分开；个人备注仍使用 item.patch.note。标签在卡片上，修改标签使用带 `before` 的 card.upsert。旧数据不能直接使用，需要清空后重建；本轮构建和测试不修改真实数据。
 
-PR 使用独立的 `pullRequest` 快照；播客音频地址、带时间点的章节和文字稿、邮件附件数组见字段字典。播放位置写入 `item.patch.values.playbackPosition`，以秒为单位，不改变阅读进度或已读状态。
+PR 使用独立的 `pullRequest` 快照；播客音频地址、带时间点的章节和文字稿、邮件附件（`files`）见字段字典。播放位置写入 `item.patch.values.playbackPosition`，以秒为单位，不改变阅读进度或已读状态。
 
 ## Mac 本地性能追踪
 

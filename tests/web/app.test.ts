@@ -28,7 +28,7 @@ test("closing photo tags returns to the same photo index", () => {
 	try {
 		const { app, Store } = f;
 		Store.state.cards = [
-			{ id: "photo-one", type: "photo", title: "合成照片", photos: ["coast", "mountain"] },
+			{ id: "photo-one", type: "photo", title: "合成照片", images: ["coast", "mountain"] },
 		];
 		app.currentId = "photo-one";
 		app.modalKind = "lightbox";
