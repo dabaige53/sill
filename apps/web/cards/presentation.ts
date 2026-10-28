@@ -48,12 +48,5 @@ const CardPresentation: Record<string, any> = {
 		return sourceMarkHtml(c, size);
 	},
 };
-/** The reminder's circle: done in Sill only. The card and its detail use the same control. */
-export function reminderMark(c?: any, done?: boolean, passive?: boolean) {
-	const dot = `<span class="check-dot ${done ? "is-done" : ""}" aria-hidden="true">${done ? icon("check", 12) : ""}</span>`;
-	return passive
-		? dot
-		: `<button type="button" class="reminder-check" data-action="${done ? "restore-reminder" : "complete-reminder"}" data-id="${esc(c.id)}" aria-pressed="${!!done}" aria-label="${done ? copy("web.reminder.restore") : copy("web.reminder.complete")}">${dot}</button>`;
-}
 
 export { CardPresentation };

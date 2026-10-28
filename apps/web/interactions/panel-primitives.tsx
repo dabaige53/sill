@@ -1,9 +1,9 @@
-import { ToggleControl } from "./toggle-control.tsx";
 import React, { cloneElement, isValidElement, type ReactElement } from "react";
 import { sillIcon as sillIconHTML } from "../atoms/icons.ts";
 import { Avatar, CheckItem, Icon } from "../atoms/react-primitives.tsx";
 import { SourceMark } from "../cards/source-mark.tsx";
 import { copy } from "../copy.ts";
+import { ToggleControl } from "./toggle-control.tsx";
 /** Only trusted, generated SVG/avatar fragments cross this boundary; panel content uses JSX. */
 export function TrustedFragment({ html }: { html: string }) {
 	// biome-ignore lint/security/noDangerouslySetInnerHtml: Compatibility callers supply trusted renderer output; user text is escaped before this boundary.
@@ -66,7 +66,15 @@ export function toggle(
 	action = "pref-toggle",
 	descriptionId = "",
 ) {
-	return <ToggleControl name={name} on={!!on} label={label} action={action} descriptionId={descriptionId} />;
+	return (
+		<ToggleControl
+			name={name}
+			on={!!on}
+			label={label}
+			action={action}
+			descriptionId={descriptionId}
+		/>
+	);
 }
 
 export function segmented(name: string, options: string[][], value: string, label: string) {
@@ -106,23 +114,6 @@ export function agentAction(
 	) : app?.agentAction ? (
 		<TrustedFragment html={app.agentAction(card)} />
 	) : null;
-}
-
-export function reminderMark(c: { id: string }, done: boolean) {
-	return (
-		<button
-			type="button"
-			className="reminder-check"
-			data-action={done ? "restore-reminder" : "complete-reminder"}
-			data-id={c.id}
-			aria-pressed={done}
-			aria-label={done ? copy("web.reminder.restore") : copy("web.reminder.complete")}
-		>
-			<span className={`check-dot ${done ? "is-done" : ""}`} aria-hidden="true">
-				{done ? icon("check", 12) : null}
-			</span>
-		</button>
-	);
 }
 
 export function sourceIcon(c: any, size = 16): React.ReactNode {

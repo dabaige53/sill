@@ -72,6 +72,11 @@ import PackagePlugin
     let sourceMarks = try String(contentsOf: sourceMarksURL, encoding: .utf8)
     try "public enum SourceMarkData { public static let json = \(String(reflecting: sourceMarks)) }"
       .write(to: sourceMarksOutput, atomically: true, encoding: .utf8)
+    let recipesURL = root.appending(path: "design-system/recipes.json")
+    let recipesOutput = output.appending(path: "CardRecipeData.swift")
+    let recipes = try String(contentsOf: recipesURL, encoding: .utf8)
+    try "public enum CardRecipeData { public static let json = \(String(reflecting: recipes)) }"
+      .write(to: recipesOutput, atomically: true, encoding: .utf8)
     let tokens = try JSONDecoder().decode(DesignTokens.self, from: Data(contentsOf: tokensURL))
     let metricsOutput = output.appending(path: "AppleMetrics.swift")
     let metrics = tokens.apple.sorted(by: { $0.key < $1.key }).map { key, value in
@@ -123,10 +128,11 @@ import PackagePlugin
         arguments: [
           "generate", input.path, "--config", config.path, "--output-directory", output.path,
         ],
-        inputFiles: [input, config, schema, copyURL, tokensURL, sourceMarksURL] + iconFiles,
+        inputFiles: [input, config, schema, copyURL, tokensURL, sourceMarksURL, recipesURL]
+          + iconFiles,
         outputFiles: [
           output.appending(path: "Types.swift"), embedded, copyOutput, metricsOutput, colorsOutput,
-          iconOutput, sourceMarksOutput,
+          iconOutput, sourceMarksOutput, recipesOutput,
         ])
     ]
   }

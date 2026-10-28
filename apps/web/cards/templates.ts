@@ -1,9 +1,9 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CardView, OpenStackView, ShelfView, StackView } from "./components.tsx";
-import { CardPresentation, reminderMark } from "./presentation.ts";
+import { CardPresentation } from "./presentation.ts";
 
-export { CardView, OpenStackView, reminderMark, ShelfView, StackView };
+export { CardView, OpenStackView, ShelfView, StackView };
 
 function cardHTML(c?: any, options: any = {}) {
 	return renderToStaticMarkup(createElement(CardView, { card: c, options }));
