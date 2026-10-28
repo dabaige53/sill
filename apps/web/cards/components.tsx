@@ -19,6 +19,7 @@ import {
 	cardSourceKind,
 	contentDay,
 	detailDate,
+	fileDescription,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes, SourceKinds } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -91,8 +92,15 @@ function Mail({ card: c, ctx }: BlockProps) {
 							className={`file-row attachment ${index === 2 ? "attachment-third" : ""}`}
 							key={file.name}
 						>
-							<Icon name="file" size={15} />
-							<span>{file.name}</span>
+							<Icon
+								name={/\.(png|jpe?g|gif|webp)$/i.test(file.name) ? "image" : "file"}
+								size={16}
+							/>
+							<span className="file-copy">
+								<b>{file.name}</b>
+								<em>{fileDescription(file)}</em>
+							</span>
+							<small>{detailDate(file.modifiedAt)}</small>
 						</span>
 					))}
 					{attachments.length > 2 && (
@@ -458,11 +466,15 @@ function File({ card: c, ctx }: BlockProps) {
 			<Title card={c} ctx={ctx} />
 			<Summary card={c} />
 			<div className="file-rows">
-				{files.slice(0, 3).map((f: Card, i: number) => (
+				{files.slice(0, 3).map((f, i: number) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: File names may repeat; these static preview rows have no component state.
 					<span className="file-row" key={i}>
 						<Icon name={/\.(png|jpe?g|gif|webp)$/i.test(f.name) ? "image" : "file"} size={15} />
-						<span>{f.name}</span>
+						<span className="file-copy">
+							<b>{f.name}</b>
+							<em>{fileDescription(f)}</em>
+						</span>
+						<small>{detailDate(f.modifiedAt)}</small>
 					</span>
 				))}
 			</div>

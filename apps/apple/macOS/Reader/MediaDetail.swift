@@ -217,7 +217,7 @@ struct MediaDetail: View {
         >= AppleMetrics.readerColumnsBreakpoint
     let layout =
       split
-      ? AnyLayout(HStackLayout(alignment: .top, spacing: AppleMetrics.space30))
+      ? AnyLayout(HStackLayout(alignment: .top, spacing: AppleMetrics.space32))
       : AnyLayout(VStackLayout(alignment: .leading, spacing: AppleMetrics.space16))
     layout {
       if split {

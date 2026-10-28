@@ -90,7 +90,7 @@
 }
 .podcast-heading .preview-tags {
 	margin-top: var(--space-16);
-	gap: var(--space-8);
+	gap: var(--space-6);
 }
 .podcast-listening {
 	display: flex;

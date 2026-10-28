@@ -26,7 +26,7 @@ struct ReaderTags: View {
           Text("#\(tag)")
             .textStyle(AppleMetrics.font12)
             .foregroundStyle(AppleColors.secondary)
-            .padding(.vertical, AppleMetrics.space3).padding(.horizontal, AppleMetrics.space10)
+            .padding(.vertical, AppleMetrics.space3).padding(.horizontal, AppleMetrics.space8)
             .background(Capsule().fill(AppleColors.surface))
         }
       }

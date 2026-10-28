@@ -54,7 +54,6 @@ export function WhyDetails({ card }: { card: Card }) {
 export function FileList({
 	files = [],
 	label = copy("web.card.files"),
-	attachment = false,
 }: {
 	files?: Card["files"];
 	label?: string;
@@ -75,11 +74,9 @@ export function FileList({
 							</span>
 							<span>
 								<b>{file.name}</b>
-								{!attachment && <em>{fileDescription(file)}</em>}
+								<em>{fileDescription(file)}</em>
 							</span>
-							<small title={file.modifiedAt}>
-								{attachment ? fileDescription(file) : detailDate(file.modifiedAt)}
-							</small>
+							<small title={file.modifiedAt}>{detailDate(file.modifiedAt)}</small>
 							{file.url && /^https?:\/\//i.test(file.url) && <Icon name="chevron" size={14} />}
 						</>
 					);
