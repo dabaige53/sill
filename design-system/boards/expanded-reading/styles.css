@@ -4,4 +4,6 @@
 @import "reference-media.css";
 @import "product/reader-layout.css";
 @import "layout.css";
+@import "product/typeset-layout.css";
+@import "product/article-layout.css";
 @import "samples.css";

@@ -26,8 +26,14 @@ export async function buildPage({
 		.flatMap((output) => output.output)
 		.find((output) => output.type === "asset" && output.fileName === "index.html");
 	if (!entry || entry.type !== "asset") throw new Error("missing_html_build");
-	const html =
+	const builtHtml =
 		typeof entry.source === "string" ? entry.source : new TextDecoder().decode(entry.source);
+	// The single-file build inlines the adapted shadcn CSS; retain its MIT notice in the result.
+	const shadcnLicense = await readFile(resolve(root, "apps/web/styles/shadcn-license.txt"), "utf8");
+	const html = builtHtml.replace(
+		"</head>",
+		`<!-- shadcn/typeset and docs TOC\n${shadcnLicense}-->\n</head>`,
+	);
 	const markup = html.replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/g, "$1</script>");
 	if (/<script\s+[^>]*src=/i.test(markup) || /<link\s+[^>]*rel=["']stylesheet/i.test(markup))
 		throw new Error("external_runtime_asset");

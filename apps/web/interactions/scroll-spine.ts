@@ -1,26 +1,13 @@
-import { animate, motionValue } from "motion";
 import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 
 // @design article-reading
-// Adapted from ui-lab sidebar-highlight (MIT, copyright 2026 Yash Bavadiya).
-// License: docs/adr/0082-web-ui-lab-motion.md
+// The list follows shadcn's docs TOC; Sill's scroll container owns jumps and selection.
+// https://github.com/shadcn-ui/ui/blob/main/apps/v4/components/docs-toc.tsx
 export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 	const config = foundation.motion.scrollSpine;
-	const highlight = foundation.motion.sidebarHighlight;
-	nav.style.setProperty("--outline-dot", `${highlight.dot}px`);
-	nav.style.setProperty("--outline-shift", `${highlight.shift}px`);
-	nav.style.setProperty("--outline-step", `${highlight.step}ms`);
-	nav.style.setProperty("--outline-wipe-in", `${highlight.wipeIn}ms`);
-	nav.style.setProperty("--outline-wipe-out", `${highlight.wipeOut}ms`);
-	nav.style.setProperty("--outline-ease", highlight.ease);
 	const links = [...nav.querySelectorAll<HTMLAnchorElement>("a[href]")];
 	const track = nav.querySelector<HTMLElement>(".reader-outline-links")!;
-	const dot = nav.querySelector<HTMLElement>(".reader-outline-dot")!;
 	const sections = links.map((link) => region.querySelector<HTMLElement>(link.hash));
-	const y = motionValue(0);
-	const offY = y.on("change", (value) => {
-		dot.style.transform = `translateY(${value}px)`;
-	});
 	let offsets: number[] = [];
 	let bands: { top: number; height: number }[] = [];
 	let current = -1;
@@ -43,9 +30,6 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 				if (index === selected) link.setAttribute("aria-current", "location");
 				else link.removeAttribute("aria-current");
 			});
-			const target = band.top + band.height / 2 - highlight.dot / 2;
-			if (instant || document.documentElement.dataset.inputModality === "keyboard") y.jump(target);
-			else animate(y, target, { type: "spring", ...highlight.travel });
 			const rowTop = track.offsetTop + band.top;
 			if (rowTop < nav.scrollTop) nav.scrollTop = rowTop;
 			else if (rowTop + band.height > nav.scrollTop + nav.clientHeight)
@@ -88,9 +72,6 @@ export function bindScrollSpine(region: HTMLElement, nav: HTMLElement) {
 	return () => {
 		cancelAnimationFrame(frame);
 		resize.disconnect();
-		y.stop();
-		offY();
-		y.destroy();
 		region.removeEventListener("scroll", schedule);
 		region.removeEventListener("load", measure, true);
 		nav.removeEventListener("click", jump);

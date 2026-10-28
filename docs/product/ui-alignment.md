@@ -8,6 +8,10 @@
 - 产品能力（登录、MCP、云端）见[功能矩阵](feature-matrix.md)，本表只记界面与交互。
 - 2026-10-20 的[逐行清单](../records/2026-10-20-macos-web-alignment/rule-checklist.md)是重建 Mac 界面时的记录，按手册行号对应，现已错位，只作历史参考，由本表替代。
 
+## 2026-10-28 Web 资讯阅读布局
+
+Web 资讯正文使用 shadcn Typeset 的内容间距，放大页目录移到正文右侧并采用 shadcn 目录列表样式；字体与字号沿用既有设置。Mac `ReaderPage.swift` 仍将目录放在左侧并使用圆点动效，尚未同步；Web 与 Mac 真实界面均未验证。依据 [ADR 0085](../adr/0085-article-typeset-and-toc.md)。
+
 ## 2026-10-28 用户反馈修复
 
 用户确认“收起不会回退”指叠卡收起后未恢复原布局。本轮同时处理搜索、详情、照片与AI入口；当前增量结果见[功能清单](../records/2026-10-28-macos-feedback-fixes/function-checklist.md)和[动效清单](../records/2026-10-28-macos-feedback-fixes/animation-checklist.md)。原62项和41项记录保留，以下结果补充或取代对应项的源码状态，不代表窗口验收通过。
@@ -146,7 +150,7 @@ Web/PWA 网页刷新保留框架，首屏主题提前恢复；卡片区延迟显
 
 ## 自动同步，不逐项对账
 
-放大页排版依据 [ADR 0065](../adr/0065-expanded-reading-layout.md) 与[探索画布](../../design-system/boards/expanded-reading.html)。Web、Mac 接入资讯与媒体放大布局：预览保留底部操作，放大操作位于左上角；视频 1.6:1、播客等宽分栏，窄屏上下排列；资讯目录来自真实 Markdown 标题，当前位置蓝色加粗，普通项灰色。Web 有章节时目录常显且点击即时定位；Mac 仍可收起且平滑滚动，缺失本轮规则。手机 Web 保留预览底部胶囊，已移除目录。展开与收起使用 expandedSpring，正文不缩放，工具不跨页面移动。原生 iOS 只有数据层，阅读界面缺失。本次未部署，真实窗口和真机仍为未验证。新增动效沿用项目规则，不增加 reduceMotion 分支。
+放大页排版依据 [ADR 0065](../adr/0065-expanded-reading-layout.md)、[ADR 0085](../adr/0085-article-typeset-and-toc.md) 与[探索画布](../../design-system/boards/expanded-reading.html)。资讯目录来自真实 Markdown 标题；Web 有章节时在右侧常显、点击即时定位，当前位置使用深色和中等字重。Mac 目录位于左侧，仍有圆点动效，尚未同步 Web 新版式。手机 Web 保留预览底部胶囊，不显示目录。原生 iOS 只有数据层，阅读界面缺失。真实窗口和真机仍为未验证。
 
 以下内容由同一份源文件生成或读取，两端不各自维护数值。改动后运行 `npm run contracts:generate`。
 

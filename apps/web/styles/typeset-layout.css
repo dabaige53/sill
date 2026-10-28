@@ -1,0 +1,101 @@
+/* shadcn/typeset layout adapted for Sill Markdown; typography is unchanged.
+ * https://ui.shadcn.com/typeset.css | Copyright (c) 2023 shadcn | MIT
+ */
+/*!
+MIT License
+
+Copyright (c) 2023 shadcn
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+.typeset {
+	--typeset-flow: 1.25em;
+}
+.typeset :where(p, ul, ol, blockquote, table) {
+	margin-block-start: var(--typeset-flow);
+	margin-block-end: 0;
+}
+.typeset :where(h1, h3, h4) {
+	margin-block-start: var(--typeset-flow);
+	margin-block-end: 0;
+}
+.typeset :where(h2) {
+	margin-block-start: calc(var(--typeset-flow) * 1.4);
+	margin-block-end: 0;
+}
+.typeset :where(h5) {
+	margin-block-start: calc(var(--typeset-flow) / 0.875);
+	margin-block-end: 0;
+}
+.typeset :where(h6) {
+	margin-block-start: calc(var(--typeset-flow) / 0.8125);
+	margin-block-end: 0;
+}
+.typeset :where(h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + *) {
+	margin-block-start: 1em;
+}
+.typeset :where([id]) {
+	scroll-margin-block-start: var(--typeset-flow);
+}
+.typeset :where(ul, ol) {
+	padding-inline-start: 1.5em;
+}
+.typeset :where(ul ul) {
+	list-style-type: circle;
+}
+.typeset :where(ul ul ul) {
+	list-style-type: square;
+}
+.typeset :where(li) {
+	margin-block-start: 0.5em;
+	padding-inline-start: 0.4em;
+}
+.typeset :where(li > p, li > ul, li > ol, li > blockquote, li > table) {
+	margin-block-start: 0.5em;
+}
+.typeset :where(pre) {
+	overflow-x: auto;
+	margin-block-start: calc(var(--typeset-flow) / 0.875);
+	margin-block-end: 0;
+}
+.typeset :where(blockquote) {
+	padding-inline-start: 1em;
+	margin-inline: 0;
+}
+.typeset :where(hr) {
+	margin-block-start: calc(var(--typeset-flow) * 2.4);
+	margin-block-end: 0;
+}
+.typeset :where(table) {
+	max-width: 100%;
+}
+.typeset :where(thead th) {
+	padding: 0.65em 1em;
+}
+.typeset :where(tbody td, tbody th, tfoot td, tfoot th) {
+	padding: 0.75em 1em;
+}
+.typeset :where(th:first-child, td:first-child) {
+	padding-inline-start: 0;
+}
+.typeset > :where(:first-child),
+.typeset
+	:where(li > :first-child, blockquote > :first-child, td > :first-child, th > :first-child) {
+	margin-block-start: 0;
+}

@@ -5,7 +5,7 @@ import { markdownHtml } from "../atoms/markdown.ts";
 export function DetailText({ body, outline = false }: { body?: string; outline?: boolean }) {
 	return body?.trim() ? (
 		<Markdown
-			className="preview-full"
+			className={outline ? "preview-full typeset" : "preview-full"}
 			text={body}
 			headingPrefix={outline ? "reader-section" : undefined}
 		/>

@@ -154,9 +154,9 @@ Vaul 的 Content 与 Overlay 保留库的入场、退场和存在时间管理，
 
 ## 章节目录与底部切换
 
-- 桌面资讯目录放在正文左侧，标题带 Lucide List 图标，条目采用 32px 紧凑行且无额外行间距。动效参考 [Sidebar highlight](https://lab.xevrion.dev/lab/sidebar-highlight)，采用 motion.sidebarHighlight：单个 6px 圆点以 visualDuration 0.35 秒、bounce 0.15 滑向当前章节行中央；选中文字右移 14px，耗时 300ms。强调色文字由左向右揭示 450ms，退出 200ms，曲线 cubic-bezier(0.23, 1, 0.32, 1)。文字沿用 Sill 强调色，保留标题层级与换行；不显示章节长度分段与填充。点击立即定位正文，滚动更新当前章节，短章节保留显式点击选择。首次显示、尺寸变化和键盘操作立即定位。
+- Web 桌面资讯目录放在正文右侧，当前章节以文字颜色和字重区分，不播放圆点移动或文字揭示动效。点击立即定位正文，滚动更新当前章节，短章节保留显式点击选择。首次显示、尺寸变化和键盘操作立即定位。
 - 手机 Web/PWA 底部三项导航参考 [Segmented control](https://lab.xevrion.dev/lab/segmented-control)，采用 motion.segmentedControl：lead 0.18 秒、bounce 0；trail 0.36 秒、bounce 0.15。同一行图标的选中态副本按胶囊边缘裁切，背景保留 glass-press，图标为 ink。连续切换保留当前速度；首次显示、尺寸变化与键盘操作立即定位，页面切换不等待动画。
-- 两处均使用已有 Motion；按项目规则不新增减少动态效果分支，保留其他组件已有分支。
+- 底部导航使用已有 Motion；按项目规则不新增减少动态效果分支，保留其他组件已有分支。
 
 ## Web/PWA 的 ui-lab 适配
 

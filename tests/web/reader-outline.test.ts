@@ -60,9 +60,12 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 		sections[1].getBoundingClientRect = () => ({ top: 716 - region.scrollTop });
 		const nav = w.document.querySelector(".reader-outline");
 		Object.defineProperty(nav, "clientHeight", { value: 400 });
+		Object.defineProperty(nav.querySelector(".reader-outline-links"), "offsetTop", { value: 30 });
 		for (const link of links) Object.defineProperty(link, "offsetHeight", { value: 44 });
+		Object.defineProperty(links[1], "offsetTop", { value: 500 });
 		measure();
-		assert.ok(nav.querySelector(".reader-outline-dot"));
+		assert.equal(nav.querySelector(".reader-outline-dot"), null);
+		assert.equal(links[1].textContent, "Second");
 		assert.equal(links[0].style.height, "", "outline rows keep natural height");
 		for (const detail of [1, 0]) {
 			region.scrollTop = 0;
@@ -73,6 +76,7 @@ test("mouse and keyboard outline navigation finish before the handler returns", 
 				assert.equal(region.scrollTop, 600);
 			});
 			assert.equal(links[1].getAttribute("aria-current"), "location");
+			assert.equal(nav.scrollTop, 174);
 			assert.equal(w.location.hash, "#read/example");
 		}
 		region.scrollTop = 1000;
