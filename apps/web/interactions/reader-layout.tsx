@@ -1,5 +1,4 @@
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
-import { Icon } from "../atoms/react-primitives.tsx";
 import { markdownHeadings } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { bindScrollSpine } from "./scroll-spine.ts";
@@ -42,9 +41,8 @@ export function ReaderLayout({
 					aria-label={copy("web.reader.outline")}
 					id="reader-outline"
 				>
-					<h2><Icon name="list" size={16} />{copy("web.reader.outline")}</h2>
+					<h2>{copy("web.reader.outline")}</h2>
 					<div className="reader-outline-links">
-						<span className="reader-outline-dot" aria-hidden="true" />
 						{headings.map((heading) => (
 							<a
 								key={heading.id}
@@ -54,10 +52,7 @@ export function ReaderLayout({
 									paddingInlineStart: `calc(${Math.min(2, heading.depth - baseDepth)} * var(--space-12))`,
 								}}
 							>
-								<span className="reader-outline-label">
-									<span>{heading.title}</span>
-									<span className="reader-outline-color" aria-hidden="true">{heading.title}</span>
-								</span>
+								{heading.title}
 							</a>
 						))}
 					</div>

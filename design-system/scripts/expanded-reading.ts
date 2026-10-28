@@ -34,7 +34,7 @@ writeFileSync(resolve(output, "reference-media.css"), styles.slice(mediaBoundary
 writeFileSync(resolve(output, "samples.css"), "");
 writeFileSync(
 	resolve(output, "styles.css"),
-	'@import "tokens.css";\n@import "reference-cards.css";\n@import "reference-details.css";\n@import "reference-media.css";\n@import "product/reader-layout.css";\n@import "layout.css";\n@import "samples.css";\n',
+	'@import "tokens.css";\n@import "reference-cards.css";\n@import "reference-details.css";\n@import "reference-media.css";\n@import "product/reader-layout.css";\n@import "layout.css";\n@import "product/typeset-layout.css";\n@import "product/article-layout.css";\n@import "samples.css";\n',
 );
 const actions = [
 	["bookmark", "收藏"],
@@ -106,7 +106,9 @@ for (const [kind, label] of [
 		.join("");
 	if (kind === "article") {
 		const article = full.querySelector(".rdin")!;
+		article.classList.add("is-article");
 		article.id = "article-scroll";
+		article.querySelector(".body")!.classList.add("preview-full", "typeset");
 		const paragraphs = article.querySelectorAll(".body p");
 		for (const [index, title] of [
 			[1, "少开窗口"],
@@ -124,7 +126,7 @@ for (const [kind, label] of [
 		nav.id = "article-outline";
 		nav.setAttribute("aria-label", "文章目录");
 		nav.innerHTML =
-			'<h2>目录</h2><div class="reader-outline-links"><span class="reader-outline-marker" aria-hidden="true"></span><span class="reader-outline-notch" aria-hidden="true"></span><a href="#article-section-1" aria-current="location"><span class="reader-spine-band" aria-hidden="true"><span class="reader-spine-fill"></span></span>少开窗口</a><a href="#article-section-2"><span class="reader-spine-band" aria-hidden="true"><span class="reader-spine-fill"></span></span>给内容留白</a></div>';
+			'<h2>目录</h2><div class="reader-outline-links"><a href="#article-section-1" aria-current="location">少开窗口</a><a href="#article-section-2">给内容留白</a></div>';
 		article.replaceWith(layout);
 		layout.append(article, nav);
 		const progress = full.querySelector(".rprog")!;

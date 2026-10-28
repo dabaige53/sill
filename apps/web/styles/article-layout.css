@@ -1,0 +1,63 @@
+/* @design article-reading — Typeset supplies layout only; existing text styles remain in force. */
+.is-article .preview-full.typeset {
+	--typeset-flow: calc(
+		var(--text-article-body) *
+		var(--content-text-scale, 1) *
+		1.25 *
+		var(--reader-space-scale, 1)
+	);
+}
+.reader-body.is-article .preview-full.typeset {
+	--typeset-flow: calc(
+		var(--text-reader-body) *
+		var(--content-text-scale, 1) *
+		1.25 *
+		var(--reader-space-scale, 1)
+	);
+}
+@media (max-width: 650px) {
+	.preview-body.is-article .preview-full.typeset {
+		--typeset-flow: calc(
+			var(--text-reader-body) *
+			var(--reader-text-scale, 1) *
+			1.25 *
+			var(--reader-space-scale, 1)
+		);
+	}
+}
+
+/* Replace the old paragraph margins with Typeset's one-direction block flow. */
+.is-article .preview-full.typeset p {
+	margin-block: 0;
+}
+.is-article .preview-full.typeset > * {
+	margin-block: 0;
+}
+.is-article .preview-full.typeset > * + * {
+	margin-block-start: var(--typeset-flow);
+}
+.is-article .preview-full.typeset > h2:not(:first-child) {
+	margin-block-start: calc(var(--typeset-flow) * 1.4);
+}
+.is-article .preview-full.typeset > :is(h1, h2, h3, h4, h5, h6) + * {
+	margin-block-start: 1em;
+}
+.is-article .preview-full.typeset :is(ul, ol) {
+	display: block;
+	padding-inline-start: 1.5em;
+}
+.is-article .preview-full.typeset :is(ul, ol) > li {
+	margin-block-start: 0.5em;
+	padding-inline-start: 0.4em;
+}
+.is-article .preview-full.typeset :is(ul, ol) > li:first-child {
+	margin-block-start: 0;
+}
+.is-article .preview-full.typeset li > :is(p, ul, ol),
+.is-article .preview-full.typeset blockquote > p + p {
+	margin-block-start: 0.5em;
+}
+.is-article .preview-full.typeset li > :first-child,
+.is-article .preview-full.typeset blockquote > :first-child {
+	margin-block-start: 0;
+}

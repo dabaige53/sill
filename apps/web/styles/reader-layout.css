@@ -32,9 +32,17 @@
 	min-height: 0;
 }
 .reader-layout.is-workspace.has-outline {
-	grid-template-columns: var(--reader-outline-width) minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr) var(--reader-outline-width);
 	gap: var(--space-24);
-	padding-left: var(--space-30);
+	padding-right: var(--space-30);
+}
+@media (min-width: 651px) {
+	.reader-layout.is-workspace:has(> .is-article-reader) {
+		width: 100%;
+		max-width: 1200px;
+		margin-inline: auto;
+		padding-inline: clamp(var(--space-24), 5vw, var(--space-88));
+	}
 }
 .reader-layout > .reader-workspace {
 	position: relative;
@@ -52,7 +60,7 @@
 }
 .reader-outline {
 	position: relative;
-	grid-column: 1;
+	grid-column: 2;
 	grid-row: 1;
 	min-width: 0;
 	min-height: 0;
@@ -65,9 +73,6 @@
 	grid-row: 1;
 }
 .reader-outline h2 {
-	display: flex;
-	align-items: center;
-	gap: var(--space-10);
 	font-size: var(--text-body);
 	font-weight: 500;
 	color: var(--ink);
@@ -78,10 +83,9 @@
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	gap: 0;
+	gap: var(--space-4);
 }
 .reader-outline a {
-	position: relative;
 	flex-shrink: 0;
 	box-sizing: border-box;
 	display: flex;
@@ -95,42 +99,9 @@
 	text-decoration: none;
 	overflow-wrap: anywhere;
 }
-.reader-outline-label {
-	position: relative;
-	min-width: 0;
-	transition: transform var(--outline-step) var(--outline-ease);
-}
-.reader-outline a[aria-current="location"] .reader-outline-label {
-	transform: translateX(var(--outline-shift));
-}
-.reader-outline-color {
-	position: absolute;
-	inset: 0;
-	color: var(--accent);
-	clip-path: inset(0 100% 0 0);
-	transition: clip-path var(--outline-wipe-out) var(--outline-ease);
-}
-.reader-outline a[aria-current="location"] .reader-outline-color {
-	clip-path: inset(0 0 0 0);
-	transition-duration: var(--outline-wipe-in);
-}
-.reader-outline-dot {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: var(--outline-dot);
-	height: var(--outline-dot);
-	border-radius: var(--pill-radius);
-	background: var(--accent);
-	pointer-events: none;
-	z-index: 1;
-}
-.reader-outline a {
-	padding-inline-end: var(--outline-shift);
-}
-html[data-input-modality="keyboard"] .reader-outline-label,
-html[data-input-modality="keyboard"] .reader-outline-color {
-	transition: none;
+.reader-outline a[aria-current="location"] {
+	color: var(--ink);
+	font-weight: 500;
 }
 @media (hover: hover) and (pointer: fine) {
 	.reader-outline a:hover {

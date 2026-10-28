@@ -134,6 +134,7 @@ test("article preview puts the cover before its ruled header; reading puts it af
 	assert.ok(doc.querySelector(".detail-header.ruled-header h1"));
 	assert.equal(doc.querySelector(".preview-lead"), null);
 	assert.equal(doc.querySelector(".preview-full")?.textContent, "Full body\n");
+	assert.ok(doc.querySelector(".preview-full.typeset"));
 	dom.window.close();
 	const reader = new JSDOM(Panels.reader({}, card));
 	assert.ok(
@@ -141,6 +142,7 @@ test("article preview puts the cover before its ruled header; reading puts it af
 			.querySelector(".detail-header")
 			?.nextElementSibling?.matches(".preview-cover"),
 	);
+	assert.ok(reader.window.document.querySelector(".preview-full.typeset"));
 	reader.window.close();
 });
 
@@ -155,6 +157,7 @@ test("task detail shows the complete checklist before body without the card summ
 	const doc = dom.window.document;
 	assert.equal(doc.querySelector(".preview-lead"), null);
 	assert.ok(doc.querySelector(".detail-task-list")?.nextElementSibling?.matches(".preview-full"));
+	assert.equal(doc.querySelector(".preview-full.typeset"), null);
 	assert.equal(doc.querySelectorAll(".detail-task-list [role=checkbox]").length, card.tasks.length);
 	dom.window.close();
 });
