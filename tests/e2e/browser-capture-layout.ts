@@ -52,13 +52,13 @@ export async function runCaptureLayout({
 				return {
 					bar: box("selection-bar"),
 					nav: getComputedStyle(document.getElementById("nav")).display,
-					aiDock: getComputedStyle(document.getElementById("ai-dock")).display,
+					aiDock: getComputedStyle(document.getElementById("ai-dock")).visibility,
 					face: box("account"),
 					viewport: { width: innerWidth, height: innerHeight },
 				};
 			});
 			assert.equal(nav, "none", "desktop shows no navigation capsule");
-			assert.equal(aiDock, "none", "selection replaces the AI box in the rail");
+			assert.equal(aiDock, "hidden", "selection replaces the AI box in the rail");
 			// The AI box is 640; the selection bar narrows to its buttons (web-interaction handbook).
 			assert.ok(bar.width > 200 && bar.width < 640, `selection bar hugs its buttons: ${bar.width}`);
 			assert.equal(Math.round(bar.height), 60, "rail rows differ");
@@ -98,8 +98,6 @@ export async function runCaptureLayout({
 			await page.mouse.up();
 			assert.equal(await page.locator("#selection-menu").isVisible(), false);
 			await page.locator("#selection-bar").click({ button: "right" });
-			assert.equal(await page.locator("#selection-menu").isVisible(), true);
-			await page.keyboard.press("Escape");
 			assert.equal(await page.locator("#selection-menu").isVisible(), false);
 			assert.equal(await page.evaluate(() => window.__app.selected.size), 1);
 			await page.keyboard.press("Escape");
@@ -158,6 +156,9 @@ export async function runCaptureLayout({
 				() => (document.querySelector("#feed-grid [data-card]") as HTMLElement).dataset.card,
 			);
 			await action(page, "select", id);
+			await page.waitForFunction(
+				() => getComputedStyle(document.getElementById("nav")).visibility === "hidden",
+			);
 			const bar = await rect(page, "#selection-bar");
 			assert.ok(bar.left >= 0 && bar.right <= 390, "selection bar leaves the screen");
 			assert.equal(await page.locator("#dock .nav-capsule").isVisible(), false);

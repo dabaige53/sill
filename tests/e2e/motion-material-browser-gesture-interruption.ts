@@ -43,7 +43,7 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 			const states = await page.evaluate(() => {
 				const sheet = document.querySelector<HTMLElement>(".preview-sheet"),
 					scroll = sheet.querySelector<HTMLElement>(".sheet-scroll"),
-					bar = document.querySelector<HTMLElement>("#modal > .float-bar"),
+					bar = document.querySelector<HTMLElement>("#modal .float-bar"),
 					head = sheet.querySelector<HTMLElement>(".sheet-head-tools");
 				const transition = (node: HTMLElement) => {
 					const style = getComputedStyle(node);
@@ -127,53 +127,20 @@ export async function runGestureInterruption({ phone, scenario }: { phone: any; 
 			);
 		},
 	);
-	for (const mode of ["rebound", "exit"])
+	for (const close of [false, true]) {
 		await scenario(
-			`A new handle drag continues from the visible ${mode} position`,
+			`Phone drawer remains usable after ${close ? "closing" : "opening"} is interrupted`,
 			async (page) => {
 				await page.evaluate(() => window.__app.openCard("motion-0"));
-				await page.waitForTimeout(500);
-				const result = await page.evaluate(async (mode) => {
-					const sheet = document.querySelector<HTMLElement>(".preview-sheet");
-					const handle = sheet.querySelector<HTMLButtonElement>(".sheet-handle");
-					sheet.classList.add("is-drag");
-					window.__app.gestures.capture(sheet);
-					sheet.style.translate = "0 90px";
-					// Feed the managed travel state as a real drag does.
-					window.__app.gestures.capture(sheet);
-					if (mode === "exit")
-						window.__app.gestures.exitSurface(sheet, () => window.__app.closeModal());
-					else window.__app.gestures.settle(sheet);
-					await new Promise((resolve) => setTimeout(resolve, 90));
-					const before = sheet.getBoundingClientRect().top;
-					handle.setPointerCapture = () => {};
-					handle.dispatchEvent(
-						new PointerEvent("pointerdown", {
-							pointerId: 77,
-							isPrimary: true,
-							button: 0,
-							clientX: 100,
-							clientY: 200,
-						}),
-					);
-					const grabbed = sheet.getBoundingClientRect().top;
-					handle.dispatchEvent(
-						new PointerEvent("pointermove", {
-							pointerId: 77,
-							isPrimary: true,
-							clientX: 100,
-							clientY: 210,
-						}),
-					);
-					await new Promise(requestAnimationFrame);
-					const moved = sheet.getBoundingClientRect().top;
-					handle.dispatchEvent(new PointerEvent("pointercancel", { pointerId: 77 }));
-					return { before, grabbed, moved, leaving: window.__app.sheetLeaving };
-				}, mode);
-				assert.ok(Math.abs(result.grabbed - result.before) < 1);
-				assert.ok(Math.abs(result.moved - result.before - 10) < 1);
-				assert.equal(result.leaving, false);
+				await page.waitForTimeout(90);
+				if (close) await page.evaluate(() => window.__app.closeNative());
+				await page.evaluate(() => window.__app.openCard("motion-1"));
+				await page.waitForTimeout(700);
+				assert.equal(await page.evaluate(() => window.__app.currentId), "motion-1");
+				await page.evaluate(() => window.__app.goTo("home"));
+				await page.locator("#modal[open]").waitFor({ state: "hidden" });
 			},
 			phone,
 		);
+	}
 }

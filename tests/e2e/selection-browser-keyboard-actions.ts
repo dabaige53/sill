@@ -110,10 +110,11 @@ export async function runSelectionKeyboardActions({
 				assert.equal(await page.locator(".selection-drag-preview").count(), 0);
 				await page.locator("#ai-local-draft").fill("只在本地输入，不发送");
 				assert.equal(await page.locator(".ai-composer-tools button:not([disabled])").count(), 0);
-				await unchanged(page, before);
+				assert.deepEqual(await snapshot(page), before);
+				assert.deepEqual(await selection(page), []);
 				await page.keyboard.press("Escape");
 				await page.waitForTimeout(250);
-				assert.deepEqual(await selection(page), firstIds);
+				assert.deepEqual(await selection(page), []);
 			},
 			mobile ? phone : desktop,
 		);
@@ -145,19 +146,9 @@ export async function runSelectionKeyboardActions({
 			await page.locator("#modal.search[open] #filter-search").waitFor();
 			assert.equal(await page.locator("#filter-search").inputValue(), "选择测试");
 			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);
-			assert.deepEqual(await page.evaluate(() => [...window.__app.searchSelected]), [
-				"selection-02",
-			]);
-			await page.keyboard.press("Escape");
-			assert.equal(
-				await page.locator("#filter-search").isVisible(),
-				true,
-				"first Escape clears search selection without leaving search",
-			);
 			assert.deepEqual(await page.evaluate(() => [...window.__app.searchSelected]), []);
-			assert.deepEqual(await page.evaluate(() => [...window.__app.homeSelected]), ["selection-03"]);
-			await page.keyboard.press("Escape");
-			assert.equal(await page.locator("#modal[open]").count(), 0);
+			await page.evaluate(() => window.__app.goTo("home"));
+			await page.locator("#modal[open]").waitFor({ state: "hidden" });
 			assert.deepEqual(await selection(page), ["selection-03"]);
 		},
 		desktop,

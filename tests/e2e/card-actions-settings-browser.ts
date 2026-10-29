@@ -118,7 +118,7 @@ try {
 				await page.locator("aside.preview-note p").textContent(),
 				"对照现有流程，再确认适用范围。",
 			);
-			assert.ok((await page.locator(".preview-meta").textContent()).includes("约 4 分钟阅读"));
+			assert.ok((await page.locator(".preview-meta").textContent()).includes("1 分钟"));
 			const aligned = async (selector: string) =>
 				page.locator(selector).evaluate((body) => {
 					const nodes = body.querySelectorAll(

@@ -130,7 +130,7 @@ try {
 					page: document.getElementById("modal").getBoundingClientRect().bottom,
 					input: document.getElementById("filter-search").getBoundingClientRect().top,
 					results: document.getElementById("search-results").getBoundingClientRect().height,
-					inset: document.documentElement.style.getPropertyValue("--kb"),
+					inset: document.querySelector<HTMLElement>("#modal").style.getPropertyValue("--kb"),
 				});
 				try {
 					const before = measure();
@@ -166,6 +166,8 @@ try {
 					document.querySelectorAll(".search-category").length === 6,
 			);
 		}
+		if (await page.locator("#modal").evaluate((node) => node.classList.contains("search-editing")))
+			await page.locator('[data-action="search-reset"]').click();
 		await page.locator('.search-category[data-extra="note"]').focus();
 		await page.keyboard.press("Enter");
 		assert.equal(await page.locator('.search-token[data-extra="type"]').innerText(), "笔记");
@@ -201,6 +203,7 @@ try {
 				.evaluateAll((ns) => ns.map((n) => n.getAttribute("data-card"))),
 			["review-note"],
 		);
+		if (width < 650) await page.locator("#filter-search").press("Enter");
 		await page.locator('#search-results [data-card="review-note"] .card-title-button').click();
 		await page.locator("#search-background[open]").waitFor();
 		assert.equal(await page.locator("#search-background .search-chips").count(), 1);

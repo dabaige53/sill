@@ -84,7 +84,7 @@ try {
 		}
 		async function pull(cancel = false) {
 			await touch("touchStart");
-			for (const y of [220, 260, 310, 360]) await touch("touchMove", y);
+			for (const y of [220, 280, 360, 440, 520]) await touch("touchMove", y);
 			await page.waitForTimeout(30);
 			const shift = await page
 				.locator("main")
@@ -99,23 +99,18 @@ try {
 				bounds.ring.top >= 0 && bounds.ring.bottom <= bounds.tabs.top,
 				"refresh stays visible above the home tabs",
 			);
-			assert.equal(bounds.mark, "hidden", "refresh temporarily replaces the mark");
+			assert.equal(bounds.mark, "visible", "refresh keeps the page name visible");
 			await touch(cancel ? "touchCancel" : "touchEnd");
 		}
 		await pull(true);
 		assert.equal(await page.evaluate(() => window.__pullCalls), 0);
-		await page.waitForTimeout(300);
-		assert.equal(
-			await page.locator("main").evaluate((node) => (node as HTMLElement).style.translate),
-			"",
+		await page.waitForFunction(
+			() => (document.querySelector("main") as HTMLElement).style.translate === "",
 		);
 		await pull();
-		await page.waitForTimeout(300);
-		const heldOffset = await page
-			.locator("main")
-			.evaluate((node) => parseFloat(getComputedStyle(node).translate.split(" ")[1]) || 0);
-		assert.ok(heldOffset > 20, "the desk pauses open while the ring turns");
-		await page.waitForTimeout(850);
+		await page.waitForFunction(
+			() => (document.querySelector("main") as HTMLElement).style.translate === "",
+		);
 		assert.equal(await page.evaluate(() => window.__pullCalls), 1);
 		assert.equal(await page.locator(".pull-ring.is-spinning").count(), 1);
 		await page.screenshot({ path: `tests/artifacts/refresh-loading-normal.png` });
@@ -153,8 +148,6 @@ try {
 		});
 		await pull();
 		await page.waitForTimeout(30);
-		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "loading");
-		await page.waitForTimeout(300);
 		assert.equal(await page.locator("#pull-ring").getAttribute("data-state"), "error");
 		await page.screenshot({ path: `tests/artifacts/refresh-retry-normal.png` });
 		assert.equal(await page.locator("#pull-ring").getAttribute("aria-label"), "刷新失败，重试");

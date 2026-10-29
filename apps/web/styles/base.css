@@ -46,13 +46,14 @@ body {
 	background: var(--canvas);
 }
 /* app-surfaces.ts freezes the desk under a phone page the same way. */
-#workspace-background:is(.is-drawer-background, .is-page-frozen) {
+#workspace-background.is-drawer-background,
+#workspace-background.is-page-frozen > main {
 	position: fixed;
 	inset: 0;
 	height: 100dvh;
 	width: 100%;
 }
-#workspace-background.is-page-frozen {
+#workspace-background.is-page-frozen > main {
 	overflow: clip;
 }
 /* Under a drawer only the cards are clipped to the screen, not the whole page: iOS drew a clipped

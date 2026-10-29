@@ -338,7 +338,7 @@ try {
 				await page.waitForFunction(
 					() => !(document.getElementById("modal") as HTMLDialogElement).open,
 				);
-				assert.equal(await page.evaluate(() => document.activeElement.id), "account");
+				await page.waitForFunction(() => document.activeElement.id === "account");
 				assert.equal(await head.evaluate((node) => getComputedStyle(node).opacity), "1");
 			}
 		}

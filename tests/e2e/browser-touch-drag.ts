@@ -23,7 +23,7 @@ export async function runTouchDrag({
 	touchTargets: any;
 }) {
 	await scenario(
-		"Settings and first run expose capture without source connections",
+		"Settings and first run omit retired capture and source connections",
 		async (page?: any) => {
 			await action(page, "settings");
 			await page.locator('[data-action="pref-toggle"][data-id="stack"]').click();
@@ -47,13 +47,9 @@ export async function runTouchDrag({
 			await page.locator(".welcome").waitFor();
 			assert.equal(await page.locator(".feed-card").count(), 0);
 			assert.deepEqual(await page.locator(".welcome-actions button").allTextContents(), [
-				"记一笔",
 				"先看示例",
 			]);
-			await page.locator('.welcome [data-action="capture"]').click();
-			await page.locator("#capture-text").waitFor();
-			await page.keyboard.press("Escape");
-			await page.waitForFunction(() => !document.querySelector("dialog").open);
+			assert.equal(await page.locator('[data-action="capture"], #capture-text').count(), 0);
 			await page.locator('[data-action="welcome-demo"]').click();
 			await page.locator('[data-card="article-01"]').waitFor();
 		},
@@ -153,7 +149,7 @@ export async function runTouchDrag({
 				return {
 					open: (document.getElementById("modal") as HTMLDialogElement).open,
 					running: document
-						.querySelector("#modal .preview-sheet")
+						.querySelector("#modal .phone-drawer")
 						.getAnimations()
 						.some((a) => a.playState === "running"),
 				};
@@ -197,16 +193,6 @@ export async function runTouchDrag({
 				const reminder = card(page, "reminder-01");
 				await reminder.scrollIntoViewIfNeeded();
 				await touchTargets(reminder.locator(".reminder-check"), width);
-				await reminder.locator(".card-title-button").press("Shift+F10");
-				await touchTargets(page.locator(".card-more-menu button"), width);
-				await page.waitForTimeout(240);
-				await touchTargets(page.locator(".card-more-menu button"), width);
-				await page.screenshot({
-					animations: "disabled",
-					path: path.join(artifacts, `mobile-card-actions-${width}.png`),
-				});
-				await page.touchscreen.tap(3, 3);
-				assert.equal(await page.locator(".card-more-menu").count(), 0);
 				await reminder.locator('[data-action="complete-reminder"]').tap();
 				assert.equal((await state(page, "reminder-01")).reminderDone, true);
 				assert.equal(await reminder.count(), 1);
@@ -252,8 +238,7 @@ export async function runTouchDrag({
 				await page.locator("#filter-search").fill("小空档");
 				await page.locator('#search-results [data-card="reminder-01"]').waitFor();
 				assert.equal(await page.locator('#search-results [data-card="reminder-01"]').count(), 1);
-				await action(page, "clear-filter");
-				await page.keyboard.press("Escape");
+				await page.evaluate(() => window.__app.goTo("home"));
 				await page.waitForFunction(() => !document.querySelector("dialog").open);
 				await action(page, "card-open", "article-01");
 				await page.screenshot({

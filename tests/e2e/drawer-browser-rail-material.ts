@@ -182,27 +182,28 @@ export async function runRailMaterial({
 	}
 
 	await scenario(
-		"Phone short drawers fit content; long articles cap and expand while reading",
+		"Phone drawers keep a bottom inset and scroll long content",
 		async (page) => {
-			await page.evaluate(() => window.__app.openCard("short-task"));
-			await page.waitForTimeout(500);
-			const short = await page.locator(".preview-sheet").boundingBox();
-			assert.ok(short.height < 650, JSON.stringify(short));
-			assert.ok(Math.abs(short.y + short.height - 844) <= 2);
-			assert.equal(await page.locator("#modal-title + .preview-tags").count(), 1);
-			await page.screenshot({ path: path.join(artifacts, "drawer-short-phone.png") });
-			await page.evaluate(() => window.__app.openCard("motion-0"));
-			await page.waitForTimeout(500);
-			const long = await page.locator(".preview-sheet").boundingBox();
-			assert.ok(long.height <= 781 && long.height > 700, JSON.stringify(long));
-			await page.locator(".sheet-scroll").evaluate((node) => {
-				node.scrollTop = 120;
-			});
-			await page.waitForTimeout(450);
-			assert.equal(await page.locator(".preview-sheet.is-full").count(), 1);
-			const full = await page.locator(".preview-sheet").boundingBox();
-			assert.ok(full.height >= 840, JSON.stringify(full));
-			await page.screenshot({ path: path.join(artifacts, "drawer-long-phone.png") });
+			for (const id of ["short-task", "motion-0"]) {
+				await page.evaluate((id) => window.__app.openCard(id), id);
+				await page.locator('.phone-drawer[data-state="open"]').waitFor();
+				await page.locator(".phone-drawer").evaluate(async (node) => {
+					await Promise.all(
+						node.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
+					);
+				});
+				const box = await page.locator(".phone-drawer").boundingBox();
+				assert.ok(box.height >= 844 * 0.7 - 1 && box.y >= 24, JSON.stringify(box));
+				assert.ok(Math.abs(box.y + box.height - 832) < 2, JSON.stringify(box));
+				if (id === "motion-0") {
+					await page.locator(".sheet-scroll").evaluate((node) => {
+						node.scrollTop = 120;
+					});
+					assert.ok(await page.locator(".sheet-scroll").evaluate((node) => node.scrollTop > 0));
+				}
+				await page.evaluate(() => window.__app.closeNative());
+				await page.locator("#modal[open]").waitFor({ state: "hidden" });
+			}
 		},
 		phone,
 	);
@@ -269,79 +270,26 @@ export async function runRailMaterial({
 		phone,
 	);
 	await scenario(
-		"Preview end resistance stays bounded and restores the locked background",
+		"Drawer cancellation preserves data and restores the page scroll",
 		async (page, context) => {
-			await page.evaluate(() => {
-				window.scrollTo({ top: 500, behavior: "instant" });
-			});
-			await page.waitForTimeout(50);
-			const before = await page.evaluate(() => scrollY);
+			await page.evaluate(() => window.scrollTo({ top: 500, behavior: "instant" }));
+			const y = await page.evaluate(() => scrollY);
 			await page.evaluate(() => window.__app.openCard("short-task"));
-			await page.waitForTimeout(500);
-			assert.equal(await page.evaluate(() => window.__app.pageScrollLocked), true);
+			await page.waitForTimeout(600);
+			const stored = await page.evaluate(() => localStorage.getItem("sill-v1"));
+			assert.equal(await page.evaluate(() => document.documentElement.style.overflow), "hidden");
 			const session = await context.newCDPSession(page);
-			const box = await page.locator(".sheet-scroll").boundingBox();
-			const y = box.y + 150;
-			await touch(session, "touchStart", 180, y);
-			await touch(session, "touchMove", 180, y - 55);
-			await page.waitForTimeout(40);
-			const offset = await page
-				.locator(".sheet-scroll")
-				.evaluate((node) => parseFloat(node.style.translate.split(" ")[1]) || 0);
-			assert.ok(offset < 0 && offset >= -14, String(offset));
+			const handle = await page.locator("[data-vaul-handle]").boundingBox();
+			await touch(session, "touchStart", 195, handle.y + 2);
+			await touch(session, "touchMove", 195, handle.y + 62);
 			await touch(session, "touchCancel");
-			await page.waitForTimeout(260);
-			assert.equal(
-				await page.locator(".sheet-scroll").evaluate((node) => node.style.translate),
-				"",
-			);
+			await page.waitForTimeout(600);
 			assert.equal(await page.locator("#modal").evaluate((node) => node.open), true);
-			await page.evaluate(() => window.__app.closeNative());
-			await page.waitForTimeout(450);
-			assert.equal(await page.evaluate(() => window.__app.pageScrollLocked), false);
-			assert.equal(await page.evaluate(() => scrollY), before);
-		},
-		phone,
-	);
-	await scenario(
-		"Handle drags up to expand, down to collapse, and cancels without changing state",
-		async (page, context) => {
-			await page.evaluate(() => window.__app.openCard("short-task"));
-			await page.waitForTimeout(500);
-			const session = await context.newCDPSession(page);
-			const handle = page.locator(".sheet-handle");
-			let box = await handle.boundingBox();
-			await touch(session, "touchStart", 195, box.y + 10);
-			await touch(session, "touchMove", 195, box.y - 90);
-			await touch(session, "touchEnd");
-			await page.waitForTimeout(450);
-			assert.equal(await page.locator(".preview-sheet.is-full").count(), 1);
-			box = await handle.boundingBox();
-			await touch(session, "touchStart", 195, box.y + 10);
-			await touch(session, "touchMove", 195, box.y + 100);
-			await touch(session, "touchCancel");
-			await page.waitForTimeout(450);
-			assert.equal(await page.locator(".preview-sheet.is-full").count(), 1);
-			await touch(session, "touchStart", 195, box.y + 10);
-			await touch(session, "touchMove", 195, box.y + 100);
-			await touch(session, "touchEnd");
-			await page.waitForTimeout(450);
-			assert.equal(await page.locator(".preview-sheet.is-full").count(), 0);
-			assert.ok((await page.locator(".preview-sheet").boundingBox()).height < 650);
-			// The close disc centres on the source row above the title (ADR 0037).
-			const alignment = await page.evaluate(() => {
-				const row = document.querySelector(".preview-meta");
-				const close = document.querySelector('.sheet-head [data-action="close"]');
-				const r = row.getBoundingClientRect();
-				return Math.abs(close.getBoundingClientRect().top + 22 - r.top - r.height / 2);
-			});
-			assert.ok(alignment < 3, String(alignment));
-			assert.equal(
-				await page
-					.locator(".sheet-scroll")
-					.evaluate((node) => getComputedStyle(node).scrollbarWidth),
-				"none",
-			);
+			assert.equal(await page.evaluate(() => localStorage.getItem("sill-v1")), stored);
+			await page.locator('.sheet-head [data-action="close"]').click();
+			await page.locator("#modal[open]").waitFor({ state: "hidden" });
+			assert.equal(await page.evaluate(() => document.documentElement.style.overflow), "");
+			assert.equal(await page.evaluate(() => scrollY), y);
 		},
 		phone,
 	);

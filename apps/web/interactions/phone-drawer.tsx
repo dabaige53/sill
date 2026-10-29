@@ -165,6 +165,7 @@ function PhoneDrawer({
 	const trigger = useRef<HTMLButtonElement>(null);
 	const close = useRef<HTMLButtonElement>(null);
 	const content = useRef<HTMLDivElement>(null);
+	const pointerStart = useRef({ x: 0, y: 0 });
 	const finish = useRef<(() => void) | null>(null);
 	const Root = nested ? Drawer.NestedRoot : Drawer.Root;
 	const roundBackground = (progress: number) => {
@@ -285,7 +286,31 @@ function PhoneDrawer({
 			<Drawer.Trigger ref={trigger} hidden tabIndex={-1} aria-hidden="true" />
 			<Drawer.Portal container={dialog}>
 				<Drawer.Overlay className="phone-drawer-overlay" />
-				<Drawer.Content ref={content} className="phone-drawer" aria-describedby={undefined}>
+				<Drawer.Content
+					ref={content}
+					className="phone-drawer"
+					aria-describedby={undefined}
+					onPointerDownCapture={(event) => {
+						pointerStart.current = { x: event.clientX, y: event.clientY };
+					}}
+					onPointerCancelCapture={(event) => {
+						// Vaul treats the pointerout following cancellation as a release with the last
+						// drag velocity. Feed its upward-release path first: it restores the drawer and
+						// scaled background, and clears its drag state without dismissing the card.
+						const start = pointerStart.current;
+						flushSync(() => {
+							event.currentTarget.dispatchEvent(
+								new window.PointerEvent("pointerup", {
+									bubbles: true,
+									pointerId: event.pointerId,
+									pointerType: event.pointerType,
+									clientX: start.x,
+									clientY: start.y - 1,
+								}),
+							);
+						});
+					}}
+				>
 					<Drawer.Title className="sr-only">{copy("web.preview.contentRegion")}</Drawer.Title>
 					<Drawer.Handle preventCycle />
 					{children}

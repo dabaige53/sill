@@ -1,6 +1,9 @@
 /* Sill · responsive · shared source */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-	.glass {
+	.glass,
+	#selection-bar.glass,
+	#search-selection-bar.glass,
+	#ai-dock.glass {
 		background: var(--card);
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;

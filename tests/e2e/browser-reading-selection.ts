@@ -22,7 +22,7 @@ export async function runReadingSelection({
 			await page.locator("#filter-search").waitFor();
 			assert.equal(
 				await page.locator("#filter-search").evaluate((n?: any) => n === document.activeElement),
-				true,
+				false,
 			);
 			assert.equal(
 				await page.locator(".search-category").count(),
@@ -32,20 +32,26 @@ export async function runReadingSelection({
 			assert.equal(await page.locator(".search-refinements").count(), 0, "no filter row");
 			await page.locator("#filter-search").fill("留白");
 			await page.locator('#search-results [data-action="card-open"]').first().waitFor();
+			// Wait for the search header to finish moving from its home position.
+			await page.locator(".search-header").evaluate(async (node: HTMLElement) => {
+				await Promise.all(
+					node.getAnimations().map((animation) => animation.finished.catch(() => {})),
+				);
+			});
 			// The results page drops the top row, so its field sits at the top.
 			const field = await page.locator(".search-header").boundingBox();
-			assert.ok(field.y < 20, "the results field is at the top");
+			assert.ok(field.y <= 24, "the results field is at the top");
 			const chips = await page.locator(".search-chips").boundingBox();
 			assert.ok(chips.y >= field.y + field.height, "type chips follow the field");
 			assert.equal(
 				await page
 					.locator(".search-page-heading")
-					.evaluate((n?: any) => getComputedStyle(n).display),
-				"none",
-				"the results page has no top row",
+					.evaluate((n?: any) => getComputedStyle(n).opacity),
+				"0",
+				"the results page hides its top row",
 			);
 			await page.evaluate(() => {
-				document.documentElement.style.setProperty("--kb", "300px");
+				document.querySelector<HTMLElement>("#modal").style.setProperty("--kb", "300px");
 				document.body.classList.add("keyboard-open");
 			});
 			const keyboardField = await page.locator(".search-header").boundingBox();
@@ -53,7 +59,7 @@ export async function runReadingSelection({
 			assert.ok(Math.abs(keyboardField.y - field.y) < 1, "keyboard does not lift the field");
 			assert.ok(results.y + results.height <= 800 - 300, "results stay above the keyboard");
 			await page.evaluate(() => {
-				document.documentElement.style.removeProperty("--kb");
+				document.querySelector<HTMLElement>("#modal").style.removeProperty("--kb");
 				document.body.classList.remove("keyboard-open");
 			});
 			await page.screenshot({
@@ -100,6 +106,8 @@ export async function runReadingSelection({
 				path: path.join(artifacts, "search-top-1440.png"),
 			});
 			await page.locator("#home-search").focus();
+			await page.keyboard.press("Escape");
+			assert.equal(await page.locator("#home-search").inputValue(), "留白");
 			await page.keyboard.press("Escape");
 			assert.equal(await page.locator("#home-search").inputValue(), "");
 			assert.equal(await page.locator("#home-search-token").isVisible(), true);

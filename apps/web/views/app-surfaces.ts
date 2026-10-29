@@ -5,6 +5,7 @@ import { MotionEngine } from "../interactions/motion.ts";
 import { closePhoneDrawer, configurePhoneDrawer } from "../interactions/phone-drawer.tsx";
 import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
 import { flushReadingRefresh, flushReadingRefreshLater } from "../interactions/reading-feedback.ts";
+import { markOpenPage } from "../interactions/status-bar.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
 import { clearPhonePreviews } from "./phone-preview-stack.ts";
@@ -199,9 +200,12 @@ export const appSurfacesMethods = {
 			this.skipReturnMotion = false;
 		}
 		if (this.sheetLeaving) return;
+		const closingToken = this.modalToken;
+		const closingDialog = this.dialog;
 		if (
 			animate &&
 			closePhoneDrawer(this.dialog, () => {
+				if (this.modalToken !== closingToken || this.dialog !== closingDialog) return;
 				this.sheetLeaving = false;
 				this.closeNative(false);
 			})
@@ -406,6 +410,8 @@ export const appSurfacesMethods = {
 		this.dialog.getAnimations({ subtree: true }).forEach((a) => {
 			if ((a.effect as KeyframeEffect)?.pseudoElement === "::backdrop") a.cancel();
 		});
+		// Restore page visibility before focusing its controls; the observer runs later.
+		markOpenPage();
 		let focus =
 			this.lastFocus?.isConnected && this.lastFocus !== document.body
 				? (this.lastFocus as HTMLElement)

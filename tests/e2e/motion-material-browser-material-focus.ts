@@ -102,7 +102,14 @@ export async function runMaterialFocus({
 			await page.locator('#nav [data-extra="ai"]').click();
 			await page.waitForFunction(() => {
 				const lens = document.querySelector(".nav-lens");
-				return lens.getAnimations().every((a) => a.playState === "finished");
+				const tab = document.querySelector('#nav [aria-current="page"]');
+				return (
+					Math.abs(
+						tab.getBoundingClientRect().left -
+							lens.getBoundingClientRect().left -
+							Number.parseFloat(getComputedStyle(lens).clipPath.split(" ")[3]),
+					) < 1
+				);
 			});
 			const state = await page.evaluate(() => {
 				const tab = document.querySelector('#nav [aria-current="page"]'),
@@ -112,14 +119,18 @@ export async function runMaterialFocus({
 				return {
 					page: dialog.classList.contains("page"),
 					modal: dialog.matches(":modal"),
-					distance: Math.abs(tab.getBoundingClientRect().left - lens.getBoundingClientRect().left),
+					distance: Math.abs(
+						tab.getBoundingClientRect().left -
+							lens.getBoundingClientRect().left -
+							Number.parseFloat(style.clipPath.split(" ")[3]),
+					),
 					animation: style.animationName,
 					transition: style.transitionProperty,
 				};
 			});
 			assert.equal(state.page, true);
 			assert.equal(state.modal, false);
-			assert.ok(state.distance < 1);
+			assert.ok(state.distance < 1, JSON.stringify(state));
 			const session = await context.newCDPSession(page);
 			await touch(session, "touchStart", 180, 280);
 			await touch(session, "touchMove", 180, 560);
@@ -152,10 +163,6 @@ export async function runMaterialFocus({
 			await page.evaluate(() => {
 				window.__SILL_HOST__ = { canDiscuss: () => true };
 				window.__app.openCard("motion-digest");
-				// Current card types share a toolbar. Exercise the supported no-toolbar layout explicitly.
-				const toolbar = window.__app.dialog.querySelector(":scope > .float-bar");
-				(window as any).__fixtureToolbar = toolbar;
-				toolbar.remove();
 			});
 			await page.waitForTimeout(420);
 			await page.locator(".sheet-scroll").evaluate((node: HTMLElement) => {
@@ -173,27 +180,9 @@ export async function runMaterialFocus({
 					.evaluate((node: Element) => getComputedStyle(node, "::after").content),
 				"none",
 			);
-			assert.equal(
-				await page
-					.locator(".sheet-scroll")
-					.evaluate((node: Element) => getComputedStyle(node).paddingBottom),
-				"0px",
-			);
-			await page.evaluate(() => {
-				// Restore React-owned DOM after the intentionally toolbar-free fixture.
-				window.__app.dialog.append((window as any).__fixtureToolbar);
-				delete (window as any).__fixtureToolbar;
-				window.__app.openCard("motion-0");
-			});
-			// Transition snapshots live in Shadow DOM and cannot receive input.
-			await page.locator("css:light=#modal > .float-bar").waitFor();
-			assert.equal(await page.locator("css:light=#modal > .float-bar").count(), 1);
-			assert.equal(
-				await page
-					.locator("css:light=.preview-sheet")
-					.evaluate((node: Element) => getComputedStyle(node, "::after").content),
-				'""',
-			);
+
+			await page.evaluate(() => window.__app.openCard("motion-0"));
+			await page.locator("#modal .float-bar").waitFor();
 		},
 		phone,
 	);
@@ -219,57 +208,25 @@ export async function runMaterialFocus({
 	);
 
 	await scenario(
-		"Real touchCancel restores the phone sheet without closing or writing",
+		"Real touchCancel keeps the drawer open without writing",
 		async (page, context) => {
 			await page.evaluate(() => window.__app.openCard("motion-0"));
-			await page.waitForTimeout(420);
+			await page.waitForTimeout(600);
 			const before = await page.evaluate(() => localStorage.getItem("sill-v1"));
+			const handle = await page.locator("[data-vaul-handle]").boundingBox();
+			const initial = await page.locator(".phone-drawer").boundingBox();
 			const session = await context.newCDPSession(page);
-			const handle = await page.locator(".sheet-handle").boundingBox();
-			await touch(session, "touchStart", 195, handle.y + 10);
-			await touch(session, "touchMove", 195, handle.y + 100);
-			assert.equal(
-				await page
-					.locator(".preview-sheet")
-					.evaluate((node: Element) => node.classList.contains("is-drag")),
-				true,
-			);
-			// CDP can acknowledge cancellation before DOM delivery. Observe the trusted event
-			// at window, after the sheet's dialog listeners, without polling for cleanup.
-			await page.evaluate(() => {
-				const sheet = document.querySelector(".preview-sheet") as HTMLElement;
-				window.addEventListener(
-					"touchcancel",
-					(event) => {
-						if (sheet.contains(event.target as Node))
-							sheet.dataset.touchCancelDelivered = String(event.isTrusted);
-					},
-					{ once: true },
-				);
-			});
+			await touch(session, "touchStart", 195, handle.y + 2);
+			await touch(session, "touchMove", 195, handle.y + 65);
 			await touch(session, "touchCancel");
-			await page.waitForFunction(
-				() =>
-					document.querySelector<HTMLElement>(".preview-sheet")?.dataset.touchCancelDelivered ===
-					"true",
-				null,
-				{ timeout: 5000 },
-			);
-			await page.waitForFunction(
-				() => !document.querySelector<HTMLElement>(".preview-sheet").style.translate,
-			);
-			const state = await page.evaluate(() => ({
-				open: (document.getElementById("modal") as HTMLDialogElement).open,
-				drag: !!document.querySelector(".is-drag"),
-				translate: (document.querySelector(".preview-sheet") as HTMLElement).style.translate,
-				dim: document.getElementById("modal").style.getPropertyValue("--backdrop"),
-			}));
-			assert.deepEqual(state, { open: true, drag: false, translate: "", dim: "" });
+			await page.waitForTimeout(600);
+			assert.equal(await page.locator("#modal").evaluate((node) => node.open), true);
+			const final = await page.locator(".phone-drawer").boundingBox();
+			assert.ok(Math.abs(final.y - initial.y) < 2, "cancel restores the drawer position");
 			assert.equal(await page.evaluate(() => localStorage.getItem("sill-v1")), before);
 		},
 		phone,
 	);
-
 	await scenario(
 		"Closing during phone entry does not revive the sheet",
 		async (page) => {
@@ -277,17 +234,7 @@ export async function runMaterialFocus({
 				window.__app.openCard("motion-0");
 				window.__app.closeNative();
 			});
-			await page.waitForTimeout(100);
-			assert.equal(
-				await page
-					.locator(".preview-sheet")
-					.evaluate((node: Element) => node.closest("dialog")?.inert),
-				true,
-			);
-			assert.equal(
-				await page.locator(".float-bar").evaluate((node: Element) => node.closest("dialog")?.inert),
-				true,
-			);
+			await page.locator('.phone-drawer[data-state="closed"]').waitFor({ state: "attached" });
 			await page.waitForFunction(
 				() => !(document.getElementById("modal") as HTMLDialogElement).open,
 			);

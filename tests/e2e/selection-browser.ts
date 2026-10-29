@@ -102,10 +102,11 @@ async function beginLift(page: any, mobile: boolean) {
 	};
 }
 async function checkThumbnail(page: any, container: string) {
+	const count = await page.evaluate(() => window.__app.selected.size);
 	// Like Photos: each chosen card (up to three) is a real clone in the pile; the first one chosen lies on top.
 	assert.equal(
 		await page.locator(`${container} .selection-stack-face > .feed-card`).count(),
-		2,
+		Math.min(count, 3),
 		"every chosen card must be a real card DOM clone",
 	);
 	const clone = page.locator(`${container} .selection-stack-face[data-layer="0"] > .feed-card`);

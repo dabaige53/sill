@@ -73,10 +73,12 @@ try {
 					.evaluateAll((nodes) => nodes.map((n) => n.getAttribute("data-action"))),
 				["bookmark", "edit", "later"],
 			);
-			await page.locator(".lightbox-stage img").evaluate(async (image: HTMLImageElement) => {
-				await image.decode();
-				await document.fonts.ready;
-			});
+			await page
+				.locator('.photo-carousel-page[aria-hidden="false"] img')
+				.evaluate(async (image: HTMLImageElement) => {
+					await image.decode();
+					await document.fonts.ready;
+				});
 			await page.locator("#modal").evaluate(async (modal) => {
 				await Promise.all(
 					modal
@@ -103,8 +105,8 @@ try {
 			);
 			assert.equal(
 				layout.color,
-				"rgb(242, 242, 244)",
-				"photo tools keep existing dark ink in either page theme",
+				theme === "dark" ? "rgb(242, 242, 244)" : "rgb(29, 29, 31)",
+				"photo tools follow the page theme",
 			);
 			await page.screenshot({
 				path: path.join(artifacts, `${width}-${theme}.jpg`),
@@ -112,7 +114,7 @@ try {
 				quality: 85,
 				animations: "disabled",
 			});
-			const source = await page.evaluate(() => JSON.stringify(window.__store.card("photo-tools")));
+			let source = await page.evaluate(() => JSON.stringify(window.__store.card("photo-tools")));
 			await page.locator('#modal [data-action="bookmark"]').click();
 			await page.waitForFunction(() => window.__store.item("photo-tools").bookmarked === true);
 			assert.equal(
@@ -122,22 +124,31 @@ try {
 			await page.locator('#modal [data-action="later"]').click();
 			await page.waitForFunction(() => window.__store.item("photo-tools").later === true);
 			await page.locator('[data-action="photo-go"][data-extra="1"]').click();
-			const selectedPhoto = await page.locator(".lightbox-stage img").getAttribute("src");
+			const selectedPhoto = await page
+				.locator('.photo-carousel-page[aria-hidden="false"] img')
+				.getAttribute("src");
 			assert.equal(await page.locator('#modal [data-action="bookmark"].active').count(), 1);
 			await page.locator('#modal [data-action="edit"]').click();
 			await page.locator("#tag-new").fill("照片核对");
 			await page.locator('[data-action="save-note"]').click();
 			await page.locator("#modal.lightbox[open]").waitFor();
-			assert.equal(await page.locator(".lightbox-stage img").getAttribute("src"), selectedPhoto);
+			assert.equal(
+				await page.locator('.photo-carousel-page[aria-hidden="false"] img').getAttribute("src"),
+				selectedPhoto,
+			);
 			assert.deepEqual(
 				await page.evaluate(() => [...window.__store.tags(window.__store.card("photo-tools"))]),
 				["照片核对"],
 			);
 			await page.locator('#modal [data-action="edit"]').click();
+			source = await page.evaluate(() => JSON.stringify(window.__store.card("photo-tools")));
 			await page.locator("#tag-new").fill("不保存");
 			await page.locator('#modal [data-action="close"]').click();
 			await page.locator("#modal.lightbox[open]").waitFor();
-			assert.equal(await page.locator(".lightbox-stage img").getAttribute("src"), selectedPhoto);
+			assert.equal(
+				await page.locator('.photo-carousel-page[aria-hidden="false"] img').getAttribute("src"),
+				selectedPhoto,
+			);
 			assert.equal(
 				await page.evaluate(() => JSON.stringify(window.__store.card("photo-tools"))),
 				source,
@@ -179,9 +190,9 @@ try {
 	);
 	assert.equal(
 		await page.locator("button").evaluate((n) => getComputedStyle(n).color),
-		"rgb(242, 242, 244)",
+		"rgb(29, 29, 31)",
 	);
-	console.log("PASS generated component CSS carries the photo dark context in a light host");
+	console.log("PASS generated component CSS carries the photo theme in a light host");
 	fs.writeFileSync(
 		path.join(artifacts, "checks.json"),
 		JSON.stringify({ results, generatedComponentDarkContext: true }, null, 2) + "\n",

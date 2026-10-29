@@ -134,7 +134,7 @@ try {
 				await page.evaluate(() => window.__app.openCard("review-event"));
 				await page.waitForTimeout(500);
 				await screenshot("detail");
-				const buttons = page.locator("#modal > .float-bar .icon-button");
+				const buttons = page.locator("#modal .float-bar .icon-button");
 				const before = await page.evaluate(() =>
 					JSON.stringify(window.__store.item("review-event")),
 				);

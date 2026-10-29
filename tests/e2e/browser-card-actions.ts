@@ -162,8 +162,7 @@ export async function runCardActions({
 			await page.locator("#modal").getByRole("button", { name: "恢复", exact: true }).click();
 			await page.locator("#filter-search").waitFor();
 			assert.equal((await state(page, "reminder-01")).reminderDone, false);
-			await action(page, "clear-filter");
-			await page.keyboard.press("Escape");
+			await page.evaluate(() => window.__app.goTo("home"));
 			await page.waitForFunction(() => !document.querySelector("dialog").open);
 			assert.equal(await page.locator('#feed-grid [data-card="reminder-01"]').count(), 1);
 		},
@@ -198,55 +197,16 @@ export async function runCardActions({
 		},
 	);
 	await scenario(
-		"Card menus close on Escape and outside click, and keep actions separate from preview",
-		async (page?: any) => {
-			const note = card(page, "note-01"),
-				title = note.locator(".card-title-button");
-			assert.equal(await page.locator('[data-action="card-more"],.card-more-trigger').count(), 0);
-			await title.press("Shift+F10");
-			assert.equal(await page.locator(".card-more-menu").count(), 1);
-			assert.equal(await title.getAttribute("aria-expanded"), "true");
-			await page.keyboard.press("Escape");
-			assert.equal(await page.locator(".card-more-menu").count(), 0);
-			assert.equal(
-				await title.evaluate((n?: any) => document.activeElement === n),
-				true,
-				"Escape should return to the card title",
-			);
-			assert.equal(await title.getAttribute("aria-expanded"), "false");
-			await feedUnopened(page, "note-01");
+		"Card context menus remain absent and preview actions stay available",
+		async (page: any) => {
+			const note = card(page, "note-01");
+			await note.locator(".card-title-button").press("Shift+F10");
 			await note.click({ button: "right" });
-			await card(page, "article-01").click({ button: "right" });
-			assert.equal(await page.locator(".card-more-menu").count(), 1);
-			assert.equal(await note.locator(".card-more-menu").count(), 0);
-			await page.mouse.click(3, 3);
-			assert.equal(await page.locator(".card-more-menu").count(), 0);
-			await title.press("ContextMenu");
-			await note.locator('.card-more-menu [data-action="later"]').click();
-			assert.equal((await state(page, "note-01")).later, true);
 			assert.equal(await page.locator(".card-more-menu").count(), 0);
 			await feedUnopened(page, "note-01");
-			assert.equal(
-				await title.evaluate((n?: any) => document.activeElement === n),
-				true,
-				"a menu action should preserve a usable focus target",
-			);
-			await title.press("Shift+F10");
-			await page.keyboard.press("ArrowDown");
-			await page.keyboard.press("ArrowDown");
-			assert.equal(
-				await page.evaluate(() => (document.activeElement as HTMLElement).dataset.action),
-				"edit",
-			);
-			await page.keyboard.press("Enter");
-			await page.waitForFunction(() => window.__app.modalKind === "editor");
-			await page.keyboard.press("Escape");
-			await page.waitForFunction(() => !document.querySelector("dialog").open);
-			assert.equal(
-				await note.evaluate((n?: any) => n.contains(document.activeElement)),
-				true,
-				"closing an editor must not focus a hidden card tool",
-			);
+			await openCard(page, "note-01");
+			await page.locator('#modal [data-action="later"]').click();
+			assert.equal((await state(page, "note-01")).later, true);
 		},
 	);
 	await scenario(

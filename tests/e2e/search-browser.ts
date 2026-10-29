@@ -204,7 +204,7 @@ try {
 				await page.waitForSelector("#modal.search[open]");
 				assert.equal(await page.locator("#search-results").evaluate((n) => n.scrollTop), searchY);
 				await page.keyboard.press("Escape");
-				await page.waitForTimeout(150);
+				await page.locator("#modal[open]").waitFor({ state: "hidden" });
 				assert.equal(
 					await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),
 					"visible",
