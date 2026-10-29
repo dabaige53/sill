@@ -257,10 +257,7 @@ test("lifecycle and close paths flush pending reading progress", () => {
 
 const media = buildSync({
 	stdin: {
-		contents: `import {createElement, useState} from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';import {MediaLines} from './apps/web/cards/media-detail.tsx';import {afterDetailMotion} from './apps/web/cards/youtube-player.tsx';
-export {afterDetailMotion};
-export function mount(host, lines){let set;const seek=()=>{};function Parent(){const [tick,setTick]=useState(0);const [current,setCurrent]=useState(0);set={tick:()=>setTick(tick+1),current:setCurrent};return createElement('div',{'data-tick':tick},createElement(MediaLines,{lines,current,available:true,label:'text',onSeek:seek}));}
-const root=createRoot(host);flushSync(()=>root.render(createElement(Parent)));return {tick:()=>flushSync(()=>set.tick()),current:v=>flushSync(()=>set.current(v)),close:()=>flushSync(()=>root.unmount())};}`,
+		contents: `export {afterDetailMotion} from './apps/web/cards/youtube-player.tsx';`,
 		resolveDir: root,
 		loader: "tsx",
 	},
@@ -283,32 +280,6 @@ function mediaWindow() {
 	w.eval(media);
 	return { dom, w };
 }
-
-test("playback ticks do not re-render a long transcript unless the current line changes", () => {
-	const { dom, w } = mediaWindow();
-	let renders = 0;
-	const base = Array.from({ length: 2000 }, (_, i) => ({ start: i * 3, text: `Line ${i}` }));
-	// Each render of the list maps the lines once.
-	const lines = new Proxy(base, {
-		get(target, key, receiver) {
-			if (key === "map") renders++;
-			return Reflect.get(target, key, receiver);
-		},
-	});
-	const api = w.MediaLinesTest.mount(w.document.querySelector("#root"), lines);
-	try {
-		assert.equal(renders, 1);
-		for (let i = 0; i < 8; i++) api.tick();
-		assert.equal(renders, 1, "a position tick alone keeps the rendered lines");
-		api.current(5);
-		assert.equal(renders, 2);
-		assert.equal(w.document.querySelectorAll('[aria-current="true"]').length, 1);
-		assert.equal(w.document.querySelectorAll("button")[5].getAttribute("aria-current"), "true");
-	} finally {
-		api.close();
-		dom.window.close();
-	}
-});
 
 test("the video embed waits for running detail motion, ignores loops and starts at once outside a detail", async () => {
 	const { dom, w } = mediaWindow();

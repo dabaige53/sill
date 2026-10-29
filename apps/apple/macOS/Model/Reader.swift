@@ -69,8 +69,7 @@ import SwiftUI
 
   /// Matches the Web entrance rule: a short body is still eligible for full reading.
   static func canExpand(_ card: CardModel) -> Bool {
-    (card.kind == .media && !card.isPodcast)
-      || ([.article, .note, .digest, .mail].contains(card.kind)
+    ([.article, .note, .digest, .mail].contains(card.kind)
         && card.body.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
   }
 
@@ -81,7 +80,7 @@ import SwiftUI
     let trace = PerformanceTrace.shared.begin(.openCard)
     defer { PerformanceTrace.shared.end(trace) }
     guard let card = workspace.model(id) else { return }
-    let full = full && !card.isPodcast
+    let full = full && card.kind != .media
     token += 1
     // A click on another card while the previous one is still flying home starts over at once.
     let interrupted = returning

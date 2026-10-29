@@ -129,3 +129,5 @@
 - [发布产品仅使用云端数据](2026-10-29-cloud-only/README.md)
 
 - [Codex 卡片引用发布](2026-10-29-codex-card-context/README.md)
+
+- [视频预览旧布局诊断](2026-10-29-video-preview/README.md)

@@ -124,11 +124,9 @@ struct AccountButton: View {
       Image("account-avatar", bundle: .module)
         .resizable()
         .scaledToFill()
-        .frame(width: AppleMetrics.space28, height: AppleMetrics.space28)
+        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
         .clipShape(Circle())
         .accessibilityHidden(true)
-        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
-        .desktopGlass(Circle(), interactive: true)
         .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
         .contentShape(Circle())
     }

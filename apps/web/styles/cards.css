@@ -552,50 +552,27 @@ button.ref:active {
 .done-copy .card-title-button {
 	-webkit-line-clamp: 1;
 }
-/* @design content-boundaries */
-/* Files are attachment blocks, as in Linear and Notion: a light fill sets them apart from the text
-   above, so no rule runs above, between or below them, on a card or in its detail. One line each:
-   name, then size and date at the end. */
 .file-rows {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-6);
-	min-width: 0;
+	gap: var(--space-2);
+	padding-top: var(--space-2);
 }
 .file-row {
 	display: flex;
 	align-items: center;
-	gap: var(--space-10);
-	min-width: 0;
-	padding: var(--space-8) var(--space-12);
-	border-radius: var(--control-radius);
-	/* Half of surface over the card: a plain surface fill read too heavy beside the text. */
-	background: color-mix(in srgb, var(--surface) 55%, var(--card));
-	color: var(--ink);
-	text-decoration: none;
+	gap: var(--space-8);
+	min-height: 28px;
+	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 }
 .file-row > .icon {
-	flex-shrink: 0;
 	color: var(--secondary);
 }
-.file-row b,
-.file-row em {
+.file-row span {
+	min-width: 0;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	font-weight: 400;
-	font-style: normal;
-}
-.file-row b {
-	flex: 1;
-	min-width: 0;
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-}
-.file-row em {
-	flex-shrink: 0;
-	max-width: 50%;
-	color: var(--secondary);
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
 }
 
 /* The reminder's circle sits before its title, on the card and in its detail alike. */

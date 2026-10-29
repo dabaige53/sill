@@ -74,24 +74,13 @@ type DetailBlock = (
 export function previewView(this: PanelRenderers, app?: PreviewApp, c?: PreviewCard) {
 	const recipe = detailRecipe(c);
 	if (recipe.composite === "videoPlayer")
-		return (
-			<VideoSurface
-				key={c.id}
-				card={c}
-				app={app}
-				expandable={!standaloneDisplay()}
-				renderers={this}
-			/>
-		);
+		return <VideoSurface key={c.id} card={c} app={app} renderers={this} />;
 	const s = Store.item(c.id),
 		note = personalNote(s.note);
 	const tags = this.tags(c);
 	const closeButton = button("x", copy("web.preview.close"), "close");
 	const expand =
-		(c.type === "media" && c.media !== "podcast" && !standaloneDisplay()) ||
-		(c.body?.trim() &&
-			!standaloneDisplay() &&
-			["article", "note", "digest", "mail"].includes(c.type))
+		c.body?.trim() && !standaloneDisplay() && ["article", "note", "digest", "mail"].includes(c.type)
 			? button("expand", copy("web.preview.fullscreen"), "reader", c.id)
 			: "";
 	const sheet = (

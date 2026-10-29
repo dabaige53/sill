@@ -275,7 +275,7 @@ export const panelCard = {
 	},
 	reader(this: PanelRenderers, app?: PreviewApp, c?: Card, loading = false) {
 		if (c.type === "media" && c.media !== "podcast" && !loading)
-			return <VideoSurface key={c.id} card={c} app={app} full renderers={this} />;
+			return <VideoSurface key={c.id} card={c} app={app} renderers={this} />;
 		const s = Store.item(c.id);
 		const body = loading ? (
 			<>

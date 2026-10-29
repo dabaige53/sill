@@ -8,7 +8,6 @@ import {
 	cardReadingTime,
 	detailDate,
 	detailSource,
-	fileDescription,
 } from "../../apps/web/data/card-source.ts";
 import { Store } from "../../apps/web/data/store.ts";
 import { Panels } from "../../apps/web/interactions/panels.ts";
@@ -395,15 +394,14 @@ test("PR has its own snapshot layout and never invents missing statistics", (t) 
 	});
 	const face = new JSDOM(cardHTML(card)).window.document;
 	assert.match(face.body.textContent!, /owner\/repo #4/);
-	// The face names the PR's state; the review request is the button on the same line.
-	assert.doesNotMatch(face.body.textContent!, /待你审阅/);
-	assert.ok(face.querySelector(".pr-meta .pr-meta-end .pr-review"));
-	// The branch belongs to the detail; the face keeps state and size only.
-	assert.doesNotMatch(face.body.textContent!, /fix → main/);
+	assert.match(face.body.textContent!, /待你审阅/);
+	assert.match(face.body.textContent!, /fix → main/);
 	assert.match(face.body.textContent!, /审阅/);
+	// Unknown line counts leave no slot, never a made-up +0 −0.
 	assert.equal(face.querySelector(".pr-stats"), null);
+	// The card shows checks as a tick and a count only; the label lives in the tooltip.
+	assert.equal(face.querySelector(".pr-check-count")?.textContent, "1/1");
 	const detail = new JSDOM(Panels.preview({}, card)).window.document;
-	assert.match(detail.body.textContent!, /fix → main/);
 	assert.match(detail.body.textContent!, /记录于.*今天/);
 	assert.match(detail.body.textContent!, /已通过/);
 	assert.match(detail.body.textContent!, /build/);
@@ -449,48 +447,38 @@ test("mail files render links and an empty list shows no file rows", () => {
 		files: [{ name: "first.pdf", url: "https://example.com/first.pdf" }, { name: "second.txt" }],
 	});
 	const detail = new JSDOM(Panels.preview({}, card)).window.document;
-	assert.equal(detail.querySelector(".file-row a"), null);
-	assert.ok(detail.querySelector('a.file-row[href="https://example.com/first.pdf"]'));
-	assert.equal(detail.querySelector("span.file-row")?.textContent?.includes("second.txt"), true);
+	assert.equal(detail.querySelector(".detail-row a"), null);
+	assert.ok(detail.querySelector('a.detail-row[href="https://example.com/first.pdf"]'));
 	assert.match(detail.body.textContent!, /second.txt/);
 	const face = new JSDOM(cardHTML(card)).window.document;
 	assert.match(face.body.textContent!, /first.pdf/);
 	assert.doesNotMatch(face.body.textContent!, /second.txt/);
 	const cleared = new JSDOM(Panels.preview({}, { ...card, files: [] })).window.document;
-	assert.equal(cleared.querySelector(".file-row"), null);
-	// One line per file: the name shows its extension, so the meta keeps size and date only.
-	assert.equal(fileDescription({ name: "deck.pdf", sizeBytes: 2048 }), "2.0 KB");
-	assert.equal(fileDescription({ name: "README", mimeType: "text/plain" }), "plain");
+	assert.equal(cleared.querySelector(".detail-row"), null);
 });
 
-test("PR card face puts state, file count and line counts on one line under the summary", () => {
+test("PR card face starts its counts at the left when the PR has no branch", () => {
 	Store.state = Store.fresh();
 	const card = Card.parse({
-		id: "pr-face",
+		id: "pr-no-branch",
 		type: "pr",
 		title: "Fold the ring",
-		summary: "The ring folds at the end of the text.",
 		sources: [{ name: "GitHub", kind: "github" }],
 		pullRequest: {
 			repository: "owner/repo",
 			number: 7,
 			state: "open",
-			reviewRequested: true,
 			observedAt: "2026-10-22T10:00:00+08:00",
 			changedFiles: 3,
-			additions: 42,
-			deletions: 7,
 		},
 	});
 	const face = new JSDOM(cardHTML(card)).window.document;
-	// The file count once stood alone on its own line between the title and the summary.
-	assert.equal(face.querySelector(".card-head-right"), null);
-	const meta = face.querySelector(".card-summary + .pr-meta")!;
-	// The review button once took a row of its own under the line.
-	assert.match(meta.textContent!, /^待合并3 个文件\+42−7审阅$/);
-	assert.equal(meta.nextElementSibling, null);
-	const quiet = new JSDOM(
-		cardHTML({ ...card, pullRequest: { ...card.pullRequest!, reviewRequested: false } }),
+	// An empty line-count slot once pushed a lone file count to the right edge.
+	const row = face.querySelector(".pr-branch-row")!;
+	assert.equal(row.querySelector(".pr-branches, .pr-stats"), null);
+	assert.equal(row.textContent, "3 个文件");
+	const bare = new JSDOM(
+		cardHTML({ ...card, pullRequest: { ...card.pullRequest!, changedFiles: undefined } }),
 	).window.document;
-	assert.equal(quiet.querySelector(".pr-meta-end"), null);
+	assert.equal(bare.querySelector(".pr-branch-row"), null);
 });

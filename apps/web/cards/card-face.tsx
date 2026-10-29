@@ -19,6 +19,7 @@ import {
 	cardSource,
 	contentDay,
 	detailDate,
+	fileDescription,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -34,7 +35,6 @@ import {
 	sourceLine,
 	Title,
 } from "./card-blocks.tsx";
-import { FileRows } from "./detail-blocks.tsx";
 import { PullRequest } from "./pull-request.tsx";
 import { cardRecipe, type Entry, entryName, entryOptions } from "./recipes.ts";
 
@@ -186,6 +186,10 @@ function more(count: number, suffix: Parameters<typeof copy>[0], className = "mo
 			{copy(suffix)}
 		</span>
 	);
+}
+
+function fileIcon(name: string, size: number) {
+	return <Icon name={/\.(png|jpe?g|gif|webp)$/i.test(name) ? "image" : "file"} size={size} />;
 }
 
 /** Top media renders above the card body; every other block renders inside it. */
@@ -358,7 +362,19 @@ const blocks: Record<string, Block> = {
 		const files = c.files || [];
 		return (
 			<>
-				<FileRows files={files} limit={limit} />
+				<div className="file-rows">
+					{files.slice(0, limit).map((f: Card, i: number) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: File names may repeat; these static preview rows have no component state.
+						<span className="file-row" key={i}>
+							{fileIcon(f.name, 15)}
+							<span className="file-copy">
+								<b>{f.name}</b>
+								<em>{fileDescription(f as never)}</em>
+							</span>
+							<small>{detailDate(f.modifiedAt)}</small>
+						</span>
+					))}
+				</div>
 				{files.length > limit && more(files.length - limit, "web.templates.7aaf96ad52e0")}
 			</>
 		);

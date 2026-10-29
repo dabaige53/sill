@@ -61,6 +61,7 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	if (returning) reading = restore?.kind === "reader";
 	// Phone links keep the current presentation in both directions, including after expansion.
 	if (phoneLinked) reading = this.modalKind === "reader";
+	if (c.type === "media") reading = false;
 	const previousId = this.currentId;
 	const visual = linked && this.desktop() ? MotionEngine.captureDetail(this.dialog, id) : null;
 	// The old chrome resolves its tools dynamically; dispose it before the new DOM exists.

@@ -374,6 +374,13 @@ const SeedCards: Card[] = [
 			changedFiles: 3,
 			additions: 42,
 			deletions: 7,
+			headBranch: "read-ring",
+			baseBranch: "main",
+			reviewers: [
+				{ login: "wangyu", decision: "approved" },
+				{ login: "chenyu", decision: "pending" },
+			],
+			checks: [{ name: "build", status: "completed", conclusion: "success" }],
 		},
 		title: copy("web.cards.2b34435463a2"),
 		summary: copy("web.cards.6bc9228c53b6"),

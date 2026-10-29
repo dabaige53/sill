@@ -367,11 +367,16 @@ struct CardBlock: View {
   @ViewBuilder private var files: some View {
     let limit = entry.number("limit") ?? Int.max
     if !card.files.isEmpty {
-      VStack(alignment: .leading, spacing: AppleMetrics.space6) {
-        ForEach(Array(card.files.prefix(limit).enumerated()), id: \.offset) { _, file in
-          FileRow(file: file)
+      // Hairlines only between files, none above or below the list (as on the Web).
+      VStack(alignment: .leading, spacing: 0) {
+        ForEach(Array(card.files.prefix(limit).enumerated()), id: \.offset) { index, file in
+          DetailRow(
+            icon: file.isImage ? "image" : "file", title: file.name,
+            detail: file.detail, trailing: file.modifiedAt.flatMap(ReaderContent.fullDate) ?? "",
+            divider: index > 0)
         }
       }
+      .padding(.top, AppleMetrics.space2)
       if card.files.count > limit {
         MoreItems(count: card.files.count - limit, suffix: Copy.text("web.templates.7aaf96ad52e0"))
       }

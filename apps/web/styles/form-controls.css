@@ -720,7 +720,6 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		width: var(--space-40);
 		height: var(--space-40);
 		background: var(--card);
-		box-shadow: inset 0 0 0 1px var(--line-card);
 		color: var(--ink);
 	}
 	.home-tabs {

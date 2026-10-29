@@ -70,3 +70,5 @@
 - [脚本](../scripts/README.md)与[测试](../tests/README.md)
 
 - [Codex 卡片引用发布](records/2026-10-29-codex-card-context/README.md)
+
+- [视频预览旧布局诊断](records/2026-10-29-video-preview/README.md)

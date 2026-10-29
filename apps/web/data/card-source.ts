@@ -121,7 +121,9 @@ export function fileDescription(file: NonNullable<Card["files"]>[number]): strin
 					? `${(bytes / 1024).toFixed(1)} KB`
 					: `${(bytes / 1048576).toFixed(1)} MB`;
 	const extension = file.name?.split(".").at(-1);
-	// The name already shows its extension; the kind fills in only for a name without one.
-	const kind = extension && extension !== file.name ? "" : file.mimeType?.split("/").at(-1);
+	const kind =
+		extension && extension !== file.name
+			? extension.toUpperCase()
+			: file.mimeType?.split("/").at(-1);
 	return [kind, size].filter(Boolean).join(" · ");
 }

@@ -20,17 +20,37 @@ struct PullRequestContent: View {
               + (detail
                 ? " · \(Copy.text("pr.observed")) \(ReaderContent.fullDate(pr.observedAt) ?? pr.observedAt)"
                 : "")
-          )
+          ) {
+            if !detail { status(pr) }
+          }
           .frame(minHeight: detail ? AppleMetrics.space36 : AppleMetrics.cardHeadHeight)
           .padding(.bottom, detail ? AppleMetrics.rhythmClose : AppleMetrics.space8)
           Text(card.title)
             .textStyle(detail ? AppleMetrics.previewTitle : AppleMetrics.font16, .semibold)
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, detail ? 0 : AppleMetrics.space8)
           if detail {
             // The state opens the detail rows instead of sitting among the tags.
             if !(tags ?? card.tags).isEmpty {
               ReaderTags(tags: tags ?? card.tags).padding(.top, AppleMetrics.rhythmItem)
             }
+          } else {
+            // The branch pushes the counts to the right edge; without one they start at the left,
+            // where a lone file count once hung at the right edge.
+            HStack(spacing: AppleMetrics.space8) {
+              if pr.headBranch != nil || pr.baseBranch != nil {
+                branchChip(
+                  [pr.headBranch, pr.baseBranch].compactMap { $0 }.joined(separator: " → "),
+                  size: AppleMetrics.font12)
+                Spacer(minLength: 0)
+              }
+              stats(additions: pr.additions, deletions: pr.deletions)
+              if let count = pr.changedFiles {
+                Text("\(count) \(Copy.text("pr.fileCount"))").textStyle(AppleMetrics.font12)
+                  .foregroundStyle(AppleColors.secondary)
+              }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
           }
         }
         if detail {
@@ -39,7 +59,7 @@ struct PullRequestContent: View {
           if !card.summary.isEmpty {
             CardSummary(text: card.summary, query: "", indent: 0)
           }
-          meta(pr)
+          footer(pr)
         }
       }
     }
@@ -59,52 +79,17 @@ struct PullRequestContent: View {
       .background(RoundedRectangle(cornerRadius: AppleMetrics.space6).fill(AppleColors.surface))
   }
 
-  /// One line under the summary (Web `.pr-meta`): state, size, changes and checks, then reviewers and
-  /// the review button at its end. The system icon stays secondary like file rows; the face names
-  /// the PR's own state, since a review request already shows as the button. The branch stays in
-  /// the detail.
-  private func meta(_ pr: CardRichFields.PullRequest) -> some View {
-    HStack(spacing: AppleMetrics.space12) {
-      HStack(spacing: AppleMetrics.space4) {
-        Icon("pull", size: AppleMetrics.space14).foregroundStyle(AppleColors.secondary)
-        Text(Copy.text("pr.state.\(pr.state)"))
-          .textStyle(AppleMetrics.font13, .medium).foregroundStyle(AppleColors.primary)
-      }
-      if let count = pr.changedFiles {
-        Text("\(count) \(Copy.text("pr.fileCount"))").textStyle(AppleMetrics.font13)
-          .foregroundStyle(AppleColors.secondary)
-      }
-      if pr.additions != nil || pr.deletions != nil {
-        stats(additions: pr.additions, deletions: pr.deletions, size: AppleMetrics.font13)
-      }
-      if !pr.checks.isEmpty {
-        let passed = pr.checks.allSatisfy { $0.conclusion == "success" }
-        HStack(spacing: AppleMetrics.space4) {
-          Icon(passed ? "check" : "clock", size: AppleMetrics.space12)
-          Text(
-            "\(Copy.text("pr.checks")) \(pr.checks.filter { $0.conclusion == "success" }.count)/\(pr.checks.count)"
-          )
-        }.textStyle(AppleMetrics.font12)
-          .foregroundStyle(passed ? AppleColors.success : AppleColors.secondary)
-      }
-      Spacer(minLength: 0)
-      ForEach(Array(pr.reviewers.enumerated()), id: \.offset) { _, reviewer in
-        reviewerAvatar(reviewer)
-      }
-      if pr.reviewRequested == true {
-        if let url = card.url {
-          Link(destination: url) { reviewLabel }.buttonStyle(.plain)
-        } else {
-          Button {
-            intents.open(card.id)
-          } label: {
-            reviewLabel
-          }
-          .buttonStyle(.plain)
-        }
-      }
-    }
-    .lineLimit(1)
+  private func status(_ pr: CardRichFields.PullRequest) -> some View {
+    Text(Copy.text(pr.reviewRequested == true ? "pr.reviewRequested" : "pr.state.\(pr.state)"))
+      .textStyle(AppleMetrics.font11, .medium)
+      .padding(.horizontal, AppleMetrics.space8).padding(.vertical, AppleMetrics.space3)
+      .foregroundStyle(
+        pr.state == "draft" || pr.state == "closed" ? AppleColors.secondary : AppleColors.accent
+      )
+      .background(
+        Capsule().fill(
+          pr.state == "draft" || pr.state == "closed" ? AppleColors.surface : AppleColors.accentSoft
+        ))
   }
 
   /// First detail row: the state in its colour, then the branches.
@@ -140,13 +125,41 @@ struct PullRequestContent: View {
     Rectangle().fill(AppleColors.line).frame(height: AppleMetrics.lineWidth)
   }
 
-  private func stats(additions: Int?, deletions: Int?, size: CGFloat = AppleMetrics.font12)
-    -> some View
-  {
+  private func stats(additions: Int?, deletions: Int?) -> some View {
     HStack(spacing: AppleMetrics.space8) {
       if let additions { Text("+\(additions)").foregroundStyle(AppleColors.success) }
       if let deletions { Text("−\(deletions)").foregroundStyle(AppleColors.warning) }
-    }.textStyle(size, number: true)
+    }.textStyle(AppleMetrics.font12, number: true)
+  }
+
+  private func footer(_ pr: CardRichFields.PullRequest) -> some View {
+    HStack(spacing: AppleMetrics.space10) {
+      ForEach(Array(pr.reviewers.enumerated()), id: \.offset) { _, reviewer in
+        reviewerAvatar(reviewer)
+      }
+      if !pr.checks.isEmpty {
+        let passed = pr.checks.allSatisfy { $0.conclusion == "success" }
+        HStack(spacing: AppleMetrics.space4) {
+          Icon(passed ? "check" : "clock", size: AppleMetrics.space12)
+          Text("\(pr.checks.filter { $0.conclusion == "success" }.count)/\(pr.checks.count)")
+        }.textStyle(AppleMetrics.font12)
+          .help(Copy.text("pr.checks"))
+          .foregroundStyle(passed ? AppleColors.success : AppleColors.secondary)
+      }
+      Spacer(minLength: 0)
+      if pr.reviewRequested == true {
+        if let url = card.url {
+          Link(destination: url) { reviewLabel }.buttonStyle(.plain)
+        } else {
+          Button {
+            intents.open(card.id)
+          } label: {
+            reviewLabel
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }.padding(.top, AppleMetrics.space4)
   }
 
   private var reviewLabel: some View {

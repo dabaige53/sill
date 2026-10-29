@@ -239,34 +239,23 @@ struct CoverImage: View {
   }
 }
 
-/// A file as an attachment block, as on the Web (`.file-row`): system icon and name, then size and
-/// date at the end of one line. A light fill sets it apart, so no divider runs above, between or below.
 struct FileRow: View {
-  let file: CardModel.FileItem
-  var navigable = false
+  let name: String
+  var image = false
+  var pill = false
   var body: some View {
-    let meta = [file.detail, file.modifiedAt.flatMap(ReaderContent.fullDate) ?? ""]
-      .filter { !$0.isEmpty }.joined(separator: " · ")
-    HStack(spacing: AppleMetrics.space10) {
-      Icon(file.isImage ? "image" : "file", size: AppleMetrics.space18)
-        .foregroundStyle(AppleColors.secondary)
-      Text(file.name).textStyle(AppleMetrics.font15).foregroundStyle(AppleColors.primary)
-        .lineLimit(1).truncationMode(.tail)
-        .frame(maxWidth: .infinity, alignment: .leading)
-      if !meta.isEmpty {
-        Text(meta).textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
-          .lineLimit(1).fixedSize()
-      }
-      if navigable {
-        Icon("chevron", size: AppleMetrics.space14).foregroundStyle(AppleColors.secondary)
-      }
+    HStack(spacing: AppleMetrics.space6) {
+      Icon(image ? "image" : "file", size: AppleMetrics.font15)
+        .foregroundStyle(AppleColors.iconSecondary)
+      Text(name).lineLimit(1).truncationMode(.tail)
     }
-    .padding(.vertical, AppleMetrics.space8)
-    .padding(.horizontal, AppleMetrics.space12)
-    // Half of surface over the card: a plain surface fill read too heavy beside the text.
+    .textStyle(AppleMetrics.font13)
+    .foregroundStyle(AppleColors.primary)
+    .padding(.vertical, pill ? AppleMetrics.space6 : 0)
+    .padding(.horizontal, pill ? AppleMetrics.space10 : 0)
     .background(
-      RoundedRectangle(cornerRadius: AppleMetrics.controlRadius).fill(
-        AppleColors.surface.opacity(0.55)))
+      RoundedRectangle(cornerRadius: AppleMetrics.space10).fill(pill ? AppleColors.surface : .clear)
+    )
   }
 }
 

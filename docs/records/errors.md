@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-10-29 | 视频预览 | Vite、刷新仍显示旧布局、全屏页签 | [视频预览旧布局](2026-10-29-video-preview/diagnosis.md) |
 | 2026-10-29 | 发布前界面审核 | 归档分组顺序、Mac 目录位置、播客空封面、键盘多选、重复清空文案 | [首次发布界面审核](2026-10-29-release-ui-polish/README.md) |
 | 2026-10-29 | 设计生成检查 | stale、FeedCard、CheckItem、组件预览过期 | [设计预览检查失败](2026-10-29-doc-layers/diagnosis-design-preview.md) |
 | 2026-10-23 | MCP 页面资源 | 未能显示 Sill、Resource unavailable、旧版本 URI、404、工具成功但页面打不开 | [MCP 工作台旧入口恢复](2026-10-23-mcp-resource-recovery/README.md) |

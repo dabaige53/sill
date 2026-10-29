@@ -519,8 +519,8 @@ body:has(:is(#modal, .phone-layer)[open]:not(.page)) #dock * {
 }
 /* The account portrait keeps the existing settings target and progress feedback. */
 .account-avatar {
-	width: var(--space-28);
-	height: var(--space-28);
+	width: 100%;
+	height: 100%;
 	object-fit: cover;
 	border-radius: 50%;
 }
@@ -1850,7 +1850,6 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		width: var(--space-40);
 		height: var(--space-40);
 		background: var(--card);
-		box-shadow: inset 0 0 0 1px var(--line-card);
 		color: var(--ink);
 	}
 	.home-tabs {
@@ -2503,51 +2502,27 @@ button.ref:active {
 .done-copy .card-title-button {
 	-webkit-line-clamp: 1;
 }
-/* @design content-boundaries */
-/* Files are attachment blocks, as in Linear and Notion: a quiet fill sets them apart from the text
-   above, so no rule runs above, between or below them, on a card or in its detail. */
 .file-rows {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-6);
-	min-width: 0;
+	gap: var(--space-2);
+	padding-top: var(--space-2);
 }
 .file-row {
 	display: flex;
 	align-items: center;
-	gap: var(--space-10);
-	min-width: 0;
-	padding: var(--space-10) var(--space-12);
-	border-radius: var(--control-radius);
-	background: var(--surface);
-	color: var(--ink);
-	text-decoration: none;
+	gap: var(--space-8);
+	min-height: 28px;
+	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 }
 .file-row > .icon {
-	flex-shrink: 0;
 	color: var(--secondary);
 }
-.file-copy {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-1);
+.file-row span {
 	min-width: 0;
-}
-.file-copy b,
-.file-copy em {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	font-weight: 400;
-	font-style: normal;
-}
-.file-copy b {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-}
-.file-copy em {
-	color: var(--secondary);
-	font-size: calc(var(--text-caption) * var(--content-text-scale, 1));
 }
 
 /* The reminder's circle sits before its title, on the card and in its detail alike. */
@@ -4129,6 +4104,26 @@ button.detail-row:active {
 		padding-inline: 10px;
 		font-size: 14px;
 	}
+}
+
+.is-video .media-tabs button {
+	gap: var(--space-8);
+	border-radius: var(--pill-radius);
+	font-size: var(--text-control);
+	font-weight: 400;
+	color: var(--muted);
+}
+.is-video .media-tabs button .icon {
+	width: var(--space-16);
+	height: var(--space-16);
+}
+.is-video .media-tabs button[aria-selected="true"] {
+	background: var(--surface);
+	color: var(--ink);
+}
+.is-video .video-tab-indicator,
+.is-video .video-tab-hover {
+	display: none;
 }
 
 /* Panels: a sheet with a title, rows and quiet actions. */

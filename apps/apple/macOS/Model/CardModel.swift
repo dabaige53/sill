@@ -139,9 +139,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
       FileItem(
         name: file.name,
         detail: [
-          // The name already shows its extension; the kind fills in only for a name without one.
-          (file.name as NSString).pathExtension.isEmpty
-            ? file.mimeType?.split(separator: "/").last.map(String.init) ?? "" : "",
+          (file.name as NSString).pathExtension.uppercased().nilIfEmpty ?? file.mimeType ?? "",
           Format.fileSize(file.sizeBytes),
         ].filter { !$0.isEmpty }
           .joined(separator: " · "),

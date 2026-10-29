@@ -52,12 +52,9 @@ export function PullRequest({
 		) : null;
 	const hasStats = pr?.additions !== undefined || pr?.deletions !== undefined;
 	const fileCount = `${pr?.changedFiles} ${copy("pr.fileCount")}`;
-	// System icon in the secondary color, like file rows. The face names the PR's own state: a review
-	// request already shows as the 审阅 button on the same line.
 	const status = pr && (
 		<span className={`pr-state pr-state-${pr.state}`}>
-			<Icon name="pull" size={14} />
-			{copy(`pr.state.${pr.state}`)}
+			{copy(pr.reviewRequested ? "pr.reviewRequested" : `pr.state.${pr.state}`)}
 		</span>
 	);
 	return (
@@ -69,6 +66,7 @@ export function PullRequest({
 						{pr ? `${pr.repository} #${pr.number}` : "GitHub"}
 						{detail && pr ? ` · ${copy("pr.observed")} ${detailDate(pr.observedAt, true)}` : ""}
 					</span>
+					{!detail && <span className="card-head-right">{status}</span>}
 				</div>
 				{detail ? (
 					<h1 id="modal-title">{card.title}</h1>
@@ -85,6 +83,17 @@ export function PullRequest({
 						</button>
 					</h2>
 				)}
+				{!detail && (branch || hasStats || pr?.changedFiles !== undefined) && (
+					<div className="pr-branch-row">
+						{branch}
+						{hasStats && stats}
+						{pr?.changedFiles !== undefined && (
+							<small className="pr-file-count">
+								{pr.changedFiles} {copy("pr.fileCount")}
+							</small>
+						)}
+					</div>
+				)}
 				{detail && !!Store.tags(card).length && (
 					<div className="preview-tags">
 						{Store.tags(card).map((tag) => (
@@ -96,53 +105,46 @@ export function PullRequest({
 				)}
 			</header>
 			{!detail && card.summary && <p className="card-summary">{card.summary}</p>}
-			{/* One line under the text: state, size, changes and checks, then reviewers and the review
-			    button at its end. The branch stays in the detail. */}
 			{!detail && pr && (
-				<div className="pr-meta">
-					{status}
-					{pr.changedFiles !== undefined && <span>{fileCount}</span>}
-					{hasStats && stats}
-					{!!pr.checks?.length && (
-						<span
-							className={`pr-check-count${pr.checks.every((c) => c.conclusion === "success") ? " is-success" : ""}`}
-						>
-							<Icon
-								name={pr.checks.every((c) => c.conclusion === "success") ? "check" : "clock"}
-								size={12}
-							/>
-							{copy("pr.checks")} {pr.checks.filter((c) => c.conclusion === "success").length}/
-							{pr.checks.length}
-						</span>
-					)}
-					{(!!pr.reviewers?.length || pr.reviewRequested) && (
-						<span className="pr-meta-end">
-							{pr.reviewers?.map((r) => (
-								<Reviewer key={r.login} reviewer={r} />
-							))}
-							{pr.reviewRequested &&
-								(card.url ? (
-									<a
-										className="pill pr-review"
-										href={card.url}
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										{copy("pr.review")}
-									</a>
-								) : (
-									<button
-										type="button"
-										className="pill pr-review"
-										disabled={passive}
-										data-action="card-open"
-										data-id={card.id}
-									>
-										{copy("pr.review")}
-									</button>
-								))}
-						</span>
-					)}
+				<div className="pr-footer">
+					<div className="pr-reviewers">
+						{pr.reviewers?.map((r) => (
+							<Reviewer key={r.login} reviewer={r} />
+						))}
+						{!!pr.checks?.length && (
+							<span
+								title={copy("pr.checks")}
+								className={`pr-check-count${pr.checks.every((c) => c.conclusion === "success") ? " is-success" : ""}`}
+							>
+								<Icon
+									name={pr.checks.every((c) => c.conclusion === "success") ? "check" : "clock"}
+									size={12}
+								/>
+								{pr.checks.filter((c) => c.conclusion === "success").length}/{pr.checks.length}
+							</span>
+						)}
+					</div>
+					{pr.reviewRequested &&
+						(card.url ? (
+							<a
+								className="pill pr-review"
+								href={card.url}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								{copy("pr.review")}
+							</a>
+						) : (
+							<button
+								type="button"
+								className="pill pr-review"
+								disabled={passive}
+								data-action="card-open"
+								data-id={card.id}
+							>
+								{copy("pr.review")}
+							</button>
+						))}
 				</div>
 			)}
 			{detail && (
