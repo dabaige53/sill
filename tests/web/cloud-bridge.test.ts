@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readCloudResult, readWhenReady } from "../../apps/web/cloud-bridge.ts";
+import {
+	hostInitializeResult,
+	readCloudResult,
+	readWhenReady,
+} from "../../apps/web/cloud-bridge.ts";
 
 test("MCP validation and expired cursors remain definite client errors, not unknown writes", async () => {
 	for (const [code, status] of [
@@ -39,4 +43,17 @@ test("malformed or unavailable MCP results remain uncertain and successful conte
 	assert.throws(() => readCloudResult({ content: [] }), { status: 503 });
 	const record = { id: "card-a", revision: 4, body: ["Preserve the record"] };
 	assert.equal(readCloudResult({ structuredContent: record }), record);
+});
+
+test("initialization preserves composer attachment capabilities", () => {
+	const parsed = hostInitializeResult.parse({
+		protocolVersion: "2026-01-26",
+		hostInfo: { name: "fixture", version: "1" },
+		hostCapabilities: {
+			experimental: { "openai/modelContext": {} },
+			updateModelContext: { text: {} },
+		},
+		hostContext: {},
+	});
+	assert.ok(parsed.hostCapabilities.experimental["openai/modelContext"]);
 });

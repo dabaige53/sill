@@ -295,6 +295,10 @@ class AppController {
 	}
 	async handoffCard(id: string) {
 		try {
+			if (!window.__SILL_HOST__?.canDiscuss()) {
+				this.alert(copy("web.agent.unavailable"));
+				return;
+			}
 			const scope = this.agentScope();
 			const key = agentKey(id, scope);
 			const current = () => {

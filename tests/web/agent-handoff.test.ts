@@ -39,12 +39,15 @@ function fixture() {
 	const bridge = {
 		getHostCapabilities: () => ({
 			...(flags.message ? { message: { text: {} } } : {}),
-			...(flags.context ? { updateModelContext: { text: {} } } : {}),
+			...(flags.context
+				? { experimental: { "openai/modelContext": {} }, updateModelContext: { text: {} } }
+				: {}),
 			openLinks: {},
 		}),
 		async updateModelContext(value) {
 			contexts.push(value);
-			return {};
+			if (flags.loseReceipt) throw new Error("Synthetic receipt loss");
+			return { isError: flags.reject };
 		},
 		async sendMessage(value) {
 			messages.push(value);
@@ -66,166 +69,53 @@ function fixture() {
 	};
 }
 
-test("handoff includes only a bounded current-card reference and keeps local and cloud identities separate", () => {
-	const large = {
-		...card,
-		title: "标".repeat(1000),
-		summary: "要点".repeat(3000),
-		body: "Private full body must stay in Sill",
-		state: { note: "Private annotation", tags: ["Private tag"] },
-		owner_id: "untrusted-card-owner",
-		unknown: { secret: "never include this field" },
-	};
-	const prepared = agentPayload(large, scope);
-	assert.equal(prepared.reference.expected_owner, "owner-a");
-	assert.equal(prepared.reference.card.revision, 7);
-	assert.equal(Array.from(prepared.reference.card.title).length, 200);
-	assert.equal(Array.from(prepared.reference.card.summary).length, 240);
-	assert.ok(prepared.text.length < 1300);
-	assert.doesNotMatch(prepared.text, /Private|secret|untrusted-card-owner/);
-	const local = agentPayload(card, { kind: "local" });
-	assert.equal(local.reference.workspace, "local");
-	assert.equal("expected_owner" in local.reference, false);
-	assert.match(local.text, /不是云端卡片/);
-	assert.notEqual(agentKey(card.id, scope), agentKey(card.id, { kind: "cloud", owner: "owner-b" }));
+test("attachments include full content without personal state or unknown fields", () => {
+	const prepared = agentPayload(
+		{
+			...card,
+			body: "Full body",
+			summary: "长".repeat(1000),
+			state: { note: "private" },
+			unknown: "secret",
+		} as AgentCard,
+		scope,
+	);
+	assert.equal(prepared.reference.card.body, "Full body");
+	assert.equal(prepared.reference.card.summary.length, 1000);
+	assert.doesNotMatch(prepared.text, /private|secret/);
 });
 
-test("only an explicit handoff sends once, with context followed by a self-contained user message", async () => {
+test("attachments accumulate without sending and follow host removal", async () => {
 	const f = fixture();
-	const handoff = new AgentHandoff();
-	let release: () => void;
-	const ready = new Promise<void>((resolve) => {
-		release = resolve;
-	});
-	const run = () =>
-		handoff.run(
-			key,
-			async () => {
-				await ready;
-				return payload;
-			},
-			f.actions,
-			() => true,
-		);
-	assert.equal(handoff.state(key, f.actions), "discuss");
+	await Promise.all([
+		f.actions.discuss(payload, () => true),
+		f.actions.discuss(payload, () => true),
+	]);
 	assert.equal(f.messages.length, 0);
-	const first = run();
-	assert.equal(handoff.state(key, f.actions), "sending");
-	await run();
-	release();
-	assert.equal(await first, "sent");
-	assert.equal(f.messages.length, 1);
-	assert.equal(f.contexts.length, 1);
-	assert.equal(f.messages[0].role, "user");
-	assert.match(f.messages[0].content[0].text, /card-a/);
-	assert.match(f.messages[0].content[0].text, /owner-a/);
-	assert.equal(handoff.state(key, f.actions), "sent");
-	await run();
-	assert.equal(f.messages.length, 1);
-	handoff.beginDetail(key);
-	assert.equal(handoff.state(key, f.actions), "discuss");
-	assert.equal(f.messages.length, 1, "reopening a card never sends by itself");
-	assert.equal(await run(), "sent");
-	assert.equal(
-		f.messages.length,
-		2,
-		"an explicit discussion in a new detail session can send again",
-	);
+	assert.equal(f.contexts[1].content.length, 2);
+	f.actions.syncContext({ "openai/modelContext": null });
+	await f.actions.discuss(payload, () => true);
+	assert.equal(f.contexts[2].content.length, 1);
 });
 
-test("a lost message receipt is not resent; later actions stay disabled", async () => {
-	const f = fixture();
-	f.flags.loseReceipt = true;
-	const handoff = new AgentHandoff();
-	const run = () =>
-		handoff.run(
-			key,
-			async () => payload,
-			f.actions,
-			() => true,
-		);
-	await assert.rejects(run(), { code: "message_unknown" });
-	assert.equal(f.messages.length, 1);
-	assert.equal(handoff.state(key, f.actions), "unknown");
-	handoff.beginDetail(key);
-	assert.equal(
-		handoff.state(key, f.actions),
-		"unknown",
-		"reopening never retries an uncertain delivery",
-	);
-	assert.equal(await run(), undefined);
-	assert.equal(f.messages.length, 1);
-});
-
-test("a definite host rejection stays recoverable and an unsupported host offers no handoff", async () => {
-	const f = fixture();
-	f.flags.reject = true;
-	const handoff = new AgentHandoff();
-	const run = () =>
-		handoff.run(
-			key,
-			async () => payload,
-			f.actions,
-			() => true,
-		);
-	await assert.rejects(run(), { code: "message_rejected" });
-	assert.equal(f.messages.length, 1);
-	assert.equal(handoff.state(key, f.actions), "discuss");
-	f.flags.message = false;
-	assert.equal(handoff.state(key, f.actions), "unavailable");
-	assert.equal(await run(), undefined);
-	assert.equal(f.messages.length, 1);
-});
-
-test("changing accounts during preparation or context update prevents message delivery", async () => {
-	const f = fixture();
-	const handoff = new AgentHandoff();
-	let current = true;
-	await assert.rejects(
-		handoff.run(
-			key,
-			async () => {
-				current = false;
-				return payload;
-			},
-			f.actions,
-			() => current,
-		),
-		{ code: "account_changed" },
-	);
-	assert.equal(f.contexts.length, 0);
-	assert.equal(f.messages.length, 0);
-	current = true;
-	f.bridge.updateModelContext = async () => {
-		current = false;
-		return {};
-	};
-	await assert.rejects(
-		f.actions.discuss(payload, () => current),
-		{ code: "account_changed" },
-	);
-	assert.equal(f.messages.length, 0);
-});
-
-test("optional model context is not required; standalone pages never prepare or send a handoff", async () => {
+test("unsupported hosts, rejected updates and changed accounts never send", async () => {
 	const f = fixture();
 	f.flags.context = false;
-	await f.actions.discuss(payload, () => true);
-	assert.equal(f.contexts.length, 0);
-	assert.equal(f.messages[0].content[0].text, payload.text);
-	const handoff = new AgentHandoff();
-	assert.equal(handoff.state(key), "unavailable");
-	assert.equal(
-		await handoff.run(
-			key,
-			async () => {
-				assert.fail("must not read a card without a host");
-			},
-			undefined,
-			() => true,
-		),
-		undefined,
+	await assert.rejects(
+		f.actions.discuss(payload, () => true),
+		{ code: "host_unavailable" },
 	);
+	f.flags.context = true;
+	await assert.rejects(
+		f.actions.discuss(payload, () => false),
+		{ code: "account_changed" },
+	);
+	f.flags.reject = true;
+	await assert.rejects(
+		f.actions.discuss(payload, () => true),
+		{ code: "message_rejected" },
+	);
+	assert.equal(f.messages.length, 0);
 });
 
 test("host navigation never falls back to blocked popups, and browser ambiguity is not an acknowledged open", async () => {

@@ -567,3 +567,8 @@
 		display: none;
 	}
 }
+
+/* The embedded host owns the conversation composer. */
+#ai-dock[hidden] {
+	display: none;
+}

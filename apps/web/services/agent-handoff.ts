@@ -6,6 +6,7 @@ export type AgentCard = {
 	title: string;
 	type?: string;
 	summary?: string;
+	body?: string;
 	revision?: number;
 };
 export type AgentPayload = ReturnType<typeof agentPayload>;
@@ -28,7 +29,7 @@ const brief = (value: string, limit: number) => {
 	return characters.length > limit ? characters.slice(0, limit - 1).join("") + "…" : text;
 };
 
-/** Only a bounded reference is handed off. Private bodies and future fields stay in Sill. */
+/** Attach explicit card content; exclude personal state and unknown fields. */
 export function agentPayload(card: AgentCard, scope: AgentScope) {
 	if (!card?.id || !/^[a-zA-Z0-9_-]{1,100}$/.test(card.id))
 		throw agentFailure("card_unavailable", copy("web.agent.noCard"));
@@ -44,7 +45,8 @@ export function agentPayload(card: AgentCard, scope: AgentScope) {
 			...(Number.isSafeInteger(card.revision) && card.revision > 0
 				? { revision: card.revision }
 				: {}),
-			...(card.summary ? { summary: brief(card.summary, 240) } : {}),
+			...(card.summary ? { summary: card.summary } : {}),
+			...(card.body ? { body: card.body } : {}),
 		},
 	};
 	const prompt = copy(scope.kind === "cloud" ? "web.agent.promptCloud" : "web.agent.promptLocal");

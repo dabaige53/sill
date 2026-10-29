@@ -3,6 +3,7 @@ import { icon } from "../atoms/icons.ts";
 import { esc } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
+import { agentKey } from "../services/agent-handoff.ts";
 import { Store } from "../data/store.ts";
 import { contextMotion } from "../interactions/ai-context-motion.ts";
 import { MotionEngine } from "../interactions/motion.ts";
@@ -14,6 +15,13 @@ export const appSelectionMethods = {
 		return `<section class="selection-ai-target glass" hidden aria-label="${esc(copy("web.ai.dock"))}">${icon("chat", 20)}<input class="selection-ai-input" readonly tabindex="-1" aria-label="${esc(copy("web.ai.dock"))}" placeholder="${esc(copy("web.ai.dockPlaceholder"))}">${icon("up", 20)}</section>`;
 	},
 	openSelectionAI(this: AppController, ids: string[]) {
+		if (window.__SILL_HOST__) {
+			for (const id of ids) {
+				this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));
+				void this.handoffCard(id);
+			}
+			return;
+		}
 		// Desktop: the cards join the bottom AI box as context; nothing is sent (ADR 0049).
 		if (this.desktop() && this.modalKind !== "search") {
 			const added = ids.filter((id) => Store.card(id));

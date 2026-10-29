@@ -296,6 +296,7 @@ export function AIDock() {
 			{...pointer}
 			ref={dock}
 			id="ai-dock"
+			hidden={!!window.__SILL_HOST__}
 			className={"ai-dock" + (collapsed ? " is-collapsed" : "")}
 			data-height="line"
 		>
