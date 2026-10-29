@@ -23,7 +23,14 @@ export async function runMaterialFocus({
 			window.scrollTo({ top, behavior: "instant" });
 			return top;
 		});
-		await page.waitForFunction((top) => scrollY === top, middle);
+		await page
+			.waitForFunction((top) => scrollY === top, middle)
+			.catch(async (error) => {
+				throw new Error(
+					`Feed midpoint not reached: ${await page.evaluate(() => scrollY)} expected ${middle}`,
+					{ cause: error },
+				);
+			});
 		assert.ok(
 			await page.evaluate(
 				() => scrollY > 24 && scrollY < document.documentElement.scrollHeight - innerHeight - 24,
@@ -31,11 +38,25 @@ export async function runMaterialFocus({
 			"the keyboard scenario starts away from both edges",
 		);
 		// Let the scroll-stop reveal finish before deliberately hiding the rail for Tab.
-		await page.waitForFunction(() => !window.__app.railHide.hidden && !window.__app.railHide.timer);
+		await page
+			.waitForFunction(() => !window.__app.railHide.hidden && !window.__app.railHide.timer)
+			.catch(async (error) => {
+				throw new Error(
+					`Rail did not settle: ${await page.evaluate(() => JSON.stringify({ hidden: __app.railHide.hidden, timer: __app.railHide.timer, active: document.activeElement.outerHTML }))}`,
+					{ cause: error },
+				);
+			});
 		await page.evaluate(() => window.__app.railHide.hide());
-		await page.waitForFunction(
-			() => getComputedStyle(document.getElementById("dock")).visibility === "hidden",
-		);
+		await page
+			.waitForFunction(
+				() => getComputedStyle(document.getElementById("dock")).visibility === "hidden",
+			)
+			.catch(async (error) => {
+				throw new Error(
+					`Rail did not hide: ${await page.locator("#dock").evaluate((node) => JSON.stringify({ className: node.className, style: node.getAttribute("style"), active: document.activeElement.outerHTML }))}`,
+					{ cause: error },
+				);
+			});
 		await page.keyboard.press("Tab");
 		const focus = await page.evaluate(() => ({
 			extra: (document.activeElement as HTMLElement).dataset.extra,

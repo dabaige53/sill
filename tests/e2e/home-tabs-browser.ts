@@ -76,7 +76,12 @@ try {
 		await page.waitForFunction(() => window.__app?.layout.frame === 0);
 		const head = page.locator("#home-top");
 		assert.equal(await head.isVisible(), true);
-		assert.equal(await head.locator(".home-mark").innerText(), "Sill");
+		assert.equal(
+			await head
+				.locator(width > 650 ? "#home-menu-toggle .sill-wordmark" : ".home-mark .sill-wordmark")
+				.innerText(),
+			"Sill",
+		);
 		// The phone capsule shows icons only, named for assistive tech; desktop has no capsule (interaction handbook).
 		const tabs = page.locator("#nav [data-action=nav]");
 		assert.deepEqual(

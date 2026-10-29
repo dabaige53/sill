@@ -133,9 +133,13 @@ export async function runRailMaterial({
 			async (page) => {
 				const settings = page.locator("#account");
 				assert.equal(await settings.getAttribute("aria-label"), "设置");
-				assert.equal(await settings.locator(".account-face,.nav-label,img").count(), 0);
-				assert.equal(await settings.locator(".account-wrap > .icon path").count(), 1);
-				assert.equal(await settings.locator(".account-wrap > .icon circle").count(), 1);
+				assert.equal(await settings.locator(".account-face,.nav-label").count(), 0);
+				assert.equal(await settings.locator(".account-wrap > .account-avatar").count(), 1);
+				assert.ok(
+					await settings
+						.locator(".account-avatar")
+						.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+				);
 				const size = await settings.boundingBox();
 				assert.ok(size.width >= 44 && size.height >= 44);
 				// Read inherited currentColor and its parent in the same animation frame.
