@@ -287,9 +287,9 @@ struct CardBlock: View {
     if let sender = card.sender {
       HStack(spacing: AppleMetrics.space10) {
         Avatar(name: sender, size: AppleMetrics.space32)
-        HStack(spacing: AppleMetrics.space8) {
+        HStack(alignment: .firstTextBaseline, spacing: AppleMetrics.space8) {
           Text(sender).textStyle(AppleMetrics.font14, .semibold).lineLimit(1)
-          .foregroundStyle(AppleColors.primary)
+            .foregroundStyle(AppleColors.primary)
           Text(
             [card.sourceName, date, card.readingTime].filter { !$0.isEmpty }
               .joined(separator: " · ")

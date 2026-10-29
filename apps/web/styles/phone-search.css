@@ -162,7 +162,9 @@
 	body:not(.keyboard-open) :is(#modal, .phone-layer).page.search.search-editing[open] {
 		padding-bottom: 0;
 	}
-	body:not(.keyboard-open) :is(#modal, .phone-layer).page.search.search-editing[open] .search-results {
+	body:not(.keyboard-open)
+		:is(#modal, .phone-layer).page.search.search-editing[open]
+		.search-results {
 		padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-24));
 	}
 	.search-card-grid {

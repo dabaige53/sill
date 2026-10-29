@@ -421,9 +421,10 @@ dialog::backdrop {
 	align-items: center;
 	gap: var(--space-10);
 }
+/* Name and time share one baseline, as on the card. */
 .preview-sender > span:last-child {
 	display: flex;
-	align-items: center;
+	align-items: baseline;
 	gap: var(--space-8);
 	min-width: 0;
 	overflow: hidden;

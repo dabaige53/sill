@@ -70,7 +70,7 @@ import SwiftUI
   /// Matches the Web entrance rule: a short body is still eligible for full reading.
   static func canExpand(_ card: CardModel) -> Bool {
     ([.article, .note, .digest, .mail].contains(card.kind)
-        && card.body.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+      && card.body.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
   }
 
   // MARK: Opening

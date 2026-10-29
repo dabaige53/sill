@@ -690,3 +690,9 @@ body.has-open-search #feed-grid {
 		line-height: var(--space-32);
 	}
 }
+
+.settings-reset {
+	display: block;
+	margin-inline-start: auto;
+	margin-top: var(--space-4);
+}

@@ -101,7 +101,8 @@ struct MediaDetail: View {
     VStack(alignment: .leading, spacing: AppleMetrics.space16) {
       primary
       if !card.markdown.blocks.isEmpty {
-        MarkdownText(document: card.markdown, size: AppleMetrics.font15,
+        MarkdownText(
+          document: card.markdown, size: AppleMetrics.font15,
           leading: AppleMetrics.previewBodyLeading)
       }
     }

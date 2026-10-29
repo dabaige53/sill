@@ -139,7 +139,7 @@ export const panelSettings = {
 						{layoutRow("readerSpacing", ["compact", "standard", "roomy"])}
 						{layoutRow("readerWidth", ["narrow", "standard", "full"])}
 					</div>
-					<button type="button" className="text-link" data-action="layout-reset">
+					<button type="button" className="text-link settings-reset" data-action="layout-reset">
 						{copy("web.settings.layout.reset")}
 					</button>
 				</>

@@ -175,7 +175,7 @@ test("completed tasks retain their checkboxes after focus leaves and in passive 
 	assert.equal(passive.querySelectorAll(".check-item").length, 2);
 });
 
-test("suggestions disclose hidden references and mail files remain static file rows", () => {
+test("suggestions disclose hidden references and card file rows stay static", () => {
 	Store.state = Store.fresh();
 	Store.state.cards = ["one", "two", "three"].map((id) => ({ id, type: "note", title: id }));
 	const suggestion = new JSDOM(
@@ -188,9 +188,14 @@ test("suggestions disclose hidden references and mail files remain static file r
 	).window.document;
 	assert.equal(suggestion.querySelectorAll(".refs button").length, 2);
 	assert.match(suggestion.querySelector(".related-more").textContent, /1.*关联内容/);
+	const file = new JSDOM(
+		cardHTML({ id: "file", type: "file", title: "File", files: [{ name: "report.txt" }] }),
+	).window.document;
+	assert.equal(file.querySelector(".file-row").tagName, "SPAN");
+	assert.equal(file.querySelector(".file-row.ref"), null);
+	// Mail attachments live in the detail only.
 	const mail = new JSDOM(
 		cardHTML({ id: "mail", type: "mail", title: "Mail", files: [{ name: "report.txt" }] }),
 	).window.document;
-	assert.equal(mail.querySelector(".file-row").tagName, "SPAN");
-	assert.equal(mail.querySelector(".file-row.ref"), null);
+	assert.equal(mail.querySelector(".file-row"), null);
 });

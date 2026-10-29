@@ -14,6 +14,7 @@ export function SystemReminderSettings() {
 		await systemReminders.setEnabled(!systemReminders.enabled);
 		setBusy(false);
 	};
+	if (!systemReminders.supported) return null;
 	return (
 		<>
 			<div className="settings-card">

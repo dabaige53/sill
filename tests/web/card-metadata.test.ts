@@ -86,10 +86,15 @@ test("reading time counts Chinese characters and English words from the Markdown
 	assert.equal(cardReadingTime({ type: "article", body: "字".repeat(401) }), "约 2 分钟阅读");
 	assert.equal(cardReadingTime({ type: "article", body: "word ".repeat(200) }), "约 1 分钟阅读");
 	assert.equal(
-		cardReadingTime({ type: "note", body: `## ${"字".repeat(400)}\n\n${"**word** ".repeat(201)}` }),
+		cardReadingTime({
+			type: "digest",
+			body: `## ${"字".repeat(400)}\n\n${"**word** ".repeat(201)}`,
+		}),
 		"约 3 分钟阅读",
 	);
-	assert.equal(cardReadingTime({ type: "task", body: "字".repeat(4000) }), "");
+	// Only articles and digests estimate reading time.
+	for (const type of ["note", "mail", "file", "task"])
+		assert.equal(cardReadingTime({ type, body: "字".repeat(4000) }), "");
 });
 
 test("date-only precision stays unchanged across device zones", () => {
@@ -106,7 +111,7 @@ test("date-only precision stays unchanged across device zones", () => {
 	}
 });
 
-test("specialized mail and file views show reading time; podcasts retain personal notes", () => {
+test("mail and file views show no reading time; podcasts retain personal notes", () => {
 	Store.state = Store.fresh();
 	for (const card of [
 		{
@@ -123,11 +128,11 @@ test("specialized mail and file views show reading time; podcasts retain persona
 			body: sixMinutes,
 		},
 	]) {
-		assert.match(
+		assert.doesNotMatch(
 			new JSDOM(Panels.preview({}, card)).window.document.body.textContent!,
-			/约 6 分钟阅读/,
+			/分钟阅读/,
 		);
-		assert.match(new JSDOM(cardHTML(card)).window.document.body.textContent!, /约 6 分钟阅读/);
+		assert.doesNotMatch(new JSDOM(cardHTML(card)).window.document.body.textContent!, /分钟阅读/);
 	}
 	const podcast: Card = {
 		id: "noted-podcast",
@@ -437,7 +442,7 @@ test("PR detail opens its rows with the state and leaves rows without data out",
 	assert.ok(rows.every((row) => row.firstElementChild?.classList.contains("row-icon")));
 });
 
-test("mail files render links and an empty list shows no file rows", () => {
+test("mail files render links in the detail and stay off the card face", () => {
 	Store.state = Store.fresh();
 	const card = Card.parse({
 		id: "mail-files",
@@ -451,8 +456,8 @@ test("mail files render links and an empty list shows no file rows", () => {
 	assert.ok(detail.querySelector('a.detail-row[href="https://example.com/first.pdf"]'));
 	assert.match(detail.body.textContent!, /second.txt/);
 	const face = new JSDOM(cardHTML(card)).window.document;
-	assert.match(face.body.textContent!, /first.pdf/);
-	assert.doesNotMatch(face.body.textContent!, /second.txt/);
+	assert.equal(face.querySelector(".file-rows"), null);
+	assert.doesNotMatch(face.body.textContent!, /first.pdf|second.txt/);
 	const cleared = new JSDOM(Panels.preview({}, { ...card, files: [] })).window.document;
 	assert.equal(cleared.querySelector(".detail-row"), null);
 });

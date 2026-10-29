@@ -144,7 +144,7 @@
 	.feed-item .sender > span:last-child {
 		flex: 1;
 		flex-direction: row;
-		align-items: center;
+		align-items: baseline;
 		gap: var(--space-8);
 		min-width: 0;
 		white-space: nowrap;

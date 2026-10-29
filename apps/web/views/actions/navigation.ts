@@ -14,7 +14,10 @@ function nav(this: AppController, { extra }: ActionContext) {
 }
 
 function top(this: AppController) {
-	window.scrollTo({ top: 0, behavior: "instant" });
+	window.scrollTo({
+		top: 0,
+		behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+	});
 	this.railHide?.syncPosition();
 	this.railHide?.show();
 }

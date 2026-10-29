@@ -82,11 +82,7 @@
 			"card": [
 				"sender",
 				"title",
-				"summary",
-				{
-					"block": "files",
-					"limit": 1
-				}
+				"summary"
 			],
 			"detail": {
 				"reader": true,
