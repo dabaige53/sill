@@ -1,0 +1,107 @@
+name: Release Sill
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sill-release
+  cancel-in-progress: false
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Require the product version tag
+        run: node scripts/release-version.ts
+  integration:
+    needs: version
+    uses: ./.github/workflows/test.yml
+  web:
+    needs: version
+    uses: ./.github/workflows/verify.yml
+  data:
+    needs: version
+    uses: ./.github/workflows/supabase.yml
+  consent:
+    needs: version
+    uses: ./.github/workflows/consent-policy.yml
+  apple:
+    needs: version
+    uses: ./.github/workflows/macos.yml
+  cloud-package:
+    needs: [integration, web, data, consent, apple]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-cloud
+          path: |
+            dist/cloud/worker.mjs
+            dist/cloud/app.html
+          if-no-files-found: error
+  mac-package:
+    needs: [integration, web, data, consent, apple]
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build:macos
+      - name: Package internal app (ad-hoc signed, not notarized)
+        run: |
+          codesign --verify --deep --strict dist/macos/Sill.app
+          arch=$(uname -m)
+          ditto -c -k --sequesterRsrc --keepParent dist/macos/Sill.app "dist/macos/Sill-${GITHUB_REF_NAME}-macOS-${arch}-internal.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: dist/macos/*-internal.zip
+          if-no-files-found: error
+  publish:
+    needs: [cloud-package, mac-package]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist/release/tag
+          merge-multiple: true
+      - name: Deploy the verified cloud artifact and record the receipt
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SILL_RELEASE_URL: ${{ vars.SILL_RELEASE_URL }}
+          SILL_DATABASE_VERIFIED_COMMIT: ${{ vars.SILL_DATABASE_VERIFIED_COMMIT }}
+        run: node scripts/deploy-release.ts
+      - name: Publish the same tag and internal Mac package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/release/tag/* --verify-tag --title "Sill $GITHUB_REF_NAME" --notes-file dist/release/tag/release-notes.md --prerelease
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-receipt
+          path: dist/release/tag/deployment.json
+          if-no-files-found: ignore

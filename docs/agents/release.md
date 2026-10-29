@@ -1,6 +1,16 @@
 # 快速发布
 
-更新：2026-10-27。沿用已有 Worker、App 和插件身份，统一执行入口；当前可用性与当次发布结果分别确认。发布范围默认是云端 Web 与 MCP 页面；插件技能、Mac 安装包和数据库迁移分别处理。
+更新：2026-10-29。沿用已有 Worker、App 和插件身份，统一执行入口；当前可用性与当次发布结果分别确认。发布范围默认是云端 Web 与 MCP 页面；插件技能、Mac 安装包和数据库迁移分别处理。
+
+## Tag 发布
+
+正式版本由 `v<package.json version>` tag 固定源码。`.github/workflows/release.yml` 复用全部现行 CI：集成测试、Web 浏览器回归、Postgres 与云端浏览器、授权策略、Swift 后台测试。任一必需检查失败，不生成发布包、不部署。手动重跑也必须选择同一版本 tag，不能使用 main 代替。
+
+通过后分别构建云端文件和 Mac `.app`，下载该次运行的产物再部署，不重新构建。Mac 当前按用户决定仅供内部测试：临时签名、未经公证，ZIP 文件名标注版本和构建 CPU 架构，GitHub Release 标为 prerelease；不宣称支持另一 CPU 架构。
+
+发布 job 使用 `production` environment。需要 `CLOUDFLARE_API_TOKEN` secret、`SILL_RELEASE_URL` variable，以及 `SILL_DATABASE_VERIFIED_COMMIT` variable。后者必须等于 tag 的完整提交号，只能在核对线上迁移和存量卡片兼容性后填写，是人工检查回执，不是自动数据库验证。该流程不自动清空数据或运行数据库迁移。
+
+`deploy-release.ts` 沿用现有 Worker，继承绑定，核对部署未被另一轮更新，上传已测试产物并重新读取部署，检查健康与匿名会话拒绝。成功后才创建同一 tag 的 GitHub Release，附云端文件、内部 Mac ZIP、部署回执及版本说明。上传结果未知时不自动重试；发布附件失败而云端已更新时，先核对 `deployment.json` 和线上版本，再补发 Release，不重复部署。GitHub artifact 是候选文件，不代表已正式发布。
 
 ## 1. 准备候选
 

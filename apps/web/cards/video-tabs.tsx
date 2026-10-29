@@ -53,7 +53,9 @@ export function VideoTabs({
 				return;
 			state.targetLeft = left;
 			state.targetRight = right;
-			state.runs.forEach((run) => run.stop());
+			state.runs.forEach((run) => {
+				run.stop();
+			});
 			if (
 				immediate ||
 				!state.ready ||
@@ -88,11 +90,14 @@ export function VideoTabs({
 			observer?.disconnect();
 			offLeft();
 			offRight();
-			state.runs.forEach((run) => run.stop());
+			state.runs.forEach((run) => {
+				run.stop();
+			});
 		};
 	}, []);
 
 	useLayoutEffect(() => {
+		if (!list.current?.querySelector(`[data-tab="${value}"]`)) return;
 		fit.current(false);
 	}, [value]);
 
@@ -129,6 +134,7 @@ export function VideoTabs({
 					key={name}
 					type="button"
 					role="tab"
+					data-tab={name}
 					id={`${id}-${name}`}
 					aria-selected={value === name}
 					aria-controls={`${id}-panel-${name}`}

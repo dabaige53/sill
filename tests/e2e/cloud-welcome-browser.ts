@@ -185,32 +185,7 @@ try {
 		signedIn = true;
 		await page.goto(base);
 		await waitCloud(page);
-		await page.locator(".welcome [data-action=capture]").click();
-		await page.locator("#cloud-editor").waitFor();
-		await page.keyboard.press("Tab");
-		assert.ok(
-			await page.evaluate(() => document.querySelector("#modal").contains(document.activeElement)),
-		);
-		await page.locator("#cloud-title").fill("验收测试笔记（合成数据）");
-		await page.locator("#cloud-body").fill("这是隔离测试内容，不是真实云端数据。\n".repeat(30));
-		if (mobile) {
-			await page.setViewportSize({ width: 390, height: 450 });
-			await page.locator("#cloud-editor [data-action=close]").scrollIntoViewIfNeeded();
-			assert.ok(await page.locator("#cloud-editor [data-action=close]").isVisible());
-			await page.setViewportSize({ width: 390, height: 844 });
-		}
-		await page.waitForTimeout(400);
-		await page.screenshot({
-			animations: "disabled",
-			scale: "css",
-			path: `tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-editor.png`,
-		});
-		await page.keyboard.press("Escape");
-		await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
-		assert.equal(
-			await page.evaluate(() => (document.activeElement as HTMLElement).dataset.action),
-			"capture",
-		);
+		assert.equal(await page.locator(".welcome [data-action=capture]").count(), 0);
 		workspace.state.cards = Array.from({ length: 24 }, (_?: any, i?: any) => ({
 			id: "test-" + i,
 			type: "note",
@@ -270,8 +245,7 @@ try {
 			0,
 			"ADR 0033 removes source connections from settings",
 		);
-		await page.locator("[data-action=settings-group][data-extra=add]").click();
-		await page.locator(".settings-main #capture-text").waitFor();
+		assert.equal(await page.locator("[data-action=settings-group][data-extra=add]").count(), 0);
 		assert.equal(await page.locator("#nav [data-action=capture]").count(), 0);
 		assert.equal(
 			await page.locator("#modal").evaluate((e) => e.classList.contains("page")),
@@ -307,12 +281,8 @@ try {
 			}),
 		]).finally(() => clearTimeout(holdTimer));
 		await cloudLogout(page);
-		await page.locator("#cloud-confirm").waitFor();
-		assert.match(await page.locator("#modal").textContent(), /放弃未保存的草稿/);
-		const logout = page.locator("#cloud-confirm").click();
 		holdWorkspace = false;
 		await heldRoute.fulfill({ json: workspaceSnapshot.parse(workspace) });
-		await logout;
 		await page.locator("#password-form").waitFor();
 		assert.equal(
 			await page.locator("[data-card]").count(),
@@ -320,7 +290,10 @@ try {
 			"logout and refresh cannot revive signed-out content",
 		);
 		assert.equal(await page.locator("body.cloud-signed-in").count(), 0);
-		assert.equal(await page.evaluate(() => localStorage.length), 0);
+		assert.deepEqual(
+			await page.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
+			[],
+		);
 		for (const code of [403, 503]) {
 			sessionStatus = code;
 			await page.goto(base);
@@ -332,14 +305,17 @@ try {
 		await cloudTool(page, "refresh");
 		await waitCloud(page);
 		await page.waitForFunction(() => window.__store.state.cards.length === 24);
-		assert.equal(await page.evaluate(() => localStorage.length), 0);
+		assert.deepEqual(
+			await page.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
+			[],
+		);
 		assert.deepEqual(errors, []);
 		await context.close();
 		await page
 			.video()
 			.saveAs(`tests/artifacts/cloud-recovery/${mobile ? "mobile" : "desktop"}-walkthrough.webm`);
 		console.log(
-			`PASS welcome/editor/navigation/keyboard/focus/scroll/privacy/logout/late-response/retry ${mobile ? "iPhone12 390x844" : "desktop 1440x1000"}`,
+			`PASS welcome/agent-created-cards/navigation/keyboard/focus/scroll/privacy/logout/late-response/retry ${mobile ? "iPhone12 390x844" : "desktop 1440x1000"}`,
 		);
 	}
 } finally {

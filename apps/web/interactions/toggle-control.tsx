@@ -1,5 +1,5 @@
 import { animate, motionValue } from "motion";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 
 const config = foundation.motion.webInteraction;
@@ -29,8 +29,8 @@ export function ToggleControl({
 	checked.current = on;
 	const swallow = useRef(false);
 	const gesture = useRef<{ id: number; x: number; start: number; dragged: boolean } | null>(null);
-	function createState() {
-		const progress = motionValue(on ? 1 : 0);
+	const createState = useCallback(() => {
+		const progress = motionValue(checked.current ? 1 : 0);
 		const stretch = motionValue(0);
 		const draw = () => {
 			if (!thumb.current) return;
@@ -47,28 +47,15 @@ export function ToggleControl({
 			stretch,
 			draw,
 			destroy: () => {
-				off.forEach((fn) => fn());
+				off.forEach((fn) => {
+					fn();
+				});
 				progress.destroy();
 				stretch.destroy();
 			},
 		};
-	}
-	useEffect(() => {
-		const current = createState();
-		state.current = current;
-		current.draw();
-		const cancel = () => restore(true);
-		window.addEventListener("blur", cancel);
-		return () => {
-			window.removeEventListener("blur", cancel);
-			current.destroy();
-			state.current = null;
-		};
 	}, []);
-	useEffect(() => {
-		if (target.current !== on) travel(on);
-	}, [on]);
-	function travel(next: boolean) {
+	const travel = useCallback((next: boolean) => {
 		const current = state.current;
 		if (!current) return;
 		target.current = next;
@@ -80,14 +67,33 @@ export function ToggleControl({
 				...config.toggleSpring,
 				velocity: current.progress.getVelocity(),
 			});
-	}
-	function restore(cancelled = false) {
-		gesture.current = null;
-		const current = state.current;
-		if (!current) return;
-		animate(current.stretch, 0, { type: "spring", ...config.toggleSpring });
-		if (cancelled) travel(checked.current);
-	}
+	}, []);
+	const restore = useCallback(
+		(cancelled = false) => {
+			gesture.current = null;
+			const current = state.current;
+			if (!current) return;
+			animate(current.stretch, 0, { type: "spring", ...config.toggleSpring });
+			if (cancelled) travel(checked.current);
+		},
+		[travel],
+	);
+	useEffect(() => {
+		const current = createState();
+		state.current = current;
+		current.draw();
+		const cancel = () => restore(true);
+		window.addEventListener("blur", cancel);
+		return () => {
+			window.removeEventListener("blur", cancel);
+			current.destroy();
+			state.current = null;
+		};
+	}, [createState, restore]);
+	useEffect(() => {
+		if (target.current !== on) travel(on);
+	}, [on, travel]);
+
 	return (
 		<button
 			ref={button}

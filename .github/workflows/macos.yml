@@ -1,8 +1,8 @@
 name: Verify Sill macOS
 on:
+  workflow_call:
   push:
     branches: [main]
-    tags: ['**']
     paths: &apple-inputs
       - 'apps/apple/**'
       - 'contracts/**'
@@ -41,6 +41,3 @@ jobs:
       - name: Run Swift tests without UI automation
         if: ${{ !cancelled() }}
         run: node tests/apple/run.ts
-      - name: Build and verify signed app bundle
-        if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
-        run: npm run build:macos

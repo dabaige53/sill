@@ -161,36 +161,20 @@ try {
 		.locator('#nav [data-extra="home"][aria-current="page"]')
 		.waitFor({ state: "attached" });
 	assert.equal(await frame.evaluate(() => location.hash), "#feed");
-	await frame.getByRole("button", { name: "记下第一条内容" }).click();
-	await frame.locator("#cloud-title").fill("Cloud plugin fixture");
-	// A definite validation failure leaves the same draft editable, with no uncertain-write lock.
-	await frame.locator("#cloud-body").fill("a".repeat(500001));
-	await frame.locator("#cloud-save").click();
-	await frame.locator("#cloud-save-status").filter({ hasText: "内容不符合保存要求" }).waitFor();
-	assert.equal(await frame.locator("#cloud-body").isEnabled(), true);
-	assert.equal((await frame.locator("#cloud-body").inputValue()).length, 500001);
-	assert.equal(
-		(await client.callTool({ name: "sill_listContents", arguments: {} })).structuredContent.items
-			.length,
-		0,
-	);
-	await frame.locator("#cloud-body").fill("Stored through the real MCP and SQL boundary");
-	await frame.locator("#cloud-save").click();
-	await frame
-		.locator("[data-card]")
-		.waitFor({ timeout: 10000 })
-		.catch(async (error?: any) => {
-			console.log(
-				JSON.stringify({
-					toolResults,
-					errors,
-					body: await frame.locator("body").innerText(),
-					title: await frame.locator("#cloud-title").inputValue(),
-					status: await frame.locator("#cloud-save-status").innerText(),
-				}),
-			);
-			throw error;
-		});
+	const result = await client.callTool({
+		name: "sill_createContent",
+		arguments: {
+			idempotency_key: "cloud-plugin-fixture",
+			body: {
+				type: "note",
+				title: "Cloud plugin fixture",
+				body: "Stored through the real MCP and SQL boundary",
+			},
+		},
+	});
+	assert.notEqual(result.isError, true);
+	await cloudTool(frame, "refresh");
+	await frame.locator("[data-card]").waitFor();
 	const created = (await client.callTool({ name: "sill_listContents", arguments: {} }))
 		.structuredContent.items[0];
 	assert.equal(created.title, "Cloud plugin fixture");
@@ -257,27 +241,7 @@ try {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.screenshot({ path: "tests/artifacts/cloud-app-mobile.png", animations: "disabled" });
 	assert.ok(await frame.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-	await frame.locator("[data-card] .card-title-button").press("Shift+F10");
-	assert.equal(await frame.locator(".card-more-menu").isVisible(), true);
 	assert.equal(await frame.locator("[data-action=edit-content]").count(), 0);
-	// The phone header covers main's top edge; dismiss through the exposed page margin.
-	const belowHeader = await frame.evaluate(() => {
-		const header = document.getElementById("home-top");
-		const mainTop = document.querySelector("main").getBoundingClientRect().top;
-		return getComputedStyle(header).display === "none"
-			? 0
-			: Math.max(0, header.getBoundingClientRect().bottom - mainTop);
-	});
-	await frame.locator("main").click({ position: { x: 2, y: belowHeader + 2 } });
-	assert.equal(await frame.locator(".card-more-menu").count(), 0);
-	await cloudTool(frame, "capture");
-	await frame.locator("#cloud-title").fill("Keep this host draft");
-	await frame.locator("#cloud-discard").click();
-	await frame.locator("#cloud-confirm").waitFor();
-	await frame.locator("[data-action=close]").click();
-	assert.equal(await frame.locator("#cloud-title").inputValue(), "Keep this host draft");
-	await frame.locator("#cloud-discard").click();
-	await frame.locator("#cloud-confirm").click();
 	const current = (
 		await client.callTool({ name: "sill_getContent", arguments: { id: created.id } })
 	).structuredContent;
@@ -373,9 +337,16 @@ try {
 	await frame.evaluate(() => {
 		(window as any).__photoRecoveryToast = document.getElementById("toast");
 	});
-	const firstPhoto = await frame.locator(".lightbox-stage img").getAttribute("src");
+	const firstPhoto = await frame
+		.locator('.lightbox-stage .photo-carousel-page[aria-hidden="false"] img')
+		.getAttribute("src");
 	await frame.locator('[data-action="photo-go"][data-extra="1"]').click();
-	assert.notEqual(await frame.locator(".lightbox-stage img").getAttribute("src"), firstPhoto);
+	assert.notEqual(
+		await frame
+			.locator('.lightbox-stage .photo-carousel-page[aria-hidden="false"] img')
+			.getAttribute("src"),
+		firstPhoto,
+	);
 	assert.equal(await frame.locator("#toast").count(), 1);
 	assert.equal(await frame.locator("#modal #toast").isVisible(), true);
 	assert.equal(
@@ -408,12 +379,15 @@ try {
 	await cloudTool(frame, "settings");
 	await frame.locator("[data-action=settings-group][data-extra=data]").click();
 	assert.equal(await frame.locator("#cloud-logout").innerText(), "管理插件授权");
-	assert.equal(await frame.evaluate(() => localStorage.length), 0);
+	assert.deepEqual(
+		await frame.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
+		[],
+	);
 	assert.deepEqual(network, []);
 	assert.deepEqual(popups, []);
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS cloud MCP App: bridge handshake, cancelled late navigation, editable validation rejection, bounded explicit handoff and copy recovery across photo pages, host-only links, 1280/390, no direct network or storage (synthetic identity)",
+		"PASS cloud MCP App: bridge handshake, cancelled late navigation, MCP card creation, bounded explicit handoff and copy recovery across photo pages, host-only links, 1280/390, no direct network or account storage (synthetic identity)",
 	);
 } finally {
 	await browser?.close();

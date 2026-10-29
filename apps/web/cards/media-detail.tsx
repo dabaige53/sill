@@ -89,7 +89,7 @@ function VideoDetail({
 		[follow, setFollow] = useState(true);
 	const transcript = useRef<HTMLDivElement>(null);
 	useLayoutEffect(() => {
-		if (!switched.current || !panel.current) return;
+		if (!switched.current || !panel.current || panel.current.dataset.tab !== tab) return;
 		switched.current = false;
 		const run = animate(
 			panel.current,
@@ -249,9 +249,9 @@ function VideoDetail({
 									old.removeAttribute("id");
 									old.setAttribute("aria-hidden", "true");
 									old.setAttribute("inert", "");
-									current.parentElement
-										?.querySelectorAll(".video-tab-exit")
-										.forEach((node) => node.remove());
+									current.parentElement?.querySelectorAll(".video-tab-exit").forEach((node) => {
+										node.remove();
+									});
 									old.classList.add("video-tab-exit");
 									current.parentElement?.append(old);
 									animate(
@@ -285,9 +285,9 @@ function VideoDetail({
 					<div
 						ref={panel}
 						className="video-tab-panel"
-						role={full ? "tabpanel" : undefined}
+						data-tab={tab}
+						{...(full ? { role: "tabpanel" as const, "aria-labelledby": `${tabId}-${tab}` } : {})}
 						id={`${tabId}-panel-${tab}`}
-						aria-labelledby={full ? `${tabId}-${tab}` : undefined}
 					>
 						{tab === "summary" &&
 							(card.body?.trim() ? (
