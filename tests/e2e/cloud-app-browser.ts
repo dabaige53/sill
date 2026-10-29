@@ -200,7 +200,19 @@ try {
 		toolResults.filter(({ name }) => /sill_(create|update|delete)Content/.test(name)).length;
 	const writesBeforeHandoff = contentWrites();
 	await frame.getByRole("button", { name: "附到对话", exact: true }).click();
-	await frame.getByRole("button", { name: "已附加", exact: true }).waitFor();
+	await frame
+		.getByRole("button", { name: "已附加", exact: true })
+		.waitFor()
+		.catch(async (error) => {
+			console.error({
+				errors,
+				hostContexts,
+				hostMessages,
+				toast: await frame.locator("#toast").innerText(),
+				button: await frame.locator('[data-action="agent-handoff"]').textContent(),
+			});
+			throw error;
+		});
 	assert.equal(await frame.getByRole("button", { name: "已附加", exact: true }).isDisabled(), true);
 	assert.equal(hostMessages.length, 0);
 	assert.equal(hostContexts.length, 1);
