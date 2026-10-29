@@ -67,10 +67,6 @@ function clearConfirm(this: AppController) {
 	this.renderCurrent(true);
 }
 
-function welcomeDemo(this: AppController) {
-	this.loadDemo();
-}
-
 function resetLayout(this: AppController) {
 	Object.assign(Store.state.preferences, defaultAppearance, { density: "standard" });
 	Store.save();
@@ -88,5 +84,4 @@ export const settingsActions = {
 	"export-all": exportAll,
 	"clear-all": clearAll,
 	"clear-confirm": clearConfirm,
-	"welcome-demo": welcomeDemo,
 } satisfies Record<string, ActionHandler>;

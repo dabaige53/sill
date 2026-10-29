@@ -321,23 +321,10 @@ try {
 	await page.locator("#cloud-confirm").click();
 	await saved();
 	assert.equal((await api("/api/v1/workspace")).state.cards.length, 0);
-	await page.locator('[data-action="welcome-demo"]').click();
-	await saved();
-	const demo = (await api("/api/v1/workspace")).state.cards;
-	assert.ok(demo.length > 10);
-	assert.ok(
-		demo.every(
-			(card) => !card.related || card.related.every((id) => demo.some((c) => c.id === id)),
-		),
-	);
-	await action("clear-all");
-	await page.locator("#cloud-confirm").click();
-	await saved();
-	await page.locator('[data-action="welcome-demo"]').click();
-	await saved();
-	const repeatedDemo = (await api("/api/v1/workspace")).state.cards;
-	assert.equal(repeatedDemo.length, demo.length);
-	assert.ok(repeatedDemo.every((card) => !demo.some((previous) => previous.id === card.id)));
+	assert.equal(await page.locator('[data-action="welcome-demo"]').count(), 0);
+	await page.reload();
+	await page.locator(".welcome").waitFor();
+	assert.equal((await api("/api/v1/workspace")).state.cards.length, 0);
 	// A foreground pull joins an already-running read; no early success or duplicate request.
 	let releaseRead: () => void;
 	const readGate = new Promise<void>((resolve) => {

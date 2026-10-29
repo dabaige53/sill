@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
-import type { Card } from "../../../contracts/card.ts";
 import { eventEnded, eventRelative, eventTimely, minutes } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
-import { demoBase, SeedCards, SeedItems } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
@@ -11,23 +9,6 @@ import { renderContent, renderView } from "./react-renderer.ts";
 import { repaintSettings, setPref } from "./settings-controller.ts";
 
 export const appCaptureMethods = {
-	loadDemo(this: AppController) {
-		Store.state.preferences.onboarded = true;
-		const demo = SeedCards.map((c?: Card) => ({
-			...c,
-			tasks: c.tasks?.map((t) => ({ ...t })),
-			time: c.time,
-			...(c.start
-				? { start: Date.now() + (c.start - demoBase), end: Date.now() + (c.end - demoBase) }
-				: {}),
-			...(c.due ? { due: Date.now() + (c.due - demoBase) } : {}),
-		}));
-		this.closeNative();
-		this.withFeedAnchor(() => {
-			Store.insert(demo);
-			for (const [id, x] of Object.entries(SeedItems)) Store.patch(id, x);
-		}, true);
-	},
 	setPref(this: AppController, key?: string, value?: unknown): unknown {
 		return setPref.call(this, key, value);
 	},

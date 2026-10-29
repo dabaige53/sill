@@ -23,7 +23,6 @@ import {
 	workspaceState,
 } from "./cloud-workspace.ts";
 import { copy } from "./copy.ts";
-import { demoBase, SeedCards, SeedItems } from "./data/cards.ts";
 import { Store } from "./data/store.ts";
 import { MotionEngine } from "./interactions/motion.ts";
 import { agentFailure } from "./services/agent-handoff.ts";
@@ -219,8 +218,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 		"toggle-read",
 		"pref",
 		"pref-toggle",
-		"demo",
-		"welcome-demo",
 	];
 	if (
 		writes.includes(name) &&
@@ -271,23 +268,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 	return originalAction(name, id, ...args);
 };
 // Keep the original menus and light actions. A note opens for reading, not content editing.
-app.loadDemo = function () {
-	const ids = new Map(SeedCards.map((card) => [card.id, crypto.randomUUID()]));
-	const offset = Date.now() - demoBase;
-	const demo = SeedCards.map((card) => ({
-		...clone(card),
-		id: ids.get(card.id),
-		...(card.related ? { related: card.related.map((id) => ids.get(id) || id) } : {}),
-		...(card.start ? { start: card.start + offset, end: card.end + offset } : {}),
-		...(card.due ? { due: card.due + offset } : {}),
-	}));
-	Store.state.preferences.onboarded = true;
-	this.closeNative();
-	this.withFeedAnchor(() => {
-		Store.insert(demo);
-		for (const [id, state] of Object.entries(SeedItems)) Store.patch(ids.get(id), clone(state));
-	}, true);
-};
 const localOpenPanel = app.openPanel.bind(app);
 app.openPanel = (kind?: any, ...args: any[]) => {
 	// Reject navigation before search can change history or bind a blocked panel.

@@ -47,7 +47,6 @@ export type DetailPosition = {
 class AppController {
 	declare setSearchEditing: AppControllerMethods["setSearchEditing"];
 	initializing = false;
-	declare loadDemo: AppControllerMethods["loadDemo"];
 	declare setPref: AppControllerMethods["setPref"];
 	declare replacePanelContent: AppControllerMethods["replacePanelContent"];
 	declare repaintSettings: AppControllerMethods["repaintSettings"];

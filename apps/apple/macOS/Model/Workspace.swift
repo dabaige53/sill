@@ -544,7 +544,11 @@ import SillKit
 struct LaunchOptions: Sendable {
   var dataDirectory: URL?
 
-  static let current = LaunchOptions(arguments: ProcessInfo.processInfo.arguments)
+  #if DEBUG
+    static let current = LaunchOptions(arguments: ProcessInfo.processInfo.arguments)
+  #else
+    static let current = LaunchOptions(dataDirectory: nil)
+  #endif
 
   init(dataDirectory: URL?) { self.dataDirectory = dataDirectory }
 

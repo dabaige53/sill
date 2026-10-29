@@ -62,21 +62,13 @@ export function CloudWelcome({
 		<WelcomeView
 			actions={
 				<>
-					{user ? (
-						<>
-							<button type="button" className="text-link" data-action="welcome-demo">
-								{copy("web.welcome.viewDemo")}
-							</button>
-						</>
-					) : (
-						<>
-							<a
-								className="solid-button"
-								href={callbackFailed ? "/auth/login?login_error=1" : "/auth/login"}
-							>
-								{copy("auth.loginTitle")}
-							</a>
-						</>
+					{!user && (
+						<a
+							className="solid-button"
+							href={callbackFailed ? "/auth/login?login_error=1" : "/auth/login"}
+						>
+							{copy("auth.loginTitle")}
+						</a>
 					)}
 					{recovery}
 				</>

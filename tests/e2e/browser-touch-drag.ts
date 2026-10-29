@@ -46,12 +46,8 @@ export async function runTouchDrag({
 			await page.locator('[data-action="clear-confirm"]').click();
 			await page.locator(".welcome").waitFor();
 			assert.equal(await page.locator(".feed-card").count(), 0);
-			assert.deepEqual(await page.locator(".welcome-actions button").allTextContents(), [
-				"先看示例",
-			]);
+			assert.equal(await page.locator('[data-action="welcome-demo"]').count(), 0);
 			assert.equal(await page.locator('[data-action="capture"], #capture-text').count(), 0);
-			await page.locator('[data-action="welcome-demo"]').click();
-			await page.locator('[data-card="article-01"]').waitFor();
 		},
 	);
 	for (const width of [680, 700, 810, 1440, 2048])

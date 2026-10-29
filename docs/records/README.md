@@ -125,3 +125,4 @@
 
 - [手机底部显示问题](2026-10-29-phone-bottom/README.md)
 - [云端、插件与 Mac 更新](2026-10-29-product-refresh/README.md)
+- [发布产品仅使用云端数据](2026-10-29-cloud-only/README.md)

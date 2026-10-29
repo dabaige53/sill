@@ -108,3 +108,5 @@ node tests/apple/run.ts
 ### 媒体播放边界
 
 Mac 播客为只读介绍页，不创建本地音频播放器，收听位置显示外部写入记录。唯一 WebView 例外为视频区域中的官方 YouTube 播放器；章节、文字稿、PR 与其他界面仍为 SwiftUI。视频预览与全屏复用同一播放器；关闭阅读层时暂停并保存位置，真实结束事件才自动标为已读。源码已接入，真实窗口与网络媒体未验收。见 [ADR 0061](../../docs/adr/0061-in-app-media-playback-and-pr-cards.md)。
+
+发布版只连接云端账号，忽略 `--data-directory`。该参数只在 Debug 启动时用于隔离测试。

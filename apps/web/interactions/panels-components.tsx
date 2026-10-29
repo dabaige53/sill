@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { copy } from "../copy.ts";
 import { panelAI } from "./panel-ai.tsx";
 import { panelCard } from "./panel-card.tsx";
 import type { PanelRenderers } from "./panel-contract.ts";
@@ -24,15 +23,7 @@ function WelcomeView({
 				<h1 id={"welcome-title"}>{"Sill"}</h1>
 				{detail}
 				<div className={"welcome-actions"}>
-					{actions === null ? (
-						<>
-							<button type={"button"} className={"text-link"} data-action={"welcome-demo"}>
-								{copy("web.welcome.viewDemo")}
-							</button>
-						</>
-					) : (
-						actions
-					)}
+					{actions}
 				</div>
 			</section>
 		</>
