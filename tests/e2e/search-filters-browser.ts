@@ -193,6 +193,12 @@ try {
 		assert.equal(await page.locator('.search-token[data-extra="status"]').count(), 0);
 		await page.locator("#filter-search").fill("#交互");
 		await page.locator('[data-action="search-hash"][data-extra="tag:交互"]').focus();
+		// A keyboard user can pause on a suggestion after leaving the input.
+		await page.waitForTimeout(500);
+		assert.equal(
+			await page.locator('[data-action="search-hash"][data-extra="tag:交互"]').isVisible(),
+			true,
+		);
 		await page.keyboard.press("Space");
 		assert.deepEqual(await ids(), ["review-note-2"]);
 		assert.equal(await page.locator('.search-token[data-extra="tag"]').innerText(), "#交互");

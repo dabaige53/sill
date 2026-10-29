@@ -117,9 +117,15 @@ export const appLifecycleMethods = {
 		// The keyboard went away but the search stays: the tab bar comes back and takes taps again.
 		// A tap that refocuses the field (a history row, a token) lands within the settle delay.
 		document.addEventListener("focusout", (e?: TargetEvent<FocusEvent>) => {
-			if (e.target.id !== "filter-search" || this.desktop()) return;
+			if (
+				this.desktop() ||
+				(e.target.id !== "filter-search" &&
+					!e.target.closest?.("#search-suggest, #search-hash-slot"))
+			)
+				return;
 			window.setTimeout(() => {
 				if (this.modalKind !== "search" || document.activeElement?.id === "filter-search") return;
+				if (document.activeElement?.closest("#search-suggest, #search-hash-slot")) return;
 				if (this.dialog.classList.contains("search-editing"))
 					syncPhoneSearchKeyboard(this.dialog, false);
 			}, tokens.motion.phoneSearch.dockReturnDelay);
