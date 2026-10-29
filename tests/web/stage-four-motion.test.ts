@@ -12,6 +12,8 @@ const bundle = buildSync({
 		loader: "ts",
 	},
 	bundle: true,
+	// The app imports images for Vite; tests need no pixels.
+	loader: { ".png": "empty" },
 	write: false,
 	platform: "browser",
 	format: "iife",

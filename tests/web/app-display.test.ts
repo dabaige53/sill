@@ -335,7 +335,7 @@ test("task completion retains the detail, toolbar, checklist focus and scroll", 
 	}
 });
 
-test("the controller keeps the video iframe through preview/fullscreen in both directions", async () => {
+test("a video card has no fullscreen: a reading request opens its preview", () => {
 	const f = fixture();
 	const { w, Store } = f;
 	const app = new w.ControllerTest.AppController();
@@ -367,33 +367,14 @@ test("the controller keeps the video iframe through preview/fullscreen in both d
 		app.bindSheetChrome = () => {};
 		app.railHide = { atTop: () => true };
 		app.gestures = { bindPullDown() {} };
-		w.document.documentElement.dataset.inputModality = "keyboard";
 		w.requestAnimationFrame = (fn: () => void) => {
 			fn();
 			return 1;
 		};
-		let created = 0,
-			destroyed = 0;
-		w.YT = {
-			Player: class {
-				constructor() {
-					created++;
-				}
-				destroy() {
-					destroyed++;
-				}
-			},
-		};
-		app.openCard(card.id);
-		await new Promise((resolve) => setImmediate(resolve));
-		const frame = dialog.querySelector("iframe");
-		assert.ok(frame);
 		app.openCard(card.id, true);
-		assert.equal(dialog.querySelector("iframe") === frame, true);
-		app.openCard(card.id, false);
-		assert.equal(dialog.querySelector("iframe") === frame, true);
-		assert.equal(created, 1);
-		assert.equal(destroyed, 0);
+		assert.equal(app.modalKind, "preview");
+		assert.ok(dialog.querySelector("[data-video-surface]"));
+		assert.equal(dialog.querySelector(".reader-layout"), null);
 	} finally {
 		w.ControllerTest.renderContent(f.app.dialog, null);
 		f.dom.window.close();

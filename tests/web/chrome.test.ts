@@ -358,28 +358,22 @@ test("three destinations share the capsule; the home avatar opens settings", () 
 		assert.equal(w.document.getElementById("account").dataset.extra, "settings");
 		const settings = w.document.getElementById("account");
 		assert.equal(settings.getAttribute("aria-label"), "设置");
-		assert.equal(settings.querySelectorAll(".account-face,.nav-label,img").length, 0);
-		assert.ok(settings.querySelector(".account-wrap > .icon"));
+		// The settings button shows the mascot avatar as decoration, never an account face or initial.
+		assert.equal(settings.querySelectorAll(".account-face,.nav-label").length, 0);
+		const avatar = settings.querySelector(".account-wrap > img.account-avatar");
+		assert.ok(avatar);
+		assert.equal(avatar.getAttribute("alt"), "");
+		assert.equal(settings.querySelectorAll("img").length, 1);
 		assert.ok(settings.closest(".home-heading"));
 		assert.equal(w.document.querySelector("#nav #account"), null);
-		assert.equal(
-			settings.querySelector(".account-wrap > .icon").getAttribute("stroke-width"),
-			"1.65",
-		);
-		assert.equal(
-			settings.querySelector(".account-wrap > .icon").getAttribute("aria-hidden"),
-			"true",
-		);
 
-		const settingsIcon = settings.innerHTML;
 		w.__SILL_ACCOUNT__ = "Synthetic Account";
 		Store.state.preferences.profileName = "Profile Initial";
 		app.paintAccount();
-		assert.equal(
-			settings.innerHTML,
-			settingsIcon,
-			"account updates never restore a face or initial",
-		);
+		// Account updates never restore a face or initial: the same single avatar, no text.
+		assert.equal(settings.querySelectorAll(".account-face").length, 0);
+		assert.equal(settings.querySelectorAll(".account-wrap > img.account-avatar").length, 1);
+		assert.equal(settings.textContent, "");
 		assert.match(
 			w.document.querySelector('[data-extra="ai"]').getAttribute("aria-label"),
 			/即将推出/,

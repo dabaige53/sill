@@ -105,6 +105,8 @@ const reading = buildSync({
 		loader: "ts",
 	},
 	bundle: true,
+	// The app imports images for Vite; tests need no pixels.
+	loader: { ".png": "empty" },
 	alias: motionAlias,
 	write: false,
 	format: "iife",
@@ -262,6 +264,8 @@ const media = buildSync({
 		loader: "tsx",
 	},
 	bundle: true,
+	// The app imports images for Vite; tests need no pixels.
+	loader: { ".png": "empty" },
 	alias: motionAlias,
 	write: false,
 	format: "iife",

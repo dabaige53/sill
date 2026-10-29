@@ -45,11 +45,7 @@ struct CardTile: View {
       .focusEffectDisabled()
       .focused($focused)
       .onChange(of: state.focusRequest) { focused = true }
-      .onKeyPress(.return) { press in
-        activate(modifiers: press.modifiers)
-        return .handled
-      }
-      .onKeyPress(.space) { press in
+      .onKeyPress(keys: [.return, .space]) { press in
         activate(modifiers: press.modifiers)
         return .handled
       }

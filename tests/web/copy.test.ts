@@ -93,6 +93,8 @@ test("browser copy bundle preserves every string without Node or DOM globals", (
 			loader: "ts",
 		},
 		bundle: true,
+		// The app imports images for Vite; tests need no pixels.
+		loader: { ".png": "empty" },
 		write: false,
 		platform: "browser",
 		format: "iife",

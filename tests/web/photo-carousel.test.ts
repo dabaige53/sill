@@ -13,6 +13,8 @@ export function mount(host, selected) {const root=createRoot(host);let index=0;c
 		loader: "tsx",
 	},
 	bundle: true,
+	// The app imports images for Vite; tests need no pixels.
+	loader: { ".png": "empty" },
 	write: false,
 	format: "iife",
 	platform: "browser",
