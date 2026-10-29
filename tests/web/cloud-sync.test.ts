@@ -162,3 +162,32 @@ test("queued batches retain their originating owner even if the current session 
 	assert.deepEqual(sent, ["owner-a"]);
 	assert.equal(sync.pending.length, 1);
 });
+
+test("unchanged collection keeps baseline and queued nested values remain immutable", () => {
+	const state = initial();
+	const sync = new CloudSync({
+		snapshot: () => state,
+		owner: () => "owner-a",
+		canSave: () => false,
+		status: () => {},
+		failure: () => {},
+		adopt: () => {},
+		request: async () => ({}),
+	});
+	sync.rebase(state, 1, "owner-a");
+	const baseline = sync.baseline;
+	sync.collect();
+	assert.equal(sync.baseline, baseline);
+	assert.equal(sync.pending.length, 0);
+	state.items.a.taskDone = ["task-a"];
+	sync.collect();
+	state.items.a.taskDone.push("task-b");
+	assert.deepEqual(sync.pending[0].body.operations[0].values.taskDone, ["task-a"]);
+});
+
+test("reordered JSON fields do not produce card writes", () => {
+	const before = initial();
+	const next = clone(before);
+	next.cards[1] = { revision: 1, title: "B", type: "note", id: "b" };
+	assert.deepEqual(workspaceDiff(before, next), []);
+});

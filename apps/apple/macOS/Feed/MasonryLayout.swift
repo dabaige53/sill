@@ -63,6 +63,7 @@ struct MasonryLayout: Layout {
     var geometry: ColumnGeometry?
     var minimums: [String: CGFloat] = [:]
     var measuredWidth: CGFloat = 0
+    var measuredHeights: [CGFloat] = []
 
     mutating func height(_ measured: CGFloat, for id: String) -> CGFloat {
       let height = max(measured, minimums[id] ?? 0)
@@ -73,7 +74,10 @@ struct MasonryLayout: Layout {
 
   func makeCache(subviews: Subviews) -> Cache { Cache() }
 
-  func updateCache(_ cache: inout Cache, subviews: Subviews) { cache.geometry = nil }
+  func updateCache(_ cache: inout Cache, subviews: Subviews) {
+    cache.geometry = nil
+    cache.measuredHeights.removeAll(keepingCapacity: true)
+  }
 
   func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
     if cache.geometry != geometry || cache.frames.count != subviews.count {
@@ -99,6 +103,7 @@ struct MasonryLayout: Layout {
   private func measure(_ subviews: Subviews, _ cache: inout Cache) {
     if cache.measuredWidth != geometry.columnWidth {
       cache.minimums.removeAll()
+      cache.measuredHeights.removeAll(keepingCapacity: true)
       cache.measuredWidth = geometry.columnWidth
     }
     let ids = Set(subviews.map { $0[FeedItemID.self] })
@@ -108,11 +113,14 @@ struct MasonryLayout: Layout {
     var frames: [CGRect] = []
     frames.reserveCapacity(subviews.count)
     let proposal = ProposedViewSize(width: geometry.columnWidth, height: nil)
-    for subview in subviews {
+    if cache.measuredHeights.count != subviews.count {
+      cache.measuredHeights = subviews.map { $0.sizeThatFits(proposal).height }
+    }
+    for (index, subview) in subviews.enumerated() {
       var column = 0
       for index in 1..<columns where heights[index] < heights[column] - 1 { column = index }
       let id = subview[FeedItemID.self]
-      let height = cache.height(subview.sizeThatFits(proposal).height, for: id)
+      let height = cache.height(cache.measuredHeights[index], for: id)
       frames.append(
         CGRect(
           x: geometry.inset + CGFloat(column) * (geometry.columnWidth + geometry.gap),

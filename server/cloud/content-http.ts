@@ -15,7 +15,16 @@ export async function contentHttp(
 	if (request.method === "GET") {
 		if (path === "/api/v1/workspace") {
 			if (url.search) throw serviceError("invalid_request");
-			return json(200, await repository.workspace());
+			const known = request.headers.get("X-Sill-Revision");
+			if (known !== null && !/^(0|[1-9][0-9]*)$/.test(known)) throw serviceError("invalid_request");
+			if (known !== null && !Number.isSafeInteger(Number(known)))
+				throw serviceError("invalid_request");
+			return json(
+				200,
+				known === null
+					? await repository.workspace()
+					: await repository.workspaceSince(Number(known)),
+			);
 		}
 		if (path === "/api/v1/contents") {
 			const query = z

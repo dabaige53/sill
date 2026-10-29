@@ -18,3 +18,5 @@
 | 2026-10-29 | 云端示例 | welcome-demo、loadDemo、示例写入账号、无法退出示例 | [发布产品仅使用云端数据](2026-10-29-cloud-only/README.md) |
 
 | 2026-10-29 | MCP SDK | McpUiInitializeResultSchema、request、isError 类型错误 | [Codex 卡片引用发布](2026-10-29-codex-card-context/README.md#发布检查诊断) |
+
+| 2026-10-29 | Web/PWA 与 Mac 性能 | 全量轮询、保存序列化、布局测量、页面重复下载 | [跨端性能优化](2026-10-29-performance/README.md) |

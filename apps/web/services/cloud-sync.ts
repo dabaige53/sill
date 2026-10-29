@@ -1,6 +1,8 @@
+import { sameData } from "../data/same-data.ts";
+
 /** Cloud saves share the same conditional batch as MCP. Private drafts stay in memory. */
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
-const equal = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const equal = sameData;
 export function itemDefaults(card: any) {
 	return {
 		seen: false,
@@ -129,11 +131,15 @@ export class CloudSync {
 	}
 	collect() {
 		if (!this.baseline || this.suspended) return;
-		const next = clone(this.options.snapshot());
+		const next = this.options.snapshot();
 		const operations = workspaceDiff(this.baseline, next);
-		this.baseline = next;
+		if (operations.length) this.baseline = clone(next);
 		if (operations.length) {
-			this.pending.push({ body: { operations }, key: crypto.randomUUID(), owner: this.owner });
+			this.pending.push({
+				body: { operations: clone(operations) },
+				key: crypto.randomUUID(),
+				owner: this.owner,
+			});
 			this.options.status();
 		}
 	}

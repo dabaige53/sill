@@ -290,7 +290,12 @@ export async function loadCloudOnce({ initial = false, quiet = false }: any = {}
 		const session = await cloudApi("/auth/session");
 		checkingSession = false;
 		const value = await cloudApi("/api/v1/workspace", {
-			headers: { "X-Sill-Owner": session.userId },
+			headers: {
+				"X-Sill-Owner": session.userId,
+				...(sync.baseline && sync.owner === session.userId && !sync.suspended
+					? { "X-Sill-Revision": String(sync.revision) }
+					: {}),
+			},
 		});
 		if (epoch !== Cloud.epoch || writeVersion !== Cloud.writeVersion) return false;
 		Cloud.connectionError = false;
@@ -303,6 +308,7 @@ export async function loadCloudOnce({ initial = false, quiet = false }: any = {}
 			if (optimistic) adoptWorkspace({ state: optimistic, revision: sync.revision });
 		}
 		if (
+			!value.unchanged &&
 			!sync.pending.length &&
 			!sync.busy &&
 			(!sync.baseline || sync.owner !== Cloud.user || sync.revision !== value.revision)

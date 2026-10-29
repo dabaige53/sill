@@ -131,3 +131,5 @@
 - [Codex 卡片引用发布](2026-10-29-codex-card-context/README.md)
 
 - [视频预览旧布局诊断](2026-10-29-video-preview/README.md)
+
+- [跨端性能优化](2026-10-29-performance/README.md)

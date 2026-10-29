@@ -117,6 +117,7 @@ export async function cloudFixture({ oauth = false }: any = {}): Promise<any> {
 					sill_oauth_flow: ["op", "p"],
 					sill_session_info: [],
 					sill_get_workspace: [],
+					sill_get_workspace_since: ["known_revision"],
 					sill_apply_operations: ["payload", "idem"],
 					sill_write_v1: ["op", "resource_id", "payload", "idem"],
 					sill_get_content: ["resource_id"],

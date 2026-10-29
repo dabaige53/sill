@@ -35,6 +35,13 @@ export function createSillRuntime(
 		now = Date.now,
 	}: any = {},
 ) {
+	// The shell contains only static application code; account data uses no-store APIs.
+	const shellTag = crypto.subtle
+		.digest("SHA-256", new TextEncoder().encode(html))
+		.then(
+			(bytes) =>
+				`"${Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("")}"`,
+		);
 	const origin = new URL(config.appOrigin);
 	if (
 		origin.origin !== config.appOrigin ||
@@ -455,15 +462,24 @@ export function createSillRuntime(
 					return await backupHttp(request, { client, principal }, repository, config);
 				return await contentHttp(request, repository);
 			}
-			if (request.method === "GET" && path === "/")
-				return new Response(html, {
+			if (request.method === "GET" && path === "/") {
+				const etag = await shellTag;
+				const unchanged = request.headers
+					.get("If-None-Match")
+					?.split(",")
+					.some((tag) => tag.trim().replace(/^W\//, "") === etag || tag.trim() === "*");
+				return new Response(unchanged ? null : html, {
+					status: unchanged ? 304 : 200,
 					headers: {
 						...headers,
+						"Cache-Control": "private, no-cache",
+						ETag: etag,
 						"Content-Type": "text/html; charset=utf-8",
 						"Content-Security-Policy":
 							"default-src 'none'; script-src 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'unsafe-inline'; img-src 'self' data: https:; manifest-src 'self'; connect-src 'self'; worker-src 'self'; frame-src https://www.youtube-nocookie.com; media-src https: http:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 					},
 				});
+			}
 			throw serviceError("not_found");
 		} catch (error) {
 			return httpErrorResponse(request, config.appOrigin, error);

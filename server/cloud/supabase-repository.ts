@@ -36,6 +36,9 @@ export class SupabaseRepository {
 	workspace() {
 		return this.rpc("sill_get_workspace", {});
 	}
+	workspaceSince(revision: number) {
+		return this.rpc("sill_get_workspace_since", { known_revision: revision });
+	}
 	applyOperations(payload: any, idem: string) {
 		return this.rpc("sill_apply_operations", { payload, idem });
 	}
