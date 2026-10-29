@@ -1,6 +1,6 @@
 # 跨端性能优化
 
-状态：源码已修改，程序验证与性能收益待确认。日期：2026-10-29。
+状态：源码、远端程序检查与构建通过；性能收益未测量。日期：2026-10-29。
 
 ## 定位与处理
 
@@ -22,3 +22,9 @@
 ## CI 定位记录
 
 首轮集成测试中，新测试将浏览器 JWT 放入 Bearer 头，接口按外部调用认证而返回 401，未进入工作区读取。改为既有浏览器测试使用的会话 Cookie 后重新验证。首轮 Web 构建、类型检查、前端回归和 PWA 页面版本校验已通过；这不是性能测量。
+
+## 最终程序验证
+
+- 代码提交 `78fa7b92`：[集成测试](https://github.com/dabaige53/sill/actions/runs/40871984884)、[数据库与云端浏览器检查](https://github.com/dabaige53/sill/actions/runs/40871984760)、[MCP 授权策略检查](https://github.com/dabaige53/sill/actions/runs/40871984821) 全部通过。
+- Mac 源码提交 `a71ea89a`：[Swift 测试与构建](https://github.com/dabaige53/sill/actions/runs/40871609755) 通过。后续提交只改服务端测试和本文，Mac 源码不变。
+- 验证分支：`codex/cross-platform-performance`。未部署、未执行线上数据库迁移，未做用户设备上的帧率或内存验收。
