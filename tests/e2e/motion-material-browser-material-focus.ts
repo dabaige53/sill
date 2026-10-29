@@ -14,13 +14,19 @@ export async function runMaterialFocus({
 	touch: any;
 }) {
 	await scenario("Real Tab reaches a completely hidden rail from the feed", async (page) => {
-		const middle = await page.evaluate(() => {
+		const middle = await page.evaluate(async () => {
 			const buttons = document
 				.querySelector(".feed-grid > .feed-item:last-child")
 				.querySelectorAll("button");
 			(buttons[buttons.length - 1] as HTMLElement).focus({ preventScroll: true });
 			const top = Math.floor((document.documentElement.scrollHeight - innerHeight) / 2);
+			const scrolled = new Promise<void>((resolve) => {
+				window.addEventListener("scroll", () => requestAnimationFrame(() => resolve()), {
+					once: true,
+				});
+			});
 			window.scrollTo({ top, behavior: "instant" });
+			await scrolled;
 			return top;
 		});
 		await page

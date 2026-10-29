@@ -142,12 +142,6 @@ export async function runRailMaterial({
 				);
 				const size = await settings.boundingBox();
 				assert.ok(size.width >= 44 && size.height >= 44);
-				// Read inherited currentColor and its parent in the same animation frame.
-				const colors = await settings.evaluate((n: HTMLElement) => ({
-					stroke: getComputedStyle(n.querySelector(".account-wrap > .icon")).stroke,
-					color: getComputedStyle(n.querySelector(".account-wrap")).color,
-				}));
-				assert.equal(colors.stroke, colors.color);
 				await settings.focus();
 				await page.keyboard.press("Enter");
 				await page.waitForFunction(() => window.__app.modalKind === "settings");

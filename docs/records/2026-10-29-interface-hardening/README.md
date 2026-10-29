@@ -111,3 +111,9 @@ Mac 卡片菜单、阅读器工具栏和多选通过 DesktopView 的 cardIntents
 - 已修复待 CI。Web download-calendar 将标题、地点原样插入 ICS；带换行、逗号或分号的普通日程会生成错误的字段内容。Mac CalendarFile 已有转义与 CRLF。
 - Web 对齐已有 Mac 行为：转义反斜线、分号、逗号和换行，行结束使用 CRLF；不增加新入口、不改变日程或写服务器。
 - calendar-export.test.ts 通过真实 action 分派捕获下载内容，断言字段保留、单个事件和行结束符。未在本地运行程序测试，等待 CI。
+
+### Tab 前置条件与头像断言修正
+
+`40879076173` 诊断显示超时发生在主动 hide 后，dock 的 class/style 均为空，焦点仍为卡片；尚未执行 Tab。因此不能把失败称为 Tab 按钮不可达。源码审查发现 scrollTo 更新 scrollY 与 scroll 事件派发不同步，原先等待条件可能在处理滚动前成立；补充等待实际 scroll 事件及下一绘制帧，再等待休止显示完成，保留完全隐藏与 Tab 焦点断言。此原因仍待 CI 确认。
+
+头像断言还残留已删除人物 SVG 的 currentColor 检查，现删除该旧结构断言；保留头像图片实际加载、点击区域、真实 Enter 打开设置及导航状态检查。日历修复的 integration 与 authenticated data 工作流均已通过（40879615511、40879615503）。
