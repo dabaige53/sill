@@ -1,6 +1,7 @@
 import { Icon } from "../atoms/react-primitives.tsx";
 import { SillWordmark } from "../atoms/wordmark.tsx";
 import { copy } from "../copy.ts";
+import { CardTypes } from "../data/cards.ts";
 
 export const homeTabs = [
 	["all", "web.all"],
@@ -9,6 +10,14 @@ export const homeTabs = [
 	["later", "web.later"],
 	["saved", "web.bookmark"],
 ] as const;
+
+const homeTabIcons = {
+	all: "layers",
+	unread: "circle",
+	todo: CardTypes.task.icon,
+	later: "glasses",
+	saved: "bookmark",
+} as const;
 
 export function HomeScopeMenu() {
 	return (
@@ -40,6 +49,7 @@ export function HomeScopeMenu() {
 						<span className="home-menu-check" aria-hidden="true">
 							<Icon name="check" size={16} />
 						</span>
+						<Icon name={homeTabIcons[key]} />
 						<span className="home-menu-label">{copy(label)}</span>
 						<span className="home-menu-key" aria-hidden="true">
 							⌘{i + 1}

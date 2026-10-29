@@ -203,10 +203,10 @@ function toolbarTips(root: Document) {
 	let warmBar: Element | null = null;
 	root.addEventListener("pointerover", (e: PointerEvent) => {
 		if (e.pointerType !== "mouse") return;
-		const button = (e.target as Element).closest?.<HTMLElement>(".float-bar .icon-button");
+		const button = (e.target as Element).closest?.<HTMLElement>(":is(.float-bar, #selection-bar, #search-selection-bar) .icon-button");
 		if (!button || button === hoverButton) return;
 		hoverButton = button;
-		const bar = button.closest(".float-bar");
+		const bar = button.closest(".float-bar, #selection-bar, #search-selection-bar");
 		const instant = warmBar === bar;
 		const show = () => {
 			if (
@@ -238,7 +238,7 @@ function toolbarTips(root: Document) {
 		shown = null;
 	};
 	root.addEventListener("pointerdown", (e: PointerEvent) => {
-		const button = (e.target as Element).closest?.<HTMLElement>(".float-bar .icon-button");
+		const button = (e.target as Element).closest?.<HTMLElement>(":is(.float-bar, #selection-bar, #search-selection-bar) .icon-button");
 		clearTimeout(timer);
 		hide();
 		if (!button || e.pointerType === "mouse") return;

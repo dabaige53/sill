@@ -376,8 +376,8 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	-webkit-user-select: none;
 	user-select: none;
 }
-/* One name for touch, pointer and keyboard; edge controls open their names inward. */
-.float-bar .icon-button::after {
+/* One centered name for touch, pointer and keyboard. */
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button::after {
 	--tip-x: -50%;
 	content: attr(aria-label);
 	position: absolute;
@@ -395,16 +395,19 @@ body:has(#selection-bar:not([hidden])) #new-count {
 	pointer-events: none;
 	opacity: 0;
 }
-.float-bar .icon-button:is(:first-child, :last-child)::after {
-	--tip-x: 0px;
+@media (max-width: 650px) {
+	/* Keep edge labels within the compact phone viewport. */
+	:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button:is(:first-child, :last-child)::after {
+		--tip-x: 0px;
+	}
+	:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button:last-child::after {
+		left: auto;
+		right: 50%;
+	}
 }
-.float-bar .icon-button:last-child::after {
-	left: auto;
-	right: 50%;
-}
-.float-bar .icon-button.is-tipping::after,
-.float-bar .icon-button.is-hover-tipping::after,
-.float-bar .icon-button:focus-visible::after {
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button.is-tipping::after,
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button.is-hover-tipping::after,
+:is(.float-bar, #selection-bar, #search-selection-bar) .icon-button:focus-visible::after {
 	opacity: 1;
 	translate: var(--tip-x) 0;
 }
