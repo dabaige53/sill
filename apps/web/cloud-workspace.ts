@@ -1,4 +1,4 @@
-import { createElement } from "react";
+import { createElement, Fragment } from "react";
 import { paintCloudDraft, stashCloudDraft } from "./cloud-compose.ts";
 import { app, Cloud, callbackFailed, messages, sync } from "./cloud-entry.ts";
 import { copy } from "./copy.ts";
@@ -6,7 +6,8 @@ import { cloudCard } from "./data/cloud-card.ts";
 import { sameData } from "./data/same-data.ts";
 import { Store } from "./data/store.ts";
 import { PanelViews as Panels } from "./interactions/panels-components.tsx";
-import { clone, itemDefaults } from "./services/cloud-sync.ts";
+import { clone } from "./services/cloud-sync.ts";
+import { cloudViewCard } from "./services/cloud-view-state.ts";
 import { systemReminders } from "./services/system-reminders.ts";
 import { RecoveryNotice } from "./views/cloud-views.tsx";
 import { renderView } from "./views/react-renderer.ts";
@@ -201,10 +202,7 @@ export function paintRecords() {
 /** What the page draws: absent item fields read as their defaults, field order is ignored. */
 function drawnState(cards: any[], items: any, preferences: any) {
 	return {
-		cards,
-		items: Object.fromEntries(
-			cards.map((card: any) => [card.id, { ...itemDefaults(card), ...items?.[card.id] }]),
-		),
+		cards: cards.map((card: any) => cloudViewCard(card, items?.[card.id])),
 		preferences: { ...Store.fresh().preferences, ...preferences },
 	};
 }
@@ -216,6 +214,13 @@ export function adoptWorkspace(value: any) {
 			drawnState([...Cloud.records.values()], Store.state.items, Store.state.preferences),
 			drawnState(value.state.cards, value.state.items, value.state.preferences),
 		);
+	const detailChanged = !sameData(
+		cloudViewCard(Cloud.records.get(app.currentId), Store.state.items[app.currentId]),
+		cloudViewCard(
+			value.state.cards.find((card: any) => card.id === app.currentId),
+			value.state.items[app.currentId],
+		),
+	);
 	const editingIds: string[] = app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : [];
 	const editingItems = new Map<string, any>(
 		editingIds.map((id) => [id, clone(Store.state.items[id] || {})]),
@@ -244,11 +249,21 @@ export function adoptWorkspace(value: any) {
 	syncStatus();
 	if (!changed) return;
 	if (app.modalKind === "settings") app.repaintSettings();
-	if (app.modalKind === "preview" && !app.sheetLeaving) {
+	if (detailChanged && app.modalKind === "preview" && !app.sheetLeaving) {
 		const card = Store.card(app.currentId);
 		if (!card) app.closeNative();
 		else {
-			app.replacePanelContent(Panels.preview(app, card));
+			app.replacePanelContent(
+				createElement(
+					Fragment,
+					null,
+					Store.card(app.previewTrail.at(-1))
+						? createElement("div", { className: "sheet-peek", "aria-hidden": true })
+						: null,
+					Panels.preview(app, card),
+				),
+				true,
+			);
 			app.bindPreview(card.id);
 			app.gestures.bindPullDown();
 		}

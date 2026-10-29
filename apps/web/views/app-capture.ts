@@ -9,7 +9,7 @@ import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { FeedPolicy } from "../services/feed-policy.ts";
 import type { AppController } from "./app.ts";
-import { renderContent } from "./react-renderer.ts";
+import { renderContent, renderView } from "./react-renderer.ts";
 import { repaintSettings, setPref } from "./settings-controller.ts";
 
 export const appCaptureMethods = {
@@ -78,7 +78,7 @@ export const appCaptureMethods = {
 	setPref(this: AppController, key?: string, value?: unknown): unknown {
 		return setPref.call(this, key, value);
 	},
-	replacePanelContent(this: AppController, html?: ReactNode) {
+	replacePanelContent(this: AppController, html?: ReactNode, preserve = false) {
 		const oldSurface = MotionEngine.surface(this.dialog);
 		const oldBody = oldSurface.querySelector(".preview-body")?.innerHTML;
 		const active = document.activeElement as HTMLElement;
@@ -95,7 +95,8 @@ export const appCaptureMethods = {
 			?.classList.contains("is-full");
 		const toast = document.getElementById("toast");
 		if (toast && this.dialog.contains(toast)) document.body.appendChild(toast);
-		renderContent(this.dialog, html);
+		if (preserve) renderView(this.dialog, html);
+		else renderContent(this.dialog, html);
 		if (full) this.dialog.querySelector<HTMLElement>(".preview-sheet")?.classList.add("is-full");
 		if (focused) {
 			const target = [
@@ -117,6 +118,7 @@ export const appCaptureMethods = {
 		if (this.modalKind === "preview" || this.modalKind === "reader") this.bindSheetChrome();
 		const surface = MotionEngine.surface(this.dialog);
 		if (
+			!preserve &&
 			this.modalKind !== "lightbox" &&
 			this.modalKind !== "settings" &&
 			(oldBody === undefined || oldBody !== surface.querySelector(".preview-body")?.innerHTML)

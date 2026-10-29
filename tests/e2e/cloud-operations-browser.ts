@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { verifyStableDetail } from "./helpers/cloud-stable-detail.ts";
 import { mkdir, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { chromium } from "playwright";
@@ -123,6 +124,7 @@ try {
 		);
 	const action = async (name: string, id?: string, extra?: string) =>
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
+	await verifyStableDetail(page, api, action, saved, note, task);
 	const selectCards = async () => {
 		await page.evaluate(
 			(ids) => {
