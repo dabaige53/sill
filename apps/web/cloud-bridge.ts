@@ -1,34 +1,6 @@
-import {
-	App,
-	McpUiInitializeResultSchema,
-	applyDocumentTheme,
-	applyHostStyleVariables,
-} from "@modelcontextprotocol/ext-apps";
+import { App, applyDocumentTheme, applyHostStyleVariables } from "@modelcontextprotocol/ext-apps";
 import { copy } from "./copy.ts";
 import { type AgentPayload, agentFailure } from "./services/agent-handoff.ts";
-
-// Preserve vendor capabilities that the SDK otherwise strips during initialization.
-const capabilities = McpUiInitializeResultSchema.shape.hostCapabilities;
-export const hostInitializeResult = McpUiInitializeResultSchema.extend({
-	hostCapabilities: capabilities.extend({
-		experimental: capabilities.shape.experimental.unwrap().passthrough().optional(),
-	}),
-});
-class HostApp extends App {
-	override request<T>(
-		request: Parameters<App["request"]>[0],
-		schema: T,
-		options?: Parameters<App["request"]>[2],
-	): any {
-		return super.request(
-			request,
-			(request.method === "ui/initialize" ? hostInitializeResult : schema) as Parameters<
-				App["request"]
-			>[1],
-			options,
-		);
-	}
-}
 
 const statuses = {
 	invalid_request: 400,
@@ -100,13 +72,12 @@ export function createHostActions(bridge: HostBridge, ready: Promise<unknown>) {
 						},
 					},
 				];
-				let result: Awaited<ReturnType<App["updateModelContext"]>>;
 				try {
-					result = await bridge.updateModelContext({ content: next }, { timeout: 20000 });
+					await bridge.updateModelContext({ content: next }, { timeout: 20000 });
 				} catch {
 					throw agentFailure("message_unknown", copy("web.agent.unknown"));
 				}
-				if (result.isError) throw agentFailure("message_rejected", copy("web.agent.rejected"));
+
 				content = next;
 				if (!current()) throw agentFailure("account_changed", copy("web.agent.accountChanged"));
 			});
@@ -263,7 +234,7 @@ export function createCloudTransport(call?: any) {
 }
 
 export function startCloudBridge() {
-	const bridge = new HostApp(
+	const bridge = new App(
 		{ name: copy("web.cloudbridge.d4fc4b75f2fe"), version: "0.5.0" },
 		{},
 		{ autoResize: false },

@@ -47,7 +47,8 @@ function fixture() {
 		async updateModelContext(value) {
 			contexts.push(value);
 			if (flags.loseReceipt) throw new Error("Synthetic receipt loss");
-			return { isError: flags.reject };
+			if (flags.reject) throw new Error("Rejected context");
+			return {};
 		},
 		async sendMessage(value) {
 			messages.push(value);
@@ -113,7 +114,7 @@ test("unsupported hosts, rejected updates and changed accounts never send", asyn
 	f.flags.reject = true;
 	await assert.rejects(
 		f.actions.discuss(payload, () => true),
-		{ code: "message_rejected" },
+		{ code: "message_unknown" },
 	);
 	assert.equal(f.messages.length, 0);
 });

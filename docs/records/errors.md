@@ -14,3 +14,5 @@
 | 2026-10-29 | Web 旧速记流程 | 记一笔已删除仍进入速记编辑、内联编辑残留、自动保存 | [删除速记专属流程](2026-10-29-quick-capture-removal/README.md) |
 | 2026-10-29 | 本地同步测试 | local-sync、备注冲突、bulk tags、editorLayer、旧测试模拟 | [发布检查诊断](2026-10-29-product-refresh/README.md#发布检查诊断) |
 | 2026-10-29 | 云端示例 | welcome-demo、loadDemo、示例写入账号、无法退出示例 | [发布产品仅使用云端数据](2026-10-29-cloud-only/README.md) |
+
+| 2026-10-29 | MCP SDK | McpUiInitializeResultSchema、request、isError 类型错误 | [Codex 卡片引用发布](2026-10-29-codex-card-context/README.md#发布检查诊断) |

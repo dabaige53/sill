@@ -65,3 +65,5 @@
 - [数据契约](../contracts/README.md)
 - [设计系统](../design-system/README.md)
 - [脚本](../scripts/README.md)与[测试](../tests/README.md)
+
+- [Codex 卡片引用发布](records/2026-10-29-codex-card-context/README.md)
