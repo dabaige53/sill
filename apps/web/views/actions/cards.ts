@@ -8,6 +8,7 @@ import {
 	shakeTag,
 } from "../../interactions/tag-input-motion.ts";
 import type { AppController } from "../app.ts";
+import { repaintDetail } from "../preview-controller.ts";
 import { renderView } from "../react-renderer.ts";
 import type { ActionContext, ActionHandler } from "./types.ts";
 
@@ -76,7 +77,7 @@ const MAX_TAGS = 20;
 function paintTags(this: AppController, added: string[], typed: boolean, removed?: string) {
 	const before = captureTags(document.getElementById("editor-tags"), removed);
 	const note = (document.getElementById("note-editor") as HTMLInputElement)?.value;
-	renderView(this.dialog, Panels.editor(this, this.editId));
+	renderView(this.editorLayer, Panels.editor(this, this.editId));
 	if (note !== undefined) (document.getElementById("note-editor") as HTMLInputElement).value = note;
 	settleTags(document.getElementById("editor-tags"), before, added, typed);
 }
@@ -144,9 +145,9 @@ function saveNote(this: AppController, { id }: ActionContext) {
 		Store.setTags(cardId, [...this.editTags]);
 		if (i === 0) Store.patch(cardId, { note });
 		this.refreshCard(cardId);
+		repaintDetail(this, cardId);
 	});
-	this.bulkEditIds = null;
-	this.closeModal();
+	this.closeEditor();
 	this.toast(
 		Store.state.storageAvailable
 			? window.__QG_LOCAL__

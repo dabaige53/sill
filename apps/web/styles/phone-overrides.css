@@ -83,10 +83,14 @@
 	:is(#modal, .phone-layer).preview[data-phone-drawer]::backdrop {
 		background: transparent;
 	}
+	/* The drawer keeps its own layer (Vaul's will-change); the dim keeps one too. When its fade-in
+	   ended, iOS folded it into the page and repainted the drawer and its toolbar, a blink just as
+	   the card settled. */
 	:is(#modal, .phone-layer).preview .phone-drawer-overlay {
 		position: absolute;
 		inset: 0;
 		background: var(--dim);
+		will-change: opacity;
 	}
 	/* The drawer opens above search too: its page sits at z-index 40 beside the dialog. */
 	:is(#modal, .phone-layer).preview[data-phone-drawer] {
@@ -94,20 +98,20 @@
 	}
 	/* Content and every bottom control share Vaul's moving surface. */
 	:is(#modal, .phone-layer).preview[data-phone-drawer] {
-		background: linear-gradient(to top, var(--shadow) 12px, transparent 12px);
+		background: linear-gradient(to top, var(--card) var(--space-12), transparent var(--space-12));
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer {
 		position: absolute;
-		inset: auto 0 12px;
+		inset: auto 0 0;
 		display: flex;
 		flex-direction: column;
 		height: auto;
 		min-height: 70dvh;
 		/* 24px under the status bar, as Vaul shifts the page by the bar plus 14px. A home-screen app
 		   reports the bar as ~59px and a Safari tab as 0; max() let the drawer meet the bar in the app. */
-		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - 12px);
+		max-height: calc(100dvh - env(safe-area-inset-top) - 24px);
 		background: var(--card);
-		border-radius: var(--sheet-radius);
+		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
 		outline: none;
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer::after {
@@ -138,7 +142,7 @@
 		/* A scroll that reaches the end stays in the drawer instead of moving the page behind it. */
 		overscroll-behavior: contain;
 		height: auto;
-		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - 12px - env(safe-area-inset-bottom));
+		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - env(safe-area-inset-bottom));
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
 		position: absolute;

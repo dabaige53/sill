@@ -139,7 +139,7 @@ test("phone search follows the supplied choreography and reverses from the drawn
 			"card suggestions wait for the keyboard; the header move does not carry them",
 		);
 		const nav = f.document.querySelector("#dock");
-		for (const actor of [nav, f.document.querySelector(".search-browse")]) {
+		for (const actor of [f.document.querySelector(".search-browse")]) {
 			const travel = f.animations.find(
 				(animation) => animation.target === actor && "transform" in animation.frames[0],
 			);
@@ -150,6 +150,10 @@ test("phone search follows the supplied choreography and reverses from the drawn
 			);
 		}
 		assert.equal(nav.inert, true);
+		f.api.syncPhoneSearchKeyboard(dialog, false);
+		assert.equal(nav.inert, true, "dismissing the keyboard keeps editing navigation hidden");
+		assert.equal(dialog.classList.contains("search-moving"), true);
+		assert.ok(!f.animations.some((animation) => animation.target === nav));
 		assert.equal(f.document.querySelectorAll("nav button").length, 3);
 		assert.equal(f.document.querySelector(".keyboard"), null);
 		// Retarget a half-drawn header, without jumping to either static endpoint first.

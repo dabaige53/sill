@@ -16,7 +16,7 @@ import { token } from "./helpers/signed-auth.ts";
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 const examples = [
-	...read("../../skills/sill/references/cards.md").matchAll(/```json\n([\s\S]*?)\n```/g),
+	...read("../../skills/sill-cards/references/types.md").matchAll(/```json\n([\s\S]*?)\n```/g),
 ].map((match) => JSON.parse(match[1]));
 const catalog = JSON.parse(read("../../contracts/design/mcp-tools.json"));
 
@@ -34,13 +34,18 @@ test("skill recipes cover current card kinds and every writable field", () => {
 		const { state: _, ...fields } = card;
 		assert.deepEqual(Card.parse({ id: "recipe", ...fields }), { id: "recipe", ...fields });
 	}
-	const dictionary = read("../../skills/sill/references/fields.md");
+	const dictionary = read("../../skills/sill-cards/references/fields.md");
 	for (const key of Object.keys(Card.shape)) assert.ok(dictionary.includes("`" + key + "`"), key);
-	const operations = read("../../skills/sill/references/operations.md");
-	for (const key of [...Object.keys(cloudState.shape), ...Object.keys(cloudPreferences.shape)])
+	const operations = read("../../skills/sill-operations/references/operations.md");
+	for (const key of Object.keys(cloudState.shape))
 		assert.ok(operations.includes("`" + key + "`"), key);
+	const settings = read("../../skills/sill-operations/references/settings.md");
+	for (const key of Object.keys(cloudPreferences.shape))
+		assert.ok(settings.includes("`" + key + "`"), key);
 	const transport = [
-		...read("../../skills/sill/references/transport.md").matchAll(/```json\n([\s\S]*?)\n```/g),
+		...read("../../skills/sill-cards/references/transport.md").matchAll(
+			/```json\n([\s\S]*?)\n```/g,
+		),
 	].map((match) => JSON.parse(match[1]));
 	assert.deepEqual(toolInputs.sill_createContent.parse(transport[0]), transport[0]);
 	assert.deepEqual(toolInputs.sill_updateContent.parse(transport[1]), transport[1]);

@@ -11,7 +11,6 @@ import { MotionEngine } from "../interactions/motion.ts";
 import { placeNavigationLens } from "../interactions/navigation-lens.ts";
 import { syncPhoneSearchKeyboard } from "../interactions/phone-search-motion.ts";
 import { paintStatusBar, watchStatusBar } from "../interactions/status-bar.ts";
-import { armLastTag } from "../interactions/tag-input-motion.ts";
 import type { AppController } from "./app.ts";
 import { flushReadingProgress } from "./app-panels.ts";
 import { PAGE_KINDS, type TargetEvent, type ViewDialog, type ViewElement } from "./app-types.ts";
@@ -117,7 +116,6 @@ export const appLifecycleMethods = {
 		// The keyboard went away but the search stays: the tab bar comes back and takes taps again.
 		// A tap that refocuses the field (a history row, a token) lands within the settle delay.
 		document.addEventListener("focusout", (e?: TargetEvent<FocusEvent>) => {
-			if (e.target.id === "tag-new") armLastTag(document.getElementById("editor-tags"), false);
 			if (e.target.id !== "filter-search" || this.desktop()) return;
 			window.setTimeout(() => {
 				if (this.modalKind !== "search" || document.activeElement?.id === "filter-search") return;
@@ -131,7 +129,17 @@ export const appLifecycleMethods = {
 			// A chip's × removes it without taking the caret out of the tag field.
 			if (e.target.closest?.("#editor-tags .tag-pill button")) e.preventDefault();
 			const phoneSearch = e.target.closest?.<HTMLElement>(".search-header .search-pill");
-			if (phoneSearch && !this.desktop() && !e.target.closest?.("button,input")) {
+			// The first tap on the field itself is focused here too: iOS's own focus scrolled the field
+			// into view from where it sat before the bar moved up, and once the keyboard settled the
+			// page shifted up a little more. A tap in a focused field still places the caret natively.
+			const firstTap =
+				e.target.id === "filter-search" && document.activeElement?.id !== "filter-search";
+			if (
+				phoneSearch &&
+				!this.desktop() &&
+				!e.target.closest?.("button") &&
+				(firstTap || !e.target.closest?.("input"))
+			) {
 				e.preventDefault();
 				phoneSearch
 					.querySelector<HTMLInputElement>("#filter-search")

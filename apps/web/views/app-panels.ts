@@ -4,6 +4,7 @@ import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
+import { armLastTag } from "../interactions/tag-input-motion.ts";
 import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import type { AppController } from "./app.ts";
 import type { ViewDialog } from "./app-types.ts";
@@ -16,6 +17,8 @@ import { releaseView, renderContent, renderView } from "./react-renderer.ts";
 const PROGRESS_WRITE_MS = 500;
 const pendingProgress = new Map<string, number>();
 const pagedResults = new WeakSet<HTMLElement>();
+const editorLayers = new WeakSet<HTMLElement>();
+let editorToken = 0;
 let progressTimer = 0;
 export function flushReadingProgress() {
 	clearTimeout(progressTimer);
@@ -38,37 +41,30 @@ export const appPanelsMethods = {
 			this.navigate("#search");
 			return;
 		}
+		if (kind === "editor") {
+			this.openEditor(id);
+			return;
+		}
 		if (kind === "search") this.panelReturn = null;
-		else if (
-			["preview", "reader"].includes(this.modalKind) ||
-			(this.modalKind === "lightbox" && kind === "editor")
-		) {
+		else if (["preview", "reader"].includes(this.modalKind)) {
 			const cardId = this.currentId,
-				reading = this.modalKind === "reader",
-				photoIndex = this.modalKind === "lightbox" ? this.photoIndex : null;
-			this.panelReturn = () => {
-				this.openCard(cardId, reading);
-				if (photoIndex !== null && this.modalKind === "lightbox")
-					this.action("photo-go", cardId, String(photoIndex));
-			};
+				reading = this.modalKind === "reader";
+			this.panelReturn = () => this.openCard(cardId, reading);
 		}
 		this.editId = id;
 		if (["search", "settings", "ai"].includes(kind)) this.setNav(kind);
-		if (kind === "editor") this.editTags = new Set<string>(Store.tags(Store.card(id)));
-		const narrow = ["editor", "confirm", "ai"].includes(kind),
+		const narrow = ["confirm", "ai"].includes(kind),
 			wide = kind === "settings";
 		const html =
 			kind === "search"
 				? Panels.search(this)
-				: kind === "editor"
-					? Panels.editor(this, id)
-					: kind === "settings"
-						? Panels.settings(this, this.settingsGroup)
-						: kind === "ai"
-							? Panels.ai(this)
-							: kind === "archive"
-								? Panels.archive(this, id)
-								: "";
+				: kind === "settings"
+					? Panels.settings(this, this.settingsGroup)
+					: kind === "ai"
+						? Panels.ai(this)
+						: kind === "archive"
+							? Panels.archive(this, id)
+							: "";
 		this.openModal(
 			html,
 			kind,
@@ -81,6 +77,111 @@ export const appPanelsMethods = {
 			this.bindSearchResults();
 			this.revealImages(this.dialog);
 		}
+	},
+	/**
+	 * Tags and note float on their own layer over whatever is open: the card, page or photo
+	 * underneath keeps its content, scroll and player, and is there again when the layer closes.
+	 */
+	// @design tag-layer
+	openEditor(this: AppController, id: string) {
+		const layer = (this.editorLayer ||= document.getElementById("tag-layer") as ViewDialog);
+		if (!editorLayers.has(layer)) {
+			editorLayers.add(layer);
+			layer.addEventListener("cancel", (e) => {
+				e.preventDefault();
+				this.closeEditor();
+			});
+			// A phone card drawer underneath traps focus at the document; focus moving inside the
+			// layer stops here so the drawer does not pull it back.
+			for (const type of ["focusin", "focusout"])
+				layer.addEventListener(type, (e) => {
+					if (type === "focusout" && (e.target as HTMLElement).id === "tag-new")
+						armLastTag(layer.querySelector("#editor-tags"), false);
+					e.stopPropagation();
+				});
+			layer.addEventListener("click", (e) => {
+				// A click on the dim, outside the sheet, closes the layer only.
+				const r = layer.firstElementChild?.getBoundingClientRect();
+				const inside =
+					r &&
+					e.clientX >= r.left &&
+					e.clientX <= r.right &&
+					e.clientY >= r.top &&
+					e.clientY <= r.bottom;
+				if (e.target === layer && !inside) this.closeEditor();
+			});
+		}
+		editorToken++;
+		this.editId = id;
+		this.editTags = new Set<string>(Store.tags(Store.card(id)));
+		MotionEngine.cancelPanel(layer);
+		layer.inert = false;
+		renderContent(layer, Panels.editor(this, id));
+		if (!layer.open) {
+			this.editorFocus = document.activeElement as HTMLElement;
+			// Opened from the desk, nothing else holds the page still.
+			if (!this.dialog.open) this.lockPageScroll();
+			layer.showModal();
+			// The drawer hid the rest of the page from assistive tech when it opened, this layer included.
+			layer.removeAttribute("aria-hidden");
+		}
+		if (this.desktop() || MotionEngine.keyboard) MotionEngine.openPanel(layer);
+		else {
+			// On a phone the layer rises from the bottom like the card drawer, its dim with it.
+			MotionEngine.dim(layer, 0);
+			MotionEngine.dim(layer, 1, MotionEngine.time("dur-sheet"));
+			MotionEngine.panelAnimations.set(layer, [
+				MotionEngine.animate(
+					layer,
+					[{ transform: "translateY(100%)" }, { transform: "translateY(0)" }],
+					{ duration: MotionEngine.time("dur-sheet"), easing: MotionEngine.curve("ease-sheet") },
+				),
+			]);
+		}
+		layer.querySelector<HTMLElement>("#tag-new")?.focus({ preventScroll: true });
+	},
+	closeEditor(this: AppController, animate = true) {
+		const layer = this.editorLayer;
+		if (!layer?.open) return;
+		this.bulkEditIds = null;
+		const token = ++editorToken;
+		const finish = () => {
+			if (editorToken !== token) return;
+			MotionEngine.cancelPanel(layer);
+			MotionEngine.dim(layer, null);
+			layer.inert = false;
+			releaseView(layer);
+			layer.close();
+			if (!this.dialog.open) this.unlockPageScroll();
+			const back = this.editorFocus;
+			this.editorFocus = null;
+			if (back?.isConnected && !back.closest("[inert]")) back.focus({ preventScroll: true });
+		};
+		if (!animate || MotionEngine.keyboard) return finish();
+		// Desktop: the same short fall and fade as any panel. Phone: back down the way it came.
+		const phone = !this.desktop();
+		const duration = MotionEngine.time(phone ? "dur-sheet" : "dur-close");
+		const { opacity, transform } = getComputedStyle(layer);
+		layer.inert = true;
+		MotionEngine.cancelPanel(layer);
+		MotionEngine.dim(layer, 0, duration);
+		const animation = MotionEngine.animate(
+			layer,
+			phone
+				? [{ transform }, { transform: "translateY(100%)" }]
+				: [
+						{ opacity, transform },
+						{ opacity: 0, transform: "translateY(10px)" },
+					],
+			{
+				duration,
+				fill: "forwards",
+				...(phone ? { easing: MotionEngine.curve("ease-sheet") } : {}),
+			},
+		);
+		MotionEngine.panelAnimations.set(layer, [animation]);
+		if (animation) animation.finished.then(finish, () => {});
+		else finish();
 	},
 	bindSearchResults(this: AppController) {
 		this.bindSearchSelection();

@@ -636,7 +636,7 @@ body.is-dragging #toast {
 
 @media (min-width: 651px) {
 	.ai-dock-input::placeholder {
-		color: var(--secondary);
+		color: var(--ink);
 		opacity: 1;
 	}
 	#search-selection-bar {
@@ -715,8 +715,12 @@ body.is-dragging #toast {
 	}
 }
 
-.toggle { touch-action: none; }
-.toggle[data-live-toggle] { background: var(--toggle-off); }
+.toggle {
+	touch-action: none;
+}
+.toggle[data-live-toggle] {
+	background: var(--toggle-off);
+}
 .toggle-fill {
 	position: absolute;
 	inset: 0;

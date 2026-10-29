@@ -169,7 +169,7 @@ test("all eleven card fixtures round-trip through cloud storage and skill exampl
 				assert.deepEqual(result.body[key], value, sample.name + ":" + key);
 		}
 		const guide = await readFile(
-			new URL("../../skills/sill/references/cards.md", import.meta.url),
+			new URL("../../skills/sill-cards/references/types.md", import.meta.url),
 			"utf8",
 		);
 		for (const [index, match] of [...guide.matchAll(/```json\n([\s\S]*?)\n```/g)].entries()) {

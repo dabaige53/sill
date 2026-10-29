@@ -53,6 +53,12 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 		await client.connect(transport);
 		const list = await client.listTools();
 		assert.equal(list.tools.length, 9);
+		const hints = Object.fromEntries(list.tools.map((t?: any) => [t.name, t.annotations]));
+		assert.equal(hints.sill_getContent.readOnlyHint, true);
+		assert.equal(hints.sill_createContent.destructiveHint, false);
+		assert.equal(hints.sill_submitEvent.destructiveHint, false);
+		assert.equal(hints.sill_updateContent.destructiveHint, true);
+		assert.equal(hints.sill_deleteContent.destructiveHint, true);
 		const args: Record<string, any> = {
 			idempotency_key: "mcp_create1",
 			body: {
@@ -242,6 +248,18 @@ test("official MCP client discovers/calls nine contracts over authenticated stat
 			arguments: { ...args, body: { ...args.body, owner_id: A } },
 		});
 		assert.equal(bad.isError, true);
+		// Agents must see which field was rejected, not only invalid_request.
+		const rejected = JSON.parse(bad.content[0].text).error;
+		assert.equal(rejected.code, "invalid_request");
+		assert.ok(rejected.issues.some((issue?: any) => issue.message.includes("owner_id")));
+		const event = await client.callTool({
+			name: "sill_createContent",
+			arguments: {
+				idempotency_key: "mcp_bad_event",
+				body: { type: "event", title: "Bad span", start: 10, end: 5 },
+			},
+		});
+		assert.ok(JSON.parse(event.content[0].text).error.issues.length > 0);
 		await f.db.exec(
 			`reset role;update sill_private.caller_grants set scopes=array['content:read'],resources=array['${one.id}'] where caller_id='oauth:codex-test';`,
 		);

@@ -215,6 +215,11 @@ function clearTravel(el: HTMLElement) {
 	moving.delete(el);
 }
 
+/** Whether Sill motion is still playing on this element (including a delayed start). */
+export function isPlaying(el: Element) {
+	return !!active.get(el)?.size;
+}
+
 export function cancelMotion(el: Element, subtree = false) {
 	for (const [target, animations] of active) {
 		if (target === el || (subtree && el.contains(target)) || !target.isConnected)

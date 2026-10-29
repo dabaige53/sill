@@ -144,6 +144,7 @@ export const appFeedMethods = {
 		return feedView(this, heldId, taskPreviewOrder);
 	},
 	renderCurrent(this: AppController, animate = false) {
+		const stage = this.bootStage();
 		const heights = new Map(
 			[...this.grid.querySelectorAll<HTMLElement>("[data-card]")].map((n) => [
 				n.dataset.card,
@@ -166,6 +167,11 @@ export const appFeedMethods = {
 		this.grid.style.removeProperty("min-height");
 		document.body.dataset.view = this.mode;
 		renderView(this.grid, this.deskView(focusedCardId, taskPreviewOrder));
+		// Placeholders breathe; the placeholders and then the first cards arrive with one fade.
+		for (const shell of this.grid.querySelectorAll<HTMLElement>(".feed-skeleton"))
+			MotionEngine.breathe(shell);
+		const next = this.bootStage();
+		if (stage !== "ready" && next !== stage && next !== "boot") MotionEngine.arrive(this.grid);
 		const focusedCard = focusedCardId
 			? this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(focusedCardId)}"]`)
 			: null;
@@ -212,9 +218,14 @@ export const appFeedMethods = {
 					MotionEngine.enter(n, i < 10 ? i * MotionEngine.time("stagger") : 0);
 				});
 	},
+	/** Launch: an empty desk ("boot"), card placeholders ("skeleton"), then the real desk. */
+	bootStage(this: AppController) {
+		if (this.grid.querySelector(".feed-skeleton")) return "skeleton";
+		return this.grid.querySelector(".feed-boot") ? "boot" : "ready";
+	},
+	/** Cached covers show at once; a newly loaded one on screen, first screen included, fades in. */
 	revealImages(this: AppController, root?: ParentNode) {
 		root.querySelectorAll<HTMLImageElement>("img.card-image").forEach((img) => {
-			const initial = this.initializing;
 			if (this.loadedImages.has(img.src)) {
 				img.classList.add("is-loaded");
 				return;
@@ -226,10 +237,20 @@ export const appFeedMethods = {
 				}
 				this.loadedImages.add(img.src);
 				img.classList.add("is-loaded");
-				if (!initial)
-					MotionEngine.animate(img, [{ opacity: 0 }, { opacity: getComputedStyle(img).opacity }], {
-						duration: MotionEngine.time("fast"),
-					});
+				// A cover whose card (or desk) is still coming in arrives with it, not as a second blink.
+				// One that loads off screen or under a card drawer shows at once: opening the first card
+				// shrinks the page, lazy covers below start loading, and their fades blinked the cards there.
+				const card = img.closest<HTMLElement>("[data-card]");
+				const box = img.getBoundingClientRect();
+				const inView =
+					box.bottom >= 0 &&
+					box.top < window.innerHeight &&
+					!document.body.classList.contains("is-drawer-scaled");
+				if (
+					inView &&
+					(!card || !(MotionEngine.playing(card) || MotionEngine.playing(card.parentElement)))
+				)
+					MotionEngine.arrive(img, getComputedStyle(img).opacity);
 				this.layout.schedule(false);
 			};
 			if (img.complete && img.naturalWidth) requestAnimationFrame(done);

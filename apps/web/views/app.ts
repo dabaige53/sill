@@ -94,6 +94,7 @@ class AppController {
 	declare filtered: AppControllerMethods["filtered"];
 	declare deskView: AppControllerMethods["deskView"];
 	declare renderCurrent: AppControllerMethods["renderCurrent"];
+	declare bootStage: AppControllerMethods["bootStage"];
 	declare revealImages: AppControllerMethods["revealImages"];
 	declare refreshCard: AppControllerMethods["refreshCard"];
 	declare updateFilterIndicator: AppControllerMethods["updateFilterIndicator"];
@@ -131,6 +132,8 @@ class AppController {
 	declare restoreSearch: AppControllerMethods["restoreSearch"];
 	declare discardSearchBackground: AppControllerMethods["discardSearchBackground"];
 	declare swapPanel: AppControllerMethods["swapPanel"];
+	declare openEditor: AppControllerMethods["openEditor"];
+	declare closeEditor: AppControllerMethods["closeEditor"];
 	declare openCard: AppControllerMethods["openCard"];
 	declare bindPreview: AppControllerMethods["bindPreview"];
 	declare bindReading: AppControllerMethods["bindReading"];
@@ -236,6 +239,8 @@ class AppController {
 	previewSizeObserver?: ResizeObserver;
 	declare editId: string;
 	declare editTags: Set<string>;
+	declare editorLayer: ViewDialog;
+	declare editorFocus: HTMLElement | null;
 	declare toastTimer: number;
 	toastRemaining = 0;
 	toastStarted = 0;

@@ -6939,6 +6939,8 @@
                   "idempotency_conflict",
                   "cursor_expired",
                   "rate_limited",
+                  "backup_auth_failed",
+                  "backup_unknown",
                   "unavailable"
                 ]
               },
@@ -6958,6 +6960,28 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
+              },
+              "issues": {
+                "description": "Rejected input paths and reasons; present only for invalid_request.",
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string",
+                      "maxLength": 300
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
               }
             },
             "required": [

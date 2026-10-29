@@ -154,7 +154,7 @@ body.is-pulling main {
 /* Nested content follows its dragged parent immediately. */
 
 /* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
-:is(#modal, .phone-layer).panel .sheet {
+:is(#modal, .phone-layer, #tag-layer).panel .sheet {
 	max-height: 100dvh;
 	overflow-y: auto;
 	overscroll-behavior: contain;

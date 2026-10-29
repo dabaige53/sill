@@ -27,13 +27,21 @@
 .feed-item.feed-card {
 	position: absolute;
 }
+@supports (corner-shape: superellipse(1.25)) {
+	.feed-card,
+	.feed-card::after,
+	.card-cover,
+	.ref {
+		corner-shape: superellipse(1.25);
+	}
+}
 @media (hover: hover) and (pointer: fine) {
 	.feed-card:hover {
 		border-color: var(--line-hover);
 		box-shadow: var(--shadow-hover);
 	}
 }
-.feed-card:focus-within {
+:root:not([data-input-modality="pointer"]) .feed-card:focus-within {
 	border-color: var(--line-hover);
 	box-shadow: var(--shadow-hover);
 }
@@ -202,15 +210,6 @@
 }
 .quote-text .card-title-button {
 	-webkit-line-clamp: 4;
-}
-.note-text {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-	line-height: 1.55;
-	font-weight: calc(400 + var(--content-weight-add, 0));
-	letter-spacing: 0;
-}
-.note-text .card-title-button {
-	-webkit-line-clamp: 6;
 }
 .key-points {
 	list-style: none;
@@ -381,7 +380,7 @@
 	gap: var(--space-8);
 	min-height: 36px;
 	padding: 9px var(--space-10);
-	border-radius: var(--space-12);
+	border-radius: var(--control-radius);
 	background: var(--surface);
 	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 	color: var(--ink);
@@ -411,12 +410,6 @@ button.ref:active {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-6);
-}
-.attachment {
-	align-self: flex-start;
-	width: auto;
-	margin-top: var(--space-4);
-	padding-right: var(--space-12);
 }
 .event-time {
 	display: flex;

@@ -234,12 +234,19 @@ export const cloudSchemas = {
 						"idempotency_conflict",
 						"cursor_expired",
 						"rate_limited",
+						"backup_auth_failed",
+						"backup_unknown",
 						"unavailable",
 					]),
 					message: z.string(),
 					request_id: id,
 					current_revision: revision.optional(),
 					retry_after_seconds: z.number().int().nonnegative().optional(),
+					issues: z
+						.array(z.object({ path: z.string(), message: z.string().max(300) }).strict())
+						.max(20)
+						.optional()
+						.describe("Rejected input paths and reasons; present only for invalid_request."),
 				})
 				.strict(),
 		})

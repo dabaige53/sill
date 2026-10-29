@@ -32,10 +32,15 @@
 			calc(var(--rail-bottom) + var(--rail-row) + var(--space-16) + var(--kb, 0px));
 		gap: var(--space-16);
 	}
+	/* Give the nested results viewport a definite share of the page height on WebKit. */
+	:is(:is(#modal, .phone-layer), #search-background).page.search .search-results-region {
+		flex: 1 1 auto;
+		height: 0;
+	}
 	/* Keyboard, pages and photos */
-	:is(#modal, .phone-layer).panel,
-	:is(#modal, .phone-layer).panel.narrow,
-	:is(#modal, .phone-layer).panel.wide {
+	:is(#modal, .phone-layer, #tag-layer).panel,
+	:is(#modal, .phone-layer, #tag-layer).panel.narrow,
+	:is(#modal, .phone-layer, #tag-layer).panel.wide {
 		position: fixed;
 		inset: auto 0 0;
 		margin: 0;
@@ -46,17 +51,20 @@
 		padding: var(--space-22) var(--space-20) var(--space-26);
 	}
 	/* Sheets that take typing sit above the keyboard; the rail steps away while it is up. */
-	:is(#modal, .phone-layer).panel,
-	:is(#modal, .phone-layer).panel.narrow,
-	:is(#modal, .phone-layer).panel.wide {
+	:is(#modal, .phone-layer, #tag-layer).panel,
+	:is(#modal, .phone-layer, #tag-layer).panel.narrow,
+	:is(#modal, .phone-layer, #tag-layer).panel.wide {
 		bottom: var(--kb, 0px);
 	}
-	:is(#modal, .phone-layer).panel .sheet {
+	:is(#modal, .phone-layer, #tag-layer).panel .sheet {
 		max-height: calc(100dvh - var(--kb, 0px));
 	}
-	/* Phone search moves the capsule itself (phone-search-motion.ts); a second writer here hid it
-	   again after that motion and popped it back once the keyboard crossed 120px. */
-	body.keyboard-open:not(:has(:is(#modal, .phone-layer).search[open])) #dock,
+	/* Hide navigation as soon as AI typing starts, before viewport keyboard detection. */
+	body:has(:is(#modal, .phone-layer)[open] .ai-conversation #ai-local-draft:focus) #dock,
+	body.keyboard-open:not(:has(:is(#modal, .phone-layer).search[open])) #dock {
+		visibility: hidden !important;
+		pointer-events: none;
+	}
 	body.keyboard-open .scroll-edge {
 		opacity: 0;
 		visibility: hidden;

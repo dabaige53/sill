@@ -23,10 +23,10 @@ test("opening a card from Markdown navigates the existing surface without openin
 	}
 });
 
-test("closing photo tags returns to the same photo index", () => {
+test("tags open over the photo and close back to it without reopening", () => {
 	const f = fixture();
 	try {
-		const { app, Store } = f;
+		const { app, Store, w } = f;
 		Store.state.cards = [
 			{ id: "photo-one", type: "photo", title: "合成照片", images: ["coast", "mountain"] },
 		];
@@ -34,25 +34,24 @@ test("closing photo tags returns to the same photo index", () => {
 		app.modalKind = "lightbox";
 		app.photoIndex = 1;
 		app.panelReturn = null;
-		app.openModal = (html: string, kind: string) => {
-			app.dialog.innerHTML = typeof html === "string" ? html : renderToStaticMarkup(html);
-			app.modalKind = kind;
-		};
-		const returned: unknown[] = [];
-		app.openCard = (id: string, reading: boolean) => {
-			returned.push([id, reading]);
-			app.modalKind = "lightbox";
-			app.photoIndex = 0;
-		};
-		app.action = (...args: unknown[]) => returned.push(args);
+		app.dialog.innerHTML = '<div class="synthetic-photo"></div>';
+		const photo = app.dialog.firstElementChild;
+		const layer = w.document.createElement("dialog");
+		layer.id = "tag-layer";
+		layer.showModal = () => layer.setAttribute("open", "");
+		layer.close = () => layer.removeAttribute("open");
+		w.document.body.append(layer);
+		app.openCard = () => assert.fail("the photo must stay open, not reopen");
 		app.openPanel("editor", "photo-one");
-		assert.equal(typeof app.panelReturn, "function");
-		app.closeModal();
-		assert.deepEqual(returned, [
-			["photo-one", false],
-			["photo-go", "photo-one", "1"],
-		]);
+		assert.equal(layer.open, true);
+		assert.ok(layer.querySelector("#tag-new"));
+		assert.equal(app.modalKind, "lightbox");
 		assert.equal(app.panelReturn, null);
+		app.closeEditor(false);
+		assert.equal(layer.open, false);
+		assert.equal(app.modalKind, "lightbox");
+		assert.equal(app.photoIndex, 1);
+		assert.equal(app.dialog.firstElementChild, photo);
 	} finally {
 		f.dom.window.close();
 	}

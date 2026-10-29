@@ -1,12 +1,12 @@
 /* Panels: a sheet with a title, rows and quiet actions. */
-:is(#modal, .phone-layer).panel {
+:is(#modal, .phone-layer, #tag-layer).panel {
 	width: min(560px, calc(100vw - 32px));
 	margin: auto;
 }
-:is(#modal, .phone-layer).panel.narrow {
+:is(#modal, .phone-layer, #tag-layer).panel.narrow {
 	width: min(440px, calc(100vw - 32px));
 }
-:is(#modal, .phone-layer).panel.wide {
+:is(#modal, .phone-layer, #tag-layer).panel.wide {
 	width: min(840px, calc(100vw - 32px));
 }
 .panel-content {
@@ -822,6 +822,7 @@ body.has-open-search #feed-grid {
 		z-index: 1;
 		overflow: auto;
 		overscroll-behavior: contain;
+		scrollbar-width: none;
 		padding: var(--space-4) 0;
 		background: var(--card);
 		transform-origin: top center;
@@ -836,9 +837,51 @@ body.has-open-search #feed-grid {
 		visibility: visible;
 		pointer-events: auto;
 	}
-	/* The tab bar leaves with the keyboard only; a submitted search shows it again (search-keyboard). */
-	body:has(:is(#modal, .phone-layer).search.search-keyboard) #dock {
+	.search .search-suggest::-webkit-scrollbar {
+		display: none;
+	}
+	/* # puts statuses and tags where the card suggestions were: page colour, the same rows and hairlines. */
+	.search .search-suggest .search-hash {
+		position: static;
+		max-height: none;
+		overflow: visible;
+		padding: 0;
+		border-radius: 0;
+		background: none;
+		box-shadow: none;
+	}
+	.search .search-suggest .search-hash-label {
+		padding: var(--space-16) var(--space-8) var(--space-6);
+	}
+	.search .search-suggest .search-hash-option {
+		position: relative;
+		min-height: var(--space-48);
+		padding: 0 var(--space-8);
+	}
+	.search .search-suggest .search-hash-option + .search-hash-option::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: var(--space-8);
+		right: var(--space-8);
+		height: 0.5px;
+		background: var(--line);
+	}
+	.search .search-suggest .search-hash-option:first-of-type::before,
+	.search .search-suggest .search-hash-option:first-of-type + .search-hash-option::before,
+	.search .search-suggest .search-hash-option:active::before,
+	.search .search-suggest .search-hash-option:active + .search-hash-option::before {
 		opacity: 0;
-		transform: translateY(var(--space-30));
+	}
+	.search .search-suggest .search-hash-option:active {
+		background: var(--faint);
+	}
+	.search.search-moving input {
+		caret-color: transparent;
+	}
+	/* Editing owns the capsule until the user cancels, including keyboard dismissal. */
+	body:has(:is(#modal, .phone-layer).search.search-editing[open]) #dock {
+		visibility: hidden !important;
+		pointer-events: none;
 	}
 }

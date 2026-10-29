@@ -41,7 +41,7 @@
 		box-shadow: var(--shadow-hover);
 	}
 }
-.feed-card:focus-within {
+:root:not([data-input-modality="pointer"]) .feed-card:focus-within {
 	border-color: var(--line-hover);
 	box-shadow: var(--shadow-hover);
 }

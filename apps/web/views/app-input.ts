@@ -1,6 +1,7 @@
 import { internalCardRoute } from "../atoms/markdown.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";
+import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import {
 	revealPhoneSearchResults,
@@ -243,7 +244,7 @@ export const appInputMethods = {
 	},
 	repaintSearchHash(this: AppController) {
 		const slot = document.getElementById("search-hash-slot");
-		if (slot) renderView(slot, Panels.searchHashList(this));
+		if (slot) renderView(slot, this.desktop() ? Panels.searchHashList(this) : null);
 	},
 	input(this: AppController, e?: TargetEvent<Event> & { isComposing?: boolean }) {
 		if (e.target.id === "ai-local-draft" || e.target.id === "ai-dock-input") {
@@ -296,9 +297,16 @@ export const appInputMethods = {
 				const results = document.getElementById("search-results");
 				if (results) {
 					const firstResults = !!results.querySelector(".search-browse");
+					const shown = new Set(
+						[...results.querySelectorAll<HTMLElement>("[data-card]")].map((n) => n.dataset.card),
+					);
 					renderView(results, Panels.searchResults(this));
 					if (!this.desktop() && firstResults && !results.querySelector(".search-browse"))
 						revealPhoneSearchResults(this.dialog);
+					// Cards that stay keep their place and look; only those the new query adds fade in.
+					else
+						for (const card of results.querySelectorAll<HTMLElement>("[data-card]"))
+							if (!shown.has(card.dataset.card)) MotionEngine.arrive(card);
 					results.scrollTop = 0;
 					this.revealImages(results);
 					this.updateSelection();
@@ -308,6 +316,14 @@ export const appInputMethods = {
 	},
 	key(this: AppController, e?: TargetEvent<KeyboardEvent>) {
 		if (e.isComposing) return;
+		// Over everything else, the tags layer takes Escape: first to let go of a marked chip.
+		if (e.key === "Escape" && this.editorLayer?.open) {
+			e.preventDefault();
+			const list = document.getElementById("editor-tags");
+			if (armedTag(list) !== undefined) armLastTag(list, false);
+			else this.closeEditor();
+			return;
+		}
 		if (this.homeKey(e)) return;
 		if (this.aiKey(e)) return;
 		if (e.key === "Escape" && this.modalKind === "search" && this.selected.size) {
@@ -415,11 +431,6 @@ export const appInputMethods = {
 				if (armed === undefined) armLastTag(list, true);
 				else this.action("editor-tag", this.editId, armed);
 				e.preventDefault();
-				return;
-			}
-			if (e.key === "Escape" && armedTag(list) !== undefined) {
-				e.preventDefault();
-				armLastTag(list, false);
 				return;
 			}
 		}

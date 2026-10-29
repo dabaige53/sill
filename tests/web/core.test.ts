@@ -456,9 +456,6 @@ test("duplicate popstate/hashchange does not close a newly opened local panel", 
 	assert.equal(closes, 1);
 	f.app.route(true);
 	assert.equal(closes, 2);
-	f.app.modalKind = "editor";
-	f.app.route(true);
-	assert.equal(closes, 2);
 });
 
 test("the settings button opens settings directly; there is no expanding entrance", () => {

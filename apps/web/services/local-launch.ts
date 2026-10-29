@@ -21,7 +21,7 @@ export async function startLocalWorkspace(app: AppController, connect: () => Pro
 		window.clearTimeout(timer);
 		app.deskView = deskView;
 		try {
-			// The first snapshot appears together after layout, without a second image fade.
+			// The first snapshot appears together after layout; renderCurrent fades it in once.
 			app.renderCurrent(false);
 		} finally {
 			app.initializing = false;

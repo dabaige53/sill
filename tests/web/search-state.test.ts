@@ -372,6 +372,23 @@ test("# lists statuses then existing tags; a pick becomes an escaped accent toke
 		f.dom.window.close();
 	}
 });
+test("phone # replaces the card suggestions with statuses and tags, in place", () => {
+	const f = fixture();
+	try {
+		f.app.desktop = () => false;
+		f.Store.state.cards[0].tags = ["work"];
+		f.app.searchFilter.query = "#";
+		f.app.repaintSearch();
+		const suggest = f.app.dialog.querySelector("#search-suggest");
+		assert.equal(suggest.querySelector(".search-suggest-option"), null, "no card rows under #");
+		assert.ok(suggest.querySelector('.search-hash-option[data-extra="tag:work"]'));
+		assert.equal(f.app.dialog.querySelectorAll(".search-hash").length, 1, "one list, not a floating copy");
+		f.app.action("search-hash", "", "tag:work");
+		assert.equal(f.app.dialog.querySelector(".search-hash"), null);
+	} finally {
+		f.dom.window.close();
+	}
+});
 test("type chips follow text only; Backspace on an empty field removes tokens from the end", () => {
 	const f = fixture();
 	try {

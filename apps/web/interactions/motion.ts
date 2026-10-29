@@ -1,7 +1,7 @@
 import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { panelMotion } from "./motion-panels.ts";
-import { cancelMotion, dim, move, type Playback, play } from "./motion-playback.ts";
+import { cancelMotion, dim, isPlaying, move, type Playback, play } from "./motion-playback.ts";
 import { resizeSheet } from "./motion-sheet.ts";
 
 export { cardTransform } from "./motion-panels.ts";
@@ -59,6 +59,7 @@ const MotionEngine: Record<string, any> = {
 		});
 	},
 	cancel: cancelMotion,
+	playing: isPlaying,
 	dim,
 	move(el: HTMLElement, destination = "", direct = false, options?: Parameters<typeof move>[3]) {
 		return move(el, destination, direct || this.keyboard, options);
@@ -72,6 +73,23 @@ const MotionEngine: Record<string, any> = {
 		const animation = play(el, [{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], {
 			duration,
 			easing: "linear",
+			repeat: Infinity,
+		});
+		this.loops.set(el, animation);
+	},
+	/** Loaded content (covers, the first desk, new search hits) settles in on the reveal timing. */
+	arrive(el?: HTMLElement, opacity: string | number = 1) {
+		return this.animate(el, [{ opacity: 0 }, { opacity }], {
+			duration: this.time("dur-reveal"),
+			easing: this.curve("ease-reveal"),
+		});
+	},
+	/** A loading placeholder breathes slowly until real content replaces it. */
+	breathe(el: HTMLElement) {
+		if (this.loops.has(el)) return;
+		const animation = play(el, [{ opacity: 1 }, { opacity: 0.55 }, { opacity: 1 }], {
+			duration: 1600,
+			easing: "ease-in-out",
 			repeat: Infinity,
 		});
 		this.loops.set(el, animation);

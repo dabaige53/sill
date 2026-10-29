@@ -168,11 +168,7 @@ export const appSurfacesMethods = {
 		if (!nested && !MotionEngine.keyboard && (!page || (kind === "reader" && this.desktop())))
 			MotionEngine.queuePanel(this.dialog, origin, resume);
 		const focus = this.dialog.querySelector<HTMLElement>(
-			kind === "search" && this.desktop()
-				? "#filter-search"
-				: kind === "editor"
-					? "#tag-new"
-					: "#modal-title",
+			kind === "search" && this.desktop() ? "#filter-search" : "#modal-title",
 		);
 		if (focus && !phoneDrawer) {
 			if (!/INPUT|TEXTAREA|BUTTON/.test(focus.tagName)) focus.tabIndex = -1;
@@ -189,6 +185,8 @@ export const appSurfacesMethods = {
 		return r?.width && r.bottom > 0 && r.top < innerHeight ? r : null;
 	},
 	closeNative(this: AppController, animate = true) {
+		// Whatever closes the card also takes its tags layer.
+		this.closeEditor(false);
 		if (MotionEngine.keyboard && !this.dialog.hasAttribute("data-phone-drawer")) animate = false;
 		if (!this.dialog.open) return;
 		if (this.modalKind === "search") resetPhoneSearch(this.dialog);
@@ -413,6 +411,12 @@ export const appSurfacesMethods = {
 		});
 		// Restore page visibility before focusing its controls; the observer runs later.
 		markOpenPage();
+		// Pointer dismissal must not focus a card, including native dialog focus restoration.
+		if (document.documentElement.dataset.inputModality === "pointer") {
+			const active = document.activeElement as HTMLElement | null;
+			if (active?.closest(".feed-card")) active.blur();
+			if (this.lastFocus?.closest(".feed-card") || source) return;
+		}
 		let focus =
 			this.lastFocus?.isConnected && this.lastFocus !== document.body
 				? (this.lastFocus as HTMLElement)

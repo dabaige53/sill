@@ -1,4 +1,5 @@
 import { createElement, Fragment } from "react";
+import type { Card } from "../../../contracts/card.ts";
 import { esc } from "../atoms/primitives.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -142,13 +143,7 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	}
 	if (reading) {
 		// Bodies are on this device, so the page opens complete. The skeleton is kept for bodies fetched from a source.
-		this.openModal(
-			createElement(Fragment, null, null, Panels.reader(this, c, false)),
-			"reader",
-			entryRect,
-			"",
-			linked,
-		);
+		this.openModal(readerContent(this, c), "reader", entryRect, "", linked);
 		if (!linked && !this.previewTrail.length) MotionEngine.matchSource(this.dialog, source);
 		settle();
 		this.bindReader(id, restore?.scrollTop);
@@ -158,24 +153,7 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	}
 	// Opened from the desk, the preview grows out of its card; opened from another preview it stacks.
 	const origin = entryRect;
-	const below = Store.card(this.previewTrail.at(-1));
-	this.openModal(
-		createElement(
-			Fragment,
-			null,
-			below
-				? createElement("div", {
-						className: "sheet-peek",
-						"aria-hidden": true,
-					})
-				: null,
-			Panels.preview(this, c),
-		),
-		"preview",
-		origin,
-		"",
-		linked,
-	);
+	this.openModal(previewContent(this, c), "preview", origin, "", linked);
 	settle();
 	if (origin && !this.previewTrail.length)
 		MotionEngine.matchSource(
@@ -185,6 +163,32 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 	this.bindPreview(id);
 	this.gestures.bindPullDown();
 	this.bindSheetChrome();
+}
+
+/** A preview over another preview shows the edge of the one below. */
+export function previewContent(app: AppController, c: Card) {
+	return createElement(
+		Fragment,
+		null,
+		Store.card(app.previewTrail.at(-1))
+			? createElement("div", { className: "sheet-peek", "aria-hidden": true })
+			: null,
+		Panels.preview(app, c),
+	);
+}
+
+export function readerContent(app: AppController, c: Card) {
+	return createElement(Fragment, null, null, Panels.reader(app, c, false));
+}
+
+/** After an edit, the open detail of that card redraws in place: same scroll, focus and player. */
+export function repaintDetail(app: AppController, id: string) {
+	const c = Store.card(id);
+	if (!c || !app.dialog.open || app.currentId !== id || app.sheetLeaving) return;
+	if (app.modalKind === "preview") app.replacePanelContent(previewContent(app, c), true);
+	else if (app.modalKind === "reader") app.replacePanelContent(readerContent(app, c), true);
+	else if (app.modalKind === "lightbox")
+		app.replacePanelContent(Panels.lightbox(c, app.photoIndex, app), true);
 }
 
 export function bindPreview(this: AppController, id?: any) {

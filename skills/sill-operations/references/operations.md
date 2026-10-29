@@ -1,10 +1,8 @@
 # 云端操作协议
 
-卡片字段约定为 3.0.0。仓库工具定义已更新；未部署或宿主缓存未刷新时，须以当前连接实际发现的 inputSchema 为准，不声称新字段已在线可用。
+只使用当前连接发现的工具，以本次发现的 inputSchema 为准。实际部署与宿主缓存可能落后于本文；没有发现工具时报告缺少能力，不声称已经执行。
 
-只使用当前连接发现的工具。本文说明仓库当前接口；实际部署与宿主缓存可能尚未包含新工具或字段。没有发现工具时报告缺少能力，不声称已经执行。
-
-目录：[查询](#查询筛选与导出)、[更新](#单卡更新)、[批量](#原子批量操作)、[状态](#完整卡片状态)、[偏好](#偏好与阅读记录)、[账号](#账号条件)、[错误](#冲突权限与未知结果)。字段类型与制作格式见 [字段字典](fields.md)、[传输规则](transport.md)。
+目录：[查询](#查询筛选与导出)、[更新](#单卡更新)、[批量](#原子批量操作)、[状态](#完整卡片状态)、[阅读记录](#阅读记录)、[账号](#账号条件)、[错误](#冲突权限与未知结果)。偏好、备份与提醒见 [设置与备份](settings.md)；字段类型与制作格式见 sill-cards 的 [字段字典](../../sill-cards/references/fields.md)、[传输规则](../../sill-cards/references/transport.md)。
 
 ## 查询、筛选与导出
 
@@ -61,7 +59,7 @@
 | `preferences.patch` | `values` 加原偏好 `before`，或提供工作区 `expectedRevision`；没有全局版本时，`before` 必须覆盖每个修改字段 |
 | `reading.add` | `seconds` 为 0–86400 的整数；原子累加，可不带 `before` 或全局版本，仍须幂等键 |
 
-整卡 `before` 可保留读取时的云端元字段；比较内容时不使用这些元字段。写入的 `card` 必须去掉 `state`、`revision`、`created_at`、`updated_at`、`deleted`，不能提交 `owner_id`、`change_version`。卡片 ID 保留在 `card.id`。未知卡片字段保留；状态与偏好只接受已定义字段。不要用刚刷新的基准包装旧草稿来强制覆盖冲突。
+整卡 `before` 可保留读取时的云端元字段；比较内容时不使用这些元字段。写入的 `card` 必须去掉 `state`、`revision`、`created_at`、`updated_at`、`deleted`，不能提交 `owner_id`、`change_version`。卡片 ID 保留在 `card.id`。卡片、状态与偏好都只接受已定义字段，未知字段会被拒绝。不要用刚刷新的基准包装旧草稿来强制覆盖冲突。
 
 以下示例将收藏、备注和主题一起保存；`before` 必须来自实际读取：
 
@@ -135,26 +133,9 @@
 
 任务卡设 `done:true` 会完成所有子任务；设 `false` 会清空完成列表。修改 `taskDone` 时，`done` 随全部任务是否完成变化。不要同时提交互相矛盾的完成字段。缺失状态采用服务端默认值：布尔值为 false，数字为 0，文本为空；未设置 `taskDone` 时为空列表。标签是卡片字段 `tags`，用户或助手编辑标签就是修改卡片。
 
-## 偏好与阅读记录
+## 阅读记录
 
-`preferences.patch.values` 接受下列字段，不接受未知键或 `null`：
-
-| 字段 | 合法值 |
-| --- | --- |
-| `singleKeyShortcuts`、`reduceTransparency`、`stack`、`fadeRead`、`floatTimely`、`collapseOnFinish`、`reduceMotion`、`aiLocal`、`onboarded` | boolean |
-| `sort` | `priority / unread / time` |
-| `archiveAfter` | `3d / 7d / never` |
-| `newHint` | `away / off` |
-| `theme` | `system / light / dark` |
-| `density` | `compact / standard / roomy` |
-| `cardTextSize`、`readerTextSize` | `small / standard / large`；分别调整卡片和阅读字号，默认 `standard` |
-| `cardSpacing`、`cardPadding`、`readerSpacing` | `compact / standard / roomy`；分别调整卡片间距、内部留白、阅读行段间距，默认 `standard` |
-| `readerWidth` | `narrow / standard / full`；默认 `full` |
-| `textWeight` | `standard / strong`；默认 `standard`，作用于卡片与阅读内容 |
-| `hiddenActions` | 卡片动作 ID 数组；只影响界面显示，不撤销工具权限。有效值以当前工具定义为准 |
-| `hiddenActions` | 字符串数组，取值 `bookmark / tag / later / reply / open / join / snooze / download / dismiss`；列出的操作不出现在卡片详情底部，功能本身仍可用 |
-
-`aiLocal` 是保留的偏好字段，不能据此声称存在内置助手。`reduceMotion`、`reduceTransparency` 是保留的旧设置，客户端不再展示或应用；不要据此承诺界面变化。`reading.add` 更新工作区累计阅读秒数，总值不能超过 10000000。读取快照核对结果，不重复累加未知结果。
+`reading.add` 原子累加工作区阅读秒数，单次 0–86400 的整数，总值不能超过 10000000。读取快照核对结果；回执不明时同键同参数重试，不换键重复累加。偏好字段与 `preferences.patch` 的取值见 [设置与备份](settings.md)。
 
 ## 账号条件
 
@@ -171,14 +152,17 @@
 | 超时、断线、回执不明 | 保留原键、目标及完整参数；可读取核对，仍不确定时同键同参数重试，不换键重复创建或累加 |
 | `idempotency_conflict` | 检查是否误用旧键配不同请求；不要盲目重试 |
 | `not_found` | 区分不存在、已删除或当前范围不可见；不自动另建替代卡 |
+| `invalid_request` | 读 `error.issues` 中的 `path` 与 `message`，按提示修正对应字段后用新幂等键提交；不删字段凑通过。卡片规则代码见 [排障](diagnosis.md#卡片规则代码) |
+| `cursor_expired` | 去掉 `since`，从第一页重新全量读取 |
 | `unauthenticated / forbidden` | 停止受阻操作，使用正常连接入口处理；不换账号、不扩大权限 |
 | `rate_limited` | 遵循等待提示；同一写入重试保留原键 |
-| 工具缺失或参数不接受字段 | 检查部署与当前连接定义；不静默丢字段并声称完整保存 |
+| `unavailable` | 服务暂时不可用；读操作可稍后重试，写操作按「回执不明」处理 |
+| 工具缺失或参数不接受字段 | 检查部署与当前连接定义；不静默丢字段并声称完整保存。见 [排障](diagnosis.md) |
 
 每次新写入使用新 UUID 作为幂等键。批量成功回放返回原快照，可能早于后续编辑；需要最新状态时另读 `sill_getWorkspace`。删除由明确回执确认；一次列表未出现或权限错误不能证明删除成功。单卡删除仍支持 `{id,idempotency_key,body:{expectedRevision}}`。
 
 事件工具只用于已配置且已授权的事件。`queued / accepted` 不表示外部执行完成。当前没有 Webhook 投递器、内置助手或可靠执行器；批量操作不接受事件 `metadata`，不能用它伪造事件结果。外部执行使用助手宿主的工具，并核对真实回执。
 
-## 明确卡片字段
+## 卡片字段
 
-完整字段、适用类型与日期/时长规则见 [字段字典](fields.md)；制作各类卡片见 [卡片制作](cards.md)。正文与结构化内容按 [传输规则](transport.md) 传递。阅读时长由客户端按正文计算，不另外写入。
+完整字段、适用类型与日期/时长规则见 sill-cards 的 [字段字典](../../sill-cards/references/fields.md)；正文与结构化内容按 [传输规则](../../sill-cards/references/transport.md) 传递。

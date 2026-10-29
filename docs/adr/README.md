@@ -74,3 +74,5 @@
 - [ADR 0086：卡片字段精简与积木配方表](0086-card-fields-and-block-recipes.md)
 - [产品需求统一为 docs 内的 PRODUCT.md](0087-product-context-single-source.md)
 - [按职责与更新方式分层管理文档](0088-documentation-layers.md)
+- [卡片与搜索结果平稳出现](0089-steady-content-arrival.md)
+- [标签浮层与圆润方形操作图标](0090-tag-layer-and-rounded-action-icons.md)

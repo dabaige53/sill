@@ -296,7 +296,7 @@ a {
 .settings-main::-webkit-scrollbar,
 .search-results::-webkit-scrollbar,
 .ai-context::-webkit-scrollbar,
-:is(#modal, .phone-layer).panel .sheet::-webkit-scrollbar,
+:is(#modal, .phone-layer, #tag-layer).panel .sheet::-webkit-scrollbar,
 .cloud-compose-body::-webkit-scrollbar {
 	display: none;
 }

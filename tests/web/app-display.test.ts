@@ -258,6 +258,42 @@ test("new cover fades to its read-state opacity and cached covers do not replay"
 	}
 });
 
+test("a cover that loads under a card drawer or off screen shows without a fade", () => {
+	const f = fixture();
+	try {
+		const { app, w } = f;
+		w.requestAnimationFrame = (fn: () => void) => {
+			fn();
+			return 0;
+		};
+		app.loadedImages = new Set();
+		app.layout = { schedule() {} };
+		const animations: any[] = [];
+		w.__motionAnimations = animations;
+		const cover = (src: string, top = 0) => {
+			app.grid.innerHTML = `<img class="card-image" src="https://synthetic.test/${src}.png">`;
+			const image = app.grid.firstElementChild;
+			Object.defineProperties(image, { complete: { value: true }, naturalWidth: { value: 100 } });
+			image.getBoundingClientRect = () => ({ top, bottom: top + 100, height: 100 });
+			return image;
+		};
+		w.document.body.classList.add("is-drawer-scaled");
+		const covered = cover("covered");
+		app.revealImages(app.grid);
+		assert.equal(covered.classList.contains("is-loaded"), true);
+		assert.equal(animations.length, 0, "the first card drawer does not blink the covers behind it");
+		w.document.body.classList.remove("is-drawer-scaled");
+		cover("below", w.innerHeight + 200);
+		app.revealImages(app.grid);
+		assert.equal(animations.length, 0, "a cover loading below the screen is ready when scrolled to");
+		cover("visible", 100);
+		app.revealImages(app.grid);
+		assert.equal(animations.length, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("task completion retains the detail, toolbar, checklist focus and scroll", () => {
 	const f = fixture();
 	try {
@@ -359,3 +395,34 @@ test("the controller keeps the video iframe through preview/fullscreen in both d
 		f.dom.window.close();
 	}
 });
+
+for (const modality of ["pointer", "keyboard"]) {
+	test(`card dismissal restores focus only for keyboard navigation: ${modality}`, () => {
+		const f = fixture();
+		try {
+			const { app, w } = f;
+			w.document.documentElement.dataset.inputModality = modality;
+			w.document.body.insertAdjacentHTML(
+				"beforeend",
+				'<article class="feed-card"><button class="card-action">Open</button></article><button id="account">Account</button>',
+			);
+			const trigger = w.document.querySelector(".card-action");
+			trigger.getClientRects = () => [{ width: 44, height: 44 }];
+			trigger.focus();
+			app.lastFocus = trigger;
+			app.dialog.className = "preview";
+			app.dialog.close = () => {
+				app.dialog.removeAttribute("open");
+				trigger.focus();
+			};
+			app.dialog.getAnimations = () => [];
+			app.modalKind = "preview";
+			app.navKey = "home";
+			app.updateSelection = () => {};
+			app.closeNative(false);
+			assert.equal(w.document.activeElement === trigger, modality === "keyboard");
+		} finally {
+			f.dom.window.close();
+		}
+	});
+}

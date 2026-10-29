@@ -27,6 +27,16 @@
         "dev"
       ],
       "port": 5173
+    },
+    {
+      "name": "tag-layer-check",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--input-type=module",
+        "-e",
+        "import { startLocal } from './server/local/index.ts'; const s = await startLocal({ port: 4391, file: '/private/tmp/sill-local-test.GRlL9H/web/cards.json' }); console.log('http://127.0.0.1:' + s.address().port + '/#feed');"
+      ],
+      "port": 4391
     }
   ]
 }

@@ -12,21 +12,6 @@
 }
 
 @media (max-width: 650px) {
-	.mail-attachments .attachment {
-		width: auto;
-	}
-	.mail-attachments .attachment-third,
-	.attachment-more-desktop {
-		display: none;
-	}
-	.attachment-more-phone {
-		display: inline;
-		font-size: var(--text-meta);
-		color: var(--secondary);
-	}
-}
-
-@media (max-width: 650px) {
 	:is(#modal, .phone-layer).search #search-selection-bar {
 		position: fixed;
 		bottom: var(--rail-bottom);
@@ -42,12 +27,15 @@
 	[data-vaul-drawer-wrapper] {
 		/* Keep Sill's surface radius while following Vaul's open/drag/release progress. */
 		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness)) !important;
-		/* Vaul clips the page; the cards clip themselves instead (base.css), so glass and shadows
-		   draw the same way during and after the drawer. */
+	}
+	/* Vaul clips the page; the home page's cards clip themselves instead (base.css), so glass and
+	   shadows draw the same way during and after the drawer. Search keeps Vaul's clip. */
+	#workspace-background[data-vaul-drawer-wrapper] {
 		overflow: visible !important;
 	}
-	/* The top bar carries the page's top corners now that the page itself is not clipped. */
-	[data-vaul-drawer-wrapper] .home-top {
+	/* The top bar and the status bar fill carry the page's top corners. */
+	#workspace-background[data-vaul-drawer-wrapper] .home-top,
+	#workspace-background[data-vaul-drawer-wrapper]::before {
 		--phone-drawer-roundness: inherit;
 		border-radius: calc(var(--sheet-radius) * var(--phone-drawer-roundness))
 			calc(var(--sheet-radius) * var(--phone-drawer-roundness)) 0 0;
@@ -78,17 +66,31 @@
 	#feed-grid {
 		will-change: transform;
 	}
-	/* The dark around the scaled page; phone-drawer.tsx fades it with Vaul's scale and drag. */
+	/* The black behind the scaled page. It switches while the page still covers the screen, so only
+	   the page's movement reveals it, never a fade of its fill. */
 	body.is-drawer-scaled {
 		background-color: #000;
+	}
+	/* Under search the scaled search page is the moving block; the home page behind it steps aside
+	   so the black shows, not the home page. The dock keeps its place. */
+	#workspace-background.is-under-drawer {
+		background: transparent;
+	}
+	#workspace-background.is-under-drawer > main,
+	#workspace-background.is-under-drawer::before {
+		visibility: hidden;
 	}
 	:is(#modal, .phone-layer).preview[data-phone-drawer]::backdrop {
 		background: transparent;
 	}
+	/* The drawer keeps its own layer (Vaul's will-change); the dim keeps one too. When its fade-in
+	   ended, iOS folded it into the page and repainted the drawer and its toolbar, a blink just as
+	   the card settled. */
 	:is(#modal, .phone-layer).preview .phone-drawer-overlay {
 		position: absolute;
 		inset: 0;
 		background: var(--dim);
+		will-change: opacity;
 	}
 	/* The drawer opens above search too: its page sits at z-index 40 beside the dialog. */
 	:is(#modal, .phone-layer).preview[data-phone-drawer] {
@@ -96,20 +98,20 @@
 	}
 	/* Content and every bottom control share Vaul's moving surface. */
 	:is(#modal, .phone-layer).preview[data-phone-drawer] {
-		background: linear-gradient(to top, var(--shadow) 12px, transparent 12px);
+		background: linear-gradient(to top, var(--card) var(--space-12), transparent var(--space-12));
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer {
 		position: absolute;
-		inset: auto 0 12px;
+		inset: auto 0 0;
 		display: flex;
 		flex-direction: column;
 		height: auto;
 		min-height: 70dvh;
 		/* 24px under the status bar, as Vaul shifts the page by the bar plus 14px. A home-screen app
 		   reports the bar as ~59px and a Safari tab as 0; max() let the drawer meet the bar in the app. */
-		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - 12px);
+		max-height: calc(100dvh - env(safe-area-inset-top) - 24px);
 		background: var(--card);
-		border-radius: var(--sheet-radius);
+		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
 		outline: none;
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer::after {
@@ -140,7 +142,7 @@
 		/* A scroll that reaches the end stays in the drawer instead of moving the page behind it. */
 		overscroll-behavior: contain;
 		height: auto;
-		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - 12px - env(safe-area-inset-bottom));
+		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - env(safe-area-inset-bottom));
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
 		position: absolute;

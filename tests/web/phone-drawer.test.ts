@@ -229,3 +229,45 @@ test("wheel at the top does not move or close the Vaul drawer", () => {
 		f.dispose();
 	}
 });
+
+test("presses, focus and Escape in the tags layer leave the card drawer open", () => {
+	const f = fixture();
+	try {
+		const layer = f.w.document.createElement("dialog");
+		layer.id = "tag-layer";
+		layer.setAttribute("open", "");
+		layer.innerHTML =
+			'<button id="layer-close">×</button><input id="tag-new"><button id="suggest">工作</button>';
+		f.w.document.body.append(layer);
+		(f.app as any).editorLayer = layer;
+		// Adding a suggested tag redraws the editor during the click, so the pressed chip is gone
+		// by the time the drawer judges the press.
+		const chip = layer.querySelector("#suggest");
+		chip.addEventListener("click", () => chip.remove());
+		f.api.flushSync(() => f.clock.advance(10));
+		const press = (target: Element) => {
+			target.dispatchEvent(new f.w.MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+			target.dispatchEvent(new f.w.MouseEvent("click", { bubbles: true }));
+		};
+		f.api.flushSync(() => press(chip));
+		f.api.flushSync(() => f.clock.advance(700));
+		f.api.flushSync(() => press(layer.querySelector("#layer-close")));
+		f.api.flushSync(() => layer.querySelector("#tag-new").focus());
+		f.api.flushSync(() =>
+			f.w.document.activeElement.dispatchEvent(
+				new f.w.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+			),
+		);
+		f.api.flushSync(() => f.clock.advance(700));
+		assert.equal(f.app.closed, 0);
+		assert.equal(f.dialog.querySelector("[data-vaul-drawer]").dataset.state, "open");
+		// With the layer gone, a press outside dismisses the card again, so the check above is live.
+		layer.removeAttribute("open");
+		layer.remove();
+		f.api.flushSync(() => press(f.w.document.querySelector("main")));
+		f.api.flushSync(() => f.clock.advance(700));
+		assert.equal(f.app.closed, 1);
+	} finally {
+		f.dispose();
+	}
+});

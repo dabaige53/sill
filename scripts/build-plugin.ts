@@ -23,7 +23,7 @@ await rm(directory, { recursive: true, force: true });
 await mkdir(resolve(directory, ".codex-plugin"), { recursive: true });
 await writeFile(resolve(directory, "plugin.json"), JSON.stringify(manifest, null, 2) + "\n");
 await cp(resolve(root, ".app.json"), resolve(directory, ".app.json"));
-await cp(resolve(root, "skills/sill"), resolve(directory, "skills/sill"), { recursive: true });
+await cp(resolve(root, "skills"), resolve(directory, "skills"), { recursive: true });
 const extension = manifest.extensions["com.openai"];
 await writeFile(
 	resolve(directory, ".codex-plugin/plugin.json"),

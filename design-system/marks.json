@@ -272,7 +272,7 @@
 				"fast",
 				"space-16"
 			],
-			"adr": "0066",
+			"adr": "0089",
 			"boards": []
 		},
 		"phone-text-scale": {
@@ -286,6 +286,13 @@
 			"boards": [
 				"CardTypeMobile"
 			]
+		},
+		"tag-layer": {
+			"title": "标签与备注浮层",
+			"rule": "handbook/card-interaction.md#预览与叠放",
+			"tokens": [],
+			"adr": "0090",
+			"boards": []
 		},
 		"phone-detail-drawer": {
 			"title": "手机详情 Vaul 抽屉",

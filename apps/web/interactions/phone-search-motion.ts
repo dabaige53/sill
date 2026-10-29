@@ -105,23 +105,30 @@ export function revealPhoneSearchResults(dialog: HTMLElement) {
 	];
 	for (const node of nodes) {
 		state?.animations.push(
-			fade(node, 0, 1, timing.resultFade, delay),
 			travel(node, `translateY(${timing.resultTravel}px)`, "none", timing.resultMove, delay),
 		);
+		if (node.id !== "search-results") {
+			state?.animations.push(fade(node, 0, 1, timing.resultFade, delay));
+			continue;
+		}
+		// The cards in view come up with the bar, one after another, instead of the list blinking in.
+		const cards = [...node.querySelectorAll<HTMLElement>("[data-card]")].filter(
+			(card) => card.getBoundingClientRect().top < window.innerHeight,
+		);
+		cards.forEach((card, index) => {
+			const start = delay + Math.min(index, 7) * timing.resultStagger;
+			state?.animations.push(
+				fade(card, 0, 1, timing.resultCardFade, start),
+				travel(card, `translateY(${timing.resultTravel}px)`, "none", timing.resultMove, start),
+			);
+		});
 	}
 }
-const docks = new WeakMap<HTMLElement, (Playback | null)[]>();
-/**
- * The keyboard decides two things: while it is up, card suggestions cover the results (opening
- * and closing like the Web Combobox list) and the tab bar steps aside. A submitted search, or a
- * tap on the results, puts the keyboard away: the full results show and the tab bar takes taps.
- */
-export function syncPhoneSearchKeyboard(dialog: HTMLElement, typing: boolean, pose?: SearchPose) {
-	if (dialog.classList.contains("search-keyboard") === typing) return;
+/** Suggestions follow keyboard visibility; the editing page owns navigation visibility. */
+export function syncPhoneSearchKeyboard(dialog: HTMLElement, typing: boolean, _pose?: SearchPose) {
 	const dock = document.getElementById("dock");
-	const drawn = dock && getComputedStyle(dock);
-	const before =
-		dock && (pose?.nodes.get(dock) || { opacity: drawn.opacity, transform: drawn.transform });
+	if (dock) dock.inert = dialog.classList.contains("search-editing");
+	if (dialog.classList.contains("search-keyboard") === typing) return;
 	const toggle = () => dialog.classList.toggle("search-keyboard", typing);
 	const suggest = dialog.querySelector<HTMLElement>(".search-suggest");
 	if (suggest)
@@ -129,28 +136,6 @@ export function syncPhoneSearchKeyboard(dialog: HTMLElement, typing: boolean, po
 			easing: list.listEase,
 		});
 	else toggle();
-	if (!dock || !before) return;
-	for (const animation of docks.get(dock) || []) animation?.cancel();
-	dock.inert = typing;
-	dock.style.visibility = "visible";
-	const movement = travel(
-		dock,
-		before.transform || "none",
-		typing ? `translateY(${timing.navTravel}px)` : "none",
-		timing.navMove,
-		0,
-		timing.navEase,
-	);
-	const animations = [
-		fade(dock, before.opacity || (typing ? "1" : "0"), typing ? 0 : 1, timing.navFade),
-		movement,
-	];
-	docks.set(dock, animations);
-	const finish = () => {
-		if (docks.get(dock) === animations) dock.style.visibility = typing ? "hidden" : "";
-	};
-	if (movement) movement.finished.then(finish, () => {});
-	else finish();
 }
 export function transitionPhoneSearch(
 	dialog: HTMLElement,
@@ -171,6 +156,7 @@ export function transitionPhoneSearch(
 		ghost: undefined as HTMLElement | undefined,
 	};
 	states.set(dialog, state);
+	dialog.classList.toggle("search-moving", editing);
 	const header = dialog.querySelector<HTMLElement>(".search-header");
 	const cancel = dialog.querySelector<HTMLElement>(".search-cancel");
 	const pill = dialog.querySelector<HTMLElement>(".search-pill");
@@ -262,6 +248,12 @@ export function transitionPhoneSearch(
 			),
 		);
 	}
+	Promise.all(state.animations.map((animation) => animation?.finished)).then(
+		() => {
+			if (states.get(dialog) === state) dialog.classList.remove("search-moving");
+		},
+		() => {},
+	);
 	syncPhoneSearchKeyboard(dialog, typing, pose);
 	if (editing) revealPhoneSearchResults(dialog);
 	else {
@@ -303,11 +295,9 @@ export function resetPhoneSearch(dialog: HTMLElement) {
 	for (const animation of state?.animations || []) animation?.cancel();
 	state?.ghost?.remove();
 	states.delete(dialog);
-	dialog.classList.remove("search-keyboard");
+	dialog.classList.remove("search-keyboard", "search-moving");
 	const dock = document.getElementById("dock");
 	if (dock) {
-		for (const animation of docks.get(dock) || []) animation?.cancel();
-		docks.delete(dock);
 		dock.inert = false;
 		dock.style.visibility = "";
 	}

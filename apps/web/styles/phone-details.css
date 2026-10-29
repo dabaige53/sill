@@ -108,18 +108,12 @@
 		> .preview-body:first-child {
 		padding-top: var(--space-18);
 	}
-	/* The drawer handle sits 8px from the top, where the cover began; the cover and its close disc
-	   move down together, the disc keeping its 16px inset on the image. */
+	/* Leave room for the drawer handle above the cover; controls keep the shared sheet inset. */
 	:is(#modal, .phone-layer).preview[data-phone-drawer]
 		.sheet-scroll
 		> .gesture-content
 		> .preview-cover {
 		margin-top: var(--space-24);
-	}
-	:is(#modal, .phone-layer).preview[data-phone-drawer]
-		.preview-sheet:has(.sheet-scroll > .gesture-content > .preview-cover)
-		.sheet-head {
-		top: 40px;
 	}
 	:is(#modal, .phone-layer).preview[data-phone-drawer] .preview-sheet .compact-player-slot {
 		top: var(--space-8);
@@ -196,7 +190,7 @@
 		gap: 0;
 	}
 	.preview-sheet,
-	:is(#modal, .phone-layer).panel .sheet {
+	:is(#modal, .phone-layer, #tag-layer).panel .sheet {
 		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
 		padding-bottom: env(safe-area-inset-bottom);
 	}

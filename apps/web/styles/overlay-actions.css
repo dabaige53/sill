@@ -4,6 +4,12 @@
 	margin-top: var(--space-4);
 }
 
+/* A phone card drawer turns off pointer events on the page while open; the tags layer above it
+ * still takes presses, or they would fall through to the drawer's dim and close the card. */
+#tag-layer {
+	pointer-events: auto;
+}
+
 /* Tags and notes. The tag field follows the tag-input reference: chips sit in a well and wrap. */
 .tag-editor {
 	position: relative;

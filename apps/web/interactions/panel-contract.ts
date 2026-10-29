@@ -19,6 +19,7 @@ export type SearchApp = Pick<
 	| "searchText"
 	| "searchHash"
 	| "searchLimit"
+	| "desktop"
 	| "feedNow"
 >;
 /** Legacy callers may retain an unrecognized display form; the renderer keeps its fallback. */

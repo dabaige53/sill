@@ -84,7 +84,7 @@ export const panelSearch = {
 					<div className={"grabber"} aria-hidden={"true"}></div>
 					{this.close(copy("web.editor.closeTagsAndNote"))}
 					<div className={"panel-content"}>
-						<div className={"panel-sub"} id={"modal-title"}>
+						<div className={"panel-sub"} id={"editor-title"}>
 							{c.title}
 						</div>
 						{"\n   "}
@@ -274,7 +274,7 @@ export const panelSearch = {
 						{copy("web.cancel")}
 					</button>
 					<div className="search-hash-slot" id="search-hash-slot">
-						{this.searchHashList(app)}
+						{app.desktop() && this.searchHashList(app)}
 					</div>
 				</div>
 				{!category && (
@@ -315,8 +315,11 @@ export const panelSearch = {
 			</>
 		);
 	},
-	/** While the keyboard is up the phone suggests cards, one text row each (Combobox, no images). */
+	/** While the keyboard is up the phone suggests cards, one text row each (Combobox, no images).
+	 * Typing # swaps the cards for the statuses and tags, in the same place and rows. */
 	searchSuggest(this: PanelRenderers, app?: SearchApp) {
+		if (!app.desktop() && app.searchHash(app.searchFilter.query) !== null)
+			return this.searchHashList(app);
 		const needle = app.searchText(app.searchFilter.query);
 		const cards = app.searchSuggestions();
 		if (!cards.length)

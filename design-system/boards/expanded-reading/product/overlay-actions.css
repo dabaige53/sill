@@ -4,6 +4,12 @@
 	margin-top: var(--space-4);
 }
 
+/* A phone card drawer turns off pointer events on the page while open; the tags layer above it
+ * still takes presses, or they would fall through to the drawer's dim and close the card. */
+#tag-layer {
+	pointer-events: auto;
+}
+
 /* Tags and notes. The tag field follows the tag-input reference: chips sit in a well and wrap. */
 .tag-editor {
 	position: relative;
@@ -123,46 +129,6 @@
 }
 .permission-actions > * {
 	flex: 1;
-}
-
-/* Inline note editing: the card itself becomes the field. */
-.feed-card.is-editing {
-	border: 2px solid var(--accent);
-	cursor: text;
-	z-index: 7;
-}
-.inline-editor {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-6);
-	padding: var(--space-14) var(--space-16) var(--space-12);
-}
-.inline-editor input {
-	border: 0;
-	background: transparent;
-	padding: 0;
-	font-size: 16px;
-	font-weight: 600;
-	border-radius: 0;
-}
-.inline-editor textarea {
-	border: 0;
-	background: transparent;
-	padding: 0;
-	min-height: 96px;
-	font-size: var(--text-body);
-	line-height: 1.6;
-	resize: none;
-	border-radius: 0;
-}
-.inline-editor input:focus-visible,
-.inline-editor textarea:focus-visible {
-	outline: 0;
-}
-.inline-editor small {
-	align-self: flex-end;
-	font-size: var(--text-caption);
-	color: var(--secondary);
 }
 
 /* Lifting never drops into an action. The separate dialog requires a button press. */

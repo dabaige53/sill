@@ -91,23 +91,24 @@ body {
 	background: var(--canvas);
 }
 /* app-surfaces.ts freezes the desk under a phone page the same way. */
-#workspace-background:is(.is-drawer-background, .is-page-frozen) {
+#workspace-background.is-drawer-background,
+#workspace-background.is-page-frozen > main {
 	position: fixed;
 	inset: 0;
 	height: 100dvh;
 	width: 100%;
 }
-#workspace-background.is-page-frozen {
+#workspace-background.is-page-frozen > main {
 	overflow: clip;
 }
 /* Under a drawer only the cards are clipped to the screen, not the whole page: iOS drew a clipped
    page differently, and the card shadows and the dock's glass changed in one frame as the drawer
-   finished closing. phone-drawer.tsx measures the visible part. */
+   finished closing. phone-drawer.tsx measures the visible part. All four corners round, so cards
+   under a tucked top bar never stick out past the page's top corners. */
 #workspace-background.is-drawer-background > main {
 	--phone-drawer-roundness: inherit;
 	clip-path: inset(
-		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round 0 0
-			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
+		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round
 			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
 	);
 }
@@ -340,7 +341,7 @@ a {
 .settings-main::-webkit-scrollbar,
 .search-results::-webkit-scrollbar,
 .ai-context::-webkit-scrollbar,
-:is(#modal, .phone-layer).panel .sheet::-webkit-scrollbar,
+:is(#modal, .phone-layer, #tag-layer).panel .sheet::-webkit-scrollbar,
 .cloud-compose-body::-webkit-scrollbar {
 	display: none;
 }
@@ -983,7 +984,7 @@ body.is-dragging #toast {
 
 @media (min-width: 651px) {
 	.ai-dock-input::placeholder {
-		color: var(--secondary);
+		color: var(--ink);
 		opacity: 1;
 	}
 	#search-selection-bar {
@@ -1062,8 +1063,12 @@ body.is-dragging #toast {
 	}
 }
 
-.toggle { touch-action: none; }
-.toggle[data-live-toggle] { background: var(--toggle-off); }
+.toggle {
+	touch-action: none;
+}
+.toggle[data-live-toggle] {
+	background: var(--toggle-off);
+}
 .toggle-fill {
 	position: absolute;
 	inset: 0;
@@ -1240,6 +1245,7 @@ body.is-dragging #toast {
 	box-shadow: 0 1px 3px var(--fixed-black-10);
 }
 .toggle {
+	cursor: pointer;
 	width: 51px;
 	height: 31px;
 	border-radius: var(--pill-radius);
@@ -1676,7 +1682,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		inset: 0;
 		z-index: -1;
 		border-radius: inherit;
-		background: color-mix(in srgb, var(--glass) 35%, transparent);
+		background: var(--glass);
 		backdrop-filter: var(--glass-filter);
 		-webkit-backdrop-filter: var(--glass-filter);
 		box-shadow: inset 0 0 0 1px var(--line-card);
@@ -1699,6 +1705,10 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 		background: transparent;
 		color: var(--ink);
 		font-size: var(--text-body);
+	}
+	.home-search input::placeholder {
+		color: var(--secondary);
+		opacity: 1;
 	}
 	.home-search input:focus-visible {
 		outline: 0;
@@ -1961,13 +1971,21 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 .feed-item.feed-card {
 	position: absolute;
 }
+@supports (corner-shape: superellipse(1.25)) {
+	.feed-card,
+	.feed-card::after,
+	.card-cover,
+	.ref {
+		corner-shape: superellipse(1.25);
+	}
+}
 @media (hover: hover) and (pointer: fine) {
 	.feed-card:hover {
 		border-color: var(--line-hover);
 		box-shadow: var(--shadow-hover);
 	}
 }
-.feed-card:focus-within {
+:root:not([data-input-modality="pointer"]) .feed-card:focus-within {
 	border-color: var(--line-hover);
 	box-shadow: var(--shadow-hover);
 }
@@ -2136,15 +2154,6 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 }
 .quote-text .card-title-button {
 	-webkit-line-clamp: 4;
-}
-.note-text {
-	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
-	line-height: 1.55;
-	font-weight: calc(400 + var(--content-weight-add, 0));
-	letter-spacing: 0;
-}
-.note-text .card-title-button {
-	-webkit-line-clamp: 6;
 }
 .key-points {
 	list-style: none;
@@ -2315,7 +2324,7 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 	gap: var(--space-8);
 	min-height: 36px;
 	padding: 9px var(--space-10);
-	border-radius: var(--space-12);
+	border-radius: var(--control-radius);
 	background: var(--surface);
 	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 	color: var(--ink);
@@ -2345,12 +2354,6 @@ button.ref:active {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-6);
-}
-.attachment {
-	align-self: flex-start;
-	width: auto;
-	margin-top: var(--space-4);
-	padding-right: var(--space-12);
 }
 .event-time {
 	display: flex;
@@ -2979,6 +2982,14 @@ dialog::backdrop {
 }
 /* The head floats over the content: no band of white above the text. Its round buttons tuck away with
    the toolbar while reading on, and come back on a pause over a soft edge. */
+/* Keep the open desktop card on its own layer after the growth transform is removed.
+   This avoids switching the clipped content and glass controls between layers at that boundary.
+   Only the visible preview retains this layer; closing the dialog releases it. */
+@media (min-width: 651px) {
+	:is(#modal, .phone-layer).preview[open] > .preview-sheet {
+		will-change: transform;
+	}
+}
 .preview-sheet.is-full {
 	height: 100dvh;
 	max-height: 100dvh;
@@ -3044,7 +3055,8 @@ dialog::backdrop {
 	:is(.preview-sender, .preview-meta) {
 	padding-right: var(--space-92);
 }
-.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta)) :is(#modal-title, .phone-layer-title) {
+.preview-sheet:has(.preview-body :is(.preview-sender, .preview-meta))
+	:is(#modal-title, .phone-layer-title) {
 	padding-right: 0;
 }
 .preview-title-row :is(#modal-title, .phone-layer-title) {
@@ -3093,7 +3105,10 @@ dialog::backdrop {
 	display: none;
 }
 :is(#modal, .phone-layer).preview:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom,
-:is(#modal, .phone-layer).preview > .phone-drawer:has(> .float-bar) > .preview-sheet > .sheet-edge.is-bottom {
+:is(#modal, .phone-layer).preview
+	> .phone-drawer:has(> .float-bar)
+	> .preview-sheet
+	> .sheet-edge.is-bottom {
 	display: block;
 	bottom: 0;
 	height: calc(var(--rail-row) + 18px + 44px);
@@ -4079,14 +4094,14 @@ button.detail-row:active {
 }
 
 /* Panels: a sheet with a title, rows and quiet actions. */
-:is(#modal, .phone-layer).panel {
+:is(#modal, .phone-layer, #tag-layer).panel {
 	width: min(560px, calc(100vw - 32px));
 	margin: auto;
 }
-:is(#modal, .phone-layer).panel.narrow {
+:is(#modal, .phone-layer, #tag-layer).panel.narrow {
 	width: min(440px, calc(100vw - 32px));
 }
-:is(#modal, .phone-layer).panel.wide {
+:is(#modal, .phone-layer, #tag-layer).panel.wide {
 	width: min(840px, calc(100vw - 32px));
 }
 .panel-content {
@@ -4902,6 +4917,7 @@ body.has-open-search #feed-grid {
 		z-index: 1;
 		overflow: auto;
 		overscroll-behavior: contain;
+		scrollbar-width: none;
 		padding: var(--space-4) 0;
 		background: var(--card);
 		transform-origin: top center;
@@ -4916,10 +4932,52 @@ body.has-open-search #feed-grid {
 		visibility: visible;
 		pointer-events: auto;
 	}
-	/* The tab bar leaves with the keyboard only; a submitted search shows it again (search-keyboard). */
-	body:has(:is(#modal, .phone-layer).search.search-keyboard) #dock {
+	.search .search-suggest::-webkit-scrollbar {
+		display: none;
+	}
+	/* # puts statuses and tags where the card suggestions were: page colour, the same rows and hairlines. */
+	.search .search-suggest .search-hash {
+		position: static;
+		max-height: none;
+		overflow: visible;
+		padding: 0;
+		border-radius: 0;
+		background: none;
+		box-shadow: none;
+	}
+	.search .search-suggest .search-hash-label {
+		padding: var(--space-16) var(--space-8) var(--space-6);
+	}
+	.search .search-suggest .search-hash-option {
+		position: relative;
+		min-height: var(--space-48);
+		padding: 0 var(--space-8);
+	}
+	.search .search-suggest .search-hash-option + .search-hash-option::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: var(--space-8);
+		right: var(--space-8);
+		height: 0.5px;
+		background: var(--line);
+	}
+	.search .search-suggest .search-hash-option:first-of-type::before,
+	.search .search-suggest .search-hash-option:first-of-type + .search-hash-option::before,
+	.search .search-suggest .search-hash-option:active::before,
+	.search .search-suggest .search-hash-option:active + .search-hash-option::before {
 		opacity: 0;
-		transform: translateY(var(--space-30));
+	}
+	.search .search-suggest .search-hash-option:active {
+		background: var(--faint);
+	}
+	.search.search-moving input {
+		caret-color: transparent;
+	}
+	/* Editing owns the capsule until the user cancels, including keyboard dismissal. */
+	body:has(:is(#modal, .phone-layer).search.search-editing[open]) #dock {
+		visibility: hidden !important;
+		pointer-events: none;
 	}
 }
 
@@ -4927,6 +4985,12 @@ body.has-open-search #feed-grid {
 	display: flex;
 	gap: var(--space-16);
 	margin-top: var(--space-4);
+}
+
+/* A phone card drawer turns off pointer events on the page while open; the tags layer above it
+ * still takes presses, or they would fall through to the drawer's dim and close the card. */
+#tag-layer {
+	pointer-events: auto;
 }
 
 /* Tags and notes. The tag field follows the tag-input reference: chips sit in a well and wrap. */
@@ -5048,46 +5112,6 @@ body.has-open-search #feed-grid {
 }
 .permission-actions > * {
 	flex: 1;
-}
-
-/* Inline note editing: the card itself becomes the field. */
-.feed-card.is-editing {
-	border: 2px solid var(--accent);
-	cursor: text;
-	z-index: 7;
-}
-.inline-editor {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-6);
-	padding: var(--space-14) var(--space-16) var(--space-12);
-}
-.inline-editor input {
-	border: 0;
-	background: transparent;
-	padding: 0;
-	font-size: 16px;
-	font-weight: 600;
-	border-radius: 0;
-}
-.inline-editor textarea {
-	border: 0;
-	background: transparent;
-	padding: 0;
-	min-height: 96px;
-	font-size: var(--text-body);
-	line-height: 1.6;
-	resize: none;
-	border-radius: 0;
-}
-.inline-editor input:focus-visible,
-.inline-editor textarea:focus-visible {
-	outline: 0;
-}
-.inline-editor small {
-	align-self: flex-end;
-	font-size: var(--text-caption);
-	color: var(--secondary);
 }
 
 /* Lifting never drops into an action. The separate dialog requires a button press. */
@@ -5328,7 +5352,7 @@ body.is-pulling main {
 /* Nested content follows its dragged parent immediately. */
 
 /* Panel content stays reachable at large zoom, small heights and with a keyboard open. */
-:is(#modal, .phone-layer).panel .sheet {
+:is(#modal, .phone-layer, #tag-layer).panel .sheet {
 	max-height: 100dvh;
 	overflow-y: auto;
 	overscroll-behavior: contain;

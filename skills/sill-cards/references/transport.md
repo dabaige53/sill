@@ -8,13 +8,7 @@
 
 ## 正文怎么写
 
-`summary` 是一两句纯文本卡面摘要。`body` 是详情唯一的文字内容，一个 CommonMark Markdown 字符串：段落之间留空行；用小标题组织长文；步骤用有序列表，平行信息用无序列表，原话用引用，代码用代码块。不要把整个正文包在代码围栏里。
-
-有内容就保留，没有就省略；不为短笔记强行增加小标题。正文中只有摘要或摘录时写清覆盖程度，不能声称保存全文。
-
-正文图片只显示替代文字，不加载图片；HTML 按文字显示；链接支持 http、https、mailto。结构字段中的 URL 仅支持 HTTP(S)。Sill 不因链接自动采集外部内容。
-
-需要交互或固定结构的数据使用专门字段：可勾选任务用 `tasks`，会议用 `meeting`，文件和邮件附件用 `files`，章节用 `chapters`，转录用 `transcript`，PR 用 `pullRequest`，关联用 `related`。Markdown 复选框、列表或链接不会自动转换成这些结构。
+标题、卡面摘要和正文的写法见 [书写规范](writing.md)。传输层只要求：`summary` 是纯文本，`body` 是一个 CommonMark 字符串，结构化数据放进专门字段。Markdown 复选框、列表或链接不会自动转换成 `tasks`、`files`、`chapters` 等结构。
 
 ## MCP 参数怎么传
 
@@ -42,7 +36,7 @@ JSON 文本中的 `\n` 经一次解码后是实际换行。不要再次转义为
 
 ## 更新与批量
 
-先读取真实卡片 ID 和 revision。调用 `sill_updateContent` 时使用下面的外层形状；示例 ID 与版本需替换为刚读到的值。
+先读取卡片 ID 和 revision。调用 `sill_updateContent` 时使用下面的外层形状；示例 ID 与版本需替换为刚读到的值。
 
 ```json
 {
@@ -60,7 +54,7 @@ JSON 文本中的 `\n` 经一次解码后是实际换行。不要再次转义为
 
 省略的字段保留原值。`state` 按子字段合并；正文、数组、嵌套对象整体替换。改一项任务、附件或 PR 检查时，先保留原有其他项。字段不接受 null；要移除字段时用批量 `card.upsert` 整卡替换。空数组/空文本仍须满足卡片要求，例如不能清空待办全部 tasks 或文件卡全部 files。
 
-批量使用 `sill_applyOperations` 的 `{idempotency_key,body:{operations,expectedRevision?}}`。新卡 `card.upsert` 传新 `card.id` 和 `before:null`；修改整卡带原始 `before` 或工作区版本。`card` 不带 state 和服务端字段，个人状态另用同批 `item.patch`；整卡替换须保留不改的事实；未知字段会被拒绝。示例和权限见 [操作协议](operations.md)。
+批量使用 `sill_applyOperations` 的 `{idempotency_key,body:{operations,expectedRevision?}}`。新卡 `card.upsert` 传新 `card.id` 和 `before:null`；修改整卡带原始 `before` 或工作区版本。`card` 不带 state 和服务端字段，个人状态另用同批 `item.patch`；整卡替换须保留不改的事实；未知字段会被拒绝。示例和权限见 sill-operations 的 [操作协议](../../sill-operations/references/operations.md)。
 
 单卡创建不自填 ID；更新不传服务端 `created_at`、`updated_at`、`revision`、`deleted` 到 changes。`expectedRevision` 是请求条件，不是卡片事实。
 
@@ -71,11 +65,11 @@ JSON 文本中的 `\n` 经一次解码后是实际换行。不要再次转义为
 - `duration`、`chapters[].start`、`transcript[].start`、`state.playbackPosition` 和 `reading.add.seconds` 均为**秒**，用途彼此独立；`progress` 为 0–1 比例。
 - `sizeBytes` 是非负安全整数字节数，不传 "2 MB"。MIME 使用标准类型字符串，不用扩展名代替。
 - 单字段长度见 [字段字典](fields.md)；云端 HTTP/MCP 请求体还有 **512 KiB UTF-8 字节**上限，包含参数与 JSON 编码开销。多字节中文和转义会增加大小；500000 字的字段上限不保证一条请求能传完。
-- 超限不能静默截断或把完整文章声称为全文。按用户用途决定减少无关字段、明确保存摘录，或拆成多个有独立主题的关联卡片；改变保存完整度前取得用户明确选择。数组是整体替换，没有追加/分片上传协议，不能靠连续 update 拼接超限正文。独立任务可分批；必须一起成功的操作不能拆批并声称原子完成。
+- 超限会被拒绝。可减少无关字段，或拆成几张主题独立的关联卡片。数组和正文整体替换，没有追加或分片上传，不能靠连续 update 拼接超限正文。必须一起成功的操作不能拆批。
 
 ## 写入前后检查
 
-1. 读取当前工具定义。`images`、`publishedAt`、pr 类型或 playbackPosition 未出现，或仍出现 `sender`、`attachments`、`readingEstimate` 等旧字段时，说明当前宿主定义过旧，需要核对部署并刷新连接；不丢字段、不绕到宽松批量参数冒充单卡成功。
-2. 检查资料覆盖程度、类型必需结构、日期单位、来源、数组 ID 与状态。未知保留未知；系统版本/时间由服务端生成。
+1. 读取当前工具定义。`images`、`publishedAt`、pr 类型或 playbackPosition 未出现，或仍出现 `sender`、`attachments`、`readingEstimate` 等旧字段时，说明当前宿主定义过旧，需要核对部署并刷新连接，不丢字段。
+2. 检查类型必需结构、日期单位、来源、数组 ID 与状态。系统版本和时间由服务端生成。
 3. 单卡成功后按返回 ID 重新读取；逐项比较本次提交的字段，允许服务端生成元字段和补齐默认状态。正文须保留换行，PR、媒体、文件等结构不得丢失。批量核对返回快照；需要最新状态时另读工作区。
-4. 结果不明按操作协议处理；发生版本冲突先重读并合并。仅收到工具名、空响应或未检查的成功标记不算确认保存。
+4. 结果不明按 sill-operations 的操作协议处理；发生版本冲突先重读并合并。仅收到工具名、空响应或未检查的成功标记不算确认保存。

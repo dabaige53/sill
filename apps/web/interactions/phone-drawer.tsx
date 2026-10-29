@@ -261,6 +261,18 @@ function PhoneDrawer({
 					ref={content}
 					className="phone-drawer"
 					aria-describedby={undefined}
+					// @design tag-layer
+					// The tags layer floats over the drawer in its own dialog: presses, focus and Escape
+					// there belong to the layer, so the drawer must not read them as dismissals. Vaul
+					// judges a press only after its click, when adding or removing a tag has already
+					// redrawn the pressed chip away, so the open layer decides, not the press target.
+					onInteractOutside={(event) => {
+						if (app.editorLayer?.open || (event.target as Element)?.closest?.("#tag-layer"))
+							event.preventDefault();
+					}}
+					onEscapeKeyDown={(event) => {
+						if (app.editorLayer?.open) event.preventDefault();
+					}}
 					onPointerDownCapture={(event) => {
 						pointerStart.current = { x: event.clientX, y: event.clientY };
 					}}

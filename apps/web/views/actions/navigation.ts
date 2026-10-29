@@ -144,7 +144,9 @@ function reader(this: AppController, { id }: ActionContext) {
 }
 
 function close(this: AppController) {
-	this.closeModal();
+	// The tags layer sits over the card; its × closes only the layer.
+	if (this.editorLayer?.open) this.closeEditor();
+	else this.closeModal();
 }
 
 function closeAll(this: AppController) {

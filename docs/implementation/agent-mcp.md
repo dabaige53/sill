@@ -20,9 +20,15 @@
 
 批量支持卡片更新与删除、个人状态、偏好、阅读时长累加，整批成功或回滚。保存带读取时的卡片版本、原始字段或工作区版本；重试使用相同幂等键和请求内容。
 
-字段、默认值和工具输入以[共享约定](../../contracts/README.md)及[操作协议](../../skills/sill/references/operations.md)为准。图片接受内置插图 ID 或无凭据 HTTPS URL；Markdown 内图片不加载，文件与附件仅记录元信息和链接，不提供上传。
+字段、默认值和工具输入以[共享约定](../../contracts/README.md)及[操作协议](../../skills/sill-operations/references/operations.md)为准。图片接受内置插图 ID 或无凭据 HTTPS URL；Markdown 内图片不加载，文件与附件仅记录元信息和链接，不提供上传。
 
-备份工具发现同时检查工作区读取范围、对应权限与加密配置；恢复另行检查写入条件。操作方法见[备份与提醒](operations/backup-and-reminders.md)。
+备份工具发现同时检查工作区读取范围、对应权限与加密配置；恢复另行检查写入条件。每个备份工具有各自的说明，恢复须先预览并带回预览返回的 `digest` 与 `expectedRevision`。操作方法见[备份与提醒](operations/backup-and-reminders.md)。
+
+## 回执与提示
+
+HTTP 与 MCP 共用同一错误映射（[http-error.ts](../../server/cloud/http-error.ts)），只返回已登记的错误码和 `request_id`。参数校验失败时另带 `issues`，最多 20 项 `{path, message}`，列出被拒绝的输入路径和卡片规则代码，供助手自行修正；不回显输入值。
+
+工具标注：读取类为只读；`sill_createContent` 与 `sill_submitEvent` 只新增记录，标为非破坏性；更新、删除、批量与恢复标为破坏性。服务端 `instructions` 与工具说明维护在 [mcp-guidance.ts](../../contracts/mcp-guidance.ts)。插件随附 `sill-cards`（卡片制作与导入）与 `sill-operations`（操作、设置与排障）两个 skill。
 
 ## 事件与助手
 

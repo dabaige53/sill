@@ -305,6 +305,7 @@ test("search shows no counts: the total is for screen readers only and groups ca
 			searchText: (q: string) => q,
 			searchHash: () => null,
 			searchSuggestions: () => [card],
+			desktop: () => false,
 		};
 		const field = f.w.document.createElement("div");
 		field.innerHTML = Panels.search(app);

@@ -322,12 +322,12 @@ const LocalSync: Record<string, any> = {
 			return;
 		}
 		// Keep an editor's original values until its save can be checked for conflicts.
-		if (this.app.modalKind === "editor") return false;
+		if (this.app.editorLayer?.open) return false;
 		const value = await this.request("state");
 		if (
 			!this.busy &&
 			!this.pending.length &&
-			this.app.modalKind !== "editor" &&
+			!this.app.editorLayer?.open &&
 			value.revision !== this.revision
 		)
 			this.adopt(value);
@@ -348,7 +348,7 @@ const LocalSync: Record<string, any> = {
 			try {
 				localStorage.setItem("sill-sync-revision", JSON.stringify(value.revision));
 			} catch {}
-		const editingIds: string[] = app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : [];
+		const editingIds: string[] = app.editorLayer?.open ? app.bulkEditIds || [app.editId] : [];
 		const editingItems = new Map<string, Record<string, any>>(
 			editingIds.map((id) => [id, { ...Store.state.items[id] }]),
 		);

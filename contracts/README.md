@@ -65,4 +65,4 @@ Card 的 created_at / updated_at / revision 等仍由服务端控制，不接受
 
 ## 助手制作与传输
 
-随插件交付的 [卡片制作](../skills/sill/references/cards.md) 覆盖 12 种类型；[字段字典](../skills/sill/references/fields.md) 说明所有顶层字段与专属结构；[传输规则](../skills/sill/references/transport.md) 说明 Markdown、JSON、时间单位、请求大小和确认方式。MCP 参数直接复用本目录字段，不维护另一套数据结构。512 KiB 请求体上限与字段字数上限同时适用。构建插件或导出工具不代表线上部署或宿主刷新完成。
+随插件交付两个 skill。`sill-cards` 负责卡片制作：[类型配方](../skills/sill-cards/references/types.md) 覆盖 12 种类型及其卡面与详情展示；[字段字典](../skills/sill-cards/references/fields.md) 说明所有顶层字段与专属结构；[传输规则](../skills/sill-cards/references/transport.md) 说明 Markdown、JSON、时间单位、请求大小和确认方式。`sill-operations` 负责读写协议、偏好、备份与排障，见[操作协议](../skills/sill-operations/references/operations.md)。MCP 参数直接复用本目录字段，不维护另一套数据结构。512 KiB 请求体上限与字段字数上限同时适用。构建插件或导出工具不代表线上部署或宿主刷新完成。

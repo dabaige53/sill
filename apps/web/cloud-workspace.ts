@@ -1,15 +1,15 @@
-import { createElement, Fragment } from "react";
+import { createElement } from "react";
 import { paintCloudDraft, stashCloudDraft } from "./cloud-compose.ts";
 import { app, Cloud, callbackFailed, messages, sync } from "./cloud-entry.ts";
 import { copy } from "./copy.ts";
 import { cloudCard } from "./data/cloud-card.ts";
 import { sameData } from "./data/same-data.ts";
 import { Store } from "./data/store.ts";
-import { PanelViews as Panels } from "./interactions/panels-components.tsx";
 import { clone } from "./services/cloud-sync.ts";
 import { cloudViewCard } from "./services/cloud-view-state.ts";
 import { systemReminders } from "./services/system-reminders.ts";
 import { RecoveryNotice } from "./views/cloud-views.tsx";
+import { previewContent } from "./views/preview-controller.ts";
 import { renderView } from "./views/react-renderer.ts";
 export async function cloudApi(path?: any, options: any = {}) {
 	if (path.startsWith("/api/v1/") && Cloud.user)
@@ -221,7 +221,7 @@ export function adoptWorkspace(value: any) {
 			value.state.items[app.currentId],
 		),
 	);
-	const editingIds: string[] = app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : [];
+	const editingIds: string[] = app.editorLayer?.open ? app.bulkEditIds || [app.editId] : [];
 	const editingItems = new Map<string, any>(
 		editingIds.map((id) => [id, clone(Store.state.items[id] || {})]),
 	);
@@ -253,17 +253,7 @@ export function adoptWorkspace(value: any) {
 		const card = Store.card(app.currentId);
 		if (!card) app.closeNative();
 		else {
-			app.replacePanelContent(
-				createElement(
-					Fragment,
-					null,
-					Store.card(app.previewTrail.at(-1))
-						? createElement("div", { className: "sheet-peek", "aria-hidden": true })
-						: null,
-					Panels.preview(app, card),
-				),
-				true,
-			);
+			app.replacePanelContent(previewContent(app, card), true);
 			app.bindPreview(card.id);
 			app.gestures.bindPullDown();
 		}
@@ -287,7 +277,7 @@ export async function loadCloudOnce({ initial = false, quiet = false }: any = {}
 		Cloud.pending ||
 		sync.busy ||
 		(sync.pending.length && !sync.suspended) ||
-		app.modalKind === "editor"
+		app.editorLayer?.open
 	)
 		return false;
 	Cloud.loading = true;

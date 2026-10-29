@@ -134,8 +134,7 @@
 - **输入框**：前置的搜索放大镜可以和占位文字同时出现，它标的是输入框的类型，不是按钮的含义。
 - 判断方法：遮住图标，文字是否已经把意思说全？说全了，图标就是重复，应该去掉。反过来，遮住文字也一样。
 - 图标在 24 格里尽量方正，不画成扁条：`sill` 两张卡立起来占 19×14.5，`mail`、`folder` 占 18×16，`video` 占 19×16。
-- 线条积木（ADR 0037）：从 Sill 标志里取三个元素。外形用 2–2.5px 圆角方块，少用圆形和尖角；需要底座时画一条贯穿的地平线（窗台），如下载、停止提醒；小细节用一段「窗」短线，如收藏条上的短线、标签的孔。线宽和档位不变。已按此重画：`bookmark`、`tag`、`glasses`、`reply`、`external`、`snooze`、`bell-off`、`video`、`download`。
-- 保留当前全部图标，见 [ADR 0038](../../docs/adr/0038-keep-original-icons.md)。上述九个保持现状，其余图标不重画，也不统一为方圆轮廓。导航当前项保留镜片，见 [ADR 0039](../../docs/adr/0039-keep-navigation-lens.md)。
+- 卡片操作的九个图标（`bookmark`、`tag`、`glasses`、`reply`、`external`、`snooze`、`bell-off`、`video`、`download`）画成圆润方形：外框用约 4px 圆角的方块，整体占 16–17 格见方，眼镜和摄像机按物体比例略扁；不画内部短线，选中填色后不丢细节。其余图标保持原样（[ADR 0090](../../docs/adr/0090-tag-layer-and-rounded-action-icons.md)，部分替代 [ADR 0037](../../docs/adr/0037-card-detail-toolbar.md) 与 [ADR 0038](../../docs/adr/0038-keep-original-icons.md)）。导航当前项保留镜片，见 [ADR 0039](../../docs/adr/0039-keep-navigation-lens.md)。
 - `assets/Icons/` 的 SVG 由 `apps/web/atoms/icons.ts` 生成，和页面实际使用的一致。完整图标见 `IconSet` 画板。
 
 ## 使用组件

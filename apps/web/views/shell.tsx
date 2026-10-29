@@ -399,6 +399,7 @@ export function WorkspaceShell() {
 				<div className="scroll-edge" id="scroll-edge" aria-hidden="true" />
 			</div>
 			<dialog id="modal" aria-labelledby="modal-title" />
+			<dialog id="tag-layer" className="panel narrow" aria-labelledby="editor-title" />
 			<ToastSurface />
 			<div className="sr-only" id="announcer" aria-live="polite" />
 		</>

@@ -120,3 +120,7 @@
 - [Sill 本地版本](2026-10-12-local-acceptance/README.md)
 - [Sill — 产品对话与需求演进记录](2026-10-11-product-conversation/README.md)
 - [早期设计研究](2026-10-11-design-notes/README.md)
+
+- [手机文章关闭按钮间距](2026-10-29-article-close-spacing/README.md)
+
+- [手机底部显示问题](2026-10-29-phone-bottom/README.md)
