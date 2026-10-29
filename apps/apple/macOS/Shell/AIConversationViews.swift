@@ -85,7 +85,8 @@ struct AIResultRow: View {
               .font(.sans(AppleMetrics.font13))
               .foregroundStyle(
                 result.state == .failed
-                  ? AppleColors.error : warn ? AppleColors.warning : AppleColors.secondary)
+                  ? AppleColors.error : warn ? AppleColors.warning : AppleColors.secondary
+              )
               .lineLimit(1)
           }
           Spacer(minLength: 0)
