@@ -130,6 +130,7 @@ struct SettingSwitch: View {
         }
       }
     }
+    .modifier(HandCursor())
     .opacity(enabled ? 1 : AppleMetrics.disabledOpacity)
     .accessibilityLabel(label)
     .accessibilityAddTraits(on ? [.isToggle, .isSelected] : .isToggle)

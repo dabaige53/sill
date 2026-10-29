@@ -150,7 +150,7 @@ import Testing
     #expect(feed.scope == .unread)
     #expect(feed.query == "Synthetic")
     #expect(feed.kind == .mail)
-    #expect(feed.mark == .unread && feed.tag == "Work")
+    #expect(feed.mark == nil && feed.tag == "Work")
     #expect(feed.entries == entries)
   }
 }

@@ -44,12 +44,6 @@ struct FeedView: View {
             feed.animateChanges && !Motion.keyboardDriven ? Motion.layout : nil, value: feed.entries
           )
           .animation(Motion.keyboardDriven ? nil : Motion.layout, value: geometry)
-          .transaction { transaction in
-            if feed.scrollRequest != nil {
-              transaction.animation = nil
-              transaction.disablesAnimations = true
-            }
-          }
           .onAppear { feed.entered = true }
         }
         Color.clear.frame(height: AppleMetrics.feedBottom)

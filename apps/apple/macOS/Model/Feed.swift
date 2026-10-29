@@ -281,6 +281,7 @@ enum FeedEntry: Identifiable, Equatable {
     if let pendingQuery { query = pendingQuery }
     pendingQuery = nil
     scope = next
+    if mark?.scope == next { mark = nil }
     let saved = positions[next]
     pageLimit = saved?.limit ?? Feed.page
     requestScroll(to: saved?.offset ?? 0)
@@ -308,7 +309,7 @@ enum FeedEntry: Identifiable, Equatable {
   /// A picked # option becomes a token; returns the text without the typed fragment.
   @discardableResult func pick(_ option: HashOption, in text: String) -> String {
     switch option.value {
-    case .mark(let next): mark = next
+    case .mark(let next): mark = next.scope == scope ? nil : next
     case .tag(let next): tag = next
     case .card: return text
     }
@@ -415,7 +416,7 @@ enum FeedEntry: Identifiable, Equatable {
   // MARK: Building
 
   private func rebuild(keepClock: Bool = false, animate: Bool = true) {
-    animateChanges = animate && entered && scrollRequest == nil
+    animateChanges = animate && entered
     let trace = PerformanceTrace.shared.begin(.feedRebuild)
     defer {
       PerformanceTrace.shared.end(

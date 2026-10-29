@@ -34,6 +34,19 @@ import Testing
     #expect(feed.tag == nil && feed.mark == nil && feed.scope == .all)
   }
 
+  @Test func scopeAbsorbsMatchingStatusAndFiltersAnimate() async {
+    let (workspace, _) = await ready(["a"])
+    let feed = Feed(workspace: workspace)
+    feed.entered = true
+    feed.pick(HashOption(value: .mark(.unread)), in: "")
+    feed.select(.unread)
+    #expect(feed.mark == nil)
+    feed.select(.all)
+    #expect(feed.scope == .all && feed.mark == nil)
+    feed.search("Synthetic")
+    #expect(feed.animateChanges)
+  }
+
   @Test func typeChipsListTypesWithResultsAndLeaveWithTheText() async {
     let (workspace, _) = await ready(["a"], extra: [syntheticMail])
     let feed = Feed(workspace: workspace)

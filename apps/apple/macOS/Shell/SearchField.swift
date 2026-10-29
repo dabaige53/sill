@@ -55,7 +55,8 @@ struct SearchField: View {
     HStack(spacing: AppleMetrics.space8) {
       Icon("search", size: AppleMetrics.space16).foregroundStyle(AppleColors.secondary)
       if feed.scope != .all {
-        HashToken(label: feed.scope.label, tint: AppleColors.primary) {
+        HashToken(label: feed.scope.label, tint: AppleColors.primary, foreground: AppleColors.card)
+        {
           feed.select(.all)
         }
         .accessibilityLabel("\(Copy.text("web.home.removeTab")) \(feed.scope.label)")
@@ -69,12 +70,14 @@ struct SearchField: View {
       }
       TextField(
         "", text: $shell.searchText,
-        prompt: Text(placeholder).foregroundStyle(AppleColors.secondary)
+        prompt: Text(placeholder).foregroundStyle(AppleColors.primary)
       )
       .textFieldStyle(.plain)
       .font(.sans(AppleMetrics.font15))
+      .frame(height: AppleMetrics.space32)
       .foregroundStyle(AppleColors.primary)
       .focused($focused)
+      .modifier(TextCursor())
       // Focus feedback belongs to the capsule; never animate the AppKit field editor's layout.
       .transaction { $0.animation = nil }
       .simultaneousGesture(TapGesture().onEnded { shell.suggestionsDismissed = false })
@@ -145,7 +148,6 @@ struct SearchField: View {
     .padding(.leading, AppleMetrics.space14)
     .padding(.trailing, AppleMetrics.space8)
     // The whole capsule takes typing, so the I-beam covers it, not only the text.
-    .modifier(TextCursor())
     .modifier(SearchSurface(width: width))
     .overlay {
       Capsule().strokeBorder(
@@ -258,18 +260,19 @@ struct SearchField: View {
 private struct HashToken: View {
   let label: String
   var tint = AppleColors.accent
+  var foreground = AppleColors.fixedWhite
   let remove: () -> Void
   @State private var hovered = false
   var body: some View {
     Button(action: remove) {
       HStack(spacing: AppleMetrics.space4) {
-        Text(label).lineLimit(1)
+        Text(label).lineLimit(1).fixedSize()
         Icon("x", size: AppleMetrics.font12)
           .opacity(hovered ? 1 : 0.6)
           .animation(Motion.hover, value: hovered)
       }
       .font(.sans(AppleMetrics.font13, .semibold))
-      .foregroundStyle(AppleColors.fixedWhite)
+      .foregroundStyle(foreground)
       .padding(.horizontal, AppleMetrics.searchTokenPaddingX)
       .frame(height: AppleMetrics.searchTokenHeight)
       .background(Capsule().fill(tint))
@@ -277,6 +280,7 @@ private struct HashToken: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(SearchPress())
+    .highPriorityGesture(TapGesture().onEnded { remove() })
     .onHover { hovered = $0 }
     .accessibilityLabel("\(Copy.text("web.search.removeCondition")) \(label)")
   }
@@ -475,11 +479,11 @@ private struct SearchSurface: ViewModifier {
   }
 }
 
-/// Clear native glass; readability comes from the scroll edge behind the field.
+/// Regular native glass keeps text legible over cards in both appearances.
 private struct SearchGlass: ViewModifier {
   @ViewBuilder func body(content: Content) -> some View {
     if #available(macOS 26.0, *) {
-      content.glassEffect(.clear, in: Capsule())
+      content.glassEffect(.regular, in: Capsule())
     } else {
       content.desktopGlass(Capsule())
     }

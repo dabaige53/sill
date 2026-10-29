@@ -12,6 +12,7 @@ struct AIDock: View {
   @State private var hovered = false
   @State private var shrinkHovered = false
   @State private var lastDrag: CGFloat = 0
+  @State private var collapseLeft = false
   @FocusState private var bubbleFocused: Bool
 
   private var minimized: Bool { context.minimized && !carrying && !grown }
@@ -21,7 +22,7 @@ struct AIDock: View {
       minimized
       ? AppleMetrics.railRow
       : (height == .full ? min(AppleMetrics.aiFullWidth, width - 2 * AppleMetrics.railEdge) : panel)
-    let base = minimized ? (panel - drawnWidth) / 2 : 0
+    let base = minimized ? (panel - drawnWidth) / 2 * (collapseLeft ? -1 : 1) : 0
     let half = max(0, (width - drawnWidth) / 2 - AppleMetrics.railEdge)
     return (-half - base)...(half - base)
   }
@@ -30,12 +31,14 @@ struct AIDock: View {
     return min(range.upperBound, max(range.lowerBound, context.horizontalOffset))
   }
   private var moveGesture: some Gesture {
-    DragGesture(minimumDistance: AppleMetrics.space4)
+    DragGesture(minimumDistance: AppleMetrics.space4, coordinateSpace: .global)
       .onChanged { value in
         guard abs(value.translation.width) > abs(value.translation.height) else { return }
         let range = bounds(window.width)
         let next = offset + value.translation.width - lastDrag
-        context.horizontalOffset = min(range.upperBound, max(range.lowerBound, next))
+        Motion.instantly {
+          context.horizontalOffset = min(range.upperBound, max(range.lowerBound, next))
+        }
         lastDrag = value.translation.width
       }
       .onEnded { _ in lastDrag = 0 }
@@ -110,13 +113,13 @@ struct AIDock: View {
       }
       .desktopGlass(shape)
       .shadow(.sheet, visible: grown)
-      .mask(alignment: .topTrailing) {
+      .mask(alignment: collapseLeft ? .topLeading : .topTrailing) {
         RoundedRectangle(cornerRadius: AppleMetrics.aiDockRadius)
           .frame(
             width: minimized ? AppleMetrics.railRow : (height == .full ? fullWidth : panelWidth),
             height: minimized ? AppleMetrics.railRow : nil)
       }
-      .overlay(alignment: .topTrailing) {
+      .overlay(alignment: minimized && collapseLeft ? .topLeading : .topTrailing) {
         if minimized {
           Button {
             withAnimation(Motion.keyboardDriven ? nil : Motion.sheet(AppleMetrics.aiExpandDuration))
@@ -146,6 +149,7 @@ struct AIDock: View {
         } else if !grown {
           Button {
             focused = false
+            collapseLeft = context.horizontalOffset < 0
             withAnimation(
               Motion.keyboardDriven ? nil : Motion.sheet(AppleMetrics.aiCollapseDuration)
             ) {
@@ -398,7 +402,7 @@ struct AIDock: View {
         "", text: $context.draft,
         prompt: Text(placeholder)
           .fontWeight(drag.ready ? .semibold : nil)
-          .foregroundStyle(drag.ready ? AppleColors.accent : AppleColors.secondary)
+          .foregroundStyle(drag.ready ? AppleColors.accent : AppleColors.primary)
       )
       .textFieldStyle(.plain)
       .font(.sans(AppleMetrics.font16))
@@ -406,6 +410,7 @@ struct AIDock: View {
       .padding(.horizontal, AppleMetrics.space4)
       .frame(height: AppleMetrics.space36)
       .focused($focused)
+      .transaction { $0.animation = nil }
       .accessibilityLabel(Copy.text("web.ai.dock"))
       .onChange(of: context.draft) { _, value in
         if value.utf16.count > 4000 { context.draft = String(value.prefix(4000)) }
