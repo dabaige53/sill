@@ -30,7 +30,7 @@ function pageMetadata(cloud: boolean): Plugin {
 				if (cloud) links.push('<link rel="stylesheet" href="/cloud.css">');
 				// Local and cloud pages install alike; only the embedded MCP page strips this block.
 				const homeScreen = `<!-- home-screen:start -->
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="256x256" href="/assets/sill-icon.png"><link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="256x256" href="/assets/sill-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
