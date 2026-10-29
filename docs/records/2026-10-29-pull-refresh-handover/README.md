@@ -28,3 +28,4 @@
 
 - 新增回归：`tests/web/gesture-refresh.test.ts` 中“a phone touch that stopped momentum mid-page takes over at the top without lifting”，撤掉修复时会因起点未记录而失败。本地未运行，由 GitHub Actions 执行。
 - 未验证：iPhone与Android真机手感。iOS需确认打断惯性的触摸在到顶后持续送出移动事件；若接不住，下一步评估iOS系统回弹方案。
+- 发布：随 v1.2.17 推送 tag 触发 `release.yml`；自 v1.2.16 起无数据库或迁移改动，`SILL_DATABASE_VERIFIED_COMMIT` 指向该 tag 提交。按用户要求未监控运行结果，部署状态以该次 Actions 回执为准。
