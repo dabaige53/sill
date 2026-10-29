@@ -40,7 +40,7 @@ Web 使用 React + TypeScript + Vite，决策见 [ADR 0047](../../docs/adr/0047-
 
 已安装的旧书签可能保留旧启动方式。先确认云端内容已保存，再重新添加；不要为此清除网站数据。安装后如需重新登录，继续现有登录流程。跨站登录／原文链接可能由系统打开浏览器，这是正常边界，不强制拦截。
 
-Worker 直接提供 /manifest.webmanifest 和现有品牌 PNG。manifest 的 id、start_url、scope 均为 /，不写登录参数、账号或卡片内容；不注册 Service Worker，不缓存私有 API 或登录响应。本地页面与云端输出同一份安装元数据，本地服务同样提供 manifest 和图标；只有 MCP 内嵌页不输出。状态栏样式保持 default（不透明）：Apple 建议不用 black-translucent，iOS 26.1 起它会叠加系统渐变；不透明状态栏的颜色取 theme-color，由 status-bar.ts 跟随当前页面；现有 viewport-fit、安全区和 visualViewport 键盘处理继续生效。
+Worker 直接提供 /manifest.webmanifest 和现有品牌 PNG。manifest 的 id、start_url、scope 均为 /，不写登录参数、账号或卡片内容；不注册 Service Worker，不缓存私有 API 或登录响应。本地页面与云端输出同一份安装元数据，本地服务同样提供 manifest 和图标；只有 MCP 内嵌页不输出。状态栏样式为 black-translucent：主屏幕 App 把页面画到透明状态栏后方，状态栏后的颜色就是当前页面的顶部，卡片抽屉缩放页面时它随页面一起移动；系统时间、电量图标固定为白色，iOS 26.1 起系统另加渐变。主屏幕 App 不写 theme-color，页面顶部由首页状态栏底色和各全屏页自身绘制；普通 Safari 标签页仍用 theme-color。修改该样式后须删除并重新添加主屏幕图标。现有 viewport-fit、安全区和 visualViewport 键盘处理继续生效。
 
 发布后设备验收：从主屏幕冷启动，检查没有 Safari 底部地址栏；检查登录、重新打开、卡片详情、搜索键盘开关、横竖屏及底部安全区。自动构建与浏览器模拟不等于真实 iPhone 验收。
 

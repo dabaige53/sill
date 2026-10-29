@@ -42,7 +42,7 @@ test("standalone metadata is in local, cloud and login pages, never the embedded
 				document
 					.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
 					?.getAttribute("content"),
-				"default",
+				"black-translucent",
 			);
 		} finally {
 			dom.window.close();

@@ -58,12 +58,12 @@ body {
 }
 /* Under a drawer only the cards are clipped to the screen, not the whole page: iOS drew a clipped
    page differently, and the card shadows and the dock's glass changed in one frame as the drawer
-   finished closing. phone-drawer.tsx measures the visible part. */
+   finished closing. phone-drawer.tsx measures the visible part. All four corners round, so cards
+   under a tucked top bar never stick out past the page's top corners. */
 #workspace-background.is-drawer-background > main {
 	--phone-drawer-roundness: inherit;
 	clip-path: inset(
-		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round 0 0
-			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
+		var(--drawer-clip-top, 0px) 0 var(--drawer-clip-bottom, 0px) 0 round
 			calc(var(--sheet-radius) * var(--phone-drawer-roundness))
 	);
 }

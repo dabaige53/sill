@@ -42,6 +42,20 @@
 		-webkit-backdrop-filter: blur(28px) saturate(1.6);
 		backdrop-filter: blur(28px) saturate(1.6);
 	}
+	/* A home-screen app draws the page under the transparent status bar. This fill keeps the page
+	   color there while the top bar is tucked, and moves with the page under a drawer. Pages (z 40+)
+	   paint their own top. */
+	#workspace-background::before {
+		content: "";
+		position: fixed;
+		z-index: 30;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: env(safe-area-inset-top);
+		background: var(--canvas);
+		pointer-events: none;
+	}
 	.home-top.is-tucked {
 		transform: translateY(calc(-100% + env(safe-area-inset-top)));
 		opacity: 0;

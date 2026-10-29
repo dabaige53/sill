@@ -361,7 +361,8 @@ export const appSurfacesMethods = {
 		this.modalToken++;
 		this.previewTrail = [];
 		this.detailPositions.clear();
-		if (CARD_KINDS.includes(this.modalKind)) this.railHide?.show(true);
+		if (CARD_KINDS.includes(this.modalKind) && !this.dialog.hasAttribute("data-phone-drawer"))
+			this.railHide?.show(true);
 		const toast = document.getElementById("toast");
 		if (this.dialog.contains(toast)) document.body.appendChild(toast);
 		const source = this.grid.querySelector<HTMLElement>(

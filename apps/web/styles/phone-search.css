@@ -93,6 +93,10 @@
 	/* The local AI preview keeps context and composer in one viewport. */
 	:is(#modal, .phone-layer).page.panel.narrow:has(.ai-conversation) {
 		width: 100%;
+		background: var(--card);
+	}
+	:is(#modal, .phone-layer).page.panel:has(.ai-conversation) .sheet {
+		background: var(--card);
 	}
 	:is(#modal, .phone-layer).page.panel .ai-conversation {
 		padding: env(safe-area-inset-top) var(--space-12)

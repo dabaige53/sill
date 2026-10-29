@@ -86,6 +86,21 @@ class ChromeAutoHide {
 		this.last = this.position();
 		this.down = this.up = 0;
 	}
+	/** Keep the currently drawn chrome attached to the page during a phone drawer transition. */
+	hold() {
+		clearTimeout(this.timer);
+		this.timer = 0;
+		const animations = this.targets()
+			.flatMap((target) => target.getAnimations())
+			.filter((animation) => animation.playState === "running");
+		for (const animation of animations) animation.pause();
+		return () => {
+			this.syncPosition();
+			for (const animation of animations) {
+				if (animation.playState === "paused") animation.play();
+			}
+		};
+	}
 	scrolled() {
 		// Background controls keep their state while a modal or a gesture owns input.
 		if (this.paused()) {

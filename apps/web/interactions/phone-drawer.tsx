@@ -3,9 +3,6 @@ import { flushSync } from "react-dom";
 import { Drawer } from "vaul";
 import { copy } from "../copy.ts";
 import type { AppController } from "../views/app.ts";
-import { MotionEngine } from "./motion.ts";
-import type { Playback } from "./motion-playback.ts";
-import { paintStatusBar } from "./status-bar.ts";
 
 const hosts = new WeakMap<Element, AppController>();
 type Child = { dialog: HTMLDialogElement; children: ReactNode };
@@ -17,8 +14,6 @@ const controls = new WeakMap<
 	}
 >();
 const childParents = new WeakMap<Element, Element>();
-/** The root drawer's fade of the dark behind the page; one root drawer is open at a time. */
-let behind: Playback | null = null;
 /** The page last prepared and a count, so a late glass restore never undoes a drawer opened on it since. */
 let preparations = 0;
 let prepared: Element | null = null;
@@ -87,28 +82,36 @@ function prepareBackground(app: AppController) {
 	if (!background) return () => {};
 	const preparation = ++preparations;
 	prepared = background;
+	const releaseChrome = app.railHide?.hold();
 	background.setAttribute("data-vaul-drawer-wrapper", "");
+	// The page reveals a fixed backing as it moves, including through the closing transition.
+	document.body.classList.add("is-drawer-scaled");
 	// The glass and the top bar fill change one frame after the page settles, so iOS does not
 	// rebuild the page layers and the glass in the same frame (the dock and card shadows lagged).
 	const releaseGlass = () =>
 		requestAnimationFrame(() => {
-			if (preparation === preparations || prepared !== background)
+			if (preparation === preparations || prepared !== background) {
 				background.removeAttribute("data-vaul-drawer-wrapper");
+				releaseChrome?.();
+			}
 		});
+	// Search scales as its own layer; the home page under it would show where the black belongs.
+	const desk = app.searchBackground && document.getElementById("workspace-background");
+	desk?.classList.add("is-under-drawer");
 	const clearRadius = () => {
 		background.style.removeProperty("--phone-drawer-roundness");
-		behind?.cancel();
-		behind = null;
 		document.body.classList.remove("is-drawer-scaled");
-		document.body.style.removeProperty("background-color");
-		paintStatusBar();
+		desk?.classList.remove("is-under-drawer");
 	};
 	// Under search the page is its own layer; under another page the desk is already frozen.
-	if (app.searchBackground || background.classList.contains("is-page-frozen"))
+	if (app.searchBackground || background.classList.contains("is-page-frozen")) {
+		// Establish the unscaled frame before Vaul writes its opening transform.
+		background.getBoundingClientRect();
 		return () => {
 			releaseGlass();
 			clearRadius();
 		};
+	}
 	const main = background.querySelector<HTMLElement>("main");
 	const translate = main?.style.translate || "";
 	const minHeight = document.body.style.minHeight;
@@ -130,6 +133,8 @@ function prepareBackground(app: AppController) {
 	// the drawer then scrolled the hidden document and iOS dropped the tap as a scroll.
 	const overflow = document.documentElement.style.overflow;
 	document.documentElement.style.overflow = "hidden";
+	// Flush the frozen geometry once; otherwise WebKit can combine it with Vaul's target frame.
+	background.getBoundingClientRect();
 	return () => {
 		releaseGlass();
 		clearRadius();
@@ -175,36 +180,6 @@ function PhoneDrawer({
 		background?.style.setProperty(
 			"--phone-drawer-roundness",
 			String(Math.max(0, Math.min(1, progress))),
-		);
-	};
-	// Sill fades the dark behind the scaled page on Vaul's 0.5s curve; Vaul's own color switches in
-	// one frame. It starts from the drawn color, so a drag or an interrupted fade continues smoothly.
-	const darkenBehind = (dark: boolean) => {
-		if (nested) return;
-		const body = document.body;
-		if (body.classList.contains("is-drawer-scaled") === dark && !body.style.backgroundColor) return;
-		const from = getComputedStyle(body).backgroundColor;
-		behind?.cancel();
-		body.style.removeProperty("background-color");
-		body.classList.toggle("is-drawer-scaled", dark);
-		paintStatusBar();
-		const to = getComputedStyle(body).backgroundColor;
-		behind =
-			from === to
-				? null
-				: MotionEngine.animate(body, [{ backgroundColor: from }, { backgroundColor: to }], {
-						duration: 500,
-						easing: "cubic-bezier(0.32, 0.72, 0, 1)",
-					});
-	};
-	// A finger drives the dark frame by frame; the release hands it back to darkenBehind.
-	const shadeBehind = (progress: number) => {
-		if (nested) return;
-		behind?.cancel();
-		behind = null;
-		document.body.style.setProperty(
-			"background-color",
-			`color-mix(in srgb, #000 ${Math.round(Math.max(0, Math.min(1, progress)) * 100)}%, var(--canvas))`,
 		);
 	};
 	useLayoutEffect(() => {
@@ -258,21 +233,17 @@ function PhoneDrawer({
 				? {
 						onDrag: (_event: PointerEvent<HTMLDivElement>, percentage: number) => {
 							roundBackground(1 - percentage);
-							shadeBehind(1 - percentage);
 							// Vaul writes the page offset right after this callback.
 							queueMicrotask(() => keepSafeArea(percentage));
 						},
 						onRelease: (_event: PointerEvent<HTMLDivElement>, isOpen: boolean) => {
 							roundBackground(isOpen ? 1 : 0);
-							// A closing release fades on toward the page color, never back to dark first.
-							darkenBehind(isOpen);
 						},
 					}
 				: {})}
 			onOpenChange={(value) => {
 				setOpen(value);
 				roundBackground(value ? 1 : 0);
-				darkenBehind(value);
 				if (!value && !finish.current && app.dialog === dialog && app.currentId === ownerId)
 					app.closeModal();
 			}}

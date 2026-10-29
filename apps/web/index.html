@@ -19,6 +19,12 @@
   document.documentElement.dataset.themePreference = preference;
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.colorScheme = theme;
+  // In a Home Screen app the transparent status bar reveals page pixels.
+  // Do not also request a separately painted browser-chrome color.
+  if (navigator.standalone || matchMedia("(display-mode: standalone)").matches) {
+    document.documentElement.dataset.standalone = "true";
+    for (const meta of document.querySelectorAll('meta[name="theme-color"]')) meta.remove();
+  }
 })();
 </script>
 </head>

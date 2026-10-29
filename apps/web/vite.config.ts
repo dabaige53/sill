@@ -35,7 +35,7 @@ function pageMetadata(cloud: boolean): Plugin {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Sill">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- home-screen:end -->`;
 				return html
 					.replace(/\{\{COPY:([^}]+)\}\}/g, (_match, key: string) => {
