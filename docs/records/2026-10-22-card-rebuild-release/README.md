@@ -25,7 +25,7 @@
 | [Design System](https://claude.ai/artifact/8zZhgYs53aRF6Rbk5GtuBb) | `1792640295-b21d` |
 | [设计画布](https://claude.ai/artifact/487W43yaF9D3Kno8c3ej6b) | `1792640301-08a9` |
 
-完整记录见 [设计版本](../../design/versions.md)。
+完整记录见 [设计版本](../design-changelog.md)。
 
 ## 检查
 

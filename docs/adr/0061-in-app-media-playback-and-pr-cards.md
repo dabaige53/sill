@@ -1,6 +1,6 @@
 # 视频与播客在 Sill 内播放，新增 PR 卡片类型
 
-日期：2026-10-22。状态：已接受，尚未设计定稿与实现。取代 [界面对账表](../product/ui-alignment.md) D14「媒体与播客不提供内置播放，提示前往来源」、[动效](../../design-system/handbook/motion.md#其他组件)中播客无内置播放一条，以及 [功能矩阵](../product/feature-matrix.md)「不提供内置播放」；补充 [ADR 0060](0060-card-rebuild-by-type-and-source-marks.md)，卡片类型由 12 类变为 13 类。
+日期：2026-10-22。状态：已接受，尚未设计定稿与实现。取代 [界面对账表](../implementation/design/ui-alignment.md) D14「媒体与播客不提供内置播放，提示前往来源」、[动效](../../design-system/handbook/motion.md#其他组件)中播客无内置播放一条，以及 [功能矩阵](../implementation/feature-matrix.md)「不提供内置播放」；补充 [ADR 0060](0060-card-rebuild-by-type-and-source-marks.md)，卡片类型由 12 类变为 13 类。
 
 ## 原因
 
@@ -45,7 +45,7 @@
 
 ## 影响
 
-修改卡片约定（新增类型、媒体音频地址、章节时间、带时间点的文字稿、PR 字段）和个人状态（播放位置）；修改手册 motion、foundation、interaction 中媒体与卡片积木的规则，以及 FeedCard 组件说明；更新 [界面对账表](../product/ui-alignment.md) D14 与 [功能矩阵](../product/feature-matrix.md)。设计稿先在 `design-system/boards/CardTypeDetails.dc.html` 中给出，之后实现 Web 与 macOS。
+修改卡片约定（新增类型、媒体音频地址、章节时间、带时间点的文字稿、PR 字段）和个人状态（播放位置）；修改手册 motion、foundation、interaction 中媒体与卡片积木的规则，以及 FeedCard 组件说明；更新 [界面对账表](../implementation/design/ui-alignment.md) D14 与 [功能矩阵](../implementation/feature-matrix.md)。设计稿先在 `design-system/boards/CardTypeDetails.dc.html` 中给出，之后实现 Web 与 macOS。
 
 ## 本地实现状态
 

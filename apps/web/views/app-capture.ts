@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
-import { icon } from "../atoms/icons.ts";
-import { markdownText } from "../atoms/markdown.ts";
-import { esc, eventEnded, eventRelative, eventTimely, minutes } from "../atoms/primitives.ts";
+import { eventEnded, eventRelative, eventTimely, minutes } from "../atoms/primitives.ts";
 import { copy } from "../copy.ts";
 import { demoBase, SeedCards, SeedItems } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -13,51 +11,6 @@ import { renderContent, renderView } from "./react-renderer.ts";
 import { repaintSettings, setPref } from "./settings-controller.ts";
 
 export const appCaptureMethods = {
-	startInlineEdit(this: AppController, id?: string) {
-		this.finishInlineEdit();
-		const node = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`),
-			c = Store.card(id);
-		if (!node || !c) return;
-		this.editingId = id;
-		Store.patch(id, { seen: true, read: true });
-		node.classList.add("is-editing");
-		node.querySelector<HTMLElement>(".card-body").outerHTML =
-			`<div class="inline-editor"><span class="card-head">${icon("note", 16)}<span class="card-src">${copy("web.app.5d7845b38bf2")}${esc(copy("web.cards.de6785d99e02"))}</span></span><input id="inline-title" aria-label="${copy("web.title")}" value="${esc(c.title)}" maxlength="200"><textarea id="inline-body" aria-label="${copy("web.app.7a688306423b")}" maxlength="4000">${esc(c.body || c.summary || "")}</textarea><small id="inline-state">${copy("web.app.f2db3712a685")}</small></div>`;
-		this.layout.schedule(false);
-		const area = node.querySelector<HTMLTextAreaElement>("#inline-body");
-		area.focus();
-		area.setSelectionRange(area.value.length, area.value.length);
-	},
-	saveInlineEdit(this: AppController) {
-		const id = this.editingId,
-			c = Store.card(id);
-		if (!c) return;
-		const title =
-				(document.getElementById("inline-title") as HTMLInputElement)?.value.trim() || c.title,
-			text = (document.getElementById("inline-body") as HTMLInputElement)?.value || "";
-		const body = text.trim();
-		Object.assign(c, {
-			title: title.slice(0, 200),
-			body: body || title,
-			summary: markdownText(body).replace(/\s+/g, " ").slice(0, 300),
-		});
-		Store.save();
-		const state = document.getElementById("inline-state");
-		if (state)
-			state.textContent = window.__QG_LOCAL__
-				? copy("web.app.5fa0ce52b47e")
-				: copy("web.cloudentry.1bd91a7d0c53");
-	},
-	finishInlineEdit(this: AppController) {
-		if (!this.editingId) return;
-		const id = this.editingId;
-		this.saveInlineEdit();
-		this.editingId = "";
-		const node = this.grid.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
-		node?.classList.remove("is-editing");
-		this.refreshCard(id);
-		this.layout.schedule(false);
-	},
 	loadDemo(this: AppController) {
 		Store.state.preferences.onboarded = true;
 		const demo = SeedCards.map((c?: Card) => ({

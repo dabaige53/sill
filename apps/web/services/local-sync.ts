@@ -205,7 +205,7 @@ const LocalSync: Record<string, any> = {
 		const next = this.snapshot(),
 			before = this.baseline,
 			operations = [];
-		// Cards created or edited on the page (capture, inline notes) travel as whole cards.
+		// Card changes travel as whole records with their original values.
 		const oldCards = new Map<any, any>(
 				before.cards.map((card?: any) => [card.id, JSON.stringify(card)]),
 			),
@@ -322,13 +322,12 @@ const LocalSync: Record<string, any> = {
 			return;
 		}
 		// Keep an editor's original values until its save can be checked for conflicts.
-		if (this.app.modalKind === "editor" || this.app.editingId) return false;
+		if (this.app.modalKind === "editor") return false;
 		const value = await this.request("state");
 		if (
 			!this.busy &&
 			!this.pending.length &&
 			this.app.modalKind !== "editor" &&
-			!this.app.editingId &&
 			value.revision !== this.revision
 		)
 			this.adopt(value);
@@ -349,7 +348,6 @@ const LocalSync: Record<string, any> = {
 			try {
 				localStorage.setItem("sill-sync-revision", JSON.stringify(value.revision));
 			} catch {}
-		const editingCard = app.editingId ? Store.card(app.editingId) : null;
 		const editingIds: string[] = app.modalKind === "editor" ? app.bulkEditIds || [app.editId] : [];
 		const editingItems = new Map<string, Record<string, any>>(
 			editingIds.map((id) => [id, { ...Store.state.items[id] }]),
@@ -359,13 +357,6 @@ const LocalSync: Record<string, any> = {
 		Object.assign(Store.state, state);
 		Store.legacyFields = Object.hasOwn(value.state, "sources") ? { sources } : {};
 		Store.state.storageAvailable = true;
-		// A response to an unrelated reading observation may include external edits.
-		// Keep the inline editor's original card until its conditional save finishes.
-		if (editingCard) {
-			const index = Store.state.cards.findIndex((c?: any) => c.id === editingCard.id);
-			if (index >= 0) Store.state.cards[index] = editingCard;
-			else Store.state.cards.push(editingCard);
-		}
 		// Keep the note/tag editor's original note and card tags, including absent values.
 		// Unrelated save responses must not turn stale input into a valid overwrite.
 		for (const [id, original] of editingItems) {
@@ -389,7 +380,7 @@ const LocalSync: Record<string, any> = {
 		if (!changed) return;
 		app.feedNow = Date.now();
 		app.applyPreferences();
-		if (!app.editingId) app.withFeedAnchor(() => {}, this.ready && !app.initializing);
+		app.withFeedAnchor(() => {}, this.ready && !app.initializing);
 		if (app.modalKind === "settings") app.repaintSettings();
 		if (app.modalKind === "preview" && !app.sheetLeaving) {
 			const card = Store.card(app.currentId);

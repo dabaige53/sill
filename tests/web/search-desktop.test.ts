@@ -286,3 +286,30 @@ test("typing narrows cards and # conditions, empty candidates close with Escape,
 		f.dom.window.close();
 	}
 });
+
+test("desktop status tokens merge with the sidebar in either selection order", () => {
+	const f = desktopFixture();
+	try {
+		for (const status of ["unread", "saved", "later"]) {
+			f.app.action("home-tab", "", status);
+			f.type("#");
+			f.app.action("home-hash", "", `status:${status}`);
+			assert.equal(f.app.filter.mark, "all");
+			assert.equal(
+				f.w.document.querySelectorAll('#home-search-marks [data-extra="mark"]').length,
+				0,
+			);
+			f.app.action("home-tab", "", "all");
+			f.app.action("home-hash", "", `status:${status}`);
+			f.app.action("home-tab", "", status);
+			assert.equal(f.app.filter.mark, "all");
+			f.app.action("home-hash", "", "tag:Work");
+			assert.equal(f.app.filter.tag, "Work");
+			f.app.action("home-tab", "", "all");
+			assert.equal(f.app.filter.status, "all");
+			assert.equal(f.app.filter.tag, "Work");
+		}
+	} finally {
+		f.dom.window.close();
+	}
+});

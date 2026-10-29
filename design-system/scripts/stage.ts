@@ -1,7 +1,7 @@
 // Prepares a design publish and records it afterwards. The shell cannot write to claude.ai, so
 // Claude publishes from the plan this writes (see .claude/skills/design-publish/SKILL.md).
 //   node design-system/scripts/stage.ts [note]                       → dist/design/{ds,canvas}/project/…, dist/design/plan.json
-//   node design-system/scripts/stage.ts record <ds-ver> <canvas-ver> [ADR] → design-system/published.json, docs/design/versions.md
+//   node design-system/scripts/stage.ts record <ds-ver> <canvas-ver> [ADR] → design-system/published.json, docs/records/design-changelog.md
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -202,7 +202,7 @@ function record(dsVersion?: string, canvasVersion?: string, adrNumber?: string) 
 		) + "\n",
 	);
 	copyFileSync(resolve(out, "ds/project/design-system.json"), resolve(ds, "design-system.json"));
-	const versions = resolve(repo, "docs/design/versions.md");
+	const versions = resolve(repo, "docs/records/design-changelog.md");
 	const day = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Shanghai" });
 	const adr = readdirSync(resolve(repo, "docs/adr"))
 		.filter((f) => (adrNumber ? f.startsWith(adrNumber.padStart(4, "0") + "-") : /^\d{4}-/.test(f)))
@@ -211,7 +211,7 @@ function record(dsVersion?: string, canvasVersion?: string, adrNumber?: string) 
 	const row = `| ${day} | [ADR ${adr.slice(0, 4)}](../adr/${adr}) | ${dsVersion} | ${canvasVersion} | ${plan.note || "未写说明"} |`;
 	writeFileSync(versions, readFileSync(versions, "utf8").trimEnd() + "\n" + row + "\n");
 	console.log(
-		"已记录：design-system/published.json、design-system/design-system.json、docs/design/versions.md\n" +
+		"已记录：design-system/published.json、design-system/design-system.json、docs/records/design-changelog.md\n" +
 			row,
 	);
 }

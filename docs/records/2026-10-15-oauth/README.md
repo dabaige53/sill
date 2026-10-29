@@ -1,6 +1,6 @@
 # Sill 授权测试结果
 
-最新结果：自定义 App 的五项身份权限兼容已生效；用户明确批准后，真实 OAuth 返回 ChatGPT，刷新后发现7个工具，真实卡片读取成功。页面曾加载失败，随后用户确认成功。当前身份、调试经过和使用规范统一见 [插件操作手册](../../guides/plugin-runbook.md)。以下各节保留对应阶段的结果，不将早期“未授权”“仅前三项”等描述视为当前状态。
+最新结果：自定义 App 的五项身份权限兼容已生效；用户明确批准后，真实 OAuth 返回 ChatGPT，刷新后发现7个工具，真实卡片读取成功。页面曾加载失败，随后用户确认成功。当前身份、调试经过和使用规范统一见 [插件操作手册](../../implementation/operations/plugin-runbook.md)。以下各节保留对应阶段的结果，不将早期“未授权”“仅前三项”等描述视为当前状态。
 
 2026-10-15。测试代码位于 tests/oauth-consent.test.mjs、tests/consent-policy.test.mjs、tests/supabase-http-session.test.mjs、tests/supabase-http-worker.test.mjs 和 tests/oauth-browser.mjs。合成身份提供方与隔离数据库，不代替生产真实账号验收。
 

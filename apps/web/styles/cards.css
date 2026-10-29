@@ -27,6 +27,14 @@
 .feed-item.feed-card {
 	position: absolute;
 }
+@supports (corner-shape: superellipse(1.25)) {
+	.feed-card,
+	.feed-card::after,
+	.card-cover,
+	.ref {
+		corner-shape: superellipse(1.25);
+	}
+}
 @media (hover: hover) and (pointer: fine) {
 	.feed-card:hover {
 		border-color: var(--line-hover);
@@ -372,7 +380,7 @@
 	gap: var(--space-8);
 	min-height: 36px;
 	padding: 9px var(--space-10);
-	border-radius: var(--space-12);
+	border-radius: var(--control-radius);
 	background: var(--surface);
 	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
 	color: var(--ink);

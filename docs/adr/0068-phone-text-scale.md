@@ -20,4 +20,4 @@
 
 - 设计变量 `text-phone-scale`；手册[基础](../../design-system/handbook/foundation.md#字体)「手机起点」与预览正文；设计印记 `phone-text-scale`。
 - Web：`tokens.css`、`appearance.css`。摘要仍按行数截断，每张卡显示的字数略少，信息流略长。
-- Mac 不使用手机宽度，不适用；原生 iOS 没有阅读界面。见[界面对账表](../product/ui-alignment.md)。
+- Mac 不使用手机宽度，不适用；原生 iOS 没有阅读界面。见[界面对账表](../implementation/design/ui-alignment.md)。

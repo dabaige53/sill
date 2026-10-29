@@ -102,6 +102,9 @@
 	.feed-item.feed-card {
 		border-radius: var(--card-radius-sm);
 	}
+	.feed-item.feed-card .card-cover {
+		border-radius: calc(var(--card-radius-sm) - var(--cover-inset));
+	}
 	.feed-item .card-body {
 		padding: calc(var(--card-padding-sm) * var(--card-padding-scale, 1));
 	}

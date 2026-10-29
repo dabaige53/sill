@@ -50,7 +50,7 @@ export function selectedHomeChoice(filter: Filter) {
 
 /** # conditions after the tab token: accent, removed by a click or by Delete from the end. */
 export function HomeSearchMarks({ filter }: { filter: Filter }) {
-	const status = searchStatuses.find(([key]) => key === filter.mark);
+	const status = searchStatuses.find(([key]) => key === filter.mark && key !== filter.status);
 	const marks = [
 		status && { key: "mark", label: `#${copy(status[1])}` },
 		filter.tag && { key: "tag", label: `#${filter.tag}` },

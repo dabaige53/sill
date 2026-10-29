@@ -62,7 +62,8 @@ function homeTab(this: AppController, { extra }: ActionContext) {
 	this.filter = this.desktop()
 		? { ...this.filter, ...tab }
 		: { ...this.filter, ...tab, tag: "", query: "", kind: "all", mark: "all" };
-	this.renderCurrent(false);
+	if (this.filter.mark === this.filter.status) this.filter.mark = "all";
+	this.withFeedAnchor(() => {}, true);
 	window.scrollTo({ top: saved?.scroll || 0, behavior: "instant" });
 	this.railHide?.syncPosition();
 }
@@ -79,7 +80,7 @@ function homeSearchClear(this: AppController) {
 /** Desktop search conditions change the card area in place, from the top. */
 function renderHomeSearch(this: AppController) {
 	this.pageLimit = 40;
-	this.renderCurrent(false);
+	this.withFeedAnchor(() => {}, true);
 	window.scrollTo({ top: 0, behavior: "instant" });
 	this.railHide?.syncPosition();
 }
@@ -114,7 +115,9 @@ function homeHash(this: AppController, { extra }: ActionContext) {
 	this.filter = {
 		...this.filter,
 		query,
-		...(kind === "status" ? { mark: value } : { tag: value }),
+		...(kind === "status"
+			? { mark: value === this.filter.status ? "all" : value }
+			: { tag: value }),
 	};
 	const input = document.getElementById("home-search") as HTMLInputElement | null;
 	if (input) input.value = query;

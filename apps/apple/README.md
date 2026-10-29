@@ -6,7 +6,7 @@
 
 ## macOS 应用
 
-2026-10-20 重建。旧界面层的完整代码保存在提交 `c81bb44`，只作参考：`git show c81bb44:apps/apple/macOS/<文件名>`。旧版的问题与对齐记录见 [macOS 对齐记录](../../docs/records/2026-10-20-macos-web-alignment/README.md)；Mac 与 Web 的当前对齐状态见 [界面对账表](../../docs/product/ui-alignment.md)。
+2026-10-20 重建。旧界面层的完整代码保存在提交 `c81bb44`，只作参考：`git show c81bb44:apps/apple/macOS/<文件名>`。旧版的问题与对齐记录见 [macOS 对齐记录](../../docs/records/2026-10-20-macos-web-alignment/README.md)；Mac 与 Web 的当前对齐状态见 [界面对账表](../../docs/implementation/design/ui-alignment.md)。
 
 视觉与动效只以 Web 实现和设计手册（motion.md、interaction.md、web-interaction.md）为准；DESIGN.md 中的 macOS 规则不再适用。
 
@@ -67,7 +67,7 @@ AI 栏的会话与引用状态在 `Shell/AIContext.swift`，引用条在 `Shell/
 
 ### 本地运行
 
-Web 与 Mac 的隔离启动、验收和停止步骤见 [本地测试方案](../../docs/guides/local-testing.md)。
+Web 与 Mac 的隔离启动、验收和停止步骤见 [本地测试方案](../../docs/implementation/operations/local-testing.md)。
 
 
 ```sh

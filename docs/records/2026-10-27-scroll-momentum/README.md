@@ -4,7 +4,7 @@
 
 ## 范围与状态
 
-本专项覆盖下拉刷新、正文边缘回弹，以及与滚动交接有关的抽屉关闭、任务勾选、滚动显隐。用户本次要求整理记录和后续检查，不修改动画实现。后续持续状态维护在[动画 checklist](../../product/animation-checklist.md#滚动与动量专项后续检查)，本记录保存本次决策。
+本专项覆盖下拉刷新、正文边缘回弹，以及与滚动交接有关的抽屉关闭、任务勾选、滚动显隐。用户本次要求整理记录和后续检查，不修改动画实现。后续持续状态维护在[动画 checklist](../2026-10-28-animation-review/checklist.md#滚动与动量专项后续检查)，本记录保存本次决策。
 
 已读取关联任务[下拉刷新手感异常｜1027｜修复](thread://01a17b36-a826-7c80-9224-431787dabc68?hostId=local)，并核对当前参数与提交 `5c383912`。用户已确认当前 Web 下拉刷新手感；不能据此判定 PWA、Mac、iOS 通过。此次只整理文档，未重新测试或验收。
 
@@ -18,7 +18,7 @@
 - 普通 Web 滚动使用浏览器原生回弹；自定义下拉刷新期间暂时接管位移，回位结束后归还，避免两套反馈叠加。上述参数只属于下拉刷新，不能批量覆盖其他模块。
 - 用户在关联任务反馈“可以了！提交git”。该轮按用户要求未跑测试，已重建后供用户手动确认。
 
-参数源：`design-system/tokens/foundation.json` 的 `motion.pullRefresh`；实现：`apps/web/interactions/gesture-refresh.ts`。详细构建与历史方案见[优化方案](../../guides/scroll-motion-optimization.md)。
+参数源：`design-system/tokens/foundation.json` 的 `motion.pullRefresh`；实现：`apps/web/interactions/gesture-refresh.ts`。详细构建与历史方案见[优化方案](optimization-plan.md)。
 
 ## 后续任务设计
 

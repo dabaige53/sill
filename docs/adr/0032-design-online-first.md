@@ -12,4 +12,4 @@
 
 2026-10-18，用户明确要求本轮 Web/PWA 交接工作只在仓库内进行。不打开、读取、创建或发布 claude.ai Artifact，不使用 claude.ai 独有工具或 Mobbin 连接器。参考使用公开可访问的产品页面，或用户提供的截图。
 
-本轮先更新仓库 ADR、设计手册、组件说明和画板，再改实现；组件包与图标在仓库生成。画板使用实际页面截图，并维护本地索引。`design-system/design-system.json` 的线上资产记录不改。每个设计 PR 在 Merge Danger 列出线上未同步文件，由用户另行处理；不能声称线上与仓库一致。此范围内以本节和 [Web/PWA 交接](../guides/web-pwa-ui-handoff.md) 为准。
+本轮先更新仓库 ADR、设计手册、组件说明和画板，再改实现；组件包与图标在仓库生成。画板使用实际页面截图，并维护本地索引。`design-system/design-system.json` 的线上资产记录不改。每个设计 PR 在 Merge Danger 列出线上未同步文件，由用户另行处理；不能声称线上与仓库一致。此范围内以本节和 [Web/PWA 交接](../records/2026-10-19-web-pwa-handoff/web-pwa-ui-handoff.md) 为准。

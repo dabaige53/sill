@@ -6,7 +6,7 @@
 
 默认启动命令为 `npm start`，页面为 `http://127.0.0.1:4318/#feed`。卡片保存在 `.sill/local/cards.json`；浏览器旧记录已迁移，旧数据库、配置和云端数据保持原样。
 
-AI 通过 `scripts/qg.mjs` 读取、创建、更新和删除卡片，管理阅读、收藏、任务、提醒、备注、标签和普通设置。页面每秒同步本地数据。操作说明见 [LOCAL-OPERATIONS.md](../../guides/local-operations.md)。
+AI 通过 `scripts/qg.mjs` 读取、创建、更新和删除卡片，管理阅读、收藏、任务、提醒、备注、标签和普通设置。页面每秒同步本地数据。操作说明见 [LOCAL-OPERATIONS.md](../../implementation/operations/local-operations.md)。
 
 用户要求停止追加验证前，已取得以下结果：
 

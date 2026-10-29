@@ -1,6 +1,6 @@
 # 浏览器端
 
-更新：2026-10-28。现行运行代码；通用规则见 [代码规范](../../docs/agents/code-standards.md)。
+更新：2026-10-28。现行运行代码；通用规则见 [代码规范](../../docs/agent/code-standards.md)。
 
 `index.ts` 启动本地界面，`cloud-entry.ts` 启动云端界面。两者共用同一套卡片、状态与交互模块；模块通过 ES imports 连接，不再按文件顺序拼接全局变量。
 
@@ -24,7 +24,7 @@
 
 Web 使用 React + TypeScript + Vite，决策见 [ADR 0047](../../docs/adr/0047-react-web.md)。
 
-- `views/shell.tsx` 与 `views/feed.tsx` 组成页面；卡片在 `cards/components.tsx`，弹层和详情在 `interactions/*-components.tsx`，云端欢迎与速记在 `views/cloud-views.tsx`。
+- `views/shell.tsx` 与 `views/feed.tsx` 组成页面；卡片在 `cards/components.tsx`，弹层和详情在 `interactions/*-components.tsx`，云端欢迎与恢复提示在 `views/cloud-views.tsx`。
 - `views/react-renderer.ts` 管理 React 根与同步测量边界。信息流保留稳定 key；详情覆盖搜索时保留搜索容器及节点。控制器仍负责动作、手势、焦点和网络适配，新内容布局写成 TSX，不新增整页 HTML 模板。
 - `cards/templates.ts`、`interactions/panels.ts` 和 `interactions/previews.ts` 保留静态 HTML 兼容出口，供 Node 测试和画板使用。浏览器运行时直接导入组件，避免包含服务端渲染器。
 - 先运行 `npm start` 提供本地 API，再运行 `npm run dev`，打开 http://localhost:5173。Vite 提供 TSX Fast Refresh，`/api/local` 代理到 4318。开发服务只监听本机。打开 http://localhost:5173/?ai-preview 加载 AI 对话的设计样例会话，用于检查展开面板、完整视图和手机 AI 页；只在开发服务生效，生产构建不含样例，发送仍禁用。

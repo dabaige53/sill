@@ -3,7 +3,7 @@
   "info": {
     "title": "Sill V1 contract draft — NOT IMPLEMENTED",
     "version": "sill-v1-draft1",
-    "description": "Design only. Current /api/local API is unchanged. See ../../docs/guides/handoff.md. No server exists at the reserved example URL."
+    "description": "Design only. Current /api/local API is unchanged. See ../../docs/plans/external-agent-webhook.md. No server exists at the reserved example URL."
   },
   "servers": [
     {

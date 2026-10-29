@@ -21,7 +21,6 @@
 	select,
 	.tag-editor input,
 	.editor-note,
-	.inline-editor textarea,
 	.ai-composer textarea {
 		font-size: max(16px, var(--text-control));
 	}

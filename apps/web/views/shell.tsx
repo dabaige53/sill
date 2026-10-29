@@ -9,6 +9,7 @@ import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import {
 	anchoredBubble,
+	collapseDockAnchor,
 	animateAIDock,
 	type CollapseCapture,
 	type CollapseVisual,
@@ -137,7 +138,8 @@ export function AIDock() {
 	const before = useRef<CollapseCapture | null>(null);
 	const animation = useRef<CollapseVisual | null>(null);
 	const anchor = useRef<Pick<DOMRect, "left" | "top" | "width" | "height"> | null>(null);
-	// The bubble's right edge: the box grows back from there, not from the rail's centre.
+	// Restore from the same edge used when collapsing.
+	const collapseLeft = useRef(false);
 	const expandFrom = useRef<number | null>(null);
 	const bubbleY = useRef(0);
 	// The bubble's place before a card drag opened the box without animation.
@@ -148,11 +150,10 @@ export function AIDock() {
 		before.current = instant ? null : captureAIDock(node, animation.current);
 		const box = node.getBoundingClientRect();
 		if (value) {
-			// The bubble lands in the bottom rail at the box's right end, not at the floating button.
-			anchor.current = instant
-				? null
-				: { left: box.right - box.height, top: box.top, width: box.height, height: box.height };
-		} else expandFrom.current = box.right;
+			const target = collapseDockAnchor(box, innerWidth);
+			collapseLeft.current = target.left;
+			anchor.current = instant ? null : target.rect;
+		} else expandFrom.current = collapseLeft.current ? box.left : box.right;
 		animation.current?.cancel();
 		animation.current = null;
 		setCollapsed(value);
@@ -183,7 +184,11 @@ export function AIDock() {
 				const natural = node.getBoundingClientRect();
 				positionRef.current = Math.max(
 					-1,
-					Math.min(1, (expandFrom.current - natural.right) / (range() || 1)),
+					Math.min(
+						1,
+						(expandFrom.current - (collapseLeft.current ? natural.left : natural.right)) /
+							(range() || 1),
+					),
 				);
 				expandFrom.current = null;
 			}

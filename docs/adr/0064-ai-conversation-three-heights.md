@@ -1,6 +1,6 @@
 # AI 对话：同一个框的三种高度与结果行
 
-日期：2026-10-23。状态：设计草稿，待用户确认。Web、手机 Web 与 macOS 已实现界面与交互（三种高度、结果行、手机对话页与历史抽屉）；内置 AI 未接入，产品中没有会话，框停在一行。开发服务 `?ai-preview` 与 macOS 调试构建 `SILL_AI_PREVIEW=1` 加载设计样例会话。真实窗口未验证。内置助手仍是远期可选，V1 范围不变（见 [Agent 驱动与 MCP 连接](../product/agent-mcp.md)）。
+日期：2026-10-23。状态：设计草稿，待用户确认。Web、手机 Web 与 macOS 已实现界面与交互（三种高度、结果行、手机对话页与历史抽屉）；内置 AI 未接入，产品中没有会话，框停在一行。开发服务 `?ai-preview` 与 macOS 调试构建 `SILL_AI_PREVIEW=1` 加载设计样例会话。真实窗口未验证。内置助手仍是远期可选，V1 范围不变（见 [Agent 驱动与 MCP 连接](../implementation/agent-mcp.md)）。
 
 ## 原因
 
@@ -22,6 +22,6 @@
 
 - 手册：新增 [AI 对话](../../design-system/handbook/ai-conversation.md)，收入桌面三种高度、结果行和手机 AI 页；[网页交互](../../design-system/handbook/web-interaction.md)与[页面与交互](../../design-system/handbook/interaction.md)只留入口。
 - 画板：新增 49 网页 AI 对话规则、网页 AI 展开、网页 AI 完整视图、50 手机 AI 对话；`ScreenWebSession` 移到历史。
-- 组件说明 AICompose、设计参考、[界面对账表](../product/ui-alignment.md) B09 与 M06。
+- 组件说明 AICompose、设计参考、[界面对账表](../implementation/design/ui-alignment.md) B09 与 M06。
 - 新增设计变量：`ai-dock-width`、`ai-panel-inset`、`ai-full-width`、`ai-full-inset`、`ai-sessions-width`、`ai-bubble-radius`；macOS 专用尺寸移到 `tokens/apple.json`。
 - 代码：Web `apps/web/views/app-ai.ts`、`ai-dock.tsx`、`ai-thread.tsx`、`interactions/panel-ai.tsx`、`styles/ai-conversation.css`；macOS `Shell/AIDock.swift`、`AIConversationViews.swift`、`Model/AIConversation.swift`。未接入时的禁用规则不变：发送、停止、重试、新对话都不可用。

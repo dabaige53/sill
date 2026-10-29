@@ -272,13 +272,14 @@ export const panelMotion: Record<string, any> = {
 		const phone = this.phoneSheet(el) && !resume && !resizing;
 		// A desktop detail growing out of its card brings its dim with it, not one frame ahead.
 		const growing = !phone && !resume && !resizing && !!origin?.width && desktop;
-		if (phone || growing) this.dim(el, 0);
+		const settings = desktop && !resume && !resizing && !!el.querySelector(".settings-sheet");
+		if (phone || growing || settings) this.dim(el, 0);
 		// A reader growing out of its preview keeps the preview's dim until it covers the screen.
 		if (resizing && el.classList.contains("reader")) el.dataset.readerGrowing = "";
 		const restore = (keepVisual = false) => {
 			sheet.style.opacity = opacity;
 			for (const [tool, value] of tools) tool.style.opacity = value;
-			if (phone || (growing && !keepVisual)) this.dim(el, null);
+			if (phone || ((growing || settings) && !keepVisual)) this.dim(el, null);
 			delete el.dataset.readerGrowing;
 		};
 		sheet.style.opacity = resume?.opacity || "0";
@@ -396,7 +397,10 @@ export const panelMotion: Record<string, any> = {
 			}
 		}
 		// Without a source, fade the surface in and retain the same tool sequence.
-		this.dim(el, null);
+		if (el.querySelector(".settings-sheet") && !this.keyboard) {
+			this.dim(el, 0);
+			this.dim(el, 1, this.time("dur-open"));
+		} else this.dim(el, null);
 		const animations = [this.enter(sheet)];
 		if (!matchMedia("(max-width:650px)").matches && el.matches(".preview, .reader"))
 			animations.push(...this.detailEntry(el));

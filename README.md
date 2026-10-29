@@ -1,14 +1,10 @@
 # Sill · 窗台
 
-Sill 是 agent 驱动的个人卡片工作台。已有卡片内容由助手写入和修改，Web / PWA 保留阅读、收藏、任务勾选等轻操作，取消「记一笔」手动记录；界面不提供复杂编辑器。卡片展示内容与真实状态，让用户表达阅读、完成等意图。Sill 不接入外部来源，不由程序同步内容。外部动作交给外部助手，用它自己宿主的工具执行；远期的内置助手只通过 Composio 连接器操作其他程序。不为每个按钮新增第三方直连接口。分工见 [Agent 优先与界面边界](docs/product/agent-mcp.md#agent-优先与界面边界)。
-
-当前本地 Web 和 CLI 共用本地 JSON；macOS 原生应用源码默认连接与云端 Web 相同的账号和数据，保留独立本地测试模式。原生邮件登录的服务端适配尚未发布，界面 1:1 对照及真实账号验证待完成。云端已有鉴权网页、卡片 API 和内容 MCP。各路径不能混为一谈，见 [功能矩阵](docs/product/feature-matrix.md)。
-
-V1 目标是向已配置外部助手发送 Webhook，再由外部助手调用 Sill MCP 写回结果。V1 不做内置助手；Webhook 端到端执行尚未验收。交接材料不表示新增 API 已实现，不代表已批准实施或部署。本地页面整卡、备注与标签保存均检查原始内容，冲突保留草稿；来源连接、RSS 订阅与文件导入已删除；Web / PWA 的「记一笔」及其手动记录流程已取消，卡片仍可通过 AI/MCP 写入。
+Sill 是由 AI 助手整理内容的个人卡片工作台。用户在 Web、PWA 或 Mac 中阅读内容、查看待办与日程、完成轻操作。产品范围见 [PRODUCT.md](docs/agent/PRODUCT.md)，当前各端支持见[功能矩阵](docs/implementation/feature-matrix.md)，后续方向见[roadmap](docs/plans/roadmap.md)。
 
 ## 启动
 
-需要 Node.js 24+。Mac 构建另需支持 Swift 6 的 Xcode 工具链；不需要 Python。
+Node.js 版本按 `package.json` 的 `engines` 要求。Mac 构建另需 Xcode 工具链，见 [Apple 应用说明](apps/apple/README.md)。
 
 ```sh
 npm ci
@@ -16,27 +12,19 @@ npm run build
 npm start
 ```
 
-打开 [本地卡片页面](http://127.0.0.1:4318/#feed)。服务只监听本机。数据保存在 `.sill/local/cards.json`，不要将它提交到 Git。Mac 数据和云端账号数据独立，不会自动上传。
+打开[本地卡片页面](http://127.0.0.1:4318/#feed)。服务只监听本机，数据保存在 `.sill/local/cards.json`。它与 Mac 本地测试数据、云端账号数据分别存储。
 
-Web 使用 React + TypeScript + Vite；macOS 保留 SwiftUI。开发界面时，在本地服务运行后另开终端执行 `npm run dev`，访问 http://localhost:5173，支持组件热更新。生产构建保留单文件 HTML，供本地网页、云端网页和 MCP 宿主使用。
+开发 Web 界面时，在本地服务运行后另开终端执行 `npm run dev`，访问 http://localhost:5173。Web 使用 React、TypeScript 和 Vite，Mac 使用 SwiftUI；Web 构建输出供本地网页、云端网页和 MCP 宿主使用。
 
 ## AI 操作
 
-```sh
-node scripts/sill.ts list
-node scripts/sill.ts get <卡片ID>
-node scripts/sill.ts capabilities
-node scripts/sill.ts apply --file /tmp/operations.json
-```
-
-替换已有卡片前先读取完整内容，保留其他字段，并携带读取到的 `expectedRevision`。没有真实回执时，本地打勾、刷新或来源状态不表示外部完成。完整协议见 [本地操作](docs/guides/local-operations.md)。
+本地 CLI 的读取、能力查询与批量写入方法见[本地操作](docs/implementation/operations/local-operations.md)。云端工具、权限和限制见[Agent 与 MCP](docs/implementation/agent-mcp.md)。
 
 ## 开发与文档
 
-- [快速发布](docs/agents/release.md)：`npm run release:prepare` 完成检查并保存候选包，再按指南部署与验收。
-- [文档目录](docs/README.md)：现行规则、设计决策、历史记录与归档的唯一导航。
-- [文件管理规范](docs/agents/file-management.md)与[代码规范](docs/agents/code-standards.md)：目录、命名、迁移和验证要求。
-- [脚本目录](scripts/README.md)与[测试目录](tests/README.md)：构建输入、输出和检查命令。
-- [设计约束](docs/agents/design.md)、[设计系统](design-system/README.md)与[Mac 原生应用](apps/apple/README.md)：改界面前先读，组件与平台说明。
-
-`npm test` 检查当前本地实现；`npm run files:check` 检查目录与文档。构建只产生本地文件，不表示安装、发布或线上验收。
+- [Changelog](docs/records/CHANGELOG.md)：版本变化与未发布调整。
+- [LICENSE](docs/LICENSE)：Copyright (c) 2026 wuwenyuan，保留所有权利，暂不开放授权。
+- [文档目录](docs/README.md)：项目准则、设计规范、实现说明及按需查阅的任务材料。
+- [脚本目录](scripts/README.md)与[测试目录](tests/README.md)：构建输入、输出和检查入口。
+- [设计系统](design-system/README.md)：手册、变量、组件与画板。
+- [发布操作手册](docs/implementation/operations/release-runbook.md)：准备候选、部署与验收步骤。

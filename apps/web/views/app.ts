@@ -47,9 +47,6 @@ export type DetailPosition = {
 class AppController {
 	declare setSearchEditing: AppControllerMethods["setSearchEditing"];
 	initializing = false;
-	declare startInlineEdit: AppControllerMethods["startInlineEdit"];
-	declare saveInlineEdit: AppControllerMethods["saveInlineEdit"];
-	declare finishInlineEdit: AppControllerMethods["finishInlineEdit"];
 	declare loadDemo: AppControllerMethods["loadDemo"];
 	declare setPref: AppControllerMethods["setPref"];
 	declare replacePanelContent: AppControllerMethods["replacePanelContent"];
@@ -217,7 +214,6 @@ class AppController {
 	declare navKey: string;
 	declare navTimer: number;
 	declare navOpenTimer: number;
-	declare editingId: string;
 	declare loadedImages: Set<string>;
 	declare grid: ViewElement;
 	declare dialog: ViewDialog;
@@ -256,7 +252,6 @@ class AppController {
 	declare stackIndex: Map<string, number>;
 	declare stackDragUntil: number;
 	declare searchTimer: number;
-	declare inlineTimer: number;
 	cloudSavedAccount?: boolean;
 	cloudSettingsContent?: ReactNode;
 
@@ -282,7 +277,6 @@ class AppController {
 		this.settingsGroup = "desk";
 		this.navKey = "home";
 		this.navTimer = 0;
-		this.editingId = "";
 		this.loadedImages = new Set<string>();
 	}
 

@@ -102,8 +102,6 @@ export const appLifecycleMethods = {
 			document.addEventListener(type, () => (this.lastActivity = Date.now()), { passive: true });
 		});
 		document.addEventListener("focusin", (e?: TargetEvent<Event>) => {
-			if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing"))
-				this.finishInlineEdit();
 			if (e.target.closest?.("#home-search-field")) this.openHomeSearch(true);
 			if (e.target.id === "filter-search") this.setSearchEditing(true);
 		});
@@ -146,7 +144,7 @@ export const appLifecycleMethods = {
 				return;
 			}
 			// Picking from the # list keeps the caret in the field.
-			if (e.target.closest?.(".home-hash, .home-search-clear")) {
+			if (e.target.closest?.(".home-hash, .home-search-clear, .home-search-token")) {
 				e.preventDefault();
 				return;
 			}

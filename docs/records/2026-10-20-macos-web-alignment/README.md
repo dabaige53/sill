@@ -49,7 +49,7 @@ warning: Schema "null" is not supported, reason: "schema type", skipping [contex
 
 ## 修改文件
 
-- [DESIGN.md](../../agents/design.md)
+- [DESIGN.md](../../specs/DESIGN.md)
 - [apps/apple/DesktopTests/ReaderGestureTests.swift](../../../apps/apple/DesktopTests/ReaderGestureTests.swift)
 - [apps/apple/DesktopTests/WorkspaceTests.swift](../../../apps/apple/DesktopTests/WorkspaceTests.swift)
 - [apps/apple/README.md](../../../apps/apple/README.md)
@@ -88,7 +88,7 @@ warning: Schema "null" is not supported, reason: "schema type", skipping [contex
 - [design-system/handbook/motion.md](../../../design-system/handbook/motion.md)
 - [design-system/tokens.json](../../../design-system/tokens.json)
 - [design-system/tokens/foundation.json](../../../design-system/tokens/foundation.json)
-- [docs/README.md](../../../docs/README.md)
-- [docs/records/2026-10-20-macos-web-alignment/README.md](../../../docs/records/2026-10-20-macos-web-alignment/README.md)
-- [docs/records/2026-10-20-macos-web-alignment/rule-checklist.md](../../../docs/records/2026-10-20-macos-web-alignment/rule-checklist.md)
-- [docs/records/2026-10-20-macos-web-alignment/tokens.md](../../../docs/records/2026-10-20-macos-web-alignment/tokens.md)
+- [docs/README.md](../../README.md)
+- [docs/records/2026-10-20-macos-web-alignment/README.md](README.md)
+- [docs/records/2026-10-20-macos-web-alignment/rule-checklist.md](rule-checklist.md)
+- [docs/records/2026-10-20-macos-web-alignment/tokens.md](tokens.md)

@@ -17,10 +17,8 @@ const roots = new Set<any>([
 	".app.json",
 	".ruff_cache",
 	"AGENTS.md",
-	"DESIGN.md",
 	"README.md",
 	"GLOSSARY.md",
-	"pr.md",
 	"package.json",
 	"package-lock.json",
 	"plugin.json",
@@ -82,9 +80,10 @@ for (const name of await readdir(root)) {
 	}
 }
 const navigation = await readFile(resolve(root, "docs/README.md"), "utf8");
+const recordNavigation = await readFile(resolve(root, "docs/records/README.md"), "utf8");
 const documentFiles = await walk("docs");
 const currentFiles = documentFiles.filter((name?: any) =>
-	/^docs\/(?:product|design|guides|agents)\/.*\.md$/.test(name),
+	/^docs\/(?:agent|specs|implementation|plans)\/.*\.md$/.test(name),
 );
 for (const name of documentFiles) {
 	const metadata = await stat(resolve(root, name));
@@ -100,13 +99,16 @@ for (const name of documentFiles) {
 		if (!navigation.includes(`(${relative("docs", name)})`))
 			errors.push(`${copy("server.checkfiles.8d3ee2aa32a3")}${name}`);
 	}
-	if (name.startsWith("docs/archive/") && !/(?:已被 .*替代|不再适用：)/.test(body.slice(0, 300)))
-		errors.push(`${copy("server.checkfiles.11bd1976de8f")}${name}`);
 	if (/^docs\/[^/]+\.md$/.test(name) && name !== "docs/README.md")
 		errors.push(`${copy("server.checkfiles.33827c76f7ea")}${name}`);
 }
 for (const entry of await readdir(resolve(root, "docs/records"), { withFileTypes: true })) {
 	const name = `docs/records/${entry.name}`;
+	if (
+		entry.isFile() &&
+		["README.md", "CHANGELOG.md", "design-changelog.md", "errors.md"].includes(entry.name)
+	)
+		continue;
 	if (!entry.isDirectory() || !/^\d{4}-\d{2}-\d{2}-.+/.test(entry.name)) {
 		errors.push(`${copy("server.checkfiles.b320e3042eff")}${name}`);
 		continue;
@@ -116,16 +118,18 @@ for (const entry of await readdir(resolve(root, "docs/records"), { withFileTypes
 	} catch {
 		errors.push(`${copy("server.checkfiles.8ee039e0979b")}${name}`);
 	}
-	if (!navigation.includes(`(records/${entry.name}/README.md)`))
+	if (!recordNavigation.includes(`(${entry.name}/README.md)`))
 		errors.push(`${copy("server.checkfiles.40493881693b")}${name}`);
 }
 const guides = new Set<any>([
 	"AGENTS.md",
-	"DESIGN.md",
 	".github/pull_request_template.md",
-	"pr.md",
 	"README.md",
 	"docs/README.md",
+	"docs/adr/README.md",
+	"docs/records/README.md",
+	"docs/records/errors.md",
+	"docs/records/CHANGELOG.md",
 	"scripts/README.md",
 	"tests/README.md",
 	...currentFiles,

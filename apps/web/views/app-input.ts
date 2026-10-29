@@ -60,7 +60,6 @@ export const appInputMethods = {
 			return;
 		}
 		const el = e.target.closest?.<HTMLElement & { disabled?: boolean }>("[data-action]");
-		if (this.editingId && !e.target.closest?.<HTMLElement>(".is-editing")) this.finishInlineEdit();
 		if (el) {
 			if (el.disabled) return;
 			e.preventDefault();
@@ -272,7 +271,7 @@ export const appInputMethods = {
 			this.homeSearchTimer = window.setTimeout(() => {
 				this.homeSearchTimer = 0;
 				this.pageLimit = 40;
-				this.renderCurrent(false);
+				this.withFeedAnchor(() => {}, true);
 				window.scrollTo({ top: 0, behavior: "instant" });
 				this.railHide?.syncPosition();
 			}, 140);
@@ -305,12 +304,6 @@ export const appInputMethods = {
 					this.updateSelection();
 				}
 			}, 140);
-		}
-		if (this.editingId && e.target.closest?.<HTMLElement>(".inline-editor")) {
-			const state = document.getElementById("inline-state");
-			if (state) state.textContent = copy("web.cloudentry.6bdb4435095e");
-			clearTimeout(this.inlineTimer);
-			this.inlineTimer = window.setTimeout(() => this.saveInlineEdit(), 500);
 		}
 	},
 	key(this: AppController, e?: TargetEvent<KeyboardEvent>) {
@@ -361,15 +354,6 @@ export const appInputMethods = {
 			e.preventDefault();
 			radios[index].focus();
 			radios[index].click();
-			return;
-		}
-		if (e.key === "Escape" && this.editingId) {
-			e.preventDefault();
-			const id = this.editingId;
-			this.finishInlineEdit();
-			this.grid
-				.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"] .card-title-button`)
-				?.focus();
 			return;
 		}
 		if (this.modalKind === "lightbox" && ["ArrowLeft", "ArrowRight"].includes(e.key)) {

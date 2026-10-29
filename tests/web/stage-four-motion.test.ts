@@ -167,3 +167,17 @@ test("phone search follows the supplied choreography and reverses from the drawn
 		f.dom.window.close();
 	}
 });
+
+test("AI bubble collapses to the near edge on both sides of the window", () => {
+	const f = fixture();
+	try {
+		const left = f.api.collapseDockAnchor(rect(30, 700, 600, 60), 1440);
+		assert.equal(left.left, true);
+		assert.equal(left.rect.left, 30);
+		const right = f.api.collapseDockAnchor(rect(810, 700, 600, 60), 1440);
+		assert.equal(right.left, false);
+		assert.equal(right.rect.left, 1350);
+	} finally {
+		f.dom.window.close();
+	}
+});

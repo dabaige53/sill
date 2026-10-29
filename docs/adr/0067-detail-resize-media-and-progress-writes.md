@@ -27,4 +27,4 @@
 
 - 手册：[动效](../../design-system/handbook/motion.md)「资讯与媒体预览切换放大」、视频与播客条目；[网页阅读](../../design-system/handbook/web-reading.md)阅读进度。
 - Web：`motion-panels.ts`、`preview-media.css`、`media-detail.tsx`、`markdown.tsx`、`youtube-player.tsx`、`app-panels.ts`、`app-lifecycle.ts`、`app-surfaces.ts`、`preview-controller.ts`。
-- Mac 使用原生绘制和自己的数据保存，本次未修改，见[界面对账表](../product/ui-alignment.md)。
+- Mac 使用原生绘制和自己的数据保存，本次未修改，见[界面对账表](../implementation/design/ui-alignment.md)。

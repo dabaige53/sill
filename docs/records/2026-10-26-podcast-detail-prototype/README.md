@@ -39,6 +39,6 @@
 
 ## 未做
 
-- 没有改 Web 或 macOS 代码，没有更新[界面对账表](../../product/ui-alignment.md)。
+- 没有改 Web 或 macOS 代码，没有更新[界面对账表](../../implementation/design/ui-alignment.md)。
 - 没有新增 ADR、现行画板或设计版本；没有发布 Sill Design System 或设计画布。
 - 采用前需要确认：收听记录从哪里写入、去掉播放后 `playbackPosition` 是否只读，以及两端如何同步。

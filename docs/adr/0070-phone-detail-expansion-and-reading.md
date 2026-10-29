@@ -19,5 +19,5 @@
 
 - 手册：[动效](../../design-system/handbook/motion.md)、[预览与叠放](../../design-system/handbook/card-interaction.md)。
 - Web：手机抽屉尺寸过渡、关联详情、取消拖动、读完关闭与背景卡面更新。
-- Mac 没有手机抽屉；共有的读完确认与工具隐藏规则保持不变。原生 iOS 阅读界面尚未实现。实测状态见[界面对账表](../product/ui-alignment.md)。
+- Mac 没有手机抽屉；共有的读完确认与工具隐藏规则保持不变。原生 iOS 阅读界面尚未实现。实测状态见[界面对账表](../implementation/design/ui-alignment.md)。
 - 本地构建与非浏览器检查不代替 Safari 主屏幕 PWA 的真实手感和帧时间验收。

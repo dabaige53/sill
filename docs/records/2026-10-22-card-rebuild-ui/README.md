@@ -6,7 +6,7 @@
 
 ## 范围
 
-Web 桌面、手机 Web 与 Mac 同步接入来源圆标、发布方与作者、汇总摘要及正文列表、任务与日程字段、多个邮件附件、文件链接、独立 PR 卡片。12 个卡片类型中，媒体区分视频和播客，共 13 类布局。界面状态见[界面对账表](../../product/ui-alignment.md)。
+Web 桌面、手机 Web 与 Mac 同步接入来源圆标、发布方与作者、汇总摘要及正文列表、任务与日程字段、多个邮件附件、文件链接、独立 PR 卡片。12 个卡片类型中，媒体区分视频和播客，共 13 类布局。界面状态见[界面对账表](../../implementation/design/ui-alignment.md)。
 
 来源圆标共用 `design-system/assets/source-marks/marks.json` 的 SVG 路径与身份匹配规则。当前收录 YouTube、Gmail、Google Calendar、Linear、Slack、Google Drive、GitHub、Apple Podcasts 和 X；未收录或身份不明确时用通用图标，不把普通邮件、日历或播客来源当成某个品牌。
 

@@ -1,6 +1,5 @@
 import { createElement, Fragment } from "react";
 import { esc } from "../atoms/primitives.ts";
-import { cardSourceKind } from "../data/card-source.ts";
 import { CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
 import { ChromeAutoHide } from "../interactions/chrome.ts";
@@ -120,20 +119,6 @@ export function openCard(this: AppController, id?: any, reading: any = false) {
 		: !active
 			? sourceRect
 			: null;
-	// A quick note opens where it is: the card becomes its own editor.
-	if (
-		!reading &&
-		c.type === "note" &&
-		cardSourceKind(c) === "capture" &&
-		c.form !== "quote" &&
-		source &&
-		!this.dialog.open
-	) {
-		history.replaceState({ glass: true, prev: null }, "", "#feed");
-		this.lastRouteHash = "#feed";
-		this.startInlineEdit(id);
-		return;
-	}
 	if (!this.dialog.open || this.currentId !== id)
 		try {
 			this.agentHandoff.beginDetail(agentKey(id, this.agentScope()));

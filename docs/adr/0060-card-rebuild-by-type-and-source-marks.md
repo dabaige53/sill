@@ -41,4 +41,4 @@
 
 ## 影响
 
-先在 `design-system/boards` 制作 12 类卡片与详情的设计稿；设计稿发布时同步修改手册 foundation 图标一节、FeedCard 组件说明和 interaction 预览与叠放一节。之后修改 Web 与 macOS 的卡片模板、详情渲染和来源图标，并在 [界面对账表](../product/ui-alignment.md) 登记。若改为多个附件，须另行修改卡片约定。
+先在 `design-system/boards` 制作 12 类卡片与详情的设计稿；设计稿发布时同步修改手册 foundation 图标一节、FeedCard 组件说明和 interaction 预览与叠放一节。之后修改 Web 与 macOS 的卡片模板、详情渲染和来源图标，并在 [界面对账表](../implementation/design/ui-alignment.md) 登记。若改为多个附件，须另行修改卡片约定。

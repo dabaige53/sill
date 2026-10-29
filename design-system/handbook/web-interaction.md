@@ -70,7 +70,7 @@
 
 **底部 AI 框**
 
-见 [AI 栏交互](../../docs/product/ai-dock.md)。
+见 [AI 栏交互](../../docs/specs/design/ai-dock.md)。
 
 **拖入卡片**
 

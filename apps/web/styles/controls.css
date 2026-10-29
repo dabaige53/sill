@@ -636,7 +636,7 @@ body.is-dragging #toast {
 
 @media (min-width: 651px) {
 	.ai-dock-input::placeholder {
-		color: var(--secondary);
+		color: var(--ink);
 		opacity: 1;
 	}
 	#search-selection-bar {

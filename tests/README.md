@@ -2,7 +2,7 @@
 
 更新：2026-10-27。自动检查验证当前代码，历史报告不表示当前全部能力通过。报告与验收记录统一从 [文档目录](../docs/README.md) 进入。
 
-以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/agents/test.md) 确认授权、范围和结果边界。
+以下命令是按需入口，不是默认执行清单。运行前按 [测试与验证](../docs/agent/test.md) 确认授权、范围和结果边界。
 
 ## 目录与默认范围
 
@@ -72,7 +72,7 @@ Mac 的工作区、搜索、信息流、选择、设置、归档等测试分别�
 
 非 Linux 环境运行 `test:cloud-welcome` 时，通过 `CHROMIUM_PATH` 指定已安装的 Chromium，不安装新浏览器或修改断言。
 
-专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/agents/file-management.md)。
+专项命令以 [package.json](../package.json) 为准。`server/helpers/` 放服务端测试工具；跨端浏览器流程位于 `e2e/`。旧入口专用测试已随实现删除，可从 `legacy-final` 查阅。不提交真实 token、用户卡片或导出。历史报告已移入 `docs/archive/test-reports/`，不在此维护第二份文档导航。文件规则见 [文件管理规范](../docs/agent/file-management.md)。
 
 浏览器入口保留服务启动、合成数据和结果汇总；相邻模块按卡片操作、阅读与选择、捕获与布局、触控与拖动、材质和抽屉场景分组，按原顺序执行。`web/selection.test.ts` 与 `server/oauth-consent.test.ts` 分别注册相邻模块中的全部测试；`server/supabase-postgres.ts` 在同一容器中依次运行权限与 OAuth 检查。拆分模块不单独启动浏览器、服务或数据库。
 

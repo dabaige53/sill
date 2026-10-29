@@ -4,7 +4,7 @@
 
 ## 资讯阅读
 
-只用于资讯卡；预览与全屏分别遵循 `CardTypeDetails`、`CardTypeMobile`、`CardTypeReading`。Web 与 macOS 的当前差异见[界面对账表](../../docs/product/ui-alignment.md)。数值见[字体](foundation.md#字体)与[间距与尺寸](foundation.md#间距与尺寸)。
+只用于资讯卡；预览与全屏分别遵循 `CardTypeDetails`、`CardTypeMobile`、`CardTypeReading`。Web 与 macOS 的当前差异见[界面对账表](../../docs/implementation/design/ui-alignment.md)。数值见[字体](foundation.md#字体)与[间距与尺寸](foundation.md#间距与尺寸)。
 
 - 预览顺序：封面 → 来源 · 日期 · 阅读时长 → 标题 → 标签 → 正文 → 备注。标题区与正文之间不加通栏分隔线，间距为 `rhythm-group` 24（见[纵向间距](content-layout.md#纵向间距)）。全屏把封面移到标题区之后。导语与列表属于正文，不额外插入卡面摘要。日期只在来源行出现一次，写「今天」「昨天」「10/18」，跨年加年份；取发布日期，没有时取保存日期，再没有时取卡片时间。
 - 预览浮层宽度不变，左右 30（手机 20）。Web 资讯正文使用 shadcn Typeset 的段落、小标题、列表和引用间距，沿用原字体、字号、文字颜色与阅读偏好。桌面放大页内容区居中、最大宽 1200，内容区两侧再留窗口宽度的 5%（最小 24、最大 88）；正文内部边距保持不变。正文最大宽度为 `reader-measure` 920，桌面目录位于正文右侧，宽 `reader-outline-width` 160；正文与目录各自滚动。有标题时目录常显，不提供目录展开/收起按钮。目录只取正文 Markdown 的真实标题，不列「文章开头」；无标题时不显示目录。目录标题和条目沿用原来的 15px 字号，按 shadcn 目录的简洁列表呈现：普通项为 muted，当前位置用 ink 和中等字重，实际子标题缩进。Web 点击目录立即定位章节，不播放滚动过渡；手动滚动同步当前位置。手机预览不显示目录。

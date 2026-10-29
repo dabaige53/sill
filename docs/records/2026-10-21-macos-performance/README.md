@@ -4,7 +4,7 @@
 
 ## 范围
 
-人工追踪、后台资源采样、Apple OSSignposter、XCTest 数据层基准、独立 XCUITest 工程、Instruments CLI 录制与离线报告。操作入口与参数见 [性能指南](../../agents/macos-performance.md)。
+人工追踪、后台资源采样、Apple OSSignposter、XCTest 数据层基准、独立 XCUITest 工程、Instruments CLI 录制与离线报告。操作入口与参数见 [性能指南](../../implementation/operations/macos-performance.md)。
 
 ## 已获得的证据
 

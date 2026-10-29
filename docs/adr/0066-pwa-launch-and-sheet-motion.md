@@ -25,4 +25,4 @@
 - 手册：[动效](../../design-system/handbook/motion.md) 的手机抽屉打开、详情下拉关闭，以及「其他组件」的加载与下拉刷新条目。
 - 设计印记 `boot-skeleton`；没有新增或更换画板。
 - Web：`cloud-entry.ts`、`cloud-workspace.ts`、`cloud-views.tsx`、`cloud.css`、`motion*.ts`、`gesture-pull.ts`、`app-surfaces.ts`。
-- Mac 没有手机抽屉和 PWA 打开过程，记为不适用；见[界面对账表](../product/ui-alignment.md)。
+- Mac 没有手机抽屉和 PWA 打开过程，记为不适用；见[界面对账表](../implementation/design/ui-alignment.md)。

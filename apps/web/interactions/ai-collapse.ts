@@ -48,6 +48,19 @@ export function captureAIDock(node: HTMLElement, visual: CollapseVisual | null):
 		opacity: getComputedStyle(content).opacity,
 	};
 }
+/** Collapse towards the closest window edge, and keep that edge when expanding. */
+export function collapseDockAnchor(box: Rect, viewportWidth: number) {
+	const left = box.left + box.width / 2 < viewportWidth / 2;
+	return {
+		left,
+		rect: {
+			left: left ? box.left : box.left + box.width - box.height,
+			top: box.top,
+			width: box.height,
+			height: box.height,
+		},
+	};
+}
 export function anchoredBubble(anchor: Rect, diameter: number): Rect {
 	return {
 		left: anchor.left + anchor.width / 2 - diameter / 2,

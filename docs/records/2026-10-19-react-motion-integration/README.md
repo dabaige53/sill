@@ -23,7 +23,7 @@ Web 已使用 React + TypeScript + Vite，macOS 保留 SwiftUI。页面、卡片
 
 曾发现 4318 仍返回旧构建。重新导出设计数据并构建后，已比较服务响应与 `dist/web/index.html`，扣除本地模式脚本注入后完全一致。浏览器仍需刷新，后续源码修改仍需再次构建。
 
-4318 是主目录的构建预览；5173 是需要另行启动的 Vite 开发入口。4337 曾用于独立动效 worktree 预览，不代表主目录最新代码。固定操作步骤见 [本地操作](../../guides/local-operations.md)。
+4318 是主目录的构建预览；5173 是需要另行启动的 Vite 开发入口。4337 曾用于独立动效 worktree 预览，不代表主目录最新代码。固定操作步骤见 [本地操作](../../implementation/operations/local-operations.md)。
 
 ## 验证范围
 

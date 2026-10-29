@@ -271,7 +271,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 	return originalAction(name, id, ...args);
 };
 // Keep the original menus and light actions. A note opens for reading, not content editing.
-app.startInlineEdit = (id: any) => app.openCard(id, true);
 app.loadDemo = function () {
 	const ids = new Map(SeedCards.map((card) => [card.id, crypto.randomUUID()]));
 	const offset = Date.now() - demoBase;

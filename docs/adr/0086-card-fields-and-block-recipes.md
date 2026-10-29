@@ -140,7 +140,7 @@
 - [卡片交互](../../design-system/handbook/card-interaction.md)：阅读时长文案。
 - [Web 阅读](../../design-system/handbook/web-reading.md)：PR 信息行。
 - [Web 交互](../../design-system/handbook/web-interaction.md)：摘要卡覆盖范围格式。
-- [卡片界面对账](../product/ui-card-alignment.md)：摘要、邮件、PR 三行。
+- [卡片界面对账](../implementation/design/ui-card-alignment.md)：摘要、邮件、PR 三行。
 - 设计手册中「10 类、32 种预设」指向的画板已移入 `design-system/history/`，改为指向配方表。
 
 本决定修改 [ADR 0063](0063-markdown-body.md) 中「建议的理由保留为独立字段」的部分，并取代 [ADR 0050](0050-explicit-card-fields.md) 中关于发布方、预计阅读时长和原文修改时间的规定。

@@ -22,4 +22,4 @@ Web 与 macOS 共用设计变量和偏好字段；MCP 通过已有 preferences.p
 - 实现：Web、macOS、共享偏好约定和云端偏好校验迁移。
 - 云端发布顺序：先迁移数据库校验，再发布 API 与客户端。此决定不授权发布。
 
-视觉验证状态记录在[界面对账表](../product/ui-alignment.md)。
+视觉验证状态记录在[界面对账表](../implementation/design/ui-alignment.md)。

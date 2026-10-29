@@ -1,6 +1,6 @@
 # 产品需求统一为 docs 内的 PRODUCT.md
 
-2026-10-29，已采纳。
+2026-10-29，已采纳。产品正文位置后由 [ADR 0088](0088-documentation-layers.md) 调整；本记录保留当时决定。
 
 用户要求已有文档直接适配 skill 所需文件名，并保留在 docs 内。将 docs/product/requirements.md 改名为 docs/product/PRODUCT.md，在同一正文补充已确认的用户定位和 Impeccable 上下文标记。根目录不保留副本、链接入口或符号链接。更新现行文档和历史记录中的导航链接，历史原文路径保留。
 
