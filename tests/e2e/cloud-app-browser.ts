@@ -155,10 +155,10 @@ try {
 		"none",
 		"search keeps the capsule reachable",
 	);
-	await frame.locator("#dock").waitFor({ state: "visible" });
+	assert.equal(await frame.locator("#ai-dock").isVisible(), false);
 	await frame.locator("#filter-search").press("Escape");
 	await frame.locator("#modal[open]").waitFor({ state: "hidden" });
-	await frame.locator("#dock").waitFor({ state: "visible" });
+	assert.equal(await frame.locator("#ai-dock").isVisible(), false);
 	await frame
 		.locator('#nav [data-extra="home"][aria-current="page"]')
 		.waitFor({ state: "attached" });

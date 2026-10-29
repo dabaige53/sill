@@ -3,10 +3,10 @@ import { icon } from "../atoms/icons.ts";
 import { esc } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import { agentKey } from "../services/agent-handoff.ts";
 import { Store } from "../data/store.ts";
 import { contextMotion } from "../interactions/ai-context-motion.ts";
 import { MotionEngine } from "../interactions/motion.ts";
+import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController } from "./app.ts";
 import { renderView } from "./react-renderer.ts";
 
