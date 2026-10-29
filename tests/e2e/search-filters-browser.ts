@@ -115,6 +115,12 @@ try {
 					document.querySelectorAll("#search-results [data-card]").length === 0,
 			);
 			const keyboard = await page.evaluate(async () => {
+				await Promise.allSettled(
+					document
+						.getAnimations()
+						.filter((animation) => Number.isFinite(animation.effect?.getTiming().iterations))
+						.map((animation) => animation.finished),
+				);
 				const viewport = window.visualViewport;
 				const visibleHeight = viewport.height;
 				let keyboardHeight = 0;
