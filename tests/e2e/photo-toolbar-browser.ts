@@ -143,7 +143,7 @@ try {
 			await page.locator('#modal [data-action="edit"]').click();
 			source = await page.evaluate(() => JSON.stringify(window.__store.card("photo-tools")));
 			await page.locator("#tag-new").fill("不保存");
-			await page.locator('#modal [data-action="close"]').click();
+			await page.locator('#tag-layer [data-action="close"]').click();
 			await page.locator("#modal.lightbox[open]").waitFor();
 			assert.equal(
 				await page.locator('.photo-carousel-page[aria-hidden="false"] img').getAttribute("src"),

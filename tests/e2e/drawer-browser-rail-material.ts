@@ -182,7 +182,7 @@ export async function runRailMaterial({
 	}
 
 	await scenario(
-		"Phone drawers keep a bottom inset and scroll long content",
+		"Phone drawers cover the bottom edge and scroll long content",
 		async (page) => {
 			for (const id of ["short-task", "motion-0"]) {
 				await page.evaluate((id) => window.__app.openCard(id), id);
@@ -194,7 +194,7 @@ export async function runRailMaterial({
 				});
 				const box = await page.locator(".phone-drawer").boundingBox();
 				assert.ok(box.height >= 844 * 0.7 - 1 && box.y >= 24, JSON.stringify(box));
-				assert.ok(Math.abs(box.y + box.height - 832) < 2, JSON.stringify(box));
+				assert.ok(Math.abs(box.y + box.height - 844) < 2, JSON.stringify(box));
 				if (id === "motion-0") {
 					await page.locator(".sheet-scroll").evaluate((node) => {
 						node.scrollTop = 120;

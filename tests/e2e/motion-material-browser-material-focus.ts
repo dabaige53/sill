@@ -30,6 +30,8 @@ export async function runMaterialFocus({
 			),
 			"the keyboard scenario starts away from both edges",
 		);
+		// Let the scroll-stop reveal finish before deliberately hiding the rail for Tab.
+		await page.waitForFunction(() => !window.__app.railHide.hidden && !window.__app.railHide.timer);
 		await page.evaluate(() => window.__app.railHide.hide());
 		await page.waitForFunction(
 			() => getComputedStyle(document.getElementById("dock")).visibility === "hidden",
