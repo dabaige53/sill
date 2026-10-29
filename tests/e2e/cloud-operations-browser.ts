@@ -328,6 +328,11 @@ try {
 	await page.reload();
 	await page.locator(".welcome").waitFor();
 	assert.equal((await api("/api/v1/workspace")).state.cards.length, 0);
+	// Account-expiry scenarios use explicit synthetic API fixtures, never product demo actions.
+	for (const title of ["Synthetic expiry one", "Synthetic expiry two"])
+		await api("/api/v1/contents", { type: "note", title, body: "Synthetic account fixture" });
+	await page.evaluate(() => __app.refresh());
+	await page.waitForFunction(() => __store.state.cards.length === 2);
 	// A foreground pull joins an already-running read; no early success or duplicate request.
 	let releaseRead: () => void;
 	const readGate = new Promise<void>((resolve) => {
