@@ -45,18 +45,28 @@ struct CardTile: View {
       .focusEffectDisabled()
       .focused($focused)
       .onChange(of: state.focusRequest) { focused = true }
-      .onKeyPress(.return) {
-        intents.open(card.id)
+      .onKeyPress(.return) { press in
+        activate(modifiers: press.modifiers)
         return .handled
       }
-      .onKeyPress(.space) {
-        intents.open(card.id)
+      .onKeyPress(.space) { press in
+        activate(modifiers: press.modifiers)
         return .handled
       }
       .modifier(CardAccessibility(card: card, state: state))
       .modifier(CardGeometrySource(id: card.id))
       // Web `.feed-card`: the whole card opens, so the pointer says so.
       .modifier(HandCursor())
+  }
+
+  private func activate(modifiers: EventModifiers) {
+    if modifiers.contains(.shift) {
+      intents.select(card.id, true)
+    } else if modifiers.contains(.command) {
+      intents.select(card.id, false)
+    } else {
+      intents.open(card.id)
+    }
   }
 
   private static let shape = RoundedRectangle(
@@ -125,6 +135,11 @@ private struct CardAccessibility: ViewModifier {
       .accessibilityLabel(label)
       .accessibilityAddTraits(traits)
       .accessibilityAction { intents.open(card.id) }
+      .accessibilityAction(
+        named: Copy.text(state.selected ? "web.app.74966e20df2e" : "web.app.c11330b85234")
+      ) {
+        intents.select(card.id, false)
+      }
       .accessibilityAction(named: Copy.text("web.templates.ee9430845e26")) {
         intents.menu(card.id, nil)
       }

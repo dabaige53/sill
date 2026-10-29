@@ -12,6 +12,17 @@ struct PodcastDetail: View {
         CoverImage(name: card.cover)
           .frame(width: AppleMetrics.podcastCoverSize, height: AppleMetrics.podcastCoverSize)
           .background(AppleColors.surface)
+          .overlay {
+            if card.cover == nil {
+              VStack(alignment: .leading, spacing: AppleMetrics.space12) {
+                Text(card.publicationName).font(.sans(AppleMetrics.font13))
+                  .foregroundStyle(AppleColors.secondary)
+                Text(card.title).font(.sans(AppleMetrics.font20, .semibold)).lineLimit(5)
+              }
+              .padding(AppleMetrics.space24)
+              .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            }
+          }
           .clipShape(RoundedRectangle(cornerRadius: AppleMetrics.coverRadius))
         VStack(alignment: .leading, spacing: AppleMetrics.rhythmItem) {
           if let date = card.publicationDate {

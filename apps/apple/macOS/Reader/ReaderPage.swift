@@ -30,11 +30,6 @@ struct ReaderPage<Content: View>: View {
     ZStack(alignment: .top) {
       ScrollViewReader { proxy in
         HStack(alignment: .top, spacing: full ? AppleMetrics.space40 : 0) {
-          if full, !headings.isEmpty {
-            outline(proxy: proxy)
-              .frame(width: AppleMetrics.readerOutlineWidth)
-              .padding(.top, AppleMetrics.space24)
-          }
           content
             .onPreferenceChange(ReaderHeadingPositions.self) { positions in
               let passed = headings.last {
@@ -47,6 +42,11 @@ struct ReaderPage<Content: View>: View {
               let selected = atEnd ? headings.last?.index : passed?.index ?? headings.first?.index
               if selected != currentHeading { currentHeading = selected }
             }
+          if full, !headings.isEmpty {
+            outline(proxy: proxy)
+              .frame(width: AppleMetrics.readerOutlineWidth)
+              .padding(.top, AppleMetrics.space24)
+          }
         }
         .padding(.horizontal, full ? AppleMetrics.readerPageGutter : 0)
         .padding(.top, full ? (expandedWorkspace ? AppleMetrics.space64 : AppleMetrics.space88) : 0)

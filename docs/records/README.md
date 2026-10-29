@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [首次发布界面审核](2026-10-29-release-ui-polish/README.md)
 - [删除速记专属流程](2026-10-29-quick-capture-removal/README.md)
 - [旧实现测试报告](2026-10-29-legacy-test-records/README.md)
 - [文档分层与源码复核](2026-10-29-doc-layers/README.md)

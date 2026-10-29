@@ -94,11 +94,11 @@ struct ArchivePanel: View {
     let day = 86_400_000.0
     let rows = workspace.cards
       .filter { workspace.state($0.id).archived }
-      .sorted { $0.time > $1.time }
       .map { card -> (card: CardModel, at: Double) in
         let readAt = workspace.state(card.id).confirmed["readAt"]?.number ?? 0
         return (card, readAt > 0 ? readAt : card.time)
       }
+      .sorted { $0.at > $1.at }
     var groups: [Group] = []
     for row in rows {
       let age = now - row.at

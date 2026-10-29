@@ -34,10 +34,6 @@ struct DataPage: View {
           .buttonStyle(TextLinkStyle(padded: false))
         }
         SettingLine {
-          if !workspace.isLocal {
-            Text(Copy.text("web.cloud.clear"))
-            Spacer(minLength: 0)
-          }
           Button(Copy.text(workspace.isLocal ? "web.settings.clearAllData" : "web.cloud.clear")) {
             confirming = true
           }

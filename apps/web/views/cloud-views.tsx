@@ -112,8 +112,7 @@ export function CloudSettings({
 					</button>
 				</div>
 				<div className="setting-row">
-					<span>{copy("web.cloud.clear")}</span>
-					<button type="button" className="text-link" data-action="clear-all">
+					<button type="button" className="text-link warn" data-action="clear-all">
 						{copy("web.cloud.clear")}
 					</button>
 				</div>

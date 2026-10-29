@@ -440,7 +440,9 @@ export const panelSearch = {
 	},
 	archive(this: PanelRenderers, app?: Pick<AppController, "shelved">, which?: string) {
 		const now = Date.now(),
-			list = app.shelved(which).sort((a, b) => (b.time || 0) - (a.time || 0));
+			at = (card: Card) =>
+				which === "read" ? Store.item(card.id).readAt || card.time : card.time,
+			list = app.shelved(which).sort((a, b) => (at(b) || 0) - (at(a) || 0));
 		const groups = new Map<string, Card[]>();
 		for (const c of list) {
 			const at = which === "read" ? Store.item(c.id).readAt || c.time : c.time,
