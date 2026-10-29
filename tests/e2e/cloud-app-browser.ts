@@ -68,7 +68,8 @@ try {
 		if (request.method === "ui/update-model-context") {
 			hostContexts.push(request.params);
 			if (hostResult.message === "unknown") throw new Error("Synthetic attachment receipt loss");
-			return { isError: hostResult.message === "rejected" };
+			if (hostResult.message === "rejected") throw new Error("Synthetic rejected attachment");
+			return {};
 		}
 		const messages = request.method === "ui/message";
 		(messages ? hostMessages : hostLinks).push(request.params);
