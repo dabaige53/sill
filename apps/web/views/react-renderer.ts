@@ -3,9 +3,9 @@ import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { cancelMotion } from "../interactions/motion-playback.ts";
 import {
-	wrapPhoneDrawer,
-	renderPhoneDrawerChild,
 	releasePhoneDrawerChild,
+	renderPhoneDrawerChild,
+	wrapPhoneDrawer,
 } from "../interactions/phone-drawer.tsx";
 import { restoreCompletionChildren } from "./card-state-feedback.ts";
 

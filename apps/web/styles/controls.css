@@ -715,8 +715,12 @@ body.is-dragging #toast {
 	}
 }
 
-.toggle { touch-action: none; }
-.toggle[data-live-toggle] { background: var(--toggle-off); }
+.toggle {
+	touch-action: none;
+}
+.toggle[data-live-toggle] {
+	background: var(--toggle-off);
+}
 .toggle-fill {
 	position: absolute;
 	inset: 0;

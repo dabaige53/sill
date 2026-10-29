@@ -2,7 +2,6 @@ import { copy } from "../../design-system/copy.ts";
 import tokens from "../../design-system/tokens.json" with { type: "json" };
 import { authStyles } from "./auth-page.ts";
 
-
 // Login-only styles keep consent and callback pages unchanged.
 const loginStyles = `
 body:has(>.login-page){min-height:100svh;min-height:100dvh;align-items:center}

@@ -290,8 +290,13 @@ test("phone nested previews retain the mounted parent and its scroll position", 
 		assert.equal(parent.inert, true);
 		assert.equal(parent.querySelector(".sheet-scroll").scrollTop, 260);
 		assert.equal(f.app.dialog.querySelector(".preview-sheet").classList.contains("is-full"), true);
-		assert.equal(f.app.dialog.querySelector(".preview-sheet").style.getPropertyValue("--nested-sheet-height"), "");
-	} finally { f.dom.window.close(); }
+		assert.equal(
+			f.app.dialog.querySelector(".preview-sheet").style.getPropertyValue("--nested-sheet-height"),
+			"",
+		);
+	} finally {
+		f.dom.window.close();
+	}
 });
 
 test("reader cards use a modal dialog and keep full-page mode for phone links", () => {

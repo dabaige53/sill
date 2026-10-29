@@ -146,7 +146,14 @@ const MotionEngine: Record<string, any> = {
 			target = (event.target as Element).closest<HTMLElement>(
 				".icon-button,.solid-button,.soft-button,.text-button,.text-link,.pill.primary,.pill.soft,.check-item,.reminder-check,.tag-pill button,.nav-tab,#pull-ring,#account.home-account",
 			);
-			if (!target || target.matches(":disabled,[aria-disabled=true]") || target.closest("[inert]")) { target = null; return; }
+			if (
+				!target ||
+				target.matches(":disabled,[aria-disabled=true]") ||
+				target.closest("[inert]")
+			) {
+				target = null;
+				return;
+			}
 			pointer = event.pointerId;
 			pressed = [target.querySelector<HTMLElement>(".nav-icon,.check-dot") || target];
 			if (target.matches(".nav-tab")) {
@@ -158,17 +165,30 @@ const MotionEngine: Record<string, any> = {
 			for (const el of pressed) {
 				const from = getComputedStyle(el).transform;
 				this.cancel(el);
-				this.animate(el, [{ transform: from }, { transform: `scale(${tokens.motion.pressScale})` }], {
-					duration: this.time("dur-press"), fill: "forwards",
-				});
+				this.animate(
+					el,
+					[{ transform: from }, { transform: `scale(${tokens.motion.pressScale})` }],
+					{
+						duration: this.time("dur-press"),
+						fill: "forwards",
+					},
+				);
 			}
 		});
 		document.addEventListener("pointermove", (event: PointerEvent) => {
 			if (!target || event.pointerId !== pointer) return;
 			const rect = target.getBoundingClientRect();
-			if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) release();
+			if (
+				event.clientX < rect.left ||
+				event.clientX > rect.right ||
+				event.clientY < rect.top ||
+				event.clientY > rect.bottom
+			)
+				release();
 		});
-		const finish = (event: PointerEvent) => { if (event.pointerId === pointer) release(); };
+		const finish = (event: PointerEvent) => {
+			if (event.pointerId === pointer) release();
+		};
 		document.addEventListener("pointerup", finish);
 		document.addEventListener("pointercancel", finish);
 		window.addEventListener("blur", release);
@@ -191,10 +211,15 @@ const MotionEngine: Record<string, any> = {
 				from,
 				visible
 					? { opacity: 1, transform: "none" }
-					: { opacity: 0, transform: `translateY(-2px) scale(${foundation.motion.webInteraction.menuExitScale})` },
+					: {
+							opacity: 0,
+							transform: `translateY(-2px) scale(${foundation.motion.webInteraction.menuExitScale})`,
+						},
 			],
 			{
-				duration: visible ? foundation.motion.webInteraction.menuOpen : foundation.motion.webInteraction.menuClose,
+				duration: visible
+					? foundation.motion.webInteraction.menuOpen
+					: foundation.motion.webInteraction.menuClose,
 			},
 		);
 		const finish = () => {

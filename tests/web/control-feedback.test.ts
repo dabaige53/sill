@@ -49,11 +49,13 @@ test("settings toggles share one progress animation without fading the panel", (
 		assert.equal(animations[0].options.bounce, 0.25);
 		animations[0].finish();
 		const toggle = app.dialog.querySelector('[data-id="stack"]');
-		assert.equal(toggle.querySelector('.toggle-fill').style.opacity, '0');
-		assert.equal(toggle.querySelector('.toggle-knob').style.transform, 'translateX(0px) scaleX(1)');
+		assert.equal(toggle.querySelector(".toggle-fill").style.opacity, "0");
+		assert.equal(toggle.querySelector(".toggle-knob").style.transform, "translateX(0px) scaleX(1)");
 		w.document.documentElement.dataset.inputModality = "keyboard";
 		app.setPref("stack", true);
 		assert.equal(animations.length, 1);
-		assert.equal(toggle.querySelector('.toggle-fill').style.opacity, '1');
-	} finally { f.dom.window.close(); }
+		assert.equal(toggle.querySelector(".toggle-fill").style.opacity, "1");
+	} finally {
+		f.dom.window.close();
+	}
 });

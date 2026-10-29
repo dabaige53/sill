@@ -35,10 +35,15 @@ const published = Object.fromEntries(
 	["ds", "canvas"].map((name) => [
 		name,
 		Array.isArray(publication[name])
-			? Object.assign({}, ...publication[name].map((file: string) => JSON.parse(readFileSync(resolve(ds, file), "utf8"))))
+			? Object.assign(
+					{},
+					...publication[name].map((file: string) =>
+						JSON.parse(readFileSync(resolve(ds, file), "utf8")),
+					),
+				)
 			: typeof publication[name] === "string"
-			? JSON.parse(readFileSync(resolve(ds, publication[name]), "utf8"))
-			: publication[name],
+				? JSON.parse(readFileSync(resolve(ds, publication[name]), "utf8"))
+				: publication[name],
 	]),
 );
 
@@ -176,13 +181,14 @@ function record(dsVersion?: string, canvasVersion?: string, adrNumber?: string) 
 		if (path.startsWith("project/assets/Icons/") && !next.ds[path]) next.ds[path] = value;
 	for (const f of walk(resolve(ds, "assets/Icons")))
 		next.ds["project/assets/Icons/" + relative(resolve(ds, "assets/Icons"), f)] = hash(f);
-	const reading = Object.fromEntries(Object.entries(next.canvas).filter(([path]) => path.startsWith("project/expanded-reading/")));
-	const canvas = Object.fromEntries(Object.entries(next.canvas).filter(([path]) => !path.startsWith("project/expanded-reading/")));
+	const reading = Object.fromEntries(
+		Object.entries(next.canvas).filter(([path]) => path.startsWith("project/expanded-reading/")),
+	);
+	const canvas = Object.fromEntries(
+		Object.entries(next.canvas).filter(([path]) => !path.startsWith("project/expanded-reading/")),
+	);
 	for (const [name, entries] of Object.entries({ ds: next.ds, canvas, "canvas-reading": reading }))
-		writeFileSync(
-			resolve(ds, `published-${name}.json`),
-			JSON.stringify(entries, null, 2) + "\n",
-		);
+		writeFileSync(resolve(ds, `published-${name}.json`), JSON.stringify(entries, null, 2) + "\n");
 	writeFileSync(
 		publishedFile,
 		JSON.stringify(

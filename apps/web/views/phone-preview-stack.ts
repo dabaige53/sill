@@ -1,7 +1,7 @@
 import {
+	attachPhoneDrawerChild,
 	closePhoneDrawer,
 	configurePhoneDrawer,
-	attachPhoneDrawerChild,
 } from "../interactions/phone-drawer.tsx";
 import type { AppController } from "./app.ts";
 import type { ViewDialog } from "./app-types.ts";

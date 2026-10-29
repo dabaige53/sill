@@ -1,4 +1,4 @@
-import { animate, motionValue, type AnimationPlaybackControls } from "motion";
+import { type AnimationPlaybackControls, animate, motionValue } from "motion";
 import { useLayoutEffect, useRef } from "react";
 import foundation from "../../../design-system/tokens/foundation.json" with { type: "json" };
 import { copy } from "../copy.ts";
@@ -49,7 +49,8 @@ export function VideoTabs({
 			if (!selected) return;
 			const left = selected.offsetLeft;
 			const right = left + selected.offsetWidth;
-			if (immediate && state.ready && left === state.targetLeft && right === state.targetRight) return;
+			if (immediate && state.ready && left === state.targetLeft && right === state.targetRight)
+				return;
 			state.targetLeft = left;
 			state.targetRight = right;
 			state.runs.forEach((run) => run.stop());

@@ -78,16 +78,9 @@
 		"repo": "dabaige53/sill",
 		"ref": "main@a27ae2a",
 		"paths": {
-			"tokens": [
-				"apps/web/styles/tokens.css"
-			],
-			"assets": [
-				"apps/web/atoms/icons.ts"
-			],
-			"docs": [
-				"design-system/README.md",
-				"docs/design/system.md"
-			]
+			"tokens": ["apps/web/styles/tokens.css"],
+			"assets": ["apps/web/atoms/icons.ts"],
+			"docs": ["design-system/README.md", "docs/design/system.md"]
 		},
 		"components": {
 			"*": "apps/web/atoms/primitives.ts, apps/web/cards/templates.ts, apps/web/styles/*.css"

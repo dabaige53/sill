@@ -11,19 +11,26 @@ export function captureToggle(node: HTMLElement) {
 }
 
 export function animateToggle(node: HTMLElement, previous: ReturnType<typeof captureToggle>) {
-	if (node.hasAttribute("data-live-toggle") || !previous || previous.checked === node.getAttribute("aria-checked")) return;
+	if (
+		node.hasAttribute("data-live-toggle") ||
+		!previous ||
+		previous.checked === node.getAttribute("aria-checked")
+	)
+		return;
 	// Only the changed switch stops. Read its destination after removing the old effect;
 	// unchanged switches keep their spring through settings and sync redraws.
 	MotionEngine.cancel(node, true);
 	const thumb = node.querySelector<HTMLElement>(".toggle-knob");
-	const knob = thumb ? null : MotionEngine.animate(
-		thumb || node,
-		[
-			{ transform: previous.transform },
-			{ transform: getComputedStyle(thumb || node, thumb ? undefined : "::before").transform },
-		],
-		{ spring: "toggle", ...(thumb ? {} : { pseudoElement: "::before" }) },
-	);
+	const knob = thumb
+		? null
+		: MotionEngine.animate(
+				thumb || node,
+				[
+					{ transform: previous.transform },
+					{ transform: getComputedStyle(thumb || node, thumb ? undefined : "::before").transform },
+				],
+				{ spring: "toggle", ...(thumb ? {} : { pseudoElement: "::before" }) },
+			);
 	MotionEngine.animate(
 		node,
 		[

@@ -10,7 +10,11 @@ import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
 import { agentKey } from "../services/agent-handoff.ts";
 import type { AppController, DetailPosition } from "./app.ts";
 
-import { pushPhonePreview, restorePhonePreview, clearPhonePreviews } from "./phone-preview-stack.ts";
+import {
+	clearPhonePreviews,
+	pushPhonePreview,
+	restorePhonePreview,
+} from "./phone-preview-stack.ts";
 
 export function openCard(this: AppController, id?: any, reading: any = false) {
 	const c = Store.card(id);

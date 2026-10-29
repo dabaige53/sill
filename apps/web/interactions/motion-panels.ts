@@ -307,11 +307,16 @@ export const panelMotion: Record<string, any> = {
 			const carried = this.carryCapsule(el, sheet, from, "none", true);
 			const animation = this.animate(
 				sheet,
-				[{ opacity: 1, transform: from }, { opacity: 1, transform: "translate(0px,0px) scale(1,1)" }],
+				[
+					{ opacity: 1, transform: from },
+					{ opacity: 1, transform: "translate(0px,0px) scale(1,1)" },
+				],
 				{ duration: this.time("dur-open"), spring: "card" },
 			);
 			if (el.classList.contains("reader")) el.dataset.readerGrowing = "";
-			const cleanup = () => { delete el.dataset.readerGrowing; };
+			const cleanup = () => {
+				delete el.dataset.readerGrowing;
+			};
 			const body = sheet.querySelector(".preview-body, .reader-body") as HTMLElement | null;
 			const outline = sheet.querySelector(".reader-outline") as HTMLElement | null;
 			this.panelAnimations.set(el, [
