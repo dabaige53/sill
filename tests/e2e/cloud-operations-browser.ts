@@ -119,12 +119,11 @@ try {
 	await page.evaluate(() => __app.refresh());
 	await page.waitForFunction(() => __store.state.cards.length === 3);
 	const saved = async () => {
-		await page.waitForFunction(() => ["saved", "error"].includes(__app.grid.dataset.sync));
-		assert.equal(
-			await page.evaluate(() => __app.grid.dataset.sync),
-			"saved",
-			await page.locator("#cloud-sync-status").textContent(),
-		);
+		try {
+			await page.waitForFunction(() => __app.grid.dataset.sync === "saved");
+		} catch (error) {
+			throw new Error(await page.locator("#cloud-sync-status").textContent(), { cause: error });
+		}
 	};
 	const action = async (name: string, id?: string, extra?: string) =>
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
