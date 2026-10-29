@@ -89,6 +89,7 @@ for (const f of [
 	"overlays",
 	"preview-media",
 	"panels",
+	"search-suggestions",
 	"overlay-actions",
 	"overlay-gestures",
 	"appearance",
