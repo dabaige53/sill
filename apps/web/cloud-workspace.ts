@@ -184,10 +184,11 @@ export function endBoot() {
 	app.grid.removeAttribute("aria-busy");
 	return true;
 }
-export function paintRecords() {
+export function paintRecords(redraw = true) {
 	Store.state.cards = [...Cloud.records.values()]
 		.filter((c: any) => !c.deleted)
 		.map((c: any) => cloudCard(c));
+	if (!redraw) return;
 	app.checkReminders();
 	// The first snapshot appears together; later updates keep their arrival transition.
 	if (endBoot()) {
@@ -243,7 +244,7 @@ export function adoptWorkspace(value: any) {
 		Cloud.records.set(id, tags ? { ...card, tags } : card);
 	}
 	app.applyPreferences();
-	if (changed) paintRecords();
+	paintRecords(changed);
 	sync.rebase(workspaceState(), value.revision, Cloud.user);
 	app.grid.dataset.revision = value.revision;
 	syncStatus();
