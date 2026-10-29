@@ -4,7 +4,7 @@ import { createSillRuntime } from "../../server/cloud/http.ts";
 import { cloudFixture } from "./helpers/cloud-fixture.ts";
 import { token } from "./helpers/signed-auth.ts";
 
-test("conditional workspace reads retain authorization and return full state after changes", async () => {
+test("conditional workspace reads retain authorization and return full state when revisions differ", async () => {
 	const f = await cloudFixture();
 	try {
 		const runtime = createSillRuntime(f.config, { clientFactory: f.factory, html: "shell-v1" });
@@ -12,7 +12,7 @@ test("conditional workspace reads retain authorization and return full state aft
 			runtime(
 				new Request(f.config.appOrigin + "/api/v1/workspace", {
 					headers: {
-						...(authorized ? { Authorization: "Bearer " + token() } : {}),
+						...(authorized ? { Cookie: "__Host-sill-access=" + token() } : {}),
 						...(revision === undefined ? {} : { "X-Sill-Revision": String(revision) }),
 					},
 				}),
