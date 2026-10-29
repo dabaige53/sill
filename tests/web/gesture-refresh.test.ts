@@ -233,6 +233,41 @@ test("browser-owned noncancelable touch does not start a second refresh animatio
 	}
 });
 
+test("a phone touch that stopped momentum mid-page takes over at the top without lifting", () => {
+	const f = fixture({ kind: "desk", phone: true });
+	try {
+		const target = f.document.querySelector("main p"),
+			ring = f.document.querySelector("#pull-ring"),
+			scrollTo = (y: number) =>
+				Object.defineProperty(f.w, "scrollY", { value: y, configurable: true, writable: true }),
+			move = (y: number) => {
+				// The browser owns a touch that stopped momentum, so none of its moves are cancelable.
+				const event = new f.w.Event("touchmove", { bubbles: true, cancelable: false });
+				Object.assign(event, { touches: [{ clientX: 120, clientY: y }] });
+				target.dispatchEvent(event);
+			};
+		scrollTo(80);
+		f.fire(target, "touchstart", 120, 200);
+		move(260);
+		f.flush(f.frames);
+		assert.equal(ring.dataset.state, "idle", "the page is still scrolling toward the top");
+		scrollTo(0);
+		move(280);
+		move(680);
+		f.flush(f.frames);
+		assert.equal(ring.dataset.state, "pulling");
+		assert.equal(
+			ring.hasAttribute("data-ready"),
+			true,
+			"the same touch keeps pulling once the page rests at the top",
+		);
+		f.fire(target, "touchend", 120, 680);
+		assert.equal(f.app.refreshes, 1);
+	} finally {
+		f.dom.window.close();
+	}
+});
+
 test("a 64px visible threshold commits on release and long travel keeps yielding smoothly", async () => {
 	const f = fixture({ kind: "desk" });
 	try {

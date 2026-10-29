@@ -8,6 +8,7 @@
 
 [设计变更日志](design-changelog.md)按次追加，不替代现行规范。
 
+- [手机下拉刷新惯性后失灵](2026-10-29-pull-refresh-handover/README.md)
 - [首次发布界面审核](2026-10-29-release-ui-polish/README.md)
 - [删除速记专属流程](2026-10-29-quick-capture-removal/README.md)
 - [旧实现测试报告](2026-10-29-legacy-test-records/README.md)

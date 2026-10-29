@@ -213,13 +213,13 @@ export function bindRefresh(this: Gestures) {
 		drive(true);
 		void refresh(true, velocity);
 	};
-	const unavailable = () =>
+	const blocked = () =>
 		busy ||
-		scrollY > 0 ||
 		this.app.dialog.open ||
 		this.app.selected.size ||
 		this.app.drag?.active ||
 		this.app.drag?.menu?.open;
+	const unavailable = () => blocked() || scrollY > 0;
 	document.addEventListener("pointerdown", (event: PointerEvent) => {
 		if (event.pointerType !== "mouse" || event.button !== 0 || this.phone.matches) return;
 		cancel();
@@ -261,8 +261,9 @@ export function bindRefresh(this: Gestures) {
 		"touchstart",
 		(event: TouchEvent) => {
 			cancel();
+			// A touch may start mid-page or while momentum settles; the top is checked as it moves.
 			if (
-				unavailable() ||
+				blocked() ||
 				event.touches.length !== 1 ||
 				this.fromHorizontalContent(event) ||
 				(event.target as Element).closest?.("#dock,#toast,#pull-ring,.deck")
@@ -276,15 +277,28 @@ export function bindRefresh(this: Gestures) {
 		"touchmove",
 		(event: TouchEvent) => {
 			if (!start) return;
-			if (unavailable() || event.touches.length !== 1 || !event.cancelable) return cancel();
-			const point = this.point(event),
-				dy = point.y - start.y,
+			if (blocked() || event.touches.length !== 1) return cancel();
+			const point = this.point(event);
+			// Until the page reaches the top, the pull origin rides with the finger.
+			if (scrollY > 0) {
+				if (gesture) cancel();
+				start = point;
+				return;
+			}
+			const dy = point.y - start.y,
 				dx = Math.abs(point.x - start.x);
 			if (!gesture) {
-				if (dy <= 0 || dx > dy) return cancel();
+				if (dy <= 0) {
+					start = point;
+					return;
+				}
+				if (dx > dy) return cancel();
+				// Wider layouts keep the browser's own top edge (base.css); it must not run twice.
+				if (!event.cancelable && !this.phone.matches) return cancel();
 				begin();
 			}
-			event.preventDefault();
+			// A touch that stopped momentum stays uncancelable, but at the top nothing scrolls under it.
+			if (event.cancelable) event.preventDefault();
 			track(dy);
 		},
 		{ passive: false },
