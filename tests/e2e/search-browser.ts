@@ -203,7 +203,9 @@ try {
 				await page.goBack();
 				await page.waitForSelector("#modal.search[open]");
 				assert.equal(await page.locator("#search-results").evaluate((n) => n.scrollTop), searchY);
-				await page.keyboard.press("Escape");
+				// Navigation preserves the query; Escape in phone editing resets it first.
+				if (width < 650) await page.evaluate(() => window.__app.goTo("home"));
+				else await page.keyboard.press("Escape");
 				await page.locator("#modal[open]").waitFor({ state: "hidden" });
 				assert.equal(
 					await page.locator("#feed-grid").evaluate((el) => getComputedStyle(el).visibility),
