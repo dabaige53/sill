@@ -65,9 +65,17 @@ await save();
 if (
 	!current ||
 	current.id === previous?.id ||
-	current.annotations?.["workers/message"] !== metadata.annotations["workers/message"]
+	current.versions?.length !== 1 ||
+	current.versions[0].percentage !== 100
 )
-	throw new Error("Deployment receipt does not identify the release commit");
+	throw new Error("Deployment receipt does not identify the release version");
+// Deployment summaries truncate messages; version annotations retain the complete commit.
+const deployedVersion = await api(`/versions/${current.versions[0].version_id}`);
+if (
+	deployedVersion.annotations?.["workers/message"] !== metadata.annotations["workers/message"] ||
+	deployedVersion.annotations?.["workers/tag"] !== tag
+)
+	throw new Error("Deployment version does not identify the release commit");
 const health = await fetch(new URL("/api/v1/health", origin));
 if (health.status !== 200 || (await health.json()).status !== "ready")
 	throw new Error("Deployed Worker failed health verification");

@@ -28,7 +28,8 @@ import assert from 'node:assert/strict';
 let uploaded = false;
 globalThis.fetch = async (url, init = {}) => {
   if (process.env.SCENARIO === 'missing-database-check') throw Error('Network must not be reached');
-  if (String(url).endsWith('/deployments')) return Response.json({success:true,result:{deployments:[{id:uploaded?'new':'old',annotations:{'workers/message':'Sill v1.2.8 synthetic-sha'}}]}});
+  if (String(url).endsWith('/deployments')) return Response.json({success:true,result:{deployments:[{id:uploaded?'new':'old',annotations:{'workers/message':'Sill v1.2.8 synthetic...'},versions:[{version_id:'version-id',percentage:100}]}]}});
+  if (String(url).endsWith('/versions/version-id')) return Response.json({success:true,result:{annotations:{'workers/message':'Sill v1.2.8 synthetic-sha','workers/tag':'v1.2.8'}}});
   if (String(url).endsWith('/settings')) return Response.json({success:true,result:{compatibility_date:'2026-10-14',bindings:[{name:'SECRET',type:'secret_text'}]}});
   if (init.method === 'PUT') {
     const metadata = JSON.parse(await init.body.get('metadata').text());
