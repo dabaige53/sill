@@ -87,3 +87,11 @@ Mac 独立源码复核：设置与重置通过 Workspace.write(.preferences) 保
 Web 备份按钮逐项核对为 /api/v1/backups 的 POST/GET 调用；下载响应后生成文件，取消恢复仅关闭预览。账号退出 POST /auth/logout 成功后清理状态。导出生成当前工作区快照文件，本身无需新增服务端写入。系统通知开关使用浏览器权限和设备偏好，不应伪装为云端通知订阅。导航、照片前后切换和多选上下文操作本身无需服务器写入。
 
 `c2be8fd7` 的 CI 进一步指出搜索材质层同样被旧样式检查拒绝；按同一手册只允许 `.home-search::after` 的既定 opacity 过渡。多选辅助测试的 forEach 回调违反 lint，改为不返回值的 for-of；本地只读 Biome 错误级检查通过。
+
+### 线上迁移与剩余按钮证据
+
+用户明确授权执行数据库迁移。线上查询确认 public/private 的 get_workspace_since 函数均不存在后，执行 `20261029160000_workspace_conditional_read.sql` 成功。重新查询：两个函数存在，authenticated 可执行公共函数，anon 不可执行。未清空数据，未改动账号；迁移只新增条件读取函数。
+
+Mac 卡片菜单、阅读器工具栏和多选通过 DesktopView 的 cardIntents/selectionIntents 绑定至 Workspace、reader 或 panels；邮件外链成功打开后标已读，外链失败有提示。视频使用官方播放器，失败有重试；播客提供信息与外链；照片边界按钮禁用，前后切换和关闭有绑定；日历导出打开系统保存面板并报告失败。源码审查未发现当前开放按钮的空回调，实际窗口仍未验收。AI 失败重试保留空回调，但 connected 恒 false，入口未开放。
+
+云端操作回归新增已读双向切换、提醒忽略、排序和恢复默认布局的服务端重新读取断言。不是只检查本地状态；待 CI 执行后记录结果。
