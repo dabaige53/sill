@@ -506,7 +506,7 @@
 	color: var(--alert);
 }
 .detail-task-list .check-dot {
-	border-color: color-mix(in srgb, var(--secondary) 35%, transparent);
+	border-color: var(--check-border);
 }
 .detail-task-list .check-item.is-done .check-dot {
 	background: var(--success);

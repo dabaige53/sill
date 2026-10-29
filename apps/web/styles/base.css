@@ -128,7 +128,7 @@ textarea {
 }
 input::placeholder,
 textarea::placeholder {
-	color: var(--secondary);
+	color: var(--muted);
 }
 ::selection {
 	background: var(--selection);

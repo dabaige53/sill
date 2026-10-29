@@ -705,6 +705,36 @@ body.is-dragging #toast {
 		pointer-events: none;
 		z-index: -1;
 	}
+	.ai-dock:not([data-height="panel"], [data-height="full"]) {
+		background: transparent;
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+	.ai-dock-surface.glass {
+		box-shadow: inset 0 0 0 var(--space-1) var(--glass-edge), var(--shadow-float);
+	}
+	.ai-dock-surface.glass::before {
+		background: none;
+	}
+	.ai-dock-surface::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: var(--glass-shade);
+		box-shadow: inset 0 0 0 var(--space-1) var(--line-hover), var(--shadow);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity var(--dur-hover) var(--ease);
+	}
+	@media (hover: hover) and (pointer: fine) {
+		.ai-dock:hover > .ai-dock-surface::after {
+			opacity: 0.35;
+		}
+	}
+	.ai-dock:focus-within > .ai-dock-surface::after {
+		opacity: 1;
+	}
 	.ai-dock .ai-dock-restore {
 		cursor: pointer;
 	}

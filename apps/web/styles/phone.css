@@ -186,6 +186,7 @@
 		width: 18px;
 		height: 18px;
 		flex-basis: 18px;
+		margin-top: calc((1lh - var(--space-18)) / 2);
 	}
 	/* Navigation and selection */
 

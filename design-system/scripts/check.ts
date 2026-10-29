@@ -96,7 +96,7 @@ if (listed !== folders) fail(`bundle.js header lists ${listed}; folders are ${fo
 
 // Rule documents state the present: no dated narrative outside the 更新 line.
 for (const file of [
-	"docs/specs/DESIGN.md",
+	"docs/agent/DESIGN.md",
 	"design-system/README.md",
 	...readdirSync(resolve(ds, "handbook")).map((f) => `design-system/handbook/${f}`),
 	...components.filter((n) => n !== "Cover").map((n) => `design-system/components/${n}/README.md`),

@@ -15,7 +15,7 @@
 | 部署或回退 | [部署规范](deployment.md)，执行步骤见[发布操作手册](../implementation/operations/release-runbook.md) |
 | 选择检查或报告验证结果 | [测试规范](test.md)；具体工具见[测试操作说明](../implementation/testing.md) |
 | 新增、修改、移动或清理文档 | [文件管理规范](file-management.md) |
-| 改界面、样式或交互 | [设计规范](../specs/DESIGN.md) |
+| 改界面、样式或交互 | [设计规范](../agent/DESIGN.md) |
 | 记录和复查调试问题 | [错误记录规范](error.md)、[错误索引](../records/errors.md) |
 | 排查动效、滚动或手势 | [动效开发与排查](motion-development.md) |
 | 编写 PR | [PR 编写指南](pr.md) |

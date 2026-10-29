@@ -3,6 +3,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { accountAvatar } from "../atoms/account-avatar.ts";
 import { NewContentNotice, OfflineNotice, ToastSurface } from "../atoms/feedback.tsx";
 import { SelectionBar } from "../atoms/selection.tsx";
+import { SillWordmark } from "../atoms/wordmark.tsx";
 
 export { SelectionAI } from "../atoms/selection.tsx";
 
@@ -38,7 +39,7 @@ export function HomeTop() {
 						aria-label={copy("web.home.top")}
 					>
 						<span className="home-logo">{sillIcon(40)}</span>
-						Sill
+						<SillWordmark />
 					</button>
 					<HomeScopeMenu />
 				</div>

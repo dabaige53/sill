@@ -40,7 +40,7 @@
 			{
 				"name": "secondary",
 				"value": "#68686d",
-				"usage": "辅助文字、图标和 placeholder；浅色 #68686d，深色 #a1a1a8。正常文字需在实际背景上验证至少 4.5:1。"
+				"usage": "辅助图标和分隔符；说明文字和 placeholder 使用 muted。"
 			},
 			{
 				"name": "line",
@@ -60,7 +60,7 @@
 			{
 				"name": "accent-soft",
 				"value": "#edf4ff",
-				"usage": "选中态底色：icon-button.active、tag-chip.active、filter-kind.active、suggestion-action。其上文字用 accent（5.03:1）。"
+				"usage": "动作反馈和焦点的浅蓝背景；标签使用 surface，筛选选中使用 ink，不作为通用选中底色。"
 			},
 			{
 				"name": "accent-soft-hover",
@@ -139,8 +139,8 @@
 			},
 			{
 				"name": "check-border",
-				"value": "#b8b8bd",
-				"usage": "待办选择项未完成圆点的 1.2px 描边（cards.css 中的字面值）。"
+				"value": "#828288",
+				"usage": "未完成待办和提醒圆圈的独立描边；浅色 #828288，深色 #85858c。不用于装饰分隔线。"
 			},
 			{
 				"name": "done-strike",
@@ -331,6 +331,11 @@
 				"name": "ai-ink",
 				"value": "#0f1419",
 				"usage": "AI 输入框前景和语音按钮；深色 #e7e9ea。"
+			},
+			{
+				"name": "error",
+				"value": "#b42318",
+				"usage": "明确失败的文字和图标；深色 #ff8a80。等待、待处理和结果未知使用 muted 或 alert，不使用错误色。"
 			}
 		]
 	}

@@ -49,7 +49,7 @@
 | N05 | 共同 | 加载、空结果、失败、离线、新内容、撤销及 Toast 各状态可区分；提示不推动底栏，暂停和恢复遵守现行规则 | [交互](../../design-system/handbook/interaction.md)、[动效](../../design-system/handbook/motion.md) |
 | N06 | 适用端 | 登录与授权检查信息顺序、权限范围和真实回执；未接入的助手、媒体播放或宿主能力不显示为可用 | [桌面规则](../../design-system/handbook/web-interaction.md)、[功能矩阵](../implementation/feature-matrix.md) |
 | P01 | 手机 | 检查窄屏布局、抽屉、底部导航、软键盘、安全区、触控命中及长按名称提示；正文仍可选择，页面不因输入聚焦自动放大 | [交互](../../design-system/handbook/interaction.md)、[移动浏览器规则](../../design-system/handbook/web-interaction.md#移动浏览器基础行为) |
-| P02 | 共同 | 键盘动作、焦点恢复、图标名称和原生控件语义可用；系统偏好行为按现行依据记录，既有差异不能默认为对齐 | [动效](../../design-system/handbook/motion.md)、[设计入口](DESIGN.md) |
+| P02 | 共同 | 键盘动作、焦点恢复、图标名称和原生控件语义可用；系统偏好行为按现行依据记录，既有差异不能默认为对齐 | [动效](../../design-system/handbook/motion.md)、[设计入口](../agent/DESIGN.md) |
 
 ## 允许的平台差异
 

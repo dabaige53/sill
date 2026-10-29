@@ -6,7 +6,7 @@
 		"primary": "#1d1d1f/#f2f2f4",
 		"secondary": "#636366/#a1a1a8",
 		"warning": "#b45309/#f0a04b",
-		"error": "red",
+		"error": "#b42318/#ff8a80",
 		"shadow": "black",
 		"accent": "#0066cc/#4c9bff",
 		"surface": "#f0f0f2/#26262a",
@@ -69,7 +69,8 @@
 		"fixedToneCoast": "#5fb3b3/#5fb3b3",
 		"fixedToneBotanical": "#d6cdbf/#d6cdbf",
 		"fixedToneMountain": "#8e93ab/#8e93ab",
-		"faintRow": "#ececf0/#1f1f23"
+		"faintRow": "#ececf0/#1f1f23",
+		"checkBorder": "#828288/#85858c"
 	},
 	"name": "Sill",
 	"version": 3,
@@ -78,9 +79,16 @@
 		"repo": "dabaige53/sill",
 		"ref": "main@a27ae2a",
 		"paths": {
-			"tokens": ["apps/web/styles/tokens.css"],
-			"assets": ["apps/web/atoms/icons.ts"],
-			"docs": ["design-system/README.md", "docs/implementation/design-system.md"]
+			"tokens": [
+				"apps/web/styles/tokens.css"
+			],
+			"assets": [
+				"apps/web/atoms/icons.ts"
+			],
+			"docs": [
+				"design-system/README.md",
+				"docs/implementation/design-system.md"
+			]
 		},
 		"components": {
 			"*": "apps/web/atoms/primitives.ts, apps/web/cards/templates.ts, apps/web/styles/*.css"
@@ -662,8 +670,14 @@
 			"suggestions": 8
 		},
 		"tagInput": {
-			"pop": { "visualDuration": 0.25, "bounce": 0.15 },
-			"slide": { "visualDuration": 0.25, "bounce": 0 },
+			"pop": {
+				"visualDuration": 0.25,
+				"bounce": 0.15
+			},
+			"slide": {
+				"visualDuration": 0.25,
+				"bounce": 0
+			},
 			"leave": 150,
 			"leaveEase": "cubic-bezier(0.23,1,0.32,1)",
 			"enterScale": 0.9,
@@ -798,7 +812,10 @@
 			"jumpOffset": 16
 		},
 		"sidebarHighlight": {
-			"travel": { "visualDuration": 0.35, "bounce": 0.15 },
+			"travel": {
+				"visualDuration": 0.35,
+				"bounce": 0.15
+			},
 			"dot": 6,
 			"shift": 14,
 			"step": 300,

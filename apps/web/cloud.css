@@ -202,3 +202,23 @@
 .cloud-recovery button {
 	min-height: var(--hit-target);
 }
+
+.cloud-recovery > [role="status"] {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.backup-settings .setting-row {
+	flex-wrap: wrap;
+}
+
+.backup-settings .setting-row > input,
+.backup-settings .setting-row > select {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.backup-settings .setting-row > span {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}

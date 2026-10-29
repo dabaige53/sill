@@ -24,7 +24,7 @@ Sill（窗台）是由 AI 助手整理内容的个人卡片工作台：文章、
 - 数值的来源是设计变量：`tokens/*.json` 生成 `tokens.json`、Web `tokens.css` 和 macOS `AppleMetrics`。手册写数值时同时写变量名；改数值先改变量，再用 `scripts/design-init.sh trace <变量名>` 找出要同步的文字和代码。组件说明只写变量名。
 - 组件示例由 `scripts/previews.ts` 从产品代码生成，和页面实际渲染一致，不手改。组件脚本的全局名是 `Sill`（`window.Sill`）。
 - 产品代码里的 `@design <编号>` 是设计印记，编号登记在 `marks.json`，指向手册小节、变量、ADR 和现行画板。
-- 更新、检查、反查和发布准备都用 `scripts/design-init.sh`，见 [设计约束](../docs/specs/DESIGN.md)。
+- 更新、检查、反查和发布准备都用 `scripts/design-init.sh`，见 [设计约束](../docs/agent/DESIGN.md)。
 
 ## 登录与授权
 

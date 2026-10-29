@@ -22,4 +22,4 @@
 - 刷新没有可见按钮，只能下拉或按 `R`；云端同步仍会自动进行。
 - 设计画布中 16、19、20 号可交互原型仍演示入口球，尚未重画，以 34 号画板和手册为准。
 
-实现位置：`apps/web/views/app.ts`、`apps/web/interactions/chrome.ts`、`apps/web/interactions/panels.ts`、`apps/web/interactions/drag.ts`、`apps/web/styles/`。规则写在 [设计手册](../../design-system/README.md)「玻璃」「底部轨道与反馈」「搜索与键盘」「预览与叠放」各节，交互数值见 [交互规范](../specs/DESIGN.md)。
+实现位置：`apps/web/views/app.ts`、`apps/web/interactions/chrome.ts`、`apps/web/interactions/panels.ts`、`apps/web/interactions/drag.ts`、`apps/web/styles/`。规则写在 [设计手册](../../design-system/README.md)「玻璃」「底部轨道与反馈」「搜索与键盘」「预览与叠放」各节，交互数值见 [交互规范](../agent/DESIGN.md)。

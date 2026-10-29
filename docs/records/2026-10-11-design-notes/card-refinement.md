@@ -2,7 +2,7 @@
 
 不再适用：旧阶段的说明或测试报告，仅供历史查阅，不代表当前默认产品能力。
 
-> 历史记录，已被新规范取代。当前规范见 [设计手册](../../../design-system/README.md)、[交互规范](../../specs/DESIGN.md) 和 [设计决策](../../adr/0001-0021-design-decisions.md)。
+> 历史记录，已被新规范取代。当前规范见 [设计手册](../../../design-system/README.md)、[交互规范](../../agent/DESIGN.md) 和 [设计决策](../../adr/0001-0021-design-decisions.md)。
 
 ## 目的
 

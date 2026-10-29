@@ -132,4 +132,6 @@
 
 - [视频预览旧布局诊断](2026-10-29-video-preview/README.md)
 
+- [跨端界面健壮性检查](2026-10-29-interface-hardening/README.md)
+
 - [跨端性能优化](2026-10-29-performance/README.md)

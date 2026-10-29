@@ -136,7 +136,7 @@
 	font-weight: calc(500 + var(--content-weight-add, 0));
 }
 .event-relative {
-	color: var(--accent);
+	color: var(--muted);
 	font-weight: calc(500 + var(--content-weight-add, 0));
 }
 /* A reminder shows the source's time: muted until it comes due, then amber. */
@@ -186,7 +186,7 @@
 	overflow: hidden;
 	margin: 0;
 	font-size: calc(var(--text-summary) * var(--content-text-scale, 1));
-	line-height: 1.5;
+	line-height: calc(22 / 14);
 	color: var(--muted);
 }
 .card-summary.clamp-2 {
@@ -230,7 +230,7 @@
 /* On a card, key points read at the summary size (A type: 14/22). */
 .feed-card .key-points li {
 	font-size: calc(var(--text-summary) * var(--content-text-scale, 1));
-	line-height: 1.5;
+	line-height: calc(22 / 14);
 }
 .key-points li span {
 	min-width: 0;
@@ -497,7 +497,7 @@ button.ref:active {
 	width: 20px;
 	height: 20px;
 	flex: 0 0 20px;
-	border: 1.6px solid var(--line-hover);
+	border: 1.6px solid var(--check-border);
 	border-radius: 50%;
 	color: var(--fixed-white);
 }

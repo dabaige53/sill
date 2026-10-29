@@ -42,4 +42,4 @@ WebDAV 和 R2 仅用于数据备份，不作为工作区数据源，不参与双
 
 ## 按任务读取
 
-设计与交互见[设计规范](../specs/DESIGN.md)；当前接口与限制见[MCP 说明](../implementation/agent-mcp.md)；未来安排见[产品路线图](../plans/roadmap.md)。
+设计与交互见[设计规范](../agent/DESIGN.md)；当前接口与限制见[MCP 说明](../implementation/agent-mcp.md)；未来安排见[产品路线图](../plans/roadmap.md)。

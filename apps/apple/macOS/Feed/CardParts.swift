@@ -175,7 +175,7 @@ struct CheckDot: View {
           ? AppleColors.success
           : highlighted ? AppleColors.accentSoft : Color.clear)
       Circle().strokeBorder(
-        done ? AppleColors.success : AppleColors.lineHover,
+        done ? AppleColors.success : AppleColors.checkBorder,
         lineWidth: line)
       if done {
         Icon("check", size: AppleMetrics.font12).foregroundStyle(AppleColors.fixedWhite)

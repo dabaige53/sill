@@ -83,7 +83,9 @@ struct AIResultRow: View {
               .foregroundStyle(AppleColors.primary).lineLimit(1)
             Text(warn ? Copy.text("ai.result.\(result.state.rawValue)") : result.change)
               .font(.sans(AppleMetrics.font13))
-              .foregroundStyle(warn ? AppleColors.warning : AppleColors.secondary)
+              .foregroundStyle(
+                result.state == .failed
+                  ? AppleColors.error : warn ? AppleColors.warning : AppleColors.secondary)
               .lineLimit(1)
           }
           Spacer(minLength: 0)
@@ -126,7 +128,7 @@ struct AIResultRow: View {
         )
         .frame(width: AppleMetrics.space16, height: AppleMetrics.space16)
     case .written: Icon("check", size: AppleMetrics.font18).foregroundStyle(AppleColors.success)
-    case .failed: Icon("x", size: AppleMetrics.font18).foregroundStyle(AppleColors.warning)
+    case .failed: Icon("x", size: AppleMetrics.font18).foregroundStyle(AppleColors.error)
     case .unknown: Icon("info", size: AppleMetrics.font18).foregroundStyle(AppleColors.warning)
     }
   }

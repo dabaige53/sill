@@ -258,6 +258,7 @@ class AppController {
 	declare searchTimer: number;
 	cloudSavedAccount?: boolean;
 	cloudSettingsContent?: ReactNode;
+	cloudBackupSettingsContent?: ReactNode;
 
 	constructor() {
 		this.mode = window.__PAGE__ || "feed";

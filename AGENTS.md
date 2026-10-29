@@ -41,11 +41,20 @@
 - 一份正文原位维护，Git 保存历史。适配 skill 文件名时整合已有文档，不创建重复规范、备份、链接壳或符号链接。改名、移动、合并前说明影响并取得确认，沿用当前任务已明确的授权。
 - 长期正文只写生效规则和必要禁令。当前实现、未来计划与历史结果分别维护；当次修复经过和已废止决定不持续追加到长期文档。
 
+## Impeccable 项目适配
+
+- 从项目根目录调用 Impeccable 启动脚本时，设置命令级环境变量 `IMPECCABLE_CONTEXT_DIR=docs/agent`，让 `context` 读取同目录的产品和设计正文；不修改全局 shell 环境。此设置不代表所有其他命令都支持该目录覆盖，其他命令仍须检查实际解析结果。
+
+- 使用 Impeccable 时，产品正文读取 `docs/agent/PRODUCT.md`，设计正文读取 `docs/agent/DESIGN.md`，再按设计正文链接读取本次涉及的 `design-system/handbook/` 手册。路径均相对本项目根目录解析。
+- `impeccable context` 未发现文档或返回空路径时，先读取上述文件；不得仅据此判断项目没有产品背景或设计依据，也不得因此重新运行 `init` 或创建根目录副本、链接壳、符号链接。
+- `.impeccable/config.json` 只保存执行程序支持的共享选项；保留 `buildPath: "code"`。不把输出字段 `productPath`、`designPath` 当作已支持的配置项。个人覆盖仅在确有个人差异时使用 `.impeccable/config.local.json`。
+- 审查和修改以当前目标端的源码为依据，Web 与 Apple 的关联行为按本项目跨端规则核对；skill 的自动化和子代理流程仍须遵循本项目的授权要求。
+
 ## 按任务读取
 
 - **产品范围**：[PRODUCT.md](docs/agent/PRODUCT.md)定义用户、目标与完整边界；[功能矩阵](docs/implementation/feature-matrix.md)说明当前支持。
 - **代码**：修改或审查前读[代码规范](docs/agent/code-standards.md)，核对语言、命名、依赖与数据约定。
-- **设计**：改界面、样式、文案、图标或交互前读[DESIGN.md](docs/specs/DESIGN.md)及对应手册；动效问题再读[排查方法](docs/agent/motion-development.md)。
+- **设计**：改界面、样式、文案、图标或交互前读[DESIGN.md](docs/agent/DESIGN.md)及对应手册；动效问题再读[排查方法](docs/agent/motion-development.md)。
 - **验证**：选择检查或判断完成前读[测试规范](docs/agent/test.md)。
 - **部署**：准备上线或回退前读[部署规范](docs/agent/deployment.md)与[发布操作手册](docs/implementation/operations/release-runbook.md)。
 - **文件**：新增、改写、移动或清理前读[文件管理规范](docs/agent/file-management.md)，核对分层、命名、产物与证据位置。

@@ -58,8 +58,10 @@ test("unknown cloud write keeps the exact key and body; a successful retry does 
 	await sync.flush();
 	assert.equal(sync.pending.length, 1);
 	assert.ok(sync.failed);
+	assert.equal(sync.completedWrites, 0, "an unknown result must not confirm a save");
 	await sync.flush();
 	assert.equal(sync.pending.length, 0);
+	assert.equal(sync.completedWrites, 1);
 	assert.deepEqual(sent[0], sent[1]);
 	assert.deepEqual(sent[0].body.operations, [{ op: "reading.add", seconds: 5 }]);
 	// A no-op flush must not strand a resolved promise and block later writes.
@@ -67,6 +69,9 @@ test("unknown cloud write keeps the exact key and body; a successful retry does 
 	state.items.a.bookmarked = true;
 	await sync.flush();
 	assert.equal(sent.length, 3);
+	assert.equal(sync.completedWrites, 2);
+	sync.reset();
+	assert.equal(sync.completedWrites, 2, "discarding drafts is not a save receipt");
 });
 test("one synchronous bulk action is one request and preserves later changes during a save", async () => {
 	let state = initial(),

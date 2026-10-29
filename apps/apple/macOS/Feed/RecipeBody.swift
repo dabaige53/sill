@@ -256,7 +256,7 @@ struct CardBlock: View {
       let start = card.start ?? 0
       let relative = Format.eventRelative(start: start, end: card.end ?? start, now: context.now)
       if !relative.isEmpty {
-        Text(relative).textStyle(AppleMetrics.font13, .medium).foregroundStyle(AppleColors.accent)
+        Text(relative).textStyle(AppleMetrics.font13, .medium).foregroundStyle(AppleColors.secondary)
       }
     case "reminderClock":
       if let when = FeedPolicy.reminderTime(card, state: state, now: context.now) {

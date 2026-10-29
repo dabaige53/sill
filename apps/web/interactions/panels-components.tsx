@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { SillWordmark } from "../atoms/wordmark.tsx";
 import { panelAI } from "./panel-ai.tsx";
 import { panelCard } from "./panel-card.tsx";
 import type { PanelRenderers } from "./panel-contract.ts";
@@ -20,7 +21,9 @@ function WelcomeView({
 		<>
 			<section className={"welcome"} aria-labelledby={"welcome-title"}>
 				{sillIcon(72)}
-				<h1 id={"welcome-title"}>{"Sill"}</h1>
+				<h1 id={"welcome-title"} aria-label="Sill">
+					<SillWordmark />
+				</h1>
 				{detail}
 				<div className={"welcome-actions"}>{actions}</div>
 			</section>

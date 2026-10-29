@@ -117,7 +117,7 @@ struct ReaderContent: View {
       MetaRow(icon: nil) {
         Text(Format.dateLabel(start))
           + Text(relative.isEmpty ? "" : " · ")
-          + Text(relative).foregroundColor(AppleColors.accent).fontWeight(.medium)
+          + Text(relative).foregroundColor(AppleColors.secondary).fontWeight(.medium)
       }
     case "timeSpan": timeSpan
     case "title":

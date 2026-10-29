@@ -77,6 +77,7 @@ export function workspaceDiff(before: any, next: any) {
 export class CloudSync {
 	baseline: any = null;
 	revision = 0;
+	completedWrites = 0;
 	owner: string | null = null;
 	pending: any[] = [];
 	busy = false;
@@ -158,6 +159,7 @@ export class CloudSync {
 					if (this.epoch !== epoch) return;
 					this.collect();
 					this.pending.shift();
+					this.completedWrites++;
 					this.revision = value.revision;
 					if (!this.pending.length) this.options.adopt(value);
 				}

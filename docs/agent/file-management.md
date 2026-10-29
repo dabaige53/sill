@@ -36,7 +36,7 @@
 | `.impeccable/` | 工具配置；运行时文件不提交 |
 | `.agents/`、`.codex/` | 本地助手技能与环境配置；不存放凭据 |
 
-根目录保留 `README.md`、`AGENTS.md`、`GLOSSARY.md` 和项目配置。产品、设计和 PR 正文分别位于 `docs/agent/PRODUCT.md`、`docs/specs/DESIGN.md`、`docs/agent/pr.md`。新增顶层目录或根文件时，先写 ADR，再更新允许列表。
+根目录保留 `README.md`、`AGENTS.md`、`GLOSSARY.md` 和项目配置。产品、设计和 PR 正文分别位于 `docs/agent/PRODUCT.md`、`docs/agent/DESIGN.md`、`docs/agent/pr.md`。新增顶层目录或根文件时，先写 ADR，再更新允许列表。
 
 依赖方向为 `apps/*`、`server/*` 引用 `contracts/` 与 `design-system/`，各端之间互不引用。具体代码规则见[代码规范](code-standards.md)。
 

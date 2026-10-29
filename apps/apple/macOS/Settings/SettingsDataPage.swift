@@ -42,7 +42,6 @@ struct DataPage: View {
         }
       }
       if !workspace.isLocal {
-        BackupSettingsView().id(account.owner)
         SettingsCard {
           SettingLine(first: true) {
             Text(Copy.text("web.cloudentry.4cc5be794516"))

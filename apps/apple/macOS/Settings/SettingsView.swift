@@ -3,24 +3,26 @@ import SillKit
 import SwiftUI
 
 /// The settings sheet (⌘, or the avatar). Web `panelSettings` in a desktop window: a centered wide
-/// sheet with 设置 and a close button on top, four groups on the left, one screen each.
+/// sheet with 设置 and a close button on top, settings groups on the left, one screen each.
 /// A changed setting draws at once and writes in the background; only that setting waits for
 /// the store, and a failed write returns it to the stored value.
 /// @design settings-sheet
 struct SettingsView: View {
   enum Group: String, CaseIterable {
-    case desk, look, keys, data
+    case desk, look, keys, data, backup
     var title: String {
       switch self {
       case .desk: Copy.text("web.common.desk")
       case .look: Copy.text("web.settings.appearance")
       case .keys: Copy.text("web.settings.shortcuts")
       case .data: Copy.text("web.cloudentry.ebdc835e8f87")
+      case .backup: Copy.text("web.backup.navigation")
       }
     }
   }
 
   @Environment(Workspace.self) private var workspace
+  @Environment(Account.self) private var account
   @Environment(Panels.self) private var panels
   @State private var group = Group.desk
   @State private var pending: [String: (value: JSONValue, count: Int)] = [:]
@@ -87,7 +89,7 @@ struct SettingsView: View {
 
   private var nav: some View {
     VStack(alignment: .leading, spacing: AppleMetrics.space2) {
-      ForEach(Group.allCases, id: \.self) { item in
+      ForEach(Group.allCases.filter { $0 != .backup || !workspace.isLocal }, id: \.self) { item in
         Button {
           PerformanceTrace.shared.event(
             .settingsChanged, values: ["index": Double(Group.allCases.firstIndex(of: item) ?? 0)])
@@ -124,6 +126,7 @@ struct SettingsView: View {
     case .look: look
     case .keys: keys
     case .data: DataPage()
+    case .backup: BackupSettingsView().id(account.owner)
     }
   }
 

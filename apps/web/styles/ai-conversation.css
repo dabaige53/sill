@@ -168,6 +168,10 @@
 	color: var(--success);
 }
 .ai-result.is-failed .ai-result-state,
+.ai-result.is-failed .ai-result-text .is-warn {
+	color: var(--error);
+}
+
 .ai-result.is-unknown .ai-result-state {
 	color: var(--alert);
 }

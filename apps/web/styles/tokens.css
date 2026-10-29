@@ -68,6 +68,8 @@
 	--accent-ink: #0057ad;
 	--success: #248a3d;
 	--alert: #b45309;
+	--error: #b42318;
+	--check-border: #828288;
 	--card-read: #e9e9ee;
 	--line-read: rgba(0, 0, 0, 0.04);
 	--alert-soft: #fdf3e7;
@@ -260,6 +262,8 @@ body[data-density="roomy"] {
 	--accent-ink: #8fc0ff;
 	--success: #3fb25e;
 	--alert: #f0a04b;
+	--error: #ff8a80;
+	--check-border: #85858c;
 	--card-read: #121215;
 	--line-read: rgba(255, 255, 255, 0.04);
 	--alert-soft: #3a2a17;

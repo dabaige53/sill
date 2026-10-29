@@ -16,8 +16,10 @@
 
 两端已接入顶栏收起恢复、搜索宽度变化、分栏标签、组合筛选、输入法处理和分栏位置保存。Web 手机使用独立搜索页。
 
+- Web 桌面分栏入口由 Sill 字标与箭头组成同一个按钮，悬停或键盘聚焦显示轻微底色；Mac 暂保留单独箭头，菜单含义与操作相同。
 - Mac 顶栏恢复已使用 `Motion.topReveal`；分栏菜单灰底通过内边距避让行边缘。
 - Mac 顶栏材质使用系统原生材质，Web 使用分层 backdrop-filter。
+- Web 桌面搜索采用玻璃底色、贴边细描边和柔和阴影的 160ms 透明度过渡，悬停轻显、内部聚焦完整显示；不改变布局。Web 候选面板使用厚玻璃底色与背景模糊、半透明活动行；Mac 保留现有原生搜索材质与焦点表现。
 - 入口：Web `apps/web/views/home-search.tsx`；Mac `Shell/TopBar.swift`、`Shell/ScopeMenu.swift`（相对 `apps/apple/macOS/`）。
 
 ## 底部轨道

@@ -148,13 +148,6 @@ function saveNote(this: AppController, { id }: ActionContext) {
 		repaintDetail(this, cardId);
 	});
 	this.closeEditor();
-	this.toast(
-		Store.state.storageAvailable
-			? window.__QG_LOCAL__
-				? copy("web.app.5fa0ce52b47e")
-				: copy("web.cloudentry.1bd91a7d0c53")
-			: copy("web.app.ea63f4be5073"),
-	);
 }
 
 export const cardsActions = {

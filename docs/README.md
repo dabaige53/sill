@@ -19,7 +19,7 @@
 
 ## 产品与设计规范
 
-- [设计规范](specs/DESIGN.md)
+- [设计规范](agent/DESIGN.md)
 - [小栖角色与动画设计规范](specs/design/mascot.md)
 - [跨端对齐检查清单](specs/cross-platform-checklist.md)
 - [AI 栏交互](specs/design/ai-dock.md)

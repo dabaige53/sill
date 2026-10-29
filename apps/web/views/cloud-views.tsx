@@ -78,7 +78,9 @@ export function CloudWelcome({
 					<p className="cloud-detail">{copy("web.cloudentry.a7c0c329d7a1")}</p>
 				) : user ? (
 					<p className="cloud-detail">{copy("web.cloudentry.4da32c150cfa")}</p>
-				) : null
+				) : (
+					<p className="cloud-detail">{copy("web.onboarding.introduction")}</p>
+				)
 			}
 		/>
 	);
@@ -87,15 +89,32 @@ export function CloudSettings({
 	user,
 	host,
 	backupApi,
+	section = "data",
 	backupOwner,
 	onBackupRestore,
 }: {
 	user: boolean;
 	host: boolean;
+	section?: "data" | "backup";
 	backupApi?: BackupApi;
 	backupOwner?: string;
 	onBackupRestore?: () => Promise<void> | void;
 }) {
+	if (section === "backup")
+		return (
+			<>
+				<h2>{copy("web.backup.navigation")}</h2>
+				{user && backupApi && backupOwner && (
+					<BackupSettings
+						key={backupOwner}
+						api={backupApi}
+						owner={backupOwner}
+						host={host}
+						onRestore={onBackupRestore}
+					/>
+				)}
+			</>
+		);
 	return (
 		<>
 			<h2>{copy("web.cloudentry.ebdc835e8f87")}</h2>
@@ -117,15 +136,7 @@ export function CloudSettings({
 					</button>
 				</div>
 			</div>
-			{user && backupApi && backupOwner && (
-				<BackupSettings
-					key={backupOwner}
-					api={backupApi}
-					owner={backupOwner}
-					host={host}
-					onRestore={onBackupRestore}
-				/>
-			)}
+
 			{user && (
 				<div className="settings-card">
 					<div className="setting-row">

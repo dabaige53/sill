@@ -49,7 +49,7 @@ warning: Schema "null" is not supported, reason: "schema type", skipping [contex
 
 ## 修改文件
 
-- [DESIGN.md](../../specs/DESIGN.md)
+- [DESIGN.md](../../agent/DESIGN.md)
 - [apps/apple/DesktopTests/ReaderGestureTests.swift](../../../apps/apple/DesktopTests/ReaderGestureTests.swift)
 - [apps/apple/DesktopTests/WorkspaceTests.swift](../../../apps/apple/DesktopTests/WorkspaceTests.swift)
 - [apps/apple/README.md](../../../apps/apple/README.md)

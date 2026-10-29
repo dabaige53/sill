@@ -1,6 +1,6 @@
 # 动效开发与排查
 
-更新：2026-10-29。修改动画、滚动或手势时使用。效果要求见[设计规范](../specs/DESIGN.md)与[动效手册](../../design-system/handbook/motion.md)，参数读取[设计变量](../../design-system/tokens/foundation.json)。
+更新：2026-10-29。修改动画、滚动或手势时使用。效果要求见[设计规范](../agent/DESIGN.md)与[动效手册](../../design-system/handbook/motion.md)，参数读取[设计变量](../../design-system/tokens/foundation.json)。
 
 ## 1. 固定操作与预期
 

@@ -1,4 +1,5 @@
 import { Icon } from "../atoms/react-primitives.tsx";
+import { SillWordmark } from "../atoms/wordmark.tsx";
 import { copy } from "../copy.ts";
 
 export const homeTabs = [
@@ -20,8 +21,9 @@ export function HomeScopeMenu() {
 				aria-haspopup="menu"
 				aria-expanded="false"
 				aria-controls="home-menu"
-				aria-label={copy("web.home.filterMenu")}
+				aria-label={`${copy("web.home.filterMenu")}：${copy("web.all")}`}
 			>
+				<SillWordmark />
 				<Icon name="chevron" size={20} />
 			</button>
 			<div className="home-menu" id="home-menu" role="menu" hidden>

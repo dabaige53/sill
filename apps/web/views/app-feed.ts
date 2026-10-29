@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Card } from "../../../contracts/card.ts";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { markdownText } from "../atoms/markdown.ts";
+import { sillWordmark } from "../atoms/wordmark.ts";
 import { copy } from "../copy.ts";
 import { cardSource } from "../data/card-source.ts";
 import { Store } from "../data/store.ts";
@@ -336,6 +337,10 @@ export const appFeedMethods = {
 		const token = document.getElementById("home-search-token");
 		const input = document.getElementById("home-search") as HTMLInputElement;
 		const label = labels[tab];
+		const scopeLabel = label || copy("web.all");
+		document
+			.getElementById("home-menu-toggle")
+			?.setAttribute("aria-label", `${copy("web.home.filterMenu")}：${scopeLabel}`);
 		const marked = this.filter.mark !== "all" || !!this.filter.tag;
 		token.hidden = !label;
 		token.textContent = label || "";
@@ -423,7 +428,7 @@ export const appFeedMethods = {
 			["later", copy("web.later")],
 			["saved", copy("web.bookmark")],
 		];
-		return `<header id="home-top" class="home-top"><div class="home-heading"><button type="button" class="home-mark" data-action="top" aria-label="${copy("web.home.top")}">Sill</button><button type="button" class="home-account" id="account" data-action="nav" data-extra="settings" aria-label="${copy("web.nav.settings")}"><span class="account-wrap">${this.accountRing()}</span></button></div><div class="home-tabs" role="group" aria-label="${copy("web.home.tabs")}">${tabs.map(([key, label]) => `<button type="button" class="home-tab" data-action="home-tab" data-extra="${key}" aria-pressed="${key === "all"}">${label}</button>`).join("")}</div></header>`;
+		return `<header id="home-top" class="home-top"><div class="home-heading"><button type="button" class="home-mark" data-action="top" aria-label="${copy("web.home.top")}">${sillWordmark}</button><button type="button" class="home-account" id="account" data-action="nav" data-extra="settings" aria-label="${copy("web.nav.settings")}"><span class="account-wrap">${this.accountRing()}</span></button></div><div class="home-tabs" role="group" aria-label="${copy("web.home.tabs")}">${tabs.map(([key, label]) => `<button type="button" class="home-tab" data-action="home-tab" data-extra="${key}" aria-pressed="${key === "all"}">${label}</button>`).join("")}</div></header>`;
 	},
 	homeTabFilter(this: AppController, key: string) {
 		return (

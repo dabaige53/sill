@@ -53,10 +53,7 @@ struct TopBar: View {
         Button(action: scrollToTop) {
           HStack(spacing: AppleMetrics.space10) {
             BrandMark()
-            Text(verbatim: "Sill")
-              .font(.sans(AppleMetrics.font34, .bold))
-              .tracking(AppleMetrics.font34 * AppleMetrics.brandTracking)
-              .foregroundStyle(AppleColors.primary)
+            BrandWordmark()
           }
           .frame(minHeight: AppleMetrics.hitTarget)
           .contentShape(Rectangle())

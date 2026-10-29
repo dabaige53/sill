@@ -4,6 +4,9 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-10-29 | Web 桌面分栏 | 两个 Sill、重复字标、菜单字标偏小 | [重复字标诊断](2026-10-29-interface-hardening/README.md#web-桌面重复字标2026-10-29) |
+| 2026-10-29 | Web 搜索画板 | html-validate、helmet、Inline style、label、fieldset | [搜索画板诊断](2026-10-29-interface-hardening/README.md#web-搜索画板诊断2026-10-29) |
+| 2026-10-29 | Web/PWA 备份与错误恢复 | 保存期间输入被清空、小屏长地址、错误消息溢出 | [跨端界面健壮性检查](2026-10-29-interface-hardening/README.md) |
 | 2026-10-29 | 视频预览 | Vite、刷新仍显示旧布局、全屏页签 | [视频预览旧布局](2026-10-29-video-preview/diagnosis.md) |
 | 2026-10-29 | 发布前界面审核 | 归档分组顺序、Mac 目录位置、播客空封面、键盘多选、重复清空文案 | [首次发布界面审核](2026-10-29-release-ui-polish/README.md) |
 | 2026-10-29 | 设计生成检查 | stale、FeedCard、CheckItem、组件预览过期 | [设计预览检查失败](2026-10-29-doc-layers/diagnosis-design-preview.md) |

@@ -22,7 +22,7 @@
 | 长期文件 | 目标与决定 | 当前实现或对应来源 | 验证状态与差异 |
 | --- | --- | --- | --- |
 | [README](../../agent/README.md) | 按 U1 集中入口，维护时记录三种状态 | [根 AGENTS](../../../AGENTS.md) 指向本目录；已增加状态表字段和本记录入口 | 已逐份核对 15 份；本轮文件和链接检查见后文。后续不能仅改更新日期。 |
-| [设计](../../specs/DESIGN.md) | 保留用户已确认的效果；产品规则、设计来源和发布状态分开 | [design-init.sh](../../../scripts/design-init.sh)、[设计变量](../../../design-system/tokens)、[设计手册](../../../design-system/README.md)；U2–U4 的后续确认优先于早期试验 | 源码入口已核对。Mac 专用变量、既有 reduceMotion 与 Web 保留差异；Inter 未实施。没有重新检查 claude.ai 发布副本或真实界面。 |
+| [设计](../../agent/DESIGN.md) | 保留用户已确认的效果；产品规则、设计来源和发布状态分开 | [design-init.sh](../../../scripts/design-init.sh)、[设计变量](../../../design-system/tokens)、[设计手册](../../../design-system/README.md)；U2–U4 的后续确认优先于早期试验 | 源码入口已核对。Mac 专用变量、既有 reduceMotion 与 Web 保留差异；Inter 未实施。没有重新检查 claude.ai 发布副本或真实界面。 |
 | [动效开发](../../agent/motion-development.md) | 先固定平台、输入和入口，先查控制冲突，再调参数 | Vaul 入口见 U2；[AI 收起定位](../../../apps/web/views/shell.tsx)、[搜索接续](../../../apps/web/views/home-search-list.ts)、[动效参数](../../../design-system/tokens/foundation.json)已读取 | 本轮为源码核对；修正手册里旧 wheel 关闭、普通正文回弹与 AI 气泡锚点。无浏览器、手机或 PWA 实测。 |
 | [测试](../../agent/test.md) | 按影响选检查；U5 的精简任务不扩充范围，明确不测时记录未测 | [package.json](../../../package.json)、[测试目录](../../../tests/README.md)与 [.github 工作流](../../../.github/workflows)已有检查入口；本地 UI 授权与 CI 触发分别处理 | 增加测试精简规则；历史隐藏面板问题改为有范围的排查经验。U6 的通过数字不代替 U5 后续删减验证。 |
 | [代码规范](../../agent/code-standards.md) | 定义新改动标准；不把规范目标写成存量已全部符合 | [tsconfig](../../../tsconfig.json) 仍 `strict: false`；[package.json](../../../package.json) 中两项 Tailwind 依赖仍是范围版本；已有 `contents` / `item.patch` 为兼容名称 | 修正“每批完整测试”和旧命名绝对禁令。显式 any、Biome 警告和依赖范围是存量差异；本轮未改类型、依赖或新增全仓检查。 |

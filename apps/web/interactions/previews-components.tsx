@@ -221,7 +221,7 @@ const detailBlocks: Record<string, DetailBlock> = {
 			{eventRelative(c) ? (
 				<>
 					{" · "}
-					<span style={{ color: "var(--accent)", fontWeight: "500" }}>{eventRelative(c)}</span>
+					<span className="event-relative">{eventRelative(c)}</span>
 				</>
 			) : (
 				""

@@ -126,13 +126,14 @@ export function BackupSettings({
 				name={name}
 				type={secret ? "password" : "text"}
 				required
+				disabled={busy}
 				autoComplete="off"
 				spellCheck={false}
 			/>
 		</label>
 	);
 	return (
-		<section aria-label={text("title")}>
+		<section className="backup-settings" aria-label={text("title")} aria-busy={busy}>
 			<h3>{text("title")}</h3>
 			<p className="panel-sub">{text("hint")}</p>
 			{!host ? (

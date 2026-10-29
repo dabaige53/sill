@@ -228,7 +228,12 @@ export const panelSettings = {
 					<div className={"settings-layout"}>
 						<nav className={"settings-nav"} aria-label={copy("web.settings.groupsLabel")}>
 							{keyed(
-								this.settingsGroups.map(([k, v, ic]) => (
+								[
+									...this.settingsGroups,
+									...(app?.cloudBackupSettingsContent !== undefined
+										? [["backup", copy("web.backup.navigation"), "archive"]]
+										: []),
+								].map(([k, v, ic]) => (
 									<>
 										<button
 											type={"button"}
@@ -246,7 +251,9 @@ export const panelSettings = {
 						<div className={"settings-main"}>
 							{group === "data" && app?.cloudSettingsContent !== undefined
 								? app.cloudSettingsContent
-								: pages[group]()}
+								: group === "backup"
+									? app?.cloudBackupSettingsContent
+									: pages[group]()}
 						</div>
 					</div>
 				</div>

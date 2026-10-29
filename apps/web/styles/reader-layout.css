@@ -66,7 +66,7 @@
 	min-height: 0;
 	overflow-y: auto;
 	overscroll-behavior: contain;
-	padding-block: var(--space-24);
+	padding-block: var(--space-16) var(--space-24);
 }
 .reader-layout.has-outline > .reader-workspace {
 	grid-column: 1;
