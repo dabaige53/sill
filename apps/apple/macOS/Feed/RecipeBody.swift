@@ -290,14 +290,11 @@ struct CardBlock: View {
         HStack(spacing: AppleMetrics.space8) {
           Text(sender).textStyle(AppleMetrics.font14, .semibold).lineLimit(1)
           .foregroundStyle(AppleColors.primary)
-          HStack(spacing: AppleMetrics.space4) {
-            SourceIcon(card: card, size: AppleMetrics.font12)
-            Text(
-              [card.sourceName, date, card.readingTime].filter { !$0.isEmpty }
-                .joined(separator: " · ")
-            )
-            .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
-          }
+          Text(
+            [card.sourceName, date, card.readingTime].filter { !$0.isEmpty }
+              .joined(separator: " · ")
+          )
+          .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
         }
       }
       .padding(.trailing, AppleMetrics.space30)
@@ -370,16 +367,11 @@ struct CardBlock: View {
   @ViewBuilder private var files: some View {
     let limit = entry.number("limit") ?? Int.max
     if !card.files.isEmpty {
-      VStack(alignment: .leading, spacing: 0) {
-        Divider()
+      VStack(alignment: .leading, spacing: AppleMetrics.space6) {
         ForEach(Array(card.files.prefix(limit).enumerated()), id: \.offset) { _, file in
-          DetailRow(
-            icon: file.isImage ? "image" : "file", title: file.name,
-            detail: file.detail, trailing: file.modifiedAt.flatMap(ReaderContent.fullDate) ?? "")
-          Divider()
+          FileRow(file: file)
         }
       }
-      .padding(.top, AppleMetrics.space2)
       if card.files.count > limit {
         MoreItems(count: card.files.count - limit, suffix: Copy.text("web.templates.7aaf96ad52e0"))
       }

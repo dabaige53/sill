@@ -19,7 +19,6 @@ import {
 	cardSource,
 	contentDay,
 	detailDate,
-	fileDescription,
 } from "../data/card-source.ts";
 import { AssetTones, CardTypes } from "../data/cards.ts";
 import { Store } from "../data/store.ts";
@@ -35,9 +34,9 @@ import {
 	sourceLine,
 	Title,
 } from "./card-blocks.tsx";
+import { FileRows } from "./detail-blocks.tsx";
 import { PullRequest } from "./pull-request.tsx";
 import { cardRecipe, type Entry, entryName, entryOptions } from "./recipes.ts";
-import { SourceMark } from "./source-mark.tsx";
 
 type Options = Record<string, any>;
 type Block = (card: Card, ctx: Context, options: Options) => ReactNode;
@@ -189,10 +188,6 @@ function more(count: number, suffix: Parameters<typeof copy>[0], className = "mo
 	);
 }
 
-function fileIcon(name: string, size: number) {
-	return <Icon name={/\.(png|jpe?g|gif|webp)$/i.test(name) ? "image" : "file"} size={size} />;
-}
-
 /** Top media renders above the card body; every other block renders inside it. */
 const topMedia = new Set(["cover", "videoCover", "mosaic"]);
 
@@ -246,7 +241,6 @@ const blocks: Record<string, Block> = {
 				<span>
 					<b>{sender}</b>
 					<small>
-						<SourceMark card={c} />
 						{cardSource(c) || copy("web.mail")}
 						{c.publishedAt ? ` · ${detailDate(c.publishedAt, true)}` : ""}
 						{cardReadingTime(c) ? ` · ${cardReadingTime(c)}` : ""}
@@ -364,19 +358,7 @@ const blocks: Record<string, Block> = {
 		const files = c.files || [];
 		return (
 			<>
-				<div className="file-rows">
-					{files.slice(0, limit).map((f: Card, i: number) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: File names may repeat; these static preview rows have no component state.
-						<span className="file-row" key={i}>
-							{fileIcon(f.name, 15)}
-							<span className="file-copy">
-								<b>{f.name}</b>
-								<em>{fileDescription(f as never)}</em>
-							</span>
-							<small>{detailDate(f.modifiedAt)}</small>
-						</span>
-					))}
-				</div>
+				<FileRows files={files} limit={limit} />
 				{files.length > limit && more(files.length - limit, "web.templates.7aaf96ad52e0")}
 			</>
 		);

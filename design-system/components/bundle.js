@@ -388,8 +388,8 @@ var Sill = (() => {
     "web.cards.cb4109a51710": "\u9884\u8BBE\u5361\u7247.pdf",
     "web.cards.ad5e9b8baa37": "24 \u9875 \xB7 3.1 MB",
     "web.cards.c5c1bb7dff1f": "\u5C01\u9762.png",
-    "web.cards.2b34435463a2": "PR #214 \xB7 \u8BFB\u5B8C\u5706\u73AF\u6536\u8D77",
-    "web.cards.6bc9228c53b6": "\u7B49\u4F60 review\uFF0C\u6539\u4E86 3 \u4E2A\u6587\u4EF6\u3002",
+    "web.cards.2b34435463a2": "\u8BFB\u5B8C\u5706\u73AF\u6536\u8D77",
+    "web.cards.6bc9228c53b6": "\u8BFB\u5230\u6B63\u6587\u672B\u5C3E\u65F6\uFF0C\u8FDB\u5EA6\u5706\u73AF\u81EA\u52A8\u6536\u8D77\u3002",
     "web.cards.4daf57a75878": "\u8BFB\u5230\u6B63\u6587\u5E95\u90E8\u65F6\uFF0C\u5706\u73AF\u6EE1\u4E00\u5708\u540E\u6536\u8D77\u5361\u7247\u3002",
     "web.cards.f321fc83af79": "\u6539\u52A8\uFF1Atemplates.js\u3001cards.css\u3001app.js\u3002",
     "web.cards.558100f28aba": "SILL-142 \u53E0\u5361\u9608\u503C\u53EF\u4EE5\u6309\u6765\u6E90\u5173\u95ED",
@@ -1298,7 +1298,11 @@ var Sill = (() => {
     "ai.sample.changeDue": "\u5230\u671F\u6539\u4E3A\u4ECA\u5929",
     "ai.sample.changeReminder": "\u63D0\u9192 \u4ECA\u5929 15:00",
     "ai.sample.changeNote": "\u52A0\u5907\u6CE8",
-    "ai.sample.changeTag": "\u52A0\u6807\u7B7E"
+    "ai.sample.changeTag": "\u52A0\u6807\u7B7E",
+    "installer.title": "\u5B89\u88C5 Sill",
+    "installer.subtitle": "\u5C06 Sill \u62D6\u5230\u201C\u5E94\u7528\u7A0B\u5E8F\u201D\u6587\u4EF6\u5939",
+    "installer.footer": "\u590D\u5236\u5B8C\u6210\u540E\uFF0C\u4ECE\u201C\u5E94\u7528\u7A0B\u5E8F\u201D\u6253\u5F00 Sill",
+    "installer.applications": "\u5E94\u7528\u7A0B\u5E8F"
   };
 
   // design-system/copy.ts

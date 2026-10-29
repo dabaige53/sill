@@ -517,7 +517,7 @@
 	flex: none;
 }
 .pr-detail .pr-stats {
-	margin-left: 0;
+	font-size: calc(12px * var(--content-text-scale, 1));
 }
 .pr-detail .detail-row > .pr-stats {
 	flex: 0 1 auto;
@@ -533,12 +533,6 @@
 }
 .pr-detail .detail-row:has(> .pr-stats) {
 	flex-wrap: wrap;
-}
-.pr-file-count {
-	flex: none;
-	color: var(--secondary);
-	font-size: var(--text-caption);
-	white-space: nowrap;
 }
 .is-podcast .current-chapter {
 	display: flex;

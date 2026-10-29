@@ -34,45 +34,52 @@ export function RelatedCards({ card }: { card: Card }) {
 	);
 }
 
+/** Files as attachment blocks: type icon, name, then size and date at the end of one line. Cards show
+ *  them inert inside the card's own button; the detail links each file that has a web address. */
+export function FileRows({
+	files = [],
+	limit = Infinity,
+	links = false,
+}: {
+	files?: Card["files"];
+	limit?: number;
+	links?: boolean;
+}) {
+	return (
+		<div className="file-rows">
+			{files.slice(0, limit).map((file, i) => {
+				const url = links && file.url && /^https?:\/\//i.test(file.url) ? file.url : undefined;
+				const content = (
+					<>
+						<Icon name={/\.(png|jpe?g|gif|webp)$/i.test(file.name) ? "image" : "file"} size={18} />
+						<b>{file.name}</b>
+						<em>
+							{[fileDescription(file), detailDate(file.modifiedAt)].filter(Boolean).join(" · ")}
+						</em>
+						{url && <Icon name="chevron" size={14} />}
+					</>
+				);
+				return url ? (
+					// biome-ignore lint/suspicious/noArrayIndexKey: File names may repeat; these rows have no component state.
+					<a key={i} className="file-row" href={url} target="_blank" rel="noopener noreferrer">
+						{content}
+					</a>
+				) : (
+					// biome-ignore lint/suspicious/noArrayIndexKey: File names may repeat; these rows have no component state.
+					<span className="file-row" key={i}>
+						{content}
+					</span>
+				);
+			})}
+		</div>
+	);
+}
+
 export function FileList({ files = [] }: { files?: Card["files"] }) {
 	return files.length ? (
 		<section className="detail-section">
 			<h2>{copy("web.card.files")}</h2>
-			<div className="detail-rows detail-file-rows">
-				{files.map((file) => {
-					const content = (
-						<>
-							<span className="row-icon">
-								<Icon
-									name={/\.(png|jpe?g|gif|webp)$/i.test(file.name) ? "image" : "file"}
-									size={16}
-								/>
-							</span>
-							<span>
-								<b>{file.name}</b>
-								<em>{fileDescription(file)}</em>
-							</span>
-							<small title={file.modifiedAt}>{detailDate(file.modifiedAt)}</small>
-							{file.url && /^https?:\/\//i.test(file.url) && <Icon name="chevron" size={14} />}
-						</>
-					);
-					return file.url && /^https?:\/\//i.test(file.url) ? (
-						<a
-							key={`${file.name}-${file.url || ""}`}
-							className="detail-row"
-							href={file.url}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							{content}
-						</a>
-					) : (
-						<div className="detail-row" key={`${file.name}-${file.url || ""}`}>
-							{content}
-						</div>
-					);
-				})}
-			</div>
+			<FileRows files={files} links />
 		</section>
 	) : null;
 }

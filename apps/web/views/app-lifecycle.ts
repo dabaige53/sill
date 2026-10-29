@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import accountAvatar from "../../../design-system/mascot/avatar.png";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
 import { icon } from "../atoms/icons.ts";
 import { copy } from "../copy.ts";
@@ -305,7 +306,7 @@ export const appLifecycleMethods = {
 		if (face) renderView(face, createElement(AccountRing));
 	},
 	accountRing(this: AppController) {
-		return `${icon("person", 22)}<svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
+		return `<img class="account-avatar" src="${accountAvatar}" alt="" /><svg class="orb-arc" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="100"/></svg><span class="orb-done" aria-hidden="true">${icon("check", 16)}</span>`;
 	},
 	navHTML(this: AppController) {
 		const tab = (key: string, face: string, label: string, aria = label) =>

@@ -26,17 +26,11 @@ struct DetailFiles: View {
         Text(label).textStyle(AppleMetrics.font13, .semibold).foregroundStyle(
           AppleColors.secondary)
       }
-      VStack(spacing: 0) {
-        Divider()
-        ForEach(Array(files.enumerated()), id: \.offset) { index, file in
-          let row = DetailRow(
-            icon: file.isImage ? "image" : "file", title: file.name,
-            detail: file.detail,
-            trailing: file.modifiedAt.flatMap(ReaderContent.fullDate) ?? "",
-            divider: index > 0, navigable: file.url != nil)
+      VStack(spacing: AppleMetrics.space6) {
+        ForEach(Array(files.enumerated()), id: \.offset) { _, file in
+          let row = FileRow(file: file, navigable: file.url != nil)
           if let url = file.url { Link(destination: url) { row }.buttonStyle(.plain) } else { row }
         }
-        Divider()
       }
     }
   }

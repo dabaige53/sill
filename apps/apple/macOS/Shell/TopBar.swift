@@ -116,24 +116,21 @@ private struct TopBarReveal: ViewModifier {
   }
 }
 
-/// The avatar: settings. No real photo exists, so the existing person icon.
+/// The shared mascot portrait opens settings.
 struct AccountButton: View {
-  @Environment(Account.self) private var account
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      Group {
-        if let initial = account.displayName.trimmingCharacters(in: .whitespacesAndNewlines).first {
-          Text(String(initial).uppercased()).font(.sans(AppleMetrics.font16, .semibold))
-        } else {
-          Icon("person", size: AppleMetrics.space22)
-        }
-      }
-      .foregroundStyle(AppleColors.primary)
-      .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
-      .desktopGlass(Circle(), interactive: true)
-      .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
-      .contentShape(Circle())
+      Image("account-avatar", bundle: .module)
+        .resizable()
+        .scaledToFill()
+        .frame(width: AppleMetrics.space28, height: AppleMetrics.space28)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
+        .frame(width: AppleMetrics.searchHeight, height: AppleMetrics.searchHeight)
+        .desktopGlass(Circle(), interactive: true)
+        .frame(width: AppleMetrics.hitTarget, height: AppleMetrics.hitTarget)
+        .contentShape(Circle())
     }
     .buttonStyle(IconPress(highlight: false))
     .modifier(HandCursor())

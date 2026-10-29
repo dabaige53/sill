@@ -136,25 +136,25 @@ a.detail-row:hover {
 	flex-direction: column;
 	gap: 8px;
 }
+.pr-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-4) var(--space-12);
+	min-width: 0;
+	color: var(--secondary);
+	font-size: calc(var(--text-meta) * var(--content-text-scale, 1));
+}
 .pr-state {
-	font-size: calc(11px * var(--content-text-scale, 1));
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-4);
+	color: var(--ink);
 	font-weight: calc(500 + var(--content-weight-add, 0));
-	padding: 3px 9px;
-	border-radius: 100px;
-	color: var(--accent);
-	background: var(--accent-soft);
 	white-space: nowrap;
 }
-.pr-state-draft,
-.pr-state-closed {
+.pr-state > .icon {
 	color: var(--secondary);
-	background: var(--surface);
-}
-.pr-branch-row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	min-width: 0;
 }
 .pr-branches {
 	font-family: "SF Mono", ui-monospace, Menlo, monospace;
@@ -171,8 +171,6 @@ a.detail-row:hover {
 	align-items: center;
 	gap: 8px;
 	white-space: nowrap;
-	margin-left: auto;
-	font-size: calc(12px * var(--content-text-scale, 1));
 }
 .pr-additions {
 	color: var(--success);
@@ -180,21 +178,11 @@ a.detail-row:hover {
 .pr-deletions {
 	color: var(--alert);
 }
-.pr-footer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--space-12);
-	margin-top: var(--space-4);
-}
-.pr-reviewers {
-	display: flex;
+.pr-meta-end {
+	display: inline-flex;
 	align-items: center;
 	gap: var(--space-10);
-	min-width: 0;
-}
-.pr-reviewers > span {
-	position: relative;
+	margin-left: auto;
 }
 .pr-reviewer {
 	display: inline-flex;
@@ -249,51 +237,6 @@ a.detail-row:hover {
 	text-overflow: ellipsis;
 }
 
-/* @design content-boundaries */
-:is(.type-file, .type-mail) .file-rows {
-	display: flex;
-	flex-direction: column;
-	gap: 0;
-}
-:is(.type-file, .type-mail) .file-row {
-	margin-top: 0;
-	padding: var(--space-12) 0;
-	border-radius: 0;
-	background: transparent;
-	gap: var(--space-12);
-	width: 100%;
-	min-width: 0;
-	max-width: 100%;
-}
-:is(.type-file, .type-mail) .file-row + .file-row {
-	border-top: 1px solid var(--line);
-}
-.file-row .file-copy {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
-}
-.file-copy b,
-.file-copy em {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	font-weight: 400;
-	font-style: normal;
-}
-.file-copy b {
-	font-size: var(--text-body);
-}
-.file-copy em,
-.file-row small {
-	color: var(--secondary);
-	font-size: var(--text-meta);
-}
-.file-row small,
-.file-row > .icon {
-	flex-shrink: 0;
-}
-
 /* CardTypeDetails: compact grey task circles; detail circles keep their larger size. */
 .feed-card .check-dot {
 	width: 18px;
@@ -333,8 +276,4 @@ a.detail-row:hover {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-:is(.type-file, .type-mail) .file-rows,
-.detail-file-rows {
-	border-block: 1px solid var(--line);
 }

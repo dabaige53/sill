@@ -2,6 +2,14 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export function exportDesignData(check = false) {
+	const avatar = readFileSync(new URL("../mascot/avatar.png", import.meta.url));
+	const avatarTarget = new URL(
+		"../../apps/apple/macOS/Resources/account-avatar.png",
+		import.meta.url,
+	);
+	if (check) {
+		if (!readFileSync(avatarTarget).equals(avatar)) throw new Error("Stale account avatar");
+	} else writeFileSync(avatarTarget, avatar);
 	for (const [output, sources] of [
 		[
 			"copy/zh-Hans.json",

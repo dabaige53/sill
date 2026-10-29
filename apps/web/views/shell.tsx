@@ -1,5 +1,6 @@
 import type React from "react";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import accountAvatar from "../../../design-system/mascot/avatar.png";
 import { NewContentNotice, OfflineNotice, ToastSurface } from "../atoms/feedback.tsx";
 import { SelectionBar } from "../atoms/selection.tsx";
 
@@ -77,7 +78,7 @@ export function HomeTop() {
 export function AccountRing() {
 	return (
 		<>
-			<Icon name="person" size={22} />
+			<img className="account-avatar" src={accountAvatar} alt="" />
 			<svg className="orb-arc" viewBox="0 0 64 64" aria-hidden="true">
 				<circle cx="32" cy="32" r="30" pathLength="100" />
 			</svg>

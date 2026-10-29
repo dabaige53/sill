@@ -169,7 +169,14 @@ body:has(:is(#modal, .phone-layer)[open]:not(.page)) #dock * {
 .nav-lens-tab .nav-icon {
 	position: relative;
 }
-/* Settings uses the same line weight and color as the other navigation icons. */
+/* The account portrait keeps the existing settings target and progress feedback. */
+.account-avatar {
+	width: var(--space-28);
+	height: var(--space-28);
+	object-fit: cover;
+	border-radius: 50%;
+}
+
 .account-wrap {
 	position: relative;
 	display: grid;

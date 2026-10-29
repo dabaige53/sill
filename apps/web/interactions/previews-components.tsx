@@ -216,7 +216,6 @@ const detailBlocks: Record<string, DetailBlock> = {
 				<span>
 					<b>{sender}</b>
 					<small>
-						<SourceMark card={c} />
 						{[cardSource(c), detailDate(c.publishedAt, true), cardReadingTime(c)]
 							.filter(Boolean)
 							.join(" · ")}

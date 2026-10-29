@@ -208,17 +208,12 @@ struct ReaderContent: View {
         Avatar(name: sender, size: AppleMetrics.space36)
         HStack(spacing: AppleMetrics.space8) {
           Text(sender).lineLimit(1).textStyle(AppleMetrics.font15, .bold).foregroundStyle(AppleColors.primary)
-          HStack(spacing: AppleMetrics.space6) {
-            SourceIcon(card: card, size: AppleMetrics.font12)
-            Text(
-              [card.sourceName, card.publishedAt.flatMap(Self.fullDate) ?? "", card.readingTime]
-                .filter {
-                  !$0.isEmpty
-                }
-                .joined(separator: " · ")
-            )
-            .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
-          }
+          Text(
+            [card.sourceName, card.publishedAt.flatMap(Self.fullDate) ?? "", card.readingTime]
+              .filter { !$0.isEmpty }
+              .joined(separator: " · ")
+          )
+          .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
         }
       }
       .padding(.trailing, discRoom)
