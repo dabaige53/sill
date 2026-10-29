@@ -123,9 +123,15 @@ test("Web styles use Motion except the documented material and outline CSS trans
 	for (const name of fs.readdirSync(directory).filter((name) => name.endsWith(".css"))) {
 		let css = fs.readFileSync(path.join(directory, name), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 		if (name === "reader-layout.css") continue;
-		if (name === "controls.css") {
-			// The AI material layer owns this transition (handbook/motion.md).
-			css = css.replace(/\.ai-dock-surface::after\s*\{[^}]*\}/g, (rule) =>
+		const materialRule =
+			name === "controls.css"
+				? /\.ai-dock-surface::after\s*\{[^}]*\}/g
+				: name === "form-controls.css"
+					? /\.home-search::after\s*\{[^}]*\}/g
+					: null;
+		if (materialRule) {
+			// These two material layers own their transitions (handbook/motion.md).
+			css = css.replace(materialRule, (rule) =>
 				rule.replace(/transition:\s*opacity var\(--dur-hover\) var\(--ease\);/, ""),
 			);
 		}

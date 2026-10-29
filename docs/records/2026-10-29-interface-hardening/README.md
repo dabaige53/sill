@@ -79,3 +79,11 @@ Mac 备份界面已有整体 busy 禁用，Account 已区分权限、限流、�
 - 动效手册第 9 行明确允许桌面搜索及 AI 胶囊材质层的 CSS opacity transition。此前判为实现冲突不准确；现只在样式检查中精确允许 `.ai-dock-surface::after` 的 `opacity var(--dur-hover) var(--ease)`，不删除效果、不放开其他属性或选择器。
 - 提交钩子要求单独暂存、单独提交；云端操作测试超过 20,000 字节，已把多选场景移入 `tests/e2e/helpers/cloud-selection-operations.ts`，由原入口调用，保留断言与执行顺序。
 - 源码静态入口扫描发现 `ai-result-retry` 没有动作处理，但 Web 的 aiConnected 与 Mac 的 connected 当前均为 false，相关入口禁用；未来启用内置 AI 时必须补实现，不计作当前有效按钮。
+
+### 账号、设置与备份调用链
+
+Mac 独立源码复核：设置与重置通过 Workspace.write(.preferences) 保存；清空经 Workspace.clear 按读取基准删除；导出当前已读状态并写入用户选择的文件。退出通过 CloudWorkspace POST /auth/logout。备份设置保存、连接检查、创建、刷新、预览、校验、下载、恢复和恢复状态均经 BackupModel → Account.backupRequest → CloudWorkspace.backupRequest 发 HTTP；服务端保存目标前实际检查 provider。失败由模型显示错误，恢复冲突清理预览，未知恢复沿用原请求。此范围未发现空动作；上述结论不等于真机验收。现有 BackupModelTests 对目标保存、检查、创建、下载等按钮绑定缺少直接覆盖。
+
+Web 备份按钮逐项核对为 /api/v1/backups 的 POST/GET 调用；下载响应后生成文件，取消恢复仅关闭预览。账号退出 POST /auth/logout 成功后清理状态。导出生成当前工作区快照文件，本身无需新增服务端写入。系统通知开关使用浏览器权限和设备偏好，不应伪装为云端通知订阅。导航、照片前后切换和多选上下文操作本身无需服务器写入。
+
+`c2be8fd7` 的 CI 进一步指出搜索材质层同样被旧样式检查拒绝；按同一手册只允许 `.home-search::after` 的既定 opacity 过渡。多选辅助测试的 forEach 回调违反 lint，改为不返回值的 for-of；本地只读 Biome 错误级检查通过。

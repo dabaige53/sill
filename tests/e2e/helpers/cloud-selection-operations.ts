@@ -78,7 +78,9 @@ export async function verifySelectionOperations(
 	await page.evaluate(() => __app.openPanel("search"));
 	await page.locator("#search-results").waitFor();
 	await page.evaluate(
-		(ids) => ids.forEach((id) => __app.select(id, { add: true })),
+		(ids) => {
+			for (const id of ids) __app.select(id, { add: true });
+		},
 		[note.id, task.id],
 	);
 	const searchLater = page.locator('#search-selection-bar [data-action="selected-later"]');
