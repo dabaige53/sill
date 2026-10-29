@@ -170,7 +170,7 @@ export const appFeedUpdatesMethods = {
 			return;
 		}
 		const key = target === "bookmark" ? "bookmarked" : "later";
-		const value = target === "bookmark" ? !ids.every((id) => Store.item(id).bookmarked) : true;
+		const value = !ids.every((id) => Store.item(id)[key]);
 		ids.forEach((id?: string) => {
 			Store.patch(id, { [key]: value });
 			this.refreshCard(id);

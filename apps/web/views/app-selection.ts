@@ -154,6 +154,14 @@ export const appSelectionMethods = {
 			allBookmarked ? copy("web.preview.removeBookmark") : copy("web.app.87aeb7040c82"),
 		);
 		const receiver = bar.querySelector<HTMLElement>(".selection-ai-target");
+		const allLater = ids.length > 0 && ids.every((id) => Store.item(id).later);
+		const later = bar.querySelector<HTMLElement>('[data-action="selected-later"]');
+		later?.classList.toggle("active", allLater);
+		later?.setAttribute("aria-pressed", String(allLater));
+		later?.setAttribute(
+			"aria-label",
+			allLater ? copy("web.preview.removeLater") : copy("web.app.d108c0a7e2c3"),
+		);
 		if (receiver) receiver.hidden = !selecting || !this.drag?.active?.moved;
 		if (!search || !this.desktop()) {
 			const counterpart = document.querySelector<HTMLElement>(this.desktop() ? "#ai-dock" : "#nav");

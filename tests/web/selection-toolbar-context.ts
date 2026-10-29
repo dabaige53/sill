@@ -74,6 +74,17 @@ export async function registerToolbarContextTests({ fixture }: { fixture: any })
 			assert.deepEqual(f.selected(), ["one", "two"]);
 			assert.equal(f.Store.item("one").later, true);
 			assert.equal(f.document.getElementById("selection-bar").hidden, false);
+			const later = f.document.querySelector('[data-action="selected-later"]');
+			assert.equal(later.getAttribute("aria-pressed"), "true");
+			assert.equal(later.classList.contains("active"), true);
+			f.app.action("selected-later");
+			assert.equal(f.Store.item("one").later, false);
+			assert.equal(f.Store.item("two").later, false);
+			assert.equal(later.getAttribute("aria-pressed"), "false");
+			f.Store.patch("one", { later: true });
+			f.app.action("selected-later");
+			assert.equal(f.Store.item("one").later, true);
+			assert.equal(f.Store.item("two").later, true);
 			f.app.action("selected-tag");
 			assert.deepEqual(f.selected(), ["one", "two"]);
 			assert.equal(f.app.openedPanel.kind, "editor");
