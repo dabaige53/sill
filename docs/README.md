@@ -59,6 +59,7 @@
 - [错误索引](records/errors.md)：按报错、症状和模块查找定位与解决记录。
 - [事件记录索引](records/README.md)：验收、发布、研究与交接材料，只说明当时的事实。
 - [产品变更日志](records/CHANGELOG.md)：按版本汇总产品与维护变化。
+- [1.2.16 按钮审查与发布](records/2026-10-29-interface-hardening/README.md)：按钮调用链、回归结果、部署与回退标识。
 - [设计变更日志](records/design-changelog.md)：按次追加的设计变更。
 
 ## 配套资料
