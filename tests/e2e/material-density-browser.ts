@@ -53,7 +53,7 @@ async function run(
 				JSON.stringify({
 					version: 4,
 					cards,
-					items: {},
+					items: { "review-task": { taskDone: ["done-a", "done-b", "done-c"] } },
 					preferences: {
 						stack: false,
 						archiveAfter: "never",

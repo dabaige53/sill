@@ -112,53 +112,26 @@ try {
 		),
 	);
 	assert.equal(await page.locator("#password-form").count(), 0);
-	await cloudTool(page, "capture");
-	assert.equal(
-		await page.locator("#cloud-title").evaluate((e?: any) => e === document.activeElement),
-		true,
-		"editor opens with title focus",
-	);
-	await page.locator("#cloud-title").fill("Draft before closing");
-	await page.locator("#cloud-body").fill("Keep this text");
-	await page.keyboard.press("Escape");
-	await cloudTool(page, "capture");
-	assert.equal(await page.locator("#cloud-title").inputValue(), "Draft before closing");
-	assert.equal(await page.locator("#cloud-body").inputValue(), "Keep this text");
-	assert.equal(
-		await page.evaluate(() => localStorage.length),
-		0,
-		"retained cloud drafts stay in memory",
-	);
-	await page.locator("#cloud-title").fill("Browser persisted note");
-	await page.locator("#cloud-body").fill("Synthetic browser data");
+	assert.equal(await page.locator('[data-action="capture"], #cloud-editor').count(), 0);
+	// The retired capture UI has no draft. Keep lost-response replay coverage at the HTTP boundary.
+	const create = () =>
+		page.evaluate(async () => {
+			const response = await fetch("/api/v1/contents", {
+				method: "POST",
+				headers: { "Content-Type": "application/json", "Idempotency-Key": "browser_create_replay" },
+				body: JSON.stringify({
+					type: "note",
+					title: "Browser persisted note",
+					body: "Synthetic browser data",
+				}),
+			});
+			return response.status;
+		});
 	dropResponse = true;
-	await page.locator("#cloud-editor [type=submit]").click();
-	await page.waitForFunction(() =>
-		document.querySelector("#cloud-save-status")?.textContent.includes("同一请求"),
-	);
-	await page.keyboard.press("Escape");
-	assert.equal(await page.locator("#cloud-editor").count(), 1, "uncertain request retains editor");
-	const routeBeforeSearch = await page.evaluate(() => ({
-		hash: location.hash,
-		historyLength: history.length,
-	}));
-	await page.keyboard.press("Control+k");
-	assert.equal(
-		await page.locator("#cloud-editor").count(),
-		1,
-		"search shortcut cannot replace uncertain draft",
-	);
-	assert.deepEqual(
-		await page.evaluate(() => ({ hash: location.hash, historyLength: history.length })),
-		routeBeforeSearch,
-		"blocked search cannot leave a route that reopens after save or reload",
-	);
-	assert.deepEqual(errors, [], "blocked search does not bind a missing search panel");
-	await page.locator("#cloud-editor [type=submit]").click();
-	await page.waitForFunction(() => !(document.querySelector("#modal") as HTMLDialogElement).open);
+	assert.equal(await create(), 503);
+	assert.ok([200, 201].includes(await create()));
 	await page.reload();
 	await waitCloud(page);
-	assert.equal(await page.locator("#modal[open]").count(), 0, "retry returns to the desk");
 	const records = await page.evaluate(() => window.__store.state.cards);
 	assert.equal(records.length, 1, "same idempotency key creates once");
 	assert.equal(records[0].title, "Browser persisted note");
@@ -237,74 +210,14 @@ try {
 	await page.waitForFunction(
 		() => document.documentElement.scrollWidth <= innerWidth + 1 && !window.__app.layout.frame,
 	);
-	await cloudTool(page, "capture");
-	await page.locator("#cloud-title").fill("Mobile draft");
 	assert.ok(
 		await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
 		"mobile does not overflow",
 	);
 	await page.screenshot({ path: "tests/artifacts/cloud-mobile.png", animations: "disabled" });
-	await page.locator("#cloud-editor [data-action=close]").click();
-	await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
-	await cloudTool(page, "capture");
-	for (const theme of ["light", "dark"])
-		for (const viewport of [
-			{ width: 1440, height: 1000 },
-			{ width: 390, height: 844 },
-			{ width: 320, height: 225 },
-		]) {
-			await page.setViewportSize(viewport);
-			await page.evaluate((theme?: any) => {
-				__store.setPref("theme", theme);
-				__app.applyPreferences();
-			}, theme);
-			await page.evaluate(
-				() =>
-					new Promise((resolve?: any) =>
-						requestAnimationFrame(() => requestAnimationFrame(resolve)),
-					),
-			);
-			await page.evaluate(() =>
-				Promise.allSettled(
-					document
-						.getAnimations()
-						.filter((a?: any) => Number.isFinite(a.effect?.getTiming().iterations))
-						.map((a?: any) => a.finished),
-				),
-			);
-			const overflow = await page.evaluate(() => ({
-				width: innerWidth,
-				scrollWidth: document.documentElement.scrollWidth,
-				nodes: [...document.querySelectorAll("body *")]
-					.filter((e?: any) => {
-						const r = e.getBoundingClientRect();
-						return r.width && r.right > innerWidth + 1;
-					})
-					.map((e?: any) => ({
-						tag: e.tagName,
-						class: e.className,
-						id: e.id,
-						right: e.getBoundingClientRect().right,
-					}))
-					.slice(0, 12),
-			}));
-			assert.ok(
-				overflow.scrollWidth <= viewport.width,
-				`editor does not overflow ${theme} ${JSON.stringify(viewport)} ${JSON.stringify(overflow)}`,
-			);
-			await page.locator("#cloud-save").scrollIntoViewIfNeeded();
-			const save = await page.locator("#cloud-save").boundingBox();
-			assert.ok(
-				save.y >= 0 && save.y + save.height <= viewport.height,
-				"save remains visible in a short window",
-			);
-		}
-	await page.locator("#cloud-editor [data-action=close]").click();
-	await page.waitForFunction(() => !document.querySelector<HTMLDialogElement>("#modal").open);
-	await page.setViewportSize({ width: 390, height: 844 });
-	assert.equal(
-		await page.evaluate(() => localStorage.length),
-		0,
+	assert.deepEqual(
+		await page.evaluate(() => Object.keys(localStorage).filter((key) => key !== "sill-theme")),
+		[],
 		"no token or private data persisted",
 	);
 	assert.ok(
@@ -313,12 +226,11 @@ try {
 			.every((c?: any) => c.httpOnly && c.secure),
 	);
 	await cloudLogout(page);
-	await page.locator("#cloud-confirm").click();
 	await page.locator("#password-form").waitFor();
 	assert.equal(await page.locator("[data-card]").count(), 0);
 	assert.deepEqual(errors, []);
 	console.log(
-		"PASS cloud browser: PKCE, CRUD, lost-response replay, CAS draft, MCP write visible in web, logout, 1440/390, no localStorage",
+		"PASS cloud browser: PKCE, CRUD, lost-response replay, MCP write visible in web, logout, 1440/390, no private localStorage",
 	);
 } finally {
 	await mcpClient?.close();
