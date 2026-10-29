@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { verifyStableDetail } from "./helpers/cloud-stable-detail.ts";
 import { mkdir, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { chromium } from "playwright";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { cloudFixture } from "../server/helpers/cloud-fixture.ts";
+import { verifyStableDetail } from "./helpers/cloud-stable-detail.ts";
 
 const fixture = await cloudFixture();
 let runtime: any,
@@ -118,10 +118,14 @@ try {
 	});
 	await page.evaluate(() => __app.refresh());
 	await page.waitForFunction(() => __store.state.cards.length === 3);
-	const saved = () =>
-		page.waitForFunction(
-			() => document.querySelector("[data-sync]")?.getAttribute("data-sync") === "saved",
+	const saved = async () => {
+		await page.waitForFunction(() => ["saved", "error"].includes(__app.grid.dataset.sync));
+		assert.equal(
+			await page.evaluate(() => __app.grid.dataset.sync),
+			"saved",
+			await page.locator("#cloud-sync-status").textContent(),
 		);
+	};
 	const action = async (name: string, id?: string, extra?: string) =>
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
 	await verifyStableDetail(page, api, action, saved, note, task);

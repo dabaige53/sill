@@ -285,7 +285,11 @@ test("a cover that loads under a card drawer or off screen shows without a fade"
 		w.document.body.classList.remove("is-drawer-scaled");
 		cover("below", w.innerHeight + 200);
 		app.revealImages(app.grid);
-		assert.equal(animations.length, 0, "a cover loading below the screen is ready when scrolled to");
+		assert.equal(
+			animations.length,
+			0,
+			"a cover loading below the screen is ready when scrolled to",
+		);
 		cover("visible", 100);
 		app.revealImages(app.grid);
 		assert.equal(animations.length, 1);

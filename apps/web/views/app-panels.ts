@@ -4,8 +4,8 @@ import { Store } from "../data/store.ts";
 import { MotionEngine } from "../interactions/motion.ts";
 import { PanelViews as Panels } from "../interactions/panels-components.tsx";
 import { resetPhoneSearch } from "../interactions/phone-search-motion.ts";
-import { armLastTag } from "../interactions/tag-input-motion.ts";
 import { deferReadingRefresh } from "../interactions/reading-feedback.ts";
+import { armLastTag } from "../interactions/tag-input-motion.ts";
 import type { AppController } from "./app.ts";
 import type { ViewDialog } from "./app-types.ts";
 import { bindPreview, bindSheetChrome, openCard } from "./preview-controller.ts";
@@ -84,7 +84,8 @@ export const appPanelsMethods = {
 	 */
 	// @design tag-layer
 	openEditor(this: AppController, id: string) {
-		const layer = (this.editorLayer ||= document.getElementById("tag-layer") as ViewDialog);
+		this.editorLayer ||= document.getElementById("tag-layer") as ViewDialog;
+		const layer = this.editorLayer;
 		if (!editorLayers.has(layer)) {
 			editorLayers.add(layer);
 			layer.addEventListener("cancel", (e) => {

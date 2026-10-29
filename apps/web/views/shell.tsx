@@ -9,11 +9,11 @@ import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
 import {
 	anchoredBubble,
-	collapseDockAnchor,
 	animateAIDock,
 	type CollapseCapture,
 	type CollapseVisual,
 	captureAIDock,
+	collapseDockAnchor,
 } from "../interactions/ai-collapse.ts";
 import { sillIcon } from "../interactions/panel-primitives.tsx";
 

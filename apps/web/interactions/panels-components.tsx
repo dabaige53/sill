@@ -22,9 +22,7 @@ function WelcomeView({
 				{sillIcon(72)}
 				<h1 id={"welcome-title"}>{"Sill"}</h1>
 				{detail}
-				<div className={"welcome-actions"}>
-					{actions}
-				</div>
+				<div className={"welcome-actions"}>{actions}</div>
 			</section>
 		</>
 	);

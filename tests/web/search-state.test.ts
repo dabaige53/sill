@@ -382,7 +382,11 @@ test("phone # replaces the card suggestions with statuses and tags, in place", (
 		const suggest = f.app.dialog.querySelector("#search-suggest");
 		assert.equal(suggest.querySelector(".search-suggest-option"), null, "no card rows under #");
 		assert.ok(suggest.querySelector('.search-hash-option[data-extra="tag:work"]'));
-		assert.equal(f.app.dialog.querySelectorAll(".search-hash").length, 1, "one list, not a floating copy");
+		assert.equal(
+			f.app.dialog.querySelectorAll(".search-hash").length,
+			1,
+			"one list, not a floating copy",
+		);
 		f.app.action("search-hash", "", "tag:work");
 		assert.equal(f.app.dialog.querySelector(".search-hash"), null);
 	} finally {
