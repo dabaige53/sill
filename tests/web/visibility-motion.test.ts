@@ -118,13 +118,17 @@ test("notice fades before hiding and disables clicks from the first frame", asyn
 	}
 });
 
-test("Web styles use Motion except the documented outline CSS transitions", () => {
+test("Web styles use Motion except the documented material and outline CSS transitions", () => {
 	const directory = path.resolve(import.meta.dirname, "../../apps/web/styles");
 	for (const name of fs.readdirSync(directory).filter((name) => name.endsWith(".css"))) {
-		const css = fs
-			.readFileSync(path.join(directory, name), "utf8")
-			.replace(/\/\*[\s\S]*?\*\//g, "");
+		let css = fs.readFileSync(path.join(directory, name), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 		if (name === "reader-layout.css") continue;
+		if (name === "controls.css") {
+			// The AI material layer owns this transition (handbook/motion.md).
+			css = css.replace(/\.ai-dock-surface::after\s*\{[^}]*\}/g, (rule) =>
+				rule.replace(/transition:\s*opacity var\(--dur-hover\) var\(--ease\);/, ""),
+			);
+		}
 		assert.doesNotMatch(
 			css,
 			/@(?:-webkit-)?keyframes\b|(?:^|[;{])\s*(?:animation|transition)(?:-[\w-]+)?\s*:/m,

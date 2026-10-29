@@ -72,3 +72,10 @@ Mac 备份界面已有整体 busy 禁用，Account 已区分权限、限流、�
 当前远端 ef056b10 的检查：Verify Sill 因 Web 格式失败；Sill integration 的 463 项核心检查中 462 通过，controls.css 的 CSS transition 违反现行动效检查；Verify Sill macOS 因 RecipeBody.swift 和 AIConversationViews.swift 格式失败。已按日志格式化对应文件，动效冲突仍待修复。认证数据与授权策略工作流成功，不代表本次修改已验证。
 
 后续：补足按钮清单及行为证据、修复发布阻塞、提交推送并检查同一提交的 CI，按发布手册准备版本与部署回执。未执行本地完整测试、构建或新的窗口自动化。
+
+### 发布检查纠正
+
+- `b3a6a787` 已推送 main。Web 格式仍失败，日志指出 foundation.json；已只调整格式。
+- 动效手册第 9 行明确允许桌面搜索及 AI 胶囊材质层的 CSS opacity transition。此前判为实现冲突不准确；现只在样式检查中精确允许 `.ai-dock-surface::after` 的 `opacity var(--dur-hover) var(--ease)`，不删除效果、不放开其他属性或选择器。
+- 提交钩子要求单独暂存、单独提交；云端操作测试超过 20,000 字节，已把多选场景移入 `tests/e2e/helpers/cloud-selection-operations.ts`，由原入口调用，保留断言与执行顺序。
+- 源码静态入口扫描发现 `ai-result-retry` 没有动作处理，但 Web 的 aiConnected 与 Mac 的 connected 当前均为 false，相关入口禁用；未来启用内置 AI 时必须补实现，不计作当前有效按钮。

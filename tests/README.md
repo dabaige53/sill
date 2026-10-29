@@ -63,7 +63,7 @@ Mac 的工作区、搜索、信息流、选择、设置、归档等测试分别�
 | 设备提醒 | `node --import tsx --test tests/web/system-reminders.test.ts`；`node tests/apple/run.ts --filter SystemReminderTests` | 模拟权限、通知事件、调度和账号生命周期，不投递系统通知 |
 | 图片与播放器策略 | `node --import tsx --test tests/web/image-assets.test.ts tests/server/media-policy.test.ts tests/server/player-policy.test.ts tests/server/cloud-app.test.ts` | HTTPS 图片与 MCP 资源策略，实际媒体及真实宿主另验 |
 | OAuth | `npm run test:oauth` | 真实授权另行验收 |
-| 云端页面 | `npm run test:cloud-browser`、`npm run test:cloud-app-browser`、`npm run test:cloud-operations` | 不默认访问生产 |
+| 云端页面 | `npm run test:cloud-browser`、`npm run test:cloud-app-browser`、`npm run test:cloud-operations` | 不默认访问生产；多选按钮与持久化场景由 `e2e/helpers/cloud-selection-operations.ts` 提供，原入口统一执行 |
 | Mac | `npm run test:macos` | SillKit 数据层与桌面状态检查，再校验 `dist/macos/Sill.app` 签名；先运行 `npm run build:macos` |
 | 格式与类型 | `npm run lint`、`npm run typecheck` | 只读；默认规则警告不代表已实现全仓 strict |
 | Postgres | `npm run test:supabase:postgres` | 需要可用 Docker；使用合成容器数据，不连接生产 |
