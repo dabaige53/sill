@@ -1,6 +1,6 @@
 import { createElement } from "react";
-import accountAvatar from "../../../design-system/mascot/avatar.png";
 import tokens from "../../../design-system/tokens.json" with { type: "json" };
+import { accountAvatar } from "../atoms/account-avatar.ts";
 import { icon } from "../atoms/icons.ts";
 import { copy } from "../copy.ts";
 import { Store } from "../data/store.ts";

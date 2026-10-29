@@ -97,7 +97,7 @@ test("blocked YouTube API times out, releases its script and retries", async () 
 test("YouTube readiness timeout exposes retry and rebuilding preserves resume", async () => {
 	const js = buildSync({
 		stdin: {
-			contents: `import {createElement} from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';import {YouTubePlayer} from './apps/web/cards/youtube-player.tsx';export function mount(host,states){const root=createRoot(host);flushSync(()=>root.render(createElement(YouTubePlayer,{id:'abcdefghijk',initialPosition:12,onSave:()=>{},onTime:s=>states.push(s),controls:{current:null}})));return {flush:fn=>flushSync(fn),close:()=>flushSync(()=>root.unmount())};}`,
+			contents: `import {createElement} from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';import {YouTubePlayer} from './apps/web/cards/youtube-player.tsx';export function mount(host){const root=createRoot(host);flushSync(()=>root.render(createElement(YouTubePlayer,{id:'abcdefghijk',initialPosition:12,onSave:()=>{}})));return {flush:fn=>flushSync(fn),close:()=>flushSync(()=>root.unmount())};}`,
 			resolveDir: path.resolve(import.meta.dirname, "../.."),
 			loader: "tsx",
 		},
@@ -131,13 +131,10 @@ test("YouTube readiness timeout exposes retry and rebuilding preserves resume", 
 		},
 	};
 	w.eval(js);
-	const states: any[] = [];
-	const api = w.YTTest.mount(w.document.querySelector("#root"), states);
+	const api = w.YTTest.mount(w.document.querySelector("#root"));
 	await new Promise((resolve) => setImmediate(resolve));
 	api.flush(() => timeout!());
 	assert.ok(w.document.querySelector('[role="alert"]'));
-	assert.equal(states.at(-1).playing, false);
-	assert.equal(states.at(-1).position, 12);
 	api.flush(() => w.document.querySelector(".media-failure button").click());
 	await new Promise((resolve) => setImmediate(resolve));
 	assert.equal(created, 2);

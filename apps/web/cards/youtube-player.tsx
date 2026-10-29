@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { duration } from "../atoms/primitives.ts";
 import { Icon } from "../atoms/react-primitives.tsx";
 import { copy } from "../copy.ts";
-import type { PlaybackHandle, PlaybackSnapshot } from "./playback.ts";
 
 type Player = {
 	getCurrentTime(): number;
@@ -101,20 +100,16 @@ export function YouTubePlayer({
 	cover,
 	knownDuration,
 	onSave,
-	onTime,
-	controls,
 }: {
 	id: string;
 	initialPosition: number;
 	cover?: string;
 	knownDuration?: number;
 	onSave: (position: number, ended: boolean) => void;
-	onTime: (state: PlaybackSnapshot) => void;
-	controls: React.RefObject<PlaybackHandle | null>;
 }) {
 	const host = useRef<HTMLDivElement>(null),
-		callbacks = useRef({ onSave, onTime });
-	callbacks.current = { onSave, onTime };
+		callbacks = useRef({ onSave });
+	callbacks.current = { onSave };
 	const [attempt, setAttempt] = useState(0);
 	const resume = useRef(initialPosition);
 	const source = useRef({ id, initialPosition });
@@ -144,14 +139,8 @@ export function YouTubePlayer({
 			clearTimeout(deadline);
 			if (timer) clearInterval(timer);
 			player?.pauseVideo?.();
-			controls.current = null;
 			setError(true);
 			setReady(false);
-			callbacks.current.onTime({
-				position: previous,
-				duration: knownDuration || 0,
-				playing: false,
-			});
 		};
 		const deadline = setTimeout(fail, 20000);
 		const sample = () => {
@@ -165,7 +154,6 @@ export function YouTubePlayer({
 			else if (playing && delta > 0.01) advanced = true;
 			previous = position;
 			resume.current = position;
-			callbacks.current.onTime({ position, duration: player.getDuration() || 0, playing });
 		};
 		void Promise.all([loadAPI(), afterDetailMotion(host.current)])
 			.then(([YT]) => {
@@ -191,18 +179,6 @@ export function YouTubePlayer({
 							ready = true;
 							setReady(true);
 							if (wantsPlay.current) player?.playVideo();
-							controls.current = {
-								seek(seconds) {
-									started = true;
-									advanced = false;
-									previous = seconds;
-									player?.seekTo(seconds, true);
-								},
-								toggle() {
-									if (player?.getPlayerState() === 1) player.pauseVideo();
-									else player?.playVideo();
-								},
-							};
 							timer = setInterval(sample, 500);
 						},
 						onStateChange: (event: { data: number }) => {
@@ -229,10 +205,9 @@ export function YouTubePlayer({
 			}
 			player?.destroy();
 			host.current?.replaceChildren();
-			controls.current = null;
 			setReady(false);
 		};
-	}, [id, controls, initialPosition, attempt, knownDuration]);
+	}, [id, initialPosition, attempt]);
 	return (
 		<>
 			<div className="youtube-frame" data-video-cover={cover}>

@@ -1,6 +1,6 @@
 import type React from "react";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import accountAvatar from "../../../design-system/mascot/avatar.png";
+import { accountAvatar } from "../atoms/account-avatar.ts";
 import { NewContentNotice, OfflineNotice, ToastSurface } from "../atoms/feedback.tsx";
 import { SelectionBar } from "../atoms/selection.tsx";
 
