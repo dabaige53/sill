@@ -45,8 +45,30 @@ Mac 备份界面已有整体 busy 禁用，Account 已区分权限、限流、�
 
 ## 多选稍后读按钮（2026-10-29）
 
-- 状态：已修复待验证。
+- 状态：已在隔离浏览器与临时数据库验证；未部署生产。
 - 环境与触发：Web 主页和搜索页选中卡片，点击稍后读后再次点击，无法取消且按钮不显示已开启。
 - 定位依据：`app-feed-updates.ts` 的 `applySelectionAction` 对 later 固定写 true；`app-selection.ts` 只同步收藏按钮状态。
 - 处理：稍后读沿用详情页的开关含义。全部已开启时批量取消，混合状态时全部开启；同步 active、aria-pressed 和提示名称，保留选择。
-- 验证：补充取消与混合状态回归断言；本地文件检查通过。程序测试留待 GitHub Actions，未做浏览器或服务器保存验证。其他按钮未确认故障。
+- 补充定位：实际点击搜索多选按钮时，Playwright 报告 `ai-dock-input intercepts pointer events`。`updateSelection` 原来排除了桌面搜索场景，导致 AI 输入框仍占据多选栏的点击区域。现让搜索多选与主页多选共用 AI 栏收起及恢复逻辑。
+- 验证：用户明确要求完整验证后，运行 `selection.test.ts`、`cloud-sync.test.ts`、`cloud-workspace.test.ts`，28 项全部通过。针对当前源码生成云端测试页面，`cloud-operations-browser.ts` 通过真实 Chromium 点击、服务端 HTTP 与临时 PGlite 数据库完成验证；使用合成账号，不连接生产。
+- 覆盖：主页与搜索多选稍后读开启和取消、混合状态统一开启、未选卡片不变、刷新恢复；收藏开启和取消；批量标签与备注保存；AI 上下文与取消选择不写卡片；批量原子性、丢失回执重试保持请求内容与幂等键、冲突不覆盖服务器数据、会话过期清理。搜索回归在修复前因真实点击被 AI 输入框截获而失败，修复后通过。
+- 限制：认证上游由测试夹具模拟，数据库使用项目 SQL 的隔离执行环境；不代表生产网络、托管数据库或线上版本已验收。未执行全项目 e2e。
+
+## 全量按钮审查与发布跟进（2026-10-29）
+
+状态：进行中，未发布。当前审查覆盖源码调用路径，不能替代实际点击验收。
+
+| 入口 | 已核对的执行路径 | 当前结论 |
+| --- | --- | --- |
+| Web 收藏、稍后读、任务、阅读、归档、标签、备注 | actions → Store → CloudSync 差异批次 → 服务端写入 | 有真实请求路径；已有 cloud-operations 回归，待当前提交 CI |
+| Web 减少此类内容 | cloud-entry 覆盖本地动作，写 lessLike | 云端不是仅 toast 的本地实现 |
+| Web 清空、偏好 | Store 删除差异和 preferences.patch → CloudSync | 有服务端路径，继续核对权限及恢复 |
+| Web 备份 | BackupSettings → /api/v1/backups，含创建、检查、下载、恢复状态 | 有请求路径，继续核对全部按钮及失败回执 |
+| Mac 多选稍后读 | SelectionIntents → Workspace.mark → queue.write | 修复固定开启；全部开启时取消，混合状态全部开启；保存期间禁用 |
+| AI 发送、语音等 | 产品明确禁用，未连接内置 AI | 不计作已实现能力，保留既定产品边界 |
+
+云端备注原提示实际为“已保存在本机；同步状态见桌面”，不是服务端成功回执。移除重复 toast，沿用共用同步反馈。上一轮说明中的“提前提示成功”应以此处准确文案为准。
+
+当前远端 ef056b10 的检查：Verify Sill 因 Web 格式失败；Sill integration 的 463 项核心检查中 462 通过，controls.css 的 CSS transition 违反现行动效检查；Verify Sill macOS 因 RecipeBody.swift 和 AIConversationViews.swift 格式失败。已按日志格式化对应文件，动效冲突仍待修复。认证数据与授权策略工作流成功，不代表本次修改已验证。
+
+后续：补足按钮清单及行为证据、修复发布阻塞、提交推送并检查同一提交的 CI，按发布手册准备版本与部署回执。未执行本地完整测试、构建或新的窗口自动化。

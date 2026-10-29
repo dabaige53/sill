@@ -16,6 +16,7 @@ import Observation
   func contains(_ id: String) -> Bool { ids.contains(id) }
 
   var allBookmarked: Bool { !ids.isEmpty && ids.allSatisfy { workspace.state($0).bookmarked } }
+  var allLater: Bool { !ids.isEmpty && ids.allSatisfy { workspace.state($0).later } }
   var writing: Bool { ids.contains { workspace.state($0).isWriting } }
 
   /// Web `select`: shift extends from the anchor over the cards in feed order; `add` only adds;

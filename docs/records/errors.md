@@ -4,6 +4,7 @@
 
 | 记录日期 | 平台或模块 | 症状与检索词 | 诊断正文 |
 | --- | --- | --- | --- |
+| 2026-10-29 | Web 多选操作栏 | 稍后读无法取消、按钮不生效、AI 输入框遮挡、服务器保存 | [多选操作与保存验证](2026-10-29-interface-hardening/README.md#多选稍后读按钮2026-10-29) |
 | 2026-10-29 | Web 桌面分栏 | 两个 Sill、重复字标、菜单字标偏小 | [重复字标诊断](2026-10-29-interface-hardening/README.md#web-桌面重复字标2026-10-29) |
 | 2026-10-29 | Web 搜索画板 | html-validate、helmet、Inline style、label、fieldset | [搜索画板诊断](2026-10-29-interface-hardening/README.md#web-搜索画板诊断2026-10-29) |
 | 2026-10-29 | Web/PWA 备份与错误恢复 | 保存期间输入被清空、小屏长地址、错误消息溢出 | [跨端界面健壮性检查](2026-10-29-interface-hardening/README.md) |

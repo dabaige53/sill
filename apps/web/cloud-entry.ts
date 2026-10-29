@@ -260,11 +260,6 @@ app.action = (name?: any, id?: any, ...args: any[]) => {
 		app.withFeedAnchor(() => {}, true);
 		return;
 	}
-	if (name === "save-note") {
-		originalAction(name, id, ...args);
-		app.toast(copy("web.app.5fa0ce52b47e"));
-		return;
-	}
 	return originalAction(name, id, ...args);
 };
 // Keep the original menus and light actions. A note opens for reading, not content editing.

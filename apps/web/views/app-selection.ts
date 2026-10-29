@@ -163,7 +163,8 @@ export const appSelectionMethods = {
 			allLater ? copy("web.preview.removeLater") : copy("web.app.d108c0a7e2c3"),
 		);
 		if (receiver) receiver.hidden = !selecting || !this.drag?.active?.moved;
-		if (!search || !this.desktop()) {
+		{
+			// Both selection surfaces occupy the rail; the AI input must not intercept search actions.
 			const counterpart = document.querySelector<HTMLElement>(this.desktop() ? "#ai-dock" : "#nav");
 			if (
 				counterpart &&

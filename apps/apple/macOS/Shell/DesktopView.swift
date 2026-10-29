@@ -422,7 +422,7 @@ struct DesktopView: View {
       workspace.mark(selection.ids, .bookmarked, value: !selection.allBookmarked)
     }
     selectionIntents.later = {
-      workspace.mark(selection.ids, .later)
+      workspace.mark(selection.ids, .later, value: !selection.allLater)
     }
     selectionIntents.tag = {
       cardIntents.edit(selection.ids)

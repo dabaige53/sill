@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { chromium } from "playwright";
 import { createSillRuntime } from "../../server/cloud/http.ts";
 import { cloudFixture } from "../server/helpers/cloud-fixture.ts";
+import { verifySelectionOperations } from "./helpers/cloud-selection-operations.ts";
 import { verifyStableDetail } from "./helpers/cloud-stable-detail.ts";
 
 const fixture = await cloudFixture();
@@ -128,64 +129,8 @@ try {
 	const action = async (name: string, id?: string, extra?: string) =>
 		page.evaluate(({ name, id, extra }) => __app.action(name, id, extra), { name, id, extra });
 	await verifyStableDetail(page, api, action, saved, note, task);
-	const selectCards = async () => {
-		await page.evaluate(
-			(ids) => {
-				for (const id of ids) __app.select(id, { add: true });
-			},
-			[note.id, task.id],
-		);
-		await page.locator("#selection-bar").waitFor();
-		assert.equal(await page.locator("#selection-menu").count(), 0);
-	};
-	const requestsBeforeSelection = batchRequests.length;
-	await selectCards();
-	await page.waitForTimeout(300);
-	assert.equal(batchRequests.length, requestsBeforeSelection, "selecting cards must not write");
-	await action("clear-selection");
-	await page.waitForTimeout(300);
-	assert.equal(
-		batchRequests.length,
-		requestsBeforeSelection,
-		"clearing a selection must not write",
-	);
-	assert.equal(await page.evaluate(() => __app.selected.size), 0);
-	await selectCards();
-	await page.locator('[data-action="selected-bookmark"]').click();
-	await saved();
-	let state = await api("/api/v1/workspace");
-	assert.equal(state.state.items[note.id].bookmarked, true);
-	assert.equal(state.state.items[task.id].bookmarked, true);
-	assert.equal(
-		JSON.parse(batchRequests.at(-1).body).operations.length,
-		2,
-		"bulk gesture is one atomic batch",
-	);
-	await selectCards();
-	await page.locator('[data-action="selected-later"]').click();
-	await saved();
-	state = await api("/api/v1/workspace");
-	assert.equal(state.state.items[note.id].later, true);
-	assert.equal(state.state.items[task.id].later, true);
-	assert.equal(JSON.parse(batchRequests.at(-1).body).operations.length, 2);
-	await selectCards();
-	const requestsBeforeTags = batchRequests.length;
-	await page.locator('[data-action="selected-tag"]').click();
-	await page.locator("#tag-new").waitFor();
-	assert.equal(
-		batchRequests.length,
-		requestsBeforeTags,
-		"opening the bulk tag editor must not write",
-	);
-	await page.locator("#note-editor").fill("Cloud note");
-	await page.locator("#tag-new").fill("标签");
-	await action("save-note", note.id);
-	await saved();
-	state = await api("/api/v1/workspace");
-	assert.equal(state.state.items[note.id].note, "Cloud note");
-	assert.deepEqual(state.state.cards.find((card) => card.id === note.id).tags, ["标签"]);
-	assert.deepEqual(state.state.cards.find((card) => card.id === task.id).tags, ["标签"]);
-	assert.equal(JSON.parse(batchRequests.at(-1).body).operations.length, 3);
+	await verifySelectionOperations(page, api, action, saved, note, task, reminder, batchRequests);
+	let state: any;
 	await action("task", task.id, "step1");
 	await saved();
 	assert.deepEqual((await api("/api/v1/workspace")).state.items[task.id].taskDone, ["step1"]);

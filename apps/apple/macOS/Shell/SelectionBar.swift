@@ -34,7 +34,12 @@ struct SelectionBar: View {
         active: selection.allBookmarked, action: intents.bookmark
       )
       .disabled(selection.writing)
-      ToolButton(icon: "glasses", label: Copy.text("web.app.d108c0a7e2c3"), action: intents.later)
+      ToolButton(
+        icon: "glasses",
+        label: Copy.text(selection.allLater ? "web.preview.removeLater" : "web.app.d108c0a7e2c3"),
+        active: selection.allLater, action: intents.later
+      )
+      .disabled(selection.writing)
       ToolButton(icon: "tag", label: Copy.text("web.app.b5816e5fd0be"), action: intents.tag)
       ToolButton(icon: "chat", label: Copy.text("web.selection.toAI"), action: intents.toAI)
       Rectangle().fill(AppleColors.lineHover)
