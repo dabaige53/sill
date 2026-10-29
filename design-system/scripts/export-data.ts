@@ -5,13 +5,13 @@ export function exportDesignData(check = false) {
 	for (const [output, sources] of [
 		[
 			"copy/zh-Hans.json",
-			["apple", "cards", "web-services", "web", "web-ai", "shared", "ai"].map(
+			["apple", "cards", "web-services", "web", "web-ai", "shared", "ai", "installer"].map(
 				(name) => `copy/zh-Hans/${name}.json`,
 			),
 		],
 		[
 			"tokens.json",
-			["foundation", "color", "spacing", "apple"].map((name) => `tokens/${name}.json`),
+			["foundation", "color", "spacing", "apple", "installer"].map((name) => `tokens/${name}.json`),
 		],
 	] as [string, string[]][]) {
 		const merged: Record<string, unknown> = {};

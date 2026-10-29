@@ -1,0 +1,27 @@
+{
+	"installer": {
+		"width": 660,
+		"height": 440,
+		"windowX": 180,
+		"windowY": 140,
+		"titlebarHeight": 28,
+		"iconSize": 88,
+		"labelSize": 14,
+		"appX": 220,
+		"applicationsX": 440,
+		"iconY": 220,
+		"titleY": 66,
+		"titleSize": 28,
+		"subtitleY": 110,
+		"subtitleSize": 15,
+		"footerY": 330,
+		"footerX": 190,
+		"footerWidth": 430,
+		"footerSize": 13,
+		"arrowX": 314,
+		"arrowY": 208,
+		"arrowSize": 24,
+		"arrowStroke": 1.65,
+		"ink": "#36342C"
+	}
+}

@@ -51,7 +51,8 @@
 		"dev": "node scripts/dev.ts",
 		"dev:cloud": "node scripts/dev.ts --cloud",
 		"test:performance-report": "node --import tsx --test tests/apple/*.test.ts",
-		"perf:macos": "node scripts/performance-macos.ts"
+		"perf:macos": "node scripts/performance-macos.ts",
+		"package:macos": "node scripts/package-macos.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",

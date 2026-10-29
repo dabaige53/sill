@@ -8,18 +8,30 @@
 
 正式版本由 `v<package.json version>` tag 固定源码。`.github/workflows/release.yml` 复用全部现行 CI：集成测试、Web 浏览器回归、Postgres 与云端浏览器、授权策略、Swift 后台测试。任一必需检查失败，不生成发布包、不部署。手动重跑也必须选择同一版本 tag，不能使用 main 代替。
 
-通过后分别构建云端文件和 Mac `.app`，下载该次运行的产物再部署，不重新构建。Mac 当前按用户决定仅供内部测试：临时签名、未经公证，ZIP 文件名标注版本和构建 CPU 架构，GitHub Release 标为 prerelease；不宣称支持另一 CPU 架构。
+通过后分别构建云端文件和 Mac `.app`，下载该次运行的产物再部署，不重新构建。Mac 当前按用户决定仅供内部测试：临时签名、未经公证，DMG 文件名标注版本和构建 CPU 架构，GitHub Release 标为 prerelease；不宣称支持另一 CPU 架构。
 
 发布 job 使用 `production` environment。需要 `CLOUDFLARE_API_TOKEN` secret、`SILL_RELEASE_URL` variable，以及 `SILL_DATABASE_VERIFIED_COMMIT` variable。后者必须等于 tag 的完整提交号，只能在核对线上迁移和存量卡片兼容性后填写，是人工检查回执，不是自动数据库验证。该流程不自动清空数据或运行数据库迁移。
 
-`deploy-release.ts` 沿用现有 Worker，继承绑定，核对部署未被另一轮更新，上传已测试产物并重新读取部署，检查健康与匿名会话拒绝。成功后才创建同一 tag 的 GitHub Release，附云端文件、内部 Mac ZIP、部署回执及版本说明。上传结果未知时不自动重试；发布附件失败而云端已更新时，先核对 `deployment.json` 和线上版本，再补发 Release，不重复部署。GitHub artifact 是候选文件，不代表已正式发布。
+`deploy-release.ts` 沿用现有 Worker，继承绑定，核对部署未被另一轮更新，上传已测试产物并重新读取部署，检查健康与匿名会话拒绝。成功后才创建同一 tag 的 GitHub Release，附云端文件、内部 Mac DMG、部署回执及版本说明。上传结果未知时不自动重试；发布附件失败而云端已更新时，先核对 `deployment.json` 和线上版本，再补发 Release，不重复部署。GitHub artifact 是候选文件，不代表已正式发布。
+
+## 单独构建 Mac 安装包
+
+在 GitHub Actions 运行 `Build Sill DMG`（`macos-package.yml`），选择已提交的分支或提交。该流程只构建 Mac App 与 DMG，不创建 Release、不部署云端。Tag 发布复用同一个打包工作流，仍由已有全部检查把关。
+
+产物 `release-macos` 包含 `Sill-<版本>-macOS-<架构>-internal.dmg`、同名 JSON 检查回执和安装背景 PNG。GitHub 下载 artifact 时外层仍是 ZIP；解压后使用其中的 DMG。版本读取根 package.json，架构按实际 runner 标注。
+
+DMG 使用原 App icon、小栖静态背景和指向 /Applications 的“应用程序”快捷方式。用户双击 DMG，拖入应用程序，复制完成后从应用程序打开 Sill，再推出映像。Finder 布局由 runner 的 Finder 写入；若 Finder 无法完成布局，构建失败，不输出无背景的替代包。临时文件放 /private/tmp，最终产物放 dist/macos。
+
+构建检查包含磁盘映像完整性、包内 App 签名、快捷方式目标、背景和布局文件存在性；这些检查不代表真实窗口已验收。独立打包不替代发布流程中的完整测试。
+
+当前仍使用临时签名，未经 Apple 公证；DMG 格式不会消除 Gatekeeper 拦截。正式分发前需配置 Developer ID Application 证书与公证认证，再增加签名、公证和票据附加流程。当前工作流不读取签名凭据，也不宣称已经公证。
 
 ## 1. 在 GitHub 准备候选
 
 1. 本地运行文件检查、检查差异，提交并推送。程序验证由现有 push 工作流执行。
 2. 正式发布时更新产品版本并推送对应 tag，由 `release.yml` 执行发布测试、Web 构建和 Mac 安装包构建。
 3. 查看同一提交或 tag 的 Actions 结果。失败时读取日志、修正源码并推送，不在本地重复完整测试。
-4. 检查通过后，使用该次运行保留的云端文件和 Mac ZIP 部署或安装。不得用本地重新构建的文件替换。
+4. 检查通过后，使用该次运行保留的云端文件和 Mac DMG 部署或安装。不得用本地重新构建的文件替换。
 
 `npm run release:prepare` 保留为用户明确要求本地排查时的工具，不作为默认发布步骤。没有取得云端成功回执时，只报告已提交或检查中，不报告已发布。
 

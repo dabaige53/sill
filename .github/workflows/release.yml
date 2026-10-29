@@ -53,25 +53,7 @@ jobs:
           if-no-files-found: error
   mac-package:
     needs: [integration, web, data, consent, apple]
-    runs-on: macos-26
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '26'
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - run: npm run build:macos
-      - name: Package internal app (ad-hoc signed, not notarized)
-        run: |
-          codesign --verify --deep --strict dist/macos/Sill.app
-          arch=$(uname -m)
-          ditto -c -k --sequesterRsrc --keepParent dist/macos/Sill.app "dist/macos/Sill-${GITHUB_REF_NAME}-macOS-${arch}-internal.zip"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-macos
-          path: dist/macos/*-internal.zip
-          if-no-files-found: error
+    uses: ./.github/workflows/macos-package.yml
   publish:
     needs: [cloud-package, mac-package]
     runs-on: ubuntu-latest

@@ -1,0 +1,28 @@
+name: Build Sill DMG
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build:macos
+      - name: Package and verify internal DMG
+        run: npm run package:macos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: |
+            dist/macos/*-internal.dmg
+            dist/macos/*-internal.json
+            dist/macos/installer-background.png
+          if-no-files-found: error
