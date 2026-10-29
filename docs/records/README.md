@@ -124,3 +124,4 @@
 - [手机文章关闭按钮间距](2026-10-29-article-close-spacing/README.md)
 
 - [手机底部显示问题](2026-10-29-phone-bottom/README.md)
+- [云端、插件与 Mac 更新](2026-10-29-product-refresh/README.md)

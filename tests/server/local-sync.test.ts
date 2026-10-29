@@ -53,7 +53,8 @@ function fixture(t: any, items: any = { a: { note: "original" } }, tags: any = {
 	sync.app = {
 		currentId: "a",
 		editId: "a",
-		modalKind: "editor",
+		editorLayer: { open: true },
+		modalKind: "",
 		grid: { dataset: {} },
 		applyPreferences() {},
 		withFeedAnchor() {},
@@ -146,7 +147,7 @@ test("unrelated remote reading state merges while a note save succeeds", async (
 	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: true } }] }));
 	store.state.items.a.note = "user draft";
 	sync.capture();
-	sync.app.modalKind = "";
+	sync.app.editorLayer.open = false;
 	await sync.flush();
 	assert.equal(sync.failed, false);
 	assert.equal(repo.snapshot().state.items.a.note, "user draft");
@@ -157,7 +158,7 @@ test("lost write response keeps the draft and retry cannot overwrite a newer not
 	const { sync, store, repo, data } = fixture(t);
 	store.state.items.a.note = "user draft";
 	sync.capture();
-	sync.app.modalKind = "";
+	sync.app.editorLayer.open = false;
 	sync.request = async (_path: string, batch: any) => {
 		repo.apply(JSON.parse(JSON.stringify(batch)));
 		throw new Error("response lost");
@@ -174,7 +175,7 @@ test("lost write response keeps the draft and retry cannot overwrite a newer not
 
 test("initial snapshot appears without arrival motion; later snapshots retain update motion", (t) => {
 	const { sync, repo } = fixture(t);
-	sync.app.modalKind = "";
+	sync.app.editorLayer.open = false;
 	const animations: boolean[] = [];
 	sync.app.withFeedAnchor = (_change: () => void, animate: boolean) => animations.push(animate);
 	sync.adopt(repo.apply({ operations: [{ op: "item.patch", id: "a", values: { read: true } }] }));

@@ -47,3 +47,5 @@ Worker 直接提供 /manifest.webmanifest 和现有品牌 PNG。manifest 的 id�
 依据：[WebKit Safari 26](https://webkit.org/blog/17333/webkit-features-in-safari-26-0/#every-site-can-be-a-web-app-on-ios-and-ipados)、[Apple Web App 配置](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)。
 
 播客介绍样式位于 `styles/detail-podcast.css`，通用详情样式位于 `styles/detail-content.css`；两者按 `styles/styles.json` 顺序加载。
+
+`styles/search-suggestions.css` 保存搜索建议行和手机搜索结果区域样式，在 `styles.json` 中紧接 `panels.css` 加载。

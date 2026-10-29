@@ -11,6 +11,7 @@
 	"apps/web/styles/detail-content.css",
 	"apps/web/styles/detail-podcast.css",
 	"apps/web/styles/panels.css",
+	"apps/web/styles/search-suggestions.css",
 	"apps/web/styles/overlay-actions.css",
 	"apps/web/styles/overlay-gestures.css",
 	"apps/web/styles/responsive.css",
