@@ -27,6 +27,8 @@
 
 ## 实现说明
 
+- [品牌素材与展示截图](implementation/brand-assets.md)
+
 - [MCP 接口说明](implementation/agent-mcp.md)
 - [设计系统维护](implementation/design-system.md)
 - [AI 栏实现状态](implementation/design/ai-dock-status.md)

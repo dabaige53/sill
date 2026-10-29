@@ -1,9 +1,9 @@
 {
 	"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
 	"name": "dev-6ad0d805d3e88191a1c8902cf66af046",
-	"description": "sill",
+	"description": "Sill · 窗台：由 AI 助手整理内容的个人卡片工作台。",
 	"author": {
-		"name": "App developer"
+		"name": "wuwenyuan"
 	},
 	"extensions": {
 		"com.openai": {
@@ -11,10 +11,10 @@
 				"capabilities": [],
 				"category": "Other",
 				"defaultPrompt": null,
-				"developerName": "App developer",
-				"displayName": "sill",
-				"longDescription": "sill",
-				"shortDescription": "sill"
+				"developerName": "wuwenyuan",
+				"displayName": "Sill · 窗台",
+				"longDescription": "让助手创建和整理卡片，保留来源与关联内容。在 Sill 阅读文章、查看待办与日程，完成收藏、提醒、标签、备注和归档。外部内容由助手处理，卡片状态不代表外部操作已完成。",
+				"shortDescription": "由 AI 助手整理内容的个人卡片工作台。"
 			},
 			"apps": "./.app.json"
 		}
