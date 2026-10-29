@@ -41,27 +41,26 @@ function downloadCalendar(this: AppController, { id }: ActionContext) {
 				.toISOString()
 				.replace(/[-:]/g, "")
 				.replace(/\.\d{3}/, "");
-	this.download(
-		"sill.ics",
-		`BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Sill//Local//ZH
-BEGIN:VEVENT
-UID:${c.id}@sill.local
-DTSTAMP:${date(Date.now())}
-DTSTART:${date(c.start)}
-DTEND:${date(c.end)}
-SUMMARY:${c.title}
-${
-	c.location
-		? `LOCATION:${c.location}
-`
-		: ""
-}END:VEVENT
-END:VCALENDAR
-`,
-		"text/calendar",
-	);
+	const escapeText = (text: string) =>
+		text
+			.replace(/\\/g, "\\\\")
+			.replace(/;/g, "\\;")
+			.replace(/,/g, "\\,")
+			.replace(/\r\n|\n/g, "\\n");
+	const lines = [
+		"BEGIN:VCALENDAR",
+		"VERSION:2.0",
+		"PRODID:-//Sill//Local//ZH",
+		"BEGIN:VEVENT",
+		`UID:${c.id}@sill.local`,
+		`DTSTAMP:${date(Date.now())}`,
+		`DTSTART:${date(c.start)}`,
+		`DTEND:${date(c.end)}`,
+		`SUMMARY:${escapeText(c.title)}`,
+	];
+	if (c.location) lines.push(`LOCATION:${escapeText(c.location)}`);
+	lines.push("END:VEVENT", "END:VCALENDAR");
+	this.download("sill.ics", lines.join("\r\n") + "\r\n", "text/calendar");
 }
 
 export const externalActions = {
