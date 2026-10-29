@@ -120,4 +120,4 @@
 
 ## 给下一位开发者的简要提醒
 
-先读 `docs/product/requirements.md` 和 `docs/product/interaction-spec.md`。**不要**在没有讨论的情况下恢复侧栏、顶部 Banner、常驻标签栏或大面积按钮文字；这些方案此前已经被用户反复明确否定。产品的中心是内容卡片、时间敏感的轻提醒、按需出现的玻璃控件、拖拽即 AI。
+先读 [产品需求](../../product/PRODUCT.md)（原路径 `docs/product/requirements.md`） 和 `docs/product/interaction-spec.md`。**不要**在没有讨论的情况下恢复侧栏、顶部 Banner、常驻标签栏或大面积按钮文字；这些方案此前已经被用户反复明确否定。产品的中心是内容卡片、时间敏感的轻提醒、按需出现的玻璃控件、拖拽即 AI。

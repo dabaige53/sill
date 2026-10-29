@@ -1,6 +1,6 @@
 # Agent 长期参考
 
-更新：2026-10-27。本目录集中维护 agent 的长期开发、设计、测试、审查和交付规则；按任务选择阅读。产品规则、设计手册、使用说明、专题方案和历史记录保留各自目录，完整导航见[文档目录](../README.md)。
+更新：2026-10-29。本目录集中维护 agent 的长期开发、设计、测试、审查和交付规则；按任务选择阅读。产品规则、设计手册、使用说明、专题方案和历史记录保留各自目录，完整导航见[文档目录](../README.md)。
 
 ## 核对最新决定与代码
 
@@ -26,7 +26,7 @@
 
 | 要做什么 | 先查哪里 |
 | --- | --- |
-| 了解产品与已实现范围 | [产品需求](../product/requirements.md)、[Agent 与 MCP](../product/agent-mcp.md)、[功能矩阵](../product/feature-matrix.md) |
+| 了解产品与已实现范围 | [产品需求](../product/PRODUCT.md)、[Agent 与 MCP](../product/agent-mcp.md)、[功能矩阵](../product/feature-matrix.md) |
 | 开始开发与选择检查 | [开发](development.md)、[代码规范](code-standards.md)、[测试与验证](test.md) |
 | 快速发布与回退 | [快速发布](release.md)：准备候选、部署、刷新工具、验收与留档 |
 | 改界面或核对两端差异 | [设计工作规则](design.md)、[跨端检查](cross-platform-checklist.md)、[交互规范入口](../product/interaction-spec.md)、[界面对账表](../product/ui-alignment.md) |
@@ -81,7 +81,7 @@
 
 | 文档 | 用途与查阅时机 | 更新时机 |
 | --- | --- | --- |
-| [产品需求](../product/requirements.md) | 判断需求是否符合产品目标与范围 | 已确认的目标或业务规则变化 |
+| [产品需求](../product/PRODUCT.md) | 判断需求是否符合产品目标与范围 | 已确认的目标或业务规则变化 |
 | [Agent 驱动与 MCP 连接](../product/agent-mcp.md) | 确认 AI 与界面分工、当前接口及 V1 边界 | 产品分工、接口能力或 V1 范围变化 |
 | [远期执行与能力边界](../product/agent-execution.md) | 讨论内置助手、委托与可靠执行方案 | 远期方案获得确认或能力边界变化 |
 | [功能矩阵](../product/feature-matrix.md) | 比较 Web、Mac、iOS 与云端支持范围 | 实现、发布或验证状态变化 |

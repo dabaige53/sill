@@ -1,6 +1,6 @@
 # 文件管理规范
 
-更新：2026-10-27。文档与代码目录已按第 9 节迁移。当前路径为新增文件的位置依据；旧实现可从 Git 标签 `legacy-final` 查阅。
+更新：2026-10-29。文档与代码目录已按第 9 节迁移。当前路径为新增文件的位置依据；旧实现可从 Git 标签 `legacy-final` 查阅。
 
 本规范管理仓库中的文档、目录、命名、证据和产物。代码写法见 [代码规范](code-standards.md)。决策依据见 ADR [0022](../adr/0022-docs-location-shows-validity.md)、[0023](../adr/0023-three-clients-repo-layout.md)、[0025](../adr/0025-single-product-version.md)。
 
@@ -22,6 +22,7 @@
 | `skills/` | 随产品交付的 agent 技能 |
 | `assets/` | 品牌图标 |
 | `.github/` | CI 与 PR 模板 |
+| `.impeccable/` | Impeccable 工具配置；运行时文件不提交 |
 | `.agents/`、`.codex/` | 本地助手技能与开发环境配置；不属于产品运行代码，不存放凭据 |
 
 根目录只放约定俗成的入口和配置：`README.md`、`AGENTS.md`、`DESIGN.md`、`GLOSSARY.md`、`pr.md`、`package.json`、`package-lock.json`、`tsconfig.json`、`biome.json`、`.swift-format`、`.git-blame-ignore-revs`、`.gitignore`、`.env.example`、`plugin.json`、`.app.json`。环境类型声明放在 `contracts/`，不新增根目录声明文件。新增顶层目录或根文件时，先写 ADR，再更新本表和 `files:check` 的允许列表。
@@ -29,6 +30,10 @@
 依赖方向：`apps/*` 和 `server/*` 只引用 `contracts/` 与 `design-system/`；各端之间互不引用。
 
 Agent 长期工作规则统一放在 `docs/agents/`。根目录 `AGENTS.md` 保留自动加载的约束和导航；`DESIGN.md`、`pr.md` 仅保留指向长期参考的入口，规则正文分别维护在 `docs/agents/design.md` 和 `docs/agents/pr.md`。
+
+`docs/product/PRODUCT.md` 是产品需求与持久产品上下文的唯一正文，由原 `requirements.md` 改名而来；根目录不保留副本、入口或符号链接。见 [产品文档合并决策](../adr/0087-product-context-single-source.md)。
+
+使用 skill 或插件时，先查找已有同类文档，优先将已有文件适配为其要求的文件名，位置仍遵循项目的 `docs/` 规范。不得通过新建链接入口、符号链接、复制或另写正文形成第二份文档。此类改名、移动、合并或适配修改前，须说明涉及文件和影响并请求用户确认；当前请求已明确授权的具体修改可直接执行。工具不能自动发现时，直接读取实际文件，不因此增设根目录入口。
 
 ## 2. 文档按是否有效分目录
 
@@ -55,7 +60,7 @@ Agent 长期工作规则统一放在 `docs/agents/`。根目录 `AGENTS.md` 保�
 ## 3. 命名
 
 - 新路径一律使用小写 kebab-case，例如 `docs/guides/plugin-runbook.md`。目录名已表达类别时，文件名不重复前缀。
-- 例外：`README.md`、`AGENTS.md`、`DESIGN.md`、`GLOSSARY.md`、`SKILL.md` 等约定文件名；归档文档保留原文件名。
+- 例外：`README.md`、`AGENTS.md`、`DESIGN.md`、`PRODUCT.md`、`GLOSSARY.md`、`SKILL.md` 等约定文件名；归档文档保留原文件名。
 - 记录：`docs/records/YYYY-MM-DD-topic/README.md`，一件事一个目录；同一天的多件事各用一个目录。
 - ADR：`docs/adr/NNNN-topic.md`，编号从 0022 起递增；分配前检查 `docs/adr/` 中的最大编号。
 - 发布快照：`deploy/releases/YYYY-MM-DD-<端>/`，清单中写明产品版本；已有快照保持原样。

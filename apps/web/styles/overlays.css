@@ -87,6 +87,14 @@ dialog::backdrop {
 }
 /* The head floats over the content: no band of white above the text. Its round buttons tuck away with
    the toolbar while reading on, and come back on a pause over a soft edge. */
+/* Keep the open desktop card on its own layer after the growth transform is removed.
+   This avoids switching the clipped content and glass controls between layers at that boundary.
+   Only the visible preview retains this layer; closing the dialog releases it. */
+@media (min-width: 651px) {
+	:is(#modal, .phone-layer).preview[open] > .preview-sheet {
+		will-change: transform;
+	}
+}
 .preview-sheet.is-full {
 	height: 100dvh;
 	max-height: 100dvh;

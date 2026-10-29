@@ -19,3 +19,7 @@ apps/apple/.swiftpm/
 .ruff_cache/
 
 supabase/.temp/
+
+# Impeccable local runtime; keep shared workflow configuration.
+.impeccable/*
+!.impeccable/config.json

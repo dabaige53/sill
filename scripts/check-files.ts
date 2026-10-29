@@ -11,6 +11,7 @@ const roots = new Set<any>([
 	".claude",
 	".agents",
 	".codex",
+	".impeccable",
 	".gitignore",
 	".env.example",
 	".app.json",

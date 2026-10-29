@@ -1,12 +1,12 @@
 # 文档目录
 
-更新：2026-10-27。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](agents/file-management.md)。
+更新：2026-10-29。本页是唯一文档导航。启动方式见 [项目说明](../README.md)。存放规则见 [文件管理规范](agents/file-management.md)。
 
 长期工作规则、查阅顺序和维护要求见 [Agent 长期参考](agents/README.md)。
 
 ## 产品规则
 
-- [产品需求](product/requirements.md)
+- [产品需求与产品上下文](product/PRODUCT.md)
 - [Agent 驱动与 MCP 连接](product/agent-mcp.md)
 - [远期执行与能力边界](product/agent-execution.md)
 - [功能矩阵](product/feature-matrix.md)
@@ -116,6 +116,8 @@
 - [手机内容文字起点](adr/0068-phone-text-scale.md)
 - [纵向间距分六级](adr/0069-vertical-rhythm.md)
 
+
+- [产品需求统一为 docs 内的 PRODUCT.md](adr/0087-product-context-single-source.md)
 
 ## 记录
 
