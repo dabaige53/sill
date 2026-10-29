@@ -161,7 +161,7 @@ struct CardModel: Identifiable, Equatable, Sendable {
   }
 
   private static let readingKinds: Set<CardKind> = [
-    .article, .note, .mail, .digest, .suggestion, .file,
+    .article, .digest,
   ]
 
   /// 400 Chinese characters or 200 words per minute, rounded up (ADR 0086, Web `readingMinutes`).

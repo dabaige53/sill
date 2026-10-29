@@ -131,7 +131,7 @@
 	.feed-item :is(.card-head, .sender) {
 		padding-right: 0;
 	}
-	/* Keep sender and source on separate lines, aligned beside the portrait. */
+	/* Keep mail metadata on one line beside the portrait. */
 	.feed-item .sender {
 		gap: var(--space-8);
 	}
@@ -143,12 +143,11 @@
 	}
 	.feed-item .sender > span:last-child {
 		flex: 1;
-		flex-direction: column;
-		align-items: stretch;
-		gap: var(--space-4);
+		flex-direction: row;
+		align-items: center;
+		gap: var(--space-8);
 		min-width: 0;
-		white-space: normal;
-		overflow-wrap: anywhere;
+		white-space: nowrap;
 	}
 	.feed-item .sender b {
 		font-size: calc(var(--text-meta) * var(--content-text-scale, 1));

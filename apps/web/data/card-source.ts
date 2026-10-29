@@ -80,7 +80,7 @@ export function detailSource(card: Pick<Card, "sources">): string {
 	].join(" · ");
 }
 
-const readingTypes = ["article", "note", "mail", "digest", "suggestion", "file"];
+const readingTypes = ["article", "digest"];
 
 /** Minutes to read a Markdown body: 400 Chinese characters or 200 English words per minute (ADR 0086). */
 export function readingMinutes(body: string | undefined): number {

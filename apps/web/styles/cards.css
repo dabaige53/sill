@@ -333,8 +333,11 @@
 }
 .sender > span:last-child {
 	display: flex;
-	flex-direction: column;
+	align-items: center;
+	gap: var(--space-8);
 	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
 }
 .sender b {
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));

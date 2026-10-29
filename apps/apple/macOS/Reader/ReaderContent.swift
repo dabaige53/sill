@@ -206,8 +206,8 @@ struct ReaderContent: View {
     if let sender = card.sender {
       HStack(spacing: AppleMetrics.space10) {
         Avatar(name: sender, size: AppleMetrics.space36)
-        VStack(alignment: .leading, spacing: 0) {
-          Text(sender).textStyle(AppleMetrics.font15, .bold).foregroundStyle(AppleColors.primary)
+        HStack(spacing: AppleMetrics.space8) {
+          Text(sender).lineLimit(1).textStyle(AppleMetrics.font15, .bold).foregroundStyle(AppleColors.primary)
           HStack(spacing: AppleMetrics.space6) {
             SourceIcon(card: card, size: AppleMetrics.font12)
             Text(
@@ -217,7 +217,7 @@ struct ReaderContent: View {
                 }
                 .joined(separator: " · ")
             )
-            .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary)
+            .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
           }
         }
       }

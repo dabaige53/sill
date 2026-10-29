@@ -2277,8 +2277,11 @@ body:has(:is(#modal, .phone-layer)[open].page .settings-layout) .home-top:not(.i
 }
 .sender > span:last-child {
 	display: flex;
-	flex-direction: column;
+	align-items: center;
+	gap: var(--space-8);
 	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
 }
 .sender b {
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
@@ -3318,7 +3321,11 @@ dialog::backdrop {
 }
 .preview-sender > span:last-child {
 	display: flex;
-	flex-direction: column;
+	align-items: center;
+	gap: var(--space-8);
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
 }
 .preview-sender b {
 	font-size: calc(var(--text-body) * var(--content-text-scale, 1));
@@ -4785,7 +4792,6 @@ body.has-open-search #feed-grid {
 		line-height: var(--space-32);
 	}
 }
-
 
 /* Phone card suggestions: one-line rows like the Web Combobox, shown only while the keyboard is up. */
 .search-suggest {

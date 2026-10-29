@@ -287,10 +287,8 @@ struct CardBlock: View {
     if let sender = card.sender {
       HStack(spacing: AppleMetrics.space10) {
         Avatar(name: sender, size: AppleMetrics.space32)
-        VStack(alignment: .leading, spacing: 0) {
-          Text(sender).textStyle(AppleMetrics.font14, .semibold).fixedSize(
-            horizontal: false, vertical: true
-          )
+        HStack(spacing: AppleMetrics.space8) {
+          Text(sender).textStyle(AppleMetrics.font14, .semibold).lineLimit(1)
           .foregroundStyle(AppleColors.primary)
           HStack(spacing: AppleMetrics.space4) {
             SourceIcon(card: card, size: AppleMetrics.font12)
@@ -298,8 +296,7 @@ struct CardBlock: View {
               [card.sourceName, date, card.readingTime].filter { !$0.isEmpty }
                 .joined(separator: " · ")
             )
-            .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).fixedSize(
-              horizontal: false, vertical: true)
+            .textStyle(AppleMetrics.font12).foregroundStyle(AppleColors.secondary).lineLimit(1)
           }
         }
       }
@@ -373,9 +370,13 @@ struct CardBlock: View {
   @ViewBuilder private var files: some View {
     let limit = entry.number("limit") ?? Int.max
     if !card.files.isEmpty {
-      VStack(alignment: .leading, spacing: AppleMetrics.space6) {
+      VStack(alignment: .leading, spacing: 0) {
+        Divider()
         ForEach(Array(card.files.prefix(limit).enumerated()), id: \.offset) { _, file in
-          FileRow(name: file.name, image: file.isImage, pill: true)
+          DetailRow(
+            icon: file.isImage ? "image" : "file", title: file.name,
+            detail: file.detail, trailing: file.modifiedAt.flatMap(ReaderContent.fullDate) ?? "")
+          Divider()
         }
       }
       .padding(.top, AppleMetrics.space2)

@@ -104,6 +104,7 @@ export function PullRequest({
 					</div>
 				)}
 			</header>
+			{!detail && card.summary && <p className="card-summary">{card.summary}</p>}
 			{!detail && pr && (
 				<div className="pr-footer">
 					<div className="pr-reviewers">

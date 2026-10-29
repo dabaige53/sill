@@ -38,7 +38,7 @@ export function FileList({ files = [] }: { files?: Card["files"] }) {
 	return files.length ? (
 		<section className="detail-section">
 			<h2>{copy("web.card.files")}</h2>
-			<div className="detail-rows">
+			<div className="detail-rows detail-file-rows">
 				{files.map((file) => {
 					const content = (
 						<>

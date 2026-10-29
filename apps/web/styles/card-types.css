@@ -326,3 +326,15 @@ a.detail-row:hover {
 	fill: currentColor;
 	stroke: none;
 }
+
+.sender :is(b, small),
+.preview-sender :is(b, small) {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+:is(.type-file, .type-mail) .file-rows,
+.detail-file-rows {
+	border-block: 1px solid var(--line);
+}

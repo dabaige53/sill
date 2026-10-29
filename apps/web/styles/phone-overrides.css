@@ -43,8 +43,8 @@
 	/* Safari redraws every blur under the scaled, rounded page on each frame. The page is dimmed
 	   under the detail, so its glass stays flat while the drawer is open. A zero blur, not none:
 	   iOS builds a new glass layer when the filter comes back, and the top bar and the dock
-	   vanished for a frame as the drawer finished closing. The dock keeps its glass: it is small,
-	   and turning it clear changed its colour in one frame as the drawer opened and closed. */
+	   vanished for a frame as the drawer finished closing. The dock's bars have no glass on a
+	   phone (below), so nothing there changes as the drawer opens and closes. */
 	[data-vaul-drawer-wrapper] > :not(#dock) {
 		--glass-filter: blur(0);
 		--edge-blur-soft: blur(0);
@@ -114,10 +114,12 @@
 		border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
 		outline: none;
 	}
+	/* iOS paints the drawer as one large tiled layer, and on a first open its lower tiles arrived a few
+	   frames after the slide began: every card showed the page through the drawer's lower half.
+	   Vaul's overdrag fill (transparent here, so it painted nothing) stretched that layer to three
+	   times the drawer's height; without it the layer is only the drawer. */
 	:is(#modal, .phone-layer).preview .phone-drawer::after {
-		/* Keep Vaul’s scroll boundary without painting over the black bottom inset. */
-		background: transparent;
-		pointer-events: none;
+		content: none;
 	}
 	.phone-drawer .sheet-handle {
 		display: none;
@@ -143,8 +145,29 @@
 		overscroll-behavior: contain;
 		height: auto;
 		max-height: calc(100dvh - env(safe-area-inset-top) - 24px - env(safe-area-inset-bottom));
+		/* The scroller is a layer of its own and painted in time, but its text had no fill under it.
+		   It carries the sheet's fill, so content never depends on the drawer layer's late tiles. */
+		background: inherit;
+		border-radius: inherit;
 	}
 	:is(#modal, .phone-layer).preview .phone-drawer > .float-bar {
 		position: absolute;
+		/* Without phone glass the toolbar fell into the drawer layer and arrived with its late tiles. */
+		will-change: transform;
+	}
+}
+
+/* Phone bottom capsules use a near-solid fill instead of live glass. iOS rebuilt their blur whenever
+   the page started or stopped scaling under a card, and while the rail faded back in the blur was
+   cut off and snapped in on the last frame: the capsules blinked. The glass rules stay for wider
+   windows; remove this block to bring the phone glass back. */
+@media (max-width: 650px) {
+	#dock .glass,
+	#search-selection-bar.glass,
+	.float-bar.glass,
+	#toast.glass {
+		background: var(--glass-thick);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
 	}
 }

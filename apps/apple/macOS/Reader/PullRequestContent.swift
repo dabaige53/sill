@@ -53,6 +53,9 @@ struct PullRequestContent: View {
         if detail {
           details(pr)
         } else {
+          if !card.summary.isEmpty {
+            CardSummary(text: card.summary, query: "", indent: 0)
+          }
           footer(pr)
         }
       }

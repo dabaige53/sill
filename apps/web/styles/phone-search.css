@@ -157,6 +157,14 @@
 	body.keyboard-open :is(:is(#modal, .phone-layer), #search-background).page.search {
 		padding-bottom: calc(var(--space-16) + var(--kb, 0px));
 	}
+	/* Editing hides the capsule (search-suggestions.css). Its place stood empty under the results
+	   and cut the last cards off mid-card; the results now run to the screen foot instead. */
+	body:not(.keyboard-open) :is(#modal, .phone-layer).page.search.search-editing[open] {
+		padding-bottom: 0;
+	}
+	body:not(.keyboard-open) :is(#modal, .phone-layer).page.search.search-editing[open] .search-results {
+		padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-24));
+	}
 	.search-card-grid {
 		gap: var(--gap-sm);
 	}
